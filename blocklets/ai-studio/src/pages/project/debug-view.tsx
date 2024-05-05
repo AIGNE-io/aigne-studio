@@ -330,6 +330,8 @@ function CustomAvatar({ role, projectId, gitRef }: { role: Role; projectId: stri
     state: { project },
   } = useProjectState(projectId, gitRef);
 
+  if (!project) return null;
+
   if (role === 'user') {
     return (
       <Box>
@@ -348,7 +350,7 @@ function CustomAvatar({ role, projectId, gitRef }: { role: Role; projectId: stri
     <Box>
       <Box
         component="img"
-        src={project?.icon || getProjectIconUrl(projectId) || blocklet?.appLogo}
+        src={project?.icon || getProjectIconUrl(projectId, project.updatedAt) || blocklet?.appLogo}
         sx={{ borderRadius: 32, maxWidth: 32, maxHeight: 32 }}
       />
     </Box>

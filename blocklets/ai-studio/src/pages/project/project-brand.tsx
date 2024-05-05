@@ -32,7 +32,7 @@ export default function ProjectBrand() {
       <Stack flexDirection="row" alignItems="center" gap={1}>
         <Box
           component="img"
-          src={project.icon || getProjectIconUrl(projectId) || blocklet?.appLogo}
+          src={project.icon || getProjectIconUrl(projectId, project.updatedAt) || blocklet?.appLogo}
           sx={{ borderRadius: 1, maxWidth: 32, maxHeight: 32 }}
         />
         <Typography variant="h6">{project.name || t('unnamed')}</Typography>

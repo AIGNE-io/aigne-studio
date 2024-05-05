@@ -1,7 +1,16 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { getSupportedImagesModels, getSupportedModels } from '@blocklet/ai-runtime/common';
 import { ImageModelInfo, TextModelInfo } from '@blocklet/ai-runtime/types';
-import { Box, ListItemText, MenuItem, TextField, TextFieldProps, menuItemClasses } from '@mui/material';
+import {
+  Box,
+  ListItemIcon,
+  ListItemText,
+  MenuItem,
+  TextField,
+  TextFieldProps,
+  filledInputClasses,
+  menuItemClasses,
+} from '@mui/material';
 import { useAsync } from 'react-use';
 
 import AzureIcon from './ai-icons/azure';
@@ -24,29 +33,7 @@ export default function ModelSelectField({ isImageModel, ...props }: { isImageMo
   if (loading) return null;
 
   return (
-    <TextField
-      {...props}
-      select
-      SelectProps={{
-        ...props.SelectProps,
-        renderValue: (m) => {
-          const model = value?.find((i) => i.model === m);
-          if (!model) return null;
-
-          return (
-            <Box mt={-0.5} display="flex" alignItems="center" gap={0.5}>
-              <Box width={16} height={16}>
-                {brandIcon(model.brand)}
-              </Box>
-              <ListItemText
-                sx={{ display: 'inline-flex', alignItems: 'baseline' }}
-                primary={model.name || model.model}
-              />
-            </Box>
-          );
-        },
-      }}
-      sx={{ border: '1px solid #E5E7EB', borderRadius: 1 }}>
+    <TextField {...props} select sx={{ [`.${filledInputClasses.root}`]: { border: '1px solid #E5E7EB' } }}>
       {value?.map((model) => {
         const icon = brandIcon(model!.brand);
 
@@ -57,9 +44,8 @@ export default function ModelSelectField({ isImageModel, ...props }: { isImageMo
             disabled={model.disabled}
             sx={{ [`&.${menuItemClasses.disabled}`]: { opacity: 1 } }}>
             <Box display="flex" gap={1} alignItems="center">
-              <Box className="center" width={16} height={16}>
-                {icon}
-              </Box>
+              <ListItemIcon>{icon}</ListItemIcon>
+
               <ListItemText
                 sx={{ display: 'inline-flex', alignItems: 'baseline' }}
                 primary={model.name || model.model}
