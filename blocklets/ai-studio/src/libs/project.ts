@@ -114,13 +114,7 @@ export function getProjectIconUrl(
   if (!projectId) return '';
   const component = blocklet?.componentMountPoints.find((i) => i.did === AI_STUDIO_COMPONENT_DID);
   return withQuery(
-    joinURL(component?.mountPoint || '', `/api/projects/${projectId}/logo.png`),
-    original
-      ? {}
-      : {
-          imageFilter: 'resize',
-          w: 140,
-          version: updatedAt,
-        }
+    joinURL(window.location.origin, component?.mountPoint || '', `/api/projects/${projectId}/logo.png`),
+    original ? { version: updatedAt } : { imageFilter: 'resize', w: 140, version: updatedAt }
   );
 }
