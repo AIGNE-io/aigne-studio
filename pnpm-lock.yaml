@@ -368,6 +368,9 @@ importers:
       openai:
         specifier: ^3.3.0
         version: 3.3.0
+      pdf2json:
+        specifier: ^3.0.5
+        version: 3.0.5
       prettier:
         specifier: ^3.2.5
         version: 3.2.5
@@ -16805,6 +16808,14 @@ packages:
       safe-buffer: 5.2.1
       sha.js: 2.4.11
     dev: true
+
+  /pdf2json@3.0.5:
+    resolution: {integrity: sha512-Un1yLbSlk/zfwrltgguskExIioXZlFSFwsyXU0cnBorLywbTbcdzmJJEebh+U2cFCtR7y8nDs5lPHAe7ldxjZg==}
+    engines: {node: '>=18.12.1', npm: '>=8.19.2'}
+    hasBin: true
+    dev: false
+    bundledDependencies:
+      - '@xmldom/xmldom'
 
   /pdfjs-dist@3.11.174:
     resolution: {integrity: sha512-TdTZPf1trZ8/UFu5Cx/GXB7GZM30LT+wWUNfsi6Bq8ePLnb+woNKtDymI2mxZYBpMbonNFqKmiz684DIfnd8dA==}
