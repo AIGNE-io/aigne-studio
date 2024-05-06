@@ -193,7 +193,16 @@ export function outputVariablesToJsonSchema(variables: OutputVariable[], datasto
       items: variable.type === 'array' && variable.element ? variableToSchema(variable.element) : undefined,
       required:
         variable.type === 'object' && variable.properties?.length
-          ? variable.properties.filter((i) => i.name && i.required).map((i) => i.name)
+          ? variable.properties
+              .filter(
+                (i) =>
+                  i.name &&
+                  (i.required ||
+                    (runtimeOutputVariableSet.has(i.name as RuntimeOutputVariable) &&
+                      runtimeVariablesSchema[i.name as RuntimeOutputVariable] &&
+                      !ignoreJsonSchemaOutputs.has(i.name as RuntimeOutputVariable)))
+              )
+              .map((i) => i.name)
           : undefined,
     };
   };
@@ -269,6 +278,8 @@ export enum RuntimeOutputVariable {
   appearanceOutput = '$appearance.output',
   children = '$children',
 }
+
+const runtimeOutputVariableSet = new Set(Object.values(RuntimeOutputVariable));
 
 const ignoreJsonSchemaOutputs: Set<RuntimeOutputVariable> = new Set([
   RuntimeOutputVariable.text,
