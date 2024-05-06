@@ -1,3 +1,7 @@
+## 0.1.371 (2024-5-6)
+
+- fix: downgrade isomorphic-git to resolve icon oops problem
+
 ## 0.1.370 (2024-5-5)
 
 - fix: improve project icon loading speed
