@@ -30,6 +30,7 @@ overrides:
   '@types/react': ^18.3.1
   '@types/react-dom': ^18.3.0
   axios: ^1.6.8
+  isomorphic-git: 1.25.7
   gpt-tokens: 1.2.0
   react-dnd: ^16.0.1
   react-dnd-html5-backend: ^16.0.1
@@ -303,8 +304,8 @@ importers:
         specifier: ^10.1.1
         version: 10.1.1
       isomorphic-git:
-        specifier: ^1.25.8
-        version: 1.25.8
+        specifier: 1.25.7
+        version: 1.25.7
       joi:
         specifier: ^17.13.1
         version: 17.13.1
@@ -699,8 +700,8 @@ importers:
         specifier: ^11.2.0
         version: 11.2.0
       isomorphic-git:
-        specifier: ^1.25.8
-        version: 1.25.8
+        specifier: 1.25.7
+        version: 1.25.7
       lib0:
         specifier: ^0.2.93
         version: 0.2.93
@@ -12930,8 +12931,8 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
-  /isomorphic-git@1.25.8:
-    resolution: {integrity: sha512-OEiufTOmoVOsbVYTlNxIdzv8FPrJ1wMeFVajRTZqRgD5zEMsQqNZFxe2DAzA94L+SuIFp5rxzizxoIQYbrk9FA==}
+  /isomorphic-git@1.25.7:
+    resolution: {integrity: sha512-KE10ejaIsEpQ+I/apS33qqTjyzCXgOniEaL32DwNbXtboKG8H3cu+RiBcdp3G9w4MpOOTQfGPsWp4i8UxRfDLg==}
     engines: {node: '>=12'}
     hasBin: true
     dependencies:
