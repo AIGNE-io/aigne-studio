@@ -1,3 +1,7 @@
+## 0.1.372 (2024-5-7)
+
+- fix: optimize system prompts to get better response
+
 ## 0.1.371 (2024-5-6)
 
 - fix: downgrade isomorphic-git to resolve icon oops problem
