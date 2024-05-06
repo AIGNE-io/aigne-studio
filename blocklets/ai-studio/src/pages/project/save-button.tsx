@@ -4,6 +4,7 @@ import { getDefaultBranch, useCurrentGitStore } from '@app/store/current-git-sto
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
+import FloppyIcon from '@iconify-icons/tabler/device-floppy';
 import { DownloadRounded, UploadRounded, WarningRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
@@ -186,11 +187,7 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
           border: '1px solid #E5E7EB',
           color: '#030712',
         }}>
-        <Box
-          component={Icon}
-          icon="tabler:device-floppy"
-          sx={{ opacity: submitting ? 0 : 1, fontSize: 20, color: 'inherit' }}
-        />
+        <Box component={Icon} icon={FloppyIcon} sx={{ opacity: submitting ? 0 : 1, fontSize: 20, color: 'inherit' }} />
         {submitting && (
           <Box
             sx={{
@@ -271,7 +268,7 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
                 disabled={readOnly}
                 type="submit"
                 variant="contained"
-                startIcon={<Box component={Icon} icon="tabler:device-floppy" sx={{ fontSize: 20, color: '#fff' }} />}
+                startIcon={<Box component={Icon} icon={FloppyIcon} sx={{ fontSize: 20, color: '#fff' }} />}
                 loadingPosition="start"
                 loading={form.formState.isSubmitting}>
                 {t('save')}

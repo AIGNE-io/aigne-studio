@@ -6,6 +6,19 @@ import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
 import { cx } from '@emotion/css';
 import { Icon } from '@iconify-icon/react';
+import GithubIcon from '@iconify-icons/tabler/brand-github';
+import BrandGithubFilledIcon from '@iconify-icons/tabler/brand-github-filled';
+import ChevronDownIcon from '@iconify-icons/tabler/chevron-down';
+import CopyIcon from '@iconify-icons/tabler/copy';
+import DotsVerticalIcon from '@iconify-icons/tabler/dots-vertical';
+import FilePlusIcon from '@iconify-icons/tabler/file-plus';
+import PencilIcon from '@iconify-icons/tabler/pencil';
+import PinIcon from '@iconify-icons/tabler/pin';
+import PinnedOffIcon from '@iconify-icons/tabler/pinned-off';
+import PlusIcon from '@iconify-icons/tabler/plus';
+import RefreshIcon from '@iconify-icons/tabler/refresh';
+import TransferIcon from '@iconify-icons/tabler/transfer-in';
+import TrashIcon from '@iconify-icons/tabler/trash';
 import RocketLaunchRoundedIcon from '@mui/icons-material/RocketLaunchRounded';
 import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
 import {
@@ -154,7 +167,7 @@ function TemplatesProjects({ list }: { list?: ProjectWithUserInfo[] }) {
                 onClick={() => {
                   setDialog(<ImportFromGit onClose={() => setDialog(null)} />);
                 }}>
-                <Box component={Icon} icon="tabler:brand-github" sx={{ mr: 1 }} />
+                <Box component={Icon} icon={GithubIcon} sx={{ mr: 1 }} />
                 <ListItemText sx={{ fontSize: 13, lineHeight: '22px' }}>{t('gitRepo')}</ListItemText>
               </MenuItem>
 
@@ -167,7 +180,7 @@ function TemplatesProjects({ list }: { list?: ProjectWithUserInfo[] }) {
               </MenuItem>
             </MenuList>
           }>
-          <Button variant="outlined" startIcon={<Icon icon="tabler:transfer-in" />}>
+          <Button variant="outlined" startIcon={<Box component={Icon} icon={TransferIcon} />}>
             {t('alert.import')}
           </Button>
         </ButtonPopper>
@@ -181,7 +194,7 @@ function TemplatesProjects({ list }: { list?: ProjectWithUserInfo[] }) {
                   onClick={() => {
                     setDialog(<ImportFromBlank item={blank} onClose={() => setDialog(null)} />);
                   }}>
-                  <Box component={Icon} icon="tabler:plus" sx={{ mr: 1 }} />
+                  <Box component={Icon} icon={PlusIcon} sx={{ mr: 1 }} />
                   <ListItemText sx={{ fontSize: 13, lineHeight: '22px' }}>{t('blank')}</ListItemText>
                 </MenuItem>
 
@@ -189,18 +202,18 @@ function TemplatesProjects({ list }: { list?: ProjectWithUserInfo[] }) {
                   onClick={() => {
                     setDialog(<ImportFromTemplates templates={resource} onClose={() => setDialog(null)} />);
                   }}>
-                  <Box component={Icon} icon="tabler:file-plus" sx={{ mr: 1 }} />
+                  <Box component={Icon} icon={FilePlusIcon} sx={{ mr: 1 }} />
                   <ListItemText sx={{ fontSize: 13, lineHeight: '22px' }}>{t('agents')}</ListItemText>
                 </MenuItem>
               </MenuList>
             }>
-            <Button startIcon={<Box component={Icon} icon="tabler:plus" />} variant="contained">
+            <Button startIcon={<Box component={Icon} icon={PlusIcon} />} variant="contained">
               {t('newObject', { object: t('project') })}
             </Button>
           </ButtonPopper>
         ) : (
           <Button
-            startIcon={<Box component={Icon} icon="tabler:plus" />}
+            startIcon={<Box component={Icon} icon={PlusIcon} />}
             variant="contained"
             onClick={() => {
               setDialog(<ImportFromBlank item={blank} onClose={() => setDialog(null)} />);
@@ -260,7 +273,7 @@ function ProjectMenu() {
         {
           visible: () => menuAnchor?.section === 'projects',
           title: t('alert.edit'),
-          icon: <Box component={Icon} icon="tabler:pencil" />,
+          icon: <Box component={Icon} icon={PencilIcon} />,
           onClick: () => {
             const id = menuAnchor?.id;
             if (!id) return;
@@ -319,7 +332,7 @@ function ProjectMenu() {
         {
           visible: () => menuAnchor?.section === 'projects' || menuAnchor?.section === 'examples',
           title: t('copyToMyProjects'),
-          icon: <Box component={Icon} icon="tabler:copy" />,
+          icon: <Box component={Icon} icon={CopyIcon} />,
           onClick: async () => {
             checkProjectLimit();
 
@@ -341,9 +354,9 @@ function ProjectMenu() {
           visible: () => menuAnchor?.section === 'projects',
           title: item?.pinnedAt ? t('unpin') : t('pin'),
           icon: item?.pinnedAt ? (
-            <Box component={Icon} icon="tabler:pinned-off" />
+            <Box component={Icon} icon={PinnedOffIcon} />
           ) : (
-            <Box component={Icon} icon="tabler:pin" />
+            <Box component={Icon} icon={PinIcon} />
           ),
           onClick: async () => {
             const id = menuAnchor?.id;
@@ -360,7 +373,7 @@ function ProjectMenu() {
         },
         {
           visible: () => menuAnchor.section === 'projects',
-          icon: <Box component={Icon} icon="tabler:trash" color="warning.main" />,
+          icon: <Box component={Icon} icon={TrashIcon} color="warning.main" />,
           title: t('delete'),
           color: 'warning.main',
           onClick: () => {
@@ -370,7 +383,7 @@ function ProjectMenu() {
         },
         {
           visible: () => menuAnchor.section === 'examples' && !item.isFromResource && !!item.duplicateFrom,
-          icon: <Box component={Icon} icon="tabler:refresh" color="warning.main" />,
+          icon: <Box component={Icon} icon={RefreshIcon} color="warning.main" />,
           title: t('reset'),
           color: 'warning.main',
           onClick: () => {
@@ -480,7 +493,7 @@ function Section({
             <IconButton size="small" sx={{ m: 0, p: 0 }}>
               <Box
                 component={Icon}
-                icon="tabler:chevron-down"
+                icon={ChevronDownIcon}
                 sx={{
                   transform: `rotateZ(${templatesVisible ? '-180deg' : '0deg'})`,
                   transition: (theme) => theme.transitions.create('all'),
@@ -642,7 +655,7 @@ function ProjectList({
                       e.stopPropagation();
                       setMenuAnchor({ section, anchor: e.currentTarget, id: item._id! });
                     }}>
-                    <Box component={Icon} icon="tabler:dots-vertical" fontSize={20} />
+                    <Box component={Icon} icon={DotsVerticalIcon} fontSize={20} />
                   </IconButton>
                 )
               }
@@ -792,7 +805,7 @@ function ProjectItem({
                   onClick={(e) => {
                     e.stopPropagation();
                   }}>
-                  <Box component={Icon} icon="tabler:brand-github-filled" fontSize={16} />
+                  <Box component={Icon} icon={BrandGithubFilledIcon} fontSize={16} />
                 </Box>
               </Tooltip>
             )}

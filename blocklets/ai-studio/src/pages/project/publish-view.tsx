@@ -4,6 +4,8 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { AssistantYjs } from '@blocklet/ai-runtime/types';
 import ComponentInstaller from '@blocklet/ui-react/lib/ComponentInstaller';
 import { Icon } from '@iconify-icon/react';
+import CopyIcon from '@iconify-icons/tabler/copy';
+import ShareIcon from '@iconify-icons/tabler/device-desktop-share';
 import {
   Box,
   Button,
@@ -77,18 +79,14 @@ function PublishViewContent({
         },
       }}>
       <Stack gap={1} px={2} py={2}>
-        <Button
-          variant="outlined"
-          href={previewUrl}
-          target="_blank"
-          endIcon={<Icon icon="tabler:device-desktop-share" />}>
+        <Button variant="outlined" href={previewUrl} target="_blank" endIcon={<Icon icon={ShareIcon} />}>
           {t('previewInNewTab')}
         </Button>
 
         <Tooltip title={copied ? t('copied') : undefined} placement="top" disableInteractive>
           <Button
             variant="outlined"
-            endIcon={<Icon icon={copied ? 'tabler:copy-check' : 'tabler:copy'} />}
+            endIcon={<Icon icon={copied ? 'copy-check' : CopyIcon} />}
             onClick={() => {
               navigator.clipboard.writeText(previewUrl);
               setCopied(true);

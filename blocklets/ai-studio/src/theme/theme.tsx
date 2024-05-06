@@ -1,4 +1,5 @@
 import { Icon } from '@iconify-icon/react';
+import ChevronDownIcon from '@iconify-icons/tabler/chevron-down';
 import { loadingButtonClasses } from '@mui/lab';
 import {
   Box,
@@ -767,5 +768,5 @@ export const theme = createTheme({
 });
 
 function SelectIcon(props: BoxProps) {
-  return <Box {...props} component={Icon} icon="tabler:chevron-down" />;
+  return <Box {...props} component={Icon} icon={ChevronDownIcon} />;
 }

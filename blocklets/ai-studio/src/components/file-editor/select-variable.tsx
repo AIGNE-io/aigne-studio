@@ -1,6 +1,7 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { VariableYjs } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
+import TrashIcon from '@iconify-icons/tabler/trash';
 import { Autocomplete, Box, IconButton, MenuItem, TextField, Typography, createFilterOptions } from '@mui/material';
 import { cloneDeep } from 'lodash';
 import { useMemo } from 'react';
@@ -108,7 +109,7 @@ function SelectVariable({
 
         {onDelete && (
           <IconButton onClick={onDelete}>
-            <Box component={Icon} icon="tabler:trash" color="warning.main" fontSize={16} />
+            <Box component={Icon} icon={TrashIcon} color="warning.main" fontSize={16} />
           </IconButton>
         )}
       </Box>
@@ -125,15 +126,6 @@ function SelectVariable({
           </Box>
         </Box>
       )}
-
-      {/* <Button
-        sx={{ ml: -0.5 }}
-        endIcon={<Box component={Icon} icon="tabler:arrow-right" />}
-        onClick={() => {
-          navigate(`/projects/${projectId}/variables/${gitRef}`);
-        }}>
-        {t('newObject', { object: t('memory.title') })}
-      </Button> */}
     </Box>
   );
 }

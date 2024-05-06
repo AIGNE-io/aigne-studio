@@ -2,6 +2,9 @@ import LoadingButton from '@app/components/loading/loading-button';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { isAssistant } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
+import EyeBoltIcon from '@iconify-icons/tabler/eye-bolt';
+import HistoryToggleIcon from '@iconify-icons/tabler/history-toggle';
+import SettingsIcon from '@iconify-icons/tabler/settings-2';
 import { Box, Button, ClickAwayListener, Grow, Paper, Popper } from '@mui/material';
 import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -45,7 +48,7 @@ export default function HeaderActions() {
           navigate(joinURL('..', commit.oid), { state: { filepath } });
         }}>
         <Button sx={{ minWidth: 0, minHeight: 0, width: 32, height: 32, border: '1px solid #E5E7EB' }}>
-          <Box component={Icon} icon="tabler:history-toggle" sx={{ fontSize: 20, color: '#030712' }} />
+          <Box component={Icon} icon={HistoryToggleIcon} sx={{ fontSize: 20, color: '#030712' }} />
         </Button>
       </CommitsTip>
 
@@ -55,7 +58,7 @@ export default function HeaderActions() {
         <Button
           sx={{ minWidth: 0, minHeight: 0, width: 32, height: 32, border: '1px solid #E5E7EB' }}
           {...bindTrigger(settingPopperState)}>
-          <Box component={Icon} icon="tabler:settings-2" sx={{ fontSize: 18, color: '#030712' }} />
+          <Box component={Icon} icon={SettingsIcon} sx={{ fontSize: 18, color: '#030712' }} />
         </Button>
 
         <Popper {...bindPopper(settingPopperState)} sx={{ zIndex: 1101 }} transition placement="bottom-end">
@@ -77,7 +80,7 @@ export default function HeaderActions() {
       <>
         <LoadingButton
           variant="contained"
-          startIcon={<Box component={Icon} icon="tabler:eye-bolt" sx={{ fontSize: 16 }} />}
+          startIcon={<Box component={Icon} icon={EyeBoltIcon} sx={{ fontSize: 16 }} />}
           size="small"
           {...bindTrigger(publishPopperState)}>
           {t('preview')}

@@ -4,6 +4,11 @@ import { discussionBoards, getDiscussionStatus } from '@app/libs/discussion';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
+import ArrowLeft from '@iconify-icons/tabler/chevron-left';
+import FileDiscIcon from '@iconify-icons/tabler/file-description';
+import LinkIcon from '@iconify-icons/tabler/link';
+import PencilIcon from '@iconify-icons/tabler/pencil';
+import UploadIcon from '@iconify-icons/tabler/upload';
 import { LoadingButton } from '@mui/lab';
 import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
@@ -139,7 +144,7 @@ function File({ datasetId, id }: { datasetId: string; id?: string }) {
               p={2}
               borderRadius={1}>
               <Box className="center" gap={1}>
-                <Box component={Icon} icon="tabler:file-description" color="#3B82F6" />
+                <Box component={Icon} icon={FileDiscIcon} color="#3B82F6" />
                 <Typography>{file.name}</Typography>
                 <Typography>{formatBytes(file.size)}</Typography>
               </Box>
@@ -164,7 +169,7 @@ function File({ datasetId, id }: { datasetId: string; id?: string }) {
                 alignItems="center"
                 sx={{ cursor: 'pointer' }}>
                 <Box className="center" gap={1}>
-                  <Box component={Icon} icon="tabler:upload" />
+                  <Box component={Icon} icon={UploadIcon} />
                   <Typography>{t('importFiles')}</Typography>
                 </Box>
 
@@ -380,7 +385,7 @@ function Discussion({ datasetId }: { datasetId: string }) {
                               sx={{ cursor: 'pointer' }}
                               onClick={() => window.open(url, '_blank')}>
                               {t('visitLink')}
-                              <Box component={Icon} icon="tabler:link" />
+                              <Box component={Icon} icon={LinkIcon} />
                             </Stack>
                           }>
                           <FormControlLabel
@@ -603,7 +608,7 @@ export default function KnowledgeDocumentsAdd() {
       id: 'file',
       icon: (
         <Box width={48} height={48} borderRadius={1} border="1px solid #E5E7EB" className="center">
-          <Box component={Icon} icon="tabler:upload" fontSize={20} color="#3B82F6" />
+          <Box component={Icon} icon={UploadIcon} fontSize={20} color="#3B82F6" />
         </Box>
       ),
       title: t('knowledge.documents.file.title'),
@@ -625,7 +630,7 @@ export default function KnowledgeDocumentsAdd() {
       id: 'custom',
       icon: (
         <Box width={48} height={48} borderRadius={1} border="1px solid #E5E7EB" className="center">
-          <Box component={Icon} icon="tabler:pencil" fontSize={20} color="#3B82F6" />
+          <Box component={Icon} icon={PencilIcon} fontSize={20} color="#3B82F6" />
         </Box>
       ),
       title: t('knowledge.documents.custom.title'),
@@ -644,7 +649,7 @@ export default function KnowledgeDocumentsAdd() {
             onClick={() => {
               navigate(joinURL('..', datasetId || ''));
             }}>
-            <Box component={Icon} icon="tabler:chevron-left" width={20} />
+            <Box component={Icon} icon={ArrowLeft} width={20} />
             <Typography variant="subtitle2" mb={0}>
               {t('addDocumentToDataset', { dataset: state.dataset?.name })}
             </Typography>

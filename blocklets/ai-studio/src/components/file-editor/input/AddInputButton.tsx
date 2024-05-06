@@ -2,6 +2,10 @@ import PopperMenu from '@app/components/menu/PopperMenu';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { AssistantYjs } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
+import CheckIcon from '@iconify-icons/tabler/check';
+import HistoryIcon from '@iconify-icons/tabler/history';
+import MessageIcon from '@iconify-icons/tabler/message';
+import PlusIcon from '@iconify-icons/tabler/plus';
 import { Box, ButtonProps, Divider, ListItemIcon, ListItemText, MenuItem } from '@mui/material';
 
 import useVariablesEditorOptions from '../use-variables-editor-options';
@@ -19,7 +23,7 @@ export default function AddInputButton({
   return (
     <PopperMenu
       ButtonProps={{
-        startIcon: <Box fontSize={16} component={Icon} icon="tabler:plus" />,
+        startIcon: <Box fontSize={16} component={Icon} icon={PlusIcon} />,
         children: <Box>{t('input')}</Box>,
         ...ButtonProps,
       }}
@@ -35,11 +39,11 @@ export default function AddInputButton({
           }
         }}>
         <ListItemIcon>
-          <Box component={Icon} icon="tabler:message" />
+          <Box component={Icon} icon={MessageIcon} />
         </ListItemIcon>
         <Box flex={1}>{t('questionInputTitle')}</Box>
         <Box sx={{ width: 40, textAlign: 'right' }}>
-          {variables.includes('question') && <Box component={Icon} icon="tabler:check" />}
+          {variables.includes('question') && <Box component={Icon} icon={CheckIcon} />}
         </Box>
       </MenuItem>
 
@@ -57,20 +61,13 @@ export default function AddInputButton({
           }
         }}>
         <ListItemIcon>
-          <Box component={Icon} icon="tabler:history" />
+          <Box component={Icon} icon={HistoryIcon} />
         </ListItemIcon>
         <Box flex={1}>{t('history.title')}</Box>
         <Box sx={{ width: 40, textAlign: 'right' }}>
-          {variables.includes('chatHistory') && <Box component={Icon} icon="tabler:check" />}
+          {variables.includes('chatHistory') && <Box component={Icon} icon={CheckIcon} />}
         </Box>
       </MenuItem>
-
-      {/* <MenuItem onClick={() => addParameter('datasetId')}>
-			  <ListItemIcon>
-				<Box component={Icon} icon="tabler:database" />
-			  </ListItemIcon>
-			  <ListItemText primary={t('datasetId')} />
-			</MenuItem> */}
 
       <Divider sx={{ my: '4px !important', p: 0 }} />
 
@@ -82,7 +79,7 @@ export default function AddInputButton({
           });
         }}>
         <ListItemIcon>
-          <Box component={Icon} icon="tabler:plus" />
+          <Box component={Icon} icon={PlusIcon} />
         </ListItemIcon>
         <ListItemText primary={t('customInput')} />
       </MenuItem>

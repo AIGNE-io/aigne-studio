@@ -184,13 +184,13 @@ export function getServiceModePermissionMap(
 ): ServiceModePermissionMap {
   const permissionMap = {
     'single-tenant': {
-      ensureViewAllProjectsRoles: ['owner', 'admin', 'promptsEditor'],
+      ensureViewAllProjectsRoles: [],
       ensurePromptsEditorRoles: ['owner', 'admin', 'promptsEditor'],
       ensurePromptsAdminRoles: ['owner', 'admin', 'promptsEditor'],
       ensurePaymentProjectRoles: undefined,
     },
     'multi-tenant': {
-      ensureViewAllProjectsRoles: ['owner', 'admin', 'promptsEditor'],
+      ensureViewAllProjectsRoles: [],
       // no need to check, everyone can do it, will check author permission in the backend
       ensurePromptsEditorRoles: undefined,
       ensurePromptsAdminRoles: ['owner', 'admin', 'promptsEditor'],
