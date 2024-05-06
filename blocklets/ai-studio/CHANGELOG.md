@@ -1,8 +1,6 @@
 ## 0.1.371 (2024-5-6)
 
-- fix: offline icon
-- fix: remove empty template assistants
-- fix: show self projects
+- fix: downgrade isomorphic-git to resolve icon oops problem
 
 ## 0.1.370 (2024-5-5)
 

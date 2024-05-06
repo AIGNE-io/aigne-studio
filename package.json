@@ -84,6 +84,7 @@
     "@types/react-dom": "^18.3.0",
     "axios": "^1.6.8",
     "gpt-tokens": "1.2.0",
+    "isomorphic-git": "1.25.7",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1"
   }

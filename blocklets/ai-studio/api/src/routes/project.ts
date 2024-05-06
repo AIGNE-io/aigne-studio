@@ -522,6 +522,7 @@ export function projectRoutes(router: Router) {
 
     const { did: userId, fullName } = req.user!;
 
+    project.changed('updatedAt', true);
     await project.update(
       omitBy(
         {
@@ -540,6 +541,7 @@ export function projectRoutes(router: Router) {
           gitAutoSync,
           didSpaceAutoSync,
           homePageUrl,
+          updatedAt: new Date(),
         },
         (v) => v === undefined
       )
