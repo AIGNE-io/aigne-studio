@@ -1,6 +1,6 @@
 {
   "name": "ai-studio",
-  "version": "0.1.374",
+  "version": "0.1.375",
   "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
   "scripts": {
     "debug": "bn-dev",
@@ -14,7 +14,7 @@
     "bundle": "run-s clean bundle:*",
     "bundle:client": "vite build",
     "bundle:api": "tsc -p tsconfig.api.json && tsc-alias -p tsconfig.api.json",
-    "bundle:blocklet": "blocklet bundle --compact --external sqlite3,faiss-node,hnswlib-node --monorepo --create-release",
+    "bundle:blocklet": "blocklet bundle --compact --external sqlite3,faiss-node,hnswlib-node,pdf2json --monorepo --create-release",
     "deploy": "npm run bundle && blocklet deploy .blocklet/bundle",
     "upload": "npm run bundle && blocklet upload .blocklet/release/blocklet.json"
   },
