@@ -86,7 +86,7 @@ export default function ProjectHeader() {
           </Box>
         </Hidden>
         <Hidden mdUp>
-          <IconButton onClick={() => setDrawerOpen(!drawerOpen)}>
+          <IconButton onClick={() => setDrawerOpen(!drawerOpen)} sx={{ mr: -1.5 }}>
             {drawerOpen ? <Icon icon={CloseIcon} /> : <Icon icon={MenuIcon} />}
           </IconButton>
         </Hidden>

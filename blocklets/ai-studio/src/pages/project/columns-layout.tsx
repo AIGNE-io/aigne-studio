@@ -69,7 +69,7 @@ const ColumnsLayout = forwardRef<
         <Drawer
           open={leftDrawerOpen}
           sx={{ zIndex: (theme) => theme.zIndex.speedDial, [`.${backdropClasses.root}`]: { top: 64 } }}
-          PaperProps={{ sx: { width: 300, top: 64, boxShadow: 0 } }}
+          PaperProps={{ sx: { width: 300, height: 'unset', top: 64, bottom: 0, boxShadow: 0 } }}
           onClose={() => setLeftDrawerOpen(false)}>
           {left}
         </Drawer>
@@ -78,7 +78,7 @@ const ColumnsLayout = forwardRef<
           anchor="right"
           open={rightDrawerOpen}
           sx={{ zIndex: (theme) => theme.zIndex.speedDial, [`.${backdropClasses.root}`]: { top: 64 } }}
-          PaperProps={{ sx: { width: 'calc(100% - 16px)', top: 64, boxShadow: 0 } }}
+          PaperProps={{ sx: { width: 'calc(100% - 32px)', height: 'unset', top: 64, bottom: 0, boxShadow: 0 } }}
           onClose={() => setRightDrawerOpen(false)}>
           {right}
         </Drawer>
