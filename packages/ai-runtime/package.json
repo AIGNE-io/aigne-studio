@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.1.371",
+  "version": "0.1.376",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -39,6 +39,10 @@
     "./common": {
       "import": "./lib/esm/common/index.js",
       "require": "./lib/cjs/common/index.js"
+    },
+    "./common/*": {
+      "import": "./lib/esm/common/*.js",
+      "require": "./lib/cjs/common/*.js"
     }
   },
   "typesVersions": {
@@ -63,8 +67,10 @@
         "./lib/types/core/index.d.ts"
       ],
       "common": [
-        "./lib/types/common.d.ts",
         "./lib/types/common/index.d.ts"
+      ],
+      "common/*": [
+        "./lib/types/common/*.d.ts"
       ]
     }
   },
@@ -103,6 +109,7 @@
     "dayjs": "^1.11.11",
     "eventsource-parser": "^1.1.2",
     "joi": "^17.13.1",
+    "js-base64": "^3.7.7",
     "lodash": "^4.17.21",
     "nanoid": "^3.3.7",
     "node-fetch": "2",
@@ -124,7 +131,7 @@
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@arcblock/ux": "^2.9.76",
+    "@arcblock/ux": "^2.9.77",
     "@emotion/css": "^11.11.2",
     "@emotion/react": "^11.11.4",
     "@jest/globals": "^29.7.0",

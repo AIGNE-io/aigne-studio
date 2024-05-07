@@ -1,13 +1,10 @@
-import { stringifyIdentity } from '@api/libs/aid';
 import { defaultImageModel, getSupportedImagesModels } from '@api/libs/common';
-import { InvalidSubscriptionError, ReachMaxRoundLimitError } from '@api/libs/error';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
 import logger from '@api/libs/logger';
-import { getActiveSubscriptionOfAssistant, reportUsage } from '@api/libs/payment';
 import History from '@api/store/models/history';
-import Release from '@api/store/models/release';
 import Session from '@api/store/models/session';
 import { chatCompletions, imageGenerations, proxyToAIKit } from '@blocklet/ai-kit/api/call';
+import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { CallAI, CallAIImage, GetAssistant, nextTaskId, runAssistant } from '@blocklet/ai-runtime/core';
 import {
   AssistantResponseType,
@@ -42,19 +39,15 @@ router.post('/image/generations', ensureComponentCallOrPromptsEditor(), proxyToA
 const callInputSchema = Joi.object<{
   userId?: string;
   sessionId?: string;
-  projectId: string;
-  ref: string;
+  aid: string;
   working?: boolean;
-  assistantId: string;
   parameters?: { [key: string]: any };
   debug?: boolean;
 }>({
   userId: Joi.string().empty(['', null]),
   sessionId: Joi.string().empty(['', null]),
-  projectId: Joi.string().required(),
-  ref: Joi.string().required(),
+  aid: Joi.string().required(),
   working: Joi.boolean().default(false),
-  assistantId: Joi.string().required(),
   parameters: Joi.object({
     $clientTime: Joi.string().isoDate().empty([null, '']),
   }).pattern(Joi.string(), Joi.any()),
@@ -64,14 +57,31 @@ const callInputSchema = Joi.object<{
 router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (req, res) => {
   const stream = req.accepts().includes('text/event-stream');
 
-  const input = await callInputSchema.validateAsync(req.body, { stripUnknown: true });
-  const userId = req.user?.did || input.userId;
+  const input = await callInputSchema.validateAsync(
+    {
+      ...req.body,
+      // 兼容旧版的接口参数，一段时间后删掉下面这行
+      aid:
+        req.body.aid ??
+        stringifyIdentity({
+          projectId: req.body.projectId,
+          projectRef: req.body.ref,
+          assistantId: req.body.assistantId,
+        }),
+    },
+    { stripUnknown: true }
+  );
 
-  const project = await Project.findByPk(input.projectId, {
-    rejectOnEmpty: new Error(`Project ${input.projectId} not found`),
+  const userId = req.user?.did || input.userId;
+  if (!userId) throw new Error('Missing required userId');
+
+  const { projectId, projectRef, assistantId } = parseIdentity(input.aid, { rejectWhenError: true });
+
+  const project = await Project.findByPk(projectId, {
+    rejectOnEmpty: new Error(`Project ${projectId} not found`),
   });
 
-  const repository = await getRepository({ projectId: input.projectId });
+  const repository = await getRepository({ projectId });
 
   const callAI: CallAI = async ({ assistant, input, outputModel = false }) => {
     const promptAssistant = isPromptAssistant(assistant) ? assistant : undefined;
@@ -118,7 +128,7 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
     }).then(async (res) => ({
       data: await Promise.all(
         res.data.map(async (item) => ({
-          url: (await uploadImageToImageBin({ filename: `AI Generate ${Date.now()}.png`, data: item })).url,
+          url: (await uploadImageToImageBin({ filename: `AI Generate ${Date.now()}.png`, data: item, userId })).url,
         }))
       ),
     }));
@@ -135,14 +145,14 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
   const getAssistant: GetAssistant = (fileId: string, options) => {
     return getAssistantFromRepository({
       repository,
-      ref: input.ref,
+      ref: projectRef,
       working: input.working,
       assistantId: fileId,
       rejectOnEmpty: options?.rejectOnEmpty as any,
     });
   };
 
-  const assistant = await getAssistant(input.assistantId, { rejectOnEmpty: true });
+  const assistant = await getAssistant(assistantId, { rejectOnEmpty: true });
 
   let mainTaskId: string | undefined;
   let error: { type?: string; message: string } | undefined;
@@ -223,54 +233,20 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
     ? await History.create({
         userId,
         taskId,
-        projectId: input.projectId,
-        ref: input.ref,
-        assistantId: input.assistantId,
+        projectId,
+        ref: projectRef,
+        assistantId,
         sessionId: input.sessionId,
         parameters: input.parameters,
         generateStatus: 'generating',
       })
     : undefined;
 
-  const release = await Release.findOne({
-    where: {
-      projectId: input.projectId,
-      projectRef: input.ref,
-      assistantId: input.assistantId,
-      paymentEnabled: true,
-    },
-  });
-
   try {
-    if (assistant.release?.maxRoundLimit && input.sessionId) {
-      const rounds = await History.count({ where: { userId, sessionId: input.sessionId } });
-      if (rounds > assistant.release.maxRoundLimit) {
-        throw new ReachMaxRoundLimitError('Max round limitation has been reached');
-      }
-    }
-
-    let debug = false;
-    if (input.debug && req.user) {
-      if ([project.createdBy].includes(req.user.did) || ['owner', 'admin'].includes(req.user.role)) {
-        debug = true;
-      }
-    }
-
-    if (!debug && userId && release?.paymentEnabled && release.paymentProductId) {
-      if (
-        !(await getActiveSubscriptionOfAssistant({
-          aid: stringifyIdentity({ projectId: input.projectId, projectRef: input.ref, assistantId: input.assistantId }),
-          userId,
-        }))
-      ) {
-        throw new InvalidSubscriptionError('Your subscription is not available');
-      }
-    }
-
     // 传入全局的存储变量
     const data = await getVariablesFromRepository({
       repository,
-      ref: input.ref,
+      ref: projectRef,
       working: input.working,
       fileName: 'variable',
       rejectOnEmpty: true,
@@ -295,7 +271,7 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
       callback: stream ? emit : undefined,
       user: userId ? { id: userId, did: userId, ...req.user } : undefined,
       sessionId: input.sessionId,
-      projectId: input.projectId,
+      projectId,
       datastoreVariables: data?.variables || [],
     });
 
@@ -327,10 +303,6 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
   }
 
   await history?.update({ error, result, generateStatus: 'done', executingLogs: Object.values(executingLogs) });
-
-  if (userId && release?.paymentEnabled && release.paymentProductId) {
-    await reportUsage({ projectId: input.projectId, projectRef: input.ref, assistantId: input.assistantId, userId });
-  }
 });
 
 export default router;

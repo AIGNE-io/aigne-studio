@@ -4,6 +4,11 @@ import { discussionBoards, getDiscussionStatus } from '@app/libs/discussion';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
+import ArrowLeft from '@iconify-icons/tabler/chevron-left';
+import FileDiscIcon from '@iconify-icons/tabler/file-description';
+import LinkIcon from '@iconify-icons/tabler/link';
+import PencilIcon from '@iconify-icons/tabler/pencil';
+import UploadIcon from '@iconify-icons/tabler/upload';
 import { LoadingButton } from '@mui/lab';
 import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
@@ -18,6 +23,7 @@ import {
   Tooltip,
   Typography,
   styled,
+  useMediaQuery,
 } from '@mui/material';
 import Tab from '@mui/material/Tab';
 import { useReactive, useRequest } from 'ahooks';
@@ -54,7 +60,7 @@ function formatBytes(bytes: number, decimals = 2) {
 const CardContainer = styled(Stack)`
   border: 1px solid #e5e7eb;
   padding: 16px;
-  width: 380px;
+  max-width: 380px;
   border-radius: 8px;
   cursor: pointer;
 
@@ -86,10 +92,10 @@ function Card({
 }) {
   const classNames = [disabled ? 'disabled' : '', selected ? 'selected' : ''].filter((x) => x);
   return (
-    <CardContainer onClick={onClick} flexDirection="row" gap={1.5} className={classNames.join(',')}>
+    <CardContainer onClick={onClick} gap={1.5} width={1} alignItems="center" className={classNames.join(',')}>
       {icon}
 
-      <Box flex={1} width={0}>
+      <Box textAlign="center">
         <Box fontSize={16} fontWeight={500} lineHeight="28px" color="#030712">
           {title}
         </Box>
@@ -105,19 +111,26 @@ function File({ datasetId, id }: { datasetId: string; id?: string }) {
   const { t } = useLocaleContext();
   const [file, setFile] = useState<File | undefined>();
   const [loading, setLoading] = useState(false);
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
 
   const { refetch } = useDocuments(datasetId);
   const navigate = useNavigate();
 
-  const onInputChange = (e: any) => {
-    e.preventDefault();
-    let files;
-    if (e.dataTransfer) {
-      files = e.dataTransfer.files;
-    } else if (e.target) {
-      files = e.target.files;
-    }
+  const onDragOver = (event: React.DragEvent) => {
+    event.preventDefault();
+    setIsDraggingOver(true);
+  };
 
+  const onDrop = (event: React.DragEvent) => {
+    event.preventDefault();
+    setIsDraggingOver(false);
+    const { files } = event.dataTransfer;
+    setFile(files[0]);
+  };
+
+  const onInputChange = (event: any) => {
+    event.preventDefault();
+    const { files } = event.target;
     setFile(files[0]);
   };
 
@@ -139,7 +152,7 @@ function File({ datasetId, id }: { datasetId: string; id?: string }) {
               p={2}
               borderRadius={1}>
               <Box className="center" gap={1}>
-                <Box component={Icon} icon="tabler:file-description" color="#3B82F6" />
+                <Box component={Icon} icon={FileDiscIcon} color="#3B82F6" />
                 <Typography>{file.name}</Typography>
                 <Typography>{formatBytes(file.size)}</Typography>
               </Box>
@@ -151,7 +164,7 @@ function File({ datasetId, id }: { datasetId: string; id?: string }) {
               display="flex"
               justifyContent="center"
               alignItems="center"
-              sx={{ border: '1px dashed #E5E7EB' }}
+              sx={{ border: isDraggingOver ? '1px dashed #007bff' : '1px dashed #E5E7EB' }}
               bgcolor="#F9FAFB"
               borderRadius={1}>
               <Stack
@@ -162,9 +175,12 @@ function File({ datasetId, id }: { datasetId: string; id?: string }) {
                 height={1}
                 justifyContent="center"
                 alignItems="center"
+                onDragOver={onDragOver}
+                onDrop={onDrop}
+                onDragLeave={() => setIsDraggingOver(false)}
                 sx={{ cursor: 'pointer' }}>
                 <Box className="center" gap={1}>
-                  <Box component={Icon} icon="tabler:upload" />
+                  <Box component={Icon} icon={UploadIcon} />
                   <Typography>{t('importFiles')}</Typography>
                 </Box>
 
@@ -183,7 +199,7 @@ function File({ datasetId, id }: { datasetId: string; id?: string }) {
                 id="upload"
                 type="file"
                 onChange={onInputChange}
-                accept=".md, .txt, .doc, .docx"
+                accept=".md, .txt, .doc, .docx, .pdf"
                 component="input"
                 display="none"
               />
@@ -251,6 +267,7 @@ function Discussion({ datasetId }: { datasetId: string }) {
   const [value, setValue] = useState('discussion');
   const { refetch } = useDocuments(datasetId);
   const navigate = useNavigate();
+  const isMdOrAbove = useMediaQuery((theme: any) => theme.breakpoints.up('md'));
 
   const onChange = (checked: boolean, data: CreateDiscussionItem['data']) => {
     const newCheckedValues = checked
@@ -314,7 +331,7 @@ function Discussion({ datasetId }: { datasetId: string }) {
 
         <Box>
           <Typography variant="subtitle2">{t('discussionType')}</Typography>
-          <Stack gap={1.5} flexDirection="row">
+          <Stack gap={1.5} flexDirection={isMdOrAbove ? 'row' : 'column'}>
             {types.map((name: 'discussion' | 'blog' | 'doc') => (
               <Box borderRadius={1} p={2} border="1px solid #E5E7EB" flex={1} key={name}>
                 <FormControlLabel
@@ -380,7 +397,7 @@ function Discussion({ datasetId }: { datasetId: string }) {
                               sx={{ cursor: 'pointer' }}
                               onClick={() => window.open(url, '_blank')}>
                               {t('visitLink')}
-                              <Box component={Icon} icon="tabler:link" />
+                              <Box component={Icon} icon={LinkIcon} />
                             </Stack>
                           }>
                           <FormControlLabel
@@ -575,6 +592,7 @@ export default function KnowledgeDocumentsAdd() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const isAdmin = useIsAdmin();
+  const isMdOrAbove = useMediaQuery((theme: any) => theme.breakpoints.up('md'));
 
   const type = searchParams.get('type');
   const editType = (type ? (type === 'text' ? 'custom' : type) : null) as 'file' | 'discussion' | 'custom' | null;
@@ -603,7 +621,7 @@ export default function KnowledgeDocumentsAdd() {
       id: 'file',
       icon: (
         <Box width={48} height={48} borderRadius={1} border="1px solid #E5E7EB" className="center">
-          <Box component={Icon} icon="tabler:upload" fontSize={20} color="#3B82F6" />
+          <Box component={Icon} icon={UploadIcon} fontSize={20} color="#3B82F6" />
         </Box>
       ),
       title: t('knowledge.documents.file.title'),
@@ -625,7 +643,7 @@ export default function KnowledgeDocumentsAdd() {
       id: 'custom',
       icon: (
         <Box width={48} height={48} borderRadius={1} border="1px solid #E5E7EB" className="center">
-          <Box component={Icon} icon="tabler:pencil" fontSize={20} color="#3B82F6" />
+          <Box component={Icon} icon={PencilIcon} fontSize={20} color="#3B82F6" />
         </Box>
       ),
       title: t('knowledge.documents.custom.title'),
@@ -644,7 +662,7 @@ export default function KnowledgeDocumentsAdd() {
             onClick={() => {
               navigate(joinURL('..', datasetId || ''));
             }}>
-            <Box component={Icon} icon="tabler:chevron-left" width={20} />
+            <Box component={Icon} icon={ArrowLeft} width={20} />
             <Typography variant="subtitle2" mb={0}>
               {t('addDocumentToDataset', { dataset: state.dataset?.name })}
             </Typography>
@@ -661,7 +679,7 @@ export default function KnowledgeDocumentsAdd() {
 
       <TabContext value={value}>
         <Stack flex={1} height={0} gap={2.5}>
-          <Box display="flex" gap={1}>
+          <Box display="flex" gap={1} flexDirection={isMdOrAbove ? 'row' : 'column'}>
             {cards.map((card) => (
               <Card
                 selected={card.id === value}

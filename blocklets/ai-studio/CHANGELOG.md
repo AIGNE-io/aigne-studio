@@ -1,3 +1,25 @@
+## 0.1.376 (2024-5-8)
+
+- fix: optimize mobile ui/ux
+
+## 0.1.375 (2024-5-7)
+
+- fix: pdf2json build error
+
+## 0.1.374 (2024-5-7)
+
+- feat: add agent api & use aid instead of assistant id
+
+## 0.1.373 (2024-5-7)
+
+- fix: only allowed to view user's own pictures
+- fix: optimize system prompts to get better response
+
+## 0.1.372 (2024-5-7)
+
+- chore: support pdf upload
+- fix: offline icon
+
 ## 0.1.371 (2024-5-6)
 
 - fix: downgrade isomorphic-git to resolve icon oops problem

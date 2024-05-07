@@ -23,10 +23,8 @@ export async function getAssistant({
 
 export async function runAssistant<
   T = {
-    projectId: string;
-    ref: string;
+    aid: string;
     working?: boolean;
-    assistantId: string;
     parameters?: { [key: string]: string | number };
     sessionId?: string;
     debug?: boolean;

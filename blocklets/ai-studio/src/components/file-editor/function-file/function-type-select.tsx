@@ -1,9 +1,10 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Icon } from '@iconify-icon/react';
+import brandNodejsIcon from '@iconify-icons/tabler/brand-nodejs';
 import { ListItemIcon, MenuItem, TextField, TextFieldProps } from '@mui/material';
 
 export const FunctionTypes = [
-  { type: 'javascript', icon: <Icon icon="tabler:brand-nodejs" />, i18nKey: 'javascript' },
+  { type: 'javascript', icon: <Icon icon={brandNodejsIcon} />, i18nKey: 'javascript' },
 ] as const;
 
 export default function FunctionTypeSelect({ ...props }: TextFieldProps) {

@@ -9,6 +9,7 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  ListProps,
   Tooltip as MuiTooltip,
   TooltipProps,
   alpha,
@@ -106,17 +107,19 @@ export function CommitListView({
   loading,
   selected,
   onClick,
+  listProps,
 }: {
   commits?: Commit[];
   loading?: boolean;
   selected?: string;
   onClick?: (commit: Commit) => any;
+  listProps?: ListProps;
 }) {
   const { t, locale } = useLocaleContext();
   const [loadingItemHash, setLoadingItemHash] = useState<string>();
 
   return (
-    <List disablePadding dense>
+    <List disablePadding dense {...(listProps || {})}>
       {commits?.map((item) => (
         <ListItem disablePadding key={item.oid}>
           <ListItemButton

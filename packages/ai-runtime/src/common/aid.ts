@@ -36,5 +36,9 @@ export function stringifyIdentity({
   projectRef: string;
   assistantId: string;
 }): string {
+  if (typeof projectId !== 'string' || typeof projectRef !== 'string' || typeof assistantId !== 'string') {
+    throw new Error('Invalid aid fragments');
+  }
+
   return Base64.encodeURI([projectId, projectRef, assistantId].join('/'));
 }

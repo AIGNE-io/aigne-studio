@@ -4,6 +4,8 @@ import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import getDatasetTextByI18n from '@blocklet/dataset-sdk/util/get-dataset-i18n-text';
 import { Icon } from '@iconify-icon/react';
+import PlusIcon from '@iconify-icons/tabler/plus';
+import TrashIcon from '@iconify-icons/tabler/trash';
 import { InfoOutlined as MuiInfoOutlined } from '@mui/icons-material';
 import {
   Box,
@@ -149,7 +151,7 @@ function ToolItemView({
 
           <>
             <IconButton {...bindTrigger(popperState)}>
-              <Box component={Icon} icon="tabler:plus" color="#3B82F6" fontSize={16} />
+              <Box component={Icon} icon={PlusIcon} color="#3B82F6" fontSize={16} />
             </IconButton>
             <Popper {...bindPopper(popperState)} sx={{ zIndex: 1101 }} transition placement="bottom-end">
               {({ TransitionProps }) => (
@@ -254,7 +256,7 @@ function ToolItemView({
               </Box>
 
               <IconButton onClick={() => (value.variable = undefined)}>
-                <Box component={Icon} icon="tabler:trash" color="warning.main" fontSize={18} />
+                <Box component={Icon} icon={TrashIcon} color="warning.main" fontSize={18} />
               </IconButton>
             </Box>
           </Box>
@@ -291,7 +293,7 @@ function ToolItemView({
               </Box>
 
               <IconButton onClick={() => (value.prefix = undefined)}>
-                <Box component={Icon} icon="tabler:trash" color="warning.main" fontSize={18} />
+                <Box component={Icon} icon={TrashIcon} color="warning.main" fontSize={18} />
               </IconButton>
             </Box>
           </Box>
@@ -328,7 +330,7 @@ function ToolItemView({
               </Box>
 
               <IconButton onClick={() => (value.suffix = undefined)}>
-                <Box component={Icon} icon="tabler:trash" color="warning.main" fontSize={18} />
+                <Box component={Icon} icon={TrashIcon} color="warning.main" fontSize={18} />
               </IconButton>
             </Box>
           </Box>
@@ -380,7 +382,7 @@ function ToolItemView({
               </Box>
 
               <IconButton onClick={() => (value.role = undefined)}>
-                <Box component={Icon} icon="tabler:trash" color="warning.main" fontSize={18} />
+                <Box component={Icon} icon={TrashIcon} color="warning.main" fontSize={18} />
               </IconButton>
             </Box>
           </Box>
@@ -420,7 +422,7 @@ function ToolItemView({
               </Box>
 
               <IconButton onClick={() => (value.formatResultType = undefined)}>
-                <Box component={Icon} icon="tabler:trash" color="warning.main" fontSize={18} />
+                <Box component={Icon} icon={TrashIcon} color="warning.main" fontSize={18} />
               </IconButton>
             </Box>
           </Box>
@@ -465,7 +467,7 @@ function ToolItemView({
               </Box>
 
               <IconButton onClick={() => (value.respondAs = undefined)}>
-                <Box component={Icon} icon="tabler:trash" color="warning.main" fontSize={18} />
+                <Box component={Icon} icon={TrashIcon} color="warning.main" fontSize={18} />
               </IconButton>
             </Box>
           </Box>

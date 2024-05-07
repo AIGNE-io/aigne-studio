@@ -2,6 +2,8 @@ import PopperMenu from '@app/components/menu/PopperMenu';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { AssistantYjs, variableBlockListForAgent } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
+import CheckIcon from '@iconify-icons/tabler/check';
+import PlusIcon from '@iconify-icons/tabler/plus';
 import { Box, Divider, ListItemIcon, MenuItem } from '@mui/material';
 
 import { runtimeOutputVariables } from './type';
@@ -21,7 +23,7 @@ export default function AddOutputVariableButton({
     <PopperMenu
       ButtonProps={{
         sx: { mt: 1 },
-        startIcon: <Box fontSize={16} component={Icon} icon="tabler:plus" />,
+        startIcon: <Box fontSize={16} component={Icon} icon={PlusIcon} />,
         children: <Box>{t('output')}</Box>,
       }}
       PopperProps={{ placement: 'bottom-start' }}>
@@ -49,7 +51,7 @@ export default function AddOutputVariableButton({
               <ListItemIcon>{variable.icon}</ListItemIcon>
               <Box flex={1}>{t(variable.i18nKey)}</Box>
               <Box sx={{ width: 40, textAlign: 'right' }}>
-                {exists.has(variable.name) && <Box component={Icon} icon="tabler:check" />}
+                {exists.has(variable.name) && <Box component={Icon} icon={CheckIcon} />}
               </Box>
             </MenuItem>
           );
@@ -60,7 +62,7 @@ export default function AddOutputVariableButton({
 
       <MenuItem onClick={() => onSelect?.({ name: '' })}>
         <ListItemIcon>
-          <Icon icon="tabler:plus" />
+          <Icon icon={PlusIcon} />
         </ListItemIcon>
         {t('customOutput')}
       </MenuItem>

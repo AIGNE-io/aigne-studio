@@ -34,9 +34,9 @@ const hmrPath = process.env.__HMR_PATH__;
 // https://vitejs.dev/config/
 export default defineConfig(() => {
   return {
-    optimizeDeps: {
-      force: true,
-    },
+    // optimizeDeps: {
+    //   force: true,
+    // },
     server: {
       hmr: hmrPath
         ? {

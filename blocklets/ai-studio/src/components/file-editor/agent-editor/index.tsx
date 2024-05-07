@@ -7,6 +7,7 @@ import {
   isPromptAssistant,
 } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
+import ZZZIcon from '@iconify-icons/tabler/zzz';
 import { Box, Stack } from '@mui/material';
 
 import ArrowLine from '../../../pages/project/icons/line';
@@ -64,7 +65,7 @@ export default function AgentEditor({
           ) : (
             <Stack alignItems="center">
               <Box sx={{ fontSize: 28, color: 'text.disabled' }}>
-                <Icon icon="tabler:zzz" />
+                <Icon icon={ZZZIcon} />
               </Box>
 
               <Box sx={{ color: 'text.disabled' }}>{t('idleAgentDescription')}</Box>
