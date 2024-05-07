@@ -110,19 +110,26 @@ function File({ datasetId, id }: { datasetId: string; id?: string }) {
   const { t } = useLocaleContext();
   const [file, setFile] = useState<File | undefined>();
   const [loading, setLoading] = useState(false);
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
 
   const { refetch } = useDocuments(datasetId);
   const navigate = useNavigate();
 
-  const onInputChange = (e: any) => {
-    e.preventDefault();
-    let files;
-    if (e.dataTransfer) {
-      files = e.dataTransfer.files;
-    } else if (e.target) {
-      files = e.target.files;
-    }
+  const onDragOver = (event: React.DragEvent) => {
+    event.preventDefault();
+    setIsDraggingOver(true);
+  };
 
+  const onDrop = (event: React.DragEvent) => {
+    event.preventDefault();
+    setIsDraggingOver(false);
+    const { files } = event.dataTransfer;
+    setFile(files[0]);
+  };
+
+  const onInputChange = (event: any) => {
+    event.preventDefault();
+    const { files } = event.target;
     setFile(files[0]);
   };
 
@@ -156,7 +163,7 @@ function File({ datasetId, id }: { datasetId: string; id?: string }) {
               display="flex"
               justifyContent="center"
               alignItems="center"
-              sx={{ border: '1px dashed #E5E7EB' }}
+              sx={{ border: isDraggingOver ? '1px dashed #007bff' : '1px dashed #E5E7EB' }}
               bgcolor="#F9FAFB"
               borderRadius={1}>
               <Stack
@@ -167,6 +174,9 @@ function File({ datasetId, id }: { datasetId: string; id?: string }) {
                 height={1}
                 justifyContent="center"
                 alignItems="center"
+                onDragOver={onDragOver}
+                onDrop={onDrop}
+                onDragLeave={() => setIsDraggingOver(false)}
                 sx={{ cursor: 'pointer' }}>
                 <Box className="center" gap={1}>
                   <Box component={Icon} icon={UploadIcon} />
