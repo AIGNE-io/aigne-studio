@@ -1,3 +1,4 @@
+import { parseIdentity, stringifyIdentity } from '@api/libs/aid';
 import Session from '@api/store/models/session';
 import { auth, user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
@@ -7,25 +8,26 @@ import Datastore from '../store/models/datastore';
 import Histories from '../store/models/history';
 
 export function sessionRoutes(router: Router) {
-  const sessionsQuerySchema = Joi.object<{
-    projectId: string;
-    projectRef: string;
-    assistantId: string;
-  }>({
-    projectId: Joi.string().required(),
-    projectRef: Joi.string().required(),
-    assistantId: Joi.string().required(),
-  });
+  const sessionsQuerySchema = Joi.object<{ aid: string }>({ aid: Joi.string().required() });
 
   router.get('/sessions', user(), auth(), async (req, res) => {
     const { did: userId } = req.user!;
-    const query = await sessionsQuerySchema.validateAsync(req.query, { stripUnknown: true });
+    const query = await sessionsQuerySchema.validateAsync(
+      {
+        ...req.query,
+        // 兼容旧版的接口参数，一段时间后删掉下面这行
+        aid: req.query.aid ?? stringifyIdentity(req.query as any),
+      },
+      { stripUnknown: true }
+    );
+
+    const { projectId, projectRef, assistantId } = parseIdentity(query.aid, { rejectWhenError: true });
 
     const sessions = await Session.getUserSessions({
       userId,
-      projectId: query.projectId,
-      projectRef: query.projectRef,
-      assistantId: query.assistantId,
+      projectId,
+      projectRef,
+      assistantId,
     });
 
     res.json({
@@ -47,46 +49,30 @@ export function sessionRoutes(router: Router) {
   });
 
   const createSessionInput = Joi.object<{
-    projectId: string;
-    projectRef: string;
-    assistantId: string;
+    aid: string;
     name?: string;
-    parameters?: object;
-    entry?: { id: string; title?: string };
   }>({
-    projectId: Joi.string().required(),
-    projectRef: Joi.string().required(),
-    assistantId: Joi.string().required(),
+    aid: Joi.string().required(),
     name: Joi.string().empty(['', null]),
-    parameters: Joi.object().pattern(Joi.string(), Joi.any()),
-    entry: Joi.object({ id: Joi.string().required(), title: Joi.string().empty([null, '']) }),
   });
 
   router.post('/sessions', user(), auth(), async (req, res) => {
     const { did: userId } = req.user!;
-    const input = await createSessionInput.validateAsync(req.body, { stripUnknown: true });
+    const input = await createSessionInput.validateAsync(
+      {
+        ...req.body,
+        // 兼容旧版的接口参数，一段时间后删掉下面这行
+        aid: req.body.aid ?? stringifyIdentity(req.body),
+      },
+      { stripUnknown: true }
+    );
 
-    const session = await Session.create({
-      userId,
-      projectId: input.projectId,
-      projectRef: input.projectRef,
-      assistantId: input.assistantId,
-      name: input.name,
-      parameters: input.parameters,
-      entry: input.entry,
-    });
+    const { projectId, projectRef, assistantId } = parseIdentity(input.aid, { rejectWhenError: true });
 
-    const sessions = await Session.getUserSessions({
-      userId,
-      projectId: input.projectId,
-      projectRef: input.projectRef,
-      assistantId: input.assistantId,
-    });
+    const session = await Session.create({ userId, projectId, projectRef, assistantId, name: input.name });
+    const sessions = await Session.getUserSessions({ userId, projectId, projectRef, assistantId });
 
-    res.json({
-      created: session,
-      sessions,
-    });
+    res.json({ created: session, sessions });
   });
 
   const updateSessionInput = Joi.object<{
@@ -159,10 +145,18 @@ export function sessionRoutes(router: Router) {
   router.delete('/sessions', user(), auth(), async (req, res) => {
     const { did: userId } = req.user!;
 
-    const query = await sessionsQuerySchema.validateAsync(req.query, { stripUnknown: true });
+    const query = await sessionsQuerySchema.validateAsync(
+      {
+        ...req.query,
+        // 兼容旧版的接口参数，一段时间后删掉下面这行
+        aid: req.query.aid ?? stringifyIdentity(req.query as any),
+      },
+      { stripUnknown: true }
+    );
+    const { projectId, projectRef, assistantId } = parseIdentity(query.aid, { rejectWhenError: true });
 
     const deletedCount = await Session.destroy({
-      where: { userId, projectId: query.projectId, projectRef: query.projectRef, assistantId: query.assistantId },
+      where: { userId, projectId, projectRef, assistantId },
     });
 
     res.json({ deletedCount });
