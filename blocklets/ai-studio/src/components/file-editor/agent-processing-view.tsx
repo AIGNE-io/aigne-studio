@@ -1,6 +1,7 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { AssistantYjs, isFunctionAssistant, isImageAssistant, isPromptAssistant } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
+import BrainIcon from '@iconify-icons/tabler/brain';
 import { Box, Stack, Typography } from '@mui/material';
 import { ReactNode } from 'react';
 
@@ -26,7 +27,7 @@ export default function AgentProcessingView({
       <Box className="between">
         <Box display="flex" alignItems="center" gap={0.5} minHeight={32}>
           <Box sx={{ display: 'inline-flex', alignItems: 'center' }}>
-            {agentTypesMap[assistant.type]?.icon ?? <Box component={Icon} icon="tabler:brain" sx={{ fontSize: 15 }} />}
+            {agentTypesMap[assistant.type]?.icon ?? <Box component={Icon} icon={BrainIcon} sx={{ fontSize: 15 }} />}
           </Box>
 
           <Typography variant="subtitle2" sx={{ m: 0 }}>

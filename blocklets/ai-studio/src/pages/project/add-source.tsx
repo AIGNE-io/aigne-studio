@@ -1,5 +1,6 @@
 import { useIsAdmin } from '@app/contexts/session';
 import { Icon } from '@iconify-icon/react';
+import ArrowUp from '@iconify-icons/tabler/arrow-big-up-line';
 import { Box, IconButton, svgIconClasses } from '@mui/material';
 import { useEffect, useRef, useState } from 'react';
 
@@ -44,7 +45,7 @@ export default function Exporter() {
           },
         }}
         onClick={() => setShowCreateResource(true)}>
-        <Box component={Icon} icon="tabler:arrow-big-up-line" style={{ fontSize: 24 }} />
+        <Box component={Icon} icon={ArrowUp} style={{ fontSize: 24 }} />
       </IconButton>
 
       {showCreateResource && (

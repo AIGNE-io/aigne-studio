@@ -149,7 +149,7 @@
               },
               "uploadFileLimit": {
                 "type": "number",
-                "title": "Upload File Limits",
+                "title": "Upload File Limits(MB)",
                 "x-decorator": "FormItem",
                 "x-component": "NumberPicker",
                 "x-validator": [
@@ -162,8 +162,10 @@
                   "style": {
                     "width": "auto"
                   },
-                  "max": 10,
-                  "min": 0
+                  "max": 100,
+                  "min": 0,
+                  "bordered": true,
+                  "keyboard": true
                 },
                 "x-decorator-props": {
                   "layout": "vertical",
@@ -172,7 +174,7 @@
                   "colon": false
                 },
                 "name": "uploadFileLimit",
-                "default": 3,
+                "default": 10,
                 "x-reactions": {
                   "dependencies": [
                     {
@@ -190,13 +192,14 @@
                 },
                 "x-designable-id": "xd9eqqqhx9c",
                 "x-index": 3,
-                "description": "Limits the size of files uploaded to the knowledge"
+                "description": "Limits the size of files uploaded to the knowledge (MB)",
+                "required": false
               }
             }
           }
         }
       }
     },
-    "x-designable-id": "w0lz8x87ps6"
+    "x-designable-id": "yp3g5x76p01"
   }
 }

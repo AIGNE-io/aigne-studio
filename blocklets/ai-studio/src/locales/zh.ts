@@ -648,4 +648,6 @@ export default flat({
   previewInNewTab: '新标签页中预览',
   copyPreviewUrl: '复制预览地址',
   system: '系统',
+  agentEmptyTitle: '没有创建 Agent',
+  agentEmptySubTitle: '可以点击右上角的 "+" 图标进行创建。',
 });

@@ -11,6 +11,16 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { AssistantYjs, ExecuteBlock, ParameterYjs, StringParameter, isAssistant } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
+import BracesIcon from '@iconify-icons/tabler/braces';
+import BracketsContainIcon from '@iconify-icons/tabler/brackets-contain';
+import CheckIcon from '@iconify-icons/tabler/check';
+import ChevronDownIcon from '@iconify-icons/tabler/chevron-down';
+import CursorTextIcon from '@iconify-icons/tabler/cursor-text';
+import DatabaseIcon from '@iconify-icons/tabler/database';
+import DotsIcon from '@iconify-icons/tabler/dots';
+import HistoryIcon from '@iconify-icons/tabler/history';
+import MessageIcon from '@iconify-icons/tabler/message';
+import SquareNumberIcon from '@iconify-icons/tabler/square-number-1';
 import {
   Autocomplete,
   Box,
@@ -107,10 +117,10 @@ export default function InputTable({
 
   const TYPE_ICON_MAP: any = useMemo(() => {
     return {
-      string: <Icon icon="tabler:cursor-text" />,
-      number: <Icon icon="tabler:square-number-1" />,
-      object: <Icon icon="tabler:braces" />,
-      array: <Icon icon="tabler:brackets-contain" />,
+      string: <Icon icon={CursorTextIcon} />,
+      number: <Icon icon={SquareNumberIcon} />,
+      object: <Icon icon={BracesIcon} />,
+      array: <Icon icon={BracketsContainIcon} />,
     };
   }, [t]);
 
@@ -123,15 +133,15 @@ export default function InputTable({
         renderCell: ({ row: { data: parameter } }) => {
           if (parameter.key === 'question' || parameter.key === 'chatHistory') {
             const iconMap = {
-              question: 'message',
-              datasetId: 'database',
-              chatHistory: 'history',
+              question: MessageIcon,
+              datasetId: DatabaseIcon,
+              chatHistory: HistoryIcon,
             };
 
             return (
               <Box height={33} display="flex" alignItems="center">
                 <Box className="center" width={16} height={16} mr={0.5}>
-                  <Box component={Icon} icon={`tabler:${iconMap[parameter.key]}`} />
+                  <Box component={Icon} icon={iconMap[parameter.key]} />
                 </Box>
                 <Box>{parameter.key}</Box>
               </Box>
@@ -195,7 +205,7 @@ export default function InputTable({
               return (
                 <Stack direction="row" alignItems="center">
                   <ListItemIcon sx={{ minWidth: 20 }}>
-                    <Icon icon="tabler:braces" />
+                    <Icon icon={BracesIcon} />
                   </ListItemIcon>
 
                   {t('agentOutput')}
@@ -226,7 +236,7 @@ export default function InputTable({
               return (
                 <Stack direction="row" alignItems="center">
                   <ListItemIcon sx={{ minWidth: 20 }}>
-                    <Icon icon="tabler:cursor-text" />
+                    <Icon icon={CursorTextIcon} />
                   </ListItemIcon>
 
                   {TYPE_MAP.string}
@@ -407,7 +417,7 @@ function SelectFromSource({
             <Box>
               <Box className="center" gap={1} justifyContent="flex-start">
                 <Box>{fromTitle}</Box>
-                <Box component={Icon} icon="tabler:chevron-down" width={15} />
+                <Box component={Icon} icon={ChevronDownIcon} width={15} />
               </Box>
             </Box>
           ),
@@ -439,7 +449,7 @@ function SelectFromSource({
               {/* <ListItemIcon>{value}</ListItemIcon> */}
               <Box flex={1}>{value}</Box>
               <Box sx={{ width: 40, textAlign: 'right' }}>
-                {key === currentKey && <Box component={Icon} icon="tabler:check" />}
+                {key === currentKey && <Box component={Icon} icon={CheckIcon} />}
               </Box>
             </MenuItem>
           );
@@ -986,7 +996,7 @@ function PopperButton({
   return (
     <>
       <Button sx={{ minWidth: 0, p: 0.5, ml: -0.5, cursor: 'pointer' }} {...bindTrigger(parameterSettingPopperState)}>
-        <Box component={Icon} icon="tabler:dots" sx={{ color: '#3B82F6' }} />
+        <Box component={Icon} icon={DotsIcon} sx={{ color: '#3B82F6' }} />
       </Button>
 
       <Popper

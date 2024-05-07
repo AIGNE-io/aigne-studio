@@ -4,6 +4,11 @@ import { discussionBoards, getDiscussionStatus } from '@app/libs/discussion';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
+import ArrowLeft from '@iconify-icons/tabler/chevron-left';
+import FileDiscIcon from '@iconify-icons/tabler/file-description';
+import LinkIcon from '@iconify-icons/tabler/link';
+import PencilIcon from '@iconify-icons/tabler/pencil';
+import UploadIcon from '@iconify-icons/tabler/upload';
 import { LoadingButton } from '@mui/lab';
 import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
@@ -105,19 +110,26 @@ function File({ datasetId, id }: { datasetId: string; id?: string }) {
   const { t } = useLocaleContext();
   const [file, setFile] = useState<File | undefined>();
   const [loading, setLoading] = useState(false);
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
 
   const { refetch } = useDocuments(datasetId);
   const navigate = useNavigate();
 
-  const onInputChange = (e: any) => {
-    e.preventDefault();
-    let files;
-    if (e.dataTransfer) {
-      files = e.dataTransfer.files;
-    } else if (e.target) {
-      files = e.target.files;
-    }
+  const onDragOver = (event: React.DragEvent) => {
+    event.preventDefault();
+    setIsDraggingOver(true);
+  };
 
+  const onDrop = (event: React.DragEvent) => {
+    event.preventDefault();
+    setIsDraggingOver(false);
+    const { files } = event.dataTransfer;
+    setFile(files[0]);
+  };
+
+  const onInputChange = (event: any) => {
+    event.preventDefault();
+    const { files } = event.target;
     setFile(files[0]);
   };
 
@@ -139,7 +151,7 @@ function File({ datasetId, id }: { datasetId: string; id?: string }) {
               p={2}
               borderRadius={1}>
               <Box className="center" gap={1}>
-                <Box component={Icon} icon="tabler:file-description" color="#3B82F6" />
+                <Box component={Icon} icon={FileDiscIcon} color="#3B82F6" />
                 <Typography>{file.name}</Typography>
                 <Typography>{formatBytes(file.size)}</Typography>
               </Box>
@@ -151,7 +163,7 @@ function File({ datasetId, id }: { datasetId: string; id?: string }) {
               display="flex"
               justifyContent="center"
               alignItems="center"
-              sx={{ border: '1px dashed #E5E7EB' }}
+              sx={{ border: isDraggingOver ? '1px dashed #007bff' : '1px dashed #E5E7EB' }}
               bgcolor="#F9FAFB"
               borderRadius={1}>
               <Stack
@@ -162,9 +174,12 @@ function File({ datasetId, id }: { datasetId: string; id?: string }) {
                 height={1}
                 justifyContent="center"
                 alignItems="center"
+                onDragOver={onDragOver}
+                onDrop={onDrop}
+                onDragLeave={() => setIsDraggingOver(false)}
                 sx={{ cursor: 'pointer' }}>
                 <Box className="center" gap={1}>
-                  <Box component={Icon} icon="tabler:upload" />
+                  <Box component={Icon} icon={UploadIcon} />
                   <Typography>{t('importFiles')}</Typography>
                 </Box>
 
@@ -183,7 +198,7 @@ function File({ datasetId, id }: { datasetId: string; id?: string }) {
                 id="upload"
                 type="file"
                 onChange={onInputChange}
-                accept=".md, .txt, .doc, .docx"
+                accept=".md, .txt, .doc, .docx, .pdf"
                 component="input"
                 display="none"
               />
@@ -380,7 +395,7 @@ function Discussion({ datasetId }: { datasetId: string }) {
                               sx={{ cursor: 'pointer' }}
                               onClick={() => window.open(url, '_blank')}>
                               {t('visitLink')}
-                              <Box component={Icon} icon="tabler:link" />
+                              <Box component={Icon} icon={LinkIcon} />
                             </Stack>
                           }>
                           <FormControlLabel
@@ -603,7 +618,7 @@ export default function KnowledgeDocumentsAdd() {
       id: 'file',
       icon: (
         <Box width={48} height={48} borderRadius={1} border="1px solid #E5E7EB" className="center">
-          <Box component={Icon} icon="tabler:upload" fontSize={20} color="#3B82F6" />
+          <Box component={Icon} icon={UploadIcon} fontSize={20} color="#3B82F6" />
         </Box>
       ),
       title: t('knowledge.documents.file.title'),
@@ -625,7 +640,7 @@ export default function KnowledgeDocumentsAdd() {
       id: 'custom',
       icon: (
         <Box width={48} height={48} borderRadius={1} border="1px solid #E5E7EB" className="center">
-          <Box component={Icon} icon="tabler:pencil" fontSize={20} color="#3B82F6" />
+          <Box component={Icon} icon={PencilIcon} fontSize={20} color="#3B82F6" />
         </Box>
       ),
       title: t('knowledge.documents.custom.title'),
@@ -644,7 +659,7 @@ export default function KnowledgeDocumentsAdd() {
             onClick={() => {
               navigate(joinURL('..', datasetId || ''));
             }}>
-            <Box component={Icon} icon="tabler:chevron-left" width={20} />
+            <Box component={Icon} icon={ArrowLeft} width={20} />
             <Typography variant="subtitle2" mb={0}>
               {t('addDocumentToDataset', { dataset: state.dataset?.name })}
             </Typography>

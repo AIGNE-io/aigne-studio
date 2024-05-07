@@ -11,6 +11,18 @@ import {
 } from '@blocklet/ai-runtime/types';
 import { css } from '@emotion/css';
 import { Icon } from '@iconify-icon/react';
+import ArrowBackUpIcon from '@iconify-icons/tabler/arrow-back-up';
+import ChevronDownIcon from '@iconify-icons/tabler/chevron-down';
+import CodeIcon from '@iconify-icons/tabler/code';
+import CopyIcon from '@iconify-icons/tabler/copy';
+import DotsVerticalIcon from '@iconify-icons/tabler/dots-vertical';
+import ExternalLinkIcon from '@iconify-icons/tabler/external-link';
+import FileDiscIcon from '@iconify-icons/tabler/file-description';
+import FolderPlusIcon from '@iconify-icons/tabler/folder-plus';
+import DiffIcon from '@iconify-icons/tabler/layers-difference';
+import LinkIcon from '@iconify-icons/tabler/link';
+import PencilIcon from '@iconify-icons/tabler/pencil';
+import TrashIcon from '@iconify-icons/tabler/trash';
 import { DragLayerMonitorProps, MultiBackend, NodeModel, Tree, getBackendOptions } from '@minoru/react-dnd-treeview';
 import {
   Accordion,
@@ -296,12 +308,25 @@ const FileTree = forwardRef<
       };
     });
 
-  if (!synced)
+  if (!synced) {
     return (
       <Box sx={{ textAlign: 'center', mt: 4 }}>
         <CircularProgress size={24} />
       </Box>
     );
+  }
+
+  if (!files.length) {
+    return (
+      <Stack height={1} className="center" textAlign="center">
+        <Box>🤖</Box>
+        <Typography variant="subtitle4">‌‌‌‌{t('agentEmptyTitle')}</Typography>
+        <Typography variant="subtitle5" maxWidth={200}>
+          ‌{t('agentEmptySubTitle')}
+        </Typography>
+      </Stack>
+    );
+  }
 
   return (
     <>
@@ -355,7 +380,7 @@ const FileTree = forwardRef<
                     icon={
                       <Box
                         component={Icon}
-                        icon="tabler:chevron-down"
+                        icon={ChevronDownIcon}
                         sx={{ transform: `rotateZ(${isOpen ? '0' : '-90deg'})` }}
                       />
                     }
@@ -535,7 +560,7 @@ function DragPreviewRender({ item }: Pick<DragLayerMonitorProps<EntryWithMeta>, 
           width: (theme) => theme.spacing(3),
           [`.${svgIconClasses.root}`]: { fontSize: '1.25rem', color: 'text.secondary' },
         }}>
-        {item.data?.type === 'folder' ? <FolderClose /> : <Box component={Icon} icon="tabler:file-description" />}
+        {item.data?.type === 'folder' ? <FolderClose /> : <Box component={Icon} icon={FileDiscIcon} />}
       </Box>
 
       <Box
@@ -587,7 +612,7 @@ function TreeItemMenus({
       onLaunch && assistant && (
         <MenuItem key="launch" onClick={() => onLaunch(assistant)}>
           <ListItemIcon>
-            <Box component={Icon} icon="tabler:external-link" />
+            <Box component={Icon} icon={ExternalLinkIcon} />
           </ListItemIcon>
           <ListItemText primary={t('alert.openInAssistant')} />
         </MenuItem>
@@ -597,7 +622,7 @@ function TreeItemMenus({
       item.type === 'folder' && onCreateFolder && (
         <MenuItem key="createFolder" onClick={() => onCreateFolder({ parent: item.path })}>
           <ListItemIcon>
-            <Box component={Icon} icon="tabler:folder-plus" />
+            <Box component={Icon} icon={FolderPlusIcon} />
           </ListItemIcon>
           <ListItemText primary={t('newObject', { object: t('folder') })} />
         </MenuItem>
@@ -607,14 +632,14 @@ function TreeItemMenus({
         ? [
             <MenuItem key="createPrompt" onClick={() => onCreateFile({ parent: item.path })}>
               <ListItemIcon>
-                <Box component={Icon} icon="tabler:file-description" />
+                <Box component={Icon} icon={FileDiscIcon} />
               </ListItemIcon>
               <ListItemText primary={t('newObject', { object: t('prompt') })} />
             </MenuItem>,
 
             <MenuItem key="createApi" onClick={() => onCreateFile({ parent: item.path, meta: { type: 'api' } })}>
               <ListItemIcon>
-                <Box component={Icon} icon="tabler:link" />
+                <Box component={Icon} icon={LinkIcon} />
               </ListItemIcon>
               <ListItemText primary={t('newObject', { object: t('api') })} />
             </MenuItem>,
@@ -623,7 +648,7 @@ function TreeItemMenus({
               key="createFunction"
               onClick={() => onCreateFile({ parent: item.path, meta: { type: 'function' } })}>
               <ListItemIcon>
-                <Box component={Icon} icon="tabler:code" />
+                <Box component={Icon} icon={CodeIcon} />
               </ListItemIcon>
               <ListItemText primary={t('newObject', { object: t('function') })} />
             </MenuItem>,
@@ -643,7 +668,7 @@ function TreeItemMenus({
             })
           }>
           <ListItemIcon>
-            <Box component={Icon} icon="tabler:copy" />
+            <Box component={Icon} icon={CopyIcon} />
           </ListItemIcon>
           <ListItemText primary={t('alert.duplicate')} />
         </MenuItem>
@@ -655,7 +680,7 @@ function TreeItemMenus({
             navigator.clipboard.writeText(joinURL(projectId, gitRef, item.meta.id));
           }}>
           <ListItemIcon>
-            <Box component={Icon} icon="tabler:layers-difference" />
+            <Box component={Icon} icon={DiffIcon} />
           </ListItemIcon>
           <ListItemText primary={t('alert.copyId')} />
         </MenuItem>
@@ -665,7 +690,7 @@ function TreeItemMenus({
       isChanged && (
         <MenuItem key="compareChanges" onClick={onCompare}>
           <ListItemIcon>
-            <Box component={Icon} icon="tabler:layers-difference" />
+            <Box component={Icon} icon={DiffIcon} />
           </ListItemIcon>
           <ListItemText primary={t('alert.compare')} />
         </MenuItem>
@@ -674,7 +699,7 @@ function TreeItemMenus({
       isChanged && (
         <MenuItem key="revertChanges" onClick={onUndo}>
           <ListItemIcon>
-            <Box component={Icon} icon="tabler:arrow-back-up" />
+            <Box component={Icon} icon={ArrowBackUpIcon} />
           </ListItemIcon>
           <ListItemText primary={t('restore')} />
         </MenuItem>
@@ -684,7 +709,7 @@ function TreeItemMenus({
       onRenameFile && (
         <MenuItem key="renameFile" onClick={() => onRenameFile(item)}>
           <ListItemIcon>
-            <Box component={Icon} icon="tabler:pencil" />
+            <Box component={Icon} icon={PencilIcon} />
           </ListItemIcon>
 
           <ListItemText primary={t('rename')} />
@@ -693,7 +718,7 @@ function TreeItemMenus({
       onRenameFolder && (
         <MenuItem key="renameFolder" onClick={() => onRenameFolder(item)}>
           <ListItemIcon>
-            <Box component={Icon} icon="tabler:pencil" />
+            <Box component={Icon} icon={PencilIcon} />
           </ListItemIcon>
 
           <ListItemText primary={t('rename')} />
@@ -702,7 +727,7 @@ function TreeItemMenus({
       onDeleteFile && (
         <MenuItem key="deleteFile" onClick={() => onDeleteFile(item)}>
           <ListItemIcon>
-            <Box component={Icon} icon="tabler:trash" color="warning.main" />
+            <Box component={Icon} icon={TrashIcon} color="warning.main" />
           </ListItemIcon>
           <ListItemText primary={t('alert.delete')} primaryTypographyProps={{ color: 'warning.main' }} />
         </MenuItem>
@@ -914,7 +939,7 @@ function TreeItem({
               <Button
                 onClick={() => setOpen(true)}
                 sx={{ padding: 0.5, minWidth: 0, bgcolor: open ? 'action.hover' : undefined }}>
-                <Box component={Icon} icon="tabler:dots-vertical" fontSize={16} />
+                <Box component={Icon} icon={DotsVerticalIcon} fontSize={16} />
               </Button>
             </Tooltip>
           </Stack>
@@ -984,7 +1009,7 @@ function DeletedTemplates({
           }}>
           <Box
             component={Icon}
-            icon="tabler:chevron-down"
+            icon={ChevronDownIcon}
             sx={{
               fontSize: 20,
               transform: `rotateZ(${expanded ? '0' : '-90deg'})`,
@@ -1019,7 +1044,7 @@ function DeletedTemplates({
                         onClick={() => {
                           onCompare(item);
                         }}>
-                        <Box component={Icon} icon="tabler:layers-difference" sx={{ fontSize: 20 }} />
+                        <Box component={Icon} icon={DiffIcon} sx={{ fontSize: 20 }} />
                       </Button>
                     </Tooltip>
 
@@ -1030,7 +1055,7 @@ function DeletedTemplates({
                           const { parent, ...meta } = item;
                           onCreateFile({ parent, meta });
                         }}>
-                        <Box component={Icon} icon="tabler:arrow-back-up" sx={{ fontSize: 20 }} />
+                        <Box component={Icon} icon={ArrowBackUpIcon} sx={{ fontSize: 20 }} />
                       </Button>
                     </Tooltip>
                   </>

@@ -7,6 +7,9 @@ import {
   nextAssistantId,
 } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
+import CopyIcon from '@iconify-icons/tabler/copy';
+import EyeIcon from '@iconify-icons/tabler/eye';
+import EyeOffIcon from '@iconify-icons/tabler/eye-off';
 import { Box, Button, Stack, Tooltip, alpha, styled } from '@mui/material';
 import { useAssistantCompare } from 'src/pages/project/state';
 
@@ -95,16 +98,16 @@ export default function PromptPrompts({
                         placement="top">
                         <Box onClick={() => (prompt.visibility = hidden ? undefined : 'hidden')} className="center">
                           {prompt.visibility === 'hidden' ? (
-                            <Box component={Icon} icon="tabler:eye-off" sx={{ color: 'grey.500' }} />
+                            <Box component={Icon} icon={EyeOffIcon} sx={{ color: 'grey.500' }} />
                           ) : (
-                            <Box component={Icon} icon="tabler:eye" sx={{ color: 'grey.500' }} />
+                            <Box component={Icon} icon={EyeIcon} sx={{ color: 'grey.500' }} />
                           )}
                         </Box>
                       </Tooltip>
 
                       <Tooltip title={t('copy')} disableInteractive placement="top">
                         <Box onClick={() => copePrompt(prompt, _)} className="center">
-                          <Box component={Icon} icon="tabler:copy" sx={{ color: 'grey.500' }} />
+                          <Box component={Icon} icon={CopyIcon} sx={{ color: 'grey.500' }} />
                         </Box>
                       </Tooltip>
                     </Stack>

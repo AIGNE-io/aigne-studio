@@ -3,6 +3,12 @@ import currentGitStore, { getDefaultBranch } from '@app/store/current-git-store'
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { AssistantYjs } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
+import FolderPlusIcon from '@iconify-icons/tabler/folder-plus';
+import SidebarLeft from '@iconify-icons/tabler/layout-sidebar';
+import SidebarRight from '@iconify-icons/tabler/layout-sidebar-right';
+import PlayerPlayIcon from '@iconify-icons/tabler/player-play';
+import PlusIcon from '@iconify-icons/tabler/plus';
+import TableImportIcon from '@iconify-icons/tabler/table-import';
 import {
   Alert,
   Box,
@@ -145,14 +151,14 @@ export default function ProjectPage() {
 
               {project?.homePageUrl && (
                 <Button sx={{ minWidth: 0 }} color="secondary" onClick={() => window.open(project.homePageUrl)}>
-                  <Box component={Icon} icon="tabler:player-play" fontSize={20} color="#3B82F6" />
+                  <Box component={Icon} icon={PlayerPlayIcon} fontSize={20} color="#3B82F6" />
                 </Button>
               )}
 
               <Tooltip title={t('importObject', { object: t('agents') })} disableInteractive>
                 <span>
                   <Button disabled={readOnly} sx={{ minWidth: 0 }} onClick={() => fileTree.current?.importFrom()}>
-                    <Box component={Icon} icon="tabler:table-import" fontSize={20} color="#3B82F6" />
+                    <Box component={Icon} icon={TableImportIcon} fontSize={20} color="#3B82F6" />
                   </Button>
                 </span>
               </Tooltip>
@@ -166,7 +172,7 @@ export default function ProjectPage() {
                       const dir = dirname(filepath);
                       fileTree.current?.newFolder({ parent: dir.length ? dir : [PROMPTS_FOLDER_NAME] });
                     }}>
-                    <Box component={Icon} icon="tabler:folder-plus" fontSize={20} color="#3B82F6" />
+                    <Box component={Icon} icon={FolderPlusIcon} fontSize={20} color="#3B82F6" />
                   </Button>
                 </span>
               </Tooltip>
@@ -184,7 +190,7 @@ export default function ProjectPage() {
                         meta: newDefaultPrompt(),
                       });
                     }}>
-                    <Box component={Icon} icon="tabler:plus" fontSize={20} color="#3B82F6" />
+                    <Box component={Icon} icon={PlusIcon} fontSize={20} color="#3B82F6" />
                   </Button>
                 </span>
               </Tooltip>
@@ -345,12 +351,7 @@ function PanelToggleButton({
   return (
     <Tooltip title={collapsed ? t('showSidebar') : t('hideSidebar')}>
       <Button {...props} sx={{ minWidth: 0, flexShrink: 0, ...props.sx }}>
-        <Box
-          component={Icon}
-          icon={placement === 'left' ? 'tabler:layout-sidebar' : 'tabler:layout-sidebar-right'}
-          fontSize={20}
-          color="#3B82F6"
-        />
+        <Box component={Icon} icon={placement === 'left' ? SidebarLeft : SidebarRight} fontSize={20} color="#3B82F6" />
       </Button>
     </Tooltip>
   );

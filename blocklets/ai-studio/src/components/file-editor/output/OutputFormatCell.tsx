@@ -2,6 +2,10 @@ import useDialog from '@app/utils/use-dialog';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { OutputVariableYjs, VariableYjs } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
+import BracketsContainIcon from '@iconify-icons/tabler/brackets-contain';
+import CodePlusIcon from '@iconify-icons/tabler/code-plus';
+import CursorTextIcon from '@iconify-icons/tabler/cursor-text';
+import SquareNumberIcon from '@iconify-icons/tabler/square-number-1';
 import { Box, ListItemIcon, MenuItem, TextField, TextFieldProps, Typography } from '@mui/material';
 import { nanoid } from 'nanoid';
 
@@ -88,28 +92,28 @@ function VariableTypeField({ ...props }: TextFieldProps) {
     <TextField hiddenLabel placeholder={t('format')} select SelectProps={{ autoWidth: true }} {...props}>
       <MenuItem value="string">
         <ListItemIcon>
-          <Icon icon="tabler:cursor-text" />
+          <Icon icon={CursorTextIcon} />
         </ListItemIcon>
         {t('text')}
       </MenuItem>
 
       <MenuItem value="number">
         <ListItemIcon>
-          <Icon icon="tabler:square-number-1" />
+          <Icon icon={SquareNumberIcon} />
         </ListItemIcon>
         {t('number')}
       </MenuItem>
 
       <MenuItem value="object">
         <ListItemIcon>
-          <Icon icon="tabler:code-plus" />
+          <Icon icon={CodePlusIcon} />
         </ListItemIcon>
         {t('object')}
       </MenuItem>
 
       <MenuItem value="array">
         <ListItemIcon>
-          <Icon icon="tabler:brackets-contain" />
+          <Icon icon={BracketsContainIcon} />
         </ListItemIcon>
         {t('array')}
       </MenuItem>

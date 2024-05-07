@@ -3,17 +3,23 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { defaultImageModel, defaultTextModel } from '@blocklet/ai-runtime/common';
 import { AssistantYjs, RuntimeOutputVariable, arrayToYjs, outputVariableToYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { Icon } from '@iconify-icon/react';
+import APIIcon from '@iconify-icons/tabler/api';
+import CodeIcon from '@iconify-icons/tabler/code';
+import PhotoIcon from '@iconify-icons/tabler/photo';
+import SparklesIcon from '@iconify-icons/tabler/sparkles';
+import SwitchHorizontalIcon from '@iconify-icons/tabler/switch-horizontal';
+import ZZZIcon from '@iconify-icons/tabler/zzz';
+import { Icon } from '@iconify/react';
 import { Box, ListItemIcon, MenuItem, Typography } from '@mui/material';
 import { sortBy } from 'lodash';
 import { nanoid } from 'nanoid';
 
 export const agentTypes = [
-  { type: 'agent', icon: <Icon icon="tabler:zzz" />, i18nKey: 'idle' },
-  { type: 'prompt', icon: <Icon icon="tabler:sparkles" />, i18nKey: 'largeLanguageModel' },
-  { type: 'image', icon: <Icon icon="tabler:photo" />, i18nKey: 'imageGeneration' },
-  { type: 'function', icon: <Icon icon="tabler:code" />, i18nKey: 'logic' },
-  { type: 'api', icon: <Icon icon="tabler:api" />, i18nKey: 'api' },
+  { type: 'agent', icon: <Icon icon={ZZZIcon} />, i18nKey: 'idle' },
+  { type: 'prompt', icon: <Icon icon={SparklesIcon} />, i18nKey: 'largeLanguageModel' },
+  { type: 'image', icon: <Icon icon={PhotoIcon} />, i18nKey: 'imageGeneration' },
+  { type: 'function', icon: <Icon icon={CodeIcon} />, i18nKey: 'logic' },
+  { type: 'api', icon: <Icon icon={APIIcon} />, i18nKey: 'api' },
 ] as const;
 
 export const agentTypesMap = Object.fromEntries(agentTypes.map((i) => [i.type, i]));
@@ -31,7 +37,7 @@ export default function AgentTypeSelect({ assistant }: { assistant: AssistantYjs
             <Typography variant="subtitle2" sx={{ m: 0 }}>
               {current && t(current.i18nKey)}
             </Typography>
-            <Box component={Icon} icon="tabler:switch-horizontal" sx={{ fontSize: 15, color: '#3B82F6' }} />
+            <Box component={Icon} icon={SwitchHorizontalIcon} sx={{ fontSize: 15, color: '#3B82F6' }} />
           </Box>
         ),
       }}

@@ -9,6 +9,7 @@ import {
 } from '@blocklet/ai-runtime/common';
 import { AssistantYjs, isImageAssistant, isPromptAssistant } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
+import AdjustmentsIcon from '@iconify-icons/tabler/adjustments';
 import {
   Box,
   Button,
@@ -95,7 +96,7 @@ export default function PromptSetting({
           </Typography>
         </Stack>
 
-        <Box component={Icon} icon="tabler:adjustments" sx={{ color: '#3B82F6', fontSize: 15 }} />
+        <Box component={Icon} icon={AdjustmentsIcon} sx={{ color: '#3B82F6', fontSize: 15 }} />
       </Stack>
 
       <Dialog

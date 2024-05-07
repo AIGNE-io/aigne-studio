@@ -9,6 +9,8 @@ import {
   isPromptAssistant,
 } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
+import ArrowRightIcon from '@iconify-icons/tabler/arrow-ramp-right';
+import HistoryToggleIcon from '@iconify-icons/tabler/history-toggle';
 import { Box, CircularProgress, Divider, MenuItem, Select, Stack, Typography, styled } from '@mui/material';
 import { useRequest } from 'ahooks';
 import { useEffect, useMemo, useState } from 'react';
@@ -92,7 +94,7 @@ export default function Compare({
               },
             }}
             startAdornment={
-              <Box component={Icon} icon="tabler:arrow-ramp-right" sx={{ fontSize: 16, color: '#3B82F6', mr: 1 }} />
+              <Box component={Icon} icon={ArrowRightIcon} sx={{ fontSize: 16, color: '#3B82F6', mr: 1 }} />
             }
             value={branch}
             onChange={(e) => {
@@ -119,7 +121,7 @@ export default function Compare({
           }}
           value={commit}
           startAdornment={
-            <Box component={Icon} icon="tabler:history-toggle" sx={{ fontSize: 16, color: '#3B82F6', mr: 1 }} />
+            <Box component={Icon} icon={HistoryToggleIcon} sx={{ fontSize: 16, color: '#3B82F6', mr: 1 }} />
           }
           onChange={(e) => {
             setCommit(e.target.value);

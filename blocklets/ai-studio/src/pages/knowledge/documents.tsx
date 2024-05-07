@@ -1,6 +1,8 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
+import ChevronLeftIcon from '@iconify-icons/tabler/chevron-left';
+import PlusIcon from '@iconify-icons/tabler/plus';
 import { Box, Button, CircularProgress, Stack, Tooltip, Typography, styled } from '@mui/material';
 import { DataGrid, gridClasses } from '@mui/x-data-grid';
 import { useReactive } from 'ahooks';
@@ -282,7 +284,7 @@ export default function KnowledgeDocuments() {
             onClick={() => {
               navigate(joinURL('..'));
             }}>
-            <Box component={Icon} icon="tabler:chevron-left" width={20} />
+            <Box component={Icon} icon={ChevronLeftIcon} width={20} />
             <Typography variant="subtitle2" mb={0}>
               {state.dataset?.name}
             </Typography>
@@ -296,11 +298,7 @@ export default function KnowledgeDocuments() {
           </Box>
         </Box>
 
-        <Button
-          variant="contained"
-          size="small"
-          startIcon={<Icon icon="tabler:plus" />}
-          onClick={() => navigate('add')}>
+        <Button variant="contained" size="small" startIcon={<Icon icon={PlusIcon} />} onClick={() => navigate('add')}>
           {t('knowledge.documents.add')}
         </Button>
       </Stack>

@@ -17,6 +17,9 @@ import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import getDatasetTextByI18n from '@blocklet/dataset-sdk/util/get-dataset-i18n-text';
 import { Icon } from '@iconify-icon/react';
+import ExternalLinkIcon from '@iconify-icons/tabler/external-link';
+import PlusIcon from '@iconify-icons/tabler/plus';
+import TrashIcon from '@iconify-icons/tabler/trash';
 import { InfoOutlined as MuiInfoOutlined } from '@mui/icons-material';
 import {
   Accordion,
@@ -145,7 +148,7 @@ export default function ExecuteBlockForm({
 
           <>
             <IconButton {...bindTrigger(popperState)}>
-              <Box component={Icon} icon="tabler:plus" color="#3B82F6" fontSize={16} />
+              <Box component={Icon} icon={PlusIcon} color="#3B82F6" fontSize={16} />
             </IconButton>
             <Popper {...bindPopper(popperState)} sx={{ zIndex: 1101 }} transition placement="bottom-end">
               {({ TransitionProps }) => (
@@ -326,7 +329,7 @@ export default function ExecuteBlockForm({
               </Box>
 
               <IconButton onClick={() => (value.variable = undefined)}>
-                <Box component={Icon} icon="tabler:trash" color="warning.main" fontSize={18} />
+                <Box component={Icon} icon={TrashIcon} color="warning.main" fontSize={18} />
               </IconButton>
             </Box>
           </Box>
@@ -378,7 +381,7 @@ export default function ExecuteBlockForm({
               </Box>
 
               <IconButton onClick={() => (value.role = undefined)}>
-                <Box component={Icon} icon="tabler:trash" color="warning.main" fontSize={18} />
+                <Box component={Icon} icon={TrashIcon} color="warning.main" fontSize={18} />
               </IconButton>
             </Box>
           </Box>
@@ -418,7 +421,7 @@ export default function ExecuteBlockForm({
               </Box>
 
               <IconButton onClick={() => (value.formatResultType = undefined)}>
-                <Box component={Icon} icon="tabler:trash" color="warning.main" fontSize={18} />
+                <Box component={Icon} icon={TrashIcon} color="warning.main" fontSize={18} />
               </IconButton>
             </Box>
           </Box>
@@ -455,7 +458,7 @@ export default function ExecuteBlockForm({
               </Box>
 
               <IconButton onClick={() => (value.prefix = undefined)}>
-                <Box component={Icon} icon="tabler:trash" color="warning.main" fontSize={18} />
+                <Box component={Icon} icon={TrashIcon} color="warning.main" fontSize={18} />
               </IconButton>
             </Box>
           </Box>
@@ -492,7 +495,7 @@ export default function ExecuteBlockForm({
               </Box>
 
               <IconButton onClick={() => (value.suffix = undefined)}>
-                <Box component={Icon} icon="tabler:trash" color="warning.main" fontSize={18} />
+                <Box component={Icon} icon={TrashIcon} color="warning.main" fontSize={18} />
               </IconButton>
             </Box>
           </Box>
@@ -537,7 +540,7 @@ export default function ExecuteBlockForm({
               </Box>
 
               <IconButton onClick={() => (value.respondAs = undefined)}>
-                <Box component={Icon} icon="tabler:trash" color="warning.main" fontSize={18} />
+                <Box component={Icon} icon={TrashIcon} color="warning.main" fontSize={18} />
               </IconButton>
             </Box>
           </Box>
@@ -792,7 +795,7 @@ function ToolItemView({
               e.stopPropagation();
               navigate(joinURL('.', `${file.id}.yaml`));
             }}>
-            <Box component={Icon} icon="tabler:external-link" sx={{ fontSize: 18 }} />
+            <Box component={Icon} icon={ExternalLinkIcon} sx={{ fontSize: 18 }} />
           </Button>
         )}
       </Stack>

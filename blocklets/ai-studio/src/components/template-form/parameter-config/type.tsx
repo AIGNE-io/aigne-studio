@@ -1,5 +1,10 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Icon } from '@iconify-icon/react';
+import CursorTextIcon from '@iconify-icons/tabler/cursor-text';
+import LanguageIcon from '@iconify-icons/tabler/language-hiragana';
+import ListCheckIcon from '@iconify-icons/tabler/list-check';
+import SquareNumberIcon from '@iconify-icons/tabler/square-number-1';
+import TextWrapIcon from '@iconify-icons/tabler/text-wrap';
 import { ListItemIcon, MenuItem, TextField, TextFieldProps } from '@mui/material';
 import { useMemo } from 'react';
 
@@ -9,27 +14,27 @@ export default function ParameterConfigType(props: TextFieldProps) {
   const list = useMemo(() => {
     return [
       {
-        icon: <Icon icon="tabler:cursor-text" />,
+        icon: <Icon icon={CursorTextIcon} />,
         label: t('text'),
         value: 'string',
       },
       {
-        icon: <Icon icon="tabler:text-wrap" />,
+        icon: <Icon icon={TextWrapIcon} />,
         label: t('multiline'),
         value: 'multiline',
       },
       {
-        icon: <Icon icon="tabler:square-number-1" />,
+        icon: <Icon icon={SquareNumberIcon} />,
         label: t('number'),
         value: 'number',
       },
       {
-        icon: <Icon icon="tabler:list-check" />,
+        icon: <Icon icon={ListCheckIcon} />,
         label: t('select'),
         value: 'select',
       },
       {
-        icon: <Icon icon="tabler:language-hiragana" />,
+        icon: <Icon icon={LanguageIcon} />,
         label: t('languageSelect'),
         value: 'language',
       },

@@ -2,6 +2,8 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { cx } from '@emotion/css';
 import { Icon } from '@iconify-icon/react';
+import GripVerticalIcon from '@iconify-icons/tabler/grip-vertical';
+import TrashIcon from '@iconify-icons/tabler/trash';
 import { Box, Stack, StackProps, Tooltip } from '@mui/material';
 import { useUpdate } from 'ahooks';
 import sortBy from 'lodash/sortBy';
@@ -246,7 +248,7 @@ export function DragSortItemContainer({
               }}>
               <Tooltip title={t('dragSort')} disableInteractive placement="top">
                 <Box ref={drag} className="center">
-                  <Box component={Icon} icon="tabler:grip-vertical" sx={{ color: 'grey.500' }} />
+                  <Box component={Icon} icon={GripVerticalIcon} sx={{ color: 'grey.500' }} />
                 </Box>
               </Tooltip>
 
@@ -255,7 +257,7 @@ export function DragSortItemContainer({
               {onDelete && (
                 <Tooltip title={t('delete')} disableInteractive placement="top">
                   <Box onClick={onDelete} className="center">
-                    <Box component={Icon} icon="tabler:trash" sx={{ color: 'grey.500' }} />
+                    <Box component={Icon} icon={TrashIcon} sx={{ color: 'grey.500' }} />
                   </Box>
                 </Tooltip>
               )}

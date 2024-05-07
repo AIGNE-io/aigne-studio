@@ -2,6 +2,7 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { defaultTextModel, getSupportedModels } from '@blocklet/ai-runtime/common';
 import { PromptAssistantYjs } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
+import HelpIcon from '@iconify-icons/tabler/help';
 import { Box, FormLabel, Tooltip } from '@mui/material';
 import isNil from 'lodash/isNil';
 import { useMemo } from 'react';
@@ -30,7 +31,7 @@ export default function PromptSetting({
   const { t } = useLocaleContext();
 
   const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
-  const icon = <Box component={Icon} icon="tabler:help" sx={{ fontSize: 16, color: '#9CA3AF', mt: 0.25 }} />;
+  const icon = <Box component={Icon} icon={HelpIcon} sx={{ fontSize: 16, color: '#9CA3AF', mt: 0.25 }} />;
 
   const { state } = useProjectState(projectId, gitRef);
   const { project } = state;

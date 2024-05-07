@@ -3,6 +3,7 @@ import { defaultImageModel, getSupportedImagesModels } from '@blocklet/ai-runtim
 import { ImageAssistantYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
+import HelpIcon from '@iconify-icons/tabler/help';
 import { Box, FormLabel, MenuItem, TextField, Tooltip } from '@mui/material';
 import { useMemo } from 'react';
 import { useAsync } from 'react-use';
@@ -36,7 +37,7 @@ export default function ImageFileSetting({
   const modelDetail = useMemo(() => {
     return supportedModels?.find((i) => i.model === model);
   }, [model, supportedModels]);
-  const icon = <Box component={Icon} icon="tabler:help" sx={{ fontSize: 16, color: '#9CA3AF', mt: 0.25 }} />;
+  const icon = <Box component={Icon} icon={HelpIcon} sx={{ fontSize: 16, color: '#9CA3AF', mt: 0.25 }} />;
 
   return (
     <>

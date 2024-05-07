@@ -7,7 +7,7 @@ import { sha3_256 } from 'js-sha3';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 import { intersection, isNil, omitBy } from 'lodash';
 import mammoth from 'mammoth';
-// import PDFParser from 'pdf2json';
+import PDFParser from 'pdf2json';
 import { joinURL } from 'ufo';
 
 import { AIKitEmbeddings } from '../../core/embeddings/ai-kit';
@@ -39,21 +39,23 @@ const handlerError = async (document: DatasetDocument, message: string) => {
   }
 };
 
-// function parsePDFToJSON(filePath: string): Promise<string> {
-//   return new Promise((resolve, reject) => {
-//     const pdfParser = new PDFParser();
+function parsePDF(filePath: string): Promise<string> {
+  // @ts-ignore
+  const pdfParser = new PDFParser(this, 1);
+  const regex = /----------------Page \(\d+\) Break----------------/g;
 
-//     pdfParser.on('pdfParser_dataError', (errData: any) => reject(errData));
-//     pdfParser.on('pdfParser_dataReady', (pdfData: any) => {
-//       console.log(JSON.stringify(pdfData));
-//       return resolve('');
-//     });
+  return new Promise((resolve, reject) => {
+    pdfParser.on('pdfParser_dataError', (errData) => reject(errData));
+    pdfParser.on('pdfParser_dataReady', () => {
+      const text = (pdfParser as any).getRawTextContent();
+      const pages: string[] = text.split(regex);
+      resolve(pages.join(','));
+    });
+    pdfParser.loadPDF(filePath);
+  });
+}
 
-//     pdfParser.loadPDF(filePath);
-//   });
-// }
-
-const getContent = async (fileExtension: string, filePath: string): Promise<string> => {
+const getContent = async (fileExtension: string, filePath: string) => {
   if (!fileExtension) {
     throw new Error('Not file extension');
   }
@@ -63,7 +65,7 @@ const getContent = async (fileExtension: string, filePath: string): Promise<stri
   }
 
   if (fileExtension === 'pdf') {
-    // return parsePDFToJSON(filePath);
+    return parsePDF(filePath);
   }
 
   if (fileExtension === 'doc' || fileExtension === 'docx') {

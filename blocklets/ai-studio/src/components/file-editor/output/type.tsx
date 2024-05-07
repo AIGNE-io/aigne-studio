@@ -2,6 +2,12 @@ import AigneLogo from '@app/icons/aigne-logo';
 import AigneLogoOutput from '@app/icons/aigne-logo-output';
 import { OutputVariable, OutputVariableYjs, RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
+import FormsIcon from '@iconify-icons/tabler/forms';
+import LayoutIcon from '@iconify-icons/tabler/layout';
+import LinkIcon from '@iconify-icons/tabler/link';
+import MessageQuestionIcon from '@iconify-icons/tabler/message-question';
+import PhotoIcon from '@iconify-icons/tabler/photo';
+import WritingIcon from '@iconify-icons/tabler/writing';
 import { Box } from '@mui/material';
 import { ReactNode } from 'react';
 
@@ -18,25 +24,25 @@ export const runtimeOutputVariables: {
     group: 'system',
     outputs: [
       {
-        icon: <Icon icon="tabler:writing" />,
+        icon: <Icon icon={WritingIcon} />,
         title: 'Stream Text Response',
         i18nKey: 'streamTextResponse',
         name: RuntimeOutputVariable.text,
       },
       {
-        icon: <Icon icon="tabler:photo" />,
+        icon: <Icon icon={PhotoIcon} />,
         title: 'Generated Images',
         i18nKey: 'generatedImages',
         name: RuntimeOutputVariable.images,
       },
       {
-        icon: <Icon icon="tabler:message-question" />,
+        icon: <Icon icon={MessageQuestionIcon} />,
         title: 'Suggested Questions',
         i18nKey: 'suggestedQuestions',
         name: RuntimeOutputVariable.suggestedQuestions,
       },
       {
-        icon: <Icon icon="tabler:link" />,
+        icon: <Icon icon={LinkIcon} />,
         title: 'Referenced Links',
         i18nKey: 'referencedLinks',
         name: RuntimeOutputVariable.referenceLinks,
@@ -53,13 +59,13 @@ export const runtimeOutputVariables: {
     group: 'appearance',
     outputs: [
       {
-        icon: <Icon icon="tabler:layout" />,
+        icon: <Icon icon={LayoutIcon} />,
         title: 'Appearance Page',
         i18nKey: 'appearancePage',
         name: RuntimeOutputVariable.appearancePage,
       },
       {
-        icon: <Icon icon="tabler:forms" />,
+        icon: <Icon icon={FormsIcon} />,
         title: 'Appearance Input',
         i18nKey: 'appearanceInput',
         name: RuntimeOutputVariable.appearanceInput,

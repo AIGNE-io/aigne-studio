@@ -11,6 +11,10 @@ import { AssistantYjs, Role, isPromptAssistant, parameterFromYjs } from '@blockl
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { cx } from '@emotion/css';
 import { Icon } from '@iconify-icon/react';
+import ChevronDownIcon from '@iconify-icons/tabler/chevron-down';
+import HistoryIcon from '@iconify-icons/tabler/history';
+import SendIcon from '@iconify-icons/tabler/send';
+import TrashIcon from '@iconify-icons/tabler/trash';
 import { Add, CopyAll } from '@mui/icons-material';
 import {
   Accordion,
@@ -116,7 +120,7 @@ function DebugViewContent({
         <Stack direction="row" alignItems="center" gap={1} overflow="hidden">
           <Tooltip title={t('clearSession')} placement="bottom-end">
             <IconButton size="small" sx={{ color: '#000000' }} onClick={clearCurrentSession}>
-              <Box fontSize={15} component={Icon} icon="tabler:history" />
+              <Box fontSize={15} component={Icon} icon={HistoryIcon} />
             </IconButton>
           </Tooltip>
 
@@ -128,7 +132,7 @@ function DebugViewContent({
                 e.stopPropagation();
                 deleteSession(currentSession.index);
               }}>
-              <Box fontSize={15} component={Icon} icon="tabler:trash" />
+              <Box fontSize={15} component={Icon} icon={TrashIcon} />
             </IconButton>
           </Tooltip>
         </Stack>
@@ -273,7 +277,7 @@ function ScrollMessages({
             position: 'absolute',
             right: 20,
           }}>
-          <Box component={Icon} icon="tabler:chevron-down" sx={{ fontSize: 15, color: '#9CA3AF' }} />
+          <Box component={Icon} icon={ChevronDownIcon} sx={{ fontSize: 15, color: '#9CA3AF' }} />
         </Box>
       )}
     </Box>
@@ -620,7 +624,7 @@ function ChatModeForm({
           }}
           loading={lastMessage?.loading}
           loadingPosition="end"
-          endIcon={<Icon icon="tabler:send" />}>
+          endIcon={<Icon icon={SendIcon} size={14} />}>
           {t('send')}
         </LoadingButton>
       </Tooltip>
@@ -768,7 +772,7 @@ function DebugModeForm({
               {parameters.length > 1 && (
                 <Box
                   component={Icon}
-                  icon="tabler:chevron-down"
+                  icon={ChevronDownIcon}
                   sx={{
                     fontSize: 20,
                     transform: `rotateZ(${expanded ? '0' : '-180deg'})`,
@@ -851,7 +855,7 @@ function DebugModeForm({
           }}
           loading={lastMessage?.loading}
           loadingPosition="end"
-          endIcon={<Icon icon="tabler:send" />}>
+          endIcon={<Icon icon={SendIcon} size={14} />}>
           {t('execute')}
         </LoadingButton>
       </Stack>
