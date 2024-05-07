@@ -1,15 +1,18 @@
 import AigneLogo from '@app/icons/aigne-logo';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Icon } from '@iconify-icon/react';
+import CloseIcon from '@iconify-icons/material-symbols/close';
+import MenuIcon from '@iconify-icons/material-symbols/menu';
 import BookIcon from '@iconify-icons/tabler/book-2';
 import BrainIcon from '@iconify-icons/tabler/brain';
-import { Box, CircularProgress, Stack } from '@mui/material';
-import { Suspense, useMemo } from 'react';
+import { Box, CircularProgress, Drawer, Hidden, IconButton, Stack, Typography } from '@mui/material';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { Suspense, useMemo, useState } from 'react';
 import { Outlet, useLocation, useNavigate, useParams, useRoutes } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
 import ProjectBrand from './project-brand';
-import PromptActions from './prompt-actions';
+import { AgentTokenUsage, HeaderActions, MobileHeaderActions } from './prompt-actions';
 import SegmentedControl from './segmented-control';
 
 export default function ProjectHeader() {
@@ -17,6 +20,8 @@ export default function ProjectHeader() {
   const navigate = useNavigate();
   const { projectId } = useParams();
   const pathname = useLocation().pathname.toLowerCase();
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const isMobile = useMediaQuery((theme: any) => theme.breakpoints.down('md'));
 
   const current = useMemo(() => {
     if (pathname.includes(`${projectId}/file`)) {
@@ -38,6 +43,26 @@ export default function ProjectHeader() {
     return 'prompts';
   }, [pathname, projectId]);
 
+  const options = useMemo(() => {
+    return [
+      {
+        value: 'prompts',
+        label: t('agent'),
+        icon: <Box fontSize={15} component={AigneLogo} mr={1} />,
+      },
+      {
+        value: 'knowledge',
+        label: t('knowledge.menu'),
+        icon: <Box fontSize={15} component={Icon} icon={BookIcon} mr={1} />,
+      },
+      {
+        value: 'variables',
+        label: t('memory.title'),
+        icon: <Box fontSize={15} component={Icon} icon={BrainIcon} mr={1} />,
+      },
+    ];
+  }, [t]);
+
   return (
     <Stack height={1} overflow="hidden">
       <Box height={64} borderBottom="1px solid #E5E7EB" px={{ xs: 2, md: 3 }} className="between">
@@ -45,35 +70,26 @@ export default function ProjectHeader() {
           <ProjectBrand />
         </Box>
 
-        <Box flex={1} display="flex" justifyContent="center">
-          <SegmentedControl
-            value={current}
-            options={[
-              {
-                value: 'prompts',
-                label: t('agent'),
-                icon: <Box fontSize={15} component={AigneLogo} mr={1} />,
-              },
-              {
-                value: 'knowledge',
-                label: t('knowledge.menu'),
-                icon: <Box fontSize={15} component={Icon} icon={BookIcon} mr={1} />,
-              },
-              {
-                value: 'variables',
-                label: t('memory.title'),
-                icon: <Box fontSize={15} component={Icon} icon={BrainIcon} mr={1} />,
-              },
-            ]}
-            onChange={(value) => {
-              if (value) navigate(joinURL('..', projectId || '', value));
-            }}
-          />
-        </Box>
+        <Hidden mdDown>
+          <Box flex={1} display="flex" justifyContent="center">
+            <SegmentedControl
+              value={current}
+              options={options}
+              onChange={(value) => {
+                if (value) navigate(joinURL('..', projectId || '', value));
+              }}
+            />
+          </Box>
 
-        <Box flex={1} display="flex" justifyContent="flex-end">
-          <ActionRoutes />
-        </Box>
+          <Box flex={1} display="flex" justifyContent="flex-end">
+            <ActionRoutes />
+          </Box>
+        </Hidden>
+        <Hidden mdUp>
+          <IconButton onClick={() => setDrawerOpen(!drawerOpen)}>
+            {drawerOpen ? <Icon icon={CloseIcon} /> : <Icon icon={MenuIcon} />}
+          </IconButton>
+        </Hidden>
       </Box>
 
       <Box flex={1} height={0} overflow="hidden" bgcolor="background.default">
@@ -86,6 +102,53 @@ export default function ProjectHeader() {
           <Outlet />
         </Suspense>
       </Box>
+
+      {isMobile && (
+        <Drawer
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          ModalProps={{
+            disablePortal: false,
+            keepMounted: true,
+            BackdropComponent: undefined,
+          }}
+          anchor="right"
+          sx={{
+            zIndex: (theme) => theme.zIndex.appBar - 1,
+          }}
+          PaperProps={{
+            style: {
+              top: 64,
+              bottom: 0,
+              boxShadow: 'none',
+            },
+          }}>
+          <Stack sx={{ width: 300, background: '#fff', p: 2 }}>
+            <Stack sx={{ gap: 1.5, flex: 1 }} onClick={() => setDrawerOpen(false)}>
+              {options.map((option) => {
+                return (
+                  <Box
+                    className="center"
+                    justifyContent="flex-start"
+                    key={option.value}
+                    onClick={() => {
+                      navigate(joinURL('..', projectId || '', option.value));
+                    }}>
+                    <Box className="center">{option.icon}</Box>
+                    <Typography className="center" fontWeight={500} fontSize={16} lineHeight="28px" color="#030712">
+                      {option.label}
+                    </Typography>
+                  </Box>
+                );
+              })}
+
+              <MobileActionRoutes />
+            </Stack>
+
+            <AgentTokenUsage />
+          </Stack>
+        </Drawer>
+      )}
     </Stack>
   );
 }
@@ -101,7 +164,37 @@ function ActionRoutes() {
           children: [
             {
               path: ':ref/*',
-              element: <PromptActions />,
+              element: <HeaderActions />,
+            },
+            {
+              path: '*',
+              element: null,
+            },
+          ],
+        },
+        {
+          path: '*',
+          element: null,
+        },
+      ],
+    },
+  ]);
+
+  return <Suspense>{element}</Suspense>;
+}
+
+function MobileActionRoutes() {
+  const element = useRoutes([
+    {
+      path: ':projectId?/*',
+      element: <Outlet />,
+      children: [
+        {
+          path: 'file',
+          children: [
+            {
+              path: ':ref/*',
+              element: <MobileHeaderActions />,
             },
             {
               path: '*',
