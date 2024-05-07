@@ -67,6 +67,8 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
   const input = await callInputSchema.validateAsync(req.body, { stripUnknown: true });
   const userId = req.user?.did || input.userId;
 
+  if (!userId) throw new Error('Missing required userId');
+
   const project = await Project.findByPk(input.projectId, {
     rejectOnEmpty: new Error(`Project ${input.projectId} not found`),
   });
@@ -118,7 +120,7 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
     }).then(async (res) => ({
       data: await Promise.all(
         res.data.map(async (item) => ({
-          url: (await uploadImageToImageBin({ filename: `AI Generate ${Date.now()}.png`, data: item })).url,
+          url: (await uploadImageToImageBin({ filename: `AI Generate ${Date.now()}.png`, data: item, userId })).url,
         }))
       ),
     }));

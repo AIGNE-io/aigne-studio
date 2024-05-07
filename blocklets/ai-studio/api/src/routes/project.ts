@@ -268,11 +268,14 @@ export function projectRoutes(router: Router) {
     });
   });
 
-  router.get('/projects/icons', ensureComponentCallOrPromptsEditor(), async (_req, res) => {
+  router.get('/projects/icons', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+    const { did } = req.user!;
+
     const { data } = await call({
       name: 'image-bin',
       path: '/api/sdk/uploads',
       method: 'GET',
+      headers: { 'x-user-did': did },
       params: { pageSize: 100, folderId: AI_STUDIO_COMPONENT_DID },
     });
 
@@ -875,6 +878,7 @@ async function createProjectFromTemplate(
         const result = await uploadImageToImageBin({
           filename: basename(logo),
           data: { b64Json: await readFile(logo, { encoding: 'base64' }) },
+          userId: author.did,
         });
         assistant.release.logo = result.url;
       }
