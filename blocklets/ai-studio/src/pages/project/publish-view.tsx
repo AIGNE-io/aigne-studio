@@ -78,7 +78,7 @@ function PublishViewContent({
           },
         },
       }}>
-      <Stack gap={1} px={2} py={2}>
+      <Stack gap={1} px={2} py={2} className="publish-container">
         <Button variant="outlined" href={previewUrl} target="_blank" endIcon={<Icon icon={ShareIcon} />}>
           {t('previewInNewTab')}
         </Button>
@@ -95,7 +95,7 @@ function PublishViewContent({
           </Button>
         </Tooltip>
 
-        <Box textAlign="center">
+        <Box textAlign="center" className="qr-code">
           <Box
             component={QRCode}
             value={previewUrl}

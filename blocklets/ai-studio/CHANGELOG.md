@@ -1,3 +1,7 @@
+## 0.1.376 (2024-5-8)
+
+- fix: optimize mobile ui/ux
+
 ## 0.1.375 (2024-5-7)
 
 - fix: pdf2json build error

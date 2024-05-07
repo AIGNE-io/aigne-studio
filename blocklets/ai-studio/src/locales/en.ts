@@ -655,4 +655,5 @@ export default flat({
   system: 'System',
   agentEmptyTitle: '‌No Agent Created',
   agentEmptySubTitle: 'You can click on the "+" icon in the upper right corner to create.',
+  back: 'Back',
 });
