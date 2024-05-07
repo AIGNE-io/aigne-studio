@@ -23,6 +23,7 @@ import {
   Tooltip,
   Typography,
   styled,
+  useMediaQuery,
 } from '@mui/material';
 import Tab from '@mui/material/Tab';
 import { useReactive, useRequest } from 'ahooks';
@@ -59,7 +60,7 @@ function formatBytes(bytes: number, decimals = 2) {
 const CardContainer = styled(Stack)`
   border: 1px solid #e5e7eb;
   padding: 16px;
-  width: 380px;
+  max-width: 380px;
   border-radius: 8px;
   cursor: pointer;
 
@@ -91,10 +92,10 @@ function Card({
 }) {
   const classNames = [disabled ? 'disabled' : '', selected ? 'selected' : ''].filter((x) => x);
   return (
-    <CardContainer onClick={onClick} flexDirection="row" gap={1.5} className={classNames.join(',')}>
+    <CardContainer onClick={onClick} gap={1.5} width={1} alignItems="center" className={classNames.join(',')}>
       {icon}
 
-      <Box flex={1} width={0}>
+      <Box textAlign="center">
         <Box fontSize={16} fontWeight={500} lineHeight="28px" color="#030712">
           {title}
         </Box>
@@ -266,6 +267,7 @@ function Discussion({ datasetId }: { datasetId: string }) {
   const [value, setValue] = useState('discussion');
   const { refetch } = useDocuments(datasetId);
   const navigate = useNavigate();
+  const isMdOrAbove = useMediaQuery((theme: any) => theme.breakpoints.up('md'));
 
   const onChange = (checked: boolean, data: CreateDiscussionItem['data']) => {
     const newCheckedValues = checked
@@ -329,7 +331,7 @@ function Discussion({ datasetId }: { datasetId: string }) {
 
         <Box>
           <Typography variant="subtitle2">{t('discussionType')}</Typography>
-          <Stack gap={1.5} flexDirection="row">
+          <Stack gap={1.5} flexDirection={isMdOrAbove ? 'row' : 'column'}>
             {types.map((name: 'discussion' | 'blog' | 'doc') => (
               <Box borderRadius={1} p={2} border="1px solid #E5E7EB" flex={1} key={name}>
                 <FormControlLabel
@@ -590,6 +592,7 @@ export default function KnowledgeDocumentsAdd() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const isAdmin = useIsAdmin();
+  const isMdOrAbove = useMediaQuery((theme: any) => theme.breakpoints.up('md'));
 
   const type = searchParams.get('type');
   const editType = (type ? (type === 'text' ? 'custom' : type) : null) as 'file' | 'discussion' | 'custom' | null;
@@ -676,7 +679,7 @@ export default function KnowledgeDocumentsAdd() {
 
       <TabContext value={value}>
         <Stack flex={1} height={0} gap={2.5}>
-          <Box display="flex" gap={1}>
+          <Box display="flex" gap={1} flexDirection={isMdOrAbove ? 'row' : 'column'}>
             {cards.map((card) => (
               <Card
                 selected={card.id === value}

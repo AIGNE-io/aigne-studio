@@ -15,6 +15,7 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
+  DialogProps,
   DialogTitle,
   Stack,
   TextField,
@@ -22,9 +23,9 @@ import {
   Typography,
 } from '@mui/material';
 import { useKeyPress } from 'ahooks';
-import { bindDialog, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
+import { PopupState, bindDialog, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, UseFormReturn, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
@@ -34,29 +35,91 @@ import { commitFromWorking } from '../../libs/working';
 import useDialog from '../../utils/use-dialog';
 import { saveButtonState, useAssistantChangesState, useProjectState } from './state';
 
-interface CommitForm {
+export interface CommitForm {
   branch: string;
   message: string;
 }
 
 export default function SaveButton({ projectId, gitRef }: { projectId: string; gitRef: string }) {
+  const dialogState = usePopupState({ variant: 'dialog' });
+  const [loading, setLoading] = useState(false);
+  const { disabled } = useAssistantChangesState(projectId, gitRef);
+  const form = useForm<CommitForm>({});
+  const submitting = form.formState.isSubmitting || loading;
+
+  return (
+    <>
+      <Button
+        {...bindTrigger(dialogState)}
+        disabled={submitting || disabled}
+        sx={{
+          position: 'relative',
+          minWidth: 0,
+          minHeight: 0,
+          width: 32,
+          height: 32,
+          border: '1px solid #E5E7EB',
+          color: '#030712',
+        }}>
+        <Box component={Icon} icon={FloppyIcon} sx={{ opacity: submitting ? 0 : 1, fontSize: 20, color: 'inherit' }} />
+        {submitting && (
+          <Box
+            sx={{
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              right: 0,
+              bottom: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+            <CircularProgress size={20} />
+          </Box>
+        )}
+      </Button>
+
+      <SaveButtonDialog
+        projectId={projectId}
+        gitRef={gitRef}
+        dialogState={dialogState}
+        setLoading={setLoading}
+        form={form}
+      />
+    </>
+  );
+}
+
+export function SaveButtonDialog({
+  projectId,
+  gitRef,
+  dialogState,
+  setLoading,
+  form,
+  dialogProps,
+  dialogContent,
+}: {
+  projectId: string;
+  gitRef: string;
+  dialogState: PopupState;
+  setLoading: (data: any) => void;
+  form: UseFormReturn<CommitForm, any, undefined>;
+  dialogProps?: Omit<DialogProps, 'open'>;
+  dialogContent?: any;
+}) {
   const { t } = useLocaleContext();
   const navigate = useNavigate();
 
   const { dialog, showMergeConflictDialog } = useMergeConflictDialog({ projectId });
   const setProjectCurrentBranch = useCurrentGitStore((i) => i.setProjectCurrentBranch);
-  const dialogState = usePopupState({ variant: 'dialog' });
-  const [loading, setLoading] = useState(false);
 
   const {
     state: { branches, project },
     refetch,
   } = useProjectState(projectId, gitRef);
-  const { disabled, run } = useAssistantChangesState(projectId, gitRef);
+  const { run } = useAssistantChangesState(projectId, gitRef);
 
   const simpleMode = !project || project?.gitType === 'simple';
-
-  const form = useForm<CommitForm>({});
 
   useEffect(() => {
     if (dialogState.isOpen) form.reset();
@@ -126,8 +189,6 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
     ]
   );
 
-  const submitting = form.formState.isSubmitting || loading;
-
   useKeyPress(
     (e) => (e.ctrlKey || e.metaKey) && e.key === 's',
     (e) => {
@@ -175,45 +236,18 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
     <>
       {dialog}
 
-      <Button
-        {...bindTrigger(dialogState)}
-        disabled={submitting || disabled}
-        sx={{
-          position: 'relative',
-          minWidth: 0,
-          minHeight: 0,
-          width: 32,
-          height: 32,
-          border: '1px solid #E5E7EB',
-          color: '#030712',
-        }}>
-        <Box component={Icon} icon={FloppyIcon} sx={{ opacity: submitting ? 0 : 1, fontSize: 20, color: 'inherit' }} />
-        {submitting && (
-          <Box
-            sx={{
-              position: 'absolute',
-              left: 0,
-              top: 0,
-              right: 0,
-              bottom: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-            <CircularProgress size={20} />
-          </Box>
-        )}
-      </Button>
-
       <Dialog
         {...bindDialog(dialogState)}
         keepMounted={false}
         component="form"
         onSubmit={form.handleSubmit((values) => onSave(values))}
         maxWidth="sm"
-        fullWidth>
+        fullWidth
+        {...(dialogProps || {})}>
         <DialogTitle>{t('save')}</DialogTitle>
         <DialogContent>
+          {dialogContent || null}
+
           <Stack gap={1}>
             {!simpleMode && (
               <Box>

@@ -6,6 +6,7 @@ import { SaveRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
   Box,
+  BoxProps,
   Divider,
   FormControl,
   FormControlLabel,
@@ -54,7 +55,7 @@ const init = {
   gitType: 'simple',
 };
 
-export default function ProjectSettings() {
+export default function ProjectSettings({ boxProps }: { boxProps: BoxProps }) {
   const { t } = useLocaleContext();
   const { projectId = '' } = useParams();
   if (!projectId) throw new Error('Missing required params `projectId`');
@@ -189,8 +190,8 @@ export default function ProjectSettings() {
   }
 
   return (
-    <Box overflow="auto" height={1}>
-      <SettingsContainer maxWidth="md" sx={{ p: 2 }}>
+    <Box overflow="auto" height={1} {...(boxProps || {})}>
+      <SettingsContainer maxWidth="md" sx={{ p: 2 }} className="setting-container">
         <Stack gap={2}>
           <Form onSubmit={(e) => e.preventDefault()}>
             <Stack gap={2}>

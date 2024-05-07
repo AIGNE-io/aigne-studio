@@ -650,4 +650,5 @@ export default flat({
   system: '系统',
   agentEmptyTitle: '没有创建 Agent',
   agentEmptySubTitle: '可以点击右上角的 "+" 图标进行创建。',
+  back: '返回',
 });

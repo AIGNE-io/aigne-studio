@@ -118,12 +118,12 @@ export default function ProjectHeader() {
           }}
           PaperProps={{
             style: {
-              top: 64,
+              top: 0,
               bottom: 0,
               boxShadow: 'none',
             },
           }}>
-          <Stack sx={{ width: 300, background: '#fff', p: 2 }}>
+          <Stack sx={{ width: '80vw', maxWidth: 300, background: '#fff', p: 2, pt: 10, height: 1 }}>
             <Stack sx={{ gap: 1.5, flex: 1 }} onClick={() => setDrawerOpen(false)}>
               {options.map((option) => {
                 return (
@@ -145,7 +145,7 @@ export default function ProjectHeader() {
               <MobileActionRoutes />
             </Stack>
 
-            <AgentTokenUsage />
+            <MobileTokenUsage />
           </Stack>
         </Drawer>
       )}
@@ -195,6 +195,36 @@ function MobileActionRoutes() {
             {
               path: ':ref/*',
               element: <MobileHeaderActions />,
+            },
+            {
+              path: '*',
+              element: null,
+            },
+          ],
+        },
+        {
+          path: '*',
+          element: null,
+        },
+      ],
+    },
+  ]);
+
+  return <Suspense>{element}</Suspense>;
+}
+
+function MobileTokenUsage() {
+  const element = useRoutes([
+    {
+      path: ':projectId?/*',
+      element: <Outlet />,
+      children: [
+        {
+          path: 'file',
+          children: [
+            {
+              path: ':ref/*',
+              element: <AgentTokenUsage />,
             },
             {
               path: '*',
