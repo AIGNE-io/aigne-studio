@@ -6,9 +6,11 @@ import { joinURL } from 'ufo';
 export async function uploadImageToImageBin({
   filename,
   data,
+  userId,
 }: {
   filename: string;
   data: { url: string; b64Json?: undefined } | { url?: undefined; b64Json: string };
+  userId: string;
 }) {
   const base64 =
     typeof data.url === 'string'
@@ -18,6 +20,7 @@ export async function uploadImageToImageBin({
   const { data: result } = await call<{ filename: string }>({
     name: 'image-bin',
     path: '/api/sdk/uploads',
+    headers: { 'x-user-did': userId },
     data: {
       type: 'base64',
       data: base64,

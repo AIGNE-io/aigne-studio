@@ -987,7 +987,7 @@ async function runPromptAssistant({
   const outputSchema = JSON.stringify(schema);
 
   const messagesWithSystemPrompt = [...messages];
-  const lastSystemIndex = messagesWithSystemPrompt.length;
+  const lastSystemIndex = messagesWithSystemPrompt.findLastIndex((i) => i.role === 'system');
 
   if (onlyOutputJson) {
     messagesWithSystemPrompt.splice(lastSystemIndex + 1, 0, {
@@ -1117,7 +1117,6 @@ async function runPromptAssistant({
   }
 
   for (const output of assistant?.outputVariables || []) {
-    logger.info('output parameter:', { output, jsonResult });
     if (output?.variable?.key && output?.name && jsonResult && jsonResult[output?.name as any]) {
       const datastoreVariable = datastoreVariables.find(
         (x) => toLower(x.key || '') === toLower(output.variable?.key || '') && x.scope === output.variable?.scope

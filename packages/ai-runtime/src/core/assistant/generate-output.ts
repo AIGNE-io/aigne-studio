@@ -18,10 +18,18 @@ Here is the metadata json schema, inside the <metadata-schema></metadata-schema>
 ${schema}
 </metadata-schema>
 
+## Output Rules
+- You have to generate a json metadata base on the metadata schema above, inside the <metadata-schema></metadata-schema> XML tags
+- Don't make any explanation
+
 ## Output Format
-[Rules: You have to generate a json metadata base on the metadata schema above, inside the <metadata-schema></metadata-schema> XML tags]
-[Generate a JSON object based on the context, your answer and the metadata json schema above and put it the ${metadataPrefix} code block]
+[Generate a json data based on the above metadata schema, put it the metadata code block]
 ${metadataPrefix}
+${metadataSuffix}
+
+## Output Example
+${metadataPrefix}
+[Here is your generated json data]
 ${metadataSuffix}
 `;
 
@@ -32,14 +40,20 @@ Here is the metadata json schema, inside the <metadata-schema></metadata-schema>
 ${schema}
 </metadata-schema>
 
+## Output Rules
+- You have to generate a text content and a json metadata base on the metadata schema above, inside the <metadata-schema></metadata-schema> XML tags
+- Don't make any explanation
+
 ## Output Format
-
-[Rules: You have to generate a text content and a json metadata base on the metadata schema above, inside the <metadata-schema></metadata-schema> XML tags]
-
-[Place Your Text Content here]
-
-[Generate a JSON object based on the context, your answer and the metadata json schema above and put it the ${metadataPrefix} code block]
+[Your text content here]
+[Generate a json data based on the above metadata schema, put it the metadata code block]
 ${metadataPrefix}
+${metadataSuffix}
+
+## Output Example
+[Here is your answer to the the user's question]
+${metadataPrefix}
+[Here is your generated json data]
 ${metadataSuffix}
 `;
 
