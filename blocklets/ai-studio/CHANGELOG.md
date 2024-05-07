@@ -1,3 +1,7 @@
+## 0.1.374 (2024-5-7)
+
+- feat: add agent api & use aid instead of assistant id
+
 ## 0.1.373 (2024-5-7)
 
 - fix: only allowed to view user's own pictures
