@@ -1,5 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { runAssistant } from '@blocklet/ai-runtime/api';
+import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { AssistantResponseType, AssistantYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
@@ -138,10 +139,8 @@ const TestCaseView = forwardRef<
     try {
       const result = await runAssistant({
         url: joinURL(PREFIX, '/api/ai/call'),
-        projectId,
-        ref: gitRef,
+        aid: stringifyIdentity({ projectId, projectRef: gitRef, assistantId: assistant.id }),
         working: true,
-        assistantId: assistant.id,
         parameters: test.parameters,
         debug: true,
       });

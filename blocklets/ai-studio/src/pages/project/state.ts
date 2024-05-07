@@ -3,6 +3,7 @@ import { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { SubscriptionError } from '@blocklet/ai-kit/api';
 import { runAssistant } from '@blocklet/ai-runtime/api';
+import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import {
   AssistantResponseType,
   AssistantYjs,
@@ -460,10 +461,12 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
               })
             : await runAssistant({
                 url: joinURL(PREFIX, '/api/ai/call'),
-                projectId: message.projectId,
-                ref: message.gitRef,
+                aid: stringifyIdentity({
+                  projectId: message.projectId,
+                  projectRef: message.gitRef,
+                  assistantId: message.assistantId,
+                }),
                 working: true,
-                assistantId: message.assistantId,
                 parameters: message.parameters,
                 sessionId: session?.sessionId,
                 debug: true,

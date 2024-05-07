@@ -1,5 +1,6 @@
 import { Router } from 'express';
 
+import agent from './agent';
 import ai from './ai';
 import { branchRoutes } from './branch';
 import datasets from './dataset/datasets';
@@ -31,6 +32,7 @@ resourceRoutes(router);
 sessionRoutes(router);
 messageRoutes(router);
 
+router.use('/agents', agent);
 router.use('/ai', ai);
 router.use('/releases', release);
 router.use('/subscriptions', subscription);

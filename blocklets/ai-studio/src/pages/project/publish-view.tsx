@@ -1,6 +1,6 @@
-import { stringifyIdentity } from '@api/libs/aid';
 import { AI_RUNTIME_COMPONENT_DID } from '@app/libs/constants';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { AssistantYjs } from '@blocklet/ai-runtime/types';
 import ComponentInstaller from '@blocklet/ui-react/lib/ComponentInstaller';
 import { Icon } from '@iconify-icon/react';
