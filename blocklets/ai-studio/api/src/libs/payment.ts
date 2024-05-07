@@ -1,13 +1,13 @@
 import History from '@api/store/models/history';
 import Release from '@api/store/models/release';
 import { getAssistantFromRepository, getRepository } from '@api/store/repository';
+import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import payment from '@blocklet/payment-js';
 import { getComponentWebEndpoint } from '@blocklet/sdk/lib/component';
 import { fromTokenToUnit, fromUnitToToken } from '@ocap/util';
 import { DebouncedFunc, throttle } from 'lodash';
 import { Op } from 'sequelize';
 
-import { stringifyIdentity } from './aid';
 import { Config } from './env';
 import logger from './logger';
 

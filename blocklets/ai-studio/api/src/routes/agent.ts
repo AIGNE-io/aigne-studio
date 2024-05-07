@@ -1,6 +1,6 @@
-import { parseIdentity } from '@api/libs/aid';
 import Project from '@api/store/models/project';
 import { getAssistantFromRepository, getRepository } from '@api/store/repository';
+import { parseIdentity } from '@blocklet/ai-runtime/common/aid';
 import { Router } from 'express';
 import Joi from 'joi';
 import pick from 'lodash/pick';

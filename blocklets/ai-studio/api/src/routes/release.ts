@@ -1,9 +1,9 @@
-import { parseIdentity } from '@api/libs/aid';
 import {
   createOrUpdatePaymentForRelease,
   getActiveSubscriptionOfAssistant,
   getPriceFromPaymentLink,
 } from '@api/libs/payment';
+import { parseIdentity } from '@blocklet/ai-runtime/common/aid';
 import { auth, user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';

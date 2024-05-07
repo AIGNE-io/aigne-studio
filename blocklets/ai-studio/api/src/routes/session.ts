@@ -1,5 +1,5 @@
-import { parseIdentity, stringifyIdentity } from '@api/libs/aid';
 import Session from '@api/store/models/session';
+import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { auth, user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
