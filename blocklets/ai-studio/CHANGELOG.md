@@ -1,3 +1,8 @@
+## 0.1.373 (2024-5-7)
+
+- fix: only allowed to view user's own pictures
+- fix: optimize system prompts to get better response
+
 ## 0.1.372 (2024-5-7)
 
 - chore: support pdf upload
