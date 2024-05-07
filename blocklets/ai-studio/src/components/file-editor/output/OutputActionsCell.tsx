@@ -5,6 +5,8 @@ import { NumberField } from '@blocklet/ai-runtime/components';
 import { AssistantYjs, OutputVariableYjs, RuntimeOutputVariable, VariableYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
+import DotsIcon from '@iconify-icons/tabler/dots';
+import PlusIcon from '@iconify-icons/tabler/plus';
 import { Close } from '@mui/icons-material';
 import {
   Box,
@@ -75,7 +77,7 @@ export default function OutputActionsCell({
               sortBy(Object.values(v.properties), 'index').forEach((item, index) => (item.index = index));
             });
           }}>
-          <Icon icon="tabler:plus" />
+          <Icon icon={PlusIcon} />
         </Button>
       )}
 
@@ -212,7 +214,7 @@ function PopperButton({
           sx: { minWidth: 0, p: 0.5, ml: -0.5 },
           ...bindTrigger(parameterSettingPopperState),
           disabled,
-          children: <Box component={Icon} icon="tabler:dots" sx={{ color: '#3B82F6' }} />,
+          children: <Box component={Icon} icon={DotsIcon} sx={{ color: '#3B82F6' }} />,
         }}
         PopperProps={{ placement: 'bottom-end' }}>
         {isRenderSettings && (

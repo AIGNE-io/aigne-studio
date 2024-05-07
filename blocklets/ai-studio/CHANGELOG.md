@@ -1,6 +1,7 @@
 ## 0.1.372 (2024-5-7)
 
-- fix: optimize system prompts to get better response
+- chore: support pdf upload
+- fix: offline icon
 
 ## 0.1.371 (2024-5-6)
 

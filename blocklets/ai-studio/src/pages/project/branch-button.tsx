@@ -2,6 +2,12 @@ import { useCurrentGitStore } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
+import ArrowLeftIcon from '@iconify-icons/tabler/arrow-bear-left-2';
+import ArrowRightIcon from '@iconify-icons/tabler/arrow-ramp-right';
+import CheckIcon from '@iconify-icons/tabler/check';
+import ArrowDownIcon from '@iconify-icons/tabler/chevron-down';
+import PencilIcon from '@iconify-icons/tabler/pencil';
+import TrashIcon from '@iconify-icons/tabler/trash';
 import { Box, Divider, MenuItem, MenuList, Stack, TextField, Typography, alpha, tooltipClasses } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -170,11 +176,11 @@ export default function BranchButton({
           />
         }>
         <Stack flexDirection="row" gap={0.5} className="center" sx={{ cursor: 'pointer' }}>
-          <Box component={Icon} icon="tabler:arrow-ramp-right" width={15} color="#9CA3AF" />
+          <Box component={Icon} icon={ArrowRightIcon} width={15} color="#9CA3AF" />
           <Typography variant="subtitle3" color="#9CA3AF" lineHeight={1}>
             {gitRef}
           </Typography>
-          <Box component={Icon} icon="tabler:chevron-down" width={15} color="#030712" />
+          <Box component={Icon} icon={ArrowDownIcon} width={15} color="#030712" />
         </Stack>
       </Dropdown>
     </>
@@ -223,7 +229,7 @@ function BranchList({
       }}>
       {branches.map((branch) => (
         <MenuItem key={branch} selected={branch === ref} onClick={() => onItemClick?.(branch)}>
-          {branch === ref ? <Box component={Icon} icon="tabler:check" mr={1} width={15} /> : <Box mr={1} width={15} />}
+          {branch === ref ? <Box component={Icon} icon={CheckIcon} mr={1} width={15} /> : <Box mr={1} width={15} />}
           {branch}
         </MenuItem>
       ))}
@@ -231,7 +237,7 @@ function BranchList({
       <Divider sx={{ m: '0 !important' }} />
 
       <MenuItem onClick={onCreate} sx={{ color: '#3B82F6' }}>
-        <Box component={Icon} icon="tabler:arrow-bear-left-2" mr={1} width={15} color="'#3B82F6'" />
+        <Box component={Icon} icon={ArrowLeftIcon} mr={1} width={15} color="'#3B82F6'" />
         {t('newObject', { object: t('branch') })}
       </MenuItem>
 
@@ -240,12 +246,12 @@ function BranchList({
           <Divider sx={{ m: '0 !important' }} />
 
           <MenuItem onClick={onRename}>
-            <Box component={Icon} icon="tabler:pencil" mr={1} width={15} color="#030712" />
+            <Box component={Icon} icon={PencilIcon} mr={1} width={15} color="#030712" />
             {t('rename')}
           </MenuItem>
 
           <MenuItem onClick={onDelete} sx={{ color: '#E11D48' }}>
-            <Box component={Icon} icon="tabler:trash" mr={1} width={15} color="#E11D48" />
+            <Box component={Icon} icon={TrashIcon} mr={1} width={15} color="#E11D48" />
             {t('delete')}
           </MenuItem>
         </>

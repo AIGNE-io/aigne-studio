@@ -1,6 +1,12 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
+import BookIcon from '@iconify-icons/tabler/book-2';
+import FloppyIcon from '@iconify-icons/tabler/device-floppy';
+import DotsVerticalIcon from '@iconify-icons/tabler/dots-vertical';
+import PencilIcon from '@iconify-icons/tabler/pencil';
+import PlusIcon from '@iconify-icons/tabler/plus';
+import TrashIcon from '@iconify-icons/tabler/trash';
 import { LoadingButton } from '@mui/lab';
 import {
   Box,
@@ -187,7 +193,7 @@ export default function KnowledgeDatasets() {
           <LoadingButton
             type="submit"
             variant="contained"
-            startIcon={<Icon icon="tabler:plus" />}
+            startIcon={<Icon icon={PlusIcon} />}
             loadingPosition="start"
             loading={form.formState.isSubmitting}>
             {t('create')}
@@ -251,7 +257,7 @@ function DatasetItem({
         }}>
         <Stack flexDirection="row" gap={1.5}>
           <Box width={72} height={72} className="center" bgcolor="#E5E7EB" borderRadius={1}>
-            <Box component={Icon} icon="tabler:book-2" fontSize={30} />
+            <Box component={Icon} icon={BookIcon} fontSize={30} />
           </Box>
 
           <Box width={0} flex={1}>
@@ -332,13 +338,13 @@ function DatasetItem({
                                       </Box>
                                     </Stack>
                                   ),
-                                  okIcon: <Icon icon="tabler:device-floppy" />,
+                                  okIcon: <Icon icon={FloppyIcon} />,
                                   okText: t('save'),
                                   cancelText: t('cancel'),
                                   onOk: () => onUpdate({ name: newName, description: newDescription }),
                                 });
                               }}>
-                              <Box component={Icon} icon="tabler:pencil" mr={1} width={15} />
+                              <Box component={Icon} icon={PencilIcon} mr={1} width={15} />
                               {t('edit')}
                             </MenuItem>
 
@@ -376,7 +382,7 @@ function DatasetItem({
                                 });
                               }}
                               sx={{ color: '#E11D48' }}>
-                              <Box component={Icon} icon="tabler:trash" mr={1} width={15} color="#E11D48" />
+                              <Box component={Icon} icon={TrashIcon} mr={1} width={15} color="#E11D48" />
                               {t('delete')}
                             </MenuItem>
                           </List>
@@ -389,7 +395,7 @@ function DatasetItem({
                         setOpen(true);
                       }}
                       sx={{ padding: 0.5, minWidth: 0, bgcolor: open ? 'action.hover' : undefined }}>
-                      <Box component={Icon} icon="tabler:dots-vertical" fontSize={16} />
+                      <Box component={Icon} icon={DotsVerticalIcon} fontSize={16} />
                     </Button>
                   </Tooltip>
                 </Stack>

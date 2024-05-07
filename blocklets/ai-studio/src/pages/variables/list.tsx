@@ -3,6 +3,8 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { NumberField } from '@blocklet/ai-runtime/components';
 import { AssistantYjs, OutputVariableYjs, VariableYjs, isAssistant } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
+import MinusIcon from '@iconify-icons/tabler/minus';
+import PlusIcon from '@iconify-icons/tabler/plus';
 import { Close } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
@@ -238,7 +240,7 @@ function VariableList() {
         </Box>
 
         {!!list.length && (
-          <Button startIcon={<Box component={Icon} icon="tabler:plus" />} sx={{ my: 1, ml: -0.5 }} onClick={onAdd}>
+          <Button startIcon={<Box component={Icon} icon={PlusIcon} />} sx={{ my: 1, ml: -0.5 }} onClick={onAdd}>
             {t('memory.title')}
           </Button>
         )}
@@ -411,7 +413,7 @@ function VariableList() {
 
                             field.onChange({ target: { value } });
                           }}>
-                          <Icon icon="tabler:plus" />
+                          <Box component={Icon} icon={PlusIcon} />
                         </Button>
                       )}
                     </Box>
@@ -655,13 +657,13 @@ function VariableRow({
 
                     onChange(variable);
                   }}>
-                  <Icon icon="tabler:plus" />
+                  <Box component={Icon} icon={PlusIcon} />
                 </Button>
               )}
 
               {onRemove && (
                 <Button sx={{ minWidth: 24, minHeight: 24, p: 0 }} onClick={onRemove}>
-                  <Icon icon="tabler:minus" />
+                  <Box component={Icon} icon={MinusIcon} />
                 </Button>
               )}
             </Stack>

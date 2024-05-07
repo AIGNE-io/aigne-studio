@@ -2,6 +2,7 @@ import AigneLogoInput from '@app/icons/aigne-logo-input';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { AssistantYjs } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
+import PlusIcon from '@iconify-icons/tabler/plus';
 import { Box, Stack, Typography } from '@mui/material';
 import { isEmpty } from 'lodash';
 
@@ -52,7 +53,7 @@ export default function InputSettings({
               assistant={value}
               ButtonProps={{
                 startIcon: undefined,
-                children: <Icon icon="tabler:plus" />,
+                children: <Icon icon={PlusIcon} />,
                 sx: { minWidth: 24, minHeight: 24 },
               }}
             />

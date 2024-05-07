@@ -3,6 +3,9 @@ import { runAssistant } from '@blocklet/ai-runtime/api';
 import { AssistantResponseType, AssistantYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
+import BugIcon from '@iconify-icons/tabler/bug';
+import RocketIcon from '@iconify-icons/tabler/rocket';
+import TrashIcon from '@iconify-icons/tabler/trash';
 import { Error } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import { Alert, Box, Button, Stack, Tooltip, Typography } from '@mui/material';
@@ -63,7 +66,7 @@ export default function DebugView({
           sx={{ py: 0 }}
           loading={running}
           onClick={runAll}
-          startIcon={<Box component={Icon} icon="tabler:rocket" sx={{ fontSize: 16 }} />}>
+          startIcon={<Box component={Icon} icon={RocketIcon} sx={{ fontSize: 16 }} />}>
           {t('runAll')}
         </LoadingButton>
       </Stack>
@@ -191,7 +194,7 @@ const TestCaseView = forwardRef<
           <Tooltip title={t('runThisCase')}>
             <span>
               <Button sx={{ minWidth: 0, width: 32, height: 32 }} size="small" disabled={loading} onClick={runTest}>
-                <Box component={Icon} icon="tabler:rocket" sx={{ fontSize: 15 }} />
+                <Box component={Icon} icon={RocketIcon} sx={{ fontSize: 15 }} />
               </Button>
             </span>
           </Tooltip>
@@ -199,7 +202,7 @@ const TestCaseView = forwardRef<
           <Tooltip title={t('debugThisCase')}>
             <span>
               <Button sx={{ minWidth: 0, width: 32, height: 32 }} size="small" onClick={debugTest}>
-                <Box component={Icon} icon="tabler:bug" sx={{ fontSize: 15 }} />
+                <Box component={Icon} icon={BugIcon} sx={{ fontSize: 15 }} />
               </Button>
             </span>
           </Tooltip>
@@ -207,7 +210,7 @@ const TestCaseView = forwardRef<
           <Tooltip title={t('deleteThisCase')}>
             <span>
               <Button sx={{ minWidth: 0, width: 32, height: 32 }} size="small" onClick={deleteTest} color="warning">
-                <Box component={Icon} icon="tabler:trash" sx={{ fontSize: 15 }} />
+                <Box component={Icon} icon={TrashIcon} sx={{ fontSize: 15 }} />
               </Button>
             </span>
           </Tooltip>

@@ -1,6 +1,7 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
+import PencilIcon from '@iconify-icons/tabler/pencil';
 import { SaveRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
@@ -99,7 +100,7 @@ export default function KnowledgeSegments() {
                     e.stopPropagation();
                     documentDialogState.open();
                   }}>
-                  <Box component={Icon} icon="tabler:pencil" sx={{ fontSize: '16px' }} />
+                  <Box component={Icon} icon={PencilIcon} sx={{ fontSize: '16px' }} />
                 </IconButton>
               </Box>
 

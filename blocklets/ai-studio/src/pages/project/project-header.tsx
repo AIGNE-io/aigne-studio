@@ -1,6 +1,8 @@
 import AigneLogo from '@app/icons/aigne-logo';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Icon } from '@iconify-icon/react';
+import BookIcon from '@iconify-icons/tabler/book-2';
+import BrainIcon from '@iconify-icons/tabler/brain';
 import { Box, CircularProgress, Stack } from '@mui/material';
 import { Suspense, useMemo } from 'react';
 import { Outlet, useLocation, useNavigate, useParams, useRoutes } from 'react-router-dom';
@@ -55,12 +57,12 @@ export default function ProjectHeader() {
               {
                 value: 'knowledge',
                 label: t('knowledge.menu'),
-                icon: <Box fontSize={15} component={Icon} icon="tabler:book-2" mr={1} />,
+                icon: <Box fontSize={15} component={Icon} icon={BookIcon} mr={1} />,
               },
               {
                 value: 'variables',
                 label: t('memory.title'),
-                icon: <Box fontSize={15} component={Icon} icon="tabler:brain" mr={1} />,
+                icon: <Box fontSize={15} component={Icon} icon={BrainIcon} mr={1} />,
               },
             ]}
             onChange={(value) => {
