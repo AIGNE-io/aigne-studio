@@ -400,7 +400,7 @@ function PublishAction() {
                   p: 0,
 
                   '.qr-code': {
-                    'align-self': 'center',
+                    alignSelf: 'center',
                   },
                 },
               }}>
