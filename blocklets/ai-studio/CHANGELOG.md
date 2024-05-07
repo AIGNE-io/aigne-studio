@@ -1,3 +1,7 @@
+## 0.1.375 (2024-5-7)
+
+- fix: pdf2json build error
+
 ## 0.1.374 (2024-5-7)
 
 - feat: add agent api & use aid instead of assistant id
