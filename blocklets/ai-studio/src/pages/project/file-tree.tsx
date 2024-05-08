@@ -76,6 +76,7 @@ import { exportAssistantsToProject } from '../../libs/project';
 import useDialog from '../../utils/use-dialog';
 import Compare from './compare';
 import Close from './icons/close';
+import Empty from './icons/empty';
 import FolderClose from './icons/folder-close';
 import ImportFrom from './import';
 import { useAssistantChangesState } from './state';
@@ -318,12 +319,9 @@ const FileTree = forwardRef<
 
   if (!files.length) {
     return (
-      <Stack height={1} className="center" textAlign="center">
-        <Box>🤖</Box>
-        <Typography variant="subtitle4">‌‌‌‌{t('agentEmptyTitle')}</Typography>
-        <Typography variant="subtitle5" maxWidth={200}>
-          ‌{t('agentEmptySubTitle')}
-        </Typography>
+      <Stack color="text.disabled" alignItems="center" my={8.5} gap={3}>
+        <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
+        <Typography>{t('agentEmptySubTitle')}</Typography>
       </Stack>
     );
   }

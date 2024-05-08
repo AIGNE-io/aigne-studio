@@ -361,7 +361,7 @@ function EmptyView() {
   const { t } = useLocaleContext();
 
   return (
-    <Stack color="text.disabled" alignItems="center" my={8} gap={3}>
+    <Stack color="text.disabled" alignItems="center" my={13} gap={3}>
       <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
       <Typography>{t('notOpenFile')}</Typography>
     </Stack>
