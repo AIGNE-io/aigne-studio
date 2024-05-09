@@ -321,7 +321,9 @@ const FileTree = forwardRef<
     return (
       <Stack color="text.disabled" alignItems="center" my={8.5} gap={3}>
         <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
-        <Typography>{t('agentEmptySubTitle')}</Typography>
+        <Typography maxWidth={80} textAlign="center">
+          {t('agentEmptySubTitle')}
+        </Typography>
       </Stack>
     );
   }

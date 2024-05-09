@@ -23,6 +23,7 @@ import {
   Stack,
   StackProps,
   TextField,
+  Theme,
   Tooltip,
   Typography,
   styled,
@@ -245,7 +246,7 @@ function DatasetItem({
   const { t } = useLocaleContext();
   const [open, setOpen] = useState(false);
   const { dialog, showDialog } = useDialog();
-  const isMobile = useMediaQuery((theme: any) => theme.breakpoints.down('md'));
+  const isMobile = useMediaQuery<Theme>((theme) => theme.breakpoints.down('md'));
 
   return (
     <>

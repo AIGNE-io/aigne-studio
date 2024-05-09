@@ -20,6 +20,7 @@ import {
   FormControlLabel,
   Stack,
   TextField,
+  Theme,
   Tooltip,
   Typography,
   styled,
@@ -267,7 +268,7 @@ function Discussion({ datasetId }: { datasetId: string }) {
   const [value, setValue] = useState('discussion');
   const { refetch } = useDocuments(datasetId);
   const navigate = useNavigate();
-  const isMdOrAbove = useMediaQuery((theme: any) => theme.breakpoints.up('md'));
+  const isMdOrAbove = useMediaQuery<Theme>((theme) => theme.breakpoints.up('md'));
 
   const onChange = (checked: boolean, data: CreateDiscussionItem['data']) => {
     const newCheckedValues = checked
@@ -592,7 +593,7 @@ export default function KnowledgeDocumentsAdd() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const isAdmin = useIsAdmin();
-  const isMdOrAbove = useMediaQuery((theme: any) => theme.breakpoints.up('md'));
+  const isMdOrAbove = useMediaQuery<Theme>((theme) => theme.breakpoints.up('md'));
 
   const type = searchParams.get('type');
   const editType = (type ? (type === 'text' ? 'custom' : type) : null) as 'file' | 'discussion' | 'custom' | null;
