@@ -34,11 +34,13 @@ import {
   OnTaskCompletion,
   Parameter,
   Role,
+  RouteAssistant,
   Tool,
   User,
   Variable,
   isAgent,
   isImageAssistant,
+  isRouteAssistant,
 } from '../../types/assistant';
 import { AssistantResponseType, ExecutionPhase, RuntimeOutputVariable } from '../../types/runtime';
 import { outputVariablesToJoiSchema, outputVariablesToJsonSchema } from '../../types/runtime/schema';
@@ -194,6 +196,23 @@ export async function runAssistant({
 
     if (isApiAssistant(assistant)) {
       return await runApiAssistant({
+        getAssistant,
+        callAI,
+        callAIImage,
+        taskId,
+        parentTaskId,
+        assistant,
+        parameters: assistantVariables,
+        callback,
+        user,
+        sessionId,
+        projectId,
+        datastoreVariables,
+      });
+    }
+
+    if (isRouteAssistant(assistant)) {
+      return await runRouteAssistant({
         getAssistant,
         callAI,
         callAIImage,
@@ -461,6 +480,230 @@ async function runApiAssistant({
   });
 
   return result;
+}
+
+async function runRouteAssistant({
+  callAI,
+  callAIImage,
+  taskId,
+  getAssistant,
+  assistant,
+  parameters,
+  parentTaskId,
+  callback,
+  user,
+  sessionId,
+  projectId,
+  datastoreVariables,
+}: {
+  callAI: CallAI;
+  callAIImage: CallAIImage;
+  taskId: string;
+  getAssistant: GetAssistant;
+  assistant: RouteAssistant;
+  parameters: { [key: string]: any };
+  parentTaskId?: string;
+  callback?: RunAssistantCallback;
+  user?: User;
+  sessionId?: string;
+  projectId?: string;
+  datastoreVariables: Variable[];
+}) {
+  const cb: ((taskId: string) => RunAssistantCallback) | undefined =
+    callback &&
+    ((taskId) => (args) => {
+      if (args.type === AssistantResponseType.CHUNK && args.taskId === taskId) {
+        callback({ ...args });
+        return;
+      }
+      callback(args);
+    });
+
+  const message = await renderMessage(assistant.prompt || '', parameters);
+  const agents = assistant?.agents || [];
+
+  const toolAssistants = (
+    await Promise.all(
+      agents.map(async (tool) => {
+        const toolAssistant = await getAssistant(tool.id);
+        if (!toolAssistant) return undefined;
+        const toolParameters = (toolAssistant.parameters ?? [])
+          .filter((i): i is typeof i & Required<Pick<typeof i, 'key'>> => !!i.key && !tool.parameters?.[i.key])
+          .map((parameter) => {
+            return [
+              parameter.key,
+              {
+                type: 'string',
+                description: parameter.placeholder ?? '',
+                enum:
+                  parameter.type === 'select'
+                    ? parameter.options?.map((i) => i.value)
+                    : parameter.type === 'language'
+                      ? languages.map((i) => i.en)
+                      : undefined,
+              },
+            ];
+          });
+
+        const required = (toolAssistant.parameters ?? [])
+          .filter((i): i is typeof i & { key: string } => !!i.key)
+          .filter((x) => x.required)
+          .map((x) => x.key);
+
+        return {
+          tool,
+          toolAssistant,
+          function: {
+            name:
+              (tool.functionName || toolAssistant.name)?.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64) ||
+              toolAssistant.id,
+            descriptions: toolAssistant.description,
+            parameters: {
+              type: 'object',
+              properties: Object.fromEntries(toolParameters),
+              required: required?.length ? required : undefined,
+            },
+          },
+        };
+      })
+    )
+  ).filter((i): i is NonNullable<typeof i> => !isNil(i));
+
+  callback?.({
+    type: AssistantResponseType.EXECUTE,
+    assistantId: assistant.id,
+    parentTaskId,
+    taskId,
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
+  });
+
+  callback?.({
+    type: AssistantResponseType.INPUT,
+    assistantId: assistant.id,
+    parentTaskId,
+    taskId,
+    // modelParameters: executeBlock.executeModel,
+    assistantName: `${assistant.name}-select`,
+    promptMessages: [{ role: 'user', content: message }],
+  });
+
+  const response = await callAI({
+    assistant,
+    input: {
+      // ...executeBlock.executeModel,
+      messages: [{ role: 'user', content: message }],
+      tools: toolAssistants.map((i) => ({
+        type: 'function',
+        function: {
+          name: i.function.name,
+          description: i.function.descriptions,
+          parameters: i.function.parameters,
+        },
+      })),
+    },
+  });
+
+  let calls: NonNullable<ChatCompletionChunk['delta']['toolCalls']> | undefined;
+
+  for await (const chunk of response) {
+    if (chunk.delta.content) {
+      callback?.({
+        type: AssistantResponseType.CHUNK,
+        taskId,
+        assistantId: assistant.id,
+        delta: { content: chunk.delta.content || '' },
+      });
+    }
+
+    const { toolCalls } = chunk.delta;
+
+    if (toolCalls) {
+      if (!calls) {
+        calls = toolCalls;
+      } else {
+        toolCalls.forEach((item, index) => {
+          const call = calls?.[index];
+          if (call?.function) {
+            call.function.name += item.function?.name || '';
+            call.function.arguments += item.function?.arguments || '';
+          }
+        });
+      }
+    }
+  }
+
+  callback?.({
+    type: AssistantResponseType.EXECUTE,
+    assistantId: assistant.id,
+    parentTaskId,
+    taskId,
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
+  });
+
+  const toolAssistantMap = Object.fromEntries(toolAssistants.map((i) => [i.function.name, i]));
+  const defaultTool = toolAssistants.find((i) => i.tool.id === assistant.defaultToolId);
+
+  if (!calls?.length && assistant.defaultToolId) {
+    calls ??= [];
+    calls.push({ type: 'function', function: { name: defaultTool?.function.name, arguments: '{}' } });
+  }
+
+  const result =
+    calls &&
+    (await Promise.all(
+      calls.map(async (call) => {
+        if (!call.function?.name || !call.function.arguments) return undefined;
+
+        // function call => default => first one
+        const tool =
+          toolAssistantMap[call.function.name] ||
+          toolAssistantMap[defaultTool?.function.name || ''] ||
+          toolAssistantMap[toolAssistants[0]?.function?.name || ''];
+        if (!tool) return undefined;
+        const requestData = JSON.parse(call.function.arguments);
+        const currentTaskId = taskIdGenerator.nextId().toString();
+
+        const toolAssistant = tool?.toolAssistant as Assistant;
+        await Promise.all(
+          toolAssistant.parameters?.map(async (item) => {
+            const message = tool.tool?.parameters?.[item.key!];
+            if (message) {
+              requestData[item.key!] = await renderMessage(message, parameters);
+            }
+          }) ?? []
+        );
+
+        const res = await runAssistant({
+          taskId: currentTaskId,
+          callAI,
+          callAIImage,
+          getAssistant,
+          assistant: toolAssistant,
+          parameters: requestData,
+          parentTaskId: taskId,
+          callback: cb?.(currentTaskId),
+          user,
+          sessionId,
+          projectId,
+          datastoreVariables,
+        });
+
+        if (tool.tool?.onEnd === OnTaskCompletion.EXIT) {
+          throw new ToolCompletionDirective('The task has been stop. The tool will now exit.', OnTaskCompletion.EXIT);
+        }
+
+        return res;
+      })
+    ));
+
+  callback?.({
+    type: AssistantResponseType.CHUNK,
+    taskId,
+    assistantId: assistant.id,
+    delta: { content: JSON.stringify(result?.length === 1 ? result[0] : result) },
+  });
+
+  return result?.length === 1 ? result[0] : result;
 }
 
 async function renderMessage(message: string, parameters?: { [key: string]: any }) {
