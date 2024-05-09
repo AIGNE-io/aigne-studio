@@ -478,7 +478,7 @@ const runRequestStorage = async ({
   ids,
   datastoreVariables,
 }: {
-  assistant: Agent | PromptAssistant | ApiAssistant | ImageAssistant | FunctionAssistant;
+  assistant: Assistant;
   parentTaskId?: string;
   user?: User;
   callback?: RunAssistantCallback;
@@ -562,7 +562,7 @@ const runRequestHistory = async ({
   callback,
   params,
 }: {
-  assistant: Agent | PromptAssistant | ApiAssistant | ImageAssistant | FunctionAssistant;
+  assistant: Assistant;
   parentTaskId?: string;
   user?: User;
   callback?: RunAssistantCallback;
@@ -703,7 +703,7 @@ const getVariables = async ({
   callAI: CallAI;
   callAIImage: CallAIImage;
   getAssistant: GetAssistant;
-  assistant: Agent | PromptAssistant | ApiAssistant | ImageAssistant | FunctionAssistant;
+  assistant: Assistant;
   parameters: { [key: string]: any };
   parentTaskId?: string;
   callback?: RunAssistantCallback;

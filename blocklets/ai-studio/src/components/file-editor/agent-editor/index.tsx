@@ -5,6 +5,7 @@ import {
   isFunctionAssistant,
   isImageAssistant,
   isPromptAssistant,
+  isRouteAssistant,
 } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import ZZZIcon from '@iconify-icons/tabler/zzz';
@@ -19,6 +20,7 @@ import ImageAssistantEditor from '../image-file';
 import InputSettings from '../input/InputSettings';
 import OutputSettings from '../output/OutputSettings';
 import PromptAssistantEditor from '../prompt-file';
+import RouteAssistant from '../route-file';
 
 export default function AgentEditor({
   projectId,
@@ -62,6 +64,8 @@ export default function AgentEditor({
             <FunctionAssistantEditor gitRef={gitRef} value={value} disabled={disabled} />
           ) : isApiAssistant(value) ? (
             <ApiAssistantEditor projectId={projectId} gitRef={gitRef} value={value} disabled={disabled} />
+          ) : isRouteAssistant(value) ? (
+            <RouteAssistant projectId={projectId} gitRef={gitRef} value={value} disabled={disabled} />
           ) : (
             <Stack alignItems="center">
               <Box sx={{ fontSize: 28, color: 'text.disabled' }}>

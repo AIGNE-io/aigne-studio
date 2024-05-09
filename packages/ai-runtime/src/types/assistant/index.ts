@@ -15,7 +15,7 @@ export type Variables = {
 
 export type FileType = Assistant | { $base64: string } | Variables;
 
-export type Assistant = Agent | PromptAssistant | ImageAssistant | ApiAssistant | FunctionAssistant;
+export type Assistant = Agent | PromptAssistant | ImageAssistant | ApiAssistant | FunctionAssistant | RouteAssistant;
 
 export type Role = 'system' | 'user' | 'assistant';
 
@@ -124,7 +124,6 @@ export interface AssistantBase {
     };
   };
   entries?: { id: string; title?: string; parameters?: { [key: string]: any } }[];
-
   outputVariables?: OutputVariable[];
 }
 
@@ -163,6 +162,14 @@ export type OutputVariable = VariableType & {
 
 export interface Agent extends AssistantBase {
   type: 'agent';
+}
+
+export interface RouteAssistant extends AssistantBase {
+  type: 'route';
+  // executeModel?: ModelConfiguration;  先内置
+  defaultToolId?: string;
+  prompt?: string;
+  agents?: Tool[];
 }
 
 export interface PromptAssistant extends AssistantBase {
