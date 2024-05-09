@@ -64,24 +64,29 @@ export default class DataServiceSDK {
   }
 
   public async getFilterList() {
-    const list = await this.mergeFindServicesResult();
+    try {
+      const list = await this.mergeFindServicesResult();
 
-    return orderBy(
-      list.filter((data) => {
-        const { error } = schema.validate(data, { stripUnknown: true });
+      return orderBy(
+        list.filter((data) => {
+          const { error } = schema.validate(data, { stripUnknown: true });
 
-        if (error) {
-          console.error(error);
-        }
+          if (error) {
+            console.error(error);
+          }
 
-        return !error;
-      }),
-      [
-        (item) => {
-          return methodOrder.indexOf(item.method);
-        },
-      ],
-      ['asc']
-    );
+          return !error;
+        }),
+        [
+          (item) => {
+            return methodOrder.indexOf(item.method);
+          },
+        ],
+        ['asc']
+      );
+    } catch (error) {
+      console.error(error?.message);
+      return [];
+    }
   }
 }
