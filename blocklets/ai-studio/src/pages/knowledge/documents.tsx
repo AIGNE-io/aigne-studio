@@ -303,9 +303,10 @@ export default function KnowledgeDocuments() {
         </Button>
       </Stack>
 
-      <Stack flex={1} height={0}>
+      <Stack flex={1} height={0} sx={{ overflowX: 'auto' }}>
         <Table
           sx={{
+            minWidth: 600,
             border: 0,
             [`& .${gridClasses.cell}:focus, & .${gridClasses.cell}:focus-within`]: { outline: 'none' },
             [`& .${gridClasses.columnHeader}:focus, & .${gridClasses.columnHeader}:focus-within`]: {
