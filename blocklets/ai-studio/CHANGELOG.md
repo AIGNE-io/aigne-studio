@@ -1,6 +1,10 @@
-## 0.1.377 (2024-5-8)
+## 0.1.378 (2024-5-9)
 
 - fix: remove assistants when add empty template
+
+## 0.1.377 (2024-5-9)
+
+- fix: when there is a stop component, call ai does not working
 
 ## 0.1.376 (2024-5-8)
 
