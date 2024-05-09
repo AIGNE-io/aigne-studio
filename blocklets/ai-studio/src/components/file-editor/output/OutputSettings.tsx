@@ -347,6 +347,7 @@ const useRoutesAssistantOutputs = ({
 }) => {
   const { getFileById } = useProjectStore(projectId, gitRef);
   const list = useRef<AssistantYjs['outputVariables']>({});
+  const { t } = useLocaleContext();
 
   return useMemo(() => {
     if (value.type !== 'route') {
@@ -377,19 +378,30 @@ const useRoutesAssistantOutputs = ({
         const found = currentList.find((x) => x.name === output.name);
         if (found) {
           if (found.type && output.type && found.type !== output.type) {
-            error = `${agent.name} 中存在相同的输出参数 ${found.name}, 但是数据类型不一致，请修改保持类型一直`;
+            error = t('diffRouteName', {
+              agentName: agent.name,
+              routeName: found.name,
+            });
             break;
           } else {
             if (found?.type === 'object' && output.type === 'object') {
               if (!equal(cloneDeep(found?.properties), cloneDeep(output.properties))) {
-                error = `${agent.name} 中存在相同的输出参数 ${found.name}, 类型为 object, 但是属性不一致,请修改保持类型一直`;
+                error = t('diffRouteNameByType', {
+                  agentName: agent.name,
+                  routeName: found.name,
+                  type: 'object',
+                });
                 break;
               }
             }
 
             if (found?.type === 'array' && output.type === 'array') {
               if (!equal(cloneDeep(found?.element), cloneDeep(output.element))) {
-                error = `${agent.name} 中存在相同的输出参数 ${found.name}, 类型为 array, 但是属性不一致,请修改保持类型一直`;
+                error = t('diffRouteNameByType', {
+                  agentName: agent.name,
+                  routeName: found.name,
+                  type: 'array',
+                });
                 break;
               }
             }
@@ -415,5 +427,5 @@ const useRoutesAssistantOutputs = ({
       outputVariables: list.current,
       error,
     };
-  }, [cloneDeep(value), projectId, gitRef]);
+  }, [cloneDeep(value), projectId, gitRef, t]);
 };

@@ -656,4 +656,10 @@ export default flat({
   agentEmptyTitle: '‌No Agent Created',
   agentEmptySubTitle: 'You can click on the "+" icon in the upper right corner to create.',
   back: 'Back',
+  route: 'Route Agent',
+  addRoute: 'Add Route Agent',
+  diffRouteName:
+    '{agentName} has the same output parameter {routeName}, but the data type is different, please modify to keep the type consistent ',
+  diffRouteNameByType:
+    '{agentName} has the same output parameter {routeName}, whose type is {type}, but the attributes are inconsistent. Please modify the output parameter to keep the type consistent',
 });

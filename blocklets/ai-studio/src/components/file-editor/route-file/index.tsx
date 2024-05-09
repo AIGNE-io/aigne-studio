@@ -132,7 +132,7 @@ export default function RouteAssistantEditor({
               toolForm.current?.form.reset({ id: undefined, parameters: undefined });
               dialogState.open();
             }}>
-            {t('Add Branch Agent')}
+            {t('addRoute')}
           </Button>
         </Box>
       )}

@@ -651,4 +651,8 @@ export default flat({
   agentEmptyTitle: '没有创建 Agent',
   agentEmptySubTitle: '可以点击右上角的 "+" 图标进行创建。',
   back: '返回',
+  route: '分支 Agent',
+  addRoute: '添加分支 Agent',
+  dffRouteName: '{agentName} 中存在相同的输出参数 {routeName}, 但是数据类型不一致，请修改保持类型一致',
+  diffRouteNameByType: '{agentName} 中存在相同的输出参数 {routeName}, 类型为 {type}, 但是属性不一致,请修改保持类型一致',
 });
