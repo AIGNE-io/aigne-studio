@@ -2,7 +2,7 @@ import { getComponentWebEndpoint } from '@blocklet/sdk/lib/component';
 import axios from 'axios';
 import orderBy from 'lodash/orderBy';
 
-import { OPENAPI_API } from './const';
+import { GET_OPENAPI_SCHEMA_TIMEOUT, OPENAPI_API } from './const';
 import { DatasetObject } from './types';
 import schema from './util/check-schema';
 
@@ -53,6 +53,7 @@ export default class DataServiceSDK {
             method: 'GET',
             url: OPENAPI_API,
             baseURL: getComponentWebEndpoint(name),
+            timeout: GET_OPENAPI_SCHEMA_TIMEOUT,
           }).then((response) => ({ name, data: response.data }))
         )
       );
