@@ -34,6 +34,7 @@ export default function AgentEditor({
   disabled?: boolean;
 }) {
   const { t } = useLocaleContext();
+
   // const readOnly = useReadOnly({ ref: gitRef }) || disabled;
 
   return (

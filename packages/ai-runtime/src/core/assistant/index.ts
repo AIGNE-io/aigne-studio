@@ -606,14 +606,14 @@ async function runRouteAssistant({
   let calls: NonNullable<ChatCompletionChunk['delta']['toolCalls']> | undefined;
 
   for await (const chunk of response) {
-    if (chunk.delta.content) {
-      callback?.({
-        type: AssistantResponseType.CHUNK,
-        taskId,
-        assistantId: assistant.id,
-        delta: { content: chunk.delta.content || '' },
-      });
-    }
+    // if (chunk.delta.content) {
+    //   callback?.({
+    //     type: AssistantResponseType.CHUNK,
+    //     taskId,
+    //     assistantId: assistant.id,
+    //     delta: { content: chunk.delta.content || '' },
+    //   });
+    // }
 
     const { toolCalls } = chunk.delta;
 
@@ -643,9 +643,14 @@ async function runRouteAssistant({
   const toolAssistantMap = Object.fromEntries(toolAssistants.map((i) => [i.function.name, i]));
   const defaultTool = toolAssistants.find((i) => i.tool.id === assistant.defaultToolId);
 
-  if (!calls?.length && assistant.defaultToolId) {
-    calls ??= [];
-    calls.push({ type: 'function', function: { name: defaultTool?.function.name, arguments: '{}' } });
+  if (!calls?.length) {
+    if (assistant.defaultToolId) {
+      calls ??= [];
+      calls.push({ type: 'function', function: { name: defaultTool?.function.name, arguments: '{}' } });
+    } else {
+      calls ??= [];
+      calls.push({ type: 'function', function: { name: toolAssistants[0]?.function?.name || '', arguments: '{}' } });
+    }
   }
 
   const result =

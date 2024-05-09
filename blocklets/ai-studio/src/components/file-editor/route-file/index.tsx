@@ -559,10 +559,15 @@ export const ToolDialog = forwardRef<
               name="functionName"
               render={({ field }) => (
                 <TextField
+                  sx={{
+                    '.MuiFilledInput-root': {
+                      pl: 0,
+                    },
+                  }}
                   size="small"
                   hiddenLabel
                   fullWidth
-                  variant="standard"
+                  variant="filled"
                   InputProps={{
                     startAdornment: (
                       <Tooltip title={t('functionName')} placement="top-start" disableInteractive>
@@ -583,9 +588,9 @@ export const ToolDialog = forwardRef<
               )}
             />
 
-            <Typography sx={{ marginTop: 1 }} variant="body1">
+            {/* <Typography sx={{ marginTop: 1 }} variant="body1">
               {file?.description}
-            </Typography>
+            </Typography> */}
           </Stack>
 
           <Stack gap={1}>

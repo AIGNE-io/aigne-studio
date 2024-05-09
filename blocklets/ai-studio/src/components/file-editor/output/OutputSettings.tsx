@@ -1,12 +1,13 @@
 import AigneLogoOutput from '@app/icons/aigne-logo-output';
 import { useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, OutputVariableYjs, RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, OutputVariableYjs, RuntimeOutputVariable, isAssistant } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Box, Stack, Switch, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material';
-import { sortBy } from 'lodash';
+import equal from 'fast-deep-equal';
+import { cloneDeep, sortBy } from 'lodash';
 import { nanoid } from 'nanoid';
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 
 import AddOutputVariableButton from './AddOutputVariableButton';
 import OutputActionsCell from './OutputActionsCell';
@@ -26,12 +27,20 @@ export default function OutputSettings({
 }) {
   const { t } = useLocaleContext();
 
+  const result = useRoutesAssistantOutputs({ value, projectId, gitRef });
   const outputVariables = value.outputVariables && sortBy(Object.values(value.outputVariables), 'index');
-  const groups = useSortedOutputs({ assistant: value });
 
-  const doc = (getYjsValue(value) as Map<any>).doc!;
+  const outputVariablesObj = () => {
+    // if (!result || result.error) {
+    //   return value.outputVariables;
+    // }
+    const outputVariables = { ...(result?.outputVariables || {}), ...cloneDeep(value.outputVariables) };
+    return outputVariables;
+  };
+  const groups = useSortedOutputs({ outputVariables: outputVariablesObj() });
 
   const setField = (update: (outputVariables: NonNullable<AssistantYjs['outputVariables']>) => void) => {
+    const doc = (getYjsValue(value) as Map<any>).doc!;
     doc.transact(() => {
       value.outputVariables ??= {};
       update(value.outputVariables);
@@ -56,6 +65,10 @@ export default function OutputSettings({
       }
     }
   }, [value]);
+
+  const getRouteOutputName = (name: string) => {
+    return Object.values(result?.outputVariables || {}).find((x) => x.data.name === name);
+  };
 
   return (
     <Box sx={{ background: '#F9FAFB', py: 1.5, px: 2, pb: 2, borderRadius: 1 }}>
@@ -126,6 +139,7 @@ export default function OutputSettings({
 
                       {outputs.map((item) => (
                         <VariableRow
+                          disabled={Boolean(value.type === 'route' && getRouteOutputName(item.data.name || ''))}
                           key={item.data.id}
                           variable={item.data}
                           value={value}
@@ -146,6 +160,7 @@ export default function OutputSettings({
         </Box>
 
         <AddOutputVariableButton
+          isRouteAssistant={value.type === 'route'}
           assistant={value}
           onSelect={({ name }) => {
             setField((vars) => {
@@ -162,6 +177,9 @@ export default function OutputSettings({
           }}
         />
       </Box>
+      <Typography variant="subtitle5" color="warning.main" ml={1}>
+        {result?.error}
+      </Typography>
     </Box>
   );
 }
@@ -177,23 +195,25 @@ const outputGroups: { [key in RuntimeOutputVariable]?: { group: 'system' | 'appe
   [RuntimeOutputVariable.appearanceOutput]: { group: 'appearance', index: 2 },
 };
 
-function useSortedOutputs({ assistant }: { assistant: AssistantYjs }) {
-  const groups: { [key in 'system' | 'appearance' | 'custom']: { index: number; data: OutputVariableYjs }[] } = {
-    system: [],
-    appearance: [],
-    custom: [],
-  };
+function useSortedOutputs({ outputVariables }: { outputVariables: AssistantYjs['outputVariables'] }) {
+  return useMemo(() => {
+    const groups: { [key in 'system' | 'appearance' | 'custom']: { index: number; data: OutputVariableYjs }[] } = {
+      system: [],
+      appearance: [],
+      custom: [],
+    };
 
-  const outputs = sortBy(
-    Object.values(assistant.outputVariables ?? {}),
-    (item) => outputGroups[item.data.name as RuntimeOutputVariable]?.index ?? item.index
-  );
-  for (const item of outputs) {
-    const group = outputGroups[item.data.name as RuntimeOutputVariable]?.group || 'custom';
-    groups[group].push(item);
-  }
+    const outputs = sortBy(
+      Object.values(outputVariables ?? {}),
+      (item) => outputGroups[item.data.name as RuntimeOutputVariable]?.index ?? item.index
+    );
+    for (const item of outputs) {
+      const group = outputGroups[item.data.name as RuntimeOutputVariable]?.group || 'custom';
+      groups[group].push(item);
+    }
 
-  return groups;
+    return groups;
+  }, [cloneDeep(outputVariables)]);
 }
 
 function VariableRow({
@@ -215,7 +235,6 @@ function VariableRow({
   gitRef: string;
   disabled?: boolean;
 }) {
-  const doc = (getYjsValue(variable) as Map<any>).doc!;
   const runtimeVariable = getRuntimeOutputVariable(variable);
 
   const { getVariables } = useProjectStore(projectId, gitRef);
@@ -291,6 +310,7 @@ function VariableRow({
               projectId={projectId}
               gitRef={gitRef}
               onRemove={() => {
+                const doc = (getYjsValue(variable) as Map<any>).doc!;
                 doc.transact(() => {
                   if (!v.properties) return;
                   delete v.properties[property.data.id];
@@ -315,3 +335,85 @@ function VariableRow({
     </>
   );
 }
+
+const useRoutesAssistantOutputs = ({
+  value,
+  projectId,
+  gitRef,
+}: {
+  value: AssistantYjs;
+  projectId: string;
+  gitRef: string;
+}) => {
+  const { getFileById } = useProjectStore(projectId, gitRef);
+  const list = useRef<AssistantYjs['outputVariables']>({});
+
+  return useMemo(() => {
+    if (value.type !== 'route') {
+      return null;
+    }
+
+    const agents = Object.values(value?.agents || {}) || [];
+    const agentAssistants = agents
+      .map((x) => {
+        return getFileById(x?.data?.id);
+      })
+      .filter((i): i is AssistantYjs => !!i && isAssistant(i))
+      .filter((x) => {
+        return Object.keys(x?.outputVariables || {}).length;
+      });
+
+    let error;
+
+    for (const agent of agentAssistants) {
+      const outputs = Object.values(agent?.outputVariables || {})
+        .filter((x) => !(x?.data?.name || '').startsWith('$appearance'))
+        .map((x) => x.data);
+
+      for (const output of outputs) {
+        const currentList = Object.values(list.current || {})
+          .filter((x) => !(x?.data?.name || '').startsWith('$appearance'))
+          .map((x) => x.data);
+        const found = currentList.find((x) => x.name === output.name);
+        if (found) {
+          if (found.type && output.type && found.type !== output.type) {
+            error = `${agent.name} 中存在相同的输出参数 ${found.name}, 但是数据类型不一致，请修改保持类型一直`;
+            break;
+          } else {
+            if (found?.type === 'object' && output.type === 'object') {
+              if (!equal(cloneDeep(found?.properties), cloneDeep(output.properties))) {
+                error = `${agent.name} 中存在相同的输出参数 ${found.name}, 类型为 object, 但是属性不一致,请修改保持类型一直`;
+                break;
+              }
+            }
+
+            if (found?.type === 'array' && output.type === 'array') {
+              if (!equal(cloneDeep(found?.element), cloneDeep(output.element))) {
+                error = `${agent.name} 中存在相同的输出参数 ${found.name}, 类型为 array, 但是属性不一致,请修改保持类型一直`;
+                break;
+              }
+            }
+
+            // 出现两次，去union
+            found.required = true;
+            if (output.type) found.type = output.type;
+          }
+        } else {
+          const id = nanoid();
+          list.current ??= {};
+          list.current[id] = {
+            index: 0,
+            data: { ...cloneDeep(output), id, variable: undefined, initialValue: undefined },
+          };
+        }
+      }
+    }
+
+    sortBy(Object.values(list.current || {}), 'index').forEach((item, index) => (item.index = index));
+
+    return {
+      outputVariables: list.current,
+      error,
+    };
+  }, [cloneDeep(value), projectId, gitRef]);
+};

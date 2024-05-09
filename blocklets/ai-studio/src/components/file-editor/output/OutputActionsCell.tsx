@@ -50,8 +50,6 @@ export default function OutputActionsCell({
   disabled?: boolean;
   onRemove?: () => void;
 }) {
-  const doc = (getYjsValue(output) as Map<any>).doc!;
-
   const v = variable?.type ?? output;
 
   const runtimeVariable = getRuntimeOutputVariable(output);
@@ -67,6 +65,7 @@ export default function OutputActionsCell({
           sx={{ minWidth: 24, minHeight: 24, p: 0 }}
           disabled={Boolean(output.variable?.key)}
           onClick={() => {
+            const doc = (getYjsValue(output) as Map<any>).doc!;
             doc.transact(() => {
               v.properties ??= {};
               const id = nanoid();
