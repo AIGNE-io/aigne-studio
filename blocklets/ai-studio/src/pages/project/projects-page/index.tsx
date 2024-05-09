@@ -917,6 +917,12 @@ const ProjectItemRoot = styled(Stack)`
   .action {
     display: none;
   }
+
+  @media (max-width: 900px) {
+    .action {
+      display: flex;
+    }
+  }
 `;
 
 function LoadingMenuItem({ ...props }: MenuItemProps) {
