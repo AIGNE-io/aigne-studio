@@ -276,7 +276,10 @@ function VariableRow({
 
         const found = outputs.find((x) => x.name === v.name);
         if (!found) {
-          return `${v.name} 不包含在所选择 Agent 的输出变量中, 请在字段 [${outputs.map((x) => x.name).join(',')}] 进行选择`;
+          return t('notFoundOutputKeyFromSelectAgents', {
+            name: v.name,
+            outputNames: outputs.map((x) => x.name).join(','),
+          });
         }
 
         return undefined;
@@ -291,15 +294,18 @@ function VariableRow({
 
     const found = outputs.find((x) => x.name === v.name);
     if (!found) {
-      return `${v.name} 不包含在所选择 Agent 的输出变量中, 请在字段 [${outputs.map((x) => x.name).join(',')}] 进行选择`;
+      return t('notFoundOutputKeyFromSelectAgents', {
+        name: v.name,
+        outputNames: outputs.map((x) => x.name).join(','),
+      });
     }
 
     if (found.required && !v.required) {
-      return `${v.name} 为必填字段`;
+      return t('requiredOutputParams', { name: v.name });
     }
 
     if (found.type !== v.type) {
-      return `${v.name} 必须为 ${found.type} 类型`;
+      return t('diffOutputType', { name: v.name, type: found.type });
     }
 
     if (found?.type === 'object' && v.type === 'object') {
@@ -319,9 +325,13 @@ function VariableRow({
           )
         )
       ) {
-        return `${v.name} 为 object 类型, 必须包含 ${Object.values(found.properties || {})
-          .map((x) => `${t('name')}: ${x.data.name}, ${t('type')}: ${x.data.type}`)
-          .join(',')}`;
+        return t('diffTypeKeys', {
+          name: v.name,
+          type: 'object',
+          keys: `${Object.values(found.properties || {})
+            .map((x) => `${t('name')}: ${x.data.name}, ${t('type')}: ${x.data.type}`)
+            .join(',')}`,
+        });
       }
     }
 
@@ -342,9 +352,13 @@ function VariableRow({
           )
         )
       ) {
-        return `${v.name} 为 array 类型, 数据必须包含 ${Object.values(found.element || {})
-          .map((x) => `${t('name')}: ${x.data.name}, ${t('type')}: ${x.data.type}`)
-          .join(',')} 字段`;
+        return t('diffTypeKeys', {
+          name: v.name,
+          type: 'array',
+          keys: `${Object.values(found.element || {})
+            .map((x) => `${t('name')}: ${x.data.name}, ${t('type')}: ${x.data.type}`)
+            .join(',')}`,
+        });
       }
     }
 
@@ -449,7 +463,7 @@ export const useRoutesAssistantOutputs = ({
 }) => {
   const { getFileById } = useProjectStore(projectId, gitRef);
   const list = useRef<AssistantYjs['outputVariables']>({});
-  const { t, local } = useLocaleContext();
+  const { t } = useLocaleContext();
 
   const agentAssistants = useMemo(() => {
     if (value.type !== 'route') {
@@ -466,7 +480,7 @@ export const useRoutesAssistantOutputs = ({
         return Object.keys(x?.outputVariables || {}).length;
       });
     return agentAssistants;
-  }, [cloneDeep(value), projectId, gitRef, t, local]);
+  }, [cloneDeep(value), projectId, gitRef, t]);
 
   const result = useMemo(() => {
     if (!agentAssistants.length) {

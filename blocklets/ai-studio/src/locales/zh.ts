@@ -653,7 +653,12 @@ export default flat({
   back: '返回',
   route: '分支 Agent',
   addRoute: '添加分支 Agent',
-  dffRouteName: '{agentName} 中存在相同的输出参数 {routeName}, 但是数据类型不一致，请修改保持类型一致',
-  diffRouteNameByType: '{agentName} 中存在相同的输出参数 {routeName}, 类型为 {type}, 但是属性不一致,请修改保持类型一致',
+  dffRouteName: '"{agentName}" 中存在相同的 "{routeName}"输出参数, 但是 "{routeName}" 类型不一致，请修改保持类型一致',
+  diffRouteNameByType:
+    '"{agentName}" 中存在相同的输出参数 {routeName}, 类型为 {type}, 但是属性不一致,请修改保持类型一致',
   selectRouteAgent: '选择 Agent 条件',
+  notFoundOutputKeyFromSelectAgents: '{name} 不包含在所选择 Agent 的输出变量中, 请在字段 [{outputNames}] 进行选择',
+  requiredOutputParams: '{name} 为必填字段',
+  diffOutputType: '{name} 必须为 {type} 类型',
+  diffTypeKeys: '{name} 为 {type} 类型, 必须包含 {keys}',
 });

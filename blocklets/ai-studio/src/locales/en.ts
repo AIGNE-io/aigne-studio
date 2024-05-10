@@ -659,8 +659,13 @@ export default flat({
   route: 'Route Agent',
   addRoute: 'Add Route Agent',
   diffRouteName:
-    '{agentName} has the same output parameter {routeName}, but the data type is different, please modify to keep the type consistent ',
+    '"{agentName}" has the same "{routeName}" output parameter, but the "{routeName}" type is different, please modify to keep the type consistent ',
   diffRouteNameByType:
-    '{agentName} has the same output parameter {routeName}, whose type is {type}, but the attributes are inconsistent. Please modify the output parameter to keep the type consistent',
+    '"{agentName}" has the same output parameter {routeName}, whose type is {type}, but the attributes are inconsistent. Please modify the output parameter to keep the type consistent',
   selectRouteAgent: 'Select Agent Prompt',
+  notFoundOutputKeyFromSelectAgents:
+    '{name} does not contain the selected output variable of the Agent, please choose in [{outputNames}] fields',
+  requiredOutputParams: '{name} is a required field',
+  diffOutputType: '{name} must be {type} type',
+  diffTypeKeys: '{name} is {type} type, must contain key in {keys}',
 });
