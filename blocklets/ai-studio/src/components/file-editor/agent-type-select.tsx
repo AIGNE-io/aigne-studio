@@ -10,7 +10,7 @@ import SparklesIcon from '@iconify-icons/tabler/sparkles';
 import SwitchHorizontalIcon from '@iconify-icons/tabler/switch-horizontal';
 import ZZZIcon from '@iconify-icons/tabler/zzz';
 import { Icon } from '@iconify/react';
-import { Box, ListItemIcon, MenuItem, Typography } from '@mui/material';
+import { Box, ListItemIcon, MenuItem, Stack, Typography } from '@mui/material';
 import { sortBy } from 'lodash';
 import { nanoid } from 'nanoid';
 
@@ -32,13 +32,20 @@ export default function AgentTypeSelect({ assistant }: { assistant: AssistantYjs
   return (
     <PopperMenu
       BoxProps={{
+        component: Stack,
+        overflow: 'hidden',
+        sx: { flexDirection: 'row', alignItems: 'center', cursor: 'pointer', minWidth: 20 },
         children: (
-          <Box className="center" gap={0.5} sx={{ cursor: 'pointer' }}>
-            <Typography variant="subtitle2" sx={{ m: 0 }}>
+          <>
+            <Typography component="span" fontSize={15} fontWeight={500} width={1} noWrap>
               {current && t(current.i18nKey)}
             </Typography>
-            <Box component={Icon} icon={SwitchHorizontalIcon} sx={{ fontSize: 15, color: '#3B82F6' }} />
-          </Box>
+            <Box
+              component={Icon}
+              icon={SwitchHorizontalIcon}
+              sx={{ fontSize: 15, color: '#3B82F6', verticalAlign: 'middle', ml: 0.5, flexShrink: 0 }}
+            />
+          </>
         ),
       }}
       PopperProps={{ placement: 'bottom-start' }}>

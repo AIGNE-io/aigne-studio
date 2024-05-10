@@ -68,6 +68,7 @@ import {
 } from 'react';
 import { DndProvider } from 'react-dnd';
 import { useNavigate } from 'react-router-dom';
+import { Balancer } from 'react-wrap-balancer';
 import { joinURL } from 'ufo';
 
 import AwarenessIndicator from '../../components/awareness/awareness-indicator';
@@ -321,8 +322,8 @@ const FileTree = forwardRef<
     return (
       <Stack color="text.disabled" alignItems="center" my={8.5} gap={3}>
         <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
-        <Typography maxWidth="80%" textAlign="center">
-          {t('agentEmptySubTitle')}
+        <Typography px={2} width="100%" textAlign="center">
+          <Balancer>{t('agentEmptySubTitle')}</Balancer>
         </Typography>
       </Stack>
     );
