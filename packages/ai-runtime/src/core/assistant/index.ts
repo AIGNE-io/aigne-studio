@@ -52,7 +52,7 @@ import {
   metadataOutputFormatPrompt,
   metadataStreamOutputFormatPrompt,
 } from './generate-output';
-import generateSelectAgentName from './select-agent';
+import selectAgentName from './select-agent';
 import { CallAI, CallAIImage, GetAssistant, RunAssistantCallback, ToolCompletionDirective } from './type';
 
 const getUserHeader = (user: any) => {
@@ -596,19 +596,6 @@ async function runRouteAssistant({
     .map((x) => JSON.stringify({ category_name: x }))
     .join(',');
 
-  let jsonResult: { category_name?: string } = {};
-  try {
-    jsonResult = await generateSelectAgentName({
-      assistant,
-      message,
-      categories,
-      callAI,
-      maxRetries: MAX_RETRIES,
-    });
-  } catch (error) {
-    logger.error('select agent name failed');
-  }
-
   const response = await callAI({
     assistant,
     input: {
@@ -665,19 +652,17 @@ async function runRouteAssistant({
   const toolAssistantMap = Object.fromEntries(toolAssistants.map((i) => [i.function.name, i]));
   const defaultTool = toolAssistants.find((i) => i.tool.id === assistant.defaultToolId);
 
-  function findAndAddRequestCalls() {
+  async function matchRequestCalls() {
     const requestCalls: NonNullable<ChatCompletionChunk['delta']['toolCalls']> = [];
 
     logger.info('Get Current Select Agent Parameter', {
-      calls: calls && JSON.stringify(calls),
-      aiSearchResult: jsonResult?.category_name,
-      defaultToolId: assistant?.defaultToolId,
-      firstAgent: toolAssistants[0]?.function.name,
+      from: 'function call',
+      value: calls && JSON.stringify(calls),
     });
-
     // 首先检查 call function 返回的值是否存在
     if (calls?.length) {
       const found = calls.find((call) => call.function?.name && toolAssistantMap[call.function?.name]);
+
       if (found) {
         requestCalls.push(found);
         return requestCalls;
@@ -685,14 +670,34 @@ async function runRouteAssistant({
     }
 
     // requestCalls 没有找到，检查 jsonResult 是否存在
-    if (jsonResult?.category_name) {
-      const found = toolAssistantMap[jsonResult.category_name];
+    let selectedAgent: { category_name?: string } = {};
+    try {
+      selectedAgent = await selectAgentName({
+        assistant,
+        message,
+        categories,
+        callAI,
+        maxRetries: MAX_RETRIES,
+      });
+    } catch (error) {
+      logger.error('select agent name failed');
+    }
+    logger.info('Get Current Select Agent Parameter', {
+      from: 'ai',
+      value: selectedAgent?.category_name,
+    });
+    if (selectedAgent?.category_name) {
+      const found = toolAssistantMap[selectedAgent.category_name];
       if (found) {
-        requestCalls.push({ type: 'function', function: { name: jsonResult.category_name || '', arguments: '{}' } });
+        requestCalls.push({ type: 'function', function: { name: selectedAgent.category_name || '', arguments: '{}' } });
         return requestCalls;
       }
     }
 
+    logger.info('Get Current Select Agent Parameter', {
+      from: 'default agent',
+      value: assistant?.defaultToolId,
+    });
     // 使用默认Agent
     if (assistant?.defaultToolId) {
       const found = toolAssistantMap[assistant.defaultToolId];
@@ -702,6 +707,10 @@ async function runRouteAssistant({
       }
     }
 
+    logger.info('Get Current Select Agent Parameter', {
+      from: 'from first ageng',
+      value: toolAssistants[0]?.function.name,
+    });
     // 没有找到符合条件的请求，使用默认请求
     requestCalls.push({
       type: 'function',
@@ -711,7 +720,7 @@ async function runRouteAssistant({
     return requestCalls;
   }
 
-  const requestCalls = findAndAddRequestCalls();
+  const requestCalls = await matchRequestCalls();
 
   const result =
     requestCalls &&
