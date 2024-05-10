@@ -218,6 +218,7 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
 
     if (!res.headersSent) {
       res.setHeader('Content-Type', 'text/event-stream');
+      res.setHeader('X-Accel-Buffering', 'no');
       res.flushHeaders();
     }
 

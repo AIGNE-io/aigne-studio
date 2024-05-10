@@ -1583,6 +1583,8 @@ async function runExecuteBlocks({
   projectId?: string;
   datastoreVariables: Variable[];
 }) {
+  if (!executeBlocks.length) return [];
+
   const variables = { ...parameters };
 
   const tasks: [ExecuteBlock, () => () => Promise<any>][] = [];
