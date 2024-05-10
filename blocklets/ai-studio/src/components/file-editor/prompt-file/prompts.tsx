@@ -10,11 +10,11 @@ import { Icon } from '@iconify-icon/react';
 import CopyIcon from '@iconify-icons/tabler/copy';
 import EyeIcon from '@iconify-icons/tabler/eye';
 import EyeOffIcon from '@iconify-icons/tabler/eye-off';
+import PlusIcon from '@iconify-icons/tabler/plus';
 import { Box, Button, Stack, Tooltip, alpha, styled } from '@mui/material';
 import { useAssistantCompare } from 'src/pages/project/state';
 
 import { useReadOnly } from '../../../contexts/session';
-import Add from '../../../pages/project/icons/add';
 import { usePromptsState } from '../../../pages/project/prompt-state';
 import { DragSortItemContainer, DragSortListYjs } from '../../drag-sort-list';
 import ExecuteBlockForm from '../execute-block';
@@ -129,7 +129,7 @@ export default function PromptPrompts({
         {!disabled && (
           <Stack direction="row" gap={1.5}>
             <Button
-              startIcon={<Add />}
+              startIcon={<Box component={Icon} icon={PlusIcon} />}
               onClick={() => addPrompt({ type: 'message', data: { id: nextAssistantId(), role: 'user' } })}>
               {t('promptMessage')}
             </Button>

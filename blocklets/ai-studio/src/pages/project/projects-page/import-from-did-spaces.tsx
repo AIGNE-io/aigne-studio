@@ -6,8 +6,9 @@ import currentGitStore from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { getWalletDid } from '@arcblock/ux/lib/SessionUser/libs/utils';
 import Toast from '@arcblock/ux/lib/Toast';
+import { Icon } from '@iconify-icon/react';
 import ArrowRightAltRoundedIcon from '@iconify-icons/material-symbols/arrow-right-alt-rounded';
-import { Icon } from '@iconify/react';
+import PlusIcon from '@iconify-icons/tabler/plus';
 import { LoadingButton } from '@mui/lab';
 import {
   Box,
@@ -33,7 +34,6 @@ import { joinURL, withQuery } from 'ufo';
 
 import { useProjectsState } from '../../../contexts/projects';
 import { getErrorMessage } from '../../../libs/api';
-import Add from '../icons/add';
 import Close from '../icons/close';
 import DidSpacesLogo from '../icons/did-spaces';
 
@@ -83,9 +83,10 @@ function ImportWayItem({
         {icon}
         <Typography sx={{ fontSize: '16px' }}>{text}</Typography>
       </Box>
-      <Icon
-        className="other-item-icon"
+      <Box
+        component={Icon}
         icon={ArrowRightAltRoundedIcon}
+        className="other-item-icon"
         fontSize="1.3rem"
         color="rgba(19, 125, 250, 1)"
       />
@@ -387,7 +388,7 @@ export default function FromDidSpacesImport() {
             loading={form.formState.isSubmitting}
             disabled={!form.watch('name')}
             loadingPosition="start"
-            startIcon={<Add />}>
+            startIcon={<Box component={Icon} icon={PlusIcon} />}>
             {t('import.didSpaces')}
           </LoadingButton>
         </DialogActions>

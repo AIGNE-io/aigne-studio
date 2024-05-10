@@ -1,6 +1,8 @@
 import currentGitStore from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
+import { Icon } from '@iconify-icon/react';
+import PlusIcon from '@iconify-icons/tabler/plus';
 import { LoadingButton } from '@mui/lab';
 import {
   Box,
@@ -25,7 +27,6 @@ import { joinURL } from 'ufo';
 
 import { useProjectsState } from '../../../contexts/projects';
 import { getErrorMessage } from '../../../libs/api';
-import Add from '../icons/add';
 import Close from '../icons/close';
 import Eye from '../icons/eye';
 import EyeNo from '../icons/eye-no';
@@ -214,7 +215,8 @@ export default function ImportFromGit({ onClose }: { onClose: () => void }) {
             <TextField
               hiddenLabel
               multiline
-              rows={4}
+              minRows={2}
+              maxRows={3}
               placeholder={t('newProjectDescriptionPlaceholder')}
               {...form.register('description')}
               InputProps={{
@@ -236,7 +238,7 @@ export default function ImportFromGit({ onClose }: { onClose: () => void }) {
           type="submit"
           loading={form.formState.isSubmitting}
           loadingPosition="start"
-          startIcon={<Add />}>
+          startIcon={<Box component={Icon} icon={PlusIcon} />}>
           {t('import.remote')}
         </LoadingButton>
       </DialogActions>
