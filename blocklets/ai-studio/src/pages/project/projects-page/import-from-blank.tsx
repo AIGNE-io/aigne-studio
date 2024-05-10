@@ -1,6 +1,8 @@
 import currentGitStore from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
+import { Icon } from '@iconify-icon/react';
+import PlusIcon from '@iconify-icons/tabler/plus';
 import { LoadingButton } from '@mui/lab';
 import {
   Box,
@@ -22,7 +24,6 @@ import { joinURL } from 'ufo';
 import { useProjectsState } from '../../../contexts/projects';
 import { getErrorMessage } from '../../../libs/api';
 import { ProjectWithUserInfo, createProject } from '../../../libs/project';
-import Add from '../icons/add';
 import Close from '../icons/close';
 
 interface BlankForm {
@@ -94,7 +95,8 @@ export default function ImportFromBlank({ onClose, item }: { onClose: () => void
               placeholder={t('newProjectDescriptionPlaceholder')}
               hiddenLabel
               multiline
-              rows={4}
+              minRows={2}
+              maxRows={3}
               sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
               {...form.register('description')}
             />
@@ -113,7 +115,7 @@ export default function ImportFromBlank({ onClose, item }: { onClose: () => void
           type="submit"
           loading={form.formState.isSubmitting}
           loadingPosition="start"
-          startIcon={<Add />}>
+          startIcon={<Box component={Icon} icon={PlusIcon} />}>
           {t('create')}
         </LoadingButton>
       </DialogActions>

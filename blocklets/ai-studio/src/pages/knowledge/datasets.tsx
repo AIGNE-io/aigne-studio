@@ -38,7 +38,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useDatasets } from '../../contexts/datasets/datasets';
 import { getErrorMessage } from '../../libs/api';
 import useDialog from '../../utils/use-dialog';
-import Add from '../project/icons/add';
 import Close from '../project/icons/close';
 
 type DatasetInput = { name: string; description?: string };
@@ -217,7 +216,7 @@ function DatasetItemAdd({
   return (
     <DatasetItemRoot {...props} className="center">
       <Stack className="center">
-        <Add sx={{ width: '2rem', height: '2rem', color: '#9CA3AF' }} />
+        <Box component={Icon} icon={PlusIcon} sx={{ width: '2rem', height: '2rem', color: '#9CA3AF' }} />
 
         <Box className="itemHeading">
           <Typography variant="subtitle4" color="#9CA3AF" className="headingContent">
