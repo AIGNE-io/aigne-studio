@@ -207,13 +207,13 @@ function TemplatesProjects({ list }: { list?: ProjectWithUserInfo[] }) {
                 </MenuItem>
               </MenuList>
             }>
-            <Button startIcon={<Box component={Icon} icon={PlusIcon} />} variant="contained">
+            <Button startIcon={<Box component={Icon} icon={PlusIcon} sx={{ color: '#fff' }} />} variant="contained">
               {t('newObject', { object: t('project') })}
             </Button>
           </ButtonPopper>
         ) : (
           <Button
-            startIcon={<Box component={Icon} icon={PlusIcon} />}
+            startIcon={<Box component={Icon} icon={PlusIcon} sx={{ color: '#fff' }} />}
             variant="contained"
             onClick={() => {
               setDialog(<ImportFromBlank item={blank} onClose={() => setDialog(null)} />);
