@@ -215,7 +215,8 @@ export default function ImportFromGit({ onClose }: { onClose: () => void }) {
             <TextField
               hiddenLabel
               multiline
-              rows={4}
+              minRows={2}
+              maxRows={3}
               placeholder={t('newProjectDescriptionPlaceholder')}
               {...form.register('description')}
               InputProps={{
