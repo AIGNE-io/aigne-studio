@@ -13,9 +13,10 @@ import { cx } from '@emotion/css';
 import { Icon } from '@iconify-icon/react';
 import ChevronDownIcon from '@iconify-icons/tabler/chevron-down';
 import HistoryIcon from '@iconify-icons/tabler/history';
+import PlusIcon from '@iconify-icons/tabler/plus';
 import SendIcon from '@iconify-icons/tabler/send';
 import TrashIcon from '@iconify-icons/tabler/trash';
-import { Add, CopyAll } from '@mui/icons-material';
+import { CopyAll } from '@mui/icons-material';
 import {
   Accordion,
   AccordionDetails,
@@ -872,7 +873,7 @@ function EmptySessions({ projectId, templateId }: { projectId: string; templateI
       <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
 
       <Button
-        startIcon={<Add />}
+        startIcon={<Box component={Icon} icon={PlusIcon} />}
         onClick={(e) => {
           e.preventDefault();
           newSession();

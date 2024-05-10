@@ -95,7 +95,8 @@ export default function ImportFromBlank({ onClose, item }: { onClose: () => void
               placeholder={t('newProjectDescriptionPlaceholder')}
               hiddenLabel
               multiline
-              rows={2}
+              minRows={2}
+              maxRows={3}
               sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
               {...form.register('description')}
             />
@@ -114,7 +115,7 @@ export default function ImportFromBlank({ onClose, item }: { onClose: () => void
           type="submit"
           loading={form.formState.isSubmitting}
           loadingPosition="start"
-          startIcon={<Box component={Icon} icon={PlusIcon} sx={{ color: '#fff' }} />}>
+          startIcon={<Box component={Icon} icon={PlusIcon} />}>
           {t('create')}
         </LoadingButton>
       </DialogActions>
