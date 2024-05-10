@@ -68,6 +68,7 @@ import {
 } from 'react';
 import { DndProvider } from 'react-dnd';
 import { useNavigate } from 'react-router-dom';
+import { Balancer } from 'react-wrap-balancer';
 import { joinURL } from 'ufo';
 
 import AwarenessIndicator from '../../components/awareness/awareness-indicator';
@@ -76,6 +77,7 @@ import { exportAssistantsToProject } from '../../libs/project';
 import useDialog from '../../utils/use-dialog';
 import Compare from './compare';
 import Close from './icons/close';
+import Empty from './icons/empty';
 import FolderClose from './icons/folder-close';
 import ImportFrom from './import';
 import { useAssistantChangesState } from './state';
@@ -318,11 +320,10 @@ const FileTree = forwardRef<
 
   if (!files.length) {
     return (
-      <Stack height={1} className="center" textAlign="center">
-        <Box>🤖</Box>
-        <Typography variant="subtitle4">‌‌‌‌{t('agentEmptyTitle')}</Typography>
-        <Typography variant="subtitle5" maxWidth={200}>
-          ‌{t('agentEmptySubTitle')}
+      <Stack color="text.disabled" alignItems="center" my={8.5} gap={3}>
+        <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
+        <Typography px={2} width="100%" textAlign="center">
+          <Balancer>{t('agentEmptySubTitle')}</Balancer>
         </Typography>
       </Stack>
     );

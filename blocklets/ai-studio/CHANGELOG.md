@@ -1,3 +1,7 @@
+## 0.1.380 (2024-5-10)
+
+- fix: remove assistants when add empty template
+
 ## 0.1.379 (2024-5-10)
 
 - fix: projects icons and description input height

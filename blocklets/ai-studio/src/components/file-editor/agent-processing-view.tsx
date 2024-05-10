@@ -24,17 +24,24 @@ export default function AgentProcessingView({
 
   return (
     <Stack gap={1}>
-      <Box className="between">
-        <Box display="flex" alignItems="center" gap={0.5} minHeight={32}>
+      <Box className="between" whiteSpace="nowrap" gap={2}>
+        <Box
+          display="flex"
+          alignItems="center"
+          gap={0.5}
+          minHeight={32}
+          width={1}
+          overflow="hidden"
+          textOverflow="ellipsis">
           <Box sx={{ display: 'inline-flex', alignItems: 'center' }}>
             {agentTypesMap[assistant.type]?.icon ?? <Box component={Icon} icon={BrainIcon} sx={{ fontSize: 15 }} />}
           </Box>
-
-          <Typography variant="subtitle2" sx={{ m: 0 }}>
-            {t('processing')}
+          <Typography component="span" variant="subtitle2" sx={{ m: 0, flexShrink: 1 }} noWrap>
+            {t('processing')} -&nbsp;
           </Typography>
-          <Box>-</Box>
-          <AgentTypeSelect assistant={assistant} />
+          <Stack direction="row" flex={1} width={0} minWidth={20}>
+            <AgentTypeSelect assistant={assistant} />
+          </Stack>
         </Box>
 
         <Box>

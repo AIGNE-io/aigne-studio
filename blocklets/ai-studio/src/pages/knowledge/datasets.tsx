@@ -23,10 +23,12 @@ import {
   Stack,
   StackProps,
   TextField,
+  Theme,
   Tooltip,
   Typography,
   styled,
   tooltipClasses,
+  useMediaQuery,
 } from '@mui/material';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { useCallback, useEffect, useState } from 'react';
@@ -243,6 +245,7 @@ function DatasetItem({
   const { t } = useLocaleContext();
   const [open, setOpen] = useState(false);
   const { dialog, showDialog } = useDialog();
+  const isMobile = useMediaQuery<Theme>((theme) => theme.breakpoints.down('md'));
 
   return (
     <>
@@ -270,7 +273,7 @@ function DatasetItem({
                   justifyContent="center"
                   alignItems="flex-end"
                   overflow="hidden"
-                  sx={{ maxWidth: open ? '100%' : 0 }}>
+                  sx={{ maxWidth: open ? '100%' : isMobile ? '100%' : 0 }}>
                   <Tooltip
                     open={open}
                     placement="right-start"
