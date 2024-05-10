@@ -5,7 +5,7 @@ import CloseIcon from '@iconify-icons/material-symbols/close';
 import MenuIcon from '@iconify-icons/material-symbols/menu';
 import BookIcon from '@iconify-icons/tabler/book-2';
 import BrainIcon from '@iconify-icons/tabler/brain';
-import { Box, CircularProgress, Drawer, Hidden, IconButton, Stack, Typography } from '@mui/material';
+import { Box, CircularProgress, Drawer, Hidden, IconButton, Stack, Theme, Typography } from '@mui/material';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { Suspense, useMemo, useState } from 'react';
 import { Outlet, useLocation, useNavigate, useParams, useRoutes } from 'react-router-dom';
@@ -21,7 +21,7 @@ export default function ProjectHeader() {
   const { projectId } = useParams();
   const pathname = useLocation().pathname.toLowerCase();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const isMobile = useMediaQuery((theme: any) => theme.breakpoints.down('md'));
+  const isMobile = useMediaQuery<Theme>((theme) => theme.breakpoints.down('md'));
 
   const current = useMemo(() => {
     if (pathname.includes(`${projectId}/file`)) {

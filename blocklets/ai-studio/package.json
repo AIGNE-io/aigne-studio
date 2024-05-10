@@ -1,6 +1,6 @@
 {
   "name": "ai-studio",
-  "version": "0.1.378",
+  "version": "0.1.380",
   "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
   "scripts": {
     "debug": "bn-dev",
@@ -139,6 +139,7 @@
     "react-transition-group": "^4.4.5",
     "react-use": "^17.5.0",
     "react-virtuoso": "^4.7.10",
+    "react-wrap-balancer": "^1.1.0",
     "recoil": "^0.7.7",
     "rimraf": "^3.0.2",
     "sequelize": "^6.37.3",

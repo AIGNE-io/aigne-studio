@@ -27,6 +27,7 @@ import {
 import { useLocalStorageState, useTitle } from 'ahooks';
 import { Suspense, useCallback, useEffect, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import Balancer from 'react-wrap-balancer';
 import { joinURL, withQuery } from 'ufo';
 
 import WithAwareness from '../../components/awareness/with-awareness';
@@ -361,9 +362,11 @@ function EmptyView() {
   const { t } = useLocaleContext();
 
   return (
-    <Stack color="text.disabled" alignItems="center" my={8} gap={3}>
+    <Stack color="text.disabled" alignItems="center" my={13} gap={3}>
       <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
-      <Typography>{t('notOpenFile')}</Typography>
+      <Typography px={2} width="100%" textAlign="center">
+        <Balancer>{t('notOpenFile')}</Balancer>
+      </Typography>
     </Stack>
   );
 }
@@ -374,7 +377,9 @@ function DebugEmptyView() {
   return (
     <Stack color="text.disabled" alignItems="center" my={8} gap={3}>
       <DeveloperTools sx={{ fontSize: 54, color: 'grey.300' }} />
-      <Typography>{t('notOpenFile')}</Typography>
+      <Typography width="100%" px={2} textAlign="center">
+        <Balancer>{t('notOpenFile')}</Balancer>
+      </Typography>
     </Stack>
   );
 }

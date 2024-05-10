@@ -369,7 +369,10 @@ export function projectRoutes(router: Router) {
       if (!project) {
         const template = projectTemplates.find((i) => i.project._id === templateId);
         if (template) {
-          project = await createProjectFromTemplate(template, { name, description, author: req.user! });
+          project = await createProjectFromTemplate(
+            { ...template, assistants: [] },
+            { name, description, author: req.user! }
+          );
         }
       }
 

@@ -654,7 +654,7 @@ export default flat({
   copyPreviewUrl: 'Copy preview URL',
   system: 'System',
   agentEmptyTitle: '‌No Agent Created',
-  agentEmptySubTitle: 'You can click on the "+" icon in the upper right corner to create.',
+  agentEmptySubTitle: 'Click "+" create your first agent',
   back: 'Back',
   route: 'Route Agent',
   addRoute: 'Add Route Agent',

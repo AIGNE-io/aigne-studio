@@ -64,7 +64,6 @@ import { joinURL } from 'ufo';
 
 import Dataset from '../../../api/src/store/models/dataset/dataset';
 import { getAPIList, getDatasets } from '../../libs/dataset';
-import Add from '../../pages/project/icons/add';
 import InfoOutlined from '../../pages/project/icons/question';
 import Trash from '../../pages/project/icons/trash';
 import { PROMPTS_FOLDER_NAME, useCreateFile, useProjectStore } from '../../pages/project/yjs-state';
@@ -605,7 +604,7 @@ export default function ExecuteBlockForm({
           {!readOnly && (
             <Box>
               <Button
-                startIcon={<Add />}
+                startIcon={<Box component={Icon} icon={PlusIcon} />}
                 onClick={() => {
                   toolForm.current?.form.reset({ id: undefined, parameters: undefined });
                   dialogState.open();
