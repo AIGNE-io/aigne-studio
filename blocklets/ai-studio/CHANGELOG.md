@@ -1,3 +1,7 @@
+## 0.1.379 (2024-5-10)
+
+- fix: projects icons and description input height
+
 ## 0.1.378 (2024-5-9)
 
 - fix: disable nginx buffering for ai api
