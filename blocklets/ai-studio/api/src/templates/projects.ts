@@ -1,8 +1,9 @@
-import { Assistant, RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
-import { nanoid } from 'nanoid';
+import { Assistant } from '@blocklet/ai-runtime/types';
 
 import { wallet } from '../libs/auth';
 import Project from '../store/models/project';
+
+// import { nanoid } from 'nanoid';
 
 export const projectTemplates: {
   project: Project['dataValues'];
@@ -22,34 +23,34 @@ export const projectTemplates: {
       updatedAt: new Date('2023-09-30T12:23:04.603Z'),
     },
     assistants: [
-      {
-        parent: ['prompts'],
-        id: '',
-        type: 'prompt',
-        name: 'Hello World',
-        prompts: [
-          {
-            type: 'message',
-            data: {
-              id: '20231208131000-LgzRpn',
-              content: 'Say hello in {{language}}!',
-              role: 'user',
-            },
-          },
-        ],
-        parameters: [
-          {
-            id: '1701840448533',
-            key: 'language',
-            defaultValue: 'English',
-          },
-        ],
-        outputVariables: [{ id: nanoid(), name: RuntimeOutputVariable.text }],
-        createdBy: wallet.address,
-        updatedBy: wallet.address,
-        createdAt: '2023-09-30T12:23:04.603Z',
-        updatedAt: '2023-09-30T12:23:04.603Z',
-      },
+      // {
+      //   parent: ['prompts'],
+      //   id: '',
+      //   type: 'prompt',
+      //   name: 'Hello World',
+      //   prompts: [
+      //     {
+      //       type: 'message',
+      //       data: {
+      //         id: '20231208131000-LgzRpn',
+      //         content: 'Say hello in {{language}}!',
+      //         role: 'user',
+      //       },
+      //     },
+      //   ],
+      //   parameters: [
+      //     {
+      //       id: '1701840448533',
+      //       key: 'language',
+      //       defaultValue: 'English',
+      //     },
+      //   ],
+      //   outputVariables: [{ id: nanoid(), name: RuntimeOutputVariable.text }],
+      //   createdBy: wallet.address,
+      //   updatedBy: wallet.address,
+      //   createdAt: '2023-09-30T12:23:04.603Z',
+      //   updatedAt: '2023-09-30T12:23:04.603Z',
+      // },
     ],
   },
 ];
