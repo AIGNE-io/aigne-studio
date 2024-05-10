@@ -3,7 +3,18 @@ import { useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { AssistantYjs, OutputVariableYjs, RuntimeOutputVariable, isAssistant } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { Box, Stack, Switch, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material';
+import {
+  Box,
+  Stack,
+  Switch,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  Tooltip,
+  Typography,
+} from '@mui/material';
 import equal from 'fast-deep-equal';
 import { cloneDeep, sortBy } from 'lodash';
 import { nanoid } from 'nanoid';
@@ -30,15 +41,7 @@ export default function OutputSettings({
   const result = useRoutesAssistantOutputs({ value, projectId, gitRef });
   const outputVariables = value.outputVariables && sortBy(Object.values(value.outputVariables), 'index');
 
-  const outputVariablesObj = () => {
-    if (!result || result.error) {
-      return value.outputVariables;
-    }
-
-    const outputVariables = { ...(result?.outputVariables || {}), ...value.outputVariables };
-    return outputVariables;
-  };
-  const groups = useSortedOutputs({ outputVariables: outputVariablesObj() });
+  const groups = useSortedOutputs({ outputVariables: value.outputVariables });
 
   const setField = (update: (outputVariables: NonNullable<AssistantYjs['outputVariables']>) => void) => {
     const doc = (getYjsValue(value) as Map<any>).doc!;
@@ -66,10 +69,6 @@ export default function OutputSettings({
       }
     }
   }, [value]);
-
-  const getRouteOutputName = (name: string) => {
-    return Object.values(result?.outputVariables || {}).find((x) => x.data.name === name);
-  };
 
   return (
     <Box sx={{ background: '#F9FAFB', py: 1.5, px: 2, pb: 2, borderRadius: 1 }}>
@@ -140,7 +139,7 @@ export default function OutputSettings({
 
                       {outputs.map((item) => (
                         <VariableRow
-                          disabled={Boolean(value.type === 'route' && getRouteOutputName(item.data.name || ''))}
+                          selectAgentOutputVariables={result?.outputVariables || {}}
                           key={item.data.id}
                           variable={item.data}
                           value={value}
@@ -161,7 +160,6 @@ export default function OutputSettings({
         </Box>
 
         <AddOutputVariableButton
-          isRouteAssistant={value.type === 'route'}
           assistant={value}
           onSelect={({ name }) => {
             setField((vars) => {
@@ -178,9 +176,6 @@ export default function OutputSettings({
           }}
         />
       </Box>
-      <Typography variant="subtitle5" color="warning.main" ml={1}>
-        {result?.error}
-      </Typography>
     </Box>
   );
 }
@@ -218,6 +213,7 @@ function useSortedOutputs({ outputVariables }: { outputVariables: AssistantYjs['
 }
 
 function VariableRow({
+  selectAgentOutputVariables,
   parent,
   value,
   variable,
@@ -227,6 +223,7 @@ function VariableRow({
   gitRef,
   disabled,
 }: {
+  selectAgentOutputVariables?: AssistantYjs['outputVariables'];
   parent?: OutputVariableYjs;
   value: AssistantYjs;
   variable: OutputVariableYjs;
@@ -237,6 +234,7 @@ function VariableRow({
   disabled?: boolean;
 }) {
   const runtimeVariable = getRuntimeOutputVariable(variable);
+  const { t } = useLocaleContext();
 
   const { getVariables } = useProjectStore(projectId, gitRef);
   const variableYjs = getVariables();
@@ -257,45 +255,148 @@ function VariableRow({
       }
     : variable;
 
+  const getRouteAssistantOutputError = () => {
+    if (value.type !== 'route') {
+      return undefined;
+    }
+
+    if (depth !== 0) {
+      return undefined;
+    }
+
+    if (!v.name) {
+      return undefined;
+    }
+
+    if (v.name.startsWith('$')) {
+      if (!v.name.startsWith('$appearance')) {
+        const outputs = Object.values(selectAgentOutputVariables || {})
+          .map((x) => x.data)
+          .filter((x) => x.name?.startsWith('$') && !x.name.startsWith('$appearance'));
+
+        const found = outputs.find((x) => x.name === v.name);
+        if (!found) {
+          return `${v.name} 不包含在所选择 Agent 的输出变量中, 请在字段 [${outputs.map((x) => x.name).join(',')}] 进行选择`;
+        }
+
+        return undefined;
+      }
+
+      return undefined;
+    }
+
+    const outputs = Object.values(selectAgentOutputVariables || {})
+      .map((x) => x.data)
+      .filter((x) => !x.name?.startsWith('$'));
+
+    const found = outputs.find((x) => x.name === v.name);
+    if (!found) {
+      return `${v.name} 不包含在所选择 Agent 的输出变量中, 请在字段 [${outputs.map((x) => x.name).join(',')}] 进行选择`;
+    }
+
+    if (found.required && !v.required) {
+      return `${v.name} 为必填字段`;
+    }
+
+    if (found.type !== v.type) {
+      return `${v.name} 必须为 ${found.type} 类型`;
+    }
+
+    if (found?.type === 'object' && v.type === 'object') {
+      if (
+        !equal(
+          cloneDeep(
+            Object.values(found?.properties || {}).map((x) => {
+              const { name, type, required } = x.data;
+              return { name, type, required: required ?? false };
+            })
+          ),
+          cloneDeep(
+            Object.values(v?.properties || {}).map((x) => {
+              const { name, type, required } = x.data;
+              return { name, type, required: required ?? false };
+            })
+          )
+        )
+      ) {
+        return `${v.name} 为 object 类型, 必须包含 ${Object.values(found.properties || {})
+          .map((x) => `${t('name')}: ${x.data.name}, ${t('type')}: ${x.data.type}`)
+          .join(',')}`;
+      }
+    }
+
+    if (found?.type === 'array' && v.type === 'array') {
+      if (
+        !equal(
+          cloneDeep(
+            Object.values(found?.element || {}).map((x) => {
+              const { name, type, required } = x.data;
+              return { name, type, required: required ?? false };
+            })
+          ),
+          cloneDeep(
+            Object.values(v?.element || {}).map((x) => {
+              const { name, type, required } = x.data;
+              return { name, type, required: required ?? false };
+            })
+          )
+        )
+      ) {
+        return `${v.name} 为 array 类型, 数据必须包含 ${Object.values(found.element || {})
+          .map((x) => `${t('name')}: ${x.data.name}, ${t('type')}: ${x.data.type}`)
+          .join(',')} 字段`;
+      }
+    }
+
+    return undefined;
+  };
+
   return (
     <>
-      <Box component={TableRow} key={variable.id}>
-        <Box component={TableCell}>
-          <Box sx={{ ml: depth }}>
-            <OutputNameCell output={v} TextFieldProps={{ disabled: Boolean(disabled) || parent?.type === 'array' }} />
+      <Tooltip title={getRouteAssistantOutputError()}>
+        <Box
+          component={TableRow}
+          key={variable.id}
+          sx={{
+            background: getRouteAssistantOutputError() ? 'rgba(255, 215, 213, 0.4)' : 'transparent',
+          }}>
+          <Box component={TableCell}>
+            <Box sx={{ ml: depth }}>
+              <OutputNameCell output={v} TextFieldProps={{ disabled: Boolean(disabled) || parent?.type === 'array' }} />
+            </Box>
+          </Box>
+          <Box component={TableCell}>
+            <OutputDescriptionCell assistant={value} output={v} TextFieldProps={{ disabled }} />
+          </Box>
+          <Box component={TableCell}>
+            <OutputFormatCell output={variable} variable={datastoreVariable} TextFieldProps={{ disabled }} />
+          </Box>
+          <Box component={TableCell}>
+            {!runtimeVariable && (
+              <Switch
+                size="small"
+                disabled={Boolean(disabled)}
+                checked={v.required || false}
+                onChange={(_, checked) => {
+                  v.required = checked;
+                }}
+              />
+            )}
+          </Box>
+          <Box component={TableCell} align="right">
+            <OutputActionsCell
+              depth={depth}
+              disabled={disabled}
+              onRemove={onRemove}
+              output={variable}
+              variable={datastoreVariable}
+              projectId={projectId}
+              gitRef={gitRef}
+              assistant={value}
+            />
           </Box>
         </Box>
-        <Box component={TableCell}>
-          <OutputDescriptionCell assistant={value} output={v} TextFieldProps={{ disabled }} />
-        </Box>
-        <Box component={TableCell}>
-          <OutputFormatCell output={variable} variable={datastoreVariable} TextFieldProps={{ disabled }} />
-        </Box>
-        <Box component={TableCell}>
-          {!runtimeVariable && (
-            <Switch
-              size="small"
-              disabled={Boolean(disabled)}
-              checked={v.required || false}
-              onChange={(_, checked) => {
-                v.required = checked;
-              }}
-            />
-          )}
-        </Box>
-        <Box component={TableCell} align="right">
-          <OutputActionsCell
-            depth={depth}
-            disabled={disabled}
-            onRemove={onRemove}
-            output={variable}
-            variable={datastoreVariable}
-            projectId={projectId}
-            gitRef={gitRef}
-            assistant={value}
-          />
-        </Box>
-      </Box>
+      </Tooltip>
 
       {!runtimeVariable &&
         v.type === 'object' &&
@@ -337,7 +438,7 @@ function VariableRow({
   );
 }
 
-const useRoutesAssistantOutputs = ({
+export const useRoutesAssistantOutputs = ({
   value,
   projectId,
   gitRef,
@@ -348,11 +449,11 @@ const useRoutesAssistantOutputs = ({
 }) => {
   const { getFileById } = useProjectStore(projectId, gitRef);
   const list = useRef<AssistantYjs['outputVariables']>({});
-  const { t } = useLocaleContext();
+  const { t, local } = useLocaleContext();
 
-  return useMemo(() => {
+  const agentAssistants = useMemo(() => {
     if (value.type !== 'route') {
-      return null;
+      return [];
     }
 
     const agents = Object.values(value?.agents || {}) || [];
@@ -364,9 +465,15 @@ const useRoutesAssistantOutputs = ({
       .filter((x) => {
         return Object.keys(x?.outputVariables || {}).length;
       });
+    return agentAssistants;
+  }, [cloneDeep(value), projectId, gitRef, t, local]);
+
+  const result = useMemo(() => {
+    if (!agentAssistants.length) {
+      return null;
+    }
 
     let error;
-
     for (const agent of agentAssistants) {
       const outputs = Object.values(agent?.outputVariables || {})
         .filter((x) => !(x?.data?.name || '').startsWith('$appearance'))
@@ -377,18 +484,34 @@ const useRoutesAssistantOutputs = ({
           .filter((x) => !(x?.data?.name || '').startsWith('$appearance'))
           .map((x) => x.data);
         const found = currentList.find((x) => x.name === output.name);
+
         if (found) {
           if (found.type && output.type && found.type !== output.type) {
             error = t('diffRouteName', {
-              agentName: agent.name,
+              agentName: `${agent.name} Agent`,
               routeName: found.name,
             });
             break;
           } else {
             if (found?.type === 'object' && output.type === 'object') {
-              if (!equal(cloneDeep(found?.properties), cloneDeep(output.properties))) {
+              if (
+                !equal(
+                  cloneDeep(
+                    Object.values(found?.properties || {}).map((x) => {
+                      const { name, type, required } = x.data;
+                      return { name, type, required: required ?? false };
+                    })
+                  ),
+                  cloneDeep(
+                    Object.values(output?.properties || {}).map((x) => {
+                      const { name, type, required } = x.data;
+                      return { name, type, required: required ?? false };
+                    })
+                  )
+                )
+              ) {
                 error = t('diffRouteNameByType', {
-                  agentName: agent.name,
+                  agentName: `${agent.name} Agent`,
                   routeName: found.name,
                   type: 'object',
                 });
@@ -397,9 +520,24 @@ const useRoutesAssistantOutputs = ({
             }
 
             if (found?.type === 'array' && output.type === 'array') {
-              if (!equal(cloneDeep(found?.element), cloneDeep(output.element))) {
+              if (
+                !equal(
+                  cloneDeep(
+                    Object.values(found?.element || {}).map((x) => {
+                      const { name, type, required } = x.data;
+                      return { name, type, required: required ?? false };
+                    })
+                  ),
+                  cloneDeep(
+                    Object.values(output?.element || {}).map((x) => {
+                      const { name, type, required } = x.data;
+                      return { name, type, required: required ?? false };
+                    })
+                  )
+                )
+              ) {
                 error = t('diffRouteNameByType', {
-                  agentName: agent.name,
+                  agentName: `${agent.name} Agent`,
                   routeName: found.name,
                   type: 'array',
                 });
@@ -407,9 +545,7 @@ const useRoutesAssistantOutputs = ({
               }
             }
 
-            // 出现两次，去union
             found.required = true;
-            if (output.type) found.type = output.type;
           }
         } else {
           const id = nanoid();
@@ -428,5 +564,7 @@ const useRoutesAssistantOutputs = ({
       outputVariables: list.current,
       error,
     };
-  }, [cloneDeep(value), projectId, gitRef, t]);
+  }, [cloneDeep(agentAssistants), projectId, gitRef, t]);
+
+  return result;
 };

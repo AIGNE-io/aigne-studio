@@ -52,6 +52,7 @@ import {
   metadataOutputFormatPrompt,
   metadataStreamOutputFormatPrompt,
 } from './generate-output';
+import generateSelectAgentName from './select-agent';
 import { CallAI, CallAIImage, GetAssistant, RunAssistantCallback, ToolCompletionDirective } from './type';
 
 const getUserHeader = (user: any) => {
@@ -85,6 +86,7 @@ export async function runAssistant({
   sessionId,
   projectId,
   datastoreVariables,
+  functionName,
 }: {
   taskId: string;
   callAI: CallAI;
@@ -98,6 +100,7 @@ export async function runAssistant({
   sessionId?: string;
   projectId?: string;
   datastoreVariables: Variable[];
+  functionName?: string;
 }): Promise<any> {
   // setup global variables for prompt rendering
   parameters.$user = user;
@@ -107,7 +110,7 @@ export async function runAssistant({
     taskId,
     parentTaskId,
     assistantId: assistant.id,
-    assistantName: assistant.name,
+    assistantName: functionName ?? assistant.name,
     execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
   });
 
@@ -157,6 +160,7 @@ export async function runAssistant({
         sessionId,
         projectId,
         datastoreVariables,
+        functionName,
       });
     }
 
@@ -235,7 +239,7 @@ export async function runAssistant({
           taskId,
           parentTaskId,
           assistantId: assistant.id,
-          assistantName: assistant.name,
+          assistantName: functionName ?? assistant.name,
           execution: { currentPhase: ExecutionPhase.EXECUTE_SELECT_STOP },
         });
         return undefined;
@@ -550,14 +554,13 @@ async function runRouteAssistant({
           .filter((x) => x.required)
           .map((x) => x.key);
 
+        const name = tool?.functionName || toolAssistant?.name || '';
         return {
           tool,
           toolAssistant,
           function: {
-            name:
-              (tool.functionName || toolAssistant.name)?.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64) ||
-              toolAssistant.id,
-            descriptions: toolAssistant.description,
+            name: name?.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64) || toolAssistant.id,
+            descriptions: tool.functionDescription || toolAssistant.description,
             parameters: {
               type: 'object',
               properties: Object.fromEntries(toolParameters),
@@ -583,9 +586,28 @@ async function runRouteAssistant({
     parentTaskId,
     taskId,
     // modelParameters: executeBlock.executeModel,
-    assistantName: `${assistant.name}-select`,
+    assistantName: `${assistant.name}`,
     promptMessages: [{ role: 'user', content: message }],
   });
+
+  const categories = toolAssistants
+    .map((x) => x.function.name)
+    .filter((x) => x)
+    .map((x) => JSON.stringify({ category_name: x }))
+    .join(',');
+
+  let jsonResult: { category_name?: string } = {};
+  try {
+    jsonResult = await generateSelectAgentName({
+      assistant,
+      message,
+      categories,
+      callAI,
+      maxRetries: MAX_RETRIES,
+    });
+  } catch (error) {
+    logger.error('select agent name failed');
+  }
 
   const response = await callAI({
     assistant,
@@ -643,27 +665,61 @@ async function runRouteAssistant({
   const toolAssistantMap = Object.fromEntries(toolAssistants.map((i) => [i.function.name, i]));
   const defaultTool = toolAssistants.find((i) => i.tool.id === assistant.defaultToolId);
 
-  if (!calls?.length) {
-    if (assistant.defaultToolId) {
-      calls ??= [];
-      calls.push({ type: 'function', function: { name: defaultTool?.function.name, arguments: '{}' } });
-    } else {
-      calls ??= [];
-      calls.push({ type: 'function', function: { name: toolAssistants[0]?.function?.name || '', arguments: '{}' } });
+  function findAndAddRequestCalls() {
+    const requestCalls: NonNullable<ChatCompletionChunk['delta']['toolCalls']> = [];
+
+    logger.info('Get Current Select Agent Parameter', {
+      calls: calls && JSON.stringify(calls),
+      aiSearchResult: jsonResult?.category_name,
+      defaultToolId: assistant?.defaultToolId,
+      firstAgent: toolAssistants[0]?.function.name,
+    });
+
+    // 首先检查 call function 返回的值是否存在
+    if (calls?.length) {
+      const found = calls.find((call) => call.function?.name && toolAssistantMap[call.function?.name]);
+      if (found) {
+        requestCalls.push(found);
+        return requestCalls;
+      }
     }
+
+    // requestCalls 没有找到，检查 jsonResult 是否存在
+    if (jsonResult?.category_name) {
+      const found = toolAssistantMap[jsonResult.category_name];
+      if (found) {
+        requestCalls.push({ type: 'function', function: { name: jsonResult.category_name || '', arguments: '{}' } });
+        return requestCalls;
+      }
+    }
+
+    // 使用默认Agent
+    if (assistant?.defaultToolId) {
+      const found = toolAssistantMap[assistant.defaultToolId];
+      if (found) {
+        requestCalls.push({ type: 'function', function: { name: defaultTool?.function.name, arguments: '{}' } });
+        return requestCalls;
+      }
+    }
+
+    // 没有找到符合条件的请求，使用默认请求
+    requestCalls.push({
+      type: 'function',
+      function: { name: toolAssistants[0]?.function?.name || '', arguments: '{}' },
+    });
+
+    return requestCalls;
   }
 
+  const requestCalls = findAndAddRequestCalls();
+
   const result =
-    calls &&
+    requestCalls &&
     (await Promise.all(
-      calls.map(async (call) => {
+      requestCalls.map(async (call) => {
         if (!call.function?.name || !call.function.arguments) return undefined;
 
-        // function call => default => first one
-        const tool =
-          toolAssistantMap[call.function.name] ||
-          toolAssistantMap[defaultTool?.function.name || ''] ||
-          toolAssistantMap[toolAssistants[0]?.function?.name || ''];
+        const tool = toolAssistantMap[call.function.name];
         if (!tool) return undefined;
         const requestData = JSON.parse(call.function.arguments);
         const currentTaskId = taskIdGenerator.nextId().toString();
@@ -691,6 +747,7 @@ async function runRouteAssistant({
           sessionId,
           projectId,
           datastoreVariables,
+          functionName: tool?.function?.name,
         });
 
         if (tool.tool?.onEnd === OnTaskCompletion.EXIT) {
@@ -1135,6 +1192,7 @@ async function runPromptAssistant({
   sessionId,
   projectId,
   datastoreVariables,
+  functionName,
 }: {
   callAI: CallAI;
   callAIImage: CallAIImage;
@@ -1148,6 +1206,7 @@ async function runPromptAssistant({
   sessionId?: string;
   projectId?: string;
   datastoreVariables: Variable[];
+  functionName?: string;
 }) {
   const executeBlocks = (assistant.prompts ?? [])
     .filter((i): i is Extract<Prompt, { type: 'executeBlock' }> => isExecuteBlock(i) && i.visibility !== 'hidden')
@@ -1256,7 +1315,7 @@ async function runPromptAssistant({
     taskId,
     parentTaskId,
     assistantId: assistant.id,
-    assistantName: assistant.name,
+    assistantName: functionName ?? assistant.name,
     execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_RUNNING },
   });
 
@@ -1265,7 +1324,7 @@ async function runPromptAssistant({
     assistantId: assistant.id,
     parentTaskId,
     taskId,
-    assistantName: assistant.name,
+    assistantName: functionName ?? assistant.name,
     inputParameters: variables,
     promptMessages: messagesWithSystemPrompt,
   });
@@ -1407,7 +1466,7 @@ async function runPromptAssistant({
         }
       : { parentTaskId }),
     taskId,
-    assistantName: assistant.name,
+    assistantName: functionName ?? assistant.name,
     inputParameters: parameters,
     promptMessages: messagesWithSystemPrompt,
   });
@@ -1417,7 +1476,7 @@ async function runPromptAssistant({
     taskId,
     parentTaskId,
     assistantId: assistant.id,
-    assistantName: assistant.name,
+    assistantName: functionName ?? assistant.name,
     execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
   });
 
@@ -1847,14 +1906,13 @@ async function runExecuteBlock({
             .filter((x) => x.required)
             .map((x) => x.key);
 
+          const name = tool?.functionName || toolAssistant?.name || '';
           return {
             tool,
             toolAssistant,
             function: {
-              name:
-                (tool.functionName || toolAssistant.name)?.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64) ||
-                toolAssistant.id,
-              descriptions: toolAssistant.description,
+              name: name?.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64) || toolAssistant.id,
+              descriptions: tool.functionDescription || toolAssistant.description,
               parameters: {
                 type: 'object',
                 properties: Object.fromEntries(toolParameters),

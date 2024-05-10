@@ -89,9 +89,9 @@ export default flat({
     empty: 'No agents to import.',
   },
   emptyToolPlaceholder: 'Add an assistant as a tool to execute, select, and other capabilities.',
-  defaultTool: 'Default tool',
-  setDefaultTool: 'Set as default tool',
-  unsetDefaultTool: 'Unset default tool',
+  defaultTool: 'Default Agent',
+  setDefaultTool: 'Set as default Agent',
+  unsetDefaultTool: 'Unset default Agent',
   translate: 'Tool name english translate',
   functionName:
     'The name of the proactive translation assistant can be used as a template for selection. If the function name is not in English, it cannot be recognized. If it is already in English, there is no need for translation.',
@@ -327,12 +327,12 @@ export default flat({
   asHistory: 'As Chat History',
   chatSubscribe: 'Hello, in order to continue chatting, please first subscribe to AI-KIT service',
   prepareExecutes: 'Prepare Executes',
-  tool: 'Tool',
+  tool: 'Agent',
   callFunction: 'Call Function',
   collection: 'Collection manage',
   callPrompt: 'Call Prompt',
   method: 'Method',
-  selectTool: 'Select Tool',
+  selectTool: 'Select Agent',
   emptyInput: 'The input cannot be empty',
   all: 'All',
   allTools: 'Execute All tools',
@@ -662,4 +662,5 @@ export default flat({
     '{agentName} has the same output parameter {routeName}, but the data type is different, please modify to keep the type consistent ',
   diffRouteNameByType:
     '{agentName} has the same output parameter {routeName}, whose type is {type}, but the attributes are inconsistent. Please modify the output parameter to keep the type consistent',
+  selectRouteAgent: 'Select Agent Prompt',
 });

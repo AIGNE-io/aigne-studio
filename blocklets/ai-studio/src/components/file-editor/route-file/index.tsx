@@ -1,9 +1,7 @@
 import LoadingIconButton from '@app/components/loading/loading-icon-button';
 import { useReadOnly } from '@app/contexts/session';
 import { textCompletions } from '@app/libs/ai';
-import Star from '@app/pages/project/icons/star';
 import Translate from '@app/pages/project/icons/translate';
-import Trash from '@app/pages/project/icons/trash';
 import { useAssistantCompare } from '@app/pages/project/state';
 import { PROMPTS_FOLDER_NAME, useCreateFile, useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
@@ -19,7 +17,11 @@ import {
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
 import ExternalLinkIcon from '@iconify-icons/tabler/external-link';
+import PencilIcon from '@iconify-icons/tabler/pencil';
 import PlusIcon from '@iconify-icons/tabler/plus';
+import Star from '@iconify-icons/tabler/star';
+import StarFill from '@iconify-icons/tabler/star-filled';
+import Trash from '@iconify-icons/tabler/trash';
 import { InfoOutlined } from '@mui/icons-material';
 import {
   Autocomplete,
@@ -46,6 +48,7 @@ import { Controller, UseFormReturn, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
+import { useRoutesAssistantOutputs } from '../output/OutputSettings';
 import PromptEditorField from '../prompt-editor-field';
 
 export default function RouteAssistantEditor({
@@ -70,18 +73,20 @@ export default function RouteAssistantEditor({
   const dialogState = usePopupState({ variant: 'dialog' });
   const toolForm = useRef<any>(null);
   const selectedTool = useRef<string>();
+  const result = useRoutesAssistantOutputs({ projectId, gitRef, value });
 
   return (
-    <Stack gap={2.5}>
+    <Stack gap={1.5}>
       <Box sx={{ borderRadius: 1 }}>
         <Box>
-          <Typography variant="subtitle2">分支选择条件</Typography>
+          <Typography variant="subtitle2">{t('selectRouteAgent')}</Typography>
 
           <Stack
             sx={{
               border: 1,
               borderColor: '#3B82F6',
               borderRadius: 1,
+              background: '#fff',
             }}>
             <StyledPromptEditor
               readOnly={disabled}
@@ -114,7 +119,7 @@ export default function RouteAssistantEditor({
             agent={agent}
             assistant={value}
             readOnly={readOnly}
-            onClick={() => {
+            onEdit={() => {
               if (readOnly) return;
               toolForm.current?.form.reset(cloneDeep(agent));
               selectedTool.current = agent.id;
@@ -122,6 +127,10 @@ export default function RouteAssistantEditor({
             }}
           />
         ))}
+
+        <Typography variant="subtitle5" color="warning.main" ml={1}>
+          {result?.error}
+        </Typography>
       </Stack>
 
       {!readOnly && (
@@ -129,6 +138,7 @@ export default function RouteAssistantEditor({
           <Button
             startIcon={<Box component={Icon} icon={PlusIcon} />}
             onClick={() => {
+              selectedTool.current = '';
               toolForm.current?.form.reset({ id: undefined, parameters: undefined });
               dialogState.open();
             }}>
@@ -206,6 +216,7 @@ export function AgentItemView({
   agent,
   assistant,
   readOnly,
+  onEdit,
   ...props
 }: {
   assistant: RouteAssistantYjs;
@@ -214,6 +225,7 @@ export function AgentItemView({
   projectRef: string;
   agent: Tool;
   readOnly?: boolean;
+  onEdit: () => void;
 } & StackProps) {
   const navigate = useNavigate();
 
@@ -248,29 +260,52 @@ export function AgentItemView({
         },
         backgroundColor: { ...getDiffBackground('prepareExecutes', `${assistant.id}.data.agents.${agent.id}`) },
       }}>
-      <Tooltip title={t('defaultTool')}>
-        <Typography
-          noWrap
-          maxWidth="50%"
-          variant="subtitle2"
-          sx={{ mb: 0 }}
-          color={assistant.defaultToolId === agent.id ? 'primary.main' : '#030712'}>
-          {name || t('unnamed')}
-        </Typography>
-      </Tooltip>
+      <Stack width={1}>
+        <Tooltip title={t('defaultTool')}>
+          <TextField
+            onClick={(e) => e.stopPropagation()}
+            hiddenLabel
+            placeholder={agent.functionName ?? (name || t('unnamed'))}
+            size="small"
+            variant="standard"
+            value={agent.functionName ?? (name || t('unnamed'))}
+            onChange={(e) => (agent.functionName = e.target.value)}
+            sx={{
+              mb: 0,
+              color: assistant.defaultToolId === agent.id ? 'primary.main' : '#030712',
+              lineHeight: '24px',
+              fontWeight: 500,
+              input: {
+                fontSize: '15px',
+              },
+            }}
+          />
+        </Tooltip>
 
-      <Typography
-        variant="subtitle3"
-        flex={1}
-        noWrap
-        color={assistant.defaultToolId === agent.id ? 'primary.main' : '#030712'}
-        sx={{
-          opacity: (theme) => theme.palette.action.disabledOpacity,
-        }}>
-        {description}
-      </Typography>
+        <TextField
+          onClick={(e) => e.stopPropagation()}
+          hiddenLabel
+          placeholder={agent.functionDescription ?? description}
+          value={agent.functionDescription ?? description}
+          onChange={(e) => (agent.functionDescription = e.target.value)}
+          size="small"
+          variant="standard"
+          sx={{
+            opacity: (theme) => theme.palette.action.disabledOpacity,
+            color: assistant.defaultToolId === agent.id ? 'primary.main' : '#9CA3AF',
+            lineHeight: '20px',
+            input: {
+              fontSize: '12px',
+            },
+          }}
+        />
+      </Stack>
 
-      <Stack direction="row" className="hover-visible" sx={{ display: 'none' }} gap={0.5}>
+      <Stack direction="row" className="hover-visible" sx={{ display: 'none' }} gap={0.5} flex={1}>
+        <Button sx={{ minWidth: 24, minHeight: 24, p: 0 }} onClick={onEdit}>
+          <Box component={Icon} icon={PencilIcon} sx={{ fontSize: 18, color: 'text.secondary' }} />
+        </Button>
+
         <Tooltip title={assistant.defaultToolId === agent.id ? t('unsetDefaultTool') : t('setDefaultTool')}>
           <Button
             sx={{ minWidth: 24, minHeight: 24, p: 0 }}
@@ -285,9 +320,25 @@ export function AgentItemView({
                 }
               });
             }}>
-            <Star
-              sx={{ fontSize: 18, color: assistant.defaultToolId === agent.id ? 'primary.main' : 'text.secondary' }}
-            />
+            {assistant.defaultToolId === agent.id ? (
+              <Box
+                component={Icon}
+                icon={StarFill}
+                sx={{
+                  fontSize: 18,
+                  color: 'primary.main',
+                }}
+              />
+            ) : (
+              <Box
+                component={Icon}
+                icon={Star}
+                sx={{
+                  fontSize: 18,
+                  color: 'text.secondary',
+                }}
+              />
+            )}
           </Button>
         </Tooltip>
 
@@ -309,7 +360,7 @@ export function AgentItemView({
                 }
               });
             }}>
-            <Trash sx={{ fontSize: 18, color: '#E11D48' }} />
+            <Box component={Icon} icon={Trash} sx={{ fontSize: 18, color: '#E11D48' }} />
           </Button>
         )}
 
@@ -371,7 +422,7 @@ export const ToolDialog = forwardRef<
   const file = f && isAssistant(f) ? f : undefined;
 
   const getFromText = () => {
-    return t('assistantData');
+    return t('agent');
   };
 
   const option = [...options].find((x) => x.id === fileId);
@@ -526,7 +577,7 @@ export const ToolDialog = forwardRef<
                       <TextField
                         autoFocus
                         {...params}
-                        label={t('tool')}
+                        label={t('agent')}
                         error={Boolean(fieldState.error)}
                         helperText={fieldState.error?.message}
                       />
