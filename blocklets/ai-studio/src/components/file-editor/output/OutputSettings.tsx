@@ -31,10 +31,11 @@ export default function OutputSettings({
   const outputVariables = value.outputVariables && sortBy(Object.values(value.outputVariables), 'index');
 
   const outputVariablesObj = () => {
-    // if (!result || result.error) {
-    //   return value.outputVariables;
-    // }
-    const outputVariables = { ...(result?.outputVariables || {}), ...cloneDeep(value.outputVariables) };
+    if (!result || result.error) {
+      return value.outputVariables;
+    }
+
+    const outputVariables = { ...(result?.outputVariables || {}), ...value.outputVariables };
     return outputVariables;
   };
   const groups = useSortedOutputs({ outputVariables: outputVariablesObj() });
