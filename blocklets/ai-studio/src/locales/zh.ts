@@ -663,4 +663,5 @@ export default flat({
   diffTypeKeys: '{name} 为 {type} 类型, 必须包含 {keys}',
   routeTitle: '分支 Agent 标题',
   routeDesc: '分支 Agent 描述',
+  promptRequired: 'Prompt 是必须的',
 });

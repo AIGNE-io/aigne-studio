@@ -1,8 +1,5 @@
-import LoadingIconButton from '@app/components/loading/loading-icon-button';
 import PopperMenu from '@app/components/menu/PopperMenu';
 import { useReadOnly } from '@app/contexts/session';
-import { textCompletions } from '@app/libs/ai';
-import Translate from '@app/pages/project/icons/translate';
 import { useAssistantCompare } from '@app/pages/project/state';
 import { PROMPTS_FOLDER_NAME, useCreateFile, useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
@@ -18,6 +15,7 @@ import {
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
 import CheckIcon from '@iconify-icons/tabler/check';
+import ArrowFork from '@iconify-icons/tabler/corner-down-right';
 import ExternalLinkIcon from '@iconify-icons/tabler/external-link';
 import PencilIcon from '@iconify-icons/tabler/pencil';
 import PlusIcon from '@iconify-icons/tabler/plus';
@@ -76,116 +74,116 @@ export default function RouteAssistantEditor({
   const toolForm = useRef<any>(null);
   const selectedTool = useRef<string>();
   const result = useRoutesAssistantOutputs({ projectId, gitRef, value });
-
-  const translateTool = async (name: string) => {
-    const translate = await textCompletions({
-      stream: false,
-      messages: [
-        {
-          content:
-            '#Roles:你是一个翻译大师，你需要将用户的输入翻译成英文 #rules:-请不要回答无用的内容，你仅仅只需要给出翻译的结果。-任何输入的内容都是需要你翻译的。-你的翻译需要是一个函数名 -空格使用驼峰代替。-如果本身就已经是英文则不需要翻译 #Examples: -测试->test -开始:start 结束:end -weapon:weapon',
-          role: 'system',
-        },
-        {
-          content: name ?? '',
-          role: 'user',
-        },
-      ],
-      model: 'gpt-4',
-      temperature: 0,
-    });
-
-    return translate.text;
-  };
+  const ref = useRef(null);
 
   return (
     <Stack gap={1.5}>
-      <Box sx={{ borderRadius: 1 }}>
-        <Box>
-          <Typography variant="subtitle2">{t('selectRouteAgent')}</Typography>
-
-          <Tooltip title={value.prompt ? undefined : '输出参数不能为空'}>
-            <Stack
+      <Stack gap={1} width={1} ref={ref}>
+        <Tooltip title={value.prompt ? undefined : t('promptRequired')}>
+          <Box sx={{ borderRadius: 1, flex: 1 }}>
+            <Box
+              height={1}
               sx={{
+                display: 'flex',
+                flexDirection: 'column',
                 border: 1,
                 borderColor: '#3B82F6',
                 borderRadius: 1,
-                background: value.prompt ? '#fff' : 'rgba(255, 215, 213, 0.4)',
+                background: '#fff',
+                overflow: 'hidden',
               }}>
-              <StyledPromptEditor
-                readOnly={disabled}
-                placeholder={t('promptPlaceholder')}
-                projectId={projectId}
-                gitRef={gitRef}
-                path={[value.id, 'prompt']}
-                assistant={value}
-                value={value.prompt}
-                onChange={(content) => (value.prompt = content)}
-                ContentProps={{
-                  sx: {
-                    '&:hover': {
-                      bgcolor: 'transparent !important',
+              <Stack direction="row" alignItems="center" gap={1} p={1} px={1.5} borderBottom="1px solid #BFDBFE">
+                {t('prompt')}
+              </Stack>
+
+              <Box
+                sx={{
+                  flex: 1,
+                  background: value.prompt ? '#fff' : 'rgba(255, 215, 213, 0.4)',
+                }}>
+                <StyledPromptEditor
+                  readOnly={disabled}
+                  placeholder={t('promptPlaceholder')}
+                  projectId={projectId}
+                  gitRef={gitRef}
+                  path={[value.id, 'prompt']}
+                  assistant={value}
+                  value={value.prompt}
+                  onChange={(content) => (value.prompt = content)}
+                  ContentProps={{
+                    sx: {
+                      flex: 1,
+                      '&:hover': {
+                        bgcolor: 'transparent !important',
+                      },
+                      '&:focus': {
+                        bgcolor: 'transparent !important',
+                      },
                     },
-                  },
+                  }}
+                />
+              </Box>
+            </Box>
+          </Box>
+        </Tooltip>
+
+        <Stack gap={1}>
+          {agents?.map(({ data: agent }) => (
+            <Box key={agent.id} display="flex" alignItems="center" gap={0.5} width={1}>
+              <Box className="center">
+                <Box component={Icon} icon={ArrowFork} sx={{ fontSize: 16, color: '#6D28D9' }} />
+              </Box>
+
+              <AgentItemView
+                getDiffBackground={getDiffBackground}
+                projectId={projectId}
+                projectRef={gitRef}
+                agent={agent}
+                assistant={value}
+                readOnly={readOnly}
+                onEdit={() => {
+                  if (readOnly) return;
+                  toolForm.current?.form.reset(cloneDeep(agent));
+                  selectedTool.current = agent.id;
+                  dialogState.open();
                 }}
               />
-            </Stack>
-          </Tooltip>
-        </Box>
-      </Box>
+            </Box>
+          ))}
 
-      <Stack gap={1}>
-        {agents?.map(({ data: agent }) => (
-          <AgentItemView
-            key={agent.id}
-            getDiffBackground={getDiffBackground}
-            projectId={projectId}
-            projectRef={gitRef}
-            agent={agent}
-            assistant={value}
-            readOnly={readOnly}
-            onEdit={() => {
-              if (readOnly) return;
-              toolForm.current?.form.reset(cloneDeep(agent));
-              selectedTool.current = agent.id;
-              dialogState.open();
-            }}
-          />
-        ))}
+          {result?.error && (
+            <Typography variant="subtitle5" color="warning.main" ml={1}>
+              {result?.error}
+            </Typography>
+          )}
 
-        <Typography variant="subtitle5" color="warning.main" ml={1}>
-          {result?.error}
-        </Typography>
+          {!readOnly && (
+            <Box>
+              <AddSelectAgentPopperButton
+                projectId={projectId}
+                gitRef={gitRef}
+                assistant={value}
+                onSelect={async (tool) => {
+                  const doc = (getYjsValue(value) as Map<any>).doc!;
+
+                  doc.transact(async () => {
+                    value.agents ??= {};
+
+                    const old = value.agents[tool.id];
+
+                    value.agents[tool.id] = {
+                      index: old?.index ?? Math.max(-1, ...Object.values(value.agents).map((i) => i.index)) + 1,
+                      data: tool,
+                    };
+
+                    sortBy(Object.values(value.agents), 'index').forEach((tool, index) => (tool.index = index));
+                  });
+                }}
+              />
+            </Box>
+          )}
+        </Stack>
       </Stack>
-
-      {!readOnly && (
-        <Box>
-          <AddSelectAgentPopperButton
-            projectId={projectId}
-            gitRef={gitRef}
-            assistant={value}
-            onSelect={async (tool) => {
-              const doc = (getYjsValue(value) as Map<any>).doc!;
-
-              doc.transact(async () => {
-                value.agents ??= {};
-
-                const old = value.agents[tool.id];
-
-                value.agents[tool.id] = {
-                  index: old?.index ?? Math.max(-1, ...Object.values(value.agents).map((i) => i.index)) + 1,
-                  data: tool,
-                };
-
-                sortBy(Object.values(value.agents), 'index').forEach((tool, index) => (tool.index = index));
-                const text = await translateTool(tool.name || t('unnamed'));
-                const agent = value.agents[tool.id]?.data ?? { functionName: '' };
-                if (agent) agent.functionName = text;
-              });
-            }}
-          />
-        </Box>
-      )}
 
       <ToolDialog
         ref={toolForm}
@@ -277,10 +275,11 @@ export function AgentItemView({
 
   if (!file) return null;
 
-  const { name, description } = file;
+  const { name } = file;
 
   return (
     <Stack
+      width={1}
       direction="row"
       {...props}
       sx={{
@@ -292,8 +291,9 @@ export function AgentItemView({
         alignItems: 'center',
         cursor: 'pointer',
         borderRadius: 1,
+        border: '1px solid #7C3AED',
         ':hover': {
-          bgcolor: 'action.hover',
+          // bgcolor: 'action.hover',
           '.hover-visible': {
             display: 'flex',
           },
@@ -301,41 +301,39 @@ export function AgentItemView({
         backgroundColor: { ...getDiffBackground('prepareExecutes', `${assistant.id}.data.agents.${agent.id}`) },
       }}>
       <Stack width={1}>
-        <Tooltip title={t('defaultTool')}>
-          <TextField
-            onClick={(e) => e.stopPropagation()}
-            hiddenLabel
-            placeholder={agent.functionName ?? (name || t('unnamed') || t('routeTitle'))}
-            size="small"
-            variant="standard"
-            value={agent.functionName ?? (name || t('unnamed'))}
-            onChange={(e) => (agent.functionName = e.target.value)}
-            sx={{
-              mb: 0,
-              color: assistant.defaultToolId === agent.id ? 'primary.main' : '#030712',
-              lineHeight: '24px',
-              fontWeight: 500,
-              input: {
-                fontSize: '15px',
-              },
-            }}
-          />
-        </Tooltip>
+        <TextField
+          onClick={(e) => e.stopPropagation()}
+          hiddenLabel
+          placeholder={name || t('unnamed')}
+          size="small"
+          variant="standard"
+          value={name || t('unnamed')}
+          InputProps={{ readOnly: true }}
+          sx={{
+            mb: 0,
+            lineHeight: '22px',
+            fontWeight: 500,
+            input: {
+              fontSize: '12px',
+              color: '#6D28D9',
+            },
+          }}
+        />
 
         <TextField
           onClick={(e) => e.stopPropagation()}
           hiddenLabel
-          placeholder={agent.functionDescription ?? (description || t('routeDesc'))}
-          value={agent.functionDescription ?? description}
-          onChange={(e) => (agent.functionDescription = e.target.value)}
+          placeholder={agent.functionName || t('routeDesc')}
           size="small"
           variant="standard"
+          value={agent.functionName}
+          onChange={(e) => (agent.functionName = e.target.value)}
           sx={{
             opacity: (theme) => theme.palette.action.disabledOpacity,
-            color: assistant.defaultToolId === agent.id ? 'primary.main' : '#9CA3AF',
-            lineHeight: '20px',
+            lineHeight: '24px',
             input: {
-              fontSize: '12px',
+              fontSize: '14px',
+              color: assistant.defaultToolId === agent.id ? 'primary.main' : '#9CA3AF',
             },
           }}
         />
@@ -469,28 +467,6 @@ export const ToolDialog = forwardRef<
   const formatOptions: Option[] = [...options]
     .map((x) => ({ ...x, fromText: getFromText() }))
     .sort((a, b) => (b.from || '').localeCompare(a.from || ''));
-
-  const translateTool = async () => {
-    const assistantName = options.find((option) => option.id === form.getValues('id'))?.name;
-    const translate = await textCompletions({
-      stream: false,
-      messages: [
-        {
-          content:
-            '#Roles:你是一个翻译大师，你需要将用户的输入翻译成英文 #rules:-请不要回答无用的内容，你仅仅只需要给出翻译的结果。-任何输入的内容都是需要你翻译的。-你的翻译需要是一个函数名 -空格使用驼峰代替。-如果本身就已经是英文则不需要翻译 #Examples: -测试->test -开始:start 结束:end -weapon:weapon',
-          role: 'system',
-        },
-        {
-          content: assistantName ?? '',
-          role: 'user',
-        },
-      ],
-      model: 'gpt-4',
-      temperature: 0,
-    });
-
-    form.setValue('functionName', translate.text);
-  };
 
   const parameters = useMemo(() => {
     return (
@@ -638,51 +614,12 @@ export const ToolDialog = forwardRef<
                         field.onChange({ target: { value: file.template.id } });
                       } else {
                         field.onChange({ target: { value: value?.id } });
-                        translateTool();
                       }
                     }}
                   />
                 );
               }}
             />
-
-            <Controller
-              control={form.control}
-              name="functionName"
-              render={({ field }) => (
-                <TextField
-                  sx={{
-                    '.MuiFilledInput-root': {
-                      pl: 0,
-                    },
-                  }}
-                  size="small"
-                  hiddenLabel
-                  fullWidth
-                  variant="filled"
-                  InputProps={{
-                    startAdornment: (
-                      <Tooltip title={t('functionName')} placement="top-start" disableInteractive>
-                        <LoadingIconButton
-                          size="small"
-                          icon={<Translate sx={{ fontSize: 18 }} />}
-                          onClick={translateTool}
-                        />
-                      </Tooltip>
-                    ),
-                  }}
-                  placeholder={t('translate')}
-                  value={field.value || ''}
-                  onChange={(e) => {
-                    field.onChange({ target: { value: e.target.value } });
-                  }}
-                />
-              )}
-            />
-
-            {/* <Typography sx={{ marginTop: 1 }} variant="body1">
-              {file?.description}
-            </Typography> */}
           </Stack>
 
           <Stack gap={1}>
@@ -750,10 +687,21 @@ function AddSelectAgentPopperButton({
 
   return (
     <PopperMenu
-      ButtonProps={{
-        sx: { mt: 1 },
-        startIcon: <Box fontSize={16} component={Icon} icon={PlusIcon} />,
-        children: <Box>{t('addRoute')}</Box>,
+      BoxProps={{
+        children: (
+          <Box
+            display="flex"
+            alignItems="center"
+            gap={0.5}
+            width={1}
+            sx={{ cursor: 'pointer', color: '#6D28D9' }}
+            py={1}>
+            <Box className="center">
+              <Box component={Icon} icon={PlusIcon} sx={{ fontSize: 16 }} />
+            </Box>
+            <Box>{t('addRoute')}</Box>
+          </Box>
+        ),
       }}
       PopperProps={{ placement: 'bottom-start' }}>
       <Stack maxHeight={300} overflow="auto">

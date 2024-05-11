@@ -670,4 +670,5 @@ export default flat({
   diffTypeKeys: '{name} is {type} type, must contain key in {keys}',
   routeTitle: 'Route Agent Title',
   routeDesc: 'Route Agent Description',
+  promptRequired: 'Prompt is required',
 });

@@ -26,7 +26,6 @@ export type Tool = {
   from?: 'assistant' | 'dataset' | 'knowledge'; // 这里的 dataset 其实代表 api
   parameters?: { [key: string]: string };
   functionName?: string;
-  functionDescription?: string;
   onEnd?: OnTaskCompletion;
 };
 
