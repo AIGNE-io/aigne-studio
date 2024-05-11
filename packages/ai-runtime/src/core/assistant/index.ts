@@ -8,7 +8,7 @@ import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { call, call as callFunc } from '@blocklet/sdk/lib/component';
 import { logger } from '@blocklet/sdk/lib/config';
 import axios, { isAxiosError } from 'axios';
-import { cloneDeep, flattenDeep, isNil, pick, startCase, toLower } from 'lodash';
+import { flattenDeep, isNil, pick, startCase, toLower } from 'lodash';
 import fetch from 'node-fetch';
 import { Worker } from 'snowflake-uuid';
 import { NodeVM } from 'vm2';
@@ -513,16 +513,6 @@ async function runRouteAssistant({
   projectId?: string;
   datastoreVariables: Variable[];
 }) {
-  const cb: ((taskId: string) => RunAssistantCallback) | undefined =
-    callback &&
-    ((taskId) => (args) => {
-      if (args.type === AssistantResponseType.CHUNK && args.taskId === taskId) {
-        callback({ ...args });
-        return;
-      }
-      callback(args);
-    });
-
   if (!assistant.prompt) {
     throw new Error('Route Assistant Prompt is  required');
   }
@@ -751,7 +741,6 @@ async function runRouteAssistant({
     return [{ type: 'function', function: { name: agentName, arguments: '{}' } }];
   };
   const requestCalls = await matchRequestCalls();
-  console.log({ requestCalls: requestCalls && cloneDeep(requestCalls) });
 
   const result =
     requestCalls &&
@@ -774,6 +763,26 @@ async function runRouteAssistant({
           }) ?? []
         );
 
+        const cb: (() => RunAssistantCallback) | undefined =
+          callback &&
+          (() => (args) => {
+            if (args.type === AssistantResponseType.CHUNK && args.taskId === currentTaskId) {
+              callback({ ...args });
+
+              // called agent 有 text stream && 当前输出也有 text stream, 直接回显 text stream
+              if (
+                Object.values(toolAssistant?.outputVariables || {}).find((x) => x.name === '$text') &&
+                Object.values(assistant?.outputVariables || {}).find((x) => x.name === '$text') &&
+                args?.delta?.content
+              ) {
+                callback({ ...args, taskId });
+              }
+              return;
+            }
+
+            callback(args);
+          });
+
         const res = await runAssistant({
           taskId: currentTaskId,
           callAI,
@@ -782,7 +791,7 @@ async function runRouteAssistant({
           assistant: toolAssistant,
           parameters: requestData,
           parentTaskId: taskId,
-          callback: cb?.(currentTaskId),
+          callback: cb?.(),
           user,
           sessionId,
           projectId,
@@ -798,16 +807,31 @@ async function runRouteAssistant({
       })
     ));
 
-  console.log(JSON.stringify(result?.length === 1 ? result[0] : result));
+  const obj = result?.length === 1 ? result[0] : result;
+  if (typeof obj === 'object') {
+    const filterJSON = Object.values(assistant.outputVariables || {}).reduce(
+      (tol, cur) => {
+        if (cur.name && obj[cur.name]) {
+          tol[cur.name] = obj[cur.name];
+        }
 
-  callback?.({
-    type: AssistantResponseType.CHUNK,
-    taskId,
-    assistantId: assistant.id,
-    delta: { content: JSON.stringify(result?.length === 1 ? result[0] : result) },
-  });
+        return tol;
+      },
+      {} as { [key: string]: any }
+    );
 
-  return result?.length === 1 ? result[0] : result;
+    // 返回的数据结构应该是当前设置的数据结构
+    callback?.({
+      type: AssistantResponseType.CHUNK,
+      taskId,
+      assistantId: assistant.id,
+      delta: { object: filterJSON },
+    });
+
+    return filterJSON;
+  }
+
+  return obj;
 }
 
 async function renderMessage(message: string, parameters?: { [key: string]: any }) {
