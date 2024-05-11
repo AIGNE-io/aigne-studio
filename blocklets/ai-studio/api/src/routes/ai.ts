@@ -31,7 +31,7 @@ router.get('/status', ensureComponentCallOrPromptsEditor(), proxyToAIKit('/api/v
 router.post(
   '/:type(chat)?/completions',
   ensureComponentCallOrPromptsEditor(),
-  proxyToAIKit('/api/v1/sdk/chat/completions' as any)
+  proxyToAIKit('/api/v1/chat/completions')
 );
 
 router.post('/image/generations', ensureComponentCallOrPromptsEditor(), proxyToAIKit('/api/v1/image/generations'));

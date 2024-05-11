@@ -10,11 +10,11 @@ import { Icon } from '@iconify-icon/react';
 import CopyIcon from '@iconify-icons/tabler/copy';
 import EyeIcon from '@iconify-icons/tabler/eye';
 import EyeOffIcon from '@iconify-icons/tabler/eye-off';
+import PlusIcon from '@iconify-icons/tabler/plus';
 import { Box, Button, Stack, Tooltip, alpha, styled } from '@mui/material';
 import { useAssistantCompare } from 'src/pages/project/state';
 
 import { useReadOnly } from '../../../contexts/session';
-import Add from '../../../pages/project/icons/add';
 import { usePromptsState } from '../../../pages/project/prompt-state';
 import { DragSortItemContainer, DragSortListYjs } from '../../drag-sort-list';
 import ExecuteBlockForm from '../execute-block';
@@ -91,26 +91,26 @@ export default function PromptPrompts({
                   disabled={readOnly}
                   isDragging={params.isDragging}
                   actions={
-                    <Stack sx={{ gap: 1.5 }}>
+                    <>
                       <Tooltip
                         title={hidden ? t('activeMessageTip') : t('hideMessageTip')}
                         disableInteractive
                         placement="top">
-                        <Box onClick={() => (prompt.visibility = hidden ? undefined : 'hidden')} className="center">
+                        <Button onClick={() => (prompt.visibility = hidden ? undefined : 'hidden')}>
                           {prompt.visibility === 'hidden' ? (
                             <Box component={Icon} icon={EyeOffIcon} sx={{ color: 'grey.500' }} />
                           ) : (
                             <Box component={Icon} icon={EyeIcon} sx={{ color: 'grey.500' }} />
                           )}
-                        </Box>
+                        </Button>
                       </Tooltip>
 
                       <Tooltip title={t('copy')} disableInteractive placement="top">
-                        <Box onClick={() => copePrompt(prompt, _)} className="center">
+                        <Button onClick={() => copePrompt(prompt, _)}>
                           <Box component={Icon} icon={CopyIcon} sx={{ color: 'grey.500' }} />
-                        </Box>
+                        </Button>
                       </Tooltip>
-                    </Stack>
+                    </>
                   }
                   onDelete={() => {
                     if ((prompt.data as any)?.type === 'dataset') {
@@ -129,7 +129,7 @@ export default function PromptPrompts({
         {!disabled && (
           <Stack direction="row" gap={1.5}>
             <Button
-              startIcon={<Add />}
+              startIcon={<Box component={Icon} icon={PlusIcon} />}
               onClick={() => addPrompt({ type: 'message', data: { id: nextAssistantId(), role: 'user' } })}>
               {t('promptMessage')}
             </Button>
