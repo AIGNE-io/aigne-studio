@@ -4,7 +4,7 @@ import { cx } from '@emotion/css';
 import { Icon } from '@iconify-icon/react';
 import GripVerticalIcon from '@iconify-icons/tabler/grip-vertical';
 import TrashIcon from '@iconify-icons/tabler/trash';
-import { Box, Stack, StackProps, Tooltip } from '@mui/material';
+import { Box, BoxProps, Button, Stack, StackProps, Tooltip } from '@mui/material';
 import { useUpdate } from 'ahooks';
 import sortBy from 'lodash/sortBy';
 import { ReactNode, useCallback, useEffect, useId, useRef } from 'react';
@@ -198,6 +198,7 @@ export function DragSortItemContainer({
   children,
   onDelete,
   actions,
+  ...props
 }: {
   drop: ConnectDropTarget;
   preview: ConnectDragPreview;
@@ -207,11 +208,11 @@ export function DragSortItemContainer({
   children?: ReactNode;
   onDelete?: () => any;
   actions?: ReactNode;
-}) {
+} & BoxProps) {
   const { t } = useLocaleContext();
 
   return (
-    <Box ref={drop} sx={{ ':hover .hover-visible': { maxHeight: '100%' } }}>
+    <Box ref={drop} {...props} sx={{ ':hover .hover-visible': { maxHeight: 'unset' }, ...props.sx }}>
       <Box sx={{ position: 'relative' }}>
         <Box
           ref={preview}
@@ -242,23 +243,28 @@ export function DragSortItemContainer({
                 border: '1px solid #E5E7EB',
                 bgcolor: '#fff',
                 borderRadius: 1,
-                p: 1,
-                gap: 1.5,
+                p: 0.5,
+                gap: 0.25,
                 cursor: 'pointer',
+                button: {
+                  p: 0.5,
+                  minWidth: 0,
+                  minHeight: 0,
+                },
               }}>
               <Tooltip title={t('dragSort')} disableInteractive placement="top">
-                <Box ref={drag} className="center">
+                <Button ref={drag}>
                   <Box component={Icon} icon={GripVerticalIcon} sx={{ color: 'grey.500' }} />
-                </Box>
+                </Button>
               </Tooltip>
 
               {actions}
 
               {onDelete && (
                 <Tooltip title={t('delete')} disableInteractive placement="top">
-                  <Box onClick={onDelete} className="center">
+                  <Button onClick={onDelete}>
                     <Box component={Icon} icon={TrashIcon} sx={{ color: 'grey.500' }} />
-                  </Box>
+                  </Button>
                 </Tooltip>
               )}
             </Stack>

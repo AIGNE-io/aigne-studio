@@ -1,3 +1,8 @@
+## 0.1.381 (2024-5-11)
+
+- feat: add opening message/questions configuration for outpus
+- feat: add sharing configuration for outputs
+
 ## 0.1.380 (2024-5-10)
 
 - fix: remove assistants when add empty template

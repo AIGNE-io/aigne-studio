@@ -175,6 +175,9 @@ const outputGroups: { [key in RuntimeOutputVariable]?: { group: 'system' | 'appe
   [RuntimeOutputVariable.appearancePage]: { group: 'appearance', index: 0 },
   [RuntimeOutputVariable.appearanceInput]: { group: 'appearance', index: 1 },
   [RuntimeOutputVariable.appearanceOutput]: { group: 'appearance', index: 2 },
+  [RuntimeOutputVariable.share]: { group: 'appearance', index: 3 },
+  [RuntimeOutputVariable.openingQuestions]: { group: 'appearance', index: 4 },
+  [RuntimeOutputVariable.openingMessage]: { group: 'appearance', index: 5 },
 };
 
 function useSortedOutputs({ assistant }: { assistant: AssistantYjs }) {

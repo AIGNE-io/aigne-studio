@@ -1,3 +1,4 @@
+import { RuntimeOutputOpeningQuestions, RuntimeOutputVariable, RuntimeOutputVariablesSchema } from '../runtime/schema';
 import type {
   Agent,
   ApiAssistant,
@@ -59,9 +60,18 @@ export type VariableTypeYjs = VariableTypeBase &
       }
   );
 
+export interface RuntimeOutputVariablesSchemaYjs
+  extends Omit<RuntimeOutputVariablesSchema, RuntimeOutputVariable.openingQuestions> {
+  [RuntimeOutputVariable.openingQuestions]?: RuntimeOutputOpeningQuestionsYjs;
+}
+
+export interface RuntimeOutputOpeningQuestionsYjs {
+  items?: ArrayToYjs<NonNullable<RuntimeOutputOpeningQuestions['items']>>;
+}
+
 export type OutputVariableYjs = VariableTypeYjs & {
-  initialValue?: any;
   variable?: { key: string; scope: string };
+  initialValue?: RuntimeOutputVariablesSchemaYjs[RuntimeOutputVariable];
 };
 
 export type PromptYjs =

@@ -28,7 +28,7 @@ export default function ChildrenSettings({
   const setField = (update: (draft: WritableDraft<RuntimeOutputChildren>) => void) => {
     doc.transact(() => {
       if (typeof output.initialValue !== 'object') output.initialValue = {};
-      update(output.initialValue);
+      update(output.initialValue as RuntimeOutputChildren);
     });
   };
 
