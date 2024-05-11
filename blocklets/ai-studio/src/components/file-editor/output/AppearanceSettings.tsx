@@ -19,7 +19,7 @@ export default function AppearanceSettings({ output }: { output: OutputVariableY
   const setField = (update: (draft: WritableDraft<RuntimeOutputAppearancePage>) => void) => {
     doc.transact(() => {
       if (typeof output.initialValue !== 'object') output.initialValue = {};
-      update(output.initialValue);
+      update(output.initialValue as RuntimeOutputAppearancePage);
     });
   };
 

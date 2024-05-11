@@ -1,6 +1,6 @@
 import { SubscriptionError } from '@blocklet/ai-kit/api';
 
-import { ExecuteBlock, Role } from '../assistant';
+import type { ExecuteBlock, Role } from '../assistant';
 import { RuntimeOutputVariablesSchema } from './schema';
 
 export * from './schema';

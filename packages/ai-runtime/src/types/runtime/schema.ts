@@ -77,84 +77,6 @@ export const runtimeVariablesSchema: { [key in RuntimeOutputVariable]?: OmitUnio
     },
     required: true,
   },
-  // '$page.background.image': {
-  //   type: 'string',
-  //   description: 'background image of page',
-  // },
-  // '$page.background.color': {
-  //   type: 'string',
-  //   description: 'background color of page',
-  // },
-  // $input: {
-  //   type: 'object',
-  //   description: 'Next input method',
-  //   properties: [
-  //     {
-  //       id: '',
-  //       name: 'type',
-  //       type: 'string',
-  //       description: 'Input method, enum: ["select"]',
-  //       required: true,
-  //     },
-  //     {
-  //       id: '',
-  //       name: 'options',
-  //       type: 'array',
-  //       element: {
-  //         id: '',
-  //         type: 'object',
-  //         properties: [
-  //           {
-  //             id: '',
-  //             name: 'title',
-  //             type: 'string',
-  //             description: 'Option title',
-  //             required: true,
-  //           },
-  //           {
-  //             id: '',
-  //             type: 'object',
-  //             name: 'action',
-  //             description: 'Option action',
-  //             required: true,
-  //             properties: [
-  //               {
-  //                 id: '',
-  //                 name: 'type',
-  //                 type: 'string',
-  //                 description: 'Action type, enum: ["navigateTo"]',
-  //                 required: true,
-  //               },
-  //               {
-  //                 id: '',
-  //                 name: 'to',
-  //                 type: 'object',
-  //                 description: 'Navigate to, required if type is "navigateTo"',
-  //                 properties: [
-  //                   {
-  //                     id: '',
-  //                     name: 'type',
-  //                     type: 'string',
-  //                     description: 'Navigation target type, enum: ["assistant"]',
-  //                     required: true,
-  //                   },
-  //                   {
-  //                     id: '',
-  //                     name: 'assistantId',
-  //                     type: 'string',
-  //                     description: 'Navigate to which assistant, required if type is "assistant"',
-  //                   },
-  //                 ],
-  //               },
-  //             ],
-  //           },
-  //         ],
-  //         required: true,
-  //       },
-  //       required: true,
-  //     },
-  //   ],
-  // },
 };
 
 export function outputVariablesToJsonSchema(variables: OutputVariable[], datastoreVariables: Variable[]) {
@@ -278,6 +200,8 @@ export enum RuntimeOutputVariable {
   appearanceOutput = '$appearance.output',
   children = '$children',
   share = '$share',
+  openingQuestions = '$openingQuestions',
+  openingMessage = '$openingMessage',
 }
 
 const runtimeOutputVariableSet = new Set(Object.values(RuntimeOutputVariable));
@@ -307,11 +231,20 @@ export interface RuntimeOutputChildren {
   agents?: { id: string; name?: string }[];
 }
 
-export interface RuntimeOutputSharing {
+export interface RuntimeOutputShare {
   items?: { to: string }[];
 }
 
+export interface RuntimeOutputOpeningQuestions {
+  items?: { id: string; title?: string; parameters?: any }[];
+}
+
+export interface RuntimeOutputOpeningMessage {
+  message?: string;
+}
+
 export interface RuntimeOutputVariablesSchema {
+  [RuntimeOutputVariable.text]?: string;
   [RuntimeOutputVariable.images]?: { url: string }[];
   [RuntimeOutputVariable.suggestedQuestions]?: { question: string }[];
   [RuntimeOutputVariable.referenceLinks]?: { title?: string; url: string }[];
@@ -319,25 +252,7 @@ export interface RuntimeOutputVariablesSchema {
   [RuntimeOutputVariable.appearanceInput]?: RuntimeOutputAppearance;
   [RuntimeOutputVariable.appearanceOutput]?: RuntimeOutputAppearance;
   [RuntimeOutputVariable.children]?: RuntimeOutputChildren;
-  [RuntimeOutputVariable.share]?: RuntimeOutputSharing;
+  [RuntimeOutputVariable.share]?: RuntimeOutputShare;
+  [RuntimeOutputVariable.openingQuestions]?: RuntimeOutputOpeningQuestions;
+  [RuntimeOutputVariable.openingMessage]?: RuntimeOutputOpeningMessage;
 }
-
-// export type Action =
-//   | {
-//       type: 'navigateTo';
-//       to: {
-//         type: 'assistant';
-//         assistantId: string;
-//       };
-//     }
-//   | {
-//       type: 'navigateBack';
-//     };
-
-// export type Input = {
-//   type: 'select';
-//   options: {
-//     title: string;
-//     action: Action;
-//   }[];
-// };

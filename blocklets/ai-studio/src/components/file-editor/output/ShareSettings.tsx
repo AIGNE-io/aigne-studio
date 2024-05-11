@@ -1,5 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { OutputVariableYjs, RuntimeOutputSharing } from '@blocklet/ai-runtime/types';
+import { OutputVariableYjs, RuntimeOutputShare } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Checkbox, List, ListItem, ListItemIcon, ListItemText, Stack, Typography } from '@mui/material';
 import { WritableDraft } from 'immer';
@@ -7,15 +7,15 @@ import { WritableDraft } from 'immer';
 export default function ShareSettings({ output }: { output: OutputVariableYjs }) {
   const { t } = useLocaleContext();
 
-  const initialValue = output.initialValue as RuntimeOutputSharing | undefined;
+  const initialValue = output.initialValue as RuntimeOutputShare | undefined;
 
   const checkedVias = new Set(initialValue?.items?.map((i) => i.to) ?? []);
 
   const doc = (getYjsValue(output) as Map<any>).doc!;
-  const setField = (update: (draft: WritableDraft<RuntimeOutputSharing>) => void) => {
+  const setField = (update: (draft: WritableDraft<RuntimeOutputShare>) => void) => {
     doc.transact(() => {
       if (typeof output.initialValue !== 'object') output.initialValue = {};
-      update(output.initialValue);
+      update(output.initialValue as RuntimeOutputShare);
     });
   };
 

@@ -5,6 +5,8 @@ import { Icon } from '@iconify-icon/react';
 import FormsIcon from '@iconify-icons/tabler/forms';
 import LayoutIcon from '@iconify-icons/tabler/layout';
 import LinkIcon from '@iconify-icons/tabler/link';
+import MessageIcon from '@iconify-icons/tabler/message';
+import MessageCircleQuestionIcon from '@iconify-icons/tabler/message-circle-question';
 import MessageQuestionIcon from '@iconify-icons/tabler/message-question';
 import PhotoIcon from '@iconify-icons/tabler/photo';
 import ShareIcon from '@iconify-icons/tabler/share';
@@ -82,6 +84,18 @@ export const runtimeOutputVariables: {
         title: 'Share',
         i18nKey: 'share',
         name: RuntimeOutputVariable.share,
+      },
+      {
+        icon: <Icon icon={MessageCircleQuestionIcon} />,
+        title: 'Opening Questions',
+        i18nKey: 'openingQuestions',
+        name: RuntimeOutputVariable.openingQuestions,
+      },
+      {
+        icon: <Icon icon={MessageIcon} />,
+        title: 'Opening Message',
+        i18nKey: 'openingMessage',
+        name: RuntimeOutputVariable.openingMessage,
       },
     ],
   },

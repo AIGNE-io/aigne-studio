@@ -600,7 +600,7 @@ export default flat({
   appearance: 'Appearance',
   dialogSettings: 'Interaction Settings',
   appearanceTemplate: 'Template',
-  question: 'Chat',
+  question: 'Question',
   questionInputTitle: 'Chat input',
   datasetId: 'Use Knowledge',
   saveToMemory: 'Save to memory',
@@ -659,4 +659,6 @@ export default flat({
   back: 'Back',
   twitter: 'Twitter',
   saveAs: 'Save as',
+  openingQuestions: 'Opening Questions',
+  openingMessage: 'Opening Message',
 });

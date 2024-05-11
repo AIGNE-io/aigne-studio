@@ -2,6 +2,7 @@ import dayjs from 'dayjs';
 import sortBy from 'lodash/sortBy';
 import { customAlphabet } from 'nanoid';
 
+import { RuntimeOutputVariable, RuntimeOutputVariablesSchema } from '../runtime';
 import type {
   AgentYjs,
   ApiAssistantYjs,
@@ -14,6 +15,7 @@ import type {
   ParameterYjs,
   PromptAssistantYjs,
   PromptYjs,
+  RuntimeOutputVariablesSchemaYjs,
   VariablesYjs,
 } from './yjs';
 import type {
@@ -144,19 +146,56 @@ export function executeBlockFromYjs(block: ExecuteBlockYjs): ExecuteBlock {
   };
 }
 
+export function outputVariableInitialValueToYjs(output: OutputVariable): OutputVariableYjs['initialValue'] {
+  if (output.name === RuntimeOutputVariable.openingQuestions) {
+    const initialValue = output.initialValue as
+      | RuntimeOutputVariablesSchema[RuntimeOutputVariable.openingQuestions]
+      | undefined;
+    return {
+      ...initialValue,
+      items: initialValue?.items && arrayToYjs(initialValue.items),
+    };
+  }
+
+  return output.initialValue as any;
+}
+
+export function outputVariableInitialValueFromYjs(output: OutputVariableYjs): OutputVariable['initialValue'] {
+  if (output.name === RuntimeOutputVariable.openingQuestions) {
+    const initialValue = output.initialValue as
+      | RuntimeOutputVariablesSchemaYjs[RuntimeOutputVariable.openingQuestions]
+      | undefined;
+
+    return {
+      ...initialValue,
+      items: initialValue?.items && arrayFromYjs(initialValue.items),
+    };
+  }
+
+  return output.initialValue as any;
+}
+
 export function outputVariableToYjs(variable: OutputVariable): OutputVariableYjs {
   if (variable.type === 'object') {
     return {
       ...variable,
       properties: variable.properties && arrayToYjs(variable.properties.map(outputVariableToYjs)),
+      initialValue: outputVariableInitialValueToYjs(variable),
     };
   }
 
   if (variable.type === 'array') {
-    return { ...variable, element: variable.element && outputVariableToYjs(variable.element) };
+    return {
+      ...variable,
+      element: variable.element && outputVariableToYjs(variable.element),
+      initialValue: outputVariableInitialValueToYjs(variable),
+    };
   }
 
-  return variable;
+  return {
+    ...variable,
+    initialValue: outputVariableInitialValueToYjs(variable),
+  };
 }
 
 export function outputVariableFromYjs(variable: OutputVariableYjs): OutputVariable {
@@ -164,14 +203,19 @@ export function outputVariableFromYjs(variable: OutputVariableYjs): OutputVariab
     return {
       ...variable,
       properties: variable.properties && arrayFromYjs(variable.properties).map(outputVariableFromYjs),
+      initialValue: outputVariableInitialValueFromYjs(variable),
     };
   }
 
   if (variable.type === 'array') {
-    return { ...variable, element: variable.element && outputVariableFromYjs(variable.element) };
+    return {
+      ...variable,
+      element: variable.element && outputVariableFromYjs(variable.element),
+      initialValue: outputVariableInitialValueFromYjs(variable),
+    };
   }
 
-  return variable;
+  return { ...variable, initialValue: outputVariableInitialValueFromYjs(variable) };
 }
 
 export function promptToYjs(prompt: Prompt): PromptYjs {

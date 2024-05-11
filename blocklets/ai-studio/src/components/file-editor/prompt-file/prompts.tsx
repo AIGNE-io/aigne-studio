@@ -91,26 +91,26 @@ export default function PromptPrompts({
                   disabled={readOnly}
                   isDragging={params.isDragging}
                   actions={
-                    <Stack sx={{ gap: 1.5 }}>
+                    <>
                       <Tooltip
                         title={hidden ? t('activeMessageTip') : t('hideMessageTip')}
                         disableInteractive
                         placement="top">
-                        <Box onClick={() => (prompt.visibility = hidden ? undefined : 'hidden')} className="center">
+                        <Button onClick={() => (prompt.visibility = hidden ? undefined : 'hidden')}>
                           {prompt.visibility === 'hidden' ? (
                             <Box component={Icon} icon={EyeOffIcon} sx={{ color: 'grey.500' }} />
                           ) : (
                             <Box component={Icon} icon={EyeIcon} sx={{ color: 'grey.500' }} />
                           )}
-                        </Box>
+                        </Button>
                       </Tooltip>
 
                       <Tooltip title={t('copy')} disableInteractive placement="top">
-                        <Box onClick={() => copePrompt(prompt, _)} className="center">
+                        <Button onClick={() => copePrompt(prompt, _)}>
                           <Box component={Icon} icon={CopyIcon} sx={{ color: 'grey.500' }} />
-                        </Box>
+                        </Button>
                       </Tooltip>
-                    </Stack>
+                    </>
                   }
                   onDelete={() => {
                     if ((prompt.data as any)?.type === 'dataset') {

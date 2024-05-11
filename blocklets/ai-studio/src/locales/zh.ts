@@ -597,6 +597,7 @@ export default flat({
   appearance: '外观',
   dialogSettings: '交互设置',
   appearanceTemplate: '模板',
+  question: '问题',
   questionInputTitle: '聊天输入',
   datasetId: '使用知识库',
   saveToMemory: '数据另存为',
@@ -654,4 +655,6 @@ export default flat({
   back: '返回',
   twitter: '推特',
   saveAs: '保存',
+  openingQuestions: '开场问题',
+  openingMessage: '开场白',
 });
