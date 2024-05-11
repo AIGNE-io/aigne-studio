@@ -1,4 +1,5 @@
 import LoadingIconButton from '@app/components/loading/loading-icon-button';
+import PopperMenu from '@app/components/menu/PopperMenu';
 import { useReadOnly } from '@app/contexts/session';
 import { textCompletions } from '@app/libs/ai';
 import Translate from '@app/pages/project/icons/translate';
@@ -16,6 +17,7 @@ import {
 } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
+import CheckIcon from '@iconify-icons/tabler/check';
 import ExternalLinkIcon from '@iconify-icons/tabler/external-link';
 import PencilIcon from '@iconify-icons/tabler/pencil';
 import PlusIcon from '@iconify-icons/tabler/plus';
@@ -75,37 +77,60 @@ export default function RouteAssistantEditor({
   const selectedTool = useRef<string>();
   const result = useRoutesAssistantOutputs({ projectId, gitRef, value });
 
+  const translateTool = async (name: string) => {
+    const translate = await textCompletions({
+      stream: false,
+      messages: [
+        {
+          content:
+            '#Roles:你是一个翻译大师，你需要将用户的输入翻译成英文 #rules:-请不要回答无用的内容，你仅仅只需要给出翻译的结果。-任何输入的内容都是需要你翻译的。-你的翻译需要是一个函数名 -空格使用驼峰代替。-如果本身就已经是英文则不需要翻译 #Examples: -测试->test -开始:start 结束:end -weapon:weapon',
+          role: 'system',
+        },
+        {
+          content: name ?? '',
+          role: 'user',
+        },
+      ],
+      model: 'gpt-4',
+      temperature: 0,
+    });
+
+    return translate.text;
+  };
+
   return (
     <Stack gap={1.5}>
       <Box sx={{ borderRadius: 1 }}>
         <Box>
           <Typography variant="subtitle2">{t('selectRouteAgent')}</Typography>
 
-          <Stack
-            sx={{
-              border: 1,
-              borderColor: '#3B82F6',
-              borderRadius: 1,
-              background: '#fff',
-            }}>
-            <StyledPromptEditor
-              readOnly={disabled}
-              placeholder={t('promptPlaceholder')}
-              projectId={projectId}
-              gitRef={gitRef}
-              path={[value.id, 'prompt']}
-              assistant={value}
-              value={value.prompt}
-              onChange={(content) => (value.prompt = content)}
-              ContentProps={{
-                sx: {
-                  '&:hover': {
-                    bgcolor: 'transparent !important',
+          <Tooltip title={value.prompt ? undefined : '输出参数不能为空'}>
+            <Stack
+              sx={{
+                border: 1,
+                borderColor: '#3B82F6',
+                borderRadius: 1,
+                background: value.prompt ? '#fff' : 'rgba(255, 215, 213, 0.4)',
+              }}>
+              <StyledPromptEditor
+                readOnly={disabled}
+                placeholder={t('promptPlaceholder')}
+                projectId={projectId}
+                gitRef={gitRef}
+                path={[value.id, 'prompt']}
+                assistant={value}
+                value={value.prompt}
+                onChange={(content) => (value.prompt = content)}
+                ContentProps={{
+                  sx: {
+                    '&:hover': {
+                      bgcolor: 'transparent !important',
+                    },
                   },
-                },
-              }}
-            />
-          </Stack>
+                }}
+              />
+            </Stack>
+          </Tooltip>
         </Box>
       </Box>
 
@@ -135,15 +160,30 @@ export default function RouteAssistantEditor({
 
       {!readOnly && (
         <Box>
-          <Button
-            startIcon={<Box component={Icon} icon={PlusIcon} />}
-            onClick={() => {
-              selectedTool.current = '';
-              toolForm.current?.form.reset({ id: undefined, parameters: undefined });
-              dialogState.open();
-            }}>
-            {t('addRoute')}
-          </Button>
+          <AddSelectAgentPopperButton
+            projectId={projectId}
+            gitRef={gitRef}
+            assistant={value}
+            onSelect={async (tool) => {
+              const doc = (getYjsValue(value) as Map<any>).doc!;
+
+              doc.transact(async () => {
+                value.agents ??= {};
+
+                const old = value.agents[tool.id];
+
+                value.agents[tool.id] = {
+                  index: old?.index ?? Math.max(-1, ...Object.values(value.agents).map((i) => i.index)) + 1,
+                  data: tool,
+                };
+
+                sortBy(Object.values(value.agents), 'index').forEach((tool, index) => (tool.index = index));
+                const text = await translateTool(tool.name || t('unnamed'));
+                const agent = value.agents[tool.id]?.data ?? { functionName: '' };
+                if (agent) agent.functionName = text;
+              });
+            }}
+          />
         </Box>
       )}
 
@@ -265,7 +305,7 @@ export function AgentItemView({
           <TextField
             onClick={(e) => e.stopPropagation()}
             hiddenLabel
-            placeholder={agent.functionName ?? (name || t('unnamed'))}
+            placeholder={agent.functionName ?? (name || t('unnamed') || t('routeTitle'))}
             size="small"
             variant="standard"
             value={agent.functionName ?? (name || t('unnamed'))}
@@ -285,7 +325,7 @@ export function AgentItemView({
         <TextField
           onClick={(e) => e.stopPropagation()}
           hiddenLabel
-          placeholder={agent.functionDescription ?? description}
+          placeholder={agent.functionDescription ?? (description || t('routeDesc'))}
           value={agent.functionDescription ?? description}
           onChange={(e) => (agent.functionDescription = e.target.value)}
           size="small"
@@ -523,6 +563,7 @@ export const ToolDialog = forwardRef<
 
                 return (
                   <Autocomplete
+                    disabled
                     key={Boolean(field.value).toString()}
                     disableClearable
                     clearOnBlur
@@ -681,3 +722,58 @@ export const ToolDialog = forwardRef<
     </Dialog>
   );
 });
+
+function AddSelectAgentPopperButton({
+  projectId,
+  gitRef,
+  assistant,
+  onSelect,
+}: {
+  projectId: string;
+  gitRef: string;
+  assistant: AssistantYjs;
+  onSelect?: (value: { id: string; type: string; name?: string }) => void;
+}) {
+  const { t } = useLocaleContext();
+  const { store } = useProjectStore(projectId, gitRef);
+  const assistantId = assistant.id;
+
+  const options = Object.entries(store.tree)
+    .filter(([, filepath]) => filepath?.startsWith(`${PROMPTS_FOLDER_NAME}/`))
+    .map(([id]) => store.files[id])
+    .filter((i): i is AssistantYjs => !!i && isAssistant(i))
+    .filter((i) => i.id !== assistantId)
+    .map((i) => ({ id: i.id, type: i.type, name: i.name, from: undefined }));
+
+  const exists =
+    assistant.type === 'route' ? new Set(Object.values(assistant.agents ?? {}).map((i) => i.data.id)) : new Set();
+
+  return (
+    <PopperMenu
+      ButtonProps={{
+        sx: { mt: 1 },
+        startIcon: <Box fontSize={16} component={Icon} icon={PlusIcon} />,
+        children: <Box>{t('addRoute')}</Box>,
+      }}
+      PopperProps={{ placement: 'bottom-start' }}>
+      <Stack maxHeight={300} overflow="auto">
+        {options.map((x) => {
+          return (
+            <MenuItem
+              selected={exists.has(x.id)}
+              key={x.id}
+              onClick={() => {
+                // e.stopPropagation();
+                onSelect?.(x);
+              }}>
+              <Box flex={1}>{x.name || t('unnamed')}</Box>
+              <Box sx={{ width: 40, textAlign: 'right' }}>
+                {exists.has(x.id) && <Box component={Icon} icon={CheckIcon} />}
+              </Box>
+            </MenuItem>
+          );
+        })}
+      </Stack>
+    </PopperMenu>
+  );
+}

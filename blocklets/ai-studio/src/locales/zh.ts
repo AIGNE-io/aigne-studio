@@ -661,4 +661,6 @@ export default flat({
   requiredOutputParams: '{name} 为必填字段',
   diffOutputType: '{name} 必须为 {type} 类型',
   diffTypeKeys: '{name} 为 {type} 类型, 必须包含 {keys}',
+  routeTitle: '分支 Agent 标题',
+  routeDesc: '分支 Agent 描述',
 });

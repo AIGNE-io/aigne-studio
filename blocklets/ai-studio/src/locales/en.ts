@@ -668,4 +668,6 @@ export default flat({
   requiredOutputParams: '{name} is a required field',
   diffOutputType: '{name} must be {type} type',
   diffTypeKeys: '{name} is {type} type, must contain key in {keys}',
+  routeTitle: 'Route Agent Title',
+  routeDesc: 'Route Agent Description',
 });

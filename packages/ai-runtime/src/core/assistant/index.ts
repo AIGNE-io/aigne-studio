@@ -1,6 +1,6 @@
 import { join } from 'path';
 
-import { ChatCompletionChunk } from '@blocklet/ai-kit/api/types';
+import { ChatCompletionChunk, ChatCompletionInput } from '@blocklet/ai-kit/api/types';
 import { getBuildInDatasets } from '@blocklet/dataset-sdk';
 import { getRequest } from '@blocklet/dataset-sdk/request';
 import { getAllParameters, getRequiredFields } from '@blocklet/dataset-sdk/request/util';
@@ -8,7 +8,7 @@ import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { call, call as callFunc } from '@blocklet/sdk/lib/component';
 import { logger } from '@blocklet/sdk/lib/config';
 import axios, { isAxiosError } from 'axios';
-import { flattenDeep, isNil, pick, startCase, toLower } from 'lodash';
+import { cloneDeep, flattenDeep, isNil, pick, startCase, toLower } from 'lodash';
 import fetch from 'node-fetch';
 import { Worker } from 'snowflake-uuid';
 import { NodeVM } from 'vm2';
@@ -523,7 +523,11 @@ async function runRouteAssistant({
       callback(args);
     });
 
-  const message = await renderMessage(assistant.prompt || '', parameters);
+  if (!assistant.prompt) {
+    throw new Error('Route Assistant Prompt is  required');
+  }
+
+  const message = await renderMessage(assistant.prompt, parameters);
   const agents = assistant?.agents || [];
 
   const toolAssistants = (
@@ -585,61 +589,61 @@ async function runRouteAssistant({
     assistantId: assistant.id,
     parentTaskId,
     taskId,
-    // modelParameters: executeBlock.executeModel,
     assistantName: `${assistant.name}`,
     promptMessages: [{ role: 'user', content: message }],
   });
 
-  const categories = toolAssistants
-    .map((x) => x.function.name)
-    .filter((x) => x)
-    .map((x) => JSON.stringify({ category_name: x }))
-    .join(',');
+  const runFunctionCall = async ({
+    tools,
+    toolChoice,
+  }: {
+    tools: ChatCompletionInput['tools'];
+    toolChoice: ChatCompletionInput['toolChoice'];
+  }) => {
+    const response = await callAI({
+      assistant,
+      input: {
+        model: 'gpt-4',
+        messages: [{ role: 'user', content: message }],
+        tools,
+        toolChoice,
+      },
+    });
 
-  const response = await callAI({
-    assistant,
-    input: {
-      // ...executeBlock.executeModel,
-      messages: [{ role: 'user', content: message }],
-      tools: toolAssistants.map((i) => ({
-        type: 'function',
-        function: {
-          name: i.function.name,
-          description: i.function.descriptions,
-          parameters: i.function.parameters,
-        },
-      })),
-    },
-  });
+    let calls: NonNullable<ChatCompletionChunk['delta']['toolCalls']> | undefined;
 
-  let calls: NonNullable<ChatCompletionChunk['delta']['toolCalls']> | undefined;
+    for await (const chunk of response) {
+      const { toolCalls } = chunk.delta;
 
-  for await (const chunk of response) {
-    // if (chunk.delta.content) {
-    //   callback?.({
-    //     type: AssistantResponseType.CHUNK,
-    //     taskId,
-    //     assistantId: assistant.id,
-    //     delta: { content: chunk.delta.content || '' },
-    //   });
-    // }
-
-    const { toolCalls } = chunk.delta;
-
-    if (toolCalls) {
-      if (!calls) {
-        calls = toolCalls;
-      } else {
-        toolCalls.forEach((item, index) => {
-          const call = calls?.[index];
-          if (call?.function) {
-            call.function.name += item.function?.name || '';
-            call.function.arguments += item.function?.arguments || '';
-          }
-        });
+      if (toolCalls) {
+        if (!calls) {
+          calls = toolCalls;
+        } else {
+          toolCalls.forEach((item, index) => {
+            const call = calls?.[index];
+            if (call?.function) {
+              call.function.name += item.function?.name || '';
+              call.function.arguments += item.function?.arguments || '';
+            }
+          });
+        }
       }
     }
-  }
+
+    return calls;
+  };
+
+  const calls = await runFunctionCall({
+    tools: toolAssistants.map((i) => ({
+      type: 'function',
+      function: {
+        name: i.function.name,
+        description: i.function.descriptions,
+        parameters: i.function.parameters,
+      },
+    })),
+    toolChoice: 'auto',
+  });
 
   callback?.({
     type: AssistantResponseType.EXECUTE,
@@ -652,26 +656,16 @@ async function runRouteAssistant({
   const toolAssistantMap = Object.fromEntries(toolAssistants.map((i) => [i.function.name, i]));
   const defaultTool = toolAssistants.find((i) => i.tool.id === assistant.defaultToolId);
 
-  async function matchRequestCalls() {
-    const requestCalls: NonNullable<ChatCompletionChunk['delta']['toolCalls']> = [];
-
-    logger.info('Get Current Select Agent Parameter', {
-      from: 'function call',
-      value: calls && JSON.stringify(calls),
-    });
-    // 首先检查 call function 返回的值是否存在
-    if (calls?.length) {
-      const found = calls.find((call) => call.function?.name && toolAssistantMap[call.function?.name]);
-
-      if (found) {
-        requestCalls.push(found);
-        return requestCalls;
-      }
-    }
-
+  const matchAgentName = async () => {
     // requestCalls 没有找到，检查 jsonResult 是否存在
     let selectedAgent: { category_name?: string } = {};
     try {
+      const categories = toolAssistants
+        .map((x) => x.function.name)
+        .filter((x) => x)
+        .map((x) => JSON.stringify({ category_name: x }))
+        .join(',');
+
       selectedAgent = await selectAgentName({
         assistant,
         message,
@@ -682,45 +676,82 @@ async function runRouteAssistant({
     } catch (error) {
       logger.error('select agent name failed');
     }
-    logger.info('Get Current Select Agent Parameter', {
+
+    logger.info('Get Current Selected Agent Name', {
       from: 'ai',
       value: selectedAgent?.category_name,
     });
     if (selectedAgent?.category_name) {
       const found = toolAssistantMap[selectedAgent.category_name];
-      if (found) {
-        requestCalls.push({ type: 'function', function: { name: selectedAgent.category_name || '', arguments: '{}' } });
-        return requestCalls;
-      }
+      if (found) return selectedAgent.category_name;
     }
 
-    logger.info('Get Current Select Agent Parameter', {
+    logger.info('Get Current Selected Agent Name', {
       from: 'default agent',
       value: assistant?.defaultToolId,
     });
-    // 使用默认Agent
+    // 使用默认 Agent
     if (assistant?.defaultToolId) {
       const found = toolAssistantMap[assistant.defaultToolId];
-      if (found) {
-        requestCalls.push({ type: 'function', function: { name: defaultTool?.function.name, arguments: '{}' } });
-        return requestCalls;
-      }
+      if (found) return defaultTool?.function.name;
     }
 
-    logger.info('Get Current Select Agent Parameter', {
-      from: 'from first ageng',
+    logger.info('Get Current Selected Agent Name', {
+      from: 'from first agent',
       value: toolAssistants[0]?.function.name,
     });
     // 没有找到符合条件的请求，使用默认请求
-    requestCalls.push({
-      type: 'function',
-      function: { name: toolAssistants[0]?.function?.name || '', arguments: '{}' },
+    return toolAssistants[0]?.function?.name;
+  };
+
+  const matchRequestCalls = async () => {
+    logger.info('Get Current Selected Agent Name', {
+      from: 'function call',
+      value: calls && JSON.stringify(calls),
     });
 
-    return requestCalls;
-  }
+    // 首先检查 call function 返回的值是否存在
+    if (calls?.length) {
+      const found = calls.find((call) => call.function?.name && toolAssistantMap[call.function?.name]);
 
+      if (found) {
+        return [found];
+      }
+    }
+
+    const agentName = await matchAgentName();
+    const tool = toolAssistants.find((x) => x.function.name === agentName);
+    if (tool) {
+      const defaultCalls = await runFunctionCall({
+        tools: [tool].map((i) => ({
+          type: 'function',
+          function: {
+            name: i.function.name,
+            description: i.function.descriptions,
+            parameters: i.function.parameters,
+          },
+        })),
+        toolChoice: {
+          type: 'function',
+          function: {
+            name: tool.function.name,
+            description: tool.function.descriptions,
+          },
+        },
+      });
+
+      if (defaultCalls?.length) {
+        const found = defaultCalls.find((call) => call.function?.name && toolAssistantMap[call.function?.name]);
+        if (found) {
+          return [found];
+        }
+      }
+    }
+
+    return [{ type: 'function', function: { name: agentName, arguments: '{}' } }];
+  };
   const requestCalls = await matchRequestCalls();
+  console.log({ requestCalls: requestCalls && cloneDeep(requestCalls) });
 
   const result =
     requestCalls &&
@@ -766,6 +797,8 @@ async function runRouteAssistant({
         return res;
       })
     ));
+
+  console.log(JSON.stringify(result?.length === 1 ? result[0] : result));
 
   callback?.({
     type: AssistantResponseType.CHUNK,

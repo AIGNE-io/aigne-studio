@@ -18,7 +18,7 @@ import {
 import equal from 'fast-deep-equal';
 import { cloneDeep, sortBy } from 'lodash';
 import { nanoid } from 'nanoid';
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo } from 'react';
 
 import AddOutputVariableButton from './AddOutputVariableButton';
 import OutputActionsCell from './OutputActionsCell';
@@ -234,7 +234,6 @@ function VariableRow({
   disabled?: boolean;
 }) {
   const runtimeVariable = getRuntimeOutputVariable(variable);
-  const { t } = useLocaleContext();
 
   const { getVariables } = useProjectStore(projectId, gitRef);
   const variableYjs = getVariables();
@@ -255,7 +254,240 @@ function VariableRow({
       }
     : variable;
 
-  const getRouteAssistantOutputError = () => {
+  const error = useCheckConflictAssistantOutputAndSelectAgents({ selectAgentOutputVariables, value, v, depth });
+
+  return (
+    <>
+      <Tooltip title={error}>
+        <Box
+          component={TableRow}
+          key={variable.id}
+          sx={{
+            background: error ? 'rgba(255, 215, 213, 0.4)' : 'transparent',
+          }}>
+          <Box component={TableCell}>
+            <Box sx={{ ml: depth }}>
+              <OutputNameCell output={v} TextFieldProps={{ disabled: Boolean(disabled) || parent?.type === 'array' }} />
+            </Box>
+          </Box>
+          <Box component={TableCell}>
+            <OutputDescriptionCell assistant={value} output={v} TextFieldProps={{ disabled }} />
+          </Box>
+          <Box component={TableCell}>
+            <OutputFormatCell output={variable} variable={datastoreVariable} TextFieldProps={{ disabled }} />
+          </Box>
+          <Box component={TableCell}>
+            {!runtimeVariable && (
+              <Switch
+                size="small"
+                disabled={Boolean(disabled)}
+                checked={v.required || false}
+                onChange={(_, checked) => {
+                  v.required = checked;
+                }}
+              />
+            )}
+          </Box>
+          <Box component={TableCell} align="right">
+            <OutputActionsCell
+              depth={depth}
+              disabled={disabled}
+              onRemove={onRemove}
+              output={variable}
+              variable={datastoreVariable}
+              projectId={projectId}
+              gitRef={gitRef}
+              assistant={value}
+            />
+          </Box>
+        </Box>
+      </Tooltip>
+
+      {!runtimeVariable &&
+        v.type === 'object' &&
+        v.properties &&
+        sortBy(Object.values(v.properties), 'index').map((property) => (
+          <React.Fragment key={property.data.id}>
+            <VariableRow
+              parent={v}
+              disabled={Boolean(variable.variable?.key || disabled)}
+              value={value}
+              variable={property.data}
+              depth={depth + 1}
+              projectId={projectId}
+              gitRef={gitRef}
+              onRemove={() => {
+                const doc = (getYjsValue(variable) as Map<any>).doc!;
+                doc.transact(() => {
+                  if (!v.properties) return;
+                  delete v.properties[property.data.id];
+                  sortBy(Object.values(v.properties), 'index').forEach((item, index) => (item.index = index));
+                });
+              }}
+            />
+          </React.Fragment>
+        ))}
+
+      {!runtimeVariable && v.type === 'array' && v.element && (
+        <VariableRow
+          parent={v}
+          disabled={Boolean(variable.variable?.key || disabled)}
+          projectId={projectId}
+          gitRef={gitRef}
+          value={value}
+          variable={v.element}
+          depth={depth + 1}
+        />
+      )}
+    </>
+  );
+}
+
+export const useRoutesAssistantOutputs = ({
+  value,
+  projectId,
+  gitRef,
+}: {
+  value: AssistantYjs;
+  projectId: string;
+  gitRef: string;
+}) => {
+  const { getFileById } = useProjectStore(projectId, gitRef);
+  const { t } = useLocaleContext();
+
+  const agentAssistants = useMemo(() => {
+    if (value.type !== 'route') {
+      return [];
+    }
+
+    const agents = Object.values(value?.agents || {}) || [];
+    const agentAssistants = agents
+      .map((x) => {
+        return getFileById(x?.data?.id);
+      })
+      .filter((i): i is AssistantYjs => !!i && isAssistant(i))
+      .filter((x) => {
+        return Object.keys(x?.outputVariables || {}).length;
+      });
+    return agentAssistants;
+  }, [cloneDeep(value), projectId, gitRef, t]);
+
+  const result = useMemo(() => {
+    const list: AssistantYjs['outputVariables'] = {};
+
+    if (!agentAssistants.length) {
+      return null;
+    }
+
+    let error;
+    for (const agent of agentAssistants) {
+      const outputs = Object.values(agent?.outputVariables || {})
+        .filter((x) => !(x?.data?.name || '').startsWith('$appearance'))
+        .map((x) => x.data);
+
+      for (const output of outputs) {
+        const currentList = Object.values(list || {})
+          .filter((x) => !(x?.data?.name || '').startsWith('$appearance'))
+          .map((x) => x.data);
+        const found = currentList.find((x) => x.name === output.name);
+
+        if (found) {
+          if (found.type && output.type && found.type !== output.type) {
+            error = t('diffRouteName', {
+              agentName: `${agent.name} Agent`,
+              routeName: found.name,
+            });
+            break;
+          } else {
+            if (found?.type === 'object' && output.type === 'object') {
+              if (
+                !equal(
+                  cloneDeep(
+                    Object.values(found?.properties || {}).map((x) => {
+                      const { name, type, required } = x.data;
+                      return { name, type, required: required ?? false };
+                    })
+                  ),
+                  cloneDeep(
+                    Object.values(output?.properties || {}).map((x) => {
+                      const { name, type, required } = x.data;
+                      return { name, type, required: required ?? false };
+                    })
+                  )
+                )
+              ) {
+                error = t('diffRouteNameByType', {
+                  agentName: `${agent.name} Agent`,
+                  routeName: found.name,
+                  type: 'object',
+                });
+                break;
+              }
+            }
+
+            if (found?.type === 'array' && output.type === 'array') {
+              if (
+                !equal(
+                  cloneDeep(
+                    Object.values(found?.element || {}).map((x) => {
+                      const { name, type, required } = x.data;
+                      return { name, type, required: required ?? false };
+                    })
+                  ),
+                  cloneDeep(
+                    Object.values(output?.element || {}).map((x) => {
+                      const { name, type, required } = x.data;
+                      return { name, type, required: required ?? false };
+                    })
+                  )
+                )
+              ) {
+                error = t('diffRouteNameByType', {
+                  agentName: `${agent.name} Agent`,
+                  routeName: found.name,
+                  type: 'array',
+                });
+                break;
+              }
+            }
+
+            found.required = true;
+          }
+        } else {
+          const id = nanoid();
+          list[id] = {
+            index: 0,
+            data: { ...cloneDeep(output), id, variable: undefined, initialValue: undefined },
+          };
+        }
+      }
+    }
+
+    sortBy(Object.values(list || {}), 'index').forEach((item, index) => (item.index = index));
+
+    return {
+      outputVariables: list,
+      error,
+    };
+  }, [cloneDeep(agentAssistants), projectId, gitRef, t]);
+
+  return result;
+};
+
+const useCheckConflictAssistantOutputAndSelectAgents = ({
+  value,
+  depth,
+  v,
+  selectAgentOutputVariables,
+}: {
+  selectAgentOutputVariables?: AssistantYjs['outputVariables'];
+  value: AssistantYjs;
+  v: OutputVariableYjs;
+  depth?: number;
+}) => {
+  const { t } = useLocaleContext();
+
+  const result = useMemo(() => {
     if (value.type !== 'route') {
       return undefined;
     }
@@ -363,222 +595,7 @@ function VariableRow({
     }
 
     return undefined;
-  };
-
-  return (
-    <>
-      <Tooltip title={getRouteAssistantOutputError()}>
-        <Box
-          component={TableRow}
-          key={variable.id}
-          sx={{
-            background: getRouteAssistantOutputError() ? 'rgba(255, 215, 213, 0.4)' : 'transparent',
-          }}>
-          <Box component={TableCell}>
-            <Box sx={{ ml: depth }}>
-              <OutputNameCell output={v} TextFieldProps={{ disabled: Boolean(disabled) || parent?.type === 'array' }} />
-            </Box>
-          </Box>
-          <Box component={TableCell}>
-            <OutputDescriptionCell assistant={value} output={v} TextFieldProps={{ disabled }} />
-          </Box>
-          <Box component={TableCell}>
-            <OutputFormatCell output={variable} variable={datastoreVariable} TextFieldProps={{ disabled }} />
-          </Box>
-          <Box component={TableCell}>
-            {!runtimeVariable && (
-              <Switch
-                size="small"
-                disabled={Boolean(disabled)}
-                checked={v.required || false}
-                onChange={(_, checked) => {
-                  v.required = checked;
-                }}
-              />
-            )}
-          </Box>
-          <Box component={TableCell} align="right">
-            <OutputActionsCell
-              depth={depth}
-              disabled={disabled}
-              onRemove={onRemove}
-              output={variable}
-              variable={datastoreVariable}
-              projectId={projectId}
-              gitRef={gitRef}
-              assistant={value}
-            />
-          </Box>
-        </Box>
-      </Tooltip>
-
-      {!runtimeVariable &&
-        v.type === 'object' &&
-        v.properties &&
-        sortBy(Object.values(v.properties), 'index').map((property) => (
-          <React.Fragment key={property.data.id}>
-            <VariableRow
-              parent={v}
-              disabled={Boolean(variable.variable?.key || disabled)}
-              value={value}
-              variable={property.data}
-              depth={depth + 1}
-              projectId={projectId}
-              gitRef={gitRef}
-              onRemove={() => {
-                const doc = (getYjsValue(variable) as Map<any>).doc!;
-                doc.transact(() => {
-                  if (!v.properties) return;
-                  delete v.properties[property.data.id];
-                  sortBy(Object.values(v.properties), 'index').forEach((item, index) => (item.index = index));
-                });
-              }}
-            />
-          </React.Fragment>
-        ))}
-
-      {!runtimeVariable && v.type === 'array' && v.element && (
-        <VariableRow
-          parent={v}
-          disabled={Boolean(variable.variable?.key || disabled)}
-          projectId={projectId}
-          gitRef={gitRef}
-          value={value}
-          variable={v.element}
-          depth={depth + 1}
-        />
-      )}
-    </>
-  );
-}
-
-export const useRoutesAssistantOutputs = ({
-  value,
-  projectId,
-  gitRef,
-}: {
-  value: AssistantYjs;
-  projectId: string;
-  gitRef: string;
-}) => {
-  const { getFileById } = useProjectStore(projectId, gitRef);
-  const list = useRef<AssistantYjs['outputVariables']>({});
-  const { t } = useLocaleContext();
-
-  const agentAssistants = useMemo(() => {
-    if (value.type !== 'route') {
-      return [];
-    }
-
-    const agents = Object.values(value?.agents || {}) || [];
-    const agentAssistants = agents
-      .map((x) => {
-        return getFileById(x?.data?.id);
-      })
-      .filter((i): i is AssistantYjs => !!i && isAssistant(i))
-      .filter((x) => {
-        return Object.keys(x?.outputVariables || {}).length;
-      });
-    return agentAssistants;
-  }, [cloneDeep(value), projectId, gitRef, t]);
-
-  const result = useMemo(() => {
-    if (!agentAssistants.length) {
-      return null;
-    }
-
-    let error;
-    for (const agent of agentAssistants) {
-      const outputs = Object.values(agent?.outputVariables || {})
-        .filter((x) => !(x?.data?.name || '').startsWith('$appearance'))
-        .map((x) => x.data);
-
-      for (const output of outputs) {
-        const currentList = Object.values(list.current || {})
-          .filter((x) => !(x?.data?.name || '').startsWith('$appearance'))
-          .map((x) => x.data);
-        const found = currentList.find((x) => x.name === output.name);
-
-        if (found) {
-          if (found.type && output.type && found.type !== output.type) {
-            error = t('diffRouteName', {
-              agentName: `${agent.name} Agent`,
-              routeName: found.name,
-            });
-            break;
-          } else {
-            if (found?.type === 'object' && output.type === 'object') {
-              if (
-                !equal(
-                  cloneDeep(
-                    Object.values(found?.properties || {}).map((x) => {
-                      const { name, type, required } = x.data;
-                      return { name, type, required: required ?? false };
-                    })
-                  ),
-                  cloneDeep(
-                    Object.values(output?.properties || {}).map((x) => {
-                      const { name, type, required } = x.data;
-                      return { name, type, required: required ?? false };
-                    })
-                  )
-                )
-              ) {
-                error = t('diffRouteNameByType', {
-                  agentName: `${agent.name} Agent`,
-                  routeName: found.name,
-                  type: 'object',
-                });
-                break;
-              }
-            }
-
-            if (found?.type === 'array' && output.type === 'array') {
-              if (
-                !equal(
-                  cloneDeep(
-                    Object.values(found?.element || {}).map((x) => {
-                      const { name, type, required } = x.data;
-                      return { name, type, required: required ?? false };
-                    })
-                  ),
-                  cloneDeep(
-                    Object.values(output?.element || {}).map((x) => {
-                      const { name, type, required } = x.data;
-                      return { name, type, required: required ?? false };
-                    })
-                  )
-                )
-              ) {
-                error = t('diffRouteNameByType', {
-                  agentName: `${agent.name} Agent`,
-                  routeName: found.name,
-                  type: 'array',
-                });
-                break;
-              }
-            }
-
-            found.required = true;
-          }
-        } else {
-          const id = nanoid();
-          list.current ??= {};
-          list.current[id] = {
-            index: 0,
-            data: { ...cloneDeep(output), id, variable: undefined, initialValue: undefined },
-          };
-        }
-      }
-    }
-
-    sortBy(Object.values(list.current || {}), 'index').forEach((item, index) => (item.index = index));
-
-    return {
-      outputVariables: list.current,
-      error,
-    };
-  }, [cloneDeep(agentAssistants), projectId, gitRef, t]);
+  }, [value.type, depth, cloneDeep(v), selectAgentOutputVariables, t]);
 
   return result;
 };
