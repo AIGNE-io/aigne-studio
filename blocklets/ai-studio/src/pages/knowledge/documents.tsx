@@ -394,7 +394,7 @@ function Actions({
           <>
             <Button onClick={onLink}>
               <Tooltip placement="top" arrow title={t('shareTip')}>
-                <Box>{t('share')}</Box>
+                <Box>{t('view')}</Box>
               </Tooltip>
             </Button>
             <Button onClick={onEmbedding}>

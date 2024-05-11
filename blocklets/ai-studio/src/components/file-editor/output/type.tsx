@@ -7,6 +7,7 @@ import LayoutIcon from '@iconify-icons/tabler/layout';
 import LinkIcon from '@iconify-icons/tabler/link';
 import MessageQuestionIcon from '@iconify-icons/tabler/message-question';
 import PhotoIcon from '@iconify-icons/tabler/photo';
+import ShareIcon from '@iconify-icons/tabler/share';
 import WritingIcon from '@iconify-icons/tabler/writing';
 import { Box } from '@mui/material';
 import { ReactNode } from 'react';
@@ -75,6 +76,12 @@ export const runtimeOutputVariables: {
         title: 'Appearance Output',
         i18nKey: 'appearanceOutput',
         name: RuntimeOutputVariable.appearanceOutput,
+      },
+      {
+        icon: <Icon icon={ShareIcon} />,
+        title: 'Share',
+        i18nKey: 'share',
+        name: RuntimeOutputVariable.share,
       },
     ],
   },

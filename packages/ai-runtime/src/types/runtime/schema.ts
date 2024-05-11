@@ -277,6 +277,7 @@ export enum RuntimeOutputVariable {
   appearanceInput = '$appearance.input',
   appearanceOutput = '$appearance.output',
   children = '$children',
+  share = '$share',
 }
 
 const runtimeOutputVariableSet = new Set(Object.values(RuntimeOutputVariable));
@@ -306,6 +307,10 @@ export interface RuntimeOutputChildren {
   agents?: { id: string; name?: string }[];
 }
 
+export interface RuntimeOutputSharing {
+  items?: { to: string }[];
+}
+
 export interface RuntimeOutputVariablesSchema {
   [RuntimeOutputVariable.images]?: { url: string }[];
   [RuntimeOutputVariable.suggestedQuestions]?: { question: string }[];
@@ -314,6 +319,7 @@ export interface RuntimeOutputVariablesSchema {
   [RuntimeOutputVariable.appearanceInput]?: RuntimeOutputAppearance;
   [RuntimeOutputVariable.appearanceOutput]?: RuntimeOutputAppearance;
   [RuntimeOutputVariable.children]?: RuntimeOutputChildren;
+  [RuntimeOutputVariable.share]?: RuntimeOutputSharing;
 }
 
 // export type Action =

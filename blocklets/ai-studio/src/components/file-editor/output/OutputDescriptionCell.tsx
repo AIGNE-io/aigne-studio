@@ -9,6 +9,7 @@ const ignoreDescriptionVariables = new Set([
   RuntimeOutputVariable.appearanceInput,
   RuntimeOutputVariable.appearanceOutput,
   RuntimeOutputVariable.children,
+  RuntimeOutputVariable.share,
 ]);
 
 export default function OutputDescriptionCell({
