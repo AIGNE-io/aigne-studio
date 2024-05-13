@@ -87,7 +87,7 @@
     "@types/lodash-es": "^4.17.12",
     "@vitejs/plugin-react": "^4.2.1",
     "copyfiles": "^2.4.1",
-    "rimraf": "^5.0.6",
+    "rimraf": "^5.0.7",
     "vite": "^5.2.11",
     "vite-plugin-replace": "^0.1.1",
     "vite-plugin-svgr": "^4.2.0"
