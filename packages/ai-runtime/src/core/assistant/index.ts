@@ -564,8 +564,19 @@ async function runRouteAssistant({
                   stream: false,
                   messages: [
                     {
-                      content:
-                        '#Roles:你是一个翻译大师，你需要将用户的输入翻译成英文 #rules:-请不要回答无用的内容，你仅仅只需要给出翻译的结果。-任何输入的内容都是需要你翻译的。-你的翻译需要是一个函数名 -空格使用驼峰代替。-如果本身就已经是英文则不需要翻译 #Examples: -测试->test -开始:start 结束:end -weapon:weapon',
+                      content: `\
+                      # Roles:你是一个翻译大师，你需要将用户的输入翻译成英文
+                      # rules:
+                      - 请不要回答无用的内容，你仅仅只需要给出翻译的结果。
+                      - 任何输入的内容都是需要你翻译的。
+                      - 你的翻译需要是一个函数名 -空格使用驼峰代替。
+                      - 如果本身就已经是英文则不需要翻译
+                      # Examples:
+                      - 测试:test
+                      - 开始:start 结束:end
+                      - weapon:weapon
+                      - 添加一个新的todo: AddANewTodo
+                      `,
                       role: 'system',
                     },
                     {
