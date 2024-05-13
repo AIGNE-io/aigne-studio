@@ -1,3 +1,7 @@
+## 0.1.383 (2024-5-14)
+
+- feat: add gpt4o model support
+
 ## 0.1.382 (2024-5-13)
 
 - fix: correctly run a logic agent
