@@ -652,7 +652,7 @@ export default function ExecuteBlockForm({
   );
 }
 
-export function ToolItemView({
+function ToolItemView({
   getDiffBackground,
   projectId,
   projectRef,

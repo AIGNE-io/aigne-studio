@@ -24,6 +24,5 @@ export default function ParameterField({
     select: SelectField,
     language: LanguageField,
   }[parameter.type || 'string'];
-
   return <Field {...({ parameter } as any)} size="small" {...props} />;
 }
