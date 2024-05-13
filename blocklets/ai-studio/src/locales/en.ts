@@ -661,4 +661,5 @@ export default flat({
   saveAs: 'Save as',
   openingQuestions: 'Opening Questions',
   openingMessage: 'Opening Message',
+  chooseObject: 'Choose {object}',
 });
