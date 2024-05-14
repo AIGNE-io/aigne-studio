@@ -1,3 +1,7 @@
+## 0.1.384 (2024-5-14)
+
+- fix: add router agent type
+
 ## 0.1.383 (2024-5-14)
 
 - feat: add gpt4o model support
