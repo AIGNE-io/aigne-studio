@@ -15,6 +15,7 @@ import type {
   ParameterYjs,
   PromptAssistantYjs,
   PromptYjs,
+  RouterAssistantYjs,
   RuntimeOutputVariablesSchemaYjs,
   VariablesYjs,
 } from './yjs';
@@ -30,6 +31,7 @@ import type {
   Parameter,
   Prompt,
   PromptAssistant,
+  RouterAssistant,
   Variables,
 } from '.';
 
@@ -64,7 +66,7 @@ export function isAssistant(assistant: FileTypeYjs): assistant is AssistantYjs;
 export function isAssistant(assistant: FileType | FileTypeYjs): assistant is FileType | AssistantYjs {
   return (
     typeof (assistant as any).id === 'string' &&
-    ['agent', 'prompt', 'image', 'api', 'function'].includes((assistant as any).type)
+    ['agent', 'prompt', 'image', 'api', 'function', 'router'].includes((assistant as any).type)
   );
 }
 
@@ -72,6 +74,12 @@ export function isAgent(file: FileType): file is Agent;
 export function isAgent(file: FileTypeYjs): file is AgentYjs;
 export function isAgent(file: FileType | FileTypeYjs): file is Agent | AgentYjs {
   return (file as any).type === 'agent';
+}
+
+export function isRouterAssistant(file: FileType): file is RouterAssistant;
+export function isRouterAssistant(file: FileTypeYjs): file is RouterAssistantYjs;
+export function isRouterAssistant(file: FileType | FileTypeYjs): file is RouterAssistant | RouterAssistantYjs {
+  return (file as any).type === 'router';
 }
 
 export function isPromptAssistant(file: FileType): file is PromptAssistant;
@@ -317,6 +325,17 @@ export function fileToYjs(file: FileType): FileTypeYjs {
     };
   }
 
+  if (isRouterAssistant(file)) {
+    return {
+      ...file,
+      parameters: file.parameters && arrayToYjs(file.parameters, parameterToYjs),
+      tests: file.tests && arrayToYjs(file.tests),
+      entries: file.entries && arrayToYjs(file.entries),
+      outputVariables: file.outputVariables && arrayToYjs(file.outputVariables.map(outputVariableToYjs)),
+      routes: file.routes && arrayToYjs(file.routes),
+    };
+  }
+
   return file;
 }
 
@@ -376,6 +395,17 @@ export function fileFromYjs(file: FileTypeYjs): FileType {
     return {
       ...file,
       variables: file.variables?.map((i) => ({ ...i, type: i.type && outputVariableFromYjs(i.type) })),
+    };
+  }
+
+  if (isRouterAssistant(file)) {
+    return {
+      ...file,
+      parameters: file.parameters && arrayFromYjs(file.parameters, parameterFromYjs),
+      tests: file.tests && arrayFromYjs(file.tests),
+      entries: file.entries && arrayFromYjs(file.entries),
+      outputVariables: file.outputVariables && arrayFromYjs(file.outputVariables).map(outputVariableFromYjs),
+      routes: file.routes && arrayFromYjs(file.routes),
     };
   }
 

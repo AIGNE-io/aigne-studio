@@ -1,12 +1,25 @@
 import AigneLogoOutput from '@app/icons/aigne-logo-output';
 import { useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, OutputVariableYjs, RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, OutputVariableYjs, RuntimeOutputVariable, isAssistant } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { Box, Stack, Switch, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material';
-import { sortBy } from 'lodash';
+import {
+  Box,
+  Stack,
+  Switch,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  Tooltip,
+  Typography,
+} from '@mui/material';
+import equal from 'fast-deep-equal';
+import jsonDiff from 'json-diff';
+import { cloneDeep, sortBy, uniqBy } from 'lodash';
 import { nanoid } from 'nanoid';
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 
 import AddOutputVariableButton from './AddOutputVariableButton';
 import OutputActionsCell from './OutputActionsCell';
@@ -26,12 +39,13 @@ export default function OutputSettings({
 }) {
   const { t } = useLocaleContext();
 
+  const { checkSelectAgent: result, allSelectAgentOutputs } = useRoutesAssistantOutputs({ value, projectId, gitRef });
   const outputVariables = value.outputVariables && sortBy(Object.values(value.outputVariables), 'index');
-  const groups = useSortedOutputs({ assistant: value });
 
-  const doc = (getYjsValue(value) as Map<any>).doc!;
+  const groups = useSortedOutputs({ outputVariables: value.outputVariables });
 
   const setField = (update: (outputVariables: NonNullable<AssistantYjs['outputVariables']>) => void) => {
+    const doc = (getYjsValue(value) as Map<any>).doc!;
     doc.transact(() => {
       value.outputVariables ??= {};
       update(value.outputVariables);
@@ -126,6 +140,7 @@ export default function OutputSettings({
 
                       {outputs.map((item) => (
                         <VariableRow
+                          selectAgentOutputVariables={result?.outputVariables || {}}
                           key={item.data.id}
                           variable={item.data}
                           value={value}
@@ -146,6 +161,7 @@ export default function OutputSettings({
         </Box>
 
         <AddOutputVariableButton
+          allSelectAgentOutputs={cloneDeep(allSelectAgentOutputs)}
           assistant={value}
           onSelect={({ name }) => {
             setField((vars) => {
@@ -158,6 +174,22 @@ export default function OutputSettings({
               }
 
               sortBy(Object.values(vars), 'index').forEach((item, index) => (item.index = index));
+            });
+          }}
+          onSelectAll={(list) => {
+            setField((vars) => {
+              list.forEach((data) => {
+                const exist = data.name ? outputVariables?.find((i) => i.data.name === data.name) : undefined;
+                if (!exist) {
+                  const id = nanoid();
+                  vars[id] = {
+                    index: Object.values(vars).length,
+                    data: { ...cloneDeep(data), required: undefined, id },
+                  };
+                }
+
+                sortBy(Object.values(vars), 'index').forEach((item, index) => (item.index = index));
+              });
             });
           }}
         />
@@ -180,26 +212,29 @@ const outputGroups: { [key in RuntimeOutputVariable]?: { group: 'system' | 'appe
   [RuntimeOutputVariable.openingMessage]: { group: 'appearance', index: 5 },
 };
 
-function useSortedOutputs({ assistant }: { assistant: AssistantYjs }) {
-  const groups: { [key in 'system' | 'appearance' | 'custom']: { index: number; data: OutputVariableYjs }[] } = {
-    system: [],
-    appearance: [],
-    custom: [],
-  };
+function useSortedOutputs({ outputVariables }: { outputVariables: AssistantYjs['outputVariables'] }) {
+  return useMemo(() => {
+    const groups: { [key in 'system' | 'appearance' | 'custom']: { index: number; data: OutputVariableYjs }[] } = {
+      system: [],
+      appearance: [],
+      custom: [],
+    };
 
-  const outputs = sortBy(
-    Object.values(assistant.outputVariables ?? {}),
-    (item) => outputGroups[item.data.name as RuntimeOutputVariable]?.index ?? item.index
-  );
-  for (const item of outputs) {
-    const group = outputGroups[item.data.name as RuntimeOutputVariable]?.group || 'custom';
-    groups[group].push(item);
-  }
+    const outputs = sortBy(
+      Object.values(outputVariables ?? {}),
+      (item) => outputGroups[item.data.name as RuntimeOutputVariable]?.index ?? item.index
+    );
+    for (const item of outputs) {
+      const group = outputGroups[item.data.name as RuntimeOutputVariable]?.group || 'custom';
+      groups[group].push(item);
+    }
 
-  return groups;
+    return groups;
+  }, [cloneDeep(outputVariables)]);
 }
 
 function VariableRow({
+  selectAgentOutputVariables,
   parent,
   value,
   variable,
@@ -209,6 +244,7 @@ function VariableRow({
   gitRef,
   disabled,
 }: {
+  selectAgentOutputVariables?: AssistantYjs['outputVariables'];
   parent?: OutputVariableYjs;
   value: AssistantYjs;
   variable: OutputVariableYjs;
@@ -218,7 +254,6 @@ function VariableRow({
   gitRef: string;
   disabled?: boolean;
 }) {
-  const doc = (getYjsValue(variable) as Map<any>).doc!;
   const runtimeVariable = getRuntimeOutputVariable(variable);
 
   const { getVariables } = useProjectStore(projectId, gitRef);
@@ -240,45 +275,54 @@ function VariableRow({
       }
     : variable;
 
+  const error = useCheckConflictAssistantOutputAndSelectAgents({ selectAgentOutputVariables, value, v, depth });
+
   return (
     <>
-      <Box component={TableRow} key={variable.id}>
-        <Box component={TableCell}>
-          <Box sx={{ ml: depth }}>
-            <OutputNameCell output={v} TextFieldProps={{ disabled: Boolean(disabled) || parent?.type === 'array' }} />
+      <Tooltip title={error}>
+        <Box
+          component={TableRow}
+          key={variable.id}
+          sx={{
+            background: error ? 'rgba(255, 215, 213, 0.4)' : 'transparent',
+          }}>
+          <Box component={TableCell}>
+            <Box sx={{ ml: depth }}>
+              <OutputNameCell output={v} TextFieldProps={{ disabled: Boolean(disabled) || parent?.type === 'array' }} />
+            </Box>
+          </Box>
+          <Box component={TableCell}>
+            <OutputDescriptionCell assistant={value} output={v} TextFieldProps={{ disabled }} />
+          </Box>
+          <Box component={TableCell}>
+            <OutputFormatCell output={variable} variable={datastoreVariable} TextFieldProps={{ disabled }} />
+          </Box>
+          <Box component={TableCell}>
+            {!runtimeVariable && (
+              <Switch
+                size="small"
+                disabled={Boolean(disabled)}
+                checked={v.required || false}
+                onChange={(_, checked) => {
+                  v.required = checked;
+                }}
+              />
+            )}
+          </Box>
+          <Box component={TableCell} align="right">
+            <OutputActionsCell
+              depth={depth}
+              disabled={disabled}
+              onRemove={onRemove}
+              output={variable}
+              variable={datastoreVariable}
+              projectId={projectId}
+              gitRef={gitRef}
+              assistant={value}
+            />
           </Box>
         </Box>
-        <Box component={TableCell}>
-          <OutputDescriptionCell assistant={value} output={v} TextFieldProps={{ disabled }} />
-        </Box>
-        <Box component={TableCell}>
-          <OutputFormatCell output={variable} variable={datastoreVariable} TextFieldProps={{ disabled }} />
-        </Box>
-        <Box component={TableCell}>
-          {!runtimeVariable && (
-            <Switch
-              size="small"
-              disabled={Boolean(disabled)}
-              checked={v.required || false}
-              onChange={(_, checked) => {
-                v.required = checked;
-              }}
-            />
-          )}
-        </Box>
-        <Box component={TableCell} align="right">
-          <OutputActionsCell
-            depth={depth}
-            disabled={disabled}
-            onRemove={onRemove}
-            output={variable}
-            variable={datastoreVariable}
-            projectId={projectId}
-            gitRef={gitRef}
-            assistant={value}
-          />
-        </Box>
-      </Box>
+      </Tooltip>
 
       {!runtimeVariable &&
         v.type === 'object' &&
@@ -294,6 +338,7 @@ function VariableRow({
               projectId={projectId}
               gitRef={gitRef}
               onRemove={() => {
+                const doc = (getYjsValue(variable) as Map<any>).doc!;
                 doc.transact(() => {
                   if (!v.properties) return;
                   delete v.properties[property.data.id];
@@ -318,3 +363,286 @@ function VariableRow({
     </>
   );
 }
+
+export const useRoutesAssistantOutputs = ({
+  value,
+  projectId,
+  gitRef,
+}: {
+  value: AssistantYjs;
+  projectId: string;
+  gitRef: string;
+}) => {
+  const { getFileById } = useProjectStore(projectId, gitRef);
+  const { t } = useLocaleContext();
+
+  const agentAssistants = useMemo(() => {
+    if (value.type !== 'router') {
+      return [];
+    }
+
+    const routes = Object.values(value?.routes || {}) || [];
+    const agentAssistants = routes
+      .map((x) => {
+        return getFileById(x?.data?.id);
+      })
+      .filter((i): i is AssistantYjs => !!i && isAssistant(i))
+      .filter((x) => {
+        return Object.keys(x?.outputVariables || {}).length;
+      });
+    return agentAssistants;
+  }, [cloneDeep(value), projectId, gitRef, t]);
+
+  const allSelectAgentOutputs = useMemo(() => {
+    if (!agentAssistants.length) {
+      return [];
+    }
+
+    return uniqBy(
+      agentAssistants.flatMap((agent) => {
+        return Object.values(agent?.outputVariables || {})
+          .filter((x) => !(x?.data?.name || '').startsWith('$appearance'))
+          .map((x) => x.data);
+      }),
+      'name'
+    );
+  }, [cloneDeep(agentAssistants), projectId, gitRef, t]);
+
+  const result = useMemo(() => {
+    const list: AssistantYjs['outputVariables'] = {};
+
+    if (!agentAssistants.length) {
+      return null;
+    }
+
+    let error;
+    for (const agent of agentAssistants) {
+      const outputs = Object.values(agent?.outputVariables || {})
+        .filter((x) => !(x?.data?.name || '').startsWith('$appearance'))
+        .map((x) => x.data);
+
+      for (const output of outputs) {
+        const currentList = Object.values(list || {})
+          .filter((x) => !(x?.data?.name || '').startsWith('$appearance'))
+          .map((x) => x.data);
+        const found = currentList.find((x) => x.name === output.name);
+
+        if (found) {
+          if (found.type && output.type && found.type !== output.type) {
+            error = t('diffRouteName', {
+              agentName: `${agent.name} Agent`,
+              routeName: found.name,
+            });
+            break;
+          } else {
+            if (found?.type === 'object' && output.type === 'object') {
+              if (
+                !equal(
+                  cloneDeep(
+                    Object.values(found?.properties || {}).map((x) => {
+                      const { name, type, required } = x?.data || {};
+                      return { name, type, required: required ?? false };
+                    })
+                  ),
+                  cloneDeep(
+                    Object.values(output?.properties || {}).map((x) => {
+                      const { name, type, required } = x?.data || {};
+                      return { name, type, required: required ?? false };
+                    })
+                  )
+                )
+              ) {
+                error = t('diffRouteNameByType', {
+                  agentName: `${agent.name} Agent`,
+                  routeName: found.name,
+                  type: 'object',
+                });
+                break;
+              }
+            }
+
+            if (found?.type === 'array' && output.type === 'array') {
+              if (
+                !equal(
+                  cloneDeep(
+                    [found.element].map((x) => {
+                      const { name, type, required } = x || {};
+                      return { name, type, required: required ?? false };
+                    })
+                  ),
+                  cloneDeep(
+                    [output?.element].map((x) => {
+                      const { name, type, required } = x || {};
+                      return { name, type, required: required ?? false };
+                    })
+                  )
+                )
+              ) {
+                error = t('diffRouteNameByType', {
+                  agentName: `${agent.name} Agent`,
+                  routeName: found.name,
+                  type: 'array',
+                });
+                break;
+              }
+            }
+
+            const filterRequired = agentAssistants
+              .map((agent) => {
+                const outputs = Object.values(agent?.outputVariables || {})
+                  .filter((x) => !(x?.data?.name || '').startsWith('$appearance'))
+                  .map((x) => x.data);
+                return outputs.find((x) => x.name === found.name);
+              })
+              .filter((i): i is NonNullable<typeof i> => !!i);
+
+            if (filterRequired.length === agentAssistants.length && filterRequired.every((x) => x.required)) {
+              found.required = true;
+            }
+          }
+        } else {
+          const id = nanoid();
+          list[id] = {
+            index: 0,
+            data: { ...cloneDeep(output), id, required: undefined, variable: undefined, initialValue: undefined },
+          };
+        }
+      }
+    }
+
+    sortBy(Object.values(list || {}), 'index').forEach((item, index) => (item.index = index));
+
+    return {
+      outputVariables: list,
+      error,
+    };
+  }, [cloneDeep(agentAssistants), allSelectAgentOutputs, projectId, gitRef, t]);
+
+  return {
+    allSelectAgentOutputs,
+    checkSelectAgent: result,
+  };
+};
+
+const diffJSON = (found: OutputVariableYjs, v: OutputVariableYjs, t: any): string | undefined => {
+  const result = jsonDiff.diff(cloneDeep(found), cloneDeep(v));
+  if (result?.type) {
+    return t('diffOutputType', { name: v.name, type: found.type });
+  }
+
+  if (result?.required) {
+    // _old 为true时，不用判断
+    if (!result?.required?.__old) {
+      // 数据可能为 undefined
+      if ((result?.required?.__old ?? false) !== (result?.required?.__new ?? false)) {
+        return found.required
+          ? t('requiredOutputParams', { name: v.name })
+          : t('notRequiredOutputParams', { name: v.name });
+      }
+    }
+  }
+
+  if (result?.required__added) {
+    return t('notRequiredOutputParams', { name: v.name });
+  }
+
+  if (found?.type === 'object' && v.type === 'object') {
+    const object = Object.values(v?.properties || {})
+      .map((data) => {
+        if (data?.data) {
+          const outputs = Object.values(found?.properties || {}).map((x) => x.data);
+
+          const found1 = outputs.find((x) => x.name === data?.data?.name);
+          if (!found1) {
+            return t('notFoundOutputKeyFromSelectAgents', {
+              name: data?.data?.name,
+              outputNames: outputs.map((x) => x.name).join(','),
+            });
+          }
+
+          return diffJSON(cloneDeep(found1 || {}), cloneDeep(data?.data || {}), t);
+        }
+
+        return undefined;
+      })
+      .filter((x) => x);
+
+    return object[0];
+  }
+
+  if (found?.type === 'array' && v.type === 'array') {
+    return diffJSON(
+      cloneDeep(found?.element || {}) as OutputVariableYjs,
+      cloneDeep(v?.element || {}) as OutputVariableYjs,
+      t
+    );
+  }
+
+  return undefined;
+};
+
+const useCheckConflictAssistantOutputAndSelectAgents = ({
+  value,
+  depth,
+  v,
+  selectAgentOutputVariables,
+}: {
+  selectAgentOutputVariables?: AssistantYjs['outputVariables'];
+  value: AssistantYjs;
+  v: OutputVariableYjs;
+  depth?: number;
+}) => {
+  const { t } = useLocaleContext();
+
+  const result = useMemo(() => {
+    if (value.type !== 'router') {
+      return undefined;
+    }
+
+    if (depth !== 0) {
+      return undefined;
+    }
+
+    if (!v.name) {
+      return undefined;
+    }
+
+    // 系统数据对比
+    if (v.name.startsWith('$')) {
+      if (!v.name.startsWith('$appearance')) {
+        const outputs = Object.values(selectAgentOutputVariables || {})
+          .map((x) => x.data)
+          .filter((x) => x.name?.startsWith('$') && !x.name.startsWith('$appearance'));
+
+        const found = outputs.find((x) => x.name === v.name);
+        if (!found) {
+          return t('notFoundOutputKeyFromSelectAgents', {
+            name: v.name,
+            outputNames: outputs.map((x) => x.name).join(','),
+          });
+        }
+
+        return undefined;
+      }
+
+      return undefined;
+    }
+
+    // 自定义数据对比
+    const outputs = Object.values(selectAgentOutputVariables || {})
+      .map((x) => x.data)
+      .filter((x) => !x.name?.startsWith('$'));
+
+    const found = outputs.find((x) => x.name === v.name);
+    if (!found) {
+      return t('notFoundOutputKeyFromSelectAgents', {
+        name: v.name,
+        outputNames: outputs.map((x) => x.name).join(','),
+      });
+    }
+
+    return diffJSON(cloneDeep(found || {}), cloneDeep(v || {}), t);
+  }, [value.type, depth, cloneDeep(v), selectAgentOutputVariables, t]);
+
+  return result;
+};

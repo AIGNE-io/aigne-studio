@@ -1,5 +1,11 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, isFunctionAssistant, isImageAssistant, isPromptAssistant } from '@blocklet/ai-runtime/types';
+import {
+  AssistantYjs,
+  isFunctionAssistant,
+  isImageAssistant,
+  isPromptAssistant,
+  isRouterAssistant,
+} from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import BrainIcon from '@iconify-icons/tabler/brain';
 import { Box, Stack, Typography } from '@mui/material';
@@ -45,7 +51,7 @@ export default function AgentProcessingView({
         </Box>
 
         <Box>
-          {isPromptAssistant(assistant) || isImageAssistant(assistant) ? (
+          {isPromptAssistant(assistant) || isImageAssistant(assistant) || isRouterAssistant(assistant) ? (
             <Setting projectId={projectId} gitRef={gitRef} value={assistant} />
           ) : isFunctionAssistant(assistant) ? (
             <FunctionTypeSelect value="javascript" hiddenLabel SelectProps={{ autoWidth: true }} />

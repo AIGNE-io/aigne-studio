@@ -1,6 +1,7 @@
+import crypto from 'crypto';
 import { join } from 'path';
 
-import { ChatCompletionChunk } from '@blocklet/ai-kit/api/types';
+import { ChatCompletionChunk, ChatCompletionInput } from '@blocklet/ai-kit/api/types';
 import { getBuildInDatasets } from '@blocklet/dataset-sdk';
 import { getRequest } from '@blocklet/dataset-sdk/request';
 import { getAllParameters, getRequiredFields } from '@blocklet/dataset-sdk/request/util';
@@ -34,11 +35,13 @@ import {
   OnTaskCompletion,
   Parameter,
   Role,
+  RouterAssistant,
   Tool,
   User,
   Variable,
   isAgent,
   isImageAssistant,
+  isRouterAssistant,
 } from '../../types/assistant';
 import { AssistantResponseType, ExecutionPhase, RuntimeOutputVariable } from '../../types/runtime';
 import { outputVariablesToJoiSchema, outputVariablesToJsonSchema } from '../../types/runtime/schema';
@@ -50,7 +53,10 @@ import {
   metadataOutputFormatPrompt,
   metadataStreamOutputFormatPrompt,
 } from './generate-output';
+import selectAgentName from './select-agent';
 import { CallAI, CallAIImage, GetAssistant, RunAssistantCallback, ToolCompletionDirective } from './type';
+
+const md5 = (str: string) => crypto.createHash('md5').update(str).digest('hex');
 
 const getUserHeader = (user: any) => {
   return {
@@ -83,6 +89,7 @@ export async function runAssistant({
   sessionId,
   projectId,
   datastoreVariables,
+  functionName,
 }: {
   taskId: string;
   callAI: CallAI;
@@ -96,6 +103,7 @@ export async function runAssistant({
   sessionId?: string;
   projectId?: string;
   datastoreVariables: Variable[];
+  functionName?: string;
 }): Promise<any> {
   // setup global variables for prompt rendering
   parameters.$user = user;
@@ -105,7 +113,7 @@ export async function runAssistant({
     taskId,
     parentTaskId,
     assistantId: assistant.id,
-    assistantName: assistant.name,
+    assistantName: functionName ?? assistant.name,
     execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
   });
 
@@ -155,6 +163,7 @@ export async function runAssistant({
         sessionId,
         projectId,
         datastoreVariables,
+        functionName,
       });
     }
 
@@ -208,6 +217,23 @@ export async function runAssistant({
         datastoreVariables,
       });
     }
+
+    if (isRouterAssistant(assistant)) {
+      return await runRouterAssistant({
+        getAssistant,
+        callAI,
+        callAIImage,
+        taskId,
+        parentTaskId,
+        assistant,
+        parameters: assistantVariables,
+        callback,
+        user,
+        sessionId,
+        projectId,
+        datastoreVariables,
+      });
+    }
   } catch (e) {
     if (e instanceof ToolCompletionDirective) {
       if (e.type === OnTaskCompletion.EXIT) {
@@ -216,7 +242,7 @@ export async function runAssistant({
           taskId,
           parentTaskId,
           assistantId: assistant.id,
-          assistantName: assistant.name,
+          assistantName: functionName ?? assistant.name,
           execution: { currentPhase: ExecutionPhase.EXECUTE_SELECT_STOP },
         });
         return undefined;
@@ -459,6 +485,403 @@ async function runApiAssistant({
   return result;
 }
 
+const cacheTranslateFunctionNames: { [key: string]: string } = {};
+
+async function runRouterAssistant({
+  callAI,
+  callAIImage,
+  taskId,
+  getAssistant,
+  assistant,
+  parameters,
+  parentTaskId,
+  callback,
+  user,
+  sessionId,
+  projectId,
+  datastoreVariables,
+}: {
+  callAI: CallAI;
+  callAIImage: CallAIImage;
+  taskId: string;
+  getAssistant: GetAssistant;
+  assistant: RouterAssistant;
+  parameters: { [key: string]: any };
+  parentTaskId?: string;
+  callback?: RunAssistantCallback;
+  user?: User;
+  sessionId?: string;
+  projectId?: string;
+  datastoreVariables: Variable[];
+}) {
+  if (!assistant.prompt) {
+    throw new Error('Route Assistant Prompt is  required');
+  }
+
+  const message = await renderMessage(assistant.prompt, parameters);
+  const routes = assistant?.routes || [];
+
+  const toolAssistants = (
+    await Promise.all(
+      routes.map(async (tool) => {
+        const toolAssistant = await getAssistant(tool.id);
+        if (!toolAssistant) return undefined;
+        const toolParameters = (toolAssistant.parameters ?? [])
+          .filter((i): i is typeof i & Required<Pick<typeof i, 'key'>> => !!i.key && !tool.parameters?.[i.key])
+          .map((parameter) => {
+            return [
+              parameter.key,
+              {
+                type: 'string',
+                description: parameter.placeholder ?? '',
+                enum:
+                  parameter.type === 'select'
+                    ? parameter.options?.map((i) => i.value)
+                    : parameter.type === 'language'
+                      ? languages.map((i) => i.en)
+                      : undefined,
+              },
+            ];
+          });
+
+        const required = (toolAssistant.parameters ?? [])
+          .filter((i): i is typeof i & { key: string } => !!i.key)
+          .filter((i) => !(tool?.parameters || {})[i.key])
+          .filter((x) => x.required)
+          .map((x) => x.key);
+
+        const name = tool?.functionName || toolAssistant?.description || toolAssistant?.name || '';
+        const hashName = md5(name);
+
+        let functionTranslateName = '';
+        if (hashName) {
+          if (!cacheTranslateFunctionNames[`${assistant.id}-${tool.id}-${hashName}`]) {
+            try {
+              const result = await call({
+                name: 'ai-studio',
+                path: '/api/ai/completions',
+                method: 'POST',
+                data: {
+                  stream: false,
+                  messages: [
+                    {
+                      content: `\
+                      # Roles: You are a translation master. You need to translate the user's input into English.
+
+                      # rules:
+                      - Please do not respond with unnecessary content, only provide the translation.
+                      - You need to translate any input provided.
+                      - Your translation should be in camelCase function name format.
+                      - If the input is already in English, no translation is required.
+
+                      # Examples:
+                      - 测试: test
+                      - 开始: start
+                      - weapon: weapon
+                      - 添加一个新的todo: AddANewTodo
+                      `,
+                      role: 'system',
+                    },
+                    {
+                      content: name ?? '',
+                      role: 'user',
+                    },
+                  ],
+                  model: assistant?.model,
+                  temperature: assistant?.temperature,
+                  topP: assistant?.topP,
+                  presencePenalty: assistant?.presencePenalty,
+                  frequencyPenalty: assistant?.frequencyPenalty,
+                },
+              });
+
+              cacheTranslateFunctionNames[`${assistant.id}-${tool.id}`] = result?.data?.content;
+            } catch (error) {
+              logger.error(error);
+            }
+          }
+
+          functionTranslateName = cacheTranslateFunctionNames[`${assistant.id}-${tool.id}-${hashName}`] || '';
+        }
+
+        return {
+          tool,
+          toolAssistant,
+          function: {
+            name: (functionTranslateName || name)?.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64) || toolAssistant.id,
+            descriptions: toolAssistant.description,
+            parameters: {
+              type: 'object',
+              properties: Object.fromEntries(toolParameters),
+              required: required?.length ? required : undefined,
+            },
+          },
+        };
+      })
+    )
+  ).filter((i): i is NonNullable<typeof i> => !isNil(i));
+
+  callback?.({
+    type: AssistantResponseType.EXECUTE,
+    assistantId: assistant.id,
+    parentTaskId,
+    taskId,
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
+  });
+
+  callback?.({
+    type: AssistantResponseType.INPUT,
+    assistantId: assistant.id,
+    parentTaskId,
+    taskId,
+    assistantName: `${assistant.name}`,
+    promptMessages: [{ role: 'user', content: message }],
+  });
+
+  const runFunctionCall = async ({
+    tools,
+    toolChoice,
+  }: {
+    tools: ChatCompletionInput['tools'];
+    toolChoice: ChatCompletionInput['toolChoice'];
+  }) => {
+    const response = await callAI({
+      assistant,
+      input: {
+        model: assistant?.model,
+        temperature: assistant?.temperature,
+        topP: assistant?.topP,
+        presencePenalty: assistant?.presencePenalty,
+        frequencyPenalty: assistant?.frequencyPenalty,
+        messages: [{ role: 'user', content: message }],
+        tools,
+        toolChoice,
+      },
+    });
+
+    let calls: NonNullable<ChatCompletionChunk['delta']['toolCalls']> | undefined;
+
+    for await (const chunk of response) {
+      const { toolCalls } = chunk.delta;
+
+      if (toolCalls) {
+        if (!calls) {
+          calls = toolCalls;
+        } else {
+          toolCalls.forEach((item, index) => {
+            const call = calls?.[index];
+            if (call?.function) {
+              call.function.name += item.function?.name || '';
+              call.function.arguments += item.function?.arguments || '';
+            }
+          });
+        }
+      }
+    }
+
+    return calls;
+  };
+
+  const calls = await runFunctionCall({
+    tools: toolAssistants.map((i) => ({
+      type: 'function',
+      function: {
+        name: i.function.name,
+        description: i.function.descriptions,
+        parameters: i.function.parameters,
+      },
+    })),
+    toolChoice: 'required',
+  });
+
+  callback?.({
+    type: AssistantResponseType.EXECUTE,
+    assistantId: assistant.id,
+    parentTaskId,
+    taskId,
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
+  });
+
+  const toolAssistantMap = Object.fromEntries(toolAssistants.map((i) => [i.function.name, i]));
+  const defaultTool = toolAssistants.find((i) => i.tool.id === assistant.defaultToolId);
+
+  const matchAgentName = async () => {
+    // requestCalls 没有找到，检查 jsonResult 是否存在
+    let selectedAgent: { category_name?: string } = {};
+    try {
+      const categories = toolAssistants
+        .map((x) => x.function.name)
+        .filter((x) => x)
+        .map((x) => JSON.stringify({ category_name: x }))
+        .join(',');
+
+      selectedAgent = await selectAgentName({
+        assistant,
+        message,
+        categories,
+        callAI,
+        maxRetries: MAX_RETRIES,
+      });
+    } catch (error) {
+      logger.error('select agent name failed');
+    }
+
+    logger.info('Get Current Selected Agent Name', {
+      from: 'ai',
+      value: selectedAgent?.category_name,
+    });
+    if (selectedAgent?.category_name) {
+      const found = toolAssistantMap[selectedAgent.category_name];
+      if (found) return selectedAgent.category_name;
+    }
+
+    logger.info('Get Current Selected Agent Name', {
+      from: 'default agent',
+      value: assistant?.defaultToolId,
+    });
+    // 使用默认 Agent
+    if (assistant?.defaultToolId) {
+      const found = toolAssistantMap[assistant.defaultToolId];
+      if (found) return defaultTool?.function.name;
+    }
+
+    logger.info('Get Current Selected Agent Name', {
+      from: 'from first agent',
+      value: toolAssistants[0]?.function.name,
+    });
+    // 没有找到符合条件的请求，使用默认请求
+    return toolAssistants[0]?.function?.name;
+  };
+
+  const matchRequestCalls = async () => {
+    logger.info('Get Current Selected Agent Name', {
+      from: 'function call',
+      value: calls && JSON.stringify(calls),
+    });
+
+    // 首先检查 call function 返回的值是否存在
+    if (calls?.length) {
+      const found = calls.find((call) => call.function?.name && toolAssistantMap[call.function?.name]);
+
+      if (found) {
+        return [found];
+      }
+    }
+
+    // TODO: 使用  toolChoice: 'required' 之后，肯定会返回数据，下面会用不到, 先观察一下使用情况
+    const agentName = await matchAgentName();
+    const tool = toolAssistants.find((x) => x.function.name === agentName);
+    if (tool) {
+      const defaultCalls = await runFunctionCall({
+        tools: [tool].map((i) => ({
+          type: 'function',
+          function: {
+            name: i.function.name,
+            description: i.function.descriptions,
+            parameters: i.function.parameters,
+          },
+        })),
+        toolChoice: {
+          type: 'function',
+          function: {
+            name: tool.function.name,
+            description: tool.function.descriptions,
+          },
+        },
+      });
+
+      if (defaultCalls?.length) {
+        const found = defaultCalls.find((call) => call.function?.name && toolAssistantMap[call.function?.name]);
+        if (found) {
+          return [found];
+        }
+      }
+    }
+
+    return [{ type: 'function', function: { name: agentName, arguments: '{}' } }];
+  };
+  const requestCalls = await matchRequestCalls();
+
+  const result =
+    requestCalls &&
+    (await Promise.all(
+      requestCalls.map(async (call) => {
+        if (!call.function?.name || !call.function.arguments) return undefined;
+
+        const tool = toolAssistantMap[call.function.name];
+        if (!tool) return undefined;
+        const requestData = JSON.parse(call.function.arguments);
+        const currentTaskId = taskIdGenerator.nextId().toString();
+
+        const toolAssistant = tool?.toolAssistant as Assistant;
+        await Promise.all(
+          toolAssistant.parameters?.map(async (item) => {
+            const message = tool.tool?.parameters?.[item.key!];
+            if (message) {
+              requestData[item.key!] = await renderMessage(message, parameters);
+            }
+          }) ?? []
+        );
+
+        const cb: (() => RunAssistantCallback) | undefined =
+          callback &&
+          (() => (args) => {
+            if (args.type === AssistantResponseType.CHUNK && args.taskId === currentTaskId) {
+              callback({ ...args });
+
+              // called agent 有 text stream && 当前输出也有 text stream, 直接回显 text stream
+              if (
+                Object.values(toolAssistant?.outputVariables || {}).find(
+                  (x) => x.name === RuntimeOutputVariable.text
+                ) &&
+                Object.values(assistant?.outputVariables || {}).find((x) => x.name === RuntimeOutputVariable.text) &&
+                args?.delta?.content
+              ) {
+                callback({ ...args, taskId });
+              }
+              return;
+            }
+
+            callback(args);
+          });
+
+        const res = await runAssistant({
+          taskId: currentTaskId,
+          callAI,
+          callAIImage,
+          getAssistant,
+          assistant: toolAssistant,
+          parameters: requestData,
+          parentTaskId: taskId,
+          callback: cb?.(),
+          user,
+          sessionId,
+          projectId,
+          datastoreVariables,
+        });
+
+        if (tool.tool?.onEnd === OnTaskCompletion.EXIT) {
+          throw new ToolCompletionDirective('The task has been stop. The tool will now exit.', OnTaskCompletion.EXIT);
+        }
+
+        return res;
+      })
+    ));
+
+  const obj = result?.length === 1 ? result[0] : result;
+  const joiSchema = outputVariablesToJoiSchema(assistant.outputVariables || [], datastoreVariables);
+  const jsonResult = await joiSchema.validateAsync(obj);
+
+  callback?.({
+    type: AssistantResponseType.CHUNK,
+    taskId,
+    assistantId: assistant.id,
+    delta: { object: jsonResult },
+  });
+
+  return jsonResult;
+}
+
 async function renderMessage(message: string, parameters?: { [key: string]: any }) {
   return Mustache.render(message, parameters, undefined, {
     escape: (v) => (typeof v === 'object' ? JSON.stringify(v) : v),
@@ -474,7 +897,7 @@ const runRequestStorage = async ({
   ids,
   datastoreVariables,
 }: {
-  assistant: Agent | PromptAssistant | ApiAssistant | ImageAssistant | FunctionAssistant;
+  assistant: Assistant;
   parentTaskId?: string;
   user?: User;
   callback?: RunAssistantCallback;
@@ -558,7 +981,7 @@ const runRequestHistory = async ({
   callback,
   params,
 }: {
-  assistant: Agent | PromptAssistant | ApiAssistant | ImageAssistant | FunctionAssistant;
+  assistant: Assistant;
   parentTaskId?: string;
   user?: User;
   callback?: RunAssistantCallback;
@@ -699,7 +1122,7 @@ const getVariables = async ({
   callAI: CallAI;
   callAIImage: CallAIImage;
   getAssistant: GetAssistant;
-  assistant: Agent | PromptAssistant | ApiAssistant | ImageAssistant | FunctionAssistant;
+  assistant: Assistant;
   parameters: { [key: string]: any };
   parentTaskId?: string;
   callback?: RunAssistantCallback;
@@ -870,6 +1293,49 @@ async function runAgent({
   return result;
 }
 
+export const validateAsyncJSON = async ({
+  callAI,
+  assistant,
+  datastoreVariables,
+  messages,
+  json,
+  result,
+}: {
+  callAI: CallAI;
+  assistant: PromptAssistant | RouterAssistant;
+  datastoreVariables: Variable[];
+  messages: { role: Role; content: string }[];
+  json: object;
+  result: any;
+}) => {
+  const { outputVariables = [] } = assistant;
+  const onlyOutputJson = !outputVariables.some((i) => (i.name as RuntimeOutputVariable) === RuntimeOutputVariable.text);
+
+  let jsonResult;
+  const joiSchema = outputVariablesToJoiSchema(outputVariables, datastoreVariables);
+  try {
+    jsonResult = await joiSchema.validateAsync(json);
+  } catch (error) {
+    if (onlyOutputJson) {
+      throw new Error('Unexpected response format from AI');
+    } else {
+      try {
+        jsonResult = await generateOutput({
+          assistant,
+          messages: messages.concat({ role: 'assistant', content: JSON.stringify(result) }),
+          callAI,
+          maxRetries: MAX_RETRIES,
+          datastoreVariables,
+        });
+      } catch (error) {
+        throw new Error('Unexpected response format from AI');
+      }
+    }
+  }
+
+  return jsonResult;
+};
+
 async function runPromptAssistant({
   callAI,
   callAIImage,
@@ -883,6 +1349,7 @@ async function runPromptAssistant({
   sessionId,
   projectId,
   datastoreVariables,
+  functionName,
 }: {
   callAI: CallAI;
   callAIImage: CallAIImage;
@@ -896,6 +1363,7 @@ async function runPromptAssistant({
   sessionId?: string;
   projectId?: string;
   datastoreVariables: Variable[];
+  functionName?: string;
 }) {
   const executeBlocks = (assistant.prompts ?? [])
     .filter((i): i is Extract<Prompt, { type: 'executeBlock' }> => isExecuteBlock(i) && i.visibility !== 'hidden')
@@ -976,8 +1444,10 @@ async function runPromptAssistant({
     .filter((i): i is Required<NonNullable<typeof i>> => !!i?.content);
 
   const { outputVariables = [] } = assistant;
-  const onlyOutputJson = !outputVariables.some((i) => (i.name as RuntimeOutputVariable) === '$text');
-  const outputStreamAndJson = outputVariables.some((i) => i.name && (i.name as RuntimeOutputVariable) !== '$text');
+  const onlyOutputJson = !outputVariables.some((i) => (i.name as RuntimeOutputVariable) === RuntimeOutputVariable.text);
+  const outputStreamAndJson = outputVariables.some(
+    (i) => i.name && (i.name as RuntimeOutputVariable) !== RuntimeOutputVariable.text
+  );
 
   const schema = outputVariablesToJsonSchema(outputVariables, datastoreVariables);
   const outputSchema = JSON.stringify(schema);
@@ -1004,7 +1474,7 @@ async function runPromptAssistant({
     taskId,
     parentTaskId,
     assistantId: assistant.id,
-    assistantName: assistant.name,
+    assistantName: functionName ?? assistant.name,
     execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_RUNNING },
   });
 
@@ -1013,7 +1483,7 @@ async function runPromptAssistant({
     assistantId: assistant.id,
     parentTaskId,
     taskId,
-    assistantName: assistant.name,
+    assistantName: functionName ?? assistant.name,
     inputParameters: variables,
     promptMessages: messagesWithSystemPrompt,
   });
@@ -1155,7 +1625,7 @@ async function runPromptAssistant({
         }
       : { parentTaskId }),
     taskId,
-    assistantName: assistant.name,
+    assistantName: functionName ?? assistant.name,
     inputParameters: parameters,
     promptMessages: messagesWithSystemPrompt,
   });
@@ -1165,7 +1635,7 @@ async function runPromptAssistant({
     taskId,
     parentTaskId,
     assistantId: assistant.id,
-    assistantName: assistant.name,
+    assistantName: functionName ?? assistant.name,
     execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
   });
 
@@ -1595,13 +2065,12 @@ async function runExecuteBlock({
             .filter((x) => x.required)
             .map((x) => x.key);
 
+          const name = tool?.functionName || toolAssistant?.name || '';
           return {
             tool,
             toolAssistant,
             function: {
-              name:
-                (tool.functionName || toolAssistant.name)?.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64) ||
-                toolAssistant.id,
+              name: name?.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64) || toolAssistant.id,
               descriptions: toolAssistant.description,
               parameters: {
                 type: 'object',

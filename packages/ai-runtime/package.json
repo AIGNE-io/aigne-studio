@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.1.383",
+  "version": "0.1.384",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -100,12 +100,13 @@
   },
   "dependencies": {
     "@blocklet/ai-builtin": "workspace:^",
-    "@blocklet/ai-kit": "^0.1.32",
+    "@blocklet/ai-kit": "^0.1.33",
     "@blocklet/dataset-sdk": "workspace:^",
     "@blocklet/sdk": "^1.16.26",
     "@microsoft/fetch-event-source": "^2.0.1",
     "ahooks": "^3.7.11",
     "axios": "^1.6.8",
+    "crypto": "^1.0.1",
     "dayjs": "^1.11.11",
     "eventsource-parser": "^1.1.2",
     "joi": "^17.13.1",

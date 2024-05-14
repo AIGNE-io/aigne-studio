@@ -46,6 +46,7 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
         <ParameterField
           readOnly={readOnly}
           parameter={parameterFromYjs(value)}
+          label={undefined}
           hiddenLabel
           fullWidth
           size="medium"

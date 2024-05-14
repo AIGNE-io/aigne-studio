@@ -1,3 +1,7 @@
+## 0.1.384 (2024-5-14)
+
+- fix: add router agent type
+
 ## 0.1.383 (2024-5-14)
 
 - feat: add gpt4o model support
@@ -9,7 +13,7 @@
 
 ## 0.1.381 (2024-5-11)
 
-- feat: add opening message/questions configuration for outpus
+- feat: add opening message/questions configuration for outputs
 - feat: add sharing configuration for outputs
 
 ## 0.1.380 (2024-5-10)

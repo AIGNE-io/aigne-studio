@@ -7,7 +7,7 @@ import {
   getSupportedImagesModels,
   getSupportedModels,
 } from '@blocklet/ai-runtime/common';
-import { AssistantYjs, isImageAssistant, isPromptAssistant } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, isImageAssistant, isPromptAssistant, isRouterAssistant } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import AdjustmentsIcon from '@iconify-icons/tabler/adjustments';
 import {
@@ -48,7 +48,7 @@ export default function PromptSetting({
   const { state } = useProjectState(projectId, gitRef);
   const { project } = state;
   const { value: supportedModels } = useAsync(async () => {
-    if (isPromptAssistant(value)) {
+    if (isPromptAssistant(value) || isRouterAssistant(value)) {
       return getSupportedModels();
     }
 
@@ -60,7 +60,7 @@ export default function PromptSetting({
   }, [value.type]);
 
   const defaultModel = useMemo(() => {
-    if (isPromptAssistant(value)) {
+    if (isPromptAssistant(value) || isRouterAssistant(value)) {
       return value?.model || project?.model || defaultTextModel;
     }
 
@@ -88,7 +88,7 @@ export default function PromptSetting({
         <Stack direction="row" alignItems="center" gap={0.5}>
           {modelDetail && <Box className="center">{brandIcon(modelDetail!.brand)}</Box>}
           <Typography variant="subtitle3" color="#030712" mt={-0.25}>
-            {isPromptAssistant(value)
+            {isPromptAssistant(value) || isRouterAssistant(value)
               ? modelDetail?.name || modelDetail?.model || modelDetail?.model
               : isImageAssistant(value)
                 ? defaultModel
@@ -115,7 +115,7 @@ export default function PromptSetting({
 
         <DialogContent>
           <Stack gap={1.5}>
-            {isPromptAssistant(value) && (
+            {(isPromptAssistant(value) || isRouterAssistant(value)) && (
               <PromptSettings projectId={projectId} gitRef={gitRef} value={value} readOnly={readOnly} />
             )}
 
