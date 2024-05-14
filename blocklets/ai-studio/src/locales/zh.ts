@@ -672,4 +672,6 @@ export default flat({
   openingQuestions: '开场问题',
   openingMessage: '开场白',
   chooseObject: '选择{object}',
+  allContent: '全部数据',
+  searchContent: '搜索数据',
 });

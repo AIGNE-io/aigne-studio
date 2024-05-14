@@ -54,6 +54,7 @@ import { get, sortBy } from 'lodash';
 import { PopupState, bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { useId, useMemo, useRef } from 'react';
 
+import Switch from '../../custom/switch';
 import ParameterConfig from '../../template-form/parameter-config';
 import ParameterConfigType from '../../template-form/parameter-config/type';
 import { FROM_KNOWLEDGE } from '../execute-block';
@@ -65,7 +66,6 @@ import AddInputButton from './AddInputButton';
 
 export const FROM_PARAMETER = 'agentParameter';
 export const FROM_KNOWLEDGE_PARAMETER = 'knowledgeParameter';
-
 export default function InputTable({
   assistant,
   projectId,
@@ -745,7 +745,10 @@ function KnowledgeParameter({
       })),
     ];
 
-    const parameters = [{ name: 'message', description: 'Search Content' }];
+    const parameters = [
+      { name: 'all', description: t('allContent'), type: 'boolean' },
+      { name: 'message', description: t('searchContent') },
+    ];
     const v = options.find((x) => x.id === toolId);
 
     return (
@@ -784,9 +787,30 @@ function KnowledgeParameter({
           <Box>
             <Typography variant="subtitle2">{t('inputs')}</Typography>
 
-            <Box>
-              {(parameters || [])?.map((data: any) => {
+            <Stack gap={1}>
+              {(parameters || [])?.map((data) => {
                 if (!data) return null;
+
+                if (data.type === 'boolean') {
+                  return (
+                    <Stack key={data.name}>
+                      <Typography variant="caption">{data.description || data.name}</Typography>
+
+                      <Switch
+                        defaultChecked={Boolean(source?.knowledge?.parameters?.[data.name] ?? false)}
+                        onChange={(_, checked) => {
+                          if (source?.knowledge?.parameters) {
+                            source.knowledge.parameters[data.name] = checked ? 'all' : '';
+                          }
+                        }}
+                      />
+                    </Stack>
+                  );
+                }
+
+                if (source?.knowledge?.parameters?.all === 'all') {
+                  return null;
+                }
 
                 return (
                   <Stack key={data.name}>
@@ -808,7 +832,7 @@ function KnowledgeParameter({
                   </Stack>
                 );
               })}
-            </Box>
+            </Stack>
           </Box>
         )}
       </Stack>
