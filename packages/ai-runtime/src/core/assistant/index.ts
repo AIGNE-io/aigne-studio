@@ -691,7 +691,7 @@ async function runRouterAssistant({
         parameters: i.function.parameters,
       },
     })),
-    toolChoice: 'auto',
+    toolChoice: 'required',
   });
 
   callback?.({
@@ -768,6 +768,7 @@ async function runRouterAssistant({
       }
     }
 
+    // TODO: 使用  toolChoice: 'required' 之后，肯定会返回数据，下面会用不到, 先观察一下使用情况
     const agentName = await matchAgentName();
     const tool = toolAssistants.find((x) => x.function.name === agentName);
     if (tool) {
