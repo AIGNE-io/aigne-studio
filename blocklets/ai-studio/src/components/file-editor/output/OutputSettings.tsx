@@ -265,15 +265,20 @@ function VariableRow({
     return `${x.scope}_${x.key}` === `${j.scope}_${j.key}`;
   });
 
-  const v = datastoreVariable?.type
-    ? {
-        ...datastoreVariable?.type,
-        id: variable.id,
-        name: variable.name,
-        description: variable.description,
-        required: variable.required,
+  // 直接赋值 datastore 定义的变量
+  const v = useMemo(() => {
+    if (datastoreVariable?.type) {
+      if (datastoreVariable?.type.type === 'object' && variable.type === 'object') {
+        variable.properties = cloneDeep(datastoreVariable?.type.properties);
       }
-    : variable;
+
+      if (datastoreVariable?.type.type === 'array' && variable.type === 'array') {
+        variable.element = cloneDeep(datastoreVariable?.type.element);
+      }
+    }
+
+    return variable;
+  }, [datastoreVariable?.type]);
 
   const error = useCheckConflictAssistantOutputAndSelectAgents({ selectAgentOutputVariables, value, v, depth });
 
