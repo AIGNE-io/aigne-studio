@@ -606,6 +606,7 @@ export default flat({
   saveToMemory: 'Save to memory',
   dataSource: 'Data Source',
   customOutput: 'Custom output',
+  selectAgentOutput: 'Route Agent output',
   customInput: 'Custom input',
   llm: 'LLM',
   largeLanguageModel: 'Large Language Model',

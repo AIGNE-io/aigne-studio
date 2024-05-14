@@ -602,6 +602,7 @@ export default flat({
   datasetId: '使用知识库',
   saveToMemory: '数据另存为',
   customOutput: '自定义输出',
+  selectAgentOutput: '分支 Agent 输出',
   customInput: '自定义输入',
   dataSource: '数据来源',
   llm: '大语言模型',

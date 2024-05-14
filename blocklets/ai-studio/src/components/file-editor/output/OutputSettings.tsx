@@ -38,7 +38,7 @@ export default function OutputSettings({
 }) {
   const { t } = useLocaleContext();
 
-  const result = useRoutesAssistantOutputs({ value, projectId, gitRef });
+  const { checkSelectAgent: result, allSelectAgentOutputs } = useRoutesAssistantOutputs({ value, projectId, gitRef });
   const outputVariables = value.outputVariables && sortBy(Object.values(value.outputVariables), 'index');
 
   const groups = useSortedOutputs({ outputVariables: value.outputVariables });
@@ -160,6 +160,7 @@ export default function OutputSettings({
         </Box>
 
         <AddOutputVariableButton
+          allSelectAgentOutputs={cloneDeep(allSelectAgentOutputs)}
           assistant={value}
           onSelect={({ name }) => {
             setField((vars) => {
@@ -172,6 +173,20 @@ export default function OutputSettings({
               }
 
               sortBy(Object.values(vars), 'index').forEach((item, index) => (item.index = index));
+            });
+          }}
+          onSelectAll={(list) => {
+            setField((vars) => {
+              list.forEach((data) => {
+                console.log(data);
+                const exist = data.name ? outputVariables?.find((i) => i.data.name === data.name) : undefined;
+                if (!exist) {
+                  const id = nanoid();
+                  vars[id] = { index: Object.values(vars).length, data: { ...cloneDeep(data), id } };
+                }
+
+                sortBy(Object.values(vars), 'index').forEach((item, index) => (item.index = index));
+              });
             });
           }}
         />
@@ -375,6 +390,18 @@ export const useRoutesAssistantOutputs = ({
     return agentAssistants;
   }, [cloneDeep(value), projectId, gitRef, t]);
 
+  const allSelectAgentOutputs = useMemo(() => {
+    if (!agentAssistants.length) {
+      return [];
+    }
+
+    return agentAssistants.flatMap((agent) => {
+      return Object.values(agent?.outputVariables || {})
+        .filter((x) => !(x?.data?.name || '').startsWith('$appearance'))
+        .map((x) => x.data);
+    });
+  }, [cloneDeep(agentAssistants), projectId, gitRef, t]);
+
   const result = useMemo(() => {
     const list: AssistantYjs['outputVariables'] = {};
 
@@ -407,13 +434,13 @@ export const useRoutesAssistantOutputs = ({
                 !equal(
                   cloneDeep(
                     Object.values(found?.properties || {}).map((x) => {
-                      const { name, type, required } = x.data;
+                      const { name, type, required } = x?.data || {};
                       return { name, type, required: required ?? false };
                     })
                   ),
                   cloneDeep(
                     Object.values(output?.properties || {}).map((x) => {
-                      const { name, type, required } = x.data;
+                      const { name, type, required } = x?.data || {};
                       return { name, type, required: required ?? false };
                     })
                   )
@@ -433,13 +460,13 @@ export const useRoutesAssistantOutputs = ({
                 !equal(
                   cloneDeep(
                     Object.values(found?.element || {}).map((x) => {
-                      const { name, type, required } = x.data;
+                      const { name, type, required } = x?.data || {};
                       return { name, type, required: required ?? false };
                     })
                   ),
                   cloneDeep(
                     Object.values(output?.element || {}).map((x) => {
-                      const { name, type, required } = x.data;
+                      const { name, type, required } = x?.data || {};
                       return { name, type, required: required ?? false };
                     })
                   )
@@ -454,7 +481,11 @@ export const useRoutesAssistantOutputs = ({
               }
             }
 
-            found.required = true;
+            // 联合类型组合比较多，应该如何判断 ?
+            const filterRequired = allSelectAgentOutputs.filter((x) => x.name === found.name);
+            if (filterRequired.every((x) => x.required)) {
+              found.required = true;
+            }
           }
         } else {
           const id = nanoid();
@@ -472,9 +503,12 @@ export const useRoutesAssistantOutputs = ({
       outputVariables: list,
       error,
     };
-  }, [cloneDeep(agentAssistants), projectId, gitRef, t]);
+  }, [cloneDeep(agentAssistants), allSelectAgentOutputs, projectId, gitRef, t]);
 
-  return result;
+  return {
+    allSelectAgentOutputs,
+    checkSelectAgent: result,
+  };
 };
 
 const useCheckConflictAssistantOutputAndSelectAgents = ({
@@ -548,13 +582,13 @@ const useCheckConflictAssistantOutputAndSelectAgents = ({
         !equal(
           cloneDeep(
             Object.values(found?.properties || {}).map((x) => {
-              const { name, type, required } = x.data;
+              const { name, type, required } = x?.data || {};
               return { name, type, required: required ?? false };
             })
           ),
           cloneDeep(
             Object.values(v?.properties || {}).map((x) => {
-              const { name, type, required } = x.data;
+              const { name, type, required } = x?.data || {};
               return { name, type, required: required ?? false };
             })
           )
@@ -564,7 +598,7 @@ const useCheckConflictAssistantOutputAndSelectAgents = ({
           name: v.name,
           type: 'object',
           keys: `${Object.values(found.properties || {})
-            .map((x) => `${t('name')}: ${x.data.name}, ${t('type')}: ${x.data.type}`)
+            .map((x) => `${t('name')}: ${x?.data?.name}, ${t('type')}: ${x?.data?.type}`)
             .join(',')}`,
         });
       }
@@ -575,13 +609,13 @@ const useCheckConflictAssistantOutputAndSelectAgents = ({
         !equal(
           cloneDeep(
             Object.values(found?.element || {}).map((x) => {
-              const { name, type, required } = x.data;
+              const { name, type, required } = x?.data || {};
               return { name, type, required: required ?? false };
             })
           ),
           cloneDeep(
             Object.values(v?.element || {}).map((x) => {
-              const { name, type, required } = x.data;
+              const { name, type, required } = x?.data || {};
               return { name, type, required: required ?? false };
             })
           )
@@ -591,7 +625,7 @@ const useCheckConflictAssistantOutputAndSelectAgents = ({
           name: v.name,
           type: 'array',
           keys: `${Object.values(found.element || {})
-            .map((x) => `${t('name')}: ${x.data.name}, ${t('type')}: ${x.data.type}`)
+            .map((x) => `${t('name')}: ${x?.data?.name}, ${t('type')}: ${x?.data?.type}`)
             .join(',')}`,
         });
       }

@@ -73,7 +73,7 @@ export default function RouteAssistantEditor({
   const dialogState = usePopupState({ variant: 'dialog' });
   const toolForm = useRef<any>(null);
   const selectedTool = useRef<string>();
-  const result = useRoutesAssistantOutputs({ projectId, gitRef, value });
+  const { checkSelectAgent: result } = useRoutesAssistantOutputs({ projectId, gitRef, value });
   const ref = useRef(null);
 
   return (

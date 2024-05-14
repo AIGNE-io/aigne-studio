@@ -3,17 +3,22 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { AssistantYjs, variableBlockListForAgent } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import CheckIcon from '@iconify-icons/tabler/check';
+import BranchIcon from '@iconify-icons/tabler/git-branch';
 import PlusIcon from '@iconify-icons/tabler/plus';
 import { Box, Divider, ListItemIcon, MenuItem } from '@mui/material';
 
 import { runtimeOutputVariables } from './type';
 
 export default function AddOutputVariableButton({
+  allSelectAgentOutputs,
   assistant,
   onSelect,
+  onSelectAll,
 }: {
+  allSelectAgentOutputs?: NonNullable<AssistantYjs['outputVariables']>[string]['data'][];
   assistant: AssistantYjs;
   onSelect?: (value: { name: string }) => void;
+  onSelectAll?: (list: NonNullable<AssistantYjs['outputVariables']>[string]['data'][]) => void;
 }) {
   const { t } = useLocaleContext();
 
@@ -57,6 +62,18 @@ export default function AddOutputVariableButton({
           );
         }),
       ])}
+
+      {!!allSelectAgentOutputs?.length && (
+        <>
+          <Divider sx={{ my: '4px !important', p: 0 }} />
+          <MenuItem onClick={() => onSelectAll?.(allSelectAgentOutputs)}>
+            <ListItemIcon>
+              <Icon icon={BranchIcon} />
+            </ListItemIcon>
+            {t('selectAgentOutput')}
+          </MenuItem>
+        </>
+      )}
 
       <Divider sx={{ my: '4px !important', p: 0 }} />
 
