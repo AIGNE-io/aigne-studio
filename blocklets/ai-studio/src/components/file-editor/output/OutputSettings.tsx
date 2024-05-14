@@ -607,6 +607,7 @@ const useCheckConflictAssistantOutputAndSelectAgents = ({
       return undefined;
     }
 
+    // 系统数据对比
     if (v.name.startsWith('$')) {
       if (!v.name.startsWith('$appearance')) {
         const outputs = Object.values(selectAgentOutputVariables || {})
@@ -627,6 +628,7 @@ const useCheckConflictAssistantOutputAndSelectAgents = ({
       return undefined;
     }
 
+    // 自定义数据对比
     const outputs = Object.values(selectAgentOutputVariables || {})
       .map((x) => x.data)
       .filter((x) => !x.name?.startsWith('$'));
