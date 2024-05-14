@@ -668,6 +668,7 @@ export default flat({
   notFoundOutputKeyFromSelectAgents:
     '{name} does not contain the selected output variable of the Agent, please choose in [{outputNames}] fields',
   requiredOutputParams: '{name} is a required field',
+  notRequiredOutputParams: '{name} is a not required field',
   diffOutputType: '{name} must be {type} type',
   diffTypeKeys: '{name} is {type} type, must contain key in {keys}',
   routeTitle: 'Route Agent Title',

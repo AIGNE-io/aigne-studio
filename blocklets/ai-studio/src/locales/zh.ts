@@ -662,6 +662,7 @@ export default flat({
   selectRouteAgent: '选择 Agent 条件',
   notFoundOutputKeyFromSelectAgents: '{name} 不包含在所选择 Agent 的输出变量中, 请在字段 [{outputNames}] 进行选择',
   requiredOutputParams: '{name} 为必填字段',
+  notRequiredOutputParams: '{name} 为不必填字段',
   diffOutputType: '{name} 必须为 {type} 类型',
   diffTypeKeys: '{name} 为 {type} 类型, 必须包含 {keys}',
   routeTitle: '分支 Agent 标题',

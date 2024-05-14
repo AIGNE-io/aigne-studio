@@ -863,36 +863,22 @@ async function runRouterAssistant({
           throw new ToolCompletionDirective('The task has been stop. The tool will now exit.', OnTaskCompletion.EXIT);
         }
 
-        return await validateAsyncJSON({ callAI, assistant, datastoreVariables, messages: [], json: res, result: res });
+        return res;
       })
     ));
 
   const obj = result?.length === 1 ? result[0] : result;
+  const joiSchema = outputVariablesToJoiSchema(assistant.outputVariables || [], datastoreVariables);
+  const jsonResult = await joiSchema.validateAsync(obj);
 
-  if (typeof obj === 'object') {
-    const filterJSON = Object.values(assistant.outputVariables || {}).reduce(
-      (tol, cur) => {
-        if (cur.name && obj[cur.name]) {
-          tol[cur.name] = obj[cur.name];
-        }
+  callback?.({
+    type: AssistantResponseType.CHUNK,
+    taskId,
+    assistantId: assistant.id,
+    delta: { object: jsonResult },
+  });
 
-        return tol;
-      },
-      {} as { [key: string]: any }
-    );
-
-    // 返回的数据结构应该是当前设置的数据结构
-    callback?.({
-      type: AssistantResponseType.CHUNK,
-      taskId,
-      assistantId: assistant.id,
-      delta: { object: filterJSON },
-    });
-
-    return filterJSON;
-  }
-
-  return obj;
+  return jsonResult;
 }
 
 async function renderMessage(message: string, parameters?: { [key: string]: any }) {

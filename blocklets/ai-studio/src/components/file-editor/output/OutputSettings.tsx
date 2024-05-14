@@ -178,11 +178,13 @@ export default function OutputSettings({
           onSelectAll={(list) => {
             setField((vars) => {
               list.forEach((data) => {
-                console.log(data);
                 const exist = data.name ? outputVariables?.find((i) => i.data.name === data.name) : undefined;
                 if (!exist) {
                   const id = nanoid();
-                  vars[id] = { index: Object.values(vars).length, data: { ...cloneDeep(data), id } };
+                  vars[id] = {
+                    index: Object.values(vars).length,
+                    data: { ...cloneDeep(data), required: undefined, id },
+                  };
                 }
 
                 sortBy(Object.values(vars), 'index').forEach((item, index) => (item.index = index));
@@ -484,9 +486,16 @@ export const useRoutesAssistantOutputs = ({
               }
             }
 
-            // 联合类型组合比较多，应该如何判断 ?
-            const filterRequired = allSelectAgentOutputs.filter((x) => x.name === found.name);
-            if (filterRequired.every((x) => x.required)) {
+            const filterRequired = agentAssistants
+              .map((agent) => {
+                const outputs = Object.values(agent?.outputVariables || {})
+                  .filter((x) => !(x?.data?.name || '').startsWith('$appearance'))
+                  .map((x) => x.data);
+                return outputs.find((x) => x.name === found.name);
+              })
+              .filter((i): i is NonNullable<typeof i> => !!i);
+
+            if (filterRequired.length === agentAssistants.length && filterRequired.every((x) => x.required)) {
               found.required = true;
             }
           }
@@ -494,7 +503,7 @@ export const useRoutesAssistantOutputs = ({
           const id = nanoid();
           list[id] = {
             index: 0,
-            data: { ...cloneDeep(output), id, variable: undefined, initialValue: undefined },
+            data: { ...cloneDeep(output), id, required: undefined, variable: undefined, initialValue: undefined },
           };
         }
       }
@@ -572,8 +581,10 @@ const useCheckConflictAssistantOutputAndSelectAgents = ({
       });
     }
 
-    if (found.required && !v.required) {
-      return t('requiredOutputParams', { name: v.name });
+    if ((found.required ?? false) !== (v.required ?? false)) {
+      return found.required
+        ? t('requiredOutputParams', { name: v.name })
+        : t('notRequiredOutputParams', { name: v.name });
     }
 
     if (found.type !== v.type) {

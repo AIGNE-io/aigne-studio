@@ -332,7 +332,7 @@ export function AgentItemView({
             lineHeight: '24px',
             input: {
               fontSize: '14px',
-              color: assistant.defaultToolId === agent.id ? 'primary.main' : '#9CA3AF',
+              color: assistant.defaultToolId === agent.id ? 'primary.main' : '',
             },
           }}
         />
