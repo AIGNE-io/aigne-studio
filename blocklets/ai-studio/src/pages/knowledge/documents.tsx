@@ -78,6 +78,22 @@ export default function KnowledgeDocuments() {
     return { ...i, ...(embeddings[i.id] || {}) };
   });
 
+  const getName = (row: any) => {
+    if (row.type === 'discussKit') {
+      if (row.data?.data.from === 'discussionType') {
+        return `${t(row.data?.data.id)}${t('data')}`;
+      }
+
+      if (row.data?.data.from === 'board') {
+        return `${row.data?.data.title}${t('board')}`;
+      }
+
+      return `${row.data?.data.title}${t('data')}`;
+    }
+
+    return row.name;
+  };
+
   const columns = useMemo(
     () => [
       {
@@ -86,25 +102,19 @@ export default function KnowledgeDocuments() {
         flex: 1,
         sortable: false,
         renderCell: (params: any) => {
-          if (params.row.type === 'discussKit') {
-            if (params.row.data?.data.from === 'discussionType') {
-              return <Box>{`${t(params.row.data?.data.id)}${t('data')}`} </Box>;
-            }
-
-            if (params.row.data?.data.from === 'board') {
-              return <Box>{`${params.row.data?.data.title}${t('board')}`}</Box>;
-            }
-
-            return <Box> {`${params.row.data?.data.title}${t('data')}`}</Box>;
-          }
-
-          return <Box>{params.row.name}</Box>;
+          return (
+            <Tooltip title={getName(params.row)}>
+              <Box className="ellipsis" pr={2}>
+                {getName(params.row)}
+              </Box>
+            </Tooltip>
+          );
         },
       },
       {
         field: 'type',
         headerName: t('knowledge.documents.type'),
-        flex: 1,
+        width: 100,
         sortable: false,
         renderCell: (params: any) => {
           return <Box>{t(params.row.type)}</Box>;
@@ -113,7 +123,7 @@ export default function KnowledgeDocuments() {
       {
         field: 'embeddingStatus',
         headerName: t('embeddingStatus'),
-        flex: 1,
+        width: 150,
         sortable: false,
         renderCell: (params: any) => {
           const colors: any = {
@@ -178,7 +188,7 @@ export default function KnowledgeDocuments() {
       {
         field: 'time',
         headerName: t('knowledge.documents.time'),
-        flex: 1,
+        width: 200,
         sortable: false,
         renderCell: (params: any) => {
           return <Box>{dayjs(params.row.createdAt).format('YYYY-MM-DD HH:mm:ss')}</Box>;
@@ -187,7 +197,7 @@ export default function KnowledgeDocuments() {
       {
         field: 'actions',
         headerName: t('actions'),
-        flex: 1,
+        width: 200,
         sortable: false,
         renderCell: (params: any) => (
           <Actions
