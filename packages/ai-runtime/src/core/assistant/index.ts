@@ -277,15 +277,11 @@ async function runFunctionAssistant({
   datastoreVariables: Variable[];
 }) {
   if (!assistant.code) throw new Error(`Assistant ${assistant.id}'s code is empty`);
-  const code = await TranspileTs(
-    /export\sdefault/.test(assistant.code)
-      ? assistant.code
-      : `\
+  const code = await TranspileTs(`\
 export default async function(args) {
   ${assistant.code}
 }
-`
-  );
+`);
 
   const args = Object.fromEntries(
     await Promise.all(

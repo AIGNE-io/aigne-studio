@@ -29,6 +29,9 @@ import { useId, useState } from 'react';
 import SelectVariable from '../select-variable';
 import AppearanceSettings from './AppearanceSettings';
 import ChildrenSettings from './ChildrenSettings';
+import OpeningMessageSettings from './OpeningMessageSettings';
+import OpeningQuestionsSettings from './OpeningQuestionsSettings';
+import ShareSettings from './ShareSettings';
 import { getRuntimeOutputVariable } from './type';
 
 export default function OutputActionsCell({
@@ -126,6 +129,18 @@ function PopperButton({
   const [currentSetting, setSetting] = useState<'setting' | 'save'>('setting');
 
   const renderParameterSettings = (output: OutputVariableYjs) => {
+    if (RuntimeOutputVariable.openingQuestions === output.name) {
+      return <OpeningQuestionsSettings assistant={assistant} output={output} />;
+    }
+
+    if (RuntimeOutputVariable.openingMessage === output.name) {
+      return <OpeningMessageSettings output={output} />;
+    }
+
+    if (RuntimeOutputVariable.share === output.name) {
+      return <ShareSettings output={output} />;
+    }
+
     if (
       [
         RuntimeOutputVariable.appearancePage,
@@ -232,7 +247,7 @@ function PopperButton({
               setSetting('save');
               dialogState.open();
             }}>
-            {t('saveAs')}
+            {t('saveToMemory')}
           </MenuItem>
         )}
         {onDelete && (
