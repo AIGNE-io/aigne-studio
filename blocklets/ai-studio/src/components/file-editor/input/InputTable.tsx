@@ -769,15 +769,17 @@ function KnowledgeParameter({
                   }
                 });
 
-                const parameters = {
-                  message: '',
-                };
+                if (!source?.knowledge?.parameters?.all) {
+                  const parameters = {
+                    message: '',
+                  };
 
-                source.knowledge = {
-                  id: _value.id,
-                  from: 'knowledge',
-                  parameters,
-                };
+                  source.knowledge = {
+                    id: _value.id,
+                    from: 'knowledge',
+                    parameters,
+                  };
+                }
               }
             }}
           />
@@ -800,7 +802,8 @@ function KnowledgeParameter({
                         defaultChecked={Boolean(source?.knowledge?.parameters?.[data.name] ?? false)}
                         onChange={(_, checked) => {
                           if (source?.knowledge?.parameters) {
-                            source.knowledge.parameters[data.name] = checked ? 'all' : '';
+                            // @ts-ignore
+                            source.knowledge.parameters[data.name] = checked;
                           }
                         }}
                       />
@@ -808,7 +811,7 @@ function KnowledgeParameter({
                   );
                 }
 
-                if (source?.knowledge?.parameters?.all === 'all') {
+                if (source?.knowledge?.parameters?.all) {
                   return null;
                 }
 
