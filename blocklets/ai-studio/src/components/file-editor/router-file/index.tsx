@@ -329,7 +329,6 @@ export function AgentItemView({
           value={agent.functionName}
           onChange={(e) => (agent.functionName = e.target.value)}
           sx={{
-            opacity: (theme) => theme.palette.action.disabledOpacity,
             lineHeight: '24px',
             input: {
               fontSize: '14px',

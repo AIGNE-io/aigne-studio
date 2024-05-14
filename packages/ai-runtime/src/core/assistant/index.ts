@@ -863,11 +863,12 @@ async function runRouterAssistant({
           throw new ToolCompletionDirective('The task has been stop. The tool will now exit.', OnTaskCompletion.EXIT);
         }
 
-        return res;
+        return await validateAsyncJSON({ callAI, assistant, datastoreVariables, messages: [], json: res, result: res });
       })
     ));
 
   const obj = result?.length === 1 ? result[0] : result;
+
   if (typeof obj === 'object') {
     const filterJSON = Object.values(assistant.outputVariables || {}).reduce(
       (tol, cur) => {
@@ -1304,6 +1305,49 @@ async function runAgent({
 
   return result;
 }
+
+export const validateAsyncJSON = async ({
+  callAI,
+  assistant,
+  datastoreVariables,
+  messages,
+  json,
+  result,
+}: {
+  callAI: CallAI;
+  assistant: PromptAssistant | RouterAssistant;
+  datastoreVariables: Variable[];
+  messages: { role: Role; content: string }[];
+  json: object;
+  result: any;
+}) => {
+  const { outputVariables = [] } = assistant;
+  const onlyOutputJson = !outputVariables.some((i) => (i.name as RuntimeOutputVariable) === RuntimeOutputVariable.text);
+
+  let jsonResult;
+  const joiSchema = outputVariablesToJoiSchema(outputVariables, datastoreVariables);
+  try {
+    jsonResult = await joiSchema.validateAsync(json);
+  } catch (error) {
+    if (onlyOutputJson) {
+      throw new Error('Unexpected response format from AI');
+    } else {
+      try {
+        jsonResult = await generateOutput({
+          assistant,
+          messages: messages.concat({ role: 'assistant', content: JSON.stringify(result) }),
+          callAI,
+          maxRetries: MAX_RETRIES,
+          datastoreVariables,
+        });
+      } catch (error) {
+        throw new Error('Unexpected response format from AI');
+      }
+    }
+  }
+
+  return jsonResult;
+};
 
 async function runPromptAssistant({
   callAI,

@@ -1,6 +1,6 @@
 import PopperMenu from '@app/components/menu/PopperMenu';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { defaultImageModel, defaultTextModel } from '@blocklet/ai-runtime/common';
+import { defaultImageModel, defaultTextModel, defaultTextModelGPT4 } from '@blocklet/ai-runtime/common';
 import { AssistantYjs, RuntimeOutputVariable, arrayToYjs, outputVariableToYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import APIIcon from '@iconify-icons/tabler/api';
@@ -86,6 +86,11 @@ export default function AgentTypeSelect({ assistant }: { assistant: AssistantYjs
                 }
               } else {
                 removeVariable(RuntimeOutputVariable.text);
+              }
+
+              if (assistant.type === 'router') {
+                assistant.model = defaultTextModelGPT4;
+                assistant.prompt = '{{question}}';
               }
 
               sortBy(Object.values(assistant.outputVariables), 'index').forEach((item, index) => (item.index = index));

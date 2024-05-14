@@ -2,6 +2,8 @@ import { ImageModelInfo, ServiceMode, ServiceModePermissionMap, TextModelInfo } 
 
 export const defaultTextModel = 'gpt-3.5-turbo';
 
+export const defaultTextModelGPT4 = 'gpt-4';
+
 export async function getSupportedModels(): Promise<TextModelInfo[]> {
   return [
     {
