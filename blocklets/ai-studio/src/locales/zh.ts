@@ -657,4 +657,5 @@ export default flat({
   saveAs: '保存',
   openingQuestions: '开场问题',
   openingMessage: '开场白',
+  chooseObject: '选择{object}',
 });

@@ -1,3 +1,12 @@
+## 0.1.383 (2024-5-14)
+
+- feat: add gpt4o model support
+
+## 0.1.382 (2024-5-13)
+
+- fix: correctly run a logic agent
+- chore: update ui texts
+
 ## 0.1.381 (2024-5-11)
 
 - feat: add opening message/questions configuration for outpus

@@ -900,7 +900,7 @@ function AgentParameter({
     return (
       <Stack gap={2}>
         <Box>
-          <Typography variant="subtitle2">{t('agent')}</Typography>
+          <Typography variant="subtitle2">{t('chooseObject', { object: t('agent') })}</Typography>
 
           <SelectTool
             placeholder={t('selectAgentToCallPlaceholder')}
