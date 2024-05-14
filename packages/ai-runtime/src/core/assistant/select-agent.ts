@@ -1,4 +1,4 @@
-import { Assistant } from '../../types';
+import { RouterAssistant } from '../../types';
 import retry from '../utils/retry';
 import { CallAI } from './type';
 
@@ -30,7 +30,7 @@ async function generateSelectAgentName({
   maxRetries = 0,
   categories,
 }: {
-  assistant: Assistant;
+  assistant: RouterAssistant;
   message: string;
   callAI: CallAI;
   maxRetries?: number;
@@ -40,8 +40,6 @@ async function generateSelectAgentName({
     const selectAgentIdResponseByPrompt = await callAI({
       assistant,
       input: {
-        model: 'gpt-4',
-        temperature: 0,
         messages: [
           {
             role: 'system',
@@ -70,6 +68,11 @@ async function generateSelectAgentName({
             content: `\n {"input_text": [${message}],\n "categories": [${categories}],\n "classification_instructions": []}\n`,
           },
         ],
+        model: assistant?.model,
+        temperature: assistant?.temperature,
+        topP: assistant?.topP,
+        presencePenalty: assistant?.presencePenalty,
+        frequencyPenalty: assistant?.frequencyPenalty,
       },
     });
 

@@ -374,12 +374,12 @@ export const useRoutesAssistantOutputs = ({
   const { t } = useLocaleContext();
 
   const agentAssistants = useMemo(() => {
-    if (value.type !== 'route') {
+    if (value.type !== 'router') {
       return [];
     }
 
-    const agents = Object.values(value?.agents || {}) || [];
-    const agentAssistants = agents
+    const routes = Object.values(value?.routes || {}) || [];
+    const agentAssistants = routes
       .map((x) => {
         return getFileById(x?.data?.id);
       })
@@ -525,7 +525,7 @@ const useCheckConflictAssistantOutputAndSelectAgents = ({
   const { t } = useLocaleContext();
 
   const result = useMemo(() => {
-    if (value.type !== 'route') {
+    if (value.type !== 'router') {
       return undefined;
     }
 

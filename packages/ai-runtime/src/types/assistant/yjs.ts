@@ -11,7 +11,7 @@ import type {
   Parameter,
   PromptAssistant,
   PromptMessage,
-  RouteAssistant,
+  RouterAssistant,
   SelectParameter,
   Variable,
   VariableTypeBase,
@@ -34,7 +34,7 @@ export type AssistantYjs =
   | ApiAssistantYjs
   | FunctionAssistantYjs
   | ImageAssistantYjs
-  | RouteAssistantYjs;
+  | RouterAssistantYjs;
 
 export type ExecuteBlockSelectAllYjs = Omit<ExecuteBlockSelectAll, 'tools'> & {
   tools?: { [key: string]: { index: number; data: NonNullable<ExecuteBlock['tools']>[number] } };
@@ -105,8 +105,8 @@ export type AssistantBaseYjs<T extends AssistantBase> = Omit<
 
 export interface AgentYjs extends AssistantBaseYjs<Agent> {}
 
-export interface RouteAssistantYjs extends Omit<AssistantBaseYjs<RouteAssistant>, 'agents'> {
-  agents?: ArrayToYjs<NonNullable<RouteAssistant['agents']>>;
+export interface RouterAssistantYjs extends Omit<AssistantBaseYjs<RouterAssistant>, 'routes'> {
+  routes?: ArrayToYjs<NonNullable<RouterAssistant['routes']>>;
 }
 
 export interface PromptAssistantYjs extends Omit<AssistantBaseYjs<PromptAssistant>, 'prompts'> {

@@ -658,8 +658,8 @@ export default flat({
   agentEmptyTitle: '‌No Agent Created',
   agentEmptySubTitle: 'Click "+" create your first agent',
   back: 'Back',
-  route: 'Route Agent',
-  addRoute: 'Add Route Agent',
+  router: 'Router Agent',
+  addRoute: 'Add Router Agent',
   diffRouteName:
     '"{agentName}" has the same "{routeName}" output parameter, but the "{routeName}" type is different, please modify to keep the type consistent ',
   diffRouteNameByType:

@@ -15,7 +15,7 @@ import type {
   ParameterYjs,
   PromptAssistantYjs,
   PromptYjs,
-  RouteAssistantYjs,
+  RouterAssistantYjs,
   RuntimeOutputVariablesSchemaYjs,
   VariablesYjs,
 } from './yjs';
@@ -31,7 +31,7 @@ import type {
   Parameter,
   Prompt,
   PromptAssistant,
-  RouteAssistant,
+  RouterAssistant,
   Variables,
 } from '.';
 
@@ -66,7 +66,7 @@ export function isAssistant(assistant: FileTypeYjs): assistant is AssistantYjs;
 export function isAssistant(assistant: FileType | FileTypeYjs): assistant is FileType | AssistantYjs {
   return (
     typeof (assistant as any).id === 'string' &&
-    ['agent', 'prompt', 'image', 'api', 'function', 'route'].includes((assistant as any).type)
+    ['agent', 'prompt', 'image', 'api', 'function', 'router'].includes((assistant as any).type)
   );
 }
 
@@ -76,10 +76,10 @@ export function isAgent(file: FileType | FileTypeYjs): file is Agent | AgentYjs 
   return (file as any).type === 'agent';
 }
 
-export function isRouteAssistant(file: FileType): file is RouteAssistant;
-export function isRouteAssistant(file: FileTypeYjs): file is RouteAssistantYjs;
-export function isRouteAssistant(file: FileType | FileTypeYjs): file is RouteAssistant | RouteAssistantYjs {
-  return (file as any).type === 'route';
+export function isRouterAssistant(file: FileType): file is RouterAssistant;
+export function isRouterAssistant(file: FileTypeYjs): file is RouterAssistantYjs;
+export function isRouterAssistant(file: FileType | FileTypeYjs): file is RouterAssistant | RouterAssistantYjs {
+  return (file as any).type === 'router';
 }
 
 export function isPromptAssistant(file: FileType): file is PromptAssistant;
@@ -325,14 +325,14 @@ export function fileToYjs(file: FileType): FileTypeYjs {
     };
   }
 
-  if (isRouteAssistant(file)) {
+  if (isRouterAssistant(file)) {
     return {
       ...file,
       parameters: file.parameters && arrayToYjs(file.parameters, parameterToYjs),
       tests: file.tests && arrayToYjs(file.tests),
       entries: file.entries && arrayToYjs(file.entries),
       outputVariables: file.outputVariables && arrayToYjs(file.outputVariables.map(outputVariableToYjs)),
-      agents: file.agents && arrayToYjs(file.agents),
+      routes: file.routes && arrayToYjs(file.routes),
     };
   }
 
@@ -398,14 +398,14 @@ export function fileFromYjs(file: FileTypeYjs): FileType {
     };
   }
 
-  if (isRouteAssistant(file)) {
+  if (isRouterAssistant(file)) {
     return {
       ...file,
       parameters: file.parameters && arrayFromYjs(file.parameters, parameterFromYjs),
       tests: file.tests && arrayFromYjs(file.tests),
       entries: file.entries && arrayFromYjs(file.entries),
       outputVariables: file.outputVariables && arrayFromYjs(file.outputVariables).map(outputVariableFromYjs),
-      agents: file.agents && arrayFromYjs(file.agents),
+      routes: file.routes && arrayFromYjs(file.routes),
     };
   }
 

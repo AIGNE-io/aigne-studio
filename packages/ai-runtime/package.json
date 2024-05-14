@@ -106,6 +106,7 @@
     "@microsoft/fetch-event-source": "^2.0.1",
     "ahooks": "^3.7.11",
     "axios": "^1.6.8",
+    "crypto": "^1.0.1",
     "dayjs": "^1.11.11",
     "eventsource-parser": "^1.1.2",
     "joi": "^17.13.1",

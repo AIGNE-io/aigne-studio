@@ -6,8 +6,8 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import {
   AssistantYjs,
   FileTypeYjs,
-  RouteAssistant,
-  RouteAssistantYjs,
+  RouterAssistant,
+  RouterAssistantYjs,
   Tool,
   VariablesYjs,
   isAssistant,
@@ -51,7 +51,7 @@ import { joinURL } from 'ufo';
 import { useRoutesAssistantOutputs } from '../output/OutputSettings';
 import PromptEditorField from '../prompt-editor-field';
 
-export default function RouteAssistantEditor({
+export default function RouterAssistantEditor({
   projectId,
   gitRef,
   value,
@@ -61,13 +61,13 @@ export default function RouteAssistantEditor({
 }: {
   projectId: string;
   gitRef: string;
-  value: RouteAssistantYjs;
-  compareValue?: RouteAssistantYjs;
+  value: RouterAssistantYjs;
+  compareValue?: RouterAssistantYjs;
   disabled?: boolean;
   isRemoteCompare?: boolean;
 }) {
   const { t } = useLocaleContext();
-  const agents = value.agents && sortBy(Object.values(value.agents), (i) => i.index);
+  const routes = value.routes && sortBy(Object.values(value.routes), (i) => i.index);
   const readOnly = useReadOnly({ ref: gitRef }) || disabled;
   const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
   const dialogState = usePopupState({ variant: 'dialog' });
@@ -128,7 +128,7 @@ export default function RouteAssistantEditor({
         </Tooltip>
 
         <Stack gap={1}>
-          {agents?.map(({ data: agent }) => (
+          {routes?.map(({ data: agent }) => (
             <Box key={agent.id} display="flex" alignItems="center" gap={0.5} width={1}>
               <Box className="center">
                 <Box component={Icon} icon={ArrowFork} sx={{ fontSize: 16, color: '#6D28D9' }} />
@@ -167,16 +167,16 @@ export default function RouteAssistantEditor({
                   const doc = (getYjsValue(value) as Map<any>).doc!;
 
                   doc.transact(async () => {
-                    value.agents ??= {};
+                    value.routes ??= {};
 
-                    const old = value.agents[tool.id];
+                    const old = value.routes[tool.id];
 
-                    value.agents[tool.id] = {
-                      index: old?.index ?? Math.max(-1, ...Object.values(value.agents).map((i) => i.index)) + 1,
+                    value.routes[tool.id] = {
+                      index: old?.index ?? Math.max(-1, ...Object.values(value.routes).map((i) => i.index)) + 1,
                       data: tool,
                     };
 
-                    sortBy(Object.values(value.agents), 'index').forEach((tool, index) => (tool.index = index));
+                    sortBy(Object.values(value.routes), 'index').forEach((tool, index) => (tool.index = index));
                   });
                 }}
               />
@@ -195,21 +195,21 @@ export default function RouteAssistantEditor({
           const doc = (getYjsValue(value) as Map<any>).doc!;
 
           doc.transact(() => {
-            value.agents ??= {};
+            value.routes ??= {};
 
-            const old = value.agents[tool.id];
+            const old = value.routes[tool.id];
 
             if (selectedTool.current) {
-              delete value.agents[selectedTool.current];
+              delete value.routes[selectedTool.current];
               selectedTool.current = '';
             }
 
-            value.agents[tool.id] = {
-              index: old?.index ?? Math.max(-1, ...Object.values(value.agents).map((i) => i.index)) + 1,
+            value.routes[tool.id] = {
+              index: old?.index ?? Math.max(-1, ...Object.values(value.routes).map((i) => i.index)) + 1,
               data: tool,
             };
 
-            sortBy(Object.values(value.agents), 'index').forEach((tool, index) => (tool.index = index));
+            sortBy(Object.values(value.routes), 'index').forEach((tool, index) => (tool.index = index));
           });
           dialogState.close();
         }}
@@ -257,7 +257,7 @@ export function AgentItemView({
   onEdit,
   ...props
 }: {
-  assistant: RouteAssistantYjs;
+  assistant: RouterAssistantYjs;
   getDiffBackground: (path: any, id?: string | undefined, defaultValue?: string | undefined) => { [x: string]: string };
   projectId: string;
   projectRef: string;
@@ -298,7 +298,7 @@ export function AgentItemView({
             display: 'flex',
           },
         },
-        backgroundColor: { ...getDiffBackground('prepareExecutes', `${assistant.id}.data.agents.${agent.id}`) },
+        backgroundColor: { ...getDiffBackground('prepareExecutes', `${assistant.id}.data.routes.${agent.id}`) },
       }}>
       <Stack width={1}>
         <TextField
@@ -387,14 +387,14 @@ export function AgentItemView({
               e.stopPropagation();
               const doc = (getYjsValue(assistant) as Map<any>).doc!;
               doc.transact(() => {
-                const selectTool = assistant.agents?.[agent.id];
+                const selectTool = assistant.routes?.[agent.id];
                 if (selectTool) {
                   selectTool.data.onEnd = undefined;
                 }
 
-                if (assistant.agents) {
-                  delete assistant.agents[agent.id];
-                  sortBy(Object.values(assistant.agents), 'index').forEach((i, index) => (i.index = index));
+                if (assistant.routes) {
+                  delete assistant.routes[agent.id];
+                  sortBy(Object.values(assistant.routes), 'index').forEach((i, index) => (i.index = index));
                 }
               });
             }}>
@@ -417,12 +417,12 @@ export function AgentItemView({
   );
 }
 
-type ToolDialogForm = NonNullable<RouteAssistant['agents']>[number];
+type ToolDialogForm = NonNullable<RouterAssistant['routes']>[number];
 type Option = {
-  id: NonNullable<RouteAssistant['agents']>[number]['id'];
+  id: NonNullable<RouterAssistant['routes']>[number]['id'];
   type: Exclude<FileTypeYjs, { $base64: string } | VariablesYjs>['type'] | string;
   name?: any;
-  from?: NonNullable<RouteAssistant['agents']>[number]['from'];
+  from?: NonNullable<RouterAssistant['routes']>[number]['from'];
   fromText?: string;
 };
 export interface ToolDialogImperative {
@@ -437,7 +437,7 @@ export const ToolDialog = forwardRef<
     gitRef: string;
     onSubmit: (value: ToolDialogForm) => any;
     DialogProps?: DialogProps;
-    assistant: RouteAssistantYjs;
+    assistant: RouterAssistantYjs;
   }
 >(({ assistant, projectId, gitRef, onSubmit, DialogProps }, ref) => {
   const { t } = useLocaleContext();
@@ -683,7 +683,7 @@ function AddSelectAgentPopperButton({
     .map((i) => ({ id: i.id, type: i.type, name: i.name, from: undefined }));
 
   const exists =
-    assistant.type === 'route' ? new Set(Object.values(assistant.agents ?? {}).map((i) => i.data.id)) : new Set();
+    assistant.type === 'router' ? new Set(Object.values(assistant.routes ?? {}).map((i) => i.data.id)) : new Set();
 
   return (
     <PopperMenu

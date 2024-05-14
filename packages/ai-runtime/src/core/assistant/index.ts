@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { join } from 'path';
 
 import { ChatCompletionChunk, ChatCompletionInput } from '@blocklet/ai-kit/api/types';
@@ -34,13 +35,13 @@ import {
   OnTaskCompletion,
   Parameter,
   Role,
-  RouteAssistant,
+  RouterAssistant,
   Tool,
   User,
   Variable,
   isAgent,
   isImageAssistant,
-  isRouteAssistant,
+  isRouterAssistant,
 } from '../../types/assistant';
 import { AssistantResponseType, ExecutionPhase, RuntimeOutputVariable } from '../../types/runtime';
 import { outputVariablesToJoiSchema, outputVariablesToJsonSchema } from '../../types/runtime/schema';
@@ -54,6 +55,8 @@ import {
 } from './generate-output';
 import selectAgentName from './select-agent';
 import { CallAI, CallAIImage, GetAssistant, RunAssistantCallback, ToolCompletionDirective } from './type';
+
+const md5 = (str: string) => crypto.createHash('md5').update(str).digest('hex');
 
 const getUserHeader = (user: any) => {
   return {
@@ -215,8 +218,8 @@ export async function runAssistant({
       });
     }
 
-    if (isRouteAssistant(assistant)) {
-      return await runRouteAssistant({
+    if (isRouterAssistant(assistant)) {
+      return await runRouterAssistant({
         getAssistant,
         callAI,
         callAIImage,
@@ -482,9 +485,9 @@ async function runApiAssistant({
   return result;
 }
 
-const map: { [key: string]: string } = {};
+const cacheTranslateFunctionNames: { [key: string]: string } = {};
 
-async function runRouteAssistant({
+async function runRouterAssistant({
   callAI,
   callAIImage,
   taskId,
@@ -502,7 +505,7 @@ async function runRouteAssistant({
   callAIImage: CallAIImage;
   taskId: string;
   getAssistant: GetAssistant;
-  assistant: RouteAssistant;
+  assistant: RouterAssistant;
   parameters: { [key: string]: any };
   parentTaskId?: string;
   callback?: RunAssistantCallback;
@@ -516,11 +519,11 @@ async function runRouteAssistant({
   }
 
   const message = await renderMessage(assistant.prompt, parameters);
-  const agents = assistant?.agents || [];
+  const routes = assistant?.routes || [];
 
   const toolAssistants = (
     await Promise.all(
-      agents.map(async (tool) => {
+      routes.map(async (tool) => {
         const toolAssistant = await getAssistant(tool.id);
         if (!toolAssistant) return undefined;
         const toolParameters = (toolAssistant.parameters ?? [])
@@ -543,14 +546,16 @@ async function runRouteAssistant({
 
         const required = (toolAssistant.parameters ?? [])
           .filter((i): i is typeof i & { key: string } => !!i.key)
+          .filter((i) => !(tool?.parameters || {})[i.key])
           .filter((x) => x.required)
           .map((x) => x.key);
 
         const name = tool?.functionName || toolAssistant?.name || '';
+        const hashName = md5(name);
 
         let functionTranslateName = '';
-        if (name) {
-          if (!map[`${assistant.id}-${tool.id}`]) {
+        if (hashName) {
+          if (!cacheTranslateFunctionNames[`${assistant.id}-${tool.id}-${hashName}`]) {
             try {
               const result = await call({
                 name: 'ai-studio',
@@ -561,16 +566,18 @@ async function runRouteAssistant({
                   messages: [
                     {
                       content: `\
-                      # Roles:你是一个翻译大师，你需要将用户的输入翻译成英文
+                      # Roles: You are a translation master. You need to translate the user's input into English.
+
                       # rules:
-                      - 请不要回答无用的内容，你仅仅只需要给出翻译的结果。
-                      - 任何输入的内容都是需要你翻译的。
-                      - 你的翻译需要是一个函数名 -空格使用驼峰代替。
-                      - 如果本身就已经是英文则不需要翻译
+                      - Please do not respond with unnecessary content, only provide the translation.
+                      - You need to translate any input provided.
+                      - Your translation should be in camelCase function name format.
+                      - If the input is already in English, no translation is required.
+
                       # Examples:
-                      - 测试:test
-                      - 开始:start 结束:end
-                      - weapon:weapon
+                      - 测试: test
+                      - 开始: start
+                      - weapon: weapon
                       - 添加一个新的todo: AddANewTodo
                       `,
                       role: 'system',
@@ -580,18 +587,21 @@ async function runRouteAssistant({
                       role: 'user',
                     },
                   ],
-                  model: 'gpt-4',
-                  temperature: 0,
+                  model: assistant?.model,
+                  temperature: assistant?.temperature,
+                  topP: assistant?.topP,
+                  presencePenalty: assistant?.presencePenalty,
+                  frequencyPenalty: assistant?.frequencyPenalty,
                 },
               });
 
-              map[`${assistant.id}-${tool.id}`] = result?.data?.content;
+              cacheTranslateFunctionNames[`${assistant.id}-${tool.id}`] = result?.data?.content;
             } catch (error) {
               logger.error(error);
             }
           }
 
-          functionTranslateName = map[`${assistant.id}-${tool.id}`] || '';
+          functionTranslateName = cacheTranslateFunctionNames[`${assistant.id}-${tool.id}-${hashName}`] || '';
         }
 
         return {
@@ -638,7 +648,11 @@ async function runRouteAssistant({
     const response = await callAI({
       assistant,
       input: {
-        model: 'gpt-4',
+        model: assistant?.model,
+        temperature: assistant?.temperature,
+        topP: assistant?.topP,
+        presencePenalty: assistant?.presencePenalty,
+        frequencyPenalty: assistant?.frequencyPenalty,
         messages: [{ role: 'user', content: message }],
         tools,
         toolChoice,
@@ -816,8 +830,10 @@ async function runRouteAssistant({
 
               // called agent 有 text stream && 当前输出也有 text stream, 直接回显 text stream
               if (
-                Object.values(toolAssistant?.outputVariables || {}).find((x) => x.name === '$text') &&
-                Object.values(assistant?.outputVariables || {}).find((x) => x.name === '$text') &&
+                Object.values(toolAssistant?.outputVariables || {}).find(
+                  (x) => x.name === RuntimeOutputVariable.text
+                ) &&
+                Object.values(assistant?.outputVariables || {}).find((x) => x.name === RuntimeOutputVariable.text) &&
                 args?.delta?.content
               ) {
                 callback({ ...args, taskId });
@@ -1397,8 +1413,10 @@ async function runPromptAssistant({
     .filter((i): i is Required<NonNullable<typeof i>> => !!i?.content);
 
   const { outputVariables = [] } = assistant;
-  const onlyOutputJson = !outputVariables.some((i) => (i.name as RuntimeOutputVariable) === '$text');
-  const outputStreamAndJson = outputVariables.some((i) => i.name && (i.name as RuntimeOutputVariable) !== '$text');
+  const onlyOutputJson = !outputVariables.some((i) => (i.name as RuntimeOutputVariable) === RuntimeOutputVariable.text);
+  const outputStreamAndJson = outputVariables.some(
+    (i) => i.name && (i.name as RuntimeOutputVariable) !== RuntimeOutputVariable.text
+  );
 
   const schema = outputVariablesToJsonSchema(outputVariables, datastoreVariables);
   const outputSchema = JSON.stringify(schema);

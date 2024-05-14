@@ -1,6 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { defaultTextModel, getSupportedModels } from '@blocklet/ai-runtime/common';
-import { PromptAssistantYjs } from '@blocklet/ai-runtime/types';
+import { PromptAssistantYjs, RouterAssistantYjs } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import HelpIcon from '@iconify-icons/tabler/help';
 import { Box, FormLabel, Tooltip } from '@mui/material';
@@ -23,9 +23,9 @@ export default function PromptSetting({
 }: {
   projectId: string;
   gitRef: string;
-  value: PromptAssistantYjs;
+  value: PromptAssistantYjs | RouterAssistantYjs;
   readOnly?: boolean;
-  compareValue?: PromptAssistantYjs;
+  compareValue?: PromptAssistantYjs | RouterAssistantYjs;
   isRemoteCompare?: boolean;
 }) {
   const { t } = useLocaleContext();

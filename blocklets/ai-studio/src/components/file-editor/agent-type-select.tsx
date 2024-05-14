@@ -21,7 +21,7 @@ export const agentTypes = [
   { type: 'image', icon: <Icon icon={PhotoIcon} />, i18nKey: 'imageGeneration' },
   { type: 'function', icon: <Icon icon={CodeIcon} />, i18nKey: 'logic' },
   { type: 'api', icon: <Icon icon={APIIcon} />, i18nKey: 'api' },
-  { type: 'route', icon: <Icon icon={BranchIcon} />, i18nKey: 'route' },
+  { type: 'router', icon: <Icon icon={BranchIcon} />, i18nKey: 'router' },
 ] as const;
 
 export const agentTypesMap = Object.fromEntries(agentTypes.map((i) => [i.type, i]));

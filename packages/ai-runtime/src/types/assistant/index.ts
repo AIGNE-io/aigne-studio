@@ -17,7 +17,7 @@ export type Variables = {
 
 export type FileType = Assistant | { $base64: string } | Variables;
 
-export type Assistant = Agent | PromptAssistant | ImageAssistant | ApiAssistant | FunctionAssistant | RouteAssistant;
+export type Assistant = Agent | PromptAssistant | ImageAssistant | ApiAssistant | FunctionAssistant | RouterAssistant;
 
 export type Role = 'system' | 'user' | 'assistant';
 
@@ -166,12 +166,19 @@ export interface Agent extends AssistantBase {
   type: 'agent';
 }
 
-export interface RouteAssistant extends AssistantBase {
-  type: 'route';
-  // executeModel?: ModelConfiguration;  先内置
+export interface RouterAssistant extends AssistantBase {
+  type: 'router';
   defaultToolId?: string;
   prompt?: string;
-  agents?: Tool[];
+  routes?: Tool[];
+
+  // 参数配置，为了可以复用UI和 prompt一致
+  temperature?: number;
+  topP?: number;
+  presencePenalty?: number;
+  frequencyPenalty?: number;
+  maxTokens?: number;
+  model?: string;
 }
 
 export interface PromptAssistant extends AssistantBase {
