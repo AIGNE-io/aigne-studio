@@ -16,7 +16,7 @@ import {
   Typography,
 } from '@mui/material';
 import equal from 'fast-deep-equal';
-import { cloneDeep, sortBy } from 'lodash';
+import { cloneDeep, sortBy, uniqBy } from 'lodash';
 import { nanoid } from 'nanoid';
 import React, { useEffect, useMemo } from 'react';
 
@@ -395,11 +395,14 @@ export const useRoutesAssistantOutputs = ({
       return [];
     }
 
-    return agentAssistants.flatMap((agent) => {
-      return Object.values(agent?.outputVariables || {})
-        .filter((x) => !(x?.data?.name || '').startsWith('$appearance'))
-        .map((x) => x.data);
-    });
+    return uniqBy(
+      agentAssistants.flatMap((agent) => {
+        return Object.values(agent?.outputVariables || {})
+          .filter((x) => !(x?.data?.name || '').startsWith('$appearance'))
+          .map((x) => x.data);
+      }),
+      'name'
+    );
   }, [cloneDeep(agentAssistants), projectId, gitRef, t]);
 
   const result = useMemo(() => {
