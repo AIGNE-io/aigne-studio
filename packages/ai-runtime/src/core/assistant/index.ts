@@ -550,7 +550,7 @@ async function runRouterAssistant({
           .filter((x) => x.required)
           .map((x) => x.key);
 
-        const name = tool?.functionName || toolAssistant?.name || '';
+        const name = tool?.functionName || toolAssistant?.description || toolAssistant?.name || '';
         const hashName = md5(name);
 
         let functionTranslateName = '';
