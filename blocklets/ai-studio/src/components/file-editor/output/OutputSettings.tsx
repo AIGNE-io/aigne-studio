@@ -596,14 +596,14 @@ const useCheckConflictAssistantOutputAndSelectAgents = ({
         !equal(
           cloneDeep(
             Object.values(found?.properties || {}).map((x) => {
-              const { name, type, required } = x?.data || {};
-              return { name, type, required: required ?? false };
+              const { name, type } = x?.data || {};
+              return { name, type };
             })
           ),
           cloneDeep(
             Object.values(v?.properties || {}).map((x) => {
-              const { name, type, required } = x?.data || {};
-              return { name, type, required: required ?? false };
+              const { name, type } = x?.data || {};
+              return { name, type };
             })
           )
         )
@@ -623,14 +623,14 @@ const useCheckConflictAssistantOutputAndSelectAgents = ({
         !equal(
           cloneDeep(
             Object.values(found?.element || {}).map((x) => {
-              const { name, type, required } = x?.data || {};
-              return { name, type, required: required ?? false };
+              const { name, type } = x?.data || {};
+              return { name, type };
             })
           ),
           cloneDeep(
             Object.values(v?.element || {}).map((x) => {
-              const { name, type, required } = x?.data || {};
-              return { name, type, required: required ?? false };
+              const { name, type } = x?.data || {};
+              return { name, type };
             })
           )
         )
