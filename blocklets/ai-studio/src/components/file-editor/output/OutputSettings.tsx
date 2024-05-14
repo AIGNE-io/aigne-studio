@@ -16,6 +16,7 @@ import {
   Typography,
 } from '@mui/material';
 import equal from 'fast-deep-equal';
+import jsonDiff from 'json-diff';
 import { cloneDeep, sortBy, uniqBy } from 'lodash';
 import { nanoid } from 'nanoid';
 import React, { useEffect, useMemo } from 'react';
@@ -464,14 +465,14 @@ export const useRoutesAssistantOutputs = ({
               if (
                 !equal(
                   cloneDeep(
-                    Object.values(found?.element || {}).map((x) => {
-                      const { name, type, required } = x?.data || {};
+                    [found.element].map((x) => {
+                      const { name, type, required } = x || {};
                       return { name, type, required: required ?? false };
                     })
                   ),
                   cloneDeep(
-                    Object.values(output?.element || {}).map((x) => {
-                      const { name, type, required } = x?.data || {};
+                    [output?.element].map((x) => {
+                      const { name, type, required } = x || {};
                       return { name, type, required: required ?? false };
                     })
                   )
@@ -521,6 +522,63 @@ export const useRoutesAssistantOutputs = ({
     allSelectAgentOutputs,
     checkSelectAgent: result,
   };
+};
+
+const diffJSON = (found: OutputVariableYjs, v: OutputVariableYjs, t: any): string | undefined => {
+  const result = jsonDiff.diff(cloneDeep(found), cloneDeep(v));
+  if (result?.type) {
+    return t('diffOutputType', { name: v.name, type: found.type });
+  }
+
+  if (result?.required) {
+    // _old 为true时，不用判断
+    if (!result?.required?.__old) {
+      // 数据可能为 undefined
+      if ((result?.required?.__old ?? false) !== (result?.required?.__new ?? false)) {
+        return found.required
+          ? t('requiredOutputParams', { name: v.name })
+          : t('notRequiredOutputParams', { name: v.name });
+      }
+    }
+  }
+
+  if (result?.required__added) {
+    return t('notRequiredOutputParams', { name: v.name });
+  }
+
+  if (found?.type === 'object' && v.type === 'object') {
+    const object = Object.values(v?.properties || {})
+      .map((data) => {
+        if (data?.data) {
+          const outputs = Object.values(found?.properties || {}).map((x) => x.data);
+
+          const found1 = outputs.find((x) => x.name === data?.data?.name);
+          if (!found1) {
+            return t('notFoundOutputKeyFromSelectAgents', {
+              name: data?.data?.name,
+              outputNames: outputs.map((x) => x.name).join(','),
+            });
+          }
+
+          return diffJSON(cloneDeep(found1 || {}), cloneDeep(data?.data || {}), t);
+        }
+
+        return undefined;
+      })
+      .filter((x) => x);
+
+    return object[0];
+  }
+
+  if (found?.type === 'array' && v.type === 'array') {
+    return diffJSON(
+      cloneDeep(found?.element || {}) as OutputVariableYjs,
+      cloneDeep(v?.element || {}) as OutputVariableYjs,
+      t
+    );
+  }
+
+  return undefined;
 };
 
 const useCheckConflictAssistantOutputAndSelectAgents = ({
@@ -581,71 +639,7 @@ const useCheckConflictAssistantOutputAndSelectAgents = ({
       });
     }
 
-    if ((found.required ?? false) !== (v.required ?? false)) {
-      return found.required
-        ? t('requiredOutputParams', { name: v.name })
-        : t('notRequiredOutputParams', { name: v.name });
-    }
-
-    if (found.type !== v.type) {
-      return t('diffOutputType', { name: v.name, type: found.type });
-    }
-
-    if (found?.type === 'object' && v.type === 'object') {
-      if (
-        !equal(
-          cloneDeep(
-            Object.values(found?.properties || {}).map((x) => {
-              const { name, type } = x?.data || {};
-              return { name, type };
-            })
-          ),
-          cloneDeep(
-            Object.values(v?.properties || {}).map((x) => {
-              const { name, type } = x?.data || {};
-              return { name, type };
-            })
-          )
-        )
-      ) {
-        return t('diffTypeKeys', {
-          name: v.name,
-          type: 'object',
-          keys: `${Object.values(found.properties || {})
-            .map((x) => `${t('name')}: ${x?.data?.name}, ${t('type')}: ${x?.data?.type}`)
-            .join(',')}`,
-        });
-      }
-    }
-
-    if (found?.type === 'array' && v.type === 'array') {
-      if (
-        !equal(
-          cloneDeep(
-            Object.values(found?.element || {}).map((x) => {
-              const { name, type } = x?.data || {};
-              return { name, type };
-            })
-          ),
-          cloneDeep(
-            Object.values(v?.element || {}).map((x) => {
-              const { name, type } = x?.data || {};
-              return { name, type };
-            })
-          )
-        )
-      ) {
-        return t('diffTypeKeys', {
-          name: v.name,
-          type: 'array',
-          keys: `${Object.values(found.element || {})
-            .map((x) => `${t('name')}: ${x?.data?.name}, ${t('type')}: ${x?.data?.type}`)
-            .join(',')}`,
-        });
-      }
-    }
-
-    return undefined;
+    return diffJSON(cloneDeep(found || {}), cloneDeep(v || {}), t);
   }, [value.type, depth, cloneDeep(v), selectAgentOutputVariables, t]);
 
   return result;
