@@ -679,4 +679,6 @@ export default flat({
   openingQuestions: 'Opening Questions',
   openingMessage: 'Opening Message',
   chooseObject: 'Choose {object}',
+  allContent: 'All Content',
+  searchContent: 'Search Content',
 });

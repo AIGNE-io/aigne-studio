@@ -16,6 +16,7 @@ import DatasetContent from '../../store/models/dataset/content';
 import Dataset from '../../store/models/dataset/dataset';
 import DatasetDocument from '../../store/models/dataset/document';
 import EmbeddingHistories from '../../store/models/dataset/embedding-history';
+import DatasetSegment from '../../store/models/dataset/segment';
 import VectorStore from '../../store/vector-store-faiss';
 import { queue, updateHistoriesAndStore } from './embeddings';
 
@@ -35,8 +36,9 @@ export interface CreateDiscussionItem {
 
 export type CreateDiscussionItemInput = CreateDiscussionItem | CreateDiscussionItem[];
 
-const searchQuerySchema = Joi.object<{ message?: string; n: number }>({
+const searchQuerySchema = Joi.object<{ message?: string; all?: boolean; n: number }>({
   message: Joi.string().empty(['', null]),
+  all: Joi.boolean().default(false).empty(['', null]),
   n: Joi.number().empty(['', null]).min(1).default(4),
 });
 
@@ -89,15 +91,26 @@ router.get('/:datasetId/search', async (req, res) => {
   const input = await searchQuerySchema.validateAsync(req.query, { stripUnknown: true });
   logger.info('knowledge search input', input);
 
-  if (!input.message) {
-    logger.error('Not found search message');
+  const dataset = await Dataset.findOne({ where: { id: datasetId } });
+  if (!dataset) {
+    logger.error(`dataset ${datasetId} not found`);
     res.json({ docs: [] });
     return;
   }
 
-  const dataset = await Dataset.findOne({ where: { id: datasetId } });
-  if (!dataset) {
-    logger.error(`dataset ${datasetId} not found`);
+  if (input.all) {
+    const documentIds = (await DatasetDocument.findAll({ where: { datasetId } })).map((x) => x.id);
+    const list = await DatasetSegment.findAll({
+      order: [['createdAt', 'ASC']],
+      where: { documentId: { [Op.in]: documentIds } },
+    });
+
+    res.json({ docs: list });
+    return;
+  }
+
+  if (!input.message) {
+    logger.error('Not found search message');
     res.json({ docs: [] });
     return;
   }
