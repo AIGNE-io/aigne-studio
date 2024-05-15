@@ -44,11 +44,12 @@ export default function ChildrenSettings({
         <Typography variant="subtitle1">{t('children')}</Typography>
 
         <SelectTool
+          multiple
           options={options}
-          value={initialValue?.agents?.[0]}
+          value={initialValue?.agents}
           onChange={(v) => {
             setField((o) => {
-              o.agents = [{ id: v.id, name: v.name }];
+              o.agents = v.map((i) => ({ id: i.id, name: i.name }));
             });
           }}
         />

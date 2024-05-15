@@ -683,4 +683,6 @@ export default flat({
   chooseObject: 'Choose {object}',
   allContent: 'All Content',
   searchContent: 'Search Content',
+  profile: 'Profile',
+  avatar: 'Avatar',
 });

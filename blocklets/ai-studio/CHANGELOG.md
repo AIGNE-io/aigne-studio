@@ -1,3 +1,7 @@
+## 0.1.388 (2024-5-15)
+
+- feat: support multi-agents
+
 ## 0.1.387 (2024-5-15)
 
 - fix: when there is no Agent selection, give a hint, and you can add
