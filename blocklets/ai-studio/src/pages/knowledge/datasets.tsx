@@ -100,7 +100,7 @@ export default function KnowledgeDatasets() {
   return (
     <>
       <Stack m={2.5} overflow="auto">
-        <ListContainer gap={2.5}>
+        <ListContainer gap={1.25}>
           <DatasetItemAdd
             name={t('knowledge.createTitle')}
             description={t('knowledge.createDescription')}
@@ -216,7 +216,11 @@ function DatasetItemAdd({
   return (
     <DatasetItemRoot {...props} className="center">
       <Stack className="center">
-        <Box component={Icon} icon={PlusIcon} sx={{ width: '2rem', height: '2rem', color: '#9CA3AF' }} />
+        <Box
+          component={Icon}
+          icon={PlusIcon}
+          sx={{ width: '32px', height: '32px ', fontSize: '28px', color: '#9CA3AF' }}
+        />
 
         <Box className="itemHeading">
           <Typography variant="subtitle4" color="#9CA3AF" className="headingContent">
@@ -530,5 +534,5 @@ const DatasetItemRoot = styled(Stack)`
 
 const ListContainer = styled(Box)`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
 `;

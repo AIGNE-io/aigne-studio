@@ -14,6 +14,16 @@ export interface DatasetInput {
   appId?: string;
 }
 
+export async function searchKnowledge({
+  datasetId,
+  message,
+}: {
+  datasetId: string;
+  message: string;
+}): Promise<{ docs: { content: string }[] }> {
+  return axios.get(`/api/datasets/${datasetId}/search`, { params: { message } }).then((res) => res.data);
+}
+
 export async function getAPIList(): Promise<DatasetObject[]> {
   return axios.get('/api/collections.json').then((res) => res.data);
 }
