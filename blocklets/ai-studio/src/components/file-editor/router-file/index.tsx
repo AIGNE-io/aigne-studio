@@ -1,7 +1,8 @@
 import PopperMenu from '@app/components/menu/PopperMenu';
 import { useReadOnly } from '@app/contexts/session';
 import { useAssistantCompare } from '@app/pages/project/state';
-import { PROMPTS_FOLDER_NAME, useCreateFile, useProjectStore } from '@app/pages/project/yjs-state';
+import { newDefaultPrompt } from '@app/pages/project/template';
+import { PROMPTS_FOLDER_NAME, createFileName, useCreateFile, useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import {
   AssistantYjs,
@@ -41,7 +42,7 @@ import {
   createFilterOptions,
   styled,
 } from '@mui/material';
-import { cloneDeep, sortBy } from 'lodash';
+import { cloneDeep, pick, sortBy } from 'lodash';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef } from 'react';
 import { Controller, UseFormReturn, useForm } from 'react-hook-form';
@@ -673,6 +674,7 @@ function AddSelectAgentPopperButton({
   const { t } = useLocaleContext();
   const { store } = useProjectStore(projectId, gitRef);
   const assistantId = assistant.id;
+  const createFile = useCreateFile();
 
   const options = Object.entries(store.tree)
     .filter(([, filepath]) => filepath?.startsWith(`${PROMPTS_FOLDER_NAME}/`))
@@ -720,6 +722,28 @@ function AddSelectAgentPopperButton({
             </MenuItem>
           );
         })}
+        {!options.length && (
+          <>
+            <MenuItem>
+              <Box color="#9CA3AF">{t('noAgent')}</Box>
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                const options = {
+                  parent: [],
+                  rootFolder: PROMPTS_FOLDER_NAME,
+                  meta: {
+                    ...newDefaultPrompt(),
+                    name: createFileName({ store, name: '', defaultName: `${t('alert.unnamed')} Agent` }),
+                  },
+                };
+                const { template } = createFile({ ...options, store });
+                onSelect?.(pick(template, 'id', 'name', 'type'));
+              }}>
+              <Box color="#3B82F6">{t('addAgent')}</Box>
+            </MenuItem>
+          </>
+        )}
       </Stack>
     </PopperMenu>
   );
