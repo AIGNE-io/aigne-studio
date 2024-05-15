@@ -194,12 +194,44 @@
                 "x-index": 3,
                 "description": "Limits the size of files uploaded to the knowledge (MB)",
                 "required": false
+              },
+              "autoUpdateKnowledge": {
+                "type": "boolean",
+                "title": "Automatic update of knowledge base",
+                "x-decorator": "FormItem",
+                "x-component": "Switch",
+                "x-validator": [],
+                "x-component-props": {},
+                "x-decorator-props": {
+                  "layout": "vertical",
+                  "colon": false
+                },
+                "name": "autoUpdateKnowledge",
+                "x-reactions": {
+                  "dependencies": [
+                    {
+                      "property": "value",
+                      "type": "string | number",
+                      "source": "8ijnww1wdf9.drcj4aejnt5.serviceMode",
+                      "name": "serviceMode"
+                    }
+                  ],
+                  "fulfill": {
+                    "state": {
+                      "visible": "{{$deps.serviceMode === 'multi-tenant'}}"
+                    }
+                  }
+                },
+                "default": false,
+                "description": "Automatically update discuss data in the knowledge base",
+                "x-designable-id": "79qik9yi42x",
+                "x-index": 4
               }
             }
           }
         }
       }
     },
-    "x-designable-id": "yp3g5x76p01"
+    "x-designable-id": "fiiwxzkqh4z"
   }
 }
