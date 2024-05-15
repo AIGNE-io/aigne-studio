@@ -31,6 +31,7 @@
     ]
   },
   "dependencies": {
+    "@abtnode/cron": "^1.16.26",
     "@arcblock/did-auth": "^1.18.117",
     "@arcblock/did-auth-storage-nedb": "^1.7.1",
     "@arcblock/did-connect": "^2.9.79",

@@ -501,10 +501,9 @@ router.put('/:datasetId/documents/:documentId/file', user(), userAuth(), upload.
     },
     { where: { id: documentId, datasetId } }
   );
-  await DatasetContent.update({ content: await readFile(filePath, 'utf8') }, { where: { documentId } });
+  // await DatasetContent.update({ content: await readFile(filePath, 'utf8') }, { where: { documentId } });
 
   const document = await DatasetDocument.findOne({ where: { id: documentId, datasetId } });
-
   if (document) queue.checkAndPush({ type: 'document', documentId: document.id });
 
   res.json(document);

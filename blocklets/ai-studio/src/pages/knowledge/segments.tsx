@@ -14,11 +14,7 @@ import {
   DialogContent,
   DialogTitle,
   Divider,
-  FormControl,
   IconButton,
-  InputLabel,
-  MenuItem,
-  Select,
   SelectChangeEvent,
   Stack,
   StackProps,
@@ -45,11 +41,8 @@ export default function KnowledgeSegments() {
   const documentDialogState = usePopupState({ variant: 'dialog', popupId: 'document' });
 
   const form = useForm<{ content: string }>({ defaultValues: { content: '' } });
-  const [viewType, setViewType] = useState('ContentView');
+  const [viewType] = useState('SegmentsView');
 
-  const handleChange = (event: SelectChangeEvent) => {
-    setViewType(event.target.value);
-  };
   const { state, refetch } = useSegments(datasetId || '', documentId || '');
   const { loadingRef, dataState } = useFetchSegments(datasetId || '', documentId || '');
   const [readContent, setReadContent] = useState('');
@@ -60,16 +53,18 @@ export default function KnowledgeSegments() {
 
   if (state.loading || dataState.loading) {
     return (
-      <Box flex={1} className="center">
-        <CircularProgress size={20} />
-      </Box>
+      <Stack overflow="hidden" height={1}>
+        <Box flex={1} className="center">
+          <CircularProgress size={20} />
+        </Box>
+      </Stack>
     );
   }
 
   return (
     <>
-      <>
-        <Stack gap={3} py={2} px={3}>
+      <Stack overflow="hidden" height={1}>
+        <Stack gap={1} py={2} px={3}>
           <Breadcrumbs sx={{ a: { color: 'rgba(29,28,35,.35)', textDecoration: 'auto' } }}>
             <Link color="inherit" to="../../knowledge">
               {t('knowledge.menu')}
@@ -138,18 +133,17 @@ export default function KnowledgeSegments() {
 
         <Divider />
 
-        <Box p="28px 24px 20px">
+        {/* <Box p="28px 24px 20px">
           <FormControl>
             <InputLabel id="select-label">{t('showType')}</InputLabel>
             <Select labelId="select-label" value={viewType} label={t('showType')} onChange={handleChange}>
-              <MenuItem value="ContentView">{t('contentView')}</MenuItem>
               <MenuItem value="SegmentsView">{t('segmentsView')}</MenuItem>
             </Select>
           </FormControl>
-        </Box>
+        </Box> */}
 
         {viewType === 'ContentView' && (
-          <Stack flex={1} height={0}>
+          <Stack flex={1} height={0} py={2}>
             <Box width={1} height={1}>
               <Box
                 sx={{
@@ -171,7 +165,7 @@ export default function KnowledgeSegments() {
         )}
 
         {viewType === 'SegmentsView' && (
-          <Stack px={3} flex={1} height={0} overflow="auto">
+          <Stack px={3} flex={1} height={0} overflow="auto" py={2}>
             <Stack flex={1}>
               {!segments?.length && <EmptyDocument />}
 
@@ -206,7 +200,7 @@ export default function KnowledgeSegments() {
             </Stack>
           </Stack>
         )}
-      </>
+      </Stack>
 
       <Dialog {...bindDialog(segmentDialogState)} maxWidth="sm" fullWidth component="form">
         <DialogTitle>{t('knowledge.segments.content')}</DialogTitle>

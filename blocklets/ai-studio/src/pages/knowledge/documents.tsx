@@ -327,9 +327,7 @@ export default function KnowledgeDocuments() {
           onPaginationModelChange={({ page, pageSize: size }) => refetch({ page, size })}
           // onRowClick={(params) => {
           //   const rowId = params.row.id;
-          //   if (params.row.type !== 'fullSite') {
-          //     navigate(`document/${rowId}`, { replace: true });
-          //   }
+          //   navigate(`document/${rowId}`, { replace: true });
           // }}
           slots={{
             noRowsOverlay: () => (

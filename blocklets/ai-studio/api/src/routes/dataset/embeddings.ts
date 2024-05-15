@@ -215,8 +215,11 @@ const updateEmbeddingHistory = async ({
   updatedAt?: Date | string;
 }) => {
   const ids = { targetId, datasetId, documentId };
+
   try {
     const previousEmbedding = await EmbeddingHistories.findOne({ where: ids });
+    console.log(previousEmbedding?.targetVersion, updatedAt);
+
     if (previousEmbedding?.targetVersion && updatedAt) {
       if (
         new Date(previousEmbedding?.targetVersion).toISOString() === new Date(updatedAt || new Date()).toISOString()
@@ -225,8 +228,9 @@ const updateEmbeddingHistory = async ({
       }
     }
 
-    if (await EmbeddingHistories.findOne({ where: ids })) {
-      await EmbeddingHistories.update({ startAt: new Date(), status: UploadStatus.Uploading }, { where: ids });
+    const found = await EmbeddingHistories.findOne({ where: ids });
+    if (found) {
+      await found.update({ startAt: new Date(), status: UploadStatus.Uploading });
     } else {
       await EmbeddingHistories.create({ startAt: new Date(), status: UploadStatus.Uploading, ...ids });
     }
@@ -236,11 +240,13 @@ const updateEmbeddingHistory = async ({
       await saveContentToVectorStore({ metadata, content: trimContent, datasetId, documentId, targetId });
     }
 
-    if (await EmbeddingHistories.findOne({ where: ids })) {
-      await EmbeddingHistories.update(
-        { targetVersion: new Date(updatedAt || new Date()), endAt: new Date(), status: UploadStatus.Success },
-        { where: ids }
-      );
+    const check = await EmbeddingHistories.findOne({ where: ids });
+    if (check) {
+      await check.update({
+        targetVersion: new Date(updatedAt || new Date()),
+        endAt: new Date(),
+        status: UploadStatus.Success,
+      });
     } else {
       await EmbeddingHistories.create({
         targetVersion: new Date(updatedAt || new Date()),
@@ -255,8 +261,9 @@ const updateEmbeddingHistory = async ({
     logger.error(error?.message);
     sse.send({ documentId, embeddingStatus: UploadStatus.Error, message: error?.message }, 'error');
 
-    if (await EmbeddingHistories.findOne({ where: { ...ids } })) {
-      await EmbeddingHistories.update({ error: error.message, status: UploadStatus.Error }, { where: { ...ids } });
+    const found = await EmbeddingHistories.findOne({ where: ids });
+    if (found) {
+      await found.update({ error: error.message, status: UploadStatus.Error });
     } else {
       await EmbeddingHistories.create({ error: error.message, status: UploadStatus.Error, ...ids });
     }
@@ -279,7 +286,6 @@ async function updateDiscussionEmbeddings(discussionId: string, datasetId: strin
       metadata: { [key: string]: string }
     ) => {
       const targetId = locale ? `${discussionId}_$$$_${locale}` : discussionId;
-
       queue.push({ type: 'comment', documentId, discussionId, metadata });
 
       return updateEmbeddingHistory({ datasetId, documentId, targetId, updatedAt, content, metadata });
@@ -343,6 +349,7 @@ const discussKitMap: {
 } = {
   discussion: async (document) => {
     try {
+      // discussId
       const targetId = (document.data as any)?.data?.id;
 
       const { post: discussion } = await getDiscussion(targetId);
@@ -429,29 +436,17 @@ const discussKitMap: {
   },
 };
 
-// discussion 和  fullSite 已经废弃
 const embeddingHandler: {
   [key in NonNullable<DatasetDocument['type']>]: (
     item: DatasetDocument,
     content?: DatasetContent | null
   ) => Promise<void>;
 } = {
-  discussion: async (document: DatasetDocument) => {
-    const targetId = (document.data as any).id;
+  // TODO: 已经废弃, discussKit包括所有 discuss 操作
+  discussion: async () => {},
+  // TODO: 已经废弃, discussKit包括所有 discuss 操作
+  fullSite: async () => {},
 
-    const { post: discussion } = await getDiscussion(targetId);
-    const found = await DatasetContent.findOne({ where: { documentId: document.id } });
-    if (found) {
-      await found.update({ content: discussion?.content || '' });
-    } else {
-      await DatasetContent.create({ documentId: document.id, content: discussion?.content || '' });
-    }
-
-    await updateDiscussionEmbeddings(targetId, document.datasetId, document.id);
-
-    const result = await document.update({ embeddingStatus: UploadStatus.Success, embeddingEndAt: new Date() });
-    sse.send({ documentId: document.id, ...result.dataValues }, 'complete');
-  },
   text: async (document: DatasetDocument, content?: DatasetContent | null) => {
     const embed = await updateEmbeddingHistory({
       datasetId: document.datasetId,
@@ -484,33 +479,6 @@ const embeddingHandler: {
     if (embed) {
       const result = await document.update({ embeddingStatus: UploadStatus.Success, embeddingEndAt: new Date() });
       sse.send({ documentId: document.id, ...result.dataValues }, 'complete');
-    }
-  },
-  fullSite: async (document: DatasetDocument) => {
-    try {
-      const ids = await getDiscussionIds((document.data as any).types || []);
-      const currentTotal = ids.length;
-      let currentIndex = 0;
-      logger.info('fullsite ids', ids);
-
-      if (!ids.length) {
-        await handlerError(document, 'no data to embedding');
-      }
-
-      for (const discussionId of ids) {
-        currentIndex++;
-
-        queue.push({
-          type: 'fullSite',
-          documentId: document.id,
-          currentIndex,
-          currentTotal,
-          discussionId,
-        });
-      }
-    } catch (error) {
-      sse.send({ documentId: document.id, embeddingStatus: UploadStatus.Error, message: error?.message }, 'error');
-      await document.update({ error: error.message, embeddingStatus: UploadStatus.Error, embeddingEndAt: new Date() });
     }
   },
   discussKit: async (document: DatasetDocument) => {
@@ -664,7 +632,7 @@ export async function getDiscussionComments(
   }).then((res) => res.data);
 }
 
-export const deleteStore = async (datasetId: string, ids: string[]) => {
+const deleteStore = async (datasetId: string, ids: string[]) => {
   const embeddings = new AIKitEmbeddings({});
   const store = await VectorStore.load(datasetId, embeddings);
 
@@ -693,7 +661,6 @@ export const updateHistoriesAndStore = async (datasetId: string, documentId: str
     }
 
     await deleteStore(datasetId, ids);
-
     await Segment.destroy({ where });
   }
 };
