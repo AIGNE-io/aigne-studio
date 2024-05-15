@@ -218,7 +218,6 @@ const updateEmbeddingHistory = async ({
 
   try {
     const previousEmbedding = await EmbeddingHistories.findOne({ where: ids });
-    console.log(previousEmbedding?.targetVersion, updatedAt);
 
     if (previousEmbedding?.targetVersion && updatedAt) {
       if (
@@ -279,6 +278,9 @@ const updateEmbeddingHistory = async ({
 
 async function updateDiscussionEmbeddings(discussionId: string, datasetId: string, documentId: string) {
   try {
+    // 首先处理 discuss 当前文章数据
+    // 然后处理多语言文章内容
+    // 然后处理文章的评论数据
     const updateEmbedding = async (
       locale: string,
       updatedAt: string,
@@ -286,8 +288,8 @@ async function updateDiscussionEmbeddings(discussionId: string, datasetId: strin
       metadata: { [key: string]: string }
     ) => {
       const targetId = locale ? `${discussionId}_$$$_${locale}` : discussionId;
+      logger.log({ targetId, discussionId });
       queue.push({ type: 'comment', documentId, discussionId, metadata });
-
       return updateEmbeddingHistory({ datasetId, documentId, targetId, updatedAt, content, metadata });
     };
 
@@ -329,6 +331,7 @@ async function updateDiscussionEmbeddings(discussionId: string, datasetId: strin
 
     for (const language of languages) {
       if (language !== post?.locale) {
+        logger.log('embedding language discuss', { language });
         const res = await getDiscussion(discussionId, language);
         if (res?.post) await updateEmbedding(res.post.locale, res.post.updatedAt, res.post.content, metadata);
       }

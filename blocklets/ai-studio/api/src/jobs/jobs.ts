@@ -1,10 +1,10 @@
-import checkKnowledge from './check-knowledge';
+import updateDiscussKnowledge from './update-discuss-knowledge';
 
 const jobs = [
   {
-    name: 'check-discuss-kit-knowledge',
+    name: 'update-discuss-kit-knowledge',
     time: '0 * * * * *', // 每分钟
-    fn: checkKnowledge,
+    fn: updateDiscussKnowledge,
     options: { runOnInit: true },
   },
 ];

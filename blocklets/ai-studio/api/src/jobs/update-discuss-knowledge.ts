@@ -1,7 +1,7 @@
 import { queue } from '../routes/dataset/embeddings';
 import DatasetDocument from '../store/models/dataset/document';
 
-const checkKnowledge = async () => {
+const updateDiscussKnowledge = async () => {
   const documents = await DatasetDocument.findAll({
     where: { type: 'discussKit' },
   });
@@ -13,4 +13,4 @@ const checkKnowledge = async () => {
   });
 };
 
-export default checkKnowledge;
+export default updateDiscussKnowledge;
