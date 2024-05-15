@@ -2351,6 +2351,7 @@ async function runKnowledgeTool({
       }) ?? []
     )
   );
+  params.searchAll = (tool?.parameters || {}).searchAll;
 
   const { data: knowledge } = await callFunc({
     name: 'ai-studio',

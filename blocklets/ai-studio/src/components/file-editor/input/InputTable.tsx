@@ -623,15 +623,15 @@ function SelectFromSourceDialog({
 
             if (parameter.type === 'source' && parameter?.source?.variableFrom === 'knowledge' && parameter?.source) {
               const { source } = parameter;
-              Object.entries(source?.knowledge?.parameters || {}).forEach(([key, value]: any) => {
-                if (!value) {
-                  if (source && source?.knowledge && source?.knowledge?.parameters) {
-                    source.knowledge.parameters[key] = `{{${key}}}`;
-                  }
-
-                  addParameter(key, { from: FROM_KNOWLEDGE_PARAMETER });
-                }
-              });
+              if (
+                source &&
+                source?.knowledge &&
+                source?.knowledge?.parameters &&
+                !source?.knowledge?.parameters?.message
+              ) {
+                source.knowledge.parameters.message = '{{message}}';
+                addParameter('message', { from: FROM_KNOWLEDGE_PARAMETER });
+              }
             }
 
             dialogState.close();
@@ -746,7 +746,7 @@ function KnowledgeParameter({
     ];
 
     const parameters = [
-      { name: 'all', description: t('allContent'), type: 'boolean' },
+      { name: 'searchAll', description: t('allContent'), type: 'boolean' },
       { name: 'message', description: t('searchContent') },
     ];
     const v = options.find((x) => x.id === toolId);
@@ -764,22 +764,23 @@ function KnowledgeParameter({
               if (_value) {
                 // 删除历史自动添加的变量
                 Object.values(value.parameters || {}).forEach((x) => {
-                  if (x.data.from === FROM_KNOWLEDGE_PARAMETER) {
+                  if (
+                    (x.data.from === FROM_KNOWLEDGE_PARAMETER || x.data.from === FROM_PARAMETER) &&
+                    !checkKeyParameterIsUsed({ value, key: x.data.key || '' })
+                  ) {
                     deleteParameter(x.data);
                   }
                 });
 
-                if (!source?.knowledge?.parameters?.all) {
-                  const parameters = {
-                    message: '',
-                  };
+                const parameters = {
+                  message: '',
+                };
 
-                  source.knowledge = {
-                    id: _value.id,
-                    from: 'knowledge',
-                    parameters,
-                  };
-                }
+                source.knowledge = {
+                  id: _value.id,
+                  from: 'knowledge',
+                  parameters,
+                };
               }
             }}
           />
@@ -811,7 +812,7 @@ function KnowledgeParameter({
                   );
                 }
 
-                if (source?.knowledge?.parameters?.all) {
+                if (source?.knowledge?.parameters?.searchAll) {
                   return null;
                 }
 
@@ -964,7 +965,10 @@ function AgentParameter({
               if (_value) {
                 // 删除历史自动添加的变量
                 Object.values(value.parameters || {}).forEach((x) => {
-                  if (x.data.from === FROM_PARAMETER && !checkKeyParameterIsUsed({ value, key: x.data.key || '' })) {
+                  if (
+                    (x.data.from === FROM_KNOWLEDGE_PARAMETER || x.data.from === FROM_PARAMETER) &&
+                    !checkKeyParameterIsUsed({ value, key: x.data.key || '' })
+                  ) {
                     deleteParameter(x.data);
                   }
                 });
