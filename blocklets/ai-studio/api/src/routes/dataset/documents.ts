@@ -36,9 +36,9 @@ export interface CreateDiscussionItem {
 
 export type CreateDiscussionItemInput = CreateDiscussionItem | CreateDiscussionItem[];
 
-const searchQuerySchema = Joi.object<{ message?: string; all?: boolean; n: number }>({
+const searchQuerySchema = Joi.object<{ message?: string; searchAll?: boolean; n: number }>({
   message: Joi.string().empty(['', null]),
-  all: Joi.boolean().default(false).empty(['', null]),
+  searchAll: Joi.boolean().default(false).empty(['', null]),
   n: Joi.number().empty(['', null]).min(1).default(4),
 });
 
@@ -98,14 +98,14 @@ router.get('/:datasetId/search', async (req, res) => {
     return;
   }
 
-  if (input.all) {
+  if (input.searchAll) {
     const documentIds = (await DatasetDocument.findAll({ where: { datasetId } })).map((x) => x.id);
     const list = await DatasetSegment.findAll({
       order: [['createdAt', 'ASC']],
       where: { documentId: { [Op.in]: documentIds } },
     });
 
-    res.json({ docs: list });
+    res.json({ docs: list.map((x) => ({ content: x.content })) });
     return;
   }
 
