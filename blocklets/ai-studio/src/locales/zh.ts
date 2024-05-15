@@ -675,4 +675,6 @@ export default flat({
   chooseObject: '选择{object}',
   allContent: '全部数据',
   searchContent: '搜索数据',
+  profile: '档案',
+  avatar: '头像',
 });

@@ -12,6 +12,7 @@ const ignoreDescriptionVariables = new Set([
   RuntimeOutputVariable.share,
   RuntimeOutputVariable.openingQuestions,
   RuntimeOutputVariable.openingMessage,
+  RuntimeOutputVariable.profile,
 ]);
 
 export default function OutputDescriptionCell({

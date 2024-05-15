@@ -14,39 +14,33 @@ export default function LogoField({
   const uploaderRef = useUploader();
 
   return (
-    <Box>
-      <Typography variant="subtitle1" mb={1}>
-        {t('agentLogo')}
+    <Stack
+      sx={{ cursor: 'pointer', gap: 0.5 }}
+      onClick={() => {
+        // @ts-ignore
+        const uploader = uploaderRef?.current?.getUploader();
+
+        uploader?.open();
+
+        uploader.onceUploadSuccess(async ({ response }: any) => {
+          const url: string = response?.data?.url || response?.data?.fileUrl;
+
+          let size: Awaited<ReturnType<typeof getImageSize> | ReturnType<typeof getVideoSize>> | undefined;
+
+          if (url) {
+            size = await getImageSize(url)
+              .catch(() => getVideoSize(url))
+              .catch(() => undefined);
+          }
+
+          onChange?.({ url, width: size?.naturalWidth, height: size?.naturalHeight });
+        });
+      }}>
+      <Box component={Avatar} src={value?.url} did={window.blocklet.appId} size={100} sx={{ borderRadius: 1 }} />
+
+      <Typography variant="caption" color="text.secondary">
+        {t('clickToUploadAgentLogo')}
       </Typography>
-
-      <Stack
-        sx={{ cursor: 'pointer', gap: 0.5 }}
-        onClick={() => {
-          // @ts-ignore
-          const uploader = uploaderRef?.current?.getUploader();
-
-          uploader?.open();
-
-          uploader.onceUploadSuccess(async ({ response }: any) => {
-            const url: string = response?.data?.url || response?.data?.fileUrl;
-
-            let size: Awaited<ReturnType<typeof getImageSize> | ReturnType<typeof getVideoSize>> | undefined;
-
-            if (url) {
-              size = await getImageSize(url)
-                .catch(() => getVideoSize(url))
-                .catch(() => undefined);
-            }
-
-            onChange?.({ url, width: size?.naturalWidth, height: size?.naturalHeight });
-          });
-        }}>
-        <Box component={Avatar} src={value?.url} did={window.blocklet.appId} size={100} sx={{ borderRadius: 1 }} />
-
-        <Typography variant="caption" color="text.secondary">
-          {t('clickToUploadAgentLogo')}
-        </Typography>
-      </Stack>
-    </Box>
+    </Stack>
   );
 }
