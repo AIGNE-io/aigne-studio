@@ -1,3 +1,7 @@
+## 0.1.389 (2024-5-15)
+
+- fix: can not select children agents
+
 ## 0.1.388 (2024-5-15)
 
 - feat: support multi-agents

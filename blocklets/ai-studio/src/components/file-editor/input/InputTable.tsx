@@ -693,13 +693,10 @@ export function SelectTool<Multiple extends boolean | undefined>({
       size="medium"
       key={Boolean(value).toString()}
       disableClearable
-      clearOnBlur
       selectOnFocus
       handleHomeEndKeys
       multiple={multiple}
       disableCloseOnSelect={multiple}
-      autoSelect
-      autoHighlight
       sx={{ flex: 1 }}
       options={options}
       getOptionKey={(i) => i.id || `${i.name}`}
