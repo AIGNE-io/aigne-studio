@@ -31,6 +31,10 @@
     "./openapi": {
       "import": "./lib/esm/openapi.js",
       "require": "./lib/cjs/openapi.js"
+    },
+    "./util/*": {
+      "import": "./lib/esm/util/*.js",
+      "require": "./lib/cjs/util/*.js"
     }
   },
   "typesVersions": {
@@ -49,6 +53,9 @@
       ],
       "openapi": [
         "./lib/types/openapi.d.ts"
+      ],
+      "util/*": [
+        "./lib/types/util/*.d.ts"
       ]
     }
   },
