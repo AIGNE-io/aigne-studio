@@ -1,3 +1,7 @@
+## 0.1.386 (2024-5-15)
+
+- fix: when there is no Agent selection, give a hint, and you can add
+
 ## 0.1.385 (2024-5-15)
 
 - fix: the output cannot be edited when the storage variable is set.
