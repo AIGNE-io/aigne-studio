@@ -295,8 +295,8 @@ async function updateDiscussionEmbeddings(discussionId: string, datasetId: strin
 
     const discussion = await getDiscussion(discussionId);
     if (!discussion?.post) return false;
-
     const { post, languages = [] } = discussion;
+    await DatasetDocument.update({ name: post.title }, { where: { id: documentId, datasetId } });
 
     const getPostLink = (type: string, locale?: string) => {
       switch (type) {
