@@ -265,7 +265,14 @@ function VariableRow({
     return `${x.scope}_${x.key}` === `${j.scope}_${j.key}`;
   });
 
-  const v = datastoreVariable?.type
+  const error = useCheckConflictAssistantOutputAndSelectAgents({
+    selectAgentOutputVariables,
+    value,
+    v: variable,
+    depth,
+  });
+
+  const mergeVariable = datastoreVariable?.type
     ? {
         ...datastoreVariable?.type,
         id: variable.id,
@@ -274,8 +281,6 @@ function VariableRow({
         required: variable.required,
       }
     : variable;
-
-  const error = useCheckConflictAssistantOutputAndSelectAgents({ selectAgentOutputVariables, value, v, depth });
 
   return (
     <>
@@ -288,11 +293,14 @@ function VariableRow({
           }}>
           <Box component={TableCell}>
             <Box sx={{ ml: depth }}>
-              <OutputNameCell output={v} TextFieldProps={{ disabled: Boolean(disabled) || parent?.type === 'array' }} />
+              <OutputNameCell
+                output={variable}
+                TextFieldProps={{ disabled: Boolean(disabled) || parent?.type === 'array' }}
+              />
             </Box>
           </Box>
           <Box component={TableCell}>
-            <OutputDescriptionCell assistant={value} output={v} TextFieldProps={{ disabled }} />
+            <OutputDescriptionCell assistant={value} output={variable} TextFieldProps={{ disabled }} />
           </Box>
           <Box component={TableCell}>
             <OutputFormatCell output={variable} variable={datastoreVariable} TextFieldProps={{ disabled }} />
@@ -302,9 +310,9 @@ function VariableRow({
               <Switch
                 size="small"
                 disabled={Boolean(disabled)}
-                checked={v.required || false}
+                checked={variable.required || false}
                 onChange={(_, checked) => {
-                  v.required = checked;
+                  variable.required = checked;
                 }}
               />
             )}
@@ -325,12 +333,12 @@ function VariableRow({
       </Tooltip>
 
       {!runtimeVariable &&
-        v.type === 'object' &&
-        v.properties &&
-        sortBy(Object.values(v.properties), 'index').map((property) => (
+        mergeVariable.type === 'object' &&
+        mergeVariable.properties &&
+        sortBy(Object.values(mergeVariable.properties), 'index').map((property) => (
           <React.Fragment key={property.data.id}>
             <VariableRow
-              parent={v}
+              parent={mergeVariable}
               disabled={Boolean(variable.variable?.key || disabled)}
               value={value}
               variable={property.data}
@@ -340,23 +348,25 @@ function VariableRow({
               onRemove={() => {
                 const doc = (getYjsValue(variable) as Map<any>).doc!;
                 doc.transact(() => {
-                  if (!v.properties) return;
-                  delete v.properties[property.data.id];
-                  sortBy(Object.values(v.properties), 'index').forEach((item, index) => (item.index = index));
+                  if (!mergeVariable.properties) return;
+                  delete mergeVariable.properties[property.data.id];
+                  sortBy(Object.values(mergeVariable.properties), 'index').forEach(
+                    (item, index) => (item.index = index)
+                  );
                 });
               }}
             />
           </React.Fragment>
         ))}
 
-      {!runtimeVariable && v.type === 'array' && v.element && (
+      {!runtimeVariable && mergeVariable.type === 'array' && mergeVariable.element && (
         <VariableRow
-          parent={v}
+          parent={mergeVariable}
           disabled={Boolean(variable.variable?.key || disabled)}
           projectId={projectId}
           gitRef={gitRef}
           value={value}
-          variable={v.element}
+          variable={mergeVariable.element}
           depth={depth + 1}
         />
       )}

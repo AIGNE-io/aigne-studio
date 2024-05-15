@@ -1,3 +1,8 @@
+## 0.1.385 (2024-5-15)
+
+- fix: the output cannot be edited when the storage variable is set.
+- fix: the custom parameter disappears before selecting a new Agent
+
 ## 0.1.384 (2024-5-14)
 
 - fix: add router agent type
