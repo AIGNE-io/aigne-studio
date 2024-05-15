@@ -890,6 +890,33 @@ function DatastoreParameter({
 
 const filter = createFilterOptions<any>();
 
+function checkKeyParameterIsUsed({ value, key }: { value: AssistantYjs; key: string }) {
+  if (!key) {
+    return false;
+  }
+
+  const parameters = Object.values(value?.parameters || {}).flatMap((x) => {
+    if (x.data.type === 'source') {
+      if (x.data.source?.variableFrom === 'tool') {
+        return [Object.values(x.data.source?.agent?.parameters || {})];
+      }
+
+      if (x.data.source?.variableFrom === 'knowledge') {
+        return [Object.values(x.data.source?.knowledge?.parameters || {})];
+      }
+    }
+
+    return [];
+  });
+
+  return !!parameters.find((x) => {
+    return (x || []).find((str) => {
+      const pattern = new RegExp(`{{\\s*${key}\\s*}}`);
+      return pattern.test(str);
+    });
+  });
+}
+
 function AgentParameter({
   value,
   projectId,
@@ -937,7 +964,7 @@ function AgentParameter({
               if (_value) {
                 // 删除历史自动添加的变量
                 Object.values(value.parameters || {}).forEach((x) => {
-                  if (x.data.from === FROM_PARAMETER) {
+                  if (x.data.from === FROM_PARAMETER && !checkKeyParameterIsUsed({ value, key: x.data.key || '' })) {
                     deleteParameter(x.data);
                   }
                 });
