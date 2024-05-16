@@ -18,9 +18,9 @@ export function validateOutputs({
     const input =
       output.from?.type === 'input' ? assistant.parameters?.find((input) => input.id === output.from?.id) : undefined;
 
-    if (input?.key) {
+    if (input?.key && output.name) {
       const val = inputs?.[input.key];
-      if (!isNil(val)) return { ...res, [input.key]: val };
+      if (!isNil(val)) return { ...res, [output.name]: val };
     }
 
     return res;
