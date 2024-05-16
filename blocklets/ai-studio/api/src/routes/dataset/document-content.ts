@@ -133,7 +133,7 @@ export const getDiscussionContents = async (document: DatasetDocument, maxLength
 };
 
 const getAllContents = async (datasetId: string) => {
-  const documents = await DatasetDocument.findAll({ where: { datasetId } });
+  const documents = await DatasetDocument.findAll({ order: [['createdAt', 'DESC']], where: { datasetId } });
   const docs: string[] = [];
   let maxLength = toBN('1000000'); // 100w 字段限制？？
 
