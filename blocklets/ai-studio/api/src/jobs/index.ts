@@ -11,7 +11,7 @@ const initCronJob = () => {
   if (!cronJob) {
     cronJob = Cron.init({
       context: {},
-      jobs,
+      jobs: jobs(),
       onError: (err: Error) => {
         console.error('run job failed', err);
       },
