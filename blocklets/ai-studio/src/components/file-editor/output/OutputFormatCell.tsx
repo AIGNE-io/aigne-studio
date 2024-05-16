@@ -1,6 +1,6 @@
 import useDialog from '@app/utils/use-dialog';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { OutputVariableYjs, VariableYjs } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, OutputVariableYjs, VariableYjs } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import BracketsContainIcon from '@iconify-icons/tabler/brackets-contain';
 import CodePlusIcon from '@iconify-icons/tabler/code-plus';
@@ -12,10 +12,12 @@ import { nanoid } from 'nanoid';
 import { getRuntimeOutputVariable } from './type';
 
 export default function OutputFormatCell({
+  assistant,
   output,
   variable,
   TextFieldProps,
 }: {
+  assistant: AssistantYjs;
   output: OutputVariableYjs;
   variable?: VariableYjs;
   TextFieldProps?: TextFieldProps;
@@ -24,8 +26,9 @@ export default function OutputFormatCell({
   const { dialog, showDialog } = useDialog();
 
   const runtimeVariable = getRuntimeOutputVariable(output);
-
   if (runtimeVariable) return null;
+
+  const inputType = output.from?.type === 'input' ? assistant.parameters?.[output.from.id] : undefined;
 
   return (
     <>
@@ -34,7 +37,8 @@ export default function OutputFormatCell({
       <VariableTypeField
         variant="standard"
         {...TextFieldProps}
-        value={(variable?.type ?? output).type || 'string'}
+        disabled={!!inputType}
+        value={inputType ? inputType.data.type : (variable?.type ?? output).type || 'string'}
         onChange={(e) => {
           const type = e.target.value as any;
 

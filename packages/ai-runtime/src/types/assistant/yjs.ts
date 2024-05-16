@@ -78,6 +78,7 @@ export interface RuntimeOutputOpeningQuestionsYjs {
 
 export type OutputVariableYjs = VariableTypeYjs & {
   variable?: { key: string; scope: string };
+  from?: { type: 'input'; id: string };
   initialValue?: RuntimeOutputVariablesSchemaYjs[RuntimeOutputVariable];
 };
 

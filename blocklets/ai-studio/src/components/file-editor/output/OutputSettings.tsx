@@ -163,14 +163,14 @@ export default function OutputSettings({
         <AddOutputVariableButton
           allSelectAgentOutputs={cloneDeep(allSelectAgentOutputs)}
           assistant={value}
-          onSelect={({ name }) => {
+          onSelect={({ name, from }) => {
             setField((vars) => {
               const exist = name ? outputVariables?.find((i) => i.data.name === name) : undefined;
               if (exist) {
                 delete vars[exist.data.id];
               } else {
                 const id = nanoid();
-                vars[id] = { index: Object.values(vars).length, data: { id, name, type: 'string' } };
+                vars[id] = { index: Object.values(vars).length, data: { id, name, from } };
               }
 
               sortBy(Object.values(vars), 'index').forEach((item, index) => (item.index = index));
@@ -214,24 +214,29 @@ const outputGroups: { [key in RuntimeOutputVariable]?: { group: 'system' | 'appe
 };
 
 function useSortedOutputs({ outputVariables }: { outputVariables: AssistantYjs['outputVariables'] }) {
-  return useMemo(() => {
-    const groups: { [key in 'system' | 'appearance' | 'custom']: { index: number; data: OutputVariableYjs }[] } = {
-      system: [],
-      appearance: [],
-      custom: [],
-    };
+  const groups: {
+    [key in 'system' | 'appearance' | 'input' | 'custom']: { index: number; data: OutputVariableYjs }[];
+  } = {
+    system: [],
+    appearance: [],
+    input: [],
+    custom: [],
+  };
 
-    const outputs = sortBy(
-      Object.values(outputVariables ?? {}),
-      (item) => outputGroups[item.data.name as RuntimeOutputVariable]?.index ?? item.index
-    );
-    for (const item of outputs) {
+  const outputs = sortBy(
+    Object.values(outputVariables ?? {}),
+    (item) => outputGroups[item.data.name as RuntimeOutputVariable]?.index ?? item.index
+  );
+  for (const item of outputs) {
+    if (item.data.from?.type === 'input') {
+      groups['input'].push(item);
+    } else {
       const group = outputGroups[item.data.name as RuntimeOutputVariable]?.group || 'custom';
       groups[group].push(item);
     }
+  }
 
-    return groups;
-  }, [cloneDeep(outputVariables)]);
+  return groups;
 }
 
 function VariableRow({
@@ -304,10 +309,15 @@ function VariableRow({
             <OutputDescriptionCell assistant={value} output={variable} TextFieldProps={{ disabled }} />
           </Box>
           <Box component={TableCell}>
-            <OutputFormatCell output={variable} variable={datastoreVariable} TextFieldProps={{ disabled }} />
+            <OutputFormatCell
+              assistant={value}
+              output={variable}
+              variable={datastoreVariable}
+              TextFieldProps={{ disabled }}
+            />
           </Box>
           <Box component={TableCell}>
-            {!runtimeVariable && (
+            {!runtimeVariable && variable.from?.type !== 'input' && (
               <Switch
                 size="small"
                 disabled={Boolean(disabled)}

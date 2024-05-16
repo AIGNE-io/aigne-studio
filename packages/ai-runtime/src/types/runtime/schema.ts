@@ -79,8 +79,9 @@ export const runtimeVariablesSchema: { [key in RuntimeOutputVariable]?: OmitUnio
   },
 };
 
-export function outputVariablesToJsonSchema(variables: OutputVariable[], datastoreVariables: Variable[]) {
+export function outputVariablesToJsonSchema(assistant: Assistant, datastoreVariables: Variable[]) {
   const variableToSchema = (variable: OmitUnion<OutputVariable, 'id'>): object | undefined => {
+    if (variable.from?.type === 'input') return undefined;
     if (ignoreJsonSchemaOutputs.has(variable.name as RuntimeOutputVariable)) return undefined;
 
     if (variable.name && isRuntimeOutputVariable(variable.name)) {
@@ -129,12 +130,21 @@ export function outputVariablesToJsonSchema(variables: OutputVariable[], datasto
     };
   };
 
-  return variableToSchema({ type: 'object', properties: variables });
+  return variableToSchema({ type: 'object', properties: assistant.outputVariables });
 }
 
-export function outputVariablesToJoiSchema(variables: OutputVariable[], datastoreVariables: Variable[]): Joi.AnySchema {
+export function outputVariablesToJoiSchema(assistant: Assistant, datastoreVariables: Variable[]): Joi.AnySchema {
   const variableToSchema = (variable: OmitUnion<OutputVariable, 'id'>): Joi.AnySchema | undefined => {
     let schema: Joi.AnySchema | undefined;
+
+    if (variable.from?.type === 'input') {
+      const input = assistant.parameters?.find((i) => i.id === variable.from?.id);
+      if (input) {
+        return Joi.any();
+      }
+
+      return undefined;
+    }
 
     if (variable.name && isRuntimeOutputVariable(variable.name)) {
       const runtimeVariable = runtimeVariablesSchema[variable.name as RuntimeOutputVariable];
@@ -187,7 +197,7 @@ export function outputVariablesToJoiSchema(variables: OutputVariable[], datastor
     return schema;
   };
 
-  return variableToSchema({ type: 'object', properties: variables ?? [] })!;
+  return variableToSchema({ type: 'object', properties: assistant.outputVariables ?? [] })!;
 }
 
 export enum RuntimeOutputVariable {

@@ -88,7 +88,7 @@ export default function OutputActionsCell({
         projectId={projectId}
         gitRef={gitRef}
         assistant={assistant}
-        isSaveAs={Boolean(depth === 0 && !runtimeVariable)}
+        isSaveAs={Boolean(depth === 0 && !runtimeVariable && output.from?.type !== 'input')}
         runtimeVariable={Boolean(runtimeVariable)}
         variables={variables}
         variable={variable}
