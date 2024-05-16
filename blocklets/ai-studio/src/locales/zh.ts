@@ -680,4 +680,7 @@ export default flat({
   profile: '档案',
   avatar: '头像',
   outputFromInputPlaceholder: '来自输入 "{input}"',
+  launchMore: '启动更多',
+  launchMoreContent: '你已经达到了 4 个项目的限制。\n启动你自己的 AI 工作室以创建更多项目 👇',
+  launchMoreConfirm: '启动我的 AI 工作室',
 });

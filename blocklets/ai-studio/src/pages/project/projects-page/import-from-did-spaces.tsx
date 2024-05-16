@@ -202,7 +202,7 @@ export default function FromDidSpacesImport() {
   const id = useId();
   const navigate = useNavigate();
   const dialogState = usePopupState({ variant: 'dialog', popupId: id });
-  const { listProjectsByDidSpaces, fromDidSpacesImport } = useProjectsState();
+  const { listProjectsByDidSpaces, fromDidSpacesImport, createLimitDialog, limitDialog } = useProjectsState();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(false);
   const { session } = useSessionContext();
@@ -221,7 +221,12 @@ export default function FromDidSpacesImport() {
       setProjects(data);
     } catch (error) {
       console.error(error);
-      Toast.error(getErrorMessage(error));
+      const message = getErrorMessage(error);
+      if (String(message || '').includes('Project limit exceeded')) {
+        createLimitDialog();
+      } else {
+        Toast.error(message);
+      }
     } finally {
       setLoading(false);
     }
@@ -260,7 +265,12 @@ export default function FromDidSpacesImport() {
         navigate(joinURL('/projects', project._id));
       } catch (error) {
         form.reset(value);
-        Toast.error(getErrorMessage(error));
+        const message = getErrorMessage(error);
+        if (String(message || '').includes('Project limit exceeded')) {
+          createLimitDialog();
+        } else {
+          Toast.error(message);
+        }
         throw error;
       }
     },
@@ -393,6 +403,8 @@ export default function FromDidSpacesImport() {
           </LoadingButton>
         </DialogActions>
       </Dialog>
+
+      {limitDialog}
     </>
   );
 }

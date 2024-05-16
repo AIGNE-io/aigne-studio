@@ -686,4 +686,7 @@ export default flat({
   profile: 'Profile',
   avatar: 'Avatar',
   outputFromInputPlaceholder: 'From Input "{input}"',
+  launchMore: 'Launch for more',
+  launchMoreContent: "You've reached the limit of 4 projects.\nLaunch your own AI Studio to create more projects 👇",
+  launchMoreConfirm: 'Launch My AI Studio',
 });

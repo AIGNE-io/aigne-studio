@@ -1,6 +1,8 @@
+import { useProjectsState } from '@app/contexts/projects';
 import currentGitStore from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
+import Toast from '@arcblock/ux/lib/Toast';
 import RocketLaunchRoundedIcon from '@mui/icons-material/RocketLaunchRounded';
 import {
   Avatar,
@@ -20,6 +22,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
+import { getErrorMessage } from '../../../libs/api';
 import { ProjectWithUserInfo, createProject, getProjectIconUrl } from '../../../libs/project';
 import useDialog from '../../../utils/use-dialog';
 import Close from '../icons/close';
@@ -34,6 +37,7 @@ export default function ImportFromTemplates({
   const { t, locale } = useLocaleContext();
   const { dialog, showDialog } = useDialog();
   const navigate = useNavigate();
+  const { createLimitDialog, limitDialog } = useProjectsState();
 
   return (
     <>
@@ -92,11 +96,20 @@ export default function ImportFromTemplates({
                       okText: t('create'),
                       okIcon: <RocketLaunchRoundedIcon />,
                       onOk: async () => {
-                        const project = await createProject({ templateId: id, name, description });
-                        currentGitStore.setState({
-                          currentProjectId: project._id,
-                        });
-                        navigate(joinURL('/projects', project._id));
+                        try {
+                          const project = await createProject({ templateId: id, name, description });
+                          currentGitStore.setState({
+                            currentProjectId: project._id,
+                          });
+                          navigate(joinURL('/projects', project._id));
+                        } catch (error) {
+                          const message = getErrorMessage(error);
+                          if (String(message || '').includes('Project limit exceeded')) {
+                            createLimitDialog();
+                          } else {
+                            Toast.error(message);
+                          }
+                        }
                       },
                     });
                   }}>
@@ -169,6 +182,7 @@ export default function ImportFromTemplates({
       </Dialog>
 
       {dialog}
+      {limitDialog}
     </>
   );
 }
