@@ -1,3 +1,7 @@
+## 0.1.395 (2024-5-16)
+
+- fix: when the project does not create more permissions, give a guide.
+
 ## 0.1.394 (2024-5-16)
 
 - feat: auto synchronization of knowledge base data

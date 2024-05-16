@@ -137,7 +137,11 @@ export const useProjectsState = () => {
       fullWidth: true,
       maxWidth: 'sm',
       title: t('launchMore'),
-      content: <Box sx={{ whiteSpace: 'break-spaces' }}>{t('launchMoreContent')}</Box>,
+      content: (
+        <Box sx={{ whiteSpace: 'break-spaces' }}>
+          {t('launchMoreContent', { length: window?.blocklet?.preferences?.multiTenantProjectLimits })}
+        </Box>
+      ),
       cancelText: t('cancel'),
       okText: t('launchMoreConfirm'),
       onOk: () => window.open(AI_STUDIO_STORE, '_blank'),
