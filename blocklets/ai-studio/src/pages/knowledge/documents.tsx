@@ -132,6 +132,7 @@ export default function KnowledgeDocuments() {
         flex: 1,
         sortable: false,
         renderCell: (params: any) => {
+          console.log(getParamsName(params));
           return (
             <Tooltip title={getParamsName(params)}>
               <Box pr={2} className="ellipsis">
@@ -304,7 +305,7 @@ export default function KnowledgeDocuments() {
         ),
       },
     ],
-    [t]
+    [t, getParamsName]
   );
 
   if (state.loading) {

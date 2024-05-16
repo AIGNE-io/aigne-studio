@@ -250,9 +250,12 @@ async function updateDiscussionEmbeddings(discussionId: string, datasetId: strin
     };
 
     const discussion = await getDiscussion(discussionId);
+    const found = await DatasetDocument.findOne({ where: { id: documentId, datasetId } });
     if (!discussion?.post) return false;
     const { post, languages = [] } = discussion;
-    await DatasetDocument.update({ name: post.title }, { where: { id: documentId, datasetId } });
+    if (found && found.name !== post.title) {
+      await found.update({ name: post.title });
+    }
 
     const getPostLink = (type: string, locale?: string) => {
       switch (type) {

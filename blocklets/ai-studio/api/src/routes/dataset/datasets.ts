@@ -6,6 +6,7 @@ import { Op, Sequelize } from 'sequelize';
 
 import { userAuth } from '../../libs/user';
 import Dataset from '../../store/models/dataset/dataset';
+import DatasetDocument from '../../store/models/dataset/document';
 import { sse } from './embeddings';
 
 const router = Router();
@@ -225,7 +226,7 @@ router.delete('/:datasetId', user(), userAuth(), async (req, res) => {
     return;
   }
 
-  await Dataset.destroy({ where: { id: datasetId } });
+  await Promise.all([Dataset.destroy({ where: { id: datasetId } }), DatasetDocument.destroy({ where: { datasetId } })]);
 
   res.json(dataset);
 });
