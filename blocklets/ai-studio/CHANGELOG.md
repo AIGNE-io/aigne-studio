@@ -1,3 +1,7 @@
+## 0.1.391 (2024-5-16)
+
+- fix: return validated outputs
+
 ## 0.1.390 (2024-5-16)
 
 - feat: support output a input

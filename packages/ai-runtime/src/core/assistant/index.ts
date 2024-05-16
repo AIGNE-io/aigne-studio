@@ -387,7 +387,7 @@ export default async function(args) {
     execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
   });
 
-  return result;
+  return object;
 }
 
 async function runApiAssistant({
@@ -481,7 +481,7 @@ async function runApiAssistant({
     execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
   });
 
-  return result;
+  return object;
 }
 
 const cacheTranslateFunctionNames: { [key: string]: string } = {};
@@ -1725,7 +1725,7 @@ async function runImageAssistant({
     execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
   });
 
-  return data;
+  return object;
 }
 
 async function runExecuteBlocks({
