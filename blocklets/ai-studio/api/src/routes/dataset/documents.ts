@@ -16,9 +16,10 @@ import DatasetContent from '../../store/models/dataset/content';
 import Dataset from '../../store/models/dataset/dataset';
 import DatasetDocument from '../../store/models/dataset/document';
 import EmbeddingHistories from '../../store/models/dataset/embedding-history';
-import DatasetSegment from '../../store/models/dataset/segment';
 import VectorStore from '../../store/vector-store-faiss';
-import { queue, updateHistoriesAndStore } from './embeddings';
+import getAllContents from './document-content';
+import { queue } from './embeddings';
+import { updateHistoriesAndStore } from './vector-store';
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -99,13 +100,8 @@ router.get('/:datasetId/search', async (req, res) => {
   }
 
   if (input.searchAll) {
-    const documentIds = (await DatasetDocument.findAll({ where: { datasetId } })).map((x) => x.id);
-    const list = await DatasetSegment.findAll({
-      order: [['createdAt', 'ASC']],
-      where: { documentId: { [Op.in]: documentIds } },
-    });
-
-    res.json({ docs: list.map((x) => ({ content: x.content })) });
+    const docs = await getAllContents(datasetId);
+    res.json({ docs });
     return;
   }
 

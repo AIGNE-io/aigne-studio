@@ -12,7 +12,12 @@ const ignoreDescriptionVariables = new Set([
   RuntimeOutputVariable.share,
   RuntimeOutputVariable.openingQuestions,
   RuntimeOutputVariable.openingMessage,
+  RuntimeOutputVariable.profile,
 ]);
+
+function isIgnoreDescription(output: OutputVariableYjs) {
+  return ignoreDescriptionVariables.has(output.name as RuntimeOutputVariable);
+}
 
 export default function OutputDescriptionCell({
   assistant,
@@ -25,14 +30,21 @@ export default function OutputDescriptionCell({
 }) {
   const { t } = useLocaleContext();
 
+  const input = output.from?.type === 'input' ? assistant.parameters?.[output.from.id] : undefined;
+
   return (
     <TextField
-      sx={{ visibility: ignoreDescriptionVariables.has(output.name as RuntimeOutputVariable) ? 'hidden' : undefined }}
+      disabled={output.from?.type === 'input'}
+      sx={{ visibility: isIgnoreDescription(output) ? 'hidden' : undefined }}
       variant="standard"
       fullWidth
       hiddenLabel
       {...TextFieldProps}
-      placeholder={t(assistant.type === 'prompt' ? 'outputVariablePlaceholderForLLM' : 'outputVariablePlaceholder')}
+      placeholder={
+        output.from?.type === 'input'
+          ? t('outputFromInputPlaceholder', { input: input?.data.key })
+          : t(assistant.type === 'prompt' ? 'outputVariablePlaceholderForLLM' : 'outputVariablePlaceholder')
+      }
       value={output.description || ''}
       onChange={(e) => (output.description = e.target.value)}
     />

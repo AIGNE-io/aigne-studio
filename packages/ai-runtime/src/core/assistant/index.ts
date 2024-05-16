@@ -44,7 +44,7 @@ import {
   isRouterAssistant,
 } from '../../types/assistant';
 import { AssistantResponseType, ExecutionPhase, RuntimeOutputVariable } from '../../types/runtime';
-import { outputVariablesToJoiSchema, outputVariablesToJsonSchema } from '../../types/runtime/schema';
+import { outputVariablesToJsonSchema } from '../../types/runtime/schema';
 import retry from '../utils/retry';
 import { BuiltinModules } from './builtin';
 import {
@@ -55,6 +55,7 @@ import {
 } from './generate-output';
 import selectAgentName from './select-agent';
 import { CallAI, CallAIImage, GetAssistant, RunAssistantCallback, ToolCompletionDirective } from './type';
+import { validateOutputs } from './validate-outputs';
 
 const md5 = (str: string) => crypto.createHash('md5').update(str).digest('hex');
 
@@ -368,8 +369,7 @@ export default async function(args) {
 
   const result = await module.default();
 
-  const schema = outputVariablesToJoiSchema(assistant.outputVariables ?? [], datastoreVariables);
-  const object = await schema.validateAsync(result);
+  const object = await validateOutputs({ assistant, datastoreVariables, inputs: parameters, outputs: result });
 
   callback?.({
     type: AssistantResponseType.CHUNK,
@@ -387,7 +387,7 @@ export default async function(args) {
     execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
   });
 
-  return result;
+  return object;
 }
 
 async function runApiAssistant({
@@ -463,8 +463,7 @@ async function runApiAssistant({
     throw error;
   }
 
-  const schema = outputVariablesToJoiSchema(assistant.outputVariables ?? [], datastoreVariables);
-  const object = await schema.validateAsync(result);
+  const object = await validateOutputs({ assistant, datastoreVariables, inputs: parameters, outputs: result });
 
   callback?.({
     type: AssistantResponseType.CHUNK,
@@ -482,7 +481,7 @@ async function runApiAssistant({
     execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
   });
 
-  return result;
+  return object;
 }
 
 const cacheTranslateFunctionNames: { [key: string]: string } = {};
@@ -869,8 +868,7 @@ async function runRouterAssistant({
     ));
 
   const obj = result?.length === 1 ? result[0] : result;
-  const joiSchema = outputVariablesToJoiSchema(assistant.outputVariables || [], datastoreVariables);
-  const jsonResult = await joiSchema.validateAsync(obj);
+  const jsonResult = await validateOutputs({ assistant, datastoreVariables, inputs: parameters, outputs: obj });
 
   callback?.({
     type: AssistantResponseType.CHUNK,
@@ -1250,8 +1248,6 @@ async function runAgent({
   projectId?: string;
   datastoreVariables: Variable[];
 }) {
-  const { outputVariables = [] } = assistant;
-
   callback?.({
     type: AssistantResponseType.EXECUTE,
     taskId,
@@ -1270,9 +1266,7 @@ async function runAgent({
     inputParameters: parameters,
   });
 
-  const schema = outputVariablesToJoiSchema(outputVariables, datastoreVariables);
-
-  const result = await schema.validateAsync({});
+  const result = await validateOutputs({ assistant, datastoreVariables, inputs: parameters, outputs: {} });
 
   callback?.({
     type: AssistantResponseType.CHUNK,
@@ -1292,49 +1286,6 @@ async function runAgent({
 
   return result;
 }
-
-export const validateAsyncJSON = async ({
-  callAI,
-  assistant,
-  datastoreVariables,
-  messages,
-  json,
-  result,
-}: {
-  callAI: CallAI;
-  assistant: PromptAssistant | RouterAssistant;
-  datastoreVariables: Variable[];
-  messages: { role: Role; content: string }[];
-  json: object;
-  result: any;
-}) => {
-  const { outputVariables = [] } = assistant;
-  const onlyOutputJson = !outputVariables.some((i) => (i.name as RuntimeOutputVariable) === RuntimeOutputVariable.text);
-
-  let jsonResult;
-  const joiSchema = outputVariablesToJoiSchema(outputVariables, datastoreVariables);
-  try {
-    jsonResult = await joiSchema.validateAsync(json);
-  } catch (error) {
-    if (onlyOutputJson) {
-      throw new Error('Unexpected response format from AI');
-    } else {
-      try {
-        jsonResult = await generateOutput({
-          assistant,
-          messages: messages.concat({ role: 'assistant', content: JSON.stringify(result) }),
-          callAI,
-          maxRetries: MAX_RETRIES,
-          datastoreVariables,
-        });
-      } catch (error) {
-        throw new Error('Unexpected response format from AI');
-      }
-    }
-  }
-
-  return jsonResult;
-};
 
 async function runPromptAssistant({
   callAI,
@@ -1449,7 +1400,7 @@ async function runPromptAssistant({
     (i) => i.name && (i.name as RuntimeOutputVariable) !== RuntimeOutputVariable.text
   );
 
-  const schema = outputVariablesToJsonSchema(outputVariables, datastoreVariables);
+  const schema = outputVariablesToJsonSchema(assistant, datastoreVariables);
   const outputSchema = JSON.stringify(schema);
 
   const messagesWithSystemPrompt = [...messages];
@@ -1529,7 +1480,6 @@ async function runPromptAssistant({
     }
 
     if (onlyOutputJson || outputStreamAndJson) {
-      const joiSchema = outputVariablesToJoiSchema(outputVariables, datastoreVariables);
       const json = {};
       for (const i of metadataStrings) {
         try {
@@ -1548,7 +1498,7 @@ async function runPromptAssistant({
       }
 
       try {
-        jsonResult = await joiSchema.validateAsync(json);
+        jsonResult = await validateOutputs({ assistant, datastoreVariables, inputs: parameters, outputs: json });
       } catch (error) {
         if (onlyOutputJson) {
           throw new Error('Unexpected response format from AI');
@@ -1752,8 +1702,12 @@ async function runImageAssistant({
     assistantName: assistant.name,
   });
 
-  const schema = outputVariablesToJoiSchema(assistant.outputVariables ?? [], datastoreVariables);
-  const object = await schema.validateAsync({ $images: data });
+  const object = await validateOutputs({
+    assistant,
+    datastoreVariables,
+    inputs: parameters,
+    outputs: { $images: data },
+  });
 
   callback?.({
     type: AssistantResponseType.CHUNK,
@@ -1771,7 +1725,7 @@ async function runImageAssistant({
     execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
   });
 
-  return data;
+  return object;
 }
 
 async function runExecuteBlocks({

@@ -1,3 +1,27 @@
+## 0.1.392 (2024-5-16)
+
+- chore: get all document data content in real time, not segment
+
+## 0.1.391 (2024-5-16)
+
+- fix: return validated outputs
+
+## 0.1.390 (2024-5-16)
+
+- feat: support output a input
+
+## 0.1.389 (2024-5-15)
+
+- fix: can not select children agents
+
+## 0.1.388 (2024-5-15)
+
+- feat: support multi-agents
+
+## 0.1.387 (2024-5-15)
+
+- fix: when there is no Agent selection, give a hint, and you can add
+
 ## 0.1.386 (2024-5-15)
 
 - fix: search knowledge

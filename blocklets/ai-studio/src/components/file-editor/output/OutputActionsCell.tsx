@@ -31,6 +31,7 @@ import AppearanceSettings from './AppearanceSettings';
 import ChildrenSettings from './ChildrenSettings';
 import OpeningMessageSettings from './OpeningMessageSettings';
 import OpeningQuestionsSettings from './OpeningQuestionsSettings';
+import ProfileSettings from './ProfileSettings';
 import ShareSettings from './ShareSettings';
 import { getRuntimeOutputVariable } from './type';
 
@@ -87,7 +88,7 @@ export default function OutputActionsCell({
         projectId={projectId}
         gitRef={gitRef}
         assistant={assistant}
-        isSaveAs={Boolean(depth === 0 && !runtimeVariable)}
+        isSaveAs={Boolean(depth === 0 && !runtimeVariable && output.from?.type !== 'input')}
         runtimeVariable={Boolean(runtimeVariable)}
         variables={variables}
         variable={variable}
@@ -129,6 +130,10 @@ function PopperButton({
   const [currentSetting, setSetting] = useState<'setting' | 'save'>('setting');
 
   const renderParameterSettings = (output: OutputVariableYjs) => {
+    if (RuntimeOutputVariable.profile === output.name) {
+      return <ProfileSettings output={output} />;
+    }
+
     if (RuntimeOutputVariable.openingQuestions === output.name) {
       return <OpeningQuestionsSettings assistant={assistant} output={output} />;
     }

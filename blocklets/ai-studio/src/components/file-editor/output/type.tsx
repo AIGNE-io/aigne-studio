@@ -10,6 +10,7 @@ import MessageCircleQuestionIcon from '@iconify-icons/tabler/message-circle-ques
 import MessageQuestionIcon from '@iconify-icons/tabler/message-question';
 import PhotoIcon from '@iconify-icons/tabler/photo';
 import ShareIcon from '@iconify-icons/tabler/share';
+import UserIcon from '@iconify-icons/tabler/user';
 import WritingIcon from '@iconify-icons/tabler/writing';
 import { Box } from '@mui/material';
 import { ReactNode } from 'react';
@@ -61,6 +62,12 @@ export const runtimeOutputVariables: {
   {
     group: 'appearance',
     outputs: [
+      {
+        icon: <Icon icon={UserIcon} />,
+        title: 'Profile',
+        i18nKey: 'profile',
+        name: RuntimeOutputVariable.profile,
+      },
       {
         icon: <Icon icon={LayoutIcon} />,
         title: 'Appearance Page',

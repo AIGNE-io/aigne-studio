@@ -33,3 +33,5 @@ lerna-debug.log*
 
 *.env
 blocklets/ai-studio/.env.development
+
+*.tsbuildinfo

@@ -23,6 +23,7 @@ import MessageIcon from '@iconify-icons/tabler/message';
 import SquareNumberIcon from '@iconify-icons/tabler/square-number-1';
 import {
   Autocomplete,
+  AutocompleteValue,
   Box,
   Button,
   ClickAwayListener,
@@ -672,16 +673,18 @@ type Option = {
   parameters?: { [key: string]: any };
 };
 
-export function SelectTool({
+export function SelectTool<Multiple extends boolean | undefined>({
   placeholder,
   options,
   value,
   onChange,
+  multiple,
 }: {
   placeholder?: string;
   options: Option[];
-  value?: Option;
-  onChange: (v: Option) => void;
+  multiple?: Multiple;
+  value?: AutocompleteValue<Option, Multiple, false, false>;
+  onChange?: (value: AutocompleteValue<Option, Multiple, false, false>) => void;
 }) {
   const { t } = useLocaleContext();
 
@@ -690,11 +693,10 @@ export function SelectTool({
       size="medium"
       key={Boolean(value).toString()}
       disableClearable
-      clearOnBlur
       selectOnFocus
       handleHomeEndKeys
-      autoSelect
-      autoHighlight
+      multiple={multiple}
+      disableCloseOnSelect={multiple}
       sx={{ flex: 1 }}
       options={options}
       getOptionKey={(i) => i.id || `${i.name}`}
@@ -712,7 +714,7 @@ export function SelectTool({
         return filter(options, params);
       }}
       renderInput={(params) => <TextField hiddenLabel {...params} placeholder={placeholder} size="medium" />}
-      onChange={(_, _value) => onChange(_value)}
+      onChange={(_, val) => onChange?.(val)}
     />
   );
 }
@@ -759,6 +761,7 @@ function KnowledgeParameter({
           <SelectTool
             options={options}
             value={v}
+            multiple={false}
             placeholder={t('selectKnowledgePlaceholder')}
             onChange={(_value) => {
               if (_value) {
@@ -960,6 +963,7 @@ function AgentParameter({
           <SelectTool
             placeholder={t('selectAgentToCallPlaceholder')}
             options={options || []}
+            multiple={false}
             value={v}
             onChange={(_value) => {
               if (_value) {
