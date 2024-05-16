@@ -265,7 +265,7 @@ function VariableRow({
   const { getVariables } = useProjectStore(projectId, gitRef);
   const variableYjs = getVariables();
 
-  const variables = (variableYjs?.variables || []).filter((x) => x.type?.type === variable.type);
+  const variables = (variableYjs?.variables || []).filter((x) => x.type?.type === (variable.type || 'string'));
   const datastoreVariable = variables.find((x) => {
     const j = variable?.variable ?? { scope: '', key: '' };
     return `${x.scope}_${x.key}` === `${j.scope}_${j.key}`;
