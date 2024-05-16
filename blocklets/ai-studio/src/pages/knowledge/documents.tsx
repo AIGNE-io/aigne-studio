@@ -111,14 +111,14 @@ export default function KnowledgeDocuments() {
   const getParamsName = (params: any) => {
     if (params?.row?.type === 'discussKit') {
       if (params.row.data?.data.from === 'discussionType') {
-        return `${t(params.row.data?.data.id)}${t('data')}`;
+        return `${t(params.row.data?.data.id)}`;
       }
 
       if (params.row.data?.data.from === 'board') {
-        return `${params.row.data?.data.title}${t('board')}`;
+        return `${params.row.data?.data.title}`;
       }
 
-      return `${params.row.data?.data.title}${t('data')}`;
+      return params?.row?.name;
     }
 
     return params?.row?.name;
@@ -132,7 +132,6 @@ export default function KnowledgeDocuments() {
         flex: 1,
         sortable: false,
         renderCell: (params: any) => {
-          console.log(getParamsName(params));
           return (
             <Tooltip title={getParamsName(params)}>
               <Box pr={2} className="ellipsis">

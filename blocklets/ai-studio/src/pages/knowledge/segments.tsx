@@ -74,7 +74,7 @@ export default function KnowledgeSegments() {
             }}>
             <Box component={Icon} icon={ChevronLeftIcon} width={20} />
             <Typography variant="subtitle2" mb={0}>
-              {state.dataset?.name}
+              {state.document?.name}
             </Typography>
           </Box>
 
