@@ -134,7 +134,7 @@ export const getDiscussionContents = async (document: DatasetDocument, maxLength
 
 const getAllContents = async (datasetId: string) => {
   const documents = await DatasetDocument.findAll({ order: [['createdAt', 'DESC']], where: { datasetId } });
-  const docs: string[] = [];
+  const docs: { title: string; content: string }[] = [];
   let maxLength = toBN('1000000'); // 100w 字段限制？？
 
   for (const document of documents) {
@@ -157,10 +157,10 @@ const getAllContents = async (datasetId: string) => {
       }
     }
 
-    content.forEach((doc) => docs.push(doc));
+    content.forEach((doc) => docs.push({ title: document.name || '', content: doc }));
   }
 
-  return docs.map((x) => ({ content: x }));
+  return docs;
 };
 
 export default getAllContents;
