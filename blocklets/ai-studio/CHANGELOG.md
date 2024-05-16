@@ -1,3 +1,7 @@
+## 0.1.390 (2024-5-16)
+
+- feat: support output a input
+
 ## 0.1.389 (2024-5-15)
 
 - fix: can not select children agents

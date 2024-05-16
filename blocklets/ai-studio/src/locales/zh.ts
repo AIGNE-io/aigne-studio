@@ -679,4 +679,5 @@ export default flat({
   searchContent: '搜索数据',
   profile: '档案',
   avatar: '头像',
+  outputFromInputPlaceholder: '来自输入 "{input}"',
 });

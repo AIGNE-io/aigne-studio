@@ -685,4 +685,5 @@ export default flat({
   searchContent: 'Search Content',
   profile: 'Profile',
   avatar: 'Avatar',
+  outputFromInputPlaceholder: 'From Input "{input}"',
 });
