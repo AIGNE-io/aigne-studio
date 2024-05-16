@@ -1,3 +1,7 @@
+## 0.1.393 (2024-5-16)
+
+- fix: filter variables fail
+
 ## 0.1.392 (2024-5-16)
 
 - chore: get all document data content in real time, not segment
