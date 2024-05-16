@@ -60,7 +60,7 @@ export default function OutputActionsCell({
 
   const { getVariables } = useProjectStore(projectId, gitRef);
   const variableYjs = getVariables();
-  const variables = (variableYjs?.variables || []).filter((x) => x.type?.type === output.type);
+  const variables = (variableYjs?.variables || []).filter((x) => x.type?.type === (output.type || 'string'));
 
   return (
     <Stack direction="row" gap={1} justifyContent="flex-end">
