@@ -1,12 +1,12 @@
+import Close from '@app/pages/project/icons/close';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
-import PencilIcon from '@iconify-icons/tabler/pencil';
+import ChevronLeftIcon from '@iconify-icons/tabler/chevron-left';
 import { SaveRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
   Box,
-  Breadcrumbs,
   Button,
   CircularProgress,
   Dialog,
@@ -14,12 +14,7 @@ import {
   DialogContent,
   DialogTitle,
   Divider,
-  FormControl,
   IconButton,
-  InputLabel,
-  MenuItem,
-  Select,
-  SelectChangeEvent,
   Stack,
   StackProps,
   TextField,
@@ -29,7 +24,7 @@ import {
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { Link, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import { useFetchSegments, useSegments } from '../../contexts/datasets/segments';
 import { getErrorMessage } from '../../libs/api';
@@ -40,16 +35,14 @@ export default function KnowledgeSegments() {
   const { t } = useLocaleContext();
   const params = useParams();
   const { datasetId, documentId } = params;
+  const navigate = useNavigate();
 
   const segmentDialogState = usePopupState({ variant: 'dialog', popupId: 'segment' });
   const documentDialogState = usePopupState({ variant: 'dialog', popupId: 'document' });
 
   const form = useForm<{ content: string }>({ defaultValues: { content: '' } });
-  const [viewType, setViewType] = useState('ContentView');
+  const [viewType] = useState('SegmentsView');
 
-  const handleChange = (event: SelectChangeEvent) => {
-    setViewType(event.target.value);
-  };
   const { state, refetch } = useSegments(datasetId || '', documentId || '');
   const { loadingRef, dataState } = useFetchSegments(datasetId || '', documentId || '');
   const [readContent, setReadContent] = useState('');
@@ -60,51 +53,34 @@ export default function KnowledgeSegments() {
 
   if (state.loading || dataState.loading) {
     return (
-      <Box flex={1} className="center">
-        <CircularProgress size={20} />
-      </Box>
+      <Stack overflow="hidden" height={1}>
+        <Box flex={1} className="center">
+          <CircularProgress size={20} />
+        </Box>
+      </Stack>
     );
   }
 
   return (
     <>
-      <>
-        <Stack gap={3} py={2} px={3}>
-          <Breadcrumbs sx={{ a: { color: 'rgba(29,28,35,.35)', textDecoration: 'auto' } }}>
-            <Link color="inherit" to="../../knowledge">
-              {t('knowledge.menu')}
-            </Link>
-
-            <Link color="inherit" to={`../${datasetId}`}>
-              {state.dataset?.name}
-            </Link>
-
-            <Typography color="text.primary">{state.document?.name}</Typography>
-          </Breadcrumbs>
+      <Stack overflow="hidden" height={1} bgcolor="#fff">
+        <Stack gap={1} py={2} px={2.5}>
+          <Box
+            display="flex"
+            alignItems="center"
+            sx={{ cursor: 'pointer' }}
+            onClick={() => {
+              navigate(`../${datasetId}`);
+            }}>
+            <Box component={Icon} icon={ChevronLeftIcon} width={20} />
+            <Typography variant="subtitle2" mb={0}>
+              {state.document?.name}
+            </Typography>
+          </Box>
 
           <Box display="flex" justifyContent="space-between" alignItems="center">
             <Box>
-              <Box
-                sx={{
-                  fontSize: '20px',
-                  fontWeight: 600,
-                  lineHeight: '28px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1,
-                }}>
-                <Box>{state.document?.name}</Box>
-
-                <IconButton
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    documentDialogState.open();
-                  }}>
-                  <Box component={Icon} icon={PencilIcon} sx={{ fontSize: '16px' }} />
-                </IconButton>
-              </Box>
-
-              <Box display="flex" gap={2} alignItems="center" mt={1}>
+              <Box display="flex" gap={2} alignItems="center">
                 <Tag>{t(state.document?.type)}</Tag>
 
                 {viewType === 'SegmentsView' && (
@@ -138,18 +114,17 @@ export default function KnowledgeSegments() {
 
         <Divider />
 
-        <Box p="28px 24px 20px">
+        {/* <Box p="28px 24px 20px">
           <FormControl>
             <InputLabel id="select-label">{t('showType')}</InputLabel>
             <Select labelId="select-label" value={viewType} label={t('showType')} onChange={handleChange}>
-              <MenuItem value="ContentView">{t('contentView')}</MenuItem>
               <MenuItem value="SegmentsView">{t('segmentsView')}</MenuItem>
             </Select>
           </FormControl>
-        </Box>
+        </Box> */}
 
         {viewType === 'ContentView' && (
-          <Stack flex={1} height={0}>
+          <Stack flex={1} height={0} py={2}>
             <Box width={1} height={1}>
               <Box
                 sx={{
@@ -171,13 +146,13 @@ export default function KnowledgeSegments() {
         )}
 
         {viewType === 'SegmentsView' && (
-          <Stack px={3} flex={1} height={0} overflow="auto">
+          <Stack px={2.5} flex={1} height={0} overflow="auto" py={2}>
             <Stack flex={1}>
               {!segments?.length && <EmptyDocument />}
 
               {segments?.length && (
                 <>
-                  <ListContainer gap={{ xs: 2, sm: 3 }}>
+                  <ListContainer gap={1.25}>
                     {segments.map((item, index) => {
                       return (
                         <SegmentsItem
@@ -194,6 +169,7 @@ export default function KnowledgeSegments() {
                       );
                     })}
                   </ListContainer>
+
                   {(dataState.loadingMore || dataState?.data?.next) && (
                     <Box width={1} height={60} className="center" ref={loadingRef}>
                       <Box display="flex" justifyContent="center">
@@ -206,10 +182,16 @@ export default function KnowledgeSegments() {
             </Stack>
           </Stack>
         )}
-      </>
+      </Stack>
 
       <Dialog {...bindDialog(segmentDialogState)} maxWidth="sm" fullWidth component="form">
-        <DialogTitle>{t('knowledge.segments.content')}</DialogTitle>
+        <DialogTitle className="between">
+          <Box>{t('knowledge.segments.content')}</Box>
+
+          <IconButton size="small" onClick={segmentDialogState.close}>
+            <Close />
+          </IconButton>
+        </DialogTitle>
 
         <DialogContent>
           <Controller
@@ -279,7 +261,7 @@ function Tag({ children }: { children: any }) {
   );
 }
 
-function SegmentsItem({
+export function SegmentsItem({
   index,
   content,
   ...props
@@ -363,7 +345,13 @@ function UpdateDocumentName({
           Toast.error(getErrorMessage(error));
         }
       })}>
-      <DialogTitle>{t('knowledge.documents.update')}</DialogTitle>
+      <DialogTitle className="between">
+        <Box>{t('knowledge.documents.update')}</Box>
+
+        <IconButton size="small" onClick={documentDialogState.close}>
+          <Close />
+        </IconButton>
+      </DialogTitle>
 
       <DialogContent>
         <TextField label={t('knowledge.documents.name')} sx={{ width: 1 }} {...form.register('name')} />
@@ -412,6 +400,7 @@ const SegmentRoot = styled(Stack)`
 
   &.listItem {
     border-color: rgba(0, 0, 0, 0.12);
+    background: rgb(249 250 251);
 
     &:hover {
       box-shadow:
@@ -503,5 +492,5 @@ const SegmentRoot = styled(Stack)`
 
 const ListContainer = styled(Box)`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
 `;

@@ -1,3 +1,7 @@
+## 0.1.394 (2024-5-16)
+
+- feat: auto synchronization of knowledge base data
+
 ## 0.1.393 (2024-5-16)
 
 - fix: filter variables fail
