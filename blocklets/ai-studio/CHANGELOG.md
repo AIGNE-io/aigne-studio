@@ -1,3 +1,7 @@
+## 0.1.392 (2024-5-16)
+
+- chore: get all document data content in real time, not segment
+
 ## 0.1.391 (2024-5-16)
 
 - fix: return validated outputs
