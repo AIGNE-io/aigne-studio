@@ -1,3 +1,64 @@
+## 0.2.0 (2024-5-17)
+
+- fix: update time period for automatic knowledge updating
+
+## 0.1.397 (2024-5-17)
+
+- fix: sort lower the score in the vector database
+
+## 0.1.396 (2024-5-17)
+
+- chore: view all the content of the document
+
+## 0.1.395 (2024-5-16)
+
+- fix: when the project does not create more permissions, give a guide.
+
+## 0.1.394 (2024-5-16)
+
+- feat: auto synchronization of knowledge base data
+
+## 0.1.393 (2024-5-16)
+
+- fix: filter variables fail
+
+## 0.1.392 (2024-5-16)
+
+- chore: get all document data content in real time, not segment
+
+## 0.1.391 (2024-5-16)
+
+- fix: return validated outputs
+
+## 0.1.390 (2024-5-16)
+
+- feat: support output a input
+
+## 0.1.389 (2024-5-15)
+
+- fix: can not select children agents
+
+## 0.1.388 (2024-5-15)
+
+- feat: support multi-agents
+
+## 0.1.387 (2024-5-15)
+
+- fix: when there is no Agent selection, give a hint, and you can add
+
+## 0.1.386 (2024-5-15)
+
+- fix: search knowledge
+
+## 0.1.385 (2024-5-15)
+
+- fix: the output cannot be edited when the storage variable is set.
+- fix: the custom parameter disappears before selecting a new Agent
+
+## 0.1.384 (2024-5-14)
+
+- fix: add router agent type
+
 ## 0.1.383 (2024-5-14)
 
 - feat: add gpt4o model support
@@ -9,7 +70,7 @@
 
 ## 0.1.381 (2024-5-11)
 
-- feat: add opening message/questions configuration for outpus
+- feat: add opening message/questions configuration for outputs
 - feat: add sharing configuration for outputs
 
 ## 0.1.380 (2024-5-10)

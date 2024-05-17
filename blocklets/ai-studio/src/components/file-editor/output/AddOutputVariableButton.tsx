@@ -1,23 +1,36 @@
 import PopperMenu from '@app/components/menu/PopperMenu';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, variableBlockListForAgent } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, OutputVariableYjs, variableBlockListForAgent } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import CheckIcon from '@iconify-icons/tabler/check';
+import BranchIcon from '@iconify-icons/tabler/git-branch';
 import PlusIcon from '@iconify-icons/tabler/plus';
 import { Box, Divider, ListItemIcon, MenuItem } from '@mui/material';
+import { sortBy } from 'lodash';
 
 import { runtimeOutputVariables } from './type';
 
 export default function AddOutputVariableButton({
+  allSelectAgentOutputs,
   assistant,
   onSelect,
+  onSelectAll,
 }: {
+  allSelectAgentOutputs?: NonNullable<AssistantYjs['outputVariables']>[string]['data'][];
   assistant: AssistantYjs;
-  onSelect?: (value: { name: string }) => void;
+  onSelect?: (value: Partial<Omit<OutputVariableYjs, 'id'>>) => void;
+  onSelectAll?: (list: NonNullable<AssistantYjs['outputVariables']>[string]['data'][]) => void;
 }) {
   const { t } = useLocaleContext();
 
   const exists = new Set(Object.values(assistant.outputVariables ?? {}).map((i) => i.data.name));
+  const existsInputIds = new Set(Object.values(assistant.outputVariables ?? {}).map((i) => i.data.from?.id));
+
+  const inputs =
+    assistant.parameters &&
+    sortBy(Object.values(assistant.parameters), 'index')
+      .map((i) => i.data)
+      .filter((i): i is typeof i & Required<Pick<typeof i, 'key'>> => !!i.key);
 
   return (
     <PopperMenu
@@ -57,6 +70,41 @@ export default function AddOutputVariableButton({
           );
         }),
       ])}
+
+      {!!allSelectAgentOutputs?.length && (
+        <>
+          <Divider sx={{ my: '4px !important', p: 0 }} />
+          <MenuItem onClick={() => onSelectAll?.(allSelectAgentOutputs)}>
+            <ListItemIcon>
+              <Icon icon={BranchIcon} />
+            </ListItemIcon>
+            {t('selectAgentOutput')}
+          </MenuItem>
+        </>
+      )}
+
+      {!!inputs?.length && (
+        <>
+          <Divider textAlign="left" sx={{ my: '4px !important', p: 0, fontSize: 13, color: 'text.secondary' }}>
+            {t('inputs')}
+          </Divider>
+
+          {inputs.map((input) => (
+            <MenuItem
+              key={input.id}
+              selected={existsInputIds.has(input.id)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelect?.({ name: input.key, from: { type: 'input', id: input.id } });
+              }}>
+              <ListItemIcon>
+                <Icon icon={BranchIcon} />
+              </ListItemIcon>
+              {input.key}
+            </MenuItem>
+          ))}
+        </>
+      )}
 
       <Divider sx={{ my: '4px !important', p: 0 }} />
 

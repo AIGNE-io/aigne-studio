@@ -17,7 +17,7 @@ export type Variables = {
 
 export type FileType = Assistant | { $base64: string } | Variables;
 
-export type Assistant = Agent | PromptAssistant | ImageAssistant | ApiAssistant | FunctionAssistant;
+export type Assistant = Agent | PromptAssistant | ImageAssistant | ApiAssistant | FunctionAssistant | RouterAssistant;
 
 export type Role = 'system' | 'user' | 'assistant';
 
@@ -126,7 +126,6 @@ export interface AssistantBase {
     };
   };
   entries?: { id: string; title?: string; parameters?: { [key: string]: any } }[];
-
   outputVariables?: OutputVariable[];
 }
 
@@ -160,11 +159,27 @@ export type VariableType = VariableTypeBase &
 
 export type OutputVariable = VariableType & {
   variable?: { key: string; scope: string };
+  from?: { type: 'input'; id: string };
   initialValue?: RuntimeOutputVariablesSchema[RuntimeOutputVariable];
 };
 
 export interface Agent extends AssistantBase {
   type: 'agent';
+}
+
+export interface RouterAssistant extends AssistantBase {
+  type: 'router';
+  defaultToolId?: string;
+  prompt?: string;
+  routes?: Tool[];
+
+  // 参数配置，为了可以复用UI和 prompt一致
+  temperature?: number;
+  topP?: number;
+  presencePenalty?: number;
+  frequencyPenalty?: number;
+  maxTokens?: number;
+  model?: string;
 }
 
 export interface PromptAssistant extends AssistantBase {

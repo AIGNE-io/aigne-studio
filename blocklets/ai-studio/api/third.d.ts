@@ -8,6 +8,8 @@ declare module 'express-sse';
 
 declare module '@blocklet/logger';
 
+declare module '@abtnode/cron';
+
 namespace Express {
   interface Request {
     user?: {

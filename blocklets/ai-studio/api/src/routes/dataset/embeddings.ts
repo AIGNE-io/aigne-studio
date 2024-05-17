@@ -1,16 +1,10 @@
-import { readFile } from 'fs/promises';
-
-import { call, getComponentMountPoint } from '@blocklet/sdk/lib/component';
+import { getComponentMountPoint } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
 import SSE from 'express-sse';
 import { sha3_256 } from 'js-sha3';
-import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
-import { intersection, isNil, omitBy } from 'lodash';
-import mammoth from 'mammoth';
-import PDFParser from 'pdf2json';
+import { isNil, omitBy } from 'lodash';
 import { joinURL } from 'ufo';
 
-import { AIKitEmbeddings } from '../../core/embeddings/ai-kit';
 import logger from '../../libs/logger';
 import createQueue, {
   CommentQueue,
@@ -23,9 +17,9 @@ import createQueue, {
 import DatasetContent from '../../store/models/dataset/content';
 import DatasetDocument, { UploadStatus } from '../../store/models/dataset/document';
 import EmbeddingHistories from '../../store/models/dataset/embedding-history';
-import Segment from '../../store/models/dataset/segment';
-import UpdateHistories from '../../store/models/dataset/update-history';
-import VectorStore from '../../store/vector-store-faiss';
+import { getFileContent } from './document-content';
+import { commentsIterator, discussionsIterator, getDiscussion } from './util';
+import { saveContentToVectorStore } from './vector-store';
 
 export const sse = new SSE();
 
@@ -37,44 +31,6 @@ const handlerError = async (document: DatasetDocument, message: string) => {
   } catch (error) {
     logger.error(error?.message);
   }
-};
-
-function parsePDF(filePath: string): Promise<string> {
-  // @ts-ignore
-  const pdfParser = new PDFParser(this, 1);
-  const regex = /----------------Page \(\d+\) Break----------------/g;
-
-  return new Promise((resolve, reject) => {
-    pdfParser.on('pdfParser_dataError', (errData) => reject(errData));
-    pdfParser.on('pdfParser_dataReady', () => {
-      const text = (pdfParser as any).getRawTextContent();
-      const pages: string[] = text.split(regex);
-      resolve(pages.join(','));
-    });
-    pdfParser.loadPDF(filePath);
-  });
-}
-
-const getContent = async (fileExtension: string, filePath: string) => {
-  if (!fileExtension) {
-    throw new Error('Not file extension');
-  }
-
-  if (!filePath) {
-    throw new Error('Not file path');
-  }
-
-  if (fileExtension === 'pdf') {
-    return parsePDF(filePath);
-  }
-
-  if (fileExtension === 'doc' || fileExtension === 'docx') {
-    return mammoth.extractRawText({ path: filePath }).then((result) => {
-      return result.value;
-    });
-  }
-
-  return readFile(filePath, 'utf8');
 };
 
 const documentItemJob = async (job: DocumentQueue) => {
@@ -90,7 +46,7 @@ const documentItemJob = async (job: DocumentQueue) => {
       const data = document?.data as { type: string; path: string };
       let currentContent = '';
       try {
-        currentContent = await getContent(data?.type || '', data?.path || '');
+        currentContent = await getFileContent(data?.type || '', data?.path || '');
       } catch (error) {
         currentContent = '';
       }
@@ -215,8 +171,10 @@ const updateEmbeddingHistory = async ({
   updatedAt?: Date | string;
 }) => {
   const ids = { targetId, datasetId, documentId };
+
   try {
     const previousEmbedding = await EmbeddingHistories.findOne({ where: ids });
+
     if (previousEmbedding?.targetVersion && updatedAt) {
       if (
         new Date(previousEmbedding?.targetVersion).toISOString() === new Date(updatedAt || new Date()).toISOString()
@@ -225,8 +183,9 @@ const updateEmbeddingHistory = async ({
       }
     }
 
-    if (await EmbeddingHistories.findOne({ where: ids })) {
-      await EmbeddingHistories.update({ startAt: new Date(), status: UploadStatus.Uploading }, { where: ids });
+    const found = await EmbeddingHistories.findOne({ where: ids });
+    if (found) {
+      await found.update({ startAt: new Date(), status: UploadStatus.Uploading });
     } else {
       await EmbeddingHistories.create({ startAt: new Date(), status: UploadStatus.Uploading, ...ids });
     }
@@ -236,11 +195,13 @@ const updateEmbeddingHistory = async ({
       await saveContentToVectorStore({ metadata, content: trimContent, datasetId, documentId, targetId });
     }
 
-    if (await EmbeddingHistories.findOne({ where: ids })) {
-      await EmbeddingHistories.update(
-        { targetVersion: new Date(updatedAt || new Date()), endAt: new Date(), status: UploadStatus.Success },
-        { where: ids }
-      );
+    const check = await EmbeddingHistories.findOne({ where: ids });
+    if (check) {
+      await check.update({
+        targetVersion: new Date(updatedAt || new Date()),
+        endAt: new Date(),
+        status: UploadStatus.Success,
+      });
     } else {
       await EmbeddingHistories.create({
         targetVersion: new Date(updatedAt || new Date()),
@@ -255,8 +216,9 @@ const updateEmbeddingHistory = async ({
     logger.error(error?.message);
     sse.send({ documentId, embeddingStatus: UploadStatus.Error, message: error?.message }, 'error');
 
-    if (await EmbeddingHistories.findOne({ where: { ...ids } })) {
-      await EmbeddingHistories.update({ error: error.message, status: UploadStatus.Error }, { where: { ...ids } });
+    const found = await EmbeddingHistories.findOne({ where: ids });
+    if (found) {
+      await found.update({ error: error.message, status: UploadStatus.Error });
     } else {
       await EmbeddingHistories.create({ error: error.message, status: UploadStatus.Error, ...ids });
     }
@@ -272,6 +234,9 @@ const updateEmbeddingHistory = async ({
 
 async function updateDiscussionEmbeddings(discussionId: string, datasetId: string, documentId: string) {
   try {
+    // 首先处理 discuss 当前文章数据
+    // 然后处理多语言文章内容
+    // 然后处理文章的评论数据
     const updateEmbedding = async (
       locale: string,
       updatedAt: string,
@@ -279,16 +244,18 @@ async function updateDiscussionEmbeddings(discussionId: string, datasetId: strin
       metadata: { [key: string]: string }
     ) => {
       const targetId = locale ? `${discussionId}_$$$_${locale}` : discussionId;
-
+      logger.log({ targetId, discussionId });
       queue.push({ type: 'comment', documentId, discussionId, metadata });
-
       return updateEmbeddingHistory({ datasetId, documentId, targetId, updatedAt, content, metadata });
     };
 
     const discussion = await getDiscussion(discussionId);
+    const found = await DatasetDocument.findOne({ where: { id: documentId, datasetId } });
     if (!discussion?.post) return false;
-
     const { post, languages = [] } = discussion;
+    if (found && found.name !== post.title) {
+      await found.update({ name: post.title });
+    }
 
     const getPostLink = (type: string, locale?: string) => {
       switch (type) {
@@ -323,6 +290,7 @@ async function updateDiscussionEmbeddings(discussionId: string, datasetId: strin
 
     for (const language of languages) {
       if (language !== post?.locale) {
+        logger.log('embedding language discuss', { language });
         const res = await getDiscussion(discussionId, language);
         if (res?.post) await updateEmbedding(res.post.locale, res.post.updatedAt, res.post.content, metadata);
       }
@@ -343,6 +311,7 @@ const discussKitMap: {
 } = {
   discussion: async (document) => {
     try {
+      // discussId
       const targetId = (document.data as any)?.data?.id;
 
       const { post: discussion } = await getDiscussion(targetId);
@@ -429,29 +398,17 @@ const discussKitMap: {
   },
 };
 
-// discussion 和  fullSite 已经废弃
 const embeddingHandler: {
   [key in NonNullable<DatasetDocument['type']>]: (
     item: DatasetDocument,
     content?: DatasetContent | null
   ) => Promise<void>;
 } = {
-  discussion: async (document: DatasetDocument) => {
-    const targetId = (document.data as any).id;
+  // TODO: 已经废弃, discussKit包括所有 discuss 操作
+  discussion: async () => {},
+  // TODO: 已经废弃, discussKit包括所有 discuss 操作
+  fullSite: async () => {},
 
-    const { post: discussion } = await getDiscussion(targetId);
-    const found = await DatasetContent.findOne({ where: { documentId: document.id } });
-    if (found) {
-      await found.update({ content: discussion?.content || '' });
-    } else {
-      await DatasetContent.create({ documentId: document.id, content: discussion?.content || '' });
-    }
-
-    await updateDiscussionEmbeddings(targetId, document.datasetId, document.id);
-
-    const result = await document.update({ embeddingStatus: UploadStatus.Success, embeddingEndAt: new Date() });
-    sse.send({ documentId: document.id, ...result.dataValues }, 'complete');
-  },
   text: async (document: DatasetDocument, content?: DatasetContent | null) => {
     const embed = await updateEmbeddingHistory({
       datasetId: document.datasetId,
@@ -486,33 +443,6 @@ const embeddingHandler: {
       sse.send({ documentId: document.id, ...result.dataValues }, 'complete');
     }
   },
-  fullSite: async (document: DatasetDocument) => {
-    try {
-      const ids = await getDiscussionIds((document.data as any).types || []);
-      const currentTotal = ids.length;
-      let currentIndex = 0;
-      logger.info('fullsite ids', ids);
-
-      if (!ids.length) {
-        await handlerError(document, 'no data to embedding');
-      }
-
-      for (const discussionId of ids) {
-        currentIndex++;
-
-        queue.push({
-          type: 'fullSite',
-          documentId: document.id,
-          currentIndex,
-          currentTotal,
-          discussionId,
-        });
-      }
-    } catch (error) {
-      sse.send({ documentId: document.id, embeddingStatus: UploadStatus.Error, message: error?.message }, 'error');
-      await document.update({ error: error.message, embeddingStatus: UploadStatus.Error, embeddingEndAt: new Date() });
-    }
-  },
   discussKit: async (document: DatasetDocument) => {
     const from: 'discussion' | 'board' | 'discussionType' = (document.data as any)?.data?.from;
     const handler = discussKitMap[from];
@@ -523,225 +453,4 @@ const embeddingHandler: {
 
     await handler(document);
   },
-};
-
-export const getDiscussionIds = async (types: ('discussion' | 'blog' | 'doc')[] = ['discussion']) => {
-  const ids = [];
-
-  for (const type of types) {
-    for await (const { id: discussionId } of discussionsIterator(type)) {
-      ids.push(discussionId);
-    }
-  }
-
-  return [...new Set(ids)];
-};
-
-export async function getDiscussion(
-  discussionId: string,
-  locale?: string
-): Promise<{
-  post: {
-    content: string;
-    title: string;
-    createdAt: string;
-    updatedAt: string;
-    locale: string;
-    author: {
-      fullName: string;
-    };
-    labels: { name: string }[];
-    board: { title: string; desc: string; id: string };
-    type: string;
-  } | null;
-  languages: string[];
-}> {
-  try {
-    const result = await call({
-      method: 'GET',
-      name: 'did-comments',
-      path: `/api/call/posts/${discussionId}`,
-      params: { textContent: 1, locale },
-    });
-
-    if (!result.data) {
-      throw new Error('Discussion not found');
-    }
-
-    return result.data;
-  } catch (error) {
-    return {
-      post: null,
-      languages: [],
-    };
-  }
-}
-
-export async function* discussionsIterator(type: 'discussion' | 'blog' | 'doc' = 'discussion', boardId?: string) {
-  let page = 0;
-  let index = 0;
-  const size = 20;
-
-  while (true) {
-    page += 1;
-    const { data, total } = await searchDiscussions({ page, size, type, boardId });
-
-    if (!data.length) {
-      break;
-    }
-
-    for (const i of data) {
-      index += 1;
-      yield { total, id: i.id, index, name: i.title };
-    }
-  }
-}
-
-export async function searchDiscussions({
-  page,
-  size,
-  type = 'discussion',
-  boardId,
-}: {
-  page?: number;
-  size?: number;
-  type: 'discussion' | 'blog' | 'doc';
-  boardId?: string;
-}): Promise<{ data: { id: string; title: string }[]; total: number }> {
-  return call({
-    method: 'GET',
-    name: 'did-comments',
-    path: '/api/call/posts',
-    params: { page, size, type, boardId },
-  }).then((res) => res.data);
-}
-
-export async function* commentsIterator(discussionId: string) {
-  let page = 0;
-  let index = 0;
-  const size = 20;
-
-  while (true) {
-    page += 1;
-    const { data } = await getDiscussionComments(discussionId, { page, size });
-
-    if (!data.length) {
-      break;
-    }
-
-    for (const i of data) {
-      index += 1;
-      yield {
-        id: i.id,
-        index,
-        content: i.content,
-        commentAuthorName: i.author.fullName,
-        commentCreatedAt: i.createdAt,
-        commentUpdatedAt: i.updatedAt,
-      };
-    }
-  }
-}
-
-export async function getDiscussionComments(
-  discussionId: string,
-  {
-    page,
-    size,
-  }: {
-    page?: number;
-    size?: number;
-  }
-): Promise<{
-  data: { id: string; content: string; author: { fullName: string }; createdAt: string; updatedAt: string }[];
-  total: number;
-}> {
-  return call({
-    method: 'GET',
-    name: 'did-comments',
-    path: `/api/call/posts/${discussionId}/comments`,
-    params: { page, size, textContent: 1 },
-  }).then((res) => res.data);
-}
-
-export const deleteStore = async (datasetId: string, ids: string[]) => {
-  const embeddings = new AIKitEmbeddings({});
-  const store = await VectorStore.load(datasetId, embeddings);
-
-  const remoteIds = Object.values(store.getMapping()) || [];
-  const deleteIds = intersection(remoteIds, ids);
-
-  // 直接删除既可以，但这样更严谨
-  if (deleteIds.length) {
-    await store.delete({ ids: deleteIds });
-    await store.save();
-  }
-};
-
-export const updateHistoriesAndStore = async (datasetId: string, documentId: string, targetId?: string) => {
-  const where = targetId ? { documentId, targetId } : { documentId };
-  const { rows: messages, count } = await Segment.findAndCountAll({ where });
-
-  if (count > 0) {
-    const ids = messages.map((x) => x.id);
-    // 仅仅做了save，没有其他地方使用,记录更新了哪些数据
-    const found = await UpdateHistories.findOne({ where: { datasetId, documentId } });
-    if (found) {
-      await found.update({ segmentId: ids });
-    } else {
-      await UpdateHistories.create({ segmentId: ids, datasetId, documentId });
-    }
-
-    await deleteStore(datasetId, ids);
-
-    await Segment.destroy({ where });
-  }
-};
-
-const saveContentToVectorStore = async ({
-  metadata,
-  content,
-  datasetId,
-  targetId = '',
-  documentId,
-}: {
-  metadata?: any;
-  content: string;
-  datasetId: string;
-  targetId: string;
-  documentId: string;
-}) => {
-  const textSplitter = new RecursiveCharacterTextSplitter({ chunkSize: 1024 });
-  const docs = await textSplitter.createDocuments([content], metadata ? [{ metadata }] : undefined);
-
-  const formatDocuments = docs.map((doc) => {
-    if (metadata && typeof metadata === 'object' && Object.keys(metadata).length) {
-      const arr = Object.keys(metadata)
-        .map((key) => (metadata[key] ? `${key}: ${metadata[key]}` : ''))
-        .filter((i) => i);
-      arr.push(`content: ${doc.pageContent}`);
-
-      return { ...doc, pageContent: arr.join(',') };
-    }
-
-    return doc;
-  });
-
-  const embeddings = new AIKitEmbeddings({ batchSize: 6 });
-  const vectors = await embeddings.embedDocuments(formatDocuments.map((d) => d.pageContent));
-
-  // 清除历史 Vectors Store
-  await updateHistoriesAndStore(datasetId, documentId, targetId);
-
-  // 获取索引数据，保存id
-  const savePromises = formatDocuments.map((doc) =>
-    doc.pageContent ? Segment.create({ documentId, targetId, content: doc.pageContent }) : Promise.resolve(null)
-  );
-  const results = await Promise.all(savePromises);
-  const ids = results.filter((i): i is NonNullable<typeof i> => !!i).map((result) => result?.id);
-
-  // 保存到向量数据库
-  const store = await VectorStore.load(datasetId, embeddings);
-  await store.addVectors(vectors, formatDocuments, { ids });
-  await store.save();
 };

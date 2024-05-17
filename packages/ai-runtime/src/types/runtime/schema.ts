@@ -79,8 +79,9 @@ export const runtimeVariablesSchema: { [key in RuntimeOutputVariable]?: OmitUnio
   },
 };
 
-export function outputVariablesToJsonSchema(variables: OutputVariable[], datastoreVariables: Variable[]) {
+export function outputVariablesToJsonSchema(assistant: Assistant, datastoreVariables: Variable[]) {
   const variableToSchema = (variable: OmitUnion<OutputVariable, 'id'>): object | undefined => {
+    if (variable.from?.type === 'input') return undefined;
     if (ignoreJsonSchemaOutputs.has(variable.name as RuntimeOutputVariable)) return undefined;
 
     if (variable.name && isRuntimeOutputVariable(variable.name)) {
@@ -129,12 +130,21 @@ export function outputVariablesToJsonSchema(variables: OutputVariable[], datasto
     };
   };
 
-  return variableToSchema({ type: 'object', properties: variables });
+  return variableToSchema({ type: 'object', properties: assistant.outputVariables });
 }
 
-export function outputVariablesToJoiSchema(variables: OutputVariable[], datastoreVariables: Variable[]): Joi.AnySchema {
+export function outputVariablesToJoiSchema(assistant: Assistant, datastoreVariables: Variable[]): Joi.AnySchema {
   const variableToSchema = (variable: OmitUnion<OutputVariable, 'id'>): Joi.AnySchema | undefined => {
     let schema: Joi.AnySchema | undefined;
+
+    if (variable.from?.type === 'input') {
+      const input = assistant.parameters?.find((i) => i.id === variable.from?.id);
+      if (input) {
+        return Joi.any();
+      }
+
+      return undefined;
+    }
 
     if (variable.name && isRuntimeOutputVariable(variable.name)) {
       const runtimeVariable = runtimeVariablesSchema[variable.name as RuntimeOutputVariable];
@@ -187,7 +197,7 @@ export function outputVariablesToJoiSchema(variables: OutputVariable[], datastor
     return schema;
   };
 
-  return variableToSchema({ type: 'object', properties: variables ?? [] })!;
+  return variableToSchema({ type: 'object', properties: assistant.outputVariables ?? [] })!;
 }
 
 export enum RuntimeOutputVariable {
@@ -202,6 +212,7 @@ export enum RuntimeOutputVariable {
   share = '$share',
   openingQuestions = '$openingQuestions',
   openingMessage = '$openingMessage',
+  profile = '$profile',
 }
 
 const runtimeOutputVariableSet = new Set(Object.values(RuntimeOutputVariable));
@@ -221,11 +232,7 @@ export interface RuntimeOutputAppearance {
   componentProps?: { [key: string]: any };
 }
 
-export interface RuntimeOutputAppearancePage extends RuntimeOutputAppearance {
-  name?: string;
-  description?: string;
-  logo?: { url: string; width?: number; height?: number };
-}
+export interface RuntimeOutputAppearancePage extends RuntimeOutputAppearance {}
 
 export interface RuntimeOutputChildren {
   agents?: { id: string; name?: string }[];
@@ -243,6 +250,11 @@ export interface RuntimeOutputOpeningMessage {
   message?: string;
 }
 
+export interface RuntimeOutputProfile {
+  avatar?: string;
+  name?: string;
+}
+
 export interface RuntimeOutputVariablesSchema {
   [RuntimeOutputVariable.text]?: string;
   [RuntimeOutputVariable.images]?: { url: string }[];
@@ -255,4 +267,5 @@ export interface RuntimeOutputVariablesSchema {
   [RuntimeOutputVariable.share]?: RuntimeOutputShare;
   [RuntimeOutputVariable.openingQuestions]?: RuntimeOutputOpeningQuestions;
   [RuntimeOutputVariable.openingMessage]?: RuntimeOutputOpeningMessage;
+  [RuntimeOutputVariable.profile]?: RuntimeOutputProfile;
 }

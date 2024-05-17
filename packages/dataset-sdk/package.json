@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/dataset-sdk",
-  "version": "0.1.383",
+  "version": "0.2.0",
   "description": "The SDK for processing dataset protocol",
   "publishConfig": {
     "access": "public"
@@ -31,6 +31,10 @@
     "./openapi": {
       "import": "./lib/esm/openapi.js",
       "require": "./lib/cjs/openapi.js"
+    },
+    "./util/*": {
+      "import": "./lib/esm/util/*.js",
+      "require": "./lib/cjs/util/*.js"
     }
   },
   "typesVersions": {
@@ -49,6 +53,9 @@
       ],
       "openapi": [
         "./lib/types/openapi.d.ts"
+      ],
+      "util/*": [
+        "./lib/types/util/*.d.ts"
       ]
     }
   },

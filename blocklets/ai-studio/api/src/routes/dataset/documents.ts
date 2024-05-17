@@ -5,6 +5,7 @@ import config from '@blocklet/sdk/lib/config';
 import user from '@blocklet/sdk/lib/middlewares/user';
 import { Router } from 'express';
 import Joi from 'joi';
+import { sortBy } from 'lodash';
 import multer from 'multer';
 import { Op, Sequelize } from 'sequelize';
 
@@ -17,7 +18,9 @@ import Dataset from '../../store/models/dataset/dataset';
 import DatasetDocument from '../../store/models/dataset/document';
 import EmbeddingHistories from '../../store/models/dataset/embedding-history';
 import VectorStore from '../../store/vector-store-faiss';
-import { queue, updateHistoriesAndStore } from './embeddings';
+import getAllContents, { getContent } from './document-content';
+import { queue } from './embeddings';
+import { updateHistoriesAndStore } from './vector-store';
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -35,8 +38,9 @@ export interface CreateDiscussionItem {
 
 export type CreateDiscussionItemInput = CreateDiscussionItem | CreateDiscussionItem[];
 
-const searchQuerySchema = Joi.object<{ message?: string; n: number }>({
+const searchQuerySchema = Joi.object<{ message?: string; searchAll?: boolean; n: number }>({
   message: Joi.string().empty(['', null]),
+  searchAll: Joi.boolean().default(false).empty(['', null]),
   n: Joi.number().empty(['', null]).min(1).default(4),
 });
 
@@ -89,15 +93,21 @@ router.get('/:datasetId/search', async (req, res) => {
   const input = await searchQuerySchema.validateAsync(req.query, { stripUnknown: true });
   logger.info('knowledge search input', input);
 
-  if (!input.message) {
-    logger.error('Not found search message');
+  const dataset = await Dataset.findOne({ where: { id: datasetId } });
+  if (!dataset) {
+    logger.error(`dataset ${datasetId} not found`);
     res.json({ docs: [] });
     return;
   }
 
-  const dataset = await Dataset.findOne({ where: { id: datasetId } });
-  if (!dataset) {
-    logger.error(`dataset ${datasetId} not found`);
+  if (input.searchAll) {
+    const docs = await getAllContents(datasetId);
+    res.json({ docs });
+    return;
+  }
+
+  if (!input.message) {
+    logger.error('Not found search message');
     res.json({ docs: [] });
     return;
   }
@@ -111,9 +121,15 @@ router.get('/:datasetId/search', async (req, res) => {
       return;
     }
 
-    const docs = await store.similaritySearch(input.message, Math.min(input.n, Object.keys(store.getMapping()).length));
-    const result = docs.map((x) => {
-      return { content: x?.pageContent, ...(x?.metadata?.metadata || {}) };
+    const docs = await store.similaritySearchWithScore(
+      input.message,
+      Math.min(input.n, Object.keys(store.getMapping()).length)
+    );
+
+    // 分数越低越相近
+    const result = sortBy(docs, (item) => item[1]).map((x) => {
+      const info = x[0] || {};
+      return { content: info?.pageContent, ...(info?.metadata?.metadata || {}) };
     });
 
     res.json({ docs: result });
@@ -488,10 +504,9 @@ router.put('/:datasetId/documents/:documentId/file', user(), userAuth(), upload.
     },
     { where: { id: documentId, datasetId } }
   );
-  await DatasetContent.update({ content: await readFile(filePath, 'utf8') }, { where: { documentId } });
+  // await DatasetContent.update({ content: await readFile(filePath, 'utf8') }, { where: { documentId } });
 
   const document = await DatasetDocument.findOne({ where: { id: documentId, datasetId } });
-
   if (document) queue.checkAndPush({ type: 'document', documentId: document.id });
 
   res.json(document);
@@ -514,6 +529,21 @@ router.get('/:datasetId/documents/:documentId', user(), userAuth(), async (req, 
 
   if (document?.dataValues) document.dataValues.content = content?.dataValues.content;
   res.json({ dataset, document });
+});
+
+router.get('/:datasetId/documents/:documentId/content', user(), userAuth(), async (req, res) => {
+  const { datasetId, documentId } = await Joi.object<{ datasetId: string; documentId: string }>({
+    datasetId: Joi.string().required(),
+    documentId: Joi.string().required(),
+  }).validateAsync(req.params);
+
+  const document = await DatasetDocument.findOne({ where: { datasetId, id: documentId } });
+  if (!document) {
+    return res.json({ content: [] });
+  }
+
+  const content = await getContent(document);
+  return res.json({ content });
 });
 
 router.post('/:datasetId/documents/:documentId/embedding', user(), userAuth(), async (req, res) => {

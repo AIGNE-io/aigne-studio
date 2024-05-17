@@ -1,10 +1,11 @@
 import PopperMenu from '@app/components/menu/PopperMenu';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { defaultImageModel, defaultTextModel } from '@blocklet/ai-runtime/common';
+import { defaultImageModel, defaultTextModel, defaultTextModelGPT4 } from '@blocklet/ai-runtime/common';
 import { AssistantYjs, RuntimeOutputVariable, arrayToYjs, outputVariableToYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import APIIcon from '@iconify-icons/tabler/api';
 import CodeIcon from '@iconify-icons/tabler/code';
+import BranchIcon from '@iconify-icons/tabler/git-branch';
 import PhotoIcon from '@iconify-icons/tabler/photo';
 import SparklesIcon from '@iconify-icons/tabler/sparkles';
 import SwitchHorizontalIcon from '@iconify-icons/tabler/switch-horizontal';
@@ -20,6 +21,7 @@ export const agentTypes = [
   { type: 'image', icon: <Icon icon={PhotoIcon} />, i18nKey: 'imageGeneration' },
   { type: 'function', icon: <Icon icon={CodeIcon} />, i18nKey: 'logic' },
   { type: 'api', icon: <Icon icon={APIIcon} />, i18nKey: 'api' },
+  { type: 'router', icon: <Icon icon={BranchIcon} />, i18nKey: 'router' },
 ] as const;
 
 export const agentTypesMap = Object.fromEntries(agentTypes.map((i) => [i.type, i]));
@@ -84,6 +86,11 @@ export default function AgentTypeSelect({ assistant }: { assistant: AssistantYjs
                 }
               } else {
                 removeVariable(RuntimeOutputVariable.text);
+              }
+
+              if (assistant.type === 'router') {
+                assistant.model = defaultTextModelGPT4;
+                assistant.prompt = '{{question}}';
               }
 
               sortBy(Object.values(assistant.outputVariables), 'index').forEach((item, index) => (item.index = index));

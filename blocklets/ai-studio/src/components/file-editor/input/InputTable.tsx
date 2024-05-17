@@ -23,6 +23,7 @@ import MessageIcon from '@iconify-icons/tabler/message';
 import SquareNumberIcon from '@iconify-icons/tabler/square-number-1';
 import {
   Autocomplete,
+  AutocompleteValue,
   Box,
   Button,
   ClickAwayListener,
@@ -54,6 +55,7 @@ import { get, sortBy } from 'lodash';
 import { PopupState, bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { useId, useMemo, useRef } from 'react';
 
+import Switch from '../../custom/switch';
 import ParameterConfig from '../../template-form/parameter-config';
 import ParameterConfigType from '../../template-form/parameter-config/type';
 import { FROM_KNOWLEDGE } from '../execute-block';
@@ -65,7 +67,6 @@ import AddInputButton from './AddInputButton';
 
 export const FROM_PARAMETER = 'agentParameter';
 export const FROM_KNOWLEDGE_PARAMETER = 'knowledgeParameter';
-
 export default function InputTable({
   assistant,
   projectId,
@@ -623,15 +624,16 @@ function SelectFromSourceDialog({
 
             if (parameter.type === 'source' && parameter?.source?.variableFrom === 'knowledge' && parameter?.source) {
               const { source } = parameter;
-              Object.entries(source?.knowledge?.parameters || {}).forEach(([key, value]: any) => {
-                if (!value) {
-                  if (source && source?.knowledge && source?.knowledge?.parameters) {
-                    source.knowledge.parameters[key] = `{{${key}}}`;
-                  }
-
-                  addParameter(key, { from: FROM_KNOWLEDGE_PARAMETER });
-                }
-              });
+              if (
+                source &&
+                source?.knowledge &&
+                source?.knowledge?.parameters &&
+                !source?.knowledge?.parameters?.message &&
+                !source?.knowledge?.parameters.searchAll
+              ) {
+                source.knowledge.parameters.message = '{{message}}';
+                addParameter('message', { from: FROM_KNOWLEDGE_PARAMETER });
+              }
             }
 
             dialogState.close();
@@ -672,16 +674,18 @@ type Option = {
   parameters?: { [key: string]: any };
 };
 
-export function SelectTool({
+export function SelectTool<Multiple extends boolean | undefined>({
   placeholder,
   options,
   value,
   onChange,
+  multiple,
 }: {
   placeholder?: string;
   options: Option[];
-  value?: Option;
-  onChange: (v: Option) => void;
+  multiple?: Multiple;
+  value?: AutocompleteValue<Option, Multiple, false, false>;
+  onChange?: (value: AutocompleteValue<Option, Multiple, false, false>) => void;
 }) {
   const { t } = useLocaleContext();
 
@@ -690,11 +694,10 @@ export function SelectTool({
       size="medium"
       key={Boolean(value).toString()}
       disableClearable
-      clearOnBlur
       selectOnFocus
       handleHomeEndKeys
-      autoSelect
-      autoHighlight
+      multiple={multiple}
+      disableCloseOnSelect={multiple}
       sx={{ flex: 1 }}
       options={options}
       getOptionKey={(i) => i.id || `${i.name}`}
@@ -712,7 +715,7 @@ export function SelectTool({
         return filter(options, params);
       }}
       renderInput={(params) => <TextField hiddenLabel {...params} placeholder={placeholder} size="medium" />}
-      onChange={(_, _value) => onChange(_value)}
+      onChange={(_, val) => onChange?.(val)}
     />
   );
 }
@@ -745,7 +748,10 @@ function KnowledgeParameter({
       })),
     ];
 
-    const parameters = [{ name: 'message', description: 'Search Content' }];
+    const parameters = [
+      { name: 'searchAll', description: t('allContent'), type: 'boolean' },
+      { name: 'message', description: t('searchContent') },
+    ];
     const v = options.find((x) => x.id === toolId);
 
     return (
@@ -756,12 +762,16 @@ function KnowledgeParameter({
           <SelectTool
             options={options}
             value={v}
+            multiple={false}
             placeholder={t('selectKnowledgePlaceholder')}
             onChange={(_value) => {
               if (_value) {
                 // 删除历史自动添加的变量
                 Object.values(value.parameters || {}).forEach((x) => {
-                  if (x.data.from === FROM_KNOWLEDGE_PARAMETER) {
+                  if (
+                    (x.data.from === FROM_KNOWLEDGE_PARAMETER || x.data.from === FROM_PARAMETER) &&
+                    !checkKeyParameterIsUsed({ value, key: x.data.key || '' })
+                  ) {
                     deleteParameter(x.data);
                   }
                 });
@@ -784,9 +794,31 @@ function KnowledgeParameter({
           <Box>
             <Typography variant="subtitle2">{t('inputs')}</Typography>
 
-            <Box>
-              {(parameters || [])?.map((data: any) => {
+            <Stack gap={1}>
+              {(parameters || [])?.map((data) => {
                 if (!data) return null;
+
+                if (data.type === 'boolean') {
+                  return (
+                    <Stack key={data.name}>
+                      <Typography variant="caption">{data.description || data.name}</Typography>
+
+                      <Switch
+                        defaultChecked={Boolean(source?.knowledge?.parameters?.[data.name] ?? false)}
+                        onChange={(_, checked) => {
+                          if (source?.knowledge?.parameters) {
+                            // @ts-ignore
+                            source.knowledge.parameters[data.name] = checked;
+                          }
+                        }}
+                      />
+                    </Stack>
+                  );
+                }
+
+                if (source?.knowledge?.parameters?.searchAll) {
+                  return null;
+                }
 
                 return (
                   <Stack key={data.name}>
@@ -808,7 +840,7 @@ function KnowledgeParameter({
                   </Stack>
                 );
               })}
-            </Box>
+            </Stack>
           </Box>
         )}
       </Stack>
@@ -863,6 +895,33 @@ function DatastoreParameter({
 
 const filter = createFilterOptions<any>();
 
+function checkKeyParameterIsUsed({ value, key }: { value: AssistantYjs; key: string }) {
+  if (!key) {
+    return false;
+  }
+
+  const parameters = Object.values(value?.parameters || {}).flatMap((x) => {
+    if (x.data.type === 'source') {
+      if (x.data.source?.variableFrom === 'tool') {
+        return [Object.values(x.data.source?.agent?.parameters || {})];
+      }
+
+      if (x.data.source?.variableFrom === 'knowledge') {
+        return [Object.values(x.data.source?.knowledge?.parameters || {})];
+      }
+    }
+
+    return [];
+  });
+
+  return !!parameters.find((x) => {
+    return (x || []).find((str) => {
+      const pattern = new RegExp(`{{\\s*${key}\\s*}}`);
+      return pattern.test(str);
+    });
+  });
+}
+
 function AgentParameter({
   value,
   projectId,
@@ -905,12 +964,16 @@ function AgentParameter({
           <SelectTool
             placeholder={t('selectAgentToCallPlaceholder')}
             options={options || []}
+            multiple={false}
             value={v}
             onChange={(_value) => {
               if (_value) {
                 // 删除历史自动添加的变量
                 Object.values(value.parameters || {}).forEach((x) => {
-                  if (x.data.from === FROM_PARAMETER) {
+                  if (
+                    (x.data.from === FROM_KNOWLEDGE_PARAMETER || x.data.from === FROM_PARAMETER) &&
+                    !checkKeyParameterIsUsed({ value, key: x.data.key || '' })
+                  ) {
                     deleteParameter(x.data);
                   }
                 });

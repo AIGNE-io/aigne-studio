@@ -1,4 +1,3 @@
-import LogoField from '@app/components/publish/LogoField';
 import { Component, getComponents } from '@app/libs/components';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { OutputVariableYjs, RuntimeOutputAppearancePage, RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
@@ -34,37 +33,6 @@ export default function AppearanceSettings({ output }: { output: OutputVariableY
 
   return (
     <Stack gap={2}>
-      {output.name === RuntimeOutputVariable.appearancePage && (
-        <>
-          <LogoField value={initialValue?.logo} onChange={(v) => setField((f) => (f.logo = v))} />
-
-          <Box>
-            <Typography variant="subtitle2">{t('agentName')}</Typography>
-            <TextField
-              fullWidth
-              hiddenLabel
-              multiline
-              placeholder={t('agentNamePlaceholder')}
-              value={initialValue?.name || ''}
-              onChange={(e) => setField((f) => (f.name = e.target.value))}
-            />
-          </Box>
-
-          <Box>
-            <Typography variant="subtitle2">{t('agentDescription')}</Typography>
-            <TextField
-              fullWidth
-              hiddenLabel
-              multiline
-              minRows={2}
-              placeholder={t('agentDescriptionPlaceholder')}
-              value={initialValue?.description || ''}
-              onChange={(e) => setField((f) => (f.description = e.target.value))}
-            />
-          </Box>
-        </>
-      )}
-
       <Stack gap={1}>
         <Typography variant="subtitle1">{title}</Typography>
 

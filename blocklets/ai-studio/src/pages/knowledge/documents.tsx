@@ -3,18 +3,36 @@ import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
 import ChevronLeftIcon from '@iconify-icons/tabler/chevron-left';
 import PlusIcon from '@iconify-icons/tabler/plus';
-import { Box, Button, CircularProgress, Stack, Tooltip, Typography, styled } from '@mui/material';
+import SearchIcon from '@iconify-icons/tabler/search';
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  Stack,
+  TextField,
+  Tooltip,
+  Typography,
+  styled,
+} from '@mui/material';
 import { DataGrid, gridClasses } from '@mui/x-data-grid';
-import { useReactive } from 'ahooks';
+import { useReactive, useRequest, useThrottle } from 'ahooks';
 import dayjs from 'dayjs';
-import { useEffect, useMemo } from 'react';
+import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
+import { useEffect, useMemo, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
 import { useDocuments } from '../../contexts/datasets/documents';
-import { reloadEmbedding, watchDatasetEmbeddings } from '../../libs/dataset';
+import { reloadEmbedding, searchKnowledge, watchDatasetEmbeddings } from '../../libs/dataset';
 import useDialog from '../../utils/use-dialog';
+import Close from '../project/icons/close';
 import Pending from './pending';
+import { SegmentsItem } from './segments';
 
 export default function KnowledgeDocuments() {
   const { t } = useLocaleContext();
@@ -74,9 +92,37 @@ export default function KnowledgeDocuments() {
     refetch();
   }, []);
 
+  const [search, setSearch] = useState('');
+  const s = useThrottle(search, { wait: 1000 });
+
+  const { data, loading } = useRequest(
+    () => {
+      if (s) return searchKnowledge({ datasetId: datasetId || '', message: s });
+
+      return Promise.resolve({ docs: [] });
+    },
+    { refreshDeps: [s] }
+  );
+
   const rows = (state.items ?? []).map((i) => {
     return { ...i, ...(embeddings[i.id] || {}) };
   });
+
+  const getParamsName = (params: any) => {
+    if (params?.row?.type === 'discussKit') {
+      if (params.row.data?.data.from === 'discussionType') {
+        return `${t(params.row.data?.data.id)}`;
+      }
+
+      if (params.row.data?.data.from === 'board') {
+        return `${params.row.data?.data.title}`;
+      }
+
+      return params?.row?.name;
+    }
+
+    return params?.row?.name;
+  };
 
   const columns = useMemo(
     () => [
@@ -86,25 +132,19 @@ export default function KnowledgeDocuments() {
         flex: 1,
         sortable: false,
         renderCell: (params: any) => {
-          if (params.row.type === 'discussKit') {
-            if (params.row.data?.data.from === 'discussionType') {
-              return <Box>{`${t(params.row.data?.data.id)}${t('data')}`} </Box>;
-            }
-
-            if (params.row.data?.data.from === 'board') {
-              return <Box>{`${params.row.data?.data.title}${t('board')}`}</Box>;
-            }
-
-            return <Box> {`${params.row.data?.data.title}${t('data')}`}</Box>;
-          }
-
-          return <Box>{params.row.name}</Box>;
+          return (
+            <Tooltip title={getParamsName(params)}>
+              <Box pr={2} className="ellipsis">
+                {getParamsName(params)}
+              </Box>
+            </Tooltip>
+          );
         },
       },
       {
         field: 'type',
         headerName: t('knowledge.documents.type'),
-        flex: 1,
+        width: 100,
         sortable: false,
         renderCell: (params: any) => {
           return <Box>{t(params.row.type)}</Box>;
@@ -113,7 +153,7 @@ export default function KnowledgeDocuments() {
       {
         field: 'embeddingStatus',
         headerName: t('embeddingStatus'),
-        flex: 1,
+        width: 150,
         sortable: false,
         renderCell: (params: any) => {
           const colors: any = {
@@ -178,7 +218,7 @@ export default function KnowledgeDocuments() {
       {
         field: 'time',
         headerName: t('knowledge.documents.time'),
-        flex: 1,
+        width: 200,
         sortable: false,
         renderCell: (params: any) => {
           return <Box>{dayjs(params.row.createdAt).format('YYYY-MM-DD HH:mm:ss')}</Box>;
@@ -187,7 +227,7 @@ export default function KnowledgeDocuments() {
       {
         field: 'actions',
         headerName: t('actions'),
-        flex: 1,
+        width: 200,
         sortable: false,
         renderCell: (params: any) => (
           <Actions
@@ -197,7 +237,8 @@ export default function KnowledgeDocuments() {
             error={params.row?.error}
             onRemove={remove}
             onRefetch={refetch}
-            onEdit={() => {
+            onEdit={(e) => {
+              e.stopPropagation();
               navigate(`edit?type=${params.row.type}&id=${params.row.id}`, { replace: true });
             }}
             onEmbedding={async (e) => {
@@ -208,7 +249,8 @@ export default function KnowledgeDocuments() {
                 Toast.error(error?.message);
               }
             }}
-            onLink={() => {
+            onLink={(e) => {
+              e.stopPropagation();
               const prefix = (window?.blocklet?.componentMountPoints || []).find(
                 (x) => x.name === 'did-comments'
               )?.mountPoint;
@@ -262,7 +304,7 @@ export default function KnowledgeDocuments() {
         ),
       },
     ],
-    [t]
+    [t, getParamsName]
   );
 
   if (state.loading) {
@@ -298,57 +340,142 @@ export default function KnowledgeDocuments() {
           </Box>
         </Box>
 
-        <Button variant="contained" size="small" startIcon={<Icon icon={PlusIcon} />} onClick={() => navigate('add')}>
-          {t('knowledge.documents.add')}
-        </Button>
+        <Box display="flex" alignItems="center" gap={2}>
+          <TextField
+            placeholder={t('alert.search')}
+            hiddenLabel
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            InputProps={{
+              startAdornment: <Box component={Icon} icon={SearchIcon} />,
+            }}
+          />
+
+          <Button variant="contained" size="small" startIcon={<Icon icon={PlusIcon} />} onClick={() => navigate('add')}>
+            {t('knowledge.documents.add')}
+          </Button>
+        </Box>
       </Stack>
 
-      <Stack flex={1} height={0} sx={{ overflowX: 'auto' }}>
-        <Table
-          sx={{
-            minWidth: 600,
-            border: 0,
-            [`& .${gridClasses.cell}:focus, & .${gridClasses.cell}:focus-within`]: { outline: 'none' },
-            [`& .${gridClasses.columnHeader}:focus, & .${gridClasses.columnHeader}:focus-within`]: {
-              outline: 'none',
-            },
-            [`& .${gridClasses.footerContainer}`]: { border: 0 },
-          }}
-          disableColumnMenu
-          columnHeaderHeight={30}
-          rowHeight={40}
-          getRowId={(v) => v.id}
-          rows={rows}
-          columns={columns as any}
-          rowCount={state.total ?? 0}
-          pageSizeOptions={[20]}
-          paginationModel={{ page: state.page, pageSize: state.size }}
-          paginationMode="server"
-          onPaginationModelChange={({ page, pageSize: size }) => refetch({ page, size })}
-          // onRowClick={(params) => {
-          //   const rowId = params.row.id;
-          //   if (params.row.type !== 'fullSite') {
-          //     navigate(`document/${rowId}`, { replace: true });
-          //   }
-          // }}
-          slots={{
-            noRowsOverlay: () => (
-              <Box className="center" height={1}>
-                <Stack alignItems="center">
-                  <Typography variant="subtitle1">💻</Typography>
-                  <Typography variant="subtitle4">{t('noDocument')}</Typography>
-                  <Typography variant="subtitle5">{t('noDocumentDesc')}</Typography>
+      {!s && (
+        <Stack flex={1} height={0} sx={{ overflowX: 'auto' }}>
+          <Table
+            sx={{
+              minWidth: 600,
+              border: 0,
+              [`& .${gridClasses.cell}:focus, & .${gridClasses.cell}:focus-within`]: { outline: 'none' },
+              [`& .${gridClasses.columnHeader}:focus, & .${gridClasses.columnHeader}:focus-within`]: {
+                outline: 'none',
+              },
+              [`& .${gridClasses.footerContainer}`]: { border: 0 },
+            }}
+            disableColumnMenu
+            columnHeaderHeight={30}
+            rowHeight={40}
+            getRowId={(v) => v.id}
+            rows={rows}
+            columns={columns as any}
+            rowCount={state.total ?? 0}
+            pageSizeOptions={[20]}
+            paginationModel={{ page: state.page, pageSize: state.size }}
+            paginationMode="server"
+            onPaginationModelChange={({ page, pageSize: size }) => refetch({ page, size })}
+            getRowClassName={() => 'document-row'}
+            onRowClick={(params) => {
+              const rowId = params.row.id;
+              navigate(`document/${rowId}`, { replace: true });
+            }}
+            slots={{
+              noRowsOverlay: () => (
+                <Box className="center" height={1}>
+                  <Stack alignItems="center">
+                    <Typography variant="subtitle1">💻</Typography>
+                    <Typography variant="subtitle4">{t('noDocument')}</Typography>
+                    <Typography variant="subtitle5">{t('noDocumentDesc')}</Typography>
 
-                  <Button variant="text" size="small" onClick={() => navigate('add')}>
-                    {t('knowledge.documents.add')}
-                  </Button>
-                </Stack>
-              </Box>
-            ),
-          }}
-        />
-      </Stack>
+                    <Button variant="text" size="small" onClick={() => navigate('add')}>
+                      {t('knowledge.documents.add')}
+                    </Button>
+                  </Stack>
+                </Box>
+              ),
+            }}
+          />
+        </Stack>
+      )}
+
+      {!!s && <KnowledgeSearchContent loading={loading} data={data} />}
     </Stack>
+  );
+}
+
+function KnowledgeSearchContent({ loading, data }: { loading: boolean; data?: { docs: { content: string }[] } }) {
+  const { t } = useLocaleContext();
+  const segmentDialogState = usePopupState({ variant: 'dialog', popupId: 'segment' });
+  const form = useForm<{ content: string }>({ defaultValues: { content: '' } });
+
+  if (loading) {
+    return (
+      <Stack flex={1} height={0} className="center">
+        <CircularProgress size={20} />
+      </Stack>
+    );
+  }
+
+  return (
+    <>
+      <ListContainer gap={1.25}>
+        {(data?.docs || []).map((item, index) => {
+          return (
+            <SegmentsItem
+              key={item.content}
+              index={index + 1}
+              content={item.content}
+              onClick={() => {
+                form.setValue('content', item.content || '');
+                segmentDialogState.open();
+              }}
+              className="listItem"
+            />
+          );
+        })}
+      </ListContainer>
+
+      <Dialog {...bindDialog(segmentDialogState)} maxWidth="sm" fullWidth component="form">
+        <DialogTitle className="between">
+          <Box>{t('knowledge.segments.content')}</Box>
+
+          <IconButton size="small" onClick={segmentDialogState.close}>
+            <Close />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent>
+          <Controller
+            control={form.control}
+            name="content"
+            rules={{
+              required: t('validation.fieldRequired'),
+            }}
+            render={({ field, fieldState }) => {
+              return (
+                <TextField
+                  label={t('knowledge.segments.content')}
+                  placeholder={t('knowledge.segments.content')}
+                  sx={{ width: 1 }}
+                  multiline
+                  rows={10}
+                  InputProps={{ readOnly: true }}
+                  {...field}
+                  error={Boolean(fieldState.error)}
+                  helperText={fieldState.error?.message}
+                />
+              );
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
@@ -371,7 +498,7 @@ function Actions({
   onRefetch: () => void;
   onEdit: (e: React.MouseEvent) => void;
   onEmbedding: (e: React.MouseEvent) => void;
-  onLink: () => void;
+  onLink: (e: React.MouseEvent) => void;
 }) {
   const { t } = useLocaleContext();
   const { dialog, showDialog } = useDialog();
@@ -466,4 +593,13 @@ const Table = styled(DataGrid)`
   .MuiDataGrid-cell {
     padding: 0;
   }
+
+  .document-row {
+    cursor: pointer;
+  }
+`;
+
+const ListContainer = styled(Box)`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
 `;
