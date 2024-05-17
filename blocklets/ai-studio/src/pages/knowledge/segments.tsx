@@ -14,13 +14,18 @@ import {
   DialogContent,
   DialogTitle,
   Divider,
+  FormControl,
   IconButton,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
   Stack,
   StackProps,
   TextField,
   Typography,
   styled,
 } from '@mui/material';
+import { useRequest } from 'ahooks';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -28,7 +33,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { useFetchSegments, useSegments } from '../../contexts/datasets/segments';
 import { getErrorMessage } from '../../libs/api';
-import { uploadDocumentName } from '../../libs/dataset';
+import { getDocumentContent, uploadDocumentName } from '../../libs/dataset';
 import Empty from '../project/icons/empty';
 
 export default function KnowledgeSegments() {
@@ -41,13 +46,27 @@ export default function KnowledgeSegments() {
   const documentDialogState = usePopupState({ variant: 'dialog', popupId: 'document' });
 
   const form = useForm<{ content: string }>({ defaultValues: { content: '' } });
-  const [viewType] = useState('SegmentsView');
+  const [viewType, setViewType] = useState('SegmentsView');
+  const [content, setContent] = useState<string[]>([]);
 
   const { state, refetch } = useSegments(datasetId || '', documentId || '');
   const { loadingRef, dataState } = useFetchSegments(datasetId || '', documentId || '');
   const [readContent, setReadContent] = useState('');
   const isReadOnly = Boolean(readContent);
   const segments = dataState?.data?.list || [];
+
+  const { loading } = useRequest(
+    async () => {
+      if (viewType === 'ContentView' && !content?.length) {
+        const con = await getDocumentContent(datasetId || '', documentId || '');
+        setContent((con?.content || []).filter((x) => x));
+        return Promise.resolve(null);
+      }
+
+      return Promise.resolve(null);
+    },
+    { refreshDeps: [viewType, content, datasetId, documentId] }
+  );
 
   if (state.error) throw state.error;
 
@@ -64,37 +83,38 @@ export default function KnowledgeSegments() {
   return (
     <>
       <Stack overflow="hidden" height={1} bgcolor="#fff">
-        <Stack gap={1} py={2} px={2.5}>
-          <Box
-            display="flex"
-            alignItems="center"
-            sx={{ cursor: 'pointer' }}
-            onClick={() => {
-              navigate(`../${datasetId}`);
-            }}>
-            <Box component={Icon} icon={ChevronLeftIcon} width={20} />
-            <Typography variant="subtitle2" mb={0}>
-              {state.document?.name}
-            </Typography>
-          </Box>
-
-          <Box display="flex" justifyContent="space-between" alignItems="center">
-            <Box>
-              <Box display="flex" gap={2} alignItems="center">
-                <Tag>{t(state.document?.type)}</Tag>
-
-                {viewType === 'SegmentsView' && (
-                  <>
-                    <Tag>{t('knowledge.auto')}</Tag>
-                    <Tag>
-                      {dataState?.data?.total} {t('knowledge.segments.segments')}
-                    </Tag>
-                  </>
-                )}
-              </Box>
+        <Box py={2} px={2.5} className="between">
+          <Stack gap={1}>
+            <Box
+              display="flex"
+              alignItems="center"
+              sx={{ cursor: 'pointer' }}
+              onClick={() => {
+                navigate(`../${datasetId}`);
+              }}>
+              <Box component={Icon} icon={ChevronLeftIcon} width={20} />
+              <Typography variant="subtitle2" mb={0}>
+                {state.document?.name}
+              </Typography>
             </Box>
 
-            {/* <Box display="flex" alignItems="center" gap={2}>
+            <Box display="flex" justifyContent="space-between" alignItems="center">
+              <Box>
+                <Box display="flex" gap={2} alignItems="center">
+                  <Tag>{t(state.document?.type)}</Tag>
+
+                  {viewType === 'SegmentsView' && (
+                    <>
+                      <Tag>{t('knowledge.auto')}</Tag>
+                      <Tag>
+                        {dataState?.data?.total} {t('knowledge.segments.segments')}
+                      </Tag>
+                    </>
+                  )}
+                </Box>
+              </Box>
+
+              {/* <Box display="flex" alignItems="center" gap={2}>
               <SplitButton onRename={documentDialogState.open} />
 
               <Button
@@ -109,40 +129,59 @@ export default function KnowledgeSegments() {
                 {t('knowledge.segments.create')}
               </Button>
             </Box> */}
+            </Box>
+          </Stack>
+
+          <Box>
+            <FormControl>
+              <Select
+                hiddenLabel
+                value={viewType}
+                onChange={(event: SelectChangeEvent) => setViewType(event.target.value)}>
+                <MenuItem value="SegmentsView">{t('segmentsView')}</MenuItem>
+                <MenuItem value="ContentView">{t('contentView')}</MenuItem>
+              </Select>
+            </FormControl>
           </Box>
-        </Stack>
+        </Box>
 
         <Divider />
 
-        {/* <Box p="28px 24px 20px">
-          <FormControl>
-            <InputLabel id="select-label">{t('showType')}</InputLabel>
-            <Select labelId="select-label" value={viewType} label={t('showType')} onChange={handleChange}>
-              <MenuItem value="SegmentsView">{t('segmentsView')}</MenuItem>
-            </Select>
-          </FormControl>
-        </Box> */}
-
         {viewType === 'ContentView' && (
-          <Stack flex={1} height={0} py={2}>
-            <Box width={1} height={1}>
-              <Box
-                sx={{
-                  border: '1px solid rgba(29,28,35,.12)',
-                  borderRadius: 0.5,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  p: '12px 100px',
-                  m: '0 24px',
-                  height: 'calc(100% - 24px)',
-                  position: 'relative',
-                  wordBreak: 'break-all',
-                  overflow: 'auto',
-                }}>
-                {state.document?.content}
-              </Box>
-            </Box>
-          </Stack>
+          <>
+            {!loading && (
+              <Stack flex={1} height={0} py={2}>
+                <Box width={1} height={1}>
+                  <Box
+                    sx={{
+                      border: '1px solid rgba(29,28,35,.12)',
+                      borderRadius: 0.5,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      p: 2,
+                      m: '0 24px',
+                      height: 'calc(100% - 24px)',
+                      position: 'relative',
+                      overflow: 'auto',
+                    }}>
+                    {content.map((x) => {
+                      return (
+                        <Box key={x} mb={2} sx={{ wordBreak: 'break-word', whiteSpace: 'break-spaces' }}>{`${x}`}</Box>
+                      );
+                    })}
+                  </Box>
+                </Box>
+              </Stack>
+            )}
+
+            {loading && (
+              <Stack flex={1} height={0} py={2}>
+                <Box width={1} height={1} className="center">
+                  <CircularProgress size={20} />
+                </Box>
+              </Stack>
+            )}
+          </>
         )}
 
         {viewType === 'SegmentsView' && (

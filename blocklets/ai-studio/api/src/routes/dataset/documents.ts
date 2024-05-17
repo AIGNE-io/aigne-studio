@@ -17,7 +17,7 @@ import Dataset from '../../store/models/dataset/dataset';
 import DatasetDocument from '../../store/models/dataset/document';
 import EmbeddingHistories from '../../store/models/dataset/embedding-history';
 import VectorStore from '../../store/vector-store-faiss';
-import getAllContents from './document-content';
+import getAllContents, { getContent } from './document-content';
 import { queue } from './embeddings';
 import { updateHistoriesAndStore } from './vector-store';
 
@@ -522,6 +522,21 @@ router.get('/:datasetId/documents/:documentId', user(), userAuth(), async (req, 
 
   if (document?.dataValues) document.dataValues.content = content?.dataValues.content;
   res.json({ dataset, document });
+});
+
+router.get('/:datasetId/documents/:documentId/content', user(), userAuth(), async (req, res) => {
+  const { datasetId, documentId } = await Joi.object<{ datasetId: string; documentId: string }>({
+    datasetId: Joi.string().required(),
+    documentId: Joi.string().required(),
+  }).validateAsync(req.params);
+
+  const document = await DatasetDocument.findOne({ where: { datasetId, id: documentId } });
+  if (!document) {
+    return res.json({ content: [] });
+  }
+
+  const content = await getContent(document);
+  return res.json({ content });
 });
 
 router.post('/:datasetId/documents/:documentId/embedding', user(), userAuth(), async (req, res) => {

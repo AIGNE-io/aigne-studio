@@ -59,6 +59,10 @@ export async function getDocument(
   return axios.get(`/api/datasets/${datasetId}/documents/${documentId}`).then((res) => res.data);
 }
 
+export async function getDocumentContent(datasetId: string, documentId: string): Promise<{ content: string[] }> {
+  return axios.get(`/api/datasets/${datasetId}/documents/${documentId}/content`).then((res) => res.data);
+}
+
 export async function deleteDocument(
   datasetId: string,
   documentId: string
