@@ -1,3 +1,7 @@
+## 0.1.398 (2024-5-17)
+
+- fix: update time
+
 ## 0.1.397 (2024-5-17)
 
 - fix: sort lower the score in the vector database
