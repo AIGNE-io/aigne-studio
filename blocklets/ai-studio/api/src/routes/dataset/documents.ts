@@ -5,6 +5,7 @@ import config from '@blocklet/sdk/lib/config';
 import user from '@blocklet/sdk/lib/middlewares/user';
 import { Router } from 'express';
 import Joi from 'joi';
+import { sortBy } from 'lodash';
 import multer from 'multer';
 import { Op, Sequelize } from 'sequelize';
 
@@ -120,9 +121,14 @@ router.get('/:datasetId/search', async (req, res) => {
       return;
     }
 
-    const docs = await store.similaritySearch(input.message, Math.min(input.n, Object.keys(store.getMapping()).length));
-    const result = docs.map((x) => {
-      return { content: x?.pageContent, ...(x?.metadata?.metadata || {}) };
+    const docs = await store.similaritySearchWithScore(
+      input.message,
+      Math.min(input.n, Object.keys(store.getMapping()).length)
+    );
+
+    const result = sortBy(docs, (item) => -item[1]).map((x) => {
+      const info = x[0] || {};
+      return { content: info?.pageContent, ...(info?.metadata?.metadata || {}) };
     });
 
     res.json({ docs: result });
