@@ -154,7 +154,7 @@ function TemplatesProjects({ list }: { list?: ProjectWithUserInfo[] }) {
   const resource = (list || []).filter((x) => x.isFromResource);
   const { t } = useLocaleContext();
   const [dialog, setDialog] = useState<any>(null);
-  const { checkProjectLimit } = useProjectsState();
+  const { checkProjectLimit, limitDialog } = useProjectsState();
 
   return (
     <>
@@ -224,6 +224,7 @@ function TemplatesProjects({ list }: { list?: ProjectWithUserInfo[] }) {
       </Stack>
 
       {dialog}
+      {limitDialog}
     </>
   );
 }
@@ -246,6 +247,8 @@ function ProjectMenu() {
     updateProject,
     setMenuAnchor,
     checkProjectLimit,
+    createLimitDialog,
+    limitDialog,
   } = useProjectsState();
 
   const item =
@@ -342,7 +345,13 @@ function ProjectMenu() {
               description: item?.description,
             })
               .catch((error) => {
-                Toast.error(getErrorMessage(error));
+                const message = getErrorMessage(error);
+                if (String(message || '').includes('Project limit exceeded')) {
+                  createLimitDialog();
+                } else {
+                  Toast.error(message);
+                }
+
                 throw error;
               })
               .finally(() => {
@@ -454,6 +463,7 @@ function ProjectMenu() {
       )}
 
       {dialog}
+      {limitDialog}
     </>
   );
 }
@@ -529,6 +539,8 @@ function ProjectList({
     state: { menuAnchor },
     setMenuAnchor,
     checkProjectLimit,
+    createLimitDialog,
+    limitDialog,
   } = useProjectsState();
 
   return (
@@ -590,11 +602,20 @@ function ProjectList({
                     okText: t('create'),
                     okIcon: <RocketLaunchRoundedIcon />,
                     onOk: async () => {
-                      const project = await createProject({ templateId: item._id, name, description });
-                      currentGitStore.setState({
-                        currentProjectId: project._id,
-                      });
-                      navigate(joinURL('/projects', project._id));
+                      try {
+                        const project = await createProject({ templateId: item._id, name, description });
+                        currentGitStore.setState({
+                          currentProjectId: project._id,
+                        });
+                        navigate(joinURL('/projects', project._id));
+                      } catch (error) {
+                        const message = getErrorMessage(error);
+                        if (String(message || '').includes('Project limit exceeded')) {
+                          createLimitDialog();
+                        } else {
+                          Toast.error(message);
+                        }
+                      }
                     },
                   });
                 } else if (section === 'projects') {
@@ -628,6 +649,13 @@ function ProjectList({
                       });
                       navigate(joinURL('/projects', project._id!));
                     } catch (error) {
+                      const message = getErrorMessage(error);
+                      if (String(message || '').includes('Project limit exceeded')) {
+                        createLimitDialog();
+                      } else {
+                        Toast.error(message);
+                      }
+
                       setLoading(null);
                     }
                   } else {
@@ -670,6 +698,7 @@ function ProjectList({
       </ProjectListContainer>
 
       {dialog}
+      {limitDialog}
     </>
   );
 }

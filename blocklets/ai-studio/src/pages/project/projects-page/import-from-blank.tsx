@@ -34,7 +34,7 @@ interface BlankForm {
 export default function ImportFromBlank({ onClose, item }: { onClose: () => void; item?: ProjectWithUserInfo }) {
   const { t } = useLocaleContext();
   const navigate = useNavigate();
-  const { importProject } = useProjectsState();
+  const { createLimitDialog, limitDialog } = useProjectsState();
 
   const form = useForm<BlankForm>({
     defaultValues: { description: '', name: '' },
@@ -52,73 +52,82 @@ export default function ImportFromBlank({ onClose, item }: { onClose: () => void
         navigate(joinURL('/projects', project._id));
       } catch (error) {
         form.reset(value);
-        Toast.error(getErrorMessage(error));
+        const message = getErrorMessage(error);
+        if (String(message || '').includes('Project limit exceeded')) {
+          createLimitDialog();
+        } else {
+          Toast.error(message);
+        }
+
         throw error;
       }
     },
-    [form, importProject, navigate]
+    [form, navigate]
   );
 
   return (
-    <Dialog
-      open
-      disableEnforceFocus
-      maxWidth="sm"
-      fullWidth
-      component="form"
-      onSubmit={form.handleSubmit(save)}
-      onClose={onClose}>
-      <DialogTitle className="between">
-        <Box>{t('newObject', { object: t('project') })}</Box>
+    <>
+      <Dialog
+        open
+        disableEnforceFocus
+        maxWidth="sm"
+        fullWidth
+        component="form"
+        onSubmit={form.handleSubmit(save)}
+        onClose={onClose}>
+        <DialogTitle className="between">
+          <Box>{t('newObject', { object: t('project') })}</Box>
 
-        <IconButton size="small" onClick={() => onClose()}>
-          <Close />
-        </IconButton>
-      </DialogTitle>
+          <IconButton size="small" onClick={() => onClose()}>
+            <Close />
+          </IconButton>
+        </DialogTitle>
 
-      <DialogContent>
-        <Stack overflow="auto" gap={1.5}>
-          <Box>
-            <Typography variant="subtitle2">{t('name')}</Typography>
-            <TextField
-              placeholder={t('newProjectNamePlaceholder')}
-              hiddenLabel
-              autoFocus
-              sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
-              {...form.register('name')}
-            />
-          </Box>
+        <DialogContent>
+          <Stack overflow="auto" gap={1.5}>
+            <Box>
+              <Typography variant="subtitle2">{t('name')}</Typography>
+              <TextField
+                placeholder={t('newProjectNamePlaceholder')}
+                hiddenLabel
+                autoFocus
+                sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
+                {...form.register('name')}
+              />
+            </Box>
 
-          <Box>
-            <Typography variant="subtitle2">{t('description')}</Typography>
-            <TextField
-              placeholder={t('newProjectDescriptionPlaceholder')}
-              hiddenLabel
-              multiline
-              minRows={2}
-              maxRows={3}
-              sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
-              {...form.register('description')}
-            />
-          </Box>
-        </Stack>
-      </DialogContent>
+            <Box>
+              <Typography variant="subtitle2">{t('description')}</Typography>
+              <TextField
+                placeholder={t('newProjectDescriptionPlaceholder')}
+                hiddenLabel
+                multiline
+                minRows={2}
+                maxRows={3}
+                sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
+                {...form.register('description')}
+              />
+            </Box>
+          </Stack>
+        </DialogContent>
 
-      <DialogActions>
-        <Button onClick={onClose} className="cancel" variant="outlined">
-          {t('cancel')}
-        </Button>
+        <DialogActions>
+          <Button onClick={onClose} className="cancel" variant="outlined">
+            {t('cancel')}
+          </Button>
 
-        <LoadingButton
-          className="save"
-          variant="contained"
-          type="submit"
-          loading={form.formState.isSubmitting}
-          loadingPosition="start"
-          startIcon={<Box component={Icon} icon={PlusIcon} />}>
-          {t('create')}
-        </LoadingButton>
-      </DialogActions>
-    </Dialog>
+          <LoadingButton
+            className="save"
+            variant="contained"
+            type="submit"
+            loading={form.formState.isSubmitting}
+            loadingPosition="start"
+            startIcon={<Box component={Icon} icon={PlusIcon} />}>
+            {t('create')}
+          </LoadingButton>
+        </DialogActions>
+      </Dialog>
+      {limitDialog}
+    </>
   );
 }

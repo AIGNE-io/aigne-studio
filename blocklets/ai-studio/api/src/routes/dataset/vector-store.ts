@@ -54,22 +54,17 @@ export const saveContentToVectorStore = async ({
   documentId: string;
 }) => {
   const textSplitter = new RecursiveCharacterTextSplitter({ chunkSize: 1024 });
+  const embeddings = new AIKitEmbeddings({ batchSize: 6 });
   const docs = await textSplitter.createDocuments([content], metadata ? [{ metadata }] : undefined);
 
   const formatDocuments = docs.map((doc) => {
     if (metadata && typeof metadata === 'object' && Object.keys(metadata).length) {
-      const arr = Object.keys(metadata)
-        .map((key) => (metadata[key] ? `${key}: ${metadata[key]}` : ''))
-        .filter((i) => i);
-      arr.push(`content: ${doc.pageContent}`);
-
-      return { ...doc, pageContent: arr.join(',') };
+      return { ...doc, pageContent: JSON.stringify({ ...metadata, content: doc.pageContent }) };
     }
 
     return doc;
   });
 
-  const embeddings = new AIKitEmbeddings({ batchSize: 6 });
   const vectors = await embeddings.embedDocuments(formatDocuments.map((d) => d.pageContent));
 
   // 清除历史 Vectors Store
