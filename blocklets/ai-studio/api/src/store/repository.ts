@@ -87,6 +87,10 @@ export async function getRepository({
             logger.error('read testFile blob failed error', { error });
           }
 
+          if (!assistant) {
+            return null;
+          }
+
           const data = fileToYjs(assistant);
 
           if (isAssistant(data)) {

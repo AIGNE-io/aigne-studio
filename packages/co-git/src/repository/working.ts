@@ -72,17 +72,19 @@ export default class Working<T> extends Doc {
     const files = await Promise.all(
       (await this.repo.listFiles({ ref: this.options.ref })).map(async (p) => {
         const content = (await this.repo.readBlob({ ref: this.options.ref, filepath: p })).blob;
-        const { filepath, data, key } = await this.repo.options.parse(p, content, { ref: this.options.ref });
-        return { filepath, key, file: data };
+        return this.repo.options.parse(p, content, { ref: this.options.ref });
       })
     );
 
     this.transact(() => {
       this.getMap('files').clear();
       this.getMap('tree').clear();
-      for (const { filepath, key, file } of files) {
-        this.syncedStore.files[key] = file;
-        this.syncedStore.tree[key] = filepath;
+      for (const item of files) {
+        if (item) {
+          const { filepath, key, data: file } = item;
+          this.syncedStore.files[key] = file;
+          this.syncedStore.tree[key] = filepath;
+        }
       }
     });
   }
