@@ -52,9 +52,9 @@ export default function AgentSelect<
         onChange?.(
           e,
           (Array.isArray(v)
-            ? v.map((i) => ({ id: i.id, projectId: i.project.id, blockletId: i.blocklet?.did }))
+            ? v.map((i) => ({ id: i.id, projectId: i.project.id, blockletDid: i.blocklet?.did }))
             : v
-              ? { id: v.id, projectId: v.project.id, blockletId: v.blocklet?.did }
+              ? { id: v.id, projectId: v.project.id, blockletDid: v.blocklet?.did }
               : v) as any,
           reason
         )

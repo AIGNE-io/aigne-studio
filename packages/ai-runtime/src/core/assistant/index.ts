@@ -525,7 +525,7 @@ async function runRouterAssistant({
   const toolAssistants = (
     await Promise.all(
       routes.map(async (tool) => {
-        const toolAssistant = await getAssistant(tool.id, { projectId: tool.projectId });
+        const toolAssistant = await getAssistant(tool.id, { blockletDid: tool.blockletDid, projectId: tool.projectId });
         if (!toolAssistant) return undefined;
         const toolParameters = (toolAssistant.parameters ?? [])
           .filter((i): i is typeof i & Required<Pick<typeof i, 'key'>> => !!i.key && !tool.parameters?.[i.key])
@@ -1070,7 +1070,7 @@ const runRequestToolAssistant = async ({
     const currentTaskId = taskIdGenerator.nextId().toString();
 
     const { agent: tool } = toolParameter.source;
-    const toolAssistant = await getAssistant(tool.id, { projectId: tool.projectId });
+    const toolAssistant = await getAssistant(tool.id, { blockletDid: tool.blockletDid, projectId: tool.projectId });
     if (!toolAssistant) return null;
 
     const args = Object.fromEntries(
@@ -1149,7 +1149,7 @@ const getVariables = async ({
     if (parameter.key && parameter.type === 'source') {
       if (parameter.source?.variableFrom === 'tool' && parameter.source.agent) {
         const { agent: tool } = parameter.source;
-        const toolAssistant = await getAssistant(tool.id, { projectId: tool.projectId });
+        const toolAssistant = await getAssistant(tool.id, { blockletDid: tool.blockletDid, projectId: tool.projectId });
         if (!toolAssistant) continue;
 
         // eslint-disable-next-line no-await-in-loop
@@ -1893,7 +1893,10 @@ async function runExecuteBlock({
             });
           }
 
-          const toolAssistant = await getAssistant(tool.id, { projectId: tool.projectId });
+          const toolAssistant = await getAssistant(tool.id, {
+            blockletDid: tool.blockletDid,
+            projectId: tool.projectId,
+          });
           if (!toolAssistant) return undefined;
           const args = Object.fromEntries(
             await Promise.all(
@@ -1996,7 +1999,10 @@ async function runExecuteBlock({
             };
           }
 
-          const toolAssistant = await getAssistant(tool.id, { projectId: tool.projectId });
+          const toolAssistant = await getAssistant(tool.id, {
+            blockletDid: tool.blockletDid,
+            projectId: tool.projectId,
+          });
           if (!toolAssistant) return undefined;
           const toolParameters = (toolAssistant.parameters ?? [])
             .filter((i): i is typeof i & Required<Pick<typeof i, 'key'>> => !!i.key && !tool.parameters?.[i.key])

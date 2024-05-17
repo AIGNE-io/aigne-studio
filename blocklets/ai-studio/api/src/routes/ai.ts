@@ -40,6 +40,7 @@ router.post('/image/generations', ensureComponentCallOrPromptsEditor(), proxyToA
 const callInputSchema = Joi.object<{
   userId?: string;
   sessionId?: string;
+  blockletDid?: string;
   aid: string;
   working?: boolean;
   parameters?: { [key: string]: any };
@@ -47,6 +48,7 @@ const callInputSchema = Joi.object<{
 }>({
   userId: Joi.string().empty(['', null]),
   sessionId: Joi.string().empty(['', null]),
+  blockletDid: Joi.string().empty(['', null]),
   aid: Joi.string().required(),
   working: Joi.boolean().default(false),
   parameters: Joi.object({
@@ -144,7 +146,8 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
   };
 
   const getAssistant: GetAssistant = async (fileId: string, options) => {
-    if (!options?.projectId || options.projectId === projectId) {
+    const blockletDid = options?.blockletDid || input.blockletDid;
+    if (!blockletDid || !options?.projectId) {
       return getAssistantFromRepository({
         repository,
         ref: projectRef,
@@ -155,15 +158,17 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
     }
 
     const assistant = await getAssistantFromResourceBlocklet({
+      blockletDid,
       projectId: options.projectId,
       assistantId: fileId,
       type: ['application', 'tool'],
     });
-    if (options.rejectOnEmpty && !assistant) throw new Error(`No such assistant ${fileId}`);
-    return assistant!;
+    if (options.rejectOnEmpty && !assistant?.assistant) throw new Error(`No such assistant ${fileId}`);
+
+    return assistant?.assistant!;
   };
 
-  const assistant = await getAssistant(assistantId, { rejectOnEmpty: true });
+  const assistant = await getAssistant(assistantId, { projectId, blockletDid: input.blockletDid, rejectOnEmpty: true });
 
   let mainTaskId: string | undefined;
   let error: { type?: string; message: string } | undefined;

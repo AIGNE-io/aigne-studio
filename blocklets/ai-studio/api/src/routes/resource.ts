@@ -17,11 +17,10 @@ import Project from '../store/models/project';
 import { LOGO_FILENAME, defaultBranch, getAssistantsOfRepository, getRepository } from '../store/repository';
 
 const AI_STUDIO_DID = 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
-const TARGET_DIR = path.join(AI_STUDIO_DID, 'ai');
 
 const getResourceDir = async ({ projectId, releaseId }: { projectId: string; releaseId: string }) => {
   const exportDir = component.getResourceExportDir({ projectId, releaseId });
-  const resourceDir = path.join(exportDir, TARGET_DIR);
+  const resourceDir = path.join(exportDir, AI_STUDIO_DID);
 
   await mkdir(resourceDir, { recursive: true });
 

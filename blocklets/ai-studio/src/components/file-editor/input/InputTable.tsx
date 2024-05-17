@@ -1015,7 +1015,7 @@ function AgentParametersForm({
 
       <Box>
         {agent.parameters?.map((data) => {
-          if (!data?.key) return null;
+          if (!data?.key || data.type === 'source') return null;
 
           return (
             <Stack key={data.id}>

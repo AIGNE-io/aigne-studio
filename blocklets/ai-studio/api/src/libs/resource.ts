@@ -1,5 +1,5 @@
 import { access, readFile, readdir, stat } from 'fs/promises';
-import { dirname, join } from 'path';
+import { basename, dirname, join } from 'path';
 
 import Project from '@api/store/models/project';
 import { projectTemplates } from '@api/templates/projects';
@@ -7,6 +7,7 @@ import { Assistant } from '@blocklet/ai-runtime/types';
 import { getResources } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
 import { exists } from 'fs-extra';
+import { groupBy } from 'lodash';
 import { parse } from 'yaml';
 
 import logger from './logger';
@@ -15,7 +16,7 @@ const AI_STUDIO_DID = 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
 
 export type ResourceType = 'template' | 'example' | 'application' | 'tool';
 
-const ResourceTypes: ResourceType[] = ['template', 'example', 'application', 'tool'];
+export const ResourceTypes: ResourceType[] = ['template', 'example', 'application', 'tool'];
 
 interface ResourceProject {
   blocklet: { did: string };
@@ -27,10 +28,14 @@ interface ResourceProject {
 interface Resources {
   [folder: string]: {
     projects: ResourceProject[];
-    projectMap: {
-      [projectId: string]: ResourceProject & {
-        assistantMap: {
-          [assistantId: string]: Assistant;
+    blockletMap: {
+      [blockletDid: string]: {
+        projectMap: {
+          [projectId: string]: ResourceProject & {
+            assistantMap: {
+              [assistantId: string]: Assistant;
+            };
+          };
         };
       };
     };
@@ -42,9 +47,20 @@ const cache: {
   promise?: Promise<Resources>;
 } = {};
 
-const getResourcePackageAssistantsDirs = () => {
-  const resources = getResources({ types: [{ did: AI_STUDIO_DID, type: 'ai' }], skipRunningCheck: true });
-  return resources.map((resource) => ({ path: resource.path!, did: resource.did! })).filter((x) => !!x.path);
+const getResourceDirs = () => {
+  const resources = ResourceTypes.flatMap((type) =>
+    getResources({
+      types: [{ did: AI_STUDIO_DID, type }],
+      skipRunningCheck: true,
+    })
+  );
+
+  return resources
+    .filter((x): x is typeof x & Required<Pick<typeof x, 'path'>> => !!x.path)
+    .map((i) => ({
+      ...i,
+      type: basename(i.path),
+    }));
 };
 
 async function loadResourceBlocklets(path: string) {
@@ -94,45 +110,40 @@ async function loadResourceBlocklets(path: string) {
 }
 
 async function loadResources(): Promise<Resources> {
-  const dirs = getResourcePackageAssistantsDirs();
+  const dirs = getResourceDirs();
 
-  const files = await Promise.all(
-    ResourceTypes.map(async (folder) => {
-      const projects: Resources[string]['projects'] = (
-        await Promise.all(
-          dirs.map(async (item) => {
-            const folderPath = join(item.path, folder);
-            const projects = (await loadResourceBlocklets(folderPath)) ?? [];
-            return projects.map((i) => ({
-              ...i,
-              blocklet: { did: item.did },
-            }));
-          })
-        )
-      ).flat();
+  return Object.fromEntries(
+    await Promise.all(
+      dirs.map(async (item) => {
+        const projects = ((await loadResourceBlocklets(item.path)) ?? []).map((i) => ({
+          ...i,
+          blocklet: { did: item.did },
+        }));
 
-      return [
-        folder,
-        {
-          projects,
-          projectMap: Object.fromEntries(
-            projects.map(
-              (i) =>
-                [
-                  i.project._id,
-                  {
-                    ...i,
-                    assistantMap: Object.fromEntries(i.assistants.map((j) => [j.id, j])),
-                  },
-                ] as const
-            )
-          ),
-        },
-      ] as const;
-    })
+        const blockletMap = Object.fromEntries(
+          Object.entries(groupBy(projects, (i) => i.blocklet.did)).map(([blockletDid, projects]) => [
+            blockletDid,
+            {
+              projectMap: Object.fromEntries(
+                projects.map(
+                  (i) =>
+                    [
+                      i.project._id,
+                      {
+                        ...i,
+                        assistantMap: Object.fromEntries(i.assistants.map((j) => [j.id, j])),
+                      },
+                    ] as const
+                )
+              ),
+            },
+          ])
+        );
+
+        return [item.type, { projects, blockletMap }];
+      })
+    )
   );
-
-  return Object.fromEntries(files);
 }
 
 async function reloadResources() {
@@ -146,18 +157,22 @@ export const getResourceProjects = async (type: ResourceType) => {
 };
 
 export const getAssistantFromResourceBlocklet = async ({
+  blockletDid,
   projectId,
   assistantId,
   type,
 }: {
+  blockletDid: string;
   projectId: string;
   assistantId: string;
   type: ResourceType | ResourceType[];
 }) => {
   const resources = await reloadResources();
   for (const t of [type].flat()) {
-    const assistant = resources[t]?.projectMap[projectId]?.assistantMap[assistantId];
-    if (assistant) return assistant;
+    const blocklet = resources[t]?.blockletMap[blockletDid];
+    const project = blocklet?.projectMap[projectId];
+    const assistant = project?.assistantMap[assistantId];
+    if (assistant) return { assistant, project: project.project, blocklet: { did: blockletDid } };
   }
 
   return undefined;
