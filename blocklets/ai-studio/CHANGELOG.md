@@ -1,6 +1,6 @@
-## 0.1.398 (2024-5-17)
+## 0.2.0 (2024-5-17)
 
-- fix: update time
+- fix: update time period for automatic knowledge updating
 
 ## 0.1.397 (2024-5-17)
 
