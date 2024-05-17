@@ -719,7 +719,6 @@ export function SelectTool<Multiple extends boolean | undefined>({
       value={value}
       isOptionEqualToValue={(i, j) => i.id === j.id}
       getOptionLabel={(i) => i.name || t('unnamed')}
-      open
       renderOption={(props, option) => {
         return (
           <MenuItem {...props} key={option.name}>
