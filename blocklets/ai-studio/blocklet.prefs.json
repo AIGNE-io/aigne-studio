@@ -234,27 +234,27 @@
                 "enum": [
                   {
                     "children": [],
-                    "label": "每30分钟",
+                    "label": "Every 30 minutes",
                     "value": "30"
                   },
                   {
                     "children": [],
-                    "label": "每小时",
+                    "label": "Every hour",
                     "value": "60"
                   },
                   {
                     "children": [],
-                    "label": "每6小时",
+                    "label": "Every 6 hours",
                     "value": "360"
                   },
                   {
                     "children": [],
-                    "label": "每12小时",
+                    "label": "Every 12 hours",
                     "value": "720"
                   },
                   {
                     "children": [],
-                    "label": "每天",
+                    "label": "Every day",
                     "value": "1440"
                   }
                 ],
