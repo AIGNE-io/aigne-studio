@@ -722,10 +722,7 @@ export function SelectTool<Multiple extends boolean | undefined>({
       renderOption={(props, option) => {
         return (
           <MenuItem {...props} key={option.name}>
-            <Stack>
-              <Typography variant="subtitle2">{option.name || t('unnamed')}</Typography>
-              <Typography variant="caption">From: {option.name}</Typography>
-            </Stack>
+            {option.name || t('unnamed')}
           </MenuItem>
         );
       }}
