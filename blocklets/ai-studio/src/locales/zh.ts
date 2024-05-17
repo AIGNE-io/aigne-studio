@@ -683,4 +683,7 @@ export default flat({
   outputFromInputPlaceholder: '来自输入 "{input}"',
   author: '作者',
   updatedAt: '更新于',
+  launchMore: '启动更多',
+  launchMoreContent: '你已经达到了 {length} 个项目的限制。\n启动你自己的 AI 工作室以创建更多项目 👇',
+  launchMoreConfirm: '启动我的 AI 工作室',
 });

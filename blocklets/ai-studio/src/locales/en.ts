@@ -689,4 +689,8 @@ export default flat({
   outputFromInputPlaceholder: 'From Input "{input}"',
   author: 'Author',
   updatedAt: 'Updated At',
+  launchMore: 'Launch for more',
+  launchMoreContent:
+    "You've reached the limit of {length} projects.\nLaunch your own AI Studio to create more projects 👇",
+  launchMoreConfirm: 'Launch My AI Studio',
 });
