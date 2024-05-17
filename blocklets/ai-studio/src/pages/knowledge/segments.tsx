@@ -193,8 +193,7 @@ export default function KnowledgeSegments() {
                       itemContent={(index, message) => (
                         <Box
                           key={index}
-                          px={2}
-                          mt={2}
+                          p={2}
                           sx={{ wordBreak: 'break-word', whiteSpace: 'break-spaces' }}>{`${message}`}</Box>
                       )}
                     />
