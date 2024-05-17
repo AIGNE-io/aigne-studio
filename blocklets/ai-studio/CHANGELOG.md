@@ -1,3 +1,7 @@
+## 0.1.397 (2024-5-17)
+
+- fix: sort lower the score in the vector database
+
 ## 0.1.396 (2024-5-17)
 
 - chore: view all the content of the document
