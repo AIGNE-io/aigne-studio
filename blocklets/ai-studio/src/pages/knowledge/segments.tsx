@@ -27,9 +27,10 @@ import {
 } from '@mui/material';
 import { useRequest } from 'ahooks';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
+import { Virtuoso } from 'react-virtuoso';
 
 import { useFetchSegments, useSegments } from '../../contexts/datasets/segments';
 import { getErrorMessage } from '../../libs/api';
@@ -41,6 +42,8 @@ export default function KnowledgeSegments() {
   const params = useParams();
   const { datasetId, documentId } = params;
   const navigate = useNavigate();
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const autoScroll = useRef(true);
 
   const segmentDialogState = usePopupState({ variant: 'dialog', popupId: 'segment' });
   const documentDialogState = usePopupState({ variant: 'dialog', popupId: 'document' });
@@ -54,6 +57,12 @@ export default function KnowledgeSegments() {
   const [readContent, setReadContent] = useState('');
   const isReadOnly = Boolean(readContent);
   const segments = dataState?.data?.list || [];
+
+  const [hitBottom, setHitBottom] = useState(true);
+  const handleScroll = (e: HTMLDivElement) => {
+    const isTouchBottom = e.scrollTop + e.offsetHeight >= e.scrollHeight - 20;
+    setHitBottom(isTouchBottom);
+  };
 
   const { loading } = useRequest(
     async () => {
@@ -153,22 +162,42 @@ export default function KnowledgeSegments() {
               <Stack flex={1} height={0} py={2}>
                 <Box width={1} height={1}>
                   <Box
+                    position="relative"
+                    display="flex"
+                    flexGrow={1}
+                    height={0}
+                    flexDirection="column"
                     sx={{
                       border: '1px solid rgba(29,28,35,.12)',
                       borderRadius: 0.5,
                       display: 'flex',
                       flexDirection: 'column',
-                      p: 2,
                       m: '0 24px',
                       height: 'calc(100% - 24px)',
                       position: 'relative',
-                      overflow: 'auto',
+                      overflow: 'hidden',
+                    }}
+                    ref={viewportRef}
+                    onScroll={(e) => handleScroll(e.currentTarget)}
+                    onWheel={(e) => {
+                      return (autoScroll.current = hitBottom && e.deltaY > 0);
+                    }}
+                    onTouchStart={() => {
+                      autoScroll.current = false;
                     }}>
-                    {content.map((x) => {
-                      return (
-                        <Box key={x} mb={2} sx={{ wordBreak: 'break-word', whiteSpace: 'break-spaces' }}>{`${x}`}</Box>
-                      );
-                    })}
+                    <Virtuoso
+                      customScrollParent={viewportRef.current!}
+                      data={content || []}
+                      initialTopMostItemIndex={0}
+                      computeItemKey={(_, item) => item}
+                      itemContent={(index, message) => (
+                        <Box
+                          key={index}
+                          px={2}
+                          mt={2}
+                          sx={{ wordBreak: 'break-word', whiteSpace: 'break-spaces' }}>{`${message}`}</Box>
+                      )}
+                    />
                   </Box>
                 </Box>
               </Stack>
