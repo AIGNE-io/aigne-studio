@@ -126,7 +126,8 @@ router.get('/:datasetId/search', async (req, res) => {
       Math.min(input.n, Object.keys(store.getMapping()).length)
     );
 
-    const result = sortBy(docs, (item) => -item[1]).map((x) => {
+    // 分数越低越相近
+    const result = sortBy(docs, (item) => item[1]).map((x) => {
       const info = x[0] || {};
       return { content: info?.pageContent, ...(info?.metadata?.metadata || {}) };
     });
