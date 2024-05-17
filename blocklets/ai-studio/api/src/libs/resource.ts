@@ -140,9 +140,9 @@ async function reloadResources() {
   return cache.promise;
 }
 
-export const getResourceProjects = async (folder: 'template' | 'example' | 'application' | 'tool') => {
+export const getResourceProjects = async (type: ResourceType) => {
   const resources = await reloadResources();
-  return resources[folder]?.projects ?? [];
+  return resources[type]?.projects ?? [];
 };
 
 export const getAssistantFromResourceBlocklet = async ({
@@ -165,6 +165,8 @@ export const getAssistantFromResourceBlocklet = async ({
 
 export function initResourceStates() {
   async function reloadStatesWithCatch() {
+    cache.promise = undefined;
+
     await reloadResources().catch((error) => {
       logger.error('load resource states error', { error });
     });
