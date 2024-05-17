@@ -380,6 +380,7 @@ export default function KnowledgeDocuments() {
             paginationModel={{ page: state.page, pageSize: state.size }}
             paginationMode="server"
             onPaginationModelChange={({ page, pageSize: size }) => refetch({ page, size })}
+            getRowClassName={() => 'document-row'}
             onRowClick={(params) => {
               const rowId = params.row.id;
               navigate(`document/${rowId}`, { replace: true });
@@ -591,6 +592,10 @@ const Table = styled(DataGrid)`
 
   .MuiDataGrid-cell {
     padding: 0;
+  }
+
+  .document-row {
+    cursor: pointer;
   }
 `;
 

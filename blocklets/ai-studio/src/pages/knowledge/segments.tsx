@@ -122,22 +122,6 @@ export default function KnowledgeSegments() {
                   )}
                 </Box>
               </Box>
-
-              {/* <Box display="flex" alignItems="center" gap={2}>
-              <SplitButton onRename={documentDialogState.open} />
-
-              <Button
-                disabled={!isContentType}
-                variant="contained"
-                size="small"
-                onClick={() => {
-                  form.reset({ content: '' });
-                  setReadContent('');
-                  segmentDialogState.open();
-                }}>
-                {t('knowledge.segments.create')}
-              </Button>
-            </Box> */}
             </Box>
           </Stack>
 

@@ -1,3 +1,7 @@
+## 0.1.396 (2024-5-17)
+
+- chore: view all the content of the document
+
 ## 0.1.395 (2024-5-16)
 
 - fix: when the project does not create more permissions, give a guide.
