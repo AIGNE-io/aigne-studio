@@ -114,6 +114,8 @@ export async function getRepository({
         };
       },
       stringify: async (filepath, content) => {
+        if (!content) return null;
+
         if (filepath.startsWith(TESTS_FOLDER_NAME)) return null;
 
         if (isAssistant(content)) {

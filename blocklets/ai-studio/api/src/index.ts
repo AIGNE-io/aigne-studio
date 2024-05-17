@@ -21,6 +21,7 @@ import { Config, isDevelopment } from './libs/env';
 import { NoPermissionError } from './libs/error';
 import logger from './libs/logger';
 import initProjectIcons from './libs/project-icons';
+import { initResourceStates } from './libs/resource';
 import routes from './routes';
 
 export { default as app } from './app';
@@ -91,4 +92,5 @@ export const server = app.listen(port, (err?: any) => {
   logger.info(`> ${name} v${version} ready on ${port}`);
   initProjectIcons();
   jobs();
+  initResourceStates();
 });

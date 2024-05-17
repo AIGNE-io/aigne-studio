@@ -10,8 +10,8 @@ import { call, call as callFunc } from '@blocklet/sdk/lib/component';
 import { logger } from '@blocklet/sdk/lib/config';
 import axios, { isAxiosError } from 'axios';
 import { flattenDeep, isNil, pick, startCase, toLower } from 'lodash';
-import fetch from 'node-fetch';
 import { Worker } from 'snowflake-uuid';
+import { joinURL, withQuery } from 'ufo';
 import { NodeVM } from 'vm2';
 
 import { TranspileTs } from '../../builtin/complete';
@@ -318,9 +318,11 @@ export default async function(args) {
           return result;
         },
       },
+      fetch,
       URL,
       call,
-      fetch,
+      joinURL,
+      withQuery,
       ...args,
     },
   });
@@ -523,7 +525,7 @@ async function runRouterAssistant({
   const toolAssistants = (
     await Promise.all(
       routes.map(async (tool) => {
-        const toolAssistant = await getAssistant(tool.id);
+        const toolAssistant = await getAssistant(tool.id, { projectId: tool.projectId });
         if (!toolAssistant) return undefined;
         const toolParameters = (toolAssistant.parameters ?? [])
           .filter((i): i is typeof i & Required<Pick<typeof i, 'key'>> => !!i.key && !tool.parameters?.[i.key])
@@ -1068,7 +1070,7 @@ const runRequestToolAssistant = async ({
     const currentTaskId = taskIdGenerator.nextId().toString();
 
     const { agent: tool } = toolParameter.source;
-    const toolAssistant = await getAssistant(tool.id);
+    const toolAssistant = await getAssistant(tool.id, { projectId: tool.projectId });
     if (!toolAssistant) return null;
 
     const args = Object.fromEntries(
@@ -1147,7 +1149,7 @@ const getVariables = async ({
     if (parameter.key && parameter.type === 'source') {
       if (parameter.source?.variableFrom === 'tool' && parameter.source.agent) {
         const { agent: tool } = parameter.source;
-        const toolAssistant = await getAssistant(tool.id);
+        const toolAssistant = await getAssistant(tool.id, { projectId: tool.projectId });
         if (!toolAssistant) continue;
 
         // eslint-disable-next-line no-await-in-loop
@@ -1891,7 +1893,7 @@ async function runExecuteBlock({
             });
           }
 
-          const toolAssistant = await getAssistant(tool.id);
+          const toolAssistant = await getAssistant(tool.id, { projectId: tool.projectId });
           if (!toolAssistant) return undefined;
           const args = Object.fromEntries(
             await Promise.all(
@@ -1994,7 +1996,7 @@ async function runExecuteBlock({
             };
           }
 
-          const toolAssistant = await getAssistant(tool.id);
+          const toolAssistant = await getAssistant(tool.id, { projectId: tool.projectId });
           if (!toolAssistant) return undefined;
           const toolParameters = (toolAssistant.parameters ?? [])
             .filter((i): i is typeof i & Required<Pick<typeof i, 'key'>> => !!i.key && !tool.parameters?.[i.key])

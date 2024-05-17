@@ -515,6 +515,7 @@ export default flat({
     fromAgentParameter: 'From Agent Input Parameter',
     fromKnowledgeParameter: 'From Knowledge Input Parameter',
     agent: 'Call {agent} Agent',
+    call: 'Call',
   },
   variables: {
     name: 'Data Name',
@@ -686,4 +687,6 @@ export default flat({
   profile: 'Profile',
   avatar: 'Avatar',
   outputFromInputPlaceholder: 'From Input "{input}"',
+  author: 'Author',
+  updatedAt: 'Updated At',
 });

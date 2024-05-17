@@ -61,8 +61,24 @@ export function resourceRoutes(router: Router) {
 
     const resources = [
       {
+        id: 'application',
+        name: 'Application',
+        children: cloneDeep(list).map((x) => {
+          x.id = `application-${x._id}`;
+          return x;
+        }),
+      },
+      {
+        id: 'tool',
+        name: 'Toolkit',
+        children: cloneDeep(list).map((x) => {
+          x.id = `tool-${x._id}`;
+          return x;
+        }),
+      },
+      {
         id: 'template',
-        name: '模板项目',
+        name: 'Template',
         children: cloneDeep(list).map((x) => {
           x.id = `template-${x._id}`;
           return x;
@@ -70,7 +86,7 @@ export function resourceRoutes(router: Router) {
       },
       {
         id: 'example',
-        name: '示例项目',
+        name: 'Example',
         children: cloneDeep(list).map((x) => {
           x.id = `example-${x._id}`;
           return x;

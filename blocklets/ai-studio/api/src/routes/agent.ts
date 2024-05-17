@@ -1,3 +1,4 @@
+import { getResourceProjects } from '@api/libs/resource';
 import Project from '@api/store/models/project';
 import { getAssistantFromRepository, getRepository } from '@api/store/repository';
 import { parseIdentity } from '@blocklet/ai-runtime/common/aid';
@@ -7,6 +8,26 @@ import Joi from 'joi';
 import pick from 'lodash/pick';
 
 const router = Router();
+
+export interface GetAgentsQuery {
+  type: 'application' | 'tool';
+}
+
+const getAgentsQuerySchema = Joi.object<GetAgentsQuery>({
+  type: Joi.string().valid('application', 'tool').empty([null, '']).default('application'),
+});
+
+router.get('/', async (req, res) => {
+  const query = await getAgentsQuerySchema.validateAsync(req.query, { stripUnknown: true });
+
+  const projects = await getResourceProjects(query.type);
+
+  const resourceAgents = projects.flatMap((i) =>
+    i.assistants.map((a) => ({ ...respondAgentFields(a, i.project), blocklet: { did: i.blocklet.did } }))
+  );
+
+  res.json({ agents: resourceAgents });
+});
 
 export interface GetAgentQuery {
   working?: boolean;
@@ -39,7 +60,7 @@ router.get('/:aid', async (req, res) => {
   res.json(respondAgentFields(assistant, project));
 });
 
-const respondAgentFields = (assistant: Assistant, project: Project) => ({
+const respondAgentFields = (assistant: Assistant, project: Project['dataValues']) => ({
   ...pick(
     assistant,
     'id',

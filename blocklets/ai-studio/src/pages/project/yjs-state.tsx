@@ -1,3 +1,4 @@
+import { useCurrentProject } from '@app/contexts/project';
 import { useSessionContext } from '@app/contexts/session';
 import {
   Assistant,
@@ -202,6 +203,16 @@ export const useProjectStore = (projectId: string, gitRef: string, connect?: boo
     }, [syncedStore.files]),
   };
 };
+
+export function useProject() {
+  const { projectId, projectRef } = useCurrentProject();
+  return useProjectStore(projectId, projectRef);
+}
+
+export function useAssistants() {
+  const { store } = useProject();
+  return Object.values(store.files).filter((i): i is AssistantYjs => !!i && isAssistant(i));
+}
 
 export function createFolder({
   store,

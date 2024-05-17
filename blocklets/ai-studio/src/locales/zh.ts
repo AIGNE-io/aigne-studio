@@ -512,6 +512,7 @@ export default flat({
     fromAgentParameter: '来自Agent输入参数',
     fromKnowledgeParameter: '来自知识输入参数',
     agent: '调用 {agent}',
+    call: '调用',
   },
   variables: {
     name: '数据名称',
@@ -680,4 +681,6 @@ export default flat({
   profile: '档案',
   avatar: '头像',
   outputFromInputPlaceholder: '来自输入 "{input}"',
+  author: '作者',
+  updatedAt: '更新于',
 });

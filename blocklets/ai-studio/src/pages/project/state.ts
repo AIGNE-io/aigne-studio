@@ -1,4 +1,5 @@
 import Release from '@api/store/models/release';
+import { useCurrentProject } from '@app/contexts/project';
 import { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { SubscriptionError } from '@blocklet/ai-kit/api';
@@ -190,6 +191,11 @@ export const useProjectState = (projectId: string, gitRef: string) => {
     sync,
   };
 };
+
+export function useCurrentProjectState() {
+  const { projectId, projectRef } = useCurrentProject();
+  return useProjectState(projectId, projectRef);
+}
 
 export type ImageType = { b64Json?: string; url?: string }[];
 

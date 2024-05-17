@@ -1,6 +1,7 @@
 import { defaultImageModel, getSupportedImagesModels } from '@api/libs/common';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
 import logger from '@api/libs/logger';
+import { getAssistantFromResourceBlocklet } from '@api/libs/resource';
 import History from '@api/store/models/history';
 import Session from '@api/store/models/session';
 import { chatCompletions, imageGenerations, proxyToAIKit } from '@blocklet/ai-kit/api/call';
@@ -142,14 +143,24 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
     return imageRes as any;
   };
 
-  const getAssistant: GetAssistant = (fileId: string, options) => {
-    return getAssistantFromRepository({
-      repository,
-      ref: projectRef,
-      working: input.working,
+  const getAssistant: GetAssistant = async (fileId: string, options) => {
+    if (!options?.projectId || options.projectId === projectId) {
+      return getAssistantFromRepository({
+        repository,
+        ref: projectRef,
+        working: input.working,
+        assistantId: fileId,
+        rejectOnEmpty: options?.rejectOnEmpty as any,
+      });
+    }
+
+    const assistant = await getAssistantFromResourceBlocklet({
+      projectId: options.projectId,
       assistantId: fileId,
-      rejectOnEmpty: options?.rejectOnEmpty as any,
+      type: ['application', 'tool'],
     });
+    if (options.rejectOnEmpty && !assistant) throw new Error(`No such assistant ${fileId}`);
+    return assistant!;
   };
 
   const assistant = await getAssistant(assistantId, { rejectOnEmpty: true });

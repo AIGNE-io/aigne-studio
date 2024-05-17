@@ -1,14 +1,17 @@
 import Dataset from '@api/store/models/dataset/dataset';
+import AgentSelect from '@app/components/agent-select';
 import WithAwareness from '@app/components/awareness/with-awareness';
 import { DragSortListYjs } from '@app/components/drag-sort-list';
 import PopperMenu, { PopperMenuImperative } from '@app/components/menu/PopperMenu';
+import { useCurrentProject } from '@app/contexts/project';
 import { getDatasets } from '@app/libs/dataset';
 import Close from '@app/pages/project/icons/close';
 import DragVertical from '@app/pages/project/icons/drag-vertical';
 import { useAssistantCompare } from '@app/pages/project/state';
-import { PROMPTS_FOLDER_NAME, useProjectStore } from '@app/pages/project/yjs-state';
+import { useProjectStore } from '@app/pages/project/yjs-state';
+import { useAgent } from '@app/store/agent';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, ExecuteBlock, ParameterYjs, StringParameter, isAssistant } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, ExecuteBlock, ParameterYjs, StringParameter } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
 import BracesIcon from '@iconify-icons/tabler/braces';
@@ -399,14 +402,18 @@ function SelectFromSource({
 }) {
   const dialogState = usePopupState({ variant: 'dialog', popupId: useId() });
   const { t } = useLocaleContext();
-  const { getFileById } = useProjectStore(projectId, gitRef);
   const ref = useRef<PopperMenuImperative>(null);
 
   const currentKey = parameter.type === 'source' ? parameter.source?.variableFrom : 'custom';
   const fromTitle =
-    parameter.type === 'source' && parameter.source?.variableFrom === 'tool' && parameter?.source?.agent?.id
-      ? t('variableParameter.agent', { agent: getFileById(parameter?.source?.agent?.id)?.name })
-      : FROM_MAP[currentKey || 'custom'];
+    parameter.type === 'source' && parameter.source?.variableFrom === 'tool' && parameter?.source?.agent?.id ? (
+      <span>
+        {t('variableParameter.call')}{' '}
+        <AgentName projectId={parameter.source.agent.projectId} agentId={parameter.source.agent.id} />
+      </span>
+    ) : (
+      FROM_MAP[currentKey || 'custom']
+    );
 
   return (
     <>
@@ -468,6 +475,15 @@ function SelectFromSource({
       />
     </>
   );
+}
+
+function AgentName({ projectId, agentId }: { projectId?: string; agentId: string }) {
+  const { t } = useLocaleContext();
+
+  const agent = useAgent({ projectId, agentId });
+  if (!agent) return null;
+
+  return agent.name || t('unnamed');
 }
 
 function SelectInputType({
@@ -559,7 +575,7 @@ function SelectFromSourceDialog({
   const renderParameterSettings = (parameter: ParameterYjs) => {
     if (parameter.type === 'source' && parameter.source) {
       if (parameter.source.variableFrom === 'tool') {
-        return <AgentParameter value={value} projectId={projectId} gitRef={gitRef} parameter={parameter} />;
+        return <AgentParameter value={value} parameter={parameter} />;
       }
 
       if (parameter.source.variableFrom === 'datastore') {
@@ -703,10 +719,14 @@ export function SelectTool<Multiple extends boolean | undefined>({
       value={value}
       isOptionEqualToValue={(i, j) => i.id === j.id}
       getOptionLabel={(i) => i.name || t('unnamed')}
+      open
       renderOption={(props, option) => {
         return (
           <MenuItem {...props} key={option.name}>
-            {option.name || t('unnamed')}
+            <Stack>
+              <Typography variant="subtitle2">{option.name || t('unnamed')}</Typography>
+              <Typography variant="caption">From: {option.name}</Typography>
+            </Stack>
           </MenuItem>
         );
       }}
@@ -921,52 +941,33 @@ function checkKeyParameterIsUsed({ value, key }: { value: AssistantYjs; key: str
   });
 }
 
-function AgentParameter({
-  value,
-  projectId,
-  gitRef,
-  parameter,
-}: {
-  value: AssistantYjs;
-  projectId: string;
-  gitRef: string;
-  parameter: ParameterYjs;
-}) {
-  const { store, getFileById } = useProjectStore(projectId, gitRef);
+function AgentParameter({ value, parameter }: { value: AssistantYjs; parameter: ParameterYjs }) {
   const { t } = useLocaleContext();
   const { deleteParameter } = useVariablesEditorOptions(value);
 
   if (parameter.type === 'source' && parameter?.source?.variableFrom === 'tool') {
-    const toolId = parameter?.source?.agent?.id;
+    const agentId = parameter?.source?.agent?.id;
     const { source } = parameter;
-
-    const options = Object.entries(store.tree)
-      .filter(([, filepath]) => filepath?.startsWith(`${PROMPTS_FOLDER_NAME}/`))
-      .map(([id]) => store.files[id])
-      .filter((i): i is AssistantYjs => !!i && isAssistant(i))
-      .filter((i) => i.id !== value.id)
-      .map((i) => ({ id: i.id, type: i.type, name: i.name, from: FROM_PARAMETER, parameters: i.parameters }));
-
-    const v = options.find((x) => x.id === toolId);
-    const file = getFileById(toolId || '');
-    const parameters =
-      file?.parameters &&
-      sortBy(Object.values(file.parameters), (i) => i.index).filter(
-        (i): i is typeof i & { data: { key: string } } => !!i.data.key
-      );
 
     return (
       <Stack gap={2}>
         <Box>
           <Typography variant="subtitle2">{t('chooseObject', { object: t('agent') })}</Typography>
 
-          <SelectTool
-            placeholder={t('selectAgentToCallPlaceholder')}
-            options={options || []}
-            multiple={false}
-            value={v}
-            onChange={(_value) => {
-              if (_value) {
+          <AgentSelect
+            autoFocus
+            disableClearable
+            value={
+              agentId
+                ? {
+                    id: agentId,
+                    projectId: parameter.source.agent?.projectId,
+                    blockletDid: parameter.source.agent?.blockletDid,
+                  }
+                : undefined
+            }
+            onChange={(_, v) => {
+              if (v) {
                 // 删除历史自动添加的变量
                 Object.values(value.parameters || {}).forEach((x) => {
                   if (
@@ -977,61 +978,71 @@ function AgentParameter({
                   }
                 });
 
-                // 整理选择 agent 的参数
-                const parameters: { [key: string]: string } = Object.values(_value.parameters || {}).reduce(
-                  (tol: any, cur) => {
-                    if (cur.data.key) tol[cur.data.key] = '';
-                    return tol;
-                  },
-                  {}
-                );
-
                 source.agent = {
-                  id: _value.id,
+                  blockletDid: v.blockletDid,
+                  projectId: v.projectId,
+                  id: v.id,
                   from: 'assistant',
-                  parameters,
                 };
               }
             }}
           />
         </Box>
 
-        {file && !!(parameters || []).length && (
-          <Box>
-            <Typography variant="subtitle2">{t('inputs')}</Typography>
-
-            <Box>
-              {(parameters || [])?.map(({ data }: any) => {
-                if (!data?.key) return null;
-
-                return (
-                  <Stack key={data.id}>
-                    <Typography variant="caption">{data.label || data.key}</Typography>
-
-                    <PromptEditorField
-                      placeholder={`{{ ${data.key} }}`}
-                      value={source?.agent?.parameters?.[data.key] || ''}
-                      projectId={projectId}
-                      gitRef={gitRef}
-                      assistant={value}
-                      path={[]}
-                      onChange={(value) => {
-                        if (source?.agent?.parameters) {
-                          source.agent.parameters[data.key] = value;
-                        }
-                      }}
-                    />
-                  </Stack>
-                );
-              })}
-            </Box>
-          </Box>
-        )}
+        {agentId && <AgentParametersForm assistant={value} parameter={parameter as any} />}
       </Stack>
     );
   }
 
   return null;
+}
+
+function AgentParametersForm({
+  assistant,
+  parameter,
+}: {
+  assistant: AssistantYjs;
+  parameter: ParameterYjs & { type: 'source'; source: { variableFrom: 'tool' } };
+}) {
+  if (!parameter.source?.agent?.id) throw new Error('Missing required parameter agent.id');
+
+  const { t } = useLocaleContext();
+
+  const agent = useAgent({ projectId: parameter.source.agent.projectId, agentId: parameter.source.agent.id });
+  const { projectId, projectRef } = useCurrentProject();
+
+  if (!agent) return null;
+
+  return (
+    <Box>
+      <Typography variant="subtitle2">{t('inputs')}</Typography>
+
+      <Box>
+        {agent.parameters?.map((data) => {
+          if (!data?.key) return null;
+
+          return (
+            <Stack key={data.id}>
+              <Typography variant="caption">{data.label || data.key}</Typography>
+
+              <PromptEditorField
+                placeholder={`{{ ${data.key} }}`}
+                value={parameter.source.agent?.parameters?.[data.key] || ''}
+                projectId={projectId}
+                gitRef={projectRef}
+                assistant={assistant}
+                path={[]}
+                onChange={(value) => {
+                  parameter.source.agent!.parameters ??= {};
+                  parameter.source.agent!.parameters[data.key!] = value;
+                }}
+              />
+            </Stack>
+          );
+        })}
+      </Box>
+    </Box>
+  );
 }
 
 function PopperButton({

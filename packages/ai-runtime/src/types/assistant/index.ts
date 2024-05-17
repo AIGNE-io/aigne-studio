@@ -24,6 +24,8 @@ export type Role = 'system' | 'user' | 'assistant';
 export type ExecuteBlockRole = Role | 'none';
 
 export type Tool = {
+  blockletDid?: string;
+  projectId?: string;
   id: string;
   from?: 'assistant' | 'dataset' | 'knowledge'; // 这里的 dataset 其实代表 api
   parameters?: { [key: string]: string };
