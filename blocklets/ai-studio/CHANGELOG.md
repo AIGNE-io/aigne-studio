@@ -1,3 +1,7 @@
+## 0.2.1 (2024-5-18)
+
+- chore: update screenshots
+
 ## 0.2.0 (2024-5-17)
 
 - fix: update time period for automatic knowledge updating
