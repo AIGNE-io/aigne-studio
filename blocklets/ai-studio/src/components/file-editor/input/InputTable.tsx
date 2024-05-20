@@ -1197,7 +1197,7 @@ function APIParameter({
             placeholder={t('selectOpenAPIToCallPlaceholder')}
             options={options || []}
             multiple={false}
-            value={option}
+            value={options.find((x) => x.id === agentId)}
             onChange={(_value) => {
               if (_value) {
                 // 删除历史自动添加的变量
