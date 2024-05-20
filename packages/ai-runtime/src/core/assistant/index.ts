@@ -2254,10 +2254,12 @@ async function runAPITool({
           return [item.name, template ? await renderMessage(template, parameters) : parameters?.[item.name]];
         }
 
-        return [item.name, parameters?.[item.name]];
+        return [item.name, tool.parameters?.[item.name!]];
       }) ?? []
     )
   );
+
+  console.log(requestData);
 
   const params: { [key: string]: string } = {
     userId: user?.did || '',

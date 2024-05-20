@@ -29,11 +29,13 @@ import {
   AutocompleteValue,
   Box,
   Button,
+  Checkbox,
   ClickAwayListener,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControlLabel,
   IconButton,
   Input,
   List,
@@ -637,7 +639,7 @@ function SelectFromSourceDialog({
             if (parameter.type === 'source' && parameter?.source?.variableFrom === 'tool' && parameter?.source) {
               const { source } = parameter;
               Object.entries(source?.agent?.parameters || {}).forEach(([key, value]: any) => {
-                if (!value) {
+                if (value === '') {
                   if (source && source?.agent && source?.agent?.parameters) {
                     source.agent.parameters[key] = `{{${key}}}`;
                   }
@@ -650,7 +652,7 @@ function SelectFromSourceDialog({
             if (parameter.type === 'source' && parameter?.source?.variableFrom === 'api' && parameter?.source) {
               const { source } = parameter;
               Object.entries(source?.api?.parameters || {}).forEach(([key, value]: any) => {
-                if (!value) {
+                if (value === '') {
                   if (source && source?.api && source?.api?.parameters) {
                     source.api.parameters[key] = `{{${key}}}`;
                   }
@@ -1173,20 +1175,22 @@ function APIParameter({
     const agentId = parameter?.source?.api?.id;
     const { source } = parameter;
 
-    const options: Option[] = [
+    const options = [
       ...openApis.map((dataset) => ({
-        id: dataset.id,
-        type: dataset.type,
+        ...dataset,
         name:
           getDatasetTextByI18n(dataset, 'summary', locale) ||
           getDatasetTextByI18n(dataset, 'description', locale) ||
           t('unnamed'),
         parameters: getAllParameters(dataset),
+        fromText: t('buildInData'),
       })),
-    ].map((x) => ({ ...x, fromText: t('buildInData') }));
+    ];
 
     const option = openApis.find((x) => x.id === agentId);
     const parameters = option && getAllParameters(option);
+
+    console.log(JSON.stringify(parameter));
 
     return (
       <Stack gap={2}>
@@ -1230,13 +1234,49 @@ function APIParameter({
           <Box>
             <Typography variant="subtitle2">{t('inputs')}</Typography>
 
-            <Box>
+            <Stack gap={1.5}>
               {(parameters || [])?.map((parameter) => {
                 if (!parameter.name) return null;
 
+                // @ts-ignore
+                if (parameter['x-parameter-type'] === 'boolean') {
+                  return (
+                    <Stack key={parameter.name}>
+                      <Box>
+                        <FormControlLabel
+                          sx={{
+                            alignItems: 'flex-start',
+                            '.MuiCheckbox-root': {
+                              ml: -0.5,
+                            },
+                          }}
+                          control={
+                            <Switch
+                              defaultChecked={Boolean(source?.api?.parameters?.[parameter.name] ?? false)}
+                              onChange={(_, checked) => {
+                                if (source?.api?.parameters) {
+                                  // @ts-ignore
+                                  source.api.parameters[parameter.name] = Boolean(checked);
+                                }
+                              }}
+                            />
+                          }
+                          label={
+                            <Typography variant="caption" mb={0.5}>
+                              {getDatasetTextByI18n(parameter, 'description', locale) ||
+                                getDatasetTextByI18n(parameter, 'name', locale)}
+                            </Typography>
+                          }
+                          labelPlacement="top"
+                        />
+                      </Box>
+                    </Stack>
+                  );
+                }
+
                 return (
                   <Stack key={parameter.name}>
-                    <Typography variant="caption">
+                    <Typography variant="caption" mb={0.5}>
                       {getDatasetTextByI18n(parameter, 'description', locale) ||
                         getDatasetTextByI18n(parameter, 'name', locale)}
                     </Typography>
@@ -1257,7 +1297,7 @@ function APIParameter({
                   </Stack>
                 );
               })}
-            </Box>
+            </Stack>
           </Box>
         )}
       </Stack>
