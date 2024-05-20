@@ -1132,6 +1132,7 @@ const getVariables = async ({
   const variables: { [key: string]: any } = { ...parameters };
 
   const userId = user?.did;
+  const datasets = await getBuildInDatasets();
 
   const cb: ((taskId: string) => RunAssistantCallback) | undefined =
     callback &&
@@ -1220,6 +1221,25 @@ const getVariables = async ({
         });
 
         variables[parameter.key] = memories;
+      } else if (parameter.source?.variableFrom === 'api' && parameter.source.api) {
+        const { api } = parameter.source;
+        const dataset = datasets.find((x) => x.id === api.id);
+        const currentTaskId = taskIdGenerator.nextId().toString();
+
+        // eslint-disable-next-line no-await-in-loop
+        const result = await runAPITool({
+          tool: api,
+          taskId: currentTaskId,
+          assistant,
+          parameters,
+          dataset: (dataset || {}) as DatasetObject,
+          parentTaskId,
+          callback: cb?.(currentTaskId),
+          user,
+          sessionId,
+        });
+
+        variables[parameter.key] = result;
       }
     }
   }
@@ -2218,7 +2238,7 @@ async function runAPITool({
   dataset: DatasetObject;
   taskId: string;
   assistant: Assistant;
-  executeBlock: ExecuteBlock;
+  executeBlock?: ExecuteBlock;
   parameters?: { [key: string]: any };
   parentTaskId?: string;
   callback?: RunAssistantCallback;
@@ -2246,7 +2266,7 @@ async function runAPITool({
     taskId,
     parentTaskId,
     assistantId: assistant.id,
-    assistantName: `${executeBlock.variable ?? dataset.summary}`,
+    assistantName: `${executeBlock?.variable ?? dataset?.summary}`,
   };
 
   callback?.({

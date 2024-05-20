@@ -17,20 +17,6 @@ const datasetSchema = Joi.object<{ name?: string; description?: string; appId?: 
   appId: Joi.string().allow('').empty(null).default(''),
 });
 
-/**
- * @openapi
- * /api/datasets:
- *    get:
- *      type: 'SEARCH'
- *      summary: Get the current user's datasets
- *      x-summary-zh: 获取当前用户数据集
- *      description: Get the current user's datasets
- *      x-description-zh: 获取当前用户数据集
- *      responses:
- *        200:
- *          description: Successfully get the current user's datasets
- *          x-description-zh: 获取当前用户数据集
- */
 router.get('/', user(), userAuth(), async (req, res) => {
   const { did, isAdmin } = req.user!;
   const user = isAdmin ? {} : { [Op.or]: [{ createdBy: did }, { updatedBy: did }] };
@@ -54,33 +40,6 @@ router.get('/', user(), userAuth(), async (req, res) => {
   res.json(datasets);
 });
 
-/**
- * @openapi
- * /api/datasets/{datasetId}:
- *    get:
- *      type: 'SEARCH'
- *      summary: Get details of dataset
- *      x-summary-zh: 获取当前用户数据集详情
- *      description: Get detailed information of dataset by datasetId
- *      x-description-zh: 通过数据集ID获取某个特定数据集的详细信息
- *      parameters:
- *        - name: datasetId
- *          in: path
- *          description: The ID of the dataset
- *          x-description-zh: 数据集的ID
- *          required: true
- *          x-parameter-type: input
- *          x-options-api: /ai-studio/api/datasets
- *          x-option-key: id
- *          x-option-name: name
- *          schema:
- *            type: string
- *            default: ''
- *      responses:
- *        200:
- *          description: Successfully retrieved the dataset details
- *          x-description-zh: 获取当前用户数据集详情
- */
 router.get('/:datasetId', user(), userAuth(), async (req, res) => {
   const { datasetId } = req.params;
   const { did, isAdmin } = req.user!;
@@ -94,33 +53,6 @@ router.get('/:datasetId', user(), userAuth(), async (req, res) => {
   res.json(dataset);
 });
 
-/**
- * @openapi
- * /api/datasets:
- *    post:
- *      type: 'CREATE'
- *      summary: Create a new dataset
- *      x-summary-zh: 创建新的数据集
- *      description: Create a new dataset
- *      x-description-zh: 创建新的数据集
- *      requestBody:
- *        required: true
- *        content:
- *          application/json:
- *            schema:
- *              type: object
- *              properties:
- *                name:
- *                  type: string
- *                description:
- *                  type: string
- *                appId:
- *                  type: string
- *      responses:
- *        200:
- *          description: Successfully created a new dataset
- *          x-description-zh: 创建新的数据集
- */
 router.post('/', user(), userAuth(), async (req, res) => {
   const { did } = req.user!;
   const { name = '', description = '', appId } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
@@ -129,46 +61,6 @@ router.post('/', user(), userAuth(), async (req, res) => {
   res.json(dataset);
 });
 
-/**
- * @openapi
- * /api/datasets/{datasetId}:
- *    put:
- *      type: 'UPDATE'
- *      summary: Update a dataset
- *      x-summary-zh: 更新数据集
- *      description: Update a dataset
- *      x-description-zh: 更新数据集
- *      parameters:
- *        - name: datasetId
- *          in: path
- *          description: The ID of the dataset
- *          x-description-zh: 数据集的ID
- *          required: true
- *          x-parameter-type: input
- *          x-options-api: /ai-studio/api/datasets
- *          x-option-key: id
- *          x-option-name: name
- *          schema:
- *            type: string
- *            default: ''
- *      requestBody:
- *        required: true
- *        content:
- *          application/json:
- *            schema:
- *              type: object
- *              properties:
- *                name:
- *                  type: string
- *                description:
- *                  type: string
- *                appId:
- *                  type: string
- *      responses:
- *        200:
- *          description: Successfully updated the dataset
- *          x-description-zh: 更新数据集
- */
 router.put('/:datasetId', user(), userAuth(), async (req, res) => {
   const { datasetId } = req.params;
   const { did } = req.user!;
@@ -190,33 +82,6 @@ router.put('/:datasetId', user(), userAuth(), async (req, res) => {
   res.json(await Dataset.findOne({ where: { id: datasetId } }));
 });
 
-/**
- * @openapi
- * /api/datasets/{datasetId}:
- *    delete:
- *      type: 'DELETE'  # Changed from 'SEARCH' to 'DELETE' as it's more appropriate for a delete operation
- *      summary: Delete a dataset
- *      x-summary-zh: 删除数据集
- *      description: Delete a dataset
- *      x-description-zh: 删除数据集
- *      parameters:
- *        - name: datasetId
- *          in: path
- *          description: The ID of the dataset
- *          x-description-zh: 数据集的ID
- *          required: true
- *          x-parameter-type: input
- *          x-options-api: /ai-studio/api/datasets
- *          x-option-key: id
- *          x-option-name: name
- *          schema:
- *            type: string
- *            default: ''
- *      responses:
- *        200:
- *          description: Successfully deleted the dataset
- *          x-description-zh: 删除数据集
- */
 router.delete('/:datasetId', user(), userAuth(), async (req, res) => {
   const { datasetId } = req.params;
 

@@ -239,6 +239,11 @@ export interface HistoryParameter {
   chatHistory?: { limit?: number; keyword?: string };
 }
 
+export interface APIParameter {
+  variableFrom?: 'api';
+  api?: Tool;
+}
+
 export type Parameter = StringParameter | NumberParameter | SelectParameter | LanguageParameter | SourceParameter;
 
 export interface ParameterBase {
@@ -248,13 +253,13 @@ export interface ParameterBase {
   placeholder?: string;
   helper?: string;
   required?: boolean;
-  from?: 'editor' | 'agentParameter' | 'knowledgeParameter';
+  from?: 'editor' | 'agentParameter' | 'knowledgeParameter' | 'openAPIParameter';
 }
 
 export interface SourceParameter extends ParameterBase {
   type: 'source';
   defaultValue?: string;
-  source?: DatastoreParameter | AgentParameter | KnowledgeParameter | HistoryParameter;
+  source?: DatastoreParameter | AgentParameter | KnowledgeParameter | HistoryParameter | APIParameter;
 }
 
 export interface StringParameter extends ParameterBase {

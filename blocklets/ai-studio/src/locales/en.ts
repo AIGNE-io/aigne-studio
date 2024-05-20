@@ -625,6 +625,7 @@ export default flat({
   selectKnowledgePlaceholder: 'Select a knowledge to query',
   selectMemoryPlaceholder: 'Select a memory',
   selectAgentToCallPlaceholder: 'Select an agent to call',
+  selectOpenAPIToCallPlaceholder: 'Select OpenAPI to call',
   outputVariableName: 'Output name',
   outputVariablePlaceholder: 'Describe this output (optional)',
   outputVariablePlaceholderForLLM: 'Prompt to LLM how to fill this output',
