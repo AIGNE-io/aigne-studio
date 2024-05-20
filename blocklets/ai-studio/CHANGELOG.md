@@ -1,3 +1,7 @@
+## 0.2.2 (2024-5-20)
+
+- fix: check session owner before clearing a session
+
 ## 0.2.1 (2024-5-18)
 
 - chore: update screenshots
