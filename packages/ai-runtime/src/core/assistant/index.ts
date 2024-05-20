@@ -2249,8 +2249,12 @@ async function runAPITool({
   const requestData = Object.fromEntries(
     await Promise.all(
       getAllParameters(dataset).map(async (item) => {
-        const template = String(tool.parameters?.[item.name!] || '').trim();
-        return [item.name, template ? await renderMessage(template, parameters) : parameters?.[item.name]];
+        if (typeof tool.parameters?.[item.name!] === 'string') {
+          const template = String(tool.parameters?.[item.name!] || '').trim();
+          return [item.name, template ? await renderMessage(template, parameters) : parameters?.[item.name]];
+        }
+
+        return [item.name, parameters?.[item.name]];
       }) ?? []
     )
   );
