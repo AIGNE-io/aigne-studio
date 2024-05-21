@@ -1,3 +1,7 @@
+## 0.2.3 (2024-5-21)
+
+- fix: default type for outputs
+
 ## 0.2.2 (2024-5-20)
 
 - fix: check session owner before clearing a session

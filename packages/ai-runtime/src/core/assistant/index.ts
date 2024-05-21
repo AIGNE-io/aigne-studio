@@ -1500,7 +1500,12 @@ async function runPromptAssistant({
       }
 
       try {
-        jsonResult = await validateOutputs({ assistant, datastoreVariables, inputs: parameters, outputs: json });
+        jsonResult = await validateOutputs({
+          assistant,
+          datastoreVariables,
+          inputs: parameters,
+          outputs: { ...json, $text: result },
+        });
       } catch (error) {
         if (onlyOutputJson) {
           throw new Error('Unexpected response format from AI');
