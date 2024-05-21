@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { access, copyFile, cp, mkdtemp, readFile, rm } from 'fs/promises';
+import { access, cp, mkdtemp, readFile, rm } from 'fs/promises';
 import path, { basename, dirname, isAbsolute, join } from 'path';
 
 import { Config } from '@api/libs/env';
@@ -24,13 +24,11 @@ import uniqBy from 'lodash/uniqBy';
 import { joinURL } from 'ufo';
 import { parse } from 'yaml';
 
-import downloadLogo from '../libs/download-logo';
 import { getResourceProjects } from '../libs/resource';
 import { ensureComponentCallOrPromptsEditor, ensureComponentCallOrRolesMatch } from '../libs/security';
 import Project, { nextProjectId } from '../store/models/project';
 import {
   CONFIG_FONDER,
-  LOGO_FILENAME,
   VARIABLE_FILENAME,
   VARIABLE_KEY,
   autoSyncIfNeeded,
@@ -991,24 +989,7 @@ async function createProjectFromTemplate(
     branch: defaultBranch,
     message: 'First Commit',
     author: { name: author.fullName, email: author.did },
-    beforeCommit: async (tx) => {
-      const logoPath = path.join(repository.options.root, LOGO_FILENAME);
-
-      try {
-        if (template.gitLogoPath) {
-          await copyFile(template.gitLogoPath, logoPath);
-          await tx.add({ filepath: LOGO_FILENAME });
-        } else {
-          const icon = await sampleIcon();
-          if (icon) {
-            await downloadLogo(icon, logoPath);
-            await tx.add({ filepath: LOGO_FILENAME });
-          }
-        }
-      } catch (error) {
-        logger.error('failed to download icon', { error });
-      }
-    },
+    icon: template.gitLogoPath || (await sampleIcon()),
   });
 
   return project;
