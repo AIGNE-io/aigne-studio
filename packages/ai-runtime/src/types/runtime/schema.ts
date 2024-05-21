@@ -103,7 +103,7 @@ export function outputVariablesToJsonSchema(assistant: Assistant, datastoreVaria
     }
 
     return {
-      type: variable.type,
+      type: variable.type || 'string',
       description: variable.description,
       properties:
         variable.type === 'object' && variable.properties
@@ -164,7 +164,7 @@ export function outputVariablesToJoiSchema(assistant: Assistant, datastoreVariab
       if (!v?.type) return undefined;
 
       schema = variableToSchema(v.type);
-    } else if (variable.type === 'string') {
+    } else if (!variable.type || variable.type === 'string') {
       schema = Joi.string().empty([null, '']);
     } else if (variable.type === 'number') {
       schema = Joi.number().empty([null, '']);
