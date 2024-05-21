@@ -7,6 +7,7 @@ import { NoPermissionError } from '@api/libs/error';
 import { sampleIcon } from '@api/libs/icon';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
 import logger from '@api/libs/logger';
+import AgentInputSecret from '@api/store/models/agent-input-secret';
 import { fileToYjs, isAssistant, nextAssistantId } from '@blocklet/ai-runtime/types';
 import { call } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
@@ -212,6 +213,15 @@ export const checkProjectLimit = async ({ req }: { req: Request }) => {
   }
 };
 
+export interface CreateOrUpdateAgentInputSecretPayload {
+  secrets: {
+    targetProjectId: string;
+    targetAgentId: string;
+    targetInputKey: string;
+    secret: string;
+  }[];
+}
+
 export function projectRoutes(router: Router) {
   router.get('/projects', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const list = await Project.findAll({
@@ -340,6 +350,85 @@ export function projectRoutes(router: Router) {
 
     res.json(project);
   });
+
+  router.get(
+    '/projects/:projectId/agent-input-secrets',
+    user(),
+    ensureComponentCallOrPromptsEditor(),
+    async (req, res) => {
+      const { projectId } = req.params;
+      if (!projectId) throw new Error('Missing required param `projectId`');
+
+      const project = await Project.findOne({ where: { _id: projectId }, rejectOnEmpty: new Error('No such project') });
+
+      checkProjectPermission({ req, project });
+
+      const secrets = await AgentInputSecret.findAll({ where: { projectId }, attributes: { exclude: ['secret'] } });
+
+      res.json({ secrets });
+    }
+  );
+
+  const createOrUpdateAgentInputSecretPayloadSchema = Joi.object<CreateOrUpdateAgentInputSecretPayload>({
+    secrets: Joi.array()
+      .items(
+        Joi.object({
+          targetProjectId: Joi.string().required(),
+          targetAgentId: Joi.string().required(),
+          targetInputKey: Joi.string().required(),
+          secret: Joi.string().required(),
+        })
+      )
+      .required()
+      .min(1),
+  });
+
+  router.post(
+    '/projects/:projectId/agent-input-secrets',
+    user(),
+    ensureComponentCallOrPromptsEditor(),
+    async (req, res) => {
+      const { did: userId } = req.user!;
+
+      const { projectId } = req.params;
+      if (!projectId) throw new Error('Missing required param `projectId`');
+
+      const input = await createOrUpdateAgentInputSecretPayloadSchema.validateAsync(req.body, { stripUnknown: true });
+
+      const project = await Project.findOne({ where: { _id: projectId }, rejectOnEmpty: new Error('No such project') });
+
+      checkProjectPermission({ req, project });
+
+      await Promise.all(
+        input.secrets.map((item) =>
+          AgentInputSecret.destroy({
+            where: {
+              projectId,
+              targetProjectId: item.targetProjectId,
+              targetAgentId: item.targetAgentId,
+              targetInputKey: item.targetInputKey,
+            },
+          })
+        )
+      );
+
+      await AgentInputSecret.bulkCreate(
+        input.secrets.map((item) => ({
+          projectId,
+          targetProjectId: item.targetProjectId,
+          targetAgentId: item.targetAgentId,
+          targetInputKey: item.targetInputKey,
+          secret: item.secret,
+          createdBy: userId,
+          updatedBy: userId,
+        }))
+      );
+
+      const secrets = await AgentInputSecret.findAll({ where: { projectId }, attributes: { exclude: ['secret'] } });
+
+      res.json({ secrets });
+    }
+  );
 
   router.post('/projects', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { did } = req.user!;

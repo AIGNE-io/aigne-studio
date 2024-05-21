@@ -2,6 +2,7 @@ import { defaultImageModel, getSupportedImagesModels } from '@api/libs/common';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
 import logger from '@api/libs/logger';
 import { getAssistantFromResourceBlocklet } from '@api/libs/resource';
+import AgentInputSecret from '@api/store/models/agent-input-secret';
 import History from '@api/store/models/history';
 import Session from '@api/store/models/session';
 import { chatCompletions, imageGenerations, proxyToAIKit } from '@blocklet/ai-kit/api/call';
@@ -279,6 +280,11 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
     });
 
     const result = await runAssistant({
+      getSecret: ({ targetProjectId, targetAgentId, targetInputKey }) =>
+        AgentInputSecret.findOne({
+          where: { projectId, targetProjectId, targetAgentId, targetInputKey },
+          rejectOnEmpty: new Error('No such secret'),
+        }),
       callAI,
       callAIImage,
       taskId,

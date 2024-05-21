@@ -490,6 +490,7 @@ export default flat({
   copyTool: 'Copy Tool',
   visitLink: 'Visit Link',
   variableParameter: {
+    secret: 'Secret',
     custom: 'User input',
     tool: 'Another Agent',
     datastore: 'Memory',
@@ -693,4 +694,6 @@ export default flat({
   launchMoreContent:
     "You've reached the limit of {length} projects.\nLaunch your own AI Studio to create more projects 👇",
   launchMoreConfirm: 'Launch My AI Studio',
+  authorize: 'Authorize',
+  reauthorize: 'Reauthorize',
 });

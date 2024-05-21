@@ -241,6 +241,10 @@ export interface HistoryParameter {
   chatHistory?: { limit?: number; keyword?: string };
 }
 
+export interface SecretParameter {
+  variableFrom?: 'secret';
+}
+
 export type Parameter = StringParameter | NumberParameter | SelectParameter | LanguageParameter | SourceParameter;
 
 export interface ParameterBase {
@@ -256,7 +260,7 @@ export interface ParameterBase {
 export interface SourceParameter extends ParameterBase {
   type: 'source';
   defaultValue?: string;
-  source?: DatastoreParameter | AgentParameter | KnowledgeParameter | HistoryParameter;
+  source?: DatastoreParameter | AgentParameter | KnowledgeParameter | HistoryParameter | SecretParameter;
 }
 
 export interface StringParameter extends ParameterBase {
