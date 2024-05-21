@@ -29,7 +29,6 @@ import {
   AutocompleteValue,
   Box,
   Button,
-  Checkbox,
   ClickAwayListener,
   Dialog,
   DialogActions,
@@ -72,7 +71,7 @@ import AddInputButton from './AddInputButton';
 
 const FROM_PARAMETER = 'agentParameter';
 const FROM_KNOWLEDGE_PARAMETER = 'knowledgeParameter';
-const FROM_OPENAPI_PARAMETER = 'openAPIParameter';
+const FROM_API_PARAMETER = 'blockletAPIParameter';
 
 export default function InputTable({
   assistant,
@@ -259,7 +258,7 @@ export default function InputTable({
               return <Box />;
             }
 
-            if (parameter.source.variableFrom === 'api') {
+            if (parameter.source.variableFrom === 'blockletAPI') {
               return <Box />;
             }
           }
@@ -603,7 +602,7 @@ function SelectFromSourceDialog({
         return <HistoryParameter projectId={projectId} gitRef={gitRef} value={value} parameter={parameter} />;
       }
 
-      if (parameter.source.variableFrom === 'api') {
+      if (parameter.source.variableFrom === 'blockletAPI') {
         return (
           <APIParameter projectId={projectId} gitRef={gitRef} value={value} parameter={parameter} openApis={openApis} />
         );
@@ -649,7 +648,7 @@ function SelectFromSourceDialog({
               });
             }
 
-            if (parameter.type === 'source' && parameter?.source?.variableFrom === 'api' && parameter?.source) {
+            if (parameter.type === 'source' && parameter?.source?.variableFrom === 'blockletAPI' && parameter?.source) {
               const { source } = parameter;
               Object.entries(source?.api?.parameters || {}).forEach(([key, value]: any) => {
                 if (value === '') {
@@ -657,7 +656,7 @@ function SelectFromSourceDialog({
                     source.api.parameters[key] = `{{${key}}}`;
                   }
 
-                  addParameter(key, { from: FROM_OPENAPI_PARAMETER });
+                  addParameter(key, { from: FROM_API_PARAMETER });
                 }
               });
             }
@@ -949,7 +948,7 @@ function checkKeyParameterIsUsed({ value, key }: { value: AssistantYjs; key: str
         return [Object.values(x.data.source?.knowledge?.parameters || {})];
       }
 
-      if (x.data.source?.variableFrom === 'api') {
+      if (x.data.source?.variableFrom === 'blockletAPI') {
         return [Object.values(x.data.source?.api?.parameters || {})];
       }
     }
@@ -970,7 +969,7 @@ const useDelete = (value: AssistantYjs) => {
 
   const deleteUselessParameter = () => {
     Object.values(value.parameters || {}).forEach((x) => {
-      const list = [FROM_OPENAPI_PARAMETER, FROM_PARAMETER, FROM_OPENAPI_PARAMETER];
+      const list = [FROM_API_PARAMETER, FROM_PARAMETER, FROM_API_PARAMETER];
       if (x.data.from && list.includes(x.data.from) && !checkKeyParameterIsUsed({ value, key: x.data.key || '' })) {
         deleteParameter(x.data);
       }
@@ -1171,7 +1170,7 @@ function APIParameter({
   const { t, locale } = useLocaleContext();
   const { deleteUselessParameter } = useDelete(value);
 
-  if (parameter.type === 'source' && parameter?.source?.variableFrom === 'api') {
+  if (parameter.type === 'source' && parameter?.source?.variableFrom === 'blockletAPI') {
     const agentId = parameter?.source?.api?.id;
     const { source } = parameter;
 
@@ -1189,8 +1188,6 @@ function APIParameter({
 
     const option = openApis.find((x) => x.id === agentId);
     const parameters = option && getAllParameters(option);
-
-    console.log(JSON.stringify(parameter));
 
     return (
       <Stack gap={2}>

@@ -1221,7 +1221,7 @@ const getVariables = async ({
         });
 
         variables[parameter.key] = memories;
-      } else if (parameter.source?.variableFrom === 'api' && parameter.source.api) {
+      } else if (parameter.source?.variableFrom === 'blockletAPI' && parameter.source.api) {
         const { api } = parameter.source;
         const dataset = datasets.find((x) => x.id === api.id);
         const currentTaskId = taskIdGenerator.nextId().toString();
@@ -2258,8 +2258,6 @@ async function runAPITool({
       }) ?? []
     )
   );
-
-  console.log(requestData);
 
   const params: { [key: string]: string } = {
     userId: user?.did || '',

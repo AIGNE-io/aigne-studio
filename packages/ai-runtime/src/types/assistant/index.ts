@@ -240,7 +240,7 @@ export interface HistoryParameter {
 }
 
 export interface APIParameter {
-  variableFrom?: 'api';
+  variableFrom?: 'blockletAPI';
   api?: Tool;
 }
 
@@ -253,7 +253,7 @@ export interface ParameterBase {
   placeholder?: string;
   helper?: string;
   required?: boolean;
-  from?: 'editor' | 'agentParameter' | 'knowledgeParameter' | 'openAPIParameter';
+  from?: 'editor' | 'agentParameter' | 'knowledgeParameter' | 'blockletAPIParameter';
 }
 
 export interface SourceParameter extends ParameterBase {

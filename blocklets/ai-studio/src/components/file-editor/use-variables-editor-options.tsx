@@ -84,7 +84,7 @@ export default function useVariablesEditorOptions(assistant?: AssistantYjs) {
         source,
         type,
       }: {
-        from?: 'editor' | 'agentParameter' | 'knowledgeParameter' | 'openAPIParameter';
+        from?: 'editor' | 'agentParameter' | 'knowledgeParameter' | 'blockletAPIParameter';
         type?: any;
         source?: any;
       } = {}
