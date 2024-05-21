@@ -111,7 +111,7 @@ export default function InputTable({
       tool: t('variableParameter.tool'),
       datastore: t('variableParameter.datastore'),
       knowledge: t('variableParameter.knowledge'),
-      api: 'API',
+      blockletAPI: 'API',
     };
   }, [t]);
 
