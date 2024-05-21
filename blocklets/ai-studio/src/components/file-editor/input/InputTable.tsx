@@ -644,7 +644,8 @@ function SelectFromSourceDialog({
                 source &&
                 source?.knowledge &&
                 source?.knowledge?.parameters &&
-                !source?.knowledge?.parameters?.message
+                !source?.knowledge?.parameters?.message &&
+                !source?.knowledge?.parameters.searchAll
               ) {
                 source.knowledge.parameters.message = '{{message}}';
                 addParameter('message', { from: FROM_KNOWLEDGE_PARAMETER });

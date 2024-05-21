@@ -1,3 +1,23 @@
+## 0.2.2 (2024-5-20)
+
+- fix: check session owner before clearing a session
+
+## 0.2.1 (2024-5-18)
+
+- chore: update screenshots
+
+## 0.2.0 (2024-5-17)
+
+- fix: update time period for automatic knowledge updating
+
+## 0.1.397 (2024-5-17)
+
+- fix: sort lower the score in the vector database
+
+## 0.1.396 (2024-5-17)
+
+- chore: view all the content of the document
+
 ## 0.1.395 (2024-5-16)
 
 - fix: when the project does not create more permissions, give a guide.

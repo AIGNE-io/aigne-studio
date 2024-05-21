@@ -54,12 +54,12 @@ export const saveContentToVectorStore = async ({
   documentId: string;
 }) => {
   const textSplitter = new RecursiveCharacterTextSplitter({ chunkSize: 1024 });
-  const embeddings = new AIKitEmbeddings({ batchSize: 6 });
+  const embeddings = new AIKitEmbeddings({ batchSize: 4 });
   const docs = await textSplitter.createDocuments([content], metadata ? [{ metadata }] : undefined);
 
   const formatDocuments = docs.map((doc) => {
     if (metadata && typeof metadata === 'object' && Object.keys(metadata).length) {
-      return { ...doc, pageContent: JSON.stringify({ ...metadata, content: doc.pageContent }) };
+      return { ...doc, pageContent: JSON.stringify({ content: doc.pageContent, ...metadata }) };
     }
 
     return doc;

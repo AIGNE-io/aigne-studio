@@ -156,6 +156,7 @@
               "tab": "Knowledge"
             },
             "x-designable-id": "ds4lfn3f8en",
+            "x-index": 1,
             "properties": {
               "uploadFileLimit": {
                 "type": "number",
@@ -233,42 +234,27 @@
                 "enum": [
                   {
                     "children": [],
-                    "label": "每分钟",
-                    "value": "1"
-                  },
-                  {
-                    "children": [],
-                    "label": "每10分钟",
-                    "value": "10"
-                  },
-                  {
-                    "children": [],
-                    "label": "每30分钟",
+                    "label": "Every 30 minutes",
                     "value": "30"
                   },
                   {
                     "children": [],
-                    "label": "每小时",
+                    "label": "Every hour",
                     "value": "60"
                   },
                   {
                     "children": [],
-                    "label": "每3小时",
-                    "value": "180"
-                  },
-                  {
-                    "children": [],
-                    "label": "每6小时",
+                    "label": "Every 6 hours",
                     "value": "360"
                   },
                   {
                     "children": [],
-                    "label": "每12小时",
+                    "label": "Every 12 hours",
                     "value": "720"
                   },
                   {
                     "children": [],
-                    "label": "每天",
+                    "label": "Every day",
                     "value": "1440"
                   }
                 ],
@@ -291,12 +277,11 @@
                   }
                 }
               }
-            },
-            "x-index": 1
+            }
           }
         }
       }
     },
-    "x-designable-id": "8xmbegbio1q"
+    "x-designable-id": "eraouvna7w7"
   }
 }

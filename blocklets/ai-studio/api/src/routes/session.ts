@@ -4,7 +4,6 @@ import { auth, user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
 
-import Datastore from '../store/models/datastore';
 import Histories from '../store/models/history';
 
 export function sessionRoutes(router: Router) {
@@ -134,10 +133,17 @@ export function sessionRoutes(router: Router) {
     });
   });
 
-  router.post('/sessions/:sessionId/reset', user(), auth(), async (req, res) => {
+  router.post('/sessions/:sessionId/clear', user(), auth(), async (req, res) => {
     const { sessionId } = req.params;
+    const { did: userId } = req.user!;
 
-    await Promise.all([Datastore.destroy({ where: { sessionId } }), Histories.destroy({ where: { sessionId } })]);
+    // check session's owner
+    await Session.findOne({
+      where: { id: sessionId, userId },
+      rejectOnEmpty: new Error('No such session'),
+    });
+
+    await Histories.destroy({ where: { sessionId } });
 
     res.json({});
   });
