@@ -179,7 +179,7 @@ importers:
         version: 4.1.1(react@18.3.1)
       '@langchain/community':
         specifier: ^0.0.42
-        version: 0.0.42(@aws-sdk/credential-provider-node@3.563.0)(@huggingface/inference@2.7.0)(faiss-node@0.5.1)(hnswlib-node@3.0.0)(lodash@4.17.21)
+        version: 0.0.42(@aws-sdk/credential-provider-node@3.563.0)(@huggingface/inference@2.7.0)(faiss-node@0.5.1)(lodash@4.17.21)
       '@langchain/core':
         specifier: ^0.1.63
         version: 0.1.63
@@ -303,9 +303,6 @@ importers:
       highlight.js:
         specifier: ^11.9.0
         version: 11.9.0
-      hnswlib-node:
-        specifier: ^3.0.0
-        version: 3.0.0
       immer:
         specifier: ^10.1.1
         version: 10.1.1
@@ -332,7 +329,7 @@ importers:
         version: 1.1.1
       langchain:
         specifier: ^0.0.81
-        version: 0.0.81(@aws-sdk/client-s3@3.563.0)(@huggingface/inference@2.7.0)(axios@1.7.1)(faiss-node@0.5.1)(hnswlib-node@3.0.0)(mammoth@1.7.2)
+        version: 0.0.81(@aws-sdk/client-s3@3.563.0)(@huggingface/inference@2.7.0)(axios@1.7.1)(faiss-node@0.5.1)(mammoth@1.7.2)
       localforage:
         specifier: ^1.10.0
         version: 1.10.0
@@ -561,7 +558,7 @@ importers:
         version: 0.7.9(vite@5.2.11)
       vite-plugin-svgr:
         specifier: ^4.2.0
-        version: 4.2.0(rollup@2.79.1)(typescript@5.4.5)(vite@5.2.11)
+        version: 4.2.0(typescript@5.4.5)(vite@5.2.11)
       vite-tsconfig-paths:
         specifier: ^4.3.2
         version: 4.3.2(typescript@5.4.5)(vite@5.2.11)
@@ -986,7 +983,7 @@ packages:
       axios: 1.7.1(debug@4.3.4)
       blueimp-md5: 2.19.0
       core-js: 3.37.0
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
       eventemitter3: 4.0.7
       lodash: 4.17.21
       react-app-polyfill: 1.0.6
@@ -1002,7 +999,7 @@ packages:
     resolution: {integrity: sha512-pSn4wuE/qtLdy/LvT5wA+RNkLF20SruT4QxCM1jIvKOBUhp5BHRfc3+x2aNlZsZDufAxLCDs72ApOuHEKzUQdg==}
     dependencies:
       cron: 2.4.4
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
     transitivePeerDependencies:
       - supports-color
     dev: false
@@ -1011,7 +1008,7 @@ packages:
     resolution: {integrity: sha512-SPYbUVOWLbTFJotvLMHsdM+DSYvqL4la9biRTV1H1e0ZhcIY4Gn5daaZs0yf0qIjRztqqTmvvmxX7gYCc296sA==}
     dependencies:
       '@abtnode/constant': 1.16.26
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
       fast-safe-stringify: 2.1.1
       fs-extra: 11.2.0
       lodash.isempty: 4.4.0
@@ -1084,7 +1081,7 @@ packages:
       '@arcblock/did-auth-storage': 1.7.1
       '@nedb/core': 2.1.5
       '@nedb/multi': 2.1.5
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
     transitivePeerDependencies:
       - supports-color
     dev: false
@@ -1103,7 +1100,7 @@ packages:
       '@ocap/mcrypto': 1.18.120
       '@ocap/util': 1.18.120
       '@ocap/wallet': 1.18.120
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
       json-stable-stringify: 1.1.1
       lodash: 4.17.21
       semver: 7.6.0
@@ -1171,7 +1168,7 @@ packages:
       '@ocap/wallet': 1.18.120
       '@wangshijun/hdkey': 2.0.5
       bn.js: 5.2.1
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
       lodash: 4.17.21
     transitivePeerDependencies:
       - supports-color
@@ -1202,7 +1199,7 @@ packages:
       '@ocap/mcrypto': 1.18.120
       '@ocap/util': 1.18.120
       bn.js: 5.2.1
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
       lodash: 4.17.21
     transitivePeerDependencies:
       - supports-color
@@ -1317,7 +1314,7 @@ packages:
       '@arcblock/did': 1.18.120
       '@ocap/mcrypto': 1.18.120
       '@ocap/util': 1.18.120
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
       json-stable-stringify: 1.1.1
       semver: 7.6.0
     transitivePeerDependencies:
@@ -1341,7 +1338,7 @@ packages:
     resolution: {integrity: sha512-j+7PCpmfQUP0JwJlnPEdokwQJY6IfA5BAxwSY81F01wg5a1GFH/TtsMDoR3nd6NvJ1iRvJZu9qU3JVMAConp/w==}
     dependencies:
       cross-fetch: 3.1.8
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
       graphql: 16.5.0
       lodash.get: 4.4.2
       lodash.isnull: 3.0.0
@@ -1466,7 +1463,7 @@ packages:
       '@ocap/mcrypto': 1.18.120
       '@ocap/util': 1.18.120
       '@ocap/wallet': 1.18.120
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
       is-absolute-url: 3.0.3
       json-stable-stringify: 1.1.1
       lodash: 4.17.21
@@ -1478,7 +1475,7 @@ packages:
     resolution: {integrity: sha512-k/5Z1E0TuAXj9t3mM7wPCxuVGRmYLIe3cM+bE8WAovHKi4zhGyhmuXdP1B7I6PPG87Mmkkxs4UEDOzlua9P8NQ==}
     dependencies:
       '@arcblock/event-hub': 1.18.120
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
       eventemitter3: 4.0.7
       lodash: 4.17.21
       phoenix: 1.7.2
@@ -2205,7 +2202,7 @@ packages:
       '@babel/traverse': 7.24.1
       '@babel/types': 7.24.0
       convert-source-map: 2.0.0
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
       gensync: 1.0.0-beta.2
       json5: 2.2.3
       semver: 6.3.1
@@ -2518,7 +2515,7 @@ packages:
       '@babel/helper-split-export-declaration': 7.22.6
       '@babel/parser': 7.24.4
       '@babel/types': 7.24.0
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
       globals: 11.12.0
     transitivePeerDependencies:
       - supports-color
@@ -3043,7 +3040,7 @@ packages:
       ajv: 8.13.0
       axios: 1.7.1(debug@4.3.4)
       cjk-length: 1.0.0
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
       fs-extra: 11.2.0
       hosted-git-info: 3.0.8
       hpagent: 1.2.0
@@ -3363,7 +3360,7 @@ packages:
       '@did-connect/types': 2.2.4
       '@ocap/util': 1.18.120
       '@ocap/wallet': 1.18.120
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
       lodash: 4.17.21
     transitivePeerDependencies:
       - supports-color
@@ -3425,7 +3422,7 @@ packages:
       axios: 1.7.1(debug@4.3.4)
       base64-url: 2.3.3
       dayjs: 1.11.11
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
       filehound: 1.17.6
       form-data: 4.0.0
       fs-extra: 11.2.0
@@ -3460,7 +3457,7 @@ packages:
       '@arcblock/ipfs-only-hash': 0.0.2
       '@arcblock/validator': 1.18.119
       dayjs: 1.11.11
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
       hasha: 5.2.2
       joi: 17.13.1
       js-yaml: 4.1.0
@@ -4331,7 +4328,7 @@ packages:
     resolution: {integrity: sha512-dfLbk+PwWvFzSxwk3n5ySL0hfBog779o8h68wK/7/APo/7cgyWp5jcXockbxdk5kFRkbeXWm4Fbi9FrdN381sA==}
     dev: false
 
-  /@langchain/community@0.0.42(@aws-sdk/credential-provider-node@3.563.0)(@huggingface/inference@2.7.0)(faiss-node@0.5.1)(hnswlib-node@3.0.0)(lodash@4.17.21):
+  /@langchain/community@0.0.42(@aws-sdk/credential-provider-node@3.563.0)(@huggingface/inference@2.7.0)(faiss-node@0.5.1)(lodash@4.17.21):
     resolution: {integrity: sha512-Xp3H0w23X9viHRpb3GUiFl+qjB68h/V7ztPOxR1AtaKlmXkjrSwiLqhMjlVsJ9jyPaKIr5ZOV07gYAXJUz/P8Q==}
     engines: {node: '>=18'}
     peerDependencies:
@@ -4614,7 +4611,6 @@ packages:
       expr-eval: 2.0.2
       faiss-node: 0.5.1
       flat: 5.0.2
-      hnswlib-node: 3.0.0
       langsmith: 0.1.18
       lodash: 4.17.21
       uuid: 9.0.1
@@ -5408,7 +5404,7 @@ packages:
     dependencies:
       '@nedb/binary-search-tree': 2.1.5
       async: 3.2.5
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
       localforage: 1.10.0
       lodash.isplainobject: 4.0.6
       mkdirp: 1.0.4
@@ -5683,7 +5679,7 @@ packages:
       '@ocap/types': 1.18.120
       '@ocap/util': 1.18.120
       '@ocap/wallet': 1.18.120
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
       flat: 5.0.2
       is-absolute-url: 3.0.3
       json-stable-stringify: 1.1.1
@@ -5709,7 +5705,7 @@ packages:
       '@ocap/wallet': 1.18.120
       blueimp-md5: 2.19.0
       buffer: 6.0.3
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
       is-absolute-url: 3.0.3
       jsonpack: 1.1.5
       lodash: 4.17.21
@@ -5729,7 +5725,7 @@ packages:
       '@arcblock/did': 1.18.120
       '@ocap/mcrypto': 1.18.120
       '@ocap/util': 1.18.120
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
       esprima: 4.0.1
       lodash: 4.17.21
     transitivePeerDependencies:
@@ -5755,7 +5751,7 @@ packages:
     dependencies:
       '@ocap/proto': 1.18.120
       '@ocap/util': 1.18.120
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
       google-protobuf: 3.21.0
       lodash: 4.17.21
     transitivePeerDependencies:
@@ -5765,7 +5761,7 @@ packages:
   /@ocap/proto@1.18.120:
     resolution: {integrity: sha512-/z7emv0hCCfWqJXAw0y26ONSX6n1n+jzh7Ifp6894nkTZooWsuBvbupELHYQJBppX28IQrL0PDnDyyj5A1wGpA==}
     dependencies:
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
       lodash: 4.17.21
     transitivePeerDependencies:
       - supports-color
@@ -6090,7 +6086,7 @@ packages:
       rollup:
         optional: true
     dependencies:
-      '@rollup/pluginutils': 5.1.0(rollup@2.79.1)
+      '@rollup/pluginutils': 5.1.0
       estree-walker: 2.0.2
       magic-string: 0.30.10
     dev: true
@@ -6107,6 +6103,19 @@ packages:
       rollup: 2.79.1
     dev: true
 
+  /@rollup/pluginutils@5.1.0:
+    resolution: {integrity: sha512-XTIWOPPcpvyKI6L1NHo0lFlCyznUEyPmPY1mc3KpPVDYulHSTvyeLNVW00QTLIAFNhR3kYnJTQHeGqU4M3n09g==}
+    engines: {node: '>=14.0.0'}
+    peerDependencies:
+      rollup: ^1.20.0||^2.0.0||^3.0.0||^4.0.0
+    peerDependenciesMeta:
+      rollup:
+        optional: true
+    dependencies:
+      '@types/estree': 1.0.5
+      estree-walker: 2.0.2
+      picomatch: 2.3.1
+
   /@rollup/pluginutils@5.1.0(rollup@2.79.1):
     resolution: {integrity: sha512-XTIWOPPcpvyKI6L1NHo0lFlCyznUEyPmPY1mc3KpPVDYulHSTvyeLNVW00QTLIAFNhR3kYnJTQHeGqU4M3n09g==}
     engines: {node: '>=14.0.0'}
@@ -6120,6 +6129,7 @@ packages:
       estree-walker: 2.0.2
       picomatch: 2.3.1
       rollup: 2.79.1
+    dev: true
 
   /@rollup/rollup-android-arm-eabi@4.16.4:
     resolution: {integrity: sha512-GkhjAaQ8oUTOKE4g4gsZ0u8K/IHU1+2WQSgS1TwTcYvL+sjbaQjNHFXbOJ6kgqGHIO1DfUhI/Sphi9GkRT9K+Q==}
@@ -7065,7 +7075,7 @@ packages:
       '@tus/server': ^1.0.0-beta.7
     dependencies:
       '@tus/server': 1.0.0-beta.7
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
       p-queue: 6.6.2
     optionalDependencies:
       '@redis/client': 1.5.14
@@ -7077,7 +7087,7 @@ packages:
     resolution: {integrity: sha512-yl7HP2c9t7ln6Xwt01P3fmdNJPwq6RNkVibcsrkD3SeO4IBbzmXSwGU/MAWPzQyaZZ79dRulBlEIZSpY9On/ag==}
     engines: {node: '>=16'}
     dependencies:
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
     transitivePeerDependencies:
       - supports-color
     dev: false
@@ -8165,7 +8175,7 @@ packages:
     resolution: {integrity: sha512-RZNwNclF7+MS/8bDg70amg32dyeZGZxiDuQmZxKLAlQjr3jGyLx+4Kkk58UO7D2QdgFIQCovuSuZESne6RG6XQ==}
     engines: {node: '>= 6.0.0'}
     dependencies:
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
     transitivePeerDependencies:
       - supports-color
 
@@ -8563,7 +8573,7 @@ packages:
       amp: 0.3.1
       amp-message: 0.1.2
       configurable: 0.0.1
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
       escape-regexp: 0.0.1
     transitivePeerDependencies:
       - supports-color
@@ -10085,6 +10095,17 @@ packages:
       supports-color: 5.5.0
     dev: true
 
+  /debug@4.3.4:
+    resolution: {integrity: sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==}
+    engines: {node: '>=6.0'}
+    peerDependencies:
+      supports-color: '*'
+    peerDependenciesMeta:
+      supports-color:
+        optional: true
+    dependencies:
+      ms: 2.1.2
+
   /debug@4.3.4(supports-color@9.4.0):
     resolution: {integrity: sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==}
     engines: {node: '>=6.0'}
@@ -10096,6 +10117,7 @@ packages:
     dependencies:
       ms: 2.1.2
       supports-color: 9.4.0
+    dev: true
 
   /decamelize-keys@1.1.1:
     resolution: {integrity: sha512-WiPxgEirIV0/eIOMcnFBA3/IJZAZqKnwAwWyvvdi4lsr1WCN22nhdf/3db3DoZcUjTV2SqfzIwNyp6y2xs3nmg==}
@@ -11134,7 +11156,7 @@ packages:
       ajv: 6.12.6
       chalk: 2.4.2
       cross-spawn: 6.0.5
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
       doctrine: 3.0.0
       eslint-scope: 5.1.1
       eslint-utils: 1.4.3
@@ -11757,7 +11779,7 @@ packages:
       debug:
         optional: true
     dependencies:
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
 
   /for-each@0.3.3:
     resolution: {integrity: sha512-jqYfLp7mo9vIyQf8ykW2v7A+2N4QjeCeI5+Dz9XraiO1ign81wjiH7Fb9vSOWvQfNtmSa4H2RoQTrrXivdUZmw==}
@@ -12566,14 +12588,6 @@ packages:
       minimalistic-assert: 1.0.1
       minimalistic-crypto-utils: 1.0.1
 
-  /hnswlib-node@3.0.0:
-    resolution: {integrity: sha512-fypn21qvVORassppC8/qNfZ5KAOspZpm/IbUkAtlqvbtDNnF5VVk5RWF7O5V6qwr7z+T3s1ePej6wQt5wRQ4Cg==}
-    requiresBuild: true
-    dependencies:
-      bindings: 1.5.0
-      node-addon-api: 8.0.0
-    dev: false
-
   /hoist-non-react-statics@3.3.2:
     resolution: {integrity: sha512-/gGivxi8JPKWNm/W0jSmzcMPpfpPLc3dY/6GxhX2hQ9iGj3aDfklV4ET7NjKpSinLpJ5vafa9iiGIEZg10SfBw==}
     dependencies:
@@ -12650,7 +12664,7 @@ packages:
     dependencies:
       '@tootallnate/once': 1.1.2
       agent-base: 6.0.2
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
     transitivePeerDependencies:
       - supports-color
     dev: false
@@ -12662,7 +12676,7 @@ packages:
     dependencies:
       '@tootallnate/once': 2.0.0
       agent-base: 6.0.2
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -12684,7 +12698,7 @@ packages:
     engines: {node: '>= 6'}
     dependencies:
       agent-base: 6.0.2
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
     transitivePeerDependencies:
       - supports-color
 
@@ -14274,7 +14288,7 @@ packages:
     resolution: {integrity: sha512-Xq9nH7KlWZmXAtodXDDRE7vs6DU1gTU8zYDHDiWLSip45Egwq3plLHzPn27NgvzL2r1LMPC1vdqh98sQxtqj4A==}
     dev: false
 
-  /langchain@0.0.81(@aws-sdk/client-s3@3.563.0)(@huggingface/inference@2.7.0)(axios@1.7.1)(faiss-node@0.5.1)(hnswlib-node@3.0.0)(mammoth@1.7.2):
+  /langchain@0.0.81(@aws-sdk/client-s3@3.563.0)(@huggingface/inference@2.7.0)(axios@1.7.1)(faiss-node@0.5.1)(mammoth@1.7.2):
     resolution: {integrity: sha512-G4UOijTSA4Q8Anqn2Hdq3P4c2w2zJryAffh90kS5x2Lv+MugM/vPPcZXy9y3kZIET7Hdj/KTpkFOCofejpvWHA==}
     engines: {node: '>=18'}
     peerDependencies:
@@ -14403,7 +14417,6 @@ packages:
       expr-eval: 2.0.2
       faiss-node: 0.5.1
       flat: 5.0.2
-      hnswlib-node: 3.0.0
       js-tiktoken: 1.0.11
       jsonpointer: 5.0.1
       mammoth: 1.7.2
@@ -16135,7 +16148,7 @@ packages:
     resolution: {integrity: sha512-uD66tJj54JLYq0De10AhWycZWGQNUvDI55xPgk2sQM5kn1JYlhbCMTtEeT27+vAhW2FBQxLlOmS3pmA7/2z4aA==}
     dependencies:
       '@types/debug': 4.1.12
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
       decode-named-character-reference: 1.0.2
       micromark-core-commonmark: 1.1.0
       micromark-factory-space: 1.1.0
@@ -16159,7 +16172,7 @@ packages:
     resolution: {integrity: sha512-o/sd0nMof8kYff+TqcDx3VSrgBTcZpSvYcAHIfHhv5VAuNmisCxjhx6YmxS8PFEpb9z5WKWKPdzf0jM23ro3RQ==}
     dependencies:
       '@types/debug': 4.1.12
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
       decode-named-character-reference: 1.0.2
       devlop: 1.1.0
       micromark-core-commonmark: 2.0.1
@@ -16200,7 +16213,7 @@ packages:
     dependencies:
       '@babel/core': 7.24.4
       '@babel/types': 7.24.0
-      '@rollup/pluginutils': 5.1.0(rollup@2.79.1)
+      '@rollup/pluginutils': 5.1.0
       kleur: 4.1.5
       undici: 6.14.1
       unplugin: 1.10.1
@@ -16684,11 +16697,6 @@ packages:
   /node-addon-api@7.1.0:
     resolution: {integrity: sha512-mNcltoe1R8o7STTegSOHdnJNN7s5EUvhoS7ShnTHDyOSd+8H+UdWODq6qSv67PjC8Zc5JRT8+oLAMCr0SIXw7g==}
     engines: {node: ^16 || ^18 || >= 20}
-    dev: false
-
-  /node-addon-api@8.0.0:
-    resolution: {integrity: sha512-ipO7rsHEBqa9STO5C5T10fj732ml+5kLN1cAG8/jdHd56ldQeGj3Q7+scUS+VHK/qy1zLEwC4wMK5+yM0btPvw==}
-    engines: {node: ^18 || ^20 || >= 21}
     dev: false
 
   /node-domexception@1.0.0:
@@ -18302,7 +18310,7 @@ packages:
     dependencies:
       '@assemblyscript/loader': 0.9.4
       bl: 5.1.0
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
       minimist: 1.2.8
       node-fetch: 2.7.0
       readable-stream: 3.6.2
@@ -19631,6 +19639,7 @@ packages:
     hasBin: true
     optionalDependencies:
       fsevents: 2.3.3
+    dev: true
 
   /rollup@4.16.4:
     resolution: {integrity: sha512-kuaTJSUbz+Wsb2ATGvEknkI12XV40vIiHmLuFlejoo7HtDok/O5eDDD0UpCVY5bBX5U5RYo8wWP83H7ZsqVEnA==}
@@ -19852,7 +19861,7 @@ packages:
     dependencies:
       '@types/debug': 4.1.12
       '@types/validator': 13.11.9
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
       dottie: 2.0.6
       inflection: 1.13.4
       lodash: 4.17.21
@@ -20091,7 +20100,7 @@ packages:
     dependencies:
       '@types/debug': 4.1.12
       '@types/validator': 13.11.9
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
       dottie: 2.0.6
       inflection: 1.13.4
       lodash: 4.17.21
@@ -20182,7 +20191,7 @@ packages:
     requiresBuild: true
     dependencies:
       agent-base: 6.0.2
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
       socks: 2.8.3
     transitivePeerDependencies:
       - supports-color
@@ -20194,7 +20203,7 @@ packages:
     engines: {node: '>= 10'}
     dependencies:
       agent-base: 6.0.2
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
       socks: 2.8.3
     transitivePeerDependencies:
       - supports-color
@@ -20638,6 +20647,7 @@ packages:
   /supports-color@9.4.0:
     resolution: {integrity: sha512-VL+lNrEoIXww1coLPOmiEmK/0sGigko5COxI09KzHc2VJXJsQ37UaQ+8quuxjDeA7+KnLGTWRyOXSLLR2Wb4jw==}
     engines: {node: '>=12'}
+    dev: true
 
   /supports-preserve-symlinks-flag@1.0.0:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
@@ -21731,6 +21741,21 @@ packages:
       - typescript
     dev: true
 
+  /vite-plugin-svgr@4.2.0(typescript@5.4.5)(vite@5.2.11):
+    resolution: {integrity: sha512-SC7+FfVtNQk7So0XMjrrtLAbEC8qjFPifyD7+fs/E6aaNdVde6umlVVh0QuwDLdOMu7vp5RiGFsB70nj5yo0XA==}
+    peerDependencies:
+      vite: ^2.6.0 || 3 || 4 || 5
+    dependencies:
+      '@rollup/pluginutils': 5.1.0
+      '@svgr/core': 8.1.0(typescript@5.4.5)
+      '@svgr/plugin-jsx': 8.1.0(@svgr/core@8.1.0)
+      vite: 5.2.11(@types/node@18.19.33)
+    transitivePeerDependencies:
+      - rollup
+      - supports-color
+      - typescript
+    dev: true
+
   /vite-tsconfig-paths@4.3.2(typescript@5.4.5)(vite@5.2.11):
     resolution: {integrity: sha512-0Vd/a6po6Q+86rPlntHye7F31zA2URZMbH8M3saAZ/xR9QoGN/L21bxEGfXdWmFdNkqPpRdxFT7nmNe12e9/uA==}
     peerDependencies:
@@ -21739,7 +21764,7 @@ packages:
       vite:
         optional: true
     dependencies:
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
       globrex: 0.1.2
       tsconfck: 3.0.3(typescript@5.4.5)
       vite: 5.2.11(@types/node@18.19.33)
@@ -21805,7 +21830,7 @@ packages:
     dependencies:
       chalk: 4.1.2
       commander: 9.5.0
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.4
     transitivePeerDependencies:
       - supports-color
     dev: false
