@@ -526,7 +526,10 @@ async function runRouterAssistant({
         const toolAssistant = await getAssistant(tool.id);
         if (!toolAssistant) return undefined;
         const toolParameters = (toolAssistant.parameters ?? [])
-          .filter((i): i is typeof i & Required<Pick<typeof i, 'key'>> => !!i.key && !tool.parameters?.[i.key])
+          .filter(
+            (i): i is typeof i & Required<Pick<typeof i, 'key'>> =>
+              !!i.key && !tool.parameters?.[i.key] && i.type !== 'source'
+          )
           .map((parameter) => {
             return [
               parameter.key,
@@ -544,7 +547,7 @@ async function runRouterAssistant({
           });
 
         const required = (toolAssistant.parameters ?? [])
-          .filter((i): i is typeof i & { key: string } => !!i.key)
+          .filter((i): i is typeof i & { key: string } => !!i.key && i.type !== 'source')
           .filter((i) => !(tool?.parameters || {})[i.key])
           .filter((x) => x.required)
           .map((x) => x.key);
@@ -681,15 +684,22 @@ async function runRouterAssistant({
     return calls;
   };
 
+  const tools: {
+    type: 'function';
+    function: { name: string; description?: string | undefined; parameters: Record<string, any> };
+  }[] = toolAssistants.map((i) => ({
+    type: 'function',
+    function: {
+      name: i.function.name,
+      description: i.function.descriptions,
+      parameters: i.function.parameters,
+    },
+  }));
+
+  logger.info('function call tools', JSON.stringify(tools));
+
   const calls = await runFunctionCall({
-    tools: toolAssistants.map((i) => ({
-      type: 'function',
-      function: {
-        name: i.function.name,
-        description: i.function.descriptions,
-        parameters: i.function.parameters,
-      },
-    })),
+    tools,
     toolChoice: 'required',
   });
 
@@ -1074,7 +1084,7 @@ const runRequestToolAssistant = async ({
     const args = Object.fromEntries(
       await Promise.all(
         (toolAssistant.parameters ?? [])
-          .filter((i): i is typeof i & { key: string } => !!i.key)
+          .filter((i): i is typeof i & { key: string } => !!i.key && i.type !== 'source')
           .map(async (i) => {
             const template = String(tool.parameters?.[i.key] || '').trim();
             const value = template ? await renderMessage(template, parameters) : parameters?.[i.key];
@@ -1916,7 +1926,7 @@ async function runExecuteBlock({
           const args = Object.fromEntries(
             await Promise.all(
               (toolAssistant.parameters ?? [])
-                .filter((i): i is typeof i & { key: string } => !!i.key)
+                .filter((i): i is typeof i & { key: string } => !!i.key && i.type !== 'source')
                 .map(async (i) => {
                   const template = String(tool.parameters?.[i.key] || '').trim();
                   const value = template ? await renderMessage(template, parameters) : parameters?.[i.key];
@@ -2017,7 +2027,10 @@ async function runExecuteBlock({
           const toolAssistant = await getAssistant(tool.id);
           if (!toolAssistant) return undefined;
           const toolParameters = (toolAssistant.parameters ?? [])
-            .filter((i): i is typeof i & Required<Pick<typeof i, 'key'>> => !!i.key && !tool.parameters?.[i.key])
+            .filter(
+              (i): i is typeof i & Required<Pick<typeof i, 'key'>> =>
+                !!i.key && !tool.parameters?.[i.key] && i.type !== 'source'
+            )
             .map((parameter) => {
               return [
                 parameter.key,
@@ -2035,7 +2048,7 @@ async function runExecuteBlock({
             });
 
           const required = (toolAssistant.parameters ?? [])
-            .filter((i): i is typeof i & { key: string } => !!i.key)
+            .filter((i): i is typeof i & { key: string } => !!i.key && i.type !== 'source')
             .filter((x) => x.required)
             .map((x) => x.key);
 
