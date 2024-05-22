@@ -1,6 +1,10 @@
 ## 0.2.4 (2024-5-22)
 
+<<<<<<< HEAD
 - chore: add boolean as output type
+=======
+- fix: awesome avatar in debug view(#1004)
+>>>>>>> main
 
 ## 0.2.3 (2024-5-21)
 
