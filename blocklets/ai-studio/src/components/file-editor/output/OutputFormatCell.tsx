@@ -6,6 +6,7 @@ import BracketsContainIcon from '@iconify-icons/tabler/brackets-contain';
 import CodePlusIcon from '@iconify-icons/tabler/code-plus';
 import CursorTextIcon from '@iconify-icons/tabler/cursor-text';
 import SquareNumberIcon from '@iconify-icons/tabler/square-number-1';
+import ToggleLeftIcon from '@iconify-icons/tabler/toggle-left';
 import { Box, ListItemIcon, MenuItem, TextField, TextFieldProps, Typography } from '@mui/material';
 import { nanoid } from 'nanoid';
 
@@ -106,6 +107,13 @@ function VariableTypeField({ ...props }: TextFieldProps) {
           <Icon icon={SquareNumberIcon} />
         </ListItemIcon>
         {t('number')}
+      </MenuItem>
+
+      <MenuItem value="boolean">
+        <ListItemIcon>
+          <Icon icon={ToggleLeftIcon} />
+        </ListItemIcon>
+        {t('boolean')}
       </MenuItem>
 
       <MenuItem value="object">
