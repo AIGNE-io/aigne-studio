@@ -1,6 +1,10 @@
+## 0.2.4 (2024-5-22)
+
+- fix: awesome avatar in debug view(#1004)
+
 ## 0.2.3 (2024-5-21)
 
-- chore: support openapi parameter
+- fix: default type for outputs
 
 ## 0.2.2 (2024-5-20)
 
