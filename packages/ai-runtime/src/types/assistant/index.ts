@@ -1,4 +1,4 @@
-import type { RuntimeOutputVariable, RuntimeOutputVariablesSchema } from '../runtime';
+import type { RuntimeOutputAppearance, RuntimeOutputVariable, RuntimeOutputVariablesSchema } from '../runtime';
 
 export * from './utils';
 export * from './yjs';
@@ -24,6 +24,8 @@ export type Role = 'system' | 'user' | 'assistant';
 export type ExecuteBlockRole = Role | 'none';
 
 export type Tool = {
+  blockletDid?: string;
+  projectId?: string;
   id: string;
   from?: 'assistant' | 'dataset' | 'knowledge'; // 这里的 dataset 其实代表 api
   parameters?: { [key: string]: string };
@@ -164,6 +166,7 @@ export type VariableType = VariableTypeBase &
 export type OutputVariable = VariableType & {
   variable?: { key: string; scope: string };
   from?: { type: 'input'; id: string };
+  appearance?: RuntimeOutputAppearance;
   initialValue?: RuntimeOutputVariablesSchema[RuntimeOutputVariable];
 };
 
@@ -243,6 +246,10 @@ export interface HistoryParameter {
   chatHistory?: { limit?: number; keyword?: string };
 }
 
+export interface SecretParameter {
+  variableFrom?: 'secret';
+}
+
 export type Parameter = StringParameter | NumberParameter | SelectParameter | LanguageParameter | SourceParameter;
 
 export interface ParameterBase {
@@ -258,7 +265,7 @@ export interface ParameterBase {
 export interface SourceParameter extends ParameterBase {
   type: 'source';
   defaultValue?: string;
-  source?: DatastoreParameter | AgentParameter | KnowledgeParameter | HistoryParameter;
+  source?: DatastoreParameter | AgentParameter | KnowledgeParameter | HistoryParameter | SecretParameter;
 }
 
 export interface StringParameter extends ParameterBase {

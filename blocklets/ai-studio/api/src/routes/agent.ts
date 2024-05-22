@@ -1,3 +1,4 @@
+import { getAssistantFromResourceBlocklet, getResourceProjects } from '@api/libs/resource';
 import Project from '@api/store/models/project';
 import { getAssistantFromRepository, getRepository } from '@api/store/repository';
 import { parseIdentity } from '@blocklet/ai-runtime/common/aid';
@@ -8,21 +9,58 @@ import pick from 'lodash/pick';
 
 const router = Router();
 
+export interface GetAgentsQuery {
+  type: 'application' | 'tool';
+}
+
+const getAgentsQuerySchema = Joi.object<GetAgentsQuery>({
+  type: Joi.string().valid('application', 'tool').empty([null, '']).default('application'),
+});
+
+router.get('/', async (req, res) => {
+  const query = await getAgentsQuerySchema.validateAsync(req.query, { stripUnknown: true });
+
+  const projects = await getResourceProjects(query.type);
+
+  const resourceAgents = projects.flatMap((i) => i.assistants.map((a) => respondAgentFields(a, i.project, i.blocklet)));
+
+  res.json({ agents: resourceAgents });
+});
+
 export interface GetAgentQuery {
   working?: boolean;
+  blockletDid?: string;
 }
 
 const getAgentQuerySchema = Joi.object<GetAgentQuery>({
   working: Joi.boolean().empty([null, '']),
+  blockletDid: Joi.string().empty([null, '']),
 });
 
 router.get('/:aid', async (req, res) => {
   const { aid } = req.params;
   if (!aid) throw new Error('Missing required param `aid`');
 
-  const { working } = await getAgentQuerySchema.validateAsync(req.query, { stripUnknown: true });
+  const { working, blockletDid } = await getAgentQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
   const { projectId, projectRef, assistantId } = parseIdentity(aid, { rejectWhenError: true });
+
+  if (blockletDid) {
+    const assistantResult = await getAssistantFromResourceBlocklet({
+      blockletDid,
+      projectId,
+      assistantId,
+      type: ['application', 'tool'],
+    });
+
+    if (!assistantResult) {
+      res.status(404).json({ message: 'No such agent' });
+      return;
+    }
+
+    res.json(respondAgentFields(assistantResult.assistant, assistantResult.project, assistantResult.blocklet));
+    return;
+  }
 
   const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error(`Project ${projectId} not found`) });
 
@@ -39,7 +77,7 @@ router.get('/:aid', async (req, res) => {
   res.json(respondAgentFields(assistant, project));
 });
 
-const respondAgentFields = (assistant: Assistant, project: Project) => ({
+const respondAgentFields = (assistant: Assistant, project: Project['dataValues'], blocklet?: { did: string }) => ({
   ...pick(
     assistant,
     'id',
@@ -61,6 +99,9 @@ const respondAgentFields = (assistant: Assistant, project: Project) => ({
     createdBy: project.createdBy,
     createdAt: project.createdAt,
     updatedAt: project.updatedAt,
+  },
+  blocklet: blocklet && {
+    did: blocklet.did,
   },
 });
 

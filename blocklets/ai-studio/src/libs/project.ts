@@ -1,9 +1,11 @@
+import AgentInputSecret from '@api/store/models/agent-input-secret';
 import { Assistant } from '@blocklet/ai-runtime/types';
 import pick from 'lodash/pick';
 import { joinURL, withQuery } from 'ufo';
 
 import {
   AddProjectRemoteInput,
+  CreateOrUpdateAgentInputSecretPayload,
   CreateProjectInput,
   ImportProjectInput,
   ProjectPullInput,
@@ -117,4 +119,17 @@ export function getProjectIconUrl(
     joinURL(window.location.origin, component?.mountPoint || '', `/api/projects/${projectId}/logo.png`),
     original ? { version: updatedAt } : { imageFilter: 'resize', w: 140, version: updatedAt }
   );
+}
+
+export async function getProjectInputSecrets(
+  projectId: string
+): Promise<{ secrets: Omit<AgentInputSecret['dataValues'], 'secret'>[] }> {
+  return axios.get(`/api/projects/${projectId}/agent-input-secrets`).then((res) => res.data);
+}
+
+export async function createOrUpdateProjectInputSecrets(
+  projectId: string,
+  input: CreateOrUpdateAgentInputSecretPayload
+): Promise<{ secrets: Omit<AgentInputSecret['dataValues'], 'secret'>[] }> {
+  return axios.post(`/api/projects/${projectId}/agent-input-secrets`, input).then((res) => res.data);
 }

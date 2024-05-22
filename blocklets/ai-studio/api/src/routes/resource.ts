@@ -17,11 +17,10 @@ import Project from '../store/models/project';
 import { LOGO_FILENAME, defaultBranch, getAssistantsOfRepository, getRepository } from '../store/repository';
 
 const AI_STUDIO_DID = 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
-const TARGET_DIR = path.join(AI_STUDIO_DID, 'ai');
 
 const getResourceDir = async ({ projectId, releaseId }: { projectId: string; releaseId: string }) => {
   const exportDir = component.getResourceExportDir({ projectId, releaseId });
-  const resourceDir = path.join(exportDir, TARGET_DIR);
+  const resourceDir = path.join(exportDir, AI_STUDIO_DID);
 
   await mkdir(resourceDir, { recursive: true });
 
@@ -61,8 +60,24 @@ export function resourceRoutes(router: Router) {
 
     const resources = [
       {
+        id: 'application',
+        name: 'Application',
+        children: cloneDeep(list).map((x) => {
+          x.id = `application-${x._id}`;
+          return x;
+        }),
+      },
+      {
+        id: 'tool',
+        name: 'Toolkit',
+        children: cloneDeep(list).map((x) => {
+          x.id = `tool-${x._id}`;
+          return x;
+        }),
+      },
+      {
         id: 'template',
-        name: '模板项目',
+        name: 'Template',
         children: cloneDeep(list).map((x) => {
           x.id = `template-${x._id}`;
           return x;
@@ -70,7 +85,7 @@ export function resourceRoutes(router: Router) {
       },
       {
         id: 'example',
-        name: '示例项目',
+        name: 'Example',
         children: cloneDeep(list).map((x) => {
           x.id = `example-${x._id}`;
           return x;

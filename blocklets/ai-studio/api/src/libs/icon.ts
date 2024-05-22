@@ -1,27 +1,29 @@
-import { call } from '@blocklet/sdk/lib/component';
-import config from '@blocklet/sdk/lib/config';
+import { join } from 'path';
+
+import { logger } from '@blocklet/sdk/lib/config';
+import { pathExists, readdir, stat } from 'fs-extra';
 import sample from 'lodash/sample';
 
-import { createImageUrl } from './utils';
+import { Config } from './env';
 
-let icons: { filename: string }[] = [];
+const icons = (async () => {
+  try {
+    // NOTE: fix wrong path of blocklet bundle monorepo
+    const imageFolderPath = join(Config.appDir, 'api/images');
+
+    if (!(await pathExists(imageFolderPath)) || !(await stat(imageFolderPath)).isDirectory()) {
+      return [];
+    }
+
+    const files = await readdir(imageFolderPath);
+    return files.map((i) => join(imageFolderPath, i));
+  } catch (error) {
+    logger.error('handle resource error', { error });
+  }
+
+  return [];
+})();
 
 export async function sampleIcon() {
-  if (!icons.length) {
-    try {
-      const params = { pageSize: 100, tags: 'default-project-icon' };
-      const { data } = await call({ name: 'image-bin', path: '/api/sdk/uploads', method: 'GET', params });
-
-      icons = data?.uploads || [];
-    } catch (error) {
-      // error
-    }
-  }
-
-  const item = sample(icons);
-  if (config.env.appUrl && item?.filename) {
-    return createImageUrl(config.env.appUrl, item.filename);
-  }
-
-  return undefined;
+  return sample(await icons);
 }

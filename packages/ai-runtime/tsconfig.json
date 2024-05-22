@@ -4,6 +4,8 @@
     "noEmit": false,
     "outDir": "lib",
     "paths": {
+      // For local dev
+      // "@blocklet/ai-kit/*": ["../../../ai-kit/packages/ai-kit/src/*"],
       "@blocklet/dataset-sdk": ["../../packages/dataset-sdk/src"],
       "@blocklet/dataset-sdk/*": ["../../packages/dataset-sdk/src/*"],
       "@blocklet/ai-builtin": ["../../packages/ai-builtin/src"],

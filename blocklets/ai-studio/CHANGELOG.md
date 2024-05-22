@@ -1,3 +1,10 @@
+## 0.2.6 (2024-5-23)
+
+- feat: add configurations component/title/icon for output fields
+- fix: remove template icons from image-bin
+- feat: support secret-type input
+- feat: support using a tool agent from resource blocklet in the inputs
+
 ## 0.2.5 (2024-5-22)
 
 - chore: add boolean as output type

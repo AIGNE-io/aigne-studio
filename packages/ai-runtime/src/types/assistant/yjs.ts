@@ -1,4 +1,9 @@
-import { RuntimeOutputOpeningQuestions, RuntimeOutputVariable, RuntimeOutputVariablesSchema } from '../runtime/schema';
+import {
+  RuntimeOutputAppearance,
+  RuntimeOutputOpeningQuestions,
+  RuntimeOutputVariable,
+  RuntimeOutputVariablesSchema,
+} from '../runtime/schema';
 import type {
   Agent,
   ApiAssistant,
@@ -83,6 +88,7 @@ export interface RuntimeOutputOpeningQuestionsYjs {
 export type OutputVariableYjs = VariableTypeYjs & {
   variable?: { key: string; scope: string };
   from?: { type: 'input'; id: string };
+  appearance?: RuntimeOutputAppearance;
   initialValue?: RuntimeOutputVariablesSchemaYjs[RuntimeOutputVariable];
 };
 

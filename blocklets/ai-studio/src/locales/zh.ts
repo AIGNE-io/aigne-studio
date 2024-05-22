@@ -488,6 +488,7 @@ export default flat({
   copyTool: '复制执行块',
   visitLink: '访问链接',
   variableParameter: {
+    secret: '密钥',
     custom: '用户输入',
     tool: '其他 Agent',
     datastore: '记忆',
@@ -513,6 +514,7 @@ export default flat({
     fromAgentParameter: '来自Agent输入参数',
     fromKnowledgeParameter: '来自知识输入参数',
     agent: '调用 {agent}',
+    call: '调用',
   },
   variables: {
     name: '数据名称',
@@ -681,7 +683,11 @@ export default flat({
   profile: '档案',
   avatar: '头像',
   outputFromInputPlaceholder: '来自输入 "{input}"',
+  author: '作者',
+  updatedAt: '更新于',
   launchMore: '启动更多',
   launchMoreContent: '你已经达到了 {length} 个项目的限制。\n启动你自己的 AI 工作室以创建更多项目 👇',
   launchMoreConfirm: '启动我的 AI 工作室',
+  authorize: '授权',
+  reauthorize: '重新授权',
 });
