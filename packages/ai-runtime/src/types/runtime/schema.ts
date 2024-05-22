@@ -1,7 +1,8 @@
 import Joi from 'joi';
 import { toLower } from 'lodash';
+import { nanoid } from 'nanoid';
 
-import type { Assistant, OutputVariable, Variable } from '..';
+import type { Assistant, OutputVariable, Variable, VariableType } from '..';
 
 export const variableBlockListForAgent: {
   [key in Assistant['type']]?: { block?: Set<RuntimeOutputVariable>; allow?: Set<RuntimeOutputVariable> };
@@ -198,6 +199,70 @@ export function outputVariablesToJoiSchema(assistant: Assistant, datastoreVariab
   };
 
   return variableToSchema({ type: 'object', properties: assistant.outputVariables ?? [] })!;
+}
+
+type JSONSchema = {
+  type: string;
+  description?: string;
+  properties?: { [key: string]: JSONSchema };
+  items?: JSONSchema;
+  required?: string[];
+  [key: string]: any;
+};
+
+export function outputVariableFromOpenApi(schema: JSONSchema, name: string = ''): VariableType[] {
+  const variables: VariableType[] = [];
+
+  if (schema.type === 'object' && schema.properties) {
+    const properties: VariableType[] = [];
+    // eslint-disable-next-line no-restricted-syntax, guard-for-in
+    for (const key in schema?.properties || {}) {
+      // @ts-ignore
+      properties.push(...outputVariableFromOpenApi((schema?.properties || {})[key], key));
+    }
+    variables.push({
+      id: nanoid(),
+      name,
+      description: schema.description,
+      required: schema.required?.includes(name),
+      type: 'object',
+      properties,
+    });
+  } else if (schema.type === 'array' && schema.items) {
+    variables.push({
+      id: nanoid(),
+      name,
+      description: schema.description,
+      required: schema.required?.includes(name),
+      type: 'array',
+      element: outputVariableFromOpenApi(schema.items, 'element')[0],
+    });
+  } else {
+    let type: 'string' | 'number' | 'boolean' | undefined;
+    switch (schema.type) {
+      case 'string':
+        type = 'string';
+        break;
+      case 'number':
+        type = 'number';
+        break;
+      case 'boolean':
+        type = 'boolean';
+        break;
+      default:
+        console.warn('Unsupported event', type);
+    }
+
+    variables.push({
+      id: nanoid(),
+      name,
+      description: schema.description,
+      required: schema.required?.includes(name),
+      type,
+    });
+  }
+
+  return variables;
 }
 
 export enum RuntimeOutputVariable {
