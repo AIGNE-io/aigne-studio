@@ -1,3 +1,7 @@
+## 0.2.5 (2024-5-22)
+
+- chore: add boolean as output type
+
 ## 0.2.4 (2024-5-22)
 
 - fix: awesome avatar in debug view(#1004)

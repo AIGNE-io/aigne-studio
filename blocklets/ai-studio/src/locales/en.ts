@@ -142,6 +142,7 @@ export default flat({
     "The maximum number of tokens to generate in the completion. The token count of your prompt plus Max Tokens cannot exceed the model's context length.",
   type: 'Type',
   text: 'Text',
+  boolean: 'Boolean',
   object: 'Object',
   array: 'Array',
   image: 'Image',
