@@ -1,4 +1,4 @@
-import type { RuntimeOutputVariable, RuntimeOutputVariablesSchema } from '../runtime';
+import type { RuntimeOutputAppearance, RuntimeOutputVariable, RuntimeOutputVariablesSchema } from '../runtime';
 
 export * from './utils';
 export * from './yjs';
@@ -162,6 +162,7 @@ export type VariableType = VariableTypeBase &
 export type OutputVariable = VariableType & {
   variable?: { key: string; scope: string };
   from?: { type: 'input'; id: string };
+  appearance?: RuntimeOutputAppearance;
   initialValue?: RuntimeOutputVariablesSchema[RuntimeOutputVariable];
 };
 

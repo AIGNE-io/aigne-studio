@@ -230,9 +230,9 @@ export interface RuntimeOutputAppearance {
   componentId?: string;
   componentName?: string;
   componentProps?: { [key: string]: any };
+  title?: string;
+  icon?: string;
 }
-
-export interface RuntimeOutputAppearancePage extends RuntimeOutputAppearance {}
 
 export interface RuntimeOutputChildren {
   agents?: { id: string; name?: string }[];
@@ -260,9 +260,9 @@ export interface RuntimeOutputVariablesSchema {
   [RuntimeOutputVariable.images]?: { url: string }[];
   [RuntimeOutputVariable.suggestedQuestions]?: { question: string }[];
   [RuntimeOutputVariable.referenceLinks]?: { title?: string; url: string }[];
-  [RuntimeOutputVariable.appearancePage]?: RuntimeOutputAppearancePage;
-  [RuntimeOutputVariable.appearanceInput]?: RuntimeOutputAppearance;
-  [RuntimeOutputVariable.appearanceOutput]?: RuntimeOutputAppearance;
+  [RuntimeOutputVariable.appearancePage]?: undefined;
+  [RuntimeOutputVariable.appearanceInput]?: undefined;
+  [RuntimeOutputVariable.appearanceOutput]?: undefined;
   [RuntimeOutputVariable.children]?: RuntimeOutputChildren;
   [RuntimeOutputVariable.share]?: RuntimeOutputShare;
   [RuntimeOutputVariable.openingQuestions]?: RuntimeOutputOpeningQuestions;
