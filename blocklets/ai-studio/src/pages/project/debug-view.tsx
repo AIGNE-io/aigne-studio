@@ -342,7 +342,7 @@ function CustomAvatar({ role, projectId, gitRef }: { role: Role; projectId: stri
       <Box>
         {session?.user?.avatar ? (
           <Box>
-            <Box component="img" src={session?.user?.avatar} sx={{ borderRadius: 32, maxWidth: 32, maxHeight: 32 }} />
+            <Avatar src={session?.user?.avatar} sx={{ borderRadius: 32, maxWidth: 32, maxHeight: 32 }} />
           </Box>
         ) : (
           <Avatar sx={{ width: 24, height: 24, fontSize: 14 }}>{role.slice(0, 1).toUpperCase()}</Avatar>
