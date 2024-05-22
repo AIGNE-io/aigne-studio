@@ -168,6 +168,8 @@ export function outputVariablesToJoiSchema(assistant: Assistant, datastoreVariab
       schema = Joi.string().empty([null, '']);
     } else if (variable.type === 'number') {
       schema = Joi.number().empty([null, '']);
+    } else if (variable.type === 'boolean') {
+      schema = Joi.boolean().empty([null, '']);
     } else if (variable.type === 'object') {
       schema = Joi.object(
         Object.fromEntries(

@@ -18,6 +18,7 @@ import {
   IconButton,
   MenuItem,
   Stack,
+  Switch,
   TextField,
   Typography,
 } from '@mui/material';
@@ -178,6 +179,17 @@ function PopperButton({
                 placeholder={t('outputParameterDefaultValuePlaceholder')}
                 value={output.defaultValue || ''}
                 onChange={(value) => (output.defaultValue = value)}
+              />
+            </Box>
+          ) : output.type === 'boolean' ? (
+            <Box>
+              <Typography variant="subtitle2">{t('defaultValue')}</Typography>
+
+              <Switch
+                checked={output.defaultValue || false}
+                onChange={(_, checked) => {
+                  output.defaultValue = checked;
+                }}
               />
             </Box>
           ) : null}
