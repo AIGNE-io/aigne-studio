@@ -1,11 +1,15 @@
 import PopperMenu from '@app/components/menu/PopperMenu';
 import { useReadOnly } from '@app/contexts/session';
-import { useAssistantCompare } from '@app/pages/project/state';
+import { getAPIList } from '@app/libs/dataset';
+import { getProjectIconUrl } from '@app/libs/project';
+import { useAssistantCompare, useProjectState } from '@app/pages/project/state';
 import { newDefaultPrompt } from '@app/pages/project/template';
 import { PROMPTS_FOLDER_NAME, createFileName, useCreateFile, useProjectStore } from '@app/pages/project/yjs-state';
+import DiDAvatar from '@arcblock/ux/lib/Avatar';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import {
   AssistantYjs,
+  ExecuteBlock,
   FileTypeYjs,
   RouterAssistant,
   RouterAssistantYjs,
@@ -14,6 +18,9 @@ import {
   isAssistant,
 } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
+import { DatasetObject } from '@blocklet/dataset-sdk/types';
+import getDatasetTextByI18n from '@blocklet/dataset-sdk/util/get-dataset-i18n-text';
 import { Icon } from '@iconify-icon/react';
 import CheckIcon from '@iconify-icons/tabler/check';
 import ArrowFork from '@iconify-icons/tabler/corner-down-right';
@@ -26,6 +33,7 @@ import Trash from '@iconify-icons/tabler/trash';
 import { InfoOutlined } from '@mui/icons-material';
 import {
   Autocomplete,
+  Avatar,
   Box,
   Button,
   Dialog,
@@ -33,24 +41,34 @@ import {
   DialogContent,
   DialogProps,
   DialogTitle,
+  FormControlLabel,
+  List,
+  ListSubheader,
+  ListSubheaderProps,
   MenuItem,
   Stack,
   StackProps,
+  Switch,
   TextField,
   Tooltip,
   Typography,
   createFilterOptions,
   styled,
 } from '@mui/material';
-import { cloneDeep, pick, sortBy } from 'lodash';
+import { useRequest } from 'ahooks';
+import { cloneDeep, groupBy, pick, sortBy } from 'lodash';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
-import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef } from 'react';
+import { nanoid } from 'nanoid';
+import React, { forwardRef, useCallback, useImperativeHandle, useMemo, useRef } from 'react';
 import { Controller, UseFormReturn, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
 import { useRoutesAssistantOutputs } from '../output/OutputSettings';
 import PromptEditorField from '../prompt-editor-field';
+
+type RouteOption = { id: string; type: string; name?: string; from?: 'blockletAPI' };
+const FROM_API = 'blockletAPI';
 
 export default function RouterAssistantEditor({
   projectId,
@@ -67,15 +85,50 @@ export default function RouterAssistantEditor({
   disabled?: boolean;
   isRemoteCompare?: boolean;
 }) {
-  const { t } = useLocaleContext();
-  const routes = value.routes && sortBy(Object.values(value.routes), (i) => i.index);
-  const readOnly = useReadOnly({ ref: gitRef }) || disabled;
-  const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
-  const dialogState = usePopupState({ variant: 'dialog' });
-  const toolForm = useRef<any>(null);
-  const selectedTool = useRef<string>();
-  const { checkSelectAgent: result } = useRoutesAssistantOutputs({ projectId, gitRef, value });
+  const { t, locale } = useLocaleContext();
   const ref = useRef(null);
+  const toolForm = useRef<any>(null);
+  const dialogState = usePopupState({ variant: 'dialog' });
+  const readOnly = useReadOnly({ ref: gitRef }) || disabled;
+  const { getAllSelectCustomOutputs, checkSelectAgent: result } = useRoutesAssistantOutputs({
+    projectId,
+    gitRef,
+    value,
+  });
+  const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
+  const { data: openApis = [] } = useRequest(() => getAPIList());
+  const { store } = useProjectStore(projectId, gitRef);
+
+  const routes = value.routes && sortBy(Object.values(value.routes), (i) => i.index);
+  const agentOptions: RouteOption[] = Object.entries(store.tree)
+    .filter(([, filepath]) => filepath?.startsWith(`${PROMPTS_FOLDER_NAME}/`))
+    .map(([id]) => store.files[id])
+    .filter((i): i is AssistantYjs => !!i && isAssistant(i))
+    .filter((i) => i.id !== value.id)
+    .map((i) => ({ id: i.id, type: i.type, name: i.name, from: undefined }));
+  const openApiOptions = openApis
+    .map((x) => ({ ...x, from: FROM_API }))
+    .map((dataset) => ({
+      id: dataset.id,
+      type: dataset.type,
+      name:
+        getDatasetTextByI18n(dataset, 'summary', locale) ||
+        getDatasetTextByI18n(dataset, 'description', locale) ||
+        t('unnamed'),
+      from: dataset.from,
+    })) as RouteOption[];
+  const outputVariables = value.outputVariables && sortBy(Object.values(value.outputVariables), 'index');
+
+  const setField = (update: (outputVariables: NonNullable<AssistantYjs['outputVariables']>) => void) => {
+    const doc = (getYjsValue(value) as Map<any>).doc!;
+    doc.transact(() => {
+      value.outputVariables ??= {};
+      update(value.outputVariables);
+      sortBy(Object.values(value.outputVariables), 'index').forEach((item, index) => (item.index = index));
+    });
+  };
+
+  console.log(cloneDeep(outputVariables));
 
   return (
     <Stack gap={1.5}>
@@ -142,10 +195,10 @@ export default function RouterAssistantEditor({
                 agent={agent}
                 assistant={value}
                 readOnly={readOnly}
+                openApiOptions={openApiOptions}
                 onEdit={() => {
                   if (readOnly) return;
                   toolForm.current?.form.reset(cloneDeep(agent));
-                  selectedTool.current = agent.id;
                   dialogState.open();
                 }}
               />
@@ -164,6 +217,8 @@ export default function RouterAssistantEditor({
                 projectId={projectId}
                 gitRef={gitRef}
                 assistant={value}
+                agentOptions={agentOptions}
+                openApiOptions={openApiOptions}
                 onSelect={async (tool) => {
                   const doc = (getYjsValue(value) as Map<any>).doc!;
 
@@ -178,6 +233,20 @@ export default function RouterAssistantEditor({
                     };
 
                     sortBy(Object.values(value.routes), 'index').forEach((tool, index) => (tool.index = index));
+
+                    setField((vars) => {
+                      cloneDeep(getAllSelectCustomOutputs()).forEach((data) => {
+                        const exist = data.name ? outputVariables?.find((i) => i.data.name === data.name) : undefined;
+                        if (!exist) {
+                          const id = nanoid();
+                          vars[id] = {
+                            index: Object.values(vars).length,
+                            data: { ...cloneDeep(data), required: undefined, id },
+                          };
+                        }
+                        sortBy(Object.values(vars), 'index').forEach((item, index) => (item.index = index));
+                      });
+                    });
                   });
                 }}
               />
@@ -191,6 +260,7 @@ export default function RouterAssistantEditor({
         projectId={projectId}
         assistant={value}
         gitRef={gitRef}
+        openApis={openApis.map((x) => ({ ...x, from: FROM_API }))}
         DialogProps={{ ...bindDialog(dialogState) }}
         onSubmit={(tool) => {
           const doc = (getYjsValue(value) as Map<any>).doc!;
@@ -199,11 +269,6 @@ export default function RouterAssistantEditor({
             value.routes ??= {};
 
             const old = value.routes[tool.id];
-
-            if (selectedTool.current) {
-              delete value.routes[selectedTool.current];
-              selectedTool.current = '';
-            }
 
             value.routes[tool.id] = {
               index: old?.index ?? Math.max(-1, ...Object.values(value.routes).map((i) => i.index)) + 1,
@@ -256,6 +321,7 @@ export function AgentItemView({
   assistant,
   readOnly,
   onEdit,
+  openApiOptions = [],
   ...props
 }: {
   assistant: RouterAssistantYjs;
@@ -265,6 +331,7 @@ export function AgentItemView({
   agent: Tool;
   readOnly?: boolean;
   onEdit: () => void;
+  openApiOptions: RouteOption[];
 } & StackProps) {
   const navigate = useNavigate();
 
@@ -274,9 +341,12 @@ export function AgentItemView({
   const f = store.files[agent.id];
   const file = f && isAssistant(f) ? f : undefined;
 
-  if (!file) return null;
+  const api = openApiOptions.find((i) => i.id === agent.id);
+  const target = file ?? api;
 
-  const { name } = file;
+  if (!target) return null;
+
+  const { name } = target;
 
   return (
     <Stack
@@ -430,6 +500,10 @@ export interface ToolDialogImperative {
 }
 const filter = createFilterOptions<Option>();
 
+function isAPIOption(option: any): option is DatasetObject & { from: 'blockletAPI' } {
+  return option && option.from === FROM_API;
+}
+
 export const ToolDialog = forwardRef<
   ToolDialogImperative,
   {
@@ -438,15 +512,20 @@ export const ToolDialog = forwardRef<
     onSubmit: (value: ToolDialogForm) => any;
     DialogProps?: DialogProps;
     assistant: RouterAssistantYjs;
+    openApis: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
   }
->(({ assistant, projectId, gitRef, onSubmit, DialogProps }, ref) => {
-  const { t } = useLocaleContext();
+>(({ assistant, projectId, gitRef, onSubmit, DialogProps, openApis }, ref) => {
+  const { t, locale } = useLocaleContext();
   const { store } = useProjectStore(projectId, gitRef);
   const assistantId = assistant.id;
 
   const form = useForm<ToolDialogForm>({ defaultValues: {} });
 
   useImperativeHandle(ref, () => ({ form }), [form]);
+
+  const fileId = form.watch('id');
+  const f = store.files[fileId];
+  const file = f && isAssistant(f) ? f : undefined;
 
   const options = Object.entries(store.tree)
     .filter(([, filepath]) => filepath?.startsWith(`${PROMPTS_FOLDER_NAME}/`))
@@ -455,20 +534,35 @@ export const ToolDialog = forwardRef<
     .filter((i) => i.id !== assistantId)
     .map((i) => ({ id: i.id, type: i.type, name: i.name, from: undefined }));
 
-  const fileId = form.watch('id');
-  const f = store.files[fileId];
-  const file = f && isAssistant(f) ? f : undefined;
+  const getFromText = (from?: string) => {
+    if (from === FROM_API) {
+      return t('buildInData');
+    }
 
-  const getFromText = () => {
     return t('agent');
   };
 
-  const option = [...options].find((x) => x.id === fileId);
-  const formatOptions: Option[] = [...options]
-    .map((x) => ({ ...x, fromText: getFromText() }))
+  const option = [...options, ...openApis].find((x) => x.id === fileId);
+  const formatOptions: Option[] = [
+    ...options,
+    ...openApis.map((dataset) => ({
+      id: dataset.id,
+      type: dataset.type,
+      name:
+        getDatasetTextByI18n(dataset, 'summary', locale) ||
+        getDatasetTextByI18n(dataset, 'description', locale) ||
+        t('unnamed'),
+      from: dataset.from,
+    })),
+  ]
+    .map((x) => ({ ...x, fromText: getFromText(x.from) }))
     .sort((a, b) => (b.from || '').localeCompare(a.from || ''));
 
   const parameters = useMemo(() => {
+    if (isAPIOption(option)) {
+      return getAllParameters(option);
+    }
+
     return (
       file?.parameters &&
       sortBy(Object.values(file.parameters), (i) => i.index).filter(
@@ -480,6 +574,83 @@ export const ToolDialog = forwardRef<
   const renderParameters = useCallback(() => {
     if (!option) {
       return null;
+    }
+
+    if (isAPIOption(option)) {
+      return (
+        <Stack gap={1.5}>
+          {(parameters || [])?.map((parameter: any) => {
+            if (!parameter?.name) return null;
+
+            if (parameter['x-parameter-type'] === 'boolean') {
+              return (
+                <Stack key={parameter.name}>
+                  <Box>
+                    <Controller
+                      control={form.control}
+                      name={`parameters.${parameter.name}`}
+                      render={({ field }) => {
+                        return (
+                          <FormControlLabel
+                            sx={{
+                              alignItems: 'flex-start',
+                              '.MuiCheckbox-root': {
+                                ml: -0.5,
+                              },
+                            }}
+                            control={
+                              <Switch
+                                defaultChecked={Boolean(field.value ?? false)}
+                                onChange={(_, checked) => {
+                                  field.onChange({ target: { value: checked } });
+                                }}
+                              />
+                            }
+                            label={
+                              <Typography variant="caption">
+                                {getDatasetTextByI18n(parameter, 'description', locale) ||
+                                  getDatasetTextByI18n(parameter, 'name', locale)}
+                              </Typography>
+                            }
+                            labelPlacement="top"
+                          />
+                        );
+                      }}
+                    />
+                  </Box>
+                </Stack>
+              );
+            }
+
+            return (
+              <Stack key={parameter.name}>
+                <Typography variant="caption" mb={0.5}>
+                  {getDatasetTextByI18n(parameter, 'description', locale) ||
+                    getDatasetTextByI18n(parameter, 'name', locale)}
+                </Typography>
+
+                <Controller
+                  control={form.control}
+                  name={`parameters.${parameter.name}`}
+                  render={({ field }) => {
+                    return (
+                      <PromptEditorField
+                        placeholder={t('selectByPromptParameterPlaceholder')}
+                        value={field.value || ''}
+                        projectId={projectId}
+                        gitRef={gitRef}
+                        assistant={assistant}
+                        path={[assistantId, parameter.name]}
+                        onChange={(value) => field.onChange({ target: { value } })}
+                      />
+                    );
+                  }}
+                />
+              </Stack>
+            );
+          })}
+        </Stack>
+      );
     }
 
     return (
@@ -603,6 +774,11 @@ export const ToolDialog = forwardRef<
                       // 清理：parameters 数据
                       form.reset({ id: value?.id, from: value?.from });
 
+                      if (value.from === FROM_API) {
+                        field.onChange({ target: { value: value?.id } });
+                        return;
+                      }
+
                       if (!value.id) {
                         const file = createFile({
                           store,
@@ -664,27 +840,31 @@ function AddSelectAgentPopperButton({
   projectId,
   gitRef,
   assistant,
+  agentOptions,
+  openApiOptions,
   onSelect,
 }: {
   projectId: string;
   gitRef: string;
   assistant: AssistantYjs;
-  onSelect?: (value: { id: string; type: string; name?: string }) => void;
+  agentOptions: RouteOption[];
+  openApiOptions: RouteOption[];
+  onSelect?: (value: RouteOption) => void;
 }) {
   const { t } = useLocaleContext();
   const { store } = useProjectStore(projectId, gitRef);
-  const assistantId = assistant.id;
   const createFile = useCreateFile();
-
-  const options = Object.entries(store.tree)
-    .filter(([, filepath]) => filepath?.startsWith(`${PROMPTS_FOLDER_NAME}/`))
-    .map(([id]) => store.files[id])
-    .filter((i): i is AssistantYjs => !!i && isAssistant(i))
-    .filter((i) => i.id !== assistantId)
-    .map((i) => ({ id: i.id, type: i.type, name: i.name, from: undefined }));
+  const {
+    state: { project },
+  } = useProjectState(projectId, gitRef);
 
   const exists =
     assistant.type === 'router' ? new Set(Object.values(assistant.routes ?? {}).map((i) => i.data.id)) : new Set();
+  const groupByApi = groupBy(openApiOptions, (item) => (item?.id || '').split(':')?.[0] || '');
+
+  if (!project) {
+    return null;
+  }
 
   return (
     <PopperMenu
@@ -706,23 +886,63 @@ function AddSelectAgentPopperButton({
       }}
       PopperProps={{ placement: 'bottom-start' }}>
       <Stack maxHeight={300} overflow="auto">
-        {options.map((x) => {
+        <>
+          <GroupView name={project.name || ''} description="Select Agent">
+            <Avatar variant="rounded" src={getProjectIconUrl(project._id, project.updatedAt)} />
+          </GroupView>
+
+          <List
+            dense
+            disablePadding
+            sx={{
+              pl: 7,
+              '>hr': { my: '0 !important', borderColor: 'grey.100', ml: 1 },
+              '>hr:last-of-type': { display: 'none' },
+            }}>
+            {agentOptions.map((x) => {
+              return (
+                <MenuItem selected={exists.has(x.id)} key={x.id} onClick={() => onSelect?.(x)}>
+                  <Box flex={1}>{x.name || t('unnamed')}</Box>
+                  <Box sx={{ width: 40, textAlign: 'right' }}>
+                    {exists.has(x.id) && <Box component={Icon} icon={CheckIcon} />}
+                  </Box>
+                </MenuItem>
+              );
+            })}
+          </List>
+        </>
+
+        {Object.entries(groupByApi).map(([key, options]) => {
           return (
-            <MenuItem
-              selected={exists.has(x.id)}
-              key={x.id}
-              onClick={() => {
-                // e.stopPropagation();
-                onSelect?.(x);
-              }}>
-              <Box flex={1}>{x.name || t('unnamed')}</Box>
-              <Box sx={{ width: 40, textAlign: 'right' }}>
-                {exists.has(x.id) && <Box component={Icon} icon={CheckIcon} />}
-              </Box>
-            </MenuItem>
+            <React.Fragment key={key}>
+              <GroupView name={key} description="Blocklet API">
+                <Box component={DiDAvatar} did={window.blocklet.appId} size={40} sx={{ borderRadius: 1 }} />
+              </GroupView>
+
+              <List
+                dense
+                disablePadding
+                sx={{
+                  pl: 8,
+                  '>hr': { my: '0 !important', borderColor: 'grey.100', ml: 1 },
+                  '>hr:last-of-type': { display: 'none' },
+                }}>
+                {options.map((x) => {
+                  return (
+                    <MenuItem selected={exists.has(x.id)} key={x.id} onClick={() => onSelect?.(x)}>
+                      <Box flex={1}>{x.name || t('unnamed')}</Box>
+                      <Box sx={{ width: 40, textAlign: 'right' }}>
+                        {exists.has(x.id) && <Box component={Icon} icon={CheckIcon} />}
+                      </Box>
+                    </MenuItem>
+                  );
+                })}
+              </List>
+            </React.Fragment>
           );
         })}
-        {!options.length && (
+
+        {!(agentOptions.length + openApiOptions.length) && (
           <>
             <MenuItem>
               <Box color="#9CA3AF">{t('noAgent')}</Box>
@@ -746,5 +966,34 @@ function AddSelectAgentPopperButton({
         )}
       </Stack>
     </PopperMenu>
+  );
+}
+
+function GroupView({
+  name,
+  description,
+  children,
+
+  ...props
+}: { name: string; description?: string; children?: any } & ListSubheaderProps) {
+  const { t } = useLocaleContext();
+
+  return (
+    <ListSubheader component="div" {...props}>
+      <Stack direction="row" alignItems="center" mt={2} gap={2}>
+        {children}
+
+        <Stack flex={1} width={1}>
+          <Typography variant="subtitle2" noWrap mb={0}>
+            {name || t('unnamed')}
+          </Typography>
+          {description && (
+            <Typography variant="caption" noWrap>
+              {description}
+            </Typography>
+          )}
+        </Stack>
+      </Stack>
+    </ListSubheader>
   );
 }

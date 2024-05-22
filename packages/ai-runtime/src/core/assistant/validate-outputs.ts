@@ -25,5 +25,6 @@ export function validateOutputs({
 
     return res;
   }, {});
+
   return joiSchema.validateAsync({ ...outputs, ...outputInputs }, { stripUnknown: true });
 }

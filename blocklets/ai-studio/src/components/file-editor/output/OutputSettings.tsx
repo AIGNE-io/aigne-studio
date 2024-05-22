@@ -404,13 +404,9 @@ export const useRoutesAssistantOutputs = ({
 
     const routes = Object.values(value?.routes || {}) || [];
     const agentAssistants = routes
-      .map((x) => {
-        return getFileById(x?.data?.id);
-      })
+      .map((x) => getFileById(x?.data?.id))
       .filter((i): i is AssistantYjs => !!i && isAssistant(i))
-      .filter((x) => {
-        return Object.keys(x?.outputVariables || {}).length;
-      });
+      .filter((x) => Object.keys(x?.outputVariables || {}).length);
     return agentAssistants;
   }, [cloneDeep(value), projectId, gitRef, t]);
 
@@ -422,7 +418,7 @@ export const useRoutesAssistantOutputs = ({
     return uniqBy(
       agentAssistants.flatMap((agent) => {
         return Object.values(agent?.outputVariables || {})
-          .filter((x) => !(x?.data?.name || '').startsWith('$appearance'))
+          .filter((x) => !(x?.data?.name || '').startsWith('$'))
           .map((x) => x.data);
       }),
       'name'
@@ -439,21 +435,18 @@ export const useRoutesAssistantOutputs = ({
     let error;
     for (const agent of agentAssistants) {
       const outputs = Object.values(agent?.outputVariables || {})
-        .filter((x) => !(x?.data?.name || '').startsWith('$appearance'))
+        .filter((x) => !(x?.data?.name || '').startsWith('$'))
         .map((x) => x.data);
 
       for (const output of outputs) {
         const currentList = Object.values(list || {})
-          .filter((x) => !(x?.data?.name || '').startsWith('$appearance'))
+          .filter((x) => !(x?.data?.name || '').startsWith('$'))
           .map((x) => x.data);
         const found = currentList.find((x) => x.name === output.name);
 
         if (found) {
           if (found.type && output.type && found.type !== output.type) {
-            error = t('diffRouteName', {
-              agentName: `${agent.name} Agent`,
-              routeName: found.name,
-            });
+            error = t('diffRouteName', { agentName: `${agent.name} Agent`, routeName: found.name });
             break;
           } else {
             if (found?.type === 'object' && output.type === 'object') {
@@ -511,7 +504,7 @@ export const useRoutesAssistantOutputs = ({
             const filterRequired = agentAssistants
               .map((agent) => {
                 const outputs = Object.values(agent?.outputVariables || {})
-                  .filter((x) => !(x?.data?.name || '').startsWith('$appearance'))
+                  .filter((x) => !(x?.data?.name || '').startsWith('$'))
                   .map((x) => x.data);
                 return outputs.find((x) => x.name === found.name);
               })
@@ -542,6 +535,26 @@ export const useRoutesAssistantOutputs = ({
   return {
     allSelectAgentOutputs,
     checkSelectAgent: result,
+    getAllSelectCustomOutputs: () => {
+      if (value.type !== 'router') {
+        return [];
+      }
+
+      const routes = Object.values(value?.routes || {}) || [];
+      const agentAssistants = routes
+        .map((x) => getFileById(x?.data?.id))
+        .filter((i): i is AssistantYjs => !!i && isAssistant(i))
+        .filter((x) => Object.keys(x?.outputVariables || {}).length);
+
+      return uniqBy(
+        agentAssistants.flatMap((agent) => {
+          return Object.values(agent?.outputVariables || {})
+            .filter((x) => !(x?.data?.name || '').startsWith('$'))
+            .map((x) => x.data);
+        }),
+        'name'
+      );
+    },
   };
 };
 
@@ -630,22 +643,6 @@ const useCheckConflictAssistantOutputAndSelectAgents = ({
 
     // 系统数据对比
     if (v.name.startsWith('$')) {
-      if (!v.name.startsWith('$appearance')) {
-        const outputs = Object.values(selectAgentOutputVariables || {})
-          .map((x) => x.data)
-          .filter((x) => x.name?.startsWith('$') && !x.name.startsWith('$appearance'));
-
-        const found = outputs.find((x) => x.name === v.name);
-        if (!found) {
-          return t('notFoundOutputKeyFromSelectAgents', {
-            name: v.name,
-            outputNames: outputs.map((x) => x.name).join(','),
-          });
-        }
-
-        return undefined;
-      }
-
       return undefined;
     }
 

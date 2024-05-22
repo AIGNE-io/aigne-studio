@@ -25,7 +25,7 @@ export type ExecuteBlockRole = Role | 'none';
 
 export type Tool = {
   id: string;
-  from?: 'assistant' | 'dataset' | 'knowledge'; // 这里的 dataset 其实代表 api
+  from?: 'assistant' | 'blockletAPI' | 'knowledge'; // 这里的 dataset 其实代表 api
   parameters?: { [key: string]: string };
   functionName?: string;
   onEnd?: OnTaskCompletion;

@@ -486,6 +486,71 @@ async function runApiAssistant({
 
 const cacheTranslateFunctionNames: { [key: string]: string } = {};
 
+const getFunctionName = async ({
+  assistant,
+  hashName,
+  tool,
+  name,
+}: {
+  assistant: RouterAssistant;
+  hashName?: string;
+  tool: Tool;
+  name: string;
+}) => {
+  let functionTranslateName = '';
+  if (hashName) {
+    if (!cacheTranslateFunctionNames[`${assistant.id}-${tool.id}-${hashName}`]) {
+      try {
+        const result = await call({
+          name: 'ai-studio',
+          path: '/api/ai/completions',
+          method: 'POST',
+          data: {
+            stream: false,
+            messages: [
+              {
+                content: `\
+                # Roles: You are a translation master. You need to translate the user's input into English.
+
+                # rules:
+                - Please do not respond with unnecessary content, only provide the translation.
+                - You need to translate any input provided.
+                - Your translation should be in camelCase function name format.
+                - If the input is already in English, no translation is required.
+
+                # Examples:
+                - 测试: test
+                - 开始: start
+                - weapon: weapon
+                - 添加一个新的todo: AddANewTodo
+                `,
+                role: 'system',
+              },
+              {
+                content: name ?? '',
+                role: 'user',
+              },
+            ],
+            model: assistant?.model,
+            temperature: assistant?.temperature,
+            topP: assistant?.topP,
+            presencePenalty: assistant?.presencePenalty,
+            frequencyPenalty: assistant?.frequencyPenalty,
+          },
+        });
+
+        cacheTranslateFunctionNames[`${assistant.id}-${tool.id}`] = result?.data?.content;
+      } catch (error) {
+        logger.error(error);
+      }
+    }
+
+    functionTranslateName = cacheTranslateFunctionNames[`${assistant.id}-${tool.id}-${hashName}`] || '';
+  }
+
+  return functionTranslateName;
+};
+
 async function runRouterAssistant({
   callAI,
   callAIImage,
@@ -519,10 +584,45 @@ async function runRouterAssistant({
 
   const message = await renderMessage(assistant.prompt, parameters);
   const routes = assistant?.routes || [];
+  const openApis = await getBuildInDatasets();
 
   const toolAssistants = (
     await Promise.all(
       routes.map(async (tool) => {
+        if (tool?.from === 'blockletAPI') {
+          const dataset = (openApis || []).find((x) => x.id === tool.id);
+          if (!dataset) return undefined;
+
+          const name = tool?.functionName || dataset.summary || dataset.description || '';
+          const hashName = md5(name);
+          const functionTranslateName = await getFunctionName({
+            assistant,
+            hashName,
+            tool,
+            name,
+          });
+
+          const datasetParameters = getAllParameters(dataset)
+            .filter((i): i is typeof i => !!i && !tool.parameters?.[i.name])
+            .map((i) => [i.name, { type: 'string', name, description: i.description ?? '' }]);
+
+          const required = getRequiredFields(dataset);
+
+          return {
+            tool,
+            toolAssistant: dataset,
+            function: {
+              name: (functionTranslateName || name).replace(/[^a-zA-Z0-9_-]/g, '_')?.slice(0, 64) || dataset.path,
+              descriptions: dataset.description || name || '',
+              parameters: {
+                type: 'object',
+                properties: Object.fromEntries(datasetParameters),
+                required: required?.length ? required : undefined,
+              },
+            },
+          };
+        }
+
         const toolAssistant = await getAssistant(tool.id);
         if (!toolAssistant) return undefined;
         const toolParameters = (toolAssistant.parameters ?? [])
@@ -554,57 +654,12 @@ async function runRouterAssistant({
 
         const name = tool?.functionName || toolAssistant?.description || toolAssistant?.name || '';
         const hashName = md5(name);
-
-        let functionTranslateName = '';
-        if (hashName) {
-          if (!cacheTranslateFunctionNames[`${assistant.id}-${tool.id}-${hashName}`]) {
-            try {
-              const result = await call({
-                name: 'ai-studio',
-                path: '/api/ai/completions',
-                method: 'POST',
-                data: {
-                  stream: false,
-                  messages: [
-                    {
-                      content: `\
-                      # Roles: You are a translation master. You need to translate the user's input into English.
-
-                      # rules:
-                      - Please do not respond with unnecessary content, only provide the translation.
-                      - You need to translate any input provided.
-                      - Your translation should be in camelCase function name format.
-                      - If the input is already in English, no translation is required.
-
-                      # Examples:
-                      - 测试: test
-                      - 开始: start
-                      - weapon: weapon
-                      - 添加一个新的todo: AddANewTodo
-                      `,
-                      role: 'system',
-                    },
-                    {
-                      content: name ?? '',
-                      role: 'user',
-                    },
-                  ],
-                  model: assistant?.model,
-                  temperature: assistant?.temperature,
-                  topP: assistant?.topP,
-                  presencePenalty: assistant?.presencePenalty,
-                  frequencyPenalty: assistant?.frequencyPenalty,
-                },
-              });
-
-              cacheTranslateFunctionNames[`${assistant.id}-${tool.id}`] = result?.data?.content;
-            } catch (error) {
-              logger.error(error);
-            }
-          }
-
-          functionTranslateName = cacheTranslateFunctionNames[`${assistant.id}-${tool.id}-${hashName}`] || '';
-        }
+        const functionTranslateName = await getFunctionName({
+          assistant,
+          hashName,
+          tool,
+          name,
+        });
 
         return {
           tool,
@@ -819,18 +874,10 @@ async function runRouterAssistant({
 
         const tool = toolAssistantMap[call.function.name];
         if (!tool) return undefined;
+
         const requestData = JSON.parse(call.function.arguments);
         const currentTaskId = taskIdGenerator.nextId().toString();
-
         const toolAssistant = tool?.toolAssistant as Assistant;
-        await Promise.all(
-          toolAssistant.parameters?.map(async (item) => {
-            const message = tool.tool?.parameters?.[item.key!];
-            if (message) {
-              requestData[item.key!] = await renderMessage(message, parameters);
-            }
-          }) ?? []
-        );
 
         const cb: (() => RunAssistantCallback) | undefined =
           callback &&
@@ -853,6 +900,29 @@ async function runRouterAssistant({
 
             callback(args);
           });
+
+        if (tool.tool.from === 'blockletAPI') {
+          return runAPITool({
+            tool: tool.tool,
+            taskId: currentTaskId,
+            assistant,
+            parameters: { ...parameters, ...requestData },
+            dataset: tool.toolAssistant as DatasetObject,
+            parentTaskId: taskId,
+            callback: cb?.(),
+            user,
+            sessionId,
+          });
+        }
+
+        await Promise.all(
+          toolAssistant.parameters?.map(async (item) => {
+            const message = tool.tool?.parameters?.[item.key!];
+            if (message) {
+              requestData[item.key!] = await renderMessage(message, parameters);
+            }
+          }) ?? []
+        );
 
         const res = await runAssistant({
           taskId: currentTaskId,
@@ -1893,7 +1963,7 @@ async function runExecuteBlock({
         tools.map(async (tool) => {
           const currentTaskId = taskIdGenerator.nextId().toString();
 
-          if (tool?.from === 'dataset') {
+          if (tool?.from === 'blockletAPI') {
             const dataset = (datasets || []).find((x) => x.id === tool.id);
             return (
               dataset &&
@@ -1975,7 +2045,7 @@ async function runExecuteBlock({
     const toolAssistants = (
       await Promise.all(
         tools.map(async (tool) => {
-          if (tool?.from === 'dataset') {
+          if (tool?.from === 'blockletAPI') {
             const dataset = (datasets || []).find((x) => x.id === tool.id);
             if (!dataset) return undefined;
 
@@ -2165,7 +2235,7 @@ async function runExecuteBlock({
           const requestData = JSON.parse(call.function.arguments);
           const currentTaskId = taskIdGenerator.nextId().toString();
 
-          if (tool.tool.from === 'dataset') {
+          if (tool.tool.from === 'blockletAPI') {
             return runAPITool({
               tool: tool.tool,
               taskId: currentTaskId,
