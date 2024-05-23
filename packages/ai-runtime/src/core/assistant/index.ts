@@ -551,7 +551,7 @@ const getFunctionName = async ({
           },
         });
 
-        cacheTranslateFunctionNames[`${assistant.id}-${tool.id}`] = result?.data?.content;
+        cacheTranslateFunctionNames[`${assistant.id}-${tool.id}-${hashName}`] = result?.data?.content;
       } catch (error) {
         logger.error(error);
       }
@@ -2415,7 +2415,7 @@ async function runAPITool({
           return [item.name, template ? await renderMessage(template, parameters) : parameters?.[item.name]];
         }
 
-        return [item.name, tool.parameters?.[item.name!]];
+        return [item.name, parameters?.[item.name!]];
       }) ?? []
     )
   );
