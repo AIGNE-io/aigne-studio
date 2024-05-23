@@ -1,5 +1,6 @@
 ## 0.2.9 (2024-5-24)
 
+- chore: split project setting with tabs
 - chore: add primary color setting
 
 ## 0.2.8 (2024-5-23)
