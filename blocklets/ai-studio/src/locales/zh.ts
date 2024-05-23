@@ -168,6 +168,11 @@ export default flat({
   commitMessage: '备注',
   confirm: '确认',
   projectSetting: {
+    tabs: {
+      basic: '基本信息',
+      modelInfo: '模型信息',
+      appearance: '外观',
+    },
     selectProject: '选择项目',
     name: '项目名称',
     description: '项目描述',
@@ -690,4 +695,6 @@ export default flat({
   launchMoreConfirm: '启动我的 AI 工作室',
   authorize: '授权',
   reauthorize: '重新授权',
+  primaryColor: '主题色',
+  Avatar: '头像',
 });

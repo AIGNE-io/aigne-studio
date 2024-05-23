@@ -168,6 +168,13 @@ export default flat({
   commitMessage: 'Note',
   confirm: 'Confirm',
   projectSetting: {
+    tabs: {
+      basic: 'Basic',
+      modelInfo: 'Model',
+      git: 'Git',
+      didSpaces: 'DID Spaces',
+      appearance: 'Appearance',
+    },
     selectProject: 'Select Project',
     name: 'Project name',
     description: 'Project description',
@@ -697,4 +704,5 @@ export default flat({
   launchMoreConfirm: 'Launch My AI Studio',
   authorize: 'Authorize',
   reauthorize: 'Reauthorize',
+  primaryColor: 'Primary Color',
 });
