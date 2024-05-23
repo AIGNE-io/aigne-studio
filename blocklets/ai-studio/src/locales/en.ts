@@ -606,6 +606,7 @@ export default flat({
   paymentSettings: 'Payment Settings',
   noReleasePaymentProjectTip: 'Payment features are temporarily disabled',
   openingQuestion: 'Opening question',
+  openingQuestionPlaceholder: 'Recommended questions for users to ask',
   input: 'Input',
   appearance: 'Appearance',
   dialogSettings: 'Interaction Settings',
@@ -705,4 +706,9 @@ export default flat({
   authorize: 'Authorize',
   reauthorize: 'Reauthorize',
   primaryColor: 'Primary Color',
+  icon: 'Icon',
+  iconAndTitle: 'Icon & Title',
+  basic: 'Basic',
+  appearanceTitlePlaceholder: 'The title displayed above this output',
+  appearanceIconPlaceholder: 'The icon displayed above this output',
 });

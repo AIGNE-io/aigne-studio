@@ -7,12 +7,12 @@ import {
   Alert,
   Box,
   CircularProgress,
-  FormLabel,
   InputAdornment,
   Stack,
   Switch,
   TextField,
   TextFieldProps,
+  Typography,
 } from '@mui/material';
 import { useAsync } from 'react-use';
 
@@ -47,7 +47,9 @@ export default function ComponentSettings({ value }: { value: RuntimeOutputAppea
       <Stack gap={1}>
         {componentState.component.properties?.map((item) => (
           <Stack key={item.id}>
-            <FormLabel>{item.locales?.[locale]?.name || item.locales?.[componentState.defaultLocale!]?.name}</FormLabel>
+            <Typography variant="subtitle2">
+              {item.locales?.[locale]?.name || item.locales?.[componentState.defaultLocale!]?.name}
+            </Typography>
 
             <PropertyValueField
               property={item}
@@ -56,14 +58,14 @@ export default function ComponentSettings({ value }: { value: RuntimeOutputAppea
               hiddenLabel
               {...(item.multiline ? { multiline: true, minRows: 2 } : {})}
               value={
-                value.componentProps?.[item.id]?.value ??
+                value.componentProperties?.[item.id]?.value ??
                 item.locales?.[locale]?.defaultValue ??
                 item.locales?.[componentState.defaultLocale!]?.defaultValue
               }
               onChange={(v) => {
                 doc.transact(() => {
-                  value.componentProps ??= {};
-                  value.componentProps[item.id] = { value: v };
+                  value.componentProperties ??= {};
+                  value.componentProperties[item.id] = { value: v };
                 });
               }}
             />
