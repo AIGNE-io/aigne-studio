@@ -148,6 +148,10 @@ export type VariableType = VariableTypeBase &
         defaultValue?: number;
       }
     | {
+        type: 'boolean';
+        defaultValue?: boolean;
+      }
+    | {
         type: 'object';
         properties?: VariableType[];
       }

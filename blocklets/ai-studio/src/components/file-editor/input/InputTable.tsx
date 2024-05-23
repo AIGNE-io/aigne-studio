@@ -80,6 +80,7 @@ export default function InputTable({
   readOnly,
   compareValue,
   isRemoteCompare,
+  openApis = [],
 }: {
   assistant: AssistantYjs;
   projectId: string;
@@ -87,6 +88,7 @@ export default function InputTable({
   readOnly?: boolean;
   compareValue?: AssistantYjs;
   isRemoteCompare?: boolean;
+  openApis?: DatasetObject[];
 }) {
   const { t } = useLocaleContext();
   const doc = (getYjsValue(assistant) as Map<any>)?.doc!;
@@ -102,7 +104,6 @@ export default function InputTable({
   };
 
   const parameters = sortBy(Object.values(assistant.parameters ?? {}), (i) => i.index);
-  const { data: openApis = [] } = useRequest(() => getAPIList());
   const { data: knowledge = [] } = useRequest(() => getDatasets(projectId));
 
   const FROM_MAP = useMemo(() => {

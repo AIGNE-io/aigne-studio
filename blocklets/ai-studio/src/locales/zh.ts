@@ -141,6 +141,7 @@ export default flat({
   maxTokensTip: '完成时生成的最大 token 数量。 提示的 token 数加上 Max Tokens 不能超过模型的上下文长度。',
   type: '类型',
   text: '文本',
+  boolean: '布尔',
   object: '对象',
   array: '数组',
   image: '图片',

@@ -19,6 +19,7 @@ export default function InputSettings({
   gitRef,
   compareValue,
   isRemoteCompare,
+  openApis,
 }: {
   readOnly?: boolean;
   value: AssistantYjs;
@@ -26,6 +27,7 @@ export default function InputSettings({
   gitRef: string;
   compareValue?: AssistantYjs;
   isRemoteCompare?: boolean;
+  openApis?: DatasetObject[];
 }) {
   const { t } = useLocaleContext();
 
@@ -73,6 +75,7 @@ export default function InputSettings({
           gitRef={gitRef}
           compareValue={compareValue}
           isRemoteCompare={isRemoteCompare}
+          openApis={openApis}
         />
       )}
     </Box>

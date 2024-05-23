@@ -1,6 +1,5 @@
 import PopperMenu from '@app/components/menu/PopperMenu';
 import { useReadOnly } from '@app/contexts/session';
-import { getAPIList } from '@app/libs/dataset';
 import { getProjectIconUrl } from '@app/libs/project';
 import { useAssistantCompare, useProjectState } from '@app/pages/project/state';
 import { newDefaultPrompt } from '@app/pages/project/template';
@@ -55,7 +54,6 @@ import {
   createFilterOptions,
   styled,
 } from '@mui/material';
-import { useRequest } from 'ahooks';
 import { cloneDeep, groupBy, pick, sortBy } from 'lodash';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { nanoid } from 'nanoid';
@@ -64,7 +62,7 @@ import { Controller, UseFormReturn, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
-import { useRoutesAssistantOutputs } from '../output/OutputSettings';
+import { useAllSelectDecisionAgentOutputs } from '../output/OutputSettings';
 import PromptEditorField from '../prompt-editor-field';
 
 type RouteOption = { id: string; type: string; name?: string; from?: 'blockletAPI' };
@@ -77,6 +75,7 @@ export default function RouterAssistantEditor({
   compareValue,
   disabled,
   isRemoteCompare,
+  openApis = [],
 }: {
   projectId: string;
   gitRef: string;
@@ -84,20 +83,16 @@ export default function RouterAssistantEditor({
   compareValue?: RouterAssistantYjs;
   disabled?: boolean;
   isRemoteCompare?: boolean;
+  openApis?: DatasetObject[];
 }) {
   const { t, locale } = useLocaleContext();
   const ref = useRef(null);
   const toolForm = useRef<any>(null);
   const dialogState = usePopupState({ variant: 'dialog' });
   const readOnly = useReadOnly({ ref: gitRef }) || disabled;
-  const { getAllSelectCustomOutputs, checkSelectAgent: result } = useRoutesAssistantOutputs({
-    projectId,
-    gitRef,
-    value,
-  });
   const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
-  const { data: openApis = [] } = useRequest(() => getAPIList());
   const { store } = useProjectStore(projectId, gitRef);
+  const { getAllSelectCustomOutputs } = useAllSelectDecisionAgentOutputs({ value, projectId, gitRef });
 
   const routes = value.routes && sortBy(Object.values(value.routes), (i) => i.index);
   const agentOptions: RouteOption[] = Object.entries(store.tree)
@@ -127,8 +122,6 @@ export default function RouterAssistantEditor({
       sortBy(Object.values(value.outputVariables), 'index').forEach((item, index) => (item.index = index));
     });
   };
-
-  console.log(cloneDeep(outputVariables));
 
   return (
     <Stack gap={1.5}>
@@ -205,12 +198,6 @@ export default function RouterAssistantEditor({
             </Box>
           ))}
 
-          {result?.error && (
-            <Typography variant="subtitle5" color="warning.main" ml={1}>
-              {result?.error}
-            </Typography>
-          )}
-
           {!readOnly && (
             <Box>
               <AddSelectAgentPopperButton
@@ -235,7 +222,7 @@ export default function RouterAssistantEditor({
                     sortBy(Object.values(value.routes), 'index').forEach((tool, index) => (tool.index = index));
 
                     setField((vars) => {
-                      cloneDeep(getAllSelectCustomOutputs()).forEach((data) => {
+                      cloneDeep(getAllSelectCustomOutputs(openApis)).forEach((data) => {
                         const exist = data.name ? outputVariables?.find((i) => i.data.name === data.name) : undefined;
                         if (!exist) {
                           const id = nanoid();

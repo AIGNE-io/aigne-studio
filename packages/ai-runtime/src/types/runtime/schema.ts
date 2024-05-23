@@ -2,7 +2,7 @@ import Joi from 'joi';
 import { toLower } from 'lodash';
 import { nanoid } from 'nanoid';
 
-import type { Assistant, OutputVariable, Variable, VariableType } from '..';
+import type { Assistant, OutputVariable, Variable, VariableTypeYjs } from '..';
 
 export const variableBlockListForAgent: {
   [key in Assistant['type']]?: { block?: Set<RuntimeOutputVariable>; allow?: Set<RuntimeOutputVariable> };
@@ -210,59 +210,72 @@ type JSONSchema = {
   [key: string]: any;
 };
 
-export function outputVariableFromOpenApi(schema: JSONSchema, name: string = ''): VariableType[] {
-  const variables: VariableType[] = [];
+export function outputVariableFromOpenApi(schema: JSONSchema, name: string = '', id: string = ''): VariableTypeYjs {
+  const currentId = id || nanoid();
 
   if (schema.type === 'object' && schema.properties) {
-    const properties: VariableType[] = [];
+    const properties: {
+      [key: string]: {
+        index: number;
+        data: VariableTypeYjs;
+      };
+    } = {};
+
+    let index = 0;
     // eslint-disable-next-line no-restricted-syntax, guard-for-in
     for (const key in schema?.properties || {}) {
-      // @ts-ignore
-      properties.push(...outputVariableFromOpenApi((schema?.properties || {})[key], key));
+      const id = nanoid();
+      properties[id] = {
+        index,
+        // @ts-ignore
+        data: outputVariableFromOpenApi((schema?.properties || {})[key], key, id),
+      };
+      index++;
     }
-    variables.push({
-      id: nanoid(),
+
+    return {
+      id: currentId,
       name,
       description: schema.description,
       required: schema.required?.includes(name),
       type: 'object',
       properties,
-    });
-  } else if (schema.type === 'array' && schema.items) {
-    variables.push({
-      id: nanoid(),
+    };
+  }
+
+  if (schema.type === 'array' && schema.items) {
+    return {
+      id: currentId,
       name,
       description: schema.description,
       required: schema.required?.includes(name),
       type: 'array',
-      element: outputVariableFromOpenApi(schema.items, 'element')[0],
-    });
-  } else {
-    let type: 'string' | 'number' | 'boolean' | undefined;
-    switch (schema.type) {
-      case 'string':
-        type = 'string';
-        break;
-      case 'number':
-        type = 'number';
-        break;
-      case 'boolean':
-        type = 'boolean';
-        break;
-      default:
-        console.warn('Unsupported event', type);
-    }
-
-    variables.push({
-      id: nanoid(),
-      name,
-      description: schema.description,
-      required: schema.required?.includes(name),
-      type,
-    });
+      element: outputVariableFromOpenApi(schema.items, 'element'),
+    };
   }
 
-  return variables;
+  let type: 'string' | 'number' | 'boolean' | undefined;
+  switch (schema.type) {
+    case 'string':
+      type = 'string';
+      break;
+    case 'number':
+      type = 'number';
+      break;
+    case 'boolean':
+      type = 'boolean';
+      break;
+    default:
+      console.warn('Unsupported event', type);
+  }
+
+  return {
+    id: currentId,
+    name,
+    description: schema.description,
+    required: schema.required?.includes(name),
+    type,
+  };
 }
 
 export enum RuntimeOutputVariable {

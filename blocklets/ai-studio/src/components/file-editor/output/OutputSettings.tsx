@@ -1,8 +1,10 @@
 import AigneLogoOutput from '@app/icons/aigne-logo-output';
 import { useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, OutputVariableYjs, RuntimeOutputVariable, isAssistant } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, OutputVariableYjs, RuntimeOutputVariable, Tool, isAssistant } from '@blocklet/ai-runtime/types';
+import { outputVariableFromOpenApi } from '@blocklet/ai-runtime/types/runtime/schema';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import { DatasetObject } from '@blocklet/dataset-sdk/types';
 import {
   Box,
   Stack,
@@ -32,14 +34,18 @@ export default function OutputSettings({
   value,
   projectId,
   gitRef,
+  openApis = [],
 }: {
   value: AssistantYjs;
   projectId: string;
   gitRef: string;
+  openApis?: DatasetObject[];
 }) {
   const { t } = useLocaleContext();
 
-  const { checkSelectAgent: result, allSelectAgentOutputs } = useRoutesAssistantOutputs({ value, projectId, gitRef });
+  const result = useRoutesAssistantOutputs({ value, projectId, gitRef, openApis });
+  const { getAllSelectCustomOutputs } = useAllSelectDecisionAgentOutputs({ value, projectId, gitRef });
+  const allSelectAgentOutputs = getAllSelectCustomOutputs(openApis);
   const outputVariables = value.outputVariables && sortBy(Object.values(value.outputVariables), 'index');
 
   const groups = useSortedOutputs({ outputVariables: value.outputVariables });
@@ -385,7 +391,7 @@ function VariableRow({
   );
 }
 
-export const useRoutesAssistantOutputs = ({
+export const useAllSelectDecisionAgentOutputs = ({
   value,
   projectId,
   gitRef,
@@ -395,7 +401,58 @@ export const useRoutesAssistantOutputs = ({
   gitRef: string;
 }) => {
   const { getFileById } = useProjectStore(projectId, gitRef);
+
+  const getAllSelectCustomOutputs = (openApis: DatasetObject[]) => {
+    if (value.type !== 'router') {
+      return [];
+    }
+
+    const routes = Object.values(value?.routes || {}) || [];
+
+    const list = routes.flatMap((x) => {
+      if (x.data.from === 'blockletAPI') {
+        const dataset = openApis.find((api) => api.id === x.data.id);
+        if (dataset) {
+          const properties = dataset?.responses?.['200']?.content?.['application/json']?.schema?.properties || {};
+          const result = Object.entries(properties).map(([key, value]: any) => outputVariableFromOpenApi(value, key));
+          return result;
+        }
+
+        return [];
+      }
+
+      const agent = getFileById(x?.data?.id);
+      if (!!agent && isAssistant(agent)) {
+        const result = Object.values(agent?.outputVariables || {})
+          .filter((x) => !(x?.data?.name || '').startsWith('$'))
+          .map((x) => x.data);
+        return result;
+      }
+
+      return [];
+    });
+
+    return uniqBy(list, 'name');
+  };
+
+  return { getAllSelectCustomOutputs };
+};
+
+export const useRoutesAssistantOutputs = ({
+  value,
+  projectId,
+  gitRef,
+  openApis = [],
+}: {
+  value: AssistantYjs;
+  projectId: string;
+  gitRef: string;
+  openApis?: DatasetObject[];
+}) => {
+  const { getFileById } = useProjectStore(projectId, gitRef);
   const { t } = useLocaleContext();
+  const { getAllSelectCustomOutputs } = useAllSelectDecisionAgentOutputs({ value, projectId, gitRef });
+  const allSelectAgentOutputs = getAllSelectCustomOutputs(openApis);
 
   const agentAssistants = useMemo(() => {
     if (value.type !== 'router') {
@@ -404,26 +461,29 @@ export const useRoutesAssistantOutputs = ({
 
     const routes = Object.values(value?.routes || {}) || [];
     const agentAssistants = routes
-      .map((x) => getFileById(x?.data?.id))
-      .filter((i): i is AssistantYjs => !!i && isAssistant(i))
-      .filter((x) => Object.keys(x?.outputVariables || {}).length);
+      .map((x) => {
+        if (x.data.from === 'blockletAPI') {
+          const dataset = openApis.find((api) => api.id === x.data.id);
+          return {
+            tool: x.data,
+            agent: dataset,
+          };
+        }
+
+        const i = getFileById(x?.data?.id);
+        if (!!i && isAssistant(i) && Object.keys(i?.outputVariables || {}).length) {
+          return {
+            tool: x.data,
+            agent: i,
+          };
+        }
+
+        return null;
+      })
+      .filter((i): i is NonNullable<typeof i> => !!i);
+
     return agentAssistants;
   }, [cloneDeep(value), projectId, gitRef, t]);
-
-  const allSelectAgentOutputs = useMemo(() => {
-    if (!agentAssistants.length) {
-      return [];
-    }
-
-    return uniqBy(
-      agentAssistants.flatMap((agent) => {
-        return Object.values(agent?.outputVariables || {})
-          .filter((x) => !(x?.data?.name || '').startsWith('$'))
-          .map((x) => x.data);
-      }),
-      'name'
-    );
-  }, [cloneDeep(agentAssistants), projectId, gitRef, t]);
 
   const result = useMemo(() => {
     const list: AssistantYjs['outputVariables'] = {};
@@ -432,11 +492,33 @@ export const useRoutesAssistantOutputs = ({
       return null;
     }
 
+    const getOutputs = (agent: Tool) => {
+      if (agent.from === 'blockletAPI') {
+        const dataset = openApis.find((api) => api.id === agent.id);
+        if (dataset) {
+          const properties = dataset?.responses?.['200']?.content?.['application/json']?.schema?.properties || {};
+          const result = Object.entries(properties).map(([key, value]: any) => outputVariableFromOpenApi(value, key));
+          return result;
+        }
+
+        return [];
+      }
+
+      const i = getFileById(agent?.id);
+      if (!!i && isAssistant(i) && Object.keys(i?.outputVariables || {}).length) {
+        const result = Object.values(i?.outputVariables || {})
+          .filter((x) => !(x?.data?.name || '').startsWith('$'))
+          .map((x) => x.data);
+
+        return result;
+      }
+
+      return [];
+    };
+
     let error;
     for (const agent of agentAssistants) {
-      const outputs = Object.values(agent?.outputVariables || {})
-        .filter((x) => !(x?.data?.name || '').startsWith('$'))
-        .map((x) => x.data);
+      const outputs = getOutputs(agent.tool);
 
       for (const output of outputs) {
         const currentList = Object.values(list || {})
@@ -446,7 +528,7 @@ export const useRoutesAssistantOutputs = ({
 
         if (found) {
           if (found.type && output.type && found.type !== output.type) {
-            error = t('diffRouteName', { agentName: `${agent.name} Agent`, routeName: found.name });
+            error = t('diffRouteName', { agentName: `${agent?.agent?.name} Agent`, routeName: found.name });
             break;
           } else {
             if (found?.type === 'object' && output.type === 'object') {
@@ -467,7 +549,7 @@ export const useRoutesAssistantOutputs = ({
                 )
               ) {
                 error = t('diffRouteNameByType', {
-                  agentName: `${agent.name} Agent`,
+                  agentName: `${agent?.agent?.name} Agent`,
                   routeName: found.name,
                   type: 'object',
                 });
@@ -493,7 +575,7 @@ export const useRoutesAssistantOutputs = ({
                 )
               ) {
                 error = t('diffRouteNameByType', {
-                  agentName: `${agent.name} Agent`,
+                  agentName: `${agent?.agent?.name} Agent`,
                   routeName: found.name,
                   type: 'array',
                 });
@@ -503,9 +585,7 @@ export const useRoutesAssistantOutputs = ({
 
             const filterRequired = agentAssistants
               .map((agent) => {
-                const outputs = Object.values(agent?.outputVariables || {})
-                  .filter((x) => !(x?.data?.name || '').startsWith('$'))
-                  .map((x) => x.data);
+                const outputs = getOutputs(agent.tool);
                 return outputs.find((x) => x.name === found.name);
               })
               .filter((i): i is NonNullable<typeof i> => !!i);
@@ -532,30 +612,7 @@ export const useRoutesAssistantOutputs = ({
     };
   }, [cloneDeep(agentAssistants), allSelectAgentOutputs, projectId, gitRef, t]);
 
-  return {
-    allSelectAgentOutputs,
-    checkSelectAgent: result,
-    getAllSelectCustomOutputs: () => {
-      if (value.type !== 'router') {
-        return [];
-      }
-
-      const routes = Object.values(value?.routes || {}) || [];
-      const agentAssistants = routes
-        .map((x) => getFileById(x?.data?.id))
-        .filter((i): i is AssistantYjs => !!i && isAssistant(i))
-        .filter((x) => Object.keys(x?.outputVariables || {}).length);
-
-      return uniqBy(
-        agentAssistants.flatMap((agent) => {
-          return Object.values(agent?.outputVariables || {})
-            .filter((x) => !(x?.data?.name || '').startsWith('$'))
-            .map((x) => x.data);
-        }),
-        'name'
-      );
-    },
-  };
+  return result;
 };
 
 const diffJSON = (found: OutputVariableYjs, v: OutputVariableYjs, t: any): string | undefined => {

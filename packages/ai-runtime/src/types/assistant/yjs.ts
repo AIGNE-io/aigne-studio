@@ -58,6 +58,10 @@ export type VariableTypeYjs = VariableTypeBase &
         defaultValue?: number;
       }
     | {
+        type: 'boolean';
+        defaultValue?: boolean;
+      }
+    | {
         type: 'object';
         properties?: ArrayToYjs<VariableTypeYjs[]>;
       }
