@@ -17,8 +17,14 @@ export class ToolCompletionDirective extends Error {
 }
 
 export interface GetAssistant {
-  (assistantId: string, options: { rejectOnEmpty: true | Error }): Promise<Assistant>;
-  (assistantId: string, options?: { rejectOnEmpty?: false }): Promise<Assistant | null>;
+  (
+    assistantId: string,
+    options: { blockletDid?: string; projectId?: string; rejectOnEmpty: true | Error }
+  ): Promise<Assistant>;
+  (
+    assistantId: string,
+    options?: { blockletDid?: string; projectId?: string; rejectOnEmpty?: false }
+  ): Promise<Assistant | null>;
 }
 
 export type Options = {

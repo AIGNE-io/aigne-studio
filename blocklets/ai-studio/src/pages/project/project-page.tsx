@@ -1,4 +1,5 @@
 import AgentEditor from '@app/components/file-editor/agent-editor';
+import { CurrentProjectProvider } from '@app/contexts/project';
 import currentGitStore, { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { AssistantYjs } from '@blocklet/ai-runtime/types';
@@ -49,6 +50,17 @@ const PREVIOUS_FILE_PATH = (projectId: string) => `ai-studio.previousFilePath.${
 const CURRENT_TAB = (projectId: string) => `ai-studio.currentTab.${projectId}`;
 
 export default function ProjectPage() {
+  const { projectId, ref: gitRef } = useParams();
+  if (!projectId || !gitRef) throw new Error('Missing required params `projectId` or `ref`');
+
+  return (
+    <CurrentProjectProvider projectId={projectId} projectRef={gitRef}>
+      <ProjectPageView />
+    </CurrentProjectProvider>
+  );
+}
+
+function ProjectPageView() {
   const { projectId, ref: gitRef, '*': filepath } = useParams();
   currentGitStore.setState({
     currentProjectId: projectId,

@@ -147,16 +147,6 @@ function PopperButton({
       return <ShareSettings output={output} />;
     }
 
-    if (
-      [
-        RuntimeOutputVariable.appearancePage,
-        RuntimeOutputVariable.appearanceInput,
-        RuntimeOutputVariable.appearanceOutput,
-      ].includes(output.name as RuntimeOutputVariable)
-    ) {
-      return <AppearanceSettings output={output} />;
-    }
-
     if (output.name === RuntimeOutputVariable.children) {
       return <ChildrenSettings assistant={assistant} projectId={projectId} gitRef={gitRef} output={output} />;
     }
@@ -236,8 +226,6 @@ function PopperButton({
     return null;
   };
 
-  const isRenderSettings = runtimeVariable ? true : ['string', 'number', 'boolean'].includes(output.type || '');
-
   return (
     <>
       <PopperMenu
@@ -248,15 +236,13 @@ function PopperButton({
           children: <Box component={Icon} icon={DotsIcon} sx={{ color: '#3B82F6' }} />,
         }}
         PopperProps={{ placement: 'bottom-end' }}>
-        {isRenderSettings && (
-          <MenuItem
-            onClick={() => {
-              setSetting('setting');
-              dialogState.open();
-            }}>
-            {t('setting')}
-          </MenuItem>
-        )}
+        <MenuItem
+          onClick={() => {
+            setSetting('setting');
+            dialogState.open();
+          }}>
+          {t('setting')}
+        </MenuItem>
 
         {isSaveAs && (
           <MenuItem
@@ -289,7 +275,11 @@ function PopperButton({
         </DialogTitle>
 
         <DialogContent>
-          <Stack gap={1.5}>{renderParameterSettings(output)}</Stack>
+          <Stack gap={1.5}>
+            {renderParameterSettings(output)}
+
+            <AppearanceSettings output={output} />
+          </Stack>
         </DialogContent>
 
         <DialogActions>

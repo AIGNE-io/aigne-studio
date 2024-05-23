@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { access, copyFile, cp, mkdtemp, readFile, rm } from 'fs/promises';
+import { access, cp, mkdtemp, readFile, rm } from 'fs/promises';
 import path, { basename, dirname, isAbsolute, join } from 'path';
 
 import { Config } from '@api/libs/env';
@@ -7,6 +7,7 @@ import { NoPermissionError } from '@api/libs/error';
 import { sampleIcon } from '@api/libs/icon';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
 import logger from '@api/libs/logger';
+import AgentInputSecret from '@api/store/models/agent-input-secret';
 import { fileToYjs, isAssistant, nextAssistantId } from '@blocklet/ai-runtime/types';
 import { call } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
@@ -23,13 +24,11 @@ import uniqBy from 'lodash/uniqBy';
 import { joinURL } from 'ufo';
 import { parse } from 'yaml';
 
-import downloadLogo from '../libs/download-logo';
 import { getResourceProjects } from '../libs/resource';
 import { ensureComponentCallOrPromptsEditor, ensureComponentCallOrRolesMatch } from '../libs/security';
 import Project, { nextProjectId } from '../store/models/project';
 import {
   CONFIG_FONDER,
-  LOGO_FILENAME,
   VARIABLE_FILENAME,
   VARIABLE_KEY,
   autoSyncIfNeeded,
@@ -212,6 +211,15 @@ export const checkProjectLimit = async ({ req }: { req: Request }) => {
   }
 };
 
+export interface CreateOrUpdateAgentInputSecretPayload {
+  secrets: {
+    targetProjectId: string;
+    targetAgentId: string;
+    targetInputKey: string;
+    secret: string;
+  }[];
+}
+
 export function projectRoutes(router: Router) {
   router.get('/projects', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const list = await Project.findAll({
@@ -340,6 +348,85 @@ export function projectRoutes(router: Router) {
 
     res.json(project);
   });
+
+  router.get(
+    '/projects/:projectId/agent-input-secrets',
+    user(),
+    ensureComponentCallOrPromptsEditor(),
+    async (req, res) => {
+      const { projectId } = req.params;
+      if (!projectId) throw new Error('Missing required param `projectId`');
+
+      const project = await Project.findOne({ where: { _id: projectId }, rejectOnEmpty: new Error('No such project') });
+
+      checkProjectPermission({ req, project });
+
+      const secrets = await AgentInputSecret.findAll({ where: { projectId }, attributes: { exclude: ['secret'] } });
+
+      res.json({ secrets });
+    }
+  );
+
+  const createOrUpdateAgentInputSecretPayloadSchema = Joi.object<CreateOrUpdateAgentInputSecretPayload>({
+    secrets: Joi.array()
+      .items(
+        Joi.object({
+          targetProjectId: Joi.string().required(),
+          targetAgentId: Joi.string().required(),
+          targetInputKey: Joi.string().required(),
+          secret: Joi.string().required(),
+        })
+      )
+      .required()
+      .min(1),
+  });
+
+  router.post(
+    '/projects/:projectId/agent-input-secrets',
+    user(),
+    ensureComponentCallOrPromptsEditor(),
+    async (req, res) => {
+      const { did: userId } = req.user!;
+
+      const { projectId } = req.params;
+      if (!projectId) throw new Error('Missing required param `projectId`');
+
+      const input = await createOrUpdateAgentInputSecretPayloadSchema.validateAsync(req.body, { stripUnknown: true });
+
+      const project = await Project.findOne({ where: { _id: projectId }, rejectOnEmpty: new Error('No such project') });
+
+      checkProjectPermission({ req, project });
+
+      await Promise.all(
+        input.secrets.map((item) =>
+          AgentInputSecret.destroy({
+            where: {
+              projectId,
+              targetProjectId: item.targetProjectId,
+              targetAgentId: item.targetAgentId,
+              targetInputKey: item.targetInputKey,
+            },
+          })
+        )
+      );
+
+      await AgentInputSecret.bulkCreate(
+        input.secrets.map((item) => ({
+          projectId,
+          targetProjectId: item.targetProjectId,
+          targetAgentId: item.targetAgentId,
+          targetInputKey: item.targetInputKey,
+          secret: item.secret,
+          createdBy: userId,
+          updatedBy: userId,
+        }))
+      );
+
+      const secrets = await AgentInputSecret.findAll({ where: { projectId }, attributes: { exclude: ['secret'] } });
+
+      res.json({ secrets });
+    }
+  );
 
   router.post('/projects', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { did } = req.user!;
@@ -902,24 +989,7 @@ async function createProjectFromTemplate(
     branch: defaultBranch,
     message: 'First Commit',
     author: { name: author.fullName, email: author.did },
-    beforeCommit: async (tx) => {
-      const logoPath = path.join(repository.options.root, LOGO_FILENAME);
-
-      try {
-        if (template.gitLogoPath) {
-          await copyFile(template.gitLogoPath, logoPath);
-          await tx.add({ filepath: LOGO_FILENAME });
-        } else {
-          const icon = await sampleIcon();
-          if (icon) {
-            await downloadLogo(icon, logoPath);
-            await tx.add({ filepath: LOGO_FILENAME });
-          }
-        }
-      } catch (error) {
-        logger.error('failed to download icon', { error });
-      }
-    },
+    icon: template.gitLogoPath || (await sampleIcon()),
   });
 
   return project;

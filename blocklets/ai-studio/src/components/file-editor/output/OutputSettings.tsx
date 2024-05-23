@@ -1,3 +1,4 @@
+import { DragSortListYjs } from '@app/components/drag-sort-list';
 import AigneLogoOutput from '@app/icons/aigne-logo-output';
 import { useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
@@ -5,8 +6,11 @@ import { AssistantYjs, OutputVariableYjs, RuntimeOutputVariable, Tool, isAssista
 import { outputVariableFromOpenApi } from '@blocklet/ai-runtime/types/runtime/schema';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { DatasetObject } from '@blocklet/dataset-sdk/types';
+import { Icon } from '@iconify-icon/react';
+import GripVertical from '@iconify-icons/tabler/grip-vertical';
 import {
   Box,
+  BoxProps,
   Stack,
   Switch,
   Table,
@@ -21,7 +25,7 @@ import equal from 'fast-deep-equal';
 import jsonDiff from 'json-diff';
 import { cloneDeep, sortBy, uniqBy } from 'lodash';
 import { nanoid } from 'nanoid';
-import React, { useEffect, useMemo } from 'react';
+import React, { ComponentType, ReactNode, useEffect, useMemo } from 'react';
 
 import AddOutputVariableButton from './AddOutputVariableButton';
 import OutputActionsCell from './OutputActionsCell';
@@ -47,8 +51,6 @@ export default function OutputSettings({
   const { getAllSelectCustomOutputs } = useAllSelectDecisionAgentOutputs({ value, projectId, gitRef });
   const allSelectAgentOutputs = getAllSelectCustomOutputs(openApis);
   const outputVariables = value.outputVariables && sortBy(Object.values(value.outputVariables), 'index');
-
-  const groups = useSortedOutputs({ outputVariables: value.outputVariables });
 
   const setField = (update: (outputVariables: NonNullable<AssistantYjs['outputVariables']>) => void) => {
     const doc = (getYjsValue(value) as Map<any>).doc!;
@@ -131,38 +133,53 @@ export default function OutputSettings({
               </TableRow>
             </TableHead>
 
-            <TableBody>
-              {Object.entries(groups).map(
-                ([group, outputs]) =>
-                  outputs.length > 0 && (
-                    <>
-                      <tr key={`group-${group}`} className="group-header">
-                        <td colSpan={5}>
-                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                            {t(group)}
-                          </Typography>
-                        </td>
-                      </tr>
-
-                      {outputs.map((item) => (
-                        <VariableRow
-                          selectAgentOutputVariables={result?.outputVariables || {}}
-                          key={item.data.id}
-                          variable={item.data}
-                          value={value}
-                          projectId={projectId}
-                          gitRef={gitRef}
-                          onRemove={() =>
-                            setField(() => {
-                              delete value.outputVariables?.[item.data.id];
-                            })
-                          }
-                        />
-                      ))}
-                    </>
-                  )
-              )}
-            </TableBody>
+            {value.outputVariables && (
+              <DragSortListYjs
+                component={TableBody}
+                list={value.outputVariables}
+                sx={{ '&.isDragging .hover-visible': { display: 'none' } }}
+                renderItem={(item, _, params) => (
+                  <VariableRow
+                    key={item.id}
+                    rowRef={(ref) => {
+                      console.log(ref);
+                      params.drop(params.drag(params.preview(ref)));
+                    }}
+                    firstColumnChildren={
+                      <Stack
+                        className="hover-visible"
+                        ref={params.drag}
+                        sx={{
+                          display: 'none',
+                          p: 0.5,
+                          cursor: 'move',
+                          position: 'absolute',
+                          left: -6,
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                        }}>
+                        <Box component={Icon} icon={GripVertical} sx={{ color: '#9CA3AF', fontSize: 14 }} />
+                      </Stack>
+                    }
+                    sx={{
+                      position: 'relative',
+                      '&:hover .hover-visible': { display: 'flex' },
+                    }}
+                    // firstCellChildren
+                    selectAgentOutputVariables={result?.outputVariables || {}}
+                    variable={item}
+                    value={value}
+                    projectId={projectId}
+                    gitRef={gitRef}
+                    onRemove={() =>
+                      setField(() => {
+                        delete value.outputVariables?.[item.id];
+                      })
+                    }
+                  />
+                )}
+              />
+            )}
           </Table>
         </Box>
 
@@ -204,48 +221,9 @@ export default function OutputSettings({
   );
 }
 
-const outputGroups: { [key in RuntimeOutputVariable]?: { group: 'system' | 'appearance'; index: number } } = {
-  [RuntimeOutputVariable.text]: { group: 'system', index: 0 },
-  [RuntimeOutputVariable.images]: { group: 'system', index: 1 },
-  [RuntimeOutputVariable.suggestedQuestions]: { group: 'system', index: 2 },
-  [RuntimeOutputVariable.referenceLinks]: { group: 'system', index: 3 },
-  [RuntimeOutputVariable.profile]: { group: 'system', index: 4 },
-  [RuntimeOutputVariable.children]: { group: 'system', index: 5 },
-  [RuntimeOutputVariable.appearancePage]: { group: 'appearance', index: 0 },
-  [RuntimeOutputVariable.appearanceInput]: { group: 'appearance', index: 1 },
-  [RuntimeOutputVariable.appearanceOutput]: { group: 'appearance', index: 2 },
-  [RuntimeOutputVariable.share]: { group: 'appearance', index: 3 },
-  [RuntimeOutputVariable.openingQuestions]: { group: 'appearance', index: 4 },
-  [RuntimeOutputVariable.openingMessage]: { group: 'appearance', index: 5 },
-};
-
-function useSortedOutputs({ outputVariables }: { outputVariables: AssistantYjs['outputVariables'] }) {
-  const groups: {
-    [key in 'system' | 'appearance' | 'input' | 'custom']: { index: number; data: OutputVariableYjs }[];
-  } = {
-    system: [],
-    appearance: [],
-    input: [],
-    custom: [],
-  };
-
-  const outputs = sortBy(
-    Object.values(outputVariables ?? {}),
-    (item) => outputGroups[item.data.name as RuntimeOutputVariable]?.index ?? item.index
-  );
-  for (const item of outputs) {
-    if (item.data.from?.type === 'input') {
-      groups['input'].push(item);
-    } else {
-      const group = outputGroups[item.data.name as RuntimeOutputVariable]?.group || 'custom';
-      groups[group].push(item);
-    }
-  }
-
-  return groups;
-}
-
 function VariableRow({
+  firstColumnChildren,
+  rowRef,
   selectAgentOutputVariables,
   parent,
   value,
@@ -255,7 +233,10 @@ function VariableRow({
   projectId,
   gitRef,
   disabled,
+  ...props
 }: {
+  firstColumnChildren?: ReactNode;
+  rowRef?: React.RefCallback<HTMLTableRowElement>;
   selectAgentOutputVariables?: AssistantYjs['outputVariables'];
   parent?: OutputVariableYjs;
   value: AssistantYjs;
@@ -265,7 +246,7 @@ function VariableRow({
   projectId: string;
   gitRef: string;
   disabled?: boolean;
-}) {
+} & BoxProps<ComponentType<typeof TableRow>>) {
   const runtimeVariable = getRuntimeOutputVariable(variable);
 
   const { getVariables } = useProjectStore(projectId, gitRef);
@@ -298,12 +279,17 @@ function VariableRow({
     <>
       <Tooltip title={error}>
         <Box
+          ref={rowRef}
+          {...props}
           component={TableRow}
           key={variable.id}
           sx={{
             background: error ? 'rgba(255, 215, 213, 0.4)' : 'transparent',
+            ...props.sx,
           }}>
           <Box component={TableCell}>
+            {firstColumnChildren}
+
             <Box sx={{ ml: depth }}>
               <OutputNameCell
                 output={variable}

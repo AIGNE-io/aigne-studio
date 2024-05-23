@@ -24,7 +24,6 @@ export default function AddOutputVariableButton({
   const { t } = useLocaleContext();
 
   const exists = new Set(Object.values(assistant.outputVariables ?? {}).map((i) => i.data.name));
-  const existsInputIds = new Set(Object.values(assistant.outputVariables ?? {}).map((i) => i.data.from?.id));
 
   const inputs =
     assistant.parameters &&
@@ -92,10 +91,9 @@ export default function AddOutputVariableButton({
           {inputs.map((input) => (
             <MenuItem
               key={input.id}
-              selected={existsInputIds.has(input.id)}
               onClick={(e) => {
                 e.stopPropagation();
-                onSelect?.({ name: input.key, from: { type: 'input', id: input.id } });
+                onSelect?.({ name: '', from: { type: 'input', id: input.id } });
               }}>
               <ListItemIcon>
                 <Icon icon={BranchIcon} />

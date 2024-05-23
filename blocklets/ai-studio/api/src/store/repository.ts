@@ -15,7 +15,7 @@ import {
 } from '@blocklet/ai-runtime/types';
 import { Repository, Transaction } from '@blocklet/co-git/repository';
 import { SpaceClient, SyncFolderPushCommand, SyncFolderPushCommandOutput } from '@did-space/client';
-import { pathExists } from 'fs-extra';
+import { copyFile, exists, pathExists } from 'fs-extra';
 import { glob } from 'glob';
 import isEmpty from 'lodash/isEmpty';
 import pick from 'lodash/pick';
@@ -87,6 +87,10 @@ export async function getRepository({
             logger.error('read testFile blob failed error', { error });
           }
 
+          if (!assistant) {
+            return null;
+          }
+
           const data = fileToYjs(assistant);
 
           if (isAssistant(data)) {
@@ -114,6 +118,8 @@ export async function getRepository({
         };
       },
       stringify: async (filepath, content) => {
+        if (!content) return null;
+
         if (filepath.startsWith(TESTS_FOLDER_NAME)) return null;
 
         if (isAssistant(content)) {
@@ -228,11 +234,14 @@ const addSettingsToGit = async ({
 
   // 新上传的图片
   try {
-    if (icon && icon.startsWith('http') && !icon.includes('/api/projects')) {
-      await downloadLogo(icon, path.join(repository.options.root, LOGO_FILENAME));
+    const logoPath = path.join(repository.options.root, LOGO_FILENAME);
+    if (icon && (await exists(icon))) {
+      await copyFile(icon, logoPath);
+    } else if (icon && icon.startsWith('http') && !icon.includes('/api/projects')) {
+      await downloadLogo(icon, logoPath);
     } else {
       const file = (await repository.readBlob({ ref: defaultBranch!, filepath: LOGO_FILENAME })).blob;
-      await writeFile(path.join(repository.options.root, LOGO_FILENAME), file);
+      await writeFile(logoPath, file);
     }
     await tx.add({ filepath: LOGO_FILENAME });
   } catch (error) {
@@ -329,6 +338,7 @@ export async function commitWorking({
   branch,
   message,
   author,
+  icon,
   beforeCommit,
 }: {
   project: Project;
@@ -336,6 +346,7 @@ export async function commitWorking({
   branch: string;
   message: string;
   author: NonNullable<NonNullable<Parameters<Repository<any>['pull']>[0]>['author']>;
+  icon?: string;
   beforeCommit?: (tx: Transaction<FileTypeYjs>) => Promise<void>;
 }) {
   const repository = await getRepository({ projectId: project._id! });
@@ -354,7 +365,7 @@ export async function commitWorking({
         await beforeCommit(tx);
       }
 
-      await addSettingsToGit({ tx, project });
+      await addSettingsToGit({ tx, project, icon });
 
       // Remove unnecessary .gitkeep files
       for (const gitkeep of await glob('**/.gitkeep', { cwd: repository.options.root })) {

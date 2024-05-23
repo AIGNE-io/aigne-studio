@@ -491,6 +491,7 @@ export default flat({
   copyTool: 'Copy Tool',
   visitLink: 'Visit Link',
   variableParameter: {
+    secret: 'Secret',
     custom: 'User input',
     tool: 'Another Agent',
     datastore: 'Memory',
@@ -516,6 +517,7 @@ export default flat({
     fromAgentParameter: 'From Agent Input Parameter',
     fromKnowledgeParameter: 'From Knowledge Input Parameter',
     agent: 'Call {agent} Agent',
+    call: 'Call',
   },
   variables: {
     name: 'Data Name',
@@ -688,8 +690,12 @@ export default flat({
   profile: 'Profile',
   avatar: 'Avatar',
   outputFromInputPlaceholder: 'From Input "{input}"',
+  author: 'Author',
+  updatedAt: 'Updated At',
   launchMore: 'Launch for more',
   launchMoreContent:
     "You've reached the limit of {length} projects.\nLaunch your own AI Studio to create more projects 👇",
   launchMoreConfirm: 'Launch My AI Studio',
+  authorize: 'Authorize',
+  reauthorize: 'Reauthorize',
 });

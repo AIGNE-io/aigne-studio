@@ -10,8 +10,8 @@ import { call, call as callFunc } from '@blocklet/sdk/lib/component';
 import { logger } from '@blocklet/sdk/lib/config';
 import axios, { isAxiosError } from 'axios';
 import { flattenDeep, isNil, pick, startCase, toLower } from 'lodash';
-import fetch from 'node-fetch';
 import { Worker } from 'snowflake-uuid';
+import { joinURL, withQuery } from 'ufo';
 import { NodeVM } from 'vm2';
 
 import { TranspileTs } from '../../builtin/complete';
@@ -78,6 +78,7 @@ const taskIdGenerator = new Worker();
 export const nextTaskId = () => taskIdGenerator.nextId().toString();
 
 export async function runAssistant({
+  getSecret,
   taskId,
   callAI,
   callAIImage,
@@ -92,6 +93,11 @@ export async function runAssistant({
   datastoreVariables,
   functionName,
 }: {
+  getSecret: (args: {
+    targetProjectId: string;
+    targetAgentId: string;
+    targetInputKey: string;
+  }) => Promise<{ secret: string }>;
   taskId: string;
   callAI: CallAI;
   callAIImage: CallAIImage;
@@ -102,7 +108,7 @@ export async function runAssistant({
   callback?: RunAssistantCallback;
   user?: User;
   sessionId?: string;
-  projectId?: string;
+  projectId: string;
   datastoreVariables: Variable[];
   functionName?: string;
 }): Promise<any> {
@@ -119,6 +125,7 @@ export async function runAssistant({
   });
 
   const assistantVariables = await getVariables({
+    getSecret,
     assistant,
     callAI,
     callAIImage,
@@ -152,6 +159,7 @@ export async function runAssistant({
 
     if (isPromptAssistant(assistant)) {
       return await runPromptAssistant({
+        getSecret,
         taskId,
         parentTaskId,
         callAI,
@@ -170,6 +178,7 @@ export async function runAssistant({
 
     if (isImageAssistant(assistant)) {
       return await runImageAssistant({
+        getSecret,
         taskId,
         parentTaskId,
         callAI,
@@ -221,6 +230,7 @@ export async function runAssistant({
 
     if (isRouterAssistant(assistant)) {
       return await runRouterAssistant({
+        getSecret,
         getAssistant,
         callAI,
         callAIImage,
@@ -318,9 +328,11 @@ export default async function(args) {
           return result;
         },
       },
+      fetch,
       URL,
       call,
-      fetch,
+      joinURL,
+      withQuery,
       ...args,
     },
   });
@@ -408,7 +420,7 @@ async function runApiAssistant({
   callback?: RunAssistantCallback;
   user?: User;
   sessionId?: string;
-  projectId?: string;
+  projectId: string;
   datastoreVariables: Variable[];
 }) {
   if (!assistant.requestUrl) throw new Error(`Assistant ${assistant.id}'s url is empty`);
@@ -552,6 +564,7 @@ const getFunctionName = async ({
 };
 
 async function runRouterAssistant({
+  getSecret,
   callAI,
   callAIImage,
   taskId,
@@ -565,6 +578,11 @@ async function runRouterAssistant({
   projectId,
   datastoreVariables,
 }: {
+  getSecret: (args: {
+    targetProjectId: string;
+    targetAgentId: string;
+    targetInputKey: string;
+  }) => Promise<{ secret: string }>;
   callAI: CallAI;
   callAIImage: CallAIImage;
   taskId: string;
@@ -575,7 +593,7 @@ async function runRouterAssistant({
   callback?: RunAssistantCallback;
   user?: User;
   sessionId?: string;
-  projectId?: string;
+  projectId: string;
   datastoreVariables: Variable[];
 }) {
   if (!assistant.prompt) {
@@ -623,7 +641,7 @@ async function runRouterAssistant({
           };
         }
 
-        const toolAssistant = await getAssistant(tool.id);
+        const toolAssistant = await getAssistant(tool.id, { blockletDid: tool.blockletDid, projectId: tool.projectId });
         if (!toolAssistant) return undefined;
         const toolParameters = (toolAssistant.parameters ?? [])
           .filter(
@@ -925,6 +943,7 @@ async function runRouterAssistant({
         );
 
         const res = await runAssistant({
+          getSecret,
           taskId: currentTaskId,
           callAI,
           callAIImage,
@@ -1115,6 +1134,7 @@ const runRequestHistory = async ({
 };
 
 const runRequestToolAssistant = async ({
+  getSecret,
   callAI,
   callAIImage,
   getAssistant,
@@ -1124,9 +1144,13 @@ const runRequestToolAssistant = async ({
   sessionId,
   cb,
   toolParameter,
-  projectId,
   datastoreVariables,
 }: {
+  getSecret: (args: {
+    targetProjectId: string;
+    targetAgentId: string;
+    targetInputKey: string;
+  }) => Promise<{ secret: string }>;
   callAI: CallAI;
   callAIImage: CallAIImage;
   getAssistant: GetAssistant;
@@ -1136,7 +1160,6 @@ const runRequestToolAssistant = async ({
   user?: User;
   sessionId?: string;
   toolParameter: Parameter;
-  projectId?: string;
   datastoreVariables: Variable[];
 }) => {
   if (
@@ -1148,7 +1171,7 @@ const runRequestToolAssistant = async ({
     const currentTaskId = taskIdGenerator.nextId().toString();
 
     const { agent: tool } = toolParameter.source;
-    const toolAssistant = await getAssistant(tool.id);
+    const toolAssistant = await getAssistant(tool.id, { blockletDid: tool.blockletDid, projectId: tool.projectId });
     if (!toolAssistant) return null;
 
     const args = Object.fromEntries(
@@ -1164,6 +1187,7 @@ const runRequestToolAssistant = async ({
     );
 
     const result = await runAssistant({
+      getSecret,
       taskId: currentTaskId,
       callAI,
       callAIImage,
@@ -1174,7 +1198,7 @@ const runRequestToolAssistant = async ({
       callback: cb?.(currentTaskId),
       user,
       sessionId,
-      projectId,
+      projectId: tool.projectId!,
       datastoreVariables,
     });
 
@@ -1185,6 +1209,7 @@ const runRequestToolAssistant = async ({
 };
 
 const getVariables = async ({
+  getSecret,
   callAI,
   callAIImage,
   getAssistant,
@@ -1197,6 +1222,11 @@ const getVariables = async ({
   projectId,
   datastoreVariables,
 }: {
+  getSecret: (args: {
+    targetProjectId: string;
+    targetAgentId: string;
+    targetInputKey: string;
+  }) => Promise<{ secret: string }>;
   callAI: CallAI;
   callAIImage: CallAIImage;
   getAssistant: GetAssistant;
@@ -1206,7 +1236,7 @@ const getVariables = async ({
   callback?: RunAssistantCallback;
   user?: User;
   sessionId?: string;
-  projectId?: string;
+  projectId: string;
   datastoreVariables: Variable[];
 }) => {
   const variables: { [key: string]: any } = { ...parameters };
@@ -1226,13 +1256,22 @@ const getVariables = async ({
 
   for (const parameter of assistant.parameters || []) {
     if (parameter.key && parameter.type === 'source') {
-      if (parameter.source?.variableFrom === 'tool' && parameter.source.agent) {
+      if (parameter.source?.variableFrom === 'secret') {
+        const { secret } = await getSecret({
+          targetProjectId: projectId,
+          targetAgentId: assistant.id,
+          targetInputKey: parameter.key!,
+        });
+        if (!secret) throw new Error(`Missing required agent secret ${parameter.key}`);
+        variables[parameter.key!] = secret;
+      } else if (parameter.source?.variableFrom === 'tool' && parameter.source.agent) {
         const { agent: tool } = parameter.source;
-        const toolAssistant = await getAssistant(tool.id);
+        const toolAssistant = await getAssistant(tool.id, { blockletDid: tool.blockletDid, projectId: tool.projectId });
         if (!toolAssistant) continue;
 
         // eslint-disable-next-line no-await-in-loop
         const result = await runRequestToolAssistant({
+          getSecret,
           callAI,
           callAIImage,
           getAssistant,
@@ -1242,7 +1281,6 @@ const getVariables = async ({
           sessionId,
           cb,
           toolParameter: parameter,
-          projectId,
           datastoreVariables,
         });
 
@@ -1388,6 +1426,7 @@ async function runAgent({
 }
 
 async function runPromptAssistant({
+  getSecret,
   callAI,
   callAIImage,
   taskId,
@@ -1402,6 +1441,11 @@ async function runPromptAssistant({
   datastoreVariables,
   functionName,
 }: {
+  getSecret: (args: {
+    targetProjectId: string;
+    targetAgentId: string;
+    targetInputKey: string;
+  }) => Promise<{ secret: string }>;
   callAI: CallAI;
   callAIImage: CallAIImage;
   taskId: string;
@@ -1412,7 +1456,7 @@ async function runPromptAssistant({
   callback?: RunAssistantCallback;
   user?: User;
   sessionId?: string;
-  projectId?: string;
+  projectId: string;
   datastoreVariables: Variable[];
   functionName?: string;
 }) {
@@ -1421,6 +1465,7 @@ async function runPromptAssistant({
     .map((i) => i.data);
 
   const blockResults = await runExecuteBlocks({
+    getSecret,
     assistant,
     callAI,
     callAIImage,
@@ -1698,6 +1743,7 @@ async function runPromptAssistant({
 }
 
 async function runImageAssistant({
+  getSecret,
   callAI,
   callAIImage,
   taskId,
@@ -1711,6 +1757,11 @@ async function runImageAssistant({
   projectId,
   datastoreVariables,
 }: {
+  getSecret: (args: {
+    targetProjectId: string;
+    targetAgentId: string;
+    targetInputKey: string;
+  }) => Promise<{ secret: string }>;
   callAI: CallAI;
   callAIImage: CallAIImage;
   taskId: string;
@@ -1721,13 +1772,14 @@ async function runImageAssistant({
   callback?: RunAssistantCallback;
   user?: User;
   sessionId?: string;
-  projectId?: string;
+  projectId: string;
   datastoreVariables: Variable[];
 }) {
   if (!assistant.prompt?.length) throw new Error('Prompt cannot be empty');
 
   const blockResults = assistant.prepareExecutes?.length
     ? await runExecuteBlocks({
+        getSecret,
         assistant,
         callAI,
         callAIImage,
@@ -1834,6 +1886,7 @@ async function runImageAssistant({
 }
 
 async function runExecuteBlocks({
+  getSecret,
   assistant,
   callAI,
   callAIImage,
@@ -1847,6 +1900,11 @@ async function runExecuteBlocks({
   projectId,
   datastoreVariables,
 }: {
+  getSecret: (args: {
+    targetProjectId: string;
+    targetAgentId: string;
+    targetInputKey: string;
+  }) => Promise<{ secret: string }>;
   assistant: Assistant;
   callAI: CallAI;
   callAIImage: CallAIImage;
@@ -1857,7 +1915,7 @@ async function runExecuteBlocks({
   callback?: RunAssistantCallback;
   user?: User;
   sessionId?: string;
-  projectId?: string;
+  projectId: string;
   datastoreVariables: Variable[];
 }) {
   if (!executeBlocks.length) return [];
@@ -1871,6 +1929,7 @@ async function runExecuteBlocks({
   for (const executeBlock of executeBlocks) {
     const task = () => async () => {
       cache[executeBlock.id] ??= runExecuteBlock({
+        getSecret,
         taskId: taskIdGenerator.nextId().toString(),
         assistant,
         callAI,
@@ -1901,6 +1960,7 @@ async function runExecuteBlocks({
 }
 
 async function runExecuteBlock({
+  getSecret,
   taskId,
   assistant,
   callAI,
@@ -1916,6 +1976,11 @@ async function runExecuteBlock({
   projectId,
   datastoreVariables,
 }: {
+  getSecret: (args: {
+    targetProjectId: string;
+    targetAgentId: string;
+    targetInputKey: string;
+  }) => Promise<{ secret: string }>;
   taskId: string;
   assistant: Assistant;
   callAI: CallAI;
@@ -1928,7 +1993,7 @@ async function runExecuteBlock({
   callback?: RunAssistantCallback;
   user?: User;
   sessionId?: string;
-  projectId?: string;
+  projectId: string;
   datastoreVariables: Variable[];
 }) {
   const { tools } = executeBlock;
@@ -1996,7 +2061,10 @@ async function runExecuteBlock({
             });
           }
 
-          const toolAssistant = await getAssistant(tool.id);
+          const toolAssistant = await getAssistant(tool.id, {
+            blockletDid: tool.blockletDid,
+            projectId: tool.projectId,
+          });
           if (!toolAssistant) return undefined;
           const args = Object.fromEntries(
             await Promise.all(
@@ -2012,6 +2080,7 @@ async function runExecuteBlock({
           );
 
           return runAssistant({
+            getSecret,
             taskId: currentTaskId,
             callAI,
             callAIImage,
@@ -2099,7 +2168,10 @@ async function runExecuteBlock({
             };
           }
 
-          const toolAssistant = await getAssistant(tool.id);
+          const toolAssistant = await getAssistant(tool.id, {
+            blockletDid: tool.blockletDid,
+            projectId: tool.projectId,
+          });
           if (!toolAssistant) return undefined;
           const toolParameters = (toolAssistant.parameters ?? [])
             .filter(
@@ -2274,6 +2346,7 @@ async function runExecuteBlock({
           );
 
           const res = await runAssistant({
+            getSecret,
             taskId: currentTaskId,
             callAI,
             callAIImage,
