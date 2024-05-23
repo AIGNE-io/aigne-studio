@@ -604,6 +604,7 @@ async function runRouterAssistant({
   const routes = assistant?.routes || [];
   const openApis = await getBuildInDatasets();
 
+  logger.info('start get tool function');
   const toolAssistants = (
     await Promise.all(
       routes.map(async (tool) => {
@@ -720,6 +721,16 @@ async function runRouterAssistant({
     tools: ChatCompletionInput['tools'];
     toolChoice: ChatCompletionInput['toolChoice'];
   }) => {
+    logger.info('function call input', {
+      model: assistant?.model,
+      temperature: assistant?.temperature,
+      topP: assistant?.topP,
+      presencePenalty: assistant?.presencePenalty,
+      frequencyPenalty: assistant?.frequencyPenalty,
+      messages: [{ role: 'user', content: message }],
+      tools,
+      toolChoice,
+    });
     const response = await callAI({
       assistant,
       input: {
@@ -771,10 +782,12 @@ async function runRouterAssistant({
 
   logger.info('function call tools', JSON.stringify(tools));
 
+  logger.info('call agent function start');
   const calls = await runFunctionCall({
     tools,
     toolChoice: 'required',
   });
+  logger.info('call agent function end');
 
   callback?.({
     type: AssistantResponseType.EXECUTE,
@@ -789,6 +802,8 @@ async function runRouterAssistant({
 
   const matchAgentName = async () => {
     // requestCalls 没有找到，检查 jsonResult 是否存在
+    logger.info('match not call function agent name');
+
     let selectedAgent: { category_name?: string } = {};
     try {
       const categories = toolAssistants
@@ -882,7 +897,10 @@ async function runRouterAssistant({
 
     return [{ type: 'function', function: { name: agentName, arguments: '{}' } }];
   };
+
+  logger.info('match function name start');
   const requestCalls = await matchRequestCalls();
+  logger.info('match function name end');
 
   const result =
     requestCalls &&
@@ -967,6 +985,8 @@ async function runRouterAssistant({
     ));
 
   const obj = result?.length === 1 ? result[0] : result;
+  logger.info('get  call function result', obj);
+
   const jsonResult = await validateOutputs({ assistant, datastoreVariables, inputs: parameters, outputs: obj });
 
   callback?.({
