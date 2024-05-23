@@ -62,7 +62,7 @@ import { Controller, UseFormReturn, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
-import { useAllSelectDecisionAgentOutputs } from '../output/OutputSettings';
+import { useAllSelectDecisionAgentOutputs, useRoutesAssistantOutputs } from '../output/OutputSettings';
 import PromptEditorField from '../prompt-editor-field';
 
 type RouteOption = { id: string; type: string; name?: string; from?: 'blockletAPI' };
@@ -93,6 +93,7 @@ export default function RouterAssistantEditor({
   const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
   const { store } = useProjectStore(projectId, gitRef);
   const { getAllSelectCustomOutputs } = useAllSelectDecisionAgentOutputs({ value, projectId, gitRef });
+  const checkOutputVariables = useRoutesAssistantOutputs({ value, projectId, gitRef, openApis });
 
   const routes = value.routes && sortBy(Object.values(value.routes), (i) => i.index);
   const agentOptions: RouteOption[] = Object.entries(store.tree)
@@ -197,6 +198,12 @@ export default function RouterAssistantEditor({
               />
             </Box>
           ))}
+
+          {checkOutputVariables?.error && (
+            <Typography variant="subtitle5" color="warning.main" ml={1}>
+              {checkOutputVariables?.error}
+            </Typography>
+          )}
 
           {!readOnly && (
             <Box>
@@ -888,7 +895,7 @@ function AddSelectAgentPopperButton({
             }}>
             {agentOptions.map((x) => {
               return (
-                <MenuItem selected={exists.has(x.id)} key={x.id} onClick={() => onSelect?.(x)}>
+                <MenuItem selected={exists.has(x.id)} key={x.id} onClick={() => onSelect?.(x)} sx={{ my: 0.25 }}>
                   <Box flex={1}>{x.name || t('unnamed')}</Box>
                   <Box sx={{ width: 40, textAlign: 'right' }}>
                     {exists.has(x.id) && <Box component={Icon} icon={CheckIcon} />}
@@ -916,7 +923,7 @@ function AddSelectAgentPopperButton({
                 }}>
                 {options.map((x) => {
                   return (
-                    <MenuItem selected={exists.has(x.id)} key={x.id} onClick={() => onSelect?.(x)}>
+                    <MenuItem selected={exists.has(x.id)} key={x.id} onClick={() => onSelect?.(x)} sx={{ my: 0.25 }}>
                       <Box flex={1}>{x.name || t('unnamed')}</Box>
                       <Box sx={{ width: 40, textAlign: 'right' }}>
                         {exists.has(x.id) && <Box component={Icon} icon={CheckIcon} />}

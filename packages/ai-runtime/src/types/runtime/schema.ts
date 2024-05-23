@@ -212,10 +212,10 @@ type JSONSchema = {
   [key: string]: any;
 };
 
-export function outputVariableFromOpenApi(schema: JSONSchema, name: string = '', id: string = ''): VariableTypeYjs {
+export function outputVariablesFromOpenApi(schema?: JSONSchema, name: string = '', id: string = ''): VariableTypeYjs {
   const currentId = id || nanoid();
 
-  if (schema.type === 'object' && schema.properties) {
+  if (schema?.type === 'object' && schema?.properties) {
     const properties: {
       [key: string]: {
         index: number;
@@ -223,17 +223,11 @@ export function outputVariableFromOpenApi(schema: JSONSchema, name: string = '',
       };
     } = {};
 
-    let index = 0;
-    // eslint-disable-next-line no-restricted-syntax, guard-for-in
-    for (const key in schema?.properties || {}) {
+    const p = schema?.properties || {};
+    Object.entries(p).forEach(([key, value], index) => {
       const id = nanoid();
-      properties[id] = {
-        index,
-        // @ts-ignore
-        data: outputVariableFromOpenApi((schema?.properties || {})[key], key, id),
-      };
-      index++;
-    }
+      properties[id] = { index, data: outputVariablesFromOpenApi(value, key, id) };
+    });
 
     return {
       id: currentId,
@@ -245,19 +239,19 @@ export function outputVariableFromOpenApi(schema: JSONSchema, name: string = '',
     };
   }
 
-  if (schema.type === 'array' && schema.items) {
+  if (schema?.type === 'array' && schema?.items) {
     return {
       id: currentId,
       name,
       description: schema.description,
       required: schema.required?.includes(name),
       type: 'array',
-      element: outputVariableFromOpenApi(schema.items, 'element'),
+      element: outputVariablesFromOpenApi(schema.items, 'element'),
     };
   }
 
   let type: 'string' | 'number' | 'boolean' | undefined;
-  switch (schema.type) {
+  switch (schema?.type) {
     case 'string':
       type = 'string';
       break;
@@ -274,8 +268,8 @@ export function outputVariableFromOpenApi(schema: JSONSchema, name: string = '',
   return {
     id: currentId,
     name,
-    description: schema.description,
-    required: schema.required?.includes(name),
+    description: schema?.description,
+    required: schema?.required?.includes(name),
     type,
   };
 }

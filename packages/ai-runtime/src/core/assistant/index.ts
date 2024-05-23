@@ -498,7 +498,7 @@ async function runApiAssistant({
 
 const cacheTranslateFunctionNames: { [key: string]: string } = {};
 
-const getFunctionName = async ({
+const getEnglishFunctionName = async ({
   assistant,
   hashName,
   tool,
@@ -614,12 +614,7 @@ async function runRouterAssistant({
 
           const name = tool?.functionName || dataset.summary || dataset.description || '';
           const hashName = md5(name);
-          const functionTranslateName = await getFunctionName({
-            assistant,
-            hashName,
-            tool,
-            name,
-          });
+          const functionTranslateName = await getEnglishFunctionName({ assistant, hashName, tool, name });
 
           const datasetParameters = getAllParameters(dataset)
             .filter((i): i is typeof i => !!i && !tool.parameters?.[i.name])
@@ -673,12 +668,7 @@ async function runRouterAssistant({
 
         const name = tool?.functionName || toolAssistant?.description || toolAssistant?.name || '';
         const hashName = md5(name);
-        const functionTranslateName = await getFunctionName({
-          assistant,
-          hashName,
-          tool,
-          name,
-        });
+        const functionTranslateName = await getEnglishFunctionName({ assistant, hashName, tool, name });
 
         return {
           tool,

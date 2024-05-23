@@ -3,7 +3,7 @@ import AigneLogoOutput from '@app/icons/aigne-logo-output';
 import { useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { AssistantYjs, OutputVariableYjs, RuntimeOutputVariable, Tool, isAssistant } from '@blocklet/ai-runtime/types';
-import { outputVariableFromOpenApi } from '@blocklet/ai-runtime/types/runtime/schema';
+import { outputVariablesFromOpenApi } from '@blocklet/ai-runtime/types/runtime/schema';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { Icon } from '@iconify-icon/react';
@@ -47,7 +47,7 @@ export default function OutputSettings({
 }) {
   const { t } = useLocaleContext();
 
-  const result = useRoutesAssistantOutputs({ value, projectId, gitRef, openApis });
+  const checkOutputVariables = useRoutesAssistantOutputs({ value, projectId, gitRef, openApis });
   const { getAllSelectCustomOutputs } = useAllSelectDecisionAgentOutputs({ value, projectId, gitRef });
   const allSelectAgentOutputs = getAllSelectCustomOutputs(openApis);
   const outputVariables = value.outputVariables && sortBy(Object.values(value.outputVariables), 'index');
@@ -165,7 +165,7 @@ export default function OutputSettings({
                       '&:hover .hover-visible': { display: 'flex' },
                     }}
                     // firstCellChildren
-                    selectAgentOutputVariables={result?.outputVariables || {}}
+                    selectAgentOutputVariables={checkOutputVariables?.outputVariables || {}}
                     variable={item}
                     value={value}
                     projectId={projectId}
@@ -399,7 +399,7 @@ export const useAllSelectDecisionAgentOutputs = ({
         const dataset = openApis.find((api) => api.id === x.data.id);
         if (dataset) {
           const properties = dataset?.responses?.['200']?.content?.['application/json']?.schema?.properties || {};
-          const result = Object.entries(properties).map(([key, value]: any) => outputVariableFromOpenApi(value, key));
+          const result = Object.entries(properties).map(([key, value]: any) => outputVariablesFromOpenApi(value, key));
           return result;
         }
 
@@ -477,12 +477,12 @@ export const useRoutesAssistantOutputs = ({
       return null;
     }
 
-    const getOutputs = (agent: Tool) => {
+    const getOutputVariables = (agent: Tool) => {
       if (agent.from === 'blockletAPI') {
         const dataset = openApis.find((api) => api.id === agent.id);
         if (dataset) {
           const properties = dataset?.responses?.['200']?.content?.['application/json']?.schema?.properties || {};
-          const result = Object.entries(properties).map(([key, value]: any) => outputVariableFromOpenApi(value, key));
+          const result = Object.entries(properties).map(([key, value]: any) => outputVariablesFromOpenApi(value, key));
           return result;
         }
 
@@ -503,7 +503,7 @@ export const useRoutesAssistantOutputs = ({
 
     let error;
     for (const agent of agentAssistants) {
-      const outputs = getOutputs(agent.tool);
+      const outputs = getOutputVariables(agent.tool);
 
       for (const output of outputs) {
         const currentList = Object.values(list || {})
@@ -570,7 +570,7 @@ export const useRoutesAssistantOutputs = ({
 
             const filterRequired = agentAssistants
               .map((agent) => {
-                const outputs = getOutputs(agent.tool);
+                const outputs = getOutputVariables(agent.tool);
                 return outputs.find((x) => x.name === found.name);
               })
               .filter((i): i is NonNullable<typeof i> => !!i);
