@@ -20,11 +20,12 @@ import { useAsync } from 'react-use';
 
 import ComponentSettings from './ComponentSettings';
 
+const ignoreAppearanceSettingsOutputs = new Set<string>([RuntimeOutputVariable.children]);
+
 const ignoreIconTitleSettingsOutputs = new Set<string>([
   RuntimeOutputVariable.appearancePage,
   RuntimeOutputVariable.appearanceInput,
   RuntimeOutputVariable.appearanceOutput,
-  RuntimeOutputVariable.children,
   RuntimeOutputVariable.profile,
 ]);
 
@@ -49,6 +50,8 @@ export default function AppearanceSettings({ output }: { output: OutputVariableY
     };
     return m[output.name!] || { title: t('appearance'), tags: 'aigne-view' };
   }, [output.name]);
+
+  if (ignoreAppearanceSettingsOutputs.has(output.name!)) return null;
 
   return (
     <Box>
