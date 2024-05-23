@@ -27,7 +27,7 @@ export type Tool = {
   blockletDid?: string;
   projectId?: string;
   id: string;
-  from?: 'assistant' | 'blockletAPI' | 'knowledge'; // 这里的 dataset 其实代表 api
+  from?: 'assistant' | 'blockletAPI' | 'knowledge';
   parameters?: { [key: string]: string };
   functionName?: string;
   onEnd?: OnTaskCompletion;
