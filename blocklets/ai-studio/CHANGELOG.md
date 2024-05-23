@@ -1,3 +1,7 @@
+## 0.2.9 (2024-5-24)
+
+- chore: add primary color setting
+
 ## 0.2.8 (2024-5-23)
 
 - fix: backward compatibility with old data
