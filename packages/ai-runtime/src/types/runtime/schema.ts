@@ -231,7 +231,7 @@ export function isRuntimeOutputVariable(variable: string): variable is RuntimeOu
 export interface RuntimeOutputAppearance {
   componentId?: string;
   componentName?: string;
-  componentProps?: { [key: string]: any };
+  componentProperties?: { [key: string]: any };
   title?: string;
   icon?: string;
 }
