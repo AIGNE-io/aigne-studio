@@ -7,6 +7,7 @@ import {
   Autocomplete,
   AutocompleteProps,
   Box,
+  Divider,
   IconButton,
   InputAdornment,
   Stack,
@@ -14,10 +15,20 @@ import {
   Typography,
 } from '@mui/material';
 import { WritableDraft } from 'immer';
-import { useMemo } from 'react';
+import pick from 'lodash/pick';
+import { useEffect, useMemo } from 'react';
 import { useAsync } from 'react-use';
 
 import ComponentSettings from './ComponentSettings';
+
+const ignoreAppearanceSettingsOutputs = new Set<string>([RuntimeOutputVariable.children]);
+
+const ignoreIconTitleSettingsOutputs = new Set<string>([
+  RuntimeOutputVariable.appearancePage,
+  RuntimeOutputVariable.appearanceInput,
+  RuntimeOutputVariable.appearanceOutput,
+  RuntimeOutputVariable.profile,
+]);
 
 export default function AppearanceSettings({ output }: { output: OutputVariableYjs }) {
   const { t } = useLocaleContext();
@@ -32,61 +43,94 @@ export default function AppearanceSettings({ output }: { output: OutputVariableY
     });
   };
 
-  const { title, tags } = useMemo(() => {
-    const m: { [key: string]: { title: string; tags: string } } = {
-      [RuntimeOutputVariable.appearancePage]: { title: t('appearancePage'), tags: 'aigne-page' },
-      [RuntimeOutputVariable.appearanceInput]: { title: t('appearanceInput'), tags: 'aigne-input' },
-      [RuntimeOutputVariable.appearanceOutput]: { title: t('appearanceOutput'), tags: 'aigne-output' },
+  // 兼容旧版本数据，2024-06-23 之后可以删掉
+  useEffect(() => {
+    if (!output.appearance && (output.initialValue as any)?.componentId) {
+      setField((appearance) => {
+        const {
+          componentId,
+          componentName,
+          componentProps: props,
+        } = (pick(output.initialValue, 'componentId', 'componentName', 'componentProps') as any) ?? {};
+
+        Object.assign(appearance, {
+          componentId,
+          componentName,
+          componentProperties: props ? JSON.parse(JSON.stringify(props)) : undefined,
+        });
+      });
+    }
+  }, []);
+
+  const { tags } = useMemo(() => {
+    const m: { [key: string]: { tags: string } } = {
+      [RuntimeOutputVariable.appearancePage]: { tags: 'aigne-page,aigne-layout' },
+      [RuntimeOutputVariable.appearanceInput]: { tags: 'aigne-input' },
+      [RuntimeOutputVariable.appearanceOutput]: { tags: 'aigne-output' },
     };
     return m[output.name!] || { title: t('appearance'), tags: 'aigne-view' };
   }, [output.name]);
 
+  if (ignoreAppearanceSettingsOutputs.has(output.name!)) return null;
+
   return (
-    <Stack gap={2}>
+    <Box>
       <Stack gap={1}>
-        <Typography variant="subtitle1">{title}</Typography>
+        {!ignoreIconTitleSettingsOutputs.has(output.name!) && (
+          <>
+            <Divider textAlign="left" sx={{ mt: 2 }}>
+              {t('iconAndTitle')}
+            </Divider>
 
-        <Box>
-          <Typography variant="subtitle2">{t('icon')}</Typography>
-          <TextField
-            fullWidth
-            hiddenLabel
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Box component={Icon} icon={appearance?.icon || ''} />
-                </InputAdornment>
-              ),
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton size="small" href="https://icon-sets.iconify.design" target="_blank">
-                    <Box component={Icon} icon="tabler:search" />
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-            value={appearance?.icon || ''}
-            onChange={(e) =>
-              setField((c) => {
-                c.icon = e.target.value;
-              })
-            }
-          />
-        </Box>
+            <Box>
+              <Typography variant="subtitle2">{t('icon')}</Typography>
+              <TextField
+                fullWidth
+                hiddenLabel
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Box component={Icon} icon={appearance?.icon || ''} />
+                    </InputAdornment>
+                  ),
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton size="small" href="https://icon-sets.iconify.design" target="_blank">
+                        <Box component={Icon} icon="tabler:search" />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+                placeholder={t('appearanceIconPlaceholder')}
+                value={appearance?.icon || ''}
+                onChange={(e) =>
+                  setField((c) => {
+                    c.icon = e.target.value;
+                  })
+                }
+              />
+            </Box>
 
-        <Box>
-          <Typography variant="subtitle2">{t('title')}</Typography>
-          <TextField
-            fullWidth
-            hiddenLabel
-            value={appearance?.title || ''}
-            onChange={(e) =>
-              setField((c) => {
-                c.title = e.target.value;
-              })
-            }
-          />
-        </Box>
+            <Box>
+              <Typography variant="subtitle2">{t('title')}</Typography>
+              <TextField
+                fullWidth
+                hiddenLabel
+                placeholder={t('appearanceTitlePlaceholder')}
+                value={appearance?.title || ''}
+                onChange={(e) =>
+                  setField((c) => {
+                    c.title = e.target.value;
+                  })
+                }
+              />
+            </Box>
+          </>
+        )}
+
+        <Divider textAlign="left" sx={{ mt: 2 }}>
+          {t('appearance')}
+        </Divider>
 
         <Box>
           <Typography variant="subtitle2">{t('selectCustomComponent')}</Typography>
@@ -101,10 +145,10 @@ export default function AppearanceSettings({ output }: { output: OutputVariableY
             }
           />
         </Box>
-      </Stack>
 
-      {appearance?.componentId && <ComponentSettings value={appearance} />}
-    </Stack>
+        {appearance?.componentId && <ComponentSettings value={appearance} />}
+      </Stack>
+    </Box>
   );
 }
 

@@ -1,3 +1,7 @@
+## 0.2.7 (2024-5-23)
+
+- fix: hide appearance settings from some system outputs
+
 ## 0.2.6 (2024-5-23)
 
 - feat: add configurations component/title/icon for output fields

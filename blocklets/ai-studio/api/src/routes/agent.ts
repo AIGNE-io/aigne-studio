@@ -5,6 +5,7 @@ import { parseIdentity } from '@blocklet/ai-runtime/common/aid';
 import { Assistant } from '@blocklet/ai-runtime/types';
 import { Router } from 'express';
 import Joi from 'joi';
+import isEmpty from 'lodash/isEmpty';
 import pick from 'lodash/pick';
 
 const router = Router();
@@ -85,13 +86,22 @@ const respondAgentFields = (assistant: Assistant, project: Project['dataValues']
     'description',
     'type',
     'parameters',
-    'outputVariables',
     'createdAt',
     'updatedAt',
     'release',
     'entries',
     'createdBy'
   ),
+  outputVariables: assistant.outputVariables?.map((i) => ({
+    ...i,
+    // 兼容旧版本数据，2024-06-23 之后可以删掉
+    appearance: {
+      ...(!i.appearance || isEmpty(i.appearance)
+        ? pick(typeof i.initialValue === 'object' ? i.initialValue : {}, 'componentId', 'componentName')
+        : i.appearance),
+      componentProperties: i.appearance?.componentProperties || (i.appearance as any)?.componentProps,
+    },
+  })),
   project: {
     id: project._id,
     name: project.name,

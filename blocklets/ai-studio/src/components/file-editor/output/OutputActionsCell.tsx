@@ -15,6 +15,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Divider,
   IconButton,
   MenuItem,
   Stack,
@@ -34,7 +35,7 @@ import OpeningMessageSettings from './OpeningMessageSettings';
 import OpeningQuestionsSettings from './OpeningQuestionsSettings';
 import ProfileSettings from './ProfileSettings';
 import ShareSettings from './ShareSettings';
-import { getRuntimeOutputVariable } from './type';
+import { getRuntimeOutputVariable, runtimeOutputVariableNames } from './type';
 
 export default function OutputActionsCell({
   depth,
@@ -86,6 +87,7 @@ export default function OutputActionsCell({
       )}
 
       <PopperButton
+        depth={depth}
         projectId={projectId}
         gitRef={gitRef}
         assistant={assistant}
@@ -102,6 +104,7 @@ export default function OutputActionsCell({
 }
 
 function PopperButton({
+  depth,
   projectId,
   gitRef,
   assistant,
@@ -113,6 +116,7 @@ function PopperButton({
   disabled,
   onDelete,
 }: {
+  depth: number;
   projectId: string;
   gitRef: string;
   assistant: AssistantYjs;
@@ -152,49 +156,45 @@ function PopperButton({
     }
 
     if (currentSetting === 'setting') {
-      return (
-        <>
-          {runtimeVariable ? null : output.type === 'string' ? (
-            <Box>
-              <Typography variant="subtitle2">{t('defaultValue')}</Typography>
+      return runtimeVariable ? null : output.type === 'string' ? (
+        <Box>
+          <Typography variant="subtitle2">{t('defaultValue')}</Typography>
 
-              <TextField
-                disabled={Boolean(disabled)}
-                hiddenLabel
-                fullWidth
-                multiline
-                placeholder={t('outputParameterDefaultValuePlaceholder')}
-                value={output.defaultValue || ''}
-                onChange={(e) => (output.defaultValue = e.target.value)}
-              />
-            </Box>
-          ) : output.type === 'number' ? (
-            <Box>
-              <Typography variant="subtitle2">{t('defaultValue')}</Typography>
+          <TextField
+            disabled={Boolean(disabled)}
+            hiddenLabel
+            fullWidth
+            multiline
+            placeholder={t('outputParameterDefaultValuePlaceholder')}
+            value={output.defaultValue || ''}
+            onChange={(e) => (output.defaultValue = e.target.value)}
+          />
+        </Box>
+      ) : output.type === 'number' ? (
+        <Box>
+          <Typography variant="subtitle2">{t('defaultValue')}</Typography>
 
-              <NumberField
-                disabled={Boolean(disabled)}
-                hiddenLabel
-                fullWidth
-                placeholder={t('outputParameterDefaultValuePlaceholder')}
-                value={output.defaultValue || ''}
-                onChange={(value) => (output.defaultValue = value)}
-              />
-            </Box>
-          ) : output.type === 'boolean' ? (
-            <Box>
-              <Typography variant="subtitle2">{t('defaultValue')}</Typography>
+          <NumberField
+            disabled={Boolean(disabled)}
+            hiddenLabel
+            fullWidth
+            placeholder={t('outputParameterDefaultValuePlaceholder')}
+            value={output.defaultValue || ''}
+            onChange={(value) => (output.defaultValue = value)}
+          />
+        </Box>
+      ) : output.type === 'boolean' ? (
+        <Box>
+          <Typography variant="subtitle2">{t('defaultValue')}</Typography>
 
-              <Switch
-                checked={output.defaultValue || false}
-                onChange={(_, checked) => {
-                  output.defaultValue = checked;
-                }}
-              />
-            </Box>
-          ) : null}
-        </>
-      );
+          <Switch
+            checked={output.defaultValue || false}
+            onChange={(_, checked) => {
+              output.defaultValue = checked;
+            }}
+          />
+        </Box>
+      ) : null;
     }
 
     if (currentSetting === 'save') {
@@ -226,6 +226,8 @@ function PopperButton({
     return null;
   };
 
+  const settingsChildren = renderParameterSettings(output);
+
   return (
     <>
       <PopperMenu
@@ -236,13 +238,15 @@ function PopperButton({
           children: <Box component={Icon} icon={DotsIcon} sx={{ color: '#3B82F6' }} />,
         }}
         PopperProps={{ placement: 'bottom-end' }}>
-        <MenuItem
-          onClick={() => {
-            setSetting('setting');
-            dialogState.open();
-          }}>
-          {t('setting')}
-        </MenuItem>
+        {depth === 0 && (
+          <MenuItem
+            onClick={() => {
+              setSetting('setting');
+              dialogState.open();
+            }}>
+            {t('setting')}
+          </MenuItem>
+        )}
 
         {isSaveAs && (
           <MenuItem
@@ -267,7 +271,9 @@ function PopperButton({
         component="form"
         onSubmit={(e) => e.preventDefault()}>
         <DialogTitle className="between">
-          <Box>{t('setting')}</Box>
+          <Box>
+            <SettingDialogTitle output={output} />
+          </Box>
 
           <IconButton size="small" onClick={dialogState.close}>
             <Close />
@@ -275,8 +281,9 @@ function PopperButton({
         </DialogTitle>
 
         <DialogContent>
-          <Stack gap={1.5}>
-            {renderParameterSettings(output)}
+          <Stack gap={1}>
+            {settingsChildren && <Divider textAlign="left">{t('basic')}</Divider>}
+            {settingsChildren}
 
             <AppearanceSettings output={output} />
           </Stack>
@@ -289,5 +296,17 @@ function PopperButton({
         </DialogActions>
       </Dialog>
     </>
+  );
+}
+
+function SettingDialogTitle({ output }: { output: OutputVariableYjs }) {
+  const { t } = useLocaleContext();
+
+  const i18nKey = runtimeOutputVariableNames.get(output.name!)?.i18nKey;
+
+  return (
+    <span>
+      {t('output')} - {i18nKey ? t(i18nKey) : output.name || t('unnamed')}
+    </span>
   );
 }
