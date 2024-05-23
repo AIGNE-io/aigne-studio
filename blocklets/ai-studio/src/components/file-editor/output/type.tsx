@@ -108,7 +108,7 @@ export const runtimeOutputVariables: {
   },
 ];
 
-const runtimeOutputVariableNames = new Map<string, (typeof runtimeOutputVariables)[number]['outputs'][number]>(
+export const runtimeOutputVariableNames = new Map<string, (typeof runtimeOutputVariables)[number]['outputs'][number]>(
   runtimeOutputVariables.flatMap((i) => i.outputs.map((j) => [j.name, j]))
 );
 

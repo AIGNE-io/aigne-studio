@@ -2,7 +2,7 @@ import { PROMPTS_FOLDER_NAME, useProjectStore } from '@app/pages/project/yjs-sta
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { AssistantYjs, OutputVariableYjs, RuntimeOutputChildren, isAssistant } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { Stack, Typography } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { WritableDraft } from 'immer';
 
 import { SelectTool } from '../input/InputTable';
@@ -39,21 +39,18 @@ export default function ChildrenSettings({
     .map((i) => ({ id: i.id, name: i.name }));
 
   return (
-    <Stack gap={2}>
-      <Stack gap={1}>
-        <Typography variant="subtitle1">{t('children')}</Typography>
-
-        <SelectTool
-          multiple
-          options={options}
-          value={initialValue?.agents}
-          onChange={(v) => {
-            setField((o) => {
-              o.agents = v.map((i) => ({ id: i.id, name: i.name }));
-            });
-          }}
-        />
-      </Stack>
-    </Stack>
+    <Box>
+      <Typography variant="subtitle2">{t('children')}</Typography>
+      <SelectTool
+        multiple
+        options={options}
+        value={initialValue?.agents}
+        onChange={(v) => {
+          setField((o) => {
+            o.agents = v.map((i) => ({ id: i.id, name: i.name }));
+          });
+        }}
+      />
+    </Box>
   );
 }

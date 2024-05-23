@@ -136,7 +136,6 @@ export default function OutputSettings({
                   <VariableRow
                     key={item.id}
                     rowRef={(ref) => {
-                      console.log(ref);
                       params.drop(params.drag(params.preview(ref)));
                     }}
                     firstColumnChildren={

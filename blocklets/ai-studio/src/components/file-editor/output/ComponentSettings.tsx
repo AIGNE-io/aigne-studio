@@ -7,12 +7,12 @@ import {
   Alert,
   Box,
   CircularProgress,
-  FormLabel,
   InputAdornment,
   Stack,
   Switch,
   TextField,
   TextFieldProps,
+  Typography,
 } from '@mui/material';
 import { useAsync } from 'react-use';
 
@@ -47,7 +47,9 @@ export default function ComponentSettings({ value }: { value: RuntimeOutputAppea
       <Stack gap={1}>
         {componentState.component.properties?.map((item) => (
           <Stack key={item.id}>
-            <FormLabel>{item.locales?.[locale]?.name || item.locales?.[componentState.defaultLocale!]?.name}</FormLabel>
+            <Typography variant="subtitle2">
+              {item.locales?.[locale]?.name || item.locales?.[componentState.defaultLocale!]?.name}
+            </Typography>
 
             <PropertyValueField
               property={item}
