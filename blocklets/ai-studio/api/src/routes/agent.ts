@@ -99,7 +99,7 @@ const respondAgentFields = (assistant: Assistant, project: Project['dataValues']
       ...(!i.appearance || isEmpty(i.appearance)
         ? pick(typeof i.initialValue === 'object' ? i.initialValue : {}, 'componentId', 'componentName')
         : i.appearance),
-      componentProperties: i.appearance?.componentProperties || (i.appearance as any)?.componentProps,
+      componentProperties: i.appearance?.componentProperties || (i.initialValue as any)?.componentProps,
     },
   })),
   project: {
