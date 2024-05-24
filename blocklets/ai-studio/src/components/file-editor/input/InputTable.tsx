@@ -61,7 +61,7 @@ import { GridColDef } from '@mui/x-data-grid';
 import { useRequest } from 'ahooks';
 import { get, sortBy } from 'lodash';
 import { PopupState, bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
-import { useId, useMemo, useRef } from 'react';
+import { useId, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useAsync } from 'react-use';
 
@@ -1098,12 +1098,14 @@ function AuthorizeButton({ agent }: { agent: NonNullable<ReturnType<typeof useAg
   const dialogState = usePopupState({ variant: 'dialog' });
   const { projectId } = useCurrentProject();
 
+  const [authorized, setAuthorized] = useState(false);
   const { value: { secrets = [] } = {}, loading } = useAsync(() => getProjectInputSecrets(projectId), [projectId]);
 
-  const isAuthorized = useMemo(
-    () => secrets.find((i) => i.targetProjectId === agent.project.id && i.targetAgentId === agent.id),
-    [agent, secrets]
-  );
+  const isAuthorized =
+    useMemo(
+      () => secrets.find((i) => i.targetProjectId === agent.project.id && i.targetAgentId === agent.id),
+      [agent, secrets]
+    ) || authorized;
 
   if (!authInputs?.length || loading) return null;
 
@@ -1124,7 +1126,10 @@ function AuthorizeButton({ agent }: { agent: NonNullable<ReturnType<typeof useAg
         agent={agent}
         maxWidth="sm"
         fullWidth
-        onSuccess={() => dialogState.close()}
+        onSuccess={() => {
+          setAuthorized(true);
+          dialogState.close();
+        }}
         {...bindDialog(dialogState)}
       />
     </Box>
@@ -1165,11 +1170,16 @@ function AuthorizeParametersFormDialog({
 
       <DialogContent>
         <Stack gap={1}>
-          {authInputs?.map((item) => (
+          {authInputs?.map((item, index) => (
             <Stack key={item.id}>
               <Typography variant="caption">{item.label || item.key}</Typography>
 
-              <PasswordField hiddenLabel fullWidth {...form.register(item.key!, { required: true })} />
+              <PasswordField
+                autoFocus={index === 0}
+                hiddenLabel
+                fullWidth
+                {...form.register(item.key!, { required: true })}
+              />
             </Stack>
           ))}
         </Stack>
