@@ -1,12 +1,11 @@
 import fs from 'fs';
-import { access, cp, mkdtemp, readFile, rm } from 'fs/promises';
-import path, { basename, dirname, isAbsolute, join } from 'path';
+import { cp, mkdtemp, readFile, rm } from 'fs/promises';
+import { basename, dirname, isAbsolute, join } from 'path';
 
 import { Config } from '@api/libs/env';
-import { NoPermissionError } from '@api/libs/error';
+import { NoPermissionError, NotFoundError } from '@api/libs/error';
 import { sampleIcon } from '@api/libs/icon';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
-import logger from '@api/libs/logger';
 import AgentInputSecret from '@api/store/models/agent-input-secret';
 import { fileToYjs, isAssistant, nextAssistantId } from '@blocklet/ai-runtime/types';
 import { call } from '@blocklet/sdk/lib/component';
@@ -24,11 +23,12 @@ import uniqBy from 'lodash/uniqBy';
 import { joinURL } from 'ufo';
 import { parse } from 'yaml';
 
-import { getResourceProjects } from '../libs/resource';
+import { getProjectFromResource, getResourceProjects } from '../libs/resource';
 import { ensureComponentCallOrPromptsEditor, ensureComponentCallOrRolesMatch } from '../libs/security';
 import Project, { nextProjectId } from '../store/models/project';
 import {
   CONFIG_FONDER,
+  LOGO_FILENAME,
   VARIABLE_FILENAME,
   VARIABLE_KEY,
   autoSyncIfNeeded,
@@ -302,34 +302,30 @@ export function projectRoutes(router: Router) {
   });
 
   router.get('/projects/:projectId/logo.png', async (req, res) => {
-    const { projectId } = await Joi.object<{ projectId: string }>({
-      projectId: Joi.string().empty([null, '']),
-    }).validateAsync(req.params, { stripUnknown: true });
+    const { projectId } = req.params;
+    if (!projectId) throw new Error('Missing required parameter `projectId`');
 
-    try {
-      const original = await Project.findOne({ where: { _id: projectId } });
-      if (original) {
-        const repository = await getRepository({ projectId });
-        const logoPath = path.join(repository.options.root, 'logo.png');
-        await access(logoPath);
-        res.sendFile(logoPath);
-        return;
-      }
+    const original = await Project.findOne({ where: { _id: projectId } });
+    if (original) {
+      const repository = await getRepository({ projectId });
+      const { blob } = await repository.readBlob({ ref: original.gitDefaultBranch, filepath: LOGO_FILENAME });
+      res.setHeader('Content-Type', 'image/png');
+      res.end(Buffer.from(blob));
+      return;
+    }
 
-      const resource =
-        (await getResourceProjects('template')).find((i) => i.project._id === projectId) ||
-        (await getResourceProjects('example')).find((i) => i.project._id === projectId);
+    const resource = await getProjectFromResource({ projectId });
 
-      if (resource?.gitLogoPath) {
-        await access(resource.gitLogoPath);
+    if (resource) {
+      if (resource?.gitLogoPath && (await exists(resource.gitLogoPath))) {
         res.sendFile(resource.gitLogoPath);
         return;
       }
-    } catch (error) {
-      logger.error('Get icon error', { error });
+
+      throw new NotFoundError(`No such project icon ${projectId}`);
     }
 
-    res.status(404).send('Image not found');
+    throw new NotFoundError(`No such project ${projectId}`);
   });
 
   router.get('/projects/:projectId', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {

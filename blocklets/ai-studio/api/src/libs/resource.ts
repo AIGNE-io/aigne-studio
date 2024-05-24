@@ -156,6 +156,21 @@ export const getResourceProjects = async (type: ResourceType) => {
   return resources[type]?.projects ?? [];
 };
 
+export const getProjectFromResource = async ({
+  projectId,
+  type,
+}: {
+  projectId: string;
+  type?: ResourceType | ResourceType[];
+}) => {
+  const resources = await reloadResources();
+  for (const t of type ? [type].flat() : ResourceTypes) {
+    const p = resources[t]?.projects.find((i) => i.project._id === projectId);
+    if (p) return p;
+  }
+  return undefined;
+};
+
 export const getAssistantFromResourceBlocklet = async ({
   blockletDid,
   projectId,
