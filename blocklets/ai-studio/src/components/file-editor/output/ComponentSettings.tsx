@@ -3,6 +3,7 @@ import { Component, getComponent } from '@app/libs/components';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { RuntimeOutputAppearance } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import { REMOTE_REACT_COMPONENT } from '@blocklet/components-sdk/const';
 import {
   Alert,
   Box,
@@ -23,7 +24,7 @@ export default function ComponentSettings({ value }: { value: RuntimeOutputAppea
     loading,
   } = useAsync(
     async () =>
-      value.componentId && value.componentId !== 'remote-blocklet-react-component'
+      value.componentId && value.componentId !== REMOTE_REACT_COMPONENT
         ? getComponent({ componentId: value.componentId })
         : undefined,
     [value.componentId]

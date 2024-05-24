@@ -2,6 +2,7 @@ import { Component, getComponents } from '@app/libs/components';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { OutputVariableYjs, RuntimeOutputAppearance, RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import { REMOTE_REACT_COMPONENT } from '@blocklet/components-sdk/const';
 import { Icon } from '@iconify-icon/react';
 import {
   Autocomplete,
@@ -15,7 +16,6 @@ import {
   Typography,
 } from '@mui/material';
 import { WritableDraft } from 'immer';
-import { cloneDeep } from 'lodash';
 import pick from 'lodash/pick';
 import { useEffect, useMemo } from 'react';
 import { useAsync } from 'react-use';
@@ -23,7 +23,6 @@ import { useAsync } from 'react-use';
 import { getDynamicReactComponents } from '../../../libs/components';
 import ComponentSettings from './ComponentSettings';
 
-const REMOTE_REACT_COMPONENT = 'remote-blocklet-react-component';
 const ignoreAppearanceSettingsOutputs = new Set<string>([RuntimeOutputVariable.children]);
 
 const ignoreIconTitleSettingsOutputs = new Set<string>([
@@ -65,7 +64,6 @@ export default function AppearanceSettings({ output }: { output: OutputVariableY
     }
   }, []);
 
-  console.log(cloneDeep(output));
   const { tags } = useMemo(() => {
     const m: { [key: string]: { tags: string } } = {
       [RuntimeOutputVariable.appearancePage]: { tags: 'aigne-page,aigne-layout' },

@@ -1,3 +1,4 @@
+import { REMOTE_REACT_COMPONENTS } from '@blocklet/components-sdk/const';
 import { joinURL } from 'ufo';
 
 import axios from './api';
@@ -44,5 +45,5 @@ export async function getComponent({
 }
 
 export async function getDynamicReactComponents(): Promise<{ name: string; did: string; path: string }[]> {
-  return axios.get('/api/_dynamic-components.json').then((res) => res.data);
+  return axios.get(REMOTE_REACT_COMPONENTS).then((res) => res.data);
 }

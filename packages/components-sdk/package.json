@@ -15,12 +15,19 @@
     ".": {
       "import": "./lib/esm/index.js",
       "require": "./lib/cjs/index.js"
+    },
+    "./const": {
+      "import": "./lib/esm/const.js",
+      "require": "./lib/cjs/const.js"
     }
   },
   "typesVersions": {
     "*": {
       "*": [
         "./lib/types/index.d.ts"
+      ],
+      "./const": [
+        "./lib/types/const.d.ts"
       ]
     }
   },

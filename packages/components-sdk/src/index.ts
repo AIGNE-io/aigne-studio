@@ -7,7 +7,7 @@ import { Router } from 'express';
 import { joinURL } from 'ufo';
 import { parse } from 'yaml';
 
-import { PROTOCOL, PROTOCOL_API, PROTOCOL_API_LIST } from './const';
+import { PROTOCOL, PROTOCOL_API, REMOTE_REACT_COMPONENTS } from './const';
 import ComponentSDK from './sdk';
 
 const getBuildInComponents = () => {
@@ -33,7 +33,7 @@ export const getComponentsRouter = () => {
     res.json(json || []);
   });
 
-  router.get(PROTOCOL_API_LIST, async (_req, res) => {
+  router.get(REMOTE_REACT_COMPONENTS, async (_req, res) => {
     res.json(await getBuildInComponents());
   });
 
