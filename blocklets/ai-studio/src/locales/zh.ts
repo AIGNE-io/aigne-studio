@@ -596,6 +596,7 @@ export default flat({
   paymentSettings: '付费设置',
   noReleasePaymentProjectTip: '付费功能暂不可用',
   openingQuestion: '开场问题',
+  openingQuestionPlaceholder: '推荐用户问的问题',
   input: '输入',
   appearance: '外观',
   dialogSettings: '交互设置',
@@ -691,4 +692,9 @@ export default flat({
   launchMoreConfirm: '启动我的 AI 工作室',
   authorize: '授权',
   reauthorize: '重新授权',
+  icon: '图标',
+  iconAndTitle: '图标和标题',
+  basic: '基础',
+  appearanceTitlePlaceholder: '显示在该输出上方的标题',
+  appearanceIconPlaceholder: '显示在该输出上方的图标',
 });

@@ -13,7 +13,6 @@ import { nanoid } from 'nanoid';
 import { getRuntimeOutputVariable } from './type';
 
 export default function OutputFormatCell({
-  assistant,
   output,
   variable,
   TextFieldProps,
@@ -29,7 +28,7 @@ export default function OutputFormatCell({
   const runtimeVariable = getRuntimeOutputVariable(output);
   if (runtimeVariable) return null;
 
-  const inputType = output.from?.type === 'input' ? assistant.parameters?.[output.from.id] : undefined;
+  if (output.from?.type === 'input') return null;
 
   return (
     <>
@@ -38,8 +37,7 @@ export default function OutputFormatCell({
       <VariableTypeField
         variant="standard"
         {...TextFieldProps}
-        disabled={!!inputType}
-        value={inputType ? inputType.data.type : (variable?.type ?? output).type || 'string'}
+        value={(variable?.type ?? output).type || 'string'}
         onChange={(e) => {
           const type = e.target.value as any;
 

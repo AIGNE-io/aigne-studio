@@ -45,51 +45,49 @@ export default function OpeningQuestionsSettings({
   };
 
   return (
-    <Stack gap={2}>
-      <Stack gap={2}>
-        <Typography variant="subtitle1">{t('openingQuestions')}</Typography>
+    <Box>
+      <Typography variant="subtitle2">{t('openingQuestions')}</Typography>
 
-        {initialValue?.items && (
-          <DragSortListYjs
-            list={initialValue.items}
-            component={Stack}
-            sx={{ gap: 1 }}
-            renderItem={(item, _, params) => (
-              <DragSortItemContainer
-                key={item.id}
-                {...params}
-                sx={{
-                  '> div': { display: 'flex' },
-                  '.hover-visible': {
-                    position: 'static',
-                    maxHeight: 'unset',
-                    m: 0,
-                    width: 'unset',
-                    '>div': { border: 0, py: 0 },
-                  },
-                }}
-                onDelete={() => onDelete(item)}>
-                <EntryItemView key={item.id} assistant={assistant} item={item} />
-              </DragSortItemContainer>
-            )}
-          />
-        )}
+      {initialValue?.items && (
+        <DragSortListYjs
+          list={initialValue.items}
+          component={Stack}
+          sx={{ gap: 1 }}
+          renderItem={(item, _, params) => (
+            <DragSortItemContainer
+              key={item.id}
+              {...params}
+              sx={{
+                '> div': { display: 'flex' },
+                '.hover-visible': {
+                  position: 'static',
+                  maxHeight: 'unset',
+                  m: 0,
+                  width: 'unset',
+                  '>div': { border: 0, py: 0 },
+                },
+              }}
+              onDelete={() => onDelete(item)}>
+              <EntryItemView key={item.id} assistant={assistant} item={item} />
+            </DragSortItemContainer>
+          )}
+        />
+      )}
 
-        <Box>
-          <Button
-            startIcon={<Icon icon={plusIcon} />}
-            onClick={() => {
-              setField((v) => {
-                const id = nanoid();
-                v.items ??= {};
-                v.items[id] = { index: Object.values(v.items).length, data: { id, parameters: {} } };
-              });
-            }}>
-            {t('addObject', { object: t('question') })}
-          </Button>
-        </Box>
-      </Stack>
-    </Stack>
+      <Box>
+        <Button
+          startIcon={<Icon icon={plusIcon} />}
+          onClick={() => {
+            setField((v) => {
+              const id = nanoid();
+              v.items ??= {};
+              v.items[id] = { index: Object.values(v.items).length, data: { id, parameters: {} } };
+            });
+          }}>
+          {t('addObject', { object: t('question') })}
+        </Button>
+      </Box>
+    </Box>
   );
 }
 
@@ -120,6 +118,7 @@ function EntryItemView({
       <TextField
         InputLabelProps={{ shrink: true }}
         label={t('openingQuestion')}
+        placeholder={t('openingQuestionPlaceholder')}
         value={item.title || ''}
         onChange={(e) => (item.title = e.target.value)}
       />
