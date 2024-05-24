@@ -61,10 +61,6 @@ export function messageRoutes(router: Router) {
    *                       updatedAt:
    *                         type: string
    *                         format: date-time
-   *                       parameters:
-   *                         type: object
-   *                       result:
-   *                         type: object
    */
   router.get('/messages', user(), async (req, res) => {
     const query = await searchOptionsSchema.validateAsync(req.query, { stripUnknown: true });

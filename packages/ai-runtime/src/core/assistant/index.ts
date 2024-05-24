@@ -615,6 +615,7 @@ async function runRouterAssistant({
           const name = tool?.functionName || dataset.summary || dataset.description || '';
           const hashName = md5(name);
           const functionTranslateName = await getEnglishFunctionName({ assistant, hashName, tool, name });
+          logger.info('function call api name', functionTranslateName);
 
           const datasetParameters = getAllParameters(dataset)
             .filter((i): i is typeof i => !!i && !tool.parameters?.[i.name])
@@ -669,6 +670,7 @@ async function runRouterAssistant({
         const name = tool?.functionName || toolAssistant?.description || toolAssistant?.name || '';
         const hashName = md5(name);
         const functionTranslateName = await getEnglishFunctionName({ assistant, hashName, tool, name });
+        logger.info('function call agent name', functionTranslateName);
 
         return {
           tool,
@@ -975,7 +977,7 @@ async function runRouterAssistant({
     ));
 
   const obj = result?.length === 1 ? result[0] : result;
-  logger.info('get  call function result', obj);
+  logger.info('get call function result', obj);
 
   const jsonResult = await validateOutputs({ assistant, datastoreVariables, inputs: parameters, outputs: obj });
 
@@ -2425,7 +2427,8 @@ async function runAPITool({
           return [item.name, template ? await renderMessage(template, parameters) : parameters?.[item.name]];
         }
 
-        return [item.name, parameters?.[item.name!]];
+        // 先从传入参数查找，什么都没有填写时，需要读取 tool.parameters?.[item.name!]
+        return [item.name, parameters?.[item.name!] || tool.parameters?.[item.name!]];
       }) ?? []
     )
   );
