@@ -172,6 +172,8 @@ export default flat({
       basic: '基本信息',
       modelInfo: '模型信息',
       appearance: '外观',
+      git: 'Git',
+      didSpaces: 'DID Spaces',
     },
     selectProject: '选择项目',
     name: '项目名称',

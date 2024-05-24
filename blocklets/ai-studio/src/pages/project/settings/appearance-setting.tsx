@@ -31,7 +31,7 @@ export default function AppearanceSetting({
   readOnly: boolean;
   submitLoading: boolean;
 }) {
-  const [selectedColor, setSelectedColor] = useState<string | undefined>(value);
+  const [selectedColor, setSelectedColor] = useState<string | undefined>(value || defaultColors[0]);
   const { t } = useLocaleContext();
   const dialogState = usePopupState({ variant: 'dialog' });
 

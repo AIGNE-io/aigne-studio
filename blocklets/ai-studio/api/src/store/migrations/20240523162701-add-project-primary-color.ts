@@ -7,5 +7,5 @@ export const up: Migration = async ({ context: queryInterface }) => {
 };
 
 export const down: Migration = async ({ context: queryInterface }) => {
-  await queryInterface.addColumn('Projects', 'primaryColor', { type: DataTypes.STRING });
+  await queryInterface.removeColumn('Projects', 'primaryColor');
 };

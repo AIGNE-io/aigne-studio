@@ -199,7 +199,7 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
   }
 
   return (
-    <Box overflow="auto" height="600px" width="380px" {...boxProps}>
+    <Box overflow="auto" height="610px" width="380px" {...boxProps}>
       <SettingsContainer maxWidth="md" sx={{ p: 2 }} className="setting-container">
         <Tabs
           centered
@@ -251,7 +251,7 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
                 <TextField
                   label={t('projectSetting.description')}
                   multiline
-                  rows={2}
+                  rows={5}
                   sx={{ width: 1 }}
                   value={value.description ?? ''}
                   onChange={(e) => set('description', e.target.value)}
