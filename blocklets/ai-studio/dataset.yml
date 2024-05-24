@@ -20,7 +20,7 @@
         description: Keyword to search in messages
         x-description-zh: 在消息中搜索的关键字
     responses:
-      '200':
+      "200":
         description: A list of history messages
         x-description-zh: 检索历史消息列表
         content:
