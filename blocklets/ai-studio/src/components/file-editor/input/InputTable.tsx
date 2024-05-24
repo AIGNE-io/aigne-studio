@@ -25,6 +25,7 @@ import CursorTextIcon from '@iconify-icons/tabler/cursor-text';
 import DatabaseIcon from '@iconify-icons/tabler/database';
 import DotsIcon from '@iconify-icons/tabler/dots';
 import HistoryIcon from '@iconify-icons/tabler/history';
+import InfoCircleIcon from '@iconify-icons/tabler/info-circle';
 import MessageIcon from '@iconify-icons/tabler/message';
 import SquareNumberIcon from '@iconify-icons/tabler/square-number-1';
 import {
@@ -1107,10 +1108,17 @@ function AuthorizeButton({ agent }: { agent: NonNullable<ReturnType<typeof useAg
   if (!authInputs?.length || loading) return null;
 
   return (
-    <>
+    <Box>
       <Button variant={isAuthorized ? 'outlined' : 'contained'} fullWidth {...bindTrigger(dialogState)}>
         {t(isAuthorized ? 'reauthorize' : 'authorize')}
       </Button>
+      <Stack direction="row" alignItems="center" gap={0.5} my={0.5}>
+        <Box component={Icon} icon={InfoCircleIcon} color="text.secondary" />
+
+        <Typography variant="caption" sx={{ flex: 1 }}>
+          {t('authorizeApiKeyTip')}
+        </Typography>
+      </Stack>
 
       <AuthorizeParametersFormDialog
         agent={agent}
@@ -1119,7 +1127,7 @@ function AuthorizeButton({ agent }: { agent: NonNullable<ReturnType<typeof useAg
         onSuccess={() => dialogState.close()}
         {...bindDialog(dialogState)}
       />
-    </>
+    </Box>
   );
 }
 
