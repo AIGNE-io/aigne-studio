@@ -178,10 +178,6 @@ export default function RouterAssistantEditor({
         <Stack gap={1}>
           {routes?.map(({ data: agent }) => (
             <Box key={agent.id} display="flex" alignItems="center" gap={0.5} width={1}>
-              <Box className="center">
-                <Box component={Icon} icon={ArrowFork} sx={{ fontSize: 16, color: '#6D28D9' }} />
-              </Box>
-
               <AgentItemView
                 getDiffBackground={getDiffBackground}
                 projectId={projectId}
@@ -343,141 +339,147 @@ export function AgentItemView({
   const { name } = target;
 
   return (
-    <Stack
-      width={1}
-      direction="row"
-      {...props}
-      sx={{
-        background: '#F9FAFB',
-        py: 1,
-        px: 1.5,
-        minHeight: 40,
-        gap: 1,
-        alignItems: 'center',
-        cursor: 'pointer',
-        borderRadius: 1,
-        border: '1px solid #7C3AED',
-        ':hover': {
-          // bgcolor: 'action.hover',
-          '.hover-visible': {
-            display: 'flex',
+    <>
+      <Box className="center">
+        <Box component={Icon} icon={ArrowFork} sx={{ fontSize: 16, color: '#6D28D9' }} />
+      </Box>
+
+      <Stack
+        width={1}
+        direction="row"
+        {...props}
+        sx={{
+          background: '#F9FAFB',
+          py: 1,
+          px: 1.5,
+          minHeight: 40,
+          gap: 1,
+          alignItems: 'center',
+          cursor: 'pointer',
+          borderRadius: 1,
+          border: '1px solid #7C3AED',
+          ':hover': {
+            // bgcolor: 'action.hover',
+            '.hover-visible': {
+              display: 'flex',
+            },
           },
-        },
-        backgroundColor: { ...getDiffBackground('prepareExecutes', `${assistant.id}.data.routes.${agent.id}`) },
-      }}>
-      <Stack width={1}>
-        <TextField
-          onClick={(e) => e.stopPropagation()}
-          hiddenLabel
-          placeholder={name || t('unnamed')}
-          size="small"
-          variant="standard"
-          value={name || t('unnamed')}
-          InputProps={{ readOnly: true }}
-          sx={{
-            mb: 0,
-            lineHeight: '22px',
-            fontWeight: 500,
-            input: {
-              fontSize: '12px',
-              color: '#6D28D9',
-            },
-          }}
-        />
+          backgroundColor: { ...getDiffBackground('prepareExecutes', `${assistant.id}.data.routes.${agent.id}`) },
+        }}>
+        <Stack width={1}>
+          <TextField
+            onClick={(e) => e.stopPropagation()}
+            hiddenLabel
+            placeholder={name || t('unnamed')}
+            size="small"
+            variant="standard"
+            value={name || t('unnamed')}
+            InputProps={{ readOnly: true }}
+            sx={{
+              mb: 0,
+              lineHeight: '22px',
+              fontWeight: 500,
+              input: {
+                fontSize: '12px',
+                color: '#6D28D9',
+              },
+            }}
+          />
 
-        <TextField
-          onClick={(e) => e.stopPropagation()}
-          hiddenLabel
-          placeholder={agent.functionName || t('routeDesc')}
-          size="small"
-          variant="standard"
-          value={agent.functionName}
-          onChange={(e) => (agent.functionName = e.target.value)}
-          sx={{
-            lineHeight: '24px',
-            input: {
-              fontSize: '14px',
-              color: assistant.defaultToolId === agent.id ? 'primary.main' : '',
-            },
-          }}
-        />
+          <TextField
+            onClick={(e) => e.stopPropagation()}
+            hiddenLabel
+            placeholder={agent.functionName || t('routeDesc')}
+            size="small"
+            variant="standard"
+            value={agent.functionName}
+            onChange={(e) => (agent.functionName = e.target.value)}
+            sx={{
+              lineHeight: '24px',
+              input: {
+                fontSize: '14px',
+                color: assistant.defaultToolId === agent.id ? 'primary.main' : '',
+              },
+            }}
+          />
+        </Stack>
+
+        <Stack direction="row" className="hover-visible" sx={{ display: 'none' }} gap={0.5} flex={1}>
+          <Button sx={{ minWidth: 24, minHeight: 24, p: 0 }} onClick={onEdit}>
+            <Box component={Icon} icon={PencilIcon} sx={{ fontSize: 18, color: 'text.secondary' }} />
+          </Button>
+
+          <Tooltip title={assistant.defaultToolId === agent.id ? t('unsetDefaultTool') : t('setDefaultTool')}>
+            <Button
+              sx={{ minWidth: 24, minHeight: 24, p: 0 }}
+              onClick={(e) => {
+                e.stopPropagation();
+                const doc = (getYjsValue(assistant) as Map<any>).doc!;
+                doc.transact(() => {
+                  if (assistant.defaultToolId === agent.id) {
+                    assistant.defaultToolId = undefined;
+                  } else {
+                    assistant.defaultToolId = agent.id;
+                  }
+                });
+              }}>
+              {assistant.defaultToolId === agent.id ? (
+                <Box
+                  component={Icon}
+                  icon={StarFill}
+                  sx={{
+                    fontSize: 18,
+                    color: 'primary.main',
+                  }}
+                />
+              ) : (
+                <Box
+                  component={Icon}
+                  icon={Star}
+                  sx={{
+                    fontSize: 18,
+                    color: 'text.secondary',
+                  }}
+                />
+              )}
+            </Button>
+          </Tooltip>
+
+          {!readOnly && (
+            <Button
+              sx={{ minWidth: 24, minHeight: 24, p: 0 }}
+              onClick={(e) => {
+                e.stopPropagation();
+                const doc = (getYjsValue(assistant) as Map<any>).doc!;
+                doc.transact(() => {
+                  const selectTool = assistant.routes?.[agent.id];
+                  if (selectTool) {
+                    selectTool.data.onEnd = undefined;
+                  }
+
+                  if (assistant.routes) {
+                    delete assistant.routes[agent.id];
+                    sortBy(Object.values(assistant.routes), 'index').forEach((i, index) => (i.index = index));
+                  }
+                });
+              }}>
+              <Box component={Icon} icon={Trash} sx={{ fontSize: 18, color: '#E11D48' }} />
+            </Button>
+          )}
+
+          {file && (
+            <Button
+              sx={{ minWidth: 24, minHeight: 24, p: 0 }}
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(joinURL('.', `${file.id}.yaml`));
+              }}>
+              <Box component={Icon} icon={ExternalLinkIcon} sx={{ fontSize: 18 }} />
+            </Button>
+          )}
+        </Stack>
       </Stack>
-
-      <Stack direction="row" className="hover-visible" sx={{ display: 'none' }} gap={0.5} flex={1}>
-        <Button sx={{ minWidth: 24, minHeight: 24, p: 0 }} onClick={onEdit}>
-          <Box component={Icon} icon={PencilIcon} sx={{ fontSize: 18, color: 'text.secondary' }} />
-        </Button>
-
-        <Tooltip title={assistant.defaultToolId === agent.id ? t('unsetDefaultTool') : t('setDefaultTool')}>
-          <Button
-            sx={{ minWidth: 24, minHeight: 24, p: 0 }}
-            onClick={(e) => {
-              e.stopPropagation();
-              const doc = (getYjsValue(assistant) as Map<any>).doc!;
-              doc.transact(() => {
-                if (assistant.defaultToolId === agent.id) {
-                  assistant.defaultToolId = undefined;
-                } else {
-                  assistant.defaultToolId = agent.id;
-                }
-              });
-            }}>
-            {assistant.defaultToolId === agent.id ? (
-              <Box
-                component={Icon}
-                icon={StarFill}
-                sx={{
-                  fontSize: 18,
-                  color: 'primary.main',
-                }}
-              />
-            ) : (
-              <Box
-                component={Icon}
-                icon={Star}
-                sx={{
-                  fontSize: 18,
-                  color: 'text.secondary',
-                }}
-              />
-            )}
-          </Button>
-        </Tooltip>
-
-        {!readOnly && (
-          <Button
-            sx={{ minWidth: 24, minHeight: 24, p: 0 }}
-            onClick={(e) => {
-              e.stopPropagation();
-              const doc = (getYjsValue(assistant) as Map<any>).doc!;
-              doc.transact(() => {
-                const selectTool = assistant.routes?.[agent.id];
-                if (selectTool) {
-                  selectTool.data.onEnd = undefined;
-                }
-
-                if (assistant.routes) {
-                  delete assistant.routes[agent.id];
-                  sortBy(Object.values(assistant.routes), 'index').forEach((i, index) => (i.index = index));
-                }
-              });
-            }}>
-            <Box component={Icon} icon={Trash} sx={{ fontSize: 18, color: '#E11D48' }} />
-          </Button>
-        )}
-
-        {file && (
-          <Button
-            sx={{ minWidth: 24, minHeight: 24, p: 0 }}
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate(joinURL('.', `${file.id}.yaml`));
-            }}>
-            <Box component={Icon} icon={ExternalLinkIcon} sx={{ fontSize: 18 }} />
-          </Button>
-        )}
-      </Stack>
-    </Stack>
+    </>
   );
 }
 

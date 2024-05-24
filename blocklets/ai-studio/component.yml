@@ -1,0 +1,5 @@
+components:
+  - name: TODO ITEM
+    url: /item.es.mjs
+  - name: TODO LIST
+    url: /list.es.mjs

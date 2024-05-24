@@ -43,6 +43,7 @@
     "@blocklet/co-git": "workspace:^",
     "@blocklet/constant": "^1.16.26",
     "@blocklet/dataset-sdk": "workspace:^",
+    "@blocklet/components-sdk": "workspace:^",
     "@blocklet/discuss-kit": "^1.6.257",
     "@blocklet/logger": "^1.16.26",
     "@blocklet/payment-js": "^1.13.265",
