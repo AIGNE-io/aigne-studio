@@ -22,7 +22,10 @@ export default function ComponentSettings({ value }: { value: RuntimeOutputAppea
     error,
     loading,
   } = useAsync(
-    async () => (value.componentId ? getComponent({ componentId: value.componentId }) : undefined),
+    async () =>
+      value.componentId && value.componentId !== 'remote-blocklet-react-component'
+        ? getComponent({ componentId: value.componentId })
+        : undefined,
     [value.componentId]
   );
 
@@ -34,18 +37,20 @@ export default function ComponentSettings({ value }: { value: RuntimeOutputAppea
 
   if (loading) {
     return (
-      <Box my={4}>
-        <CircularProgress size={24} />
+      <Box my={4} className="center">
+        <CircularProgress size={16} />
       </Box>
     );
   }
 
   if (!componentState) return null;
 
+  const properties = componentState?.component?.properties || [];
+
   return (
     <Stack gap={2}>
       <Stack gap={1}>
-        {componentState.component.properties?.map((item) => (
+        {properties?.map((item) => (
           <Stack key={item.id}>
             <Typography variant="subtitle2">
               {item.locales?.[locale]?.name || item.locales?.[componentState.defaultLocale!]?.name}

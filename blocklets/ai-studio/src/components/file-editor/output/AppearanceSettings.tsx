@@ -15,12 +15,15 @@ import {
   Typography,
 } from '@mui/material';
 import { WritableDraft } from 'immer';
+import { cloneDeep } from 'lodash';
 import pick from 'lodash/pick';
 import { useEffect, useMemo } from 'react';
 import { useAsync } from 'react-use';
 
+import { getDynamicReactComponents } from '../../../libs/components';
 import ComponentSettings from './ComponentSettings';
 
+const REMOTE_REACT_COMPONENT = 'remote-blocklet-react-component';
 const ignoreAppearanceSettingsOutputs = new Set<string>([RuntimeOutputVariable.children]);
 
 const ignoreIconTitleSettingsOutputs = new Set<string>([
@@ -62,12 +65,14 @@ export default function AppearanceSettings({ output }: { output: OutputVariableY
     }
   }, []);
 
+  console.log(cloneDeep(output));
   const { tags } = useMemo(() => {
     const m: { [key: string]: { tags: string } } = {
       [RuntimeOutputVariable.appearancePage]: { tags: 'aigne-page,aigne-layout' },
       [RuntimeOutputVariable.appearanceInput]: { tags: 'aigne-input' },
       [RuntimeOutputVariable.appearanceOutput]: { tags: 'aigne-output' },
     };
+
     return m[output.name!] || { title: t('appearance'), tags: 'aigne-view' };
   }, [output.name]);
 
@@ -141,6 +146,10 @@ export default function AppearanceSettings({ output }: { output: OutputVariableY
               setField((config) => {
                 config.componentId = v?.id;
                 config.componentName = v?.name;
+
+                if (v?.id === REMOTE_REACT_COMPONENT) {
+                  config.componentProperties = v.componentProperties;
+                }
               })
             }
           />
@@ -155,17 +164,49 @@ export default function AppearanceSettings({ output }: { output: OutputVariableY
 function ComponentSelect({
   tags,
   ...props
-}: { tags?: string } & Partial<AutocompleteProps<Pick<Component, 'id' | 'name'>, false, false, false>>) {
+}: { tags?: string } & Partial<
+  AutocompleteProps<Pick<Component, 'id' | 'name'> & { componentProperties?: {}; group: string }, false, false, false>
+>) {
   const { value, loading } = useAsync(() => getComponents({ tags }), [tags]);
+  const { value: remoteReact, loading: remoteLoading } = useAsync(
+    async () => ((tags || '')?.includes('aigne-view') ? getDynamicReactComponents() : undefined),
+    [tags]
+  );
+
+  const components = useMemo(() => {
+    return [
+      ...(value?.components || []).map((x) => ({ id: x.id, name: x.name, group: 'buildIn' })),
+      ...(remoteReact || []).map((x) => ({
+        id: REMOTE_REACT_COMPONENT,
+        name: x.name,
+        componentProperties: {
+          remoteComponentPath: x.path,
+          remoteComponentDID: x.did,
+        },
+        group: 'remote',
+      })),
+    ];
+  }, [value, remoteReact]);
 
   return (
     <Autocomplete
-      options={value?.components ?? []}
-      loading={loading}
+      groupBy={(option) => option.group || ''}
+      options={components}
+      loading={loading || remoteLoading}
       {...props}
       renderInput={(params) => <TextField hiddenLabel {...params} />}
       getOptionLabel={(component) => component.name || component.id}
-      isOptionEqualToValue={(o, v) => o.id === v.id}
+      isOptionEqualToValue={(o, v) => `${o.id}-${o.name}` === `${v.id}-${v.name}`}
+      renderGroup={(params) => {
+        return (
+          <Box key={params.key}>
+            <Typography p={2} py={1} fontSize="14px" lineHeight="20px" color="#9CA3AF">
+              {params.group}
+            </Typography>
+            <Box>{params.children}</Box>
+          </Box>
+        );
+      }}
     />
   );
 }

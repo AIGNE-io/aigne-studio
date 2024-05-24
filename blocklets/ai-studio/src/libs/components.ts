@@ -43,6 +43,6 @@ export async function getComponent({
   return axios.get(joinURL('/api/components', componentId), { baseURL: PAGES_KIT_MOUNT_POINT }).then((res) => res.data);
 }
 
-export async function getDynamicComponents(): Promise<{ name?: string; url: Component }> {
+export async function getDynamicReactComponents(): Promise<{ name: string; did: string; path: string }[]> {
   return axios.get('/api/_dynamic-components.json').then((res) => res.data);
 }

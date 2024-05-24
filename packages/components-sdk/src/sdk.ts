@@ -38,8 +38,9 @@ export default class ComponentSDK {
 
       const list = responses.flatMap(({ response, component }) =>
         (response ?? []).map((item) => ({
-          ...item,
-          url: joinURL(component?.mountPoint || '/', item.url),
+          path: joinURL(item.url),
+          name: item.name,
+          did: component.did,
           component,
         }))
       );
