@@ -6,6 +6,10 @@
     "blocklets/*",
     "packages/*"
   ],
+  "engines": {
+    "node": ">=18",
+    "pnpm": ">=9"
+  },
   "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
   "scripts": {
     "dev": "pnpm -F ai-studio dev",
