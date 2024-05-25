@@ -16,6 +16,7 @@ import {
   Typography,
 } from '@mui/material';
 import { WritableDraft } from 'immer';
+import { cloneDeep } from 'lodash';
 import pick from 'lodash/pick';
 import { useEffect, useMemo } from 'react';
 import { useAsync } from 'react-use';
@@ -36,6 +37,7 @@ export default function AppearanceSettings({ output }: { output: OutputVariableY
   const { t } = useLocaleContext();
 
   const { appearance } = output;
+  console.log(cloneDeep(appearance));
 
   const doc = (getYjsValue(output) as Map<any>).doc!;
   const setField = (update: (draft: WritableDraft<RuntimeOutputAppearance>) => void) => {
@@ -145,9 +147,8 @@ export default function AppearanceSettings({ output }: { output: OutputVariableY
                 config.componentId = v?.id;
                 config.componentName = v?.name;
 
-                if (v?.id === REMOTE_REACT_COMPONENT) {
-                  config.componentProperties = v.componentProperties;
-                }
+                if (config.componentProperties) delete config.componentProperties;
+                if (v?.id === REMOTE_REACT_COMPONENT) config.componentProperties = { value: v.componentProperties };
               })
             }
           />
@@ -163,7 +164,7 @@ function ComponentSelect({
   tags,
   ...props
 }: { tags?: string } & Partial<
-  AutocompleteProps<Pick<Component, 'id' | 'name'> & { componentProperties?: {}; group: string }, false, false, false>
+  AutocompleteProps<Pick<Component, 'id' | 'name'> & { componentProperties?: {}; group?: string }, false, false, false>
 >) {
   const { value, loading } = useAsync(() => getComponents({ tags }), [tags]);
   const { value: remoteReact, loading: remoteLoading } = useAsync(
