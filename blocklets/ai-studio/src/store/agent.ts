@@ -118,7 +118,7 @@ export function useAgent({
 
   if (!project) return undefined;
 
-  if (projectId === project?._id) {
+  if (!projectId || projectId === project?._id) {
     const file = store.files[agentId];
     if (file && isAssistant(file)) {
       return {
