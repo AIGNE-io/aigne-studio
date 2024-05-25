@@ -52,7 +52,7 @@ export function useResourceAgents() {
 }
 
 export function useAgents() {
-  const { agents = [] } = useResourceAgents();
+  const { agents = [], load } = useResourceAgents();
   const {
     state: { project },
   } = useCurrentProjectState();
@@ -100,7 +100,7 @@ export function useAgents() {
   const allProjects = Object.values(groupBy(allAgents, (i) => i.project.id)).map((i) => i[0]!.project);
   const allProjectMap = Object.fromEntries(allProjects.map((i) => [i.id, i]));
 
-  return { agents: allAgents, agentMap: allAgentMap, project: allProjects, projectMap: allProjectMap };
+  return { load, agents: allAgents, agentMap: allAgentMap, project: allProjects, projectMap: allProjectMap };
 }
 
 export function useAgent({

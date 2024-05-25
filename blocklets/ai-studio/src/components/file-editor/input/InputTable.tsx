@@ -994,6 +994,7 @@ function AgentParameter({ value, parameter }: { value: AssistantYjs; parameter: 
           <Typography variant="subtitle2">{t('chooseObject', { object: t('agent') })}</Typography>
 
           <AgentSelect
+            excludes={[value.id]}
             autoFocus
             disableClearable
             value={

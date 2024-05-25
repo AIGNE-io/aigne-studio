@@ -112,7 +112,7 @@ async function loadResourceBlocklets(path: string) {
 async function loadResources(): Promise<Resources> {
   const dirs = getResourceDirs();
 
-  return Object.fromEntries(
+  const groups = groupBy(
     await Promise.all(
       dirs.map(async (item) => {
         const projects = ((await loadResourceBlocklets(item.path)) ?? []).map((i) => ({
@@ -140,8 +140,22 @@ async function loadResources(): Promise<Resources> {
           ])
         );
 
-        return [item.type, { projects, blockletMap }];
+        return { type: item.type, projects, blockletMap };
       })
+    ),
+    (i) => i.type
+  );
+
+  return Object.fromEntries(
+    Object.entries(groups).map(
+      ([type, group]) =>
+        [
+          type,
+          {
+            projects: group.flatMap((i) => i.projects),
+            blockletMap: Object.assign({}, ...group.map((i) => i.blockletMap)),
+          },
+        ] as const
     )
   );
 }
