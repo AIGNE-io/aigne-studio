@@ -1,7 +1,8 @@
-/* eslint-disable import/no-extraneous-dependencies */
-
 import { existsSync } from 'fs';
+/* eslint-disable import/no-extraneous-dependencies */
+import path from 'path';
 
+import buildOpenAPIPlugin from '@blocklet/dataset-sdk/plugin';
 import react from '@vitejs/plugin-react';
 import million from 'million/compiler';
 import { PluginOption, defineConfig } from 'vite';
@@ -51,6 +52,7 @@ export default defineConfig(() => {
       million.vite({ auto: true }),
       react(),
       createBlockletPlugin(),
+      buildOpenAPIPlugin({ apis: [path.join(__dirname, './api/src/routes/**/*.*')] }),
       svgr(),
       hmrHostName
         ? {
