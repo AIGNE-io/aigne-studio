@@ -705,4 +705,5 @@ export default flat({
   appearanceTitlePlaceholder: 'The title displayed above this output',
   appearanceIconPlaceholder: 'The icon displayed above this output',
   addMoreAgentTools: 'Add More',
+  noAgents: 'No Agents',
 });

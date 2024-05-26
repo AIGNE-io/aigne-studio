@@ -76,7 +76,7 @@ export function HeaderActions() {
 
   return (
     <CurrentProjectProvider projectId={projectId} projectRef={gitRef}>
-      <Box gap={1} className="center">
+      <Box gap={1} className="center" sx={{ button: { whiteSpace: 'nowrap' } }}>
         <AgentTokenUsage />
 
         <CommitsTip

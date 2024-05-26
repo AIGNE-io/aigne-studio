@@ -104,6 +104,7 @@ export default function AgentSelect<
         getOptionLabel={(o) => o.name || o.description || o.id}
         groupBy={(o) => o.project.id}
         ListboxProps={{ sx: { py: 0, '>li': { borderBottom: 1, borderColor: 'divider' } } }}
+        noOptionsText={t('noAgents')}
         PaperComponent={({ children, ...props }) => (
           <Paper {...props}>
             {children}

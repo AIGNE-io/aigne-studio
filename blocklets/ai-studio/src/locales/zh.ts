@@ -698,4 +698,5 @@ export default flat({
   appearanceTitlePlaceholder: '显示在该输出上方的标题',
   appearanceIconPlaceholder: '显示在该输出上方的图标',
   addMoreAgentTools: '添加更多',
+  noAgents: '没有可选的 Agent',
 });
