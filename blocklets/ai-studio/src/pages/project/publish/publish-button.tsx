@@ -1,14 +1,15 @@
+import LoadingButton from '@app/components/loading/loading-button';
 import { useCurrentProject } from '@app/contexts/project';
 import { AI_STUDIO_COMPONENT_DID } from '@app/libs/constants';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { BlockletStudio } from '@blocklet/ui-react';
 import { Icon } from '@iconify-icon/react';
 import BrandAppgalleryIcon from '@iconify-icons/tabler/brand-appgallery';
-import { LoadingButton, LoadingButtonProps } from '@mui/lab';
+import { LoadingButtonProps } from '@mui/lab';
 import { Box, Tooltip } from '@mui/material';
 import { Suspense, useState } from 'react';
 
-import { useProjectState } from '../state';
+import { saveButtonState, useProjectState } from '../state';
 import { useAssistants } from '../yjs-state';
 
 export default function PublishButton({ ...props }: LoadingButtonProps) {
@@ -26,8 +27,9 @@ export default function PublishButton({ ...props }: LoadingButtonProps) {
         <LoadingButton
           variant="outlined"
           sx={{ minWidth: 0, minHeight: 0, height: 32, border: '1px solid #E5E7EB' }}
-          onClick={(e) => {
+          onClick={async (e) => {
             e.stopPropagation();
+            await saveButtonState.getState().save?.({ skipConfirm: true });
             setShowCreateResource(true);
           }}
           startIcon={<Box component={Icon} icon={BrandAppgalleryIcon} />}
