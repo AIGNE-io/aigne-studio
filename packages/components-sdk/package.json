@@ -19,6 +19,10 @@
     "./const": {
       "import": "./lib/esm/const.js",
       "require": "./lib/cjs/const.js"
+    },
+    "./type": {
+      "import": "./lib/esm/type.js",
+      "require": "./lib/cjs/type.js"
     }
   },
   "typesVersions": {
@@ -28,6 +32,9 @@
       ],
       "./const": [
         "./lib/types/const.d.ts"
+      ],
+      "./type": [
+        "./lib/types/type.d.ts"
       ]
     }
   },

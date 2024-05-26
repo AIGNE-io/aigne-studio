@@ -1,10 +1,10 @@
 import { getComponentWebEndpoint } from '@blocklet/sdk/lib/component';
 import { MountPoint } from '@blocklet/sdk/lib/config';
 import axios from 'axios';
-import { joinURL } from 'ufo';
 
 import { GET_SCHEMA_TIMEOUT, PROTOCOL_API } from './const';
 import schema from './schema';
+import { JSONSchema } from './type';
 
 export default class ComponentSDK {
   private components: { componentName: string; component: MountPoint }[];
@@ -13,7 +13,16 @@ export default class ComponentSDK {
     this.components = components;
   }
 
-  private async checkService(name: string): Promise<{ name: string; url: string }[]> {
+  private async checkService(name: string): Promise<
+    {
+      name: string;
+      description?: string;
+      tags?: string[];
+      parameter?: { [key: string]: JSONSchema };
+      url: string;
+      did: string;
+    }[]
+  > {
     try {
       const response = await axios({
         method: 'GET',
@@ -22,7 +31,9 @@ export default class ComponentSDK {
         timeout: GET_SCHEMA_TIMEOUT,
       });
 
-      return response.status === 200 && Array.isArray(response.data?.components) ? response.data?.components : [];
+      return response.status === 200 && Array.isArray(response.data?.components)
+        ? response.data?.components.map((x: any) => ({ ...x, did: response.data?.blocklet?.did }))
+        : [];
     } catch (error) {
       return [];
     }
@@ -37,12 +48,7 @@ export default class ComponentSDK {
       );
 
       const list = responses.flatMap(({ response, component }) =>
-        (response ?? []).map((item) => ({
-          path: joinURL(item.url),
-          name: item.name,
-          did: component.did,
-          component,
-        }))
+        (response ?? []).map((item) => ({ ...item, component }))
       );
       return list;
     }
@@ -55,7 +61,7 @@ export default class ComponentSDK {
       const list = await this.mergeFindServicesResult();
 
       return list.filter((data) => {
-        const { error } = schema.validate(data, { stripUnknown: true });
+        const { error } = schema(data).validate(data, { stripUnknown: true });
 
         if (error) {
           console.error(error);

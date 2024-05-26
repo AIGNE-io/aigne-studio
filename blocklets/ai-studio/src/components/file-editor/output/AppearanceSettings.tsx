@@ -3,6 +3,7 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { OutputVariableYjs, RuntimeOutputAppearance, RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { REMOTE_REACT_COMPONENT } from '@blocklet/components-sdk/const';
+import { RemoteComponent } from '@blocklet/components-sdk/type';
 import { Icon } from '@iconify-icon/react';
 import {
   Autocomplete,
@@ -76,6 +77,14 @@ export default function AppearanceSettings({ output }: { output: OutputVariableY
     return m[output.name!] || { title: t('appearance'), tags: 'aigne-view' };
   }, [output.name]);
 
+  const { value: remoteReact } = useAsync(
+    async () =>
+      getDynamicReactComponents().then((components) =>
+        components.filter((component) => (component?.tags || []).some((tag) => tags.includes(tag)))
+      ),
+    [tags]
+  );
+
   if (ignoreAppearanceSettingsOutputs.has(output.name!)) return null;
 
   return (
@@ -141,6 +150,7 @@ export default function AppearanceSettings({ output }: { output: OutputVariableY
           <Typography variant="subtitle2">{t('selectCustomComponent')}</Typography>
           <ComponentSelect
             tags={tags}
+            remoteReact={remoteReact || []}
             value={appearance?.componentId ? { id: appearance.componentId, name: appearance.componentName } : undefined}
             onChange={(_, v) =>
               setField((config) => {
@@ -148,13 +158,17 @@ export default function AppearanceSettings({ output }: { output: OutputVariableY
                 config.componentName = v?.name;
 
                 if (config.componentProperties) delete config.componentProperties;
-                if (v?.id === REMOTE_REACT_COMPONENT) config.componentProperties = { value: v.componentProperties };
+                if (config.componentProps) delete config.componentProps;
+                if (v?.id === REMOTE_REACT_COMPONENT)
+                  config.componentProperties = Object.fromEntries(
+                    Object.entries(v.componentProperties || {}).map(([key, value]) => [key, { value }])
+                  );
               })
             }
           />
         </Box>
 
-        {appearance?.componentId && <ComponentSettings value={appearance} />}
+        {appearance?.componentId && <ComponentSettings value={appearance} remoteReact={remoteReact} />}
       </Stack>
     </Box>
   );
@@ -162,15 +176,15 @@ export default function AppearanceSettings({ output }: { output: OutputVariableY
 
 function ComponentSelect({
   tags,
+  remoteReact = [],
   ...props
-}: { tags?: string } & Partial<
+}: {
+  tags?: string;
+  remoteReact?: RemoteComponent[];
+} & Partial<
   AutocompleteProps<Pick<Component, 'id' | 'name'> & { componentProperties?: {}; group?: string }, false, false, false>
 >) {
   const { value, loading } = useAsync(() => getComponents({ tags }), [tags]);
-  const { value: remoteReact, loading: remoteLoading } = useAsync(
-    async () => ((tags || '')?.includes('aigne-view') ? getDynamicReactComponents() : undefined),
-    [tags]
-  );
 
   const components = useMemo(() => {
     return [
@@ -179,7 +193,7 @@ function ComponentSelect({
         id: REMOTE_REACT_COMPONENT,
         name: x.name,
         componentProperties: {
-          remoteComponentPath: x.path,
+          remoteComponentPath: x.url,
           remoteComponentDID: x.did,
         },
         group: 'remote',
@@ -191,7 +205,7 @@ function ComponentSelect({
     <Autocomplete
       groupBy={(option) => option.group || ''}
       options={components}
-      loading={loading || remoteLoading}
+      loading={loading}
       {...props}
       renderInput={(params) => <TextField hiddenLabel {...params} />}
       getOptionLabel={(component) => component.name || component.id}
