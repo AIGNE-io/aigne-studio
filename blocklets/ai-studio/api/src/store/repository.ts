@@ -20,7 +20,7 @@ import { glob } from 'glob';
 import isEmpty from 'lodash/isEmpty';
 import pick from 'lodash/pick';
 import { nanoid } from 'nanoid';
-import { joinURL } from 'ufo';
+import { joinURL, parseAuth, parseURL } from 'ufo';
 import { parse, stringify } from 'yaml';
 
 import { authClient, wallet } from '../libs/auth';
@@ -262,8 +262,11 @@ export const autoSyncIfNeeded = async ({
 }) => {
   if (project.gitUrl && project.gitAutoSync) {
     const repository = await getRepository({ projectId: project._id! });
-    await syncRepository({ repository, ref: project.gitDefaultBranch, author });
-    await project.update({ gitLastSyncedAt: new Date() });
+    const remote = (await repository.listRemotes()).find((i) => i.remote === defaultRemote);
+    if (remote && parseAuth(parseURL(remote.url).auth).password) {
+      await syncRepository({ repository, ref: project.gitDefaultBranch, author });
+      await project.update({ gitLastSyncedAt: new Date() });
+    }
   }
 
   if (project.didSpaceAutoSync) {

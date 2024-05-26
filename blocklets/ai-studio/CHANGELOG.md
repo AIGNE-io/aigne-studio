@@ -1,3 +1,8 @@
+## 0.2.11 (2024-5-26)
+
+- chore: split project setting with tabs
+- chore: add primary color setting
+
 ## 0.2.10 (2024-5-26)
 
 - fix: auto load agents when the selector opening
