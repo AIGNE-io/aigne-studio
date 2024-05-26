@@ -715,4 +715,6 @@ export default flat({
   appearanceIconPlaceholder: 'The icon displayed above this output',
   addMoreAgentTools: 'Add More',
   noAgents: 'No Agents',
+  buildIn: 'buildIn',
+  remote: 'remote',
 });

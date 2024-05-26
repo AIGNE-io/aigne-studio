@@ -276,7 +276,7 @@ function VariableRow({
 
   return (
     <>
-      <Tooltip title={error}>
+      <Tooltip title={error} placement="top-start">
         <Box
           ref={rowRef}
           {...props}

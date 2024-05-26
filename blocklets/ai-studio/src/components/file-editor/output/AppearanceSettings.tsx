@@ -17,7 +17,6 @@ import {
   Typography,
 } from '@mui/material';
 import { WritableDraft } from 'immer';
-import { cloneDeep } from 'lodash';
 import pick from 'lodash/pick';
 import { useEffect, useMemo } from 'react';
 import { useAsync } from 'react-use';
@@ -38,7 +37,6 @@ export default function AppearanceSettings({ output }: { output: OutputVariableY
   const { t } = useLocaleContext();
 
   const { appearance } = output;
-  console.log(cloneDeep(appearance));
 
   const doc = (getYjsValue(output) as Map<any>).doc!;
   const setField = (update: (draft: WritableDraft<RuntimeOutputAppearance>) => void) => {
@@ -185,10 +183,11 @@ function ComponentSelect({
   AutocompleteProps<Pick<Component, 'id' | 'name'> & { componentProperties?: {}; group?: string }, false, false, false>
 >) {
   const { value, loading } = useAsync(() => getComponents({ tags }), [tags]);
+  const { t } = useLocaleContext();
 
   const components = useMemo(() => {
     return [
-      ...(value?.components || []).map((x) => ({ id: x.id, name: x.name, group: 'buildIn' })),
+      ...(value?.components || []).map((x) => ({ id: x.id, name: x.name, group: t('buildIn') })),
       ...(remoteReact || []).map((x) => ({
         id: REMOTE_REACT_COMPONENT,
         name: x.name,
@@ -196,7 +195,7 @@ function ComponentSelect({
           remoteComponentPath: x.url,
           remoteComponentDID: x.did,
         },
-        group: 'remote',
+        group: t('remote'),
       })),
     ];
   }, [value, remoteReact]);
@@ -213,7 +212,7 @@ function ComponentSelect({
       renderGroup={(params) => {
         return (
           <Box key={params.key}>
-            <Typography p={2} py={1} fontSize="14px" lineHeight="20px" color="#9CA3AF">
+            <Typography p={2} py={1} pl={1} lineHeight="20px" color="#9CA3AF">
               {params.group}
             </Typography>
             <Box>{params.children}</Box>
