@@ -1,7 +1,14 @@
-## 0.2.9 (2024-5-24)
+## 0.2.10 (2024-5-26)
 
-- chore: split project setting with tabs
-- chore: add primary color setting
+- fix: auto load agents when the selector opening
+
+## 0.2.9 (2024-5-26)
+
+- feat: support publish current project to blocklet store
+- feat: support add agents from blocklet store
+- fix: serve project icon correctly
+- chore: add tip for secret authorization
+- fix: disable the description field for the outputs value from the inputs
 
 ## 0.2.8 (2024-5-23)
 

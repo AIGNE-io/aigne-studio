@@ -706,9 +706,12 @@ export default flat({
   authorize: 'Authorize',
   reauthorize: 'Reauthorize',
   primaryColor: 'Primary Color',
+  authorizeApiKeyTip: 'Your api key is secure and only valid for the current project.',
   icon: 'Icon',
   iconAndTitle: 'Icon & Title',
   basic: 'Basic',
   appearanceTitlePlaceholder: 'The title displayed above this output',
   appearanceIconPlaceholder: 'The icon displayed above this output',
+  addMoreAgentTools: 'Add More',
+  noAgents: 'No Agents',
 });
