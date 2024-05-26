@@ -1,3 +1,6 @@
+## 0.2.12 (2024-5-27)
+- fix: change dialog to popper
+
 ## 0.2.11 (2024-5-26)
 
 - chore: split project setting with tabs
