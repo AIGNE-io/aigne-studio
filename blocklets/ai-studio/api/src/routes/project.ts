@@ -20,7 +20,7 @@ import omit from 'lodash/omit';
 import omitBy from 'lodash/omitBy';
 import pick from 'lodash/pick';
 import uniqBy from 'lodash/uniqBy';
-import { joinURL } from 'ufo';
+import { joinURL, parseAuth, parseURL } from 'ufo';
 import { parse } from 'yaml';
 
 import { getProjectFromResource, getResourceProjects } from '../libs/resource';
@@ -503,8 +503,10 @@ export function projectRoutes(router: Router) {
     const { did } = req.user!;
 
     const uri = new URL(url);
-    if (username) uri.username = username;
-    if (password) uri.password = password;
+    if (password) {
+      if (username) uri.username = username;
+      if (password) uri.password = password;
+    }
 
     let originProject;
     let originDefaultBranch = defaultBranch;
@@ -573,6 +575,7 @@ export function projectRoutes(router: Router) {
         createdBy: did,
         updatedBy: did,
         name,
+        gitAutoSync: !!password,
         gitLastSyncedAt: new Date(),
         description,
       });
@@ -585,6 +588,7 @@ export function projectRoutes(router: Router) {
 
   router.patch('/projects/:projectId', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
+    if (!projectId) throw new Error('Missing required parameter `projectId`');
 
     const project = await Project.findOne({ where: { _id: projectId } });
     if (!project) {
@@ -611,6 +615,14 @@ export function projectRoutes(router: Router) {
       homePageUrl,
       primaryColor,
     } = await updateProjectSchema.validateAsync(req.body, { stripUnknown: true });
+
+    if (gitAutoSync) {
+      const repo = await getRepository({ projectId });
+      const remote = (await repo.listRemotes()).find((i) => i.remote === defaultRemote);
+      if (!remote) throw new Error('The remote has not been set up yet');
+      if (!parseAuth(parseURL(remote.url).auth).password)
+        throw new Error('Automatic synchronization must use an access token');
+    }
 
     const { did: userId, fullName } = req.user!;
 
@@ -795,6 +807,10 @@ export function projectRoutes(router: Router) {
     }
 
     if (target === 'github') {
+      const remote = (await repository.listRemotes()).find((i) => i.remote === defaultRemote);
+      if (!remote) throw new Error('The remote has not been set up yet');
+      if (!parseAuth(parseURL(remote.url).auth).password) throw new Error('Synchronization must use an access token');
+
       const branches = await repository.listBranches();
       for (const ref of branches) {
         // eslint-disable-next-line no-await-in-loop

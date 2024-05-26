@@ -198,7 +198,7 @@ export default function RemoteRepoSetting({ projectId }: { projectId: string }) 
           />
         </Box>
       </>
-      <Stack flexDirection="row" justifyContent="space-between">
+      <Stack flexDirection="row" justifyContent="space-between" sx={{ whiteSpace: 'nowrap' }} gap={1}>
         <Stack flexDirection="row" gap={1}>
           <LoadingButton
             variant="contained"
