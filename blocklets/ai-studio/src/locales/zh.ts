@@ -691,9 +691,12 @@ export default flat({
   launchMoreConfirm: '启动我的 AI 工作室',
   authorize: '授权',
   reauthorize: '重新授权',
+  authorizeApiKeyTip: '你的 api key 是安全的，仅对当前项目有效。',
   icon: '图标',
   iconAndTitle: '图标和标题',
   basic: '基础',
   appearanceTitlePlaceholder: '显示在该输出上方的标题',
   appearanceIconPlaceholder: '显示在该输出上方的图标',
+  addMoreAgentTools: '添加更多',
+  noAgents: '没有可选的 Agent',
 });

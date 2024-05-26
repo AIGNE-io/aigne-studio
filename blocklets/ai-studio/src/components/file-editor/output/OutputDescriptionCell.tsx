@@ -34,12 +34,12 @@ export default function OutputDescriptionCell({
 
   return (
     <TextField
-      disabled={output.from?.type === 'input'}
       sx={{ visibility: isIgnoreDescription(output) ? 'hidden' : undefined }}
       variant="standard"
       fullWidth
       hiddenLabel
       {...TextFieldProps}
+      disabled={output.from?.type === 'input' || TextFieldProps?.disabled}
       placeholder={
         output.from?.type === 'input'
           ? t('outputFromInputPlaceholder', { input: input?.data.key })

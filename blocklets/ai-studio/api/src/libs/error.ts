@@ -7,3 +7,5 @@ export class InvalidSubscriptionError extends Error {
 export class ReachMaxRoundLimitError extends Error {
   type = 'ReachMaxRoundLimitError';
 }
+
+export class NotFoundError extends Error {}
