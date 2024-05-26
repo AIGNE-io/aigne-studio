@@ -77,10 +77,11 @@ export default function AgentSelect<
           return <Box />;
         }}
         onClose={() => {}}
-        onComplete={() => load()}
+        onComplete={() => {}}
       />
 
       <Autocomplete
+        onOpen={() => load()}
         value={val as any}
         onChange={(e, v, reason) =>
           onChange?.(
