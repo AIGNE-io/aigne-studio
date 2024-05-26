@@ -3,9 +3,9 @@ import { DataTypes } from 'sequelize';
 import type { Migration } from '../migrate';
 
 export const up: Migration = async ({ context: queryInterface }) => {
-  await queryInterface.addColumn('Datastores', 'scope', { type: DataTypes.STRING });
+  await queryInterface.addColumn('Projects', 'primaryColor', { type: DataTypes.STRING });
 };
 
 export const down: Migration = async ({ context: queryInterface }) => {
-  await queryInterface.removeColumn('Datastores', 'scope');
+  await queryInterface.removeColumn('Projects', 'primaryColor');
 };

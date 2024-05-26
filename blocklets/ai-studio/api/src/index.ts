@@ -19,7 +19,7 @@ import { Errors } from 'isomorphic-git';
 import app from './app';
 import jobs from './jobs';
 import { Config, isDevelopment } from './libs/env';
-import { NoPermissionError } from './libs/error';
+import { NoPermissionError, NotFoundError } from './libs/error';
 import logger from './libs/logger';
 import { initResourceStates } from './libs/resource';
 import routes from './routes';
@@ -70,7 +70,12 @@ app.use(<ErrorRequestHandler>((error, _req, res, _next) => {
   logger.error('handle route error', { error });
 
   try {
-    const status = error instanceof Errors.NotFoundError ? 404 : error instanceof NoPermissionError ? 403 : 500;
+    const status =
+      error instanceof Errors.NotFoundError || error instanceof NotFoundError
+        ? 404
+        : error instanceof NoPermissionError
+          ? 403
+          : 500;
     if (!res.headersSent) res.status(status).contentType('json');
     if (res.writable)
       res.write(

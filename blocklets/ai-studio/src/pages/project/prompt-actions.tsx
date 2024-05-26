@@ -1,7 +1,9 @@
 import LoadingButton from '@app/components/loading/loading-button';
+import { CurrentProjectProvider } from '@app/contexts/project';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { isAssistant } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
+import BrandAppgalleryIcon from '@iconify-icons/tabler/brand-appgallery';
 import ArrowLeft from '@iconify-icons/tabler/chevron-left';
 import FloppyIcon from '@iconify-icons/tabler/device-floppy';
 import EyeBoltIcon from '@iconify-icons/tabler/eye-bolt';
@@ -20,6 +22,7 @@ import {
   Paper,
   Popper,
   Stack,
+  Tooltip,
   Typography,
 } from '@mui/material';
 import { bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
@@ -31,6 +34,7 @@ import { joinURL } from 'ufo';
 import CommitsTip, { CommitListView } from '../../components/template-form/commits-tip';
 import { getFileIdFromPath } from '../../utils/path';
 import PublishView from './publish-view';
+import PublishButton from './publish/publish-button';
 import SaveButton, { CommitForm, SaveButtonDialog } from './save-button';
 import Settings from './settings';
 import { useAssistantChangesState, useProjectState } from './state';
@@ -59,7 +63,7 @@ export function HeaderActions() {
   if (!projectId || !gitRef) throw new Error('Missing required params `projectId` or `ref`');
 
   const navigate = useNavigate();
-  const publishPopperState = usePopupState({ variant: 'popper', popupId: 'publish' });
+  const previewPopperState = usePopupState({ variant: 'popper', popupId: 'preview' });
   const settingPopperState = usePopupState({ variant: 'popper', popupId: 'settings' });
 
   const {
@@ -71,75 +75,87 @@ export function HeaderActions() {
   const file = fileId && getFileById(fileId);
 
   return (
-    <Box gap={1} className="center">
-      <AgentTokenUsage />
+    <CurrentProjectProvider projectId={projectId} projectRef={gitRef}>
+      <Box gap={1} className="center" sx={{ button: { whiteSpace: 'nowrap' } }}>
+        <AgentTokenUsage />
 
-      <CommitsTip
-        loading={loading}
-        commits={commits}
-        hash={gitRef}
-        onCommitSelect={(commit) => {
-          navigate(joinURL('..', commit.oid), { state: { filepath } });
-        }}>
-        <Button sx={{ minWidth: 0, minHeight: 0, width: 32, height: 32, border: '1px solid #E5E7EB' }}>
-          <Box component={Icon} icon={HistoryToggleIcon} sx={{ fontSize: 20, color: '#030712' }} />
-        </Button>
-      </CommitsTip>
+        <CommitsTip
+          loading={loading}
+          commits={commits}
+          hash={gitRef}
+          onCommitSelect={(commit) => {
+            navigate(joinURL('..', commit.oid), { state: { filepath } });
+          }}>
+          <span>
+            <Tooltip disableInteractive title={t('alert.history')}>
+              <Button sx={{ minWidth: 0, minHeight: 0, width: 32, height: 32, border: '1px solid #E5E7EB' }}>
+                <Box component={Icon} icon={HistoryToggleIcon} sx={{ fontSize: 20, color: '#030712' }} />
+              </Button>
+            </Tooltip>
+          </span>
+        </CommitsTip>
 
-      <SaveButton projectId={projectId} gitRef={gitRef} />
+        <SaveButton projectId={projectId} gitRef={gitRef} />
 
-      <>
-        <Button
-          sx={{ minWidth: 0, minHeight: 0, width: 32, height: 32, border: '1px solid #E5E7EB' }}
-          {...bindTrigger(settingPopperState)}>
-          <Box component={Icon} icon={SettingsIcon} sx={{ fontSize: 18, color: '#030712' }} />
-        </Button>
+        <>
+          <Tooltip disableInteractive title={t('setting')}>
+            <Button
+              sx={{ minWidth: 0, minHeight: 0, width: 32, height: 32, border: '1px solid #E5E7EB' }}
+              {...bindTrigger(settingPopperState)}>
+              <Box component={Icon} icon={SettingsIcon} sx={{ fontSize: 18, color: '#030712' }} />
+            </Button>
+          </Tooltip>
 
-        <Popper {...bindPopper(settingPopperState)} sx={{ zIndex: 1101 }} transition placement="bottom-end">
-          {({ TransitionProps }) => (
-            <Grow style={{ transformOrigin: 'right top' }} {...TransitionProps}>
-              <Paper sx={{ border: '1px solid #ddd', maxWidth: 450, maxHeight: '80vh', overflow: 'auto', mt: 1 }}>
-                <ClickAwayListener
-                  onClickAway={(e) => (e.target as HTMLElement)?.localName !== 'body' && settingPopperState.close()}>
-                  <Box>
-                    <Settings boxProps={{}} />
-                  </Box>
-                </ClickAwayListener>
-              </Paper>
-            </Grow>
-          )}
-        </Popper>
-      </>
+          <Popper {...bindPopper(settingPopperState)} sx={{ zIndex: 1101 }} transition placement="bottom-end">
+            {({ TransitionProps }) => (
+              <Grow style={{ transformOrigin: 'right top' }} {...TransitionProps}>
+                <Paper sx={{ border: '1px solid #ddd', maxWidth: 450, maxHeight: '80vh', overflow: 'auto', mt: 1 }}>
+                  <ClickAwayListener
+                    onClickAway={(e) => (e.target as HTMLElement)?.localName !== 'body' && settingPopperState.close()}>
+                    <Box>
+                      <Settings boxProps={{}} />
+                    </Box>
+                  </ClickAwayListener>
+                </Paper>
+              </Grow>
+            )}
+          </Popper>
+        </>
 
-      <>
-        <LoadingButton
-          variant="contained"
-          startIcon={<Box component={Icon} icon={EyeBoltIcon} sx={{ fontSize: 16 }} />}
-          size="small"
-          {...bindTrigger(publishPopperState)}>
-          {t('preview')}
-        </LoadingButton>
+        <PublishButton />
 
-        <Popper {...bindPopper(publishPopperState)} sx={{ zIndex: 1101 }} transition placement="bottom-end">
-          {({ TransitionProps }) => (
-            <Grow style={{ transformOrigin: 'right top' }} {...TransitionProps}>
-              <Paper
-                sx={{
-                  border: '1px solid #ddd',
-                  height: '100%',
-                  overflow: 'auto',
-                  mt: 1,
-                }}>
-                <ClickAwayListener
-                  onClickAway={(e) => (e.target as HTMLElement)?.localName !== 'body' && publishPopperState.close()}>
-                  <Box>{file ? <PublishView projectId={projectId} projectRef={gitRef} assistant={file} /> : null}</Box>
-                </ClickAwayListener>
-              </Paper>
-            </Grow>
-          )}
-        </Popper>
-      </>
-    </Box>
+        <>
+          <LoadingButton
+            variant="contained"
+            startIcon={<Box component={Icon} icon={EyeBoltIcon} sx={{ fontSize: 16 }} />}
+            size="small"
+            {...bindTrigger(previewPopperState)}>
+            {t('preview')}
+          </LoadingButton>
+
+          <Popper {...bindPopper(previewPopperState)} sx={{ zIndex: 1101 }} transition placement="bottom-end">
+            {({ TransitionProps }) => (
+              <Grow style={{ transformOrigin: 'right top' }} {...TransitionProps}>
+                <Paper
+                  sx={{
+                    border: '1px solid #ddd',
+                    height: '100%',
+                    overflow: 'auto',
+                    mt: 1,
+                  }}>
+                  <ClickAwayListener
+                    onClickAway={(e) => (e.target as HTMLElement)?.localName !== 'body' && previewPopperState.close()}>
+                    <Box>
+                      {file ? <PublishView projectId={projectId} projectRef={gitRef} assistant={file} /> : null}
+                    </Box>
+                  </ClickAwayListener>
+                </Paper>
+              </Grow>
+            )}
+          </Popper>
+        </>
+      </Box>
+    </CurrentProjectProvider>
   );
 }
 
@@ -147,8 +163,10 @@ export function MobileHeaderActions() {
   const { projectId, ref: gitRef } = useParams();
   if (!projectId || !gitRef) throw new Error('Missing required params `projectId` or `ref`');
 
+  const { t } = useLocaleContext();
+
   return (
-    <>
+    <CurrentProjectProvider projectId={projectId} projectRef={gitRef}>
       <Divider sx={{ m: 0, p: 0 }} />
 
       <HistoryAction />
@@ -159,8 +177,18 @@ export function MobileHeaderActions() {
 
       <Divider sx={{ m: 0, p: 0 }} />
 
-      <PublishAction />
-    </>
+      <Box>
+        <PublishButton
+          fullWidth
+          variant="outlined"
+          sx={{ width: 1 }}
+          startIcon={<Box component={Icon} icon={BrandAppgalleryIcon} />}>
+          {t('publish')}
+        </PublishButton>
+      </Box>
+
+      <PreviewAction />
+    </CurrentProjectProvider>
   );
 }
 
@@ -354,7 +382,7 @@ function SettingsAction() {
   );
 }
 
-function PublishAction() {
+function PreviewAction() {
   const { t } = useLocaleContext();
   const { projectId, ref: gitRef, '*': filepath } = useParams();
   const dialogState = usePopupState({ variant: 'dialog' });
