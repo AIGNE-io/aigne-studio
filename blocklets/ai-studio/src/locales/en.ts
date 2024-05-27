@@ -717,4 +717,5 @@ export default flat({
   noAgents: 'No Agents',
   buildIn: 'buildIn',
   remote: 'remote',
+  onlyAdminsAllowAddMoreAgents: 'Only admins can add more agents',
 });

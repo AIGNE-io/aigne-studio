@@ -711,4 +711,5 @@ export default flat({
   noAgents: '没有可选的 Agent',
   buildIn: '内置组件',
   remote: '远程组件',
+  onlyAdminsAllowAddMoreAgents: '仅允许管理员添加更多 Agents',
 });
