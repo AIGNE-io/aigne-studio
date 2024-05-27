@@ -1,7 +1,7 @@
 {
-  "name": "@blocklet/dataset-sdk",
-  "version": "0.2.12",
-  "description": "The SDK for processing dataset protocol",
+  "name": "@blocklet/components-sdk",
+  "version": "0.2.8",
+  "description": "The SDK for processing react component protocol",
   "publishConfig": {
     "access": "public"
   },
@@ -16,29 +16,13 @@
       "import": "./lib/esm/index.js",
       "require": "./lib/cjs/index.js"
     },
-    "./types": {
-      "import": "./lib/esm/types/index.js",
-      "require": "./lib/cjs/types/index.js"
+    "./const": {
+      "import": "./lib/esm/const.js",
+      "require": "./lib/cjs/const.js"
     },
-    "./request": {
-      "import": "./lib/esm/request/index.js",
-      "require": "./lib/cjs/request/index.js"
-    },
-    "./request/util": {
-      "import": "./lib/esm/request/util.js",
-      "require": "./lib/cjs/request/util.js"
-    },
-    "./openapi": {
-      "import": "./lib/esm/openapi.js",
-      "require": "./lib/cjs/openapi.js"
-    },
-    "./util/*": {
-      "import": "./lib/esm/util/*.js",
-      "require": "./lib/cjs/util/*.js"
-    },
-    "./plugin": {
-      "import": "./lib/esm/plugin.js",
-      "require": "./lib/cjs/plugin.js"
+    "./type": {
+      "import": "./lib/esm/type.js",
+      "require": "./lib/cjs/type.js"
     }
   },
   "typesVersions": {
@@ -46,23 +30,11 @@
       "*": [
         "./lib/types/index.d.ts"
       ],
-      "types": [
-        "./lib/types/types/index.d.ts"
+      "./const": [
+        "./lib/types/const.d.ts"
       ],
-      "request": [
-        "./lib/types/request/index.d.ts"
-      ],
-      "request/util": [
-        "./lib/types/request/util.d.ts"
-      ],
-      "openapi": [
-        "./lib/types/openapi.d.ts"
-      ],
-      "util/*": [
-        "./lib/types/util/*.d.ts"
-      ],
-      "plugin": [
-        "./lib/types/plugin.d.ts"
+      "./type": [
+        "./lib/types/type.d.ts"
       ]
     }
   },
@@ -91,18 +63,10 @@
   "dependencies": {
     "@blocklet/constant": "^1.16.26",
     "@blocklet/sdk": "^1.16.26",
-    "@types/swagger-jsdoc": "^6.0.4",
-    "@types/swagger-ui-express": "^4.1.6",
-    "ajv": "^8.14.0",
     "axios": "^1.7.2",
     "express": "^4.19.2",
     "joi": "^17.13.1",
     "lodash": "^4.17.21",
-    "openapi-enforcer": "^1.23.0",
-    "openapi-types": "^12.1.3",
-    "openapi3-ts": "^4.3.2",
-    "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.0",
     "ufo": "^1.5.3",
     "yaml": "^2.4.2"
   },
@@ -110,7 +74,6 @@
     "@types/lodash": "^4.17.4",
     "npm-run-all": "^4.1.5",
     "rimraf": "^5.0.7",
-    "typescript": "^5.4.5",
-    "zx": "^7.2.3"
+    "typescript": "^5.4.5"
   }
 }

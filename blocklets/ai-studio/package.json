@@ -41,6 +41,7 @@
     "@blocklet/ai-kit": "^0.1.34",
     "@blocklet/ai-runtime": "workspace:^",
     "@blocklet/co-git": "workspace:^",
+    "@blocklet/components-sdk": "workspace:^",
     "@blocklet/constant": "^1.16.26",
     "@blocklet/dataset-sdk": "workspace:^",
     "@blocklet/discuss-kit": "^1.6.258",

@@ -304,6 +304,7 @@ export interface RuntimeOutputAppearance {
   componentId?: string;
   componentName?: string;
   componentProperties?: { [key: string]: any };
+  componentProps?: { [key: string]: any };
   title?: string;
   icon?: string;
 }

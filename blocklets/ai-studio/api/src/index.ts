@@ -7,6 +7,7 @@ import { access, mkdir } from 'fs/promises';
 import path from 'path';
 
 import { AssistantResponseType } from '@blocklet/ai-runtime/types';
+import { getComponentsRouter } from '@blocklet/components-sdk';
 import { createDatasetAPIRouter } from '@blocklet/dataset-sdk/openapi';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
@@ -55,6 +56,7 @@ app.use(
     apis: [path.join(__dirname, './routes/**/*.*')],
   })
 );
+app.use('/', getComponentsRouter());
 app.use('/api', routes);
 
 if (!isDevelopment) {
