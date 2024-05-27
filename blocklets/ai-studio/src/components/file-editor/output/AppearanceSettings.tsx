@@ -192,8 +192,8 @@ function ComponentSelect({
         id: REMOTE_REACT_COMPONENT,
         name: x.name,
         componentProperties: {
-          remoteComponentPath: x.url,
-          remoteComponentDID: x.did,
+          componentPath: x.url,
+          blockletDid: x.did,
         },
         group: t('remote'),
       })),
