@@ -504,6 +504,71 @@ async function runApiAssistant({
 
 const cacheTranslateFunctionNames: { [key: string]: string } = {};
 
+const getEnglishFunctionName = async ({
+  assistant,
+  hashName,
+  tool,
+  name,
+}: {
+  assistant: RouterAssistant;
+  hashName?: string;
+  tool: Tool;
+  name: string;
+}) => {
+  let functionTranslateName = '';
+  if (hashName) {
+    if (!cacheTranslateFunctionNames[`${assistant.id}-${tool.id}-${hashName}`]) {
+      try {
+        const result = await call({
+          name: 'ai-studio',
+          path: '/api/ai/completions',
+          method: 'POST',
+          data: {
+            stream: false,
+            messages: [
+              {
+                content: `\
+                # Roles: You are a translation master. You need to translate the user's input into English.
+
+                # rules:
+                - Please do not respond with unnecessary content, only provide the translation.
+                - You need to translate any input provided.
+                - Your translation should be in camelCase function name format.
+                - If the input is already in English, no translation is required.
+
+                # Examples:
+                - 测试: test
+                - 开始: start
+                - weapon: weapon
+                - 添加一个新的todo: AddANewTodo
+                `,
+                role: 'system',
+              },
+              {
+                content: name ?? '',
+                role: 'user',
+              },
+            ],
+            model: assistant?.model,
+            temperature: assistant?.temperature,
+            topP: assistant?.topP,
+            presencePenalty: assistant?.presencePenalty,
+            frequencyPenalty: assistant?.frequencyPenalty,
+          },
+        });
+
+        cacheTranslateFunctionNames[`${assistant.id}-${tool.id}-${hashName}`] = result?.data?.content;
+      } catch (error) {
+        logger.error(error);
+      }
+    }
+
+    functionTranslateName = cacheTranslateFunctionNames[`${assistant.id}-${tool.id}-${hashName}`] || '';
+  }
+
+  return functionTranslateName;
+};
+
 async function runRouterAssistant({
   getSecret,
   callAI,
@@ -545,14 +610,49 @@ async function runRouterAssistant({
 
   const message = await renderMessage(assistant.prompt, parameters);
   const routes = assistant?.routes || [];
+  const openApis = await getBuildInDatasets();
 
+  logger.info('start get tool function');
   const toolAssistants = (
     await Promise.all(
       routes.map(async (tool) => {
+        if (tool?.from === 'blockletAPI') {
+          const dataset = (openApis || []).find((x) => x.id === tool.id);
+          if (!dataset) return undefined;
+
+          const name = tool?.functionName || dataset.summary || dataset.description || '';
+          const hashName = md5(name);
+          const functionTranslateName = await getEnglishFunctionName({ assistant, hashName, tool, name });
+          logger.info('function call api name', functionTranslateName);
+
+          const datasetParameters = getAllParameters(dataset)
+            .filter((i): i is typeof i => !!i && !tool.parameters?.[i.name])
+            .map((i) => [i.name, { type: 'string', name, description: i.description ?? '' }]);
+
+          const required = getRequiredFields(dataset);
+
+          return {
+            tool,
+            toolAssistant: dataset,
+            function: {
+              name: (functionTranslateName || name).replace(/[^a-zA-Z0-9_-]/g, '_')?.slice(0, 64) || dataset.path,
+              descriptions: dataset.description || name || '',
+              parameters: {
+                type: 'object',
+                properties: Object.fromEntries(datasetParameters),
+                required: required?.length ? required : undefined,
+              },
+            },
+          };
+        }
+
         const toolAssistant = await getAssistant(tool.id, { blockletDid: tool.blockletDid, projectId: tool.projectId });
         if (!toolAssistant) return undefined;
         const toolParameters = (toolAssistant.parameters ?? [])
-          .filter((i): i is typeof i & Required<Pick<typeof i, 'key'>> => !!i.key && !tool.parameters?.[i.key])
+          .filter(
+            (i): i is typeof i & Required<Pick<typeof i, 'key'>> =>
+              !!i.key && !tool.parameters?.[i.key] && i.type !== 'source'
+          )
           .map((parameter) => {
             return [
               parameter.key,
@@ -570,64 +670,15 @@ async function runRouterAssistant({
           });
 
         const required = (toolAssistant.parameters ?? [])
-          .filter((i): i is typeof i & { key: string } => !!i.key)
+          .filter((i): i is typeof i & { key: string } => !!i.key && i.type !== 'source')
           .filter((i) => !(tool?.parameters || {})[i.key])
           .filter((x) => x.required)
           .map((x) => x.key);
 
         const name = tool?.functionName || toolAssistant?.description || toolAssistant?.name || '';
         const hashName = md5(name);
-
-        let functionTranslateName = '';
-        if (hashName) {
-          if (!cacheTranslateFunctionNames[`${assistant.id}-${tool.id}-${hashName}`]) {
-            try {
-              const result = await call({
-                name: 'ai-studio',
-                path: '/api/ai/completions',
-                method: 'POST',
-                data: {
-                  stream: false,
-                  messages: [
-                    {
-                      content: `\
-                      # Roles: You are a translation master. You need to translate the user's input into English.
-
-                      # rules:
-                      - Please do not respond with unnecessary content, only provide the translation.
-                      - You need to translate any input provided.
-                      - Your translation should be in camelCase function name format.
-                      - If the input is already in English, no translation is required.
-
-                      # Examples:
-                      - 测试: test
-                      - 开始: start
-                      - weapon: weapon
-                      - 添加一个新的todo: AddANewTodo
-                      `,
-                      role: 'system',
-                    },
-                    {
-                      content: name ?? '',
-                      role: 'user',
-                    },
-                  ],
-                  model: assistant?.model,
-                  temperature: assistant?.temperature,
-                  topP: assistant?.topP,
-                  presencePenalty: assistant?.presencePenalty,
-                  frequencyPenalty: assistant?.frequencyPenalty,
-                },
-              });
-
-              cacheTranslateFunctionNames[`${assistant.id}-${tool.id}`] = result?.data?.content;
-            } catch (error) {
-              logger.error(error);
-            }
-          }
-
-          functionTranslateName = cacheTranslateFunctionNames[`${assistant.id}-${tool.id}-${hashName}`] || '';
-        }
+        const functionTranslateName = await getEnglishFunctionName({ assistant, hashName, tool, name });
+        logger.info('function call agent name', functionTranslateName);
 
         return {
           tool,
@@ -670,6 +721,16 @@ async function runRouterAssistant({
     tools: ChatCompletionInput['tools'];
     toolChoice: ChatCompletionInput['toolChoice'];
   }) => {
+    logger.info('function call input', {
+      model: assistant?.model,
+      temperature: assistant?.temperature,
+      topP: assistant?.topP,
+      presencePenalty: assistant?.presencePenalty,
+      frequencyPenalty: assistant?.frequencyPenalty,
+      messages: [{ role: 'user', content: message }],
+      tools,
+      toolChoice,
+    });
     const response = await callAI({
       assistant,
       input: {
@@ -707,17 +768,26 @@ async function runRouterAssistant({
     return calls;
   };
 
+  const tools: {
+    type: 'function';
+    function: { name: string; description?: string | undefined; parameters: Record<string, any> };
+  }[] = toolAssistants.map((i) => ({
+    type: 'function',
+    function: {
+      name: i.function.name,
+      description: i.function.descriptions,
+      parameters: i.function.parameters,
+    },
+  }));
+
+  logger.info('function call tools', JSON.stringify(tools));
+
+  logger.info('call agent function start');
   const calls = await runFunctionCall({
-    tools: toolAssistants.map((i) => ({
-      type: 'function',
-      function: {
-        name: i.function.name,
-        description: i.function.descriptions,
-        parameters: i.function.parameters,
-      },
-    })),
+    tools,
     toolChoice: 'required',
   });
+  logger.info('call agent function end');
 
   callback?.({
     type: AssistantResponseType.EXECUTE,
@@ -732,6 +802,8 @@ async function runRouterAssistant({
 
   const matchAgentName = async () => {
     // requestCalls 没有找到，检查 jsonResult 是否存在
+    logger.info('match not call function agent name');
+
     let selectedAgent: { category_name?: string } = {};
     try {
       const categories = toolAssistants
@@ -825,7 +897,10 @@ async function runRouterAssistant({
 
     return [{ type: 'function', function: { name: agentName, arguments: '{}' } }];
   };
+
+  logger.info('match function name start');
   const requestCalls = await matchRequestCalls();
+  logger.info('match function name end');
 
   const result =
     requestCalls &&
@@ -835,18 +910,10 @@ async function runRouterAssistant({
 
         const tool = toolAssistantMap[call.function.name];
         if (!tool) return undefined;
+
         const requestData = JSON.parse(call.function.arguments);
         const currentTaskId = taskIdGenerator.nextId().toString();
-
         const toolAssistant = tool?.toolAssistant as Assistant;
-        await Promise.all(
-          toolAssistant.parameters?.map(async (item) => {
-            const message = tool.tool?.parameters?.[item.key!];
-            if (message) {
-              requestData[item.key!] = await renderMessage(message, parameters);
-            }
-          }) ?? []
-        );
 
         const cb: (() => RunAssistantCallback) | undefined =
           callback &&
@@ -869,6 +936,30 @@ async function runRouterAssistant({
 
             callback(args);
           });
+
+        if (tool.tool.from === 'blockletAPI') {
+          return runAPITool({
+            tool: tool.tool,
+            taskId: currentTaskId,
+            assistant,
+            parameters: { ...parameters, ...requestData },
+            dataset: tool.toolAssistant as DatasetObject,
+            parentTaskId: taskId,
+            callback: cb?.(),
+            user,
+            sessionId,
+            projectId,
+          });
+        }
+
+        await Promise.all(
+          toolAssistant.parameters?.map(async (item) => {
+            const message = tool.tool?.parameters?.[item.key!];
+            if (message) {
+              requestData[item.key!] = await renderMessage(message, parameters);
+            }
+          }) ?? []
+        );
 
         const res = await runAssistant({
           getSecret,
@@ -896,6 +987,8 @@ async function runRouterAssistant({
     ));
 
   const obj = result?.length === 1 ? result[0] : result;
+  logger.info('get call function result', obj);
+
   const jsonResult = await validateOutputs({ assistant, datastoreVariables, inputs: parameters, outputs: obj });
 
   callback?.({
@@ -1110,7 +1203,7 @@ const runRequestToolAssistant = async ({
     const args = Object.fromEntries(
       await Promise.all(
         (toolAssistant.parameters ?? [])
-          .filter((i): i is typeof i & { key: string } => !!i.key)
+          .filter((i): i is typeof i & { key: string } => !!i.key && i.type !== 'source')
           .map(async (i) => {
             const template = String(tool.parameters?.[i.key] || '').trim();
             const value = template ? await renderMessage(template, parameters) : parameters?.[i.key];
@@ -1178,6 +1271,7 @@ const getVariables = async ({
   const variables: { [key: string]: any } = { ...parameters };
 
   const userId = user?.did;
+  const datasets = await getBuildInDatasets();
 
   const cb: ((taskId: string) => RunAssistantCallback) | undefined =
     callback &&
@@ -1276,6 +1370,26 @@ const getVariables = async ({
         });
 
         variables[parameter.key] = memories;
+      } else if (parameter.source?.variableFrom === 'blockletAPI' && parameter.source.api) {
+        const { api } = parameter.source;
+        const dataset = datasets.find((x) => x.id === api.id);
+        const currentTaskId = taskIdGenerator.nextId().toString();
+
+        // eslint-disable-next-line no-await-in-loop
+        const result = await runAPITool({
+          tool: api,
+          taskId: currentTaskId,
+          assistant,
+          parameters,
+          dataset: (dataset || {}) as DatasetObject,
+          parentTaskId,
+          callback: cb?.(currentTaskId),
+          user,
+          sessionId,
+          projectId,
+        });
+
+        variables[parameter.key] = result;
       }
     }
   }
@@ -1957,7 +2071,7 @@ async function runExecuteBlock({
         tools.map(async (tool) => {
           const currentTaskId = taskIdGenerator.nextId().toString();
 
-          if (tool?.from === 'dataset') {
+          if (tool?.from === 'blockletAPI') {
             const dataset = (datasets || []).find((x) => x.id === tool.id);
             return (
               dataset &&
@@ -1998,7 +2112,7 @@ async function runExecuteBlock({
           const args = Object.fromEntries(
             await Promise.all(
               (toolAssistant.parameters ?? [])
-                .filter((i): i is typeof i & { key: string } => !!i.key)
+                .filter((i): i is typeof i & { key: string } => !!i.key && i.type !== 'source')
                 .map(async (i) => {
                   const template = String(tool.parameters?.[i.key] || '').trim();
                   const value = template ? await renderMessage(template, parameters) : parameters?.[i.key];
@@ -2044,7 +2158,7 @@ async function runExecuteBlock({
     const toolAssistants = (
       await Promise.all(
         tools.map(async (tool) => {
-          if (tool?.from === 'dataset') {
+          if (tool?.from === 'blockletAPI') {
             const dataset = (datasets || []).find((x) => x.id === tool.id);
             if (!dataset) return undefined;
 
@@ -2104,7 +2218,10 @@ async function runExecuteBlock({
           });
           if (!toolAssistant) return undefined;
           const toolParameters = (toolAssistant.parameters ?? [])
-            .filter((i): i is typeof i & Required<Pick<typeof i, 'key'>> => !!i.key && !tool.parameters?.[i.key])
+            .filter(
+              (i): i is typeof i & Required<Pick<typeof i, 'key'>> =>
+                !!i.key && !tool.parameters?.[i.key] && i.type !== 'source'
+            )
             .map((parameter) => {
               return [
                 parameter.key,
@@ -2122,7 +2239,7 @@ async function runExecuteBlock({
             });
 
           const required = (toolAssistant.parameters ?? [])
-            .filter((i): i is typeof i & { key: string } => !!i.key)
+            .filter((i): i is typeof i & { key: string } => !!i.key && i.type !== 'source')
             .filter((x) => x.required)
             .map((x) => x.key);
 
@@ -2234,7 +2351,7 @@ async function runExecuteBlock({
           const requestData = JSON.parse(call.function.arguments);
           const currentTaskId = taskIdGenerator.nextId().toString();
 
-          if (tool.tool.from === 'dataset') {
+          if (tool.tool.from === 'blockletAPI') {
             return runAPITool({
               tool: tool.tool,
               taskId: currentTaskId,
@@ -2328,7 +2445,7 @@ async function runAPITool({
   dataset: DatasetObject;
   taskId: string;
   assistant: Assistant;
-  executeBlock: ExecuteBlock;
+  executeBlock?: ExecuteBlock;
   parameters?: { [key: string]: any };
   parentTaskId?: string;
   callback?: RunAssistantCallback;
@@ -2339,8 +2456,13 @@ async function runAPITool({
   const requestData = Object.fromEntries(
     await Promise.all(
       getAllParameters(dataset).map(async (item) => {
-        const template = String(tool.parameters?.[item.name!] || '').trim();
-        return [item.name, template ? await renderMessage(template, parameters) : parameters?.[item.name]];
+        if (typeof tool.parameters?.[item.name!] === 'string') {
+          const template = String(tool.parameters?.[item.name!] || '').trim();
+          return [item.name, template ? await renderMessage(template, parameters) : parameters?.[item.name]];
+        }
+
+        // 先从传入参数查找，什么都没有填写时，需要读取 tool.parameters?.[item.name!]
+        return [item.name, parameters?.[item.name!] || tool.parameters?.[item.name!]];
       }) ?? []
     )
   );
@@ -2356,7 +2478,7 @@ async function runAPITool({
     taskId,
     parentTaskId,
     assistantId: assistant.id,
-    assistantName: `${executeBlock.variable ?? dataset.summary}`,
+    assistantName: `${executeBlock?.variable ?? dataset?.summary}`,
   };
 
   callback?.({

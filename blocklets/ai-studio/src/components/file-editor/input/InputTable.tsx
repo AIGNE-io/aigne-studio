@@ -16,6 +16,9 @@ import { useAgent } from '@app/store/agent';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { AssistantYjs, ExecuteBlock, ParameterYjs, StringParameter } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
+import { DatasetObject } from '@blocklet/dataset-sdk/types';
+import getDatasetTextByI18n from '@blocklet/dataset-sdk/util/get-dataset-i18n-text';
 import { Icon } from '@iconify-icon/react';
 import BracesIcon from '@iconify-icons/tabler/braces';
 import BracketsContainIcon from '@iconify-icons/tabler/brackets-contain';
@@ -39,6 +42,7 @@ import {
   DialogContent,
   DialogProps,
   DialogTitle,
+  FormControlLabel,
   IconButton,
   Input,
   List,
@@ -75,8 +79,10 @@ import SelectVariable from '../select-variable';
 import useVariablesEditorOptions from '../use-variables-editor-options';
 import AddInputButton from './AddInputButton';
 
-export const FROM_PARAMETER = 'agentParameter';
-export const FROM_KNOWLEDGE_PARAMETER = 'knowledgeParameter';
+const FROM_PARAMETER = 'agentParameter';
+const FROM_KNOWLEDGE_PARAMETER = 'knowledgeParameter';
+const FROM_API_PARAMETER = 'blockletAPIParameter';
+
 export default function InputTable({
   assistant,
   projectId,
@@ -84,6 +90,7 @@ export default function InputTable({
   readOnly,
   compareValue,
   isRemoteCompare,
+  openApis = [],
 }: {
   assistant: AssistantYjs;
   projectId: string;
@@ -91,6 +98,7 @@ export default function InputTable({
   readOnly?: boolean;
   compareValue?: AssistantYjs;
   isRemoteCompare?: boolean;
+  openApis?: DatasetObject[];
 }) {
   const { t } = useLocaleContext();
   const doc = (getYjsValue(assistant) as Map<any>)?.doc!;
@@ -114,6 +122,7 @@ export default function InputTable({
       tool: t('variableParameter.tool'),
       datastore: t('variableParameter.datastore'),
       knowledge: t('variableParameter.knowledge'),
+      blockletAPI: 'API',
       secret: t('variableParameter.secret'),
     };
   }, [t]);
@@ -197,6 +206,7 @@ export default function InputTable({
             <SelectFromSource
               FROM_MAP={FROM_MAP}
               knowledge={knowledge}
+              openApis={openApis}
               parameter={parameter}
               readOnly={readOnly}
               value={assistant}
@@ -263,6 +273,10 @@ export default function InputTable({
             if (parameter.source.variableFrom === 'history') {
               return <Box />;
             }
+
+            if (parameter.source.variableFrom === 'blockletAPI') {
+              return <Box />;
+            }
           }
 
           return (
@@ -283,7 +297,7 @@ export default function InputTable({
         align: 'right',
       },
     ];
-  }, [t, knowledge, readOnly, doc, deleteParameter]);
+  }, [t, knowledge, openApis, readOnly, doc, deleteParameter]);
 
   return (
     <Box sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1, px: 1.5 }}>
@@ -372,6 +386,7 @@ export default function InputTable({
                     {!readOnly && (
                       <PopperButton
                         knowledge={knowledge.map((x) => ({ ...x, from: FROM_KNOWLEDGE }))}
+                        openApis={openApis}
                         parameter={parameter}
                         readOnly={readOnly}
                         value={assistant}
@@ -403,14 +418,16 @@ function SelectFromSource({
   projectId,
   gitRef,
   knowledge,
+  openApis,
 }: {
+  FROM_MAP: { [key: string]: string };
   parameter: ParameterYjs;
   readOnly?: boolean;
   value: AssistantYjs;
   projectId: string;
   gitRef: string;
   knowledge: (Dataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
-  FROM_MAP: { [key: string]: string };
+  openApis: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
 }) {
   const dialogState = usePopupState({ variant: 'dialog', popupId: useId() });
   const { t } = useLocaleContext();
@@ -477,13 +494,14 @@ function SelectFromSource({
       </PopperMenu>
 
       <SelectFromSourceDialog
-        dialogState={dialogState}
         knowledge={knowledge}
+        openApis={openApis}
         parameter={parameter}
         readOnly={readOnly}
         value={value}
         projectId={projectId}
         gitRef={gitRef}
+        dialogState={dialogState}
       />
     </>
   );
@@ -554,6 +572,7 @@ function SelectInputType({
       <SelectFromSourceDialog
         dialogState={dialogState}
         knowledge={[]}
+        openApis={[]}
         parameter={parameter}
         readOnly={readOnly}
         value={value}
@@ -571,6 +590,7 @@ function SelectFromSourceDialog({
   projectId,
   gitRef,
   knowledge,
+  openApis,
   dialogState,
 }: {
   parameter: ParameterYjs;
@@ -579,6 +599,7 @@ function SelectFromSourceDialog({
   projectId: string;
   gitRef: string;
   knowledge: (Dataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
+  openApis: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
   dialogState: PopupState;
 }) {
   const { t } = useLocaleContext();
@@ -613,6 +634,12 @@ function SelectFromSourceDialog({
       if (parameter.source.variableFrom === 'history') {
         return <HistoryParameter projectId={projectId} gitRef={gitRef} value={value} parameter={parameter} />;
       }
+
+      if (parameter.source.variableFrom === 'blockletAPI') {
+        return (
+          <APIParameter projectId={projectId} gitRef={gitRef} value={value} parameter={parameter} openApis={openApis} />
+        );
+      }
     }
 
     if (parameter) {
@@ -644,12 +671,25 @@ function SelectFromSourceDialog({
             if (parameter.type === 'source' && parameter?.source?.variableFrom === 'tool' && parameter?.source) {
               const { source } = parameter;
               Object.entries(source?.agent?.parameters || {}).forEach(([key, value]: any) => {
-                if (!value) {
+                if (value === '') {
                   if (source && source?.agent && source?.agent?.parameters) {
                     source.agent.parameters[key] = `{{${key}}}`;
                   }
 
                   addParameter(key, { from: FROM_PARAMETER });
+                }
+              });
+            }
+
+            if (parameter.type === 'source' && parameter?.source?.variableFrom === 'blockletAPI' && parameter?.source) {
+              const { source } = parameter;
+              Object.entries(source?.api?.parameters || {}).forEach(([key, value]: any) => {
+                if (value === '') {
+                  if (source && source?.api && source?.api?.parameters) {
+                    source.api.parameters[key] = `{{${key}}}`;
+                  }
+
+                  addParameter(key, { from: FROM_API_PARAMETER });
                 }
               });
             }
@@ -712,12 +752,14 @@ export function SelectTool<Multiple extends boolean | undefined>({
   value,
   onChange,
   multiple,
+  renderOption,
 }: {
   placeholder?: string;
   options: Option[];
   multiple?: Multiple;
   value?: AutocompleteValue<Option, Multiple, false, false>;
   onChange?: (value: AutocompleteValue<Option, Multiple, false, false>) => void;
+  renderOption?: (props: any, option: Option) => any;
 }) {
   const { t } = useLocaleContext();
 
@@ -737,6 +779,10 @@ export function SelectTool<Multiple extends boolean | undefined>({
       isOptionEqualToValue={(i, j) => i.id === j.id}
       getOptionLabel={(i) => i.name || t('unnamed')}
       renderOption={(props, option) => {
+        if (renderOption) {
+          return renderOption(props, option);
+        }
+
         return (
           <MenuItem {...props} key={option.name}>
             {option.name || t('unnamed')}
@@ -766,7 +812,7 @@ function KnowledgeParameter({
   knowledge: (Dataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
 }) {
   const { t } = useLocaleContext();
-  const { deleteParameter } = useVariablesEditorOptions(value);
+  const { deleteUselessParameter } = useDelete(value);
 
   if (parameter.type === 'source' && parameter?.source?.variableFrom === 'knowledge') {
     const toolId = parameter?.source?.knowledge?.id;
@@ -799,14 +845,7 @@ function KnowledgeParameter({
             onChange={(_value) => {
               if (_value) {
                 // 删除历史自动添加的变量
-                Object.values(value.parameters || {}).forEach((x) => {
-                  if (
-                    (x.data.from === FROM_KNOWLEDGE_PARAMETER || x.data.from === FROM_PARAMETER) &&
-                    !checkKeyParameterIsUsed({ value, key: x.data.key || '' })
-                  ) {
-                    deleteParameter(x.data);
-                  }
-                });
+                deleteUselessParameter();
 
                 const parameters = {
                   message: '',
@@ -941,6 +980,10 @@ function checkKeyParameterIsUsed({ value, key }: { value: AssistantYjs; key: str
       if (x.data.source?.variableFrom === 'knowledge') {
         return [Object.values(x.data.source?.knowledge?.parameters || {})];
       }
+
+      if (x.data.source?.variableFrom === 'blockletAPI') {
+        return [Object.values(x.data.source?.api?.parameters || {})];
+      }
     }
 
     return [];
@@ -953,6 +996,23 @@ function checkKeyParameterIsUsed({ value, key }: { value: AssistantYjs; key: str
     });
   });
 }
+
+const useDelete = (value: AssistantYjs) => {
+  const { deleteParameter } = useVariablesEditorOptions(value);
+
+  const deleteUselessParameter = () => {
+    Object.values(value.parameters || {}).forEach((x) => {
+      const list = [FROM_API_PARAMETER, FROM_PARAMETER, FROM_API_PARAMETER];
+      if (x.data.from && list.includes(x.data.from) && !checkKeyParameterIsUsed({ value, key: x.data.key || '' })) {
+        deleteParameter(x.data);
+      }
+    });
+  };
+
+  return {
+    deleteUselessParameter,
+  };
+};
 
 function SecretParameterView({ parameter }: { parameter: ParameterYjs }) {
   const { t } = useLocaleContext();
@@ -982,7 +1042,7 @@ function SecretParameterView({ parameter }: { parameter: ParameterYjs }) {
 
 function AgentParameter({ value, parameter }: { value: AssistantYjs; parameter: ParameterYjs }) {
   const { t } = useLocaleContext();
-  const { deleteParameter } = useVariablesEditorOptions(value);
+  const { deleteUselessParameter } = useDelete(value);
 
   if (parameter.type === 'source' && parameter?.source?.variableFrom === 'tool') {
     const agentId = parameter?.source?.agent?.id;
@@ -1009,14 +1069,7 @@ function AgentParameter({ value, parameter }: { value: AssistantYjs; parameter: 
             onChange={(_, v) => {
               if (v) {
                 // 删除历史自动添加的变量
-                Object.values(value.parameters || {}).forEach((x) => {
-                  if (
-                    (x.data.from === FROM_KNOWLEDGE_PARAMETER || x.data.from === FROM_PARAMETER) &&
-                    !checkKeyParameterIsUsed({ value, key: x.data.key || '' })
-                  ) {
-                    deleteParameter(x.data);
-                  }
-                });
+                deleteUselessParameter();
 
                 source.agent = {
                   blockletDid: v.blockletDid,
@@ -1206,6 +1259,7 @@ function PopperButton({
   projectId,
   gitRef,
   knowledge,
+  openApis,
   onDelete,
 }: {
   parameter: ParameterYjs;
@@ -1214,6 +1268,7 @@ function PopperButton({
   projectId: string;
   gitRef: string;
   knowledge: (Dataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
+  openApis: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
   onDelete: () => void;
 }) {
   const { t } = useLocaleContext();
@@ -1253,6 +1308,7 @@ function PopperButton({
       <SelectFromSourceDialog
         dialogState={dialogState}
         knowledge={knowledge}
+        openApis={openApis}
         parameter={parameter}
         readOnly={readOnly}
         value={value}
@@ -1261,4 +1317,154 @@ function PopperButton({
       />
     </>
   );
+}
+
+function APIParameter({
+  value,
+  projectId,
+  gitRef,
+  parameter,
+  openApis,
+}: {
+  value: AssistantYjs;
+  projectId: string;
+  gitRef: string;
+  parameter: ParameterYjs;
+  openApis: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
+}) {
+  const { t, locale } = useLocaleContext();
+  const { deleteUselessParameter } = useDelete(value);
+
+  if (parameter.type === 'source' && parameter?.source?.variableFrom === 'blockletAPI') {
+    const agentId = parameter?.source?.api?.id;
+    const { source } = parameter;
+
+    const options = [
+      ...openApis.map((dataset) => ({
+        ...dataset,
+        name:
+          getDatasetTextByI18n(dataset, 'summary', locale) ||
+          getDatasetTextByI18n(dataset, 'description', locale) ||
+          t('unnamed'),
+        parameters: getAllParameters(dataset),
+        fromText: t('buildInData'),
+      })),
+    ];
+
+    const option = openApis.find((x) => x.id === agentId);
+    const parameters = option && getAllParameters(option);
+
+    return (
+      <Stack gap={2}>
+        <Box>
+          <Typography variant="subtitle2">{t('chooseObject', { object: t('api') })}</Typography>
+
+          <SelectTool
+            placeholder={t('selectOpenAPIToCallPlaceholder')}
+            options={options || []}
+            multiple={false}
+            value={options.find((x) => x.id === agentId)}
+            onChange={(_value) => {
+              if (_value) {
+                // 删除历史自动添加的变量
+                deleteUselessParameter();
+
+                // 整理选择 agent 的参数
+                source.api = {
+                  id: _value.id,
+                  parameters: (_value?.parameters || []).reduce((tol: any, cur: any) => {
+                    if (cur.name) tol[cur.name] = '';
+                    return tol;
+                  }, {}),
+                };
+              }
+            }}
+            renderOption={(props, option) => {
+              return (
+                <MenuItem {...props} key={option.name}>
+                  <Box>{option.name || t('unnamed')}</Box>
+                  <Typography variant="subtitle5" ml={1}>
+                    {(option.id || '').split(':')?.[0]}
+                  </Typography>
+                </MenuItem>
+              );
+            }}
+          />
+        </Box>
+
+        {!!(parameters || []).length && (
+          <Box>
+            <Typography variant="subtitle2">{t('inputs')}</Typography>
+
+            <Stack gap={1.5}>
+              {(parameters || [])?.map((parameter) => {
+                if (!parameter.name) return null;
+
+                // @ts-ignore
+                if (parameter['x-parameter-type'] === 'boolean') {
+                  return (
+                    <Stack key={parameter.name}>
+                      <Box>
+                        <FormControlLabel
+                          sx={{
+                            alignItems: 'flex-start',
+                            '.MuiCheckbox-root': {
+                              ml: -0.5,
+                            },
+                          }}
+                          control={
+                            <Switch
+                              defaultChecked={Boolean(source?.api?.parameters?.[parameter.name] ?? false)}
+                              onChange={(_, checked) => {
+                                if (source?.api?.parameters) {
+                                  // @ts-ignore
+                                  source.api.parameters[parameter.name] = Boolean(checked);
+                                }
+                              }}
+                            />
+                          }
+                          label={
+                            <Typography variant="caption" mb={0.5}>
+                              {getDatasetTextByI18n(parameter, 'description', locale) ||
+                                getDatasetTextByI18n(parameter, 'name', locale)}
+                            </Typography>
+                          }
+                          labelPlacement="top"
+                        />
+                      </Box>
+                    </Stack>
+                  );
+                }
+
+                return (
+                  <Stack key={parameter.name}>
+                    <Typography variant="caption" mb={0.5}>
+                      {getDatasetTextByI18n(parameter, 'description', locale) ||
+                        getDatasetTextByI18n(parameter, 'name', locale)}
+                    </Typography>
+
+                    <PromptEditorField
+                      placeholder={`{{ ${parameter.name} }}`}
+                      value={source?.api?.parameters?.[parameter.name] || ''}
+                      projectId={projectId}
+                      gitRef={gitRef}
+                      assistant={value}
+                      path={[]}
+                      onChange={(value) => {
+                        if (source?.api?.parameters) {
+                          source.api.parameters[parameter.name] = value;
+                        }
+                      }}
+                    />
+                  </Stack>
+                );
+              })}
+            </Stack>
+          </Box>
+        )}
+      </Stack>
+    );
+  }
+
+  return null;
 }

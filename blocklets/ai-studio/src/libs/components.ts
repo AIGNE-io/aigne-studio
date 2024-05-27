@@ -1,3 +1,5 @@
+import { REMOTE_REACT_COMPONENTS } from '@blocklet/components-sdk/const';
+import { RemoteComponent } from '@blocklet/components-sdk/type';
 import { joinURL } from 'ufo';
 
 import axios from './api';
@@ -41,4 +43,8 @@ export async function getComponent({
   componentId: string;
 }): Promise<{ defaultLocale?: string; component: Component }> {
   return axios.get(joinURL('/api/components', componentId), { baseURL: PAGES_KIT_MOUNT_POINT }).then((res) => res.data);
+}
+
+export async function getDynamicReactComponents(): Promise<RemoteComponent[]> {
+  return axios.get(REMOTE_REACT_COMPONENTS).then((res) => res.data);
 }

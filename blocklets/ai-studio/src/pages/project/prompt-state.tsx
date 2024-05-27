@@ -97,7 +97,7 @@ export function usePromptsState({
 
       const tool: Tool = {
         id: 'AI-Studio:/api/datasets/{datasetId}/search:get',
-        from: 'dataset',
+        from: 'blockletAPI',
         parameters: {
           datasetId: '{{datasetId}}',
           message: '',
@@ -202,7 +202,7 @@ export function usePromptsState({
                   index: 0,
                   data: {
                     id: 'AI-Studio:/api/datasets/{datasetId}/search:get',
-                    from: 'dataset',
+                    from: 'blockletAPI',
                     parameters: {
                       datasetId: '{{datasetId}}',
                       message: '',
@@ -225,7 +225,7 @@ export function usePromptsState({
                   index: 0,
                   data: {
                     id: 'AI-Studio:/api/messages:get',
-                    from: 'dataset',
+                    from: 'blockletAPI',
                     parameters: {
                       limit: '',
                       keyword: '',
@@ -248,7 +248,7 @@ export function usePromptsState({
                   index: 0,
                   data: {
                     id: 'AI-Studio:/api/datastore:get',
-                    from: 'dataset',
+                    from: 'blockletAPI',
                     parameters: {
                       key: '',
                       scope: '',
@@ -271,7 +271,7 @@ export function usePromptsState({
                   index: 0,
                   data: {
                     id: 'AI-Studio:/api/datastore:post',
-                    from: 'dataset',
+                    from: 'blockletAPI',
                     parameters: {
                       reset: 'true',
                       key: '',
