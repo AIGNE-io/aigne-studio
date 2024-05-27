@@ -92,6 +92,7 @@ export async function runAssistant({
   projectId,
   datastoreVariables,
   functionName,
+  entryProjectId = projectId,
 }: {
   getSecret: (args: {
     targetProjectId: string;
@@ -111,6 +112,7 @@ export async function runAssistant({
   projectId: string;
   datastoreVariables: Variable[];
   functionName?: string;
+  entryProjectId?: string;
 }): Promise<any> {
   // setup global variables for prompt rendering
   parameters.$user = user;
@@ -137,6 +139,7 @@ export async function runAssistant({
     sessionId,
     projectId,
     datastoreVariables,
+    entryProjectId,
   });
 
   try {
@@ -173,6 +176,7 @@ export async function runAssistant({
         projectId,
         datastoreVariables,
         functionName,
+        entryProjectId,
       });
     }
 
@@ -191,6 +195,7 @@ export async function runAssistant({
         sessionId,
         projectId,
         datastoreVariables,
+        entryProjectId,
       });
     }
 
@@ -243,6 +248,7 @@ export async function runAssistant({
         sessionId,
         projectId,
         datastoreVariables,
+        entryProjectId,
       });
     }
   } catch (e) {
@@ -287,7 +293,7 @@ async function runFunctionAssistant({
   callback?: RunAssistantCallback;
   user?: User;
   sessionId?: string;
-  projectId?: string;
+  projectId: string;
   datastoreVariables: Variable[];
 }) {
   if (!assistant.code) throw new Error(`Assistant ${assistant.id}'s code is empty`);
@@ -512,6 +518,7 @@ async function runRouterAssistant({
   sessionId,
   projectId,
   datastoreVariables,
+  entryProjectId,
 }: {
   getSecret: (args: {
     targetProjectId: string;
@@ -530,6 +537,7 @@ async function runRouterAssistant({
   sessionId?: string;
   projectId: string;
   datastoreVariables: Variable[];
+  entryProjectId: string;
 }) {
   if (!assistant.prompt) {
     throw new Error('Route Assistant Prompt is  required');
@@ -876,6 +884,7 @@ async function runRouterAssistant({
           sessionId,
           projectId,
           datastoreVariables,
+          entryProjectId,
         });
 
         if (tool.tool?.onEnd === OnTaskCompletion.EXIT) {
@@ -1062,9 +1071,11 @@ const runRequestToolAssistant = async ({
   parentTaskId,
   user,
   sessionId,
+  projectId,
   cb,
   toolParameter,
   datastoreVariables,
+  entryProjectId,
 }: {
   getSecret: (args: {
     targetProjectId: string;
@@ -1079,8 +1090,10 @@ const runRequestToolAssistant = async ({
   cb?: any;
   user?: User;
   sessionId?: string;
+  projectId: string;
   toolParameter: Parameter;
   datastoreVariables: Variable[];
+  entryProjectId: string;
 }) => {
   if (
     toolParameter.type === 'source' &&
@@ -1118,8 +1131,9 @@ const runRequestToolAssistant = async ({
       callback: cb?.(currentTaskId),
       user,
       sessionId,
-      projectId: tool.projectId!,
+      projectId: tool.projectId || projectId,
       datastoreVariables,
+      entryProjectId,
     });
 
     return result;
@@ -1141,6 +1155,7 @@ const getVariables = async ({
   callback,
   projectId,
   datastoreVariables,
+  entryProjectId,
 }: {
   getSecret: (args: {
     targetProjectId: string;
@@ -1158,6 +1173,7 @@ const getVariables = async ({
   sessionId?: string;
   projectId: string;
   datastoreVariables: Variable[];
+  entryProjectId: string;
 }) => {
   const variables: { [key: string]: any } = { ...parameters };
 
@@ -1198,9 +1214,11 @@ const getVariables = async ({
           parentTaskId,
           user,
           sessionId,
+          projectId,
           cb,
           toolParameter: parameter,
           datastoreVariables,
+          entryProjectId,
         });
 
         // TODO: @li-yechao 根据配置的输出类型决定是否需要 parse
@@ -1283,7 +1301,7 @@ async function runAgent({
   callback?: RunAssistantCallback;
   user?: User;
   sessionId?: string;
-  projectId?: string;
+  projectId: string;
   datastoreVariables: Variable[];
 }) {
   callback?.({
@@ -1340,6 +1358,7 @@ async function runPromptAssistant({
   projectId,
   datastoreVariables,
   functionName,
+  entryProjectId,
 }: {
   getSecret: (args: {
     targetProjectId: string;
@@ -1359,6 +1378,7 @@ async function runPromptAssistant({
   projectId: string;
   datastoreVariables: Variable[];
   functionName?: string;
+  entryProjectId: string;
 }) {
   const executeBlocks = (assistant.prompts ?? [])
     .filter((i): i is Extract<Prompt, { type: 'executeBlock' }> => isExecuteBlock(i) && i.visibility !== 'hidden')
@@ -1378,6 +1398,7 @@ async function runPromptAssistant({
     sessionId,
     projectId,
     datastoreVariables,
+    entryProjectId,
   });
 
   const variables = { ...parameters };
@@ -1591,7 +1612,7 @@ async function runPromptAssistant({
       const params = {
         params: {
           userId: user?.did || '',
-          projectId,
+          projectId: entryProjectId,
           sessionId,
           assistantId: assistant.id,
           reset: datastoreVariable?.reset,
@@ -1656,6 +1677,7 @@ async function runImageAssistant({
   sessionId,
   projectId,
   datastoreVariables,
+  entryProjectId,
 }: {
   getSecret: (args: {
     targetProjectId: string;
@@ -1674,6 +1696,7 @@ async function runImageAssistant({
   sessionId?: string;
   projectId: string;
   datastoreVariables: Variable[];
+  entryProjectId: string;
 }) {
   if (!assistant.prompt?.length) throw new Error('Prompt cannot be empty');
 
@@ -1692,6 +1715,7 @@ async function runImageAssistant({
         sessionId,
         projectId,
         datastoreVariables,
+        entryProjectId,
       })
     : [];
 
@@ -1799,6 +1823,7 @@ async function runExecuteBlocks({
   sessionId,
   projectId,
   datastoreVariables,
+  entryProjectId,
 }: {
   getSecret: (args: {
     targetProjectId: string;
@@ -1817,6 +1842,7 @@ async function runExecuteBlocks({
   sessionId?: string;
   projectId: string;
   datastoreVariables: Variable[];
+  entryProjectId: string;
 }) {
   if (!executeBlocks.length) return [];
 
@@ -1844,6 +1870,7 @@ async function runExecuteBlocks({
         sessionId,
         projectId,
         datastoreVariables,
+        entryProjectId,
       });
 
       return cache[executeBlock.id]!;
@@ -1875,6 +1902,7 @@ async function runExecuteBlock({
   sessionId,
   projectId,
   datastoreVariables,
+  entryProjectId,
 }: {
   getSecret: (args: {
     targetProjectId: string;
@@ -1895,6 +1923,7 @@ async function runExecuteBlock({
   sessionId?: string;
   projectId: string;
   datastoreVariables: Variable[];
+  entryProjectId: string;
 }) {
   const { tools } = executeBlock;
   if (!tools?.length) return undefined;
@@ -1993,6 +2022,7 @@ async function runExecuteBlock({
             sessionId,
             projectId,
             datastoreVariables,
+            entryProjectId,
           });
         })
       )
@@ -2216,6 +2246,7 @@ async function runExecuteBlock({
               callback: cb?.(currentTaskId),
               user,
               sessionId,
+              projectId,
             });
           }
 
@@ -2256,6 +2287,7 @@ async function runExecuteBlock({
             sessionId,
             projectId,
             datastoreVariables,
+            entryProjectId,
           });
 
           if (tool.tool?.onEnd === OnTaskCompletion.EXIT) {
@@ -2302,7 +2334,7 @@ async function runAPITool({
   callback?: RunAssistantCallback;
   user?: User;
   sessionId?: string;
-  projectId?: string;
+  projectId: string;
 }) {
   const requestData = Object.fromEntries(
     await Promise.all(
