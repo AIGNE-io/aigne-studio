@@ -1,3 +1,7 @@
+## 0.2.14 (2024-5-27)
+
+- fix:double click can rename agent name and folder name
+
 ## 0.2.13 (2024-5-27)
 
 - chore: support choose a blocklet react component to render output appearance (#1016)
