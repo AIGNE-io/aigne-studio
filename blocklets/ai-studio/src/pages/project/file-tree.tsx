@@ -391,6 +391,9 @@ const FileTree = forwardRef<
                     }
                     depth={depth}
                     onClick={onToggle}
+                    onDoubleClick={() => {
+                      setEditingFolderPath(filepath);
+                    }}
                     editing={filepath === editingFolderPath}
                     actions={
                       <TreeItemMenus
@@ -472,6 +475,9 @@ const FileTree = forwardRef<
                     editing={meta.name === editingFileName}
                     selected={selected}
                     onClick={() => navigate(joinURL('.', filepath))}
+                    onDoubleClick={() => {
+                      setEditingFileName(meta.name);
+                    }}
                     actions={actions}
                     sx={{ color: change?.color }}>
                     <EditTextItem
