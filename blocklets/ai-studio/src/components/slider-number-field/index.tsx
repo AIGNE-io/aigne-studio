@@ -1,7 +1,8 @@
-import { Stack, StackProps, TextField } from '@mui/material';
-import { ChangeEvent } from 'react';
+import { Stack, StackProps } from '@mui/material';
+import React from 'react';
 
 import Slider from '../custom/slider';
+import NumberField from '../template-form/number-field';
 
 export default function SliderNumberField({
   readOnly,
@@ -19,7 +20,7 @@ export default function SliderNumberField({
   min?: number;
   max?: number;
   step?: number;
-  onChange?: (e: Event | ChangeEvent<HTMLInputElement>, value?: number) => any;
+  onChange?: (e: Event | React.SyntheticEvent, value?: number) => any;
 } & Omit<StackProps, 'onChange'>) {
   return (
     <Stack direction="row" alignItems="center" {...props}>
@@ -30,27 +31,28 @@ export default function SliderNumberField({
         step={step}
         sx={{ flex: 1, mr: 2 }}
         value={value}
+        defaultValue={props.defaultValue as number}
         onChange={(e, v) => {
           if (!readOnly && !Array.isArray(v)) onChange?.(e, v);
         }}
       />
 
-      <TextField
+      <NumberField
         disabled={disabled}
         hiddenLabel
         size="small"
         type="number"
         InputProps={{ readOnly, inputProps: { min, max, step } }}
-        value={value}
-        onChange={(e) => {
-          let v = Number(e.target.value);
-          if (Number.isNaN(v)) v = 0;
-          if (typeof min === 'number') v = Math.max(min, v);
-          if (typeof max === 'number') v = Math.min(max, v);
-
-          onChange?.(e as any, v);
+        sx={{ minWidth: 80, width: 80, border: '1px solid #E5E7EB', borderRadius: 1 }}
+        NumberProps={{
+          min,
+          max,
+          step,
+          value,
+          onChange: (e, v) => {
+            onChange?.(e, v);
+          },
         }}
-        sx={{ minWidth: 80, border: '1px solid #E5E7EB', borderRadius: 1 }}
       />
     </Stack>
   );
