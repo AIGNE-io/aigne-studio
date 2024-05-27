@@ -948,6 +948,7 @@ async function runRouterAssistant({
             callback: cb?.(),
             user,
             sessionId,
+            projectId,
           });
         }
 
@@ -1385,6 +1386,7 @@ const getVariables = async ({
           callback: cb?.(currentTaskId),
           user,
           sessionId,
+          projectId,
         });
 
         variables[parameter.key] = result;
