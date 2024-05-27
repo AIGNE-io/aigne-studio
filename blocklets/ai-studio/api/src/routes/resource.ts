@@ -49,8 +49,31 @@ const locales: { [key: string]: any } = {
 };
 
 export function resourceRoutes(router: Router) {
+  const getExportedResourceQuerySchema = Joi.object<{ resourcesParams?: { projectId?: string } }>({
+    resourcesParams: Joi.object({
+      projectId: Joi.string().empty([null, '']),
+    }),
+  });
+
+  const tryParse = (s: any) => {
+    try {
+      return JSON.parse(s);
+    } catch {
+      // ignore
+    }
+    return undefined;
+  };
+
   router.get('/resources/export', ensurePromptsEditor, async (req, res) => {
-    const projects = await Project.findAll({ order: [['updatedAt', 'DESC']] });
+    const query = await getExportedResourceQuerySchema.validateAsync(
+      { ...req.query, resourcesParams: tryParse(req.query.resourcesParams) },
+      { stripUnknown: true }
+    );
+
+    const projects = await Project.findAll({
+      where: query.resourcesParams?.projectId ? { _id: query.resourcesParams.projectId } : {},
+      order: [['updatedAt', 'DESC']],
+    });
 
     const locale = locales[(req.query as { local: string })?.local] || locales.en;
 
@@ -58,10 +81,38 @@ export function resourceRoutes(router: Router) {
       return { id: '', _id: x._id, name: x.name || locale?.unnamed, description: x.description };
     });
 
+    if (list.length === 1) {
+      res.json({
+        resources: [
+          ...list.map((x) => ({
+            ...x,
+            id: `application-${x._id}`,
+            name: `${x.name} (as Application)`,
+          })),
+          ...list.map((x) => ({
+            ...x,
+            id: `tool-${x._id}`,
+            name: `${x.name} (as Tool)`,
+          })),
+          ...list.map((x) => ({
+            ...x,
+            id: `template-${x._id}`,
+            name: `${x.name} (as Template)`,
+          })),
+          ...list.map((x) => ({
+            ...x,
+            id: `example-${x._id}`,
+            name: `${x.name} (as Example)`,
+          })),
+        ],
+      });
+      return;
+    }
+
     const resources = [
       {
         id: 'application',
-        name: 'Application',
+        name: 'As Application',
         children: cloneDeep(list).map((x) => {
           x.id = `application-${x._id}`;
           return x;
@@ -69,7 +120,7 @@ export function resourceRoutes(router: Router) {
       },
       {
         id: 'tool',
-        name: 'Toolkit',
+        name: 'As Toolkit',
         children: cloneDeep(list).map((x) => {
           x.id = `tool-${x._id}`;
           return x;
@@ -77,7 +128,7 @@ export function resourceRoutes(router: Router) {
       },
       {
         id: 'template',
-        name: 'Template',
+        name: 'As Template',
         children: cloneDeep(list).map((x) => {
           x.id = `template-${x._id}`;
           return x;
@@ -85,7 +136,7 @@ export function resourceRoutes(router: Router) {
       },
       {
         id: 'example',
-        name: 'Example',
+        name: 'As Example',
         children: cloneDeep(list).map((x) => {
           x.id = `example-${x._id}`;
           return x;

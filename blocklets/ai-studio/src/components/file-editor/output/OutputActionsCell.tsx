@@ -265,6 +265,7 @@ function PopperButton({
       </PopperMenu>
 
       <Dialog
+        disableEnforceFocus
         {...bindDialog(dialogState)}
         fullWidth
         maxWidth="sm"

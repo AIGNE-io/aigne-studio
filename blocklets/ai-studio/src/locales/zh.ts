@@ -168,6 +168,13 @@ export default flat({
   commitMessage: '备注',
   confirm: '确认',
   projectSetting: {
+    tabs: {
+      basic: '基本信息',
+      modelInfo: '模型信息',
+      appearance: '外观',
+      git: 'Git',
+      didSpaces: 'DID Spaces',
+    },
     selectProject: '选择项目',
     name: '项目名称',
     description: '项目描述',
@@ -692,9 +699,14 @@ export default flat({
   launchMoreConfirm: '启动我的 AI 工作室',
   authorize: '授权',
   reauthorize: '重新授权',
+  primaryColor: '主题色',
+  Avatar: '头像',
+  authorizeApiKeyTip: '你的 api key 是安全的，仅对当前项目有效。',
   icon: '图标',
   iconAndTitle: '图标和标题',
   basic: '基础',
   appearanceTitlePlaceholder: '显示在该输出上方的标题',
   appearanceIconPlaceholder: '显示在该输出上方的图标',
+  addMoreAgentTools: '添加更多',
+  noAgents: '没有可选的 Agent',
 });

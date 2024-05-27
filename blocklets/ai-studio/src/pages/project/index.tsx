@@ -3,11 +3,11 @@ import UploaderProvider from '@app/contexts/uploader';
 import currentGitStore from '@app/store/current-git-store';
 import { SubscribeButton } from '@blocklet/ai-kit/components';
 import { Dashboard } from '@blocklet/studio-ui';
-import { GlobalStyles, Stack, backdropClasses, circularProgressClasses, paperClasses, styled } from '@mui/material';
+import { GlobalStyles, backdropClasses, circularProgressClasses, paperClasses, styled } from '@mui/material';
 import { Suspense, lazy, useEffect, useRef } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { Navigate, Outlet, Route, Routes, useLocation, useRoutes } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
 import ErrorBoundary from '../../components/error/error-boundary';
@@ -15,7 +15,6 @@ import Loading from '../../components/loading';
 import { DatasetsProvider } from '../../contexts/datasets/datasets';
 import KnowledgeRoutes from '../knowledge';
 import VariablesList from '../variables/list';
-import AddSource from './add-source';
 import ProjectHeader from './project-header';
 
 export default function ProjectRoutes() {
@@ -39,7 +38,7 @@ export default function ProjectRoutes() {
         <StyledDashboard
           HeaderProps={{
             logo: <AigneLogo />,
-            addons: (exists) => [<SubscribeButton />, <AddonsRoutes />, ...exists],
+            addons: (exists) => [<SubscribeButton />, ...exists],
             homeLink: joinURL(blocklet?.prefix || '', 'projects'),
           }}
           MenusDrawerProps={{ sx: { [`.${backdropClasses.root}`]: { top: 64 } } }}
@@ -92,21 +91,6 @@ export default function ProjectRoutes() {
       </DndProvider>
     </UploaderProvider>
   );
-}
-
-function AddonsRoutes() {
-  const element = useRoutes([
-    {
-      path: ':projectId/*',
-      element: (
-        <Stack direction="row" alignItems="center">
-          <Outlet />
-          <AddSource />
-        </Stack>
-      ),
-    },
-  ]);
-  return <Suspense>{element}</Suspense>;
 }
 
 const ProjectsPage = lazy(() => import('./projects-page'));
