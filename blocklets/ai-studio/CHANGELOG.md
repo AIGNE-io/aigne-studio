@@ -1,6 +1,6 @@
 ## 0.2.14 (2024-5-27)
 
-- chore: comsume primaryColor
+- chore:Add primaryColor as the return value of /agent interface
 
 ## 0.2.13 (2024-5-27)
 
