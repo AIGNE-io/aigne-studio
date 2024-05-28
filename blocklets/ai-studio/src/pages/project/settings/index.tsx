@@ -1,3 +1,4 @@
+import { AgentTooltip } from '@app/components/agent-tooltip';
 import { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
@@ -15,7 +16,6 @@ import {
   Stack,
   Tabs,
   TextField,
-  Tooltip,
   Typography,
   styled,
   tabClasses,
@@ -295,12 +295,12 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
                 <Stack gap={1} py={1}>
                   <Box className="prefer-inline">
                     <Box>
-                      <Tooltip title={t('temperatureTip')} placement="top" disableInteractive>
+                      <AgentTooltip title={t('temperatureTip')} placement="top" disableInteractive>
                         <FormLabel>
                           {t('temperature')}
                           <InfoOutlined fontSize="small" sx={{ verticalAlign: 'bottom', ml: 1, color: 'info.main' }} />
                         </FormLabel>
-                      </Tooltip>
+                      </AgentTooltip>
                     </Box>
 
                     <Box>
@@ -318,12 +318,12 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
 
                   <Box className="prefer-inline">
                     <Box>
-                      <Tooltip title={t('topPTip')} placement="top" disableInteractive>
+                      <AgentTooltip title={t('topPTip')} placement="top" disableInteractive>
                         <FormLabel>
                           {t('topP')}
                           <InfoOutlined fontSize="small" sx={{ verticalAlign: 'bottom', ml: 1, color: 'info.main' }} />
                         </FormLabel>
-                      </Tooltip>
+                      </AgentTooltip>
                     </Box>
 
                     <Box>
@@ -341,12 +341,12 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
 
                   <Box className="prefer-inline">
                     <Box>
-                      <Tooltip title={t('presencePenaltyTip')} placement="top" disableInteractive>
+                      <AgentTooltip title={t('presencePenaltyTip')} placement="top" disableInteractive>
                         <FormLabel>
                           {t('presencePenalty')}
                           <InfoOutlined fontSize="small" sx={{ verticalAlign: 'bottom', ml: 1, color: 'info.main' }} />
                         </FormLabel>
-                      </Tooltip>
+                      </AgentTooltip>
                     </Box>
 
                     <Box>
@@ -364,12 +364,12 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
 
                   <Box className="prefer-inline">
                     <Box>
-                      <Tooltip title={t('frequencyPenaltyTip')} placement="top" disableInteractive>
+                      <AgentTooltip title={t('frequencyPenaltyTip')} placement="top" disableInteractive>
                         <FormLabel>
                           {t('frequencyPenalty')}
                           <InfoOutlined fontSize="small" sx={{ verticalAlign: 'bottom', ml: 1, color: 'info.main' }} />
                         </FormLabel>
-                      </Tooltip>
+                      </AgentTooltip>
                     </Box>
 
                     <Box>
@@ -387,12 +387,12 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
 
                   <Box className="prefer-inline">
                     <Box>
-                      <Tooltip title={t('maxTokensTip')} placement="top" disableInteractive>
+                      <AgentTooltip title={t('maxTokensTip')} placement="top" disableInteractive>
                         <FormLabel>
                           {t('maxTokens')}
                           <InfoOutlined fontSize="small" sx={{ verticalAlign: 'bottom', ml: 1, color: 'info.main' }} />
                         </FormLabel>
-                      </Tooltip>
+                      </AgentTooltip>
                     </Box>
 
                     <Box>

@@ -1,7 +1,7 @@
 import { Theme, Tooltip, TooltipProps, useMediaQuery } from '@mui/material';
 import { ReactElement } from 'react';
 
-function AgentTooltip(props: { children: React.ReactElement<any, any> } & TooltipProps): ReactElement {
+export function AgentTooltip(props: { children: React.ReactElement<any, any> } & TooltipProps): ReactElement {
   const isMobile = useMediaQuery<Theme>((theme) => theme.breakpoints.down('md'));
 
   // https://github.com/mui/material-ui/issues/14948
@@ -17,5 +17,3 @@ function AgentTooltip(props: { children: React.ReactElement<any, any> } & Toolti
 
   return <> {isMobile ? MoblieTooltip() : <Tooltip {...props}>{props.children}</Tooltip>} </>;
 }
-
-export default AgentTooltip;
