@@ -223,7 +223,6 @@ export default flat({
   debugThisCase: '调试该用例',
   deleteThisCase: '删除该用例',
   runThisCase: '运行该用例',
-  subscribeAIService: '订阅 AI 服务',
   diff: {
     created: '新文件',
     deleted: '已删除',
