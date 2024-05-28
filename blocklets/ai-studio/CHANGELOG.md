@@ -1,3 +1,7 @@
+## 0.2.15 (2024-5-28)
+
+- fix: change dialog to popper
+
 ## 0.2.14 (2024-5-27)
 
 - chore: return project primary color for agents
