@@ -73,7 +73,7 @@ import { ModelPopper, ModelSetting } from '../modal-settings';
 import ExecuteDatasetBlockForm from './execute-dataset-block';
 import PromptEditorField from './prompt-editor-field';
 
-export const FROM_DATASET = 'dataset';
+export const FROM_DATASET = 'blockletAPI';
 export const FROM_KNOWLEDGE = 'knowledge';
 
 export default function ExecuteBlockForm({

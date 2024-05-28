@@ -44,50 +44,6 @@ const searchQuerySchema = Joi.object<{ message?: string; searchAll?: boolean; n:
   n: Joi.number().empty(['', null]).min(1).default(4),
 });
 
-/**
- * @openapi
- * /api/datasets/{datasetId}/search:
- *    get:
- *      type: 'SEARCH'
- *      summary: Search for content within the dataset
- *      x-summary-zh: 搜索内容
- *      description: Search for specific content within the dataset by datasetId and search message
- *      x-description-zh: 搜索内容
- *      parameters:
- *        - name: datasetId
- *          in: path
- *          description: The ID of the dataset
- *          x-description-zh: 数据集的ID
- *          required: true
- *          x-parameter-type: input
- *          x-options-api: /ai-studio/api/datasets
- *          x-option-key: id
- *          x-option-name: name
- *          x-hide: true
- *          schema:
- *            type: string
- *            default: ''
- *        - name: message
- *          in: query
- *          description: The content to be retrieved
- *          x-description-zh: 需要检索的内容
- *          required: true
- *          schema:
- *            type: string
- *            default: ''
- *        - name: n
- *          in: query
- *          description: How many records to return
- *          x-description-zh: 返回多少条数据
- *          required: false
- *          schema:
- *            type: number
- *            default: 4
- *      responses:
- *        200:
- *          description: Successfully retrieved the paginated list of search results
- *          x-description-zh: 成功获取分页列表
- */
 router.get('/:datasetId/search', async (req, res) => {
   const { datasetId } = req.params;
   const input = await searchQuerySchema.validateAsync(req.query, { stripUnknown: true });
@@ -139,47 +95,6 @@ router.get('/:datasetId/search', async (req, res) => {
   }
 });
 
-/**
- * @openapi
- * /api/datasets/{datasetId}/documents:
- *    get:
- *      type: 'SEARCH'
- *      summary: Get data items in a dataset by datasetId
- *      x-summary-zh: 获取当前 datasetId 数据集中数据信息
- *      description: Get data items in a dataset by datasetId
- *      x-description-zh: 获取当前 datasetId 数据集中数据信息
- *      parameters:
- *        - name: datasetId
- *          in: path
- *          description: The ID of the dataset
- *          x-description-zh: 数据集的ID
- *          required: true
- *          x-parameter-type: input
- *          x-options-api: /ai-studio/api/datasets
- *          x-option-key: id
- *          x-option-name: name
- *          schema:
- *            type: string
- *            default: ''
- *        - name: page
- *          in: query
- *          description: The page number of the data
- *          x-description-zh: 当前数据页
- *          schema:
- *            type: integer
- *            default: 1
- *        - name: size
- *          in: query
- *          description: The number of items per page
- *          x-description-zh: 每页数据量
- *          schema:
- *            type: integer
- *            default: 20
- *      responses:
- *        200:
- *          description: Successfully retrieved data items in the dataset
- *          x-description-zh: 获取当前 datasetId 数据集中数据信息
- */
 router.get('/:datasetId/documents', user(), userAuth(), async (req, res) => {
   const { did, isAdmin } = req.user!;
   const { datasetId } = req.params;

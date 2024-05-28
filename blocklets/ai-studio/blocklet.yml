@@ -15,7 +15,11 @@ repository:
   type: git
   url: git+https://github.com/blocklet/ai-assistant.git
 specVersion: 1.2.8
+<<<<<<< HEAD
 version: 0.2.13
+=======
+version: 0.2.14
+>>>>>>> main
 logo: logo.png
 files:
   - dist

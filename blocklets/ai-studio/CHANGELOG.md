@@ -1,4 +1,15 @@
+## 0.2.14 (2024-5-27)
+
+- chore: return project primary color for agents
+
+## 0.2.13 (2024-5-27)
+
+- chore: support choose a blocklet react component to render output appearance (#1016)
+- chore: support choose a blocklet api as a decision
+
 ## 0.2.12 (2024-5-27)
+
+- fix: datastore query not working
 - fix: change dialog to popper
 
 ## 0.2.11 (2024-5-26)

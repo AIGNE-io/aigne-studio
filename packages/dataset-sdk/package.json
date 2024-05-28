@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/dataset-sdk",
-  "version": "0.2.13",
+  "version": "0.2.14",
   "description": "The SDK for processing dataset protocol",
   "publishConfig": {
     "access": "public"
@@ -35,6 +35,10 @@
     "./util/*": {
       "import": "./lib/esm/util/*.js",
       "require": "./lib/cjs/util/*.js"
+    },
+    "./plugin": {
+      "import": "./lib/esm/plugin.js",
+      "require": "./lib/cjs/plugin.js"
     }
   },
   "typesVersions": {
@@ -56,6 +60,9 @@
       ],
       "util/*": [
         "./lib/types/util/*.d.ts"
+      ],
+      "plugin": [
+        "./lib/types/plugin.d.ts"
       ]
     }
   },
@@ -103,6 +110,7 @@
     "@types/lodash": "^4.17.4",
     "npm-run-all": "^4.1.5",
     "rimraf": "^5.0.7",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "zx": "^7.2.3"
   }
 }

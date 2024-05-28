@@ -27,7 +27,7 @@ export type Tool = {
   blockletDid?: string;
   projectId?: string;
   id: string;
-  from?: 'assistant' | 'dataset' | 'knowledge'; // 这里的 dataset 其实代表 api
+  from?: 'assistant' | 'blockletAPI' | 'knowledge';
   parameters?: { [key: string]: string };
   functionName?: string;
   onEnd?: OnTaskCompletion;
@@ -246,6 +246,11 @@ export interface HistoryParameter {
   chatHistory?: { limit?: number; keyword?: string };
 }
 
+export interface APIParameter {
+  variableFrom?: 'blockletAPI';
+  api?: Tool;
+}
+
 export interface SecretParameter {
   variableFrom?: 'secret';
 }
@@ -259,13 +264,13 @@ export interface ParameterBase {
   placeholder?: string;
   helper?: string;
   required?: boolean;
-  from?: 'editor' | 'agentParameter' | 'knowledgeParameter';
+  from?: 'editor' | 'agentParameter' | 'knowledgeParameter' | 'blockletAPIParameter';
 }
 
 export interface SourceParameter extends ParameterBase {
   type: 'source';
   defaultValue?: string;
-  source?: DatastoreParameter | AgentParameter | KnowledgeParameter | HistoryParameter | SecretParameter;
+  source?: DatastoreParameter | AgentParameter | KnowledgeParameter | HistoryParameter | APIParameter | SecretParameter;
 }
 
 export interface StringParameter extends ParameterBase {
