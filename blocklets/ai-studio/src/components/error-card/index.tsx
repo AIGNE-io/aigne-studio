@@ -1,7 +1,7 @@
 import { SubscriptionErrorType } from '@blocklet/ai-kit/api';
 import { SubscribeButton } from '@blocklet/ai-kit/components';
 import { ErrorRounded } from '@mui/icons-material';
-import { Alert, Stack } from '@mui/material';
+import { Alert, Stack, alertClasses } from '@mui/material';
 import { memo } from 'react';
 
 interface CustomAlertProps {
@@ -15,16 +15,10 @@ function ErrorCard({ error }: CustomAlertProps) {
         variant="standard"
         icon={<ErrorRounded />}
         color="warning"
-        sx={{
-          display: 'inline-flex',
-          px: 1,
-          py: 0,
-          '.MuiAlert-icon': {
-            mr: 0.5,
-          },
-        }}>
+        sx={{ [`.${alertClasses.message}`]: { flex: 1 } }}>
         {error.message}
-        <Stack mt={1} direction="row" sx={{ justifyContent: 'flex-end' }}>
+
+        <Stack direction="row" justifyContent="flex-end" mt={1}>
           <SubscribeButton />
         </Stack>
       </Alert>

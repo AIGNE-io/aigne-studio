@@ -1,3 +1,4 @@
+import { useIsAdmin } from '@app/contexts/session';
 import { getProjectIconUrl } from '@app/libs/project';
 import { useAgents } from '@app/store/agent';
 import DID from '@arcblock/ux/lib/DID';
@@ -51,6 +52,7 @@ export default function AgentSelect<
   >) {
   const { t } = useLocaleContext();
   const { agents, agentMap, projectMap, load } = useAgents();
+  const isAdmin = useIsAdmin();
 
   const options = useMemo(() => {
     if (!excludes?.length) {
@@ -110,10 +112,19 @@ export default function AgentSelect<
           <Paper {...props}>
             {children}
 
-            <Stack>
-              <Button onMouseDown={addComponentRef.current?.onClick} startIcon={<Icon icon={BrandAppgalleryIcon} />}>
+            <Stack direction="row" alignItems="center" justifyContent="center">
+              <Button
+                disabled={!isAdmin}
+                onMouseDown={addComponentRef.current?.onClick}
+                startIcon={<Icon icon={BrandAppgalleryIcon} />}>
                 {t('addMoreAgentTools')}
               </Button>
+
+              {!isAdmin && (
+                <Typography variant="caption" color="text.disabled">
+                  {t('onlyAdminsAllowAddMoreAgents')}
+                </Typography>
+              )}
             </Stack>
           </Paper>
         )}

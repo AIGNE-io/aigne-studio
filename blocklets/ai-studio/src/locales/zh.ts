@@ -223,7 +223,6 @@ export default flat({
   debugThisCase: '调试该用例',
   deleteThisCase: '删除该用例',
   runThisCase: '运行该用例',
-  subscribeAIService: '订阅 AI 服务',
   diff: {
     created: '新文件',
     deleted: '已删除',
@@ -711,4 +710,5 @@ export default flat({
   noAgents: '没有可选的 Agent',
   buildIn: '内置组件',
   remote: '远程组件',
+  onlyAdminsAllowAddMoreAgents: '仅允许管理员添加更多 Agents',
 });

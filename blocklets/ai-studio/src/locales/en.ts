@@ -224,7 +224,6 @@ export default flat({
   debugThisCase: 'Debug this case',
   deleteThisCase: 'Delete this case',
   runThisCase: 'Run this case',
-  subscribeAIService: 'Subscribe AI Service',
   diff: {
     created: 'New file',
     deleted: 'Deleted',
@@ -717,4 +716,5 @@ export default flat({
   noAgents: 'No Agents',
   buildIn: 'buildIn',
   remote: 'remote',
+  onlyAdminsAllowAddMoreAgents: 'Only admins can add more agents',
 });

@@ -87,8 +87,12 @@ export default function AigneLogo() {
 const AvatarContainer = styled(Box)`
   position: relative;
   width: 128px;
+  min-width: 128px;
   height: 44px;
-  background-size: contain;
+  overflow: hidden;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
   margin: auto;
 `;
 
