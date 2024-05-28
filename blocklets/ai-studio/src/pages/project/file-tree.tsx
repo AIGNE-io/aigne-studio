@@ -137,8 +137,8 @@ const FileTree = forwardRef<
   const { deleted, changes, getOriginTemplate } = useAssistantChangesState(projectId, gitRef);
   const dialogState = usePopupState({ variant: 'dialog' });
   const [compareAssistant, setCompareAssistant] = useState('');
-
   const [openIds, setOpenIds] = useLocalStorageState<(string | number)[]>('ai-studio.tree.openIds');
+  const [time, setTime] = useState<NodeJS.Timeout | null>(null);
 
   const openFolder = useCallback(
     (...path: (string | string[])[]) => {
@@ -333,6 +333,21 @@ const FileTree = forwardRef<
     );
   }
 
+  const handleClick = (onToggle: () => void, filepath: string) => {
+    if (time) {
+      clearTimeout(time);
+      setTime(null);
+      setEditingFolderPath(filepath);
+    } else {
+      const timer = setTimeout(() => {
+        onToggle();
+        clearTimeout(timer);
+        setTime(null);
+      }, 200);
+      setTime(timer);
+    }
+  };
+
   return (
     <>
       <Box {...props}>
@@ -390,10 +405,7 @@ const FileTree = forwardRef<
                       />
                     }
                     depth={depth}
-                    onClick={onToggle}
-                    onDoubleClick={() => {
-                      setEditingFolderPath(filepath);
-                    }}
+                    onClick={() => handleClick(onToggle, filepath)}
                     editing={filepath === editingFolderPath}
                     actions={
                       <TreeItemMenus
