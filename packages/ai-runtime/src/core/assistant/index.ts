@@ -71,7 +71,7 @@ const getUserHeader = (user: any) => {
 
 const defaultScope = 'session';
 
-const MAX_RETRIES = 3;
+const MAX_RETRIES = 5;
 
 const taskIdGenerator = new Worker();
 
