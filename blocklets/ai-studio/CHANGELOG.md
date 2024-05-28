@@ -1,6 +1,14 @@
+## 0.2.16 (2024-5-28)
+
+- chore: use responseFormat parameter for chat completion api
+- fix: input number not working in model settings
+- chore: polish inputs/outputs table ux
+- chore: polish resource tree for publishing view
+- fix: disable add more button for non-admin users
+
 ## 0.2.15 (2024-5-28)
 
-- fix: change dialog to popper
+- fix: use popper for primary color picker
 
 ## 0.2.14 (2024-5-27)
 
