@@ -1,8 +1,8 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { ClickAwayListener } from '@mui/base';
 import { SaveRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
-import { Box, Dialog, DialogContent, Divider, Stack, Typography, dialogContentClasses, styled } from '@mui/material';
-import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
+import { Box, Divider, Popper, Stack, Typography, styled } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { ChromePicker } from 'react-color';
 
@@ -33,8 +33,13 @@ export default function AppearanceSetting({
 }) {
   const [selectedColor, setSelectedColor] = useState<string | undefined>(value || defaultColors[0]);
   const { t } = useLocaleContext();
-  const dialogState = usePopupState({ variant: 'dialog' });
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  const [open, setOpen] = useState(false);
 
+  const handleOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+    setOpen((prev) => !prev);
+  };
   const handleChangeComplete = (color: { hex: string }) => {
     setSelectedColor(color.hex);
   };
@@ -61,9 +66,18 @@ export default function AppearanceSetting({
           ))}
 
           <Divider orientation="vertical" flexItem sx={{ mx: '2px' }} />
-          <Box onClick={dialogState.open} sx={{ position: 'relative' }}>
-            <ChromePickerBox bgcolor={selectedColor} />
-          </Box>
+          <ClickAwayListener onClickAway={() => setOpen(false)}>
+            <Box>
+              <Box onClick={handleOpen}>
+                <ChromePickerBox bgcolor={selectedColor} />
+              </Box>
+              <Popper open={open} anchorEl={anchorEl} sx={{ zIndex: 10000 }} placement="bottom-end">
+                <Box mt={2}>
+                  <ChromePicker onChangeComplete={handleChangeComplete} color={selectedColor} disableAlpha />
+                </Box>
+              </Popper>
+            </Box>
+          </ClickAwayListener>
         </Stack>
         <Box>
           <LoadingButton
@@ -77,31 +91,6 @@ export default function AppearanceSetting({
           </LoadingButton>
         </Box>
       </Stack>
-
-      <Dialog
-        {...bindDialog(dialogState)}
-        hideBackdrop
-        sx={{
-          mt: '90px',
-          [`.${dialogContentClasses.root}`]: {
-            padding: '8px !important',
-          },
-        }}
-        PaperProps={{
-          elevation: 0,
-          style: {
-            position: 'absolute',
-            top: '152px',
-            right: '130px',
-            margin: 0,
-          },
-        }}>
-        <DialogContent>
-          <Box mt={2}>
-            <ChromePicker onChangeComplete={handleChangeComplete} color={selectedColor} disableAlpha />
-          </Box>
-        </DialogContent>
-      </Dialog>
     </Box>
   );
 }
