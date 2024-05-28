@@ -1,3 +1,7 @@
+## 0.2.15 (2024-5-28)
+
+- fix: change dialog to popper
+
 ## 0.2.14 (2024-5-27)
 
 - chore: return project primary color for agents
@@ -10,7 +14,6 @@
 ## 0.2.12 (2024-5-27)
 
 - fix: datastore query not working
-- fix: change dialog to popper
 
 ## 0.2.11 (2024-5-26)
 
