@@ -43,16 +43,30 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
       <Box>
         <Typography variant="subtitle2">{t('defaultValue')}</Typography>
 
-        <ParameterField
-          readOnly={readOnly}
-          parameter={parameterFromYjs(value)}
-          label={undefined}
-          hiddenLabel
-          fullWidth
-          size="medium"
-          value={value.defaultValue ?? ''}
-          onChange={(defaultValue: any) => (value.defaultValue = defaultValue)}
-        />
+        {value.type === 'number' ? (
+          <NumberField
+            hiddenLabel
+            sx={{ width: 1 }}
+            fullWidth
+            size="medium"
+            NumberProps={{
+              readOnly,
+              value: value.defaultValue,
+              onChange: (_, defaultValue) => (value.defaultValue = defaultValue),
+            }}
+          />
+        ) : (
+          <ParameterField
+            readOnly={readOnly}
+            parameter={parameterFromYjs(value)}
+            label={undefined}
+            hiddenLabel
+            fullWidth
+            size="medium"
+            value={value.defaultValue ?? ''}
+            onChange={(defaultValue: any) => (value.defaultValue = defaultValue)}
+          />
+        )}
       </Box>
 
       {value.type === 'select' && (
