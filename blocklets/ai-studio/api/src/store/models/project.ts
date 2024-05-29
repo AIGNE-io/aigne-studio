@@ -60,7 +60,15 @@ export default class Project extends Model<InferAttributes<Project>, InferCreati
 
   declare homePageUrl?: string;
 
-  declare primaryColor?: string;
+  declare appearance?: {
+    primaryColor?: string;
+    typography?: {
+      fontFamily?: string;
+      heading?: {
+        fontFamily?: string;
+      };
+    };
+  };
 }
 
 Project.init(
@@ -148,8 +156,8 @@ Project.init(
     homePageUrl: {
       type: DataTypes.STRING,
     },
-    primaryColor: {
-      type: DataTypes.STRING,
+    appearance: {
+      type: DataTypes.JSON,
     },
   },
   { sequelize }

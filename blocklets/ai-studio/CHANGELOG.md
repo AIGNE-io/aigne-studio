@@ -1,3 +1,24 @@
+## 0.2.22 (2024-5-29)
+
+- fix: remove responseFormat json parameter
+- chore: add more font for project appearance settings
+
+## 0.2.21 (2024-5-29)
+
+- feat: add font settings for project
+
+## 0.2.20 (2024-5-29)
+
+- fix: allow image uploads for avatars only
+
+## 0.2.19 (2024-5-29)
+
+- feat: support conversation history for multi-agents
+
+## 0.2.18 (2024-5-29)
+
+- fix: show dialog to merge conflict when sync failed
+
 ## 0.2.17 (2024-5-29)
 
 - fix: page crash after component cleared
