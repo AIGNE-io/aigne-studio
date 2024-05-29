@@ -24,7 +24,9 @@ export default function PrimayColor({
   value: UpdateProjectInput;
   set: (key: string, value: any) => void;
 }) {
-  const [selectedColor, setSelectedColor] = useState<string | undefined>(value.primaryColor || defaultColors[0]);
+  const [selectedColor, setSelectedColor] = useState<string | undefined>(
+    value.appearance?.primaryColor || defaultColors[0]
+  );
   const { t } = useLocaleContext();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [open, setOpen] = useState(false);

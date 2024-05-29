@@ -101,9 +101,7 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
         'frequencyPenalty',
         'maxTokens',
         'gitType',
-        'primaryColor',
-        'bodyFont',
-        'titleFont',
+        'appearance',
       ]);
       merge.icon = getProjectIconUrl(projectId, project.updatedAt, { original: true });
 
@@ -132,6 +130,16 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
   const onSubmit = async () => {
     const temp: any = cloneDeep(value);
     isSubmit.current = true;
+
+    temp.appearance = {
+      primaryColor: temp.primaryColor,
+      typography: {
+        fontFamily: temp.bodyFont,
+        heading: {
+          fontFamily: temp.titleFont,
+        },
+      },
+    };
 
     Object.keys(temp).forEach((t: string) => {
       if (isNil(temp[t])) {

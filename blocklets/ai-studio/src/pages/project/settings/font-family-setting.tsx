@@ -23,8 +23,9 @@ export default function FontFamilySetting({
   value: UpdateProjectInput;
   set: (key: string, value: any) => void;
 }) {
-  const [titleFont, setTitleFont] = useState(value.titleFont || defaultFonts[0]);
-  const [bodyFont, setBodyFont] = useState(value.bodyFont || defaultFonts[0]);
+  const { appearance } = value;
+  const [titleFont, setTitleFont] = useState(appearance?.typography?.heading?.fontFamily || defaultFonts[0]);
+  const [bodyFont, setBodyFont] = useState(appearance?.typography?.fontFamily || defaultFonts[0]);
 
   useEffect(() => {
     set('titleFont', titleFont);

@@ -109,11 +109,7 @@ const respondAgentFields = (assistant: Assistant, project: Project['dataValues']
     createdBy: project.createdBy,
     createdAt: project.createdAt,
     updatedAt: project.updatedAt,
-    primaryColor: project.primaryColor,
-    fontFamily: {
-      titleFont: project.titleFont,
-      bodyFont: project.bodyFont,
-    },
+    appearance: project.appearance,
   },
   blocklet: blocklet && {
     did: blocklet.did,
