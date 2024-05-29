@@ -1,3 +1,8 @@
+## 0.2.22 (2024-5-29)
+
+- fix: remove responseFormat json parameter
+- chore: add more font for project appearance settings
+
 ## 0.2.21 (2024-5-29)
 
 - feat: add font settings for project
