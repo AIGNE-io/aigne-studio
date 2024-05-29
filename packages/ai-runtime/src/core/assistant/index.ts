@@ -1665,7 +1665,6 @@ async function runPromptAssistant({
         topP: assistant.topP,
         presencePenalty: assistant.presencePenalty,
         frequencyPenalty: assistant.frequencyPenalty,
-        responseFormat: onlyOutputJson ? { type: 'json_object' } : undefined,
       },
     });
 
