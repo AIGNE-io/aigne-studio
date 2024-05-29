@@ -109,6 +109,8 @@ export interface UpdateProjectInput {
   projectType?: Project['projectType'];
   homePageUrl?: string | null;
   primaryColor?: string;
+  titleFont?: string;
+  bodyFont?: string;
 }
 
 const updateProjectSchema = Joi.object<UpdateProjectInput>({
@@ -127,6 +129,8 @@ const updateProjectSchema = Joi.object<UpdateProjectInput>({
   didSpaceAutoSync: Joi.boolean().optional(),
   homePageUrl: Joi.string().allow(null, ''),
   primaryColor: Joi.string().empty([null, '']),
+  bodyFont: Joi.string().empty([null, '']),
+  titleFont: Joi.string().empty([null, '']),
 });
 
 export interface AddProjectRemoteInput {
@@ -614,6 +618,8 @@ export function projectRoutes(router: Router) {
       didSpaceAutoSync,
       homePageUrl,
       primaryColor,
+      titleFont,
+      bodyFont,
     } = await updateProjectSchema.validateAsync(req.body, { stripUnknown: true });
 
     if (gitAutoSync) {
@@ -646,6 +652,8 @@ export function projectRoutes(router: Router) {
           didSpaceAutoSync,
           homePageUrl,
           primaryColor,
+          titleFont,
+          bodyFont,
           updatedAt: new Date(),
         },
         (v) => v === undefined

@@ -6,6 +6,8 @@ import { Box, Divider, Popper, Stack, Typography, styled } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { ChromePicker } from 'react-color';
 
+import FontFamilySetting from './font-family-setting';
+
 const defaultColors: string[] = [
   '#ffffff',
   '#F47373',
@@ -20,12 +22,14 @@ const defaultColors: string[] = [
 
 export default function AppearanceSetting({
   value,
+  fontFamily,
   onSubmit,
   set,
   readOnly,
   submitLoading,
 }: {
   value: string | undefined;
+  fontFamily: { titleFont: string | undefined; bodyFont: string | undefined };
   onSubmit: () => void;
   set: (key: string, value: any) => void;
   readOnly: boolean;
@@ -53,45 +57,53 @@ export default function AppearanceSetting({
   }, [selectedColor]);
 
   return (
-    <Box>
-      <Typography variant="subtitle2" mb={0.5}>
-        {t('primaryColor')}
-      </Typography>
-      <Stack gap={2}>
-        <Stack direction="row" gap={1} alignItems="center">
-          {defaultColors?.map((color) => (
-            <Box key={color} border={color === selectedColor ? '1px solid #030712' : ''} borderRadius="4px">
-              <ColorBox bgcolor={color} onClick={() => handleClick(color)} />
-            </Box>
-          ))}
-
-          <Divider orientation="vertical" flexItem sx={{ mx: '2px' }} />
-          <ClickAwayListener onClickAway={() => setOpen(false)}>
-            <Box>
-              <Box onClick={handleOpen}>
-                <ChromePickerBox bgcolor={selectedColor} />
+    <Stack gap={2}>
+      <Box>
+        <Typography variant="subtitle2" mb={0.5}>
+          {t('primaryColor')}
+        </Typography>
+        <Stack gap={2}>
+          <Stack direction="row" gap={1} alignItems="center">
+            {defaultColors?.map((color) => (
+              <Box key={color} border={color === selectedColor ? '1px solid #030712' : ''} borderRadius="4px">
+                <ColorBox bgcolor={color} onClick={() => handleClick(color)} />
               </Box>
-              <Popper open={open} anchorEl={anchorEl} sx={{ zIndex: 10000 }} placement="bottom-end">
-                <Box mt={2}>
-                  <ChromePicker onChangeComplete={handleChangeComplete} color={selectedColor} disableAlpha />
+            ))}
+
+            <Divider orientation="vertical" flexItem sx={{ mx: '2px' }} />
+            <ClickAwayListener onClickAway={() => setOpen(false)}>
+              <Box>
+                <Box onClick={handleOpen}>
+                  <ChromePickerBox bgcolor={selectedColor} />
                 </Box>
-              </Popper>
-            </Box>
-          </ClickAwayListener>
+                <Popper open={open} anchorEl={anchorEl} sx={{ zIndex: 10000 }} placement="bottom-end">
+                  <Box mt={2}>
+                    <ChromePicker onChangeComplete={handleChangeComplete} color={selectedColor} disableAlpha />
+                  </Box>
+                </Popper>
+              </Box>
+            </ClickAwayListener>
+          </Stack>
         </Stack>
-        <Box>
-          <LoadingButton
-            disabled={readOnly}
-            loading={submitLoading}
-            variant="contained"
-            loadingPosition="start"
-            startIcon={<SaveRounded />}
-            onClick={onSubmit}>
-            {t('save')}
-          </LoadingButton>
-        </Box>
-      </Stack>
-    </Box>
+      </Box>
+      <Box>
+        <Typography variant="subtitle2" mb={0.5}>
+          {t('fontFamily')}
+        </Typography>
+        <FontFamilySetting set={set} fontFamily={fontFamily} />
+      </Box>
+      <Box>
+        <LoadingButton
+          disabled={readOnly}
+          loading={submitLoading}
+          variant="contained"
+          loadingPosition="start"
+          startIcon={<SaveRounded />}
+          onClick={onSubmit}>
+          {t('save')}
+        </LoadingButton>
+      </Box>
+    </Stack>
   );
 }
 

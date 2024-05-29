@@ -102,6 +102,8 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
         'maxTokens',
         'gitType',
         'primaryColor',
+        'bodyFont',
+        'titleFont',
       ]);
       merge.icon = getProjectIconUrl(projectId, project.updatedAt, { original: true });
 
@@ -496,6 +498,7 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
               readOnly={readOnly}
               submitLoading={submitLoading}
               value={value.primaryColor}
+              fontFamily={{ titleFont: value.titleFont, bodyFont: value.bodyFont }}
             />
           </Box>
         )}

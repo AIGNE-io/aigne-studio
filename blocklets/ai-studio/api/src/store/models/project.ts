@@ -61,6 +61,10 @@ export default class Project extends Model<InferAttributes<Project>, InferCreati
   declare homePageUrl?: string;
 
   declare primaryColor?: string;
+
+  declare titleFont?: string;
+
+  declare bodyFont?: string;
 }
 
 Project.init(
@@ -149,6 +153,12 @@ Project.init(
       type: DataTypes.STRING,
     },
     primaryColor: {
+      type: DataTypes.STRING,
+    },
+    titleFont: {
+      type: DataTypes.STRING,
+    },
+    bodyFont: {
       type: DataTypes.STRING,
     },
   },
