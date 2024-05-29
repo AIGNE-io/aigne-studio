@@ -44,7 +44,7 @@ export default function PrimayColor({
   };
 
   useEffect(() => {
-    set('primaryColor', selectedColor);
+    set('appearance', { ...value.appearance, primaryColor: selectedColor });
   }, [selectedColor]);
 
   return (
