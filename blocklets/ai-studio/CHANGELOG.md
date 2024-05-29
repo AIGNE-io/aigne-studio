@@ -1,3 +1,7 @@
+## 0.2.20 (2024-5-29)
+
+- fix: allow image uploads for avatars only
+
 ## 0.2.19 (2024-5-29)
 
 - feat: support conversation history for multi-agents
