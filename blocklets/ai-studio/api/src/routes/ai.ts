@@ -1,6 +1,8 @@
 import { defaultImageModel, getSupportedImagesModels } from '@api/libs/common';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
 import logger from '@api/libs/logger';
+import { getAssistantFromResourceBlocklet } from '@api/libs/resource';
+import AgentInputSecret from '@api/store/models/agent-input-secret';
 import History from '@api/store/models/history';
 import Session from '@api/store/models/session';
 import { chatCompletions, imageGenerations, proxyToAIKit } from '@blocklet/ai-kit/api/call';
@@ -39,6 +41,7 @@ router.post('/image/generations', ensureComponentCallOrPromptsEditor(), proxyToA
 const callInputSchema = Joi.object<{
   userId?: string;
   sessionId?: string;
+  blockletDid?: string;
   aid: string;
   working?: boolean;
   parameters?: { [key: string]: any };
@@ -46,6 +49,7 @@ const callInputSchema = Joi.object<{
 }>({
   userId: Joi.string().empty(['', null]),
   sessionId: Joi.string().empty(['', null]),
+  blockletDid: Joi.string().empty(['', null]),
   aid: Joi.string().required(),
   working: Joi.boolean().default(false),
   parameters: Joi.object({
@@ -142,17 +146,30 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
     return imageRes as any;
   };
 
-  const getAssistant: GetAssistant = (fileId: string, options) => {
-    return getAssistantFromRepository({
-      repository,
-      ref: projectRef,
-      working: input.working,
+  const getAssistant: GetAssistant = async (fileId: string, options) => {
+    const blockletDid = options?.blockletDid || input.blockletDid;
+    if (!blockletDid || !options?.projectId) {
+      return getAssistantFromRepository({
+        repository,
+        ref: projectRef,
+        working: input.working,
+        assistantId: fileId,
+        rejectOnEmpty: options?.rejectOnEmpty as any,
+      });
+    }
+
+    const assistant = await getAssistantFromResourceBlocklet({
+      blockletDid,
+      projectId: options.projectId,
       assistantId: fileId,
-      rejectOnEmpty: options?.rejectOnEmpty as any,
+      type: ['application', 'tool'],
     });
+    if (options.rejectOnEmpty && !assistant?.assistant) throw new Error(`No such assistant ${fileId}`);
+
+    return assistant?.assistant!;
   };
 
-  const assistant = await getAssistant(assistantId, { rejectOnEmpty: true });
+  const assistant = await getAssistant(assistantId, { projectId, blockletDid: input.blockletDid, rejectOnEmpty: true });
 
   let mainTaskId: string | undefined;
   let error: { type?: string; message: string } | undefined;
@@ -263,6 +280,11 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
     });
 
     const result = await runAssistant({
+      getSecret: ({ targetProjectId, targetAgentId, targetInputKey }) =>
+        AgentInputSecret.findOne({
+          where: { projectId, targetProjectId, targetAgentId, targetInputKey },
+          rejectOnEmpty: new Error('No such secret'),
+        }),
       callAI,
       callAIImage,
       taskId,

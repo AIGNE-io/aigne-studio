@@ -41,6 +41,7 @@ export interface CommitForm {
 }
 
 export default function SaveButton({ projectId, gitRef }: { projectId: string; gitRef: string }) {
+  const { t } = useLocaleContext();
   const dialogState = usePopupState({ variant: 'dialog' });
   const [loading, setLoading] = useState(false);
   const { disabled } = useAssistantChangesState(projectId, gitRef);
@@ -49,35 +50,43 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
 
   return (
     <>
-      <Button
-        {...bindTrigger(dialogState)}
-        disabled={submitting || disabled}
-        sx={{
-          position: 'relative',
-          minWidth: 0,
-          minHeight: 0,
-          width: 32,
-          height: 32,
-          border: '1px solid #E5E7EB',
-          color: '#030712',
-        }}>
-        <Box component={Icon} icon={FloppyIcon} sx={{ opacity: submitting ? 0 : 1, fontSize: 20, color: 'inherit' }} />
-        {submitting && (
-          <Box
+      <Tooltip disableInteractive title={t('save')}>
+        <span>
+          <Button
+            {...bindTrigger(dialogState)}
+            disabled={submitting || disabled}
             sx={{
-              position: 'absolute',
-              left: 0,
-              top: 0,
-              right: 0,
-              bottom: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              position: 'relative',
+              minWidth: 0,
+              minHeight: 0,
+              width: 32,
+              height: 32,
+              border: '1px solid #E5E7EB',
+              color: '#030712',
             }}>
-            <CircularProgress size={20} />
-          </Box>
-        )}
-      </Button>
+            <Box
+              component={Icon}
+              icon={FloppyIcon}
+              sx={{ opacity: submitting ? 0 : 1, fontSize: 20, color: 'inherit' }}
+            />
+            {submitting && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  left: 0,
+                  top: 0,
+                  right: 0,
+                  bottom: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                <CircularProgress size={20} />
+              </Box>
+            )}
+          </Button>
+        </span>
+      </Tooltip>
 
       <SaveButtonDialog
         projectId={projectId}

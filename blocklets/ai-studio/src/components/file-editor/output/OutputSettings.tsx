@@ -1,10 +1,16 @@
+import { DragSortListYjs } from '@app/components/drag-sort-list';
 import AigneLogoOutput from '@app/icons/aigne-logo-output';
 import { useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, OutputVariableYjs, RuntimeOutputVariable, isAssistant } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, OutputVariableYjs, RuntimeOutputVariable, Tool, isAssistant } from '@blocklet/ai-runtime/types';
+import { outputVariablesFromOpenApi } from '@blocklet/ai-runtime/types/runtime/schema';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import { DatasetObject } from '@blocklet/dataset-sdk/types';
+import { Icon } from '@iconify-icon/react';
+import GripVertical from '@iconify-icons/tabler/grip-vertical';
 import {
   Box,
+  BoxProps,
   Stack,
   Switch,
   Table,
@@ -19,7 +25,7 @@ import equal from 'fast-deep-equal';
 import jsonDiff from 'json-diff';
 import { cloneDeep, sortBy, uniqBy } from 'lodash';
 import { nanoid } from 'nanoid';
-import React, { useEffect, useMemo } from 'react';
+import React, { ComponentType, ReactNode, useEffect, useMemo } from 'react';
 
 import AddOutputVariableButton from './AddOutputVariableButton';
 import OutputActionsCell from './OutputActionsCell';
@@ -32,17 +38,19 @@ export default function OutputSettings({
   value,
   projectId,
   gitRef,
+  openApis = [],
 }: {
   value: AssistantYjs;
   projectId: string;
   gitRef: string;
+  openApis?: DatasetObject[];
 }) {
   const { t } = useLocaleContext();
 
-  const { checkSelectAgent: result, allSelectAgentOutputs } = useRoutesAssistantOutputs({ value, projectId, gitRef });
+  const checkOutputVariables = useRoutesAssistantOutputs({ value, projectId, gitRef, openApis });
+  const { getAllSelectCustomOutputs } = useAllSelectDecisionAgentOutputs({ value, projectId, gitRef });
+  const allSelectAgentOutputs = getAllSelectCustomOutputs(openApis);
   const outputVariables = value.outputVariables && sortBy(Object.values(value.outputVariables), 'index');
-
-  const groups = useSortedOutputs({ outputVariables: value.outputVariables });
 
   const setField = (update: (outputVariables: NonNullable<AssistantYjs['outputVariables']>) => void) => {
     const doc = (getYjsValue(value) as Map<any>).doc!;
@@ -125,38 +133,50 @@ export default function OutputSettings({
               </TableRow>
             </TableHead>
 
-            <TableBody>
-              {Object.entries(groups).map(
-                ([group, outputs]) =>
-                  outputs.length > 0 && (
-                    <>
-                      <tr key={`group-${group}`} className="group-header">
-                        <td colSpan={5}>
-                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                            {t(group)}
-                          </Typography>
-                        </td>
-                      </tr>
-
-                      {outputs.map((item) => (
-                        <VariableRow
-                          selectAgentOutputVariables={result?.outputVariables || {}}
-                          key={item.data.id}
-                          variable={item.data}
-                          value={value}
-                          projectId={projectId}
-                          gitRef={gitRef}
-                          onRemove={() =>
-                            setField(() => {
-                              delete value.outputVariables?.[item.data.id];
-                            })
-                          }
-                        />
-                      ))}
-                    </>
-                  )
-              )}
-            </TableBody>
+            {value.outputVariables && (
+              <DragSortListYjs
+                component={TableBody}
+                list={value.outputVariables}
+                sx={{ '&.isDragging .hover-visible': { display: 'none' } }}
+                renderItem={(item, _, params) => (
+                  <VariableRow
+                    key={item.id}
+                    rowRef={(ref) => params.drop(params.preview(ref))}
+                    firstColumnChildren={
+                      <Stack
+                        className="hover-visible"
+                        ref={params.drag}
+                        sx={{
+                          display: 'none',
+                          p: 0.5,
+                          cursor: 'move',
+                          position: 'absolute',
+                          left: -6,
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                        }}>
+                        <Box component={Icon} icon={GripVertical} sx={{ color: '#9CA3AF', fontSize: 14 }} />
+                      </Stack>
+                    }
+                    sx={{
+                      position: 'relative',
+                      '&:hover .hover-visible': { display: 'flex' },
+                    }}
+                    // firstCellChildren
+                    selectAgentOutputVariables={checkOutputVariables?.outputVariables || {}}
+                    variable={item}
+                    value={value}
+                    projectId={projectId}
+                    gitRef={gitRef}
+                    onRemove={() =>
+                      setField(() => {
+                        delete value.outputVariables?.[item.id];
+                      })
+                    }
+                  />
+                )}
+              />
+            )}
           </Table>
         </Box>
 
@@ -198,48 +218,9 @@ export default function OutputSettings({
   );
 }
 
-const outputGroups: { [key in RuntimeOutputVariable]?: { group: 'system' | 'appearance'; index: number } } = {
-  [RuntimeOutputVariable.text]: { group: 'system', index: 0 },
-  [RuntimeOutputVariable.images]: { group: 'system', index: 1 },
-  [RuntimeOutputVariable.suggestedQuestions]: { group: 'system', index: 2 },
-  [RuntimeOutputVariable.referenceLinks]: { group: 'system', index: 3 },
-  [RuntimeOutputVariable.profile]: { group: 'system', index: 4 },
-  [RuntimeOutputVariable.children]: { group: 'system', index: 5 },
-  [RuntimeOutputVariable.appearancePage]: { group: 'appearance', index: 0 },
-  [RuntimeOutputVariable.appearanceInput]: { group: 'appearance', index: 1 },
-  [RuntimeOutputVariable.appearanceOutput]: { group: 'appearance', index: 2 },
-  [RuntimeOutputVariable.share]: { group: 'appearance', index: 3 },
-  [RuntimeOutputVariable.openingQuestions]: { group: 'appearance', index: 4 },
-  [RuntimeOutputVariable.openingMessage]: { group: 'appearance', index: 5 },
-};
-
-function useSortedOutputs({ outputVariables }: { outputVariables: AssistantYjs['outputVariables'] }) {
-  const groups: {
-    [key in 'system' | 'appearance' | 'input' | 'custom']: { index: number; data: OutputVariableYjs }[];
-  } = {
-    system: [],
-    appearance: [],
-    input: [],
-    custom: [],
-  };
-
-  const outputs = sortBy(
-    Object.values(outputVariables ?? {}),
-    (item) => outputGroups[item.data.name as RuntimeOutputVariable]?.index ?? item.index
-  );
-  for (const item of outputs) {
-    if (item.data.from?.type === 'input') {
-      groups['input'].push(item);
-    } else {
-      const group = outputGroups[item.data.name as RuntimeOutputVariable]?.group || 'custom';
-      groups[group].push(item);
-    }
-  }
-
-  return groups;
-}
-
 function VariableRow({
+  firstColumnChildren,
+  rowRef,
   selectAgentOutputVariables,
   parent,
   value,
@@ -249,7 +230,10 @@ function VariableRow({
   projectId,
   gitRef,
   disabled,
+  ...props
 }: {
+  firstColumnChildren?: ReactNode;
+  rowRef?: React.RefCallback<HTMLTableRowElement>;
   selectAgentOutputVariables?: AssistantYjs['outputVariables'];
   parent?: OutputVariableYjs;
   value: AssistantYjs;
@@ -259,7 +243,7 @@ function VariableRow({
   projectId: string;
   gitRef: string;
   disabled?: boolean;
-}) {
+} & BoxProps<ComponentType<typeof TableRow>>) {
   const runtimeVariable = getRuntimeOutputVariable(variable);
 
   const { getVariables } = useProjectStore(projectId, gitRef);
@@ -290,14 +274,19 @@ function VariableRow({
 
   return (
     <>
-      <Tooltip title={error}>
+      <Tooltip title={error} placement="top-start">
         <Box
+          ref={rowRef}
+          {...props}
           component={TableRow}
           key={variable.id}
           sx={{
             background: error ? 'rgba(255, 215, 213, 0.4)' : 'transparent',
+            ...props.sx,
           }}>
           <Box component={TableCell}>
+            {firstColumnChildren}
+
             <Box sx={{ ml: depth }}>
               <OutputNameCell
                 output={variable}
@@ -385,7 +374,7 @@ function VariableRow({
   );
 }
 
-export const useRoutesAssistantOutputs = ({
+export const useAllSelectDecisionAgentOutputs = ({
   value,
   projectId,
   gitRef,
@@ -395,7 +384,58 @@ export const useRoutesAssistantOutputs = ({
   gitRef: string;
 }) => {
   const { getFileById } = useProjectStore(projectId, gitRef);
+
+  const getAllSelectCustomOutputs = (openApis: DatasetObject[]) => {
+    if (value.type !== 'router') {
+      return [];
+    }
+
+    const routes = Object.values(value?.routes || {}) || [];
+
+    const list = routes.flatMap((x) => {
+      if (x.data.from === 'blockletAPI') {
+        const dataset = openApis.find((api) => api.id === x.data.id);
+        if (dataset) {
+          const properties = dataset?.responses?.['200']?.content?.['application/json']?.schema?.properties || {};
+          const result = Object.entries(properties).map(([key, value]: any) => outputVariablesFromOpenApi(value, key));
+          return result;
+        }
+
+        return [];
+      }
+
+      const agent = getFileById(x?.data?.id);
+      if (!!agent && isAssistant(agent)) {
+        const result = Object.values(agent?.outputVariables || {})
+          .filter((x) => !(x?.data?.name || '').startsWith('$'))
+          .map((x) => x.data);
+        return result;
+      }
+
+      return [];
+    });
+
+    return uniqBy(list, 'name');
+  };
+
+  return { getAllSelectCustomOutputs };
+};
+
+export const useRoutesAssistantOutputs = ({
+  value,
+  projectId,
+  gitRef,
+  openApis = [],
+}: {
+  value: AssistantYjs;
+  projectId: string;
+  gitRef: string;
+  openApis?: DatasetObject[];
+}) => {
+  const { getFileById } = useProjectStore(projectId, gitRef);
   const { t } = useLocaleContext();
+  const { getAllSelectCustomOutputs } = useAllSelectDecisionAgentOutputs({ value, projectId, gitRef });
+  const allSelectAgentOutputs = getAllSelectCustomOutputs(openApis);
 
   const agentAssistants = useMemo(() => {
     if (value.type !== 'router') {
@@ -405,29 +445,28 @@ export const useRoutesAssistantOutputs = ({
     const routes = Object.values(value?.routes || {}) || [];
     const agentAssistants = routes
       .map((x) => {
-        return getFileById(x?.data?.id);
+        if (x.data.from === 'blockletAPI') {
+          const dataset = openApis.find((api) => api.id === x.data.id);
+          return {
+            tool: x.data,
+            agent: dataset,
+          };
+        }
+
+        const i = getFileById(x?.data?.id);
+        if (!!i && isAssistant(i) && Object.keys(i?.outputVariables || {}).length) {
+          return {
+            tool: x.data,
+            agent: i,
+          };
+        }
+
+        return null;
       })
-      .filter((i): i is AssistantYjs => !!i && isAssistant(i))
-      .filter((x) => {
-        return Object.keys(x?.outputVariables || {}).length;
-      });
+      .filter((i): i is NonNullable<typeof i> => !!i);
+
     return agentAssistants;
   }, [cloneDeep(value), projectId, gitRef, t]);
-
-  const allSelectAgentOutputs = useMemo(() => {
-    if (!agentAssistants.length) {
-      return [];
-    }
-
-    return uniqBy(
-      agentAssistants.flatMap((agent) => {
-        return Object.values(agent?.outputVariables || {})
-          .filter((x) => !(x?.data?.name || '').startsWith('$appearance'))
-          .map((x) => x.data);
-      }),
-      'name'
-    );
-  }, [cloneDeep(agentAssistants), projectId, gitRef, t]);
 
   const result = useMemo(() => {
     const list: AssistantYjs['outputVariables'] = {};
@@ -436,24 +475,43 @@ export const useRoutesAssistantOutputs = ({
       return null;
     }
 
+    const getOutputVariables = (agent: Tool) => {
+      if (agent.from === 'blockletAPI') {
+        const dataset = openApis.find((api) => api.id === agent.id);
+        if (dataset) {
+          const properties = dataset?.responses?.['200']?.content?.['application/json']?.schema?.properties || {};
+          const result = Object.entries(properties).map(([key, value]: any) => outputVariablesFromOpenApi(value, key));
+          return result;
+        }
+
+        return [];
+      }
+
+      const i = getFileById(agent?.id);
+      if (!!i && isAssistant(i) && Object.keys(i?.outputVariables || {}).length) {
+        const result = Object.values(i?.outputVariables || {})
+          .filter((x) => !(x?.data?.name || '').startsWith('$'))
+          .map((x) => x.data);
+
+        return result;
+      }
+
+      return [];
+    };
+
     let error;
     for (const agent of agentAssistants) {
-      const outputs = Object.values(agent?.outputVariables || {})
-        .filter((x) => !(x?.data?.name || '').startsWith('$appearance'))
-        .map((x) => x.data);
+      const outputs = getOutputVariables(agent.tool);
 
       for (const output of outputs) {
         const currentList = Object.values(list || {})
-          .filter((x) => !(x?.data?.name || '').startsWith('$appearance'))
+          .filter((x) => !(x?.data?.name || '').startsWith('$'))
           .map((x) => x.data);
         const found = currentList.find((x) => x.name === output.name);
 
         if (found) {
           if (found.type && output.type && found.type !== output.type) {
-            error = t('diffRouteName', {
-              agentName: `${agent.name} Agent`,
-              routeName: found.name,
-            });
+            error = t('diffRouteName', { agentName: `${agent?.agent?.name} Agent`, routeName: found.name });
             break;
           } else {
             if (found?.type === 'object' && output.type === 'object') {
@@ -474,7 +532,7 @@ export const useRoutesAssistantOutputs = ({
                 )
               ) {
                 error = t('diffRouteNameByType', {
-                  agentName: `${agent.name} Agent`,
+                  agentName: `${agent?.agent?.name} Agent`,
                   routeName: found.name,
                   type: 'object',
                 });
@@ -500,7 +558,7 @@ export const useRoutesAssistantOutputs = ({
                 )
               ) {
                 error = t('diffRouteNameByType', {
-                  agentName: `${agent.name} Agent`,
+                  agentName: `${agent?.agent?.name} Agent`,
                   routeName: found.name,
                   type: 'array',
                 });
@@ -510,9 +568,7 @@ export const useRoutesAssistantOutputs = ({
 
             const filterRequired = agentAssistants
               .map((agent) => {
-                const outputs = Object.values(agent?.outputVariables || {})
-                  .filter((x) => !(x?.data?.name || '').startsWith('$appearance'))
-                  .map((x) => x.data);
+                const outputs = getOutputVariables(agent.tool);
                 return outputs.find((x) => x.name === found.name);
               })
               .filter((i): i is NonNullable<typeof i> => !!i);
@@ -539,10 +595,7 @@ export const useRoutesAssistantOutputs = ({
     };
   }, [cloneDeep(agentAssistants), allSelectAgentOutputs, projectId, gitRef, t]);
 
-  return {
-    allSelectAgentOutputs,
-    checkSelectAgent: result,
-  };
+  return result;
 };
 
 const diffJSON = (found: OutputVariableYjs, v: OutputVariableYjs, t: any): string | undefined => {
@@ -630,22 +683,6 @@ const useCheckConflictAssistantOutputAndSelectAgents = ({
 
     // 系统数据对比
     if (v.name.startsWith('$')) {
-      if (!v.name.startsWith('$appearance')) {
-        const outputs = Object.values(selectAgentOutputVariables || {})
-          .map((x) => x.data)
-          .filter((x) => x.name?.startsWith('$') && !x.name.startsWith('$appearance'));
-
-        const found = outputs.find((x) => x.name === v.name);
-        if (!found) {
-          return t('notFoundOutputKeyFromSelectAgents', {
-            name: v.name,
-            outputNames: outputs.map((x) => x.name).join(','),
-          });
-        }
-
-        return undefined;
-      }
-
       return undefined;
     }
 

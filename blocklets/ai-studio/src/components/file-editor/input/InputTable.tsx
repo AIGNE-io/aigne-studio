@@ -1,15 +1,23 @@
 import Dataset from '@api/store/models/dataset/dataset';
+import AgentSelect from '@app/components/agent-select';
 import WithAwareness from '@app/components/awareness/with-awareness';
 import { DragSortListYjs } from '@app/components/drag-sort-list';
+import LoadingButton from '@app/components/loading/loading-button';
 import PopperMenu, { PopperMenuImperative } from '@app/components/menu/PopperMenu';
+import PasswordField from '@app/components/PasswordField';
+import { useCurrentProject } from '@app/contexts/project';
 import { getDatasets } from '@app/libs/dataset';
+import { createOrUpdateProjectInputSecrets, getProjectInputSecrets } from '@app/libs/project';
 import Close from '@app/pages/project/icons/close';
-import DragVertical from '@app/pages/project/icons/drag-vertical';
 import { useAssistantCompare } from '@app/pages/project/state';
-import { PROMPTS_FOLDER_NAME, useProjectStore } from '@app/pages/project/yjs-state';
+import { useProjectStore } from '@app/pages/project/yjs-state';
+import { useAgent } from '@app/store/agent';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, ExecuteBlock, ParameterYjs, StringParameter, isAssistant } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, ExecuteBlock, ParameterYjs, StringParameter } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
+import { DatasetObject } from '@blocklet/dataset-sdk/types';
+import getDatasetTextByI18n from '@blocklet/dataset-sdk/util/get-dataset-i18n-text';
 import { Icon } from '@iconify-icon/react';
 import BracesIcon from '@iconify-icons/tabler/braces';
 import BracketsContainIcon from '@iconify-icons/tabler/brackets-contain';
@@ -18,7 +26,9 @@ import ChevronDownIcon from '@iconify-icons/tabler/chevron-down';
 import CursorTextIcon from '@iconify-icons/tabler/cursor-text';
 import DatabaseIcon from '@iconify-icons/tabler/database';
 import DotsIcon from '@iconify-icons/tabler/dots';
+import GripVertical from '@iconify-icons/tabler/grip-vertical';
 import HistoryIcon from '@iconify-icons/tabler/history';
+import InfoCircleIcon from '@iconify-icons/tabler/info-circle';
 import MessageIcon from '@iconify-icons/tabler/message';
 import SquareNumberIcon from '@iconify-icons/tabler/square-number-1';
 import {
@@ -30,7 +40,9 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
+  DialogProps,
   DialogTitle,
+  FormControlLabel,
   IconButton,
   Input,
   List,
@@ -53,7 +65,9 @@ import { GridColDef } from '@mui/x-data-grid';
 import { useRequest } from 'ahooks';
 import { get, sortBy } from 'lodash';
 import { PopupState, bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
-import { useId, useMemo, useRef } from 'react';
+import { useId, useMemo, useRef, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useAsync } from 'react-use';
 
 import Switch from '../../custom/switch';
 import ParameterConfig from '../../template-form/parameter-config';
@@ -65,8 +79,10 @@ import SelectVariable from '../select-variable';
 import useVariablesEditorOptions from '../use-variables-editor-options';
 import AddInputButton from './AddInputButton';
 
-export const FROM_PARAMETER = 'agentParameter';
-export const FROM_KNOWLEDGE_PARAMETER = 'knowledgeParameter';
+const FROM_PARAMETER = 'agentParameter';
+const FROM_KNOWLEDGE_PARAMETER = 'knowledgeParameter';
+const FROM_API_PARAMETER = 'blockletAPIParameter';
+
 export default function InputTable({
   assistant,
   projectId,
@@ -74,6 +90,7 @@ export default function InputTable({
   readOnly,
   compareValue,
   isRemoteCompare,
+  openApis = [],
 }: {
   assistant: AssistantYjs;
   projectId: string;
@@ -81,6 +98,7 @@ export default function InputTable({
   readOnly?: boolean;
   compareValue?: AssistantYjs;
   isRemoteCompare?: boolean;
+  openApis?: DatasetObject[];
 }) {
   const { t } = useLocaleContext();
   const doc = (getYjsValue(assistant) as Map<any>)?.doc!;
@@ -104,6 +122,8 @@ export default function InputTable({
       tool: t('variableParameter.tool'),
       datastore: t('variableParameter.datastore'),
       knowledge: t('variableParameter.knowledge'),
+      blockletAPI: 'API',
+      secret: t('variableParameter.secret'),
     };
   }, [t]);
 
@@ -186,6 +206,7 @@ export default function InputTable({
             <SelectFromSource
               FROM_MAP={FROM_MAP}
               knowledge={knowledge}
+              openApis={openApis}
               parameter={parameter}
               readOnly={readOnly}
               value={assistant}
@@ -200,6 +221,10 @@ export default function InputTable({
         headerName: t('format'),
         width: 100,
         renderCell: ({ row: { data: parameter } }) => {
+          if (parameter.type === 'source' && parameter.source?.variableFrom === 'secret') {
+            return <Box />;
+          }
+
           if (parameter.type === 'source' && parameter.source) {
             const { source } = parameter;
             if (source.variableFrom === 'tool') {
@@ -248,6 +273,10 @@ export default function InputTable({
             if (parameter.source.variableFrom === 'history') {
               return <Box />;
             }
+
+            if (parameter.source.variableFrom === 'blockletAPI') {
+              return <Box />;
+            }
           }
 
           return (
@@ -268,21 +297,35 @@ export default function InputTable({
         align: 'right',
       },
     ];
-  }, [t, knowledge, readOnly, doc, deleteParameter]);
+  }, [t, knowledge, openApis, readOnly, doc, deleteParameter]);
 
   return (
-    <Box sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1, px: 1.5 }}>
+    <Box sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1, overflow: 'auto' }}>
       <Box
         sx={{
-          borderBottom: () => (parameters?.length ? '1px solid rgba(224, 224, 224, 1)' : 0),
           whiteSpace: 'nowrap',
           maxWidth: '100%',
           table: {
-            th: { pt: 0 },
-            td: { py: 0 },
-            'tbody tr:last-of-type td': {
-              border: 'none',
+            'tr:last-of-type': {
+              'th,td': {
+                borderBottom: 1,
+                borderColor: 'divider',
+              },
             },
+            'tr.group-header': {
+              borderTop: 1,
+              borderColor: 'divider',
+            },
+            'tr:not(.group-header):hover td': { bgcolor: 'grey.100' },
+            'th,td': {
+              borderBottom: 0,
+              py: 0,
+              px: 0,
+              '&:not(:first-of-type)': { pl: 1 },
+              '&:first-of-type': { pl: 1.5 },
+              '&:last-of-type': { pr: 1.5 },
+            },
+            th: { pb: 0.5 },
           },
         }}>
         <Table size="small">
@@ -342,8 +385,15 @@ export default function InputTable({
                             <Stack
                               className="hover-visible center"
                               ref={params.drag}
-                              sx={{ p: 0.5, cursor: 'move', position: 'absolute', left: -24, top: 0, bottom: 0 }}>
-                              <DragVertical sx={{ color: '#9CA3AF', fontSize: 22 }} />
+                              sx={{
+                                p: 0.5,
+                                cursor: 'move',
+                                position: 'absolute',
+                                left: -6,
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                              }}>
+                              <Box component={Icon} icon={GripVertical} sx={{ color: '#9CA3AF', fontSize: 14 }} />
                             </Stack>
                           )}
 
@@ -357,6 +407,7 @@ export default function InputTable({
                     {!readOnly && (
                       <PopperButton
                         knowledge={knowledge.map((x) => ({ ...x, from: FROM_KNOWLEDGE }))}
+                        openApis={openApis}
                         parameter={parameter}
                         readOnly={readOnly}
                         value={assistant}
@@ -388,25 +439,31 @@ function SelectFromSource({
   projectId,
   gitRef,
   knowledge,
+  openApis,
 }: {
+  FROM_MAP: { [key: string]: string };
   parameter: ParameterYjs;
   readOnly?: boolean;
   value: AssistantYjs;
   projectId: string;
   gitRef: string;
   knowledge: (Dataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
-  FROM_MAP: { [key: string]: string };
+  openApis: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
 }) {
   const dialogState = usePopupState({ variant: 'dialog', popupId: useId() });
   const { t } = useLocaleContext();
-  const { getFileById } = useProjectStore(projectId, gitRef);
   const ref = useRef<PopperMenuImperative>(null);
 
   const currentKey = parameter.type === 'source' ? parameter.source?.variableFrom : 'custom';
   const fromTitle =
-    parameter.type === 'source' && parameter.source?.variableFrom === 'tool' && parameter?.source?.agent?.id
-      ? t('variableParameter.agent', { agent: getFileById(parameter?.source?.agent?.id)?.name })
-      : FROM_MAP[currentKey || 'custom'];
+    parameter.type === 'source' && parameter.source?.variableFrom === 'tool' && parameter?.source?.agent?.id ? (
+      <span>
+        {t('variableParameter.call')}{' '}
+        <AgentName projectId={parameter.source.agent.projectId} agentId={parameter.source.agent.id} />
+      </span>
+    ) : (
+      FROM_MAP[currentKey || 'custom']
+    );
 
   return (
     <>
@@ -458,16 +515,26 @@ function SelectFromSource({
       </PopperMenu>
 
       <SelectFromSourceDialog
-        dialogState={dialogState}
         knowledge={knowledge}
+        openApis={openApis}
         parameter={parameter}
         readOnly={readOnly}
         value={value}
         projectId={projectId}
         gitRef={gitRef}
+        dialogState={dialogState}
       />
     </>
   );
+}
+
+function AgentName({ projectId, agentId }: { projectId?: string; agentId: string }) {
+  const { t } = useLocaleContext();
+
+  const agent = useAgent({ projectId, agentId });
+  if (!agent) return null;
+
+  return agent.name || t('unnamed');
 }
 
 function SelectInputType({
@@ -526,6 +593,7 @@ function SelectInputType({
       <SelectFromSourceDialog
         dialogState={dialogState}
         knowledge={[]}
+        openApis={[]}
         parameter={parameter}
         readOnly={readOnly}
         value={value}
@@ -543,6 +611,7 @@ function SelectFromSourceDialog({
   projectId,
   gitRef,
   knowledge,
+  openApis,
   dialogState,
 }: {
   parameter: ParameterYjs;
@@ -551,6 +620,7 @@ function SelectFromSourceDialog({
   projectId: string;
   gitRef: string;
   knowledge: (Dataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
+  openApis: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
   dialogState: PopupState;
 }) {
   const { t } = useLocaleContext();
@@ -558,8 +628,12 @@ function SelectFromSourceDialog({
 
   const renderParameterSettings = (parameter: ParameterYjs) => {
     if (parameter.type === 'source' && parameter.source) {
+      if (parameter.source.variableFrom === 'secret') {
+        return <SecretParameterView parameter={parameter} />;
+      }
+
       if (parameter.source.variableFrom === 'tool') {
-        return <AgentParameter value={value} projectId={projectId} gitRef={gitRef} parameter={parameter} />;
+        return <AgentParameter value={value} parameter={parameter} />;
       }
 
       if (parameter.source.variableFrom === 'datastore') {
@@ -580,6 +654,12 @@ function SelectFromSourceDialog({
 
       if (parameter.source.variableFrom === 'history') {
         return <HistoryParameter projectId={projectId} gitRef={gitRef} value={value} parameter={parameter} />;
+      }
+
+      if (parameter.source.variableFrom === 'blockletAPI') {
+        return (
+          <APIParameter projectId={projectId} gitRef={gitRef} value={value} parameter={parameter} openApis={openApis} />
+        );
       }
     }
 
@@ -612,12 +692,25 @@ function SelectFromSourceDialog({
             if (parameter.type === 'source' && parameter?.source?.variableFrom === 'tool' && parameter?.source) {
               const { source } = parameter;
               Object.entries(source?.agent?.parameters || {}).forEach(([key, value]: any) => {
-                if (!value) {
+                if (value === '') {
                   if (source && source?.agent && source?.agent?.parameters) {
                     source.agent.parameters[key] = `{{${key}}}`;
                   }
 
                   addParameter(key, { from: FROM_PARAMETER });
+                }
+              });
+            }
+
+            if (parameter.type === 'source' && parameter?.source?.variableFrom === 'blockletAPI' && parameter?.source) {
+              const { source } = parameter;
+              Object.entries(source?.api?.parameters || {}).forEach(([key, value]: any) => {
+                if (value === '') {
+                  if (source && source?.api && source?.api?.parameters) {
+                    source.api.parameters[key] = `{{${key}}}`;
+                  }
+
+                  addParameter(key, { from: FROM_API_PARAMETER });
                 }
               });
             }
@@ -680,12 +773,14 @@ export function SelectTool<Multiple extends boolean | undefined>({
   value,
   onChange,
   multiple,
+  renderOption,
 }: {
   placeholder?: string;
   options: Option[];
   multiple?: Multiple;
   value?: AutocompleteValue<Option, Multiple, false, false>;
   onChange?: (value: AutocompleteValue<Option, Multiple, false, false>) => void;
+  renderOption?: (props: any, option: Option) => any;
 }) {
   const { t } = useLocaleContext();
 
@@ -705,6 +800,10 @@ export function SelectTool<Multiple extends boolean | undefined>({
       isOptionEqualToValue={(i, j) => i.id === j.id}
       getOptionLabel={(i) => i.name || t('unnamed')}
       renderOption={(props, option) => {
+        if (renderOption) {
+          return renderOption(props, option);
+        }
+
         return (
           <MenuItem {...props} key={option.name}>
             {option.name || t('unnamed')}
@@ -734,7 +833,7 @@ function KnowledgeParameter({
   knowledge: (Dataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
 }) {
   const { t } = useLocaleContext();
-  const { deleteParameter } = useVariablesEditorOptions(value);
+  const { deleteUselessParameter } = useDelete(value);
 
   if (parameter.type === 'source' && parameter?.source?.variableFrom === 'knowledge') {
     const toolId = parameter?.source?.knowledge?.id;
@@ -767,14 +866,7 @@ function KnowledgeParameter({
             onChange={(_value) => {
               if (_value) {
                 // 删除历史自动添加的变量
-                Object.values(value.parameters || {}).forEach((x) => {
-                  if (
-                    (x.data.from === FROM_KNOWLEDGE_PARAMETER || x.data.from === FROM_PARAMETER) &&
-                    !checkKeyParameterIsUsed({ value, key: x.data.key || '' })
-                  ) {
-                    deleteParameter(x.data);
-                  }
-                });
+                deleteUselessParameter();
 
                 const parameters = {
                   message: '',
@@ -909,6 +1001,10 @@ function checkKeyParameterIsUsed({ value, key }: { value: AssistantYjs; key: str
       if (x.data.source?.variableFrom === 'knowledge') {
         return [Object.values(x.data.source?.knowledge?.parameters || {})];
       }
+
+      if (x.data.source?.variableFrom === 'blockletAPI') {
+        return [Object.values(x.data.source?.api?.parameters || {})];
+      }
     }
 
     return [];
@@ -922,117 +1018,259 @@ function checkKeyParameterIsUsed({ value, key }: { value: AssistantYjs; key: str
   });
 }
 
-function AgentParameter({
-  value,
-  projectId,
-  gitRef,
-  parameter,
-}: {
-  value: AssistantYjs;
-  projectId: string;
-  gitRef: string;
-  parameter: ParameterYjs;
-}) {
-  const { store, getFileById } = useProjectStore(projectId, gitRef);
-  const { t } = useLocaleContext();
+const useDelete = (value: AssistantYjs) => {
   const { deleteParameter } = useVariablesEditorOptions(value);
 
+  const deleteUselessParameter = () => {
+    Object.values(value.parameters || {}).forEach((x) => {
+      const list = [FROM_API_PARAMETER, FROM_PARAMETER, FROM_API_PARAMETER];
+      if (x.data.from && list.includes(x.data.from) && !checkKeyParameterIsUsed({ value, key: x.data.key || '' })) {
+        deleteParameter(x.data);
+      }
+    });
+  };
+
+  return {
+    deleteUselessParameter,
+  };
+};
+
+function SecretParameterView({ parameter }: { parameter: ParameterYjs }) {
+  const { t } = useLocaleContext();
+
+  if (parameter.type === 'source' && parameter?.source?.variableFrom === 'secret') {
+    return (
+      <Stack gap={2}>
+        <Box>
+          <Typography variant="subtitle2">{t('name')}</Typography>
+
+          <TextField
+            hiddenLabel
+            fullWidth
+            placeholder={t('inputParameterLabelPlaceholder')}
+            value={parameter.label || ''}
+            onChange={(e) => {
+              parameter.label = e.target.value;
+            }}
+          />
+        </Box>
+      </Stack>
+    );
+  }
+
+  return null;
+}
+
+function AgentParameter({ value, parameter }: { value: AssistantYjs; parameter: ParameterYjs }) {
+  const { t } = useLocaleContext();
+  const { deleteUselessParameter } = useDelete(value);
+
   if (parameter.type === 'source' && parameter?.source?.variableFrom === 'tool') {
-    const toolId = parameter?.source?.agent?.id;
+    const agentId = parameter?.source?.agent?.id;
     const { source } = parameter;
-
-    const options = Object.entries(store.tree)
-      .filter(([, filepath]) => filepath?.startsWith(`${PROMPTS_FOLDER_NAME}/`))
-      .map(([id]) => store.files[id])
-      .filter((i): i is AssistantYjs => !!i && isAssistant(i))
-      .filter((i) => i.id !== value.id)
-      .map((i) => ({ id: i.id, type: i.type, name: i.name, from: FROM_PARAMETER, parameters: i.parameters }));
-
-    const v = options.find((x) => x.id === toolId);
-    const file = getFileById(toolId || '');
-    const parameters =
-      file?.parameters &&
-      sortBy(Object.values(file.parameters), (i) => i.index).filter(
-        (i): i is typeof i & { data: { key: string } } => !!i.data.key
-      );
 
     return (
       <Stack gap={2}>
         <Box>
           <Typography variant="subtitle2">{t('chooseObject', { object: t('agent') })}</Typography>
 
-          <SelectTool
-            placeholder={t('selectAgentToCallPlaceholder')}
-            options={options || []}
-            multiple={false}
-            value={v}
-            onChange={(_value) => {
-              if (_value) {
-                // 删除历史自动添加的变量
-                Object.values(value.parameters || {}).forEach((x) => {
-                  if (
-                    (x.data.from === FROM_KNOWLEDGE_PARAMETER || x.data.from === FROM_PARAMETER) &&
-                    !checkKeyParameterIsUsed({ value, key: x.data.key || '' })
-                  ) {
-                    deleteParameter(x.data);
+          <AgentSelect
+            excludes={[value.id]}
+            autoFocus
+            disableClearable
+            value={
+              agentId
+                ? {
+                    id: agentId,
+                    projectId: parameter.source.agent?.projectId,
+                    blockletDid: parameter.source.agent?.blockletDid,
                   }
-                });
-
-                // 整理选择 agent 的参数
-                const parameters: { [key: string]: string } = Object.values(_value.parameters || {}).reduce(
-                  (tol: any, cur) => {
-                    if (cur.data.key) tol[cur.data.key] = '';
-                    return tol;
-                  },
-                  {}
-                );
+                : undefined
+            }
+            onChange={(_, v) => {
+              if (v) {
+                // 删除历史自动添加的变量
+                deleteUselessParameter();
 
                 source.agent = {
-                  id: _value.id,
+                  blockletDid: v.blockletDid,
+                  projectId: v.projectId,
+                  id: v.id,
                   from: 'assistant',
-                  parameters,
                 };
               }
             }}
           />
         </Box>
 
-        {file && !!(parameters || []).length && (
-          <Box>
-            <Typography variant="subtitle2">{t('inputs')}</Typography>
-
-            <Box>
-              {(parameters || [])?.map(({ data }: any) => {
-                if (!data?.key) return null;
-
-                return (
-                  <Stack key={data.id}>
-                    <Typography variant="caption">{data.label || data.key}</Typography>
-
-                    <PromptEditorField
-                      placeholder={`{{ ${data.key} }}`}
-                      value={source?.agent?.parameters?.[data.key] || ''}
-                      projectId={projectId}
-                      gitRef={gitRef}
-                      assistant={value}
-                      path={[]}
-                      onChange={(value) => {
-                        if (source?.agent?.parameters) {
-                          source.agent.parameters[data.key] = value;
-                        }
-                      }}
-                    />
-                  </Stack>
-                );
-              })}
-            </Box>
-          </Box>
-        )}
+        {agentId && <AgentParametersForm assistant={value} parameter={parameter as any} />}
       </Stack>
     );
   }
 
   return null;
+}
+
+function AgentParametersForm({
+  assistant,
+  parameter,
+}: {
+  assistant: AssistantYjs;
+  parameter: ParameterYjs & { type: 'source'; source: { variableFrom: 'tool' } };
+}) {
+  if (!parameter.source?.agent?.id) throw new Error('Missing required parameter agent.id');
+
+  const { t } = useLocaleContext();
+
+  const agent = useAgent({ projectId: parameter.source.agent.projectId, agentId: parameter.source.agent.id });
+  const { projectId, projectRef } = useCurrentProject();
+
+  if (!agent) return null;
+
+  return (
+    <Stack gap={2}>
+      <AuthorizeButton agent={agent} />
+
+      <Box>
+        <Typography variant="subtitle2">{t('inputs')}</Typography>
+
+        <Box>
+          {agent.parameters?.map((data) => {
+            if (!data?.key || data.type === 'source') return null;
+
+            return (
+              <Stack key={data.id}>
+                <Typography variant="caption">{data.label || data.key}</Typography>
+
+                <PromptEditorField
+                  placeholder={`{{ ${data.key} }}`}
+                  value={parameter.source.agent?.parameters?.[data.key] || ''}
+                  projectId={projectId}
+                  gitRef={projectRef}
+                  assistant={assistant}
+                  path={[]}
+                  onChange={(value) => {
+                    parameter.source.agent!.parameters ??= {};
+                    parameter.source.agent!.parameters[data.key!] = value;
+                  }}
+                />
+              </Stack>
+            );
+          })}
+        </Box>
+      </Box>
+    </Stack>
+  );
+}
+
+function AuthorizeButton({ agent }: { agent: NonNullable<ReturnType<typeof useAgent>> }) {
+  const { t } = useLocaleContext();
+
+  const authInputs = agent.parameters?.filter(
+    (i) => i.key && i.type === 'source' && i.source?.variableFrom === 'secret'
+  );
+
+  const dialogState = usePopupState({ variant: 'dialog' });
+  const { projectId } = useCurrentProject();
+
+  const [authorized, setAuthorized] = useState(false);
+  const { value: { secrets = [] } = {}, loading } = useAsync(() => getProjectInputSecrets(projectId), [projectId]);
+
+  const isAuthorized =
+    useMemo(
+      () => secrets.find((i) => i.targetProjectId === agent.project.id && i.targetAgentId === agent.id),
+      [agent, secrets]
+    ) || authorized;
+
+  if (!authInputs?.length || loading) return null;
+
+  return (
+    <Box>
+      <Button variant={isAuthorized ? 'outlined' : 'contained'} fullWidth {...bindTrigger(dialogState)}>
+        {t(isAuthorized ? 'reauthorize' : 'authorize')}
+      </Button>
+      <Stack direction="row" alignItems="center" gap={0.5} my={0.5}>
+        <Box component={Icon} icon={InfoCircleIcon} color="text.secondary" />
+
+        <Typography variant="caption" sx={{ flex: 1 }}>
+          {t('authorizeApiKeyTip')}
+        </Typography>
+      </Stack>
+
+      <AuthorizeParametersFormDialog
+        agent={agent}
+        maxWidth="sm"
+        fullWidth
+        onSuccess={() => {
+          setAuthorized(true);
+          dialogState.close();
+        }}
+        {...bindDialog(dialogState)}
+      />
+    </Box>
+  );
+}
+
+function AuthorizeParametersFormDialog({
+  agent,
+  onSuccess,
+  ...props
+}: { agent: NonNullable<ReturnType<typeof useAgent>>; onSuccess?: () => void } & DialogProps) {
+  const { t } = useLocaleContext();
+
+  const authInputs = agent.parameters?.filter(
+    (i) => i.key && i.type === 'source' && i.source?.variableFrom === 'secret'
+  );
+
+  const form = useForm();
+  const { projectId } = useCurrentProject();
+
+  const onSubmit = async (values: { [key: string]: string }) => {
+    await createOrUpdateProjectInputSecrets(projectId, {
+      secrets: Object.entries(values).map(([key, secret]) => ({
+        targetProjectId: agent.project.id,
+        targetAgentId: agent.id,
+        targetInputKey: key,
+        secret,
+      })),
+    });
+    onSuccess?.();
+  };
+
+  return (
+    <Dialog {...props} component="form" onSubmit={form.handleSubmit(onSubmit)}>
+      <DialogTitle>
+        {t('authorize')} - {agent.name}
+      </DialogTitle>
+
+      <DialogContent>
+        <Stack gap={1}>
+          {authInputs?.map((item, index) => (
+            <Stack key={item.id}>
+              <Typography variant="caption">{item.label || item.key}</Typography>
+
+              <PasswordField
+                autoFocus={index === 0}
+                hiddenLabel
+                fullWidth
+                {...form.register(item.key!, { required: true })}
+              />
+            </Stack>
+          ))}
+        </Stack>
+      </DialogContent>
+
+      <DialogActions>
+        <Button variant="outlined" onClick={(e) => props.onClose?.(e, 'backdropClick')}>
+          {t('cancel')}
+        </Button>
+
+        <LoadingButton type="submit" variant="contained" loading={form.formState.isSubmitting}>
+          {t('save')}
+        </LoadingButton>
+      </DialogActions>
+    </Dialog>
+  );
 }
 
 function PopperButton({
@@ -1042,6 +1280,7 @@ function PopperButton({
   projectId,
   gitRef,
   knowledge,
+  openApis,
   onDelete,
 }: {
   parameter: ParameterYjs;
@@ -1050,6 +1289,7 @@ function PopperButton({
   projectId: string;
   gitRef: string;
   knowledge: (Dataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
+  openApis: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
   onDelete: () => void;
 }) {
   const { t } = useLocaleContext();
@@ -1089,6 +1329,7 @@ function PopperButton({
       <SelectFromSourceDialog
         dialogState={dialogState}
         knowledge={knowledge}
+        openApis={openApis}
         parameter={parameter}
         readOnly={readOnly}
         value={value}
@@ -1097,4 +1338,154 @@ function PopperButton({
       />
     </>
   );
+}
+
+function APIParameter({
+  value,
+  projectId,
+  gitRef,
+  parameter,
+  openApis,
+}: {
+  value: AssistantYjs;
+  projectId: string;
+  gitRef: string;
+  parameter: ParameterYjs;
+  openApis: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
+}) {
+  const { t, locale } = useLocaleContext();
+  const { deleteUselessParameter } = useDelete(value);
+
+  if (parameter.type === 'source' && parameter?.source?.variableFrom === 'blockletAPI') {
+    const agentId = parameter?.source?.api?.id;
+    const { source } = parameter;
+
+    const options = [
+      ...openApis.map((dataset) => ({
+        ...dataset,
+        name:
+          getDatasetTextByI18n(dataset, 'summary', locale) ||
+          getDatasetTextByI18n(dataset, 'description', locale) ||
+          t('unnamed'),
+        parameters: getAllParameters(dataset),
+        fromText: t('buildInData'),
+      })),
+    ];
+
+    const option = openApis.find((x) => x.id === agentId);
+    const parameters = option && getAllParameters(option);
+
+    return (
+      <Stack gap={2}>
+        <Box>
+          <Typography variant="subtitle2">{t('chooseObject', { object: t('api') })}</Typography>
+
+          <SelectTool
+            placeholder={t('selectOpenAPIToCallPlaceholder')}
+            options={options || []}
+            multiple={false}
+            value={options.find((x) => x.id === agentId)}
+            onChange={(_value) => {
+              if (_value) {
+                // 删除历史自动添加的变量
+                deleteUselessParameter();
+
+                // 整理选择 agent 的参数
+                source.api = {
+                  id: _value.id,
+                  parameters: (_value?.parameters || []).reduce((tol: any, cur: any) => {
+                    if (cur.name) tol[cur.name] = '';
+                    return tol;
+                  }, {}),
+                };
+              }
+            }}
+            renderOption={(props, option) => {
+              return (
+                <MenuItem {...props} key={option.name}>
+                  <Box>{option.name || t('unnamed')}</Box>
+                  <Typography variant="subtitle5" ml={1}>
+                    {(option.id || '').split(':')?.[0]}
+                  </Typography>
+                </MenuItem>
+              );
+            }}
+          />
+        </Box>
+
+        {!!(parameters || []).length && (
+          <Box>
+            <Typography variant="subtitle2">{t('inputs')}</Typography>
+
+            <Stack gap={1.5}>
+              {(parameters || [])?.map((parameter) => {
+                if (!parameter.name) return null;
+
+                // @ts-ignore
+                if (parameter['x-parameter-type'] === 'boolean') {
+                  return (
+                    <Stack key={parameter.name}>
+                      <Box>
+                        <FormControlLabel
+                          sx={{
+                            alignItems: 'flex-start',
+                            '.MuiCheckbox-root': {
+                              ml: -0.5,
+                            },
+                          }}
+                          control={
+                            <Switch
+                              defaultChecked={Boolean(source?.api?.parameters?.[parameter.name] ?? false)}
+                              onChange={(_, checked) => {
+                                if (source?.api?.parameters) {
+                                  // @ts-ignore
+                                  source.api.parameters[parameter.name] = Boolean(checked);
+                                }
+                              }}
+                            />
+                          }
+                          label={
+                            <Typography variant="caption" mb={0.5}>
+                              {getDatasetTextByI18n(parameter, 'description', locale) ||
+                                getDatasetTextByI18n(parameter, 'name', locale)}
+                            </Typography>
+                          }
+                          labelPlacement="top"
+                        />
+                      </Box>
+                    </Stack>
+                  );
+                }
+
+                return (
+                  <Stack key={parameter.name}>
+                    <Typography variant="caption" mb={0.5}>
+                      {getDatasetTextByI18n(parameter, 'description', locale) ||
+                        getDatasetTextByI18n(parameter, 'name', locale)}
+                    </Typography>
+
+                    <PromptEditorField
+                      placeholder={`{{ ${parameter.name} }}`}
+                      value={source?.api?.parameters?.[parameter.name] || ''}
+                      projectId={projectId}
+                      gitRef={gitRef}
+                      assistant={value}
+                      path={[]}
+                      onChange={(value) => {
+                        if (source?.api?.parameters) {
+                          source.api.parameters[parameter.name] = value;
+                        }
+                      }}
+                    />
+                  </Stack>
+                );
+              })}
+            </Stack>
+          </Box>
+        )}
+      </Stack>
+    );
+  }
+
+  return null;
 }

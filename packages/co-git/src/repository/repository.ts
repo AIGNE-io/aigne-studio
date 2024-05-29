@@ -20,8 +20,9 @@ export interface RepositoryOptions<T> {
         filepath: string;
         key: string;
         data: T;
-      }>
-    | { filepath: string; key: string; data: T };
+      } | null>
+    | { filepath: string; key: string; data: T }
+    | null;
   stringify: (
     filepath: string,
     content: T

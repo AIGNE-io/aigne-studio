@@ -320,12 +320,16 @@ const FileTree = forwardRef<
 
   if (!files.length) {
     return (
-      <Stack color="text.disabled" alignItems="center" my={8.5} gap={3}>
-        <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
-        <Typography px={2} width="100%" textAlign="center">
-          <Balancer>{t('agentEmptySubTitle')}</Balancer>
-        </Typography>
-      </Stack>
+      <>
+        {dialog}
+
+        <Stack color="text.disabled" alignItems="center" my={8.5} gap={3}>
+          <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
+          <Typography px={2} width="100%" textAlign="center">
+            <Balancer>{t('agentEmptySubTitle')}</Balancer>
+          </Typography>
+        </Stack>
+      </>
     );
   }
 

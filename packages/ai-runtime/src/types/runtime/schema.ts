@@ -1,7 +1,8 @@
 import Joi from 'joi';
 import { toLower } from 'lodash';
+import { nanoid } from 'nanoid';
 
-import type { Assistant, OutputVariable, Variable } from '..';
+import type { Assistant, OutputVariable, Variable, VariableTypeYjs } from '..';
 
 export const variableBlockListForAgent: {
   [key in Assistant['type']]?: { block?: Set<RuntimeOutputVariable>; allow?: Set<RuntimeOutputVariable> };
@@ -103,7 +104,7 @@ export function outputVariablesToJsonSchema(assistant: Assistant, datastoreVaria
     }
 
     return {
-      type: variable.type,
+      type: variable.type || 'string',
       description: variable.description,
       properties:
         variable.type === 'object' && variable.properties
@@ -164,10 +165,12 @@ export function outputVariablesToJoiSchema(assistant: Assistant, datastoreVariab
       if (!v?.type) return undefined;
 
       schema = variableToSchema(v.type);
-    } else if (variable.type === 'string') {
+    } else if (!variable.type || variable.type === 'string') {
       schema = Joi.string().empty([null, '']);
     } else if (variable.type === 'number') {
       schema = Joi.number().empty([null, '']);
+    } else if (variable.type === 'boolean') {
+      schema = Joi.boolean().empty([null, '']);
     } else if (variable.type === 'object') {
       schema = Joi.object(
         Object.fromEntries(
@@ -200,6 +203,77 @@ export function outputVariablesToJoiSchema(assistant: Assistant, datastoreVariab
   return variableToSchema({ type: 'object', properties: assistant.outputVariables ?? [] })!;
 }
 
+type JSONSchema = {
+  type: string;
+  description?: string;
+  properties?: { [key: string]: JSONSchema };
+  items?: JSONSchema;
+  required?: string[];
+  [key: string]: any;
+};
+
+export function outputVariablesFromOpenApi(schema?: JSONSchema, name: string = '', id: string = ''): VariableTypeYjs {
+  const currentId = id || nanoid();
+
+  if (schema?.type === 'object' && schema?.properties) {
+    const properties: {
+      [key: string]: {
+        index: number;
+        data: VariableTypeYjs;
+      };
+    } = {};
+
+    const p = schema?.properties || {};
+    Object.entries(p).forEach(([key, value], index) => {
+      const id = nanoid();
+      properties[id] = { index, data: outputVariablesFromOpenApi(value, key, id) };
+    });
+
+    return {
+      id: currentId,
+      name,
+      description: schema.description,
+      required: schema.required?.includes(name),
+      type: 'object',
+      properties,
+    };
+  }
+
+  if (schema?.type === 'array' && schema?.items) {
+    return {
+      id: currentId,
+      name,
+      description: schema.description,
+      required: schema.required?.includes(name),
+      type: 'array',
+      element: outputVariablesFromOpenApi(schema.items, 'element'),
+    };
+  }
+
+  let type: 'string' | 'number' | 'boolean' | undefined;
+  switch (schema?.type) {
+    case 'string':
+      type = 'string';
+      break;
+    case 'number':
+      type = 'number';
+      break;
+    case 'boolean':
+      type = 'boolean';
+      break;
+    default:
+      console.warn('Unsupported event', type);
+  }
+
+  return {
+    id: currentId,
+    name,
+    description: schema?.description,
+    required: schema?.required?.includes(name),
+    type,
+  };
+}
+
 export enum RuntimeOutputVariable {
   text = '$text',
   images = '$images',
@@ -229,10 +303,11 @@ export function isRuntimeOutputVariable(variable: string): variable is RuntimeOu
 export interface RuntimeOutputAppearance {
   componentId?: string;
   componentName?: string;
+  componentProperties?: { [key: string]: any };
   componentProps?: { [key: string]: any };
+  title?: string;
+  icon?: string;
 }
-
-export interface RuntimeOutputAppearancePage extends RuntimeOutputAppearance {}
 
 export interface RuntimeOutputChildren {
   agents?: { id: string; name?: string }[];
@@ -260,9 +335,9 @@ export interface RuntimeOutputVariablesSchema {
   [RuntimeOutputVariable.images]?: { url: string }[];
   [RuntimeOutputVariable.suggestedQuestions]?: { question: string }[];
   [RuntimeOutputVariable.referenceLinks]?: { title?: string; url: string }[];
-  [RuntimeOutputVariable.appearancePage]?: RuntimeOutputAppearancePage;
-  [RuntimeOutputVariable.appearanceInput]?: RuntimeOutputAppearance;
-  [RuntimeOutputVariable.appearanceOutput]?: RuntimeOutputAppearance;
+  [RuntimeOutputVariable.appearancePage]?: undefined;
+  [RuntimeOutputVariable.appearanceInput]?: undefined;
+  [RuntimeOutputVariable.appearanceOutput]?: undefined;
   [RuntimeOutputVariable.children]?: RuntimeOutputChildren;
   [RuntimeOutputVariable.share]?: RuntimeOutputShare;
   [RuntimeOutputVariable.openingQuestions]?: RuntimeOutputOpeningQuestions;

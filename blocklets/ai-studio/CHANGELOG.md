@@ -1,3 +1,85 @@
+## 0.2.17 (2024-5-29)
+
+- fix: page crash after component cleared
+- fix: optimize prompt for output json
+
+## 0.2.16 (2024-5-28)
+
+- chore: use responseFormat parameter for chat completion api
+- fix: input number not working in model settings
+- chore: polish inputs/outputs table ux
+- chore: polish resource tree for publishing view
+- fix: disable add more button for non-admin users
+
+## 0.2.15 (2024-5-28)
+
+- fix: use popper for primary color picker
+
+## 0.2.14 (2024-5-27)
+
+- chore: return project primary color for agents
+
+## 0.2.13 (2024-5-27)
+
+- chore: support choose a blocklet react component to render output appearance (#1016)
+- chore: support choose a blocklet api as a decision
+
+## 0.2.12 (2024-5-27)
+
+- fix: datastore query not working
+
+## 0.2.11 (2024-5-26)
+
+- chore: split project setting with tabs
+- chore: add primary color setting
+
+## 0.2.10 (2024-5-26)
+
+- fix: auto load agents when the selector opening
+
+## 0.2.9 (2024-5-26)
+
+- feat: support publish current project to blocklet store
+- feat: support add agents from blocklet store
+- fix: serve project icon correctly
+- chore: add tip for secret authorization
+- fix: disable the description field for the outputs value from the inputs
+
+## 0.2.8 (2024-5-23)
+
+- fix: backward compatibility with old data
+
+## 0.2.7 (2024-5-23)
+
+- fix: hide appearance settings from some system outputs
+
+## 0.2.6 (2024-5-23)
+
+- feat: add configurations component/title/icon for output fields
+- fix: remove template icons from image-bin
+- feat: support secret-type input
+- feat: support using a tool agent from resource blocklet in the inputs
+
+## 0.2.5 (2024-5-22)
+
+- chore: add boolean as output type
+
+## 0.2.4 (2024-5-22)
+
+- fix: awesome avatar in debug view(#1004)
+
+## 0.2.3 (2024-5-21)
+
+- fix: default type for outputs
+
+## 0.2.2 (2024-5-20)
+
+- fix: check session owner before clearing a session
+
+## 0.2.1 (2024-5-18)
+
+- chore: update screenshots
+
 ## 0.2.0 (2024-5-17)
 
 - fix: update time period for automatic knowledge updating

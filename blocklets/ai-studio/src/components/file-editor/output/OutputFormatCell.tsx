@@ -6,13 +6,13 @@ import BracketsContainIcon from '@iconify-icons/tabler/brackets-contain';
 import CodePlusIcon from '@iconify-icons/tabler/code-plus';
 import CursorTextIcon from '@iconify-icons/tabler/cursor-text';
 import SquareNumberIcon from '@iconify-icons/tabler/square-number-1';
+import ToggleLeftIcon from '@iconify-icons/tabler/toggle-left';
 import { Box, ListItemIcon, MenuItem, TextField, TextFieldProps, Typography } from '@mui/material';
 import { nanoid } from 'nanoid';
 
 import { getRuntimeOutputVariable } from './type';
 
 export default function OutputFormatCell({
-  assistant,
   output,
   variable,
   TextFieldProps,
@@ -28,7 +28,7 @@ export default function OutputFormatCell({
   const runtimeVariable = getRuntimeOutputVariable(output);
   if (runtimeVariable) return null;
 
-  const inputType = output.from?.type === 'input' ? assistant.parameters?.[output.from.id] : undefined;
+  if (output.from?.type === 'input') return null;
 
   return (
     <>
@@ -37,8 +37,7 @@ export default function OutputFormatCell({
       <VariableTypeField
         variant="standard"
         {...TextFieldProps}
-        disabled={!!inputType}
-        value={inputType ? inputType.data.type : (variable?.type ?? output).type || 'string'}
+        value={(variable?.type ?? output).type || 'string'}
         onChange={(e) => {
           const type = e.target.value as any;
 
@@ -106,6 +105,13 @@ function VariableTypeField({ ...props }: TextFieldProps) {
           <Icon icon={SquareNumberIcon} />
         </ListItemIcon>
         {t('number')}
+      </MenuItem>
+
+      <MenuItem value="boolean">
+        <ListItemIcon>
+          <Icon icon={ToggleLeftIcon} />
+        </ListItemIcon>
+        {t('boolean')}
       </MenuItem>
 
       <MenuItem value="object">

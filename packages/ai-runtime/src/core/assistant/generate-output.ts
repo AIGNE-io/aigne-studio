@@ -21,16 +21,6 @@ ${schema}
 ## Output Rules
 - You have to generate a json metadata base on the metadata schema above, inside the <metadata-schema></metadata-schema> XML tags
 - Don't make any explanation
-
-## Output Format
-[Generate a json data based on the above metadata schema, put it the metadata code block]
-${metadataPrefix}
-${metadataSuffix}
-
-## Output Example
-${metadataPrefix}
-[Here is your generated json data]
-${metadataSuffix}
 `;
 
 export const metadataStreamOutputFormatPrompt = (schema: string) => `\

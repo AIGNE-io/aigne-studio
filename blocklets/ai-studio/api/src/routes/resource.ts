@@ -7,7 +7,6 @@ import logger from '@api/libs/logger';
 import component from '@blocklet/sdk/lib/component';
 import { Router } from 'express';
 import Joi from 'joi';
-import cloneDeep from 'lodash/cloneDeep';
 import groupBy from 'lodash/groupBy';
 import uniq from 'lodash/uniq';
 import { stringify } from 'yaml';
@@ -17,11 +16,10 @@ import Project from '../store/models/project';
 import { LOGO_FILENAME, defaultBranch, getAssistantsOfRepository, getRepository } from '../store/repository';
 
 const AI_STUDIO_DID = 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
-const TARGET_DIR = path.join(AI_STUDIO_DID, 'ai');
 
 const getResourceDir = async ({ projectId, releaseId }: { projectId: string; releaseId: string }) => {
   const exportDir = component.getResourceExportDir({ projectId, releaseId });
-  const resourceDir = path.join(exportDir, TARGET_DIR);
+  const resourceDir = path.join(exportDir, AI_STUDIO_DID);
 
   await mkdir(resourceDir, { recursive: true });
 
@@ -40,45 +38,90 @@ const exportResourceSchema = Joi.object<{
   locale: Joi.string().allow(''),
 });
 
-const locales: { [key: string]: any } = {
+const locales: { [key in 'en' | 'zh']: { [key: string]: string } } = {
   en: {
     unnamed: 'Unnamed',
+    example: 'Example',
+    template: 'Template',
+    application: 'Application',
+    tool: 'Tool',
+    other: 'Other',
   },
   zh: {
     unnamed: '未命名',
+    example: '示例',
+    template: '模板',
+    application: '应用',
+    tool: '工具',
+    other: '其它',
   },
 };
 
 export function resourceRoutes(router: Router) {
+  const getExportedResourceQuerySchema = Joi.object<{ resourcesParams?: { projectId?: string }; locale?: string }>({
+    locale: Joi.string().empty([null, '']),
+    resourcesParams: Joi.object({
+      projectId: Joi.string().empty([null, '']),
+    }),
+  });
+
+  const tryParse = (s: any) => {
+    try {
+      return JSON.parse(s);
+    } catch {
+      // ignore
+    }
+    return undefined;
+  };
+
   router.get('/resources/export', ensurePromptsEditor, async (req, res) => {
-    const projects = await Project.findAll({ order: [['updatedAt', 'DESC']] });
+    const query = await getExportedResourceQuerySchema.validateAsync(
+      {
+        ...req.query,
+        locale: req.query.locale || req.query.local,
+        resourcesParams: tryParse(req.query.resourcesParams),
+      },
+      { stripUnknown: true }
+    );
 
-    const locale = locales[(req.query as { local: string })?.local] || locales.en;
-
-    const list = projects.map((x: any) => {
-      return { id: '', _id: x._id, name: x.name || locale?.unnamed, description: x.description };
+    const projects = await Project.findAll({
+      where: query.resourcesParams?.projectId ? { _id: query.resourcesParams.projectId } : {},
+      order: [['updatedAt', 'DESC']],
     });
 
-    const resources = [
-      {
-        id: 'template',
-        name: '模板项目',
-        children: cloneDeep(list).map((x) => {
-          x.id = `template-${x._id}`;
-          return x;
-        }),
-      },
-      {
-        id: 'example',
-        name: '示例项目',
-        children: cloneDeep(list).map((x) => {
-          x.id = `example-${x._id}`;
-          return x;
-        }),
-      },
-    ];
+    const locale = locales[query.locale as keyof typeof locales] || locales.en;
 
-    res.json({ resources });
+    const resources = projects.map((x) => ({
+      id: x._id,
+      name: x.name || locale.unnamed,
+      description: x.description,
+      children: [
+        {
+          id: `application-${x._id}`,
+          name: locale.application,
+        },
+        {
+          id: `other-${x._id}`,
+          name: locale.other,
+          children: [
+            {
+              id: `tool-${x._id}`,
+              name: locale.tool,
+            },
+            {
+              id: `example-${x._id}`,
+              name: locale.example,
+            },
+            {
+              id: `template-${x._id}`,
+              name: locale.template,
+            },
+          ],
+        },
+      ],
+    }));
+
+    res.json({ resources: resources.length === 1 ? resources[0]!.children : resources });
   });
 
   router.post('/resources/export', ensurePromptsEditor, async (req, res) => {

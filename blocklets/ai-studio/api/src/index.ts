@@ -7,6 +7,7 @@ import { access, mkdir } from 'fs/promises';
 import path from 'path';
 
 import { AssistantResponseType } from '@blocklet/ai-runtime/types';
+import { getComponentsRouter } from '@blocklet/components-sdk';
 import { createDatasetAPIRouter } from '@blocklet/dataset-sdk/openapi';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
@@ -18,9 +19,9 @@ import { Errors } from 'isomorphic-git';
 import app from './app';
 import jobs from './jobs';
 import { Config, isDevelopment } from './libs/env';
-import { NoPermissionError } from './libs/error';
+import { NoPermissionError, NotFoundError } from './libs/error';
 import logger from './libs/logger';
-import initProjectIcons from './libs/project-icons';
+import { initResourceStates } from './libs/resource';
 import routes from './routes';
 
 export { default as app } from './app';
@@ -55,6 +56,7 @@ app.use(
     apis: [path.join(__dirname, './routes/**/*.*')],
   })
 );
+app.use('/', getComponentsRouter());
 app.use('/api', routes);
 
 if (!isDevelopment) {
@@ -68,7 +70,12 @@ app.use(<ErrorRequestHandler>((error, _req, res, _next) => {
   logger.error('handle route error', { error });
 
   try {
-    const status = error instanceof Errors.NotFoundError ? 404 : error instanceof NoPermissionError ? 403 : 500;
+    const status =
+      error instanceof Errors.NotFoundError || error instanceof NotFoundError
+        ? 404
+        : error instanceof NoPermissionError
+          ? 403
+          : 500;
     if (!res.headersSent) res.status(status).contentType('json');
     if (res.writable)
       res.write(
@@ -89,6 +96,6 @@ const port = parseInt(process.env.BLOCKLET_PORT!, 10);
 export const server = app.listen(port, (err?: any) => {
   if (err) throw err;
   logger.info(`> ${name} v${version} ready on ${port}`);
-  initProjectIcons();
   jobs();
+  initResourceStates();
 });

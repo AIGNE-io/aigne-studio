@@ -1,3 +1,4 @@
+import { getAPIList } from '@app/libs/dataset';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import {
   AssistantYjs,
@@ -10,6 +11,7 @@ import {
 import { Icon } from '@iconify-icon/react';
 import ZZZIcon from '@iconify-icons/tabler/zzz';
 import { Box, Stack } from '@mui/material';
+import { useRequest } from 'ahooks';
 
 import ArrowLine from '../../../pages/project/icons/line';
 import AgentProcessingView from '../agent-processing-view';
@@ -34,7 +36,7 @@ export default function AgentEditor({
   disabled?: boolean;
 }) {
   const { t } = useLocaleContext();
-
+  const { data: openApis = [] } = useRequest(() => getAPIList());
   // const readOnly = useReadOnly({ ref: gitRef }) || disabled;
 
   return (
@@ -46,7 +48,7 @@ export default function AgentEditor({
       <Box height={20} width={1} />
 
       <Box sx={{ borderRadius: 1 }}>
-        <InputSettings projectId={projectId} gitRef={gitRef} readOnly={disabled} value={value} />
+        <InputSettings projectId={projectId} gitRef={gitRef} readOnly={disabled} value={value} openApis={openApis} />
       </Box>
 
       <Box height={20} width={1} position="relative">
@@ -66,7 +68,13 @@ export default function AgentEditor({
           ) : isApiAssistant(value) ? (
             <ApiAssistantEditor projectId={projectId} gitRef={gitRef} value={value} disabled={disabled} />
           ) : isRouterAssistant(value) ? (
-            <RouterAssistantEditor projectId={projectId} gitRef={gitRef} value={value} disabled={disabled} />
+            <RouterAssistantEditor
+              projectId={projectId}
+              gitRef={gitRef}
+              value={value}
+              disabled={disabled}
+              openApis={openApis}
+            />
           ) : (
             <Stack alignItems="center">
               <Box sx={{ fontSize: 28, color: 'text.disabled' }}>
@@ -86,7 +94,7 @@ export default function AgentEditor({
       </Box>
 
       <Box sx={{ borderRadius: 1 }}>
-        <OutputSettings projectId={projectId} gitRef={gitRef} value={value} />
+        <OutputSettings projectId={projectId} gitRef={gitRef} value={value} openApis={openApis} />
       </Box>
     </Stack>
   );

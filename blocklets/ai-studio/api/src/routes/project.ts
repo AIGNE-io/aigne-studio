@@ -1,12 +1,12 @@
 import fs from 'fs';
-import { access, copyFile, cp, mkdtemp, readFile, rm } from 'fs/promises';
-import path, { basename, dirname, isAbsolute, join } from 'path';
+import { cp, mkdtemp, readFile, rm } from 'fs/promises';
+import { basename, dirname, isAbsolute, join } from 'path';
 
 import { Config } from '@api/libs/env';
-import { NoPermissionError } from '@api/libs/error';
+import { NoPermissionError, NotFoundError } from '@api/libs/error';
 import { sampleIcon } from '@api/libs/icon';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
-import logger from '@api/libs/logger';
+import AgentInputSecret from '@api/store/models/agent-input-secret';
 import { fileToYjs, isAssistant, nextAssistantId } from '@blocklet/ai-runtime/types';
 import { call } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
@@ -20,11 +20,10 @@ import omit from 'lodash/omit';
 import omitBy from 'lodash/omitBy';
 import pick from 'lodash/pick';
 import uniqBy from 'lodash/uniqBy';
-import { joinURL } from 'ufo';
+import { joinURL, parseAuth, parseURL } from 'ufo';
 import { parse } from 'yaml';
 
-import downloadLogo from '../libs/download-logo';
-import { getResourceProjects } from '../libs/resource';
+import { getProjectFromResource, getResourceProjects } from '../libs/resource';
 import { ensureComponentCallOrPromptsEditor, ensureComponentCallOrRolesMatch } from '../libs/security';
 import Project, { nextProjectId } from '../store/models/project';
 import {
@@ -109,6 +108,7 @@ export interface UpdateProjectInput {
   didSpaceAutoSync?: true | false;
   projectType?: Project['projectType'];
   homePageUrl?: string | null;
+  primaryColor?: string;
 }
 
 const updateProjectSchema = Joi.object<UpdateProjectInput>({
@@ -126,6 +126,7 @@ const updateProjectSchema = Joi.object<UpdateProjectInput>({
   gitAutoSync: Joi.boolean().empty([null]),
   didSpaceAutoSync: Joi.boolean().optional(),
   homePageUrl: Joi.string().allow(null, ''),
+  primaryColor: Joi.string().empty([null, '']),
 });
 
 export interface AddProjectRemoteInput {
@@ -212,6 +213,15 @@ export const checkProjectLimit = async ({ req }: { req: Request }) => {
   }
 };
 
+export interface CreateOrUpdateAgentInputSecretPayload {
+  secrets: {
+    targetProjectId: string;
+    targetAgentId: string;
+    targetInputKey: string;
+    secret: string;
+  }[];
+}
+
 export function projectRoutes(router: Router) {
   router.get('/projects', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const list = await Project.findAll({
@@ -294,34 +304,30 @@ export function projectRoutes(router: Router) {
   });
 
   router.get('/projects/:projectId/logo.png', async (req, res) => {
-    const { projectId } = await Joi.object<{ projectId: string }>({
-      projectId: Joi.string().empty([null, '']),
-    }).validateAsync(req.params, { stripUnknown: true });
+    const { projectId } = req.params;
+    if (!projectId) throw new Error('Missing required parameter `projectId`');
 
-    try {
-      const original = await Project.findOne({ where: { _id: projectId } });
-      if (original) {
-        const repository = await getRepository({ projectId });
-        const logoPath = path.join(repository.options.root, 'logo.png');
-        await access(logoPath);
-        res.sendFile(logoPath);
-        return;
-      }
+    const original = await Project.findOne({ where: { _id: projectId } });
+    if (original) {
+      const repository = await getRepository({ projectId });
+      const { blob } = await repository.readBlob({ ref: original.gitDefaultBranch, filepath: LOGO_FILENAME });
+      res.setHeader('Content-Type', 'image/png');
+      res.end(Buffer.from(blob));
+      return;
+    }
 
-      const resource =
-        (await getResourceProjects('template')).find((i) => i.project._id === projectId) ||
-        (await getResourceProjects('example')).find((i) => i.project._id === projectId);
+    const resource = await getProjectFromResource({ projectId });
 
-      if (resource?.gitLogoPath) {
-        await access(resource.gitLogoPath);
+    if (resource) {
+      if (resource?.gitLogoPath && (await exists(resource.gitLogoPath))) {
         res.sendFile(resource.gitLogoPath);
         return;
       }
-    } catch (error) {
-      logger.error('Get icon error', { error });
+
+      throw new NotFoundError(`No such project icon ${projectId}`);
     }
 
-    res.status(404).send('Image not found');
+    throw new NotFoundError(`No such project ${projectId}`);
   });
 
   router.get('/projects/:projectId', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
@@ -340,6 +346,85 @@ export function projectRoutes(router: Router) {
 
     res.json(project);
   });
+
+  router.get(
+    '/projects/:projectId/agent-input-secrets',
+    user(),
+    ensureComponentCallOrPromptsEditor(),
+    async (req, res) => {
+      const { projectId } = req.params;
+      if (!projectId) throw new Error('Missing required param `projectId`');
+
+      const project = await Project.findOne({ where: { _id: projectId }, rejectOnEmpty: new Error('No such project') });
+
+      checkProjectPermission({ req, project });
+
+      const secrets = await AgentInputSecret.findAll({ where: { projectId }, attributes: { exclude: ['secret'] } });
+
+      res.json({ secrets });
+    }
+  );
+
+  const createOrUpdateAgentInputSecretPayloadSchema = Joi.object<CreateOrUpdateAgentInputSecretPayload>({
+    secrets: Joi.array()
+      .items(
+        Joi.object({
+          targetProjectId: Joi.string().required(),
+          targetAgentId: Joi.string().required(),
+          targetInputKey: Joi.string().required(),
+          secret: Joi.string().required(),
+        })
+      )
+      .required()
+      .min(1),
+  });
+
+  router.post(
+    '/projects/:projectId/agent-input-secrets',
+    user(),
+    ensureComponentCallOrPromptsEditor(),
+    async (req, res) => {
+      const { did: userId } = req.user!;
+
+      const { projectId } = req.params;
+      if (!projectId) throw new Error('Missing required param `projectId`');
+
+      const input = await createOrUpdateAgentInputSecretPayloadSchema.validateAsync(req.body, { stripUnknown: true });
+
+      const project = await Project.findOne({ where: { _id: projectId }, rejectOnEmpty: new Error('No such project') });
+
+      checkProjectPermission({ req, project });
+
+      await Promise.all(
+        input.secrets.map((item) =>
+          AgentInputSecret.destroy({
+            where: {
+              projectId,
+              targetProjectId: item.targetProjectId,
+              targetAgentId: item.targetAgentId,
+              targetInputKey: item.targetInputKey,
+            },
+          })
+        )
+      );
+
+      await AgentInputSecret.bulkCreate(
+        input.secrets.map((item) => ({
+          projectId,
+          targetProjectId: item.targetProjectId,
+          targetAgentId: item.targetAgentId,
+          targetInputKey: item.targetInputKey,
+          secret: item.secret,
+          createdBy: userId,
+          updatedBy: userId,
+        }))
+      );
+
+      const secrets = await AgentInputSecret.findAll({ where: { projectId }, attributes: { exclude: ['secret'] } });
+
+      res.json({ secrets });
+    }
+  );
 
   router.post('/projects', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { did } = req.user!;
@@ -418,8 +503,10 @@ export function projectRoutes(router: Router) {
     const { did } = req.user!;
 
     const uri = new URL(url);
-    if (username) uri.username = username;
-    if (password) uri.password = password;
+    if (password) {
+      if (username) uri.username = username;
+      if (password) uri.password = password;
+    }
 
     let originProject;
     let originDefaultBranch = defaultBranch;
@@ -488,6 +575,7 @@ export function projectRoutes(router: Router) {
         createdBy: did,
         updatedBy: did,
         name,
+        gitAutoSync: !!password,
         gitLastSyncedAt: new Date(),
         description,
       });
@@ -500,6 +588,7 @@ export function projectRoutes(router: Router) {
 
   router.patch('/projects/:projectId', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
+    if (!projectId) throw new Error('Missing required parameter `projectId`');
 
     const project = await Project.findOne({ where: { _id: projectId } });
     if (!project) {
@@ -524,7 +613,16 @@ export function projectRoutes(router: Router) {
       gitAutoSync,
       didSpaceAutoSync,
       homePageUrl,
+      primaryColor,
     } = await updateProjectSchema.validateAsync(req.body, { stripUnknown: true });
+
+    if (gitAutoSync) {
+      const repo = await getRepository({ projectId });
+      const remote = (await repo.listRemotes()).find((i) => i.remote === defaultRemote);
+      if (!remote) throw new Error('The remote has not been set up yet');
+      if (!parseAuth(parseURL(remote.url).auth).password)
+        throw new Error('Automatic synchronization must use an access token');
+    }
 
     const { did: userId, fullName } = req.user!;
 
@@ -547,6 +645,7 @@ export function projectRoutes(router: Router) {
           gitAutoSync,
           didSpaceAutoSync,
           homePageUrl,
+          primaryColor,
           updatedAt: new Date(),
         },
         (v) => v === undefined
@@ -708,6 +807,10 @@ export function projectRoutes(router: Router) {
     }
 
     if (target === 'github') {
+      const remote = (await repository.listRemotes()).find((i) => i.remote === defaultRemote);
+      if (!remote) throw new Error('The remote has not been set up yet');
+      if (!parseAuth(parseURL(remote.url).auth).password) throw new Error('Synchronization must use an access token');
+
       const branches = await repository.listBranches();
       for (const ref of branches) {
         // eslint-disable-next-line no-await-in-loop
@@ -902,24 +1005,7 @@ async function createProjectFromTemplate(
     branch: defaultBranch,
     message: 'First Commit',
     author: { name: author.fullName, email: author.did },
-    beforeCommit: async (tx) => {
-      const logoPath = path.join(repository.options.root, LOGO_FILENAME);
-
-      try {
-        if (template.gitLogoPath) {
-          await copyFile(template.gitLogoPath, logoPath);
-          await tx.add({ filepath: LOGO_FILENAME });
-        } else {
-          const icon = await sampleIcon();
-          if (icon) {
-            await downloadLogo(icon, logoPath);
-            await tx.add({ filepath: LOGO_FILENAME });
-          }
-        }
-      } catch (error) {
-        logger.error('failed to download icon', { error });
-      }
-    },
+    icon: template.gitLogoPath || (await sampleIcon()),
   });
 
   return project;

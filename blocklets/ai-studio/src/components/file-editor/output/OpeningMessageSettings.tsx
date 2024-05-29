@@ -1,7 +1,7 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { OutputVariableYjs, RuntimeOutputOpeningMessage } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { Stack, TextField, Typography } from '@mui/material';
+import { Box, TextField, Typography } from '@mui/material';
 import { WritableDraft } from 'immer';
 
 export default function OpeningMessageSettings({ output }: { output: OutputVariableYjs }) {
@@ -18,20 +18,18 @@ export default function OpeningMessageSettings({ output }: { output: OutputVaria
   };
 
   return (
-    <Stack gap={2}>
-      <Stack gap={1}>
-        <Typography variant="subtitle1">{t('openingMessage')}</Typography>
+    <Box>
+      <Typography variant="subtitle2">{t('openingMessage')}</Typography>
 
-        <TextField
-          fullWidth
-          hiddenLabel
-          multiline
-          minRows={2}
-          placeholder={t('openingTextPlaceholder')}
-          value={initialValue?.message || ''}
-          onChange={(e) => setField((v) => (v.message = e.target.value))}
-        />
-      </Stack>
-    </Stack>
+      <TextField
+        fullWidth
+        hiddenLabel
+        multiline
+        minRows={2}
+        placeholder={t('openingTextPlaceholder')}
+        value={initialValue?.message || ''}
+        onChange={(e) => setField((v) => (v.message = e.target.value))}
+      />
+    </Box>
   );
 }

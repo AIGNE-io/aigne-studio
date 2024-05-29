@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.2.0",
+  "version": "0.2.17",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -100,12 +100,12 @@
   },
   "dependencies": {
     "@blocklet/ai-builtin": "workspace:^",
-    "@blocklet/ai-kit": "^0.1.33",
+    "@blocklet/ai-kit": "^0.1.36",
     "@blocklet/dataset-sdk": "workspace:^",
     "@blocklet/sdk": "^1.16.26",
     "@microsoft/fetch-event-source": "^2.0.1",
-    "ahooks": "^3.7.11",
-    "axios": "^1.6.8",
+    "ahooks": "^3.8.0",
+    "axios": "^1.7.2",
     "crypto": "^1.0.1",
     "dayjs": "^1.11.11",
     "eventsource-parser": "^1.1.2",
@@ -114,7 +114,7 @@
     "lodash": "^4.17.21",
     "nanoid": "^3.3.7",
     "node-fetch": "2",
-    "react-hook-form": "^7.51.4",
+    "react-hook-form": "^7.51.5",
     "recoil": "^0.7.7",
     "snowflake-uuid": "^1.0.0",
     "typescript": "^5.4.5",
@@ -132,22 +132,22 @@
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@arcblock/ux": "^2.9.79",
+    "@arcblock/ux": "^2.9.86",
     "@emotion/css": "^11.11.2",
     "@emotion/react": "^11.11.4",
     "@jest/globals": "^29.7.0",
-    "@mui/icons-material": "^5.15.17",
+    "@mui/icons-material": "^5.15.18",
     "@mui/lab": "^5.0.0-alpha.170",
-    "@mui/material": "^5.15.17",
-    "@types/lodash": "^4.17.1",
+    "@mui/material": "^5.15.18",
+    "@types/lodash": "^4.17.4",
     "@types/mustache": "^4.2.5",
     "@types/node-fetch": "^2.6.11",
-    "@types/react": "^18.3.2",
+    "@types/react": "^18.3.3",
     "npm-run-all": "^4.1.5",
     "react": "^18.3.1",
     "react-router-dom": "^6.23.1",
     "rimraf": "^5.0.7",
-    "ts-jest": "^29.1.2",
+    "ts-jest": "^29.1.4",
     "typescript": "^5.4.5"
   }
 }

@@ -1,6 +1,7 @@
 import AigneLogoInput from '@app/icons/aigne-logo-input';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { AssistantYjs } from '@blocklet/ai-runtime/types';
+import { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { Icon } from '@iconify-icon/react';
 import PlusIcon from '@iconify-icons/tabler/plus';
 import { Box, Stack, Typography } from '@mui/material';
@@ -19,6 +20,7 @@ export default function InputSettings({
   gitRef,
   compareValue,
   isRemoteCompare,
+  openApis,
 }: {
   readOnly?: boolean;
   value: AssistantYjs;
@@ -26,6 +28,7 @@ export default function InputSettings({
   gitRef: string;
   compareValue?: AssistantYjs;
   isRemoteCompare?: boolean;
+  openApis?: DatasetObject[];
 }) {
   const { t } = useLocaleContext();
 
@@ -73,6 +76,7 @@ export default function InputSettings({
           gitRef={gitRef}
           compareValue={compareValue}
           isRemoteCompare={isRemoteCompare}
+          openApis={openApis}
         />
       )}
     </Box>
