@@ -131,16 +131,6 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
     const temp: any = cloneDeep(value);
     isSubmit.current = true;
 
-    temp.appearance = {
-      primaryColor: temp.primaryColor,
-      typography: {
-        fontFamily: temp.bodyFont,
-        heading: {
-          fontFamily: temp.titleFont,
-        },
-      },
-    };
-
     Object.keys(temp).forEach((t: string) => {
       if (isNil(temp[t])) {
         delete temp[t];
