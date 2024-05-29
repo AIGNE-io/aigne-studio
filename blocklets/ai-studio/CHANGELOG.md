@@ -1,3 +1,7 @@
+## 0.2.21 (2024-5-29)
+
+- feat: add font settings for project
+
 ## 0.2.20 (2024-5-29)
 
 - fix: allow image uploads for avatars only
