@@ -1,3 +1,8 @@
+## 0.2.17 (2024-5-29)
+
+- fix: page crash after component cleared
+- fix: optimize prompt for output json
+
 ## 0.2.16 (2024-5-28)
 
 - chore: use responseFormat parameter for chat completion api
