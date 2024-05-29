@@ -1,3 +1,7 @@
+## 0.2.19 (2024-5-29)
+
+- feat: support conversation history for multi-agents
+
 ## 0.2.18 (2024-5-29)
 
 - fix: show dialog to merge conflict when sync failed
