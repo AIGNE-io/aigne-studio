@@ -497,8 +497,7 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
               onSubmit={onSubmit}
               readOnly={readOnly}
               submitLoading={submitLoading}
-              value={value.primaryColor}
-              fontFamily={{ titleFont: value.titleFont, bodyFont: value.bodyFont }}
+              value={value}
             />
           </Box>
         )}

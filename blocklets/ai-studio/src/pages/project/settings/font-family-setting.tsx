@@ -1,3 +1,4 @@
+import { UpdateProjectInput } from '@api/routes/project';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Box, MenuItem, Select, Stack, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
@@ -17,13 +18,13 @@ const defaultFonts = [
 
 export default function FontFamilySetting({
   set,
-  fontFamily,
+  value,
 }: {
-  fontFamily: { titleFont: string | undefined; bodyFont: string | undefined };
+  value: UpdateProjectInput;
   set: (key: string, value: any) => void;
 }) {
-  const [titleFont, setTitleFont] = useState(fontFamily.bodyFont || 'Arial');
-  const [bodyFont, setBodyFont] = useState(fontFamily.titleFont || 'Arial');
+  const [titleFont, setTitleFont] = useState(value.titleFont || defaultFonts[0]);
+  const [bodyFont, setBodyFont] = useState(value.bodyFont || defaultFonts[0]);
 
   useEffect(() => {
     set('titleFont', titleFont);
@@ -38,7 +39,6 @@ export default function FontFamilySetting({
   return (
     <Stack gap={1}>
       <Box>
-        {/* todo: title select i18n */}
         <Stack>
           <Typography variant="subtitle3">{t('projectSetting.fontFamily.title')}</Typography>
           <Select value={titleFont} onChange={(e) => setTitleFont(e.target.value)}>
