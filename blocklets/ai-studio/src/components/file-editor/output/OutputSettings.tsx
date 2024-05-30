@@ -141,9 +141,7 @@ export default function OutputSettings({
                 renderItem={(item, _, params) => (
                   <VariableRow
                     key={item.id}
-                    rowRef={(ref) => {
-                      params.drop(params.drag(params.preview(ref)));
-                    }}
+                    rowRef={(ref) => params.drop(params.preview(ref))}
                     firstColumnChildren={
                       <Stack
                         className="hover-visible"

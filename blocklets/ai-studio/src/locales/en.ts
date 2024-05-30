@@ -167,6 +167,7 @@ export default flat({
   ok: 'Ok',
   commitMessage: 'Note',
   confirm: 'Confirm',
+  fontFamily: 'Font Family',
   projectSetting: {
     tabs: {
       basic: 'Basic',
@@ -194,6 +195,10 @@ export default flat({
     defaultModel: 'Default Model',
     icon: 'Select or Upload Icon',
     selectedFail: 'Please select a picture first',
+    fontFamily: {
+      body: 'Body Font',
+      title: 'Title Font',
+    },
   },
   notOpenFile: 'Please open the file from the file list on the left first!',
   noProjectTip: "You haven't created any projects yet. You can create one from the template above!",
@@ -224,7 +229,6 @@ export default flat({
   debugThisCase: 'Debug this case',
   deleteThisCase: 'Delete this case',
   runThisCase: 'Run this case',
-  subscribeAIService: 'Subscribe AI Service',
   diff: {
     created: 'New file',
     deleted: 'Deleted',
@@ -717,4 +721,5 @@ export default flat({
   noAgents: 'No Agents',
   buildIn: 'buildIn',
   remote: 'remote',
+  onlyAdminsAllowAddMoreAgents: 'Only admins can add more agents',
 });

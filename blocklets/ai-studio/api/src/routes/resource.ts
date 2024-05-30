@@ -7,7 +7,6 @@ import logger from '@api/libs/logger';
 import component from '@blocklet/sdk/lib/component';
 import { Router } from 'express';
 import Joi from 'joi';
-import cloneDeep from 'lodash/cloneDeep';
 import groupBy from 'lodash/groupBy';
 import uniq from 'lodash/uniq';
 import { stringify } from 'yaml';
@@ -39,17 +38,28 @@ const exportResourceSchema = Joi.object<{
   locale: Joi.string().allow(''),
 });
 
-const locales: { [key: string]: any } = {
+const locales: { [key in 'en' | 'zh']: { [key: string]: string } } = {
   en: {
     unnamed: 'Unnamed',
+    example: 'Example',
+    template: 'Template',
+    application: 'Application',
+    tool: 'Tool',
+    other: 'Other',
   },
   zh: {
     unnamed: '未命名',
+    example: '示例',
+    template: '模板',
+    application: '应用',
+    tool: '工具',
+    other: '其它',
   },
 };
 
 export function resourceRoutes(router: Router) {
-  const getExportedResourceQuerySchema = Joi.object<{ resourcesParams?: { projectId?: string } }>({
+  const getExportedResourceQuerySchema = Joi.object<{ resourcesParams?: { projectId?: string }; locale?: string }>({
+    locale: Joi.string().empty([null, '']),
     resourcesParams: Joi.object({
       projectId: Joi.string().empty([null, '']),
     }),
@@ -66,7 +76,11 @@ export function resourceRoutes(router: Router) {
 
   router.get('/resources/export', ensurePromptsEditor, async (req, res) => {
     const query = await getExportedResourceQuerySchema.validateAsync(
-      { ...req.query, resourcesParams: tryParse(req.query.resourcesParams) },
+      {
+        ...req.query,
+        locale: req.query.locale || req.query.local,
+        resourcesParams: tryParse(req.query.resourcesParams),
+      },
       { stripUnknown: true }
     );
 
@@ -75,76 +89,39 @@ export function resourceRoutes(router: Router) {
       order: [['updatedAt', 'DESC']],
     });
 
-    const locale = locales[(req.query as { local: string })?.local] || locales.en;
+    const locale = locales[query.locale as keyof typeof locales] || locales.en;
 
-    const list = projects.map((x: any) => {
-      return { id: '', _id: x._id, name: x.name || locale?.unnamed, description: x.description };
-    });
+    const resources = projects.map((x) => ({
+      id: x._id,
+      name: x.name || locale.unnamed,
+      description: x.description,
+      children: [
+        {
+          id: `application-${x._id}`,
+          name: locale.application,
+        },
+        {
+          id: `other-${x._id}`,
+          name: locale.other,
+          children: [
+            {
+              id: `tool-${x._id}`,
+              name: locale.tool,
+            },
+            {
+              id: `example-${x._id}`,
+              name: locale.example,
+            },
+            {
+              id: `template-${x._id}`,
+              name: locale.template,
+            },
+          ],
+        },
+      ],
+    }));
 
-    if (list.length === 1) {
-      res.json({
-        resources: [
-          ...list.map((x) => ({
-            ...x,
-            id: `application-${x._id}`,
-            name: `${x.name} (as Application)`,
-          })),
-          ...list.map((x) => ({
-            ...x,
-            id: `tool-${x._id}`,
-            name: `${x.name} (as Tool)`,
-          })),
-          ...list.map((x) => ({
-            ...x,
-            id: `template-${x._id}`,
-            name: `${x.name} (as Template)`,
-          })),
-          ...list.map((x) => ({
-            ...x,
-            id: `example-${x._id}`,
-            name: `${x.name} (as Example)`,
-          })),
-        ],
-      });
-      return;
-    }
-
-    const resources = [
-      {
-        id: 'application',
-        name: 'As Application',
-        children: cloneDeep(list).map((x) => {
-          x.id = `application-${x._id}`;
-          return x;
-        }),
-      },
-      {
-        id: 'tool',
-        name: 'As Toolkit',
-        children: cloneDeep(list).map((x) => {
-          x.id = `tool-${x._id}`;
-          return x;
-        }),
-      },
-      {
-        id: 'template',
-        name: 'As Template',
-        children: cloneDeep(list).map((x) => {
-          x.id = `template-${x._id}`;
-          return x;
-        }),
-      },
-      {
-        id: 'example',
-        name: 'As Example',
-        children: cloneDeep(list).map((x) => {
-          x.id = `example-${x._id}`;
-          return x;
-        }),
-      },
-    ];
-
-    res.json({ resources });
+    res.json({ resources: resources.length === 1 ? resources[0]!.children : resources });
   });
 
   router.post('/resources/export', ensurePromptsEditor, async (req, res) => {

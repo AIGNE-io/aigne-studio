@@ -167,6 +167,7 @@ export default flat({
   ok: '确定',
   commitMessage: '备注',
   confirm: '确认',
+  fontFamily: '字体',
   projectSetting: {
     tabs: {
       basic: '基本信息',
@@ -193,6 +194,10 @@ export default flat({
     defaultModel: '默认模型',
     icon: '选择或上传图标',
     selectedFail: '请先选择一张图片',
+    fontFamily: {
+      body: '正文字体',
+      title: '标题字体',
+    },
   },
   notOpenFile: '请先从左侧文件列表中打开文件！',
   noProjectTip: '您还没有创建任何项目。 您可以从上面的模板创建项目！',
@@ -223,7 +228,6 @@ export default flat({
   debugThisCase: '调试该用例',
   deleteThisCase: '删除该用例',
   runThisCase: '运行该用例',
-  subscribeAIService: '订阅 AI 服务',
   diff: {
     created: '新文件',
     deleted: '已删除',
@@ -711,4 +715,5 @@ export default flat({
   noAgents: '没有可选的 Agent',
   buildIn: '内置组件',
   remote: '远程组件',
+  onlyAdminsAllowAddMoreAgents: '仅允许管理员添加更多 Agents',
 });

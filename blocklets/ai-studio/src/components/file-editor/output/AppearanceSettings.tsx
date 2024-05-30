@@ -149,7 +149,7 @@ export default function AppearanceSettings({ output }: { output: OutputVariableY
           <ComponentSelect
             tags={tags}
             remoteReact={remoteReact || []}
-            value={appearance?.componentId ? { id: appearance.componentId, name: appearance.componentName } : undefined}
+            value={appearance?.componentId ? { id: appearance.componentId, name: appearance.componentName } : null}
             onChange={(_, v) =>
               setField((config) => {
                 config.componentId = v?.id;

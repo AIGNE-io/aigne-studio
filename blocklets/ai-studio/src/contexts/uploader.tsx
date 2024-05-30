@@ -73,15 +73,7 @@ export default function UploaderProvider({ children }: UploaderProviderProps) {
         }}
         coreProps={{
           restrictions: {
-            allowedFileTypes: [
-              'image/png',
-              'image/jpeg',
-              'image/gif',
-              'image/webp',
-              'image/svg+xml',
-              'video/mp4',
-              'video/webm',
-            ],
+            allowedFileTypes: ['image/png', 'image/jpeg', 'image/gif'],
             maxNumberOfFiles: 1,
           },
         }}

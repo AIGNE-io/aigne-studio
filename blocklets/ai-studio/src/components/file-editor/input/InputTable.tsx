@@ -9,7 +9,6 @@ import { useCurrentProject } from '@app/contexts/project';
 import { getDatasets } from '@app/libs/dataset';
 import { createOrUpdateProjectInputSecrets, getProjectInputSecrets } from '@app/libs/project';
 import Close from '@app/pages/project/icons/close';
-import DragVertical from '@app/pages/project/icons/drag-vertical';
 import { useAssistantCompare } from '@app/pages/project/state';
 import { useProjectStore } from '@app/pages/project/yjs-state';
 import { useAgent } from '@app/store/agent';
@@ -27,6 +26,7 @@ import ChevronDownIcon from '@iconify-icons/tabler/chevron-down';
 import CursorTextIcon from '@iconify-icons/tabler/cursor-text';
 import DatabaseIcon from '@iconify-icons/tabler/database';
 import DotsIcon from '@iconify-icons/tabler/dots';
+import GripVertical from '@iconify-icons/tabler/grip-vertical';
 import HistoryIcon from '@iconify-icons/tabler/history';
 import InfoCircleIcon from '@iconify-icons/tabler/info-circle';
 import MessageIcon from '@iconify-icons/tabler/message';
@@ -300,18 +300,32 @@ export default function InputTable({
   }, [t, knowledge, openApis, readOnly, doc, deleteParameter]);
 
   return (
-    <Box sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1, px: 1.5 }}>
+    <Box sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1, overflow: 'auto' }}>
       <Box
         sx={{
-          borderBottom: () => (parameters?.length ? '1px solid rgba(224, 224, 224, 1)' : 0),
           whiteSpace: 'nowrap',
           maxWidth: '100%',
           table: {
-            th: { pt: 0 },
-            td: { py: 0 },
-            'tbody tr:last-of-type td': {
-              border: 'none',
+            'tr:last-of-type': {
+              'th,td': {
+                borderBottom: 1,
+                borderColor: 'divider',
+              },
             },
+            'tr.group-header': {
+              borderTop: 1,
+              borderColor: 'divider',
+            },
+            'tr:not(.group-header):hover td': { bgcolor: 'grey.100' },
+            'th,td': {
+              borderBottom: 0,
+              py: 0,
+              px: 0,
+              '&:not(:first-of-type)': { pl: 1 },
+              '&:first-of-type': { pl: 1.5 },
+              '&:last-of-type': { pr: 1.5 },
+            },
+            th: { pb: 0.5 },
           },
         }}>
         <Table size="small">
@@ -371,8 +385,15 @@ export default function InputTable({
                             <Stack
                               className="hover-visible center"
                               ref={params.drag}
-                              sx={{ p: 0.5, cursor: 'move', position: 'absolute', left: -24, top: 0, bottom: 0 }}>
-                              <DragVertical sx={{ color: '#9CA3AF', fontSize: 22 }} />
+                              sx={{
+                                p: 0.5,
+                                cursor: 'move',
+                                position: 'absolute',
+                                left: -6,
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                              }}>
+                              <Box component={Icon} icon={GripVertical} sx={{ color: '#9CA3AF', fontSize: 14 }} />
                             </Stack>
                           )}
 

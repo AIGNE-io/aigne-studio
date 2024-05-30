@@ -1,6 +1,44 @@
+## 0.2.22 (2024-5-29)
+
+- fix: remove responseFormat json parameter
+- chore: add more font for project appearance settings
+
+## 0.2.21 (2024-5-29)
+
+- feat: add font settings for project
+
+## 0.2.20 (2024-5-29)
+
+- fix: allow image uploads for avatars only
+
+## 0.2.19 (2024-5-29)
+
+- feat: support conversation history for multi-agents
+
+## 0.2.18 (2024-5-29)
+
+- fix: show dialog to merge conflict when sync failed
+
+## 0.2.17 (2024-5-29)
+
+- fix: page crash after component cleared
+- fix: optimize prompt for output json
+
+## 0.2.16 (2024-5-28)
+
+- chore: use responseFormat parameter for chat completion api
+- fix: input number not working in model settings
+- chore: polish inputs/outputs table ux
+- chore: polish resource tree for publishing view
+- fix: disable add more button for non-admin users
+
+## 0.2.15 (2024-5-28)
+
+- fix: use popper for primary color picker
+
 ## 0.2.14 (2024-5-27)
 
-- fix:double click can rename agent name and folder name
+- chore: return project primary color for agents
 
 ## 0.2.13 (2024-5-27)
 
