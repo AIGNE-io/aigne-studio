@@ -1,3 +1,7 @@
+## 0.2.23 (2024-5-30)
+
+- feat(ux): support edit agent rename on double click
+
 ## 0.2.22 (2024-5-29)
 
 - fix: remove responseFormat json parameter
