@@ -65,7 +65,12 @@ export default function PromptSetting({
           {!isNil(model.temperatureMin) && (
             <Box position="relative" className="between" sx={{ backgroundColor: getDiffBackground('temperature') }}>
               <Box flex={1}>
-                <Tooltip title={t('temperatureTip')} placement="top" disableInteractive>
+                <Tooltip
+                  title={t('temperatureTip')}
+                  placement="top"
+                  disableInteractive
+                  enterTouchDelay={0}
+                  leaveTouchDelay={3000}>
                   <FormLabel className="center" sx={{ gap: 1, justifyContent: 'flex-start' }}>
                     {t('temperature')}
                     {icon}
@@ -96,7 +101,12 @@ export default function PromptSetting({
           {!isNil(model.topPMin) && (
             <Box position="relative" className="between" sx={{ backgroundColor: getDiffBackground('topP') }}>
               <Box flex={1}>
-                <Tooltip title={t('topPTip')} placement="top" disableInteractive>
+                <Tooltip
+                  title={t('topPTip')}
+                  placement="top"
+                  disableInteractive
+                  enterTouchDelay={0}
+                  leaveTouchDelay={3000}>
                   <FormLabel className="center" sx={{ gap: 1, justifyContent: 'flex-start' }}>
                     {t('topP')}
                     {icon}
@@ -127,7 +137,12 @@ export default function PromptSetting({
           {!isNil(model.presencePenaltyMin) && (
             <Box position="relative" className="between" sx={{ backgroundColor: getDiffBackground('presencePenalty') }}>
               <Box flex={1}>
-                <Tooltip title={t('presencePenaltyTip')} placement="top" disableInteractive>
+                <Tooltip
+                  title={t('presencePenaltyTip')}
+                  placement="top"
+                  disableInteractive
+                  enterTouchDelay={0}
+                  leaveTouchDelay={3000}>
                   <FormLabel className="center" sx={{ gap: 1, justifyContent: 'flex-start' }}>
                     {t('presencePenalty')}
                     {icon}
@@ -161,7 +176,12 @@ export default function PromptSetting({
               className="between"
               sx={{ backgroundColor: getDiffBackground('frequencyPenalty') }}>
               <Box flex={1}>
-                <Tooltip title={t('frequencyPenaltyTip')} placement="top" disableInteractive>
+                <Tooltip
+                  title={t('frequencyPenaltyTip')}
+                  placement="top"
+                  disableInteractive
+                  enterTouchDelay={0}
+                  leaveTouchDelay={3000}>
                   <FormLabel className="center" sx={{ gap: 1, justifyContent: 'flex-start' }}>
                     {t('frequencyPenalty')}
                     {icon}
@@ -192,7 +212,12 @@ export default function PromptSetting({
           {!isNil(model.maxTokensMin) && (
             <Box position="relative" className="between" sx={{ backgroundColor: getDiffBackground('maxTokens') }}>
               <Box flex={1}>
-                <Tooltip title={t('maxTokensTip')} placement="top" disableInteractive>
+                <Tooltip
+                  title={t('maxTokensTip')}
+                  placement="top"
+                  disableInteractive
+                  enterTouchDelay={0}
+                  leaveTouchDelay={3000}>
                   <FormLabel className="center" sx={{ gap: 1, justifyContent: 'flex-start' }}>
                     {t('maxTokens')}
                     {icon}

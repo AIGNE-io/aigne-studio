@@ -1,4 +1,3 @@
-import { AgentTooltip } from '@app/components/agent-tooltip';
 import { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
@@ -16,6 +15,7 @@ import {
   Stack,
   Tabs,
   TextField,
+  Tooltip,
   Typography,
   styled,
   tabClasses,
@@ -295,12 +295,17 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
                 <Stack gap={1} py={1}>
                   <Box className="prefer-inline">
                     <Box>
-                      <AgentTooltip title={t('temperatureTip')} placement="top" disableInteractive>
+                      <Tooltip
+                        title={t('temperatureTip')}
+                        placement="top"
+                        disableInteractive
+                        enterTouchDelay={0}
+                        leaveTouchDelay={3000}>
                         <FormLabel>
                           {t('temperature')}
                           <InfoOutlined fontSize="small" sx={{ verticalAlign: 'bottom', ml: 1, color: 'info.main' }} />
                         </FormLabel>
-                      </AgentTooltip>
+                      </Tooltip>
                     </Box>
 
                     <Box>
@@ -318,12 +323,17 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
 
                   <Box className="prefer-inline">
                     <Box>
-                      <AgentTooltip title={t('topPTip')} placement="top" disableInteractive>
+                      <Tooltip
+                        title={t('topPTip')}
+                        placement="top"
+                        disableInteractive
+                        enterTouchDelay={0}
+                        leaveTouchDelay={3000}>
                         <FormLabel>
                           {t('topP')}
                           <InfoOutlined fontSize="small" sx={{ verticalAlign: 'bottom', ml: 1, color: 'info.main' }} />
                         </FormLabel>
-                      </AgentTooltip>
+                      </Tooltip>
                     </Box>
 
                     <Box>
@@ -341,12 +351,17 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
 
                   <Box className="prefer-inline">
                     <Box>
-                      <AgentTooltip title={t('presencePenaltyTip')} placement="top" disableInteractive>
+                      <Tooltip
+                        title={t('presencePenaltyTip')}
+                        placement="top"
+                        disableInteractive
+                        enterTouchDelay={0}
+                        leaveTouchDelay={3000}>
                         <FormLabel>
                           {t('presencePenalty')}
                           <InfoOutlined fontSize="small" sx={{ verticalAlign: 'bottom', ml: 1, color: 'info.main' }} />
                         </FormLabel>
-                      </AgentTooltip>
+                      </Tooltip>
                     </Box>
 
                     <Box>
@@ -364,12 +379,17 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
 
                   <Box className="prefer-inline">
                     <Box>
-                      <AgentTooltip title={t('frequencyPenaltyTip')} placement="top" disableInteractive>
+                      <Tooltip
+                        title={t('frequencyPenaltyTip')}
+                        placement="top"
+                        disableInteractive
+                        enterTouchDelay={0}
+                        leaveTouchDelay={3000}>
                         <FormLabel>
                           {t('frequencyPenalty')}
                           <InfoOutlined fontSize="small" sx={{ verticalAlign: 'bottom', ml: 1, color: 'info.main' }} />
                         </FormLabel>
-                      </AgentTooltip>
+                      </Tooltip>
                     </Box>
 
                     <Box>
@@ -387,12 +407,17 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
 
                   <Box className="prefer-inline">
                     <Box>
-                      <AgentTooltip title={t('maxTokensTip')} placement="top" disableInteractive>
+                      <Tooltip
+                        title={t('maxTokensTip')}
+                        placement="top"
+                        disableInteractive
+                        enterTouchDelay={0}
+                        leaveTouchDelay={3000}>
                         <FormLabel>
                           {t('maxTokens')}
                           <InfoOutlined fontSize="small" sx={{ verticalAlign: 'bottom', ml: 1, color: 'info.main' }} />
                         </FormLabel>
-                      </AgentTooltip>
+                      </Tooltip>
                     </Box>
 
                     <Box>
