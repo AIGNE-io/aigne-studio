@@ -1,3 +1,7 @@
+## 0.2.27 (2024-5-30)
+
+- feat: support use an agent as llm provider
+
 ## 0.2.26 (2024-5-30)
 
 - fix: update project settings after remote project synced
