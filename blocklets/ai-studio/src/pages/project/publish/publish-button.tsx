@@ -89,13 +89,17 @@ function useComponentDeps() {
     ...new Set(
       assistants.flatMap((i) => {
         if (!i.parameters) return [];
-        return Object.values(i.parameters).flatMap((i) => {
+        const inputDeps = Object.values(i.parameters).flatMap((i) => {
           if (i.data.type === 'source' && i.data.source?.variableFrom === 'tool') {
             const did = i.data.source.agent?.blockletDid;
             return did ? [did] : [];
           }
           return [];
         });
+
+        const executorDeps = i.executor?.agent?.blockletDid ? [i.executor?.agent?.blockletDid] : [];
+
+        return [...inputDeps, ...executorDeps];
       })
     ),
   ];
