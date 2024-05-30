@@ -1,3 +1,7 @@
+## 0.2.25 (2024-5-30)
+
+- fix: show tooltip for model settings on mobile
+
 ## 0.2.24 (2024-5-30)
 
 - fix: layout of base trace in debug view (#1048)
