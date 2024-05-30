@@ -1,3 +1,9 @@
+## 0.2.17 (2024-5-30)
+
+- fix layout of base trace in debug view (#1048)
+- fix: optimize system prompts (#1049)
+- fix: fix default number display bug(#1018)
+
 ## 0.2.16 (2024-5-28)
 
 - chore: use responseFormat parameter for chat completion api
