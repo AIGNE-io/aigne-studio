@@ -28,6 +28,7 @@ import { useAsync } from 'react-use';
 import { useProjectState } from '../../pages/project/state';
 import { brandIcon } from '../selector/model-select-field';
 import ImageSettings from './image-file/setting';
+import { AgentName } from './input/InputTable';
 import PromptSettings from './prompt-file/setting';
 
 export default function PromptSetting({
@@ -86,14 +87,20 @@ export default function PromptSetting({
           dialogState.open();
         }}>
         <Stack direction="row" alignItems="center" gap={0.5}>
-          {modelDetail && <Box className="center">{brandIcon(modelDetail!.brand)}</Box>}
-          <Typography variant="subtitle3" color="#030712" mt={-0.25}>
-            {isPromptAssistant(value) || isRouterAssistant(value)
-              ? modelDetail?.name || modelDetail?.model || modelDetail?.model
-              : isImageAssistant(value)
-                ? defaultModel
-                : ''}
-          </Typography>
+          {value.executor?.agent?.id ? (
+            <AgentName showIcon projectId={value.executor.agent.projectId} agentId={value.executor.agent.id} />
+          ) : (
+            <>
+              {modelDetail && <Box className="center">{brandIcon(modelDetail!.brand)}</Box>}
+              <Typography variant="subtitle3" color="#030712" mt={-0.25}>
+                {isPromptAssistant(value) || isRouterAssistant(value)
+                  ? modelDetail?.name || modelDetail?.model || modelDetail?.model
+                  : isImageAssistant(value)
+                    ? defaultModel
+                    : ''}
+              </Typography>
+            </>
+          )}
         </Stack>
 
         <Box component={Icon} icon={AdjustmentsIcon} sx={{ color: '#3B82F6', fontSize: 15 }} />

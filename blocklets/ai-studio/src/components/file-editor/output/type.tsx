@@ -8,6 +8,7 @@ import LinkIcon from '@iconify-icons/tabler/link';
 import MessageIcon from '@iconify-icons/tabler/message';
 import MessageCircleQuestionIcon from '@iconify-icons/tabler/message-circle-question';
 import MessageQuestionIcon from '@iconify-icons/tabler/message-question';
+import MessagesIcon from '@iconify-icons/tabler/messages';
 import PhotoIcon from '@iconify-icons/tabler/photo';
 import ShareIcon from '@iconify-icons/tabler/share';
 import UserIcon from '@iconify-icons/tabler/user';
@@ -56,6 +57,12 @@ export const runtimeOutputVariables: {
         title: 'Children',
         i18nKey: 'children',
         name: RuntimeOutputVariable.children,
+      },
+      {
+        icon: <Icon icon={MessagesIcon} />,
+        title: 'LLM Response Stream',
+        i18nKey: 'llmResponseStream',
+        name: RuntimeOutputVariable.llmResponseStream,
       },
     ],
   },

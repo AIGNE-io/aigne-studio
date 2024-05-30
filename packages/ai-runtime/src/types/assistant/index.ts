@@ -102,6 +102,7 @@ export interface AssistantBase {
   updatedAt: string;
   createdBy: string;
   updatedBy: string;
+  executor?: AgentExecutor;
   tests?: {
     id: string;
     parameters: { [key: string]: any };
@@ -189,6 +190,16 @@ export interface RouterAssistant extends AssistantBase {
   model?: string;
 }
 
+export interface AgentExecutor {
+  agent?: {
+    blockletDid?: string;
+    projectId?: string;
+    id: string;
+  };
+
+  inputValues?: { [key: string]: any };
+}
+
 export interface PromptAssistant extends AssistantBase {
   type: 'prompt';
   prompts?: Prompt[];
@@ -255,7 +266,15 @@ export interface SecretParameter {
   variableFrom?: 'secret';
 }
 
-export type Parameter = StringParameter | NumberParameter | SelectParameter | LanguageParameter | SourceParameter;
+export type Parameter =
+  | StringParameter
+  | NumberParameter
+  | SelectParameter
+  | LanguageParameter
+  | SourceParameter
+  | LLMInputMessagesParameter
+  | LLMInputToolsParameter
+  | LLMInputToolChoiceParameter;
 
 export interface ParameterBase {
   id: string;
@@ -265,6 +284,21 @@ export interface ParameterBase {
   helper?: string;
   required?: boolean;
   from?: 'editor' | 'agentParameter' | 'knowledgeParameter' | 'blockletAPIParameter';
+}
+
+export interface LLMInputMessagesParameter extends ParameterBase {
+  type: 'llmInputMessages';
+  defaultValue?: any;
+}
+
+export interface LLMInputToolsParameter extends ParameterBase {
+  type: 'llmInputTools';
+  defaultValue?: any;
+}
+
+export interface LLMInputToolChoiceParameter extends ParameterBase {
+  type: 'llmInputToolChoice';
+  defaultValue?: any;
 }
 
 export interface SourceParameter extends ParameterBase {

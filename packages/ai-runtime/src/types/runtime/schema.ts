@@ -1,3 +1,4 @@
+import { ChatCompletionResponse } from '@blocklet/ai-kit/api/types/chat';
 import Joi from 'joi';
 import { toLower } from 'lodash';
 import { nanoid } from 'nanoid';
@@ -148,12 +149,16 @@ export function outputVariablesToJoiSchema(assistant: Assistant, datastoreVariab
     }
 
     if (variable.name && isRuntimeOutputVariable(variable.name)) {
-      const runtimeVariable = runtimeVariablesSchema[variable.name as RuntimeOutputVariable];
-      if (!runtimeVariable) return undefined;
+      if (variable.name === RuntimeOutputVariable.llmResponseStream) {
+        schema = Joi.any();
+      } else {
+        const runtimeVariable = runtimeVariablesSchema[variable.name as RuntimeOutputVariable];
+        if (!runtimeVariable) return undefined;
 
-      schema = variableToSchema({ ...runtimeVariable });
-      if (schema) {
-        schema = Joi.alternatives().try(schema, Joi.any().empty(Joi.any()));
+        schema = variableToSchema({ ...runtimeVariable });
+        if (schema) {
+          schema = Joi.alternatives().try(schema, Joi.any().empty(Joi.any()));
+        }
       }
       return schema;
     }
@@ -275,6 +280,7 @@ export function outputVariablesFromOpenApi(schema?: JSONSchema, name: string = '
 }
 
 export enum RuntimeOutputVariable {
+  llmResponseStream = '$llmResponseStream',
   text = '$text',
   images = '$images',
   suggestedQuestions = '$suggested.questions',
@@ -331,6 +337,7 @@ export interface RuntimeOutputProfile {
 }
 
 export interface RuntimeOutputVariablesSchema {
+  [RuntimeOutputVariable.llmResponseStream]?: ReadableStream<ChatCompletionResponse>;
   [RuntimeOutputVariable.text]?: string;
   [RuntimeOutputVariable.images]?: { url: string }[];
   [RuntimeOutputVariable.suggestedQuestions]?: { question: string }[];

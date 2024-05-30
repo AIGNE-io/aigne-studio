@@ -26,7 +26,9 @@ import {
   Typography,
   chipClasses,
 } from '@mui/material';
-import { useMemo, useRef } from 'react';
+import { useRef } from 'react';
+
+import { AgentSelectFilter, useAgentSelectOptions } from './use-agents';
 
 export interface AgentSelectValue {
   blockletDid?: string;
@@ -40,27 +42,23 @@ export default function AgentSelect<
   Multiple extends boolean | undefined = false,
   DisableClearable extends boolean | undefined = false,
 >({
+  placeholder,
   excludes,
+  includes,
   value,
   onChange,
   ...props
-}: {
-  excludes?: string[];
-} & Pick<AutocompleteProps<AgentSelectValue, Multiple, DisableClearable, false>, 'value' | 'onChange'> &
+}: { placeholder?: string } & AgentSelectFilter &
+  Pick<AutocompleteProps<AgentSelectValue, Multiple, DisableClearable, false>, 'value' | 'onChange'> &
   Partial<
     Omit<AutocompleteProps<AgentSelectOption, Multiple, DisableClearable, false>, 'options' | 'value' | 'onChange'>
   >) {
   const { t } = useLocaleContext();
-  const { agents, agentMap, projectMap, load } = useAgents();
+  const { agentMap, projectMap, load } = useAgents();
+
+  const { agents: options } = useAgentSelectOptions({ includes, excludes });
+
   const isAdmin = useIsAdmin();
-
-  const options = useMemo(() => {
-    if (!excludes?.length) {
-      return agents;
-    }
-
-    return agents.filter((i) => !excludes.includes(i.id));
-  }, [agents, excludes]);
 
   // TODO: 需要考虑不同 project 中有相同 agent id
   const val = Array.isArray(value) ? value.map((i) => agentMap[i.id]) : value ? agentMap[value.id] : value ?? null;
@@ -97,10 +95,11 @@ export default function AgentSelect<
           )
         }
         options={options}
+        slotProps={{ popper: { placement: 'bottom-start', sx: { width: 'fit-content !important' } } }}
         isOptionEqualToValue={(o, v) => o.id === v.id && o.project.id === v.project.id}
         renderInput={(params) => (
           <Stack direction="row">
-            <TextField {...params} hiddenLabel autoFocus={props.autoFocus} fullWidth />
+            <TextField placeholder={placeholder} {...params} hiddenLabel autoFocus={props.autoFocus} fullWidth />
           </Stack>
         )}
         getOptionKey={(o) => [o.project.id, o.id].join('/')}
@@ -211,13 +210,7 @@ function ProjectHeaderView({ project, ...props }: { project: AgentSelectOption['
 
           <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             {t('author')}{' '}
-            <Box
-              component={DID}
-              did={project.createdBy}
-              copyable={false}
-              responsive
-              sx={{ flex: 1, width: 1, maxWidth: 200 }}
-            />
+            <Box component={DID} did={project.createdBy} copyable={false} responsive sx={{ flex: 2, width: 180 }} />
           </Typography>
 
           <Typography variant="caption">

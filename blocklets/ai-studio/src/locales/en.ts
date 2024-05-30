@@ -722,4 +722,10 @@ export default flat({
   buildIn: 'buildIn',
   remote: 'remote',
   onlyAdminsAllowAddMoreAgents: 'Only admins can add more agents',
+  llmInputMessages: 'LLM Messages',
+  llmInputTools: 'LLM Tools',
+  llmInputToolChoice: 'LLM Tool Choice',
+  llmResponseStream: 'LLM Response Stream',
+  llmProviderPlaceholder: 'Select a LLM provider from store',
+  provider: 'Provider',
 });

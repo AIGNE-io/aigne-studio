@@ -15,14 +15,34 @@ export default function ParameterField({
   onChange: (value: string | number | undefined) => void;
 } & Omit<TextFieldProps, 'onChange'>) {
   if (parameter.type === 'source') {
+    if (parameter.source?.variableFrom === 'secret') {
+      return (
+        <StringField
+          {...({ parameter } as any)}
+          size="small"
+          {...props}
+          InputProps={{ type: 'password', ...props.InputProps }}
+        />
+      );
+    }
+
     return null;
   }
 
-  const Field = {
-    number: NumberField,
-    string: StringField,
-    select: SelectField,
-    language: LanguageField,
-  }[parameter.type || 'string'];
+  if (['llmInputMessages', 'llmInputTools', 'llmInputToolChoice'].includes(parameter.type!)) {
+    return <StringField {...({ parameter } as any)} size="small" {...props} multiline />;
+  }
+
+  const Field = (
+    {
+      number: NumberField,
+      string: StringField,
+      select: SelectField,
+      language: LanguageField,
+    } as any
+  )[parameter.type || 'string'];
+
+  if (!Field) return null;
+
   return <Field {...({ parameter } as any)} size="small" {...props} />;
 }

@@ -81,6 +81,9 @@ export default function PromptEditorField({
       select: t('select'),
       language: t('language'),
       source: t('source'),
+      llmInputMessages: t('llmInputMessages'),
+      llmInputTools: t('llmInputTools'),
+      llmInputToolChoice: t('llmInputToolChoice'),
     };
   }, [t]);
 
