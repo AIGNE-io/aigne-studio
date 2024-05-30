@@ -844,7 +844,7 @@ export function projectRoutes(router: Router) {
         ).toString()
       );
 
-      await project.update({ ...data, gitLastSyncedAt: new Date() });
+      await project.update({ ...omit(data, 'id', '_id'), gitLastSyncedAt: new Date() });
 
       return res.json({});
     }
