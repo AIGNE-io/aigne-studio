@@ -1,3 +1,5 @@
+import { ReadableStream } from 'stream/web';
+
 import { defaultImageModel, getSupportedImagesModels } from '@api/libs/common';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
 import logger from '@api/libs/logger';
@@ -6,11 +8,13 @@ import AgentInputSecret from '@api/store/models/agent-input-secret';
 import History from '@api/store/models/history';
 import Session from '@api/store/models/session';
 import { chatCompletions, imageGenerations, proxyToAIKit } from '@blocklet/ai-kit/api/call';
+import { ChatCompletionResponse, isChatCompletionChunk } from '@blocklet/ai-kit/api/types/index';
 import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { CallAI, CallAIImage, GetAssistant, nextTaskId, runAssistant } from '@blocklet/ai-runtime/core';
 import {
   AssistantResponseType,
   RunAssistantResponse,
+  RuntimeOutputVariable,
   isImageAssistant,
   isPromptAssistant,
 } from '@blocklet/ai-runtime/types';
@@ -297,6 +301,32 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
       projectId,
       datastoreVariables: data?.variables || [],
     });
+
+    const llmResponseStream =
+      result?.[RuntimeOutputVariable.llmResponseStream] instanceof ReadableStream
+        ? result[RuntimeOutputVariable.llmResponseStream]
+        : undefined;
+
+    if (llmResponseStream) {
+      let text = '';
+
+      for await (const chunk of llmResponseStream as ReadableStream<ChatCompletionResponse>) {
+        if (isChatCompletionChunk(chunk)) {
+          text += chunk.delta.content || '';
+
+          if (stream) {
+            emit({
+              type: AssistantResponseType.CHUNK,
+              taskId,
+              assistantId: assistant.id,
+              delta: { content: chunk.delta.content },
+            });
+          }
+        }
+      }
+
+      result[RuntimeOutputVariable.llmResponseStream] = text;
+    }
 
     if (!stream) {
       res.json(result);

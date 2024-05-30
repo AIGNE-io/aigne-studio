@@ -15,6 +15,17 @@ export default function ParameterField({
   onChange: (value: string | number | undefined) => void;
 } & Omit<TextFieldProps, 'onChange'>) {
   if (parameter.type === 'source') {
+    if (parameter.source?.variableFrom === 'secret') {
+      return (
+        <StringField
+          {...({ parameter } as any)}
+          size="small"
+          {...props}
+          InputProps={{ type: 'password', ...props.InputProps }}
+        />
+      );
+    }
+
     return null;
   }
 
@@ -23,6 +34,18 @@ export default function ParameterField({
     string: StringField,
     select: SelectField,
     language: LanguageField,
+    llmInputMessages: StringField,
   }[parameter.type || 'string'];
-  return <Field {...({ parameter } as any)} size="small" {...props} />;
+
+  if (!Field) return null;
+
+  return (
+    <Field
+      {...({ parameter } as any)}
+      size="small"
+      {...props}
+      multiline={parameter.type === 'llmInputMessages' ? true : props.multiline}
+      minRows={parameter.type === 'llmInputMessages' ? 3 : props.minRows}
+    />
+  );
 }

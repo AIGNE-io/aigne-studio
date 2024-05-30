@@ -1,7 +1,9 @@
 import crypto from 'crypto';
 import { join } from 'path';
+import { ReadableStream, TextDecoderStream } from 'stream/web';
 
 import { ChatCompletionChunk, ChatCompletionInput } from '@blocklet/ai-kit/api/types';
+import { EventSourceParserStream } from '@blocklet/ai-kit/api/utils/event-stream';
 import { getBuildInDatasets } from '@blocklet/dataset-sdk';
 import { getRequest } from '@blocklet/dataset-sdk/request';
 import { getAllParameters, getRequiredFields } from '@blocklet/dataset-sdk/request/util';
@@ -9,6 +11,7 @@ import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { call, call as callFunc } from '@blocklet/sdk/lib/component';
 import { logger } from '@blocklet/sdk/lib/config';
 import axios, { isAxiosError } from 'axios';
+import Joi from 'joi';
 import { flattenDeep, isNil, pick, startCase, toLower } from 'lodash';
 import { Worker } from 'snowflake-uuid';
 import { joinURL, withQuery } from 'ufo';
@@ -339,6 +342,9 @@ export default async function(args) {
       call,
       joinURL,
       withQuery,
+      ReadableStream,
+      TextDecoderStream,
+      EventSourceParserStream,
       ...args,
     },
   });
@@ -1286,11 +1292,15 @@ const getVariables = async ({
   for (const parameter of assistant.parameters || []) {
     if (parameter.key && parameter.type === 'source') {
       if (parameter.source?.variableFrom === 'secret') {
-        const { secret } = await getSecret({
-          targetProjectId: projectId,
-          targetAgentId: assistant.id,
-          targetInputKey: parameter.key!,
-        });
+        const secret =
+          parameters[parameter.key] ||
+          (
+            await getSecret({
+              targetProjectId: projectId,
+              targetAgentId: assistant.id,
+              targetInputKey: parameter.key!,
+            })
+          ).secret;
         if (!secret) throw new Error(`Missing required agent secret ${parameter.key}`);
         variables[parameter.key!] = secret;
       } else if (parameter.source?.variableFrom === 'tool' && parameter.source.agent) {
@@ -1421,6 +1431,34 @@ const getVariables = async ({
 
         variables[parameter.key] = result;
       }
+    }
+    if (parameter.key && parameter.type === 'llmInputMessages') {
+      const v = parameters[parameter.key];
+      const tryParse = (s: string) => {
+        try {
+          return JSON.parse(s);
+        } catch {
+          // ignore
+        }
+        return undefined;
+      };
+
+      const msgs = await Joi.array()
+        .items(
+          Joi.object({
+            role: Joi.string().valid('system', 'user', 'assistant').empty([null, '']).default('user'),
+            content: Joi.string().required(),
+            name: Joi.string().empty([null, '']),
+          })
+        )
+        .validateAsync(
+          Array.isArray(v)
+            ? v
+            : tryParse(v) ?? [{ role: 'user', content: typeof v === 'string' ? v : JSON.stringify(v) }],
+          { stripUnknown: true }
+        );
+
+      variables[parameter.key] = msgs;
     }
   }
 

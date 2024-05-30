@@ -716,4 +716,6 @@ export default flat({
   buildIn: '内置组件',
   remote: '远程组件',
   onlyAdminsAllowAddMoreAgents: '仅允许管理员添加更多 Agents',
+  llmInputMessages: '大语言模型输入消息',
+  llmResponseStream: '大语言模型输出流',
 });

@@ -30,6 +30,7 @@ import GripVertical from '@iconify-icons/tabler/grip-vertical';
 import HistoryIcon from '@iconify-icons/tabler/history';
 import InfoCircleIcon from '@iconify-icons/tabler/info-circle';
 import MessageIcon from '@iconify-icons/tabler/message';
+import MessagesIcon from '@iconify-icons/tabler/messages';
 import SquareNumberIcon from '@iconify-icons/tabler/square-number-1';
 import {
   Autocomplete,
@@ -277,6 +278,18 @@ export default function InputTable({
             if (parameter.source.variableFrom === 'blockletAPI') {
               return <Box />;
             }
+          }
+
+          if (parameter.type === 'llmInputMessages') {
+            return (
+              <Stack direction="row" alignItems="center">
+                <ListItemIcon sx={{ minWidth: 20 }}>
+                  <Icon icon={MessagesIcon} />
+                </ListItemIcon>
+
+                {t('llmInputMessages')}
+              </Stack>
+            );
           }
 
           return (

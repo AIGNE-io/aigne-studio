@@ -255,7 +255,13 @@ export interface SecretParameter {
   variableFrom?: 'secret';
 }
 
-export type Parameter = StringParameter | NumberParameter | SelectParameter | LanguageParameter | SourceParameter;
+export type Parameter =
+  | StringParameter
+  | NumberParameter
+  | SelectParameter
+  | LanguageParameter
+  | SourceParameter
+  | LLMInputMessagesParameter;
 
 export interface ParameterBase {
   id: string;
@@ -265,6 +271,11 @@ export interface ParameterBase {
   helper?: string;
   required?: boolean;
   from?: 'editor' | 'agentParameter' | 'knowledgeParameter' | 'blockletAPIParameter';
+}
+
+export interface LLMInputMessagesParameter extends ParameterBase {
+  type: 'llmInputMessages';
+  defaultValue?: any;
 }
 
 export interface SourceParameter extends ParameterBase {

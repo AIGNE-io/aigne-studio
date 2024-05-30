@@ -5,6 +5,7 @@ import { Icon } from '@iconify-icon/react';
 import CheckIcon from '@iconify-icons/tabler/check';
 import HistoryIcon from '@iconify-icons/tabler/history';
 import MessageIcon from '@iconify-icons/tabler/message';
+import MessagesIcon from '@iconify-icons/tabler/messages';
 import PlusIcon from '@iconify-icons/tabler/plus';
 import { Box, ButtonProps, Divider, ListItemIcon, ListItemText, MenuItem } from '@mui/material';
 
@@ -66,6 +67,25 @@ export default function AddInputButton({
         <Box flex={1}>{t('history.title')}</Box>
         <Box sx={{ width: 40, textAlign: 'right' }}>
           {variables.includes('chatHistory') && <Box component={Icon} icon={CheckIcon} />}
+        </Box>
+      </MenuItem>
+
+      <MenuItem
+        selected={variables.includes('messages')}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (variables.includes('messages')) {
+            removeParameter('messages');
+          } else {
+            addParameter('messages', { type: 'llmInputMessages' });
+          }
+        }}>
+        <ListItemIcon>
+          <Box component={Icon} icon={MessagesIcon} />
+        </ListItemIcon>
+        <Box flex={1}>{t('llmInputMessages')}</Box>
+        <Box sx={{ width: 40, textAlign: 'right' }}>
+          {variables.includes('messages') && <Box component={Icon} icon={CheckIcon} />}
         </Box>
       </MenuItem>
 
