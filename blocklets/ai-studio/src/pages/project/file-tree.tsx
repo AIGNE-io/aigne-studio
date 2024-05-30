@@ -118,6 +118,8 @@ export interface ImperativeFileTree {
   importFrom: () => void;
 }
 
+const DOUBLE_CLICK_RENAME_TIME_GAP = 200;
+
 const FileTree = forwardRef<
   ImperativeFileTree,
   {
@@ -138,7 +140,6 @@ const FileTree = forwardRef<
   const dialogState = usePopupState({ variant: 'dialog' });
   const [compareAssistant, setCompareAssistant] = useState('');
   const [openIds, setOpenIds] = useLocalStorageState<(string | number)[]>('ai-studio.tree.openIds');
-  const [time, setTime] = useState<NodeJS.Timeout | null>(null);
 
   const openFolder = useCallback(
     (...path: (string | string[])[]) => {
@@ -310,6 +311,8 @@ const FileTree = forwardRef<
       };
     });
 
+  const lastClickTime = useRef<{ time: number; timer: number }>();
+
   if (!synced) {
     return (
       <Box sx={{ textAlign: 'center', mt: 4 }}>
@@ -334,17 +337,19 @@ const FileTree = forwardRef<
   }
 
   const handleClick = (onToggle: () => void, filepath: string) => {
-    if (time) {
-      clearTimeout(time);
-      setTime(null);
+    const now = Date.now();
+    if (lastClickTime.current && now - lastClickTime.current.time <= DOUBLE_CLICK_RENAME_TIME_GAP) {
       setEditingFolderPath(filepath);
+
+      clearTimeout(lastClickTime.current.timer);
+      lastClickTime.current = undefined;
     } else {
-      const timer = setTimeout(() => {
-        onToggle();
-        clearTimeout(timer);
-        setTime(null);
-      }, 200);
-      setTime(timer);
+      lastClickTime.current = {
+        time: now,
+        timer: window.setTimeout(() => {
+          onToggle();
+        }, DOUBLE_CLICK_RENAME_TIME_GAP),
+      };
     }
   };
 
