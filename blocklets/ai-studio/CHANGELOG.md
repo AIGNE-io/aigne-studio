@@ -1,6 +1,6 @@
 ## 0.2.23 (2024-5-30)
 
-- fix: support double click to rename
+- feat(ux): support edit agent rename on double click
 
 ## 0.2.22 (2024-5-29)
 
