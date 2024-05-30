@@ -1,3 +1,4 @@
+import { TOOL_TIP_LEAVE_TOUCH_DELAY } from '@app/libs/constants';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { defaultImageModel, getSupportedImagesModels } from '@blocklet/ai-runtime/common';
 import { ImageAssistantYjs } from '@blocklet/ai-runtime/types';
@@ -74,7 +75,12 @@ export default function ImageFileSetting({
           {typeof modelDetail.nMin === 'number' && typeof modelDetail.nMax === 'number' && (
             <Box position="relative" className="between">
               <Box flex={1}>
-                <Tooltip title={t('numberTip')} placement="top" disableInteractive>
+                <Tooltip
+                  title={t('numberTip')}
+                  placement="top"
+                  disableInteractive
+                  enterTouchDelay={0}
+                  leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
                   <FormLabel className="center" sx={{ gap: 1, justifyContent: 'flex-start' }}>
                     {t('number')}
                     {icon}
@@ -101,7 +107,12 @@ export default function ImageFileSetting({
           {modelDetail.quality && modelDetail.quality.length > 0 && (
             <Box position="relative" className="between">
               <Box flex={1}>
-                <Tooltip title={t('qualityTip')} placement="top" disableInteractive>
+                <Tooltip
+                  title={t('qualityTip')}
+                  placement="top"
+                  disableInteractive
+                  enterTouchDelay={0}
+                  leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
                   <FormLabel className="center" sx={{ gap: 1, justifyContent: 'flex-start' }}>
                     {t('quality')}
                     {icon}
@@ -139,7 +150,12 @@ export default function ImageFileSetting({
           {modelDetail.size && modelDetail.size.length > 0 && (
             <Box position="relative" className="between">
               <Box flex={1}>
-                <Tooltip title={t('sizeTip')} placement="top" disableInteractive>
+                <Tooltip
+                  title={t('sizeTip')}
+                  placement="top"
+                  disableInteractive
+                  enterTouchDelay={0}
+                  leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
                   <FormLabel className="center" sx={{ gap: 1, justifyContent: 'flex-start' }}>
                     {t('size')}
                     {icon}
@@ -177,7 +193,12 @@ export default function ImageFileSetting({
           {modelDetail.style && modelDetail.style.length > 0 && (
             <Box position="relative" className="between">
               <Box flex={1}>
-                <Tooltip title={t('styleTip')} placement="top" disableInteractive>
+                <Tooltip
+                  title={t('styleTip')}
+                  placement="top"
+                  disableInteractive
+                  enterTouchDelay={0}
+                  leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
                   <FormLabel className="center" sx={{ gap: 1, justifyContent: 'flex-start' }}>
                     {t('style')}
                     {icon}

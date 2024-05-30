@@ -832,7 +832,19 @@ export function projectRoutes(router: Router) {
         // eslint-disable-next-line no-await-in-loop
         await syncRepository({ repository, ref, author: { name: fullName, email: userId } });
       }
-      await project.update({ gitLastSyncedAt: new Date() });
+
+      const data: Project = parse(
+        Buffer.from(
+          (
+            await repository.readBlob({
+              ref: project.gitDefaultBranch!,
+              filepath: '.settings.yaml',
+            })
+          ).blob
+        ).toString()
+      );
+
+      await project.update({ ...omit(data, 'id', '_id'), gitLastSyncedAt: new Date() });
 
       return res.json({});
     }

@@ -1,5 +1,6 @@
 import AgentSelect from '@app/components/agent-select';
 import { useCurrentProject } from '@app/contexts/project';
+import { TOOL_TIP_LEAVE_TOUCH_DELAY } from '@app/libs/constants';
 import { useAgent } from '@app/store/agent';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { defaultTextModel, getSupportedModels } from '@blocklet/ai-runtime/common';
@@ -194,7 +195,12 @@ function DefaultPromptSetting({
           {!isNil(model.temperatureMin) && (
             <Box position="relative" className="between" sx={{ backgroundColor: getDiffBackground('temperature') }}>
               <Box flex={1}>
-                <Tooltip title={t('temperatureTip')} placement="top" disableInteractive>
+                <Tooltip
+                  title={t('temperatureTip')}
+                  placement="top"
+                  disableInteractive
+                  enterTouchDelay={0}
+                  leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
                   <FormLabel className="center" sx={{ gap: 1, justifyContent: 'flex-start' }}>
                     {t('temperature')}
                     {icon}
@@ -225,7 +231,12 @@ function DefaultPromptSetting({
           {!isNil(model.topPMin) && (
             <Box position="relative" className="between" sx={{ backgroundColor: getDiffBackground('topP') }}>
               <Box flex={1}>
-                <Tooltip title={t('topPTip')} placement="top" disableInteractive>
+                <Tooltip
+                  title={t('topPTip')}
+                  placement="top"
+                  disableInteractive
+                  enterTouchDelay={0}
+                  leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
                   <FormLabel className="center" sx={{ gap: 1, justifyContent: 'flex-start' }}>
                     {t('topP')}
                     {icon}
@@ -256,7 +267,12 @@ function DefaultPromptSetting({
           {!isNil(model.presencePenaltyMin) && (
             <Box position="relative" className="between" sx={{ backgroundColor: getDiffBackground('presencePenalty') }}>
               <Box flex={1}>
-                <Tooltip title={t('presencePenaltyTip')} placement="top" disableInteractive>
+                <Tooltip
+                  title={t('presencePenaltyTip')}
+                  placement="top"
+                  disableInteractive
+                  enterTouchDelay={0}
+                  leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
                   <FormLabel className="center" sx={{ gap: 1, justifyContent: 'flex-start' }}>
                     {t('presencePenalty')}
                     {icon}
@@ -290,7 +306,12 @@ function DefaultPromptSetting({
               className="between"
               sx={{ backgroundColor: getDiffBackground('frequencyPenalty') }}>
               <Box flex={1}>
-                <Tooltip title={t('frequencyPenaltyTip')} placement="top" disableInteractive>
+                <Tooltip
+                  title={t('frequencyPenaltyTip')}
+                  placement="top"
+                  disableInteractive
+                  enterTouchDelay={0}
+                  leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
                   <FormLabel className="center" sx={{ gap: 1, justifyContent: 'flex-start' }}>
                     {t('frequencyPenalty')}
                     {icon}
@@ -321,7 +342,12 @@ function DefaultPromptSetting({
           {!isNil(model.maxTokensMin) && (
             <Box position="relative" className="between" sx={{ backgroundColor: getDiffBackground('maxTokens') }}>
               <Box flex={1}>
-                <Tooltip title={t('maxTokensTip')} placement="top" disableInteractive>
+                <Tooltip
+                  title={t('maxTokensTip')}
+                  placement="top"
+                  disableInteractive
+                  enterTouchDelay={0}
+                  leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
                   <FormLabel className="center" sx={{ gap: 1, justifyContent: 'flex-start' }}>
                     {t('maxTokens')}
                     {icon}
