@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.2.16",
+  "version": "0.2.24",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -132,13 +132,13 @@
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@arcblock/ux": "^2.9.86",
+    "@arcblock/ux": "^2.9.87",
     "@emotion/css": "^11.11.2",
     "@emotion/react": "^11.11.4",
     "@jest/globals": "^29.7.0",
-    "@mui/icons-material": "^5.15.18",
+    "@mui/icons-material": "^5.15.19",
     "@mui/lab": "^5.0.0-alpha.170",
-    "@mui/material": "^5.15.18",
+    "@mui/material": "^5.15.19",
     "@types/lodash": "^4.17.4",
     "@types/mustache": "^4.2.5",
     "@types/node-fetch": "^2.6.11",

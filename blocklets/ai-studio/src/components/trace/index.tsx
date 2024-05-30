@@ -134,7 +134,7 @@ interface ContainerProps {
 }
 
 const Container = styled(Accordion)<ContainerProps>(({ theme, deep = 0 }) => ({
-  margin: `${deep === 0 ? '0' : '8px'} 0 0 ${theme.spacing(deep * 3)}`,
+  margin: `0 0 0 ${theme.spacing(deep * 3)}`,
   border: `1px solid ${theme.palette.divider}`,
   borderRadius: theme.shape.borderRadius,
   '&::before': {
@@ -186,7 +186,7 @@ function BaseTrace({ deep, input }: { deep?: number; input: MessageInput }) {
 function BasicTree({ inputs }: { inputs?: SessionItem['messages'][number]['inputMessages'] }) {
   if (!Array.isArray(inputs)) return null;
   return (
-    <Stack>
+    <Stack gap={1}>
       {inputs.map((item) => {
         return <BaseTrace key={item.taskId} input={item} deep={item.deep} />;
       })}

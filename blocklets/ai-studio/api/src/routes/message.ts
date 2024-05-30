@@ -122,7 +122,7 @@ export function messageRoutes(router: Router) {
         if (typeof question === 'string' && question && typeof result === 'string' && result) {
           return [
             { role: 'user', content: question },
-            { role: 'assistant', content: result },
+            { role: 'assistant', content: result, assistantId: i.assistantId },
           ];
         }
 

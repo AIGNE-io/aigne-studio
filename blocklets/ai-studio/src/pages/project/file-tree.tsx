@@ -118,6 +118,8 @@ export interface ImperativeFileTree {
   importFrom: () => void;
 }
 
+const DOUBLE_CLICK_RENAME_TIME_GAP = 200;
+
 const FileTree = forwardRef<
   ImperativeFileTree,
   {
@@ -310,6 +312,8 @@ const FileTree = forwardRef<
       };
     });
 
+  const lastClickTime = useRef<{ time: number; timer: number }>();
+
   if (!synced) {
     return (
       <Box sx={{ textAlign: 'center', mt: 4 }}>
@@ -332,6 +336,23 @@ const FileTree = forwardRef<
       </>
     );
   }
+
+  const handleClick = (onToggle: () => void, filepath: string) => {
+    const now = Date.now();
+    if (lastClickTime.current && now - lastClickTime.current.time <= DOUBLE_CLICK_RENAME_TIME_GAP) {
+      setEditingFolderPath(filepath);
+
+      clearTimeout(lastClickTime.current.timer);
+      lastClickTime.current = undefined;
+    } else {
+      lastClickTime.current = {
+        time: now,
+        timer: window.setTimeout(() => {
+          onToggle();
+        }, DOUBLE_CLICK_RENAME_TIME_GAP),
+      };
+    }
+  };
 
   return (
     <>
@@ -390,7 +411,7 @@ const FileTree = forwardRef<
                       />
                     }
                     depth={depth}
-                    onClick={onToggle}
+                    onClick={() => handleClick(onToggle, filepath)}
                     editing={filepath === editingFolderPath}
                     actions={
                       <TreeItemMenus
@@ -472,6 +493,9 @@ const FileTree = forwardRef<
                     editing={meta.name === editingFileName}
                     selected={selected}
                     onClick={() => navigate(joinURL('.', filepath))}
+                    onDoubleClick={() => {
+                      setEditingFileName(meta.name);
+                    }}
                     actions={actions}
                     sx={{ color: change?.color }}>
                     <EditTextItem

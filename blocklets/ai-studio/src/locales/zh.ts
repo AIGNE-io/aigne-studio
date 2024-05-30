@@ -167,6 +167,7 @@ export default flat({
   ok: '确定',
   commitMessage: '备注',
   confirm: '确认',
+  fontFamily: '字体',
   projectSetting: {
     tabs: {
       basic: '基本信息',
@@ -193,6 +194,10 @@ export default flat({
     defaultModel: '默认模型',
     icon: '选择或上传图标',
     selectedFail: '请先选择一张图片',
+    fontFamily: {
+      body: '正文字体',
+      title: '标题字体',
+    },
   },
   notOpenFile: '请先从左侧文件列表中打开文件！',
   noProjectTip: '您还没有创建任何项目。 您可以从上面的模板创建项目！',

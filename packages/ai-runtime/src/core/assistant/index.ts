@@ -44,7 +44,7 @@ import {
   isRouterAssistant,
 } from '../../types/assistant';
 import { AssistantResponseType, ExecutionPhase, RuntimeOutputVariable } from '../../types/runtime';
-import { outputVariablesToJsonSchema } from '../../types/runtime/schema';
+import { RuntimeOutputProfile, outputVariablesToJsonSchema } from '../../types/runtime/schema';
 import retry from '../utils/retry';
 import { BuiltinModules } from './builtin';
 import {
@@ -71,7 +71,7 @@ const getUserHeader = (user: any) => {
 
 const defaultScope = 'session';
 
-const MAX_RETRIES = 3;
+const MAX_RETRIES = 5;
 
 const taskIdGenerator = new Worker();
 
@@ -1355,8 +1355,7 @@ const getVariables = async ({
         variables[parameter.key] = result ?? parameter.defaultValue;
       } else if (parameter.source?.variableFrom === 'history' && parameter.source.chatHistory) {
         const currentTaskId = taskIdGenerator.nextId().toString();
-        // eslint-disable-next-line no-await-in-loop
-        const memories = await runRequestHistory({
+        const result = await runRequestHistory({
           assistant,
           parentTaskId: currentTaskId,
           user,
@@ -1367,6 +1366,37 @@ const getVariables = async ({
             limit: parameter.source.chatHistory.limit || 50,
             keyword: await renderMessage(parameter.source.chatHistory.keyword || '', variables),
           },
+        });
+
+        const memories = Array.isArray(result) ? result : [];
+        const assistantIds = new Set<string>(memories.map((i) => i.assistantId));
+        const assistantNameMap = Object.fromEntries(
+          (
+            await Promise.all(
+              [...assistantIds].map((i) =>
+                getAssistant(i).catch((error) => {
+                  logger.error('get assistant in conversation history error', { error });
+                  return null;
+                })
+              )
+            )
+          )
+            .filter((i): i is NonNullable<typeof i> => !!i)
+            .map((i) => [
+              i.id,
+              (
+                i.outputVariables?.find((j) => j.name === RuntimeOutputVariable.profile)
+                  ?.initialValue as RuntimeOutputProfile
+              )?.name ||
+                i.name ||
+                i.id,
+            ])
+        );
+
+        memories.forEach((i) => {
+          if (i?.assistantId) {
+            i.name = assistantNameMap[i.assistantId];
+          }
         });
 
         variables[parameter.key] = memories;
@@ -1635,7 +1665,6 @@ async function runPromptAssistant({
         topP: assistant.topP,
         presencePenalty: assistant.presencePenalty,
         frequencyPenalty: assistant.frequencyPenalty,
-        responseFormat: onlyOutputJson ? { type: 'json_object' } : undefined,
       },
     });
 

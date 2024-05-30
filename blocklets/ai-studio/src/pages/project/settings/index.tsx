@@ -101,7 +101,7 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
         'frequencyPenalty',
         'maxTokens',
         'gitType',
-        'primaryColor',
+        'appearance',
       ]);
       merge.icon = getProjectIconUrl(projectId, project.updatedAt, { original: true });
 
@@ -520,7 +520,7 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
               onSubmit={onSubmit}
               readOnly={readOnly}
               submitLoading={submitLoading}
-              value={value.primaryColor}
+              value={value}
             />
           </Box>
         )}
