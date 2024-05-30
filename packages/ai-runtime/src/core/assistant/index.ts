@@ -2,7 +2,12 @@ import crypto from 'crypto';
 import { join } from 'path';
 import { ReadableStream, TextDecoderStream } from 'stream/web';
 
-import { ChatCompletionChunk, ChatCompletionInput } from '@blocklet/ai-kit/api/types';
+import {
+  ChatCompletionChunk,
+  ChatCompletionInput,
+  ChatCompletionResponse,
+  isChatCompletionChunk,
+} from '@blocklet/ai-kit/api/types';
 import { EventSourceParserStream } from '@blocklet/ai-kit/api/utils/event-stream';
 import { getBuildInDatasets } from '@blocklet/dataset-sdk';
 import { getRequest } from '@blocklet/dataset-sdk/request';
@@ -737,23 +742,61 @@ async function runRouterAssistant({
       tools,
       toolChoice,
     });
-    const response = await callAI({
-      assistant,
-      input: {
-        model: assistant?.model,
-        temperature: assistant?.temperature,
-        topP: assistant?.topP,
-        presencePenalty: assistant?.presencePenalty,
-        frequencyPenalty: assistant?.frequencyPenalty,
-        messages: [{ role: 'user', content: message }],
-        tools,
-        toolChoice,
-      },
-    });
+
+    const executor = assistant.executor?.agent?.id
+      ? await getAssistant(assistant.executor?.agent?.id, {
+          projectId: assistant.executor.agent.projectId,
+          blockletDid: assistant.executor.agent.blockletDid,
+          rejectOnEmpty: true,
+        })
+      : undefined;
+
+    const response = executor
+      ? ((
+          await runAssistant({
+            getSecret,
+            taskId: nextTaskId(),
+            callAI,
+            callAIImage,
+            getAssistant,
+            assistant: executor,
+            projectId: assistant.executor?.agent?.projectId || projectId,
+            datastoreVariables,
+            entryProjectId,
+            user,
+            sessionId,
+            parentTaskId: taskId,
+            callback,
+            parameters: {
+              ...parameters,
+              ...assistant.executor?.inputValues,
+              [executor.parameters?.find((i) => i.type === 'llmInputMessages')?.key!]: [
+                { role: 'user', content: message },
+              ],
+              [executor.parameters?.find((i) => i.type === 'llmInputTools')?.key!]: tools,
+              [executor.parameters?.find((i) => i.type === 'llmInputToolChoice')?.key!]: toolChoice,
+            },
+          })
+        )[RuntimeOutputVariable.llmResponseStream] as ReadableStream<ChatCompletionResponse>)
+      : await callAI({
+          assistant,
+          input: {
+            model: assistant?.model,
+            temperature: assistant?.temperature,
+            topP: assistant?.topP,
+            presencePenalty: assistant?.presencePenalty,
+            frequencyPenalty: assistant?.frequencyPenalty,
+            messages: [{ role: 'user', content: message }],
+            tools,
+            toolChoice,
+          },
+        });
 
     let calls: NonNullable<ChatCompletionChunk['delta']['toolCalls']> | undefined;
 
     for await (const chunk of response) {
+      if (!isChatCompletionChunk(chunk)) continue;
+
       const { toolCalls } = chunk.delta;
 
       if (toolCalls) {
@@ -1432,7 +1475,7 @@ const getVariables = async ({
         variables[parameter.key] = result;
       }
     }
-    if (parameter.key && parameter.type === 'llmInputMessages') {
+    if (parameter.key && ['llmInputMessages', 'llmInputTools', 'llmInputToolChoice'].includes(parameter.type!)) {
       const v = parameters[parameter.key];
       const tryParse = (s: string) => {
         try {
@@ -1443,22 +1486,55 @@ const getVariables = async ({
         return undefined;
       };
 
-      const msgs = await Joi.array()
-        .items(
+      const schema = {
+        llmInputMessages: Joi.array().items(
           Joi.object({
             role: Joi.string().valid('system', 'user', 'assistant').empty([null, '']).default('user'),
             content: Joi.string().required(),
             name: Joi.string().empty([null, '']),
           })
-        )
-        .validateAsync(
-          Array.isArray(v)
-            ? v
-            : tryParse(v) ?? [{ role: 'user', content: typeof v === 'string' ? v : JSON.stringify(v) }],
-          { stripUnknown: true }
-        );
+        ),
+        llmInputTools: Joi.array()
+          .items(
+            Joi.object({
+              type: Joi.string().valid('function').required(),
+              function: Joi.object({
+                name: Joi.string().required(),
+                description: Joi.string().empty([null, '']),
+                parameters: Joi.object().pattern(Joi.string(), Joi.any()).required(),
+              }).required(),
+            })
+          )
+          .empty(Joi.array().length(0)),
+        llmInputToolChoice: Joi.alternatives()
+          .try(
+            Joi.string().valid('auto', 'none', 'required'),
+            Joi.object({
+              type: Joi.string().valid('function').required(),
+              function: Joi.object({
+                name: Joi.string().required(),
+                description: Joi.string(),
+              }).required(),
+            })
+          )
+          .optional(),
+      }[parameter.type as string]!;
 
-      variables[parameter.key] = msgs;
+      const val =
+        parameter.type === 'llmInputMessages'
+          ? await schema.validateAsync(
+              Array.isArray(v)
+                ? v
+                : tryParse(v) ?? [{ role: 'user', content: typeof v === 'string' ? v : JSON.stringify(v) }],
+              { stripUnknown: true }
+            )
+          : parameter.type === 'llmInputTools'
+            ? await schema.validateAsync(Array.isArray(v) ? v : tryParse(v), { stripUnknown: true })
+            : parameter.type === 'llmInputToolChoice'
+              ? await schema.validateAsync(tryParse(v) || v, { stripUnknown: true })
+              : undefined;
+
+      variables[parameter.key] = val;
     }
   }
 
@@ -1692,19 +1768,54 @@ async function runPromptAssistant({
     let result = '';
     const metadataStrings: string[] = [];
 
-    const aiResult = await callAI({
-      assistant,
-      outputModel: true,
-      input: {
-        stream: true,
-        messages: messagesWithSystemPrompt,
-        model: assistant.model,
-        temperature: assistant.temperature,
-        topP: assistant.topP,
-        presencePenalty: assistant.presencePenalty,
-        frequencyPenalty: assistant.frequencyPenalty,
-      },
-    });
+    const executor = assistant.executor?.agent?.id
+      ? await getAssistant(assistant.executor?.agent?.id, {
+          projectId: assistant.executor.agent.projectId,
+          blockletDid: assistant.executor.agent.blockletDid,
+          rejectOnEmpty: true,
+        })
+      : undefined;
+
+    const aiResult = executor
+      ? {
+          modelInfo: { ...assistant.executor?.inputValues },
+          chatCompletionChunk: (
+            await runAssistant({
+              getSecret,
+              taskId: nextTaskId(),
+              callAI,
+              callAIImage,
+              getAssistant,
+              assistant: executor,
+              projectId: assistant.executor?.agent?.projectId || projectId,
+              datastoreVariables,
+              entryProjectId,
+              user,
+              sessionId,
+              functionName,
+              parentTaskId: taskId,
+              callback,
+              parameters: {
+                ...parameters,
+                ...assistant.executor?.inputValues,
+                [executor.parameters?.find((i) => i.type === 'llmInputMessages')?.key!]: messagesWithSystemPrompt,
+              },
+            })
+          )[RuntimeOutputVariable.llmResponseStream],
+        }
+      : await callAI({
+          assistant,
+          outputModel: true,
+          input: {
+            stream: true,
+            messages: messagesWithSystemPrompt,
+            model: assistant.model,
+            temperature: assistant.temperature,
+            topP: assistant.topP,
+            presencePenalty: assistant.presencePenalty,
+            frequencyPenalty: assistant.frequencyPenalty,
+          },
+        });
 
     const stream = extractMetadataFromStream(aiResult.chatCompletionChunk, onlyOutputJson || outputStreamAndJson);
 

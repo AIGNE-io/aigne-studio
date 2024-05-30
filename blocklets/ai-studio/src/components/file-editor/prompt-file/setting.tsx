@@ -1,17 +1,23 @@
+import AgentSelect from '@app/components/agent-select';
+import { useCurrentProject } from '@app/contexts/project';
+import { useAgent } from '@app/store/agent';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { defaultTextModel, getSupportedModels } from '@blocklet/ai-runtime/common';
-import { PromptAssistantYjs, RouterAssistantYjs } from '@blocklet/ai-runtime/types';
+import { ParameterField } from '@blocklet/ai-runtime/components';
+import { AssistantYjs, PromptAssistantYjs, RouterAssistantYjs } from '@blocklet/ai-runtime/types';
+import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
 import HelpIcon from '@iconify-icons/tabler/help';
-import { Box, FormLabel, Tooltip } from '@mui/material';
+import { Box, FormLabel, Stack, Tooltip, Typography } from '@mui/material';
 import isNil from 'lodash/isNil';
 import { useMemo } from 'react';
 import { useAsync } from 'react-use';
 
-import { useAssistantCompare, useProjectState } from '../../../pages/project/state';
+import { useAssistantCompare, useCurrentProjectState } from '../../../pages/project/state';
 import WithAwareness from '../../awareness/with-awareness';
 import ModelSelectField from '../../selector/model-select-field';
 import SliderNumberField from '../../slider-number-field';
+import { AuthorizeButton } from '../input/InputTable';
 
 export default function PromptSetting({
   projectId,
@@ -31,29 +37,152 @@ export default function PromptSetting({
   const { t } = useLocaleContext();
 
   const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
-  const icon = <Box component={Icon} icon={HelpIcon} sx={{ fontSize: 16, color: '#9CA3AF', mt: 0.25 }} />;
 
-  const { state } = useProjectState(projectId, gitRef);
-  const { project } = state;
-  const { value: supportedModels } = useAsync(() => getSupportedModels(), []);
-  const model = useMemo(() => {
-    return supportedModels?.find((i) => i.model === (value.model || project?.model || defaultTextModel));
-  }, [value.model, project?.model, supportedModels]);
+  const doc = (getYjsValue(value) as Map<any>).doc!;
 
   return (
     <>
-      <Box position="relative" className="between" sx={{ backgroundColor: getDiffBackground('temperature') }}>
+      <Box position="relative" className="between" sx={{ backgroundColor: getDiffBackground('executor') }}>
+        <Box flex={1}>
+          <FormLabel>{t('provider')}</FormLabel>
+        </Box>
+
+        <Box flex={1}>
+          <WithAwareness
+            sx={{ top: -2, right: -4 }}
+            projectId={projectId}
+            gitRef={gitRef}
+            path={[value.id, 'executor']}>
+            <AgentSelect
+              excludes={[value.id]}
+              includes={[{ type: 'llmAdaptor' }]}
+              autoFocus
+              value={value.executor?.agent}
+              onChange={(_, v) => {
+                if (v) {
+                  doc.transact(() => {
+                    value.executor ??= {};
+                    value.executor.agent = {
+                      blockletDid: v.blockletDid,
+                      projectId: v.projectId,
+                      id: v.id,
+                    };
+                  });
+                } else {
+                  delete value.executor?.agent;
+                }
+              }}
+            />
+          </WithAwareness>
+        </Box>
+      </Box>
+
+      {value.executor?.agent?.id ? (
+        <Stack>
+          <AgentParametersForm assistant={value} />
+        </Stack>
+      ) : (
+        <DefaultPromptSetting
+          agent={value}
+          readOnly={readOnly}
+          compareValue={compareValue}
+          isRemoteCompare={isRemoteCompare}
+        />
+      )}
+    </>
+  );
+}
+
+function AgentParametersForm({ assistant }: { assistant: AssistantYjs }) {
+  if (!assistant.executor?.agent?.id) throw new Error('Missing required parameter executor.agent.id');
+
+  const { t } = useLocaleContext();
+
+  const agent = useAgent({ projectId: assistant.executor.agent.projectId, agentId: assistant.executor.agent.id });
+
+  if (!agent) return null;
+
+  return (
+    <Stack gap={2}>
+      <AuthorizeButton agent={agent} />
+
+      <Box>
+        <Typography variant="subtitle2">{t('inputs')}</Typography>
+
+        <Stack gap={1}>
+          {agent.parameters?.map((data) => {
+            if (
+              !data?.key ||
+              data.type === 'source' ||
+              ['llmInputMessages', 'llmInputTools', 'llmInputToolChoice'].includes(data.type!)
+            )
+              return null;
+
+            return (
+              <Stack key={data.id}>
+                <Typography variant="caption">{data.label || data.key}</Typography>
+
+                <ParameterField
+                  hiddenLabel
+                  parameter={data}
+                  value={assistant.executor?.inputValues?.[data.key] || ''}
+                  onChange={(value) => {
+                    assistant.executor ??= {};
+                    assistant.executor.inputValues ??= {};
+                    assistant.executor.inputValues[data.key!] = value;
+                  }}
+                />
+              </Stack>
+            );
+          })}
+        </Stack>
+      </Box>
+    </Stack>
+  );
+}
+
+function DefaultPromptSetting({
+  agent,
+  readOnly,
+  compareValue,
+  isRemoteCompare,
+}: {
+  agent: PromptAssistantYjs | RouterAssistantYjs;
+  readOnly?: boolean;
+  compareValue?: PromptAssistantYjs | RouterAssistantYjs;
+  isRemoteCompare?: boolean;
+}) {
+  const { t } = useLocaleContext();
+
+  const { getDiffBackground } = useAssistantCompare({ value: agent, compareValue, readOnly, isRemoteCompare });
+  const icon = <Box component={Icon} icon={HelpIcon} sx={{ fontSize: 16, color: '#9CA3AF', mt: 0.25 }} />;
+
+  const { projectId, projectRef } = useCurrentProject();
+  const { state } = useCurrentProjectState();
+  const { project } = state;
+  const { value: supportedModels } = useAsync(() => getSupportedModels(), []);
+  const model = useMemo(() => {
+    return supportedModels?.find((i) => i.model === (agent.model || project?.model || defaultTextModel));
+  }, [agent.model, project?.model, supportedModels]);
+
+  return (
+    <>
+      <Box position="relative" className="between" sx={{ backgroundColor: getDiffBackground('model') }}>
         <Box flex={1}>
           <FormLabel>{t('model')}</FormLabel>
         </Box>
 
         <Box flex={1}>
-          <WithAwareness sx={{ top: -2, right: -4 }} projectId={projectId} gitRef={gitRef} path={[value.id, 'model']}>
+          <WithAwareness
+            sx={{ top: -2, right: -4 }}
+            projectId={projectId}
+            gitRef={projectRef}
+            path={[agent.id, 'model']}>
             <ModelSelectField
               hiddenLabel
               fullWidth
-              value={value.model || project?.model || defaultTextModel}
-              onChange={(e) => (value.model = e.target.value)}
+              value={agent.model || project?.model || defaultTextModel}
+              onChange={(e) => (agent.model = e.target.value)}
               InputProps={{ readOnly, sx: { backgroundColor: getDiffBackground('model') } }}
             />
           </WithAwareness>
@@ -77,16 +206,16 @@ export default function PromptSetting({
                 <WithAwareness
                   sx={{ top: -2, right: -4 }}
                   projectId={projectId}
-                  gitRef={gitRef}
-                  path={[value.id, 'temperature']}>
+                  gitRef={projectRef}
+                  path={[agent.id, 'temperature']}>
                   <SliderNumberField
                     readOnly={readOnly}
                     min={model.temperatureMin}
                     max={model.temperatureMax}
                     step={0.1}
                     sx={{ flex: 1 }}
-                    value={value.temperature ?? project?.temperature ?? model.temperatureDefault}
-                    onChange={(_, v) => (value.temperature = v)}
+                    value={agent.temperature ?? project?.temperature ?? model.temperatureDefault}
+                    onChange={(_, v) => (agent.temperature = v)}
                   />
                 </WithAwareness>
               </Box>
@@ -108,15 +237,15 @@ export default function PromptSetting({
                 <WithAwareness
                   sx={{ top: -2, right: -4 }}
                   projectId={projectId}
-                  gitRef={gitRef}
-                  path={[value.id, 'topP']}>
+                  gitRef={projectRef}
+                  path={[agent.id, 'topP']}>
                   <SliderNumberField
                     readOnly={readOnly}
                     min={model.topPMin}
                     max={model.topPMax}
                     step={0.1}
-                    value={value.topP ?? project?.topP ?? model.topPDefault}
-                    onChange={(_, v) => (value.topP = v)}
+                    value={agent.topP ?? project?.topP ?? model.topPDefault}
+                    onChange={(_, v) => (agent.topP = v)}
                     sx={{ flex: 1 }}
                   />
                 </WithAwareness>
@@ -139,16 +268,16 @@ export default function PromptSetting({
                 <WithAwareness
                   sx={{ top: -2, right: -4 }}
                   projectId={projectId}
-                  gitRef={gitRef}
-                  path={[value.id, 'presencePenalty']}>
+                  gitRef={projectRef}
+                  path={[agent.id, 'presencePenalty']}>
                   <SliderNumberField
                     readOnly={readOnly}
                     min={model.presencePenaltyMin}
                     max={model.presencePenaltyMax}
                     step={0.1}
                     sx={{ flex: 1 }}
-                    value={value.presencePenalty ?? project?.presencePenalty ?? model.presencePenaltyDefault}
-                    onChange={(_, v) => (value.presencePenalty = v)}
+                    value={agent.presencePenalty ?? project?.presencePenalty ?? model.presencePenaltyDefault}
+                    onChange={(_, v) => (agent.presencePenalty = v)}
                   />
                 </WithAwareness>
               </Box>
@@ -173,16 +302,16 @@ export default function PromptSetting({
                 <WithAwareness
                   sx={{ top: -2, right: -4 }}
                   projectId={projectId}
-                  gitRef={gitRef}
-                  path={[value.id, 'frequencyPenalty']}>
+                  gitRef={projectRef}
+                  path={[agent.id, 'frequencyPenalty']}>
                   <SliderNumberField
                     readOnly={readOnly}
                     min={model.frequencyPenaltyMin}
                     max={model.frequencyPenaltyMax}
                     step={0.1}
                     sx={{ flex: 1 }}
-                    value={value.frequencyPenalty ?? project?.frequencyPenalty ?? model.frequencyPenaltyDefault}
-                    onChange={(_, v) => (value.frequencyPenalty = v)}
+                    value={agent.frequencyPenalty ?? project?.frequencyPenalty ?? model.frequencyPenaltyDefault}
+                    onChange={(_, v) => (agent.frequencyPenalty = v)}
                   />
                 </WithAwareness>
               </Box>
@@ -204,8 +333,8 @@ export default function PromptSetting({
                 <WithAwareness
                   sx={{ top: -2, right: -4 }}
                   projectId={projectId}
-                  gitRef={gitRef}
-                  path={[value.id, 'maxTokens']}>
+                  gitRef={projectRef}
+                  path={[agent.id, 'maxTokens']}>
                   <SliderNumberField
                     readOnly={readOnly}
                     min={model.maxTokensMin}
@@ -213,10 +342,10 @@ export default function PromptSetting({
                     step={1}
                     sx={{ flex: 1 }}
                     value={Math.min(
-                      value?.maxTokens ?? project?.maxTokens ?? model.maxTokensDefault ?? 0,
+                      agent?.maxTokens ?? project?.maxTokens ?? model.maxTokensDefault ?? 0,
                       model.maxTokensMax ?? 0
                     )}
-                    onChange={(_, v) => (value.maxTokens = v)}
+                    onChange={(_, v) => (agent.maxTokens = v)}
                   />
                 </WithAwareness>
               </Box>

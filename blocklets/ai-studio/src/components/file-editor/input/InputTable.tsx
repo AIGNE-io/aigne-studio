@@ -7,7 +7,7 @@ import PopperMenu, { PopperMenuImperative } from '@app/components/menu/PopperMen
 import PasswordField from '@app/components/PasswordField';
 import { useCurrentProject } from '@app/contexts/project';
 import { getDatasets } from '@app/libs/dataset';
-import { createOrUpdateProjectInputSecrets, getProjectInputSecrets } from '@app/libs/project';
+import { createOrUpdateProjectInputSecrets, getProjectIconUrl, getProjectInputSecrets } from '@app/libs/project';
 import Close from '@app/pages/project/icons/close';
 import { useAssistantCompare } from '@app/pages/project/state';
 import { useProjectStore } from '@app/pages/project/yjs-state';
@@ -30,11 +30,12 @@ import GripVertical from '@iconify-icons/tabler/grip-vertical';
 import HistoryIcon from '@iconify-icons/tabler/history';
 import InfoCircleIcon from '@iconify-icons/tabler/info-circle';
 import MessageIcon from '@iconify-icons/tabler/message';
-import MessagesIcon from '@iconify-icons/tabler/messages';
 import SquareNumberIcon from '@iconify-icons/tabler/square-number-1';
 import {
   Autocomplete,
   AutocompleteValue,
+  Avatar,
+  AvatarProps,
   Box,
   Button,
   ClickAwayListener,
@@ -278,18 +279,6 @@ export default function InputTable({
             if (parameter.source.variableFrom === 'blockletAPI') {
               return <Box />;
             }
-          }
-
-          if (parameter.type === 'llmInputMessages') {
-            return (
-              <Stack direction="row" alignItems="center">
-                <ListItemIcon sx={{ minWidth: 20 }}>
-                  <Icon icon={MessagesIcon} />
-                </ListItemIcon>
-
-                {t('llmInputMessages')}
-              </Stack>
-            );
           }
 
           return (
@@ -541,13 +530,34 @@ function SelectFromSource({
   );
 }
 
-function AgentName({ projectId, agentId }: { projectId?: string; agentId: string }) {
+export function AgentName({
+  projectId,
+  agentId,
+  showIcon,
+  IconProps,
+}: {
+  projectId?: string;
+  agentId: string;
+  showIcon?: boolean;
+  IconProps?: AvatarProps;
+}) {
   const { t } = useLocaleContext();
 
   const agent = useAgent({ projectId, agentId });
   if (!agent) return null;
 
-  return agent.name || t('unnamed');
+  return (
+    <>
+      {showIcon && (
+        <Avatar
+          src={getProjectIconUrl(agent.project.id, agent.project.updatedAt)}
+          {...IconProps}
+          sx={{ width: 22, height: 22, ...IconProps?.sx }}
+        />
+      )}
+      {agent.name || t('unnamed')}
+    </>
+  );
 }
 
 function SelectInputType({
@@ -1176,7 +1186,7 @@ function AgentParametersForm({
   );
 }
 
-function AuthorizeButton({ agent }: { agent: NonNullable<ReturnType<typeof useAgent>> }) {
+export function AuthorizeButton({ agent }: { agent: NonNullable<ReturnType<typeof useAgent>> }) {
   const { t } = useLocaleContext();
 
   const authInputs = agent.parameters?.filter(

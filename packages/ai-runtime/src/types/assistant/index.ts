@@ -102,6 +102,7 @@ export interface AssistantBase {
   updatedAt: string;
   createdBy: string;
   updatedBy: string;
+  executor?: AgentExecutor;
   tests?: {
     id: string;
     parameters: { [key: string]: any };
@@ -189,6 +190,16 @@ export interface RouterAssistant extends AssistantBase {
   model?: string;
 }
 
+export interface AgentExecutor {
+  agent?: {
+    blockletDid?: string;
+    projectId?: string;
+    id: string;
+  };
+
+  inputValues?: { [key: string]: any };
+}
+
 export interface PromptAssistant extends AssistantBase {
   type: 'prompt';
   prompts?: Prompt[];
@@ -261,7 +272,9 @@ export type Parameter =
   | SelectParameter
   | LanguageParameter
   | SourceParameter
-  | LLMInputMessagesParameter;
+  | LLMInputMessagesParameter
+  | LLMInputToolsParameter
+  | LLMInputToolChoiceParameter;
 
 export interface ParameterBase {
   id: string;
@@ -275,6 +288,16 @@ export interface ParameterBase {
 
 export interface LLMInputMessagesParameter extends ParameterBase {
   type: 'llmInputMessages';
+  defaultValue?: any;
+}
+
+export interface LLMInputToolsParameter extends ParameterBase {
+  type: 'llmInputTools';
+  defaultValue?: any;
+}
+
+export interface LLMInputToolChoiceParameter extends ParameterBase {
+  type: 'llmInputToolChoice';
   defaultValue?: any;
 }
 

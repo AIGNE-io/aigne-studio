@@ -8,7 +8,7 @@ import AgentInputSecret from '@api/store/models/agent-input-secret';
 import History from '@api/store/models/history';
 import Session from '@api/store/models/session';
 import { chatCompletions, imageGenerations, proxyToAIKit } from '@blocklet/ai-kit/api/call';
-import { ChatCompletionResponse, isChatCompletionChunk } from '@blocklet/ai-kit/api/types/index';
+import { ChatCompletionChunk, ChatCompletionResponse, isChatCompletionChunk } from '@blocklet/ai-kit/api/types/index';
 import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { CallAI, CallAIImage, GetAssistant, nextTaskId, runAssistant } from '@blocklet/ai-runtime/core';
 import {
@@ -309,10 +309,27 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
 
     if (llmResponseStream) {
       let text = '';
+      let calls: NonNullable<ChatCompletionChunk['delta']['toolCalls']> | undefined;
 
       for await (const chunk of llmResponseStream as ReadableStream<ChatCompletionResponse>) {
         if (isChatCompletionChunk(chunk)) {
           text += chunk.delta.content || '';
+
+          const { toolCalls } = chunk.delta;
+
+          if (toolCalls) {
+            if (!calls) {
+              calls = toolCalls;
+            } else {
+              toolCalls.forEach((item, index) => {
+                const call = calls?.[index];
+                if (call?.function) {
+                  call.function.name += item.function?.name || '';
+                  call.function.arguments += item.function?.arguments || '';
+                }
+              });
+            }
+          }
 
           if (stream) {
             emit({
@@ -323,6 +340,22 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
             });
           }
         }
+      }
+
+      if (stream) {
+        emit({
+          type: AssistantResponseType.CHUNK,
+          taskId,
+          assistantId: assistant.id,
+          delta: {
+            object: {
+              $llmResponse: {
+                content: text,
+                toolCalls: calls,
+              },
+            },
+          },
+        });
       }
 
       result[RuntimeOutputVariable.llmResponseStream] = text;

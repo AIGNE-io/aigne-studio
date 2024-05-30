@@ -29,23 +29,20 @@ export default function ParameterField({
     return null;
   }
 
-  const Field = {
-    number: NumberField,
-    string: StringField,
-    select: SelectField,
-    language: LanguageField,
-    llmInputMessages: StringField,
-  }[parameter.type || 'string'];
+  if (['llmInputMessages', 'llmInputTools', 'llmInputToolChoice'].includes(parameter.type!)) {
+    return <StringField {...({ parameter } as any)} size="small" {...props} multiline />;
+  }
+
+  const Field = (
+    {
+      number: NumberField,
+      string: StringField,
+      select: SelectField,
+      language: LanguageField,
+    } as any
+  )[parameter.type || 'string'];
 
   if (!Field) return null;
 
-  return (
-    <Field
-      {...({ parameter } as any)}
-      size="small"
-      {...props}
-      multiline={parameter.type === 'llmInputMessages' ? true : props.multiline}
-      minRows={parameter.type === 'llmInputMessages' ? 3 : props.minRows}
-    />
-  );
+  return <Field {...({ parameter } as any)} size="small" {...props} />;
 }

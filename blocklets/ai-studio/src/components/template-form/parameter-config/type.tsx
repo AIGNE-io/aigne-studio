@@ -1,8 +1,11 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Icon } from '@iconify-icon/react';
 import CursorTextIcon from '@iconify-icons/tabler/cursor-text';
+import DirectionsIcon from '@iconify-icons/tabler/directions';
+import HierarchyIcon from '@iconify-icons/tabler/hierarchy';
 import LanguageIcon from '@iconify-icons/tabler/language-hiragana';
 import ListCheckIcon from '@iconify-icons/tabler/list-check';
+import MessagesIcon from '@iconify-icons/tabler/messages';
 import SquareNumberIcon from '@iconify-icons/tabler/square-number-1';
 import TextWrapIcon from '@iconify-icons/tabler/text-wrap';
 import { ListItemIcon, MenuItem, TextField, TextFieldProps } from '@mui/material';
@@ -37,6 +40,21 @@ export default function ParameterConfigType(props: TextFieldProps) {
         icon: <Icon icon={LanguageIcon} />,
         label: t('languageSelect'),
         value: 'language',
+      },
+      {
+        icon: <Icon icon={MessagesIcon} />,
+        label: t('llmInputMessages'),
+        value: 'llmInputMessages',
+      },
+      {
+        icon: <Icon icon={HierarchyIcon} />,
+        label: t('llmInputTools'),
+        value: 'llmInputTools',
+      },
+      {
+        icon: <Icon icon={DirectionsIcon} />,
+        label: t('llmInputToolChoice'),
+        value: 'llmInputToolChoice',
       },
     ];
   }, [t]);
