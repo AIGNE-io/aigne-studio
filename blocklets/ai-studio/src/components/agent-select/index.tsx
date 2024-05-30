@@ -42,12 +42,13 @@ export default function AgentSelect<
   Multiple extends boolean | undefined = false,
   DisableClearable extends boolean | undefined = false,
 >({
+  placeholder,
   excludes,
   includes,
   value,
   onChange,
   ...props
-}: AgentSelectFilter &
+}: { placeholder?: string } & AgentSelectFilter &
   Pick<AutocompleteProps<AgentSelectValue, Multiple, DisableClearable, false>, 'value' | 'onChange'> &
   Partial<
     Omit<AutocompleteProps<AgentSelectOption, Multiple, DisableClearable, false>, 'options' | 'value' | 'onChange'>
@@ -98,7 +99,7 @@ export default function AgentSelect<
         isOptionEqualToValue={(o, v) => o.id === v.id && o.project.id === v.project.id}
         renderInput={(params) => (
           <Stack direction="row">
-            <TextField {...params} hiddenLabel autoFocus={props.autoFocus} fullWidth />
+            <TextField placeholder={placeholder} {...params} hiddenLabel autoFocus={props.autoFocus} fullWidth />
           </Stack>
         )}
         getOptionKey={(o) => [o.project.id, o.id].join('/')}

@@ -58,6 +58,7 @@ export default function PromptSetting({
               excludes={[value.id]}
               includes={[{ type: 'llmAdaptor' }]}
               autoFocus
+              placeholder={t('llmProviderPlaceholder')}
               value={value.executor?.agent}
               onChange={(_, v) => {
                 if (v) {

@@ -726,5 +726,6 @@ export default flat({
   llmInputTools: 'LLM Tools',
   llmInputToolChoice: 'LLM Tool Choice',
   llmResponseStream: 'LLM Response Stream',
+  llmProviderPlaceholder: 'Select a LLM provider from store',
   provider: 'Provider',
 });
