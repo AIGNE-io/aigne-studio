@@ -1,3 +1,4 @@
+import { TOOL_TIP_LEAVE_TOUCH_DELAY } from '@app/libs/constants';
 import { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
@@ -300,7 +301,7 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
                         placement="top"
                         disableInteractive
                         enterTouchDelay={0}
-                        leaveTouchDelay={3000}>
+                        leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
                         <FormLabel>
                           {t('temperature')}
                           <InfoOutlined fontSize="small" sx={{ verticalAlign: 'bottom', ml: 1, color: 'info.main' }} />
@@ -328,7 +329,7 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
                         placement="top"
                         disableInteractive
                         enterTouchDelay={0}
-                        leaveTouchDelay={3000}>
+                        leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
                         <FormLabel>
                           {t('topP')}
                           <InfoOutlined fontSize="small" sx={{ verticalAlign: 'bottom', ml: 1, color: 'info.main' }} />
@@ -356,7 +357,7 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
                         placement="top"
                         disableInteractive
                         enterTouchDelay={0}
-                        leaveTouchDelay={3000}>
+                        leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
                         <FormLabel>
                           {t('presencePenalty')}
                           <InfoOutlined fontSize="small" sx={{ verticalAlign: 'bottom', ml: 1, color: 'info.main' }} />
@@ -384,7 +385,7 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
                         placement="top"
                         disableInteractive
                         enterTouchDelay={0}
-                        leaveTouchDelay={3000}>
+                        leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
                         <FormLabel>
                           {t('frequencyPenalty')}
                           <InfoOutlined fontSize="small" sx={{ verticalAlign: 'bottom', ml: 1, color: 'info.main' }} />
@@ -412,7 +413,7 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
                         placement="top"
                         disableInteractive
                         enterTouchDelay={0}
-                        leaveTouchDelay={3000}>
+                        leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
                         <FormLabel>
                           {t('maxTokens')}
                           <InfoOutlined fontSize="small" sx={{ verticalAlign: 'bottom', ml: 1, color: 'info.main' }} />

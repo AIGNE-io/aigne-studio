@@ -1,3 +1,4 @@
+import { TOOL_TIP_LEAVE_TOUCH_DELAY } from '@app/libs/constants';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { defaultTextModel, getSupportedModels } from '@blocklet/ai-runtime/common';
 import { PromptAssistantYjs, RouterAssistantYjs } from '@blocklet/ai-runtime/types';
@@ -70,7 +71,7 @@ export default function PromptSetting({
                   placement="top"
                   disableInteractive
                   enterTouchDelay={0}
-                  leaveTouchDelay={3000}>
+                  leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
                   <FormLabel className="center" sx={{ gap: 1, justifyContent: 'flex-start' }}>
                     {t('temperature')}
                     {icon}
@@ -106,7 +107,7 @@ export default function PromptSetting({
                   placement="top"
                   disableInteractive
                   enterTouchDelay={0}
-                  leaveTouchDelay={3000}>
+                  leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
                   <FormLabel className="center" sx={{ gap: 1, justifyContent: 'flex-start' }}>
                     {t('topP')}
                     {icon}
@@ -142,7 +143,7 @@ export default function PromptSetting({
                   placement="top"
                   disableInteractive
                   enterTouchDelay={0}
-                  leaveTouchDelay={3000}>
+                  leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
                   <FormLabel className="center" sx={{ gap: 1, justifyContent: 'flex-start' }}>
                     {t('presencePenalty')}
                     {icon}
@@ -181,7 +182,7 @@ export default function PromptSetting({
                   placement="top"
                   disableInteractive
                   enterTouchDelay={0}
-                  leaveTouchDelay={3000}>
+                  leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
                   <FormLabel className="center" sx={{ gap: 1, justifyContent: 'flex-start' }}>
                     {t('frequencyPenalty')}
                     {icon}
@@ -217,7 +218,7 @@ export default function PromptSetting({
                   placement="top"
                   disableInteractive
                   enterTouchDelay={0}
-                  leaveTouchDelay={3000}>
+                  leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
                   <FormLabel className="center" sx={{ gap: 1, justifyContent: 'flex-start' }}>
                     {t('maxTokens')}
                     {icon}

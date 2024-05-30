@@ -1,3 +1,4 @@
+import { TOOL_TIP_LEAVE_TOUCH_DELAY } from '@app/libs/constants';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { defaultImageModel, getSupportedImagesModels } from '@blocklet/ai-runtime/common';
 import { ImageAssistantYjs } from '@blocklet/ai-runtime/types';
@@ -79,7 +80,7 @@ export default function ImageFileSetting({
                   placement="top"
                   disableInteractive
                   enterTouchDelay={0}
-                  leaveTouchDelay={3000}>
+                  leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
                   <FormLabel className="center" sx={{ gap: 1, justifyContent: 'flex-start' }}>
                     {t('number')}
                     {icon}
@@ -111,7 +112,7 @@ export default function ImageFileSetting({
                   placement="top"
                   disableInteractive
                   enterTouchDelay={0}
-                  leaveTouchDelay={3000}>
+                  leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
                   <FormLabel className="center" sx={{ gap: 1, justifyContent: 'flex-start' }}>
                     {t('quality')}
                     {icon}
@@ -154,7 +155,7 @@ export default function ImageFileSetting({
                   placement="top"
                   disableInteractive
                   enterTouchDelay={0}
-                  leaveTouchDelay={3000}>
+                  leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
                   <FormLabel className="center" sx={{ gap: 1, justifyContent: 'flex-start' }}>
                     {t('size')}
                     {icon}
@@ -197,7 +198,7 @@ export default function ImageFileSetting({
                   placement="top"
                   disableInteractive
                   enterTouchDelay={0}
-                  leaveTouchDelay={3000}>
+                  leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
                   <FormLabel className="center" sx={{ gap: 1, justifyContent: 'flex-start' }}>
                     {t('style')}
                     {icon}
