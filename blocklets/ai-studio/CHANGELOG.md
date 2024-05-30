@@ -1,3 +1,8 @@
+## 0.2.24 (2024-5-30)
+
+- fix: layout of base trace in debug view (#1048)
+- fix: fix default number display bug(#1018)
+
 ## 0.2.23 (2024-5-30)
 
 - feat(ux): support edit agent rename on double click
@@ -27,6 +32,8 @@
 
 - fix: page crash after component cleared
 - fix: optimize prompt for output json
+- fix layout of base trace in debug view (#1048)
+- fix: optimize system prompts (#1049)
 
 ## 0.2.16 (2024-5-28)
 
