@@ -1,3 +1,7 @@
+## 0.2.26 (2024-5-30)
+
+- fix: update project settings after remote project synced
+
 ## 0.2.25 (2024-5-30)
 
 - fix: show tooltip for model settings on mobile
