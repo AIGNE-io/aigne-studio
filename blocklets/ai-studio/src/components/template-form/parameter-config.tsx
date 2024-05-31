@@ -71,7 +71,7 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
 
       {value.type === 'select' && (
         <Box>
-          <Typography variant="subtitle2">{t('Select Options')}</Typography>
+          <Typography variant="subtitle2">{t('options')}</Typography>
           <SelectOptionsConfig readOnly={readOnly} select={value} />
         </Box>
       )}
