@@ -149,9 +149,18 @@ export default function AppearanceSettings({ output }: { output: OutputVariableY
           <ComponentSelect
             tags={tags}
             remoteReact={remoteReact || []}
-            value={appearance?.componentId ? { id: appearance.componentId, name: appearance.componentName } : null}
+            value={
+              appearance?.componentId
+                ? {
+                    blockletDid: appearance.componentBlockletDid,
+                    id: appearance.componentId,
+                    name: appearance.componentName,
+                  }
+                : null
+            }
             onChange={(_, v) =>
               setField((config) => {
+                config.componentBlockletDid = v?.blockletDid;
                 config.componentId = v?.id;
                 config.componentName = v?.name;
 
@@ -180,14 +189,24 @@ function ComponentSelect({
   tags?: string;
   remoteReact?: RemoteComponent[];
 } & Partial<
-  AutocompleteProps<Pick<Component, 'id' | 'name'> & { componentProperties?: {}; group?: string }, false, false, false>
+  AutocompleteProps<
+    Pick<Component, 'id' | 'name'> & { blockletDid?: string; componentProperties?: {}; group?: string },
+    false,
+    false,
+    false
+  >
 >) {
   const { value, loading } = useAsync(() => getComponents({ tags }), [tags]);
   const { t } = useLocaleContext();
 
   const components = useMemo(() => {
     return [
-      ...(value?.components || []).map((x) => ({ id: x.id, name: x.name, group: t('buildIn') })),
+      ...(value?.components || []).map((x) => ({
+        blockletDid: x.blocklet?.did,
+        id: x.id,
+        name: x.name,
+        group: t('buildIn'),
+      })),
       ...(remoteReact || []).map((x) => ({
         id: REMOTE_REACT_COMPONENT,
         name: x.name,

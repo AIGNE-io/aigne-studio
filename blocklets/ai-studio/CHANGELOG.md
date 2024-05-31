@@ -1,3 +1,8 @@
+## 0.2.29 (2024-5-31)
+
+- fix: include appearance component deps
+- chore: new agent blocklet types llm-adapter/aigc-adapter/knowledge
+
 ## 0.2.28 (2024-5-31)
 
 - chore: upgrade the process of publishing agents blocklet

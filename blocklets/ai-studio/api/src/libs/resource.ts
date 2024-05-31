@@ -14,9 +14,24 @@ import logger from './logger';
 
 const AI_STUDIO_DID = 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
 
-export type ResourceType = 'template' | 'example' | 'application' | 'tool';
+export type ResourceType =
+  | 'template'
+  | 'example'
+  | 'application'
+  | 'tool'
+  | 'llm-adapter'
+  | 'aigc-adapter'
+  | 'knowledge';
 
-export const ResourceTypes: ResourceType[] = ['template', 'example', 'application', 'tool'];
+export const ResourceTypes: ResourceType[] = [
+  'template',
+  'example',
+  'application',
+  'tool',
+  'llm-adapter',
+  'aigc-adapter',
+  'knowledge',
+];
 
 interface ResourceProject {
   blocklet: { did: string };

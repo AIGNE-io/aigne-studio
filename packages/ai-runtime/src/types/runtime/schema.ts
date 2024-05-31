@@ -307,6 +307,7 @@ export function isRuntimeOutputVariable(variable: string): variable is RuntimeOu
 }
 
 export interface RuntimeOutputAppearance {
+  componentBlockletDid?: string;
   componentId?: string;
   componentName?: string;
   componentProperties?: { [key: string]: any };
