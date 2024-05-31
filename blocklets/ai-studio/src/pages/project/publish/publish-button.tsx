@@ -1,6 +1,7 @@
 import LoadingButton from '@app/components/loading/loading-button';
 import { useCurrentProject } from '@app/contexts/project';
 import { AI_STUDIO_COMPONENT_DID } from '@app/libs/constants';
+import { getProjectIconUrl } from '@app/libs/project';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { BlockletStudio } from '@blocklet/ui-react';
 import { Icon } from '@iconify-icon/react';
@@ -10,7 +11,6 @@ import { Box, Tooltip } from '@mui/material';
 import { Suspense, useState } from 'react';
 
 import { saveButtonState, useProjectState } from '../state';
-import { useAssistants } from '../yjs-state';
 
 export default function PublishButton({ ...props }: LoadingButtonProps) {
   const { t } = useLocaleContext();
@@ -49,30 +49,28 @@ function PublishDialog({ onClose }: { onClose: () => void }) {
     state: { project },
   } = useProjectState(projectId, projectRef);
 
-  const components = useComponentDeps();
-
   if (!project) return null;
 
   return (
     <Suspense>
       <BlockletStudio
         mode="dialog"
-        tenantScope={project._id}
+        tenantScope={projectId}
         title={project.name || ''}
         description={project.description || ''}
         note=""
         introduction=""
+        logo={getProjectIconUrl(projectId, project.updatedAt, { original: true })}
         componentDid={AI_STUDIO_COMPONENT_DID}
         // 透传到 get blocklet resource 的参数
         resourcesParams={{ projectId }}
+        dependentComponentsMode="readonly"
         open
         setOpen={() => onClose()}
         onConnected={() => {}}
         onUploaded={() => {}}
         onReleased={() => {}}
         onOpened={() => {}}
-        // 默认选中的组件
-        components={components.map((i) => ({ did: i, included: true, required: true }))}
         // 默认选中的资源
         resources={{
           [AI_STUDIO_COMPONENT_DID]: [],
@@ -80,27 +78,4 @@ function PublishDialog({ onClose }: { onClose: () => void }) {
       />
     </Suspense>
   );
-}
-
-function useComponentDeps() {
-  const assistants = useAssistants();
-
-  return [
-    ...new Set(
-      assistants.flatMap((i) => {
-        if (!i.parameters) return [];
-        const inputDeps = Object.values(i.parameters).flatMap((i) => {
-          if (i.data.type === 'source' && i.data.source?.variableFrom === 'tool') {
-            const did = i.data.source.agent?.blockletDid;
-            return did ? [did] : [];
-          }
-          return [];
-        });
-
-        const executorDeps = i.executor?.agent?.blockletDid ? [i.executor?.agent?.blockletDid] : [];
-
-        return [...inputDeps, ...executorDeps];
-      })
-    ),
-  ];
 }

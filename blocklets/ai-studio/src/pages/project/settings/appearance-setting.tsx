@@ -5,7 +5,7 @@ import { LoadingButton } from '@mui/lab';
 import { Box, Stack, Typography } from '@mui/material';
 
 import FontFamilySetting from './font-family-setting';
-import PrimayColor from './primary-color';
+import PrimaryColor from './primary-color';
 
 export default function AppearanceSetting({
   value,
@@ -28,7 +28,7 @@ export default function AppearanceSetting({
         <Typography variant="subtitle2" mb={0.5}>
           {t('primaryColor')}
         </Typography>
-        <PrimayColor value={value} set={set} />
+        <PrimaryColor value={value} set={set} />
       </Box>
       <Box>
         <Typography variant="subtitle2" mb={0.5}>

@@ -722,4 +722,5 @@ export default flat({
   llmResponseStream: '大语言模型输出流',
   llmProviderPlaceholder: '从商店选择大语言模型提供商',
   provider: '提供商',
+  default: '默认',
 });

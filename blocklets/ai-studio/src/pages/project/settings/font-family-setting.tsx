@@ -1,9 +1,10 @@
 import { UpdateProjectInput } from '@api/routes/project';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { Box, MenuItem, Select, Stack, Typography } from '@mui/material';
+import { Box, ListSubheader, MenuItem, Select, SelectProps, Stack, Typography } from '@mui/material';
 
 const defaultFonts = [
   // Sans-serif 字体
+  { group: 'Sans-serif' },
   'Arial',
   'Helvetica',
   'Verdana',
@@ -14,6 +15,7 @@ const defaultFonts = [
   'Geneva',
 
   // Serif 字体
+  { group: 'Serif' },
   'Times New Roman',
   'Georgia',
   'Garamond',
@@ -22,18 +24,22 @@ const defaultFonts = [
   'Courier New', // 也可归类为 Monospace 字体
 
   // Monospace 字体
+  { group: 'Monospace' },
   'Lucida Console',
   'Monaco',
 
   // Cursive 字体
+  { group: 'Cursive' },
   'Comic Sans MS',
   'Brush Script MT',
 
   // Fantasy 字体
+  { group: 'Fantasy' },
   'Impact',
   'Papyrus',
 
   // 中文字体
+  { group: 'Chinese' },
   'SimSun', // 宋体
   'SimHei', // 黑体
   'Microsoft YaHei', // 微软雅黑
@@ -49,6 +55,7 @@ const defaultFonts = [
   'Noto Sans CJK TC', // 思源黑体 繁体
 
   // 系统默认字体
+  { group: 'System' },
   '-apple-system',
   'BlinkMacSystemFont',
   'Segoe UI',
@@ -75,7 +82,7 @@ export default function FontFamilySetting({
       <Box>
         <Stack>
           <Typography variant="subtitle3">{t('projectSetting.fontFamily.title')}</Typography>
-          <Select
+          <FontSelect
             value={appearance?.typography?.heading?.fontFamily || ''}
             onChange={(e) =>
               set('appearance', {
@@ -85,34 +92,45 @@ export default function FontFamilySetting({
                   heading: { ...appearance?.typography?.heading, fontFamily: e.target.value },
                 },
               })
-            }>
-            {defaultFonts.map((f) => (
-              <MenuItem key={f} value={f} style={{ fontFamily: f }}>
-                {f}
-              </MenuItem>
-            ))}
-          </Select>
+            }
+          />
         </Stack>
       </Box>
       <Box>
         <Stack>
           <Typography variant="subtitle3">{t('projectSetting.fontFamily.body')}</Typography>
-          <Select
+          <FontSelect
             value={appearance?.typography?.fontFamily || ''}
             onChange={(e) =>
               set('appearance', {
                 ...appearance,
                 typography: { ...appearance?.typography, fontFamily: e.target.value },
               })
-            }>
-            {defaultFonts.map((f) => (
-              <MenuItem key={f} value={f} style={{ fontFamily: f }}>
-                {f}
-              </MenuItem>
-            ))}
-          </Select>
+            }
+          />
         </Stack>
       </Box>
     </Stack>
+  );
+}
+
+function FontSelect({ ...props }: SelectProps) {
+  const { t } = useLocaleContext();
+
+  return (
+    <Select {...props} MenuProps={{ MenuListProps: { sx: { p: 0 } } }}>
+      <MenuItem value="">{t('default')}</MenuItem>
+      {defaultFonts.map((f) =>
+        typeof f === 'string' ? (
+          <MenuItem key={f} value={f} style={{ fontFamily: f }}>
+            {f}
+          </MenuItem>
+        ) : f.group ? (
+          <ListSubheader key={f.group} disableGutters sx={{ px: 1, py: 0, lineHeight: 2, bgcolor: 'grey.100' }}>
+            {f.group}
+          </ListSubheader>
+        ) : null
+      )}
+    </Select>
   );
 }

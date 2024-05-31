@@ -1,33 +1,19 @@
 import { UpdateProjectInput } from '@api/routes/project';
-import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ClickAwayListener } from '@mui/base';
-import { Box, Divider, Popper, Stack, Typography, styled } from '@mui/material';
+import { Box, Divider, Popper, Stack, styled } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { ChromePicker } from 'react-color';
 
-const defaultColors: string[] = [
-  '#ffffff',
-  '#F47373',
-  '#697689',
-  '#37D67A',
-  '#2CCCE4',
-  '#555555',
-  '#dce775',
-  '#ff8a65',
-  '#ba68c8',
-];
+const defaultColors = ['', '#F47373', '#697689', '#37D67A', '#2CCCE4', '#555555', '#dce775', '#ff8a65', '#ba68c8'];
 
-export default function PrimayColor({
+export default function PrimaryColor({
   value,
   set,
 }: {
   value: UpdateProjectInput;
   set: (key: string, value: any) => void;
 }) {
-  const [selectedColor, setSelectedColor] = useState<string | undefined>(
-    value.appearance?.primaryColor || defaultColors[0]
-  );
-  const { t } = useLocaleContext();
+  const [selectedColor, setSelectedColor] = useState(value.appearance?.primaryColor || defaultColors[0]);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [open, setOpen] = useState(false);
 
@@ -48,34 +34,29 @@ export default function PrimayColor({
   }, [selectedColor]);
 
   return (
-    <Box>
-      <Typography variant="subtitle2" mb={0.5}>
-        {t('primaryColor')}
-      </Typography>
-      <Stack gap={2}>
-        <Stack direction="row" gap={1} alignItems="center">
-          {defaultColors?.map((color) => (
-            <Box key={color} border={color === selectedColor ? '1px solid #030712' : ''} borderRadius="4px">
-              <ColorBox bgcolor={color} onClick={() => handleClick(color)} />
-            </Box>
-          ))}
+    <Stack gap={2}>
+      <Stack direction="row" gap={1} alignItems="center">
+        {defaultColors?.map((color) => (
+          <Box key={color} border={color === selectedColor ? '1px solid #030712' : ''} borderRadius="4px">
+            <ColorBox bgcolor={color || '#ffffff'} onClick={() => handleClick(color)} />
+          </Box>
+        ))}
 
-          <Divider orientation="vertical" flexItem sx={{ mx: '2px' }} />
-          <ClickAwayListener onClickAway={() => setOpen(false)}>
-            <Box>
-              <Box onClick={handleOpen}>
-                <ChromePickerBox bgcolor={selectedColor} />
-              </Box>
-              <Popper open={open} anchorEl={anchorEl} sx={{ zIndex: 10000 }} placement="bottom-end">
-                <Box mt={2}>
-                  <ChromePicker onChangeComplete={handleChangeComplete} color={selectedColor} disableAlpha />
-                </Box>
-              </Popper>
+        <Divider orientation="vertical" flexItem sx={{ mx: '2px' }} />
+        <ClickAwayListener onClickAway={() => setOpen(false)}>
+          <Box>
+            <Box onClick={handleOpen}>
+              <ChromePickerBox bgcolor={selectedColor} />
             </Box>
-          </ClickAwayListener>
-        </Stack>
+            <Popper open={open} anchorEl={anchorEl} sx={{ zIndex: 10000 }} placement="bottom-end">
+              <Box mt={2}>
+                <ChromePicker onChangeComplete={handleChangeComplete} color={selectedColor} disableAlpha />
+              </Box>
+            </Popper>
+          </Box>
+        </ClickAwayListener>
       </Stack>
-    </Box>
+    </Stack>
   );
 }
 

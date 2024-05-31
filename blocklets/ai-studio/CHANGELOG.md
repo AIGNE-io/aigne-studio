@@ -1,3 +1,8 @@
+## 0.2.28 (2024-5-31)
+
+- chore: upgrade the process of publishing agents blocklet
+- fix: remove duplicated title from settings
+
 ## 0.2.27 (2024-5-30)
 
 - feat: support use an agent as llm provider
