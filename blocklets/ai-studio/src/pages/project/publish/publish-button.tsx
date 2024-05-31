@@ -1,5 +1,6 @@
 import LoadingButton from '@app/components/loading/loading-button';
 import { useCurrentProject } from '@app/contexts/project';
+import { useIsAdmin } from '@app/contexts/session';
 import { AI_STUDIO_COMPONENT_DID } from '@app/libs/constants';
 import { getProjectIconUrl } from '@app/libs/project';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
@@ -20,6 +21,9 @@ export default function PublishButton({ ...props }: LoadingButtonProps) {
   } = useProjectState(projectId, projectRef);
 
   const [showCreateResource, setShowCreateResource] = useState(false);
+  const isAdmin = useIsAdmin();
+
+  if (window.blocklet.DISABLE_AI_STUDIO_PUBLISH === 'true' && !isAdmin) return null;
 
   return (
     <>

@@ -23,6 +23,8 @@ export interface Component {
       };
     };
   }[];
+
+  blocklet?: { did: string };
 }
 
 export async function getComponents({
