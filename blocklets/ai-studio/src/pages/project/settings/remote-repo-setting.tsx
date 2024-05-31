@@ -102,7 +102,8 @@ export default function RemoteRepoSetting({ projectId }: { projectId: string }) 
 
   return (
     <Box>
-      <Stack sx={{ display: checked ? 'none' : 'flex' }}>
+      {/* collapse收起的同时有保存giturl */}
+      <Stack sx={{ display: !checked && state?.project?.gitUrl ? 'flex' : 'none' }}>
         <Typography variant="subtitle2">{t('remoteGitRepo')}</Typography>
         <Stack direction="row" alignItems="center" gap={1}>
           {state?.project?.gitUrl && (
@@ -111,11 +112,11 @@ export default function RemoteRepoSetting({ projectId }: { projectId: string }) 
             </Tooltip>
           )}
           <Button variant="contained" size="small" sx={{ padding: '2px' }} onClick={() => setChecked(!checked)}>
-            {t('detail')}
+            {t('setting')}
           </Button>
         </Stack>
       </Stack>
-      <Collapse orientation="vertical" in={checked} collapsedSize={0}>
+      <Collapse orientation="vertical" in={checked || !state?.project?.gitUrl} collapsedSize={0}>
         <Stack gap={2}>
           {confirmDialog}
           {dialog}
