@@ -4,6 +4,7 @@ import path from 'path';
 
 import downloadImage from '@api/libs/download-logo';
 import logger from '@api/libs/logger';
+import { Assistant } from '@blocklet/ai-runtime/types';
 import component from '@blocklet/sdk/lib/component';
 import { Router } from 'express';
 import Joi from 'joi';
@@ -91,35 +92,47 @@ export function resourceRoutes(router: Router) {
 
     const locale = locales[query.locale as keyof typeof locales] || locales.en;
 
-    const resources = projects.map((x) => ({
-      id: x._id,
-      name: x.name || locale.unnamed,
-      description: x.description,
-      children: [
-        {
-          id: `application-${x._id}`,
-          name: locale.application,
-        },
-        {
-          id: `other-${x._id}`,
-          name: locale.other,
+    const resources = await Promise.all(
+      projects.map(async (x) => {
+        const dependentComponents = getAssistantDependentComponents(
+          await getAssistantsOfRepository({ projectId: x._id, ref: x.gitDefaultBranch! })
+        );
+
+        return {
+          id: x._id,
+          name: x.name || locale.unnamed,
+          description: x.description,
           children: [
             {
-              id: `tool-${x._id}`,
-              name: locale.tool,
+              id: `application-${x._id}`,
+              name: locale.application,
+              dependentComponents,
             },
             {
-              id: `example-${x._id}`,
-              name: locale.example,
-            },
-            {
-              id: `template-${x._id}`,
-              name: locale.template,
+              id: `other-${x._id}`,
+              name: locale.other,
+              children: [
+                {
+                  id: `tool-${x._id}`,
+                  name: locale.tool,
+                  dependentComponents,
+                },
+                {
+                  id: `example-${x._id}`,
+                  name: locale.example,
+                  dependentComponents,
+                },
+                {
+                  id: `template-${x._id}`,
+                  name: locale.template,
+                  dependentComponents,
+                },
+              ],
             },
           ],
-        },
-      ],
-    }));
+        };
+      })
+    );
 
     res.json({ resources: resources.length === 1 ? resources[0]!.children : resources });
   });
@@ -204,4 +217,25 @@ export function resourceRoutes(router: Router) {
 
     return res.json(arr);
   });
+}
+
+function getAssistantDependentComponents(assistant: Assistant | Assistant[]) {
+  return [
+    ...new Set(
+      [assistant].flat().flatMap((assistant) => {
+        if (!assistant.parameters) return [];
+        const inputDeps = Object.values(assistant.parameters).flatMap((i) => {
+          if (i.type === 'source' && i.source?.variableFrom === 'tool') {
+            const did = i.source.agent?.blockletDid;
+            return did ? [did] : [];
+          }
+          return [];
+        });
+
+        const executorDeps = assistant.executor?.agent?.blockletDid ? [assistant.executor?.agent?.blockletDid] : [];
+
+        return [...inputDeps, ...executorDeps];
+      })
+    ),
+  ];
 }
