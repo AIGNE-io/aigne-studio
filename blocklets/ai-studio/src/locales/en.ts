@@ -728,4 +728,5 @@ export default flat({
   llmResponseStream: 'LLM Response Stream',
   llmProviderPlaceholder: 'Select a LLM provider from store',
   provider: 'Provider',
+  default: 'Default',
 });
