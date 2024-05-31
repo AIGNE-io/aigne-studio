@@ -4,6 +4,7 @@ import path from 'path';
 
 import downloadImage from '@api/libs/download-logo';
 import logger from '@api/libs/logger';
+import { ResourceTypes } from '@api/libs/resource';
 import { Assistant } from '@blocklet/ai-runtime/types';
 import component from '@blocklet/sdk/lib/component';
 import { Router } from 'express';
@@ -46,6 +47,9 @@ const locales: { [key in 'en' | 'zh']: { [key: string]: string } } = {
     template: 'Template',
     application: 'Application',
     tool: 'Tool',
+    'llm-adapter': 'LLM Adapter',
+    'aigc-adapter': 'AIGC Adapter',
+    knowledge: 'Knowledge',
     other: 'Other',
   },
   zh: {
@@ -54,6 +58,9 @@ const locales: { [key in 'en' | 'zh']: { [key: string]: string } } = {
     template: '模板',
     application: '应用',
     tool: '工具',
+    'llm-adapter': 'LLM 适配器',
+    'aigc-adapter': 'AIGC 适配器',
+    knowledge: '知识库',
     other: '其它',
   },
 };
@@ -104,30 +111,18 @@ export function resourceRoutes(router: Router) {
           description: x.description,
           children: [
             {
-              id: `application-${x._id}`,
+              id: `application/${x._id}`,
               name: locale.application,
               dependentComponents,
             },
             {
-              id: `other-${x._id}`,
+              id: `other/${x._id}`,
               name: locale.other,
-              children: [
-                {
-                  id: `tool-${x._id}`,
-                  name: locale.tool,
-                  dependentComponents,
-                },
-                {
-                  id: `example-${x._id}`,
-                  name: locale.example,
-                  dependentComponents,
-                },
-                {
-                  id: `template-${x._id}`,
-                  name: locale.template,
-                  dependentComponents,
-                },
-              ],
+              children: ResourceTypes.filter((i) => i !== 'application').map((i) => ({
+                id: `${i}/${x._id}`,
+                name: locale[i],
+                dependentComponents,
+              })),
             },
           ],
         };
@@ -144,7 +139,7 @@ export function resourceRoutes(router: Router) {
     const splitResources = uniq(resources)
       .map((x) => {
         try {
-          const [key, value] = x.split('-');
+          const [key, value] = x.split('/');
           if (key && value) return { key, value };
           return null;
         } catch (error) {
@@ -190,9 +185,6 @@ export function resourceRoutes(router: Router) {
         );
 
         const result = stringify({ assistants, project: project && project.dataValues });
-
-        // TODO 兼容老的 ai assistant, 晚些去掉
-        await writeFile(path.join(folderPath, `${projectId}.yaml`), result);
 
         // 新的保存方式，可以存储更多内容
         await writeFile(path.join(folderPath, projectId, `${projectId}.yaml`), result);

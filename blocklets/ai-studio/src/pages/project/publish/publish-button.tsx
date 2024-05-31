@@ -49,11 +49,14 @@ function PublishDialog({ onClose }: { onClose: () => void }) {
     state: { project },
   } = useProjectState(projectId, projectRef);
 
+  const [opened, setOpened] = useState(false);
+
   if (!project) return null;
 
   return (
     <Suspense>
       <BlockletStudio
+        style={{ opacity: opened ? 1 : 0 }}
         mode="dialog"
         tenantScope={projectId}
         title={project.name || ''}
@@ -70,7 +73,7 @@ function PublishDialog({ onClose }: { onClose: () => void }) {
         onConnected={() => {}}
         onUploaded={() => {}}
         onReleased={() => {}}
-        onOpened={() => {}}
+        onOpened={() => setOpened(true)}
         // 默认选中的资源
         resources={{
           [AI_STUDIO_COMPONENT_DID]: [],
