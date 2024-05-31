@@ -4,17 +4,7 @@ import { Box, Divider, Popper, Stack, styled } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { ChromePicker } from 'react-color';
 
-const defaultColors: string[] = [
-  '#ffffff',
-  '#F47373',
-  '#697689',
-  '#37D67A',
-  '#2CCCE4',
-  '#555555',
-  '#dce775',
-  '#ff8a65',
-  '#ba68c8',
-];
+const defaultColors = ['', '#F47373', '#697689', '#37D67A', '#2CCCE4', '#555555', '#dce775', '#ff8a65', '#ba68c8'];
 
 export default function PrimaryColor({
   value,
@@ -23,9 +13,7 @@ export default function PrimaryColor({
   value: UpdateProjectInput;
   set: (key: string, value: any) => void;
 }) {
-  const [selectedColor, setSelectedColor] = useState<string | undefined>(
-    value.appearance?.primaryColor || defaultColors[0]
-  );
+  const [selectedColor, setSelectedColor] = useState(value.appearance?.primaryColor || defaultColors[0]);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [open, setOpen] = useState(false);
 
@@ -50,7 +38,7 @@ export default function PrimaryColor({
       <Stack direction="row" gap={1} alignItems="center">
         {defaultColors?.map((color) => (
           <Box key={color} border={color === selectedColor ? '1px solid #030712' : ''} borderRadius="4px">
-            <ColorBox bgcolor={color} onClick={() => handleClick(color)} />
+            <ColorBox bgcolor={color || '#ffffff'} onClick={() => handleClick(color)} />
           </Box>
         ))}
 
