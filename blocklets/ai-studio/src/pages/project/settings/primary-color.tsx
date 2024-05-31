@@ -1,7 +1,6 @@
 import { UpdateProjectInput } from '@api/routes/project';
-import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ClickAwayListener } from '@mui/base';
-import { Box, Divider, Popper, Stack, Typography, styled } from '@mui/material';
+import { Box, Divider, Popper, Stack, styled } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { ChromePicker } from 'react-color';
 
@@ -27,7 +26,7 @@ export default function PrimayColor({
   const [selectedColor, setSelectedColor] = useState<string | undefined>(
     value.appearance?.primaryColor || defaultColors[0]
   );
-  const { t } = useLocaleContext();
+
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [open, setOpen] = useState(false);
 
@@ -49,9 +48,6 @@ export default function PrimayColor({
 
   return (
     <Box>
-      <Typography variant="subtitle2" mb={0.5}>
-        {t('primaryColor')}
-      </Typography>
       <Stack gap={2}>
         <Stack direction="row" gap={1} alignItems="center">
           {defaultColors?.map((color) => (
