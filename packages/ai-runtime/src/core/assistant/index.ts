@@ -1517,6 +1517,7 @@ const getVariables = async ({
               }).required(),
             })
           )
+          .empty([null, ''])
           .optional(),
       }[parameter.type as string]!;
 

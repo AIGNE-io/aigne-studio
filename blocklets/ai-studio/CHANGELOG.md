@@ -1,3 +1,7 @@
+## 0.2.30 (2024-6-2)
+
+- fix: show contextmenu for code editor
+
 ## 0.2.29 (2024-5-31)
 
 - fix: include appearance component deps

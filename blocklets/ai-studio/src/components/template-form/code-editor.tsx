@@ -81,6 +81,8 @@ const CodeEditor = forwardRef(
         theme={themeName}
         {...props}
         sx={{
+          '--vscode-menu-background': 'rgba(255,255,255,1)',
+          '--vscode-widget-shadow': 'rgba(0,0,0,0.1)',
           '.overflowingContentWidgets': { position: 'relative', zIndex: theme.zIndex.tooltip },
           ...props.sx,
         }}
@@ -94,7 +96,7 @@ const CodeEditor = forwardRef(
           tabSize: 2,
           insertSpaces: true,
           fixedOverflowWidgets: true,
-          contextmenu: false,
+          contextmenu: true,
           ...props.options,
           scrollbar: {
             alwaysConsumeMouseWheel: false,
