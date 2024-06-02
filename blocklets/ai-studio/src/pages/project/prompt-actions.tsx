@@ -275,6 +275,9 @@ function SaveAction() {
                 color: 'rgba(0, 0, 0, 0.26) !important',
               },
             },
+            width: '100%',
+            display: 'flex',
+            justifyContent: 'flex-start',
           }}>
           <Box className="center">
             <Box component={Icon} icon={FloppyIcon} mr={1} sx={{ fontSize: '15px !important' }} />
