@@ -1,69 +1,40 @@
 import { UpdateProjectInput } from '@api/routes/project';
+import { loadFontList } from '@app/utils/font';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Box, ListSubheader, MenuItem, Select, SelectProps, Stack, Typography } from '@mui/material';
+import { useEffect } from 'react';
 
 const defaultFonts = [
   // Sans-serif 字体
-  { group: 'Sans-serif' },
+  { group: 'English' },
   'Arial',
-  'Helvetica',
-  'Verdana',
-  'Tahoma',
-  'Trebuchet MS',
-  'Gill Sans',
-  'Lucida Grande',
-  'Geneva',
-
-  // Serif 字体
-  { group: 'Serif' },
-  'Times New Roman',
-  'Georgia',
-  'Garamond',
-  'Palatino',
-  'Bookman',
-  'Courier New', // 也可归类为 Monospace 字体
-
-  // Monospace 字体
-  { group: 'Monospace' },
-  'Lucida Console',
-  'Monaco',
-
-  // Cursive 字体
-  { group: 'Cursive' },
-  'Comic Sans MS',
-  'Brush Script MT',
-
-  // Fantasy 字体
-  { group: 'Fantasy' },
-  'Impact',
-  'Papyrus',
+  'Noto Sans Georgian',
+  'Cedarville Cursive',
+  'Recursive',
+  'Noto Sans',
+  'Noto Serif',
+  'Inter',
+  'Lora',
+  'Chocolate Classical Sans',
+  'Sevillana',
+  'Karla',
 
   // 中文字体
   { group: 'Chinese' },
-  'SimSun', // 宋体
-  'SimHei', // 黑体
-  'Microsoft YaHei', // 微软雅黑
-  'Microsoft JhengHei', // 微软正黑体
-  'STFangsong', // 华文仿宋
-  'STKaiti', // 华文楷体
-  'STSong', // 华文宋体
-  'STHeiti', // 华文黑体
-  'PingFang SC', // 苹方 简体
-  'PingFang TC', // 苹方 繁体
-  'Hiragino Sans GB', // 冬青黑体简体
-  'Noto Sans CJK SC', // 思源黑体 简体
-  'Noto Sans CJK TC', // 思源黑体 繁体
+  'Chocolate Classical Sans',
+  'Cactus Classical Serif',
+  'LXGW WenKai Mono TC',
+  'LXGW WenKai TC',
+  'Noto Sans Traditional Chinese',
+  'ZCOOL XiaoWei',
+  'ZCOOL QingKe HuangYou',
+  'ZCOOL KuaiLe',
 
   // 系统默认字体
   { group: 'System' },
-  '-apple-system',
-  'BlinkMacSystemFont',
-  'Segoe UI',
   'Roboto',
-  'Oxygen-Sans',
   'Ubuntu',
   'Cantarell',
-  'sans-serif',
 ];
 
 export default function FontFamilySetting({
@@ -76,6 +47,22 @@ export default function FontFamilySetting({
   const { appearance } = value;
 
   const { t } = useLocaleContext();
+
+  const loadFont = async (value: string[]) => {
+    if (!value) return;
+
+    if (document.querySelectorAll('link[href*="fonts.googleapis.com" i]').length) return;
+
+    try {
+      await loadFontList(value);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    loadFont(defaultFonts.filter((f) => typeof f === 'string') as string[]);
+  }, []);
 
   return (
     <Stack gap={1}>
