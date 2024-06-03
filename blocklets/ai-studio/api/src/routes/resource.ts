@@ -108,8 +108,13 @@ export function resourceRoutes(router: Router) {
 
     const resources = await Promise.all(
       projects.map(async (x) => {
-        const assistants = await getAssistantsOfRepository({ projectId: x._id, ref: x.gitDefaultBranch! });
+        const assistants = await getAssistantsOfRepository({
+          projectId: x._id,
+          ref: x.gitDefaultBranch || defaultBranch,
+        });
         const dependentComponents = getAssistantDependentComponents(assistants);
+
+        const entry = await getEntryFromRepository({ projectId: x._id, ref: x.gitDefaultBranch || defaultBranch });
 
         return {
           id: x._id,
@@ -119,6 +124,8 @@ export function resourceRoutes(router: Router) {
             {
               id: `application/${x._id}`,
               name: locale.application,
+              disabled: true,
+              description: entry ? undefined : 'No such entry agent, You have to create an entry agent first',
               dependentComponents,
             },
             {
