@@ -729,4 +729,6 @@ export default flat({
   llmProviderPlaceholder: 'Select a LLM provider from store',
   provider: 'Provider',
   default: 'Default',
+  setAsEntry: 'Set as entry agent',
+  entryAgent: 'Entry',
 });

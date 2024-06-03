@@ -1,23 +1,20 @@
+import { ResourceType } from '@api/libs/resource';
 import { UseAgentItem, useAgents } from '@app/store/agent';
 import { RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
 
 export interface AgentSelectFilter {
+  type: ResourceType;
   excludes?: string[];
-  includes?: { type?: 'llmAdaptor' }[];
 }
 
-export function useAgentSelectOptions({ includes, excludes }: AgentSelectFilter): {
+export function useAgentSelectOptions({ type, excludes }: AgentSelectFilter): {
   agents: UseAgentItem[];
 } {
-  const { agents } = useAgents();
+  const { agents } = useAgents({ type });
 
   const include = (agent: (typeof agents)[number]) => {
-    if (includes?.length) {
-      for (const i of includes) {
-        if (i.type === 'llmAdaptor') {
-          if (!isLLMAdaptor(agent)) return false;
-        }
-      }
+    if (type === 'llm-adapter') {
+      if (!isLLMAdaptor(agent)) return false;
     }
 
     if (excludes?.length) {

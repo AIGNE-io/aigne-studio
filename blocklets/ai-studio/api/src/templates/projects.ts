@@ -1,10 +1,11 @@
-import { Assistant } from '@blocklet/ai-runtime/types';
+import { Assistant, ConfigFile } from '@blocklet/ai-runtime/types';
 
 import { wallet } from '../libs/auth';
 import Project from '../store/models/project';
 
 export const projectTemplates: {
   project: Project['dataValues'];
+  config?: ConfigFile;
   assistants: (Assistant & { parent: string[] })[];
   gitLogoPath?: string;
 }[] = [

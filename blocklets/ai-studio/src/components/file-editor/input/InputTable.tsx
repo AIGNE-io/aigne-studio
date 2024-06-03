@@ -1,3 +1,4 @@
+import { ResourceType } from '@api/libs/resource';
 import Dataset from '@api/store/models/dataset/dataset';
 import AgentSelect from '@app/components/agent-select';
 import WithAwareness from '@app/components/awareness/with-awareness';
@@ -461,7 +462,7 @@ function SelectFromSource({
     parameter.type === 'source' && parameter.source?.variableFrom === 'tool' && parameter?.source?.agent?.id ? (
       <span>
         {t('variableParameter.call')}{' '}
-        <AgentName projectId={parameter.source.agent.projectId} agentId={parameter.source.agent.id} />
+        <AgentName type="tool" projectId={parameter.source.agent.projectId} agentId={parameter.source.agent.id} />
       </span>
     ) : (
       FROM_MAP[currentKey || 'custom']
@@ -531,11 +532,13 @@ function SelectFromSource({
 }
 
 export function AgentName({
+  type,
   projectId,
   agentId,
   showIcon,
   IconProps,
 }: {
+  type: ResourceType;
   projectId?: string;
   agentId: string;
   showIcon?: boolean;
@@ -543,7 +546,7 @@ export function AgentName({
 }) {
   const { t } = useLocaleContext();
 
-  const agent = useAgent({ projectId, agentId });
+  const agent = useAgent({ type, projectId, agentId });
   if (!agent) return null;
 
   return (
@@ -1098,6 +1101,7 @@ function AgentParameter({ value, parameter }: { value: AssistantYjs; parameter: 
           <Typography variant="subtitle2">{t('chooseObject', { object: t('agent') })}</Typography>
 
           <AgentSelect
+            type="tool"
             excludes={[value.id]}
             autoFocus
             disableClearable
@@ -1145,7 +1149,11 @@ function AgentParametersForm({
 
   const { t } = useLocaleContext();
 
-  const agent = useAgent({ projectId: parameter.source.agent.projectId, agentId: parameter.source.agent.id });
+  const agent = useAgent({
+    type: 'tool',
+    projectId: parameter.source.agent.projectId,
+    agentId: parameter.source.agent.id,
+  });
   const { projectId, projectRef } = useCurrentProject();
 
   if (!agent) return null;

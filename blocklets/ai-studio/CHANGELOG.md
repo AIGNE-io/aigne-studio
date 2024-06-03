@@ -1,3 +1,7 @@
+## 0.2.31 (2024-6-3)
+
+- feat: support publish/consume application and selected tools
+
 ## 0.2.30 (2024-6-2)
 
 - fix: show contextmenu for code editor
