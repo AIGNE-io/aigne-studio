@@ -6,6 +6,7 @@ import { defaultTextModel, getSupportedModels } from '@blocklet/ai-runtime/commo
 import { SaveRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
+  AppBar,
   Box,
   BoxProps,
   FormControl,
@@ -200,331 +201,350 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
   }
 
   return (
-    <Box overflow="auto" height="610px" width="380px" {...boxProps}>
+    <Box overflow="auto" {...boxProps} sx={{ width: '25vw' }}>
       <SettingsContainer maxWidth="md" sx={{ p: 2 }} className="setting-container">
-        <Tabs
-          centered
-          sx={{
-            minHeight: 32,
-            [`.${tabClasses.root}`]: {
-              py: 1,
-              px: 1,
+        <AppBar position="fixed" sx={{ width: '25vw', bgcolor: '#fff', boxShadow: 'none', py: 1 }}>
+          <Tabs
+            centered
+            sx={{
               minHeight: 32,
-              minWidth: 32,
-              borderRadius: 1,
-            },
-          }}
-          onChange={(_event: React.SyntheticEvent, newValue: string) => {
-            setCurrentTabIndex(newValue);
-          }}
-          value={currentTabIndex}>
-          {tabListInfo.list.map((x) => {
-            return <Tab disableRipple label={t(`projectSetting.tabs.${x}`)} value={x} key={x} sx={{ px: 0 }} />;
-          })}
-        </Tabs>
+              [`.${tabClasses.root}`]: {
+                py: 1,
+                px: 1,
+                minHeight: 32,
+                minWidth: 32,
+                borderRadius: 1,
+              },
+            }}
+            onChange={(_event: React.SyntheticEvent, newValue: string) => {
+              setCurrentTabIndex(newValue);
+            }}
+            value={currentTabIndex}>
+            {tabListInfo.list.map((x) => {
+              return <Tab disableRipple label={t(`projectSetting.tabs.${x}`)} value={x} key={x} sx={{ px: 0 }} />;
+            })}
+          </Tabs>
+        </AppBar>
 
-        {currentTabIndex === 'basic' && (
-          <Form onSubmit={(e) => e.preventDefault()}>
-            <Stack gap={2} mt={2}>
-              <Box>
-                <Typography variant="subtitle2" mb={0.5}>
-                  {t('avatar')}
-                </Typography>
-                <Avatar value={value.icon ?? ''} onChange={(d: any) => set('icon', d)} />
-              </Box>
-              <Box>
-                <Typography variant="subtitle2" mb={0.5}>
-                  {t('projectSetting.name')}
-                </Typography>
-
-                <TextField
-                  label={t('projectSetting.name')}
-                  sx={{ width: 1 }}
-                  value={value.name ?? ''}
-                  onChange={(e) => set('name', e.target.value)}
-                  InputProps={{ readOnly }}
-                />
-              </Box>
-              <Box>
-                <Typography variant="subtitle2" mb={0.5}>
-                  {t('projectSetting.description')}
-                </Typography>
-                <TextField
-                  label={t('projectSetting.description')}
-                  multiline
-                  rows={5}
-                  sx={{ width: 1 }}
-                  value={value.description ?? ''}
-                  onChange={(e) => set('description', e.target.value)}
-                  InputProps={{ readOnly }}
-                />
-              </Box>
-              <Box>
-                <LoadingButton
-                  disabled={readOnly}
-                  variant="contained"
-                  loadingPosition="start"
-                  loading={submitLoading}
-                  startIcon={<SaveRounded />}
-                  onClick={onSubmit}>
-                  {t('save')}
-                </LoadingButton>
-              </Box>
-            </Stack>
-          </Form>
-        )}
-
-        {currentTabIndex === 'modelInfo' && (
-          <Box mt={2}>
-            <Stack gap={2}>
-              <Box>
-                <Typography variant="subtitle2" mb={0.5}>
-                  {t('model')}
-                </Typography>
-
-                <ModelSelectField
-                  hiddenLabel
-                  fullWidth
-                  value={value.model || defaultTextModel}
-                  onChange={(e) => set('model', e.target.value)}
-                  InputProps={{ readOnly }}
-                  sx={{ width: 1 }}
-                />
-              </Box>
-
-              {model && (
-                <Stack gap={1} py={1}>
-                  <Box className="prefer-inline">
-                    <Box>
-                      <Tooltip
-                        title={t('temperatureTip')}
-                        placement="top"
-                        disableInteractive
-                        enterTouchDelay={0}
-                        leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
-                        <FormLabel>
-                          {t('temperature')}
-                          <InfoOutlined fontSize="small" sx={{ verticalAlign: 'bottom', ml: 1, color: 'info.main' }} />
-                        </FormLabel>
-                      </Tooltip>
-                    </Box>
-
-                    <Box>
-                      <SliderNumberField
-                        readOnly={readOnly}
-                        min={model.temperatureMin}
-                        max={model.temperatureMax}
-                        step={0.1}
-                        sx={{ flex: 1 }}
-                        value={value.temperature ?? model.temperatureDefault}
-                        onChange={(_, v) => set('temperature', v)}
-                      />
-                    </Box>
-                  </Box>
-
-                  <Box className="prefer-inline">
-                    <Box>
-                      <Tooltip
-                        title={t('topPTip')}
-                        placement="top"
-                        disableInteractive
-                        enterTouchDelay={0}
-                        leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
-                        <FormLabel>
-                          {t('topP')}
-                          <InfoOutlined fontSize="small" sx={{ verticalAlign: 'bottom', ml: 1, color: 'info.main' }} />
-                        </FormLabel>
-                      </Tooltip>
-                    </Box>
-
-                    <Box>
-                      <SliderNumberField
-                        readOnly={readOnly}
-                        min={model.topPMin}
-                        max={model.topPMax}
-                        step={0.1}
-                        value={value.topP ?? model.topPDefault}
-                        onChange={(_, v) => set('topP', v)}
-                        sx={{ flex: 1 }}
-                      />
-                    </Box>
-                  </Box>
-
-                  <Box className="prefer-inline">
-                    <Box>
-                      <Tooltip
-                        title={t('presencePenaltyTip')}
-                        placement="top"
-                        disableInteractive
-                        enterTouchDelay={0}
-                        leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
-                        <FormLabel>
-                          {t('presencePenalty')}
-                          <InfoOutlined fontSize="small" sx={{ verticalAlign: 'bottom', ml: 1, color: 'info.main' }} />
-                        </FormLabel>
-                      </Tooltip>
-                    </Box>
-
-                    <Box>
-                      <SliderNumberField
-                        readOnly={readOnly}
-                        min={model.presencePenaltyMin}
-                        max={model.presencePenaltyMax}
-                        step={0.1}
-                        sx={{ flex: 1 }}
-                        value={value.presencePenalty ?? model.presencePenaltyDefault}
-                        onChange={(_, v) => set('presencePenalty', v)}
-                      />
-                    </Box>
-                  </Box>
-
-                  <Box className="prefer-inline">
-                    <Box>
-                      <Tooltip
-                        title={t('frequencyPenaltyTip')}
-                        placement="top"
-                        disableInteractive
-                        enterTouchDelay={0}
-                        leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
-                        <FormLabel>
-                          {t('frequencyPenalty')}
-                          <InfoOutlined fontSize="small" sx={{ verticalAlign: 'bottom', ml: 1, color: 'info.main' }} />
-                        </FormLabel>
-                      </Tooltip>
-                    </Box>
-
-                    <Box>
-                      <SliderNumberField
-                        readOnly={readOnly}
-                        min={model.frequencyPenaltyMin}
-                        max={model.frequencyPenaltyMax}
-                        step={0.1}
-                        sx={{ flex: 1 }}
-                        value={value.frequencyPenalty ?? model.frequencyPenaltyDefault}
-                        onChange={(_, v) => set('frequencyPenalty', v)}
-                      />
-                    </Box>
-                  </Box>
-
-                  <Box className="prefer-inline">
-                    <Box>
-                      <Tooltip
-                        title={t('maxTokensTip')}
-                        placement="top"
-                        disableInteractive
-                        enterTouchDelay={0}
-                        leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
-                        <FormLabel>
-                          {t('maxTokens')}
-                          <InfoOutlined fontSize="small" sx={{ verticalAlign: 'bottom', ml: 1, color: 'info.main' }} />
-                        </FormLabel>
-                      </Tooltip>
-                    </Box>
-
-                    <Box>
-                      <SliderNumberField
-                        readOnly={readOnly}
-                        min={model.maxTokensMin}
-                        max={model.maxTokensMax}
-                        step={1}
-                        sx={{ flex: 1 }}
-                        value={value.maxTokens ?? model.maxTokensDefault}
-                        onChange={(_, v) => set('maxTokens', v)}
-                      />
-                    </Box>
-                  </Box>
-                </Stack>
-              )}
-              <Box>
-                <LoadingButton
-                  disabled={readOnly}
-                  variant="contained"
-                  loadingPosition="start"
-                  loading={submitLoading}
-                  startIcon={<SaveRounded />}
-                  onClick={onSubmit}>
-                  {t('save')}
-                </LoadingButton>
-              </Box>
-            </Stack>
-          </Box>
-        )}
-
-        {currentTabIndex === 'git' && (
-          <Box overflow="auto">
-            <Form>
+        <Box sx={{ marginTop: 5 }}>
+          {currentTabIndex === 'basic' && (
+            <Form onSubmit={(e) => e.preventDefault()}>
               <Stack gap={2} mt={2}>
-                <Stack gap={2}>
-                  <Box>
-                    <Box>
-                      <Typography variant="subtitle2" mb={0.5}>
-                        {t('Git Version')}
-                      </Typography>
-                    </Box>
+                <Box>
+                  <Typography variant="subtitle2" mb={0.5}>
+                    {t('avatar')}
+                  </Typography>
+                  <Avatar value={value.icon ?? ''} onChange={(d: any) => set('icon', d)} />
+                </Box>
+                <Box>
+                  <Typography variant="subtitle2" mb={0.5}>
+                    {t('projectSetting.name')}
+                  </Typography>
 
-                    <FormControl className="version" sx={{ width: 1 }}>
-                      <RadioGroup
-                        value={value.gitType ?? 'default'}
-                        onChange={(e) => !readOnly && set('gitType', e.target.value)}>
-                        {versions.map((version) => {
-                          return (
-                            <FormControlLabel
-                              key={version.value}
-                              sx={{ mb: 1, mr: 0, ':last-child': { m: 0 }, alignItems: 'flex-start' }}
-                              value={version.value}
-                              control={<Radio sx={{ ml: -0.5 }} />}
-                              label={
-                                <Box mt={0.25} ml={0.5}>
-                                  <Box className="title">{version.title}</Box>
-                                  <Box className="subTitle">{version.subTitle}</Box>
-                                </Box>
-                              }
-                            />
-                          );
-                        })}
-                      </RadioGroup>
-                    </FormControl>
-                  </Box>
-
-                  <Box>
-                    <LoadingButton
-                      disabled={readOnly}
-                      variant="contained"
-                      loadingPosition="start"
-                      loading={submitLoading}
-                      startIcon={<SaveRounded />}
-                      onClick={onSubmit}>
-                      {t('save')}
-                    </LoadingButton>
-                  </Box>
-                </Stack>
-                <RemoteRepoSetting projectId={projectId} />
+                  <TextField
+                    label={t('projectSetting.name')}
+                    sx={{ width: 1 }}
+                    value={value.name ?? ''}
+                    onChange={(e) => set('name', e.target.value)}
+                    InputProps={{ readOnly }}
+                  />
+                </Box>
+                <Box>
+                  <Typography variant="subtitle2" mb={0.5}>
+                    {t('projectSetting.description')}
+                  </Typography>
+                  <TextField
+                    label={t('projectSetting.description')}
+                    multiline
+                    rows={5}
+                    sx={{ width: 1 }}
+                    value={value.description ?? ''}
+                    onChange={(e) => set('description', e.target.value)}
+                    InputProps={{ readOnly }}
+                  />
+                </Box>
+                <Box>
+                  <LoadingButton
+                    disabled={readOnly}
+                    variant="contained"
+                    loadingPosition="start"
+                    loading={submitLoading}
+                    startIcon={<SaveRounded />}
+                    onClick={onSubmit}>
+                    {t('save')}
+                  </LoadingButton>
+                </Box>
               </Stack>
             </Form>
-          </Box>
-        )}
+          )}
 
-        {currentTabIndex === 'didSpaces' && (
-          <Box mt={2}>
-            {!isEmpty(session.user?.didSpace?.endpoint) && (
+          {currentTabIndex === 'modelInfo' && (
+            <Box mt={2}>
+              <Stack gap={2}>
+                <Box>
+                  <Typography variant="subtitle2" mb={0.5}>
+                    {t('model')}
+                  </Typography>
+
+                  <ModelSelectField
+                    hiddenLabel
+                    fullWidth
+                    value={value.model || defaultTextModel}
+                    onChange={(e) => set('model', e.target.value)}
+                    InputProps={{ readOnly }}
+                    sx={{ width: 1 }}
+                  />
+                </Box>
+
+                {model && (
+                  <Stack gap={1} py={1}>
+                    <Box className="prefer-inline">
+                      <Box>
+                        <Tooltip
+                          title={t('temperatureTip')}
+                          placement="top"
+                          disableInteractive
+                          enterTouchDelay={0}
+                          leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
+                          <FormLabel>
+                            {t('temperature')}
+                            <InfoOutlined
+                              fontSize="small"
+                              sx={{ verticalAlign: 'bottom', ml: 1, color: 'info.main' }}
+                            />
+                          </FormLabel>
+                        </Tooltip>
+                      </Box>
+
+                      <Box>
+                        <SliderNumberField
+                          readOnly={readOnly}
+                          min={model.temperatureMin}
+                          max={model.temperatureMax}
+                          step={0.1}
+                          sx={{ flex: 1 }}
+                          value={value.temperature ?? model.temperatureDefault}
+                          onChange={(_, v) => set('temperature', v)}
+                        />
+                      </Box>
+                    </Box>
+
+                    <Box className="prefer-inline">
+                      <Box>
+                        <Tooltip
+                          title={t('topPTip')}
+                          placement="top"
+                          disableInteractive
+                          enterTouchDelay={0}
+                          leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
+                          <FormLabel>
+                            {t('topP')}
+                            <InfoOutlined
+                              fontSize="small"
+                              sx={{ verticalAlign: 'bottom', ml: 1, color: 'info.main' }}
+                            />
+                          </FormLabel>
+                        </Tooltip>
+                      </Box>
+
+                      <Box>
+                        <SliderNumberField
+                          readOnly={readOnly}
+                          min={model.topPMin}
+                          max={model.topPMax}
+                          step={0.1}
+                          value={value.topP ?? model.topPDefault}
+                          onChange={(_, v) => set('topP', v)}
+                          sx={{ flex: 1 }}
+                        />
+                      </Box>
+                    </Box>
+
+                    <Box className="prefer-inline">
+                      <Box>
+                        <Tooltip
+                          title={t('presencePenaltyTip')}
+                          placement="top"
+                          disableInteractive
+                          enterTouchDelay={0}
+                          leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
+                          <FormLabel>
+                            {t('presencePenalty')}
+                            <InfoOutlined
+                              fontSize="small"
+                              sx={{ verticalAlign: 'bottom', ml: 1, color: 'info.main' }}
+                            />
+                          </FormLabel>
+                        </Tooltip>
+                      </Box>
+
+                      <Box>
+                        <SliderNumberField
+                          readOnly={readOnly}
+                          min={model.presencePenaltyMin}
+                          max={model.presencePenaltyMax}
+                          step={0.1}
+                          sx={{ flex: 1 }}
+                          value={value.presencePenalty ?? model.presencePenaltyDefault}
+                          onChange={(_, v) => set('presencePenalty', v)}
+                        />
+                      </Box>
+                    </Box>
+
+                    <Box className="prefer-inline">
+                      <Box>
+                        <Tooltip
+                          title={t('frequencyPenaltyTip')}
+                          placement="top"
+                          disableInteractive
+                          enterTouchDelay={0}
+                          leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
+                          <FormLabel>
+                            {t('frequencyPenalty')}
+                            <InfoOutlined
+                              fontSize="small"
+                              sx={{ verticalAlign: 'bottom', ml: 1, color: 'info.main' }}
+                            />
+                          </FormLabel>
+                        </Tooltip>
+                      </Box>
+
+                      <Box>
+                        <SliderNumberField
+                          readOnly={readOnly}
+                          min={model.frequencyPenaltyMin}
+                          max={model.frequencyPenaltyMax}
+                          step={0.1}
+                          sx={{ flex: 1 }}
+                          value={value.frequencyPenalty ?? model.frequencyPenaltyDefault}
+                          onChange={(_, v) => set('frequencyPenalty', v)}
+                        />
+                      </Box>
+                    </Box>
+
+                    <Box className="prefer-inline">
+                      <Box>
+                        <Tooltip
+                          title={t('maxTokensTip')}
+                          placement="top"
+                          disableInteractive
+                          enterTouchDelay={0}
+                          leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
+                          <FormLabel>
+                            {t('maxTokens')}
+                            <InfoOutlined
+                              fontSize="small"
+                              sx={{ verticalAlign: 'bottom', ml: 1, color: 'info.main' }}
+                            />
+                          </FormLabel>
+                        </Tooltip>
+                      </Box>
+
+                      <Box>
+                        <SliderNumberField
+                          readOnly={readOnly}
+                          min={model.maxTokensMin}
+                          max={model.maxTokensMax}
+                          step={1}
+                          sx={{ flex: 1 }}
+                          value={value.maxTokens ?? model.maxTokensDefault}
+                          onChange={(_, v) => set('maxTokens', v)}
+                        />
+                      </Box>
+                    </Box>
+                  </Stack>
+                )}
+                <Box>
+                  <LoadingButton
+                    disabled={readOnly}
+                    variant="contained"
+                    loadingPosition="start"
+                    loading={submitLoading}
+                    startIcon={<SaveRounded />}
+                    onClick={onSubmit}>
+                    {t('save')}
+                  </LoadingButton>
+                </Box>
+              </Stack>
+            </Box>
+          )}
+
+          {currentTabIndex === 'git' && (
+            <Box overflow="auto">
               <Form>
-                <DidSpacesSetting projectId={projectId} />
-              </Form>
-            )}
-          </Box>
-        )}
+                <Stack gap={2} mt={2}>
+                  <Stack gap={2}>
+                    <Box>
+                      <Box>
+                        <Typography variant="subtitle2" mb={0.5}>
+                          {t('Git Version')}
+                        </Typography>
+                      </Box>
 
-        {currentTabIndex === 'appearance' && (
-          <Box mt={2}>
-            <AppearanceSetting
-              set={set}
-              onSubmit={onSubmit}
-              readOnly={readOnly}
-              submitLoading={submitLoading}
-              value={value}
-            />
-          </Box>
-        )}
+                      <FormControl className="version" sx={{ width: 1 }}>
+                        <RadioGroup
+                          value={value.gitType ?? 'default'}
+                          onChange={(e) => !readOnly && set('gitType', e.target.value)}>
+                          {versions.map((version) => {
+                            return (
+                              <FormControlLabel
+                                key={version.value}
+                                sx={{ mb: 1, mr: 0, ':last-child': { m: 0 }, alignItems: 'flex-start' }}
+                                value={version.value}
+                                control={<Radio sx={{ ml: -0.5 }} />}
+                                label={
+                                  <Box mt={0.25} ml={0.5}>
+                                    <Box className="title">{version.title}</Box>
+                                    <Box className="subTitle">{version.subTitle}</Box>
+                                  </Box>
+                                }
+                              />
+                            );
+                          })}
+                        </RadioGroup>
+                      </FormControl>
+                    </Box>
+
+                    <Box>
+                      <LoadingButton
+                        disabled={readOnly}
+                        variant="contained"
+                        loadingPosition="start"
+                        loading={submitLoading}
+                        startIcon={<SaveRounded />}
+                        onClick={onSubmit}>
+                        {t('save')}
+                      </LoadingButton>
+                    </Box>
+                  </Stack>
+                  <RemoteRepoSetting projectId={projectId} />
+                </Stack>
+              </Form>
+            </Box>
+          )}
+
+          {currentTabIndex === 'didSpaces' && (
+            <Box mt={2}>
+              {!isEmpty(session.user?.didSpace?.endpoint) && (
+                <Form>
+                  <DidSpacesSetting projectId={projectId} />
+                </Form>
+              )}
+            </Box>
+          )}
+
+          {currentTabIndex === 'appearance' && (
+            <Box mt={2}>
+              <AppearanceSetting
+                set={set}
+                onSubmit={onSubmit}
+                readOnly={readOnly}
+                submitLoading={submitLoading}
+                value={value}
+              />
+            </Box>
+          )}
+        </Box>
       </SettingsContainer>
 
       {dialog}
