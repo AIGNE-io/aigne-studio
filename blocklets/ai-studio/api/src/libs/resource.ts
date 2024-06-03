@@ -3,7 +3,7 @@ import { basename, dirname, join } from 'path';
 
 import Project from '@api/store/models/project';
 import { projectTemplates } from '@api/templates/projects';
-import { Assistant } from '@blocklet/ai-runtime/types';
+import { Assistant, ConfigFile } from '@blocklet/ai-runtime/types';
 import { getResources } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
 import { exists } from 'fs-extra';
@@ -36,8 +36,9 @@ export const ResourceTypes: ResourceType[] = [
 interface ResourceProject {
   blocklet: { did: string };
   project: Project['dataValues'];
+  config?: ConfigFile;
   gitLogoPath?: string;
-  assistants: (Assistant & { parent: string[] })[];
+  assistants: (Assistant & { public?: boolean; parent: string[] })[];
 }
 
 interface Resources {
@@ -132,6 +133,7 @@ async function loadResources(): Promise<Resources> {
       dirs.map(async (item) => {
         const projects = ((await loadResourceBlocklets(item.path)) ?? []).map((i) => ({
           ...i,
+          config: i.config,
           blocklet: { did: item.did },
         }));
 

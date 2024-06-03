@@ -20,6 +20,7 @@ import {
   defaultBranch,
   getAssistantsOfRepository,
   getEntryFromRepository,
+  getProjectConfig,
   getRepository,
 } from '../store/repository';
 
@@ -170,6 +171,7 @@ export function resourceRoutes(router: Router) {
       const projects = groupBy(value, (v) => v.projectId);
 
       for (const [projectId, values] of Object.entries(projects)) {
+        const repository = await getRepository({ projectId });
         const agentIds = new Set(values.map((i) => i.agentId).filter((i): i is string => !!i));
 
         if (type === 'application') {
@@ -210,13 +212,22 @@ export function resourceRoutes(router: Router) {
           })
         );
 
-        const result = stringify({ assistants, project: project && project.dataValues });
+        const config = await getProjectConfig({ repository, ref: project?.gitDefaultBranch || defaultBranch }).catch(
+          (error) => {
+            logger.error('failed to get project config', { error });
+          }
+        );
+
+        const result = stringify({
+          assistants,
+          project: project && project.dataValues,
+          config,
+        });
 
         // 新的保存方式，可以存储更多内容
         await writeFile(path.join(folderPath, projectId, `${projectId}.yaml`), result);
 
         // 写入logo.png
-        const repository = await getRepository({ projectId });
         const resourceLogoPath = path.join(folderPath, projectId, LOGO_FILENAME);
 
         try {

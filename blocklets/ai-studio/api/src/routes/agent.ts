@@ -16,7 +16,7 @@ export interface GetAgentsQuery {
 
 const getAgentsQuerySchema = Joi.object<GetAgentsQuery>({
   type: Joi.string()
-    .valid('application', 'tool', 'llm-adapter', 'aigc-adapter', 'knowledge')
+    .valid('application', 'tool', 'llm-adapter', 'aigc-adapter')
     .empty([null, ''])
     .default('application'),
 });
@@ -26,7 +26,19 @@ router.get('/', async (req, res) => {
 
   const projects = await getResourceProjects(query.type);
 
-  const resourceAgents = projects.flatMap((i) => i.assistants.map((a) => respondAgentFields(a, i.project, i.blocklet)));
+  const resourceAgents = projects.flatMap((project) =>
+    project.assistants
+      .filter((assistant) => {
+        if (query.type === 'application') {
+          return project.config?.entry === assistant.id;
+        }
+        if (['tool', 'llm-adapter', 'aigc-adapter'].includes(query.type)) {
+          return assistant.public;
+        }
+        return false;
+      })
+      .map((a) => respondAgentFields(a, project.project, project.blocklet))
+  );
 
   res.json({ agents: resourceAgents });
 });

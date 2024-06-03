@@ -522,6 +522,17 @@ export async function getAssistantFromRepository({
   return file;
 }
 
+export async function getProjectConfig({
+  repository,
+  ref,
+}: {
+  repository: Awaited<ReturnType<typeof getRepository>>;
+  ref: string;
+}) {
+  const raw = Buffer.from((await repository.readBlob({ ref, filepath: CONFIG_FILE_PATH })).blob).toString();
+  return parse(raw);
+}
+
 export async function getEntryFromRepository({
   projectId,
   ref,
@@ -545,8 +556,7 @@ export async function getEntryFromRepository({
   } else {
     let config: ConfigFile | undefined;
     try {
-      const raw = Buffer.from((await repository.readBlob({ ref, filepath: CONFIG_FILE_PATH })).blob).toString();
-      config = parse(raw);
+      config = await getProjectConfig({ repository, ref });
     } catch (error) {
       logger.error(`failed to read ${CONFIG_FILE_PATH}`, { error });
     }
