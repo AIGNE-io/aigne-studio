@@ -1,3 +1,4 @@
+import { ResourceType } from '@api/libs/resource';
 import { Assistant, AssistantBase, OutputVariable, Parameter } from '@blocklet/ai-runtime/types';
 
 import api from './api';
@@ -27,6 +28,6 @@ export interface Agent {
   };
 }
 
-export async function getAgents({ type }: { type?: 'application' | 'tool' } = {}): Promise<{ agents: Agent[] }> {
+export async function getAgents({ type }: { type?: ResourceType } = {}): Promise<{ agents: Agent[] }> {
   return api.get('/api/agents', { params: { type } }).then((res) => res.data);
 }

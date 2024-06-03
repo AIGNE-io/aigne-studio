@@ -55,8 +55,8 @@ export default function PromptSetting({
             gitRef={gitRef}
             path={[value.id, 'executor']}>
             <AgentSelect
+              type="llm-adapter"
               excludes={[value.id]}
-              includes={[{ type: 'llmAdaptor' }]}
               autoFocus
               placeholder={t('llmProviderPlaceholder')}
               value={value.executor?.agent}
@@ -100,7 +100,11 @@ function AgentParametersForm({ assistant }: { assistant: AssistantYjs }) {
 
   const { t } = useLocaleContext();
 
-  const agent = useAgent({ projectId: assistant.executor.agent.projectId, agentId: assistant.executor.agent.id });
+  const agent = useAgent({
+    type: 'llm-adapter',
+    projectId: assistant.executor.agent.projectId,
+    agentId: assistant.executor.agent.id,
+  });
 
   if (!agent) return null;
 

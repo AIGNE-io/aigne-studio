@@ -1,4 +1,4 @@
-import { getAssistantFromResourceBlocklet, getResourceProjects } from '@api/libs/resource';
+import { ResourceType, getAssistantFromResourceBlocklet, getResourceProjects } from '@api/libs/resource';
 import Project from '@api/store/models/project';
 import { getAssistantFromRepository, getRepository } from '@api/store/repository';
 import { parseIdentity } from '@blocklet/ai-runtime/common/aid';
@@ -11,11 +11,14 @@ import pick from 'lodash/pick';
 const router = Router();
 
 export interface GetAgentsQuery {
-  type: 'application' | 'tool';
+  type: ResourceType;
 }
 
 const getAgentsQuerySchema = Joi.object<GetAgentsQuery>({
-  type: Joi.string().valid('application', 'tool').empty([null, '']).default('application'),
+  type: Joi.string()
+    .valid('application', 'tool', 'llm-adapter', 'aigc-adapter', 'knowledge')
+    .empty([null, ''])
+    .default('application'),
 });
 
 router.get('/', async (req, res) => {

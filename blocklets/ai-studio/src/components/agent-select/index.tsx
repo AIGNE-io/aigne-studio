@@ -1,3 +1,4 @@
+import { ResourceType } from '@api/libs/resource';
 import { useIsAdmin } from '@app/contexts/session';
 import { getProjectIconUrl } from '@app/libs/project';
 import { useAgents } from '@app/store/agent';
@@ -42,21 +43,21 @@ export default function AgentSelect<
   Multiple extends boolean | undefined = false,
   DisableClearable extends boolean | undefined = false,
 >({
+  type,
   placeholder,
   excludes,
-  includes,
   value,
   onChange,
   ...props
-}: { placeholder?: string } & AgentSelectFilter &
+}: { type: ResourceType; placeholder?: string } & AgentSelectFilter &
   Pick<AutocompleteProps<AgentSelectValue, Multiple, DisableClearable, false>, 'value' | 'onChange'> &
   Partial<
     Omit<AutocompleteProps<AgentSelectOption, Multiple, DisableClearable, false>, 'options' | 'value' | 'onChange'>
   >) {
   const { t } = useLocaleContext();
-  const { agentMap, projectMap, load } = useAgents();
+  const { agentMap, projectMap, load } = useAgents({ type });
 
-  const { agents: options } = useAgentSelectOptions({ includes, excludes });
+  const { agents: options } = useAgentSelectOptions({ type, excludes });
 
   const isAdmin = useIsAdmin();
 
@@ -95,7 +96,7 @@ export default function AgentSelect<
           )
         }
         options={options}
-        slotProps={{ popper: { placement: 'bottom-start', sx: { width: 'fit-content !important' } } }}
+        slotProps={{ popper: { placement: 'bottom-start', sx: { width: 'fit-content !important', maxWidth: 500 } } }}
         isOptionEqualToValue={(o, v) => o.id === v.id && o.project.id === v.project.id}
         renderInput={(params) => (
           <Stack direction="row">
@@ -203,7 +204,9 @@ function ProjectHeaderView({ project, ...props }: { project: AgentSelectOption['
             {project.name || t('unnamed')}
           </Typography>
           {project.description && (
-            <Typography variant="caption" noWrap>
+            <Typography
+              variant="caption"
+              sx={{ display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2, overflow: 'hidden' }}>
               {project.description}
             </Typography>
           )}
