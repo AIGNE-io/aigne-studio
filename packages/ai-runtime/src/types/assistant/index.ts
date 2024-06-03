@@ -15,7 +15,11 @@ export type Variables = {
   variables?: Variable[];
 };
 
-export type FileType = Assistant | { $base64: string } | Variables;
+export type ConfigFile = {
+  entry?: string;
+};
+
+export type FileType = Assistant | { $base64: string } | Variables | ConfigFile;
 
 export type Assistant = Agent | PromptAssistant | ImageAssistant | ApiAssistant | FunctionAssistant | RouterAssistant;
 

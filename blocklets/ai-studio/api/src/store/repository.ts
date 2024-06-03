@@ -1,10 +1,13 @@
 import { readdir, rm, writeFile } from 'fs/promises';
-import path, { relative } from 'path';
+import path, { basename, join, relative } from 'path';
 
 import { EVENTS } from '@api/event';
 import { broadcast } from '@api/libs/ws';
 import {
   Assistant,
+  ConfigFile,
+  ConfigFileYjs,
+  FileType,
   FileTypeYjs,
   Variables,
   fileFromYjs,
@@ -20,7 +23,7 @@ import { glob } from 'glob';
 import isEmpty from 'lodash/isEmpty';
 import pick from 'lodash/pick';
 import { nanoid } from 'nanoid';
-import { joinURL, parseAuth, parseURL } from 'ufo';
+import { parseAuth, parseURL } from 'ufo';
 import { parse, stringify } from 'yaml';
 
 import { authClient, wallet } from '../libs/auth';
@@ -29,9 +32,14 @@ import { Config } from '../libs/env';
 import logger from '../libs/logger';
 import Project from './models/project';
 
-export const CONFIG_FONDER = 'config';
+export const CONFIG_FOLDER = 'config';
+
 export const VARIABLE_KEY = 'variable';
 export const VARIABLE_FILENAME = `${VARIABLE_KEY}.yaml`;
+
+export const CONFIG_FILE_KEY = 'config';
+export const CONFIG_FILENAME = `${CONFIG_FILE_KEY}.yaml`;
+export const CONFIG_FILE_PATH = join(CONFIG_FOLDER, CONFIG_FILENAME);
 
 export const defaultBranch = 'main';
 
@@ -100,13 +108,17 @@ export async function getRepository({
           }
         }
 
-        if (
-          root === CONFIG_FONDER &&
-          filepath.startsWith(joinURL(CONFIG_FONDER, VARIABLE_FILENAME)) &&
-          ext === '.yaml'
-        ) {
-          const variable = parse(Buffer.from(content).toString());
-          return { filepath, key: VARIABLE_KEY, data: variable };
+        if (root === CONFIG_FOLDER) {
+          const filename = basename(filepath);
+          if (filename === VARIABLE_FILENAME) {
+            const variable = parse(Buffer.from(content).toString());
+            return { filepath, key: VARIABLE_KEY, data: variable };
+          }
+
+          if (filename === CONFIG_FILENAME) {
+            const config = parse(Buffer.from(content).toString());
+            return { filepath, key: CONFIG_FILE_KEY, data: config };
+          }
         }
 
         return {
@@ -157,10 +169,19 @@ export async function getRepository({
           return [{ filepath, data }];
         }
 
-        const [root, filename] = filepath.split('/');
-        if (root === CONFIG_FONDER && filename === VARIABLE_FILENAME) {
-          const { variables } = content;
-          return [{ filepath, data: stringify({ variables }) }];
+        if (isVariables(content)) {
+          const [root, filename] = filepath.split('/');
+          if (root === CONFIG_FOLDER && filename === VARIABLE_FILENAME) {
+            const { variables } = content;
+            return [{ filepath, data: stringify({ variables }) }];
+          }
+        }
+
+        if (filepath === CONFIG_FILE_PATH) {
+          const [root, filename] = filepath.split('/');
+          if (root === CONFIG_FOLDER && filename === CONFIG_FILENAME) {
+            return [{ filepath, data: stringify(content) }];
+          }
         }
 
         return [{ filepath, data: '' }];
@@ -496,6 +517,48 @@ export async function getAssistantFromRepository({
         ? rejectOnEmpty
         : new Error(`no such assistant ${JSON.stringify({ ref, assistantId, working })}`);
     }
+  }
+
+  return file;
+}
+
+export async function getEntryFromRepository({
+  projectId,
+  ref,
+  working,
+}: {
+  projectId: string;
+  ref: string;
+  working?: boolean;
+}): Promise<Assistant | undefined> {
+  const repository = await getRepository({ projectId });
+
+  let file: FileType | undefined;
+
+  if (working) {
+    const working = await repository.working({ ref });
+    const config = working.syncedStore.files[CONFIG_FILE_KEY] as ConfigFileYjs;
+    if (!config) return undefined;
+    const { entry } = config;
+    const f = working.syncedStore.files[entry!];
+    file = f && fileFromYjs(f);
+  } else {
+    let config: ConfigFile | undefined;
+    try {
+      const raw = Buffer.from((await repository.readBlob({ ref, filepath: CONFIG_FILE_PATH })).blob).toString();
+      config = parse(raw);
+    } catch (error) {
+      logger.error(`failed to read ${CONFIG_FILE_PATH}`, { error });
+    }
+
+    if (!config?.entry) return undefined;
+
+    const p = (await repository.listFiles({ ref })).find((i) => i.endsWith(`${config.entry}.yaml`));
+    file = p && parse(Buffer.from((await repository.readBlob({ ref, filepath: p })).blob).toString());
+  }
+
+  if (!file || !isAssistant(file)) {
+    return undefined;
   }
 
   return file;

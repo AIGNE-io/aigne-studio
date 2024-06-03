@@ -24,12 +24,12 @@ export type ResourceType =
   | 'knowledge';
 
 export const ResourceTypes: ResourceType[] = [
-  'template',
-  'example',
   'application',
   'tool',
   'llm-adapter',
   'aigc-adapter',
+  'template',
+  'example',
   'knowledge',
 ];
 

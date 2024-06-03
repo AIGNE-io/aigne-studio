@@ -31,7 +31,12 @@ export type VariablesYjs = {
   variables?: VariableYjs[];
 };
 
-export type FileTypeYjs = AssistantYjs | { $base64: string } | VariablesYjs;
+export type ConfigFileYjs = {
+  entry?: string;
+  [key: string]: any;
+};
+
+export type FileTypeYjs = AssistantYjs | { $base64: string } | VariablesYjs | ConfigFileYjs;
 
 export type AssistantYjs =
   | AgentYjs

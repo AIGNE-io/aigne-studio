@@ -15,7 +15,13 @@ import { stringify } from 'yaml';
 
 import { ensurePromptsEditor } from '../libs/security';
 import Project from '../store/models/project';
-import { LOGO_FILENAME, defaultBranch, getAssistantsOfRepository, getRepository } from '../store/repository';
+import {
+  LOGO_FILENAME,
+  defaultBranch,
+  getAssistantsOfRepository,
+  getEntryFromRepository,
+  getRepository,
+} from '../store/repository';
 
 const AI_STUDIO_DID = 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
 
@@ -101,9 +107,8 @@ export function resourceRoutes(router: Router) {
 
     const resources = await Promise.all(
       projects.map(async (x) => {
-        const dependentComponents = getAssistantDependentComponents(
-          await getAssistantsOfRepository({ projectId: x._id, ref: x.gitDefaultBranch! })
-        );
+        const assistants = await getAssistantsOfRepository({ projectId: x._id, ref: x.gitDefaultBranch! });
+        const dependentComponents = getAssistantDependentComponents(assistants);
 
         return {
           id: x._id,
@@ -118,13 +123,20 @@ export function resourceRoutes(router: Router) {
             {
               id: `other/${x._id}`,
               name: locale.other,
-              children: ResourceTypes.filter((i) => i !== 'application').map((i) => ({
-                id: `${i}/${x._id}`,
-                name: locale[i],
+              children: ResourceTypes.filter((i) => i !== 'application').map((type) => ({
+                id: `${type}/${x._id}`,
+                name: locale[type],
+                children: !['tool', 'llm-adapter', 'aigc-adapter'].includes(type)
+                  ? undefined
+                  : assistants.map((assistant) => ({
+                      id: `${type}/${x._id}/${assistant.id}`,
+                      name: assistant.name || locale.unnamed,
+                      dependentComponents,
+                    })),
                 dependentComponents,
               })),
             },
-          ],
+          ].filter(Boolean),
         };
       })
     );
@@ -136,51 +148,65 @@ export function resourceRoutes(router: Router) {
     const { resources, projectId, releaseId } = await exportResourceSchema.validateAsync(req.body, {
       stripUnknown: true,
     });
-    const splitResources = uniq(resources)
-      .map((x) => {
-        try {
-          const [key, value] = x.split('/');
-          if (key && value) return { key, value };
-          return null;
-        } catch (error) {
-          return null;
-        }
-      })
-      .filter((i): i is NonNullable<typeof i> => !!i);
-    const groupResources = groupBy(splitResources, 'key');
 
-    const formatResources = Object.entries(groupResources).map(([key, value]) => ({
-      key,
-      value: uniq(value.map((x) => x.value).filter(Boolean)).filter(Boolean),
-    }));
+    const resourceTypes = Object.entries(
+      groupBy(
+        uniq(resources)
+          .map((x) => {
+            const [type, projectId, agentId] = x.split('/');
+            return type && projectId ? { type, projectId, agentId } : null;
+          })
+          .filter((i): i is NonNullable<typeof i> => !!i),
+        (i) => i.type
+      )
+    );
 
     const resourceDir = await getResourceDir({ projectId, releaseId: releaseId || '' });
     const arr = [];
 
-    for (const item of formatResources) {
-      const { key, value } = item;
+    for (const [type, value] of resourceTypes) {
+      const folderPath = path.join(resourceDir, type);
 
-      const folderPath = path.join(resourceDir, key);
+      const projects = groupBy(value, (v) => v.projectId);
 
-      for (const projectId of value) {
+      for (const [projectId, values] of Object.entries(projects)) {
+        const agentIds = new Set(values.map((i) => i.agentId).filter((i): i is string => !!i));
+
+        if (type === 'application') {
+          const project = await Project.findByPk(projectId, {
+            rejectOnEmpty: new Error(`No such project ${projectId}`),
+          });
+          const entry = await getEntryFromRepository({ projectId, ref: project.gitDefaultBranch! });
+          if (!entry) throw new Error(`Missing entry agent for project ${projectId}`);
+        }
+
         await mkdir(path.join(folderPath, projectId), { recursive: true });
 
         const project = await Project.findOne({ where: { _id: projectId } });
         const assistants = await Promise.all(
           (await getAssistantsOfRepository({ projectId, ref: project?.gitDefaultBranch! })).map(async (i) => {
             const logo = i.release?.logo;
-            if (!logo) return i;
 
             const logoFilename = `${i.id}-release-logo.png`;
             const logoPath = path.join(folderPath, projectId, logoFilename);
 
             try {
-              await downloadImage(logo, logoPath);
+              if (logo) {
+                await downloadImage(logo, logoPath);
+              }
             } catch (error) {
               logger.error('failed to download assistant logo', { error, logo });
             }
 
-            return { ...i, release: { ...i.release, logo: logoFilename } };
+            return {
+              ...i,
+              // NOTE: 是否是公开的 agent，公开的 agent 可以被选择引用
+              public: agentIds.has(i.id) || undefined,
+              release: {
+                ...i.release,
+                logo: logoFilename,
+              },
+            };
           })
         );
 
