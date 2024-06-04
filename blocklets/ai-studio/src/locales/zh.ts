@@ -725,4 +725,6 @@ export default flat({
   default: '默认',
   setAsEntry: '设置为入口 Agent',
   entryAgent: '入口',
+  attachUrl: '分享时附加链接',
+  attachInputs: '分享时附加输入',
 });

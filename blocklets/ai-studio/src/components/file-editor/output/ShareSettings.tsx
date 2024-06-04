@@ -1,13 +1,15 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { OutputVariableYjs, RuntimeOutputShare } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { Checkbox, List, ListItem, ListItemIcon, ListItemText, Stack, Typography } from '@mui/material';
+import { Checkbox, Divider, List, ListItem, ListItemText, Stack, Typography } from '@mui/material';
 import { WritableDraft } from 'immer';
 
 export default function ShareSettings({ output }: { output: OutputVariableYjs }) {
   const { t } = useLocaleContext();
 
   const initialValue = output.initialValue as RuntimeOutputShare | undefined;
+
+  const { shareAttachUrl, shareAttachInputs } = initialValue ?? { shareAttachUrl: false, shareAttachInputs: false };
 
   const checkedVias = new Set(initialValue?.items?.map((i) => i.to) ?? []);
 
@@ -31,24 +33,40 @@ export default function ShareSettings({ output }: { output: OutputVariableYjs })
     });
   };
 
+  const toggleShareWith = (option: 'shareAttachUrl' | 'shareAttachInputs', checked: boolean) => {
+    setField((value) => {
+      value[option] = checked;
+    });
+  };
+
   return (
     <Stack gap={2}>
-      <Stack gap={1}>
+      <Stack>
         <Typography variant="subtitle1">{t('share')}</Typography>
-
-        <List dense>
+        <List dense sx={{ display: 'flex', flexDirection: 'row' }}>
           {SupportedShares.map((item) => (
-            <ListItem key={item.to}>
-              <ListItemIcon>
-                <Checkbox
-                  checked={checkedVias.has(item.to)}
-                  onChange={(_, checked) => toggleItemChecked(item, checked)}
-                />
-              </ListItemIcon>
-
+            <ListItem key={item.to} sx={{ display: 'flex' }}>
+              <Checkbox
+                checked={checkedVias.has(item.to)}
+                onChange={(_, checked) => toggleItemChecked(item, checked)}
+              />
               <ListItemText primary={t(item.to)} />
             </ListItem>
           ))}
+        </List>
+        <Divider sx={{ marginLeft: 3 }} />
+        <List dense>
+          <ListItem>
+            <Checkbox checked={shareAttachUrl} onChange={(_, checked) => toggleShareWith('shareAttachUrl', checked)} />
+            <ListItemText primary={t('attachUrl')} />
+          </ListItem>
+          <ListItem>
+            <Checkbox
+              checked={shareAttachInputs}
+              onChange={(_, checked) => toggleShareWith('shareAttachInputs', checked)}
+            />
+            <ListItemText primary={t('attachInputs')} />
+          </ListItem>
         </List>
       </Stack>
     </Stack>

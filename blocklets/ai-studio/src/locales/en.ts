@@ -731,4 +731,6 @@ export default flat({
   default: 'Default',
   setAsEntry: 'Set as entry agent',
   entryAgent: 'Entry',
+  attachUrl: 'Attach link when sharing',
+  attachInputs: 'Attach inputs when sharing',
 });

@@ -322,6 +322,8 @@ export interface RuntimeOutputChildren {
 
 export interface RuntimeOutputShare {
   items?: { to: string }[];
+  shareAttachUrl?: boolean;
+  shareAttachInputs?: boolean;
 }
 
 export interface RuntimeOutputOpeningQuestions {
