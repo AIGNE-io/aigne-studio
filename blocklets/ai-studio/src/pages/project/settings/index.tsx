@@ -6,7 +6,6 @@ import { defaultTextModel, getSupportedModels } from '@blocklet/ai-runtime/commo
 import { SaveRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
-  AppBar,
   Box,
   BoxProps,
   FormControl,
@@ -17,10 +16,12 @@ import {
   Stack,
   Tabs,
   TextField,
+  Theme,
   Tooltip,
   Typography,
   styled,
   tabClasses,
+  useMediaQuery,
 } from '@mui/material';
 import Tab from '@mui/material/Tab';
 import equal from 'fast-deep-equal';
@@ -81,6 +82,7 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
 
   const { value: supportedModels, loading: getSupportedModelsLoading } = useAsync(() => getSupportedModels(), []);
   const model = useMemo(() => supportedModels?.find((i) => i.model === value.model), [value.model, supportedModels]);
+  const isMobile = useMediaQuery<Theme>((theme) => theme.breakpoints.down('md'));
 
   const {
     state: { project, error, ...state },
@@ -201,32 +203,34 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
   }
 
   return (
-    <Box overflow="auto" {...boxProps} sx={{ width: '25vw' }}>
-      <SettingsContainer maxWidth="md" sx={{ p: 2 }} className="setting-container">
-        <AppBar position="fixed" sx={{ width: '25vw', bgcolor: '#fff', boxShadow: 'none', py: 1 }}>
-          <Tabs
-            centered
-            sx={{
+    <Box overflow="auto" {...boxProps}>
+      <SettingsContainer sx={{ px: 2, width: isMobile ? '100%' : '400px' }} className="setting-container">
+        <Tabs
+          centered
+          sx={{
+            minHeight: 32,
+            [`.${tabClasses.root}`]: {
+              py: 1,
+              px: 1,
               minHeight: 32,
-              [`.${tabClasses.root}`]: {
-                py: 1,
-                px: 1,
-                minHeight: 32,
-                minWidth: 32,
-                borderRadius: 1,
-              },
-            }}
-            onChange={(_event: React.SyntheticEvent, newValue: string) => {
-              setCurrentTabIndex(newValue);
-            }}
-            value={currentTabIndex}>
-            {tabListInfo.list.map((x) => {
-              return <Tab disableRipple label={t(`projectSetting.tabs.${x}`)} value={x} key={x} sx={{ px: 0 }} />;
-            })}
-          </Tabs>
-        </AppBar>
-
-        <Box sx={{ marginTop: 5 }}>
+              minWidth: 32,
+              borderRadius: 1,
+            },
+            bgcolor: '#fff',
+            py: 1,
+            zIndex: 10000,
+            position: 'sticky',
+            top: 0,
+          }}
+          onChange={(_event: React.SyntheticEvent, newValue: string) => {
+            setCurrentTabIndex(newValue);
+          }}
+          value={currentTabIndex}>
+          {tabListInfo.list.map((x) => {
+            return <Tab disableRipple label={t(`projectSetting.tabs.${x}`)} value={x} key={x} sx={{ px: 0 }} />;
+          })}
+        </Tabs>
+        <Box>
           {currentTabIndex === 'basic' && (
             <Form onSubmit={(e) => e.preventDefault()}>
               <Stack gap={2} mt={2}>
