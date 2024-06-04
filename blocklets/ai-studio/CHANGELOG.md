@@ -1,3 +1,7 @@
+## 0.2.23 (2024-6-4)
+
+- fix: hide publish button
+
 ## 0.2.22 (2024-5-29)
 
 - fix: remove responseFormat json parameter
