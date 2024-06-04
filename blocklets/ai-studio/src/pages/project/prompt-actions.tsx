@@ -34,7 +34,7 @@ import { joinURL } from 'ufo';
 import CommitsTip, { CommitListView } from '../../components/template-form/commits-tip';
 import { getFileIdFromPath } from '../../utils/path';
 import PublishView from './publish-view';
-import PublishButton from './publish/publish-button';
+// import PublishButton from './publish/publish-button';
 import SaveButton, { CommitForm, SaveButtonDialog } from './save-button';
 import Settings from './settings';
 import { useAssistantChangesState, useProjectState } from './state';
@@ -122,7 +122,7 @@ export function HeaderActions() {
           </Popper>
         </>
 
-        <PublishButton />
+        {/* <PublishButton /> */}
 
         <>
           <LoadingButton
@@ -177,7 +177,7 @@ export function MobileHeaderActions() {
 
       <Divider sx={{ m: 0, p: 0 }} />
 
-      <Box>
+      {/* <Box>
         <PublishButton
           fullWidth
           variant="outlined"
@@ -185,7 +185,7 @@ export function MobileHeaderActions() {
           startIcon={<Box component={Icon} icon={BrandAppgalleryIcon} />}>
           {t('publish')}
         </PublishButton>
-      </Box>
+      </Box> */}
 
       <PreviewAction />
     </CurrentProjectProvider>
