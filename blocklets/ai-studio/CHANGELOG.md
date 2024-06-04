@@ -1,3 +1,7 @@
+## 0.2.32 (2024-6-4)
+
+- fix: hide publish button
+
 ## 0.2.31 (2024-6-3)
 
 - feat: support publish/consume application and selected tools
