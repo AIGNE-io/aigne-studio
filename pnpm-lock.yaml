@@ -400,6 +400,9 @@ importers:
       react-dom:
         specifier: ^18.3.1
         version: 18.3.1(react@18.3.1)
+      react-helmet:
+        specifier: ^6.1.0
+        version: 6.1.0(react@18.3.1)
       react-hook-form:
         specifier: ^7.51.5
         version: 7.51.5(react@18.3.1)
@@ -536,6 +539,9 @@ importers:
       '@types/react-dom':
         specifier: ^18.3.0
         version: 18.3.0
+      '@types/react-helmet':
+        specifier: ^6.1.11
+        version: 6.1.11
       '@types/tz-lookup':
         specifier: ^6.1.2
         version: 6.1.2
@@ -2654,8 +2660,8 @@ packages:
   '@microsoft/fetch-event-source@2.0.1':
     resolution: {integrity: sha512-W6CLUJ2eBMw3Rec70qrsEW0jOm/3twwJv21mrmj2yORiaVmVYGS4sSS5yUwvQc1ZlDLYGPnClVWmUUMagKNsfA==}
 
-  '@million/install@0.0.9':
-    resolution: {integrity: sha512-RFwtvNtc5uX5E3leGHjRsDZlvFMCVgrPgtUAgHdpIt1RDxpXhS/MCDd8NsegECF1I5WRGanACPXfCEsxqPyl0Q==}
+  '@million/install@0.0.14':
+    resolution: {integrity: sha512-tzttKRbN7AYrtqeB3HJovgV9bJwTrzcqYiTPZDAZRWHkx2cfUoRb/INvjGlJlDyfaQBCCTRTpMDmr29//LcXJA==}
     hasBin: true
 
   '@minoru/react-dnd-treeview@3.4.4':
@@ -3886,6 +3892,9 @@ packages:
 
   '@types/react-dom@18.3.0':
     resolution: {integrity: sha512-EhwApuTmMBmXuFOikhQLIBUn6uFg81SwLMOAUgodJF14SOBOCMdU04gDoYi0WOJJHD144TL32z4yDqCW3dnkQg==}
+
+  '@types/react-helmet@6.1.11':
+    resolution: {integrity: sha512-0QcdGLddTERotCXo3VFlUSWO3ztraw8nZ6e3zJSgG7apwV5xt+pJUS8ewPBqT4NYB1optGLprNQzFleIY84u/g==}
 
   '@types/react-transition-group@4.4.10':
     resolution: {integrity: sha512-hT/+s0VQs2ojCX823m60m5f0sL5idt9SO6Tj6Dg+rdphGPIeJbJ6CxvBYkgkGKrYeDjvIpKTR38UzmtHJOGW3Q==}
@@ -14839,7 +14848,7 @@ snapshots:
 
   '@microsoft/fetch-event-source@2.0.1': {}
 
-  '@million/install@0.0.9':
+  '@million/install@0.0.14':
     dependencies:
       '@antfu/ni': 0.21.12
       '@axiomhq/js': 1.0.0-rc.3
@@ -16323,6 +16332,10 @@ snapshots:
       '@types/reactcss': 1.2.12
 
   '@types/react-dom@18.3.0':
+    dependencies:
+      '@types/react': 18.3.3
+
+  '@types/react-helmet@6.1.11':
     dependencies:
       '@types/react': 18.3.3
 
@@ -22261,7 +22274,7 @@ snapshots:
     dependencies:
       '@babel/core': 7.24.5
       '@babel/types': 7.24.5
-      '@million/install': 0.0.9
+      '@million/install': 0.0.14
       '@rollup/pluginutils': 5.1.0(rollup@4.16.4)
       kleur: 4.1.5
       undici: 6.14.1

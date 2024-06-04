@@ -1,8 +1,7 @@
 import { UpdateProjectInput } from '@api/routes/project';
-import { loadFontList } from '@app/utils/font';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Box, ListSubheader, MenuItem, Select, SelectProps, Stack, Typography } from '@mui/material';
-import { useEffect } from 'react';
+import { Helmet } from 'react-helmet';
 
 const defaultFonts = [
   // Sans-serif 字体
@@ -37,6 +36,19 @@ const defaultFonts = [
   'Cantarell',
 ];
 
+const getFontUrl = (fontList: any[]) => {
+  if (!fontList.length) return;
+
+  const BASE_URL = 'https://fonts.googleapis.com/css?family=';
+  const newFontList = fontList
+    .filter((font) => typeof font === 'string')
+    ?.map((font) => font.replace(/ /g, '+'))
+    .join('|');
+
+  // eslint-disable-next-line consistent-return
+  return `${BASE_URL}${newFontList}`;
+};
+
 export default function FontFamilySetting({
   set,
   value,
@@ -48,24 +60,11 @@ export default function FontFamilySetting({
 
   const { t } = useLocaleContext();
 
-  const loadFont = async (value: string[]) => {
-    if (!value) return;
-
-    if (document.querySelectorAll('link[href*="fonts.googleapis.com" i]').length) return;
-
-    try {
-      await loadFontList(value);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  useEffect(() => {
-    loadFont(defaultFonts.filter((f) => typeof f === 'string') as string[]);
-  }, []);
-
   return (
     <Stack gap={1}>
+      <Helmet>
+        <link rel="stylesheet" href={getFontUrl(defaultFonts)} />
+      </Helmet>
       <Box>
         <Stack>
           <Typography variant="subtitle3">{t('projectSetting.fontFamily.title')}</Typography>
