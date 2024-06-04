@@ -177,7 +177,7 @@ export function MobileHeaderActions() {
 
       <Divider sx={{ m: 0, p: 0 }} />
 
-      <Box>
+      {/* <Box>
         <PublishButton
           fullWidth
           variant="outlined"
@@ -185,7 +185,7 @@ export function MobileHeaderActions() {
           startIcon={<Box component={Icon} icon={BrandAppgalleryIcon} />}>
           {t('publish')}
         </PublishButton>
-      </Box>
+      </Box> */}
 
       <PreviewAction />
     </CurrentProjectProvider>
