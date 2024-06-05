@@ -1,5 +1,6 @@
 import { ResourceType } from '@api/libs/resource';
 import { useIsAdmin } from '@app/contexts/session';
+import { AI_STUDIO_COMPONENT_DID } from '@app/libs/constants';
 import { getProjectIconUrl } from '@app/libs/project';
 import { useAgents } from '@app/store/agent';
 import DID from '@arcblock/ux/lib/DID';
@@ -70,8 +71,8 @@ export default function AgentSelect<
     <>
       <AddComponent
         componentDid={window.blocklet.appId}
-        resourceDid="z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB"
-        resourceType="tool"
+        resourceDid={AI_STUDIO_COMPONENT_DID}
+        resourceType={type}
         autoClose={false}
         render={({ onClick, loading }) => {
           addComponentRef.current = { onClick, loading };
