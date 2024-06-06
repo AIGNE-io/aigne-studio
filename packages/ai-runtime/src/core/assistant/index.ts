@@ -1,12 +1,13 @@
 import crypto from 'crypto';
 import { join } from 'path';
-import { ReadableStream, TextDecoderStream } from 'stream/web';
+import { ReadableStream, TextDecoderStream, TransformStream } from 'stream/web';
 
 import {
   ChatCompletionChunk,
   ChatCompletionInput,
   ChatCompletionResponse,
   isChatCompletionChunk,
+  isChatCompletionUsage,
 } from '@blocklet/ai-kit/api/types';
 import { EventSourceParserStream } from '@blocklet/ai-kit/api/utils/event-stream';
 import { getBuildInDatasets } from '@blocklet/dataset-sdk';
@@ -17,7 +18,7 @@ import { call, call as callFunc } from '@blocklet/sdk/lib/component';
 import { logger } from '@blocklet/sdk/lib/config';
 import axios, { isAxiosError } from 'axios';
 import Joi from 'joi';
-import { flattenDeep, isNil, pick, startCase, toLower } from 'lodash';
+import { isNil, pick, startCase, toLower } from 'lodash';
 import { Worker } from 'snowflake-uuid';
 import { joinURL, withQuery } from 'ufo';
 import { NodeVM } from 'vm2';
@@ -29,10 +30,8 @@ import {
   Assistant,
   ExecuteBlock,
   FunctionAssistant,
-  Prompt,
   PromptAssistant,
   isApiAssistant,
-  isExecuteBlock,
   isFunctionAssistant,
   isPromptAssistant,
 } from '../../types';
@@ -42,7 +41,6 @@ import {
   Mustache,
   OnTaskCompletion,
   Parameter,
-  Role,
   RouterAssistant,
   Tool,
   User,
@@ -795,21 +793,30 @@ async function runRouterAssistant({
     let calls: NonNullable<ChatCompletionChunk['delta']['toolCalls']> | undefined;
 
     for await (const chunk of response) {
-      if (!isChatCompletionChunk(chunk)) continue;
+      if (isChatCompletionUsage(chunk)) {
+        callback?.({
+          type: AssistantResponseType.USAGE,
+          taskId,
+          assistantId: assistant.id,
+          usage: chunk.usage,
+        });
+      }
 
-      const { toolCalls } = chunk.delta;
+      if (isChatCompletionChunk(chunk)) {
+        const { toolCalls } = chunk.delta;
 
-      if (toolCalls) {
-        if (!calls) {
-          calls = toolCalls;
-        } else {
-          toolCalls.forEach((item, index) => {
-            const call = calls?.[index];
-            if (call?.function) {
-              call.function.name += item.function?.name || '';
-              call.function.arguments += item.function?.arguments || '';
-            }
-          });
+        if (toolCalls) {
+          if (!calls) {
+            calls = toolCalls;
+          } else {
+            toolCalls.forEach((item, index) => {
+              const call = calls?.[index];
+              if (call?.function) {
+                call.function.name += item.function?.name || '';
+                call.function.arguments += item.function?.arguments || '';
+              }
+            });
+          }
         }
       }
     }
@@ -1639,35 +1646,7 @@ async function runPromptAssistant({
   functionName?: string;
   entryProjectId: string;
 }) {
-  const executeBlocks = (assistant.prompts ?? [])
-    .filter((i): i is Extract<Prompt, { type: 'executeBlock' }> => isExecuteBlock(i) && i.visibility !== 'hidden')
-    .map((i) => i.data);
-
-  const blockResults = await runExecuteBlocks({
-    getSecret,
-    assistant,
-    callAI,
-    callAIImage,
-    getAssistant,
-    executeBlocks,
-    parameters,
-    parentTaskId: taskId,
-    callback,
-    user,
-    sessionId,
-    projectId,
-    datastoreVariables,
-    entryProjectId,
-  });
-
   const variables = { ...parameters };
-
-  for (const [block, result] of blockResults) {
-    const { variable } = block;
-    if (variable) {
-      variables[variable] = result;
-    }
-  }
 
   const messages = (
     await Promise.all(
@@ -1685,29 +1664,6 @@ async function runPromptAssistant({
                   .join('\n') || '',
                 variables
               ),
-            };
-          }
-
-          if (prompt.type === 'executeBlock') {
-            const result = blockResults.find((i) => i[0].id === prompt.data.id)?.[1];
-
-            if (prompt.data.formatResultType === 'asHistory') {
-              return flattenDeep([result])
-                .filter(
-                  (i): i is { role: Role; content: string } =>
-                    typeof i?.role === 'string' && typeof i.content === 'string'
-                )
-                .map((message) => pick(message, 'role', 'content'));
-            }
-
-            if (prompt?.data?.role === 'none') return null;
-
-            return {
-              role: prompt.data.role ?? 'system',
-              content:
-                (await renderMessage(prompt.data.prefix ?? '', variables)) +
-                (typeof result === 'string' ? result : JSON.stringify(result)) +
-                (await renderMessage(prompt.data.suffix ?? '', variables)),
             };
           }
 
@@ -1802,7 +1758,7 @@ async function runPromptAssistant({
                 [executor.parameters?.find((i) => i.type === 'llmInputMessages')?.key!]: messagesWithSystemPrompt,
               },
             })
-          )[RuntimeOutputVariable.llmResponseStream],
+          )[RuntimeOutputVariable.llmResponseStream] as ReadableStream<ChatCompletionResponse>,
         }
       : await callAI({
           assistant,
@@ -1818,7 +1774,25 @@ async function runPromptAssistant({
           },
         });
 
-    const stream = extractMetadataFromStream(aiResult.chatCompletionChunk, onlyOutputJson || outputStreamAndJson);
+    const stream = extractMetadataFromStream(
+      aiResult.chatCompletionChunk.pipeThrough(
+        new TransformStream({
+          transform: (chunk, controller) => {
+            if (isChatCompletionUsage(chunk)) {
+              callback?.({
+                type: AssistantResponseType.USAGE,
+                taskId,
+                assistantId: assistant.id,
+                usage: chunk.usage,
+              });
+            }
+
+            controller.enqueue(chunk);
+          },
+        })
+      ),
+      onlyOutputJson || outputStreamAndJson
+    );
 
     for await (const chunk of stream) {
       if (chunk.type === 'text') {
@@ -1958,20 +1932,13 @@ async function runPromptAssistant({
 }
 
 async function runImageAssistant({
-  getSecret,
-  callAI,
   callAIImage,
   taskId,
-  getAssistant,
   assistant,
   parameters,
   parentTaskId,
   callback,
-  user,
-  sessionId,
-  projectId,
   datastoreVariables,
-  entryProjectId,
 }: {
   getSecret: (args: {
     targetProjectId: string;
@@ -1994,33 +1961,7 @@ async function runImageAssistant({
 }) {
   if (!assistant.prompt?.length) throw new Error('Prompt cannot be empty');
 
-  const blockResults = assistant.prepareExecutes?.length
-    ? await runExecuteBlocks({
-        getSecret,
-        assistant,
-        callAI,
-        callAIImage,
-        getAssistant,
-        parameters,
-        executeBlocks: assistant.prepareExecutes,
-        parentTaskId: taskId,
-        callback,
-        user,
-        sessionId,
-        projectId,
-        datastoreVariables,
-        entryProjectId,
-      })
-    : [];
-
   const variables = { ...parameters };
-
-  for (const [block, result] of blockResults) {
-    const { variable } = block;
-    if (variable) {
-      variables[variable] = result;
-    }
-  }
 
   const prompt = await renderMessage(
     assistant.prompt
@@ -2101,511 +2042,6 @@ async function runImageAssistant({
   });
 
   return object;
-}
-
-async function runExecuteBlocks({
-  getSecret,
-  assistant,
-  callAI,
-  callAIImage,
-  getAssistant,
-  parameters,
-  executeBlocks,
-  parentTaskId,
-  callback,
-  user,
-  sessionId,
-  projectId,
-  datastoreVariables,
-  entryProjectId,
-}: {
-  getSecret: (args: {
-    targetProjectId: string;
-    targetAgentId: string;
-    targetInputKey: string;
-  }) => Promise<{ secret: string }>;
-  assistant: Assistant;
-  callAI: CallAI;
-  callAIImage: CallAIImage;
-  getAssistant: GetAssistant;
-  parameters?: { [key: string]: any };
-  executeBlocks: ExecuteBlock[];
-  parentTaskId?: string;
-  callback?: RunAssistantCallback;
-  user?: User;
-  sessionId?: string;
-  projectId: string;
-  datastoreVariables: Variable[];
-  entryProjectId: string;
-}) {
-  if (!executeBlocks.length) return [];
-
-  const variables = { ...parameters };
-
-  const tasks: [ExecuteBlock, () => () => Promise<any>][] = [];
-  const cache: { [key: string]: Promise<any> } = {};
-  const datasets = await getBuildInDatasets();
-
-  for (const executeBlock of executeBlocks) {
-    const task = () => async () => {
-      cache[executeBlock.id] ??= runExecuteBlock({
-        getSecret,
-        taskId: taskIdGenerator.nextId().toString(),
-        assistant,
-        callAI,
-        callAIImage,
-        getAssistant,
-        executeBlock,
-        parameters: variables,
-        datasets,
-        parentTaskId,
-        callback,
-        user,
-        sessionId,
-        projectId,
-        datastoreVariables,
-        entryProjectId,
-      });
-
-      return cache[executeBlock.id]!;
-    };
-
-    if (executeBlock.variable) {
-      variables[executeBlock.variable] = task;
-    }
-
-    tasks.push([executeBlock, task]);
-  }
-
-  return Promise.all(tasks.map((i) => i[1]()().then((result) => [i[0], result] as const)));
-}
-
-async function runExecuteBlock({
-  getSecret,
-  taskId,
-  assistant,
-  callAI,
-  callAIImage,
-  getAssistant,
-  executeBlock,
-  parameters,
-  datasets,
-  parentTaskId,
-  callback,
-  user,
-  sessionId,
-  projectId,
-  datastoreVariables,
-  entryProjectId,
-}: {
-  getSecret: (args: {
-    targetProjectId: string;
-    targetAgentId: string;
-    targetInputKey: string;
-  }) => Promise<{ secret: string }>;
-  taskId: string;
-  assistant: Assistant;
-  callAI: CallAI;
-  callAIImage: CallAIImage;
-  getAssistant: GetAssistant;
-  executeBlock: ExecuteBlock;
-  parameters?: { [key: string]: any };
-  datasets?: DatasetObject[];
-  parentTaskId?: string;
-  callback?: RunAssistantCallback;
-  user?: User;
-  sessionId?: string;
-  projectId: string;
-  datastoreVariables: Variable[];
-  entryProjectId: string;
-}) {
-  const { tools } = executeBlock;
-  if (!tools?.length) return undefined;
-
-  const cb: ((taskId: string) => RunAssistantCallback) | undefined =
-    callback &&
-    ((taskId) => (args) => {
-      if (args.type === AssistantResponseType.CHUNK && args.taskId === taskId) {
-        callback({ ...args, respondAs: executeBlock.respondAs });
-        return;
-      }
-      callback(args);
-    });
-
-  callback?.({
-    type: AssistantResponseType.EXECUTE,
-    taskId,
-    parentTaskId,
-    assistantId: assistant.id,
-    assistantName: assistant.name,
-    execution: {
-      currentPhase: ExecutionPhase.EXECUTE_BLOCK_START,
-      blockId: executeBlock.id,
-      blockName: executeBlock.variable,
-    },
-  });
-
-  if (!executeBlock.selectType || executeBlock.selectType === 'all') {
-    const result = (
-      await Promise.all(
-        tools.map(async (tool) => {
-          const currentTaskId = taskIdGenerator.nextId().toString();
-
-          if (tool?.from === 'blockletAPI') {
-            const dataset = (datasets || []).find((x) => x.id === tool.id);
-            return (
-              dataset &&
-              runAPITool({
-                tool,
-                taskId: currentTaskId,
-                assistant,
-                executeBlock,
-                parameters,
-                dataset,
-                parentTaskId,
-                callback: cb?.(currentTaskId),
-                user,
-                sessionId,
-                projectId,
-              })
-            );
-          }
-
-          if (tool?.from === 'knowledge') {
-            return runKnowledgeTool({
-              tool,
-              taskId: currentTaskId,
-              assistant,
-              executeBlock,
-              parameters,
-              parentTaskId,
-              callback: cb?.(currentTaskId),
-              user,
-            });
-          }
-
-          const toolAssistant = await getAssistant(tool.id, {
-            blockletDid: tool.blockletDid,
-            projectId: tool.projectId,
-          });
-          if (!toolAssistant) return undefined;
-          const args = Object.fromEntries(
-            await Promise.all(
-              (toolAssistant.parameters ?? [])
-                .filter((i): i is typeof i & { key: string } => !!i.key && i.type !== 'source')
-                .map(async (i) => {
-                  const template = String(tool.parameters?.[i.key] || '').trim();
-                  const value = template ? await renderMessage(template, parameters) : parameters?.[i.key];
-
-                  return [i.key, value];
-                })
-            )
-          );
-
-          return runAssistant({
-            getSecret,
-            taskId: currentTaskId,
-            callAI,
-            callAIImage,
-            getAssistant,
-            assistant: toolAssistant,
-            parameters: args,
-            parentTaskId,
-            callback: cb?.(currentTaskId),
-            user,
-            sessionId,
-            projectId,
-            datastoreVariables,
-            entryProjectId,
-          });
-        })
-      )
-    ).filter((i) => !isNil(i));
-
-    callback?.({
-      type: AssistantResponseType.CHUNK,
-      taskId,
-      assistantId: assistant.id,
-      delta: { content: JSON.stringify(result) },
-    });
-
-    return result;
-  }
-
-  if (executeBlock.selectType === 'selectByPrompt') {
-    const message = await renderMessage(executeBlock.selectByPrompt || '', parameters);
-
-    const toolAssistants = (
-      await Promise.all(
-        tools.map(async (tool) => {
-          if (tool?.from === 'blockletAPI') {
-            const dataset = (datasets || []).find((x) => x.id === tool.id);
-            if (!dataset) return undefined;
-
-            const name = dataset.summary || dataset.description || '';
-
-            const datasetParameters = getAllParameters(dataset)
-              .filter((i): i is typeof i => !!i && !tool.parameters?.[i.name])
-              .map((i) => [i.name, { type: 'string', name, description: i.description ?? '' }]);
-
-            const required = getRequiredFields(dataset);
-
-            return {
-              tool,
-              toolAssistant: dataset,
-              function: {
-                name: name.replace(/[^a-zA-Z0-9_-]/g, '_')?.slice(0, 64) || dataset.path,
-                descriptions: dataset.description || name || '',
-                parameters: {
-                  type: 'object',
-                  properties: Object.fromEntries(datasetParameters),
-                  required: required?.length ? required : undefined,
-                },
-              },
-            };
-          }
-
-          if (tool?.from === 'knowledge') {
-            const parameters = [{ name: 'message', description: 'Search the content of the knowledge' }]
-              .filter((i): i is typeof i => !!i && !tool.parameters?.[i.name])
-              .map((i) => [i.name, { type: 'string', description: i.description ?? '' }]);
-
-            const { data } = await callFunc({
-              name: 'ai-studio',
-              path: `/api/datasets/${tool.id}`,
-              method: 'GET',
-              headers: getUserHeader(user),
-            });
-
-            const { name, description } = data;
-            return {
-              tool,
-              toolAssistant: data,
-              function: {
-                name: name.replace(/[^a-zA-Z0-9_-]/g, '_')?.slice(0, 64) || tool.id,
-                descriptions: description || name || '',
-                parameters: {
-                  type: 'object',
-                  properties: Object.fromEntries(parameters),
-                },
-              },
-            };
-          }
-
-          const toolAssistant = await getAssistant(tool.id, {
-            blockletDid: tool.blockletDid,
-            projectId: tool.projectId,
-          });
-          if (!toolAssistant) return undefined;
-          const toolParameters = (toolAssistant.parameters ?? [])
-            .filter(
-              (i): i is typeof i & Required<Pick<typeof i, 'key'>> =>
-                !!i.key && !tool.parameters?.[i.key] && i.type !== 'source'
-            )
-            .map((parameter) => {
-              return [
-                parameter.key,
-                {
-                  type: 'string',
-                  description: parameter.placeholder ?? '',
-                  enum:
-                    parameter.type === 'select'
-                      ? parameter.options?.map((i) => i.value)
-                      : parameter.type === 'language'
-                        ? languages.map((i) => i.en)
-                        : undefined,
-                },
-              ];
-            });
-
-          const required = (toolAssistant.parameters ?? [])
-            .filter((i): i is typeof i & { key: string } => !!i.key && i.type !== 'source')
-            .filter((x) => x.required)
-            .map((x) => x.key);
-
-          const name = tool?.functionName || toolAssistant?.name || '';
-          return {
-            tool,
-            toolAssistant,
-            function: {
-              name: name?.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64) || toolAssistant.id,
-              descriptions: toolAssistant.description,
-              parameters: {
-                type: 'object',
-                properties: Object.fromEntries(toolParameters),
-                required: required?.length ? required : undefined,
-              },
-            },
-          };
-        })
-      )
-    ).filter((i): i is NonNullable<typeof i> => !isNil(i));
-
-    callback?.({
-      type: AssistantResponseType.EXECUTE,
-      assistantId: assistant.id,
-      parentTaskId,
-      taskId,
-      execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
-    });
-
-    callback?.({
-      type: AssistantResponseType.INPUT,
-      assistantId: assistant.id,
-      parentTaskId,
-      taskId,
-      modelParameters: executeBlock.executeModel,
-      assistantName: `${executeBlock.variable ?? assistant.name}-select`,
-      promptMessages: [{ role: 'user', content: message }],
-    });
-
-    const response = await callAI({
-      assistant,
-      input: {
-        ...executeBlock.executeModel,
-        messages: [{ role: 'user', content: message }],
-        tools: toolAssistants.map((i) => ({
-          type: 'function',
-          function: {
-            name: i.function.name,
-            description: i.function.descriptions,
-            parameters: i.function.parameters,
-          },
-        })),
-      },
-    });
-
-    let calls: NonNullable<ChatCompletionChunk['delta']['toolCalls']> | undefined;
-
-    for await (const chunk of response) {
-      if (chunk.delta.content) {
-        callback?.({
-          type: AssistantResponseType.CHUNK,
-          taskId,
-          assistantId: assistant.id,
-          delta: { content: chunk.delta.content || '' },
-        });
-      }
-
-      const { toolCalls } = chunk.delta;
-
-      if (toolCalls) {
-        if (!calls) {
-          calls = toolCalls;
-        } else {
-          toolCalls.forEach((item, index) => {
-            const call = calls?.[index];
-            if (call?.function) {
-              call.function.name += item.function?.name || '';
-              call.function.arguments += item.function?.arguments || '';
-            }
-          });
-        }
-      }
-    }
-
-    callback?.({
-      type: AssistantResponseType.EXECUTE,
-      assistantId: assistant.id,
-      parentTaskId,
-      taskId,
-      execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
-    });
-
-    const toolAssistantMap = Object.fromEntries(toolAssistants.map((i) => [i.function.name, i]));
-
-    if (!calls?.length && executeBlock.defaultToolId) {
-      const defaultTool = toolAssistants.find((i) => i.tool.id === executeBlock.defaultToolId);
-      calls ??= [];
-      calls.push({ type: 'function', function: { name: defaultTool?.function.name, arguments: '{}' } });
-    }
-
-    const result =
-      calls &&
-      (await Promise.all(
-        calls.map(async (call) => {
-          if (!call.function?.name || !call.function.arguments) return undefined;
-
-          const tool = toolAssistantMap[call.function.name];
-          if (!tool) return undefined;
-          const requestData = JSON.parse(call.function.arguments);
-          const currentTaskId = taskIdGenerator.nextId().toString();
-
-          if (tool.tool.from === 'blockletAPI') {
-            return runAPITool({
-              tool: tool.tool,
-              taskId: currentTaskId,
-              assistant,
-              executeBlock,
-              parameters: { ...parameters, ...requestData },
-              dataset: tool.toolAssistant,
-              parentTaskId,
-              callback: cb?.(currentTaskId),
-              user,
-              sessionId,
-              projectId,
-            });
-          }
-
-          if (tool.tool.from === 'knowledge') {
-            return runKnowledgeTool({
-              tool: tool.tool,
-              taskId: currentTaskId,
-              assistant,
-              executeBlock,
-              parameters: { ...parameters, ...requestData },
-              parentTaskId,
-              callback: cb?.(currentTaskId),
-              user,
-            });
-          }
-
-          const toolAssistant = tool?.toolAssistant as Assistant;
-          await Promise.all(
-            toolAssistant.parameters?.map(async (item) => {
-              const message = tool.tool?.parameters?.[item.key!];
-              if (message) {
-                requestData[item.key!] = await renderMessage(message, parameters);
-              }
-            }) ?? []
-          );
-
-          const res = await runAssistant({
-            getSecret,
-            taskId: currentTaskId,
-            callAI,
-            callAIImage,
-            getAssistant,
-            assistant: toolAssistant,
-            parameters: requestData,
-            parentTaskId: taskId,
-            callback: cb?.(currentTaskId),
-            user,
-            sessionId,
-            projectId,
-            datastoreVariables,
-            entryProjectId,
-          });
-
-          if (tool.tool?.onEnd === OnTaskCompletion.EXIT) {
-            throw new ToolCompletionDirective('The task has been stop. The tool will now exit.', OnTaskCompletion.EXIT);
-          }
-
-          return res;
-        })
-      ));
-
-    callback?.({
-      type: AssistantResponseType.CHUNK,
-      taskId,
-      assistantId: assistant.id,
-      delta: { content: JSON.stringify(result) },
-    });
-
-    return result?.length === 1 ? result[0] : result;
-  }
-
-  return undefined;
 }
 
 async function runAPITool({

@@ -1,6 +1,6 @@
 import { ReadableStream, TransformStream } from 'stream/web';
 
-import { ChatCompletionChunk } from '@blocklet/ai-kit/api/types/chat';
+import { ChatCompletionResponse, isChatCompletionChunk } from '@blocklet/ai-kit/api/types/chat';
 
 import { Assistant, Role, Variable } from '../../types';
 import { outputVariablesToJoiSchema, outputVariablesToJsonSchema } from '../../types/runtime/schema';
@@ -102,12 +102,12 @@ export async function generateOutput({
   }, maxRetries);
 }
 
-export function extractMetadataFromStream(input: ReadableStream<ChatCompletionChunk>, extract: boolean = true) {
+export function extractMetadataFromStream(input: ReadableStream<ChatCompletionResponse>, extract: boolean = true) {
   return input
     .pipeThrough(
       new TransformStream({
         transform: (chunk, controller) => {
-          if (chunk.delta.content) controller.enqueue(chunk.delta.content);
+          if (isChatCompletionChunk(chunk)) if (chunk.delta.content) controller.enqueue(chunk.delta.content);
         },
       })
     )

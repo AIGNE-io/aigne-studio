@@ -206,6 +206,11 @@ export type MessageInput = RunAssistantInput & {
   startTime?: number;
   endTime?: number;
   images?: ImageType;
+  usage?: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+  };
   stop?: boolean;
 };
 
@@ -593,6 +598,12 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
                     lastInput.stop = true;
                   }
                 }
+              });
+            } else if (value.type === AssistantResponseType.USAGE) {
+              setMessage(sessionIndex, responseId, (message) => {
+                if (message.cancelled) return;
+                const lastInput = message.inputMessages?.findLast((input) => input.taskId === value.taskId);
+                if (lastInput) lastInput.usage = value.usage;
               });
             } else if (value.type === AssistantResponseType.ERROR) {
               setMessage(sessionIndex, responseId, (message) => {
