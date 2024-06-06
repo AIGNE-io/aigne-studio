@@ -764,7 +764,7 @@ export function projectRoutes(router: Router) {
       await repository.push({ remote: defaultRemote, ref, force: input.force });
     }
 
-    await project.update({ gitLastSyncedAt: new Date() });
+    await project.update({ gitLastSyncedAt: new Date() }, { silent: true });
 
     res.json({});
   });
@@ -798,7 +798,7 @@ export function projectRoutes(router: Router) {
     }
     await repository.checkout({ ref: defaultBranch, force: true });
 
-    await project.update({ gitLastSyncedAt: new Date() });
+    await project.update({ gitLastSyncedAt: new Date() }, { silent: true });
 
     res.json({});
   });
@@ -844,7 +844,7 @@ export function projectRoutes(router: Router) {
         ).toString()
       );
 
-      await project.update({ ...omit(data, 'id', '_id'), gitLastSyncedAt: new Date() });
+      await project.update({ ...omit(data, 'id', '_id'), gitLastSyncedAt: new Date() }, { silent: true });
 
       return res.json({});
     }

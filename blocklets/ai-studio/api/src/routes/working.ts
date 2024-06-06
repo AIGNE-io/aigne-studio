@@ -7,12 +7,14 @@ import Project from '../store/models/project';
 import { autoSyncIfNeeded, commitWorking, defaultBranch } from '../store/repository';
 
 export interface WorkingCommitInput {
+  skipCommitIfNoChanges?: boolean;
   branch: string;
   message: string;
 }
 
 export function workingRoutes(router: Router) {
   const createBranchInputSchema = Joi.object<WorkingCommitInput>({
+    skipCommitIfNoChanges: Joi.boolean().empty([null, '']),
     branch: Joi.string().empty([null, '']),
     message: Joi.string().required(),
   });
@@ -43,18 +45,18 @@ export function workingRoutes(router: Router) {
       }
 
       const author = { name: fullName, email: userId };
-      await commitWorking({
+      const hash = await commitWorking({
         project,
         ref,
         branch: input.branch,
         message: input.message,
         author,
+        skipCommitIfNoChanges: input.skipCommitIfNoChanges,
       });
 
-      await autoSyncIfNeeded({ project, author, userId, wait: false });
-
-      project.changed('updatedAt', true);
-      await project.update({ updatedAt: new Date() });
+      if (!hash) {
+        await autoSyncIfNeeded({ project, author, userId, wait: false });
+      }
 
       return res.json({ project });
     }

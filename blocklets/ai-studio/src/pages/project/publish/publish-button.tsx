@@ -34,7 +34,7 @@ export default function PublishButton({ ...props }: LoadingButtonProps) {
           sx={{ px: 2, minWidth: 0, minHeight: 0, height: 32, border: '1px solid #E5E7EB' }}
           onClick={async (e) => {
             e.stopPropagation();
-            await saveButtonState.getState().save?.({ skipConfirm: true });
+            await saveButtonState.getState().save?.({ skipConfirm: true, skipCommitIfNoChanges: true });
             setShowCreateResource(true);
           }}
           startIcon={<Box component={Icon} icon={BrandAppgalleryIcon} />}

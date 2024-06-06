@@ -36,6 +36,7 @@ import useDialog from '../../utils/use-dialog';
 import { saveButtonState, useAssistantChangesState, useProjectState } from './state';
 
 export interface CommitForm {
+  skipCommitIfNoChanges?: boolean;
   branch: string;
   message: string;
 }
@@ -155,6 +156,7 @@ export function SaveButtonDialog({
             projectId,
             ref: gitRef,
             input: {
+              ...input,
               branch,
               message: input.message || new Date().toLocaleString(),
             },
@@ -211,7 +213,10 @@ export function SaveButtonDialog({
   useEffect(() => {
     saveButtonState.getState().setSaveHandler(async (options) => {
       if (options?.skipConfirm) {
-        return onSave({ branch: gitRef, message: '' }, { skipToast: true }).then(() => ({ saved: true }));
+        return onSave(
+          { branch: gitRef, message: '', skipCommitIfNoChanges: options.skipCommitIfNoChanges },
+          { skipToast: true }
+        ).then(() => ({ saved: true }));
       }
       return new Promise<{ saved?: boolean } | undefined>((resolve, reject) => {
         savePromise.current = { resolve, reject };

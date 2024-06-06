@@ -286,7 +286,7 @@ export const autoSyncIfNeeded = async ({
     const remote = (await repository.listRemotes()).find((i) => i.remote === defaultRemote);
     if (remote && parseAuth(parseURL(remote.url).auth).password) {
       await syncRepository({ repository, ref: project.gitDefaultBranch, author });
-      await project.update({ gitLastSyncedAt: new Date() });
+      await project.update({ gitLastSyncedAt: new Date() }, { silent: true });
     }
   }
 
@@ -353,7 +353,7 @@ export async function syncToDidSpace({ project, userId }: { project: Project; us
     throw new Error(errorOutput.statusMessage);
   }
 
-  await project.update({ didSpaceLastSyncedAt: new Date() });
+  await project.update({ didSpaceLastSyncedAt: new Date() }, { silent: true });
 }
 
 export async function commitWorking({
@@ -363,7 +363,7 @@ export async function commitWorking({
   message,
   author,
   icon,
-  beforeCommit,
+  skipCommitIfNoChanges,
 }: {
   project: Project;
   ref: string;
@@ -371,23 +371,20 @@ export async function commitWorking({
   message: string;
   author: NonNullable<NonNullable<Parameters<Repository<any>['pull']>[0]>['author']>;
   icon?: string;
-  beforeCommit?: (tx: Transaction<FileTypeYjs>) => Promise<void>;
+  skipCommitIfNoChanges?: boolean;
 }) {
   const repository = await getRepository({ projectId: project._id! });
   const working = await repository.working({ ref });
 
-  await working.commit({
+  return working.commit({
     ref,
     branch,
     message,
     author,
+    skipCommitIfNoChanges,
     beforeCommit: async ({ tx }) => {
       await writeFile(path.join(repository.options.root, 'README.md'), getReadmeOfProject(project));
       await tx.add({ filepath: 'README.md' });
-
-      if (beforeCommit && typeof beforeCommit === 'function') {
-        await beforeCommit(tx);
-      }
 
       await addSettingsToGit({ tx, project, icon });
 
@@ -396,6 +393,18 @@ export async function commitWorking({
         if ((await readdir(path.join(repository.options.root, path.dirname(gitkeep)))).length > 1) {
           await rm(path.join(repository.options.root, gitkeep), { force: true });
           await tx.remove({ filepath: gitkeep });
+        }
+      }
+
+      if (skipCommitIfNoChanges) {
+        const changes = await tx.repo.statusMatrix();
+        if (!changes.every((i) => i[1] === 1 && i[2] === 1 && i[3] === 1)) {
+          // update project updatedAt
+          project.changed('updatedAt', true);
+          await project.update({ updatedAt: new Date() });
+
+          // generate new settings file
+          await addSettingsToGit({ tx, project, icon });
         }
       }
     },
