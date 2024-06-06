@@ -16,6 +16,7 @@ import {
   Dialog,
   DialogContent,
   Divider,
+  Drawer,
   Grow,
   IconButton,
   Paper,
@@ -63,7 +64,6 @@ export function HeaderActions() {
 
   const navigate = useNavigate();
   const previewPopperState = usePopupState({ variant: 'popper', popupId: 'preview' });
-  const settingPopperState = usePopupState({ variant: 'popper', popupId: 'settings' });
 
   const {
     state: { loading, commits },
@@ -72,6 +72,12 @@ export function HeaderActions() {
 
   const fileId = filepath && getFileIdFromPath(filepath);
   const file = fileId && getFileById(fileId);
+
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  const toggleDrawer = () => {
+    setDrawerOpen(!drawerOpen);
+  };
 
   return (
     <CurrentProjectProvider projectId={projectId} projectRef={gitRef}>
@@ -100,25 +106,14 @@ export function HeaderActions() {
           <Tooltip disableInteractive title={t('setting')}>
             <Button
               sx={{ minWidth: 0, minHeight: 0, width: 32, height: 32, border: '1px solid #E5E7EB' }}
-              {...bindTrigger(settingPopperState)}>
+              onClick={toggleDrawer}>
               <Box component={Icon} icon={SettingsIcon} sx={{ fontSize: 18, color: '#030712' }} />
             </Button>
           </Tooltip>
 
-          <Popper {...bindPopper(settingPopperState)} sx={{ zIndex: 1101 }} transition placement="bottom-end">
-            {({ TransitionProps }) => (
-              <Grow style={{ transformOrigin: 'right top' }} {...TransitionProps}>
-                <Paper sx={{ border: '1px solid #ddd', maxWidth: 450, maxHeight: '80vh', overflow: 'auto', mt: 1 }}>
-                  <ClickAwayListener
-                    onClickAway={(e) => (e.target as HTMLElement)?.localName !== 'body' && settingPopperState.close()}>
-                    <Box>
-                      <Settings boxProps={{}} />
-                    </Box>
-                  </ClickAwayListener>
-                </Paper>
-              </Grow>
-            )}
-          </Popper>
+          <Drawer anchor="right" open={drawerOpen} onClose={toggleDrawer}>
+            <Settings boxProps={{}} />
+          </Drawer>
         </>
 
         {/* <PublishButton /> */}
@@ -272,6 +267,9 @@ function SaveAction() {
                 color: 'rgba(0, 0, 0, 0.26) !important',
               },
             },
+            width: '100%',
+            display: 'flex',
+            justifyContent: 'flex-start',
           }}>
           <Box className="center">
             <Box component={Icon} icon={FloppyIcon} mr={1} sx={{ fontSize: '15px !important' }} />
