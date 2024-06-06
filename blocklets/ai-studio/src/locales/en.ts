@@ -179,6 +179,7 @@ export default flat({
     selectProject: 'Select Project',
     name: 'Project name',
     description: 'Project description',
+    readme: 'README',
     gitType: {
       title: 'Git Version',
       simple: {

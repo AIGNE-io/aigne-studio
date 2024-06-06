@@ -95,6 +95,7 @@ const exportSchema = Joi.object<{
 export interface UpdateProjectInput {
   name?: string;
   description?: string;
+  readme?: string;
   pinned?: boolean;
   icon?: string;
   model?: string;
@@ -122,6 +123,7 @@ export interface UpdateProjectInput {
 const updateProjectSchema = Joi.object<UpdateProjectInput>({
   name: Joi.string().empty([null, '']),
   description: Joi.string().empty([null, '']),
+  readme: Joi.string().empty([null, '']),
   pinned: Joi.boolean().empty([null]),
   icon: Joi.string().allow('').empty([null, '']),
   model: Joi.string().empty([null, '']),
@@ -618,6 +620,7 @@ export function projectRoutes(router: Router) {
       name,
       pinned,
       description,
+      readme,
       icon,
       model,
       temperature,
@@ -650,6 +653,7 @@ export function projectRoutes(router: Router) {
           pinnedAt: pinned ? new Date().toISOString() : pinned === false ? null : undefined,
           updatedBy: userId,
           description,
+          readme,
           model: model || project.model || '',
           icon: '',
           temperature,

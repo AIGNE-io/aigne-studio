@@ -46,6 +46,7 @@ import InfoOutlined from '../icons/question';
 import { useProjectState } from '../state';
 import AppearanceSetting from './appearance-setting';
 import DidSpacesSetting from './did-spaces-setting';
+import ReadMe from './readme';
 import RemoteRepoSetting from './remote-repo-setting';
 
 const init = {
@@ -60,6 +61,7 @@ const init = {
   maxTokens: undefined,
   gitType: 'simple',
   primaryColor: '#ffffff',
+  readme: '',
 };
 
 const tabListInfo: { list: string[] } = {
@@ -97,6 +99,7 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
       const merge = pick({ ...init, ...project }, [
         'name',
         'description',
+        'readme',
         'icon',
         'model',
         'temperature',
@@ -204,7 +207,7 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
 
   return (
     <Box overflow="auto" {...boxProps}>
-      <SettingsContainer sx={{ px: 2, width: isMobile ? '100%' : '400px' }} className="setting-container">
+      <SettingsContainer sx={{ px: 2, width: isMobile ? '100%' : '600px' }} className="setting-container">
         <Tabs
           centered
           sx={{
@@ -260,12 +263,19 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
                   <TextField
                     label={t('projectSetting.description')}
                     multiline
-                    rows={5}
+                    rows={3}
                     sx={{ width: 1 }}
                     value={value.description ?? ''}
                     onChange={(e) => set('description', e.target.value)}
                     InputProps={{ readOnly }}
                   />
+                </Box>
+
+                <Box>
+                  <Typography variant="subtitle2" mb={0.5}>
+                    {t('projectSetting.readme')}
+                  </Typography>
+                  <ReadMe value={value.readme} onChange={(value) => set('readme', value)} />
                 </Box>
                 <Box>
                   <LoadingButton
