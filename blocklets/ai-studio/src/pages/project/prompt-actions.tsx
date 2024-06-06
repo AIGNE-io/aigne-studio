@@ -34,7 +34,7 @@ import { joinURL } from 'ufo';
 import CommitsTip, { CommitListView } from '../../components/template-form/commits-tip';
 import { getFileIdFromPath } from '../../utils/path';
 import PublishView from './publish-view';
-// import PublishButton from './publish/publish-button';
+import PublishButton from './publish/publish-button';
 import SaveButton, { CommitForm, SaveButtonDialog } from './save-button';
 import Settings from './settings';
 import { useAssistantChangesState, useProjectState } from './state';
@@ -105,7 +105,7 @@ export function HeaderActions() {
         <>
           <Tooltip disableInteractive title={t('setting')}>
             <Button
-              sx={{ minWidth: 0, minHeight: 0, width: 32, height: 32, border: '1px solid #E5E7EB' }}
+              sx={{ minWidth: 32, minHeight: 0, width: 32, height: 32, border: '1px solid #E5E7EB' }}
               onClick={toggleDrawer}>
               <Box component={Icon} icon={SettingsIcon} sx={{ fontSize: 18, color: '#030712' }} />
             </Button>
@@ -116,13 +116,14 @@ export function HeaderActions() {
           </Drawer>
         </>
 
-        {/* <PublishButton /> */}
+        <PublishButton />
 
         <>
           <LoadingButton
             variant="contained"
             startIcon={<Box component={Icon} icon={EyeBoltIcon} sx={{ fontSize: 16 }} />}
             size="small"
+            sx={{ px: 2 }}
             {...bindTrigger(previewPopperState)}>
             {t('preview')}
           </LoadingButton>
