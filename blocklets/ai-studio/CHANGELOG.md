@@ -1,3 +1,14 @@
+## 0.2.35 (2024-6-6)
+
+- fix: load font family resources to user's system
+
+## 0.2.34 (2024-6-6)
+
+- merge conflict
+- delete font.ts
+- use helmet to accomplish load font
+- fix: change font family select
+
 ## 0.2.33 (2024-6-6)
 
 - chore: update deps
