@@ -1,4 +1,4 @@
-## 0.2.36 (2024-6-6)
+## 0.2.35 (2024-6-6)
 
 - fix: load font family resources to user's system
 
