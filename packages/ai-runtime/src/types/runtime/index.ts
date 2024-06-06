@@ -18,6 +18,7 @@ export enum AssistantResponseType {
   LOG = 'LOG',
   INPUT = 'INPUT',
   CHUNK = 'CHUNK',
+  USAGE = 'USAGE',
   EXECUTE = 'EXECUTE',
   INPUT_PARAMETER = 'INPUT_PARAMETER',
 }
@@ -34,6 +35,7 @@ export type PromptMessages = Array<{
 // RunAssistantChunk 代表 Agent 的输出
 export type RunAssistantResponse =
   | RunAssistantChunk
+  | RunAssistantUsage
   | RunAssistantError
   | RunAssistantInput
   | RunAssistantLog
@@ -115,6 +117,17 @@ export type RunAssistantChunk = {
     content?: string | null;
     images?: { url: string }[];
     object?: RuntimeOutputVariablesSchema | object;
+  };
+};
+
+export type RunAssistantUsage = {
+  type: AssistantResponseType.USAGE;
+  taskId: string;
+  assistantId: string;
+  usage: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
   };
 };
 

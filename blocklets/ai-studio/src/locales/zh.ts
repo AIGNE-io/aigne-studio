@@ -725,4 +725,5 @@ export default flat({
   default: '默认',
   setAsEntry: '设置为入口 Agent',
   entryAgent: '入口',
+  usage: '用量',
 });

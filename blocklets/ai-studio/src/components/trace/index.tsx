@@ -1,7 +1,7 @@
 import { ImagePreviewB64 } from '@app/pages/project/debug-view';
 import { ImageType, MessageInput, SessionItem } from '@app/pages/project/state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { PromptMessages, RunAssistantInput, RunAssistantLog } from '@blocklet/ai-runtime/types';
+import { PromptMessages, RunAssistantInput, RunAssistantLog, RunAssistantUsage } from '@blocklet/ai-runtime/types';
 import { Accordion, AccordionDetails, AccordionSummary, Box, Stack, Typography, styled } from '@mui/material';
 import { GridExpandMoreIcon } from '@mui/x-data-grid';
 import dayjs from 'dayjs';
@@ -20,7 +20,8 @@ type Trace =
   | { label: 'apiArgs'; value: any }
   | { label: 'fnArgs'; value: any }
   | { label: 'stop'; value: boolean }
-  | { label: 'modelParameters'; value: RunAssistantInput['modelParameters'] };
+  | { label: 'modelParameters'; value: RunAssistantInput['modelParameters'] }
+  | { label: 'usage'; value: RunAssistantUsage['usage'] };
 
 function isTraceLabel(key: string): key is Trace['label'] {
   return [
@@ -35,6 +36,7 @@ function isTraceLabel(key: string): key is Trace['label'] {
     'fnArgs',
     'stop',
     'modelParameters',
+    'usage',
   ].includes(key);
 }
 
@@ -76,6 +78,19 @@ const LabelValue = memo(({ label, value }: Trace) => {
       <>
         <Label variant="body1">{t(label)}:</Label>
         <JsonDisplay>{JSON.stringify(value)}</JsonDisplay>
+      </>
+    );
+  }
+
+  if (label === 'usage') {
+    return (
+      <>
+        <Label variant="body1">{t(label)}:</Label>
+        <Stack sx={{ pl: 1 }}>
+          <Typography variant="caption">Prompt Tokens: {value.promptTokens}</Typography>
+          <Typography variant="caption">Completion Tokens: {value.completionTokens}</Typography>
+          <Typography variant="caption">Total Tokens: {value.totalTokens}</Typography>
+        </Stack>
       </>
     );
   }
@@ -155,7 +170,8 @@ function BaseTrace({ deep, input }: { deep?: number; input: MessageInput }) {
     'apiArgs',
     'fnArgs',
     'stop',
-    'modelParameters'
+    'modelParameters',
+    'usage'
   );
   const arr = Object.entries(pickInput).flatMap(([key, value]) => (isTraceLabel(key) ? [{ label: key, value }] : []));
 

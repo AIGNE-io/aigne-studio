@@ -54,10 +54,16 @@ export default class History extends Model<InferAttributes<History>, InferCreati
 
   declare generateStatus?: 'generating' | 'done';
 
-  // 用量上报状态
+  // @deprecated: 用量上报状态
   // counted: 已经把这条记录作为**提交点**（但有可能因为上报失败而没有变为 reported）
   // reported: 已经把上一个**提交点**到这条记录间的 usage 上报至 payment
   declare usageReportStatus?: null | 'counted' | 'reported';
+
+  declare usage?: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+  };
 }
 
 History.init(
@@ -116,6 +122,9 @@ History.init(
     },
     usageReportStatus: {
       type: DataTypes.STRING,
+    },
+    usage: {
+      type: DataTypes.JSON,
     },
   },
   { sequelize }

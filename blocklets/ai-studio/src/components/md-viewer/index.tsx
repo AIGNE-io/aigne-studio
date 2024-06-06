@@ -102,6 +102,31 @@ const MarkdownViewer = styled(Box)`
     width: 100%;
     overflow-x: auto;
   }
+
+  &.writing:empty,
+  &.writing > *:last-child {
+    &:after {
+      content: '';
+      display: inline-block;
+      vertical-align: middle;
+      height: 1.2em;
+      margin-top: -0.2em;
+      margin-left: 0.1em;
+      border-right: 0.2em solid orange;
+      border-radius: 10px;
+      animation: blink-caret 0.75s step-end infinite;
+
+      @keyframes blink-caret {
+        from,
+        to {
+          border-color: transparent;
+        }
+        50% {
+          border-color: ${({ theme }) => theme.palette.secondary.main};
+        }
+      }
+    }
+  }
 `;
 
 interface MdViewerProps {
