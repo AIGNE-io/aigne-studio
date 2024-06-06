@@ -1,3 +1,4 @@
+import { ResourceType } from '@api/libs/resource';
 import { Agent, getAgents } from '@app/libs/agent';
 import { useCurrentProjectState } from '@app/pages/project/state';
 import { useAssistants, useProject } from '@app/pages/project/yjs-state';
@@ -11,7 +12,7 @@ import {
 } from '@blocklet/ai-runtime/types';
 import { groupBy, pick } from 'lodash';
 import { useEffect } from 'react';
-import { create } from 'zustand';
+import { StoreApi, UseBoundStore, create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 
 export interface ResourceAgentsState {
@@ -22,34 +23,40 @@ export interface ResourceAgentsState {
   load: () => Promise<void>;
 }
 
-const resourceAgentsState = create<ResourceAgentsState>()(
-  immer((set) => ({
-    load: async () => {
-      set((state) => {
-        state.loading = true;
-      });
-      try {
-        const { agents } = await getAgents({ type: 'tool' });
-        set((state) => {
-          state.agents = agents;
-        });
-      } catch (error) {
-        set((state) => {
-          state.error = error;
-        });
-        throw error;
-      } finally {
+const CACHE: { [type in ResourceType]?: UseBoundStore<StoreApi<ResourceAgentsState>> } = {};
+
+const resourceAgentsState = ({ type }: { type: ResourceType }) => {
+  CACHE[type] ??= create<ResourceAgentsState>()(
+    immer((set) => ({
+      load: async () => {
         set((state) => {
           state.loading = true;
-          state.loaded = true;
         });
-      }
-    },
-  }))
-);
+        try {
+          const { agents } = await getAgents({ type });
+          set((state) => {
+            state.agents = agents;
+          });
+        } catch (error) {
+          set((state) => {
+            state.error = error;
+          });
+          throw error;
+        } finally {
+          set((state) => {
+            state.loading = true;
+            state.loaded = true;
+          });
+        }
+      },
+    }))
+  );
 
-export function useResourceAgents() {
-  const state = resourceAgentsState();
+  return CACHE[type]!;
+};
+
+export function useResourceAgents({ type }: { type: ResourceType }) {
+  const state = resourceAgentsState({ type })();
 
   useEffect(() => {
     if (!state.loading && !state.loaded) state.load();
@@ -60,8 +67,8 @@ export function useResourceAgents() {
 
 export type UseAgentItem = Omit<Agent, 'blocklet'> & Partial<Pick<Agent, 'blocklet'>>;
 
-export function useAgents() {
-  const { agents = [], load } = useResourceAgents();
+export function useAgents({ type }: { type: ResourceType }) {
+  const { agents = [], load } = useResourceAgents({ type });
   const {
     state: { project },
   } = useCurrentProjectState();
@@ -105,15 +112,17 @@ export function useAgents() {
 export function useAgent({
   projectId,
   agentId,
+  type,
 }: {
   projectId?: string;
   agentId: string;
+  type: ResourceType;
 }): (Omit<Agent, 'blocklet'> & { blocklet?: Agent['blocklet'] }) | undefined {
   const {
     state: { project },
   } = useCurrentProjectState();
   const { store } = useProject();
-  const { agents = [] } = useResourceAgents();
+  const { agents = [] } = useResourceAgents({ type });
 
   if (!project) return undefined;
 

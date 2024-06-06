@@ -3,7 +3,6 @@ import { CurrentProjectProvider } from '@app/contexts/project';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { isAssistant } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
-import BrandAppgalleryIcon from '@iconify-icons/tabler/brand-appgallery';
 import ArrowLeft from '@iconify-icons/tabler/chevron-left';
 import FloppyIcon from '@iconify-icons/tabler/device-floppy';
 import EyeBoltIcon from '@iconify-icons/tabler/eye-bolt';
@@ -34,7 +33,7 @@ import { joinURL } from 'ufo';
 import CommitsTip, { CommitListView } from '../../components/template-form/commits-tip';
 import { getFileIdFromPath } from '../../utils/path';
 import PublishView from './publish-view';
-import PublishButton from './publish/publish-button';
+// import PublishButton from './publish/publish-button';
 import SaveButton, { CommitForm, SaveButtonDialog } from './save-button';
 import Settings from './settings';
 import { useAssistantChangesState, useProjectState } from './state';
@@ -122,7 +121,7 @@ export function HeaderActions() {
           </Popper>
         </>
 
-        <PublishButton />
+        {/* <PublishButton /> */}
 
         <>
           <LoadingButton
@@ -163,8 +162,6 @@ export function MobileHeaderActions() {
   const { projectId, ref: gitRef } = useParams();
   if (!projectId || !gitRef) throw new Error('Missing required params `projectId` or `ref`');
 
-  const { t } = useLocaleContext();
-
   return (
     <CurrentProjectProvider projectId={projectId} projectRef={gitRef}>
       <Divider sx={{ m: 0, p: 0 }} />
@@ -177,7 +174,7 @@ export function MobileHeaderActions() {
 
       <Divider sx={{ m: 0, p: 0 }} />
 
-      <Box>
+      {/* <Box>
         <PublishButton
           fullWidth
           variant="outlined"
@@ -185,7 +182,7 @@ export function MobileHeaderActions() {
           startIcon={<Box component={Icon} icon={BrandAppgalleryIcon} />}>
           {t('publish')}
         </PublishButton>
-      </Box>
+      </Box> */}
 
       <PreviewAction />
     </CurrentProjectProvider>

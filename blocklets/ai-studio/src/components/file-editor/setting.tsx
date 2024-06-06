@@ -88,7 +88,12 @@ export default function PromptSetting({
         }}>
         <Stack direction="row" alignItems="center" gap={0.5}>
           {value.executor?.agent?.id ? (
-            <AgentName showIcon projectId={value.executor.agent.projectId} agentId={value.executor.agent.id} />
+            <AgentName
+              type="llm-adapter"
+              showIcon
+              projectId={value.executor.agent.projectId}
+              agentId={value.executor.agent.id}
+            />
           ) : (
             <>
               {modelDetail && <Box className="center">{brandIcon(modelDetail!.brand)}</Box>}

@@ -1,4 +1,4 @@
-import { getAssistantFromResourceBlocklet, getResourceProjects } from '@api/libs/resource';
+import { ResourceType, getAssistantFromResourceBlocklet, getResourceProjects } from '@api/libs/resource';
 import Project from '@api/store/models/project';
 import { getAssistantFromRepository, getRepository } from '@api/store/repository';
 import { parseIdentity } from '@blocklet/ai-runtime/common/aid';
@@ -11,11 +11,14 @@ import pick from 'lodash/pick';
 const router = Router();
 
 export interface GetAgentsQuery {
-  type: 'application' | 'tool';
+  type: ResourceType;
 }
 
 const getAgentsQuerySchema = Joi.object<GetAgentsQuery>({
-  type: Joi.string().valid('application', 'tool').empty([null, '']).default('application'),
+  type: Joi.string()
+    .valid('application', 'tool', 'llm-adapter', 'aigc-adapter')
+    .empty([null, ''])
+    .default('application'),
 });
 
 router.get('/', async (req, res) => {
@@ -23,7 +26,19 @@ router.get('/', async (req, res) => {
 
   const projects = await getResourceProjects(query.type);
 
-  const resourceAgents = projects.flatMap((i) => i.assistants.map((a) => respondAgentFields(a, i.project, i.blocklet)));
+  const resourceAgents = projects.flatMap((project) =>
+    project.assistants
+      .filter((assistant) => {
+        if (query.type === 'application') {
+          return project.config?.entry === assistant.id;
+        }
+        if (['tool', 'llm-adapter', 'aigc-adapter'].includes(query.type)) {
+          return assistant.public;
+        }
+        return false;
+      })
+      .map((a) => respondAgentFields(a, project.project, project.blocklet))
+  );
 
   res.json({ agents: resourceAgents });
 });

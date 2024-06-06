@@ -723,4 +723,6 @@ export default flat({
   llmProviderPlaceholder: '从商店选择大语言模型提供商',
   provider: '提供商',
   default: '默认',
+  setAsEntry: '设置为入口 Agent',
+  entryAgent: '入口',
 });

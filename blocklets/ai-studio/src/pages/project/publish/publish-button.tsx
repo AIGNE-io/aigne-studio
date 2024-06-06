@@ -1,3 +1,4 @@
+import Project from '@api/store/models/project';
 import LoadingButton from '@app/components/loading/loading-button';
 import { useCurrentProject } from '@app/contexts/project';
 import { useIsAdmin } from '@app/contexts/session';
@@ -23,7 +24,7 @@ export default function PublishButton({ ...props }: LoadingButtonProps) {
   const [showCreateResource, setShowCreateResource] = useState(false);
   const isAdmin = useIsAdmin();
 
-  if (window.blocklet.DISABLE_AI_STUDIO_PUBLISH === 'true' && !isAdmin) return null;
+  if ((window.blocklet.DISABLE_AI_STUDIO_PUBLISH === 'true' && !isAdmin) || !project) return null;
 
   return (
     <>
@@ -42,17 +43,15 @@ export default function PublishButton({ ...props }: LoadingButtonProps) {
         </LoadingButton>
       </Tooltip>
 
-      {project && showCreateResource && <PublishDialog onClose={() => setShowCreateResource(false)} />}
+      {project && showCreateResource && (
+        <PublishDialog project={project} onClose={() => setShowCreateResource(false)} />
+      )}
     </>
   );
 }
 
-function PublishDialog({ onClose }: { onClose: () => void }) {
-  const { projectId, projectRef } = useCurrentProject();
-  const {
-    state: { project },
-  } = useProjectState(projectId, projectRef);
-
+function PublishDialog({ project, onClose }: { project: Project; onClose: () => void }) {
+  const [logo] = useState(() => getProjectIconUrl(project._id, project.updatedAt, { original: true }));
   const [opened, setOpened] = useState(false);
 
   if (!project) return null;
@@ -62,15 +61,15 @@ function PublishDialog({ onClose }: { onClose: () => void }) {
       <BlockletStudio
         style={{ opacity: opened ? 1 : 0 }}
         mode="dialog"
-        tenantScope={projectId}
+        tenantScope={project._id}
         title={project.name || ''}
         description={project.description || ''}
         note=""
         introduction=""
-        logo={getProjectIconUrl(projectId, project.updatedAt, { original: true })}
+        logo={logo}
         componentDid={AI_STUDIO_COMPONENT_DID}
         // 透传到 get blocklet resource 的参数
-        resourcesParams={{ projectId }}
+        resourcesParams={{ projectId: project._id }}
         dependentComponentsMode="readonly"
         open
         setOpen={() => onClose()}

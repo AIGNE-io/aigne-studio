@@ -27,7 +27,7 @@ import { getProjectFromResource, getResourceProjects } from '../libs/resource';
 import { ensureComponentCallOrPromptsEditor, ensureComponentCallOrRolesMatch } from '../libs/security';
 import Project, { nextProjectId } from '../store/models/project';
 import {
-  CONFIG_FONDER,
+  CONFIG_FOLDER,
   LOGO_FILENAME,
   VARIABLE_FILENAME,
   VARIABLE_KEY,
@@ -1023,7 +1023,7 @@ async function createProjectFromTemplate(
   }
 
   if (!working.syncedStore.files[VARIABLE_KEY]) {
-    working.syncedStore.tree[VARIABLE_KEY] = joinURL(CONFIG_FONDER, VARIABLE_FILENAME);
+    working.syncedStore.tree[VARIABLE_KEY] = joinURL(CONFIG_FOLDER, VARIABLE_FILENAME);
     working.syncedStore.files[VARIABLE_KEY] = { type: 'variables', variables: [] };
   }
 

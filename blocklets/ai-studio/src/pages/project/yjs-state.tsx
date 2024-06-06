@@ -3,7 +3,9 @@ import { useSessionContext } from '@app/contexts/session';
 import {
   Assistant,
   AssistantYjs,
+  ConfigFileYjs,
   FileTypeYjs,
+  VariablesYjs,
   isApiAssistant,
   isAssistant,
   isFunctionAssistant,
@@ -37,6 +39,9 @@ import { WebsocketProvider, messageSync } from 'y-websocket';
 import { PREFIX } from '../../libs/api';
 
 export const PROMPTS_FOLDER_NAME = 'prompts';
+
+export const CONFIG_FILE_KEY = 'config';
+export const CONFIG_FILENAME = `${CONFIG_FILE_KEY}.yaml`;
 
 export const isBuiltinFolder = (folder: string) => [PROMPTS_FOLDER_NAME].includes(folder);
 
@@ -173,9 +178,27 @@ export const useProjectStore = (projectId: string, gitRef: string, connect?: boo
 
   const syncedStore = useSyncedStore(store.store, [store.store]);
 
+  const config = syncedStore.files[CONFIG_FILE_KEY] as ConfigFileYjs | undefined;
+
+  const setConfig = useCallback(
+    (update: (config: ConfigFileYjs) => void) => {
+      let config = syncedStore.files[CONFIG_FILE_KEY] as ConfigFileYjs | undefined;
+      if (!config) {
+        syncedStore.files[CONFIG_FILE_KEY] = {};
+        config = syncedStore.files[CONFIG_FILE_KEY]!;
+        syncedStore.tree[CONFIG_FILE_KEY] = 'config/config.yaml';
+      }
+
+      update(config);
+    },
+    [syncedStore]
+  );
+
   return {
     ...store,
     store: syncedStore,
+    config,
+    setConfig,
     getTemplateById: useCallback(
       (templateId: string) => {
         const file = syncedStore.files[templateId];
@@ -195,11 +218,11 @@ export const useProjectStore = (projectId: string, gitRef: string, connect?: boo
       const key = 'variable';
       const file = syncedStore.files[key];
 
-      if (file && 'variables' in file) return file;
+      if (file && 'variables' in file) return file as VariablesYjs;
 
       syncedStore.tree[key] = filepath;
       syncedStore.files[key] = { type: 'variables', variables: [] };
-      return syncedStore.files[key];
+      return syncedStore.files[key] as VariablesYjs;
     }, [syncedStore.files]),
   };
 };

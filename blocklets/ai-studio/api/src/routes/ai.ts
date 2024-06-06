@@ -166,7 +166,7 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
       blockletDid,
       projectId: options.projectId,
       assistantId: fileId,
-      type: ['application', 'tool'],
+      type: ['application', 'tool', 'llm-adapter', 'aigc-adapter', 'knowledge'],
     });
     if (options.rejectOnEmpty && !assistant?.assistant) throw new Error(`No such assistant ${fileId}`);
 

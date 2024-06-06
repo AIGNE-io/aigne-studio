@@ -1,3 +1,15 @@
+## 0.2.33 (2024-6-6)
+
+- chore: update deps
+
+## 0.2.32 (2024-6-5)
+
+- fix: correct type for component installer
+
+## 0.2.31 (2024-6-3)
+
+- feat: support publish/consume application and selected tools
+
 ## 0.2.30 (2024-6-2)
 
 - fix: show contextmenu for code editor
