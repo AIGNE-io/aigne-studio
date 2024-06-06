@@ -54,7 +54,7 @@ export function workingRoutes(router: Router) {
         skipCommitIfNoChanges: input.skipCommitIfNoChanges,
       });
 
-      if (!hash) {
+      if (hash) {
         await autoSyncIfNeeded({ project, author, userId, wait: false });
       }
 
