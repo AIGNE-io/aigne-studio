@@ -1,3 +1,7 @@
+## 0.2.34 (2024-6-6)
+
+- feat: return token usages and display it in the debug view
+
 ## 0.2.33 (2024-6-6)
 
 - chore: update deps
