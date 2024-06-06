@@ -1,3 +1,9 @@
+## 0.2.31 (2024-6-6)
+
+- fix: correct type for component installer (#1075)
+- feat: support publish/consume application and selected tools (#1071)
+- feat: ui optimizaion of setting option
+
 ## 0.2.30 (2024-6-2)
 
 - fix: show contextmenu for code editor
