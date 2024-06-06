@@ -1,3 +1,8 @@
+## 0.2.34 (2024-6-6)
+
+- fix:show git repo info in a collapse (#1067)
+- fix: ui optimizaion of setting container
+
 ## 0.2.33 (2024-6-6)
 
 - chore: update deps
