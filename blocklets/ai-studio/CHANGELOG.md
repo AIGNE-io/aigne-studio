@@ -1,3 +1,7 @@
+## 0.2.37 (2024-6-6)
+
+- fix: add horizontal padding for project action buttons
+
 ## 0.2.36 (2024-6-6)
 
 - feat: return token usages and display it in the debug view
