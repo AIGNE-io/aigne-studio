@@ -1,6 +1,14 @@
-## 0.2.34 (2024-6-6)
+## 0.2.36 (2024-6-6)
 
 - feat: return token usages and display it in the debug view
+
+## 0.2.35 (2024-6-6)
+
+- fix: load font family resources to user's system
+
+## 0.2.34 (2024-6-6)
+
+- feat: optimize project settings ui
 
 ## 0.2.33 (2024-6-6)
 

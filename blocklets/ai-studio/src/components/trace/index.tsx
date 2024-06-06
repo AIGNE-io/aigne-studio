@@ -155,6 +155,7 @@ const Container = styled(Accordion)<ContainerProps>(({ theme, deep = 0 }) => ({
   '&::before': {
     display: 'none',
   },
+  boxShadow: 'none',
 }));
 
 function BaseTrace({ deep, input }: { deep?: number; input: MessageInput }) {

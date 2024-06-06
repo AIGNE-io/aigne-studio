@@ -1,6 +1,6 @@
 {
   "name": "ai-studio",
-  "version": "0.2.34",
+  "version": "0.2.36",
   "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
   "scripts": {
     "debug": "bn-dev",
@@ -134,6 +134,7 @@
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^18.3.1",
+    "react-helmet": "^6.1.0",
     "react-hook-form": "^7.51.5",
     "react-infinite-scroll-hook": "^4.1.1",
     "react-qr-code": "^2.0.14",
@@ -180,6 +181,7 @@
     "@types/react": "^18.3.3",
     "@types/react-color": "^3.0.12",
     "@types/react-dom": "^18.3.0",
+    "@types/react-helmet": "^6.1.11",
     "@types/tz-lookup": "^6.1.2",
     "@types/yaml": "^1.9.7",
     "@vitejs/plugin-react": "^4.3.0",
