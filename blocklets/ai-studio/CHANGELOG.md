@@ -4,11 +4,8 @@
 
 ## 0.2.34 (2024-6-6)
 
-- merge conflict
-- delete font.ts
-- use helmet to accomplish load font
-- fix: change font family select
-
+- fix: ui optimizaion of setting container
+  
 ## 0.2.33 (2024-6-6)
 
 - chore: update deps
