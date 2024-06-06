@@ -1,3 +1,7 @@
+## 0.2.33 (2024-6-6)
+
+- chore: update deps
+
 ## 0.2.32 (2024-6-5)
 
 - fix: correct type for component installer
