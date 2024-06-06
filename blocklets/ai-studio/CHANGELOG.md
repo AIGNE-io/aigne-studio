@@ -1,8 +1,14 @@
-## 0.2.31 (2024-6-6)
+## 0.2.33 (2024-6-6)
 
-- fix: correct type for component installer (#1075)
-- feat: support publish/consume application and selected tools (#1071)
-- feat: ui optimizaion of setting option
+- chore: update deps
+
+## 0.2.32 (2024-6-5)
+
+- fix: correct type for component installer
+
+## 0.2.31 (2024-6-3)
+
+- feat: support publish/consume application and selected tools
 
 ## 0.2.30 (2024-6-2)
 

@@ -1,4 +1,6 @@
 import { agentTypesMap } from '@app/components/file-editor/agent-type-select';
+import { useCurrentProject } from '@app/contexts/project';
+import AigneLogo from '@app/icons/aigne-logo';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import {
@@ -135,7 +137,7 @@ const FileTree = forwardRef<
   const navigate = useNavigate();
   const { dialog, showDialog } = useDialog();
 
-  const { store, synced } = useProjectStore(projectId, gitRef);
+  const { store, synced, config, setConfig } = useProjectStore(projectId, gitRef);
   const { deleted, changes, getOriginTemplate } = useAssistantChangesState(projectId, gitRef);
   const dialogState = usePopupState({ variant: 'dialog' });
   const [compareAssistant, setCompareAssistant] = useState('');
@@ -444,6 +446,8 @@ const FileTree = forwardRef<
               const name = `${meta.id}.yaml`;
               const selected = current?.endsWith(name);
 
+              const isEntryAgent = meta.id === config?.entry;
+
               const change = changes(meta);
 
               const actions = (
@@ -481,6 +485,11 @@ const FileTree = forwardRef<
                       },
                     });
                   }}
+                  onSetAsEntry={(assistant) => {
+                    setConfig((config) => {
+                      config.entry = assistant.id;
+                    });
+                  }}
                 />
               );
 
@@ -488,27 +497,31 @@ const FileTree = forwardRef<
                 <Box sx={{ position: 'relative' }}>
                   <TreeItem
                     key={node.id}
-                    icon={<FileIcon type={meta.type} />}
+                    icon={<FileIcon assistant={meta} />}
                     depth={depth}
                     editing={meta.name === editingFileName}
                     selected={selected}
                     onClick={() => navigate(joinURL('.', filepath))}
                     onDoubleClick={() => {
-                      setEditingFileName(meta.name);
+                      if (!isEntryAgent) setEditingFileName(meta.name);
                     }}
                     actions={actions}
                     sx={{ color: change?.color }}>
-                    <EditTextItem
-                      editing={meta.name === editingFileName}
-                      onCancel={() => setEditingFileName(undefined)}
-                      onSubmit={async (name) => {
-                        setEditingFileName(undefined);
-                        const { data } = node;
-                        if (!data || name === data.name) return;
-                        meta.name = name;
-                      }}>
-                      {createFileName({ store, name: meta.name, defaultName: `${t('alert.unnamed')} Agent` })}
-                    </EditTextItem>
+                    {isEntryAgent ? (
+                      t('entryAgent')
+                    ) : (
+                      <EditTextItem
+                        editing={meta.name === editingFileName}
+                        onCancel={() => setEditingFileName(undefined)}
+                        onSubmit={async (name) => {
+                          setEditingFileName(undefined);
+                          const { data } = node;
+                          if (!data || name === data.name) return;
+                          meta.name = name;
+                        }}>
+                        {createFileName({ store, name: meta.name, defaultName: `${t('alert.unnamed')} Agent` })}
+                      </EditTextItem>
+                    )}
                   </TreeItem>
                   <AwarenessIndicator
                     projectId={projectId}
@@ -618,6 +631,7 @@ function TreeItemMenus({
   onLaunch,
   onCompare,
   onUndo,
+  onSetAsEntry,
 }: {
   projectId: string;
   gitRef: string;
@@ -631,13 +645,25 @@ function TreeItemMenus({
   onLaunch?: (assistant: AssistantYjs) => any;
   onCompare?: () => void;
   onUndo?: () => void;
+  onSetAsEntry?: (assistant: AssistantYjs) => void;
 }) {
   const { t } = useLocaleContext();
 
   const assistant = item.type === 'file' && isAssistant(item.meta) ? item.meta : undefined;
+  const { config } = useProjectStore(projectId, gitRef);
+
+  const isEntry = !!assistant && assistant.id === config?.entry;
 
   const menus = [
     [
+      assistant && onSetAsEntry && (
+        <MenuItem key="set-as-entry" disabled={isEntry} onClick={() => onSetAsEntry(assistant)}>
+          <ListItemIcon>
+            <Box component={AigneLogo} sx={{ fontSize: 14 }} />
+          </ListItemIcon>
+          <ListItemText primary={t('setAsEntry')} />
+        </MenuItem>
+      ),
       onLaunch && assistant && (
         <MenuItem key="launch" onClick={() => onLaunch(assistant)}>
           <ListItemIcon>
@@ -736,7 +762,7 @@ function TreeItemMenus({
     ],
     [
       onRenameFile && (
-        <MenuItem key="renameFile" onClick={() => onRenameFile(item)}>
+        <MenuItem key="renameFile" disabled={isEntry} onClick={() => onRenameFile(item)}>
           <ListItemIcon>
             <Box component={Icon} icon={PencilIcon} />
           </ListItemIcon>
@@ -1055,7 +1081,7 @@ function DeletedTemplates({
       <AccordionDetails sx={{ py: 1, px: 0 }}>
         <Box maxHeight="120px" overflow="auto">
           {list.map((item) => {
-            const icon = <FileIcon type={item.type} />;
+            const icon = <FileIcon assistant={item} />;
 
             const change = changes(item);
             if (!change) return null;
@@ -1127,6 +1153,11 @@ function DeletedTemplates({
   );
 }
 
-function FileIcon({ type }: { type?: AssistantYjs['type'] }) {
-  return agentTypesMap[type!]?.icon || null;
+function FileIcon({ assistant }: { assistant: Pick<AssistantYjs, 'id' | 'type'> }) {
+  const { projectId, projectRef } = useCurrentProject();
+  const { config } = useProjectStore(projectId, projectRef);
+
+  if (config?.entry === assistant.id) return <Box component={AigneLogo} sx={{ fontSize: '1em !important' }} />;
+
+  return agentTypesMap[assistant.type!]?.icon || null;
 }
