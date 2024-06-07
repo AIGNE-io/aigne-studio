@@ -34,7 +34,7 @@ export function treeRoutes(router: Router) {
   router.get('/projects/:projectId/tree/:ref', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required params `projectId`');
-    const project = await Project.findOne({ where: { _id: projectId }, rejectOnEmpty: new Error('Project not found') });
+    const project = await Project.findOne({ where: { id: projectId }, rejectOnEmpty: new Error('Project not found') });
 
     checkProjectPermission({
       req,

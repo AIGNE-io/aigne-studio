@@ -50,7 +50,7 @@ export function globalRoutes(router: Router) {
       ];
     } else {
       projectIds = (await Project.findAll({ order: [['createdAt', 'ASC']] })).map((i) => ({
-        projectId: i._id,
+        projectId: i.id,
         ref: i.gitDefaultBranch,
       }));
     }
@@ -81,7 +81,7 @@ export function globalRoutes(router: Router) {
 
     const projectIds = projectId
       ? [projectId]
-      : (await Project.findAll({ order: [['createdAt', 'ASC']] })).map((i) => i._id);
+      : (await Project.findAll({ order: [['createdAt', 'ASC']] })).map((i) => i.id);
 
     let assistants = (
       await Promise.all(

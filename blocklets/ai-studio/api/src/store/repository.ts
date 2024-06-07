@@ -20,8 +20,8 @@ import { Repository, Transaction } from '@blocklet/co-git/repository';
 import { SpaceClient, SyncFolderPushCommand, SyncFolderPushCommandOutput } from '@did-space/client';
 import { copyFile, exists, pathExists } from 'fs-extra';
 import { glob } from 'glob';
+import Joi from 'joi';
 import isEmpty from 'lodash/isEmpty';
-import pick from 'lodash/pick';
 import { nanoid } from 'nanoid';
 import { parseAuth, parseURL } from 'ufo';
 import { parse, stringify } from 'yaml';
@@ -219,6 +219,41 @@ export async function syncRepository<T>({
 
 export const SETTINGS_FILE = '.settings.yaml';
 
+export type SettingsFile = Pick<
+  Project,
+  | 'id'
+  | 'name'
+  | 'description'
+  | 'model'
+  | 'temperature'
+  | 'topP'
+  | 'presencePenalty'
+  | 'frequencyPenalty'
+  | 'maxTokens'
+  | 'createdAt'
+  | 'updatedAt'
+  | 'createdBy'
+  | 'updatedBy'
+>;
+
+export const settingsFileSchema = Joi.object<SettingsFile>({
+  id: Joi.string().required(),
+  name: Joi.string().empty(['', null]),
+  description: Joi.string().empty(['', null]),
+  model: Joi.string().empty(['', null]),
+  temperature: Joi.number().empty(['', null]),
+  topP: Joi.number().empty(['', null]),
+  presencePenalty: Joi.number().empty(['', null]),
+  frequencyPenalty: Joi.number().empty(['', null]),
+  maxTokens: Joi.number().empty(['', null]),
+  createdAt: Joi.alternatives(Joi.string().isoDate(), Joi.date()).required(),
+  updatedAt: Joi.alternatives(Joi.string().isoDate(), Joi.date()).required(),
+  createdBy: Joi.string().required(),
+  updatedBy: Joi.string().required(),
+})
+  .rename('_id', 'id', { override: true, ignoreUndefined: true })
+  .options({ stripUnknown: true });
+
 const addSettingsToGit = async ({
   tx,
   project,
@@ -228,25 +263,8 @@ const addSettingsToGit = async ({
   project: Project;
   icon?: string;
 }) => {
-  const repository = await getRepository({ projectId: project._id! });
-  const fields = pick(project.dataValues, [
-    '_id',
-    'name',
-    'description',
-    'model',
-    'createdAt',
-    'updatedAt',
-    'createdBy',
-    'updatedBy',
-    'pinnedAt',
-    'gitType',
-    'temperature',
-    'topP',
-    'presencePenalty',
-    'frequencyPenalty',
-    'maxTokens',
-    'gitAutoSync',
-  ]);
+  const repository = await getRepository({ projectId: project.id! });
+  const fields = await settingsFileSchema.validateAsync(project.dataValues);
 
   const fieldsStr = stringify(fields, { aliasDuplicateObjects: false });
 
@@ -282,7 +300,7 @@ export const autoSyncIfNeeded = async ({
   wait?: true | false;
 }) => {
   if (project.gitUrl && project.gitAutoSync) {
-    const repository = await getRepository({ projectId: project._id! });
+    const repository = await getRepository({ projectId: project.id! });
     const remote = (await repository.listRemotes()).find((i) => i.remote === defaultRemote);
     if (remote && parseAuth(parseURL(remote.url).auth).password) {
       await syncRepository({ repository, ref: project.gitDefaultBranch, author });
@@ -294,21 +312,21 @@ export const autoSyncIfNeeded = async ({
     if (wait) {
       await syncToDidSpace({ project, userId });
     } else {
-      broadcast(project._id, EVENTS.PROJECT.SYNC_TO_DID_SPACE, {
+      broadcast(project.id, EVENTS.PROJECT.SYNC_TO_DID_SPACE, {
         done: false,
       });
       // 开始同步
       syncToDidSpace({ project, userId })
         .then(() => {
           // 同步成功
-          broadcast(project._id, EVENTS.PROJECT.SYNC_TO_DID_SPACE, {
+          broadcast(project.id, EVENTS.PROJECT.SYNC_TO_DID_SPACE, {
             done: true,
           });
         })
         .catch((error) => {
           // 同步失败了
           logger.error(error);
-          broadcast(project._id, EVENTS.PROJECT.SYNC_TO_DID_SPACE, {
+          broadcast(project.id, EVENTS.PROJECT.SYNC_TO_DID_SPACE, {
             error,
             done: true,
           });
@@ -330,8 +348,8 @@ export async function syncToDidSpace({ project, userId }: { project: Project; us
     wallet,
   });
 
-  const repositoryPath = repositoryRoot(project._id);
-  const repositoryCooperativePath = repositoryCooperativeRoot(project._id);
+  const repositoryPath = repositoryRoot(project.id);
+  const repositoryCooperativePath = repositoryCooperativeRoot(project.id);
   const outputs: (SyncFolderPushCommandOutput | null)[] = await Promise.all(
     [repositoryPath, repositoryCooperativePath].map(async (path) => {
       if (await pathExists(path)) {
@@ -373,7 +391,7 @@ export async function commitWorking({
   icon?: string;
   skipCommitIfNoChanges?: boolean;
 }) {
-  const repository = await getRepository({ projectId: project._id! });
+  const repository = await getRepository({ projectId: project.id! });
   const working = await repository.working({ ref });
 
   return working.commit({
@@ -422,7 +440,7 @@ export async function commitProjectSettingWorking({
   author: NonNullable<NonNullable<Parameters<Repository<any>['pull']>[0]>['author']>;
   icon?: string;
 }) {
-  const repository = await getRepository({ projectId: project._id! });
+  const repository = await getRepository({ projectId: project.id! });
   await repository.transact(async (tx) => {
     await tx.checkout({ ref: project.gitDefaultBranch, force: true });
     await addSettingsToGit({ tx, project, icon });

@@ -1,17 +1,15 @@
-import { Assistant, ConfigFile } from '@blocklet/ai-runtime/types';
+import { Assistant } from '@blocklet/ai-runtime/types';
 
 import { wallet } from '../libs/auth';
 import Project from '../store/models/project';
 
 export const projectTemplates: {
-  project: Project['dataValues'];
-  config?: ConfigFile;
+  project: Partial<Project['dataValues']>;
   assistants: (Assistant & { parent: string[] })[];
-  gitLogoPath?: string;
 }[] = [
   {
     project: {
-      _id: '363299428078977024',
+      id: '363299428078977024',
       name: 'blank',
       description: 'Start a project from scratch.',
       model: '',

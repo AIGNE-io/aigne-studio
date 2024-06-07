@@ -13,7 +13,7 @@ router.use(ensurePromptsEditor, user()).ws('/ws/:projectId/:ref', async (conn, r
   const { projectId, ref } = req.params;
   if (!projectId || !ref) throw new Error('Missing required params projectId or ref');
 
-  const project = await Project.findOne({ where: { _id: projectId } });
+  const project = await Project.findOne({ where: { id: projectId } });
 
   if (!project) {
     conn.close(3001, `Project ${projectId} not found`);

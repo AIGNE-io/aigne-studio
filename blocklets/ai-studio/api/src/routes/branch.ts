@@ -60,7 +60,7 @@ export function branchRoutes(router: Router) {
     const { projectId, branch } = req.params;
     if (!projectId || !branch) throw new Error('Missing required params `projectId` or `branch`');
 
-    const defaultBranch = (await Project.findOne({ where: { _id: projectId } }))?.gitDefaultBranch;
+    const defaultBranch = (await Project.findOne({ where: { id: projectId } }))?.gitDefaultBranch;
 
     if (branch === defaultBranch) throw new Error('Can not delete default branch');
 

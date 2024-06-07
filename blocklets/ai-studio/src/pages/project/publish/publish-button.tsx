@@ -51,7 +51,7 @@ export default function PublishButton({ ...props }: LoadingButtonProps) {
 }
 
 function PublishDialog({ project, onClose }: { project: Project; onClose: () => void }) {
-  const [logo] = useState(() => getProjectIconUrl(project._id, project.updatedAt, { original: true }));
+  const [logo] = useState(() => getProjectIconUrl(project.id, project.updatedAt, { original: true }));
   const [opened, setOpened] = useState(false);
 
   if (!project) return null;
@@ -61,7 +61,7 @@ function PublishDialog({ project, onClose }: { project: Project; onClose: () => 
       <BlockletStudio
         style={{ opacity: opened ? 1 : 0 }}
         mode="dialog"
-        tenantScope={project._id}
+        tenantScope={project.id}
         title={project.name || ''}
         description={project.description || ''}
         note=""
@@ -69,7 +69,7 @@ function PublishDialog({ project, onClose }: { project: Project; onClose: () => 
         logo={logo}
         componentDid={AI_STUDIO_COMPONENT_DID}
         // 透传到 get blocklet resource 的参数
-        resourcesParams={{ projectId: project._id }}
+        resourcesParams={{ projectId: project.id }}
         dependentComponentsMode="readonly"
         open
         setOpen={() => onClose()}
