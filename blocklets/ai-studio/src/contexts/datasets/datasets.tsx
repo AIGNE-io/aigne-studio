@@ -14,7 +14,7 @@ import {
 } from '../../libs/dataset';
 
 export interface DatasetsContext {
-  datasets: Dataset[];
+  datasets: (Dataset & { blockletDid?: string })[];
   loading: boolean;
   error?: Error;
   refetch: (projectId?: string) => Promise<void>;
@@ -32,7 +32,7 @@ export function DatasetsProvider({ children }: { children: ReactNode }) {
   const value = useRef<DatasetsContext>({
     datasets: [],
     loading: false,
-    refetch: async (projectId?: string) => {
+    refetch: async () => {
       const state = value.current;
 
       if (state.loading) {
@@ -44,7 +44,7 @@ export function DatasetsProvider({ children }: { children: ReactNode }) {
         v.datasets = [];
       });
       try {
-        const datasets = await getDatasets(projectId);
+        const datasets = await getDatasets(true);
 
         setValue((v) => {
           v.datasets = datasets;

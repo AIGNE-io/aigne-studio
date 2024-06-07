@@ -156,11 +156,18 @@ router.get('/:datasetId/documents', user(), userAuth(), async (req, res) => {
   const user = isAdmin ? {} : { [Op.or]: [{ createdBy: did }, { updatedBy: did }] };
 
   if (!datasetId) throw new Error('Missing required params `datasetId`');
-
   const { page, size } = await Joi.object<{ page: number; size: number }>({
     page: Joi.number().integer().min(1).default(1),
     size: Joi.number().integer().min(1).max(100).default(20),
   }).validateAsync(req.query, { stripUnknown: true });
+
+  const knowledges = await getResourceKnowledges();
+  if (knowledges[datasetId]) {
+    const resource = knowledges[datasetId];
+    const docs = [...(resource?.documents || [])].splice(page - 1, size);
+    res.json({ items: docs, total: resource?.documents.length });
+    return;
+  }
 
   const [items, total] = await Promise.all([
     DatasetDocument.findAll({

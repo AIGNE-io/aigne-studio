@@ -28,12 +28,8 @@ export async function getAPIList(): Promise<DatasetObject[]> {
   return axios.get('/api/collections.json').then((res) => res.data);
 }
 
-export async function getDatasets(appId?: string): Promise<Dataset[]> {
-  return axios.get('/api/datasets', { params: { appId } }).then((res) => res.data);
-}
-
-export async function getResourceKnowledges(): Promise<Dataset[]> {
-  return axios.get('/api/datasets/resource').then((res) => res.data);
+export async function getDatasets(filterPrivate?: boolean): Promise<Dataset[]> {
+  return axios.get('/api/datasets', { params: { filterPrivate } }).then((res) => res.data);
 }
 
 export async function getDataset(datasetId: string): Promise<Dataset> {

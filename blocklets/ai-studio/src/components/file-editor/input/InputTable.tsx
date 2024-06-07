@@ -7,7 +7,7 @@ import LoadingButton from '@app/components/loading/loading-button';
 import PopperMenu, { PopperMenuImperative } from '@app/components/menu/PopperMenu';
 import PasswordField from '@app/components/PasswordField';
 import { useCurrentProject } from '@app/contexts/project';
-import { getDatasets, getResourceKnowledges } from '@app/libs/dataset';
+import { getDatasets } from '@app/libs/dataset';
 import { createOrUpdateProjectInputSecrets, getProjectIconUrl, getProjectInputSecrets } from '@app/libs/project';
 import Close from '@app/pages/project/icons/close';
 import { useAssistantCompare } from '@app/pages/project/state';
@@ -117,7 +117,7 @@ export default function InputTable({
   };
 
   const parameters = sortBy(Object.values(assistant.parameters ?? {}), (i) => i.index);
-  const { data: knowledge = [] } = useRequest(() => getDatasets(projectId));
+  const { data: knowledge = [] } = useRequest(() => getDatasets());
 
   const FROM_MAP = useMemo(() => {
     return {
@@ -856,22 +856,26 @@ function KnowledgeParameter({
   gitRef: string;
   value: AssistantYjs;
   parameter: ParameterYjs;
-  knowledge: (Dataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
+  knowledge: (Dataset['dataValues'] & {
+    blockletDid?: string;
+    from?: NonNullable<ExecuteBlock['tools']>[number]['from'];
+  })[];
 }) {
   const { t } = useLocaleContext();
   const { deleteUselessParameter } = useDelete(value);
-  const { loading, data: resourceKnowledges = [] } = useRequest(() => getResourceKnowledges());
+  const localKnowledge = knowledge.filter((x) => !x.blockletDid);
+  const resourceKnowledge = knowledge.filter((x) => x.blockletDid);
 
   const options = useMemo(() => {
     return [
-      ...knowledge.map((item) => ({
+      ...localKnowledge.map((item) => ({
         id: item.id,
         name: item.name || t('unnamed'),
         from: item.from,
         blockletDid: undefined,
         group: t('本地知识库'),
       })),
-      ...(resourceKnowledges || []).map((item) => ({
+      ...(resourceKnowledge || []).map((item) => ({
         id: item.id,
         name: item.name || t('unnamed'),
         from: undefined,
@@ -879,7 +883,7 @@ function KnowledgeParameter({
         group: t('资源知识库'),
       })),
     ];
-  }, [knowledge, resourceKnowledges]);
+  }, [localKnowledge, resourceKnowledge, t]);
 
   if (parameter.type === 'source' && parameter?.source?.variableFrom === 'knowledge') {
     const toolId = parameter?.source?.knowledge?.id;
@@ -903,7 +907,6 @@ function KnowledgeParameter({
             multiple={false}
             groupBy={(option) => option.group || ''}
             options={options}
-            loading={loading}
             renderInput={(params) => (
               <TextField hiddenLabel placeholder={t('selectKnowledgePlaceholder')} {...params} />
             )}

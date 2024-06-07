@@ -45,7 +45,7 @@ interface ResourceProject {
 
 export interface ResourceKnowledge {
   blockletDid: string;
-  knowledge: Knowledge['dataValues'];
+  knowledge: Knowledge['dataValues'] & { private?: boolean };
   documents: Document['dataValues'][];
   contents: Content['dataValues'][];
   vectorsPath: string;

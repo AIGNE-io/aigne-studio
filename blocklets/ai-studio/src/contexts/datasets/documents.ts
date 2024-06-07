@@ -8,7 +8,7 @@ import { getErrorMessage } from '../../libs/api';
 import { deleteDocument, getDataset, getDocuments } from '../../libs/dataset';
 
 interface DatasetState {
-  dataset?: Dataset;
+  dataset?: Dataset & { blockletDid?: string };
   items?: DatasetDocument[];
   page: number;
   size: number;

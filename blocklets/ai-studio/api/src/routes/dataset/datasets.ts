@@ -22,29 +22,27 @@ router.get('/', user(), userAuth(), async (req, res) => {
   const { did, isAdmin } = req.user!;
   const user = isAdmin ? {} : { [Op.or]: [{ createdBy: did }, { updatedBy: did }] };
 
-  const { appId } = await Joi.object<{ appId?: string }>({
-    appId: Joi.string().allow('').empty(null).default(''),
-  }).validateAsync(req.query, { stripUnknown: true });
-
   const sql = Sequelize.literal(
     '(SELECT COUNT(*) FROM DatasetDocuments WHERE DatasetDocuments.datasetId = Dataset.id)'
   );
 
-  const datasets = await Dataset.findAll({
-    where: {
-      ...(appId && { appId }),
-      ...user,
-    },
-    attributes: { include: [[sql, 'documents']] },
-  });
+  const { filterPrivate } = await Joi.object<{ filterPrivate?: boolean }>({
+    filterPrivate: Joi.bool().allow('').empty([null, '']).default(false),
+  }).validateAsync(req.query, { stripUnknown: true });
 
-  res.json(datasets);
-});
+  const datasets = await Dataset.findAll({ where: { ...user }, attributes: { include: [[sql, 'documents']] } });
 
-router.get('/resource', user(), userAuth(), async (_req, res) => {
   const knowledges = await getResourceKnowledges();
-  const datasets = Object.values(knowledges).map((knowledge) => knowledge.knowledge);
-  res.json(datasets);
+  const resource = Object.values(knowledges)
+    .map((knowledge) => {
+      return { ...knowledge.knowledge, documents: (knowledge?.documents || []).length };
+    })
+    .filter((knowledge) => {
+      if (filterPrivate) return !knowledge.private;
+      return knowledge;
+    });
+
+  res.json([...resource, ...datasets]);
 });
 
 router.get('/:datasetId', user(), userAuth(), async (req, res) => {

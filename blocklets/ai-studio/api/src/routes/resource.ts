@@ -261,9 +261,7 @@ export function resourceRoutes(router: Router) {
           if (assistant.parameters?.length) {
             (assistant.parameters || []).forEach((parameter) => {
               if (parameter.type === 'source' && parameter.source?.variableFrom === 'knowledge') {
-                if (parameter.source.knowledge?.id) {
-                  knowledgeIds.push(parameter.source.knowledge.id);
-                }
+                if (parameter.source.knowledge?.id) knowledgeIds.push(parameter.source.knowledge.id);
               }
             });
           }
@@ -299,25 +297,24 @@ export function resourceRoutes(router: Router) {
     const selectKnowledge = resourceTypes.find(([type]) => type === 'knowledge');
     const uniqueKnowledgeIds = Array.from(new Set(knowledgeIds));
 
-    const allKnowledgeIds = Array.from(
-      new Set([
-        ...(selectKnowledge
-          ? (selectKnowledge[1] || [])
-              .filter((x) => x.knowledgeId)
-              .map((x) => x.knowledgeId)
-              .filter((i): i is NonNullable<typeof i> => !!i)
-          : []),
-        ...uniqueKnowledgeIds,
-      ])
-    );
+    const formatSelectKnowledge = [
+      ...(selectKnowledge
+        ? (selectKnowledge[1] || [])
+            .filter((x) => x.knowledgeId)
+            .map((x) => x.knowledgeId)
+            .filter((i): i is NonNullable<typeof i> => !!i)
+        : []),
+    ].map((i) => ({ id: i, private: false }));
+    const formatDependentKnowledge = uniqueKnowledgeIds.map((i) => ({ id: i, private: true }));
+    const allKnowledge = [...formatSelectKnowledge, ...formatDependentKnowledge];
 
-    if (allKnowledgeIds.length > 0) {
+    if (allKnowledge.length > 0) {
       const folderPath = path.join(resourceDir, 'knowledge');
       if (!(await exists(folderPath))) {
         await mkdir(folderPath, { recursive: true });
       }
 
-      await getKnowledgeList(folderPath, allKnowledgeIds);
+      await getKnowledgeList(folderPath, allKnowledge);
     }
 
     return res.json(arr);
@@ -356,13 +353,14 @@ function getAssistantDependentComponents(assistant: Assistant | Assistant[]) {
   ];
 }
 
-const getKnowledgeList = async (folderPath: string, knowledgeIds: string[]) => {
-  for (const knowledgeId of knowledgeIds) {
-    await getKnowledgeInfo(folderPath, knowledgeId);
+const getKnowledgeList = async (folderPath: string, knowledges: { id: string; private: boolean }[]) => {
+  for (const item of knowledges) {
+    await getKnowledgeInfo(folderPath, item);
   }
 };
 
-const getKnowledgeInfo = async (knowledgePath: string, knowledgeId: string) => {
+const getKnowledgeInfo = async (knowledgePath: string, item: { id: string; private: boolean }) => {
+  const knowledgeId = item.id;
   const knowledge = await Knowledge.findOne({ where: { id: knowledgeId } });
   if (!knowledge) return;
 
@@ -376,7 +374,10 @@ const getKnowledgeInfo = async (knowledgePath: string, knowledgeId: string) => {
   }
 
   // 首先将 projects documents contents 继续数据结构化
-  await writeFile(path.join(knowledgeWithIdPath, 'knowledges.yaml'), stringify(knowledge));
+  await writeFile(
+    path.join(knowledgeWithIdPath, 'knowledges.yaml'),
+    stringify({ ...knowledge.dataValues, private: item.private })
+  );
   await writeFile(path.join(knowledgeWithIdPath, 'contents.yaml'), stringify(contents));
   logger.info(`write ${knowledgeId} knowledges, contents db success`);
 
