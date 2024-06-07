@@ -58,6 +58,30 @@ export default class VectorStore extends FaissStore {
     return store;
   }
 
+  static async loadResource(storePath: string, embeddings: EmbeddingsInterface): Promise<VectorStore> {
+    let store = vectorStores.get(storePath);
+    if (!store) {
+      store = (async () => {
+        let faiss: FaissStore;
+
+        if (await pathExists(storePath)) {
+          try {
+            faiss = await FaissStore.load(storePath, embeddings);
+          } catch (error) {
+            logger.error('FaissStore load from path error', { error });
+          }
+        } else {
+          await mkdir(storePath, { recursive: true });
+        }
+
+        faiss ??= await FaissStore.fromDocuments([], embeddings);
+        return new VectorStore(storePath, embeddings, faiss.args);
+      })();
+      vectorStores.set(storePath, store);
+    }
+    return store;
+  }
+
   override async save() {
     await super.save(this.directory);
   }

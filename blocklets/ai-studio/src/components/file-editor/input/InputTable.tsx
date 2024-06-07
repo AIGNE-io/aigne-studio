@@ -7,7 +7,7 @@ import LoadingButton from '@app/components/loading/loading-button';
 import PopperMenu, { PopperMenuImperative } from '@app/components/menu/PopperMenu';
 import PasswordField from '@app/components/PasswordField';
 import { useCurrentProject } from '@app/contexts/project';
-import { getDatasets } from '@app/libs/dataset';
+import { getDatasets, getResourceKnowledges } from '@app/libs/dataset';
 import { createOrUpdateProjectInputSecrets, getProjectIconUrl, getProjectInputSecrets } from '@app/libs/project';
 import Close from '@app/pages/project/icons/close';
 import { useAssistantCompare } from '@app/pages/project/state';
@@ -860,36 +860,67 @@ function KnowledgeParameter({
 }) {
   const { t } = useLocaleContext();
   const { deleteUselessParameter } = useDelete(value);
+  const { loading, data: resourceKnowledges = [] } = useRequest(() => getResourceKnowledges());
 
-  if (parameter.type === 'source' && parameter?.source?.variableFrom === 'knowledge') {
-    const toolId = parameter?.source?.knowledge?.id;
-    const { source } = parameter;
-
-    const options = [
+  const options = useMemo(() => {
+    return [
       ...knowledge.map((item) => ({
         id: item.id,
         name: item.name || t('unnamed'),
         from: item.from,
+        blockletDid: undefined,
+        group: t('本地知识库'),
+      })),
+      ...(resourceKnowledges || []).map((item) => ({
+        id: item.id,
+        name: item.name || t('unnamed'),
+        from: undefined,
+        blockletDid: (item as any).blockletDid,
+        group: t('资源知识库'),
       })),
     ];
+  }, [knowledge, resourceKnowledges]);
+
+  if (parameter.type === 'source' && parameter?.source?.variableFrom === 'knowledge') {
+    const toolId = parameter?.source?.knowledge?.id;
+    const blockletDid = parameter?.source?.knowledge?.blockletDid;
+    const { source } = parameter;
 
     const parameters = [
       { name: 'searchAll', description: t('allContent'), type: 'boolean' },
       { name: 'message', description: t('searchContent') },
     ];
     const v = options.find((x) => x.id === toolId);
+    const d = blockletDid ? options.find((x) => x.id === toolId && x.blockletDid === blockletDid) : null;
 
     return (
       <Stack gap={2}>
         <Box>
           <Typography variant="subtitle2">{t('knowledge.menu')}</Typography>
 
-          <SelectTool
-            options={options}
-            value={v}
+          <Autocomplete
+            value={d ?? v ?? null}
             multiple={false}
-            placeholder={t('selectKnowledgePlaceholder')}
-            onChange={(_value) => {
+            groupBy={(option) => option.group || ''}
+            options={options}
+            loading={loading}
+            renderInput={(params) => (
+              <TextField hiddenLabel placeholder={t('selectKnowledgePlaceholder')} {...params} />
+            )}
+            getOptionLabel={(option) => option.name}
+            isOptionEqualToValue={(o, v) => `${o.id}` === `${v.id}`}
+            renderGroup={(params) => {
+              return (
+                <Box key={params.key}>
+                  <Typography p={2} py={1} pl={1} lineHeight="20px" color="#9CA3AF">
+                    {params.group}
+                  </Typography>
+
+                  <Box>{params.children}</Box>
+                </Box>
+              );
+            }}
+            onChange={(_, _value) => {
               if (_value) {
                 // 删除历史自动添加的变量
                 deleteUselessParameter();
@@ -899,8 +930,9 @@ function KnowledgeParameter({
                 };
 
                 source.knowledge = {
-                  id: _value.id,
                   from: 'knowledge',
+                  id: _value.id,
+                  blockletDid: _value.blockletDid,
                   parameters,
                 };
               }
@@ -922,7 +954,7 @@ function KnowledgeParameter({
                       <Typography variant="caption">{data.description || data.name}</Typography>
 
                       <Switch
-                        defaultChecked={Boolean(source?.knowledge?.parameters?.[data.name] ?? false)}
+                        checked={Boolean(source?.knowledge?.parameters?.[data.name] ?? false)}
                         onChange={(_, checked) => {
                           if (source?.knowledge?.parameters) {
                             // @ts-ignore

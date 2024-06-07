@@ -1,6 +1,7 @@
 import { readFile, writeFile } from 'fs/promises';
-import path from 'path';
+import path, { join } from 'path';
 
+import { getResourceKnowledges } from '@api/libs/resource';
 import config from '@blocklet/sdk/lib/config';
 import user from '@blocklet/sdk/lib/middlewares/user';
 import { Router } from 'express';
@@ -18,7 +19,7 @@ import Dataset from '../../store/models/dataset/dataset';
 import DatasetDocument from '../../store/models/dataset/document';
 import EmbeddingHistories from '../../store/models/dataset/embedding-history';
 import VectorStore from '../../store/vector-store-faiss';
-import getAllContents, { getContent } from './document-content';
+import getAllContents, { getAllResouceContents, getContent } from './document-content';
 import { queue } from './embeddings';
 import { updateHistoriesAndStore } from './vector-store';
 
@@ -38,11 +39,61 @@ export interface CreateDiscussionItem {
 
 export type CreateDiscussionItemInput = CreateDiscussionItem | CreateDiscussionItem[];
 
-const searchQuerySchema = Joi.object<{ message?: string; searchAll?: boolean; n: number }>({
+type Input = { message?: string; searchAll?: boolean; n: number };
+
+const searchQuerySchema = Joi.object<Input>({
   message: Joi.string().empty(['', null]),
   searchAll: Joi.boolean().default(false).empty(['', null]),
   n: Joi.number().empty(['', null]).min(1).default(4),
 });
+
+const searchResourceKnowledge = async (datasetId: string, input: Input) => {
+  const knowledges = await getResourceKnowledges();
+  const resource = knowledges?.[datasetId];
+
+  if (!resource) {
+    return { docs: [] };
+  }
+
+  if (input.searchAll) {
+    try {
+      const docs = await getAllResouceContents(resource);
+      return { docs };
+    } catch (error) {
+      return { docs: [] };
+    }
+  }
+
+  if (!input.message) {
+    logger.error('Not found search message');
+    return { docs: [] };
+  }
+
+  const embeddings = new AIKitEmbeddings({});
+  const store = await VectorStore.loadResource(join(resource.vectorsPath, datasetId), embeddings);
+
+  try {
+    if (store.getMapping() && !Object.keys(store.getMapping()).length) {
+      return { docs: [] };
+    }
+
+    const docs = await store.similaritySearchWithScore(
+      input.message,
+      Math.min(input.n, Object.keys(store.getMapping()).length)
+    );
+
+    // 分数越低越相近
+    const result = sortBy(docs, (item) => item[1]).map((x) => {
+      const info = x[0] || {};
+      return { content: info?.pageContent, ...(info?.metadata?.metadata || {}) };
+    });
+
+    return { docs: result };
+  } catch (error) {
+    logger.error('search vector info', error?.message);
+    return { docs: [] };
+  }
+};
 
 router.get('/:datasetId/search', async (req, res) => {
   const { datasetId } = req.params;
@@ -51,14 +102,18 @@ router.get('/:datasetId/search', async (req, res) => {
 
   const dataset = await Dataset.findOne({ where: { id: datasetId } });
   if (!dataset) {
-    logger.error(`dataset ${datasetId} not found`);
-    res.json({ docs: [] });
+    logger.warn(`dataset ${datasetId} not found, search from resource knowledge`);
+    res.json(await searchResourceKnowledge(datasetId, input));
     return;
   }
 
   if (input.searchAll) {
-    const docs = await getAllContents(datasetId);
-    res.json({ docs });
+    try {
+      const docs = await getAllContents(datasetId);
+      res.json({ docs });
+    } catch (error) {
+      res.json({ docs: [] });
+    }
     return;
   }
 

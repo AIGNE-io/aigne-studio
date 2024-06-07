@@ -1,3 +1,4 @@
+import { getResourceKnowledges } from '@api/libs/resource';
 import user from '@blocklet/sdk/lib/middlewares/user';
 import compression from 'compression';
 import { Router } from 'express';
@@ -40,6 +41,12 @@ router.get('/', user(), userAuth(), async (req, res) => {
   res.json(datasets);
 });
 
+router.get('/resource', user(), userAuth(), async (_req, res) => {
+  const knowledges = await getResourceKnowledges();
+  const datasets = Object.values(knowledges).map((knowledge) => knowledge.knowledge);
+  res.json(datasets);
+});
+
 router.get('/:datasetId', user(), userAuth(), async (req, res) => {
   const { datasetId } = req.params;
   const { did, isAdmin } = req.user!;
@@ -50,7 +57,9 @@ router.get('/:datasetId', user(), userAuth(), async (req, res) => {
   }).validateAsync(req.query, { stripUnknown: true });
 
   const dataset = await Dataset.findOne({ where: { id: datasetId, ...(appId && { appId }), ...user } });
-  res.json(dataset);
+  const knowledges = await getResourceKnowledges();
+
+  res.json(dataset || knowledges[datasetId || '']?.knowledge);
 });
 
 router.post('/', user(), userAuth(), async (req, res) => {
