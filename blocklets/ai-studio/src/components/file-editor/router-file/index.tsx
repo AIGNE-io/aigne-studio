@@ -884,7 +884,7 @@ function AddSelectAgentPopperButton({
       <Stack maxHeight={300} overflow="auto">
         <>
           <GroupView name={project.name || ''} description="Select Agent">
-            <Avatar variant="rounded" src={getProjectIconUrl(project._id, project.updatedAt)} />
+            <Avatar variant="rounded" src={getProjectIconUrl(project.id, project.updatedAt)} />
           </GroupView>
 
           <List

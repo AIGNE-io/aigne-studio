@@ -36,11 +36,11 @@ const currentGitStore = create<CurrentGitStore>()(
         const { projectGitSettings } = get();
         set({
           projectGitSettings: projects.map((project) => {
-            const projectGitSetting = projectGitSettings.find((i) => i.projectId === project._id);
+            const projectGitSetting = projectGitSettings.find((i) => i.projectId === project.id);
             return {
               defaultBranch: project.gitDefaultBranch!,
               currentBranch: projectGitSetting ? projectGitSetting.currentBranch : project.gitDefaultBranch!,
-              projectId: project._id,
+              projectId: project.id,
             };
           }),
         });

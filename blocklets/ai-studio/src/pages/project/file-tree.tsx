@@ -502,26 +502,21 @@ const FileTree = forwardRef<
                     editing={meta.name === editingFileName}
                     selected={selected}
                     onClick={() => navigate(joinURL('.', filepath))}
-                    onDoubleClick={() => {
-                      if (!isEntryAgent) setEditingFileName(meta.name);
-                    }}
+                    onDoubleClick={() => setEditingFileName(meta.name)}
                     actions={actions}
                     sx={{ color: change?.color }}>
-                    {isEntryAgent ? (
-                      t('entryAgent')
-                    ) : (
-                      <EditTextItem
-                        editing={meta.name === editingFileName}
-                        onCancel={() => setEditingFileName(undefined)}
-                        onSubmit={async (name) => {
-                          setEditingFileName(undefined);
-                          const { data } = node;
-                          if (!data || name === data.name) return;
-                          meta.name = name;
-                        }}>
-                        {createFileName({ store, name: meta.name, defaultName: `${t('alert.unnamed')} Agent` })}
-                      </EditTextItem>
-                    )}
+                    <EditTextItem
+                      isEntry={isEntryAgent}
+                      editing={meta.name === editingFileName}
+                      onCancel={() => setEditingFileName(undefined)}
+                      onSubmit={async (name) => {
+                        setEditingFileName(undefined);
+                        const { data } = node;
+                        if (!data || name === data.name) return;
+                        meta.name = name;
+                      }}>
+                      {createFileName({ store, name: meta.name, defaultName: `${t('alert.unnamed')} Agent` })}
+                    </EditTextItem>
                   </TreeItem>
                   <AwarenessIndicator
                     projectId={projectId}
@@ -802,16 +797,19 @@ function TreeItemMenus({
 }
 
 function EditTextItem({
+  isEntry,
   editing,
   children,
   onCancel,
   onSubmit,
 }: {
+  isEntry?: boolean;
   editing?: boolean;
   children?: string;
   onCancel?: () => any;
   onSubmit?: (text: string) => any;
 }) {
+  const { t } = useLocaleContext();
   const [value, setValue] = useState(children);
 
   const submit = async () => {
@@ -863,7 +861,10 @@ function EditTextItem({
       onBlur={submit}
     />
   ) : (
-    children
+    <>
+      {children}
+      {isEntry && ` (${t('entryAgent')})`}
+    </>
   );
 }
 

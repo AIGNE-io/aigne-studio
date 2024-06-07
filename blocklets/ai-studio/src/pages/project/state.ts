@@ -971,11 +971,19 @@ export function useAssistantCompare({
 }
 
 export const saveButtonState = create<{
-  save?: (options?: { skipConfirm?: boolean }) => Promise<{ saved?: boolean } | undefined>;
-  setSaveHandler: (save?: (options?: { skipConfirm?: boolean }) => Promise<{ saved?: boolean } | undefined>) => void;
+  save?: (options?: {
+    skipConfirm?: boolean;
+    skipCommitIfNoChanges?: boolean;
+  }) => Promise<{ saved?: boolean } | undefined>;
+  setSaveHandler: (
+    save?: (options?: {
+      skipConfirm?: boolean;
+      skipCommitIfNoChanges?: boolean;
+    }) => Promise<{ saved?: boolean } | undefined>
+  ) => void;
 }>()(
   immer((set) => ({
-    setSaveHandler(save?: (options?: { skipConfirm?: boolean }) => Promise<{ saved?: boolean } | undefined>) {
+    setSaveHandler(save) {
       set((state) => {
         state.save = save;
       });

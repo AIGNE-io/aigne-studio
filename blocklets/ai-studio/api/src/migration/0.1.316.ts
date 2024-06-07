@@ -26,12 +26,12 @@ async function migrate() {
   try {
     await Promise.all(
       projects.map(async (project) => {
-        const repo = await getRepository({ projectId: project._id });
+        const repo = await getRepository({ projectId: project.id });
         const { icon } = project;
 
         try {
           if (icon && icon.startsWith('http')) {
-            const tmpFile = join(tmp, project._id);
+            const tmpFile = join(tmp, project.id);
             await downloadLogo(icon, tmpFile);
             if (!(await stat(tmpFile)).size) {
               throw new Error('Invalid icon file downloaded');
