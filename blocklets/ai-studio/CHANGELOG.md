@@ -1,3 +1,9 @@
+## 0.2.38 (2024-6-7)
+
+- fix: skip commit if no changes
+- fix: display original agent name for the entry agent
+- fix: show placeholder for the inputs of selected agent
+
 ## 0.2.37 (2024-6-6)
 
 - fix: add horizontal padding for project action buttons

@@ -28,6 +28,7 @@ import {
   getEntryFromRepository,
   getProjectConfig,
   getRepository,
+  settingsFileSchema,
 } from '../store/repository';
 
 const AI_STUDIO_DID = 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
@@ -106,7 +107,7 @@ export function resourceRoutes(router: Router) {
     );
 
     const projects = await Project.findAll({
-      where: query.resourcesParams?.projectId ? { _id: query.resourcesParams.projectId } : {},
+      where: query.resourcesParams?.projectId ? { id: query.resourcesParams.projectId } : {},
       order: [['updatedAt', 'DESC']],
     });
 
@@ -117,40 +118,40 @@ export function resourceRoutes(router: Router) {
     const resources = await Promise.all(
       projects.map(async (x) => {
         const assistants = await getAssistantsOfRepository({
-          projectId: x._id,
+          projectId: x.id,
           ref: x.gitDefaultBranch || defaultBranch,
         });
         const dependentComponents = getAssistantDependentComponents(assistants);
 
-        const entry = await getEntryFromRepository({ projectId: x._id, ref: x.gitDefaultBranch || defaultBranch });
+        const entry = await getEntryFromRepository({ projectId: x.id, ref: x.gitDefaultBranch || defaultBranch });
 
         return {
-          id: x._id,
+          id: x.id,
           name: x.name || locale.unnamed,
           description: x.description,
           children: [
             {
-              id: `application/${x._id}`,
+              id: `application/${x.id}`,
               name: locale.application,
               disabled: true,
               description: entry ? undefined : 'No such entry agent, You have to create an entry agent first',
               dependentComponents,
             },
             {
-              id: `other/${x._id}`,
+              id: `other/${x.id}`,
               name: locale.other,
               children: ResourceTypes.filter((i) => i !== 'application').map((type) => ({
-                id: `${type}/${x._id}`,
+                id: `${type}/${x.id}`,
                 name: locale[type],
                 children: ['tool', 'llm-adapter', 'aigc-adapter'].includes(type)
                   ? assistants.map((assistant) => ({
-                      id: `${type}/${x._id}/${assistant.id}`,
+                      id: `${type}/${x.id}/${assistant.id}`,
                       name: assistant.name || locale.unnamed,
                       dependentComponents,
                     }))
                   : ['knowledge'].includes(type)
                     ? knowledges.map((knowledge) => ({
-                        id: `${type}/${x._id}/${knowledge.id}`,
+                        id: `${type}/${x.id}/${knowledge.id}`,
                         name: knowledge.name || locale.unnamed,
                       }))
                     : undefined,
@@ -176,7 +177,7 @@ export function resourceRoutes(router: Router) {
           .map((x) => {
             // 如果是知识库  agentId 代表 knowledgeId
             const [type, projectId, agentId] = x.split('/');
-            return type && projectId
+            return ResourceTypes.includes(type as any) && projectId
               ? {
                   type,
                   projectId,
@@ -216,32 +217,37 @@ export function resourceRoutes(router: Router) {
 
         await mkdir(path.join(folderPath, projectId), { recursive: true });
 
-        const project = await Project.findOne({ where: { _id: projectId } });
+        const project = await Project.findOne({
+          where: { id: projectId },
+          rejectOnEmpty: new Error(`no such project ${projectId}`),
+        });
         const assistants = await Promise.all(
-          (await getAssistantsOfRepository({ projectId, ref: project?.gitDefaultBranch! })).map(async (i) => {
-            const logo = i.release?.logo;
+          (await getAssistantsOfRepository({ projectId, ref: project.gitDefaultBranch || defaultBranch })).map(
+            async (i) => {
+              const logo = i.release?.logo;
 
-            const logoFilename = `${i.id}-release-logo.png`;
-            const logoPath = path.join(folderPath, projectId, logoFilename);
+              const logoFilename = `${i.id}-release-logo.png`;
+              const logoPath = path.join(folderPath, projectId, logoFilename);
 
-            try {
-              if (logo) {
-                await downloadImage(logo, logoPath);
+              try {
+                if (logo) {
+                  await downloadImage(logo, logoPath);
+                }
+              } catch (error) {
+                logger.error('failed to download assistant logo', { error, logo });
               }
-            } catch (error) {
-              logger.error('failed to download assistant logo', { error, logo });
-            }
 
-            return {
-              ...i,
-              // NOTE: 是否是公开的 agent，公开的 agent 可以被选择引用
-              public: agentIds.has(i.id) || undefined,
-              release: {
-                ...i.release,
-                logo: logoFilename,
-              },
-            };
-          })
+              return {
+                ...i,
+                // NOTE: 是否是公开的 agent，公开的 agent 可以被选择引用
+                public: agentIds.has(i.id) || undefined,
+                release: {
+                  ...i.release,
+                  logo: logoFilename,
+                },
+              };
+            }
+          )
         );
 
         const config = await getProjectConfig({ repository, ref: project?.gitDefaultBranch || defaultBranch }).catch(
@@ -265,7 +271,7 @@ export function resourceRoutes(router: Router) {
 
         const result = stringify({
           assistants,
-          project: project && project.dataValues,
+          project: await settingsFileSchema.validateAsync(project.dataValues),
           config,
         });
 

@@ -4,8 +4,7 @@ import { basename, dirname, join } from 'path';
 import Content from '@api/store/models/dataset/content';
 import Knowledge from '@api/store/models/dataset/dataset';
 import Document from '@api/store/models/dataset/document';
-import Project from '@api/store/models/project';
-import { projectTemplates } from '@api/templates/projects';
+import { SettingsFile, settingsFileSchema } from '@api/store/repository';
 import { Assistant, ConfigFile } from '@blocklet/ai-runtime/types';
 import { getResources } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
@@ -38,7 +37,7 @@ export const ResourceTypes: ResourceType[] = [
 
 interface ResourceProject {
   blocklet: { did: string };
-  project: Project['dataValues'];
+  project: SettingsFile;
   config?: ConfigFile;
   gitLogoPath?: string;
   assistants: (Assistant & { public?: boolean; parent: string[] })[];
@@ -122,8 +121,8 @@ async function loadResourceBlocklets(path: string) {
     await Promise.all(
       paths.map(async (filepath) => {
         try {
-          const json: (typeof projectTemplates)[number] = parse((await readFile(filepath)).toString());
-          delete json?.project?.projectType;
+          const json: ResourceProject = parse((await readFile(filepath)).toString());
+          json.project = await settingsFileSchema.validateAsync(json.project);
 
           const gitLogoPath = join(dirname(filepath), 'logo.png');
           if (await exists(gitLogoPath)) {
@@ -161,7 +160,7 @@ async function loadResources(): Promise<Resources> {
                 projects.map(
                   (i) =>
                     [
-                      i.project._id,
+                      i.project.id,
                       {
                         ...i,
                         assistantMap: Object.fromEntries(i.assistants.map((j) => [j.id, j])),
@@ -290,7 +289,7 @@ export const getProjectFromResource = async ({
 }) => {
   const resources = await reloadResources();
   for (const t of type ? [type].flat() : ResourceTypes) {
-    const p = resources[t]?.projects.find((i) => i.project._id === projectId);
+    const p = resources[t]?.projects.find((i) => i.project.id === projectId);
     if (p) return p;
   }
   return undefined;

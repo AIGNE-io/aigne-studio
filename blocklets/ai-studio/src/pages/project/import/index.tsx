@@ -38,7 +38,7 @@ export default function ImportFrom({
   };
 
   const projectValue = useMemo(() => {
-    return state.projects.find((x) => x._id === state.projectId);
+    return state.projects.find((x) => x.id === state.projectId);
   }, [state.projects, state.projectId]);
 
   const tree = useMemo<TreeNode[]>(() => {
@@ -94,15 +94,15 @@ export default function ImportFrom({
           value={projectValue}
           options={state.projects}
           renderInput={(params) => <TextField {...params} label={t('import.selectProject')} />}
-          isOptionEqualToValue={(o, v) => o._id === v._id}
+          isOptionEqualToValue={(o, v) => o.id === v.id}
           getOptionLabel={(v) => v.name || t('unnamed')}
           onChange={(_e, newValue) => {
             setSelected({});
-            setState((r) => ({ ...r, projectId: newValue._id! }));
-            refetch({ projectId: newValue._id!, ref: state.ref! });
+            setState((r) => ({ ...r, projectId: newValue.id! }));
+            refetch({ projectId: newValue.id!, ref: state.ref! });
           }}
           renderOption={(props, option) => (
-            <Box component="li" {...props} key={option._id}>
+            <Box component="li" {...props} key={option.id}>
               {option.name || t('unnamed')}
             </Box>
           )}

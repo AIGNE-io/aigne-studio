@@ -1201,12 +1201,14 @@ function AgentParametersForm({
           {agent.parameters?.map((data) => {
             if (!data?.key || data.type === 'source') return null;
 
+            const placeholder = data.placeholder?.replace(/([^\w]?)$/, '');
+
             return (
               <Stack key={data.id}>
                 <Typography variant="caption">{data.label || data.key}</Typography>
 
                 <PromptEditorField
-                  placeholder={`{{ ${data.key} }}`}
+                  placeholder={`${placeholder ? `${placeholder}, ` : ''}default {{ ${data.key} }}`}
                   value={parameter.source.agent?.parameters?.[data.key] || ''}
                   projectId={projectId}
                   gitRef={projectRef}

@@ -3,7 +3,7 @@ import { join } from 'path';
 
 import { Config } from '@api/libs/env';
 import Project from '@api/store/models/project';
-import { SETTINGS_FILE } from '@api/store/repository';
+import { SETTINGS_FILE, defaultBranch, settingsFileSchema } from '@api/store/repository';
 import { ListObjectCommand, SpaceClient, SyncFolderPullCommand } from '@did-space/client';
 import { Request, Response } from 'express';
 import Joi from 'joi';
@@ -44,8 +44,11 @@ export async function importProject(req: Request, res: Response) {
       key: remoteProjectRootPath,
     })
   );
-  if (!projectMetadata?._id) throw new Error('The project ID does not exist; only ai-studio projects can be imported.');
-  const oldProject = await Project.findOne({ where: { _id: projectMetadata?._id } });
+
+  const metadata = await settingsFileSchema.validateAsync(projectMetadata);
+
+  if (!metadata.id) throw new Error('The project ID does not exist; only ai-studio projects can be imported.');
+  const oldProject = await Project.findOne({ where: { id: metadata.id } });
   if (oldProject) {
     throw new Error(
       `The project(${oldProject.name}) already exists and cannot be imported. Please delete the existing project and try again.`
@@ -76,14 +79,15 @@ export async function importProject(req: Request, res: Response) {
   }
 
   const settingsPath = join(localeProjectRootPath, SETTINGS_FILE);
-  const settings: Project = yaml.parse(readFileSync(settingsPath, 'utf-8'));
+  const settings = await settingsFileSchema.validateAsync(yaml.parse(readFileSync(settingsPath, 'utf-8')));
 
   const { did } = req.user!;
 
   const project = await Project.create({
     ...settings,
-    ...projectMetadata,
+    ...metadata,
     ...props,
+    gitDefaultBranch: defaultBranch,
     // rewrite some auth
     createdBy: did,
     updatedBy: did,

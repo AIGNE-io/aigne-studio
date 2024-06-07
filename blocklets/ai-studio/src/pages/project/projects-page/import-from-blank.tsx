@@ -47,9 +47,9 @@ export default function ImportFromBlank({ onClose, item }: { onClose: () => void
           throw new Error('item is not found');
         }
 
-        const project = await createProject({ templateId: item._id, ...value });
-        currentGitStore.setState({ currentProjectId: project._id });
-        navigate(joinURL('/projects', project._id));
+        const project = await createProject({ templateId: item.id, ...value });
+        currentGitStore.setState({ currentProjectId: project.id });
+        navigate(joinURL('/projects', project.id));
       } catch (error) {
         form.reset(value);
         const message = getErrorMessage(error);

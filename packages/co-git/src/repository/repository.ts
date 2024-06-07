@@ -151,6 +151,10 @@ export default class Repository<T> {
     return git.log({ fs, gitdir: this.gitdir, ref, filepath, force: true, follow: true });
   }
 
+  async statusMatrix(options?: Omit<Parameters<typeof git.statusMatrix>[0], 'fs' | 'dir' | '.gitdir'>) {
+    return git.statusMatrix({ fs, dir: this.root, ...options });
+  }
+
   async listRemotes() {
     return git.listRemotes({ fs, dir: this.root });
   }
@@ -244,7 +248,7 @@ export default class Repository<T> {
 }
 
 export class Transaction<T> {
-  constructor(private readonly repo: Repository<T>) {}
+  constructor(public readonly repo: Repository<T>) {}
 
   async checkout(options: Omit<Parameters<typeof git.checkout>[0], 'fs' | 'dir' | '.gitdir'>) {
     await git.checkout({ fs, dir: this.repo.root, ...options });

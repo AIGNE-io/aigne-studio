@@ -66,10 +66,10 @@ export default function ImportFromGit({ onClose }: { onClose: () => void }) {
         });
         form.reset(value);
 
-        currentGitStore.setState({ currentProjectId: project._id });
+        currentGitStore.setState({ currentProjectId: project.id });
 
         onClose();
-        navigate(joinURL('/projects', project._id!));
+        navigate(joinURL('/projects', project.id!));
       } catch (error) {
         form.reset(value);
         const message = getErrorMessage(error);
