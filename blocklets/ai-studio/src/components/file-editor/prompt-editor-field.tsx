@@ -1,5 +1,10 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, isPromptAssistant, parseDirectivesOfTemplate } from '@blocklet/ai-runtime/types';
+import {
+  AssistantYjs,
+  isImageAssistant,
+  isPromptAssistant,
+  parseDirectivesOfTemplate,
+} from '@blocklet/ai-runtime/types';
 import PromptEditor, { EditorState } from '@blocklet/prompt-editor';
 import { editorState2Text, text2EditorState } from '@blocklet/prompt-editor/utils';
 import { Box, Button, Paper, Stack } from '@mui/material';
@@ -34,23 +39,22 @@ export default function PromptEditorField({
 
   const parameterChange = useThrottleFn(
     async () => {
-      if (assistant && isPromptAssistant(assistant)) {
-        const variables = parseDirectivesOfTemplate(assistant);
+      if (assistant && (isPromptAssistant(assistant) || isImageAssistant(assistant))) {
+        const variables = new Set(parseDirectivesOfTemplate(assistant).map((i) => i.name.split('.')[0]!));
         const currentVariables = Object.values(assistant.parameters ?? {}).filter((p) => p?.data?.from === from);
 
         // 添加新增的变量
         variables.forEach((variable) => {
-          const name = (variable?.name || '').split('.')[0];
-          if (name && !currentVariables.some((v) => v?.data?.key === name)) {
-            addParameter(name, { from });
+          if (variable && !currentVariables.some((v) => v?.data?.key === variable)) {
+            addParameter(variable, { from });
           }
         });
 
         // 删除移除的变量
         (currentVariables || []).forEach((variable) => {
           const key = variable?.data?.key;
-          if (assistant.parameters && key && !variables.some((v) => (v?.name || '').split('.')[0] === key)) {
-            delete assistant.parameters[variable?.data.id];
+          if (variable.data.from === 'editor' && key && !variables.has(key)) {
+            delete assistant.parameters?.[variable?.data.id];
           }
         });
       }
