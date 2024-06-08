@@ -1,5 +1,5 @@
-import { isPromptMessage } from '../utils';
-import { PromptAssistantYjs } from '../yjs';
+import { isPromptAssistant, isPromptMessage } from '../utils';
+import { ImageAssistantYjs, PromptAssistantYjs } from '../yjs';
 import Mustache from './mustache';
 
 type Directive = {
@@ -37,12 +37,11 @@ export function parseDirectives(...content: string[]): Directive[] {
   });
 }
 
-export function parseDirectivesOfTemplate(assistant: PromptAssistantYjs) {
+export function parseDirectivesOfTemplate(assistant: PromptAssistantYjs | ImageAssistantYjs) {
   return parseDirectives(
-    ...Object.values(assistant.prompts ?? {})
-      .flatMap(({ data }) => {
-        return isPromptMessage(data) ? data.data.content : undefined;
-      })
-      .filter((i): i is string => typeof i === 'string')
+    ...(isPromptAssistant(assistant)
+      ? Object.values(assistant.prompts ?? {}).map((i) => (isPromptMessage(i.data) ? i.data.data.content : undefined))
+      : [assistant.prompt]
+    ).filter((i): i is string => typeof i === 'string')
   );
 }
