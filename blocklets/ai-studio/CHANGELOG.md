@@ -1,3 +1,7 @@
+## 0.2.39 (2024-6-8)
+
+- fix: duplicated inputs when pasting prompt contains multiple variables with same name
+
 ## 0.2.38 (2024-6-7)
 
 - fix: skip commit if no changes
