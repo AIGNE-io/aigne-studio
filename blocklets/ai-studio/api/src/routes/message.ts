@@ -6,9 +6,9 @@ import { pick, uniqBy, zip } from 'lodash';
 import orderBy from 'lodash/orderBy';
 import { Attributes, FindOptions, InferAttributes, Op, WhereOptions, cast, col, where } from 'sequelize';
 
-const searchOptionsSchema = Joi.object<{ sessionId: string; userId: string; limit: number; keyword?: string }>({
-  sessionId: Joi.string().required(),
-  userId: Joi.string().required(),
+const searchOptionsSchema = Joi.object<{ sessionId?: string; userId: string; limit: number; keyword?: string }>({
+  sessionId: Joi.string().empty([null, '']),
+  userId: Joi.string().empty([null, '']),
   limit: Joi.number().empty([null, '']).integer().min(1).optional().default(10),
   keyword: Joi.string().empty([null, '']),
 });

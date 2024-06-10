@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.2.40",
+  "version": "0.2.41",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -139,7 +139,7 @@
     "@mui/icons-material": "^5.15.19",
     "@mui/lab": "^5.0.0-alpha.170",
     "@mui/material": "^5.15.19",
-    "@types/lodash": "^4.17.4",
+    "@types/lodash": "^4.17.5",
     "@types/mustache": "^4.2.5",
     "@types/node-fetch": "^2.6.11",
     "@types/react": "^18.3.3",
