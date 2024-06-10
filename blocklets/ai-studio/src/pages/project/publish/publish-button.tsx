@@ -65,7 +65,7 @@ function PublishDialog({ project, onClose }: { project: Project; onClose: () => 
         title={project.name || ''}
         description={project.description || ''}
         note=""
-        introduction=""
+        introduction={project.readMe || ''}
         logo={logo}
         componentDid={AI_STUDIO_COMPONENT_DID}
         // 透传到 get blocklet resource 的参数
