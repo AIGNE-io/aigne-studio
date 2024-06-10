@@ -1,3 +1,7 @@
+## 0.2.41 (2024-6-10)
+
+- fix: tests not working if there is chat history input in the agent
+
 ## 0.2.40 (2024-6-10)
 
 - fix: correct ref when importing agents
