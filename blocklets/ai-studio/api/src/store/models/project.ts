@@ -17,7 +17,7 @@ export default class Project extends Model<InferAttributes<Project>, InferCreati
 
   declare description?: string;
 
-  declare readme?: string;
+  declare readMe?: string;
 
   declare model: string;
 
@@ -90,7 +90,7 @@ Project.init(
     description: {
       type: DataTypes.STRING,
     },
-    readme: {
+    readMe: {
       type: DataTypes.STRING,
     },
     model: {

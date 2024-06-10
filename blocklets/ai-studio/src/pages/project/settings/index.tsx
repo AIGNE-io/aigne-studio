@@ -46,7 +46,7 @@ import InfoOutlined from '../icons/question';
 import { useProjectState } from '../state';
 import AppearanceSetting from './appearance-setting';
 import DidSpacesSetting from './did-spaces-setting';
-import ReadMe from './readme';
+import { ReadMe } from './readme';
 import RemoteRepoSetting from './remote-repo-setting';
 
 const init = {
@@ -61,7 +61,7 @@ const init = {
   maxTokens: undefined,
   gitType: 'simple',
   primaryColor: '#ffffff',
-  readme: '',
+  readMe: '',
 };
 
 const tabListInfo: { list: string[] } = {
@@ -81,7 +81,6 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
   const origin = useRef<UpdateProjectInput>();
   const { session } = useSessionContext();
   const [currentTabIndex, setCurrentTabIndex] = useState<string | undefined>(tabListInfo.list[0]);
-
   const { value: supportedModels, loading: getSupportedModelsLoading } = useAsync(() => getSupportedModels(), []);
   const model = useMemo(() => supportedModels?.find((i) => i.model === value.model), [value.model, supportedModels]);
   const isMobile = useMediaQuery<Theme>((theme) => theme.breakpoints.down('md'));
@@ -99,7 +98,7 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
       const merge = pick({ ...init, ...project }, [
         'name',
         'description',
-        'readme',
+        'readMe',
         'icon',
         'model',
         'temperature',
@@ -273,9 +272,12 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
 
                 <Box>
                   <Typography variant="subtitle2" mb={0.5}>
-                    {t('projectSetting.readme')}
+                    {t('projectSetting.readMe')}
                   </Typography>
-                  <ReadMe value={value.readme} onChange={(value) => set('readme', value)} />
+                  <ReadMe
+                    readMeValue={value.readMe ?? ''}
+                    setReadMeValue={(value?: string) => set('readMe', value ?? '')}
+                  />
                 </Box>
                 <Box>
                   <LoadingButton

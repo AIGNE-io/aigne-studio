@@ -1,17 +1,24 @@
+/* eslint-disable react/function-component-definition */
 import { Box } from '@mui/material';
 import { styled as muiStyled } from '@mui/material/styles';
 import MDEditor, { commands } from '@uiw/react-md-editor';
 import rehypeSanitize from 'rehype-sanitize';
 
-export default function ReadMeContainer({ value, onChange }: { value?: string; onChange?: (value?: string) => void }) {
+export const ReadMe = ({
+  readMeValue,
+  setReadMeValue,
+}: {
+  readMeValue: string;
+  setReadMeValue: (value?: string) => void;
+}) => {
   return (
     <StyledBox>
       <div data-color-mode="light">
         <MDEditor
-          value={value}
-          onChange={onChange}
+          value={readMeValue}
+          onChange={setReadMeValue}
           preview="edit"
-          height={200}
+          height={400}
           previewOptions={{
             rehypePlugins: [[rehypeSanitize]],
           }}
@@ -72,7 +79,7 @@ export default function ReadMeContainer({ value, onChange }: { value?: string; o
       </div>
     </StyledBox>
   );
-}
+};
 
 const StyledBox = muiStyled(Box)(({ theme }) => ({
   margin: '1px',

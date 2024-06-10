@@ -401,7 +401,7 @@ export async function commitWorking({
     author,
     skipCommitIfNoChanges,
     beforeCommit: async ({ tx }) => {
-      await writeFile(path.join(repository.options.root, 'README.md'), getReadmeOfProject(project));
+      await writeFile(path.join(repository.options.root, 'README.md'), project.readMe ?? '');
       await tx.add({ filepath: 'README.md' });
 
       await addSettingsToGit({ tx, project, icon });
@@ -446,23 +446,6 @@ export async function commitProjectSettingWorking({
     await addSettingsToGit({ tx, project, icon });
     await tx.commit({ message, author });
   });
-}
-
-function getReadmeOfProject(project: Project) {
-  return `\
-# ${project.name || 'AI Studio project'}
-
-${project.description || ''}
-
-## Install And Run
-
-This is an AI project created by [AI Studio](https://store.blocklet.dev/blocklets/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB).
-
-To run it you can:
-
-1. [Launch](https://launcher.arcblock.io/app/?blocklet_meta_url=https%3A%2F%2Fstore.blocklet.dev%2Fapi%2Fblocklets%2Fz8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB%2Fblocklet.json&locale=en&paymentMethod=xFdj7e5muWQyUvur&sessionId=9btigGO5FLxFwL2e) AI Studio on Blocklet Server
-2. Import this project
-`;
 }
 
 export function getAssistantIdFromPath(filepath: string) {

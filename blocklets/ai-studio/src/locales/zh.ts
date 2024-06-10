@@ -179,7 +179,7 @@ export default flat({
     selectProject: '选择项目',
     name: '项目名称',
     description: '项目描述',
-    readme: 'README',
+    readMe: 'README',
     gitType: {
       title: '版本管理',
       simple: {
