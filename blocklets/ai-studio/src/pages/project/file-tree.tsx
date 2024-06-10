@@ -15,14 +15,12 @@ import { css } from '@emotion/css';
 import { Icon } from '@iconify-icon/react';
 import ArrowBackUpIcon from '@iconify-icons/tabler/arrow-back-up';
 import ChevronDownIcon from '@iconify-icons/tabler/chevron-down';
-import CodeIcon from '@iconify-icons/tabler/code';
 import CopyIcon from '@iconify-icons/tabler/copy';
 import DotsVerticalIcon from '@iconify-icons/tabler/dots-vertical';
 import ExternalLinkIcon from '@iconify-icons/tabler/external-link';
 import FileDiscIcon from '@iconify-icons/tabler/file-description';
 import FolderPlusIcon from '@iconify-icons/tabler/folder-plus';
 import DiffIcon from '@iconify-icons/tabler/layers-difference';
-import LinkIcon from '@iconify-icons/tabler/link';
 import PencilIcon from '@iconify-icons/tabler/pencil';
 import TrashIcon from '@iconify-icons/tabler/trash';
 import { DragLayerMonitorProps, MultiBackend, NodeModel, Tree, getBackendOptions } from '@minoru/react-dnd-treeview';
@@ -678,32 +676,12 @@ function TreeItemMenus({
         </MenuItem>
       ),
 
-      ...(item.type === 'folder' && onCreateFile
-        ? [
-            <MenuItem key="createPrompt" onClick={() => onCreateFile({ parent: item.path })}>
-              <ListItemIcon>
-                <Box component={Icon} icon={FileDiscIcon} />
-              </ListItemIcon>
-              <ListItemText primary={t('newObject', { object: t('prompt') })} />
-            </MenuItem>,
-
-            <MenuItem key="createApi" onClick={() => onCreateFile({ parent: item.path, meta: { type: 'api' } })}>
-              <ListItemIcon>
-                <Box component={Icon} icon={LinkIcon} />
-              </ListItemIcon>
-              <ListItemText primary={t('newObject', { object: t('api') })} />
-            </MenuItem>,
-
-            <MenuItem
-              key="createFunction"
-              onClick={() => onCreateFile({ parent: item.path, meta: { type: 'function' } })}>
-              <ListItemIcon>
-                <Box component={Icon} icon={CodeIcon} />
-              </ListItemIcon>
-              <ListItemText primary={t('newObject', { object: t('function') })} />
-            </MenuItem>,
-          ]
-        : []),
+      item.type === 'folder' && onCreateFile && (
+        <MenuItem key="createAgent" onClick={() => onCreateFile({ parent: item.path })}>
+          <ListItemIcon>{agentTypesMap.prompt?.icon} </ListItemIcon>
+          <ListItemText primary={t('newObject', { object: t('agent') })} />
+        </MenuItem>
+      ),
       item.type === 'file' && onCreateFile && (
         <MenuItem
           key="duplicateFile"
