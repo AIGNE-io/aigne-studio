@@ -732,4 +732,5 @@ export default flat({
   default: 'Default',
   setAsEntry: 'Set as entry agent',
   entryAgent: 'Entry',
+  usage: 'Usage',
 });

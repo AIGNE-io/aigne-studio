@@ -23,7 +23,7 @@ async function migrate() {
 
   await Promise.all(
     projects.map(async (project) => {
-      const repo = await getRepository({ projectId: project._id });
+      const repo = await getRepository({ projectId: project.id });
 
       const branches = await repo.listBranches();
 

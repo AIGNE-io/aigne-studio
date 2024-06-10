@@ -38,7 +38,7 @@ import Close from '../icons/close';
 import DidSpacesLogo from '../icons/did-spaces';
 
 type ProjectSettingForm = {
-  _id: string;
+  id: string;
   name: string;
   description: string;
 };
@@ -234,7 +234,7 @@ export default function FromDidSpacesImport() {
 
   const form = useForm<ProjectSettingForm>({
     defaultValues: {
-      _id: '',
+      id: '',
       name: '',
       description: '',
     },
@@ -243,13 +243,13 @@ export default function FromDidSpacesImport() {
   const importProject = useCallback(
     async (value: ProjectSettingForm) => {
       try {
-        if (!value._id) {
+        if (!value.id) {
           return null;
         }
 
         const project = await fromDidSpacesImport({
           endpoint: endpoint!,
-          projectId: value._id,
+          projectId: value.id,
           props: {
             name: value.name,
             description: value.description,
@@ -257,12 +257,12 @@ export default function FromDidSpacesImport() {
         });
 
         currentGitStore.setState({
-          currentProjectId: project._id,
+          currentProjectId: project.id,
         });
         dialogState.close();
         form.reset(value);
 
-        navigate(joinURL('/projects', project._id));
+        navigate(joinURL('/projects', project.id));
       } catch (error) {
         form.reset(value);
         const message = getErrorMessage(error);
@@ -329,22 +329,22 @@ export default function FromDidSpacesImport() {
               <TextField
                 placeholder={t('selectProjectToImportPlaceholder')}
                 sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
-                {...form.register('_id', { required: true })}
+                {...form.register('id', { required: true })}
                 select
                 hiddenLabel
                 defaultValue=""
                 disabled={loading}
                 onChange={(e) => {
-                  const currentProject = projects.find((p) => p._id === e.target.value);
+                  const currentProject = projects.find((p) => p.id === e.target.value);
 
                   if (currentProject) {
-                    form.setValue('_id', currentProject._id);
+                    form.setValue('id', currentProject.id);
                     form.setValue('name', currentProject?.name!);
                     form.setValue('description', currentProject?.description!);
                   }
                 }}>
                 {projects.map((project) => (
-                  <MenuItem key={project.name} value={project._id} selected={form.watch('_id') === project._id}>
+                  <MenuItem key={project.name} value={project.id} selected={form.watch('id') === project.id}>
                     {project.name}
                   </MenuItem>
                 ))}

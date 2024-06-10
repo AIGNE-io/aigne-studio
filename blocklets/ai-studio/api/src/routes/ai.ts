@@ -8,7 +8,12 @@ import AgentInputSecret from '@api/store/models/agent-input-secret';
 import History from '@api/store/models/history';
 import Session from '@api/store/models/session';
 import { chatCompletions, imageGenerations, proxyToAIKit } from '@blocklet/ai-kit/api/call';
-import { ChatCompletionChunk, ChatCompletionResponse, isChatCompletionChunk } from '@blocklet/ai-kit/api/types/index';
+import {
+  ChatCompletionChunk,
+  ChatCompletionResponse,
+  isChatCompletionChunk,
+  isChatCompletionUsage,
+} from '@blocklet/ai-kit/api/types/index';
 import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { CallAI, CallAIImage, GetAssistant, nextTaskId, runAssistant } from '@blocklet/ai-runtime/core';
 import {
@@ -91,6 +96,11 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
 
   const repository = await getRepository({ projectId });
 
+  const usage = {
+    promptTokens: 0,
+    completionTokens: 0,
+  };
+
   const callAI: CallAI = async ({ assistant, input, outputModel = false }) => {
     const promptAssistant = isPromptAssistant(assistant) ? assistant : undefined;
 
@@ -101,11 +111,29 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
       presencePenalty: input.presencePenalty ?? promptAssistant?.presencePenalty ?? project.presencePenalty,
       frequencyPenalty: input.frequencyPenalty ?? promptAssistant?.frequencyPenalty ?? project.frequencyPenalty,
     };
-    const chatCompletionChunk = await chatCompletions({
+    const stream = await chatCompletions({
       ...input,
       ...model,
       // FIXME: should be maxTokens - prompt tokens
       // maxTokens: input.maxTokens ?? project.maxTokens,
+    });
+
+    const chatCompletionChunk = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const chunk of stream) {
+            if (isChatCompletionUsage(chunk)) {
+              usage.promptTokens += chunk.usage.promptTokens;
+              usage.completionTokens += chunk.usage.completionTokens;
+            }
+
+            controller.enqueue(chunk);
+          }
+        } catch (error) {
+          controller.error(error);
+        }
+        controller.close();
+      },
     });
 
     if (outputModel) {
@@ -388,7 +416,16 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
     res.end();
   }
 
-  await history?.update({ error, result, generateStatus: 'done', executingLogs: Object.values(executingLogs) });
+  await history?.update({
+    error,
+    result,
+    generateStatus: 'done',
+    executingLogs: Object.values(executingLogs),
+    usage:
+      usage.promptTokens || usage.completionTokens
+        ? { ...usage, totalTokens: usage.promptTokens + usage.completionTokens }
+        : undefined,
+  });
 });
 
 export default router;

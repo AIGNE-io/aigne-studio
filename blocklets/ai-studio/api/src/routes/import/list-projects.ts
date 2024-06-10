@@ -1,3 +1,4 @@
+import { settingsFileSchema } from '@api/store/repository';
 import { ListObjectsCommand, ListObjectsCommandOutput, SpaceClient } from '@did-space/client';
 import { Request, Response } from 'express';
 import Joi from 'joi';
@@ -28,7 +29,13 @@ export async function listProjects(req: Request, res: Response) {
     })
   );
 
-  const projects = output.filter((x) => !x.name.endsWith('.cooperative')).map((x) => x.metadata);
+  const projects = output
+    .filter((x) => !x.name.endsWith('.cooperative'))
+    .map((x) => {
+      const r = settingsFileSchema.validate(x.metadata);
+      return r.error ? undefined : r.value;
+    })
+    .filter(Boolean);
 
   return res.send(projects);
 }

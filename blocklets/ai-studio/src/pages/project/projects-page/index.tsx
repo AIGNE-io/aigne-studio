@@ -253,9 +253,9 @@ function ProjectMenu() {
 
   const item =
     menuAnchor &&
-    (projects.find((i) => i._id === menuAnchor.id) ??
-      templates.find((i) => i._id === menuAnchor.id) ??
-      examples.find((i) => i._id === menuAnchor.id));
+    (projects.find((i) => i.id === menuAnchor.id) ??
+      templates.find((i) => i.id === menuAnchor.id) ??
+      examples.find((i) => i.id === menuAnchor.id));
 
   const onDelete = ({ isReset }: { isReset?: boolean } = {}) => {
     if (!item) return;
@@ -442,16 +442,16 @@ function ProjectMenu() {
 
       {deleteItem && (
         <DeleteDialog
-          name={deleteItem.project?.name || deleteItem.project._id}
+          name={deleteItem.project?.name || deleteItem.project.id}
           isReset={deleteItem.isReset}
           onClose={() => {
             setDeleteItem(null);
           }}
           onConfirm={async () => {
             try {
-              await deleteProject(deleteItem.project._id!);
+              await deleteProject(deleteItem.project.id!);
               setDeleteItem(null);
-              if (projectId === deleteItem.project._id) {
+              if (projectId === deleteItem.project.id) {
                 navigate('/projects', { replace: true });
               }
             } catch (error) {
@@ -547,15 +547,15 @@ function ProjectList({
     <>
       <ProjectListContainer gap={1.5}>
         {list.map((item) => {
-          const menuOpen = menuAnchor?.section === section && menuAnchor?.id === item._id;
+          const menuOpen = menuAnchor?.section === section && menuAnchor?.id === item.id;
 
           return (
             <ProjectItem
               className={cx(menuOpen && 'selected')}
               section={section}
-              id={item._id!}
+              id={item.id!}
               tabIndex={0}
-              key={item._id}
+              key={item.id}
               pinned={!!item.pinnedAt}
               icon={item.icon}
               name={section === 'templates' && item.name ? t(item.name) : item.name}
@@ -566,7 +566,7 @@ function ProjectList({
               model={item.model}
               users={item.users || []}
               didSpaceAutoSync={Boolean(item.didSpaceAutoSync)}
-              loading={Boolean(itemLoading && item?._id === itemLoading?._id)}
+              loading={Boolean(itemLoading && item?.id === itemLoading?.id)}
               isFromResource={Boolean(item.isFromResource)}
               onClick={async (e) => {
                 if (section === 'templates') {
@@ -603,11 +603,11 @@ function ProjectList({
                     okIcon: <RocketLaunchRoundedIcon />,
                     onOk: async () => {
                       try {
-                        const project = await createProject({ templateId: item._id, name, description });
+                        const project = await createProject({ templateId: item.id, name, description });
                         currentGitStore.setState({
-                          currentProjectId: project._id,
+                          currentProjectId: project.id,
                         });
-                        navigate(joinURL('/projects', project._id));
+                        navigate(joinURL('/projects', project.id));
                       } catch (error) {
                         const message = getErrorMessage(error);
                         if (String(message || '').includes('Project limit exceeded')) {
@@ -620,9 +620,9 @@ function ProjectList({
                   });
                 } else if (section === 'projects') {
                   currentGitStore.setState({
-                    currentProjectId: item._id,
+                    currentProjectId: item.id,
                   });
-                  navigate(joinURL('/projects', item._id!));
+                  navigate(joinURL('/projects', item.id!));
                 } else if (section === 'examples') {
                   // if is multi-tenant
                   if (window.blocklet.preferences.serviceMode === 'multi-tenant') {
@@ -630,7 +630,7 @@ function ProjectList({
                       section,
                       // @ts-ignore
                       anchor: e.currentTarget.getElementsByClassName('action')?.[0] || e.currentTarget,
-                      id: item._id!,
+                      id: item.id!,
                     });
                     return;
                   }
@@ -640,14 +640,14 @@ function ProjectList({
                       setLoading(item);
                       const project = await createProject({
                         withDuplicateFrom: true,
-                        templateId: item._id!,
+                        templateId: item.id!,
                         name: item.name,
                         description: item.description,
                       });
                       currentGitStore.setState({
-                        currentProjectId: project._id,
+                        currentProjectId: project.id,
                       });
-                      navigate(joinURL('/projects', project._id!));
+                      navigate(joinURL('/projects', project.id!));
                     } catch (error) {
                       const message = getErrorMessage(error);
                       if (String(message || '').includes('Project limit exceeded')) {
@@ -660,9 +660,9 @@ function ProjectList({
                     }
                   } else {
                     currentGitStore.setState({
-                      currentProjectId: item._id,
+                      currentProjectId: item.id,
                     });
-                    navigate(joinURL('/projects', item._id!));
+                    navigate(joinURL('/projects', item.id!));
                   }
                 }
               }}
@@ -681,7 +681,7 @@ function ProjectList({
                     }}
                     onClick={(e) => {
                       e.stopPropagation();
-                      setMenuAnchor({ section, anchor: e.currentTarget, id: item._id! });
+                      setMenuAnchor({ section, anchor: e.currentTarget, id: item.id! });
                     }}>
                     <Box component={Icon} icon={DotsVerticalIcon} fontSize={20} />
                   </IconButton>

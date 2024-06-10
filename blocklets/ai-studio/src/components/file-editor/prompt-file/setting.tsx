@@ -39,8 +39,6 @@ export default function PromptSetting({
 
   const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
 
-  const doc = (getYjsValue(value) as Map<any>).doc!;
-
   return (
     <>
       <Box position="relative" className="between" sx={{ backgroundColor: getDiffBackground('executor') }}>
@@ -55,12 +53,15 @@ export default function PromptSetting({
             gitRef={gitRef}
             path={[value.id, 'executor']}>
             <AgentSelect
+              readOnly={readOnly}
               type="llm-adapter"
               excludes={[value.id]}
               autoFocus
               placeholder={t('llmProviderPlaceholder')}
               value={value.executor?.agent}
               onChange={(_, v) => {
+                const doc = (getYjsValue(value) as Map<any>).doc!;
+
                 if (v) {
                   doc.transact(() => {
                     value.executor ??= {};
