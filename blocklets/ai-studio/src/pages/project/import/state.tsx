@@ -43,17 +43,16 @@ const useRequest = (currentProjectId: string, currentGitRef: string) => {
     async ({ projectId, ref }: { projectId: string; ref: string }) => {
       setState((v) => ({ ...v, loading: true }));
       try {
-        const [{ files }, { branches }] = await Promise.all([
-          api.getTree({ projectId, ref }),
-          getBranches({ projectId }),
-        ]);
+        const { branches } = await getBranches({ projectId });
+        const branch = branches.includes(ref) ? ref : 'main';
+        const { files } = await api.getTree({ projectId, ref: branch });
 
         const disabledProject = currentProjectId === projectId && currentGitRef === ref;
 
         setState((v) => ({
           ...v,
           projectId,
-          ref,
+          ref: branch,
           files: disabledProject
             ? []
             : files.filter((x) => typeof x === 'object' && x.parent[0] === PROMPTS_FOLDER_NAME),
