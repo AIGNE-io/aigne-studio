@@ -1,7 +1,7 @@
 ## 0.2.40 (2024-6-10)
 
-- fix:: correct ref when importing agents
-- fix: merge new agents menus in the folder menu
+- fix: correct ref when importing agents
+- chore: merge new agents menus in the folder menu
 
 ## 0.2.39 (2024-6-8)
 
