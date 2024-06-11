@@ -3,6 +3,8 @@ import { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { defaultTextModel, getSupportedModels } from '@blocklet/ai-runtime/common';
+import { Icon } from '@iconify-icon/react';
+import CloseIcon from '@iconify-icons/material-symbols/close-rounded';
 import { SaveRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
@@ -66,7 +68,7 @@ const tabListInfo: { list: string[] } = {
   list: ['basic', 'modelInfo', 'git', 'didSpaces', 'appearance'],
 };
 
-export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
+export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxProps; onClose: () => void }) {
   const { t } = useLocaleContext();
   const { projectId = '' } = useParams();
   if (!projectId) throw new Error('Missing required params `projectId`');
@@ -204,6 +206,13 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
 
   return (
     <Box overflow="auto" {...boxProps}>
+      <Box
+        component={Icon}
+        icon={CloseIcon}
+        onClick={onClose}
+        sx={{ position: 'sticky', top: 0, display: 'flex', flexDirection: 'row-reverse', padding: '8px 16px  0 0' }}
+      />
+
       <SettingsContainer sx={{ px: 2, width: isMobile ? '100%' : '400px' }} className="setting-container">
         <Tabs
           centered
@@ -220,7 +229,8 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
             py: 1,
             zIndex: 10000,
             position: 'sticky',
-            top: 0,
+            top: 24,
+            paddingTop: 0,
           }}
           onChange={(_event: React.SyntheticEvent, newValue: string) => {
             setCurrentTabIndex(newValue);
@@ -550,7 +560,6 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
           )}
         </Box>
       </SettingsContainer>
-
       {dialog}
     </Box>
   );

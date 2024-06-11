@@ -112,7 +112,7 @@ export function HeaderActions() {
           </Tooltip>
 
           <Drawer anchor="right" open={drawerOpen} onClose={toggleDrawer}>
-            <Settings boxProps={{}} />
+            <Settings boxProps={{}} onClose={toggleDrawer} />
           </Drawer>
         </>
 
