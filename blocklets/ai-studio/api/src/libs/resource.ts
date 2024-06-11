@@ -207,62 +207,59 @@ const loadResourceKnowledge = async (): Promise<{ [knowledgeId: string]: Resourc
   const dirs = getResourceDirs();
   const filterKnowledgeDir = dirs.filter((i) => i.type === 'knowledge');
 
-  if (filterKnowledgeDir.length > 0) {
-    const allKnowledgeEntries: [string, ResourceKnowledge][] = [];
+  if (filterKnowledgeDir.length === 0) return undefined;
 
-    await Promise.all(
-      filterKnowledgeDir.map(async (item) => {
-        try {
-          if (!(await exists(item.path))) return;
-          const knowledgeDirs = await readdir(item.path);
-          if (!knowledgeDirs.length) return;
+  const allKnowledgeEntries: [string, ResourceKnowledge][] = [];
+  await Promise.all(
+    filterKnowledgeDir.map(async (item) => {
+      try {
+        if (!(await exists(item.path))) return;
+        const knowledgeDirs = await readdir(item.path);
+        if (!knowledgeDirs.length) return;
 
-          await Promise.all(
-            knowledgeDirs.map(async (knowledgeDir) => {
-              const knowledgePath = join(item.path, knowledgeDir);
-              const vectorsPath = join(knowledgePath, 'vectors');
-              const uploadPath = join(knowledgePath, 'uploads');
+        await Promise.all(
+          knowledgeDirs.map(async (knowledgeDir) => {
+            const knowledgePath = join(item.path, knowledgeDir);
+            const vectorsPath = join(knowledgePath, 'vectors');
+            const uploadPath = join(knowledgePath, 'uploads');
 
-              const knowledgeJsonPath = join(knowledgePath, 'knowledges.yaml');
-              const knowledgeJson = parse((await readFile(knowledgeJsonPath)).toString());
-              knowledgeJson.blockletDid = item.did;
+            const knowledgeJsonPath = join(knowledgePath, 'knowledges.yaml');
+            const knowledgeJson = parse((await readFile(knowledgeJsonPath)).toString());
+            knowledgeJson.blockletDid = item.did;
 
-              const documentsPath = join(knowledgePath, 'documents.yaml');
-              const documents = parse((await readFile(documentsPath)).toString());
+            const documentsPath = join(knowledgePath, 'documents.yaml');
+            const documents = parse((await readFile(documentsPath)).toString());
 
-              const contentsPath = join(knowledgePath, 'contents.yaml');
-              const contents = parse((await readFile(contentsPath)).toString());
+            const contentsPath = join(knowledgePath, 'contents.yaml');
+            const contents = parse((await readFile(contentsPath)).toString());
 
-              allKnowledgeEntries.push([
-                knowledgeDir,
-                {
-                  knowledge: knowledgeJson,
-                  documents,
-                  contents,
-                  vectorsPath,
-                  uploadPath,
-                  blockletDid: item.did,
-                },
-              ]);
-            })
-          );
-        } catch (error) {
-          logger.error('read knowledge resource error', { error });
-        }
-      })
-    );
+            allKnowledgeEntries.push([
+              knowledgeDir,
+              {
+                knowledge: knowledgeJson,
+                documents,
+                contents,
+                vectorsPath,
+                uploadPath,
+                blockletDid: item.did,
+              },
+            ]);
+          })
+        );
+      } catch (error) {
+        logger.error('read knowledge resource error', { error });
+      }
+    })
+  );
 
-    return Object.fromEntries(
-      Array.from(
-        allKnowledgeEntries.reduce((map, entry) => {
-          if (!map.has(entry[0])) map.set(entry[0], entry[1]);
-          return map;
-        }, new Map())
-      )
-    );
-  }
-
-  return undefined;
+  return Object.fromEntries(
+    Array.from(
+      allKnowledgeEntries.reduce((map, entry) => {
+        if (!map.has(entry[0])) map.set(entry[0], entry[1]);
+        return map;
+      }, new Map())
+    )
+  );
 };
 
 async function reloadResources() {
