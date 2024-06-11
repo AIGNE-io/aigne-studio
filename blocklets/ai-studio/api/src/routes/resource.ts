@@ -5,7 +5,7 @@ import path from 'path';
 import downloadImage from '@api/libs/download-logo';
 import logger from '@api/libs/logger';
 import { ResourceTypes } from '@api/libs/resource';
-import { Assistant } from '@blocklet/ai-runtime/types';
+import { Assistant, projectSettingsSchema } from '@blocklet/ai-runtime/types';
 import component from '@blocklet/sdk/lib/component';
 import { Router } from 'express';
 import Joi from 'joi';
@@ -22,7 +22,6 @@ import {
   getEntryFromRepository,
   getProjectConfig,
   getRepository,
-  settingsFileSchema,
 } from '../store/repository';
 
 const AI_STUDIO_DID = 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
@@ -233,7 +232,7 @@ export function resourceRoutes(router: Router) {
 
         const result = stringify({
           assistants,
-          project: await settingsFileSchema.validateAsync(project.dataValues),
+          project: await projectSettingsSchema.validateAsync(project.dataValues),
           config,
         });
 

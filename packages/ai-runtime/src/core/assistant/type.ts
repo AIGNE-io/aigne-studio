@@ -28,7 +28,7 @@ export interface GetAssistant {
 }
 
 export type Options = {
-  assistant: Assistant;
+  assistant: Assistant & { project: { id: string } };
   input: ChatCompletionInput;
 };
 
@@ -46,17 +46,9 @@ export type ModelInfo = {
 };
 
 export interface CallAI {
-  (options: Options & { outputModel: true }): Promise<{
-    modelInfo: ModelInfo;
-    chatCompletionChunk: ReadableStream<ChatCompletionResponse>;
-  }>;
-  (options: Options & { outputModel?: false }): Promise<ReadableStream<ChatCompletionResponse>>;
-  (options: Options & { outputModel: boolean }): any;
+  (options: Options): Promise<ReadableStream<ChatCompletionResponse>>;
 }
 
 export interface CallAIImage {
-  (
-    options: ImageOptions & { outputModel: true }
-  ): Promise<{ modelInfo: ModelInfo; imageRes: { data: { url: string }[] } }>;
-  (options: ImageOptions & { outputModel?: false }): Promise<{ data: { url: string }[] }>;
+  (options: ImageOptions): Promise<{ data: { url: string }[] }>;
 }

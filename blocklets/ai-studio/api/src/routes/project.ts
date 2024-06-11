@@ -7,7 +7,13 @@ import { NoPermissionError, NotFoundError } from '@api/libs/error';
 import { sampleIcon } from '@api/libs/icon';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
 import AgentInputSecret from '@api/store/models/agent-input-secret';
-import { fileToYjs, isAssistant, nextAssistantId } from '@blocklet/ai-runtime/types';
+import {
+  ProjectSettings,
+  fileToYjs,
+  isAssistant,
+  nextAssistantId,
+  projectSettingsSchema,
+} from '@blocklet/ai-runtime/types';
 import { call } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
 import { user } from '@blocklet/sdk/lib/middlewares';
@@ -29,7 +35,6 @@ import Project, { nextProjectId } from '../store/models/project';
 import {
   CONFIG_FOLDER,
   LOGO_FILENAME,
-  SettingsFile,
   VARIABLE_FILENAME,
   VARIABLE_KEY,
   autoSyncIfNeeded,
@@ -42,7 +47,6 @@ import {
   getAssistantIdFromPath,
   getRepository,
   repositoryRoot,
-  settingsFileSchema,
   syncRepository,
   syncToDidSpace,
 } from '../store/repository';
@@ -526,7 +530,7 @@ export function projectRoutes(router: Router) {
       if (password) uri.password = password;
     }
 
-    let originProject: SettingsFile | undefined;
+    let originProject: ProjectSettings | undefined;
     let originDefaultBranch = defaultBranch;
 
     const tempFolder = await mkdtemp(join(Config.dataDir, 'repositories', 'temp-'));
@@ -541,7 +545,7 @@ export function projectRoutes(router: Router) {
 
         const gitdir = join(tempFolder, '.git');
         const oid = await git.resolveRef({ fs, gitdir, ref: originRepo.defaultBranch });
-        originProject = await settingsFileSchema.validateAsync(
+        originProject = await projectSettingsSchema.validateAsync(
           parse(Buffer.from((await git.readBlob({ fs, gitdir, oid, filepath: '.settings.yaml' })).blob).toString())
         );
       }
@@ -835,7 +839,7 @@ export function projectRoutes(router: Router) {
         await syncRepository({ repository, ref, author: { name: fullName, email: userId } });
       }
 
-      const data = await settingsFileSchema.validateAsync(
+      const data = await projectSettingsSchema.validateAsync(
         parse(
           Buffer.from(
             (

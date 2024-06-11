@@ -106,37 +106,37 @@ export class LLMAgentExecutor extends AgentExecutorBase {
           })
         : undefined;
 
-      const aiResult = executor
-        ? {
-            modelInfo: { ...agent.executor?.inputValues },
-            chatCompletionChunk: (
-              await this.context.executor(this.context).execute(executor, {
-                inputs: {
-                  ...inputs,
-                  ...agent.executor?.inputValues,
-                  [executor.parameters?.find((i) => i.type === 'llmInputMessages')?.key!]: messagesWithSystemPrompt,
-                },
-                taskId: nextTaskId(),
-                parentTaskId: taskId,
-              })
-            )[RuntimeOutputVariable.llmResponseStream] as ReadableStream<ChatCompletionResponse>,
-          }
+      const modelInfo = {
+        model: agent.model,
+        temperature: agent.temperature,
+        topP: agent.topP,
+        presencePenalty: agent.presencePenalty,
+        frequencyPenalty: agent.frequencyPenalty,
+      };
+
+      const chatCompletionChunk = executor
+        ? ((
+            await this.context.executor(this.context).execute(executor, {
+              inputs: {
+                ...inputs,
+                ...agent.executor?.inputValues,
+                [executor.parameters?.find((i) => i.type === 'llmInputMessages')?.key!]: messagesWithSystemPrompt,
+              },
+              taskId: nextTaskId(),
+              parentTaskId: taskId,
+            })
+          )[RuntimeOutputVariable.llmResponseStream] as ReadableStream<ChatCompletionResponse>)
         : await this.context.callAI({
             assistant: agent,
-            outputModel: true,
             input: {
               stream: true,
               messages: messagesWithSystemPrompt,
-              model: agent.model,
-              temperature: agent.temperature,
-              topP: agent.topP,
-              presencePenalty: agent.presencePenalty,
-              frequencyPenalty: agent.frequencyPenalty,
+              ...modelInfo,
             },
           });
 
       const stream = extractMetadataFromStream(
-        aiResult.chatCompletionChunk.pipeThrough(
+        chatCompletionChunk.pipeThrough(
           new TransformStream({
             transform: (chunk, controller) => {
               if (isChatCompletionUsage(chunk)) {

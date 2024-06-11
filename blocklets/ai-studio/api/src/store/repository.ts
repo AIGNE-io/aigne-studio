@@ -15,12 +15,12 @@ import {
   isAssistant,
   isRawFile,
   isVariables,
+  projectSettingsSchema,
 } from '@blocklet/ai-runtime/types';
 import { Repository, Transaction } from '@blocklet/co-git/repository';
 import { SpaceClient, SyncFolderPushCommand, SyncFolderPushCommandOutput } from '@did-space/client';
 import { copyFile, exists, pathExists } from 'fs-extra';
 import { glob } from 'glob';
-import Joi from 'joi';
 import isEmpty from 'lodash/isEmpty';
 import { nanoid } from 'nanoid';
 import { parseAuth, parseURL } from 'ufo';
@@ -219,41 +219,6 @@ export async function syncRepository<T>({
 
 export const SETTINGS_FILE = '.settings.yaml';
 
-export type SettingsFile = Pick<
-  Project,
-  | 'id'
-  | 'name'
-  | 'description'
-  | 'model'
-  | 'temperature'
-  | 'topP'
-  | 'presencePenalty'
-  | 'frequencyPenalty'
-  | 'maxTokens'
-  | 'createdAt'
-  | 'updatedAt'
-  | 'createdBy'
-  | 'updatedBy'
->;
-
-export const settingsFileSchema = Joi.object<SettingsFile>({
-  id: Joi.string().required(),
-  name: Joi.string().empty(['', null]),
-  description: Joi.string().empty(['', null]),
-  model: Joi.string().empty(['', null]),
-  temperature: Joi.number().empty(['', null]),
-  topP: Joi.number().empty(['', null]),
-  presencePenalty: Joi.number().empty(['', null]),
-  frequencyPenalty: Joi.number().empty(['', null]),
-  maxTokens: Joi.number().empty(['', null]),
-  createdAt: Joi.alternatives(Joi.string().isoDate(), Joi.date()).required(),
-  updatedAt: Joi.alternatives(Joi.string().isoDate(), Joi.date()).required(),
-  createdBy: Joi.string().required(),
-  updatedBy: Joi.string().required(),
-})
-  .rename('_id', 'id', { override: true, ignoreUndefined: true })
-  .options({ stripUnknown: true });
-
 const addSettingsToGit = async ({
   tx,
   project,
@@ -264,7 +229,7 @@ const addSettingsToGit = async ({
   icon?: string;
 }) => {
   const repository = await getRepository({ projectId: project.id! });
-  const fields = await settingsFileSchema.validateAsync(project.dataValues);
+  const fields = await projectSettingsSchema.validateAsync(project.dataValues);
 
   const fieldsStr = stringify(fields, { aliasDuplicateObjects: false });
 

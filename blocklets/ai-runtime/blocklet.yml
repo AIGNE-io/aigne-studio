@@ -1,0 +1,70 @@
+name: ai-runtime
+title: AI Runtime
+description: AIGNE application runtime
+keywords:
+  - blocklet
+  - react
+group: dapp
+did: z2qa5vnwATPJyAnBYm7SbLMMjfeXJgeBKkfMG
+main: api/dist/index.js
+author:
+  name: arcblock
+  email: blocklet@arcblock.io
+  url: https://github.com/blocklet
+repository:
+  type: git
+  url: git+https://github.com/blocklet/ai-studio.git
+specVersion: 1.1.1
+version: 0.1.0
+logo: logo.png
+files:
+  - dist
+  - logo.png
+  - screenshots
+  - api/hooks/pre-start.js
+interfaces:
+  - type: web
+    name: publicUrl
+    path: /
+    prefix: '*'
+    port: BLOCKLET_PORT
+    protocol: http
+community: ''
+documentation: ''
+homepage: ''
+license: ''
+payment:
+  price: []
+  share: []
+timeout:
+  start: 60
+requirements:
+  server: '>=1.6.29'
+  os: '*'
+  cpu: '*'
+scripts:
+  preFlight: node api/hooks/pre-flight.js
+  dev: npm run start
+environments: []
+capabilities: {}
+screenshots: []
+components:
+  - name: ai-kit
+    required: true
+    mountPoint: /ai-kit
+    source:
+      name: ai-kit
+      version: latest
+  - name: image-bin
+    mountPoint: /image-bin
+    source:
+      name: image-bin
+      version: latest
+  - name: pages-kit
+    source:
+      name: pages-kit
+      version: latest
+  - name: ai-runtime-components
+    source:
+      name: z2qa6fvjmjew4pWJyTsKaWFuNoMUMyXDh5A1D
+      version: latest

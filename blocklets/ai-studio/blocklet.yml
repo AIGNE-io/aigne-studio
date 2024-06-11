@@ -1,6 +1,6 @@
 name: ai-studio
 title: AI Studio
-description: AI Studio is a flexible tool designed to create prompts for AI Kit
+description: No-code Generative AI Apps Engine
 keywords:
   - blocklet
   - react
@@ -13,7 +13,7 @@ author:
   url: https://github.com/blocklet
 repository:
   type: git
-  url: git+https://github.com/blocklet/ai-assistant.git
+  url: git+https://github.com/blocklet/ai-studio.git
 specVersion: 1.2.8
 version: 0.2.41
 logo: logo.png

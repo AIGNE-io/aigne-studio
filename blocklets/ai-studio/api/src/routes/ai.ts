@@ -102,7 +102,7 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
     completionTokens: 0,
   };
 
-  const callAI: CallAI = async ({ assistant, input, outputModel = false }) => {
+  const callAI: CallAI = async ({ assistant, input }) => {
     const promptAssistant = isPromptAssistant(assistant) ? assistant : undefined;
 
     const model = {
@@ -119,7 +119,7 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
       // maxTokens: input.maxTokens ?? project.maxTokens,
     });
 
-    const chatCompletionChunk = new ReadableStream({
+    return new ReadableStream({
       async start(controller) {
         try {
           for await (const chunk of stream) {
@@ -136,17 +136,9 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
         controller.close();
       },
     });
-
-    if (outputModel) {
-      return {
-        chatCompletionChunk,
-        modelInfo: model,
-      };
-    }
-    return chatCompletionChunk as any;
   };
 
-  const callAIImage: CallAIImage = async ({ assistant, input, outputModel = false }) => {
+  const callAIImage: CallAIImage = async ({ assistant, input }) => {
     const imageAssistant = isImageAssistant(assistant) ? assistant : undefined;
     const supportImages = await getSupportedImagesModels();
     const imageModel = supportImages.find((i) => i.model === (imageAssistant?.model || defaultImageModel));
@@ -170,13 +162,7 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
       ),
     }));
 
-    if (outputModel) {
-      return {
-        imageRes,
-        modelInfo: model,
-      };
-    }
-    return imageRes as any;
+    return imageRes;
   };
 
   const getAssistant: GetAssistant = async (fileId: string, options) => {
@@ -334,25 +320,6 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
       inputs: input.parameters,
       taskId,
     });
-
-    // const result = await runAssistant({
-    //   getSecret: ({ targetProjectId, targetAgentId, targetInputKey }) =>
-    //     AgentInputSecret.findOne({
-    //       where: { projectId, targetProjectId, targetAgentId, targetInputKey },
-    //       rejectOnEmpty: new Error('No such secret'),
-    //     }),
-    //   callAI,
-    //   callAIImage,
-    //   taskId,
-    //   getAssistant,
-    //   assistant,
-    //   parameters: input.parameters,
-    //   callback: stream ? emit : undefined,
-    //   user: userId ? { id: userId, did: userId, ...req.user } : undefined,
-    //   sessionId: input.sessionId,
-    //   projectId,
-    //   datastoreVariables: data?.variables || [],
-    // });
 
     const llmResponseStream =
       result?.[RuntimeOutputVariable.llmResponseStream] instanceof ReadableStream
