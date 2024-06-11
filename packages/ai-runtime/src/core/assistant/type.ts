@@ -20,11 +20,11 @@ export interface GetAssistant {
   (
     assistantId: string,
     options: { blockletDid?: string; projectId?: string; rejectOnEmpty: true | Error }
-  ): Promise<Assistant>;
+  ): Promise<Assistant & { project: { id: string } }>;
   (
     assistantId: string,
     options?: { blockletDid?: string; projectId?: string; rejectOnEmpty?: false }
-  ): Promise<Assistant | null>;
+  ): Promise<(Assistant & { project: { id: string } }) | null>;
 }
 
 export type Options = {

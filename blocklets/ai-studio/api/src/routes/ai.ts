@@ -15,7 +15,7 @@ import {
   isChatCompletionUsage,
 } from '@blocklet/ai-kit/api/types/index';
 import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
-import { CallAI, CallAIImage, GetAssistant, nextTaskId, runAssistant } from '@blocklet/ai-runtime/core';
+import { CallAI, CallAIImage, GetAssistant, RuntimeExecutor, nextTaskId } from '@blocklet/ai-runtime/core';
 import {
   AssistantResponseType,
   RunAssistantResponse,
@@ -28,6 +28,7 @@ import compression from 'compression';
 import { Router } from 'express';
 import Joi from 'joi';
 import { pick } from 'lodash';
+import { nanoid } from 'nanoid';
 
 import { ensureComponentCallOrAuth, ensureComponentCallOrPromptsEditor } from '../libs/security';
 import Project from '../store/models/project';
@@ -181,13 +182,14 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
   const getAssistant: GetAssistant = async (fileId: string, options) => {
     const blockletDid = options?.blockletDid || input.blockletDid;
     if (!blockletDid || !options?.projectId) {
-      return getAssistantFromRepository({
+      const assistant = await getAssistantFromRepository({
         repository,
         ref: projectRef,
         working: input.working,
         assistantId: fileId,
         rejectOnEmpty: options?.rejectOnEmpty as any,
       });
+      return { ...assistant, project: { id: projectId } };
     }
 
     const assistant = await getAssistantFromResourceBlocklet({
@@ -198,7 +200,7 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
     });
     if (options.rejectOnEmpty && !assistant?.assistant) throw new Error(`No such assistant ${fileId}`);
 
-    return assistant?.assistant!;
+    return { ...assistant?.assistant!, project: { id: options.projectId } };
   };
 
   const assistant = await getAssistant(assistantId, { projectId, blockletDid: input.blockletDid, rejectOnEmpty: true });
@@ -311,24 +313,46 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
       },
     });
 
-    const result = await runAssistant({
+    const executor = new RuntimeExecutor({
       getSecret: ({ targetProjectId, targetAgentId, targetInputKey }) =>
         AgentInputSecret.findOne({
           where: { projectId, targetProjectId, targetAgentId, targetInputKey },
           rejectOnEmpty: new Error('No such secret'),
         }),
+      callback: emit,
       callAI,
       callAIImage,
-      taskId,
-      getAssistant,
-      assistant,
-      parameters: input.parameters,
-      callback: stream ? emit : undefined,
-      user: userId ? { id: userId, did: userId, ...req.user } : undefined,
-      sessionId: input.sessionId,
-      projectId,
-      datastoreVariables: data?.variables || [],
+      getAgent: getAssistant,
+      entryProjectId: projectId,
+      user: { id: userId, did: userId, ...req.user },
+      // FIXME: create a temporary session
+      sessionId: input.sessionId || nanoid(),
+      datastoreVariables: data.variables || [],
     });
+
+    const result = await executor.execute(assistant, {
+      inputs: input.parameters,
+      taskId,
+    });
+
+    // const result = await runAssistant({
+    //   getSecret: ({ targetProjectId, targetAgentId, targetInputKey }) =>
+    //     AgentInputSecret.findOne({
+    //       where: { projectId, targetProjectId, targetAgentId, targetInputKey },
+    //       rejectOnEmpty: new Error('No such secret'),
+    //     }),
+    //   callAI,
+    //   callAIImage,
+    //   taskId,
+    //   getAssistant,
+    //   assistant,
+    //   parameters: input.parameters,
+    //   callback: stream ? emit : undefined,
+    //   user: userId ? { id: userId, did: userId, ...req.user } : undefined,
+    //   sessionId: input.sessionId,
+    //   projectId,
+    //   datastoreVariables: data?.variables || [],
+    // });
 
     const llmResponseStream =
       result?.[RuntimeOutputVariable.llmResponseStream] instanceof ReadableStream
