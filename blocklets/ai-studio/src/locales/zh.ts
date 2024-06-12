@@ -727,4 +727,5 @@ export default flat({
   entryAgent: '入口',
   attachUrl: '分享时附加链接',
   attachInputs: '分享时附加输入',
+  usage: '用量',
 });

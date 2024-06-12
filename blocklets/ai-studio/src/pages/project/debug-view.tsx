@@ -406,11 +406,7 @@ const MessageView = memo(
             <Box sx={{ overflowX: 'hidden', flexGrow: 1 }} display="flex" flexDirection="column" gap={1}>
               <CurrentRoleName role={message.role} />
 
-              {message.loading ? (
-                <WritingIndicator />
-              ) : (
-                !!message.inputMessages?.length && <BasicTree inputs={message.inputMessages} />
-              )}
+              {!message.loading && !!message.inputMessages?.length && <BasicTree inputs={message.inputMessages} />}
 
               <Box
                 flex={1}
@@ -443,7 +439,7 @@ const MessageView = memo(
                           : alpha(theme.palette.primary.main, theme.palette.action.hoverOpacity),
                       position: 'relative',
                     }}>
-                    <MdViewer content={message.content} />
+                    <MdViewer content={message.content} className={cx(message.loading && 'writing')} />
 
                     {message.images && message.images.length > 0 && (
                       <ImagePreviewB64 itemWidth={100} spacing={1} dataSource={message.images} />

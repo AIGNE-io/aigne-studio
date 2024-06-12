@@ -3,7 +3,6 @@ import { CurrentProjectProvider } from '@app/contexts/project';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { isAssistant } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
-import BrandAppgalleryIcon from '@iconify-icons/tabler/brand-appgallery';
 import ArrowLeft from '@iconify-icons/tabler/chevron-left';
 import FloppyIcon from '@iconify-icons/tabler/device-floppy';
 import EyeBoltIcon from '@iconify-icons/tabler/eye-bolt';
@@ -17,6 +16,7 @@ import {
   Dialog,
   DialogContent,
   Divider,
+  Drawer,
   Grow,
   IconButton,
   Paper,
@@ -64,7 +64,6 @@ export function HeaderActions() {
 
   const navigate = useNavigate();
   const previewPopperState = usePopupState({ variant: 'popper', popupId: 'preview' });
-  const settingPopperState = usePopupState({ variant: 'popper', popupId: 'settings' });
 
   const {
     state: { loading, commits },
@@ -73,6 +72,12 @@ export function HeaderActions() {
 
   const fileId = filepath && getFileIdFromPath(filepath);
   const file = fileId && getFileById(fileId);
+
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  const toggleDrawer = () => {
+    setDrawerOpen(!drawerOpen);
+  };
 
   return (
     <CurrentProjectProvider projectId={projectId} projectRef={gitRef}>
@@ -100,26 +105,15 @@ export function HeaderActions() {
         <>
           <Tooltip disableInteractive title={t('setting')}>
             <Button
-              sx={{ minWidth: 0, minHeight: 0, width: 32, height: 32, border: '1px solid #E5E7EB' }}
-              {...bindTrigger(settingPopperState)}>
+              sx={{ minWidth: 32, minHeight: 0, width: 32, height: 32, border: '1px solid #E5E7EB' }}
+              onClick={toggleDrawer}>
               <Box component={Icon} icon={SettingsIcon} sx={{ fontSize: 18, color: '#030712' }} />
             </Button>
           </Tooltip>
 
-          <Popper {...bindPopper(settingPopperState)} sx={{ zIndex: 1101 }} transition placement="bottom-end">
-            {({ TransitionProps }) => (
-              <Grow style={{ transformOrigin: 'right top' }} {...TransitionProps}>
-                <Paper sx={{ border: '1px solid #ddd', maxWidth: 450, maxHeight: '80vh', overflow: 'auto', mt: 1 }}>
-                  <ClickAwayListener
-                    onClickAway={(e) => (e.target as HTMLElement)?.localName !== 'body' && settingPopperState.close()}>
-                    <Box>
-                      <Settings boxProps={{}} />
-                    </Box>
-                  </ClickAwayListener>
-                </Paper>
-              </Grow>
-            )}
-          </Popper>
+          <Drawer anchor="right" open={drawerOpen} onClose={toggleDrawer}>
+            <Settings boxProps={{}} />
+          </Drawer>
         </>
 
         <PublishButton />
@@ -129,6 +123,7 @@ export function HeaderActions() {
             variant="contained"
             startIcon={<Box component={Icon} icon={EyeBoltIcon} sx={{ fontSize: 16 }} />}
             size="small"
+            sx={{ px: 2 }}
             {...bindTrigger(previewPopperState)}>
             {t('preview')}
           </LoadingButton>
@@ -163,8 +158,6 @@ export function MobileHeaderActions() {
   const { projectId, ref: gitRef } = useParams();
   if (!projectId || !gitRef) throw new Error('Missing required params `projectId` or `ref`');
 
-  const { t } = useLocaleContext();
-
   return (
     <CurrentProjectProvider projectId={projectId} projectRef={gitRef}>
       <Divider sx={{ m: 0, p: 0 }} />
@@ -177,7 +170,7 @@ export function MobileHeaderActions() {
 
       <Divider sx={{ m: 0, p: 0 }} />
 
-      <Box>
+      {/* <Box>
         <PublishButton
           fullWidth
           variant="outlined"
@@ -185,7 +178,7 @@ export function MobileHeaderActions() {
           startIcon={<Box component={Icon} icon={BrandAppgalleryIcon} />}>
           {t('publish')}
         </PublishButton>
-      </Box>
+      </Box> */}
 
       <PreviewAction />
     </CurrentProjectProvider>
@@ -275,6 +268,9 @@ function SaveAction() {
                 color: 'rgba(0, 0, 0, 0.26) !important',
               },
             },
+            width: '100%',
+            display: 'flex',
+            justifyContent: 'flex-start',
           }}>
           <Box className="center">
             <Box component={Icon} icon={FloppyIcon} mr={1} sx={{ fontSize: '15px !important' }} />

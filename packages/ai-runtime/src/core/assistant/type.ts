@@ -1,6 +1,6 @@
 import { ReadableStream } from 'stream/web';
 
-import { ChatCompletionChunk, ChatCompletionInput } from '@blocklet/ai-kit/api/types/chat';
+import { ChatCompletionInput, ChatCompletionResponse } from '@blocklet/ai-kit/api/types/chat';
 import { ImageGenerationInput } from '@blocklet/ai-kit/api/types/image';
 
 import { Assistant, OnTaskCompletion, RunAssistantResponse } from '../../types';
@@ -48,9 +48,9 @@ export type ModelInfo = {
 export interface CallAI {
   (options: Options & { outputModel: true }): Promise<{
     modelInfo: ModelInfo;
-    chatCompletionChunk: ReadableStream<ChatCompletionChunk>;
+    chatCompletionChunk: ReadableStream<ChatCompletionResponse>;
   }>;
-  (options: Options & { outputModel?: false }): Promise<ReadableStream<ChatCompletionChunk>>;
+  (options: Options & { outputModel?: false }): Promise<ReadableStream<ChatCompletionResponse>>;
   (options: Options & { outputModel: boolean }): any;
 }
 

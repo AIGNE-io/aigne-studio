@@ -88,7 +88,7 @@ export function useAgents({ type }: { type: ResourceType }) {
           return i.outputVariables && arrayFromYjs(i.outputVariables, outputVariableFromYjs);
         },
         project: {
-          id: project._id,
+          id: project.id,
           name: project.name,
           description: project.description,
           createdAt: String(project.createdAt),
@@ -98,7 +98,7 @@ export function useAgents({ type }: { type: ResourceType }) {
         blocklet: undefined,
       }));
 
-  const resourceAgents = agents.filter((i) => i.project.id !== project?._id);
+  const resourceAgents = agents.filter((i) => i.project.id !== project?.id);
 
   const allAgents: UseAgentItem[] = [...localAgents, ...resourceAgents];
   const allAgentMap = Object.fromEntries(allAgents.map((i) => [i.id, i]));
@@ -126,13 +126,13 @@ export function useAgent({
 
   if (!project) return undefined;
 
-  if (!projectId || projectId === project?._id) {
+  if (!projectId || projectId === project?.id) {
     const file = store.files[agentId];
     if (file && isAssistant(file)) {
       return {
         ...(fileFromYjs(file) as Assistant),
         project: {
-          id: project._id,
+          id: project.id,
           createdAt: String(project.createdAt),
           updatedAt: String(project.updatedAt),
           ...pick(project, 'name', 'description', 'createdBy'),

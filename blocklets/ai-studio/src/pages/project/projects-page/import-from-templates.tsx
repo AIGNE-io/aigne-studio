@@ -53,7 +53,7 @@ export default function ImportFromTemplates({
         <DialogContent>
           <Stack overflow="auto" flexWrap="wrap" m="-6px" flexDirection="row">
             {templates.map((x) => {
-              const { icon, name, description, createdAt, _id: id, users, updatedAt } = x;
+              const { icon, name, description, createdAt, id, users, updatedAt } = x;
 
               return (
                 <ProjectItemRoot
@@ -99,9 +99,9 @@ export default function ImportFromTemplates({
                         try {
                           const project = await createProject({ templateId: id, name, description });
                           currentGitStore.setState({
-                            currentProjectId: project._id,
+                            currentProjectId: project.id,
                           });
-                          navigate(joinURL('/projects', project._id));
+                          navigate(joinURL('/projects', project.id));
                         } catch (error) {
                           const message = getErrorMessage(error);
                           if (String(message || '').includes('Project limit exceeded')) {

@@ -8,7 +8,7 @@ const idGenerator = new Worker();
 export const nextProjectId = () => idGenerator.nextId().toString();
 
 export default class Project extends Model<InferAttributes<Project>, InferCreationAttributes<Project>> {
-  declare _id: CreationOptional<string>;
+  declare id: CreationOptional<string>;
 
   // original project/template/example id
   declare duplicateFrom?: string;
@@ -73,7 +73,7 @@ export default class Project extends Model<InferAttributes<Project>, InferCreati
 
 Project.init(
   {
-    _id: {
+    id: {
       type: DataTypes.STRING,
       primaryKey: true,
       allowNull: false,

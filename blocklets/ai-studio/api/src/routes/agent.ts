@@ -93,20 +93,12 @@ router.get('/:aid', async (req, res) => {
   res.json(respondAgentFields(assistant, project));
 });
 
-const respondAgentFields = (assistant: Assistant, project: Project['dataValues'], blocklet?: { did: string }) => ({
-  ...pick(
-    assistant,
-    'id',
-    'name',
-    'description',
-    'type',
-    'parameters',
-    'createdAt',
-    'updatedAt',
-    'release',
-    'entries',
-    'createdBy'
-  ),
+const respondAgentFields = (
+  assistant: Assistant,
+  project: Partial<Project['dataValues']>,
+  blocklet?: { did: string }
+) => ({
+  ...pick(assistant, 'id', 'name', 'description', 'type', 'parameters', 'createdAt', 'updatedAt', 'createdBy'),
   outputVariables: assistant.outputVariables?.map((i) => ({
     ...i,
     // 兼容旧版本数据，2024-06-23 之后可以删掉
@@ -118,7 +110,7 @@ const respondAgentFields = (assistant: Assistant, project: Project['dataValues']
     },
   })),
   project: {
-    id: project._id,
+    id: project.id,
     name: project.name,
     description: project.description,
     createdBy: project.createdBy,

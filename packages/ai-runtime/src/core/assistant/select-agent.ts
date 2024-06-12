@@ -1,3 +1,5 @@
+import { isChatCompletionChunk } from '@blocklet/ai-kit/api/types/chat';
+
 import { RouterAssistant } from '../../types';
 import retry from '../utils/retry';
 import { CallAI } from './type';
@@ -78,7 +80,7 @@ async function generateSelectAgentName({
 
     let text = '';
     for await (const chunk of selectAgentIdResponseByPrompt) {
-      if (chunk.delta.content) {
+      if (isChatCompletionChunk(chunk) && chunk.delta.content) {
         text += chunk.delta.content;
       }
     }

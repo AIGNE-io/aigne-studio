@@ -1,3 +1,46 @@
+## 0.2.41 (2024-6-10)
+
+- fix: tests not working if there is chat history input in the agent
+
+## 0.2.40 (2024-6-10)
+
+- fix: correct ref when importing agents
+- chore: merge new agents menus in the folder menu
+
+## 0.2.39 (2024-6-8)
+
+- fix: duplicated inputs when pasting prompt contains multiple variables with same name
+
+## 0.2.38 (2024-6-7)
+
+- fix: skip commit if no changes
+- fix: display original agent name for the entry agent
+- fix: show placeholder for the inputs of selected agent
+
+## 0.2.37 (2024-6-6)
+
+- fix: add horizontal padding for project action buttons
+
+## 0.2.36 (2024-6-6)
+
+- feat: return token usages and display it in the debug view
+
+## 0.2.35 (2024-6-6)
+
+- fix: load font family resources to user's system
+
+## 0.2.34 (2024-6-6)
+
+- feat: optimize project settings ui
+
+## 0.2.33 (2024-6-6)
+
+- chore: update deps
+
+## 0.2.32 (2024-6-5)
+
+- fix: correct type for component installer
+
 ## 0.2.31 (2024-6-3)
 
 - feat: support publish/consume application and selected tools

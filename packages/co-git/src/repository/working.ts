@@ -94,12 +94,14 @@ export default class Working<T> extends Doc {
     branch,
     message,
     author,
+    skipCommitIfNoChanges,
     beforeCommit,
   }: {
     ref: string;
     branch: string;
     message: string;
     author: NonNullable<Parameters<Transaction<T>['commit']>[0]>['author'];
+    skipCommitIfNoChanges?: boolean;
     beforeCommit?: (options: { tx: Transaction<T> }) => any;
   }) {
     const res = await this.repo.transact(async (tx) => {
@@ -144,8 +146,17 @@ export default class Working<T> extends Doc {
 
       await beforeCommit?.({ tx });
 
+      if (skipCommitIfNoChanges) {
+        const changes = await this.repo.statusMatrix();
+        if (changes.every((i) => i[1] === 1 && i[2] === 1 && i[3] === 1)) {
+          return undefined;
+        }
+      }
+
       return tx.commit({ message, author });
     });
+
+    if (!res) return res;
 
     if (this.options.ref !== branch) {
       await this.repo.working({ ref: branch }).then((w) => w.reset());
