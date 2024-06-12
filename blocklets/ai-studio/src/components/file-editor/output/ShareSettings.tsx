@@ -43,9 +43,9 @@ export default function ShareSettings({ output }: { output: OutputVariableYjs })
     <Stack gap={2}>
       <Stack>
         <Typography variant="subtitle1">{t('share')}</Typography>
-        <List dense sx={{ display: 'flex', flexDirection: 'row' }}>
+        <List dense sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
           {SupportedShares.map((item) => (
-            <ListItem key={item.to} sx={{ display: 'flex' }}>
+            <ListItem key={item.to} sx={{ display: 'flex', flex: '1 0 auto', width: '100px' }}>
               <Checkbox
                 checked={checkedVias.has(item.to)}
                 onChange={(_, checked) => toggleItemChecked(item, checked)}
