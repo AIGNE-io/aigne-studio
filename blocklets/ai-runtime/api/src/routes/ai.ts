@@ -1,5 +1,6 @@
 import { ReadableStream } from 'stream/web';
 
+import { getAgentFromAIStudio } from '@api/libs/ai-studio';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
 import logger from '@api/libs/logger';
 import { getAssistantFromResourceBlocklet } from '@api/libs/resource';
@@ -73,7 +74,7 @@ router.post('/call', user(), auth(), compression(), async (req, res) => {
   const userId = req.user?.did || input.userId;
   if (!userId) throw new Error('Missing required userId');
 
-  const { projectId, assistantId } = parseIdentity(input.aid, { rejectWhenError: true });
+  const { projectId, projectRef, assistantId } = parseIdentity(input.aid, { rejectWhenError: true });
 
   const usage = {
     promptTokens: 0,
@@ -127,22 +128,35 @@ router.post('/call', user(), auth(), compression(), async (req, res) => {
     }));
   };
 
-  const getAssistant: GetAssistant = async (agentId: string, options) => {
+  const getAssistant: GetAssistant = (async (agentId: string, options) => {
+    let agent: Awaited<ReturnType<typeof getAssistantFromResourceBlocklet>>;
+
     const blockletDid = options?.blockletDid || input.blockletDid;
     if (!blockletDid || !options?.projectId) {
-      throw new Error('Missing required blockletDid or projectId');
+      if (!input.working) {
+        throw new Error('Missing required blockletDid or projectId');
+      }
+      agent = await getAgentFromAIStudio({
+        projectId: options?.projectId || projectId,
+        projectRef,
+        assistantId: agentId,
+        working: true,
+      });
+    } else {
+      agent = await getAssistantFromResourceBlocklet({
+        blockletDid,
+        projectId: options.projectId,
+        agentId,
+        type: ['application', 'tool', 'llm-adapter', 'aigc-adapter', 'knowledge'],
+      });
     }
 
-    const agent = await getAssistantFromResourceBlocklet({
-      blockletDid,
-      projectId: options.projectId,
-      agentId,
-      type: ['application', 'tool', 'llm-adapter', 'aigc-adapter', 'knowledge'],
-    });
-    if (options.rejectOnEmpty && !agent?.agent) throw new Error(`No such assistant ${agentId}`);
+    if (!agent) {
+      if (options?.rejectOnEmpty) throw new Error(`No such assistant ${agentId}`);
+    }
 
-    return { ...agent?.agent!, project: { id: options.projectId } };
-  };
+    return { ...agent?.agent, project: agent?.project };
+  }) as GetAssistant;
 
   const assistant = await getAssistant(assistantId, { projectId, blockletDid: input.blockletDid, rejectOnEmpty: true });
 

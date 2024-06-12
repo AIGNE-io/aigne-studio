@@ -25,7 +25,7 @@ function Home() {
         props={{
           blockletDid: 'z2qaL77cHGYerN8EdirhmLJ5rUoaDDwynuPGW',
           aid: 'NDQ4MTM3OTQ3NDIyNjU0NDY0L21haW4vMjAyNDA1MjEyMzAwMTctZ2V0VTVy',
-          working: true,
+          working: false,
         }}
       />
     </>

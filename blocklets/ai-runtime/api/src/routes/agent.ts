@@ -1,3 +1,4 @@
+import { getAgentFromAIStudio } from '@api/libs/ai-studio';
 import { ResourceType, getAssistantFromResourceBlocklet, getResourceProjects } from '@api/libs/resource';
 import Secret from '@api/store/models/secret';
 import { parseIdentity } from '@blocklet/ai-runtime/common/aid';
@@ -58,17 +59,23 @@ router.get('/:aid', async (req, res) => {
   const { aid } = req.params;
   if (!aid) throw new Error('Missing required param `aid`');
 
-  const { blockletDid } = await getAgentQuerySchema.validateAsync(req.query, { stripUnknown: true });
+  const { blockletDid, working } = await getAgentQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
-  const { projectId, assistantId } = parseIdentity(aid, { rejectWhenError: true });
+  const { projectId, projectRef, assistantId } = parseIdentity(aid, { rejectWhenError: true });
 
-  if (!blockletDid) throw new Error('Missing required query blockletDid');
+  let agent: Awaited<ReturnType<typeof getAssistantFromResourceBlocklet>>;
 
-  const agent = await getAssistantFromResourceBlocklet({
-    blockletDid,
-    projectId,
-    agentId: assistantId,
-  });
+  if (working) {
+    agent = await getAgentFromAIStudio({ projectId, projectRef, assistantId, working });
+  } else {
+    if (!blockletDid) throw new Error('Missing required query blockletDid');
+
+    agent = await getAssistantFromResourceBlocklet({
+      blockletDid,
+      projectId,
+      agentId: assistantId,
+    });
+  }
 
   if (!agent) {
     res.status(404).json({ message: 'No such agent' });
