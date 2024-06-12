@@ -206,16 +206,20 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
 
   return (
     <Box overflow="auto" {...boxProps}>
-      <Box
-        component={Icon}
-        icon={CloseIcon}
-        onClick={onClose}
-        sx={{ position: 'sticky', top: 0, display: 'flex', flexDirection: 'row-reverse', padding: '8px 16px  0 0' }}
-      />
+      {!isMobile && (
+        <Box
+          component={Icon}
+          icon={CloseIcon}
+          onClick={onClose}
+          sx={{ position: 'sticky', top: 0, display: 'flex', flexDirection: 'row-reverse', padding: '8px 16px  0 0' }}
+        />
+      )}
 
       <SettingsContainer sx={{ px: 2, width: isMobile ? '100%' : '400px' }} className="setting-container">
         <Tabs
           centered
+          variant="scrollable"
+          scrollButtons={false}
           sx={{
             minHeight: 32,
             [`.${tabClasses.root}`]: {
@@ -229,7 +233,7 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
             py: 1,
             zIndex: 10000,
             position: 'sticky',
-            top: 24,
+            top: isMobile ? 0 : 24,
             paddingTop: 0,
           }}
           onChange={(_event: React.SyntheticEvent, newValue: string) => {
