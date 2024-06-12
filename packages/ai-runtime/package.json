@@ -32,9 +32,17 @@
       "import": "./lib/esm/types/index.js",
       "require": "./lib/cjs/types/index.js"
     },
+    "./types/runtime/*": {
+      "import": "./lib/esm/types/runtime/*.js",
+      "require": "./lib/cjs/types/runtime/*.js"
+    },
     "./core": {
       "import": "./lib/esm/core/index.js",
       "require": "./lib/cjs/core/index.js"
+    },
+    "./core/utils/*": {
+      "import": "./lib/esm/core/utils/*.js",
+      "require": "./lib/cjs/core/utils/*.js"
     },
     "./common": {
       "import": "./lib/esm/common/index.js",
@@ -63,8 +71,14 @@
       "types": [
         "./lib/types/types/index.d.ts"
       ],
+      "types/runtime/*": [
+        "./lib/types/types/runtime/*.d.ts"
+      ],
       "core": [
         "./lib/types/core/index.d.ts"
+      ],
+      "core/utils/*": [
+        "./lib/types/core/utils/*.d.ts"
       ],
       "common": [
         "./lib/types/common/index.d.ts"

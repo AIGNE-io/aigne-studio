@@ -1,5 +1,8 @@
 import { ResourceType, getAssistantFromResourceBlocklet, getResourceProjects } from '@api/libs/resource';
+import Secret from '@api/store/models/secret';
 import { parseIdentity } from '@blocklet/ai-runtime/common/aid';
+import { GetAssistant } from '@blocklet/ai-runtime/core';
+import { resolveSecretInputs } from '@blocklet/ai-runtime/core/utils/resolve-secret-inputs';
 import { Assistant } from '@blocklet/ai-runtime/types';
 import { Router } from 'express';
 import Joi from 'joi';
@@ -61,18 +64,23 @@ router.get('/:aid', async (req, res) => {
 
   if (!blockletDid) throw new Error('Missing required query blockletDid');
 
-  const assistantResult = await getAssistantFromResourceBlocklet({
+  const agent = await getAssistantFromResourceBlocklet({
     blockletDid,
     projectId,
     agentId: assistantId,
   });
 
-  if (!assistantResult) {
+  if (!agent) {
     res.status(404).json({ message: 'No such agent' });
     return;
   }
 
-  res.json(respondAgentFields(assistantResult.agent, assistantResult.project, assistantResult.blocklet));
+  res.json({
+    ...respondAgentFields(agent.agent, agent.project, agent.blocklet),
+    config: {
+      secrets: await getAgentSecretInputs(agent),
+    },
+  });
 });
 
 const respondAgentFields = (assistant: Assistant, project: any, blocklet?: { did: string }) => ({
@@ -102,3 +110,56 @@ const respondAgentFields = (assistant: Assistant, project: any, blocklet?: { did
 });
 
 export default router;
+
+async function getAgentSecretInputs(agent: NonNullable<Awaited<ReturnType<typeof getAssistantFromResourceBlocklet>>>) {
+  const projectId = agent.project.id;
+
+  const secrets = await resolveSecretInputs(
+    { ...agent.agent, project: agent.project },
+    {
+      getAssistant: (async (agentId, options) => {
+        if (!options?.blockletDid || !options.projectId) throw new Error('Missing required blockletDid or projectId');
+
+        const agent = await getAssistantFromResourceBlocklet({
+          agentId,
+          blockletDid: options?.blockletDid,
+          projectId: options?.projectId,
+        });
+        if (options?.rejectOnEmpty && !agent?.agent) {
+          throw typeof options.rejectOnEmpty === 'boolean'
+            ? new Error(`No such agent ${agentId}`)
+            : options.rejectOnEmpty;
+        }
+
+        if (!agent) return null;
+
+        return { ...agent.agent, project: agent.project };
+      }) as GetAssistant,
+    }
+  );
+
+  const readySecrets = (
+    await Promise.all(
+      secrets.map(async ({ input, agent }) =>
+        Secret.findOne({
+          where: {
+            projectId,
+            targetProjectId: agent.project.id,
+            targetAgentId: agent.id,
+            targetInputKey: input.key,
+          },
+        })
+      )
+    )
+  ).filter((i): i is NonNullable<typeof i> => !!i);
+
+  return secrets.map((i) => ({
+    targetProjectId: i.agent.project.id,
+    targetAgentId: i.agent.id,
+    targetInput: i.input,
+    hasValue: readySecrets.some(
+      (j) =>
+        j.targetInputKey === i.input.key && j.targetProjectId === i.agent.project.id && j.targetAgentId === i.agent.id
+    ),
+  }));
+}

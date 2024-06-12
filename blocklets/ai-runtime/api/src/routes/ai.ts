@@ -22,6 +22,7 @@ import {
   RuntimeOutputVariable,
   isImageAssistant,
 } from '@blocklet/ai-runtime/types';
+import { RuntimeError, RuntimeErrorType } from '@blocklet/ai-runtime/types/runtime/error';
 import { auth } from '@blocklet/sdk/lib/middlewares';
 import user from '@blocklet/sdk/lib/middlewares/user';
 import compression from 'compression';
@@ -240,7 +241,7 @@ router.post('/call', user(), auth(), compression(), async (req, res) => {
       getSecret: ({ targetProjectId, targetAgentId, targetInputKey }) =>
         Secrets.findOne({
           where: { projectId, targetProjectId, targetAgentId, targetInputKey },
-          rejectOnEmpty: new Error('No such secret'),
+          rejectOnEmpty: new RuntimeError(RuntimeErrorType.MissingSecretError, 'No such secret'),
         }),
       callback: emit,
       callAI,

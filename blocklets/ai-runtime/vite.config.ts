@@ -3,7 +3,6 @@ import path from 'path';
 
 import buildOpenAPIPlugin from '@blocklet/dataset-sdk/plugin';
 import react from '@vitejs/plugin-react';
-import million from 'million/compiler';
 import { defineConfig } from 'vite';
 import { createBlockletPlugin } from 'vite-plugin-blocklet';
 import tsconfigPaths from 'vite-tsconfig-paths';
@@ -27,7 +26,6 @@ export default defineConfig(() => {
     },
     plugins: [
       tsconfigPaths(),
-      million.vite({ auto: true }),
       react(),
       createBlockletPlugin(),
       buildOpenAPIPlugin({ apis: [path.join(__dirname, './api/src/routes/**/*.*')] }),

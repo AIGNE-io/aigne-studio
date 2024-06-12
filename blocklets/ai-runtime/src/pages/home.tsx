@@ -16,7 +16,7 @@ function Home() {
         {...(logo ? { logo } : {})}
         {...(brand ? { brand } : {})}
         {...(description ? { description } : {})}
-        sx={{ position: 'sticky', top: 0 }}
+        sx={{ position: 'sticky', top: 0, '.header-container': { maxWidth: '100%' } }}
         addons={addons}
       />
 
