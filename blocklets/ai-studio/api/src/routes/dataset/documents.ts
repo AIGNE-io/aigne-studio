@@ -56,17 +56,12 @@ const searchResourceKnowledge = async (datasetId: string, input: Input) => {
   }
 
   if (input.searchAll) {
-    try {
-      const docs = await getAllResouceContents(resource);
-      return { docs };
-    } catch (error) {
-      return { docs: [] };
-    }
+    const docs = await getAllResouceContents(resource);
+    return { docs };
   }
 
   if (!input.message) {
-    logger.error('Not found search message');
-    return { docs: [] };
+    throw new Error('Not found search message');
   }
 
   const embeddings = new AIKitEmbeddings({});
@@ -74,6 +69,7 @@ const searchResourceKnowledge = async (datasetId: string, input: Input) => {
 
   try {
     if (store.getMapping() && !Object.keys(store.getMapping()).length) {
+      logger.error('store get mapping is empty');
       return { docs: [] };
     }
 
@@ -108,46 +104,36 @@ router.get('/:datasetId/search', async (req, res) => {
   }
 
   if (input.searchAll) {
-    try {
-      const docs = await getAllContents(datasetId);
-      res.json({ docs });
-    } catch (error) {
-      res.json({ docs: [] });
-    }
+    const docs = await getAllContents(datasetId);
+    res.json({ docs });
     return;
   }
 
   if (!input.message) {
-    logger.error('Not found search message');
-    res.json({ docs: [] });
-    return;
+    throw new Error('Not found search message');
   }
 
   const embeddings = new AIKitEmbeddings({});
   const store = await VectorStore.load(datasetId, embeddings);
 
-  try {
-    if (store.getMapping() && !Object.keys(store.getMapping()).length) {
-      res.json({ docs: [] });
-      return;
-    }
-
-    const docs = await store.similaritySearchWithScore(
-      input.message,
-      Math.min(input.n, Object.keys(store.getMapping()).length)
-    );
-
-    // 分数越低越相近
-    const result = sortBy(docs, (item) => item[1]).map((x) => {
-      const info = x[0] || {};
-      return { content: info?.pageContent, ...(info?.metadata?.metadata || {}) };
-    });
-
-    res.json({ docs: result });
-  } catch (error) {
-    logger.error('search vector info', error?.message);
+  if (store.getMapping() && !Object.keys(store.getMapping()).length) {
+    logger.error('store get mapping is empty');
     res.json({ docs: [] });
+    return;
   }
+
+  const docs = await store.similaritySearchWithScore(
+    input.message,
+    Math.min(input.n, Object.keys(store.getMapping()).length)
+  );
+
+  // 分数越低越相近
+  const result = sortBy(docs, (item) => item[1]).map((x) => {
+    const info = x[0] || {};
+    return { content: info?.pageContent, ...(info?.metadata?.metadata || {}) };
+  });
+
+  res.json({ docs: result });
 });
 
 router.get('/:datasetId/documents', user(), userAuth(), async (req, res) => {
