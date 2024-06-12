@@ -6,7 +6,6 @@ import { Helmet } from 'react-helmet';
 const defaultFonts = [
   // Sans-serif 字体
   { group: 'English' },
-  'Arial',
   'Noto Sans Georgian',
   'Cedarville Cursive',
   'Recursive',
@@ -17,6 +16,17 @@ const defaultFonts = [
   'Chocolate Classical Sans',
   'Sevillana',
   'Karla',
+  'Montserrat',
+  'Montserrat Alternates',
+  'Montserrat Subrayada',
+  'Raleway',
+  'Raleway Dots',
+  'Playfair Display',
+  'Playfair Display SC',
+  'Poppins',
+  'Merriweather',
+  'Merriweather Sans',
+  'Open Sans',
 
   // 中文字体
   { group: 'Chinese' },
@@ -24,10 +34,12 @@ const defaultFonts = [
   'Cactus Classical Serif',
   'LXGW WenKai Mono TC',
   'LXGW WenKai TC',
-  'Noto Sans Traditional Chinese',
   'ZCOOL XiaoWei',
   'ZCOOL QingKe HuangYou',
   'ZCOOL KuaiLe',
+  'Noto Sans SC',
+  'Ma Shan Zheng',
+  'Long Cang',
 
   // 系统默认字体
   { group: 'System' },
