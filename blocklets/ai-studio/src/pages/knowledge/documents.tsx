@@ -88,10 +88,6 @@ export default function KnowledgeDocuments() {
     };
   }, [datasetId]);
 
-  useEffect(() => {
-    refetch();
-  }, []);
-
   const [search, setSearch] = useState('');
   const s = useThrottle(search, { wait: 1000 });
 
@@ -157,7 +153,7 @@ export default function KnowledgeDocuments() {
           sortable: false,
           renderCell: (params: any) => {
             const colors: any = {
-              idle: '##D97706',
+              idle: '#D97706',
               uploading: '#D97706',
               success: '#059669',
               error: '#E11D48',
@@ -170,6 +166,25 @@ export default function KnowledgeDocuments() {
               } catch (error) {
                 return false;
               }
+            }
+
+            if (!params.row.embeddingStatus) {
+              return (
+                <Box
+                  borderRadius={20}
+                  border="1px solid #E5E7EB"
+                  p="4px 12px"
+                  color="#030712"
+                  fontSize={13}
+                  display="flex"
+                  alignItems="center"
+                  gap={1}>
+                  <Box width={6} height={6} borderRadius={6} bgcolor={colors.idle} />
+                  <Box display="flex" alignItems="center">
+                    {t('embeddingStatus_idle')}
+                  </Box>
+                </Box>
+              );
             }
 
             if (['idle', 'uploading', 'success', 'error'].includes(params.row.embeddingStatus)) {

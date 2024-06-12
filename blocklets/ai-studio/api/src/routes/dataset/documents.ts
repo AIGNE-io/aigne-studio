@@ -249,6 +249,7 @@ router.post('/:datasetId/documents/text', user(), userAuth(), async (req, res) =
     datasetId,
     createdBy: did,
     updatedBy: did,
+    embeddingStatus: 'idle',
   });
   await DatasetContent.create({ documentId: document.id, content });
 
@@ -374,6 +375,7 @@ router.post('/:datasetId/documents/file', user(), userAuth(), upload.single('dat
     datasetId,
     createdBy: did,
     updatedBy: did,
+    embeddingStatus: 'idle',
   });
 
   // 不保存数据，在使用时，实时去取，防止数据太大，导致出错

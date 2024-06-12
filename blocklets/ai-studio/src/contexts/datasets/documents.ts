@@ -21,10 +21,12 @@ const datasets: Record<string, RecoilState<DatasetState>> = {};
 
 const dataset = (datasetId: string) => {
   let dataset = datasets[datasetId];
+
   if (!dataset) {
     dataset = atom<DatasetState>({ key: `dataset-${datasetId}`, default: { page: 0, size: 20, loading: true } });
     datasets[datasetId] = dataset;
   }
+
   return dataset;
 };
 
@@ -83,9 +85,7 @@ export const useDocuments = (datasetId: string, { autoFetch = true }: { autoFetc
   }, []);
 
   useEffect(() => {
-    if (autoFetch && !state.dataset) {
-      init();
-    }
+    if (autoFetch) init();
   }, []);
 
   return { state, refetch, remove };
