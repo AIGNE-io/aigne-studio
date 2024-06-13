@@ -1,20 +1,14 @@
 import { uniqBy } from 'lodash';
 
-import {
-  Assistant,
-  RuntimeOutputVariable,
-  RuntimeOutputVariablesSchema,
-  SecretParameter,
-  SourceParameter,
-} from '../../types';
-import { GetAssistant } from '../assistant/type';
+import { RuntimeOutputVariable, RuntimeOutputVariablesSchema, SecretParameter, SourceParameter } from '../../types';
+import { GetAgent, GetAgentResult } from '../assistant/type';
 
 export async function resolveSecretInputs(
-  agent: Assistant & { project: { id: string } },
-  { getAssistant }: { getAssistant: GetAssistant }
+  agent: GetAgentResult,
+  { getAgent: getAssistant }: { getAgent: GetAgent }
 ): Promise<
   {
-    agent: Assistant & { project: { id: string } };
+    agent: GetAgentResult;
     input: SourceParameter & { key: string; source: SecretParameter };
   }[]
 > {
@@ -46,14 +40,14 @@ export async function resolveSecretInputs(
   const nestedSecretInputs = (
     await Promise.all(
       referencedAgents.map(async (i) => {
-        const agent = await getAssistant(i.id, {
+        const res = await getAssistant({
           blockletDid: i.blockletDid,
-          projectId: i.projectId,
+          projectId: i.projectId || agent.identity.projectId,
+          projectRef: agent.identity.projectRef,
+          agentId: i.id,
+          working: agent.identity.working,
         });
-        if (agent) {
-          return resolveSecretInputs(agent, { getAssistant });
-        }
-        return null;
+        return res && resolveSecretInputs(res, { getAgent: getAssistant });
       })
     )
   )

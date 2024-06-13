@@ -1,9 +1,10 @@
 import { ImageAssistant } from '../../types';
+import { GetAgentResult } from '../assistant/type';
 import { renderMessage } from '../utils/render-message';
 import { AgentExecutorBase, AgentExecutorOptions } from './base';
 
 export class AIGCAgentExecutor extends AgentExecutorBase {
-  override async process(agent: ImageAssistant & { project: { id: string } }, { inputs }: AgentExecutorOptions) {
+  override async process(agent: ImageAssistant & GetAgentResult, { inputs }: AgentExecutorOptions) {
     if (!agent.prompt?.length) throw new Error('Prompt cannot be empty');
 
     const prompt = await renderMessage(

@@ -1,9 +1,8 @@
 import { ReadableStream } from 'stream/web';
 
-import { getAgentFromAIStudio } from '@api/libs/ai-studio';
+import { getAgent } from '@api/libs/agent';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
 import logger from '@api/libs/logger';
-import { getAssistantFromResourceBlocklet } from '@api/libs/resource';
 import History from '@api/store/models/history';
 import Secrets from '@api/store/models/secret';
 import Session from '@api/store/models/session';
@@ -16,7 +15,7 @@ import {
 } from '@blocklet/ai-kit/api/types/index';
 import { defaultImageModel, getSupportedImagesModels } from '@blocklet/ai-runtime/common';
 import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
-import { CallAI, CallAIImage, GetAssistant, RuntimeExecutor, nextTaskId } from '@blocklet/ai-runtime/core';
+import { CallAI, CallAIImage, RuntimeExecutor, nextTaskId } from '@blocklet/ai-runtime/core';
 import {
   AssistantResponseType,
   RunAssistantResponse,
@@ -34,24 +33,20 @@ import { pick } from 'lodash';
 const router = Router();
 
 const callInputSchema = Joi.object<{
-  userId?: string;
-  sessionId: string;
   blockletDid?: string;
-  aid: string;
   working?: boolean;
-  parameters?: { [key: string]: any };
-  debug?: boolean;
+  aid: string;
+  sessionId: string;
+  inputs?: { [key: string]: any };
 }>({
-  userId: Joi.string().empty(['', null]),
-  sessionId: Joi.string().required(),
   blockletDid: Joi.string().empty(['', null]),
+  working: Joi.boolean().empty(['', null]).default(false),
   aid: Joi.string().required(),
-  working: Joi.boolean().default(false),
-  parameters: Joi.object({
+  sessionId: Joi.string().required(),
+  inputs: Joi.object({
     $clientTime: Joi.string().isoDate().empty([null, '']),
   }).pattern(Joi.string(), Joi.any()),
-  debug: Joi.boolean().default(false),
-});
+}).rename('parameters', 'inputs', { ignoreUndefined: true, override: true });
 
 router.post('/call', user(), auth(), compression(), async (req, res) => {
   const stream = req.accepts().includes('text/event-stream');
@@ -71,7 +66,7 @@ router.post('/call', user(), auth(), compression(), async (req, res) => {
     { stripUnknown: true }
   );
 
-  const userId = req.user?.did || input.userId;
+  const userId = req.user?.did;
   if (!userId) throw new Error('Missing required userId');
 
   const { projectId, projectRef, assistantId } = parseIdentity(input.aid, { rejectWhenError: true });
@@ -128,37 +123,14 @@ router.post('/call', user(), auth(), compression(), async (req, res) => {
     }));
   };
 
-  const getAssistant: GetAssistant = (async (agentId: string, options) => {
-    let agent: Awaited<ReturnType<typeof getAssistantFromResourceBlocklet>>;
-
-    const blockletDid = options?.blockletDid || input.blockletDid;
-    if (!blockletDid || !options?.projectId) {
-      if (!input.working) {
-        throw new Error('Missing required blockletDid or projectId');
-      }
-      agent = await getAgentFromAIStudio({
-        projectId: options?.projectId || projectId,
-        projectRef,
-        assistantId: agentId,
-        working: true,
-      });
-    } else {
-      agent = await getAssistantFromResourceBlocklet({
-        blockletDid,
-        projectId: options.projectId,
-        agentId,
-        type: ['application', 'tool', 'llm-adapter', 'aigc-adapter', 'knowledge'],
-      });
-    }
-
-    if (!agent) {
-      if (options?.rejectOnEmpty) throw new Error(`No such assistant ${agentId}`);
-    }
-
-    return { ...agent?.agent, project: agent?.project };
-  }) as GetAssistant;
-
-  const assistant = await getAssistant(assistantId, { projectId, blockletDid: input.blockletDid, rejectOnEmpty: true });
+  const agent = await getAgent({
+    blockletDid: input.blockletDid,
+    projectId,
+    projectRef,
+    working: input.working,
+    agentId: assistantId,
+    rejectOnEmpty: true,
+  });
 
   let mainTaskId: string | undefined;
   let error: { type?: string; message: string } | undefined;
@@ -219,14 +191,14 @@ router.post('/call', user(), auth(), compression(), async (req, res) => {
 
   const taskId = nextTaskId();
 
-  if (stream) emit({ type: AssistantResponseType.CHUNK, taskId, assistantId: assistant.id, delta: {} });
+  if (stream) emit({ type: AssistantResponseType.CHUNK, taskId, assistantId: agent.id, delta: {} });
 
   const history = await History.create({
     userId,
     projectId,
     agentId: assistantId,
     sessionId: input.sessionId,
-    inputs: input.parameters,
+    inputs: input.inputs,
     status: 'generating',
   });
 
@@ -245,9 +217,9 @@ router.post('/call', user(), auth(), compression(), async (req, res) => {
     emit({
       type: AssistantResponseType.INPUT_PARAMETER,
       taskId,
-      assistantId: assistant.id,
+      assistantId: agent.id,
       delta: {
-        content: JSON.stringify(input.parameters),
+        content: JSON.stringify(input.inputs),
       },
     });
 
@@ -255,20 +227,20 @@ router.post('/call', user(), auth(), compression(), async (req, res) => {
       getSecret: ({ targetProjectId, targetAgentId, targetInputKey }) =>
         Secrets.findOne({
           where: { projectId, targetProjectId, targetAgentId, targetInputKey },
-          rejectOnEmpty: new RuntimeError(RuntimeErrorType.MissingSecretError, 'No such secret'),
+          rejectOnEmpty: new RuntimeError(RuntimeErrorType.MissingSecretError, 'Missing required secret'),
         }),
       callback: emit,
       callAI,
       callAIImage,
-      getAgent: getAssistant,
+      getAgent,
       entryProjectId: projectId,
       user: { id: userId, did: userId, ...req.user },
       sessionId: input.sessionId,
       datastoreVariables: variables,
     });
 
-    const result = await executor.execute(assistant, {
-      inputs: input.parameters,
+    const result = await executor.execute(agent, {
+      inputs: input.inputs,
       taskId,
     });
 
@@ -305,7 +277,7 @@ router.post('/call', user(), auth(), compression(), async (req, res) => {
             emit({
               type: AssistantResponseType.CHUNK,
               taskId,
-              assistantId: assistant.id,
+              assistantId: agent.id,
               delta: { content: chunk.delta.content },
             });
           }
@@ -316,7 +288,7 @@ router.post('/call', user(), auth(), compression(), async (req, res) => {
         emit({
           type: AssistantResponseType.CHUNK,
           taskId,
-          assistantId: assistant.id,
+          assistantId: agent.id,
           delta: {
             object: {
               $llmResponse: {
@@ -338,10 +310,10 @@ router.post('/call', user(), auth(), compression(), async (req, res) => {
     res.end();
 
     if (input.sessionId) {
-      const question = input.parameters?.question;
+      const question = input.inputs?.question;
       if (question && typeof question === 'string') {
         const session = await Session.findByPk(input.sessionId);
-        await session?.update({ name: input.parameters?.question });
+        await session?.update({ name: input.inputs?.question });
       }
     }
   } catch (e) {

@@ -10,13 +10,11 @@ import { NodeVM } from 'vm2';
 import { TranspileTs } from '../../builtin/complete';
 import { AssistantResponseType, FunctionAssistant } from '../../types';
 import { BuiltinModules } from '../assistant/builtin';
+import { GetAgentResult } from '../assistant/type';
 import { AgentExecutorBase, AgentExecutorOptions } from './base';
 
 export class LogicAgentExecutor extends AgentExecutorBase {
-  override async process(
-    agent: FunctionAssistant & { project: { id: string } },
-    { inputs, taskId }: AgentExecutorOptions
-  ) {
+  override async process(agent: FunctionAssistant & GetAgentResult, { inputs, taskId }: AgentExecutorOptions) {
     if (!agent.code) throw new Error(`Assistant ${agent.id}'s code is empty`);
     const code = await TranspileTs(`\
     export default async function(args) {

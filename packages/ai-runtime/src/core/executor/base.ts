@@ -14,7 +14,7 @@ import {
   Variable,
   outputVariablesToJoiSchema,
 } from '../../types';
-import { CallAI, CallAIImage, GetAssistant, RunAssistantCallback } from '../assistant/type';
+import { CallAI, CallAIImage, GetAgent, GetAgentResult, RunAssistantCallback } from '../assistant/type';
 import { renderMessage } from '../utils/render-message';
 import { nextTaskId } from '../utils/task-id';
 import { runAPITool, runKnowledgeTool, runRequestHistory, runRequestStorage } from './blocklet';
@@ -53,7 +53,7 @@ export class ExecutorContext {
     targetInputKey: string;
   }) => Promise<{ secret: string }>;
 
-  getAgent: GetAssistant;
+  getAgent: GetAgent;
 
   callAI: CallAI;
 
@@ -91,9 +91,9 @@ export interface AgentExecutorOptions {
 export abstract class AgentExecutorBase {
   constructor(public readonly context: ExecutorContext) {}
 
-  abstract process(agent: Assistant & { project: { id: string } }, options: AgentExecutorOptions): Promise<any>;
+  abstract process(agent: GetAgentResult, options: AgentExecutorOptions): Promise<any>;
 
-  async execute(agent: Assistant & { project: { id: string } }, options: AgentExecutorOptions): Promise<any> {
+  async execute(agent: GetAgentResult, options: AgentExecutorOptions): Promise<any> {
     this.context.callback?.({
       type: AssistantResponseType.INPUT,
       assistantId: agent.id,
@@ -148,10 +148,7 @@ export abstract class AgentExecutorBase {
     return result;
   }
 
-  private async prepareInputs(
-    agent: Assistant & { project: { id: string } },
-    { inputs, taskId }: AgentExecutorOptions
-  ) {
+  private async prepareInputs(agent: GetAgentResult, { inputs, taskId }: AgentExecutorOptions) {
     const variables: { [key: string]: any } = { ...inputs };
 
     const userId = this.context.user.did;
@@ -183,9 +180,12 @@ export abstract class AgentExecutorBase {
           variables[parameter.key!] = secret;
         } else if (parameter.source?.variableFrom === 'tool' && parameter.source.agent) {
           const { agent: tool } = parameter.source;
-          const toolAssistant = await this.context.getAgent(tool.id, {
-            blockletDid: tool.blockletDid,
-            projectId: tool.projectId,
+          const toolAssistant = await this.context.getAgent({
+            blockletDid: tool.blockletDid || agent.identity.blockletDid,
+            projectId: tool.projectId || agent.identity.projectId,
+            projectRef: agent.identity.projectRef,
+            agentId: tool.id,
+            working: agent.identity.working,
           });
           if (!toolAssistant) continue;
 
@@ -257,12 +257,12 @@ export abstract class AgentExecutorBase {
           });
 
           const memories = Array.isArray(result) ? result : [];
-          const assistantIds = new Set<string>(memories.map((i) => i.assistantId));
+          const agentIds = new Set<string>(memories.map((i) => i.assistantId));
           const assistantNameMap = Object.fromEntries(
             (
               await Promise.all(
-                [...assistantIds].map((i) =>
-                  this.context.getAgent(i).catch((error) => {
+                [...agentIds].map((agentId) =>
+                  this.context.getAgent({ ...agent.identity, agentId }).catch((error) => {
                     logger.error('get assistant in conversation history error', { error });
                     return null;
                   })

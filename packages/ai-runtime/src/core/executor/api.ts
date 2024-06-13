@@ -2,10 +2,11 @@ import axios, { isAxiosError } from 'axios';
 import { pick } from 'lodash';
 
 import { ApiAssistant } from '../../types';
+import { GetAgentResult } from '../assistant/type';
 import { AgentExecutorBase, AgentExecutorOptions } from './base';
 
 export class APIAgentExecutor extends AgentExecutorBase {
-  override async process(agent: ApiAssistant & { project: { id: string } }, { inputs }: AgentExecutorOptions) {
+  override async process(agent: ApiAssistant & GetAgentResult, { inputs }: AgentExecutorOptions) {
     if (!agent.requestUrl) throw new Error(`Assistant ${agent.id}'s url is empty`);
 
     const args = Object.fromEntries(

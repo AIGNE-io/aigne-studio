@@ -26,9 +26,9 @@ export const ResourceTypes: ResourceType[] = [
   'tool',
   'llm-adapter',
   'aigc-adapter',
+  'knowledge',
   'template',
   'example',
-  'knowledge',
 ];
 
 interface ResourceProject {
@@ -186,16 +186,18 @@ export const getResourceProjects = async (type: ResourceType) => {
 };
 
 export const getProjectFromResource = async ({
+  blockletDid,
   projectId,
   type,
 }: {
+  blockletDid: string;
   projectId: string;
   type?: ResourceType | ResourceType[];
 }) => {
   const resources = await reloadResources();
   for (const t of type ? [type].flat() : ResourceTypes) {
-    const p = resources[t]?.projects.find((i) => i.project.id === projectId);
-    if (p) return p;
+    const p = resources[t]?.blockletMap[blockletDid]?.projectMap[projectId];
+    if (p) return p.project;
   }
   return undefined;
 };

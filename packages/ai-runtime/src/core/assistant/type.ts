@@ -3,7 +3,7 @@ import { ReadableStream } from 'stream/web';
 import { ChatCompletionInput, ChatCompletionResponse } from '@blocklet/ai-kit/api/types/chat';
 import { ImageGenerationInput } from '@blocklet/ai-kit/api/types/image';
 
-import { Assistant, OnTaskCompletion, RunAssistantResponse } from '../../types';
+import { Assistant, OnTaskCompletion, ProjectSettings, RunAssistantResponse } from '../../types';
 
 export type RunAssistantCallback = (e: RunAssistantResponse) => void;
 
@@ -16,15 +16,29 @@ export class ToolCompletionDirective extends Error {
   }
 }
 
-export interface GetAssistant {
-  (
-    assistantId: string,
-    options: { blockletDid?: string; projectId?: string; rejectOnEmpty: true | Error }
-  ): Promise<Assistant & { project: { id: string } }>;
-  (
-    assistantId: string,
-    options?: { blockletDid?: string; projectId?: string; rejectOnEmpty?: false }
-  ): Promise<(Assistant & { project: { id: string } }) | null>;
+export interface GetAgentOptions {
+  blockletDid?: string;
+  projectId: string;
+  projectRef?: string;
+  agentId: string;
+  working?: boolean;
+  rejectOnEmpty?: boolean | Error;
+}
+
+export type GetAgentResult = Assistant & {
+  project: ProjectSettings;
+  identity: {
+    projectId: string;
+    projectRef?: string;
+    blockletDid?: string;
+    working?: boolean;
+    agentId: string;
+  };
+};
+
+export interface GetAgent {
+  (options: GetAgentOptions & { rejectOnEmpty: true | Error }): Promise<GetAgentResult>;
+  (options: GetAgentOptions & { rejectOnEmpty?: false }): Promise<GetAgentResult | null | undefined>;
 }
 
 export type Options = {

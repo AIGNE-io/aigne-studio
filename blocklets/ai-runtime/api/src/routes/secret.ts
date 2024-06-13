@@ -1,6 +1,7 @@
-import { ensureAdmin } from '@api/libs/security';
+import { getProject } from '@api/libs/agent';
+import { ensureAgentAdmin } from '@api/libs/security';
 import Secret from '@api/store/models/secret';
-import { user } from '@blocklet/sdk/lib/middlewares';
+import { auth, user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
 
@@ -31,10 +32,19 @@ const createOrUpdateSecretsInputSchema = Joi.object<CreateOrUpdateSecretsInput>(
     .min(1),
 });
 
-router.post('/', user(), ensureAdmin, async (req, res) => {
+router.post('/', user(), auth(), async (req, res) => {
   const { did: userId } = req.user!;
 
   const input = await createOrUpdateSecretsInputSchema.validateAsync(req.body, { stripUnknown: true });
+
+  await ensureAgentAdmin(req, async () => {
+    return Promise.all(
+      input.secrets.map(async ({ projectId }) => {
+        const project = await getProject({ projectId, working: true, rejectOnEmpty: true });
+        return project.createdBy;
+      })
+    );
+  });
 
   await Promise.all(
     input.secrets.map((item) =>
@@ -62,6 +72,42 @@ router.post('/', user(), ensureAdmin, async (req, res) => {
   );
 
   res.json({});
+});
+
+export interface GetHasValueQuery {
+  projectId: string;
+  targetProjectId: string;
+  targetAgentId: string;
+}
+
+const getHasValueQuerySchema = Joi.object<GetHasValueQuery>({
+  projectId: Joi.string().required(),
+  targetProjectId: Joi.string().required(),
+  targetAgentId: Joi.string().required(),
+});
+
+router.get('/has-value', user(), auth(), async (req, res) => {
+  const query = await getHasValueQuerySchema.validateAsync(req.query, { stripUnknown: true });
+
+  await ensureAgentAdmin(req, async () => {
+    const project = await getProject({
+      projectId: query.projectId,
+      working: true,
+      rejectOnEmpty: true,
+    });
+    return project.createdBy;
+  });
+
+  const secrets = await Secret.findAll({
+    where: {
+      projectId: query.projectId,
+      targetProjectId: query.targetProjectId,
+      targetAgentId: query.targetAgentId,
+    },
+    attributes: { exclude: ['secret'] },
+  });
+
+  res.json({ secrets });
 });
 
 export default router;

@@ -26,7 +26,7 @@ import {
   Tool,
 } from '../../types';
 import selectAgentName from '../assistant/select-agent';
-import { RunAssistantCallback, ToolCompletionDirective } from '../assistant/type';
+import { GetAgentResult, RunAssistantCallback, ToolCompletionDirective } from '../assistant/type';
 import { renderMessage } from '../utils/render-message';
 import { nextTaskId } from '../utils/task-id';
 import { AgentExecutorBase, AgentExecutorOptions } from './base';
@@ -36,7 +36,7 @@ const md5 = (str: string) => crypto.createHash('md5').update(str).digest('hex');
 
 export class DecisionAgentExecutor extends AgentExecutorBase {
   override async process(
-    agent: RouterAssistant & { project: { id: string } },
+    agent: RouterAssistant & GetAgentResult,
     { inputs, taskId, parentTaskId }: AgentExecutorOptions
   ) {
     if (!agent.prompt) {
@@ -81,9 +81,12 @@ export class DecisionAgentExecutor extends AgentExecutorBase {
             };
           }
 
-          const toolAssistant = await this.context.getAgent(tool.id, {
-            blockletDid: tool.blockletDid,
-            projectId: tool.projectId,
+          const toolAssistant = await this.context.getAgent({
+            blockletDid: tool.blockletDid || agent.identity.blockletDid,
+            projectId: tool.projectId || agent.identity.projectId,
+            projectRef: agent.identity.projectRef,
+            agentId: tool.id,
+            working: agent.identity.working,
           });
           if (!toolAssistant) return undefined;
           const toolParameters = (toolAssistant.parameters ?? [])
@@ -171,9 +174,12 @@ export class DecisionAgentExecutor extends AgentExecutorBase {
       });
 
       const executor = agent.executor?.agent?.id
-        ? await this.context.getAgent(agent.executor.agent.id, {
-            projectId: agent.executor.agent.projectId,
-            blockletDid: agent.executor.agent.blockletDid,
+        ? await this.context.getAgent({
+            blockletDid: agent.executor.agent.blockletDid || agent.identity.blockletDid,
+            projectId: agent.executor.agent.projectId || agent.identity.projectId,
+            projectRef: agent.identity.projectRef,
+            agentId: agent.executor.agent.id,
+            working: agent.identity.working,
             rejectOnEmpty: true,
           })
         : undefined;

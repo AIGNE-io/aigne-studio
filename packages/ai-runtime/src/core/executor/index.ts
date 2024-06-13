@@ -1,4 +1,4 @@
-import { Assistant } from '../../types';
+import { GetAgentResult } from '../assistant/type';
 import { AgentExecutor } from './agent';
 import { AIGCAgentExecutor } from './aigc';
 import { APIAgentExecutor } from './api';
@@ -16,7 +16,7 @@ export class RuntimeExecutor extends AgentExecutorBase {
     // ignore
   }
 
-  override async execute(agent: Assistant & { project: { id: string } }, options: AgentExecutorOptions) {
+  override async execute(agent: GetAgentResult, options: AgentExecutorOptions) {
     switch (agent.type) {
       case 'agent': {
         return new AgentExecutor(this.context).execute(agent, options);

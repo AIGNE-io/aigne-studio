@@ -14,6 +14,7 @@ import {
   metadataOutputFormatPrompt,
   metadataStreamOutputFormatPrompt,
 } from '../assistant/generate-output';
+import { GetAgentResult } from '../assistant/type';
 import { renderMessage } from '../utils/render-message';
 import retry from '../utils/retry';
 import { nextTaskId } from '../utils/task-id';
@@ -23,7 +24,7 @@ export class LLMAgentExecutor extends AgentExecutorBase {
   private retryTimes = 0;
 
   override async process(
-    agent: PromptAssistant & { project: { id: string } },
+    agent: PromptAssistant & GetAgentResult,
     { inputs, taskId, parentTaskId }: AgentExecutorOptions
   ) {
     const messages = (
@@ -99,9 +100,12 @@ export class LLMAgentExecutor extends AgentExecutorBase {
       const metadataStrings: string[] = [];
 
       const executor = agent.executor?.agent?.id
-        ? await this.context.getAgent(agent.executor.agent.id, {
-            projectId: agent.executor.agent.projectId,
-            blockletDid: agent.executor.agent.blockletDid,
+        ? await this.context.getAgent({
+            blockletDid: agent.executor.agent.blockletDid || agent.identity.blockletDid,
+            projectId: agent.executor.agent.projectId || agent.identity.projectId,
+            projectRef: agent.identity.projectRef,
+            working: agent.identity.working,
+            agentId: agent.executor.agent.id,
             rejectOnEmpty: true,
           })
         : undefined;

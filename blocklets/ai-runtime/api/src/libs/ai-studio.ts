@@ -1,3 +1,4 @@
+import { ProjectSettings } from '@blocklet/ai-runtime/types';
 import { call } from '@blocklet/sdk/lib/component';
 import { joinURL } from 'ufo';
 
@@ -20,6 +21,16 @@ export async function getAgentFromAIStudio({
       method: 'GET',
       path: joinURL('/api/projects', projectId, '/refs', projectRef, '/agents', assistantId),
       params: { working },
+    })
+  ).data;
+}
+
+export async function getProjectFromAIStudio({ projectId }: { projectId: string }): Promise<ProjectSettings> {
+  return (
+    await call({
+      name: 'ai-studio',
+      method: 'GET',
+      path: joinURL('/api/projects', projectId),
     })
   ).data;
 }

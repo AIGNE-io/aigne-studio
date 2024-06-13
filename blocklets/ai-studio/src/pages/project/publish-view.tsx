@@ -1,4 +1,4 @@
-import { AI_RUNTIME_COMPONENT_DID } from '@app/libs/constants';
+import { AI_RUNTIME_COMPONENTS_COMPONENT_DID } from '@app/libs/constants';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { AssistantYjs } from '@blocklet/ai-runtime/types';
@@ -55,10 +55,13 @@ function PublishViewContent({
 
   const previewUrl = useMemo(() => {
     const pagesPrefix = blocklet?.componentMountPoints.find((i) => i.name === 'pages-kit')?.mountPoint || '/';
-    return withQuery(joinURL(globalThis.location.origin, pagesPrefix, `@${AI_RUNTIME_COMPONENT_DID}`, '/ai/runtime'), {
-      aid: stringifyIdentity({ projectId, projectRef, assistantId: assistant.id }),
-      working: true,
-    });
+    return withQuery(
+      joinURL(globalThis.location.origin, pagesPrefix, `@${AI_RUNTIME_COMPONENTS_COMPONENT_DID}`, '/ai/runtime'),
+      {
+        aid: stringifyIdentity({ projectId, projectRef, assistantId: assistant.id }),
+        working: true,
+      }
+    );
   }, [assistant.id, projectId, projectRef]);
 
   const [copied, setCopied] = useState(false);
