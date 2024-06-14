@@ -6,7 +6,8 @@ import { Outlet, Route, RouterProvider, createBrowserRouter, createRoutesFromEle
 
 import Loading from './components/loading';
 import { SessionProvider } from './contexts/session';
-import Home from './pages/home';
+import HomePage from './pages/home';
+import PreviewPage from './pages/preview';
 
 const theme = createTheme();
 
@@ -54,7 +55,8 @@ export default function WrappedApp() {
             </ThemeProvider>
           </StyledEngineProvider>
         }>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<HomePage />} />
+        <Route path="/preview/:aid" element={<PreviewPage />} />
       </Route>
     ),
     { basename }
