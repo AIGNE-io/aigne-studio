@@ -11,6 +11,9 @@ on:
 jobs:
   Deploy:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        blocklet: [ai-studio, ai-runtime]
 
     if: "! contains(toJSON(github.event.commits.*.message), '[skip ci]')"
 
@@ -44,7 +47,7 @@ jobs:
           skip-deps: false
           skip-upload: false
           skip-deploy: false
-          working-directory: blocklets/ai-studio
+          working-directory: blocklets/${{ matrix.blocklet }}
           bundle-command: pnpm bundle
           store-endpoint: ${{ secrets.STORE_ENDPOINT_TEST }}
           store-access-token: ${{ secrets.STORE_ACCESS_TOKEN_TEST }}

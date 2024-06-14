@@ -1,3 +1,7 @@
+## 0.2.42 (2024-6-15)
+
+- feat: support run agent using the ai-runtime engine
+
 ## 0.2.41 (2024-6-10)
 
 - fix: tests not working if there is chat history input in the agent

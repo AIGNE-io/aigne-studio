@@ -1,4 +1,4 @@
-name: ai-runtime
+name: z2qa5vnwATPJyAnBYm7SbLMMjfeXJgeBKkfMG
 title: AI Runtime
 description: AIGNE application runtime
 keywords:
@@ -14,8 +14,8 @@ author:
 repository:
   type: git
   url: git+https://github.com/blocklet/ai-studio.git
-specVersion: 1.1.1
-version: 0.1.0
+specVersion: 1.2.8
+version: 0.2.42
 logo: logo.png
 files:
   - dist
@@ -46,7 +46,8 @@ scripts:
   preFlight: node api/hooks/pre-flight.js
   dev: npm run start
 environments: []
-capabilities: {}
+capabilities:
+  navigation: true
 screenshots: []
 components:
   - name: ai-kit
