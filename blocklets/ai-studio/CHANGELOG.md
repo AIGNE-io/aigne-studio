@@ -1,3 +1,7 @@
+## 0.2.43 (2024-6-15)
+
+- chore: update github action tasks
+
 ## 0.2.42 (2024-6-15)
 
 - feat: support run agent using the ai-runtime engine
