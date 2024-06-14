@@ -49,6 +49,7 @@ import {
   defaultRemote,
   getAssistantFromRepository,
   getAssistantIdFromPath,
+  getProjectMemoryVariables,
   getRepository,
   repositoryRoot,
   syncRepository,
@@ -913,6 +914,29 @@ export function projectRoutes(router: Router) {
       });
 
       res.json({ agent, project: project.dataValues });
+    }
+  );
+
+  router.get(
+    '/projects/:projectId/refs/:ref/memory/variables',
+    ensureComponentCallOrPromptsAdmin(),
+    async (req, res) => {
+      const { projectId, ref } = req.params;
+      if (!projectId || !ref) throw new Error('Missing required params `projectId`, `ref`');
+
+      const query = await getAgentQuerySchema.validateAsync(req.query, { stripUnknown: true });
+
+      await Project.findByPk(projectId, { rejectOnEmpty: new Error(`Project ${projectId} not found`) });
+
+      const repo = await getRepository({ projectId });
+
+      const variables = await getProjectMemoryVariables({
+        repository: repo,
+        ref,
+        working: query.working,
+      });
+
+      res.json({ variables: variables?.variables ?? [] });
     }
   );
 

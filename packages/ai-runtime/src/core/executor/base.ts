@@ -5,8 +5,8 @@ import { logger } from '@blocklet/sdk/lib/config';
 import Joi from 'joi';
 import { isNil, toLower } from 'lodash';
 
+import { AI_RUNTIME_COMPONENT_DID } from '../../constants';
 import {
-  Assistant,
   AssistantResponseType,
   ExecutionPhase,
   RuntimeOutputProfile,
@@ -27,7 +27,7 @@ export class ExecutorContext {
       | 'callAI'
       | 'callAIImage'
       | 'callback'
-      | 'datastoreVariables'
+      | 'getMemoryVariables'
       | 'user'
       | 'sessionId'
       | 'executor'
@@ -39,7 +39,7 @@ export class ExecutorContext {
     this.callAI = options.callAI;
     this.callAIImage = options.callAIImage;
     this.callback = options.callback;
-    this.datastoreVariables = options.datastoreVariables;
+    this.getMemoryVariables = options.getMemoryVariables;
     this.user = options.user;
     this.sessionId = options.sessionId;
     this.executor = options.executor;
@@ -67,7 +67,12 @@ export class ExecutorContext {
 
   user: { id: string; did: string };
 
-  datastoreVariables: Variable[];
+  getMemoryVariables: (options: {
+    blockletDid?: string;
+    projectId: string;
+    projectRef?: string;
+    working?: boolean;
+  }) => Promise<Variable[]>;
 
   maxRetries = 5;
 
@@ -222,9 +227,9 @@ export abstract class AgentExecutorBase {
               userId,
               projectId: this.context.entryProjectId,
               sessionId: this.context.sessionId,
-              assistantId: agent.id,
+              agentId: agent.id,
             },
-            datastoreVariables: this.context.datastoreVariables,
+            memoryVariables: await this.context.getMemoryVariables(agent.identity),
           });
 
           variables[parameter.key] = result;
@@ -378,10 +383,10 @@ export abstract class AgentExecutorBase {
   }
 
   protected async validateOutputs(
-    agent: Assistant,
+    agent: GetAgentResult,
     { inputs, outputs }: { inputs?: { [key: string]: any }; outputs?: { [key: string]: any } }
   ) {
-    const joiSchema = outputVariablesToJoiSchema(agent, this.context.datastoreVariables);
+    const joiSchema = outputVariablesToJoiSchema(agent, await this.context.getMemoryVariables(agent.identity));
     const outputInputs = agent.outputVariables?.reduce((res, output) => {
       const input =
         output.from?.type === 'input' ? agent.parameters?.find((input) => input.id === output.from?.id) : undefined;
@@ -396,14 +401,16 @@ export abstract class AgentExecutorBase {
     return joiSchema.validateAsync({ ...outputs, ...outputInputs }, { stripUnknown: true });
   }
 
-  private async postProcessOutputs(agent: Assistant, { outputs }: { outputs: { [key: string]: any } }) {
+  private async postProcessOutputs(agent: GetAgentResult, { outputs }: { outputs: { [key: string]: any } }) {
+    const memoryVariables = await this.context.getMemoryVariables(agent.identity);
+
     for (const output of agent?.outputVariables || []) {
       if (!output?.variable?.key || !output?.name) continue;
 
       const value = outputs[output.name];
       if (isNil(value)) continue;
 
-      const datastoreVariable = this.context.datastoreVariables.find(
+      const variable = memoryVariables.find(
         (x) => toLower(x.key || '') === toLower(output.variable?.key || '') && x.scope === output.variable?.scope
       );
 
@@ -412,8 +419,8 @@ export abstract class AgentExecutorBase {
           userId: this.context.user.did,
           projectId: this.context.entryProjectId,
           sessionId: this.context.sessionId,
-          assistantId: agent.id,
-          reset: datastoreVariable?.reset,
+          agentId: agent.id,
+          reset: variable?.reset,
         },
         data: {
           data: value,
@@ -424,8 +431,8 @@ export abstract class AgentExecutorBase {
 
       // TODO: @li-yechao 封装存储数据的方法
       await call({
-        name: 'ai-studio',
-        path: '/api/datastore',
+        name: AI_RUNTIME_COMPONENT_DID,
+        path: '/api/memories',
         method: 'POST',
         headers: getUserHeader(this.context.user),
         ...params,

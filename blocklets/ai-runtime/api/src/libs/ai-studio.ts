@@ -1,4 +1,4 @@
-import { ProjectSettings } from '@blocklet/ai-runtime/types';
+import { ProjectSettings, Variable } from '@blocklet/ai-runtime/types';
 import { call } from '@blocklet/sdk/lib/component';
 import { joinURL } from 'ufo';
 
@@ -31,6 +31,25 @@ export async function getProjectFromAIStudio({ projectId }: { projectId: string 
       name: 'ai-studio',
       method: 'GET',
       path: joinURL('/api/projects', projectId),
+    })
+  ).data;
+}
+
+export async function getMemoryVariablesFromAIStudio({
+  projectId,
+  projectRef,
+  working,
+}: {
+  projectId: string;
+  projectRef: string;
+  working?: boolean;
+}): Promise<{ variables: Variable[] }> {
+  return (
+    await call({
+      name: 'ai-studio',
+      method: 'GET',
+      path: joinURL('/api/projects', projectId, 'refs', projectRef, '/memory/variables'),
+      params: { working },
     })
   ).data;
 }

@@ -23,6 +23,7 @@ import {
   getAssistantsOfRepository,
   getEntryFromRepository,
   getProjectConfig,
+  getProjectMemoryVariables,
   getRepository,
 } from '../store/repository';
 
@@ -187,7 +188,7 @@ export function resourceRoutes(router: Router) {
           const project = await Project.findByPk(projectId, {
             rejectOnEmpty: new Error(`No such project ${projectId}`),
           });
-          const entry = await getEntryFromRepository({ projectId, ref: project.gitDefaultBranch! });
+          const entry = await getEntryFromRepository({ projectId, ref: project.gitDefaultBranch || defaultBranch });
           if (!entry) throw new Error(`Missing entry agent for project ${projectId}`);
         }
 
@@ -236,9 +237,16 @@ export function resourceRoutes(router: Router) {
           assistants,
           project: await projectSettingsSchema.validateAsync(project.dataValues),
           config,
+          memory: {
+            variables: (
+              await getProjectMemoryVariables({
+                repository,
+                ref: project.gitDefaultBranch || defaultBranch,
+              })
+            )?.variables,
+          },
         });
 
-        // 新的保存方式，可以存储更多内容
         await writeFile(path.join(folderPath, projectId, `${projectId}.yaml`), result);
 
         // 写入logo.png

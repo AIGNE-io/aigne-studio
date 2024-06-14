@@ -1,14 +1,15 @@
 import Secret from '@api/store/models/secret';
 import { GetAgentOptions, GetAgentResult } from '@blocklet/ai-runtime/core';
 import { resolveSecretInputs } from '@blocklet/ai-runtime/core/utils/resolve-secret-inputs';
-import { ProjectSettings } from '@blocklet/ai-runtime/types';
+import { ProjectSettings, Variable } from '@blocklet/ai-runtime/types';
 
-import { getAgentFromAIStudio, getProjectFromAIStudio } from './ai-studio';
-import { getAssistantFromResourceBlocklet, getProjectFromResource } from './resource';
+import { getAgentFromAIStudio, getMemoryVariablesFromAIStudio, getProjectFromAIStudio } from './ai-studio';
+import { getAssistantFromResourceBlocklet, getMemoryVariablesFromResource, getProjectFromResource } from './resource';
 
 export interface GetProjectOptions {
   blockletDid?: string;
   projectId: string;
+  projectRef?: string;
   working?: boolean;
   rejectOnEmpty?: boolean | Error;
 }
@@ -35,6 +36,24 @@ export async function getProject({ blockletDid, projectId, working, rejectOnEmpt
   }
 
   return project;
+}
+
+export async function getMemoryVariables({
+  blockletDid,
+  projectId,
+  projectRef,
+  working,
+}: Omit<GetProjectOptions, 'rejectOnEmpty'>) {
+  let variables: Variable[] | undefined;
+  if (working) {
+    if (!projectRef) throw new Error('Missing required query projectRef');
+    variables = (await getMemoryVariablesFromAIStudio({ projectId, projectRef, working })).variables;
+  } else {
+    if (!blockletDid) throw new Error('Missing required query blockletDid');
+    variables = await getMemoryVariablesFromResource({ blockletDid, projectId });
+  }
+
+  return variables ?? [];
 }
 
 export async function getAgent(

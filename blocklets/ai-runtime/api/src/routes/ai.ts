@@ -1,6 +1,6 @@
 import { ReadableStream } from 'stream/web';
 
-import { getAgent } from '@api/libs/agent';
+import { getAgent, getMemoryVariables } from '@api/libs/agent';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
 import logger from '@api/libs/logger';
 import History from '@api/store/models/history';
@@ -203,17 +203,6 @@ router.post('/call', user(), auth(), compression(), async (req, res) => {
   });
 
   try {
-    // TODO:
-    const variables: any[] = [];
-    // 传入全局的存储变量
-    // const variables = await getVariablesFromRepository({
-    //   repository,
-    //   ref: projectRef,
-    //   working: input.working,
-    //   fileName: 'variable',
-    //   rejectOnEmpty: true,
-    // });
-
     emit({
       type: AssistantResponseType.INPUT_PARAMETER,
       taskId,
@@ -232,11 +221,11 @@ router.post('/call', user(), auth(), compression(), async (req, res) => {
       callback: emit,
       callAI,
       callAIImage,
+      getMemoryVariables,
       getAgent,
       entryProjectId: projectId,
       user: { id: userId, did: userId, ...req.user },
       sessionId: input.sessionId,
-      datastoreVariables: variables,
     });
 
     const result = await executor.execute(agent, {

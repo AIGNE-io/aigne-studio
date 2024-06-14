@@ -6,6 +6,7 @@ import { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { call } from '@blocklet/sdk';
 import { startCase, toLower } from 'lodash';
 
+import { AI_RUNTIME_COMPONENT_DID } from '../../constants';
 import { Assistant, AssistantResponseType, ExecutionPhase, Parameter, Tool, User, Variable } from '../../types';
 import { RunAssistantCallback } from '../assistant/type';
 import { renderMessage } from '../utils/render-message';
@@ -110,7 +111,7 @@ export const runRequestStorage = async ({
   callback,
   datastoreParameter,
   ids,
-  datastoreVariables,
+  memoryVariables,
 }: {
   assistant: Assistant;
   parentTaskId?: string;
@@ -118,7 +119,7 @@ export const runRequestStorage = async ({
   callback?: RunAssistantCallback;
   datastoreParameter: Parameter;
   ids: { [key: string]: string | undefined };
-  datastoreVariables: Variable[];
+  memoryVariables: Variable[];
 }) => {
   if (
     datastoreParameter.type === 'source' &&
@@ -156,14 +157,14 @@ export const runRequestStorage = async ({
     });
 
     const { data } = await call({
-      name: 'ai-studio',
-      path: '/api/datastore/variable-by-query',
+      name: AI_RUNTIME_COMPONENT_DID,
+      path: '/api/memories/variable-by-query',
       method: 'GET',
       headers: getUserHeader(user),
       params,
     });
     const list = (data || []).map((x: any) => x?.data).filter((x: any) => x);
-    const storageVariable = datastoreVariables.find(
+    const storageVariable = memoryVariables.find(
       (x) => toLower(x.key || '') === toLower(params.key || '') && x.scope === params.scope
     );
     let result = (list?.length > 0 ? list : [storageVariable?.defaultValue]).filter((x: any) => x);
