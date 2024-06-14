@@ -2,6 +2,8 @@ declare module 'vite-plugin-blocklet';
 
 declare module 'express-history-api-fallback';
 
+declare module 'express-sse';
+
 declare module 'express-async-errors';
 
 namespace Express {
@@ -12,6 +14,7 @@ namespace Express {
       fullName: string;
       provider: string;
       walletOS: string;
+      isAdmin: boolean;
     };
   }
 }

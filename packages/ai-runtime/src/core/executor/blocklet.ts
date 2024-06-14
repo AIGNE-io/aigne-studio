@@ -230,7 +230,7 @@ export const runRequestHistory = async ({
   });
 
   const { data: result } = await call({
-    name: 'ai-studio',
+    name: AI_RUNTIME_COMPONENT_DID,
     path: '/api/messages',
     method: 'GET',
     headers: getUserHeader(user),
@@ -280,7 +280,7 @@ export async function runKnowledgeTool({
   params.searchAll = (tool?.parameters || {}).searchAll;
 
   const { data: knowledge } = await call({
-    name: 'ai-studio',
+    name: AI_RUNTIME_COMPONENT_DID,
     path: `/api/datasets/${tool.id}`,
     method: 'GET',
     headers: getUserHeader(user),
@@ -310,7 +310,7 @@ export async function runKnowledgeTool({
   });
 
   const { data } = await call({
-    name: 'ai-studio',
+    name: AI_RUNTIME_COMPONENT_DID,
     path: `/api/datasets/${tool.id}/search`,
     method: 'GET',
     params,
