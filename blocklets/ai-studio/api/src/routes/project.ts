@@ -7,7 +7,13 @@ import { NoPermissionError, NotFoundError } from '@api/libs/error';
 import { sampleIcon } from '@api/libs/icon';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
 import AgentInputSecret from '@api/store/models/agent-input-secret';
-import { fileToYjs, isAssistant, nextAssistantId } from '@blocklet/ai-runtime/types';
+import {
+  ProjectSettings,
+  fileToYjs,
+  isAssistant,
+  nextAssistantId,
+  projectSettingsSchema,
+} from '@blocklet/ai-runtime/types';
 import { call } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
 import { user } from '@blocklet/sdk/lib/middlewares';
@@ -24,12 +30,15 @@ import { joinURL, parseAuth, parseURL } from 'ufo';
 import { parse } from 'yaml';
 
 import { getProjectFromResource, getResourceProjects } from '../libs/resource';
-import { ensureComponentCallOrPromptsEditor, ensureComponentCallOrRolesMatch } from '../libs/security';
+import {
+  ensureComponentCallOrPromptsAdmin,
+  ensureComponentCallOrPromptsEditor,
+  ensureComponentCallOrRolesMatch,
+} from '../libs/security';
 import Project, { nextProjectId } from '../store/models/project';
 import {
   CONFIG_FOLDER,
   LOGO_FILENAME,
-  SettingsFile,
   VARIABLE_FILENAME,
   VARIABLE_KEY,
   autoSyncIfNeeded,
@@ -40,9 +49,9 @@ import {
   defaultRemote,
   getAssistantFromRepository,
   getAssistantIdFromPath,
+  getProjectMemoryVariables,
   getRepository,
   repositoryRoot,
-  settingsFileSchema,
   syncRepository,
   syncToDidSpace,
 } from '../store/repository';
@@ -185,7 +194,7 @@ export interface GetTemplateQuery {
   working?: boolean;
 }
 
-const getTemplateQuerySchema = Joi.object<GetTemplateQuery>({
+const getAgentQuerySchema = Joi.object<GetTemplateQuery>({
   working: Joi.boolean().empty([null, '']),
 });
 
@@ -526,7 +535,7 @@ export function projectRoutes(router: Router) {
       if (password) uri.password = password;
     }
 
-    let originProject: SettingsFile | undefined;
+    let originProject: ProjectSettings | undefined;
     let originDefaultBranch = defaultBranch;
 
     const tempFolder = await mkdtemp(join(Config.dataDir, 'repositories', 'temp-'));
@@ -541,7 +550,7 @@ export function projectRoutes(router: Router) {
 
         const gitdir = join(tempFolder, '.git');
         const oid = await git.resolveRef({ fs, gitdir, ref: originRepo.defaultBranch });
-        originProject = await settingsFileSchema.validateAsync(
+        originProject = await projectSettingsSchema.validateAsync(
           parse(Buffer.from((await git.readBlob({ fs, gitdir, oid, filepath: '.settings.yaml' })).blob).toString())
         );
       }
@@ -835,7 +844,7 @@ export function projectRoutes(router: Router) {
         await syncRepository({ repository, ref, author: { name: fullName, email: userId } });
       }
 
-      const data = await settingsFileSchema.validateAsync(
+      const data = await projectSettingsSchema.validateAsync(
         parse(
           Buffer.from(
             (
@@ -858,7 +867,7 @@ export function projectRoutes(router: Router) {
 
   router.get('/projects/:projectId/refs/:ref/assistants/:assistantId', async (req, res) => {
     const { projectId, ref, assistantId } = req.params;
-    const query = await getTemplateQuerySchema.validateAsync(req.query, { stripUnknown: true });
+    const query = await getAgentQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
     await Project.findByPk(projectId, { rejectOnEmpty: new Error(`Project ${projectId} not found`) });
 
@@ -885,12 +894,59 @@ export function projectRoutes(router: Router) {
   });
 
   router.get(
+    '/projects/:projectId/refs/:ref/agents/:agentId',
+    ensureComponentCallOrPromptsAdmin(),
+    async (req, res) => {
+      const { projectId, ref, agentId } = req.params;
+      if (!projectId || !ref || !agentId) throw new Error('Missing required params `projectId`, `ref`, `agentId`');
+
+      const query = await getAgentQuerySchema.validateAsync(req.query, { stripUnknown: true });
+
+      const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error(`Project ${projectId} not found`) });
+
+      const repo = await getRepository({ projectId });
+
+      const agent = await getAssistantFromRepository({
+        repository: repo,
+        ref,
+        assistantId: agentId,
+        working: query.working,
+      });
+
+      res.json({ agent, project: project.dataValues });
+    }
+  );
+
+  router.get(
+    '/projects/:projectId/refs/:ref/memory/variables',
+    ensureComponentCallOrPromptsAdmin(),
+    async (req, res) => {
+      const { projectId, ref } = req.params;
+      if (!projectId || !ref) throw new Error('Missing required params `projectId`, `ref`');
+
+      const query = await getAgentQuerySchema.validateAsync(req.query, { stripUnknown: true });
+
+      await Project.findByPk(projectId, { rejectOnEmpty: new Error(`Project ${projectId} not found`) });
+
+      const repo = await getRepository({ projectId });
+
+      const variables = await getProjectMemoryVariables({
+        repository: repo,
+        ref,
+        working: query.working,
+      });
+
+      res.json({ variables: variables?.variables ?? [] });
+    }
+  );
+
+  router.get(
     '/projects/compare/:projectId/:ref/:assistantId',
     user(),
     ensureComponentCallOrPromptsEditor(),
     async (req, res) => {
       const { projectId = '', ref = '', assistantId = '' } = req.params;
-      const query = await getTemplateQuerySchema.validateAsync(req.query, { stripUnknown: true });
+      const query = await getAgentQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
       await Project.findByPk(projectId, { rejectOnEmpty: new Error(`Project ${projectId} not found`) });
 

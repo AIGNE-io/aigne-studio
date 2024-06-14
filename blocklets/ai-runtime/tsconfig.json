@@ -1,0 +1,24 @@
+{
+  "extends": "../../tsconfig.json",
+  "ts-node": {
+    "files": true,
+    "require": ["tsconfig-paths/register"],
+    "compilerOptions": {
+      "module": "CommonJS"
+    }
+  },
+  "compilerOptions": {
+    "baseUrl": "./",
+    "paths": {
+      "@app/*": ["./src/*"],
+      "@api/*": ["./api/src/*"],
+      // For local dev
+      // "@blocklet/ai-kit/*": ["../../../ai-kit/packages/ai-kit/src/*"],
+      // "@blocklet/pages-kit/*": ["../../../pages-kit/packages/pages-kit/src/*"],
+      "@blocklet/ai-runtime": ["../../packages/ai-runtime/src"],
+      "@blocklet/ai-runtime/*": ["../../packages/ai-runtime/src/*"],
+      "@blocklet/dataset-sdk": ["../../packages/dataset-sdk/src"],
+      "@blocklet/dataset-sdk/*": ["../../packages/dataset-sdk/src/*"]
+    }
+  }
+}

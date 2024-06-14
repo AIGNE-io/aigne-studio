@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.2.41",
+  "version": "0.2.42",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -32,9 +32,17 @@
       "import": "./lib/esm/types/index.js",
       "require": "./lib/cjs/types/index.js"
     },
+    "./types/runtime/*": {
+      "import": "./lib/esm/types/runtime/*.js",
+      "require": "./lib/cjs/types/runtime/*.js"
+    },
     "./core": {
       "import": "./lib/esm/core/index.js",
       "require": "./lib/cjs/core/index.js"
+    },
+    "./core/utils/*": {
+      "import": "./lib/esm/core/utils/*.js",
+      "require": "./lib/cjs/core/utils/*.js"
     },
     "./common": {
       "import": "./lib/esm/common/index.js",
@@ -63,8 +71,14 @@
       "types": [
         "./lib/types/types/index.d.ts"
       ],
+      "types/runtime/*": [
+        "./lib/types/types/runtime/*.d.ts"
+      ],
       "core": [
         "./lib/types/core/index.d.ts"
+      ],
+      "core/utils/*": [
+        "./lib/types/core/utils/*.d.ts"
       ],
       "common": [
         "./lib/types/common/index.d.ts"
@@ -102,7 +116,7 @@
     "@blocklet/ai-builtin": "workspace:^",
     "@blocklet/ai-kit": "^0.1.37",
     "@blocklet/dataset-sdk": "workspace:^",
-    "@blocklet/sdk": "^1.16.26",
+    "@blocklet/sdk": "^1.16.27",
     "@microsoft/fetch-event-source": "^2.0.1",
     "ahooks": "^3.8.0",
     "axios": "^1.7.2",
@@ -132,13 +146,13 @@
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@arcblock/ux": "^2.9.90",
+    "@arcblock/ux": "^2.9.91",
     "@emotion/css": "^11.11.2",
     "@emotion/react": "^11.11.4",
     "@jest/globals": "^29.7.0",
-    "@mui/icons-material": "^5.15.19",
+    "@mui/icons-material": "^5.15.20",
     "@mui/lab": "^5.0.0-alpha.170",
-    "@mui/material": "^5.15.19",
+    "@mui/material": "^5.15.20",
     "@types/lodash": "^4.17.5",
     "@types/mustache": "^4.2.5",
     "@types/node-fetch": "^2.6.11",

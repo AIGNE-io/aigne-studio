@@ -1,0 +1,13 @@
+// NOTE: add next line to keep sqlite3 in the bundle
+import 'sqlite3';
+
+import { Sequelize } from 'sequelize';
+
+import { Config } from '../libs/env';
+import logger from '../libs/logger';
+
+const url = `sqlite:${Config.dataDir}/ai-runtime.db`;
+
+export const sequelize = new Sequelize(url, {
+  logging: Config.verbose === false ? false : logger.info.bind(logger),
+});

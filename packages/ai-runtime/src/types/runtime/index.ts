@@ -57,7 +57,7 @@ export type RunAssistantInput = {
   parentTaskId?: string;
   assistantId: string;
   assistantName?: string;
-  inputParameters?: { [key: string]: string };
+  inputParameters?: { [key: string]: any };
   apiArgs?: any;
   fnArgs?: any;
   promptMessages?: PromptMessages;

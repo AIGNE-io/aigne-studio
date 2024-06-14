@@ -1,5 +1,6 @@
 import Release from '@api/store/models/release';
 import { useCurrentProject } from '@app/contexts/project';
+import { AI_RUNTIME_MOUNT_POINT } from '@app/libs/constants';
 import { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { SubscriptionError } from '@blocklet/ai-kit/api';
@@ -34,7 +35,6 @@ import { immer } from 'zustand/middleware/immer';
 
 import Project from '../../../api/src/store/models/project';
 import { textCompletions } from '../../libs/ai';
-import { PREFIX } from '../../libs/api';
 import * as branchApi from '../../libs/branch';
 import { Commit, getLogs } from '../../libs/log';
 import * as projectApi from '../../libs/project';
@@ -459,28 +459,29 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
       );
 
       const session = state.sessions.find((i) => i.index === sessionIndex);
+      if (!session) throw new Error('session does not exist');
+
       try {
         const result =
           message.type === 'chat'
             ? await textCompletions({
                 stream: true,
-                messages: (session?.messages.slice(-15).map((i) => pick(i, 'role', 'content')) ?? []).concat({
-                  role: 'user',
-                  content: message.content,
-                }),
+                messages: session.messages
+                  .slice(-15)
+                  .map((i) => pick(i, 'role', 'content'))
+                  .concat({ role: 'user', content: message.content }),
                 ...pick(message, 'model', 'temperature', 'topP', 'presencePenalty', 'frequencyPenalty'),
               })
             : await runAssistant({
-                url: joinURL(PREFIX, '/api/ai/call'),
+                url: joinURL(AI_RUNTIME_MOUNT_POINT, '/api/ai/call'),
+                working: true,
                 aid: stringifyIdentity({
                   projectId: message.projectId,
                   projectRef: message.gitRef,
                   assistantId: message.assistantId,
                 }),
-                working: true,
-                parameters: message.parameters,
-                sessionId: session?.sessionId,
-                debug: true,
+                sessionId: session.sessionId,
+                inputs: message.parameters,
               });
 
         const reader = result.getReader();
