@@ -13,8 +13,6 @@ const theme = createTheme();
 export default function WrappedApp() {
   const basename = window.blocklet?.prefix || '/';
 
-  const baseAdminPath = basename.endsWith('/') ? `${basename}admin` : `${basename}/admin`;
-
   const router = createBrowserRouter(
     createRoutesFromElements(
       <Route
@@ -47,7 +45,7 @@ export default function WrappedApp() {
               <ToastProvider>
                 <LocaleProvider translations={{}} fallbackLocale="en">
                   <Suspense fallback={<Loading />}>
-                    <SessionProvider serviceHost={basename} protectedRoutes={[`${baseAdminPath}/*`]}>
+                    <SessionProvider serviceHost={basename}>
                       <Outlet />
                     </SessionProvider>
                   </Suspense>

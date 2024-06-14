@@ -8,6 +8,7 @@ import {
   RUNTIME_RESOURCE_BLOCKLET_STATE_GLOBAL_VARIABLE,
   RuntimeResourceBlockletState,
 } from '@blocklet/ai-runtime/types/runtime/runtime-resource-blocklet-state';
+import { getComponentMountPoint } from '@blocklet/sdk';
 import config, { getBlockletJs } from '@blocklet/sdk/lib/config';
 import { Express, Router } from 'express';
 import Mustache from 'mustache';
@@ -79,7 +80,7 @@ var ${RUNTIME_RESOURCE_BLOCKLET_STATE_GLOBAL_VARIABLE} = ${JSON.stringify(resour
       `
     );
 
-    const blockletJs = getBlockletJs();
+    const blockletJs = getBlockletJs(undefined, blockletDid ? getComponentMountPoint(blockletDid) : undefined);
     if (blockletJs) {
       html = html.replace('<script src="__blocklet__.js"></script>', `<script>${blockletJs}</script>`);
     }
