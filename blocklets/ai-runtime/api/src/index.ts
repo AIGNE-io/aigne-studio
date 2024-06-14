@@ -3,7 +3,6 @@ import 'express-async-errors';
 import path from 'path';
 
 import { AssistantResponseType } from '@blocklet/ai-runtime/types';
-import fallback from '@blocklet/sdk/lib/middlewares/fallback';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv-flow';
@@ -14,6 +13,7 @@ import { isDevelopment } from './libs/env';
 import logger from './libs/logger';
 import { initResourceStates } from './libs/resource';
 import routes from './routes';
+import setupHtmlRouter from './routes/html';
 
 dotenv.config();
 
@@ -35,7 +35,7 @@ app.use(router);
 if (!isDevelopment) {
   const staticDir = path.resolve(process.env.BLOCKLET_APP_DIR!, 'dist');
   app.use(express.static(staticDir, { maxAge: '30d', index: false }));
-  app.use(fallback('index.html', { root: staticDir }));
+  setupHtmlRouter(app);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

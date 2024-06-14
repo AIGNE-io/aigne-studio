@@ -2,7 +2,9 @@
 import { mkdir, writeFile } from 'fs/promises';
 import path from 'path';
 
+import { AI_RUNTIME_COMPONENT_DID } from '@api/libs/constants';
 import downloadImage from '@api/libs/download-logo';
+import { Config } from '@api/libs/env';
 import logger from '@api/libs/logger';
 import { ResourceTypes } from '@api/libs/resource';
 import { Assistant, projectSettingsSchema } from '@blocklet/ai-runtime/types';
@@ -124,7 +126,7 @@ export function resourceRoutes(router: Router) {
             {
               id: `application/${x.id}`,
               name: locale.application,
-              disabled: true,
+              disabled: !entry,
               description: entry ? undefined : 'No such entry agent, You have to create an entry agent first',
               dependentComponents,
             },
@@ -254,6 +256,21 @@ export function resourceRoutes(router: Router) {
 
         arr.push(result);
       }
+    }
+
+    if (resourceTypes.some((i) => i[0] === 'application')) {
+      const releaseDir = component.getReleaseExportDir({ projectId, releaseId });
+      await writeFile(
+        path.join(releaseDir, 'blocklet.yml'),
+        `\
+engine:
+  interpreter: blocklet
+  source:
+    store: ${Config.createResourceBlockletEngineStore}
+    name: ${AI_RUNTIME_COMPONENT_DID}
+    version: latest
+`
+      );
     }
 
     return res.json(arr);

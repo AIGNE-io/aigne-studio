@@ -1,3 +1,4 @@
+import { useResourceBlockletState } from '@app/contexts/use-resource-blocklet-state';
 import { useHeaderState } from '@blocklet/pages-kit/builtin/page/header';
 import { CustomComponentRenderer } from '@blocklet/pages-kit/components';
 import Header from '@blocklet/ui-react/lib/Header';
@@ -7,6 +8,11 @@ const AIGNE_RUNTIME_CUSTOM_COMPONENT_ID = 'grc9q1cveub6pnl8';
 
 function Home() {
   const { logo, brand, description, addons } = useHeaderState();
+
+  const applications = useResourceBlockletState()?.applications;
+
+  const app = applications?.[0];
+  if (!app) throw new Error('No application found');
 
   return (
     <>
@@ -23,8 +29,8 @@ function Home() {
       <CustomComponentRenderer
         componentId={AIGNE_RUNTIME_CUSTOM_COMPONENT_ID}
         props={{
-          blockletDid: 'z2qaL77cHGYerN8EdirhmLJ5rUoaDDwynuPGW',
-          aid: 'NDQ4MTM3OTQ3NDIyNjU0NDY0L21haW4vMjAyNDA1MjEyMzAwMTctZ2V0VTVy',
+          blockletDid: app.blockletDid,
+          aid: app.aid,
           working: false,
         }}
       />

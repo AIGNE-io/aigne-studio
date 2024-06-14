@@ -185,6 +185,21 @@ export const getResourceProjects = async (type: ResourceType) => {
   return resources[type]?.projects ?? [];
 };
 
+export const getResourceBlockletFromResource = async ({
+  blockletDid,
+  type,
+}: {
+  blockletDid: string;
+  type?: ResourceType | ResourceType[];
+}) => {
+  const resources = await reloadResources();
+  for (const t of type ? [type].flat() : ResourceTypes) {
+    const p = resources[t]?.blockletMap[blockletDid];
+    if (p) return p;
+  }
+  return undefined;
+};
+
 export const getProjectFromResource = async ({
   blockletDid,
   projectId,

@@ -4,7 +4,7 @@ description: AIGNE application runtime
 keywords:
   - blocklet
   - react
-group: dapp
+group: engine
 did: z2qa5vnwATPJyAnBYm7SbLMMjfeXJgeBKkfMG
 main: api/dist/index.js
 author:
@@ -21,7 +21,7 @@ files:
   - dist
   - logo.png
   - screenshots
-  - api/hooks/pre-start.js
+  - api/hooks/pre-flight.js
 interfaces:
   - type: web
     name: publicUrl
