@@ -1,3 +1,7 @@
+## 0.2.45 (2024-6-15)
+
+- chore: renew ai-runtime blocklet did
+
 ## 0.2.44 (2024-6-15)
 
 - chore: update deps

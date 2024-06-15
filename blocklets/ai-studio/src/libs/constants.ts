@@ -6,7 +6,7 @@ export const RESOURCE_TYPE = 'ai';
 
 export const AI_RUNTIME_COMPONENTS_COMPONENT_DID = 'z2qa6fvjmjew4pWJyTsKaWFuNoMUMyXDh5A1D';
 
-export const AI_RUNTIME_COMPONENT_DID = 'z2qa38259h5QDs1wdzyQbRDRVHATAGUim3iss';
+export const AI_RUNTIME_COMPONENT_DID = 'z2qaBP9SahqU2L2YA3ip7NecwKACMByTFuiJ2';
 
 export const AI_RUNTIME_MOUNT_POINT =
   blocklet?.componentMountPoints.find((i) => i.did === AI_RUNTIME_COMPONENT_DID)?.mountPoint || '/';
