@@ -2,8 +2,8 @@ name: z2qa38259h5QDs1wdzyQbRDRVHATAGUim3iss
 title: AI Runtime
 description: AIGNE application runtime
 keywords:
-  - blocklet
-  - react
+  - ai
+  - aigne
 group: engine
 did: z2qa38259h5QDs1wdzyQbRDRVHATAGUim3iss
 main: api/dist/index.js
