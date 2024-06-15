@@ -1,3 +1,7 @@
+## 0.2.44 (2024-6-15)
+
+- chore: update deps
+
 ## 0.2.43 (2024-6-15)
 
 - chore: update github action tasks
