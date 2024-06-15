@@ -1,3 +1,7 @@
+## 0.2.46 (2024-6-15)
+
+- fix: include database migration scripts
+
 ## 0.2.45 (2024-6-15)
 
 - chore: renew ai-runtime blocklet did
