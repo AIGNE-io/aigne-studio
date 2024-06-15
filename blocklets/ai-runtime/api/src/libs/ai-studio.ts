@@ -25,12 +25,19 @@ export async function getAgentFromAIStudio({
   ).data;
 }
 
-export async function getProjectFromAIStudio({ projectId }: { projectId: string }): Promise<ProjectSettings> {
+export async function getProjectFromAIStudio({
+  projectId,
+  working,
+}: {
+  projectId: string;
+  working?: boolean;
+}): Promise<ProjectSettings> {
   return (
     await call({
       name: 'ai-studio',
       method: 'GET',
       path: joinURL('/api/projects', projectId),
+      params: { working },
     })
   ).data;
 }

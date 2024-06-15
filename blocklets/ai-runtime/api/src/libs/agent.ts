@@ -22,11 +22,10 @@ export async function getProject(
 ): Promise<ProjectSettings>;
 export async function getProject({ blockletDid, projectId, working, rejectOnEmpty }: GetProjectOptions) {
   let project: ProjectSettings | undefined;
-  if (working) {
-    project = await getProjectFromAIStudio({ projectId });
-  } else {
-    if (!blockletDid) throw new Error('Missing required query blockletDid');
+  if (blockletDid) {
     project = await getProjectFromResource({ blockletDid, projectId });
+  } else {
+    project = await getProjectFromAIStudio({ projectId, working });
   }
 
   if (!project) {
@@ -45,12 +44,10 @@ export async function getMemoryVariables({
   working,
 }: Omit<GetProjectOptions, 'rejectOnEmpty'>) {
   let variables: Variable[] | undefined;
-  if (working) {
-    if (!projectRef) throw new Error('Missing required query projectRef');
-    variables = (await getMemoryVariablesFromAIStudio({ projectId, projectRef, working })).variables;
-  } else {
-    if (!blockletDid) throw new Error('Missing required query blockletDid');
+  if (blockletDid) {
     variables = await getMemoryVariablesFromResource({ blockletDid, projectId });
+  } else if (projectRef) {
+    variables = (await getMemoryVariablesFromAIStudio({ projectId, projectRef, working })).variables;
   }
 
   return variables ?? [];
@@ -70,14 +67,7 @@ export async function getAgent({
 }: GetAgentOptions) {
   let agent: GetAgentResult | undefined;
 
-  if (working) {
-    if (!projectRef) throw new Error('Missing required query projectRef');
-
-    const res = await getAgentFromAIStudio({ projectId, projectRef, assistantId: agentId, working });
-    if (res) agent = { ...res.agent, project: res.project, identity: { projectId, projectRef, working, agentId } };
-  } else {
-    if (!blockletDid) throw new Error('Missing required query blockletDid');
-
+  if (blockletDid) {
     const res = await getAssistantFromResourceBlocklet({
       blockletDid,
       projectId,
@@ -85,6 +75,9 @@ export async function getAgent({
     });
 
     if (res) agent = { ...res.agent, project: res.project, identity: { blockletDid, projectId, agentId } };
+  } else if (projectRef) {
+    const res = await getAgentFromAIStudio({ projectId, projectRef, assistantId: agentId, working });
+    if (res) agent = { ...res.agent, project: res.project, identity: { projectId, projectRef, working, agentId } };
   }
 
   if (!agent) {
