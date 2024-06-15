@@ -1,3 +1,7 @@
+## 0.2.47 (2024-6-15)
+
+- fix: prioritize query agent from resource blocklet
+
 ## 0.2.46 (2024-6-15)
 
 - fix: include database migration scripts
