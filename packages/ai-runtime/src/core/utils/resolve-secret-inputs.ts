@@ -5,7 +5,7 @@ import { GetAgent, GetAgentResult } from '../assistant/type';
 
 export async function resolveSecretInputs(
   agent: GetAgentResult,
-  { getAgent: getAssistant }: { getAgent: GetAgent }
+  { getAgent }: { getAgent: GetAgent }
 ): Promise<
   {
     agent: GetAgentResult;
@@ -40,14 +40,14 @@ export async function resolveSecretInputs(
   const nestedSecretInputs = (
     await Promise.all(
       referencedAgents.map(async (i) => {
-        const res = await getAssistant({
+        const res = await getAgent({
           blockletDid: i.blockletDid,
           projectId: i.projectId || agent.identity.projectId,
           projectRef: agent.identity.projectRef,
           agentId: i.id,
           working: agent.identity.working,
         });
-        return res && resolveSecretInputs(res, { getAgent: getAssistant });
+        return res && resolveSecretInputs(res, { getAgent });
       })
     )
   )
