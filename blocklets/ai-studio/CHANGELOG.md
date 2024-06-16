@@ -1,3 +1,7 @@
+## 0.2.49 (2024-6-17)
+
+- fix: migration from ai-studio may produce errors
+
 ## 0.2.48 (2024-6-16)
 
 - fix: migrate knowledge from ai-studio

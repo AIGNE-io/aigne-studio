@@ -3,7 +3,7 @@ import { basename, join, resolve } from 'path';
 import { Config } from '@api/libs/env';
 import logger from '@api/libs/logger';
 import { copy, exists, mkdir, readdir } from 'fs-extra';
-import { QueryInterface, Sequelize } from 'sequelize';
+import { Sequelize } from 'sequelize';
 
 import type { Migration } from '../migrate';
 import DatasetContent from '../models/dataset/content';
@@ -13,9 +13,9 @@ import DatasetEmbeddingHistory from '../models/dataset/embedding-history';
 import DatasetSegment from '../models/dataset/segment';
 import DatasetUpdateHistory from '../models/dataset/update-history';
 
-export const up: Migration = async ({ context: queryInterface }) => {
+export const up: Migration = async () => {
   try {
-    await migrateFromAIStudio({ queryInterface });
+    await migrateFromAIStudio();
   } catch (error) {
     logger.error('Failed to migrate from AI Studio', { error });
   }
@@ -23,7 +23,7 @@ export const up: Migration = async ({ context: queryInterface }) => {
 
 export const down: Migration = async () => {};
 
-async function migrateFromAIStudio({ queryInterface }: { queryInterface: QueryInterface }) {
+async function migrateFromAIStudio() {
   const aiStudioDataDir = resolve(Config.dataDir, '../ai-studio');
 
   const aiStudioDBPath = join(aiStudioDataDir, 'aistudio.db');
@@ -34,19 +34,19 @@ async function migrateFromAIStudio({ queryInterface }: { queryInterface: QueryIn
   const aiStudioSequelize = new Sequelize(url, { logging: logger.info.bind(logger) });
   const aiStudioQueryInterface = aiStudioSequelize.getQueryInterface();
 
-  const datasetDocuments = await aiStudioQueryInterface.select(DatasetDocument, 'DatasetDocuments', { raw: true });
+  const datasetDocuments = (
+    (await aiStudioQueryInterface.select(DatasetDocument, 'DatasetDocuments')) as DatasetDocument[]
+  ).map((i) => i.dataValues);
   await Promise.all(
-    datasetDocuments.map(async (doc: any) => {
+    datasetDocuments.map(async (doc) => {
       if (doc.data) {
         try {
-          const data = JSON.parse(doc.data);
-          if ('path' in data && typeof data.path === 'string') {
-            const { path } = data;
+          if ('path' in doc.data && typeof doc.data.path === 'string') {
+            const { path } = doc.data;
             if (await exists(path)) {
               const newPath = join(Config.dataDir, 'uploads', basename(path));
               await copy(path, newPath);
-              data.path = newPath;
-              doc.data = JSON.stringify(data);
+              doc.data.path = newPath;
             }
           }
         } catch (error) {
@@ -56,36 +56,38 @@ async function migrateFromAIStudio({ queryInterface }: { queryInterface: QueryIn
       }
     })
   );
-  const datasetDocumentCount = await queryInterface.bulkInsert('DatasetDocuments', datasetDocuments);
+  const datasetDocumentCount = (await DatasetDocument.bulkCreate(datasetDocuments)).length;
   logger.info('Migrated dataset documents', { datasetDocumentCount });
 
-  const datasets = await aiStudioQueryInterface.select(Dataset, 'Datasets', { raw: true });
-  const datasetCount = await queryInterface.bulkInsert('Datasets', datasets);
+  const datasets = ((await aiStudioQueryInterface.select(Dataset, 'Datasets')) as Dataset[]).map((i) => i.dataValues);
+  const datasetCount = (await Dataset.bulkCreate(datasets)).length;
   logger.info('Migrated datasets', { datasetCount });
 
-  const datasetContents = await aiStudioQueryInterface.select(DatasetContent, 'DatasetContents', { raw: true });
-  const datasetContentCount = await queryInterface.bulkInsert('DatasetContents', datasetContents);
+  const datasetContents = (
+    (await aiStudioQueryInterface.select(DatasetContent, 'DatasetContents')) as DatasetContent[]
+  ).map((i) => i.dataValues);
+  const datasetContentCount = (await DatasetContent.bulkCreate(datasetContents)).length;
   logger.info('Migrated dataset contents', { datasetContentCount });
 
-  const datasetEmbeddingHistories = await aiStudioQueryInterface.select(
-    DatasetEmbeddingHistory,
-    'DatasetEmbeddingHistories',
-    { raw: true }
-  );
-  const datasetEmbeddingHistoryCount = await queryInterface.bulkInsert(
-    'DatasetEmbeddingHistories',
-    datasetEmbeddingHistories
-  );
+  const datasetEmbeddingHistories = (
+    (await aiStudioQueryInterface.select(
+      DatasetEmbeddingHistory,
+      'DatasetEmbeddingHistories'
+    )) as DatasetEmbeddingHistory[]
+  ).map((i) => i.dataValues);
+  const datasetEmbeddingHistoryCount = (await DatasetEmbeddingHistory.bulkCreate(datasetEmbeddingHistories)).length;
   logger.info('Migrated dataset embedding histories', { datasetEmbeddingHistoryCount });
 
-  const datasetSegments = await aiStudioQueryInterface.select(DatasetSegment, 'DatasetSegments', { raw: true });
-  const datasetSegmentCount = await queryInterface.bulkInsert('DatasetSegments', datasetSegments);
+  const datasetSegments = (
+    (await aiStudioQueryInterface.select(DatasetSegment, 'DatasetSegments')) as DatasetSegment[]
+  ).map((i) => i.dataValues);
+  const datasetSegmentCount = (await DatasetSegment.bulkCreate(datasetSegments)).length;
   logger.info('Migrated dataset segments', { datasetSegmentCount });
 
-  const datasetUpdateHistories = await aiStudioQueryInterface.select(DatasetUpdateHistory, 'DatasetUpdateHistories', {
-    raw: true,
-  });
-  const datasetUpdateHistoryCount = await queryInterface.bulkInsert('DatasetUpdateHistories', datasetUpdateHistories);
+  const datasetUpdateHistories = (
+    (await aiStudioQueryInterface.select(DatasetUpdateHistory, 'DatasetUpdateHistories')) as DatasetUpdateHistory[]
+  ).map((i) => i.dataValues);
+  const datasetUpdateHistoryCount = (await DatasetUpdateHistory.bulkCreate(datasetUpdateHistories)).length;
   logger.info('Migrated dataset update histories', { datasetUpdateHistoryCount });
 
   const aiStudioVectorsDir = join(aiStudioDataDir, 'vectors');
