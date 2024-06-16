@@ -693,6 +693,7 @@ export default flat({
   routeDesc: 'Decision Agent Description',
   promptRequired: 'Prompt is required',
   twitter: 'Twitter',
+  community: 'Community',
   saveAs: 'Save as',
   openingQuestions: 'Opening Questions',
   openingMessage: 'Opening Message',
