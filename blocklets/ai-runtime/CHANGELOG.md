@@ -1,3 +1,7 @@
+## 0.2.48 (2024-6-16)
+
+- fix: migrate knowledge from ai-studio
+
 ## 0.2.47 (2024-6-15)
 
 - fix: prioritize query agent from resource blocklet
