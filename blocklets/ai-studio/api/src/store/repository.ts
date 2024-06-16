@@ -6,7 +6,6 @@ import { broadcast } from '@api/libs/ws';
 import {
   Assistant,
   ConfigFile,
-  ConfigFileYjs,
   FileType,
   FileTypeYjs,
   Variables,
@@ -15,12 +14,12 @@ import {
   isAssistant,
   isRawFile,
   isVariables,
+  projectSettingsSchema,
 } from '@blocklet/ai-runtime/types';
 import { Repository, Transaction } from '@blocklet/co-git/repository';
 import { SpaceClient, SyncFolderPushCommand, SyncFolderPushCommandOutput } from '@did-space/client';
 import { copyFile, exists, pathExists } from 'fs-extra';
 import { glob } from 'glob';
-import Joi from 'joi';
 import isEmpty from 'lodash/isEmpty';
 import { nanoid } from 'nanoid';
 import { parseAuth, parseURL } from 'ufo';
@@ -36,6 +35,7 @@ export const CONFIG_FOLDER = 'config';
 
 export const VARIABLE_KEY = 'variable';
 export const VARIABLE_FILENAME = `${VARIABLE_KEY}.yaml`;
+export const VARIABLE_FILE_PATH = join(CONFIG_FOLDER, VARIABLE_FILENAME);
 
 export const CONFIG_FILE_KEY = 'config';
 export const CONFIG_FILENAME = `${CONFIG_FILE_KEY}.yaml`;
@@ -219,41 +219,6 @@ export async function syncRepository<T>({
 
 export const SETTINGS_FILE = '.settings.yaml';
 
-export type SettingsFile = Pick<
-  Project,
-  | 'id'
-  | 'name'
-  | 'description'
-  | 'model'
-  | 'temperature'
-  | 'topP'
-  | 'presencePenalty'
-  | 'frequencyPenalty'
-  | 'maxTokens'
-  | 'createdAt'
-  | 'updatedAt'
-  | 'createdBy'
-  | 'updatedBy'
->;
-
-export const settingsFileSchema = Joi.object<SettingsFile>({
-  id: Joi.string().required(),
-  name: Joi.string().empty(['', null]),
-  description: Joi.string().empty(['', null]),
-  model: Joi.string().empty(['', null]),
-  temperature: Joi.number().empty(['', null]),
-  topP: Joi.number().empty(['', null]),
-  presencePenalty: Joi.number().empty(['', null]),
-  frequencyPenalty: Joi.number().empty(['', null]),
-  maxTokens: Joi.number().empty(['', null]),
-  createdAt: Joi.alternatives(Joi.string().isoDate(), Joi.date()).required(),
-  updatedAt: Joi.alternatives(Joi.string().isoDate(), Joi.date()).required(),
-  createdBy: Joi.string().required(),
-  updatedBy: Joi.string().required(),
-})
-  .rename('_id', 'id', { override: true, ignoreUndefined: true })
-  .options({ stripUnknown: true });
-
 const addSettingsToGit = async ({
   tx,
   project,
@@ -264,7 +229,7 @@ const addSettingsToGit = async ({
   icon?: string;
 }) => {
   const repository = await getRepository({ projectId: project.id! });
-  const fields = await settingsFileSchema.validateAsync(project.dataValues);
+  const fields = await projectSettingsSchema.validateAsync(project.dataValues);
 
   const fieldsStr = stringify(fields, { aliasDuplicateObjects: false });
 
@@ -549,15 +514,56 @@ export async function getAssistantFromRepository({
   return file;
 }
 
-export async function getProjectConfig({
+export async function getFileFromRepository<F extends FileType>({
   repository,
   ref,
+  working,
+  filepath,
 }: {
   repository: Awaited<ReturnType<typeof getRepository>>;
   ref: string;
+  working?: boolean;
+  filepath: string;
+}): Promise<F | undefined> {
+  let file: FileTypeYjs | undefined;
+
+  if (working) {
+    const working = await repository.working({ ref });
+    const fileId = Object.entries(working.syncedStore.tree).find((i) => i[1] === filepath)?.[0];
+    if (fileId) {
+      file = working.syncedStore.files[fileId];
+    }
+  } else {
+    file =
+      (await repository.options.parse(filepath, (await repository.readBlob({ ref, filepath })).blob, { ref }))?.data ||
+      undefined;
+  }
+
+  return file ? (fileFromYjs(file) as F) : undefined;
+}
+
+export async function getProjectMemoryVariables({
+  repository,
+  ref,
+  working,
+}: {
+  repository: Awaited<ReturnType<typeof getRepository>>;
+  ref: string;
+  working?: boolean;
 }) {
-  const raw = Buffer.from((await repository.readBlob({ ref, filepath: CONFIG_FILE_PATH })).blob).toString();
-  return parse(raw);
+  return getFileFromRepository<Variables>({ repository, ref, filepath: VARIABLE_FILE_PATH, working });
+}
+
+export async function getProjectConfig({
+  repository,
+  ref,
+  working,
+}: {
+  repository: Awaited<ReturnType<typeof getRepository>>;
+  ref: string;
+  working?: boolean;
+}) {
+  return getFileFromRepository<ConfigFile>({ repository, ref, filepath: CONFIG_FILE_PATH, working });
 }
 
 export async function getEntryFromRepository({
@@ -571,90 +577,9 @@ export async function getEntryFromRepository({
 }): Promise<Assistant | undefined> {
   const repository = await getRepository({ projectId });
 
-  let file: FileType | undefined;
+  const config = await getProjectConfig({ repository, ref, working });
+  const entry = config?.entry;
+  if (!entry) return undefined;
 
-  if (working) {
-    const working = await repository.working({ ref });
-    const config = working.syncedStore.files[CONFIG_FILE_KEY] as ConfigFileYjs;
-    if (!config) return undefined;
-    const { entry } = config;
-    const f = working.syncedStore.files[entry!];
-    file = f && fileFromYjs(f);
-  } else {
-    let config: ConfigFile | undefined;
-    try {
-      config = await getProjectConfig({ repository, ref });
-    } catch (error) {
-      logger.error(`failed to read ${CONFIG_FILE_PATH}`, { error });
-    }
-
-    if (!config?.entry) return undefined;
-
-    const p = (await repository.listFiles({ ref })).find((i) => i.endsWith(`${config.entry}.yaml`));
-    file = p && parse(Buffer.from((await repository.readBlob({ ref, filepath: p })).blob).toString());
-  }
-
-  if (!file || !isAssistant(file)) {
-    return undefined;
-  }
-
-  return file;
-}
-
-export async function getVariablesFromRepository({
-  repository,
-  ref,
-  working,
-  fileName,
-  rejectOnEmpty,
-}: {
-  repository: Repository<any>;
-  ref: string;
-  working?: boolean;
-  fileName: string;
-  rejectOnEmpty: true | Error;
-}): Promise<Variables>;
-export async function getVariablesFromRepository({
-  repository,
-  ref,
-  working,
-  fileName,
-  rejectOnEmpty,
-}: {
-  repository: Repository<any>;
-  ref: string;
-  working?: boolean;
-  fileName: string;
-  rejectOnEmpty?: false;
-}): Promise<Variables | undefined>;
-export async function getVariablesFromRepository({
-  repository,
-  ref,
-  working,
-  fileName,
-}: {
-  repository: Repository<any>;
-  ref: string;
-  working?: boolean;
-  fileName: string;
-  rejectOnEmpty?: boolean | Error;
-}): Promise<Variables | undefined> {
-  let file: Variables;
-
-  if (working) {
-    const working = await repository.working({ ref });
-    const f = working.syncedStore.files[fileName];
-    file = f && fileFromYjs(f);
-  } else {
-    const p = (await repository.listFiles({ ref })).find((i) => {
-      return i.endsWith(`config/${fileName}.yaml`);
-    });
-    file = p && parse(Buffer.from((await repository.readBlob({ ref, filepath: p })).blob).toString());
-  }
-
-  if (!file || !isVariables(file)) {
-    return { type: 'variables' };
-  }
-
-  return file;
+  return getAssistantFromRepository({ repository, ref, working, assistantId: entry });
 }

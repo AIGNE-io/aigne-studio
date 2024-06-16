@@ -1,3 +1,23 @@
+## 0.2.47 (2024-6-15)
+
+- fix: prioritize query agent from resource blocklet
+
+## 0.2.46 (2024-6-15)
+
+- chore: renew ai-runtime blocklet did
+
+## 0.2.44 (2024-6-15)
+
+- chore: update deps
+
+## 0.2.43 (2024-6-15)
+
+- chore: update github action tasks
+
+## 0.2.42 (2024-6-15)
+
+- feat: support run agent using the ai-runtime engine
+
 ## 0.2.41 (2024-6-10)
 
 - fix: tests not working if there is chat history input in the agent

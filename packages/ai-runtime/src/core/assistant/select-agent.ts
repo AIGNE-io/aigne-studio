@@ -32,7 +32,7 @@ async function generateSelectAgentName({
   maxRetries = 0,
   categories,
 }: {
-  assistant: RouterAssistant;
+  assistant: RouterAssistant & { project: { id: string } };
   message: string;
   callAI: CallAI;
   maxRetries?: number;

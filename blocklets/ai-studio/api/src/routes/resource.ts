@@ -2,10 +2,12 @@
 import { mkdir, writeFile } from 'fs/promises';
 import path from 'path';
 
+import { AI_RUNTIME_COMPONENT_DID } from '@api/libs/constants';
 import downloadImage from '@api/libs/download-logo';
+import { Config } from '@api/libs/env';
 import logger from '@api/libs/logger';
 import { ResourceTypes } from '@api/libs/resource';
-import { Assistant } from '@blocklet/ai-runtime/types';
+import { Assistant, projectSettingsSchema } from '@blocklet/ai-runtime/types';
 import component from '@blocklet/sdk/lib/component';
 import { Router } from 'express';
 import Joi from 'joi';
@@ -21,8 +23,8 @@ import {
   getAssistantsOfRepository,
   getEntryFromRepository,
   getProjectConfig,
+  getProjectMemoryVariables,
   getRepository,
-  settingsFileSchema,
 } from '../store/repository';
 
 const AI_STUDIO_DID = 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
@@ -125,7 +127,7 @@ export function resourceRoutes(router: Router) {
             {
               id: `application/${x.id}`,
               name: locale.application,
-              disabled: true,
+              disabled: !entry,
               description: entry ? undefined : 'No such entry agent, You have to create an entry agent first',
               dependentComponents,
             },
@@ -186,7 +188,7 @@ export function resourceRoutes(router: Router) {
           const project = await Project.findByPk(projectId, {
             rejectOnEmpty: new Error(`No such project ${projectId}`),
           });
-          const entry = await getEntryFromRepository({ projectId, ref: project.gitDefaultBranch! });
+          const entry = await getEntryFromRepository({ projectId, ref: project.gitDefaultBranch || defaultBranch });
           if (!entry) throw new Error(`Missing entry agent for project ${projectId}`);
         }
 
@@ -233,11 +235,18 @@ export function resourceRoutes(router: Router) {
 
         const result = stringify({
           assistants,
-          project: await settingsFileSchema.validateAsync(project.dataValues),
+          project: await projectSettingsSchema.validateAsync(project.dataValues),
           config,
+          memory: {
+            variables: (
+              await getProjectMemoryVariables({
+                repository,
+                ref: project.gitDefaultBranch || defaultBranch,
+              })
+            )?.variables,
+          },
         });
 
-        // 新的保存方式，可以存储更多内容
         await writeFile(path.join(folderPath, projectId, `${projectId}.yaml`), result);
 
         // 写入logo.png
@@ -255,6 +264,21 @@ export function resourceRoutes(router: Router) {
 
         arr.push(result);
       }
+    }
+
+    if (resourceTypes.some((i) => i[0] === 'application')) {
+      const releaseDir = component.getReleaseExportDir({ projectId, releaseId });
+      await writeFile(
+        path.join(releaseDir, 'blocklet.yml'),
+        `\
+engine:
+  interpreter: blocklet
+  source:
+    store: ${Config.createResourceBlockletEngineStore}
+    name: ${AI_RUNTIME_COMPONENT_DID}
+    version: latest
+`
+      );
     }
 
     return res.json(arr);

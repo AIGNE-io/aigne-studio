@@ -42,6 +42,10 @@ export const Config = {
       disablePaymentProject,
     });
   },
+
+  get createResourceBlockletEngineStore() {
+    return process.env.CREATE_RESOURCE_BLOCKLET_ENGINE_STORE || 'https://store.blocklet.dev';
+  },
 };
 
 config.events.on(config.Events.envUpdate, () => {
