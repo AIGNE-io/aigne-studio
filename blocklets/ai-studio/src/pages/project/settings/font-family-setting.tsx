@@ -1,6 +1,7 @@
-import { UpdateProjectInput } from '@api/routes/project';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { ConfigFileYjs } from '@blocklet/ai-runtime/types';
 import { Box, ListSubheader, MenuItem, Select, SelectProps, Stack, Typography } from '@mui/material';
+import { cloneDeep } from 'lodash';
 import { Helmet } from 'react-helmet';
 
 const defaultFonts = [
@@ -50,13 +51,13 @@ const getFontUrl = (fontList: any[]) => {
 };
 
 export default function FontFamilySetting({
-  set,
-  value,
+  config,
+  setConfig,
 }: {
-  value: UpdateProjectInput;
-  set: (key: string, value: any) => void;
+  config: ConfigFileYjs | undefined;
+  setConfig: (update: (config: ConfigFileYjs) => void) => void;
 }) {
-  const { appearance } = value;
+  const { appearance } = config || {};
 
   const { t } = useLocaleContext();
 
@@ -70,15 +71,17 @@ export default function FontFamilySetting({
           <Typography variant="subtitle3">{t('projectSetting.fontFamily.title')}</Typography>
           <FontSelect
             value={appearance?.typography?.heading?.fontFamily || ''}
-            onChange={(e) =>
-              set('appearance', {
-                ...appearance,
-                typography: {
-                  ...appearance?.typography,
-                  heading: { ...appearance?.typography?.heading, fontFamily: e.target.value },
-                },
-              })
-            }
+            onChange={(e) => {
+              setConfig((config) => {
+                config.appearance = cloneDeep({
+                  ...config.appearance,
+                  typography: {
+                    ...config.appearance?.typography,
+                    heading: { ...config.appearance?.typography?.heading, fontFamily: e.target.value },
+                  },
+                });
+              });
+            }}
           />
         </Stack>
       </Box>
@@ -87,12 +90,14 @@ export default function FontFamilySetting({
           <Typography variant="subtitle3">{t('projectSetting.fontFamily.body')}</Typography>
           <FontSelect
             value={appearance?.typography?.fontFamily || ''}
-            onChange={(e) =>
-              set('appearance', {
-                ...appearance,
-                typography: { ...appearance?.typography, fontFamily: e.target.value },
-              })
-            }
+            onChange={(e) => {
+              setConfig((config) => {
+                config.appearance = cloneDeep({
+                  ...config.appearance,
+                  typography: { ...config.appearance?.typography, fontFamily: e.target.value },
+                });
+              });
+            }}
           />
         </Stack>
       </Box>

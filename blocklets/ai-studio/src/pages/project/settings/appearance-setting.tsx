@@ -1,5 +1,5 @@
-import { UpdateProjectInput } from '@api/routes/project';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { ConfigFileYjs } from '@blocklet/ai-runtime/types';
 import { SaveRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import { Box, Stack, Typography } from '@mui/material';
@@ -8,15 +8,15 @@ import FontFamilySetting from './font-family-setting';
 import PrimaryColor from './primary-color';
 
 export default function AppearanceSetting({
-  value,
+  config,
   onSubmit,
-  set,
+  setConfig,
   readOnly,
   submitLoading,
 }: {
-  value: UpdateProjectInput;
+  config: ConfigFileYjs | undefined;
   onSubmit: () => void;
-  set: (key: string, value: any) => void;
+  setConfig: (update: (config: ConfigFileYjs) => void) => void;
   readOnly: boolean;
   submitLoading: boolean;
 }) {
@@ -28,13 +28,13 @@ export default function AppearanceSetting({
         <Typography variant="subtitle2" mb={0.5}>
           {t('primaryColor')}
         </Typography>
-        <PrimaryColor value={value} set={set} />
+        <PrimaryColor config={config} setConfig={setConfig} />
       </Box>
       <Box>
         <Typography variant="subtitle2" mb={0.5}>
           {t('fontFamily')}
         </Typography>
-        <FontFamilySetting set={set} value={value} />
+        <FontFamilySetting setConfig={setConfig} config={config} />
       </Box>
       <Box>
         <LoadingButton

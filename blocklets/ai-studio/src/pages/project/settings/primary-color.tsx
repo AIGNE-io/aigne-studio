@@ -1,19 +1,20 @@
-import { UpdateProjectInput } from '@api/routes/project';
+import { ConfigFileYjs } from '@blocklet/ai-runtime/types';
 import { ClickAwayListener } from '@mui/base';
 import { Box, Divider, Popper, Stack, styled } from '@mui/material';
+import { cloneDeep } from 'lodash';
 import { useEffect, useState } from 'react';
 import { ChromePicker } from 'react-color';
 
 const defaultColors = ['', '#F47373', '#697689', '#37D67A', '#2CCCE4', '#555555', '#dce775', '#ff8a65', '#ba68c8'];
 
 export default function PrimaryColor({
-  value,
-  set,
+  config,
+  setConfig,
 }: {
-  value: UpdateProjectInput;
-  set: (key: string, value: any) => void;
+  config: ConfigFileYjs | undefined;
+  setConfig: (update: (config: ConfigFileYjs) => void) => void;
 }) {
-  const [selectedColor, setSelectedColor] = useState(value.appearance?.primaryColor || defaultColors[0]);
+  const [selectedColor, setSelectedColor] = useState(config?.appearance?.primaryColor || defaultColors[0]);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [open, setOpen] = useState(false);
 
@@ -30,7 +31,12 @@ export default function PrimaryColor({
   };
 
   useEffect(() => {
-    set('appearance', { ...value.appearance, primaryColor: selectedColor });
+    setConfig((config) => {
+      config.appearance = cloneDeep({
+        ...config.appearance,
+        primaryColor: selectedColor,
+      });
+    });
   }, [selectedColor]);
 
   return (

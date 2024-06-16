@@ -625,23 +625,8 @@ export function projectRoutes(router: Router) {
 
     checkProjectPermission({ req, project });
 
-    const {
-      name,
-      pinned,
-      description,
-      icon,
-      model,
-      temperature,
-      topP,
-      presencePenalty,
-      frequencyPenalty,
-      maxTokens,
-      gitType,
-      gitAutoSync,
-      didSpaceAutoSync,
-      homePageUrl,
-      appearance,
-    } = await updateProjectSchema.validateAsync(req.body, { stripUnknown: true });
+    const { pinned, gitType, gitAutoSync, didSpaceAutoSync, homePageUrl, icon } =
+      await updateProjectSchema.validateAsync(req.body, { stripUnknown: true });
 
     if (gitAutoSync) {
       const repo = await getRepository({ projectId });
@@ -657,22 +642,13 @@ export function projectRoutes(router: Router) {
     await project.update(
       omitBy(
         {
-          name,
           pinnedAt: pinned ? new Date().toISOString() : pinned === false ? null : undefined,
           updatedBy: userId,
-          description,
-          model: model || project.model || '',
           icon: '',
-          temperature,
-          topP,
-          presencePenalty,
-          frequencyPenalty,
-          maxTokens,
           gitType,
           gitAutoSync,
           didSpaceAutoSync,
           homePageUrl,
-          appearance,
           updatedAt: new Date(),
         },
         (v) => v === undefined

@@ -44,6 +44,7 @@ import { getProjectIconUrl } from '../../../libs/project';
 import useDialog from '../../../utils/use-dialog';
 import InfoOutlined from '../icons/question';
 import { useProjectState } from '../state';
+import { useProjectStore } from '../yjs-state';
 import AppearanceSetting from './appearance-setting';
 import DidSpacesSetting from './did-spaces-setting';
 import RemoteRepoSetting from './remote-repo-setting';
@@ -68,8 +69,9 @@ const tabListInfo: { list: string[] } = {
 
 export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
   const { t } = useLocaleContext();
-  const { projectId = '' } = useParams();
+  const { projectId = '', ref: gitRef } = useParams();
   if (!projectId) throw new Error('Missing required params `projectId`');
+  if (!gitRef) throw new Error('Missing required params `gitRef`');
 
   const readOnly = useReadOnly({ ref: getDefaultBranch() });
   const { dialog, showDialog } = useDialog();
@@ -81,7 +83,11 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
   const [currentTabIndex, setCurrentTabIndex] = useState<string | undefined>(tabListInfo.list[0]);
 
   const { value: supportedModels, loading: getSupportedModelsLoading } = useAsync(() => getSupportedModels(), []);
-  const model = useMemo(() => supportedModels?.find((i) => i.model === value.model), [value.model, supportedModels]);
+  const { config, setConfig } = useProjectStore(projectId, gitRef);
+  const model = useMemo(
+    () => supportedModels?.find((i) => i.model === config?.model?.model),
+    [config?.model?.model, supportedModels]
+  );
   const isMobile = useMediaQuery<Theme>((theme) => theme.breakpoints.down('md'));
 
   const {
@@ -94,23 +100,16 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
 
   useEffect(() => {
     if (project) {
-      const merge = pick({ ...init, ...project }, [
-        'name',
-        'description',
-        'icon',
-        'model',
-        'temperature',
-        'topP',
-        'presencePenalty',
-        'frequencyPenalty',
-        'maxTokens',
-        'gitType',
-        'appearance',
-      ]);
-      merge.icon = getProjectIconUrl(projectId, project.updatedAt, { original: true });
-
+      const merge = pick({ ...init, ...project }, ['gitType']);
       origin.current = merge;
       setValue(merge);
+
+      setConfig((config) => {
+        config.basicInfo = {
+          ...config.basicInfo,
+          icon: getProjectIconUrl(projectId, project.updatedAt, { original: true }),
+        };
+      });
     }
   }, [project, projectId]);
 
@@ -143,7 +142,7 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
 
     setLoading(true);
     try {
-      await updateProject(projectId, temp);
+      await updateProject(projectId, { ...temp, icon: config?.basicInfo?.icon });
       Toast.success('Saved');
     } catch (error) {
       Toast.error(getErrorMessage(error));
@@ -157,10 +156,9 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
       !!origin.current &&
       !!value &&
       !equal(
-        { ...origin.current, model: origin.current?.model || 'gpt-3.5-turbo' },
+        { ...origin.current },
         {
           ...value,
-          model: value?.model || 'gpt-3.5-turbo',
         }
       )
     );
@@ -238,7 +236,17 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
                   <Typography variant="subtitle2" mb={0.5}>
                     {t('avatar')}
                   </Typography>
-                  <Avatar value={value.icon ?? ''} onChange={(d: any) => set('icon', d)} />
+                  <Avatar
+                    value={config?.basicInfo?.icon ?? ''}
+                    onChange={(d: any) => {
+                      setConfig((config) => {
+                        config.basicInfo = {
+                          ...config.basicInfo,
+                          icon: d,
+                        };
+                      });
+                    }}
+                  />
                 </Box>
                 <Box>
                   <Typography variant="subtitle2" mb={0.5}>
@@ -248,8 +256,15 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
                   <TextField
                     label={t('projectSetting.name')}
                     sx={{ width: 1 }}
-                    value={value.name ?? ''}
-                    onChange={(e) => set('name', e.target.value)}
+                    value={config?.basicInfo?.name ?? ''}
+                    onChange={(e) => {
+                      setConfig((config) => {
+                        config.basicInfo = {
+                          ...config.basicInfo,
+                          name: e.target.value,
+                        };
+                      });
+                    }}
                     InputProps={{ readOnly }}
                   />
                 </Box>
@@ -262,8 +277,15 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
                     multiline
                     rows={5}
                     sx={{ width: 1 }}
-                    value={value.description ?? ''}
-                    onChange={(e) => set('description', e.target.value)}
+                    value={config?.basicInfo?.description ?? ''}
+                    onChange={(e) => {
+                      setConfig((config) => {
+                        config.basicInfo = {
+                          ...config.basicInfo,
+                          description: e.target.value,
+                        };
+                      });
+                    }}
                     InputProps={{ readOnly }}
                   />
                 </Box>
@@ -293,8 +315,15 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
                   <ModelSelectField
                     hiddenLabel
                     fullWidth
-                    value={value.model || defaultTextModel}
-                    onChange={(e) => set('model', e.target.value)}
+                    value={config?.model?.model || defaultTextModel}
+                    onChange={(e) => {
+                      setConfig((config) => {
+                        config.model = {
+                          ...config.model,
+                          model: e.target.value,
+                        };
+                      });
+                    }}
                     InputProps={{ readOnly }}
                     sx={{ width: 1 }}
                   />
@@ -327,8 +356,15 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
                           max={model.temperatureMax}
                           step={0.1}
                           sx={{ flex: 1 }}
-                          value={value.temperature ?? model.temperatureDefault}
-                          onChange={(_, v) => set('temperature', v)}
+                          value={config?.model?.temperature ?? model.temperatureDefault}
+                          onChange={(_, v) => {
+                            setConfig((config) => {
+                              config.model = {
+                                ...config.model,
+                                temperature: v,
+                              };
+                            });
+                          }}
                         />
                       </Box>
                     </Box>
@@ -357,8 +393,15 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
                           min={model.topPMin}
                           max={model.topPMax}
                           step={0.1}
-                          value={value.topP ?? model.topPDefault}
-                          onChange={(_, v) => set('topP', v)}
+                          value={config?.model?.topP ?? model.topPDefault}
+                          onChange={(_, v) => {
+                            setConfig((config) => {
+                              config.model = {
+                                ...config.model,
+                                topP: v,
+                              };
+                            });
+                          }}
                           sx={{ flex: 1 }}
                         />
                       </Box>
@@ -389,8 +432,16 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
                           max={model.presencePenaltyMax}
                           step={0.1}
                           sx={{ flex: 1 }}
-                          value={value.presencePenalty ?? model.presencePenaltyDefault}
-                          onChange={(_, v) => set('presencePenalty', v)}
+                          value={config?.model?.presencePenalty ?? model.presencePenaltyDefault}
+                          onChange={(_, v) => {
+                            set('presencePenalty', v);
+                            setConfig((config) => {
+                              config.model = {
+                                ...config.model,
+                                presencePenalty: v,
+                              };
+                            });
+                          }}
                         />
                       </Box>
                     </Box>
@@ -420,8 +471,15 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
                           max={model.frequencyPenaltyMax}
                           step={0.1}
                           sx={{ flex: 1 }}
-                          value={value.frequencyPenalty ?? model.frequencyPenaltyDefault}
-                          onChange={(_, v) => set('frequencyPenalty', v)}
+                          value={config?.model?.frequencyPenalty ?? model.frequencyPenaltyDefault}
+                          onChange={(_, v) => {
+                            setConfig((config) => {
+                              config.model = {
+                                ...config.model,
+                                frequencyPenalty: v,
+                              };
+                            });
+                          }}
                         />
                       </Box>
                     </Box>
@@ -451,8 +509,15 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
                           max={model.maxTokensMax}
                           step={1}
                           sx={{ flex: 1 }}
-                          value={value.maxTokens ?? model.maxTokensDefault}
-                          onChange={(_, v) => set('maxTokens', v)}
+                          value={config?.model?.maxTokens ?? model.maxTokensDefault}
+                          onChange={(_, v) => {
+                            setConfig((config) => {
+                              config.model = {
+                                ...config.model,
+                                maxTokens: v,
+                              };
+                            });
+                          }}
                         />
                       </Box>
                     </Box>
@@ -540,11 +605,11 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
           {currentTabIndex === 'appearance' && (
             <Box mt={2}>
               <AppearanceSetting
-                set={set}
+                setConfig={setConfig}
                 onSubmit={onSubmit}
                 readOnly={readOnly}
                 submitLoading={submitLoading}
-                value={value}
+                config={config}
               />
             </Box>
           )}
