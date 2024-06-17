@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/co-git",
-  "version": "0.2.49",
+  "version": "0.2.50",
   "description": "The cooperative component library for AI Studio",
   "publishConfig": {
     "access": "public"
