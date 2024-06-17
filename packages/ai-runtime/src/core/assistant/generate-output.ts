@@ -64,7 +64,7 @@ export async function generateOutput({
   maxRetries = 0,
   datastoreVariables,
 }: {
-  assistant: Assistant;
+  assistant: Assistant & { project: { id: string } };
   messages: { role: Role; content: string }[];
   callAI: CallAI;
   maxRetries?: number;
@@ -83,7 +83,6 @@ export async function generateOutput({
   return retry(async () => {
     const result = await callAI({
       assistant,
-      outputModel: true,
       input: {
         stream: true,
         messages,
@@ -92,7 +91,7 @@ export async function generateOutput({
 
     let text = '';
 
-    for await (const chunk of extractMetadataFromStream(result.chatCompletionChunk, true)) {
+    for await (const chunk of extractMetadataFromStream(result, true)) {
       if (chunk.type === 'match') text += chunk.text;
     }
 

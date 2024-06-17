@@ -8,7 +8,8 @@ import PopperMenu, { PopperMenuImperative } from '@app/components/menu/PopperMen
 import PasswordField from '@app/components/PasswordField';
 import { useCurrentProject } from '@app/contexts/project';
 import { getDatasets } from '@app/libs/dataset';
-import { createOrUpdateProjectInputSecrets, getProjectIconUrl, getProjectInputSecrets } from '@app/libs/project';
+import { getProjectIconUrl } from '@app/libs/project';
+import { createOrUpdateSecrets, getSecrets } from '@app/libs/secret';
 import Close from '@app/pages/project/icons/close';
 import { useAssistantCompare } from '@app/pages/project/state';
 import { useProjectStore } from '@app/pages/project/yjs-state';
@@ -1242,13 +1243,12 @@ export function AuthorizeButton({ agent }: { agent: NonNullable<ReturnType<typeo
   const { projectId } = useCurrentProject();
 
   const [authorized, setAuthorized] = useState(false);
-  const { value: { secrets = [] } = {}, loading } = useAsync(() => getProjectInputSecrets(projectId), [projectId]);
+  const { value: { secrets = [] } = {}, loading } = useAsync(
+    () => getSecrets({ projectId, targetProjectId: agent.project.id, targetAgentId: agent.id }),
+    [projectId, agent.project.id, agent.id]
+  );
 
-  const isAuthorized =
-    useMemo(
-      () => secrets.find((i) => i.targetProjectId === agent.project.id && i.targetAgentId === agent.id),
-      [agent, secrets]
-    ) || authorized;
+  const isAuthorized = secrets.length > 0 || authorized;
 
   if (!authInputs?.length || loading) return null;
 
@@ -1294,13 +1294,16 @@ function AuthorizeParametersFormDialog({
   const { projectId } = useCurrentProject();
 
   const onSubmit = async (values: { [key: string]: string }) => {
-    await createOrUpdateProjectInputSecrets(projectId, {
-      secrets: Object.entries(values).map(([key, secret]) => ({
-        targetProjectId: agent.project.id,
-        targetAgentId: agent.id,
-        targetInputKey: key,
-        secret,
-      })),
+    await createOrUpdateSecrets({
+      input: {
+        secrets: Object.entries(values).map(([key, secret]) => ({
+          projectId,
+          targetProjectId: agent.project.id,
+          targetAgentId: agent.id,
+          targetInputKey: key,
+          secret,
+        })),
+      },
     });
     onSuccess?.();
   };
