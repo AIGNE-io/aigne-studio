@@ -62,8 +62,8 @@
     "zx": "^7.2.3"
   },
   "resolutions": {
-    "@abtnode/client": "1.16.28-beta-23b06b63",
-    "@abtnode/constant": "1.16.28-beta-23b06b63",
+    "@abtnode/client": "1.16.28-beta-bfbab430",
+    "@abtnode/constant": "1.16.28-beta-bfbab430",
     "@arcblock/did": "^1.18.123",
     "@arcblock/did-auth": "^1.18.123",
     "@arcblock/did-connect": "^2.9.91",
@@ -72,8 +72,8 @@
     "@arcblock/jwt": "^1.18.123",
     "@arcblock/ux": "^2.9.91",
     "@arcblock/ws": "^1.18.123",
-    "@blocklet/meta": "1.16.28-beta-23b06b63",
-    "@blocklet/sdk": "1.16.28-beta-23b06b63",
+    "@blocklet/meta": "1.16.28-beta-bfbab430",
+    "@blocklet/sdk": "1.16.28-beta-bfbab430",
     "@blocklet/ui-react": "^2.9.91",
     "@blocklet/uploader": "^0.0.73",
     "@emotion/cache": "^11.11.0",

@@ -99,7 +99,7 @@ export default function KnowledgeDatasets() {
 
   return (
     <>
-      <Stack m={2.5} overflow="auto">
+      <Stack p={2.5} height={1} overflow="auto">
         <ListContainer gap={1.25}>
           <DatasetItemAdd
             name={t('knowledge.createTitle')}
