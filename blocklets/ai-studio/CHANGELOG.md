@@ -1,3 +1,8 @@
+## 0.2.50 (2024-6-17)
+
+- fix: move apis/components api to ai-runtime
+- fix: dev crash if there is not dist
+
 ## 0.2.49 (2024-6-17)
 
 - fix: migration from ai-studio may produce errors

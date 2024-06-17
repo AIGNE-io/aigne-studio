@@ -1,5 +1,9 @@
 const rimraf = require('rimraf');
 
-console.log('clean .blocklet folder');
-rimraf.sync('.blocklet');
-console.log('clean .blocklet folder done!');
+const dirs = ['.blocklet', 'dist', 'api/dist'];
+
+for (const dir of dirs) {
+  console.log(`clean ${dir} folder`);
+  rimraf.sync(dir);
+  console.log(`clean ${dir} folder done!`);
+}

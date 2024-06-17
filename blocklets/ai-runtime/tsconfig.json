@@ -18,7 +18,9 @@
       "@blocklet/ai-runtime": ["../../packages/ai-runtime/src"],
       "@blocklet/ai-runtime/*": ["../../packages/ai-runtime/src/*"],
       "@blocklet/dataset-sdk": ["../../packages/dataset-sdk/src"],
-      "@blocklet/dataset-sdk/*": ["../../packages/dataset-sdk/src/*"]
+      "@blocklet/dataset-sdk/*": ["../../packages/dataset-sdk/src/*"],
+      "@blocklet/components-sdk": ["../../packages/components-sdk/src"],
+      "@blocklet/components-sdk/*": ["../../packages/components-sdk/src/*"]
     }
   }
 }
