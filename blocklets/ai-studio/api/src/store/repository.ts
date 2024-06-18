@@ -20,6 +20,7 @@ import { Repository, Transaction } from '@blocklet/co-git/repository';
 import { SpaceClient, SyncFolderPushCommand, SyncFolderPushCommandOutput } from '@did-space/client';
 import { copyFile, exists, pathExists } from 'fs-extra';
 import { glob } from 'glob';
+import { Errors } from 'isomorphic-git';
 import isEmpty from 'lodash/isEmpty';
 import { nanoid } from 'nanoid';
 import { parseAuth, parseURL } from 'ufo';
@@ -534,9 +535,14 @@ export async function getFileFromRepository<F extends FileType>({
       file = working.syncedStore.files[fileId];
     }
   } else {
-    file =
-      (await repository.options.parse(filepath, (await repository.readBlob({ ref, filepath })).blob, { ref }))?.data ||
-      undefined;
+    try {
+      const raw = (await repository.readBlob({ ref, filepath })).blob;
+      file = (await repository.options.parse(filepath, raw, { ref }))?.data || undefined;
+    } catch (error) {
+      if (!(error instanceof Errors.NotFoundError)) {
+        logger.error('read project config error', { error });
+      }
+    }
   }
 
   return file ? (fileFromYjs(file) as F) : undefined;

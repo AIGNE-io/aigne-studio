@@ -16,7 +16,9 @@ import { joinURL } from 'ufo';
 import type { ViteDevServer } from 'vite';
 
 export default function setupHtmlRouter(app: Express, viteDevServer?: ViteDevServer) {
-  const template = readFileSync(resolve(process.env.BLOCKLET_APP_DIR!, 'dist/index.html'), 'utf-8');
+  const template = viteDevServer
+    ? readFileSync(resolve(process.env.BLOCKLET_APP_DIR!, 'index.html'), 'utf-8')
+    : readFileSync(resolve(process.env.BLOCKLET_APP_DIR!, 'dist/index.html'), 'utf-8');
 
   const router = Router();
 

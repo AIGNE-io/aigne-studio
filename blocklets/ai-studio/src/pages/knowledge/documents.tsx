@@ -24,7 +24,7 @@ import dayjs from 'dayjs';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
 import { useDocuments } from '../../contexts/datasets/documents';
@@ -37,10 +37,11 @@ import { SegmentsItem } from './segments';
 export default function KnowledgeDocuments() {
   const { t } = useLocaleContext();
   const { datasetId } = useParams();
+  const blockletDid = useSearchParams()[0].get('blockletDid') || undefined;
 
   const navigate = useNavigate();
 
-  const { state, remove, refetch } = useDocuments(datasetId || '');
+  const { state, remove, refetch } = useDocuments(datasetId || '', { blockletDid });
   if (state.error) throw state.error;
 
   const embeddings = useReactive<{ [key: string]: { [key: string]: any } }>({});
@@ -98,7 +99,6 @@ export default function KnowledgeDocuments() {
   const { data, loading } = useRequest(
     () => {
       if (s) return searchKnowledge({ datasetId: datasetId || '', message: s });
-
       return Promise.resolve({ docs: [] });
     },
     { refreshDeps: [s] }
@@ -125,186 +125,189 @@ export default function KnowledgeDocuments() {
   };
 
   const columns = useMemo(
-    () => [
-      {
-        field: 'name',
-        headerName: t('knowledge.documents.name'),
-        flex: 1,
-        sortable: false,
-        renderCell: (params: any) => {
-          return (
-            <Tooltip title={getParamsName(params)}>
-              <Box pr={2} className="ellipsis">
-                {getParamsName(params)}
-              </Box>
-            </Tooltip>
-          );
-        },
-      },
-      {
-        field: 'type',
-        headerName: t('knowledge.documents.type'),
-        width: 100,
-        sortable: false,
-        renderCell: (params: any) => {
-          return <Box>{t(params.row.type)}</Box>;
-        },
-      },
-      {
-        field: 'embeddingStatus',
-        headerName: t('embeddingStatus'),
-        width: 150,
-        sortable: false,
-        renderCell: (params: any) => {
-          const colors: any = {
-            idle: '##D97706',
-            uploading: '#D97706',
-            success: '#059669',
-            error: '#E11D48',
-          };
-
-          function isSymmetricAroundSlash(str: string = '') {
-            try {
-              const [before, after] = (str || '').split('/');
-              return before === after;
-            } catch (error) {
-              return false;
-            }
-          }
-
-          if (['idle', 'uploading', 'success', 'error'].includes(params.row.embeddingStatus)) {
+    () =>
+      [
+        {
+          field: 'name',
+          headerName: t('knowledge.documents.name'),
+          flex: 1,
+          sortable: false,
+          renderCell: (params: any) => {
             return (
-              <Tooltip title={params.row.error ?? undefined}>
-                <Box
-                  borderRadius={20}
-                  border="1px solid #E5E7EB"
-                  p="4px 12px"
-                  color="#030712"
-                  fontSize={13}
-                  display="flex"
-                  alignItems="center"
-                  gap={1}>
-                  <Box width={6} height={6} borderRadius={6} bgcolor={colors[params.row.embeddingStatus]} />
-                  <Box display="flex" alignItems="center">
-                    {t(`embeddingStatus_${params.row.embeddingStatus}`)}
-                    {params.row.embeddingStatus === 'uploading' && <Pending mt={1} />}
-                  </Box>
+              <Tooltip title={getParamsName(params)}>
+                <Box pr={2} className="ellipsis">
+                  {getParamsName(params)}
                 </Box>
               </Tooltip>
             );
-          }
+          },
+        },
+        {
+          field: 'type',
+          headerName: t('knowledge.documents.type'),
+          width: 100,
+          sortable: false,
+          renderCell: (params: any) => {
+            return <Box>{t(params.row.type)}</Box>;
+          },
+        },
+        {
+          field: 'embeddingStatus',
+          headerName: t('embeddingStatus'),
+          width: 150,
+          sortable: false,
+          renderCell: (params: any) => {
+            const colors: any = {
+              idle: '##D97706',
+              uploading: '#D97706',
+              success: '#059669',
+              error: '#E11D48',
+            };
 
-          return (
-            <Box
-              borderRadius={20}
-              border="1px solid #E5E7EB"
-              p="4px 12px"
-              color="#030712"
-              fontSize={13}
-              display="flex"
-              alignItems="center"
-              gap={1}>
-              <Box
-                width={6}
-                height={6}
-                borderRadius={6}
-                bgcolor={isSymmetricAroundSlash(params.row.embeddingStatus) ? colors.success : colors.uploading}
-              />
-              {params.row.embeddingStatus}
-            </Box>
-          );
-        },
-      },
-      {
-        field: 'time',
-        headerName: t('knowledge.documents.time'),
-        width: 200,
-        sortable: false,
-        renderCell: (params: any) => {
-          return <Box>{dayjs(params.row.createdAt).format('YYYY-MM-DD HH:mm:ss')}</Box>;
-        },
-      },
-      {
-        field: 'actions',
-        headerName: t('actions'),
-        width: 200,
-        sortable: false,
-        renderCell: (params: any) => (
-          <Actions
-            id={params.row.id}
-            type={params.row.type}
-            datasetId={datasetId || ''}
-            error={params.row?.error}
-            onRemove={remove}
-            onRefetch={refetch}
-            onEdit={(e) => {
-              e.stopPropagation();
-              navigate(`edit?type=${params.row.type}&id=${params.row.id}`, { replace: true });
-            }}
-            onEmbedding={async (e) => {
-              e.stopPropagation();
+            function isSymmetricAroundSlash(str: string = '') {
               try {
-                await reloadEmbedding(params.row.datasetId, params.row.id);
+                const [before, after] = (str || '').split('/');
+                return before === after;
               } catch (error) {
-                Toast.error(error?.message);
+                return false;
               }
-            }}
-            onLink={(e) => {
-              e.stopPropagation();
-              const prefix = (window?.blocklet?.componentMountPoints || []).find(
-                (x) => x.name === 'did-comments'
-              )?.mountPoint;
-              let url = joinURL(window?.blocklet?.appUrl || '', prefix || '/', 'discussions');
+            }
 
-              if (params.row.data?.data?.from === 'discussionType') {
-                const map: any = {
-                  discussion: 'discussions',
-                  doc: 'docs',
-                  blog: 'blog',
-                };
+            if (['idle', 'uploading', 'success', 'error'].includes(params.row.embeddingStatus)) {
+              return (
+                <Tooltip title={params.row.error ?? undefined}>
+                  <Box
+                    borderRadius={20}
+                    border="1px solid #E5E7EB"
+                    p="4px 12px"
+                    color="#030712"
+                    fontSize={13}
+                    display="flex"
+                    alignItems="center"
+                    gap={1}>
+                    <Box width={6} height={6} borderRadius={6} bgcolor={colors[params.row.embeddingStatus]} />
+                    <Box display="flex" alignItems="center">
+                      {t(`embeddingStatus_${params.row.embeddingStatus}`)}
+                      {params.row.embeddingStatus === 'uploading' && <Pending mt={1} />}
+                    </Box>
+                  </Box>
+                </Tooltip>
+              );
+            }
 
-                url = joinURL(
-                  window?.blocklet?.appUrl || '',
-                  prefix || '/',
-                  map[params.row.data?.data?.id] || map.discussion
-                );
-              } else if (params.row.data?.data?.from === 'board') {
-                const map: any = {
-                  discussion: 'discussions/boards',
-                  doc: 'docs',
-                  blog: 'blog/boards',
-                };
+            return (
+              <Box
+                borderRadius={20}
+                border="1px solid #E5E7EB"
+                p="4px 12px"
+                color="#030712"
+                fontSize={13}
+                display="flex"
+                alignItems="center"
+                gap={1}>
+                <Box
+                  width={6}
+                  height={6}
+                  borderRadius={6}
+                  bgcolor={isSymmetricAroundSlash(params.row.embeddingStatus) ? colors.success : colors.uploading}
+                />
+                {params.row.embeddingStatus}
+              </Box>
+            );
+          },
+        },
+        {
+          field: 'time',
+          headerName: t('knowledge.documents.time'),
+          width: 200,
+          sortable: false,
+          renderCell: (params: any) => {
+            return <Box>{dayjs(params.row.createdAt).format('YYYY-MM-DD HH:mm:ss')}</Box>;
+          },
+        },
+        !state?.dataset?.blockletDid
+          ? {
+              field: 'actions',
+              headerName: t('actions'),
+              width: 200,
+              sortable: false,
+              renderCell: (params: any) => (
+                <Actions
+                  id={params.row.id}
+                  type={params.row.type}
+                  datasetId={datasetId || ''}
+                  error={params.row?.error}
+                  onRemove={remove}
+                  onRefetch={refetch}
+                  onEdit={(e) => {
+                    e.stopPropagation();
+                    navigate(`edit?type=${params.row.type}&id=${params.row.id}`, { replace: true });
+                  }}
+                  onEmbedding={async (e) => {
+                    e.stopPropagation();
+                    try {
+                      await reloadEmbedding(params.row.datasetId, params.row.id);
+                    } catch (error) {
+                      Toast.error(error?.message);
+                    }
+                  }}
+                  onLink={(e) => {
+                    e.stopPropagation();
+                    const prefix = (window?.blocklet?.componentMountPoints || []).find(
+                      (x) => x.name === 'did-comments'
+                    )?.mountPoint;
+                    let url = joinURL(window?.blocklet?.appUrl || '', prefix || '/', 'discussions');
 
-                url = joinURL(
-                  window?.blocklet?.appUrl || '',
-                  prefix || '/',
-                  map[params.row.data?.data?.type] || map.discussion,
-                  params.row.data?.data?.id
-                );
-              } else if (params.row.data?.data?.from === 'discussion') {
-                const map: any = {
-                  discussion: 'discussions',
-                  doc: joinURL('docs', params.row.data?.data?.boardId || ''),
-                  blog: 'blog/en',
-                };
+                    if (params.row.data?.data?.from === 'discussionType') {
+                      const map: any = {
+                        discussion: 'discussions',
+                        doc: 'docs',
+                        blog: 'blog',
+                      };
 
-                url = joinURL(
-                  window?.blocklet?.appUrl || '',
-                  prefix || '/',
-                  map[params.row.data?.data?.type] || map.discussion,
-                  params.row.data?.data?.id
-                );
-              } else {
-                url = joinURL(window?.blocklet?.appUrl || '', prefix || '/', 'discussions');
-              }
+                      url = joinURL(
+                        window?.blocklet?.appUrl || '',
+                        prefix || '/',
+                        map[params.row.data?.data?.id] || map.discussion
+                      );
+                    } else if (params.row.data?.data?.from === 'board') {
+                      const map: any = {
+                        discussion: 'discussions/boards',
+                        doc: 'docs',
+                        blog: 'blog/boards',
+                      };
 
-              window.open(url, '_blank');
-            }}
-          />
-        ),
-      },
-    ],
-    [t, getParamsName]
+                      url = joinURL(
+                        window?.blocklet?.appUrl || '',
+                        prefix || '/',
+                        map[params.row.data?.data?.type] || map.discussion,
+                        params.row.data?.data?.id
+                      );
+                    } else if (params.row.data?.data?.from === 'discussion') {
+                      const map: any = {
+                        discussion: 'discussions',
+                        doc: joinURL('docs', params.row.data?.data?.boardId || ''),
+                        blog: 'blog/en',
+                      };
+
+                      url = joinURL(
+                        window?.blocklet?.appUrl || '',
+                        prefix || '/',
+                        map[params.row.data?.data?.type] || map.discussion,
+                        params.row.data?.data?.id
+                      );
+                    } else {
+                      url = joinURL(window?.blocklet?.appUrl || '', prefix || '/', 'discussions');
+                    }
+
+                    window.open(url, '_blank');
+                  }}
+                />
+              ),
+            }
+          : null,
+      ].filter(Boolean),
+    [t, state, getParamsName]
   );
 
   if (state.loading) {
@@ -351,9 +354,15 @@ export default function KnowledgeDocuments() {
             }}
           />
 
-          <Button variant="contained" size="small" startIcon={<Icon icon={PlusIcon} />} onClick={() => navigate('add')}>
-            {t('knowledge.documents.add')}
-          </Button>
+          {state?.dataset?.blockletDid ? null : (
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<Icon icon={PlusIcon} />}
+              onClick={() => navigate('add')}>
+              {t('knowledge.documents.add')}
+            </Button>
+          )}
         </Box>
       </Stack>
 
@@ -382,6 +391,7 @@ export default function KnowledgeDocuments() {
             onPaginationModelChange={({ page, pageSize: size }) => refetch({ page, size })}
             getRowClassName={() => 'document-row'}
             onRowClick={(params) => {
+              if (state?.dataset?.blockletDid) return;
               const rowId = params.row.id;
               navigate(`document/${rowId}`, { replace: true });
             }}
@@ -393,9 +403,11 @@ export default function KnowledgeDocuments() {
                     <Typography variant="subtitle4">{t('noDocument')}</Typography>
                     <Typography variant="subtitle5">{t('noDocumentDesc')}</Typography>
 
-                    <Button variant="text" size="small" onClick={() => navigate('add')}>
-                      {t('knowledge.documents.add')}
-                    </Button>
+                    {state?.dataset?.blockletDid ? null : (
+                      <Button variant="text" size="small" onClick={() => navigate('add')}>
+                        {t('knowledge.documents.add')}
+                      </Button>
+                    )}
                   </Stack>
                 </Box>
               ),

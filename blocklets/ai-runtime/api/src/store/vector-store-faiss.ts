@@ -10,7 +10,7 @@ import logger from '../libs/logger';
 
 const vectorStores = new Map<string, Promise<VectorStore>>();
 
-const vectorStorePath = (path: string) => join(Config.dataDir, 'vectors', path);
+export const vectorStorePath = (id: string) => join(Config.dataDir, 'vectors', id);
 
 FaissStore.importFaiss = async () => {
   try {
@@ -34,7 +34,7 @@ export default class VectorStore extends FaissStore {
   }
 
   static override async load(path: string, embeddings: EmbeddingsInterface): Promise<VectorStore> {
-    const storePath = vectorStorePath(path);
+    const storePath = path.startsWith('/') ? path : vectorStorePath(path);
 
     let store = vectorStores.get(storePath);
     if (!store) {
