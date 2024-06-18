@@ -45,9 +45,12 @@ export const useDocuments = (
       const { page, size } = options;
 
       try {
-        const { items, total } = await getDocuments(datasetId, { blockletDid, page: (page ?? 0) + 1, size });
+        const [{ items, total }, dataset] = await Promise.all([
+          getDocuments(datasetId, { blockletDid, page: (page ?? 0) + 1, size }),
+          getDataset(datasetId),
+        ]);
 
-        setState((v) => ({ ...v, items, total }));
+        setState((v) => ({ ...v, dataset, items, total }));
       } catch (error) {
         setState((v) => ({ ...v, error }));
         throw error;
