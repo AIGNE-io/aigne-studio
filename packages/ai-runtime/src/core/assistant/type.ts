@@ -3,7 +3,7 @@ import { ReadableStream } from 'stream/web';
 import { ChatCompletionInput, ChatCompletionResponse } from '@blocklet/ai-kit/api/types/chat';
 import { ImageGenerationInput } from '@blocklet/ai-kit/api/types/image';
 
-import { Assistant, OnTaskCompletion, RunAssistantResponse } from '../../types';
+import { Assistant, OnTaskCompletion, ProjectSettings, RunAssistantResponse } from '../../types';
 
 export type RunAssistantCallback = (e: RunAssistantResponse) => void;
 
@@ -16,19 +16,33 @@ export class ToolCompletionDirective extends Error {
   }
 }
 
-export interface GetAssistant {
-  (
-    assistantId: string,
-    options: { blockletDid?: string; projectId?: string; rejectOnEmpty: true | Error }
-  ): Promise<Assistant>;
-  (
-    assistantId: string,
-    options?: { blockletDid?: string; projectId?: string; rejectOnEmpty?: false }
-  ): Promise<Assistant | null>;
+export interface GetAgentOptions {
+  blockletDid?: string;
+  projectId: string;
+  projectRef?: string;
+  agentId: string;
+  working?: boolean;
+  rejectOnEmpty?: boolean | Error;
+}
+
+export type GetAgentResult = Assistant & {
+  project: ProjectSettings;
+  identity: {
+    projectId: string;
+    projectRef?: string;
+    blockletDid?: string;
+    working?: boolean;
+    agentId: string;
+  };
+};
+
+export interface GetAgent {
+  (options: GetAgentOptions & { rejectOnEmpty: true | Error }): Promise<GetAgentResult>;
+  (options: GetAgentOptions & { rejectOnEmpty?: false }): Promise<GetAgentResult | null | undefined>;
 }
 
 export type Options = {
-  assistant: Assistant;
+  assistant: Assistant & { project: { id: string } };
   input: ChatCompletionInput;
 };
 
@@ -46,17 +60,9 @@ export type ModelInfo = {
 };
 
 export interface CallAI {
-  (options: Options & { outputModel: true }): Promise<{
-    modelInfo: ModelInfo;
-    chatCompletionChunk: ReadableStream<ChatCompletionResponse>;
-  }>;
-  (options: Options & { outputModel?: false }): Promise<ReadableStream<ChatCompletionResponse>>;
-  (options: Options & { outputModel: boolean }): any;
+  (options: Options): Promise<ReadableStream<ChatCompletionResponse>>;
 }
 
 export interface CallAIImage {
-  (
-    options: ImageOptions & { outputModel: true }
-  ): Promise<{ modelInfo: ModelInfo; imageRes: { data: { url: string }[] } }>;
-  (options: ImageOptions & { outputModel?: false }): Promise<{ data: { url: string }[] }>;
+  (options: ImageOptions): Promise<{ data: { url: string }[] }>;
 }
