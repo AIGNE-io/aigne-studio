@@ -1,9 +1,6 @@
 import { access, readFile, readdir, stat } from 'fs/promises';
 import { basename, dirname, join } from 'path';
 
-import Content from '@api/store/models/dataset/content';
-import Knowledge from '@api/store/models/dataset/dataset';
-import Document from '@api/store/models/dataset/document';
 import { Assistant, ConfigFile, ProjectSettings, projectSettingsSchema } from '@blocklet/ai-runtime/types';
 import { getResources } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
@@ -15,14 +12,7 @@ import logger from './logger';
 
 const AI_STUDIO_DID = 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
 
-export type ResourceType =
-  | 'template'
-  | 'example'
-  | 'application'
-  | 'tool'
-  | 'llm-adapter'
-  | 'aigc-adapter'
-  | 'knowledge';
+export type ResourceType = 'template' | 'example' | 'application' | 'tool' | 'llm-adapter' | 'aigc-adapter';
 
 export const ResourceTypes: ResourceType[] = [
   'application',
@@ -31,7 +21,6 @@ export const ResourceTypes: ResourceType[] = [
   'aigc-adapter',
   'template',
   'example',
-  'knowledge',
 ];
 
 interface ResourceProject {
@@ -40,15 +29,6 @@ interface ResourceProject {
   config?: ConfigFile;
   gitLogoPath?: string;
   assistants: (Assistant & { public?: boolean; parent: string[] })[];
-}
-
-export interface ResourceKnowledge {
-  blockletDid: string;
-  knowledge: Knowledge['dataValues'] & { private?: boolean };
-  documents: Document['dataValues'][];
-  contents: Content['dataValues'][];
-  vectorsPath: string;
-  uploadPath: string;
 }
 
 interface Resources {
@@ -64,9 +44,6 @@ interface Resources {
           };
         };
       };
-    };
-    knowledge?: {
-      [knowledgeId: string]: ResourceKnowledge;
     };
   };
 }
@@ -139,12 +116,11 @@ async function loadResourceBlocklets(path: string) {
 }
 
 async function loadResources(): Promise<Resources> {
-  const dirs = getResourceDirs();
-  const filterNonKnowledgeDir = dirs.filter((i) => i.type !== 'knowledge');
+  const dirs = getResourceDirs().filter((i) => i.type !== 'knowledge');
 
   const groups = groupBy(
     await Promise.all(
-      filterNonKnowledgeDir.map(async (item) => {
+      dirs.map(async (item) => {
         const projects = ((await loadResourceBlocklets(item.path)) ?? []).map((i) => ({
           ...i,
           config: i.config,
@@ -190,76 +166,8 @@ async function loadResources(): Promise<Resources> {
     )
   );
 
-  try {
-    const knowledge = await loadResourceKnowledge();
-    if (knowledge) {
-      result.knowledge = { projects: [], blockletMap: {}, knowledge };
-    }
-  } catch (error) {
-    logger.error('load knowledge resource error', { error });
-  }
-
   return result;
 }
-
-const loadResourceKnowledge = async (): Promise<{ [knowledgeId: string]: ResourceKnowledge } | undefined> => {
-  const dirs = getResourceDirs();
-  const filterKnowledgeDir = dirs.filter((i) => i.type === 'knowledge');
-
-  if (filterKnowledgeDir.length === 0) return undefined;
-
-  const allKnowledgeEntries: [string, ResourceKnowledge][] = [];
-  await Promise.all(
-    filterKnowledgeDir.map(async (item) => {
-      try {
-        if (!(await exists(item.path))) return;
-        const knowledgeDirs = await readdir(item.path);
-        if (!knowledgeDirs.length) return;
-
-        await Promise.all(
-          knowledgeDirs.map(async (knowledgeDir) => {
-            const knowledgePath = join(item.path, knowledgeDir);
-            const vectorsPath = join(knowledgePath, 'vectors');
-            const uploadPath = join(knowledgePath, 'uploads');
-
-            const knowledgeJsonPath = join(knowledgePath, 'knowledges.yaml');
-            const knowledgeJson = parse((await readFile(knowledgeJsonPath)).toString());
-            knowledgeJson.blockletDid = item.did;
-
-            const documentsPath = join(knowledgePath, 'documents.yaml');
-            const documents = parse((await readFile(documentsPath)).toString());
-
-            const contentsPath = join(knowledgePath, 'contents.yaml');
-            const contents = parse((await readFile(contentsPath)).toString());
-
-            allKnowledgeEntries.push([
-              knowledgeDir,
-              {
-                knowledge: knowledgeJson,
-                documents,
-                contents,
-                vectorsPath,
-                uploadPath,
-                blockletDid: item.did,
-              },
-            ]);
-          })
-        );
-      } catch (error) {
-        logger.error('read knowledge resource error', { error });
-      }
-    })
-  );
-
-  return Object.fromEntries(
-    Array.from(
-      allKnowledgeEntries.reduce((map, entry) => {
-        if (!map.has(entry[0])) map.set(entry[0], entry[1]);
-        return map;
-      }, new Map())
-    )
-  );
-};
 
 async function reloadResources() {
   cache.promise ??= loadResources();
@@ -269,11 +177,6 @@ async function reloadResources() {
 export const getResourceProjects = async (type: ResourceType) => {
   const resources = await reloadResources();
   return resources[type]?.projects ?? [];
-};
-
-export const getResourceKnowledges = async (): Promise<{ [knowledgeId: string]: ResourceKnowledge }> => {
-  const resources = await reloadResources();
-  return resources?.knowledge?.knowledge ?? {};
 };
 
 export const getProjectFromResource = async ({

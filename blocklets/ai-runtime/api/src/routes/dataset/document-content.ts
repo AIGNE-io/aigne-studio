@@ -177,7 +177,7 @@ const getAllContents = async (datasetId: string) => {
 
 export default getAllContents;
 
-export const getAllResouceContents = async (resource: ResourceKnowledge) => {
+export const getAllResourceContents = async (resource: ResourceKnowledge) => {
   const documents = resource?.documents || [];
   const docs: { title: string; content: string }[] = [];
 

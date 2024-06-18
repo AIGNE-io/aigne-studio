@@ -19,7 +19,7 @@ import Dataset from '../../store/models/dataset/dataset';
 import DatasetDocument from '../../store/models/dataset/document';
 import EmbeddingHistories from '../../store/models/dataset/embedding-history';
 import VectorStore from '../../store/vector-store-faiss';
-import getAllContents, { getAllResouceContents, getContent } from './document-content';
+import getAllContents, { getAllResourceContents, getContent } from './document-content';
 import { queue } from './embeddings';
 import { updateHistoriesAndStore } from './vector-store';
 
@@ -56,7 +56,7 @@ const searchResourceKnowledge = async (blockletDid: string, knowledgeId: string,
   }
 
   if (input.searchAll) {
-    const docs = await getAllResouceContents(resource);
+    const docs = await getAllResourceContents(resource);
     return { docs };
   }
 
