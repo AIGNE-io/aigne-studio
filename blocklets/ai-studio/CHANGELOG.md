@@ -1,3 +1,7 @@
+## 0.2.54 (2024-6-19)
+
+- feat: allow configuring the attachment of the URL and inputs in the shared content
+
 ## 0.2.53 (2024-6-19)
 
 - fix: add more font options in appearance settings

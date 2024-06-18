@@ -687,6 +687,7 @@ export default flat({
   routeDesc: '分支 Agent 描述',
   promptRequired: 'Prompt 是必须的',
   twitter: '推特',
+  community: '社区',
   saveAs: '保存',
   openingQuestions: '开场问题',
   openingMessage: '开场白',
@@ -725,5 +726,7 @@ export default flat({
   default: '默认',
   setAsEntry: '设置为入口 Agent',
   entryAgent: '入口',
+  attachUrl: '分享时附加链接',
+  attachInputs: '分享时附加输入',
   usage: '用量',
 });
