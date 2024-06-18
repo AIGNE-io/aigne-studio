@@ -476,8 +476,8 @@ const getEnglishFunctionName = async ({
     if (!cacheTranslateFunctionNames[`${assistant.id}-${tool.id}-${hashName}`]) {
       try {
         const result = await call({
-          name: 'ai-studio',
-          path: '/api/ai/completions',
+          name: 'ai-kit',
+          path: '/api/v1/completions',
           method: 'POST',
           data: {
             stream: false,

@@ -253,6 +253,7 @@ export const runRequestHistory = async ({
 };
 
 export async function runKnowledgeTool({
+  blockletDid,
   tool,
   taskId,
   assistant,
@@ -261,6 +262,7 @@ export async function runKnowledgeTool({
   callback,
   user,
 }: {
+  blockletDid?: string;
   tool: Tool;
   taskId: string;
   assistant: Assistant;
@@ -282,7 +284,7 @@ export async function runKnowledgeTool({
   const { data: knowledge } = await call({
     name: AI_RUNTIME_COMPONENT_DID,
     path: `/api/datasets/${tool.id}`,
-    params: { blockletDid: tool.blockletDid },
+    params: { blockletDid },
     method: 'GET',
     headers: getUserHeader(user),
   });
@@ -314,7 +316,7 @@ export async function runKnowledgeTool({
     name: AI_RUNTIME_COMPONENT_DID,
     path: `/api/datasets/${tool.id}/search`,
     method: 'GET',
-    params: { ...params, blockletDid: tool.blockletDid },
+    params: { ...params, blockletDid },
     headers: getUserHeader(user),
   });
 

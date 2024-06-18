@@ -45,6 +45,8 @@ jobs:
           skip-deps: false
           skip-upload: false
           skip-deploy: false
+          skip-readme: true
+          skip-release: true
           working-directory: blocklets/ai-runtime
           bundle-command: pnpm bundle
           store-endpoint: ${{ secrets.STORE_ENDPOINT_TEST }}
@@ -66,6 +68,8 @@ jobs:
           skip-deps: false
           skip-upload: false
           skip-deploy: false
+          skip-readme: true
+          skip-release: false
           working-directory: blocklets/ai-studio
           bundle-command: pnpm bundle
           store-endpoint: ${{ secrets.STORE_ENDPOINT_TEST }}
