@@ -3,13 +3,12 @@ import { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { defaultTextModel, getSupportedModels } from '@blocklet/ai-runtime/common';
-import { Icon } from '@iconify-icon/react';
-import CloseIcon from '@iconify-icons/material-symbols/close-rounded';
-import { SaveRounded } from '@mui/icons-material';
+import { CloseRounded, SaveRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
   Box,
   BoxProps,
+  Button,
   FormControl,
   FormControlLabel,
   FormLabel,
@@ -208,11 +207,16 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
     <Box overflow="auto" {...boxProps}>
       {!isMobile && (
         <Box
-          component={Icon}
-          icon={CloseIcon}
-          onClick={onClose}
-          sx={{ position: 'sticky', top: 0, display: 'flex', flexDirection: 'row-reverse', padding: '8px 16px  0 0' }}
-        />
+          sx={{
+            position: 'sticky',
+            top: 0,
+            display: 'flex',
+            flexDirection: 'row-reverse',
+            bgcolor: '#fff',
+            zIndex: 10000,
+          }}>
+          <Button onClick={onClose} startIcon={<CloseRounded />} sx={{ minWidth: 0, mt: 1 }} />
+        </Box>
       )}
 
       <SettingsContainer sx={{ px: 2, width: isMobile ? '100%' : '400px' }} className="setting-container">
@@ -233,7 +237,7 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
             py: 1,
             zIndex: 10000,
             position: 'sticky',
-            top: isMobile ? 0 : 24,
+            top: isMobile ? 0 : 34,
             paddingTop: 0,
           }}
           onChange={(_event: React.SyntheticEvent, newValue: string) => {

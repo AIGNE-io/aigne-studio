@@ -366,7 +366,7 @@ function SettingsAction() {
                 sx={{ p: 0 }}
                 onClick={dialogState.close}
                 startIcon={<Box component={Icon} icon={ArrowLeft} sx={{ fontSize: 16 }} />}>
-                {t('back')}
+                {t('close')}
               </Button>
             </Box>
 
