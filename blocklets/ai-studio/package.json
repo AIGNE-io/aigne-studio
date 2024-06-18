@@ -1,6 +1,6 @@
 {
   "name": "ai-studio",
-  "version": "0.2.50",
+  "version": "0.2.51",
   "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
   "scripts": {
     "debug": "bn-dev",
@@ -115,7 +115,7 @@
     "localforage": "^1.10.0",
     "lodash": "^4.17.21",
     "lru-cache": "^10.2.2",
-    "mammoth": "^1.7.2",
+    "mammoth": "^1.8.0",
     "marked": "^11.2.0",
     "marked-mangle": "^1.1.8",
     "material-ui-popup-state": "^5.1.2",
@@ -176,7 +176,7 @@
     "@types/lodash": "^4.17.5",
     "@types/multer": "^1.4.11",
     "@types/mustache": "^4.2.5",
-    "@types/node": "^18.19.34",
+    "@types/node": "^18.19.36",
     "@types/pdf-parse": "^1.1.4",
     "@types/react": "^18.3.3",
     "@types/react-color": "^3.0.12",

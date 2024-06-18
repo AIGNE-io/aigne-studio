@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/co-git",
-  "version": "0.2.50",
+  "version": "0.2.51",
   "description": "The cooperative component library for AI Studio",
   "publishConfig": {
     "access": "public"
@@ -71,7 +71,7 @@
     "queue": "^6.0.2",
     "ws": "^8.17.1",
     "y-protocols": "^1.0.6",
-    "yjs": "^13.6.16"
+    "yjs": "^13.6.17"
   },
   "devDependencies": {
     "@types/fs-extra": "^11.0.4",
