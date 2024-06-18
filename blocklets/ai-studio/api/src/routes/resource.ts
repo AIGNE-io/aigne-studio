@@ -114,8 +114,14 @@ export function resourceRoutes(router: Router) {
 
     const locale = locales[query.locale as keyof typeof locales] || locales.en;
 
-    const kbList = (await call<Knowledge[]>({ name: AI_RUNTIME_COMPONENT_DID, method: 'get', path: '/api/datasets' }))
-      .data;
+    const kbList = (
+      await call<Knowledge[]>({
+        name: AI_RUNTIME_COMPONENT_DID,
+        method: 'get',
+        path: '/api/datasets',
+        params: { excludeResource: true },
+      })
+    ).data;
 
     const resources = await Promise.all(
       projects.map(async (x) => {

@@ -1,5 +1,5 @@
-import { readFile, writeFile } from 'fs/promises';
-import path, { join } from 'path';
+import { mkdir, readFile, writeFile } from 'fs/promises';
+import path, { extname, join } from 'path';
 
 import { getResourceKnowledgeWithData } from '@api/libs/resource';
 import config from '@blocklet/sdk/lib/config';
@@ -16,7 +16,7 @@ import logger from '../../libs/logger';
 import { userAuth } from '../../libs/security';
 import DatasetContent from '../../store/models/dataset/content';
 import Dataset from '../../store/models/dataset/dataset';
-import DatasetDocument from '../../store/models/dataset/document';
+import DatasetDocument, { nextDocumentId } from '../../store/models/dataset/document';
 import EmbeddingHistories from '../../store/models/dataset/embedding-history';
 import VectorStore from '../../store/vector-store-faiss';
 import getAllContents, { getAllResourceContents, getContent } from './document-content';
@@ -370,7 +370,10 @@ router.post('/:datasetId/documents/file', user(), userAuth(), upload.single('dat
     return;
   }
 
-  const filePath = path.join(Config.uploadDir, filename);
+  const id = nextDocumentId();
+  const newFilename = `${id}${extname(filename)}`;
+  const filePath = path.join(Config.uploadDir, newFilename);
+  await mkdir(Config.uploadDir, { recursive: true });
   await writeFile(filePath, buffer, 'utf8');
 
   const fileExtension = (path.extname(req.file.originalname) || '').replace('.', '');
@@ -465,7 +468,9 @@ router.put('/:datasetId/documents/:documentId/file', user(), userAuth(), upload.
     return;
   }
 
-  const filePath = path.join(Config.uploadDir, filename);
+  const newFilename = `${documentId}${extname(filename)}`;
+  const filePath = path.join(Config.uploadDir, newFilename);
+  await mkdir(Config.uploadDir, { recursive: true });
   await writeFile(filePath, buffer, 'utf8');
 
   const fileExtension = (path.extname(req.file.originalname) || '').replace('.', '');
@@ -479,7 +484,6 @@ router.put('/:datasetId/documents/:documentId/file', user(), userAuth(), upload.
     },
     { where: { id: documentId, datasetId } }
   );
-  // await DatasetContent.update({ content: await readFile(filePath, 'utf8') }, { where: { documentId } });
 
   const document = await DatasetDocument.findOne({ where: { id: documentId, datasetId } });
   if (document) queue.checkAndPush({ type: 'document', documentId: document.id });

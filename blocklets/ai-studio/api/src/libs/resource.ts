@@ -12,7 +12,14 @@ import logger from './logger';
 
 const AI_STUDIO_DID = 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
 
-export type ResourceType = 'template' | 'example' | 'application' | 'tool' | 'llm-adapter' | 'aigc-adapter';
+export type ResourceType =
+  | 'template'
+  | 'example'
+  | 'application'
+  | 'tool'
+  | 'llm-adapter'
+  | 'aigc-adapter'
+  | 'knowledge';
 
 export const ResourceTypes: ResourceType[] = [
   'application',
@@ -21,6 +28,7 @@ export const ResourceTypes: ResourceType[] = [
   'aigc-adapter',
   'template',
   'example',
+  'knowledge',
 ];
 
 interface ResourceProject {

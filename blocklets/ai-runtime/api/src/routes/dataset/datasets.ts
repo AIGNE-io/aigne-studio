@@ -19,9 +19,15 @@ const datasetSchema = Joi.object<{ name?: string; description?: string; appId?: 
   appId: Joi.string().allow('').empty(null).default(''),
 });
 
+const getDatasetsQuerySchema = Joi.object<{ excludeResource?: boolean }>({
+  excludeResource: Joi.boolean().empty(['', null]),
+});
+
 router.get('/', user(), ensureComponentCallOr(userAuth()), async (req, res) => {
   const user =
     !req.user || req.user.isAdmin ? {} : { [Op.or]: [{ createdBy: req.user.did }, { updatedBy: req.user.did }] };
+
+  const query = await getDatasetsQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
   const sql = Sequelize.literal(
     '(SELECT COUNT(*) FROM DatasetDocuments WHERE DatasetDocuments.datasetId = Dataset.id)'
@@ -32,7 +38,7 @@ router.get('/', user(), ensureComponentCallOr(userAuth()), async (req, res) => {
     attributes: { include: [[sql, 'documents']] },
   });
 
-  const resourceDatasets = await getResourceKnowledgeList();
+  const resourceDatasets = query.excludeResource ? [] : await getResourceKnowledgeList();
 
   res.json([
     ...datasets,

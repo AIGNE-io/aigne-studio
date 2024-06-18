@@ -1,4 +1,3 @@
-import Release from '@api/store/models/release';
 import { useCurrentProject } from '@app/contexts/project';
 import { AI_RUNTIME_MOUNT_POINT } from '@app/libs/constants';
 import { getDefaultBranch } from '@app/store/current-git-store';
@@ -38,13 +37,11 @@ import { textCompletions } from '../../libs/ai';
 import * as branchApi from '../../libs/branch';
 import { Commit, getLogs } from '../../libs/log';
 import * as projectApi from '../../libs/project';
-import * as releaseApi from '../../libs/release';
 import * as api from '../../libs/tree';
 import { PROMPTS_FOLDER_NAME, useProjectStore } from './yjs-state';
 
 export interface ProjectState {
   project?: Project;
-  releases?: (Release & { paymentUnitAmount?: string })[];
   branches: string[];
   commits: Commit[];
   loading?: boolean;
@@ -79,10 +76,7 @@ export const useProjectState = (projectId: string, gitRef: string) => {
         const [project] = await Promise.all([projectApi.getProject(projectId)]);
 
         // wait for project can be fetched
-        const [{ branches }, { releases: projectPublishSettings }] = await Promise.all([
-          branchApi.getBranches({ projectId }),
-          releaseApi.getReleases({ projectId }),
-        ]);
+        const [{ branches }] = await Promise.all([branchApi.getBranches({ projectId })]);
 
         const simpleMode = project.gitType === 'simple';
         const { commits } = await getLogs({
@@ -91,7 +85,7 @@ export const useProjectState = (projectId: string, gitRef: string) => {
         });
         // NOTE: 简单模式下最新的记录始终指向 getDefaultBranch()
         if (simpleMode && commits.length) commits[0]!.oid = getDefaultBranch();
-        setState((v) => ({ ...v, project, branches, releases: projectPublishSettings, commits, error: undefined }));
+        setState((v) => ({ ...v, project, branches, commits, error: undefined }));
       } catch (error) {
         setState((v) => ({ ...v, error }));
         throw error;

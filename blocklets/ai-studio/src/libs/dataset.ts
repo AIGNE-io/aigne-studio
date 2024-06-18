@@ -143,7 +143,7 @@ export async function uploadDocumentName(
 
 export async function reloadEmbedding(datasetId: string, documentId: string): Promise<{ data: string }> {
   return axios
-    .post(`/api/datasets/${datasetId}/documents/${documentId}/embedding`, { baseURL: AI_RUNTIME_MOUNT_POINT })
+    .post(`/api/datasets/${datasetId}/documents/${documentId}/embedding`, {}, { baseURL: AI_RUNTIME_MOUNT_POINT })
     .then((res) => res.data);
 }
 
