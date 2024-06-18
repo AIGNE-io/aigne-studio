@@ -15,7 +15,7 @@ repository:
   type: git
   url: git+https://github.com/blocklet/ai-studio.git
 specVersion: 1.2.8
-version: 0.2.47
+version: 0.2.51
 logo: logo.png
 files:
   - dist
@@ -80,17 +80,13 @@ components:
     source:
       name: pages-kit
       version: latest
-  - name: payment-kit
-    source:
-      name: z2qaCNvKMv5GjouKdcDWexv6WqtHbpNPQDnAk
-      version: latest
-  - name: ai-runtime
-    source:
-      name: z2qa6fvjmjew4pWJyTsKaWFuNoMUMyXDh5A1D
-      version: latest
   - name: aigne-example-projects
     source:
       name: z2qZyjnsRffFtn2PDnDwDHTRbAu53RpKqDtFZ
+      version: latest
+  - name: ai-runtime
+    source:
+      name: z2qaBP9SahqU2L2YA3ip7NecwKACMByTFuiJ2
       version: latest
 navigation:
   - id: projects

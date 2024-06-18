@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.2.47",
+  "version": "0.2.51",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -128,7 +128,7 @@
     "lodash": "^4.17.21",
     "nanoid": "^3.3.7",
     "node-fetch": "2",
-    "react-hook-form": "^7.51.5",
+    "react-hook-form": "^7.52.0",
     "recoil": "^0.7.7",
     "snowflake-uuid": "^1.0.0",
     "typescript": "^5.4.5",
@@ -161,7 +161,7 @@
     "react": "^18.3.1",
     "react-router-dom": "^6.23.1",
     "rimraf": "^5.0.7",
-    "ts-jest": "^29.1.4",
+    "ts-jest": "^29.1.5",
     "typescript": "^5.4.5"
   }
 }
