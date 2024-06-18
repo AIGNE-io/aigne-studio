@@ -1,6 +1,6 @@
 {
   "name": "ai-studio",
-  "version": "0.2.52",
+  "version": "0.2.53",
   "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
   "scripts": {
     "debug": "bn-dev",
@@ -34,8 +34,8 @@
     "@abtnode/cron": "^1.16.27",
     "@arcblock/did-auth": "^1.18.123",
     "@arcblock/did-auth-storage-nedb": "^1.7.1",
-    "@arcblock/did-connect": "^2.9.91",
-    "@arcblock/ux": "^2.9.91",
+    "@arcblock/did-connect": "^2.10.0",
+    "@arcblock/ux": "^2.10.0",
     "@arcblock/ws": "^1.18.123",
     "@beskar-labs/gpt-encoder": "^1.0.7",
     "@blocklet/ai-kit": "^0.1.37",
@@ -50,7 +50,7 @@
     "@blocklet/prompt-editor": "workspace:^",
     "@blocklet/sdk": "^1.16.27",
     "@blocklet/studio-ui": "workspace:^",
-    "@blocklet/ui-react": "^2.9.91",
+    "@blocklet/ui-react": "^2.10.0",
     "@blocklet/uploader": "^0.0.73",
     "@did-space/client": "^0.4.27",
     "@emotion/css": "^11.11.2",
