@@ -8,15 +8,34 @@ import { LLMAgentExecutor } from './llm';
 import { LogicAgentExecutor } from './logic';
 
 export class RuntimeExecutor extends AgentExecutorBase {
-  constructor(options: Omit<ConstructorParameters<typeof ExecutorContext>[0], 'executor'>) {
-    super(new ExecutorContext({ ...options, executor: (context) => new RuntimeExecutor(context ?? this.context) }));
+  constructor(
+    options: Omit<ConstructorParameters<typeof ExecutorContext>[0], 'executor'>,
+    private parentAgent?: GetAgentResult
+  ) {
+    super(
+      new ExecutorContext({
+        ...options,
+        executor: (context) => new RuntimeExecutor(context ?? this.context, this.agent),
+      })
+    );
   }
+
+  private agent?: GetAgentResult;
 
   override async process() {
     // ignore
   }
 
   override async execute(agent: GetAgentResult, options: AgentExecutorOptions) {
+    if (this.parentAgent) {
+      agent.identity.blockletDid ||= this.parentAgent.identity.blockletDid;
+      agent.identity.projectId ||= this.parentAgent.identity.projectId;
+      agent.identity.projectRef ||= this.parentAgent.identity.projectRef;
+      agent.identity.working ||= this.parentAgent.identity.working;
+    }
+
+    this.agent = agent;
+
     switch (agent.type) {
       case 'agent': {
         return new AgentExecutor(this.context).execute(agent, options);

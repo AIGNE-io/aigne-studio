@@ -237,6 +237,7 @@ export abstract class AgentExecutorBase {
           const currentTaskId = nextTaskId();
           // eslint-disable-next-line no-await-in-loop
           const result = await runKnowledgeTool({
+            blockletDid: parameter.source.knowledge.blockletDid || agent.identity.blockletDid,
             tool: parameter.source.knowledge,
             taskId: currentTaskId,
             assistant: agent,
