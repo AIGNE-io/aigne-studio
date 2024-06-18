@@ -1,3 +1,8 @@
+## 0.2.55 (2024-6-19)
+
+- fix: display knowledge idle status
+- fix: throw error if the searched documents too large
+
 ## 0.2.54 (2024-6-19)
 
 - feat: allow configuring the attachment of the URL and inputs in the shared content
