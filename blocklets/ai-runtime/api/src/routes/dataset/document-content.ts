@@ -1,5 +1,8 @@
 import { readFile } from 'fs/promises';
+import { join } from 'path';
 
+import logger from '@api/libs/logger';
+import { ResourceKnowledge } from '@api/libs/resource';
 import { BN, toBN } from '@ocap/util';
 import mammoth from 'mammoth';
 import PDFParser from 'pdf2json';
@@ -173,3 +176,44 @@ const getAllContents = async (datasetId: string) => {
 };
 
 export default getAllContents;
+
+export const getAllResouceContents = async (resource: ResourceKnowledge) => {
+  const documents = resource?.documents || [];
+  const docs: { title: string; content: string }[] = [];
+
+  const getTextContent = (documentId: string) => {
+    const content = (resource?.contents || [])?.find((x) => x.documentId === documentId);
+    return content?.content || '';
+  };
+
+  let maxLength = toBN('1000000'); // 100w 字段限制？？
+  for (const document of documents) {
+    let content: string[] = [];
+    try {
+      if (document.type === 'text') {
+        content = [getTextContent(document.id)];
+      } else if (document.type === 'file') {
+        const data = document?.data as { type: string; path: string };
+        content = [await getFileContent(data?.type || '', join(resource.uploadPath, data?.path || ''))];
+      } else if (document.type === 'discussKit') {
+        content = [''];
+      }
+    } catch (error) {
+      logger.error('get all resource contents error', { error });
+      content = [];
+    }
+
+    if (toBN(content.join('').length || 0).gt(maxLength)) {
+      throw new Error('The current document data is too large to be considered as global variables');
+    } else {
+      maxLength = maxLength.sub(toBN(content.join('').length || 0));
+      if (maxLength.lt(0)) {
+        throw new Error('The current document data is too large to be considered as global variables');
+      }
+    }
+
+    content.forEach((doc) => docs.push({ title: document.name || '', content: doc }));
+  }
+
+  return docs;
+};

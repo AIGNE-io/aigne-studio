@@ -44,7 +44,7 @@ export function DatasetsProvider({ children }: { children: ReactNode }) {
         v.datasets = [];
       });
       try {
-        const datasets = await getDatasets(true);
+        const datasets = await getDatasets();
 
         setValue((v) => {
           v.datasets = datasets;

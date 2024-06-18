@@ -1,6 +1,7 @@
 import { readFile, writeFile } from 'fs/promises';
-import path from 'path';
+import path, { join } from 'path';
 
+import { getResourceKnowledgeWithData } from '@api/libs/resource';
 import config from '@blocklet/sdk/lib/config';
 import user from '@blocklet/sdk/lib/middlewares/user';
 import { Router } from 'express';
@@ -18,7 +19,7 @@ import Dataset from '../../store/models/dataset/dataset';
 import DatasetDocument from '../../store/models/dataset/document';
 import EmbeddingHistories from '../../store/models/dataset/embedding-history';
 import VectorStore from '../../store/vector-store-faiss';
-import getAllContents, { getContent } from './document-content';
+import getAllContents, { getAllResouceContents, getContent } from './document-content';
 import { queue } from './embeddings';
 import { updateHistoriesAndStore } from './vector-store';
 
@@ -38,16 +39,67 @@ export interface CreateDiscussionItem {
 
 export type CreateDiscussionItemInput = CreateDiscussionItem | CreateDiscussionItem[];
 
-const searchQuerySchema = Joi.object<{ message?: string; searchAll?: boolean; n: number }>({
+const searchQuerySchema = Joi.object<{ blockletDid?: string; message?: string; searchAll?: boolean; n: number }>({
+  blockletDid: Joi.string().empty(['', null]),
   message: Joi.string().empty(['', null]),
   searchAll: Joi.boolean().default(false).empty(['', null]),
   n: Joi.number().empty(['', null]).min(1).default(4),
 });
 
+type Input = { message?: string; searchAll?: boolean; n: number };
+
+const searchResourceKnowledge = async (blockletDid: string, knowledgeId: string, input: Input) => {
+  const resource = await getResourceKnowledgeWithData({ blockletDid, knowledgeId });
+
+  if (!resource) {
+    return { docs: [] };
+  }
+
+  if (input.searchAll) {
+    const docs = await getAllResouceContents(resource);
+    return { docs };
+  }
+
+  if (!input.message) {
+    throw new Error('Not found search message');
+  }
+
+  const embeddings = new AIKitEmbeddings({});
+  const store = await VectorStore.load(join(resource.vectorsPath, knowledgeId), embeddings);
+
+  try {
+    if (store.getMapping() && !Object.keys(store.getMapping()).length) {
+      logger.error('store get mapping is empty');
+      return { docs: [] };
+    }
+
+    const docs = await store.similaritySearchWithScore(
+      input.message,
+      Math.min(input.n, Object.keys(store.getMapping()).length)
+    );
+
+    // 分数越低越相近
+    const result = sortBy(docs, (item) => item[1]).map((x) => {
+      const info = x[0] || {};
+      return { content: info?.pageContent, ...(info?.metadata?.metadata || {}) };
+    });
+
+    return { docs: result };
+  } catch (error) {
+    logger.error('search vector info', error?.message);
+    return { docs: [] };
+  }
+};
+
 router.get('/:datasetId/search', async (req, res) => {
   const { datasetId } = req.params;
   const input = await searchQuerySchema.validateAsync(req.query, { stripUnknown: true });
   logger.info('knowledge search input', input);
+
+  if (input.blockletDid) {
+    res.json(await searchResourceKnowledge(input.blockletDid, datasetId, input));
+    return;
+  }
 
   const dataset = await Dataset.findOne({ where: { id: datasetId } });
   if (!dataset) {
@@ -102,10 +154,18 @@ router.get('/:datasetId/documents', user(), userAuth(), async (req, res) => {
 
   if (!datasetId) throw new Error('Missing required params `datasetId`');
 
-  const { page, size } = await Joi.object<{ page: number; size: number }>({
+  const { blockletDid, page, size } = await Joi.object<{ blockletDid?: string; page: number; size: number }>({
+    blockletDid: Joi.string().empty(['', null]),
     page: Joi.number().integer().min(1).default(1),
     size: Joi.number().integer().min(1).max(100).default(20),
   }).validateAsync(req.query, { stripUnknown: true });
+
+  if (blockletDid) {
+    const knowledge = await getResourceKnowledgeWithData({ blockletDid, knowledgeId: datasetId });
+    const docs = [...(knowledge?.documents || [])].splice(page - 1, size);
+    res.json({ items: docs, total: knowledge?.documents.length });
+    return;
+  }
 
   const [items, total] = await Promise.all([
     DatasetDocument.findAll({
