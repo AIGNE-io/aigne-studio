@@ -1,3 +1,7 @@
+## 0.2.51 (2024-6-18)
+
+- fix(runtime): switch ai-runtime group from engine to dapp
+
 ## 0.2.50 (2024-6-17)
 
 - fix: move apis/components api to ai-runtime
