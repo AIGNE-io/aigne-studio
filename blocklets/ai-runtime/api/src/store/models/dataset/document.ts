@@ -5,7 +5,7 @@ import { sequelize } from '../../sequelize';
 
 const idGenerator = new Worker();
 
-const nextId = () => idGenerator.nextId().toString();
+export const nextDocumentId = () => idGenerator.nextId().toString();
 
 export enum UploadStatus {
   Idle = 'idle',
@@ -79,7 +79,7 @@ DatasetDocument.init(
       type: DataTypes.STRING,
       primaryKey: true,
       allowNull: false,
-      defaultValue: nextId,
+      defaultValue: nextDocumentId,
     },
     datasetId: {
       type: DataTypes.STRING,

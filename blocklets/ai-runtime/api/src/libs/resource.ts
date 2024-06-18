@@ -1,6 +1,9 @@
 import { access, readFile, readdir, stat } from 'fs/promises';
 import { basename, dirname, join } from 'path';
 
+import DatasetContent from '@api/store/models/dataset/content';
+import Dataset from '@api/store/models/dataset/dataset';
+import DatasetDocument from '@api/store/models/dataset/document';
 import { Assistant, ConfigFile, ProjectSettings, Variable, projectSettingsSchema } from '@blocklet/ai-runtime/types';
 import { getResources } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
@@ -41,14 +44,26 @@ interface ResourceProject {
 }
 
 interface Resources {
-  [folder: string]: {
-    projects: ResourceProject[];
+  knowledge: {
+    knowledgeList: ResourceKnowledge[];
     blockletMap: {
       [blockletDid: string]: {
-        projectMap: {
-          [projectId: string]: ResourceProject & {
-            agentMap: {
-              [assistantId: string]: Assistant;
+        knowledgeMap: {
+          [knowledgeId: string]: ResourceKnowledge;
+        };
+      };
+    };
+  };
+  agents: {
+    [folder: string]: {
+      projects: ResourceProject[];
+      blockletMap: {
+        [blockletDid: string]: {
+          projectMap: {
+            [projectId: string]: ResourceProject & {
+              agentMap: {
+                [assistantId: string]: Assistant;
+              };
             };
           };
         };
@@ -125,7 +140,7 @@ async function loadResourceBlocklets(path: string) {
 }
 
 async function loadResources(): Promise<Resources> {
-  const dirs = getResourceDirs();
+  const dirs = getResourceDirs().filter((i) => i.type !== 'knowledge');
 
   const groups = groupBy(
     await Promise.all(
@@ -162,19 +177,89 @@ async function loadResources(): Promise<Resources> {
     (i) => i.type
   );
 
-  return Object.fromEntries(
-    Object.entries(groups).map(
-      ([type, group]) =>
-        [
-          type,
-          {
-            projects: group.flatMap((i) => i.projects),
-            blockletMap: Object.assign({}, ...group.map((i) => i.blockletMap)),
-          },
-        ] as const
-    )
-  );
+  const knowledgeList = await loadResourceKnowledge();
+
+  return {
+    knowledge: {
+      knowledgeList,
+      blockletMap: Object.fromEntries(
+        Object.entries(groupBy(knowledgeList, (i) => i.blockletDid)).map(([blockletDid, kbs]) => [
+          blockletDid,
+          { knowledgeMap: Object.fromEntries(kbs.map((i) => [i.knowledge.id, i])) },
+        ])
+      ),
+    },
+    agents: Object.fromEntries(
+      Object.entries(groups).map(
+        ([type, group]) =>
+          [
+            type,
+            {
+              projects: group.flatMap((i) => i.projects),
+              blockletMap: Object.assign({}, ...group.map((i) => i.blockletMap)),
+            },
+          ] as const
+      )
+    ),
+  };
 }
+
+const loadResourceKnowledge = async () => {
+  const dirs = getResourceDirs().filter((i) => i.type === 'knowledge');
+
+  if (dirs.length === 0) return [];
+
+  return (
+    await Promise.all(
+      dirs.map(async (item) => {
+        try {
+          if (!(await exists(item.path))) return undefined;
+          const knowledgeIds = await readdir(item.path);
+          if (!knowledgeIds.length) return undefined;
+
+          return await Promise.all(
+            knowledgeIds.map(async (knowledgeId) => {
+              try {
+                const knowledgePath = join(item.path, knowledgeId);
+                const vectorsPath = join(knowledgePath, 'vectors');
+                const uploadPath = join(knowledgePath, 'uploads');
+
+                const knowledgeJsonPath = join(knowledgePath, 'knowledge.yaml');
+                const knowledge: Dataset['dataValues'] & { public?: boolean } = parse(
+                  (await readFile(knowledgeJsonPath)).toString()
+                );
+
+                const documentsPath = join(knowledgePath, 'documents.yaml');
+                const documents = parse((await readFile(documentsPath)).toString());
+
+                const contentsPath = join(knowledgePath, 'contents.yaml');
+                const contents = parse((await readFile(contentsPath)).toString());
+
+                return {
+                  knowledge,
+                  blockletDid: item.did,
+                  vectorsPath,
+                  uploadPath,
+                  documents,
+                  contents,
+                };
+              } catch (error) {
+                logger.error('read knowledge resource error', { error });
+              }
+              return undefined;
+            })
+          );
+        } catch (error) {
+          logger.error('read knowledge resource error', { error });
+        }
+
+        return undefined;
+      })
+    )
+  )
+    .flat()
+    .filter((i): i is NonNullable<typeof i> => !!i);
+};
 
 async function reloadResources() {
   cache.promise ??= loadResources();
@@ -183,7 +268,32 @@ async function reloadResources() {
 
 export const getResourceProjects = async (type: ResourceType) => {
   const resources = await reloadResources();
-  return resources[type]?.projects ?? [];
+  return resources.agents[type]?.projects ?? [];
+};
+
+export interface ResourceKnowledge {
+  knowledge: Dataset['dataValues'] & { public?: boolean };
+  blockletDid: string;
+  documents: DatasetDocument['dataValues'][];
+  contents: DatasetContent['dataValues'][];
+  vectorsPath: string;
+  uploadPath: string;
+}
+
+export const getResourceKnowledgeList = async () => {
+  const resources = await reloadResources();
+  return resources.knowledge.knowledgeList;
+};
+
+export const getResourceKnowledgeWithData = async ({
+  blockletDid,
+  knowledgeId,
+}: {
+  blockletDid: string;
+  knowledgeId: string;
+}) => {
+  const resources = await reloadResources();
+  return resources.knowledge.blockletMap[blockletDid]?.knowledgeMap[knowledgeId];
 };
 
 export const getResourceBlockletFromResource = async ({
@@ -195,7 +305,7 @@ export const getResourceBlockletFromResource = async ({
 }) => {
   const resources = await reloadResources();
   for (const t of type ? [type].flat() : ResourceTypes) {
-    const p = resources[t]?.blockletMap[blockletDid];
+    const p = resources.agents[t]?.blockletMap[blockletDid];
     if (p) return p;
   }
   return undefined;
@@ -212,7 +322,7 @@ export const getProjectFromResource = async ({
 }) => {
   const resources = await reloadResources();
   for (const t of type ? [type].flat() : ResourceTypes) {
-    const p = resources[t]?.blockletMap[blockletDid]?.projectMap[projectId];
+    const p = resources.agents[t]?.blockletMap[blockletDid]?.projectMap[projectId];
     if (p) return p.project;
   }
   return undefined;
@@ -229,7 +339,7 @@ export const getMemoryVariablesFromResource = async ({
 }) => {
   const resources = await reloadResources();
   for (const t of type ? [type].flat() : ResourceTypes) {
-    const p = resources[t]?.blockletMap[blockletDid]?.projectMap[projectId];
+    const p = resources.agents[t]?.blockletMap[blockletDid]?.projectMap[projectId];
     if (p) return p.memory?.variables;
   }
   return undefined;
@@ -248,7 +358,7 @@ export const getAssistantFromResourceBlocklet = async ({
 }) => {
   const resources = await reloadResources();
   for (const t of [type].flat()) {
-    const blocklet = resources[t]?.blockletMap[blockletDid];
+    const blocklet = resources.agents[t]?.blockletMap[blockletDid];
     const project = blocklet?.projectMap[projectId];
     const agent = project?.agentMap[agentId];
     if (agent) return { agent, project: project.project, blocklet: { did: blockletDid } };

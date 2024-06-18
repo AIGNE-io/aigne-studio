@@ -1,10 +1,12 @@
+import { getResourceKnowledgeList, getResourceKnowledgeWithData } from '@api/libs/resource';
+import DatasetContent from '@api/store/models/dataset/content';
 import user from '@blocklet/sdk/lib/middlewares/user';
 import compression from 'compression';
 import { Router } from 'express';
 import Joi from 'joi';
 import { Op, Sequelize } from 'sequelize';
 
-import { userAuth } from '../../libs/security';
+import { ensureComponentCallOr, ensureComponentCallOrAdmin, userAuth } from '../../libs/security';
 import Dataset from '../../store/models/dataset/dataset';
 import DatasetDocument from '../../store/models/dataset/document';
 import { sse } from './embeddings';
@@ -17,40 +19,63 @@ const datasetSchema = Joi.object<{ name?: string; description?: string; appId?: 
   appId: Joi.string().allow('').empty(null).default(''),
 });
 
-router.get('/', user(), userAuth(), async (req, res) => {
-  const { did, isAdmin } = req.user!;
-  const user = isAdmin ? {} : { [Op.or]: [{ createdBy: did }, { updatedBy: did }] };
+const getDatasetsQuerySchema = Joi.object<{ excludeResource?: boolean }>({
+  excludeResource: Joi.boolean().empty(['', null]),
+});
 
-  const { appId } = await Joi.object<{ appId?: string }>({
-    appId: Joi.string().allow('').empty(null).default(''),
-  }).validateAsync(req.query, { stripUnknown: true });
+router.get('/', user(), ensureComponentCallOr(userAuth()), async (req, res) => {
+  const user =
+    !req.user || req.user.isAdmin ? {} : { [Op.or]: [{ createdBy: req.user.did }, { updatedBy: req.user.did }] };
+
+  const query = await getDatasetsQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
   const sql = Sequelize.literal(
     '(SELECT COUNT(*) FROM DatasetDocuments WHERE DatasetDocuments.datasetId = Dataset.id)'
   );
 
   const datasets = await Dataset.findAll({
-    where: {
-      ...(appId && { appId }),
-      ...user,
-    },
+    where: { ...user },
     attributes: { include: [[sql, 'documents']] },
   });
 
-  res.json(datasets);
+  const resourceDatasets = query.excludeResource ? [] : await getResourceKnowledgeList();
+
+  res.json([
+    ...datasets,
+    ...resourceDatasets.map((i) => ({
+      ...i.knowledge,
+      blockletDid: i.blockletDid,
+      documents: (i.documents || []).length,
+    })),
+  ]);
 });
 
-router.get('/:datasetId', user(), userAuth(), async (req, res) => {
+router.get('/:datasetId', user(), ensureComponentCallOr(userAuth()), async (req, res) => {
   const { datasetId } = req.params;
-  const { did, isAdmin } = req.user!;
-  const user = isAdmin ? {} : { [Op.or]: [{ createdBy: did }, { updatedBy: did }] };
+  if (!datasetId) throw new Error('missing required param `datasetId`');
 
-  const { appId } = await Joi.object<{ appId?: string }>({
+  const user =
+    !req.user || req.user.isAdmin ? {} : { [Op.or]: [{ createdBy: req.user.did }, { updatedBy: req.user.did }] };
+
+  const { blockletDid, appId } = await Joi.object<{ blockletDid?: string; appId?: string }>({
+    blockletDid: Joi.string().empty(['', null]),
     appId: Joi.string().allow('').empty(null).default(''),
   }).validateAsync(req.query, { stripUnknown: true });
 
-  const dataset = await Dataset.findOne({ where: { id: datasetId, ...(appId && { appId }), ...user } });
+  const dataset = blockletDid
+    ? (await getResourceKnowledgeWithData({ blockletDid, knowledgeId: datasetId }))?.knowledge
+    : await Dataset.findOne({ where: { id: datasetId, ...(appId && { appId }), ...user } });
+
   res.json(dataset);
+});
+
+router.get('/:datasetId/export-resource', user(), ensureComponentCallOrAdmin(), async (req, res) => {
+  const { datasetId } = req.params;
+  const documents = await DatasetDocument.findAll({ where: { datasetId, type: { [Op.ne]: 'discussKit' } } });
+  const documentIds = documents.map((i) => i.id);
+  const contents = await DatasetContent.findAll({ where: { documentId: { [Op.in]: documentIds } } });
+
+  res.json({ documents, contents });
 });
 
 router.post('/', user(), userAuth(), async (req, res) => {
