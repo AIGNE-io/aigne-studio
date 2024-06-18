@@ -1,7 +1,16 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { OutputVariableYjs, RuntimeOutputShare } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { Checkbox, Divider, List, ListItem, ListItemText, Stack, Typography } from '@mui/material';
+import {
+  Checkbox,
+  Divider,
+  FormControl,
+  FormControlLabel,
+  FormGroup,
+  FormLabel,
+  Stack,
+  Typography,
+} from '@mui/material';
 import { WritableDraft } from 'immer';
 
 export default function ShareSettings({ output }: { output: OutputVariableYjs }) {
@@ -43,31 +52,48 @@ export default function ShareSettings({ output }: { output: OutputVariableYjs })
     <Stack gap={2}>
       <Stack>
         <Typography variant="subtitle1">{t('share')}</Typography>
-        <List dense sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
-          {SupportedShares.map((item) => (
-            <ListItem key={item.to} sx={{ display: 'flex', flex: '1 0 auto', width: '100px' }}>
-              <Checkbox
-                checked={checkedVias.has(item.to)}
-                onChange={(_, checked) => toggleItemChecked(item, checked)}
-              />
-              <ListItemText primary={t(item.to)} />
-            </ListItem>
-          ))}
-        </List>
-        <Divider sx={{ marginLeft: 3 }} />
-        <List dense>
-          <ListItem>
-            <Checkbox checked={shareAttachUrl} onChange={(_, checked) => toggleShareWith('shareAttachUrl', checked)} />
-            <ListItemText primary={t('attachUrl')} />
-          </ListItem>
-          <ListItem>
-            <Checkbox
-              checked={shareAttachInputs}
-              onChange={(_, checked) => toggleShareWith('shareAttachInputs', checked)}
+        <FormControl sx={{ mt: 2, mx: 2 }} component="fieldset" variant="standard">
+          <FormLabel component="legend">To</FormLabel>
+          <FormGroup sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', my: 1 }}>
+            {SupportedShares.map((item) => (
+              <FormControlLabel
+                key={item.to}
+                sx={{ display: 'flex', flex: '1 0 auto', width: '100px' }}
+                control={
+                  <Checkbox
+                    checked={checkedVias.has(item.to)}
+                    onChange={(_, checked) => toggleItemChecked(item, checked)}
+                  />
+                }
+                label={t(item.to)}></FormControlLabel>
+            ))}
+          </FormGroup>
+        </FormControl>
+        <Divider sx={{ mx: 2 }} />
+        <FormControl sx={{ mt: 2, mx: 2 }} component="fieldset" variant="standard">
+          <FormLabel component="legend">Options</FormLabel>
+          <FormGroup sx={{ mt: 1 }}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={shareAttachUrl}
+                  onChange={(_, checked) => toggleShareWith('shareAttachUrl', checked)}
+                />
+              }
+              label={t('attachUrl')}
             />
-            <ListItemText primary={t('attachInputs')} />
-          </ListItem>
-        </List>
+
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={shareAttachInputs}
+                  onChange={(_, checked) => toggleShareWith('shareAttachInputs', checked)}
+                />
+              }
+              label={t('attachInputs')}
+            />
+          </FormGroup>
+        </FormControl>
       </Stack>
     </Stack>
   );
