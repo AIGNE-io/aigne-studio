@@ -693,6 +693,7 @@ export default flat({
   routeDesc: 'Decision Agent Description',
   promptRequired: 'Prompt is required',
   twitter: 'Twitter',
+  community: 'Community',
   saveAs: 'Save as',
   openingQuestions: 'Opening Questions',
   openingMessage: 'Opening Message',
@@ -731,5 +732,7 @@ export default flat({
   default: 'Default',
   setAsEntry: 'Set as entry agent',
   entryAgent: 'Entry',
+  attachUrl: 'Attach link when sharing',
+  attachInputs: 'Attach inputs when sharing',
   usage: 'Usage',
 });

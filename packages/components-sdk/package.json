@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/components-sdk",
-  "version": "0.2.41",
+  "version": "0.2.54",
   "description": "The SDK for processing react component protocol",
   "publishConfig": {
     "access": "public"
@@ -61,8 +61,8 @@
     "prepare": "npm run build"
   },
   "dependencies": {
-    "@blocklet/constant": "^1.16.26",
-    "@blocklet/sdk": "^1.16.26",
+    "@blocklet/constant": "^1.16.27",
+    "@blocklet/sdk": "^1.16.27",
     "axios": "^1.7.2",
     "express": "^4.19.2",
     "joi": "^17.13.1",

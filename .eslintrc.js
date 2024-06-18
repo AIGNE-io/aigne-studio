@@ -7,6 +7,7 @@ module.exports = {
     project: [
       join(__dirname, 'tsconfig.eslint.json'),
       join(__dirname, 'blocklets/ai-studio/tsconfig.json'),
+      join(__dirname, 'blocklets/ai-runtime/tsconfig.json'),
       join(__dirname, 'packages/co-git/tsconfig.json'),
       join(__dirname, 'packages/prompt-editor/tsconfig.json'),
       join(__dirname, 'packages/studio-ui/tsconfig.json'),

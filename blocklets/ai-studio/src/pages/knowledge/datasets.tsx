@@ -34,6 +34,7 @@ import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { useCallback, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
+import { withQuery } from 'ufo';
 
 import { useDatasets } from '../../contexts/datasets/datasets';
 import { getErrorMessage } from '../../libs/api';
@@ -99,7 +100,7 @@ export default function KnowledgeDatasets() {
 
   return (
     <>
-      <Stack m={2.5} overflow="auto">
+      <Stack p={2.5} height={1} overflow="auto">
         <ListContainer gap={1.25}>
           <DatasetItemAdd
             name={t('knowledge.createTitle')}
@@ -117,7 +118,7 @@ export default function KnowledgeDatasets() {
                 blockletDid={item.blockletDid}
                 description={item.description}
                 documents={item.documents}
-                onClick={() => navigate(item.id)}
+                onClick={() => navigate(withQuery(item.id, { blockletDid: item.blockletDid }))}
                 onDelete={() => onDelete(item.id)}
                 className="listItem"
                 onUpdate={(data) => onUpdate(item.id, data)}

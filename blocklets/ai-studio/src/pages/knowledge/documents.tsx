@@ -24,7 +24,7 @@ import dayjs from 'dayjs';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
 import { useDocuments } from '../../contexts/datasets/documents';
@@ -37,10 +37,11 @@ import { SegmentsItem } from './segments';
 export default function KnowledgeDocuments() {
   const { t } = useLocaleContext();
   const { datasetId } = useParams();
+  const blockletDid = useSearchParams()[0].get('blockletDid') || undefined;
 
   const navigate = useNavigate();
 
-  const { state, remove, refetch } = useDocuments(datasetId || '');
+  const { state, remove, refetch } = useDocuments(datasetId || '', { blockletDid });
   if (state.error) throw state.error;
 
   const embeddings = useReactive<{ [key: string]: { [key: string]: any } }>({});

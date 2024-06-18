@@ -1,21 +1,22 @@
 /* eslint-disable no-await-in-loop */
 import { cp, lstat, mkdir, writeFile } from 'fs/promises';
-import path from 'path';
+import path, { basename, join, resolve } from 'path';
 
+import { AI_RUNTIME_COMPONENT_DID } from '@api/libs/constants';
 import downloadImage from '@api/libs/download-logo';
+import { Config } from '@api/libs/env';
 import logger from '@api/libs/logger';
 import { ResourceTypes } from '@api/libs/resource';
-import { Assistant } from '@blocklet/ai-runtime/types';
-import component from '@blocklet/sdk/lib/component';
+import { Assistant, projectSettingsSchema } from '@blocklet/ai-runtime/types';
+import component, { call } from '@blocklet/sdk/lib/component';
 import { Router } from 'express';
 import { exists } from 'fs-extra';
 import Joi from 'joi';
 import groupBy from 'lodash/groupBy';
 import uniq from 'lodash/uniq';
-import { Op } from 'sequelize';
+import { joinURL } from 'ufo';
 import { stringify } from 'yaml';
 
-import { Config } from '../libs/env';
 import { ensurePromptsEditor } from '../libs/security';
 import Content from '../store/models/dataset/content';
 import Knowledge from '../store/models/dataset/dataset';
@@ -27,8 +28,8 @@ import {
   getAssistantsOfRepository,
   getEntryFromRepository,
   getProjectConfig,
+  getProjectMemoryVariables,
   getRepository,
-  settingsFileSchema,
 } from '../store/repository';
 
 const AI_STUDIO_DID = 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
@@ -113,7 +114,14 @@ export function resourceRoutes(router: Router) {
 
     const locale = locales[query.locale as keyof typeof locales] || locales.en;
 
-    const knowledges = await Knowledge.findAll({});
+    const kbList = (
+      await call<Knowledge[]>({
+        name: AI_RUNTIME_COMPONENT_DID,
+        method: 'get',
+        path: '/api/datasets',
+        params: { excludeResource: true },
+      })
+    ).data;
 
     const resources = await Promise.all(
       projects.map(async (x) => {
@@ -133,7 +141,7 @@ export function resourceRoutes(router: Router) {
             {
               id: `application/${x.id}`,
               name: locale.application,
-              disabled: true,
+              disabled: !entry,
               description: entry ? undefined : 'No such entry agent, You have to create an entry agent first',
               dependentComponents,
             },
@@ -150,7 +158,7 @@ export function resourceRoutes(router: Router) {
                       dependentComponents,
                     }))
                   : ['knowledge'].includes(type)
-                    ? knowledges.map((knowledge) => ({
+                    ? kbList.map((knowledge) => ({
                         id: `${type}/${x.id}/${knowledge.id}`,
                         name: knowledge.name || locale.unnamed,
                       }))
@@ -194,7 +202,7 @@ export function resourceRoutes(router: Router) {
     const resourceDir = await getResourceDir({ projectId, releaseId: releaseId || '' });
     const arr = [];
 
-    const knowledgeIds: string[] = [];
+    const referencedKBIds: string[] = [];
     for (const [type, value] of resourceTypes) {
       const folderPath = path.join(resourceDir, type);
       if (type === 'knowledge') {
@@ -211,7 +219,7 @@ export function resourceRoutes(router: Router) {
           const project = await Project.findByPk(projectId, {
             rejectOnEmpty: new Error(`No such project ${projectId}`),
           });
-          const entry = await getEntryFromRepository({ projectId, ref: project.gitDefaultBranch! });
+          const entry = await getEntryFromRepository({ projectId, ref: project.gitDefaultBranch || defaultBranch });
           if (!entry) throw new Error(`Missing entry agent for project ${projectId}`);
         }
 
@@ -260,8 +268,14 @@ export function resourceRoutes(router: Router) {
         for (const assistant of assistants) {
           if (assistant.parameters?.length) {
             (assistant.parameters || []).forEach((parameter) => {
-              if (parameter.type === 'source' && parameter.source?.variableFrom === 'knowledge') {
-                if (parameter.source.knowledge?.id) knowledgeIds.push(parameter.source.knowledge.id);
+              if (
+                parameter.type === 'source' &&
+                parameter.source?.variableFrom === 'knowledge' &&
+                // 忽略引用 resource blocklet 中的知识库，会作为 blocklet components 依赖
+                parameter.source.knowledge?.id &&
+                !parameter.source.knowledge?.blockletDid
+              ) {
+                referencedKBIds.push(parameter.source.knowledge.id);
               }
             });
           }
@@ -269,11 +283,18 @@ export function resourceRoutes(router: Router) {
 
         const result = stringify({
           assistants,
-          project: await settingsFileSchema.validateAsync(project.dataValues),
+          project: await projectSettingsSchema.validateAsync(project.dataValues),
           config,
+          memory: {
+            variables: (
+              await getProjectMemoryVariables({
+                repository,
+                ref: project.gitDefaultBranch || defaultBranch,
+              })
+            )?.variables,
+          },
         });
 
-        // 新的保存方式，可以存储更多内容
         await writeFile(path.join(folderPath, projectId, `${projectId}.yaml`), result);
 
         // 写入logo.png
@@ -294,27 +315,36 @@ export function resourceRoutes(router: Router) {
     }
 
     // 合并选择的知识库和使用的知识库
-    const selectKnowledge = resourceTypes.find(([type]) => type === 'knowledge');
-    const uniqueKnowledgeIds = Array.from(new Set(knowledgeIds));
+    const selectedKBIds =
+      resourceTypes
+        .find(([type]) => type === 'knowledge')?.[1]
+        .map((i) => i.knowledgeId)
+        .filter((i): i is NonNullable<typeof i> => !!i) ?? [];
 
-    const formatSelectKnowledge = [
-      ...(selectKnowledge
-        ? (selectKnowledge[1] || [])
-            .filter((x) => x.knowledgeId)
-            .map((x) => x.knowledgeId)
-            .filter((i): i is NonNullable<typeof i> => !!i)
-        : []),
-    ].map((i) => ({ id: i, private: false }));
-    const formatDependentKnowledge = uniqueKnowledgeIds.map((i) => ({ id: i, private: true }));
-    const allKnowledge = [...formatSelectKnowledge, ...formatDependentKnowledge];
+    const kbList = [...new Set([...selectedKBIds, ...referencedKBIds])].map((i) => ({
+      id: i,
+      public: selectedKBIds.includes(i),
+    }));
 
-    if (allKnowledge.length > 0) {
+    if (kbList.length > 0) {
       const folderPath = path.join(resourceDir, 'knowledge');
-      if (!(await exists(folderPath))) {
-        await mkdir(folderPath, { recursive: true });
-      }
+      await mkdir(folderPath, { recursive: true });
+      await exportKnowledgeList(folderPath, kbList);
+    }
 
-      await getKnowledgeList(folderPath, allKnowledge);
+    if (resourceTypes.some((i) => i[0] === 'application')) {
+      const releaseDir = component.getReleaseExportDir({ projectId, releaseId });
+      await writeFile(
+        path.join(releaseDir, 'blocklet.yml'),
+        `\
+engine:
+  interpreter: blocklet
+  source:
+    store: ${Config.createResourceBlockletEngineStore}
+    name: ${AI_RUNTIME_COMPONENT_DID}
+    version: latest
+`
+      );
     }
 
     return res.json(arr);
@@ -353,82 +383,77 @@ function getAssistantDependentComponents(assistant: Assistant | Assistant[]) {
   ];
 }
 
-const getKnowledgeList = async (folderPath: string, knowledges: { id: string; private: boolean }[]) => {
-  for (const item of knowledges) {
-    await getKnowledgeInfo(folderPath, item);
+const exportKnowledgeList = async (path: string, list: { id: string; public: boolean }[]) => {
+  for (const item of list) {
+    await exportKnowledgeInfo(path, item);
   }
 };
 
-const getKnowledgeInfo = async (knowledgePath: string, item: { id: string; private: boolean }) => {
+async function getKnowledgeFromRuntime({ knowledgeId }: { knowledgeId: string }) {
+  return (
+    await call<Knowledge['dataValues'] | null>({
+      name: AI_RUNTIME_COMPONENT_DID,
+      method: 'get',
+      path: joinURL('/api/datasets', knowledgeId),
+    })
+  ).data;
+}
+
+const exportKnowledgeInfo = async (folder: string, item: { id: string; public: boolean }) => {
   const knowledgeId = item.id;
-  const knowledge = await Knowledge.findOne({ where: { id: knowledgeId } });
+  const knowledge = await getKnowledgeFromRuntime({ knowledgeId });
   if (!knowledge) return;
 
-  const documents = await Document.findAll({ where: { datasetId: knowledgeId, type: { [Op.ne]: 'discussKit' } } });
-  const documentIds = documents.map((i) => i.id);
-  const contents = await Content.findAll({ where: { documentId: { [Op.in]: documentIds } } });
+  const { documents, contents } = (
+    await call<{ documents: Document[]; contents: Content[] }>({
+      name: AI_RUNTIME_COMPONENT_DID,
+      method: 'get',
+      path: joinURL('/api/datasets', knowledgeId, 'export-resource'),
+    })
+  ).data;
 
-  const knowledgeWithIdPath = path.join(knowledgePath, knowledgeId);
-  if (!(await exists(knowledgeWithIdPath))) {
-    await mkdir(knowledgeWithIdPath, { recursive: true });
-  }
+  const knowledgeWithIdPath = join(folder, knowledgeId);
+  await mkdir(knowledgeWithIdPath, { recursive: true });
 
   // 首先将 projects documents contents 继续数据结构化
-  await writeFile(
-    path.join(knowledgeWithIdPath, 'knowledges.yaml'),
-    stringify({ ...knowledge.dataValues, private: item.private })
-  );
-  await writeFile(path.join(knowledgeWithIdPath, 'contents.yaml'), stringify(contents));
-  logger.info(`write ${knowledgeId} knowledges, contents db success`);
+  await writeFile(join(knowledgeWithIdPath, 'knowledge.yaml'), stringify({ ...knowledge, public: item.public }));
+  await writeFile(join(knowledgeWithIdPath, 'contents.yaml'), stringify(contents));
+  logger.info(`write ${knowledgeId} knowledge, contents db success`);
 
   // 复制 files 数据
-  try {
-    const uploadsPath = path.join(knowledgeWithIdPath, 'uploads');
-    if (!(await exists(uploadsPath))) {
-      await mkdir(uploadsPath, { recursive: true });
+  const uploadsPath = join(knowledgeWithIdPath, 'uploads');
+  await mkdir(uploadsPath, { recursive: true });
+
+  const hasPath = (data: any): data is { type: string; path: string } => {
+    return typeof data === 'object' && 'path' in data;
+  };
+  const filterDocuments = documents.filter((i) => hasPath(i.data));
+
+  for (const document of filterDocuments) {
+    if (hasPath(document.data)) {
+      const newPath = join(uploadsPath, basename(document.data.path));
+      await cp(document.data.path, newPath, {
+        recursive: true,
+        filter: async (src) => {
+          const stats = await lstat(src);
+          return !stats.isSymbolicLink();
+        },
+      });
+
+      // 特别注意，需要将 path 路径更换到新的路径, 在使用时，拼接 uploadsPath
+      document.data.path = basename(document.data.path);
     }
-
-    const hasPath = (data: any): data is { type: string; path: string } => {
-      return typeof data === 'object' && data !== null && 'path' in data;
-    };
-    const filterDocuments = documents.filter((i) => hasPath(i.data));
-
-    for (const document of filterDocuments) {
-      if (hasPath(document.data)) {
-        const newPath = path.join(uploadsPath, path.basename(document.data.path));
-        await cp(document.data.path, newPath, {
-          recursive: true,
-          filter: async (src) => {
-            const stats = await lstat(src);
-            return !stats.isSymbolicLink();
-          },
-        });
-
-        // 特别注意，需要将 path 路径更换到新的路径, 在使用时，拼接 uploadsPath
-        document.data.path = path.basename(document.data.path);
-      }
-    }
-    logger.info(`copy ${knowledgeId} upload files success`);
-
-    await writeFile(path.join(knowledgeWithIdPath, 'documents.yaml'), stringify(documents));
-    logger.info(`write ${knowledgeId} documents db success`);
-  } catch (error) {
-    logger.error('An error occurred:', error);
   }
+  logger.info(`copy ${knowledgeId} upload files success`);
 
-  // 复制项链数据库
-  try {
-    const vectorsPath = path.join(knowledgeWithIdPath, 'vectors', knowledgeId);
-    if (!(await exists(vectorsPath))) {
-      await mkdir(vectorsPath, { recursive: true });
-    }
+  await writeFile(join(knowledgeWithIdPath, 'documents.yaml'), stringify(documents));
+  logger.info(`write ${knowledgeId} documents db success`);
 
-    const vectorDir = path.resolve(Config.dataDir, 'vectors', knowledgeId);
-    if (await exists(vectorDir)) {
-      await cp(vectorDir, vectorsPath, { recursive: true });
-      logger.info(`copy ${knowledgeId} vectors db success`);
-    }
-  } catch (error) {
-    logger.error('An error occurred:', error);
+  // 复制 vector db
+  const dst = join(knowledgeWithIdPath, 'vectors', knowledgeId);
+  const src = resolve(Config.dataDir, '..', AI_RUNTIME_COMPONENT_DID, 'vectors', knowledgeId);
+  if (await exists(src)) {
+    await cp(src, dst, { recursive: true, force: true });
+    logger.info(`copy ${knowledgeId} vectors db success`);
   }
 };
