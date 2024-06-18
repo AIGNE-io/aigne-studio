@@ -2,7 +2,7 @@ import { ResourceType, getAssistantFromResourceBlocklet, getResourceProjects } f
 import Project from '@api/store/models/project';
 import { getAssistantFromRepository, getRepository } from '@api/store/repository';
 import { parseIdentity } from '@blocklet/ai-runtime/common/aid';
-import { Assistant } from '@blocklet/ai-runtime/types';
+import { Assistant, ProjectSettings } from '@blocklet/ai-runtime/types';
 import { Router } from 'express';
 import Joi from 'joi';
 import isEmpty from 'lodash/isEmpty';
@@ -90,14 +90,10 @@ router.get('/:aid', async (req, res) => {
     rejectOnEmpty: true,
   });
 
-  res.json(respondAgentFields(assistant, project));
+  res.json(respondAgentFields(assistant, project.dataValues));
 });
 
-const respondAgentFields = (
-  assistant: Assistant,
-  project: Partial<Project['dataValues']>,
-  blocklet?: { did: string }
-) => ({
+const respondAgentFields = (assistant: Assistant, project: ProjectSettings, blocklet?: { did: string }) => ({
   ...pick(assistant, 'id', 'name', 'description', 'type', 'parameters', 'createdAt', 'updatedAt', 'createdBy'),
   outputVariables: assistant.outputVariables?.map((i) => ({
     ...i,

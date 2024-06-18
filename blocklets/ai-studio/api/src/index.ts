@@ -7,8 +7,6 @@ import { access, mkdir } from 'fs/promises';
 import path from 'path';
 
 import { AssistantResponseType } from '@blocklet/ai-runtime/types';
-import { getComponentsRouter } from '@blocklet/components-sdk';
-import { createDatasetAPIRouter } from '@blocklet/dataset-sdk/openapi';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv-flow';
@@ -17,7 +15,6 @@ import fallback from 'express-history-api-fallback';
 import { Errors } from 'isomorphic-git';
 
 import app from './app';
-import jobs from './jobs';
 import { Config, isDevelopment } from './libs/env';
 import { NoPermissionError, NotFoundError } from './libs/error';
 import logger from './libs/logger';
@@ -49,14 +46,6 @@ app.use(express.json({ limit: '1 mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1 mb' }));
 app.use(cors());
 
-app.use(
-  '/',
-  createDatasetAPIRouter('AI-Studio', path.join(Config.appDir, 'dataset.yml'), {
-    definition: { openapi: '3.0.0', info: { title: 'AI Studio Dataset Protocol', version: '1.0.0' } },
-    apis: [path.join(__dirname, './routes/**/*.*')],
-  })
-);
-app.use('/', getComponentsRouter());
 app.use('/api', routes);
 
 if (!isDevelopment) {
@@ -96,6 +85,6 @@ const port = parseInt(process.env.BLOCKLET_PORT!, 10);
 export const server = app.listen(port, (err?: any) => {
   if (err) throw err;
   logger.info(`> ${name} v${version} ready on ${port}`);
-  jobs();
+
   initResourceStates();
 });

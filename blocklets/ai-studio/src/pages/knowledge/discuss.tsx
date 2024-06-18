@@ -1,5 +1,5 @@
-import { CreateDiscussionItem } from '@api/routes/dataset/documents';
 import { useComponent } from '@app/contexts/component';
+import { CreateDiscussionItem } from '@app/libs/dataset';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Box, TextField } from '@mui/material';

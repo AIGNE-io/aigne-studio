@@ -14,6 +14,7 @@ import { joinURL } from 'ufo';
 import ProjectBrand from './project-brand';
 import { AgentTokenUsage, HeaderActions, MobileHeaderActions } from './prompt-actions';
 import SegmentedControl from './segmented-control';
+import { FontFamilyHelmet } from './settings/font-family-helmet';
 
 export default function ProjectHeader() {
   const { t } = useLocaleContext();
@@ -65,6 +66,7 @@ export default function ProjectHeader() {
 
   return (
     <Stack height={1} overflow="hidden">
+      <FontFamilyHelmet />
       <Box height={64} borderBottom="1px solid #E5E7EB" px={{ xs: 2, md: 3 }} className="between">
         <Box flex={1}>
           <ProjectBrand />
