@@ -1,3 +1,7 @@
+## 0.2.52 (2024-6-18)
+
+- feat: support publish knowledge resource blocklet
+
 ## 0.2.51 (2024-6-18)
 
 - fix(runtime): switch ai-runtime group from engine to dapp
