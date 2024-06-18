@@ -44,6 +44,10 @@ export default function KnowledgeDocuments() {
   const { state, remove, refetch } = useDocuments(datasetId || '', { blockletDid });
   if (state.error) throw state.error;
 
+  useEffect(() => {
+    refetch();
+  }, []);
+
   const embeddings = useReactive<{ [key: string]: { [key: string]: any } }>({});
 
   useEffect(() => {
