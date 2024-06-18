@@ -14,7 +14,7 @@ const timeMap: { [key: string]: string } = {
 };
 
 const jobs = () => {
-  const time = timeMap[config?.env?.preferences?.autoUpdateTime] || timeMap['60'] || '0 0 * * * *';
+  const time = timeMap[config.env.preferences.autoUpdateTime] || timeMap['60'] || '0 0 * * * *';
 
   return [
     {

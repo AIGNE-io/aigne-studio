@@ -2,12 +2,24 @@ import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 import { joinURL } from 'ufo';
 
-import { CreateDiscussionItem, CreateDiscussionItemInput } from '../../api/src/routes/dataset/documents';
 import Dataset from '../../api/src/store/models/dataset/dataset';
 import DatasetDocument from '../../api/src/store/models/dataset/document';
 import DatasetSegment from '../../api/src/store/models/dataset/segment';
 import axios from './api';
 import { AI_RUNTIME_MOUNT_POINT } from './constants';
+
+export interface CreateDiscussionItem {
+  name: string;
+  data: {
+    id: string;
+    title: string;
+    type?: 'discussion' | 'blog' | 'doc';
+    from: 'discussion' | 'board' | 'discussionType';
+    boardId?: string;
+  };
+}
+
+export type CreateDiscussionItemInput = CreateDiscussionItem | CreateDiscussionItem[];
 
 export interface DatasetInput {
   name?: string | null;
@@ -31,8 +43,8 @@ export async function getAPIList(): Promise<DatasetObject[]> {
   return axios.get('/api/collections.json', { baseURL: AI_RUNTIME_MOUNT_POINT }).then((res) => res.data);
 }
 
-export async function getDatasets(appId?: string): Promise<Dataset[]> {
-  return axios.get('/api/datasets', { baseURL: AI_RUNTIME_MOUNT_POINT, params: { appId } }).then((res) => res.data);
+export async function getDatasets(): Promise<Dataset[]> {
+  return axios.get('/api/datasets', { baseURL: AI_RUNTIME_MOUNT_POINT }).then((res) => res.data);
 }
 
 export async function getDataset(datasetId: string): Promise<Dataset> {
@@ -51,7 +63,10 @@ export async function deleteDataset(datasetId: string): Promise<any> {
   return axios.delete(`/api/datasets/${datasetId}`, { baseURL: AI_RUNTIME_MOUNT_POINT }).then((res) => res.data);
 }
 
-export async function getDocuments(datasetId: string, params: { page?: number; size?: number }): Promise<any> {
+export async function getDocuments(
+  datasetId: string,
+  params: { blockletDid?: string; page?: number; size?: number }
+): Promise<any> {
   return axios
     .get(`/api/datasets/${datasetId}/documents`, { baseURL: AI_RUNTIME_MOUNT_POINT, params })
     .then((res) => res.data);
@@ -128,7 +143,7 @@ export async function uploadDocumentName(
 
 export async function reloadEmbedding(datasetId: string, documentId: string): Promise<{ data: string }> {
   return axios
-    .post(`/api/datasets/${datasetId}/documents/${documentId}/embedding`, { baseURL: AI_RUNTIME_MOUNT_POINT })
+    .post(`/api/datasets/${datasetId}/documents/${documentId}/embedding`, {}, { baseURL: AI_RUNTIME_MOUNT_POINT })
     .then((res) => res.data);
 }
 

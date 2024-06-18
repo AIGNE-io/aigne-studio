@@ -11,6 +11,7 @@ import dotenv from 'dotenv-flow';
 import express, { ErrorRequestHandler } from 'express';
 import expressWs from 'express-ws';
 
+import initCronJob from './jobs';
 import { Config, isDevelopment } from './libs/env';
 import logger from './libs/logger';
 import { initResourceStates } from './libs/resource';
@@ -75,5 +76,6 @@ export const server = app.listen(port, (err?: any) => {
   if (err) throw err;
   logger.info(`> ${name} v${version} ready on ${port}`);
 
+  initCronJob();
   initResourceStates();
 });

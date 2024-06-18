@@ -124,7 +124,7 @@ async function loadResourceBlocklets(path: string) {
 }
 
 async function loadResources(): Promise<Resources> {
-  const dirs = getResourceDirs();
+  const dirs = getResourceDirs().filter((i) => i.type !== 'knowledge');
 
   const groups = groupBy(
     await Promise.all(
@@ -161,7 +161,7 @@ async function loadResources(): Promise<Resources> {
     (i) => i.type
   );
 
-  return Object.fromEntries(
+  const result: Resources = Object.fromEntries(
     Object.entries(groups).map(
       ([type, group]) =>
         [
@@ -173,6 +173,8 @@ async function loadResources(): Promise<Resources> {
         ] as const
     )
   );
+
+  return result;
 }
 
 async function reloadResources() {

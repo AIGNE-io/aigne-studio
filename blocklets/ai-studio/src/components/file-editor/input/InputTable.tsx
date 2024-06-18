@@ -118,7 +118,7 @@ export default function InputTable({
   };
 
   const parameters = sortBy(Object.values(assistant.parameters ?? {}), (i) => i.index);
-  const { data: knowledge = [] } = useRequest(() => getDatasets(projectId));
+  const { data: knowledge = [] } = useRequest(() => getDatasets());
 
   const FROM_MAP = useMemo(() => {
     return {
@@ -857,40 +857,74 @@ function KnowledgeParameter({
   gitRef: string;
   value: AssistantYjs;
   parameter: ParameterYjs;
-  knowledge: (Dataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
+  knowledge: (Dataset['dataValues'] & {
+    blockletDid?: string;
+    from?: NonNullable<ExecuteBlock['tools']>[number]['from'];
+  })[];
 }) {
   const { t } = useLocaleContext();
   const { deleteUselessParameter } = useDelete(value);
+  const localKnowledge = knowledge.filter((x) => !x.blockletDid);
+  const resourceKnowledge = knowledge.filter((x) => x.blockletDid);
 
-  if (parameter.type === 'source' && parameter?.source?.variableFrom === 'knowledge') {
-    const toolId = parameter?.source?.knowledge?.id;
-    const { source } = parameter;
-
-    const options = [
-      ...knowledge.map((item) => ({
+  const options = useMemo(() => {
+    return [
+      ...localKnowledge.map((item) => ({
         id: item.id,
         name: item.name || t('unnamed'),
         from: item.from,
+        blockletDid: undefined,
+        group: t('本地知识库'),
+      })),
+      ...(resourceKnowledge || []).map((item) => ({
+        id: item.id,
+        name: item.name || t('unnamed'),
+        from: undefined,
+        blockletDid: (item as any).blockletDid,
+        group: t('资源知识库'),
       })),
     ];
+  }, [localKnowledge, resourceKnowledge, t]);
+
+  if (parameter.type === 'source' && parameter?.source?.variableFrom === 'knowledge') {
+    const toolId = parameter?.source?.knowledge?.id;
+    const blockletDid = parameter?.source?.knowledge?.blockletDid;
+    const { source } = parameter;
 
     const parameters = [
       { name: 'searchAll', description: t('allContent'), type: 'boolean' },
       { name: 'message', description: t('searchContent') },
     ];
     const v = options.find((x) => x.id === toolId);
+    const d = blockletDid ? options.find((x) => x.id === toolId && x.blockletDid === blockletDid) : null;
 
     return (
       <Stack gap={2}>
         <Box>
           <Typography variant="subtitle2">{t('knowledge.menu')}</Typography>
 
-          <SelectTool
-            options={options}
-            value={v}
+          <Autocomplete
+            value={d ?? v ?? null}
             multiple={false}
-            placeholder={t('selectKnowledgePlaceholder')}
-            onChange={(_value) => {
+            groupBy={(option) => option.group || ''}
+            options={options}
+            renderInput={(params) => (
+              <TextField hiddenLabel placeholder={t('selectKnowledgePlaceholder')} {...params} />
+            )}
+            getOptionLabel={(option) => option.name}
+            isOptionEqualToValue={(o, v) => `${o.id}` === `${v.id}`}
+            renderGroup={(params) => {
+              return (
+                <Box key={params.key}>
+                  <Typography p={2} py={1} pl={1} lineHeight="20px" color="#9CA3AF">
+                    {params.group}
+                  </Typography>
+
+                  <Box>{params.children}</Box>
+                </Box>
+              );
+            }}
+            onChange={(_, _value) => {
               if (_value) {
                 // 删除历史自动添加的变量
                 deleteUselessParameter();
@@ -900,8 +934,9 @@ function KnowledgeParameter({
                 };
 
                 source.knowledge = {
-                  id: _value.id,
                   from: 'knowledge',
+                  id: _value.id,
+                  blockletDid: _value.blockletDid,
                   parameters,
                 };
               }
@@ -923,7 +958,7 @@ function KnowledgeParameter({
                       <Typography variant="caption">{data.description || data.name}</Typography>
 
                       <Switch
-                        defaultChecked={Boolean(source?.knowledge?.parameters?.[data.name] ?? false)}
+                        checked={Boolean(source?.knowledge?.parameters?.[data.name] ?? false)}
                         onChange={(_, checked) => {
                           if (source?.knowledge?.parameters) {
                             // @ts-ignore

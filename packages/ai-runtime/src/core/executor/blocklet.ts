@@ -282,6 +282,7 @@ export async function runKnowledgeTool({
   const { data: knowledge } = await call({
     name: AI_RUNTIME_COMPONENT_DID,
     path: `/api/datasets/${tool.id}`,
+    params: { blockletDid: tool.blockletDid },
     method: 'GET',
     headers: getUserHeader(user),
   });
@@ -313,7 +314,7 @@ export async function runKnowledgeTool({
     name: AI_RUNTIME_COMPONENT_DID,
     path: `/api/datasets/${tool.id}/search`,
     method: 'GET',
-    params,
+    params: { ...params, blockletDid: tool.blockletDid },
     headers: getUserHeader(user),
   });
 

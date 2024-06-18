@@ -15,7 +15,6 @@ import fallback from 'express-history-api-fallback';
 import { Errors } from 'isomorphic-git';
 
 import app from './app';
-import jobs from './jobs';
 import { Config, isDevelopment } from './libs/env';
 import { NoPermissionError, NotFoundError } from './libs/error';
 import logger from './libs/logger';
@@ -86,6 +85,6 @@ const port = parseInt(process.env.BLOCKLET_PORT!, 10);
 export const server = app.listen(port, (err?: any) => {
   if (err) throw err;
   logger.info(`> ${name} v${version} ready on ${port}`);
-  jobs();
+
   initResourceStates();
 });
