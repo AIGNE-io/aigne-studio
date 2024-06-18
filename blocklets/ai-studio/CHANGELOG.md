@@ -1,3 +1,7 @@
+## 0.2.53 (2024-6-19)
+
+- fix: add more font options in appearance settings
+
 ## 0.2.52 (2024-6-18)
 
 - feat: support publish knowledge resource blocklet
