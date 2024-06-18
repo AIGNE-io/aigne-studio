@@ -1,3 +1,7 @@
+## 0.2.56 (2024-6-19)
+
+- fix: inherit identity from parent agent
+
 ## 0.2.55 (2024-6-19)
 
 - fix: display knowledge idle status
