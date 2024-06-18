@@ -4,7 +4,7 @@ description: AIGNE application runtime
 keywords:
   - ai
   - aigne
-group: engine
+group: dapp
 did: z2qaBP9SahqU2L2YA3ip7NecwKACMByTFuiJ2
 main: api/dist/index.js
 author:
