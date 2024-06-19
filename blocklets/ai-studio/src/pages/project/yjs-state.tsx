@@ -392,7 +392,7 @@ export function useCreateFile() {
 
       return {
         filepath,
-        template: file,
+        file,
       };
     },
     [session.user.did]
