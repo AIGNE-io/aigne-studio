@@ -52,6 +52,7 @@
     "@ocap/mcrypto": "^1.18.123",
     "@ocap/util": "^1.18.123",
     "@ocap/wallet": "^1.18.123",
+    "archiver": "^7.0.1",
     "axios": "^1.7.2",
     "compression": "^1.7.4",
     "cookie-parser": "^1.4.6",
@@ -87,6 +88,7 @@
     "yaml": "^2.4.5"
   },
   "devDependencies": {
+    "@types/archiver": "^6.0.2",
     "@types/compression": "^1.7.5",
     "@types/cookie-parser": "^1.4.7",
     "@types/cors": "^2.8.17",

@@ -32,9 +32,9 @@ interfaces:
     prefix: '*'
     port: BLOCKLET_PORT
     protocol: http
-community: ''
-documentation: ''
-homepage: ''
+community: https://community.arcblock.io
+documentation: https://developer.blocklet.io
+homepage: https://store.blocklet.dev
 license: ''
 payment:
   price: []

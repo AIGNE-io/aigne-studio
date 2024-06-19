@@ -21,7 +21,7 @@ files:
   - dist
   - logo.png
   - screenshots
-  - api/hooks/pre-start.js
+  - api/hooks/pre-flight.js
   - api/images
   - migration
   - api/dist/migration
@@ -49,7 +49,7 @@ requirements:
   os: '*'
   cpu: '*'
 scripts:
-  preStart: node api/hooks/pre-start.js
+  preFlight: node api/hooks/pre-flight.js
   dev: npm run start
 environments: []
 capabilities:
