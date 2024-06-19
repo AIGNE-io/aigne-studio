@@ -261,13 +261,14 @@ const loadResourceKnowledge = async () => {
     .filter((i): i is NonNullable<typeof i> => !!i);
 };
 
-async function reloadResources() {
+async function initResources({ reload }: { reload?: boolean } = {}) {
+  if (reload) cache.promise = undefined;
   cache.promise ??= loadResources();
   return cache.promise;
 }
 
 export const getResourceProjects = async (type: ResourceType) => {
-  const resources = await reloadResources();
+  const resources = await initResources();
   return resources.agents[type]?.projects ?? [];
 };
 
@@ -281,7 +282,7 @@ export interface ResourceKnowledge {
 }
 
 export const getResourceKnowledgeList = async () => {
-  const resources = await reloadResources();
+  const resources = await initResources();
   return resources.knowledge.knowledgeList;
 };
 
@@ -292,7 +293,7 @@ export const getResourceKnowledgeWithData = async ({
   blockletDid: string;
   knowledgeId: string;
 }) => {
-  const resources = await reloadResources();
+  const resources = await initResources();
   return resources.knowledge.blockletMap[blockletDid]?.knowledgeMap[knowledgeId];
 };
 
@@ -303,7 +304,7 @@ export const getResourceBlockletFromResource = async ({
   blockletDid: string;
   type?: ResourceType | ResourceType[];
 }) => {
-  const resources = await reloadResources();
+  const resources = await initResources();
   for (const t of type ? [type].flat() : ResourceTypes) {
     const p = resources.agents[t]?.blockletMap[blockletDid];
     if (p) return p;
@@ -320,7 +321,7 @@ export const getProjectFromResource = async ({
   projectId: string;
   type?: ResourceType | ResourceType[];
 }) => {
-  const resources = await reloadResources();
+  const resources = await initResources();
   for (const t of type ? [type].flat() : ResourceTypes) {
     const p = resources.agents[t]?.blockletMap[blockletDid]?.projectMap[projectId];
     if (p) return p.project;
@@ -337,7 +338,7 @@ export const getMemoryVariablesFromResource = async ({
   projectId: string;
   type?: ResourceType | ResourceType[];
 }) => {
-  const resources = await reloadResources();
+  const resources = await initResources();
   for (const t of type ? [type].flat() : ResourceTypes) {
     const p = resources.agents[t]?.blockletMap[blockletDid]?.projectMap[projectId];
     if (p) return p.memory?.variables;
@@ -356,7 +357,7 @@ export const getAssistantFromResourceBlocklet = async ({
   agentId: string;
   type?: ResourceType | ResourceType[];
 }) => {
-  const resources = await reloadResources();
+  const resources = await initResources();
   for (const t of [type].flat()) {
     const blocklet = resources.agents[t]?.blockletMap[blockletDid];
     const project = blocklet?.projectMap[projectId];
@@ -369,11 +370,17 @@ export const getAssistantFromResourceBlocklet = async ({
 
 export function initResourceStates() {
   async function reloadStatesWithCatch() {
-    cache.promise = undefined;
-
-    await reloadResources().catch((error) => {
-      logger.error('load resource states error', { error });
-    });
+    logger.info('reload resource states');
+    await initResources({ reload: true })
+      .then((resource) => {
+        logger.info('reload resource states success', {
+          projects: Object.values(resource.agents).reduce((res, i) => i.projects.length + res, 0),
+          knowledge: resource.knowledge.knowledgeList.length,
+        });
+      })
+      .catch((error) => {
+        logger.error('reload resource states error', { error });
+      });
   }
 
   reloadStatesWithCatch();

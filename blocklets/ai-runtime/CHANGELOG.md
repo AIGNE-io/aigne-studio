@@ -1,3 +1,7 @@
+## 0.2.57 (2024-6-19)
+
+- chore: update deps
+
 ## 0.2.56 (2024-6-19)
 
 - fix: inherit identity from parent agent
