@@ -67,6 +67,7 @@ components:
       name: ai-kit
       version: latest
   - name: image-bin
+    required: true
     mountPoint: /image-bin
     source:
       name: image-bin
@@ -85,6 +86,7 @@ components:
       name: z2qZyjnsRffFtn2PDnDwDHTRbAu53RpKqDtFZ
       version: latest
   - name: ai-runtime
+    required: true
     source:
       name: z2qaBP9SahqU2L2YA3ip7NecwKACMByTFuiJ2
       version: latest

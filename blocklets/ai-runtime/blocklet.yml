@@ -60,15 +60,18 @@ components:
       name: ai-kit
       version: latest
   - name: image-bin
+    required: true
     mountPoint: /image-bin
     source:
       name: image-bin
       version: latest
   - name: pages-kit
+    required: true
     source:
       name: pages-kit
       version: latest
   - name: ai-runtime-components
+    required: true
     source:
       name: z2qa6fvjmjew4pWJyTsKaWFuNoMUMyXDh5A1D
       version: latest
