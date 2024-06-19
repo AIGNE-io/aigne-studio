@@ -17,7 +17,7 @@ const chineseFonts = [
     link: 'https://cdn.jsdelivr.net/npm/cn-fontsource-fz-kai-z-03-regular/font.css',
   },
   {
-    key: '方正宋体',
+    key: '方正书宋',
     value: 'FZShuSong-Z01',
     link: 'https://cdn.jsdelivr.net/npm/cn-fontsource-fz-shu-song-z-01-regular/font.css',
   },
