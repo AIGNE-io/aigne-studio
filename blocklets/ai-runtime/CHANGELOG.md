@@ -1,3 +1,9 @@
+## 0.2.58 (2024-6-20)
+
+- fix: display loading indicator for publish button
+- fix: set first agent as entry
+- chore: add blocklet isolation mode support
+
 ## 0.2.57 (2024-6-19)
 
 - chore: update deps

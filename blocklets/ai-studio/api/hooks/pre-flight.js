@@ -6,7 +6,7 @@ if (isDevelopment) {
   // rename `require` to skip deps resolve when bundling
   const r = require;
   r('ts-node').register();
-  r('../src/hooks/pre-start');
+  r('../src/hooks/pre-flight');
 } else {
-  require('../dist/hooks/pre-start');
+  require('../dist/hooks/pre-flight');
 }
