@@ -10,7 +10,7 @@ import { Icon } from '@iconify-icon/react';
 import BrandAppgalleryIcon from '@iconify-icons/tabler/brand-appgallery';
 import { LoadingButtonProps } from '@mui/lab';
 import { Box, Tooltip } from '@mui/material';
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 
 import { saveButtonState, useProjectState } from '../state';
 
@@ -23,6 +23,11 @@ export default function PublishButton({ ...props }: LoadingButtonProps) {
 
   const [showCreateResource, setShowCreateResource] = useState(false);
   const isAdmin = useIsAdmin();
+
+  const [opened, setOpened] = useState(false);
+  useEffect(() => {
+    if (!showCreateResource) setOpened(false);
+  }, [showCreateResource]);
 
   if ((window.blocklet.DISABLE_AI_STUDIO_PUBLISH === 'true' && !isAdmin) || !project) return null;
 
@@ -37,6 +42,7 @@ export default function PublishButton({ ...props }: LoadingButtonProps) {
             await saveButtonState.getState().save?.({ skipConfirm: true, skipCommitIfNoChanges: true });
             setShowCreateResource(true);
           }}
+          loading={showCreateResource && !opened}
           startIcon={<Box component={Icon} icon={BrandAppgalleryIcon} />}
           {...props}>
           {props.children || t('publish')}
@@ -44,22 +50,32 @@ export default function PublishButton({ ...props }: LoadingButtonProps) {
       </Tooltip>
 
       {project && showCreateResource && (
-        <PublishDialog project={project} onClose={() => setShowCreateResource(false)} />
+        <PublishDialog
+          project={project}
+          onClose={() => setShowCreateResource(false)}
+          onOpened={() => setOpened(true)}
+        />
       )}
     </>
   );
 }
 
-function PublishDialog({ project, onClose }: { project: Project; onClose: () => void }) {
+function PublishDialog({
+  project,
+  onClose,
+  onOpened,
+}: {
+  project: Project;
+  onClose: () => void;
+  onOpened?: () => void;
+}) {
   const [logo] = useState(() => getProjectIconUrl(project.id, project.updatedAt, { original: true }));
-  const [opened, setOpened] = useState(false);
 
   if (!project) return null;
 
   return (
     <Suspense>
       <BlockletStudio
-        style={{ opacity: opened ? 1 : 0 }}
         mode="dialog"
         tenantScope={project.id}
         title={project.name || ''}
@@ -76,7 +92,7 @@ function PublishDialog({ project, onClose }: { project: Project; onClose: () => 
         onConnected={() => {}}
         onUploaded={() => {}}
         onReleased={() => {}}
-        onOpened={() => setOpened(true)}
+        onOpened={() => onOpened?.()}
         // 默认选中的资源
         resources={{
           [AI_STUDIO_COMPONENT_DID]: [],
