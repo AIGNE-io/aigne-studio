@@ -1,11 +1,11 @@
 import { mkdir, writeFile } from 'fs/promises';
 import path, { join } from 'path';
 
-import { AI_RUNTIME_COMPONENT_DID } from '@api/libs/constants';
 import downloadImage from '@api/libs/download-logo';
 import { Config } from '@api/libs/env';
 import logger from '@api/libs/logger';
 import { ResourceTypes } from '@api/libs/resource';
+import { AIGNE_RUNTIME_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
 import { Assistant, projectSettingsSchema } from '@blocklet/ai-runtime/types';
 import component, { call } from '@blocklet/sdk/lib/component';
 import { Router } from 'express';
@@ -113,7 +113,7 @@ export function resourceRoutes(router: Router) {
 
     const kbList = (
       await call<Knowledge[]>({
-        name: AI_RUNTIME_COMPONENT_DID,
+        name: AIGNE_RUNTIME_COMPONENT_DID,
         method: 'get',
         path: '/api/datasets',
         params: { excludeResource: true },
@@ -338,7 +338,7 @@ engine:
   interpreter: blocklet
   source:
     store: ${Config.createResourceBlockletEngineStore}
-    name: ${AI_RUNTIME_COMPONENT_DID}
+    name: ${AIGNE_RUNTIME_COMPONENT_DID}
     version: latest
 `
       );
@@ -393,7 +393,7 @@ const exportKnowledgeInfo = async (folder: string, item: { id: string; public: b
   await mkdir(knowledgeWithIdPath, { recursive: true });
 
   const res = await call({
-    name: AI_RUNTIME_COMPONENT_DID,
+    name: AIGNE_RUNTIME_COMPONENT_DID,
     method: 'get',
     path: joinURL('/api/datasets', knowledgeId, 'export-resource'),
     params: { public: item.public },

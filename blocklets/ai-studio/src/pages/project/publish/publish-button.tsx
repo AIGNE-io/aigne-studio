@@ -2,9 +2,9 @@ import Project from '@api/store/models/project';
 import LoadingButton from '@app/components/loading/loading-button';
 import { useCurrentProject } from '@app/contexts/project';
 import { useIsAdmin } from '@app/contexts/session';
-import { AI_STUDIO_COMPONENT_DID } from '@app/libs/constants';
 import { getProjectIconUrl } from '@app/libs/project';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
 import { BlockletStudio } from '@blocklet/ui-react';
 import { Icon } from '@iconify-icon/react';
 import BrandAppgalleryIcon from '@iconify-icons/tabler/brand-appgallery';
@@ -83,7 +83,7 @@ function PublishDialog({
         note=""
         introduction=""
         logo={logo}
-        componentDid={AI_STUDIO_COMPONENT_DID}
+        componentDid={AIGNE_STUDIO_COMPONENT_DID}
         // 透传到 get blocklet resource 的参数
         resourcesParams={{ projectId: project.id }}
         dependentComponentsMode="readonly"
@@ -95,7 +95,7 @@ function PublishDialog({
         onOpened={() => onOpened?.()}
         // 默认选中的资源
         resources={{
-          [AI_STUDIO_COMPONENT_DID]: [],
+          [AIGNE_STUDIO_COMPONENT_DID]: [],
         }}
       />
     </Suspense>

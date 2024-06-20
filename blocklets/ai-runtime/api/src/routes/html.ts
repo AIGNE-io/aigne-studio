@@ -4,7 +4,7 @@ import { resolve } from 'path';
 import logger from '@api/libs/logger';
 import { getResourceProjects } from '@api/libs/resource';
 import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
-import { AI_RUNTIME_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
+import { AIGNE_RUNTIME_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
 import {
   RUNTIME_RESOURCE_BLOCKLET_STATE_GLOBAL_VARIABLE,
   RuntimeResourceBlockletState,
@@ -29,7 +29,7 @@ export default function setupHtmlRouter(app: Express, viteDevServer?: ViteDevSer
     };
 
     const componentId = req.get('x-blocklet-component-id')?.split('/').at(-1);
-    const blockletDid = componentId !== AI_RUNTIME_COMPONENT_DID ? componentId : undefined;
+    const blockletDid = componentId !== AIGNE_RUNTIME_COMPONENT_DID ? componentId : undefined;
     const projects = await getResourceProjects({ blockletDid, type: 'application' });
     const apps = projects
       .map((i) => {

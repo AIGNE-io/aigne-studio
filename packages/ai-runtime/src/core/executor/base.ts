@@ -5,7 +5,7 @@ import { logger } from '@blocklet/sdk/lib/config';
 import Joi from 'joi';
 import { isNil, toLower } from 'lodash';
 
-import { AI_RUNTIME_COMPONENT_DID } from '../../constants';
+import { AIGNE_RUNTIME_COMPONENT_DID } from '../../constants';
 import {
   AssistantResponseType,
   ExecutionPhase,
@@ -429,7 +429,7 @@ export abstract class AgentExecutorBase {
 
       // TODO: @li-yechao 封装存储数据的方法
       await call({
-        name: AI_RUNTIME_COMPONENT_DID,
+        name: AIGNE_RUNTIME_COMPONENT_DID,
         path: '/api/memories',
         method: 'POST',
         headers: getUserHeader(this.context.user),

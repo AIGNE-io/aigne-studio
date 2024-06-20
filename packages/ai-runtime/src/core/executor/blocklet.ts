@@ -6,7 +6,7 @@ import { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { call } from '@blocklet/sdk';
 import { startCase, toLower } from 'lodash';
 
-import { AI_RUNTIME_COMPONENT_DID } from '../../constants';
+import { AIGNE_RUNTIME_COMPONENT_DID } from '../../constants';
 import { Assistant, AssistantResponseType, ExecutionPhase, Parameter, Tool, User, Variable } from '../../types';
 import { RunAssistantCallback } from '../assistant/type';
 import { renderMessage } from '../utils/render-message';
@@ -157,7 +157,7 @@ export const runRequestStorage = async ({
     });
 
     const { data } = await call({
-      name: AI_RUNTIME_COMPONENT_DID,
+      name: AIGNE_RUNTIME_COMPONENT_DID,
       path: '/api/memories/variable-by-query',
       method: 'GET',
       headers: getUserHeader(user),
@@ -230,7 +230,7 @@ export const runRequestHistory = async ({
   });
 
   const { data: result } = await call<{ role: string; content: string; agentId?: string }[]>({
-    name: AI_RUNTIME_COMPONENT_DID,
+    name: AIGNE_RUNTIME_COMPONENT_DID,
     path: '/api/messages',
     method: 'GET',
     headers: getUserHeader(user),
@@ -282,7 +282,7 @@ export async function runKnowledgeTool({
   params.searchAll = (tool?.parameters || {}).searchAll;
 
   const { data: knowledge } = await call({
-    name: AI_RUNTIME_COMPONENT_DID,
+    name: AIGNE_RUNTIME_COMPONENT_DID,
     path: `/api/datasets/${tool.id}`,
     params: { blockletDid },
     method: 'GET',
@@ -313,7 +313,7 @@ export async function runKnowledgeTool({
   });
 
   const { data } = await call({
-    name: AI_RUNTIME_COMPONENT_DID,
+    name: AIGNE_RUNTIME_COMPONENT_DID,
     path: `/api/datasets/${tool.id}/search`,
     method: 'GET',
     params: { ...params, blockletDid },

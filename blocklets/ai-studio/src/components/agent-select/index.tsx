@@ -1,11 +1,11 @@
 import { ResourceType } from '@api/libs/resource';
 import { useIsAdmin } from '@app/contexts/session';
-import { AI_STUDIO_COMPONENT_DID } from '@app/libs/constants';
 import { getProjectIconUrl } from '@app/libs/project';
 import { useAgents } from '@app/store/agent';
 import DID from '@arcblock/ux/lib/DID';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
+import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
 import { AddComponent } from '@blocklet/ui-react';
 import { Icon } from '@iconify-icon/react';
 import BrandAppgalleryIcon from '@iconify-icons/tabler/brand-appgallery';
@@ -71,7 +71,7 @@ export default function AgentSelect<
     <>
       <AddComponent
         componentDid={window.blocklet.appId}
-        resourceDid={AI_STUDIO_COMPONENT_DID}
+        resourceDid={AIGNE_STUDIO_COMPONENT_DID}
         resourceType={type}
         autoClose={false}
         render={({ onClick, loading }) => {

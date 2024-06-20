@@ -1,7 +1,7 @@
 import { getAgent, getAgentSecretInputs } from '@api/libs/agent';
 import { ResourceType, getProjectFromResource, getResourceProjects } from '@api/libs/resource';
-import { AIGNE_STUDIO_COMPONENT_DID } from '@app/libs/constants';
 import { parseIdentity } from '@blocklet/ai-runtime/common/aid';
+import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
 import { GetAgentResult } from '@blocklet/ai-runtime/core';
 import { getComponentMountPoint } from '@blocklet/sdk';
 import config from '@blocklet/sdk/lib/config';

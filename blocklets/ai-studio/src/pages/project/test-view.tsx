@@ -1,4 +1,4 @@
-import { AI_RUNTIME_MOUNT_POINT } from '@app/libs/constants';
+import { AIGNE_RUNTIME_MOUNT_POINT } from '@app/libs/constants';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { runAssistant } from '@blocklet/ai-runtime/api';
 import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
@@ -139,7 +139,7 @@ const TestCaseView = forwardRef<
 
     try {
       const result = await runAssistant({
-        url: joinURL(AI_RUNTIME_MOUNT_POINT, '/api/ai/call'),
+        url: joinURL(AIGNE_RUNTIME_MOUNT_POINT, '/api/ai/call'),
         working: true,
         aid: stringifyIdentity({ projectId, projectRef: gitRef, assistantId: assistant.id }),
         sessionId: nanoid(),
