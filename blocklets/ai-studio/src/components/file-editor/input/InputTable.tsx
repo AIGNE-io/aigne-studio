@@ -49,6 +49,7 @@ import {
   FormControlLabel,
   IconButton,
   Input,
+  Link,
   List,
   ListItemIcon,
   MenuItem,
@@ -1116,6 +1117,34 @@ function SecretParameterView({ parameter }: { parameter: ParameterYjs }) {
             }}
           />
         </Box>
+
+        <Box>
+          <Typography variant="subtitle2">{t('docLink')}</Typography>
+
+          <TextField
+            hiddenLabel
+            fullWidth
+            placeholder={t('inputParameterLinkPlaceholder')}
+            value={parameter.docLink || ''}
+            onChange={(e) => {
+              parameter.docLink = e.target.value;
+            }}
+          />
+        </Box>
+
+        <Box>
+          <Typography variant="subtitle2">{t('placeholder')}</Typography>
+
+          <TextField
+            hiddenLabel
+            fullWidth
+            placeholder={t('inputParameterPlaceholderPlaceholder')}
+            value={parameter.placeholder || ''}
+            onChange={(e) => {
+              parameter.placeholder = e.target.value;
+            }}
+          />
+        </Box>
       </Stack>
     );
   }
@@ -1318,12 +1347,15 @@ function AuthorizeParametersFormDialog({
         <Stack gap={1}>
           {authInputs?.map((item, index) => (
             <Stack key={item.id}>
-              <Typography variant="caption">{item.label || item.key}</Typography>
+              <Typography variant="caption">
+                {item.label || item.key} {item.docLink && <Link href={item.docLink}>{t('docLink')}</Link>}
+              </Typography>
 
               <PasswordField
                 autoFocus={index === 0}
                 hiddenLabel
                 fullWidth
+                placeholder={item.placeholder}
                 {...form.register(item.key!, { required: true })}
               />
             </Stack>

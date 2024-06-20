@@ -735,4 +735,6 @@ export default flat({
   attachUrl: 'Attach link when sharing',
   attachInputs: 'Attach inputs when sharing',
   usage: 'Usage',
+  docLink: 'Document link',
+  inputParameterLinkPlaceholder: 'Link to the document that describes this input',
 });
