@@ -17,7 +17,7 @@ export default function HomePage() {
 
   return (
     <>
-      <ApplicationHeader hideNavMenu={!!app} />
+      <ApplicationHeader application={app} />
 
       {!applications?.length ? (
         <Result

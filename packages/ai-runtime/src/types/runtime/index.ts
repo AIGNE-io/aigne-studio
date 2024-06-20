@@ -4,6 +4,7 @@ import type { ExecuteBlock, Role } from '../assistant';
 import { RuntimeOutputVariablesSchema } from './schema';
 
 export * from './schema';
+export * from './error';
 
 export enum ExecutionPhase {
   EXECUTE_BLOCK_START = 'EXECUTE_BLOCK_START',

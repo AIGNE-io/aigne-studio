@@ -1,11 +1,15 @@
 import { getAgent, getAgentSecretInputs } from '@api/libs/agent';
-import { ResourceType, getResourceProjects } from '@api/libs/resource';
+import { ResourceType, getProjectFromResource, getResourceProjects } from '@api/libs/resource';
+import { AIGNE_STUDIO_COMPONENT_DID } from '@app/libs/constants';
 import { parseIdentity } from '@blocklet/ai-runtime/common/aid';
 import { GetAgentResult } from '@blocklet/ai-runtime/core';
+import { getComponentMountPoint } from '@blocklet/sdk';
+import config from '@blocklet/sdk/lib/config';
 import { Router } from 'express';
 import Joi from 'joi';
 import isEmpty from 'lodash/isEmpty';
 import pick from 'lodash/pick';
+import { joinURL } from 'ufo';
 
 const router = Router();
 
@@ -83,6 +87,34 @@ router.get('/:aid', async (req, res) => {
       secrets: await getAgentSecretInputs(agent),
     },
   });
+});
+
+router.get('/:aid/logo', async (req, res) => {
+  const { aid } = req.params;
+  if (!aid) throw new Error('Missing required param `aid`');
+
+  const { blockletDid } = await getAgentQuerySchema.validateAsync(req.query, { stripUnknown: true });
+
+  const { projectId } = parseIdentity(aid, { rejectWhenError: true });
+
+  if (blockletDid) {
+    const logo = (await getProjectFromResource({ blockletDid, projectId }))?.gitLogoPath;
+    if (logo) {
+      res.sendFile(logo);
+    } else {
+      res.status(404).end();
+    }
+    return;
+  }
+  res.redirect(
+    joinURL(
+      config.env.appUrl,
+      getComponentMountPoint(AIGNE_STUDIO_COMPONENT_DID),
+      '/api/projects/',
+      projectId,
+      '/logo.png'
+    )
+  );
 });
 
 const respondAgentFields = (agent: GetAgentResult) => ({
