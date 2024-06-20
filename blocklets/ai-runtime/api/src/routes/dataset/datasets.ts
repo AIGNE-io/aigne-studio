@@ -1,5 +1,5 @@
 import { copyFileSync, cpSync, createWriteStream } from 'fs';
-import { mkdir, mkdtemp, writeFile } from 'fs/promises';
+import { mkdir, mkdtemp, rm, writeFile } from 'fs/promises';
 import { basename, join, resolve } from 'path';
 import { finished } from 'stream/promises';
 
