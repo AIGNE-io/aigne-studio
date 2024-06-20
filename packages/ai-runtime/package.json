@@ -51,6 +51,10 @@
     "./common/*": {
       "import": "./lib/esm/common/*.js",
       "require": "./lib/cjs/common/*.js"
+    },
+    "./constants": {
+      "import": "./lib/esm/constants.js",
+      "require": "./lib/cjs/constants.js"
     }
   },
   "typesVersions": {
@@ -85,6 +89,9 @@
       ],
       "common/*": [
         "./lib/types/common/*.d.ts"
+      ],
+      "constants": [
+        "./lib/types/constants.d.ts"
       ]
     }
   },
