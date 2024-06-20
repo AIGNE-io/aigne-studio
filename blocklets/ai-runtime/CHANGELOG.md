@@ -1,3 +1,7 @@
+## 0.2.59 (2024-6-20)
+
+- fix: publish resource blocklet error in strict mode
+
 ## 0.2.58 (2024-6-20)
 
 - fix: display loading indicator for publish button
