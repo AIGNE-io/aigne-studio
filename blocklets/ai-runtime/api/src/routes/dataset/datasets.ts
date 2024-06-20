@@ -35,7 +35,7 @@ const getDatasetsQuerySchema = Joi.object<{ excludeResource?: boolean }>({
 });
 
 router.get('/', user(), ensureComponentCallOr(userAuth()), async (req, res) => {
-  let user;
+  let user = {};
   if (!req.user || config.env.tenantMode === 'single') {
     user = {};
   } else {
