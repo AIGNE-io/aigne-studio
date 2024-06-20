@@ -1,3 +1,8 @@
+## 0.2.60 (2024-6-20)
+
+- feat: add home page to display agent list
+- chore: update logo and readme
+
 ## 0.2.59 (2024-6-20)
 
 - fix: publish resource blocklet error in strict mode

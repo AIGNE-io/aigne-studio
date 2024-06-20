@@ -1,6 +1,6 @@
 name: z2qaBP9SahqU2L2YA3ip7NecwKACMByTFuiJ2
-title: AI Runtime
-description: AIGNE application runtime
+title: AIGNE Runtime
+description: Empower your blocklet with agent execution
 keywords:
   - ai
   - aigne
@@ -15,7 +15,7 @@ repository:
   type: git
   url: git+https://github.com/blocklet/ai-studio.git
 specVersion: 1.2.8
-version: 0.2.59
+version: 0.2.60
 logo: logo.png
 files:
   - dist

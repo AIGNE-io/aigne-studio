@@ -1,5 +1,5 @@
 name: ai-studio
-title: AI Studio
+title: AIGNE Studio
 description: No-code Generative AI Apps Engine
 keywords:
   - ai
@@ -15,7 +15,7 @@ repository:
   type: git
   url: git+https://github.com/blocklet/ai-studio.git
 specVersion: 1.2.8
-version: 0.2.59
+version: 0.2.60
 logo: logo.png
 files:
   - dist
