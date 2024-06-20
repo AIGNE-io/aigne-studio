@@ -267,9 +267,15 @@ async function initResources({ reload }: { reload?: boolean } = {}) {
   return cache.promise;
 }
 
-export const getResourceProjects = async (type: ResourceType) => {
+export const getResourceProjects = async ({ blockletDid, type }: { blockletDid?: string; type: ResourceType }) => {
   const resources = await initResources();
-  return resources.agents[type]?.projects ?? [];
+  const list = resources.agents[type]?.projects ?? [];
+
+  if (blockletDid) {
+    return list.filter((i) => i.blocklet.did === blockletDid);
+  }
+
+  return list;
 };
 
 export interface ResourceKnowledge {
@@ -295,21 +301,6 @@ export const getResourceKnowledgeWithData = async ({
 }) => {
   const resources = await initResources();
   return resources.knowledge.blockletMap[blockletDid]?.knowledgeMap[knowledgeId];
-};
-
-export const getResourceBlockletFromResource = async ({
-  blockletDid,
-  type,
-}: {
-  blockletDid: string;
-  type?: ResourceType | ResourceType[];
-}) => {
-  const resources = await initResources();
-  for (const t of type ? [type].flat() : ResourceTypes) {
-    const p = resources.agents[t]?.blockletMap[blockletDid];
-    if (p) return p;
-  }
-  return undefined;
 };
 
 export const getProjectFromResource = async ({

@@ -23,7 +23,7 @@ const getAgentsQuerySchema = Joi.object<GetAgentsQuery>({
 router.get('/', async (req, res) => {
   const query = await getAgentsQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
-  const projects = await getResourceProjects(query.type);
+  const projects = await getResourceProjects({ type: query.type });
 
   const resourceAgents = projects.flatMap((project) =>
     project.assistants
