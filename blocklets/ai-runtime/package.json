@@ -40,7 +40,7 @@
     "@blocklet/dataset-sdk": "workspace:^",
     "@blocklet/discuss-kit": "^1.6.264",
     "@blocklet/logger": "^1.16.27",
-    "@blocklet/pages-kit": "^0.2.351",
+    "@blocklet/pages-kit": "^0.2.352",
     "@blocklet/sdk": "^1.16.27",
     "@blocklet/ui-react": "^2.10.1",
     "@langchain/community": "^0.0.42",
