@@ -1,5 +1,5 @@
-import { createWriteStream } from 'fs';
-import { cp, lstat, mkdir, mkdtemp, rm, writeFile } from 'fs/promises';
+import { copyFileSync, cpSync, createWriteStream } from 'fs';
+import { mkdir, mkdtemp, rm, writeFile } from 'fs/promises';
 import { basename, join, resolve } from 'path';
 import { finished } from 'stream/promises';
 
@@ -118,13 +118,7 @@ router.get('/:datasetId/export-resource', user(), ensureComponentCallOrAdmin(), 
     for (const document of filterDocuments) {
       if (hasPath(document.data)) {
         const newPath = join(uploadsPath, basename(document.data.path));
-        await cp(document.data.path, newPath, {
-          recursive: true,
-          filter: async (src) => {
-            const stats = await lstat(src);
-            return !stats.isSymbolicLink();
-          },
-        });
+        copyFileSync(document.data.path, newPath);
 
         // 特别注意，需要将 path 路径更换到新的路径, 在使用时，拼接 uploadsPath
         document.data.path = basename(document.data.path);
@@ -137,7 +131,7 @@ router.get('/:datasetId/export-resource', user(), ensureComponentCallOrAdmin(), 
     const dst = join(knowledgeWithIdPath, 'vectors', datasetId);
     const src = resolve(Config.dataDir, 'vectors', datasetId);
     if (await exists(src)) {
-      await cp(src, dst, { recursive: true, force: true });
+      cpSync(src, dst, { recursive: true, force: true });
     }
 
     const zipPath = join(tmpFolder, `${datasetId}.zip`);

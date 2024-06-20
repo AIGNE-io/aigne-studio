@@ -116,8 +116,8 @@ importers:
         specifier: ^2.10.1
         version: 2.10.1(@babel/core@7.24.7)(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/icons-material@5.15.20(@mui/material@5.15.20(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/material@5.15.20(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/node@18.19.37)(@types/react@18.3.3)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.23.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       '@blocklet/ai-kit':
-        specifier: ^0.1.37
-        version: 0.1.37(@babel/core@7.24.7)(@types/node@18.19.37)(@types/react@18.3.3)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.23.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)
+        specifier: ^0.1.39
+        version: 0.1.39(@babel/core@7.24.7)(@types/node@18.19.37)(@types/react@18.3.3)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.23.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)
       '@blocklet/ai-runtime':
         specifier: workspace:^
         version: link:../../packages/ai-runtime
@@ -134,8 +134,8 @@ importers:
         specifier: 1.16.28-beta-32519531
         version: 1.16.28-beta-32519531
       '@blocklet/pages-kit':
-        specifier: ^0.2.349
-        version: 0.2.349(vynvgrjfh7odobiv36rh5ve27m)
+        specifier: ^0.2.350
+        version: 0.2.350(vynvgrjfh7odobiv36rh5ve27m)
       '@blocklet/sdk':
         specifier: 1.16.28-beta-32519531
         version: 1.16.28-beta-32519531(encoding@0.1.13)
@@ -372,8 +372,8 @@ importers:
         specifier: ^1.0.7
         version: 1.0.7
       '@blocklet/ai-kit':
-        specifier: ^0.1.37
-        version: 0.1.37(@babel/core@7.24.7)(@types/node@18.19.37)(@types/react@18.3.3)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.23.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)
+        specifier: ^0.1.39
+        version: 0.1.39(@babel/core@7.24.7)(@types/node@18.19.37)(@types/react@18.3.3)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.23.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)
       '@blocklet/ai-runtime':
         specifier: workspace:^
         version: link:../../packages/ai-runtime
@@ -881,8 +881,8 @@ importers:
         specifier: workspace:^
         version: link:../ai-builtin
       '@blocklet/ai-kit':
-        specifier: ^0.1.37
-        version: 0.1.37(@babel/core@7.24.7)(@types/node@18.19.37)(@types/react@18.3.3)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.23.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)
+        specifier: ^0.1.39
+        version: 0.1.39(@babel/core@7.24.7)(@types/node@18.19.37)(@types/react@18.3.3)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.23.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)
       '@blocklet/dataset-sdk':
         specifier: workspace:^
         version: link:../dataset-sdk
@@ -1831,8 +1831,8 @@ packages:
   '@blocklet/ai-builtin@0.2.57':
     resolution: {integrity: sha512-5j+b0+pnYs+YKLpZ/nOF6gOBrlEv/Mp9YLHX6grnO1PtU542zh5xpOm704krKACcLRKv55UkHux4D1oeimVf9A==}
 
-  '@blocklet/ai-kit@0.1.37':
-    resolution: {integrity: sha512-dVFyCnnxCx5Iw+uuxMPyS8b1GvjdkSzp6qStDBMTTGqlxxDsm0I1zMZ7FtGUS6NDhotWGXWAxCAGOklOMerOtA==}
+  '@blocklet/ai-kit@0.1.39':
+    resolution: {integrity: sha512-1JmXx/p2ET/QaxIAOdjRXs/kQZe/tbNx5VSSYFVW3xROw2pzb/vDTo4y8m8OAn0HaxujAJ7sGoVmZSkjTa4Vyw==}
     peerDependencies:
       react: ^18.2.0
 
@@ -1922,8 +1922,8 @@ packages:
   '@blocklet/meta@1.16.28-beta-32519531':
     resolution: {integrity: sha512-Guy9iuadWlHG79Mn+Rl3zpV8HvweVybDVdOXUFmGUNBTbyBsRkt2QUCSNPLGPkZ6tjgfUk8jM5UgNtVLYRLijw==}
 
-  '@blocklet/pages-kit@0.2.349':
-    resolution: {integrity: sha512-XMU1JrA9tDiBVDYiIcNMs/dhJdTFZVxnF/4tPxfA0yrHs/MBVGNWOQWkA1P4sHJGgMG126bMtiaOkR/mqd4nKQ==}
+  '@blocklet/pages-kit@0.2.350':
+    resolution: {integrity: sha512-4NzCX00hM0VvwHzyxkazf12kYqG1bND5LGIlU3UtTh7P+x/PFaGMqsZF8oMoj6BYB7I0BP/hdHb91bBI21niuw==}
     peerDependencies:
       '@arcblock/ux': ^2.10.1
       '@emotion/cache': ^11.11.0
@@ -1937,14 +1937,8 @@ packages:
       react-dom: ^18.2.0
       react-router-dom: ^6.16.0
 
-  '@blocklet/payment-js@1.13.274':
-    resolution: {integrity: sha512-CkVEK0L+o3D2N5giuZMO2qTUZAdr0pvYqivFULOumYV0vVmuwlULLL3eoqs055zk5KtBUwLk9rwK5S92t3dqrA==}
-
   '@blocklet/payment-js@1.13.277':
     resolution: {integrity: sha512-AQDzwI5wm/KxpZX0qgfRgzHOKCIEwbgVifm6n8z05DCaJTUboDuTIiH9oFYgA1aUVpEZA2mEgfuHJAJzRd6eZg==}
-
-  '@blocklet/payment-types@1.13.274':
-    resolution: {integrity: sha512-JwM0c6SaalAmdLjQ9UmL2yc+k5x42nocQxxyGXn4AfjrvzmaaqINFLgvmqJAnzJHfRY40RtWzdL9xlMcD9rRow==}
 
   '@blocklet/payment-types@1.13.277':
     resolution: {integrity: sha512-EsMF+s/EIPEwnMQ1dhlTJAJy1shS5PaFSG9Ayf296iqEVWlgvDpAOz6wtyF1R0NaQC5KqJMz10ovTG10fDJngw==}
@@ -9216,6 +9210,10 @@ packages:
     resolution: {integrity: sha512-3z4JEipIzwFtLvDC3KigZEWH4ALWDHPr6XCq/xYi8O1AQ5lAtu6Ib6FO8KeQ8RdjwfIqHWOWk/zopW5g780s/w==}
     hasBin: true
 
+  openai@4.52.0:
+    resolution: {integrity: sha512-xmiNcdA9QJ5wffHpZDpIsge6AsPTETJ6h5iqDNuFQ7qGSNtonHn8Qe0VHy4UwLE8rBWiSqh4j+iSvuYZSeKkPg==}
+    hasBin: true
+
   openapi-enforcer@1.23.0:
     resolution: {integrity: sha512-Ja6kvNQ28jvCHpotNZkB129/dBg2IslMDV56aUSl1Dcs+bcd8lGJTq1NatGYsspGpURXvQnFA/q2K8V3AQoO3Q==}
 
@@ -9962,8 +9960,8 @@ packages:
       '@types/react':
         optional: true
 
-  react-photo-view@1.2.4:
-    resolution: {integrity: sha512-8G7yb0YgQuVgEMT3DopiROZyY8cgCDpba+G5MoxDkHNFOyqtw3r5T5tazYeifybPrvHWuKXj/bnAlBtQcpxyzQ==}
+  react-photo-view@1.2.6:
+    resolution: {integrity: sha512-Fq17yxkMIv0oFp7HOJr39HgCZRP6A9K5T5rixJ4flSUYT2OO3V8vNxEExjhIKgIrfmTu+mDnHYEsI9RRWi1JHw==}
     peerDependencies:
       react: '>=16.8.0'
       react-dom: '>=16.8.0'
@@ -12601,9 +12599,9 @@ snapshots:
       '@aws-crypto/sha256-browser': 3.0.0
       '@aws-crypto/sha256-js': 3.0.0
       '@aws-sdk/client-sso-oidc': 3.590.0(@aws-sdk/client-sts@3.590.0)
-      '@aws-sdk/client-sts': 3.590.0
+      '@aws-sdk/client-sts': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0)
       '@aws-sdk/core': 3.588.0
-      '@aws-sdk/credential-provider-node': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0(@aws-sdk/client-sts@3.590.0))(@aws-sdk/client-sts@3.590.0)
+      '@aws-sdk/credential-provider-node': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0)
       '@aws-sdk/middleware-bucket-endpoint': 3.587.0
       '@aws-sdk/middleware-expect-continue': 3.577.0
       '@aws-sdk/middleware-flexible-checksums': 3.587.0
@@ -12662,9 +12660,9 @@ snapshots:
     dependencies:
       '@aws-crypto/sha256-browser': 3.0.0
       '@aws-crypto/sha256-js': 3.0.0
-      '@aws-sdk/client-sts': 3.590.0
+      '@aws-sdk/client-sts': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0)
       '@aws-sdk/core': 3.588.0
-      '@aws-sdk/credential-provider-node': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0(@aws-sdk/client-sts@3.590.0))(@aws-sdk/client-sts@3.590.0)
+      '@aws-sdk/credential-provider-node': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0)
       '@aws-sdk/middleware-host-header': 3.577.0
       '@aws-sdk/middleware-logger': 3.577.0
       '@aws-sdk/middleware-recursion-detection': 3.577.0
@@ -12747,58 +12745,13 @@ snapshots:
     transitivePeerDependencies:
       - aws-crt
 
-  '@aws-sdk/client-sts@3.590.0':
-    dependencies:
-      '@aws-crypto/sha256-browser': 3.0.0
-      '@aws-crypto/sha256-js': 3.0.0
-      '@aws-sdk/client-sso-oidc': 3.590.0(@aws-sdk/client-sts@3.590.0)
-      '@aws-sdk/core': 3.588.0
-      '@aws-sdk/credential-provider-node': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0(@aws-sdk/client-sts@3.590.0))(@aws-sdk/client-sts@3.590.0)
-      '@aws-sdk/middleware-host-header': 3.577.0
-      '@aws-sdk/middleware-logger': 3.577.0
-      '@aws-sdk/middleware-recursion-detection': 3.577.0
-      '@aws-sdk/middleware-user-agent': 3.587.0
-      '@aws-sdk/region-config-resolver': 3.587.0
-      '@aws-sdk/types': 3.577.0
-      '@aws-sdk/util-endpoints': 3.587.0
-      '@aws-sdk/util-user-agent-browser': 3.577.0
-      '@aws-sdk/util-user-agent-node': 3.587.0
-      '@smithy/config-resolver': 3.0.1
-      '@smithy/core': 2.2.0
-      '@smithy/fetch-http-handler': 3.0.1
-      '@smithy/hash-node': 3.0.0
-      '@smithy/invalid-dependency': 3.0.0
-      '@smithy/middleware-content-length': 3.0.0
-      '@smithy/middleware-endpoint': 3.0.1
-      '@smithy/middleware-retry': 3.0.3
-      '@smithy/middleware-serde': 3.0.0
-      '@smithy/middleware-stack': 3.0.0
-      '@smithy/node-config-provider': 3.1.0
-      '@smithy/node-http-handler': 3.0.0
-      '@smithy/protocol-http': 4.0.0
-      '@smithy/smithy-client': 3.1.1
-      '@smithy/types': 3.0.0
-      '@smithy/url-parser': 3.0.0
-      '@smithy/util-base64': 3.0.0
-      '@smithy/util-body-length-browser': 3.0.0
-      '@smithy/util-body-length-node': 3.0.0
-      '@smithy/util-defaults-mode-browser': 3.0.3
-      '@smithy/util-defaults-mode-node': 3.0.3
-      '@smithy/util-endpoints': 2.0.1
-      '@smithy/util-middleware': 3.0.0
-      '@smithy/util-retry': 3.0.0
-      '@smithy/util-utf8': 3.0.0
-      tslib: 2.6.3
-    transitivePeerDependencies:
-      - aws-crt
-
   '@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)':
     dependencies:
       '@aws-crypto/sha256-browser': 3.0.0
       '@aws-crypto/sha256-js': 3.0.0
       '@aws-sdk/client-sso-oidc': 3.590.0(@aws-sdk/client-sts@3.590.0)
       '@aws-sdk/core': 3.588.0
-      '@aws-sdk/credential-provider-node': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0))
+      '@aws-sdk/credential-provider-node': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0)
       '@aws-sdk/middleware-host-header': 3.577.0
       '@aws-sdk/middleware-logger': 3.577.0
       '@aws-sdk/middleware-recursion-detection': 3.577.0
@@ -12837,7 +12790,6 @@ snapshots:
     transitivePeerDependencies:
       - '@aws-sdk/client-sso-oidc'
       - aws-crt
-    optional: true
 
   '@aws-sdk/core@3.588.0':
     dependencies:
@@ -12868,27 +12820,8 @@ snapshots:
       '@smithy/util-stream': 3.0.1
       tslib: 2.6.3
 
-  '@aws-sdk/credential-provider-ini@3.590.0(@aws-sdk/client-sso-oidc@3.590.0(@aws-sdk/client-sts@3.590.0))(@aws-sdk/client-sts@3.590.0)':
+  '@aws-sdk/credential-provider-ini@3.590.0':
     dependencies:
-      '@aws-sdk/client-sts': 3.590.0
-      '@aws-sdk/credential-provider-env': 3.587.0
-      '@aws-sdk/credential-provider-http': 3.587.0
-      '@aws-sdk/credential-provider-process': 3.587.0
-      '@aws-sdk/credential-provider-sso': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0(@aws-sdk/client-sts@3.590.0))
-      '@aws-sdk/credential-provider-web-identity': 3.587.0(@aws-sdk/client-sts@3.590.0)
-      '@aws-sdk/types': 3.577.0
-      '@smithy/credential-provider-imds': 3.1.0
-      '@smithy/property-provider': 3.1.0
-      '@smithy/shared-ini-file-loader': 3.1.0
-      '@smithy/types': 3.0.0
-      tslib: 2.6.3
-    transitivePeerDependencies:
-      - '@aws-sdk/client-sso-oidc'
-      - aws-crt
-
-  '@aws-sdk/credential-provider-ini@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0)':
-    dependencies:
-      '@aws-sdk/client-sts': 3.590.0
       '@aws-sdk/credential-provider-env': 3.587.0
       '@aws-sdk/credential-provider-http': 3.587.0
       '@aws-sdk/credential-provider-process': 3.587.0
@@ -12905,14 +12838,32 @@ snapshots:
       - aws-crt
     optional: true
 
-  '@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0(@aws-sdk/client-sts@3.590.0))(@aws-sdk/client-sts@3.590.0)':
+  '@aws-sdk/credential-provider-ini@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0))':
+    dependencies:
+      '@aws-sdk/client-sts': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0)
+      '@aws-sdk/credential-provider-env': 3.587.0
+      '@aws-sdk/credential-provider-http': 3.587.0
+      '@aws-sdk/credential-provider-process': 3.587.0
+      '@aws-sdk/credential-provider-sso': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0)
+      '@aws-sdk/credential-provider-web-identity': 3.587.0(@aws-sdk/client-sts@3.590.0)
+      '@aws-sdk/types': 3.577.0
+      '@smithy/credential-provider-imds': 3.1.0
+      '@smithy/property-provider': 3.1.0
+      '@smithy/shared-ini-file-loader': 3.1.0
+      '@smithy/types': 3.0.0
+      tslib: 2.6.3
+    transitivePeerDependencies:
+      - '@aws-sdk/client-sso-oidc'
+      - aws-crt
+
+  '@aws-sdk/credential-provider-node@3.590.0':
     dependencies:
       '@aws-sdk/credential-provider-env': 3.587.0
       '@aws-sdk/credential-provider-http': 3.587.0
-      '@aws-sdk/credential-provider-ini': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0(@aws-sdk/client-sts@3.590.0))(@aws-sdk/client-sts@3.590.0)
+      '@aws-sdk/credential-provider-ini': 3.590.0
       '@aws-sdk/credential-provider-process': 3.587.0
-      '@aws-sdk/credential-provider-sso': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0(@aws-sdk/client-sts@3.590.0))
-      '@aws-sdk/credential-provider-web-identity': 3.587.0(@aws-sdk/client-sts@3.590.0)
+      '@aws-sdk/credential-provider-sso': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0)
+      '@aws-sdk/credential-provider-web-identity': 3.587.0(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0))
       '@aws-sdk/types': 3.577.0
       '@smithy/credential-provider-imds': 3.1.0
       '@smithy/property-provider': 3.1.0
@@ -12923,12 +12874,13 @@ snapshots:
       - '@aws-sdk/client-sso-oidc'
       - '@aws-sdk/client-sts'
       - aws-crt
+    optional: true
 
   '@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0))':
     dependencies:
       '@aws-sdk/credential-provider-env': 3.587.0
       '@aws-sdk/credential-provider-http': 3.587.0
-      '@aws-sdk/credential-provider-ini': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0)
+      '@aws-sdk/credential-provider-ini': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0))
       '@aws-sdk/credential-provider-process': 3.587.0
       '@aws-sdk/credential-provider-sso': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0)
       '@aws-sdk/credential-provider-web-identity': 3.587.0(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0))
@@ -12943,6 +12895,25 @@ snapshots:
       - '@aws-sdk/client-sts'
       - aws-crt
     optional: true
+
+  '@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0)':
+    dependencies:
+      '@aws-sdk/credential-provider-env': 3.587.0
+      '@aws-sdk/credential-provider-http': 3.587.0
+      '@aws-sdk/credential-provider-ini': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0))
+      '@aws-sdk/credential-provider-process': 3.587.0
+      '@aws-sdk/credential-provider-sso': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0)
+      '@aws-sdk/credential-provider-web-identity': 3.587.0(@aws-sdk/client-sts@3.590.0)
+      '@aws-sdk/types': 3.577.0
+      '@smithy/credential-provider-imds': 3.1.0
+      '@smithy/property-provider': 3.1.0
+      '@smithy/shared-ini-file-loader': 3.1.0
+      '@smithy/types': 3.0.0
+      tslib: 2.6.3
+    transitivePeerDependencies:
+      - '@aws-sdk/client-sso-oidc'
+      - '@aws-sdk/client-sts'
+      - aws-crt
 
   '@aws-sdk/credential-provider-process@3.587.0':
     dependencies:
@@ -12951,19 +12922,6 @@ snapshots:
       '@smithy/shared-ini-file-loader': 3.1.0
       '@smithy/types': 3.0.0
       tslib: 2.6.3
-
-  '@aws-sdk/credential-provider-sso@3.590.0(@aws-sdk/client-sso-oidc@3.590.0(@aws-sdk/client-sts@3.590.0))':
-    dependencies:
-      '@aws-sdk/client-sso': 3.590.0
-      '@aws-sdk/token-providers': 3.587.0(@aws-sdk/client-sso-oidc@3.590.0(@aws-sdk/client-sts@3.590.0))
-      '@aws-sdk/types': 3.577.0
-      '@smithy/property-provider': 3.1.0
-      '@smithy/shared-ini-file-loader': 3.1.0
-      '@smithy/types': 3.0.0
-      tslib: 2.6.3
-    transitivePeerDependencies:
-      - '@aws-sdk/client-sso-oidc'
-      - aws-crt
 
   '@aws-sdk/credential-provider-sso@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)':
     dependencies:
@@ -12977,7 +12935,6 @@ snapshots:
     transitivePeerDependencies:
       - '@aws-sdk/client-sso-oidc'
       - aws-crt
-    optional: true
 
   '@aws-sdk/credential-provider-web-identity@3.587.0(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0))':
     dependencies:
@@ -12990,7 +12947,7 @@ snapshots:
 
   '@aws-sdk/credential-provider-web-identity@3.587.0(@aws-sdk/client-sts@3.590.0)':
     dependencies:
-      '@aws-sdk/client-sts': 3.590.0
+      '@aws-sdk/client-sts': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0)
       '@aws-sdk/types': 3.577.0
       '@smithy/property-provider': 3.1.0
       '@smithy/types': 3.0.0
@@ -13140,15 +13097,6 @@ snapshots:
       '@smithy/types': 3.0.0
       tslib: 2.6.3
 
-  '@aws-sdk/token-providers@3.587.0(@aws-sdk/client-sso-oidc@3.590.0(@aws-sdk/client-sts@3.590.0))':
-    dependencies:
-      '@aws-sdk/client-sso-oidc': 3.590.0(@aws-sdk/client-sts@3.590.0)
-      '@aws-sdk/types': 3.577.0
-      '@smithy/property-provider': 3.1.0
-      '@smithy/shared-ini-file-loader': 3.1.0
-      '@smithy/types': 3.0.0
-      tslib: 2.6.3
-
   '@aws-sdk/token-providers@3.587.0(@aws-sdk/client-sso-oidc@3.590.0)':
     dependencies:
       '@aws-sdk/client-sso-oidc': 3.590.0(@aws-sdk/client-sts@3.590.0)
@@ -13157,7 +13105,6 @@ snapshots:
       '@smithy/shared-ini-file-loader': 3.1.0
       '@smithy/types': 3.0.0
       tslib: 2.6.3
-    optional: true
 
   '@aws-sdk/types@3.577.0':
     dependencies:
@@ -13459,12 +13406,12 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@blocklet/ai-kit@0.1.37(@babel/core@7.24.7)(@types/node@18.19.37)(@types/react@18.3.3)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.23.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)':
+  '@blocklet/ai-kit@0.1.39(@babel/core@7.24.7)(@types/node@18.19.37)(@types/react@18.3.3)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.23.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)':
     dependencies:
       '@arcblock/did': 1.18.123
       '@arcblock/ux': 2.10.1(@babel/core@7.24.7)(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/icons-material@5.15.20(@mui/material@5.15.20(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/material@5.15.20(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/node@18.19.37)(@types/react@18.3.3)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.23.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       '@blocklet/logger': 1.16.28-beta-32519531
-      '@blocklet/payment-js': 1.13.274(encoding@0.1.13)
+      '@blocklet/payment-js': 1.13.277(encoding@0.1.13)
       '@blocklet/sdk': 1.16.28-beta-32519531(encoding@0.1.13)
       '@emotion/css': 11.11.2
       '@emotion/react': 11.11.4(@types/react@18.3.3)(react@18.3.1)
@@ -13485,10 +13432,10 @@ snapshots:
       json-stable-stringify: 1.1.1
       lodash: 4.17.21
       nanoid: 5.0.7
-      openai: 4.48.2(encoding@0.1.13)
+      openai: 4.52.0(encoding@0.1.13)
       react: 18.3.1
       react-markdown: 9.0.1(@types/react@18.3.3)(react@18.3.1)
-      react-photo-view: 1.2.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react-photo-view: 1.2.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react-use: 17.5.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       recoil: 0.7.7(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       sequelize: 6.37.3(sqlite3@5.1.7)
@@ -13524,7 +13471,7 @@ snapshots:
     dependencies:
       '@arcblock/ux': 2.10.1(@babel/core@7.24.7)(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/icons-material@5.15.20(@mui/material@5.15.20(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/material@5.15.20(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/node@18.19.37)(@types/react@18.3.3)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.23.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       '@blocklet/ai-builtin': 0.2.57(encoding@0.1.13)
-      '@blocklet/ai-kit': 0.1.37(@babel/core@7.24.7)(@types/node@18.19.37)(@types/react@18.3.3)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.23.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)
+      '@blocklet/ai-kit': 0.1.39(@babel/core@7.24.7)(@types/node@18.19.37)(@types/react@18.3.3)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.23.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)
       '@blocklet/dataset-sdk': 0.2.57(encoding@0.1.13)
       '@blocklet/sdk': 1.16.28-beta-32519531(encoding@0.1.13)
       '@emotion/css': 11.11.2
@@ -13848,7 +13795,7 @@ snapshots:
     dependencies:
       '@arcblock/ux': 2.10.1(@babel/core@7.24.7)(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/icons-material@5.15.20(@mui/material@5.15.20(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/material@5.15.20(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/node@18.19.37)(@types/react@18.3.3)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.23.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       '@blocklet/embed': 0.1.11(react@18.3.1)
-      '@blocklet/pages-kit': 0.2.349(vynvgrjfh7odobiv36rh5ve27m)
+      '@blocklet/pages-kit': 0.2.350(vynvgrjfh7odobiv36rh5ve27m)
       '@blocklet/pdf': 1.6.264(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(encoding@0.1.13)(react-dom@18.3.1(react@18.3.1))
       '@emotion/css': 11.11.2
       '@emotion/react': 11.11.4(@types/react@18.3.3)(react@18.3.1)
@@ -14056,11 +14003,11 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@blocklet/pages-kit@0.2.349(vynvgrjfh7odobiv36rh5ve27m)':
+  '@blocklet/pages-kit@0.2.350(vynvgrjfh7odobiv36rh5ve27m)':
     dependencies:
       '@arcblock/did-connect': 2.10.1(xdg2xlsndtvfllou6rwhlipi4a)
       '@arcblock/ux': 2.10.1(@babel/core@7.24.7)(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/icons-material@5.15.20(@mui/material@5.15.20(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/material@5.15.20(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/node@18.19.37)(@types/react@18.3.3)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.23.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
-      '@blocklet/ai-kit': 0.1.37(@babel/core@7.24.7)(@types/node@18.19.37)(@types/react@18.3.3)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.23.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)
+      '@blocklet/ai-kit': 0.1.39(@babel/core@7.24.7)(@types/node@18.19.37)(@types/react@18.3.3)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.23.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)
       '@blocklet/ai-runtime': 0.2.57(t5lyezq372hs5p3wccjlgqjr34)
       '@blocklet/js-sdk': 1.16.28-beta-32519531
       '@blocklet/sdk': 1.16.28-beta-32519531(encoding@0.1.13)
@@ -14126,17 +14073,6 @@ snapshots:
       - tedious
       - utf-8-validate
 
-  '@blocklet/payment-js@1.13.274(encoding@0.1.13)':
-    dependencies:
-      '@blocklet/payment-types': 1.13.274
-      '@blocklet/sdk': 1.16.28-beta-32519531(encoding@0.1.13)
-    transitivePeerDependencies:
-      - bufferutil
-      - debug
-      - encoding
-      - supports-color
-      - utf-8-validate
-
   '@blocklet/payment-js@1.13.277(encoding@0.1.13)':
     dependencies:
       '@blocklet/payment-types': 1.13.277
@@ -14147,8 +14083,6 @@ snapshots:
       - encoding
       - supports-color
       - utf-8-validate
-
-  '@blocklet/payment-types@1.13.274': {}
 
   '@blocklet/payment-types@1.13.277': {}
 
@@ -15133,7 +15067,7 @@ snapshots:
       uuid: 9.0.1
       zod: 3.23.8
     optionalDependencies:
-      '@aws-sdk/credential-provider-node': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0))
+      '@aws-sdk/credential-provider-node': 3.590.0
       faiss-node: 0.5.1
       lodash: 4.17.21
       redis: 4.6.14
@@ -17233,7 +17167,7 @@ snapshots:
   '@uppy/companion@4.13.3':
     dependencies:
       '@aws-sdk/client-s3': 3.591.0
-      '@aws-sdk/client-sts': 3.590.0
+      '@aws-sdk/client-sts': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0)
       '@aws-sdk/lib-storage': 3.591.0(@aws-sdk/client-s3@3.591.0)
       '@aws-sdk/s3-presigned-post': 3.591.0
       '@aws-sdk/s3-request-presigner': 3.591.0
@@ -23827,6 +23761,19 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
+  openai@4.52.0(encoding@0.1.13):
+    dependencies:
+      '@types/node': 18.19.37
+      '@types/node-fetch': 2.6.11
+      abort-controller: 3.0.0
+      agentkeepalive: 4.5.0
+      form-data-encoder: 1.7.2
+      formdata-node: 4.4.1
+      node-fetch: 2.7.0(encoding@0.1.13)
+      web-streams-polyfill: 3.3.3
+    transitivePeerDependencies:
+      - encoding
+
   openapi-enforcer@1.23.0:
     dependencies:
       js-yaml: 4.1.0
@@ -24669,7 +24616,7 @@ snapshots:
       - encoding
       - supports-color
 
-  react-photo-view@1.2.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+  react-photo-view@1.2.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
