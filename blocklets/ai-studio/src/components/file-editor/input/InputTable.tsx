@@ -28,6 +28,7 @@ import ChevronDownIcon from '@iconify-icons/tabler/chevron-down';
 import CursorTextIcon from '@iconify-icons/tabler/cursor-text';
 import DatabaseIcon from '@iconify-icons/tabler/database';
 import DotsIcon from '@iconify-icons/tabler/dots';
+import FormsIcon from '@iconify-icons/tabler/forms';
 import GripVertical from '@iconify-icons/tabler/grip-vertical';
 import HistoryIcon from '@iconify-icons/tabler/history';
 import InfoCircleIcon from '@iconify-icons/tabler/info-circle';
@@ -165,36 +166,38 @@ export default function InputTable({
             };
 
             return (
-              <Box height={33} display="flex" alignItems="center">
-                <Box className="center" width={16} height={16} mr={0.5}>
-                  <Box component={Icon} icon={iconMap[parameter.key]} />
-                </Box>
+              <Box height={33} display="flex" alignItems="center" gap={0.5}>
+                <Box component={Icon} icon={iconMap[parameter.key]} fontSize={16} />
                 <Box>{parameter.key}</Box>
               </Box>
             );
           }
 
           return (
-            <WithAwareness
-              projectId={projectId}
-              gitRef={gitRef}
-              sx={{ top: 4, right: -8 }}
-              path={[assistant.id, 'parameters', parameter?.id ?? '', 'key']}>
-              <Input
-                id={`${parameter.id}-key`}
-                fullWidth
-                readOnly={readOnly}
-                placeholder={t('inputParameterKeyPlaceholder')}
-                value={parameter.key || ''}
-                onChange={(e) => {
-                  const value = e.target.value.trim();
+            <Stack direction="row" alignItems="center" gap={0.5}>
+              <Box component={Icon} icon={FormsIcon} fontSize={16} />
 
-                  if (isValidVariableName(value)) {
-                    parameter.key = value;
-                  }
-                }}
-              />
-            </WithAwareness>
+              <WithAwareness
+                projectId={projectId}
+                gitRef={gitRef}
+                sx={{ top: 4, right: -8 }}
+                path={[assistant.id, 'parameters', parameter?.id ?? '', 'key']}>
+                <Input
+                  id={`${parameter.id}-key`}
+                  fullWidth
+                  readOnly={readOnly}
+                  placeholder={t('inputParameterKeyPlaceholder')}
+                  value={parameter.key || ''}
+                  onChange={(e) => {
+                    const value = e.target.value.trim();
+
+                    if (isValidVariableName(value)) {
+                      parameter.key = value;
+                    }
+                  }}
+                />
+              </WithAwareness>
+            </Stack>
           );
         },
       },
