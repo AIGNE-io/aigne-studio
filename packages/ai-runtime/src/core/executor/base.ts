@@ -263,7 +263,7 @@ export abstract class AgentExecutorBase {
           });
 
           const memories = Array.isArray(result) ? result : [];
-          const agentIds = new Set<string>(memories.map((i) => i.assistantId));
+          const agentIds = new Set(memories.map((i) => i.agentId).filter((i): i is NonNullable<typeof i> => !!i));
           const assistantNameMap = Object.fromEntries(
             (
               await Promise.all(
@@ -287,13 +287,10 @@ export abstract class AgentExecutorBase {
               ])
           );
 
-          memories.forEach((i) => {
-            if (i?.assistantId) {
-              i.name = assistantNameMap[i.assistantId];
-            }
-          });
-
-          variables[parameter.key] = memories;
+          variables[parameter.key] = memories.map((i) => ({
+            ...i,
+            name: i.agentId && assistantNameMap[i.agentId],
+          }));
         } else if (parameter.source?.variableFrom === 'blockletAPI' && parameter.source.api) {
           const { api } = parameter.source;
           const dataset = datasets.find((x) => x.id === api.id);

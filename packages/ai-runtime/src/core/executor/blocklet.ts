@@ -229,7 +229,7 @@ export const runRequestHistory = async ({
     inputParameters: params,
   });
 
-  const { data: result } = await call({
+  const { data: result } = await call<{ role: string; content: string; agentId?: string }[]>({
     name: AI_RUNTIME_COMPONENT_DID,
     path: '/api/messages',
     method: 'GET',
