@@ -242,6 +242,7 @@ function ProjectMenu() {
 
   const {
     state: { menuAnchor, projects, templates, examples },
+    refetch,
     createProject,
     deleteProject,
     updateProject,
@@ -355,6 +356,7 @@ function ProjectMenu() {
                 throw error;
               })
               .finally(() => {
+                refetch();
                 setMenuAnchor(undefined);
               });
           },

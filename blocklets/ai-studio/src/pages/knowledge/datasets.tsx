@@ -30,6 +30,7 @@ import {
   tooltipClasses,
   useMediaQuery,
 } from '@mui/material';
+import dayjs from 'dayjs';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { useCallback, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -118,6 +119,7 @@ export default function KnowledgeDatasets() {
                 blockletDid={item.blockletDid}
                 description={item.description}
                 documents={item.documents}
+                updatedAt={item.updatedAt}
                 onClick={() => navigate(withQuery(item.id, { blockletDid: item.blockletDid }))}
                 onDelete={() => onDelete(item.id)}
                 className="listItem"
@@ -237,6 +239,7 @@ function DatasetItemAdd({
 function DatasetItem({
   name,
   description,
+  updatedAt,
   documents,
   onDelete,
   onUpdate,
@@ -245,6 +248,7 @@ function DatasetItem({
 }: {
   name?: string;
   description?: string;
+  updatedAt?: Date;
   blockletDid?: string;
   documents?: number;
   onDelete: () => void;
@@ -270,7 +274,7 @@ function DatasetItem({
             <Box component={Icon} icon={BookIcon} fontSize={30} />
           </Box>
 
-          <Box width={0} flex={1}>
+          <Box width={0} flex={1} sx={{ display: 'flex', flexDirection: 'column' }}>
             <Box className="between">
               <Typography variant="subtitle1">{name || t('unnamed')}</Typography>
 
@@ -413,7 +417,13 @@ function DatasetItem({
                 </Box>
               )}
             </Box>
-            <Typography variant="subtitle3">{description || ''}</Typography>
+            <Box>
+              <Typography variant="subtitle3">{description || ''}</Typography>
+            </Box>
+
+            <Stack>
+              <Typography variant="subtitle3">{`更新于: ${dayjs(updatedAt).format('YYYY-MM-DD HH:mm:ss') || ''}`}</Typography>
+            </Stack>
           </Box>
         </Stack>
 
