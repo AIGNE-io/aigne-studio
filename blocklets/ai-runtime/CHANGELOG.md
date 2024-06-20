@@ -1,3 +1,10 @@
+## 0.2.61 (2024-6-21)
+
+- chore: display icon before the custom input/output
+- fix: the logo flashes when opening the agent view
+- chore: add docLink and placeholder for secret inputs
+- fix: run agent error if there is a input to retrieve chat history
+
 ## 0.2.60 (2024-6-20)
 
 - feat: add home page to display agent list
