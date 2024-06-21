@@ -1,3 +1,8 @@
+## 0.2.64 (2024-6-21)
+
+- chore: add screenshots for ai-runtime
+- chore: hide navigation for aigne runtime and generated resource blocklets
+
 ## 0.2.63 (2024-6-21)
 
 - fix: reset loading indicator after saving dialog is canceled
