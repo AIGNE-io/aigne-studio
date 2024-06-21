@@ -51,7 +51,10 @@ scripts:
 environments: []
 capabilities:
   navigation: false
-screenshots: []
+screenshots:
+  - runtime-blocklets.png
+  - runtime-agents.png
+  - runtime-mockplexity.png
 components:
   - name: ai-kit
     required: true
