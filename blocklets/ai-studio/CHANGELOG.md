@@ -1,3 +1,11 @@
+## 0.2.62 (2024-6-21)
+
+- polish knowledge card
+- chore: display loading indicator when updating project
+- Merge branch 'main' into feature-bugbash
+- fix: 租户隔离&知识库排序&修改 project信息立即生效
+- fix: 租户隔离&知识库排序&修改 project信息立即生效
+
 ## 0.2.61 (2024-6-21)
 
 - chore: display icon before the custom input/output

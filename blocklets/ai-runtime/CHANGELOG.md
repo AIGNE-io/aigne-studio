@@ -1,3 +1,7 @@
+## 0.2.62 (2024-6-21)
+
+- chore: improve projects/knowledge page ux
+
 ## 0.2.61 (2024-6-21)
 
 - chore: display icon before the custom input/output

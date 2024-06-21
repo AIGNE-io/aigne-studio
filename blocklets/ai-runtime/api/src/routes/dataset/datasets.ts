@@ -7,6 +7,7 @@ import { Config } from '@api/libs/env';
 import logger from '@api/libs/logger';
 import { getResourceKnowledgeList, getResourceKnowledgeWithData } from '@api/libs/resource';
 import DatasetContent from '@api/store/models/dataset/content';
+import config from '@blocklet/sdk/lib/config';
 import user from '@blocklet/sdk/lib/middlewares/user';
 import archiver from 'archiver';
 import compression from 'compression';
@@ -34,8 +35,13 @@ const getDatasetsQuerySchema = Joi.object<{ excludeResource?: boolean }>({
 });
 
 router.get('/', user(), ensureComponentCallOr(userAuth()), async (req, res) => {
-  const user =
-    !req.user || req.user.isAdmin ? {} : { [Op.or]: [{ createdBy: req.user.did }, { updatedBy: req.user.did }] };
+  let user = {};
+  if (!req.user || config.env.tenantMode === 'single') {
+    user = {};
+  } else {
+    // 多租户模式下，只能查看自己创建的知识库
+    user = { [Op.or]: [{ createdBy: req.user.did }, { updatedBy: req.user.did }] };
+  }
 
   const query = await getDatasetsQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
@@ -46,6 +52,7 @@ router.get('/', user(), ensureComponentCallOr(userAuth()), async (req, res) => {
   const datasets = await Dataset.findAll({
     where: { ...user },
     attributes: { include: [[sql, 'documents']] },
+    order: [['updatedAt', 'DESC']],
   });
 
   const resourceDatasets = query.excludeResource ? [] : await getResourceKnowledgeList();
