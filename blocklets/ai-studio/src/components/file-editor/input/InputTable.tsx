@@ -28,6 +28,7 @@ import ChevronDownIcon from '@iconify-icons/tabler/chevron-down';
 import CursorTextIcon from '@iconify-icons/tabler/cursor-text';
 import DatabaseIcon from '@iconify-icons/tabler/database';
 import DotsIcon from '@iconify-icons/tabler/dots';
+import FormsIcon from '@iconify-icons/tabler/forms';
 import GripVertical from '@iconify-icons/tabler/grip-vertical';
 import HistoryIcon from '@iconify-icons/tabler/history';
 import InfoCircleIcon from '@iconify-icons/tabler/info-circle';
@@ -49,6 +50,7 @@ import {
   FormControlLabel,
   IconButton,
   Input,
+  Link,
   List,
   ListItemIcon,
   MenuItem,
@@ -164,36 +166,38 @@ export default function InputTable({
             };
 
             return (
-              <Box height={33} display="flex" alignItems="center">
-                <Box className="center" width={16} height={16} mr={0.5}>
-                  <Box component={Icon} icon={iconMap[parameter.key]} />
-                </Box>
+              <Box height={33} display="flex" alignItems="center" gap={0.5}>
+                <Box component={Icon} icon={iconMap[parameter.key]} fontSize={16} />
                 <Box>{parameter.key}</Box>
               </Box>
             );
           }
 
           return (
-            <WithAwareness
-              projectId={projectId}
-              gitRef={gitRef}
-              sx={{ top: 4, right: -8 }}
-              path={[assistant.id, 'parameters', parameter?.id ?? '', 'key']}>
-              <Input
-                id={`${parameter.id}-key`}
-                fullWidth
-                readOnly={readOnly}
-                placeholder={t('inputParameterKeyPlaceholder')}
-                value={parameter.key || ''}
-                onChange={(e) => {
-                  const value = e.target.value.trim();
+            <Stack direction="row" alignItems="center" gap={0.5}>
+              <Box component={Icon} icon={FormsIcon} fontSize={16} />
 
-                  if (isValidVariableName(value)) {
-                    parameter.key = value;
-                  }
-                }}
-              />
-            </WithAwareness>
+              <WithAwareness
+                projectId={projectId}
+                gitRef={gitRef}
+                sx={{ top: 4, right: -8 }}
+                path={[assistant.id, 'parameters', parameter?.id ?? '', 'key']}>
+                <Input
+                  id={`${parameter.id}-key`}
+                  fullWidth
+                  readOnly={readOnly}
+                  placeholder={t('inputParameterKeyPlaceholder')}
+                  value={parameter.key || ''}
+                  onChange={(e) => {
+                    const value = e.target.value.trim();
+
+                    if (isValidVariableName(value)) {
+                      parameter.key = value;
+                    }
+                  }}
+                />
+              </WithAwareness>
+            </Stack>
           );
         },
       },
@@ -1116,6 +1120,34 @@ function SecretParameterView({ parameter }: { parameter: ParameterYjs }) {
             }}
           />
         </Box>
+
+        <Box>
+          <Typography variant="subtitle2">{t('docLink')}</Typography>
+
+          <TextField
+            hiddenLabel
+            fullWidth
+            placeholder={t('inputParameterLinkPlaceholder')}
+            value={parameter.docLink || ''}
+            onChange={(e) => {
+              parameter.docLink = e.target.value;
+            }}
+          />
+        </Box>
+
+        <Box>
+          <Typography variant="subtitle2">{t('placeholder')}</Typography>
+
+          <TextField
+            hiddenLabel
+            fullWidth
+            placeholder={t('inputParameterPlaceholderPlaceholder')}
+            value={parameter.placeholder || ''}
+            onChange={(e) => {
+              parameter.placeholder = e.target.value;
+            }}
+          />
+        </Box>
       </Stack>
     );
   }
@@ -1318,12 +1350,15 @@ function AuthorizeParametersFormDialog({
         <Stack gap={1}>
           {authInputs?.map((item, index) => (
             <Stack key={item.id}>
-              <Typography variant="caption">{item.label || item.key}</Typography>
+              <Typography variant="caption">
+                {item.label || item.key} {item.docLink && <Link href={item.docLink}>{t('docLink')}</Link>}
+              </Typography>
 
               <PasswordField
                 autoFocus={index === 0}
                 hiddenLabel
                 fullWidth
+                placeholder={item.placeholder}
                 {...form.register(item.key!, { required: true })}
               />
             </Stack>

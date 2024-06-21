@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-builtin",
-  "version": "0.2.60",
+  "version": "0.2.61",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -50,7 +50,7 @@
     "@blocklet/sdk": "^1.16.27",
     "lodash": "^4.17.21",
     "node-fetch": "2",
-    "typescript": "^5.4.5"
+    "typescript": "^5.5.2"
   },
   "devDependencies": {
     "@types/lodash": "^4.17.5",

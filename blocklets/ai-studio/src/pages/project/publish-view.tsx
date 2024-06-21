@@ -1,4 +1,4 @@
-import { AI_RUNTIME_MOUNT_POINT } from '@app/libs/constants';
+import { AIGNE_RUNTIME_MOUNT_POINT } from '@app/libs/constants';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { AssistantYjs } from '@blocklet/ai-runtime/types';
@@ -56,7 +56,7 @@ function PublishViewContent({
   const previewUrl = useMemo(() => {
     return joinURL(
       globalThis.location.origin,
-      AI_RUNTIME_MOUNT_POINT,
+      AIGNE_RUNTIME_MOUNT_POINT,
       'preview',
       stringifyIdentity({ projectId, projectRef, assistantId: assistant.id })
     );

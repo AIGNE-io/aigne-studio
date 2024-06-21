@@ -23,7 +23,7 @@ export async function getProject(
 export async function getProject({ blockletDid, projectId, working, rejectOnEmpty }: GetProjectOptions) {
   let project: ProjectSettings | undefined;
   if (blockletDid) {
-    project = await getProjectFromResource({ blockletDid, projectId });
+    project = (await getProjectFromResource({ blockletDid, projectId }))?.project;
   } else {
     project = await getProjectFromAIStudio({ projectId, working });
   }

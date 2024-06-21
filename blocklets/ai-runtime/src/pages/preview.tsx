@@ -1,5 +1,5 @@
 import ApplicationHeader from '@app/components/application/ApplicationHeader';
-import { AIGNE_RUNTIME_CUSTOM_COMPONENT_ID } from '@app/libs/constants';
+import { AIGNE_RUNTIME_CUSTOM_COMPONENT_ID } from '@blocklet/ai-runtime/constants';
 import { CustomComponentRenderer } from '@blocklet/pages-kit/components';
 import { useParams } from 'react-router-dom';
 

@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.2.60",
+  "version": "0.2.61",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -51,6 +51,10 @@
     "./common/*": {
       "import": "./lib/esm/common/*.js",
       "require": "./lib/cjs/common/*.js"
+    },
+    "./constants": {
+      "import": "./lib/esm/constants.js",
+      "require": "./lib/cjs/constants.js"
     }
   },
   "typesVersions": {
@@ -85,6 +89,9 @@
       ],
       "common/*": [
         "./lib/types/common/*.d.ts"
+      ],
+      "constants": [
+        "./lib/types/constants.d.ts"
       ]
     }
   },
@@ -114,7 +121,7 @@
   },
   "dependencies": {
     "@blocklet/ai-builtin": "workspace:^",
-    "@blocklet/ai-kit": "^0.1.39",
+    "@blocklet/ai-kit": "^0.1.40",
     "@blocklet/dataset-sdk": "workspace:^",
     "@blocklet/sdk": "^1.16.27",
     "@microsoft/fetch-event-source": "^2.0.1",
@@ -131,7 +138,7 @@
     "react-hook-form": "^7.52.0",
     "recoil": "^0.7.7",
     "snowflake-uuid": "^1.0.0",
-    "typescript": "^5.4.5",
+    "typescript": "^5.5.2",
     "ufo": "^1.5.3",
     "vm2": "^3.9.19"
   },
@@ -162,6 +169,6 @@
     "react-router-dom": "^6.23.1",
     "rimraf": "^5.0.7",
     "ts-jest": "^29.1.5",
-    "typescript": "^5.4.5"
+    "typescript": "^5.5.2"
   }
 }

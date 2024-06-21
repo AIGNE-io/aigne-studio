@@ -3,8 +3,8 @@ import ApplicationListView from '@app/components/application/ApplicationListView
 import ApplicationView from '@app/components/application/ApplicationView';
 import { useIsAdmin } from '@app/contexts/session';
 import { useResourceBlockletState } from '@app/contexts/use-resource-blocklet-state';
-import { AIGNE_STUDIO_COMPONENT_DID } from '@app/libs/constants';
 import Result from '@arcblock/ux/lib/Result';
+import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
 import { AddComponent } from '@blocklet/ui-react';
 import { LoadingButton } from '@mui/lab';
 
@@ -17,7 +17,7 @@ export default function HomePage() {
 
   return (
     <>
-      <ApplicationHeader hideNavMenu={!!app} />
+      <ApplicationHeader application={app} />
 
       {!applications?.length ? (
         <Result

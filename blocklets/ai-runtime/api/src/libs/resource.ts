@@ -315,7 +315,7 @@ export const getProjectFromResource = async ({
   const resources = await initResources();
   for (const t of type ? [type].flat() : ResourceTypes) {
     const p = resources.agents[t]?.blockletMap[blockletDid]?.projectMap[projectId];
-    if (p) return p.project;
+    if (p) return p;
   }
   return undefined;
 };
