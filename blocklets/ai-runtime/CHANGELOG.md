@@ -1,3 +1,9 @@
+## 0.2.63 (2024-6-21)
+
+- fix: reset loading indicator after saving dialog is canceled
+- chore: set agent detail link to the agent blocklet mount point
+- chore: display agent logo and name in the preview header
+
 ## 0.2.62 (2024-6-21)
 
 - chore: improve projects/knowledge page ux
