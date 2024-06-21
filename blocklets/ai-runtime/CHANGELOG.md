@@ -1,3 +1,8 @@
+## 0.2.63 (2024-6-21)
+
+- chore: add screenshots for ai-runtime
+- chore: hide navigation for aigne runtime and generated resource blocklets
+
 ## 0.2.62 (2024-6-21)
 
 - chore: improve projects/knowledge page ux
