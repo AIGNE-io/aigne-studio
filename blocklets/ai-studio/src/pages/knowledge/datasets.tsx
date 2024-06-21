@@ -1,4 +1,6 @@
+import DID from '@arcblock/ux/lib/DID';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
 import BookIcon from '@iconify-icons/tabler/book-2';
@@ -30,7 +32,6 @@ import {
   tooltipClasses,
   useMediaQuery,
 } from '@mui/material';
-import dayjs from 'dayjs';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { useCallback, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -420,34 +421,26 @@ function DatasetItem({
             <Box>
               <Typography variant="subtitle3">{description || ''}</Typography>
             </Box>
-
-            <Stack>
-              <Typography variant="subtitle3">{`更新于: ${dayjs(updatedAt).format('YYYY-MM-DD HH:mm:ss') || ''}`}</Typography>
-            </Stack>
           </Box>
         </Stack>
 
-        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Typography variant="subtitle5">{`${documents || 0} ${(documents || 0) > 0 ? t('knowledge.documents.documents') : t('knowledge.documents.document')}`}</Typography>
-          {blockletDid && (
-            <Tooltip title={blockletDid}>
-              <Typography
-                variant="subtitle5"
-                sx={{
-                  borderRadius: '6px',
-                  fontWeight: 500,
-                  background: 'rgb(241, 110, 110)',
-                  color: 'rgb(255, 255, 255)',
-                  padding: '2px 8px',
-                  fontSize: '12px',
-                  height: '20px',
-                  lineHeight: '16px',
-                }}>
-                资源数据
-              </Typography>
-            </Tooltip>
+        <Stack direction="row" justifyContent="space-between">
+          <Stack direction="row" gap={1} alignItems="center">
+            <Typography variant="caption">{`${documents || 0} ${(documents || 0) > 0 ? t('knowledge.documents.documents') : t('knowledge.documents.document')}`}</Typography>
+
+            {blockletDid && (
+              <Box maxWidth={200}>
+                <DID did={blockletDid} copyable={false} />
+              </Box>
+            )}
+          </Stack>
+
+          {updatedAt && (
+            <Typography variant="caption" color="text.secondary">
+              <RelativeTime value={updatedAt} />
+            </Typography>
           )}
-        </Box>
+        </Stack>
       </DatasetItemRoot>
 
       {dialog}
