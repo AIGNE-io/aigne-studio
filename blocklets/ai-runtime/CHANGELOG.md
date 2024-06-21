@@ -1,3 +1,7 @@
+## 0.2.66 (2024-6-21)
+
+- fix: invalid knowledge resource blocklet metadata
+
 ## 0.2.65 (2024-6-21)
 
 - fix: generated images not display in the debug view
