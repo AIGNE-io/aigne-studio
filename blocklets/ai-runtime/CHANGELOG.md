@@ -1,7 +1,8 @@
 ## 0.2.63 (2024-6-21)
 
-- chore: add screenshots for ai-runtime
-- chore: hide navigation for aigne runtime and generated resource blocklets
+- fix: reset loading indicator after saving dialog is canceled
+- chore: set agent detail link to the agent blocklet mount point
+- chore: display agent logo and name in the preview header
 
 ## 0.2.62 (2024-6-21)
 

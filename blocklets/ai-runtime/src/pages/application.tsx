@@ -15,7 +15,7 @@ export default function ApplicationPage() {
 
   return (
     <>
-      <ApplicationHeader />
+      <ApplicationHeader application={application} />
 
       {application ? (
         <ApplicationView application={application} />

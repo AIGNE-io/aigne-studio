@@ -78,10 +78,14 @@ const locales: { [key in 'en' | 'zh']: { [key: string]: string } } = {
 };
 
 export function resourceRoutes(router: Router) {
-  const getExportedResourceQuerySchema = Joi.object<{ resourcesParams?: { projectId?: string }; locale?: string }>({
+  const getExportedResourceQuerySchema = Joi.object<{
+    resourcesParams?: { projectId?: string; hideOthers?: boolean };
+    locale?: string;
+  }>({
     locale: Joi.string().empty([null, '']),
     resourcesParams: Joi.object({
       projectId: Joi.string().empty([null, '']),
+      hideOthers: Joi.boolean().empty([null, '']),
     }),
   });
 
@@ -142,7 +146,7 @@ export function resourceRoutes(router: Router) {
               description: entry ? undefined : 'No such entry agent, You have to create an entry agent first',
               dependentComponents,
             },
-            {
+            !query.resourcesParams?.hideOthers && {
               id: `other/${x.id}`,
               name: locale.other,
               children: ResourceTypes.filter((i) => i !== 'application').map((type) => ({

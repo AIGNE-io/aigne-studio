@@ -1,15 +1,12 @@
 ## 0.2.63 (2024-6-21)
 
-- chore: add screenshots for ai-runtime
-- chore: hide navigation for aigne runtime and generated resource blocklets
+- fix: reset loading indicator after saving dialog is canceled
+- chore: set agent detail link to the agent blocklet mount point
+- chore: display agent logo and name in the preview header
 
 ## 0.2.62 (2024-6-21)
 
-- polish knowledge card
-- chore: display loading indicator when updating project
-- Merge branch 'main' into feature-bugbash
-- fix: 租户隔离&知识库排序&修改 project信息立即生效
-- fix: 租户隔离&知识库排序&修改 project信息立即生效
+- chore: improve projects/knowledge page ux
 
 ## 0.2.61 (2024-6-21)
 

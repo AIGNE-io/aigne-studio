@@ -13,6 +13,7 @@ import { Box, Tooltip } from '@mui/material';
 import { Suspense, useEffect, useState } from 'react';
 
 import { saveButtonState, useProjectState } from '../state';
+import { useProjectStore } from '../yjs-state';
 
 export default function PublishButton({ ...props }: LoadingButtonProps) {
   const { t } = useLocaleContext();
@@ -71,6 +72,12 @@ function PublishDialog({
 }) {
   const [logo] = useState(() => getProjectIconUrl(project.id, project.updatedAt, { original: true }));
 
+  const { projectId, projectRef } = useCurrentProject();
+  const { store, config } = useProjectStore(projectId, projectRef);
+  const hasEntry = store.files[config?.entry!];
+
+  const isAdmin = useIsAdmin();
+
   if (!project) return null;
 
   return (
@@ -85,7 +92,7 @@ function PublishDialog({
         logo={logo}
         componentDid={AIGNE_STUDIO_COMPONENT_DID}
         // 透传到 get blocklet resource 的参数
-        resourcesParams={{ projectId: project.id }}
+        resourcesParams={{ projectId: project.id, hideOthers: !isAdmin }}
         dependentComponentsMode="readonly"
         open
         setOpen={() => onClose()}
@@ -95,7 +102,7 @@ function PublishDialog({
         onOpened={() => onOpened?.()}
         // 默认选中的资源
         resources={{
-          [AIGNE_STUDIO_COMPONENT_DID]: [],
+          [AIGNE_STUDIO_COMPONENT_DID]: hasEntry ? [`application/${project.id}`] : [],
         }}
       />
     </Suspense>
