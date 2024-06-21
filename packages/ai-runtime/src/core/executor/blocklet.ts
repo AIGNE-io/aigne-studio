@@ -289,9 +289,7 @@ export async function runKnowledgeTool({
     headers: getUserHeader(user),
   });
 
-  if (!knowledge) {
-    return undefined;
-  }
+  if (!knowledge) throw new Error(`No such knowledge ${tool.id}`);
 
   const callbackParams = {
     taskId,

@@ -110,7 +110,10 @@ router.get('/:datasetId/export-resource', user(), ensureComponentCallOrAdmin(), 
     await mkdir(knowledgeWithIdPath, { recursive: true });
 
     // 首先将 projects documents contents 继续数据结构化
-    await writeFile(join(knowledgeWithIdPath, 'knowledge.yaml'), stringify({ ...dataset, public: query.public }));
+    await writeFile(
+      join(knowledgeWithIdPath, 'knowledge.yaml'),
+      stringify({ ...dataset.dataValues, public: query.public })
+    );
     await writeFile(join(knowledgeWithIdPath, 'contents.yaml'), stringify(contents));
 
     // 复制 files 数据
