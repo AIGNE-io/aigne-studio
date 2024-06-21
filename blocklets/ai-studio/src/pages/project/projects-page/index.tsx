@@ -321,7 +321,7 @@ function ProjectMenu() {
               okText: t('save'),
               okIcon: <SaveRoundedIcon />,
               onOk: async () => {
-                updateProject(id, { name, description })
+                await updateProject(id, { name, description })
                   .catch((error) => {
                     Toast.error(getErrorMessage(error));
                     throw error;
