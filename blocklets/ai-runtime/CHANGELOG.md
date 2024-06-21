@@ -1,3 +1,7 @@
+## 0.2.65 (2024-6-21)
+
+- fix: generated images not display in the debug view
+
 ## 0.2.64 (2024-6-21)
 
 - chore: add screenshots for ai-runtime
