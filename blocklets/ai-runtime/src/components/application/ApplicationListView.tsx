@@ -1,11 +1,21 @@
 import DID from '@arcblock/ux/lib/DID';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import { RuntimeResourceBlockletState } from '@blocklet/ai-runtime/types/runtime/runtime-resource-blocklet-state';
-import { Avatar, Box, Card, CardActionArea, CardContent, Container, Grid, Stack, Typography } from '@mui/material';
-import { Link } from 'react-router-dom';
+import {
+  Avatar,
+  Box,
+  Card,
+  CardActionArea,
+  CardContent,
+  Container,
+  Grid,
+  Link,
+  Stack,
+  Typography,
+} from '@mui/material';
 import { joinURL, withQuery } from 'ufo';
 
-const componentVersionMap = Object.fromEntries(window.blocklet.componentMountPoints.map((i) => [i.did, i.version]));
+const blockletsMap = Object.fromEntries(window.blocklet.componentMountPoints.map((i) => [i.did, i]));
 
 export default function ApplicationListView({
   applications,
@@ -20,7 +30,12 @@ export default function ApplicationListView({
             <Card sx={{ height: '100%' }}>
               <CardActionArea
                 component={Link}
-                to={withQuery(joinURL('/apps', application.aid), { blockletDid: application.blockletDid })}
+                href={
+                  blockletsMap[application.blockletDid]?.mountPoint ||
+                  withQuery(joinURL(window.blocklet.prefix, '/apps', application.aid), {
+                    blockletDid: application.blockletDid,
+                  })
+                }
                 sx={{ height: '100%' }}>
                 <CardContent sx={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 1 }}>
                   <Stack direction="row" spacing={2}>
@@ -28,7 +43,7 @@ export default function ApplicationListView({
                       src={joinURL(
                         '/.well-known/service/blocklet/logo-bundle',
                         application.blockletDid,
-                        `?v=${componentVersionMap[application.blockletDid]}`
+                        `?v=${blockletsMap[application.blockletDid]?.version}`
                       )}
                       variant="rounded"
                       sx={{ width: 80, height: 80 }}
