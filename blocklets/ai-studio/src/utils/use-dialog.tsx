@@ -69,7 +69,13 @@ export default function useDialog() {
               <DialogTitle className="between">
                 <Box>{title}</Box>
 
-                <IconButton size="small" onClick={() => closeDialog()}>
+                <IconButton
+                  size="small"
+                  onClick={async () => {
+                    await onCancel?.();
+                    closeDialog();
+                    props.onClose?.();
+                  }}>
                   <Close />
                 </IconButton>
               </DialogTitle>
