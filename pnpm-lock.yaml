@@ -130,6 +130,9 @@ importers:
       '@blocklet/discuss-kit':
         specifier: ^1.6.264
         version: 1.6.264(@babel/core@7.24.7)(@blocklet/js-sdk@1.16.28-beta-32519531)(@emotion/cache@11.11.0)(@emotion/css@11.11.2)(@types/node@18.19.38)(@types/react@18.3.3)(encoding@0.1.13)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.23.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(yjs@13.6.18)
+      '@blocklet/js-sdk':
+        specifier: 1.16.28-beta-32519531
+        version: 1.16.28-beta-32519531
       '@blocklet/logger':
         specifier: 1.16.28-beta-32519531
         version: 1.16.28-beta-32519531
@@ -169,6 +172,9 @@ importers:
       '@ocap/wallet':
         specifier: ^1.18.123
         version: 1.18.123
+      ahooks:
+        specifier: ^3.8.0
+        version: 3.8.0(react@18.3.1)
       archiver:
         specifier: ^7.0.1
         version: 7.0.1

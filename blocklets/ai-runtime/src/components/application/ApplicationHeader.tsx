@@ -1,5 +1,4 @@
 import DID from '@arcblock/ux/lib/DID';
-import { RuntimeResourceBlockletState } from '@blocklet/ai-runtime/types/runtime/runtime-resource-blocklet-state';
 import { useHeaderState } from '@blocklet/pages-kit/builtin/page/header';
 import Header from '@blocklet/ui-react/lib/Header';
 import { Avatar, Box, Stack, Theme, Typography, useMediaQuery } from '@mui/material';
@@ -8,7 +7,7 @@ import { joinURL, withQuery } from 'ufo';
 export default function ApplicationHeader({
   application,
 }: {
-  application?: RuntimeResourceBlockletState['applications'][number];
+  application?: { aid: string; blockletDid?: string; project?: { name?: string; createdBy?: string } };
 }) {
   const { addons } = useHeaderState();
 
@@ -27,22 +26,24 @@ export default function ApplicationHeader({
       />
     );
 
-    if (!isMobile) {
+    if (!isMobile && application.project) {
       props.brand = (
         <Box
           sx={{
             height: 18,
             fontSize: 18,
           }}>
-          {application.project.name || 'Unnamed'}
+          {application.project?.name || 'Unnamed'}
         </Box>
       );
-      props.description = (
-        <Stack direction="row" alignItems="center" maxWidth={200} fontSize={12} gap={1}>
-          <Typography variant="caption">By</Typography>
-          <Box component={DID} did={application.project.createdBy} copyable={false} sx={{ flex: 1, width: 1 }} />
-        </Stack>
-      );
+      if (application.project.createdBy) {
+        props.description = (
+          <Stack direction="row" alignItems="center" maxWidth={200} fontSize={12} gap={1}>
+            <Typography variant="caption">By</Typography>
+            <Box component={DID} did={application.project.createdBy} copyable={false} sx={{ flex: 1, width: 1 }} />
+          </Stack>
+        );
+      }
     }
   }
 
