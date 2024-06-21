@@ -329,20 +329,26 @@ export function resourceRoutes(router: Router) {
       await exportKnowledgeList(folderPath, kbList);
     }
 
+    // generate partial blocklet.yml
+    const blockletYml: any = {
+      capabilities: {
+        navigation: false,
+      },
+    };
+
     if (resourceTypes.some((i) => i[0] === 'application')) {
-      const releaseDir = component.getReleaseExportDir({ projectId, releaseId });
-      await writeFile(
-        path.join(releaseDir, 'blocklet.yml'),
-        `\
-engine:
-  interpreter: blocklet
-  source:
-    store: ${Config.createResourceBlockletEngineStore}
-    name: ${AIGNE_RUNTIME_COMPONENT_DID}
-    version: latest
-`
-      );
+      blockletYml.engine = {
+        interpreter: 'blocklet',
+        source: {
+          store: Config.createResourceBlockletEngineStore,
+          name: AIGNE_RUNTIME_COMPONENT_DID,
+          version: 'latest',
+        },
+      };
     }
+
+    const releaseDir = component.getReleaseExportDir({ projectId, releaseId });
+    await writeFile(path.join(releaseDir, 'blocklet.yml'), stringify(blockletYml));
 
     return res.json(arr);
   });

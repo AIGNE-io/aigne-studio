@@ -50,7 +50,7 @@ scripts:
   dev: npm run start
 environments: []
 capabilities:
-  navigation: true
+  navigation: false
 screenshots: []
 components:
   - name: ai-kit
