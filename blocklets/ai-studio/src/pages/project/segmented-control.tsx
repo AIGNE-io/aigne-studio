@@ -1,9 +1,10 @@
-import { Paper, SxProps, ToggleButton, ToggleButtonGroup } from '@mui/material';
+import { Badge, Paper, SxProps, ToggleButton, ToggleButtonGroup } from '@mui/material';
 
 interface Option {
   value: string;
   label: React.ReactNode;
   icon?: React.ReactNode;
+  count?: number;
 }
 
 interface Props {
@@ -54,6 +55,18 @@ export default function SegmentedControl({ value, options, onChange, sx, ...rest
             <ToggleButton key={x.value} value={x.value}>
               {x.icon ?? null}
               {x.label}
+              {x.count ? (
+                <Badge
+                  badgeContent={x.count}
+                  sx={{
+                    '.MuiBadge-badge': {
+                      position: 'relative',
+                      transformOrigin: '0 0',
+                      transform: 'matrix(1,0,0,1,0,0)',
+                    },
+                  }}
+                />
+              ) : null}
             </ToggleButton>
           );
         })}
