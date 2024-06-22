@@ -1,3 +1,7 @@
+## 0.3.1 (2024-6-22)
+
+- fix: allow select components from pages-kit and resource blocklets
+
 ## 0.3.0 (2024-6-22)
 
 - chore: update deps

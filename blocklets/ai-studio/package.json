@@ -1,6 +1,6 @@
 {
   "name": "ai-studio",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
   "scripts": {
     "debug": "bn-dev",
@@ -177,7 +177,7 @@
     "@types/lodash": "^4.17.5",
     "@types/multer": "^1.4.11",
     "@types/mustache": "^4.2.5",
-    "@types/node": "^18.19.38",
+    "@types/node": "^18.19.39",
     "@types/pdf-parse": "^1.1.4",
     "@types/react": "^18.3.3",
     "@types/react-color": "^3.0.12",

@@ -46,7 +46,7 @@ jobs:
           skip-release: true
           skip-upload: false
           skip-deploy: true
-          working-directory: blocklets/ai-studio
+          working-directory: blocklets/ai-runtime
           bundle-command: pnpm bundle
           store-endpoint: ${{ secrets.STORE_ENDPOINT_PROD }}
           store-access-token: ${{ secrets.STORE_ACCESS_TOKEN_PROD }}
@@ -63,7 +63,7 @@ jobs:
           skip-release: true
           skip-upload: false
           skip-deploy: true
-          working-directory: blocklets/ai-runtime
+          working-directory: blocklets/ai-studio
           bundle-command: pnpm bundle
           store-endpoint: ${{ secrets.STORE_ENDPOINT_PROD }}
           store-access-token: ${{ secrets.STORE_ACCESS_TOKEN_PROD }}
