@@ -1,3 +1,7 @@
+## 0.3.0 (2024-6-22)
+
+- chore: update deps
+
 ## 0.2.66 (2024-6-21)
 
 - fix: invalid knowledge resource blocklet metadata
