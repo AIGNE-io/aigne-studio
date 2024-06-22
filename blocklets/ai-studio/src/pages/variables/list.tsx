@@ -192,9 +192,9 @@ function VariableList() {
         <SegmentedControl
           value={scope}
           options={[
-            { value: 'global', label: t('variableParameter.global'), count: scopeCount.global },
-            { value: 'user', label: t('variableParameter.user'), count: scopeCount.user },
-            { value: 'session', label: t('variableParameter.session'), count: scopeCount.session },
+            { value: 'global', label: t('variableParameter.global'), count: scopeCount?.global },
+            { value: 'user', label: t('variableParameter.user'), count: scopeCount?.user },
+            { value: 'session', label: t('variableParameter.session'), count: scopeCount?.session },
           ]}
           onChange={(value: 'global' | 'user' | 'session') => {
             if (value) setScope(value);
