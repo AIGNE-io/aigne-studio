@@ -1,3 +1,7 @@
+## 0.3.4 (2024-6-24)
+
+- chore: add close icon on setting drawer
+
 ## 0.3.3 (2024-6-24)
 
 - fix: copy example project configurations
