@@ -67,7 +67,7 @@ const tabListInfo: { list: string[] } = {
   list: ['basic', 'modelInfo', 'git', 'didSpaces', 'appearance'],
 };
 
-export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxProps; onClose: () => void }) {
+export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxProps; onClose?: () => void }) {
   const { t } = useLocaleContext();
   const { projectId = '' } = useParams();
   if (!projectId) throw new Error('Missing required params `projectId`');
@@ -205,7 +205,7 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
 
   return (
     <Box overflow="auto" {...boxProps}>
-      {!isMobile && (
+      {onClose && !isMobile && (
         <Box
           sx={{
             position: 'sticky',
@@ -215,7 +215,9 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
             bgcolor: '#fff',
             zIndex: 10000,
           }}>
-          <Button onClick={onClose} startIcon={<CloseRounded />} sx={{ minWidth: 0, mt: 1 }} />
+          <Button onClick={onClose} sx={{ minWidth: 32, minHeight: 32, mt: 1, mx: 1 }}>
+            <CloseRounded />
+          </Button>
         </Box>
       )}
 
