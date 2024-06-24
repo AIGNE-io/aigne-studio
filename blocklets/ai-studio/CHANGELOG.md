@@ -1,3 +1,7 @@
+## 0.3.3 (2024-6-24)
+
+- fix: copy example project configurations
+
 ## 0.3.2 (2024-6-24)
 
 - chore: updated deps
