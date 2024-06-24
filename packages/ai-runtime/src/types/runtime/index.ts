@@ -4,6 +4,7 @@ import type { ExecuteBlock, Role } from '../assistant';
 import { RuntimeOutputVariablesSchema } from './schema';
 
 export * from './schema';
+export * from './error';
 
 export enum ExecutionPhase {
   EXECUTE_BLOCK_START = 'EXECUTE_BLOCK_START',
@@ -57,7 +58,7 @@ export type RunAssistantInput = {
   parentTaskId?: string;
   assistantId: string;
   assistantName?: string;
-  inputParameters?: { [key: string]: string };
+  inputParameters?: { [key: string]: any };
   apiArgs?: any;
   fnArgs?: any;
   promptMessages?: PromptMessages;

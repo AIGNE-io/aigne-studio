@@ -1,4 +1,6 @@
+import DID from '@arcblock/ux/lib/DID';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
 import BookIcon from '@iconify-icons/tabler/book-2';
@@ -34,6 +36,7 @@ import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { useCallback, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
+import { withQuery } from 'ufo';
 
 import { useDatasets } from '../../contexts/datasets/datasets';
 import { getErrorMessage } from '../../libs/api';
@@ -99,7 +102,7 @@ export default function KnowledgeDatasets() {
 
   return (
     <>
-      <Stack m={2.5} overflow="auto">
+      <Stack p={2.5} height={1} overflow="auto">
         <ListContainer gap={1.25}>
           <DatasetItemAdd
             name={t('knowledge.createTitle')}
@@ -114,9 +117,11 @@ export default function KnowledgeDatasets() {
                 p={2}
                 key={item.id}
                 name={item.name}
+                blockletDid={item.blockletDid}
                 description={item.description}
                 documents={item.documents}
-                onClick={() => navigate(item.id)}
+                updatedAt={item.updatedAt}
+                onClick={() => navigate(withQuery(item.id, { blockletDid: item.blockletDid }))}
                 onDelete={() => onDelete(item.id)}
                 className="listItem"
                 onUpdate={(data) => onUpdate(item.id, data)}
@@ -235,13 +240,17 @@ function DatasetItemAdd({
 function DatasetItem({
   name,
   description,
+  updatedAt,
   documents,
   onDelete,
   onUpdate,
+  blockletDid,
   ...props
 }: {
   name?: string;
   description?: string;
+  updatedAt?: Date;
+  blockletDid?: string;
   documents?: number;
   onDelete: () => void;
   onUpdate: (data: { name: string; description: string }) => void;
@@ -266,152 +275,172 @@ function DatasetItem({
             <Box component={Icon} icon={BookIcon} fontSize={30} />
           </Box>
 
-          <Box width={0} flex={1}>
+          <Box width={0} flex={1} sx={{ display: 'flex', flexDirection: 'column' }}>
             <Box className="between">
               <Typography variant="subtitle1">{name || t('unnamed')}</Typography>
 
-              <Box display="flex" alignItems="center">
-                <Stack
-                  component="span"
-                  className="hover-visible"
-                  justifyContent="center"
-                  alignItems="flex-end"
-                  overflow="hidden"
-                  sx={{ maxWidth: open ? '100%' : isMobile ? '100%' : 0 }}>
-                  <Tooltip
-                    open={open}
-                    placement="right-start"
-                    onClose={() => setOpen(false)}
-                    disableFocusListener
-                    disableHoverListener
-                    disableTouchListener
-                    componentsProps={{
-                      popper: {
-                        sx: {
-                          [`&.${tooltipClasses.popper}[data-popper-placement*="left"] .${tooltipClasses.tooltip}`]: {
-                            mr: 1,
-                          },
-                          [`&.${tooltipClasses.popper}[data-popper-placement*="right"] .${tooltipClasses.tooltip}`]: {
-                            ml: 1,
+              {!blockletDid && (
+                <Box display="flex" alignItems="center">
+                  <Stack
+                    component="span"
+                    className="hover-visible"
+                    justifyContent="center"
+                    alignItems="flex-end"
+                    overflow="hidden"
+                    sx={{ maxWidth: open ? '100%' : isMobile ? '100%' : 0 }}>
+                    <Tooltip
+                      open={open}
+                      placement="right-start"
+                      onClose={() => setOpen(false)}
+                      disableFocusListener
+                      disableHoverListener
+                      disableTouchListener
+                      componentsProps={{
+                        popper: {
+                          sx: {
+                            [`&.${tooltipClasses.popper}[data-popper-placement*="left"] .${tooltipClasses.tooltip}`]: {
+                              mr: 1,
+                            },
+                            [`&.${tooltipClasses.popper}[data-popper-placement*="right"] .${tooltipClasses.tooltip}`]: {
+                              ml: 1,
+                            },
                           },
                         },
-                      },
-                      tooltip: { sx: { bgcolor: 'background.paper', boxShadow: 1, m: 0, p: 0.5 } },
-                    }}
-                    title={
-                      <ClickAwayListener onClickAway={() => setOpen(false)}>
-                        <Paper elevation={0}>
-                          <List onClick={() => setOpen(false)}>
-                            <MenuItem
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setOpen(false);
-
-                                let newName = '';
-                                let newDescription = '';
-
-                                showDialog({
-                                  maxWidth: 'sm',
-                                  fullWidth: true,
-                                  title: (
-                                    <Box sx={{ wordWrap: 'break-word' }}>
-                                      {t('editObject', { object: t('knowledge.knowledge') })}
-                                    </Box>
-                                  ),
-                                  content: (
-                                    <Stack gap={2}>
-                                      <Box>
-                                        <Typography variant="subtitle2">{t('name')}</Typography>
-                                        <TextField
-                                          hiddenLabel
-                                          fullWidth
-                                          placeholder={t('knowledge.namePlaceholder')}
-                                          defaultValue={name}
-                                          onChange={(e) => (newName = e.target.value)}
-                                        />
-                                      </Box>
-
-                                      <Box>
-                                        <Typography variant="subtitle2">{t('description')}</Typography>
-                                        <TextField
-                                          hiddenLabel
-                                          fullWidth
-                                          multiline
-                                          minRows={2}
-                                          defaultValue={description}
-                                          onChange={(e) => (newDescription = e.target.value)}
-                                        />
-                                      </Box>
-                                    </Stack>
-                                  ),
-                                  okIcon: <Icon icon={FloppyIcon} />,
-                                  okText: t('save'),
-                                  cancelText: t('cancel'),
-                                  onOk: () => onUpdate({ name: newName, description: newDescription }),
-                                });
-                              }}>
-                              <Box component={Icon} icon={PencilIcon} mr={1} width={15} />
-                              {t('edit')}
-                            </MenuItem>
-
-                            <MenuItem
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setOpen(false);
-
-                                showDialog({
-                                  formSx: {
-                                    '.MuiDialogTitle-root': {
-                                      border: 0,
-                                    },
-                                    '.MuiDialogActions-root': {
-                                      border: 0,
-                                    },
-                                    '.save': {
-                                      background: '#d32f2f',
-                                    },
-                                  },
-                                  maxWidth: 'sm',
-                                  fullWidth: true,
-                                  title: <Box sx={{ wordWrap: 'break-word' }}>{t('knowledge.deleteTitle')}</Box>,
-                                  content: (
-                                    <Box>
-                                      <Typography fontWeight={500} fontSize={16} lineHeight="28px" color="#4B5563">
-                                        {t('knowledge.deleteDescription')}
-                                      </Typography>
-                                    </Box>
-                                  ),
-                                  okText: t('alert.delete'),
-                                  okColor: 'error',
-                                  cancelText: t('cancel'),
-                                  onOk: onDelete,
-                                });
-                              }}
-                              sx={{ color: '#E11D48' }}>
-                              <Box component={Icon} icon={TrashIcon} mr={1} width={15} color="#E11D48" />
-                              {t('delete')}
-                            </MenuItem>
-                          </List>
-                        </Paper>
-                      </ClickAwayListener>
-                    }>
-                    <Button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setOpen(true);
+                        tooltip: { sx: { bgcolor: 'background.paper', boxShadow: 1, m: 0, p: 0.5 } },
                       }}
-                      sx={{ padding: 0.5, minWidth: 0, bgcolor: open ? 'action.hover' : undefined }}>
-                      <Box component={Icon} icon={DotsVerticalIcon} fontSize={16} />
-                    </Button>
-                  </Tooltip>
-                </Stack>
-              </Box>
+                      title={
+                        <ClickAwayListener onClickAway={() => setOpen(false)}>
+                          <Paper elevation={0}>
+                            <List onClick={() => setOpen(false)}>
+                              <MenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setOpen(false);
+
+                                  let newName = '';
+                                  let newDescription = '';
+
+                                  showDialog({
+                                    maxWidth: 'sm',
+                                    fullWidth: true,
+                                    title: (
+                                      <Box sx={{ wordWrap: 'break-word' }}>
+                                        {t('editObject', { object: t('knowledge.knowledge') })}
+                                      </Box>
+                                    ),
+                                    content: (
+                                      <Stack gap={2}>
+                                        <Box>
+                                          <Typography variant="subtitle2">{t('name')}</Typography>
+                                          <TextField
+                                            hiddenLabel
+                                            fullWidth
+                                            placeholder={t('knowledge.namePlaceholder')}
+                                            defaultValue={name}
+                                            onChange={(e) => (newName = e.target.value)}
+                                          />
+                                        </Box>
+
+                                        <Box>
+                                          <Typography variant="subtitle2">{t('description')}</Typography>
+                                          <TextField
+                                            hiddenLabel
+                                            fullWidth
+                                            multiline
+                                            minRows={2}
+                                            defaultValue={description}
+                                            onChange={(e) => (newDescription = e.target.value)}
+                                          />
+                                        </Box>
+                                      </Stack>
+                                    ),
+                                    okIcon: <Icon icon={FloppyIcon} />,
+                                    okText: t('save'),
+                                    cancelText: t('cancel'),
+                                    onOk: () => onUpdate({ name: newName, description: newDescription }),
+                                  });
+                                }}>
+                                <Box component={Icon} icon={PencilIcon} mr={1} width={15} />
+                                {t('edit')}
+                              </MenuItem>
+
+                              <MenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setOpen(false);
+
+                                  showDialog({
+                                    formSx: {
+                                      '.MuiDialogTitle-root': {
+                                        border: 0,
+                                      },
+                                      '.MuiDialogActions-root': {
+                                        border: 0,
+                                      },
+                                      '.save': {
+                                        background: '#d32f2f',
+                                      },
+                                    },
+                                    maxWidth: 'sm',
+                                    fullWidth: true,
+                                    title: <Box sx={{ wordWrap: 'break-word' }}>{t('knowledge.deleteTitle')}</Box>,
+                                    content: (
+                                      <Box>
+                                        <Typography fontWeight={500} fontSize={16} lineHeight="28px" color="#4B5563">
+                                          {t('knowledge.deleteDescription')}
+                                        </Typography>
+                                      </Box>
+                                    ),
+                                    okText: t('alert.delete'),
+                                    okColor: 'error',
+                                    cancelText: t('cancel'),
+                                    onOk: onDelete,
+                                  });
+                                }}
+                                sx={{ color: '#E11D48' }}>
+                                <Box component={Icon} icon={TrashIcon} mr={1} width={15} color="#E11D48" />
+                                {t('delete')}
+                              </MenuItem>
+                            </List>
+                          </Paper>
+                        </ClickAwayListener>
+                      }>
+                      <Button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpen(true);
+                        }}
+                        sx={{ padding: 0.5, minWidth: 0, bgcolor: open ? 'action.hover' : undefined }}>
+                        <Box component={Icon} icon={DotsVerticalIcon} fontSize={16} />
+                      </Button>
+                    </Tooltip>
+                  </Stack>
+                </Box>
+              )}
             </Box>
-            <Typography variant="subtitle3">{description || ''}</Typography>
+            <Box>
+              <Typography variant="subtitle3">{description || ''}</Typography>
+            </Box>
           </Box>
         </Stack>
 
-        <Typography variant="subtitle5">{`${documents || 0} ${(documents || 0) > 0 ? t('knowledge.documents.documents') : t('knowledge.documents.document')}`}</Typography>
+        <Stack direction="row" justifyContent="space-between">
+          <Stack direction="row" gap={1} alignItems="center">
+            <Typography variant="caption">{`${documents || 0} ${(documents || 0) > 0 ? t('knowledge.documents.documents') : t('knowledge.documents.document')}`}</Typography>
+
+            {blockletDid && (
+              <Box maxWidth={200}>
+                <DID did={blockletDid} copyable={false} />
+              </Box>
+            )}
+          </Stack>
+
+          {updatedAt && (
+            <Typography variant="caption" color="text.secondary">
+              <RelativeTime value={updatedAt} />
+            </Typography>
+          )}
+        </Stack>
       </DatasetItemRoot>
 
       {dialog}

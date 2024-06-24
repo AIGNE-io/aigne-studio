@@ -1,0 +1,80 @@
+name: z2qaBP9SahqU2L2YA3ip7NecwKACMByTFuiJ2
+title: AIGNE Runtime
+description: Empower your blocklet with agent execution
+keywords:
+  - ai
+  - aigne
+group: dapp
+did: z2qaBP9SahqU2L2YA3ip7NecwKACMByTFuiJ2
+main: api/dist/index.js
+author:
+  name: arcblock
+  email: blocklet@arcblock.io
+  url: https://github.com/blocklet
+repository:
+  type: git
+  url: git+https://github.com/blocklet/ai-studio.git
+specVersion: 1.2.8
+version: 0.3.2
+logo: logo.png
+files:
+  - dist
+  - logo.png
+  - screenshots
+  - api/hooks/pre-flight.js
+  - api/dist/store/migrate.js
+  - api/dist/store/migrations/*.js
+  - dataset.yml
+interfaces:
+  - type: web
+    name: publicUrl
+    path: /
+    prefix: '*'
+    port: BLOCKLET_PORT
+    protocol: http
+community: https://community.arcblock.io
+documentation: https://developer.blocklet.io
+homepage: https://store.blocklet.dev
+license: ''
+payment:
+  price: []
+  share: []
+timeout:
+  start: 60
+requirements:
+  server: '>=1.6.29'
+  os: '*'
+  cpu: '*'
+scripts:
+  preFlight: node api/hooks/pre-flight.js
+  dev: npm run start
+environments: []
+capabilities:
+  navigation: false
+screenshots:
+  - runtime-blocklets.png
+  - runtime-agents.png
+  - runtime-mockplexity.png
+components:
+  - name: ai-kit
+    required: true
+    mountPoint: /ai-kit
+    source:
+      name: ai-kit
+      version: latest
+  - name: image-bin
+    required: true
+    mountPoint: /image-bin
+    source:
+      name: image-bin
+      version: latest
+  - name: pages-kit
+    required: true
+    source:
+      name: pages-kit
+      version: latest
+  - name: ai-runtime-components
+    required: true
+    source:
+      name: z2qa6fvjmjew4pWJyTsKaWFuNoMUMyXDh5A1D
+      version: latest

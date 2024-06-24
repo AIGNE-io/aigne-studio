@@ -22,6 +22,12 @@ jobs:
         with:
           version: 9
 
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
       - name: Install dependencies
         run: pnpm install
 
@@ -29,6 +35,7 @@ jobs:
         run: pnpm build:libs
 
       - name: Publish to NPM
+        if: "! contains(toJSON(github.event.commits.*.message), '[skip publish npm]')"
         run: |
           npm config set '//registry.npmjs.org/:_authToken' "${{ secrets.NPM_TOKEN }}"
           VERSION=$(cat version | awk '{$1=$1;print}')
@@ -36,6 +43,7 @@ jobs:
           pnpm publish --filter "@blocklet/*" --access public --no-git-checks
 
       - name: Blocklet workflow
+        if: "! contains(toJSON(github.event.commits.*.message), '[skip ai-runtime]')"
         env:
           COMPONENT_STORE_URL: ${{ secrets.STORE_ENDPOINT_TEST }}
         uses: blocklet/action-workflow@v1
@@ -44,6 +52,32 @@ jobs:
           skip-deps: false
           skip-upload: false
           skip-deploy: false
+          skip-readme: true
+          skip-release: true
+          working-directory: blocklets/ai-runtime
+          bundle-command: pnpm bundle
+          store-endpoint: ${{ secrets.STORE_ENDPOINT_TEST }}
+          store-access-token: ${{ secrets.STORE_ACCESS_TOKEN_TEST }}
+          slack-webhook: ${{ secrets.SLACK_WEBHOOK }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          abtnode-endpoint: ${{ secrets.STAGING_NODE_ENDPOINT }}
+          access-key: ${{ secrets.STAGING_NODE_ACCESS_KEY }}
+          access-secret: ${{ secrets.STAGING_NODE_ACCESS_SECRET }}
+          deploy-app-did: zNKq56yExCXmaQpir9nFRu9aPFSYvSoKQr1e
+          deploy-mount-point: /ai-runtime
+
+      - name: Blocklet workflow
+        if: "! contains(toJSON(github.event.commits.*.message), '[skip ai-studio]')"
+        env:
+          COMPONENT_STORE_URL: ${{ secrets.STORE_ENDPOINT_TEST }}
+        uses: blocklet/action-workflow@v1
+        with:
+          deps-server-version: beta
+          skip-deps: false
+          skip-upload: false
+          skip-deploy: false
+          skip-readme: true
+          skip-release: false
           working-directory: blocklets/ai-studio
           bundle-command: pnpm bundle
           store-endpoint: ${{ secrets.STORE_ENDPOINT_TEST }}

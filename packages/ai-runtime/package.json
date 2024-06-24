@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.2.41",
+  "version": "0.3.2",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -32,9 +32,17 @@
       "import": "./lib/esm/types/index.js",
       "require": "./lib/cjs/types/index.js"
     },
+    "./types/runtime/*": {
+      "import": "./lib/esm/types/runtime/*.js",
+      "require": "./lib/cjs/types/runtime/*.js"
+    },
     "./core": {
       "import": "./lib/esm/core/index.js",
       "require": "./lib/cjs/core/index.js"
+    },
+    "./core/utils/*": {
+      "import": "./lib/esm/core/utils/*.js",
+      "require": "./lib/cjs/core/utils/*.js"
     },
     "./common": {
       "import": "./lib/esm/common/index.js",
@@ -43,6 +51,10 @@
     "./common/*": {
       "import": "./lib/esm/common/*.js",
       "require": "./lib/cjs/common/*.js"
+    },
+    "./constants": {
+      "import": "./lib/esm/constants.js",
+      "require": "./lib/cjs/constants.js"
     }
   },
   "typesVersions": {
@@ -63,14 +75,23 @@
       "types": [
         "./lib/types/types/index.d.ts"
       ],
+      "types/runtime/*": [
+        "./lib/types/types/runtime/*.d.ts"
+      ],
       "core": [
         "./lib/types/core/index.d.ts"
+      ],
+      "core/utils/*": [
+        "./lib/types/core/utils/*.d.ts"
       ],
       "common": [
         "./lib/types/common/index.d.ts"
       ],
       "common/*": [
         "./lib/types/common/*.d.ts"
+      ],
+      "constants": [
+        "./lib/types/constants.d.ts"
       ]
     }
   },
@@ -100,24 +121,24 @@
   },
   "dependencies": {
     "@blocklet/ai-builtin": "workspace:^",
-    "@blocklet/ai-kit": "^0.1.37",
+    "@blocklet/ai-kit": "^0.1.43",
     "@blocklet/dataset-sdk": "workspace:^",
-    "@blocklet/sdk": "^1.16.26",
+    "@blocklet/sdk": "^1.16.28",
     "@microsoft/fetch-event-source": "^2.0.1",
     "ahooks": "^3.8.0",
     "axios": "^1.7.2",
     "crypto": "^1.0.1",
     "dayjs": "^1.11.11",
     "eventsource-parser": "^1.1.2",
-    "joi": "^17.13.1",
+    "joi": "^17.13.3",
     "js-base64": "^3.7.7",
     "lodash": "^4.17.21",
     "nanoid": "^3.3.7",
     "node-fetch": "2",
-    "react-hook-form": "^7.51.5",
+    "react-hook-form": "^7.52.0",
     "recoil": "^0.7.7",
     "snowflake-uuid": "^1.0.0",
-    "typescript": "^5.4.5",
+    "typescript": "^5.5.2",
     "ufo": "^1.5.3",
     "vm2": "^3.9.19"
   },
@@ -132,13 +153,13 @@
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@arcblock/ux": "^2.9.90",
+    "@arcblock/ux": "^2.10.1",
     "@emotion/css": "^11.11.2",
     "@emotion/react": "^11.11.4",
     "@jest/globals": "^29.7.0",
-    "@mui/icons-material": "^5.15.19",
+    "@mui/icons-material": "^5.15.20",
     "@mui/lab": "^5.0.0-alpha.170",
-    "@mui/material": "^5.15.19",
+    "@mui/material": "^5.15.20",
     "@types/lodash": "^4.17.5",
     "@types/mustache": "^4.2.5",
     "@types/node-fetch": "^2.6.11",
@@ -147,7 +168,7 @@
     "react": "^18.3.1",
     "react-router-dom": "^6.23.1",
     "rimraf": "^5.0.7",
-    "ts-jest": "^29.1.4",
-    "typescript": "^5.4.5"
+    "ts-jest": "^29.1.5",
+    "typescript": "^5.5.2"
   }
 }

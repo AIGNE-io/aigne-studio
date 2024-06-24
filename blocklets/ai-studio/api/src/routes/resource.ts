@@ -1,19 +1,23 @@
-/* eslint-disable no-await-in-loop */
 import { mkdir, writeFile } from 'fs/promises';
-import path from 'path';
+import path, { join } from 'path';
 
 import downloadImage from '@api/libs/download-logo';
+import { Config } from '@api/libs/env';
 import logger from '@api/libs/logger';
 import { ResourceTypes } from '@api/libs/resource';
-import { Assistant } from '@blocklet/ai-runtime/types';
-import component from '@blocklet/sdk/lib/component';
+import { AIGNE_RUNTIME_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
+import { Assistant, projectSettingsSchema } from '@blocklet/ai-runtime/types';
+import component, { call } from '@blocklet/sdk/lib/component';
 import { Router } from 'express';
 import Joi from 'joi';
 import groupBy from 'lodash/groupBy';
 import uniq from 'lodash/uniq';
+import { joinURL } from 'ufo';
+import { Extract } from 'unzipper';
 import { stringify } from 'yaml';
 
 import { ensurePromptsEditor } from '../libs/security';
+import Knowledge from '../store/models/dataset/dataset';
 import Project from '../store/models/project';
 import {
   LOGO_FILENAME,
@@ -21,8 +25,8 @@ import {
   getAssistantsOfRepository,
   getEntryFromRepository,
   getProjectConfig,
+  getProjectMemoryVariables,
   getRepository,
-  settingsFileSchema,
 } from '../store/repository';
 
 const AI_STUDIO_DID = 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
@@ -74,10 +78,14 @@ const locales: { [key in 'en' | 'zh']: { [key: string]: string } } = {
 };
 
 export function resourceRoutes(router: Router) {
-  const getExportedResourceQuerySchema = Joi.object<{ resourcesParams?: { projectId?: string }; locale?: string }>({
+  const getExportedResourceQuerySchema = Joi.object<{
+    resourcesParams?: { projectId?: string; hideOthers?: boolean };
+    locale?: string;
+  }>({
     locale: Joi.string().empty([null, '']),
     resourcesParams: Joi.object({
       projectId: Joi.string().empty([null, '']),
+      hideOthers: Joi.boolean().empty([null, '']),
     }),
   });
 
@@ -107,6 +115,15 @@ export function resourceRoutes(router: Router) {
 
     const locale = locales[query.locale as keyof typeof locales] || locales.en;
 
+    const kbList = (
+      await call<Knowledge[]>({
+        name: AIGNE_RUNTIME_COMPONENT_DID,
+        method: 'get',
+        path: '/api/datasets',
+        params: { excludeResource: true },
+      })
+    ).data;
+
     const resources = await Promise.all(
       projects.map(async (x) => {
         const assistants = await getAssistantsOfRepository({
@@ -125,23 +142,28 @@ export function resourceRoutes(router: Router) {
             {
               id: `application/${x.id}`,
               name: locale.application,
-              disabled: true,
+              disabled: !entry,
               description: entry ? undefined : 'No such entry agent, You have to create an entry agent first',
               dependentComponents,
             },
-            {
+            !query.resourcesParams?.hideOthers && {
               id: `other/${x.id}`,
               name: locale.other,
               children: ResourceTypes.filter((i) => i !== 'application').map((type) => ({
                 id: `${type}/${x.id}`,
                 name: locale[type],
-                children: !['tool', 'llm-adapter', 'aigc-adapter'].includes(type)
-                  ? undefined
-                  : assistants.map((assistant) => ({
+                children: ['tool', 'llm-adapter', 'aigc-adapter'].includes(type)
+                  ? assistants.map((assistant) => ({
                       id: `${type}/${x.id}/${assistant.id}`,
                       name: assistant.name || locale.unnamed,
                       dependentComponents,
-                    })),
+                    }))
+                  : ['knowledge'].includes(type)
+                    ? kbList.map((knowledge) => ({
+                        id: `${type}/${x.id}/${knowledge.id}`,
+                        name: knowledge.name || locale.unnamed,
+                      }))
+                    : undefined,
                 dependentComponents,
               })),
             },
@@ -162,8 +184,16 @@ export function resourceRoutes(router: Router) {
       groupBy(
         uniq(resources)
           .map((x) => {
+            // 如果是知识库  agentId 代表 knowledgeId
             const [type, projectId, agentId] = x.split('/');
-            return ResourceTypes.includes(type as any) && projectId ? { type, projectId, agentId } : null;
+            return ResourceTypes.includes(type as any) && projectId
+              ? {
+                  type,
+                  projectId,
+                  agentId: type === 'knowledge' ? undefined : agentId,
+                  knowledgeId: type === 'knowledge' ? agentId : undefined,
+                }
+              : null;
           })
           .filter((i): i is NonNullable<typeof i> => !!i),
         (i) => i.type
@@ -173,8 +203,12 @@ export function resourceRoutes(router: Router) {
     const resourceDir = await getResourceDir({ projectId, releaseId: releaseId || '' });
     const arr = [];
 
+    const referencedKBIds: string[] = [];
     for (const [type, value] of resourceTypes) {
       const folderPath = path.join(resourceDir, type);
+      if (type === 'knowledge') {
+        continue;
+      }
 
       const projects = groupBy(value, (v) => v.projectId);
 
@@ -186,7 +220,7 @@ export function resourceRoutes(router: Router) {
           const project = await Project.findByPk(projectId, {
             rejectOnEmpty: new Error(`No such project ${projectId}`),
           });
-          const entry = await getEntryFromRepository({ projectId, ref: project.gitDefaultBranch! });
+          const entry = await getEntryFromRepository({ projectId, ref: project.gitDefaultBranch || defaultBranch });
           if (!entry) throw new Error(`Missing entry agent for project ${projectId}`);
         }
 
@@ -231,13 +265,37 @@ export function resourceRoutes(router: Router) {
           }
         );
 
+        // 判断是否有知识库的引用
+        for (const assistant of assistants) {
+          if (assistant.parameters?.length) {
+            (assistant.parameters || []).forEach((parameter) => {
+              if (
+                parameter.type === 'source' &&
+                parameter.source?.variableFrom === 'knowledge' &&
+                // 忽略引用 resource blocklet 中的知识库，会作为 blocklet components 依赖
+                parameter.source.knowledge?.id &&
+                !parameter.source.knowledge?.blockletDid
+              ) {
+                referencedKBIds.push(parameter.source.knowledge.id);
+              }
+            });
+          }
+        }
+
         const result = stringify({
           assistants,
-          project: await settingsFileSchema.validateAsync(project.dataValues),
+          project: await projectSettingsSchema.validateAsync(project.dataValues),
           config,
+          memory: {
+            variables: (
+              await getProjectMemoryVariables({
+                repository,
+                ref: project.gitDefaultBranch || defaultBranch,
+              })
+            )?.variables,
+          },
         });
 
-        // 新的保存方式，可以存储更多内容
         await writeFile(path.join(folderPath, projectId, `${projectId}.yaml`), result);
 
         // 写入logo.png
@@ -257,6 +315,45 @@ export function resourceRoutes(router: Router) {
       }
     }
 
+    // 合并选择的知识库和使用的知识库
+    const selectedKBIds =
+      resourceTypes
+        .find(([type]) => type === 'knowledge')?.[1]
+        .map((i) => i.knowledgeId)
+        .filter((i): i is NonNullable<typeof i> => !!i) ?? [];
+
+    const kbList = [...new Set([...selectedKBIds, ...referencedKBIds])].map((i) => ({
+      id: i,
+      public: selectedKBIds.includes(i),
+    }));
+
+    if (kbList.length > 0) {
+      const folderPath = path.join(resourceDir, 'knowledge');
+      await mkdir(folderPath, { recursive: true });
+      await exportKnowledgeList(folderPath, kbList);
+    }
+
+    // generate partial blocklet.yml
+    const blockletYml: any = {
+      capabilities: {
+        navigation: false,
+      },
+    };
+
+    if (resourceTypes.some((i) => i[0] === 'application')) {
+      blockletYml.engine = {
+        interpreter: 'blocklet',
+        source: {
+          store: Config.createResourceBlockletEngineStore,
+          name: AIGNE_RUNTIME_COMPONENT_DID,
+          version: 'latest',
+        },
+      };
+    }
+
+    const releaseDir = component.getReleaseExportDir({ projectId, releaseId });
+    await writeFile(path.join(releaseDir, 'blocklet.yml'), stringify(blockletYml));
+
     return res.json(arr);
   });
 }
@@ -271,6 +368,12 @@ function getAssistantDependentComponents(assistant: Assistant | Assistant[]) {
             const did = i.source.agent?.blockletDid;
             return did ? [did] : [];
           }
+
+          if (i.type === 'source' && i.source?.variableFrom === 'knowledge') {
+            const did = i.source.knowledge?.blockletDid;
+            return did ? [did] : [];
+          }
+
           return [];
         });
 
@@ -286,3 +389,26 @@ function getAssistantDependentComponents(assistant: Assistant | Assistant[]) {
     ),
   ];
 }
+
+const exportKnowledgeList = async (path: string, list: { id: string; public: boolean }[]) => {
+  for (const item of list) {
+    await exportKnowledgeInfo(path, item);
+  }
+};
+
+const exportKnowledgeInfo = async (folder: string, item: { id: string; public: boolean }) => {
+  const knowledgeId = item.id;
+
+  const knowledgeWithIdPath = join(folder, knowledgeId);
+  await mkdir(knowledgeWithIdPath, { recursive: true });
+
+  const res = await call({
+    name: AIGNE_RUNTIME_COMPONENT_DID,
+    method: 'get',
+    path: joinURL('/api/datasets', knowledgeId, 'export-resource'),
+    params: { public: item.public },
+    responseType: 'stream',
+  });
+
+  await res.data.pipe(Extract({ path: knowledgeWithIdPath }), { end: true }).promise();
+};

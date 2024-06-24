@@ -1,0 +1,81 @@
+import 'express-async-errors';
+
+import path from 'path';
+
+import { AssistantResponseType } from '@blocklet/ai-runtime/types';
+import { getComponentsRouter } from '@blocklet/components-sdk';
+import { createDatasetAPIRouter } from '@blocklet/dataset-sdk/openapi';
+import cookieParser from 'cookie-parser';
+import cors from 'cors';
+import dotenv from 'dotenv-flow';
+import express, { ErrorRequestHandler } from 'express';
+import expressWs from 'express-ws';
+
+import initCronJob from './jobs';
+import { Config, isDevelopment } from './libs/env';
+import logger from './libs/logger';
+import { initResourceStates } from './libs/resource';
+import routes from './routes';
+import setupHtmlRouter from './routes/html';
+
+dotenv.config();
+
+const { name, version } = require('../../package.json');
+
+export const app = express();
+expressWs(app);
+
+app.set('trust proxy', true);
+app.use(cookieParser());
+app.use(express.json({ limit: '1 mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1 mb' }));
+app.use(cors());
+
+const router = express.Router();
+router.use('/api', routes);
+app.use(router);
+
+app.use(
+  '/',
+  createDatasetAPIRouter('AI-Studio', path.join(Config.appDir, 'dataset.yml'), {
+    definition: { openapi: '3.0.0', info: { title: 'AI Studio Dataset Protocol', version: '1.0.0' } },
+    apis: [path.join(__dirname, './routes/**/*.*')],
+  })
+);
+app.use('/', getComponentsRouter());
+
+if (!isDevelopment) {
+  const staticDir = path.resolve(process.env.BLOCKLET_APP_DIR!, 'dist');
+  app.use(express.static(staticDir, { maxAge: '30d', index: false }));
+  setupHtmlRouter(app);
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+app.use(<ErrorRequestHandler>((error, _req, res, _next) => {
+  logger.error('handle route error', { error });
+
+  try {
+    if (!res.headersSent) res.status(500).contentType('json');
+    if (res.writable)
+      res.write(
+        JSON.stringify({
+          type: AssistantResponseType.ERROR,
+          error: { type: error.type, message: error.message },
+        })
+      );
+  } catch (error) {
+    logger.error('Write error to client error', error);
+  } finally {
+    res.end();
+  }
+}));
+
+const port = parseInt(process.env.BLOCKLET_PORT!, 10);
+
+export const server = app.listen(port, (err?: any) => {
+  if (err) throw err;
+  logger.info(`> ${name} v${version} ready on ${port}`);
+
+  initCronJob();
+  initResourceStates();
+});

@@ -161,7 +161,13 @@ const FileTree = forwardRef<
 
   const onCreateFile = useCallback(
     (options: Partial<Omit<Parameters<ReturnType<typeof useCreateFile>>[0], 'store'>> = {}) => {
-      const { filepath } = createFile({ ...options, store });
+      const { filepath, file } = createFile({ ...options, store });
+      if (!store.files[config?.entry!]) {
+        setConfig((config) => {
+          config.entry = file.id;
+        });
+      }
+
       const { parent } = options;
       if (parent) openFolder(parent);
       navigate(joinURL('.', filepath));

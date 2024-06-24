@@ -1,4 +1,3 @@
-import { CreateDiscussionItem } from '@api/routes/dataset/documents';
 import { useIsAdmin } from '@app/contexts/session';
 import { discussionBoards, getDiscussionStatus } from '@app/libs/discussion';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
@@ -38,6 +37,7 @@ import { useDatasets } from '../../contexts/datasets/datasets';
 import { useDocuments } from '../../contexts/datasets/documents';
 import { getErrorMessage } from '../../libs/api';
 import {
+  CreateDiscussionItem,
   createDatasetDocuments,
   createFileDocument,
   getDocument,

@@ -7,7 +7,13 @@ import { getProjectIconUrl } from '@app/libs/project';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ImagePreview } from '@blocklet/ai-kit/components';
 import { ParameterField } from '@blocklet/ai-runtime/components';
-import { AssistantYjs, Role, isPromptAssistant, parameterFromYjs } from '@blocklet/ai-runtime/types';
+import {
+  AssistantYjs,
+  Role,
+  RuntimeOutputVariable,
+  isPromptAssistant,
+  parameterFromYjs,
+} from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { cx } from '@emotion/css';
 import { Icon } from '@iconify-icon/react';
@@ -392,6 +398,8 @@ const MessageView = memo(
     projectId: string;
     gitRef: string;
   }) => {
+    const images = message.objects?.[0]?.[RuntimeOutputVariable.images];
+
     return (
       <ErrorBoundary>
         <Stack pt={message.role === 'user' && index !== 0 ? 1.5 : 0} pb={2.5}>
@@ -428,7 +436,7 @@ const MessageView = memo(
                   </Stack>
                 ))}
 
-                {message.content || message.images?.length || message.loading ? (
+                {message.content || message.objects?.length || message.loading ? (
                   <MessageViewContent
                     sx={{
                       px: 1,
@@ -441,9 +449,7 @@ const MessageView = memo(
                     }}>
                     <MdViewer content={message.content} className={cx(message.loading && 'writing')} />
 
-                    {message.images && message.images.length > 0 && (
-                      <ImagePreviewB64 itemWidth={100} spacing={1} dataSource={message.images} />
-                    )}
+                    {images && images.length > 0 && <ImagePreviewB64 itemWidth={100} spacing={1} dataSource={images} />}
 
                     {message.role === 'assistant' && (
                       <Box className="actions">

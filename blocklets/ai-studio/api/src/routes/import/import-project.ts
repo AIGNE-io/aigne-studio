@@ -3,7 +3,8 @@ import { join } from 'path';
 
 import { Config } from '@api/libs/env';
 import Project from '@api/store/models/project';
-import { SETTINGS_FILE, defaultBranch, settingsFileSchema } from '@api/store/repository';
+import { SETTINGS_FILE, defaultBranch } from '@api/store/repository';
+import { projectSettingsSchema } from '@blocklet/ai-runtime/types';
 import { ListObjectCommand, SpaceClient, SyncFolderPullCommand } from '@did-space/client';
 import { Request, Response } from 'express';
 import Joi from 'joi';
@@ -45,7 +46,7 @@ export async function importProject(req: Request, res: Response) {
     })
   );
 
-  const metadata = await settingsFileSchema.validateAsync(projectMetadata);
+  const metadata = await projectSettingsSchema.validateAsync(projectMetadata);
 
   if (!metadata.id) throw new Error('The project ID does not exist; only ai-studio projects can be imported.');
   const oldProject = await Project.findOne({ where: { id: metadata.id } });
@@ -79,7 +80,7 @@ export async function importProject(req: Request, res: Response) {
   }
 
   const settingsPath = join(localeProjectRootPath, SETTINGS_FILE);
-  const settings = await settingsFileSchema.validateAsync(yaml.parse(readFileSync(settingsPath, 'utf-8')));
+  const settings = await projectSettingsSchema.validateAsync(yaml.parse(readFileSync(settingsPath, 'utf-8')));
 
   const { did } = req.user!;
 
@@ -87,6 +88,8 @@ export async function importProject(req: Request, res: Response) {
     ...settings,
     ...metadata,
     ...props,
+    createdAt: metadata.createdAt || (settings.createdAt as any),
+    updatedAt: metadata.updatedAt || (settings.updatedAt as any),
     gitDefaultBranch: defaultBranch,
     // rewrite some auth
     createdBy: did,

@@ -81,8 +81,11 @@ export const runtimeVariablesSchema: { [key in RuntimeOutputVariable]?: OmitUnio
   },
 };
 
-export function outputVariablesToJsonSchema(assistant: Assistant, datastoreVariables: Variable[]) {
-  const variableToSchema = (variable: OmitUnion<OutputVariable, 'id'>): object | undefined => {
+export function outputVariablesToJsonSchema(
+  assistant: Assistant,
+  datastoreVariables: Variable[]
+): { type: 'object'; properties: { [key: string]: any } } | undefined {
+  const variableToSchema = (variable: OmitUnion<OutputVariable, 'id'>): any => {
     if (variable.from?.type === 'input') return undefined;
     if (ignoreJsonSchemaOutputs.has(variable.name as RuntimeOutputVariable)) return undefined;
 
@@ -322,6 +325,8 @@ export interface RuntimeOutputChildren {
 
 export interface RuntimeOutputShare {
   items?: { to: string }[];
+  shareAttachUrl?: boolean;
+  shareAttachInputs?: boolean;
 }
 
 export interface RuntimeOutputOpeningQuestions {

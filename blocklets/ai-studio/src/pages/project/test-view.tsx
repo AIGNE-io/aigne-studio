@@ -1,3 +1,4 @@
+import { AIGNE_RUNTIME_MOUNT_POINT } from '@app/libs/constants';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { runAssistant } from '@blocklet/ai-runtime/api';
 import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
@@ -11,10 +12,10 @@ import { Error } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import { Alert, Box, Button, Stack, Tooltip, Typography } from '@mui/material';
 import { cloneDeep, sortBy } from 'lodash';
+import { nanoid } from 'nanoid';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import { joinURL } from 'ufo';
 
-import { PREFIX } from '../../libs/api';
 import { WritingIndicator } from './debug-view';
 import { useDebugState } from './state';
 
@@ -138,11 +139,11 @@ const TestCaseView = forwardRef<
 
     try {
       const result = await runAssistant({
-        url: joinURL(PREFIX, '/api/ai/call'),
-        aid: stringifyIdentity({ projectId, projectRef: gitRef, assistantId: assistant.id }),
+        url: joinURL(AIGNE_RUNTIME_MOUNT_POINT, '/api/ai/call'),
         working: true,
-        parameters: test.parameters,
-        debug: true,
+        aid: stringifyIdentity({ projectId, projectRef: gitRef, assistantId: assistant.id }),
+        sessionId: nanoid(),
+        inputs: test.parameters,
       });
 
       const reader = result.getReader();

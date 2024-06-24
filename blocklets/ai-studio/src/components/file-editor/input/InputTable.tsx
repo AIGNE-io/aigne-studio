@@ -8,7 +8,8 @@ import PopperMenu, { PopperMenuImperative } from '@app/components/menu/PopperMen
 import PasswordField from '@app/components/PasswordField';
 import { useCurrentProject } from '@app/contexts/project';
 import { getDatasets } from '@app/libs/dataset';
-import { createOrUpdateProjectInputSecrets, getProjectIconUrl, getProjectInputSecrets } from '@app/libs/project';
+import { getProjectIconUrl } from '@app/libs/project';
+import { createOrUpdateSecrets, getSecrets } from '@app/libs/secret';
 import Close from '@app/pages/project/icons/close';
 import { useAssistantCompare } from '@app/pages/project/state';
 import { useProjectStore } from '@app/pages/project/yjs-state';
@@ -27,6 +28,7 @@ import ChevronDownIcon from '@iconify-icons/tabler/chevron-down';
 import CursorTextIcon from '@iconify-icons/tabler/cursor-text';
 import DatabaseIcon from '@iconify-icons/tabler/database';
 import DotsIcon from '@iconify-icons/tabler/dots';
+import FormsIcon from '@iconify-icons/tabler/forms';
 import GripVertical from '@iconify-icons/tabler/grip-vertical';
 import HistoryIcon from '@iconify-icons/tabler/history';
 import InfoCircleIcon from '@iconify-icons/tabler/info-circle';
@@ -48,6 +50,7 @@ import {
   FormControlLabel,
   IconButton,
   Input,
+  Link,
   List,
   ListItemIcon,
   MenuItem,
@@ -117,7 +120,7 @@ export default function InputTable({
   };
 
   const parameters = sortBy(Object.values(assistant.parameters ?? {}), (i) => i.index);
-  const { data: knowledge = [] } = useRequest(() => getDatasets(projectId));
+  const { data: knowledge = [] } = useRequest(() => getDatasets());
 
   const FROM_MAP = useMemo(() => {
     return {
@@ -163,36 +166,38 @@ export default function InputTable({
             };
 
             return (
-              <Box height={33} display="flex" alignItems="center">
-                <Box className="center" width={16} height={16} mr={0.5}>
-                  <Box component={Icon} icon={iconMap[parameter.key]} />
-                </Box>
+              <Box height={33} display="flex" alignItems="center" gap={0.5}>
+                <Box component={Icon} icon={iconMap[parameter.key]} fontSize={16} />
                 <Box>{parameter.key}</Box>
               </Box>
             );
           }
 
           return (
-            <WithAwareness
-              projectId={projectId}
-              gitRef={gitRef}
-              sx={{ top: 4, right: -8 }}
-              path={[assistant.id, 'parameters', parameter?.id ?? '', 'key']}>
-              <Input
-                id={`${parameter.id}-key`}
-                fullWidth
-                readOnly={readOnly}
-                placeholder={t('inputParameterKeyPlaceholder')}
-                value={parameter.key || ''}
-                onChange={(e) => {
-                  const value = e.target.value.trim();
+            <Stack direction="row" alignItems="center" gap={0.5}>
+              <Box component={Icon} icon={FormsIcon} fontSize={16} />
 
-                  if (isValidVariableName(value)) {
-                    parameter.key = value;
-                  }
-                }}
-              />
-            </WithAwareness>
+              <WithAwareness
+                projectId={projectId}
+                gitRef={gitRef}
+                sx={{ top: 4, right: -8 }}
+                path={[assistant.id, 'parameters', parameter?.id ?? '', 'key']}>
+                <Input
+                  id={`${parameter.id}-key`}
+                  fullWidth
+                  readOnly={readOnly}
+                  placeholder={t('inputParameterKeyPlaceholder')}
+                  value={parameter.key || ''}
+                  onChange={(e) => {
+                    const value = e.target.value.trim();
+
+                    if (isValidVariableName(value)) {
+                      parameter.key = value;
+                    }
+                  }}
+                />
+              </WithAwareness>
+            </Stack>
           );
         },
       },
@@ -856,40 +861,74 @@ function KnowledgeParameter({
   gitRef: string;
   value: AssistantYjs;
   parameter: ParameterYjs;
-  knowledge: (Dataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
+  knowledge: (Dataset['dataValues'] & {
+    blockletDid?: string;
+    from?: NonNullable<ExecuteBlock['tools']>[number]['from'];
+  })[];
 }) {
   const { t } = useLocaleContext();
   const { deleteUselessParameter } = useDelete(value);
+  const localKnowledge = knowledge.filter((x) => !x.blockletDid);
+  const resourceKnowledge = knowledge.filter((x) => x.blockletDid);
 
-  if (parameter.type === 'source' && parameter?.source?.variableFrom === 'knowledge') {
-    const toolId = parameter?.source?.knowledge?.id;
-    const { source } = parameter;
-
-    const options = [
-      ...knowledge.map((item) => ({
+  const options = useMemo(() => {
+    return [
+      ...localKnowledge.map((item) => ({
         id: item.id,
         name: item.name || t('unnamed'),
         from: item.from,
+        blockletDid: undefined,
+        group: t('本地知识库'),
+      })),
+      ...(resourceKnowledge || []).map((item) => ({
+        id: item.id,
+        name: item.name || t('unnamed'),
+        from: undefined,
+        blockletDid: (item as any).blockletDid,
+        group: t('资源知识库'),
       })),
     ];
+  }, [localKnowledge, resourceKnowledge, t]);
+
+  if (parameter.type === 'source' && parameter?.source?.variableFrom === 'knowledge') {
+    const toolId = parameter?.source?.knowledge?.id;
+    const blockletDid = parameter?.source?.knowledge?.blockletDid;
+    const { source } = parameter;
 
     const parameters = [
       { name: 'searchAll', description: t('allContent'), type: 'boolean' },
       { name: 'message', description: t('searchContent') },
     ];
     const v = options.find((x) => x.id === toolId);
+    const d = blockletDid ? options.find((x) => x.id === toolId && x.blockletDid === blockletDid) : null;
 
     return (
       <Stack gap={2}>
         <Box>
           <Typography variant="subtitle2">{t('knowledge.menu')}</Typography>
 
-          <SelectTool
-            options={options}
-            value={v}
+          <Autocomplete
+            value={d ?? v ?? null}
             multiple={false}
-            placeholder={t('selectKnowledgePlaceholder')}
-            onChange={(_value) => {
+            groupBy={(option) => option.group || ''}
+            options={options}
+            renderInput={(params) => (
+              <TextField hiddenLabel placeholder={t('selectKnowledgePlaceholder')} {...params} />
+            )}
+            getOptionLabel={(option) => option.name}
+            isOptionEqualToValue={(o, v) => `${o.id}` === `${v.id}`}
+            renderGroup={(params) => {
+              return (
+                <Box key={params.key}>
+                  <Typography p={2} py={1} pl={1} lineHeight="20px" color="#9CA3AF">
+                    {params.group}
+                  </Typography>
+
+                  <Box>{params.children}</Box>
+                </Box>
+              );
+            }}
+            onChange={(_, _value) => {
               if (_value) {
                 // 删除历史自动添加的变量
                 deleteUselessParameter();
@@ -899,8 +938,9 @@ function KnowledgeParameter({
                 };
 
                 source.knowledge = {
-                  id: _value.id,
                   from: 'knowledge',
+                  id: _value.id,
+                  blockletDid: _value.blockletDid,
                   parameters,
                 };
               }
@@ -922,7 +962,7 @@ function KnowledgeParameter({
                       <Typography variant="caption">{data.description || data.name}</Typography>
 
                       <Switch
-                        defaultChecked={Boolean(source?.knowledge?.parameters?.[data.name] ?? false)}
+                        checked={Boolean(source?.knowledge?.parameters?.[data.name] ?? false)}
                         onChange={(_, checked) => {
                           if (source?.knowledge?.parameters) {
                             // @ts-ignore
@@ -1080,6 +1120,34 @@ function SecretParameterView({ parameter }: { parameter: ParameterYjs }) {
             }}
           />
         </Box>
+
+        <Box>
+          <Typography variant="subtitle2">{t('docLink')}</Typography>
+
+          <TextField
+            hiddenLabel
+            fullWidth
+            placeholder={t('inputParameterLinkPlaceholder')}
+            value={parameter.docLink || ''}
+            onChange={(e) => {
+              parameter.docLink = e.target.value;
+            }}
+          />
+        </Box>
+
+        <Box>
+          <Typography variant="subtitle2">{t('placeholder')}</Typography>
+
+          <TextField
+            hiddenLabel
+            fullWidth
+            placeholder={t('inputParameterPlaceholderPlaceholder')}
+            value={parameter.placeholder || ''}
+            onChange={(e) => {
+              parameter.placeholder = e.target.value;
+            }}
+          />
+        </Box>
       </Stack>
     );
   }
@@ -1207,13 +1275,12 @@ export function AuthorizeButton({ agent }: { agent: NonNullable<ReturnType<typeo
   const { projectId } = useCurrentProject();
 
   const [authorized, setAuthorized] = useState(false);
-  const { value: { secrets = [] } = {}, loading } = useAsync(() => getProjectInputSecrets(projectId), [projectId]);
+  const { value: { secrets = [] } = {}, loading } = useAsync(
+    () => getSecrets({ projectId, targetProjectId: agent.project.id, targetAgentId: agent.id }),
+    [projectId, agent.project.id, agent.id]
+  );
 
-  const isAuthorized =
-    useMemo(
-      () => secrets.find((i) => i.targetProjectId === agent.project.id && i.targetAgentId === agent.id),
-      [agent, secrets]
-    ) || authorized;
+  const isAuthorized = secrets.length > 0 || authorized;
 
   if (!authInputs?.length || loading) return null;
 
@@ -1259,13 +1326,16 @@ function AuthorizeParametersFormDialog({
   const { projectId } = useCurrentProject();
 
   const onSubmit = async (values: { [key: string]: string }) => {
-    await createOrUpdateProjectInputSecrets(projectId, {
-      secrets: Object.entries(values).map(([key, secret]) => ({
-        targetProjectId: agent.project.id,
-        targetAgentId: agent.id,
-        targetInputKey: key,
-        secret,
-      })),
+    await createOrUpdateSecrets({
+      input: {
+        secrets: Object.entries(values).map(([key, secret]) => ({
+          projectId,
+          targetProjectId: agent.project.id,
+          targetAgentId: agent.id,
+          targetInputKey: key,
+          secret,
+        })),
+      },
     });
     onSuccess?.();
   };
@@ -1280,12 +1350,15 @@ function AuthorizeParametersFormDialog({
         <Stack gap={1}>
           {authInputs?.map((item, index) => (
             <Stack key={item.id}>
-              <Typography variant="caption">{item.label || item.key}</Typography>
+              <Typography variant="caption">
+                {item.label || item.key} {item.docLink && <Link href={item.docLink}>{t('docLink')}</Link>}
+              </Typography>
 
               <PasswordField
                 autoFocus={index === 0}
                 hiddenLabel
                 fullWidth
+                placeholder={item.placeholder}
                 {...form.register(item.key!, { required: true })}
               />
             </Stack>

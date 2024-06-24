@@ -1,0 +1,53 @@
+import Joi from 'joi';
+
+export type ProjectSettings = {
+  id: string;
+  name?: string;
+  description?: string;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+  createdBy: string;
+  updatedBy: string;
+  model?: string;
+  temperature?: number;
+  topP?: number;
+  presencePenalty?: number;
+  frequencyPenalty?: number;
+  maxTokens?: number;
+  appearance?: {
+    primaryColor?: string;
+    typography?: {
+      fontFamily?: string;
+      heading?: {
+        fontFamily?: string;
+      };
+    };
+  };
+};
+
+export const projectSettingsSchema = Joi.object<ProjectSettings>({
+  id: Joi.string().required(),
+  name: Joi.string().empty(['', null]),
+  description: Joi.string().empty(['', null]),
+  model: Joi.string().empty(['', null]),
+  temperature: Joi.number().empty(['', null]),
+  topP: Joi.number().empty(['', null]),
+  presencePenalty: Joi.number().empty(['', null]),
+  frequencyPenalty: Joi.number().empty(['', null]),
+  maxTokens: Joi.number().empty(['', null]),
+  createdAt: Joi.alternatives(Joi.string().isoDate(), Joi.date()).required(),
+  updatedAt: Joi.alternatives(Joi.string().isoDate(), Joi.date()).required(),
+  createdBy: Joi.string().required(),
+  updatedBy: Joi.string().required(),
+  appearance: Joi.object({
+    primaryColor: Joi.string().empty(['', null]),
+    typography: Joi.object({
+      fontFamily: Joi.string().empty(['', null]),
+      heading: Joi.object({
+        fontFamily: Joi.string().empty(['', null]),
+      }).empty(['', null]),
+    }).empty(['', null]),
+  }).empty(['', null]),
+})
+  .rename('_id', 'id', { override: true, ignoreUndefined: true })
+  .options({ stripUnknown: true });

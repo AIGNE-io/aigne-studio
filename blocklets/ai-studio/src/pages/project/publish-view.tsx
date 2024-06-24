@@ -1,4 +1,4 @@
-import { AI_RUNTIME_COMPONENT_DID } from '@app/libs/constants';
+import { AIGNE_RUNTIME_MOUNT_POINT } from '@app/libs/constants';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { AssistantYjs } from '@blocklet/ai-runtime/types';
@@ -17,7 +17,7 @@ import {
 } from '@mui/material';
 import { Suspense, useMemo, useState } from 'react';
 import QRCode from 'react-qr-code';
-import { joinURL, withQuery } from 'ufo';
+import { joinURL } from 'ufo';
 
 export default function PublishView({
   projectId,
@@ -54,11 +54,12 @@ function PublishViewContent({
   const { t } = useLocaleContext();
 
   const previewUrl = useMemo(() => {
-    const pagesPrefix = blocklet?.componentMountPoints.find((i) => i.name === 'pages-kit')?.mountPoint || '/';
-    return withQuery(joinURL(globalThis.location.origin, pagesPrefix, `@${AI_RUNTIME_COMPONENT_DID}`, '/ai/runtime'), {
-      aid: stringifyIdentity({ projectId, projectRef, assistantId: assistant.id }),
-      working: true,
-    });
+    return joinURL(
+      globalThis.location.origin,
+      AIGNE_RUNTIME_MOUNT_POINT,
+      'preview',
+      stringifyIdentity({ projectId, projectRef, assistantId: assistant.id })
+    );
   }, [assistant.id, projectId, projectRef]);
 
   const [copied, setCopied] = useState(false);

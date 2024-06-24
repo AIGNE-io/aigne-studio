@@ -107,7 +107,7 @@ export default function ExecuteBlockForm({
   const popperState = usePopupState({ variant: 'popper', popupId: 'settings' });
 
   const { data: openApis = [] } = useRequest(() => getAPIList());
-  const { data: datasets = [] } = useRequest(() => getDatasets(projectId));
+  const { data: datasets = [] } = useRequest(() => getDatasets());
 
   const { getDiffBackground } = useAssistantCompare({
     value: assistant,
@@ -1215,7 +1215,7 @@ export const ToolDialog = forwardRef<
                           meta: { type: value.type as any, name: value.name },
                         });
 
-                        field.onChange({ target: { value: file.template.id } });
+                        field.onChange({ target: { value: file.file.id } });
                       } else {
                         field.onChange({ target: { value: value?.id } });
                         translateTool();

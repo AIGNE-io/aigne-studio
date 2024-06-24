@@ -1,8 +1,7 @@
 import { access, readFile, readdir, stat } from 'fs/promises';
 import { basename, dirname, join } from 'path';
 
-import { SettingsFile, settingsFileSchema } from '@api/store/repository';
-import { Assistant, ConfigFile } from '@blocklet/ai-runtime/types';
+import { Assistant, ConfigFile, ProjectSettings, projectSettingsSchema } from '@blocklet/ai-runtime/types';
 import { getResources } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
 import { exists } from 'fs-extra';
@@ -34,7 +33,7 @@ export const ResourceTypes: ResourceType[] = [
 
 interface ResourceProject {
   blocklet: { did: string };
-  project: SettingsFile;
+  project: ProjectSettings;
   config?: ConfigFile;
   gitLogoPath?: string;
   assistants: (Assistant & { public?: boolean; parent: string[] })[];
@@ -107,7 +106,7 @@ async function loadResourceBlocklets(path: string) {
       paths.map(async (filepath) => {
         try {
           const json: ResourceProject = parse((await readFile(filepath)).toString());
-          json.project = await settingsFileSchema.validateAsync(json.project);
+          json.project = await projectSettingsSchema.validateAsync(json.project);
 
           const gitLogoPath = join(dirname(filepath), 'logo.png');
           if (await exists(gitLogoPath)) {
@@ -125,7 +124,7 @@ async function loadResourceBlocklets(path: string) {
 }
 
 async function loadResources(): Promise<Resources> {
-  const dirs = getResourceDirs();
+  const dirs = getResourceDirs().filter((i) => i.type !== 'knowledge');
 
   const groups = groupBy(
     await Promise.all(
