@@ -24,9 +24,9 @@ export type User = {
 };
 
 export type ProjectWithUserInfo = Project & {
-  isFromResource?: boolean;
   branches: string[];
   users: User[];
+  blockletDid?: string;
 };
 
 export async function getProjects(): Promise<{

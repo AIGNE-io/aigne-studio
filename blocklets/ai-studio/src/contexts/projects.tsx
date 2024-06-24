@@ -18,7 +18,7 @@ export interface ProjectsState {
   examples: api.ProjectWithUserInfo[];
   loading: boolean;
   error?: Error;
-  selected?: { section: ProjectsSection; id: string };
+  selected?: { section: ProjectsSection; id: string; blockletDid?: string };
   menuAnchor?: ProjectsState['selected'] & { anchor: HTMLElement };
 }
 

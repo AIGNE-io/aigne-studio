@@ -150,8 +150,8 @@ export default function ProjectsPage() {
 }
 
 function TemplatesProjects({ list }: { list?: ProjectWithUserInfo[] }) {
-  const blank = (list || []).find((x) => !x.isFromResource);
-  const resource = (list || []).filter((x) => x.isFromResource);
+  const blank = (list || []).find((x) => !x.blockletDid);
+  const resource = (list || []).filter((x) => x.blockletDid);
   const { t } = useLocaleContext();
   const [dialog, setDialog] = useState<any>(null);
   const { checkProjectLimit, limitDialog } = useProjectsState();
@@ -254,9 +254,9 @@ function ProjectMenu() {
 
   const item =
     menuAnchor &&
-    (projects.find((i) => i.id === menuAnchor.id) ??
-      templates.find((i) => i.id === menuAnchor.id) ??
-      examples.find((i) => i.id === menuAnchor.id));
+    (projects.find((i) => i.id === menuAnchor.id && i.blockletDid === menuAnchor.blockletDid) ??
+      templates.find((i) => i.id === menuAnchor.id && i.blockletDid === menuAnchor.blockletDid) ??
+      examples.find((i) => i.id === menuAnchor.id && i.blockletDid === menuAnchor.blockletDid));
 
   const onDelete = ({ isReset }: { isReset?: boolean } = {}) => {
     if (!item) return;
@@ -341,7 +341,8 @@ function ProjectMenu() {
             checkProjectLimit();
 
             await createProject({
-              templateId: menuAnchor!.id,
+              blockletDid: menuAnchor.blockletDid,
+              templateId: menuAnchor.id,
               name: `${item?.name || 'Unnamed'} Copy`,
               description: item?.description,
             })
@@ -393,7 +394,7 @@ function ProjectMenu() {
           },
         },
         {
-          visible: () => menuAnchor.section === 'examples' && !item.isFromResource && !!item.duplicateFrom,
+          visible: () => menuAnchor.section === 'examples' && !item.blockletDid && !!item.duplicateFrom,
           icon: <Box component={Icon} icon={RefreshIcon} color="warning.main" />,
           title: t('reset'),
           color: 'warning.main',
@@ -569,7 +570,7 @@ function ProjectList({
               users={item.users || []}
               didSpaceAutoSync={Boolean(item.didSpaceAutoSync)}
               loading={Boolean(itemLoading && item?.id === itemLoading?.id)}
-              isFromResource={Boolean(item.isFromResource)}
+              isFromResource={Boolean(item.blockletDid)}
               onClick={async (e) => {
                 if (section === 'templates') {
                   let name = '';
@@ -605,7 +606,12 @@ function ProjectList({
                     okIcon: <RocketLaunchRoundedIcon />,
                     onOk: async () => {
                       try {
-                        const project = await createProject({ templateId: item.id, name, description });
+                        const project = await createProject({
+                          blockletDid: item.blockletDid,
+                          templateId: item.id,
+                          name,
+                          description,
+                        });
                         currentGitStore.setState({
                           currentProjectId: project.id,
                         });
@@ -633,6 +639,7 @@ function ProjectList({
                       // @ts-ignore
                       anchor: e.currentTarget.getElementsByClassName('action')?.[0] || e.currentTarget,
                       id: item.id!,
+                      blockletDid: item.blockletDid,
                     });
                     return;
                   }
