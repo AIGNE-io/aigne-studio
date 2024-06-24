@@ -1,3 +1,7 @@
+## 0.3.2 (2024-6-24)
+
+- fix: reset editor history state and trigger popper check
+
 ## 0.3.1 (2024-6-22)
 
 - fix: allow select components from pages-kit and resource blocklets

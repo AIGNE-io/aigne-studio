@@ -1,3 +1,8 @@
+## 0.3.2 (2024-6-24)
+
+- fix: reset eidtor history state #1132
+- fix: the keyword that prompts the variable #1130
+
 ## 0.3.1 (2024-6-22)
 
 - fix: allow select components from pages-kit and resource blocklets
