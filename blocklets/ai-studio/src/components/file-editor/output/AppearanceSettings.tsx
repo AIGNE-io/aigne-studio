@@ -226,8 +226,12 @@ function ComponentSelect({
       loading={loading}
       {...props}
       renderInput={(params) => <TextField hiddenLabel {...params} />}
-      getOptionLabel={(component) => component.name || component.id}
-      isOptionEqualToValue={(o, v) => `${o.id}-${o.name}` === `${v.id}-${v.name}`}
+      getOptionLabel={(component) =>
+        component.blockletDid ? component.name || component.id : `${component.name || component.id} (Local)`
+      }
+      isOptionEqualToValue={(o, v) =>
+        o.id === v.id && ((!o.blockletDid && !v.blockletDid) || o.blockletDid === v.blockletDid)
+      }
       renderGroup={(params) => {
         return (
           <Box key={params.key}>

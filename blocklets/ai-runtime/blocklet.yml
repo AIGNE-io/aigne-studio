@@ -1,6 +1,6 @@
 name: z2qaBP9SahqU2L2YA3ip7NecwKACMByTFuiJ2
-title: AI Runtime
-description: AIGNE application runtime
+title: AIGNE Runtime
+description: Empower your blocklet with agent execution
 keywords:
   - ai
   - aigne
@@ -15,7 +15,7 @@ repository:
   type: git
   url: git+https://github.com/blocklet/ai-studio.git
 specVersion: 1.2.8
-version: 0.2.54
+version: 0.3.1
 logo: logo.png
 files:
   - dist
@@ -32,9 +32,9 @@ interfaces:
     prefix: '*'
     port: BLOCKLET_PORT
     protocol: http
-community: ''
-documentation: ''
-homepage: ''
+community: https://community.arcblock.io
+documentation: https://developer.blocklet.io
+homepage: https://store.blocklet.dev
 license: ''
 payment:
   price: []
@@ -50,8 +50,11 @@ scripts:
   dev: npm run start
 environments: []
 capabilities:
-  navigation: true
-screenshots: []
+  navigation: false
+screenshots:
+  - runtime-blocklets.png
+  - runtime-agents.png
+  - runtime-mockplexity.png
 components:
   - name: ai-kit
     required: true
@@ -60,15 +63,18 @@ components:
       name: ai-kit
       version: latest
   - name: image-bin
+    required: true
     mountPoint: /image-bin
     source:
       name: image-bin
       version: latest
   - name: pages-kit
+    required: true
     source:
       name: pages-kit
       version: latest
   - name: ai-runtime-components
+    required: true
     source:
       name: z2qa6fvjmjew4pWJyTsKaWFuNoMUMyXDh5A1D
       version: latest

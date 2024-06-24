@@ -1,26 +1,23 @@
-/* eslint-disable no-await-in-loop */
-import { cp, lstat, mkdir, writeFile } from 'fs/promises';
-import path, { basename, join, resolve } from 'path';
+import { mkdir, writeFile } from 'fs/promises';
+import path, { join } from 'path';
 
-import { AI_RUNTIME_COMPONENT_DID } from '@api/libs/constants';
 import downloadImage from '@api/libs/download-logo';
 import { Config } from '@api/libs/env';
 import logger from '@api/libs/logger';
 import { ResourceTypes } from '@api/libs/resource';
+import { AIGNE_RUNTIME_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
 import { Assistant, projectSettingsSchema } from '@blocklet/ai-runtime/types';
 import component, { call } from '@blocklet/sdk/lib/component';
 import { Router } from 'express';
-import { exists } from 'fs-extra';
 import Joi from 'joi';
 import groupBy from 'lodash/groupBy';
 import uniq from 'lodash/uniq';
 import { joinURL } from 'ufo';
+import { Extract } from 'unzipper';
 import { stringify } from 'yaml';
 
 import { ensurePromptsEditor } from '../libs/security';
-import Content from '../store/models/dataset/content';
 import Knowledge from '../store/models/dataset/dataset';
-import Document from '../store/models/dataset/document';
 import Project from '../store/models/project';
 import {
   LOGO_FILENAME,
@@ -81,10 +78,14 @@ const locales: { [key in 'en' | 'zh']: { [key: string]: string } } = {
 };
 
 export function resourceRoutes(router: Router) {
-  const getExportedResourceQuerySchema = Joi.object<{ resourcesParams?: { projectId?: string }; locale?: string }>({
+  const getExportedResourceQuerySchema = Joi.object<{
+    resourcesParams?: { projectId?: string; hideOthers?: boolean };
+    locale?: string;
+  }>({
     locale: Joi.string().empty([null, '']),
     resourcesParams: Joi.object({
       projectId: Joi.string().empty([null, '']),
+      hideOthers: Joi.boolean().empty([null, '']),
     }),
   });
 
@@ -116,7 +117,7 @@ export function resourceRoutes(router: Router) {
 
     const kbList = (
       await call<Knowledge[]>({
-        name: AI_RUNTIME_COMPONENT_DID,
+        name: AIGNE_RUNTIME_COMPONENT_DID,
         method: 'get',
         path: '/api/datasets',
         params: { excludeResource: true },
@@ -145,7 +146,7 @@ export function resourceRoutes(router: Router) {
               description: entry ? undefined : 'No such entry agent, You have to create an entry agent first',
               dependentComponents,
             },
-            {
+            !query.resourcesParams?.hideOthers && {
               id: `other/${x.id}`,
               name: locale.other,
               children: ResourceTypes.filter((i) => i !== 'application').map((type) => ({
@@ -332,20 +333,26 @@ export function resourceRoutes(router: Router) {
       await exportKnowledgeList(folderPath, kbList);
     }
 
+    // generate partial blocklet.yml
+    const blockletYml: any = {
+      capabilities: {
+        navigation: false,
+      },
+    };
+
     if (resourceTypes.some((i) => i[0] === 'application')) {
-      const releaseDir = component.getReleaseExportDir({ projectId, releaseId });
-      await writeFile(
-        path.join(releaseDir, 'blocklet.yml'),
-        `\
-engine:
-  interpreter: blocklet
-  source:
-    store: ${Config.createResourceBlockletEngineStore}
-    name: ${AI_RUNTIME_COMPONENT_DID}
-    version: latest
-`
-      );
+      blockletYml.engine = {
+        interpreter: 'blocklet',
+        source: {
+          store: Config.createResourceBlockletEngineStore,
+          name: AIGNE_RUNTIME_COMPONENT_DID,
+          version: 'latest',
+        },
+      };
     }
+
+    const releaseDir = component.getReleaseExportDir({ projectId, releaseId });
+    await writeFile(path.join(releaseDir, 'blocklet.yml'), stringify(blockletYml));
 
     return res.json(arr);
   });
@@ -389,71 +396,19 @@ const exportKnowledgeList = async (path: string, list: { id: string; public: boo
   }
 };
 
-async function getKnowledgeFromRuntime({ knowledgeId }: { knowledgeId: string }) {
-  return (
-    await call<Knowledge['dataValues'] | null>({
-      name: AI_RUNTIME_COMPONENT_DID,
-      method: 'get',
-      path: joinURL('/api/datasets', knowledgeId),
-    })
-  ).data;
-}
-
 const exportKnowledgeInfo = async (folder: string, item: { id: string; public: boolean }) => {
   const knowledgeId = item.id;
-  const knowledge = await getKnowledgeFromRuntime({ knowledgeId });
-  if (!knowledge) return;
-
-  const { documents, contents } = (
-    await call<{ documents: Document[]; contents: Content[] }>({
-      name: AI_RUNTIME_COMPONENT_DID,
-      method: 'get',
-      path: joinURL('/api/datasets', knowledgeId, 'export-resource'),
-    })
-  ).data;
 
   const knowledgeWithIdPath = join(folder, knowledgeId);
   await mkdir(knowledgeWithIdPath, { recursive: true });
 
-  // 首先将 projects documents contents 继续数据结构化
-  await writeFile(join(knowledgeWithIdPath, 'knowledge.yaml'), stringify({ ...knowledge, public: item.public }));
-  await writeFile(join(knowledgeWithIdPath, 'contents.yaml'), stringify(contents));
-  logger.info(`write ${knowledgeId} knowledge, contents db success`);
+  const res = await call({
+    name: AIGNE_RUNTIME_COMPONENT_DID,
+    method: 'get',
+    path: joinURL('/api/datasets', knowledgeId, 'export-resource'),
+    params: { public: item.public },
+    responseType: 'stream',
+  });
 
-  // 复制 files 数据
-  const uploadsPath = join(knowledgeWithIdPath, 'uploads');
-  await mkdir(uploadsPath, { recursive: true });
-
-  const hasPath = (data: any): data is { type: string; path: string } => {
-    return typeof data === 'object' && 'path' in data;
-  };
-  const filterDocuments = documents.filter((i) => hasPath(i.data));
-
-  for (const document of filterDocuments) {
-    if (hasPath(document.data)) {
-      const newPath = join(uploadsPath, basename(document.data.path));
-      await cp(document.data.path, newPath, {
-        recursive: true,
-        filter: async (src) => {
-          const stats = await lstat(src);
-          return !stats.isSymbolicLink();
-        },
-      });
-
-      // 特别注意，需要将 path 路径更换到新的路径, 在使用时，拼接 uploadsPath
-      document.data.path = basename(document.data.path);
-    }
-  }
-  logger.info(`copy ${knowledgeId} upload files success`);
-
-  await writeFile(join(knowledgeWithIdPath, 'documents.yaml'), stringify(documents));
-  logger.info(`write ${knowledgeId} documents db success`);
-
-  // 复制 vector db
-  const dst = join(knowledgeWithIdPath, 'vectors', knowledgeId);
-  const src = resolve(Config.dataDir, '..', AI_RUNTIME_COMPONENT_DID, 'vectors', knowledgeId);
-  if (await exists(src)) {
-    await cp(src, dst, { recursive: true, force: true });
-    logger.info(`copy ${knowledgeId} vectors db success`);
-  }
+  await res.data.pipe(Extract({ path: knowledgeWithIdPath }), { end: true }).promise();
 };

@@ -783,7 +783,7 @@ export const ToolDialog = forwardRef<
                           meta: { type: value.type as any, name: value.name },
                         });
 
-                        field.onChange({ target: { value: file.template.id } });
+                        field.onChange({ target: { value: file.file.id } });
                       } else {
                         field.onChange({ target: { value: value?.id } });
                       }
@@ -953,7 +953,7 @@ function AddSelectAgentPopperButton({
                     name: createFileName({ store, name: '', defaultName: `${t('alert.unnamed')} Agent` }),
                   },
                 };
-                const { template } = createFile({ ...options, store });
+                const { file: template } = createFile({ ...options, store });
                 onSelect?.(pick(template, 'id', 'name', 'type'));
               }}>
               <Box color="#3B82F6">{t('addAgent')}</Box>

@@ -6,7 +6,7 @@ import Dataset from '../../api/src/store/models/dataset/dataset';
 import DatasetDocument from '../../api/src/store/models/dataset/document';
 import DatasetSegment from '../../api/src/store/models/dataset/segment';
 import axios from './api';
-import { AI_RUNTIME_MOUNT_POINT } from './constants';
+import { AIGNE_RUNTIME_MOUNT_POINT } from './constants';
 
 export interface CreateDiscussionItem {
   name: string;
@@ -35,32 +35,32 @@ export async function searchKnowledge({
   message: string;
 }): Promise<{ docs: { content: string }[] }> {
   return axios
-    .get(`/api/datasets/${datasetId}/search`, { baseURL: AI_RUNTIME_MOUNT_POINT, params: { message } })
+    .get(`/api/datasets/${datasetId}/search`, { baseURL: AIGNE_RUNTIME_MOUNT_POINT, params: { message } })
     .then((res) => res.data);
 }
 
 export async function getAPIList(): Promise<DatasetObject[]> {
-  return axios.get('/api/collections.json', { baseURL: AI_RUNTIME_MOUNT_POINT }).then((res) => res.data);
+  return axios.get('/api/collections.json', { baseURL: AIGNE_RUNTIME_MOUNT_POINT }).then((res) => res.data);
 }
 
 export async function getDatasets(): Promise<Dataset[]> {
-  return axios.get('/api/datasets', { baseURL: AI_RUNTIME_MOUNT_POINT }).then((res) => res.data);
+  return axios.get('/api/datasets', { baseURL: AIGNE_RUNTIME_MOUNT_POINT }).then((res) => res.data);
 }
 
 export async function getDataset(datasetId: string): Promise<Dataset> {
-  return axios.get(`/api/datasets/${datasetId}`, { baseURL: AI_RUNTIME_MOUNT_POINT }).then((res) => res.data);
+  return axios.get(`/api/datasets/${datasetId}`, { baseURL: AIGNE_RUNTIME_MOUNT_POINT }).then((res) => res.data);
 }
 
 export async function createDataset(input?: DatasetInput): Promise<Dataset> {
-  return axios.post('/api/datasets', input, { baseURL: AI_RUNTIME_MOUNT_POINT }).then((res) => res.data);
+  return axios.post('/api/datasets', input, { baseURL: AIGNE_RUNTIME_MOUNT_POINT }).then((res) => res.data);
 }
 
 export async function updateDataset(datasetId: string, input: DatasetInput): Promise<Dataset> {
-  return axios.put(`/api/datasets/${datasetId}`, input, { baseURL: AI_RUNTIME_MOUNT_POINT }).then((res) => res.data);
+  return axios.put(`/api/datasets/${datasetId}`, input, { baseURL: AIGNE_RUNTIME_MOUNT_POINT }).then((res) => res.data);
 }
 
 export async function deleteDataset(datasetId: string): Promise<any> {
-  return axios.delete(`/api/datasets/${datasetId}`, { baseURL: AI_RUNTIME_MOUNT_POINT }).then((res) => res.data);
+  return axios.delete(`/api/datasets/${datasetId}`, { baseURL: AIGNE_RUNTIME_MOUNT_POINT }).then((res) => res.data);
 }
 
 export async function getDocuments(
@@ -68,7 +68,7 @@ export async function getDocuments(
   params: { blockletDid?: string; page?: number; size?: number }
 ): Promise<any> {
   return axios
-    .get(`/api/datasets/${datasetId}/documents`, { baseURL: AI_RUNTIME_MOUNT_POINT, params })
+    .get(`/api/datasets/${datasetId}/documents`, { baseURL: AIGNE_RUNTIME_MOUNT_POINT, params })
     .then((res) => res.data);
 }
 
@@ -77,13 +77,13 @@ export async function getDocument(
   documentId: string
 ): Promise<{ dataset: Dataset; document: DatasetDocument }> {
   return axios
-    .get(`/api/datasets/${datasetId}/documents/${documentId}`, { baseURL: AI_RUNTIME_MOUNT_POINT })
+    .get(`/api/datasets/${datasetId}/documents/${documentId}`, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
     .then((res) => res.data);
 }
 
 export async function getDocumentContent(datasetId: string, documentId: string): Promise<{ content: string[] }> {
   return axios
-    .get(`/api/datasets/${datasetId}/documents/${documentId}/content`, { baseURL: AI_RUNTIME_MOUNT_POINT })
+    .get(`/api/datasets/${datasetId}/documents/${documentId}/content`, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
     .then((res) => res.data);
 }
 
@@ -92,7 +92,7 @@ export async function deleteDocument(
   documentId: string
 ): Promise<{ dataset: Dataset; document: DatasetDocument }> {
   return axios
-    .delete(`/api/datasets/${datasetId}/documents/${documentId}`, { baseURL: AI_RUNTIME_MOUNT_POINT })
+    .delete(`/api/datasets/${datasetId}/documents/${documentId}`, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
     .then((res) => res.data);
 }
 
@@ -101,7 +101,7 @@ export async function createTextDocument(
   input: { name: string; content?: string }
 ): Promise<DatasetDocument> {
   return axios
-    .post(`/api/datasets/${datasetId}/documents/text`, input, { baseURL: AI_RUNTIME_MOUNT_POINT })
+    .post(`/api/datasets/${datasetId}/documents/text`, input, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
     .then((res) => res.data);
 }
 
@@ -111,13 +111,13 @@ export async function updateTextDocument(
   input: { name: string; content?: string }
 ): Promise<DatasetDocument> {
   return axios
-    .put(`/api/datasets/${datasetId}/documents/${documentId}/text`, input, { baseURL: AI_RUNTIME_MOUNT_POINT })
+    .put(`/api/datasets/${datasetId}/documents/${documentId}/text`, input, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
     .then((res) => res.data);
 }
 
 export async function createFileDocument(datasetId: string, form: FormData): Promise<DatasetDocument> {
   return axios
-    .post(`/api/datasets/${datasetId}/documents/file`, form, { baseURL: AI_RUNTIME_MOUNT_POINT })
+    .post(`/api/datasets/${datasetId}/documents/file`, form, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
     .then((res) => res.data);
 }
 
@@ -127,7 +127,7 @@ export async function updateFileDocument(
   form: FormData
 ): Promise<DatasetDocument> {
   return axios
-    .put(`/api/datasets/${datasetId}/documents/${documentId}/file`, form, { baseURL: AI_RUNTIME_MOUNT_POINT })
+    .put(`/api/datasets/${datasetId}/documents/${documentId}/file`, form, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
     .then((res) => res.data);
 }
 
@@ -137,13 +137,13 @@ export async function uploadDocumentName(
   input: { name: string }
 ): Promise<{ data: string }> {
   return axios
-    .put(`/api/datasets/${datasetId}/documents/${documentId}/name`, input, { baseURL: AI_RUNTIME_MOUNT_POINT })
+    .put(`/api/datasets/${datasetId}/documents/${documentId}/name`, input, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
     .then((res) => res.data);
 }
 
 export async function reloadEmbedding(datasetId: string, documentId: string): Promise<{ data: string }> {
   return axios
-    .post(`/api/datasets/${datasetId}/documents/${documentId}/embedding`, {}, { baseURL: AI_RUNTIME_MOUNT_POINT })
+    .post(`/api/datasets/${datasetId}/documents/${documentId}/embedding`, {}, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
     .then((res) => res.data);
 }
 
@@ -153,7 +153,7 @@ export async function getSegments(
   params: { page?: number; size?: number } = {}
 ): Promise<{ items: DatasetSegment[]; total: number; page: number }> {
   return axios
-    .get(`/api/datasets/${datasetId}/documents/${documentId}/segments`, { baseURL: AI_RUNTIME_MOUNT_POINT, params })
+    .get(`/api/datasets/${datasetId}/documents/${documentId}/segments`, { baseURL: AIGNE_RUNTIME_MOUNT_POINT, params })
     .then((res) => res.data);
 }
 
@@ -167,7 +167,7 @@ export async function createDatasetDocuments(
   input: CreateDiscussionItemInput
 ): Promise<DatasetDocument | DatasetDocument[]> {
   return axios
-    .post(`/api/datasets/${datasetId}/documents/discussion`, input, { baseURL: AI_RUNTIME_MOUNT_POINT })
+    .post(`/api/datasets/${datasetId}/documents/discussion`, input, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
     .then((res) => res.data);
 }
 
@@ -178,7 +178,7 @@ export async function watchDatasetEmbeddings({
   datasetId: string;
   signal?: AbortSignal | null;
 }) {
-  const url = joinURL(window.location.origin, AI_RUNTIME_MOUNT_POINT, `/api/datasets/${datasetId}/embeddings`);
+  const url = joinURL(window.location.origin, AIGNE_RUNTIME_MOUNT_POINT, `/api/datasets/${datasetId}/embeddings`);
 
   return new ReadableStream<
     | { type: 'change'; documentId: string; embeddingStatus: string; embeddingEndAt?: Date; embeddingStartAt?: Date }

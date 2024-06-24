@@ -287,8 +287,9 @@ function VariableRow({
           <Box component={TableCell}>
             {firstColumnChildren}
 
-            <Box sx={{ ml: depth }}>
+            <Box sx={{ ml: depth === 0 ? depth : depth + 2 }}>
               <OutputNameCell
+                depth={depth}
                 output={variable}
                 TextFieldProps={{ disabled: Boolean(disabled) || parent?.type === 'array' }}
               />

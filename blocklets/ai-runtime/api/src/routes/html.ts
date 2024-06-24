@@ -2,13 +2,14 @@ import { readFileSync } from 'fs';
 import { resolve } from 'path';
 
 import logger from '@api/libs/logger';
-import { getResourceBlockletFromResource } from '@api/libs/resource';
+import { getResourceProjects } from '@api/libs/resource';
 import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
+import { AIGNE_RUNTIME_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
 import {
   RUNTIME_RESOURCE_BLOCKLET_STATE_GLOBAL_VARIABLE,
   RuntimeResourceBlockletState,
 } from '@blocklet/ai-runtime/types/runtime/runtime-resource-blocklet-state';
-import { getComponentMountPoint } from '@blocklet/sdk';
+import { getComponentMountPoint } from '@blocklet/sdk/lib/component';
 import config, { getBlockletJs } from '@blocklet/sdk/lib/config';
 import { Express, Router } from 'express';
 import Mustache from 'mustache';
@@ -27,28 +28,26 @@ export default function setupHtmlRouter(app: Express, viteDevServer?: ViteDevSer
       applications: [],
     };
 
-    const blockletDid = req.get('x-blocklet-component-id')?.split('/').at(-1);
-    if (blockletDid) {
-      const blocklet = await getResourceBlockletFromResource({ blockletDid, type: 'application' });
-      const projects = blocklet?.projectMap && Object.values(blocklet.projectMap);
-      const apps = projects
-        ?.map((i) => {
-          const entry = i.config?.entry;
-          if (!entry) return undefined;
+    const componentId = req.get('x-blocklet-component-id')?.split('/').at(-1);
+    const blockletDid = componentId !== AIGNE_RUNTIME_COMPONENT_DID ? componentId : undefined;
+    const projects = await getResourceProjects({ blockletDid, type: 'application' });
+    const apps = projects
+      .map((i) => {
+        const entry = i.config?.entry;
+        if (!entry) return undefined;
 
-          const entryAgent = i.agentMap[entry];
-          if (!entryAgent) return undefined;
+        const entryAgent = i.assistants.find((j) => j.id === entry);
+        if (!entryAgent) return undefined;
 
-          return {
-            blockletDid,
-            aid: stringifyIdentity({ projectId: i.project.id, projectRef: 'main', assistantId: entry }),
-            project: i.project,
-          };
-        })
-        .filter((i): i is NonNullable<typeof i> => !!i);
+        return {
+          blockletDid: i.blocklet.did,
+          aid: stringifyIdentity({ projectId: i.project.id, projectRef: 'main', assistantId: entry }),
+          project: i.project,
+        };
+      })
+      .filter((i): i is NonNullable<typeof i> => !!i);
 
-      if (apps?.length) resourceBlockletState.applications.push(...apps);
-    }
+    resourceBlockletState.applications.push(...apps);
 
     let html = template;
 

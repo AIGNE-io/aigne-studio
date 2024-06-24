@@ -1,5 +1,5 @@
 import axios from './api';
-import { AI_RUNTIME_MOUNT_POINT } from './constants';
+import { AIGNE_RUNTIME_MOUNT_POINT } from './constants';
 
 export interface Secret {
   id: string;
@@ -20,7 +20,7 @@ export async function getSecrets({
 }): Promise<{ secrets: Secret[] }> {
   return axios
     .get('/api/secrets/has-value', {
-      baseURL: AI_RUNTIME_MOUNT_POINT,
+      baseURL: AIGNE_RUNTIME_MOUNT_POINT,
       params: { projectId, targetProjectId, targetAgentId },
     })
     .then((res) => res.data);
@@ -36,5 +36,5 @@ export interface CreateOrUpdateSecretsInput {
 }
 
 export async function createOrUpdateSecrets({ input }: { input: CreateOrUpdateSecretsInput }): Promise<{}> {
-  return axios.post('/api/secrets', input, { baseURL: AI_RUNTIME_MOUNT_POINT }).then((res) => res.data);
+  return axios.post('/api/secrets', input, { baseURL: AIGNE_RUNTIME_MOUNT_POINT }).then((res) => res.data);
 }

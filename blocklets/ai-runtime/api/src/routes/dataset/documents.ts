@@ -115,36 +115,30 @@ router.get('/:datasetId/search', async (req, res) => {
   }
 
   if (!input.message) {
-    logger.error('Not found search message');
-    res.json({ docs: [] });
-    return;
+    throw new Error('Not found search message');
   }
 
   const embeddings = new AIKitEmbeddings({});
   const store = await VectorStore.load(datasetId, embeddings);
 
-  try {
-    if (store.getMapping() && !Object.keys(store.getMapping()).length) {
-      res.json({ docs: [] });
-      return;
-    }
-
-    const docs = await store.similaritySearchWithScore(
-      input.message,
-      Math.min(input.n, Object.keys(store.getMapping()).length)
-    );
-
-    // 分数越低越相近
-    const result = sortBy(docs, (item) => item[1]).map((x) => {
-      const info = x[0] || {};
-      return { content: info?.pageContent, ...(info?.metadata?.metadata || {}) };
-    });
-
-    res.json({ docs: result });
-  } catch (error) {
-    logger.error('search vector info', error?.message);
+  if (store.getMapping() && !Object.keys(store.getMapping()).length) {
+    logger.error('store get mapping is empty');
     res.json({ docs: [] });
+    return;
   }
+
+  const docs = await store.similaritySearchWithScore(
+    input.message,
+    Math.min(input.n, Object.keys(store.getMapping()).length)
+  );
+
+  // 分数越低越相近
+  const result = sortBy(docs, (item) => item[1]).map((x) => {
+    const info = x[0] || {};
+    return { content: info?.pageContent, ...(info?.metadata?.metadata || {}) };
+  });
+
+  res.json({ docs: result });
 });
 
 router.get('/:datasetId/documents', user(), userAuth(), async (req, res) => {
@@ -261,6 +255,7 @@ router.post('/:datasetId/documents/text', user(), userAuth(), async (req, res) =
     datasetId,
     createdBy: did,
     updatedBy: did,
+    embeddingStatus: 'idle',
   });
   await DatasetContent.create({ documentId: document.id, content });
 
@@ -389,6 +384,7 @@ router.post('/:datasetId/documents/file', user(), userAuth(), upload.single('dat
     datasetId,
     createdBy: did,
     updatedBy: did,
+    embeddingStatus: 'idle',
   });
 
   // 不保存数据，在使用时，实时去取，防止数据太大，导致出错

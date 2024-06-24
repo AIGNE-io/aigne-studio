@@ -22,6 +22,12 @@ jobs:
         with:
           version: 9
 
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
       - name: Install dependencies
         run: pnpm install
 
@@ -37,6 +43,7 @@ jobs:
           pnpm publish --filter "@blocklet/*" --access public --no-git-checks
 
       - name: Blocklet workflow
+        if: "! contains(toJSON(github.event.commits.*.message), '[skip ai-runtime]')"
         env:
           COMPONENT_STORE_URL: ${{ secrets.STORE_ENDPOINT_TEST }}
         uses: blocklet/action-workflow@v1
@@ -45,6 +52,8 @@ jobs:
           skip-deps: false
           skip-upload: false
           skip-deploy: false
+          skip-readme: true
+          skip-release: true
           working-directory: blocklets/ai-runtime
           bundle-command: pnpm bundle
           store-endpoint: ${{ secrets.STORE_ENDPOINT_TEST }}
@@ -58,6 +67,7 @@ jobs:
           deploy-mount-point: /ai-runtime
 
       - name: Blocklet workflow
+        if: "! contains(toJSON(github.event.commits.*.message), '[skip ai-studio]')"
         env:
           COMPONENT_STORE_URL: ${{ secrets.STORE_ENDPOINT_TEST }}
         uses: blocklet/action-workflow@v1
@@ -66,6 +76,8 @@ jobs:
           skip-deps: false
           skip-upload: false
           skip-deploy: false
+          skip-readme: true
+          skip-release: false
           working-directory: blocklets/ai-studio
           bundle-command: pnpm bundle
           store-endpoint: ${{ secrets.STORE_ENDPOINT_TEST }}

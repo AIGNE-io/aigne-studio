@@ -1215,7 +1215,7 @@ export const ToolDialog = forwardRef<
                           meta: { type: value.type as any, name: value.name },
                         });
 
-                        field.onChange({ target: { value: file.template.id } });
+                        field.onChange({ target: { value: file.file.id } });
                       } else {
                         field.onChange({ target: { value: value?.id } });
                         translateTool();

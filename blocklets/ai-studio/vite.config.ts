@@ -1,5 +1,6 @@
-import { existsSync } from 'fs';
 /* eslint-disable import/no-extraneous-dependencies */
+
+import { existsSync } from 'fs';
 import path from 'path';
 
 import buildOpenAPIPlugin from '@blocklet/dataset-sdk/plugin';
@@ -33,7 +34,7 @@ const hmrHostName = process.env.__HMR_HOSTNAME__;
 const hmrPath = process.env.__HMR_PATH__;
 
 // https://vitejs.dev/config/
-export default defineConfig(() => {
+export default defineConfig((config) => {
   return {
     optimizeDeps: {
       force: true,
@@ -49,7 +50,7 @@ export default defineConfig(() => {
     plugins: [
       tsconfigPaths(),
       dotPathFixPlugin(),
-      million.vite({ auto: true }),
+      config.command === 'build' && million.vite({ auto: true }),
       react(),
       createBlockletPlugin(),
       buildOpenAPIPlugin({ apis: [path.join(__dirname, './api/src/routes/**/*.*')] }),

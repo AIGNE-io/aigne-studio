@@ -161,7 +161,7 @@ async function loadResources(): Promise<Resources> {
     (i) => i.type
   );
 
-  const result: Resources = Object.fromEntries(
+  return Object.fromEntries(
     Object.entries(groups).map(
       ([type, group]) =>
         [
@@ -173,8 +173,6 @@ async function loadResources(): Promise<Resources> {
         ] as const
     )
   );
-
-  return result;
 }
 
 async function reloadResources() {

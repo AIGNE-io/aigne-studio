@@ -729,4 +729,6 @@ export default flat({
   attachUrl: '分享时附加链接',
   attachInputs: '分享时附加输入',
   usage: '用量',
+  docLink: '文档链接',
+  inputParameterLinkPlaceholder: '该输入参数的文档链接',
 });

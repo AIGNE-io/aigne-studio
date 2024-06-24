@@ -6,10 +6,11 @@ import { Outlet, Route, RouterProvider, createBrowserRouter, createRoutesFromEle
 
 import Loading from './components/loading';
 import { SessionProvider } from './contexts/session';
+import ApplicationPage from './pages/application';
 import HomePage from './pages/home';
 import PreviewPage from './pages/preview';
 
-const theme = createTheme();
+const theme = createTheme({ typography: { button: { textTransform: 'none' } } });
 
 export default function WrappedApp() {
   const basename = window.blocklet?.prefix || '/';
@@ -56,6 +57,7 @@ export default function WrappedApp() {
           </StyledEngineProvider>
         }>
         <Route path="/" element={<HomePage />} />
+        <Route path="/apps/:aid" element={<ApplicationPage />} />
         <Route path="/preview/:aid" element={<PreviewPage />} />
       </Route>
     ),

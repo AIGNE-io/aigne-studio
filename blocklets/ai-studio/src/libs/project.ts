@@ -1,4 +1,5 @@
 import AgentInputSecret from '@api/store/models/agent-input-secret';
+import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
 import { Assistant } from '@blocklet/ai-runtime/types';
 import pick from 'lodash/pick';
 import { joinURL, withQuery } from 'ufo';
@@ -15,7 +16,6 @@ import {
 } from '../../api/src/routes/project';
 import Project from '../../api/src/store/models/project';
 import axios from './api';
-import { AI_STUDIO_COMPONENT_DID } from './constants';
 
 export type User = {
   did?: string;
@@ -114,7 +114,7 @@ export function getProjectIconUrl(
   { original }: { original?: boolean } = {}
 ) {
   if (!projectId) return '';
-  const component = blocklet?.componentMountPoints.find((i) => i.did === AI_STUDIO_COMPONENT_DID);
+  const component = blocklet?.componentMountPoints.find((i) => i.did === AIGNE_STUDIO_COMPONENT_DID);
   return withQuery(
     joinURL(window.location.origin, component?.mountPoint || '', `/api/projects/${projectId}/logo.png`),
     original ? { version: updatedAt } : { imageFilter: 'resize', w: 140, version: updatedAt }
