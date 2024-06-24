@@ -1,4 +1,6 @@
+import DID from '@arcblock/ux/lib/DID';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
 import BookIcon from '@iconify-icons/tabler/book-2';
@@ -118,6 +120,7 @@ export default function KnowledgeDatasets() {
                 blockletDid={item.blockletDid}
                 description={item.description}
                 documents={item.documents}
+                updatedAt={item.updatedAt}
                 onClick={() => navigate(withQuery(item.id, { blockletDid: item.blockletDid }))}
                 onDelete={() => onDelete(item.id)}
                 className="listItem"
@@ -237,6 +240,7 @@ function DatasetItemAdd({
 function DatasetItem({
   name,
   description,
+  updatedAt,
   documents,
   onDelete,
   onUpdate,
@@ -245,6 +249,7 @@ function DatasetItem({
 }: {
   name?: string;
   description?: string;
+  updatedAt?: Date;
   blockletDid?: string;
   documents?: number;
   onDelete: () => void;
@@ -270,7 +275,7 @@ function DatasetItem({
             <Box component={Icon} icon={BookIcon} fontSize={30} />
           </Box>
 
-          <Box width={0} flex={1}>
+          <Box width={0} flex={1} sx={{ display: 'flex', flexDirection: 'column' }}>
             <Box className="between">
               <Typography variant="subtitle1">{name || t('unnamed')}</Typography>
 
@@ -413,31 +418,29 @@ function DatasetItem({
                 </Box>
               )}
             </Box>
-            <Typography variant="subtitle3">{description || ''}</Typography>
+            <Box>
+              <Typography variant="subtitle3">{description || ''}</Typography>
+            </Box>
           </Box>
         </Stack>
 
-        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Typography variant="subtitle5">{`${documents || 0} ${(documents || 0) > 0 ? t('knowledge.documents.documents') : t('knowledge.documents.document')}`}</Typography>
-          {blockletDid && (
-            <Tooltip title={blockletDid}>
-              <Typography
-                variant="subtitle5"
-                sx={{
-                  borderRadius: '6px',
-                  fontWeight: 500,
-                  background: 'rgb(241, 110, 110)',
-                  color: 'rgb(255, 255, 255)',
-                  padding: '2px 8px',
-                  fontSize: '12px',
-                  height: '20px',
-                  lineHeight: '16px',
-                }}>
-                资源数据
-              </Typography>
-            </Tooltip>
+        <Stack direction="row" justifyContent="space-between">
+          <Stack direction="row" gap={1} alignItems="center">
+            <Typography variant="caption">{`${documents || 0} ${(documents || 0) > 0 ? t('knowledge.documents.documents') : t('knowledge.documents.document')}`}</Typography>
+
+            {blockletDid && (
+              <Box maxWidth={200}>
+                <DID did={blockletDid} copyable={false} />
+              </Box>
+            )}
+          </Stack>
+
+          {updatedAt && (
+            <Typography variant="caption" color="text.secondary">
+              <RelativeTime value={updatedAt} />
+            </Typography>
           )}
-        </Box>
+        </Stack>
       </DatasetItemRoot>
 
       {dialog}

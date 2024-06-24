@@ -1,5 +1,5 @@
 import { useCurrentProject } from '@app/contexts/project';
-import { AI_RUNTIME_MOUNT_POINT } from '@app/libs/constants';
+import { AIGNE_RUNTIME_MOUNT_POINT } from '@app/libs/constants';
 import { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { SubscriptionError } from '@blocklet/ai-kit/api';
@@ -467,7 +467,7 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
                 ...pick(message, 'model', 'temperature', 'topP', 'presencePenalty', 'frequencyPenalty'),
               })
             : await runAssistant({
-                url: joinURL(AI_RUNTIME_MOUNT_POINT, '/api/ai/call'),
+                url: joinURL(AIGNE_RUNTIME_MOUNT_POINT, '/api/ai/call'),
                 working: true,
                 aid: stringifyIdentity({
                   projectId: message.projectId,

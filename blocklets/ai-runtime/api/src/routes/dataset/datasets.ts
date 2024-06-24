@@ -1,10 +1,21 @@
+import { copyFileSync, cpSync, createWriteStream } from 'fs';
+import { mkdir, mkdtemp, rm, writeFile } from 'fs/promises';
+import { basename, join, resolve } from 'path';
+import { finished } from 'stream/promises';
+
+import { Config } from '@api/libs/env';
+import logger from '@api/libs/logger';
 import { getResourceKnowledgeList, getResourceKnowledgeWithData } from '@api/libs/resource';
 import DatasetContent from '@api/store/models/dataset/content';
+import config from '@blocklet/sdk/lib/config';
 import user from '@blocklet/sdk/lib/middlewares/user';
+import archiver from 'archiver';
 import compression from 'compression';
 import { Router } from 'express';
+import { exists } from 'fs-extra';
 import Joi from 'joi';
 import { Op, Sequelize } from 'sequelize';
+import { stringify } from 'yaml';
 
 import { ensureComponentCallOr, ensureComponentCallOrAdmin, userAuth } from '../../libs/security';
 import Dataset from '../../store/models/dataset/dataset';
@@ -24,8 +35,13 @@ const getDatasetsQuerySchema = Joi.object<{ excludeResource?: boolean }>({
 });
 
 router.get('/', user(), ensureComponentCallOr(userAuth()), async (req, res) => {
-  const user =
-    !req.user || req.user.isAdmin ? {} : { [Op.or]: [{ createdBy: req.user.did }, { updatedBy: req.user.did }] };
+  let user = {};
+  if (!req.user || config.env.tenantMode === 'single') {
+    user = {};
+  } else {
+    // 多租户模式下，只能查看自己创建的知识库
+    user = { [Op.or]: [{ createdBy: req.user.did }, { updatedBy: req.user.did }] };
+  }
 
   const query = await getDatasetsQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
@@ -36,6 +52,7 @@ router.get('/', user(), ensureComponentCallOr(userAuth()), async (req, res) => {
   const datasets = await Dataset.findAll({
     where: { ...user },
     attributes: { include: [[sql, 'documents']] },
+    order: [['updatedAt', 'DESC']],
   });
 
   const resourceDatasets = query.excludeResource ? [] : await getResourceKnowledgeList();
@@ -69,13 +86,82 @@ router.get('/:datasetId', user(), ensureComponentCallOr(userAuth()), async (req,
   res.json(dataset);
 });
 
+export const exportResourceQuerySchema = Joi.object<{ public?: boolean }>({
+  public: Joi.boolean().empty(['', null]),
+});
+
 router.get('/:datasetId/export-resource', user(), ensureComponentCallOrAdmin(), async (req, res) => {
   const { datasetId } = req.params;
+  if (!datasetId) throw new Error('missing required param `datasetId`');
+
+  const query = await exportResourceQuerySchema.validateAsync(req.query, { stripUnknown: true });
+
+  const dataset = await Dataset.findByPk(datasetId, { rejectOnEmpty: new Error(`No such dataset ${datasetId}`) });
+
   const documents = await DatasetDocument.findAll({ where: { datasetId, type: { [Op.ne]: 'discussKit' } } });
   const documentIds = documents.map((i) => i.id);
   const contents = await DatasetContent.findAll({ where: { documentId: { [Op.in]: documentIds } } });
 
-  res.json({ documents, contents });
+  const tmpdir = join(Config.dataDir, 'tmp');
+  await mkdir(tmpdir, { recursive: true });
+  const tmpFolder = await mkdtemp(join(tmpdir, 'knowledge-pack-'));
+  try {
+    const knowledgeWithIdPath = join(tmpFolder, datasetId);
+    await mkdir(knowledgeWithIdPath, { recursive: true });
+
+    // 首先将 projects documents contents 继续数据结构化
+    await writeFile(
+      join(knowledgeWithIdPath, 'knowledge.yaml'),
+      stringify({ ...dataset.dataValues, public: query.public })
+    );
+    await writeFile(join(knowledgeWithIdPath, 'contents.yaml'), stringify(contents));
+
+    // 复制 files 数据
+    const uploadsPath = join(knowledgeWithIdPath, 'uploads');
+    await mkdir(uploadsPath, { recursive: true });
+
+    const hasPath = (data: any): data is { type: string; path: string } => {
+      return typeof data === 'object' && 'path' in data;
+    };
+    const filterDocuments = documents.filter((i) => hasPath(i.data));
+
+    for (const document of filterDocuments) {
+      if (hasPath(document.data)) {
+        const newPath = join(uploadsPath, basename(document.data.path));
+        copyFileSync(document.data.path, newPath);
+
+        // 特别注意，需要将 path 路径更换到新的路径, 在使用时，拼接 uploadsPath
+        document.data.path = basename(document.data.path);
+      }
+    }
+
+    await writeFile(join(knowledgeWithIdPath, 'documents.yaml'), stringify(documents));
+
+    // 复制 vector db
+    const dst = join(knowledgeWithIdPath, 'vectors', datasetId);
+    const src = resolve(Config.dataDir, 'vectors', datasetId);
+    if (await exists(src)) {
+      cpSync(src, dst, { recursive: true, force: true });
+    }
+
+    const zipPath = join(tmpFolder, `${datasetId}.zip`);
+    const archive = archiver('zip');
+    const stream = archive.pipe(createWriteStream(zipPath));
+
+    archive.directory(knowledgeWithIdPath, false);
+
+    await archive.finalize();
+    await finished(stream);
+
+    await new Promise<void>((resolve) => {
+      res.sendFile(zipPath, (error) => {
+        resolve();
+        if (error) logger.error('sendFile error', error);
+      });
+    });
+  } finally {
+    await rm(tmpFolder, { recursive: true, force: true });
+  }
 });
 
 router.post('/', user(), userAuth(), async (req, res) => {

@@ -337,7 +337,6 @@ export default flat({
   formatResult: 'Format Result',
   stayAsIs: 'Stay as is',
   asHistory: 'As Chat History',
-  chatSubscribe: 'Hello, in order to continue chatting, please first subscribe to AI-KIT service',
   prepareExecutes: 'Prepare Executes',
   tool: 'Agent',
   callFunction: 'Call Function',
@@ -735,4 +734,6 @@ export default flat({
   attachUrl: 'Attach link when sharing',
   attachInputs: 'Attach inputs when sharing',
   usage: 'Usage',
+  docLink: 'Document link',
+  inputParameterLinkPlaceholder: 'Link to the document that describes this input',
 });

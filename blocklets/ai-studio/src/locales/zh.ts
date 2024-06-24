@@ -337,7 +337,6 @@ export default flat({
   asHistory: '作为聊天记录',
   stayAsIs: '保持原样',
   prepareExecutes: '预执行',
-  chatSubscribe: '您好，请先订阅服务才可以继续聊天',
   tool: '工具',
   callFunction: '调用函数',
   collection: '数据集管理',
@@ -729,4 +728,6 @@ export default flat({
   attachUrl: '分享时附加链接',
   attachInputs: '分享时附加输入',
   usage: '用量',
+  docLink: '文档链接',
+  inputParameterLinkPlaceholder: '该输入参数的文档链接',
 });

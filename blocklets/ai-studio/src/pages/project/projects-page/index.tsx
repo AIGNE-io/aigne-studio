@@ -242,6 +242,7 @@ function ProjectMenu() {
 
   const {
     state: { menuAnchor, projects, templates, examples },
+    refetch,
     createProject,
     deleteProject,
     updateProject,
@@ -320,7 +321,7 @@ function ProjectMenu() {
               okText: t('save'),
               okIcon: <SaveRoundedIcon />,
               onOk: async () => {
-                updateProject(id, { name, description })
+                await updateProject(id, { name, description })
                   .catch((error) => {
                     Toast.error(getErrorMessage(error));
                     throw error;
@@ -355,6 +356,7 @@ function ProjectMenu() {
                 throw error;
               })
               .finally(() => {
+                refetch();
                 setMenuAnchor(undefined);
               });
           },

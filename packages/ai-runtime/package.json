@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.2.54",
+  "version": "0.3.2",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -51,6 +51,10 @@
     "./common/*": {
       "import": "./lib/esm/common/*.js",
       "require": "./lib/cjs/common/*.js"
+    },
+    "./constants": {
+      "import": "./lib/esm/constants.js",
+      "require": "./lib/cjs/constants.js"
     }
   },
   "typesVersions": {
@@ -85,6 +89,9 @@
       ],
       "common/*": [
         "./lib/types/common/*.d.ts"
+      ],
+      "constants": [
+        "./lib/types/constants.d.ts"
       ]
     }
   },
@@ -114,16 +121,16 @@
   },
   "dependencies": {
     "@blocklet/ai-builtin": "workspace:^",
-    "@blocklet/ai-kit": "^0.1.37",
+    "@blocklet/ai-kit": "^0.1.43",
     "@blocklet/dataset-sdk": "workspace:^",
-    "@blocklet/sdk": "^1.16.27",
+    "@blocklet/sdk": "^1.16.28",
     "@microsoft/fetch-event-source": "^2.0.1",
     "ahooks": "^3.8.0",
     "axios": "^1.7.2",
     "crypto": "^1.0.1",
     "dayjs": "^1.11.11",
     "eventsource-parser": "^1.1.2",
-    "joi": "^17.13.1",
+    "joi": "^17.13.3",
     "js-base64": "^3.7.7",
     "lodash": "^4.17.21",
     "nanoid": "^3.3.7",
@@ -131,7 +138,7 @@
     "react-hook-form": "^7.52.0",
     "recoil": "^0.7.7",
     "snowflake-uuid": "^1.0.0",
-    "typescript": "^5.4.5",
+    "typescript": "^5.5.2",
     "ufo": "^1.5.3",
     "vm2": "^3.9.19"
   },
@@ -146,7 +153,7 @@
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@arcblock/ux": "^2.10.0",
+    "@arcblock/ux": "^2.10.1",
     "@emotion/css": "^11.11.2",
     "@emotion/react": "^11.11.4",
     "@jest/globals": "^29.7.0",
@@ -162,6 +169,6 @@
     "react-router-dom": "^6.23.1",
     "rimraf": "^5.0.7",
     "ts-jest": "^29.1.5",
-    "typescript": "^5.4.5"
+    "typescript": "^5.5.2"
   }
 }

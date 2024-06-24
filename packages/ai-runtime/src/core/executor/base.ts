@@ -5,7 +5,7 @@ import { logger } from '@blocklet/sdk/lib/config';
 import Joi from 'joi';
 import { isNil, toLower } from 'lodash';
 
-import { AI_RUNTIME_COMPONENT_DID } from '../../constants';
+import { AIGNE_RUNTIME_COMPONENT_DID } from '../../constants';
 import {
   AssistantResponseType,
   ExecutionPhase,
@@ -237,6 +237,7 @@ export abstract class AgentExecutorBase {
           const currentTaskId = nextTaskId();
           // eslint-disable-next-line no-await-in-loop
           const result = await runKnowledgeTool({
+            blockletDid: parameter.source.knowledge.blockletDid || agent.identity.blockletDid,
             tool: parameter.source.knowledge,
             taskId: currentTaskId,
             assistant: agent,
@@ -262,7 +263,7 @@ export abstract class AgentExecutorBase {
           });
 
           const memories = Array.isArray(result) ? result : [];
-          const agentIds = new Set<string>(memories.map((i) => i.assistantId));
+          const agentIds = new Set(memories.map((i) => i.agentId).filter((i): i is NonNullable<typeof i> => !!i));
           const assistantNameMap = Object.fromEntries(
             (
               await Promise.all(
@@ -286,13 +287,10 @@ export abstract class AgentExecutorBase {
               ])
           );
 
-          memories.forEach((i) => {
-            if (i?.assistantId) {
-              i.name = assistantNameMap[i.assistantId];
-            }
-          });
-
-          variables[parameter.key] = memories;
+          variables[parameter.key] = memories.map((i) => ({
+            ...i,
+            name: i.agentId && assistantNameMap[i.agentId],
+          }));
         } else if (parameter.source?.variableFrom === 'blockletAPI' && parameter.source.api) {
           const { api } = parameter.source;
           const dataset = datasets.find((x) => x.id === api.id);
@@ -431,7 +429,7 @@ export abstract class AgentExecutorBase {
 
       // TODO: @li-yechao 封装存储数据的方法
       await call({
-        name: AI_RUNTIME_COMPONENT_DID,
+        name: AIGNE_RUNTIME_COMPONENT_DID,
         path: '/api/memories',
         method: 'POST',
         headers: getUserHeader(this.context.user),

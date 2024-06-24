@@ -58,9 +58,9 @@ export default function ImportFrom({
       counts.current[item.text] = counts.current[item.text] ?? 0;
 
       if (isChecked) {
-        counts.current[item.text]++;
+        counts.current[item.text]!++;
       } else {
-        counts.current[item.text]--;
+        counts.current[item.text]!--;
       }
     });
   };
