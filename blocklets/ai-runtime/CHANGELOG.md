@@ -1,3 +1,7 @@
+## 0.3.5 (2024-6-25)
+
+- chore: show memory count & default show non-empty variables scope
+
 ## 0.3.4 (2024-6-24)
 
 - chore: add close icon on setting drawer
