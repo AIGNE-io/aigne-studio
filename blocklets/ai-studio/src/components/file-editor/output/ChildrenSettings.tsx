@@ -40,13 +40,8 @@ export default function ChildrenSettings({
 
   const value = (initialValue?.agents ?? [])
     .map((i) => options.find((o) => o.id === i.id))
-    .filter((i) => !!i)
-    .map((item) => {
-      return {
-        id: item.id,
-        name: item.name,
-      };
-    });
+    .filter((i): i is NonNullable<typeof i> => !!i)
+    .map((i) => ({ id: i.id, name: i.name }));
 
   return (
     <Box>
