@@ -132,10 +132,10 @@ export function CommitListView({
                 setLoadingItemHash(undefined);
               }
             }}>
-            <ListItemIcon>
+            <ListItemIcon sx={{ minWidth: 0, mr: 1 }}>
               <Box
                 component={Avatar}
-                width={32}
+                width={1}
                 height={32}
                 src={item.commit.author.avatar}
                 did={item.commit.author.did}

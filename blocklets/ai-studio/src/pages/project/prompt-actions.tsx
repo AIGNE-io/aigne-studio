@@ -108,7 +108,7 @@ export function HeaderActions() {
           </span>
         </CommitsTip>
 
-        <SaveButton projectId={projectId} gitRef={gitRef} disabledButton={disabledButton} />
+        <SaveButton projectId={projectId} gitRef={gitRef} disabled={disabledButton} />
 
         <>
           <Tooltip disableInteractive title={t('setting')}>
