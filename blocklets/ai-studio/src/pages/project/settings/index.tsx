@@ -63,8 +63,6 @@ const init = {
   primaryColor: '#ffffff',
 };
 
-
-
 export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxProps; onClose?: () => void }) {
   const { t } = useLocaleContext();
   const { projectId = '' } = useParams();
