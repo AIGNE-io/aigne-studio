@@ -54,7 +54,7 @@ export class LLMAgentExecutor extends AgentExecutorBase {
       .flat()
       .filter((i): i is Required<NonNullable<typeof i>> => !!i?.content);
 
-    const filterOutputVariables = (agent.outputVariables ?? []).filter((i) => !i?.hidden);
+    const filterOutputVariables = (agent.outputVariables ?? []).filter((i) => !i.hidden);
     const outputVariables =
       filterOutputVariables?.filter((i): i is typeof i & Required<Pick<typeof i, 'name'>> => !!i.name) ?? [];
 

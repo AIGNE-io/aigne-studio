@@ -385,7 +385,7 @@ export abstract class AgentExecutorBase {
     { inputs, outputs }: { inputs?: { [key: string]: any }; outputs?: { [key: string]: any } }
   ) {
     const joiSchema = outputVariablesToJoiSchema(agent, await this.context.getMemoryVariables(agent.identity));
-    const outputVariables = (agent.outputVariables ?? []).filter((i) => !i?.hidden);
+    const outputVariables = (agent.outputVariables ?? []).filter((i) => !i.hidden);
 
     const outputInputs = outputVariables?.reduce((res, output) => {
       const input =
@@ -403,7 +403,7 @@ export abstract class AgentExecutorBase {
 
   private async postProcessOutputs(agent: GetAgentResult, { outputs }: { outputs: { [key: string]: any } }) {
     const memoryVariables = await this.context.getMemoryVariables(agent.identity);
-    const outputVariables = (agent.outputVariables ?? []).filter((i) => !i?.hidden);
+    const outputVariables = (agent.outputVariables ?? []).filter((i) => !i.hidden);
 
     for (const output of outputVariables) {
       if (!output?.variable?.key || !output?.name) continue;

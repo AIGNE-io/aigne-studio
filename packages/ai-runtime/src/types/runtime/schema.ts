@@ -135,7 +135,7 @@ export function outputVariablesToJsonSchema(
     };
   };
 
-  const outputVariables = (assistant.outputVariables ?? []).filter((i) => !i?.hidden);
+  const outputVariables = (assistant.outputVariables ?? []).filter((i) => !i.hidden);
   return variableToSchema({ type: 'object', properties: outputVariables });
 }
 
@@ -209,7 +209,7 @@ export function outputVariablesToJoiSchema(assistant: Assistant, datastoreVariab
     return schema;
   };
 
-  const outputVariables = (assistant.outputVariables ?? []).filter((i) => !i?.hidden);
+  const outputVariables = (assistant.outputVariables ?? []).filter((i) => !i.hidden);
   return variableToSchema({ type: 'object', properties: outputVariables })!;
 }
 

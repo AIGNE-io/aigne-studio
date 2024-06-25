@@ -1,3 +1,9 @@
+## 0.3.7 (2024-6-25)
+
+- fix: enable save button in any historic commit #1166
+- fix: fix: children agent tag name #1165
+- feat: hide output variable
+
 ## 0.3.6 (2024-6-25)
 
 - fix: set initial history state for prompt editor #1132
