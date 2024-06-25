@@ -26,7 +26,7 @@ import {
   Typography,
 } from '@mui/material';
 import { bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import { joinURL } from 'ufo';
@@ -79,6 +79,14 @@ export function HeaderActions() {
     setDrawerOpen(!drawerOpen);
   };
 
+  const disabledButton = useMemo(() => {
+    if (commits && commits.length > 2 && commits[0]?.oid !== gitRef) {
+      return false;
+    }
+
+    return undefined;
+  }, [commits, gitRef]);
+
   return (
     <CurrentProjectProvider projectId={projectId} projectRef={gitRef}>
       <Box gap={1} className="center" sx={{ button: { whiteSpace: 'nowrap' } }}>
@@ -100,7 +108,7 @@ export function HeaderActions() {
           </span>
         </CommitsTip>
 
-        <SaveButton projectId={projectId} gitRef={gitRef} />
+        <SaveButton projectId={projectId} gitRef={gitRef} disabledButton={disabledButton} />
 
         <>
           <Tooltip disableInteractive title={t('setting')}>

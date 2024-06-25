@@ -41,7 +41,15 @@ export interface CommitForm {
   message: string;
 }
 
-export default function SaveButton({ projectId, gitRef }: { projectId: string; gitRef: string }) {
+export default function SaveButton({
+  projectId,
+  gitRef,
+  disabledButton,
+}: {
+  projectId: string;
+  gitRef: string;
+  disabledButton?: boolean;
+}) {
   const { t } = useLocaleContext();
   const dialogState = usePopupState({ variant: 'dialog' });
   const [loading, setLoading] = useState(false);
@@ -55,7 +63,7 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
         <span>
           <Button
             {...bindTrigger(dialogState)}
-            disabled={submitting || disabled}
+            disabled={disabledButton !== undefined ? disabledButton : submitting || disabled}
             sx={{
               position: 'relative',
               minWidth: 0,
