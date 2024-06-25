@@ -1,3 +1,8 @@
+## 0.3.6 (2024-6-25)
+
+- fix: set initial history state for prompt editor #1132
+- fix: show variable options when typing `{{` #1130
+
 ## 0.3.5 (2024-6-25)
 
 - chore: show memory count & default show non-empty variables scope

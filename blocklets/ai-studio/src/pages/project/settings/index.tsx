@@ -63,10 +63,6 @@ const init = {
   primaryColor: '#ffffff',
 };
 
-const tabListInfo: { list: string[] } = {
-  list: ['basic', 'modelInfo', 'git', 'didSpaces', 'appearance'],
-};
-
 export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxProps; onClose?: () => void }) {
   const { t } = useLocaleContext();
   const { projectId = '' } = useParams();
@@ -79,6 +75,16 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
   const isSubmit = useRef(false);
   const origin = useRef<UpdateProjectInput>();
   const { session } = useSessionContext();
+
+  const tabListInfo: { list: string[] } = {
+    list: [
+      'basic',
+      'modelInfo',
+      'git',
+      !isEmpty(session?.user?.didSpace?.endpoint) ? 'didSpaces' : '',
+      'appearance',
+    ].filter((x) => x),
+  };
   const [currentTabIndex, setCurrentTabIndex] = useState<string | undefined>(tabListInfo.list[0]);
 
   const { value: supportedModels, loading: getSupportedModelsLoading } = useAsync(() => getSupportedModels(), []);
@@ -549,11 +555,9 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
 
           {currentTabIndex === 'didSpaces' && (
             <Box mt={2}>
-              {!isEmpty(session.user?.didSpace?.endpoint) && (
-                <Form>
-                  <DidSpacesSetting projectId={projectId} />
-                </Form>
-              )}
+              <Form>
+                <DidSpacesSetting projectId={projectId} />
+              </Form>
             </Box>
           )}
 

@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/prompt-editor",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "description": "prompt editor for ai studio",
   "author": "arcblock",
   "license": "ISC",
@@ -64,6 +64,7 @@
     "@lexical/file": "0.13.1",
     "@lexical/hashtag": "0.13.1",
     "@lexical/headless": "0.13.1",
+    "@lexical/history": "^0.13.1",
     "@lexical/link": "0.13.1",
     "@lexical/list": "0.13.1",
     "@lexical/mark": "0.13.1",
