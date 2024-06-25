@@ -38,13 +38,23 @@ export default function ChildrenSettings({
     .filter((i): i is AssistantYjs => !!i && isAssistant(i) && i.id !== assistant.id)
     .map((i) => ({ id: i.id, name: i.name }));
 
+  const value = (initialValue?.agents ?? [])
+    .map((i) => options.find((o) => o.id === i.id))
+    .filter((i) => !!i)
+    .map((item) => {
+      return {
+        id: item.id,
+        name: item.name,
+      };
+    });
+
   return (
     <Box>
       <Typography variant="subtitle2">{t('children')}</Typography>
       <SelectTool
         multiple
         options={options}
-        value={initialValue?.agents}
+        value={value}
         onChange={(v) => {
           setField((o) => {
             o.agents = v.map((i) => ({ id: i.id, name: i.name }));
