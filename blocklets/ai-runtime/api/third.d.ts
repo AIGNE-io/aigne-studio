@@ -1,5 +1,7 @@
 declare module 'vite-plugin-blocklet';
 
+declare module '@blocklet/logger';
+
 declare module 'express-history-api-fallback';
 
 declare module 'express-sse';

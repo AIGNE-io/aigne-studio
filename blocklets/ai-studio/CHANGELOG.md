@@ -1,3 +1,19 @@
+## 0.3.4 (2024-6-24)
+
+- chore: add close icon on setting drawer
+
+## 0.3.3 (2024-6-24)
+
+- fix: copy example project configurations
+
+## 0.3.2 (2024-6-24)
+
+- chore: updated deps
+
+## 0.3.1 (2024-6-22)
+
+- fix: allow select components from pages-kit and resource blocklets
+
 ## 0.3.0 (2024-6-22)
 
 - chore: update deps
