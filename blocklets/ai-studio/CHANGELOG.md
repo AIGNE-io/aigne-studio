@@ -1,7 +1,11 @@
+## 0.3.6 (2024-6-25)
+
+- fix: set initial history state for prompt editor #1132
+- fix: show variable options when typing `{{` #1130
+
 ## 0.3.5 (2024-6-25)
 
-- fix: reset eidtor history state #1132
-- fix: the keyword that prompts the variable #1130
+- chore: show memory count & default show non-empty variables scope
 
 ## 0.3.4 (2024-6-24)
 
