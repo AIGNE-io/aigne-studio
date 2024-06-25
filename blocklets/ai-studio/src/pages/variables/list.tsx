@@ -29,7 +29,10 @@ import {
   Typography,
 } from '@mui/material';
 import equal from 'fast-deep-equal';
-import _, { cloneDeep, sortBy, uniq } from 'lodash';
+import cloneDeep from 'lodash/cloneDeep';
+import groupBy from 'lodash/groupBy';
+import sortBy from 'lodash/sortBy';
+import uniq from 'lodash/uniq';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { nanoid } from 'nanoid';
 import { useEffect, useMemo, useState } from 'react';
@@ -66,14 +69,15 @@ function VariableList() {
     defaultValues: { reset: false, scope: 'session', key: '', defaultValue: '', type: { type: 'string' } },
   });
 
-  const scopeCount = useMemo(() => {
-    const map = _.mapValues(_.groupBy(variableYjs?.variables || [], 'scope'), (item) => item.length);
-    return map;
-  });
+  const scopeCount = Object.fromEntries(
+    Object.entries(groupBy(variableYjs?.variables || [], 'scope')).map(([scope, variables]) => [
+      scope,
+      variables.length,
+    ])
+  );
 
   useEffect(() => {
     setScope(Object.keys(scopeCount)[0] as 'global' | 'user' | 'session');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const list = useMemo(() => {
@@ -192,9 +196,9 @@ function VariableList() {
         <SegmentedControl
           value={scope}
           options={[
-            { value: 'global', label: t('variableParameter.global'), count: scopeCount?.global },
-            { value: 'user', label: t('variableParameter.user'), count: scopeCount?.user },
-            { value: 'session', label: t('variableParameter.session'), count: scopeCount?.session },
+            { value: 'global', label: t('variableParameter.global'), count: scopeCount.global },
+            { value: 'user', label: t('variableParameter.user'), count: scopeCount.user },
+            { value: 'session', label: t('variableParameter.session'), count: scopeCount.session },
           ]}
           onChange={(value: 'global' | 'user' | 'session') => {
             if (value) setScope(value);
