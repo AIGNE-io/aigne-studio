@@ -730,4 +730,7 @@ export default flat({
   usage: '用量',
   docLink: '文档链接',
   inputParameterLinkPlaceholder: '该输入参数的文档链接',
+  hideOutputSetting: '隐藏当前输出设置',
+  activeOutputTip: '激活该条输出',
+  hideOutputTip: '隐藏该条输出',
 });

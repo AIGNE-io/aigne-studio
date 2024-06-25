@@ -95,16 +95,18 @@ router.get('/:aid', async (req, res) => {
 
 const respondAgentFields = (assistant: Assistant, project: ProjectSettings, blocklet?: { did: string }) => ({
   ...pick(assistant, 'id', 'name', 'description', 'type', 'parameters', 'createdAt', 'updatedAt', 'createdBy'),
-  outputVariables: assistant.outputVariables?.map((i) => ({
-    ...i,
-    // 兼容旧版本数据，2024-06-23 之后可以删掉
-    appearance: {
-      ...(!i.appearance || isEmpty(i.appearance)
-        ? pick(typeof i.initialValue === 'object' ? i.initialValue : {}, 'componentId', 'componentName')
-        : i.appearance),
-      componentProperties: i.appearance?.componentProperties || (i.initialValue as any)?.componentProps,
-    },
-  })),
+  outputVariables: (assistant.outputVariables ?? [])
+    .filter((i) => !i?.hidden)
+    ?.map((i) => ({
+      ...i,
+      // 兼容旧版本数据，2024-06-23 之后可以删掉
+      appearance: {
+        ...(!i.appearance || isEmpty(i.appearance)
+          ? pick(typeof i.initialValue === 'object' ? i.initialValue : {}, 'componentId', 'componentName')
+          : i.appearance),
+        componentProperties: i.appearance?.componentProperties || (i.initialValue as any)?.componentProps,
+      },
+    })),
   project: {
     id: project.id,
     name: project.name,

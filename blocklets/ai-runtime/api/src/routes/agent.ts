@@ -119,16 +119,18 @@ router.get('/:aid/logo', async (req, res) => {
 
 const respondAgentFields = (agent: GetAgentResult) => ({
   ...pick(agent, 'id', 'name', 'description', 'type', 'parameters', 'createdAt', 'updatedAt', 'createdBy', 'identity'),
-  outputVariables: agent.outputVariables?.map((i) => ({
-    ...i,
-    // 兼容旧版本数据，2024-06-23 之后可以删掉
-    appearance: {
-      ...(!i.appearance || isEmpty(i.appearance)
-        ? pick(typeof i.initialValue === 'object' ? i.initialValue : {}, 'componentId', 'componentName')
-        : i.appearance),
-      componentProperties: i.appearance?.componentProperties || (i.initialValue as any)?.componentProps,
-    },
-  })),
+  outputVariables: (agent.outputVariables ?? [])
+    .filter((i) => !i?.hidden)
+    ?.map((i) => ({
+      ...i,
+      // 兼容旧版本数据，2024-06-23 之后可以删掉
+      appearance: {
+        ...(!i.appearance || isEmpty(i.appearance)
+          ? pick(typeof i.initialValue === 'object' ? i.initialValue : {}, 'componentId', 'componentName')
+          : i.appearance),
+        componentProperties: i.appearance?.componentProperties || (i.initialValue as any)?.componentProps,
+      },
+    })),
   project: pick(agent.project, 'id', 'name', 'description', 'createdBy', 'createdAt', 'updatedAt', 'appearance'),
 });
 

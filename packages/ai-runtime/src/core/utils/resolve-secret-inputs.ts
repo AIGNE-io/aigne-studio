@@ -19,7 +19,8 @@ export async function resolveSecretInputs(
     )
     .map((input) => ({ agent, input }));
 
-  const children = agent.outputVariables?.find((i) => i.name === RuntimeOutputVariable.children)
+  const outputVariables = (agent.outputVariables ?? []).filter((i) => !i?.hidden);
+  const children = outputVariables?.find((i) => i.name === RuntimeOutputVariable.children)
     ?.initialValue as RuntimeOutputVariablesSchema['$children'];
 
   const referencedAgents = [

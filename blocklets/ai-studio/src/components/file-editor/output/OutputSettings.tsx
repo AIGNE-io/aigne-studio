@@ -7,10 +7,13 @@ import { outputVariablesFromOpenApi } from '@blocklet/ai-runtime/types/runtime/s
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { Icon } from '@iconify-icon/react';
+import EyeIcon from '@iconify-icons/tabler/eye';
+import EyeOffIcon from '@iconify-icons/tabler/eye-off';
 import GripVertical from '@iconify-icons/tabler/grip-vertical';
 import {
   Box,
   BoxProps,
+  Button,
   Stack,
   Switch,
   Table,
@@ -90,7 +93,7 @@ export default function OutputSettings({
         </Box>
       </Stack>
 
-      <Box sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1, overflow: 'auto' }}>
+      <Box sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1 }}>
         <Box
           sx={{
             whiteSpace: 'nowrap',
@@ -106,7 +109,7 @@ export default function OutputSettings({
                 borderTop: 1,
                 borderColor: 'divider',
               },
-              'tr:not(.group-header):hover td': { bgcolor: 'grey.100' },
+              'tr:not(.group-header):hover td': { bgcolor: 'rgba(0, 0, 0, 0.02)' },
               'th,td': {
                 borderBottom: 0,
                 py: 0,
@@ -145,17 +148,42 @@ export default function OutputSettings({
                     firstColumnChildren={
                       <Stack
                         className="hover-visible"
-                        ref={params.drag}
                         sx={{
-                          display: 'none',
+                          border: '1px solid #E5E7EB',
+                          bgcolor: '#fff',
+                          borderRadius: 1,
                           p: 0.5,
-                          cursor: 'move',
+                          gap: 0.25,
+                          cursor: 'pointer',
+                          button: {
+                            p: 0,
+                            minWidth: 0,
+                            minHeight: 0,
+                          },
+                          display: 'none',
                           position: 'absolute',
-                          left: -6,
+                          left: '-24px',
                           top: '50%',
                           transform: 'translateY(-50%)',
                         }}>
-                        <Box component={Icon} icon={GripVertical} sx={{ color: '#9CA3AF', fontSize: 14 }} />
+                        <Tooltip title={t('dragSort')} disableInteractive placement="top">
+                          <Button ref={params.drag}>
+                            <Box component={Icon} icon={GripVertical} sx={{ color: 'grey.500' }} />
+                          </Button>
+                        </Tooltip>
+
+                        <Tooltip
+                          title={item.hidden ? t('activeOutputTip') : t('hideOutputTip')}
+                          disableInteractive
+                          placement="top">
+                          <Button onClick={() => (item.hidden = !item.hidden)}>
+                            {item.hidden ? (
+                              <Box component={Icon} icon={EyeOffIcon} sx={{ color: 'grey.500' }} />
+                            ) : (
+                              <Box component={Icon} icon={EyeIcon} sx={{ color: 'grey.500' }} />
+                            )}
+                          </Button>
+                        </Tooltip>
                       </Stack>
                     }
                     sx={{
@@ -272,18 +300,22 @@ function VariableRow({
       }
     : variable;
 
+  const backgroundColor = useMemo(() => {
+    if (variable.hidden) {
+      return 'rgba(0, 0, 0, 0.04) !important';
+    }
+
+    if (error) {
+      return 'rgba(255, 215, 213, 0.4) !important';
+    }
+
+    return 'transparent !important';
+  }, [error, variable.hidden]);
+
   return (
     <>
       <Tooltip title={error} placement="top-start">
-        <Box
-          ref={rowRef}
-          {...props}
-          component={TableRow}
-          key={variable.id}
-          sx={{
-            background: error ? 'rgba(255, 215, 213, 0.4)' : 'transparent',
-            ...props.sx,
-          }}>
+        <Box ref={rowRef} {...props} component={TableRow} key={variable.id} sx={{ backgroundColor, ...props.sx }}>
           <Box component={TableCell}>
             {firstColumnChildren}
 
@@ -312,9 +344,7 @@ function VariableRow({
                 size="small"
                 disabled={Boolean(disabled)}
                 checked={variable.required || false}
-                onChange={(_, checked) => {
-                  variable.required = checked;
-                }}
+                onChange={(_, checked) => (variable.required = checked)}
               />
             )}
           </Box>
