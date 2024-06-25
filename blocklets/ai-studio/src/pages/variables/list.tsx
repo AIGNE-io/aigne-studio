@@ -77,7 +77,7 @@ function VariableList() {
   );
 
   useEffect(() => {
-    setScope(Object.keys(scopeCount)[0] as 'global' | 'user' | 'session');
+    setScope((Object.keys(scopeCount)[0] as 'global' | 'user' | 'session') || 'global');
   }, []);
 
   const list = useMemo(() => {
