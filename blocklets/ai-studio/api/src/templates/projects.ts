@@ -1,4 +1,4 @@
-import { Assistant } from '@blocklet/ai-runtime/types';
+import { Assistant, ConfigFile, Variable } from '@blocklet/ai-runtime/types';
 
 import { wallet } from '../libs/auth';
 import Project from '../store/models/project';
@@ -6,6 +6,8 @@ import Project from '../store/models/project';
 export const projectTemplates: {
   project: Partial<Project['dataValues']>;
   assistants: (Assistant & { parent: string[] })[];
+  config?: Partial<ConfigFile>;
+  memory?: { variables?: Variable[] };
 }[] = [
   {
     project: {

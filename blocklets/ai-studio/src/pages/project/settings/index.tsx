@@ -3,11 +3,12 @@ import { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { defaultTextModel, getSupportedModels } from '@blocklet/ai-runtime/common';
-import { SaveRounded } from '@mui/icons-material';
+import { CloseRounded, SaveRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
   Box,
   BoxProps,
+  Button,
   FormControl,
   FormControlLabel,
   FormLabel,
@@ -62,7 +63,9 @@ const init = {
   primaryColor: '#ffffff',
 };
 
-export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
+
+
+export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxProps; onClose?: () => void }) {
   const { t } = useLocaleContext();
   const { projectId = '' } = useParams();
   if (!projectId) throw new Error('Missing required params `projectId`');
@@ -210,8 +213,27 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
 
   return (
     <Box overflow="auto" {...boxProps}>
+      {onClose && !isMobile && (
+        <Box
+          sx={{
+            position: 'sticky',
+            top: 0,
+            display: 'flex',
+            flexDirection: 'row-reverse',
+            bgcolor: '#fff',
+            zIndex: 10000,
+          }}>
+          <Button onClick={onClose} sx={{ minWidth: 32, minHeight: 32, mt: 1, mx: 1 }}>
+            <CloseRounded />
+          </Button>
+        </Box>
+      )}
+
       <SettingsContainer sx={{ px: 2, width: isMobile ? '100%' : '400px' }} className="setting-container">
         <Tabs
+          centered
+          variant="scrollable"
+          scrollButtons={false}
           sx={{
             minHeight: 32,
             [`.${tabClasses.root}`]: {
@@ -225,7 +247,8 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
             py: 1,
             zIndex: 10000,
             position: 'sticky',
-            top: 0,
+            top: isMobile ? 0 : 34,
+            paddingTop: 0,
           }}
           onChange={(_event: React.SyntheticEvent, newValue: string) => {
             setCurrentTabIndex(newValue);
@@ -553,7 +576,6 @@ export default function ProjectSettings({ boxProps }: { boxProps?: BoxProps }) {
           )}
         </Box>
       </SettingsContainer>
-
       {dialog}
     </Box>
   );
