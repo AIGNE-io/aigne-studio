@@ -27,6 +27,7 @@ import sortBy from 'lodash/sortBy';
 import { bindDialog, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { nanoid } from 'nanoid';
 import { useId, useState } from 'react';
+import React from 'react';
 
 import SelectVariable from '../select-variable';
 import AppearanceSettings from './AppearanceSettings';
@@ -309,5 +310,46 @@ function SettingDialogTitle({ output }: { output: OutputVariableYjs }) {
     <span>
       {t('output')} - {i18nKey ? t(i18nKey) : output.name || t('unnamed')}
     </span>
+  );
+}
+
+export function SettingProvider({ children, output }: { children: any; output: OutputVariableYjs }) {
+  const { t } = useLocaleContext();
+  const dialogState = usePopupState({ variant: 'dialog' });
+
+  return (
+    <>
+      {React.cloneElement(children, { onClick: dialogState.open })}
+
+      <Dialog
+        disableEnforceFocus
+        {...bindDialog(dialogState)}
+        fullWidth
+        maxWidth="sm"
+        component="form"
+        onSubmit={(e) => e.preventDefault()}>
+        <DialogTitle className="between">
+          <Box>
+            <SettingDialogTitle output={output} />
+          </Box>
+
+          <IconButton size="small" onClick={dialogState.close}>
+            <Close />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent>
+          <Stack gap={1}>
+            <AppearanceSettings output={output} disableTitleAndIcon />
+          </Stack>
+        </DialogContent>
+
+        <DialogActions>
+          <Button variant="contained" onClick={dialogState.close}>
+            {t('ok')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 }
