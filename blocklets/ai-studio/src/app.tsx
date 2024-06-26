@@ -70,7 +70,7 @@ export default function App() {
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               display: '-webkit-box',
-              '-webkit-box-orient': 'vertical',
+              WebkitBoxOrient: 'vertical',
             },
           }}
         />
