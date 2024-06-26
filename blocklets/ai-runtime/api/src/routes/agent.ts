@@ -1,6 +1,6 @@
 import { getAgent, getAgentSecretInputs } from '@api/libs/agent';
 import { ResourceType, getProjectFromResource, getResourceProjects } from '@api/libs/resource';
-import { parseIdentity } from '@blocklet/ai-runtime/common/aid';
+import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
 import { GetAgentResult } from '@blocklet/ai-runtime/core';
 import { getComponentMountPoint } from '@blocklet/sdk';
@@ -72,9 +72,9 @@ router.get('/:aid', async (req, res) => {
 
   const { blockletDid, working } = await getAgentQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
-  const { projectId, projectRef, assistantId } = parseIdentity(aid, { rejectWhenError: true });
+  const { projectId, projectRef, agentId } = parseIdentity(aid, { rejectWhenError: true });
 
-  const agent = await getAgent({ blockletDid, projectId, projectRef, agentId: assistantId, working });
+  const agent = await getAgent({ blockletDid, projectId, projectRef, agentId, working });
 
   if (!agent) {
     res.status(404).json({ message: 'No such agent' });
@@ -117,7 +117,9 @@ router.get('/:aid/logo', async (req, res) => {
   );
 });
 
-const respondAgentFields = (agent: GetAgentResult) => ({
+const respondAgentFields = (
+  agent: Omit<GetAgentResult, 'identity'> & { identity: Omit<GetAgentResult['identity'], 'aid'> }
+) => ({
   ...pick(agent, 'id', 'name', 'description', 'type', 'parameters', 'createdAt', 'updatedAt', 'createdBy', 'identity'),
   outputVariables: (agent.outputVariables ?? [])
     .filter((i) => !i.hidden)
@@ -132,6 +134,10 @@ const respondAgentFields = (agent: GetAgentResult) => ({
       },
     })),
   project: pick(agent.project, 'id', 'name', 'description', 'createdBy', 'createdAt', 'updatedAt', 'appearance'),
+  identity: {
+    ...agent.identity,
+    aid: stringifyIdentity(agent.identity),
+  },
 });
 
 export default router;
