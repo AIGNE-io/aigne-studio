@@ -1,7 +1,7 @@
 import ApplicationHeader from '@app/components/application/ApplicationHeader';
-import ApplicationView from '@app/components/application/ApplicationView';
 import { useResourceBlockletState } from '@app/contexts/use-resource-blocklet-state';
 import Result from '@arcblock/ux/lib/Result';
+import AgentView from '@blocklet/aigne-sdk/components/AgentView';
 import { Box } from '@mui/material';
 import { useParams, useSearchParams } from 'react-router-dom';
 
@@ -18,7 +18,7 @@ export default function ApplicationPage() {
       <ApplicationHeader application={application} />
 
       {application ? (
-        <ApplicationView application={application} />
+        <AgentView blockletDid={application.blockletDid} aid={application.aid} />
       ) : (
         <Box component={Result} status={404} sx={{ bgcolor: 'transparent', my: 20 }} />
       )}

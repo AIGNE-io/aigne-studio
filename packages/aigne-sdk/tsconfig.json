@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": "lib",
+    "paths": {
+      // For local dev
+      "@blocklet/ai-runtime/*": ["../../packages/ai-runtime/src/*"]
+    }
+  }
+}

@@ -211,19 +211,19 @@ export const getProjectFromResource = async ({
 export const getAssistantFromResourceBlocklet = async ({
   blockletDid,
   projectId,
-  assistantId,
+  agentId,
   type,
 }: {
   blockletDid: string;
   projectId: string;
-  assistantId: string;
+  agentId: string;
   type: ResourceType | ResourceType[];
 }) => {
   const resources = await reloadResources();
   for (const t of [type].flat()) {
     const blocklet = resources[t]?.blockletMap[blockletDid];
     const project = blocklet?.projectMap[projectId];
-    const assistant = project?.assistantMap[assistantId];
+    const assistant = project?.assistantMap[agentId];
     if (assistant) return { assistant, project: project.project, blocklet: { did: blockletDid } };
   }
 

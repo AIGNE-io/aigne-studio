@@ -20,12 +20,12 @@ export function sessionRoutes(router: Router) {
       { stripUnknown: true }
     );
 
-    const { projectId, assistantId } = parseIdentity(query.aid, { rejectWhenError: true });
+    const { projectId, agentId } = parseIdentity(query.aid, { rejectWhenError: true });
 
     const sessions = await Session.getUserSessions({
       userId,
       projectId,
-      agentId: assistantId,
+      agentId,
     });
 
     res.json({ sessions });
@@ -63,10 +63,10 @@ export function sessionRoutes(router: Router) {
       { stripUnknown: true }
     );
 
-    const { projectId, assistantId } = parseIdentity(input.aid, { rejectWhenError: true });
+    const { projectId, agentId } = parseIdentity(input.aid, { rejectWhenError: true });
 
-    const session = await Session.create({ userId, projectId, agentId: assistantId, name: input.name });
-    const sessions = await Session.getUserSessions({ userId, projectId, agentId: assistantId });
+    const session = await Session.create({ userId, projectId, agentId, name: input.name });
+    const sessions = await Session.getUserSessions({ userId, projectId, agentId });
 
     res.json({ created: session, sessions });
   });
@@ -142,10 +142,10 @@ export function sessionRoutes(router: Router) {
     const { did: userId } = req.user!;
 
     const query = await sessionsQuerySchema.validateAsync(req.query, { stripUnknown: true });
-    const { projectId, assistantId } = parseIdentity(query.aid, { rejectWhenError: true });
+    const { projectId, agentId } = parseIdentity(query.aid, { rejectWhenError: true });
 
     const deletedCount = await Session.destroy({
-      where: { userId, projectId, agentId: assistantId },
+      where: { userId, projectId, agentId },
     });
 
     res.json({ deletedCount });

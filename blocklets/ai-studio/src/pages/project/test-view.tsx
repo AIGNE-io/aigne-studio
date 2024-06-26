@@ -141,7 +141,7 @@ const TestCaseView = forwardRef<
       const result = await runAssistant({
         url: joinURL(AIGNE_RUNTIME_MOUNT_POINT, '/api/ai/call'),
         working: true,
-        aid: stringifyIdentity({ projectId, projectRef: gitRef, assistantId: assistant.id }),
+        aid: stringifyIdentity({ projectId, projectRef: gitRef, agentId: assistant.id }),
         sessionId: nanoid(),
         inputs: test.parameters,
       });

@@ -41,7 +41,7 @@ export default function setupHtmlRouter(app: Express, viteDevServer?: ViteDevSer
 
         return {
           blockletDid: i.blocklet.did,
-          aid: stringifyIdentity({ projectId: i.project.id, projectRef: 'main', assistantId: entry }),
+          aid: stringifyIdentity({ projectId: i.project.id, agentId: entry }),
           project: i.project,
         };
       })

@@ -35,6 +35,7 @@ export type GetAgentResult = Assistant & {
     blockletDid?: string;
     working?: boolean;
     agentId: string;
+    aid: string;
   };
 };
 

@@ -41,7 +41,12 @@ export async function createOrUpdatePaymentForRelease(
   const { projectId, projectRef, assistantId } = release;
 
   const repository = await getRepository({ projectId });
-  const assistant = await getAssistantFromRepository({ repository, ref: projectRef, assistantId, rejectOnEmpty: true });
+  const assistant = await getAssistantFromRepository({
+    repository,
+    ref: projectRef,
+    agentId: assistantId,
+    rejectOnEmpty: true,
+  });
 
   let needRecreatePaymentLink = true;
 
@@ -156,7 +161,7 @@ export async function reportUsage({
         });
 
         const subscription = await getActiveSubscriptionOfAssistant({
-          aid: stringifyIdentity({ projectId, projectRef, assistantId }),
+          aid: stringifyIdentity({ projectId, projectRef, agentId: assistantId }),
           userId,
         });
         if (!subscription) throw new Error('Subscription not active');
