@@ -15,13 +15,8 @@ import {
 } from '@blocklet/ai-kit/api/types/index';
 import { defaultImageModel, getSupportedImagesModels } from '@blocklet/ai-runtime/common';
 import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
-import { CallAI, CallAIImage, RuntimeExecutor, nextTaskId } from '@blocklet/ai-runtime/core';
-import {
-  AssistantResponseType,
-  RunAssistantResponse,
-  RuntimeOutputVariable,
-  isImageAssistant,
-} from '@blocklet/ai-runtime/types';
+import { CallAI, CallAIImage, RunAssistantCallback, RuntimeExecutor, nextTaskId } from '@blocklet/ai-runtime/core';
+import { AssistantResponseType, RuntimeOutputVariable, isImageAssistant } from '@blocklet/ai-runtime/types';
 import { RuntimeError, RuntimeErrorType } from '@blocklet/ai-runtime/types/runtime/error';
 import { auth } from '@blocklet/sdk/lib/middlewares';
 import user from '@blocklet/sdk/lib/middlewares/user';
@@ -139,7 +134,20 @@ router.post('/call', user(), auth(), compression(), async (req, res) => {
 
   const executingLogs: { [key: string]: NonNullable<History['steps']>[number] } = {};
 
-  const emit = (data: RunAssistantResponse) => {
+  const taskId = nextTaskId();
+
+  const history = await History.create({
+    userId,
+    projectId,
+    agentId: assistantId,
+    sessionId: input.sessionId,
+    inputs: input.inputs,
+    status: 'generating',
+  });
+
+  const emit: RunAssistantCallback = (input) => {
+    const data = { ...input, messageId: history.id };
+
     if (data.type === AssistantResponseType.CHUNK || data.type === AssistantResponseType.INPUT) {
       if (data.type === AssistantResponseType.CHUNK) {
         mainTaskId ??= data.taskId;
@@ -189,18 +197,7 @@ router.post('/call', user(), auth(), compression(), async (req, res) => {
     res.flush();
   };
 
-  const taskId = nextTaskId();
-
   if (stream) emit({ type: AssistantResponseType.CHUNK, taskId, assistantId: agent.id, delta: {} });
-
-  const history = await History.create({
-    userId,
-    projectId,
-    agentId: assistantId,
-    sessionId: input.sessionId,
-    inputs: input.inputs,
-    status: 'generating',
-  });
 
   try {
     emit({

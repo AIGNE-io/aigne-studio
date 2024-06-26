@@ -362,7 +362,7 @@ export default function KnowledgeDocuments() {
               fontWeight={400}
               mb={0}
               className="multi-line-ellipsis"
-              sx={{ '-webkit-line-clamp': '2' }}>
+              sx={{ WebkitLineClamp: 2 }}>
               {state.dataset?.description}
             </Typography>
           </Box>

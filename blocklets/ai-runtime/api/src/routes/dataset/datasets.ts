@@ -14,6 +14,7 @@ import compression from 'compression';
 import { Router } from 'express';
 import { exists } from 'fs-extra';
 import Joi from 'joi';
+import omitBy from 'lodash/omitBy';
 import { Op, Sequelize } from 'sequelize';
 import { stringify } from 'yaml';
 
@@ -30,19 +31,12 @@ const datasetSchema = Joi.object<{ name?: string; description?: string; appId?: 
   appId: Joi.string().allow('').empty(null).default(''),
 });
 
-const getDatasetsQuerySchema = Joi.object<{ excludeResource?: boolean }>({
+const getDatasetsQuerySchema = Joi.object<{ excludeResource?: boolean; projectId?: string }>({
   excludeResource: Joi.boolean().empty(['', null]),
+  projectId: Joi.string().empty(['', null]),
 });
 
 router.get('/', user(), ensureComponentCallOr(userAuth()), async (req, res) => {
-  let user = {};
-  if (!req.user || config.env.tenantMode === 'single') {
-    user = {};
-  } else {
-    // 多租户模式下，只能查看自己创建的知识库
-    user = { [Op.or]: [{ createdBy: req.user.did }, { updatedBy: req.user.did }] };
-  }
-
   const query = await getDatasetsQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
   const sql = Sequelize.literal(
@@ -50,7 +44,14 @@ router.get('/', user(), ensureComponentCallOr(userAuth()), async (req, res) => {
   );
 
   const datasets = await Dataset.findAll({
-    where: { ...user },
+    where: omitBy(
+      {
+        appId: query.projectId,
+        // 多租户模式下，只能查看自己创建的知识库
+        createdBy: req.user && config.env.tenantMode === 'multiple' ? req.user.did : undefined,
+      },
+      (i) => i === undefined
+    ),
     attributes: { include: [[sql, 'documents']] },
     order: [['updatedAt', 'DESC']],
   });

@@ -12,7 +12,6 @@ import { joinURL } from 'ufo';
 
 import ErrorBoundary from '../../components/error/error-boundary';
 import Loading from '../../components/loading';
-import { DatasetsProvider } from '../../contexts/datasets/datasets';
 import KnowledgeRoutes from '../knowledge';
 import VariablesList from '../variables/list';
 import ProjectHeader from './project-header';
@@ -64,28 +63,26 @@ export default function ProjectRoutes() {
             },
           }}>
           <ErrorBoundary ref={errorBoundary}>
-            <DatasetsProvider>
-              <Suspense fallback={<Loading fixed />}>
-                <Routes>
-                  <Route index element={<ProjectsPage />} />
-                  <Route path=":projectId/*" element={<ProjectHeader />}>
-                    <Route index element={<Navigate to="file" replace />} />
-                    <Route path="prompts/*" element={<Navigate to="../file" replace />} />
-                    <Route path="home" element={<ProjectsPage />} />
-                    <Route path="file">
-                      <Route index element={<Navigate to={currentGitStore.getState().getCurrentBranch()} replace />} />
-                      <Route path=":ref/*" element={<ProjectPage />} />
-                    </Route>
-                    <Route path="settings" element={<ProjectSettings />} />
-                    <Route path="knowledge/*" element={<KnowledgeRoutes />} />
-                    <Route path="variables">
-                      <Route index element={<Navigate to={currentGitStore.getState().getCurrentBranch()} replace />} />
-                      <Route path=":ref/*" element={<VariablesList />} />
-                    </Route>
+            <Suspense fallback={<Loading fixed />}>
+              <Routes>
+                <Route index element={<ProjectsPage />} />
+                <Route path=":projectId/*" element={<ProjectHeader />}>
+                  <Route index element={<Navigate to="file" replace />} />
+                  <Route path="prompts/*" element={<Navigate to="../file" replace />} />
+                  <Route path="home" element={<ProjectsPage />} />
+                  <Route path="file">
+                    <Route index element={<Navigate to={currentGitStore.getState().getCurrentBranch()} replace />} />
+                    <Route path=":ref/*" element={<ProjectPage />} />
                   </Route>
-                </Routes>
-              </Suspense>
-            </DatasetsProvider>
+                  <Route path="settings" element={<ProjectSettings />} />
+                  <Route path="knowledge/*" element={<KnowledgeRoutes />} />
+                  <Route path="variables">
+                    <Route index element={<Navigate to={currentGitStore.getState().getCurrentBranch()} replace />} />
+                    <Route path=":ref/*" element={<VariablesList />} />
+                  </Route>
+                </Route>
+              </Routes>
+            </Suspense>
           </ErrorBoundary>
         </StyledDashboard>
       </DndProvider>

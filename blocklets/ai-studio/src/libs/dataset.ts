@@ -43,8 +43,10 @@ export async function getAPIList(): Promise<DatasetObject[]> {
   return axios.get('/api/collections.json', { baseURL: AIGNE_RUNTIME_MOUNT_POINT }).then((res) => res.data);
 }
 
-export async function getDatasets(): Promise<Dataset[]> {
-  return axios.get('/api/datasets', { baseURL: AIGNE_RUNTIME_MOUNT_POINT }).then((res) => res.data);
+export async function getDatasets({ projectId }: { projectId?: string }): Promise<Dataset[]> {
+  return axios
+    .get('/api/datasets', { baseURL: AIGNE_RUNTIME_MOUNT_POINT, params: { projectId } })
+    .then((res) => res.data);
 }
 
 export async function getDataset(datasetId: string): Promise<Dataset> {

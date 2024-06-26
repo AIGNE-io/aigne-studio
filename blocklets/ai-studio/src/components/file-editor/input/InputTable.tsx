@@ -120,7 +120,7 @@ export default function InputTable({
   };
 
   const parameters = sortBy(Object.values(assistant.parameters ?? {}), (i) => i.index);
-  const { data: knowledge = [] } = useRequest(() => getDatasets());
+  const { data: knowledge = [] } = useRequest(() => getDatasets({ projectId }));
 
   const FROM_MAP = useMemo(() => {
     return {
@@ -467,7 +467,12 @@ function SelectFromSource({
     parameter.type === 'source' && parameter.source?.variableFrom === 'tool' && parameter?.source?.agent?.id ? (
       <span>
         {t('variableParameter.call')}{' '}
-        <AgentName type="tool" projectId={parameter.source.agent.projectId} agentId={parameter.source.agent.id} />
+        <AgentName
+          type="tool"
+          blockletDid={parameter.source.agent.blockletDid}
+          projectId={parameter.source.agent.projectId}
+          agentId={parameter.source.agent.id}
+        />
       </span>
     ) : (
       FROM_MAP[currentKey || 'custom']
@@ -538,12 +543,14 @@ function SelectFromSource({
 
 export function AgentName({
   type,
+  blockletDid,
   projectId,
   agentId,
   showIcon,
   IconProps,
 }: {
   type: ResourceType;
+  blockletDid?: string;
   projectId?: string;
   agentId: string;
   showIcon?: boolean;
@@ -551,7 +558,7 @@ export function AgentName({
 }) {
   const { t } = useLocaleContext();
 
-  const agent = useAgent({ type, projectId, agentId });
+  const agent = useAgent({ type, blockletDid, projectId, agentId });
   if (!agent) return null;
 
   return (

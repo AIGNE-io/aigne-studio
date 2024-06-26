@@ -63,7 +63,18 @@ export default function AgentSelect<
   const isAdmin = useIsAdmin();
 
   // TODO: 需要考虑不同 project 中有相同 agent id
-  const val = Array.isArray(value) ? value.map((i) => agentMap[i.id]) : value ? agentMap[value.id] : value ?? null;
+  let val: AgentSelectOption | AgentSelectOption[] | null = null;
+  if (Array.isArray(value)) {
+    val = value
+      .map((i) => {
+        const v = agentMap[i.id];
+        return v?.blocklet?.did === i.blockletDid && v?.project.id === i.projectId ? v : undefined;
+      })
+      .filter((i): i is NonNullable<typeof i> => !!i);
+  } else if (value) {
+    const v = agentMap[value.id];
+    val = v && v?.blocklet?.did === value.blockletDid && v?.project.id === value.projectId ? v : null;
+  }
 
   const addComponentRef = useRef<{ onClick?: () => void; loading?: boolean }>();
 
@@ -98,7 +109,9 @@ export default function AgentSelect<
         }
         options={options}
         slotProps={{ popper: { placement: 'bottom-start', sx: { width: 'fit-content !important', maxWidth: 500 } } }}
-        isOptionEqualToValue={(o, v) => o.id === v.id && o.project.id === v.project.id}
+        isOptionEqualToValue={(o, v) =>
+          o.id === v.id && o.project.id === v.project.id && o.blocklet?.did === v.blocklet?.did
+        }
         renderInput={(params) => (
           <Stack direction="row">
             <TextField placeholder={placeholder} {...params} hiddenLabel autoFocus={props.autoFocus} fullWidth />
