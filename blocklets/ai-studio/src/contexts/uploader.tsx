@@ -75,9 +75,6 @@ export default function UploaderProvider({ children }: UploaderProviderProps) {
   const handleUploadFinish = () => {
     // @ts-ignore
     const uploader = uploaderRef?.current?.getUploader();
-    if (uploader?.opts?.restrictions?.allowedFileTypes) {
-      uploader.opts.restrictions.allowedFileTypes = defaultAllowedFileTypes;
-    }
 
     uploader.close();
   };
