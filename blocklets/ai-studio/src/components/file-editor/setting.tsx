@@ -91,6 +91,7 @@ export default function PromptSetting({
             <AgentName
               type="llm-adapter"
               showIcon
+              blockletDid={value.executor.agent.blockletDid}
               projectId={value.executor.agent.projectId}
               agentId={value.executor.agent.id}
             />

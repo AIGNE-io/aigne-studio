@@ -110,10 +110,12 @@ export function useAgents({ type }: { type: ResourceType }) {
 }
 
 export function useAgent({
+  blockletDid,
   projectId,
   agentId,
   type,
 }: {
+  blockletDid?: string;
   projectId?: string;
   agentId: string;
   type: ResourceType;
@@ -123,6 +125,10 @@ export function useAgent({
   } = useCurrentProjectState();
   const { store } = useProject();
   const { agents = [] } = useResourceAgents({ type });
+
+  if (blockletDid) {
+    return agents.find((i) => i.id === agentId && i.project.id === projectId && i.blocklet.did === blockletDid);
+  }
 
   if (!project) return undefined;
 
@@ -142,5 +148,5 @@ export function useAgent({
     return undefined;
   }
 
-  return agents.find((i) => i.id === agentId && i.project.id === projectId);
+  return undefined;
 }
