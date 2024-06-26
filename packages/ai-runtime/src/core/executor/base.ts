@@ -387,7 +387,7 @@ export abstract class AgentExecutorBase {
     const joiSchema = outputVariablesToJoiSchema(agent, await this.context.getMemoryVariables(agent.identity));
     const outputVariables = (agent.outputVariables ?? []).filter((i) => !i.hidden);
 
-    const outputInputs = outputVariables?.reduce((res, output) => {
+    const outputInputs = outputVariables.reduce((res, output) => {
       const input =
         output.from?.type === 'input' ? agent.parameters?.find((input) => input.id === output.from?.id) : undefined;
 

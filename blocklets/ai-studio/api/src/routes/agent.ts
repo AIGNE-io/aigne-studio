@@ -97,7 +97,7 @@ const respondAgentFields = (assistant: Assistant, project: ProjectSettings, bloc
   ...pick(assistant, 'id', 'name', 'description', 'type', 'parameters', 'createdAt', 'updatedAt', 'createdBy'),
   outputVariables: (assistant.outputVariables ?? [])
     .filter((i) => !i.hidden)
-    ?.map((i) => ({
+    .map((i) => ({
       ...i,
       // 兼容旧版本数据，2024-06-23 之后可以删掉
       appearance: {

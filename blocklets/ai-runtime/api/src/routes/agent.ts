@@ -121,7 +121,7 @@ const respondAgentFields = (agent: GetAgentResult) => ({
   ...pick(agent, 'id', 'name', 'description', 'type', 'parameters', 'createdAt', 'updatedAt', 'createdBy', 'identity'),
   outputVariables: (agent.outputVariables ?? [])
     .filter((i) => !i.hidden)
-    ?.map((i) => ({
+    .map((i) => ({
       ...i,
       // 兼容旧版本数据，2024-06-23 之后可以删掉
       appearance: {

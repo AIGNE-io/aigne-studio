@@ -29,5 +29,5 @@ export function useAgentSelectOptions({ type, excludes }: AgentSelectFilter): {
 
 function isLLMAdaptor(agent: UseAgentItem) {
   const outputVariables = (agent.outputVariables ?? []).filter((i) => !i.hidden);
-  return outputVariables?.some((i) => i.name === RuntimeOutputVariable.llmResponseStream);
+  return outputVariables.some((i) => i.name === RuntimeOutputVariable.llmResponseStream);
 }

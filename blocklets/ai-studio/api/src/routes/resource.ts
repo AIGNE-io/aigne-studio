@@ -382,7 +382,7 @@ function getAssistantDependentComponents(assistant: Assistant | Assistant[]) {
         const outputVariables = (assistant.outputVariables ?? []).filter((i) => !i.hidden);
         const appearanceDeps =
           outputVariables
-            ?.map((i) => i.appearance?.componentBlockletDid)
+            .map((i) => i.appearance?.componentBlockletDid)
             .filter((i): i is NonNullable<typeof i> => !!i) ?? [];
 
         return [...inputDeps, ...executorDeps, ...appearanceDeps];
