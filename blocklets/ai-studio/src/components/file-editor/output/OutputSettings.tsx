@@ -315,7 +315,18 @@ function VariableRow({
   return (
     <>
       <Tooltip title={error} placement="top-start">
-        <Box ref={rowRef} {...props} component={TableRow} key={variable.id} sx={{ backgroundColor, ...props.sx }}>
+        <Box
+          ref={rowRef}
+          {...props}
+          component={TableRow}
+          key={variable.id}
+          sx={{
+            backgroundColor,
+            '*': {
+              color: variable.hidden ? 'text.disabled' : undefined,
+            },
+            ...props.sx,
+          }}>
           <Box component={TableCell}>
             {firstColumnChildren}
 
@@ -323,23 +334,27 @@ function VariableRow({
               <OutputNameCell
                 depth={depth}
                 output={variable}
-                TextFieldProps={{ disabled: Boolean(disabled) || parent?.type === 'array' }}
+                TextFieldProps={{ disabled: Boolean(disabled) || parent?.type === 'array' || Boolean(variable.hidden) }}
               />
             </Box>
           </Box>
           <Box component={TableCell}>
-            <OutputDescriptionCell assistant={value} output={variable} TextFieldProps={{ disabled }} />
+            <OutputDescriptionCell
+              assistant={value}
+              output={variable}
+              TextFieldProps={{ disabled: Boolean(disabled) || Boolean(variable.hidden) }}
+            />
           </Box>
           <Box component={TableCell}>
             <OutputFormatCell
               assistant={value}
               output={variable}
               variable={datastoreVariable}
-              TextFieldProps={{ disabled }}
+              TextFieldProps={{ disabled: Boolean(disabled) || Boolean(variable.hidden) }}
             />
           </Box>
           <Box component={TableCell}>
-            {!runtimeVariable && variable.from?.type !== 'input' && (
+            {!variable.hidden && !runtimeVariable && variable.from?.type !== 'input' && (
               <Switch
                 size="small"
                 disabled={Boolean(disabled)}
@@ -349,16 +364,18 @@ function VariableRow({
             )}
           </Box>
           <Box component={TableCell} align="right">
-            <OutputActionsCell
-              depth={depth}
-              disabled={disabled}
-              onRemove={onRemove}
-              output={variable}
-              variable={datastoreVariable}
-              projectId={projectId}
-              gitRef={gitRef}
-              assistant={value}
-            />
+            {!variable.hidden && (
+              <OutputActionsCell
+                depth={depth}
+                disabled={disabled}
+                onRemove={onRemove}
+                output={variable}
+                variable={datastoreVariable}
+                projectId={projectId}
+                gitRef={gitRef}
+                assistant={value}
+              />
+            )}
           </Box>
         </Box>
       </Tooltip>
