@@ -736,4 +736,7 @@ export default flat({
   usage: 'Usage',
   docLink: 'Document link',
   inputParameterLinkPlaceholder: 'Link to the document that describes this input',
+  hideOutputSetting: 'Hide current output setting',
+  activeOutputTip: 'Active this output',
+  hideOutputTip: 'Hide this output',
 });

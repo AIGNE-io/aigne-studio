@@ -135,7 +135,8 @@ export function outputVariablesToJsonSchema(
     };
   };
 
-  return variableToSchema({ type: 'object', properties: assistant.outputVariables });
+  const outputVariables = (assistant.outputVariables ?? []).filter((i) => !i.hidden);
+  return variableToSchema({ type: 'object', properties: outputVariables });
 }
 
 export function outputVariablesToJoiSchema(assistant: Assistant, datastoreVariables: Variable[]): Joi.AnySchema {
@@ -208,7 +209,8 @@ export function outputVariablesToJoiSchema(assistant: Assistant, datastoreVariab
     return schema;
   };
 
-  return variableToSchema({ type: 'object', properties: assistant.outputVariables ?? [] })!;
+  const outputVariables = (assistant.outputVariables ?? []).filter((i) => !i.hidden);
+  return variableToSchema({ type: 'object', properties: outputVariables })!;
 }
 
 type JSONSchema = {

@@ -165,10 +165,9 @@ function PromptItemMessage({
         border: 1,
         borderColor: '#3B82F6',
         borderRadius: 1,
-        '*': {
-          color: promptHidden ? 'text.disabled' : undefined,
-        },
-        backgroundColor,
+        '*': promptHidden ? { color: 'text.disabled' } : {},
+        '.variable': promptHidden ? { color: 'rgba(0, 0, 0, 0.38) !important', fontWeight: 'normal !important' } : {},
+        backgroundColor: promptHidden ? 'action.hover' : backgroundColor,
       }}>
       <Stack direction="row" alignItems="center" gap={1} p={1} px={1.5} borderBottom="1px solid #BFDBFE">
         <RoleSelectField
@@ -269,13 +268,13 @@ const StyledPromptEditor = styled(PromptEditorField)(({ theme }) =>
       ...theme.typography.body1,
       bgcolor: 'transparent',
 
-      ':hover': {
-        bgcolor: 'action.hover',
-      },
+      // ':hover': {
+      //   bgcolor: 'action.hover',
+      // },
 
-      ':focus': {
-        bgcolor: 'action.hover',
-      },
+      // ':focus': {
+      //   bgcolor: 'action.hover',
+      // },
     },
 
     '.Placeholder__root': {

@@ -339,7 +339,7 @@ export default function KnowledgeDocuments() {
 
   return (
     <Stack bgcolor="background.paper" p={2.5} height={1} gap={2.5}>
-      <Stack flexDirection="row" className="between">
+      <Stack flexDirection="row" className="between" gap={2}>
         <Box>
           <Box
             display="flex"
@@ -356,7 +356,13 @@ export default function KnowledgeDocuments() {
 
           <Box display="flex" alignItems="center">
             <Box width={20} />
-            <Typography variant="subtitle2" color="#4B5563" fontWeight={400} mb={0}>
+            <Typography
+              variant="subtitle2"
+              color="#4B5563"
+              fontWeight={400}
+              mb={0}
+              className="multi-line-ellipsis"
+              sx={{ '-webkit-line-clamp': '2' }}>
               {state.dataset?.description}
             </Typography>
           </Box>
@@ -364,6 +370,7 @@ export default function KnowledgeDocuments() {
 
         <Box display="flex" alignItems="center" gap={2}>
           <TextField
+            sx={{ width: 200 }}
             placeholder={t('alert.search')}
             hiddenLabel
             value={search}
@@ -375,6 +382,7 @@ export default function KnowledgeDocuments() {
 
           {state?.dataset?.blockletDid ? null : (
             <Button
+              sx={{ width: 100 }}
               variant="contained"
               size="small"
               startIcon={<Icon icon={PlusIcon} />}
