@@ -1,3 +1,8 @@
+## 0.3.8 (2024-6-26)
+
+- fix: strict match called agent in inputs
+- chore: respond messageId in stream chunk
+
 ## 0.3.7 (2024-6-25)
 
 - fix: enable save button in any historic commit #1166
