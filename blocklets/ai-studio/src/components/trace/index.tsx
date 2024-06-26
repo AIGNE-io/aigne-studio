@@ -99,7 +99,7 @@ const LabelValue = memo(({ label, value }: Trace) => {
     return (
       <>
         <Label variant="body1">{t(label)}:</Label>
-        <JsonDisplay>{JSON.stringify(formatInputParameters, null, 2)}</JsonDisplay>
+        <JsonDisplay>{JSON.stringify(formatInputParameters, null, 4)}</JsonDisplay>
       </>
     );
   }
