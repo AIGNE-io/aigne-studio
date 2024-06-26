@@ -1,7 +1,7 @@
 {
-  "name": "@blocklet/ai-runtime",
+  "name": "@blocklet/aigne-sdk",
   "version": "0.3.8",
-  "description": "Runtime for AI Kits",
+  "description": "AIGNE SDK used to interact with AIGNE services",
   "publishConfig": {
     "access": "public"
   },
@@ -16,45 +16,13 @@
       "import": "./lib/esm/index.js",
       "require": "./lib/cjs/index.js"
     },
-    "./api": {
-      "import": "./lib/esm/api/index.js",
-      "require": "./lib/cjs/api/index.js"
-    },
     "./api/*": {
       "import": "./lib/esm/api/*.js",
       "require": "./lib/cjs/api/*.js"
     },
-    "./components": {
-      "import": "./lib/esm/components/index.js",
-      "require": "./lib/cjs/components/index.js"
-    },
-    "./types": {
-      "import": "./lib/esm/types/index.js",
-      "require": "./lib/cjs/types/index.js"
-    },
-    "./types/*": {
-      "import": "./lib/esm/types/*.js",
-      "require": "./lib/cjs/types/*.js"
-    },
-    "./core": {
-      "import": "./lib/esm/core/index.js",
-      "require": "./lib/cjs/core/index.js"
-    },
-    "./core/utils/*": {
-      "import": "./lib/esm/core/utils/*.js",
-      "require": "./lib/cjs/core/utils/*.js"
-    },
-    "./common": {
-      "import": "./lib/esm/common/index.js",
-      "require": "./lib/cjs/common/index.js"
-    },
-    "./common/*": {
-      "import": "./lib/esm/common/*.js",
-      "require": "./lib/cjs/common/*.js"
-    },
-    "./constants": {
-      "import": "./lib/esm/constants.js",
-      "require": "./lib/cjs/constants.js"
+    "./components/*": {
+      "import": "./lib/esm/components/*/index.js",
+      "require": "./lib/cjs/components/*/index.js"
     }
   },
   "typesVersions": {
@@ -62,36 +30,11 @@
       "*": [
         "./lib/types/index.d.ts"
       ],
-      "api": [
-        "./lib/types/api/index.d.ts"
-      ],
       "api/*": [
-        "./lib/types/api/*.d.ts",
-        "./lib/types/api/*/index.d.ts"
+        "./lib/types/api/*.d.ts"
       ],
-      "components": [
-        "./lib/types/components/index.d.ts"
-      ],
-      "types": [
-        "./lib/types/types/index.d.ts"
-      ],
-      "types/runtime/*": [
-        "./lib/types/types/runtime/*.d.ts"
-      ],
-      "core": [
-        "./lib/types/core/index.d.ts"
-      ],
-      "core/utils/*": [
-        "./lib/types/core/utils/*.d.ts"
-      ],
-      "common": [
-        "./lib/types/common/index.d.ts"
-      ],
-      "common/*": [
-        "./lib/types/common/*.d.ts"
-      ],
-      "constants": [
-        "./lib/types/constants.d.ts"
+      "components/*": [
+        "./lib/types/components/*/index.d.ts"
       ]
     }
   },
@@ -120,27 +63,19 @@
     "test": "jest src/"
   },
   "dependencies": {
-    "@blocklet/ai-builtin": "workspace:^",
     "@blocklet/ai-kit": "^0.1.43",
-    "@blocklet/dataset-sdk": "workspace:^",
-    "@blocklet/sdk": "^1.16.28",
+    "@blocklet/ai-runtime": "workspace:^",
+    "@blocklet/js-sdk": "^1.16.28",
+    "@blocklet/pages-kit": "^0.2.358",
     "@microsoft/fetch-event-source": "^2.0.1",
     "ahooks": "^3.8.0",
     "axios": "^1.7.2",
-    "crypto": "^1.0.1",
     "dayjs": "^1.11.11",
     "eventsource-parser": "^1.1.2",
     "joi": "^17.13.3",
-    "js-base64": "^3.7.7",
-    "lodash": "^4.17.21",
     "nanoid": "^3.3.7",
-    "node-fetch": "2",
     "react-hook-form": "^7.52.0",
-    "recoil": "^0.7.7",
-    "snowflake-uuid": "^1.0.0",
-    "typescript": "^5.5.2",
-    "ufo": "^1.5.3",
-    "vm2": "^3.9.19"
+    "ufo": "^1.5.3"
   },
   "peerDependencies": {
     "@arcblock/ux": "^2.9.51",

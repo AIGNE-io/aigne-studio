@@ -14,7 +14,7 @@
   "scripts": {
     "dev": "pnpm -F ai-studio dev",
     "bundle": "pnpm build:libs && pnpm -F ai-studio bundle",
-    "lint": "pnpm -r run lint",
+    "lint": "NODE_OPTIONS='--max_old_space_size=6144' pnpm -r run lint",
     "lint:fix": "pnpm -r run lint:fix",
     "build": "pnpm build:libs && pnpm -F ai-studio build",
     "clean": "pnpm -r run clean",

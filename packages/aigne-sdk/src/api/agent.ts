@@ -1,7 +1,8 @@
 import { OutputVariable, Parameter } from '@blocklet/ai-runtime/types';
+import { ResourceType } from '@blocklet/ai-runtime/types/resource';
 import { joinURL } from 'ufo';
 
-import api from './api';
+import { aigneRuntimeApi } from './api';
 
 export interface Agent {
   id: string;
@@ -10,6 +11,14 @@ export interface Agent {
   parameters?: Parameter[];
   outputVariables?: OutputVariable[];
   createdBy?: string;
+
+  identity: {
+    projectId: string;
+    projectRef?: string;
+    blockletDid?: string;
+    working?: boolean;
+    agentId: string;
+  };
 
   project: {
     id: string;
@@ -28,7 +37,9 @@ export interface Agent {
       };
     };
   };
+}
 
+export interface AgentWithConfig extends Agent {
   config: {
     secrets: {
       targetProjectId: string;
@@ -39,6 +50,14 @@ export interface Agent {
   };
 }
 
+export async function getAgents({ type }: { type?: ResourceType }): Promise<{ agents: Agent[] }> {
+  return aigneRuntimeApi
+    .get(joinURL('/api/agents'), {
+      params: { type },
+    })
+    .then((res) => res.data);
+}
+
 export async function getAgent({
   aid,
   blockletDid,
@@ -47,8 +66,8 @@ export async function getAgent({
   aid: string;
   blockletDid?: string;
   working?: boolean;
-}): Promise<Agent> {
-  return api
+}): Promise<AgentWithConfig> {
+  return aigneRuntimeApi
     .get(joinURL('/api/agents', aid), {
       params: { working, blockletDid },
     })

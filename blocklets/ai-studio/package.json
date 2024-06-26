@@ -40,6 +40,7 @@
     "@beskar-labs/gpt-encoder": "^1.0.7",
     "@blocklet/ai-kit": "^0.1.43",
     "@blocklet/ai-runtime": "workspace:^",
+    "@blocklet/aigne-sdk": "workspace:^",
     "@blocklet/co-git": "workspace:^",
     "@blocklet/components-sdk": "workspace:^",
     "@blocklet/constant": "^1.16.28",
