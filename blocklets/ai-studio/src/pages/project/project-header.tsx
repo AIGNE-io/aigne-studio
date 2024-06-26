@@ -1,3 +1,4 @@
+import { DatasetsProvider } from '@app/contexts/datasets/datasets';
 import AigneLogo from '@app/icons/aigne-logo';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Icon } from '@iconify-icon/react';
@@ -20,6 +21,8 @@ export default function ProjectHeader() {
   const { t } = useLocaleContext();
   const navigate = useNavigate();
   const { projectId } = useParams();
+  if (!projectId) throw new Error('Missing required param projectId');
+
   const pathname = useLocation().pathname.toLowerCase();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const isMobile = useMediaQuery<Theme>((theme) => theme.breakpoints.down('md'));
@@ -65,93 +68,95 @@ export default function ProjectHeader() {
   }, [t]);
 
   return (
-    <Stack height={1} overflow="hidden">
-      <FontFamilyHelmet />
-      <Box height={64} borderBottom="1px solid #E5E7EB" px={{ xs: 2, md: 3 }} className="between">
-        <Box flex={1}>
-          <ProjectBrand />
+    <DatasetsProvider projectId={projectId}>
+      <Stack height={1} overflow="hidden">
+        <FontFamilyHelmet />
+        <Box height={64} borderBottom="1px solid #E5E7EB" px={{ xs: 2, md: 3 }} className="between">
+          <Box flex={1}>
+            <ProjectBrand />
+          </Box>
+
+          <Hidden mdDown>
+            <Box flex={1} display="flex" justifyContent="center">
+              <SegmentedControl
+                value={current}
+                options={options}
+                onChange={(value) => {
+                  if (value) navigate(joinURL('..', projectId || '', value));
+                }}
+              />
+            </Box>
+
+            <Box flex={1} display="flex" justifyContent="flex-end">
+              <ActionRoutes />
+            </Box>
+          </Hidden>
+          <Hidden mdUp>
+            <IconButton onClick={() => setDrawerOpen(!drawerOpen)} sx={{ mr: -1.5 }}>
+              {drawerOpen ? <Icon icon={CloseIcon} /> : <Icon icon={MenuIcon} />}
+            </IconButton>
+          </Hidden>
         </Box>
 
-        <Hidden mdDown>
-          <Box flex={1} display="flex" justifyContent="center">
-            <SegmentedControl
-              value={current}
-              options={options}
-              onChange={(value) => {
-                if (value) navigate(joinURL('..', projectId || '', value));
-              }}
-            />
-          </Box>
+        <Box flex={1} height={0} overflow="hidden" bgcolor="background.default">
+          <Suspense
+            fallback={
+              <Box flex={1} className="center" width={1} height={1}>
+                <CircularProgress size={30} />
+              </Box>
+            }>
+            <Outlet />
+          </Suspense>
+        </Box>
 
-          <Box flex={1} display="flex" justifyContent="flex-end">
-            <ActionRoutes />
-          </Box>
-        </Hidden>
-        <Hidden mdUp>
-          <IconButton onClick={() => setDrawerOpen(!drawerOpen)} sx={{ mr: -1.5 }}>
-            {drawerOpen ? <Icon icon={CloseIcon} /> : <Icon icon={MenuIcon} />}
-          </IconButton>
-        </Hidden>
-      </Box>
+        {isMobile && (
+          <Drawer
+            open={drawerOpen}
+            onClose={() => setDrawerOpen(false)}
+            ModalProps={{
+              disablePortal: false,
+              keepMounted: true,
+              BackdropComponent: undefined,
+            }}
+            anchor="right"
+            sx={{
+              zIndex: (theme) => theme.zIndex.appBar - 1,
+            }}
+            PaperProps={{
+              style: {
+                top: 0,
+                bottom: 0,
+                boxShadow: 'none',
+              },
+            }}>
+            <Stack sx={{ width: '80vw', maxWidth: 300, background: '#fff', p: 2, pt: 10, height: 1 }}>
+              <Stack sx={{ gap: 1.5, flex: 1 }} onClick={() => setDrawerOpen(false)}>
+                {options.map((option) => {
+                  return (
+                    <Box
+                      className="center"
+                      justifyContent="flex-start"
+                      key={option.value}
+                      onClick={() => {
+                        navigate(joinURL('..', projectId || '', option.value));
+                      }}>
+                      <Box className="center">{option.icon}</Box>
+                      <Typography className="center" fontWeight={500} fontSize={16} lineHeight="28px" color="#030712">
+                        {option.label}
+                      </Typography>
+                    </Box>
+                  );
+                })}
 
-      <Box flex={1} height={0} overflow="hidden" bgcolor="background.default">
-        <Suspense
-          fallback={
-            <Box flex={1} className="center" width={1} height={1}>
-              <CircularProgress size={30} />
-            </Box>
-          }>
-          <Outlet />
-        </Suspense>
-      </Box>
+                <MobileActionRoutes />
+              </Stack>
 
-      {isMobile && (
-        <Drawer
-          open={drawerOpen}
-          onClose={() => setDrawerOpen(false)}
-          ModalProps={{
-            disablePortal: false,
-            keepMounted: true,
-            BackdropComponent: undefined,
-          }}
-          anchor="right"
-          sx={{
-            zIndex: (theme) => theme.zIndex.appBar - 1,
-          }}
-          PaperProps={{
-            style: {
-              top: 0,
-              bottom: 0,
-              boxShadow: 'none',
-            },
-          }}>
-          <Stack sx={{ width: '80vw', maxWidth: 300, background: '#fff', p: 2, pt: 10, height: 1 }}>
-            <Stack sx={{ gap: 1.5, flex: 1 }} onClick={() => setDrawerOpen(false)}>
-              {options.map((option) => {
-                return (
-                  <Box
-                    className="center"
-                    justifyContent="flex-start"
-                    key={option.value}
-                    onClick={() => {
-                      navigate(joinURL('..', projectId || '', option.value));
-                    }}>
-                    <Box className="center">{option.icon}</Box>
-                    <Typography className="center" fontWeight={500} fontSize={16} lineHeight="28px" color="#030712">
-                      {option.label}
-                    </Typography>
-                  </Box>
-                );
-              })}
-
-              <MobileActionRoutes />
+              <MobileTokenUsage />
             </Stack>
-
-            <MobileTokenUsage />
-          </Stack>
-        </Drawer>
-      )}
-    </Stack>
+          </Drawer>
+        )}
+      </Stack>
+    </DatasetsProvider>
   );
 }
 

@@ -46,7 +46,7 @@
     "@blocklet/dataset-sdk": "workspace:^",
     "@blocklet/discuss-kit": "^1.6.264",
     "@blocklet/logger": "^1.16.28",
-    "@blocklet/payment-js": "^1.13.281",
+    "@blocklet/payment-js": "^1.13.283",
     "@blocklet/prompt-editor": "workspace:^",
     "@blocklet/sdk": "^1.16.28",
     "@blocklet/studio-ui": "workspace:^",
@@ -159,7 +159,7 @@
     "y-protocols": "^1.0.6",
     "y-websocket": "^1.5.4",
     "yaml": "^2.4.5",
-    "zustand": "^4.5.2"
+    "zustand": "^4.5.3"
   },
   "devDependencies": {
     "@types/compression": "^1.7.5",

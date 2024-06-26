@@ -120,7 +120,7 @@ export default function InputTable({
   };
 
   const parameters = sortBy(Object.values(assistant.parameters ?? {}), (i) => i.index);
-  const { data: knowledge = [] } = useRequest(() => getDatasets());
+  const { data: knowledge = [] } = useRequest(() => getDatasets({ projectId }));
 
   const FROM_MAP = useMemo(() => {
     return {
