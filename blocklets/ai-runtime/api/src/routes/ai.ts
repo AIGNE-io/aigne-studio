@@ -205,7 +205,7 @@ router.post('/call', user(), auth(), compression(), async (req, res) => {
       taskId,
       assistantId: agent.id,
       delta: {
-        content: JSON.stringify(input.inputs),
+        content: JSON.stringify(input.inputs, null, 2),
       },
     });
 

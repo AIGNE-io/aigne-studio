@@ -26,6 +26,7 @@ const MarkdownViewer = styled(Box)`
     word-break: break-word;
     margin: 0;
     padding: ${({ theme }) => theme.spacing(1)} 0px;
+    white-space: pre-wrap;
   }
 
   ul,
@@ -220,9 +221,7 @@ function MdViewer(props: BoxProps & MdViewerProps) {
   return (
     <MarkdownViewer
       ref={mdViewerRef}
-      dangerouslySetInnerHTML={{
-        __html: convertMarkdownToHTML(props.content),
-      }}
+      dangerouslySetInnerHTML={{ __html: convertMarkdownToHTML(props.content) }}
       {...props}
     />
   );
