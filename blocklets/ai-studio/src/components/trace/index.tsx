@@ -96,13 +96,10 @@ const LabelValue = memo(({ label, value }: Trace) => {
       formatInputParameters = value;
     }
 
-    let formattedString = JSON.stringify(formatInputParameters, null, 2);
-    formattedString = formattedString.replace(/}\s*\n\s*]/g, '}]').replace(/\[\s*\n\s*{/g, '[{');
-
     return (
       <>
         <Label variant="body1">{t(label)}:</Label>
-        <JsonDisplay>{formattedString}</JsonDisplay>
+        <JsonDisplay>{JSON.stringify(formatInputParameters, null, 2)}</JsonDisplay>
       </>
     );
   }
