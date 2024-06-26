@@ -1,10 +1,13 @@
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 
+import { getAgent } from '@api/libs/agent';
 import logger from '@api/libs/logger';
 import { getResourceProjects } from '@api/libs/resource';
-import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
+import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { AIGNE_RUNTIME_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
+import { GetAgentResult } from '@blocklet/ai-runtime/core';
+import { RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
 import {
   RUNTIME_RESOURCE_BLOCKLET_STATE_GLOBAL_VARIABLE,
   RuntimeResourceBlockletState,
@@ -16,6 +19,8 @@ import Mustache from 'mustache';
 import { joinURL } from 'ufo';
 import type { ViteDevServer } from 'vite';
 
+import { getMessageById } from './message';
+
 export default function setupHtmlRouter(app: Express, viteDevServer?: ViteDevServer) {
   const template = viteDevServer
     ? readFileSync(resolve(process.env.BLOCKLET_APP_DIR!, 'index.html'), 'utf-8')
@@ -23,7 +28,7 @@ export default function setupHtmlRouter(app: Express, viteDevServer?: ViteDevSer
 
   const router = Router();
 
-  router.get('/*', async (req, res) => {
+  const loadHtml = async (req: any) => {
     const resourceBlockletState: RuntimeResourceBlockletState = {
       applications: [],
     };
@@ -57,6 +62,71 @@ export default function setupHtmlRouter(app: Express, viteDevServer?: ViteDevSer
       html = await viteDevServer.transformIndexHtml(url, template);
     }
 
+    html = html.replace(
+      '<!-- INJECT_HEAD_ELEMENTS -->',
+      `\
+<script>
+var ${RUNTIME_RESOURCE_BLOCKLET_STATE_GLOBAL_VARIABLE} = ${JSON.stringify(resourceBlockletState)};
+</script>
+      `
+    );
+
+    const blockletJs = getBlockletJs(undefined, blockletDid ? getComponentMountPoint(blockletDid) : undefined);
+    if (blockletJs) {
+      html = html.replace('<script src="__blocklet__.js"></script>', `<script>${blockletJs}</script>`);
+    }
+
+    return { html, resourceBlockletState, blockletDid };
+  };
+
+  router.get('/message/:messageId/:aid/:blockletDid?', async (req, res) => {
+    const { html: tplHtml, resourceBlockletState } = await loadHtml(req);
+    let html = tplHtml;
+    let message;
+    let agent: GetAgentResult | undefined;
+    const app = resourceBlockletState.applications[0];
+
+    const { aid, blockletDid, messageId } = req.params;
+
+    try {
+      message = await getMessageById({ messageId });
+    } catch (error) {
+      logger.error('message not found', { error });
+    }
+
+    try {
+      const { projectId, projectRef, assistantId } = parseIdentity(aid, { rejectWhenError: true });
+      agent = await getAgent({ blockletDid, projectId, projectRef, agentId: assistantId });
+
+      if (!agent) {
+        throw new Error(`agent ${assistantId} not found`);
+      }
+    } catch (error) {
+      logger.error('agent not found', { error });
+    }
+
+    try {
+      html = Mustache.render(html, {
+        ogTitle: agent?.name || agent?.project?.name || '',
+        ogDescription: message?.outputs?.content || agent?.description || agent?.project?.description || '',
+        ogImage:
+          message?.outputs?.objects?.[0]?.[RuntimeOutputVariable.images]?.[0].url ||
+          (blockletDid && app?.project.id
+            ? joinURL(config.env.appUrl, '/.well-known/service/blocklet/logo-bundle', blockletDid)
+            : ''),
+      });
+    } catch (error) {
+      logger.error('render html error', { error });
+    }
+
+    res.send(html);
+  });
+
+  router.get('/*', async (req, res) => {
+    const { html: tplHtml, resourceBlockletState, blockletDid } = await loadHtml(req);
+
+    let html = tplHtml;
+
     try {
       const app = resourceBlockletState.applications[0];
 
@@ -70,20 +140,6 @@ export default function setupHtmlRouter(app: Express, viteDevServer?: ViteDevSer
       });
     } catch (error) {
       logger.error('render html error', { error });
-    }
-
-    html = html.replace(
-      '<!-- INJECT_HEAD_ELEMENTS -->',
-      `\
-<script>
-var ${RUNTIME_RESOURCE_BLOCKLET_STATE_GLOBAL_VARIABLE} = ${JSON.stringify(resourceBlockletState)};
-</script>
-      `
-    );
-
-    const blockletJs = getBlockletJs(undefined, blockletDid ? getComponentMountPoint(blockletDid) : undefined);
-    if (blockletJs) {
-      html = html.replace('<script src="__blocklet__.js"></script>', `<script>${blockletJs}</script>`);
     }
 
     res.send(html);

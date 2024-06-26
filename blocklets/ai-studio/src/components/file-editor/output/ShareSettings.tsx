@@ -99,4 +99,4 @@ export default function ShareSettings({ output }: { output: OutputVariableYjs })
   );
 }
 
-const SupportedShares = [{ to: 'twitter' }, { to: 'copy' }, { to: 'saveAs' }, { to: 'community' }];
+const SupportedShares = [{ to: 'twitter' }, { to: 'copy' }, { to: 'saveAs' }, { to: 'community' }, { to: 'link' }];

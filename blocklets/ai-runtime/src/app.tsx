@@ -6,8 +6,10 @@ import { Outlet, Route, RouterProvider, createBrowserRouter, createRoutesFromEle
 
 import Loading from './components/loading';
 import { SessionProvider } from './contexts/session';
+import { translations } from './locales';
 import ApplicationPage from './pages/application';
 import HomePage from './pages/home';
+import MessagePage from './pages/message';
 import PreviewPage from './pages/preview';
 
 const theme = createTheme({ typography: { button: { textTransform: 'none' } } });
@@ -45,7 +47,7 @@ export default function WrappedApp() {
               />
 
               <ToastProvider>
-                <LocaleProvider translations={{}} fallbackLocale="en">
+                <LocaleProvider translations={translations} fallbackLocale="en">
                   <Suspense fallback={<Loading />}>
                     <SessionProvider serviceHost={basename}>
                       <Outlet />
@@ -59,6 +61,7 @@ export default function WrappedApp() {
         <Route path="/" element={<HomePage />} />
         <Route path="/apps/:aid" element={<ApplicationPage />} />
         <Route path="/preview/:aid" element={<PreviewPage />} />
+        <Route path="/message/:id/:aid/:blockDid?" element={<MessagePage />} />
       </Route>
     ),
     { basename }
