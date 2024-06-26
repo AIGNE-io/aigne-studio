@@ -114,6 +114,7 @@ const GalleryImageList = forwardRef<
           return (
             <Box className="image-container" key="add">
               <UploaderButton
+                allowedFileTypes={['image/png']}
                 onChange={({ response }: any) => {
                   const url = response?.data?.url || response?.data?.fileUrl;
                   onChange(url);
