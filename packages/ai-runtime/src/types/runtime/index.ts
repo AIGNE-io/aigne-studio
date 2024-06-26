@@ -34,14 +34,15 @@ export type PromptMessages = Array<{
 // RunAssistantExecute 代表 Agent 执行状态
 // RunAssistantInput  代表 Agent 的输入
 // RunAssistantChunk 代表 Agent 的输出
-export type RunAssistantResponse =
+export type RunAssistantResponse = { messageId: string } & (
   | RunAssistantChunk
   | RunAssistantUsage
   | RunAssistantError
   | RunAssistantInput
   | RunAssistantLog
   | RunAssistantExecute
-  | RunAssistantInputParameter;
+  | RunAssistantInputParameter
+);
 
 export type RunAssistantInputParameter = {
   type: AssistantResponseType.INPUT_PARAMETER;
