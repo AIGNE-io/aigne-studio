@@ -107,7 +107,7 @@ export default function ExecuteBlockForm({
   const popperState = usePopupState({ variant: 'popper', popupId: 'settings' });
 
   const { data: openApis = [] } = useRequest(() => getAPIList());
-  const { data: datasets = [] } = useRequest(() => getDatasets());
+  const { data: datasets = [] } = useRequest(() => getDatasets({ projectId }));
 
   const { getDiffBackground } = useAssistantCompare({
     value: assistant,
