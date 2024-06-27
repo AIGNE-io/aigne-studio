@@ -1,3 +1,8 @@
+## 0.3.11 (2024-6-27)
+
+- fix: export assets and use relative urls for assets
+- fix: only allow publishing of owned knowledge
+
 ## 0.3.10 (2024-6-27)
 
 - fix: chat history crashed
