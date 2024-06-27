@@ -1,7 +1,7 @@
 ## 0.3.11 (2024-6-27)
 
-- fix: only png files are allowed for the project icon
-- fix: typing `{` evokes variables without requiring a space before `{`
+- fix: export assets and use relative urls for assets
+- fix: only allow publishing of owned knowledge
 
 ## 0.3.10 (2024-6-27)
 
