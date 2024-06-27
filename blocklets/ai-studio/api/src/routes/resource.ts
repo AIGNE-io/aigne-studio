@@ -8,6 +8,7 @@ import { ResourceTypes } from '@api/libs/resource';
 import { AIGNE_RUNTIME_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
 import { Assistant, projectSettingsSchema } from '@blocklet/ai-runtime/types';
 import component, { call } from '@blocklet/sdk/lib/component';
+import { user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
 import groupBy from 'lodash/groupBy';
@@ -98,7 +99,7 @@ export function resourceRoutes(router: Router) {
     return undefined;
   };
 
-  router.get('/resources/export', ensurePromptsEditor, async (req, res) => {
+  router.get('/resources/export', user(), ensurePromptsEditor, async (req, res) => {
     const query = await getExportedResourceQuerySchema.validateAsync(
       {
         ...req.query,
@@ -121,6 +122,7 @@ export function resourceRoutes(router: Router) {
         method: 'get',
         path: '/api/datasets',
         params: { excludeResource: true },
+        headers: { 'x-user-did': req.user?.did },
       })
     ).data;
 
