@@ -872,15 +872,20 @@ export function projectRoutes(router: Router) {
     throw new Error(`Could not back up to target(${target})`);
   });
 
-  router.get('/projects/:projectId/refs/:ref/assistants/:assistantId', async (req, res) => {
-    const { projectId, ref, assistantId } = req.params;
+  router.get('/projects/:projectId/refs/:ref/assistants/:agentId', async (req, res) => {
+    const { projectId, ref, agentId } = req.params;
     const query = await getAgentQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
     await Project.findByPk(projectId, { rejectOnEmpty: new Error(`Project ${projectId} not found`) });
 
     const repository = await getRepository({ projectId });
 
-    const assistant = await getAssistantFromRepository({ repository, ref, assistantId, working: query.working });
+    const assistant = await getAssistantFromRepository({
+      repository,
+      ref,
+      agentId,
+      working: query.working,
+    });
 
     res.json(
       pick(
@@ -916,7 +921,7 @@ export function projectRoutes(router: Router) {
       const agent = await getAssistantFromRepository({
         repository: repo,
         ref,
-        assistantId: agentId,
+        agentId,
         working: query.working,
       });
 
@@ -948,18 +953,25 @@ export function projectRoutes(router: Router) {
   );
 
   router.get(
-    '/projects/compare/:projectId/:ref/:assistantId',
+    '/projects/compare/:projectId/:ref/:agentId',
     user(),
     ensureComponentCallOrPromptsEditor(),
     async (req, res) => {
-      const { projectId = '', ref = '', assistantId = '' } = req.params;
+      const { projectId, ref, agentId } = req.params;
+      if (!projectId || !ref || !agentId) throw new Error('Missing required params projectId/ref/agentId');
+
       const query = await getAgentQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
       await Project.findByPk(projectId, { rejectOnEmpty: new Error(`Project ${projectId} not found`) });
 
       const repository = await getRepository({ projectId });
 
-      const assistant = await getAssistantFromRepository({ repository, ref, assistantId, working: query.working });
+      const assistant = await getAssistantFromRepository({
+        repository,
+        ref,
+        agentId,
+        working: query.working,
+      });
 
       res.json(assistant);
     }
@@ -971,12 +983,12 @@ export function projectRoutes(router: Router) {
     const assistants = (
       await Promise.all(
         resources.map(async (filepath: string) => {
-          const assistantId = getAssistantIdFromPath(filepath);
-          if (!assistantId) return [];
+          const agentId = getAssistantIdFromPath(filepath);
+          if (!agentId) return [];
           const repository = await getRepository({ projectId });
-          const p = (await repository.listFiles({ ref })).find((i) => i.endsWith(`${assistantId}.yaml`));
+          const p = (await repository.listFiles({ ref })).find((i) => i.endsWith(`${agentId}.yaml`));
           const parent = p ? p.split('/').slice(0, -1) : [];
-          const result = await getAssistantFromRepository({ repository, ref, assistantId });
+          const result = await getAssistantFromRepository({ repository, ref, agentId });
           return { ...result, parent };
         })
       )
