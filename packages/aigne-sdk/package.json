@@ -66,7 +66,7 @@
     "@blocklet/ai-kit": "^0.1.43",
     "@blocklet/ai-runtime": "workspace:^",
     "@blocklet/js-sdk": "^1.16.28",
-    "@blocklet/pages-kit": "^0.2.359",
+    "@blocklet/pages-kit": "^0.2.360",
     "@microsoft/fetch-event-source": "^2.0.1",
     "ahooks": "^3.8.0",
     "axios": "^1.7.2",

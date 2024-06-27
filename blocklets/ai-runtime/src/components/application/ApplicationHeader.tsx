@@ -21,6 +21,8 @@ export default function ApplicationHeader({
         variant="rounded"
         src={withQuery(joinURL(blocklet?.prefix || '/', '/api/agents/', application.aid, 'logo'), {
           blockletDid: application.blockletDid,
+          imageFilter: 'resize',
+          w: 160,
         })}
         sx={{ width: 'auto', height: '100%' }}
       />
