@@ -93,7 +93,7 @@ export default function OutputSettings({
         </Box>
       </Stack>
 
-      <Box sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1 }}>
+      <Box sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1, overflow: 'auto' }}>
         <Box
           sx={{
             whiteSpace: 'nowrap',
@@ -145,26 +145,20 @@ export default function OutputSettings({
                   <VariableRow
                     key={item.id}
                     rowRef={(ref) => params.drop(params.preview(ref))}
-                    firstColumnChildren={
+                    actionColumnChildren={
                       <Stack
+                        direction="row"
                         className="hover-visible"
                         sx={{
-                          border: '1px solid #E5E7EB',
-                          bgcolor: '#fff',
-                          borderRadius: 1,
                           p: 0.5,
                           gap: 0.25,
                           cursor: 'pointer',
                           button: {
-                            p: 0,
+                            p: 0.5,
                             minWidth: 0,
                             minHeight: 0,
                           },
                           display: 'none',
-                          position: 'absolute',
-                          left: '-24px',
-                          top: '50%',
-                          transform: 'translateY(-50%)',
                         }}>
                         <Tooltip title={t('dragSort')} disableInteractive placement="top">
                           <Button ref={params.drag}>
@@ -247,7 +241,7 @@ export default function OutputSettings({
 }
 
 function VariableRow({
-  firstColumnChildren,
+  actionColumnChildren,
   rowRef,
   selectAgentOutputVariables,
   parent,
@@ -260,7 +254,7 @@ function VariableRow({
   disabled,
   ...props
 }: {
-  firstColumnChildren?: ReactNode;
+  actionColumnChildren?: ReactNode;
   rowRef?: React.RefCallback<HTMLTableRowElement>;
   selectAgentOutputVariables?: AssistantYjs['outputVariables'];
   parent?: OutputVariableYjs;
@@ -328,8 +322,6 @@ function VariableRow({
             ...props.sx,
           }}>
           <Box component={TableCell}>
-            {firstColumnChildren}
-
             <Box sx={{ ml: depth === 0 ? depth : depth + 2 }}>
               <OutputNameCell
                 depth={depth}
@@ -363,11 +355,13 @@ function VariableRow({
               />
             )}
           </Box>
-          <Box component={TableCell} align="right">
-            {!variable.hidden && (
+          <Box component={TableCell} align="right" width={90}>
+            <Box display="flex" justifyContent="flex-end" gap={0.5}>
+              {actionColumnChildren}
+
               <OutputActionsCell
                 depth={depth}
-                disabled={disabled}
+                disabled={disabled || variable.hidden}
                 onRemove={onRemove}
                 output={variable}
                 variable={datastoreVariable}
@@ -375,7 +369,7 @@ function VariableRow({
                 gitRef={gitRef}
                 assistant={value}
               />
-            )}
+            </Box>
           </Box>
         </Box>
       </Tooltip>
