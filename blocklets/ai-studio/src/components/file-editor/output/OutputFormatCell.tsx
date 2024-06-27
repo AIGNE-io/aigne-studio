@@ -83,6 +83,7 @@ export default function OutputFormatCell({
             }
           }
         }}
+        onClick={(e) => e.stopPropagation()}
       />
     </>
   );

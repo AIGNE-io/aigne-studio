@@ -66,7 +66,7 @@ export default function OutputActionsCell({
   const variables = (variableYjs?.variables || []).filter((x) => x.type?.type === (output.type || 'string'));
 
   return (
-    <Stack direction="row" gap={1} justifyContent="flex-end">
+    <Stack direction="row" gap={1} justifyContent="flex-end" onClick={(e) => e.stopPropagation()}>
       {v.type === 'object' && (
         <Button
           sx={{ minWidth: 24, minHeight: 24, p: 0 }}
@@ -313,13 +313,133 @@ function SettingDialogTitle({ output }: { output: OutputVariableYjs }) {
   );
 }
 
-export function SettingProvider({ children, output }: { children: any; output: OutputVariableYjs }) {
+export function SettingProvider({
+  children,
+  projectId,
+  gitRef,
+  assistant,
+  variables,
+  variable,
+  runtimeVariable,
+  output,
+  disabled,
+}: {
+  children: any;
+  projectId: string;
+  gitRef: string;
+  assistant: AssistantYjs;
+  variables: VariableYjs[];
+  variable?: VariableYjs;
+  runtimeVariable: boolean;
+  output: OutputVariableYjs;
+  disabled: boolean;
+}) {
   const { t } = useLocaleContext();
   const dialogState = usePopupState({ variant: 'dialog' });
+  const [currentSetting] = useState<'setting' | 'save'>('setting');
+
+  const renderParameterSettings = (output: OutputVariableYjs) => {
+    if (RuntimeOutputVariable.profile === output.name) {
+      return <ProfileSettings output={output} />;
+    }
+
+    if (RuntimeOutputVariable.openingQuestions === output.name) {
+      return <OpeningQuestionsSettings assistant={assistant} output={output} />;
+    }
+
+    if (RuntimeOutputVariable.openingMessage === output.name) {
+      return <OpeningMessageSettings output={output} />;
+    }
+
+    if (RuntimeOutputVariable.share === output.name) {
+      return <ShareSettings output={output} />;
+    }
+
+    if (output.name === RuntimeOutputVariable.children) {
+      return <ChildrenSettings assistant={assistant} projectId={projectId} gitRef={gitRef} output={output} />;
+    }
+
+    if (currentSetting === 'setting') {
+      return runtimeVariable ? null : output.type === 'string' ? (
+        <Box>
+          <Typography variant="subtitle2">{t('defaultValue')}</Typography>
+
+          <TextField
+            disabled={Boolean(disabled)}
+            hiddenLabel
+            fullWidth
+            multiline
+            placeholder={t('outputParameterDefaultValuePlaceholder')}
+            value={output.defaultValue || ''}
+            onChange={(e) => (output.defaultValue = e.target.value)}
+          />
+        </Box>
+      ) : output.type === 'number' ? (
+        <Box>
+          <Typography variant="subtitle2">{t('defaultValue')}</Typography>
+
+          <NumberField
+            disabled={Boolean(disabled)}
+            hiddenLabel
+            fullWidth
+            placeholder={t('outputParameterDefaultValuePlaceholder')}
+            value={output.defaultValue || ''}
+            onChange={(value) => (output.defaultValue = value)}
+          />
+        </Box>
+      ) : output.type === 'boolean' ? (
+        <Box>
+          <Typography variant="subtitle2">{t('defaultValue')}</Typography>
+
+          <Switch
+            checked={output.defaultValue || false}
+            onChange={(_, checked) => {
+              output.defaultValue = checked;
+            }}
+          />
+        </Box>
+      ) : null;
+    }
+
+    if (currentSetting === 'save') {
+      return (
+        <Box>
+          <Typography variant="subtitle2" mb={0}>
+            {t('memory.saveMemory')}
+          </Typography>
+
+          <Box>
+            <SelectVariable
+              placeholder={t('selectMemoryPlaceholder')}
+              variables={variables}
+              variable={variable}
+              onDelete={() => {
+                if (output.variable) delete output.variable;
+              }}
+              onChange={(_value) => {
+                if (_value && output) {
+                  output.variable = { key: _value.key, scope: _value.scope || '' };
+                }
+              }}
+            />
+          </Box>
+        </Box>
+      );
+    }
+
+    return null;
+  };
+
+  const settingsChildren = renderParameterSettings(output);
 
   return (
     <>
-      {React.cloneElement(children, { onClick: dialogState.open })}
+      {React.cloneElement(children, {
+        onClick: () => {
+          if (disabled) return;
+          dialogState.open();
+        },
+      })}
 
       <Dialog
         disableEnforceFocus
@@ -340,7 +460,10 @@ export function SettingProvider({ children, output }: { children: any; output: O
 
         <DialogContent>
           <Stack gap={1}>
-            <AppearanceSettings output={output} disableTitleAndIcon />
+            {settingsChildren && <Divider textAlign="left">{t('basic')}</Divider>}
+            {settingsChildren}
+
+            <AppearanceSettings output={output} />
           </Stack>
         </DialogContent>
 

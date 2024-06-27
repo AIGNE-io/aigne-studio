@@ -317,78 +317,88 @@ function VariableRow({
 
   return (
     <>
-      <Tooltip title={error} placement="top-start">
-        <Box
-          ref={rowRef}
-          {...props}
-          component={TableRow}
-          key={variable.id}
-          sx={{
-            backgroundColor,
-            '*': {
-              color: variable.hidden ? 'text.disabled' : undefined,
-            },
-            ...props.sx,
-          }}>
-          <Box component={TableCell}>
-            {firstColumnChildren}
+      <SettingProvider
+        projectId={projectId}
+        gitRef={gitRef}
+        assistant={value}
+        runtimeVariable={Boolean(runtimeVariable)}
+        variables={variables}
+        variable={datastoreVariable}
+        output={variable}
+        disabled={Boolean(disabled)}>
+        <Tooltip title={error} placement="top-start">
+          <Box
+            ref={rowRef}
+            {...props}
+            component={TableRow}
+            key={variable.id}
+            sx={{
+              backgroundColor,
+              '*': {
+                color: variable.hidden ? 'text.disabled' : undefined,
+              },
+              cursor: variable.hidden ? 'not-allowed' : 'pointer',
+              ...props.sx,
+            }}>
+            <Box component={TableCell}>
+              {firstColumnChildren}
 
-            <Box sx={{ ml: depth === 0 ? depth : depth + 2 }}>
-              <OutputNameCell
-                depth={depth}
+              <Box sx={{ ml: depth === 0 ? depth : depth + 2 }}>
+                <OutputNameCell
+                  depth={depth}
+                  output={variable}
+                  TextFieldProps={{
+                    disabled: Boolean(disabled) || parent?.type === 'array' || Boolean(variable.hidden),
+                  }}
+                />
+              </Box>
+            </Box>
+            <Box component={TableCell}>
+              <OutputDescriptionCell
+                assistant={value}
                 output={variable}
-                TextFieldProps={{ disabled: Boolean(disabled) || parent?.type === 'array' || Boolean(variable.hidden) }}
+                TextFieldProps={{ disabled: Boolean(disabled) || Boolean(variable.hidden) }}
               />
             </Box>
-          </Box>
-          <Box component={TableCell}>
-            <OutputDescriptionCell
-              assistant={value}
-              output={variable}
-              TextFieldProps={{ disabled: Boolean(disabled) || Boolean(variable.hidden) }}
-            />
-          </Box>
-          <Box component={TableCell}>
-            <OutputFormatCell
-              assistant={value}
-              output={variable}
-              variable={datastoreVariable}
-              TextFieldProps={{ disabled: Boolean(disabled) || Boolean(variable.hidden) }}
-            />
-          </Box>
-          <Box component={TableCell}>
-            {!variable.hidden && !runtimeVariable && variable.from?.type !== 'input' && (
-              <Switch
-                size="small"
-                disabled={Boolean(disabled)}
-                checked={variable.required || false}
-                onChange={(_, checked) => (variable.required = checked)}
-              />
-            )}
-          </Box>
-          <Box component={TableCell}>
-            {variable.appearance && (
-              <SettingProvider output={variable}>
-                <Tag className="ellipsis">{variable.appearance.componentName}</Tag>
-              </SettingProvider>
-            )}
-          </Box>
-          <Box component={TableCell} align="right">
-            {!variable.hidden && (
-              <OutputActionsCell
-                depth={depth}
-                disabled={disabled}
-                onRemove={onRemove}
+            <Box component={TableCell}>
+              <OutputFormatCell
+                assistant={value}
                 output={variable}
                 variable={datastoreVariable}
-                projectId={projectId}
-                gitRef={gitRef}
-                assistant={value}
+                TextFieldProps={{ disabled: Boolean(disabled) || Boolean(variable.hidden) }}
               />
-            )}
+            </Box>
+            <Box component={TableCell}>
+              {!variable.hidden && !runtimeVariable && variable.from?.type !== 'input' && (
+                <Switch
+                  size="small"
+                  disabled={Boolean(disabled)}
+                  checked={variable.required || false}
+                  onChange={(_, checked) => (variable.required = checked)}
+                  onClick={(e) => e.stopPropagation()}
+                />
+              )}
+            </Box>
+            <Box component={TableCell}>
+              {variable.appearance && <Tag className="ellipsis">{variable.appearance.componentName}</Tag>}
+            </Box>
+            <Box component={TableCell} align="right">
+              {!variable.hidden && (
+                <OutputActionsCell
+                  depth={depth}
+                  disabled={disabled}
+                  onRemove={onRemove}
+                  output={variable}
+                  variable={datastoreVariable}
+                  projectId={projectId}
+                  gitRef={gitRef}
+                  assistant={value}
+                />
+              )}
+            </Box>
           </Box>
-        </Box>
-      </Tooltip>
+        </Tooltip>
+      </SettingProvider>
 
       {!runtimeVariable &&
         mergeVariable.type === 'object' &&
