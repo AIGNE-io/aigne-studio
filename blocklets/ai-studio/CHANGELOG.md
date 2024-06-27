@@ -1,3 +1,7 @@
+## 0.3.10 (2024-6-27)
+
+- fix: chat history crashed
+
 ## 0.3.9 (2024-6-26)
 
 - feat: new @blocklet/aigne-sdk package for aigne development
