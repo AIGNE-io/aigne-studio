@@ -1,7 +1,6 @@
 ## 0.3.9 (2024-6-26)
 
-- fix: disabled output color
-- fix: when setting the project avatar, only png can be uploaded
+- fix: only png files are allowed for the project icon
 - fix: typing `{` evokes variables without requiring a space before `{`
 
 ## 0.3.8 (2024-6-26)
