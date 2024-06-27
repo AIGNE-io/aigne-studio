@@ -1,3 +1,5 @@
+import { join } from 'path';
+
 import { getAgent, getAgentSecretInputs } from '@api/libs/agent';
 import { ResourceType, getProjectFromResource, getResourceProjects } from '@api/libs/resource';
 import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
@@ -6,6 +8,7 @@ import { GetAgentResult } from '@blocklet/ai-runtime/core';
 import { getComponentMountPoint } from '@blocklet/sdk';
 import config from '@blocklet/sdk/lib/config';
 import { Router } from 'express';
+import { exists } from 'fs-extra';
 import Joi from 'joi';
 import isEmpty from 'lodash/isEmpty';
 import pick from 'lodash/pick';
@@ -98,14 +101,16 @@ router.get('/:aid/logo', async (req, res) => {
   const { projectId } = parseIdentity(aid, { rejectWhenError: true });
 
   if (blockletDid) {
-    const logo = (await getProjectFromResource({ blockletDid, projectId }))?.gitLogoPath;
-    if (logo) {
+    const dir = (await getProjectFromResource({ blockletDid, projectId }))?.projectDir;
+    const logo = dir ? join(dir, 'logo.png') : undefined;
+    if (logo && (await exists(logo))) {
       res.sendFile(logo);
     } else {
       res.status(404).end();
     }
     return;
   }
+
   res.redirect(
     joinURL(
       config.env.appUrl,
@@ -115,6 +120,29 @@ router.get('/:aid/logo', async (req, res) => {
       '/logo.png'
     )
   );
+});
+
+router.get('/:aid/assets/:filename', async (req, res) => {
+  const { aid, filename } = req.params;
+  if (!aid || !filename) throw new Error('Missing required param `aid` or `filename`');
+
+  const { blockletDid } = await getAgentQuerySchema.validateAsync(req.query, { stripUnknown: true });
+
+  const { projectId } = parseIdentity(aid, { rejectWhenError: true });
+
+  if (blockletDid) {
+    const dir = (await getProjectFromResource({ blockletDid, projectId }))?.projectDir;
+    const path = dir ? join(dir, 'assets', filename) : undefined;
+    if (path && (await exists(path))) {
+      res.sendFile(path);
+    } else {
+      res.status(404).end();
+    }
+    return;
+  }
+
+  // TODO: ai studio 实现存储 assets 到 repo 中之后这里需要像 logo 接口一样重定向到 ai-studio 获取 assets 接口
+  res.status(404).end();
 });
 
 const respondAgentFields = (
