@@ -1,3 +1,19 @@
+## 0.3.12 (2024-6-28)
+
+- chore: code review
+- chore: code review
+- fix: only allow publishing of owned knowledge & relative asset urls (#1178)
+- chore: merge code
+- update readme
+- fix: 格式化输出日志
+- fix: 格式化输出日志
+- fix: 格式化输出日志
+- chore: bump version
+- chore: bump version
+- fix: disabled output
+- fix: when setting the project avatar, only png can be uploaded
+- fix: typing { evokes variables without requiring a space before {
+
 ## 0.3.11 (2024-6-27)
 
 - fix: export assets and use relative urls for assets
