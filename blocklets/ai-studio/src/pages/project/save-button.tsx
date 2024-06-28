@@ -30,7 +30,7 @@ import { useKeyPress } from 'ahooks';
 import gitUrlParse from 'git-url-parse';
 import { PopupState, bindDialog, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Controller, UseFormReturn, useForm } from 'react-hook-form';
+import { Controller, FormProvider, useForm, useFormContext } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
@@ -437,18 +437,14 @@ interface RemoteRepoSettingForm {
   password: string;
 }
 
-function DynamicContent({ form }: { form: UseFormReturn<RemoteRepoSettingForm, any, undefined> }) {
+function GitSettingContent() {
+  const form = useFormContext<RemoteRepoSettingForm>();
   const [showPassword, setShowPassword] = useState(false);
   const { t } = useLocaleContext();
 
   return (
     <Stack gap={2}>
-      <Alert
-        severity="warning"
-        sx={{
-          whiteSpace: 'pre-wrap',
-          wordBreak: 'break-word',
-        }}>
+      <Alert severity="warning" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
         {t('remoteGitRepoUnauthorizedTip')}
       </Alert>
 
@@ -565,8 +561,10 @@ export function useUnauthorizedDialog({ projectId }: { projectId: string }) {
 
   const { state, addRemote, push } = useProjectState(projectId, getDefaultBranch());
 
-  const form = useForm<RemoteRepoSettingForm>({
-    defaultValues: async () => {
+  const form = useForm<RemoteRepoSettingForm>({ defaultValues: { url: '', username: '', password: '' } });
+
+  useEffect(() => {
+    if (state.project?.gitUrl) {
       const gitUrl = state.project?.gitUrl;
       let url = '';
       let username = '';
@@ -581,9 +579,10 @@ export function useUnauthorizedDialog({ projectId }: { projectId: string }) {
         // empty
       }
 
-      return { url, username, password: '' };
-    },
-  });
+      form.setValue('url', url);
+      form.setValue('username', username);
+    }
+  }, [state.project?.gitUrl]);
 
   const saveSetting = useCallback(
     async (value: RemoteRepoSettingForm) => {
@@ -618,7 +617,11 @@ export function useUnauthorizedDialog({ projectId }: { projectId: string }) {
             <WarningRounded color="warning" fontSize="large" /> {t('remoteGitRepoUnauthorized')}
           </Stack>
         ),
-        content: <DynamicContent form={form} />,
+        content: (
+          <FormProvider {...form}>
+            <GitSettingContent />
+          </FormProvider>
+        ),
         cancelText: t('cancel'),
         okText: t('sync'),
         okColor: 'warning',
@@ -628,7 +631,7 @@ export function useUnauthorizedDialog({ projectId }: { projectId: string }) {
         onClose: () => resolve(),
       });
     });
-  }, [projectId, form, push, showDialog, t]);
+  }, [projectId, push, showDialog, t]);
 
   return { dialog, showUnauthorizedDialog };
 }
