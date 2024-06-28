@@ -26,8 +26,7 @@ import {
 import sortBy from 'lodash/sortBy';
 import { bindDialog, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { nanoid } from 'nanoid';
-import { useId, useState } from 'react';
-import React from 'react';
+import { cloneElement, useId, useState } from 'react';
 
 import SelectVariable from '../select-variable';
 import AppearanceSettings from './AppearanceSettings';
@@ -234,7 +233,7 @@ function PopperButton({
   return (
     <>
       {children ? (
-        React.cloneElement(children, {
+        cloneElement(children, {
           onClick: () => {
             if (disabled) return;
             dialogState.open();
