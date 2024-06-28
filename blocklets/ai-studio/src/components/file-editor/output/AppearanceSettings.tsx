@@ -33,13 +33,7 @@ const ignoreIconTitleSettingsOutputs = new Set<string>([
   RuntimeOutputVariable.profile,
 ]);
 
-export default function AppearanceSettings({
-  output,
-  disableTitleAndIcon,
-}: {
-  output: OutputVariableYjs;
-  disableTitleAndIcon?: boolean;
-}) {
+export default function AppearanceSettings({ output }: { output: OutputVariableYjs }) {
   const { t } = useLocaleContext();
 
   const { appearance } = output;
@@ -94,7 +88,7 @@ export default function AppearanceSettings({
   return (
     <Box>
       <Stack gap={1}>
-        {!ignoreIconTitleSettingsOutputs.has(output.name!) && !disableTitleAndIcon && (
+        {!ignoreIconTitleSettingsOutputs.has(output.name!) && (
           <>
             <Divider textAlign="left" sx={{ mt: 2 }}>
               {t('iconAndTitle')}
