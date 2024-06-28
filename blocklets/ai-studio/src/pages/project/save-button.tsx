@@ -181,7 +181,7 @@ export function SaveButtonDialog({
           });
         } catch (error) {
           needMergeConflict = isTheErrorShouldShowMergeConflict(error);
-          needUpdateAccessToken = isTheErrorShouldShowUnauthorized(error);
+          needUpdateAccessToken = isTheErrorUnauthorizedAccessToken(error);
           if (!needMergeConflict && !needUpdateAccessToken) throw error;
         }
 
@@ -357,7 +357,7 @@ export function isTheErrorShouldShowMergeConflict(error: any) {
   return ['MergeConflictError', 'PushRejectedError', 'MergeNotSupportedError'].includes(errorName);
 }
 
-export function isTheErrorShouldShowUnauthorized(error: any) {
+export function isTheErrorUnauthorizedAccessToken(error: any) {
   const errorName = error.response?.data?.error?.message;
   return errorName.includes('401 Unauthorized');
 }
@@ -594,7 +594,7 @@ export function useUnauthorizedDialog({ projectId }: { projectId: string }) {
       } catch (error) {
         form.reset(value);
 
-        if (isTheErrorShouldShowUnauthorized(error)) {
+        if (isTheErrorUnauthorizedAccessToken(error)) {
           Toast.warning(t('remoteGitRepoUnauthorizedToast'));
           return;
         }

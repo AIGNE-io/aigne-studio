@@ -30,7 +30,7 @@ import Eye from '../icons/eye';
 import EyeNo from '../icons/eye-no';
 import {
   isTheErrorShouldShowMergeConflict,
-  isTheErrorShouldShowUnauthorized,
+  isTheErrorUnauthorizedAccessToken,
   useMergeConflictDialog,
   useUnauthorizedDialog,
 } from '../save-button';
@@ -100,7 +100,7 @@ export default function RemoteRepoSetting({ projectId }: { projectId: string }) 
       } catch (error) {
         form.reset(value);
 
-        if (isTheErrorShouldShowUnauthorized(error)) {
+        if (isTheErrorUnauthorizedAccessToken(error)) {
           Toast.warning(t('remoteGitRepoUnauthorizedToast'));
           return;
         }
@@ -321,7 +321,7 @@ export default function RemoteRepoSetting({ projectId }: { projectId: string }) 
                         return;
                       }
 
-                      if (isTheErrorShouldShowUnauthorized(error)) {
+                      if (isTheErrorUnauthorizedAccessToken(error)) {
                         showUnauthorizedDialog();
                         return;
                       }
