@@ -472,7 +472,7 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
                 aid: stringifyIdentity({
                   projectId: message.projectId,
                   projectRef: message.gitRef,
-                  assistantId: message.assistantId,
+                  agentId: message.assistantId,
                 }),
                 sessionId: session.sessionId,
                 inputs: message.parameters,

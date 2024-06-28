@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.3.9",
+  "version": "0.3.11",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -32,9 +32,9 @@
       "import": "./lib/esm/types/index.js",
       "require": "./lib/cjs/types/index.js"
     },
-    "./types/runtime/*": {
-      "import": "./lib/esm/types/runtime/*.js",
-      "require": "./lib/cjs/types/runtime/*.js"
+    "./types/*": {
+      "import": "./lib/esm/types/*.js",
+      "require": "./lib/cjs/types/*.js"
     },
     "./core": {
       "import": "./lib/esm/core/index.js",

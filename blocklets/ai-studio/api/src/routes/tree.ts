@@ -54,13 +54,13 @@ export function treeRoutes(router: Router) {
           const parent = dir.split(path.sep);
 
           if (filepath.startsWith(`${PROMPTS_FOLDER_NAME}/`) && filepath.endsWith('.yaml')) {
-            const assistantId = getAssistantIdFromPath(filepath);
-            if (assistantId) {
+            const agentId = getAssistantIdFromPath(filepath);
+            if (agentId) {
               return {
                 type: 'file',
                 name: base,
                 parent,
-                meta: await getAssistantFromRepository({ repository, ref, assistantId }),
+                meta: await getAssistantFromRepository({ repository, ref, agentId }),
               };
             }
           }

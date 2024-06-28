@@ -1,8 +1,15 @@
+## 0.3.11 (2024-6-27)
+
+- fix: export assets and use relative urls for assets
+- fix: only allow publishing of owned knowledge
+
+## 0.3.10 (2024-6-27)
+
+- fix: chat history crashed
+
 ## 0.3.9 (2024-6-26)
 
-- fix: disabled output color
-- fix: when setting the project avatar, only png can be uploaded
-- fix: typing `{` evokes variables without requiring a space before `{`
+- feat: new @blocklet/aigne-sdk package for aigne development
 
 ## 0.3.8 (2024-6-26)
 
