@@ -166,7 +166,7 @@ export function SaveButtonDialog({
     async (input: CommitForm, { skipToast }: { skipToast?: boolean } = {}) => {
       try {
         let needMergeConflict = false;
-        let needUpdateToken = false;
+        let needUpdateAccessToken = false;
 
         const branch = simpleMode ? getDefaultBranch() : input.branch;
         try {
@@ -181,8 +181,8 @@ export function SaveButtonDialog({
           });
         } catch (error) {
           needMergeConflict = isTheErrorShouldShowMergeConflict(error);
-          needUpdateToken = isTheErrorShouldShowUnauthorized(error);
-          if (!needMergeConflict && !needUpdateToken) throw error;
+          needUpdateAccessToken = isTheErrorShouldShowUnauthorized(error);
+          if (!needMergeConflict && !needUpdateAccessToken) throw error;
         }
 
         dialogState.close();
@@ -190,7 +190,7 @@ export function SaveButtonDialog({
         if (needMergeConflict) {
           Toast.warning(t('alert.savedButSyncConflicted'));
           await showMergeConflictDialog();
-        } else if (needUpdateToken) {
+        } else if (needUpdateAccessToken) {
           Toast.warning(t('remoteGitRepoUnauthorizedToast'));
           await showUnauthorizedDialog();
         } else if (!skipToast) Toast.success(t('alert.saved'));
@@ -628,7 +628,7 @@ export function useUnauthorizedDialog({ projectId }: { projectId: string }) {
         onClose: () => resolve(),
       });
     });
-  }, [projectId, push, showDialog, t]);
+  }, [projectId, form, push, showDialog, t]);
 
   return { dialog, showUnauthorizedDialog };
 }
