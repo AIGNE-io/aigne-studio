@@ -377,7 +377,7 @@ function VariableRow({
                 <Chip className="ellipsis" label={variable.appearance.componentName} size="small" />
               )}
             </Box>
-            <Box component={TableCell} align="right" width={100}>
+            <Box component={TableCell} align="right" width={100} minWidth={100}>
               <Box display="flex" justifyContent="flex-end" gap={0.5} onClick={(e) => e.stopPropagation()}>
                 {actionColumnChildren}
 
