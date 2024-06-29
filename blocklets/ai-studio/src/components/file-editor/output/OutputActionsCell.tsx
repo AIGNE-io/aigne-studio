@@ -26,7 +26,7 @@ import {
 import sortBy from 'lodash/sortBy';
 import { bindDialog, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { nanoid } from 'nanoid';
-import { useId, useState } from 'react';
+import { cloneElement, useId, useState } from 'react';
 
 import SelectVariable from '../select-variable';
 import AppearanceSettings from './AppearanceSettings';
@@ -115,6 +115,7 @@ function PopperButton({
   output,
   disabled,
   onDelete,
+  children,
 }: {
   depth: number;
   projectId: string;
@@ -127,6 +128,7 @@ function PopperButton({
   output: OutputVariableYjs;
   disabled: boolean;
   onDelete?: () => void;
+  children?: any;
 }) {
   const { t } = useLocaleContext();
   const dialogState = usePopupState({ variant: 'dialog' });
@@ -230,39 +232,48 @@ function PopperButton({
 
   return (
     <>
-      <PopperMenu
-        ButtonProps={{
-          sx: { minWidth: 0, p: 0.5, ml: -0.5 },
-          ...bindTrigger(parameterSettingPopperState),
-          disabled,
-          children: <Box component={Icon} icon={DotsIcon} sx={{ color: '#3B82F6' }} />,
-        }}
-        PopperProps={{ placement: 'bottom-end' }}>
-        {depth === 0 && (
-          <MenuItem
-            onClick={() => {
-              setSetting('setting');
-              dialogState.open();
-            }}>
-            {t('setting')}
-          </MenuItem>
-        )}
+      {children ? (
+        cloneElement(children, {
+          onClick: () => {
+            if (disabled) return;
+            dialogState.open();
+          },
+        })
+      ) : (
+        <PopperMenu
+          ButtonProps={{
+            sx: { minWidth: 0, p: 0.5, ml: -0.5 },
+            ...bindTrigger(parameterSettingPopperState),
+            disabled,
+            children: <Box component={Icon} icon={DotsIcon} sx={{ color: '#3B82F6' }} />,
+          }}
+          PopperProps={{ placement: 'bottom-end' }}>
+          {depth === 0 && (
+            <MenuItem
+              onClick={() => {
+                setSetting('setting');
+                dialogState.open();
+              }}>
+              {t('setting')}
+            </MenuItem>
+          )}
 
-        {isSaveAs && (
-          <MenuItem
-            onClick={() => {
-              setSetting('save');
-              dialogState.open();
-            }}>
-            {t('saveToMemory')}
-          </MenuItem>
-        )}
-        {onDelete && (
-          <MenuItem sx={{ color: '#E11D48', fontSize: 13 }} onClick={onDelete}>
-            {t('delete')}
-          </MenuItem>
-        )}
-      </PopperMenu>
+          {isSaveAs && (
+            <MenuItem
+              onClick={() => {
+                setSetting('save');
+                dialogState.open();
+              }}>
+              {t('saveToMemory')}
+            </MenuItem>
+          )}
+          {onDelete && (
+            <MenuItem sx={{ color: '#E11D48', fontSize: 13 }} onClick={onDelete}>
+              {t('delete')}
+            </MenuItem>
+          )}
+        </PopperMenu>
+      )}
 
       <Dialog
         disableEnforceFocus
@@ -309,5 +320,50 @@ function SettingDialogTitle({ output }: { output: OutputVariableYjs }) {
     <span>
       {t('output')} - {i18nKey ? t(i18nKey) : output.name || t('unnamed')}
     </span>
+  );
+}
+
+export function SettingActionDialogProvider({
+  depth,
+  output,
+  variable,
+  projectId,
+  gitRef,
+  assistant,
+  disabled,
+  onRemove,
+  children,
+}: {
+  depth: number;
+  output: OutputVariableYjs;
+  variable?: VariableYjs;
+  projectId: string;
+  gitRef: string;
+  assistant: AssistantYjs;
+  disabled?: boolean;
+  onRemove?: () => void;
+  children?: any;
+}) {
+  const runtimeVariable = getRuntimeOutputVariable(output);
+
+  const { getVariables } = useProjectStore(projectId, gitRef);
+  const variableYjs = getVariables();
+  const variables = (variableYjs?.variables || []).filter((x) => x.type?.type === (output.type || 'string'));
+
+  return (
+    <PopperButton
+      depth={depth}
+      projectId={projectId}
+      gitRef={gitRef}
+      assistant={assistant}
+      isSaveAs={Boolean(depth === 0 && !runtimeVariable && output.from?.type !== 'input')}
+      runtimeVariable={Boolean(runtimeVariable)}
+      variables={variables}
+      variable={variable}
+      output={output}
+      onDelete={onRemove}
+      disabled={Boolean(disabled)}>
+      {children}
+    </PopperButton>
   );
 }
