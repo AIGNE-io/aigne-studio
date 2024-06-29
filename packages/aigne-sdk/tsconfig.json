@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": "lib",
+    "paths": {
+      // For local dev
+      // "@blocklet/pages-kit/*": ["../../../pages-kit/packages/pages-kit/src/*"],
+      "@blocklet/ai-runtime/*": ["../../packages/ai-runtime/src/*"]
+    }
+  }
+}

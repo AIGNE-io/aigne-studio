@@ -26,7 +26,6 @@ const MarkdownViewer = styled(Box)`
     word-break: break-word;
     margin: 0;
     padding: ${({ theme }) => theme.spacing(1)} 0px;
-    white-space: pre-wrap;
   }
 
   ul,

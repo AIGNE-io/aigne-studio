@@ -1,10 +1,10 @@
 import ApplicationHeader from '@app/components/application/ApplicationHeader';
 import ApplicationListView from '@app/components/application/ApplicationListView';
-import ApplicationView from '@app/components/application/ApplicationView';
 import { useIsAdmin } from '@app/contexts/session';
 import { useResourceBlockletState } from '@app/contexts/use-resource-blocklet-state';
 import Result from '@arcblock/ux/lib/Result';
 import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
+import AgentView from '@blocklet/aigne-sdk/components/AgentView';
 import { AddComponent } from '@blocklet/ui-react';
 import { LoadingButton } from '@mui/lab';
 
@@ -45,7 +45,7 @@ export default function HomePage() {
           sx={{ bgcolor: 'transparent', my: 20 }}
         />
       ) : app ? (
-        <ApplicationView application={app} />
+        <AgentView blockletDid={app.blockletDid} aid={app.aid} />
       ) : (
         <ApplicationListView applications={applications} />
       )}

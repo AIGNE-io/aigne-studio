@@ -59,13 +59,13 @@ router.get('/:aid', async (req, res) => {
 
   const { working, blockletDid } = await getAgentQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
-  const { projectId, projectRef, assistantId } = parseIdentity(aid, { rejectWhenError: true });
+  const { projectId, projectRef, agentId } = parseIdentity(aid, { rejectWhenError: true });
 
   if (blockletDid) {
     const assistantResult = await getAssistantFromResourceBlocklet({
       blockletDid,
       projectId,
-      assistantId,
+      agentId,
       type: ['application', 'tool'],
     });
 
@@ -85,7 +85,7 @@ router.get('/:aid', async (req, res) => {
   const assistant = await getAssistantFromRepository({
     repository,
     ref: projectRef,
-    assistantId,
+    agentId,
     working,
     rejectOnEmpty: true,
   });

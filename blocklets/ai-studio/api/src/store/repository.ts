@@ -458,49 +458,49 @@ export async function getAssistantFromRepository({
   repository,
   ref,
   working,
-  assistantId,
+  agentId,
   rejectOnEmpty,
 }: {
   repository: Repository<any>;
   ref: string;
   working?: boolean;
-  assistantId: string;
+  agentId: string;
   rejectOnEmpty: true | Error;
 }): Promise<Assistant>;
 export async function getAssistantFromRepository({
   repository,
   ref,
   working,
-  assistantId,
+  agentId,
   rejectOnEmpty,
 }: {
   repository: Repository<any>;
   ref: string;
   working?: boolean;
-  assistantId: string;
+  agentId: string;
   rejectOnEmpty?: false;
 }): Promise<Assistant | undefined>;
 export async function getAssistantFromRepository({
   repository,
   ref,
   working,
-  assistantId,
+  agentId,
   rejectOnEmpty,
 }: {
   repository: Repository<any>;
   ref: string;
   working?: boolean;
-  assistantId: string;
+  agentId: string;
   rejectOnEmpty?: boolean | Error;
 }): Promise<Assistant | undefined> {
   let file: Assistant;
 
   if (working) {
     const working = await repository.working({ ref });
-    const f = working.syncedStore.files[assistantId];
+    const f = working.syncedStore.files[agentId];
     file = f && fileFromYjs(f);
   } else {
-    const p = (await repository.listFiles({ ref })).find((i) => i.endsWith(`${assistantId}.yaml`));
+    const p = (await repository.listFiles({ ref })).find((i) => i.endsWith(`${agentId}.yaml`));
     file = p && parse(Buffer.from((await repository.readBlob({ ref, filepath: p })).blob).toString());
   }
 
@@ -508,7 +508,7 @@ export async function getAssistantFromRepository({
     if (rejectOnEmpty) {
       throw typeof rejectOnEmpty !== 'boolean'
         ? rejectOnEmpty
-        : new Error(`no such assistant ${JSON.stringify({ ref, assistantId, working })}`);
+        : new Error(`no such assistant ${JSON.stringify({ ref, agentId, working })}`);
     }
   }
 
@@ -587,5 +587,5 @@ export async function getEntryFromRepository({
   const entry = config?.entry;
   if (!entry) return undefined;
 
-  return getAssistantFromRepository({ repository, ref, working, assistantId: entry });
+  return getAssistantFromRepository({ repository, ref, working, agentId: entry });
 }

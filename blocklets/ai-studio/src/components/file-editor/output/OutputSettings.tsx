@@ -14,6 +14,7 @@ import {
   Box,
   BoxProps,
   Button,
+  Chip,
   Stack,
   Switch,
   Table,
@@ -31,7 +32,7 @@ import { nanoid } from 'nanoid';
 import React, { ComponentType, ReactNode, useEffect, useMemo } from 'react';
 
 import AddOutputVariableButton from './AddOutputVariableButton';
-import OutputActionsCell, { SettingProvider } from './OutputActionsCell';
+import OutputActionsCell, { SettingActionDialogProvider } from './OutputActionsCell';
 import OutputDescriptionCell from './OutputDescriptionCell';
 import OutputFormatCell from './OutputFormatCell';
 import OutputNameCell from './OutputNameCell';
@@ -93,7 +94,7 @@ export default function OutputSettings({
         </Box>
       </Stack>
 
-      <Box sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1 }}>
+      <Box sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1, overflow: 'auto' }}>
         <Box
           sx={{
             whiteSpace: 'nowrap',
@@ -148,26 +149,20 @@ export default function OutputSettings({
                   <VariableRow
                     key={item.id}
                     rowRef={(ref) => params.drop(params.preview(ref))}
-                    firstColumnChildren={
+                    actionColumnChildren={
                       <Stack
+                        direction="row"
                         className="hover-visible"
                         sx={{
-                          border: '1px solid #E5E7EB',
-                          bgcolor: '#fff',
-                          borderRadius: 1,
                           p: 0.5,
                           gap: 0.25,
                           cursor: 'pointer',
                           button: {
-                            p: 0,
+                            p: 0.5,
                             minWidth: 0,
                             minHeight: 0,
                           },
                           display: 'none',
-                          position: 'absolute',
-                          left: '-24px',
-                          top: '50%',
-                          transform: 'translateY(-50%)',
                         }}>
                         <Tooltip title={t('dragSort')} disableInteractive placement="top">
                           <Button ref={params.drag}>
@@ -250,7 +245,7 @@ export default function OutputSettings({
 }
 
 function VariableRow({
-  firstColumnChildren,
+  actionColumnChildren,
   rowRef,
   selectAgentOutputVariables,
   parent,
@@ -263,7 +258,7 @@ function VariableRow({
   disabled,
   ...props
 }: {
-  firstColumnChildren?: ReactNode;
+  actionColumnChildren?: ReactNode;
   rowRef?: React.RefCallback<HTMLTableRowElement>;
   selectAgentOutputVariables?: AssistantYjs['outputVariables'];
   parent?: OutputVariableYjs;
@@ -317,78 +312,90 @@ function VariableRow({
 
   return (
     <>
-      <Tooltip title={error} placement="top-start">
-        <Box
-          ref={rowRef}
-          {...props}
-          component={TableRow}
-          key={variable.id}
-          sx={{
-            backgroundColor,
-            '*': {
-              color: variable.hidden ? 'text.disabled' : undefined,
-            },
-            ...props.sx,
-          }}>
-          <Box component={TableCell}>
-            {firstColumnChildren}
-
-            <Box sx={{ ml: depth === 0 ? depth : depth + 2 }}>
-              <OutputNameCell
-                depth={depth}
+      <SettingActionDialogProvider
+        depth={depth}
+        disabled={disabled || variable.hidden}
+        onRemove={onRemove}
+        output={variable}
+        variable={datastoreVariable}
+        projectId={projectId}
+        gitRef={gitRef}
+        assistant={value}>
+        <Tooltip title={error} placement="top-start">
+          <Box
+            ref={rowRef}
+            {...props}
+            component={TableRow}
+            key={variable.id}
+            sx={{
+              backgroundColor,
+              '*': {
+                color: variable.hidden ? 'text.disabled' : undefined,
+              },
+              cursor: variable.hidden ? 'not-allowed' : 'pointer',
+              ...props.sx,
+            }}>
+            <Box component={TableCell}>
+              <Box sx={{ ml: depth === 0 ? depth : depth + 2 }}>
+                <OutputNameCell
+                  depth={depth}
+                  output={variable}
+                  TextFieldProps={{
+                    disabled: Boolean(disabled) || parent?.type === 'array' || Boolean(variable.hidden),
+                  }}
+                />
+              </Box>
+            </Box>
+            <Box component={TableCell}>
+              <OutputDescriptionCell
+                assistant={value}
                 output={variable}
-                TextFieldProps={{ disabled: Boolean(disabled) || parent?.type === 'array' || Boolean(variable.hidden) }}
+                TextFieldProps={{ disabled: Boolean(disabled) || Boolean(variable.hidden) }}
               />
             </Box>
-          </Box>
-          <Box component={TableCell}>
-            <OutputDescriptionCell
-              assistant={value}
-              output={variable}
-              TextFieldProps={{ disabled: Boolean(disabled) || Boolean(variable.hidden) }}
-            />
-          </Box>
-          <Box component={TableCell}>
-            <OutputFormatCell
-              assistant={value}
-              output={variable}
-              variable={datastoreVariable}
-              TextFieldProps={{ disabled: Boolean(disabled) || Boolean(variable.hidden) }}
-            />
-          </Box>
-          <Box component={TableCell}>
-            {!variable.hidden && !runtimeVariable && variable.from?.type !== 'input' && (
-              <Switch
-                size="small"
-                disabled={Boolean(disabled)}
-                checked={variable.required || false}
-                onChange={(_, checked) => (variable.required = checked)}
-              />
-            )}
-          </Box>
-          <Box component={TableCell}>
-            {variable.appearance && (
-              <SettingProvider output={variable}>
-                <Tag className="ellipsis">{variable.appearance.componentName}</Tag>
-              </SettingProvider>
-            )}
-          </Box>
-          <Box component={TableCell} align="right">
-            {!variable.hidden && (
-              <OutputActionsCell
-                depth={depth}
-                disabled={disabled}
-                onRemove={onRemove}
+            <Box component={TableCell}>
+              <OutputFormatCell
+                assistant={value}
                 output={variable}
                 variable={datastoreVariable}
-                projectId={projectId}
-                gitRef={gitRef}
-                assistant={value}
+                TextFieldProps={{ disabled: Boolean(disabled) || Boolean(variable.hidden) }}
               />
-            )}
+            </Box>
+            <Box component={TableCell}>
+              {!variable.hidden && !runtimeVariable && variable.from?.type !== 'input' && (
+                <Switch
+                  size="small"
+                  disabled={Boolean(disabled)}
+                  checked={variable.required || false}
+                  onChange={(_, checked) => (variable.required = checked)}
+                  onClick={(e) => e.stopPropagation()}
+                />
+              )}
+            </Box>
+            <Box component={TableCell}>
+              {variable.appearance && (
+                <Chip className="ellipsis" label={variable.appearance.componentName} size="small" />
+              )}
+            </Box>
+            <Box component={TableCell} align="right" width={100} minWidth={100}>
+              <Box display="flex" justifyContent="flex-end" gap={0.5} onClick={(e) => e.stopPropagation()}>
+                {actionColumnChildren}
+
+                <OutputActionsCell
+                  depth={depth}
+                  disabled={disabled || variable.hidden}
+                  onRemove={onRemove}
+                  output={variable}
+                  variable={datastoreVariable}
+                  projectId={projectId}
+                  gitRef={gitRef}
+                  assistant={value}
+                />
+              </Box>
+            </Box>
           </Box>
-        </Box>
-      </Tooltip>
+        </Tooltip>
+      </SettingActionDialogProvider>
 
       {!runtimeVariable &&
         mergeVariable.type === 'object' &&

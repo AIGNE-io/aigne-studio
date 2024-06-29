@@ -41,6 +41,7 @@ export default function OutputNameCell({
           {...TextFieldProps}
           value={output.name || ''}
           onChange={(e) => (output.name = e.target.value)}
+          onClick={(e) => e.stopPropagation()}
         />
       )}
     </Stack>
