@@ -103,6 +103,7 @@ function AgentParametersForm({ assistant }: { assistant: AssistantYjs }) {
 
   const agent = useAgent({
     type: 'llm-adapter',
+    blockletDid: assistant.executor.agent.blockletDid,
     projectId: assistant.executor.agent.projectId,
     agentId: assistant.executor.agent.id,
   });

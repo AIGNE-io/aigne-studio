@@ -1,3 +1,7 @@
+## 0.3.12 (2024-6-29)
+
+- fix: adapter settings not displaying
+
 ## 0.3.11 (2024-6-27)
 
 - fix: export assets and use relative urls for assets
