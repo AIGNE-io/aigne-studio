@@ -1,18 +1,13 @@
-## 0.3.12 (2024-6-28)
+## 0.3.13 (2024-6-29)
 
-- chore: code review
-- chore: code review
-- fix: only allow publishing of owned knowledge & relative asset urls (#1178)
-- chore: merge code
-- update readme
-- fix: 格式化输出日志
-- fix: 格式化输出日志
-- fix: 格式化输出日志
-- chore: bump version
-- chore: bump version
-- fix: disabled output
-- fix: when setting the project avatar, only png can be uploaded
-- fix: typing { evokes variables without requiring a space before {
+- fix: only png files are allowed for the project icon
+- fix: typing `{` evokes variables without requiring a space before `{`
+- chore: display appearance component in the outputs table
+- chore: show unauthorized permission error dialog
+
+## 0.3.12 (2024-6-29)
+
+- fix: adapter settings not displaying
 
 ## 0.3.11 (2024-6-27)
 
