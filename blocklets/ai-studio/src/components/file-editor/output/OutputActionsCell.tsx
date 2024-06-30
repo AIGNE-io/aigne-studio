@@ -248,6 +248,10 @@ function PopperButton({
             children: <Box component={Icon} icon={DotsIcon} sx={{ color: '#3B82F6' }} />,
           }}
           PopperProps={{ placement: 'bottom-end' }}>
+          <MenuItem onClick={() => (output.hidden = !output.hidden)}>
+            {output.hidden ? t('activeOutputTip') : t('hideOutputTip')}
+          </MenuItem>
+
           {depth === 0 && (
             <MenuItem
               onClick={() => {
@@ -267,6 +271,7 @@ function PopperButton({
               {t('saveToMemory')}
             </MenuItem>
           )}
+
           {onDelete && (
             <MenuItem sx={{ color: '#E11D48', fontSize: 13 }} onClick={onDelete}>
               {t('delete')}

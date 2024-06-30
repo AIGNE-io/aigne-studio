@@ -741,6 +741,6 @@ export default flat({
   docLink: 'Document link',
   inputParameterLinkPlaceholder: 'Link to the document that describes this input',
   hideOutputSetting: 'Hide current output setting',
-  activeOutputTip: 'Active this output',
-  hideOutputTip: 'Hide this output',
+  activeOutputTip: 'Active output',
+  hideOutputTip: 'Hide output',
 });

@@ -149,39 +149,20 @@ export default function OutputSettings({
                   <VariableRow
                     key={item.id}
                     rowRef={(ref) => params.drop(params.preview(ref))}
-                    actionColumnChildren={
+                    firstColumnChildren={
                       <Stack
-                        direction="row"
                         className="hover-visible"
+                        ref={params.drag}
                         sx={{
-                          p: 0.5,
-                          gap: 0.25,
-                          cursor: 'pointer',
-                          button: {
-                            p: 0.5,
-                            minWidth: 0,
-                            minHeight: 0,
-                          },
                           display: 'none',
+                          p: 0.5,
+                          cursor: 'move',
+                          position: 'absolute',
+                          left: -6,
+                          top: '50%',
+                          transform: 'translateY(-50%)',
                         }}>
-                        <Tooltip title={t('dragSort')} disableInteractive placement="top">
-                          <Button ref={params.drag}>
-                            <Box component={Icon} icon={GripVertical} sx={{ color: 'grey.500' }} />
-                          </Button>
-                        </Tooltip>
-
-                        <Tooltip
-                          title={item.hidden ? t('activeOutputTip') : t('hideOutputTip')}
-                          disableInteractive
-                          placement="top">
-                          <Button onClick={() => (item.hidden = !item.hidden)}>
-                            {item.hidden ? (
-                              <Box component={Icon} icon={EyeOffIcon} sx={{ color: 'grey.500' }} />
-                            ) : (
-                              <Box component={Icon} icon={EyeIcon} sx={{ color: 'grey.500' }} />
-                            )}
-                          </Button>
-                        </Tooltip>
+                        <Box component={Icon} icon={GripVertical} sx={{ color: '#9CA3AF', fontSize: 14 }} />
                       </Stack>
                     }
                     sx={{
@@ -245,7 +226,7 @@ export default function OutputSettings({
 }
 
 function VariableRow({
-  actionColumnChildren,
+  firstColumnChildren,
   rowRef,
   selectAgentOutputVariables,
   parent,
@@ -258,7 +239,7 @@ function VariableRow({
   disabled,
   ...props
 }: {
-  actionColumnChildren?: ReactNode;
+  firstColumnChildren?: ReactNode;
   rowRef?: React.RefCallback<HTMLTableRowElement>;
   selectAgentOutputVariables?: AssistantYjs['outputVariables'];
   parent?: OutputVariableYjs;
@@ -336,6 +317,8 @@ function VariableRow({
               ...props.sx,
             }}>
             <Box component={TableCell}>
+              {firstColumnChildren}
+
               <Box sx={{ ml: depth === 0 ? depth : depth + 2 }}>
                 <OutputNameCell
                   depth={depth}
@@ -377,21 +360,17 @@ function VariableRow({
                 <Chip className="ellipsis" label={variable.appearance.componentName} size="small" />
               )}
             </Box>
-            <Box component={TableCell} align="right" width={100} minWidth={100}>
-              <Box display="flex" justifyContent="flex-end" gap={0.5} onClick={(e) => e.stopPropagation()}>
-                {actionColumnChildren}
-
-                <OutputActionsCell
-                  depth={depth}
-                  disabled={disabled || variable.hidden}
-                  onRemove={onRemove}
-                  output={variable}
-                  variable={datastoreVariable}
-                  projectId={projectId}
-                  gitRef={gitRef}
-                  assistant={value}
-                />
-              </Box>
+            <Box component={TableCell} align="right" onClick={(e) => e.stopPropagation()}>
+              <OutputActionsCell
+                depth={depth}
+                disabled={disabled}
+                onRemove={onRemove}
+                output={variable}
+                variable={datastoreVariable}
+                projectId={projectId}
+                gitRef={gitRef}
+                assistant={value}
+              />
             </Box>
           </Box>
         </Tooltip>
