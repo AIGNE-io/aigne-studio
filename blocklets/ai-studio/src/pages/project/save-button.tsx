@@ -30,7 +30,7 @@ import { useKeyPress } from 'ahooks';
 import gitUrlParse from 'git-url-parse';
 import { PopupState, bindDialog, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Controller, FormProvider, useForm, useFormContext } from 'react-hook-form';
+import { Controller, FormProvider, UseFormReturn, useForm, useFormContext } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { joinURL } from 'ufo';
 

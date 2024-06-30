@@ -7,13 +7,10 @@ import { outputVariablesFromOpenApi } from '@blocklet/ai-runtime/types/runtime/s
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { Icon } from '@iconify-icon/react';
-import EyeIcon from '@iconify-icons/tabler/eye';
-import EyeOffIcon from '@iconify-icons/tabler/eye-off';
 import GripVertical from '@iconify-icons/tabler/grip-vertical';
 import {
   Box,
   BoxProps,
-  Button,
   Chip,
   Stack,
   Switch,
@@ -748,25 +745,3 @@ const useCheckConflictAssistantOutputAndSelectAgents = ({
 
   return result;
 };
-
-function Tag({ children, ...rest }: { children: any; [key: string]: any }) {
-  return (
-    <Box
-      {...rest}
-      sx={{
-        borderRadius: '20px',
-        fontWeight: 500,
-        background: 'rgba(139,139,149,0.15)',
-        color: 'rgba(75,74,88,1)',
-        padding: '2px 8px',
-        fontSize: '12px',
-        height: '20px',
-        lineHeight: '16px',
-        cursor: 'pointer',
-        maxWidth: 150,
-        width: 'fit-content',
-      }}>
-      {children}
-    </Box>
-  );
-}
