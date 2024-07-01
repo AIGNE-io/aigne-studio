@@ -1,3 +1,8 @@
+## 0.3.13 (2024-7-1)
+
+- fix: knowledge not found when previewing other user's agents
+- fix: error when search knowledge in the resource blocklet
+
 ## 0.3.12 (2024-6-29)
 
 - fix: adapter settings not displaying
