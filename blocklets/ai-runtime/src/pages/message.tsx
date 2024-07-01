@@ -85,7 +85,7 @@ export default function MessagePage() {
                     background: agent?.project?.appearance?.primaryColor || '#030712',
                   },
                 }}>
-                {t('chatWithBot')}
+                {`${t('openTheBot')} ${agent?.project.name}`}
               </Button>
             </Box>
           </Box>
