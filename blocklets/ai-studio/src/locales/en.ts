@@ -306,6 +306,10 @@ export default flat({
   viewData: 'View data on DID Spaces',
   mergeConflict: 'Merge Conflict',
   mergeConflictTip: 'The remote data has been changed and cannot be automatically merged!',
+  remoteGitRepoUnauthorized: 'No operation permission',
+  remoteGitRepoUnauthorizedTip:
+    'We are aware that you are experiencing authorization issues when trying to access our services. Here are some possible causes and solutions:\n\n• Invalid access token.\n• Token has expired.\n• Permission is insufficient.\n\nPlease ensure your access token is valid, or reauthorize to obtain a new token.',
+  remoteGitRepoUnauthorizedToast: 'No operation permission, please check the access token',
   useRemote: 'Use Remote',
   useRemoteTip: 'Use <b>remote</b> data to overwrite <b>local</b> data',
   useLocal: 'Use Locale',
@@ -737,6 +741,6 @@ export default flat({
   docLink: 'Document link',
   inputParameterLinkPlaceholder: 'Link to the document that describes this input',
   hideOutputSetting: 'Hide current output setting',
-  activeOutputTip: 'Active this output',
-  hideOutputTip: 'Hide this output',
+  activeOutputTip: 'Active output',
+  hideOutputTip: 'Hide output',
 });

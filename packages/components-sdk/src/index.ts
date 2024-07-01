@@ -28,9 +28,13 @@ export const getComponentsRouter = () => {
   const router = Router();
 
   router.get(PROTOCOL_API, async (_req, res) => {
-    const filePath = path.join(process.env.BLOCKLET_APP_DIR!, PROTOCOL);
-    const json: { name: string; url: string }[] = parse((await readFile(filePath)).toString());
-    res.json(json || []);
+    try {
+      const filePath = path.join(process.env.BLOCKLET_APP_DIR!, PROTOCOL);
+      const json: { name: string; url: string }[] = parse((await readFile(filePath)).toString());
+      res.json(json || []);
+    } catch (error) {
+      res.json([]);
+    }
   });
 
   router.get(REMOTE_REACT_COMPONENTS, async (_req, res) => {
