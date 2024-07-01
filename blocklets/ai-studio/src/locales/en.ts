@@ -1,3 +1,4 @@
+import { call } from '@blocklet/sdk';
 import flat from 'flat';
 
 export default flat({
@@ -739,4 +740,5 @@ export default flat({
   hideOutputSetting: 'Hide current output setting',
   activeOutputTip: 'Active this output',
   hideOutputTip: 'Hide this output',
+  callAgent: 'Call Agent',
 });

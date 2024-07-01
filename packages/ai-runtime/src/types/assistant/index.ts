@@ -21,7 +21,14 @@ export type ConfigFile = {
 
 export type FileType = Assistant | { $base64: string } | Variables | ConfigFile;
 
-export type Assistant = Agent | PromptAssistant | ImageAssistant | ApiAssistant | FunctionAssistant | RouterAssistant;
+export type Assistant =
+  | Agent
+  | PromptAssistant
+  | ImageAssistant
+  | ApiAssistant
+  | FunctionAssistant
+  | RouterAssistant
+  | CallAssistant;
 
 export type Role = 'system' | 'user' | 'assistant';
 
@@ -195,6 +202,10 @@ export interface RouterAssistant extends AssistantBase {
   model?: string;
 }
 
+export interface CallAssistant extends AssistantBase {
+  type: 'callAgent';
+  call?: Tool;
+}
 export interface AgentExecutor {
   agent?: {
     blockletDid?: string;

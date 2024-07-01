@@ -1,3 +1,4 @@
+import { call } from '@blocklet/sdk';
 import flat from 'flat';
 
 export default flat({
@@ -733,4 +734,5 @@ export default flat({
   hideOutputSetting: '隐藏当前输出设置',
   activeOutputTip: '激活该条输出',
   hideOutputTip: '隐藏该条输出',
+  callAgent: '调用 Agent',
 });
