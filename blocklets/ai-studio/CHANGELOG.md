@@ -1,3 +1,9 @@
+## 0.3.15 (2024-7-2)
+
+- chore: disable submit for the invalid inputs
+- chore: support multiline text for question input
+- fix: correct og meta for agent previewer
+
 ## 0.3.14 (2024-7-1)
 
 - fix: only png files are allowed for the project icon
