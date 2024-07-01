@@ -11,6 +11,7 @@ import { Box, Button, CircularProgress, Theme, useMediaQuery } from '@mui/materi
 import { useRequest } from 'ahooks';
 import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
+import { joinURL } from 'ufo';
 
 export default function MessagePage() {
   const { aid, blockletDid, id } = useParams();
@@ -36,7 +37,8 @@ export default function MessagePage() {
   }, [agent]);
 
   const handleClick = () => {
-    window.location.href = `/preview/${aid}`;
+    const idx = window.location.href.indexOf('/message/');
+    window.open(joinURL(window.location.href.slice(0, idx), '/preview', `/${aid}`), '_blank');
   };
 
   return (
