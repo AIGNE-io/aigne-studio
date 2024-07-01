@@ -47,8 +47,9 @@ export default class VectorStore extends FaissStore {
           } catch (error) {
             logger.error('FaissStore load from path error', { error });
           }
+        } else {
+          await mkdir(storePath, { recursive: true });
         }
-        await mkdir(storePath, { recursive: true });
         faiss ??= await FaissStore.fromDocuments([], embeddings);
 
         return new VectorStore(storePath, embeddings, faiss.args);

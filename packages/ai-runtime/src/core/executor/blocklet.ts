@@ -286,7 +286,6 @@ export async function runKnowledgeTool({
     path: `/api/datasets/${tool.id}`,
     params: { blockletDid },
     method: 'GET',
-    headers: getUserHeader(user),
   });
 
   if (!knowledge) throw new Error(`No such knowledge ${tool.id}`);
