@@ -242,22 +242,21 @@ router.post('/call', user(), auth(), compression(), async (req, res) => {
       for await (const chunk of llmResponseStream as ReadableStream<ChatCompletionResponse>) {
         if (isChatCompletionChunk(chunk)) {
           text += chunk.delta.content || '';
-
           const { toolCalls } = chunk.delta;
 
-          if (toolCalls) {
+          toolCalls?.forEach((item) => {
             if (!calls) {
-              calls = toolCalls;
-            } else {
-              toolCalls.forEach((item, index) => {
-                const call = calls?.[index];
-                if (call?.function) {
-                  call.function.name += item.function?.name || '';
-                  call.function.arguments += item.function?.arguments || '';
-                }
-              });
+              calls = [];
             }
-          }
+            // 判断item.id 是否在 calls 中的元素 id 中
+            const targetCall = calls.find((call) => call.id === item.id);
+            if (!targetCall) {
+              calls.push(item);
+            } else if (targetCall?.function) {
+              targetCall.function.name += item.function?.name || '';
+              targetCall.function.arguments = (targetCall.function.arguments || '') + (item.function?.arguments || '');
+            }
+          });
 
           if (stream) {
             emit({
