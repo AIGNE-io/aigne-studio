@@ -370,7 +370,7 @@ export default function KnowledgeDocuments() {
 
         <Box display="flex" alignItems="center" gap={2}>
           <TextField
-            sx={{ width: 200 }}
+            sx={{ maxWidth: 200, flex: 1 }}
             placeholder={t('alert.search')}
             hiddenLabel
             value={search}
@@ -382,7 +382,6 @@ export default function KnowledgeDocuments() {
 
           {state?.dataset?.blockletDid ? null : (
             <Button
-              sx={{ width: 100 }}
               variant="contained"
               size="small"
               startIcon={<Icon icon={PlusIcon} />}

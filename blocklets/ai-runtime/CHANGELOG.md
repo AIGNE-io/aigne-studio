@@ -1,9 +1,14 @@
-## 0.3.13 (2024-6-29)
+## 0.3.14 (2024-7-1)
 
 - fix: only png files are allowed for the project icon
 - fix: typing `{` evokes variables without requiring a space before `{`
 - chore: display appearance component in the outputs table
 - chore: show unauthorized permission error dialog
+
+## 0.3.13 (2024-7-1)
+
+- fix: knowledge not found when previewing other user's agents
+- fix: error when search knowledge in the resource blocklet
 
 ## 0.3.12 (2024-6-29)
 
