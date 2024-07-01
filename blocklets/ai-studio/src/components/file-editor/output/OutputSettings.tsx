@@ -7,13 +7,11 @@ import { outputVariablesFromOpenApi } from '@blocklet/ai-runtime/types/runtime/s
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { Icon } from '@iconify-icon/react';
-import EyeIcon from '@iconify-icons/tabler/eye';
-import EyeOffIcon from '@iconify-icons/tabler/eye-off';
 import GripVertical from '@iconify-icons/tabler/grip-vertical';
 import {
   Box,
   BoxProps,
-  Button,
+  Chip,
   Stack,
   Switch,
   Table,
@@ -31,7 +29,7 @@ import { nanoid } from 'nanoid';
 import React, { ComponentType, ReactNode, useEffect, useMemo } from 'react';
 
 import AddOutputVariableButton from './AddOutputVariableButton';
-import OutputActionsCell from './OutputActionsCell';
+import OutputActionsCell, { SettingActionDialogProvider } from './OutputActionsCell';
 import OutputDescriptionCell from './OutputDescriptionCell';
 import OutputFormatCell from './OutputFormatCell';
 import OutputNameCell from './OutputNameCell';
@@ -93,7 +91,7 @@ export default function OutputSettings({
         </Box>
       </Stack>
 
-      <Box sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1 }}>
+      <Box sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1, overflow: 'auto' }}>
         <Box
           sx={{
             whiteSpace: 'nowrap',
@@ -132,6 +130,9 @@ export default function OutputSettings({
                 <Box component={TableCell} width={74}>
                   {t('required')}
                 </Box>
+                <Box component={TableCell} width={74}>
+                  {t('appearance')}
+                </Box>
                 <Box component={TableCell} align="right" />
               </TableRow>
             </TableHead>
@@ -148,42 +149,17 @@ export default function OutputSettings({
                     firstColumnChildren={
                       <Stack
                         className="hover-visible"
+                        ref={params.drag}
                         sx={{
-                          border: '1px solid #E5E7EB',
-                          bgcolor: '#fff',
-                          borderRadius: 1,
-                          p: 0.5,
-                          gap: 0.25,
-                          cursor: 'pointer',
-                          button: {
-                            p: 0,
-                            minWidth: 0,
-                            minHeight: 0,
-                          },
                           display: 'none',
+                          p: 0.5,
+                          cursor: 'move',
                           position: 'absolute',
-                          left: '-24px',
+                          left: -6,
                           top: '50%',
                           transform: 'translateY(-50%)',
                         }}>
-                        <Tooltip title={t('dragSort')} disableInteractive placement="top">
-                          <Button ref={params.drag}>
-                            <Box component={Icon} icon={GripVertical} sx={{ color: 'grey.500' }} />
-                          </Button>
-                        </Tooltip>
-
-                        <Tooltip
-                          title={item.hidden ? t('activeOutputTip') : t('hideOutputTip')}
-                          disableInteractive
-                          placement="top">
-                          <Button onClick={() => (item.hidden = !item.hidden)}>
-                            {item.hidden ? (
-                              <Box component={Icon} icon={EyeOffIcon} sx={{ color: 'grey.500' }} />
-                            ) : (
-                              <Box component={Icon} icon={EyeIcon} sx={{ color: 'grey.500' }} />
-                            )}
-                          </Button>
-                        </Tooltip>
+                        <Box component={Icon} icon={GripVertical} sx={{ color: '#9CA3AF', fontSize: 14 }} />
                       </Stack>
                     }
                     sx={{
@@ -314,54 +290,88 @@ function VariableRow({
 
   return (
     <>
-      <Tooltip title={error} placement="top-start">
-        <Box ref={rowRef} {...props} component={TableRow} key={variable.id} sx={{ backgroundColor, ...props.sx }}>
-          <Box component={TableCell}>
-            {firstColumnChildren}
+      <SettingActionDialogProvider
+        depth={depth}
+        disabled={disabled || variable.hidden}
+        onRemove={onRemove}
+        output={variable}
+        variable={datastoreVariable}
+        projectId={projectId}
+        gitRef={gitRef}
+        assistant={value}>
+        <Tooltip title={error} placement="top-start">
+          <Box
+            ref={rowRef}
+            {...props}
+            component={TableRow}
+            key={variable.id}
+            sx={{
+              backgroundColor,
+              '*': {
+                color: variable.hidden ? 'text.disabled' : undefined,
+              },
+              cursor: variable.hidden ? 'not-allowed' : 'pointer',
+              ...props.sx,
+            }}>
+            <Box component={TableCell}>
+              {firstColumnChildren}
 
-            <Box sx={{ ml: depth === 0 ? depth : depth + 2 }}>
-              <OutputNameCell
-                depth={depth}
+              <Box sx={{ ml: depth === 0 ? depth : depth + 2 }}>
+                <OutputNameCell
+                  depth={depth}
+                  output={variable}
+                  TextFieldProps={{
+                    disabled: Boolean(disabled) || parent?.type === 'array' || Boolean(variable.hidden),
+                  }}
+                />
+              </Box>
+            </Box>
+            <Box component={TableCell}>
+              <OutputDescriptionCell
+                assistant={value}
                 output={variable}
-                TextFieldProps={{ disabled: Boolean(disabled) || parent?.type === 'array' }}
+                TextFieldProps={{ disabled: Boolean(disabled) || Boolean(variable.hidden) }}
+              />
+            </Box>
+            <Box component={TableCell}>
+              <OutputFormatCell
+                assistant={value}
+                output={variable}
+                variable={datastoreVariable}
+                TextFieldProps={{ disabled: Boolean(disabled) || Boolean(variable.hidden) }}
+              />
+            </Box>
+            <Box component={TableCell}>
+              {!variable.hidden && !runtimeVariable && variable.from?.type !== 'input' && (
+                <Switch
+                  size="small"
+                  disabled={Boolean(disabled)}
+                  checked={variable.required || false}
+                  onChange={(_, checked) => (variable.required = checked)}
+                  onClick={(e) => e.stopPropagation()}
+                />
+              )}
+            </Box>
+            <Box component={TableCell}>
+              {variable.appearance && (
+                <Chip className="ellipsis" label={variable.appearance.componentName} size="small" />
+              )}
+            </Box>
+            <Box component={TableCell} align="right" onClick={(e) => e.stopPropagation()}>
+              <OutputActionsCell
+                depth={depth}
+                disabled={disabled}
+                onRemove={onRemove}
+                output={variable}
+                variable={datastoreVariable}
+                projectId={projectId}
+                gitRef={gitRef}
+                assistant={value}
               />
             </Box>
           </Box>
-          <Box component={TableCell}>
-            <OutputDescriptionCell assistant={value} output={variable} TextFieldProps={{ disabled }} />
-          </Box>
-          <Box component={TableCell}>
-            <OutputFormatCell
-              assistant={value}
-              output={variable}
-              variable={datastoreVariable}
-              TextFieldProps={{ disabled }}
-            />
-          </Box>
-          <Box component={TableCell}>
-            {!runtimeVariable && variable.from?.type !== 'input' && (
-              <Switch
-                size="small"
-                disabled={Boolean(disabled)}
-                checked={variable.required || false}
-                onChange={(_, checked) => (variable.required = checked)}
-              />
-            )}
-          </Box>
-          <Box component={TableCell} align="right">
-            <OutputActionsCell
-              depth={depth}
-              disabled={disabled}
-              onRemove={onRemove}
-              output={variable}
-              variable={datastoreVariable}
-              projectId={projectId}
-              gitRef={gitRef}
-              assistant={value}
-            />
-          </Box>
-        </Box>
-      </Tooltip>
+        </Tooltip>
+      </SettingActionDialogProvider>
 
       {!runtimeVariable &&
         mergeVariable.type === 'object' &&

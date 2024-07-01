@@ -28,7 +28,12 @@ import PromiseLoadingButton from '../../../components/promise-loading-button';
 import { getErrorMessage } from '../../../libs/api';
 import Eye from '../icons/eye';
 import EyeNo from '../icons/eye-no';
-import { isTheErrorShouldShowMergeConflict, useMergeConflictDialog } from '../save-button';
+import {
+  isTheErrorShouldShowMergeConflict,
+  isTheErrorUnauthorizedAccessToken,
+  useMergeConflictDialog,
+  useUnauthorizedDialog,
+} from '../save-button';
 import { useProjectState } from '../state';
 
 interface RemoteRepoSettingForm {
@@ -43,6 +48,7 @@ export default function RemoteRepoSetting({ projectId }: { projectId: string }) 
   const { dialog: confirmDialog, showDialog: showConfirmDialog } = useDialog();
 
   const { dialog, showMergeConflictDialog } = useMergeConflictDialog({ projectId });
+  const { dialog: unauthorizedDialog, showUnauthorizedDialog } = useUnauthorizedDialog({ projectId });
 
   const { state, addRemote, deleteProjectRemote, updateProject, sync } = useProjectState(projectId, getDefaultBranch());
 
@@ -93,6 +99,12 @@ export default function RemoteRepoSetting({ projectId }: { projectId: string }) 
         await addRemote(projectId, value);
       } catch (error) {
         form.reset(value);
+
+        if (isTheErrorUnauthorizedAccessToken(error)) {
+          Toast.warning(t('remoteGitRepoUnauthorizedToast'));
+          return;
+        }
+
         Toast.error(getErrorMessage(error));
         throw error;
       }
@@ -120,6 +132,7 @@ export default function RemoteRepoSetting({ projectId }: { projectId: string }) 
         <Stack gap={2}>
           {confirmDialog}
           {dialog}
+          {unauthorizedDialog}
           <>
             <Box>
               <Typography variant="subtitle2" mb={0.5}>
@@ -221,6 +234,7 @@ export default function RemoteRepoSetting({ projectId }: { projectId: string }) 
               />
             </Box>
           </>
+
           <Stack flexDirection="row" justifyContent="space-between" sx={{ whiteSpace: 'nowrap' }} gap={1}>
             <Stack flexDirection="row" gap={1}>
               <LoadingButton
@@ -306,6 +320,12 @@ export default function RemoteRepoSetting({ projectId }: { projectId: string }) 
                         showMergeConflictDialog();
                         return;
                       }
+
+                      if (isTheErrorUnauthorizedAccessToken(error)) {
+                        showUnauthorizedDialog();
+                        return;
+                      }
+
                       Toast.error(getErrorMessage(error));
                     }
                   }}>
