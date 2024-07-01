@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/components-sdk",
-  "version": "0.3.14",
+  "version": "0.3.15",
   "description": "The SDK for processing react component protocol",
   "publishConfig": {
     "access": "public"
