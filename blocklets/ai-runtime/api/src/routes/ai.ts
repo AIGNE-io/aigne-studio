@@ -16,6 +16,7 @@ import {
 import { defaultImageModel, getSupportedImagesModels } from '@blocklet/ai-runtime/common';
 import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { CallAI, CallAIImage, RunAssistantCallback, RuntimeExecutor, nextTaskId } from '@blocklet/ai-runtime/core';
+import { toolCallsTransform } from '@blocklet/ai-runtime/core/utils/tool-calls-transform';
 import { AssistantResponseType, RuntimeOutputVariable, isImageAssistant } from '@blocklet/ai-runtime/types';
 import { RuntimeError, RuntimeErrorType } from '@blocklet/ai-runtime/types/runtime/error';
 import { auth } from '@blocklet/sdk/lib/middlewares';
@@ -242,21 +243,7 @@ router.post('/call', user(), auth(), compression(), async (req, res) => {
       for await (const chunk of llmResponseStream as ReadableStream<ChatCompletionResponse>) {
         if (isChatCompletionChunk(chunk)) {
           text += chunk.delta.content || '';
-          const { toolCalls } = chunk.delta;
-
-          toolCalls?.forEach((item) => {
-            if (!calls) {
-              calls = [];
-            }
-            // 判断item.id 是否在 calls 中的元素 id 中
-            const targetCall = calls.find((call) => call.id === item.id);
-            if (!targetCall) {
-              calls.push(item);
-            } else if (targetCall?.function) {
-              targetCall.function.name += item.function?.name || '';
-              targetCall.function.arguments = (targetCall.function.arguments || '') + (item.function?.arguments || '');
-            }
-          });
+          calls = toolCallsTransform(calls, chunk);
 
           if (stream) {
             emit({
