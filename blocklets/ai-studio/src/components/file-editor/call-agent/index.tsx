@@ -50,7 +50,6 @@ export default function CallAgentEditor({
   const toolForm = useRef<any>(null);
   const dialogState = usePopupState({ variant: 'dialog' });
   const { addParameter } = useVariablesEditorOptions(value);
-  const { store } = useProjectStore(projectId, gitRef);
   const readOnly = useReadOnly({ ref: gitRef }) || disabled;
 
   return (
