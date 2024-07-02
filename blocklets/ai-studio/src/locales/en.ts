@@ -744,5 +744,6 @@ export default flat({
   activeOutputTip: 'Active output',
   hideOutputTip: 'Hide output',
   callAgent: 'Call Agent',
+  callMultipleAgent: 'Call Multiple Agents',
   inheritOutput: 'You can override inherited output variables by adding duplicate variables',
 });

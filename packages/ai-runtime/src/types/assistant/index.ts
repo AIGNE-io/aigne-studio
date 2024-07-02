@@ -28,7 +28,8 @@ export type Assistant =
   | ApiAssistant
   | FunctionAssistant
   | RouterAssistant
-  | CallAssistant;
+  | CallAssistant
+  | ParallelCallAssistant;
 
 export type Role = 'system' | 'user' | 'assistant';
 
@@ -206,6 +207,12 @@ export interface CallAssistant extends AssistantBase {
   type: 'callAgent';
   call?: Tool;
 }
+
+export interface ParallelCallAssistant extends AssistantBase {
+  type: 'parallelCallAgent';
+  agents?: Tool[];
+}
+
 export interface AgentExecutor {
   agent?: {
     blockletDid?: string;

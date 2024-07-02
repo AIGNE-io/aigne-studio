@@ -1,7 +1,7 @@
 import { useReadOnly } from '@app/contexts/session';
 import { PROMPTS_FOLDER_NAME, useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, CallAssistantYjs, Tool, isAssistant } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, ParallelCallAssistantYjs, Tool, isAssistant } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
 import ExternalLinkIcon from '@iconify-icons/tabler/external-link';
@@ -34,7 +34,7 @@ import { joinURL } from 'ufo';
 import PromptEditorField from '../prompt-editor-field';
 import useVariablesEditorOptions from '../use-variables-editor-options';
 
-export default function CallAgentEditor({
+export default function ParallelCallAssistantAgent({
   projectId,
   gitRef,
   value,
@@ -42,7 +42,7 @@ export default function CallAgentEditor({
 }: {
   projectId: string;
   gitRef: string;
-  value: CallAssistantYjs;
+  value: ParallelCallAssistantYjs;
   disabled?: boolean;
 }) {
   const { t } = useLocaleContext();
@@ -51,32 +51,35 @@ export default function CallAgentEditor({
   const dialogState = usePopupState({ variant: 'dialog' });
   const { addParameter } = useVariablesEditorOptions(value);
   const readOnly = useReadOnly({ ref: gitRef }) || disabled;
+  const agents = value.agents && sortBy(Object.values(value.agents), (i) => i.index);
 
   return (
     <>
       <Stack gap={1} width={1} ref={ref}>
         <Stack gap={1}>
-          {value.call ? (
-            <Box key={value.call.id} display="flex" alignItems="center" gap={0.5} width={1}>
-              <AgentItemView
-                projectId={projectId}
-                projectRef={gitRef}
-                agent={value.call}
-                assistant={value}
-                readOnly={readOnly}
-                onEdit={() => {
-                  if (readOnly) return;
-                  toolForm.current?.form.reset(cloneDeep(value.call));
-                  dialogState.open();
-                }}
-              />
-            </Box>
-          ) : null}
+          {(agents || []).map((agent) => {
+            return (
+              <Box key={agent.data.id} display="flex" alignItems="center" gap={0.5} width={1}>
+                <AgentItemView
+                  projectId={projectId}
+                  projectRef={gitRef}
+                  agent={agent.data}
+                  assistant={value}
+                  readOnly={readOnly}
+                  onEdit={() => {
+                    if (readOnly) return;
+                    toolForm.current?.form.reset(cloneDeep(agent.data));
+                    dialogState.open();
+                  }}
+                />
+              </Box>
+            );
+          })}
         </Stack>
 
         <Box display="flex" sx={{ ml: -0.5 }}>
           <Button
-            disabled={disabled || Boolean(value.call)}
+            disabled={disabled}
             startIcon={<Box component={Icon} icon={PlusIcon} sx={{ fontSize: 16 }} />}
             onClick={() => {
               toolForm.current?.form.reset();
@@ -95,8 +98,16 @@ export default function CallAgentEditor({
         DialogProps={{ ...bindDialog(dialogState) }}
         onSubmit={(tool) => {
           const doc = (getYjsValue(value) as Map<any>).doc!;
+
           doc.transact(() => {
-            value.call = tool;
+            value.agents ??= {};
+
+            const old = value.agents[tool.id];
+
+            value.agents[tool.id] = {
+              index: old?.index ?? Math.max(-1, ...Object.values(value.agents).map((i) => i.index)) + 1,
+              data: tool,
+            };
 
             // 处理：input 数据
             const parameters = tool.parameters || {};
@@ -104,6 +115,8 @@ export default function CallAgentEditor({
             if (filterNilParameters.length) {
               filterNilParameters.forEach(([key]) => addParameter(key));
             }
+
+            sortBy(Object.values(value.agents), 'index').forEach((tool, index) => (tool.index = index));
           });
 
           dialogState.close();
@@ -113,7 +126,7 @@ export default function CallAgentEditor({
   );
 }
 
-type ToolDialogForm = NonNullable<CallAssistantYjs['call']>;
+type ToolDialogForm = NonNullable<ParallelCallAssistantYjs['agents']>[number]['data'];
 export interface ToolDialogImperative {
   form: UseFormReturn<ToolDialogForm>;
 }
@@ -124,7 +137,7 @@ export const ToolDialog = forwardRef<
     gitRef: string;
     onSubmit: (value: ToolDialogForm) => any;
     DialogProps?: DialogProps;
-    assistant: CallAssistantYjs;
+    assistant: ParallelCallAssistantYjs;
   }
 >(({ assistant, projectId, gitRef, onSubmit, DialogProps }, ref) => {
   const { t } = useLocaleContext();
@@ -294,7 +307,7 @@ export function AgentItemView({
   onEdit,
   ...props
 }: {
-  assistant: CallAssistantYjs;
+  assistant: ParallelCallAssistantYjs;
   projectId: string;
   projectRef: string;
   agent: Tool;
@@ -383,7 +396,15 @@ export function AgentItemView({
               e.stopPropagation();
               const doc = (getYjsValue(assistant) as Map<any>).doc!;
               doc.transact(() => {
-                delete assistant.call;
+                const selectTool = assistant.agents?.[agent.id];
+                if (selectTool) {
+                  selectTool.data.onEnd = undefined;
+                }
+
+                if (assistant.agents) {
+                  delete assistant.agents[agent.id];
+                  sortBy(Object.values(assistant.agents), 'index').forEach((i, index) => (i.index = index));
+                }
               });
             }}>
             <Box component={Icon} icon={Trash} sx={{ fontSize: 18, color: '#E11D48' }} />

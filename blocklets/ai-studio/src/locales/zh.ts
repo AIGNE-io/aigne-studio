@@ -739,5 +739,6 @@ export default flat({
   activeOutputTip: '激活输出',
   hideOutputTip: '隐藏输出',
   callAgent: '调用 Agent',
+  callMultipleAgent: '调用多个 Agent',
   inheritOutput: '你可以添加重名变量覆盖继承后的输出变量',
 });

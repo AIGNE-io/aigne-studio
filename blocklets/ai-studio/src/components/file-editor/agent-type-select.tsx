@@ -4,6 +4,7 @@ import { defaultImageModel, defaultTextModel, defaultTextModelGPT4 } from '@bloc
 import { AssistantYjs, RuntimeOutputVariable, arrayToYjs, outputVariableToYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import APIIcon from '@iconify-icons/tabler/api';
+import BoxMultIcon from '@iconify-icons/tabler/box-multiple';
 import CodeIcon from '@iconify-icons/tabler/code';
 import BranchIcon from '@iconify-icons/tabler/git-branch';
 import PhotoIcon from '@iconify-icons/tabler/photo';
@@ -24,6 +25,7 @@ export const agentTypes = [
   { type: 'api', icon: <Icon icon={APIIcon} />, i18nKey: 'api' },
   { type: 'router', icon: <Icon icon={BranchIcon} />, i18nKey: 'router' },
   { type: 'callAgent', icon: <Icon icon={PlayIcon} />, i18nKey: 'callAgent' },
+  { type: 'parallelCallAgent', icon: <Icon icon={BoxMultIcon} />, i18nKey: 'callMultipleAgent' },
 ] as const;
 
 export const agentTypesMap = Object.fromEntries(agentTypes.map((i) => [i.type, i]));

@@ -82,6 +82,7 @@ export default function OutputSettings({
   }, [value]);
 
   const id = value.type === 'callAgent' ? value.call?.id : undefined;
+  const ids = value.type === 'parallelCallAgent' ? Object.values(value.agents || {}).map((x) => x.data.id) : [];
   const inheritedOutput = useMemo(() => {
     if (value.type === 'callAgent') {
       if (value.call) {
@@ -95,8 +96,23 @@ export default function OutputSettings({
       return [];
     }
 
+    if (value.type === 'parallelCallAgent') {
+      if (value.agents) {
+        const outputVariables = Object.values(value.agents).flatMap((x) => {
+          const agent = getFileById(x.data.id);
+          return ((agent?.outputVariables && sortBy(Object.values(agent.outputVariables), 'index')) || []).map(
+            (item) => item.data
+          );
+        });
+
+        return outputVariables;
+      }
+
+      return [];
+    }
+
     return [];
-  }, [id]);
+  }, [id, ids]);
 
   return (
     <Box sx={{ background: '#F9FAFB', py: 1.5, px: 2, pb: 2, borderRadius: 1 }}>
@@ -217,39 +233,41 @@ export default function OutputSettings({
           </Table>
         </Box>
 
-        <AddOutputVariableButton
-          allSelectAgentOutputs={cloneDeep(allSelectAgentOutputs)}
-          assistant={value}
-          onSelect={({ name, from }) => {
-            setField((vars) => {
-              const exist = name ? outputVariables?.find((i) => i.data.name === name) : undefined;
-              if (exist) {
-                delete vars[exist.data.id];
-              } else {
-                const id = nanoid();
-                vars[id] = { index: Object.values(vars).length, data: { id, name, from } };
-              }
-
-              sortBy(Object.values(vars), 'index').forEach((item, index) => (item.index = index));
-            });
-          }}
-          onSelectAll={(list) => {
-            setField((vars) => {
-              list.forEach((data) => {
-                const exist = data.name ? outputVariables?.find((i) => i.data.name === data.name) : undefined;
-                if (!exist) {
+        {value.type !== 'parallelCallAgent' && (
+          <AddOutputVariableButton
+            allSelectAgentOutputs={cloneDeep(allSelectAgentOutputs)}
+            assistant={value}
+            onSelect={({ name, from }) => {
+              setField((vars) => {
+                const exist = name ? outputVariables?.find((i) => i.data.name === name) : undefined;
+                if (exist) {
+                  delete vars[exist.data.id];
+                } else {
                   const id = nanoid();
-                  vars[id] = {
-                    index: Object.values(vars).length,
-                    data: { ...cloneDeep(data), required: undefined, id },
-                  };
+                  vars[id] = { index: Object.values(vars).length, data: { id, name, from } };
                 }
 
                 sortBy(Object.values(vars), 'index').forEach((item, index) => (item.index = index));
               });
-            });
-          }}
-        />
+            }}
+            onSelectAll={(list) => {
+              setField((vars) => {
+                list.forEach((data) => {
+                  const exist = data.name ? outputVariables?.find((i) => i.data.name === data.name) : undefined;
+                  if (!exist) {
+                    const id = nanoid();
+                    vars[id] = {
+                      index: Object.values(vars).length,
+                      data: { ...cloneDeep(data), required: undefined, id },
+                    };
+                  }
+
+                  sortBy(Object.values(vars), 'index').forEach((item, index) => (item.index = index));
+                });
+              });
+            }}
+          />
+        )}
       </Box>
       {id && <Box sx={{ color: 'warning.main', fontSize: 12 }}>{t('inheritOutput')}</Box>}
     </Box>
