@@ -40,7 +40,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase {
     { inputs, taskId, parentTaskId }: AgentExecutorOptions
   ) {
     if (!agent.prompt) {
-      throw new Error('Route Assistant Prompt is  required');
+      throw new Error('Route Assistant Prompt is required');
     }
 
     const message = await renderMessage(agent.prompt, inputs);

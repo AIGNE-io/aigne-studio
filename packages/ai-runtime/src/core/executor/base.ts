@@ -153,7 +153,7 @@ export abstract class AgentExecutorBase {
     return result;
   }
 
-  private async prepareInputs(agent: GetAgentResult, { inputs, taskId }: AgentExecutorOptions) {
+  async prepareInputs(agent: GetAgentResult, { inputs, taskId }: AgentExecutorOptions) {
     const variables: { [key: string]: any } = { ...inputs };
 
     const userId = this.context.user.did;

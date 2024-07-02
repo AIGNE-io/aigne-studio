@@ -105,23 +105,6 @@ export default function CallAgentEditor({
             if (filterNilParameters.length) {
               filterNilParameters.forEach(([key]) => addParameter(key));
             }
-
-            // 处理：output 数据
-            const f = store.files[tool.id];
-            const file = f && isAssistant(f) ? f : undefined;
-            Object.entries(cloneDeep(file?.outputVariables || {})).forEach(([key, val]) => {
-              const list = Object.entries(cloneDeep(value?.outputVariables || {}));
-              const found = list.find(([, v]) => {
-                return v?.data?.name === val?.data?.name;
-              });
-
-              if (!found) {
-                value.outputVariables ??= {};
-                value.outputVariables[key] = val;
-              }
-            });
-
-            sortBy(Object.values(value?.outputVariables || {}), 'index').forEach((tool, index) => (tool.index = index));
           });
 
           dialogState.close();
@@ -328,7 +311,7 @@ export function AgentItemView({
   const target = f && isAssistant(f) ? f : undefined;
 
   if (!target) return null;
-  const { name } = target;
+  const { name, description } = target;
 
   return (
     <Stack
@@ -364,10 +347,10 @@ export function AgentItemView({
           InputProps={{ readOnly: true }}
           sx={{
             mb: 0,
-            lineHeight: '22px',
+            lineHeight: '20px',
             fontWeight: 500,
             input: {
-              fontSize: '12px',
+              fontSize: '16px',
               color: 'primary.main',
             },
           }}
@@ -376,14 +359,14 @@ export function AgentItemView({
         <TextField
           onClick={(e) => e.stopPropagation()}
           hiddenLabel
-          placeholder={agent.functionName || t('description')}
+          placeholder={description || t('description')}
           size="small"
           variant="standard"
-          value={agent.functionName}
+          value={description}
           onChange={(e) => (agent.functionName = e.target.value)}
           sx={{
-            lineHeight: '24px',
-            input: { fontSize: '14px' },
+            lineHeight: '10px',
+            input: { fontSize: '10px', color: 'text.disabled' },
           }}
           inputProps={{ readOnly: true }}
         />

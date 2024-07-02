@@ -1,4 +1,3 @@
-import { call } from '@blocklet/sdk';
 import flat from 'flat';
 
 export default flat({
@@ -745,4 +744,5 @@ export default flat({
   activeOutputTip: 'Active output',
   hideOutputTip: 'Hide output',
   callAgent: 'Call Agent',
+  inheritOutput: 'You can override inherited output variables by adding duplicate variables',
 });

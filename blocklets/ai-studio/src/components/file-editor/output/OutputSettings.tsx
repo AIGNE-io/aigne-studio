@@ -47,6 +47,7 @@ export default function OutputSettings({
   openApis?: DatasetObject[];
 }) {
   const { t } = useLocaleContext();
+  const { getFileById } = useProjectStore(projectId, gitRef);
 
   const checkOutputVariables = useRoutesAssistantOutputs({ value, projectId, gitRef, openApis });
   const { getAllSelectCustomOutputs } = useAllSelectDecisionAgentOutputs({ value, projectId, gitRef });
@@ -79,6 +80,23 @@ export default function OutputSettings({
       }
     }
   }, [value]);
+
+  const id = value.type === 'callAgent' ? value.call?.id : undefined;
+  const inheritedOutput = useMemo(() => {
+    if (value.type === 'callAgent') {
+      if (value.call) {
+        const callAgent = getFileById(value.call.id);
+
+        return ((callAgent?.outputVariables && sortBy(Object.values(callAgent.outputVariables), 'index')) || []).map(
+          (item) => item.data
+        );
+      }
+
+      return [];
+    }
+
+    return [];
+  }, [id]);
 
   return (
     <Box sx={{ background: '#F9FAFB', py: 1.5, px: 2, pb: 2, borderRadius: 1 }}>
@@ -136,6 +154,21 @@ export default function OutputSettings({
                 <Box component={TableCell} align="right" />
               </TableRow>
             </TableHead>
+
+            {inheritedOutput.map((item) => {
+              return (
+                <VariableRow
+                  key={item.id}
+                  sx={{ backgroundColor: 'rgba(0, 0, 0, 0.06) !important' }}
+                  disabled
+                  selectAgentOutputVariables={checkOutputVariables?.outputVariables || {}}
+                  variable={item}
+                  value={value}
+                  projectId={projectId}
+                  gitRef={gitRef}
+                />
+              );
+            })}
 
             {value.outputVariables && (
               <DragSortListYjs
@@ -218,6 +251,7 @@ export default function OutputSettings({
           }}
         />
       </Box>
+      {id && <Box sx={{ color: 'warning.main', fontSize: 12 }}>{t('inheritOutput')}</Box>}
     </Box>
   );
 }
@@ -308,9 +342,9 @@ function VariableRow({
             sx={{
               backgroundColor,
               '*': {
-                color: variable.hidden ? 'text.disabled' : undefined,
+                color: variable.hidden || disabled ? 'text.disabled' : undefined,
               },
-              cursor: variable.hidden ? 'not-allowed' : 'pointer',
+              cursor: variable.hidden || disabled ? 'not-allowed' : 'pointer',
               ...props.sx,
             }}>
             <Box component={TableCell}>
