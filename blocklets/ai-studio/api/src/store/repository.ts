@@ -5,6 +5,7 @@ import { EVENTS } from '@api/event';
 import { broadcast } from '@api/libs/ws';
 import {
   Assistant,
+  AssistantYjs,
   ConfigFile,
   FileType,
   FileTypeYjs,
@@ -435,8 +436,22 @@ export function getAssistantIdFromPath(filepath: string) {
   return path.parse(filepath).name.split('.').at(-1);
 }
 
-export async function getAssistantsOfRepository({ projectId, ref }: { projectId: string; ref: string }) {
+export async function getAssistantsOfRepository({
+  projectId,
+  ref,
+  working,
+}: {
+  projectId: string;
+  ref: string;
+  working?: boolean;
+}) {
   const repository = await getRepository({ projectId });
+  if (working) {
+    const w = await repository.working({ ref });
+    return Object.values(w.syncedStore.files)
+      .filter((i): i is AssistantYjs => !!i && isAssistant(i))
+      .map((i) => fileFromYjs(i) as Assistant);
+  }
   return repository
     .listFiles({ ref })
     .then((files) =>
