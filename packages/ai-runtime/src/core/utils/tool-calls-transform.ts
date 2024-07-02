@@ -10,6 +10,7 @@ export function toolCallsTransform(
   toolCalls?.forEach((item) => {
     const targetCall = item?.id ? callsCopy.find((call) => call.id === item?.id) : undefined;
     // 如果 item 有 id, 且 calls 中没有这个 id, 则直接 push
+    // chatgpt adapter 和 claude adapter 经过改造一定有 id
     if (item?.id && !targetCall) {
       callsCopy.push(item);
     } else if (targetCall?.function) {
