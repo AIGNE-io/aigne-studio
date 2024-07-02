@@ -62,6 +62,26 @@ export default function setupHtmlRouter(app: Express, viteDevServer?: ViteDevSer
       html = await viteDevServer.transformIndexHtml(url, template);
     }
 
+    try {
+      const previewAid = req.path.match(/\/preview\/(?<aid>\w+)/)?.groups?.aid;
+
+      const app = previewAid
+        ? {
+            blockletDid: undefined,
+            ...(await getAgentFromAIStudio({ ...parseIdentity(previewAid, { rejectWhenError: true }), working: true })),
+            aid: previewAid,
+          }
+        : resourceBlockletState.applications[0];
+
+      html = Mustache.render(html, {
+        ogTitle: app?.project.name || '',
+        ogDescription: app?.project.description || '',
+        ogImage: app ? getAgentOgImageUrl(app) : '',
+      });
+    } catch (error) {
+      logger.error('render html error', { error });
+    }
+
     html = html.replace(
       '<!-- INJECT_HEAD_ELEMENTS -->',
       `\
