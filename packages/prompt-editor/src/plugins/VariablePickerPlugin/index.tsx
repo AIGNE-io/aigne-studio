@@ -22,7 +22,7 @@ function useBasicTypeaheadTriggerMatch(
       const validChars = `[^${trigger}${PUNCTUATION}\\s]`;
       const TypeaheadTriggerRegex = new RegExp(
         // eslint-disable-next-line no-useless-concat
-        '(^|\\s|\\()(' + `[${trigger}]{1,2}` + `((?:${validChars}){0,${maxLength}})` + ')$'
+        '(^|\\s|\\(|)' + `(${trigger}{1,2})` + `((?:${validChars}){0,${maxLength}})$`
       );
 
       const match = TypeaheadTriggerRegex.exec(text);
@@ -34,7 +34,7 @@ function useBasicTypeaheadTriggerMatch(
           return {
             leadOffset: match.index + maybeLeadingWhitespace.length,
             matchingString,
-            replaceableString: match[2],
+            replaceableString: match[2] + matchingString,
           };
         }
       }

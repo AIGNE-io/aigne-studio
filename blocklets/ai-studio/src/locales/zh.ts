@@ -305,6 +305,10 @@ export default flat({
   viewData: '查看DID空间上的数据',
   mergeConflict: '合并冲突',
   mergeConflictTip: '远程数据已被更改，无法自动合并！',
+  remoteGitRepoUnauthorized: '没有操作权限',
+  remoteGitRepoUnauthorizedTip:
+    '我们注意到您在尝试访问我们的服务时遇到了授权问题。以下是一些可能的原因及解决方法：\n\n• 无效的访问令牌\n• 令牌已过期\n• 权限不足\n\n请检查您的令牌是否有效，或者重新授权。',
+  remoteGitRepoUnauthorizedToast: '没有操作权限, 请检查您的令牌是否有效',
   useRemote: '使用远程数据',
   useRemoteTip: '使用<b>远程</b>数据覆盖<b>本地</b>数据',
   useLocal: '使用本地数据',
@@ -732,6 +736,6 @@ export default flat({
   docLink: '文档链接',
   inputParameterLinkPlaceholder: '该输入参数的文档链接',
   hideOutputSetting: '隐藏当前输出设置',
-  activeOutputTip: '激活该条输出',
-  hideOutputTip: '隐藏该条输出',
+  activeOutputTip: '激活输出',
+  hideOutputTip: '隐藏输出',
 });

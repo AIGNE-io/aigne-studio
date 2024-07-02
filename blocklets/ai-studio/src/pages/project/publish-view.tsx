@@ -58,7 +58,7 @@ function PublishViewContent({
       globalThis.location.origin,
       AIGNE_RUNTIME_MOUNT_POINT,
       'preview',
-      stringifyIdentity({ projectId, projectRef, assistantId: assistant.id })
+      stringifyIdentity({ projectId, projectRef, agentId: assistant.id })
     );
   }, [assistant.id, projectId, projectRef]);
 

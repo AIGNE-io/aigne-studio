@@ -93,7 +93,7 @@ export function messageRoutes(router: Router) {
       conditions.push({
         [Op.or]: [
           where(cast(col('inputs'), 'CHAR'), 'LIKE', condition),
-          where(cast(col('result'), 'CHAR'), 'LIKE', condition),
+          where(cast(col('outputs'), 'CHAR'), 'LIKE', condition),
         ],
       });
     }

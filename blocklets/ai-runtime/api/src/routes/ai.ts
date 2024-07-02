@@ -55,7 +55,7 @@ router.post('/call', user(), auth(), compression(), async (req, res) => {
         stringifyIdentity({
           projectId: req.body.projectId,
           projectRef: req.body.ref,
-          assistantId: req.body.assistantId,
+          agentId: req.body.assistantId,
         }),
     },
     { stripUnknown: true }
@@ -64,7 +64,7 @@ router.post('/call', user(), auth(), compression(), async (req, res) => {
   const userId = req.user?.did;
   if (!userId) throw new Error('Missing required userId');
 
-  const { projectId, projectRef, assistantId } = parseIdentity(input.aid, { rejectWhenError: true });
+  const { projectId, projectRef, agentId } = parseIdentity(input.aid, { rejectWhenError: true });
 
   const usage = {
     promptTokens: 0,
@@ -123,7 +123,7 @@ router.post('/call', user(), auth(), compression(), async (req, res) => {
     projectId,
     projectRef,
     working: input.working,
-    agentId: assistantId,
+    agentId,
     rejectOnEmpty: true,
   });
 
@@ -139,7 +139,7 @@ router.post('/call', user(), auth(), compression(), async (req, res) => {
   const history = await History.create({
     userId,
     projectId,
-    agentId: assistantId,
+    agentId,
     sessionId: input.sessionId,
     inputs: input.inputs,
     status: 'generating',
@@ -205,7 +205,7 @@ router.post('/call', user(), auth(), compression(), async (req, res) => {
       taskId,
       assistantId: agent.id,
       delta: {
-        content: JSON.stringify(input.inputs),
+        content: JSON.stringify(input.inputs, null, 2),
       },
     });
 

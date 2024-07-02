@@ -220,9 +220,7 @@ function MdViewer(props: BoxProps & MdViewerProps) {
   return (
     <MarkdownViewer
       ref={mdViewerRef}
-      dangerouslySetInnerHTML={{
-        __html: convertMarkdownToHTML(props.content),
-      }}
+      dangerouslySetInnerHTML={{ __html: convertMarkdownToHTML(props.content) }}
       {...props}
     />
   );

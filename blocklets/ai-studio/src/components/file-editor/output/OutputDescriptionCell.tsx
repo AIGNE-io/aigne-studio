@@ -47,6 +47,7 @@ export default function OutputDescriptionCell({
       }
       value={output.description || ''}
       onChange={(e) => (output.description = e.target.value)}
+      onClick={(e) => e.stopPropagation()}
     />
   );
 }

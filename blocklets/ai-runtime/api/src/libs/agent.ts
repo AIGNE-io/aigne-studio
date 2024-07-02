@@ -1,4 +1,5 @@
 import Secret from '@api/store/models/secret';
+import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { GetAgentOptions, GetAgentResult } from '@blocklet/ai-runtime/core';
 import { resolveSecretInputs } from '@blocklet/ai-runtime/core/utils/resolve-secret-inputs';
 import { ProjectSettings, Variable } from '@blocklet/ai-runtime/types';
@@ -74,10 +75,26 @@ export async function getAgent({
       agentId,
     });
 
-    if (res) agent = { ...res.agent, project: res.project, identity: { blockletDid, projectId, agentId } };
+    if (res)
+      agent = {
+        ...res.agent,
+        project: res.project,
+        identity: { blockletDid, projectId, agentId, aid: stringifyIdentity({ projectId, agentId }) },
+      };
   } else if (projectRef) {
-    const res = await getAgentFromAIStudio({ projectId, projectRef, assistantId: agentId, working });
-    if (res) agent = { ...res.agent, project: res.project, identity: { projectId, projectRef, working, agentId } };
+    const res = await getAgentFromAIStudio({ projectId, projectRef, agentId, working });
+    if (res)
+      agent = {
+        ...res.agent,
+        project: res.project,
+        identity: {
+          projectId,
+          projectRef,
+          working,
+          agentId,
+          aid: stringifyIdentity({ projectId, projectRef, agentId }),
+        },
+      };
   }
 
   if (!agent) {

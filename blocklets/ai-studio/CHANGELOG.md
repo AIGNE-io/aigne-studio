@@ -1,3 +1,38 @@
+## 0.3.15 (2024-7-2)
+
+- chore: disable submit for the invalid inputs
+- chore: support multiline text for question input
+- fix: correct og meta for agent previewer
+
+## 0.3.14 (2024-7-1)
+
+- fix: only png files are allowed for the project icon
+- fix: typing `{` evokes variables without requiring a space before `{`
+- chore: display appearance component in the outputs table
+- chore: show unauthorized permission error dialog
+
+## 0.3.13 (2024-7-1)
+
+- fix: knowledge not found when previewing other user's agents
+- fix: error when search knowledge in the resource blocklet
+
+## 0.3.12 (2024-6-29)
+
+- fix: adapter settings not displaying
+
+## 0.3.11 (2024-6-27)
+
+- fix: export assets and use relative urls for assets
+- fix: only allow publishing of owned knowledge
+
+## 0.3.10 (2024-6-27)
+
+- fix: chat history crashed
+
+## 0.3.9 (2024-6-26)
+
+- feat: new @blocklet/aigne-sdk package for aigne development
+
 ## 0.3.8 (2024-6-26)
 
 - fix: strict match called agent in inputs
