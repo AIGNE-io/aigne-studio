@@ -1,10 +1,9 @@
 import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
+import { getAgent } from '@blocklet/aigne-sdk/api/agent';
 import { getMessageById } from '@blocklet/aigne-sdk/api/message';
-import { CurrentAgentProvider, CurrentMessageProvider } from '@blocklet/pages-kit/builtin/async/ai-runtime';
-import { getAgent } from '@blocklet/pages-kit/builtin/async/ai-runtime/api/agent';
+import { CurrentAgentProvider, CurrentMessageProvider, RuntimeProvider } from '@blocklet/aigne-sdk/components';
 import { DEFAULT_OUTPUT_COMPONENT_ID } from '@blocklet/pages-kit/builtin/async/ai-runtime/constants';
-import RuntimeProvider from '@blocklet/pages-kit/builtin/async/ai-runtime/contexts/Runtime';
 import { useLocaleContext } from '@blocklet/pages-kit/builtin/locale';
 import { CustomComponentRenderer } from '@blocklet/pages-kit/components';
 import { Box, Button, CircularProgress, Theme, useMediaQuery } from '@mui/material';
@@ -23,7 +22,7 @@ export default function MessagePage() {
   const { data: message, loading, error } = useRequest(() => getMessageById({ messageId: id }));
   if (error) throw error;
 
-  const { blockletDid } = message || { blockletDid: '' };
+  const blockletDid = message?.blockletDid;
 
   const { projectId, agentId } = message || {};
   let aid: string | undefined;
@@ -41,7 +40,7 @@ export default function MessagePage() {
       {
         aid: aid as string,
         working: true,
-        blockletDid: blockletDid ?? '',
+        blockletDid,
       },
     ],
   });
@@ -68,7 +67,7 @@ export default function MessagePage() {
     <Box sx={{ display: 'flex', justifyContent: 'center', mt: 5 }}>
       {message && appearanceOutput.componentId && aid ? (
         <Box sx={{ width: isMobile ? '80vw' : '60vw' }}>
-          <RuntimeProvider blockletDid={blockletDid} aid={aid}>
+          <RuntimeProvider blockletDid={blockletDid} aid={aid} working>
             <CurrentAgentProvider agentId={message.agentId}>
               <CurrentMessageProvider message={message}>
                 <CustomComponentRenderer
@@ -76,7 +75,7 @@ export default function MessagePage() {
                   props={{
                     blockletDid,
                     aid,
-                    working: false,
+                    working: true,
                   }}
                 />
               </CurrentMessageProvider>
