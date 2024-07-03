@@ -335,7 +335,7 @@ function VariableRow({
             sx={{
               backgroundColor,
               '*': {
-                color: readOnly ? 'text.disabled' : undefined,
+                color: Boolean(disabled || variable.hidden) ? 'text.disabled' : undefined,
               },
               cursor: readOnly ? 'not-allowed' : 'pointer',
               ...props.sx,
