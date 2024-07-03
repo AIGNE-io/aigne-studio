@@ -2,7 +2,7 @@ import { logger } from '@blocklet/sdk/lib/config';
 import { cloneDeep } from 'lodash';
 
 import { AssistantResponseType, CallAssistant, ExecutionPhase } from '../../types';
-import { GetAgentResult } from '../assistant/type';
+import { GetAgentResult, RunAssistantCallback } from '../assistant/type';
 import { renderMessage } from '../utils/render-message';
 import { nextTaskId } from '../utils/task-id';
 import { AgentExecutorBase, AgentExecutorOptions } from './base';
@@ -10,6 +10,17 @@ import { AgentExecutorBase, AgentExecutorOptions } from './base';
 export class CallAgentExecutor extends AgentExecutorBase {
   override async process() {
     // ignore
+  }
+
+  private wrapCallback(originalCallback: RunAssistantCallback, taskId: string, options: AgentExecutorOptions) {
+    return (message: any) => {
+      // 调用原始回调
+      originalCallback?.(message);
+
+      if (message.type === AssistantResponseType.CHUNK && message.delta.content && message.taskId === taskId) {
+        originalCallback?.({ ...message, ...options });
+      }
+    };
   }
 
   override async execute(agent: CallAssistant & GetAgentResult, options: AgentExecutorOptions) {
@@ -96,9 +107,12 @@ export class CallAgentExecutor extends AgentExecutorBase {
       inputParameters: inputs,
     });
 
+    // 包装 this.context.callback
+    const taskId = nextTaskId();
+    this.context.callback = this.wrapCallback(this.context.callback, taskId, options);
     const result = await this.context.executor(this.context).execute(callAgent, {
       inputs: { ...(inputs || {}), ...(parameters || {}) },
-      taskId: nextTaskId(),
+      taskId,
       parentTaskId: options.taskId,
     });
 
