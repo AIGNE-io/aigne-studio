@@ -1,7 +1,7 @@
 {
   "name": "ai-studio",
   "private": true,
-  "version": "0.3.14",
+  "version": "0.3.16",
   "workspaces": [
     "blocklets/*",
     "packages/*"
@@ -58,7 +58,7 @@
     "prettier": "^3.3.2",
     "prettier-plugin-import-sort": "^0.0.7",
     "rimraf": "^3.0.2",
-    "typescript": "^5.5.2",
+    "typescript": "^5.5.3",
     "zx": "^7.2.3"
   },
   "resolutions": {

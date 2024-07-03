@@ -66,7 +66,7 @@ export function useResourceAgents({ type }: { type: ResourceType }) {
   return state;
 }
 
-export type UseAgentItem = Agent;
+export type UseAgentItem = Omit<Agent, 'identity'> & { identity: Omit<Agent['identity'], 'aid'> };
 
 export function useAgents({ type }: { type: ResourceType }) {
   const { agents = [], load } = useResourceAgents({ type });
@@ -76,7 +76,7 @@ export function useAgents({ type }: { type: ResourceType }) {
   } = useCurrentProjectState();
   const assistants = useAssistants();
 
-  const localAgents: Agent[] = !project
+  const localAgents: UseAgentItem[] = !project
     ? []
     : assistants.map((i) => ({
         id: i.id,
@@ -126,7 +126,7 @@ export function useAgent({
   projectId?: string;
   agentId: string;
   type: ResourceType;
-}): Agent | undefined {
+}): UseAgentItem | undefined {
   const {
     state: { project },
   } = useCurrentProjectState();
