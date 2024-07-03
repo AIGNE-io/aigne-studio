@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/studio-ui",
-  "version": "0.3.14",
+  "version": "0.3.17",
   "description": "UI components for studio",
   "publishConfig": {
     "access": "public"
@@ -74,6 +74,6 @@
     "react": "^18.3.1",
     "react-router-dom": "^6.24.0",
     "rimraf": "^5.0.7",
-    "typescript": "^5.5.2"
+    "typescript": "^5.5.3"
   }
 }

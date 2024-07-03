@@ -690,7 +690,7 @@ function ProjectList({
                     }}
                     onClick={(e) => {
                       e.stopPropagation();
-                      setMenuAnchor({ section, anchor: e.currentTarget, id: item.id! });
+                      setMenuAnchor({ section, anchor: e.currentTarget, id: item.id!, blockletDid: item.blockletDid });
                     }}>
                     <Box component={Icon} icon={DotsVerticalIcon} fontSize={20} />
                   </IconButton>
