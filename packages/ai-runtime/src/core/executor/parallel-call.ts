@@ -38,15 +38,14 @@ export class ParallelCallAgentExecutor extends AgentExecutorBase {
     );
   }
 
-  private getOutputTextMap(calledAgents: { item: Tool; agent: GetAgentResult }[]) {
+  private getLastTextSteamAgentIdMap(calledAgents: { item: Tool; agent: GetAgentResult }[]) {
     const map: { [key: string]: string } = {};
     calledAgents.forEach((item) => {
       const foundText = item.agent.outputVariables?.find((i) => i.name === RuntimeOutputVariable.text);
-      if (foundText) {
-        map[RuntimeOutputVariable.text] = item.item.id;
-      }
+      if (foundText) map[RuntimeOutputVariable.text] = item.item.id;
     });
-    return map;
+
+    return map[RuntimeOutputVariable.text];
   }
 
   private getOutputVariables(
@@ -92,7 +91,8 @@ export class ParallelCallAgentExecutor extends AgentExecutorBase {
     const calledAgents = await this.getCalledAgents(agent);
 
     // 获取最后输出的文本流
-    const map = this.getOutputTextMap(calledAgents);
+    const lastAgnetIdWithTextSteam = this.getLastTextSteamAgentIdMap(calledAgents);
+
     const inputs = await this.prepareInputs(agent, options);
 
     const outputVariables = this.getOutputVariables(agent, calledAgents);
@@ -132,7 +132,7 @@ export class ParallelCallAgentExecutor extends AgentExecutorBase {
               message.type === AssistantResponseType.CHUNK &&
               message.delta.content &&
               message.assistantId &&
-              message.assistantId === map[RuntimeOutputVariable.text] &&
+              message.assistantId === lastAgnetIdWithTextSteam &&
               message.taskId === taskId
             ) {
               this.context.callback?.({ ...message, ...options });
@@ -150,12 +150,12 @@ export class ParallelCallAgentExecutor extends AgentExecutorBase {
 
     const list = await Promise.all(calledAgents.map(fn));
     const obj = Object.assign({}, ...list.flat());
-    logger.info('parallel call agent output', JSON.stringify(obj, null, 2));
-
     const result = outputVariables.reduce((acc, item) => {
       if (item?.name) acc[item.name] = obj[item.name];
       return acc;
     }, {} as any);
+
+    logger.info('parallel call agent output', JSON.stringify(obj, null, 2));
     logger.info('filter call agent output', JSON.stringify(result, null, 2));
 
     this.context.callback?.({
