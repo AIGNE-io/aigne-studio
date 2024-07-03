@@ -1,3 +1,7 @@
+## 0.3.17 (2024-7-3)
+
+- fix: correct parsing multiple function calling chunks
+
 ## 0.3.16 (2024-7-3)
 
 - chore: export aigne components in aigne-sdk
