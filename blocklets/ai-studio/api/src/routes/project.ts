@@ -864,7 +864,10 @@ export function projectRoutes(router: Router) {
         )
       );
 
-      await project.update({ ...omit(data, 'id'), gitLastSyncedAt: new Date() }, { silent: true });
+      await project.update(
+        { ...omit(data, 'id', 'createdAt', 'updatedAt'), gitLastSyncedAt: new Date() },
+        { silent: true }
+      );
 
       return res.json({});
     }
@@ -1051,7 +1054,9 @@ async function copyProject({
 }
 
 async function createProjectFromTemplate(
-  template: (typeof projectTemplates)[number],
+  template: Omit<(typeof projectTemplates)[number], 'project'> & {
+    project: Omit<(typeof projectTemplates)[number]['project'], 'createdAt' | 'updatedAt'>;
+  },
   {
     name,
     description,

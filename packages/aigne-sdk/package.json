@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/aigne-sdk",
-  "version": "0.3.15",
+  "version": "0.3.17",
   "description": "AIGNE SDK used to interact with AIGNE services",
   "publishConfig": {
     "access": "public"
@@ -20,6 +20,10 @@
       "import": "./lib/esm/api/*.js",
       "require": "./lib/cjs/api/*.js"
     },
+    "./components": {
+      "import": "./lib/esm/components/index.js",
+      "require": "./lib/cjs/components/index.js"
+    },
     "./components/*": {
       "import": "./lib/esm/components/*/index.js",
       "require": "./lib/cjs/components/*/index.js"
@@ -32,6 +36,9 @@
       ],
       "api/*": [
         "./lib/types/api/*.d.ts"
+      ],
+      "components": [
+        "./lib/types/components/index.d.ts"
       ],
       "components/*": [
         "./lib/types/components/*/index.d.ts"
@@ -66,7 +73,7 @@
     "@blocklet/ai-kit": "^0.1.43",
     "@blocklet/ai-runtime": "workspace:^",
     "@blocklet/js-sdk": "^1.16.28",
-    "@blocklet/pages-kit": "^0.2.364",
+    "@blocklet/pages-kit": "^0.2.365",
     "@microsoft/fetch-event-source": "^2.0.1",
     "ahooks": "^3.8.0",
     "axios": "^1.7.2",
@@ -74,7 +81,7 @@
     "eventsource-parser": "^1.1.2",
     "joi": "^17.13.3",
     "nanoid": "^3.3.7",
-    "react-hook-form": "^7.52.0",
+    "react-hook-form": "^7.52.1",
     "ufo": "^1.5.3"
   },
   "peerDependencies": {
@@ -104,6 +111,6 @@
     "react-router-dom": "^6.24.0",
     "rimraf": "^5.0.7",
     "ts-jest": "^29.1.5",
-    "typescript": "^5.5.2"
+    "typescript": "^5.5.3"
   }
 }

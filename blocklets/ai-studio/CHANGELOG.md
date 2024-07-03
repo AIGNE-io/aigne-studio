@@ -1,3 +1,13 @@
+## 0.3.17 (2024-7-3)
+
+- fix: correct parsing multiple function calling chunks
+
+## 0.3.16 (2024-7-3)
+
+- chore: export aigne components in aigne-sdk
+- chore: add api to query all agents from aigne studio
+- fix: menus do not appear when clicking the menu button on examples
+
 ## 0.3.15 (2024-7-2)
 
 - chore: disable submit for the invalid inputs
