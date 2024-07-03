@@ -26,12 +26,18 @@ export default function MessagePage() {
   const { blockletDid } = message || { blockletDid: '' };
 
   const {
-    runAsync: fetchAgent,
+    run: fetchAgent,
     loading: agentLoading,
     data: agent,
+    error: agentError,
   } = useRequest(getAgent, {
     manual: true,
+    onError: (error) => {
+      throw error;
+    },
   });
+
+  if (agentError) throw agentError;
 
   const { projectId, agentId } = message || {};
   let aid: string | undefined;
