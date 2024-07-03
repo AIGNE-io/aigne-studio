@@ -185,52 +185,50 @@ export default function OutputSettings({
           </Table>
         </Box>
 
-        {value.type !== 'parallelCallAgent' && (
-          <AddOutputVariableButton
-            projectId={projectId}
-            gitRef={gitRef}
-            allSelectAgentOutputs={cloneDeep(allSelectAgentOutputs)}
-            assistant={value}
-            onDeleteSelect={({ id }) => {
-              setField((vars) => {
-                if (!id) return;
-                if (!vars[id]) return;
+        <AddOutputVariableButton
+          projectId={projectId}
+          gitRef={gitRef}
+          allSelectAgentOutputs={cloneDeep(allSelectAgentOutputs)}
+          assistant={value}
+          onDeleteSelect={({ id }) => {
+            setField((vars) => {
+              if (!id) return;
+              if (!vars[id]) return;
 
-                delete vars[id];
-                sortBy(Object.values(vars), 'index').forEach((item, index) => (item.index = index));
-              });
-            }}
-            onSelect={({ name, from }) => {
-              setField((vars) => {
-                const exist = name ? outputVariables?.find((i) => i.data.name === name) : undefined;
-                if (exist) {
-                  delete vars[exist.data.id];
-                } else {
+              delete vars[id];
+              sortBy(Object.values(vars), 'index').forEach((item, index) => (item.index = index));
+            });
+          }}
+          onSelect={({ name, from }) => {
+            setField((vars) => {
+              const exist = name ? outputVariables?.find((i) => i.data.name === name) : undefined;
+              if (exist) {
+                delete vars[exist.data.id];
+              } else {
+                const id = nanoid();
+                vars[id] = { index: Object.values(vars).length, data: { id, name, from } };
+              }
+
+              sortBy(Object.values(vars), 'index').forEach((item, index) => (item.index = index));
+            });
+          }}
+          onSelectAll={(list) => {
+            setField((vars) => {
+              list.forEach((data) => {
+                const exist = data.name ? outputVariables?.find((i) => i.data.name === data.name) : undefined;
+                if (!exist) {
                   const id = nanoid();
-                  vars[id] = { index: Object.values(vars).length, data: { id, name, from } };
+                  vars[id] = {
+                    index: Object.values(vars).length,
+                    data: { ...cloneDeep(data), required: undefined, id },
+                  };
                 }
 
                 sortBy(Object.values(vars), 'index').forEach((item, index) => (item.index = index));
               });
-            }}
-            onSelectAll={(list) => {
-              setField((vars) => {
-                list.forEach((data) => {
-                  const exist = data.name ? outputVariables?.find((i) => i.data.name === data.name) : undefined;
-                  if (!exist) {
-                    const id = nanoid();
-                    vars[id] = {
-                      index: Object.values(vars).length,
-                      data: { ...cloneDeep(data), required: undefined, id },
-                    };
-                  }
-
-                  sortBy(Object.values(vars), 'index').forEach((item, index) => (item.index = index));
-                });
-              });
-            }}
-          />
-        )}
+            });
+          }}
+        />
       </Box>
     </Box>
   );
