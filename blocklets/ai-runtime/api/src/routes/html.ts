@@ -36,6 +36,7 @@ export default function setupHtmlRouter(app: Express, viteDevServer?: ViteDevSer
     const componentId = req.get('x-blocklet-component-id')?.split('/').at(-1);
     const blockletDid = componentId !== AIGNE_RUNTIME_COMPONENT_DID ? componentId : undefined;
     const projects = await getResourceProjects({ blockletDid, type: 'application' });
+
     const apps = projects
       .map((i) => {
         const entry = i.config?.entry;
@@ -62,25 +63,15 @@ export default function setupHtmlRouter(app: Express, viteDevServer?: ViteDevSer
       html = await viteDevServer.transformIndexHtml(url, template);
     }
 
-    try {
-      const previewAid = req.path.match(/\/preview\/(?<aid>\w+)/)?.groups?.aid;
+    const previewAid = req.path.match(/\/preview\/(?<aid>\w+)/)?.groups?.aid;
 
-      const app = previewAid
-        ? {
-            blockletDid: undefined,
-            ...(await getAgentFromAIStudio({ ...parseIdentity(previewAid, { rejectWhenError: true }), working: true })),
-            aid: previewAid,
-          }
-        : resourceBlockletState.applications[0];
-
-      html = Mustache.render(html, {
-        ogTitle: app?.project.name || '',
-        ogDescription: app?.project.description || '',
-        ogImage: app ? getAgentOgImageUrl(app) : '',
-      });
-    } catch (error) {
-      logger.error('render html error', { error });
-    }
+    const app = previewAid
+      ? {
+          blockletDid: undefined,
+          ...(await getAgentFromAIStudio({ ...parseIdentity(previewAid, { rejectWhenError: true }), working: true })),
+          aid: previewAid,
+        }
+      : resourceBlockletState.applications[0];
 
     html = html.replace(
       '<!-- INJECT_HEAD_ELEMENTS -->',
@@ -96,16 +87,14 @@ var ${RUNTIME_RESOURCE_BLOCKLET_STATE_GLOBAL_VARIABLE} = ${JSON.stringify(resour
       html = html.replace('<script src="__blocklet__.js"></script>', `<script>${blockletJs}</script>`);
     }
 
-    return { html, resourceBlockletState, blockletDid };
+    return { html, app };
   };
 
   router.get('/messages/:messageId', async (req, res) => {
-    const { html: tplHtml, resourceBlockletState } = await loadHtml(req);
-    let html = tplHtml;
+    const { html: template, app } = await loadHtml(req);
+
     let message: History | undefined;
     let agent: GetAgentResult | undefined;
-    const app = resourceBlockletState.applications[0];
-
     const { messageId } = req.params;
 
     try {
@@ -115,26 +104,19 @@ var ${RUNTIME_RESOURCE_BLOCKLET_STATE_GLOBAL_VARIABLE} = ${JSON.stringify(resour
     }
 
     const { projectId, blockletDid, agentId } = message as History;
-
     try {
-      agent = await getAgent({ blockletDid, projectId, agentId, working: true });
-
-      if (!agent) {
-        throw new Error(`agent ${agentId} not found`);
-      }
+      agent = await getAgent({ blockletDid, projectRef: 'main', projectId, agentId, working: true });
     } catch (error) {
       logger.error('agent not found', { error });
     }
 
+    let html;
     try {
-      html = Mustache.render(html, {
-        ogTitle: agent?.name || agent?.project?.name || '',
-        ogDescription: message?.outputs?.content || agent?.description || agent?.project?.description || '',
+      html = Mustache.render(template, {
+        ogTitle: agent?.name || agent?.project?.name,
+        ogDescription: message?.outputs?.content || agent?.project?.description,
         ogImage:
-          message?.outputs?.objects?.[0]?.[RuntimeOutputVariable.images]?.[0].url ||
-          (blockletDid && app?.project.id
-            ? joinURL(config.env.appUrl, '/.well-known/service/blocklet/logo-bundle', blockletDid)
-            : ''),
+          message?.outputs?.objects?.[0]?.[RuntimeOutputVariable.images]?.[0].url || (app && getAgentOgImageUrl(app)),
       });
     } catch (error) {
       logger.error('render html error', { error });
@@ -144,22 +126,11 @@ var ${RUNTIME_RESOURCE_BLOCKLET_STATE_GLOBAL_VARIABLE} = ${JSON.stringify(resour
   });
 
   router.get('/*', async (req, res) => {
-    const { html: tplHtml, resourceBlockletState, blockletDid } = await loadHtml(req);
+    const { html: template, app } = await loadHtml(req);
 
-    let html = tplHtml;
-
+    let html;
     try {
-      const previewAid = req.path.match(/\/preview\/(?<aid>\w+)/)?.groups?.aid;
-
-      const app = previewAid
-        ? {
-            blockletDid,
-            ...(await getAgentFromAIStudio({ ...parseIdentity(previewAid, { rejectWhenError: true }), working: true })),
-            aid: previewAid,
-          }
-        : resourceBlockletState.applications[0];
-
-      html = Mustache.render(html, {
+      html = Mustache.render(template, {
         ogTitle: app?.project.name || '',
         ogDescription: app?.project.description || '',
         ogImage: app ? getAgentOgImageUrl(app) : '',
