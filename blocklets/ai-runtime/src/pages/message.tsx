@@ -8,8 +8,8 @@ import RuntimeProvider from '@blocklet/pages-kit/builtin/async/ai-runtime/contex
 import { useLocaleContext } from '@blocklet/pages-kit/builtin/locale';
 import { CustomComponentRenderer } from '@blocklet/pages-kit/components';
 import { Box, Button, CircularProgress, Theme, useMediaQuery } from '@mui/material';
-import { useRequest } from 'ahooks';
-import { useEffect, useMemo } from 'react';
+import { useRequest, useUpdateEffect } from 'ahooks';
+import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
@@ -45,7 +45,7 @@ export default function MessagePage() {
     aid = stringifyIdentity({ projectId, agentId });
   }
 
-  useEffect(() => {
+  useUpdateEffect(() => {
     if (aid) {
       fetchAgent({ aid, working: false });
     }
