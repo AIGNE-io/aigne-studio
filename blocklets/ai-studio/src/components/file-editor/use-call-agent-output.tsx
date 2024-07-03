@@ -19,21 +19,24 @@ const useCallAgentOutput = ({
   const { getFileById } = useProjectStore(projectId, gitRef);
 
   const id = assistant.type === 'callAgent' ? assistant.call?.id : undefined;
-  const getOutputs = useCallback(() => {
-    if (assistant.type === 'callAgent' && assistant.call) {
-      const callAgent = getFileById(assistant.call.id);
-      return (callAgent?.outputVariables && sortBy(Object.values(callAgent.outputVariables), 'index')) || [];
-    }
 
-    return [];
+  const getOutputs = useCallback(() => {
+    if (assistant.type !== 'callAgent' || !assistant.call) return [];
+
+    const callAgent = getFileById(assistant.call.id);
+    return (callAgent?.outputVariables && sortBy(Object.values(callAgent.outputVariables), 'index')) || [];
   }, [id]);
 
-  const appearance = runtimeOutputVariables.find((i) => i.group === 'appearance')?.outputs || [];
+  const appearanceOutputs = useMemo(
+    () => runtimeOutputVariables.find((i) => i.group === 'appearance')?.outputs || [],
+    []
+  );
+
   const outputs = useMemo(
     () =>
       getOutputs()
         .map((item) => item.data)
-        .filter((i) => !appearance.find((r) => r.name === i.name)), // 过滤外观输出变量
+        .filter((i) => !appearanceOutputs.find((r) => r.name === i.name)), // 过滤外观输出变量
     [getOutputs]
   );
 

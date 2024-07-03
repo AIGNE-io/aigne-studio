@@ -49,31 +49,13 @@ export class CallAgentExecutor extends AgentExecutorBase {
 
     logger.info('call agent output', JSON.stringify(callAgent.outputVariables, null, 2));
 
-    // 处理引用的输出变量
     const map = new Map();
-    (agent?.outputVariables || [])
-      .map((i) => {
-        if (i.from?.type === 'output') {
-          const list = callAgent.outputVariables || [];
-          const output = list.find((r) => r.id === i?.from?.id);
-          if (output) return output;
-        }
+    agent.outputVariables?.forEach((i) => {
+      const output = i.from?.type === 'output' ? callAgent.outputVariables?.find((r) => r.id === i?.from?.id) : i;
+      if (output) map.set(output.name, output);
+    });
 
-        return i;
-      })
-      .forEach((item) => {
-        // 出现相同字段时，会被覆盖，保留最后一个
-        if (map.has(item.name)) {
-          map.delete(item.name);
-        }
-
-        map.set(item.name, item);
-      });
-
-    const outputVariables = Array.from(map.values());
-    callAgent.outputVariables = cloneDeep(outputVariables);
-
-    logger.info('current agent output', JSON.stringify(agent.outputVariables, null, 2));
+    callAgent.outputVariables = Array.from(map.values());
 
     logger.info('merge call agent output', JSON.stringify(callAgent.outputVariables, null, 2));
 
@@ -82,7 +64,7 @@ export class CallAgentExecutor extends AgentExecutorBase {
     const parameters = Object.fromEntries(
       await Promise.all(
         Object.entries(agent.call.parameters || {}).map(async ([key, value]) => {
-          return [key, value ? await renderMessage(value, inputs) : inputs?.[key] || ''];
+          return [key, value ? await renderMessage(value, inputs) : inputs[key] || ''];
         })
       )
     );
