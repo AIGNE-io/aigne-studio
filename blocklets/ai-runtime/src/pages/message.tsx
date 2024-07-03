@@ -2,22 +2,18 @@ import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
 import { getMessageById } from '@blocklet/aigne-sdk/api/message';
 import { CurrentAgentProvider, CurrentMessageProvider } from '@blocklet/pages-kit/builtin/async/ai-runtime';
-import { Agent, getAgent } from '@blocklet/pages-kit/builtin/async/ai-runtime/api/agent';
+import { getAgent } from '@blocklet/pages-kit/builtin/async/ai-runtime/api/agent';
 import { DEFAULT_OUTPUT_COMPONENT_ID } from '@blocklet/pages-kit/builtin/async/ai-runtime/constants';
 import RuntimeProvider from '@blocklet/pages-kit/builtin/async/ai-runtime/contexts/Runtime';
 import { useLocaleContext } from '@blocklet/pages-kit/builtin/locale';
 import { CustomComponentRenderer } from '@blocklet/pages-kit/components';
 import { Box, Button, CircularProgress, Theme, useMediaQuery } from '@mui/material';
 import { useRequest } from 'ahooks';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
 export default function MessagePage() {
-  const [agent, setAgent] = useState<Agent | null>(null);
-  const [agentLoading, setAgentLoading] = useState(false);
-  const [aid, setAid] = useState<string | null>(null);
-
   const { id } = useParams();
   if (!id) throw new Error('Missing required param `messageId`');
 
@@ -26,28 +22,28 @@ export default function MessagePage() {
 
   const { data: message, loading, error } = useRequest(() => getMessageById({ messageId: id }));
   if (error) throw error;
+
   const { blockletDid } = message || { blockletDid: '' };
 
+  const {
+    runAsync: fetchAgent,
+    loading: agentLoading,
+    data: agent,
+  } = useRequest(getAgent, {
+    manual: true,
+  });
+
+  const { projectId, agentId } = message || {};
+  let aid: string | undefined;
+  if (projectId && agentId) {
+    aid = stringifyIdentity({ projectId, agentId });
+  }
+
   useEffect(() => {
-    const fetchAgent = async () => {
-      const { projectId, agentId } = message || {};
-
-      if (!projectId || !agentId) return;
-      const aid = stringifyIdentity({ projectId, agentId });
-      if (!aid) return;
-      setAid(aid);
-
-      setAgentLoading(true);
-      const agent = await getAgent({ aid, blockletDid, working: true });
-      if (!agent) {
-        return;
-      }
-      setAgent(agent);
-      setAgentLoading(false);
-    };
-
-    fetchAgent();
-  }, [blockletDid, message]);
+    if (aid) {
+      fetchAgent({ aid, working: false });
+    }
+  }, [aid, fetchAgent]);
 
   const appearanceOutput = useMemo(() => {
     const appearance = agent?.outputVariables?.find(
