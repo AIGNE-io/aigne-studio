@@ -4,7 +4,7 @@ import { AssistantYjs } from '@blocklet/ai-runtime/types';
 import { cloneDeep, sortBy } from 'lodash';
 import { useCallback, useMemo } from 'react';
 
-import { getOutputName } from './output/type';
+import { getOutputName, runtimeOutputVariables } from './output/type';
 
 const useCallAgentOutput = ({
   projectId,
@@ -28,7 +28,14 @@ const useCallAgentOutput = ({
     return [];
   }, [id]);
 
-  const outputs = useMemo(() => getOutputs().map((item) => item.data), [getOutputs]);
+  const appearance = runtimeOutputVariables.find((i) => i.group === 'appearance')?.outputs || [];
+  const outputs = useMemo(
+    () =>
+      getOutputs()
+        .map((item) => item.data)
+        .filter((i) => !appearance.find((r) => r.name === i.name)), // 过滤外观输出变量
+    [getOutputs]
+  );
 
   const outputsExist = useMemo(
     () =>

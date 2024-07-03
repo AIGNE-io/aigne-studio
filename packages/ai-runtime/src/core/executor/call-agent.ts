@@ -1,9 +1,10 @@
 import { logger } from '@blocklet/sdk/lib/config';
 import { cloneDeep } from 'lodash';
 
-import { CallAssistant } from '../../types';
-import { GetAgentResult } from '../assistant/type';
+import { AssistantResponseType, CallAssistant, ExecutionPhase } from '../../types';
+import { GetAgentResult, RunAssistantCallback } from '../assistant/type';
 import { renderMessage } from '../utils/render-message';
+import { nextTaskId } from '../utils/task-id';
 import { AgentExecutorBase, AgentExecutorOptions } from './base';
 
 export class CallAgentExecutor extends AgentExecutorBase {
@@ -11,10 +12,39 @@ export class CallAgentExecutor extends AgentExecutorBase {
     // ignore
   }
 
+  private wrapCallback(originalCallback: RunAssistantCallback, taskId: string, options: AgentExecutorOptions) {
+    return (message: any) => {
+      // 调用原始回调
+      originalCallback?.(message);
+
+      if (message.type === AssistantResponseType.CHUNK && message.delta.content && message.taskId === taskId) {
+        originalCallback?.({ ...message, ...options });
+      }
+    };
+  }
+
   override async execute(agent: CallAssistant & GetAgentResult, options: AgentExecutorOptions) {
     if (!agent.call) {
       throw new Error('Must choose an agent to execute');
     }
+
+    this.context.callback?.({
+      type: AssistantResponseType.INPUT,
+      assistantId: agent.id,
+      taskId: options.taskId,
+      parentTaskId: options.parentTaskId,
+      assistantName: agent.name,
+      inputParameters: options.inputs,
+    });
+
+    this.context.callback?.({
+      type: AssistantResponseType.EXECUTE,
+      taskId: options.taskId,
+      parentTaskId: options.parentTaskId,
+      assistantId: agent.id,
+      assistantName: agent.name,
+      execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_RUNNING },
+    });
 
     // 获取被调用的 agent
     const callAgent = cloneDeep(
@@ -51,10 +81,11 @@ export class CallAgentExecutor extends AgentExecutorBase {
         map.set(item.name, item);
       });
 
-    const result = Array.from(map.values());
-    callAgent.outputVariables = cloneDeep(result);
+    const outputVariables = Array.from(map.values());
+    callAgent.outputVariables = cloneDeep(outputVariables);
 
     logger.info('current agent output', JSON.stringify(agent.outputVariables, null, 2));
+
     logger.info('merge call agent output', JSON.stringify(callAgent.outputVariables, null, 2));
 
     // 获取被调用 agent 的输入
@@ -67,9 +98,42 @@ export class CallAgentExecutor extends AgentExecutorBase {
       )
     );
 
-    return await this.context.executor(this.context).execute(callAgent, {
-      ...options,
-      inputs: { ...(inputs || {}), ...(parameters || {}) },
+    this.context.callback?.({
+      type: AssistantResponseType.INPUT,
+      assistantId: agent.id,
+      taskId: options.taskId,
+      parentTaskId: options.parentTaskId,
+      assistantName: agent.name,
+      inputParameters: inputs,
     });
+
+    // 包装 this.context.callback
+    const taskId = nextTaskId();
+    this.context.callback = this.wrapCallback(this.context.callback, taskId, options);
+    const result = await this.context.executor(this.context).execute(callAgent, {
+      inputs: { ...(inputs || {}), ...(parameters || {}) },
+      taskId,
+      parentTaskId: options.taskId,
+    });
+
+    logger.info('call agent result', JSON.stringify(result, null, 2));
+
+    this.context.callback?.({
+      type: AssistantResponseType.CHUNK,
+      taskId: options.taskId,
+      assistantId: agent.id,
+      delta: { object: result },
+    });
+
+    this.context.callback?.({
+      type: AssistantResponseType.EXECUTE,
+      taskId: options.taskId,
+      parentTaskId: options.parentTaskId,
+      assistantId: agent.id,
+      assistantName: agent.name,
+      execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
+    });
+
+    return result;
   }
 }
