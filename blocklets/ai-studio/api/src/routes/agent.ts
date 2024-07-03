@@ -1,99 +1,54 @@
-import { ResourceType, getAssistantFromResourceBlocklet, getResourceProjects } from '@api/libs/resource';
+import { ensureComponentCallOrAuth } from '@api/libs/security';
 import Project from '@api/store/models/project';
-import { getAssistantFromRepository, getRepository } from '@api/store/repository';
-import { parseIdentity } from '@blocklet/ai-runtime/common/aid';
+import { defaultBranch, getAssistantsOfRepository } from '@api/store/repository';
+import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { Assistant, ProjectSettings } from '@blocklet/ai-runtime/types';
+import { Agent } from '@blocklet/aigne-sdk/api/agent';
+import { config } from '@blocklet/sdk';
+import { user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
-import Joi from 'joi';
 import isEmpty from 'lodash/isEmpty';
 import pick from 'lodash/pick';
 
 const router = Router();
 
-export interface GetAgentsQuery {
-  type: ResourceType;
-}
-
-const getAgentsQuerySchema = Joi.object<GetAgentsQuery>({
-  type: Joi.string()
-    .valid('application', 'tool', 'llm-adapter', 'aigc-adapter')
-    .empty([null, ''])
-    .default('application'),
-});
-
-router.get('/', async (req, res) => {
-  const query = await getAgentsQuerySchema.validateAsync(req.query, { stripUnknown: true });
-
-  const projects = await getResourceProjects(query.type);
-
-  const resourceAgents = projects.flatMap((project) =>
-    project.assistants
-      .filter((assistant) => {
-        if (query.type === 'application') {
-          return project.config?.entry === assistant.id;
-        }
-        if (['tool', 'llm-adapter', 'aigc-adapter'].includes(query.type)) {
-          return assistant.public;
-        }
-        return false;
-      })
-      .map((a) => respondAgentFields(a, project.project, project.blocklet))
-  );
-
-  res.json({ agents: resourceAgents });
-});
-
-export interface GetAgentQuery {
-  working?: boolean;
-  blockletDid?: string;
-}
-
-const getAgentQuerySchema = Joi.object<GetAgentQuery>({
-  working: Joi.boolean().empty([null, '']),
-  blockletDid: Joi.string().empty([null, '']),
-});
-
-router.get('/:aid', async (req, res) => {
-  const { aid } = req.params;
-  if (!aid) throw new Error('Missing required param `aid`');
-
-  const { working, blockletDid } = await getAgentQuerySchema.validateAsync(req.query, { stripUnknown: true });
-
-  const { projectId, projectRef, agentId } = parseIdentity(aid, { rejectWhenError: true });
-
-  if (blockletDid) {
-    const assistantResult = await getAssistantFromResourceBlocklet({
-      blockletDid,
-      projectId,
-      agentId,
-      type: ['application', 'tool'],
-    });
-
-    if (!assistantResult) {
-      res.status(404).json({ message: 'No such agent' });
-      return;
-    }
-
-    res.json(respondAgentFields(assistantResult.assistant, assistantResult.project, assistantResult.blocklet));
-    return;
-  }
-
-  const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error(`Project ${projectId} not found`) });
-
-  const repository = await getRepository({ projectId });
-
-  const assistant = await getAssistantFromRepository({
-    repository,
-    ref: projectRef,
-    agentId,
-    working,
-    rejectOnEmpty: true,
+router.get('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
+  const projects = await Project.findAll({
+    where: { ...(req.user && config.env.tenantMode === 'multiple' ? { createdBy: req.user.did } : {}) },
   });
 
-  res.json(respondAgentFields(assistant, project.dataValues));
+  const agents: Agent[] = (
+    await Promise.all(
+      projects.map(async (project) => {
+        const projectRef = project.gitDefaultBranch || defaultBranch;
+
+        const agents = await getAssistantsOfRepository({
+          projectId: project.id,
+          ref: projectRef,
+          working: true,
+        });
+        return agents.map((agent) => ({
+          ...respondAgentFields(agent, {
+            ...project,
+            createdAt: project.createdAt.toISOString(),
+            updatedAt: project.updatedAt.toISOString(),
+          }),
+          identity: {
+            aid: stringifyIdentity({ projectId: project.id, projectRef, agentId: agent.id }),
+            projectId: project.id,
+            projectRef,
+            agentId: agent.id,
+            working: true,
+          },
+        }));
+      })
+    )
+  ).flat();
+
+  res.json({ agents });
 });
 
-const respondAgentFields = (assistant: Assistant, project: ProjectSettings, blocklet?: { did: string }) => ({
+const respondAgentFields = (assistant: Assistant, project: ProjectSettings) => ({
   ...pick(assistant, 'id', 'name', 'description', 'type', 'parameters', 'createdAt', 'updatedAt', 'createdBy'),
   outputVariables: (assistant.outputVariables ?? [])
     .filter((i) => !i.hidden)
@@ -115,9 +70,6 @@ const respondAgentFields = (assistant: Assistant, project: ProjectSettings, bloc
     createdAt: project.createdAt,
     updatedAt: project.updatedAt,
     appearance: project.appearance,
-  },
-  blocklet: blocklet && {
-    did: blocklet.did,
   },
 });
 
