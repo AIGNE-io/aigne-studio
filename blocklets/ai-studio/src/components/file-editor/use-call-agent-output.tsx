@@ -1,7 +1,7 @@
 import { useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { AssistantYjs } from '@blocklet/ai-runtime/types';
-import { cloneDeep, sortBy } from 'lodash';
+import { cloneDeep, cloneDeepWith, sortBy } from 'lodash';
 import { useCallback, useMemo } from 'react';
 
 import { getOutputName, runtimeOutputVariables } from './output/type';
@@ -25,17 +25,25 @@ const useCallAgentOutput = ({
       return (callAgent?.outputVariables && sortBy(Object.values(callAgent.outputVariables), 'index')) || [];
     }
 
+    if (assistant.type === 'parallelCallAgent') {
+      const agents = Object.values(assistant?.agents || {}).map((i) => i.data);
+      return agents.flatMap((i) => {
+        const callAgent = getFileById(i.id);
+        return (callAgent?.outputVariables && sortBy(Object.values(callAgent.outputVariables), 'index')) || [];
+      });
+    }
+
     return [];
   }, [id]);
 
   const appearance = runtimeOutputVariables.find((i) => i.group === 'appearance')?.outputs || [];
-  const outputs = useMemo(
-    () =>
-      getOutputs()
-        .map((item) => item.data)
-        .filter((i) => !appearance.find((r) => r.name === i.name)), // 过滤外观输出变量
-    [getOutputs]
-  );
+  const outputs = useMemo(() => {
+    const list = getOutputs().map((item) => item.data);
+    const map = new Map();
+    list.forEach((i) => map.set(i.name, i)); // 去重
+
+    return Array.from(map.values()).filter((i) => !appearance.find((r) => r.name === i.name)); // 过滤外观输出变量
+  }, [getOutputs]);
 
   const outputsExist = useMemo(
     () =>

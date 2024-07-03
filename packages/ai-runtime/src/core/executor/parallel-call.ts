@@ -1,6 +1,13 @@
 import { logger } from '@blocklet/sdk/lib/config';
 
-import { AssistantResponseType, ExecutionPhase, ParallelCallAssistant, RuntimeOutputVariable, Tool } from '../../types';
+import {
+  AssistantResponseType,
+  ExecutionPhase,
+  OutputVariable,
+  ParallelCallAssistant,
+  RuntimeOutputVariable,
+  Tool,
+} from '../../types';
 import { GetAgentResult } from '../assistant/type';
 import { renderMessage } from '../utils/render-message';
 import { nextTaskId } from '../utils/task-id';
@@ -9,6 +16,54 @@ import { AgentExecutorBase, AgentExecutorOptions, ExecutorContext } from './base
 export class ParallelCallAgentExecutor extends AgentExecutorBase {
   override async process() {
     // ignore
+  }
+
+  private async getCalledAgents(agent: ParallelCallAssistant & GetAgentResult) {
+    if (!agent.agents || agent.agents.length === 0) {
+      throw new Error('Must choose an agent to execute');
+    }
+
+    return await Promise.all(
+      agent.agents.map(async (item) => ({
+        item,
+        agent: await this.context.getAgent({
+          blockletDid: agent.identity.blockletDid,
+          projectId: agent.identity.projectId,
+          projectRef: agent.identity.projectRef,
+          working: agent.identity.working,
+          agentId: item.id,
+          rejectOnEmpty: true,
+        }),
+      }))
+    );
+  }
+
+  private getOutputTextMap(calledAgents: { item: Tool; agent: GetAgentResult }[]) {
+    const map: { [key: string]: string } = {};
+    calledAgents.forEach((item) => {
+      const foundText = item.agent.outputVariables?.find((i) => i.name === RuntimeOutputVariable.text);
+      if (foundText) {
+        map[RuntimeOutputVariable.text] = item.item.id;
+      }
+    });
+    return map;
+  }
+
+  private getOutputVariables(
+    agent: ParallelCallAssistant & GetAgentResult,
+    calledAgents: { item: Tool; agent: GetAgentResult }[]
+  ) {
+    const agentOutputVariables: OutputVariable[] = calledAgents.flatMap((item) => item.agent.outputVariables || []);
+    const outputVariables = (agent?.outputVariables || []).map((i) => {
+      if (i.from?.type === 'output') {
+        const output = agentOutputVariables.find((r) => r.id === i?.from?.id);
+        if (output) return output;
+      }
+
+      return i;
+    });
+
+    return outputVariables;
   }
 
   override async execute(agent: ParallelCallAssistant & GetAgentResult, options: AgentExecutorOptions) {
@@ -34,33 +89,15 @@ export class ParallelCallAgentExecutor extends AgentExecutorBase {
       execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_RUNNING },
     });
 
-    const calledAgents = await Promise.all(
-      agent.agents.map(async (item) => {
-        return {
-          item,
-          agent: await this.context.getAgent({
-            blockletDid: agent.identity.blockletDid,
-            projectId: agent.identity.projectId,
-            projectRef: agent.identity.projectRef,
-            working: agent.identity.working,
-            agentId: item.id,
-            rejectOnEmpty: true,
-          }),
-        };
-      })
-    );
+    const calledAgents = await this.getCalledAgents(agent);
 
     // 获取最后输出的文本流
-    const map: { [key: string]: string } = {};
-    calledAgents.forEach((item) => {
-      const outputVariables = item.agent.outputVariables || [];
-      const foundText = outputVariables.find((i) => i.name === RuntimeOutputVariable.text);
-      if (foundText) {
-        map[RuntimeOutputVariable.text] = item.item.id;
-      }
-    });
-
+    const map = this.getOutputTextMap(calledAgents);
     const inputs = await this.prepareInputs(agent, options);
+
+    const outputVariables = this.getOutputVariables(agent, calledAgents);
+    const hasTextStream = outputVariables?.some((i) => i.name === RuntimeOutputVariable.text);
+
     this.context.callback?.({
       type: AssistantResponseType.INPUT,
       assistantId: agent.id,
@@ -72,7 +109,6 @@ export class ParallelCallAgentExecutor extends AgentExecutorBase {
 
     logger.info(JSON.stringify(calledAgents, null, 2));
 
-    const hasTextStream = agent.outputVariables?.some((i) => i.name === RuntimeOutputVariable.text);
     // 获取被调用的 agent
     const fn = async (callAgent: { item: Tool; agent: GetAgentResult }) => {
       const parameters = Object.fromEntries(
@@ -112,14 +148,12 @@ export class ParallelCallAgentExecutor extends AgentExecutorBase {
       return result;
     };
 
-    const list = (await Promise.all(calledAgents.map((item) => fn(item)))).flat();
-    const obj = list.reduce((acc, item) => ({ ...acc, ...item }), {});
+    const list = await Promise.all(calledAgents.map(fn));
+    const obj = Object.assign({}, ...list.flat());
     logger.info('parallel call agent output', JSON.stringify(obj, null, 2));
 
-    const result = (agent.outputVariables || []).reduce((acc, item) => {
-      const name = item?.name;
-      if (name) acc[name] = obj[name];
-
+    const result = outputVariables.reduce((acc, item) => {
+      if (item?.name) acc[item.name] = obj[item.name];
       return acc;
     }, {} as any);
     logger.info('filter call agent output', JSON.stringify(result, null, 2));

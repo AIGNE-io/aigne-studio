@@ -92,6 +92,8 @@ export default function AddOutputVariableButton({
       .map((i) => i.data)
       .filter((i): i is typeof i & Required<Pick<typeof i, 'key'>> => !!i.key);
 
+  const disabled = assistant.type === 'parallelCallAgent';
+
   return (
     <PopperMenu
       ButtonProps={{
@@ -115,6 +117,7 @@ export default function AddOutputVariableButton({
 
           return (
             <MenuItem
+              disabled={disabled && group.group === 'system'}
               key={variable.name}
               selected={exists.has(variable.name)}
               onClick={(e) => {
@@ -134,7 +137,7 @@ export default function AddOutputVariableButton({
       {!!allSelectAgentOutputs?.length && (
         <>
           <Divider sx={{ my: '4px !important', p: 0 }} />
-          <MenuItem onClick={() => onSelectAll?.(allSelectAgentOutputs)}>
+          <MenuItem onClick={() => onSelectAll?.(allSelectAgentOutputs)} disabled={disabled}>
             <ListItemIcon>
               <Icon icon={BranchIcon} />
             </ListItemIcon>
@@ -151,6 +154,7 @@ export default function AddOutputVariableButton({
 
           {inputs.map((input) => (
             <MenuItem
+              disabled={disabled}
               key={input.id}
               onClick={(e) => {
                 e.stopPropagation();
@@ -175,7 +179,7 @@ export default function AddOutputVariableButton({
 
       <Divider sx={{ my: '4px !important', p: 0 }} />
 
-      <MenuItem onClick={() => onSelect?.({ name: '' })}>
+      <MenuItem onClick={() => onSelect?.({ name: '' })} disabled={disabled}>
         <ListItemIcon>
           <Icon icon={PlusIcon} />
         </ListItemIcon>
