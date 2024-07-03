@@ -8,7 +8,7 @@ import RuntimeProvider from '@blocklet/pages-kit/builtin/async/ai-runtime/contex
 import { useLocaleContext } from '@blocklet/pages-kit/builtin/locale';
 import { CustomComponentRenderer } from '@blocklet/pages-kit/components';
 import { Box, Button, CircularProgress, Theme, useMediaQuery } from '@mui/material';
-import { useRequest, useUpdateEffect } from 'ahooks';
+import { useRequest } from 'ahooks';
 import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { joinURL } from 'ufo';
@@ -25,31 +25,28 @@ export default function MessagePage() {
 
   const { blockletDid } = message || { blockletDid: '' };
 
-  const {
-    run: fetchAgent,
-    loading: agentLoading,
-    data: agent,
-    error: agentError,
-  } = useRequest(getAgent, {
-    manual: true,
-    onError: (error) => {
-      throw error;
-    },
-  });
-
-  if (agentError) throw agentError;
-
   const { projectId, agentId } = message || {};
   let aid: string | undefined;
   if (projectId && agentId) {
     aid = stringifyIdentity({ projectId, agentId });
   }
 
-  useUpdateEffect(() => {
-    if (aid) {
-      fetchAgent({ aid, working: false });
-    }
-  }, [aid, fetchAgent]);
+  const {
+    loading: agentLoading,
+    data: agent,
+    error: agentError,
+  } = useRequest(getAgent, {
+    ready: !!(projectId && agentId && aid),
+    defaultParams: [
+      {
+        aid: aid as string,
+        working: true,
+        blockletDid: blockletDid ?? '',
+      },
+    ],
+  });
+
+  if (agentError) throw agentError;
 
   const appearanceOutput = useMemo(() => {
     const appearance = agent?.outputVariables?.find(
