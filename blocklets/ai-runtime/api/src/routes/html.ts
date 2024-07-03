@@ -1,9 +1,11 @@
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 
+import { getAgent } from '@api/libs/agent';
 import { getAgentFromAIStudio } from '@api/libs/ai-studio';
 import logger from '@api/libs/logger';
 import { getResourceProjects } from '@api/libs/resource';
+import History from '@api/store/models/history';
 import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { AIGNE_RUNTIME_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
 import { GetAgentResult } from '@blocklet/ai-runtime/core';
@@ -14,12 +16,10 @@ import {
 } from '@blocklet/ai-runtime/types/runtime/runtime-resource-blocklet-state';
 import { getComponentMountPoint } from '@blocklet/sdk/lib/component';
 import config, { getBlockletJs } from '@blocklet/sdk/lib/config';
-import { Express, Router } from 'express';
+import { Express, Request, Router } from 'express';
 import Mustache from 'mustache';
 import { joinURL, withQuery } from 'ufo';
 import type { ViteDevServer } from 'vite';
-
-import { getMessageById } from './message';
 
 export default function setupHtmlRouter(app: Express, viteDevServer?: ViteDevServer) {
   const template = viteDevServer
@@ -28,7 +28,7 @@ export default function setupHtmlRouter(app: Express, viteDevServer?: ViteDevSer
 
   const router = Router();
 
-  const loadHtml = async (req: any) => {
+  const loadHtml = async (req: Request) => {
     const resourceBlockletState: RuntimeResourceBlockletState = {
       applications: [],
     };
@@ -99,27 +99,28 @@ var ${RUNTIME_RESOURCE_BLOCKLET_STATE_GLOBAL_VARIABLE} = ${JSON.stringify(resour
     return { html, resourceBlockletState, blockletDid };
   };
 
-  router.get('/message/:messageId/:aid/:blockletDid?', async (req, res) => {
+  router.get('/messages/:messageId', async (req, res) => {
     const { html: tplHtml, resourceBlockletState } = await loadHtml(req);
     let html = tplHtml;
-    let message;
+    let message: History | undefined;
     let agent: GetAgentResult | undefined;
     const app = resourceBlockletState.applications[0];
 
-    const { aid, blockletDid, messageId } = req.params;
+    const { messageId } = req.params;
 
     try {
-      message = await getMessageById({ messageId });
+      message = await History.findByPk(messageId, { rejectOnEmpty: new Error('No such message') });
     } catch (error) {
       logger.error('message not found', { error });
     }
 
+    const { projectId, blockletDid, agentId } = message as History;
+
     try {
-      const { projectId, projectRef, assistantId } = parseIdentity(aid, { rejectWhenError: true });
-      agent = await getAgent({ blockletDid, projectId, projectRef, agentId: assistantId });
+      agent = await getAgent({ blockletDid, projectId, agentId, working: true });
 
       if (!agent) {
-        throw new Error(`agent ${assistantId} not found`);
+        throw new Error(`agent ${agentId} not found`);
       }
     } catch (error) {
       logger.error('agent not found', { error });
@@ -152,7 +153,7 @@ var ${RUNTIME_RESOURCE_BLOCKLET_STATE_GLOBAL_VARIABLE} = ${JSON.stringify(resour
 
       const app = previewAid
         ? {
-            blockletDid: undefined,
+            blockletDid,
             ...(await getAgentFromAIStudio({ ...parseIdentity(previewAid, { rejectWhenError: true }), working: true })),
             aid: previewAid,
           }

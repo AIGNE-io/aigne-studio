@@ -1,29 +1,53 @@
-import { getMessageById } from '@app/libs/message';
+import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
-import { Result } from '@blocklet/pages-kit/builtin/arcblock/ux';
+import { getMessageById } from '@blocklet/aigne-sdk/api/message';
 import { CurrentAgentProvider, CurrentMessageProvider } from '@blocklet/pages-kit/builtin/async/ai-runtime';
-import { getAgent } from '@blocklet/pages-kit/builtin/async/ai-runtime/api/agent';
+import { Agent, getAgent } from '@blocklet/pages-kit/builtin/async/ai-runtime/api/agent';
 import { DEFAULT_OUTPUT_COMPONENT_ID } from '@blocklet/pages-kit/builtin/async/ai-runtime/constants';
 import RuntimeProvider from '@blocklet/pages-kit/builtin/async/ai-runtime/contexts/Runtime';
 import { useLocaleContext } from '@blocklet/pages-kit/builtin/locale';
 import { CustomComponentRenderer } from '@blocklet/pages-kit/components';
 import { Box, Button, CircularProgress, Theme, useMediaQuery } from '@mui/material';
 import { useRequest } from 'ahooks';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
 export default function MessagePage() {
-  const { aid, blockletDid, id } = useParams();
-  if (!aid || !id) throw new Error('Missing required param `aid` or `messageId`');
+  const [agent, setAgent] = useState<Agent | null>(null);
+  const [agentLoading, setAgentLoading] = useState(false);
+  const [aid, setAid] = useState<string | null>(null);
+
+  const { id } = useParams();
+  if (!id) throw new Error('Missing required param `messageId`');
+
   const isMobile = useMediaQuery<Theme>((theme) => theme.breakpoints.down('md'));
   const { t } = useLocaleContext();
 
   const { data: message, loading, error } = useRequest(() => getMessageById({ messageId: id }));
-  const { data: agent, loading: agentLoading, error: agentErr } = useRequest(() => getAgent({ aid, blockletDid }));
-
   if (error) throw error;
-  if (agentErr) throw agentErr;
+  const { blockletDid } = message || { blockletDid: '' };
+
+  useEffect(() => {
+    const fetchAgent = async () => {
+      const { projectId, agentId } = message || {};
+
+      if (!projectId || !agentId) return;
+      const aid = stringifyIdentity({ projectId, agentId });
+      if (!aid) return;
+      setAid(aid);
+
+      setAgentLoading(true);
+      const agent = await getAgent({ aid, blockletDid });
+      if (!agent) {
+        return;
+      }
+      setAgent(agent);
+      setAgentLoading(false);
+    };
+
+    fetchAgent();
+  }, [blockletDid, message]);
 
   const appearanceOutput = useMemo(() => {
     const appearance = agent?.outputVariables?.find(
@@ -37,7 +61,7 @@ export default function MessagePage() {
   }, [agent]);
 
   const handleClick = () => {
-    const idx = window.location.href.indexOf('/message/');
+    const idx = window.location.href.indexOf('/messages/');
     window.open(joinURL(window.location.href.slice(0, idx), '/preview', `/${aid}`), '_blank');
   };
 
@@ -95,7 +119,7 @@ export default function MessagePage() {
           <CircularProgress size={24} />
         </Box>
       ) : (
-        <Box component={Result} status={404} sx={{ bgcolor: 'transparent', my: 10 }} />
+        ''
       )}
     </Box>
   );

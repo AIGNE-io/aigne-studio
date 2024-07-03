@@ -16,18 +16,6 @@ const searchOptionsSchema = Joi.object<{ sessionId?: string; userId: string; lim
   keyword: Joi.string().empty([null, '']),
 });
 
-export const getMessageById = async ({ messageId }: { messageId: string }) => {
-  if (!messageId) throw new Error('Missing required param `messageId`');
-
-  const message = await History.findOne({ where: { id: messageId } });
-
-  if (!message) {
-    throw new Error('Message not found');
-  }
-
-  return message;
-};
-
 export function messageRoutes(router: Router) {
   /**
    * @openapi
@@ -144,12 +132,12 @@ export function messageRoutes(router: Router) {
     res.json(messages);
   });
 
-  router.get('/message/:id', user(), async (req, res) => {
+  router.get('/messages/:id', user(), async (req, res) => {
     const { id } = req.params;
 
     if (!id) throw new Error('Missing required param `messageId`');
 
-    const message = await History.findOne({ where: { id } });
+    const message = await History.findByPk(id, { rejectOnEmpty: new Error('No such message') });
 
     if (!message) {
       res.status(404).json({ message: 'Not found' });

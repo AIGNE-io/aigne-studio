@@ -22,6 +22,8 @@ export default class History extends Model<InferAttributes<History>, InferCreati
 
   declare sessionId: string;
 
+  declare blockletDid: string;
+
   declare inputs?: { [key: string]: any } | null;
 
   declare outputs?: {
@@ -77,6 +79,10 @@ History.init(
       allowNull: false,
     },
     sessionId: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    blockletDid: {
       type: DataTypes.STRING,
       allowNull: false,
     },
