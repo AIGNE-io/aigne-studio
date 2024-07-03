@@ -20,6 +20,10 @@
       "import": "./lib/esm/api/*.js",
       "require": "./lib/cjs/api/*.js"
     },
+    "./components": {
+      "import": "./lib/esm/components/index.js",
+      "require": "./lib/cjs/components/index.js"
+    },
     "./components/*": {
       "import": "./lib/esm/components/*/index.js",
       "require": "./lib/cjs/components/*/index.js"
@@ -32,6 +36,9 @@
       ],
       "api/*": [
         "./lib/types/api/*.d.ts"
+      ],
+      "components": [
+        "./lib/types/components/index.d.ts"
       ],
       "components/*": [
         "./lib/types/components/*/index.d.ts"
