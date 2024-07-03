@@ -79,7 +79,6 @@ export default function ParallelCallAssistantAgent({
 
         <Box display="flex" sx={{ ml: -0.5 }}>
           <Button
-            disabled={disabled}
             startIcon={<Box component={Icon} icon={PlusIcon} sx={{ fontSize: 16 }} />}
             onClick={() => {
               toolForm.current?.form.reset();

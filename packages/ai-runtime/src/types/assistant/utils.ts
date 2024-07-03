@@ -99,7 +99,7 @@ export function isParallelCallAssistant(file: FileTypeYjs): file is ParallelCall
 export function isParallelCallAssistant(
   file: FileType | FileTypeYjs
 ): file is ParallelCallAssistant | ParallelCallAssistantYjs {
-  return (file as any).type === 'callAgent';
+  return (file as any).type === 'parallelCallAgent';
 }
 
 export function isPromptAssistant(file: FileType): file is PromptAssistant;
