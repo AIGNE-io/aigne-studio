@@ -238,12 +238,12 @@ router.post('/call', user(), auth(), compression(), async (req, res) => {
 
     if (llmResponseStream) {
       let text = '';
-      let calls: NonNullable<ChatCompletionChunk['delta']['toolCalls']> | undefined;
+      const calls: NonNullable<ChatCompletionChunk['delta']['toolCalls']> = [];
 
       for await (const chunk of llmResponseStream as ReadableStream<ChatCompletionResponse>) {
         if (isChatCompletionChunk(chunk)) {
           text += chunk.delta.content || '';
-          calls = toolCallsTransform(calls, chunk);
+          toolCallsTransform(calls, chunk);
 
           if (stream) {
             emit({
@@ -265,7 +265,7 @@ router.post('/call', user(), auth(), compression(), async (req, res) => {
             object: {
               $llmResponse: {
                 content: text,
-                toolCalls: calls,
+                toolCalls: calls.length ? calls : undefined,
               },
             },
           },

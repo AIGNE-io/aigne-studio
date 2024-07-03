@@ -215,7 +215,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase {
             },
           });
 
-      let calls: NonNullable<ChatCompletionChunk['delta']['toolCalls']> | undefined;
+      const calls: NonNullable<ChatCompletionChunk['delta']['toolCalls']> = [];
 
       for await (const chunk of response) {
         if (isChatCompletionUsage(chunk)) {
@@ -228,7 +228,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase {
         }
 
         if (isChatCompletionChunk(chunk)) {
-          calls = toolCallsTransform(calls, chunk);
+          toolCallsTransform(calls, chunk);
         }
       }
 
