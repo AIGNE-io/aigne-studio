@@ -1,3 +1,4 @@
+import { logger } from '@blocklet/sdk/lib/config';
 import { cloneDeep } from 'lodash';
 
 import { CallAssistant } from '../../types';
@@ -27,12 +28,34 @@ export class CallAgentExecutor extends AgentExecutorBase {
       })
     );
 
-    const map = new Map((callAgent?.outputVariables || []).map((item) => [item.name, item]));
-    (agent.outputVariables || []).forEach((item) => map.set(item.name, item));
-    const result = Array.from(map.values());
+    logger.info('call agent output', JSON.stringify(callAgent.outputVariables, null, 2));
 
-    // 覆盖被调用 agent 的输出
+    // 处理引用的输出变量
+    const map = new Map();
+    (agent?.outputVariables || [])
+      .map((i) => {
+        if (i.from?.type === 'output') {
+          const list = callAgent.outputVariables || [];
+          const output = list.find((r) => r.id === i?.from?.id);
+          if (output) return output;
+        }
+
+        return i;
+      })
+      .forEach((item) => {
+        // 出现相同字段时，会被覆盖，保留最后一个
+        if (map.has(item.name)) {
+          map.delete(item.name);
+        }
+
+        map.set(item.name, item);
+      });
+
+    const result = Array.from(map.values());
     callAgent.outputVariables = cloneDeep(result);
+
+    logger.info('current agent output', JSON.stringify(agent.outputVariables, null, 2));
+    logger.info('merge call agent output', JSON.stringify(callAgent.outputVariables, null, 2));
 
     // 获取被调用 agent 的输入
     const inputs = await this.prepareInputs(agent, options);

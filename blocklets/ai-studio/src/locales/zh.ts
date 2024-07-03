@@ -1,4 +1,3 @@
-import { call } from '@blocklet/sdk';
 import flat from 'flat';
 
 export default flat({
@@ -740,5 +739,6 @@ export default flat({
   hideOutputTip: '隐藏输出',
   callAgent: '调用 Agent',
   callMultipleAgent: '调用多个 Agent',
-  inheritOutput: '你可以添加重名变量覆盖继承后的输出变量',
+  referenceOutput: '引用 {agent} 输出',
+  ref: '引用',
 });

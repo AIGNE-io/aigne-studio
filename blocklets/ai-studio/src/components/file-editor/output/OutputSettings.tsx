@@ -11,9 +11,7 @@ import GripVertical from '@iconify-icons/tabler/grip-vertical';
 import {
   Box,
   BoxProps,
-  Chip,
   Stack,
-  Switch,
   Table,
   TableBody,
   TableCell,
@@ -28,11 +26,14 @@ import { cloneDeep, sortBy, uniqBy } from 'lodash';
 import { nanoid } from 'nanoid';
 import React, { ComponentType, ReactNode, useEffect, useMemo } from 'react';
 
+import useCallAgentOutput from '../use-call-agent-output';
 import AddOutputVariableButton from './AddOutputVariableButton';
 import OutputActionsCell, { SettingActionDialogProvider } from './OutputActionsCell';
+import OutputAppearanceCell from './OutputAppearanceCell';
 import OutputDescriptionCell from './OutputDescriptionCell';
 import OutputFormatCell from './OutputFormatCell';
 import OutputNameCell from './OutputNameCell';
+import OutputRequiredCell from './OutputRequiredCell';
 import { getRuntimeOutputVariable } from './type';
 
 export default function OutputSettings({
@@ -47,7 +48,6 @@ export default function OutputSettings({
   openApis?: DatasetObject[];
 }) {
   const { t } = useLocaleContext();
-  const { getFileById } = useProjectStore(projectId, gitRef);
 
   const checkOutputVariables = useRoutesAssistantOutputs({ value, projectId, gitRef, openApis });
   const { getAllSelectCustomOutputs } = useAllSelectDecisionAgentOutputs({ value, projectId, gitRef });
@@ -80,39 +80,6 @@ export default function OutputSettings({
       }
     }
   }, [value]);
-
-  const id = value.type === 'callAgent' ? value.call?.id : undefined;
-  const ids = value.type === 'parallelCallAgent' ? Object.values(value.agents || {}).map((x) => x.data.id) : [];
-  const inheritedOutput = useMemo(() => {
-    if (value.type === 'callAgent') {
-      if (value.call) {
-        const callAgent = getFileById(value.call.id);
-
-        return ((callAgent?.outputVariables && sortBy(Object.values(callAgent.outputVariables), 'index')) || []).map(
-          (item) => item.data
-        );
-      }
-
-      return [];
-    }
-
-    if (value.type === 'parallelCallAgent') {
-      if (value.agents) {
-        const outputVariables = Object.values(value.agents).flatMap((x) => {
-          const agent = getFileById(x.data.id);
-          return ((agent?.outputVariables && sortBy(Object.values(agent.outputVariables), 'index')) || []).map(
-            (item) => item.data
-          );
-        });
-
-        return outputVariables;
-      }
-
-      return [];
-    }
-
-    return [];
-  }, [id, ids]);
 
   return (
     <Box sx={{ background: '#F9FAFB', py: 1.5, px: 2, pb: 2, borderRadius: 1 }}>
@@ -171,21 +138,6 @@ export default function OutputSettings({
               </TableRow>
             </TableHead>
 
-            {inheritedOutput.map((item) => {
-              return (
-                <VariableRow
-                  key={item.id}
-                  sx={{ backgroundColor: 'rgba(0, 0, 0, 0.06) !important' }}
-                  disabled
-                  selectAgentOutputVariables={checkOutputVariables?.outputVariables || {}}
-                  variable={item}
-                  value={value}
-                  projectId={projectId}
-                  gitRef={gitRef}
-                />
-              );
-            })}
-
             {value.outputVariables && (
               <DragSortListYjs
                 component={TableBody}
@@ -235,8 +187,19 @@ export default function OutputSettings({
 
         {value.type !== 'parallelCallAgent' && (
           <AddOutputVariableButton
+            projectId={projectId}
+            gitRef={gitRef}
             allSelectAgentOutputs={cloneDeep(allSelectAgentOutputs)}
             assistant={value}
+            onDeleteSelect={({ id }) => {
+              setField((vars) => {
+                if (!id) return;
+                if (!vars[id]) return;
+
+                delete vars[id];
+                sortBy(Object.values(vars), 'index').forEach((item, index) => (item.index = index));
+              });
+            }}
             onSelect={({ name, from }) => {
               setField((vars) => {
                 const exist = name ? outputVariables?.find((i) => i.data.name === name) : undefined;
@@ -269,7 +232,6 @@ export default function OutputSettings({
           />
         )}
       </Box>
-      {id && <Box sx={{ color: 'warning.main', fontSize: 12 }}>{t('inheritOutput')}</Box>}
     </Box>
   );
 }
@@ -304,6 +266,12 @@ function VariableRow({
 
   const { getVariables } = useProjectStore(projectId, gitRef);
   const variableYjs = getVariables();
+  const { getRefOutputData } = useCallAgentOutput({
+    projectId,
+    gitRef,
+    assistant: value,
+  });
+  const refOutput = getRefOutputData(variable?.from?.id || '');
 
   const variables = (variableYjs?.variables || []).filter((x) => x.type?.type === (variable.type || 'string'));
   const datastoreVariable = variables.find((x) => {
@@ -340,11 +308,20 @@ function VariableRow({
     return 'transparent !important';
   }, [error, variable.hidden]);
 
+  const readOnly = Boolean(disabled || variable.hidden || Boolean(variable.from?.type === 'output'));
+
+  // 删除未被引用的输出变量
+  useEffect(() => {
+    if (variable.from?.type === 'output' && !refOutput) onRemove?.();
+  }, [variable.from?.type === 'output' && !refOutput]);
+
+  if (variable.from?.type === 'output' && !refOutput) return null;
+
   return (
     <>
       <SettingActionDialogProvider
         depth={depth}
-        disabled={disabled || variable.hidden}
+        disabled={readOnly}
         onRemove={onRemove}
         output={variable}
         variable={datastoreVariable}
@@ -360,9 +337,9 @@ function VariableRow({
             sx={{
               backgroundColor,
               '*': {
-                color: variable.hidden || disabled ? 'text.disabled' : undefined,
+                color: Boolean(disabled || variable.hidden) ? 'text.disabled' : undefined,
               },
-              cursor: variable.hidden || disabled ? 'not-allowed' : 'pointer',
+              cursor: readOnly ? 'not-allowed' : 'pointer',
               ...props.sx,
             }}>
             <Box component={TableCell}>
@@ -370,19 +347,22 @@ function VariableRow({
 
               <Box sx={{ ml: depth === 0 ? depth : depth + 2 }}>
                 <OutputNameCell
+                  projectId={projectId}
+                  gitRef={gitRef}
+                  assistant={value}
                   depth={depth}
                   output={variable}
-                  TextFieldProps={{
-                    disabled: Boolean(disabled) || parent?.type === 'array' || Boolean(variable.hidden),
-                  }}
+                  TextFieldProps={{ disabled: parent?.type === 'array' || readOnly }}
                 />
               </Box>
             </Box>
             <Box component={TableCell}>
               <OutputDescriptionCell
+                projectId={projectId}
+                gitRef={gitRef}
                 assistant={value}
                 output={variable}
-                TextFieldProps={{ disabled: Boolean(disabled) || Boolean(variable.hidden) }}
+                TextFieldProps={{ disabled: readOnly }}
               />
             </Box>
             <Box component={TableCell}>
@@ -390,29 +370,19 @@ function VariableRow({
                 assistant={value}
                 output={variable}
                 variable={datastoreVariable}
-                TextFieldProps={{ disabled: Boolean(disabled) || Boolean(variable.hidden) }}
+                TextFieldProps={{ disabled: readOnly }}
               />
             </Box>
             <Box component={TableCell}>
-              {!variable.hidden && !runtimeVariable && variable.from?.type !== 'input' && (
-                <Switch
-                  size="small"
-                  disabled={Boolean(disabled)}
-                  checked={variable.required || false}
-                  onChange={(_, checked) => (variable.required = checked)}
-                  onClick={(e) => e.stopPropagation()}
-                />
-              )}
+              <OutputRequiredCell output={variable} disabled={Boolean(disabled)} />
             </Box>
             <Box component={TableCell}>
-              {variable.appearance && (
-                <Chip className="ellipsis" label={variable.appearance.componentName} size="small" />
-              )}
+              <OutputAppearanceCell projectId={projectId} gitRef={gitRef} assistant={value} output={variable} />
             </Box>
             <Box component={TableCell} align="right" onClick={(e) => e.stopPropagation()}>
               <OutputActionsCell
                 depth={depth}
-                disabled={disabled}
+                disabled={disabled || variable.from?.type === 'output'}
                 onRemove={onRemove}
                 output={variable}
                 variable={datastoreVariable}

@@ -37,6 +37,8 @@ import ProfileSettings from './ProfileSettings';
 import ShareSettings from './ShareSettings';
 import { getRuntimeOutputVariable, runtimeOutputVariableNames } from './type';
 
+const fromType = ['input', 'output'];
+
 export default function OutputActionsCell({
   depth,
   output,
@@ -91,7 +93,7 @@ export default function OutputActionsCell({
         projectId={projectId}
         gitRef={gitRef}
         assistant={assistant}
-        isSaveAs={Boolean(depth === 0 && !runtimeVariable && output.from?.type !== 'input')}
+        isSaveAs={Boolean(depth === 0 && !runtimeVariable && !fromType.includes(output.from?.type || ''))}
         runtimeVariable={Boolean(runtimeVariable)}
         variables={variables}
         variable={variable}
@@ -361,7 +363,7 @@ export function SettingActionDialogProvider({
       projectId={projectId}
       gitRef={gitRef}
       assistant={assistant}
-      isSaveAs={Boolean(depth === 0 && !runtimeVariable && output.from?.type !== 'input')}
+      isSaveAs={Boolean(depth === 0 && !runtimeVariable && !fromType.includes(output.from?.type || ''))}
       runtimeVariable={Boolean(runtimeVariable)}
       variables={variables}
       variable={variable}
