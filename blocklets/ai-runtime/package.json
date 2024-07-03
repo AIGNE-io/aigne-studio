@@ -1,6 +1,6 @@
 {
   "name": "ai-runtime",
-  "version": "0.3.15",
+  "version": "0.3.17",
   "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
   "scripts": {
     "dev": "cross-env COMPONENT_STORE_URL=https://test.store.blocklet.dev blocklet dev",
@@ -42,7 +42,7 @@
     "@blocklet/discuss-kit": "^1.6.264",
     "@blocklet/js-sdk": "^1.16.28",
     "@blocklet/logger": "^1.16.28",
-    "@blocklet/pages-kit": "^0.2.364",
+    "@blocklet/pages-kit": "^0.2.365",
     "@blocklet/sdk": "^1.16.28",
     "@blocklet/ui-react": "^2.10.3",
     "@langchain/community": "^0.0.42",
@@ -111,8 +111,8 @@
     "npm-run-all": "^4.1.5",
     "ts-node": "^10.9.2",
     "tsc-alias": "^1.8.10",
-    "typescript": "^5.5.2",
-    "vite": "^5.3.2",
+    "typescript": "^5.5.3",
+    "vite": "^5.3.3",
     "vite-plugin-blocklet": "^0.7.9",
     "vite-plugin-svgr": "^4.2.0",
     "vite-tsconfig-paths": "^4.3.2",

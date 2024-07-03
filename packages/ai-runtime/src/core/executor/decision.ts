@@ -29,6 +29,7 @@ import selectAgentName from '../assistant/select-agent';
 import { GetAgentResult, RunAssistantCallback, ToolCompletionDirective } from '../assistant/type';
 import { renderMessage } from '../utils/render-message';
 import { nextTaskId } from '../utils/task-id';
+import { toolCallsTransform } from '../utils/tool-calls-transform';
 import { AgentExecutorBase, AgentExecutorOptions } from './base';
 import { runAPITool } from './blocklet';
 
@@ -214,7 +215,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase {
             },
           });
 
-      let calls: NonNullable<ChatCompletionChunk['delta']['toolCalls']> | undefined;
+      const calls: NonNullable<ChatCompletionChunk['delta']['toolCalls']> = [];
 
       for await (const chunk of response) {
         if (isChatCompletionUsage(chunk)) {
@@ -227,21 +228,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase {
         }
 
         if (isChatCompletionChunk(chunk)) {
-          const { toolCalls } = chunk.delta;
-
-          if (toolCalls) {
-            if (!calls) {
-              calls = toolCalls;
-            } else {
-              toolCalls.forEach((item, index) => {
-                const call = calls?.[index];
-                if (call?.function) {
-                  call.function.name += item.function?.name || '';
-                  call.function.arguments += item.function?.arguments || '';
-                }
-              });
-            }
-          }
+          toolCallsTransform(calls, chunk);
         }
       }
 

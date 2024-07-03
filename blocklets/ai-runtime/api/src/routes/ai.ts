@@ -16,6 +16,7 @@ import {
 import { defaultImageModel, getSupportedImagesModels } from '@blocklet/ai-runtime/common';
 import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { CallAI, CallAIImage, RunAssistantCallback, RuntimeExecutor, nextTaskId } from '@blocklet/ai-runtime/core';
+import { toolCallsTransform } from '@blocklet/ai-runtime/core/utils/tool-calls-transform';
 import { AssistantResponseType, RuntimeOutputVariable, isImageAssistant } from '@blocklet/ai-runtime/types';
 import { RuntimeError, RuntimeErrorType } from '@blocklet/ai-runtime/types/runtime/error';
 import { auth } from '@blocklet/sdk/lib/middlewares';
@@ -238,27 +239,12 @@ router.post('/call', user(), auth(), compression(), async (req, res) => {
 
     if (llmResponseStream) {
       let text = '';
-      let calls: NonNullable<ChatCompletionChunk['delta']['toolCalls']> | undefined;
+      const calls: NonNullable<ChatCompletionChunk['delta']['toolCalls']> = [];
 
       for await (const chunk of llmResponseStream as ReadableStream<ChatCompletionResponse>) {
         if (isChatCompletionChunk(chunk)) {
           text += chunk.delta.content || '';
-
-          const { toolCalls } = chunk.delta;
-
-          if (toolCalls) {
-            if (!calls) {
-              calls = toolCalls;
-            } else {
-              toolCalls.forEach((item, index) => {
-                const call = calls?.[index];
-                if (call?.function) {
-                  call.function.name += item.function?.name || '';
-                  call.function.arguments += item.function?.arguments || '';
-                }
-              });
-            }
-          }
+          toolCallsTransform(calls, chunk);
 
           if (stream) {
             emit({
@@ -280,7 +266,7 @@ router.post('/call', user(), auth(), compression(), async (req, res) => {
             object: {
               $llmResponse: {
                 content: text,
-                toolCalls: calls,
+                toolCalls: calls.length ? calls : undefined,
               },
             },
           },
