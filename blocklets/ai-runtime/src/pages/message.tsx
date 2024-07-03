@@ -38,7 +38,7 @@ export default function MessagePage() {
       setAid(aid);
 
       setAgentLoading(true);
-      const agent = await getAgent({ aid, blockletDid });
+      const agent = await getAgent({ aid, blockletDid, working: true });
       if (!agent) {
         return;
       }
