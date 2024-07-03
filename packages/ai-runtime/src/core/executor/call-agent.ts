@@ -11,7 +11,7 @@ export class CallAgentExecutor extends AgentExecutorBase {
     // ignore
   }
 
-  async getCallAgentAndOptions(agent: CallAssistant & GetAgentResult, options: AgentExecutorOptions) {
+  override async execute(agent: CallAssistant & GetAgentResult, options: AgentExecutorOptions) {
     if (!agent.call) {
       throw new Error('Must choose an agent to execute');
     }
@@ -67,15 +67,9 @@ export class CallAgentExecutor extends AgentExecutorBase {
       )
     );
 
-    return {
-      agent: callAgent,
-      options: {
-        ...options,
-        inputs: {
-          ...(inputs || {}),
-          ...(parameters || {}),
-        },
-      },
-    };
+    return await this.context.executor(this.context).execute(callAgent, {
+      ...options,
+      inputs: { ...(inputs || {}), ...(parameters || {}) },
+    });
   }
 }

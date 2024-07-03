@@ -57,11 +57,7 @@ export class RuntimeExecutor extends AgentExecutorBase {
         return new DecisionAgentExecutor(this.context).execute(agent, options);
       }
       case 'callAgent': {
-        const { agent: newAgent, options: newOptions } = await new CallAgentExecutor(
-          this.context
-        ).getCallAgentAndOptions(agent, options);
-
-        return this.execute(newAgent, newOptions);
+        return new CallAgentExecutor(this.context).execute(agent, options);
       }
       default: {
         throw new Error(`Unsupported agent type: ${(agent as any)?.type}`);
