@@ -744,6 +744,6 @@ export default flat({
   activeOutputTip: 'Active output',
   hideOutputTip: 'Hide output',
   callAgent: 'Call Agent',
-  referenceOutput: 'Reference {agent} Output',
-  ref: 'Reference',
+  referenceOutput: 'From {agent} Output',
+  ref: 'From',
 });
