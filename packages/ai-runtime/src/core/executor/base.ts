@@ -153,7 +153,7 @@ export abstract class AgentExecutorBase {
     return result;
   }
 
-  async prepareInputs(agent: GetAgentResult, { inputs, taskId }: AgentExecutorOptions) {
+  private async prepareInputs(agent: GetAgentResult, { inputs, taskId }: AgentExecutorOptions) {
     const variables: { [key: string]: any } = { ...inputs };
 
     const userId = this.context.user.did;
@@ -398,6 +398,7 @@ export abstract class AgentExecutorBase {
 
       return res;
     }, {});
+
     return joiSchema.validateAsync({ ...outputs, ...outputInputs }, { stripUnknown: true });
   }
 

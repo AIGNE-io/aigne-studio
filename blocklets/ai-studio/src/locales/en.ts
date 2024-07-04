@@ -744,7 +744,6 @@ export default flat({
   activeOutputTip: 'Active output',
   hideOutputTip: 'Hide output',
   callAgent: 'Call Agent',
-  callMultipleAgent: 'Call Multiple Agents',
-  referenceOutput: 'Reference {agent} Output',
-  ref: 'Reference',
+  referenceOutput: 'From {agent} Output',
+  ref: 'From',
 });

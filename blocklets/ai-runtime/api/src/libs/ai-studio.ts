@@ -7,19 +7,19 @@ import { getAssistantFromResourceBlocklet } from './resource';
 export async function getAgentFromAIStudio({
   projectId,
   projectRef,
-  assistantId,
+  agentId,
   working,
 }: {
   projectId: string;
   projectRef: string;
-  assistantId: string;
+  agentId: string;
   working?: boolean;
-}): Promise<Awaited<ReturnType<typeof getAssistantFromResourceBlocklet>>> {
+}): Promise<NonNullable<Awaited<ReturnType<typeof getAssistantFromResourceBlocklet>>>> {
   return (
     await call({
       name: 'ai-studio',
       method: 'GET',
-      path: joinURL('/api/projects', projectId, '/refs', projectRef, '/agents', assistantId),
+      path: joinURL('/api/projects', projectId, '/refs', projectRef, '/agents', agentId),
       params: { working },
     })
   ).data;

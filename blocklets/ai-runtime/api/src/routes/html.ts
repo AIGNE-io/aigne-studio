@@ -1,9 +1,10 @@
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 
+import { getAgentFromAIStudio } from '@api/libs/ai-studio';
 import logger from '@api/libs/logger';
 import { getResourceProjects } from '@api/libs/resource';
-import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
+import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { AIGNE_RUNTIME_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
 import {
   RUNTIME_RESOURCE_BLOCKLET_STATE_GLOBAL_VARIABLE,
@@ -13,7 +14,7 @@ import { getComponentMountPoint } from '@blocklet/sdk/lib/component';
 import config, { getBlockletJs } from '@blocklet/sdk/lib/config';
 import { Express, Router } from 'express';
 import Mustache from 'mustache';
-import { joinURL } from 'ufo';
+import { joinURL, withQuery } from 'ufo';
 import type { ViteDevServer } from 'vite';
 
 export default function setupHtmlRouter(app: Express, viteDevServer?: ViteDevServer) {
@@ -58,15 +59,20 @@ export default function setupHtmlRouter(app: Express, viteDevServer?: ViteDevSer
     }
 
     try {
-      const app = resourceBlockletState.applications[0];
+      const previewAid = req.path.match(/\/preview\/(?<aid>\w+)/)?.groups?.aid;
+
+      const app = previewAid
+        ? {
+            blockletDid: undefined,
+            ...(await getAgentFromAIStudio({ ...parseIdentity(previewAid, { rejectWhenError: true }), working: true })),
+            aid: previewAid,
+          }
+        : resourceBlockletState.applications[0];
 
       html = Mustache.render(html, {
         ogTitle: app?.project.name || '',
         ogDescription: app?.project.description || '',
-        ogImage:
-          blockletDid && app?.project.id
-            ? joinURL(config.env.appUrl, '/.well-known/service/blocklet/logo-bundle', blockletDid)
-            : '',
+        ogImage: app ? getAgentOgImageUrl(app) : '',
       });
     } catch (error) {
       logger.error('render html error', { error });
@@ -90,4 +96,11 @@ var ${RUNTIME_RESOURCE_BLOCKLET_STATE_GLOBAL_VARIABLE} = ${JSON.stringify(resour
   });
 
   app.use(router);
+}
+
+function getAgentOgImageUrl({ blockletDid, aid }: { blockletDid?: string; aid: string }) {
+  return withQuery(
+    joinURL(config.env.appUrl, getComponentMountPoint(AIGNE_RUNTIME_COMPONENT_DID), '/api/agents', aid, 'logo'),
+    { blockletDid, imageFilter: 'resize', w: 200 }
+  );
 }

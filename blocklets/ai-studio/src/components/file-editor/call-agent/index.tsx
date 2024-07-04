@@ -60,7 +60,7 @@ export default function CallAgentEditor({
             <Box key={value.call.id} display="flex" alignItems="center" gap={0.5} width={1}>
               <AgentItemView
                 projectId={projectId}
-                projectRef={gitRef}
+                gitRef={gitRef}
                 agent={value.call}
                 assistant={value}
                 readOnly={readOnly}
@@ -287,7 +287,7 @@ export const ToolDialog = forwardRef<
 
 export function AgentItemView({
   projectId,
-  projectRef,
+  gitRef,
   agent,
   assistant,
   readOnly,
@@ -296,7 +296,7 @@ export function AgentItemView({
 }: {
   assistant: CallAssistantYjs;
   projectId: string;
-  projectRef: string;
+  gitRef: string;
   agent: Tool;
   readOnly?: boolean;
   onEdit: () => void;
@@ -304,10 +304,19 @@ export function AgentItemView({
   const navigate = useNavigate();
 
   const { t } = useLocaleContext();
-  const { store } = useProjectStore(projectId, projectRef);
+  const { store } = useProjectStore(projectId, gitRef);
 
   const f = store.files[agent.id];
   const target = f && isAssistant(f) ? f : undefined;
+
+  const parameters = useMemo(() => {
+    return (
+      target?.parameters &&
+      sortBy(Object.values(target.parameters), (i) => i.index).filter(
+        (i): i is typeof i & { data: { key: string } } => !!i.data.key
+      )
+    );
+  }, [target]);
 
   if (!target) return null;
   const { name, description } = target;
@@ -318,6 +327,7 @@ export function AgentItemView({
       direction="row"
       {...props}
       sx={{
+        position: 'relative',
         background: '#F9FAFB',
         py: 1,
         px: 1.5,
@@ -349,7 +359,7 @@ export function AgentItemView({
             lineHeight: '20px',
             fontWeight: 500,
             input: {
-              fontSize: '16px',
+              fontSize: '18px',
               color: 'primary.main',
             },
           }}
@@ -369,9 +379,53 @@ export function AgentItemView({
           }}
           inputProps={{ readOnly: true }}
         />
+
+        <Box>
+          <Tooltip title={t('parametersTip', { variable: '{variable}' })} placement="top-start" disableInteractive>
+            <Stack justifyContent="space-between" direction="row" alignItems="center">
+              <Typography variant="subtitle5" color="text.secondary" mb={0}>
+                {t('parameters')}
+              </Typography>
+
+              <InfoOutlined fontSize="small" sx={{ color: 'info.main', fontSize: 14 }} />
+            </Stack>
+          </Tooltip>
+
+          <Box>
+            {parameters?.map(({ data: parameter }: any) => {
+              if (!parameter?.key) return null;
+
+              return (
+                <Stack key={parameter.id}>
+                  <Typography variant="caption" mx={1}>
+                    {parameter.label || parameter.key}
+                  </Typography>
+
+                  <PromptEditorField
+                    placeholder={`{{${parameter.label || parameter.key}}}`}
+                    value={agent.parameters?.[parameter.key] || ''}
+                    projectId={projectId}
+                    gitRef={gitRef}
+                    assistant={assistant}
+                    path={[]}
+                    onChange={(value) => {
+                      agent.parameters ??= {};
+                      if (parameter.key) agent.parameters[parameter.key] = value;
+                    }}
+                  />
+                </Stack>
+              );
+            })}
+          </Box>
+        </Box>
       </Stack>
 
-      <Stack direction="row" className="hover-visible" sx={{ display: 'none' }} gap={0.5} flex={1}>
+      <Stack
+        direction="row"
+        className="hover-visible"
+        sx={{ position: 'absolute', right: 10, top: 10, display: 'none' }}
+        gap={0.5}
+        flex={1}>
         <Button sx={{ minWidth: 24, minHeight: 24, p: 0 }} onClick={onEdit}>
           <Box component={Icon} icon={PencilIcon} sx={{ fontSize: 18, color: 'text.secondary' }} />
         </Button>

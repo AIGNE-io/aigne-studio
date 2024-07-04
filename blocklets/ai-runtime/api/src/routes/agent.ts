@@ -5,12 +5,12 @@ import { ResourceType, getProjectFromResource, getResourceProjects } from '@api/
 import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
 import { GetAgentResult } from '@blocklet/ai-runtime/core';
+import { Agent } from '@blocklet/aigne-sdk/api/agent';
 import { getComponentMountPoint } from '@blocklet/sdk';
 import config from '@blocklet/sdk/lib/config';
 import { Router } from 'express';
 import { exists } from 'fs-extra';
 import Joi from 'joi';
-import isEmpty from 'lodash/isEmpty';
 import pick from 'lodash/pick';
 import { joinURL } from 'ufo';
 
@@ -32,7 +32,7 @@ router.get('/', async (req, res) => {
 
   const projects = await getResourceProjects({ type: query.type });
 
-  const resourceAgents = projects.flatMap((project) =>
+  const agents: Agent[] = projects.flatMap((project) =>
     project.assistants
       .filter((assistant) => {
         if (query.type === 'application') {
@@ -56,7 +56,7 @@ router.get('/', async (req, res) => {
       )
   );
 
-  res.json({ agents: resourceAgents });
+  res.json({ agents });
 });
 
 export interface GetAgentQuery {
@@ -149,18 +149,7 @@ const respondAgentFields = (
   agent: Omit<GetAgentResult, 'identity'> & { identity: Omit<GetAgentResult['identity'], 'aid'> }
 ) => ({
   ...pick(agent, 'id', 'name', 'description', 'type', 'parameters', 'createdAt', 'updatedAt', 'createdBy', 'identity'),
-  outputVariables: (agent.outputVariables ?? [])
-    .filter((i) => !i.hidden)
-    .map((i) => ({
-      ...i,
-      // 兼容旧版本数据，2024-06-23 之后可以删掉
-      appearance: {
-        ...(!i.appearance || isEmpty(i.appearance)
-          ? pick(typeof i.initialValue === 'object' ? i.initialValue : {}, 'componentId', 'componentName')
-          : i.appearance),
-        componentProperties: i.appearance?.componentProperties || (i.initialValue as any)?.componentProps,
-      },
-    })),
+  outputVariables: (agent.outputVariables ?? []).filter((i) => !i.hidden),
   project: pick(agent.project, 'id', 'name', 'description', 'createdBy', 'createdAt', 'updatedAt', 'appearance'),
   identity: {
     ...agent.identity,

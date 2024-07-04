@@ -600,11 +600,15 @@ function SelectInputType({
         sx={{ top: 4, right: -8 }}
         path={[value.id, 'parameters', parameter?.id ?? '', 'type']}>
         <ParameterConfigType
-          disabled={parameter.from === FROM_PARAMETER || parameter.from === FROM_KNOWLEDGE_PARAMETER}
+          disabled={
+            parameter.key === 'question' ||
+            parameter.from === FROM_PARAMETER ||
+            parameter.from === FROM_KNOWLEDGE_PARAMETER
+          }
           variant="standard"
           hiddenLabel
           SelectProps={{ autoWidth: true }}
-          value={multiline ? 'multiline' : parameter?.type ?? 'string'}
+          value={parameter.key === 'question' ? 'string' : multiline ? 'multiline' : parameter?.type ?? 'string'}
           InputProps={{ readOnly }}
           onChange={(e) => {
             const newValue = e.target.value;

@@ -19,9 +19,9 @@ export default class Project extends Model<InferAttributes<Project>, InferCreati
 
   declare model?: string;
 
-  declare createdAt: CreationOptional<Date | string>;
+  declare createdAt: CreationOptional<Date>;
 
-  declare updatedAt: CreationOptional<Date | string>;
+  declare updatedAt: CreationOptional<Date>;
 
   declare createdBy: string;
 

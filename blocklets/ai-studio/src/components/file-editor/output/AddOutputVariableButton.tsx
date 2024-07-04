@@ -49,7 +49,7 @@ const ActionRefOutput = ({
             if (outputsExist.has(output.id)) {
               onDeleteSelect?.({ id: getRefOutputId(output.id) || '' });
             } else {
-              onSelect?.({ name: '', from: { type: 'output', id: output.id } });
+              onSelect?.({ name: output.name, from: { type: 'output', id: output.id } });
             }
           }}>
           <ListItemIcon>
