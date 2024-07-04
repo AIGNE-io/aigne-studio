@@ -26,15 +26,13 @@ const useCallAgentOutput = ({
       : [];
 
   const getOutputs = useCallback(() => {
-    if (assistant.type === 'callAgent') {
-      const agents = Object.values(assistant?.agents || {}).map((i) => i.data);
-      return agents.flatMap((i) => {
-        const callAgent = getFileById(i.id);
-        return (callAgent?.outputVariables && sortBy(Object.values(callAgent.outputVariables), 'index')) || [];
-      });
-    }
+    if (assistant.type !== 'callAgent') return [];
 
-    return [];
+    const agents = Object.values(assistant?.agents || {}).map((i) => i.data);
+    return agents.flatMap((i) => {
+      const callAgent = getFileById(i.id);
+      return (callAgent?.outputVariables && sortBy(Object.values(callAgent.outputVariables), 'index')) || [];
+    });
   }, [ids]);
 
   const appearance = runtimeOutputVariables.find((i) => i.group === 'appearance')?.outputs || [];
