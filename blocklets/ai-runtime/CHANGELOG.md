@@ -1,3 +1,7 @@
+## 0.3.18 (2024-7-4)
+
+- fix: failed to filter reference agent parameters in parameters
+
 ## 0.3.17 (2024-7-3)
 
 - fix: correct parsing multiple function calling chunks
