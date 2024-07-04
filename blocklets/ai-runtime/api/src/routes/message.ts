@@ -132,18 +132,11 @@ export function messageRoutes(router: Router) {
     res.json(messages);
   });
 
-  router.get('/messages/:id', user(), async (req, res) => {
-    const { id } = req.params;
+  router.get('/messages/:messageId', user(), async (req, res) => {
+    const { messageId } = req.params;
 
-    if (!id) throw new Error('Missing required param `messageId`');
-
-    const message = await History.findByPk(id, { rejectOnEmpty: new Error('No such message') });
-
-    if (!message) {
-      res.status(404).json({ message: 'Not found' });
-      return;
-    }
-
+    if (!messageId) throw new Error('Missing required param `messageId`');
+    const message = await History.findByPk(messageId, { rejectOnEmpty: new Error('No such message') });
     res.json(message);
   });
 

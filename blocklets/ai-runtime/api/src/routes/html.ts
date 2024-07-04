@@ -103,9 +103,9 @@ var ${RUNTIME_RESOURCE_BLOCKLET_STATE_GLOBAL_VARIABLE} = ${JSON.stringify(resour
       logger.error('message not found', { error });
     }
 
-    const { projectId, blockletDid, agentId } = message as History;
+    const { projectId, blockletDid, agentId, projectRef } = message as History;
     try {
-      agent = await getAgent({ blockletDid, projectRef: 'main', projectId, agentId, working: true });
+      agent = await getAgent({ blockletDid, projectRef, projectId, agentId, working: true });
     } catch (error) {
       logger.error('agent not found', { error });
     }

@@ -61,7 +61,7 @@ export default function WrappedApp() {
         <Route path="/" element={<HomePage />} />
         <Route path="/apps/:aid" element={<ApplicationPage />} />
         <Route path="/preview/:aid" element={<PreviewPage />} />
-        <Route path="/messages/:id" element={<MessagePage />} />
+        <Route path="/messages/:messageId" element={<MessagePage />} />
       </Route>
     ),
     { basename }
