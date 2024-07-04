@@ -26,7 +26,7 @@ export default function MessagePage() {
 
   const blockletDid = message?.blockletDid;
 
-  const { projectId, agentId, projectRef } = message || {};
+  const { projectId, agentId, projectRef = 'main' } = message || {};
 
   let aid: string | undefined;
   if (projectId && agentId) {
