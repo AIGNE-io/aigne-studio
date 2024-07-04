@@ -9,7 +9,6 @@ import History from '@api/store/models/history';
 import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { AIGNE_RUNTIME_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
 import { GetAgentResult } from '@blocklet/ai-runtime/core';
-import { RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
 import {
   RUNTIME_RESOURCE_BLOCKLET_STATE_GLOBAL_VARIABLE,
   RuntimeResourceBlockletState,
@@ -115,8 +114,7 @@ var ${RUNTIME_RESOURCE_BLOCKLET_STATE_GLOBAL_VARIABLE} = ${JSON.stringify(resour
       html = Mustache.render(template, {
         ogTitle: agent?.name || agent?.project?.name,
         ogDescription: message?.outputs?.content || agent?.project?.description,
-        ogImage:
-          message?.outputs?.objects?.[0]?.[RuntimeOutputVariable.images]?.[0].url || (app && getAgentOgImageUrl(app)),
+        ogImage: app ? getAgentOgImageUrl(app) : '',
       });
     } catch (error) {
       logger.error('render html error', { error });
