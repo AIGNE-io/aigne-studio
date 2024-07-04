@@ -92,7 +92,7 @@ export default function AddOutputVariableButton({
       .map((i) => i.data)
       .filter((i): i is typeof i & Required<Pick<typeof i, 'key'>> => !!i.key);
 
-  const disabled = assistant.type === 'parallelCallAgent';
+  const disabled = assistant.type === 'callAgent';
 
   return (
     <PopperMenu

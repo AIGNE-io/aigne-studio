@@ -6,7 +6,6 @@ import {
   isCallAssistant,
   isFunctionAssistant,
   isImageAssistant,
-  isParallelCallAssistant,
   isPromptAssistant,
   isRouterAssistant,
 } from '@blocklet/ai-runtime/types';
@@ -24,7 +23,6 @@ import FunctionAssistantEditor from '../function-file';
 import ImageAssistantEditor from '../image-file';
 import InputSettings from '../input/InputSettings';
 import OutputSettings from '../output/OutputSettings';
-import ParallelCallAgent from '../parallel-call-agent';
 import PromptAssistantEditor from '../prompt-file';
 import RouterAssistantEditor from '../router-file';
 
@@ -81,8 +79,6 @@ export default function AgentEditor({
             />
           ) : isCallAssistant(value) ? (
             <CallAgentEditor projectId={projectId} gitRef={gitRef} value={value} disabled={disabled} />
-          ) : isParallelCallAssistant(value) ? (
-            <ParallelCallAgent projectId={projectId} gitRef={gitRef} value={value} disabled={disabled} />
           ) : (
             <Stack alignItems="center">
               <Box sx={{ fontSize: 28, color: 'text.disabled' }}>
