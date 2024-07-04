@@ -746,4 +746,5 @@ export default flat({
   callAgent: 'Call Agent',
   referenceOutput: 'From {agent} Output',
   ref: 'From',
+  refOutput: 'Call Agent, output can only use reference output',
 });

@@ -89,6 +89,11 @@ export default function OutputSettings({
           <Typography variant="subtitle2" mb={0}>
             {t('outputs')}
           </Typography>
+          {value.type === 'callAgent' && (
+            <Box color="warning.main" sx={{ fontSize: 12 }}>
+              {`(${t('refOutput')})`}
+            </Box>
+          )}
         </Box>
       </Stack>
 

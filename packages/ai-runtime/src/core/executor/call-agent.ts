@@ -27,7 +27,7 @@ export class CallAgentExecutor extends AgentExecutorBase {
     );
   }
 
-  private getLastTextSteamAgentIdMap(calledAgents: { item: Tool; agent: GetAgentResult }[]) {
+  private getLastTextSteamAgentId(calledAgents: { item: Tool; agent: GetAgentResult }[]) {
     const map: { [key: string]: string } = {};
     calledAgents.forEach((item) => {
       const foundText = item.agent.outputVariables?.find((i) => i.name === RuntimeOutputVariable.text);
@@ -63,7 +63,7 @@ export class CallAgentExecutor extends AgentExecutorBase {
     const calledAgents = await this.getCalledAgents(agent);
 
     // 获取最后输出的文本流
-    const lastAgnetIdWithTextSteam = this.getLastTextSteamAgentIdMap(calledAgents);
+    const lastAgnetIdWithTextSteam = this.getLastTextSteamAgentId(calledAgents);
 
     const outputVariables = this.getOutputVariables(agent, calledAgents);
     const hasTextStream = outputVariables?.some((i) => i.name === RuntimeOutputVariable.text);

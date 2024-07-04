@@ -26,7 +26,7 @@ import {
 } from '@mui/material';
 import { cloneDeep, sortBy } from 'lodash';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
-import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef } from 'react';
+import { forwardRef, useImperativeHandle, useMemo, useRef } from 'react';
 import { Controller, UseFormReturn, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { joinURL } from 'ufo';
@@ -49,7 +49,6 @@ export default function CallAgentEditor({
   const ref = useRef(null);
   const toolForm = useRef<any>(null);
   const dialogState = usePopupState({ variant: 'dialog' });
-  const { addParameter } = useVariablesEditorOptions(value);
   const readOnly = useReadOnly({ ref: gitRef }) || disabled;
   const agents = value.agents && sortBy(Object.values(value.agents), (i) => i.index);
 
@@ -109,13 +108,6 @@ export default function CallAgentEditor({
               data: tool,
             };
 
-            // 处理：input 数据
-            const parameters = tool.parameters || {};
-            const filterNilParameters = Object.entries(parameters).filter(([, value]) => !value);
-            if (filterNilParameters.length) {
-              filterNilParameters.forEach(([key]) => addParameter(key));
-            }
-
             sortBy(Object.values(value.agents), 'index').forEach((tool, index) => (tool.index = index));
           });
 
@@ -148,63 +140,12 @@ export const ToolDialog = forwardRef<
 
   useImperativeHandle(ref, () => ({ form }), [form]);
 
-  const fileId = form.watch('id');
-  const f = store.files[fileId];
-  const file = f && isAssistant(f) ? f : undefined;
-
   const options = Object.entries(store.tree)
     .filter(([, filepath]) => filepath?.startsWith(`${PROMPTS_FOLDER_NAME}/`))
     .map(([id]) => store.files[id])
     .filter((i): i is AssistantYjs => !!i && isAssistant(i))
     .filter((i) => i.id !== assistantId)
     .map((i) => ({ id: i.id, type: i.type, name: i.name, from: undefined }));
-
-  const option = [...options].find((x) => x.id === fileId);
-
-  const parameters = useMemo(() => {
-    return (
-      file?.parameters &&
-      sortBy(Object.values(file.parameters), (i) => i.index).filter(
-        (i): i is typeof i & { data: { key: string } } => !!i.data.key
-      )
-    );
-  }, [file, option]);
-
-  const renderParameters = useCallback(() => {
-    if (!option) return null;
-
-    return (
-      <Box>
-        {parameters?.map(({ data: parameter }: any) => {
-          if (!parameter?.key) return null;
-
-          return (
-            <Stack key={parameter.id}>
-              <Typography variant="caption" mx={1}>
-                {parameter.label || parameter.key}
-              </Typography>
-
-              <Controller
-                control={form.control}
-                name={`parameters.${parameter.key}`}
-                render={({ field }) => (
-                  <PromptEditorField
-                    placeholder={`{{${parameter.label || parameter.key}}}`}
-                    value={field.value || ''}
-                    projectId={projectId}
-                    gitRef={gitRef}
-                    assistant={assistant}
-                    path={[assistantId, parameter.id]}
-                    onChange={(value) => field.onChange({ target: { value } })}
-                  />
-                )}
-              />
-            </Stack>
-          );
-        })}
-      </Box>
-    );
-  }, [option, parameters]);
 
   return (
     <Dialog
@@ -259,27 +200,6 @@ export const ToolDialog = forwardRef<
               }}
             />
           </Stack>
-
-          <Stack gap={1}>
-            {!!parameters?.length && (
-              <Box>
-                <Tooltip
-                  title={t('parametersTip', { variable: '{variable}' })}
-                  placement="top-start"
-                  disableInteractive>
-                  <Stack justifyContent="space-between" direction="row" alignItems="center">
-                    <Typography variant="subtitle2" color="text.secondary" mb={0}>
-                      {t('parameters')}
-                    </Typography>
-
-                    <InfoOutlined fontSize="small" sx={{ color: 'info.main', fontSize: 14 }} />
-                  </Stack>
-                </Tooltip>
-              </Box>
-            )}
-
-            {renderParameters()}
-          </Stack>
         </Stack>
       </DialogContent>
 
@@ -318,6 +238,7 @@ export function AgentItemView({
 
   const { t } = useLocaleContext();
   const { store } = useProjectStore(projectId, gitRef);
+  const { addParameter } = useVariablesEditorOptions(assistant);
 
   const f = store.files[agent.id];
   const target = f && isAssistant(f) ? f : undefined;
@@ -404,15 +325,41 @@ export function AgentItemView({
             </Stack>
           </Tooltip>
 
-          <Box>
+          <Stack gap={1}>
             {parameters?.map(({ data: parameter }: any) => {
               if (!parameter?.key) return null;
 
               return (
-                <Stack key={parameter.id}>
-                  <Typography variant="caption" mx={1}>
-                    {parameter.label || parameter.key}
-                  </Typography>
+                <Stack
+                  key={parameter.id}
+                  sx={{
+                    ':hover': {
+                      'hover-visible': {
+                        display: 'flex',
+                      },
+                    },
+                  }}>
+                  <Stack flexDirection="row" alignItems="center" mb={0.5}>
+                    <Typography variant="caption" mx={1}>
+                      {parameter.label || parameter.key}
+                    </Typography>
+
+                    {!agent.parameters?.[parameter.key] && (
+                      <Tooltip title={!agent.parameters?.[parameter.key] ? '添加变量到输入参数' : undefined}>
+                        <Box
+                          className="hover-visible"
+                          component={Icon}
+                          icon={PlusIcon}
+                          sx={{ fontSize: 12, cursor: 'pointer', color: 'primary.main', display: 'none' }}
+                          onClick={() => {
+                            agent.parameters ??= {};
+                            agent.parameters[parameter.key] = `{{${parameter.key}}}`;
+                            addParameter(parameter.key);
+                          }}
+                        />
+                      </Tooltip>
+                    )}
+                  </Stack>
 
                   <PromptEditorField
                     placeholder={`{{${parameter.label || parameter.key}}}`}
@@ -429,7 +376,7 @@ export function AgentItemView({
                 </Stack>
               );
             })}
-          </Box>
+          </Stack>
         </Box>
       </Stack>
 

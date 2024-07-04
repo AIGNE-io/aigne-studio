@@ -738,7 +738,7 @@ export default flat({
   activeOutputTip: '激活输出',
   hideOutputTip: '隐藏输出',
   callAgent: '调用 Agent',
-  callMultipleAgent: '调用多个 Agent',
   referenceOutput: '引用 {agent} 输出',
   ref: '引用',
+  refOutput: '调用 Agent, 输出只能使用引用输出',
 });
