@@ -7,7 +7,6 @@ import { CallAgentExecutor } from './call-agent';
 import { DecisionAgentExecutor } from './decision';
 import { LLMAgentExecutor } from './llm';
 import { LogicAgentExecutor } from './logic';
-import { ParallelCallAgentExecutor } from './parallel-call';
 
 export class RuntimeExecutor extends AgentExecutorBase {
   constructor(
@@ -59,9 +58,6 @@ export class RuntimeExecutor extends AgentExecutorBase {
       }
       case 'callAgent': {
         return new CallAgentExecutor(this.context).execute(agent, options);
-      }
-      case 'parallelCallAgent': {
-        return new ParallelCallAgentExecutor(this.context).execute(agent, options);
       }
       default: {
         throw new Error(`Unsupported agent type: ${(agent as any)?.type}`);

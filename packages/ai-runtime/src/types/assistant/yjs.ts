@@ -14,7 +14,6 @@ import type {
   ExecuteBlockSelectByPrompt,
   FunctionAssistant,
   ImageAssistant,
-  ParallelCallAssistant,
   Parameter,
   PromptAssistant,
   PromptMessage,
@@ -47,8 +46,7 @@ export type AssistantYjs =
   | FunctionAssistantYjs
   | ImageAssistantYjs
   | RouterAssistantYjs
-  | CallAssistantYjs
-  | ParallelCallAssistantYjs;
+  | CallAssistantYjs;
 
 export type ExecuteBlockSelectAllYjs = Omit<ExecuteBlockSelectAll, 'tools'> & {
   tools?: { [key: string]: { index: number; data: NonNullable<ExecuteBlock['tools']>[number] } };
@@ -129,11 +127,9 @@ export interface RouterAssistantYjs extends Omit<AssistantBaseYjs<RouterAssistan
   routes?: ArrayToYjs<NonNullable<RouterAssistant['routes']>>;
 }
 
-export interface ParallelCallAssistantYjs extends Omit<AssistantBaseYjs<ParallelCallAssistant>, 'agents'> {
-  agents?: ArrayToYjs<NonNullable<ParallelCallAssistant['agents']>>;
+export interface CallAssistantYjs extends Omit<AssistantBaseYjs<CallAssistant>, 'agents'> {
+  agents?: ArrayToYjs<NonNullable<CallAssistant['agents']>>;
 }
-
-export interface CallAssistantYjs extends AssistantBaseYjs<CallAssistant> {}
 
 export interface PromptAssistantYjs extends Omit<AssistantBaseYjs<PromptAssistant>, 'prompts'> {
   prompts?: { [key: string]: { index: number; data: PromptYjs } };

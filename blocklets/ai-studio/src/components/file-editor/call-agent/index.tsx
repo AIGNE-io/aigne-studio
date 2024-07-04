@@ -51,32 +51,35 @@ export default function CallAgentEditor({
   const dialogState = usePopupState({ variant: 'dialog' });
   const { addParameter } = useVariablesEditorOptions(value);
   const readOnly = useReadOnly({ ref: gitRef }) || disabled;
+  const agents = value.agents && sortBy(Object.values(value.agents), (i) => i.index);
 
   return (
     <>
       <Stack gap={1} width={1} ref={ref}>
         <Stack gap={1}>
-          {value.call ? (
-            <Box key={value.call.id} display="flex" alignItems="center" gap={0.5} width={1}>
-              <AgentItemView
-                projectId={projectId}
-                gitRef={gitRef}
-                agent={value.call}
-                assistant={value}
-                readOnly={readOnly}
-                onEdit={() => {
-                  if (readOnly) return;
-                  toolForm.current?.form.reset(cloneDeep(value.call));
-                  dialogState.open();
-                }}
-              />
-            </Box>
-          ) : null}
+          {(agents || []).map((agent) => {
+            return (
+              <Box key={agent.data.id} display="flex" alignItems="center" gap={0.5} width={1}>
+                <AgentItemView
+                  projectId={projectId}
+                  gitRef={gitRef}
+                  agent={agent.data}
+                  assistant={value}
+                  readOnly={readOnly}
+                  onEdit={() => {
+                    if (readOnly) return;
+                    toolForm.current?.form.reset(cloneDeep(agent.data));
+                    dialogState.open();
+                  }}
+                />
+              </Box>
+            );
+          })}
         </Stack>
 
         <Box display="flex" sx={{ ml: -0.5 }}>
           <Button
-            disabled={disabled || Boolean(value.call)}
+            disabled={disabled}
             startIcon={<Box component={Icon} icon={PlusIcon} sx={{ fontSize: 16 }} />}
             onClick={() => {
               toolForm.current?.form.reset();
@@ -95,8 +98,16 @@ export default function CallAgentEditor({
         DialogProps={{ ...bindDialog(dialogState) }}
         onSubmit={(tool) => {
           const doc = (getYjsValue(value) as Map<any>).doc!;
+
           doc.transact(() => {
-            value.call = tool;
+            value.agents ??= {};
+
+            const old = value.agents[tool.id];
+
+            value.agents[tool.id] = {
+              index: old?.index ?? Math.max(-1, ...Object.values(value.agents).map((i) => i.index)) + 1,
+              data: tool,
+            };
 
             // 处理：input 数据
             const parameters = tool.parameters || {};
@@ -104,6 +115,8 @@ export default function CallAgentEditor({
             if (filterNilParameters.length) {
               filterNilParameters.forEach(([key]) => addParameter(key));
             }
+
+            sortBy(Object.values(value.agents), 'index').forEach((tool, index) => (tool.index = index));
           });
 
           dialogState.close();
@@ -113,7 +126,7 @@ export default function CallAgentEditor({
   );
 }
 
-type ToolDialogForm = NonNullable<CallAssistantYjs['call']>;
+type ToolDialogForm = NonNullable<CallAssistantYjs['agents']>[number]['data'];
 export interface ToolDialogImperative {
   form: UseFormReturn<ToolDialogForm>;
 }
@@ -437,7 +450,9 @@ export function AgentItemView({
               e.stopPropagation();
               const doc = (getYjsValue(assistant) as Map<any>).doc!;
               doc.transact(() => {
-                delete assistant.call;
+                if (assistant.agents?.[agent.id]) {
+                  delete assistant.agents[agent.id];
+                }
               });
             }}>
             <Box component={Icon} icon={Trash} sx={{ fontSize: 18, color: '#E11D48' }} />

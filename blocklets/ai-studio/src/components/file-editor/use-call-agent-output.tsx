@@ -18,32 +18,34 @@ const useCallAgentOutput = ({
   const { t } = useLocaleContext();
   const { getFileById } = useProjectStore(projectId, gitRef);
 
-  const id = assistant.type === 'callAgent' ? assistant.call?.id : undefined;
+  const ids =
+    assistant.type === 'callAgent'
+      ? Object.values(assistant?.agents || {})
+          .map((i) => i.data)
+          .map((i) => i.id)
+      : [];
 
   const getOutputs = useCallback(() => {
-    if (assistant.type !== 'callAgent' || !assistant.call) return [];
+    if (assistant.type === 'callAgent') {
+      const agents = Object.values(assistant?.agents || {}).map((i) => i.data);
+      return agents.flatMap((i) => {
+        const callAgent = getFileById(i.id);
+        return (callAgent?.outputVariables && sortBy(Object.values(callAgent.outputVariables), 'index')) || [];
+      });
+    }
 
-    const callAgent = getFileById(assistant.call.id);
-    return (callAgent?.outputVariables && sortBy(Object.values(callAgent.outputVariables), 'index')) || [];
-    // const agents = Object.values(assistant?.agents || {}).map((i) => i.data);
-    // return agents.flatMap((i) => {
-    //   const callAgent = getFileById(i.id);
-    //   return (callAgent?.outputVariables && sortBy(Object.values(callAgent.outputVariables), 'index')) || [];
-    // });
-  }, [id]);
+    return [];
+  }, [ids]);
 
-  const appearanceOutputs = useMemo(
-    () => runtimeOutputVariables.find((i) => i.group === 'appearance')?.outputs || [],
-    []
-  );
+  const appearance = runtimeOutputVariables.find((i) => i.group === 'appearance')?.outputs || [];
 
-  const outputs = useMemo(
-    () =>
-      getOutputs()
-        .map((item) => item.data)
-        .filter((i) => !appearanceOutputs.find((r) => r.name === i.name)), // 过滤外观输出变量
-    [getOutputs]
-  );
+  const outputs = useMemo(() => {
+    const list = getOutputs().map((item) => item.data);
+    const map = new Map();
+    list.forEach((i) => map.set(i.name, i)); // 去重
+
+    return Array.from(map.values()).filter((i) => !appearance.find((r) => r.name === i.name)); // 过滤外观输出变量
+  }, [getOutputs]);
 
   const outputsExist = useMemo(
     () =>

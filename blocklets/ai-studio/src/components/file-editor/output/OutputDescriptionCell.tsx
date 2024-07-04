@@ -2,6 +2,7 @@ import { useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { AssistantYjs, OutputVariableYjs, RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
 import { TextField, TextFieldProps } from '@mui/material';
+import { sortBy } from 'lodash';
 
 const ignoreDescriptionVariables = new Set([
   RuntimeOutputVariable.text,
@@ -46,9 +47,18 @@ export default function OutputDescriptionCell({
     }
 
     if (output.from?.type === 'output') {
-      if (assistant.type === 'callAgent' && assistant.call) {
-        const callAgent = getFileById(assistant.call.id);
-        return t('referenceOutput', { agent: callAgent?.name });
+      if (assistant.type === 'callAgent') {
+        const agents = Object.values(assistant?.agents || {}).map((i) => i.data);
+        for (const agent of agents) {
+          const callAgent = getFileById(agent.id);
+          const outputVariables =
+            (callAgent?.outputVariables && sortBy(Object.values(callAgent.outputVariables), 'index')) || [];
+          const found = outputVariables.find((i) => i.data.id === output?.from?.id);
+
+          if (found) {
+            return t('referenceOutput', { agent: callAgent?.name });
+          }
+        }
       }
 
       return null;

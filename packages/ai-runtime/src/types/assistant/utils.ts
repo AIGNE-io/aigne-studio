@@ -13,7 +13,6 @@ import type {
   FunctionAssistantYjs,
   ImageAssistantYjs,
   OutputVariableYjs,
-  ParallelCallAssistantYjs,
   ParameterYjs,
   PromptAssistantYjs,
   PromptYjs,
@@ -31,7 +30,6 @@ import type {
   FunctionAssistant,
   ImageAssistant,
   OutputVariable,
-  ParallelCallAssistant,
   Parameter,
   Prompt,
   PromptAssistant,
@@ -70,9 +68,7 @@ export function isAssistant(assistant: FileTypeYjs): assistant is AssistantYjs;
 export function isAssistant(assistant: FileType | FileTypeYjs): assistant is FileType | AssistantYjs {
   return (
     typeof (assistant as any).id === 'string' &&
-    ['agent', 'prompt', 'image', 'api', 'function', 'router', 'callAgent', 'parallelCallAgent'].includes(
-      (assistant as any).type
-    )
+    ['agent', 'prompt', 'image', 'api', 'function', 'router', 'callAgent'].includes((assistant as any).type)
   );
 }
 
@@ -92,14 +88,6 @@ export function isCallAssistant(file: FileType): file is CallAssistant;
 export function isCallAssistant(file: FileTypeYjs): file is CallAssistantYjs;
 export function isCallAssistant(file: FileType | FileTypeYjs): file is CallAssistant | CallAssistantYjs {
   return (file as any).type === 'callAgent';
-}
-
-export function isParallelCallAssistant(file: FileType): file is ParallelCallAssistant;
-export function isParallelCallAssistant(file: FileTypeYjs): file is ParallelCallAssistantYjs;
-export function isParallelCallAssistant(
-  file: FileType | FileTypeYjs
-): file is ParallelCallAssistant | ParallelCallAssistantYjs {
-  return (file as any).type === 'parallelCallAgent';
 }
 
 export function isPromptAssistant(file: FileType): file is PromptAssistant;
@@ -363,17 +351,7 @@ export function fileToYjs(file: FileType): FileTypeYjs {
       tests: file.tests && arrayToYjs(file.tests),
       entries: file.entries && arrayToYjs(file.entries),
       outputVariables: file.outputVariables && arrayToYjs(file.outputVariables.map(outputVariableToYjs)),
-    };
-  }
-
-  if (isParallelCallAssistant(file)) {
-    return {
-      ...file,
       agents: file.agents && arrayToYjs(file.agents),
-      parameters: file.parameters && arrayToYjs(file.parameters, parameterToYjs),
-      tests: file.tests && arrayToYjs(file.tests),
-      entries: file.entries && arrayToYjs(file.entries),
-      outputVariables: file.outputVariables && arrayToYjs(file.outputVariables.map(outputVariableToYjs)),
     };
   }
 
@@ -451,16 +429,6 @@ export function fileFromYjs(file: FileTypeYjs): FileType {
   }
 
   if (isCallAssistant(file)) {
-    return {
-      ...file,
-      parameters: file.parameters && arrayFromYjs(file.parameters, parameterFromYjs),
-      tests: file.tests && arrayFromYjs(file.tests),
-      entries: file.entries && arrayFromYjs(file.entries),
-      outputVariables: file.outputVariables && arrayFromYjs(file.outputVariables).map(outputVariableFromYjs),
-    };
-  }
-
-  if (isParallelCallAssistant(file)) {
     return {
       ...file,
       parameters: file.parameters && arrayFromYjs(file.parameters, parameterFromYjs),
