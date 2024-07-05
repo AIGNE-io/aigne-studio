@@ -1,3 +1,7 @@
+## 0.3.20 (2024-7-5)
+
+- chore: add `runAgent` api in aigne-sdk
+
 ## 0.3.19 (2024-7-5)
 
 - feat: support sharing message to ArcBlock community
