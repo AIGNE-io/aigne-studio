@@ -1,3 +1,7 @@
+## 0.3.19 (2024-7-5)
+
+- feat: support sharing message to ArcBlock community
+
 ## 0.3.18 (2024-7-4)
 
 - fix: failed to filter reference agent parameters in parameters
