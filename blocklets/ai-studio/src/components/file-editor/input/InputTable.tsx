@@ -1232,6 +1232,7 @@ function AgentParametersForm({
     type: 'tool',
     projectId: parameter.source.agent.projectId,
     agentId: parameter.source.agent.id,
+    blockletDid: parameter.source.agent.blockletDid,
   });
   const { projectId, projectRef } = useCurrentProject();
 

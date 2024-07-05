@@ -144,6 +144,8 @@ router.post('/call', user(), auth(), compression(), async (req, res) => {
     sessionId: input.sessionId,
     inputs: input.inputs,
     status: 'generating',
+    blockletDid: input.blockletDid,
+    projectRef,
   });
 
   const emit: RunAssistantCallback = (input) => {
