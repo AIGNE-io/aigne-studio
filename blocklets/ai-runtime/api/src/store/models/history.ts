@@ -18,9 +18,13 @@ export default class History extends Model<InferAttributes<History>, InferCreati
 
   declare projectId: string;
 
+  declare projectRef?: string;
+
   declare agentId: string;
 
   declare sessionId: string;
+
+  declare blockletDid?: string;
 
   declare inputs?: { [key: string]: any } | null;
 
@@ -72,6 +76,9 @@ History.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    projectRef: {
+      type: DataTypes.STRING,
+    },
     agentId: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -79,6 +86,9 @@ History.init(
     sessionId: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    blockletDid: {
+      type: DataTypes.STRING,
     },
     inputs: {
       type: DataTypes.JSON,

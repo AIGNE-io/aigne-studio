@@ -697,6 +697,7 @@ export default flat({
   promptRequired: 'Prompt is required',
   twitter: 'Twitter',
   community: 'Community',
+  link: 'Link',
   saveAs: 'Save as',
   openingQuestions: 'Opening Questions',
   openingMessage: 'Opening Message',
