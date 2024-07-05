@@ -132,6 +132,14 @@ export function messageRoutes(router: Router) {
     res.json(messages);
   });
 
+  router.get('/messages/:messageId', user(), async (req, res) => {
+    const { messageId } = req.params;
+
+    if (!messageId) throw new Error('Missing required param `messageId`');
+    const message = await History.findByPk(messageId, { rejectOnEmpty: new Error('No such message') });
+    res.json(message);
+  });
+
   const getMessagesQuerySchema = Joi.object<{
     limit: number;
     before?: string;

@@ -120,6 +120,7 @@ export type RunAssistantChunk = {
     images?: { url: string }[];
     object?: RuntimeOutputVariablesSchema | object;
   };
+  messageId: string;
 };
 
 export type RunAssistantUsage = {
