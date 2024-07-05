@@ -89,11 +89,6 @@ export default function OutputSettings({
           <Typography variant="subtitle2" mb={0}>
             {t('outputs')}
           </Typography>
-          {value.type === 'callAgent' && (
-            <Box color="warning.main" sx={{ fontSize: 12 }}>
-              {`(${t('refOutput')})`}
-            </Box>
-          )}
         </Box>
       </Stack>
 
@@ -269,11 +264,7 @@ function VariableRow({
 
   const { getVariables } = useProjectStore(projectId, gitRef);
   const variableYjs = getVariables();
-  const { getRefOutputData } = useCallAgentOutput({
-    projectId,
-    gitRef,
-    assistant: value,
-  });
+  const { outputs, getRefOutputData } = useCallAgentOutput({ projectId, gitRef, assistant: value });
   const refOutput = getRefOutputData(variable?.from?.id || '');
 
   const variables = (variableYjs?.variables || []).filter((x) => x.type?.type === (variable.type || 'string'));
@@ -313,10 +304,20 @@ function VariableRow({
 
   const readOnly = Boolean(disabled || variable.hidden || Boolean(variable.from?.type === 'output'));
 
-  // 删除未被引用的输出变量
   useEffect(() => {
-    if (variable.from?.type === 'output' && !refOutput) onRemove?.();
-  }, [variable.from?.type === 'output' && !refOutput]);
+    // 自动关联文本输出
+    if (variable.from?.type === 'output') {
+      if (variable.name === RuntimeOutputVariable.text) {
+        const found = outputs.find((i) => i.name === RuntimeOutputVariable.text);
+        if (found && variable.from?.id !== found.id) {
+          variable.from.id = found.id;
+          return;
+        }
+      }
+
+      if (!refOutput) onRemove?.();
+    }
+  }, [outputs.map((x) => x.id).join(','), refOutput]);
 
   if (variable.from?.type === 'output' && !refOutput) return null;
 
@@ -385,7 +386,7 @@ function VariableRow({
             <Box component={TableCell} align="right" onClick={(e) => e.stopPropagation()}>
               <OutputActionsCell
                 depth={depth}
-                disabled={disabled || variable.from?.type === 'output'}
+                disabled={disabled}
                 onRemove={onRemove}
                 output={variable}
                 variable={datastoreVariable}

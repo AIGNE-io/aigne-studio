@@ -250,12 +250,13 @@ function PopperButton({
             children: <Box component={Icon} icon={DotsIcon} sx={{ color: '#3B82F6' }} />,
           }}
           PopperProps={{ placement: 'bottom-end' }}>
-          <MenuItem onClick={() => (output.hidden = !output.hidden)}>
+          <MenuItem disabled={Boolean(output.from?.type === 'output')} onClick={() => (output.hidden = !output.hidden)}>
             {output.hidden ? t('activeOutputTip') : t('hideOutputTip')}
           </MenuItem>
 
           {depth === 0 && (
             <MenuItem
+              disabled={Boolean(output.from?.type === 'output')}
               onClick={() => {
                 setSetting('setting');
                 dialogState.open();
@@ -266,6 +267,7 @@ function PopperButton({
 
           {isSaveAs && (
             <MenuItem
+              disabled={Boolean(output.from?.type === 'output')}
               onClick={() => {
                 setSetting('save');
                 dialogState.open();

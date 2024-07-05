@@ -252,6 +252,11 @@ export function AgentItemView({
     );
   }, [target]);
 
+  const checkParametersInParameter = (key: string) => {
+    const parameters = (assistant?.parameters && sortBy(Object.values(assistant.parameters), (i) => i.index)) || [];
+    return Boolean(parameters.find((i) => i.data.key === key));
+  };
+
   if (!target) return null;
   const { name, description } = target;
 
@@ -328,26 +333,23 @@ export function AgentItemView({
           <Stack gap={1}>
             {parameters?.map(({ data: parameter }: any) => {
               if (!parameter?.key) return null;
+              const className = `hover-visible-${parameter.key}`;
 
               return (
                 <Stack
                   key={parameter.id}
                   sx={{
-                    ':hover': {
-                      'hover-visible': {
-                        display: 'flex',
-                      },
-                    },
+                    ':hover': { [`.${className}`]: { display: 'flex' } },
                   }}>
                   <Stack flexDirection="row" alignItems="center" mb={0.5}>
                     <Typography variant="caption" mx={1}>
                       {parameter.label || parameter.key}
                     </Typography>
 
-                    {!agent.parameters?.[parameter.key] && (
-                      <Tooltip title={!agent.parameters?.[parameter.key] ? '添加变量到输入参数' : undefined}>
+                    {agent.parameters?.[parameter.key] || checkParametersInParameter(parameter.key) ? null : (
+                      <Tooltip title={!agent.parameters?.[parameter.key] ? t('addParamter') : undefined}>
                         <Box
-                          className="hover-visible"
+                          className={className}
                           component={Icon}
                           icon={PlusIcon}
                           sx={{ fontSize: 12, cursor: 'pointer', color: 'primary.main', display: 'none' }}

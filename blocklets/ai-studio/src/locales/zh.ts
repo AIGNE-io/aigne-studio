@@ -741,5 +741,6 @@ export default flat({
   callAgent: '调用 Agent',
   referenceOutput: '引用 {agent} 输出',
   ref: '引用',
-  refOutput: '调用 Agent, 输出只能使用引用输出',
+  refOutput: '调用 Agent 目前不支持自定义输出',
+  addParamter: '添加变量到输入参数',
 });
