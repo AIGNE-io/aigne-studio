@@ -24,9 +24,7 @@ export default function MessagePage() {
   const { data: message, loading: messageLoading, error } = useRequest(() => getMessageById({ messageId }));
   if (error) throw error;
 
-  const blockletDid = message?.blockletDid;
-
-  const { projectId, agentId, projectRef = 'main' } = message || {};
+  const { blockletDid, projectId, agentId, projectRef = 'main' } = message || {};
 
   let aid: string | undefined;
   if (projectId && agentId) {
@@ -64,7 +62,9 @@ export default function MessagePage() {
   const resourceBlocklet = useComponent(blockletDid);
   const aigneRuntime = useComponent(AIGNE_RUNTIME_COMPONENT_DID);
 
-  const chatUrl = blockletDid ? `${resourceBlocklet?.mountPoint}` : `${aigneRuntime?.mountPoint}/preview/${aid}`;
+  const chatUrl = blockletDid
+    ? resourceBlocklet?.mountPoint
+    : aigneRuntime && `${aigneRuntime.mountPoint}/preview/${aid}`;
 
   const loaded = agent && message;
   const loading = messageLoading || agentLoading;
@@ -87,36 +87,38 @@ export default function MessagePage() {
               </CurrentMessageProvider>
             </CurrentAgentProvider>
           </RuntimeProvider>
-          <Box
-            sx={{
-              position: 'sticky',
-              backgroundColor: 'rgba(255, 255, 255, 0.5)',
-              backdropFilter: 'blur(5px)',
-              zIndex: 10,
-              bottom: 0,
-            }}>
+          {chatUrl && (
             <Box
               sx={{
-                display: 'flex',
-                justifyContent: 'center',
-                mt: 5,
-                padding: 2,
+                position: 'sticky',
+                backgroundColor: 'rgba(255, 255, 255, 0.5)',
+                backdropFilter: 'blur(5px)',
+                zIndex: 10,
+                bottom: 0,
               }}>
-              <Button
-                size="large"
-                variant="contained"
-                href={chatUrl}
-                target="_blank"
+              <Box
                 sx={{
-                  background: agent?.project?.appearance?.primaryColor || '#030712',
-                  '&:hover': {
-                    background: agent?.project?.appearance?.primaryColor || '#030712',
-                  },
+                  display: 'flex',
+                  justifyContent: 'center',
+                  mt: 5,
+                  padding: 2,
                 }}>
-                {`${t('openTheBot')} ${agent?.project.name}`}
-              </Button>
+                <Button
+                  size="large"
+                  variant="contained"
+                  href={chatUrl}
+                  target="_blank"
+                  sx={{
+                    background: agent?.project?.appearance?.primaryColor || '#030712',
+                    '&:hover': {
+                      background: agent?.project?.appearance?.primaryColor || '#030712',
+                    },
+                  }}>
+                  {`${t('openTheBot')} ${agent?.project.name}`}
+                </Button>
+              </Box>
             </Box>
-          </Box>
+          )}
         </Box>
       ) : loading ? (
         <Box textAlign="center" my={10}>
