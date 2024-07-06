@@ -744,4 +744,9 @@ export default flat({
   hideOutputSetting: 'Hide current output setting',
   activeOutputTip: 'Active output',
   hideOutputTip: 'Hide output',
+  callAgent: 'Call Agent',
+  referenceOutput: 'From {agent} Output',
+  ref: 'From',
+  refOutput: 'Call agent does not currently support custom output',
+  addParamter: 'Add Parameter',
 });

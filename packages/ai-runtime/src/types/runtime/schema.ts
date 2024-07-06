@@ -152,6 +152,10 @@ export function outputVariablesToJoiSchema(assistant: Assistant, datastoreVariab
       return undefined;
     }
 
+    if (variable.from?.type === 'output') {
+      return Joi.any();
+    }
+
     if (variable.name && isRuntimeOutputVariable(variable.name)) {
       if (variable.name === RuntimeOutputVariable.llmResponseStream) {
         schema = Joi.any();

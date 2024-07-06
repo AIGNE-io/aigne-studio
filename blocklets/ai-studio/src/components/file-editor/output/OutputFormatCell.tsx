@@ -29,6 +29,7 @@ export default function OutputFormatCell({
   if (runtimeVariable) return null;
 
   if (output.from?.type === 'input') return null;
+  if (output.from?.type === 'output') return null;
 
   return (
     <>

@@ -3,6 +3,7 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import {
   AssistantYjs,
   isApiAssistant,
+  isCallAssistant,
   isFunctionAssistant,
   isImageAssistant,
   isPromptAssistant,
@@ -17,6 +18,7 @@ import ArrowLine from '../../../pages/project/icons/line';
 import AgentProcessingView from '../agent-processing-view';
 import ApiAssistantEditor from '../api-assistant';
 import BasicInfoForm from '../basic-info-form';
+import CallAgentEditor from '../call-agent';
 import FunctionAssistantEditor from '../function-file';
 import ImageAssistantEditor from '../image-file';
 import InputSettings from '../input/InputSettings';
@@ -75,6 +77,8 @@ export default function AgentEditor({
               disabled={disabled}
               openApis={openApis}
             />
+          ) : isCallAssistant(value) ? (
+            <CallAgentEditor projectId={projectId} gitRef={gitRef} value={value} disabled={disabled} />
           ) : (
             <Stack alignItems="center">
               <Box sx={{ fontSize: 28, color: 'text.disabled' }}>

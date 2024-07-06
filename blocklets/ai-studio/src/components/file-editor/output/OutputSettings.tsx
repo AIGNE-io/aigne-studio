@@ -11,9 +11,7 @@ import GripVertical from '@iconify-icons/tabler/grip-vertical';
 import {
   Box,
   BoxProps,
-  Chip,
   Stack,
-  Switch,
   Table,
   TableBody,
   TableCell,
@@ -28,11 +26,14 @@ import { cloneDeep, sortBy, uniqBy } from 'lodash';
 import { nanoid } from 'nanoid';
 import React, { ComponentType, ReactNode, useEffect, useMemo } from 'react';
 
+import useCallAgentOutput from '../use-call-agent-output';
 import AddOutputVariableButton from './AddOutputVariableButton';
 import OutputActionsCell, { SettingActionDialogProvider } from './OutputActionsCell';
+import OutputAppearanceCell from './OutputAppearanceCell';
 import OutputDescriptionCell from './OutputDescriptionCell';
 import OutputFormatCell from './OutputFormatCell';
 import OutputNameCell from './OutputNameCell';
+import OutputRequiredCell from './OutputRequiredCell';
 import { getRuntimeOutputVariable } from './type';
 
 export default function OutputSettings({
@@ -185,8 +186,19 @@ export default function OutputSettings({
         </Box>
 
         <AddOutputVariableButton
+          projectId={projectId}
+          gitRef={gitRef}
           allSelectAgentOutputs={cloneDeep(allSelectAgentOutputs)}
           assistant={value}
+          onDeleteSelect={({ id }) => {
+            setField((vars) => {
+              if (!id) return;
+              if (!vars[id]) return;
+
+              delete vars[id];
+              sortBy(Object.values(vars), 'index').forEach((item, index) => (item.index = index));
+            });
+          }}
           onSelect={({ name, from }) => {
             setField((vars) => {
               const exist = name ? outputVariables?.find((i) => i.data.name === name) : undefined;
@@ -252,6 +264,8 @@ function VariableRow({
 
   const { getVariables } = useProjectStore(projectId, gitRef);
   const variableYjs = getVariables();
+  const { outputs, getRefOutputData } = useCallAgentOutput({ projectId, gitRef, assistant: value });
+  const refOutput = getRefOutputData(variable?.from?.id || '');
 
   const variables = (variableYjs?.variables || []).filter((x) => x.type?.type === (variable.type || 'string'));
   const datastoreVariable = variables.find((x) => {
@@ -288,11 +302,30 @@ function VariableRow({
     return 'transparent !important';
   }, [error, variable.hidden]);
 
+  const readOnly = Boolean(disabled || variable.hidden || Boolean(variable.from?.type === 'output'));
+
+  useEffect(() => {
+    // 自动关联文本输出
+    if (variable.from?.type === 'output') {
+      if (variable.name === RuntimeOutputVariable.text) {
+        const found = outputs.find((i) => i.name === RuntimeOutputVariable.text);
+        if (found && variable.from?.id !== found.id) {
+          variable.from.id = found.id;
+          return;
+        }
+      }
+
+      if (!refOutput) onRemove?.();
+    }
+  }, [outputs.map((x) => x.id).join(','), refOutput]);
+
+  if (variable.from?.type === 'output' && !refOutput) return null;
+
   return (
     <>
       <SettingActionDialogProvider
         depth={depth}
-        disabled={disabled || variable.hidden}
+        disabled={readOnly}
         onRemove={onRemove}
         output={variable}
         variable={datastoreVariable}
@@ -308,9 +341,9 @@ function VariableRow({
             sx={{
               backgroundColor,
               '*': {
-                color: variable.hidden ? 'text.disabled' : undefined,
+                color: Boolean(disabled || variable.hidden) ? 'text.disabled' : undefined,
               },
-              cursor: variable.hidden ? 'not-allowed' : 'pointer',
+              cursor: readOnly ? 'not-allowed' : 'pointer',
               ...props.sx,
             }}>
             <Box component={TableCell}>
@@ -318,19 +351,22 @@ function VariableRow({
 
               <Box sx={{ ml: depth === 0 ? depth : depth + 2 }}>
                 <OutputNameCell
+                  projectId={projectId}
+                  gitRef={gitRef}
+                  assistant={value}
                   depth={depth}
                   output={variable}
-                  TextFieldProps={{
-                    disabled: Boolean(disabled) || parent?.type === 'array' || Boolean(variable.hidden),
-                  }}
+                  TextFieldProps={{ disabled: parent?.type === 'array' || readOnly }}
                 />
               </Box>
             </Box>
             <Box component={TableCell}>
               <OutputDescriptionCell
+                projectId={projectId}
+                gitRef={gitRef}
                 assistant={value}
                 output={variable}
-                TextFieldProps={{ disabled: Boolean(disabled) || Boolean(variable.hidden) }}
+                TextFieldProps={{ disabled: readOnly }}
               />
             </Box>
             <Box component={TableCell}>
@@ -338,24 +374,14 @@ function VariableRow({
                 assistant={value}
                 output={variable}
                 variable={datastoreVariable}
-                TextFieldProps={{ disabled: Boolean(disabled) || Boolean(variable.hidden) }}
+                TextFieldProps={{ disabled: readOnly }}
               />
             </Box>
             <Box component={TableCell}>
-              {!variable.hidden && !runtimeVariable && variable.from?.type !== 'input' && (
-                <Switch
-                  size="small"
-                  disabled={Boolean(disabled)}
-                  checked={variable.required || false}
-                  onChange={(_, checked) => (variable.required = checked)}
-                  onClick={(e) => e.stopPropagation()}
-                />
-              )}
+              <OutputRequiredCell output={variable} disabled={Boolean(disabled)} />
             </Box>
             <Box component={TableCell}>
-              {variable.appearance && (
-                <Chip className="ellipsis" label={variable.appearance.componentName} size="small" />
-              )}
+              <OutputAppearanceCell projectId={projectId} gitRef={gitRef} assistant={value} output={variable} />
             </Box>
             <Box component={TableCell} align="right" onClick={(e) => e.stopPropagation()}>
               <OutputActionsCell
