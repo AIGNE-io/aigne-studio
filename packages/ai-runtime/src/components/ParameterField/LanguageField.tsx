@@ -1,3 +1,4 @@
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Autocomplete, Box, MenuItem, Stack, TextField, TextFieldProps } from '@mui/material';
 import { forwardRef } from 'react';
 
@@ -7,8 +8,22 @@ import { SelectParameter } from '../../types/assistant';
 type Option = {
   ch: string;
   en: string;
+  cn: string;
   abbr: string;
   flag: (props: React.SVGProps<SVGSVGElement>) => JSX.Element;
+};
+
+const filter = (options: Option[], state: { inputValue: string }) => {
+  return options.filter((o: Option) => {
+    if (state.inputValue) {
+      return (
+        o.en.toLowerCase().includes(state.inputValue.toLowerCase()) ||
+        o.ch.toLowerCase().includes(state.inputValue.toLowerCase())
+      );
+    }
+
+    return true;
+  });
 };
 
 const LanguageField = forwardRef<
@@ -20,6 +35,7 @@ const LanguageField = forwardRef<
   } & Omit<TextFieldProps, 'onChange'>
 >(({ readOnly, parameter, onChange, ...props }, ref) => {
   const value = languages.find((o) => o.en === props?.value);
+  const { locale } = useLocaleContext();
 
   return (
     <Autocomplete
@@ -49,7 +65,7 @@ const LanguageField = forwardRef<
         />
       )}
       getOptionLabel={(o: Option) => {
-        return o.en;
+        return locale === 'zh' ? o.cn : o.en;
       }}
       getOptionKey={(i) => i.en}
       value={value}
@@ -66,12 +82,16 @@ const LanguageField = forwardRef<
               <Box>
                 <option.flag />
               </Box>
-              <Box>{`${option.ch},  ${option.en}`}</Box>
+              <Box>
+                {`${option.ch} `}
+                {locale === 'zh' ? option.cn : option.en}
+              </Box>
               <Box>{`(${option.abbr})`}</Box>
             </Stack>
           </MenuItem>
         );
       }}
+      filterOptions={filter}
     />
   );
 });
