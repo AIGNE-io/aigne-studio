@@ -1,9 +1,15 @@
-import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { MenuItem, TextField, TextFieldProps } from '@mui/material';
+import { Autocomplete, Box, MenuItem, Stack, TextField, TextFieldProps } from '@mui/material';
 import { forwardRef } from 'react';
 
 import { languages } from '../../constant/languages';
 import { SelectParameter } from '../../types/assistant';
+
+type Option = {
+  ch: string;
+  en: string;
+  abbr: string;
+  flag: (props: React.SVGProps<SVGSVGElement>) => JSX.Element;
+};
 
 const LanguageField = forwardRef<
   HTMLDivElement,
@@ -13,38 +19,60 @@ const LanguageField = forwardRef<
     onChange: (value: string | undefined) => void;
   } & Omit<TextFieldProps, 'onChange'>
 >(({ readOnly, parameter, onChange, ...props }, ref) => {
-  const { locale } = useLocaleContext();
+  const value = languages.find((o) => o.en === props?.value);
 
   return (
-    <TextField
-      ref={ref}
-      required={parameter?.required}
-      label={parameter?.label}
-      placeholder={parameter?.placeholder}
-      helperText={parameter?.helper}
-      select
-      onChange={(e) => onChange(e.target.value)}
-      {...props}
-      InputProps={{ ...props.InputProps, readOnly }}
-      sx={{
-        ...props.sx,
-        '& .MuiSelect-select .notranslate::after': parameter?.placeholder
-          ? {
-              content: `"${parameter.placeholder}"`,
-              opacity: 0.42,
-            }
-          : {},
-        '& .MuiFormLabel-root:not(.MuiInputLabel-shrink) + .MuiInputBase-root > .MuiSelect-select .notranslate::after':
-          {
-            opacity: 0,
-          },
-      }}>
-      {languages.map((option) => (
-        <MenuItem key={option.en} value={option.en}>
-          {locale === 'zh' ? option.cn : option.en}
-        </MenuItem>
-      ))}
-    </TextField>
+    <Autocomplete
+      options={languages}
+      renderInput={(params) => (
+        <TextField
+          ref={ref}
+          required={parameter?.required}
+          label={parameter?.label}
+          placeholder={parameter?.placeholder}
+          helperText={parameter?.helper}
+          {...params}
+          {...props}
+          sx={{
+            ...props.sx,
+            '& .MuiSelect-select .notranslate::after': parameter?.placeholder
+              ? {
+                  content: `"${parameter.placeholder}"`,
+                  opacity: 0.42,
+                }
+              : {},
+            '& .MuiFormLabel-root:not(.MuiInputLabel-shrink) + .MuiInputBase-root > .MuiSelect-select .notranslate::after':
+              {
+                opacity: 0,
+              },
+          }}
+        />
+      )}
+      getOptionLabel={(o: Option) => {
+        return o.en;
+      }}
+      getOptionKey={(i) => i.en}
+      value={value}
+      isOptionEqualToValue={(option, value) => {
+        return option?.en === value?.en;
+      }}
+      onChange={(_e, newValue) => {
+        onChange?.(newValue?.en);
+      }}
+      renderOption={(props, option) => {
+        return (
+          <MenuItem {...props}>
+            <Stack direction="row" gap={1}>
+              <Box>
+                <option.flag />
+              </Box>
+              <Box>{`${option.ch},  ${option.en}`}</Box>
+              <Box>{`(${option.abbr})`}</Box>
+            </Stack>
+          </MenuItem>
+        );
+      }}
+    />
   );
 });
 
