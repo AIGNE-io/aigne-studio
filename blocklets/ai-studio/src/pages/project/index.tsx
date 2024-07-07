@@ -42,7 +42,8 @@ export default function ProjectRoutes() {
           }}
           MenusDrawerProps={{ sx: { [`.${backdropClasses.root}`]: { top: 64 } } }}
           sx={{
-            bgcolor: 'background.default',
+            // bgcolor: 'background.default',
+            bgcolor: 'red',
 
             '> .dashboard-header': {
               border: 'none',
