@@ -3,10 +3,8 @@ import { setupClient } from 'vite-plugin-blocklet';
 
 import { app, server } from './src';
 
-const hmrPort = process.env.__HMR_PORT__;
-
 setupClient(app, {
-  port: 9999,
+  port: Number(process.env.BLOCKLET_VITE_PORT),
   host: '127.0.0.1',
   protocol: 'ws',
 });

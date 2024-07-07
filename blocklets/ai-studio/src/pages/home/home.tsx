@@ -15,7 +15,7 @@ export default function Home() {
   async function getTestData() {
     const res = await fetch('/ai/api/data');
     const data = await res.json();
-    console.log({ data });
+    console.log(data);
   }
 
   return (
@@ -37,6 +37,8 @@ export default function Home() {
             <Typography variant="body1" component="div">
               {blocklet.appDescription}
             </Typography>
+
+            <Box>{new Date().toLocaleString()}</Box>
 
             <button type="button" onClick={getTestData}>
               测试
