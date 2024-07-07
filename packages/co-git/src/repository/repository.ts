@@ -1,14 +1,14 @@
-import fs from 'fs';
 import { mkdir } from 'fs/promises';
 import path from 'path';
 
-import { pathExists } from 'fs-extra';
+import fs from 'fs-extra';
 import * as git from 'isomorphic-git';
 import http from 'isomorphic-git/http/node';
 import Queue from 'queue';
 
 import Working from './working';
 
+const { pathExists } = fs;
 export interface RepositoryOptions<T> {
   root: string;
   parse: (

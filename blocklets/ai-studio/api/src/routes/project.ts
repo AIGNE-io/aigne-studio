@@ -18,7 +18,7 @@ import { call } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
 import { user } from '@blocklet/sdk/lib/middlewares';
 import { Request, Router } from 'express';
-import { exists, pathExists } from 'fs-extra';
+import fs from 'fs-extra';
 import * as git from 'isomorphic-git';
 import http from 'isomorphic-git/http/node';
 import Joi from 'joi';
@@ -60,6 +60,7 @@ import {
 import { projectTemplates } from '../templates/projects';
 import { getCommits } from './log';
 
+const { exists, pathExists } = fs;
 const AI_STUDIO_COMPONENT_DID = 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
 
 export interface CreateProjectInput {

@@ -4,12 +4,13 @@ import { basename, dirname, join } from 'path';
 import { Assistant, ConfigFile, ProjectSettings, Variable, projectSettingsSchema } from '@blocklet/ai-runtime/types';
 import { getResources } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
-import { exists } from 'fs-extra';
+import fs from 'fs-extra';
 import { groupBy } from 'lodash';
 import { parse } from 'yaml';
 
 import logger from './logger';
 
+const { exists } = fs;
 const AI_STUDIO_DID = 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
 
 export type ResourceType =

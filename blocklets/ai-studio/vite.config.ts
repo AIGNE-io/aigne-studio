@@ -1,13 +1,13 @@
 /* eslint-disable import/no-extraneous-dependencies */
 
-import { existsSync } from 'fs';
-import path from 'path';
+import { existsSync } from 'node:fs';
+import path from 'node:path';
 
 import buildOpenAPIPlugin from '@blocklet/dataset-sdk/plugin';
 import react from '@vitejs/plugin-react';
 import million from 'million/compiler';
 import { PluginOption, defineConfig } from 'vite';
-import { createBlockletPlugin } from 'vite-plugin-blocklet';
+import { createBlockletExpress, createBlockletPlugin } from 'vite-plugin-blocklet';
 import svgr from 'vite-plugin-svgr';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
@@ -30,43 +30,36 @@ const dotPathFixPlugin: () => PluginOption = () => ({
   },
 });
 
-const hmrHostName = process.env.__HMR_HOSTNAME__;
-const hmrPath = process.env.__HMR_PATH__;
-
 // https://vitejs.dev/config/
 export default defineConfig((config) => {
   return {
-    optimizeDeps: {
-      force: true,
-    },
-    server: {
-      hmr: hmrPath
-        ? {
-            clientPort: 443,
-            path: hmrPath,
-          }
-        : undefined,
+    // optimizeDeps: {
+    //   force: true,
+    // },
+    resolve: {
+      alias: {
+        lodash: 'lodash-es',
+      },
     },
     plugins: [
       tsconfigPaths(),
       dotPathFixPlugin(),
       config.command === 'build' && million.vite({ auto: true }),
       react(),
-      createBlockletPlugin(),
+      createBlockletExpress({ entryPath: 'api/src/index.ts' }),
+      createBlockletPlugin({
+        nodePolyfillsOptions: {
+          include: ['crypto'],
+          globals: {
+            // Don't polyfill these globals
+            process: false,
+            Buffer: false,
+            global: false,
+          },
+        },
+      }),
       buildOpenAPIPlugin({ apis: [path.join(__dirname, './api/src/routes/**/*.*')] }),
       svgr(),
-      hmrHostName
-        ? {
-            name: 'client-host',
-            transform(code, id) {
-              if (id.endsWith('dist/client/client.mjs') || id.endsWith('dist/client/env.mjs')) {
-                return code.replace('__HMR_HOSTNAME__', JSON.stringify(hmrHostName));
-              }
-
-              return code;
-            },
-          }
-        : undefined,
     ],
     build: {
       commonjsOptions: {

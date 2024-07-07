@@ -3,7 +3,7 @@ import path from 'path';
 
 import { syncedStore } from '@syncedstore/core';
 import { MappedTypeDescription } from '@syncedstore/core/types/doc';
-import { mkdir, pathExists, rm, writeFile } from 'fs-extra';
+import fs from 'fs-extra';
 import * as decoding from 'lib0/decoding';
 import * as encoding from 'lib0/encoding';
 import debounce from 'lodash/debounce';
@@ -15,6 +15,7 @@ import { Doc, applyUpdate, encodeStateAsUpdate } from 'yjs';
 import type Repository from './repository';
 import type { Transaction } from './repository';
 
+const { mkdir, pathExists, rm, writeFile } = fs;
 const autoSaveTimeout = 10000;
 const pingTimeout = 30000;
 const messageSync = 0;

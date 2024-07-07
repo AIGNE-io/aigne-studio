@@ -9,11 +9,12 @@ import { Agent } from '@blocklet/aigne-sdk/api/agent';
 import { getComponentMountPoint } from '@blocklet/sdk';
 import config from '@blocklet/sdk/lib/config';
 import { Router } from 'express';
-import { exists } from 'fs-extra';
+import fs from 'fs-extra';
 import Joi from 'joi';
 import pick from 'lodash/pick';
 import { joinURL } from 'ufo';
 
+const { exists } = fs;
 const router = Router();
 
 export interface GetAgentsQuery {

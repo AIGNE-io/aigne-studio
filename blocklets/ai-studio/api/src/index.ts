@@ -14,6 +14,7 @@ import express, { ErrorRequestHandler } from 'express';
 import fallback from 'express-history-api-fallback';
 import { Errors } from 'isomorphic-git';
 
+import { name, version } from '../../package.json';
 import app from './app';
 import { Config, isDevelopment } from './libs/env';
 import { NoPermissionError, NotFoundError } from './libs/error';
@@ -25,7 +26,9 @@ export { default as app } from './app';
 
 dotenv.config();
 
-const { name, version } = require('../../package.json');
+app.use('/api/data', (req, res) => {
+  res.json({ data: 'hello you' });
+});
 
 async function ensureUploadDirExists() {
   try {
@@ -48,10 +51,12 @@ app.use(cors());
 
 app.use('/api', routes);
 
-if (!isDevelopment) {
-  const staticDir = path.resolve(Config.appDir, 'dist');
-  app.use(express.static(staticDir, { maxAge: '30d', index: false }));
-  app.use(fallback('index.html', { root: staticDir }));
+if (!process.env.VITE) {
+  if (!isDevelopment) {
+    const staticDir = path.resolve(Config.appDir, 'dist');
+    app.use(express.static(staticDir, { maxAge: '30d', index: false }));
+    app.use(fallback('index.html', { root: staticDir }));
+  }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -80,11 +85,13 @@ app.use(<ErrorRequestHandler>((error, _req, res, _next) => {
   }
 }));
 
-const port = parseInt(process.env.BLOCKLET_PORT!, 10);
+if (!process.env.VITE) {
+  const port = parseInt(process.env.BLOCKLET_PORT!, 10);
 
-export const server = app.listen(port, (err?: any) => {
-  if (err) throw err;
-  logger.info(`> ${name} v${version} ready on ${port}`);
+  app.listen(port, (err?: any) => {
+    if (err) throw err;
+    logger.info(`> ${name} v${version} ready on ${port}`);
 
-  initResourceStates();
-});
+    initResourceStates();
+  });
+}

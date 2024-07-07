@@ -1,11 +1,12 @@
 import { join } from 'path';
 
 import { logger } from '@blocklet/sdk/lib/config';
-import { pathExists, readdir, stat } from 'fs-extra';
+import fs from 'fs-extra';
 import sample from 'lodash/sample';
 
 import { Config } from './env';
 
+const { pathExists, readdir, stat } = fs;
 const icons = (async () => {
   try {
     // NOTE: fix wrong path of blocklet bundle monorepo

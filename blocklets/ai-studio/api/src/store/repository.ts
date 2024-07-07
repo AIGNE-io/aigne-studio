@@ -19,7 +19,7 @@ import {
 } from '@blocklet/ai-runtime/types';
 import { Repository, Transaction } from '@blocklet/co-git/repository';
 import { SpaceClient, SyncFolderPushCommand, SyncFolderPushCommandOutput } from '@did-space/client';
-import { copyFile, exists, pathExists } from 'fs-extra';
+import fs from 'fs-extra';
 import { glob } from 'glob';
 import { Errors } from 'isomorphic-git';
 import isEmpty from 'lodash/isEmpty';
@@ -32,6 +32,8 @@ import downloadLogo from '../libs/download-logo';
 import { Config } from '../libs/env';
 import logger from '../libs/logger';
 import Project from './models/project';
+
+const { copyFile, exists, pathExists } = fs;
 
 export const CONFIG_FOLDER = 'config';
 

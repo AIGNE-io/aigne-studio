@@ -12,7 +12,7 @@ import user from '@blocklet/sdk/lib/middlewares/user';
 import archiver from 'archiver';
 import compression from 'compression';
 import { Router } from 'express';
-import { exists } from 'fs-extra';
+import fs from 'fs-extra';
 import Joi from 'joi';
 import omitBy from 'lodash/omitBy';
 import { Op, Sequelize } from 'sequelize';
@@ -23,6 +23,7 @@ import Dataset from '../../store/models/dataset/dataset';
 import DatasetDocument from '../../store/models/dataset/document';
 import { sse } from './embeddings';
 
+const { exists } = fs;
 const router = Router();
 
 const datasetSchema = Joi.object<{ name?: string; description?: string; appId?: string }>({
