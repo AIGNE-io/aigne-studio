@@ -34,7 +34,7 @@ const LanguageField = forwardRef<
     onChange: (value: string | undefined) => void;
   } & Omit<TextFieldProps, 'onChange'>
 >(({ readOnly, parameter, onChange, ...props }, ref) => {
-  const value = languages.find((o) => o.en === props?.value);
+  const value = props?.value ? languages.find((o) => o.en === props.value) : null;
   const { locale } = useLocaleContext();
 
   return (
@@ -70,6 +70,7 @@ const LanguageField = forwardRef<
       getOptionKey={(i) => i.en}
       value={value}
       isOptionEqualToValue={(option, value) => {
+        if (value === null) return false;
         return option?.en === value?.en;
       }}
       onChange={(_e, newValue) => {
