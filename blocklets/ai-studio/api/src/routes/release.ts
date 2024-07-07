@@ -52,7 +52,7 @@ const getReleaseByAidQuerySchema = Joi.object<{ aid: string }>({
 
 router.get('/by-aid', async (req, res) => {
   const { aid } = await getReleaseByAidQuerySchema.validateAsync(req.query, { stripUnknown: true });
-  const { projectId, projectRef, assistantId } = parseIdentity(aid, { rejectWhenError: true });
+  const { projectId, projectRef, agentId: assistantId } = parseIdentity(aid, { rejectWhenError: true });
 
   const release = await Release.findOne({
     where: { projectId, projectRef, assistantId },

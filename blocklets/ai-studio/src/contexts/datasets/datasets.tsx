@@ -28,7 +28,7 @@ export interface DatasetsContext {
 
 const ctx = createContext<DatasetsContext | undefined>(undefined);
 
-export function DatasetsProvider({ children }: { children: ReactNode }) {
+export function DatasetsProvider({ projectId, children }: { projectId: string; children: ReactNode }) {
   const value = useRef<DatasetsContext>({
     datasets: [],
     loading: false,
@@ -43,7 +43,7 @@ export function DatasetsProvider({ children }: { children: ReactNode }) {
         v.loading = true;
       });
       try {
-        const datasets = await getDatasets();
+        const datasets = await getDatasets({ projectId });
 
         setValue((v) => {
           v.datasets = datasets;

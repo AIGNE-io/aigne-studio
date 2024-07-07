@@ -798,7 +798,7 @@ function DebugModeForm({
                       control={form.control}
                       name={parameter.key}
                       rules={{
-                        required: required ? t('validation.fieldRequired') : undefined,
+                        required: required || parameter.key === 'question' ? t('validation.fieldRequired') : undefined,
                         min:
                           typeof min === 'number'
                             ? { value: min, message: t('validation.fieldMin', { min }) }
@@ -856,6 +856,7 @@ function DebugModeForm({
               background: '#030712',
             },
           }}
+          disabled={!form.formState.isValid}
           loading={lastMessage?.loading}
           loadingPosition="end"
           endIcon={<Icon icon={SendIcon} size={14} />}>

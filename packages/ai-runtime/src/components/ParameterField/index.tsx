@@ -40,7 +40,7 @@ export default function ParameterField({
       select: SelectField,
       language: LanguageField,
     } as any
-  )[parameter.type || 'string'];
+  )[parameter.key === 'question' ? 'string' : parameter.type || 'string'];
 
   if (!Field) return null;
 

@@ -2,7 +2,8 @@ import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext
 import {
   LexicalTypeaheadMenuPlugin,
   MenuOption,
-  useBasicTypeaheadTriggerMatch,
+  PUNCTUATION,
+  TriggerFn,
 } from '@lexical/react/LexicalTypeaheadMenuPlugin';
 import { Box, alpha, styled } from '@mui/material';
 import Divider from '@mui/material/Divider';
@@ -10,6 +11,38 @@ import Stack, { StackProps } from '@mui/material/Stack';
 import { LexicalEditor, TextNode } from 'lexical';
 import React, { useCallback, useMemo, useState } from 'react';
 import * as ReactDOM from 'react-dom';
+
+function useBasicTypeaheadTriggerMatch(
+  trigger: string,
+  { minLength = 1, maxLength = 75 }: { minLength?: number; maxLength?: number }
+): TriggerFn {
+  // @ts-ignore
+  return useCallback(
+    (text: string) => {
+      const validChars = `[^${trigger}${PUNCTUATION}\\s]`;
+      const TypeaheadTriggerRegex = new RegExp(
+        // eslint-disable-next-line no-useless-concat
+        '(^|\\s|\\(|)' + `(${trigger}{1,2})` + `((?:${validChars}){0,${maxLength}})$`
+      );
+
+      const match = TypeaheadTriggerRegex.exec(text);
+      if (match !== null) {
+        const maybeLeadingWhitespace = match[1] || '';
+        const matchingString = match[3] || '';
+
+        if (matchingString.length >= minLength) {
+          return {
+            leadOffset: match.index + maybeLeadingWhitespace.length,
+            matchingString,
+            replaceableString: match[2] + matchingString,
+          };
+        }
+      }
+      return null;
+    },
+    [maxLength, minLength, trigger]
+  );
+}
 
 export class VariablePickerOption extends MenuOption {
   title: string;

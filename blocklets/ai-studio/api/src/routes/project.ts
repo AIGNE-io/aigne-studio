@@ -37,6 +37,8 @@ import {
 } from '../libs/security';
 import Project, { nextProjectId } from '../store/models/project';
 import {
+  CONFIG_FILENAME,
+  CONFIG_FILE_KEY,
   CONFIG_FOLDER,
   LOGO_FILENAME,
   VARIABLE_FILENAME,
@@ -61,6 +63,7 @@ import { getCommits } from './log';
 const AI_STUDIO_COMPONENT_DID = 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
 
 export interface CreateProjectInput {
+  blockletDid?: string;
   templateId?: string;
   withDuplicateFrom?: boolean;
   name?: string;
@@ -68,6 +71,7 @@ export interface CreateProjectInput {
 }
 
 const createProjectSchema = Joi.object<CreateProjectInput>({
+  blockletDid: Joi.string().empty([null, '']),
   templateId: Joi.string().empty([null, '']),
   withDuplicateFrom: Joi.boolean().empty([null, '']),
   name: Joi.string().empty([null, '']),
@@ -275,11 +279,11 @@ export function projectRoutes(router: Router) {
 
     const resourceTemplates = (await getResourceProjects('template')).map((i) => ({
       ...i.project,
-      isFromResource: true,
+      blockletDid: i.blocklet.did,
     }));
     const resourceExamples = (await getResourceProjects('example')).map((i) => ({
       ...i.project,
-      isFromResource: true,
+      blockletDid: i.blocklet.did,
     }));
 
     // multi-tenant mode
@@ -456,25 +460,44 @@ export function projectRoutes(router: Router) {
   router.post('/projects', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { did } = req.user!;
 
-    const { templateId, name, description, withDuplicateFrom } = await createProjectSchema.validateAsync(req.body, {
-      stripUnknown: true,
-    });
+    const { blockletDid, templateId, name, description, withDuplicateFrom } = await createProjectSchema.validateAsync(
+      req.body,
+      {
+        stripUnknown: true,
+      }
+    );
 
     let project: Project | undefined;
 
     await checkProjectLimit({ req });
 
     if (templateId) {
+      // create project from resource blocklet
+      if (blockletDid) {
+        const resource = await getProjectFromResource({ projectId: templateId, type: ['template', 'example'] });
+
+        if (resource) {
+          project = await createProjectFromTemplate(resource, {
+            name,
+            description,
+            author: req.user!,
+            withDuplicateFrom,
+          });
+        }
+      }
+
       // duplicate a project
-      const original = await Project.findOne({ where: { id: templateId } });
-      if (original) {
-        project = await copyProject({
-          project: original,
-          name,
-          description,
-          author: req.user!,
-          projectType: undefined,
-        });
+      if (!project) {
+        const original = await Project.findOne({ where: { id: templateId } });
+        if (original) {
+          project = await copyProject({
+            project: original,
+            name,
+            description,
+            author: req.user!,
+            projectType: undefined,
+          });
+        }
       }
 
       // create project from builtin templates
@@ -485,22 +508,6 @@ export function projectRoutes(router: Router) {
             { ...template, assistants: [] },
             { name, description, author: req.user! }
           );
-        }
-      }
-
-      // create project from resource blocklet
-      if (!project) {
-        const resource =
-          (await getResourceProjects('template')).find((i) => i.project.id === templateId) ||
-          (await getResourceProjects('example')).find((i) => i.project.id === templateId);
-
-        if (resource) {
-          project = await createProjectFromTemplate(resource, {
-            name,
-            description,
-            author: req.user!,
-            withDuplicateFrom,
-          });
         }
       }
 
@@ -833,7 +840,10 @@ export function projectRoutes(router: Router) {
         )
       );
 
-      await project.update({ ...omit(data, 'id'), gitLastSyncedAt: new Date() }, { silent: true });
+      await project.update(
+        { ...omit(data, 'id', 'createdAt', 'updatedAt'), gitLastSyncedAt: new Date() },
+        { silent: true }
+      );
 
       return res.json({});
     }
@@ -841,15 +851,20 @@ export function projectRoutes(router: Router) {
     throw new Error(`Could not back up to target(${target})`);
   });
 
-  router.get('/projects/:projectId/refs/:ref/assistants/:assistantId', async (req, res) => {
-    const { projectId, ref, assistantId } = req.params;
+  router.get('/projects/:projectId/refs/:ref/assistants/:agentId', async (req, res) => {
+    const { projectId, ref, agentId } = req.params;
     const query = await getAgentQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
     await Project.findByPk(projectId, { rejectOnEmpty: new Error(`Project ${projectId} not found`) });
 
     const repository = await getRepository({ projectId });
 
-    const assistant = await getAssistantFromRepository({ repository, ref, assistantId, working: query.working });
+    const assistant = await getAssistantFromRepository({
+      repository,
+      ref,
+      agentId,
+      working: query.working,
+    });
 
     res.json(
       pick(
@@ -885,7 +900,7 @@ export function projectRoutes(router: Router) {
       const agent = await getAssistantFromRepository({
         repository: repo,
         ref,
-        assistantId: agentId,
+        agentId,
         working: query.working,
       });
 
@@ -917,18 +932,25 @@ export function projectRoutes(router: Router) {
   );
 
   router.get(
-    '/projects/compare/:projectId/:ref/:assistantId',
+    '/projects/compare/:projectId/:ref/:agentId',
     user(),
     ensureComponentCallOrPromptsEditor(),
     async (req, res) => {
-      const { projectId = '', ref = '', assistantId = '' } = req.params;
+      const { projectId, ref, agentId } = req.params;
+      if (!projectId || !ref || !agentId) throw new Error('Missing required params projectId/ref/agentId');
+
       const query = await getAgentQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
       await Project.findByPk(projectId, { rejectOnEmpty: new Error(`Project ${projectId} not found`) });
 
       const repository = await getRepository({ projectId });
 
-      const assistant = await getAssistantFromRepository({ repository, ref, assistantId, working: query.working });
+      const assistant = await getAssistantFromRepository({
+        repository,
+        ref,
+        agentId,
+        working: query.working,
+      });
 
       res.json(assistant);
     }
@@ -940,12 +962,12 @@ export function projectRoutes(router: Router) {
     const assistants = (
       await Promise.all(
         resources.map(async (filepath: string) => {
-          const assistantId = getAssistantIdFromPath(filepath);
-          if (!assistantId) return [];
+          const agentId = getAssistantIdFromPath(filepath);
+          if (!agentId) return [];
           const repository = await getRepository({ projectId });
-          const p = (await repository.listFiles({ ref })).find((i) => i.endsWith(`${assistantId}.yaml`));
+          const p = (await repository.listFiles({ ref })).find((i) => i.endsWith(`${agentId}.yaml`));
           const parent = p ? p.split('/').slice(0, -1) : [];
-          const result = await getAssistantFromRepository({ repository, ref, assistantId });
+          const result = await getAssistantFromRepository({ repository, ref, agentId });
           return { ...result, parent };
         })
       )
@@ -1008,7 +1030,9 @@ async function copyProject({
 }
 
 async function createProjectFromTemplate(
-  template: (typeof projectTemplates)[number],
+  template: Omit<(typeof projectTemplates)[number], 'project'> & {
+    project: Omit<(typeof projectTemplates)[number]['project'], 'createdAt' | 'updatedAt'>;
+  },
   {
     name,
     description,
@@ -1059,10 +1083,10 @@ async function createProjectFromTemplate(
     working.syncedStore.tree[id] = parent.concat(`${id}.yaml`).join('/');
   }
 
-  if (!working.syncedStore.files[VARIABLE_KEY]) {
-    working.syncedStore.tree[VARIABLE_KEY] = joinURL(CONFIG_FOLDER, VARIABLE_FILENAME);
-    working.syncedStore.files[VARIABLE_KEY] = { type: 'variables', variables: [] };
-  }
+  working.syncedStore.tree[VARIABLE_KEY] = joinURL(CONFIG_FOLDER, VARIABLE_FILENAME);
+  working.syncedStore.files[VARIABLE_KEY] = { type: 'variables', variables: template.memory?.variables ?? [] };
+  working.syncedStore.tree[CONFIG_FILE_KEY] = joinURL(CONFIG_FOLDER, CONFIG_FILENAME);
+  working.syncedStore.files[CONFIG_FILE_KEY] = template.config || {};
 
   await commitWorking({
     project,

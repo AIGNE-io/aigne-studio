@@ -1,18 +1,23 @@
+import { createWriteStream } from 'fs';
 import { mkdir, writeFile } from 'fs/promises';
-import path, { join } from 'path';
+import { join } from 'path';
+import { pipeline } from 'stream/promises';
 
-import downloadImage from '@api/libs/download-logo';
 import { Config } from '@api/libs/env';
 import logger from '@api/libs/logger';
 import { ResourceTypes } from '@api/libs/resource';
 import { AIGNE_RUNTIME_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
 import { Assistant, projectSettingsSchema } from '@blocklet/ai-runtime/types';
 import component, { call } from '@blocklet/sdk/lib/component';
+import { user } from '@blocklet/sdk/lib/middlewares';
+import axios from 'axios';
 import { Router } from 'express';
 import Joi from 'joi';
+import get from 'lodash/get';
 import groupBy from 'lodash/groupBy';
+import set from 'lodash/set';
 import uniq from 'lodash/uniq';
-import { joinURL } from 'ufo';
+import { joinURL, parseFilename } from 'ufo';
 import { Extract } from 'unzipper';
 import { stringify } from 'yaml';
 
@@ -31,9 +36,11 @@ import {
 
 const AI_STUDIO_DID = 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
 
+const REG_ASSETS = /https?:\/\/.+.(jpe?g|png|gif|svg|bmp|webp|mp4|m4v|webm)$/;
+
 const getResourceDir = async ({ projectId, releaseId }: { projectId: string; releaseId: string }) => {
   const exportDir = component.getResourceExportDir({ projectId, releaseId });
-  const resourceDir = path.join(exportDir, AI_STUDIO_DID);
+  const resourceDir = join(exportDir, AI_STUDIO_DID);
 
   await mkdir(resourceDir, { recursive: true });
 
@@ -98,7 +105,7 @@ export function resourceRoutes(router: Router) {
     return undefined;
   };
 
-  router.get('/resources/export', ensurePromptsEditor, async (req, res) => {
+  router.get('/resources/export', user(), ensurePromptsEditor, async (req, res) => {
     const query = await getExportedResourceQuerySchema.validateAsync(
       {
         ...req.query,
@@ -121,6 +128,7 @@ export function resourceRoutes(router: Router) {
         method: 'get',
         path: '/api/datasets',
         params: { excludeResource: true },
+        headers: { 'x-user-did': req.user?.did },
       })
     ).data;
 
@@ -205,7 +213,7 @@ export function resourceRoutes(router: Router) {
 
     const referencedKBIds: string[] = [];
     for (const [type, value] of resourceTypes) {
-      const folderPath = path.join(resourceDir, type);
+      const folderPath = join(resourceDir, type);
       if (type === 'knowledge') {
         continue;
       }
@@ -224,7 +232,7 @@ export function resourceRoutes(router: Router) {
           if (!entry) throw new Error(`Missing entry agent for project ${projectId}`);
         }
 
-        await mkdir(path.join(folderPath, projectId), { recursive: true });
+        await mkdir(join(folderPath, projectId), { recursive: true });
 
         const project = await Project.findOne({
           where: { id: projectId },
@@ -233,27 +241,10 @@ export function resourceRoutes(router: Router) {
         const assistants = await Promise.all(
           (await getAssistantsOfRepository({ projectId, ref: project.gitDefaultBranch || defaultBranch })).map(
             async (i) => {
-              const logo = i.release?.logo;
-
-              const logoFilename = `${i.id}-release-logo.png`;
-              const logoPath = path.join(folderPath, projectId, logoFilename);
-
-              try {
-                if (logo) {
-                  await downloadImage(logo, logoPath);
-                }
-              } catch (error) {
-                logger.error('failed to download assistant logo', { error, logo });
-              }
-
               return {
                 ...i,
                 // NOTE: 是否是公开的 agent，公开的 agent 可以被选择引用
                 public: agentIds.has(i.id) || undefined,
-                release: {
-                  ...i.release,
-                  logo: logoFilename,
-                },
               };
             }
           )
@@ -282,7 +273,7 @@ export function resourceRoutes(router: Router) {
           }
         }
 
-        const result = stringify({
+        const data = {
           assistants,
           project: await projectSettingsSchema.validateAsync(project.dataValues),
           config,
@@ -294,12 +285,37 @@ export function resourceRoutes(router: Router) {
               })
             )?.variables,
           },
-        });
+        };
 
-        await writeFile(path.join(folderPath, projectId, `${projectId}.yaml`), result);
+        const assetsDir = join(folderPath, projectId, 'assets');
+        await mkdir(assetsDir, { recursive: true });
+
+        await Promise.all(
+          getPropertyPathBy(data, (v) => typeof v === 'string' && REG_ASSETS.test(v)).map(async (p) => {
+            const asset = get(data, p) as string;
+            try {
+              const filename = parseFilename(asset, { strict: false });
+              if (!filename) throw new Error(`Invalid filename from url ${asset}`);
+              const res = await axios.get(asset, { responseType: 'stream' });
+              if (res.status >= 200 && res.status < 300) {
+                const file = createWriteStream(join(assetsDir, filename));
+                await pipeline(res.data, file);
+                set(data, p, filename);
+              } else {
+                throw new Error(`download asset failed ${res.status}`);
+              }
+            } catch (error) {
+              logger.warn(`Failed to export assets: ${asset}, ${error}`);
+            }
+          })
+        );
+
+        const result = stringify(data);
+
+        await writeFile(join(folderPath, projectId, `${projectId}.yaml`), result);
 
         // 写入logo.png
-        const resourceLogoPath = path.join(folderPath, projectId, LOGO_FILENAME);
+        const resourceLogoPath = join(folderPath, projectId, LOGO_FILENAME);
 
         try {
           const icon = await repository.readBlob({
@@ -328,7 +344,7 @@ export function resourceRoutes(router: Router) {
     }));
 
     if (kbList.length > 0) {
-      const folderPath = path.join(resourceDir, 'knowledge');
+      const folderPath = join(resourceDir, 'knowledge');
       await mkdir(folderPath, { recursive: true });
       await exportKnowledgeList(folderPath, kbList);
     }
@@ -352,7 +368,7 @@ export function resourceRoutes(router: Router) {
     }
 
     const releaseDir = component.getReleaseExportDir({ projectId, releaseId });
-    await writeFile(path.join(releaseDir, 'blocklet.yml'), stringify(blockletYml));
+    await writeFile(join(releaseDir, 'blocklet.yml'), stringify(blockletYml));
 
     return res.json(arr);
   });
@@ -379,9 +395,10 @@ function getAssistantDependentComponents(assistant: Assistant | Assistant[]) {
 
         const executorDeps = assistant.executor?.agent?.blockletDid ? [assistant.executor?.agent?.blockletDid] : [];
 
+        const outputVariables = (assistant.outputVariables ?? []).filter((i) => !i.hidden);
         const appearanceDeps =
-          assistant.outputVariables
-            ?.map((i) => i.appearance?.componentBlockletDid)
+          outputVariables
+            .map((i) => i.appearance?.componentBlockletDid)
             .filter((i): i is NonNullable<typeof i> => !!i) ?? [];
 
         return [...inputDeps, ...executorDeps, ...appearanceDeps];
@@ -412,3 +429,17 @@ const exportKnowledgeInfo = async (folder: string, item: { id: string; public: b
 
   await res.data.pipe(Extract({ path: knowledgeWithIdPath }), { end: true }).promise();
 };
+
+function getPropertyPathBy(
+  obj: any,
+  predict: (value: any) => boolean,
+  path: (string | number)[] = []
+): (string | number)[][] {
+  if (Array.isArray(obj)) {
+    return obj.flatMap((item, index) => getPropertyPathBy(item, predict, [...path, index]));
+  }
+  if (typeof obj === 'object') {
+    return Object.entries(obj).flatMap(([key, val]) => getPropertyPathBy(val, predict, [...path, key]));
+  }
+  return predict(obj) ? [path] : [];
+}

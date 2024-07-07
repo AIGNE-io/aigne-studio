@@ -39,7 +39,7 @@ interface ResourceProject {
   project: ProjectSettings;
   memory?: { variables: Variable[] };
   config?: ConfigFile;
-  gitLogoPath?: string;
+  projectDir: string;
   assistants: (Assistant & { public?: boolean; parent: string[] })[];
 }
 
@@ -123,12 +123,7 @@ async function loadResourceBlocklets(path: string) {
         try {
           const json: ResourceProject = parse((await readFile(filepath)).toString());
           json.project = await projectSettingsSchema.validateAsync(json.project);
-
-          const gitLogoPath = join(dirname(filepath), 'logo.png');
-          if (await exists(gitLogoPath)) {
-            json.gitLogoPath = gitLogoPath;
-          }
-
+          json.projectDir = dirname(filepath);
           return json;
         } catch (error) {
           logger.error('parse assistants resource file error', { error });

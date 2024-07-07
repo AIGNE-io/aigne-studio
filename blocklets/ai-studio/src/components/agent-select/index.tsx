@@ -62,8 +62,18 @@ export default function AgentSelect<
 
   const isAdmin = useIsAdmin();
 
-  // TODO: 需要考虑不同 project 中有相同 agent id
-  const val = Array.isArray(value) ? value.map((i) => agentMap[i.id]) : value ? agentMap[value.id] : value ?? null;
+  let val: AgentSelectOption | AgentSelectOption[] | null = null;
+  if (Array.isArray(value)) {
+    val = value
+      .map((i) => {
+        const v = agentMap[i.id];
+        return v?.identity.blockletDid === i.blockletDid && v?.project.id === i.projectId ? v : undefined;
+      })
+      .filter((i): i is NonNullable<typeof i> => !!i);
+  } else if (value) {
+    const v = agentMap[value.id];
+    val = v && v?.identity.blockletDid === value.blockletDid && v?.project.id === value.projectId ? v : null;
+  }
 
   const addComponentRef = useRef<{ onClick?: () => void; loading?: boolean }>();
 
@@ -89,16 +99,18 @@ export default function AgentSelect<
           onChange?.(
             e,
             (Array.isArray(v)
-              ? v.map((i) => ({ id: i.id, projectId: i.project.id, blockletDid: i.blocklet?.did }))
+              ? v.map((i) => ({ id: i.id, projectId: i.project.id, blockletDid: i.identity.blockletDid }))
               : v
-                ? { id: v.id, projectId: v.project.id, blockletDid: v.blocklet?.did }
+                ? { id: v.id, projectId: v.project.id, blockletDid: v.identity.blockletDid }
                 : v) as any,
             reason
           )
         }
         options={options}
         slotProps={{ popper: { placement: 'bottom-start', sx: { width: 'fit-content !important', maxWidth: 500 } } }}
-        isOptionEqualToValue={(o, v) => o.id === v.id && o.project.id === v.project.id}
+        isOptionEqualToValue={(o, v) =>
+          o.id === v.id && o.project.id === v.project.id && o.identity.blockletDid === v.identity.blockletDid
+        }
         renderInput={(params) => (
           <Stack direction="row">
             <TextField placeholder={placeholder} {...params} hiddenLabel autoFocus={props.autoFocus} fullWidth />

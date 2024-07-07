@@ -1,7 +1,7 @@
 import { access, readFile, readdir, stat } from 'fs/promises';
 import { basename, dirname, join } from 'path';
 
-import { Assistant, ConfigFile, ProjectSettings, projectSettingsSchema } from '@blocklet/ai-runtime/types';
+import { Assistant, ConfigFile, ProjectSettings, Variable, projectSettingsSchema } from '@blocklet/ai-runtime/types';
 import { getResources } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
 import { exists } from 'fs-extra';
@@ -34,6 +34,7 @@ export const ResourceTypes: ResourceType[] = [
 interface ResourceProject {
   blocklet: { did: string };
   project: ProjectSettings;
+  memory?: { variables: Variable[] };
   config?: ConfigFile;
   gitLogoPath?: string;
   assistants: (Assistant & { public?: boolean; parent: string[] })[];
@@ -186,16 +187,23 @@ export const getResourceProjects = async (type: ResourceType) => {
 };
 
 export const getProjectFromResource = async ({
+  blockletDid,
   projectId,
   type,
 }: {
+  blockletDid?: string;
   projectId: string;
   type?: ResourceType | ResourceType[];
 }) => {
   const resources = await reloadResources();
   for (const t of type ? [type].flat() : ResourceTypes) {
-    const p = resources[t]?.projects.find((i) => i.project.id === projectId);
-    if (p) return p;
+    if (blockletDid) {
+      const p = resources[t]?.blockletMap[blockletDid]?.projectMap[projectId];
+      if (p) return p;
+    } else {
+      const p = resources[t]?.projects.find((i) => i.project.id === projectId);
+      if (p) return p;
+    }
   }
   return undefined;
 };
@@ -203,19 +211,19 @@ export const getProjectFromResource = async ({
 export const getAssistantFromResourceBlocklet = async ({
   blockletDid,
   projectId,
-  assistantId,
+  agentId,
   type,
 }: {
   blockletDid: string;
   projectId: string;
-  assistantId: string;
+  agentId: string;
   type: ResourceType | ResourceType[];
 }) => {
   const resources = await reloadResources();
   for (const t of [type].flat()) {
     const blocklet = resources[t]?.blockletMap[blockletDid];
     const project = blocklet?.projectMap[projectId];
-    const assistant = project?.assistantMap[assistantId];
+    const assistant = project?.assistantMap[agentId];
     if (assistant) return { assistant, project: project.project, blocklet: { did: blockletDid } };
   }
 

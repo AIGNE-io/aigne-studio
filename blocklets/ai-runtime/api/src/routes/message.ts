@@ -81,7 +81,7 @@ export function messageRoutes(router: Router) {
       conditions.push({
         [Op.or]: [
           where(cast(col('inputs'), 'CHAR'), 'LIKE', condition),
-          where(cast(col('result'), 'CHAR'), 'LIKE', condition),
+          where(cast(col('outputs'), 'CHAR'), 'LIKE', condition),
         ],
       });
     }
@@ -130,6 +130,14 @@ export function messageRoutes(router: Router) {
       .flat();
 
     res.json(messages);
+  });
+
+  router.get('/messages/:messageId', user(), async (req, res) => {
+    const { messageId } = req.params;
+
+    if (!messageId) throw new Error('Missing required param `messageId`');
+    const message = await History.findByPk(messageId, { rejectOnEmpty: new Error('No such message') });
+    res.json(message);
   });
 
   const getMessagesQuerySchema = Joi.object<{

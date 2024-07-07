@@ -1,3 +1,96 @@
+## 0.3.21 (2024-7-6)
+
+- chore: agent call other agent
+
+## 0.3.20 (2024-7-5)
+
+- chore: add `runAgent` api in aigne-sdk
+
+## 0.3.19 (2024-7-5)
+
+- feat: support sharing message to ArcBlock community
+
+## 0.3.18 (2024-7-4)
+
+- fix: failed to filter reference agent parameters in parameters
+
+## 0.3.17 (2024-7-3)
+
+- fix: correct parsing multiple function calling chunks
+
+## 0.3.16 (2024-7-3)
+
+- chore: export aigne components in aigne-sdk
+- chore: add api to query all agents from aigne studio
+- fix: menus do not appear when clicking the menu button on examples
+
+## 0.3.15 (2024-7-2)
+
+- chore: disable submit for the invalid inputs
+- chore: support multiline text for question input
+- fix: correct og meta for agent previewer
+
+## 0.3.14 (2024-7-1)
+
+- fix: only png files are allowed for the project icon
+- fix: typing `{` evokes variables without requiring a space before `{`
+- chore: display appearance component in the outputs table
+- chore: show unauthorized permission error dialog
+
+## 0.3.13 (2024-7-1)
+
+- fix: knowledge not found when previewing other user's agents
+- fix: error when search knowledge in the resource blocklet
+
+## 0.3.12 (2024-6-29)
+
+- fix: adapter settings not displaying
+
+## 0.3.11 (2024-6-27)
+
+- fix: export assets and use relative urls for assets
+- fix: only allow publishing of owned knowledge
+
+## 0.3.10 (2024-6-27)
+
+- fix: chat history crashed
+
+## 0.3.9 (2024-6-26)
+
+- feat: new @blocklet/aigne-sdk package for aigne development
+
+## 0.3.8 (2024-6-26)
+
+- fix: strict match called agent in inputs
+- chore: respond messageId in stream chunk
+
+## 0.3.7 (2024-6-25)
+
+- fix: enable save button in any historic commit #1166
+- fix: fix: children agent tag name #1165
+- feat: support hide a output
+
+## 0.3.6 (2024-6-25)
+
+- fix: set initial history state for prompt editor #1132
+- fix: show variable options when typing `{{` #1130
+
+## 0.3.5 (2024-6-25)
+
+- chore: show memory count & default show non-empty variables scope
+
+## 0.3.4 (2024-6-24)
+
+- chore: add close icon on setting drawer
+
+## 0.3.3 (2024-6-24)
+
+- fix: copy example project configurations
+
+## 0.3.2 (2024-6-24)
+
+- chore: updated deps
+
 ## 0.3.1 (2024-6-22)
 
 - fix: allow select components from pages-kit and resource blocklets

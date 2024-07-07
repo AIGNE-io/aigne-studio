@@ -1,9 +1,11 @@
 import UploadIcon from '@mui/icons-material/Upload';
 import { IconButton, IconButtonProps } from '@mui/material';
-import { ReactNode, createContext, lazy, useContext, useRef } from 'react';
+import { ReactNode, createContext, lazy, useContext, useEffect, useRef } from 'react';
 
 // @ts-ignore
 const UploaderComponent = lazy(() => import('@blocklet/uploader/react').then((res) => ({ default: res.Uploader })));
+
+const defaultAllowedFileTypes = ['image/png', 'image/jpeg', 'image/gif'];
 
 interface UploaderProviderProps {
   children: ReactNode;
@@ -13,18 +15,36 @@ export const UploaderContext = createContext(null);
 
 export function useUploader() {
   const uploaderRef = useContext(UploaderContext);
+
   if (!uploaderRef) {
     throw new Error('useUploader must be used within an UploaderProvider');
   }
+
+  useEffect(() => {
+    const uploader = (uploaderRef as any)?.current?.getUploader();
+    uploader.onClose(() => {
+      if (uploader?.opts?.restrictions?.allowedFileTypes) {
+        uploader.opts.restrictions.allowedFileTypes = defaultAllowedFileTypes;
+      }
+    });
+  }, [uploaderRef]);
+
   return uploaderRef;
 }
 
-export function UploaderButton({ onChange, ...props }: { onChange?: Function } & Omit<IconButtonProps, 'onChange'>) {
+export function UploaderButton({
+  onChange,
+  allowedFileTypes = defaultAllowedFileTypes,
+  ...props
+}: { onChange?: Function; allowedFileTypes?: string[] } & Omit<IconButtonProps, 'onChange'>) {
   const uploaderRef = useUploader();
 
   const handleOpen = () => {
     // @ts-ignore
     const uploader = uploaderRef?.current?.getUploader();
+    if (uploader?.opts?.restrictions?.allowedFileTypes) {
+      uploader.opts.restrictions.allowedFileTypes = allowedFileTypes || defaultAllowedFileTypes;
+    }
 
     uploader?.open();
 
@@ -62,6 +82,7 @@ export default function UploaderProvider({ children }: UploaderProviderProps) {
   return (
     <UploaderContext.Provider value={uploaderRef as any}>
       {children}
+
       <UploaderComponent
         key="uploader"
         // @ts-ignore
@@ -73,7 +94,7 @@ export default function UploaderProvider({ children }: UploaderProviderProps) {
         }}
         coreProps={{
           restrictions: {
-            allowedFileTypes: ['image/png', 'image/jpeg', 'image/gif'],
+            allowedFileTypes: defaultAllowedFileTypes,
             maxNumberOfFiles: 1,
           },
         }}

@@ -67,28 +67,23 @@ const searchResourceKnowledge = async (blockletDid: string, knowledgeId: string,
   const embeddings = new AIKitEmbeddings({});
   const store = await VectorStore.load(join(resource.vectorsPath, knowledgeId), embeddings);
 
-  try {
-    if (store.getMapping() && !Object.keys(store.getMapping()).length) {
-      logger.error('store get mapping is empty');
-      return { docs: [] };
-    }
-
-    const docs = await store.similaritySearchWithScore(
-      input.message,
-      Math.min(input.n, Object.keys(store.getMapping()).length)
-    );
-
-    // 分数越低越相近
-    const result = sortBy(docs, (item) => item[1]).map((x) => {
-      const info = x[0] || {};
-      return { content: info?.pageContent, ...(info?.metadata?.metadata || {}) };
-    });
-
-    return { docs: result };
-  } catch (error) {
-    logger.error('search vector info', error?.message);
+  if (store.getMapping() && !Object.keys(store.getMapping()).length) {
+    logger.error('store get mapping is empty');
     return { docs: [] };
   }
+
+  const docs = await store.similaritySearchWithScore(
+    input.message,
+    Math.min(input.n, Object.keys(store.getMapping()).length)
+  );
+
+  // 分数越低越相近
+  const result = sortBy(docs, (item) => item[1]).map((x) => {
+    const info = x[0] || {};
+    return { content: info?.pageContent, ...(info?.metadata?.metadata || {}) };
+  });
+
+  return { docs: result };
 };
 
 router.get('/:datasetId/search', async (req, res) => {

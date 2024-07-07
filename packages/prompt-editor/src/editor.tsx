@@ -1,5 +1,6 @@
 import './index.css';
 
+import { HistoryState, createEmptyHistoryState } from '@lexical/history';
 import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin';
 import { EditorRefPlugin } from '@lexical/react/LexicalEditorRefPlugin';
 import LexicalErrorBoundary from '@lexical/react/LexicalErrorBoundary';
@@ -8,7 +9,7 @@ import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { PlainTextPlugin } from '@lexical/react/LexicalPlainTextPlugin';
 import { BoxProps } from '@mui/material';
 import { EditorState, LexicalEditor } from 'lexical';
-import { ComponentProps, MutableRefObject } from 'react';
+import { ComponentProps, MutableRefObject, useEffect, useState } from 'react';
 
 import CommentPlugin from './plugins/CommentPlugin';
 import ComponentPickerMenuPlugin from './plugins/ComponentPickerPlugin';
@@ -18,6 +19,16 @@ import VariablePickerPlugin from './plugins/VariablePickerPlugin';
 import VariablePlugin from './plugins/VariablePlugin';
 import ContentEditable from './ui/content-editable';
 import Placeholder from './ui/content-placeholder';
+
+function ResettableHistoryPlugin() {
+  const [historyState, setHistoryState] = useState<HistoryState>(createEmptyHistoryState());
+
+  useEffect(() => {
+    setHistoryState(createEmptyHistoryState());
+  }, []);
+
+  return <HistoryPlugin externalHistoryState={historyState} />;
+}
 
 export default function Editor({
   useVariableNode = false,
@@ -74,7 +85,7 @@ export default function Editor({
       {useVariableNode && <VariablePlugin popperElement={popperElement} variables={variables} />}
       <FloatingToolbarPlugin floatElement={floatElement} />
       {componentPickerProps && <ComponentPickerMenuPlugin {...componentPickerProps} />}
-      <HistoryPlugin />
+      <ResettableHistoryPlugin />
       {onChange && <OnChangePlugin onChange={onChange} ignoreSelectionChange />}
       {editorRef !== undefined && <EditorRefPlugin editorRef={editorRef} />}
       {variablePickerProps && <VariablePickerPlugin {...variablePickerProps} />}

@@ -5,9 +5,10 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
 import FloppyIcon from '@iconify-icons/tabler/device-floppy';
-import { DownloadRounded, UploadRounded, WarningRounded } from '@mui/icons-material';
+import { DownloadRounded, SyncRounded, UploadRounded, WarningRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
+  Alert,
   Autocomplete,
   Box,
   Button,
@@ -17,15 +18,19 @@ import {
   DialogContent,
   DialogProps,
   DialogTitle,
+  IconButton,
+  InputAdornment,
+  Link,
   Stack,
   TextField,
   Tooltip,
   Typography,
 } from '@mui/material';
 import { useKeyPress } from 'ahooks';
+import gitUrlParse from 'git-url-parse';
 import { PopupState, bindDialog, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Controller, UseFormReturn, useForm } from 'react-hook-form';
+import { Controller, FormProvider, UseFormReturn, useForm, useFormContext } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
@@ -33,6 +38,8 @@ import { useReadOnly } from '../../contexts/session';
 import { getErrorMessage } from '../../libs/api';
 import { commitFromWorking } from '../../libs/working';
 import useDialog from '../../utils/use-dialog';
+import Eye from './icons/eye';
+import EyeNo from './icons/eye-no';
 import { saveButtonState, useAssistantChangesState, useProjectState } from './state';
 
 export interface CommitForm {
@@ -41,11 +48,19 @@ export interface CommitForm {
   message: string;
 }
 
-export default function SaveButton({ projectId, gitRef }: { projectId: string; gitRef: string }) {
+export default function SaveButton({
+  projectId,
+  gitRef,
+  disabled,
+}: {
+  projectId: string;
+  gitRef: string;
+  disabled?: boolean;
+}) {
   const { t } = useLocaleContext();
   const dialogState = usePopupState({ variant: 'dialog' });
   const [loading, setLoading] = useState(false);
-  const { disabled } = useAssistantChangesState(projectId, gitRef);
+  const { disabled: disabledButton } = useAssistantChangesState(projectId, gitRef);
   const form = useForm<CommitForm>({});
   const submitting = form.formState.isSubmitting || loading;
 
@@ -55,7 +70,7 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
         <span>
           <Button
             {...bindTrigger(dialogState)}
-            disabled={submitting || disabled}
+            disabled={disabled ?? (submitting || disabledButton)}
             sx={{
               position: 'relative',
               minWidth: 0,
@@ -121,6 +136,8 @@ export function SaveButtonDialog({
   const navigate = useNavigate();
 
   const { dialog, showMergeConflictDialog } = useMergeConflictDialog({ projectId });
+  const { dialog: unauthorizedDialog, showUnauthorizedDialog } = useUnauthorizedDialog({ projectId });
+
   const setProjectCurrentBranch = useCurrentGitStore((i) => i.setProjectCurrentBranch);
 
   const {
@@ -149,6 +166,7 @@ export function SaveButtonDialog({
     async (input: CommitForm, { skipToast }: { skipToast?: boolean } = {}) => {
       try {
         let needMergeConflict = false;
+        let needUpdateAccessToken = false;
 
         const branch = simpleMode ? getDefaultBranch() : input.branch;
         try {
@@ -163,7 +181,8 @@ export function SaveButtonDialog({
           });
         } catch (error) {
           needMergeConflict = isTheErrorShouldShowMergeConflict(error);
-          if (!needMergeConflict) throw error;
+          needUpdateAccessToken = isTheErrorUnauthorizedAccessToken(error);
+          if (!needMergeConflict && !needUpdateAccessToken) throw error;
         }
 
         dialogState.close();
@@ -171,6 +190,9 @@ export function SaveButtonDialog({
         if (needMergeConflict) {
           Toast.warning(t('alert.savedButSyncConflicted'));
           await showMergeConflictDialog();
+        } else if (needUpdateAccessToken) {
+          Toast.warning(t('remoteGitRepoUnauthorizedToast'));
+          await showUnauthorizedDialog();
         } else if (!skipToast) Toast.success(t('alert.saved'));
 
         refetch();
@@ -249,6 +271,7 @@ export function SaveButtonDialog({
   return (
     <>
       {dialog}
+      {unauthorizedDialog}
 
       <Dialog
         {...bindDialog(dialogState)}
@@ -334,6 +357,11 @@ export function isTheErrorShouldShowMergeConflict(error: any) {
   return ['MergeConflictError', 'PushRejectedError', 'MergeNotSupportedError'].includes(errorName);
 }
 
+export function isTheErrorUnauthorizedAccessToken(error: any) {
+  const errorName = error.response?.data?.error?.message;
+  return errorName.includes('401 Unauthorized');
+}
+
 export function useMergeConflictDialog({ projectId }: { projectId: string }) {
   const { t } = useLocaleContext();
   const { dialog, showDialog } = useDialog();
@@ -401,4 +429,209 @@ export function useMergeConflictDialog({ projectId }: { projectId: string }) {
   }, [projectId, pull, push, showDialog, t]);
 
   return { dialog, showMergeConflictDialog };
+}
+
+interface RemoteRepoSettingForm {
+  url: string;
+  username: string;
+  password: string;
+}
+
+function GitSettingContent() {
+  const form = useFormContext<RemoteRepoSettingForm>();
+  const [showPassword, setShowPassword] = useState(false);
+  const { t } = useLocaleContext();
+
+  return (
+    <Stack gap={2}>
+      <Alert severity="warning" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+        {t('remoteGitRepoUnauthorizedTip')}
+      </Alert>
+
+      <>
+        <Box>
+          <Typography variant="subtitle2" mb={0.5}>
+            {`${t('url')}*`}
+          </Typography>
+
+          <TextField
+            autoFocus
+            fullWidth
+            label={`${t('url')}*`}
+            onPaste={(e) => {
+              try {
+                const url = gitUrlParse(e.clipboardData.getData('text/plain'));
+                const https = gitUrlParse.stringify(url, 'https');
+                form.setValue('url', https, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+                form.setValue('username', url.owner, {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                  shouldTouch: true,
+                });
+
+                const { password } = url as any;
+                if (password && typeof password === 'string') {
+                  form.setValue('password', password, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                    shouldTouch: true,
+                  });
+                }
+                e.preventDefault();
+              } catch {
+                // empty
+              }
+            }}
+            {...form.register('url', {
+              required: true,
+              validate: (value) =>
+                /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/.test(
+                  value
+                ) || t('validation.urlPattern'),
+            })}
+            InputLabelProps={{ shrink: form.watch('url') ? true : undefined }}
+            inputProps={{ readOnly: true }}
+            error={Boolean(form.formState.errors.url)}
+            helperText={form.formState.errors.url?.message}
+          />
+        </Box>
+
+        <Box>
+          <Typography variant="subtitle2" mb={0.5}>
+            {t('username')}
+          </Typography>
+
+          <TextField
+            fullWidth
+            label={t('username')}
+            {...form.register('username')}
+            error={Boolean(form.formState.errors.username)}
+            helperText={form.formState.errors.username?.message}
+            InputLabelProps={{ shrink: form.watch('username') ? true : undefined }}
+            inputProps={{ readOnly: true }}
+          />
+        </Box>
+
+        <Box>
+          <Typography variant="subtitle2" mb={0.5}>
+            {t('accessToken')}
+          </Typography>
+
+          <TextField
+            fullWidth
+            label={t('accessToken')}
+            {...form.register('password')}
+            error={Boolean(form.formState.errors.password)}
+            helperText={
+              form.formState.errors.password?.message || (
+                <Box component="span">
+                  {t('remoteGitRepoPasswordHelper')}{' '}
+                  <Tooltip
+                    title={t('githubTokenTip')}
+                    placement="top"
+                    slotProps={{ popper: { sx: { whiteSpace: 'pre-wrap' } } }}>
+                    <Link href="https://github.com/settings/tokens?type=beta" target="_blank">
+                      github access token
+                    </Link>
+                  </Tooltip>
+                </Box>
+              )
+            }
+            type={showPassword ? 'text' : 'password'}
+            InputLabelProps={{ shrink: form.watch('password') ? true : undefined }}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                    {showPassword ? <EyeNo /> : <Eye />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
+        </Box>
+      </>
+    </Stack>
+  );
+}
+
+export function useUnauthorizedDialog({ projectId }: { projectId: string }) {
+  const { t } = useLocaleContext();
+  const { dialog, showDialog, closeDialog } = useDialog();
+
+  const { state, addRemote, push } = useProjectState(projectId, getDefaultBranch());
+
+  const form = useForm<RemoteRepoSettingForm>({ defaultValues: { url: '', username: '', password: '' } });
+
+  useEffect(() => {
+    if (state.project?.gitUrl) {
+      const gitUrl = state.project?.gitUrl;
+      let url = '';
+      let username = '';
+      try {
+        if (gitUrl) {
+          const u = new URL(gitUrl);
+          username = u.username || '';
+          u.username = '';
+          url = u.toString();
+        }
+      } catch {
+        // empty
+      }
+
+      form.setValue('url', url);
+      form.setValue('username', username);
+    }
+  }, [state.project?.gitUrl]);
+
+  const saveSetting = useCallback(
+    async (value: RemoteRepoSettingForm) => {
+      try {
+        await addRemote(projectId, value);
+        await push(projectId, { force: true });
+        Toast.success(t('synced'));
+      } catch (error) {
+        form.reset(value);
+
+        if (isTheErrorUnauthorizedAccessToken(error)) {
+          Toast.warning(t('remoteGitRepoUnauthorizedToast'));
+          return;
+        }
+
+        Toast.error(getErrorMessage(error));
+        throw error;
+      } finally {
+        closeDialog();
+      }
+    },
+    [addRemote, form, projectId]
+  );
+
+  const showUnauthorizedDialog = useCallback(async () => {
+    return new Promise<void>((resolve) => {
+      showDialog({
+        fullWidth: true,
+        maxWidth: 'sm',
+        title: (
+          <Stack direction="row" alignItems="center" gap={1}>
+            <WarningRounded color="warning" fontSize="large" /> {t('remoteGitRepoUnauthorized')}
+          </Stack>
+        ),
+        content: (
+          <FormProvider {...form}>
+            <GitSettingContent />
+          </FormProvider>
+        ),
+        cancelText: t('cancel'),
+        okText: t('sync'),
+        okColor: 'warning',
+        okIcon: <SyncRounded />,
+        okVariant: 'outlined',
+        onOk: form.handleSubmit(saveSetting),
+        onClose: () => resolve(),
+      });
+    });
+  }, [projectId, push, showDialog, t]);
+
+  return { dialog, showUnauthorizedDialog };
 }

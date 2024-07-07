@@ -1,5 +1,5 @@
 import { ResourceType } from '@api/libs/resource';
-import { Agent, getAgents } from '@app/libs/agent';
+import { useCurrentProject } from '@app/contexts/project';
 import { useCurrentProjectState } from '@app/pages/project/state';
 import { useAssistants, useProject } from '@app/pages/project/yjs-state';
 import {
@@ -10,6 +10,7 @@ import {
   outputVariableFromYjs,
   parameterFromYjs,
 } from '@blocklet/ai-runtime/types';
+import { Agent, getAgents } from '@blocklet/aigne-sdk/api/agent';
 import { groupBy, pick } from 'lodash';
 import { useEffect } from 'react';
 import { StoreApi, UseBoundStore, create } from 'zustand';
@@ -65,16 +66,17 @@ export function useResourceAgents({ type }: { type: ResourceType }) {
   return state;
 }
 
-export type UseAgentItem = Omit<Agent, 'blocklet'> & Partial<Pick<Agent, 'blocklet'>>;
+export type UseAgentItem = Omit<Agent, 'identity'> & { identity: Omit<Agent['identity'], 'aid'> };
 
 export function useAgents({ type }: { type: ResourceType }) {
   const { agents = [], load } = useResourceAgents({ type });
+  const { projectId, projectRef } = useCurrentProject();
   const {
     state: { project },
   } = useCurrentProjectState();
   const assistants = useAssistants();
 
-  const localAgents = !project
+  const localAgents: UseAgentItem[] = !project
     ? []
     : assistants.map((i) => ({
         id: i.id,
@@ -87,6 +89,12 @@ export function useAgents({ type }: { type: ResourceType }) {
         get outputVariables() {
           return i.outputVariables && arrayFromYjs(i.outputVariables, outputVariableFromYjs);
         },
+        identity: {
+          projectId,
+          projectRef,
+          agentId: i.id,
+          working: true,
+        },
         project: {
           id: project.id,
           name: project.name,
@@ -95,7 +103,6 @@ export function useAgents({ type }: { type: ResourceType }) {
           updatedAt: String(project.updatedAt),
           createdBy: project.createdBy,
         },
-        blocklet: undefined,
       }));
 
   const resourceAgents = agents.filter((i) => i.project.id !== project?.id);
@@ -110,19 +117,26 @@ export function useAgents({ type }: { type: ResourceType }) {
 }
 
 export function useAgent({
+  blockletDid,
   projectId,
   agentId,
   type,
 }: {
+  blockletDid?: string;
   projectId?: string;
   agentId: string;
   type: ResourceType;
-}): (Omit<Agent, 'blocklet'> & { blocklet?: Agent['blocklet'] }) | undefined {
+}): UseAgentItem | undefined {
   const {
     state: { project },
   } = useCurrentProjectState();
   const { store } = useProject();
+  const { projectRef } = useCurrentProject();
   const { agents = [] } = useResourceAgents({ type });
+
+  if (blockletDid) {
+    return agents.find((i) => i.id === agentId && i.project.id === projectId && i.identity.blockletDid === blockletDid);
+  }
 
   if (!project) return undefined;
 
@@ -131,6 +145,12 @@ export function useAgent({
     if (file && isAssistant(file)) {
       return {
         ...(fileFromYjs(file) as Assistant),
+        identity: {
+          projectId: project.id,
+          projectRef,
+          agentId: file.id,
+          working: true,
+        },
         project: {
           id: project.id,
           createdAt: String(project.createdAt),
@@ -142,5 +162,5 @@ export function useAgent({
     return undefined;
   }
 
-  return agents.find((i) => i.id === agentId && i.project.id === projectId);
+  return undefined;
 }

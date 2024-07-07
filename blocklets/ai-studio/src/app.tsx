@@ -65,6 +65,13 @@ export default function App() {
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
             },
+
+            '.multi-line-ellipsis': {
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              display: '-webkit-box',
+              WebkitBoxOrient: 'vertical',
+            },
           }}
         />
 

@@ -5,7 +5,9 @@ import { ImageGenerationInput } from '@blocklet/ai-kit/api/types/image';
 
 import { Assistant, OnTaskCompletion, ProjectSettings, RunAssistantResponse } from '../../types';
 
-export type RunAssistantCallback = (e: RunAssistantResponse) => void;
+type OmitBetterStrict<T, K extends keyof T> = T extends any ? Pick<T, Exclude<keyof T, K>> : never;
+
+export type RunAssistantCallback = (e: OmitBetterStrict<RunAssistantResponse, 'messageId'>) => void;
 
 export class ToolCompletionDirective extends Error {
   type: OnTaskCompletion;
@@ -33,6 +35,7 @@ export type GetAgentResult = Assistant & {
     blockletDid?: string;
     working?: boolean;
     agentId: string;
+    aid: string;
   };
 };
 

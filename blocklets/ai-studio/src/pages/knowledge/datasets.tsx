@@ -419,7 +419,9 @@ function DatasetItem({
               )}
             </Box>
             <Box>
-              <Typography variant="subtitle3">{description || ''}</Typography>
+              <Typography variant="subtitle3" className="multi-line-ellipsis" sx={{ WebkitLineClamp: 2 }}>
+                {description || ''}
+              </Typography>
             </Box>
           </Box>
         </Stack>

@@ -7,6 +7,7 @@ import APIIcon from '@iconify-icons/tabler/api';
 import CodeIcon from '@iconify-icons/tabler/code';
 import BranchIcon from '@iconify-icons/tabler/git-branch';
 import PhotoIcon from '@iconify-icons/tabler/photo';
+import PlayIcon from '@iconify-icons/tabler/player-play';
 import SparklesIcon from '@iconify-icons/tabler/sparkles';
 import SwitchHorizontalIcon from '@iconify-icons/tabler/switch-horizontal';
 import ZZZIcon from '@iconify-icons/tabler/zzz';
@@ -22,6 +23,7 @@ export const agentTypes = [
   { type: 'function', icon: <Icon icon={CodeIcon} />, i18nKey: 'logic' },
   { type: 'api', icon: <Icon icon={APIIcon} />, i18nKey: 'api' },
   { type: 'router', icon: <Icon icon={BranchIcon} />, i18nKey: 'router' },
+  { type: 'callAgent', icon: <Icon icon={PlayIcon} />, i18nKey: 'callAgent' },
 ] as const;
 
 export const agentTypesMap = Object.fromEntries(agentTypes.map((i) => [i.type, i]));

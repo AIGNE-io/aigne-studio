@@ -4,8 +4,8 @@ export type ProjectSettings = {
   id: string;
   name?: string;
   description?: string;
-  createdAt: string | Date;
-  updatedAt: string | Date;
+  createdAt: string;
+  updatedAt: string;
   createdBy: string;
   updatedBy: string;
   model?: string;

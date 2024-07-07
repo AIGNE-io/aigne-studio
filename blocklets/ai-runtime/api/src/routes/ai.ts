@@ -15,13 +15,9 @@ import {
 } from '@blocklet/ai-kit/api/types/index';
 import { defaultImageModel, getSupportedImagesModels } from '@blocklet/ai-runtime/common';
 import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
-import { CallAI, CallAIImage, RuntimeExecutor, nextTaskId } from '@blocklet/ai-runtime/core';
-import {
-  AssistantResponseType,
-  RunAssistantResponse,
-  RuntimeOutputVariable,
-  isImageAssistant,
-} from '@blocklet/ai-runtime/types';
+import { CallAI, CallAIImage, RunAssistantCallback, RuntimeExecutor, nextTaskId } from '@blocklet/ai-runtime/core';
+import { toolCallsTransform } from '@blocklet/ai-runtime/core/utils/tool-calls-transform';
+import { AssistantResponseType, RuntimeOutputVariable, isImageAssistant } from '@blocklet/ai-runtime/types';
 import { RuntimeError, RuntimeErrorType } from '@blocklet/ai-runtime/types/runtime/error';
 import { auth } from '@blocklet/sdk/lib/middlewares';
 import user from '@blocklet/sdk/lib/middlewares/user';
@@ -60,7 +56,7 @@ router.post('/call', user(), auth(), compression(), async (req, res) => {
         stringifyIdentity({
           projectId: req.body.projectId,
           projectRef: req.body.ref,
-          assistantId: req.body.assistantId,
+          agentId: req.body.assistantId,
         }),
     },
     { stripUnknown: true }
@@ -69,7 +65,7 @@ router.post('/call', user(), auth(), compression(), async (req, res) => {
   const userId = req.user?.did;
   if (!userId) throw new Error('Missing required userId');
 
-  const { projectId, projectRef, assistantId } = parseIdentity(input.aid, { rejectWhenError: true });
+  const { projectId, projectRef, agentId } = parseIdentity(input.aid, { rejectWhenError: true });
 
   const usage = {
     promptTokens: 0,
@@ -128,7 +124,7 @@ router.post('/call', user(), auth(), compression(), async (req, res) => {
     projectId,
     projectRef,
     working: input.working,
-    agentId: assistantId,
+    agentId,
     rejectOnEmpty: true,
   });
 
@@ -139,7 +135,22 @@ router.post('/call', user(), auth(), compression(), async (req, res) => {
 
   const executingLogs: { [key: string]: NonNullable<History['steps']>[number] } = {};
 
-  const emit = (data: RunAssistantResponse) => {
+  const taskId = nextTaskId();
+
+  const history = await History.create({
+    userId,
+    projectId,
+    agentId,
+    sessionId: input.sessionId,
+    inputs: input.inputs,
+    status: 'generating',
+    blockletDid: input.blockletDid,
+    projectRef,
+  });
+
+  const emit: RunAssistantCallback = (input) => {
+    const data = { ...input, messageId: history.id };
+
     if (data.type === AssistantResponseType.CHUNK || data.type === AssistantResponseType.INPUT) {
       if (data.type === AssistantResponseType.CHUNK) {
         mainTaskId ??= data.taskId;
@@ -189,18 +200,7 @@ router.post('/call', user(), auth(), compression(), async (req, res) => {
     res.flush();
   };
 
-  const taskId = nextTaskId();
-
   if (stream) emit({ type: AssistantResponseType.CHUNK, taskId, assistantId: agent.id, delta: {} });
-
-  const history = await History.create({
-    userId,
-    projectId,
-    agentId: assistantId,
-    sessionId: input.sessionId,
-    inputs: input.inputs,
-    status: 'generating',
-  });
 
   try {
     emit({
@@ -208,7 +208,7 @@ router.post('/call', user(), auth(), compression(), async (req, res) => {
       taskId,
       assistantId: agent.id,
       delta: {
-        content: JSON.stringify(input.inputs),
+        content: JSON.stringify(input.inputs, null, 2),
       },
     });
 
@@ -240,27 +240,12 @@ router.post('/call', user(), auth(), compression(), async (req, res) => {
 
     if (llmResponseStream) {
       let text = '';
-      let calls: NonNullable<ChatCompletionChunk['delta']['toolCalls']> | undefined;
+      const calls: NonNullable<ChatCompletionChunk['delta']['toolCalls']> = [];
 
       for await (const chunk of llmResponseStream as ReadableStream<ChatCompletionResponse>) {
         if (isChatCompletionChunk(chunk)) {
           text += chunk.delta.content || '';
-
-          const { toolCalls } = chunk.delta;
-
-          if (toolCalls) {
-            if (!calls) {
-              calls = toolCalls;
-            } else {
-              toolCalls.forEach((item, index) => {
-                const call = calls?.[index];
-                if (call?.function) {
-                  call.function.name += item.function?.name || '';
-                  call.function.arguments += item.function?.arguments || '';
-                }
-              });
-            }
-          }
+          toolCallsTransform(calls, chunk);
 
           if (stream) {
             emit({
@@ -282,7 +267,7 @@ router.post('/call', user(), auth(), compression(), async (req, res) => {
             object: {
               $llmResponse: {
                 content: text,
-                toolCalls: calls,
+                toolCalls: calls.length ? calls : undefined,
               },
             },
           },

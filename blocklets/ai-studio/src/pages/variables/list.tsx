@@ -29,10 +29,13 @@ import {
   Typography,
 } from '@mui/material';
 import equal from 'fast-deep-equal';
-import { cloneDeep, sortBy, uniq } from 'lodash';
+import cloneDeep from 'lodash/cloneDeep';
+import groupBy from 'lodash/groupBy';
+import sortBy from 'lodash/sortBy';
+import uniq from 'lodash/uniq';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { nanoid } from 'nanoid';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useParams } from 'react-router-dom';
 
@@ -65,6 +68,17 @@ function VariableList() {
   const form = useForm<VariableYjs>({
     defaultValues: { reset: false, scope: 'session', key: '', defaultValue: '', type: { type: 'string' } },
   });
+
+  const scopeCount = Object.fromEntries(
+    Object.entries(groupBy(variableYjs?.variables || [], 'scope')).map(([scope, variables]) => [
+      scope,
+      variables.length,
+    ])
+  );
+
+  useEffect(() => {
+    setScope((Object.keys(scopeCount)[0] as 'global' | 'user' | 'session') || 'global');
+  }, []);
 
   const list = useMemo(() => {
     const filterVariables = (variableYjs?.variables || []).filter((x) => x.scope === scope);
@@ -182,9 +196,9 @@ function VariableList() {
         <SegmentedControl
           value={scope}
           options={[
-            { value: 'global', label: t('variableParameter.global') },
-            { value: 'user', label: t('variableParameter.user') },
-            { value: 'session', label: t('variableParameter.session') },
+            { value: 'global', label: t('variableParameter.global'), count: scopeCount.global },
+            { value: 'user', label: t('variableParameter.user'), count: scopeCount.user },
+            { value: 'session', label: t('variableParameter.session'), count: scopeCount.session },
           ]}
           onChange={(value: 'global' | 'user' | 'session') => {
             if (value) setScope(value);

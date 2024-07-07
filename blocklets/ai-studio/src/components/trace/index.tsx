@@ -74,10 +74,32 @@ const LabelValue = memo(({ label, value }: Trace) => {
     value &&
     Object.keys(value).length
   ) {
+    let formatInputParameters;
+    try {
+      const result = typeof value === 'string' ? JSON.parse(value) : value;
+      if (Array.isArray(result)) {
+        formatInputParameters = result;
+      } else if (typeof result === 'object') {
+        formatInputParameters = Object.fromEntries(
+          Object.entries(result).map(([key, value1]: any) => {
+            try {
+              return [key, JSON.parse(value1)];
+            } catch {
+              return [key, value1];
+            }
+          })
+        );
+      } else {
+        formatInputParameters = value;
+      }
+    } catch {
+      formatInputParameters = value;
+    }
+
     return (
       <>
         <Label variant="body1">{t(label)}:</Label>
-        <JsonDisplay>{JSON.stringify(value)}</JsonDisplay>
+        <JsonDisplay>{JSON.stringify(formatInputParameters, null, 4)}</JsonDisplay>
       </>
     );
   }

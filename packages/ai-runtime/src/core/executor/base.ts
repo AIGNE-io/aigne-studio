@@ -385,7 +385,9 @@ export abstract class AgentExecutorBase {
     { inputs, outputs }: { inputs?: { [key: string]: any }; outputs?: { [key: string]: any } }
   ) {
     const joiSchema = outputVariablesToJoiSchema(agent, await this.context.getMemoryVariables(agent.identity));
-    const outputInputs = agent.outputVariables?.reduce((res, output) => {
+    const outputVariables = (agent.outputVariables ?? []).filter((i) => !i.hidden);
+
+    const outputInputs = outputVariables.reduce((res, output) => {
       const input =
         output.from?.type === 'input' ? agent.parameters?.find((input) => input.id === output.from?.id) : undefined;
 
@@ -396,13 +398,15 @@ export abstract class AgentExecutorBase {
 
       return res;
     }, {});
+
     return joiSchema.validateAsync({ ...outputs, ...outputInputs }, { stripUnknown: true });
   }
 
   private async postProcessOutputs(agent: GetAgentResult, { outputs }: { outputs: { [key: string]: any } }) {
     const memoryVariables = await this.context.getMemoryVariables(agent.identity);
+    const outputVariables = (agent.outputVariables ?? []).filter((i) => !i.hidden);
 
-    for (const output of agent?.outputVariables || []) {
+    for (const output of outputVariables) {
       if (!output?.variable?.key || !output?.name) continue;
 
       const value = outputs[output.name];

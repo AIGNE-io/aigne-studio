@@ -1,0 +1,116 @@
+{
+  "name": "@blocklet/aigne-sdk",
+  "version": "0.3.21",
+  "description": "AIGNE SDK used to interact with AIGNE services",
+  "publishConfig": {
+    "access": "public"
+  },
+  "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
+  "homepage": "https://github.com/blocklet/ai-studio#readme",
+  "license": "ISC",
+  "main": "./lib/cjs/index.js",
+  "module": "./lib/esm/index.js",
+  "types": "./lib/types/index.d.js",
+  "exports": {
+    ".": {
+      "import": "./lib/esm/index.js",
+      "require": "./lib/cjs/index.js"
+    },
+    "./api/*": {
+      "import": "./lib/esm/api/*.js",
+      "require": "./lib/cjs/api/*.js"
+    },
+    "./components": {
+      "import": "./lib/esm/components/index.js",
+      "require": "./lib/cjs/components/index.js"
+    },
+    "./components/*": {
+      "import": "./lib/esm/components/*/index.js",
+      "require": "./lib/cjs/components/*/index.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./lib/types/index.d.ts"
+      ],
+      "api/*": [
+        "./lib/types/api/*.d.ts"
+      ],
+      "components": [
+        "./lib/types/components/index.d.ts"
+      ],
+      "components/*": [
+        "./lib/types/components/*/index.d.ts"
+      ]
+    }
+  },
+  "files": [
+    "lib",
+    "LICENSE",
+    "package.json",
+    "README.md",
+    "tsconfig.json"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blocklet/ai-studio.git"
+  },
+  "scripts": {
+    "lint": "eslint src --ext .mjs,.js,.jsx,.ts,.tsx",
+    "lint:fix": "npm run lint -- --fix",
+    "build": "tsc --noEmit && run-p build:*",
+    "build:cjs": "tsc -p tsconfig.build.json --module commonjs --outDir lib/cjs > /dev/null || exit 0",
+    "build:esm": "tsc -p tsconfig.build.json --module es2022 --outDir lib/esm > /dev/null || exit 0",
+    "build:types": "tsc -p tsconfig.build.json --declaration --emitDeclarationOnly --outDir lib/types > /dev/null || exit 0",
+    "dev": "run-p 'build:* -- -w'",
+    "clean": "rimraf lib",
+    "prepublishOnly": "npm run build",
+    "prepare": "npm run build",
+    "test": "jest src/"
+  },
+  "dependencies": {
+    "@blocklet/ai-kit": "^0.1.43",
+    "@blocklet/ai-runtime": "workspace:^",
+    "@blocklet/js-sdk": "^1.16.28",
+    "@blocklet/pages-kit": "^0.2.367",
+    "@microsoft/fetch-event-source": "^2.0.1",
+    "ahooks": "^3.8.0",
+    "axios": "^1.7.2",
+    "dayjs": "^1.11.11",
+    "eventsource-parser": "^1.1.2",
+    "joi": "^17.13.3",
+    "nanoid": "^3.3.7",
+    "react-hook-form": "^7.52.1",
+    "ufo": "^1.5.3"
+  },
+  "peerDependencies": {
+    "@arcblock/ux": "^2.9.51",
+    "@emotion/css": "^11.11.2",
+    "@emotion/react": "^11.11.1",
+    "@mui/icons-material": "^5.14.11",
+    "@mui/lab": "^5.0.0-alpha.146",
+    "@mui/material": "^5.14.11",
+    "react": "^18.2.0",
+    "react-router-dom": "^6.16.0"
+  },
+  "devDependencies": {
+    "@arcblock/ux": "^2.10.3",
+    "@emotion/css": "^11.11.2",
+    "@emotion/react": "^11.11.4",
+    "@jest/globals": "^29.7.0",
+    "@mui/icons-material": "^5.15.21",
+    "@mui/lab": "^5.0.0-alpha.170",
+    "@mui/material": "^5.15.21",
+    "@types/lodash": "^4.17.6",
+    "@types/mustache": "^4.2.5",
+    "@types/node-fetch": "^2.6.11",
+    "@types/react": "^18.3.3",
+    "npm-run-all": "^4.1.5",
+    "react": "^18.3.1",
+    "react-router-dom": "^6.24.1",
+    "rimraf": "^5.0.7",
+    "ts-jest": "^29.1.5",
+    "typescript": "^5.5.3"
+  }
+}
