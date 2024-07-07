@@ -46,7 +46,11 @@ export default defineConfig((config) => {
       dotPathFixPlugin(),
       config.command === 'build' && million.vite({ auto: true }),
       react(),
-      createBlockletExpress({ entryPath: 'api/src/index.ts' }),
+      createBlockletExpress({
+        entryPath: 'api/src/index.ts',
+        // @ts-ignore
+        ignorePath: import.meta.dirname,
+      }),
       createBlockletPlugin({
         nodePolyfillsOptions: {
           include: ['crypto'],
@@ -61,10 +65,10 @@ export default defineConfig((config) => {
       buildOpenAPIPlugin({ apis: [path.join(__dirname, './api/src/routes/**/*.*')] }),
       svgr(),
     ],
-    build: {
-      commonjsOptions: {
-        transformMixedEsModules: true,
-      },
-    },
+    // build: {
+    //   commonjsOptions: {
+    //     transformMixedEsModules: true,
+    //   },
+    // },
   };
 });
