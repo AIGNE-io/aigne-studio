@@ -107,16 +107,11 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
 
   useEffect(() => {
     if (project) {
-      const merge = pick({ ...init, ...project }, ['gitType']);
+      const merge = pick({ ...init, ...project }, ['gitType', 'icon']);
+      merge.icon = getProjectIconUrl(projectId, project.updatedAt, { original: true });
+
       origin.current = merge;
       setValue(merge);
-
-      setConfig((config) => {
-        config.basicInfo = {
-          ...config.basicInfo,
-          icon: getProjectIconUrl(projectId, project.updatedAt, { original: true }),
-        };
-      });
     }
   }, [project, projectId]);
 
@@ -149,7 +144,7 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
 
     setLoading(true);
     try {
-      await updateProject(projectId, { ...temp, icon: config?.basicInfo?.icon });
+      await updateProject(projectId, { ...temp });
       Toast.success('Saved');
     } catch (error) {
       Toast.error(getErrorMessage(error));
@@ -262,17 +257,7 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                   <Typography variant="subtitle2" mb={0.5}>
                     {t('avatar')}
                   </Typography>
-                  <Avatar
-                    value={config?.basicInfo?.icon ?? ''}
-                    onChange={(d: any) => {
-                      setConfig((config) => {
-                        config.basicInfo = {
-                          ...config.basicInfo,
-                          icon: d,
-                        };
-                      });
-                    }}
-                  />
+                  <Avatar value={value.icon ?? ''} onChange={(d: any) => set('icon', d)} />
                 </Box>
                 <Box>
                   <Typography variant="subtitle2" mb={0.5}>
@@ -282,13 +267,10 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                   <TextField
                     label={t('projectSetting.name')}
                     sx={{ width: 1 }}
-                    value={config?.basicInfo?.name ?? ''}
+                    value={config?.name ?? ''}
                     onChange={(e) => {
                       setConfig((config) => {
-                        config.basicInfo = {
-                          ...config.basicInfo,
-                          name: e.target.value,
-                        };
+                        config.name = e.target.value;
                       });
                     }}
                     InputProps={{ readOnly }}
@@ -303,13 +285,10 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                     multiline
                     rows={5}
                     sx={{ width: 1 }}
-                    value={config?.basicInfo?.description ?? ''}
+                    value={config?.description ?? ''}
                     onChange={(e) => {
                       setConfig((config) => {
-                        config.basicInfo = {
-                          ...config.basicInfo,
-                          description: e.target.value,
-                        };
+                        config.description = e.target.value;
                       });
                     }}
                     InputProps={{ readOnly }}
