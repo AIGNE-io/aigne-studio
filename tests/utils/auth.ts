@@ -37,7 +37,6 @@ export async function setupUsers() {
       await login({ page, wallet, appWallet, passport: { name, title: name } });
 
       await showAssetOrVC({ authUrl: await getAuthUrl({ page }), wallet, vc, meta: { purpose: 'DidSpace' } });
-      await page.context().storageState({ path: TestConstants.authFilePath(name) });
     })
   );
 

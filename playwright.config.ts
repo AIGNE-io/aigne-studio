@@ -34,13 +34,25 @@ export default defineConfig({
   /* Configure projects for major browsers */
   projects: [
     {
+      name: 'adminSetup',
+      testMatch: 'admin.setup.ts',
+    },
+
+    {
+      name: 'ownerSetup',
+      testMatch: 'owner.setup.ts',
+    },
+
+    {
       name: 'owner',
       use: { ...devices['Desktop Chrome'], storageState: TestConstants.authFilePath('owner') },
+      dependencies: ['ownerSetup'],
     },
 
     {
       name: 'admin',
       use: { ...devices['Desktop Chrome'], storageState: TestConstants.authFilePath('admin') },
+      dependencies: ['adminSetup'],
     },
 
     // {

@@ -1,16 +1,24 @@
+import { logout } from '@blocklet/testlab/utils/playwright';
 import { expect, test } from '@playwright/test';
 
 test('has example projects', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/projects');
+
+  await page.waitForURL((url) => {
+    console.log(url);
+    return url.pathname.startsWith('/projects');
+  });
 
   const examples = page.getByTestId('projects-examples');
   await examples.waitFor();
 
   await expect(examples).not.toBeEmpty();
+
+  await logout({ page });
 });
 
 test('create project', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/projects');
 
   const examples = page.getByTestId('projects-examples');
   await examples.waitFor();
