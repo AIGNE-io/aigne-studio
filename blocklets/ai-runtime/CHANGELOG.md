@@ -1,3 +1,7 @@
+## 0.3.21 (2024-7-6)
+
+- chore: agent call other agent
+
 ## 0.3.20 (2024-7-5)
 
 - chore: add `runAgent` api in aigne-sdk

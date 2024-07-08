@@ -738,4 +738,9 @@ export default flat({
   hideOutputSetting: '隐藏当前输出设置',
   activeOutputTip: '激活输出',
   hideOutputTip: '隐藏输出',
+  callAgent: '调用 Agent',
+  referenceOutput: '引用 {agent} 输出',
+  ref: '引用',
+  refOutput: '调用 Agent 目前不支持自定义输出',
+  addParamter: '添加变量到输入参数',
 });

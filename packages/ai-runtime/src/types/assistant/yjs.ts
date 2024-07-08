@@ -8,6 +8,7 @@ import type {
   Agent,
   ApiAssistant,
   AssistantBase,
+  CallAssistant,
   ExecuteBlock,
   ExecuteBlockSelectAll,
   ExecuteBlockSelectByPrompt,
@@ -44,7 +45,8 @@ export type AssistantYjs =
   | ApiAssistantYjs
   | FunctionAssistantYjs
   | ImageAssistantYjs
-  | RouterAssistantYjs;
+  | RouterAssistantYjs
+  | CallAssistantYjs;
 
 export type ExecuteBlockSelectAllYjs = Omit<ExecuteBlockSelectAll, 'tools'> & {
   tools?: { [key: string]: { index: number; data: NonNullable<ExecuteBlock['tools']>[number] } };
@@ -92,7 +94,7 @@ export interface RuntimeOutputOpeningQuestionsYjs {
 
 export type OutputVariableYjs = VariableTypeYjs & {
   variable?: { key: string; scope: string };
-  from?: { type: 'input'; id: string };
+  from?: { type: 'input' | 'output'; id: string };
   appearance?: RuntimeOutputAppearance;
   initialValue?: RuntimeOutputVariablesSchemaYjs[RuntimeOutputVariable];
 };
@@ -123,6 +125,10 @@ export interface AgentYjs extends AssistantBaseYjs<Agent> {}
 
 export interface RouterAssistantYjs extends Omit<AssistantBaseYjs<RouterAssistant>, 'routes'> {
   routes?: ArrayToYjs<NonNullable<RouterAssistant['routes']>>;
+}
+
+export interface CallAssistantYjs extends Omit<AssistantBaseYjs<CallAssistant>, 'agents'> {
+  agents?: ArrayToYjs<NonNullable<CallAssistant['agents']>>;
 }
 
 export interface PromptAssistantYjs extends Omit<AssistantBaseYjs<PromptAssistant>, 'prompts'> {
