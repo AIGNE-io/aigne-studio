@@ -1,3 +1,4 @@
+import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
 import flattenApiStructure from '@blocklet/dataset-sdk/util/flatten-open-api';
 import { call } from '@blocklet/sdk/lib/component';
 import config, { logger } from '@blocklet/sdk/lib/config';
@@ -12,6 +13,7 @@ import {
   ExecutionPhase,
   RuntimeOutputProfile,
   RuntimeOutputVariable,
+  StringParameter,
   Variable,
   outputVariablesToJoiSchema,
 } from '../../types';
@@ -149,6 +151,7 @@ export abstract class AgentExecutorBase {
       updatedAt: new Date().toISOString(),
       createdBy: this.context.user?.did || '',
       updatedBy: this.context.user?.did || '',
+
       project: agent.project,
       identity: agent.identity,
     };
@@ -159,21 +162,34 @@ export abstract class AgentExecutorBase {
     }
 
     const openApis = flattenApiStructure(result.data);
-    const api = openApis.find((x) => x.id === agentId);
-    const properties = api?.responses?.['200']?.content?.['application/json']?.schema?.properties || {};
+    const agents = openApis.map((i) => {
+      const properties = i?.responses?.['200']?.content?.['application/json']?.schema?.properties || {};
 
-    return {
-      agent: {
+      return {
         ...blockletAgent,
-        name: api?.summary,
-        description: api?.description,
+        name: i?.summary,
+        description: i?.description,
+        parameters: getAllParameters(i)
+          .map((i) => {
+            return {
+              id: nextTaskId(),
+              type: 'string',
+              key: i.name,
+            };
+          })
+          .filter((i) => i.key) as StringParameter[],
         outputVariables: Object.entries(properties).map(([key, value]: any) => ({
           id: key,
           name: key,
           ...convertSchemaToVariableType(value),
         })),
-      },
-      api,
+      };
+    });
+
+    const foundIndex = openApis.findIndex((x) => x.id === agentId);
+    return {
+      agent: agents[foundIndex],
+      api: openApis[foundIndex],
       openApis,
     };
   }
@@ -372,12 +388,15 @@ export abstract class AgentExecutorBase {
           }));
         } else if (parameter.source?.variableFrom === 'blockletAPI' && parameter.source.api) {
           const currentTaskId = nextTaskId();
-          const blockletAgent = await this.getBlockletAgent(parameter.source.api.id, agent);
+          const blocklet = await this.getBlockletAgent(parameter.source.api.id, agent);
+          if (!blocklet.agent) {
+            throw new Error('Blocklet agent api not found.');
+          }
 
           // eslint-disable-next-line no-await-in-loop
           const result = await this.context
             .executor({ ...this.context, callback: cb?.(currentTaskId) } as ExecutorContext)
-            .execute(blockletAgent.agent, {
+            .execute(blocklet.agent, {
               inputs,
               parameters: parameter.source.api.parameters,
               taskId: currentTaskId,

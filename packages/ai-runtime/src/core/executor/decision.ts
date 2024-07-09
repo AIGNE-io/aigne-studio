@@ -401,6 +401,9 @@ export class DecisionAgentExecutor extends AgentExecutorBase {
 
           if (tool.tool.from === 'blockletAPI') {
             const blocklet = await this.getBlockletAgent(tool.tool.id, agent);
+            if (!blocklet.agent) {
+              throw new Error('Blocklet agent api not found.');
+            }
 
             const result = await this.context
               .executor({ ...this.context, callback: cb } as ExecutorContext)

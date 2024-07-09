@@ -1,5 +1,4 @@
 import { getRequest } from '@blocklet/dataset-sdk/request';
-import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
 
 import { AssistantResponseType, BlockletAgent, ExecutionPhase } from '../../types';
 import { GetAgentResult } from '../assistant/type';
@@ -16,16 +15,19 @@ export class BlockletAgentExecutor extends AgentExecutorBase {
       throw new Error('Blocklet agent api not found.');
     }
 
+    if (!blocklet.agent) {
+      throw new Error('Blocklet agent api not found.');
+    }
+
     const requestData = Object.fromEntries(
       await Promise.all(
-        getAllParameters(blocklet.api).map(async (item) => {
-          if (typeof parameters?.[item.name!] === 'string') {
-            const template = String(parameters?.[item.name!] || '').trim();
-            return [item.name, template ? await renderMessage(template, inputs) : inputs?.[item.name]];
+        (blocklet.agent.parameters || []).map(async (item) => {
+          if (typeof parameters?.[item.key!] === 'string') {
+            const template = String(parameters?.[item.key!] || '').trim();
+            return [item.key, template ? await renderMessage(template, inputs) : inputs?.[item.key!]];
           }
 
-          // 先从传入参数查找，什么都没有填写时，需要读取 parameters?.[item.name!]
-          return [item.name, inputs?.[item.name!] || parameters?.[item.name!]];
+          return [item.key, inputs?.[item.key!] || parameters?.[item.key!]];
         }) ?? []
       )
     );
