@@ -1,3 +1,7 @@
+## 0.3.23 (2024-7-9)
+
+- test: add e2e tests
+
 ## 0.3.22 (2024-7-9)
 
 - chore: add server side aigne apis
