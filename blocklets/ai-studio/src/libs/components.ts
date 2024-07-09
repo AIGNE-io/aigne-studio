@@ -48,14 +48,14 @@ export async function getComponent({
 
 export async function getDynamicReactComponents(): Promise<RemoteComponent[]> {
   return axios.get('/.well-known/service/opencomponent.json', { baseURL: AIGNE_RUNTIME_MOUNT_POINT }).then((res) =>
-    Object.entries(res.data?.paths || {}).map(([url, val]: [string, any]) => {
+    Object.entries(res.data?.paths || {}).map(([, val]: [string, any]) => {
       return {
-        url,
         name: val?.summary,
         description: val?.description,
         tags: val['x-tags'],
-        parameter: {},
+        url: val['x-path'],
         did: val['x-did'],
+        parameter: {},
       };
     })
   );
