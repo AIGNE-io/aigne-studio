@@ -1,3 +1,7 @@
+## 0.3.24 (2024-7-9)
+
+- fix: should respond json result if `responseType` is not stream
+
 ## 0.3.23 (2024-7-9)
 
 - test: add e2e tests

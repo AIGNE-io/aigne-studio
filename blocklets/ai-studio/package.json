@@ -1,6 +1,6 @@
 {
   "name": "ai-studio",
-  "version": "0.3.23",
+  "version": "0.3.24",
   "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
   "scripts": {
     "debug": "bn-dev",
@@ -38,7 +38,7 @@
     "@arcblock/ux": "^2.10.3",
     "@arcblock/ws": "^1.18.126",
     "@beskar-labs/gpt-encoder": "^1.0.7",
-    "@blocklet/ai-kit": "^0.1.43",
+    "@blocklet/ai-kit": "^0.1.44",
     "@blocklet/ai-runtime": "workspace:^",
     "@blocklet/aigne-sdk": "workspace:^",
     "@blocklet/co-git": "workspace:^",
@@ -198,6 +198,6 @@
     "vite-plugin-blocklet": "^0.7.9",
     "vite-plugin-svgr": "^4.2.0",
     "vite-tsconfig-paths": "^4.3.2",
-    "zx": "^7.2.3"
+    "zx": "^8.1.4"
   }
 }
