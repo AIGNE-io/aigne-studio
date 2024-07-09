@@ -37,6 +37,8 @@ jobs:
         run: pnpm install
 
       - name: Bundle blocklets
+        env:
+          COMPONENT_STORE_URL: ${{ secrets.STORE_ENDPOINT_TEST }}
         run: |
           pnpm build:libs
           pnpm -F ai-studio -F ai-runtime bundle
