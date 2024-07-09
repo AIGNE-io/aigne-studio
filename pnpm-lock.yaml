@@ -52,10 +52,16 @@ importers:
     devDependencies:
       '@arcblock/eslint-config':
         specifier: ^0.2.4
-        version: 0.2.4(@typescript-eslint/eslint-plugin@5.62.0(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(typescript@5.5.3))(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(jest@29.7.0)(prettier@3.3.2)(react@18.3.1)(typescript@5.5.3)
+        version: 0.2.4(@typescript-eslint/eslint-plugin@5.62.0(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(typescript@5.5.3))(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(jest@29.7.0(@types/node@20.14.6)(ts-node@10.9.2(@types/node@20.14.6)(typescript@5.5.3)))(prettier@3.3.2)(react@18.3.1)(typescript@5.5.3)
       '@arcblock/eslint-config-ts':
         specifier: ^0.2.4
-        version: 0.2.4(eslint-plugin-import@2.29.1(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0))(eslint@8.57.0)(jest@29.7.0)(prettier@3.3.2)(react@18.3.1)(typescript@5.5.3)
+        version: 0.2.4(eslint-plugin-import@2.29.1(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0))(eslint@8.57.0)(jest@29.7.0(@types/node@20.14.6)(ts-node@10.9.2(@types/node@20.14.6)(typescript@5.5.3)))(prettier@3.3.2)(react@18.3.1)(typescript@5.5.3)
+      '@blocklet/testlab':
+        specifier: ^0.0.8
+        version: 0.0.8(@types/node@20.14.6)(typescript@5.5.3)
+      '@playwright/test':
+        specifier: ^1.45.1
+        version: 1.45.1
       bumpp:
         specifier: ^8.2.1
         version: 8.2.1
@@ -92,6 +98,15 @@ importers:
       rimraf:
         specifier: ^3.0.2
         version: 3.0.2
+      start-server-and-test:
+        specifier: ^2.0.4
+        version: 2.0.4
+      ts-node:
+        specifier: ^10.9.2
+        version: 10.9.2(@types/node@20.14.6)(typescript@5.5.3)
+      tsconfig-paths:
+        specifier: ^4.2.0
+        version: 4.2.0
       typescript:
         specifier: ^5.5.3
         version: 5.5.3
@@ -141,8 +156,8 @@ importers:
         specifier: 1.16.28
         version: 1.16.28
       '@blocklet/pages-kit':
-        specifier: ^0.2.369
-        version: 0.2.369(25b6bpktxcokidlbmnhdytuwcm)
+        specifier: ^0.2.370
+        version: 0.2.370(25b6bpktxcokidlbmnhdytuwcm)
       '@blocklet/sdk':
         specifier: 1.16.28
         version: 1.16.28(encoding@0.1.13)
@@ -151,13 +166,13 @@ importers:
         version: 2.10.3(w4esa6lgmlpjb2jnoll6animcy)
       '@langchain/community':
         specifier: ^0.0.42
-        version: 0.0.42(@aws-sdk/credential-provider-node@3.590.0)(encoding@0.1.13)(faiss-node@0.5.1)(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))(lodash@4.17.21)(openai@3.3.0)(redis@4.6.14)(ws@8.18.0)
+        version: 0.0.42(@aws-sdk/credential-provider-node@3.590.0)(encoding@0.1.13)(faiss-node@0.5.1)(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))(lodash@4.17.21)(openai@3.3.0)(redis@4.6.14)(ws@8.18.0)
       '@langchain/core':
         specifier: ^0.1.63
-        version: 0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))(openai@3.3.0)
+        version: 0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))(openai@3.3.0)
       '@langchain/openai':
         specifier: ^0.0.23
-        version: 0.0.23(encoding@0.1.13)(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))
+        version: 0.0.23(encoding@0.1.13)(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))
       '@mui/lab':
         specifier: ^5.0.0-alpha.171
         version: 5.0.0-alpha.171(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/material@5.16.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -229,7 +244,7 @@ importers:
         version: 0.9.3
       langchain:
         specifier: ^0.0.81
-        version: 0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14)
+        version: 0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14)
       lodash:
         specifier: ^4.17.21
         version: 4.17.21
@@ -458,13 +473,13 @@ importers:
         version: 4.1.1(react@18.3.1)
       '@langchain/community':
         specifier: ^0.0.42
-        version: 0.0.42(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0))(@huggingface/inference@2.7.0)(encoding@0.1.13)(faiss-node@0.5.1)(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))(lodash@4.17.21)(openai@3.3.0)(redis@4.6.14)(ws@8.18.0)
+        version: 0.0.42(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)))(@huggingface/inference@2.7.0)(encoding@0.1.13)(faiss-node@0.5.1)(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))(lodash@4.17.21)(openai@3.3.0)(redis@4.6.14)(ws@8.18.0)
       '@langchain/core':
         specifier: ^0.1.63
-        version: 0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))(openai@3.3.0)
+        version: 0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))(openai@3.3.0)
       '@langchain/openai':
         specifier: ^0.0.23
-        version: 0.0.23(encoding@0.1.13)(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))
+        version: 0.0.23(encoding@0.1.13)(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))
       '@microsoft/fetch-event-source':
         specifier: ^2.0.1
         version: 2.0.1
@@ -608,7 +623,7 @@ importers:
         version: 1.1.1
       langchain:
         specifier: ^0.0.81
-        version: 0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14)
+        version: 0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14)
       localforage:
         specifier: ^1.10.0
         version: 1.10.0
@@ -616,8 +631,8 @@ importers:
         specifier: ^4.17.21
         version: 4.17.21
       lru-cache:
-        specifier: ^10.4.1
-        version: 10.4.1
+        specifier: ^10.4.2
+        version: 10.4.2
       mammoth:
         specifier: ^1.8.0
         version: 1.8.0
@@ -1018,8 +1033,8 @@ importers:
         specifier: 1.16.28
         version: 1.16.28
       '@blocklet/pages-kit':
-        specifier: ^0.2.369
-        version: 0.2.369(bw4rkcp3rj344p6nyl6eiuturu)
+        specifier: ^0.2.370
+        version: 0.2.370(bw4rkcp3rj344p6nyl6eiuturu)
       '@blocklet/sdk':
         specifier: 1.16.28
         version: 1.16.28(encoding@0.1.13)
@@ -1366,13 +1381,13 @@ importers:
     devDependencies:
       '@arcblock/did-connect':
         specifier: ^2.10.3
-        version: 2.10.3(awim2e2llzbckqp2373utn4rvm)
+        version: 2.10.3(un7gqcdma2cgb6evg5x3oll55y)
       '@arcblock/ux':
         specifier: ^2.10.3
-        version: 2.10.3(@babel/core@7.24.7)(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/icons-material@5.16.0(@mui/material@5.16.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/material@5.16.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.3)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.24.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
+        version: 2.10.3(@babel/core@7.24.7)(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/icons-material@5.16.0(@mui/material@5.16.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/material@5.16.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/node@20.14.6)(@types/react@18.3.3)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.24.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       '@blocklet/ui-react':
         specifier: ^2.10.3
-        version: 2.10.3(qhcdjnjjjce7umd4ovulpuc2xu)
+        version: 2.10.3(mmg36btbdhob6nfxinunmn7iii)
       '@emotion/css':
         specifier: ^11.11.2
         version: 11.11.2
@@ -1950,16 +1965,16 @@ packages:
     resolution: {integrity: sha512-zitUItoaeDMUfjlcKTEs3acWFzbYxDev2YrxRCrb9LCoBVYB5OGFvTHZirMuTWMX0SgZcrdcRpXJqqUi/Pe97A==}
     deprecated: This package has been deprecated in favor of https://www.npmjs.com/package/gpt-tokenizer
 
-  '@blocklet/ai-builtin@0.3.21':
-    resolution: {integrity: sha512-N9oktMhCKPPccHZGzjIZGVXq8auzNcxADDFLHxKg/ZRVW4FczwLBaYqkzjq/TvQCCyw88BUnnWQbgDd6x4iYyw==}
+  '@blocklet/ai-builtin@0.3.22':
+    resolution: {integrity: sha512-/hDxMDIN0ShOFqGe2pd3fAAVpxyQcPPg6bOrVpmTKgsoT51muINzAzy+goxGnitdKt3Dga5Hz1DSCjloWTLy6A==}
 
   '@blocklet/ai-kit@0.1.43':
     resolution: {integrity: sha512-bR0frzptWGXSRj2HMUmgz/QOzcHVZX4j6zijCMFD29pl5AAePr+UUaWdSOAIvNuDIN4ZqlNobgq9eyLY7glFVA==}
     peerDependencies:
       react: ^18.2.0
 
-  '@blocklet/ai-runtime@0.3.21':
-    resolution: {integrity: sha512-JsR0hHA4jCs/A2c7RprAvaPE1wSrEG/3gBbaOYlu24L7wi9xZF+X+eRIuO31SFemjR6872P4xKtcZqw1ozrftw==}
+  '@blocklet/ai-runtime@0.3.22':
+    resolution: {integrity: sha512-MYYwC4K+IutW0mbcvKZ7Q4vG9870qMBjlEmGjmrIyGQGXdphZbj9fRhTD7Cql+00F9l1laBmpHlpR9Zfhrg66w==}
     peerDependencies:
       '@arcblock/ux': ^2.10.3
       '@emotion/css': ^11.11.2
@@ -1976,8 +1991,8 @@ packages:
   '@blocklet/constant@1.16.28-beta-641c9f13':
     resolution: {integrity: sha512-5fmQ5dzMBoRIvsyunGjqw+PLbrCXxAcRWpkmEE+GJhwhQLOguDHLizxoeAY8ydOmVabCH0zyNLiimOGpOhq5/Q==}
 
-  '@blocklet/dataset-sdk@0.3.21':
-    resolution: {integrity: sha512-gjM77Th0nmeqFNSXqW92fTPqwlsWg3TQTAnfqqR+1TeuJwuyuSpqRxNpIxyjjG2p9RUIShenLhYPONEctG5+wA==}
+  '@blocklet/dataset-sdk@0.3.22':
+    resolution: {integrity: sha512-wnXx5gU1PjLKH+1CkJpUfG4SWRJiivF3nnR9xM2kU2sDSSKKgDFQmeV5z84BLaK9HZbA4AfqGslWhLRpKfMNmQ==}
 
   '@blocklet/discuss-kit-ux@1.6.264':
     resolution: {integrity: sha512-bM3dsvHzgpDVaU5B8AOyBFi1UxfT6EgXmLCC24Z+2jI9oJ4LdvPG3hd6KHA2Lq1kiptobFou+kY03O0RxZ+NSA==}
@@ -2041,8 +2056,8 @@ packages:
   '@blocklet/meta@1.16.28':
     resolution: {integrity: sha512-VGMRjIfNPCqorlF9exdryBglSzEcIrCihDklyv7oepmj4END9S7L+WBmh2wBE/Uu16SiBEat6H2YeW8eHIxWlA==}
 
-  '@blocklet/pages-kit@0.2.369':
-    resolution: {integrity: sha512-IkfeM0lN9C12xYCNsmJNEtIpJAYkgqfNRj2UrR2tkBX6LTH2aMILyuZUkmbHvNC0NGCgnoyV/H1wlvd9vNvSUA==}
+  '@blocklet/pages-kit@0.2.370':
+    resolution: {integrity: sha512-jtuUfLRmnGmtTT/ZZpQ8ASf5pGnTfkE1AdLa4oDZ8Z9vkd9T9KXMYh8Gp+G+AniWGSBvDVIZN1fA7pwZnl7t7w==}
     peerDependencies:
       '@arcblock/ux': ^2.10.3
       '@emotion/cache': ^11.11.0
@@ -2073,6 +2088,9 @@ packages:
 
   '@blocklet/sdk@1.16.28':
     resolution: {integrity: sha512-BC7y1sAN8Ql3nPUEr+w1J74lmbvYxZ1g4ESB+Mxq1TOBY79G4NofD2kq4G6ZUUtCmdtSXDCRRFAsDQIfpu6HfQ==}
+
+  '@blocklet/testlab@0.0.8':
+    resolution: {integrity: sha512-rr1dsX6WHB/lnU7ZhVxPkWx7eUK+l3BNu6OL4XOilAtvIev0B0DgaqmSAC6kgS0KW5fkvA38qrNkP2W7sQQarw==}
 
   '@blocklet/translation-input@1.6.264':
     resolution: {integrity: sha512-Y5QWKMDVg71mJydbydU68EWurHVtar9VNOl3EoNrYp/3qbM/hCxVAVshkXnd36FQS6HYRYMetaKKRJ9oA+W5jA==}
@@ -3472,6 +3490,11 @@ packages:
   '@pkgr/core@0.1.1':
     resolution: {integrity: sha512-cq8o4cWH0ibXh9VGi5P20Tu9XF/0fFXl9EUinr9QfTM7a7p0oTA4iJRCQWppXR1Pg8dSM0UCItCkPwsk9qWWYA==}
     engines: {node: ^12.20.0 || ^14.18.0 || >=16.0.0}
+
+  '@playwright/test@1.45.1':
+    resolution: {integrity: sha512-Wo1bWTzQvGA7LyKGIZc8nFSTFf2TkthGIFBR+QVNilvwouGzFd4PYukZe3rvf5PSqjHi1+1NyKSDZKcQWETzaA==}
+    engines: {node: '>=18'}
+    hasBin: true
 
   '@popperjs/core@2.11.8':
     resolution: {integrity: sha512-P1st0aksCrn9sGZhp8GMYwBnQsbvAWsZAX44oXNNvLHGqAOcoVxmjZiohstwQ7SqKnbR47akdNi+uleWD8+g6A==}
@@ -5244,6 +5267,10 @@ packages:
   chardet@0.7.0:
     resolution: {integrity: sha512-mT8iDcrh03qDGRRmoA2hmBJnxpllMR+0/0qlzjqZES6NdiWDcZkCNAk4rPFZ9Q85r27unkiNNg8ZOiwZXBHwcA==}
 
+  check-more-types@2.24.0:
+    resolution: {integrity: sha512-Pj779qHxV2tuapviy1bSZNEL1maXr13bPYpsvSDB68HlYcYuhlDrmGd63i0JHMCLKzc7rUSNIrpdJlhVlNwrxA==}
+    engines: {node: '>= 0.8.0'}
+
   cheerio-select@2.1.0:
     resolution: {integrity: sha512-9v9kG0LvzrlcungtnJtpGNxY+fzECQKhK4EGJX2vByejiMX84MFNQw4UxPJl3bFbTMw+Dfs37XaIkCwTZfLh4g==}
 
@@ -6680,6 +6707,11 @@ packages:
   fs.realpath@1.0.0:
     resolution: {integrity: sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==}
 
+  fsevents@2.3.2:
+    resolution: {integrity: sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==}
+    engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
+    os: [darwin]
+
   fsevents@2.3.3:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
@@ -8071,6 +8103,10 @@ packages:
     resolution: {integrity: sha512-MbjN408fEndfiQXbFQ1vnd+1NoLDsnQW41410oQBXiyXDMYH5z505juWa4KUE1LqxRC7DgOgZDbKLxHIwm27hA==}
     engines: {node: '>=0.10'}
 
+  lazy-ass@1.6.0:
+    resolution: {integrity: sha512-cc8oEVoctTvsFZ/Oje/kGnHbpWHYBe8IAJe4C0QNc3t8uM/0Y8+erSz/7Y1ALuXTEZTMvxXwO6YbX1ey3ujiZw==}
+    engines: {node: '> 0.8'}
+
   lazystream@1.0.1:
     resolution: {integrity: sha512-b94GiNHQNy6JNTrt5w6zNyffMrNkXZb3KTkCZJb2V1xaEGCk093vkZ2jk3tpaeP33/OiXC+WvK9AxUebnf5nbw==}
     engines: {node: '>= 0.6.3'}
@@ -8342,9 +8378,9 @@ packages:
   lowlight@1.20.0:
     resolution: {integrity: sha512-8Ktj+prEb1RoCPkEOrPMYUN/nCggB7qAWe3a7OpMjWQkh3l2RD5wKRQ+o8Q8YuI9RG/xs95waaI/E6ym/7NsTw==}
 
-  lru-cache@10.4.1:
-    resolution: {integrity: sha512-8h/JsUc/2+Dm9RPJnBAmObGnUqTMmsIKThxixMLOkrebSihRhTV0wLD/8BSk6OU6Pbj8hiDTbsI3fLjBJSlhDg==}
-    engines: {node: 14 >= 14.21 || 16 >= 16.20 || 18 >=18.20 || 20 || >=22}
+  lru-cache@10.4.2:
+    resolution: {integrity: sha512-voV4dDrdVZVNz84n39LFKDaRzfwhdzJ7akpyXfTMxCgRUp07U3lcJUXRlhTKP17rgt09sUzLi5iCitpEAr+6ug==}
+    engines: {node: 14 || 16 || 18 || 20 || >=22}
 
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
@@ -9684,6 +9720,16 @@ packages:
     resolution: {integrity: sha512-NPE8TDbzl/3YQYY7CSS228s3g2ollTFnc+Qi3tqmqJp9Vg2ovUpixcJEo2HJScN2Ez+kEaal6y70c0ehqJBJeA==}
     engines: {node: '>=10'}
 
+  playwright-core@1.45.1:
+    resolution: {integrity: sha512-LF4CUUtrUu2TCpDw4mcrAIuYrEjVDfT1cHbJMfwnE2+1b8PZcFzPNgvZCvq2JfQ4aTjRCCHw5EJ2tmr2NSzdPg==}
+    engines: {node: '>=18'}
+    hasBin: true
+
+  playwright@1.45.1:
+    resolution: {integrity: sha512-Hjrgae4kpSQBr98nhCj3IScxVeVUixqj+5oyif8TdIn2opTCPEzqAqNMeK42i3cWDCVu9MI+ZsGWw+gVR4ISBg==}
+    engines: {node: '>=18'}
+    hasBin: true
+
   plimit-lit@1.6.1:
     resolution: {integrity: sha512-B7+VDyb8Tl6oMJT9oSO2CW8XC/T4UcJGrwOVoNGwOQsQYhlpfajmrMj5xeejqaASq3V/EqThyOeATEOMuSEXiA==}
     engines: {node: '>=12'}
@@ -10999,6 +11045,11 @@ packages:
   standard-as-callback@2.1.0:
     resolution: {integrity: sha512-qoRRSyROncaz1z0mvYqIE4lCd9p2R90i6GxW3uZv5ucSu8tU7B5HXUP1gG8pVZsYNVaXjk8ClXHPttLyxAL48A==}
 
+  start-server-and-test@2.0.4:
+    resolution: {integrity: sha512-CKNeBTcP0hVqIlNismHMudb9q3lLdAjcVPO13/7gfI66fcJpeIb/o4NzQd1JK/CD+lfWVqr10ZH9Y14+OwlJuw==}
+    engines: {node: '>=16'}
+    hasBin: true
+
   state-local@1.0.7:
     resolution: {integrity: sha512-HTEHMNieakEnoe33shBYcZ7NX83ACUjCu8c40iOGEZsngj9zRnkqS9j1pqQPXwobB0ZcVTk27REb7COQ0UR59w==}
 
@@ -11842,6 +11893,11 @@ packages:
     deprecated: The library contains critical security issues and should not be used for production! The maintenance of the project has been discontinued. Consider migrating your code to isolated-vm.
     hasBin: true
 
+  wait-on@7.2.0:
+    resolution: {integrity: sha512-wCQcHkRazgjG5XoAq9jbTMLpNIjoSlZslrJ2+N9MxDsGEv1HnFoVjOCexL0ESva7Y9cu350j+DWADdk54s4AFQ==}
+    engines: {node: '>=12.0.0'}
+    hasBin: true
+
   wait-port@1.1.0:
     resolution: {integrity: sha512-3e04qkoN3LxTMLakdqeWth8nih8usyg+sf1Bgdf9wwUkp05iuK1eSY/QpLvscT/+F/gA89+LpUmmgBtesbqI2Q==}
     engines: {node: '>=10'}
@@ -12183,6 +12239,11 @@ packages:
     engines: {node: '>= 16.0.0'}
     hasBin: true
 
+  zx@8.1.4:
+    resolution: {integrity: sha512-QFDYYpnzdpRiJ3dL2102Cw26FpXpWshW4QLTGxiYfIcwdAqg084jRCkK/kuP/NOSkxOjydRwNFG81qzA5r1a6w==}
+    engines: {node: '>= 12.17.0'}
+    hasBin: true
+
 snapshots:
 
   '@abtnode/client@1.16.28(encoding@0.1.13)':
@@ -12304,45 +12365,6 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@arcblock/did-connect@2.10.3(awim2e2llzbckqp2373utn4rvm)':
-    dependencies:
-      '@arcblock/bridge': 2.10.3
-      '@arcblock/icons': 2.10.3(react@18.3.1)
-      '@arcblock/react-hooks': 2.10.3
-      '@arcblock/ux': 2.10.3(@babel/core@7.24.7)(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/icons-material@5.16.0(@mui/material@5.16.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/material@5.16.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.3)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.24.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
-      '@arcblock/ws': 1.18.126
-      '@blocklet/js-sdk': 1.16.28
-      '@emotion/react': 11.11.4(@types/react@18.3.3)(react@18.3.1)
-      '@emotion/styled': 11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1)
-      '@fontsource/inter': 5.0.18
-      '@iconify-icons/logos': 1.2.36
-      '@iconify-icons/material-symbols': 1.2.58
-      '@iconify/react': 4.1.1(react@18.3.1)
-      '@mui/material': 5.16.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      ahooks: 3.8.0(react@18.3.1)
-      axios: 1.7.2(debug@4.3.5)
-      buffer: 6.0.3
-      core-js: 3.37.1
-      eventemitter3: 5.0.1
-      js-cookie: 2.2.1
-      jwt-decode: 3.1.2
-      lodash: 4.17.21
-      mdi-material-ui: 7.9.1(@mui/material@5.16.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
-      p-queue: 6.6.2
-      p-wait-for: 5.0.2
-      path-to-regexp: 1.8.0
-      react: 18.3.1
-      react-dom: 18.3.1(react@18.3.1)
-      semver: 7.6.2
-      tweetnacl: 1.0.3
-      tweetnacl-sealedbox-js: 1.2.0
-      ufo: 1.5.3
-    transitivePeerDependencies:
-      - bufferutil
-      - debug
-      - supports-color
-      - utf-8-validate
-
   '@arcblock/did-connect@2.10.3(gzjnjjrzxri3xkpuyq27jzanmi)':
     dependencies:
       '@arcblock/bridge': 2.10.3
@@ -12460,13 +12482,13 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@arcblock/eslint-config-base@0.2.4(@typescript-eslint/eslint-plugin@5.62.0(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(typescript@5.5.3))(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(jest@29.7.0)(prettier@3.3.2)(typescript@5.5.3)':
+  '@arcblock/eslint-config-base@0.2.4(@typescript-eslint/eslint-plugin@5.62.0(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(typescript@5.5.3))(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(jest@29.7.0(@types/node@20.14.6)(ts-node@10.9.2(@types/node@20.14.6)(typescript@5.5.3)))(prettier@3.3.2)(typescript@5.5.3)':
     dependencies:
       eslint: 8.57.0
       eslint-config-airbnb-base: 15.0.0(eslint-plugin-import@2.29.1(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0))(eslint@8.57.0)
       eslint-config-prettier: 8.10.0(eslint@8.57.0)
       eslint-plugin-import: 2.29.1(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)
-      eslint-plugin-jest: 27.9.0(@typescript-eslint/eslint-plugin@5.62.0(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(jest@29.7.0)(typescript@5.5.3)
+      eslint-plugin-jest: 27.9.0(@typescript-eslint/eslint-plugin@5.62.0(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(jest@29.7.0(@types/node@20.14.6)(ts-node@10.9.2(@types/node@20.14.6)(typescript@5.5.3)))(typescript@5.5.3)
       eslint-plugin-prettier: 4.2.1(eslint-config-prettier@8.10.0(eslint@8.57.0))(eslint@8.57.0)(prettier@3.3.2)
       eslint-plugin-unicorn: 47.0.0(eslint@8.57.0)
       prettier: 3.3.2
@@ -12479,10 +12501,10 @@ snapshots:
       - supports-color
       - typescript
 
-  '@arcblock/eslint-config-ts@0.2.4(eslint-plugin-import@2.29.1(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0))(eslint@8.57.0)(jest@29.7.0)(prettier@3.3.2)(react@18.3.1)(typescript@5.5.3)':
+  '@arcblock/eslint-config-ts@0.2.4(eslint-plugin-import@2.29.1(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0))(eslint@8.57.0)(jest@29.7.0(@types/node@20.14.6)(ts-node@10.9.2(@types/node@20.14.6)(typescript@5.5.3)))(prettier@3.3.2)(react@18.3.1)(typescript@5.5.3)':
     dependencies:
-      '@arcblock/eslint-config': 0.2.4(@typescript-eslint/eslint-plugin@5.62.0(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(typescript@5.5.3))(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(jest@29.7.0)(prettier@3.3.2)(react@18.3.1)(typescript@5.5.3)
-      '@arcblock/eslint-config-base': 0.2.4(@typescript-eslint/eslint-plugin@5.62.0(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(typescript@5.5.3))(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(jest@29.7.0)(prettier@3.3.2)(typescript@5.5.3)
+      '@arcblock/eslint-config': 0.2.4(@typescript-eslint/eslint-plugin@5.62.0(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(typescript@5.5.3))(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(jest@29.7.0(@types/node@20.14.6)(ts-node@10.9.2(@types/node@20.14.6)(typescript@5.5.3)))(prettier@3.3.2)(react@18.3.1)(typescript@5.5.3)
+      '@arcblock/eslint-config-base': 0.2.4(@typescript-eslint/eslint-plugin@5.62.0(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(typescript@5.5.3))(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(jest@29.7.0(@types/node@20.14.6)(ts-node@10.9.2(@types/node@20.14.6)(typescript@5.5.3)))(prettier@3.3.2)(typescript@5.5.3)
       '@typescript-eslint/eslint-plugin': 5.62.0(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(typescript@5.5.3)
       '@typescript-eslint/parser': 5.62.0(eslint@8.57.0)(typescript@5.5.3)
       eslint: 8.57.0
@@ -12497,13 +12519,13 @@ snapshots:
       - supports-color
       - typescript
 
-  '@arcblock/eslint-config@0.2.4(@typescript-eslint/eslint-plugin@5.62.0(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(typescript@5.5.3))(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(jest@29.7.0)(prettier@3.3.2)(react@18.3.1)(typescript@5.5.3)':
+  '@arcblock/eslint-config@0.2.4(@typescript-eslint/eslint-plugin@5.62.0(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(typescript@5.5.3))(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(jest@29.7.0(@types/node@20.14.6)(ts-node@10.9.2(@types/node@20.14.6)(typescript@5.5.3)))(prettier@3.3.2)(react@18.3.1)(typescript@5.5.3)':
     dependencies:
       eslint: 8.57.0
       eslint-config-airbnb: 19.0.4(eslint-plugin-import@2.29.1(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0))(eslint-plugin-jsx-a11y@6.8.0(eslint@8.57.0))(eslint-plugin-react-hooks@4.6.2(eslint@8.57.0))(eslint-plugin-react@7.34.2(eslint@8.57.0))(eslint@8.57.0)
       eslint-config-prettier: 8.10.0(eslint@8.57.0)
       eslint-plugin-import: 2.29.1(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)
-      eslint-plugin-jest: 27.9.0(@typescript-eslint/eslint-plugin@5.62.0(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(jest@29.7.0)(typescript@5.5.3)
+      eslint-plugin-jest: 27.9.0(@typescript-eslint/eslint-plugin@5.62.0(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(jest@29.7.0(@types/node@20.14.6)(ts-node@10.9.2(@types/node@20.14.6)(typescript@5.5.3)))(typescript@5.5.3)
       eslint-plugin-jsx-a11y: 6.8.0(eslint@8.57.0)
       eslint-plugin-prettier: 4.2.1(eslint-config-prettier@8.10.0(eslint@8.57.0))(eslint@8.57.0)(prettier@3.3.2)
       eslint-plugin-react: 7.34.2(eslint@8.57.0)
@@ -12678,67 +12700,6 @@ snapshots:
       js-cookie: 2.2.1
       lodash: 4.17.21
       mui-datatables: 4.3.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@mui/icons-material@5.16.0(@mui/material@5.16.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/material@5.16.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/node@20.14.6)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      notistack: 2.0.8(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/material@5.16.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      pako: 2.1.0
-      qrcode.react: 3.1.0(react@18.3.1)
-      react: 18.3.1
-      react-cookie-consent: 6.4.1(react@18.3.1)
-      react-error-boundary: 3.1.4(react@18.3.1)
-      react-helmet: 6.1.0(react@18.3.1)
-      react-intersection-observer: 8.34.0(react@18.3.1)
-      react-lottie-player: 1.5.6(react@18.3.1)
-      react-player: 1.15.3(react@18.3.1)
-      react-router-dom: 6.24.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      react-shadow: 19.1.0(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      react-svg: 16.1.34(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      react-use: 17.5.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      rebound: 0.1.0
-      topojson-client: 3.1.0
-      versor: 0.0.4
-    transitivePeerDependencies:
-      - '@babel/core'
-      - '@emotion/server'
-      - '@types/hoist-non-react-statics'
-      - '@types/node'
-      - '@types/react'
-      - debug
-      - prop-types
-      - react-dom
-
-  '@arcblock/ux@2.10.3(@babel/core@7.24.7)(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/icons-material@5.16.0(@mui/material@5.16.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/material@5.16.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.3)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.24.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)':
-    dependencies:
-      '@arcblock/did-motif': 1.1.13
-      '@arcblock/icons': 2.10.3(react@18.3.1)
-      '@arcblock/nft-display': 2.10.3
-      '@arcblock/react-hooks': 2.10.3
-      '@babel/plugin-syntax-dynamic-import': 7.8.3(@babel/core@7.24.7)
-      '@emotion/react': 11.11.4(@types/react@18.3.3)(react@18.3.1)
-      '@emotion/styled': 11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1)
-      '@fontsource/inter': 5.0.18
-      '@fontsource/ubuntu-mono': 5.0.20
-      '@iconify-icons/logos': 1.2.36
-      '@iconify-icons/material-symbols': 1.2.58
-      '@iconify-icons/mdi': 1.2.48
-      '@iconify/react': 4.1.1(react@18.3.1)
-      '@mui/icons-material': 5.16.0(@mui/material@5.16.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.3)(react@18.3.1)
-      '@mui/material': 5.16.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@solana/qr-code-styling': 1.6.0
-      '@testing-library/react': 14.3.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      ahooks: 3.8.0(react@18.3.1)
-      axios: 1.7.2(debug@4.3.5)
-      base64-url: 2.3.3
-      copy-to-clipboard: 3.3.3
-      core-js: 3.37.1
-      d3-geo: 1.12.1
-      dayjs: 1.11.11
-      devices.css: 0.1.15
-      highlight.js: 11.9.0
-      iconify-icon: 1.0.8
-      iconify-icons-material-symbols-400: 0.0.1
-      is-svg: 4.4.0
-      js-cookie: 2.2.1
-      lodash: 4.17.21
-      mui-datatables: 4.3.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@mui/icons-material@5.16.0(@mui/material@5.16.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/material@5.16.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       notistack: 2.0.8(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/material@5.16.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       pako: 2.1.0
       qrcode.react: 3.1.0(react@18.3.1)
@@ -13112,7 +13073,7 @@ snapshots:
       '@aws-sdk/credential-provider-http': 3.587.0
       '@aws-sdk/credential-provider-process': 3.587.0
       '@aws-sdk/credential-provider-sso': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0)
-      '@aws-sdk/credential-provider-web-identity': 3.587.0(@aws-sdk/client-sts@3.590.0)
+      '@aws-sdk/credential-provider-web-identity': 3.587.0(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0))
       '@aws-sdk/types': 3.577.0
       '@smithy/credential-provider-imds': 3.1.0
       '@smithy/property-provider': 3.1.0
@@ -13124,7 +13085,7 @@ snapshots:
       - aws-crt
     optional: true
 
-  '@aws-sdk/credential-provider-ini@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0))':
+  '@aws-sdk/credential-provider-ini@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0)':
     dependencies:
       '@aws-sdk/client-sts': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0)
       '@aws-sdk/credential-provider-env': 3.587.0
@@ -13142,25 +13103,6 @@ snapshots:
       - '@aws-sdk/client-sso-oidc'
       - aws-crt
 
-  '@aws-sdk/credential-provider-ini@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0)':
-    dependencies:
-      '@aws-sdk/client-sts': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0)
-      '@aws-sdk/credential-provider-env': 3.587.0
-      '@aws-sdk/credential-provider-http': 3.587.0
-      '@aws-sdk/credential-provider-process': 3.587.0
-      '@aws-sdk/credential-provider-sso': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0)
-      '@aws-sdk/credential-provider-web-identity': 3.587.0(@aws-sdk/client-sts@3.590.0)
-      '@aws-sdk/types': 3.577.0
-      '@smithy/credential-provider-imds': 3.1.0
-      '@smithy/property-provider': 3.1.0
-      '@smithy/shared-ini-file-loader': 3.1.0
-      '@smithy/types': 3.0.0
-      tslib: 2.6.3
-    transitivePeerDependencies:
-      - '@aws-sdk/client-sso-oidc'
-      - aws-crt
-    optional: true
-
   '@aws-sdk/credential-provider-node@3.590.0':
     dependencies:
       '@aws-sdk/credential-provider-env': 3.587.0
@@ -13168,7 +13110,7 @@ snapshots:
       '@aws-sdk/credential-provider-ini': 3.590.0
       '@aws-sdk/credential-provider-process': 3.587.0
       '@aws-sdk/credential-provider-sso': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0)
-      '@aws-sdk/credential-provider-web-identity': 3.587.0(@aws-sdk/client-sts@3.590.0)
+      '@aws-sdk/credential-provider-web-identity': 3.587.0(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0))
       '@aws-sdk/types': 3.577.0
       '@smithy/credential-provider-imds': 3.1.0
       '@smithy/property-provider': 3.1.0
@@ -13185,7 +13127,7 @@ snapshots:
     dependencies:
       '@aws-sdk/credential-provider-env': 3.587.0
       '@aws-sdk/credential-provider-http': 3.587.0
-      '@aws-sdk/credential-provider-ini': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0))
+      '@aws-sdk/credential-provider-ini': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0)
       '@aws-sdk/credential-provider-process': 3.587.0
       '@aws-sdk/credential-provider-sso': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0)
       '@aws-sdk/credential-provider-web-identity': 3.587.0(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0))
@@ -13199,26 +13141,6 @@ snapshots:
       - '@aws-sdk/client-sso-oidc'
       - '@aws-sdk/client-sts'
       - aws-crt
-
-  '@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0)':
-    dependencies:
-      '@aws-sdk/credential-provider-env': 3.587.0
-      '@aws-sdk/credential-provider-http': 3.587.0
-      '@aws-sdk/credential-provider-ini': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0)
-      '@aws-sdk/credential-provider-process': 3.587.0
-      '@aws-sdk/credential-provider-sso': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0)
-      '@aws-sdk/credential-provider-web-identity': 3.587.0(@aws-sdk/client-sts@3.590.0)
-      '@aws-sdk/types': 3.577.0
-      '@smithy/credential-provider-imds': 3.1.0
-      '@smithy/property-provider': 3.1.0
-      '@smithy/shared-ini-file-loader': 3.1.0
-      '@smithy/types': 3.0.0
-      tslib: 2.6.3
-    transitivePeerDependencies:
-      - '@aws-sdk/client-sso-oidc'
-      - '@aws-sdk/client-sts'
-      - aws-crt
-    optional: true
 
   '@aws-sdk/credential-provider-process@3.587.0':
     dependencies:
@@ -13248,15 +13170,6 @@ snapshots:
       '@smithy/property-provider': 3.1.0
       '@smithy/types': 3.0.0
       tslib: 2.6.3
-
-  '@aws-sdk/credential-provider-web-identity@3.587.0(@aws-sdk/client-sts@3.590.0)':
-    dependencies:
-      '@aws-sdk/client-sts': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0)
-      '@aws-sdk/types': 3.577.0
-      '@smithy/property-provider': 3.1.0
-      '@smithy/types': 3.0.0
-      tslib: 2.6.3
-    optional: true
 
   '@aws-sdk/lib-storage@3.591.0(@aws-sdk/client-s3@3.591.0)':
     dependencies:
@@ -13698,7 +13611,7 @@ snapshots:
 
   '@beskar-labs/gpt-encoder@1.0.7': {}
 
-  '@blocklet/ai-builtin@0.3.21(encoding@0.1.13)':
+  '@blocklet/ai-builtin@0.3.22(encoding@0.1.13)':
     dependencies:
       '@blocklet/sdk': 1.16.28(encoding@0.1.13)
       lodash: 4.17.21
@@ -13833,12 +13746,12 @@ snapshots:
       - tedious
       - utf-8-validate
 
-  '@blocklet/ai-runtime@0.3.21(57jjk47ax23uah5vniq7yy427e)':
+  '@blocklet/ai-runtime@0.3.22(57jjk47ax23uah5vniq7yy427e)':
     dependencies:
       '@arcblock/ux': 2.10.3(@babel/core@7.24.7)(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/icons-material@5.16.0(@mui/material@5.16.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/material@5.16.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/node@18.19.39)(@types/react@18.3.3)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.24.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
-      '@blocklet/ai-builtin': 0.3.21(encoding@0.1.13)
+      '@blocklet/ai-builtin': 0.3.22(encoding@0.1.13)
       '@blocklet/ai-kit': 0.1.43(@babel/core@7.24.7)(@types/node@18.19.39)(@types/react@18.3.3)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.24.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)
-      '@blocklet/dataset-sdk': 0.3.21(encoding@0.1.13)
+      '@blocklet/dataset-sdk': 0.3.22(encoding@0.1.13)
       '@blocklet/sdk': 1.16.28(encoding@0.1.13)
       '@emotion/css': 11.11.2
       '@emotion/react': 11.11.4(@types/react@18.3.3)(react@18.3.1)
@@ -13888,12 +13801,12 @@ snapshots:
       - tedious
       - utf-8-validate
 
-  '@blocklet/ai-runtime@0.3.21(cw5ogmjjvihod4niadgoqi6mri)':
+  '@blocklet/ai-runtime@0.3.22(cw5ogmjjvihod4niadgoqi6mri)':
     dependencies:
       '@arcblock/ux': 2.10.3(@babel/core@7.24.7)(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/icons-material@5.16.0(@mui/material@5.16.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/material@5.16.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/node@20.14.6)(@types/react@18.3.3)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.24.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
-      '@blocklet/ai-builtin': 0.3.21(encoding@0.1.13)
+      '@blocklet/ai-builtin': 0.3.22(encoding@0.1.13)
       '@blocklet/ai-kit': 0.1.43(@babel/core@7.24.7)(@types/node@20.14.6)(@types/react@18.3.3)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.24.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
-      '@blocklet/dataset-sdk': 0.3.21(encoding@0.1.13)
+      '@blocklet/dataset-sdk': 0.3.22(encoding@0.1.13)
       '@blocklet/sdk': 1.16.28(encoding@0.1.13)
       '@emotion/css': 11.11.2
       '@emotion/react': 11.11.4(@types/react@18.3.3)(react@18.3.1)
@@ -13947,7 +13860,7 @@ snapshots:
 
   '@blocklet/constant@1.16.28-beta-641c9f13': {}
 
-  '@blocklet/dataset-sdk@0.3.21(encoding@0.1.13)':
+  '@blocklet/dataset-sdk@0.3.22(encoding@0.1.13)':
     dependencies:
       '@blocklet/constant': 1.16.28
       '@blocklet/sdk': 1.16.28(encoding@0.1.13)
@@ -14096,7 +14009,7 @@ snapshots:
     dependencies:
       '@arcblock/ux': 2.10.3(@babel/core@7.24.7)(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/icons-material@5.16.0(@mui/material@5.16.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/material@5.16.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/node@18.19.39)(@types/react@18.3.3)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.24.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       '@blocklet/embed': 0.1.11(react@18.3.1)
-      '@blocklet/pages-kit': 0.2.369(25b6bpktxcokidlbmnhdytuwcm)
+      '@blocklet/pages-kit': 0.2.370(25b6bpktxcokidlbmnhdytuwcm)
       '@blocklet/pdf': 1.6.264(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(encoding@0.1.13)(react-dom@18.3.1(react@18.3.1))
       '@emotion/css': 11.11.2
       '@emotion/react': 11.11.4(@types/react@18.3.3)(react@18.3.1)
@@ -14267,12 +14180,12 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@blocklet/pages-kit@0.2.369(25b6bpktxcokidlbmnhdytuwcm)':
+  '@blocklet/pages-kit@0.2.370(25b6bpktxcokidlbmnhdytuwcm)':
     dependencies:
       '@arcblock/did-connect': 2.10.3(gzjnjjrzxri3xkpuyq27jzanmi)
       '@arcblock/ux': 2.10.3(@babel/core@7.24.7)(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/icons-material@5.16.0(@mui/material@5.16.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/material@5.16.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/node@18.19.39)(@types/react@18.3.3)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.24.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       '@blocklet/ai-kit': 0.1.43(@babel/core@7.24.7)(@types/node@18.19.39)(@types/react@18.3.3)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.24.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)
-      '@blocklet/ai-runtime': 0.3.21(57jjk47ax23uah5vniq7yy427e)
+      '@blocklet/ai-runtime': 0.3.22(57jjk47ax23uah5vniq7yy427e)
       '@blocklet/js-sdk': 1.16.28
       '@blocklet/sdk': 1.16.28(encoding@0.1.13)
       '@emotion/cache': 11.11.0
@@ -14337,12 +14250,12 @@ snapshots:
       - tedious
       - utf-8-validate
 
-  '@blocklet/pages-kit@0.2.369(bw4rkcp3rj344p6nyl6eiuturu)':
+  '@blocklet/pages-kit@0.2.370(bw4rkcp3rj344p6nyl6eiuturu)':
     dependencies:
       '@arcblock/did-connect': 2.10.3(un7gqcdma2cgb6evg5x3oll55y)
       '@arcblock/ux': 2.10.3(@babel/core@7.24.7)(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/icons-material@5.16.0(@mui/material@5.16.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/material@5.16.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/node@20.14.6)(@types/react@18.3.3)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.24.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       '@blocklet/ai-kit': 0.1.43(@babel/core@7.24.7)(@types/node@20.14.6)(@types/react@18.3.3)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.24.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
-      '@blocklet/ai-runtime': 0.3.21(cw5ogmjjvihod4niadgoqi6mri)
+      '@blocklet/ai-runtime': 0.3.22(cw5ogmjjvihod4niadgoqi6mri)
       '@blocklet/js-sdk': 1.16.28
       '@blocklet/sdk': 1.16.28(encoding@0.1.13)
       '@emotion/cache': 11.11.0
@@ -14483,6 +14396,31 @@ snapshots:
       - supports-color
       - utf-8-validate
 
+  '@blocklet/testlab@0.0.8(@types/node@20.14.6)(typescript@5.5.3)':
+    dependencies:
+      '@abtnode/constant': 1.16.28
+      '@arcblock/jwt': 1.18.126
+      '@arcblock/vc': 1.18.126
+      '@ocap/mcrypto': 1.18.126
+      '@ocap/util': 1.18.126
+      '@ocap/wallet': 1.18.126
+      '@playwright/test': 1.45.1
+      '@types/json-stable-stringify': 1.0.36
+      axios: 1.7.2(debug@4.3.5)
+      json-stable-stringify: 1.1.1
+      multiformats: 9.9.0
+      start-server-and-test: 2.0.4
+      ts-node: 10.9.2(@types/node@20.14.6)(typescript@5.5.3)
+      ufo: 1.5.3
+      zx: 8.1.4
+    transitivePeerDependencies:
+      - '@swc/core'
+      - '@swc/wasm'
+      - '@types/node'
+      - debug
+      - supports-color
+      - typescript
+
   '@blocklet/translation-input@1.6.264(w7tq4tzfjse7rlbeiewaj4p4gm)':
     dependencies:
       '@arcblock/ux': 2.10.3(@babel/core@7.24.7)(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/icons-material@5.16.0(@mui/material@5.16.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/material@5.16.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/node@18.19.39)(@types/react@18.3.3)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.24.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
@@ -14491,12 +14429,12 @@ snapshots:
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
 
-  '@blocklet/ui-react@2.10.3(qhcdjnjjjce7umd4ovulpuc2xu)':
+  '@blocklet/ui-react@2.10.3(mmg36btbdhob6nfxinunmn7iii)':
     dependencies:
       '@arcblock/bridge': 2.10.3
-      '@arcblock/did-connect': 2.10.3(awim2e2llzbckqp2373utn4rvm)
+      '@arcblock/did-connect': 2.10.3(un7gqcdma2cgb6evg5x3oll55y)
       '@arcblock/react-hooks': 2.10.3
-      '@arcblock/ux': 2.10.3(@babel/core@7.24.7)(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/icons-material@5.16.0(@mui/material@5.16.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/material@5.16.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.3)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.24.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
+      '@arcblock/ux': 2.10.3(@babel/core@7.24.7)(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/icons-material@5.16.0(@mui/material@5.16.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/material@5.16.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/node@20.14.6)(@types/react@18.3.3)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.24.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       '@blocklet/js-sdk': 1.16.28
       '@emotion/react': 11.11.4(@types/react@18.3.3)(react@18.3.1)
       '@emotion/styled': 11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1)
@@ -15070,42 +15008,6 @@ snapshots:
       jest-util: 29.7.0
       slash: 3.0.0
 
-  '@jest/core@29.7.0':
-    dependencies:
-      '@jest/console': 29.7.0
-      '@jest/reporters': 29.7.0
-      '@jest/test-result': 29.7.0
-      '@jest/transform': 29.7.0
-      '@jest/types': 29.6.3
-      '@types/node': 18.19.39
-      ansi-escapes: 4.3.2
-      chalk: 4.1.2
-      ci-info: 3.9.0
-      exit: 0.1.2
-      graceful-fs: 4.2.11
-      jest-changed-files: 29.7.0
-      jest-config: 29.7.0(@types/node@18.19.39)
-      jest-haste-map: 29.7.0
-      jest-message-util: 29.7.0
-      jest-regex-util: 29.6.3
-      jest-resolve: 29.7.0
-      jest-resolve-dependencies: 29.7.0
-      jest-runner: 29.7.0
-      jest-runtime: 29.7.0
-      jest-snapshot: 29.7.0
-      jest-util: 29.7.0
-      jest-validate: 29.7.0
-      jest-watcher: 29.7.0
-      micromatch: 4.0.7
-      pretty-format: 29.7.0
-      slash: 3.0.0
-      strip-ansi: 6.0.1
-    transitivePeerDependencies:
-      - babel-plugin-macros
-      - supports-color
-      - ts-node
-    optional: true
-
   '@jest/core@29.7.0(babel-plugin-macros@3.1.0)(ts-node@10.9.2(@types/node@18.19.39)(typescript@5.5.3))':
     dependencies:
       '@jest/console': 29.7.0
@@ -15175,6 +15077,42 @@ snapshots:
       - babel-plugin-macros
       - supports-color
       - ts-node
+
+  '@jest/core@29.7.0(ts-node@10.9.2(@types/node@20.14.6)(typescript@5.5.3))':
+    dependencies:
+      '@jest/console': 29.7.0
+      '@jest/reporters': 29.7.0
+      '@jest/test-result': 29.7.0
+      '@jest/transform': 29.7.0
+      '@jest/types': 29.6.3
+      '@types/node': 18.19.39
+      ansi-escapes: 4.3.2
+      chalk: 4.1.2
+      ci-info: 3.9.0
+      exit: 0.1.2
+      graceful-fs: 4.2.11
+      jest-changed-files: 29.7.0
+      jest-config: 29.7.0(@types/node@18.19.39)(ts-node@10.9.2(@types/node@20.14.6)(typescript@5.5.3))
+      jest-haste-map: 29.7.0
+      jest-message-util: 29.7.0
+      jest-regex-util: 29.6.3
+      jest-resolve: 29.7.0
+      jest-resolve-dependencies: 29.7.0
+      jest-runner: 29.7.0
+      jest-runtime: 29.7.0
+      jest-snapshot: 29.7.0
+      jest-util: 29.7.0
+      jest-validate: 29.7.0
+      jest-watcher: 29.7.0
+      micromatch: 4.0.7
+      pretty-format: 29.7.0
+      slash: 3.0.0
+      strip-ansi: 6.0.1
+    transitivePeerDependencies:
+      - babel-plugin-macros
+      - supports-color
+      - ts-node
+    optional: true
 
   '@jest/environment@29.7.0':
     dependencies:
@@ -15327,17 +15265,17 @@ snapshots:
 
   '@juggle/resize-observer@3.4.0': {}
 
-  '@langchain/community@0.0.42(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0))(@huggingface/inference@2.7.0)(encoding@0.1.13)(faiss-node@0.5.1)(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))(lodash@4.17.21)(openai@3.3.0)(redis@4.6.14)(ws@8.18.0)':
+  '@langchain/community@0.0.42(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)))(@huggingface/inference@2.7.0)(encoding@0.1.13)(faiss-node@0.5.1)(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))(lodash@4.17.21)(openai@3.3.0)(redis@4.6.14)(ws@8.18.0)':
     dependencies:
-      '@langchain/core': 0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))(openai@3.3.0)
-      '@langchain/openai': 0.0.23(encoding@0.1.13)(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))
+      '@langchain/core': 0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))(openai@3.3.0)
+      '@langchain/openai': 0.0.23(encoding@0.1.13)(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))
       expr-eval: 2.0.2
       flat: 5.0.2
-      langsmith: 0.1.30(@langchain/core@0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))(openai@3.3.0))(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))(openai@3.3.0)
+      langsmith: 0.1.30(@langchain/core@0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))(openai@3.3.0))(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))(openai@3.3.0)
       uuid: 9.0.1
       zod: 3.23.8
     optionalDependencies:
-      '@aws-sdk/credential-provider-node': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0)
+      '@aws-sdk/credential-provider-node': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0))
       '@huggingface/inference': 2.7.0
       faiss-node: 0.5.1
       lodash: 4.17.21
@@ -15348,13 +15286,13 @@ snapshots:
       - langchain
       - openai
 
-  '@langchain/community@0.0.42(@aws-sdk/credential-provider-node@3.590.0)(encoding@0.1.13)(faiss-node@0.5.1)(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))(lodash@4.17.21)(openai@3.3.0)(redis@4.6.14)(ws@8.18.0)':
+  '@langchain/community@0.0.42(@aws-sdk/credential-provider-node@3.590.0)(encoding@0.1.13)(faiss-node@0.5.1)(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))(lodash@4.17.21)(openai@3.3.0)(redis@4.6.14)(ws@8.18.0)':
     dependencies:
-      '@langchain/core': 0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))(openai@3.3.0)
-      '@langchain/openai': 0.0.23(encoding@0.1.13)(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))
+      '@langchain/core': 0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))(openai@3.3.0)
+      '@langchain/openai': 0.0.23(encoding@0.1.13)(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))
       expr-eval: 2.0.2
       flat: 5.0.2
-      langsmith: 0.1.30(@langchain/core@0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))(openai@3.3.0))(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))(openai@3.3.0)
+      langsmith: 0.1.30(@langchain/core@0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))(openai@3.3.0))(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))(openai@3.3.0)
       uuid: 9.0.1
       zod: 3.23.8
     optionalDependencies:
@@ -15368,13 +15306,13 @@ snapshots:
       - langchain
       - openai
 
-  '@langchain/core@0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))(openai@3.3.0)':
+  '@langchain/core@0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))(openai@3.3.0)':
     dependencies:
       ansi-styles: 5.2.0
       camelcase: 6.3.0
       decamelize: 1.2.0
       js-tiktoken: 1.0.12
-      langsmith: 0.1.30(@langchain/core@0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))(openai@3.3.0))(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))(openai@3.3.0)
+      langsmith: 0.1.30(@langchain/core@0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))(openai@3.3.0))(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))(openai@3.3.0)
       ml-distance: 4.0.1
       mustache: 4.2.0
       p-queue: 6.6.2
@@ -15386,13 +15324,13 @@ snapshots:
       - langchain
       - openai
 
-  '@langchain/core@0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))(openai@4.48.2(encoding@0.1.13))':
+  '@langchain/core@0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))(openai@4.48.2(encoding@0.1.13))':
     dependencies:
       ansi-styles: 5.2.0
       camelcase: 6.3.0
       decamelize: 1.2.0
       js-tiktoken: 1.0.12
-      langsmith: 0.1.30(@langchain/core@0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))(openai@4.48.2(encoding@0.1.13)))(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))(openai@4.48.2(encoding@0.1.13))
+      langsmith: 0.1.30(@langchain/core@0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))(openai@4.48.2(encoding@0.1.13)))(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))(openai@4.48.2(encoding@0.1.13))
       ml-distance: 4.0.1
       mustache: 4.2.0
       p-queue: 6.6.2
@@ -15404,13 +15342,13 @@ snapshots:
       - langchain
       - openai
 
-  '@langchain/core@0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))(openai@3.3.0)':
+  '@langchain/core@0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))(openai@3.3.0)':
     dependencies:
       ansi-styles: 5.2.0
       camelcase: 6.3.0
       decamelize: 1.2.0
       js-tiktoken: 1.0.12
-      langsmith: 0.1.30(@langchain/core@0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))(openai@3.3.0))(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))(openai@3.3.0)
+      langsmith: 0.1.30(@langchain/core@0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))(openai@3.3.0))(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))(openai@3.3.0)
       ml-distance: 4.0.1
       mustache: 4.2.0
       p-queue: 6.6.2
@@ -15422,13 +15360,13 @@ snapshots:
       - langchain
       - openai
 
-  '@langchain/core@0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))(openai@4.48.2(encoding@0.1.13))':
+  '@langchain/core@0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))(openai@4.48.2(encoding@0.1.13))':
     dependencies:
       ansi-styles: 5.2.0
       camelcase: 6.3.0
       decamelize: 1.2.0
       js-tiktoken: 1.0.12
-      langsmith: 0.1.30(@langchain/core@0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))(openai@4.48.2(encoding@0.1.13)))(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))(openai@4.48.2(encoding@0.1.13))
+      langsmith: 0.1.30(@langchain/core@0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))(openai@4.48.2(encoding@0.1.13)))(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))(openai@4.48.2(encoding@0.1.13))
       ml-distance: 4.0.1
       mustache: 4.2.0
       p-queue: 6.6.2
@@ -15440,9 +15378,9 @@ snapshots:
       - langchain
       - openai
 
-  '@langchain/openai@0.0.23(encoding@0.1.13)(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))':
+  '@langchain/openai@0.0.23(encoding@0.1.13)(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))':
     dependencies:
-      '@langchain/core': 0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))(openai@4.48.2(encoding@0.1.13))
+      '@langchain/core': 0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))(openai@4.48.2(encoding@0.1.13))
       js-tiktoken: 1.0.12
       openai: 4.48.2(encoding@0.1.13)
       zod: 3.23.8
@@ -15451,9 +15389,9 @@ snapshots:
       - encoding
       - langchain
 
-  '@langchain/openai@0.0.23(encoding@0.1.13)(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))':
+  '@langchain/openai@0.0.23(encoding@0.1.13)(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))':
     dependencies:
-      '@langchain/core': 0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))(openai@4.48.2(encoding@0.1.13))
+      '@langchain/core': 0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))(openai@4.48.2(encoding@0.1.13))
       js-tiktoken: 1.0.12
       openai: 4.48.2(encoding@0.1.13)
       zod: 3.23.8
@@ -16335,6 +16273,10 @@ snapshots:
     optional: true
 
   '@pkgr/core@0.1.1': {}
+
+  '@playwright/test@1.45.1':
+    dependencies:
+      playwright: 1.45.1
 
   '@popperjs/core@2.11.8': {}
 
@@ -17220,7 +17162,6 @@ snapshots:
   '@types/node@20.14.6':
     dependencies:
       undici-types: 5.26.5
-    optional: true
 
   '@types/normalize-package-data@2.4.4': {}
 
@@ -18562,6 +18503,8 @@ snapshots:
 
   chardet@0.7.0: {}
 
+  check-more-types@2.24.0: {}
+
   cheerio-select@2.1.0:
     dependencies:
       boolbase: 1.0.0
@@ -18964,22 +18907,6 @@ snapshots:
       safe-buffer: 5.2.1
       sha.js: 2.4.11
 
-  create-jest@29.7.0:
-    dependencies:
-      '@jest/types': 29.6.3
-      chalk: 4.1.2
-      exit: 0.1.2
-      graceful-fs: 4.2.11
-      jest-config: 29.7.0(@types/node@18.19.39)
-      jest-util: 29.7.0
-      prompts: 2.4.2
-    transitivePeerDependencies:
-      - '@types/node'
-      - babel-plugin-macros
-      - supports-color
-      - ts-node
-    optional: true
-
   create-jest@29.7.0(@types/node@18.19.39)(babel-plugin-macros@3.1.0)(ts-node@10.9.2(@types/node@18.19.39)(typescript@5.5.3)):
     dependencies:
       '@jest/types': 29.6.3
@@ -19009,6 +18936,22 @@ snapshots:
       - babel-plugin-macros
       - supports-color
       - ts-node
+
+  create-jest@29.7.0(@types/node@20.14.6)(ts-node@10.9.2(@types/node@20.14.6)(typescript@5.5.3)):
+    dependencies:
+      '@jest/types': 29.6.3
+      chalk: 4.1.2
+      exit: 0.1.2
+      graceful-fs: 4.2.11
+      jest-config: 29.7.0(@types/node@20.14.6)(ts-node@10.9.2(@types/node@20.14.6)(typescript@5.5.3))
+      jest-util: 29.7.0
+      prompts: 2.4.2
+    transitivePeerDependencies:
+      - '@types/node'
+      - babel-plugin-macros
+      - supports-color
+      - ts-node
+    optional: true
 
   create-require@1.1.1: {}
 
@@ -19700,13 +19643,13 @@ snapshots:
       - eslint-import-resolver-webpack
       - supports-color
 
-  eslint-plugin-jest@27.9.0(@typescript-eslint/eslint-plugin@5.62.0(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(jest@29.7.0)(typescript@5.5.3):
+  eslint-plugin-jest@27.9.0(@typescript-eslint/eslint-plugin@5.62.0(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(jest@29.7.0(@types/node@20.14.6)(ts-node@10.9.2(@types/node@20.14.6)(typescript@5.5.3)))(typescript@5.5.3):
     dependencies:
       '@typescript-eslint/utils': 5.62.0(eslint@8.57.0)(typescript@5.5.3)
       eslint: 8.57.0
     optionalDependencies:
       '@typescript-eslint/eslint-plugin': 5.62.0(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(typescript@5.5.3)
-      jest: 29.7.0
+      jest: 29.7.0(@types/node@20.14.6)(ts-node@10.9.2(@types/node@20.14.6)(typescript@5.5.3))
     transitivePeerDependencies:
       - supports-color
       - typescript
@@ -20333,6 +20276,9 @@ snapshots:
       minipass: 7.1.2
 
   fs.realpath@1.0.0: {}
+
+  fsevents@2.3.2:
+    optional: true
 
   fsevents@2.3.3:
     optional: true
@@ -21471,26 +21417,6 @@ snapshots:
       - babel-plugin-macros
       - supports-color
 
-  jest-cli@29.7.0:
-    dependencies:
-      '@jest/core': 29.7.0
-      '@jest/test-result': 29.7.0
-      '@jest/types': 29.6.3
-      chalk: 4.1.2
-      create-jest: 29.7.0
-      exit: 0.1.2
-      import-local: 3.1.0
-      jest-config: 29.7.0(@types/node@18.19.39)
-      jest-util: 29.7.0
-      jest-validate: 29.7.0
-      yargs: 17.7.2
-    transitivePeerDependencies:
-      - '@types/node'
-      - babel-plugin-macros
-      - supports-color
-      - ts-node
-    optional: true
-
   jest-cli@29.7.0(@types/node@18.19.39)(babel-plugin-macros@3.1.0)(ts-node@10.9.2(@types/node@18.19.39)(typescript@5.5.3)):
     dependencies:
       '@jest/core': 29.7.0(babel-plugin-macros@3.1.0)(ts-node@10.9.2(@types/node@18.19.39)(typescript@5.5.3))
@@ -21529,35 +21455,24 @@ snapshots:
       - supports-color
       - ts-node
 
-  jest-config@29.7.0(@types/node@18.19.39):
+  jest-cli@29.7.0(@types/node@20.14.6)(ts-node@10.9.2(@types/node@20.14.6)(typescript@5.5.3)):
     dependencies:
-      '@babel/core': 7.24.7
-      '@jest/test-sequencer': 29.7.0
+      '@jest/core': 29.7.0(ts-node@10.9.2(@types/node@20.14.6)(typescript@5.5.3))
+      '@jest/test-result': 29.7.0
       '@jest/types': 29.6.3
-      babel-jest: 29.7.0(@babel/core@7.24.7)
       chalk: 4.1.2
-      ci-info: 3.9.0
-      deepmerge: 4.3.1
-      glob: 7.2.3
-      graceful-fs: 4.2.11
-      jest-circus: 29.7.0(babel-plugin-macros@3.1.0)
-      jest-environment-node: 29.7.0
-      jest-get-type: 29.6.3
-      jest-regex-util: 29.6.3
-      jest-resolve: 29.7.0
-      jest-runner: 29.7.0
+      create-jest: 29.7.0(@types/node@20.14.6)(ts-node@10.9.2(@types/node@20.14.6)(typescript@5.5.3))
+      exit: 0.1.2
+      import-local: 3.1.0
+      jest-config: 29.7.0(@types/node@20.14.6)(ts-node@10.9.2(@types/node@20.14.6)(typescript@5.5.3))
       jest-util: 29.7.0
       jest-validate: 29.7.0
-      micromatch: 4.0.7
-      parse-json: 5.2.0
-      pretty-format: 29.7.0
-      slash: 3.0.0
-      strip-json-comments: 3.1.1
-    optionalDependencies:
-      '@types/node': 18.19.39
+      yargs: 17.7.2
     transitivePeerDependencies:
+      - '@types/node'
       - babel-plugin-macros
       - supports-color
+      - ts-node
     optional: true
 
   jest-config@29.7.0(@types/node@18.19.39)(babel-plugin-macros@3.1.0)(ts-node@10.9.2(@types/node@18.19.39)(typescript@5.5.3)):
@@ -21622,6 +21537,38 @@ snapshots:
       - babel-plugin-macros
       - supports-color
 
+  jest-config@29.7.0(@types/node@18.19.39)(ts-node@10.9.2(@types/node@20.14.6)(typescript@5.5.3)):
+    dependencies:
+      '@babel/core': 7.24.7
+      '@jest/test-sequencer': 29.7.0
+      '@jest/types': 29.6.3
+      babel-jest: 29.7.0(@babel/core@7.24.7)
+      chalk: 4.1.2
+      ci-info: 3.9.0
+      deepmerge: 4.3.1
+      glob: 7.2.3
+      graceful-fs: 4.2.11
+      jest-circus: 29.7.0(babel-plugin-macros@3.1.0)
+      jest-environment-node: 29.7.0
+      jest-get-type: 29.6.3
+      jest-regex-util: 29.6.3
+      jest-resolve: 29.7.0
+      jest-runner: 29.7.0
+      jest-util: 29.7.0
+      jest-validate: 29.7.0
+      micromatch: 4.0.7
+      parse-json: 5.2.0
+      pretty-format: 29.7.0
+      slash: 3.0.0
+      strip-json-comments: 3.1.1
+    optionalDependencies:
+      '@types/node': 18.19.39
+      ts-node: 10.9.2(@types/node@20.14.6)(typescript@5.5.3)
+    transitivePeerDependencies:
+      - babel-plugin-macros
+      - supports-color
+    optional: true
+
   jest-config@29.7.0(@types/node@20.14.6)(babel-plugin-macros@3.1.0)(ts-node@10.9.2(@types/node@20.14.6)(typescript@5.5.3)):
     dependencies:
       '@babel/core': 7.24.7
@@ -21652,6 +21599,38 @@ snapshots:
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
+
+  jest-config@29.7.0(@types/node@20.14.6)(ts-node@10.9.2(@types/node@20.14.6)(typescript@5.5.3)):
+    dependencies:
+      '@babel/core': 7.24.7
+      '@jest/test-sequencer': 29.7.0
+      '@jest/types': 29.6.3
+      babel-jest: 29.7.0(@babel/core@7.24.7)
+      chalk: 4.1.2
+      ci-info: 3.9.0
+      deepmerge: 4.3.1
+      glob: 7.2.3
+      graceful-fs: 4.2.11
+      jest-circus: 29.7.0(babel-plugin-macros@3.1.0)
+      jest-environment-node: 29.7.0
+      jest-get-type: 29.6.3
+      jest-regex-util: 29.6.3
+      jest-resolve: 29.7.0
+      jest-runner: 29.7.0
+      jest-util: 29.7.0
+      jest-validate: 29.7.0
+      micromatch: 4.0.7
+      parse-json: 5.2.0
+      pretty-format: 29.7.0
+      slash: 3.0.0
+      strip-json-comments: 3.1.1
+    optionalDependencies:
+      '@types/node': 20.14.6
+      ts-node: 10.9.2(@types/node@20.14.6)(typescript@5.5.3)
+    transitivePeerDependencies:
+      - babel-plugin-macros
+      - supports-color
+    optional: true
 
   jest-diff@29.7.0:
     dependencies:
@@ -21868,19 +21847,6 @@ snapshots:
       merge-stream: 2.0.0
       supports-color: 8.1.1
 
-  jest@29.7.0:
-    dependencies:
-      '@jest/core': 29.7.0
-      '@jest/types': 29.6.3
-      import-local: 3.1.0
-      jest-cli: 29.7.0
-    transitivePeerDependencies:
-      - '@types/node'
-      - babel-plugin-macros
-      - supports-color
-      - ts-node
-    optional: true
-
   jest@29.7.0(@types/node@18.19.39)(babel-plugin-macros@3.1.0)(ts-node@10.9.2(@types/node@18.19.39)(typescript@5.5.3)):
     dependencies:
       '@jest/core': 29.7.0(babel-plugin-macros@3.1.0)(ts-node@10.9.2(@types/node@18.19.39)(typescript@5.5.3))
@@ -21904,6 +21870,19 @@ snapshots:
       - babel-plugin-macros
       - supports-color
       - ts-node
+
+  jest@29.7.0(@types/node@20.14.6)(ts-node@10.9.2(@types/node@20.14.6)(typescript@5.5.3)):
+    dependencies:
+      '@jest/core': 29.7.0(ts-node@10.9.2(@types/node@20.14.6)(typescript@5.5.3))
+      '@jest/types': 29.6.3
+      import-local: 3.1.0
+      jest-cli: 29.7.0(@types/node@20.14.6)(ts-node@10.9.2(@types/node@20.14.6)(typescript@5.5.3))
+    transitivePeerDependencies:
+      - '@types/node'
+      - babel-plugin-macros
+      - supports-color
+      - ts-node
+    optional: true
 
   jju@1.4.0: {}
 
@@ -22104,7 +22083,7 @@ snapshots:
 
   kuler@2.0.0: {}
 
-  langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14):
+  langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14):
     dependencies:
       '@anthropic-ai/sdk': 0.4.4(encoding@0.1.13)
       ansi-styles: 5.2.0
@@ -22130,12 +22109,13 @@ snapshots:
       faiss-node: 0.5.1
       ignore: 5.3.1
       mammoth: 1.8.0
+      playwright: 1.45.1
       redis: 4.6.14
     transitivePeerDependencies:
       - debug
       - encoding
 
-  langsmith@0.1.30(@langchain/core@0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))(openai@3.3.0))(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))(openai@3.3.0):
+  langsmith@0.1.30(@langchain/core@0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))(openai@3.3.0))(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))(openai@3.3.0):
     dependencies:
       '@types/uuid': 9.0.8
       commander: 10.0.1
@@ -22143,11 +22123,11 @@ snapshots:
       p-retry: 4.6.2
       uuid: 9.0.1
     optionalDependencies:
-      '@langchain/core': 0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))(openai@3.3.0)
-      langchain: 0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14)
+      '@langchain/core': 0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))(openai@3.3.0)
+      langchain: 0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14)
       openai: 3.3.0
 
-  langsmith@0.1.30(@langchain/core@0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))(openai@4.48.2(encoding@0.1.13)))(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))(openai@4.48.2(encoding@0.1.13)):
+  langsmith@0.1.30(@langchain/core@0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))(openai@4.48.2(encoding@0.1.13)))(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))(openai@4.48.2(encoding@0.1.13)):
     dependencies:
       '@types/uuid': 9.0.8
       commander: 10.0.1
@@ -22155,11 +22135,11 @@ snapshots:
       p-retry: 4.6.2
       uuid: 9.0.1
     optionalDependencies:
-      '@langchain/core': 0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))(openai@4.48.2(encoding@0.1.13))
-      langchain: 0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14)
+      '@langchain/core': 0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))(openai@4.48.2(encoding@0.1.13))
+      langchain: 0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14)
       openai: 4.48.2(encoding@0.1.13)
 
-  langsmith@0.1.30(@langchain/core@0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))(openai@3.3.0))(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))(openai@3.3.0):
+  langsmith@0.1.30(@langchain/core@0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))(openai@3.3.0))(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))(openai@3.3.0):
     dependencies:
       '@types/uuid': 9.0.8
       commander: 10.0.1
@@ -22167,11 +22147,11 @@ snapshots:
       p-retry: 4.6.2
       uuid: 9.0.1
     optionalDependencies:
-      '@langchain/core': 0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))(openai@3.3.0)
-      langchain: 0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14)
+      '@langchain/core': 0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))(openai@3.3.0)
+      langchain: 0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14)
       openai: 3.3.0
 
-  langsmith@0.1.30(@langchain/core@0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))(openai@4.48.2(encoding@0.1.13)))(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))(openai@4.48.2(encoding@0.1.13)):
+  langsmith@0.1.30(@langchain/core@0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))(openai@4.48.2(encoding@0.1.13)))(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))(openai@4.48.2(encoding@0.1.13)):
     dependencies:
       '@types/uuid': 9.0.8
       commander: 10.0.1
@@ -22179,8 +22159,8 @@ snapshots:
       p-retry: 4.6.2
       uuid: 9.0.1
     optionalDependencies:
-      '@langchain/core': 0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14))(openai@4.48.2(encoding@0.1.13))
-      langchain: 0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(redis@4.6.14)
+      '@langchain/core': 0.1.63(langchain@0.0.81(@aws-sdk/client-s3@3.591.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14))(openai@4.48.2(encoding@0.1.13))
+      langchain: 0.0.81(@aws-sdk/client-s3@3.591.0)(@huggingface/inference@2.7.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(ignore@5.3.1)(mammoth@1.8.0)(playwright@1.45.1)(redis@4.6.14)
       openai: 4.48.2(encoding@0.1.13)
 
   language-subtag-registry@0.3.23: {}
@@ -22188,6 +22168,8 @@ snapshots:
   language-tags@1.0.9:
     dependencies:
       language-subtag-registry: 0.3.23
+
+  lazy-ass@1.6.0: {}
 
   lazystream@1.0.1:
     dependencies:
@@ -22593,7 +22575,7 @@ snapshots:
       fault: 1.0.4
       highlight.js: 10.7.3
 
-  lru-cache@10.4.1: {}
+  lru-cache@10.4.2: {}
 
   lru-cache@5.1.1:
     dependencies:
@@ -23712,37 +23694,6 @@ snapshots:
       - '@types/node'
       - '@types/react'
 
-  mui-datatables@4.3.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@mui/icons-material@5.16.0(@mui/material@5.16.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/material@5.16.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
-    dependencies:
-      '@babel/runtime-corejs3': 7.24.7
-      '@emotion/cache': 11.11.0
-      '@emotion/react': 11.11.4(@types/react@18.3.3)(react@18.3.1)
-      '@mui/icons-material': 5.16.0(@mui/material@5.16.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.3)(react@18.3.1)
-      '@mui/material': 5.16.0(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      clsx: 1.2.1
-      lodash.assignwith: 4.2.0
-      lodash.clonedeep: 4.5.0
-      lodash.debounce: 4.0.8
-      lodash.find: 4.6.0
-      lodash.get: 4.4.2
-      lodash.isequal: 4.5.0
-      lodash.isundefined: 3.0.1
-      lodash.memoize: 4.1.2
-      lodash.merge: 4.6.2
-      prop-types: 15.8.1
-      react: 18.3.1
-      react-dnd: 16.0.1(@types/node@20.14.6)(@types/react@18.3.3)(react@18.3.1)
-      react-dnd-html5-backend: 16.0.1
-      react-dom: 18.3.1(react@18.3.1)
-      react-sortable-tree-patch-react-17: 2.9.0(react-dnd@16.0.1(@types/react@18.3.3)(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      react-to-print: 2.15.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      tss-react: 3.7.1(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(react@18.3.1)
-    transitivePeerDependencies:
-      - '@emotion/server'
-      - '@types/hoist-non-react-statics'
-      - '@types/node'
-      - '@types/react'
-
   multer@1.4.5-lts.1:
     dependencies:
       append-field: 1.0.0
@@ -24524,7 +24475,7 @@ snapshots:
 
   path-scurry@1.11.1:
     dependencies:
-      lru-cache: 10.4.1
+      lru-cache: 10.4.2
       minipass: 7.1.2
 
   path-to-regexp@0.1.7: {}
@@ -24597,6 +24548,14 @@ snapshots:
   pkg-dir@5.0.0:
     dependencies:
       find-up: 5.0.0
+
+  playwright-core@1.45.1: {}
+
+  playwright@1.45.1:
+    dependencies:
+      playwright-core: 1.45.1
+    optionalDependencies:
+      fsevents: 2.3.2
 
   plimit-lit@1.6.1:
     dependencies:
@@ -24957,7 +24916,7 @@ snapshots:
       react-dnd: 16.0.1(@types/node@18.19.39)(@types/react@18.3.3)(react@18.3.1)
       react-dom: 18.3.1(react@18.3.1)
 
-  react-dnd-scrollzone-patch-react-17@1.0.2(react-dnd@16.0.1(@types/react@18.3.3)(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+  react-dnd-scrollzone-patch-react-17@1.0.2(react-dnd@16.0.1(@types/node@20.14.6)(@types/react@18.3.3)(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
       hoist-non-react-statics: 3.3.2
       lodash.throttle: 4.1.1
@@ -25255,19 +25214,7 @@ snapshots:
       react: 18.3.1
       react-dnd: 16.0.1(@types/node@20.14.6)(@types/react@18.3.3)(react@18.3.1)
       react-dnd-html5-backend: 16.0.1
-      react-dnd-scrollzone-patch-react-17: 1.0.2(react-dnd@16.0.1(@types/react@18.3.3)(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      react-dom: 18.3.1(react@18.3.1)
-      react-lifecycles-compat: 3.0.4
-      react-virtualized: 9.22.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-
-  react-sortable-tree-patch-react-17@2.9.0(react-dnd@16.0.1(@types/react@18.3.3)(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
-    dependencies:
-      lodash.isequal: 4.5.0
-      prop-types: 15.8.1
-      react: 18.3.1
-      react-dnd: 16.0.1(@types/node@20.14.6)(@types/react@18.3.3)(react@18.3.1)
-      react-dnd-html5-backend: 16.0.1
-      react-dnd-scrollzone-patch-react-17: 1.0.2(react-dnd@16.0.1(@types/react@18.3.3)(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react-dnd-scrollzone-patch-react-17: 1.0.2(react-dnd@16.0.1(@types/node@20.14.6)(@types/react@18.3.3)(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react-dom: 18.3.1(react@18.3.1)
       react-lifecycles-compat: 3.0.4
       react-virtualized: 9.22.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -26238,6 +26185,19 @@ snapshots:
 
   standard-as-callback@2.1.0: {}
 
+  start-server-and-test@2.0.4:
+    dependencies:
+      arg: 5.0.2
+      bluebird: 3.7.2
+      check-more-types: 2.24.0
+      debug: 4.3.5(supports-color@9.4.0)
+      execa: 5.1.1
+      lazy-ass: 1.6.0
+      ps-tree: 1.2.0
+      wait-on: 7.2.0(debug@4.3.5)
+    transitivePeerDependencies:
+      - supports-color
+
   state-local@1.0.7: {}
 
   statuses@2.0.1: {}
@@ -26660,7 +26620,6 @@ snapshots:
       typescript: 5.5.3
       v8-compile-cache-lib: 3.0.1
       yn: 3.1.1
-    optional: true
 
   tsc-alias@1.8.10:
     dependencies:
@@ -27206,6 +27165,16 @@ snapshots:
       acorn: 8.11.3
       acorn-walk: 8.3.2
 
+  wait-on@7.2.0(debug@4.3.5):
+    dependencies:
+      axios: 1.7.2(debug@4.3.5)
+      joi: 17.13.3
+      lodash: 4.17.21
+      minimist: 1.2.8
+      rxjs: 7.8.1
+    transitivePeerDependencies:
+      - debug
+
   wait-port@1.1.0:
     dependencies:
       chalk: 4.1.2
@@ -27557,3 +27526,8 @@ snapshots:
       webpod: 0.0.2
       which: 3.0.1
       yaml: 2.4.5
+
+  zx@8.1.4:
+    optionalDependencies:
+      '@types/fs-extra': 11.0.4
+      '@types/node': 20.14.6

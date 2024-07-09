@@ -207,12 +207,13 @@ function TemplatesProjects({ list }: { list?: ProjectWithUserInfo[] }) {
                 </MenuItem>
               </MenuList>
             }>
-            <Button startIcon={<Box component={Icon} icon={PlusIcon} />} variant="contained">
+            <Button data-testid="newProject" startIcon={<Box component={Icon} icon={PlusIcon} />} variant="contained">
               {t('newObject', { object: t('project') })}
             </Button>
           </ButtonPopper>
         ) : (
           <Button
+            data-testid="newProject"
             startIcon={<Box component={Icon} icon={PlusIcon} />}
             variant="contained"
             onClick={() => {
@@ -548,7 +549,7 @@ function ProjectList({
 
   return (
     <>
-      <ProjectListContainer gap={1.5}>
+      <ProjectListContainer data-testid={`projects-${section}`} gap={1.5}>
         {list.map((item) => {
           const menuOpen = menuAnchor?.section === section && menuAnchor?.id === item.id;
 
@@ -648,6 +649,7 @@ function ProjectList({
                     try {
                       setLoading(item);
                       const project = await createProject({
+                        blockletDid: item.blockletDid,
                         withDuplicateFrom: true,
                         templateId: item.id!,
                         name: item.name,

@@ -36,3 +36,11 @@ blocklets/ai-studio/.env.development
 
 *.tsbuildinfo
 **/public/*.es.mjs
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache
+
+.blocklet-server/
+.blocklet-tests/
+.playwright/
