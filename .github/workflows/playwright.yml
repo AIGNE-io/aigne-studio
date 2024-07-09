@@ -34,9 +34,9 @@ jobs:
         run: pnpm install
 
       - name: Bundle blocklets
-        run:
-          - pnpm build:libs
-          - pnpm -F ai-studio -F ai-runtime bundle
+        run: |
+          pnpm build:libs
+          pnpm -F ai-studio -F ai-runtime bundle
 
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
