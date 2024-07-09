@@ -63,12 +63,15 @@ export async function runAgent({ user, responseType, ...input }: RunAgentInputSe
     data: input,
     headers: {
       ...userHeaders(user),
-      accept: 'text/event-stream',
     },
   };
 
   if (responseType === 'stream') {
-    const res = await call({ ...request, responseType: 'stream' });
+    const res = await call({
+      ...request,
+      headers: { ...request.headers, accept: 'text/event-stream' },
+      responseType: 'stream',
+    });
 
     const stream = readableToWeb(res.data)
       .pipeThrough(new TextDecoderStream())

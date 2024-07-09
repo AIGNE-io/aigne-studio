@@ -1,250 +1,289 @@
-// TODO: refactor all blocklet api related code to unified api agent
-
-import { call } from '@blocklet/sdk';
-import { startCase, toLower } from 'lodash';
+import { Base64 } from 'js-base64';
 
 import { AIGNE_RUNTIME_COMPONENT_DID } from '../../constants';
-import { Assistant, AssistantResponseType, ExecutionPhase, Parameter, Tool, User, Variable } from '../../types';
-import { RunAssistantCallback } from '../assistant/type';
-import { renderMessage } from '../utils/render-message';
-import { nextTaskId } from '../utils/task-id';
 
-const getUserHeader = (user: any) => {
-  return {
-    'x-user-did': user?.did,
-    'x-user-role': user?.role,
-    'x-user-provider': user?.provider,
-    'x-user-fullname': user?.fullName && encodeURIComponent(user?.fullName),
-    'x-user-wallet-os': user?.walletOS,
-  };
+export const HISTORY_DID = Base64.encodeURI(['/api/messages', 'get'].join('/'));
+export const KNOWLEDGE_DID = Base64.encodeURI(['/api/datasets/{datasetId}/search', 'get'].join('/'));
+export const MEMORIED_DID = Base64.encodeURI(['/api/memories/variable-by-query', 'get'].join('/'));
+
+// 内置的 OpenAPI 接口
+export const buildInOpenAPI = {
+  '/ai-studio/api/messages': {
+    get: {
+      summary: 'Get history messages',
+      'x-summary-zh': '获取历史信息',
+      description: 'Retrieve messages based on sessionId, last N messages, or keyword',
+      'x-description-zh': '根据 sessionId、最后N条消息或关键字检索历史消息',
+      tags: ['AIGNE Studio'],
+      parameters: [
+        {
+          in: 'query',
+          name: 'sessionId',
+          schema: {
+            type: 'string',
+          },
+          description: 'Session Id',
+        },
+        {
+          in: 'query',
+          name: 'userId',
+          schema: {
+            type: 'string',
+          },
+          description: 'User Id',
+        },
+        {
+          in: 'query',
+          name: 'limit',
+          schema: {
+            type: 'integer',
+          },
+          description: 'Number of last messages to retrieve',
+          'x-description-zh': '检索的消息的数目',
+        },
+        {
+          in: 'query',
+          name: 'keyword',
+          schema: {
+            type: 'string',
+          },
+          description: 'Keyword to search in messages',
+          'x-description-zh': '在消息中搜索的关键字',
+        },
+      ],
+      responses: {
+        '200': {
+          description: 'A list of history messages',
+          'x-description-zh': '检索历史消息列表',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  messages: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        role: {
+                          type: 'string',
+                        },
+                        content: {
+                          type: 'string',
+                        },
+                        agentId: {
+                          type: 'string',
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      'x-id': HISTORY_DID,
+      'x-did': AIGNE_RUNTIME_COMPONENT_DID,
+      'x-path': '/api/messages',
+      'x-method': 'get',
+    },
+  },
+  '/ai-runtime/api/datasets/{datasetId}/search': {
+    get: {
+      summary: 'Search the knowledge',
+      'x-summary-zh': '搜索知识库信息',
+      parameters: [
+        {
+          name: 'datasetId',
+          in: 'path',
+          required: true,
+          schema: {
+            type: 'string',
+          },
+          description: 'The ID of the dataset to search',
+        },
+        {
+          name: 'blockletDid',
+          in: 'query',
+          required: false,
+          schema: {
+            type: 'string',
+          },
+          description: 'The Blocklet DID to search for',
+        },
+        {
+          name: 'searchAll',
+          in: 'query',
+          required: false,
+          schema: {
+            type: 'boolean',
+          },
+          description: 'Whether to search all contents',
+        },
+        {
+          name: 'message',
+          in: 'query',
+          required: false,
+          schema: {
+            type: 'string',
+          },
+          description: 'The search message',
+        },
+        {
+          name: 'n',
+          in: 'query',
+          required: false,
+          schema: {
+            type: 'integer',
+            default: 10,
+          },
+          description: 'The number of results to return',
+        },
+      ],
+      responses: {
+        '200': {
+          description: 'A list of search results',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  docs: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        title: {
+                          type: 'string',
+                          description: 'The title of the document',
+                        },
+                        content: {
+                          type: 'string',
+                          description: 'The content of the document',
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      'x-id': KNOWLEDGE_DID,
+      'x-did': AIGNE_RUNTIME_COMPONENT_DID,
+      'x-path': '/api/datasets/{datasetId}/search',
+      'x-method': 'get',
+    },
+  },
+  '/ai-runtime/api/memories/variable-by-query': {
+    get: {
+      summary: 'Get memory variables by query',
+      'x-summary-zh': '知识库信息',
+      parameters: [
+        {
+          name: 'key',
+          in: 'query',
+          required: false,
+          schema: {
+            type: 'string',
+          },
+          description: 'The key of the variable',
+        },
+        {
+          name: 'projectId',
+          in: 'query',
+          required: false,
+          schema: {
+            type: 'string',
+          },
+          description: 'The ID of the project',
+        },
+        {
+          name: 'scope',
+          in: 'query',
+          required: false,
+          schema: {
+            type: 'string',
+            enum: ['session', 'user', 'global'],
+          },
+          description: 'The scope of the variable',
+        },
+        {
+          name: 'sessionId',
+          in: 'query',
+          required: false,
+          schema: {
+            type: 'string',
+          },
+          description: 'The ID of the session',
+        },
+        {
+          name: 'userId',
+          in: 'query',
+          required: false,
+          schema: {
+            type: 'string',
+          },
+          description: 'The ID of the user',
+        },
+      ],
+      responses: {
+        '200': {
+          description: 'A list of memory variables',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  datastores: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        id: {
+                          type: 'string',
+                          description: 'The ID of the memory entry',
+                        },
+                        key: {
+                          type: 'string',
+                          description: 'The key of the memory entry',
+                        },
+                        data: {
+                          type: 'string',
+                          description: 'The value of the memory entry',
+                        },
+                        userId: {
+                          type: 'string',
+                          description: 'The ID of the user',
+                        },
+                        projectId: {
+                          type: 'string',
+                          description: 'The ID of the project',
+                        },
+                        sessionId: {
+                          type: 'string',
+                          description: 'The ID of the session',
+                        },
+                        scope: {
+                          type: 'string',
+                          description: 'The scope of the memory entry',
+                          enum: ['session', 'user', 'global'],
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      'x-id': MEMORIED_DID,
+      'x-did': AIGNE_RUNTIME_COMPONENT_DID,
+      'x-path': '/api/memories/variable-by-query',
+      'x-method': 'get',
+    },
+  },
 };
-
-const defaultScope = 'session';
-
-export const runRequestStorage = async ({
-  assistant,
-  parentTaskId,
-  user,
-  callback,
-  datastoreParameter,
-  ids,
-  memoryVariables,
-}: {
-  assistant: Assistant;
-  parentTaskId?: string;
-  user?: User;
-  callback?: RunAssistantCallback;
-  datastoreParameter: Parameter;
-  ids: { [key: string]: string | undefined };
-  memoryVariables: Variable[];
-}) => {
-  if (
-    datastoreParameter.type === 'source' &&
-    datastoreParameter.key &&
-    datastoreParameter.source?.variableFrom === 'datastore' &&
-    datastoreParameter.source.variable
-  ) {
-    const currentTaskId = nextTaskId();
-
-    const params = {
-      ...ids,
-      scope: datastoreParameter.source.variable?.scope || defaultScope,
-      key: toLower(datastoreParameter.source.variable?.key) || toLower(datastoreParameter.key),
-    };
-
-    const callbackParams = {
-      taskId: currentTaskId,
-      parentTaskId,
-      assistantId: assistant.id,
-      assistantName: startCase(
-        toLower(`From ${datastoreParameter.source.variable.scope || defaultScope} ${datastoreParameter.key} Storage `)
-      ),
-    };
-
-    callback?.({
-      type: AssistantResponseType.EXECUTE,
-      ...callbackParams,
-      execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
-    });
-
-    callback?.({
-      type: AssistantResponseType.INPUT,
-      ...callbackParams,
-      inputParameters: params,
-    });
-
-    const { data } = await call({
-      name: AIGNE_RUNTIME_COMPONENT_DID,
-      path: '/api/memories/variable-by-query',
-      method: 'GET',
-      headers: getUserHeader(user),
-      params,
-    });
-    const list = (data || []).map((x: any) => x?.data).filter((x: any) => x);
-    const storageVariable = memoryVariables.find(
-      (x) => toLower(x.key || '') === toLower(params.key || '') && x.scope === params.scope
-    );
-    let result = (list?.length > 0 ? list : [storageVariable?.defaultValue]).filter((x: any) => x);
-    if (storageVariable?.reset) {
-      result = (result?.length > 1 ? result : result[0]) ?? '';
-    }
-
-    callback?.({
-      type: AssistantResponseType.CHUNK,
-      ...callbackParams,
-      delta: { content: result ? JSON.stringify(result) : 'undefined' },
-    });
-
-    callback?.({
-      type: AssistantResponseType.EXECUTE,
-      ...callbackParams,
-      execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
-    });
-
-    return result;
-  }
-
-  return null;
-};
-
-export const runRequestHistory = async ({
-  assistant,
-  parentTaskId,
-  user,
-  callback,
-  params,
-}: {
-  assistant: Assistant;
-  parentTaskId?: string;
-  user?: User;
-  callback?: RunAssistantCallback;
-  params: {
-    sessionId?: string;
-    userId?: string;
-    limit: number;
-    keyword: string;
-  };
-}) => {
-  const currentTaskId = nextTaskId();
-
-  const callbackParams = {
-    taskId: currentTaskId,
-    parentTaskId,
-    assistantId: assistant.id,
-    assistantName: startCase(toLower('The History DATA')),
-  };
-
-  callback?.({
-    type: AssistantResponseType.EXECUTE,
-    ...callbackParams,
-    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
-  });
-
-  callback?.({
-    type: AssistantResponseType.INPUT,
-    ...callbackParams,
-    inputParameters: params,
-  });
-
-  const { data: result } = await call<{ role: string; content: string; agentId?: string }[]>({
-    name: AIGNE_RUNTIME_COMPONENT_DID,
-    path: '/api/messages',
-    method: 'GET',
-    headers: getUserHeader(user),
-    params,
-  });
-
-  callback?.({
-    type: AssistantResponseType.CHUNK,
-    ...callbackParams,
-    delta: { content: result ? JSON.stringify(result) : 'undefined' },
-  });
-
-  callback?.({
-    type: AssistantResponseType.EXECUTE,
-    ...callbackParams,
-    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
-  });
-
-  return result;
-};
-
-export async function runKnowledgeTool({
-  blockletDid,
-  tool,
-  taskId,
-  assistant,
-  parameters,
-  parentTaskId,
-  callback,
-  user,
-}: {
-  blockletDid?: string;
-  tool: Tool;
-  taskId: string;
-  assistant: Assistant;
-  parameters?: { [key: string]: any };
-  parentTaskId?: string;
-  callback?: RunAssistantCallback;
-  user?: User;
-}) {
-  const params = Object.fromEntries(
-    await Promise.all(
-      [{ name: 'message', description: 'Search the content of the knowledge' }].map(async (item) => {
-        const template = String(tool.parameters?.[item.name!] || '').trim();
-        return [item.name, template ? await renderMessage(template, parameters) : parameters?.[item.name]];
-      }) ?? []
-    )
-  );
-  params.searchAll = (tool?.parameters || {}).searchAll;
-
-  const { data: knowledge } = await call({
-    name: AIGNE_RUNTIME_COMPONENT_DID,
-    path: `/api/datasets/${tool.id}`,
-    params: { blockletDid },
-    method: 'GET',
-  });
-
-  if (!knowledge) throw new Error(`No such knowledge ${tool.id}`);
-
-  const callbackParams = {
-    taskId,
-    parentTaskId,
-    assistantId: assistant.id,
-    assistantName: startCase(toLower(`From ${knowledge.name} Knowledge`)),
-  };
-
-  callback?.({
-    type: AssistantResponseType.EXECUTE,
-    ...callbackParams,
-    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
-  });
-
-  callback?.({
-    type: AssistantResponseType.INPUT,
-    ...callbackParams,
-    inputParameters: params,
-  });
-
-  const { data } = await call({
-    name: AIGNE_RUNTIME_COMPONENT_DID,
-    path: `/api/datasets/${tool.id}/search`,
-    method: 'GET',
-    params: { ...params, blockletDid },
-    headers: getUserHeader(user),
-  });
-
-  callback?.({
-    type: AssistantResponseType.CHUNK,
-    ...callbackParams,
-    delta: { content: JSON.stringify(data?.docs) },
-  });
-
-  callback?.({
-    type: AssistantResponseType.EXECUTE,
-    ...callbackParams,
-    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
-  });
-
-  return JSON.stringify(data?.docs || []);
-}

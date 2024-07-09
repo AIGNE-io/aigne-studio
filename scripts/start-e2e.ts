@@ -1,4 +1,4 @@
-#!/usr/bin/env -S node -r ts-node/register --experimental-require-module
+#!/usr/bin/env -S node -r ts-node/register
 
 import {
   addBlocklet,

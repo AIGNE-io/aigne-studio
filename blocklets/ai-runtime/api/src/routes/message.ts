@@ -69,7 +69,7 @@ export function messageRoutes(router: Router) {
     const query = await searchOptionsSchema.validateAsync(req.query, { stripUnknown: true });
 
     if (!query.sessionId || !query.userId) {
-      res.json([]);
+      res.json({ messages: [] });
       return;
     }
 
@@ -129,7 +129,7 @@ export function messageRoutes(router: Router) {
       .slice(0, query.limit)
       .flat();
 
-    res.json(messages);
+    res.json({ messages });
   });
 
   router.get('/messages/:messageId', user(), async (req, res) => {

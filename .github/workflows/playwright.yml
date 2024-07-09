@@ -27,11 +27,13 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: pnpm
 
       - name: Setup blocklet
-        run: pnpm install -g @blocklet/cli@beta
+        run: |
+          apt update -y && apt install -y nginx nginx-extras
+          pnpm install -g @blocklet/cli@beta
 
       - name: Install dependencies
         run: pnpm install
