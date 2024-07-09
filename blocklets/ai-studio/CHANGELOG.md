@@ -1,3 +1,7 @@
+## 0.3.22 (2024-7-9)
+
+- chore: add server side aigne apis
+
 ## 0.3.21 (2024-7-6)
 
 - chore: agent call other agent
