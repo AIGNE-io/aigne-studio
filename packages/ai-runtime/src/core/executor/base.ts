@@ -20,7 +20,7 @@ import {
 import { CallAI, CallAIImage, GetAgent, GetAgentResult, RunAssistantCallback } from '../assistant/type';
 import { renderMessage } from '../utils/render-message';
 import { nextTaskId } from '../utils/task-id';
-import { runKnowledgeTool, runRequestHistory, runRequestStorage } from './blocklet';
+import { HISTORY_DID, KNOWLEDGE_DID, MEMORIED_DID, buildInOpenAPI } from './blocklet';
 
 type OpenAPIResponseSchema = {
   type: string;
@@ -41,7 +41,8 @@ function convertSchemaToVariableType(schema: OpenAPIResponseSchema): any {
         type: 'object',
         properties: schema.properties
           ? Object.entries(schema.properties).map(([key, value]) => ({
-              key,
+              id: key,
+              name: key,
               ...convertSchemaToVariableType(value),
             }))
           : [],
@@ -161,7 +162,7 @@ export abstract class AgentExecutorBase {
       throw new Error('Failed to get agent result');
     }
 
-    const openApis = flattenApiStructure(result.data);
+    const openApis = [...flattenApiStructure(result.data), ...flattenApiStructure({ paths: buildInOpenAPI } as any)];
     const agents = openApis.map((i) => {
       const properties = i?.responses?.['200']?.content?.['application/json']?.schema?.properties || {};
 
@@ -311,53 +312,98 @@ export abstract class AgentExecutorBase {
 
           variables[parameter.key] = result ?? parameter.defaultValue;
         } else if (parameter.source?.variableFrom === 'datastore') {
+          const currentTaskId = nextTaskId();
+          const inputs = {
+            userId,
+            projectId: this.context.entryProjectId,
+            sessionId: this.context.sessionId,
+            agentId: agent.id,
+            scope: parameter.source.variable?.scope || 'session',
+            key: toLower(parameter.source.variable?.key) || toLower(parameter.key),
+          };
+
           // eslint-disable-next-line no-await-in-loop
-          const result = await runRequestStorage({
-            assistant: agent,
+          const blocklet = await this.getBlockletAgent(MEMORIED_DID, agent);
+          if (!blocklet.agent) {
+            throw new Error('Blocklet agent api not found.');
+          }
+
+          // eslint-disable-next-line no-await-in-loop
+          const data = await this.context.executor(this.context).execute(blocklet.agent, {
+            inputs,
+            taskId: currentTaskId,
             parentTaskId: taskId,
-            user: this.context.user,
-            callback: this.context.callback,
-            datastoreParameter: parameter,
-            ids: {
-              userId,
-              projectId: this.context.entryProjectId,
-              sessionId: this.context.sessionId,
-              agentId: agent.id,
-            },
-            memoryVariables: await this.context.getMemoryVariables(agent.identity),
           });
+
+          // eslint-disable-next-line no-await-in-loop
+          const memoryVariables = await this.context.getMemoryVariables(agent.identity);
+          const list = (data.datastores || []).map((x: any) => x?.data).filter((x: any) => x);
+          const storageVariable = memoryVariables.find(
+            (x) => toLower(x.key || '') === toLower(inputs.key || '') && x.scope === inputs.scope
+          );
+          let result = (list?.length > 0 ? list : [storageVariable?.defaultValue]).filter((x: any) => x);
+          if (storageVariable?.reset) {
+            result = (result?.length > 1 ? result : result[0]) ?? '';
+          }
 
           variables[parameter.key] = result;
         } else if (parameter.source?.variableFrom === 'knowledge' && parameter.source.knowledge) {
+          const tool = parameter.source.knowledge;
+          const blockletDid = parameter.source.knowledge.blockletDid || agent.identity.blockletDid;
           const currentTaskId = nextTaskId();
+
           // eslint-disable-next-line no-await-in-loop
-          const result = await runKnowledgeTool({
-            blockletDid: parameter.source.knowledge.blockletDid || agent.identity.blockletDid,
-            tool: parameter.source.knowledge,
-            taskId: currentTaskId,
-            assistant: agent,
-            parameters: inputs,
-            parentTaskId: taskId,
-            callback: cb(currentTaskId),
-            user: this.context.user,
+          const { data: knowledge } = await call({
+            name: AIGNE_RUNTIME_COMPONENT_DID,
+            path: `/api/datasets/${tool.id}`,
+            params: { blockletDid },
+            method: 'GET',
           });
 
-          variables[parameter.key] = result ?? parameter.defaultValue;
+          if (!knowledge) throw new Error(`No such knowledge ${tool.id}`);
+
+          // eslint-disable-next-line no-await-in-loop
+          const blocklet = await this.getBlockletAgent(KNOWLEDGE_DID, agent);
+          if (!blocklet.agent) {
+            throw new Error('Blocklet agent api not found.');
+          }
+
+          // eslint-disable-next-line no-await-in-loop
+          const data = await this.context
+            .executor({ ...this.context, callback: cb(currentTaskId) } as ExecutorContext)
+            .execute(blocklet.agent, {
+              inputs: { ...inputs, blockletDid, datasetId: tool.id },
+              parameters: tool?.parameters,
+              taskId: currentTaskId,
+              parentTaskId: taskId,
+            });
+
+          variables[parameter.key] = JSON.stringify(data?.docs || []) ?? parameter.defaultValue;
         } else if (parameter.source?.variableFrom === 'history' && parameter.source.chatHistory) {
-          const result = await runRequestHistory({
-            assistant: agent,
-            parentTaskId: taskId,
-            user: this.context.user,
-            callback: this.context.callback,
-            params: {
+          const currentTaskId = nextTaskId();
+          const chat = parameter.source.chatHistory;
+
+          // eslint-disable-next-line no-await-in-loop
+          const blocklet = await this.getBlockletAgent(HISTORY_DID, agent);
+          if (!blocklet.agent) {
+            throw new Error('Blocklet agent api not found.');
+          }
+
+          // eslint-disable-next-line no-await-in-loop
+          const result = await this.context.executor(this.context).execute(blocklet.agent, {
+            inputs: {
               sessionId: this.context.sessionId,
               userId: this.context.user.did,
-              limit: parameter.source.chatHistory.limit || 50,
-              keyword: await renderMessage(parameter.source.chatHistory.keyword || '', variables),
+              limit: chat.limit || 50,
+              keyword: await renderMessage(chat.keyword || '', variables),
             },
+            taskId: currentTaskId,
+            parentTaskId: taskId,
           });
 
-          const memories = Array.isArray(result) ? result : [];
+          const memories: { role: string; content: string; agentId?: string }[] = Array.isArray(result?.messages)
+            ? result.messages
+            : [];
           const agentIds = new Set(memories.map((i) => i.agentId).filter((i): i is NonNullable<typeof i> => !!i));
           const assistantNameMap = Object.fromEntries(
             (
@@ -388,6 +434,8 @@ export abstract class AgentExecutorBase {
           }));
         } else if (parameter.source?.variableFrom === 'blockletAPI' && parameter.source.api) {
           const currentTaskId = nextTaskId();
+
+          // eslint-disable-next-line no-await-in-loop
           const blocklet = await this.getBlockletAgent(parameter.source.api.id, agent);
           if (!blocklet.agent) {
             throw new Error('Blocklet agent api not found.');

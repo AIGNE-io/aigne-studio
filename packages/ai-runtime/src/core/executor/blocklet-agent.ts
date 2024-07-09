@@ -19,7 +19,7 @@ export class BlockletAgentExecutor extends AgentExecutorBase {
       throw new Error('Blocklet agent api not found.');
     }
 
-    const requestData = Object.fromEntries(
+    const inputParameters = Object.fromEntries(
       await Promise.all(
         (blocklet.agent.parameters || []).map(async (item) => {
           if (typeof parameters?.[item.key!] === 'string') {
@@ -55,10 +55,10 @@ export class BlockletAgentExecutor extends AgentExecutorBase {
     this.context.callback?.({
       type: AssistantResponseType.INPUT,
       ...callbackParams,
-      inputParameters: requestData,
+      inputParameters,
     });
 
-    const response = await getRequest(blocklet.api, requestData, { user: this.context.user, params });
+    const response = await getRequest(blocklet.api, inputParameters, { user: this.context.user, params });
 
     this.context.callback?.({
       type: AssistantResponseType.CHUNK,
