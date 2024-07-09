@@ -15,11 +15,4 @@ router.post(
 
 router.post('/image/generations', ensureComponentCallOrPromptsEditor(), proxyToAIKit('/api/v1/image/generations'));
 
-router.get('/todo', (_req, res) => {
-  res.json({
-    name: 'ai',
-    age: '100',
-  });
-});
-
 export default router;

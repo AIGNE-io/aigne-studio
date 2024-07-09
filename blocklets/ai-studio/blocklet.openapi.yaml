@@ -44,25 +44,3 @@ paths:
                         updatedAt:
                           type: string
                           format: date-time
-  /api/ai/todo:
-    get:
-      summary: 未命名接口
-      deprecated: false
-      description: ''
-      tags: []
-      parameters: []
-      responses:
-        '200':
-          description: 成功
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  name:
-                    type: string
-                  age:
-                    type: string
-                required:
-                  - name
-                  - age
