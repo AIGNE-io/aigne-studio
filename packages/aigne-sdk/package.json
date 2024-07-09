@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/aigne-sdk",
-  "version": "0.3.22",
+  "version": "0.3.23",
   "description": "AIGNE SDK used to interact with AIGNE services",
   "publishConfig": {
     "access": "public"
@@ -80,7 +80,7 @@
     "@blocklet/ai-kit": "^0.1.43",
     "@blocklet/ai-runtime": "workspace:^",
     "@blocklet/js-sdk": "^1.16.28",
-    "@blocklet/pages-kit": "^0.2.369",
+    "@blocklet/pages-kit": "^0.2.370",
     "@blocklet/sdk": "^1.16.28",
     "@microsoft/fetch-event-source": "^2.0.1",
     "ahooks": "^3.8.0",

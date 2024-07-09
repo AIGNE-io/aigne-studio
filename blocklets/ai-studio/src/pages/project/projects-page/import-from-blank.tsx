@@ -68,6 +68,7 @@ export default function ImportFromBlank({ onClose, item }: { onClose: () => void
   return (
     <>
       <Dialog
+        data-testid="newProjectDialog"
         open
         disableEnforceFocus
         maxWidth="sm"
@@ -88,6 +89,7 @@ export default function ImportFromBlank({ onClose, item }: { onClose: () => void
             <Box>
               <Typography variant="subtitle2">{t('name')}</Typography>
               <TextField
+                data-testid="projectNameField"
                 placeholder={t('newProjectNamePlaceholder')}
                 hiddenLabel
                 autoFocus

@@ -7,7 +7,6 @@ import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
 import { GetAgentResult } from '@blocklet/ai-runtime/core';
 import { Agent } from '@blocklet/aigne-sdk/api/agent';
 import { getComponentMountPoint } from '@blocklet/sdk';
-import config from '@blocklet/sdk/lib/config';
 import { Router } from 'express';
 import { exists } from 'fs-extra';
 import Joi from 'joi';
@@ -111,15 +110,7 @@ router.get('/:aid/logo', async (req, res) => {
     return;
   }
 
-  res.redirect(
-    joinURL(
-      config.env.appUrl,
-      getComponentMountPoint(AIGNE_STUDIO_COMPONENT_DID),
-      '/api/projects/',
-      projectId,
-      '/logo.png'
-    )
-  );
+  res.redirect(joinURL(getComponentMountPoint(AIGNE_STUDIO_COMPONENT_DID), '/api/projects/', projectId, '/logo.png'));
 });
 
 router.get('/:aid/assets/:filename', async (req, res) => {
