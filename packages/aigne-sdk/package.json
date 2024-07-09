@@ -27,6 +27,10 @@
     "./components/*": {
       "import": "./lib/esm/components/*/index.js",
       "require": "./lib/cjs/components/*/index.js"
+    },
+    "./server/*": {
+      "import": "./lib/esm/server/*.js",
+      "require": "./lib/cjs/server/*.js"
     }
   },
   "typesVersions": {
@@ -42,6 +46,9 @@
       ],
       "components/*": [
         "./lib/types/components/*/index.d.ts"
+      ],
+      "server/*": [
+        "./lib/types/server/*/index.d.ts"
       ]
     }
   },
@@ -74,6 +81,7 @@
     "@blocklet/ai-runtime": "workspace:^",
     "@blocklet/js-sdk": "^1.16.28",
     "@blocklet/pages-kit": "^0.2.367",
+    "@blocklet/sdk": "^1.16.28",
     "@microsoft/fetch-event-source": "^2.0.1",
     "ahooks": "^3.8.0",
     "axios": "^1.7.2",
