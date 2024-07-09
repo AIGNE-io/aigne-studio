@@ -27,7 +27,6 @@ files:
   - api/dist/migration
   - api/dist/store/migrate.js
   - api/dist/store/migrations/*.js
-  - dataset.yml
 interfaces:
   - type: web
     name: publicUrl
