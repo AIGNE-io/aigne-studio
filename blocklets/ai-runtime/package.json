@@ -37,7 +37,6 @@
     "@blocklet/ai-kit": "^0.1.43",
     "@blocklet/ai-runtime": "workspace:^",
     "@blocklet/aigne-sdk": "workspace:^",
-    "@blocklet/components-sdk": "workspace:^",
     "@blocklet/dataset-sdk": "workspace:^",
     "@blocklet/discuss-kit": "^1.6.264",
     "@blocklet/js-sdk": "^1.16.28",

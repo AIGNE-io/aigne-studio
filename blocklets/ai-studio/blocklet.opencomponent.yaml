@@ -1,0 +1,17 @@
+opencomponent: 0.1.0
+info:
+  title: AI Stuido Component
+  description: ''
+  version: 1.0.0
+tags: []
+paths:
+  /item.es.mjs:
+    summary: TODO ITEM
+    description: TODO ITEM
+    x-tags:
+      - aigne-view
+  /list.es.mjs:
+    summary: TODO LIST
+    description: TODO LIST
+    x-tags:
+      - aigne-view

@@ -1,9 +1,8 @@
-import { REMOTE_REACT_COMPONENTS } from '@blocklet/components-sdk/const';
-import { RemoteComponent } from '@blocklet/components-sdk/type';
 import { joinURL } from 'ufo';
 
 import axios from './api';
 import { AIGNE_RUNTIME_MOUNT_POINT, PAGES_KIT_MOUNT_POINT } from './constants';
+import { RemoteComponent } from './type';
 
 export interface Component {
   id: string;
@@ -48,5 +47,16 @@ export async function getComponent({
 }
 
 export async function getDynamicReactComponents(): Promise<RemoteComponent[]> {
-  return axios.get(REMOTE_REACT_COMPONENTS, { baseURL: AIGNE_RUNTIME_MOUNT_POINT }).then((res) => res.data);
+  return axios.get('/.well-known/service/opencomponent.json', { baseURL: AIGNE_RUNTIME_MOUNT_POINT }).then((res) =>
+    Object.entries(res.data?.paths || {}).map(([url, val]: [string, any]) => {
+      return {
+        url,
+        name: val?.summary,
+        description: val?.description,
+        tags: val['x-tags'],
+        parameter: {},
+        did: val['x-did'],
+      };
+    })
+  );
 }

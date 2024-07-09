@@ -2,8 +2,6 @@ import { Component, getComponents } from '@app/libs/components';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { OutputVariableYjs, RuntimeOutputAppearance, RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { REMOTE_REACT_COMPONENT } from '@blocklet/components-sdk/const';
-import { RemoteComponent } from '@blocklet/components-sdk/type';
 import { Icon } from '@iconify-icon/react';
 import {
   Autocomplete,
@@ -22,6 +20,8 @@ import { useEffect, useMemo } from 'react';
 import { useAsync } from 'react-use';
 
 import { getDynamicReactComponents } from '../../../libs/components';
+import { REMOTE_REACT_COMPONENT } from '../../../libs/constants';
+import { RemoteComponent } from '../../../libs/type';
 import ComponentSettings from './ComponentSettings';
 
 const ignoreAppearanceSettingsOutputs = new Set<string>([RuntimeOutputVariable.children]);

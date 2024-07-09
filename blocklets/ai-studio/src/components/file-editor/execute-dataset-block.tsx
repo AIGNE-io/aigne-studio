@@ -2,7 +2,7 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { AssistantYjs, ExecuteBlock, ExecuteBlockYjs, Role, Tool, isAssistant } from '@blocklet/ai-runtime/types';
 import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
-import getDatasetTextByI18n from '@blocklet/dataset-sdk/util/get-dataset-i18n-text';
+import getOpenApiTextFromI18n from '@blocklet/dataset-sdk/util/get-open-api-i18n-text';
 import { Icon } from '@iconify-icon/react';
 import PlusIcon from '@iconify-icons/tabler/plus';
 import TrashIcon from '@iconify-icons/tabler/trash';
@@ -146,7 +146,7 @@ function ToolItemView({
       <Stack px={1.5} py={1} gap={1.25}>
         <Box className="between">
           <Typography noWrap variant="subtitle4">
-            {getDatasetTextByI18n(target || {}, 'summary', locale)}
+            {getOpenApiTextFromI18n(target || {}, 'summary', locale)}
           </Typography>
 
           <>
@@ -516,8 +516,8 @@ function ToolItemView({
           return (
             <Stack key={parameter.name}>
               <Typography variant="subtitle2" mb={0.5}>
-                {getDatasetTextByI18n(parameter, 'description', locale) ||
-                  getDatasetTextByI18n(parameter, 'name', locale)}
+                {getOpenApiTextFromI18n(parameter, 'description', locale) ||
+                  getOpenApiTextFromI18n(parameter, 'name', locale)}
               </Typography>
 
               {render()}

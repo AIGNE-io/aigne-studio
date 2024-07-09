@@ -20,8 +20,6 @@
       "@blocklet/aigne-sdk/*": ["../../packages/aigne-sdk/src/*"],
       "@blocklet/dataset-sdk": ["../../packages/dataset-sdk/src"],
       "@blocklet/dataset-sdk/*": ["../../packages/dataset-sdk/src/*"],
-      "@blocklet/components-sdk": ["../../packages/components-sdk/src"],
-      "@blocklet/components-sdk/*": ["../../packages/components-sdk/src/*"]
     }
   }
 }

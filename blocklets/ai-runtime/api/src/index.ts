@@ -3,7 +3,6 @@ import 'express-async-errors';
 import path from 'path';
 
 import { AssistantResponseType } from '@blocklet/ai-runtime/types';
-import { getComponentsRouter } from '@blocklet/components-sdk';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv-flow';
@@ -33,8 +32,6 @@ app.use(cors());
 const router = express.Router();
 router.use('/api', routes);
 app.use(router);
-
-app.use('/', getComponentsRouter());
 
 if (!isDevelopment) {
   const staticDir = path.resolve(process.env.BLOCKLET_APP_DIR!, 'dist');
