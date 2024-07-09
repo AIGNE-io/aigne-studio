@@ -1,7 +1,7 @@
 {
   "name": "ai-studio",
   "private": true,
-  "version": "0.3.21",
+  "version": "0.3.22",
   "workspaces": [
     "blocklets/*",
     "packages/*"
@@ -84,9 +84,9 @@
     "@emotion/css": "^11.11.2",
     "@emotion/react": "^11.11.4",
     "@mui/base": "^5.0.0-beta.40",
-    "@mui/icons-material": "^5.15.21",
-    "@mui/lab": "^5.0.0-alpha.170",
-    "@mui/material": "^5.15.21",
+    "@mui/icons-material": "^5.16.0",
+    "@mui/lab": "^5.0.0-alpha.171",
+    "@mui/material": "^5.16.0",
     "@nedb/core": "^2.1.5",
     "@ocap/asset": "^1.18.126",
     "@ocap/mcrypto": "^1.18.126",
