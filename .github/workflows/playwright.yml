@@ -5,7 +5,7 @@ env:
 
 on:
   push:
-    branches: [main]
+    branches: [main, test-playwright]
   pull_request:
     branches: [main]
 
@@ -13,6 +13,8 @@ jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
+    container:
+      image: ubuntu:latest
 
     if: "! contains(toJSON(github.event.commits.*.message), '[skip ci]')"
 
