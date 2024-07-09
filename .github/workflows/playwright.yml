@@ -15,6 +15,9 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ubuntu:latest
+      ports:
+        - 9898:9898
+        - 9899:9899
 
     if: "! contains(toJSON(github.event.commits.*.message), '[skip ci]')"
 
