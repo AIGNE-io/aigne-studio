@@ -1,4 +1,4 @@
-import { getComponentWebEndpoint } from '@blocklet/sdk/lib/component';
+import envConfig from '@blocklet/sdk/lib/config';
 import { sign } from '@blocklet/sdk/lib/util/verify-sign';
 import axios from 'axios';
 
@@ -25,10 +25,9 @@ export const getRequest = (
     did = options?.user?.did || '';
   }
 
-  config.baseURL = pathItem?.name ? getComponentWebEndpoint(pathItem?.name) : '';
-
   return axios({
     ...config,
+    baseURL: envConfig.env.appUrl,
     headers: {
       ...(headers || {}),
       'x-component-sig': sign(body || {}),

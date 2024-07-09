@@ -3,6 +3,7 @@ import { AgentExecutor } from './agent';
 import { AIGCAgentExecutor } from './aigc';
 import { APIAgentExecutor } from './api';
 import { AgentExecutorBase, AgentExecutorOptions, ExecutorContext } from './base';
+import { BlockletAgentExecutor } from './blocklet-agent';
 import { CallAgentExecutor } from './call-agent';
 import { DecisionAgentExecutor } from './decision';
 import { LLMAgentExecutor } from './llm';
@@ -36,7 +37,7 @@ export class RuntimeExecutor extends AgentExecutorBase {
     }
 
     this.agent = agent;
-
+    // Tool => id
     switch (agent.type) {
       case 'agent': {
         return new AgentExecutor(this.context).execute(agent, options);
@@ -58,6 +59,9 @@ export class RuntimeExecutor extends AgentExecutorBase {
       }
       case 'callAgent': {
         return new CallAgentExecutor(this.context).execute(agent, options);
+      }
+      case 'blocklet': {
+        return new BlockletAgentExecutor(this.context).execute(agent, options);
       }
       default: {
         throw new Error(`Unsupported agent type: ${(agent as any)?.type}`);

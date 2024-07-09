@@ -8,12 +8,13 @@ import {
   isChatCompletionChunk,
   isChatCompletionUsage,
 } from '@blocklet/ai-kit/api/types/index';
-import { getBuildInDatasets } from '@blocklet/dataset-sdk';
 import { getAllParameters, getRequiredFields } from '@blocklet/dataset-sdk/request/util';
-import { DatasetObject } from '@blocklet/dataset-sdk/types';
+import flattenApiStructure from '@blocklet/dataset-sdk/util/flatten-open-api';
 import { call } from '@blocklet/sdk/lib/component';
-import { logger } from '@blocklet/sdk/lib/config';
+import config, { logger } from '@blocklet/sdk/lib/config';
+import axios from 'axios';
 import { isNil } from 'lodash';
+import { joinURL } from 'ufo';
 
 import { languages } from '../../constant/languages';
 import {
@@ -30,8 +31,7 @@ import { GetAgentResult, RunAssistantCallback, ToolCompletionDirective } from '.
 import { renderMessage } from '../utils/render-message';
 import { nextTaskId } from '../utils/task-id';
 import { toolCallsTransform } from '../utils/tool-calls-transform';
-import { AgentExecutorBase, AgentExecutorOptions } from './base';
-import { runAPITool } from './blocklet';
+import { AgentExecutorBase, AgentExecutorOptions, ExecutorContext } from './base';
 
 const md5 = (str: string) => crypto.createHash('md5').update(str).digest('hex');
 
@@ -46,7 +46,14 @@ export class DecisionAgentExecutor extends AgentExecutorBase {
 
     const message = await renderMessage(agent.prompt, inputs);
     const routes = agent?.routes || [];
-    const openApis = await getBuildInDatasets();
+
+    const openapiResult = await axios.get(joinURL(config.env.appUrl, '/.well-known/service/openapi.json'));
+
+    if (openapiResult.status !== 200) {
+      throw new Error('Failed to get agent result');
+    }
+
+    const openApis = flattenApiStructure(openapiResult.data);
 
     logger.info('start get tool function');
     const toolAssistants = (
@@ -402,18 +409,18 @@ export class DecisionAgentExecutor extends AgentExecutorBase {
           };
 
           if (tool.tool.from === 'blockletAPI') {
-            return runAPITool({
-              tool: tool.tool,
-              taskId: currentTaskId,
-              assistant: agent,
-              parameters: { ...inputs, ...requestData },
-              dataset: tool.toolAssistant as DatasetObject,
-              parentTaskId: taskId,
-              callback: cb,
-              user: this.context.user,
-              sessionId: this.context.sessionId,
-              projectId: this.context.entryProjectId,
-            });
+            const blockletAgent = await this.getBlockletAgent(tool.tool.id, agent);
+
+            const result = await this.context
+              .executor({ ...this.context, callback: cb } as ExecutorContext)
+              .execute(blockletAgent, {
+                inputs: { ...inputs, ...requestData },
+                parameters: tool.tool.parameters,
+                taskId: currentTaskId,
+                parentTaskId: taskId,
+              });
+
+            return result;
           }
 
           await Promise.all(

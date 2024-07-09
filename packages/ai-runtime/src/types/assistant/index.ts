@@ -28,7 +28,8 @@ export type Assistant =
   | ApiAssistant
   | FunctionAssistant
   | RouterAssistant
-  | CallAssistant;
+  | CallAssistant
+  | BlockletAgent;
 
 export type Role = 'system' | 'user' | 'assistant';
 
@@ -185,6 +186,10 @@ export type OutputVariable = VariableType & {
 
 export interface Agent extends AssistantBase {
   type: 'agent';
+}
+
+export interface BlockletAgent extends AssistantBase {
+  type: 'blocklet';
 }
 
 export interface RouterAssistant extends AssistantBase {

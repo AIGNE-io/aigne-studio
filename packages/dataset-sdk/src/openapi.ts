@@ -1,10 +1,8 @@
 import { readFile, writeFile } from 'fs/promises';
 
-// import SwaggerParser from "@apidevtools/swagger-parser";
 import { Router } from 'express';
 import Enforcer from 'openapi-enforcer';
 import swaggerJSDoc from 'swagger-jsdoc';
-// import swaggerUi from 'swagger-ui-express';
 import { parse, stringify } from 'yaml';
 
 import { COLLECTION, DOWNLOAD, OPENAPI_API } from './const';

@@ -54,10 +54,10 @@ import {
   createFilterOptions,
   styled,
 } from '@mui/material';
-import { cloneDeep, groupBy, pick, sortBy } from 'lodash';
+import { cloneDeep, pick, sortBy } from 'lodash';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { nanoid } from 'nanoid';
-import React, { forwardRef, useCallback, useImperativeHandle, useMemo, useRef } from 'react';
+import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef } from 'react';
 import { Controller, UseFormReturn, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { joinURL } from 'ufo';
@@ -856,7 +856,6 @@ function AddSelectAgentPopperButton({
 
   const exists =
     assistant.type === 'router' ? new Set(Object.values(assistant.routes ?? {}).map((i) => i.data.id)) : new Set();
-  const groupByApi = groupBy(openApiOptions, (item) => (item?.id || '').split(':')?.[0] || '');
 
   if (!project) {
     return null;
@@ -908,35 +907,31 @@ function AddSelectAgentPopperButton({
           </List>
         </>
 
-        {Object.entries(groupByApi).map(([key, options]) => {
-          return (
-            <React.Fragment key={key}>
-              <GroupView name={key} description="Blocklet API">
-                <Box component={DiDAvatar} did={window.blocklet.appId} size={40} sx={{ borderRadius: 1 }} />
-              </GroupView>
+        <>
+          <GroupView name="Blocklet API" description="Blocklet API">
+            <Box component={DiDAvatar} did={window.blocklet.appId} size={40} sx={{ borderRadius: 1 }} />
+          </GroupView>
 
-              <List
-                dense
-                disablePadding
-                sx={{
-                  pl: 8,
-                  '>hr': { my: '0 !important', borderColor: 'grey.100', ml: 1 },
-                  '>hr:last-of-type': { display: 'none' },
-                }}>
-                {options.map((x) => {
-                  return (
-                    <MenuItem selected={exists.has(x.id)} key={x.id} onClick={() => onSelect?.(x)} sx={{ my: 0.25 }}>
-                      <Box flex={1}>{x.name || t('unnamed')}</Box>
-                      <Box sx={{ width: 40, textAlign: 'right' }}>
-                        {exists.has(x.id) && <Box component={Icon} icon={CheckIcon} />}
-                      </Box>
-                    </MenuItem>
-                  );
-                })}
-              </List>
-            </React.Fragment>
-          );
-        })}
+          <List
+            dense
+            disablePadding
+            sx={{
+              pl: 8,
+              '>hr': { my: '0 !important', borderColor: 'grey.100', ml: 1 },
+              '>hr:last-of-type': { display: 'none' },
+            }}>
+            {openApiOptions.map((x) => {
+              return (
+                <MenuItem selected={exists.has(x.id)} key={x.id} onClick={() => onSelect?.(x)} sx={{ my: 0.25 }}>
+                  <Box flex={1}>{x.name || t('unnamed')}</Box>
+                  <Box sx={{ width: 40, textAlign: 'right' }}>
+                    {exists.has(x.id) && <Box component={Icon} icon={CheckIcon} />}
+                  </Box>
+                </MenuItem>
+              );
+            })}
+          </List>
+        </>
 
         {!(agentOptions.length + openApiOptions.length) && (
           <>

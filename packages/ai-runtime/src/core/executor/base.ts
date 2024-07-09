@@ -1,9 +1,10 @@
-import { getBuildInDatasets } from '@blocklet/dataset-sdk';
-import { DatasetObject } from '@blocklet/dataset-sdk/types';
+import flattenApiStructure from '@blocklet/dataset-sdk/util/flatten-open-api';
 import { call } from '@blocklet/sdk/lib/component';
-import { logger } from '@blocklet/sdk/lib/config';
+import config, { logger } from '@blocklet/sdk/lib/config';
+import axios from 'axios';
 import Joi from 'joi';
 import { isNil, toLower } from 'lodash';
+import { joinURL } from 'ufo';
 
 import { AIGNE_RUNTIME_COMPONENT_DID } from '../../constants';
 import {
@@ -17,7 +18,41 @@ import {
 import { CallAI, CallAIImage, GetAgent, GetAgentResult, RunAssistantCallback } from '../assistant/type';
 import { renderMessage } from '../utils/render-message';
 import { nextTaskId } from '../utils/task-id';
-import { runAPITool, runKnowledgeTool, runRequestHistory, runRequestStorage } from './blocklet';
+import { runKnowledgeTool, runRequestHistory, runRequestStorage } from './blocklet';
+
+type OpenAPIResponseSchema = {
+  type: string;
+  properties?: { [key: string]: OpenAPIResponseSchema };
+  items?: OpenAPIResponseSchema;
+};
+
+function convertSchemaToVariableType(schema: OpenAPIResponseSchema): any {
+  switch (schema.type) {
+    case 'string':
+      return { type: 'string', defaultValue: '' };
+    case 'number':
+      return { type: 'number', defaultValue: 0 };
+    case 'boolean':
+      return { type: 'boolean', defaultValue: false };
+    case 'object':
+      return {
+        type: 'object',
+        properties: schema.properties
+          ? Object.entries(schema.properties).map(([key, value]) => ({
+              key,
+              ...convertSchemaToVariableType(value),
+            }))
+          : [],
+      };
+    case 'array':
+      return {
+        type: 'array',
+        element: schema.items ? convertSchemaToVariableType(schema.items) : undefined,
+      };
+    default:
+      throw new Error(`Unsupported schema type: ${schema.type}`);
+  }
+}
 
 export class ExecutorContext {
   constructor(
@@ -91,12 +126,55 @@ export interface AgentExecutorOptions {
   inputs?: { [key: string]: any };
   taskId: string;
   parentTaskId?: string;
+  parameters?: { [key: string]: any };
 }
 
 export abstract class AgentExecutorBase {
   constructor(public readonly context: ExecutorContext) {}
 
   abstract process(agent: GetAgentResult, options: AgentExecutorOptions): Promise<any>;
+
+  async getBlockletAgent(agentId: string, agent: GetAgentResult) {
+    const blockletAgent: {
+      type: 'blocklet';
+      id: string;
+      createdAt: string;
+      updatedAt: string;
+      createdBy: string;
+      updatedBy: string;
+    } & GetAgentResult = {
+      type: 'blocklet',
+      id: agentId,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      createdBy: this.context.user?.did || '',
+      updatedBy: this.context.user?.did || '',
+      project: agent.project,
+      identity: agent.identity,
+    };
+    const result = await axios.get(joinURL(config.env.appUrl, '/.well-known/service/openapi.json'));
+
+    if (result.status !== 200) {
+      throw new Error('Failed to get agent result');
+    }
+
+    const list = flattenApiStructure(result.data);
+    const found = list.find((x) => x.id === agentId);
+    if (!found) {
+      throw new Error('Failed to find agent result');
+    }
+
+    const properties = found?.responses?.['200']?.content?.['application/json']?.schema?.properties || {};
+
+    return {
+      ...blockletAgent,
+      name: found.summary,
+      description: found.description,
+      outputVariables: Object.entries(properties).map(([key, value]: any) => {
+        return { id: key, name: key, ...convertSchemaToVariableType(value) };
+      }),
+    };
+  }
 
   async execute(agent: GetAgentResult, options: AgentExecutorOptions): Promise<any> {
     this.context.callback?.({
@@ -157,7 +235,6 @@ export abstract class AgentExecutorBase {
     const variables: { [key: string]: any } = { ...inputs };
 
     const userId = this.context.user.did;
-    const datasets = await getBuildInDatasets();
 
     const { callback } = this.context;
 
@@ -292,27 +369,23 @@ export abstract class AgentExecutorBase {
             name: i.agentId && assistantNameMap[i.agentId],
           }));
         } else if (parameter.source?.variableFrom === 'blockletAPI' && parameter.source.api) {
-          const { api } = parameter.source;
-          const dataset = datasets.find((x) => x.id === api.id);
           const currentTaskId = nextTaskId();
+          const blockletAgent = await this.getBlockletAgent(parameter.source.api.id, agent);
 
           // eslint-disable-next-line no-await-in-loop
-          const result = await runAPITool({
-            tool: api,
-            taskId: currentTaskId,
-            assistant: agent,
-            parameters: inputs,
-            dataset: (dataset || {}) as DatasetObject,
-            parentTaskId: taskId,
-            callback: cb?.(currentTaskId),
-            user: this.context.user,
-            sessionId: this.context.sessionId,
-            projectId: this.context.entryProjectId,
-          });
+          const result = await this.context
+            .executor({ ...this.context, callback: cb?.(currentTaskId) } as ExecutorContext)
+            .execute(blockletAgent, {
+              inputs,
+              parameters: parameter.source.api.parameters,
+              taskId: currentTaskId,
+              parentTaskId: taskId,
+            });
 
           variables[parameter.key] = result;
         }
       }
+
       if (parameter.key && ['llmInputMessages', 'llmInputTools', 'llmInputToolChoice'].includes(parameter.type!)) {
         const v = inputs?.[parameter.key];
         const tryParse = (s: string) => {
@@ -443,7 +516,7 @@ export abstract class AgentExecutorBase {
   }
 }
 
-const getUserHeader = (user: any) => {
+export const getUserHeader = (user: any) => {
   return {
     'x-user-did': user?.did,
     'x-user-role': user?.role,

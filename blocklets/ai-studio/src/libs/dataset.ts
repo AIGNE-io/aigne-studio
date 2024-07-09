@@ -1,4 +1,5 @@
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
+import flattenApiStructure from '@blocklet/dataset-sdk/util/flatten-open-api';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 import { joinURL } from 'ufo';
 
@@ -40,7 +41,9 @@ export async function searchKnowledge({
 }
 
 export async function getAPIList(): Promise<DatasetObject[]> {
-  return axios.get('/api/collections.json', { baseURL: AIGNE_RUNTIME_MOUNT_POINT }).then((res) => res.data);
+  return axios
+    .get('/.well-known/service/openapi.json', { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
+    .then((res) => flattenApiStructure(res.data));
 }
 
 export async function getDatasets({ projectId }: { projectId?: string }): Promise<Dataset[]> {
