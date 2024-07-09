@@ -158,21 +158,23 @@ export abstract class AgentExecutorBase {
       throw new Error('Failed to get agent result');
     }
 
-    const list = flattenApiStructure(result.data);
-    const found = list.find((x) => x.id === agentId);
-    if (!found) {
-      throw new Error('Failed to find agent result');
-    }
-
-    const properties = found?.responses?.['200']?.content?.['application/json']?.schema?.properties || {};
+    const openApis = flattenApiStructure(result.data);
+    const api = openApis.find((x) => x.id === agentId);
+    const properties = api?.responses?.['200']?.content?.['application/json']?.schema?.properties || {};
 
     return {
-      ...blockletAgent,
-      name: found.summary,
-      description: found.description,
-      outputVariables: Object.entries(properties).map(([key, value]: any) => {
-        return { id: key, name: key, ...convertSchemaToVariableType(value) };
-      }),
+      agent: {
+        ...blockletAgent,
+        name: api?.summary,
+        description: api?.description,
+        outputVariables: Object.entries(properties).map(([key, value]: any) => ({
+          id: key,
+          name: key,
+          ...convertSchemaToVariableType(value),
+        })),
+      },
+      api,
+      openApis,
     };
   }
 
@@ -375,7 +377,7 @@ export abstract class AgentExecutorBase {
           // eslint-disable-next-line no-await-in-loop
           const result = await this.context
             .executor({ ...this.context, callback: cb?.(currentTaskId) } as ExecutorContext)
-            .execute(blockletAgent, {
+            .execute(blockletAgent.agent, {
               inputs,
               parameters: parameter.source.api.parameters,
               taskId: currentTaskId,

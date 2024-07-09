@@ -1,8 +1,5 @@
 // TODO: refactor all blocklet api related code to unified api agent
 
-import { getRequest } from '@blocklet/dataset-sdk/request';
-import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
-import { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { call } from '@blocklet/sdk';
 import { startCase, toLower } from 'lodash';
 
@@ -23,86 +20,6 @@ const getUserHeader = (user: any) => {
 };
 
 const defaultScope = 'session';
-
-export async function runAPITool({
-  tool,
-  dataset,
-  taskId,
-  assistant,
-  parameters,
-  parentTaskId,
-  callback,
-  user,
-  sessionId,
-  projectId,
-}: {
-  tool: Tool;
-  dataset: DatasetObject;
-  taskId: string;
-  assistant: Assistant;
-  parameters?: { [key: string]: any };
-  parentTaskId?: string;
-  callback?: RunAssistantCallback;
-  user?: User;
-  sessionId?: string;
-  projectId: string;
-}) {
-  const requestData = Object.fromEntries(
-    await Promise.all(
-      getAllParameters(dataset).map(async (item) => {
-        if (typeof tool.parameters?.[item.name!] === 'string') {
-          const template = String(tool.parameters?.[item.name!] || '').trim();
-          return [item.name, template ? await renderMessage(template, parameters) : parameters?.[item.name]];
-        }
-
-        // 先从传入参数查找，什么都没有填写时，需要读取 tool.parameters?.[item.name!]
-        return [item.name, parameters?.[item.name!] || tool.parameters?.[item.name!]];
-      }) ?? []
-    )
-  );
-
-  const params: { [key: string]: string } = {
-    userId: user?.did || '',
-    sessionId: sessionId || '',
-    assistantId: assistant.id || '',
-    projectId: projectId || '',
-  };
-
-  const callbackParams = {
-    taskId,
-    parentTaskId,
-    assistantId: assistant.id,
-    assistantName: dataset?.summary,
-  };
-
-  callback?.({
-    type: AssistantResponseType.EXECUTE,
-    ...callbackParams,
-    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
-  });
-
-  callback?.({
-    type: AssistantResponseType.INPUT,
-    ...callbackParams,
-    inputParameters: requestData,
-  });
-
-  const response = await getRequest(dataset, requestData, { user, params });
-
-  callback?.({
-    type: AssistantResponseType.CHUNK,
-    ...callbackParams,
-    delta: { content: JSON.stringify(response.data) },
-  });
-
-  callback?.({
-    type: AssistantResponseType.EXECUTE,
-    ...callbackParams,
-    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
-  });
-
-  return response.data;
-}
 
 export const runRequestStorage = async ({
   assistant,

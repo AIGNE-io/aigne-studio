@@ -1,7 +1,5 @@
 /* eslint-disable import/no-extraneous-dependencies */
-import path from 'path';
 
-import buildOpenAPIPlugin from '@blocklet/dataset-sdk/plugin';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import { createBlockletPlugin } from 'vite-plugin-blocklet';
@@ -28,7 +26,6 @@ export default defineConfig(() => {
       tsconfigPaths(),
       react(),
       createBlockletPlugin(),
-      buildOpenAPIPlugin({ apis: [path.join(__dirname, './api/src/routes/**/*.*')] }),
       hmrHostName
         ? {
             name: 'client-host',

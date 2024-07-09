@@ -1,15 +1,23 @@
 /* eslint-disable guard-for-in */
 /* eslint-disable no-restricted-syntax */
-import { OpenAPIObject } from '../types';
+import { DatasetObject, OpenAPIObject } from '../types';
 
 function flattenApiStructure(apiStructure: OpenAPIObject) {
-  const flattened = [];
+  const flattened: DatasetObject[] = [];
 
   const paths = apiStructure?.paths || {};
   for (const path in paths) {
     for (const method in paths[path]) {
       const endpoint = (paths[path] as any)?.[method];
-      flattened.push({ 'x-url': path, 'x-method': method, id: endpoint['x-id'], path, method, ...endpoint });
+
+      flattened.push({
+        id: endpoint['x-id'],
+        name: endpoint['x-did'],
+        path: endpoint['x-path'],
+        method: endpoint['x-method'],
+        did: endpoint['x-did'],
+        ...endpoint,
+      });
     }
   }
 

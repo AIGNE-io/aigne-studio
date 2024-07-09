@@ -37,7 +37,7 @@ export class RuntimeExecutor extends AgentExecutorBase {
     }
 
     this.agent = agent;
-    // Tool => id
+
     switch (agent.type) {
       case 'agent': {
         return new AgentExecutor(this.context).execute(agent, options);

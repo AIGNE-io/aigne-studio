@@ -1,3 +1,9 @@
+openapi: 3.0.1
+info:
+  title: AI Stuido
+  description: ''
+  version: 1.0.0
+tags: []
 paths:
   /api/messages:
     get:

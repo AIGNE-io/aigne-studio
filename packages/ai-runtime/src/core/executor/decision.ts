@@ -9,12 +9,9 @@ import {
   isChatCompletionUsage,
 } from '@blocklet/ai-kit/api/types/index';
 import { getAllParameters, getRequiredFields } from '@blocklet/dataset-sdk/request/util';
-import flattenApiStructure from '@blocklet/dataset-sdk/util/flatten-open-api';
 import { call } from '@blocklet/sdk/lib/component';
-import config, { logger } from '@blocklet/sdk/lib/config';
-import axios from 'axios';
+import { logger } from '@blocklet/sdk/lib/config';
 import { isNil } from 'lodash';
-import { joinURL } from 'ufo';
 
 import { languages } from '../../constant/languages';
 import {
@@ -47,20 +44,14 @@ export class DecisionAgentExecutor extends AgentExecutorBase {
     const message = await renderMessage(agent.prompt, inputs);
     const routes = agent?.routes || [];
 
-    const openapiResult = await axios.get(joinURL(config.env.appUrl, '/.well-known/service/openapi.json'));
-
-    if (openapiResult.status !== 200) {
-      throw new Error('Failed to get agent result');
-    }
-
-    const openApis = flattenApiStructure(openapiResult.data);
+    const blocklet = await this.getBlockletAgent(agent.id, agent);
 
     logger.info('start get tool function');
     const toolAssistants = (
       await Promise.all(
         routes.map(async (tool) => {
           if (tool?.from === 'blockletAPI') {
-            const dataset = (openApis || []).find((x) => x.id === tool.id);
+            const dataset = (blocklet.openApis || []).find((x) => x.id === tool.id);
             if (!dataset) return undefined;
 
             const name = tool?.functionName || dataset.summary || dataset.description || '';
@@ -409,11 +400,11 @@ export class DecisionAgentExecutor extends AgentExecutorBase {
           };
 
           if (tool.tool.from === 'blockletAPI') {
-            const blockletAgent = await this.getBlockletAgent(tool.tool.id, agent);
+            const blocklet = await this.getBlockletAgent(tool.tool.id, agent);
 
             const result = await this.context
               .executor({ ...this.context, callback: cb } as ExecutorContext)
-              .execute(blockletAgent, {
+              .execute(blocklet.agent, {
                 inputs: { ...inputs, ...requestData },
                 parameters: tool.tool.parameters,
                 taskId: currentTaskId,
