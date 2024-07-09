@@ -77,7 +77,7 @@
     "test": "jest src/"
   },
   "dependencies": {
-    "@blocklet/ai-kit": "^0.1.43",
+    "@blocklet/ai-kit": "^0.1.44",
     "@blocklet/ai-runtime": "workspace:^",
     "@blocklet/js-sdk": "^1.16.28",
     "@blocklet/pages-kit": "^0.2.370",
