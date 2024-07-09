@@ -1,3 +1,5 @@
+import { join } from 'path';
+
 export const TestConstants = {
   headless: process.env.HEADLESS !== 'false',
 
@@ -8,6 +10,10 @@ export const TestConstants = {
   },
 
   authFilePath(user: string) {
-    return `.playwright/.auth/${user}.json`;
+    return join(process.cwd(), `.playwright/.auth/${user}.json`);
+  },
+
+  didSpaceVCPath(user: string) {
+    return join(process.cwd(), `.blocklet-tests/.cache/did-space-vc/${user}.json`);
   },
 };

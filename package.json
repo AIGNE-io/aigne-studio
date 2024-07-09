@@ -13,7 +13,7 @@
   "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
   "scripts": {
     "dev": "pnpm -F ai-studio dev",
-    "bundle": "pnpm build:libs && pnpm -F ai-studio bundle",
+    "bundle": "pnpm build:libs && pnpm -F ai-studio -F ai-runtime bundle",
     "lint": "NODE_OPTIONS='--max_old_space_size=6144' pnpm -r run lint",
     "lint:fix": "pnpm -r run lint:fix",
     "build": "pnpm build:libs && pnpm -F ai-studio build",
@@ -47,7 +47,7 @@
   "devDependencies": {
     "@arcblock/eslint-config": "^0.2.4",
     "@arcblock/eslint-config-ts": "^0.2.4",
-    "@blocklet/testlab": "^0.0.5",
+    "@blocklet/testlab": "^0.0.8",
     "@playwright/test": "^1.45.1",
     "bumpp": "^8.2.1",
     "eslint": "^8.57.0",

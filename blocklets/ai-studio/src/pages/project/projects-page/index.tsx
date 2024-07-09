@@ -649,6 +649,7 @@ function ProjectList({
                     try {
                       setLoading(item);
                       const project = await createProject({
+                        blockletDid: item.blockletDid,
                         withDuplicateFrom: true,
                         templateId: item.id!,
                         name: item.name,

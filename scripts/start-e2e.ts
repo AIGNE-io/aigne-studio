@@ -1,6 +1,12 @@
 #!/usr/bin/env -S node -r ts-node/register --experimental-require-module
 
-import { getBlockletServerStatus, removeTestApp, startTestApp } from '@blocklet/testlab/utils/server';
+import {
+  addBlocklet,
+  getBlockletServerStatus,
+  initTestApp,
+  removeTestApp,
+  startTestApp,
+} from '@blocklet/testlab/utils/server';
 import { didToDomain, ensureWallet, types } from '@blocklet/testlab/utils/wallet';
 import Joi from 'joi';
 import { $, argv } from 'zx';
@@ -16,18 +22,36 @@ const httpsPort = (portSchema.validate(process.env.BLOCKLET_SERVER_HTTPS_PORT).v
 
 (async () => {
   const serverWallet = ensureWallet({ name: 'server' });
-  const appWallet = ensureWallet({ name: 'app', role: types.RoleType.ROLE_APPLICATION, forceRegenerate: true });
+  const appWallet = ensureWallet({ name: 'app', role: types.RoleType.ROLE_APPLICATION });
   const ownerWallet = ensureWallet({ name: 'owner' });
 
-  await startTestApp({
+  await initTestApp({
     blockletCli,
     serverWallet,
     appWallet,
     ownerWallet,
-    appBundle: 'blocklets/ai-studio/.blocklet/bundle',
     httpPort,
     httpsPort,
   });
+
+  await addBlocklet({
+    blockletCli,
+    appId: appWallet.address,
+    bundle: 'blocklets/ai-studio/.blocklet/bundle',
+    mountPoint: '/',
+  });
+
+  // FIXME: remove next sleep after issue https://github.com/ArcBlock/blocklet-server/issues/9353 fixed
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+
+  await addBlocklet({
+    blockletCli,
+    appId: appWallet.address,
+    bundle: 'blocklets/ai-runtime/.blocklet/bundle',
+    mountPoint: '/aigne-runtime',
+  });
+
+  await startTestApp({ blockletCli, appWallet });
 
   const info = await getBlockletServerStatus();
   if (!info) throw new Error('Blocklet server is not running');
@@ -37,6 +61,7 @@ const httpsPort = (portSchema.validate(process.env.BLOCKLET_SERVER_HTTPS_PORT).v
 
   await setupUsers();
 
+  process.env.PW_TEST_HTML_REPORT_OPEN = 'never';
   await $`playwright test ${ui ? '--ui' : ''}`;
 
   await removeTestApp({ blockletCli, appSk: appWallet.secretKey });
