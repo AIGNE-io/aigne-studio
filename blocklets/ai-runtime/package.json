@@ -116,6 +116,6 @@
     "vite-plugin-blocklet": "^0.7.9",
     "vite-plugin-svgr": "^4.2.0",
     "vite-tsconfig-paths": "^4.3.2",
-    "zx": "^7.2.3"
+    "zx": "^8.1.4"
   }
 }
