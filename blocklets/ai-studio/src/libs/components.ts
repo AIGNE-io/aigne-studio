@@ -46,7 +46,7 @@ export async function getComponent({
   return axios.get(joinURL('/api/components', componentId), { baseURL: PAGES_KIT_MOUNT_POINT }).then((res) => res.data);
 }
 
-export async function getDynamicReactComponents(): Promise<RemoteComponent[]> {
+export async function getOpenComponents(): Promise<RemoteComponent[]> {
   return axios.get('/.well-known/service/opencomponent.json', { baseURL: AIGNE_RUNTIME_MOUNT_POINT }).then((res) =>
     Object.entries(res.data?.paths || {}).map(([, val]: [string, any]) => {
       return {
