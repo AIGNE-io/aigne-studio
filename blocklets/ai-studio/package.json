@@ -42,7 +42,6 @@
     "@blocklet/ai-runtime": "workspace:^",
     "@blocklet/aigne-sdk": "workspace:^",
     "@blocklet/co-git": "workspace:^",
-    "@blocklet/components-sdk": "workspace:^",
     "@blocklet/constant": "^1.16.28",
     "@blocklet/dataset-sdk": "workspace:^",
     "@blocklet/discuss-kit": "^1.6.264",

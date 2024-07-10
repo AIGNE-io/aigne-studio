@@ -19,7 +19,7 @@ import {
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
 import { DatasetObject } from '@blocklet/dataset-sdk/types';
-import getDatasetTextByI18n from '@blocklet/dataset-sdk/util/get-dataset-i18n-text';
+import getOpenApiTextFromI18n from '@blocklet/dataset-sdk/util/get-open-api-i18n-text';
 import { Icon } from '@iconify-icon/react';
 import CheckIcon from '@iconify-icons/tabler/check';
 import ArrowFork from '@iconify-icons/tabler/corner-down-right';
@@ -108,8 +108,8 @@ export default function RouterAssistantEditor({
       id: dataset.id,
       type: dataset.type,
       name:
-        getDatasetTextByI18n(dataset, 'summary', locale) ||
-        getDatasetTextByI18n(dataset, 'description', locale) ||
+        getOpenApiTextFromI18n(dataset, 'summary', locale) ||
+        getOpenApiTextFromI18n(dataset, 'description', locale) ||
         t('unnamed'),
       from: dataset.from,
     })) as RouteOption[];
@@ -545,8 +545,8 @@ export const ToolDialog = forwardRef<
       id: dataset.id,
       type: dataset.type,
       name:
-        getDatasetTextByI18n(dataset, 'summary', locale) ||
-        getDatasetTextByI18n(dataset, 'description', locale) ||
+        getOpenApiTextFromI18n(dataset, 'summary', locale) ||
+        getOpenApiTextFromI18n(dataset, 'description', locale) ||
         t('unnamed'),
       from: dataset.from,
     })),
@@ -604,8 +604,8 @@ export const ToolDialog = forwardRef<
                             }
                             label={
                               <Typography variant="caption">
-                                {getDatasetTextByI18n(parameter, 'description', locale) ||
-                                  getDatasetTextByI18n(parameter, 'name', locale)}
+                                {getOpenApiTextFromI18n(parameter, 'description', locale) ||
+                                  getOpenApiTextFromI18n(parameter, 'name', locale)}
                               </Typography>
                             }
                             labelPlacement="top"
@@ -621,8 +621,8 @@ export const ToolDialog = forwardRef<
             return (
               <Stack key={parameter.name}>
                 <Typography variant="caption" mb={0.5}>
-                  {getDatasetTextByI18n(parameter, 'description', locale) ||
-                    getDatasetTextByI18n(parameter, 'name', locale)}
+                  {getOpenApiTextFromI18n(parameter, 'description', locale) ||
+                    getOpenApiTextFromI18n(parameter, 'name', locale)}
                 </Typography>
 
                 <Controller

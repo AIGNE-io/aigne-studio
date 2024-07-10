@@ -20,7 +20,6 @@
       "@blocklet/co-git": ["../../packages/co-git/src"],
       "@blocklet/dataset-sdk": ["../../packages/dataset-sdk/src"],
       "@blocklet/dataset-sdk/*": ["../../packages/dataset-sdk/src/*"],
-      "@blocklet/components-sdk/*": ["../../packages/components-sdk/src/*"],
       "@blocklet/co-git/*": ["../../packages/co-git/src/*"],
       "@blocklet/studio-ui": ["../../packages/studio-ui/src"],
       "@blocklet/prompt-editor": ["../../packages/prompt-editor/src"],

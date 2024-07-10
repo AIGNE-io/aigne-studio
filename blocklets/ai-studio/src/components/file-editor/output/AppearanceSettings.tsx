@@ -2,8 +2,6 @@ import { Component, getComponents } from '@app/libs/components';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { OutputVariableYjs, RuntimeOutputAppearance, RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { REMOTE_REACT_COMPONENT } from '@blocklet/components-sdk/const';
-import { RemoteComponent } from '@blocklet/components-sdk/type';
 import { Icon } from '@iconify-icon/react';
 import {
   Autocomplete,
@@ -21,7 +19,9 @@ import pick from 'lodash/pick';
 import { useEffect, useMemo } from 'react';
 import { useAsync } from 'react-use';
 
-import { getDynamicReactComponents } from '../../../libs/components';
+import { getOpenComponents } from '../../../libs/components';
+import { REMOTE_REACT_COMPONENT } from '../../../libs/constants';
+import { RemoteComponent } from '../../../libs/type';
 import ComponentSettings from './ComponentSettings';
 
 const ignoreAppearanceSettingsOutputs = new Set<string>([RuntimeOutputVariable.children]);
@@ -83,7 +83,7 @@ export default function AppearanceSettings({
 
   const { value: remoteReact } = useAsync(
     async () =>
-      getDynamicReactComponents().then((components) =>
+      getOpenComponents().then((components) =>
         components.filter((component) => (component?.tags || []).some((tag) => tags.includes(tag)))
       ),
     [tags]
@@ -216,10 +216,7 @@ function ComponentSelect({
       ...(remoteReact || []).map((x) => ({
         id: REMOTE_REACT_COMPONENT,
         name: x.name,
-        componentProperties: {
-          componentPath: x.url,
-          blockletDid: x.did,
-        },
+        componentProperties: { componentPath: x.url, blockletDid: x.did },
         group: t('remote'),
       })),
     ];
@@ -236,7 +233,9 @@ function ComponentSelect({
         component.blockletDid ? component.name || component.id : `${component.name || component.id} (Local)`
       }
       isOptionEqualToValue={(o, v) =>
-        o.id === v.id && ((!o.blockletDid && !v.blockletDid) || o.blockletDid === v.blockletDid)
+        o.id === v.id &&
+        ((!o.blockletDid && !v.blockletDid) || o.blockletDid === v.blockletDid) &&
+        ((!o.name && !v.name) || o.name === v.name)
       }
       renderGroup={(params) => {
         return (
