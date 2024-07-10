@@ -175,26 +175,7 @@ export default function KnowledgeDocuments() {
 
             if (!params.row.embeddingStatus) {
               return (
-                <Box
-                  borderRadius={20}
-                  border="1px solid #E5E7EB"
-                  p="4px 12px"
-                  color="#030712"
-                  fontSize={13}
-                  display="flex"
-                  alignItems="center"
-                  gap={1}>
-                  <Box width={6} height={6} borderRadius={6} bgcolor={colors.idle} />
-                  <Box display="flex" alignItems="center">
-                    {t('embeddingStatus_idle')}
-                  </Box>
-                </Box>
-              );
-            }
-
-            if (['idle', 'uploading', 'success', 'error'].includes(params.row.embeddingStatus)) {
-              return (
-                <Tooltip title={params.row.error ?? undefined}>
+                <Stack alignItems="flex-start" height="100%" justifyContent="center">
                   <Box
                     borderRadius={20}
                     border="1px solid #E5E7EB"
@@ -203,35 +184,63 @@ export default function KnowledgeDocuments() {
                     fontSize={13}
                     display="flex"
                     alignItems="center"
+                    lineHeight={1}
                     gap={1}>
-                    <Box width={6} height={6} borderRadius={6} bgcolor={colors[params.row.embeddingStatus]} />
+                    <Box width={6} height={6} borderRadius={6} bgcolor={colors.idle} />
                     <Box display="flex" alignItems="center">
-                      {t(`embeddingStatus_${params.row.embeddingStatus}`)}
-                      {params.row.embeddingStatus === 'uploading' && <Pending mt={1} />}
+                      {t('embeddingStatus_idle')}
                     </Box>
                   </Box>
-                </Tooltip>
+                </Stack>
+              );
+            }
+
+            if (['idle', 'uploading', 'success', 'error'].includes(params.row.embeddingStatus)) {
+              return (
+                <Stack alignItems="flex-start" height="100%" justifyContent="center">
+                  <Tooltip title={params.row.error ?? undefined}>
+                    <Box
+                      borderRadius={20}
+                      border="1px solid #E5E7EB"
+                      p="4px 12px"
+                      color="#030712"
+                      fontSize={13}
+                      display="flex"
+                      alignItems="center"
+                      lineHeight={1}
+                      gap={1}>
+                      <Box width={6} height={6} borderRadius={6} bgcolor={colors[params.row.embeddingStatus]} />
+                      <Box display="flex" alignItems="center">
+                        {t(`embeddingStatus_${params.row.embeddingStatus}`)}
+                        {params.row.embeddingStatus === 'uploading' && <Pending mt={1} />}
+                      </Box>
+                    </Box>
+                  </Tooltip>
+                </Stack>
               );
             }
 
             return (
-              <Box
-                borderRadius={20}
-                border="1px solid #E5E7EB"
-                p="4px 12px"
-                color="#030712"
-                fontSize={13}
-                display="flex"
-                alignItems="center"
-                gap={1}>
+              <Stack alignItems="flex-start" height="100%" justifyContent="center">
                 <Box
-                  width={6}
-                  height={6}
-                  borderRadius={6}
-                  bgcolor={isSymmetricAroundSlash(params.row.embeddingStatus) ? colors.success : colors.uploading}
-                />
-                {params.row.embeddingStatus}
-              </Box>
+                  borderRadius={20}
+                  border="1px solid #E5E7EB"
+                  p="4px 12px"
+                  color="#030712"
+                  fontSize={13}
+                  display="flex"
+                  alignItems="center"
+                  lineHeight={1}
+                  gap={1}>
+                  <Box
+                    width={6}
+                    height={6}
+                    borderRadius={6}
+                    bgcolor={isSymmetricAroundSlash(params.row.embeddingStatus) ? colors.success : colors.uploading}
+                  />
+                  {params.row.embeddingStatus}
+                </Box>
+              </Stack>
             );
           },
         },

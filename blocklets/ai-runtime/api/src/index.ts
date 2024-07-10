@@ -9,7 +9,6 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv-flow';
 import express, { ErrorRequestHandler } from 'express';
-import expressWs from 'express-ws';
 
 import initCronJob from './jobs';
 import { Config, isDevelopment } from './libs/env';
@@ -23,7 +22,6 @@ dotenv.config();
 const { name, version } = require('../../package.json');
 
 export const app = express();
-expressWs(app);
 
 app.set('trust proxy', true);
 app.use(cookieParser());

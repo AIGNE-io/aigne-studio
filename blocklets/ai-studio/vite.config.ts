@@ -30,22 +30,11 @@ const dotPathFixPlugin: () => PluginOption = () => ({
   },
 });
 
-const hmrHostName = process.env.__HMR_HOSTNAME__;
-const hmrPath = process.env.__HMR_PATH__;
-
 // https://vitejs.dev/config/
 export default defineConfig((config) => {
   return {
     optimizeDeps: {
-      force: true,
-    },
-    server: {
-      hmr: hmrPath
-        ? {
-            clientPort: 443,
-            path: hmrPath,
-          }
-        : undefined,
+      // force: true,
     },
     plugins: [
       tsconfigPaths(),
@@ -55,18 +44,6 @@ export default defineConfig((config) => {
       createBlockletPlugin(),
       buildOpenAPIPlugin({ apis: [path.join(__dirname, './api/src/routes/**/*.*')] }),
       svgr(),
-      hmrHostName
-        ? {
-            name: 'client-host',
-            transform(code, id) {
-              if (id.endsWith('dist/client/client.mjs') || id.endsWith('dist/client/env.mjs')) {
-                return code.replace('__HMR_HOSTNAME__', JSON.stringify(hmrHostName));
-              }
-
-              return code;
-            },
-          }
-        : undefined,
     ],
     build: {
       commonjsOptions: {

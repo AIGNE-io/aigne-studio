@@ -147,12 +147,12 @@ function MdViewer(props: BoxProps & MdViewerProps) {
   const renderer = useMemo(() => {
     const renderer = new marked.Renderer();
 
-    renderer.code = (code, language) => {
-      const validLanguage = hljs.getLanguage(language as string) ? language : 'plaintext';
-      const highlightedCode = hljs.highlight(validLanguage as string, code).value;
+    renderer.code = ({ text, lang }) => {
+      const validLanguage = hljs.getLanguage(lang as string) ? lang : 'plaintext';
+      const highlightedCode = hljs.highlight(validLanguage as string, text).value;
 
-      if (validLanguage === 'md') return convertMarkdownToHTML(code);
-      if (validLanguage === 'markdown') return convertMarkdownToHTML(code);
+      if (validLanguage === 'md') return convertMarkdownToHTML(text);
+      if (validLanguage === 'markdown') return convertMarkdownToHTML(text);
 
       return `
       <div class="marked-code-block">
@@ -169,16 +169,12 @@ function MdViewer(props: BoxProps & MdViewerProps) {
       return `<span>${text}</span>`;
     };
 
-    renderer.link = (href, _, text) => {
+    renderer.link = ({ href, text }) => {
       return `<a href="${href}" target="_blank" rel="noopener noreferrer">${text}</a>`;
     };
 
-    renderer.image = (href, title, text) => {
+    renderer.image = ({ href, title, text }) => {
       return `<img class="default-image" src="${href}" alt="${text}" title="${title}" />`;
-    };
-
-    renderer.table = (header: string, body: string) => {
-      return `<div class="marked-table-container"><table><thead>${header}</thead><tbody>${body}</tbody></table></div>`;
     };
 
     return renderer;

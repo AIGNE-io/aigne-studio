@@ -105,16 +105,16 @@ function DiscussionTable({
   );
 }
 
-const useColumns = (): GridColDef<DiscussionItem>[] => {
+const useColumns = () => {
   const { t } = useLocaleContext();
 
-  return useMemo(
+  return useMemo<GridColDef<DiscussionItem>[]>(
     () => [
       {
         field: 'title',
         headerName: t('title'),
         flex: 1,
-        valueGetter: (params) => params.row.title || t('unnamed'),
+        valueGetter: (params: any) => params.row.title || t('unnamed'),
       },
     ],
     [t]

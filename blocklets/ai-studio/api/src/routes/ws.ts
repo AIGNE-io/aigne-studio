@@ -1,16 +1,13 @@
-import { user } from '@blocklet/sdk/lib/middlewares';
-import express from 'express';
+import ws from 'ws';
 
-import { ensurePromptsEditor, isRefReadOnly } from '../libs/security';
+import { isRefReadOnly } from '../libs/security';
 import Project from '../store/models/project';
 import { defaultBranch, getRepository } from '../store/repository';
 
-const router = express.Router();
+export const wss = new ws.Server({ noServer: true });
 
-export default router;
-
-router.use(ensurePromptsEditor, user()).ws('/ws/:projectId/:ref', async (conn, req) => {
-  const { projectId, ref } = req.params;
+wss.on('connection', async (conn, req: any) => {
+  const { projectId, ref } = req.url.match(/\/api\/ws\/(?<projectId>\w+)\/(?<ref>\w+)/)?.groups ?? {};
   if (!projectId || !ref) throw new Error('Missing required params projectId or ref');
 
   const project = await Project.findOne({ where: { id: projectId } });
