@@ -1,6 +1,6 @@
 openapi: 3.0.1
 info:
-  title: AI Stuido
+  title: AI Studio OpenAPI
   description: ''
   version: 1.0.0
 tags: []

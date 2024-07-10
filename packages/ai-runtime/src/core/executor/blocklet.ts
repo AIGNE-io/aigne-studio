@@ -2,9 +2,9 @@ import { Base64 } from 'js-base64';
 
 import { AIGNE_RUNTIME_COMPONENT_DID } from '../../constants';
 
-export const HISTORY_DID = Base64.encodeURI(['/api/messages', 'get'].join('/'));
-export const KNOWLEDGE_DID = Base64.encodeURI(['/api/datasets/{datasetId}/search', 'get'].join('/'));
-export const MEMORIED_DID = Base64.encodeURI(['/api/memories/variable-by-query', 'get'].join('/'));
+export const HISTORY_API_DID = Base64.encodeURI(['/api/messages', 'get'].join('/'));
+export const KNOWLEDGE_API_DID = Base64.encodeURI(['/api/datasets/{datasetId}/search', 'get'].join('/'));
+export const MEMORIED_API_DID = Base64.encodeURI(['/api/memories/variable-by-query', 'get'].join('/'));
 
 // 内置的 OpenAPI 接口
 export const buildInOpenAPI = {
@@ -83,7 +83,7 @@ export const buildInOpenAPI = {
           },
         },
       },
-      'x-id': HISTORY_DID,
+      'x-id': HISTORY_API_DID,
       'x-did': AIGNE_RUNTIME_COMPONENT_DID,
       'x-path': '/api/messages',
       'x-method': 'get',
@@ -171,7 +171,7 @@ export const buildInOpenAPI = {
           },
         },
       },
-      'x-id': KNOWLEDGE_DID,
+      'x-id': KNOWLEDGE_API_DID,
       'x-did': AIGNE_RUNTIME_COMPONENT_DID,
       'x-path': '/api/datasets/{datasetId}/search',
       'x-method': 'get',
@@ -280,7 +280,7 @@ export const buildInOpenAPI = {
           },
         },
       },
-      'x-id': MEMORIED_DID,
+      'x-id': MEMORIED_API_DID,
       'x-did': AIGNE_RUNTIME_COMPONENT_DID,
       'x-path': '/api/memories/variable-by-query',
       'x-method': 'get',

@@ -1,15 +1,12 @@
-import { getRequest } from '@blocklet/dataset-sdk/request';
+import { callBlockletApi } from '@blocklet/dataset-sdk/request';
 
-import { AssistantResponseType, BlockletAgent, ExecutionPhase } from '../../types';
+import { BlockletAgent } from '../../types';
 import { GetAgentResult } from '../assistant/type';
 import { renderMessage } from '../utils/render-message';
 import { AgentExecutorBase, AgentExecutorOptions } from './base';
 
 export class BlockletAgentExecutor extends AgentExecutorBase {
-  override async process(
-    agent: BlockletAgent & GetAgentResult,
-    { taskId, parentTaskId, inputs, parameters }: AgentExecutorOptions
-  ) {
+  override async process(agent: BlockletAgent & GetAgentResult, { inputs, parameters }: AgentExecutorOptions) {
     const blocklet = await this.getBlockletAgent(agent.id, agent);
     if (!blocklet.api) {
       throw new Error('Blocklet agent api not found.');
@@ -39,38 +36,7 @@ export class BlockletAgentExecutor extends AgentExecutorBase {
       assistantId: agent.id || '',
     };
 
-    const callbackParams = {
-      taskId,
-      parentTaskId,
-      assistantId: agent.id,
-      assistantName: blocklet.agent.name,
-    };
-
-    this.context.callback?.({
-      type: AssistantResponseType.EXECUTE,
-      ...callbackParams,
-      execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
-    });
-
-    this.context.callback?.({
-      type: AssistantResponseType.INPUT,
-      ...callbackParams,
-      inputParameters,
-    });
-
-    const response = await getRequest(blocklet.api, inputParameters, { user: this.context.user, params });
-
-    this.context.callback?.({
-      type: AssistantResponseType.CHUNK,
-      ...callbackParams,
-      delta: { content: JSON.stringify(response.data) },
-    });
-
-    this.context.callback?.({
-      type: AssistantResponseType.EXECUTE,
-      ...callbackParams,
-      execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
-    });
+    const response = await callBlockletApi(blocklet.api, inputParameters, { user: this.context.user, params });
 
     return response.data;
   }

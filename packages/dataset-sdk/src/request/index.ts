@@ -10,7 +10,7 @@ export interface User {
   did: string;
 }
 
-export const getRequest = (
+export const callBlockletApi = (
   pathItem: DatasetObject,
   data: { [key: string]: any },
   options?: { user?: User; params?: { [key: string]: any }; data?: { [key: string]: any } }

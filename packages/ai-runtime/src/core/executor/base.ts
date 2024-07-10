@@ -20,7 +20,7 @@ import {
 import { CallAI, CallAIImage, GetAgent, GetAgentResult, RunAssistantCallback } from '../assistant/type';
 import { renderMessage } from '../utils/render-message';
 import { nextTaskId } from '../utils/task-id';
-import { HISTORY_DID, KNOWLEDGE_DID, MEMORIED_DID, buildInOpenAPI } from './blocklet';
+import { HISTORY_API_DID, KNOWLEDGE_API_DID, MEMORIED_API_DID, buildInOpenAPI } from './blocklet';
 
 type OpenAPIResponseSchema = {
   type: string;
@@ -138,20 +138,13 @@ export abstract class AgentExecutorBase {
   abstract process(agent: GetAgentResult, options: AgentExecutorOptions): Promise<any>;
 
   async getBlockletAgent(agentId: string, agent: GetAgentResult) {
-    const blockletAgent: {
-      type: 'blocklet';
-      id: string;
-      createdAt: string;
-      updatedAt: string;
-      createdBy: string;
-      updatedBy: string;
-    } & GetAgentResult = {
+    const blockletAgent: GetAgentResult = {
       type: 'blocklet',
       id: agentId,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      createdBy: this.context.user?.did || '',
-      updatedBy: this.context.user?.did || '',
+      createdBy: this.context.user.did,
+      updatedBy: this.context.user.did,
 
       project: agent.project,
       identity: agent.identity,
@@ -323,7 +316,7 @@ export abstract class AgentExecutorBase {
           };
 
           // eslint-disable-next-line no-await-in-loop
-          const blocklet = await this.getBlockletAgent(MEMORIED_DID, agent);
+          const blocklet = await this.getBlockletAgent(MEMORIED_API_DID, agent);
           if (!blocklet.agent) {
             throw new Error('Blocklet agent api not found.');
           }
@@ -363,7 +356,7 @@ export abstract class AgentExecutorBase {
           if (!knowledge) throw new Error(`No such knowledge ${tool.id}`);
 
           // eslint-disable-next-line no-await-in-loop
-          const blocklet = await this.getBlockletAgent(KNOWLEDGE_DID, agent);
+          const blocklet = await this.getBlockletAgent(KNOWLEDGE_API_DID, agent);
           if (!blocklet.agent) {
             throw new Error('Blocklet agent api not found.');
           }
@@ -384,7 +377,7 @@ export abstract class AgentExecutorBase {
           const chat = parameter.source.chatHistory;
 
           // eslint-disable-next-line no-await-in-loop
-          const blocklet = await this.getBlockletAgent(HISTORY_DID, agent);
+          const blocklet = await this.getBlockletAgent(HISTORY_API_DID, agent);
           if (!blocklet.agent) {
             throw new Error('Blocklet agent api not found.');
           }
