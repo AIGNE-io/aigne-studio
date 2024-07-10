@@ -1,11 +1,8 @@
-import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
-import flattenApiStructure from '@blocklet/dataset-sdk/util/flatten-open-api';
+import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { call } from '@blocklet/sdk/lib/component';
-import config, { logger } from '@blocklet/sdk/lib/config';
-import axios from 'axios';
+import { logger } from '@blocklet/sdk/lib/config';
 import Joi from 'joi';
 import { isNil, toLower } from 'lodash';
-import { joinURL } from 'ufo';
 
 import { AIGNE_RUNTIME_COMPONENT_DID } from '../../constants';
 import {
@@ -13,49 +10,13 @@ import {
   ExecutionPhase,
   RuntimeOutputProfile,
   RuntimeOutputVariable,
-  StringParameter,
   Variable,
   outputVariablesToJoiSchema,
 } from '../../types';
 import { CallAI, CallAIImage, GetAgent, GetAgentResult, RunAssistantCallback } from '../assistant/type';
 import { renderMessage } from '../utils/render-message';
 import { nextTaskId } from '../utils/task-id';
-import { HISTORY_DID, KNOWLEDGE_DID, MEMORIED_DID, buildInOpenAPI } from './blocklet';
-
-type OpenAPIResponseSchema = {
-  type: string;
-  properties?: { [key: string]: OpenAPIResponseSchema };
-  items?: OpenAPIResponseSchema;
-};
-
-function convertSchemaToVariableType(schema: OpenAPIResponseSchema): any {
-  switch (schema.type) {
-    case 'string':
-      return { type: 'string', defaultValue: '' };
-    case 'number':
-      return { type: 'number', defaultValue: 0 };
-    case 'boolean':
-      return { type: 'boolean', defaultValue: false };
-    case 'object':
-      return {
-        type: 'object',
-        properties: schema.properties
-          ? Object.entries(schema.properties).map(([key, value]) => ({
-              id: key,
-              name: key,
-              ...convertSchemaToVariableType(value),
-            }))
-          : [],
-      };
-    case 'array':
-      return {
-        type: 'array',
-        element: schema.items ? convertSchemaToVariableType(schema.items) : undefined,
-      };
-    default:
-      throw new Error(`Unsupported schema type: ${schema.type}`);
-  }
-}
+import { HISTORY_API_DID, KNOWLEDGE_API_DID, MEMORIED_API_DID, getBlockletAgent } from './blocklet';
 
 export class ExecutorContext {
   constructor(
@@ -101,6 +62,11 @@ export class ExecutorContext {
 
   sessionId: string;
 
+  promise?: Promise<{
+    agents: GetAgentResult[];
+    openApis: DatasetObject[];
+  }>;
+
   entryProjectId: string;
 
   user: { id: string; did: string };
@@ -123,6 +89,23 @@ export class ExecutorContext {
   copy(options: Partial<ExecutorContext>) {
     return new ExecutorContext({ ...this, ...options });
   }
+
+  async getBlockletAgent(agentId: string) {
+    this.promise ??= getBlockletAgent('', this.user);
+
+    const { agents, openApis } = await this.promise;
+    const foundIndex = openApis.findIndex((x) => x.id === agentId);
+
+    if (agents[foundIndex]) {
+      agents[foundIndex].id = agentId;
+    }
+
+    return {
+      agent: agents[foundIndex],
+      api: openApis[foundIndex],
+      openApis,
+    };
+  }
 }
 
 export interface AgentExecutorOptions {
@@ -136,64 +119,6 @@ export abstract class AgentExecutorBase {
   constructor(public readonly context: ExecutorContext) {}
 
   abstract process(agent: GetAgentResult, options: AgentExecutorOptions): Promise<any>;
-
-  async getBlockletAgent(agentId: string, agent: GetAgentResult) {
-    const blockletAgent: {
-      type: 'blocklet';
-      id: string;
-      createdAt: string;
-      updatedAt: string;
-      createdBy: string;
-      updatedBy: string;
-    } & GetAgentResult = {
-      type: 'blocklet',
-      id: agentId,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      createdBy: this.context.user?.did || '',
-      updatedBy: this.context.user?.did || '',
-
-      project: agent.project,
-      identity: agent.identity,
-    };
-    const result = await axios.get(joinURL(config.env.appUrl, '/.well-known/service/openapi.json'));
-
-    if (result.status !== 200) {
-      throw new Error('Failed to get agent result');
-    }
-
-    const openApis = [...flattenApiStructure(result.data), ...flattenApiStructure({ paths: buildInOpenAPI } as any)];
-    const agents = openApis.map((i) => {
-      const properties = i?.responses?.['200']?.content?.['application/json']?.schema?.properties || {};
-
-      return {
-        ...blockletAgent,
-        name: i?.summary,
-        description: i?.description,
-        parameters: getAllParameters(i)
-          .map((i) => {
-            return {
-              id: nextTaskId(),
-              type: 'string',
-              key: i.name,
-            };
-          })
-          .filter((i) => i.key) as StringParameter[],
-        outputVariables: Object.entries(properties).map(([key, value]: any) => ({
-          id: key,
-          name: key,
-          ...convertSchemaToVariableType(value),
-        })),
-      };
-    });
-
-    const foundIndex = openApis.findIndex((x) => x.id === agentId);
-    return {
-      agent: agents[foundIndex],
-      api: openApis[foundIndex],
-      openApis,
-    };
-  }
 
   async execute(agent: GetAgentResult, options: AgentExecutorOptions): Promise<any> {
     this.context.callback?.({
@@ -323,7 +248,7 @@ export abstract class AgentExecutorBase {
           };
 
           // eslint-disable-next-line no-await-in-loop
-          const blocklet = await this.getBlockletAgent(MEMORIED_DID, agent);
+          const blocklet = await this.context.getBlockletAgent(MEMORIED_API_DID);
           if (!blocklet.agent) {
             throw new Error('Blocklet agent api not found.');
           }
@@ -363,7 +288,7 @@ export abstract class AgentExecutorBase {
           if (!knowledge) throw new Error(`No such knowledge ${tool.id}`);
 
           // eslint-disable-next-line no-await-in-loop
-          const blocklet = await this.getBlockletAgent(KNOWLEDGE_DID, agent);
+          const blocklet = await this.context.getBlockletAgent(KNOWLEDGE_API_DID);
           if (!blocklet.agent) {
             throw new Error('Blocklet agent api not found.');
           }
@@ -384,7 +309,7 @@ export abstract class AgentExecutorBase {
           const chat = parameter.source.chatHistory;
 
           // eslint-disable-next-line no-await-in-loop
-          const blocklet = await this.getBlockletAgent(HISTORY_DID, agent);
+          const blocklet = await this.context.getBlockletAgent(HISTORY_API_DID);
           if (!blocklet.agent) {
             throw new Error('Blocklet agent api not found.');
           }
@@ -436,7 +361,7 @@ export abstract class AgentExecutorBase {
           const currentTaskId = nextTaskId();
 
           // eslint-disable-next-line no-await-in-loop
-          const blocklet = await this.getBlockletAgent(parameter.source.api.id, agent);
+          const blocklet = await this.context.getBlockletAgent(parameter.source.api.id);
           if (!blocklet.agent) {
             throw new Error('Blocklet agent api not found.');
           }

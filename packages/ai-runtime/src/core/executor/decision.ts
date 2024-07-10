@@ -44,7 +44,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase {
     const message = await renderMessage(agent.prompt, inputs);
     const routes = agent?.routes || [];
 
-    const blocklet = await this.getBlockletAgent(agent.id, agent);
+    const blocklet = await this.context.getBlockletAgent(agent.id);
 
     logger.info('start get tool function');
     const toolAssistants = (
@@ -400,7 +400,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase {
           };
 
           if (tool.tool.from === 'blockletAPI') {
-            const blocklet = await this.getBlockletAgent(tool.tool.id, agent);
+            const blocklet = await this.context.getBlockletAgent(tool.tool.id);
             if (!blocklet.agent) {
               throw new Error('Blocklet agent api not found.');
             }
