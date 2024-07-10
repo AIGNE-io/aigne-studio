@@ -121,3 +121,15 @@ export const runtimeOutputVariableNames = new Map<string, (typeof runtimeOutputV
 
 export const getRuntimeOutputVariable = (variable: OutputVariable | OutputVariableYjs) =>
   runtimeOutputVariableNames.get(variable.name!);
+
+export const getOutputName = (inputName: string) => {
+  for (let group of runtimeOutputVariables) {
+    for (let output of group.outputs) {
+      if (output.name === inputName) {
+        return { isI18n: true, text: output.i18nKey };
+      }
+    }
+  }
+
+  return { isI18n: false, text: inputName };
+};

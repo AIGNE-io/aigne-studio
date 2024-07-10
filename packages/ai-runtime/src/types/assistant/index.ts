@@ -21,7 +21,14 @@ export type ConfigFile = {
 
 export type FileType = Assistant | { $base64: string } | Variables | ConfigFile;
 
-export type Assistant = Agent | PromptAssistant | ImageAssistant | ApiAssistant | FunctionAssistant | RouterAssistant;
+export type Assistant =
+  | Agent
+  | PromptAssistant
+  | ImageAssistant
+  | ApiAssistant
+  | FunctionAssistant
+  | RouterAssistant
+  | CallAssistant;
 
 export type Role = 'system' | 'user' | 'assistant';
 
@@ -171,7 +178,7 @@ export type VariableType = VariableTypeBase &
 
 export type OutputVariable = VariableType & {
   variable?: { key: string; scope: string };
-  from?: { type: 'input'; id: string };
+  from?: { type: 'input' | 'output'; id: string };
   appearance?: RuntimeOutputAppearance;
   initialValue?: RuntimeOutputVariablesSchema[RuntimeOutputVariable];
 };
@@ -193,6 +200,11 @@ export interface RouterAssistant extends AssistantBase {
   frequencyPenalty?: number;
   maxTokens?: number;
   model?: string;
+}
+
+export interface CallAssistant extends AssistantBase {
+  type: 'callAgent';
+  agents?: Tool[];
 }
 
 export interface AgentExecutor {

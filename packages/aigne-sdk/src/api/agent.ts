@@ -1,8 +1,10 @@
-import { OutputVariable, Parameter } from '@blocklet/ai-runtime/types';
+import { OutputVariable, Parameter, RunAssistantResponse } from '@blocklet/ai-runtime/types';
 import { ResourceType } from '@blocklet/ai-runtime/types/resource';
+import { fetchEventSource } from '@microsoft/fetch-event-source';
 import { joinURL } from 'ufo';
 
-import { aigneRuntimeApi, aigneStudioApi } from './api';
+import { AIGNE_RUNTIME_COMPONENT_DID } from '../constants';
+import { aigneRuntimeApi, aigneStudioApi, getMountPoint } from './api';
 
 export interface Agent {
   id: string;
@@ -79,4 +81,60 @@ export async function getAgent({
       params: { working, blockletDid },
     })
     .then((res) => res.data);
+}
+
+export interface RunAgentInput {
+  blockletDid?: string;
+  working?: boolean;
+  aid: string;
+  sessionId: string;
+  inputs?: { [key: string]: any };
+}
+
+export async function runAgent({
+  ...input
+}: RunAgentInput & { responseType?: undefined }): Promise<{ [key: string]: any }>;
+export async function runAgent({
+  ...input
+}: RunAgentInput & { responseType: 'stream' }): Promise<ReadableStream<RunAssistantResponse>>;
+export async function runAgent({ responseType, ...input }: RunAgentInput & { responseType?: 'stream' }) {
+  const path = '/api/ai/call';
+
+  if (responseType === 'stream') {
+    return new ReadableStream<RunAssistantResponse>({
+      async start(controller) {
+        await fetchEventSource(joinURL(getMountPoint(AIGNE_RUNTIME_COMPONENT_DID), path), {
+          openWhenHidden: true,
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(input),
+          onmessage(event) {
+            const data = JSON.parse(event.data);
+            controller.enqueue(data);
+          },
+          async onopen(response) {
+            const contentType = response.headers.get('content-type');
+            if (!contentType?.includes('text/event-stream')) {
+              let error: string | undefined;
+              try {
+                const json = await response.json();
+                error = json.error?.message || json.message;
+              } catch {
+                /* empty */
+              }
+              throw new Error(error || 'Call AI failed');
+            }
+          },
+          onerror(err) {
+            throw err;
+          },
+          onclose() {
+            controller.close();
+          },
+        });
+      },
+    });
+  }
+
+  return aigneRuntimeApi.post(path, input).then((res) => res.data);
 }

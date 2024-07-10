@@ -10,12 +10,14 @@ export const aigneRuntimeApi = createAxios({
   timeout: API_TIMEOUT,
 });
 
+export function getMountPoint(did: string) {
+  const mountPoint = globalThis.blocklet?.componentMountPoints.find((i) => i.did === did)?.mountPoint;
+  if (!mountPoint) throw new Error(`No such component: ${did}`);
+  return mountPoint;
+}
+
 aigneRuntimeApi.interceptors.request.use((config) => {
-  const mountPoint = globalThis.blocklet?.componentMountPoints.find(
-    (i) => i.did === AIGNE_RUNTIME_COMPONENT_DID
-  )?.mountPoint;
-  if (!mountPoint) throw new Error('No such aigne-runtime component');
-  config.baseURL = mountPoint;
+  config.baseURL = getMountPoint(AIGNE_RUNTIME_COMPONENT_DID);
   return config;
 });
 
@@ -24,10 +26,6 @@ export const aigneStudioApi = createAxios({
 });
 
 aigneStudioApi.interceptors.request.use((config) => {
-  const mountPoint = globalThis.blocklet?.componentMountPoints.find(
-    (i) => i.did === AIGNE_STUDIO_COMPONENT_DID
-  )?.mountPoint;
-  if (!mountPoint) throw new Error('No such aigne-studio component');
-  config.baseURL = mountPoint;
+  config.baseURL = getMountPoint(AIGNE_STUDIO_COMPONENT_DID);
   return config;
 });

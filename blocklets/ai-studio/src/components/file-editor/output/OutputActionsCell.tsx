@@ -37,6 +37,8 @@ import ProfileSettings from './ProfileSettings';
 import ShareSettings from './ShareSettings';
 import { getRuntimeOutputVariable, runtimeOutputVariableNames } from './type';
 
+const fromType = ['input', 'output'];
+
 export default function OutputActionsCell({
   depth,
   output,
@@ -91,7 +93,7 @@ export default function OutputActionsCell({
         projectId={projectId}
         gitRef={gitRef}
         assistant={assistant}
-        isSaveAs={Boolean(depth === 0 && !runtimeVariable && output.from?.type !== 'input')}
+        isSaveAs={Boolean(depth === 0 && !runtimeVariable && !fromType.includes(output.from?.type || ''))}
         runtimeVariable={Boolean(runtimeVariable)}
         variables={variables}
         variable={variable}
@@ -248,12 +250,13 @@ function PopperButton({
             children: <Box component={Icon} icon={DotsIcon} sx={{ color: '#3B82F6' }} />,
           }}
           PopperProps={{ placement: 'bottom-end' }}>
-          <MenuItem onClick={() => (output.hidden = !output.hidden)}>
+          <MenuItem disabled={Boolean(output.from?.type === 'output')} onClick={() => (output.hidden = !output.hidden)}>
             {output.hidden ? t('activeOutputTip') : t('hideOutputTip')}
           </MenuItem>
 
           {depth === 0 && (
             <MenuItem
+              disabled={Boolean(output.from?.type === 'output')}
               onClick={() => {
                 setSetting('setting');
                 dialogState.open();
@@ -264,6 +267,7 @@ function PopperButton({
 
           {isSaveAs && (
             <MenuItem
+              disabled={Boolean(output.from?.type === 'output')}
               onClick={() => {
                 setSetting('save');
                 dialogState.open();
@@ -361,7 +365,7 @@ export function SettingActionDialogProvider({
       projectId={projectId}
       gitRef={gitRef}
       assistant={assistant}
-      isSaveAs={Boolean(depth === 0 && !runtimeVariable && output.from?.type !== 'input')}
+      isSaveAs={Boolean(depth === 0 && !runtimeVariable && !fromType.includes(output.from?.type || ''))}
       runtimeVariable={Boolean(runtimeVariable)}
       variables={variables}
       variable={variable}

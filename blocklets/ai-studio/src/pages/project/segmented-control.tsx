@@ -52,7 +52,7 @@ export default function SegmentedControl({ value, options, onChange, sx, ...rest
         }}>
         {options.map((x) => {
           return (
-            <ToggleButton key={x.value} value={x.value}>
+            <ToggleButton key={x.value} data-testid={`project-page-${x.value}`} value={x.value}>
               {x.icon ?? null}
               {x.label}
               {x.count ? (

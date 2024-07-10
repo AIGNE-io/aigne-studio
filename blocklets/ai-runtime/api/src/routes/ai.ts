@@ -3,6 +3,7 @@ import { ReadableStream } from 'stream/web';
 import { getAgent, getMemoryVariables } from '@api/libs/agent';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
 import logger from '@api/libs/logger';
+import { ensureComponentCallOr } from '@api/libs/security';
 import History from '@api/store/models/history';
 import Secrets from '@api/store/models/secret';
 import Session from '@api/store/models/session';
@@ -44,7 +45,7 @@ const callInputSchema = Joi.object<{
   }).pattern(Joi.string(), Joi.any()),
 }).rename('parameters', 'inputs', { ignoreUndefined: true, override: true });
 
-router.post('/call', user(), auth(), compression(), async (req, res) => {
+router.post('/call', user(), ensureComponentCallOr(auth()), compression(), async (req, res) => {
   const stream = req.accepts().includes('text/event-stream');
 
   const input = await callInputSchema.validateAsync(
@@ -144,6 +145,8 @@ router.post('/call', user(), auth(), compression(), async (req, res) => {
     sessionId: input.sessionId,
     inputs: input.inputs,
     status: 'generating',
+    blockletDid: input.blockletDid,
+    projectRef,
   });
 
   const emit: RunAssistantCallback = (input) => {
