@@ -2,15 +2,32 @@ import setupHtmlRouter from '@api/routes/html';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { setupClient } from 'vite-plugin-blocklet';
 
-import { app } from './src';
+import { app, server } from './src';
 
 (async () => {
-  const hmrPort = process.env.__HMR_PORT__;
-
   const vite = await setupClient(app, {
-    appType: 'custom',
-    ...(hmrPort ? { port: parseInt(hmrPort, 10), protocol: 'wss' } : undefined),
+    server,
   });
 
   setupHtmlRouter(app, vite);
 })();
+
+if (import.meta.hot) {
+  const logger = console;
+
+  const killServer = () => {
+    server.close(() => {
+      logger.log('server closed');
+    });
+  };
+
+  import.meta.hot.on('vite:beforeFullReload', () => {
+    logger.log('full reload');
+    killServer();
+  });
+
+  import.meta.hot.dispose(() => {
+    logger.log('dispose');
+    killServer();
+  });
+}
