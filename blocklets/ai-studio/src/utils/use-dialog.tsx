@@ -42,6 +42,7 @@ export default function useDialog() {
       onCancel,
       formSx,
       BodyProps,
+      contentProps,
       ...props
     }: {
       title?: ReactNode;
@@ -60,6 +61,10 @@ export default function useDialog() {
       onCancel?: () => Promise<any> | any;
       onClose?: () => any;
       BodyProps?: BoxProps;
+      contentProps?: {
+        contentStyle?: DialogProps['sx'];
+        customContent?: boolean;
+      };
       formSx?: any;
     } & Omit<DialogProps, 'title' | 'open' | 'content' | 'onClose'>) => {
       setProps({
@@ -83,8 +88,9 @@ export default function useDialog() {
               </DialogTitle>
             )}
             {content && (
-              <DialogContent sx={{ mt: -3 }}>
-                <Box pt={3}>{content}</Box>
+              <DialogContent sx={{ mt: -3, ...contentProps?.contentStyle }}>
+                {contentProps?.customContent ? content : <Box sx={{ mt: 3 }}>{content}</Box>}
+                <Box>{content}</Box>
               </DialogContent>
             )}
             <DialogActions sx={{ justifyContent: 'space-between', pl: 3 }}>
