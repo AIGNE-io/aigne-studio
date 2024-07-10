@@ -5,24 +5,5 @@ import { app, server } from './src';
 
 setupClient(app, {
   server,
+  importMetaHot: import.meta.hot,
 });
-
-if (import.meta.hot) {
-  const logger = console;
-
-  const killServer = () => {
-    server.close(() => {
-      logger.log('server closed');
-    });
-  };
-
-  import.meta.hot.on('vite:beforeFullReload', () => {
-    logger.log('full reload');
-    killServer();
-  });
-
-  import.meta.hot.dispose(() => {
-    logger.log('dispose');
-    killServer();
-  });
-}
