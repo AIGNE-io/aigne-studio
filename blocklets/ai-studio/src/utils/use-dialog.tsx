@@ -9,7 +9,7 @@ import {
   IconButton,
   Stack,
 } from '@mui/material';
-import type { DialogProps } from '@mui/material';
+import type { BoxProps, DialogProps } from '@mui/material';
 import { ReactNode, useCallback, useMemo, useState } from 'react';
 
 import PromiseLoadingButton from '../components/promise-loading-button';
@@ -41,6 +41,7 @@ export default function useDialog() {
       onMiddleClick,
       onCancel,
       formSx,
+      BodyProps,
       ...props
     }: {
       title?: ReactNode;
@@ -58,13 +59,14 @@ export default function useDialog() {
       onMiddleClick?: () => Promise<any> | any;
       onCancel?: () => Promise<any> | any;
       onClose?: () => any;
+      BodyProps?: BoxProps;
       formSx?: any;
     } & Omit<DialogProps, 'title' | 'open' | 'content' | 'onClose'>) => {
       setProps({
         ...props,
         open: true,
         children: (
-          <Box component="form" onSubmit={(e) => e.preventDefault()} sx={{ ...(formSx || {}) }}>
+          <Box {...BodyProps} component="form" onSubmit={(e) => e.preventDefault()} sx={{ ...(formSx || {}) }}>
             {title && (
               <DialogTitle className="between">
                 <Box>{title}</Box>

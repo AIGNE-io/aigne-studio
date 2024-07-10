@@ -1,0 +1,43 @@
+data: {"type":"CHUNK","taskId":"465739625776807936","assistantId":"20240503000100-2md0lp","delta":{},"messageId":"465739625781002240"}
+
+data: {"type":"INPUT_PARAMETER","taskId":"465739625776807936","assistantId":"20240503000100-2md0lp","delta":{"content":"{\n  \"question\": \"hello\",\n  \"$clientTime\": \"2024-07-09T04:42:59.786Z\"\n}"},"messageId":"465739625781002240"}
+
+data: {"type":"INPUT","assistantId":"20240503000100-2md0lp","taskId":"465739625776807936","assistantName":"AI Chat","inputParameters":{"question":"hello","$clientTime":"2024-07-09T04:42:59.786Z"},"messageId":"465739625781002240"}
+
+data: {"type":"EXECUTE","taskId":"465739625940385792","parentTaskId":"465739625776807936","assistantId":"20240503000100-2md0lp","assistantName":"The History Data","execution":{"currentPhase":"EXECUTE_ASSISTANT_START"},"messageId":"465739625781002240"}
+
+data: {"type":"INPUT","taskId":"465739625940385792","parentTaskId":"465739625776807936","assistantId":"20240503000100-2md0lp","assistantName":"The History Data","inputParameters":{"sessionId":"465668964991631360","userId":"z1e32Au8HZgwiNMntL1vL9ZWfRNcRdUKZDD","limit":20,"keyword":"hello"},"messageId":"465739625781002240"}
+
+data: {"type":"CHUNK","taskId":"465739625940385792","parentTaskId":"465739625776807936","assistantId":"20240503000100-2md0lp","assistantName":"The History Data","delta":{"content":"[]"},"messageId":"465739625781002240"}
+
+data: {"type":"EXECUTE","taskId":"465739625940385792","parentTaskId":"465739625776807936","assistantId":"20240503000100-2md0lp","assistantName":"The History Data","execution":{"currentPhase":"EXECUTE_ASSISTANT_END"},"messageId":"465739625781002240"}
+
+data: {"type":"EXECUTE","taskId":"465739625776807936","assistantId":"20240503000100-2md0lp","assistantName":"AI Chat","execution":{"currentPhase":"EXECUTE_BLOCK_RUNNING"},"messageId":"465739625781002240"}
+
+data: {"type":"INPUT","assistantId":"20240503000100-2md0lp","taskId":"465739625776807936","assistantName":"AI Chat","inputParameters":{"question":"hello","$clientTime":"2024-07-09T04:42:59.786Z","chatHistory":[]},"messageId":"465739625781002240"}
+
+data: {"type":"INPUT","assistantId":"20240503000100-2md0lp","taskId":"465739625776807936","assistantName":"AI Chat","inputParameters":{"question":"hello","$clientTime":"2024-07-09T04:42:59.786Z","chatHistory":[]},"promptMessages":[{"role":"system","content":"## History\nHere is the chat history of user, inside <history></history> XML tags.\n<history>\n[]\n</history>\n\n## Rules\n- You should respond in the user's question language."},{"role":"system","content":"## Metadata Schema\nHere is the metadata json schema, inside the <metadata-schema></metadata-schema> XML tags:\n<metadata-schema>\n{\"type\":\"object\",\"properties\":{\"$suggested.questions\":{\"type\":\"array\",\"description\":\"Generate 3 questions for users to ask you based on answers and context\",\"items\":{\"type\":\"object\",\"properties\":{\"question\":{\"type\":\"string\"}},\"required\":[\"question\"]}},\"$reference.links\":{\"type\":\"array\",\"description\":\"List all referenced links in the generated text\",\"items\":{\"type\":\"object\",\"properties\":{\"title\":{\"type\":\"string\"},\"url\":{\"type\":\"string\"}},\"required\":[\"url\"]}}},\"required\":[\"$suggested.questions\",\"$reference.links\"]}\n</metadata-schema>\n\n## Output Rules\n- You have to generate a text content and a json metadata base on the metadata schema above, inside the <metadata-schema></metadata-schema> XML tags\n- Don't make any explanation\n\n## Output Format\n[Your text content here]\n[Generate a json data based on the above metadata schema, put it the metadata code block]\n```metadata\n```\n\n## Output Example\n[Here is your answer to the the user's question]\n```metadata\n[Here is your generated json data]\n```\n"},{"role":"user","content":"hello"}],"messageId":"465739625781002240"}
+
+data: {"type":"CHUNK","taskId":"465739625776807936","assistantId":"20240503000100-2md0lp","delta":{"content":"Hello"},"messageId":"465739625781002240"}
+
+data: {"type":"CHUNK","taskId":"465739625776807936","assistantId":"20240503000100-2md0lp","delta":{"content":"!"},"messageId":"465739625781002240"}
+
+data: {"type":"CHUNK","taskId":"465739625776807936","assistantId":"20240503000100-2md0lp","delta":{"content":" How"},"messageId":"465739625781002240"}
+
+data: {"type":"CHUNK","taskId":"465739625776807936","assistantId":"20240503000100-2md0lp","delta":{"content":" can"},"messageId":"465739625781002240"}
+
+data: {"type":"CHUNK","taskId":"465739625776807936","assistantId":"20240503000100-2md0lp","delta":{"content":" I"},"messageId":"465739625781002240"}
+
+data: {"type":"CHUNK","taskId":"465739625776807936","assistantId":"20240503000100-2md0lp","delta":{"content":" assist"},"messageId":"465739625781002240"}
+
+data: {"type":"CHUNK","taskId":"465739625776807936","assistantId":"20240503000100-2md0lp","delta":{"content":" you"},"messageId":"465739625781002240"}
+
+data: {"type":"CHUNK","taskId":"465739625776807936","assistantId":"20240503000100-2md0lp","delta":{"content":" today"},"messageId":"465739625781002240"}
+
+data: {"type":"CHUNK","taskId":"465739625776807936","assistantId":"20240503000100-2md0lp","delta":{"content":"?"},"messageId":"465739625781002240"}
+
+data: {"type":"USAGE","taskId":"465739625776807936","assistantId":"20240503000100-2md0lp","usage":{"promptTokens":304,"completionTokens":9,"totalTokens":313},"messageId":"465739625781002240"}
+
+data: {"type":"CHUNK","taskId":"465739625776807936","assistantId":"20240503000100-2md0lp","delta":{"object":{"$text":"Hello! How can I assist you today?"}},"messageId":"465739625781002240"}
+
+data: {"type":"EXECUTE","taskId":"465739625776807936","assistantId":"20240503000100-2md0lp","assistantName":"AI Chat","execution":{"currentPhase":"EXECUTE_ASSISTANT_END"},"messageId":"465739625781002240"}
