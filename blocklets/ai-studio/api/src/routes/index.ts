@@ -12,7 +12,6 @@ import { resourceRoutes } from './resource';
 import { sessionRoutes } from './session';
 import { treeRoutes } from './tree';
 import { workingRoutes } from './working';
-import ws from './ws';
 
 const router = Router();
 
@@ -28,7 +27,6 @@ messageRoutes(router);
 
 router.use('/agents', agent);
 router.use('/ai', ai);
-router.use(ws);
 
 router.use('/import', importRouter);
 

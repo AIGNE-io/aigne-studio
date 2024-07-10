@@ -1,6 +1,6 @@
 import { embeddings } from '@blocklet/ai-kit/api/call';
+import { EmbeddingInput } from '@blocklet/ai-kit/api/types/embedding';
 import { Embeddings, EmbeddingsParams } from '@langchain/core/embeddings';
-import { CreateEmbeddingRequest } from 'openai';
 
 import { chunkArray } from '../utils/chunk';
 
@@ -85,7 +85,7 @@ export class AIKitEmbeddings extends Embeddings implements AIKitEmbeddingsParams
     return data[0]!.embedding;
   }
 
-  private async embeddingWithRetry(request: CreateEmbeddingRequest) {
+  private async embeddingWithRetry(request: EmbeddingInput) {
     return embeddings(request);
   }
 }
