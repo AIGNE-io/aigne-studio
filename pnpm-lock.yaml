@@ -57,8 +57,8 @@ importers:
         specifier: ^0.2.4
         version: 0.2.4(eslint-plugin-import@2.29.1(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0))(eslint@8.57.0)(jest@29.7.0(@types/node@20.14.6)(ts-node@10.9.2(@types/node@20.14.6)(typescript@5.5.3)))(prettier@3.3.2)(react@18.3.1)(typescript@5.5.3)
       '@blocklet/testlab':
-        specifier: ^0.0.9
-        version: 0.0.9(@types/node@20.14.6)(typescript@5.5.3)
+        specifier: ^0.0.10
+        version: 0.0.10(@types/node@20.14.6)(typescript@5.5.3)
       '@playwright/test':
         specifier: ^1.45.1
         version: 1.45.1
@@ -2083,8 +2083,8 @@ packages:
   '@blocklet/sdk@1.16.28':
     resolution: {integrity: sha512-BC7y1sAN8Ql3nPUEr+w1J74lmbvYxZ1g4ESB+Mxq1TOBY79G4NofD2kq4G6ZUUtCmdtSXDCRRFAsDQIfpu6HfQ==}
 
-  '@blocklet/testlab@0.0.9':
-    resolution: {integrity: sha512-70hEdhdD4GiStGDxlZvXhfnNDSV1rzbR4p/bNe9k/pxnnhRX1k8dxQGL2T+lQ/VJUBCh5fiEFY24CdfNm/nPZw==}
+  '@blocklet/testlab@0.0.10':
+    resolution: {integrity: sha512-Akzz5xHUdcb5g9LGj2Xwzj/PuiImXlC4dESSgoloNLliKWekknCQz7h4IJ5L8T/S3cIgDhqvTutSJs3xrs6qyw==}
 
   '@blocklet/translation-input@1.6.264':
     resolution: {integrity: sha512-Y5QWKMDVg71mJydbydU68EWurHVtar9VNOl3EoNrYp/3qbM/hCxVAVshkXnd36FQS6HYRYMetaKKRJ9oA+W5jA==}
@@ -14315,7 +14315,7 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@blocklet/testlab@0.0.9(@types/node@20.14.6)(typescript@5.5.3)':
+  '@blocklet/testlab@0.0.10(@types/node@20.14.6)(typescript@5.5.3)':
     dependencies:
       '@abtnode/constant': 1.16.28
       '@arcblock/jwt': 1.18.126
@@ -14331,6 +14331,7 @@ snapshots:
       start-server-and-test: 2.0.4
       ts-node: 10.9.2(@types/node@20.14.6)(typescript@5.5.3)
       ufo: 1.5.3
+      yaml: 2.4.5
       zx: 8.1.4
     transitivePeerDependencies:
       - '@swc/core'
