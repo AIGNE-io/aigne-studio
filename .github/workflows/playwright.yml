@@ -1,0 +1,65 @@
+name: Playwright Tests
+
+env:
+  NODE_OPTIONS: '--max_old_space_size=6144'
+  ABT_NODE_HOST: '172.17.0.1'
+  ABT_NODE_MAX_CLUSTER_SIZE: 1
+  COMPONENT_STORE_URL: ${{ secrets.STORE_ENDPOINT_TEST }}
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:latest
+      ports:
+        - 9898:9898
+        - 9899:9899
+
+    if: "! contains(toJSON(github.event.commits.*.message), '[skip ci]')"
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Setup blocklet
+        run: |
+          apt update -y && apt install -y nginx nginx-extras
+          pnpm install -g @blocklet/cli@beta
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Bundle blocklets
+        run: |
+          pnpm build:libs
+          pnpm -F ai-studio -F ai-runtime bundle
+
+      - name: Install Playwright Browsers
+        run: pnpm exec playwright install --with-deps
+
+      - name: Run Playwright tests
+        run: pnpm e2e
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30

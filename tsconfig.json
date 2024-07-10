@@ -1,6 +1,11 @@
 {
   "ts-node": {
-    "files": true
+    "files": true,
+    "require": ["tsconfig-paths/register"],
+    "compilerOptions": {
+      "module": "CommonJS",
+      "target": "ES2018"
+    }
   },
   "compilerOptions": {
     /* Visit https://aka.ms/tsconfig to read more about this file */

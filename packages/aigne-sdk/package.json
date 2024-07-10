@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/aigne-sdk",
-  "version": "0.3.21",
+  "version": "0.3.24",
   "description": "AIGNE SDK used to interact with AIGNE services",
   "publishConfig": {
     "access": "public"
@@ -27,6 +27,10 @@
     "./components/*": {
       "import": "./lib/esm/components/*/index.js",
       "require": "./lib/cjs/components/*/index.js"
+    },
+    "./server/*": {
+      "import": "./lib/esm/server/*.js",
+      "require": "./lib/cjs/server/*.js"
     }
   },
   "typesVersions": {
@@ -42,6 +46,9 @@
       ],
       "components/*": [
         "./lib/types/components/*/index.d.ts"
+      ],
+      "server/*": [
+        "./lib/types/server/*/index.d.ts"
       ]
     }
   },
@@ -70,10 +77,11 @@
     "test": "jest src/"
   },
   "dependencies": {
-    "@blocklet/ai-kit": "^0.1.43",
+    "@blocklet/ai-kit": "^0.1.44",
     "@blocklet/ai-runtime": "workspace:^",
     "@blocklet/js-sdk": "^1.16.28",
-    "@blocklet/pages-kit": "^0.2.367",
+    "@blocklet/pages-kit": "^0.2.370",
+    "@blocklet/sdk": "^1.16.28",
     "@microsoft/fetch-event-source": "^2.0.1",
     "ahooks": "^3.8.0",
     "axios": "^1.7.2",
@@ -99,9 +107,9 @@
     "@emotion/css": "^11.11.2",
     "@emotion/react": "^11.11.4",
     "@jest/globals": "^29.7.0",
-    "@mui/icons-material": "^5.15.21",
-    "@mui/lab": "^5.0.0-alpha.170",
-    "@mui/material": "^5.15.21",
+    "@mui/icons-material": "^5.16.0",
+    "@mui/lab": "^5.0.0-alpha.171",
+    "@mui/material": "^5.16.0",
     "@types/lodash": "^4.17.6",
     "@types/mustache": "^4.2.5",
     "@types/node-fetch": "^2.6.11",
@@ -109,8 +117,8 @@
     "npm-run-all": "^4.1.5",
     "react": "^18.3.1",
     "react-router-dom": "^6.24.1",
-    "rimraf": "^5.0.7",
-    "ts-jest": "^29.1.5",
+    "rimraf": "^5.0.9",
+    "ts-jest": "^29.2.0",
     "typescript": "^5.5.3"
   }
 }

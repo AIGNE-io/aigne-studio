@@ -1,3 +1,15 @@
+## 0.3.24 (2024-7-9)
+
+- fix: should respond json result if `responseType` is not stream
+
+## 0.3.23 (2024-7-9)
+
+- test: add e2e tests
+
+## 0.3.22 (2024-7-9)
+
+- chore: add server side aigne apis
+
 ## 0.3.21 (2024-7-6)
 
 - chore: agent call other agent
