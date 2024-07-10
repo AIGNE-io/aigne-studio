@@ -10,9 +10,9 @@ import { StringParameter } from '../../types';
 import { GetAgentResult } from '../assistant/type';
 import { nextTaskId } from '../utils/task-id';
 
-export const HISTORY_API_DID = Base64.encodeURI(['/api/messages', 'get'].join('/'));
-export const KNOWLEDGE_API_DID = Base64.encodeURI(['/api/datasets/{datasetId}/search', 'get'].join('/'));
-export const MEMORIED_API_DID = Base64.encodeURI(['/api/memories/variable-by-query', 'get'].join('/'));
+export const HISTORY_API_ID = Base64.encodeURI(['/api/messages', 'get'].join('/'));
+export const KNOWLEDGE_API_ID = Base64.encodeURI(['/api/datasets/{datasetId}/search', 'get'].join('/'));
+export const MEMORIED_API_ID = Base64.encodeURI(['/api/memories/variable-by-query', 'get'].join('/'));
 
 // 内置的 OpenAPI 接口
 export const buildInOpenAPI = {
@@ -91,7 +91,7 @@ export const buildInOpenAPI = {
           },
         },
       },
-      'x-id': HISTORY_API_DID,
+      'x-id': HISTORY_API_ID,
       'x-did': AIGNE_RUNTIME_COMPONENT_DID,
       'x-path': '/api/messages',
       'x-method': 'get',
@@ -179,7 +179,7 @@ export const buildInOpenAPI = {
           },
         },
       },
-      'x-id': KNOWLEDGE_API_DID,
+      'x-id': KNOWLEDGE_API_ID,
       'x-did': AIGNE_RUNTIME_COMPONENT_DID,
       'x-path': '/api/datasets/{datasetId}/search',
       'x-method': 'get',
@@ -288,7 +288,7 @@ export const buildInOpenAPI = {
           },
         },
       },
-      'x-id': MEMORIED_API_DID,
+      'x-id': MEMORIED_API_ID,
       'x-did': AIGNE_RUNTIME_COMPONENT_DID,
       'x-path': '/api/memories/variable-by-query',
       'x-method': 'get',

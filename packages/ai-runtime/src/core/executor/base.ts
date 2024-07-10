@@ -16,7 +16,7 @@ import {
 import { CallAI, CallAIImage, GetAgent, GetAgentResult, RunAssistantCallback } from '../assistant/type';
 import { renderMessage } from '../utils/render-message';
 import { nextTaskId } from '../utils/task-id';
-import { HISTORY_API_DID, KNOWLEDGE_API_DID, MEMORIED_API_DID, getBlockletAgent } from './blocklet';
+import { HISTORY_API_ID, KNOWLEDGE_API_ID, MEMORIED_API_ID, getBlockletAgent } from './blocklet';
 
 export class ExecutorContext {
   constructor(
@@ -248,7 +248,7 @@ export abstract class AgentExecutorBase {
           };
 
           // eslint-disable-next-line no-await-in-loop
-          const blocklet = await this.context.getBlockletAgent(MEMORIED_API_DID);
+          const blocklet = await this.context.getBlockletAgent(MEMORIED_API_ID);
           if (!blocklet.agent) {
             throw new Error('Blocklet agent api not found.');
           }
@@ -288,7 +288,7 @@ export abstract class AgentExecutorBase {
           if (!knowledge) throw new Error(`No such knowledge ${tool.id}`);
 
           // eslint-disable-next-line no-await-in-loop
-          const blocklet = await this.context.getBlockletAgent(KNOWLEDGE_API_DID);
+          const blocklet = await this.context.getBlockletAgent(KNOWLEDGE_API_ID);
           if (!blocklet.agent) {
             throw new Error('Blocklet agent api not found.');
           }
@@ -309,7 +309,7 @@ export abstract class AgentExecutorBase {
           const chat = parameter.source.chatHistory;
 
           // eslint-disable-next-line no-await-in-loop
-          const blocklet = await this.context.getBlockletAgent(HISTORY_API_DID);
+          const blocklet = await this.context.getBlockletAgent(HISTORY_API_ID);
           if (!blocklet.agent) {
             throw new Error('Blocklet agent api not found.');
           }
