@@ -2,6 +2,9 @@ name: Playwright Tests
 
 env:
   NODE_OPTIONS: '--max_old_space_size=6144'
+  ABT_NODE_HOST: '172.17.0.1'
+  ABT_NODE_MAX_CLUSTER_SIZE: 1
+  COMPONENT_STORE_URL: ${{ secrets.STORE_ENDPOINT_TEST }}
 
 on:
   push:
@@ -13,6 +16,11 @@ jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
+    container:
+      image: ubuntu:latest
+      ports:
+        - 9898:9898
+        - 9899:9899
 
     if: "! contains(toJSON(github.event.commits.*.message), '[skip ci]')"
 
@@ -39,8 +47,6 @@ jobs:
         run: pnpm install
 
       - name: Bundle blocklets
-        env:
-          COMPONENT_STORE_URL: ${{ secrets.STORE_ENDPOINT_TEST }}
         run: |
           pnpm build:libs
           pnpm -F ai-studio -F ai-runtime bundle
