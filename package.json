@@ -47,7 +47,7 @@
   "devDependencies": {
     "@arcblock/eslint-config": "^0.2.4",
     "@arcblock/eslint-config-ts": "^0.2.4",
-    "@blocklet/testlab": "^0.0.9",
+    "@blocklet/testlab": "^0.0.10",
     "@playwright/test": "^1.45.1",
     "bumpp": "^8.2.1",
     "eslint": "^8.57.0",
