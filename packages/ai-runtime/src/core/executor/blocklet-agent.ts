@@ -7,7 +7,7 @@ import { AgentExecutorBase, AgentExecutorOptions } from './base';
 
 export class BlockletAgentExecutor extends AgentExecutorBase {
   override async process(agent: BlockletAgent & GetAgentResult, { inputs, parameters }: AgentExecutorOptions) {
-    const blocklet = await this.getBlockletAgent(agent.id, agent);
+    const blocklet = await this.context.getBlockletAgent(agent.id);
     if (!blocklet.api) {
       throw new Error('Blocklet agent api not found.');
     }

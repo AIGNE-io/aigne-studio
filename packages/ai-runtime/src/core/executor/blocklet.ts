@@ -1,6 +1,14 @@
+import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
+import flattenApiStructure from '@blocklet/dataset-sdk/util/flatten-open-api';
+import config from '@blocklet/sdk/lib/config';
+import axios from 'axios';
 import { Base64 } from 'js-base64';
+import { joinURL } from 'ufo';
 
 import { AIGNE_RUNTIME_COMPONENT_DID } from '../../constants';
+import { StringParameter } from '../../types';
+import { GetAgentResult } from '../assistant/type';
+import { nextTaskId } from '../utils/task-id';
 
 export const HISTORY_API_DID = Base64.encodeURI(['/api/messages', 'get'].join('/'));
 export const KNOWLEDGE_API_DID = Base64.encodeURI(['/api/datasets/{datasetId}/search', 'get'].join('/'));
@@ -286,4 +294,89 @@ export const buildInOpenAPI = {
       'x-method': 'get',
     },
   },
+};
+
+type OpenAPIResponseSchema = {
+  type: string;
+  properties?: { [key: string]: OpenAPIResponseSchema };
+  items?: OpenAPIResponseSchema;
+};
+
+function convertSchemaToVariableType(schema: OpenAPIResponseSchema): any {
+  switch (schema.type) {
+    case 'string':
+      return { type: 'string', defaultValue: '' };
+    case 'number':
+      return { type: 'number', defaultValue: 0 };
+    case 'boolean':
+      return { type: 'boolean', defaultValue: false };
+    case 'object':
+      return {
+        type: 'object',
+        properties: schema.properties
+          ? Object.entries(schema.properties).map(([key, value]) => ({
+              id: key,
+              name: key,
+              ...convertSchemaToVariableType(value),
+            }))
+          : [],
+      };
+    case 'array':
+      return {
+        type: 'array',
+        element: schema.items ? convertSchemaToVariableType(schema.items) : undefined,
+      };
+    default:
+      throw new Error(`Unsupported schema type: ${schema.type}`);
+  }
+}
+
+export const getBlockletAgent = async (agentId: string, user: { id: string; did: string }) => {
+  const blockletAgent = {
+    type: 'blocklet',
+    id: agentId,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    createdBy: user.did,
+    updatedBy: user.did,
+
+    project: {},
+    identity: {},
+  } as GetAgentResult;
+
+  const result = await axios.get(joinURL(config.env.appUrl, '/.well-known/service/openapi.json'));
+
+  if (result.status !== 200) {
+    throw new Error('Failed to get agent result');
+  }
+
+  const openApis = [...flattenApiStructure(result.data), ...flattenApiStructure({ paths: buildInOpenAPI } as any)];
+  const agents = openApis.map((i) => {
+    const properties = i?.responses?.['200']?.content?.['application/json']?.schema?.properties || {};
+
+    return {
+      ...blockletAgent,
+      name: i?.summary,
+      description: i?.description,
+      parameters: getAllParameters(i)
+        .map((i) => {
+          return {
+            id: nextTaskId(),
+            type: 'string',
+            key: i.name,
+          };
+        })
+        .filter((i) => i.key) as StringParameter[],
+      outputVariables: Object.entries(properties).map(([key, value]: any) => ({
+        id: key,
+        name: key,
+        ...convertSchemaToVariableType(value),
+      })),
+    };
+  });
+
+  return {
+    agents,
+    openApis,
+  };
 };
