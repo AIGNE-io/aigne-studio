@@ -12,12 +12,6 @@ export default function Home() {
   const { session } = useSessionContext();
   const isAdmin = useIsRole(['owner', 'admin']);
 
-  async function getTestData() {
-    const res = await fetch('/ai/api/data');
-    const data = await res.json();
-    console.log(data);
-  }
-
   return (
     <Dashboard
       HeaderProps={{
@@ -37,12 +31,6 @@ export default function Home() {
             <Typography variant="body1" component="div">
               {blocklet.appDescription}
             </Typography>
-
-            <Box>{new Date().toLocaleString()}</Box>
-
-            <button type="button" onClick={getTestData}>
-              测试
-            </button>
 
             <Stack direction="row" gap={3}>
               {!isAdmin && (
