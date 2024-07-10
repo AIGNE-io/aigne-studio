@@ -1,12 +1,12 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { Autocomplete, Box, MenuItem, Stack, TextField, TextFieldProps } from '@mui/material';
+import { Autocomplete, ListItem, ListItemIcon, ListItemText, MenuItem, TextField, TextFieldProps } from '@mui/material';
 import { forwardRef } from 'react';
 
 import { languages } from '../../constant/languages';
 import { SelectParameter } from '../../types/assistant';
 
 type Option = {
-  ch: string;
+  name: string;
   en: string;
   cn: string;
   abbr: string;
@@ -18,7 +18,7 @@ const filter = (options: Option[], state: { inputValue: string }) => {
     if (state.inputValue) {
       return (
         o.en.toLowerCase().includes(state.inputValue.toLowerCase()) ||
-        o.ch.toLowerCase().includes(state.inputValue.toLowerCase())
+        o.name.toLowerCase().includes(state.inputValue.toLowerCase())
       );
     }
 
@@ -79,16 +79,12 @@ const LanguageField = forwardRef<
       renderOption={(props, option) => {
         return (
           <MenuItem {...props}>
-            <Stack direction="row" gap={1}>
-              <Box>
+            <ListItem sx={{ py: 0 }}>
+              <ListItemIcon>
                 <option.flag />
-              </Box>
-              <Box>
-                {`${option.ch} `}
-                {locale === 'zh' ? option.cn : option.en}
-              </Box>
-              <Box>{`(${option.abbr})`}</Box>
-            </Stack>
+              </ListItemIcon>
+              <ListItemText primary={`${option.name} ${locale === 'zh' ? option.cn : option.en} (${option.abbr})`} />
+            </ListItem>
           </MenuItem>
         );
       }}
