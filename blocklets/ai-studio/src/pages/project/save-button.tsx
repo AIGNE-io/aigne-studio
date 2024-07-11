@@ -5,7 +5,7 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
 import FloppyIcon from '@iconify-icons/tabler/device-floppy';
-import { DownloadRounded, SyncRounded, UploadRounded, WarningRounded } from '@mui/icons-material';
+import { Doorbell, DownloadRounded, SyncRounded, UploadRounded, WarningRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
   Alert,
@@ -59,10 +59,12 @@ export default function SaveButton({
 }) {
   const { t } = useLocaleContext();
   const dialogState = usePopupState({ variant: 'dialog' });
-  const [loading, setLoading] = useState(false);
+  const [githubLoading, setGithubLoading] = useState(false);
+  const [didSpaceLoading, setDidSpaceLoading] = useState(false);
+
   const { disabled: disabledButton } = useAssistantChangesState(projectId, gitRef);
   const form = useForm<CommitForm>({});
-  const submitting = form.formState.isSubmitting || loading;
+  const submitting = form.formState.isSubmitting || githubLoading || didSpaceLoading;
 
   return (
     <>
@@ -108,7 +110,8 @@ export default function SaveButton({
         projectId={projectId}
         gitRef={gitRef}
         dialogState={dialogState}
-        setLoading={setLoading}
+        setGithubLoading={setGithubLoading}
+        setDidSpaceLoading={setDidSpaceLoading}
         form={form}
       />
     </>
@@ -119,7 +122,8 @@ export function SaveButtonDialog({
   projectId,
   gitRef,
   dialogState,
-  setLoading,
+  setGithubLoading,
+  setDidSpaceLoading,
   form,
   dialogProps,
   dialogContent,
@@ -127,7 +131,8 @@ export function SaveButtonDialog({
   projectId: string;
   gitRef: string;
   dialogState: PopupState;
-  setLoading: (data: any) => void;
+  setGithubLoading: (data: any) => void;
+  setDidSpaceLoading: (data: any) => void;
   form: UseFormReturn<CommitForm, any, undefined>;
   dialogProps?: Omit<DialogProps, 'open'>;
   dialogContent?: any;
@@ -137,11 +142,6 @@ export function SaveButtonDialog({
 
   const { dialog, showMergeConflictDialog } = useMergeConflictDialog({ projectId });
   const { dialog: unauthorizedDialog, showUnauthorizedDialog } = useUnauthorizedDialog({ projectId });
-
-  const ref = useRef({
-    syncToDidSpaceDone: false,
-    syncToGitDone: false,
-  });
 
   const setProjectCurrentBranch = useCurrentGitStore((i) => i.setProjectCurrentBranch);
 
@@ -255,41 +255,42 @@ export function SaveButtonDialog({
 
   const sub = useSubscription(projectId);
   useEffect(() => {
+    const fn = (
+      data: { response: { done: boolean; error: Error } },
+      options: {
+        name: string;
+        fn: (data: boolean) => void;
+      }
+    ) => {
+      const done = data.response?.done;
+      options.fn(!done);
+
+      if (!done) return;
+
+      if (data.response.error) {
+        Toast.error(data.response.error.message);
+      } else {
+        refetch();
+        Toast.success(`${options.name} ${t('synced')}`);
+      }
+    };
+
+    const DIDSpaceFn = (data: { response: { done: boolean; error: Error } }) =>
+      fn(data, { name: 'DID Space', fn: setDidSpaceLoading });
+    const githubFn = (data: { response: { done: boolean; error: Error } }) =>
+      fn(data, { name: 'GitHub', fn: setGithubLoading });
+
     if (sub) {
-      sub.on(EVENTS.PROJECT.SYNC_TO_DID_SPACE, (data: { response: { done: boolean; error: Error } }) => {
-        const done = data.response?.done;
-
-        ref.current.syncToDidSpaceDone = done;
-
-        setLoading(!(ref.current.syncToDidSpaceDone && ref.current.syncToGitDone));
-
-        if (!done) return;
-
-        if (data.response.error) {
-          Toast.error(data.response.error.message);
-        } else {
-          refetch();
-          Toast.success(`DID Space ${t('synced')}`);
-        }
-      });
-
-      sub.on(EVENTS.PROJECT.SYNC_TO_GIT, (data: { response: { done: boolean; error: Error } }) => {
-        const done = data.response?.done;
-
-        ref.current.syncToGitDone = done;
-
-        setLoading(!(ref.current.syncToDidSpaceDone && ref.current.syncToGitDone));
-
-        if (!done) return;
-
-        if (data.response.error) {
-          Toast.error(data.response.error.message);
-        } else {
-          refetch();
-          Toast.success(`Github ${t('synced')}`);
-        }
-      });
+      sub.on(EVENTS.PROJECT.SYNC_TO_DID_SPACE, DIDSpaceFn);
+      sub.on(EVENTS.PROJECT.SYNC_TO_GIT, githubFn);
     }
+
+    return () => {
+      if (sub) {
+        sub.off(EVENTS.PROJECT.SYNC_TO_DID_SPACE, DIDSpaceFn);
+        sub.off(EVENTS.PROJECT.SYNC_TO_GIT, githubFn);
+      }
+    };
   }, [sub]);
 
   return (

@@ -270,46 +270,33 @@ export const autoSyncIfNeeded = async ({
     const repository = await getRepository({ projectId: project.id! });
     const remote = (await repository.listRemotes()).find((i) => i.remote === defaultRemote);
     if (remote && parseAuth(parseURL(remote.url).auth).password) {
-      broadcast(project.id, EVENTS.PROJECT.SYNC_TO_GIT, {
-        done: false,
-      });
+      broadcast(project.id, EVENTS.PROJECT.SYNC_TO_GIT, { done: false });
 
       await syncRepository({ repository, ref: project.gitDefaultBranch, author });
       await project.update({ gitLastSyncedAt: new Date() }, { silent: true });
 
-      broadcast(project.id, EVENTS.PROJECT.SYNC_TO_GIT, {
-        done: true,
-      });
+      broadcast(project.id, EVENTS.PROJECT.SYNC_TO_GIT, { done: true });
     }
   }
 
   if (project.didSpaceAutoSync) {
-    broadcast(project.id, EVENTS.PROJECT.SYNC_TO_DID_SPACE, {
-      done: false,
-    });
+    broadcast(project.id, EVENTS.PROJECT.SYNC_TO_DID_SPACE, { done: false });
 
     if (wait) {
       await syncToDidSpace({ project, userId });
 
-      broadcast(project.id, EVENTS.PROJECT.SYNC_TO_DID_SPACE, {
-        done: true,
-      });
+      broadcast(project.id, EVENTS.PROJECT.SYNC_TO_DID_SPACE, { done: true });
     } else {
       // 开始同步
       syncToDidSpace({ project, userId })
         .then(() => {
           // 同步成功
-          broadcast(project.id, EVENTS.PROJECT.SYNC_TO_DID_SPACE, {
-            done: true,
-          });
+          broadcast(project.id, EVENTS.PROJECT.SYNC_TO_DID_SPACE, { done: true });
         })
         .catch((error) => {
           // 同步失败了
           logger.error(error);
-          broadcast(project.id, EVENTS.PROJECT.SYNC_TO_DID_SPACE, {
-            error,
-            done: true,
-          });
+          broadcast(project.id, EVENTS.PROJECT.SYNC_TO_DID_SPACE, { error, done: true });
         });
     }
   }
