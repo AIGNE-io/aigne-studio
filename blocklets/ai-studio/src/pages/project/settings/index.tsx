@@ -1,5 +1,6 @@
+import { useCurrentProject } from '@app/contexts/project';
 import { TOOL_TIP_LEAVE_TOUCH_DELAY } from '@app/libs/constants';
-import { getDefaultBranch } from '@app/store/current-git-store';
+import { getDefaultBranch, useCurrentGitStore } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { defaultTextModel, getSupportedModels } from '@blocklet/ai-runtime/common';
@@ -41,7 +42,7 @@ import ModelSelectField from '../../../components/selector/model-select-field';
 import SliderNumberField from '../../../components/slider-number-field';
 import { useReadOnly, useSessionContext } from '../../../contexts/session';
 import { getErrorMessage } from '../../../libs/api';
-import { getProjectIconUrl } from '../../../libs/project';
+import { getProjectIconUrl, uploadAsset, uploadProjectIcon } from '../../../libs/project';
 import useDialog from '../../../utils/use-dialog';
 import InfoOutlined from '../icons/question';
 import { useProjectState } from '../state';
@@ -65,8 +66,7 @@ const init = {
 
 export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxProps; onClose?: () => void }) {
   const { t } = useLocaleContext();
-  const { projectId = '' } = useParams();
-  if (!projectId) throw new Error('Missing required params `projectId`');
+  const { projectId, projectRef } = useCurrentProject();
 
   const readOnly = useReadOnly({ ref: getDefaultBranch() });
   const { dialog, showDialog } = useDialog();
@@ -75,6 +75,7 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
   const isSubmit = useRef(false);
   const origin = useRef<UpdateProjectInput>();
   const { session } = useSessionContext();
+  const getCurrentBranch = useCurrentGitStore((i) => i.getCurrentBranch);
 
   const tabListInfo: { list: string[] } = {
     list: [
@@ -114,12 +115,12 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
         'gitType',
         'appearance',
       ]);
-      merge.icon = getProjectIconUrl(projectId, project.updatedAt, { original: true });
+      merge.icon = getProjectIconUrl(projectId, project.updatedAt, { original: true }, getCurrentBranch());
 
       origin.current = merge;
       setValue(merge);
     }
-  }, [project, projectId]);
+  }, [getCurrentBranch, project, projectId]);
 
   const set = (key: string, value: any) => {
     setValue((r) => ({ ...r, [key]: value }));
@@ -263,7 +264,14 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                   <Typography variant="subtitle2" mb={0.5}>
                     {t('avatar')}
                   </Typography>
-                  <Avatar value={value.icon ?? ''} onChange={(d: any) => set('icon', d)} />
+                  <Avatar
+                    value={value.icon ?? ''}
+                    onChange={(source) => {
+                      uploadAsset({ projectId, ref: projectRef, source, type: 'logo' });
+                      // uploadProjectIcon(projectId, getCurrentBranch(), d);
+                      // set('icon', d);
+                    }}
+                  />
                 </Box>
                 <Box>
                   <Typography variant="subtitle2" mb={0.5}>

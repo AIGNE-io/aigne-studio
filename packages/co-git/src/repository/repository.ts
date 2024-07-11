@@ -10,6 +10,7 @@ import Queue from 'queue';
 import Working from './working';
 
 export interface RepositoryOptions<T> {
+  assets?: string[];
   root: string;
   parse: (
     filepath: string,
@@ -151,7 +152,9 @@ export default class Repository<T> {
     return git.log({ fs, gitdir: this.gitdir, ref, filepath, force: true, follow: true });
   }
 
-  async statusMatrix(options?: Omit<Parameters<typeof git.statusMatrix>[0], 'fs' | 'dir' | '.gitdir'>) {
+  async statusMatrix(
+    options?: Omit<Parameters<typeof git.statusMatrix>[0], 'fs' | 'dir' | '.gitdir'> & { dir?: string }
+  ) {
     return git.statusMatrix({ fs, dir: this.root, ...options });
   }
 
@@ -198,7 +201,7 @@ export default class Repository<T> {
     });
   }
 
-  async checkout(options?: Omit<Parameters<typeof git.checkout>[0], 'fs' | 'dir'>) {
+  async checkout(options?: Omit<Parameters<typeof git.checkout>[0], 'fs' | 'dir'> & { dir?: string }) {
     return git.checkout({
       fs,
       dir: this.root,
@@ -250,19 +253,19 @@ export default class Repository<T> {
 export class Transaction<T> {
   constructor(public readonly repo: Repository<T>) {}
 
-  async checkout(options: Omit<Parameters<typeof git.checkout>[0], 'fs' | 'dir' | '.gitdir'>) {
+  async checkout(options: Omit<Parameters<typeof git.checkout>[0], 'fs' | 'dir' | '.gitdir'> & { dir?: string }) {
     await git.checkout({ fs, dir: this.repo.root, ...options });
   }
 
-  async add(options: Omit<Parameters<typeof git.add>[0], 'fs' | 'dir' | '.gitdir'>) {
+  async add(options: Omit<Parameters<typeof git.add>[0], 'fs' | 'dir' | '.gitdir'> & { dir?: string }) {
     return git.add({ fs, dir: this.repo.root, ...options });
   }
 
-  async remove(options: Omit<Parameters<typeof git.remove>[0], 'fs' | 'dir' | '.gitdir'>) {
+  async remove(options: Omit<Parameters<typeof git.remove>[0], 'fs' | '.gitdir'>) {
     return git.remove({ fs, dir: this.repo.root, ...options });
   }
 
-  async commit(options: Omit<Parameters<typeof git.commit>[0], 'fs' | 'dir' | '.gitdir'>) {
+  async commit(options: Omit<Parameters<typeof git.commit>[0], 'fs' | '.gitdir'>) {
     return git.commit({ fs, dir: this.repo.root, ...options });
   }
 }

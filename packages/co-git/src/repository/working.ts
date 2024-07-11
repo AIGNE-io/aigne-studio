@@ -34,6 +34,8 @@ export type WorkingStore<T> = {
 
 const YJS_STATE_FILE_PATH = (root: string) => path.join(root, 'state.yjs');
 
+const WORKING_DIR = (root: string) => path.join(root, 'working');
+
 export default class Working<T> extends Doc {
   static async load<T>(repo: Repository<T>, options: WorkingOptions) {
     const yjsPath = YJS_STATE_FILE_PATH(options.root);
@@ -68,7 +70,13 @@ export default class Working<T> extends Doc {
     return YJS_STATE_FILE_PATH(this.options.root);
   }
 
+  get workingDir() {
+    return WORKING_DIR(this.options.root);
+  }
+
   async reset() {
+    await this.repo.checkout({ dir: this.workingDir, ref: this.options.ref, force: true });
+
     const files = await Promise.all(
       (await this.repo.listFiles({ ref: this.options.ref })).map(async (p) => {
         const content = (await this.repo.readBlob({ ref: this.options.ref, filepath: p })).blob;
@@ -113,18 +121,15 @@ export default class Working<T> extends Doc {
         await this.repo.branch({ ref: branch, object });
       }
 
-      // Checkout
-      await tx.checkout({ ref: branch, force: true });
-
       // Delete all files
       const originalFiles = await this.repo.listFiles({ ref: branch });
       for (const filepath of originalFiles) {
-        await rm(path.join(this.repo.root, filepath), { recursive: true, force: true });
-        await tx.remove({ filepath });
-        await rm(path.join(this.repo.options.root, filepath), { force: true });
+        if (!this.repo.options.assets?.some((filter) => filepath.startsWith(filter))) {
+          await rm(path.join(this.workingDir, filepath!), { recursive: true, force: true });
+          await tx.remove({ filepath });
+        }
       }
 
-      // Add all files from working
       const files = this.files();
       for (const [originalFilepath, file] of files) {
         let fileObjects = await this.repo.options.stringify(originalFilepath, file);
@@ -136,7 +141,7 @@ export default class Working<T> extends Doc {
         }
 
         for (const { filepath, data } of fileObjects) {
-          const newPath = path.join(this.repo.options.root, filepath);
+          const newPath = path.join(this.workingDir, filepath);
           await mkdir(path.dirname(newPath), { recursive: true });
           await writeFile(newPath, data);
 
@@ -147,13 +152,13 @@ export default class Working<T> extends Doc {
       await beforeCommit?.({ tx });
 
       if (skipCommitIfNoChanges) {
-        const changes = await this.repo.statusMatrix();
+        const changes = await this.repo.statusMatrix({ dir: this.workingDir });
         if (changes.every((i) => i[1] === 1 && i[2] === 1 && i[3] === 1)) {
           return undefined;
         }
       }
 
-      return tx.commit({ message, author });
+      return tx.commit({ dir: this.workingDir, message, author });
     });
 
     if (!res) return res;
