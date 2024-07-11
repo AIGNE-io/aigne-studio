@@ -1,3 +1,7 @@
+## 0.3.28 (2024-7-11)
+
+- fix: auto sync loading
+
 ## 0.3.27 (2024-7-11)
 
 - fix: multiple scrollbars of upload logo dialog
