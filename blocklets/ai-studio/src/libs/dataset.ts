@@ -43,7 +43,8 @@ export async function searchKnowledge({
 export async function getAPIList(): Promise<DatasetObject[]> {
   return axios
     .get('/.well-known/service/openapi.json', { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
-    .then((res) => flattenApiStructure(res.data));
+    .then((res) => flattenApiStructure(res.data))
+    .catch(() => []);
 }
 
 export async function getDatasets({ projectId }: { projectId?: string }): Promise<Dataset[]> {

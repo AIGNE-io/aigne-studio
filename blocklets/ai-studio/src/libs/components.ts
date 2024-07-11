@@ -47,16 +47,19 @@ export async function getComponent({
 }
 
 export async function getOpenComponents(): Promise<RemoteComponent[]> {
-  return axios.get('/.well-known/service/opencomponent.json', { baseURL: AIGNE_RUNTIME_MOUNT_POINT }).then((res) =>
-    Object.entries(res.data?.paths || {}).map(([, val]: [string, any]) => {
-      return {
-        name: val?.summary,
-        description: val?.description,
-        tags: val['x-tags'],
-        url: val['x-path'],
-        did: val['x-did'],
-        parameter: {},
-      };
-    })
-  );
+  return axios
+    .get('/.well-known/service/opencomponent.json', { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
+    .then((res) =>
+      Object.entries(res.data?.paths || {}).map(([, val]: [string, any]) => {
+        return {
+          name: val?.summary,
+          description: val?.description,
+          tags: val['x-tags'],
+          url: val['x-path'],
+          did: val['x-did'],
+          parameter: {},
+        };
+      })
+    )
+    .catch(() => []);
 }

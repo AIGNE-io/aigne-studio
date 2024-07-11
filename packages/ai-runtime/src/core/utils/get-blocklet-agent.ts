@@ -344,13 +344,15 @@ export const getBlockletAgent = async (user: { id: string; did: string }) => {
     identity: {},
   } as GetAgentResult;
 
-  const result = await axios.get(joinURL(config.env.appUrl, '/.well-known/service/openapi.json'));
-
-  if (result.status !== 200) {
-    throw new Error('Failed to get agent result');
+  let list = {};
+  try {
+    const result = await axios.get(joinURL(config.env.appUrl, '/.well-known/service/openapi.json'));
+    list = result.data;
+  } catch (error) {
+    list = {};
   }
 
-  const openApis = [...flattenApiStructure(result.data), ...flattenApiStructure({ paths: buildInOpenAPI } as any)];
+  const openApis = [...flattenApiStructure(list as any), ...flattenApiStructure({ paths: buildInOpenAPI } as any)];
   const agents = openApis.map((i) => {
     const properties = i?.responses?.['200']?.content?.['application/json']?.schema?.properties || {};
 
