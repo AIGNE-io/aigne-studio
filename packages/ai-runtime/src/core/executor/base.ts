@@ -183,7 +183,6 @@ export abstract class AgentExecutorBase {
           }) ?? []
       )
     );
-
     const inputVariables: { [key: string]: any } = { ...(inputs || {}), ...(variables || {}), ...inputParameters };
 
     const userId = this.context.user.did;
