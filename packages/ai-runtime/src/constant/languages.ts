@@ -1,12 +1,13 @@
 import {
   Bg,
-  Ch,
+  Cn,
   Cz,
   De,
   Dk,
   Es,
   Fi,
   Fr,
+  Gb,
   Gr,
   Hu,
   Id,
@@ -27,13 +28,12 @@ import {
   Th,
   Tr,
   Tw,
-  Us,
   Vn,
 } from 'react-flags-select';
 
 export const languages = [
-  { en: 'English', name: 'English', abbr: 'US', flag: Us, cn: '英语' },
-  { en: 'Simplified Chinese', name: '简体中文', abbr: 'CH', flag: Ch, cn: '简体中文' },
+  { en: 'English', name: 'English', abbr: 'GB', flag: Gb, cn: '英语' },
+  { en: 'Simplified Chinese', name: '简体中文', abbr: 'CN', flag: Cn, cn: '简体中文' },
   { en: 'Traditional Chinese', name: '繁体中文', abbr: 'ZH-TW', flag: Tw, cn: '繁体中文' },
   { en: 'Spanish', name: 'Español', abbr: 'ES', flag: Es, cn: '西班牙语' },
   { en: 'French', name: 'Français', abbr: 'FR', flag: Fr, cn: '法语' },
