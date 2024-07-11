@@ -91,7 +91,7 @@ export class ExecutorContext {
   }
 
   async getBlockletAgent(agentId: string) {
-    this.promise ??= getBlockletAgent('', this.user);
+    this.promise ??= getBlockletAgent(this.user);
 
     const { agents, openApis } = await this.promise;
     const foundIndex = openApis.findIndex((x) => x.id === agentId);

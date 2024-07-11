@@ -331,10 +331,10 @@ function convertSchemaToVariableType(schema: OpenAPIResponseSchema): any {
   }
 }
 
-export const getBlockletAgent = async (agentId: string, user: { id: string; did: string }) => {
+export const getBlockletAgent = async (user: { id: string; did: string }) => {
   const blockletAgent = {
     type: 'blocklet',
-    id: agentId,
+    id: '',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     createdBy: user.did,
@@ -375,8 +375,5 @@ export const getBlockletAgent = async (agentId: string, user: { id: string; did:
     };
   });
 
-  return {
-    agents,
-    openApis,
-  };
+  return { agents, openApis };
 };
