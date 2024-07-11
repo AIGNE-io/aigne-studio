@@ -1,7 +1,7 @@
 {
   "name": "ai-studio",
   "private": true,
-  "version": "0.3.26",
+  "version": "0.3.29",
   "workspaces": [
     "blocklets/*",
     "packages/*"
@@ -60,7 +60,7 @@
     "npm-run-all": "^4.1.5",
     "prettier": "^3.3.2",
     "prettier-plugin-import-sort": "^0.0.7",
-    "rimraf": "^6.0.0",
+    "rimraf": "^6.0.1",
     "start-server-and-test": "^2.0.4",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",

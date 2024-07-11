@@ -9,7 +9,7 @@ import {
   IconButton,
   Stack,
 } from '@mui/material';
-import type { BoxProps, DialogProps } from '@mui/material';
+import type { DialogContentProps, DialogProps } from '@mui/material';
 import { ReactNode, useCallback, useMemo, useState } from 'react';
 
 import PromiseLoadingButton from '../components/promise-loading-button';
@@ -41,7 +41,7 @@ export default function useDialog() {
       onMiddleClick,
       onCancel,
       formSx,
-      BodyProps,
+      DialogContentProps,
       ...props
     }: {
       title?: ReactNode;
@@ -59,16 +59,19 @@ export default function useDialog() {
       onMiddleClick?: () => Promise<any> | any;
       onCancel?: () => Promise<any> | any;
       onClose?: () => any;
-      BodyProps?: BoxProps;
+      DialogContentProps?: DialogContentProps;
       formSx?: any;
     } & Omit<DialogProps, 'title' | 'open' | 'content' | 'onClose'>) => {
       setProps({
         ...props,
         open: true,
+        component: 'form',
+        onSubmit: (e) => e.preventDefault(),
+        sx: { ...(formSx || {}) },
         children: (
-          <Box {...BodyProps} component="form" onSubmit={(e) => e.preventDefault()} sx={{ ...(formSx || {}) }}>
+          <>
             {title && (
-              <DialogTitle className="between">
+              <DialogTitle className="between" zIndex="appBar" bgcolor="background.paper">
                 <Box>{title}</Box>
 
                 <IconButton
@@ -83,8 +86,8 @@ export default function useDialog() {
               </DialogTitle>
             )}
             {content && (
-              <DialogContent sx={{ mt: -3 }}>
-                <Box pt={3}>{content}</Box>
+              <DialogContent {...DialogContentProps} sx={{ py: 1, ...DialogContentProps?.sx }}>
+                <Box>{content}</Box>
               </DialogContent>
             )}
             <DialogActions sx={{ justifyContent: 'space-between', pl: 3 }}>
@@ -134,7 +137,7 @@ export default function useDialog() {
                 )}
               </Stack>
             </DialogActions>
-          </Box>
+          </>
         ),
         onClose: async () => {
           await onCancel?.();
