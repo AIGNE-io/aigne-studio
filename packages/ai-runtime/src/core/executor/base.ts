@@ -1,4 +1,3 @@
-/* eslint-disable no-await-in-loop */
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { call } from '@blocklet/sdk/lib/component';
 import { logger } from '@blocklet/sdk/lib/config';
