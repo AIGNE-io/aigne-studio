@@ -1,6 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { Avatar, Box, Tooltip } from '@mui/material';
+import { Avatar, Tooltip } from '@mui/material';
 import { useRef } from 'react';
 
 import useDialog from '../../utils/use-dialog';
@@ -29,19 +29,19 @@ export default function ProjectSettingsAvatar({ value, onChange }: { value: stri
               fullWidth: true,
               maxWidth: 'sm',
               title: t('projectSetting.icon'),
+              DialogContentProps: { sx: { height: 500, maxHeight: '70vh' } },
+              scroll: 'paper',
               content: (
-                <Box height={500} overflow="auto">
-                  <GalleryImageList
-                    ref={gallery}
-                    onChange={(...arg) => {
-                      closeDialog();
-                      onChange(...arg);
-                    }}
-                    onSelected={(data) => {
-                      selected = data;
-                    }}
-                  />
-                </Box>
+                <GalleryImageList
+                  ref={gallery}
+                  onChange={(...arg) => {
+                    closeDialog();
+                    onChange(...arg);
+                  }}
+                  onSelected={(data) => {
+                    selected = data;
+                  }}
+                />
               ),
               cancelText: t('cancel'),
               okText: t('confirm'),

@@ -1,3 +1,7 @@
+## 0.3.27 (2024-7-11)
+
+- fix: multiple scrollbars of upload logo dialog
+
 ## 0.3.26 (2024-7-11)
 
 - fix: github and did space sync
