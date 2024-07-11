@@ -83,6 +83,11 @@ router.get('/:aid', async (req, res) => {
     return;
   }
 
+  if (agent.type === 'blocklet') {
+    res.status(404).json({ message: 'This is blocklet Agent' });
+    return;
+  }
+
   res.json({
     ...respondAgentFields(agent),
     config: {
@@ -137,7 +142,9 @@ router.get('/:aid/assets/:filename', async (req, res) => {
 });
 
 const respondAgentFields = (
-  agent: Omit<GetAgentResult, 'identity'> & { identity: Omit<GetAgentResult['identity'], 'aid'> }
+  agent: Omit<Exclude<GetAgentResult, { type: 'blocklet' }>, 'identity'> & {
+    identity: Omit<Exclude<GetAgentResult, { type: 'blocklet' }>['identity'], 'aid'>;
+  }
 ) => ({
   ...pick(agent, 'id', 'name', 'description', 'type', 'parameters', 'createdAt', 'updatedAt', 'createdBy', 'identity'),
   outputVariables: (agent.outputVariables ?? []).filter((i) => !i.hidden),

@@ -29,7 +29,7 @@ export class RuntimeExecutor extends AgentExecutorBase {
   }
 
   override async execute(agent: GetAgentResult, options: AgentExecutorOptions): Promise<any> {
-    if (this.parentAgent) {
+    if (this.parentAgent?.identity && agent.identity) {
       agent.identity.blockletDid ||= this.parentAgent.identity.blockletDid;
       agent.identity.projectId ||= this.parentAgent.identity.projectId;
       agent.identity.projectRef ||= this.parentAgent.identity.projectRef;

@@ -408,8 +408,8 @@ export class DecisionAgentExecutor extends AgentExecutorBase {
             const result = await this.context
               .executor({ ...this.context, callback: cb } as ExecutorContext)
               .execute(blocklet.agent, {
-                inputs: { ...inputs, ...requestData },
-                parameters: tool.tool.parameters,
+                inputs: tool.tool.parameters,
+                variables: { ...inputs, ...requestData },
                 taskId: currentTaskId,
                 parentTaskId: taskId,
               });

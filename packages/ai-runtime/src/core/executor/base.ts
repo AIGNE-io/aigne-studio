@@ -97,7 +97,7 @@ export class ExecutorContext {
 
     const { openApis, agentsMap } = await this.promise;
 
-    return { agent: agentsMap[agentId]!, api: agentsMap[agentId]?.openApi!, openApis };
+    return { agent: agentsMap[agentId]!, openApis };
   }
 }
 

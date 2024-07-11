@@ -107,6 +107,8 @@ export async function getAgent({
 }
 
 export async function getAgentSecretInputs(agent: GetAgentResult) {
+  if (!agent.project) return [];
+
   const projectId = agent.project.id;
 
   const secrets = await resolveSecretInputs(agent, { getAgent });
@@ -127,12 +129,12 @@ export async function getAgentSecretInputs(agent: GetAgentResult) {
   ).filter((i): i is NonNullable<typeof i> => !!i);
 
   return secrets.map((i) => ({
-    targetProjectId: i.agent.project.id,
+    targetProjectId: i.agent.project?.id,
     targetAgentId: i.agent.id,
     targetInput: i.input,
     hasValue: readySecrets.some(
       (j) =>
-        j.targetInputKey === i.input.key && j.targetProjectId === i.agent.project.id && j.targetAgentId === i.agent.id
+        j.targetInputKey === i.input.key && j.targetProjectId === i.agent.project?.id && j.targetAgentId === i.agent.id
     ),
   }));
 }

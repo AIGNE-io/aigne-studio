@@ -12,6 +12,8 @@ export async function resolveSecretInputs(
     input: SourceParameter & { key: string; source: SecretParameter };
   }[]
 > {
+  if (!agent.project) return [];
+
   const secretInputs = (agent.parameters ?? [])
     .filter(
       (i): i is SourceParameter & { key: string; source: SecretParameter } =>
@@ -55,5 +57,5 @@ export async function resolveSecretInputs(
     .flat()
     .filter((i): i is NonNullable<typeof i> => !!i);
 
-  return uniqBy([...secretInputs, ...nestedSecretInputs], (i) => `${i.input.id}-${i.agent.id}-${i.agent.project.id}`);
+  return uniqBy([...secretInputs, ...nestedSecretInputs], (i) => `${i.input.id}-${i.agent.id}-${i.agent.project?.id}`);
 }
