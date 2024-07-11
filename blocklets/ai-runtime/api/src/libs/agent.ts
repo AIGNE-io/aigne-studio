@@ -119,7 +119,7 @@ export async function getAgentSecretInputs(agent: GetAgentResult) {
         Secret.findOne({
           where: {
             projectId,
-            targetProjectId: agent.project.id,
+            targetProjectId: projectId,
             targetAgentId: agent.id,
             targetInputKey: input.key,
           },

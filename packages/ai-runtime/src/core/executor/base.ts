@@ -108,6 +108,16 @@ export interface AgentExecutorOptions {
   variables?: { [key: string]: any };
 }
 
+const getUserHeader = (user: any) => {
+  return {
+    'x-user-did': user?.did,
+    'x-user-role': user?.role,
+    'x-user-provider': user?.provider,
+    'x-user-fullname': user?.fullName && encodeURIComponent(user?.fullName),
+    'x-user-wallet-os': user?.walletOS,
+  };
+};
+
 export abstract class AgentExecutorBase {
   constructor(public readonly context: ExecutorContext) {}
 
@@ -184,6 +194,7 @@ export abstract class AgentExecutorBase {
       )
     );
     const inputVariables: { [key: string]: any } = { ...(inputs || {}), ...(variables || {}), ...inputParameters };
+    logger.info('prepareInputs', { inputVariables });
 
     const userId = this.context.user.did;
 
@@ -429,6 +440,7 @@ export abstract class AgentExecutorBase {
       }
     }
 
+    logger.info('merge prepareInputs', { inputVariables });
     return inputVariables;
   }
 
@@ -438,7 +450,7 @@ export abstract class AgentExecutorBase {
   ) {
     const joiSchema = outputVariablesToJoiSchema(
       agent,
-      agent.type === 'blocklet' ? [] : await this.context.getMemoryVariables(agent.identity)
+      agent.identity ? await this.context.getMemoryVariables(agent.identity) : []
     );
     const outputVariables = (agent.outputVariables ?? []).filter((i) => !i.hidden);
 
@@ -458,7 +470,7 @@ export abstract class AgentExecutorBase {
   }
 
   private async postProcessOutputs(agent: GetAgentResult, { outputs }: { outputs: { [key: string]: any } }) {
-    const memoryVariables = agent.type === 'blocklet' ? [] : await this.context.getMemoryVariables(agent.identity);
+    const memoryVariables = agent.identity ? await this.context.getMemoryVariables(agent.identity) : [];
     const outputVariables = (agent.outputVariables ?? []).filter((i) => !i.hidden);
 
     for (const output of outputVariables) {
@@ -497,13 +509,3 @@ export abstract class AgentExecutorBase {
     }
   }
 }
-
-export const getUserHeader = (user: any) => {
-  return {
-    'x-user-did': user?.did,
-    'x-user-role': user?.role,
-    'x-user-provider': user?.provider,
-    'x-user-fullname': user?.fullName && encodeURIComponent(user?.fullName),
-    'x-user-wallet-os': user?.walletOS,
-  };
-};
