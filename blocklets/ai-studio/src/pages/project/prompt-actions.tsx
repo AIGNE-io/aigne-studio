@@ -254,10 +254,12 @@ function SaveAction() {
   const dialogState = usePopupState({ variant: 'dialog' });
   if (!projectId || !gitRef) throw new Error('Missing required params `projectId` or `ref`');
 
-  const [loading, setLoading] = useState(false);
+  const [githubLoading, setGithubLoading] = useState(false);
+  const [didSpaceLoading, setDidSpaceLoading] = useState(false);
+
   const { disabled } = useAssistantChangesState(projectId, gitRef);
   const form = useForm<CommitForm>({});
-  const submitting = form.formState.isSubmitting || loading;
+  const submitting = form.formState.isSubmitting || githubLoading || didSpaceLoading;
 
   return (
     <>
@@ -308,7 +310,8 @@ function SaveAction() {
         projectId={projectId}
         gitRef={gitRef}
         dialogState={dialogState}
-        setLoading={setLoading}
+        setGithubLoading={setGithubLoading}
+        setDidSpaceLoading={setDidSpaceLoading}
         form={form}
         dialogProps={{
           maxWidth: 'md',

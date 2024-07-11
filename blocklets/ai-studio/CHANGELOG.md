@@ -1,6 +1,6 @@
 ## 0.3.28 (2024-7-11)
 
-- fix: auto sync loading
+- fix: the loading indicator is not reset after successful save
 
 ## 0.3.27 (2024-7-11)
 
