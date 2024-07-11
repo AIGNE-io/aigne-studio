@@ -1,3 +1,8 @@
+## 0.3.29 (2024-7-11)
+
+- feat: update call component to blocklet agent
+- feat: migrate local OpenAPI interface to the server.
+
 ## 0.3.28 (2024-7-11)
 
 - fix: the loading indicator is not reset after successful save
