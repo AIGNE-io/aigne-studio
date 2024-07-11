@@ -88,7 +88,7 @@ export default function useDialog() {
               </DialogTitle>
             )}
             {content && (
-              <DialogContent sx={{ mt: -3, ...contentProps?.contentStyle }}>
+              <DialogContent sx={{ mt: -3, ...(contentProps?.contentStyle || {}) }}>
                 {contentProps?.customContent ? content : <Box sx={{ mt: 3 }}>{content}</Box>}
                 <Box>{content}</Box>
               </DialogContent>
