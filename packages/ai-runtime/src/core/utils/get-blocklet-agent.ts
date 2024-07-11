@@ -17,7 +17,7 @@ export const MEMORY_API_ID = Base64.encodeURI(['/api/memories/variable-by-query'
 
 // 内置的 OpenAPI 接口
 export const buildInOpenAPI = {
-  '/ai-studio/api/messages': {
+  '/api/messages': {
     get: {
       summary: 'Get history messages',
       'x-summary-zh': '获取历史信息',
@@ -98,7 +98,7 @@ export const buildInOpenAPI = {
       'x-method': 'get',
     },
   },
-  '/ai-runtime/api/datasets/{datasetId}/search': {
+  '/api/datasets/{datasetId}/search': {
     get: {
       summary: 'Search the knowledge',
       'x-summary-zh': '搜索知识库信息',
@@ -186,7 +186,7 @@ export const buildInOpenAPI = {
       'x-method': 'get',
     },
   },
-  '/ai-runtime/api/memories/variable-by-query': {
+  '/api/memories/variable-by-query': {
     get: {
       summary: 'Get memory variables by query',
       'x-summary-zh': '知识库信息',
