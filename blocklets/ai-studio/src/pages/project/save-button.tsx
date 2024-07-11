@@ -138,6 +138,11 @@ export function SaveButtonDialog({
   const { dialog, showMergeConflictDialog } = useMergeConflictDialog({ projectId });
   const { dialog: unauthorizedDialog, showUnauthorizedDialog } = useUnauthorizedDialog({ projectId });
 
+  const ref = useRef({
+    syncToDidSpaceDone: false,
+    syncToGitDone: false,
+  });
+
   const setProjectCurrentBranch = useCurrentGitStore((i) => i.setProjectCurrentBranch);
 
   const {
@@ -253,16 +258,35 @@ export function SaveButtonDialog({
     if (sub) {
       sub.on(EVENTS.PROJECT.SYNC_TO_DID_SPACE, (data: { response: { done: boolean; error: Error } }) => {
         const done = data.response?.done;
-        setLoading(!done);
 
-        if (!done) {
-          return;
-        }
+        ref.current.syncToDidSpaceDone = done;
+
+        setLoading(!(ref.current.syncToDidSpaceDone && ref.current.syncToGitDone));
+
+        if (!done) return;
 
         if (data.response.error) {
           Toast.error(data.response.error.message);
         } else {
-          Toast.success(t('synced'));
+          refetch();
+          Toast.success(`DID Space ${t('synced')}`);
+        }
+      });
+
+      sub.on(EVENTS.PROJECT.SYNC_TO_GIT, (data: { response: { done: boolean; error: Error } }) => {
+        const done = data.response?.done;
+
+        ref.current.syncToGitDone = done;
+
+        setLoading(!(ref.current.syncToDidSpaceDone && ref.current.syncToGitDone));
+
+        if (!done) return;
+
+        if (data.response.error) {
+          Toast.error(data.response.error.message);
+        } else {
+          refetch();
+          Toast.success(`Github ${t('synced')}`);
         }
       });
     }
