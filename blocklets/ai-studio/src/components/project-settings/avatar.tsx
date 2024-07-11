@@ -29,7 +29,8 @@ export default function ProjectSettingsAvatar({ value, onChange }: { value: stri
               fullWidth: true,
               maxWidth: 'sm',
               title: t('projectSetting.icon'),
-              contentProps: { contentStyle: { height: '50vh', mt: 0 }, customContent: true },
+              DialogContentProps: { sx: { height: 500, maxHeight: '70vh' } },
+              scroll: 'paper',
               content: (
                 <GalleryImageList
                   ref={gallery}
