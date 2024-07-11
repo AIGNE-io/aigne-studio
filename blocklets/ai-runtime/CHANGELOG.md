@@ -1,3 +1,7 @@
+## 0.3.26 (2024-7-11)
+
+- fix: github and did space sync
+
 ## 0.3.25 (2024-7-10)
 
 - chore: improve development experience
