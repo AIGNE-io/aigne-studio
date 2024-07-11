@@ -8,19 +8,19 @@ env:
 
 on:
   push:
-    branches: [main]
+    branches: [e2e-ci]
   pull_request:
-    branches: [main]
+    branches: [e2e-ci]
 
 jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     container:
-      image: ubuntu:latest
+      image: arcblock/blocklet-server-beta:11629-beta-ec04c755
       ports:
-        - 9898:9898
-        - 9899:9899
+        - 80:80
+        - 443:443
 
     if: "! contains(toJSON(github.event.commits.*.message), '[skip ci]')"
 

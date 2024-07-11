@@ -17,8 +17,8 @@ const ui = argv.ui;
 
 const portSchema = Joi.number<number>().integer().empty(['']);
 const blockletCli = process.env.BLOCKLET_CLI || 'blocklet';
-const httpPort = (portSchema.validate(process.env.BLOCKLET_SERVER_HTTP_PORT).value as number) || 9898;
-const httpsPort = (portSchema.validate(process.env.BLOCKLET_SERVER_HTTPS_PORT).value as number) || 9899;
+const httpPort = (portSchema.validate(process.env.BLOCKLET_SERVER_HTTP_PORT).value as number) || 80;
+const httpsPort = (portSchema.validate(process.env.BLOCKLET_SERVER_HTTPS_PORT).value as number) || 443;
 
 (async () => {
   const serverWallet = ensureWallet({ name: 'server' });
