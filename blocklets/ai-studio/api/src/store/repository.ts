@@ -1,8 +1,9 @@
-import { readdir, rm, writeFile } from 'fs/promises';
-import path, { basename, join, relative } from 'path';
+import { mkdir, readdir, rm, writeFile } from 'fs/promises';
+import path, { basename, dirname, extname, join, relative } from 'path';
 
 import { EVENTS } from '@api/event';
 import { broadcast } from '@api/libs/ws';
+import { MEDIA_KIT_DID } from '@blocklet/ai-runtime/constants';
 import {
   Assistant,
   AssistantYjs,
@@ -18,22 +19,25 @@ import {
   projectSettingsSchema,
 } from '@blocklet/ai-runtime/types';
 import { Repository, Transaction } from '@blocklet/co-git/repository';
+import { getComponentWebEndpoint } from '@blocklet/sdk';
 import { SpaceClient, SyncFolderPushCommand, SyncFolderPushCommandOutput } from '@did-space/client';
-import { copyFile, exists, pathExists } from 'fs-extra';
+import { mkdirp, move, pathExists } from 'fs-extra';
 import { glob } from 'glob';
 import { Errors } from 'isomorphic-git';
 import isEmpty from 'lodash/isEmpty';
 import { nanoid } from 'nanoid';
-import { parseAuth, parseURL } from 'ufo';
+import { parseAuth, parseFilename, parseURL } from 'ufo';
 import { parse, stringify } from 'yaml';
 
 import { authClient, wallet } from '../libs/auth';
-import downloadLogo from '../libs/download-logo';
+import downloadLogo, { md5file } from '../libs/download-logo';
+import downloadImage from '../libs/download-logo';
 import { Config } from '../libs/env';
 import logger from '../libs/logger';
 import Project from './models/project';
 
 export const CONFIG_FOLDER = 'config';
+export const WORKING_FOLDER = 'working';
 
 export const VARIABLE_KEY = 'variable';
 export const VARIABLE_FILENAME = `${VARIABLE_KEY}.yaml`;
@@ -57,10 +61,225 @@ export const PROMPTS_FOLDER_NAME = 'prompts';
 export const TESTS_FOLDER_NAME = 'tests';
 export const LOGO_FILENAME = 'logo.png';
 
+export const IMAGE_BIN_UPLOAD_FOLDER = 'assets';
+
+const ASSETS = [LOGO_FILENAME, join(IMAGE_BIN_UPLOAD_FOLDER, '/')];
+
 export async function clearRepository(projectId: string) {
   const repo = await getRepository({ projectId });
   await repo.destroy();
   delete repositories[projectId];
+}
+
+export class ProjectRepo<T> extends Repository<T> {
+  private static cache: { [key: string]: Promise<ProjectRepo<FileTypeYjs>> } = {};
+
+  static async load({
+    projectId,
+    author,
+  }: {
+    projectId: string;
+    author?: NonNullable<Parameters<Repository<any>['pull']>[0]>['author'];
+  }): Promise<ProjectRepo<FileTypeYjs>> {
+    this.cache[projectId] ??= (async () => {
+      const repo = await Repository.init({
+        assets: ASSETS,
+        root: repositoryRoot(projectId),
+        initialCommit: { message: 'init', author: author ?? { name: 'AI Studio', email: wallet.address } },
+        parse: async (filepath, content, { ref }) => {
+          const { dir, ext } = path.parse(filepath);
+          const [root] = filepath.split('/');
+
+          if (root === PROMPTS_FOLDER_NAME && ext === '.yaml') {
+            const testFilepath = filepath.replace(new RegExp(`^${PROMPTS_FOLDER_NAME}`), TESTS_FOLDER_NAME);
+            const assistant = parse(Buffer.from(content).toString());
+
+            try {
+              const testFile = (
+                await repo.readBlob({
+                  filepath: testFilepath,
+                  ref,
+                })
+              )?.blob;
+              const test = parse(Buffer.from(testFile).toString());
+              if (test) {
+                assistant.tests = test.tests;
+              }
+            } catch (error) {
+              logger.error('read testFile blob failed error', { error });
+            }
+
+            if (!assistant) {
+              return null;
+            }
+
+            const data = fileToYjs(assistant);
+
+            if (isAssistant(data)) {
+              const parent = dir.replace(/^\.\/?/, '');
+              const filename = `${data.id}.yaml`;
+              return { filepath: path.join(parent, filename), key: data.id, data };
+            }
+          }
+
+          if (root === CONFIG_FOLDER) {
+            const filename = basename(filepath);
+            if (filename === VARIABLE_FILENAME) {
+              const variable = parse(Buffer.from(content).toString());
+              return { filepath, key: VARIABLE_KEY, data: variable };
+            }
+
+            if (filename === CONFIG_FILENAME) {
+              const config = parse(Buffer.from(content).toString());
+              return { filepath, key: CONFIG_FILE_KEY, data: config };
+            }
+          }
+
+          return {
+            filepath,
+            key: nanoid(32),
+            data: {
+              $base64: Buffer.from(content).toString('base64'),
+            },
+          };
+        },
+        stringify: async (filepath, content) => {
+          if (!content) return null;
+
+          if (filepath.startsWith(TESTS_FOLDER_NAME)) return null;
+
+          if (isAssistant(content)) {
+            const fileContent = fileFromYjs(content);
+            const { tests, ...otherData } = fileContent as Assistant;
+            const newTest = {
+              id: otherData.id,
+              tests,
+            };
+            const testsData = stringify(newTest);
+            const assistantData = stringify(otherData);
+            const parent = path.dirname(filepath).replace(/^\.\/?/, '');
+            const pathParts = parent.split(path.sep);
+            pathParts[0] = TESTS_FOLDER_NAME;
+            const testPath = pathParts.join(path.sep);
+            const filename = `${content.name || 'Unnamed'}.${content.id}.yaml`;
+            const assistantDataFilepath = path.join(parent, filename);
+            const testsDataFilepath = path.join(testPath, filename);
+
+            return [
+              {
+                filepath: assistantDataFilepath,
+                data: assistantData ?? '',
+              },
+              {
+                filepath: testsDataFilepath,
+                data: testsData ?? '',
+              },
+            ];
+          }
+
+          if (isRawFile(content)) {
+            const base64 = content.$base64;
+            const data = typeof base64 === 'string' ? Buffer.from(base64, 'base64') : '';
+            return [{ filepath, data }];
+          }
+
+          if (isVariables(content)) {
+            const [root, filename] = filepath.split('/');
+            if (root === CONFIG_FOLDER && filename === VARIABLE_FILENAME) {
+              const { variables } = content;
+              return [{ filepath, data: stringify({ variables }) }];
+            }
+          }
+
+          if (filepath === CONFIG_FILE_PATH) {
+            const [root, filename] = filepath.split('/');
+            if (root === CONFIG_FOLDER && filename === CONFIG_FILENAME) {
+              return [{ filepath, data: stringify(content) }];
+            }
+          }
+
+          return [{ filepath, data: '' }];
+        },
+      });
+      return new ProjectRepo(repo.options);
+    })();
+
+    return this.cache[projectId]!;
+  }
+
+  async commitWorking({
+    ref,
+    branch,
+    message,
+    author,
+    skipCommitIfNoChanges,
+  }: {
+    ref: string;
+    branch: string;
+    message: string;
+    author: NonNullable<NonNullable<Parameters<Repository<any>['pull']>[0]>['author']>;
+    icon?: string;
+    skipCommitIfNoChanges?: boolean;
+  }) {
+    const working = await this.working({ ref });
+
+    return working.commit({
+      ref,
+      branch,
+      message,
+      author,
+      skipCommitIfNoChanges,
+      beforeCommit: async ({ tx }) => {
+        // TODO:
+        // await writeFile(path.join(working.workingDir, 'README.md'), getReadmeOfProject(project));
+        // await tx.add({ filepath: 'README.md' });
+        // await addSettingsToGit({ tx, project, ref });
+
+        // Remove unnecessary .gitkeep files
+        for (const gitkeep of await glob('**/.gitkeep', { cwd: working.workingDir })) {
+          if ((await readdir(path.join(working.workingDir, path.dirname(gitkeep)))).length > 1) {
+            await rm(path.join(working.workingDir, gitkeep), { force: true });
+            await tx.remove({ filepath: gitkeep });
+          }
+        }
+
+        if (skipCommitIfNoChanges) {
+          const changes = await tx.repo.statusMatrix({ dir: working.workingDir });
+          if (!changes.every((i) => i[1] === 1 && i[2] === 1 && i[3] === 1)) {
+            // update project updatedAt
+            // TODO:
+            // project.changed('updatedAt', true);
+            // await project.update({ updatedAt: new Date() });
+            // generate new settings file
+            // TODO:
+            // await addSettingsToGit({ tx, project, ref });
+          }
+        }
+      },
+    });
+  }
+
+  async uploadAsset({ type, ref, source }: { type: 'logo' | 'asset'; ref: string; source: string }) {
+    const originalFilename = parseFilename(source, { strict: true });
+    const ext = originalFilename && extname(originalFilename);
+    const working = await this.working({ ref });
+    const tmpFilename = join(working.options.root, 'tmp', nanoid());
+    try {
+      await mkdirp(dirname(tmpFilename));
+      await downloadImage(source, tmpFilename);
+      const hash = await md5file(tmpFilename);
+      const filename = type === 'logo' ? LOGO_FILENAME : `${hash}${ext}`;
+      const filePath =
+        type === 'logo'
+          ? join(working.workingDir, filename)
+          : join(working.workingDir, IMAGE_BIN_UPLOAD_FOLDER, filename);
+      await mkdir(dirname(filePath), { recursive: true });
+      await move(tmpFilename, filePath, { overwrite: true });
+      return filename;
+    } finally {
+      await rm(tmpFilename, { force: true, recursive: true });
+    }
+  }
 }
 
 export async function getRepository({
@@ -72,6 +291,7 @@ export async function getRepository({
 }) {
   repositories[projectId] ??= (async () => {
     const repository = await Repository.init<FileTypeYjs>({
+      assets: [LOGO_FILENAME, join(IMAGE_BIN_UPLOAD_FOLDER, '/')],
       root: repositoryRoot(projectId),
       initialCommit: { message: 'init', author: author ?? { name: 'AI Studio', email: wallet.address } },
       parse: async (filepath, content, { ref }) => {
@@ -224,35 +444,35 @@ export const SETTINGS_FILE = '.settings.yaml';
 const addSettingsToGit = async ({
   tx,
   project,
-  icon,
+  ref,
 }: {
   tx: Transaction<FileTypeYjs>;
   project: Project;
-  icon?: string;
+  ref: string;
 }) => {
   const repository = await getRepository({ projectId: project.id! });
+  const working = await repository.working({ ref });
   const fields = await projectSettingsSchema.validateAsync(project.dataValues);
-
   const fieldsStr = stringify(fields, { aliasDuplicateObjects: false });
 
-  await writeFile(path.join(repository.options.root, SETTINGS_FILE), fieldsStr);
+  await writeFile(path.join(working.workingDir, SETTINGS_FILE), fieldsStr);
   await tx.add({ filepath: SETTINGS_FILE });
 
   // 新上传的图片
-  try {
-    const logoPath = path.join(repository.options.root, LOGO_FILENAME);
-    if (icon && (await exists(icon))) {
-      await copyFile(icon, logoPath);
-    } else if (icon && icon.startsWith('http') && !icon.includes('/api/projects')) {
-      await downloadLogo(icon, logoPath);
-    } else {
-      const file = (await repository.readBlob({ ref: defaultBranch!, filepath: LOGO_FILENAME })).blob;
-      await writeFile(logoPath, file);
-    }
-    await tx.add({ filepath: LOGO_FILENAME });
-  } catch (error) {
-    logger.error('failed to save project icon', { error });
-  }
+  // try {
+  //   const logoPath = path.join(repository.options.root, LOGO_FILENAME);
+  //   if (icon && (await exists(icon))) {
+  //     await copyFile(icon, logoPath);
+  //   } else if (icon && icon.startsWith('http') && !icon.includes('/api/projects')) {
+  //     await downloadLogo(icon, logoPath);
+  //   } else {
+  //     const file = (await repository.readBlob({ ref: defaultBranch!, filepath: LOGO_FILENAME })).blob;
+  //     await writeFile(logoPath, file);
+  //   }
+  //   await tx.add({ filepath: LOGO_FILENAME });
+  // } catch (error) {
+  //   logger.error('failed to save project icon', { error });
+  // }
 };
 
 export const autoSyncIfNeeded = async ({
@@ -347,7 +567,6 @@ export async function commitWorking({
   branch,
   message,
   author,
-  icon,
   skipCommitIfNoChanges,
 }: {
   project: Project;
@@ -368,15 +587,14 @@ export async function commitWorking({
     author,
     skipCommitIfNoChanges,
     beforeCommit: async ({ tx }) => {
-      await writeFile(path.join(repository.options.root, 'README.md'), getReadmeOfProject(project));
+      await writeFile(path.join(working.workingDir, 'README.md'), getReadmeOfProject(project));
       await tx.add({ filepath: 'README.md' });
-
-      await addSettingsToGit({ tx, project, icon });
+      await addSettingsToGit({ tx, project, ref });
 
       // Remove unnecessary .gitkeep files
       for (const gitkeep of await glob('**/.gitkeep', { cwd: repository.options.root })) {
         if ((await readdir(path.join(repository.options.root, path.dirname(gitkeep)))).length > 1) {
-          await rm(path.join(repository.options.root, gitkeep), { force: true });
+          await rm(path.join(working.workingDir, gitkeep), { force: true });
           await tx.remove({ filepath: gitkeep });
         }
       }
@@ -389,7 +607,7 @@ export async function commitWorking({
           await project.update({ updatedAt: new Date() });
 
           // generate new settings file
-          await addSettingsToGit({ tx, project, icon });
+          await addSettingsToGit({ tx, project, ref });
         }
       }
     },
@@ -398,19 +616,20 @@ export async function commitWorking({
 
 export async function commitProjectSettingWorking({
   project,
+  ref,
   message = 'update settings',
   author,
-  icon,
 }: {
   project: Project;
   message?: string;
   author: NonNullable<NonNullable<Parameters<Repository<any>['pull']>[0]>['author']>;
   icon?: string;
+  ref: string;
 }) {
   const repository = await getRepository({ projectId: project.id! });
   await repository.transact(async (tx) => {
     await tx.checkout({ ref: project.gitDefaultBranch, force: true });
-    await addSettingsToGit({ tx, project, icon });
+    await addSettingsToGit({ tx, project, ref });
     await tx.commit({ message, author });
   });
 }
@@ -603,4 +822,15 @@ export async function getEntryFromRepository({
   if (!entry) return undefined;
 
   return getAssistantFromRepository({ repository, ref, working, agentId: entry });
+}
+
+export async function uploadProjectLogo({ projectId, ref, logo }: { projectId: string; ref: string; logo: string }) {
+  try {
+    const workingDir = path.join(repositoryCooperativeRoot(projectId), ref, WORKING_FOLDER, LOGO_FILENAME);
+    const hostname = getComponentWebEndpoint(MEDIA_KIT_DID);
+    const { base } = path.parse(logo);
+    await downloadLogo(`${hostname}/${IMAGE_BIN_UPLOAD_FOLDER}/${base}`, workingDir);
+  } catch (error) {
+    logger.error('failed to save project icon', { error });
+  }
 }

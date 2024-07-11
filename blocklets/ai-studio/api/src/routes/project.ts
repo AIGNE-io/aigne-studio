@@ -1,10 +1,10 @@
 import fs from 'fs';
 import { cp, mkdtemp, readFile, rm } from 'fs/promises';
-import { basename, dirname, isAbsolute, join } from 'path';
+import path, { basename, dirname, isAbsolute, join } from 'path';
 
 import { Config } from '@api/libs/env';
 import { NoPermissionError, NotFoundError } from '@api/libs/error';
-import { sampleIcon } from '@api/libs/icon';
+// import { sampleIcon } from '@api/libs/icon';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
 import AgentInputSecret from '@api/store/models/agent-input-secret';
 import {
@@ -41,8 +41,10 @@ import {
   CONFIG_FILE_KEY,
   CONFIG_FOLDER,
   LOGO_FILENAME,
+  ProjectRepo,
   VARIABLE_FILENAME,
   VARIABLE_KEY,
+  WORKING_FOLDER,
   autoSyncIfNeeded,
   clearRepository,
   commitProjectSettingWorking,
@@ -53,9 +55,11 @@ import {
   getAssistantIdFromPath,
   getProjectMemoryVariables,
   getRepository,
+  repositoryCooperativeRoot,
   repositoryRoot,
   syncRepository,
   syncToDidSpace,
+  uploadProjectLogo,
 } from '../store/repository';
 import { projectTemplates } from '../templates/projects';
 import { getCommits } from './log';
@@ -361,6 +365,31 @@ export function projectRoutes(router: Router) {
     throw new NotFoundError(`No such project ${projectId}`);
   });
 
+  router.get('/projects/:projectId/:ref?/logo.png', async (req, res) => {
+    const { projectId, ref = defaultBranch } = req.params;
+    if (!projectId) throw new Error('Missing required parameter `projectId`');
+
+    const original = await Project.findOne({ where: { id: projectId } });
+    if (original) {
+      const logoPath = path.join(repositoryCooperativeRoot(projectId), ref, WORKING_FOLDER, LOGO_FILENAME);
+      const logo = await readFile(logoPath);
+      res.setHeader('Content-Type', 'image/png');
+      res.end(Buffer.from(logo));
+      return;
+    }
+
+    const resource = await getProjectFromResource({ projectId });
+    if (resource) {
+      if (resource?.gitLogoPath && (await exists(resource.gitLogoPath))) {
+        res.sendFile(resource.gitLogoPath);
+        return;
+      }
+      throw new NotFoundError(`No such project icon ${projectId}`);
+    }
+
+    throw new NotFoundError(`No such project ${projectId}`);
+  });
+
   router.get('/projects/:projectId', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
 
@@ -620,8 +649,8 @@ export function projectRoutes(router: Router) {
     }
   });
 
-  router.patch('/projects/:projectId', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
-    const { projectId } = req.params;
+  router.patch('/projects/:projectId/:ref?', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+    const { projectId, ref } = req.params;
     if (!projectId) throw new Error('Missing required parameter `projectId`');
 
     const project = await Project.findOne({ where: { id: projectId } });
@@ -664,7 +693,7 @@ export function projectRoutes(router: Router) {
 
     const author = { name: fullName, email: userId };
 
-    await commitProjectSettingWorking({ project, author, icon });
+    await commitProjectSettingWorking({ project, author, ref: ref || project.gitDefaultBranch });
 
     await autoSyncIfNeeded({ project, author, userId });
 
@@ -975,6 +1004,39 @@ export function projectRoutes(router: Router) {
 
     return res.json({ assistants: uniqBy(assistants, 'id') });
   });
+
+  const uploadAssetSchema = Joi.object<{ type: 'logo' | 'asset'; source: string }>({
+    type: Joi.string().valid('logo', 'asset').empty(['', null]).default('asset'),
+    source: Joi.string().required(),
+  });
+
+  router.post(
+    '/projects/:projectId/refs/:ref/assets',
+    user(),
+    ensureComponentCallOrPromptsEditor(),
+    async (req, res) => {
+      const { projectId, ref } = req.params;
+      if (!projectId || !ref) throw new Error('Missing required params `projectId` or `ref`');
+
+      const input = await uploadAssetSchema.validateAsync(req.body, { stripUnknown: true });
+
+      const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
+
+      checkProjectPermission({ req, project });
+
+      const repo = await ProjectRepo.load({ projectId });
+      const filename = await repo.uploadAsset({ type: input.type, ref, source: input.source });
+
+      res.json({ filename });
+    }
+  );
+
+  router.post('/projects/:projectId/logo', user(), async (req, res) => {
+    const { projectId } = req.params;
+    await uploadProjectLogo({ projectId: projectId || '', ref: req.body.ref, logo: req.body.logo });
+
+    res.json({ result: true });
+  });
 }
 
 const getAuthorsOfProject = async ({
@@ -1094,7 +1156,7 @@ async function createProjectFromTemplate(
     branch: defaultBranch,
     message: 'First Commit',
     author: { name: author.fullName, email: author.did },
-    icon: (template as any)?.gitLogoPath || (await sampleIcon()),
+    // icon: (template as any)?.gitLogoPath || (await sampleIcon()),
   });
 
   return project;

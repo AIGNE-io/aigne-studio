@@ -1,5 +1,6 @@
+import { useCurrentProject } from '@app/contexts/project';
 import { TOOL_TIP_LEAVE_TOUCH_DELAY } from '@app/libs/constants';
-import { getDefaultBranch } from '@app/store/current-git-store';
+import { getDefaultBranch, useCurrentGitStore } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { defaultTextModel, getSupportedModels } from '@blocklet/ai-runtime/common';
@@ -31,7 +32,7 @@ import isEmpty from 'lodash/isEmpty';
 import isNil from 'lodash/isNil';
 import pick from 'lodash/pick';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useBeforeUnload, useBlocker, useParams } from 'react-router-dom';
+import { useBeforeUnload, useBlocker } from 'react-router-dom';
 import { useAsync } from 'react-use';
 
 import { UpdateProjectInput } from '../../../../api/src/routes/project';
@@ -41,7 +42,7 @@ import ModelSelectField from '../../../components/selector/model-select-field';
 import SliderNumberField from '../../../components/slider-number-field';
 import { useReadOnly, useSessionContext } from '../../../contexts/session';
 import { getErrorMessage } from '../../../libs/api';
-import { getProjectIconUrl } from '../../../libs/project';
+import { getProjectIconUrl, uploadAsset } from '../../../libs/project';
 import useDialog from '../../../utils/use-dialog';
 import InfoOutlined from '../icons/question';
 import { useProjectState } from '../state';
@@ -66,9 +67,7 @@ const init = {
 
 export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxProps; onClose?: () => void }) {
   const { t } = useLocaleContext();
-  const { projectId = '', ref: gitRef } = useParams();
-  if (!projectId) throw new Error('Missing required params `projectId`');
-  if (!gitRef) throw new Error('Missing required params `gitRef`');
+  const { projectId, projectRef } = useCurrentProject();
 
   const readOnly = useReadOnly({ ref: getDefaultBranch() });
   const { dialog, showDialog } = useDialog();
@@ -77,6 +76,7 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
   const isSubmit = useRef(false);
   const origin = useRef<UpdateProjectInput>();
   const { session } = useSessionContext();
+  const getCurrentBranch = useCurrentGitStore((i) => i.getCurrentBranch);
 
   const tabListInfo: { list: string[] } = {
     list: [
@@ -90,7 +90,7 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
   const [currentTabIndex, setCurrentTabIndex] = useState<string | undefined>(tabListInfo.list[0]);
 
   const { value: supportedModels, loading: getSupportedModelsLoading } = useAsync(() => getSupportedModels(), []);
-  const { config, setConfig } = useProjectStore(projectId, gitRef);
+  const { config, setConfig } = useProjectStore(projectId, projectRef);
   const model = useMemo(
     () => supportedModels?.find((i) => i.model === config?.model?.model),
     [config?.model?.model, supportedModels]
@@ -113,7 +113,7 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
       origin.current = merge;
       setValue(merge);
     }
-  }, [project, projectId]);
+  }, [getCurrentBranch, project, projectId]);
 
   const set = (key: string, value: any) => {
     setValue((r) => ({ ...r, [key]: value }));
@@ -256,7 +256,14 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                   <Typography variant="subtitle2" mb={0.5}>
                     {t('avatar')}
                   </Typography>
-                  <Avatar value={value.icon ?? ''} onChange={(d: any) => set('icon', d)} />
+                  <Avatar
+                    value={value.icon ?? ''}
+                    onChange={(source) => {
+                      uploadAsset({ projectId, ref: projectRef, source, type: 'logo' });
+                      // uploadProjectIcon(projectId, getCurrentBranch(), d);
+                      // set('icon', d);
+                    }}
+                  />
                 </Box>
                 <Box>
                   <Typography variant="subtitle2" mb={0.5}>

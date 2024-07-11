@@ -5,3 +5,5 @@ export const AIGNE_COMPONENTS_COMPONENT_DID = 'z2qa6fvjmjew4pWJyTsKaWFuNoMUMyXDh
 export const AIGNE_RUNTIME_CUSTOM_COMPONENT_ID = 'grc9q1cveub6pnl8';
 
 export const AIGNE_STUDIO_COMPONENT_DID = 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
+
+export const MEDIA_KIT_DID = 'z8ia1mAXo8ZE7ytGF36L5uBf9kD2kenhqFGp9';
