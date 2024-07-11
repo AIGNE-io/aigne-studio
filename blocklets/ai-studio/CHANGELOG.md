@@ -1,3 +1,11 @@
+## 0.3.26 (2024-7-11)
+
+- fix: github and did space sync
+
+## 0.3.25 (2024-7-10)
+
+- chore: improve development experience
+
 ## 0.3.24 (2024-7-9)
 
 - fix: should respond json result if `responseType` is not stream

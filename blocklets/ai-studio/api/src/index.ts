@@ -7,6 +7,7 @@ import { access, mkdir } from 'fs/promises';
 import path from 'path';
 
 import { AssistantResponseType } from '@blocklet/ai-runtime/types';
+import user from '@blocklet/sdk/lib/middlewares/user';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv-flow';
@@ -14,14 +15,15 @@ import express, { ErrorRequestHandler } from 'express';
 import fallback from 'express-history-api-fallback';
 import { Errors } from 'isomorphic-git';
 
-import app from './app';
 import { Config, isDevelopment } from './libs/env';
 import { NoPermissionError, NotFoundError } from './libs/error';
 import logger from './libs/logger';
 import { initResourceStates } from './libs/resource';
+import { ensurePromptsEditor } from './libs/security';
 import routes from './routes';
+import { wss } from './routes/ws';
 
-export { default as app } from './app';
+export const app = express();
 
 dotenv.config();
 
@@ -87,4 +89,16 @@ export const server = app.listen(port, (err?: any) => {
   logger.info(`> ${name} v${version} ready on ${port}`);
 
   initResourceStates();
+});
+
+server.on('upgrade', (req, socket, head) => {
+  if (req.url?.match(/^\/api\/ws/)) {
+    wss.handleUpgrade(req, socket, head, (ws) => {
+      ensurePromptsEditor(req as any, null as any, () => {
+        user()(req as any, null as any, () => {
+          wss.emit('connection', ws, req);
+        });
+      });
+    });
+  }
 });
