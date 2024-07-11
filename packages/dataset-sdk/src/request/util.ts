@@ -6,7 +6,7 @@ export const getRequestConfig = (
   requestData: { [key: string]: any },
   options?: { params: { [key: string]: any }; data: { [key: string]: any } }
 ) => {
-  let url = pathItem?.path || '';
+  let url = pathItem.path || '';
   const config: {
     url: string;
     method: string;

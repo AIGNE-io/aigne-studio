@@ -1,10 +1,10 @@
-export interface JSONSchemaBase {
+interface JSONSchemaBase {
   name?: string;
   description?: string;
   required?: boolean;
 }
 
-export type JSONSchema = JSONSchemaBase &
+type JSONSchema = JSONSchemaBase &
   (
     | {
         type: 'string';

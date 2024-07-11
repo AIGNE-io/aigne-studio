@@ -32,7 +32,6 @@ try {
 }
 
 for (const ymlDir of pathList) {
-  // eslint-disable-next-line no-await-in-loop
   await $`cd ${ymlDir} && blocklet version ${version}`;
 
   try {

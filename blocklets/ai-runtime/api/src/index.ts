@@ -3,15 +3,13 @@ import 'express-async-errors';
 import path from 'path';
 
 import { AssistantResponseType } from '@blocklet/ai-runtime/types';
-import { getComponentsRouter } from '@blocklet/components-sdk';
-import { createDatasetAPIRouter } from '@blocklet/dataset-sdk/openapi';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv-flow';
 import express, { ErrorRequestHandler } from 'express';
 
 import initCronJob from './jobs';
-import { Config, isDevelopment } from './libs/env';
+import { isDevelopment } from './libs/env';
 import logger from './libs/logger';
 import { initResourceStates } from './libs/resource';
 import routes from './routes';
@@ -32,15 +30,6 @@ app.use(cors());
 const router = express.Router();
 router.use('/api', routes);
 app.use(router);
-
-app.use(
-  '/',
-  createDatasetAPIRouter('AI-Studio', path.join(Config.appDir, 'dataset.yml'), {
-    definition: { openapi: '3.0.0', info: { title: 'AI Studio Dataset Protocol', version: '1.0.0' } },
-    apis: [path.join(__dirname, './routes/**/*.*')],
-  })
-);
-app.use('/', getComponentsRouter());
 
 if (!isDevelopment) {
   const staticDir = path.resolve(process.env.BLOCKLET_APP_DIR!, 'dist');

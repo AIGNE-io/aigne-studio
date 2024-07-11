@@ -15,7 +15,7 @@ import {
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
-import getDatasetTextByI18n from '@blocklet/dataset-sdk/util/get-dataset-i18n-text';
+import getOpenApiTextFromI18n from '@blocklet/dataset-sdk/util/get-open-api-i18n-text';
 import { Icon } from '@iconify-icon/react';
 import ExternalLinkIcon from '@iconify-icons/tabler/external-link';
 import PlusIcon from '@iconify-icons/tabler/plus';
@@ -687,8 +687,8 @@ function ToolItemView({
 
   if (!target) return null;
 
-  const name = api ? getDatasetTextByI18n(api, 'summary', locale) || t('unnamed') : target.name;
-  const description = api ? getDatasetTextByI18n(api, 'description', locale) : target.description;
+  const name = api ? getOpenApiTextFromI18n(api, 'summary', locale) || t('unnamed') : target.name;
+  const description = api ? getOpenApiTextFromI18n(api, 'description', locale) : target.description;
 
   return (
     <Stack
@@ -889,8 +889,8 @@ export const ToolDialog = forwardRef<
       id: dataset.id,
       type: dataset.type,
       name:
-        getDatasetTextByI18n(dataset, 'summary', locale) ||
-        getDatasetTextByI18n(dataset, 'description', locale) ||
+        getOpenApiTextFromI18n(dataset, 'summary', locale) ||
+        getOpenApiTextFromI18n(dataset, 'description', locale) ||
         t('unnamed'),
       from: dataset.from,
     })),
@@ -976,8 +976,8 @@ export const ToolDialog = forwardRef<
                             }
                             label={
                               <Typography variant="caption">
-                                {getDatasetTextByI18n(parameter, 'description', locale) ||
-                                  getDatasetTextByI18n(parameter, 'name', locale)}
+                                {getOpenApiTextFromI18n(parameter, 'description', locale) ||
+                                  getOpenApiTextFromI18n(parameter, 'name', locale)}
                               </Typography>
                             }
                             labelPlacement="top"
@@ -993,8 +993,8 @@ export const ToolDialog = forwardRef<
             return (
               <Stack key={parameter.name}>
                 <Typography variant="caption">
-                  {getDatasetTextByI18n(parameter, 'description', locale) ||
-                    getDatasetTextByI18n(parameter, 'name', locale)}
+                  {getOpenApiTextFromI18n(parameter, 'description', locale) ||
+                    getOpenApiTextFromI18n(parameter, 'name', locale)}
                 </Typography>
 
                 <Controller
@@ -1004,7 +1004,7 @@ export const ToolDialog = forwardRef<
                     if (parameter['x-parameter-type'] === 'select') {
                       return (
                         <AsyncSelect
-                          label={getDatasetTextByI18n(parameter, 'name', locale)}
+                          label={getOpenApiTextFromI18n(parameter, 'name', locale)}
                           remoteAPI={parameter['x-options-api']}
                           remoteOptions={parameter['x-options-value'] || []}
                           remoteKey={parameter['x-option-key']}

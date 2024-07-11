@@ -3,6 +3,7 @@ import { AgentExecutor } from './agent';
 import { AIGCAgentExecutor } from './aigc';
 import { APIAgentExecutor } from './api';
 import { AgentExecutorBase, AgentExecutorOptions, ExecutorContext } from './base';
+import { BlockletAgentExecutor } from './blocklet';
 import { CallAgentExecutor } from './call-agent';
 import { DecisionAgentExecutor } from './decision';
 import { LLMAgentExecutor } from './llm';
@@ -28,7 +29,7 @@ export class RuntimeExecutor extends AgentExecutorBase {
   }
 
   override async execute(agent: GetAgentResult, options: AgentExecutorOptions): Promise<any> {
-    if (this.parentAgent) {
+    if (this.parentAgent?.identity && agent.identity) {
       agent.identity.blockletDid ||= this.parentAgent.identity.blockletDid;
       agent.identity.projectId ||= this.parentAgent.identity.projectId;
       agent.identity.projectRef ||= this.parentAgent.identity.projectRef;
@@ -58,6 +59,9 @@ export class RuntimeExecutor extends AgentExecutorBase {
       }
       case 'callAgent': {
         return new CallAgentExecutor(this.context).execute(agent, options);
+      }
+      case 'blocklet': {
+        return new BlockletAgentExecutor(this.context).execute(agent, options);
       }
       default: {
         throw new Error(`Unsupported agent type: ${(agent as any)?.type}`);

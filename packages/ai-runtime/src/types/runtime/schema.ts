@@ -3,7 +3,7 @@ import Joi from 'joi';
 import { toLower } from 'lodash';
 import { nanoid } from 'nanoid';
 
-import type { Assistant, OutputVariable, Variable, VariableTypeYjs } from '..';
+import type { Assistant, BlockletAgent, OutputVariable, Variable, VariableTypeYjs } from '..';
 
 export const variableBlockListForAgent: {
   [key in Assistant['type']]?: { block?: Set<RuntimeOutputVariable>; allow?: Set<RuntimeOutputVariable> };
@@ -139,7 +139,10 @@ export function outputVariablesToJsonSchema(
   return variableToSchema({ type: 'object', properties: outputVariables });
 }
 
-export function outputVariablesToJoiSchema(assistant: Assistant, datastoreVariables: Variable[]): Joi.AnySchema {
+export function outputVariablesToJoiSchema(
+  assistant: Assistant | BlockletAgent,
+  datastoreVariables: Variable[]
+): Joi.AnySchema {
   const variableToSchema = (variable: OmitUnion<OutputVariable, 'id'>): Joi.AnySchema | undefined => {
     let schema: Joi.AnySchema | undefined;
 

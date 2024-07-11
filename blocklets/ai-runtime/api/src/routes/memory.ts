@@ -234,7 +234,7 @@ router.get('/variable-by-query', user(), ensureComponentCallOrAdmin(), async (re
       where: { ...params, scope, sessionId },
     });
     if (datastores.length) {
-      return res.json(datastores);
+      return res.json({ datastores });
     }
   }
 
@@ -244,7 +244,7 @@ router.get('/variable-by-query', user(), ensureComponentCallOrAdmin(), async (re
       where: { ...params, scope: 'user' },
     });
     if (datastores.length) {
-      return res.json(datastores);
+      return res.json({ datastores });
     }
   }
 
@@ -254,11 +254,11 @@ router.get('/variable-by-query', user(), ensureComponentCallOrAdmin(), async (re
       where: { ...params, scope: 'global' },
     });
     if (datastores.length) {
-      return res.json(datastores);
+      return res.json({ datastores });
     }
   }
 
-  return res.json([]);
+  return res.json({ datastores: [] });
 });
 
 export default router;

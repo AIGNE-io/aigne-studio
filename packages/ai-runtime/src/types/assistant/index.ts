@@ -187,6 +187,14 @@ export interface Agent extends AssistantBase {
   type: 'agent';
 }
 
+export interface BlockletAgent extends Omit<AssistantBase, 'createdAt' | 'updatedAt' | 'createdBy' | 'updatedBy'> {
+  type: 'blocklet';
+  createdAt?: string;
+  updatedAt?: string;
+  createdBy?: string;
+  updatedBy?: string;
+}
+
 export interface RouterAssistant extends AssistantBase {
   type: 'router';
   defaultToolId?: string;

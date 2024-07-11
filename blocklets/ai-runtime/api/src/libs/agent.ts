@@ -107,6 +107,8 @@ export async function getAgent({
 }
 
 export async function getAgentSecretInputs(agent: GetAgentResult) {
+  if (!agent.project) return [];
+
   const projectId = agent.project.id;
 
   const secrets = await resolveSecretInputs(agent, { getAgent });
@@ -117,7 +119,7 @@ export async function getAgentSecretInputs(agent: GetAgentResult) {
         Secret.findOne({
           where: {
             projectId,
-            targetProjectId: agent.project.id,
+            targetProjectId: projectId,
             targetAgentId: agent.id,
             targetInputKey: input.key,
           },

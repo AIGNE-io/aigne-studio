@@ -1,3 +1,8 @@
+## 0.3.30 (2024-7-11)
+
+- feat: update call component to blocklet agent
+- feat: migrate local OpenAPI interface to the server.
+
 ## 0.3.29 (2024-7-11)
 
 - chore: using a language selector with improved interactivity

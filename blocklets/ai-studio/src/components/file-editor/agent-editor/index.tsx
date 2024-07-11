@@ -39,7 +39,6 @@ export default function AgentEditor({
 }) {
   const { t } = useLocaleContext();
   const { data: openApis = [] } = useRequest(() => getAPIList());
-  // const readOnly = useReadOnly({ ref: gitRef }) || disabled;
 
   return (
     <Stack p={2.5} position="relative">
