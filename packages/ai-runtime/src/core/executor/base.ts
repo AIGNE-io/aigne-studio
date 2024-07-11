@@ -166,6 +166,15 @@ export abstract class AgentExecutorBase {
       delta: { object: result },
     });
 
+    if (options.parentTaskId) {
+      this.context.callback?.({
+        type: AssistantResponseType.CHUNK,
+        taskId: options.taskId,
+        assistantId: agent.id,
+        delta: { content: JSON.stringify(result) },
+      });
+    }
+
     this.context.callback?.({
       type: AssistantResponseType.EXECUTE,
       taskId: options.taskId,
@@ -194,7 +203,7 @@ export abstract class AgentExecutorBase {
       )
     );
     const inputVariables: { [key: string]: any } = { ...(inputs || {}), ...inputParameters };
-    logger.info('prepareInputs', { inputVariables, variables, inputParameters });
+    logger.info('prepareInputs', { inputs, variables, inputParameters });
 
     const userId = this.context.user.did;
 
@@ -253,13 +262,8 @@ export abstract class AgentExecutorBase {
           inputVariables[parameter.key] = result ?? parameter.defaultValue;
         } else if (parameter.source?.variableFrom === 'datastore') {
           const currentTaskId = nextTaskId();
-          const inputs = {
-            userId,
-            projectId: this.context.entryProjectId,
-            sessionId: this.context.sessionId,
-            scope: parameter.source.variable?.scope || 'session',
-            key: toLower(parameter.source.variable?.key) || toLower(parameter.key),
-          };
+          const key = toLower(parameter.source.variable?.key) || toLower(parameter.key);
+          const scope = parameter.source.variable?.scope || 'session';
 
           const blocklet = await this.context.getBlockletAgent(MEMORY_API_ID);
           if (!blocklet.agent) {
@@ -267,22 +271,26 @@ export abstract class AgentExecutorBase {
           }
 
           const data = await this.context.executor(this.context).execute(blocklet.agent, {
-            inputs,
+            inputs: {
+              userId,
+              projectId: this.context.entryProjectId,
+              sessionId: this.context.sessionId,
+              scope,
+              key,
+            },
             taskId: currentTaskId,
             parentTaskId: taskId,
           });
 
-          const memoryVariables = await this.context.getMemoryVariables(agent.identity);
+          const m = await this.context.getMemoryVariables(agent.identity);
           const list = (data.datastores || []).map((x: any) => x?.data).filter((x: any) => x);
-          const storageVariable = memoryVariables.find(
-            (x) => toLower(x.key || '') === toLower(inputs.key || '') && x.scope === inputs.scope
-          );
+          const storageVariable = m.find((x) => toLower(x.key || '') === toLower(key || '') && x.scope === scope);
           let result = (list?.length > 0 ? list : [storageVariable?.defaultValue]).filter((x: any) => x);
           if (storageVariable?.reset) {
             result = (result?.length > 1 ? result : result[0]) ?? '';
           }
 
-          inputVariables[parameter.key] = result;
+          inputVariables[parameter.key] = JSON.stringify(result) ?? parameter.defaultValue;
         } else if (parameter.source?.variableFrom === 'knowledge' && parameter.source.knowledge) {
           const currentTaskId = nextTaskId();
           const tool = parameter.source.knowledge;
