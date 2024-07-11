@@ -14,9 +14,9 @@ import {
   outputVariablesToJoiSchema,
 } from '../../types';
 import { CallAI, CallAIImage, GetAgent, GetAgentResult, RunAssistantCallback } from '../assistant/type';
+import { HISTORY_API_ID, KNOWLEDGE_API_ID, MEMORY_API_ID, getBlockletAgent } from '../utils/get-blocklet-agent';
 import { renderMessage } from '../utils/render-message';
 import { nextTaskId } from '../utils/task-id';
-import { HISTORY_API_ID, KNOWLEDGE_API_ID, MEMORIED_API_ID, getBlockletAgent } from './blocklet';
 
 export class ExecutorContext {
   constructor(
@@ -248,7 +248,7 @@ export abstract class AgentExecutorBase {
           };
 
           // eslint-disable-next-line no-await-in-loop
-          const blocklet = await this.context.getBlockletAgent(MEMORIED_API_ID);
+          const blocklet = await this.context.getBlockletAgent(MEMORY_API_ID);
           if (!blocklet.agent) {
             throw new Error('Blocklet agent api not found.');
           }
@@ -276,16 +276,6 @@ export abstract class AgentExecutorBase {
           const tool = parameter.source.knowledge;
           const blockletDid = parameter.source.knowledge.blockletDid || agent.identity.blockletDid;
           const currentTaskId = nextTaskId();
-
-          // eslint-disable-next-line no-await-in-loop
-          const { data: knowledge } = await call({
-            name: AIGNE_RUNTIME_COMPONENT_DID,
-            path: `/api/datasets/${tool.id}`,
-            params: { blockletDid },
-            method: 'GET',
-          });
-
-          if (!knowledge) throw new Error(`No such knowledge ${tool.id}`);
 
           // eslint-disable-next-line no-await-in-loop
           const blocklet = await this.context.getBlockletAgent(KNOWLEDGE_API_ID);

@@ -3,7 +3,7 @@ import { AgentExecutor } from './agent';
 import { AIGCAgentExecutor } from './aigc';
 import { APIAgentExecutor } from './api';
 import { AgentExecutorBase, AgentExecutorOptions, ExecutorContext } from './base';
-import { BlockletAgentExecutor } from './blocklet-agent';
+import { BlockletAgentExecutor } from './blocklet';
 import { CallAgentExecutor } from './call-agent';
 import { DecisionAgentExecutor } from './decision';
 import { LLMAgentExecutor } from './llm';
