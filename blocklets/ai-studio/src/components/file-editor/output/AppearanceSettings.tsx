@@ -15,8 +15,7 @@ import {
   Typography,
 } from '@mui/material';
 import { WritableDraft } from 'immer';
-import pick from 'lodash/pick';
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useAsync } from 'react-use';
 
 import { getOpenComponents } from '../../../libs/components';
@@ -51,25 +50,6 @@ export default function AppearanceSettings({
       update(output.appearance);
     });
   };
-
-  // 兼容旧版本数据，2024-06-23 之后可以删掉
-  useEffect(() => {
-    if (!output.appearance && (output.initialValue as any)?.componentId) {
-      setField((appearance) => {
-        const {
-          componentId,
-          componentName,
-          componentProps: props,
-        } = (pick(output.initialValue, 'componentId', 'componentName', 'componentProps') as any) ?? {};
-
-        Object.assign(appearance, {
-          componentId,
-          componentName,
-          componentProperties: props ? JSON.parse(JSON.stringify(props)) : undefined,
-        });
-      });
-    }
-  }, []);
 
   const { tags } = useMemo(() => {
     const m: { [key: string]: { tags: string } } = {

@@ -8,7 +8,7 @@ export async function resolveSecretInputs(
   { getAgent }: { getAgent: GetAgent }
 ): Promise<
   {
-    agent: GetAgentResult;
+    agent: GetAgentResult & Required<Pick<GetAgentResult, 'project' | 'identity'>>;
     input: SourceParameter & { key: string; source: SecretParameter };
   }[]
 > {
