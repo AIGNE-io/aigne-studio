@@ -1,4 +1,5 @@
 import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
+import { DatasetObject } from '@blocklet/dataset-sdk/types';
 import flattenApiStructure from '@blocklet/dataset-sdk/util/flatten-open-api';
 import config from '@blocklet/sdk/lib/config';
 import axios from 'axios';
@@ -331,19 +332,7 @@ function convertSchemaToVariableType(schema: OpenAPIResponseSchema): any {
   }
 }
 
-export const getBlockletAgent = async (user: { id: string; did: string }) => {
-  const blockletAgent = {
-    type: 'blocklet',
-    id: '',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    createdBy: user.did,
-    updatedBy: user.did,
-
-    project: {},
-    identity: {},
-  } as GetAgentResult;
-
+export const getBlockletAgent = async () => {
   let list = {};
   try {
     const result = await axios.get(joinURL(config.env.appUrl, '/.well-known/service/openapi.json'));
@@ -353,11 +342,13 @@ export const getBlockletAgent = async (user: { id: string; did: string }) => {
   }
 
   const openApis = [...flattenApiStructure(list as any), ...flattenApiStructure({ paths: buildInOpenAPI } as any)];
-  const agents = openApis.map((i) => {
+
+  const agents: (GetAgentResult & { openApi: DatasetObject })[] = openApis.map((i) => {
     const properties = i?.responses?.['200']?.content?.['application/json']?.schema?.properties || {};
 
     return {
-      ...blockletAgent,
+      type: 'blocklet',
+      id: i.id,
       name: i?.summary,
       description: i?.description,
       parameters: getAllParameters(i)
@@ -374,8 +365,17 @@ export const getBlockletAgent = async (user: { id: string; did: string }) => {
         name: key,
         ...convertSchemaToVariableType(value),
       })),
+      openApi: i,
     };
   });
 
-  return { agents, openApis };
+  const agentsMap = agents.reduce(
+    (acc, cur) => {
+      acc[cur.id] = cur;
+      return acc;
+    },
+    {} as { [key: string]: GetAgentResult & { openApi: DatasetObject } }
+  );
+
+  return { agents, agentsMap, openApis };
 };

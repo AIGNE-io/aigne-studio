@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { call } from '@blocklet/sdk/lib/component';
 import { logger } from '@blocklet/sdk/lib/config';
@@ -63,7 +64,8 @@ export class ExecutorContext {
   sessionId: string;
 
   promise?: Promise<{
-    agents: GetAgentResult[];
+    agents: (GetAgentResult & { openApi: DatasetObject })[];
+    agentsMap: { [key: string]: GetAgentResult & { openApi: DatasetObject } };
     openApis: DatasetObject[];
   }>;
 
@@ -91,20 +93,11 @@ export class ExecutorContext {
   }
 
   async getBlockletAgent(agentId: string) {
-    this.promise ??= getBlockletAgent(this.user);
+    this.promise ??= getBlockletAgent();
 
-    const { agents, openApis } = await this.promise;
-    const foundIndex = openApis.findIndex((x) => x.id === agentId);
+    const { openApis, agentsMap } = await this.promise;
 
-    if (agents[foundIndex]) {
-      agents[foundIndex].id = agentId;
-    }
-
-    return {
-      agent: agents[foundIndex],
-      api: openApis[foundIndex],
-      openApis,
-    };
+    return { agent: agentsMap[agentId]!, api: agentsMap[agentId]?.openApi!, openApis };
   }
 }
 
@@ -112,7 +105,7 @@ export interface AgentExecutorOptions {
   inputs?: { [key: string]: any };
   taskId: string;
   parentTaskId?: string;
-  parameters?: { [key: string]: any };
+  variables?: { [key: string]: any };
 }
 
 export abstract class AgentExecutorBase {
@@ -175,8 +168,23 @@ export abstract class AgentExecutorBase {
     return result;
   }
 
-  private async prepareInputs(agent: GetAgentResult, { inputs, taskId }: AgentExecutorOptions) {
-    const variables: { [key: string]: any } = { ...inputs };
+  private async prepareInputs(agent: GetAgentResult, { inputs, taskId, variables }: AgentExecutorOptions) {
+    const inputParameters = Object.fromEntries(
+      await Promise.all(
+        (agent.parameters || [])
+          .filter((i): i is typeof i & { key: string } => !!i.key && i.type !== 'source')
+          .map(async (i) => {
+            if (typeof inputs?.[i.key!] === 'string') {
+              const template = String(inputs?.[i.key!] || '').trim();
+              return [i.key, template ? await renderMessage(template, variables) : inputs?.[i.key!]];
+            }
+
+            return [i.key, variables?.[i.key!] || inputs?.[i.key!]];
+          }) ?? []
+      )
+    );
+
+    const inputVariables: { [key: string]: any } = { ...(inputs || {}), ...(variables || {}), ...inputParameters };
 
     const userId = this.context.user.did;
 
@@ -192,6 +200,14 @@ export abstract class AgentExecutorBase {
 
     for (const parameter of agent.parameters || []) {
       if (parameter.key && parameter.type === 'source') {
+        if (!agent.project) {
+          throw new Error('Agent project not found.');
+        }
+
+        if (!agent.identity) {
+          throw new Error('Agent identity not found.');
+        }
+
         if (parameter.source?.variableFrom === 'secret') {
           const secret =
             inputs?.[parameter.key] ||
@@ -203,39 +219,28 @@ export abstract class AgentExecutorBase {
               })
             ).secret;
           if (!secret) throw new Error(`Missing required agent secret ${parameter.key}`);
-          variables[parameter.key!] = secret;
+          inputVariables[parameter.key!] = secret;
         } else if (parameter.source?.variableFrom === 'tool' && parameter.source.agent) {
           const { agent: tool } = parameter.source;
-          const toolAssistant = await this.context.getAgent({
+          const toolAgent = await this.context.getAgent({
             blockletDid: tool.blockletDid || agent.identity.blockletDid,
             projectId: tool.projectId || agent.identity.projectId,
             projectRef: agent.identity.projectRef,
             agentId: tool.id,
             working: agent.identity.working,
           });
-          if (!toolAssistant) continue;
+          if (!toolAgent) continue;
 
           const currentTaskId = nextTaskId();
 
-          const args = Object.fromEntries(
-            await Promise.all(
-              (toolAssistant.parameters ?? [])
-                .filter((i): i is typeof i & { key: string } => !!i.key && i.type !== 'source')
-                .map(async (i) => {
-                  const template = String(tool.parameters?.[i.key] || '').trim();
-                  const value = template ? await renderMessage(template, inputs) : inputs?.[i.key];
-                  return [i.key, value];
-                })
-            )
-          );
-
-          const result = await this.context.executor(this.context).execute(toolAssistant, {
-            inputs: args,
+          const result = await this.context.executor(this.context).execute(toolAgent, {
+            inputs: tool.parameters,
+            variables: inputs,
             taskId: currentTaskId,
             parentTaskId: taskId,
           });
 
-          variables[parameter.key] = result ?? parameter.defaultValue;
+          inputVariables[parameter.key] = result ?? parameter.defaultValue;
         } else if (parameter.source?.variableFrom === 'datastore') {
           const currentTaskId = nextTaskId();
           const inputs = {
@@ -247,20 +252,17 @@ export abstract class AgentExecutorBase {
             key: toLower(parameter.source.variable?.key) || toLower(parameter.key),
           };
 
-          // eslint-disable-next-line no-await-in-loop
           const blocklet = await this.context.getBlockletAgent(MEMORY_API_ID);
           if (!blocklet.agent) {
             throw new Error('Blocklet agent api not found.');
           }
 
-          // eslint-disable-next-line no-await-in-loop
           const data = await this.context.executor(this.context).execute(blocklet.agent, {
             inputs,
             taskId: currentTaskId,
             parentTaskId: taskId,
           });
 
-          // eslint-disable-next-line no-await-in-loop
           const memoryVariables = await this.context.getMemoryVariables(agent.identity);
           const list = (data.datastores || []).map((x: any) => x?.data).filter((x: any) => x);
           const storageVariable = memoryVariables.find(
@@ -271,46 +273,42 @@ export abstract class AgentExecutorBase {
             result = (result?.length > 1 ? result : result[0]) ?? '';
           }
 
-          variables[parameter.key] = result;
+          inputVariables[parameter.key] = result;
         } else if (parameter.source?.variableFrom === 'knowledge' && parameter.source.knowledge) {
           const tool = parameter.source.knowledge;
           const blockletDid = parameter.source.knowledge.blockletDid || agent.identity.blockletDid;
           const currentTaskId = nextTaskId();
 
-          // eslint-disable-next-line no-await-in-loop
           const blocklet = await this.context.getBlockletAgent(KNOWLEDGE_API_ID);
           if (!blocklet.agent) {
             throw new Error('Blocklet agent api not found.');
           }
 
-          // eslint-disable-next-line no-await-in-loop
           const data = await this.context
             .executor({ ...this.context, callback: cb(currentTaskId) } as ExecutorContext)
             .execute(blocklet.agent, {
-              inputs: { ...inputs, blockletDid, datasetId: tool.id },
-              parameters: tool?.parameters,
+              inputs: tool?.parameters,
+              variables: { ...inputs, blockletDid, datasetId: tool.id },
               taskId: currentTaskId,
               parentTaskId: taskId,
             });
 
-          variables[parameter.key] = JSON.stringify(data?.docs || []) ?? parameter.defaultValue;
+          inputVariables[parameter.key] = JSON.stringify(data?.docs || []) ?? parameter.defaultValue;
         } else if (parameter.source?.variableFrom === 'history' && parameter.source.chatHistory) {
           const currentTaskId = nextTaskId();
           const chat = parameter.source.chatHistory;
 
-          // eslint-disable-next-line no-await-in-loop
           const blocklet = await this.context.getBlockletAgent(HISTORY_API_ID);
           if (!blocklet.agent) {
             throw new Error('Blocklet agent api not found.');
           }
 
-          // eslint-disable-next-line no-await-in-loop
           const result = await this.context.executor(this.context).execute(blocklet.agent, {
             inputs: {
               sessionId: this.context.sessionId,
               userId: this.context.user.did,
               limit: chat.limit || 50,
-              keyword: await renderMessage(chat.keyword || '', variables),
+              keyword: await renderMessage(chat.keyword || '', inputVariables),
             },
             taskId: currentTaskId,
             parentTaskId: taskId,
@@ -343,30 +341,28 @@ export abstract class AgentExecutorBase {
               ])
           );
 
-          variables[parameter.key] = memories.map((i) => ({
+          inputVariables[parameter.key] = memories.map((i) => ({
             ...i,
             name: i.agentId && assistantNameMap[i.agentId],
           }));
         } else if (parameter.source?.variableFrom === 'blockletAPI' && parameter.source.api) {
           const currentTaskId = nextTaskId();
 
-          // eslint-disable-next-line no-await-in-loop
           const blocklet = await this.context.getBlockletAgent(parameter.source.api.id);
           if (!blocklet.agent) {
             throw new Error('Blocklet agent api not found.');
           }
 
-          // eslint-disable-next-line no-await-in-loop
           const result = await this.context
             .executor({ ...this.context, callback: cb?.(currentTaskId) } as ExecutorContext)
             .execute(blocklet.agent, {
-              inputs,
-              parameters: parameter.source.api.parameters,
+              inputs: parameter.source.api.parameters,
+              variables: inputs,
               taskId: currentTaskId,
               parentTaskId: taskId,
             });
 
-          variables[parameter.key] = result;
+          inputVariables[parameter.key] = result;
         }
       }
 
@@ -430,18 +426,21 @@ export abstract class AgentExecutorBase {
                 ? await schema.validateAsync(tryParse(v) || v, { stripUnknown: true })
                 : undefined;
 
-        variables[parameter.key] = val;
+        inputVariables[parameter.key] = val;
       }
     }
 
-    return variables;
+    return inputVariables;
   }
 
   protected async validateOutputs(
     agent: GetAgentResult,
     { inputs, outputs }: { inputs?: { [key: string]: any }; outputs?: { [key: string]: any } }
   ) {
-    const joiSchema = outputVariablesToJoiSchema(agent, await this.context.getMemoryVariables(agent.identity));
+    const joiSchema = outputVariablesToJoiSchema(
+      agent,
+      agent.type === 'blocklet' ? [] : await this.context.getMemoryVariables(agent.identity)
+    );
     const outputVariables = (agent.outputVariables ?? []).filter((i) => !i.hidden);
 
     const outputInputs = outputVariables.reduce((res, output) => {
@@ -460,7 +459,7 @@ export abstract class AgentExecutorBase {
   }
 
   private async postProcessOutputs(agent: GetAgentResult, { outputs }: { outputs: { [key: string]: any } }) {
-    const memoryVariables = await this.context.getMemoryVariables(agent.identity);
+    const memoryVariables = agent.type === 'blocklet' ? [] : await this.context.getMemoryVariables(agent.identity);
     const outputVariables = (agent.outputVariables ?? []).filter((i) => !i.hidden);
 
     for (const output of outputVariables) {

@@ -1,12 +1,14 @@
 import { callBlockletApi } from '@blocklet/dataset-sdk/request';
 
-import { BlockletAgent } from '../../types';
 import { GetAgentResult } from '../assistant/type';
 import { renderMessage } from '../utils/render-message';
 import { AgentExecutorBase, AgentExecutorOptions } from './base';
 
 export class BlockletAgentExecutor extends AgentExecutorBase {
-  override async process(agent: BlockletAgent & GetAgentResult, { inputs, parameters }: AgentExecutorOptions) {
+  async mergeInputsParameters(
+    agent: GetAgentResult,
+    { inputs, parameters }: { inputs: { [key: string]: any }; parameters: { [key: string]: any } }
+  ) {
     const blocklet = await this.context.getBlockletAgent(agent.id);
     if (!blocklet.api) {
       throw new Error('Blocklet agent api not found.');
@@ -29,6 +31,19 @@ export class BlockletAgentExecutor extends AgentExecutorBase {
       )
     );
 
+    return inputParameters;
+  }
+
+  override async process(agent: GetAgentResult, { inputs }: AgentExecutorOptions) {
+    const blocklet = await this.context.getBlockletAgent(agent.id);
+    if (!blocklet.api) {
+      throw new Error('Blocklet agent api not found.');
+    }
+
+    if (!blocklet.agent) {
+      throw new Error('Blocklet agent api not found.');
+    }
+
     const params: { [key: string]: string } = {
       userId: this.context.user?.did || '',
       projectId: this.context.entryProjectId,
@@ -36,7 +51,7 @@ export class BlockletAgentExecutor extends AgentExecutorBase {
       assistantId: agent.id || '',
     };
 
-    const response = await callBlockletApi(blocklet.api, inputParameters, { user: this.context.user, params });
+    const response = await callBlockletApi(blocklet.api, inputs || {}, { user: this.context.user, params });
 
     return response.data;
   }

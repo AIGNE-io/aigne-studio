@@ -3,7 +3,7 @@ import { ReadableStream } from 'stream/web';
 import { ChatCompletionInput, ChatCompletionResponse } from '@blocklet/ai-kit/api/types/chat';
 import { ImageGenerationInput } from '@blocklet/ai-kit/api/types/image';
 
-import { Assistant, OnTaskCompletion, ProjectSettings, RunAssistantResponse } from '../../types';
+import { Assistant, BlockletAgent, OnTaskCompletion, ProjectSettings, RunAssistantResponse } from '../../types';
 
 type OmitBetterStrict<T, K extends keyof T> = T extends any ? Pick<T, Exclude<keyof T, K>> : never;
 
@@ -27,17 +27,22 @@ export interface GetAgentOptions {
   rejectOnEmpty?: boolean | Error;
 }
 
-export type GetAgentResult = Assistant & {
-  project: ProjectSettings;
-  identity: {
-    projectId: string;
-    projectRef?: string;
-    blockletDid?: string;
-    working?: boolean;
-    agentId: string;
-    aid: string;
-  };
-};
+export type GetAgentResult =
+  | (Assistant & {
+      project: ProjectSettings;
+      identity: {
+        projectId: string;
+        projectRef?: string;
+        blockletDid?: string;
+        working?: boolean;
+        agentId: string;
+        aid: string;
+      };
+    })
+  | (BlockletAgent & {
+      project?: undefined;
+      identity?: undefined;
+    });
 
 export interface GetAgent {
   (options: GetAgentOptions & { rejectOnEmpty: true | Error }): Promise<GetAgentResult>;

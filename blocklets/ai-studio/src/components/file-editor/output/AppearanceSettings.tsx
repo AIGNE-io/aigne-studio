@@ -232,10 +232,11 @@ function ComponentSelect({
       getOptionLabel={(component) =>
         component.blockletDid ? component.name || component.id : `${component.name || component.id} (Local)`
       }
-      isOptionEqualToValue={(o, v) =>
-        o.id === v.id &&
-        ((!o.blockletDid && !v.blockletDid) || o.blockletDid === v.blockletDid) &&
-        ((!o.name && !v.name) || o.name === v.name)
+      isOptionEqualToValue={
+        (o, v) =>
+          o.id === v.id &&
+          ((!o.blockletDid && !v.blockletDid) || o.blockletDid === v.blockletDid) &&
+          ((!o.name && !v.name) || o.name === v.name) // FIXME: 临时解决方案，等后端返回 name 字段后可以删掉
       }
       renderGroup={(params) => {
         return (
