@@ -193,8 +193,8 @@ export abstract class AgentExecutorBase {
           }) ?? []
       )
     );
-    const inputVariables: { [key: string]: any } = { ...(inputs || {}), ...(variables || {}), ...inputParameters };
-    logger.info('prepareInputs', { inputVariables });
+    const inputVariables: { [key: string]: any } = { ...(inputs || {}), ...inputParameters };
+    logger.info('prepareInputs', { inputVariables, variables, inputParameters });
 
     const userId = this.context.user.did;
 
@@ -231,7 +231,9 @@ export abstract class AgentExecutorBase {
           if (!secret) throw new Error(`Missing required agent secret ${parameter.key}`);
           inputVariables[parameter.key!] = secret;
         } else if (parameter.source?.variableFrom === 'tool' && parameter.source.agent) {
+          const currentTaskId = nextTaskId();
           const { agent: tool } = parameter.source;
+
           const toolAgent = await this.context.getAgent({
             blockletDid: tool.blockletDid || agent.identity.blockletDid,
             projectId: tool.projectId || agent.identity.projectId,
@@ -240,8 +242,6 @@ export abstract class AgentExecutorBase {
             working: agent.identity.working,
           });
           if (!toolAgent) continue;
-
-          const currentTaskId = nextTaskId();
 
           const result = await this.context.executor(this.context).execute(toolAgent, {
             inputs: tool.parameters,
@@ -257,7 +257,6 @@ export abstract class AgentExecutorBase {
             userId,
             projectId: this.context.entryProjectId,
             sessionId: this.context.sessionId,
-            agentId: agent.id,
             scope: parameter.source.variable?.scope || 'session',
             key: toLower(parameter.source.variable?.key) || toLower(parameter.key),
           };
@@ -285,9 +284,9 @@ export abstract class AgentExecutorBase {
 
           inputVariables[parameter.key] = result;
         } else if (parameter.source?.variableFrom === 'knowledge' && parameter.source.knowledge) {
+          const currentTaskId = nextTaskId();
           const tool = parameter.source.knowledge;
           const blockletDid = parameter.source.knowledge.blockletDid || agent.identity.blockletDid;
-          const currentTaskId = nextTaskId();
 
           const blocklet = await this.context.getBlockletAgent(KNOWLEDGE_API_ID);
           if (!blocklet.agent) {
@@ -466,6 +465,7 @@ export abstract class AgentExecutorBase {
       return res;
     }, {});
 
+    logger.info('validateOutputs', { outputInputs, outputs });
     return joiSchema.validateAsync({ ...outputs, ...outputInputs }, { stripUnknown: true });
   }
 
