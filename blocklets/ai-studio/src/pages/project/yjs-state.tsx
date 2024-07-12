@@ -5,6 +5,7 @@ import {
   AssistantYjs,
   ConfigFileYjs,
   FileTypeYjs,
+  ProjectSettings,
   VariablesYjs,
   isApiAssistant,
   isAssistant,
@@ -12,6 +13,7 @@ import {
   isImageAssistant,
   isPromptAssistant,
   nextAssistantId,
+  projectSettingsSchema,
 } from '@blocklet/ai-runtime/types';
 import {
   Doc,
@@ -42,6 +44,8 @@ export const PROMPTS_FOLDER_NAME = 'prompts';
 
 export const CONFIG_FILE_KEY = 'config';
 export const CONFIG_FILENAME = `${CONFIG_FILE_KEY}.yaml`;
+
+export const PROJECT_CONFIG_FILE = 'project.yaml';
 
 export const isBuiltinFolder = (folder: string) => [PROMPTS_FOLDER_NAME].includes(folder);
 
@@ -194,11 +198,25 @@ export const useProjectStore = (projectId: string, gitRef: string, connect?: boo
     [syncedStore]
   );
 
+  const projectSetting = syncedStore.files[PROJECT_CONFIG_FILE] as ProjectSettings | undefined;
+
+  const setProjectSetting = useCallback(
+    (update: (config: ProjectSettings) => void) => {
+      let config = syncedStore.files[PROJECT_CONFIG_FILE] as ProjectSettings | undefined;
+      if (!config) throw new Error('Missing required project.yaml');
+
+      update(config);
+    },
+    [syncedStore]
+  );
+
   return {
     ...store,
     store: syncedStore,
     config,
     setConfig,
+    projectSetting,
+    setProjectSetting,
     getTemplateById: useCallback(
       (templateId: string) => {
         const file = syncedStore.files[templateId];

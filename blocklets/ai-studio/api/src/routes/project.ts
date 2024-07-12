@@ -5,6 +5,7 @@ import { basename, dirname, isAbsolute, join } from 'path';
 import { Config } from '@api/libs/env';
 import { NoPermissionError, NotFoundError } from '@api/libs/error';
 import { sampleIcon } from '@api/libs/icon';
+// import { sampleIcon } from '@api/libs/icon';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
 import AgentInputSecret from '@api/store/models/agent-input-secret';
 import {
@@ -41,12 +42,11 @@ import {
   CONFIG_FILE_KEY,
   CONFIG_FOLDER,
   LOGO_FILENAME,
+  ProjectRepo,
   VARIABLE_FILENAME,
   VARIABLE_KEY,
   autoSyncIfNeeded,
   clearRepository,
-  commitProjectSettingWorking,
-  commitWorking,
   defaultBranch,
   defaultRemote,
   getAssistantFromRepository,
@@ -334,6 +334,7 @@ export function projectRoutes(router: Router) {
     res.json({ icons: data?.uploads || [] });
   });
 
+  // TODO: 支持 projectRef query 参数，从指定分支 working dir 中返回 logo.png
   router.get('/projects/:projectId/logo.png', async (req, res) => {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required parameter `projectId`');
@@ -620,6 +621,7 @@ export function projectRoutes(router: Router) {
     }
   });
 
+  // TODO: 仅支持设置 pinned / git / did space 相关配置
   router.patch('/projects/:projectId', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required parameter `projectId`');
@@ -632,23 +634,8 @@ export function projectRoutes(router: Router) {
 
     checkProjectPermission({ req, project });
 
-    const {
-      name,
-      pinned,
-      description,
-      icon,
-      model,
-      temperature,
-      topP,
-      presencePenalty,
-      frequencyPenalty,
-      maxTokens,
-      gitType,
-      gitAutoSync,
-      didSpaceAutoSync,
-      homePageUrl,
-      appearance,
-    } = await updateProjectSchema.validateAsync(req.body, { stripUnknown: true });
+    const { pinned, gitType, gitAutoSync, didSpaceAutoSync, homePageUrl, icon } =
+      await updateProjectSchema.validateAsync(req.body, { stripUnknown: true });
 
     if (gitAutoSync) {
       const repo = await getRepository({ projectId });
@@ -664,22 +651,13 @@ export function projectRoutes(router: Router) {
     await project.update(
       omitBy(
         {
-          name,
           pinnedAt: pinned ? new Date().toISOString() : pinned === false ? null : undefined,
           updatedBy: userId,
-          description,
-          model: model || project.model || '',
           icon: '',
-          temperature,
-          topP,
-          presencePenalty,
-          frequencyPenalty,
-          maxTokens,
           gitType,
           gitAutoSync,
           didSpaceAutoSync,
           homePageUrl,
-          appearance,
           updatedAt: new Date(),
         },
         (v) => v === undefined
@@ -687,8 +665,6 @@ export function projectRoutes(router: Router) {
     );
 
     const author = { name: fullName, email: userId };
-
-    await commitProjectSettingWorking({ project, author, icon });
 
     await autoSyncIfNeeded({ project, author, userId });
 
@@ -999,6 +975,32 @@ export function projectRoutes(router: Router) {
 
     return res.json({ assistants: uniqBy(assistants, 'id') });
   });
+
+  const uploadAssetSchema = Joi.object<{ type: 'logo' | 'asset'; source: string }>({
+    type: Joi.string().valid('logo', 'asset').empty(['', null]).default('asset'),
+    source: Joi.string().required(),
+  });
+
+  router.post(
+    '/projects/:projectId/refs/:ref/assets',
+    user(),
+    ensureComponentCallOrPromptsEditor(),
+    async (req, res) => {
+      const { projectId, ref } = req.params;
+      if (!projectId || !ref) throw new Error('Missing required params `projectId` or `ref`');
+
+      const input = await uploadAssetSchema.validateAsync(req.body, { stripUnknown: true });
+
+      const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
+
+      checkProjectPermission({ req, project });
+
+      const repo = await ProjectRepo.load({ projectId });
+      const filename = await repo.uploadAsset({ type: input.type, ref, source: input.source });
+
+      res.json({ filename });
+    }
+  );
 }
 
 const getAuthorsOfProject = async ({
@@ -1112,8 +1114,7 @@ async function createProjectFromTemplate(
   working.syncedStore.tree[CONFIG_FILE_KEY] = joinURL(CONFIG_FOLDER, CONFIG_FILENAME);
   working.syncedStore.files[CONFIG_FILE_KEY] = template.config || {};
 
-  await commitWorking({
-    project,
+  await repository.commitWorking({
     ref: defaultBranch,
     branch: defaultBranch,
     message: 'First Commit',

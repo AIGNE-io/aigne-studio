@@ -35,8 +35,8 @@ export const projectSettingsSchema = Joi.object<ProjectSettings>({
   presencePenalty: Joi.number().empty(['', null]),
   frequencyPenalty: Joi.number().empty(['', null]),
   maxTokens: Joi.number().empty(['', null]),
-  createdAt: Joi.alternatives(Joi.string().isoDate(), Joi.date()).required(),
-  updatedAt: Joi.alternatives(Joi.string().isoDate(), Joi.date()).required(),
+  createdAt: Joi.alternatives(Joi.string().isoDate(), Joi.date().cast('string')).required(),
+  updatedAt: Joi.alternatives(Joi.string().isoDate(), Joi.date().cast('string')).required(),
   createdBy: Joi.string().required(),
   updatedBy: Joi.string().required(),
   appearance: Joi.object({

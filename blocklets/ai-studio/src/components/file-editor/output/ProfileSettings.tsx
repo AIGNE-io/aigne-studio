@@ -1,5 +1,8 @@
 import LogoField from '@app/components/publish/LogoField';
+import { useCurrentProject } from '@app/contexts/project';
+import { uploadAsset } from '@app/libs/project';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import Toast from '@arcblock/ux/lib/Toast';
 import { OutputVariableYjs, RuntimeOutputProfile } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Box, Stack, TextField, Typography } from '@mui/material';
@@ -7,6 +10,7 @@ import { WritableDraft } from 'immer';
 
 export default function ProfileSettings({ output }: { output: OutputVariableYjs }) {
   const { t } = useLocaleContext();
+  const { projectId, projectRef } = useCurrentProject();
 
   const initialValue = output.initialValue as RuntimeOutputProfile | undefined;
 
@@ -24,7 +28,15 @@ export default function ProfileSettings({ output }: { output: OutputVariableYjs 
         <Typography variant="subtitle2">{t('avatar')}</Typography>
         <LogoField
           value={initialValue?.avatar ? { url: initialValue.avatar } : undefined}
-          onChange={(v) => setField((f) => (f.avatar = v.url))}
+          onChange={async (v) => {
+            try {
+              const { filename } = await uploadAsset({ projectId, ref: projectRef, source: v.url });
+              setField((f) => (f.avatar = filename));
+            } catch (error) {
+              Toast.error(error.message);
+              throw error;
+            }
+          }}
         />
       </Box>
 

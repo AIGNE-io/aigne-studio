@@ -111,13 +111,13 @@ export async function projectSync(projectId: string, target: SyncTarget = 'githu
 export function getProjectIconUrl(
   projectId: string,
   updatedAt: string | number | Date,
-  { original }: { original?: boolean } = {}
+  { original, projectRef }: { original?: boolean; projectRef?: string } = {}
 ) {
   if (!projectId) return '';
   const component = blocklet?.componentMountPoints.find((i) => i.did === AIGNE_STUDIO_COMPONENT_DID);
   return withQuery(
     joinURL(window.location.origin, component?.mountPoint || '', `/api/projects/${projectId}/logo.png`),
-    original ? { version: updatedAt } : { imageFilter: 'resize', w: 140, version: updatedAt }
+    { ...(original ? {} : { imageFilter: 'resize', w: 140 }), version: updatedAt, projectRef }
   );
 }
 
@@ -132,4 +132,20 @@ export async function createOrUpdateProjectInputSecrets(
   input: CreateOrUpdateAgentInputSecretPayload
 ): Promise<{ secrets: Omit<AgentInputSecret['dataValues'], 'secret'>[] }> {
   return axios.post(`/api/projects/${projectId}/agent-input-secrets`, input).then((res) => res.data);
+}
+
+export async function uploadAsset({
+  projectId,
+  ref,
+  source,
+  type,
+}: {
+  projectId: string;
+  ref: string;
+  source: String;
+  type?: 'logo';
+}): Promise<{ filename: string }> {
+  return axios
+    .post(joinURL('/api/projects', projectId, 'refs', ref, 'assets'), { source, type })
+    .then((res) => res.data);
 }
