@@ -1,5 +1,5 @@
 import AigneLogo from '@app/components/aigne-logo';
-import DynamicModuleErrorView from '@app/components/DynamicModuleErrorView';
+import ErrorBoundary from '@app/components/error/error-boundary';
 import UploaderProvider from '@app/contexts/uploader';
 import currentGitStore from '@app/store/current-git-store';
 import { SubscribeButton } from '@blocklet/ai-kit/components';
@@ -8,7 +8,6 @@ import { GlobalStyles, backdropClasses, circularProgressClasses, paperClasses, s
 import { Suspense, lazy } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { ErrorBoundary } from 'react-error-boundary';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
@@ -56,7 +55,7 @@ export default function ProjectRoutes() {
               },
             },
           }}>
-          <ErrorBoundary FallbackComponent={DynamicModuleErrorView}>
+          <ErrorBoundary>
             <Suspense fallback={<Loading fixed />}>
               <Routes>
                 <Route index element={<ProjectsPage />} />

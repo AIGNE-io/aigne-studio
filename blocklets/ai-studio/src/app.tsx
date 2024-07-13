@@ -4,21 +4,18 @@ import { SubscribeButton } from '@blocklet/ai-kit/components';
 import { Dashboard } from '@blocklet/studio-ui';
 import Footer from '@blocklet/ui-react/lib/Footer';
 import { Box, CssBaseline, GlobalStyles, ThemeProvider } from '@mui/material';
-import { ReactNode, Suspense, lazy, useEffect, useRef } from 'react';
+import { ReactNode, Suspense, lazy } from 'react';
 import {
   Navigate,
-  Outlet,
   Route,
   RouterProvider,
   createBrowserRouter,
   createRoutesFromElements,
-  useLocation,
   useRouteError,
 } from 'react-router-dom';
 import { RecoilRoot } from 'recoil';
 
 import AigneLogo from './components/aigne-logo';
-import DynamicModuleErrorView from './components/DynamicModuleErrorView';
 import ErrorBoundary from './components/error/error-boundary';
 import Loading from './components/loading';
 import { SessionProvider, useInitialized, useIsPromptEditor } from './contexts/session';
@@ -82,7 +79,9 @@ export default function App() {
             <LocaleProvider translations={translations} fallbackLocale="en">
               <SessionProvider serviceHost={basename} protectedRoutes={[`${basename}/*`]}>
                 <Suspense fallback={<Loading fixed />}>
-                  <AppRoutes basename={basename} />
+                  <ErrorBoundary>
+                    <AppRoutes basename={basename} />
+                  </ErrorBoundary>
                 </Suspense>
               </SessionProvider>
             </LocaleProvider>
@@ -93,19 +92,7 @@ export default function App() {
   );
 }
 
-function LocationListener({ errorBoundaryRef }: { errorBoundaryRef: React.RefObject<ErrorBoundary> }) {
-  const location = useLocation();
-
-  useEffect(() => {
-    errorBoundaryRef.current?.reset();
-  }, [location]);
-
-  return <Outlet />;
-}
-
 function AppRoutes({ basename }: { basename: string }) {
-  const errorBoundary = useRef<ErrorBoundary>(null);
-
   const initialized = useInitialized();
   const isPromptEditor = useIsPromptEditor();
 
@@ -113,10 +100,7 @@ function AppRoutes({ basename }: { basename: string }) {
 
   const router = createBrowserRouter(
     createRoutesFromElements(
-      <Route
-        path="/"
-        ErrorBoundary={RouterErrorBoundary}
-        element={<LocationListener errorBoundaryRef={errorBoundary} />}>
+      <Route path="/" ErrorBoundary={RouterErrorBoundary}>
         <Route index element={isPromptEditor ? <Navigate to="projects" replace /> : <Home />} />
         {isPromptEditor ? (
           <>
@@ -133,16 +117,14 @@ function AppRoutes({ basename }: { basename: string }) {
     { basename }
   );
 
-  return (
-    <ErrorBoundary ref={errorBoundary}>
-      <RouterProvider router={router} />
-    </ErrorBoundary>
-  );
+  return <RouterProvider router={router} />;
 }
 
 function RouterErrorBoundary() {
-  const error = useRouteError();
-  return <DynamicModuleErrorView error={error} />;
+  const error = useRouteError() as Error;
+  if (error) throw error;
+
+  return null;
 }
 
 const Home = lazy(() => import('./pages/home/home'));

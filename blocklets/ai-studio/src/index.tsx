@@ -1,8 +1,7 @@
 import ReactDOM from 'react-dom/client';
-import { ErrorBoundary } from 'react-error-boundary';
 
 import App from './app';
-import DynamicModuleErrorView from './components/DynamicModuleErrorView';
+import ErrorBoundary from './components/error/error-boundary';
 
 const SUPPRESSED_WARNINGS = ['Support for defaultProps will be removed'];
 const { error } = console;
@@ -14,7 +13,7 @@ console.error = (msg, ...args: any[]) => {
 
 const root = ReactDOM.createRoot(document.getElementById('app')!);
 root.render(
-  <ErrorBoundary FallbackComponent={DynamicModuleErrorView}>
+  <ErrorBoundary>
     <App />
   </ErrorBoundary>
 );
