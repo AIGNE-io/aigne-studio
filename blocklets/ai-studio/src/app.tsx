@@ -13,10 +13,12 @@ import {
   createBrowserRouter,
   createRoutesFromElements,
   useLocation,
+  useRouteError,
 } from 'react-router-dom';
 import { RecoilRoot } from 'recoil';
 
 import AigneLogo from './components/aigne-logo';
+import DynamicModuleErrorView from './components/DynamicModuleErrorView';
 import ErrorBoundary from './components/error/error-boundary';
 import Loading from './components/loading';
 import { SessionProvider, useInitialized, useIsPromptEditor } from './contexts/session';
@@ -111,7 +113,10 @@ function AppRoutes({ basename }: { basename: string }) {
 
   const router = createBrowserRouter(
     createRoutesFromElements(
-      <Route path="/" element={<LocationListener errorBoundaryRef={errorBoundary} />}>
+      <Route
+        path="/"
+        ErrorBoundary={RouterErrorBoundary}
+        element={<LocationListener errorBoundaryRef={errorBoundary} />}>
         <Route index element={isPromptEditor ? <Navigate to="projects" replace /> : <Home />} />
         {isPromptEditor ? (
           <>
@@ -133,6 +138,11 @@ function AppRoutes({ basename }: { basename: string }) {
       <RouterProvider router={router} />
     </ErrorBoundary>
   );
+}
+
+function RouterErrorBoundary() {
+  const error = useRouteError();
+  return <DynamicModuleErrorView error={error} />;
 }
 
 const Home = lazy(() => import('./pages/home/home'));
