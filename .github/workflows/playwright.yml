@@ -25,9 +25,6 @@ jobs:
     if: "! contains(toJSON(github.event.commits.*.message), '[skip ci]')"
 
     steps:
-      - name: Install Playwright Browsers
-        run: npx -y playwright install --with-deps
-
       - name: Checkout repo
         uses: actions/checkout@v4
 
