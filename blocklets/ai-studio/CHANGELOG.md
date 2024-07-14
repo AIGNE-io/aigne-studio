@@ -1,3 +1,7 @@
+## 0.3.31 (2024-7-13)
+
+- fix: handle and retry when loading dynamic module error
+
 ## 0.3.30 (2024-7-11)
 
 - feat: update call component to blocklet agent

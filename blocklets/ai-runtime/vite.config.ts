@@ -9,7 +9,7 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 export default defineConfig(() => {
   return {
     optimizeDeps: {
-      force: true,
+      // force: true,
     },
     plugins: [tsconfigPaths(), react(), createBlockletPlugin()],
     build: {

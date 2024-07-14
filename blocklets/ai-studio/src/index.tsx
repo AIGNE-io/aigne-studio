@@ -1,6 +1,7 @@
 import ReactDOM from 'react-dom/client';
 
 import App from './app';
+import ErrorBoundary from './components/error/error-boundary';
 
 const SUPPRESSED_WARNINGS = ['Support for defaultProps will be removed'];
 const { error } = console;
@@ -11,4 +12,8 @@ console.error = (msg, ...args: any[]) => {
 };
 
 const root = ReactDOM.createRoot(document.getElementById('app')!);
-root.render(<App />);
+root.render(
+  <ErrorBoundary>
+    <App />
+  </ErrorBoundary>
+);
