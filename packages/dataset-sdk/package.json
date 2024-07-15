@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/dataset-sdk",
-  "version": "0.3.30",
+  "version": "0.3.31",
   "description": "The SDK for processing dataset protocol",
   "publishConfig": {
     "access": "public"
@@ -85,8 +85,7 @@
     "build:types": "tsc --declaration --emitDeclarationOnly --outDir lib/types",
     "dev": "run-p 'build:* -- -w'",
     "clean": "rimraf lib",
-    "prepublishOnly": "npm run build",
-    "prepare": "npm run build"
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@blocklet/constant": "^1.16.28",

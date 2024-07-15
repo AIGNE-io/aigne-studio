@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/prompt-editor",
-  "version": "0.3.30",
+  "version": "0.3.31",
   "description": "prompt editor for ai studio",
   "author": "arcblock",
   "license": "ISC",
@@ -53,8 +53,7 @@
     "build:css-cjs": "copyfiles -u 1 './src/**/*.css' lib/cjs/",
     "build:css-esm": "copyfiles -u 1 './src/**/*.css' lib/esm/",
     "dev": "run-p 'build:* -- -w'",
-    "prepublishOnly": "npm run build",
-    "prepare": "npm run build"
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@emotion/react": "^11.11.4",

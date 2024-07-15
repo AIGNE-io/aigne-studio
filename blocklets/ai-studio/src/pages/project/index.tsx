@@ -1,29 +1,22 @@
 import AigneLogo from '@app/components/aigne-logo';
+import ErrorBoundary from '@app/components/error/error-boundary';
 import UploaderProvider from '@app/contexts/uploader';
 import currentGitStore from '@app/store/current-git-store';
 import { SubscribeButton } from '@blocklet/ai-kit/components';
 import { Dashboard } from '@blocklet/studio-ui';
 import { GlobalStyles, backdropClasses, circularProgressClasses, paperClasses, styled } from '@mui/material';
-import { Suspense, lazy, useEffect, useRef } from 'react';
+import { Suspense, lazy } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
-import ErrorBoundary from '../../components/error/error-boundary';
 import Loading from '../../components/loading';
 import KnowledgeRoutes from '../knowledge';
 import VariablesList from '../variables/list';
 import ProjectHeader from './project-header';
 
 export default function ProjectRoutes() {
-  const errorBoundary = useRef<ErrorBoundary>(null);
-  const location = useLocation();
-
-  useEffect(() => {
-    errorBoundary.current?.reset();
-  }, [location]);
-
   return (
     <UploaderProvider>
       <DndProvider backend={HTML5Backend}>
@@ -62,7 +55,7 @@ export default function ProjectRoutes() {
               },
             },
           }}>
-          <ErrorBoundary ref={errorBoundary}>
+          <ErrorBoundary>
             <Suspense fallback={<Loading fixed />}>
               <Routes>
                 <Route index element={<ProjectsPage />} />
