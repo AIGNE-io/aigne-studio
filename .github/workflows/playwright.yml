@@ -17,10 +17,10 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     container:
-      image: ubuntu:latest
+      image: arcblock/blocklet-server-ci
       ports:
-        - 9898:9898
-        - 9899:9899
+        - 80:80
+        - 443:443
 
     if: "! contains(toJSON(github.event.commits.*.message), '[skip ci]')"
 
@@ -28,31 +28,15 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v3
-        with:
-          version: 9
-
-      - name: Setup node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - name: Setup blocklet
-        run: |
-          apt update -y && apt install -y nginx nginx-extras
-          pnpm install -g @blocklet/cli@beta
-
       - name: Install dependencies
-        run: pnpm install
+        run: |
+          pnpm install
+          pnpm exec playwright install --with-deps
 
       - name: Bundle blocklets
         run: |
           pnpm build:libs
           pnpm -F ai-studio -F ai-runtime bundle
-
-      - name: Install Playwright Browsers
-        run: pnpm exec playwright install --with-deps
 
       - name: Run Playwright tests
         run: pnpm e2e
