@@ -116,7 +116,6 @@
     "dev": "run-p 'build:* -- -w'",
     "clean": "rimraf lib",
     "prepublishOnly": "npm run build",
-    "prepare": "npm run build",
     "test": "jest src/"
   },
   "dependencies": {

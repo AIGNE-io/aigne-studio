@@ -85,8 +85,7 @@
     "build:types": "tsc --declaration --emitDeclarationOnly --outDir lib/types",
     "dev": "run-p 'build:* -- -w'",
     "clean": "rimraf lib",
-    "prepublishOnly": "npm run build",
-    "prepare": "npm run build"
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@blocklet/constant": "^1.16.28",
