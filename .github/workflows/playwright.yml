@@ -18,6 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: arcblock/blocklet-server-ci
+      options: --user root
       ports:
         - 80:80
         - 443:443
