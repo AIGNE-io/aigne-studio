@@ -13,7 +13,6 @@ import {
   isImageAssistant,
   isPromptAssistant,
   nextAssistantId,
-  projectSettingsSchema,
 } from '@blocklet/ai-runtime/types';
 import {
   Doc,
@@ -202,7 +201,7 @@ export const useProjectStore = (projectId: string, gitRef: string, connect?: boo
 
   const setProjectSetting = useCallback(
     (update: (config: ProjectSettings) => void) => {
-      let config = syncedStore.files[PROJECT_CONFIG_FILE] as ProjectSettings | undefined;
+      const config = syncedStore.files[PROJECT_CONFIG_FILE] as ProjectSettings | undefined;
       if (!config) throw new Error('Missing required project.yaml');
 
       update(config);

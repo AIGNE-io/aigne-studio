@@ -72,7 +72,7 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
   const readOnly = useReadOnly({ ref: getDefaultBranch() });
   const { dialog, showDialog } = useDialog();
   const [submitLoading, setLoading] = useState(false);
-  const [value, setValue] = useState<UpdateProjectInput>(init);
+  const [value, setValue] = useState<UpdateProjectInput & { icon?: string }>(init);
   const isSubmit = useRef(false);
   const origin = useRef<UpdateProjectInput>();
   const { session } = useSessionContext();

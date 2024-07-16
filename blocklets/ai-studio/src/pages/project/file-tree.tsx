@@ -3,14 +3,7 @@ import { useCurrentProject } from '@app/contexts/project';
 import AigneLogo from '@app/icons/aigne-logo';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import {
-  AssistantYjs,
-  FileTypeYjs,
-  VariablesYjs,
-  fileToYjs,
-  isAssistant,
-  nextAssistantId,
-} from '@blocklet/ai-runtime/types';
+import { AssistantYjs, fileToYjs, isAssistant, nextAssistantId } from '@blocklet/ai-runtime/types';
 import { css } from '@emotion/css';
 import { Icon } from '@iconify-icon/react';
 import ArrowBackUpIcon from '@iconify-icons/tabler/arrow-back-up';
@@ -100,7 +93,7 @@ export type EntryWithMeta =
       filename: string;
       parent: string[];
       path: string[];
-      meta: Exclude<FileTypeYjs, { $base64: string } | VariablesYjs>;
+      meta: AssistantYjs;
     }
   | {
       type: 'folder';
