@@ -4,7 +4,7 @@ import { getAgent, getAgentSecretInputs } from '@api/libs/agent';
 import { ResourceType, getProjectFromResource, getResourceProjects } from '@api/libs/resource';
 import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
-import { GetAgentResult } from '@blocklet/ai-runtime/core';
+import { Assistant, ProjectSettings } from '@blocklet/ai-runtime/types';
 import { Agent } from '@blocklet/aigne-sdk/api/agent';
 import { getComponentMountPoint } from '@blocklet/sdk';
 import { Router } from 'express';
@@ -83,11 +83,6 @@ router.get('/:aid', async (req, res) => {
     return;
   }
 
-  if (agent.type === 'blocklet') {
-    res.status(404).json({ message: 'This is blocklet Agent' });
-    return;
-  }
-
   res.json({
     ...respondAgentFields(agent),
     config: {
@@ -155,11 +150,12 @@ router.get('/:aid/assets/:filename', async (req, res) => {
   );
 });
 
-const respondAgentFields = (
-  agent: Omit<Exclude<GetAgentResult, { type: 'blocklet' }>, 'identity'> & {
-    identity: Omit<Exclude<GetAgentResult, { type: 'blocklet' }>['identity'], 'aid'>;
+export const respondAgentFields = (
+  agent: Assistant & {
+    identity: Omit<Agent['identity'], 'aid'>;
+    project: ProjectSettings;
   }
-) => ({
+): Agent => ({
   ...pick(agent, 'id', 'name', 'description', 'type', 'parameters', 'createdAt', 'updatedAt', 'createdBy', 'identity'),
   outputVariables: (agent.outputVariables ?? []).filter((i) => !i.hidden),
   project: pick(

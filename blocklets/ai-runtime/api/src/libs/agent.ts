@@ -2,7 +2,7 @@ import Secret from '@api/store/models/secret';
 import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { GetAgentOptions, GetAgentResult } from '@blocklet/ai-runtime/core';
 import { resolveSecretInputs } from '@blocklet/ai-runtime/core/utils/resolve-secret-inputs';
-import { ProjectSettings, Variable } from '@blocklet/ai-runtime/types';
+import { BlockletAgent, ProjectSettings, Variable } from '@blocklet/ai-runtime/types';
 
 import { getAgentFromAIStudio, getMemoryVariablesFromAIStudio, getProjectFromAIStudio } from './ai-studio';
 import { getAssistantFromResourceBlocklet, getMemoryVariablesFromResource, getProjectFromResource } from './resource';
@@ -56,8 +56,10 @@ export async function getMemoryVariables({
 
 export async function getAgent(
   options: GetAgentOptions & { rejectOnEmpty?: false }
-): Promise<GetAgentResult | undefined>;
-export async function getAgent(options: GetAgentOptions & { rejectOnEmpty: true | Error }): Promise<GetAgentResult>;
+): Promise<Exclude<GetAgentResult, BlockletAgent> | undefined>;
+export async function getAgent(
+  options: GetAgentOptions & { rejectOnEmpty: true | Error }
+): Promise<Exclude<GetAgentResult, BlockletAgent>>;
 export async function getAgent({
   working,
   blockletDid,
@@ -75,12 +77,13 @@ export async function getAgent({
       agentId,
     });
 
-    if (res)
+    if (res) {
       agent = {
         ...res.agent,
         project: res.project,
         identity: { blockletDid, projectId, agentId, aid: stringifyIdentity({ projectId, agentId }) },
       };
+    }
   } else if (projectRef) {
     const res = await getAgentFromAIStudio({ projectId, projectRef, agentId, working });
     if (res)

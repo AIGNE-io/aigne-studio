@@ -1,58 +1,13 @@
-import { OutputVariable, Parameter, RunAssistantResponse } from '@blocklet/ai-runtime/types';
+import { RunAssistantResponse } from '@blocklet/ai-runtime/types';
 import { ResourceType } from '@blocklet/ai-runtime/types/resource';
+import { Agent, AgentWithConfig } from '@blocklet/ai-runtime/types/runtime/agent';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 import { joinURL } from 'ufo';
 
 import { AIGNE_RUNTIME_COMPONENT_DID } from '../constants';
 import { aigneRuntimeApi, aigneStudioApi, getMountPoint } from './api';
 
-export interface Agent {
-  id: string;
-  name?: string;
-  description?: string;
-  parameters?: Parameter[];
-  outputVariables?: OutputVariable[];
-  createdBy?: string;
-
-  identity: {
-    aid: string;
-    projectId: string;
-    projectRef?: string;
-    blockletDid?: string;
-    working?: boolean;
-    agentId: string;
-  };
-
-  project: {
-    id: string;
-    name?: string;
-    description?: string;
-    createdBy: string;
-    createdAt: string;
-    updatedAt: string;
-    appearance?: {
-      primaryColor?: string;
-      typography?: {
-        fontFamily?: string;
-        heading?: {
-          fontFamily?: string;
-        };
-      };
-    };
-    iconVersion?: string;
-  };
-}
-
-export interface AgentWithConfig extends Agent {
-  config: {
-    secrets: {
-      targetProjectId: string;
-      targetAgentId: string;
-      targetInput: Parameter;
-      hasValue: boolean;
-    }[];
-  };
-}
+export type { Agent, AgentWithConfig };
 
 export async function getAgents({
   type,

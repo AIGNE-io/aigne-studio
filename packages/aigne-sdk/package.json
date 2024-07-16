@@ -31,6 +31,10 @@
     "./server/*": {
       "import": "./lib/esm/server/*.js",
       "require": "./lib/cjs/server/*.js"
+    },
+    "./utils/*": {
+      "import": "./lib/esm/utils/*.js",
+      "require": "./lib/cjs/utils/*.js"
     }
   },
   "typesVersions": {
@@ -48,7 +52,10 @@
         "./lib/types/components/*/index.d.ts"
       ],
       "server/*": [
-        "./lib/types/server/*/index.d.ts"
+        "./lib/types/server/*.d.ts"
+      ],
+      "utils/*": [
+        "./lib/types/utils/*.d.ts"
       ]
     }
   },
