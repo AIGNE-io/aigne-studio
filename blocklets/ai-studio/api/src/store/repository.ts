@@ -9,6 +9,7 @@ import {
   ConfigFile,
   FileType,
   FileTypeYjs,
+  ProjectSettings,
   Variable,
   Variables,
   fileFromYjs,
@@ -278,7 +279,9 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
       },
       beforeCommit: async ({ tx }) => {
         // TODO: 支持前端编辑 README 文件
-        // await writeFile(path.join(working.workingDir, 'README.md'), getReadmeOfProject(project));
+        const setting = working.syncedStore.files[SETTINGS_FILE] as ProjectSettings | undefined;
+        const readme = getReadmeOfProject({ name: setting?.name || '', description: setting?.description || '' });
+        await writeFile(path.join(working.workingDir, 'README.md'), readme);
 
         // Download or copy icon file
         if (icon) {
@@ -449,6 +452,22 @@ export async function syncToDidSpace({ project, userId }: { project: Project; us
   }
 
   await project.update({ didSpaceLastSyncedAt: new Date() }, { silent: true });
+}
+function getReadmeOfProject(project: { name: string; description: string }) {
+  return `\
+# ${project.name || 'AI Studio project'}
+
+${project.description || ''}
+
+## Install And Run
+
+This is an AI project created by [AI Studio](https://store.blocklet.dev/blocklets/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB).
+
+To run it you can:
+
+1. [Launch](https://launcher.arcblock.io/app/?blocklet_meta_url=https%3A%2F%2Fstore.blocklet.dev%2Fapi%2Fblocklets%2Fz8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB%2Fblocklet.json&locale=en&paymentMethod=xFdj7e5muWQyUvur&sessionId=9btigGO5FLxFwL2e) AI Studio on Blocklet Server
+2. Import this project
+`;
 }
 
 export function getAssistantIdFromPath(filepath: string) {
