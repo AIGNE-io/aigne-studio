@@ -262,9 +262,12 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
     icon?: string;
     skipCommitIfNoChanges?: boolean;
   }) {
+    const project = await Project.findByPk(this.projectId, {
+      rejectOnEmpty: new Error(`No such project ${this.projectId}`),
+    });
     const working = await this.working({ ref });
 
-    return working.commit({
+    const result = await working.commit({
       ref,
       branch,
       message,
@@ -306,11 +309,19 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
           const changes = await tx.repo.statusMatrix({ dir: working.workingDir });
           const hasChange = !changes.every((i) => i[1] === 1 && i[2] === 1 && i[3] === 1);
           if (hasChange) {
-            // ignore
+            const setting = working.syncedStore.files[SETTINGS_FILE] as ProjectSettings;
+            if (!setting) throw new Error('Missing required project.yaml');
+            setting.updatedAt = new Date().toISOString();
+            await writeFile(path.join(working.workingDir, SETTINGS_FILE), stringify(setting));
           }
         }
       },
     });
+
+    project.changed('updatedAt', true);
+    await project.update({ updatedAt: new Date() });
+
+    return result;
   }
 
   async uploadAsset({ type, ref, source }: { type: 'logo' | 'asset'; ref: string; source: string }) {

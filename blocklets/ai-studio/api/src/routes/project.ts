@@ -652,7 +652,6 @@ export function projectRoutes(router: Router) {
     }
   });
 
-  // TODO: 仅支持设置 pinned / git / did space 相关配置
   router.patch('/projects/:projectId', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required parameter `projectId`');
@@ -665,10 +664,9 @@ export function projectRoutes(router: Router) {
 
     checkProjectPermission({ req, project });
 
-    const { pinned, gitType, gitAutoSync, didSpaceAutoSync, homePageUrl } = await updateProjectSchema.validateAsync(
-      req.body,
-      { stripUnknown: true }
-    );
+    const { pinned, gitType, gitAutoSync, didSpaceAutoSync } = await updateProjectSchema.validateAsync(req.body, {
+      stripUnknown: true,
+    });
 
     if (gitAutoSync) {
       const repo = await getRepository({ projectId });
@@ -686,11 +684,9 @@ export function projectRoutes(router: Router) {
         {
           pinnedAt: pinned ? new Date().toISOString() : pinned === false ? null : undefined,
           updatedBy: userId,
-          icon: '',
           gitType,
           gitAutoSync,
           didSpaceAutoSync,
-          homePageUrl,
           updatedAt: new Date(),
         },
         (v) => v === undefined

@@ -53,7 +53,7 @@ export default function ImportFromTemplates({
         <DialogContent>
           <Stack overflow="auto" flexWrap="wrap" m="-6px" flexDirection="row">
             {templates.map((x) => {
-              const { icon, name, description, createdAt, id, users, updatedAt } = x;
+              const { name, description, createdAt, id, users, updatedAt } = x;
 
               return (
                 <ProjectItemRoot
@@ -97,7 +97,12 @@ export default function ImportFromTemplates({
                       okIcon: <RocketLaunchRoundedIcon />,
                       onOk: async () => {
                         try {
-                          const project = await createProject({ templateId: id, name, description });
+                          const project = await createProject({
+                            blockletDid: x.blockletDid,
+                            templateId: id,
+                            name,
+                            description,
+                          });
                           currentGitStore.setState({
                             currentProjectId: project.id,
                           });
@@ -115,11 +120,7 @@ export default function ImportFromTemplates({
                   }}>
                   <Stack direction="row" gap={1.5} alignItems="center">
                     <Box className="logo" sx={{ width: '72px', height: '72px' }}>
-                      {icon ? (
-                        <Box component="img" src={icon} />
-                      ) : (
-                        <Box component="img" src={getProjectIconUrl(id, { updatedAt })} />
-                      )}
+                      <Box component="img" src={getProjectIconUrl(id, { blockletDid: x.blockletDid, updatedAt })} />
                     </Box>
 
                     <Box flex={1} alignSelf="flex-start">
