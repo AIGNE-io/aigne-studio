@@ -296,6 +296,19 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
           }
         }
 
+        // Remove unnecessary assets
+        const assetsDir = join(working.workingDir, ASSETS_DIR);
+        if (await pathExists(assetsDir)) {
+          const json = JSON.stringify(working.get('files').toJSON());
+          const assets = await readdir(assetsDir);
+          for (const filename of assets) {
+            if (!json.includes(filename)) {
+              await rm(join(assetsDir, filename), { force: true });
+              await tx.remove({ dir: working.workingDir, filepath: join(ASSETS_DIR, filename) });
+            }
+          }
+        }
+
         // Remove unnecessary .gitkeep files
         for (const gitkeep of await glob('**/.gitkeep', { cwd: working.workingDir })) {
           if ((await readdir(path.join(working.workingDir, path.dirname(gitkeep)))).length > 1) {
