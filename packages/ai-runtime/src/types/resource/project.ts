@@ -23,6 +23,7 @@ export type ProjectSettings = {
       };
     };
   };
+  iconVersion?: string;
 };
 
 export const projectSettingsSchema = Joi.object<ProjectSettings>({

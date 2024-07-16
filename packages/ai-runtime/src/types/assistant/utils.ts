@@ -18,6 +18,8 @@ import type {
   PromptYjs,
   RouterAssistantYjs,
   RuntimeOutputVariablesSchemaYjs,
+  VariableTypeYjs,
+  VariableYjs,
   VariablesYjs,
 } from './yjs';
 import type {
@@ -34,6 +36,8 @@ import type {
   Prompt,
   PromptAssistant,
   RouterAssistant,
+  Variable,
+  VariableType,
   Variables,
 } from '.';
 
@@ -191,12 +195,11 @@ export function outputVariableInitialValueFromYjs(output: OutputVariableYjs): Ou
   return output.initialValue as any;
 }
 
-export function outputVariableToYjs(variable: OutputVariable): OutputVariableYjs {
+export function variableTypeToYjs(variable: VariableType): VariableTypeYjs {
   if (variable.type === 'object') {
     return {
       ...variable,
       properties: variable.properties && arrayToYjs(variable.properties.map(outputVariableToYjs)),
-      initialValue: outputVariableInitialValueToYjs(variable),
     };
   }
 
@@ -204,22 +207,17 @@ export function outputVariableToYjs(variable: OutputVariable): OutputVariableYjs
     return {
       ...variable,
       element: variable.element && outputVariableToYjs(variable.element),
-      initialValue: outputVariableInitialValueToYjs(variable),
     };
   }
 
-  return {
-    ...variable,
-    initialValue: outputVariableInitialValueToYjs(variable),
-  };
+  return variable;
 }
 
-export function outputVariableFromYjs(variable: OutputVariableYjs): OutputVariable {
+export function variableTypeFromYjs(variable: VariableTypeYjs): VariableType {
   if (variable.type === 'object') {
     return {
       ...variable,
       properties: variable.properties && arrayFromYjs(variable.properties).map(outputVariableFromYjs),
-      initialValue: outputVariableInitialValueFromYjs(variable),
     };
   }
 
@@ -227,11 +225,26 @@ export function outputVariableFromYjs(variable: OutputVariableYjs): OutputVariab
     return {
       ...variable,
       element: variable.element && outputVariableFromYjs(variable.element),
-      initialValue: outputVariableInitialValueFromYjs(variable),
     };
   }
 
-  return { ...variable, initialValue: outputVariableInitialValueFromYjs(variable) };
+  return variable;
+}
+
+export function variableToYjs(variable: Variable): VariableYjs {
+  return { ...variable, type: variable.type && variableTypeToYjs(variable.type) };
+}
+
+export function variableFromYjs(variable: VariableYjs): Variable {
+  return { ...variable, type: variable.type && variableTypeFromYjs(variable.type) };
+}
+
+export function outputVariableToYjs(variable: OutputVariable): OutputVariableYjs {
+  return { ...variableTypeToYjs(variable), initialValue: outputVariableInitialValueToYjs(variable) };
+}
+
+export function outputVariableFromYjs(variable: OutputVariableYjs): OutputVariable {
+  return { ...variableTypeFromYjs(variable), initialValue: outputVariableInitialValueFromYjs(variable) };
 }
 
 export function promptToYjs(prompt: Prompt): PromptYjs {

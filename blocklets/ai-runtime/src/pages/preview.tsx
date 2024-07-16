@@ -15,7 +15,7 @@ export default function PreviewPage() {
 
   return (
     <>
-      <ApplicationHeader application={data && { aid, project: data.project }} />
+      <ApplicationHeader working application={data && { aid, project: data.project }} />
 
       {data ? (
         <AgentView aid={aid} working />

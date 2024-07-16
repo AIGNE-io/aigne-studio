@@ -1,5 +1,6 @@
 import LogoField from '@app/components/publish/LogoField';
 import { useCurrentProject } from '@app/contexts/project';
+import { getAssetUrl } from '@app/libs/asset';
 import { uploadAsset } from '@app/libs/project';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
@@ -27,7 +28,11 @@ export default function ProfileSettings({ output }: { output: OutputVariableYjs 
       <Box>
         <Typography variant="subtitle2">{t('avatar')}</Typography>
         <LogoField
-          value={initialValue?.avatar ? { url: initialValue.avatar } : undefined}
+          value={
+            initialValue?.avatar
+              ? { url: getAssetUrl({ projectId, projectRef, filename: initialValue.avatar }) }
+              : undefined
+          }
           onChange={async (v) => {
             try {
               const { filename } = await uploadAsset({ projectId, ref: projectRef, source: v.url });

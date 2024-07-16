@@ -39,6 +39,7 @@ export interface Agent {
         };
       };
     };
+    iconVersion?: string;
   };
 }
 

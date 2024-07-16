@@ -561,10 +561,9 @@ function ProjectList({
               tabIndex={0}
               key={item.id}
               pinned={!!item.pinnedAt}
-              icon={item.icon}
-              name={section === 'templates' && item.name ? t(item.name) : item.name}
+              name={item.name}
               description={item.description}
-              updatedAt={item.updatedAt}
+              updatedAt={item.iconVersion || item.updatedAt}
               createdAt={item.createdAt}
               gitUrl={item.gitUrl}
               model={item.model}
@@ -735,7 +734,6 @@ function ProjectItemSkeleton({ ...props }: StackProps) {
 
 function ProjectItem({
   pinned,
-  icon,
   name,
   description,
   createdAt,
@@ -753,7 +751,6 @@ function ProjectItem({
 }: {
   section: string;
   pinned?: boolean;
-  icon?: string;
   name?: string;
   description?: string;
   updatedAt: string | Date;
@@ -792,7 +789,7 @@ function ProjectItem({
     <ProjectItemRoot {...props} className={cx(props.className)} gap={2}>
       <Stack direction="row" gap={1.5} alignItems="center">
         <Box className="logo" sx={{ width: '72px', height: '72px' }}>
-          {icon ? <Box component="img" src={icon} /> : <Box component="img" src={getProjectIconUrl(id, updatedAt)} />}
+          <Box component="img" src={getProjectIconUrl(id, { updatedAt, working: true })} />
         </Box>
 
         <Box flex={1} width={0} alignSelf="flex-start">

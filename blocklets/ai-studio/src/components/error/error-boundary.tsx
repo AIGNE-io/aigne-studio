@@ -36,7 +36,10 @@ function ErrorView({
     if (!url) return;
 
     try {
-      await retry(() => sleepOnError(() => import(withQuery(url, { t: Date.now() })), retryTimeout), maxRetry);
+      await retry(
+        () => sleepOnError(() => import(/* @vite-ignore */ withQuery(url, { t: Date.now() })), retryTimeout),
+        maxRetry
+      );
       window.location.reload();
     } catch (error) {
       setInnerError(error);

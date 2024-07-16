@@ -11,7 +11,7 @@ import { Router } from 'express';
 import { exists } from 'fs-extra';
 import Joi from 'joi';
 import pick from 'lodash/pick';
-import { joinURL } from 'ufo';
+import { joinURL, withQuery } from 'ufo';
 
 const router = Router();
 
@@ -102,7 +102,7 @@ router.get('/:aid/logo', async (req, res) => {
 
   const { blockletDid } = await getAgentQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
-  const { projectId } = parseIdentity(aid, { rejectWhenError: true });
+  const { projectId, projectRef } = parseIdentity(aid, { rejectWhenError: true });
 
   if (blockletDid) {
     const dir = (await getProjectFromResource({ blockletDid, projectId }))?.projectDir;
@@ -115,7 +115,12 @@ router.get('/:aid/logo', async (req, res) => {
     return;
   }
 
-  res.redirect(joinURL(getComponentMountPoint(AIGNE_STUDIO_COMPONENT_DID), '/api/projects/', projectId, '/logo.png'));
+  res.redirect(
+    withQuery(joinURL(getComponentMountPoint(AIGNE_STUDIO_COMPONENT_DID), '/api/projects/', projectId, '/logo.png'), {
+      projectRef,
+      ...pick(req.query, 'version', 'working'),
+    })
+  );
 });
 
 router.get('/:aid/assets/:filename', async (req, res) => {
@@ -124,7 +129,7 @@ router.get('/:aid/assets/:filename', async (req, res) => {
 
   const { blockletDid } = await getAgentQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
-  const { projectId } = parseIdentity(aid, { rejectWhenError: true });
+  const { projectId, projectRef } = parseIdentity(aid, { rejectWhenError: true });
 
   if (blockletDid) {
     const dir = (await getProjectFromResource({ blockletDid, projectId }))?.projectDir;
@@ -137,8 +142,17 @@ router.get('/:aid/assets/:filename', async (req, res) => {
     return;
   }
 
-  // TODO: ai studio 实现存储 assets 到 repo 中之后这里需要像 logo 接口一样重定向到 ai-studio 获取 assets 接口
-  res.status(404).end();
+  res.redirect(
+    joinURL(
+      getComponentMountPoint(AIGNE_STUDIO_COMPONENT_DID),
+      '/api/projects/',
+      projectId,
+      'refs',
+      projectRef,
+      'assets',
+      filename
+    )
+  );
 });
 
 const respondAgentFields = (
@@ -148,7 +162,17 @@ const respondAgentFields = (
 ) => ({
   ...pick(agent, 'id', 'name', 'description', 'type', 'parameters', 'createdAt', 'updatedAt', 'createdBy', 'identity'),
   outputVariables: (agent.outputVariables ?? []).filter((i) => !i.hidden),
-  project: pick(agent.project, 'id', 'name', 'description', 'createdBy', 'createdAt', 'updatedAt', 'appearance'),
+  project: pick(
+    agent.project,
+    'id',
+    'name',
+    'description',
+    'createdBy',
+    'createdAt',
+    'updatedAt',
+    'appearance',
+    'iconVersion'
+  ),
   identity: {
     ...agent.identity,
     aid: stringifyIdentity(agent.identity),

@@ -82,9 +82,9 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
     list: [
       'basic',
       'modelInfo',
+      'appearance',
       'git',
       !isEmpty(session?.user?.didSpace?.endpoint) ? 'didSpaces' : '',
-      'appearance',
     ].filter((x) => x),
   };
   const [currentTabIndex, setCurrentTabIndex] = useState<string | undefined>(tabListInfo.list[0]);
@@ -108,12 +108,17 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
   useEffect(() => {
     if (project) {
       const merge = pick({ ...init, ...project }, ['gitType', 'icon']);
-      merge.icon = getProjectIconUrl(projectId, project.updatedAt, { original: true });
+      merge.icon = getProjectIconUrl(projectId, {
+        original: true,
+        updatedAt: projectSetting?.iconVersion,
+        working: true,
+        projectRef,
+      });
 
       origin.current = merge;
       setValue(merge);
     }
-  }, [getCurrentBranch, project, projectId]);
+  }, [getCurrentBranch, project, projectId, projectSetting?.iconVersion]);
 
   const set = (key: string, value: any) => {
     setValue((r) => ({ ...r, [key]: value }));
@@ -260,7 +265,10 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                     value={value.icon ?? ''}
                     onChange={async (source) => {
                       try {
-                        await uploadAsset({ projectId, ref: projectRef, source, type: 'logo' });
+                        const { hash } = await uploadAsset({ projectId, ref: projectRef, source, type: 'logo' });
+                        setProjectSetting((config) => {
+                          config.iconVersion = hash;
+                        });
                       } catch (error) {
                         Toast.error(error.message);
                         throw error;
@@ -302,17 +310,6 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                     }}
                     InputProps={{ readOnly }}
                   />
-                </Box>
-                <Box>
-                  <LoadingButton
-                    disabled={readOnly}
-                    variant="contained"
-                    loadingPosition="start"
-                    loading={submitLoading}
-                    startIcon={<SaveRounded />}
-                    onClick={onSubmit}>
-                    {t('save')}
-                  </LoadingButton>
                 </Box>
               </Stack>
             </Form>
@@ -518,18 +515,13 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                     </Box>
                   </Stack>
                 )}
-                <Box>
-                  <LoadingButton
-                    disabled={readOnly}
-                    variant="contained"
-                    loadingPosition="start"
-                    loading={submitLoading}
-                    startIcon={<SaveRounded />}
-                    onClick={onSubmit}>
-                    {t('save')}
-                  </LoadingButton>
-                </Box>
               </Stack>
+            </Box>
+          )}
+
+          {currentTabIndex === 'appearance' && (
+            <Box mt={2}>
+              <AppearanceSetting />
             </Box>
           )}
 
@@ -592,12 +584,6 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
               <Form>
                 <DidSpacesSetting projectId={projectId} />
               </Form>
-            </Box>
-          )}
-
-          {currentTabIndex === 'appearance' && (
-            <Box mt={2}>
-              <AppearanceSetting />
             </Box>
           )}
         </Box>

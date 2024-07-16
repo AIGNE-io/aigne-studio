@@ -14,6 +14,7 @@ import {
   isAssistant,
   nextAssistantId,
   projectSettingsSchema,
+  variableToYjs,
 } from '@blocklet/ai-runtime/types';
 import { call } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
@@ -38,11 +39,13 @@ import {
 } from '../libs/security';
 import Project, { nextProjectId } from '../store/models/project';
 import {
+  ASSETS_DIR,
   CONFIG_FILENAME,
   CONFIG_FILE_KEY,
   CONFIG_FOLDER,
   LOGO_FILENAME,
   ProjectRepo,
+  SETTINGS_FILE,
   VARIABLE_FILENAME,
   VARIABLE_KEY,
   autoSyncIfNeeded,
@@ -111,7 +114,6 @@ export interface UpdateProjectInput {
   name?: string;
   description?: string;
   pinned?: boolean;
-  icon?: string;
   model?: string;
   temperature?: number;
   topP?: number;
@@ -138,7 +140,6 @@ const updateProjectSchema = Joi.object<UpdateProjectInput>({
   name: Joi.string().empty([null, '']),
   description: Joi.string().empty([null, '']),
   pinned: Joi.boolean().empty([null]),
-  icon: Joi.string().allow('').empty([null, '']),
   model: Joi.string().empty([null, '']),
   temperature: Joi.number().min(0).max(2).empty(null),
   topP: Joi.number().min(0.1).max(1).empty(null),
@@ -269,11 +270,20 @@ export function projectRoutes(router: Router) {
       list.map(async (project) => {
         const repository = await getRepository({ projectId: project.id });
         const branches = await repository.listBranches();
+
+        const working = await repository.working({ ref: project.gitDefaultBranch });
+        const projectSetting = working.syncedStore.files[SETTINGS_FILE] as ProjectSettings | undefined;
+
         const users = await getAuthorsOfProject({
           projectId: project.id,
           gitDefaultBranch: project.gitDefaultBranch,
         });
-        return { ...project.dataValues, users, branches };
+        return {
+          ...project.dataValues,
+          users,
+          branches,
+          ...pick(projectSetting, 'iconVersion', 'name', 'description'),
+        };
       })
     );
 
@@ -334,15 +344,35 @@ export function projectRoutes(router: Router) {
     res.json({ icons: data?.uploads || [] });
   });
 
-  // TODO: 支持 projectRef query 参数，从指定分支 working dir 中返回 logo.png
+  const logoQuerySchema = Joi.object<{ projectRef?: string; working?: boolean }>({
+    projectRef: Joi.string().empty(['', null]),
+    working: Joi.boolean().empty(['', null]),
+  });
+
   router.get('/projects/:projectId/logo.png', async (req, res) => {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required parameter `projectId`');
 
+    const query = await logoQuerySchema.validateAsync(req.query, { stripUnknown: true });
+
     const original = await Project.findOne({ where: { id: projectId } });
     if (original) {
       const repository = await getRepository({ projectId });
-      const { blob } = await repository.readBlob({ ref: original.gitDefaultBranch, filepath: LOGO_FILENAME });
+      const working = await repository.working({ ref: query.projectRef || original.gitDefaultBranch });
+
+      if (query.working) {
+        const logoPath = join(working.workingDir, LOGO_FILENAME);
+        if (await pathExists(logoPath)) {
+          res.setHeader('Content-Type', 'image/png');
+          res.sendFile(logoPath);
+          return;
+        }
+      }
+
+      const { blob } = await repository.readBlob({
+        ref: query.projectRef || original.gitDefaultBranch,
+        filepath: LOGO_FILENAME,
+      });
       res.setHeader('Content-Type', 'image/png');
       res.end(Buffer.from(blob));
       return;
@@ -634,8 +664,10 @@ export function projectRoutes(router: Router) {
 
     checkProjectPermission({ req, project });
 
-    const { pinned, gitType, gitAutoSync, didSpaceAutoSync, homePageUrl, icon } =
-      await updateProjectSchema.validateAsync(req.body, { stripUnknown: true });
+    const { pinned, gitType, gitAutoSync, didSpaceAutoSync, homePageUrl } = await updateProjectSchema.validateAsync(
+      req.body,
+      { stripUnknown: true }
+    );
 
     if (gitAutoSync) {
       const repo = await getRepository({ projectId });
@@ -897,6 +929,9 @@ export function projectRoutes(router: Router) {
 
       const repo = await getRepository({ projectId });
 
+      const working = await repo.working({ ref });
+      const settings = working.syncedStore.files[SETTINGS_FILE];
+
       const agent = await getAssistantFromRepository({
         repository: repo,
         ref,
@@ -904,7 +939,7 @@ export function projectRoutes(router: Router) {
         working: query.working,
       });
 
-      res.json({ agent, project: project.dataValues });
+      res.json({ agent, project: { ...project.dataValues, ...(working ? settings : {}) } });
     }
   );
 
@@ -996,11 +1031,28 @@ export function projectRoutes(router: Router) {
       checkProjectPermission({ req, project });
 
       const repo = await ProjectRepo.load({ projectId });
-      const filename = await repo.uploadAsset({ type: input.type, ref, source: input.source });
+      const { filename, hash } = await repo.uploadAsset({ type: input.type, ref, source: input.source });
 
-      res.json({ filename });
+      res.json({ filename, hash });
     }
   );
+
+  router.get('/projects/:projectId/refs/:ref/assets/:filename', async (req, res) => {
+    const { projectId, ref, filename } = req.params;
+    if (!projectId || !ref || !filename) throw new Error('Missing required params `projectId` or `ref` or `filename`');
+
+    await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
+
+    const repo = await ProjectRepo.load({ projectId });
+    const working = await repo.working({ ref });
+
+    const p = join(working.workingDir, ASSETS_DIR, filename);
+    if (await pathExists(p)) {
+      return res.sendFile(p);
+    }
+
+    return res.status(404).end();
+  });
 }
 
 const getAuthorsOfProject = async ({
@@ -1110,7 +1162,10 @@ async function createProjectFromTemplate(
   }
 
   working.syncedStore.tree[VARIABLE_KEY] = joinURL(CONFIG_FOLDER, VARIABLE_FILENAME);
-  working.syncedStore.files[VARIABLE_KEY] = { type: 'variables', variables: template.memory?.variables ?? [] };
+  working.syncedStore.files[VARIABLE_KEY] = {
+    type: 'variables',
+    variables: (template.memory?.variables ?? []).map(variableToYjs),
+  };
   working.syncedStore.tree[CONFIG_FILE_KEY] = joinURL(CONFIG_FOLDER, CONFIG_FILENAME);
   working.syncedStore.files[CONFIG_FILE_KEY] = template.config || {};
 

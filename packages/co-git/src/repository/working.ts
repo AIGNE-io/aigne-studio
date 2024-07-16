@@ -123,6 +123,9 @@ export default class Working<T> extends Doc {
         await this.repo.branch({ ref: branch, object });
       }
 
+      // Checkout
+      await tx.checkout({ ref: branch, force: true });
+
       await beforeTransact?.({ tx });
 
       const files = this.files();

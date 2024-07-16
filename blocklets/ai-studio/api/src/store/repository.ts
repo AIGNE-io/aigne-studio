@@ -1,4 +1,4 @@
-import { cp, mkdir, readdir, rm, writeFile } from 'fs/promises';
+import { mkdir, readdir, rm, writeFile } from 'fs/promises';
 import path, { basename, dirname, extname, join, relative } from 'path';
 
 import { EVENTS } from '@api/event';
@@ -9,12 +9,15 @@ import {
   ConfigFile,
   FileType,
   FileTypeYjs,
+  Variable,
   Variables,
   fileFromYjs,
   fileToYjs,
   isAssistant,
   isVariables,
   projectSettingsSchema,
+  variableFromYjs,
+  variableToYjs,
 } from '@blocklet/ai-runtime/types';
 import { Repository, RepositoryOptions, Working } from '@blocklet/co-git/repository';
 import { SpaceClient, SyncFolderPushCommand, SyncFolderPushCommandOutput } from '@did-space/client';
@@ -27,8 +30,7 @@ import { parseAuth, parseFilename, parseURL } from 'ufo';
 import { parse, stringify } from 'yaml';
 
 import { authClient, wallet } from '../libs/auth';
-import { md5file } from '../libs/download-logo';
-import downloadImage from '../libs/download-logo';
+import downloadImage, { md5file } from '../libs/download-logo';
 import { Config } from '../libs/env';
 import logger from '../libs/logger';
 import Project from './models/project';
@@ -60,7 +62,7 @@ export const LOGO_FILENAME = 'logo.png';
 export const OLD_SETTINGS_FILE = '.settings.yaml';
 export const SETTINGS_FILE = 'project.yaml';
 
-export const IMAGE_BIN_UPLOAD_FOLDER = 'assets';
+export const ASSETS_DIR = 'assets';
 
 const RESET_FILES_BEFORE_COMMIT = ['prompts', 'tests'];
 
@@ -81,7 +83,7 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
     author?: NonNullable<Parameters<Repository<any>['pull']>[0]>['author'];
   }): Promise<ProjectRepo> {
     this.cache[projectId] ??= (async () => {
-      const repo = await Repository.init({
+      const repo = await Repository.init<FileTypeYjs>({
         root: repositoryRoot(projectId),
         initialCommit: { message: 'init', author: author ?? { name: 'AI Studio', email: wallet.address } },
         parse: async (filepath, content, { ref }) => {
@@ -123,8 +125,8 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
           if (root === CONFIG_FOLDER) {
             const filename = basename(filepath);
             if (filename === VARIABLE_FILENAME) {
-              const variable = parse(Buffer.from(content).toString());
-              return { filepath, key: VARIABLE_KEY, data: variable };
+              const variables: Variable[] = parse(Buffer.from(content).toString())?.variables;
+              return { filepath, key: VARIABLE_KEY, data: { variables: variables.map(variableToYjs) } };
             }
 
             if (filename === CONFIG_FILENAME) {
@@ -142,7 +144,6 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
         },
         stringify: async (filepath, content) => {
           const [root] = filepath.split('/');
-          console.log({ filepath, content: JSON.stringify(content).slice(0, 50) });
           if (!content) return null;
 
           if (filepath.startsWith(TESTS_FOLDER_NAME)) return null;
@@ -180,7 +181,7 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
             const [root, filename] = filepath.split('/');
             if (root === CONFIG_FOLDER && filename === VARIABLE_FILENAME) {
               const { variables } = content;
-              return [{ filepath, data: stringify({ variables }) }];
+              return [{ filepath, data: stringify({ variables: variables?.map(variableFromYjs) }) }];
             }
           }
 
@@ -234,7 +235,7 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
       const file = await this.readBlob({ ref: defaultBranch, filepath: LOGO_FILENAME })
         .then(({ blob }) => blob)
         .catch((error) => {
-          logger.warn(`Failed to copy logo from default branch to working dir`, { error });
+          logger.warn('Failed to copy logo from default branch to working dir', { error });
         });
       if (file) {
         await mkdir(dirname(logoPath), { recursive: true });
@@ -302,6 +303,7 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
           const changes = await tx.repo.statusMatrix({ dir: working.workingDir });
           const hasChange = !changes.every((i) => i[1] === 1 && i[2] === 1 && i[3] === 1);
           if (hasChange) {
+            // ignore
           }
         }
       },
@@ -319,12 +321,10 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
       const hash = await md5file(tmpFilename);
       const filename = type === 'logo' ? LOGO_FILENAME : `${hash}${ext}`;
       const filePath =
-        type === 'logo'
-          ? join(working.workingDir, filename)
-          : join(working.workingDir, IMAGE_BIN_UPLOAD_FOLDER, filename);
+        type === 'logo' ? join(working.workingDir, filename) : join(working.workingDir, ASSETS_DIR, filename);
       await mkdir(dirname(filePath), { recursive: true });
       await move(tmpFilename, filePath, { overwrite: true });
-      return filename;
+      return { filename, hash };
     } finally {
       await rm(tmpFilename, { force: true, recursive: true });
     }

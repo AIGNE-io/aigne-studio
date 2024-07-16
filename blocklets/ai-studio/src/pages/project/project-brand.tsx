@@ -1,16 +1,15 @@
 import { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { Box, Stack, Typography } from '@mui/material';
+import { Box, BoxProps, Stack, Typography, TypographyProps } from '@mui/material';
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { getProjectIconUrl } from '../../libs/project';
 import BranchButton from './branch-button';
 import { useProjectState } from './state';
+import { useProjectStore } from './yjs-state';
 
 export default function ProjectBrand() {
-  const { t } = useLocaleContext();
-
   const { projectId, ref: gitRef, '*': filepath } = useParams();
   if (!projectId) throw new Error('Missing required params `projectId');
 
@@ -29,16 +28,56 @@ export default function ProjectBrand() {
 
   return (
     <Box display="flex" alignItems="center" gap={1}>
-      <Stack flexDirection="row" alignItems="center" gap={1}>
-        <Box
-          component="img"
-          src={project.icon || getProjectIconUrl(projectId, project.updatedAt) || blocklet?.appLogo}
-          sx={{ borderRadius: 1, maxWidth: 32, maxHeight: 32 }}
-        />
-        <Typography variant="h6">{project.name || t('unnamed')}</Typography>
-      </Stack>
+      {gitRef && (
+        <Stack flexDirection="row" alignItems="center" gap={1}>
+          <ProjectIcon
+            projectId={projectId}
+            projectRef={gitRef}
+            working
+            sx={{ borderRadius: 1, maxWidth: 32, maxHeight: 32 }}
+          />
+          <ProjectName projectId={projectId} projectRef={gitRef} working />
+        </Stack>
+      )}
 
       {!simpleMode && gitRef && <BranchButton projectId={projectId} gitRef={gitRef} filepath={filepath} />}
     </Box>
+  );
+}
+
+function ProjectIcon({
+  projectId,
+  projectRef,
+  working,
+  ...props
+}: { projectId: string; projectRef: string; working?: boolean } & BoxProps) {
+  const { projectSetting } = useProjectStore(projectId, projectRef);
+
+  return (
+    <Box
+      component="img"
+      src={getProjectIconUrl(projectId, {
+        projectRef,
+        updatedAt: projectSetting?.iconVersion,
+        working,
+      })}
+      {...props}
+    />
+  );
+}
+
+function ProjectName({
+  projectId,
+  projectRef,
+  working,
+  ...props
+}: { projectId: string; projectRef: string; working?: boolean } & TypographyProps) {
+  const { t } = useLocaleContext();
+  const { projectSetting } = useProjectStore(projectId, projectRef);
+
+  return (
+    <Typography variant="h6" {...props}>
+      {projectSetting?.name || t('unnamed')}
+    </Typography>
   );
 }

@@ -118,7 +118,7 @@ export default function ImportFromTemplates({
                       {icon ? (
                         <Box component="img" src={icon} />
                       ) : (
-                        <Box component="img" src={getProjectIconUrl(id, updatedAt)} />
+                        <Box component="img" src={getProjectIconUrl(id, { updatedAt })} />
                       )}
                     </Box>
 

@@ -6,8 +6,14 @@ import { joinURL, withQuery } from 'ufo';
 
 export default function ApplicationHeader({
   application,
+  working,
 }: {
-  application?: { aid: string; blockletDid?: string; project?: { name?: string; createdBy?: string } };
+  application?: {
+    aid: string;
+    blockletDid?: string;
+    project?: { name?: string; createdBy?: string; iconVersion?: string };
+  };
+  working?: boolean;
 }) {
   const { addons } = useHeaderState();
 
@@ -23,6 +29,8 @@ export default function ApplicationHeader({
           blockletDid: application.blockletDid,
           imageFilter: 'resize',
           w: 160,
+          version: application.project?.iconVersion,
+          working,
         })}
         sx={{ width: 'auto', height: '100%' }}
       />

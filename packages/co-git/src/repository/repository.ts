@@ -221,10 +221,10 @@ export default class Repository<T> {
     });
   }
 
-  async readBlob({ ref, filepath }: { ref: string; filepath: string }) {
-    const oid = await git.resolveRef({ fs, gitdir: this.gitdir, ref });
+  async readBlob({ dir, ref, filepath }: { dir?: string; ref: string; filepath: string }) {
+    const oid = await git.resolveRef({ fs, dir, gitdir: this.gitdir, ref });
 
-    return git.readBlob({ fs, gitdir: this.gitdir, oid, filepath });
+    return git.readBlob({ fs, dir, gitdir: this.gitdir, oid, filepath });
   }
 
   async findFile(filenameOrPath: string, options: { ref: string; rejectIfNotFound: false }): Promise<string | null>;
