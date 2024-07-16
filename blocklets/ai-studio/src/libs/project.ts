@@ -111,22 +111,23 @@ export async function projectSync(projectId: string, target: SyncTarget = 'githu
 export function getProjectIconUrl(
   projectId: string,
   {
+    blockletDid,
     original,
     projectRef,
     working,
     updatedAt,
   }: {
+    blockletDid?: string;
     original?: boolean;
     projectRef?: string;
     working?: boolean;
     updatedAt?: string | number | Date;
   }
 ) {
-  if (!projectId) return '';
   const component = blocklet?.componentMountPoints.find((i) => i.did === AIGNE_STUDIO_COMPONENT_DID);
   return withQuery(
     joinURL(window.location.origin, component?.mountPoint || '', `/api/projects/${projectId}/logo.png`),
-    { ...(original ? {} : { imageFilter: 'resize', w: 140 }), version: updatedAt, projectRef, working }
+    { ...(original ? {} : { imageFilter: 'resize', w: 140 }), version: updatedAt, projectRef, working, blockletDid }
   );
 }
 

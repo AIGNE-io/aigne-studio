@@ -570,7 +570,7 @@ function ProjectList({
               users={item.users || []}
               didSpaceAutoSync={Boolean(item.didSpaceAutoSync)}
               loading={Boolean(itemLoading && item?.id === itemLoading?.id)}
-              isFromResource={Boolean(item.blockletDid)}
+              blockletDid={item.blockletDid}
               onClick={async (e) => {
                 if (section === 'templates') {
                   let name = '';
@@ -746,7 +746,7 @@ function ProjectItem({
   didSpaceAutoSync,
   id,
   updatedAt,
-  isFromResource,
+  blockletDid,
   ...props
 }: {
   section: string;
@@ -762,7 +762,7 @@ function ProjectItem({
   loading: boolean;
   didSpaceAutoSync: true | false;
   id: string;
-  isFromResource: boolean;
+  blockletDid?: string;
 } & StackProps) {
   const { t, locale } = useLocaleContext();
   const { session } = useSessionContext();
@@ -789,7 +789,7 @@ function ProjectItem({
     <ProjectItemRoot {...props} className={cx(props.className)} gap={2}>
       <Stack direction="row" gap={1.5} alignItems="center">
         <Box className="logo" sx={{ width: '72px', height: '72px' }}>
-          <Box component="img" src={getProjectIconUrl(id, { updatedAt, working: true })} />
+          <Box component="img" src={getProjectIconUrl(id, { blockletDid, updatedAt, working: true })} />
         </Box>
 
         <Box flex={1} width={0} alignSelf="flex-start">

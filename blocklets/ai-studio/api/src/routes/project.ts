@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { cp, mkdtemp, readFile, rm } from 'fs/promises';
+import { cp, mkdir, mkdtemp, readFile, rm } from 'fs/promises';
 import { basename, dirname, isAbsolute, join } from 'path';
 
 import { Config } from '@api/libs/env';
@@ -344,7 +344,8 @@ export function projectRoutes(router: Router) {
     res.json({ icons: data?.uploads || [] });
   });
 
-  const logoQuerySchema = Joi.object<{ projectRef?: string; working?: boolean }>({
+  const logoQuerySchema = Joi.object<{ blockletDid?: string; projectRef?: string; working?: boolean }>({
+    blockletDid: Joi.string().empty(['', null]),
     projectRef: Joi.string().empty(['', null]),
     working: Joi.boolean().empty(['', null]),
   });
@@ -354,6 +355,17 @@ export function projectRoutes(router: Router) {
     if (!projectId) throw new Error('Missing required parameter `projectId`');
 
     const query = await logoQuerySchema.validateAsync(req.query, { stripUnknown: true });
+
+    if (query.blockletDid) {
+      const resource = await getProjectFromResource({ blockletDid: query.blockletDid, projectId });
+
+      if (resource?.gitLogoPath && (await exists(resource.gitLogoPath))) {
+        res.sendFile(resource.gitLogoPath);
+        return;
+      }
+
+      throw new NotFoundError(`No such project icon ${projectId}`);
+    }
 
     const original = await Project.findOne({ where: { id: projectId } });
     if (original) {
@@ -376,17 +388,6 @@ export function projectRoutes(router: Router) {
       res.setHeader('Content-Type', 'image/png');
       res.end(Buffer.from(blob));
       return;
-    }
-
-    const resource = await getProjectFromResource({ projectId });
-
-    if (resource) {
-      if (resource?.gitLogoPath && (await exists(resource.gitLogoPath))) {
-        res.sendFile(resource.gitLogoPath);
-        return;
-      }
-
-      throw new NotFoundError(`No such project icon ${projectId}`);
     }
 
     throw new NotFoundError(`No such project ${projectId}`);
@@ -1110,6 +1111,8 @@ async function copyProject({
 async function createProjectFromTemplate(
   template: Omit<(typeof projectTemplates)[number], 'project'> & {
     project: Omit<(typeof projectTemplates)[number]['project'], 'createdAt' | 'updatedAt'>;
+    assetsDir?: string;
+    gitLogoPath?: string;
   },
   {
     name,
@@ -1141,6 +1144,7 @@ async function createProjectFromTemplate(
   });
 
   const working = await repository.working({ ref: defaultBranch });
+
   for (const { parent, ...file } of template.assistants) {
     const id = file.id || nextAssistantId();
     const assistant = fileToYjs({ ...file, id });
@@ -1169,12 +1173,18 @@ async function createProjectFromTemplate(
   working.syncedStore.tree[CONFIG_FILE_KEY] = joinURL(CONFIG_FOLDER, CONFIG_FILENAME);
   working.syncedStore.files[CONFIG_FILE_KEY] = template.config || {};
 
+  const assetsDir = join(working.workingDir, 'assets/');
+  await mkdir(assetsDir, { recursive: true });
+  if (template.assetsDir && (await pathExists(template.assetsDir))) {
+    await cp(template.assetsDir, join(assetsDir, '/'), { recursive: true });
+  }
+
   await repository.commitWorking({
     ref: defaultBranch,
     branch: defaultBranch,
     message: 'First Commit',
     author: { name: author.fullName, email: author.did },
-    icon: (template as any)?.gitLogoPath || (await sampleIcon()),
+    icon: template?.gitLogoPath || (await sampleIcon()),
   });
 
   return project;

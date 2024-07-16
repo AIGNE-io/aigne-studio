@@ -9,6 +9,7 @@ import { Assistant, projectSettingsSchema } from '@blocklet/ai-runtime/types';
 import component, { call } from '@blocklet/sdk/lib/component';
 import { user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
+import { pathExists } from 'fs-extra';
 import Joi from 'joi';
 import groupBy from 'lodash/groupBy';
 import uniq from 'lodash/uniq';
@@ -291,9 +292,12 @@ export function resourceRoutes(router: Router) {
           const result = stringify(data);
           await writeFile(join(folderPath, projectId, `${projectId}.yaml`), result);
 
-          const assetsDir = join(folderPath, projectId, 'assets');
+          const assetsSrc = join(workingCopy, ASSETS_DIR, '/');
+          const assetsDir = join(folderPath, projectId, 'assets/');
           await mkdir(assetsDir, { recursive: true });
-          await cp(join(workingCopy, ASSETS_DIR, '/'), join(assetsDir, '/'), { recursive: true });
+          if (await pathExists(assetsSrc)) {
+            await cp(assetsSrc, assetsDir, { recursive: true });
+          }
 
           const resourceLogoPath = join(folderPath, projectId, LOGO_FILENAME);
           await cp(join(workingCopy, LOGO_FILENAME), resourceLogoPath, { force: true });
