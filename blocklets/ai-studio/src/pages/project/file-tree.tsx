@@ -365,6 +365,7 @@ const FileTree = forwardRef<
       <Box {...props}>
         <DndProvider backend={MultiBackend} options={getBackendOptions()}>
           <Tree
+            data-testid="agent-tree"
             tree={tree}
             rootId={PROMPTS_FOLDER_NAME}
             initialOpen={openIds}
@@ -408,6 +409,7 @@ const FileTree = forwardRef<
               if (node.data.type === 'folder') {
                 return (
                   <TreeItem
+                    data-testid="file-tree-folder"
                     key={node.id}
                     icon={
                       <Box
@@ -457,6 +459,8 @@ const FileTree = forwardRef<
 
               const actions = (
                 <TreeItemMenus
+                  data-testid="agent-tree-item-actions"
+                  sx={{ border: '1px solid red' }}
                   projectId={projectId}
                   gitRef={gitRef}
                   item={node.data}
@@ -499,8 +503,9 @@ const FileTree = forwardRef<
               );
 
               const children = (
-                <Box sx={{ position: 'relative' }}>
+                <Box sx={{ position: 'relative' }} data-testid="agent-tree-box">
                   <TreeItem
+                    data-testid="agent-tree-item"
                     key={node.id}
                     icon={<FileIcon assistant={meta} />}
                     depth={depth}
@@ -657,7 +662,11 @@ function TreeItemMenus({
   const menus = [
     [
       assistant && onSetAsEntry && (
-        <MenuItem key="set-as-entry" disabled={isEntry} onClick={() => onSetAsEntry(assistant)}>
+        <MenuItem
+          key="set-as-entry"
+          disabled={isEntry}
+          onClick={() => onSetAsEntry(assistant)}
+          data-testid="set-as-entry">
           <ListItemIcon>
             <Box component={AigneLogo} sx={{ fontSize: 14 }} />
           </ListItemIcon>
@@ -665,7 +674,7 @@ function TreeItemMenus({
         </MenuItem>
       ),
       onLaunch && assistant && (
-        <MenuItem key="launch" onClick={() => onLaunch(assistant)}>
+        <MenuItem key="launch" onClick={() => onLaunch(assistant)} data-testid="launch">
           <ListItemIcon>
             <Box component={Icon} icon={ExternalLinkIcon} />
           </ListItemIcon>
@@ -675,7 +684,7 @@ function TreeItemMenus({
     ],
     [
       item.type === 'folder' && onCreateFolder && (
-        <MenuItem key="createFolder" onClick={() => onCreateFolder({ parent: item.path })}>
+        <MenuItem key="createFolder" onClick={() => onCreateFolder({ parent: item.path })} data-testid="create-folder">
           <ListItemIcon>
             <Box component={Icon} icon={FolderPlusIcon} />
           </ListItemIcon>
@@ -684,13 +693,14 @@ function TreeItemMenus({
       ),
 
       item.type === 'folder' && onCreateFile && (
-        <MenuItem key="createAgent" onClick={() => onCreateFile({ parent: item.path })}>
+        <MenuItem key="createAgent" onClick={() => onCreateFile({ parent: item.path })} data-testid="create-agent">
           <ListItemIcon>{agentTypesMap.prompt?.icon} </ListItemIcon>
           <ListItemText primary={t('newObject', { object: t('agent') })} />
         </MenuItem>
       ),
       item.type === 'file' && onCreateFile && (
         <MenuItem
+          data-testid="copy-file"
           key="duplicateFile"
           onClick={() =>
             onCreateFile({
@@ -710,6 +720,7 @@ function TreeItemMenus({
       ),
       item.type === 'file' && (
         <MenuItem
+          data-testid="copy-file-id"
           key="copyId"
           onClick={() => {
             navigator.clipboard.writeText(joinURL(projectId, gitRef, item.meta.id));
@@ -723,7 +734,7 @@ function TreeItemMenus({
     ],
     [
       isChanged && (
-        <MenuItem key="compareChanges" onClick={onCompare}>
+        <MenuItem key="compareChanges" onClick={onCompare} data-testid="compare-change">
           <ListItemIcon>
             <Box component={Icon} icon={DiffIcon} />
           </ListItemIcon>
@@ -732,7 +743,7 @@ function TreeItemMenus({
       ),
 
       isChanged && (
-        <MenuItem key="revertChanges" onClick={onUndo}>
+        <MenuItem key="revertChanges" onClick={onUndo} data-testid="revert-change">
           <ListItemIcon>
             <Box component={Icon} icon={ArrowBackUpIcon} />
           </ListItemIcon>
@@ -742,7 +753,7 @@ function TreeItemMenus({
     ],
     [
       onRenameFile && (
-        <MenuItem key="renameFile" disabled={isEntry} onClick={() => onRenameFile(item)}>
+        <MenuItem key="renameFile" disabled={isEntry} onClick={() => onRenameFile(item)} data-testid="rename-file">
           <ListItemIcon>
             <Box component={Icon} icon={PencilIcon} />
           </ListItemIcon>
@@ -751,7 +762,7 @@ function TreeItemMenus({
         </MenuItem>
       ),
       onRenameFolder && (
-        <MenuItem key="renameFolder" onClick={() => onRenameFolder(item)}>
+        <MenuItem key="renameFolder" onClick={() => onRenameFolder(item)} data-testid="rename-folder">
           <ListItemIcon>
             <Box component={Icon} icon={PencilIcon} />
           </ListItemIcon>
@@ -760,7 +771,7 @@ function TreeItemMenus({
         </MenuItem>
       ),
       onDeleteFile && (
-        <MenuItem key="deleteFile" onClick={() => onDeleteFile(item)}>
+        <MenuItem key="deleteFile" onClick={() => onDeleteFile(item)} data-testid="delete-file">
           <ListItemIcon>
             <Box component={Icon} icon={TrashIcon} color="warning.main" />
           </ListItemIcon>
@@ -978,6 +989,7 @@ function TreeItem({
                 </ClickAwayListener>
               }>
               <Button
+                data-testid="tree-item-actions-button"
                 onClick={() => setOpen(true)}
                 sx={{ padding: 0.5, minWidth: 0, bgcolor: open ? 'action.hover' : undefined }}>
                 <Box component={Icon} icon={DotsVerticalIcon} fontSize={16} />
