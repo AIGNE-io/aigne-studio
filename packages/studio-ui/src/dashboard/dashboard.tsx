@@ -128,14 +128,7 @@ const Root = styled(Stack)`
     .header-container {
       max-width: none;
 
-      > div:empty {
-        display: none;
-      }
-
       .header-addons {
-        flex: 1;
-        justify-content: flex-end;
-        overflow: hidden;
       }
     }
   }
