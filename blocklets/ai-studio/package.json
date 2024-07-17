@@ -44,7 +44,7 @@
     "@blocklet/co-git": "workspace:^",
     "@blocklet/constant": "^1.16.28",
     "@blocklet/dataset-sdk": "workspace:^",
-    "@blocklet/discuss-kit": "^2.0.66",
+    "@blocklet/discuss-kit": "^2.0.68",
     "@blocklet/logger": "^1.16.28",
     "@blocklet/payment-js": "^1.13.303",
     "@blocklet/prompt-editor": "workspace:^",
