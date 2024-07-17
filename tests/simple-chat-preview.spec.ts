@@ -44,14 +44,8 @@ test('preview example project', async ({ page, context }) => {
     });
   });
 
-  await Promise.all([
-    (async () => {
-      await previewPage.getByTestId('runtime-input-question').fill(question);
-      await previewPage.getByTestId('runtime-submit-button').click();
-    })(),
-
-    // previewPage.waitForRequest(/\/api\/ai\/call/),
-  ]);
+  await previewPage.getByTestId('runtime-input-question').fill(question);
+  await previewPage.getByTestId('runtime-submit-button').click();
 
   const lastMessage = previewPage.locator('.message-item').last();
   await expect(lastMessage.locator('.user-message-content')).toContainText(question);
