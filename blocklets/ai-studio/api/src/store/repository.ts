@@ -1,4 +1,4 @@
-import { mkdir, readdir, rm, writeFile } from 'fs/promises';
+import { copyFile, mkdir, readdir, rm, writeFile } from 'fs/promises';
 import path, { basename, dirname, extname, join, relative } from 'path';
 
 import { EVENTS } from '@api/event';
@@ -22,7 +22,7 @@ import {
 } from '@blocklet/ai-runtime/types';
 import { Repository, RepositoryOptions, Working } from '@blocklet/co-git/repository';
 import { SpaceClient, SyncFolderPushCommand, SyncFolderPushCommandOutput } from '@did-space/client';
-import { copy, mkdirp, move, pathExists } from 'fs-extra';
+import { pathExists } from 'fs-extra';
 import { glob } from 'glob';
 import { Errors } from 'isomorphic-git';
 import isEmpty from 'lodash/isEmpty';
@@ -290,7 +290,7 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
         if (icon) {
           const iconPath = path.join(working.workingDir, LOGO_FILENAME);
           if (await pathExists(icon)) {
-            await copy(icon, iconPath, { overwrite: true });
+            await copyFile(icon, iconPath);
           } else if (/^https?:\/\//.test(icon)) {
             await downloadImage(icon, iconPath);
           }
@@ -343,14 +343,14 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
     const working = await this.working({ ref });
     const tmpFilename = join(working.options.root, 'tmp', nanoid());
     try {
-      await mkdirp(dirname(tmpFilename));
+      await mkdir(dirname(tmpFilename));
       await downloadImage(source, tmpFilename);
       const hash = await md5file(tmpFilename);
       const filename = type === 'logo' ? LOGO_FILENAME : `${hash}${ext}`;
       const filePath =
         type === 'logo' ? join(working.workingDir, filename) : join(working.workingDir, ASSETS_DIR, filename);
       await mkdir(dirname(filePath), { recursive: true });
-      await move(tmpFilename, filePath, { overwrite: true });
+      await copyFile(tmpFilename, filePath);
       return { filename, hash };
     } finally {
       await rm(tmpFilename, { force: true, recursive: true });

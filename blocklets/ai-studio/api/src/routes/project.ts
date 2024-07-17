@@ -1,11 +1,10 @@
 import fs from 'fs';
-import { cp, mkdir, mkdtemp, readFile, rm } from 'fs/promises';
+import { mkdir, mkdtemp, readFile, rm } from 'fs/promises';
 import { basename, dirname, isAbsolute, join } from 'path';
 
 import { Config } from '@api/libs/env';
 import { NoPermissionError, NotFoundError } from '@api/libs/error';
 import { sampleIcon } from '@api/libs/icon';
-// import { sampleIcon } from '@api/libs/icon';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
 import AgentInputSecret from '@api/store/models/agent-input-secret';
 import {
@@ -16,11 +15,12 @@ import {
   projectSettingsSchema,
   variableToYjs,
 } from '@blocklet/ai-runtime/types';
+import { copyRecursive } from '@blocklet/ai-runtime/utils/fs';
 import { call } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
 import { user } from '@blocklet/sdk/lib/middlewares';
 import { Request, Router } from 'express';
-import { exists, pathExists } from 'fs-extra';
+import { exists } from 'fs-extra';
 import * as git from 'isomorphic-git';
 import http from 'isomorphic-git/http/node';
 import Joi from 'joi';
@@ -374,7 +374,7 @@ export function projectRoutes(router: Router) {
 
       if (query.working) {
         const logoPath = join(working.workingDir, LOGO_FILENAME);
-        if (await pathExists(logoPath)) {
+        if (await exists(logoPath)) {
           res.setHeader('Content-Type', 'image/png');
           res.sendFile(logoPath);
           return;
@@ -1044,7 +1044,7 @@ export function projectRoutes(router: Router) {
     const working = await repo.working({ ref });
 
     const p = join(working.workingDir, ASSETS_DIR, filename);
-    if (await pathExists(p)) {
+    if (await exists(p)) {
       return res.sendFile(p);
     }
 
@@ -1096,9 +1096,9 @@ async function copyProject({
   });
 
   const parent = dirname(repo.root);
-  await cp(repo.root, join(parent, project.id!), { recursive: true });
-  if (await pathExists(`${repo.root}.cooperative`)) {
-    await cp(`${repo.root}.cooperative`, join(parent, `${project.id}.cooperative`), { recursive: true });
+  await copyRecursive(repo.root, join(parent, project.id!));
+  if (await exists(`${repo.root}.cooperative`)) {
+    await copyRecursive(`${repo.root}.cooperative`, join(parent, `${project.id}.cooperative`));
   }
 
   return project;
@@ -1171,8 +1171,8 @@ async function createProjectFromTemplate(
 
   const assetsDir = join(working.workingDir, 'assets/');
   await mkdir(assetsDir, { recursive: true });
-  if (template.assetsDir && (await pathExists(template.assetsDir))) {
-    await cp(template.assetsDir, join(assetsDir, '/'), { recursive: true });
+  if (template.assetsDir && (await exists(template.assetsDir))) {
+    await copyRecursive(join(template.assetsDir, '/'), assetsDir);
   }
 
   await repository.commitWorking({
