@@ -43,7 +43,7 @@ function DiscussionTable({
   const selection = useMemo(() => value.map((i) => i!.id).filter((i): i is NonNullable<typeof i> => !!i), [value]);
 
   const onRowSelectionModelChange = useCallback(
-    (ids: any[]) => {
+    (ids: readonly any[]) => {
       onChange([
         ...ids.map(
           (i: any) =>

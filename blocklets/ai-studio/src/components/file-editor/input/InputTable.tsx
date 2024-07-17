@@ -608,7 +608,7 @@ function SelectInputType({
           variant="standard"
           hiddenLabel
           SelectProps={{ autoWidth: true }}
-          value={parameter.key === 'question' ? 'string' : multiline ? 'multiline' : parameter?.type ?? 'string'}
+          value={(parameter.key === 'question' ? 'string' : multiline ? 'multiline' : parameter?.type) ?? 'string'}
           InputProps={{ readOnly }}
           onChange={(e) => {
             const newValue = e.target.value;
