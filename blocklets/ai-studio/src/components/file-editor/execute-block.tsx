@@ -4,9 +4,11 @@ import Translate from '@app/pages/project/icons/translate';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import {
   AssistantYjs,
+  ConfigFileYjs,
   ExecuteBlock,
   ExecuteBlockYjs,
   FileTypeYjs,
+  ProjectSettings,
   Role,
   Tool,
   VariablesYjs,
@@ -804,7 +806,7 @@ function ToolItemView({
 
 type Option = {
   id: NonNullable<ExecuteBlock['tools']>[number]['id'];
-  type: Exclude<FileTypeYjs, { $base64: string } | VariablesYjs>['type'] | string;
+  type: Exclude<FileTypeYjs, { $base64: string } | VariablesYjs | ProjectSettings | ConfigFileYjs>['type'] | string;
   name?: any;
   from?: NonNullable<ExecuteBlock['tools']>[number]['from'];
   fromText?: string;

@@ -565,7 +565,7 @@ export function AgentName({
     <>
       {showIcon && (
         <Avatar
-          src={getProjectIconUrl(agent.project.id, agent.project.updatedAt)}
+          src={getProjectIconUrl(agent.project.id, { updatedAt: agent.project.updatedAt })}
           {...IconProps}
           sx={{ width: 22, height: 22, ...IconProps?.sx }}
         />
@@ -608,7 +608,7 @@ function SelectInputType({
           variant="standard"
           hiddenLabel
           SelectProps={{ autoWidth: true }}
-          value={parameter.key === 'question' ? 'string' : multiline ? 'multiline' : parameter?.type ?? 'string'}
+          value={(parameter.key === 'question' ? 'string' : multiline ? 'multiline' : parameter?.type) ?? 'string'}
           InputProps={{ readOnly }}
           onChange={(e) => {
             const newValue = e.target.value;

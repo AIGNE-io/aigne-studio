@@ -128,15 +128,15 @@ export default class Repository<T> {
   }
 
   async resolveRef({ ref }: { ref: string }) {
-    return git.resolveRef({ fs, dir: this.root, ref });
+    return git.resolveRef({ fs, gitdir: this.gitdir, dir: this.root, ref });
   }
 
   async listBranches() {
-    return git.listBranches({ fs, dir: this.root });
+    return git.listBranches({ fs, gitdir: this.gitdir, dir: this.root });
   }
 
-  async branch(options: Omit<Parameters<typeof git.branch>[0], 'fs' | 'dir' | '.gitdir'>) {
-    return git.branch({ fs, dir: this.root, ...options });
+  async branch(options: Omit<Parameters<typeof git.branch>[0], 'fs' | 'dir' | '.gitdir'> & { dir?: string }) {
+    return git.branch({ fs, gitdir: this.gitdir, dir: this.root, ...options });
   }
 
   async renameBranch({ ref, oldRef }: { ref: string; oldRef: string }) {
@@ -151,12 +151,14 @@ export default class Repository<T> {
     return git.log({ fs, gitdir: this.gitdir, ref, filepath, force: true, follow: true });
   }
 
-  async statusMatrix(options?: Omit<Parameters<typeof git.statusMatrix>[0], 'fs' | 'dir' | '.gitdir'>) {
-    return git.statusMatrix({ fs, dir: this.root, ...options });
+  async statusMatrix(
+    options?: Omit<Parameters<typeof git.statusMatrix>[0], 'fs' | 'dir' | '.gitdir'> & { dir?: string }
+  ) {
+    return git.statusMatrix({ fs, gitdir: this.gitdir, dir: this.root, ...options });
   }
 
   async listRemotes() {
-    return git.listRemotes({ fs, dir: this.root });
+    return git.listRemotes({ fs, gitdir: this.gitdir, dir: this.root });
   }
 
   async getRemoteInfo(options: Omit<Parameters<typeof git.getRemoteInfo>[0], 'http'>) {
@@ -164,60 +166,65 @@ export default class Repository<T> {
   }
 
   async addRemote({ remote, url, force }: { remote: string; url: string; force?: boolean }) {
-    return git.addRemote({ fs, dir: this.root, remote, url, force });
+    return git.addRemote({ fs, gitdir: this.gitdir, dir: this.root, remote, url, force });
   }
 
   async deleteRemote({ remote }: { remote: string }) {
-    return git.deleteRemote({ fs, dir: this.root, remote });
+    return git.deleteRemote({ fs, gitdir: this.gitdir, dir: this.root, remote });
   }
 
-  async push(options?: Omit<Parameters<typeof git.push>[0], 'fs' | 'http' | 'dir'>) {
+  async push(options?: Omit<Parameters<typeof git.push>[0], 'fs' | 'http' | 'dir'> & { dir?: string }) {
     return git.push({
       fs,
       http,
+      gitdir: this.gitdir,
       dir: this.root,
       ...options,
     });
   }
 
-  async pull(options?: Omit<Parameters<typeof git.pull>[0], 'fs' | 'http' | 'dir'>) {
+  async pull(options?: Omit<Parameters<typeof git.pull>[0], 'fs' | 'http' | 'dir'> & { dir?: string }) {
     return git.pull({
       fs,
       http,
+      gitdir: this.gitdir,
       dir: this.root,
       ...options,
     });
   }
 
-  async fetch(options?: Omit<Parameters<typeof git.fetch>[0], 'fs' | 'http' | 'dir'>) {
+  async fetch(options?: Omit<Parameters<typeof git.fetch>[0], 'fs' | 'http' | 'dir'> & { dir?: string }) {
     return git.fetch({
       fs,
       http,
+      gitdir: this.gitdir,
       dir: this.root,
       ...options,
     });
   }
 
-  async checkout(options?: Omit<Parameters<typeof git.checkout>[0], 'fs' | 'dir'>) {
+  async checkout(options?: Omit<Parameters<typeof git.checkout>[0], 'fs' | 'dir'> & { dir?: string }) {
     return git.checkout({
       fs,
+      gitdir: this.gitdir,
       dir: this.root,
       ...options,
     });
   }
 
-  async abortMerge(options?: Omit<Parameters<typeof git.abortMerge>[0], 'fs' | 'dir'>) {
+  async abortMerge(options?: Omit<Parameters<typeof git.abortMerge>[0], 'fs' | 'dir'> & { dir?: string }) {
     return git.abortMerge({
       fs,
+      gitdir: this.gitdir,
       dir: this.root,
       ...options,
     });
   }
 
-  async readBlob({ ref, filepath }: { ref: string; filepath: string }) {
-    const oid = await git.resolveRef({ fs, gitdir: this.gitdir, ref });
+  async readBlob({ dir, ref, filepath }: { dir?: string; ref: string; filepath: string }) {
+    const oid = await git.resolveRef({ fs, dir, gitdir: this.gitdir, ref });
 
-    return git.readBlob({ fs, gitdir: this.gitdir, oid, filepath });
+    return git.readBlob({ fs, dir, gitdir: this.gitdir, oid, filepath });
   }
 
   async findFile(filenameOrPath: string, options: { ref: string; rejectIfNotFound: false }): Promise<string | null>;
@@ -250,20 +257,20 @@ export default class Repository<T> {
 export class Transaction<T> {
   constructor(public readonly repo: Repository<T>) {}
 
-  async checkout(options: Omit<Parameters<typeof git.checkout>[0], 'fs' | 'dir' | '.gitdir'>) {
-    await git.checkout({ fs, dir: this.repo.root, ...options });
+  async checkout(options: Omit<Parameters<typeof git.checkout>[0], 'fs' | 'dir' | '.gitdir'> & { dir?: string }) {
+    await git.checkout({ fs, gitdir: this.repo.gitdir, dir: this.repo.root, ...options });
   }
 
-  async add(options: Omit<Parameters<typeof git.add>[0], 'fs' | 'dir' | '.gitdir'>) {
-    return git.add({ fs, dir: this.repo.root, ...options });
+  async add(options: Omit<Parameters<typeof git.add>[0], 'fs' | 'dir' | '.gitdir'> & { dir?: string }) {
+    return git.add({ fs, gitdir: this.repo.gitdir, dir: this.repo.root, ...options });
   }
 
-  async remove(options: Omit<Parameters<typeof git.remove>[0], 'fs' | 'dir' | '.gitdir'>) {
-    return git.remove({ fs, dir: this.repo.root, ...options });
+  async remove(options: Omit<Parameters<typeof git.remove>[0], 'fs' | '.gitdir'>) {
+    return git.remove({ fs, gitdir: this.repo.gitdir, dir: this.repo.root, ...options });
   }
 
-  async commit(options: Omit<Parameters<typeof git.commit>[0], 'fs' | 'dir' | '.gitdir'>) {
-    return git.commit({ fs, dir: this.repo.root, ...options });
+  async commit(options: Omit<Parameters<typeof git.commit>[0], 'fs' | '.gitdir'>) {
+    return git.commit({ fs, gitdir: this.repo.gitdir, dir: this.repo.root, ...options });
   }
 }
 

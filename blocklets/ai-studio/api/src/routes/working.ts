@@ -4,7 +4,7 @@ import Joi from 'joi';
 
 import { ensureComponentCallOrPromptsEditor, isRefReadOnly } from '../libs/security';
 import Project from '../store/models/project';
-import { autoSyncIfNeeded, commitWorking, defaultBranch } from '../store/repository';
+import { ProjectRepo, autoSyncIfNeeded, defaultBranch } from '../store/repository';
 
 export interface WorkingCommitInput {
   skipCommitIfNoChanges?: boolean;
@@ -45,8 +45,9 @@ export function workingRoutes(router: Router) {
       }
 
       const author = { name: fullName, email: userId };
-      const hash = await commitWorking({
-        project,
+
+      const repo = await ProjectRepo.load({ projectId, author });
+      const hash = await repo.commitWorking({
         ref,
         branch: input.branch,
         message: input.message,

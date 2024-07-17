@@ -27,6 +27,7 @@ export type ProjectWithUserInfo = Project & {
   branches: string[];
   users: User[];
   blockletDid?: string;
+  iconVersion?: string;
 };
 
 export async function getProjects(): Promise<{
@@ -107,17 +108,26 @@ export async function projectSync(projectId: string, target: SyncTarget = 'githu
   return axios.post(`/api/projects/${projectId}/remote/sync?target=${target}`).then((res) => res.data);
 }
 
-// FIXME: use logo version instead of updatedAt for better caching
 export function getProjectIconUrl(
   projectId: string,
-  updatedAt: string | number | Date,
-  { original }: { original?: boolean } = {}
+  {
+    blockletDid,
+    original,
+    projectRef,
+    working,
+    updatedAt,
+  }: {
+    blockletDid?: string;
+    original?: boolean;
+    projectRef?: string;
+    working?: boolean;
+    updatedAt?: string | number | Date;
+  }
 ) {
-  if (!projectId) return '';
   const component = blocklet?.componentMountPoints.find((i) => i.did === AIGNE_STUDIO_COMPONENT_DID);
   return withQuery(
     joinURL(window.location.origin, component?.mountPoint || '', `/api/projects/${projectId}/logo.png`),
-    original ? { version: updatedAt } : { imageFilter: 'resize', w: 140, version: updatedAt }
+    { ...(original ? {} : { imageFilter: 'resize', w: 140 }), version: updatedAt, projectRef, working, blockletDid }
   );
 }
 
@@ -132,4 +142,20 @@ export async function createOrUpdateProjectInputSecrets(
   input: CreateOrUpdateAgentInputSecretPayload
 ): Promise<{ secrets: Omit<AgentInputSecret['dataValues'], 'secret'>[] }> {
   return axios.post(`/api/projects/${projectId}/agent-input-secrets`, input).then((res) => res.data);
+}
+
+export async function uploadAsset({
+  projectId,
+  ref,
+  source,
+  type,
+}: {
+  projectId: string;
+  ref: string;
+  source: String;
+  type?: 'logo';
+}): Promise<{ filename: string; hash: string }> {
+  return axios
+    .post(joinURL('/api/projects', projectId, 'refs', ref, 'assets'), { source, type })
+    .then((res) => res.data);
 }

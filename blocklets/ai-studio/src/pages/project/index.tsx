@@ -67,8 +67,10 @@ export default function ProjectRoutes() {
                     <Route index element={<Navigate to={currentGitStore.getState().getCurrentBranch()} replace />} />
                     <Route path=":ref/*" element={<ProjectPage />} />
                   </Route>
-                  <Route path="settings" element={<ProjectSettings />} />
-                  <Route path="knowledge/*" element={<KnowledgeRoutes />} />
+                  <Route path="knowledge">
+                    <Route index element={<Navigate to={currentGitStore.getState().getCurrentBranch()} replace />} />
+                    <Route path=":ref/*" element={<KnowledgeRoutes />} />
+                  </Route>
                   <Route path="variables">
                     <Route index element={<Navigate to={currentGitStore.getState().getCurrentBranch()} replace />} />
                     <Route path=":ref/*" element={<VariablesList />} />
@@ -86,8 +88,6 @@ export default function ProjectRoutes() {
 const ProjectsPage = lazy(() => import('./projects-page'));
 
 const ProjectPage = lazy(() => import('./project-page'));
-
-const ProjectSettings = lazy(() => import('./settings'));
 
 const StyledDashboard = styled(Dashboard)`
   .header-container {

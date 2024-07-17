@@ -8,8 +8,10 @@ import DiDAvatar from '@arcblock/ux/lib/Avatar';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import {
   AssistantYjs,
+  ConfigFileYjs,
   ExecuteBlock,
   FileTypeYjs,
+  ProjectSettings,
   RouterAssistant,
   RouterAssistantYjs,
   Tool,
@@ -486,7 +488,7 @@ export function AgentItemView({
 type ToolDialogForm = NonNullable<RouterAssistant['routes']>[number];
 type Option = {
   id: NonNullable<RouterAssistant['routes']>[number]['id'];
-  type: Exclude<FileTypeYjs, { $base64: string } | VariablesYjs>['type'] | string;
+  type: Exclude<FileTypeYjs, { $base64: string } | VariablesYjs | ProjectSettings | ConfigFileYjs>['type'] | string;
   name?: any;
   from?: NonNullable<RouterAssistant['routes']>[number]['from'];
   fromText?: string;
@@ -883,7 +885,7 @@ function AddSelectAgentPopperButton({
       <Stack maxHeight={300} overflow="auto">
         <>
           <GroupView name={project.name || ''} description="Select Agent">
-            <Avatar variant="rounded" src={getProjectIconUrl(project.id, project.updatedAt)} />
+            <Avatar variant="rounded" src={getProjectIconUrl(project.id, { updatedAt: project.updatedAt })} />
           </GroupView>
 
           <List

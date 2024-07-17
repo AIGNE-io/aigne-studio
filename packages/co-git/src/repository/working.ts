@@ -3,7 +3,7 @@ import path from 'path';
 
 import { syncedStore } from '@syncedstore/core';
 import { MappedTypeDescription } from '@syncedstore/core/types/doc';
-import { mkdir, pathExists, rm, writeFile } from 'fs-extra';
+import { mkdir, pathExists, writeFile } from 'fs-extra';
 import * as decoding from 'lib0/decoding';
 import * as encoding from 'lib0/encoding';
 import debounce from 'lodash/debounce';
@@ -33,6 +33,8 @@ export type WorkingStore<T> = {
 };
 
 const YJS_STATE_FILE_PATH = (root: string) => path.join(root, 'state.yjs');
+
+const WORKING_DIR = (root: string) => path.join(root, 'working');
 
 export default class Working<T> extends Doc {
   static async load<T>(repo: Repository<T>, options: WorkingOptions) {
@@ -68,7 +70,13 @@ export default class Working<T> extends Doc {
     return YJS_STATE_FILE_PATH(this.options.root);
   }
 
+  get workingDir() {
+    return WORKING_DIR(this.options.root);
+  }
+
   async reset() {
+    await this.repo.checkout({ dir: this.workingDir, ref: this.options.ref, force: true });
+
     const files = await Promise.all(
       (await this.repo.listFiles({ ref: this.options.ref })).map(async (p) => {
         const content = (await this.repo.readBlob({ ref: this.options.ref, filepath: p })).blob;
@@ -96,6 +104,7 @@ export default class Working<T> extends Doc {
     author,
     skipCommitIfNoChanges,
     beforeCommit,
+    beforeTransact,
   }: {
     ref: string;
     branch: string;
@@ -103,6 +112,7 @@ export default class Working<T> extends Doc {
     author: NonNullable<Parameters<Transaction<T>['commit']>[0]>['author'];
     skipCommitIfNoChanges?: boolean;
     beforeCommit?: (options: { tx: Transaction<T> }) => any;
+    beforeTransact?: (options: { tx: Transaction<T> }) => any;
   }) {
     const res = await this.repo.transact(async (tx) => {
       const object = await this.repo.resolveRef({ ref });
@@ -116,15 +126,8 @@ export default class Working<T> extends Doc {
       // Checkout
       await tx.checkout({ ref: branch, force: true });
 
-      // Delete all files
-      const originalFiles = await this.repo.listFiles({ ref: branch });
-      for (const filepath of originalFiles) {
-        await rm(path.join(this.repo.root, filepath), { recursive: true, force: true });
-        await tx.remove({ filepath });
-        await rm(path.join(this.repo.options.root, filepath), { force: true });
-      }
+      await beforeTransact?.({ tx });
 
-      // Add all files from working
       const files = this.files();
       for (const [originalFilepath, file] of files) {
         let fileObjects = await this.repo.options.stringify(originalFilepath, file);
@@ -136,24 +139,24 @@ export default class Working<T> extends Doc {
         }
 
         for (const { filepath, data } of fileObjects) {
-          const newPath = path.join(this.repo.options.root, filepath);
+          const newPath = path.join(this.workingDir, filepath);
           await mkdir(path.dirname(newPath), { recursive: true });
           await writeFile(newPath, data);
-
-          await tx.add({ filepath });
         }
       }
 
       await beforeCommit?.({ tx });
 
+      await tx.add({ dir: this.workingDir, filepath: '.' });
+
       if (skipCommitIfNoChanges) {
-        const changes = await this.repo.statusMatrix();
+        const changes = await this.repo.statusMatrix({ dir: this.workingDir });
         if (changes.every((i) => i[1] === 1 && i[2] === 1 && i[3] === 1)) {
           return undefined;
         }
       }
 
-      return tx.commit({ message, author });
+      return tx.commit({ dir: this.workingDir, message, author });
     });
 
     if (!res) return res;
