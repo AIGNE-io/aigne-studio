@@ -421,6 +421,7 @@ const FileTree = forwardRef<
                     editing={filepath === editingFolderPath}
                     actions={
                       <TreeItemMenus
+                        data-testid="file-tree-folder-menus"
                         projectId={projectId}
                         gitRef={gitRef}
                         item={node.data}
