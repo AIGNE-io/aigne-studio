@@ -1,3 +1,7 @@
+## 0.3.33 (2024-7-17)
+
+- fix: restricted api error when copying a project contains assets
+
 ## 0.3.32 (2024-7-17)
 
 - chore: set default values for agent profile
