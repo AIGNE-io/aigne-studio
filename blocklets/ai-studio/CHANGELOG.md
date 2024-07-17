@@ -1,3 +1,14 @@
+## 0.3.33 (2024-7-17)
+
+- fix: restricted api error when copying a project contains assets
+
+## 0.3.32 (2024-7-17)
+
+- chore: set default values for agent profile
+- chore: prioritize the logo in the agent profile
+- chore: enable sqlite wal mode for better performance
+- chore: save assets in git repository
+
 ## 0.3.31 (2024-7-13)
 
 - fix: handle and retry when loading dynamic module error

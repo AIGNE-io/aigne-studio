@@ -70,7 +70,7 @@ function PublishDialog({
   onClose: () => void;
   onOpened?: () => void;
 }) {
-  const [logo] = useState(() => getProjectIconUrl(project.id, project.updatedAt, { original: true }));
+  const [logo] = useState(() => getProjectIconUrl(project.id, { original: true, updatedAt: project.updatedAt }));
 
   const { projectId, projectRef } = useCurrentProject();
   const { store, config } = useProjectStore(projectId, projectRef);

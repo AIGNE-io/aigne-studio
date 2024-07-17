@@ -1,3 +1,4 @@
+import { ProjectSettings } from '../resource';
 import type { RuntimeOutputAppearance, RuntimeOutputVariable, RuntimeOutputVariablesSchema } from '../runtime';
 
 export * from './utils';
@@ -19,7 +20,7 @@ export type ConfigFile = {
   entry?: string;
 };
 
-export type FileType = Assistant | { $base64: string } | Variables | ConfigFile;
+export type FileType = Assistant | Variables | ConfigFile | ProjectSettings | { $base64: string };
 
 export type Assistant =
   | Agent

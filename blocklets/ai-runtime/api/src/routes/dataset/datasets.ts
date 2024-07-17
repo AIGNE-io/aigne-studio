@@ -1,5 +1,5 @@
-import { copyFileSync, cpSync, createWriteStream } from 'fs';
-import { mkdir, mkdtemp, rm, writeFile } from 'fs/promises';
+import { createWriteStream } from 'fs';
+import { copyFile, mkdir, mkdtemp, rm, writeFile } from 'fs/promises';
 import { basename, join, resolve } from 'path';
 import { finished } from 'stream/promises';
 
@@ -7,6 +7,7 @@ import { Config } from '@api/libs/env';
 import logger from '@api/libs/logger';
 import { getResourceKnowledgeList, getResourceKnowledgeWithData } from '@api/libs/resource';
 import DatasetContent from '@api/store/models/dataset/content';
+import { copyRecursive } from '@blocklet/ai-runtime/utils/fs';
 import config from '@blocklet/sdk/lib/config';
 import user from '@blocklet/sdk/lib/middlewares/user';
 import archiver from 'archiver';
@@ -129,7 +130,7 @@ router.get('/:datasetId/export-resource', user(), ensureComponentCallOrAdmin(), 
     for (const document of filterDocuments) {
       if (hasPath(document.data)) {
         const newPath = join(uploadsPath, basename(document.data.path));
-        copyFileSync(document.data.path, newPath);
+        await copyFile(document.data.path, newPath);
 
         // 特别注意，需要将 path 路径更换到新的路径, 在使用时，拼接 uploadsPath
         document.data.path = basename(document.data.path);
@@ -142,7 +143,7 @@ router.get('/:datasetId/export-resource', user(), ensureComponentCallOrAdmin(), 
     const dst = join(knowledgeWithIdPath, 'vectors', datasetId);
     const src = resolve(Config.dataDir, 'vectors', datasetId);
     if (await exists(src)) {
-      cpSync(src, dst, { recursive: true, force: true });
+      copyRecursive(src, dst);
     }
 
     const zipPath = join(tmpFolder, `${datasetId}.zip`);

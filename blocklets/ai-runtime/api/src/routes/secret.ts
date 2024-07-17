@@ -38,12 +38,14 @@ router.post('/', user(), auth(), async (req, res) => {
   const input = await createOrUpdateSecretsInputSchema.validateAsync(req.body, { stripUnknown: true });
 
   await ensureAgentAdmin(req, async () => {
-    return Promise.all(
-      input.secrets.map(async ({ projectId }) => {
-        const project = await getProject({ projectId, working: true, rejectOnEmpty: true });
-        return project.createdBy;
-      })
-    );
+    return (
+      await Promise.all(
+        input.secrets.map(async ({ projectId }) => {
+          const project = await getProject({ projectId, working: true, rejectOnEmpty: true });
+          return project.createdBy;
+        })
+      )
+    ).filter((i): i is NonNullable<typeof i> => !!i);
   });
 
   await Promise.all(
@@ -95,7 +97,7 @@ router.get('/has-value', user(), auth(), async (req, res) => {
       working: true,
       rejectOnEmpty: true,
     });
-    return project.createdBy;
+    return project.createdBy ?? [];
   });
 
   const secrets = await Secret.findAll({

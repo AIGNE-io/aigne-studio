@@ -19,10 +19,10 @@ test('create project', async ({ page }) => {
   const examples = page.getByTestId('projects-examples');
   await examples.waitFor();
 
-  const newProjectButton = page.getByTestId('newProject');
-  await expect(newProjectButton).toBeVisible();
+  await page.getByTestId('newProject').click();
 
-  await newProjectButton.click();
+  await page.locator('[role=menuitem]').filter({ hasText: 'Blank' }).click();
+
   const newProjectDialog = page.getByTestId('newProjectDialog');
   await expect(newProjectDialog).toBeVisible();
 

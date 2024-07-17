@@ -10,7 +10,7 @@ export default function ApplicationPage() {
   const blockletDid = useSearchParams()[0].get('blockletDid');
 
   const application = useResourceBlockletState()?.applications.find(
-    (i) => i.aid === aid && i.blockletDid === blockletDid
+    (i) => i.identity.aid === aid && i.identity.blockletDid === blockletDid
   );
 
   return (
@@ -18,7 +18,7 @@ export default function ApplicationPage() {
       <ApplicationHeader application={application} />
 
       {application ? (
-        <AgentView blockletDid={application.blockletDid} aid={application.aid} />
+        <AgentView blockletDid={application.identity.blockletDid} aid={application.identity.aid} />
       ) : (
         <Box component={Result} status={404} sx={{ bgcolor: 'transparent', my: 20 }} />
       )}

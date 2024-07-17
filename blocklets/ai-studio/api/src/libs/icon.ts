@@ -15,7 +15,8 @@ const icons = (async () => {
       return [];
     }
 
-    const files = await readdir(imageFolderPath);
+    const files = (await readdir(imageFolderPath)).filter((i) => /\.(png|jpe?g)$/.test(i));
+
     return files.map((i) => join(imageFolderPath, i));
   } catch (error) {
     logger.error('handle resource error', { error });

@@ -10,7 +10,6 @@ import logger from '../libs/logger';
 import { getRepository, isTemplate } from '../store/0.1.157/projects';
 import { isPromptMessage } from '../store/0.1.157/templates';
 import Project from '../store/models/project';
-import { commitWorking } from '../store/repository';
 
 const { name } = require('../../../package.json');
 
@@ -95,8 +94,7 @@ async function migrate() {
 
           working.save({ flush: true });
 
-          await commitWorking({
-            project,
+          await working.commit({
             ref: branch,
             branch,
             message: 'Migrate to v0.1.158',

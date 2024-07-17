@@ -1,17 +1,14 @@
-import { UpdateProjectInput } from '@api/routes/project';
+import { useCurrentProject } from '@app/contexts/project';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Box, ListSubheader, MenuItem, Select, SelectProps, Stack, Typography } from '@mui/material';
 
+import { useProjectStore } from '../yjs-state';
 import { defaultFonts } from './font-family-helmet';
 
-export default function FontFamilySetting({
-  set,
-  value,
-}: {
-  value: UpdateProjectInput;
-  set: (key: string, value: any) => void;
-}) {
-  const { appearance } = value;
+export default function FontFamilySetting() {
+  const { projectId, projectRef } = useCurrentProject();
+  const { setProjectSetting, projectSetting } = useProjectStore(projectId, projectRef);
+  const { appearance } = projectSetting || {};
 
   const { t } = useLocaleContext();
 
@@ -22,15 +19,14 @@ export default function FontFamilySetting({
           <Typography variant="subtitle3">{t('projectSetting.fontFamily.title')}</Typography>
           <FontSelect
             value={appearance?.typography?.heading?.fontFamily || ''}
-            onChange={(e) =>
-              set('appearance', {
-                ...appearance,
-                typography: {
-                  ...appearance?.typography,
-                  heading: { ...appearance?.typography?.heading, fontFamily: e.target.value },
-                },
-              })
-            }
+            onChange={(e) => {
+              setProjectSetting((config) => {
+                config.appearance ??= {};
+                config.appearance.typography ??= {};
+                config.appearance.typography.heading ??= {};
+                config.appearance.typography.heading.fontFamily = e.target.value;
+              });
+            }}
           />
         </Stack>
       </Box>
@@ -39,12 +35,13 @@ export default function FontFamilySetting({
           <Typography variant="subtitle3">{t('projectSetting.fontFamily.body')}</Typography>
           <FontSelect
             value={appearance?.typography?.fontFamily || ''}
-            onChange={(e) =>
-              set('appearance', {
-                ...appearance,
-                typography: { ...appearance?.typography, fontFamily: e.target.value },
-              })
-            }
+            onChange={(e) => {
+              setProjectSetting((config) => {
+                config.appearance ??= {};
+                config.appearance.typography ??= {};
+                config.appearance.typography.fontFamily = e.target.value;
+              });
+            }}
           />
         </Stack>
       </Box>
@@ -52,7 +49,7 @@ export default function FontFamilySetting({
   );
 }
 
-function FontSelect({ ...props }: SelectProps) {
+function FontSelect({ ...props }: SelectProps<string>) {
   const { t } = useLocaleContext();
 
   return (

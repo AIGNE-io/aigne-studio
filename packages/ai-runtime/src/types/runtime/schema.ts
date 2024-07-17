@@ -349,6 +349,7 @@ export interface RuntimeOutputOpeningMessage {
 export interface RuntimeOutputProfile {
   avatar?: string;
   name?: string;
+  description?: string;
 }
 
 export interface RuntimeOutputVariablesSchema {

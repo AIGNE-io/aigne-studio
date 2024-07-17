@@ -58,6 +58,7 @@ import { useSessionContext } from '../../contexts/session';
 import Empty from './icons/empty';
 import SegmentedControl from './segmented-control';
 import { SessionItem, useDebugState, useProjectState } from './state';
+import { useProjectStore } from './yjs-state';
 
 export default function DebugView(props: {
   projectId: string;
@@ -340,6 +341,7 @@ function CustomAvatar({ role, projectId, gitRef }: { role: Role; projectId: stri
   const {
     state: { project },
   } = useProjectState(projectId, gitRef);
+  const { projectSetting } = useProjectStore(projectId, gitRef);
 
   if (!project) return null;
 
@@ -361,7 +363,10 @@ function CustomAvatar({ role, projectId, gitRef }: { role: Role; projectId: stri
     <Box>
       <Box
         component="img"
-        src={project?.icon || getProjectIconUrl(projectId, project.updatedAt) || blocklet?.appLogo}
+        src={
+          getProjectIconUrl(projectId, { projectRef: gitRef, working: true, updatedAt: projectSetting?.iconVersion }) ||
+          blocklet?.appLogo
+        }
         sx={{ borderRadius: 32, maxWidth: 32, maxHeight: 32 }}
       />
     </Box>

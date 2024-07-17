@@ -6,7 +6,7 @@ import { useRef } from 'react';
 import useDialog from '../../utils/use-dialog';
 import GalleryImageList, { ImperativeImage } from './image-list';
 
-export default function ProjectSettingsAvatar({ value, onChange }: { value: string; onChange: any }) {
+export default function ProjectSettingsAvatar({ value, onChange }: { value: string; onChange: (url: string) => void }) {
   const { t } = useLocaleContext();
 
   const logoUrl = value || `${window.location.origin}/.well-known/service/static/images/logo.png`;
@@ -34,9 +34,9 @@ export default function ProjectSettingsAvatar({ value, onChange }: { value: stri
               content: (
                 <GalleryImageList
                   ref={gallery}
-                  onChange={(...arg) => {
+                  onChange={(url) => {
                     closeDialog();
-                    onChange(...arg);
+                    onChange(url);
                   }}
                   onSelected={(data) => {
                     selected = data;

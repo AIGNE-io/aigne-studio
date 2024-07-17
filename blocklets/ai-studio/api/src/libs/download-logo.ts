@@ -1,4 +1,6 @@
+import crypto from 'crypto';
 import fs from 'fs';
+import { readFile } from 'fs/promises';
 
 import axios from 'axios';
 
@@ -34,3 +36,10 @@ function downloadImage(imageUrl: string, savePath: string) {
 }
 
 export default downloadImage;
+
+export async function md5file(file: string) {
+  return crypto
+    .createHash('md5')
+    .update(await readFile(file))
+    .digest('hex');
+}

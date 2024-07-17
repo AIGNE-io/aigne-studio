@@ -37,6 +37,7 @@ interface ResourceProject {
   memory?: { variables: Variable[] };
   config?: ConfigFile;
   gitLogoPath?: string;
+  assetsDir?: string;
   assistants: (Assistant & { public?: boolean; parent: string[] })[];
 }
 
@@ -110,9 +111,10 @@ async function loadResourceBlocklets(path: string) {
           json.project = await projectSettingsSchema.validateAsync(json.project);
 
           const gitLogoPath = join(dirname(filepath), 'logo.png');
-          if (await exists(gitLogoPath)) {
-            json.gitLogoPath = gitLogoPath;
-          }
+          if (await exists(gitLogoPath)) json.gitLogoPath = gitLogoPath;
+
+          const assetsDir = join(dirname(filepath), 'assets');
+          if (await exists(assetsDir)) json.assetsDir = assetsDir;
 
           return json;
         } catch (error) {
