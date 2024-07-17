@@ -46,7 +46,7 @@ test('preview example project', async ({ page, context }) => {
 
   await Promise.all([
     (async () => {
-      await previewPage.getByTestId('runtime-input-question').locator('input,textarea').first().fill(question);
+      await previewPage.getByTestId('runtime-input-question').fill(question);
       await previewPage.getByTestId('runtime-submit-button').click();
     })(),
 
