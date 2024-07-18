@@ -202,6 +202,7 @@ function PromptItemMessage({
 
       <StyledPromptEditor
         readOnly={readOnly}
+        data-testid="prompt-editor"
         placeholder={t('promptPlaceholder')}
         projectId={projectId}
         gitRef={gitRef}
