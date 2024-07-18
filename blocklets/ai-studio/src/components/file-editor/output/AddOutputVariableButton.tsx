@@ -99,7 +99,7 @@ export default function AddOutputVariableButton({
       ButtonProps={{
         sx: { mt: 1 },
         startIcon: <Box fontSize={16} component={Icon} icon={PlusIcon} />,
-        children: <Box>{t('output')}</Box>,
+        children: <Box data-testid="add-output-variable-button">{t('output')}</Box>,
       }}
       PopperProps={{ placement: 'bottom-start' }}>
       {runtimeOutputVariables.flatMap((group) => [
@@ -179,7 +179,7 @@ export default function AddOutputVariableButton({
 
       <Divider sx={{ my: '4px !important', p: 0 }} />
 
-      <MenuItem onClick={() => onSelect?.({ name: '' })} disabled={disabled}>
+      <MenuItem data-testid="add-output-variable-button-custom-output" onClick={() => onSelect?.({ name: '' })} disabled={disabled}>
         <ListItemIcon>
           <Icon icon={PlusIcon} />
         </ListItemIcon>

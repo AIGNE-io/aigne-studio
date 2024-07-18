@@ -41,6 +41,7 @@ export default function OutputNameCell({
 
     return (
       <TextField
+        data-testid="output-name-cell"
         variant="standard"
         fullWidth
         hiddenLabel

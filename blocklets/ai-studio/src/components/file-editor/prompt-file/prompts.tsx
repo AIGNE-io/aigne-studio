@@ -85,6 +85,7 @@ export default function PromptPrompts({
 
               return (
                 <DragSortItemContainer
+                  data-testid="prompt-item"
                   preview={params.preview}
                   drop={params.drop}
                   drag={params.drag}

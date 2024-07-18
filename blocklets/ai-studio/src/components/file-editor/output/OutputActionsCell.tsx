@@ -256,6 +256,7 @@ function PopperButton({
 
           {depth === 0 && (
             <MenuItem
+              data-testid="output-actions-cell-setting"
               disabled={Boolean(output.from?.type === 'output')}
               onClick={() => {
                 setSetting('setting');
@@ -277,7 +278,10 @@ function PopperButton({
           )}
 
           {onDelete && (
-            <MenuItem sx={{ color: '#E11D48', fontSize: 13 }} onClick={onDelete}>
+            <MenuItem
+              sx={{ color: '#E11D48', fontSize: 13 }}
+              onClick={onDelete}
+              data-testid="output-actions-cell-delete">
               {t('delete')}
             </MenuItem>
           )}
@@ -290,6 +294,7 @@ function PopperButton({
         fullWidth
         maxWidth="sm"
         component="form"
+        data-testid="output-actions-cell-dialog"
         onSubmit={(e) => e.preventDefault()}>
         <DialogTitle className="between">
           <Box>
@@ -300,7 +305,6 @@ function PopperButton({
             <Close />
           </IconButton>
         </DialogTitle>
-
         <DialogContent>
           <Stack gap={1}>
             {settingsChildren && <Divider textAlign="left">{t('basic')}</Divider>}
@@ -309,7 +313,6 @@ function PopperButton({
             <AppearanceSettings output={output} />
           </Stack>
         </DialogContent>
-
         <DialogActions>
           <Button variant="contained" onClick={dialogState.close}>
             {t('ok')}

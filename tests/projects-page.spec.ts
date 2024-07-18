@@ -26,6 +26,7 @@ test('create project', async ({ page }) => {
   const newProjectDialog = page.getByTestId('newProjectDialog');
   await expect(newProjectDialog).toBeVisible();
 
+  
   const nameField = newProjectDialog.getByTestId('projectNameField').locator('input');
   await nameField.fill('Test Project');
   await nameField.press('Enter');

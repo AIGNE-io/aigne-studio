@@ -111,7 +111,7 @@ export function HeaderActions() {
         <SaveButton projectId={projectId} gitRef={gitRef} disabled={disabledButton} />
 
         <>
-          <Tooltip disableInteractive title={t('setting')}>
+          <Tooltip disableInteractive title={t('setting')} data-testid="header-actions-setting">
             <Button
               sx={{ minWidth: 32, minHeight: 0, width: 32, height: 32, border: '1px solid #E5E7EB' }}
               onClick={toggleDrawer}>

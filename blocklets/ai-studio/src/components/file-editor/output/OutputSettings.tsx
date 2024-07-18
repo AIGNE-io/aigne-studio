@@ -145,6 +145,7 @@ export default function OutputSettings({
                 sx={{ '&.isDragging .hover-visible': { display: 'none' } }}
                 renderItem={(item, _, params) => (
                   <VariableRow
+                    data-testid="output-variable-row"
                     key={item.id}
                     rowRef={(ref) => params.drop(params.preview(ref))}
                     firstColumnChildren={
@@ -351,6 +352,7 @@ function VariableRow({
 
               <Box sx={{ ml: depth === 0 ? depth : depth + 2 }}>
                 <OutputNameCell
+                  data-testid="output-name-cell"
                   projectId={projectId}
                   gitRef={gitRef}
                   assistant={value}
@@ -362,6 +364,7 @@ function VariableRow({
             </Box>
             <Box component={TableCell}>
               <OutputDescriptionCell
+                data-testid="output-variable-description"
                 projectId={projectId}
                 gitRef={gitRef}
                 assistant={value}
@@ -371,6 +374,7 @@ function VariableRow({
             </Box>
             <Box component={TableCell}>
               <OutputFormatCell
+                data-testid="output-variable-format"
                 assistant={value}
                 output={variable}
                 variable={datastoreVariable}
@@ -378,13 +382,20 @@ function VariableRow({
               />
             </Box>
             <Box component={TableCell}>
-              <OutputRequiredCell output={variable} disabled={Boolean(disabled)} />
+              <OutputRequiredCell data-testid="output-required-cell" output={variable} disabled={Boolean(disabled)} />
             </Box>
             <Box component={TableCell}>
-              <OutputAppearanceCell projectId={projectId} gitRef={gitRef} assistant={value} output={variable} />
+              <OutputAppearanceCell
+                data-testid="output-appearance-cell"
+                projectId={projectId}
+                gitRef={gitRef}
+                assistant={value}
+                output={variable}
+              />
             </Box>
             <Box component={TableCell} align="right" onClick={(e) => e.stopPropagation()}>
               <OutputActionsCell
+                data-testid="output-variable-actions"
                 depth={depth}
                 disabled={disabled}
                 onRemove={onRemove}

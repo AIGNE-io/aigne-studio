@@ -41,7 +41,11 @@ export default function PromptSetting({
 
   return (
     <>
-      <Box position="relative" className="between" sx={{ backgroundColor: getDiffBackground('executor') }}>
+      <Box
+        data-testid="prompt-setting"
+        position="relative"
+        className="between"
+        sx={{ backgroundColor: getDiffBackground('executor') }}>
         <Box flex={1}>
           <FormLabel>{t('provider')}</FormLabel>
         </Box>
@@ -53,7 +57,6 @@ export default function PromptSetting({
             gitRef={gitRef}
             path={[value.id, 'executor']}>
             <AgentSelect
-              data-testid="prompt-setting-model"
               readOnly={readOnly}
               type="llm-adapter"
               excludes={[value.id]}
@@ -188,6 +191,7 @@ function DefaultPromptSetting({
             gitRef={projectRef}
             path={[agent.id, 'model']}>
             <ModelSelectField
+              data-testid="prompt-setting-model"
               hiddenLabel
               fullWidth
               value={agent.model || project?.model || defaultTextModel}

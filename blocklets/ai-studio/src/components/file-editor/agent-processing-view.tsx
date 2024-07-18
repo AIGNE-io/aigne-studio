@@ -29,7 +29,7 @@ export default function AgentProcessingView({
   const { t } = useLocaleContext();
 
   return (
-    <Stack gap={1}>
+    <Stack gap={1} data-testid="agent-processing-view">
       <Box className="between" whiteSpace="nowrap" gap={2}>
         <Box
           display="flex"
@@ -46,11 +46,11 @@ export default function AgentProcessingView({
             {t('processing')} -&nbsp;
           </Typography>
           <Stack direction="row" flex={1} width={0} minWidth={20}>
-            <AgentTypeSelect assistant={assistant} />
+            <AgentTypeSelect assistant={assistant} data-testid="agent-type-select" />
           </Stack>
         </Box>
 
-        <Box>
+        <Box data-testid="agent-setting">
           {isPromptAssistant(assistant) || isImageAssistant(assistant) || isRouterAssistant(assistant) ? (
             <Setting projectId={projectId} gitRef={gitRef} value={assistant} />
           ) : isFunctionAssistant(assistant) ? (
