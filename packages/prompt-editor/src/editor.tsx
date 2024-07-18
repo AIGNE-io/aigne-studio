@@ -74,10 +74,12 @@ export default function Editor({
     editor,
     element,
     node,
+    action,
   }: {
     editor: LexicalEditor;
     element: HTMLElement;
     node: VariableTextNode;
+    action: 'style' | 'variableChange' | 'inputChange';
   }) => void;
 }): JSX.Element {
   const placeholderNode = <Placeholder className={placeholderClassName}>{placeholder}</Placeholder>;

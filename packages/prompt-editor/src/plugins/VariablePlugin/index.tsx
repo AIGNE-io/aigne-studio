@@ -36,10 +36,12 @@ export default function VarContextPlugin({
     editor,
     element,
     node,
+    action,
   }: {
     editor: LexicalEditor;
     element: HTMLElement;
     node: VariableTextNode;
+    action: 'style' | 'variableChange' | 'inputChange';
   }) => void;
 }): JSX.Element | null {
   const [editor] = useLexicalComposerContext();
@@ -63,28 +65,27 @@ export default function VarContextPlugin({
     );
   }, [editor]);
 
-  const inputChange = useDebounceFn(
-    async (editor: LexicalEditor) => {
-      editor.getEditorState().read(() => {
-        const root = editor.getRootElement();
-        if (!root) return;
+  function updateNode(editor: LexicalEditor, action: 'style' | 'variableChange' | 'inputChange') {
+    editor.getEditorState().read(() => {
+      const root = editor.getRootElement();
+      if (!root) return;
 
-        const textNodes = root.querySelectorAll('[data-lexical-variable]');
-        textNodes.forEach((variableElement) => {
-          const key = variableElement.getAttribute('data-lexical-key');
-          if (!key) return;
+      const textNodes = root.querySelectorAll('[data-lexical-variable]');
+      textNodes.forEach((variableElement) => {
+        const key = variableElement.getAttribute('data-lexical-key');
+        if (!key) return;
 
-          const element: null | HTMLElement = editor.getElementByKey(key);
-          const node = $getNodeByKey(key);
+        const element: null | HTMLElement = editor.getElementByKey(key);
+        const node = $getNodeByKey(key);
 
-          if (element && node && node instanceof VariableTextNode) {
-            onChangeVariableNode?.({ editor, element, node });
-          }
-        });
+        if (element && node && node instanceof VariableTextNode) {
+          onChangeVariableNode?.({ editor, element, node, action });
+        }
       });
-    },
-    { wait: 500, trailing: true }
-  );
+    });
+  }
+
+  const inputChange = useDebounceFn((d) => updateNode(d, 'variableChange'), { wait: 500, trailing: true });
 
   useEffect(() => {
     if (!editor.hasNodes([VariableTextNode])) {
@@ -92,8 +93,20 @@ export default function VarContextPlugin({
     }
 
     // 当编辑器的 VariableTextNode 节点发生变化时
-    const unregisterMutationListener = editor.registerMutationListener(VariableTextNode, () => {
-      inputChange.run(editor);
+    const unregisterMutationListener = editor.registerMutationListener(VariableTextNode, (mutatedNodes) => {
+      editor.getEditorState().read(() => {
+        for (const [nodeKey] of mutatedNodes) {
+          const element = editor.getElementByKey(nodeKey);
+          if (!element) continue;
+
+          const node = $getNodeByKey(nodeKey);
+          if (!node || !(node instanceof VariableTextNode)) continue;
+
+          onChangeVariableNode?.({ editor, element, node, action: 'inputChange' });
+        }
+      });
+
+      updateNode(editor, 'style');
     });
 
     return () => {
@@ -102,7 +115,9 @@ export default function VarContextPlugin({
   }, [editor]);
 
   useEffect(() => {
-    // 立即执行一次，确保当前状态反映
+    // 更新样式
+    updateNode(editor, 'style');
+
     inputChange.run(editor);
   }, [variables]);
 

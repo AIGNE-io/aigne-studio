@@ -41,10 +41,12 @@ interface PromptEditorProps extends Omit<BoxProps, 'value' | 'onChange'> {
     editor,
     element,
     node,
+    action,
   }: {
     editor: LexicalEditor;
     element: HTMLElement;
     node: VariableTextNode;
+    action: 'style' | 'variableChange' | 'inputChange';
   }) => void;
 }
 
