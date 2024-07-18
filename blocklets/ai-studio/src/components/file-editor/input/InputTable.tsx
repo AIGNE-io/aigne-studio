@@ -155,7 +155,6 @@ export default function InputTable({
     return [
       {
         field: 'key',
-        width: '30%' as any,
         headerName: t('name'),
         renderCell: ({ row: { data: parameter } }) => {
           if (parameter.key === 'question' || parameter.key === 'chatHistory') {
@@ -174,7 +173,7 @@ export default function InputTable({
           }
 
           return (
-            <Stack direction="row" alignItems="center" gap={0.5}>
+            <Stack direction="row" alignItems="center" gap={0.5} minWidth={100}>
               <Box component={Icon} icon={FormsIcon} fontSize={16} />
 
               <WithAwareness
@@ -343,7 +342,6 @@ export default function InputTable({
                 <TableCell
                   key={column.field}
                   align={column.headerAlign}
-                  width={column.width}
                   sx={{ px: 0, py: 1, fontWeight: 500, fontSize: 13, lineHeight: '22px' }}>
                   {column.headerName}
                 </TableCell>

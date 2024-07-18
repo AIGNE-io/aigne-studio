@@ -1,5 +1,6 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { mergeRegister } from '@lexical/utils';
+import { useDebounceFn } from 'ahooks';
 import {
   $getNodeByKey,
   $insertNodes,
@@ -12,14 +13,14 @@ import { useEffect } from 'react';
 
 import VariablePopover from './popover';
 import useTransformVariableNode from './user-transform-node';
-import { extractBracketContent } from './utils/util';
-import { $createVariableNode, VariableTextNode, textStyle, variableStyle } from './variable-text-node';
+import { $createVariableNode, VariableTextNode } from './variable-text-node';
 
 export const INSERT_VARIABLE_COMMAND: LexicalCommand<{ name: string }> = createCommand('INSERT_VARIABLE_COMMAND');
 
 export default function VarContextPlugin({
   popperElement,
   variables,
+  onChangeVariableNode,
 }: {
   variables?: string[];
   popperElement?: ({
@@ -31,6 +32,15 @@ export default function VarContextPlugin({
     editor: LexicalEditor;
     handleClose: () => any;
   }) => any;
+  onChangeVariableNode?: ({
+    editor,
+    element,
+    node,
+  }: {
+    editor: LexicalEditor;
+    element: HTMLElement;
+    node: VariableTextNode;
+  }) => void;
 }): JSX.Element | null {
   const [editor] = useLexicalComposerContext();
 
@@ -53,28 +63,28 @@ export default function VarContextPlugin({
     );
   }, [editor]);
 
-  function updateNodeStyle(editor: LexicalEditor, variables?: string[]) {
-    editor.getEditorState().read(() => {
-      const root = editor.getRootElement();
-      if (!root) return;
+  const inputChange = useDebounceFn(
+    async (editor: LexicalEditor) => {
+      editor.getEditorState().read(() => {
+        const root = editor.getRootElement();
+        if (!root) return;
 
-      const textNodes = root.querySelectorAll('[data-lexical-variable]');
-      textNodes.forEach((variableElement) => {
-        const key = variableElement.getAttribute('data-lexical-key');
-        if (!key) return;
+        const textNodes = root.querySelectorAll('[data-lexical-variable]');
+        textNodes.forEach((variableElement) => {
+          const key = variableElement.getAttribute('data-lexical-key');
+          if (!key) return;
 
-        const element: null | HTMLElement = editor.getElementByKey(key);
-        const node = $getNodeByKey(key);
+          const element: null | HTMLElement = editor.getElementByKey(key);
+          const node = $getNodeByKey(key);
 
-        if (element && node && node instanceof VariableTextNode) {
-          const text = extractBracketContent(node.getTextContent() || '') || '';
-          const variable = (text || '').split('.')[0] || '';
-          const isVariable = (variables || []).includes(variable);
-          element.style.cssText = isVariable ? variableStyle : textStyle;
-        }
+          if (element && node && node instanceof VariableTextNode) {
+            onChangeVariableNode?.({ editor, element, node });
+          }
+        });
       });
-    });
-  }
+    },
+    { wait: 500, trailing: true }
+  );
 
   useEffect(() => {
     if (!editor.hasNodes([VariableTextNode])) {
@@ -83,16 +93,18 @@ export default function VarContextPlugin({
 
     // 当编辑器的 VariableTextNode 节点发生变化时
     const unregisterMutationListener = editor.registerMutationListener(VariableTextNode, () => {
-      updateNodeStyle(editor, variables);
+      inputChange.run(editor);
     });
-
-    // 立即执行一次，确保当前状态反映
-    updateNodeStyle(editor, variables);
 
     return () => {
       unregisterMutationListener();
     };
-  }, [editor, variables]);
+  }, [editor]);
+
+  useEffect(() => {
+    // 立即执行一次，确保当前状态反映
+    inputChange.run(editor);
+  }, [variables]);
 
   useTransformVariableNode(editor);
 

@@ -8,11 +8,29 @@ import {
 import PromptEditor, { EditorState } from '@blocklet/prompt-editor';
 import { editorState2Text, text2EditorState } from '@blocklet/prompt-editor/utils';
 import { Box, Button, Paper, Stack } from '@mui/material';
-import { useAsyncEffect, useThrottleFn } from 'ahooks';
+import { useAsyncEffect, useDebounceFn, useThrottleFn } from 'ahooks';
 import { ComponentProps, useCallback, useMemo, useRef, useState } from 'react';
 
 import WithAwareness from '../awareness/with-awareness';
 import useVariablesEditorOptions from './use-variables-editor-options';
+
+function extractBracketContent(text: string) {
+  const pattern = /^\{\{(.*)\}\}$/;
+  const match = pattern.exec(text);
+  return ((match ? match[1] : '') || '').trim();
+}
+
+const variableStyle = `
+  color: rgb(234 179 8/1);
+  font-weight: bold;
+  cursor: pointer;
+`;
+
+const textStyle = `
+  color: #ef5350;
+  font-weight: bold;
+  cursor: pointer;
+`;
 
 export default function PromptEditorField({
   placeholder,
@@ -35,28 +53,48 @@ export default function PromptEditorField({
   readOnly?: boolean;
 } & Omit<ComponentProps<typeof PromptEditor>, 'value' | 'onChange'>) {
   const { t } = useLocaleContext();
-  const { from, options, variables, addParameter } = useVariablesEditorOptions(assistant);
+  const { from, options, variables, addParameter, updateParameter } = useVariablesEditorOptions(assistant);
 
-  const parameterChange = useThrottleFn(
+  const parameterChange = useDebounceFn(
     async () => {
       if (assistant && (isPromptAssistant(assistant) || isImageAssistant(assistant))) {
+        const textNodes = document.querySelectorAll('[data-lexical-variable]');
         const variables = new Set(parseDirectivesOfTemplate(assistant).map((i) => i.name.split('.')[0]!));
-        const currentVariables = Object.values(assistant.parameters ?? {}).filter((p) => p?.data?.from === from);
 
-        // 添加新增的变量
+        const map = [...textNodes].reduce(
+          (acc, node) => {
+            const id = node.getAttribute('data-lexical-id');
+            const text = extractBracketContent(node.textContent || '').trim();
+            if (id) acc[id] = text;
+            return acc;
+          },
+          {} as { [key: string]: string }
+        );
+
+        // 更新变量
+        Object.entries(map).forEach(([id, text]) => {
+          const currentVariables = Object.values(assistant.parameters ?? {}).filter((p) => p.data.from === from);
+          const found = currentVariables.find((p) => p.data.id === id);
+          if (found?.data?.id) {
+            updateParameter(found?.data.id, text);
+          }
+        });
+
+        // 添加变量
+        const currentVariables = Object.values(assistant.parameters ?? {}).filter((p) => p.data.from === from);
         variables.forEach((variable) => {
           if (variable && !currentVariables.some((v) => v?.data?.key === variable)) {
             addParameter(variable, { from });
           }
         });
 
-        // 删除移除的变量
-        (currentVariables || []).forEach((variable) => {
-          const key = variable?.data?.key;
-          if (variable.data.from === 'editor' && key && !variables.has(key)) {
-            delete assistant.parameters?.[variable?.data.id];
-          }
-        });
+        // 删除变量
+        Object.values(assistant.parameters ?? {})
+          .filter((p) => p.data.from === from)
+          .forEach((variable) => {
+            const key = variable?.data?.key;
+            if (key && !variables.has(key)) delete assistant.parameters?.[variable?.data.id];
+          });
       }
     },
     { wait: 500, trailing: true }
@@ -159,6 +197,36 @@ export default function PromptEditorField({
               </Stack>
             </Paper>
           );
+        }}
+        onChangeVariableNode={({ editor, element, node }) => {
+          const text = extractBracketContent(element.textContent || '');
+          const variable = (text || '').split('.')[0] || '';
+
+          const id = element.getAttribute('data-lexical-id');
+          const parameters = assistant?.parameters || {};
+
+          const objVariables = variables.map((i) => {
+            const found = Object.values(parameters).find((p) => p.data.key === i);
+            return { key: i, id: found?.data.id! || '' };
+          });
+
+          if (id) {
+            const parameter = parameters[id];
+            if (parameter) {
+              editor.update(() => {
+                if (parameter.data.key !== variable) node.setTextContent(`{{ ${parameter.data.key} }}`);
+              });
+            }
+
+            return;
+          }
+
+          const isVariable = (objVariables || [])?.find((x) => x.key === variable);
+          element.style.cssText = isVariable ? variableStyle : textStyle;
+          // 如果是变量，添加 data-lexical-id 属性
+          if (isVariable && !id) {
+            element.setAttribute('data-lexical-id', isVariable?.id || '');
+          }
         }}
       />
     </WithAwareness>

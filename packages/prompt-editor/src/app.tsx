@@ -5,6 +5,7 @@ import { Box, BoxProps } from '@mui/material';
 import { EditorState, LexicalEditor } from 'lexical';
 import React, { ComponentProps, MutableRefObject, ReactNode, useCallback, useEffect, useRef } from 'react';
 
+import { VariableTextNode } from '../plugins/VariablePlugin/variable-text-node';
 import Editor from './editor';
 import PromptEditorNodes from './nodes/prompt-editor-nodes';
 import ComponentPickerMenuPlugin from './plugins/ComponentPickerPlugin';
@@ -36,6 +37,15 @@ interface PromptEditorProps extends Omit<BoxProps, 'value' | 'onChange'> {
     editor: LexicalEditor;
     handleClose: () => any;
   }) => any;
+  onChangeVariableNode?: ({
+    editor,
+    element,
+    node,
+  }: {
+    editor: LexicalEditor;
+    element: HTMLElement;
+    node: VariableTextNode;
+  }) => void;
 }
 
 export default function PromptEditor({
@@ -85,6 +95,7 @@ function EditorShell({
   ContentProps,
   variables,
   popperElement,
+  onChangeVariableNode,
   ...props
 }: PromptEditorProps) {
   const [editor] = useLexicalComposerContext();
@@ -138,6 +149,7 @@ function EditorShell({
         variablePickerProps={variablePickerProps}
         componentPickerProps={componentPickerProps}
         popperElement={popperElement}
+        onChangeVariableNode={onChangeVariableNode}
         ContentProps={ContentProps}>
         {children}
       </Editor>

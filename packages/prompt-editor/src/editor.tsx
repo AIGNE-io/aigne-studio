@@ -11,6 +11,7 @@ import { BoxProps } from '@mui/material';
 import { EditorState, LexicalEditor } from 'lexical';
 import { ComponentProps, MutableRefObject, useEffect, useState } from 'react';
 
+import { VariableTextNode } from '../plugins/VariablePlugin/variable-text-node';
 import CommentPlugin from './plugins/CommentPlugin';
 import ComponentPickerMenuPlugin from './plugins/ComponentPickerPlugin';
 import FloatingToolbarPlugin from './plugins/FloatingToolbarPlugin';
@@ -45,6 +46,7 @@ export default function Editor({
   ContentProps,
   variables,
   placeholderClassName,
+  onChangeVariableNode,
 }: {
   useVariableNode?: boolean;
   isDebug?: boolean;
@@ -68,6 +70,15 @@ export default function Editor({
     handleClose: () => any;
   }) => any;
   placeholderClassName?: string;
+  onChangeVariableNode?: ({
+    editor,
+    element,
+    node,
+  }: {
+    editor: LexicalEditor;
+    element: HTMLElement;
+    node: VariableTextNode;
+  }) => void;
 }): JSX.Element {
   const placeholderNode = <Placeholder className={placeholderClassName}>{placeholder}</Placeholder>;
 
@@ -82,7 +93,13 @@ export default function Editor({
       <CommentPlugin />
       {autoFocus && <AutoFocusPlugin />}
       {isDebug && <TreeViewPlugin />}
-      {useVariableNode && <VariablePlugin popperElement={popperElement} variables={variables} />}
+      {useVariableNode && (
+        <VariablePlugin
+          popperElement={popperElement}
+          variables={variables}
+          onChangeVariableNode={onChangeVariableNode}
+        />
+      )}
       <FloatingToolbarPlugin floatElement={floatElement} />
       {componentPickerProps && <ComponentPickerMenuPlugin {...componentPickerProps} />}
       <ResettableHistoryPlugin />
