@@ -1,5 +1,7 @@
+import { useCurrentProject } from '@app/contexts/project';
 import { UploaderButton, getImageSize, getVideoSize } from '@app/contexts/uploader';
 import { Component, getComponent } from '@app/libs/components';
+import { uploadAsset } from '@app/libs/project';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { RuntimeOutputAppearance } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
@@ -176,27 +178,37 @@ function PropertyValueField({
               sx: { pr: 0 },
               endAdornment: (
                 <InputAdornment position="end">
-                  <UploaderButton
-                    sx={{ minWidth: 0, minHeight: 0, p: 0 }}
-                    onChange={async ({ response }: any) => {
-                      const url: string = response?.data?.url || response?.data?.fileUrl;
-
-                      let size: Awaited<ReturnType<typeof getImageSize> | ReturnType<typeof getVideoSize>> | undefined;
-
-                      if (url) {
-                        size = await getImageSize(url)
-                          .catch(() => getVideoSize(url))
-                          .catch(() => undefined);
-                      }
-
-                      props.onChange?.({ url, width: size?.naturalWidth, height: size?.naturalHeight });
-                    }}
-                  />
+                  <Uploader onChange={props.onChange} />
                 </InputAdornment>
               ),
             }
           : undefined
       }
+    />
+  );
+}
+
+function Uploader({ onChange }: { onChange?: (v: { url: string; width?: number; height?: number }) => void }) {
+  const { projectId, projectRef } = useCurrentProject();
+
+  return (
+    <UploaderButton
+      sx={{ minWidth: 0, minHeight: 0, p: 0 }}
+      onChange={async ({ response }: any) => {
+        const url: string = response?.data?.url || response?.data?.fileUrl;
+
+        let size: Awaited<ReturnType<typeof getImageSize> | ReturnType<typeof getVideoSize>> | undefined;
+
+        if (url) {
+          size = await getImageSize(url)
+            .catch(() => getVideoSize(url))
+            .catch(() => undefined);
+        }
+
+        const filename = url && (await uploadAsset({ projectId, ref: projectRef, source: url })).filename;
+
+        onChange?.({ url: filename, width: size?.naturalWidth, height: size?.naturalHeight });
+      }}
     />
   );
 }

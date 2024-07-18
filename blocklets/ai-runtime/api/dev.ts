@@ -6,6 +6,7 @@ import { app, server } from './src';
 
 (async () => {
   const vite = await setupClient(app, {
+    appType: 'custom',
     server,
     importMetaHot: import.meta.hot,
   });

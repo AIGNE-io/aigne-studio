@@ -431,9 +431,9 @@ export abstract class AgentExecutorBase {
         const val =
           parameter.type === 'llmInputMessages'
             ? await schema.validateAsync(
-                Array.isArray(v)
-                  ? v
-                  : tryParse(v) ?? [{ role: 'user', content: typeof v === 'string' ? v : JSON.stringify(v) }],
+                (Array.isArray(v) ? v : tryParse(v)) ?? [
+                  { role: 'user', content: typeof v === 'string' ? v : JSON.stringify(v) },
+                ],
                 { stripUnknown: true }
               )
             : parameter.type === 'llmInputTools'

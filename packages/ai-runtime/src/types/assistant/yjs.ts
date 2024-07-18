@@ -1,3 +1,4 @@
+import { ProjectSettings } from '../resource';
 import {
   RuntimeOutputAppearance,
   RuntimeOutputOpeningQuestions,
@@ -34,10 +35,9 @@ export type VariablesYjs = {
 
 export type ConfigFileYjs = {
   entry?: string;
-  [key: string]: any;
 };
 
-export type FileTypeYjs = AssistantYjs | { $base64: string } | VariablesYjs | ConfigFileYjs;
+export type FileTypeYjs = AssistantYjs | VariablesYjs | ConfigFileYjs | ProjectSettings | { $base64: string };
 
 export type AssistantYjs =
   | AgentYjs

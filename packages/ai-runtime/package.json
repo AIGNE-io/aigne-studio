@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.3.31",
+  "version": "0.3.33",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -52,6 +52,10 @@
       "import": "./lib/esm/common/*.js",
       "require": "./lib/cjs/common/*.js"
     },
+    "./utils/*": {
+      "import": "./lib/esm/utils/*.js",
+      "require": "./lib/cjs/utils/*.js"
+    },
     "./constants": {
       "import": "./lib/esm/constants.js",
       "require": "./lib/cjs/constants.js"
@@ -89,6 +93,9 @@
       ],
       "common/*": [
         "./lib/types/common/*.d.ts"
+      ],
+      "utils/*": [
+        "./lib/types/utils/*.d.ts"
       ],
       "constants": [
         "./lib/types/constants.d.ts"
@@ -139,7 +146,7 @@
     "recoil": "^0.7.7",
     "snowflake-uuid": "^1.0.0",
     "typescript": "^5.5.3",
-    "ufo": "^1.5.3",
+    "ufo": "^1.5.4",
     "vm2": "^3.9.19"
   },
   "peerDependencies": {
@@ -153,20 +160,20 @@
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@arcblock/ux": "^2.10.3",
+    "@arcblock/ux": "^2.10.5",
     "@emotion/css": "^11.11.2",
     "@emotion/react": "^11.11.4",
     "@jest/globals": "^29.7.0",
-    "@mui/icons-material": "^5.16.0",
-    "@mui/lab": "^5.0.0-alpha.171",
-    "@mui/material": "^5.16.0",
-    "@types/lodash": "^4.17.6",
+    "@mui/icons-material": "^5.16.4",
+    "@mui/lab": "^5.0.0-alpha.172",
+    "@mui/material": "^5.16.4",
+    "@types/lodash": "^4.17.7",
     "@types/mustache": "^4.2.5",
     "@types/node-fetch": "^2.6.11",
     "@types/react": "^18.3.3",
     "npm-run-all": "^4.1.5",
     "react": "^18.3.1",
-    "react-router-dom": "^6.24.1",
+    "react-router-dom": "^6.25.0",
     "rimraf": "^6.0.1",
     "ts-jest": "^29.2.2",
     "typescript": "^5.5.3"

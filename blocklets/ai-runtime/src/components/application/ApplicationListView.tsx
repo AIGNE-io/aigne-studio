@@ -13,6 +13,7 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
+import { useMemo } from 'react';
 import { joinURL, withQuery } from 'ufo';
 
 const blockletsMap = Object.fromEntries(window.blocklet.componentMountPoints.map((i) => [i.did, i]));
@@ -22,18 +23,23 @@ export default function ApplicationListView({
 }: {
   applications: RuntimeResourceBlockletState['applications'];
 }) {
+  const apps = useMemo(
+    () => applications.filter((i): i is typeof i & { identity: { blockletDid: string } } => !!i.identity.blockletDid),
+    [applications]
+  );
+
   return (
     <Container maxWidth="lg" sx={{ my: 2 }}>
       <Grid container spacing={2}>
-        {applications.map((application) => (
-          <Grid key={`${application.blockletDid}-${application.aid}`} item xs={12} sm={6} md={4}>
+        {apps.map((application) => (
+          <Grid key={`${application.identity.blockletDid}-${application.identity.aid}`} item xs={12} sm={6} md={4}>
             <Card sx={{ height: '100%' }}>
               <CardActionArea
                 component={Link}
                 href={
-                  blockletsMap[application.blockletDid]?.mountPoint ||
-                  withQuery(joinURL(window.blocklet.prefix, '/apps', application.aid), {
-                    blockletDid: application.blockletDid,
+                  blockletsMap[application.identity.blockletDid]?.mountPoint ||
+                  withQuery(joinURL(window.blocklet.prefix, '/apps', application.identity.aid), {
+                    blockletDid: application.identity.blockletDid,
                   })
                 }
                 sx={{ height: '100%' }}>
@@ -42,8 +48,8 @@ export default function ApplicationListView({
                     <Avatar
                       src={joinURL(
                         '/.well-known/service/blocklet/logo-bundle',
-                        application.blockletDid,
-                        `?v=${blockletsMap[application.blockletDid]?.version}`
+                        application.identity.blockletDid,
+                        `?v=${blockletsMap[application.identity.blockletDid]?.version}`
                       )}
                       variant="rounded"
                       sx={{ width: 80, height: 80 }}

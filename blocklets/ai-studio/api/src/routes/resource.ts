@@ -1,23 +1,20 @@
-import { createWriteStream } from 'fs';
-import { mkdir, writeFile } from 'fs/promises';
+import { copyFile, mkdir, mkdtemp, rm, writeFile } from 'fs/promises';
 import { join } from 'path';
-import { pipeline } from 'stream/promises';
 
 import { Config } from '@api/libs/env';
 import logger from '@api/libs/logger';
 import { ResourceTypes } from '@api/libs/resource';
 import { AIGNE_RUNTIME_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
 import { Assistant, projectSettingsSchema } from '@blocklet/ai-runtime/types';
+import { copyRecursive } from '@blocklet/ai-runtime/utils/fs';
 import component, { call } from '@blocklet/sdk/lib/component';
 import { user } from '@blocklet/sdk/lib/middlewares';
-import axios from 'axios';
 import { Router } from 'express';
+import { pathExists } from 'fs-extra';
 import Joi from 'joi';
-import get from 'lodash/get';
 import groupBy from 'lodash/groupBy';
-import set from 'lodash/set';
 import uniq from 'lodash/uniq';
-import { joinURL, parseFilename } from 'ufo';
+import { joinURL } from 'ufo';
 import { Extract } from 'unzipper';
 import { stringify } from 'yaml';
 
@@ -25,6 +22,7 @@ import { ensurePromptsEditor } from '../libs/security';
 import Knowledge from '../store/models/dataset/dataset';
 import Project from '../store/models/project';
 import {
+  ASSETS_DIR,
   LOGO_FILENAME,
   defaultBranch,
   getAssistantsOfRepository,
@@ -35,8 +33,6 @@ import {
 } from '../store/repository';
 
 const AI_STUDIO_DID = 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
-
-const REG_ASSETS = /https?:\/\/.+.(jpe?g|png|gif|svg|bmp|webp|mp4|m4v|webm)$/;
 
 const getResourceDir = async ({ projectId, releaseId }: { projectId: string; releaseId: string }) => {
   const exportDir = component.getResourceExportDir({ projectId, releaseId });
@@ -238,6 +234,7 @@ export function resourceRoutes(router: Router) {
           where: { id: projectId },
           rejectOnEmpty: new Error(`no such project ${projectId}`),
         });
+
         const assistants = await Promise.all(
           (await getAssistantsOfRepository({ projectId, ref: project.gitDefaultBranch || defaultBranch })).map(
             async (i) => {
@@ -287,47 +284,29 @@ export function resourceRoutes(router: Router) {
           },
         };
 
-        const assetsDir = join(folderPath, projectId, 'assets');
-        await mkdir(assetsDir, { recursive: true });
-
-        await Promise.all(
-          getPropertyPathBy(data, (v) => typeof v === 'string' && REG_ASSETS.test(v)).map(async (p) => {
-            const asset = get(data, p) as string;
-            try {
-              const filename = parseFilename(asset, { strict: false });
-              if (!filename) throw new Error(`Invalid filename from url ${asset}`);
-              const res = await axios.get(asset, { responseType: 'stream' });
-              if (res.status >= 200 && res.status < 300) {
-                const file = createWriteStream(join(assetsDir, filename));
-                await pipeline(res.data, file);
-                set(data, p, filename);
-              } else {
-                throw new Error(`download asset failed ${res.status}`);
-              }
-            } catch (error) {
-              logger.warn(`Failed to export assets: ${asset}, ${error}`);
-            }
-          })
-        );
-
-        const result = stringify(data);
-
-        await writeFile(join(folderPath, projectId, `${projectId}.yaml`), result);
-
-        // 写入logo.png
-        const resourceLogoPath = join(folderPath, projectId, LOGO_FILENAME);
-
+        const tmpdir = join(Config.appDir, 'tmp');
+        await mkdir(tmpdir, { recursive: true });
+        const workingCopy = await mkdtemp(join(tmpdir, 'publish-working-'));
         try {
-          const icon = await repository.readBlob({
-            ref: project?.gitDefaultBranch || defaultBranch,
-            filepath: LOGO_FILENAME,
-          });
-          await writeFile(resourceLogoPath, icon.blob);
-        } catch (error) {
-          logger.error('failed to save icon file to resource dir', { error });
-        }
+          await repository.checkout({ dir: workingCopy, force: true, ref: project.gitDefaultBranch || defaultBranch });
 
-        arr.push(result);
+          const result = stringify(data);
+          await writeFile(join(folderPath, projectId, `${projectId}.yaml`), result);
+
+          const assetsSrc = join(workingCopy, ASSETS_DIR, '/');
+          const assetsDir = join(folderPath, projectId, 'assets/');
+          await mkdir(assetsDir, { recursive: true });
+          if (await pathExists(assetsSrc)) {
+            await copyRecursive(assetsSrc, assetsDir);
+          }
+
+          const resourceLogoPath = join(folderPath, projectId, LOGO_FILENAME);
+          await copyFile(join(workingCopy, LOGO_FILENAME), resourceLogoPath);
+
+          arr.push(result);
+        } finally {
+          await rm(workingCopy, { recursive: true, force: true });
+        }
       }
     }
 
@@ -429,17 +408,3 @@ const exportKnowledgeInfo = async (folder: string, item: { id: string; public: b
 
   await res.data.pipe(Extract({ path: knowledgeWithIdPath }), { end: true }).promise();
 };
-
-function getPropertyPathBy(
-  obj: any,
-  predict: (value: any) => boolean,
-  path: (string | number)[] = []
-): (string | number)[][] {
-  if (Array.isArray(obj)) {
-    return obj.flatMap((item, index) => getPropertyPathBy(item, predict, [...path, index]));
-  }
-  if (typeof obj === 'object') {
-    return Object.entries(obj).flatMap(([key, val]) => getPropertyPathBy(val, predict, [...path, key]));
-  }
-  return predict(obj) ? [path] : [];
-}

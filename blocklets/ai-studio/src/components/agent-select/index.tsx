@@ -210,7 +210,7 @@ function ProjectHeaderView({ project, ...props }: { project: AgentSelectOption['
   return (
     <ListSubheader component="div" {...props}>
       <Stack direction="row" alignItems="center" mt={2} gap={2}>
-        <Avatar variant="rounded" src={getProjectIconUrl(project.id, project.updatedAt)} />
+        <Avatar variant="rounded" src={getProjectIconUrl(project.id, { updatedAt: project.updatedAt })} />
 
         <Stack flex={1} width={1}>
           <Typography variant="subtitle2" noWrap>

@@ -60,15 +60,10 @@ export default function Dashboard({
     <Root {...props} sx={{ height: '100%', pt: 8, ...props.sx }}>
       <Box className="dashboard-header" component="header">
         <Header
-          // FIXME: remove following undefined props after issue https://github.com/ArcBlock/ux/issues/1136 solved
-          hideNavMenu={undefined}
-          meta={undefined}
-          addons={undefined}
-          sessionManagerProps={undefined}
-          homeLink={undefined}
           className="blocklet-header"
           theme={theme}
           {...HeaderProps}
+          // @ts-ignore
           prepend={
             menus && (
               <>
@@ -133,14 +128,7 @@ const Root = styled(Stack)`
     .header-container {
       max-width: none;
 
-      > div:empty {
-        display: none;
-      }
-
       .header-addons {
-        flex: 1;
-        justify-content: flex-end;
-        overflow: hidden;
       }
     }
   }

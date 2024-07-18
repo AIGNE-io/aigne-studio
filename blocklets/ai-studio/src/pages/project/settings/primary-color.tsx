@@ -1,19 +1,18 @@
-import { UpdateProjectInput } from '@api/routes/project';
+import { useCurrentProject } from '@app/contexts/project';
 import { ClickAwayListener } from '@mui/base';
 import { Box, Divider, Popper, Stack, styled } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { ChromePicker } from 'react-color';
 
+import { useProjectStore } from '../yjs-state';
+
 const defaultColors = ['', '#F47373', '#697689', '#37D67A', '#2CCCE4', '#555555', '#dce775', '#ff8a65', '#ba68c8'];
 
-export default function PrimaryColor({
-  value,
-  set,
-}: {
-  value: UpdateProjectInput;
-  set: (key: string, value: any) => void;
-}) {
-  const [selectedColor, setSelectedColor] = useState(value.appearance?.primaryColor || defaultColors[0]);
+export default function PrimaryColor() {
+  const { projectId, projectRef } = useCurrentProject();
+  const { setProjectSetting, projectSetting } = useProjectStore(projectId, projectRef);
+
+  const [selectedColor, setSelectedColor] = useState(projectSetting?.appearance?.primaryColor || defaultColors[0]);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [open, setOpen] = useState(false);
 
@@ -30,7 +29,10 @@ export default function PrimaryColor({
   };
 
   useEffect(() => {
-    set('appearance', { ...value.appearance, primaryColor: selectedColor });
+    setProjectSetting((config) => {
+      config.appearance ??= {};
+      config.appearance.primaryColor = selectedColor;
+    });
   }, [selectedColor]);
 
   return (

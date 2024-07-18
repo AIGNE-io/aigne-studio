@@ -2,23 +2,25 @@ import { readFileSync } from 'fs';
 import { resolve } from 'path';
 
 import { getAgent } from '@api/libs/agent';
-import { getAgentFromAIStudio } from '@api/libs/ai-studio';
 import logger from '@api/libs/logger';
 import { getResourceProjects } from '@api/libs/resource';
 import History from '@api/store/models/history';
-import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
+import { parseIdentity } from '@blocklet/ai-runtime/common/aid';
 import { AIGNE_RUNTIME_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
 import { GetAgentResult } from '@blocklet/ai-runtime/core';
+import { BlockletAgent } from '@blocklet/ai-runtime/types';
 import {
   RUNTIME_RESOURCE_BLOCKLET_STATE_GLOBAL_VARIABLE,
   RuntimeResourceBlockletState,
 } from '@blocklet/ai-runtime/types/runtime/runtime-resource-blocklet-state';
+import { getAgentProfile } from '@blocklet/aigne-sdk/utils/agent';
 import { getComponentMountPoint } from '@blocklet/sdk/lib/component';
-import config, { getBlockletJs } from '@blocklet/sdk/lib/config';
+import { getBlockletJs } from '@blocklet/sdk/lib/config';
 import { Express, Request, Router } from 'express';
 import Mustache from 'mustache';
-import { joinURL, withQuery } from 'ufo';
 import type { ViteDevServer } from 'vite';
+
+import { respondAgentFields } from './agent';
 
 export default function setupHtmlRouter(app: Express, viteDevServer?: ViteDevServer) {
   const template = viteDevServer
@@ -44,11 +46,15 @@ export default function setupHtmlRouter(app: Express, viteDevServer?: ViteDevSer
         const entryAgent = i.assistants.find((j) => j.id === entry);
         if (!entryAgent) return undefined;
 
-        return {
-          blockletDid: i.blocklet.did,
-          aid: stringifyIdentity({ projectId: i.project.id, agentId: entry }),
+        return respondAgentFields({
+          ...entryAgent,
+          identity: {
+            blockletDid: i.blocklet.did,
+            projectId: i.project.id,
+            agentId: entryAgent.id,
+          },
           project: i.project,
-        };
+        });
       })
       .filter((i): i is NonNullable<typeof i> => !!i);
 
@@ -65,11 +71,13 @@ export default function setupHtmlRouter(app: Express, viteDevServer?: ViteDevSer
     const previewAid = req.path.match(/\/preview\/(?<aid>\w+)/)?.groups?.aid;
 
     const app = previewAid
-      ? {
-          blockletDid: undefined,
-          ...(await getAgentFromAIStudio({ ...parseIdentity(previewAid, { rejectWhenError: true }), working: true })),
-          aid: previewAid,
-        }
+      ? respondAgentFields(
+          await getAgent({
+            ...parseIdentity(previewAid, { rejectWhenError: true }),
+            working: true,
+            rejectOnEmpty: true,
+          })
+        )
       : resourceBlockletState.applications[0];
 
     html = html.replace(
@@ -90,10 +98,10 @@ var ${RUNTIME_RESOURCE_BLOCKLET_STATE_GLOBAL_VARIABLE} = ${JSON.stringify(resour
   };
 
   router.get('/messages/:messageId', async (req, res) => {
-    const { html: template, app } = await loadHtml(req);
+    const { html: template } = await loadHtml(req);
 
     let message: History | undefined;
-    let agent: GetAgentResult | undefined;
+    let agent: Exclude<GetAgentResult, BlockletAgent> | undefined;
     const { messageId } = req.params;
 
     try {
@@ -111,10 +119,15 @@ var ${RUNTIME_RESOURCE_BLOCKLET_STATE_GLOBAL_VARIABLE} = ${JSON.stringify(resour
 
     let html;
     try {
+      const info = agent && getAgentProfile(agent);
+
+      const question = message?.inputs?.question;
+      const answer = message?.outputs?.objects?.find((i) => i.$text)?.$text;
+
       html = Mustache.render(template, {
-        ogTitle: agent?.name || agent?.project?.name,
-        ogDescription: message?.outputs?.content || agent?.project?.description,
-        ogImage: app ? getAgentOgImageUrl(app) : '',
+        ogTitle: question || info?.name || '',
+        ogDescription: answer || info?.description || '',
+        ogImage: info?.icon || '',
       });
     } catch (error) {
       logger.error('render html error', { error });
@@ -128,10 +141,12 @@ var ${RUNTIME_RESOURCE_BLOCKLET_STATE_GLOBAL_VARIABLE} = ${JSON.stringify(resour
 
     let html;
     try {
+      const info = app && getAgentProfile(app);
+
       html = Mustache.render(template, {
-        ogTitle: app?.project.name || '',
-        ogDescription: app?.project.description || '',
-        ogImage: app ? getAgentOgImageUrl(app) : '',
+        ogTitle: info?.name || '',
+        ogDescription: info?.description || '',
+        ogImage: info?.icon || '',
       });
     } catch (error) {
       logger.error('render html error', { error });
@@ -141,11 +156,4 @@ var ${RUNTIME_RESOURCE_BLOCKLET_STATE_GLOBAL_VARIABLE} = ${JSON.stringify(resour
   });
 
   app.use(router);
-}
-
-function getAgentOgImageUrl({ blockletDid, aid }: { blockletDid?: string; aid: string }) {
-  return withQuery(
-    joinURL(config.env.appUrl, getComponentMountPoint(AIGNE_RUNTIME_COMPONENT_DID), '/api/agents', aid, 'logo'),
-    { blockletDid, imageFilter: 'resize', w: 200 }
-  );
 }
