@@ -6,6 +6,7 @@ import { Config } from '@api/libs/env';
 import { NoPermissionError, NotFoundError } from '@api/libs/error';
 import { sampleIcon } from '@api/libs/icon';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
+import logger from '@api/libs/logger';
 import AgentInputSecret from '@api/store/models/agent-input-secret';
 import {
   ProjectSettings,
@@ -393,21 +394,41 @@ export function projectRoutes(router: Router) {
     throw new NotFoundError(`No such project ${projectId}`);
   });
 
+  const getProjectQuerySchema = Joi.object<{ projectRef?: string; working?: boolean }>({
+    projectRef: Joi.string().empty(['', null]),
+    working: Joi.boolean().empty(['', null]),
+  });
+
   router.get('/projects/:projectId', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
+    if (!projectId) throw new Error('Missing required param `projectId`');
 
-    const project =
-      (await Project.findOne({ where: { id: projectId } })) ||
-      ((await getResourceProjects('example')).find((x) => x.project.id === projectId) as any);
+    const query = await getProjectQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
-    if (!project) {
-      res.status(404).json({ error: 'No such project' });
-      return;
+    const project = await Project.findByPk(projectId, { rejectOnEmpty: new NotFoundError('No such project') });
+
+    let settings: ProjectSettings | undefined;
+
+    const repo = await ProjectRepo.load({ projectId });
+    if (query.working) {
+      const w = await repo.working({ ref: query.projectRef || project.gitDefaultBranch || defaultBranch });
+      settings = w.syncedStore.files[SETTINGS_FILE] as ProjectSettings;
+    } else {
+      try {
+        const { blob } = await repo.readBlob({
+          ref: project.gitDefaultBranch || defaultBranch,
+          filepath: SETTINGS_FILE,
+        });
+        const str = Buffer.from(blob).toString();
+        settings = parse(str);
+      } catch (error) {
+        logger.error('Error reading settings file', error);
+      }
     }
 
     checkProjectPermission({ req, project });
 
-    res.json(project);
+    res.json({ ...project.dataValues, ...settings });
   });
 
   router.get(
@@ -548,7 +569,6 @@ export function projectRoutes(router: Router) {
       }
     } else {
       project = await Project.create({
-        model: '',
         createdBy: did,
         updatedBy: did,
         gitDefaultBranch: defaultBranch,
@@ -637,7 +657,6 @@ export function projectRoutes(router: Router) {
         id: projectId,
         gitUrl: urlWithoutPassword.toString(),
         gitDefaultBranch: originDefaultBranch,
-        model: data.model,
         createdBy: did,
         updatedBy: did,
         name,
@@ -1088,7 +1107,6 @@ async function copyProject({
     ...omit(original.dataValues, 'createdAt', 'updatedAt'),
     id: nextProjectId(),
     duplicateFrom: original.id,
-    model: original.model || '',
     name: patch.name || (original.name && `${original.name}-copy`),
     createdBy: author.did,
     updatedBy: author.did,
@@ -1126,7 +1144,6 @@ async function createProjectFromTemplate(
     ...omit(template.project, 'name', 'files', 'createdAt', 'updatedAt', 'pinnedAt'),
     id: nextProjectId(),
     duplicateFrom: withDuplicateFrom ? template.project.id : undefined,
-    model: template.project.model || '',
     createdBy: author.did,
     updatedBy: author.did,
     gitDefaultBranch: template.project.gitDefaultBranch || defaultBranch,

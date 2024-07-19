@@ -1,6 +1,7 @@
 import AgentSelect from '@app/components/agent-select';
 import { useCurrentProject } from '@app/contexts/project';
 import { TOOL_TIP_LEAVE_TOUCH_DELAY } from '@app/libs/constants';
+import { useProjectStore } from '@app/pages/project/yjs-state';
 import { useAgent } from '@app/store/agent';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { defaultTextModel, getSupportedModels } from '@blocklet/ai-runtime/common';
@@ -14,7 +15,7 @@ import isNil from 'lodash/isNil';
 import { useMemo } from 'react';
 import { useAsync } from 'react-use';
 
-import { useAssistantCompare, useCurrentProjectState } from '../../../pages/project/state';
+import { useAssistantCompare } from '../../../pages/project/state';
 import WithAwareness from '../../awareness/with-awareness';
 import ModelSelectField from '../../selector/model-select-field';
 import SliderNumberField from '../../slider-number-field';
@@ -166,12 +167,11 @@ function DefaultPromptSetting({
   const icon = <Box component={Icon} icon={HelpIcon} sx={{ fontSize: 16, color: '#9CA3AF', mt: 0.25 }} />;
 
   const { projectId, projectRef } = useCurrentProject();
-  const { state } = useCurrentProjectState();
-  const { project } = state;
+  const { projectSetting } = useProjectStore(projectId, projectRef);
   const { value: supportedModels } = useAsync(() => getSupportedModels(), []);
   const model = useMemo(() => {
-    return supportedModels?.find((i) => i.model === (agent.model || project?.model || defaultTextModel));
-  }, [agent.model, project?.model, supportedModels]);
+    return supportedModels?.find((i) => i.model === (agent.model || projectSetting?.model || defaultTextModel));
+  }, [agent.model, projectSetting?.model, supportedModels]);
 
   return (
     <>
@@ -189,7 +189,7 @@ function DefaultPromptSetting({
             <ModelSelectField
               hiddenLabel
               fullWidth
-              value={agent.model || project?.model || defaultTextModel}
+              value={agent.model || projectSetting?.model || defaultTextModel}
               onChange={(e) => (agent.model = e.target.value)}
               InputProps={{ readOnly, sx: { backgroundColor: getDiffBackground('model') } }}
             />
@@ -227,7 +227,7 @@ function DefaultPromptSetting({
                     max={model.temperatureMax}
                     step={0.1}
                     sx={{ flex: 1 }}
-                    value={agent.temperature ?? project?.temperature ?? model.temperatureDefault}
+                    value={agent.temperature ?? projectSetting?.temperature ?? model.temperatureDefault}
                     onChange={(_, v) => (agent.temperature = v)}
                   />
                 </WithAwareness>
@@ -262,7 +262,7 @@ function DefaultPromptSetting({
                     min={model.topPMin}
                     max={model.topPMax}
                     step={0.1}
-                    value={agent.topP ?? project?.topP ?? model.topPDefault}
+                    value={agent.topP ?? projectSetting?.topP ?? model.topPDefault}
                     onChange={(_, v) => (agent.topP = v)}
                     sx={{ flex: 1 }}
                   />
@@ -299,7 +299,7 @@ function DefaultPromptSetting({
                     max={model.presencePenaltyMax}
                     step={0.1}
                     sx={{ flex: 1 }}
-                    value={agent.presencePenalty ?? project?.presencePenalty ?? model.presencePenaltyDefault}
+                    value={agent.presencePenalty ?? projectSetting?.presencePenalty ?? model.presencePenaltyDefault}
                     onChange={(_, v) => (agent.presencePenalty = v)}
                   />
                 </WithAwareness>
@@ -338,7 +338,7 @@ function DefaultPromptSetting({
                     max={model.frequencyPenaltyMax}
                     step={0.1}
                     sx={{ flex: 1 }}
-                    value={agent.frequencyPenalty ?? project?.frequencyPenalty ?? model.frequencyPenaltyDefault}
+                    value={agent.frequencyPenalty ?? projectSetting?.frequencyPenalty ?? model.frequencyPenaltyDefault}
                     onChange={(_, v) => (agent.frequencyPenalty = v)}
                   />
                 </WithAwareness>
@@ -375,7 +375,7 @@ function DefaultPromptSetting({
                     step={1}
                     sx={{ flex: 1 }}
                     value={Math.min(
-                      agent?.maxTokens ?? project?.maxTokens ?? model.maxTokensDefault ?? 0,
+                      agent?.maxTokens ?? projectSetting?.maxTokens ?? model.maxTokensDefault ?? 0,
                       model.maxTokensMax ?? 0
                     )}
                     onChange={(_, v) => (agent.maxTokens = v)}

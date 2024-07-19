@@ -566,7 +566,6 @@ function ProjectList({
               updatedAt={item.iconVersion || item.updatedAt}
               createdAt={item.createdAt}
               gitUrl={item.gitUrl}
-              model={item.model}
               users={item.users || []}
               didSpaceAutoSync={Boolean(item.didSpaceAutoSync)}
               loading={Boolean(itemLoading && item?.id === itemLoading?.id)}
@@ -740,7 +739,6 @@ function ProjectItem({
   actions,
   section,
   gitUrl,
-  model,
   users,
   loading = false,
   didSpaceAutoSync,
@@ -756,7 +754,6 @@ function ProjectItem({
   updatedAt: string | Date;
   createdAt?: string | Date;
   gitUrl?: string;
-  model?: string;
   users?: User[];
   actions?: ReactNode;
   loading: boolean;

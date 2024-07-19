@@ -63,7 +63,7 @@ export class CallAgentExecutor extends AgentExecutorBase {
     const calledAgents = await this.getCalledAgents(agent);
 
     // 获取最后输出的文本流
-    const lastAgnetIdWithTextSteam = this.getLastTextSteamAgentId(calledAgents);
+    const lastAgentIdWithTextSteam = this.getLastTextSteamAgentId(calledAgents);
 
     const outputVariables = this.getOutputVariables(agent, calledAgents);
     const hasTextStream = outputVariables?.some((i) => i.name === RuntimeOutputVariable.text);
@@ -82,7 +82,7 @@ export class CallAgentExecutor extends AgentExecutorBase {
       const result = await this.context
         .executor({
           ...this.context,
-          callback: (message: any) => {
+          callback: (message) => {
             this.context.callback?.(message);
 
             // 如果是文本流，并 assistantId 是最后一个，则转发给上层
@@ -91,7 +91,7 @@ export class CallAgentExecutor extends AgentExecutorBase {
               message.type === AssistantResponseType.CHUNK &&
               message.delta.content &&
               message.assistantId &&
-              message.assistantId === lastAgnetIdWithTextSteam &&
+              message.assistantId === lastAgentIdWithTextSteam &&
               message.taskId === taskId
             ) {
               this.context.callback?.({ ...message, ...options });

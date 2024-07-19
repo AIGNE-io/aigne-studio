@@ -1,5 +1,5 @@
 import { getSupportedModels } from '@api/libs/common';
-import { useProjectState } from '@app/pages/project/state';
+import { useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ExecuteBlockSelectByPromptYjs, FileTypeYjs, OnTaskCompletion, isAssistant } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
@@ -49,17 +49,16 @@ export function ModelSetting({
   }>;
 }) {
   const { t } = useLocaleContext();
-  const { state } = useProjectState(projectId, gitRef);
-  const { project } = state;
+  const { projectSetting } = useProjectStore(projectId, gitRef);
   const { value: supportedModels } = useAsync(() => getSupportedModels(), []);
 
   const model = useMemo(() => {
-    return supportedModels?.find((i) => i.model === (value.executeModel?.model || project?.model));
-  }, [supportedModels, value.executeModel?.model, project?.model]);
+    return supportedModels?.find((i) => i.model === (value.executeModel?.model || projectSetting?.model));
+  }, [supportedModels, value.executeModel?.model, projectSetting?.model]);
 
   if (!value.executeModel) {
     value.executeModel = {
-      model: project?.model || 'gpt-3.5-turbo',
+      model: projectSetting?.model || 'gpt-4o-mini',
       temperature: 1,
       topP: 1,
       presencePenalty: 0,
@@ -106,7 +105,7 @@ export function ModelSetting({
         <ModelSelectField
           fullWidth
           label={t('model')}
-          value={value.executeModel?.model || project?.model || ''}
+          value={value.executeModel?.model || projectSetting?.model || ''}
           onChange={(e) => {
             value.executeModel!.model = e.target.value;
           }}
@@ -140,7 +139,7 @@ export function ModelSetting({
                     max={model.temperatureMax}
                     step={0.1}
                     sx={{ flex: 1 }}
-                    value={value.executeModel?.temperature ?? project?.temperature ?? model.temperatureDefault}
+                    value={value.executeModel?.temperature ?? projectSetting?.temperature ?? model.temperatureDefault}
                     onChange={(_, v) => (value.executeModel!.temperature = v)}
                   />
                 </WithAwareness>
@@ -170,7 +169,7 @@ export function ModelSetting({
                     min={model.topPMin}
                     max={model.topPMax}
                     step={0.1}
-                    value={value.executeModel?.topP ?? project?.topP ?? model.topPDefault}
+                    value={value.executeModel?.topP ?? projectSetting?.topP ?? model.topPDefault}
                     onChange={(_, v) => (value.executeModel!.topP = v)}
                     sx={{ flex: 1 }}
                   />
@@ -203,7 +202,9 @@ export function ModelSetting({
                     step={0.1}
                     sx={{ flex: 1 }}
                     value={
-                      value.executeModel?.presencePenalty ?? project?.presencePenalty ?? model.presencePenaltyDefault
+                      value.executeModel?.presencePenalty ??
+                      projectSetting?.presencePenalty ??
+                      model.presencePenaltyDefault
                     }
                     onChange={(_, v) => (value.executeModel!.presencePenalty = v)}
                   />
@@ -236,7 +237,9 @@ export function ModelSetting({
                     step={0.1}
                     sx={{ flex: 1 }}
                     value={
-                      value.executeModel?.frequencyPenalty ?? project?.frequencyPenalty ?? model.frequencyPenaltyDefault
+                      value.executeModel?.frequencyPenalty ??
+                      projectSetting?.frequencyPenalty ??
+                      model.frequencyPenaltyDefault
                     }
                     onChange={(_, v) => (value.executeModel!.frequencyPenalty = v)}
                   />
@@ -269,7 +272,7 @@ export function ModelSetting({
                     step={1}
                     sx={{ flex: 1 }}
                     value={Math.min(
-                      value.executeModel?.maxTokens ?? project?.maxTokens ?? model.maxTokensDefault ?? 0,
+                      value.executeModel?.maxTokens ?? projectSetting?.maxTokens ?? model.maxTokensDefault ?? 0,
                       model.maxTokensMax ?? 0
                     )}
                     onChange={(_, v) => (value.executeModel!.maxTokens = v)}
