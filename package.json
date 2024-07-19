@@ -85,7 +85,7 @@
     "@blocklet/meta": "1.16.28",
     "@blocklet/sdk": "1.16.28",
     "@blocklet/ui-react": "^2.10.7",
-    "@blocklet/uploader": "^0.1.19",
+    "@blocklet/uploader": "^0.1.20",
     "@emotion/cache": "^11.11.0",
     "@emotion/css": "^11.11.2",
     "@emotion/react": "^11.11.4",
