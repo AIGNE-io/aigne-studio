@@ -1,6 +1,6 @@
 import { ReadableStream } from 'stream/web';
 
-import { getAgent, getMemoryVariables } from '@api/libs/agent';
+import { getAgent, getMemoryVariables, getProject } from '@api/libs/agent';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
 import logger from '@api/libs/logger';
 import { ensureComponentCallOr } from '@api/libs/security';
@@ -73,8 +73,18 @@ router.post('/call', user(), ensureComponentCallOr(auth()), compression(), async
     completionTokens: 0,
   };
 
+  const project = await getProject({ blockletDid: input.blockletDid, projectId, projectRef, working: input.working });
+
   const callAI: CallAI = async ({ input }) => {
-    const stream = await chatCompletions({ ...input });
+    const stream = await chatCompletions({
+      ...input,
+      model: input.model || project?.model,
+      temperature: input.temperature || project?.temperature,
+      topP: input.topP || project?.topP,
+      frequencyPenalty: input.frequencyPenalty || project?.frequencyPenalty,
+      presencePenalty: input.presencePenalty || project?.presencePenalty,
+      // maxTokens: input.maxTokens || project?.maxTokens,
+    });
 
     return new ReadableStream({
       async start(controller) {

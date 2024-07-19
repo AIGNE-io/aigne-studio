@@ -21,12 +21,12 @@ export async function getProject(
 export async function getProject(
   options: GetProjectOptions & { rejectOnEmpty: true | Error }
 ): Promise<ProjectSettings>;
-export async function getProject({ blockletDid, projectId, working, rejectOnEmpty }: GetProjectOptions) {
+export async function getProject({ blockletDid, projectId, projectRef, working, rejectOnEmpty }: GetProjectOptions) {
   let project: ProjectSettings | undefined;
   if (blockletDid) {
     project = (await getProjectFromResource({ blockletDid, projectId }))?.project;
   } else {
-    project = await getProjectFromAIStudio({ projectId, working });
+    project = await getProjectFromAIStudio({ projectId, projectRef, working });
   }
 
   if (!project) {
