@@ -696,7 +696,7 @@ export default flat({
   routeDesc: 'Decision Agent Description',
   promptRequired: 'Prompt is required',
   twitter: 'Twitter',
-  community: 'Community',
+  community: 'ArcBlock Community',
   link: 'Link',
   saveAs: 'Save as',
   openingQuestions: 'Opening Questions',
