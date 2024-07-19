@@ -1,10 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import {
-  AssistantYjs,
-  isImageAssistant,
-  isPromptAssistant,
-  parseDirectivesOfTemplate,
-} from '@blocklet/ai-runtime/types';
+import { AssistantYjs, isImageAssistant, isPromptAssistant } from '@blocklet/ai-runtime/types';
 import PromptEditor, { EditorState } from '@blocklet/prompt-editor';
 import { editorState2Text, text2EditorState } from '@blocklet/prompt-editor/utils';
 import { Box, Button, Paper, Stack } from '@mui/material';
@@ -68,15 +63,6 @@ export default function PromptEditorField({
         if (!id && variable && !currentVariables.some((v) => v?.data?.key === variable))
           addParameter(variable, { from });
       });
-
-      // 删除变量
-      Object.values(assistant.parameters ?? {})
-        .filter((p) => p.data.from === from)
-        .forEach((variable) => {
-          const key = variable?.data?.key;
-          const variables = new Set(parseDirectivesOfTemplate(assistant).map((i) => i.name.split('.')[0]!));
-          if (key && !variables.has(key)) delete assistant.parameters?.[variable?.data.id];
-        });
     }
   };
 

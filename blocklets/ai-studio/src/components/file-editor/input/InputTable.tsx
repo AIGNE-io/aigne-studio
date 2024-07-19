@@ -15,7 +15,13 @@ import { useAssistantCompare } from '@app/pages/project/state';
 import { useProjectStore } from '@app/pages/project/yjs-state';
 import { useAgent } from '@app/store/agent';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, ExecuteBlock, ParameterYjs, StringParameter } from '@blocklet/ai-runtime/types';
+import {
+  AssistantYjs,
+  ExecuteBlock,
+  ParameterYjs,
+  StringParameter,
+  parseDirectivesOfTemplate,
+} from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
 import { DatasetObject } from '@blocklet/dataset-sdk/types';
@@ -34,6 +40,7 @@ import HistoryIcon from '@iconify-icons/tabler/history';
 import InfoCircleIcon from '@iconify-icons/tabler/info-circle';
 import MessageIcon from '@iconify-icons/tabler/message';
 import SquareNumberIcon from '@iconify-icons/tabler/square-number-1';
+import TrashIcon from '@iconify-icons/tabler/trash';
 import {
   Autocomplete,
   AutocompleteValue,
@@ -63,6 +70,8 @@ import {
   TableHead,
   TableRow,
   TextField,
+  Theme,
+  Tooltip,
   Typography,
   alpha,
   createFilterOptions,
@@ -117,6 +126,19 @@ export default function InputTable({
 
     const validNameRegex = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/;
     return validNameRegex.test(name);
+  };
+
+  const checkVariableReferenced = (id: string, key: string) => {
+    const textNodes = document.querySelectorAll('[data-lexical-variable]');
+    const variables = new Set(parseDirectivesOfTemplate(assistant as any).map((i) => i.name.split('.')[0]!));
+
+    const ids = [...textNodes].map((node) => node.getAttribute('data-lexical-id'));
+    const foundId = ids.find((i) => i === id);
+    if (foundId) {
+      return true;
+    }
+
+    return key && variables.has(key);
   };
 
   const parameters = sortBy(Object.values(assistant.parameters ?? {}), (i) => i.index);
@@ -354,76 +376,97 @@ export default function InputTable({
             list={assistant.parameters! ?? []}
             component={TableBody}
             renderItem={(parameter, _, params) => {
+              const idReferenced = checkVariableReferenced(parameter.id, parameter.key || '');
+
+              const getBackgroundColor = (theme: Theme) => {
+                if (!idReferenced) {
+                  return alpha(theme.palette.error.light, theme.palette.action.focusOpacity);
+                }
+
+                if (parameter.id === highlightedId) {
+                  return alpha(theme.palette.warning.light, theme.palette.action.focusOpacity);
+                }
+
+                return 'transparent';
+              };
+
               return (
-                <TableRow
-                  key={parameter.id}
-                  ref={(ref) => {
-                    params.drop(ref);
-                    params.preview(ref);
-                  }}
-                  sx={{
-                    backgroundColor:
-                      parameter.id === highlightedId
-                        ? (theme) => alpha(theme.palette.warning.light, theme.palette.action.focusOpacity)
-                        : 'transparent',
-                    transition: 'all 2s',
-                    '.hover-visible': {
-                      display: 'none',
-                    },
-                    ':hover': {
+                <Tooltip title={idReferenced ? undefined : t('variableNotReferenced')}>
+                  <TableRow
+                    key={parameter.id}
+                    ref={(ref) => {
+                      params.drop(ref);
+                      params.preview(ref);
+                    }}
+                    sx={{
+                      backgroundColor: (theme) => getBackgroundColor(theme),
+                      transition: 'all 2s',
                       '.hover-visible': {
-                        display: 'flex',
+                        display: 'none',
                       },
-                    },
-                  }}>
-                  {columns.map((column, index) => {
-                    return (
-                      index !== columns.length - 1 && (
-                        <TableCell
-                          key={column.field}
-                          align={column.align}
-                          sx={{
-                            position: 'relative',
-                            px: 0,
-                            ...getDiffBackground('parameters', parameter.id),
-                          }}>
-                          {index === 0 && (
-                            <Stack
-                              className="hover-visible center"
-                              ref={params.drag}
-                              sx={{
-                                p: 0.5,
-                                cursor: 'move',
-                                position: 'absolute',
-                                left: -6,
-                                top: '50%',
-                                transform: 'translateY(-50%)',
-                              }}>
-                              <Box component={Icon} icon={GripVertical} sx={{ color: '#9CA3AF', fontSize: 14 }} />
-                            </Stack>
-                          )}
+                      ':hover': {
+                        '.hover-visible': {
+                          display: 'flex',
+                        },
+                      },
+                    }}>
+                    {columns.map((column, index) => {
+                      return (
+                        index !== columns.length - 1 && (
+                          <TableCell
+                            key={column.field}
+                            align={column.align}
+                            sx={{
+                              position: 'relative',
+                              px: 0,
+                              ...getDiffBackground('parameters', parameter.id),
+                            }}>
+                            {index === 0 && (
+                              <Stack
+                                className="hover-visible center"
+                                ref={params.drag}
+                                sx={{
+                                  p: 0.5,
+                                  cursor: 'move',
+                                  position: 'absolute',
+                                  left: -6,
+                                  top: '50%',
+                                  transform: 'translateY(-50%)',
+                                }}>
+                                <Box component={Icon} icon={GripVertical} sx={{ color: '#9CA3AF', fontSize: 14 }} />
+                              </Stack>
+                            )}
 
-                          {column.renderCell?.({ row: { data: parameter } } as any) || get(parameter, column.field)}
-                        </TableCell>
-                      )
-                    );
-                  })}
+                            {column.renderCell?.({ row: { data: parameter } } as any) || get(parameter, column.field)}
+                          </TableCell>
+                        )
+                      );
+                    })}
 
-                  <TableCell sx={{ px: 0, ...getDiffBackground('parameters', parameter.id) }} align="right">
-                    {!readOnly && (
-                      <PopperButton
-                        knowledge={knowledge.map((x) => ({ ...x, from: FROM_KNOWLEDGE }))}
-                        openApis={openApis}
-                        parameter={parameter}
-                        readOnly={readOnly}
-                        value={assistant}
-                        projectId={projectId}
-                        gitRef={gitRef}
-                        onDelete={() => deleteParameter(parameter)}
-                      />
-                    )}
-                  </TableCell>
-                </TableRow>
+                    <TableCell sx={{ px: 0, ...getDiffBackground('parameters', parameter.id) }} align="right">
+                      {!readOnly && (
+                        <PopperButton
+                          knowledge={knowledge.map((x) => ({ ...x, from: FROM_KNOWLEDGE }))}
+                          openApis={openApis}
+                          parameter={parameter}
+                          readOnly={readOnly}
+                          value={assistant}
+                          projectId={projectId}
+                          gitRef={gitRef}
+                          onDelete={() => deleteParameter(parameter)}
+                        />
+                      )}
+                      {!idReferenced && (
+                        <Button
+                          sx={{ minWidth: 0, p: 0.5, ml: -0.5, cursor: 'pointer', color: 'error.main' }}
+                          disabled={readOnly}
+                          onClick={() => deleteParameter(parameter)}>
+                          <Box component={Icon} icon={TrashIcon} />
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                </Tooltip>
               );
             }}
           />

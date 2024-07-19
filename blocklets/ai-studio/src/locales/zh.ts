@@ -743,4 +743,5 @@ export default flat({
   ref: '引用',
   refOutput: '调用 Agent 目前不支持自定义输出',
   addParamter: '添加变量到输入参数',
+  variableNotReferenced: '当前变量未被引用',
 });
