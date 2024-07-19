@@ -1,3 +1,7 @@
+## 0.4.0 (2024-7-19)
+
+- chore: release v0.4.0
+
 ## 0.3.37 (2024-7-19)
 
 - fix: import project from github error
