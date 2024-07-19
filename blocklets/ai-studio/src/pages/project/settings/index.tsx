@@ -92,7 +92,9 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
   const { value: supportedModels, loading: getSupportedModelsLoading } = useAsync(() => getSupportedModels(), []);
   const { setProjectSetting, projectSetting } = useProjectStore(projectId, projectRef);
   const model = useMemo(
-    () => supportedModels?.find((i) => i.model === projectSetting?.model),
+    () =>
+      supportedModels?.find((i) => i.model === projectSetting?.model) ??
+      supportedModels?.find((i) => i.model === defaultTextModel),
     [projectSetting?.model, supportedModels]
   );
   const isMobile = useMediaQuery<Theme>((theme) => theme.breakpoints.down('md'));

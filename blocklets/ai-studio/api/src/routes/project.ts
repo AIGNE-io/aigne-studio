@@ -45,12 +45,12 @@ import {
   CONFIG_FILE_KEY,
   CONFIG_FOLDER,
   LOGO_FILENAME,
+  OLD_SETTINGS_FILE,
   ProjectRepo,
   SETTINGS_FILE,
   VARIABLE_FILENAME,
   VARIABLE_KEY,
   autoSyncIfNeeded,
-  clearRepository,
   defaultBranch,
   defaultRemote,
   getAssistantFromRepository,
@@ -610,7 +610,15 @@ export function projectRoutes(router: Router) {
         const gitdir = join(tempFolder, '.git');
         const oid = await git.resolveRef({ fs, gitdir, ref: originRepo.defaultBranch });
         originProject = await projectSettingsSchema.validateAsync(
-          parse(Buffer.from((await git.readBlob({ fs, gitdir, oid, filepath: '.settings.yaml' })).blob).toString())
+          parse(
+            Buffer.from(
+              (
+                await git
+                  .readBlob({ fs, gitdir, oid, filepath: SETTINGS_FILE })
+                  .catch(() => git.readBlob({ fs, gitdir, oid, filepath: OLD_SETTINGS_FILE }))
+              ).blob
+            ).toString()
+          )
         );
       }
 
@@ -641,19 +649,28 @@ export function projectRoutes(router: Router) {
       }
       await repository.checkout({ ref: originDefaultBranch, force: true });
 
-      const data: Project = parse(
-        Buffer.from(
-          (
-            await repository.readBlob({
-              ref: originDefaultBranch!,
-              filepath: '.settings.yaml',
-            })
-          ).blob
-        ).toString()
+      const data = await projectSettingsSchema.validateAsync(
+        parse(
+          Buffer.from(
+            (
+              await repository
+                .readBlob({
+                  ref: originDefaultBranch!,
+                  filepath: SETTINGS_FILE,
+                })
+                .catch(() =>
+                  repository.readBlob({
+                    ref: originDefaultBranch!,
+                    filepath: OLD_SETTINGS_FILE,
+                  })
+                )
+            ).blob
+          ).toString()
+        )
       );
 
       const project = await Project.create({
-        ...data,
+        ...omit(data, 'createdAt', 'updatedAt'),
         id: projectId,
         gitUrl: urlWithoutPassword.toString(),
         gitDefaultBranch: originDefaultBranch,
@@ -732,8 +749,6 @@ export function projectRoutes(router: Router) {
     checkProjectPermission({ req, project });
 
     await project.destroy();
-
-    await clearRepository(projectId);
 
     const root = repositoryRoot(projectId);
     await Promise.all([
@@ -1082,8 +1097,9 @@ async function copyProject({
   project: Project;
   author: { fullName: string; did: string };
 } & Partial<Project['dataValues']>) {
-  const repo = await getRepository({ projectId: original.id! });
-  await repo.flush();
+  const srcRepo = await getRepository({ projectId: original.id! });
+  const srcWorking = await srcRepo.working({ ref: original.gitDefaultBranch || defaultBranch });
+  await srcWorking.save({ flush: true });
 
   const project = await Project.create({
     ...omit(original.dataValues, 'createdAt', 'updatedAt'),
@@ -1093,13 +1109,22 @@ async function copyProject({
     createdBy: author.did,
     updatedBy: author.did,
     ...patch,
+    gitDefaultBranch: defaultBranch,
   });
 
-  const parent = dirname(repo.root);
-  await copyRecursive(repo.root, join(parent, project.id!));
-  if (await exists(`${repo.root}.cooperative`)) {
-    await copyRecursive(`${repo.root}.cooperative`, join(parent, `${project.id}.cooperative`));
-  }
+  const repo = await getRepository({ projectId: project.id, author: { name: author.fullName, email: author.did } });
+  const workingDir = join(dirname(repo.root), `${project.id}.cooperative/${defaultBranch}/working`);
+  await copyRecursive(srcWorking.workingDir, workingDir);
+  const working = await repo.working({ ref: defaultBranch });
+  working.syncedStore.files[SETTINGS_FILE] ??= {};
+  const settings = working.syncedStore.files[SETTINGS_FILE] as ProjectSettings;
+  Object.assign(settings, await projectSettingsSchema.validateAsync(project.dataValues));
+  await working.commit({
+    ref: defaultBranch,
+    branch: defaultBranch,
+    message: `Copy from ${original.name || original.id}`,
+    author: { name: author.fullName, email: author.did },
+  });
 
   return project;
 }

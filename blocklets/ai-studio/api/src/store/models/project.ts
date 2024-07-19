@@ -17,7 +17,7 @@ export default class Project extends Model<InferAttributes<Project>, InferCreati
 
   declare description?: string;
 
-  // declare model?: string;
+  declare model?: string;
 
   declare createdAt: CreationOptional<Date>;
 
@@ -33,15 +33,15 @@ export default class Project extends Model<InferAttributes<Project>, InferCreati
 
   declare gitType?: 'simple' | 'default';
 
-  // declare temperature?: number;
+  declare temperature?: number;
 
-  // declare topP?: number;
+  declare topP?: number;
 
-  // declare presencePenalty?: number;
+  declare presencePenalty?: number;
 
-  // declare frequencyPenalty?: number;
+  declare frequencyPenalty?: number;
 
-  // declare maxTokens?: number;
+  declare maxTokens?: number;
 
   declare gitUrl?: string;
 
@@ -88,9 +88,9 @@ Project.init(
     description: {
       type: DataTypes.STRING,
     },
-    // model: {
-    //   type: DataTypes.STRING,
-    // },
+    model: {
+      type: DataTypes.STRING,
+    },
     createdAt: {
       type: DataTypes.DATE,
     },
@@ -113,23 +113,23 @@ Project.init(
       type: DataTypes.STRING,
       defaultValue: 'simple',
     },
-    // temperature: {
-    //   type: DataTypes.FLOAT,
-    //   defaultValue: 1.0,
-    // },
-    // topP: {
-    //   type: DataTypes.FLOAT,
-    //   defaultValue: 1.0,
-    // },
-    // presencePenalty: {
-    //   type: DataTypes.FLOAT,
-    // },
-    // frequencyPenalty: {
-    //   type: DataTypes.FLOAT,
-    // },
-    // maxTokens: {
-    //   type: DataTypes.FLOAT,
-    // },
+    temperature: {
+      type: DataTypes.FLOAT,
+      defaultValue: 1.0,
+    },
+    topP: {
+      type: DataTypes.FLOAT,
+      defaultValue: 1.0,
+    },
+    presencePenalty: {
+      type: DataTypes.FLOAT,
+    },
+    frequencyPenalty: {
+      type: DataTypes.FLOAT,
+    },
+    maxTokens: {
+      type: DataTypes.FLOAT,
+    },
     gitUrl: {
       type: DataTypes.STRING,
     },
