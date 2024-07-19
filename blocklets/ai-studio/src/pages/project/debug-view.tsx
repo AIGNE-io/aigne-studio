@@ -548,9 +548,7 @@ function ChatModeForm({
 }) {
   const { t } = useLocaleContext();
 
-  const {
-    state: { project },
-  } = useProjectState(projectId, gitRef);
+  const { projectSetting } = useProjectStore(projectId, gitRef);
 
   const { state, sendMessage, cancelMessage } = useDebugState({ projectId, assistantId: assistant.id });
 
@@ -576,11 +574,11 @@ function ChatModeForm({
       message: {
         type: 'chat',
         content: question,
-        model: promptAssistant?.model || project?.model,
-        topP: promptAssistant?.topP ?? project?.topP,
-        temperature: promptAssistant?.temperature ?? project?.temperature,
-        frequencyPenalty: promptAssistant?.frequencyPenalty ?? project?.frequencyPenalty,
-        presencePenalty: promptAssistant?.presencePenalty ?? project?.presencePenalty,
+        model: promptAssistant?.model || projectSetting?.model,
+        topP: promptAssistant?.topP ?? projectSetting?.topP,
+        temperature: promptAssistant?.temperature ?? projectSetting?.temperature,
+        frequencyPenalty: promptAssistant?.frequencyPenalty ?? projectSetting?.frequencyPenalty,
+        presencePenalty: promptAssistant?.presencePenalty ?? projectSetting?.presencePenalty,
       },
     });
 

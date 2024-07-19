@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/aigne-sdk",
-  "version": "0.3.33",
+  "version": "0.3.35",
   "description": "AIGNE SDK used to interact with AIGNE services",
   "publishConfig": {
     "access": "public"
@@ -83,15 +83,15 @@
     "test": "jest src/"
   },
   "dependencies": {
-    "@blocklet/ai-kit": "^0.1.44",
+    "@blocklet/ai-kit": "^0.1.45",
     "@blocklet/ai-runtime": "workspace:^",
     "@blocklet/js-sdk": "^1.16.28",
-    "@blocklet/pages-kit": "^0.2.377",
+    "@blocklet/pages-kit": "^0.2.379",
     "@blocklet/sdk": "^1.16.28",
     "@microsoft/fetch-event-source": "^2.0.1",
     "ahooks": "^3.8.0",
     "axios": "^1.7.2",
-    "dayjs": "^1.11.11",
+    "dayjs": "^1.11.12",
     "eventsource-parser": "^1.1.2",
     "joi": "^17.13.3",
     "nanoid": "^3.3.7",
@@ -109,7 +109,7 @@
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@arcblock/ux": "^2.10.5",
+    "@arcblock/ux": "^2.10.7",
     "@emotion/css": "^11.11.2",
     "@emotion/react": "^11.11.4",
     "@jest/globals": "^29.7.0",
@@ -122,9 +122,9 @@
     "@types/react": "^18.3.3",
     "npm-run-all": "^4.1.5",
     "react": "^18.3.1",
-    "react-router-dom": "^6.25.0",
+    "react-router-dom": "^6.25.1",
     "rimraf": "^6.0.1",
-    "ts-jest": "^29.2.2",
+    "ts-jest": "^29.2.3",
     "typescript": "^5.5.3"
   }
 }

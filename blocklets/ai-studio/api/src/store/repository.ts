@@ -343,7 +343,7 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
     const working = await this.working({ ref });
     const tmpFilename = join(working.options.root, 'tmp', nanoid());
     try {
-      await mkdir(dirname(tmpFilename));
+      await mkdir(dirname(tmpFilename), { recursive: true });
       await downloadImage(source, tmpFilename);
       const hash = await md5file(tmpFilename);
       const filename = type === 'logo' ? LOGO_FILENAME : `${hash}${ext}`;

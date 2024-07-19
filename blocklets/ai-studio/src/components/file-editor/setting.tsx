@@ -1,5 +1,6 @@
 import { useReadOnly } from '@app/contexts/session';
 import Close from '@app/pages/project/icons/close';
+import { useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import {
   defaultImageModel,
@@ -25,7 +26,6 @@ import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { useMemo } from 'react';
 import { useAsync } from 'react-use';
 
-import { useProjectState } from '../../pages/project/state';
 import { brandIcon } from '../selector/model-select-field';
 import ImageSettings from './image-file/setting';
 import { AgentName } from './input/InputTable';
@@ -46,8 +46,7 @@ export default function PromptSetting({
   const readOnly = useReadOnly({ ref: gitRef }) || disabled;
   const dialogState = usePopupState({ variant: 'dialog' });
 
-  const { state } = useProjectState(projectId, gitRef);
-  const { project } = state;
+  const { projectSetting } = useProjectStore(projectId, gitRef);
   const { value: supportedModels } = useAsync(async () => {
     if (isPromptAssistant(value) || isRouterAssistant(value)) {
       return getSupportedModels();
@@ -62,7 +61,7 @@ export default function PromptSetting({
 
   const defaultModel = useMemo(() => {
     if (isPromptAssistant(value) || isRouterAssistant(value)) {
-      return value?.model || project?.model || defaultTextModel;
+      return value?.model || projectSetting?.model || defaultTextModel;
     }
 
     if (isImageAssistant(value)) {
@@ -70,7 +69,7 @@ export default function PromptSetting({
     }
 
     return defaultTextModel;
-  }, [(value as any).model, project]);
+  }, [(value as any).model, projectSetting?.model]);
 
   const modelDetail = useMemo(() => {
     return supportedModels?.find((i) => i.model === defaultModel);

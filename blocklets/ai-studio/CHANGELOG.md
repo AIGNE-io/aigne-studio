@@ -1,3 +1,12 @@
+## 0.3.35 (2024-7-19)
+
+- chore: update ui text for share to community
+- fix: use default model from project settings
+
+## 0.3.34 (2024-7-19)
+
+- chore: add gpt-4o-mini support
+
 ## 0.3.33 (2024-7-17)
 
 - fix: restricted api error when copying a project contains assets

@@ -690,7 +690,7 @@ export default flat({
   routeDesc: '分支 Agent 描述',
   promptRequired: 'Prompt 是必须的',
   twitter: '推特',
-  community: '社区',
+  community: 'ArcBlock 社区',
   link: '链接',
   saveAs: '保存',
   openingQuestions: '开场问题',
