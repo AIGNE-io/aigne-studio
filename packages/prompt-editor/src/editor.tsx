@@ -8,7 +8,7 @@ import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { PlainTextPlugin } from '@lexical/react/LexicalPlainTextPlugin';
 import { BoxProps } from '@mui/material';
-import { EditorState, LexicalEditor } from 'lexical';
+import { EditorState, LexicalEditor, TextNode } from 'lexical';
 import { ComponentProps, MutableRefObject, useEffect, useState } from 'react';
 
 import CommentPlugin from './plugins/CommentPlugin';
@@ -45,6 +45,7 @@ export default function Editor({
   ContentProps,
   variables,
   placeholderClassName,
+  onChangeVariableNode,
 }: {
   useVariableNode?: boolean;
   isDebug?: boolean;
@@ -68,6 +69,17 @@ export default function Editor({
     handleClose: () => any;
   }) => any;
   placeholderClassName?: string;
+  onChangeVariableNode?: ({
+    editor,
+    element,
+    node,
+    action,
+  }: {
+    editor: LexicalEditor;
+    element: HTMLElement;
+    node: TextNode;
+    action: 'style' | 'variableChange' | 'inputChange';
+  }) => void;
 }): JSX.Element {
   const placeholderNode = <Placeholder className={placeholderClassName}>{placeholder}</Placeholder>;
 
@@ -82,7 +94,13 @@ export default function Editor({
       <CommentPlugin />
       {autoFocus && <AutoFocusPlugin />}
       {isDebug && <TreeViewPlugin />}
-      {useVariableNode && <VariablePlugin popperElement={popperElement} variables={variables} />}
+      {useVariableNode && (
+        <VariablePlugin
+          popperElement={popperElement}
+          variables={variables}
+          onChangeVariableNode={onChangeVariableNode}
+        />
+      )}
       <FloatingToolbarPlugin floatElement={floatElement} />
       {componentPickerProps && <ComponentPickerMenuPlugin {...componentPickerProps} />}
       <ResettableHistoryPlugin />

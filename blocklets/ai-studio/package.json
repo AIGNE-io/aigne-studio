@@ -1,6 +1,6 @@
 {
   "name": "ai-studio",
-  "version": "0.3.35",
+  "version": "0.3.36",
   "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
   "scripts": {
     "debug": "bn-dev",
@@ -51,7 +51,7 @@
     "@blocklet/sdk": "^1.16.28",
     "@blocklet/studio-ui": "workspace:^",
     "@blocklet/ui-react": "^2.10.7",
-    "@blocklet/uploader": "^0.1.19",
+    "@blocklet/uploader": "^0.1.20",
     "@did-space/client": "^0.5.7",
     "@emotion/css": "^11.11.2",
     "@emotion/react": "^11.11.4",

@@ -875,24 +875,6 @@ export function projectRoutes(router: Router) {
         await syncRepository({ repository, ref, author: { name: fullName, email: userId } });
       }
 
-      const data = await projectSettingsSchema.validateAsync(
-        parse(
-          Buffer.from(
-            (
-              await repository.readBlob({
-                ref: project.gitDefaultBranch!,
-                filepath: '.settings.yaml',
-              })
-            ).blob
-          ).toString()
-        )
-      );
-
-      await project.update(
-        { ...omit(data, 'id', 'createdAt', 'updatedAt'), gitLastSyncedAt: new Date() },
-        { silent: true }
-      );
-
       return res.json({});
     }
 

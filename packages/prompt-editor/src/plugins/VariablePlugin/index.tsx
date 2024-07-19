@@ -1,25 +1,27 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { mergeRegister } from '@lexical/utils';
+import { useDebounceFn } from 'ahooks';
 import {
   $getNodeByKey,
   $insertNodes,
   COMMAND_PRIORITY_EDITOR,
   LexicalCommand,
   LexicalEditor,
+  TextNode,
   createCommand,
 } from 'lexical';
 import { useEffect } from 'react';
 
 import VariablePopover from './popover';
 import useTransformVariableNode from './user-transform-node';
-import { extractBracketContent } from './utils/util';
-import { $createVariableNode, VariableTextNode, textStyle, variableStyle } from './variable-text-node';
+import { $createVariableNode, VariableTextNode } from './variable-text-node';
 
 export const INSERT_VARIABLE_COMMAND: LexicalCommand<{ name: string }> = createCommand('INSERT_VARIABLE_COMMAND');
 
 export default function VarContextPlugin({
   popperElement,
   variables,
+  onChangeVariableNode,
 }: {
   variables?: string[];
   popperElement?: ({
@@ -31,6 +33,17 @@ export default function VarContextPlugin({
     editor: LexicalEditor;
     handleClose: () => any;
   }) => any;
+  onChangeVariableNode?: ({
+    editor,
+    element,
+    node,
+    action,
+  }: {
+    editor: LexicalEditor;
+    element: HTMLElement;
+    node: TextNode;
+    action: 'style' | 'variableChange' | 'inputChange';
+  }) => void;
 }): JSX.Element | null {
   const [editor] = useLexicalComposerContext();
 
@@ -53,28 +66,28 @@ export default function VarContextPlugin({
     );
   }, [editor]);
 
-  function updateNodeStyle(editor: LexicalEditor, variables?: string[]) {
+  function updateNode(editor: LexicalEditor, action: 'style' | 'variableChange' | 'inputChange') {
     editor.getEditorState().read(() => {
       const root = editor.getRootElement();
       if (!root) return;
 
       const textNodes = root.querySelectorAll('[data-lexical-variable]');
-      textNodes.forEach((variableElement) => {
-        const key = variableElement.getAttribute('data-lexical-key');
-        if (!key) return;
+      for (const textNode of textNodes) {
+        const key = textNode.getAttribute('data-lexical-key');
+        if (!key) continue;
 
         const element: null | HTMLElement = editor.getElementByKey(key);
-        const node = $getNodeByKey(key);
+        if (!element) continue;
 
-        if (element && node && node instanceof VariableTextNode) {
-          const text = extractBracketContent(node.getTextContent() || '') || '';
-          const variable = (text || '').split('.')[0] || '';
-          const isVariable = (variables || []).includes(variable);
-          element.style.cssText = isVariable ? variableStyle : textStyle;
-        }
-      });
+        const node = $getNodeByKey(key);
+        if (!node || !(node instanceof VariableTextNode)) continue;
+
+        onChangeVariableNode?.({ editor, element, node, action });
+      }
     });
   }
+
+  const inputChange = useDebounceFn((d) => updateNode(d, 'variableChange'), { wait: 500, trailing: true });
 
   useEffect(() => {
     if (!editor.hasNodes([VariableTextNode])) {
@@ -82,17 +95,33 @@ export default function VarContextPlugin({
     }
 
     // 当编辑器的 VariableTextNode 节点发生变化时
-    const unregisterMutationListener = editor.registerMutationListener(VariableTextNode, () => {
-      updateNodeStyle(editor, variables);
-    });
+    const unregisterMutationListener = editor.registerMutationListener(VariableTextNode, (mutatedNodes) => {
+      editor.getEditorState().read(() => {
+        for (const [nodeKey] of mutatedNodes) {
+          const element = editor.getElementByKey(nodeKey);
+          if (!element) continue;
 
-    // 立即执行一次，确保当前状态反映
-    updateNodeStyle(editor, variables);
+          const node = $getNodeByKey(nodeKey);
+          if (!node || !(node instanceof VariableTextNode)) continue;
+
+          onChangeVariableNode?.({ editor, element, node, action: 'inputChange' });
+        }
+      });
+
+      updateNode(editor, 'style');
+    });
 
     return () => {
       unregisterMutationListener();
     };
-  }, [editor, variables]);
+  }, [editor]);
+
+  useEffect(() => {
+    // 更新样式
+    updateNode(editor, 'style');
+
+    inputChange.run(editor);
+  }, [variables]);
 
   useTransformVariableNode(editor);
 

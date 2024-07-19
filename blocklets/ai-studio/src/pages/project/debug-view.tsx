@@ -696,6 +696,11 @@ function DebugModeForm({
     form.reset(initForm);
   }, [assistant.id]);
 
+  // reset values to trigger validate when parameters changed
+  useEffect(() => {
+    form.reset(form.getValues());
+  }, [params.length]);
+
   const submit = (parameters: { [key: string]: any }) => {
     parameters = pick(parameters, params);
 

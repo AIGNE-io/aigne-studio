@@ -10,6 +10,12 @@ import { atom, useRecoilState } from 'recoil';
 const highlightedState = atom<null | string>({ key: 'highlightedState', default: null });
 const useHighlightedState = () => useRecoilState(highlightedState);
 
+type VariableEditorOptions = {
+  from?: 'editor' | 'agentParameter' | 'knowledgeParameter' | 'blockletAPIParameter';
+  type?: any;
+  source?: any;
+};
+
 export default function useVariablesEditorOptions(assistant?: AssistantYjs) {
   const { t } = useLocaleContext();
   const [highlightedId, setHighlightedId] = useHighlightedState();
@@ -21,21 +27,6 @@ export default function useVariablesEditorOptions(assistant?: AssistantYjs) {
         .map((i) => i.data.key)
         .filter((i): i is string => !!i)
   );
-
-  if (assistant && 'prepareExecutes' in assistant && assistant.prepareExecutes) {
-    for (const { data } of Object.values(assistant.prepareExecutes)) {
-      if (data.variable) variableSet.add(data.variable);
-    }
-  }
-
-  if (assistant && 'prompts' in assistant && assistant.prompts) {
-    for (const { data } of Object.values(assistant.prompts)) {
-      if (data.type === 'executeBlock') {
-        const { variable } = data.data;
-        if (variable) variableSet.add(variable);
-      }
-    }
-  }
 
   const variables = [...variableSet, '$user', '$clientTime'];
 
@@ -77,18 +68,7 @@ export default function useVariablesEditorOptions(assistant?: AssistantYjs) {
   }, [variables?.join('/'), t]);
 
   const addParameter = useCallback(
-    (
-      parameter: string,
-      {
-        from,
-        source,
-        type,
-      }: {
-        from?: 'editor' | 'agentParameter' | 'knowledgeParameter' | 'blockletAPIParameter';
-        type?: any;
-        source?: any;
-      } = {}
-    ) => {
+    (parameter: string, { from, source, type }: VariableEditorOptions = {}) => {
       if (!assistant) return undefined;
 
       const doc = (getYjsValue(assistant) as Map<any>).doc!;
@@ -108,6 +88,26 @@ export default function useVariablesEditorOptions(assistant?: AssistantYjs) {
 
           setHighlightedId(id);
           setTimeout(() => setHighlightedId(null), 500);
+        }
+      });
+
+      return id;
+    },
+    [assistant, variables?.join('/')]
+  );
+
+  const updateParameter = useCallback(
+    (id: string, parameter: string) => {
+      if (!assistant) return undefined;
+
+      const doc = (getYjsValue(assistant) as Map<any>).doc!;
+
+      doc.transact(() => {
+        assistant.parameters ??= {};
+
+        const key = (parameter || '').split('.')[0] || '';
+        if (id && assistant.parameters[id]) {
+          assistant.parameters[id].data.key = key;
         }
       });
 
@@ -144,5 +144,14 @@ export default function useVariablesEditorOptions(assistant?: AssistantYjs) {
     },
     [assistant]
   );
-  return { from, options, variables, addParameter, deleteParameter, removeParameter, highlightedId };
+  return {
+    from,
+    options,
+    variables,
+    updateParameter,
+    addParameter,
+    deleteParameter,
+    removeParameter,
+    highlightedId,
+  };
 }

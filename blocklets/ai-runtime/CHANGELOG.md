@@ -1,3 +1,7 @@
+## 0.3.36 (2024-7-19)
+
+- fix: implement two-way binding between variable names in the prompt editor and in the inputs
+
 ## 0.3.35 (2024-7-19)
 
 - chore: update ui text for share to community
