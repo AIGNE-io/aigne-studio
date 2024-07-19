@@ -53,7 +53,9 @@ function CustomNoRowsOverlay({ onAdd }: { onAdd: () => void }) {
         {t('memory.empty')}
       </Typography>
 
-      <Button onClick={onAdd}>{t('memory.add')}</Button>
+      <Button onClick={onAdd} data-testid="add-new-memory">
+        {t('memory.add')}
+      </Button>
     </Stack>
   );
 }
@@ -206,7 +208,9 @@ function VariableList() {
         />
       </Box>
 
-      <Box sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1, px: 1.5 }}>
+      <Box
+        data-testid="variable-list"
+        sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1, px: 1.5 }}>
         <Box
           sx={{
             borderBottom: () => (list?.length ? '1px solid rgba(224, 224, 224, 1)' : 0),

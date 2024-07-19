@@ -358,6 +358,7 @@ export default function InputTable({
             renderItem={(parameter, _, params) => {
               return (
                 <TableRow
+                  data-testid="input-table-row"
                   key={parameter.id}
                   ref={(ref) => {
                     params.drop(ref);
@@ -433,7 +434,7 @@ export default function InputTable({
       </Box>
 
       <Stack direction="row" mt={1}>
-        {!readOnly && <AddInputButton assistant={assistant} />}
+        {!readOnly && <AddInputButton assistant={assistant} data-testid="add-input-button" />}
       </Stack>
     </Box>
   );
