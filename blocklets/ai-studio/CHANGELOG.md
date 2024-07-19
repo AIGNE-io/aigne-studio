@@ -1,3 +1,7 @@
+## 0.4.1 (2024-7-20)
+
+- chore: bump version
+
 ## 0.4.0 (2024-7-19)
 
 - chore: release v0.4.0
