@@ -2,10 +2,9 @@ import styled from '@emotion/styled';
 import { InitialConfigType, LexicalComposer } from '@lexical/react/LexicalComposer';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { Box, BoxProps } from '@mui/material';
-import { EditorState, LexicalEditor } from 'lexical';
+import { EditorState, LexicalEditor, TextNode } from 'lexical';
 import React, { ComponentProps, MutableRefObject, ReactNode, useCallback, useEffect, useRef } from 'react';
 
-import { VariableTextNode } from '../plugins/VariablePlugin/variable-text-node';
 import Editor from './editor';
 import PromptEditorNodes from './nodes/prompt-editor-nodes';
 import ComponentPickerMenuPlugin from './plugins/ComponentPickerPlugin';
@@ -45,7 +44,7 @@ interface PromptEditorProps extends Omit<BoxProps, 'value' | 'onChange'> {
   }: {
     editor: LexicalEditor;
     element: HTMLElement;
-    node: VariableTextNode;
+    node: TextNode;
     action: 'style' | 'variableChange' | 'inputChange';
   }) => void;
 }

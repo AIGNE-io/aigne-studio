@@ -8,10 +8,9 @@ import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { PlainTextPlugin } from '@lexical/react/LexicalPlainTextPlugin';
 import { BoxProps } from '@mui/material';
-import { EditorState, LexicalEditor } from 'lexical';
+import { EditorState, LexicalEditor, TextNode } from 'lexical';
 import { ComponentProps, MutableRefObject, useEffect, useState } from 'react';
 
-import { VariableTextNode } from '../plugins/VariablePlugin/variable-text-node';
 import CommentPlugin from './plugins/CommentPlugin';
 import ComponentPickerMenuPlugin from './plugins/ComponentPickerPlugin';
 import FloatingToolbarPlugin from './plugins/FloatingToolbarPlugin';
@@ -78,7 +77,7 @@ export default function Editor({
   }: {
     editor: LexicalEditor;
     element: HTMLElement;
-    node: VariableTextNode;
+    node: TextNode;
     action: 'style' | 'variableChange' | 'inputChange';
   }) => void;
 }): JSX.Element {

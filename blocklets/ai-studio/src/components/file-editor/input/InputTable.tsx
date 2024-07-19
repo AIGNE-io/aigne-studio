@@ -129,16 +129,24 @@ export default function InputTable({
   };
 
   const checkVariableReferenced = (id: string, key: string) => {
-    const textNodes = document.querySelectorAll('[data-lexical-variable]');
-    const variables = new Set(parseDirectivesOfTemplate(assistant as any).map((i) => i.name.split('.')[0]!));
+    if (assistant.type === 'prompt' || assistant.type === 'image') {
+      const textNodes = document.querySelectorAll('[data-lexical-variable]');
+      const variables = new Set(parseDirectivesOfTemplate(assistant).map((i) => i.name.split('.')[0]!));
 
-    const ids = [...textNodes].map((node) => node.getAttribute('data-lexical-id'));
-    const foundId = ids.find((i) => i === id);
-    if (foundId) {
-      return true;
+      const ids = [...textNodes].map((node) => node.getAttribute('data-lexical-id'));
+      const foundId = ids.find((i) => i === id);
+      if (foundId) {
+        return true;
+      }
+
+      if (!key) {
+        return true;
+      }
+
+      return key && variables.has(key);
     }
 
-    return key && variables.has(key);
+    return true;
   };
 
   const parameters = sortBy(Object.values(assistant.parameters ?? {}), (i) => i.index);
@@ -345,7 +353,6 @@ export default function InputTable({
               borderTop: 1,
               borderColor: 'divider',
             },
-            'tr:not(.group-header):hover td': { bgcolor: 'grey.100' },
             'th,td': {
               borderBottom: 0,
               py: 0,
@@ -380,7 +387,7 @@ export default function InputTable({
 
               const getBackgroundColor = (theme: Theme) => {
                 if (!idReferenced) {
-                  return alpha(theme.palette.error.light, theme.palette.action.focusOpacity);
+                  return alpha(theme.palette.warning.light, theme.palette.action.focusOpacity);
                 }
 
                 if (parameter.id === highlightedId) {
@@ -390,8 +397,16 @@ export default function InputTable({
                 return 'transparent';
               };
 
+              const getHoverBackgroundColor = (theme: Theme) => {
+                if (!idReferenced) {
+                  return `${alpha(theme.palette.warning.light, theme.palette.action.selectedOpacity)} !important`;
+                }
+
+                return 'grey.100';
+              };
+
               return (
-                <Tooltip title={idReferenced ? undefined : t('variableNotReferenced')}>
+                <Tooltip title={idReferenced ? undefined : t('variableNotReferenced')} placement="bottom-start">
                   <TableRow
                     key={parameter.id}
                     ref={(ref) => {
@@ -400,11 +415,13 @@ export default function InputTable({
                     }}
                     sx={{
                       backgroundColor: (theme) => getBackgroundColor(theme),
-                      transition: 'all 2s',
+                      transition: 'all 1s',
                       '.hover-visible': {
                         display: 'none',
                       },
                       ':hover': {
+                        backgroundColor: (theme) => getHoverBackgroundColor(theme),
+
                         '.hover-visible': {
                           display: 'flex',
                         },
@@ -444,26 +461,29 @@ export default function InputTable({
                     })}
 
                     <TableCell sx={{ px: 0, ...getDiffBackground('parameters', parameter.id) }} align="right">
-                      {!readOnly && (
-                        <PopperButton
-                          knowledge={knowledge.map((x) => ({ ...x, from: FROM_KNOWLEDGE }))}
-                          openApis={openApis}
-                          parameter={parameter}
-                          readOnly={readOnly}
-                          value={assistant}
-                          projectId={projectId}
-                          gitRef={gitRef}
-                          onDelete={() => deleteParameter(parameter)}
-                        />
-                      )}
-                      {!idReferenced && (
-                        <Button
-                          sx={{ minWidth: 0, p: 0.5, ml: -0.5, cursor: 'pointer', color: 'error.main' }}
-                          disabled={readOnly}
-                          onClick={() => deleteParameter(parameter)}>
-                          <Box component={Icon} icon={TrashIcon} />
-                        </Button>
-                      )}
+                      <Box display="flex" alignItems="center" gap={1} justifyContent="flex-end">
+                        {!idReferenced && (
+                          <Button
+                            sx={{ minWidth: 0, p: 0.5, ml: -0.5, cursor: 'pointer', color: 'error.main' }}
+                            disabled={readOnly}
+                            onClick={() => deleteParameter(parameter)}>
+                            <Box component={Icon} icon={TrashIcon} />
+                          </Button>
+                        )}
+
+                        {!readOnly && (
+                          <PopperButton
+                            knowledge={knowledge.map((x) => ({ ...x, from: FROM_KNOWLEDGE }))}
+                            openApis={openApis}
+                            parameter={parameter}
+                            readOnly={readOnly}
+                            value={assistant}
+                            projectId={projectId}
+                            gitRef={gitRef}
+                            onDelete={() => deleteParameter(parameter)}
+                          />
+                        )}
+                      </Box>
                     </TableCell>
                   </TableRow>
                 </Tooltip>

@@ -7,6 +7,7 @@ import {
   COMMAND_PRIORITY_EDITOR,
   LexicalCommand,
   LexicalEditor,
+  TextNode,
   createCommand,
 } from 'lexical';
 import { useEffect } from 'react';
@@ -40,7 +41,7 @@ export default function VarContextPlugin({
   }: {
     editor: LexicalEditor;
     element: HTMLElement;
-    node: VariableTextNode;
+    node: TextNode;
     action: 'style' | 'variableChange' | 'inputChange';
   }) => void;
 }): JSX.Element | null {
