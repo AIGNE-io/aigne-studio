@@ -71,17 +71,18 @@ export default function VarContextPlugin({
       if (!root) return;
 
       const textNodes = root.querySelectorAll('[data-lexical-variable]');
-      textNodes.forEach((variableElement) => {
-        const key = variableElement.getAttribute('data-lexical-key');
-        if (!key) return;
+      for (const textNode of textNodes) {
+        const key = textNode.getAttribute('data-lexical-key');
+        if (!key) continue;
 
         const element: null | HTMLElement = editor.getElementByKey(key);
-        const node = $getNodeByKey(key);
+        if (!element) continue;
 
-        if (element && node && node instanceof VariableTextNode) {
-          onChangeVariableNode?.({ editor, element, node, action });
-        }
-      });
+        const node = $getNodeByKey(key);
+        if (!node || !(node instanceof VariableTextNode)) continue;
+
+        onChangeVariableNode?.({ editor, element, node, action });
+      }
     });
   }
 

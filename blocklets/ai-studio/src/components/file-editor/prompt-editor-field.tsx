@@ -126,6 +126,8 @@ export default function PromptEditorField({
         popperElement={({ text, handleClose }) => {
           const variable = (text || '').split('.')[0] || '';
 
+          if (!variable.trim()) return <Box />;
+
           if ((variables || []).includes(variable)) {
             const parameter = getParameters(variable);
 
