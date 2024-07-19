@@ -1,3 +1,7 @@
+## 0.3.37 (2024-7-19)
+
+- fix: import project from github error
+
 ## 0.3.36 (2024-7-19)
 
 - fix: implement two-way binding between variable names in the prompt editor and in the inputs
