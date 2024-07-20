@@ -277,9 +277,9 @@ function ProjectPageView() {
                     },
                   },
                 }}>
-                <Tab value="debug" label={t('debug')} />
-                <Tab value="test" label={t('test')} />
-                <Tab value="discuss" label={t('discuss')} />
+                <Tab value="debug" label={t('debug')} data-testid="debug-view-debug" />
+                <Tab value="test" label={t('test')} data-testid="debug-view-tests" />
+                <Tab value="discuss" label={t('discuss')} data-testid="debug-view-collaboration" />
               </Tabs>
 
               <Box flex={1} />

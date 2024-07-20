@@ -320,3 +320,22 @@ test('session', async ({ page }) => {
   await page.getByTestId('session-select').click();
   await expect(await sessionItems.count()).toBe(originCount);
 });
+
+test('debug tests', async ({ page }) => {
+  const input = page.locator("[data-testid='debug-mode-parameter'] input");
+  await input.click();
+  await input.fill('hello');
+  await page.getByRole('button', { name: 'Save as test case' }).click();
+
+  const firstCase = page.getByTestId('test-case').first();
+  const responsePromise = page.waitForResponse(/\/ai\/call/);
+  await firstCase.getByTestId('run-test').first().click();
+  await responsePromise;
+
+  // 删除所有 test
+  const testCases = await page.getByTestId('test-case').all();
+  for (let i = testCases.length - 1; i >= 0; i--) {
+    await testCases[i]?.getByTestId('delete-test').click();
+  }
+  expect(await page.getByTestId('test-case').count()).toBe(0);
+});
