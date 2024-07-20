@@ -78,3 +78,28 @@ test('setting-model', async ({ page }) => {
     .getAttribute('aria-valuenow')) as string;
   expect(parseFloat(tokensValue)).toBe(1);
 });
+
+test('setting-appearance', async ({ page }) => {
+  await page.getByTestId('header-actions-setting').click();
+  await page.waitForTimeout(500);
+  await page.getByRole('tab', { name: 'Appearance' }).click();
+
+  const colorBlock = page.getByTestId('primary-color').locator('div>div').nth(2).locator('div');
+  await colorBlock.click();
+  const selectedColor = await colorBlock.evaluate((el) => {
+    return getComputedStyle(el).backgroundColor;
+  });
+  const colorElement = page.locator("div[data-testid='primary-color']>div>div:last-child>div>div");
+  const backgroundColor = await colorElement.evaluate((el) => {
+    return getComputedStyle(el).backgroundColor;
+  });
+  console.log('backgroundColor', await colorElement);
+  await expect(backgroundColor).toEqual(selectedColor);
+
+  await page.getByRole('combobox').first().click();
+  await page.getByRole('option', { name: 'Cedarville Cursive' }).click();
+  await expect(await page.locator('body')).toContainText('Cedarville Cursive');
+  await page.getByRole('combobox').nth(1).click();
+  await page.getByRole('option', { name: 'Chocolate Classical Sans' }).first().click();
+  await expect(await page.locator('body')).toContainText('Chocolate Classical Sans');
+});

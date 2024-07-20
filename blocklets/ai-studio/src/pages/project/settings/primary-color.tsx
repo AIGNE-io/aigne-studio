@@ -36,7 +36,7 @@ export default function PrimaryColor() {
   }, [selectedColor]);
 
   return (
-    <Stack gap={2}>
+    <Stack gap={2} data-testid="primary-color">
       <Stack direction="row" gap={1} alignItems="center">
         {defaultColors?.map((color) => (
           <Box key={color} border={color === selectedColor ? '1px solid #030712' : ''} borderRadius="4px">
@@ -46,7 +46,7 @@ export default function PrimaryColor() {
 
         <Divider orientation="vertical" flexItem sx={{ mx: '2px' }} />
         <ClickAwayListener onClickAway={() => setOpen(false)}>
-          <Box>
+          <Box sx={{ position: 'cursor' }}>
             <Box onClick={handleOpen}>
               <ChromePickerBox bgcolor={selectedColor} />
             </Box>
