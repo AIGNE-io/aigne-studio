@@ -52,8 +52,9 @@ test('preview example project', async ({ page, context }) => {
   await expect(lastMessage.locator('.assistant-message-content')).toContainText('Hello! How can I assist you today?');
 
   // clear session
+  const responsePromise = previewPage.waitForResponse(/sessions\/\w+\/clear/);
   await previewPage.click('[data-testid=aigne-runtime-header-menu-button]');
   await previewPage.locator('.MuiMenuItem-root', { hasText: 'Clear Session' }).click();
-  await previewPage.waitForResponse(/sessions\/\w+\/clear/);
+  await responsePromise;
   await expect(previewPage.locator('.message-item')).toHaveCount(0);
 });

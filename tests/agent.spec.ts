@@ -126,8 +126,10 @@ test.describe.serial('create knowledge as input', () => {
     await page.getByPlaceholder('Give your knowledge a name (e').fill('e2eTest');
     await page.locator('textarea[name="description"]').click();
     await page.locator('textarea[name="description"]').fill('e2eTest');
+
+    const responsePromise = page.waitForResponse(/\/api\/datasets/);
     await page.getByRole('button', { name: 'Create' }).click();
-    await page.waitForResponse(/\/api\/datasets/);
+    await responsePromise;
 
     expect(await page.getByRole('button', { name: 'Add Document' }).first()).toBeVisible();
   });
@@ -273,4 +275,48 @@ test('agent output', async ({ page }) => {
     await customLine.getByRole('button').click();
     await page.getByTestId('output-actions-cell-delete').click();
   }
+});
+
+test('agent debug', async ({ page }) => {
+  const input = page.locator("[data-testid='debug-mode-parameter'] input");
+
+  await input.click();
+  await input.fill('hello');
+
+  const list = page.locator("[data-testid='virtuoso-item-list']>div");
+  const count = await list.count();
+  const responsePromise = page.waitForResponse(
+    (response) => response.url().includes('/ai/call') && response.status() === 200
+  );
+  await page.getByRole('button', { name: 'Execute' }).click();
+  await responsePromise;
+
+  const newCount = await list.count();
+  await expect(newCount).toBe(count + 2);
+  await expect(await list.last()).toContainText('AI Chat');
+  await expect(await list.last()).toContainText('Get history messages');
+});
+
+test('session', async ({ page }) => {
+  // clear session
+  await page.getByLabel('Clear current session history').click();
+  const list = page.locator("[data-testid='virtuoso-item-list']>div");
+  const count = await list.count();
+  await expect(count).toBe(0);
+
+  // session session
+  await page.getByTestId('session-select').click();
+  const sessionItems = page.getByTestId('session-select-item');
+  const originCount = await sessionItems.count();
+  await page.getByRole('option', { name: 'New Session' }).click();
+  await page.getByTestId('session-select').click();
+  const newCount = await sessionItems.count();
+  await expect(newCount).toBe(originCount + 1);
+
+  // delete session
+  await page.getByTestId('session-select').click({ force: true });
+  await page.waitForSelector('[data-testid=session-delete-button]', { state: 'visible' });
+  await page.getByLabel('Delete current session').click();
+  await page.getByTestId('session-select').click();
+  await expect(await sessionItems.count()).toBe(originCount);
 });

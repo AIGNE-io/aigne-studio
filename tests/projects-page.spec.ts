@@ -26,7 +26,6 @@ test('create project', async ({ page }) => {
   const newProjectDialog = page.getByTestId('newProjectDialog');
   await expect(newProjectDialog).toBeVisible();
 
-  
   const nameField = newProjectDialog.getByTestId('projectNameField').locator('input');
   await nameField.fill('Test Project');
   await nameField.press('Enter');
@@ -49,8 +48,11 @@ test.describe.serial('handle project', () => {
     await aiChatExample.first().hover();
     await aiChatExample.getByRole('button').click();
 
+    const responsePromise = page.waitForResponse(
+      (response) => response.url().includes('/api/projects') && response.status() === 200
+    );
     await page.getByRole('menuitem', { name: 'Copy to My Projects' }).click();
-    await page.waitForResponse((response) => response.url().includes('/api/projects') && response.status() === 200);
+    await responsePromise;
 
     await expect(page.getByTestId('projects-projects')).toContainText('AI Chat Copy');
     const newProjectCount = await page.getByTestId('projects-projects').getByText('AI Chat').count();
@@ -76,8 +78,12 @@ test.describe.serial('handle project', () => {
 
     await page.getByLabel('Project name').click();
     await page.getByLabel('Project name').fill('AI Chat Copy Edit');
+    const responsePromise = page.waitForResponse(
+      (response) => response.url().includes('/api/projects') && response.status() === 200,
+      {}
+    );
     await page.getByRole('button', { name: 'Save' }).click();
-    await page.waitForResponse((response) => response.url().includes('/api/projects') && response.status() === 200, {});
+    await responsePromise;
     await expect(page.getByTestId('projects-projects')).toContainText('AI Chat Copy Edit');
   });
 
@@ -101,8 +107,12 @@ test.describe.serial('handle project', () => {
     const pinMenuItem = page.getByRole('menuitem', { name: 'Pin' });
     await expect(pinMenuItem).toBeVisible();
 
+    const responsePromise = page.waitForResponse(
+      (response) => response.url().includes('/api/projects') && response.status() === 200,
+      {}
+    );
     await pinMenuItem.click();
-    await page.waitForResponse((response) => response.url().includes('/api/projects') && response.status() === 200, {});
+    await responsePromise;
   });
 
   test('delete project', async ({ page }) => {
@@ -124,16 +134,16 @@ test.describe.serial('handle project', () => {
     const element = await page.getByText('This will permanently delete');
     const text = await element.textContent();
 
-    console.log('text', text);
-
+    const responsePromise = page.waitForResponse(
+      (response) => response.url().includes('/api/projects') && response.status() === 200,
+      {}
+    );
     const match = (text || '').match(/"([^"]*)"/);
-    console.log('text22', match);
     if (match && match[1]) {
       await page.getByLabel('Please input ').click();
       await page.getByLabel('Please input ').fill(match[1]);
       await page.getByRole('button', { name: 'Delete' }).click();
     }
-
-    await page.waitForResponse((response) => response.url().includes('/api/projects') && response.status() === 200, {});
+    await responsePromise;
   });
 });
