@@ -339,3 +339,18 @@ test('debug tests', async ({ page }) => {
   }
   expect(await page.getByTestId('test-case').count()).toBe(0);
 });
+
+test('collaboration', async ({ page }) => {
+  const comments = page.locator('.comment-list>div');
+  await page.getByTestId('debug-view-collaboration').click();
+  await page.waitForSelector('.comment-editor', { state: 'visible' });
+  const commentContainer = page.locator('.comment-editor .be-editable.notranslate');
+  await commentContainer.click();
+  await commentContainer.fill('this is e2e test');
+  const responsePromise = page.waitForResponse(/\/api\/comments/);
+  const count = await comments.count();
+  await page.getByRole('button', { name: 'Comment' }).click();
+  await responsePromise;
+  const newCount = await comments.count();
+  expect(newCount).toBe(count + 1);
+});

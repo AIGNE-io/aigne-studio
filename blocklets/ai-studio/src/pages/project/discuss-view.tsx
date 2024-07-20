@@ -39,6 +39,7 @@ export default function DiscussView({
           </Box>
         }>
         <Comments
+          data-testid="debug-view-comments"
           target={{ id: `${projectId}-${gitRef}-${assistant.id}`, owner: user.did }}
           displayReaction={false}
           flatView
