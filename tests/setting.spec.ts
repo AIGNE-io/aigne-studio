@@ -81,7 +81,6 @@ test('setting-model', async ({ page }) => {
 
 test('setting-appearance', async ({ page }) => {
   await page.getByTestId('header-actions-setting').click();
-  await page.waitForTimeout(500);
   await page.getByRole('tab', { name: 'Appearance' }).click();
 
   const colorBlock = page.getByTestId('primary-color').locator('div>div').nth(2).locator('div');
@@ -96,10 +95,30 @@ test('setting-appearance', async ({ page }) => {
   console.log('backgroundColor', await colorElement);
   await expect(backgroundColor).toEqual(selectedColor);
 
-  await page.getByRole('combobox').first().click();
+  const titleFont = page.getByTestId('font-family-setting-title').locator('>div>div');
+  await titleFont.click();
   await page.getByRole('option', { name: 'Cedarville Cursive' }).click();
-  await expect(await page.locator('body')).toContainText('Cedarville Cursive');
-  await page.getByRole('combobox').nth(1).click();
-  await page.getByRole('option', { name: 'Chocolate Classical Sans' }).first().click();
-  await expect(await page.locator('body')).toContainText('Chocolate Classical Sans');
+  await expect(await titleFont).toContainText('Cedarville Cursive');
+
+  const bodyFont = page.getByTestId('font-family-setting-body').locator('>div>div');
+  await bodyFont.click();
+  await page.getByRole('option', { name: 'Playfair Display SC' }).click();
+  await expect(await bodyFont).toContainText('Playfair Display SC');
+});
+
+test('setting-basic', async ({ page }) => {
+  await page.getByTestId('header-actions-setting').click();
+  await page.getByRole('tab', { name: 'Basic' }).click();
+  // todo avatar
+  const projectName = page.getByLabel('Project name');
+  await projectName.click();
+  await projectName.fill('AI Chat(E2ETest)');
+  // 对 input 元素的属性做断言
+  await expect(await projectName).toHaveAttribute('value', 'AI Chat(E2ETest)');
+
+  const projectDescription = page.getByLabel('Project description');
+  await projectDescription.click();
+  await projectDescription.fill('This is e2e test');
+  // 对 textarea 元素的内容做断言
+  await expect(await projectDescription).toHaveValue('This is e2e test');
 });

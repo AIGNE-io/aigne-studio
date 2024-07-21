@@ -14,7 +14,7 @@ export default function FontFamilySetting() {
 
   return (
     <Stack gap={1}>
-      <Box>
+      <Box data-testid="font-family-setting-title">
         <Stack>
           <Typography variant="subtitle3">{t('projectSetting.fontFamily.title')}</Typography>
           <FontSelect
@@ -30,7 +30,7 @@ export default function FontFamilySetting() {
           />
         </Stack>
       </Box>
-      <Box>
+      <Box data-testid="font-family-setting-body">
         <Stack>
           <Typography variant="subtitle3">{t('projectSetting.fontFamily.body')}</Typography>
           <FontSelect
