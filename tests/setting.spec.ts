@@ -134,6 +134,17 @@ test('setting-git', async ({ page }) => {
   await responsePromise;
 });
 
+test('setting-did spaces', async ({ page }) => {
+  await page.getByTestId('header-actions-setting').click();
+  await page.getByRole('tab', { name: 'DID Spaces' }).click();
+  await page.getByLabel('Auto sync when saving').check();
+  const responsePromise = page.waitForResponse(
+    (response) => response.url().includes('/remote/sync') && response.status() === 200
+  );
+  await page.getByRole('button', { name: 'Sync' }).click();
+  await responsePromise;
+});
+
 test('add branch', async ({ page }) => {
   // 删除所有除 main 分支以外的分支
   const branchIcon = page.getByTestId('branch-icon');
