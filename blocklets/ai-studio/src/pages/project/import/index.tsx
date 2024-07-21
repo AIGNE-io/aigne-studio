@@ -93,7 +93,9 @@ export default function ImportFrom({
           disableClearable
           value={projectValue}
           options={state.projects}
-          renderInput={(params) => <TextField {...params} label={t('import.selectProject')} />}
+          renderInput={(params) => (
+            <TextField data-testid="import-from-select-project" {...params} label={t('import.selectProject')} />
+          )}
           isOptionEqualToValue={(o, v) => o.id === v.id}
           getOptionLabel={(v) => v.name || t('unnamed')}
           onChange={(_e, newValue) => {

@@ -2,8 +2,6 @@ import { login } from '@blocklet/testlab/utils/playwright';
 import { ensureWallet } from '@blocklet/testlab/utils/wallet';
 import { Page, expect, test } from '@playwright/test';
 
-import { branch } from '../packages/co-git/src';
-
 test.beforeEach('route to agent page', async ({ page }) => {
   await page.goto('/projects');
 

@@ -556,7 +556,7 @@ function ProjectList({
           return (
             <ProjectItem
               data-testid={`projects-${section}-item`}
-              className={cx(menuOpen && 'selected')}
+              className={cx(menuOpen && 'selected', `projects-${section}-item`)}
               section={section}
               id={item.id!}
               tabIndex={0}
