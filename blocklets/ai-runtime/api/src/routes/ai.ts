@@ -302,7 +302,7 @@ router.post('/call', user(), ensureComponentCallOr(auth()), compression(), async
       }
     }
   } catch (e) {
-    logger.error('run assistant error', { error: e });
+    logger.error('run assistant error', e);
     let fetchErrorMsg = e?.response?.data?.error;
     if (typeof fetchErrorMsg !== 'string') fetchErrorMsg = fetchErrorMsg?.message;
 
