@@ -1,4 +1,8 @@
+import { login } from '@blocklet/testlab/utils/playwright';
+import { ensureWallet } from '@blocklet/testlab/utils/wallet';
 import { Page, expect, test } from '@playwright/test';
+
+import { branch } from '../packages/co-git/src';
 
 test.beforeEach('route to agent page', async ({ page }) => {
   await page.goto('/projects');
@@ -121,4 +125,87 @@ test('setting-basic', async ({ page }) => {
   await projectDescription.fill('This is e2e test');
   // 对 textarea 元素的内容做断言
   await expect(await projectDescription).toHaveValue('This is e2e test');
+});
+
+test('setting-git', async ({ page }) => {
+  await page.getByTestId('header-actions-setting').click();
+  await page.getByRole('tab', { name: 'Git' }).click();
+  await page.getByLabel('Professional Mode').check();
+  const responsePromise = page.waitForResponse(/api\/projects\/\w+\/branches/);
+  await page.getByRole('button', { name: 'Save' }).first().click();
+  await responsePromise;
+});
+
+test('add branch', async ({ page }) => {
+  // 删除所有除 main 分支以外的分支
+  const branchIcon = page.getByTestId('branch-icon');
+  await branchIcon.click();
+  await page.waitForSelector('li.branch-item');
+  const branches = await page.locator('li.branch-item').all();
+  console.log('branches', branches.length);
+
+  for (let i = branches.length - 1; i > 0; i--) {
+    await branchIcon.click();
+    await page.locator('li.branch-item').first().click();
+    await branchIcon.click();
+    await page.getByRole('menuitem', { name: 'Delete' }).click();
+    const responsePromise = page.waitForResponse(
+      (response) =>
+        response.request().method() === 'DELETE' && response.url().includes('/branches') && response.status() === 200
+    );
+    await page.getByRole('button', { name: 'Delete' }).click();
+    await responsePromise;
+  }
+
+  await branchIcon.click();
+  await page.getByRole('menuitem', { name: 'New Branch' }).click();
+  await page.getByLabel('Name').click();
+  await page.getByLabel('Name').fill('e2eTest');
+  const responsePromise = page.waitForResponse(
+    (response) =>
+      response.request().method() === 'POST' && response.url().includes('/branches') && response.status() === 200
+  );
+  await page.getByRole('button', { name: 'Save' }).click();
+  await responsePromise;
+});
+
+test('publish blocklet', async ({ page, context }) => {
+  await page.getByLabel('Publish').click();
+
+  // 没有 blocklet 做发布操作
+  const noBlocklet = page.getByText('There aren’t any blocklets');
+  if (noBlocklet) {
+    const blockletStudio = page.frameLocator('iframe[title="Blocklet Studio"]');
+    await blockletStudio.getByRole('button', { name: 'New blocklet' }).click();
+
+    await blockletStudio.getByLabel('select merge strategy').click();
+    await blockletStudio.getByText('Blocklet Store', { exact: true }).click();
+
+    const testStorePagePromise = context.waitForEvent('page');
+    await blockletStudio.getByRole('button', { name: 'Connect Blocklet Store' }).click();
+    const testStorePage = await testStorePagePromise;
+
+    await testStorePage.waitForLoadState('networkidle');
+    await login({
+      page: testStorePage,
+      wallet: ensureWallet({ name: 'admin' }),
+      appWallet: ensureWallet({ name: 'app', onlyFromCache: true }),
+      passport: { name: 'admin', title: 'admin' },
+    });
+  }
+});
+
+test('history', async ({ page }) => {
+  await page.getByLabel('History').click();
+  await page.locator('li.commit-item').last().click();
+  await page.locator('body').press('ControlOrMeta+s');
+  await page.getByLabel('Branch').click();
+  await page.getByRole('option', { name: 'main' }).click();
+  await page.getByLabel('Note').click();
+  await page.getByLabel('Note').fill('this is from e2eTest');
+  const savePromise = page.waitForResponse(/workings\/\w+\/commit/);
+  await page.getByRole('button', { name: 'Save' }).click();
+  await savePromise;
+  await page.getByLabel('History').click();
+  await expect(await page.locator('li.commit-item').first()).toContainText('this is from e2eTest');
 });

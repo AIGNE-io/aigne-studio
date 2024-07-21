@@ -180,7 +180,7 @@ export default function BranchButton({
           <Typography variant="subtitle3" color="#9CA3AF" lineHeight={1}>
             {gitRef}
           </Typography>
-          <Box component={Icon} icon={ArrowDownIcon} width={15} color="#030712" />
+          <Box data-testid="branch-icon" component={Icon} icon={ArrowDownIcon} width={15} color="#030712" />
         </Stack>
       </Dropdown>
     </>
@@ -228,7 +228,7 @@ function BranchList({
         },
       }}>
       {branches.map((branch) => (
-        <MenuItem key={branch} selected={branch === ref} onClick={() => onItemClick?.(branch)}>
+        <MenuItem className="branch-item" key={branch} selected={branch === ref} onClick={() => onItemClick?.(branch)}>
           {branch === ref ? <Box component={Icon} icon={CheckIcon} mr={1} width={15} /> : <Box mr={1} width={15} />}
           {branch}
         </MenuItem>
