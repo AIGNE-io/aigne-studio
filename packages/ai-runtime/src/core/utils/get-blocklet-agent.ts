@@ -260,7 +260,7 @@ export const buildInOpenAPI = {
                           description: 'The key of the memory entry',
                         },
                         data: {
-                          type: 'string',
+                          type: 'object',
                           description: 'The value of the memory entry',
                         },
                         userId: {

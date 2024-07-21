@@ -1,3 +1,7 @@
+## 0.4.3 (2024-7-21)
+
+- fix: render input template for the nested agent inputs
+
 ## 0.4.2 (2024-7-20)
 
 - chore: bump version
