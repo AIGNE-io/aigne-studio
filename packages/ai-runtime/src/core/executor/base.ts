@@ -253,7 +253,7 @@ export abstract class AgentExecutorBase {
 
           const result = await this.context.executor(this.context).execute(toolAgent, {
             inputs: tool.parameters,
-            variables: inputs,
+            variables: inputParameters,
             taskId: currentTaskId,
             parentTaskId: taskId,
           });
@@ -304,7 +304,7 @@ export abstract class AgentExecutorBase {
             .executor({ ...this.context, callback: cb(currentTaskId) } as ExecutorContext)
             .execute(blocklet.agent, {
               inputs: tool?.parameters,
-              variables: { ...inputs, blockletDid, datasetId: tool.id },
+              variables: { ...inputVariables, blockletDid, datasetId: tool.id },
               taskId: currentTaskId,
               parentTaskId: taskId,
             });
@@ -373,7 +373,7 @@ export abstract class AgentExecutorBase {
             .executor({ ...this.context, callback: cb?.(currentTaskId) } as ExecutorContext)
             .execute(blocklet.agent, {
               inputs: parameter.source.api.parameters,
-              variables: inputs,
+              variables: inputVariables,
               taskId: currentTaskId,
               parentTaskId: taskId,
             });

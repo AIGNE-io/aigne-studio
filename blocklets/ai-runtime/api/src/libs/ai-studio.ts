@@ -27,9 +27,11 @@ export async function getAgentFromAIStudio({
 
 export async function getProjectFromAIStudio({
   projectId,
+  projectRef,
   working,
 }: {
   projectId: string;
+  projectRef?: string;
   working?: boolean;
 }): Promise<ProjectSettings> {
   return (
@@ -37,7 +39,7 @@ export async function getProjectFromAIStudio({
       name: 'ai-studio',
       method: 'GET',
       path: joinURL('/api/projects', projectId),
-      params: { working },
+      params: { projectRef, working },
     })
   ).data;
 }

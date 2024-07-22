@@ -696,7 +696,7 @@ export default flat({
   routeDesc: 'Decision Agent Description',
   promptRequired: 'Prompt is required',
   twitter: 'Twitter',
-  community: 'Community',
+  community: 'ArcBlock Community',
   link: 'Link',
   saveAs: 'Save as',
   openingQuestions: 'Opening Questions',
@@ -749,4 +749,5 @@ export default flat({
   ref: 'From',
   refOutput: 'Call agent does not currently support custom output',
   addParamter: 'Add Parameter',
+  variableNotReferenced: 'The variable is not referenced',
 });

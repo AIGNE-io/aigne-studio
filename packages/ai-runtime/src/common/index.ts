@@ -1,8 +1,8 @@
 import { ImageModelInfo, ServiceMode, ServiceModePermissionMap, TextModelInfo } from '../types/common';
 
-export const defaultTextModel = 'gpt-3.5-turbo';
+export const defaultTextModel = 'gpt-4o-mini';
 
-export const defaultTextModelGPT4 = 'gpt-4';
+export const defaultTextModelGPT4 = 'gpt-4o-mini';
 
 export async function getSupportedModels(): Promise<TextModelInfo[]> {
   return [
@@ -10,6 +10,26 @@ export async function getSupportedModels(): Promise<TextModelInfo[]> {
       brand: 'OpenAI',
       model: 'gpt-4o',
       name: 'GPT4o',
+      temperatureMin: 0,
+      temperatureMax: 2,
+      temperatureDefault: 1,
+      topPMin: 0,
+      topPMax: 1,
+      topPDefault: 1,
+      presencePenaltyMin: -2,
+      presencePenaltyMax: 2,
+      presencePenaltyDefault: 0,
+      frequencyPenaltyMin: -2,
+      frequencyPenaltyMax: 2,
+      frequencyPenaltyDefault: 0,
+      maxTokensMin: 1,
+      maxTokensMax: 128000,
+      maxTokensDefault: 128000,
+    },
+    {
+      brand: 'OpenAI',
+      model: 'gpt-4o-mini',
+      name: 'GPT4o mini',
       temperatureMin: 0,
       temperatureMax: 2,
       temperatureDefault: 1,

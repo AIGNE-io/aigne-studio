@@ -15,7 +15,13 @@ import { useAssistantCompare } from '@app/pages/project/state';
 import { useProjectStore } from '@app/pages/project/yjs-state';
 import { useAgent } from '@app/store/agent';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, ExecuteBlock, ParameterYjs, StringParameter } from '@blocklet/ai-runtime/types';
+import {
+  AssistantYjs,
+  ExecuteBlock,
+  ParameterYjs,
+  StringParameter,
+  parseDirectivesOfTemplate,
+} from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
 import { DatasetObject } from '@blocklet/dataset-sdk/types';
@@ -34,6 +40,7 @@ import HistoryIcon from '@iconify-icons/tabler/history';
 import InfoCircleIcon from '@iconify-icons/tabler/info-circle';
 import MessageIcon from '@iconify-icons/tabler/message';
 import SquareNumberIcon from '@iconify-icons/tabler/square-number-1';
+import TrashIcon from '@iconify-icons/tabler/trash';
 import {
   Autocomplete,
   AutocompleteValue,
@@ -63,6 +70,8 @@ import {
   TableHead,
   TableRow,
   TextField,
+  Theme,
+  Tooltip,
   Typography,
   alpha,
   createFilterOptions,
@@ -119,6 +128,27 @@ export default function InputTable({
     return validNameRegex.test(name);
   };
 
+  const checkVariableReferenced = (id: string, key: string) => {
+    if (assistant.type === 'prompt' || assistant.type === 'image') {
+      const textNodes = document.querySelectorAll('[data-lexical-variable]');
+      const variables = new Set(parseDirectivesOfTemplate(assistant).map((i) => i.name.split('.')[0]!));
+
+      const ids = [...textNodes].map((node) => node.getAttribute('data-lexical-id'));
+      const foundId = ids.find((i) => i === id);
+      if (foundId) {
+        return true;
+      }
+
+      if (!key) {
+        return true;
+      }
+
+      return key && variables.has(key);
+    }
+
+    return true;
+  };
+
   const parameters = sortBy(Object.values(assistant.parameters ?? {}), (i) => i.index);
   const { data: knowledge = [] } = useRequest(() => getDatasets({ projectId }));
 
@@ -155,7 +185,6 @@ export default function InputTable({
     return [
       {
         field: 'key',
-        width: '30%' as any,
         headerName: t('name'),
         renderCell: ({ row: { data: parameter } }) => {
           if (parameter.key === 'question' || parameter.key === 'chatHistory') {
@@ -174,7 +203,7 @@ export default function InputTable({
           }
 
           return (
-            <Stack direction="row" alignItems="center" gap={0.5}>
+            <Stack direction="row" alignItems="center" gap={0.5} minWidth={100}>
               <Box component={Icon} icon={FormsIcon} fontSize={16} />
 
               <WithAwareness
@@ -324,7 +353,6 @@ export default function InputTable({
               borderTop: 1,
               borderColor: 'divider',
             },
-            'tr:not(.group-header):hover td': { bgcolor: 'grey.100' },
             'th,td': {
               borderBottom: 0,
               py: 0,
@@ -343,7 +371,6 @@ export default function InputTable({
                 <TableCell
                   key={column.field}
                   align={column.headerAlign}
-                  width={column.width}
                   sx={{ px: 0, py: 1, fontWeight: 500, fontSize: 13, lineHeight: '22px' }}>
                   {column.headerName}
                 </TableCell>
@@ -356,77 +383,113 @@ export default function InputTable({
             list={assistant.parameters! ?? []}
             component={TableBody}
             renderItem={(parameter, _, params) => {
+              const idReferenced = checkVariableReferenced(parameter.id, parameter.key || '');
+
+              const getBackgroundColor = (theme: Theme) => {
+                if (!idReferenced) {
+                  return alpha(theme.palette.warning.light, theme.palette.action.focusOpacity);
+                }
+
+                if (parameter.id === highlightedId) {
+                  return alpha(theme.palette.warning.light, theme.palette.action.focusOpacity);
+                }
+
+                return 'transparent';
+              };
+
+              const getHoverBackgroundColor = (theme: Theme) => {
+                if (!idReferenced) {
+                  return `${alpha(theme.palette.warning.light, theme.palette.action.selectedOpacity)} !important`;
+                }
+
+                return 'grey.100';
+              };
+
               return (
-                <TableRow
+                <Tooltip
                   data-testid="input-table-row"
-                  key={parameter.id}
-                  ref={(ref) => {
-                    params.drop(ref);
-                    params.preview(ref);
-                  }}
-                  sx={{
-                    backgroundColor:
-                      parameter.id === highlightedId
-                        ? (theme) => alpha(theme.palette.warning.light, theme.palette.action.focusOpacity)
-                        : 'transparent',
-                    transition: 'all 2s',
-                    '.hover-visible': {
-                      display: 'none',
-                    },
-                    ':hover': {
+                  title={idReferenced ? undefined : t('variableNotReferenced')}
+                  placement="bottom-start">
+                  <TableRow
+                    key={parameter.id}
+                    ref={(ref) => {
+                      params.drop(ref);
+                      params.preview(ref);
+                    }}
+                    sx={{
+                      backgroundColor: (theme) => getBackgroundColor(theme),
+                      transition: 'all 1s',
                       '.hover-visible': {
-                        display: 'flex',
+                        display: 'none',
                       },
-                    },
-                  }}>
-                  {columns.map((column, index) => {
-                    return (
-                      index !== columns.length - 1 && (
-                        <TableCell
-                          key={column.field}
-                          align={column.align}
-                          sx={{
-                            position: 'relative',
-                            px: 0,
-                            ...getDiffBackground('parameters', parameter.id),
-                          }}>
-                          {index === 0 && (
-                            <Stack
-                              className="hover-visible center"
-                              ref={params.drag}
-                              sx={{
-                                p: 0.5,
-                                cursor: 'move',
-                                position: 'absolute',
-                                left: -6,
-                                top: '50%',
-                                transform: 'translateY(-50%)',
-                              }}>
-                              <Box component={Icon} icon={GripVertical} sx={{ color: '#9CA3AF', fontSize: 14 }} />
-                            </Stack>
-                          )}
+                      ':hover': {
+                        backgroundColor: (theme) => getHoverBackgroundColor(theme),
 
-                          {column.renderCell?.({ row: { data: parameter } } as any) || get(parameter, column.field)}
-                        </TableCell>
-                      )
-                    );
-                  })}
+                        '.hover-visible': {
+                          display: 'flex',
+                        },
+                      },
+                    }}>
+                    {columns.map((column, index) => {
+                      return (
+                        index !== columns.length - 1 && (
+                          <TableCell
+                            key={column.field}
+                            align={column.align}
+                            sx={{
+                              position: 'relative',
+                              px: 0,
+                              ...getDiffBackground('parameters', parameter.id),
+                            }}>
+                            {index === 0 && (
+                              <Stack
+                                className="hover-visible center"
+                                ref={params.drag}
+                                sx={{
+                                  p: 0.5,
+                                  cursor: 'move',
+                                  position: 'absolute',
+                                  left: -6,
+                                  top: '50%',
+                                  transform: 'translateY(-50%)',
+                                }}>
+                                <Box component={Icon} icon={GripVertical} sx={{ color: '#9CA3AF', fontSize: 14 }} />
+                              </Stack>
+                            )}
 
-                  <TableCell sx={{ px: 0, ...getDiffBackground('parameters', parameter.id) }} align="right">
-                    {!readOnly && (
-                      <PopperButton
-                        knowledge={knowledge.map((x) => ({ ...x, from: FROM_KNOWLEDGE }))}
-                        openApis={openApis}
-                        parameter={parameter}
-                        readOnly={readOnly}
-                        value={assistant}
-                        projectId={projectId}
-                        gitRef={gitRef}
-                        onDelete={() => deleteParameter(parameter)}
-                      />
-                    )}
-                  </TableCell>
-                </TableRow>
+                            {column.renderCell?.({ row: { data: parameter } } as any) || get(parameter, column.field)}
+                          </TableCell>
+                        )
+                      );
+                    })}
+
+                    <TableCell sx={{ px: 0, ...getDiffBackground('parameters', parameter.id) }} align="right">
+                      <Box display="flex" alignItems="center" gap={1} justifyContent="flex-end">
+                        {!idReferenced && (
+                          <Button
+                            sx={{ minWidth: 0, p: 0.5, ml: -0.5, cursor: 'pointer', color: 'error.main' }}
+                            disabled={readOnly}
+                            onClick={() => deleteParameter(parameter)}>
+                            <Box component={Icon} icon={TrashIcon} />
+                          </Button>
+                        )}
+
+                        {!readOnly && (
+                          <PopperButton
+                            knowledge={knowledge.map((x) => ({ ...x, from: FROM_KNOWLEDGE }))}
+                            openApis={openApis}
+                            parameter={parameter}
+                            readOnly={readOnly}
+                            value={assistant}
+                            projectId={projectId}
+                            gitRef={gitRef}
+                            onDelete={() => deleteParameter(parameter)}
+                          />
+                        )}
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                </Tooltip>
               );
             }}
           />

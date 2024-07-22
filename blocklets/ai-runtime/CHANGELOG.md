@@ -1,3 +1,36 @@
+## 0.4.3 (2024-7-21)
+
+- fix: render input template for the nested agent inputs
+
+## 0.4.2 (2024-7-20)
+
+- chore: bump version
+
+## 0.4.1 (2024-7-20)
+
+- chore: bump version
+
+## 0.4.0 (2024-7-19)
+
+- chore: release v0.4.0
+
+## 0.3.37 (2024-7-19)
+
+- fix: import project from github error
+
+## 0.3.36 (2024-7-19)
+
+- fix: implement two-way binding between variable names in the prompt editor and in the inputs
+
+## 0.3.35 (2024-7-19)
+
+- chore: update ui text for share to community
+- fix: use default model from project settings
+
+## 0.3.34 (2024-7-19)
+
+- chore: add gpt-4o-mini support
+
 ## 0.3.33 (2024-7-17)
 
 - fix: restricted api error when copying a project contains assets

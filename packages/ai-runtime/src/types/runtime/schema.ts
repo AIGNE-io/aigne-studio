@@ -188,15 +188,19 @@ export function outputVariablesToJoiSchema(
     } else if (variable.type === 'boolean') {
       schema = Joi.boolean().empty([null, '']);
     } else if (variable.type === 'object') {
-      schema = Joi.object(
-        Object.fromEntries(
-          (variable.properties ?? [])
-            .map((property) => [property.name, variableToSchema(property)] as const)
-            .filter((i) => i[0] && i[1])
+      if (variable.properties?.length) {
+        schema = Joi.object(
+          Object.fromEntries(
+            (variable.properties ?? [])
+              .map((property) => [property.name, variableToSchema(property)] as const)
+              .filter((i) => i[0] && i[1])
+          )
         )
-      )
-        .empty([null, ''])
-        .options({ stripUnknown: true });
+          .empty([null, ''])
+          .options({ stripUnknown: true });
+      } else {
+        schema = Joi.any();
+      }
     } else if (variable.type === 'array') {
       schema = Joi.array()
         .empty([null, ''])

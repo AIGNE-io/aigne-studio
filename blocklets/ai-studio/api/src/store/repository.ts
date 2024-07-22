@@ -51,8 +51,6 @@ export const defaultBranch = 'main';
 
 export const defaultRemote = 'origin';
 
-const repositories: { [key: string]: Promise<Repository<FileTypeYjs>> } = {};
-
 export const repositoryRoot = (projectId: string) => path.join(Config.dataDir, 'repositories', projectId);
 export const repositoryCooperativeRoot = (projectId: string) =>
   path.join(Config.dataDir, 'repositories', `${projectId}.cooperative`);
@@ -66,12 +64,6 @@ export const SETTINGS_FILE = 'project.yaml';
 export const ASSETS_DIR = 'assets';
 
 const RESET_FILES_BEFORE_COMMIT = ['prompts', 'tests'];
-
-export async function clearRepository(projectId: string) {
-  const repo = await getRepository({ projectId });
-  await repo.destroy();
-  delete repositories[projectId];
-}
 
 export class ProjectRepo extends Repository<FileTypeYjs> {
   private static cache: { [key: string]: Promise<ProjectRepo> } = {};
@@ -196,11 +188,8 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
           if (filepath === SETTINGS_FILE) {
             return [{ filepath, data: stringify(content) }];
           }
-          if (filepath === OLD_SETTINGS_FILE) {
-            return null;
-          }
 
-          return [{ filepath, data: '' }];
+          return null;
         },
       });
 
@@ -215,6 +204,11 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
     options: RepositoryOptions<FileTypeYjs>
   ) {
     super(options);
+  }
+
+  override async destroy() {
+    super.destroy();
+    delete ProjectRepo.cache[this.projectId];
   }
 
   override async working({ ref }: { ref: string }): Promise<Working<FileTypeYjs>> {
@@ -343,7 +337,7 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
     const working = await this.working({ ref });
     const tmpFilename = join(working.options.root, 'tmp', nanoid());
     try {
-      await mkdir(dirname(tmpFilename));
+      await mkdir(dirname(tmpFilename), { recursive: true });
       await downloadImage(source, tmpFilename);
       const hash = await md5file(tmpFilename);
       const filename = type === 'logo' ? LOGO_FILENAME : `${hash}${ext}`;

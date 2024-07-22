@@ -54,13 +54,13 @@ export default function ShareSettings({ output }: { output: OutputVariableYjs })
         <Typography variant="subtitle1">{t('share')}</Typography>
         <FormControl sx={{ mt: 2, mx: 2 }} component="fieldset" variant="standard">
           <FormLabel component="legend">To</FormLabel>
-          <FormGroup sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', my: 1 }}>
+          <FormGroup sx={{ my: 1 }}>
             {SupportedShares.map((item) => (
               <FormControlLabel
                 key={item.to}
-                sx={{ display: 'flex', flex: '1 0 auto', width: '100px' }}
                 control={
                   <Checkbox
+                    sx={{ whiteSpace: 'nowrap' }}
                     checked={checkedVias.has(item.to)}
                     onChange={(_, checked) => toggleItemChecked(item, checked)}
                   />

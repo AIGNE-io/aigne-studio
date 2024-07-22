@@ -1,18 +1,31 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import {
-  AssistantYjs,
-  isImageAssistant,
-  isPromptAssistant,
-  parseDirectivesOfTemplate,
-} from '@blocklet/ai-runtime/types';
+import { AssistantYjs, isImageAssistant, isPromptAssistant } from '@blocklet/ai-runtime/types';
 import PromptEditor, { EditorState } from '@blocklet/prompt-editor';
 import { editorState2Text, text2EditorState } from '@blocklet/prompt-editor/utils';
 import { Box, Button, Paper, Stack } from '@mui/material';
-import { useAsyncEffect, useThrottleFn } from 'ahooks';
+import { useAsyncEffect, useDebounceFn } from 'ahooks';
 import { ComponentProps, useCallback, useMemo, useRef, useState } from 'react';
 
 import WithAwareness from '../awareness/with-awareness';
 import useVariablesEditorOptions from './use-variables-editor-options';
+
+function extractBracketContent(text: string) {
+  const pattern = /^\{\{(.*)\}\}$/;
+  const match = pattern.exec(text);
+  return ((match ? match[1] : '') || '').trim();
+}
+
+const variableStyle = `
+  color: rgb(234 179 8/1);
+  font-weight: bold;
+  cursor: pointer;
+`;
+
+const textStyle = `
+  color: #ef5350;
+  font-weight: bold;
+  cursor: pointer;
+`;
 
 export default function PromptEditorField({
   placeholder,
@@ -35,38 +48,29 @@ export default function PromptEditorField({
   readOnly?: boolean;
 } & Omit<ComponentProps<typeof PromptEditor>, 'value' | 'onChange'>) {
   const { t } = useLocaleContext();
-  const { from, options, variables, addParameter } = useVariablesEditorOptions(assistant);
+  const { from, options, variables, addParameter, updateParameter } = useVariablesEditorOptions(assistant);
 
-  const parameterChange = useThrottleFn(
-    async () => {
-      if (assistant && (isPromptAssistant(assistant) || isImageAssistant(assistant))) {
-        const variables = new Set(parseDirectivesOfTemplate(assistant).map((i) => i.name.split('.')[0]!));
-        const currentVariables = Object.values(assistant.parameters ?? {}).filter((p) => p?.data?.from === from);
+  const parameterChange = () => {
+    if (assistant && (isPromptAssistant(assistant) || isImageAssistant(assistant))) {
+      const textNodes = document.querySelectorAll('[data-lexical-variable]');
 
-        // 添加新增的变量
-        variables.forEach((variable) => {
-          if (variable && !currentVariables.some((v) => v?.data?.key === variable)) {
-            addParameter(variable, { from });
-          }
-        });
+      // 添加变量
+      textNodes.forEach((node) => {
+        const currentVariables = Object.values(assistant.parameters ?? {}).filter((p) => p.data.from === from);
 
-        // 删除移除的变量
-        (currentVariables || []).forEach((variable) => {
-          const key = variable?.data?.key;
-          if (variable.data.from === 'editor' && key && !variables.has(key)) {
-            delete assistant.parameters?.[variable?.data.id];
-          }
-        });
-      }
-    },
-    { wait: 500, trailing: true }
-  );
+        const id = node.getAttribute('data-lexical-id');
+        const variable = extractBracketContent(node.textContent || '').trim();
+        if (!id && variable && !currentVariables.some((v) => v?.data?.key === variable))
+          addParameter(variable, { from });
+      });
+    }
+  };
 
   const { editorState, setEditorState } = usePromptEditorState({
     value: value || '',
     onChange: (value) => {
       onChange(value);
-      parameterChange.run();
+      parameterChange();
     },
     readOnly,
   });
@@ -107,6 +111,8 @@ export default function PromptEditorField({
         }}
         popperElement={({ text, handleClose }) => {
           const variable = (text || '').split('.')[0] || '';
+
+          if (!variable.trim()) return <Box />;
 
           if ((variables || []).includes(variable)) {
             const parameter = getParameters(variable);
@@ -160,6 +166,56 @@ export default function PromptEditorField({
             </Paper>
           );
         }}
+        onChangeVariableNode={({ editor, element, node, action }) => {
+          const text = extractBracketContent(element.textContent || '');
+          const variable = (text || '').split('.')[0] || '';
+          const id = element.getAttribute('data-lexical-id');
+          const parameters = assistant?.parameters || {};
+
+          if (action === 'inputChange') {
+            if (id) {
+              const parameter = parameters[id];
+              if (parameter && parameter?.data.key !== variable) {
+                setTimeout(() => updateParameter(id, text), 0);
+              }
+            }
+
+            return;
+          }
+
+          if (action === 'variableChange') {
+            if (id) {
+              const parameter = parameters[id];
+              if (parameter && parameter.data.key !== variable) {
+                editor.update(() => node.setTextContent(`{{ ${parameter.data.key} }}`));
+              }
+            }
+
+            return;
+          }
+
+          if (action === 'style') {
+            const text = extractBracketContent(element.textContent || '');
+            const variable = (text || '').split('.')[0] || '';
+
+            const id = element.getAttribute('data-lexical-id');
+            const parameters = assistant?.parameters || {};
+
+            const objVariables = variables.map((i) => {
+              const found = Object.values(parameters).find((p) => p.data.key === i);
+              return { key: i, id: found?.data.id! || '' };
+            });
+
+            if (id) return;
+
+            const isVariable = (objVariables || [])?.find((x) => x.key === variable);
+            element.style.cssText = isVariable ? variableStyle : textStyle;
+            // 如果是变量，添加 data-lexical-id 属性
+            if (isVariable && !id) {
+              element.setAttribute('data-lexical-id', isVariable?.id || '');
+            }
+          }
+        }}
       />
     </WithAwareness>
   );
@@ -177,7 +233,7 @@ export function usePromptEditorState({
   const cache = useRef<string>();
   const [state, setState] = useState<EditorState>();
 
-  const emitChange = useThrottleFn(
+  const emitChange = useDebounceFn(
     async ({ editorState }: { editorState: EditorState }) => {
       if (readOnly) return;
 

@@ -6,6 +6,7 @@ import { Config } from '@api/libs/env';
 import { NoPermissionError, NotFoundError } from '@api/libs/error';
 import { sampleIcon } from '@api/libs/icon';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
+import logger from '@api/libs/logger';
 import AgentInputSecret from '@api/store/models/agent-input-secret';
 import {
   ProjectSettings,
@@ -44,12 +45,12 @@ import {
   CONFIG_FILE_KEY,
   CONFIG_FOLDER,
   LOGO_FILENAME,
+  OLD_SETTINGS_FILE,
   ProjectRepo,
   SETTINGS_FILE,
   VARIABLE_FILENAME,
   VARIABLE_KEY,
   autoSyncIfNeeded,
-  clearRepository,
   defaultBranch,
   defaultRemote,
   getAssistantFromRepository,
@@ -393,21 +394,41 @@ export function projectRoutes(router: Router) {
     throw new NotFoundError(`No such project ${projectId}`);
   });
 
+  const getProjectQuerySchema = Joi.object<{ projectRef?: string; working?: boolean }>({
+    projectRef: Joi.string().empty(['', null]),
+    working: Joi.boolean().empty(['', null]),
+  });
+
   router.get('/projects/:projectId', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
+    if (!projectId) throw new Error('Missing required param `projectId`');
 
-    const project =
-      (await Project.findOne({ where: { id: projectId } })) ||
-      ((await getResourceProjects('example')).find((x) => x.project.id === projectId) as any);
+    const query = await getProjectQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
-    if (!project) {
-      res.status(404).json({ error: 'No such project' });
-      return;
+    const project = await Project.findByPk(projectId, { rejectOnEmpty: new NotFoundError('No such project') });
+
+    let settings: ProjectSettings | undefined;
+
+    const repo = await ProjectRepo.load({ projectId });
+    if (query.working) {
+      const w = await repo.working({ ref: query.projectRef || project.gitDefaultBranch || defaultBranch });
+      settings = w.syncedStore.files[SETTINGS_FILE] as ProjectSettings;
+    } else {
+      try {
+        const { blob } = await repo.readBlob({
+          ref: project.gitDefaultBranch || defaultBranch,
+          filepath: SETTINGS_FILE,
+        });
+        const str = Buffer.from(blob).toString();
+        settings = parse(str);
+      } catch (error) {
+        logger.error('Error reading settings file', error);
+      }
     }
 
     checkProjectPermission({ req, project });
 
-    res.json(project);
+    res.json({ ...project.dataValues, ...settings });
   });
 
   router.get(
@@ -548,7 +569,6 @@ export function projectRoutes(router: Router) {
       }
     } else {
       project = await Project.create({
-        model: '',
         createdBy: did,
         updatedBy: did,
         gitDefaultBranch: defaultBranch,
@@ -590,7 +610,15 @@ export function projectRoutes(router: Router) {
         const gitdir = join(tempFolder, '.git');
         const oid = await git.resolveRef({ fs, gitdir, ref: originRepo.defaultBranch });
         originProject = await projectSettingsSchema.validateAsync(
-          parse(Buffer.from((await git.readBlob({ fs, gitdir, oid, filepath: '.settings.yaml' })).blob).toString())
+          parse(
+            Buffer.from(
+              (
+                await git
+                  .readBlob({ fs, gitdir, oid, filepath: SETTINGS_FILE })
+                  .catch(() => git.readBlob({ fs, gitdir, oid, filepath: OLD_SETTINGS_FILE }))
+              ).blob
+            ).toString()
+          )
         );
       }
 
@@ -621,23 +649,31 @@ export function projectRoutes(router: Router) {
       }
       await repository.checkout({ ref: originDefaultBranch, force: true });
 
-      const data: Project = parse(
-        Buffer.from(
-          (
-            await repository.readBlob({
-              ref: originDefaultBranch!,
-              filepath: '.settings.yaml',
-            })
-          ).blob
-        ).toString()
+      const data = await projectSettingsSchema.validateAsync(
+        parse(
+          Buffer.from(
+            (
+              await repository
+                .readBlob({
+                  ref: originDefaultBranch!,
+                  filepath: SETTINGS_FILE,
+                })
+                .catch(() =>
+                  repository.readBlob({
+                    ref: originDefaultBranch!,
+                    filepath: OLD_SETTINGS_FILE,
+                  })
+                )
+            ).blob
+          ).toString()
+        )
       );
 
       const project = await Project.create({
-        ...data,
+        ...omit(data, 'createdAt', 'updatedAt'),
         id: projectId,
         gitUrl: urlWithoutPassword.toString(),
         gitDefaultBranch: originDefaultBranch,
-        model: data.model,
         createdBy: did,
         updatedBy: did,
         name,
@@ -713,8 +749,6 @@ export function projectRoutes(router: Router) {
     checkProjectPermission({ req, project });
 
     await project.destroy();
-
-    await clearRepository(projectId);
 
     const root = repositoryRoot(projectId);
     await Promise.all([
@@ -855,24 +889,6 @@ export function projectRoutes(router: Router) {
         // eslint-disable-next-line no-await-in-loop
         await syncRepository({ repository, ref, author: { name: fullName, email: userId } });
       }
-
-      const data = await projectSettingsSchema.validateAsync(
-        parse(
-          Buffer.from(
-            (
-              await repository.readBlob({
-                ref: project.gitDefaultBranch!,
-                filepath: '.settings.yaml',
-              })
-            ).blob
-          ).toString()
-        )
-      );
-
-      await project.update(
-        { ...omit(data, 'id', 'createdAt', 'updatedAt'), gitLastSyncedAt: new Date() },
-        { silent: true }
-      );
 
       return res.json({});
     }
@@ -1081,25 +1097,34 @@ async function copyProject({
   project: Project;
   author: { fullName: string; did: string };
 } & Partial<Project['dataValues']>) {
-  const repo = await getRepository({ projectId: original.id! });
-  await repo.flush();
+  const srcRepo = await getRepository({ projectId: original.id! });
+  const srcWorking = await srcRepo.working({ ref: original.gitDefaultBranch || defaultBranch });
+  await srcWorking.save({ flush: true });
 
   const project = await Project.create({
     ...omit(original.dataValues, 'createdAt', 'updatedAt'),
     id: nextProjectId(),
     duplicateFrom: original.id,
-    model: original.model || '',
     name: patch.name || (original.name && `${original.name}-copy`),
     createdBy: author.did,
     updatedBy: author.did,
     ...patch,
+    gitDefaultBranch: defaultBranch,
   });
 
-  const parent = dirname(repo.root);
-  await copyRecursive(repo.root, join(parent, project.id!));
-  if (await exists(`${repo.root}.cooperative`)) {
-    await copyRecursive(`${repo.root}.cooperative`, join(parent, `${project.id}.cooperative`));
-  }
+  const repo = await getRepository({ projectId: project.id, author: { name: author.fullName, email: author.did } });
+  const workingDir = join(dirname(repo.root), `${project.id}.cooperative/${defaultBranch}/working`);
+  await copyRecursive(srcWorking.workingDir, workingDir);
+  const working = await repo.working({ ref: defaultBranch });
+  working.syncedStore.files[SETTINGS_FILE] ??= {};
+  const settings = working.syncedStore.files[SETTINGS_FILE] as ProjectSettings;
+  Object.assign(settings, await projectSettingsSchema.validateAsync(project.dataValues));
+  await working.commit({
+    ref: defaultBranch,
+    branch: defaultBranch,
+    message: `Copy from ${original.name || original.id}`,
+    author: { name: author.fullName, email: author.did },
+  });
 
   return project;
 }
@@ -1126,7 +1151,6 @@ async function createProjectFromTemplate(
     ...omit(template.project, 'name', 'files', 'createdAt', 'updatedAt', 'pinnedAt'),
     id: nextProjectId(),
     duplicateFrom: withDuplicateFrom ? template.project.id : undefined,
-    model: template.project.model || '',
     createdBy: author.did,
     updatedBy: author.did,
     gitDefaultBranch: template.project.gitDefaultBranch || defaultBranch,
