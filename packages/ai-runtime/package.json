@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -161,8 +161,8 @@
   },
   "devDependencies": {
     "@arcblock/ux": "^2.10.7",
-    "@emotion/css": "^11.11.2",
-    "@emotion/react": "^11.11.4",
+    "@emotion/css": "^11.13.0",
+    "@emotion/react": "^11.13.0",
     "@jest/globals": "^29.7.0",
     "@mui/icons-material": "^5.16.4",
     "@mui/lab": "^5.0.0-alpha.172",
