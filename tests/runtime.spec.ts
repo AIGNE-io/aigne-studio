@@ -63,3 +63,16 @@ test('input form', async ({ page }) => {
   expect(await message.textContent()).toContain('Answer');
   expect(await message.textContent()).toContain('Sources');
 });
+
+test('clear session', async ({ page }) => {
+  await page.goto('/mockplexity/');
+  await page.getByTestId('aigne-runtime-header-menu-button').click();
+  const responsePromise = page.waitForResponse(
+    (response) => response.url().includes('clear') && response.status() === 200
+  );
+  await page.getByRole('menuitem', { name: 'Clear Session' }).click();
+  await responsePromise;
+
+  const message = await page.locator('.message-item').all();
+  expect(message.length).toBe(0);
+});
