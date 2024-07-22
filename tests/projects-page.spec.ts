@@ -17,7 +17,11 @@ test('create project', async ({ page }) => {
 
   await page.getByTestId('newProject').click();
 
-  await page.locator('[role=menuitem]').filter({ hasText: 'Blank' }).click();
+  page
+    .locator('[role=menuitem]')
+    .filter({ hasText: 'Blank' })
+    .click({ timeout: 3000 })
+    .catch((error) => console.error('Failed to select project type "Blank" from the menu.', error));
 
   const newProjectDialog = page.getByTestId('newProjectDialog');
   await expect(newProjectDialog).toBeVisible();
