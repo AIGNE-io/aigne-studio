@@ -56,8 +56,8 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@emotion/react": "^11.11.4",
-    "@emotion/styled": "^11.11.5",
+    "@emotion/react": "^11.13.0",
+    "@emotion/styled": "^11.13.0",
     "@lexical/clipboard": "0.13.1",
     "@lexical/code": "0.13.1",
     "@lexical/file": "0.13.1",
