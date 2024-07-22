@@ -55,9 +55,12 @@ const httpsPort = (portSchema.validate(process.env.BLOCKLET_SERVER_HTTPS_PORT).v
 
   const info = await getBlockletServerStatus();
   if (!info) throw new Error('Blocklet server is not running');
+  console.log('info', info);
+  
 
   const appUrl = didToDomain({ did: appWallet.address, port: info.httpsPort });
   process.env.TEST_BLOCKLET_APP_URL = appUrl;
+  console.log('appUrl', appUrl);
 
   await setupUsers();
 

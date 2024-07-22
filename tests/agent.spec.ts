@@ -1,7 +1,5 @@
 import { expect, test } from '@playwright/test';
 
-import { add } from '../packages/co-git/src';
-
 test.beforeEach('route to agent page', async ({ page }) => {
   await page.goto('/projects');
 
