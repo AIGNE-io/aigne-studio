@@ -1,3 +1,7 @@
+## 0.4.4 (2024-7-22)
+
+- fix: compatible with old project settings file
+
 ## 0.4.3 (2024-7-21)
 
 - fix: render input template for the nested agent inputs
