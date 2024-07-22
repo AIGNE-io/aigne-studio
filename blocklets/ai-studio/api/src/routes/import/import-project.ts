@@ -1,9 +1,9 @@
-import { readFileSync } from 'fs';
+import { readFile } from 'fs/promises';
 import { join } from 'path';
 
 import { Config } from '@api/libs/env';
 import Project from '@api/store/models/project';
-import { SETTINGS_FILE, defaultBranch } from '@api/store/repository';
+import { OLD_SETTINGS_FILE, SETTINGS_FILE, defaultBranch } from '@api/store/repository';
 import { projectSettingsSchema } from '@blocklet/ai-runtime/types';
 import { ListObjectCommand, SpaceClient, SyncFolderPullCommand } from '@did-space/client';
 import { Request, Response } from 'express';
@@ -80,7 +80,11 @@ export async function importProject(req: Request, res: Response) {
   }
 
   const settingsPath = join(localeProjectRootPath, SETTINGS_FILE);
-  const settings = await projectSettingsSchema.validateAsync(yaml.parse(readFileSync(settingsPath, 'utf-8')));
+  const settings = await projectSettingsSchema.validateAsync(
+    yaml.parse(
+      (await readFile(settingsPath).catch(() => readFile(join(localeProjectRootPath, OLD_SETTINGS_FILE)))).toString()
+    )
+  );
 
   const { did } = req.user!;
 
