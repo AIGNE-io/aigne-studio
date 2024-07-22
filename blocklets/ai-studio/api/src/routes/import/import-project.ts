@@ -1,9 +1,8 @@
-import { readFile } from 'fs/promises';
 import { join } from 'path';
 
 import { Config } from '@api/libs/env';
 import Project from '@api/store/models/project';
-import { OLD_SETTINGS_FILE, SETTINGS_FILE, defaultBranch } from '@api/store/repository';
+import { OLD_SETTINGS_FILE, ProjectRepo, SETTINGS_FILE, defaultBranch } from '@api/store/repository';
 import { projectSettingsSchema } from '@blocklet/ai-runtime/types';
 import { ListObjectCommand, SpaceClient, SyncFolderPullCommand } from '@did-space/client';
 import { Request, Response } from 'express';
@@ -79,10 +78,20 @@ export async function importProject(req: Request, res: Response) {
     throw new Error(errorOutput.statusMessage);
   }
 
-  const settingsPath = join(localeProjectRootPath, SETTINGS_FILE);
+  const repo = await ProjectRepo.load({ projectId: metadata.id });
+
+  const branches = await repo.listBranches();
+  const branch = branches.includes(defaultBranch) ? defaultBranch : branches[0]!;
+
   const settings = await projectSettingsSchema.validateAsync(
     yaml.parse(
-      (await readFile(settingsPath).catch(() => readFile(join(localeProjectRootPath, OLD_SETTINGS_FILE)))).toString()
+      Buffer.from(
+        (
+          await repo
+            .readBlob({ ref: branch, filepath: SETTINGS_FILE })
+            .catch(() => repo.readBlob({ ref: branch, filepath: OLD_SETTINGS_FILE }))
+        ).blob
+      ).toString()
     )
   );
 
