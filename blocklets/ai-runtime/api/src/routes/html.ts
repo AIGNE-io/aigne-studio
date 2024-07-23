@@ -22,6 +22,8 @@ import type { ViteDevServer } from 'vite';
 
 import { respondAgentFields } from './agent';
 
+const ASSETS_PATTERNS = ['/assets/'];
+
 export default function setupHtmlRouter(app: Express, viteDevServer?: ViteDevServer) {
   const template = viteDevServer
     ? readFileSync(resolve(process.env.BLOCKLET_APP_DIR!, 'index.html'), 'utf-8')
@@ -136,7 +138,9 @@ var ${RUNTIME_RESOURCE_BLOCKLET_STATE_GLOBAL_VARIABLE} = ${JSON.stringify(resour
     res.send(html);
   });
 
-  router.get('/*', async (req, res) => {
+  router.get('/*', async (req, res, next) => {
+    if (ASSETS_PATTERNS.some((i) => req.path.startsWith(i))) return next();
+
     const { html: template, app } = await loadHtml(req);
 
     let html;
