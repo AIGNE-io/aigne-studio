@@ -139,7 +139,10 @@ var ${RUNTIME_RESOURCE_BLOCKLET_STATE_GLOBAL_VARIABLE} = ${JSON.stringify(resour
   });
 
   router.get('/*', async (req, res, next) => {
-    if (ASSETS_PATTERNS.some((i) => req.path.startsWith(i))) return next();
+    if (ASSETS_PATTERNS.some((i) => req.path.startsWith(i))) {
+      next();
+      return;
+    }
 
     const { html: template, app } = await loadHtml(req);
 
