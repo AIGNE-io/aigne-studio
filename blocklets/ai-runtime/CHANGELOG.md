@@ -1,3 +1,7 @@
+## 0.4.7 (2024-7-23)
+
+- fix(core): modal does not disappear when pressing esc
+
 ## 0.4.6 (2024-7-23)
 
 - feat: respond partial ready outputs
