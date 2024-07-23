@@ -41,19 +41,28 @@ test.describe.serial('resource blocklet', () => {
     await page.getByRole('menuitem', { name: 'Settings' }).click();
     const agentSecrets = page.locator('input[placeholder="Get your API Key from SerpAPI and enter it here"]');
     await agentSecrets.click();
+    // 这里虽然填入了 secretKey，但是后续的响应用 mock 数据,只是测试填入功能
     await agentSecrets.fill(secretKey);
     await page.locator('button:has-text("Save")').click();
   });
 
   test('input form', async ({ page }) => {
     await page.goto('/mockplexity/');
+
+    page.route(/\/api\/ai\/call/, (route) => {
+      route.fulfill({
+        status: 200,
+        contentType: 'text/event-stream',
+        path: 'tests/mockplexity-ai-stream-response.txt',
+      });
+    });
+
     await page.getByTestId('runtime-input-question').click();
     await page.getByTestId('runtime-input-question').fill('What is the arcblock?');
     await page.getByRole('button', { name: 'Generate' }).click();
 
     // 等待按钮不再具有特定的类(class)
     const buttonSelector = `button[type=submit]`;
-
     await page.waitForFunction((buttonSelector) => {
       const button = document.querySelector(buttonSelector);
       return !button!.classList.contains('MuiLoadingButton-loading'); // 等待按钮不再具有 'some-class'
