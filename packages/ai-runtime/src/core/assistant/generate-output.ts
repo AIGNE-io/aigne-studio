@@ -70,8 +70,8 @@ export async function generateOutput({
   maxRetries?: number;
   datastoreVariables: Variable[];
 }) {
-  const jsonSchema = outputVariablesToJsonSchema(assistant, datastoreVariables);
-  const joiSchema = outputVariablesToJoiSchema(assistant, datastoreVariables);
+  const jsonSchema = outputVariablesToJsonSchema(assistant, { variables: datastoreVariables });
+  const joiSchema = outputVariablesToJoiSchema(assistant, { variables: datastoreVariables });
 
   const outputSchema = JSON.stringify(jsonSchema, null, 2);
 
