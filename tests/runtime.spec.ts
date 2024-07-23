@@ -56,9 +56,9 @@ test.describe.serial('resource blocklet', () => {
         path: 'tests/mockplexity-ai-stream-response.txt',
       });
     });
-
+    const question = 'What is the arcblock?';
     await page.getByTestId('runtime-input-question').click();
-    await page.getByTestId('runtime-input-question').fill('What is the arcblock?');
+    await page.getByTestId('runtime-input-question').fill(question);
     await page.getByRole('button', { name: 'Generate' }).click();
 
     // 等待按钮不再具有特定的类(class)
@@ -68,10 +68,13 @@ test.describe.serial('resource blocklet', () => {
       return !button!.classList.contains('MuiLoadingButton-loading'); // 等待按钮不再具有 'some-class'
     }, buttonSelector);
 
-    const message = await page.locator('.message-item').last();
-    expect(await message.textContent()).toContain('arcblock');
-    expect(await message.textContent()).toContain('Answer');
-    expect(await message.textContent()).toContain('Sources');
+    const lastMessage = page.locator('.message-item').last();
+    await expect(lastMessage.locator('.user-message-content')).toContainText(question);
+    const assistantMessage = await lastMessage.locator('.assistant-message-content');
+    await expect(assistantMessage).toContainText(question);
+    await expect(assistantMessage).toContainText('Sources');
+    await expect(assistantMessage).toContainText('Answer');
+    await expect(assistantMessage).toContainText('Related');
   });
 
   test('clear session', async ({ page }) => {
