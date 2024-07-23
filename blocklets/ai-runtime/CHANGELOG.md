@@ -1,3 +1,7 @@
+## 0.4.6 (2024-7-23)
+
+- fix: should be close dialog when user press enter
+
 ## 0.4.5 (2024-7-23)
 
 - chore: ignore text selection event for project list item
