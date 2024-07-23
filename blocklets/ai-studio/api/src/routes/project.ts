@@ -138,7 +138,7 @@ export interface UpdateProjectInput {
 }
 
 const updateProjectSchema = Joi.object<UpdateProjectInput>({
-  name: Joi.string().empty([null, '']),
+  name: Joi.string().allow('').empty([null]).optional(),
   description: Joi.string().allow('').empty([null]).optional(),
   pinned: Joi.boolean().empty([null]),
   model: Joi.string().empty([null, '']),
@@ -704,11 +704,10 @@ export function projectRoutes(router: Router) {
 
     checkProjectPermission({ req, project });
 
-    const res11 = await updateProjectSchema.validateAsync(req.body, {
-      stripUnknown: true,
-    });
-
-    const { pinned, gitType, gitAutoSync, didSpaceAutoSync, name, description } = res11;
+    const { pinned, gitType, gitAutoSync, didSpaceAutoSync, name, description } =
+      await updateProjectSchema.validateAsync(req.body, {
+        stripUnknown: true,
+      });
 
     if (gitAutoSync) {
       const repo = await getRepository({ projectId });
@@ -721,7 +720,7 @@ export function projectRoutes(router: Router) {
     const { did: userId, fullName } = req.user!;
 
     // 把 name 和 description 写到 yjs 文件中
-    if (name || fieldRequiresUpdate(description)) {
+    if (fieldRequiresUpdate(name) || fieldRequiresUpdate(description)) {
       const repository = await getRepository({ projectId });
       const working = await repository.working({ ref: project.gitDefaultBranch });
       const projectSetting = working.syncedStore.files[SETTINGS_FILE] as ProjectSettings | undefined;
