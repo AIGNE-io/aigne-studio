@@ -17,11 +17,16 @@ test('has example projects', async ({ page }) => {
   const examples = page.getByTestId('projects-examples');
   await examples.waitFor();
 
-  await expect(examples).not.toBeEmpty();
-
-  const test = await page.getByTestId('projects-projects-item');
-  const count = await test.count();
-  console.log(count);
+  // 获取所有匹配的 div 元素
+  const elements = page.getByTestId('projects-examples').locator('.name');
+  // 获取所有文本内容
+  const texts = await elements.allTextContents();
+  // 预期的文本值
+  const expectedTexts = ['AI Chat', 'Email Generator', 'Image Generator'];
+  // 检查所有预期的文本值是否都存在
+  for (const expectedText of expectedTexts) {
+    expect(texts).toContain(expectedText);
+  }
 });
 
 test('create project', async ({ page }) => {
@@ -74,9 +79,12 @@ test.describe.serial('handle project', () => {
     await page.goto('/projects');
 
     await page.getByTestId('projects-examples').waitFor();
-    await expect(page.getByTestId('projects-examples')).toContainText('AI Chat');
 
-    const aiChatCopy = page.getByTestId('projects-projects').locator('div').filter({ hasText: 'AI Chat Copy' }).first();
+    const aiChatCopy = page
+      .getByTestId('projects-projects')
+      .locator('>div')
+      .filter({ hasText: 'AI Chat Copy' })
+      .first();
     // 编辑
     await aiChatCopy.hover();
     await aiChatCopy.getByRole('button').click();
@@ -90,12 +98,11 @@ test.describe.serial('handle project', () => {
     await page.getByLabel('Project name').click();
     await page.getByLabel('Project name').fill('AI Chat Copy Edit');
     const responsePromise = page.waitForResponse(
-      (response) => response.url().includes('/api/projects') && response.status() === 200,
-      {}
+      (response) => response.url().includes('/api/projects') && response.status() === 200
     );
     await page.getByRole('button', { name: 'Save' }).click();
     await responsePromise;
-    await expect(page.getByTestId('projects-projects')).toContainText('AI Chat Copy Edit');
+    await expect(aiChatCopy.locator('.name')).toHaveText('AI Chat Copy Edit');
   });
 
   // pin/unpin
