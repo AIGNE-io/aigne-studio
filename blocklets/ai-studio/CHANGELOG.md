@@ -1,3 +1,8 @@
+## 0.4.5 (2024-7-23)
+
+- chore: ignore text selection event for project list item
+- chore: open document link in new tab
+
 ## 0.4.4 (2024-7-22)
 
 - fix: compatible with old project settings file
