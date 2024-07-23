@@ -139,7 +139,7 @@ export interface UpdateProjectInput {
 
 const updateProjectSchema = Joi.object<UpdateProjectInput>({
   name: Joi.string().empty([null, '']),
-  description: Joi.string().empty([null, '']),
+  description: Joi.string().allow('').empty([null]).optional(),
   pinned: Joi.boolean().empty([null]),
   model: Joi.string().empty([null, '']),
   temperature: Joi.number().min(0).max(2).empty(null),
@@ -688,6 +688,10 @@ export function projectRoutes(router: Router) {
     }
   });
 
+  const fieldRequiresUpdate = (field: string | undefined) => {
+    return field !== undefined && field !== null;
+  };
+
   router.patch('/projects/:projectId', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required parameter `projectId`');
@@ -700,10 +704,11 @@ export function projectRoutes(router: Router) {
 
     checkProjectPermission({ req, project });
 
-    const { pinned, gitType, gitAutoSync, didSpaceAutoSync, name, description } =
-      await updateProjectSchema.validateAsync(req.body, {
-        stripUnknown: true,
-      });
+    const res11 = await updateProjectSchema.validateAsync(req.body, {
+      stripUnknown: true,
+    });
+
+    const { pinned, gitType, gitAutoSync, didSpaceAutoSync, name, description } = res11;
 
     if (gitAutoSync) {
       const repo = await getRepository({ projectId });
@@ -716,14 +721,12 @@ export function projectRoutes(router: Router) {
     const { did: userId, fullName } = req.user!;
 
     // 把 name 和 description 写到 yjs 文件中
-    if (name || description) {
+    if (name || fieldRequiresUpdate(description)) {
       const repository = await getRepository({ projectId });
       const working = await repository.working({ ref: project.gitDefaultBranch });
       const projectSetting = working.syncedStore.files[SETTINGS_FILE] as ProjectSettings | undefined;
-      if (projectSetting && name) {
+      if (projectSetting) {
         projectSetting.name = name;
-      }
-      if (projectSetting && description) {
         projectSetting.description = description;
       }
     }
