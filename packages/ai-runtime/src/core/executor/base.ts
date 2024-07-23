@@ -2,7 +2,7 @@ import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { call } from '@blocklet/sdk/lib/component';
 import { logger } from '@blocklet/sdk/lib/config';
 import Joi from 'joi';
-import { isNil, toLower } from 'lodash';
+import { isEmpty, isNil, toLower } from 'lodash';
 
 import { AIGNE_RUNTIME_COMPONENT_DID } from '../../constants';
 import {
@@ -134,6 +134,16 @@ export abstract class AgentExecutorBase {
 
     const inputs = await this.prepareInputs(agent, options);
 
+    const partial = await this.validateOutputs(agent, { inputs });
+    if (!isEmpty(partial)) {
+      this.context.callback?.({
+        type: AssistantResponseType.CHUNK,
+        taskId: options.taskId,
+        assistantId: agent.id,
+        delta: { object: partial },
+      });
+    }
+
     this.context.callback?.({
       type: AssistantResponseType.EXECUTE,
       taskId: options.taskId,
@@ -203,6 +213,16 @@ export abstract class AgentExecutorBase {
     );
     const inputVariables: { [key: string]: any } = { ...(inputs || {}), ...inputParameters };
     logger.info('prepareInputs', { inputs, variables, inputParameters });
+
+    const partial = await this.validateOutputs(agent, { inputs: inputVariables });
+    if (!isEmpty(partial)) {
+      this.context.callback?.({
+        type: AssistantResponseType.CHUNK,
+        taskId,
+        assistantId: agent.id,
+        delta: { object: partial },
+      });
+    }
 
     const userId = this.context.user.did;
 
@@ -452,12 +472,16 @@ export abstract class AgentExecutorBase {
 
   protected async validateOutputs(
     agent: GetAgentResult,
-    { inputs, outputs }: { inputs?: { [key: string]: any }; outputs?: { [key: string]: any } }
+    {
+      inputs,
+      outputs,
+      partial,
+    }: { inputs?: { [key: string]: any }; outputs?: { [key: string]: any }; partial?: boolean }
   ) {
-    const joiSchema = outputVariablesToJoiSchema(
-      agent,
-      agent.identity ? await this.context.getMemoryVariables(agent.identity) : []
-    );
+    const joiSchema = outputVariablesToJoiSchema(agent, {
+      partial,
+      variables: agent.identity ? await this.context.getMemoryVariables(agent.identity) : [],
+    });
     const outputVariables = (agent.outputVariables ?? []).filter((i) => !i.hidden);
 
     const outputInputs = outputVariables.reduce((res, output) => {

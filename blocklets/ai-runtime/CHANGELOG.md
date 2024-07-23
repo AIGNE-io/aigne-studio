@@ -1,6 +1,6 @@
 ## 0.4.6 (2024-7-23)
 
-- fix: should be close dialog when user press enter
+- feat: respond partial ready outputs
 
 ## 0.4.5 (2024-7-23)
 
