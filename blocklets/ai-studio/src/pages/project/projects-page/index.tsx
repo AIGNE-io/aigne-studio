@@ -571,6 +571,10 @@ function ProjectList({
               loading={Boolean(itemLoading && item?.id === itemLoading?.id)}
               blockletDid={item.blockletDid}
               onClick={async (e) => {
+                if (window.getSelection()?.toString()) {
+                  return;
+                }
+
                 if (section === 'templates') {
                   let name = '';
                   let description = '';
