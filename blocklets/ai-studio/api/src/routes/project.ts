@@ -700,9 +700,10 @@ export function projectRoutes(router: Router) {
 
     checkProjectPermission({ req, project });
 
-    const { pinned, gitType, gitAutoSync, didSpaceAutoSync } = await updateProjectSchema.validateAsync(req.body, {
-      stripUnknown: true,
-    });
+    const { pinned, gitType, gitAutoSync, didSpaceAutoSync, name, description } =
+      await updateProjectSchema.validateAsync(req.body, {
+        stripUnknown: true,
+      });
 
     if (gitAutoSync) {
       const repo = await getRepository({ projectId });
@@ -714,6 +715,19 @@ export function projectRoutes(router: Router) {
 
     const { did: userId, fullName } = req.user!;
 
+    // 把 name 和 description 写到 yjs 文件中
+    if (name || description) {
+      const repository = await getRepository({ projectId });
+      const working = await repository.working({ ref: project.gitDefaultBranch });
+      const projectSetting = working.syncedStore.files[SETTINGS_FILE] as ProjectSettings | undefined;
+      if (projectSetting && name) {
+        projectSetting.name = name;
+      }
+      if (projectSetting && description) {
+        projectSetting.description = description;
+      }
+    }
+
     project.changed('updatedAt', true);
     await project.update(
       omitBy(
@@ -724,6 +738,8 @@ export function projectRoutes(router: Router) {
           gitAutoSync,
           didSpaceAutoSync,
           updatedAt: new Date(),
+          name,
+          description,
         },
         (v) => v === undefined
       )
