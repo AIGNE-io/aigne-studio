@@ -1,3 +1,7 @@
+## 0.4.8 (2024-7-23)
+
+- fix: skip assets patterns in the ssr route
+
 ## 0.4.7 (2024-7-23)
 
 - fix(core): modal does not disappear when pressing esc
