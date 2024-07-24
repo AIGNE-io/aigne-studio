@@ -25,6 +25,7 @@ import { exists } from 'fs-extra';
 import * as git from 'isomorphic-git';
 import http from 'isomorphic-git/http/node';
 import Joi from 'joi';
+import isNil from 'lodash/isNil';
 import omit from 'lodash/omit';
 import omitBy from 'lodash/omitBy';
 import pick from 'lodash/pick';
@@ -688,10 +689,6 @@ export function projectRoutes(router: Router) {
     }
   });
 
-  const fieldRequiresUpdate = (field: string | undefined) => {
-    return field !== undefined && field !== null;
-  };
-
   router.patch('/projects/:projectId', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required parameter `projectId`');
@@ -720,7 +717,7 @@ export function projectRoutes(router: Router) {
     const { did: userId, fullName } = req.user!;
 
     // 把 name 和 description 写到 yjs 文件中
-    if (fieldRequiresUpdate(name) || fieldRequiresUpdate(description)) {
+    if (!isNil(name) || !isNil(description)) {
       const repository = await getRepository({ projectId });
       const working = await repository.working({ ref: project.gitDefaultBranch });
       const projectSetting = working.syncedStore.files[SETTINGS_FILE] as ProjectSettings | undefined;
