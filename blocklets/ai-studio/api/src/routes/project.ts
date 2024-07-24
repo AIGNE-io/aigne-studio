@@ -722,8 +722,8 @@ export function projectRoutes(router: Router) {
       const working = await repository.working({ ref: project.gitDefaultBranch });
       const projectSetting = working.syncedStore.files[SETTINGS_FILE] as ProjectSettings | undefined;
       if (projectSetting) {
-        projectSetting.name = name;
-        projectSetting.description = description;
+        if (!isNil(name)) projectSetting.name = name;
+        if (!isNil(description)) projectSetting.description = description;
       }
     }
 
