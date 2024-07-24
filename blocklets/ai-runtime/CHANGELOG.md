@@ -1,3 +1,7 @@
+## 0.4.9 (2024-7-24)
+
+- fix: validate the partial outputs correctly
+
 ## 0.4.8 (2024-7-23)
 
 - fix: skip assets patterns in the ssr route

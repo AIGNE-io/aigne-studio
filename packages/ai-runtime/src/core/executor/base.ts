@@ -134,7 +134,7 @@ export abstract class AgentExecutorBase {
 
     const inputs = await this.prepareInputs(agent, options);
 
-    const partial = await this.validateOutputs(agent, { inputs });
+    const partial = await this.validateOutputs(agent, { inputs, partial: true });
     if (!isEmpty(partial)) {
       this.context.callback?.({
         type: AssistantResponseType.CHUNK,
@@ -214,7 +214,7 @@ export abstract class AgentExecutorBase {
     const inputVariables: { [key: string]: any } = { ...(inputs || {}), ...inputParameters };
     logger.info('prepareInputs', { inputs, variables, inputParameters });
 
-    const partial = await this.validateOutputs(agent, { inputs: inputVariables });
+    const partial = await this.validateOutputs(agent, { inputs: inputVariables, partial: true });
     if (!isEmpty(partial)) {
       this.context.callback?.({
         type: AssistantResponseType.CHUNK,
