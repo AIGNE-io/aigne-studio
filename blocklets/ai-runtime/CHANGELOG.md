@@ -1,3 +1,28 @@
+## 0.4.9 (2024-7-24)
+
+- fix: validate the partial outputs correctly
+
+## 0.4.8 (2024-7-23)
+
+- fix: skip assets patterns in the ssr route
+
+## 0.4.7 (2024-7-23)
+
+- fix(core): modal does not disappear when pressing esc
+
+## 0.4.6 (2024-7-23)
+
+- feat: respond partial ready outputs
+
+## 0.4.5 (2024-7-23)
+
+- chore: ignore text selection event for project list item
+- chore: open document link in new tab
+
+## 0.4.4 (2024-7-22)
+
+- fix: compatible with old project settings file
+
 ## 0.4.3 (2024-7-21)
 
 - fix: render input template for the nested agent inputs

@@ -58,7 +58,9 @@ export class LLMAgentExecutor extends AgentExecutorBase {
     const outputVariables =
       filterOutputVariables.filter((i): i is typeof i & Required<Pick<typeof i, 'name'>> => !!i.name) ?? [];
 
-    const schema = outputVariablesToJsonSchema(agent, await this.context.getMemoryVariables(agent.identity));
+    const schema = outputVariablesToJsonSchema(agent, {
+      variables: await this.context.getMemoryVariables(agent.identity),
+    });
 
     const hasTextStream = outputVariables.some((i) => i.name === RuntimeOutputVariable.text);
     const hasJson = !!schema && Object.values(schema.properties).length > 0;

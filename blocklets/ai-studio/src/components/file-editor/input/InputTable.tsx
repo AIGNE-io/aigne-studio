@@ -1427,7 +1427,12 @@ function AuthorizeParametersFormDialog({
           {authInputs?.map((item, index) => (
             <Stack key={item.id}>
               <Typography variant="caption">
-                {item.label || item.key} {item.docLink && <Link href={item.docLink}>{t('docLink')}</Link>}
+                {item.label || item.key}{' '}
+                {item.docLink && (
+                  <Link href={item.docLink} target="_blank">
+                    {t('docLink')}
+                  </Link>
+                )}
               </Typography>
 
               <PasswordField
