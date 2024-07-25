@@ -1,3 +1,7 @@
+## 0.4.6 (2024-7-25)
+
+- fix: ensure the name and description are synchronized with the store
+
 ## 0.4.5 (2024-7-23)
 
 - chore: ignore text selection event for project list item
