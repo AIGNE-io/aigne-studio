@@ -598,6 +598,7 @@ export function projectRoutes(router: Router) {
     let originProject: ProjectSettings | undefined;
     let originDefaultBranch = defaultBranch;
 
+    await mkdir(join(Config.dataDir, 'repositories'), { recursive: true });
     const tempFolder = await mkdtemp(join(Config.dataDir, 'repositories', 'temp-'));
     try {
       await git.clone({ fs, dir: tempFolder, http, url: uri.toString() });

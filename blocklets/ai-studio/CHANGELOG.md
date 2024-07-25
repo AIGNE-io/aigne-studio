@@ -1,6 +1,18 @@
-## 0.4.6 (2024-7-25)
+## 0.4.9 (2024-7-24)
 
-- fix: ensure the name and description are synchronized with the store
+- fix: validate the partial outputs correctly
+
+## 0.4.8 (2024-7-23)
+
+- fix: skip assets patterns in the ssr route
+
+## 0.4.7 (2024-7-23)
+
+- fix(core): modal does not disappear when pressing esc
+
+## 0.4.6 (2024-7-23)
+
+- feat: respond partial ready outputs
 
 ## 0.4.5 (2024-7-23)
 

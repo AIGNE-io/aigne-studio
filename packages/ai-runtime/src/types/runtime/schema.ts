@@ -83,7 +83,7 @@ export const runtimeVariablesSchema: { [key in RuntimeOutputVariable]?: OmitUnio
 
 export function outputVariablesToJsonSchema(
   assistant: Assistant,
-  datastoreVariables: Variable[]
+  { variables }: { variables: Variable[] }
 ): { type: 'object'; properties: { [key: string]: any } } | undefined {
   const variableToSchema = (variable: OmitUnion<OutputVariable, 'id'>): any => {
     if (variable.from?.type === 'input') return undefined;
@@ -101,7 +101,7 @@ export function outputVariablesToJsonSchema(
 
     if (variable.variable) {
       const { key, scope } = variable.variable;
-      const v = datastoreVariables.find((i) => toLower(i.key) === toLower(key) && i.scope === scope);
+      const v = variables.find((i) => toLower(i.key) === toLower(key) && i.scope === scope);
       if (!v?.type) return undefined;
 
       return variableToSchema(v.type);
@@ -141,7 +141,7 @@ export function outputVariablesToJsonSchema(
 
 export function outputVariablesToJoiSchema(
   assistant: Assistant | BlockletAgent,
-  datastoreVariables: Variable[]
+  { partial, variables }: { partial?: boolean; variables: Variable[] }
 ): Joi.AnySchema {
   const variableToSchema = (variable: OmitUnion<OutputVariable, 'id'>): Joi.AnySchema | undefined => {
     let schema: Joi.AnySchema | undefined;
@@ -177,7 +177,7 @@ export function outputVariablesToJoiSchema(
     if (variable.variable) {
       const { key, scope } = variable.variable;
 
-      const v = datastoreVariables.find((i) => toLower(i.key) === toLower(key) && i.scope === scope);
+      const v = variables.find((i) => toLower(i.key) === toLower(key) && i.scope === scope);
       if (!v?.type) return undefined;
 
       schema = variableToSchema(v.type);
@@ -221,7 +221,10 @@ export function outputVariablesToJoiSchema(
   };
 
   const outputVariables = (assistant.outputVariables ?? []).filter((i) => !i.hidden);
-  return variableToSchema({ type: 'object', properties: outputVariables })!;
+  return variableToSchema({
+    type: 'object',
+    properties: partial ? outputVariables.map((i) => ({ ...i, required: false })) : outputVariables,
+  })!;
 }
 
 type JSONSchema = {

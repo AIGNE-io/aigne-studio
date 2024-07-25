@@ -313,7 +313,8 @@ export default function FromDidSpacesImport() {
         maxWidth="sm"
         fullWidth
         component="form"
-        onSubmit={form.handleSubmit(importProject)}>
+        onSubmit={form.handleSubmit(importProject)}
+        onClose={cancelImport}>
         <DialogTitle className="between">
           <Box>{t('import.didSpacesTitle')}</Box>
 
