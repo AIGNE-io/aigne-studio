@@ -403,7 +403,8 @@ const MessageView = memo(
     projectId: string;
     gitRef: string;
   }) => {
-    const images = message.objects?.[0]?.[RuntimeOutputVariable.images];
+    const object = message.objects?.reduce((res, i) => Object.assign(res, i), {});
+    const images = object?.[RuntimeOutputVariable.images];
 
     return (
       <ErrorBoundary>
@@ -464,9 +465,9 @@ const MessageView = memo(
                   </MessageViewContent>
                 ) : null}
 
-                {message.objects?.map((object, index) => (
+                {object && (
                   <MdViewer key={index} content={`${'```json'}\n${JSON.stringify(object, null, 2)}\n${'```'}`} />
-                ))}
+                )}
 
                 {message.error ? (
                   <ErrorCard error={message.error} />

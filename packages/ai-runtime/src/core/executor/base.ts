@@ -212,7 +212,6 @@ export abstract class AgentExecutorBase {
       )
     );
     const inputVariables: { [key: string]: any } = { ...(inputs || {}), ...inputParameters };
-    logger.info('prepareInputs', { inputs, variables, inputParameters });
 
     const partial = await this.validateOutputs(agent, { inputs: inputVariables, partial: true });
     if (!isEmpty(partial)) {
@@ -466,7 +465,6 @@ export abstract class AgentExecutorBase {
       }
     }
 
-    logger.info('merge prepareInputs', { inputVariables });
     return inputVariables;
   }
 
@@ -496,7 +494,6 @@ export abstract class AgentExecutorBase {
       return res;
     }, {});
 
-    logger.info('validateOutputs', { outputInputs, outputs });
     return joiSchema.validateAsync({ ...outputs, ...outputInputs }, { stripUnknown: true });
   }
 

@@ -595,20 +595,20 @@ Writer.prototype.renderSection = async function renderSection(token, context, pa
 
   if (isArray(value)) {
     for (var j = 0, valueLength = value.length; j < valueLength; ++j) {
-      buffer += this.renderTokens(token[4], context.push(value[j]), partials, originalTemplate, config);
+      buffer += await this.renderTokens(token[4], context.push(value[j]), partials, originalTemplate, config);
     }
   } else if (typeof value === 'object' || typeof value === 'string' || typeof value === 'number') {
-    buffer += this.renderTokens(token[4], context.push(value), partials, originalTemplate, config);
+    buffer += await this.renderTokens(token[4], context.push(value), partials, originalTemplate, config);
   } else if (isFunction(value)) {
     if (typeof originalTemplate !== 'string')
       throw new Error('Cannot use higher-order sections without the original template');
 
     // Extract the portion of the original template that the section contains.
-    value = value.call(context.view, originalTemplate.slice(token[3], token[5]), subRender);
+    value = await value.call(context.view, originalTemplate.slice(token[3], token[5]), subRender);
 
     if (value != null) buffer += value;
   } else {
-    buffer += this.renderTokens(token[4], context, partials, originalTemplate, config);
+    buffer += await this.renderTokens(token[4], context, partials, originalTemplate, config);
   }
   return buffer;
 };
@@ -653,7 +653,7 @@ Writer.prototype.renderPartial = function renderPartial(token, context, partials
 
 Writer.prototype.unescapedValue = async function unescapedValue(token, context) {
   var value = await context.lookup(token[1]);
-  if (value != null) return value;
+  if (value != null) return typeof value === 'object' ? JSON.stringify(value) : value;
 };
 
 Writer.prototype.escapedValue = async function escapedValue(token, context, config) {
