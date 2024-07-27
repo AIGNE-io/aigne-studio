@@ -1,7 +1,11 @@
+## 0.4.11 (2024-7-27)
+
+- chore: update deps
+
 ## 0.4.10 (2024-7-25)
 
 - fix: ensure the name and description are synchronized with the store
-  
+
 ## 0.4.9 (2024-7-24)
 
 - fix: validate the partial outputs correctly
