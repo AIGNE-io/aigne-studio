@@ -25,9 +25,9 @@ const generalSlide = async (page: Page, sliderId: string) => {
     throw new Error('Unable to locate the slider');
   }
 
-  const startX = sliderBoundingBox.x + sliderBoundingBox.width; // 当前滑块位置
+  const startX = sliderBoundingBox.x + sliderBoundingBox.width / 2; // 当前滑块位置
   const startY = sliderBoundingBox.y + sliderBoundingBox.height / 2;
-  const targetX = sliderBoundingBox.x; // 滑动条的最右端
+  const targetX = sliderBoundingBox.x; // 滑动条的最左端
 
   // 4. 使用 mouse API 模拟拖拽操作
   await page.mouse.move(startX, startY);
@@ -43,7 +43,7 @@ test('setting-model', async ({ page }) => {
   await page.getByRole('tab', { name: 'Model' }).click();
   const modelSelect = page.getByTestId('project-setting-model').getByTestId('model-select-field');
   await modelSelect.click();
-  await page.getByRole('option', { name: 'GPT4o' }).click();
+  await page.getByRole('option', { name: 'GPT4o', exact: true }).click();
 
   await generalSlide(page, 'project-settings-temperature');
   const temperatureValue = (await page
