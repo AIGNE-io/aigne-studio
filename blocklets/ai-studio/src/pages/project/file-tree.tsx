@@ -355,7 +355,7 @@ const FileTree = forwardRef<
 
   return (
     <>
-      <Box {...props}>
+      <Box {...props} data-testid="file-tree">
         <DndProvider backend={MultiBackend} options={getBackendOptions()}>
           <Tree
             data-testid="agent-tree"
@@ -402,10 +402,11 @@ const FileTree = forwardRef<
               if (node.data.type === 'folder') {
                 return (
                   <TreeItem
-                    data-testid="file-tree-folder"
+                    className="file-tree-folder"
                     key={node.id}
                     icon={
                       <Box
+                        className="file-tree-folder-icon"
                         component={Icon}
                         icon={ChevronDownIcon}
                         sx={{ transform: `rotateZ(${isOpen ? '0' : '-90deg'})` }}
@@ -416,7 +417,6 @@ const FileTree = forwardRef<
                     editing={filepath === editingFolderPath}
                     actions={
                       <TreeItemMenus
-                        data-testid="file-tree-folder-menus"
                         projectId={projectId}
                         gitRef={gitRef}
                         item={node.data}
@@ -452,8 +452,6 @@ const FileTree = forwardRef<
 
               const actions = (
                 <TreeItemMenus
-                  data-testid="agent-tree-item-actions"
-                  sx={{ border: '1px solid red' }}
                   projectId={projectId}
                   gitRef={gitRef}
                   item={node.data}
@@ -496,9 +494,9 @@ const FileTree = forwardRef<
               );
 
               const children = (
-                <Box sx={{ position: 'relative' }} data-testid="agent-tree-box">
+                <Box sx={{ position: 'relative' }} className="agent-box">
                   <TreeItem
-                    data-testid="agent-tree-item"
+                    className="agent-tree-item"
                     key={node.id}
                     icon={<FileIcon assistant={meta} />}
                     depth={depth}
@@ -819,6 +817,7 @@ function EditTextItem({
   };
   return editing ? (
     <Input
+      className="edit-text-item"
       disableUnderline
       fullWidth
       value={value || ''}

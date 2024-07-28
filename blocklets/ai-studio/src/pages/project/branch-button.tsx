@@ -110,7 +110,11 @@ export default function BranchButton({
                 },
                 maxWidth: 'sm',
                 fullWidth: true,
-                title: <Box sx={{ wordWrap: 'break-word' }}>{t('alert.deleteBranch', { branch: gitRef })}</Box>,
+                title: (
+                  <Box data-testid="project-delete-title" sx={{ wordWrap: 'break-word' }}>
+                    {t('alert.deleteBranch', { branch: gitRef })}
+                  </Box>
+                ),
                 content: (
                   <Box>
                     <Typography fontWeight={500} fontSize={16} lineHeight="28px" color="#4B5563">
