@@ -1,3 +1,8 @@
+## 0.4.12 (2024-7-28)
+
+- chore: remove husky and use simple-git-hooks instead
+- chore: optimize internal prompts for better response
+
 ## 0.4.11 (2024-7-27)
 
 - chore: update deps
