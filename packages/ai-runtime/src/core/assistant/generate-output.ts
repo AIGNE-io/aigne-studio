@@ -23,13 +23,13 @@ ${schema}
 - Don't make any explanation
 
 ## Output Format
-[Generate a json data based on the above metadata schema, put it the metadata code block]
+[Generate a json data based on the above metadata schema, put the json string into the following code block]
 ${metadataPrefix}
 ${metadataSuffix}
 
 ## Output Example
 ${metadataPrefix}
-[Here is your generated json data]
+{"key": "value"}
 ${metadataSuffix}
 `;
 
@@ -46,14 +46,14 @@ ${schema}
 
 ## Output Format
 [Your text content here]
-[Generate a json data based on the above metadata schema, put it the metadata code block]
+[Generate a json data based on the above metadata schema, put the json string into the following code block]
 ${metadataPrefix}
 ${metadataSuffix}
 
 ## Output Example
 [Here is your answer to the the user's question]
 ${metadataPrefix}
-[Here is your generated json data]
+{"key": "value"}
 ${metadataSuffix}
 `;
 
