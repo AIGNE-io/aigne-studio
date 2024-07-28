@@ -25,6 +25,7 @@ import { exists } from 'fs-extra';
 import * as git from 'isomorphic-git';
 import http from 'isomorphic-git/http/node';
 import Joi from 'joi';
+import isNil from 'lodash/isNil';
 import omit from 'lodash/omit';
 import omitBy from 'lodash/omitBy';
 import pick from 'lodash/pick';
@@ -138,8 +139,8 @@ export interface UpdateProjectInput {
 }
 
 const updateProjectSchema = Joi.object<UpdateProjectInput>({
-  name: Joi.string().empty([null, '']),
-  description: Joi.string().empty([null, '']),
+  name: Joi.string().allow('').empty([null]).optional(),
+  description: Joi.string().allow('').empty([null]).optional(),
   pinned: Joi.boolean().empty([null]),
   model: Joi.string().empty([null, '']),
   temperature: Joi.number().min(0).max(2).empty(null),
@@ -701,9 +702,10 @@ export function projectRoutes(router: Router) {
 
     checkProjectPermission({ req, project });
 
-    const { pinned, gitType, gitAutoSync, didSpaceAutoSync } = await updateProjectSchema.validateAsync(req.body, {
-      stripUnknown: true,
-    });
+    const { pinned, gitType, gitAutoSync, didSpaceAutoSync, name, description } =
+      await updateProjectSchema.validateAsync(req.body, {
+        stripUnknown: true,
+      });
 
     if (gitAutoSync) {
       const repo = await getRepository({ projectId });
@@ -715,6 +717,17 @@ export function projectRoutes(router: Router) {
 
     const { did: userId, fullName } = req.user!;
 
+    // 把 name 和 description 写到 yjs 文件中
+    if (!isNil(name) || !isNil(description)) {
+      const repository = await getRepository({ projectId });
+      const working = await repository.working({ ref: project.gitDefaultBranch });
+      const projectSetting = working.syncedStore.files[SETTINGS_FILE] as ProjectSettings | undefined;
+      if (projectSetting) {
+        if (!isNil(name)) projectSetting.name = name;
+        if (!isNil(description)) projectSetting.description = description;
+      }
+    }
+
     project.changed('updatedAt', true);
     await project.update(
       omitBy(
@@ -725,6 +738,8 @@ export function projectRoutes(router: Router) {
           gitAutoSync,
           didSpaceAutoSync,
           updatedAt: new Date(),
+          name,
+          description,
         },
         (v) => v === undefined
       )
