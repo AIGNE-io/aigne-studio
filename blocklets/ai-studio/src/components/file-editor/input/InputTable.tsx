@@ -379,6 +379,7 @@ export default function InputTable({
           </TableHead>
 
           <DragSortListYjs
+            data-testid="input-table"
             disabled={readOnly}
             list={assistant.parameters! ?? []}
             component={TableBody}
@@ -407,7 +408,7 @@ export default function InputTable({
 
               return (
                 <Tooltip
-                  data-testid="input-table-row"
+                  className="input-table-row"
                   title={idReferenced ? undefined : t('variableNotReferenced')}
                   placement="bottom-start">
                   <TableRow

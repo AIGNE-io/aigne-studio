@@ -33,7 +33,7 @@ export default function BasicInfoForm({
             <HoverBackgroundTextField
               hiddenLabel
               fullWidth
-              data-testid="basic-info-form-agent-name"
+              data-testid="agent-name"
               placeholder={t('unnamed')}
               value={value.name ?? ''}
               onChange={(e) => (value.name = e.target.value.replace(/\//g, ''))}
@@ -67,7 +67,7 @@ export default function BasicInfoForm({
           <HoverBackgroundTextField
             hiddenLabel
             fullWidth
-            data-testid="basic-info-form-agent-description"
+            data-testid="agent-description"
             placeholder={t('agentDescriptionPlaceholder')}
             value={value.description ?? ''}
             multiline

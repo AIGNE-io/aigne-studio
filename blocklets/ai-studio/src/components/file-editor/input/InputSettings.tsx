@@ -71,7 +71,6 @@ export default function InputSettings({
         </Stack>
       ) : (
         <InputTable
-          data-testid="input-settings-input-table"
           assistant={value}
           readOnly={readOnly}
           projectId={projectId}

@@ -26,11 +26,10 @@ const deleteAllFoldersAndAgents = async ({ page }: { page: Page }) => {
   }
 };
 
-test.beforeEach('route to agent page', async ({ page, context }) => {
-  await deleteProject({ page });
+test.beforeEach('route to agent page', async ({ page }) => {
+  test.slow();
+  // await deleteProject({ page });
   await createProject({ page });
-
-  // await toggleAIChat({ page });
 });
 
 test.describe.serial('folder', () => {
@@ -38,7 +37,7 @@ test.describe.serial('folder', () => {
     await deleteAllFoldersAndAgents({ page });
   });
 
-  test('new folder and rename', async ({ page }) => {
+  test('new folder / rename / new agent', async ({ page }) => {
     // todo: 为了进行下面的测试用例, #1251 修复后删除
     const agentCount = await page.getByTestId('agent-box').count();
     if (agentCount === 0) {
@@ -57,11 +56,8 @@ test.describe.serial('folder', () => {
     await page.locator('div[role="tooltip"]').getByText('Rename').click();
     await folder.getByRole('textbox').fill('Folder(Test Renamed)');
     await folder.getByRole('textbox').press('Enter');
-    await expect(await page.getByText('Folder(Test Renamed)', { exact: true })).toBeVisible();
-  });
+    await expect(page.getByText('Folder(Test Renamed)', { exact: true })).toBeVisible();
 
-  test('create new agent', async ({ page }) => {
-    const folder = page.locator('.file-tree-folder').first();
     await folder.locator('..').hover();
     await folder.locator('..').locator('button').click();
     await page.locator('div[role="tooltip"]').getByText('New Agent').click();
@@ -94,10 +90,10 @@ test('create agent', async ({ page }) => {
   await page.getByText('Rename').click({ force: true });
   await duplicateAgent.getByRole('textbox').fill('Renamed Agent');
   await duplicateAgent.press('Enter');
-  await expect(await firstAgent).toContainText('Renamed Agent');
+  await expect(firstAgent).toContainText('Renamed Agent');
 
   await firstAgent.locator('> div').hover();
   await firstAgent.locator('button').click();
   await page.getByText('Set as entry agent').click({ force: true });
-  await expect(await firstAgent).toContainText('(Entry)');
+  await expect(firstAgent).toContainText('(Entry)');
 });
