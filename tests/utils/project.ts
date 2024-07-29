@@ -24,6 +24,7 @@ export async function createProject({ page }: { page: Page }) {
   await createProjectPromise;
 
   await page.waitForSelector('span[aria-label="Import Agents"]');
+  await page.getByLabel('New Agent').getByRole('button').click({ force: true });
 }
 
 export async function deleteProject({ page }: { page: Page }) {

@@ -74,7 +74,7 @@ export default function DebugView({
       </Stack>
 
       {tests.map(({ data }) => (
-        <Box px={2} key={data.id} data-testid="test-case">
+        <Box px={2} key={data.id} className="test-case">
           <TestCaseView
             ref={(ref) => (refs.current[data.id] = ref)}
             projectId={projectId}

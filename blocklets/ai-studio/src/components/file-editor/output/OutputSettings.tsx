@@ -140,12 +140,13 @@ export default function OutputSettings({
 
             {value.outputVariables && (
               <DragSortListYjs
+                data-testid="output-table"
                 component={TableBody}
                 list={value.outputVariables}
                 sx={{ '&.isDragging .hover-visible': { display: 'none' } }}
                 renderItem={(item, _, params) => (
                   <VariableRow
-                    data-testid="output-variable-row"
+                    className="output-variable-row"
                     key={item.id}
                     rowRef={(ref) => params.drop(params.preview(ref))}
                     firstColumnChildren={
