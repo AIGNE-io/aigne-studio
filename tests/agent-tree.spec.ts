@@ -8,12 +8,13 @@ const deleteAllFoldersAndAgents = async ({ page }: { page: Page }) => {
   let length = await listItems.count();
 
   while (length > 0) {
-    const listItem = await listItems.first();
+    const listItem = listItems.first();
     // 判断这个 listItem 是否是 folder
     const isFolder = (await listItem!.locator('iconify-icon.file-tree-folder-icon').count()) > 0;
     if (isFolder) {
-      await listItem.locator('>div').first().hover();
-      await listItem.locator('>div').first().locator('button').click();
+      const firstFolder = listItem.locator('>div').first();
+      await firstFolder.hover();
+      await firstFolder.locator('button').click();
       await page.locator('div[role="tooltip"]').getByText('Delete').click();
     } else {
       await listItem.locator('>div>div').hover();
@@ -38,8 +39,6 @@ test.describe.serial('folder', () => {
   });
 
   test('new folder and rename', async ({ page }) => {
-    await page.locator('.dashboard-header').waitFor();
-
     // todo: 为了进行下面的测试用例, #1251 修复后删除
     const agentCount = await page.getByTestId('agent-box').count();
     if (agentCount === 0) {
@@ -52,7 +51,7 @@ test.describe.serial('folder', () => {
     const newFolderCount = await folders.count();
     await expect(newFolderCount).toBe(folderCount + 1);
 
-    const folder = await page.locator('.file-tree-folder').first();
+    const folder = page.locator('.file-tree-folder').first();
     await folder.locator('..').hover();
     await folder.locator('..').locator('button').click();
     await page.locator('div[role="tooltip"]').getByText('Rename').click();
@@ -62,8 +61,7 @@ test.describe.serial('folder', () => {
   });
 
   test('create new agent', async ({ page }) => {
-    await page.locator('.dashboard-header').waitFor();
-    const folder = await page.locator('.file-tree-folder').first();
+    const folder = page.locator('.file-tree-folder').first();
     await folder.locator('..').hover();
     await folder.locator('..').locator('button').click();
     await page.locator('div[role="tooltip"]').getByText('New Agent').click();
@@ -83,7 +81,7 @@ test('create agent', async ({ page }) => {
   await expect(await page.locator('.agent-box').count()).toBe(1);
 
   const firstAgent = page.locator('.agent-box').first();
-  firstAgent.press('Enter');
+  await firstAgent.press('Enter');
   await firstAgent.locator('> div').hover();
   await firstAgent.locator('button').click();
   await page.getByText('Duplicate').click({ force: true });

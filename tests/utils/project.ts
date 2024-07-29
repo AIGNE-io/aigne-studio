@@ -14,17 +14,17 @@ export async function createProject({ page }: { page: Page }) {
   const newProjectDialog = page.getByTestId('newProjectDialog');
   await expect(newProjectDialog).toBeVisible();
 
-  // const createProjectPromise = page.waitForResponse(
-  //   (response) => response.url().includes('/api/projects') && response.status() === 200,
-  //   {}
-  // );
+  const createProjectPromise = page.waitForResponse(
+    (response) => response.url().includes('/api/projects') && response.status() === 200,
+    {}
+  );
 
   const nameField = newProjectDialog.getByTestId('projectNameField').locator('input');
   await nameField.fill(`Test Project ${Date.now()}`);
   await nameField.press('Enter');
-  // await page.getByRole('button', { name: 'Create' }).click();
+  await page.getByRole('button', { name: 'Create' }).click();
 
-  // await createProjectPromise;
+  await createProjectPromise;
 }
 
 export async function deleteProject({ page }: { page: Page }) {
