@@ -1,3 +1,7 @@
+## 0.4.13 (2024-7-29)
+
+- fix: editor color highlight issue with existing variables
+
 ## 0.4.12 (2024-7-28)
 
 - chore: remove husky and use simple-git-hooks instead
