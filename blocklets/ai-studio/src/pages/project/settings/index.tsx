@@ -221,7 +221,7 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
             bgcolor: '#fff',
             zIndex: 10000,
           }}>
-          <Button onClick={onClose} sx={{ minWidth: 32, minHeight: 32, mt: 1, mx: 1 }}>
+          <Button data-testid="settings-close-btn" onClick={onClose} sx={{ minWidth: 32, minHeight: 32, mt: 1, mx: 1 }}>
             <CloseRounded />
           </Button>
         </Box>

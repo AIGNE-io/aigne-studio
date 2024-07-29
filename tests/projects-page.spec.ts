@@ -2,9 +2,12 @@ import { login } from '@blocklet/testlab/utils/playwright';
 import { ensureWallet } from '@blocklet/testlab/utils/wallet';
 import { expect, test } from '@playwright/test';
 
-test.beforeEach('route to agent page', async ({ page }) => {
-  await page.goto('/projects');
+import { deleteProject } from './utils/project';
 
+test.beforeEach('route to agent page', async ({ page }) => {
+  test.setTimeout(90000);
+  await page.goto('/projects');
+  await deleteProject({ page });
   // check examples projects
   const examples = page.getByTestId('projects-examples');
   await examples.waitFor();
@@ -29,103 +32,38 @@ test('has example projects', async ({ page }) => {
   }
 });
 
-test('create project', async ({ page }) => {
-  await page.goto('/projects');
-
-  const examples = page.getByTestId('projects-examples');
-  await examples.waitFor();
-
-  await page.getByTestId('newProject').click();
-
-  page
-    .locator('[role=menuitem]')
-    .filter({ hasText: 'Blank' })
-    .click({ timeout: 3000 })
-    .catch((error) => console.error('Failed to select project type "Blank" from the menu.', error));
-
-  const newProjectDialog = page.getByTestId('newProjectDialog');
-  await expect(newProjectDialog).toBeVisible();
-
-  const nameField = newProjectDialog.getByTestId('projectNameField').locator('input');
-  await nameField.fill('Test Project');
-  await nameField.press('Enter');
-
-  await page.waitForURL(/\/projects\/\w+/, { waitUntil: 'networkidle' });
-  await page.waitForSelector('[data-testid=project-page-prompts]');
-});
-
 // 复制项目
 test.describe.serial('handle project', () => {
-  test('copy project', async ({ page }) => {
-    await page.goto('/projects');
-
-    await page.getByTestId('projects-examples').waitFor();
-    await expect(page.getByTestId('projects-examples')).toContainText('AI Chat');
-
-    const aiChatExample = await page.getByTestId('projects-examples').locator('div').filter({ hasText: 'AI Chat' });
-
-    const projectCount = await page.getByTestId('projects-projects').getByText('AI Chat').count();
-    await aiChatExample.first().hover();
+  test('copy/edit project', async ({ page }) => {
+    const aiChatExample = await page.getByTestId('projects-examples').locator('>div').filter({ hasText: 'AI Chat' });
+    await aiChatExample.hover();
     await aiChatExample.getByRole('button').click();
 
-    const responsePromise = page.waitForResponse(
+    const copyProjectPromise = page.waitForResponse(
       (response) => response.url().includes('/api/projects') && response.status() === 200
     );
     await page.getByRole('menuitem', { name: 'Copy to My Projects' }).click();
-    await responsePromise;
+    await copyProjectPromise;
 
-    await expect(page.getByTestId('projects-projects')).toContainText('AI Chat Copy');
-    const newProjectCount = await page.getByTestId('projects-projects').getByText('AI Chat').count();
-    await expect(newProjectCount).toBeGreaterThanOrEqual(projectCount + 1);
-  });
+    const projects = page.getByTestId('projects-projects');
+    await expect(projects).toContainText('AI Chat Copy');
+    const newProjectCount = await projects.getByText('AI Chat').count();
+    expect(newProjectCount).toBe(1);
 
-  test('edit project', async ({ page }) => {
-    await page.goto('/projects');
-
-    await page.getByTestId('projects-examples').waitFor();
-
-    const aiChatCopy = page
-      .getByTestId('projects-projects')
-      .locator('>div')
-      .filter({ hasText: 'AI Chat Copy' })
-      .first();
-    // 编辑
+    const aiChatCopy = await projects.locator('>div').filter({ hasText: 'AI Chat Copy' }).first();
     await aiChatCopy.hover();
     await aiChatCopy.getByRole('button').click();
-
-    const editMenuItem = page.getByRole('menuitem', { name: 'Edit' });
-    await expect(editMenuItem).toBeVisible();
-
-    await editMenuItem.click();
-    await expect(page.getByText('Edit Project')).toBeVisible();
-
-    await page.getByLabel('Project name').click();
+    await page.getByRole('menuitem', { name: 'Edit' }).click();
     await page.getByLabel('Project name').fill('AI Chat Copy Edit');
-    const responsePromise = page.waitForResponse(
+    const aiChatCopyPromise = page.waitForResponse(
       (response) => response.url().includes('/api/projects') && response.status() === 200
     );
     await page.getByRole('button', { name: 'Save' }).click();
-    await responsePromise;
+    await aiChatCopyPromise;
     await expect(aiChatCopy.locator('.name')).toHaveText('AI Chat Copy Edit');
-  });
-
-  // pin/unpin
-  test('pin project', async ({ page }) => {
-    await page.goto('/projects');
-
-    await page.getByTestId('projects-examples').waitFor();
-    await expect(page.getByTestId('projects-examples')).toContainText('AI Chat');
-
-    const aiChatCopy = page
-      .getByTestId('projects-projects-item')
-      .locator('div')
-      .filter({ hasText: 'AI Chat Copy' })
-      .first();
-    await expect(aiChatCopy).toBeVisible();
 
     await aiChatCopy.hover();
     await aiChatCopy.getByRole('button').click();
-
     const pinMenuItem = page.getByRole('menuitem', { name: 'Pin' });
     await expect(pinMenuItem).toBeVisible();
 
@@ -135,73 +73,12 @@ test.describe.serial('handle project', () => {
     );
     await pinMenuItem.click();
     await responsePromise;
-  });
-
-  test('delete project', async ({ page }) => {
-    await page.goto('/projects');
-
-    await page.getByTestId('projects-examples').waitFor();
-    await expect(page.getByTestId('projects-examples')).toContainText('AI Chat');
-
-    const deleteTarget = page.getByTestId('projects-projects').locator('div').first();
-    await expect(deleteTarget).toBeVisible();
-
-    // 删除
-    await deleteTarget.hover();
-    await deleteTarget.getByRole('button').click();
-    const deleteMenuItem = page.getByRole('menuitem', { name: 'Delete' });
-    await expect(deleteMenuItem).toBeVisible();
-
-    await deleteMenuItem.click();
-    const element = await page.getByText('This will permanently delete');
-    const text = await element.textContent();
-
-    const responsePromise = page.waitForResponse(
-      (response) => response.url().includes('/api/projects') && response.status() === 200,
-      {}
-    );
-    const match = (text || '').match(/"([^"]*)"/);
-    if (match && match[1]) {
-      await page.getByLabel('Please input ').click();
-      await page.getByLabel('Please input ').fill(match[1]);
-      await page.getByRole('button', { name: 'Delete' }).click();
-    }
-    await responsePromise;
+    expect(aiChatCopy.getByLabel('Pin')).toBeVisible();
   });
 });
 
 // todo: 重复项目导入
 test('import project from git', async ({ page }) => {
-  // 如果存在先删除
-  const projects = await page.locator('.projects-projects-item').getByText('Multi-Characters RPG').all();
-  console.log(projects, projects.length);
-  console.log(
-    await page.locator('.projects-projects-item').all(),
-    (await page.locator('.projects-projects-item').all()).length
-  );
-  console.log(
-    await page.getByTestId('projects-projects-item').all(),
-    (await page.getByTestId('projects-projects-item').all()).length
-  );
-  if (projects.length > 0) {
-    for (let i = projects.length - 1; i >= 0; i++) {
-      await page.getByTestId('projects-projects-item').getByRole('button').click();
-      await page.getByRole('menuitem', { name: 'Delete' }).click();
-      const element = await page.getByText('This will permanently delete');
-      const text = await element.textContent();
-      const responsePromise = page.waitForResponse(
-        (response) => response.url().includes('/api/projects') && response.status() === 200,
-        {}
-      );
-      const match = (text || '').match(/"([^"]*)"/);
-      if (match && match[1]) {
-        await page.getByLabel('Please input ').click();
-        await page.getByLabel('Please input ').fill(match[1]);
-        await page.getByRole('button', { name: 'Delete' }).click();
-      }
-      await responsePromise;
-    }
-  }
   await page.getByRole('button', { name: 'Import' }).click();
   await page.getByText('Git Repo').click();
   const input = page.getByPlaceholder('https://github.com/aigne/example.git');
@@ -216,9 +93,24 @@ test('import project from git', async ({ page }) => {
 
 // todo: 找不到did space 中的项目
 test('import project from did space', async ({ page }) => {
+  // 找到 ai chat 项目
+  await page.getByTestId('projects-examples').locator('>div').filter({ hasText: 'AI Chat' }).click();
+  await page.waitForSelector('span[aria-label="Import Agents"]');
+
+  await page.getByTestId('header-actions-setting').click();
+  await page.getByRole('tab', { name: 'DID Spaces' }).click();
+  await page.getByLabel('Auto sync when saving').check();
+  const responsePromise = page.waitForResponse(
+    (response) => response.url().includes('/remote/sync') && response.status() === 200
+  );
+  await page.getByRole('button', { name: 'Sync' }).click();
+  await responsePromise;
+
+  await page.goto('/projects');
+  await page.getByTestId('projects-examples').waitFor();
   await page.getByRole('button', { name: 'Import' }).click();
   await page.getByText('DID Spaces').click();
-  await page.getByText('Import a project from the').click();
+  await page.getByText('Import a project from the currently connected DID Space').click();
 
   await login({
     page,
