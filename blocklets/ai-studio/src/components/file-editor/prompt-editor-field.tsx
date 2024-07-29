@@ -206,10 +206,11 @@ export default function PromptEditorField({
               return { key: i, id: found?.data.id! || '' };
             });
 
-            if (id) return;
-
             const isVariable = (objVariables || [])?.find((x) => x.key === variable);
             element.style.cssText = isVariable ? variableStyle : textStyle;
+
+            if (id) return;
+
             // 如果是变量，添加 data-lexical-id 属性
             if (isVariable && !id) {
               element.setAttribute('data-lexical-id', isVariable?.id || '');

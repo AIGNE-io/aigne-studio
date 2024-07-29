@@ -66,7 +66,7 @@ export default function VarContextPlugin({
     );
   }, [editor]);
 
-  function updateNode(editor: LexicalEditor, action: 'style' | 'variableChange' | 'inputChange') {
+  function updateNode(editor: LexicalEditor, action: 'style' | 'variableChange') {
     editor.getEditorState().read(() => {
       const root = editor.getRootElement();
       if (!root) return;
@@ -88,6 +88,7 @@ export default function VarContextPlugin({
   }
 
   const inputChange = useDebounceFn((d) => updateNode(d, 'variableChange'), { wait: 500, trailing: true });
+  const styleChange = useDebounceFn((d) => updateNode(d, 'style'), { wait: 0, trailing: true });
 
   useEffect(() => {
     if (!editor.hasNodes([VariableTextNode])) {
@@ -108,7 +109,7 @@ export default function VarContextPlugin({
         }
       });
 
-      updateNode(editor, 'style');
+      styleChange.run(editor);
     });
 
     return () => {
@@ -117,11 +118,9 @@ export default function VarContextPlugin({
   }, [editor]);
 
   useEffect(() => {
-    // 更新样式
-    updateNode(editor, 'style');
-
+    styleChange.run(editor);
     inputChange.run(editor);
-  }, [variables]);
+  }, [(variables || [])?.join(',')]);
 
   useTransformVariableNode(editor);
 
