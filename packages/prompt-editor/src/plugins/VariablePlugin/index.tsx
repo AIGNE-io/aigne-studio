@@ -46,6 +46,7 @@ export default function VarContextPlugin({
   }) => void;
 }): JSX.Element | null {
   const [editor] = useLexicalComposerContext();
+  const variableStr = (variables || [])?.join(',') || '';
 
   useEffect(() => {
     return mergeRegister(
@@ -87,7 +88,7 @@ export default function VarContextPlugin({
     });
   }
 
-  const inputChange = useDebounceFn((d) => updateNode(d, 'variableChange'), { wait: 500, trailing: true });
+  const variableChange = useDebounceFn((d) => updateNode(d, 'variableChange'), { wait: 500, trailing: true });
   const styleChange = useDebounceFn((d) => updateNode(d, 'style'), { wait: 0, trailing: true });
 
   useEffect(() => {
@@ -119,8 +120,8 @@ export default function VarContextPlugin({
 
   useEffect(() => {
     styleChange.run(editor);
-    inputChange.run(editor);
-  }, [(variables || [])?.join(',')]);
+    variableChange.run(editor);
+  }, [variableStr]);
 
   useTransformVariableNode(editor);
 
