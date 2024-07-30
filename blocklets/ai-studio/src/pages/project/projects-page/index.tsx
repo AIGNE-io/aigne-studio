@@ -190,13 +190,15 @@ function TemplatesProjects({ list }: { list?: ProjectWithUserInfo[] }) {
             onClick={checkProjectLimit}
             list={
               <MenuList autoFocusItem>
-                <MenuItem
-                  onClick={() => {
-                    setDialog(<ImportFromBlank item={blank} onClose={() => setDialog(null)} />);
-                  }}>
-                  <Box component={Icon} icon={PlusIcon} sx={{ mr: 1 }} />
-                  <ListItemText sx={{ fontSize: 13, lineHeight: '22px' }}>{t('blank')}</ListItemText>
-                </MenuItem>
+                {blank && (
+                  <MenuItem
+                    onClick={() => {
+                      setDialog(<ImportFromBlank item={blank} onClose={() => setDialog(null)} />);
+                    }}>
+                    <Box component={Icon} icon={PlusIcon} sx={{ mr: 1 }} />
+                    <ListItemText sx={{ fontSize: 13, lineHeight: '22px' }}>{t('blank')}</ListItemText>
+                  </MenuItem>
+                )}
 
                 <MenuItem
                   onClick={() => {
@@ -212,15 +214,17 @@ function TemplatesProjects({ list }: { list?: ProjectWithUserInfo[] }) {
             </Button>
           </ButtonPopper>
         ) : (
-          <Button
-            data-testid="newProject"
-            startIcon={<Box component={Icon} icon={PlusIcon} />}
-            variant="contained"
-            onClick={() => {
-              setDialog(<ImportFromBlank item={blank} onClose={() => setDialog(null)} />);
-            }}>
-            {t('newObject', { object: t('project') })}
-          </Button>
+          blank && (
+            <Button
+              data-testid="newProject"
+              startIcon={<Box component={Icon} icon={PlusIcon} />}
+              variant="contained"
+              onClick={() => {
+                setDialog(<ImportFromBlank item={blank} onClose={() => setDialog(null)} />);
+              }}>
+              {t('newObject', { object: t('project') })}
+            </Button>
+          )
         )}
       </Stack>
 
