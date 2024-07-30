@@ -8,11 +8,9 @@ import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { Icon } from '@iconify-icon/react';
 import GripVertical from '@iconify-icons/tabler/grip-vertical';
-import Settings2 from '@iconify-icons/tabler/settings-2';
 import {
   Box,
   BoxProps,
-  Button,
   Stack,
   Table,
   TableBody,
@@ -25,13 +23,11 @@ import {
 import equal from 'fast-deep-equal';
 import jsonDiff from 'json-diff';
 import { cloneDeep, sortBy, uniqBy } from 'lodash';
-import { bindDialog, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { nanoid } from 'nanoid';
 import React, { ComponentType, ReactNode, useEffect, useMemo } from 'react';
 
 import useCallAgentOutput from '../use-call-agent-output';
 import AddOutputVariableButton from './AddOutputVariableButton';
-import AgentSettingsDialog from './AgentSettingsDialog';
 import OutputActionsCell, { SettingActionDialogProvider } from './OutputActionsCell';
 import OutputAppearanceCell from './OutputAppearanceCell';
 import OutputDescriptionCell from './OutputDescriptionCell';
@@ -85,8 +81,6 @@ export default function OutputSettings({
     }
   }, [value]);
 
-  const agentSettingsState = usePopupState({ variant: 'dialog' });
-
   return (
     <Box sx={{ background: '#F9FAFB', py: 1.5, px: 2, pb: 2, borderRadius: 1 }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
@@ -96,12 +90,6 @@ export default function OutputSettings({
             {t('outputs')}
           </Typography>
         </Box>
-
-        <Button {...bindTrigger(agentSettingsState)} sx={{ minWidth: 32, minHeight: 32, mr: -1, my: -1 }}>
-          <Icon icon={Settings2} />
-        </Button>
-
-        <AgentSettingsDialog {...bindDialog(agentSettingsState)} maxWidth="sm" fullWidth agent={value} />
       </Stack>
 
       <Box sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1, overflow: 'auto' }}>
