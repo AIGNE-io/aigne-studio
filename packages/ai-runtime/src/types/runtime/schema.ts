@@ -182,7 +182,7 @@ export function outputVariablesToJoiSchema(
 
       schema = variableToSchema(v.type);
     } else if (!variable.type || variable.type === 'string') {
-      schema = Joi.string().empty([null, '']);
+      schema = Joi.string().allow('');
     } else if (variable.type === 'number') {
       schema = Joi.number().empty([null, '']);
     } else if (variable.type === 'boolean') {

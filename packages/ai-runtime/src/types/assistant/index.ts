@@ -142,6 +142,9 @@ export interface AssistantBase {
   };
   entries?: { id: string; title?: string; parameters?: { [key: string]: any } }[];
   outputVariables?: OutputVariable[];
+  cache?: {
+    enable?: boolean;
+  };
 }
 
 export interface VariableTypeBase {
