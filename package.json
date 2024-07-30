@@ -22,7 +22,8 @@
     "build:libs": "pnpm -F @blocklet/* build",
     "bump-version": "zx scripts/bump-version.mjs",
     "update:deps": "npx -y taze minor -r -w major -x '/nanoid|eslint/' && pnpm install",
-    "e2e": "./scripts/start-e2e.ts"
+    "e2e": "./scripts/start-e2e.ts",
+    "postinstall": "npx simple-git-hooks"
   },
   "simple-git-hooks": {
     "pre-commit": "npx lint-staged"
