@@ -93,7 +93,7 @@ test.describe.serial('handle project', () => {
     const passport = await page.locator('div[data-cy="sessionManager-switch-passport-trigger"] span').innerText();
 
     // 找到 ai chat 项目
-    await page.getByTestId('projects-examples').locator('>div').filter({ hasText: 'AI Chat' }).click();
+    await page.getByTestId('projects-examples').locator('>div').filter({ hasText: 'AI Chat' }).click({ force: true });
     await page.waitForSelector('span[aria-label="Import Agents"]');
 
     await page.getByTestId('header-actions-setting').click();
