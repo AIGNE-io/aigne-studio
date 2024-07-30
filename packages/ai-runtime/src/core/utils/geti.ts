@@ -28,5 +28,6 @@ const findLowercaseKey = (value: any, key: any) => {
     if (toLower(k) === key) {
       return value[k];
     }
+    return undefined;
   }, undefined);
 };

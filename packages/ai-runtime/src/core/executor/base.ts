@@ -190,7 +190,7 @@ export abstract class AgentExecutorBase {
       inputParameters: inputs,
     });
 
-    let result: any = undefined;
+    let result: any;
 
     // query cache if the agent has cache enabled
     const cacheKey = this.cacheKey(agent, { inputs: options.inputs || {} });
