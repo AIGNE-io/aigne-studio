@@ -20,7 +20,6 @@ const unInstallBlocklet = async (page: Page, blockletName: string) => {
   await promise;
 };
 
-// TOTO: 思考有没有beforeEach的方案
 test.beforeEach('route to blocklets', async ({ page }) => {
   await page.goto('.well-known/service/admin/overview');
   await page.waitForSelector('h6.page-title');
@@ -62,7 +61,7 @@ test.describe.serial('resource blocklet', () => {
     if ((await stopIcon.count()) > 0) {
       return;
     }
-    // 如果未运行, 则运行
+    // 如果未运行(升级中/停止), 则运行
     const startIcon = blocklet.getByTestId('PlayArrowIcon');
     if ((await startIcon.count()) > 0) {
       await startIcon.click();

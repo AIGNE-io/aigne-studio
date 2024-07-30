@@ -3,7 +3,6 @@ import { expect, test } from '@playwright/test';
 import { createProject } from './utils/project';
 
 test.beforeEach('route to agent page', async ({ page }) => {
-  test.setTimeout(240000);
   await createProject({ page });
 });
 

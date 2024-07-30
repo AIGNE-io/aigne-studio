@@ -27,7 +27,6 @@ const deleteAllFoldersAndAgents = async ({ page }: { page: Page }) => {
 };
 
 test.beforeEach('route to agent page', async ({ page }) => {
-  test.setTimeout(240000);
   await createProject({ page });
 });
 

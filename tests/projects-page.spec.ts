@@ -5,7 +5,6 @@ import { expect, test } from '@playwright/test';
 import { deleteProject } from './utils/project';
 
 test.beforeEach('route to agent page', async ({ page }) => {
-  test.setTimeout(240000);
   await page.goto('/projects');
   await deleteProject({ page });
   const examples = page.getByTestId('projects-examples');
@@ -75,7 +74,6 @@ test.describe.serial('handle project', () => {
     expect(aiChatCopy.getByLabel('Pin')).toBeVisible();
   });
 
-  // todo: 重复项目导入
   test('import project from git', async ({ page }) => {
     await page.getByRole('button', { name: 'Import' }).click();
     await page.getByText('Git Repo').click();
@@ -91,6 +89,10 @@ test.describe.serial('handle project', () => {
 
   // todo: 找不到did space 中的项目
   test('import project from did space', async ({ page }) => {
+    // 得到当前身份
+    await page.getByLabel('User info button').click();
+    const passport = await page.locator('div[data-cy="sessionManager-switch-passport-trigger"] span').innerText();
+
     // 找到 ai chat 项目
     await page.getByTestId('projects-examples').locator('>div').filter({ hasText: 'AI Chat' }).click();
     await page.waitForSelector('span[aria-label="Import Agents"]');
@@ -112,7 +114,7 @@ test.describe.serial('handle project', () => {
 
     await login({
       page,
-      wallet: ensureWallet({ name: 'admin' }),
+      wallet: ensureWallet({ name: passport.trim() }),
     });
 
     // from-did-spaces/import-project
@@ -121,8 +123,12 @@ test.describe.serial('handle project', () => {
     );
     await page.getByRole('button', { name: 'Next' }).click();
     await page.waitForSelector('div:has-text("Import project from DID Spaces")');
-    await page.getByPlaceholder('Select a project to import').click({ force: true });
-    await page.getByRole('option', { name: 'AI Chat' }).click();
+
+    while (!(await page.getByRole('listbox').isVisible())) {
+      await page.getByPlaceholder('Select a project to import').click({ force: true });
+      await page.waitForTimeout(500);
+    }
+    await page.getByRole('option', { name: 'AI Chat' }).first().click();
     await page.getByRole('button', { name: 'Import from DID Spaces' }).click();
     await importPromise;
   });
