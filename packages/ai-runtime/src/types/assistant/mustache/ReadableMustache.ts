@@ -1,3 +1,5 @@
+import { ReadableStream } from 'stream/web';
+
 import fastq from 'fastq';
 
 import { renderMessage } from '../../../core/utils/render-message';

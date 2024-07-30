@@ -136,6 +136,7 @@
     "crypto": "^1.0.1",
     "dayjs": "^1.11.12",
     "eventsource-parser": "^1.1.2",
+    "fast-deep-equal": "^3.1.3",
     "joi": "^17.13.3",
     "js-base64": "^3.7.7",
     "lodash": "^4.17.21",

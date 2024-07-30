@@ -1,7 +1,10 @@
+import { hash } from 'crypto';
+
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { call } from '@blocklet/sdk/lib/component';
 import { logger } from '@blocklet/sdk/lib/config';
 import Joi from 'joi';
+import jsonStableStringify from 'json-stable-stringify';
 import { isEmpty, isNil, toLower } from 'lodash';
 
 import { AIGNE_RUNTIME_COMPONENT_DID } from '../../constants';
@@ -32,6 +35,8 @@ export class ExecutorContext {
       | 'executor'
       | 'entryProjectId'
       | 'getSecret'
+      | 'queryCache'
+      | 'setCache'
     >
   ) {
     this.getAgent = options.getAgent;
@@ -44,6 +49,8 @@ export class ExecutorContext {
     this.executor = options.executor;
     this.entryProjectId = options.entryProjectId;
     this.getSecret = options.getSecret;
+    this.queryCache = options.queryCache;
+    this.setCache = options.setCache;
   }
 
   getSecret: (args: {
@@ -57,6 +64,27 @@ export class ExecutorContext {
   callAI: CallAI;
 
   callAIImage: CallAIImage;
+
+  queryCache: (options: {
+    blockletDid?: string;
+    projectId: string;
+    projectRef?: string;
+    agentId: string;
+    cacheKey: string;
+  }) => Promise<{
+    inputs: { [key: string]: any };
+    outputs: { [key: string]: any };
+  } | null>;
+
+  setCache: (options: {
+    blockletDid?: string;
+    projectId: string;
+    projectRef?: string;
+    agentId: string;
+    cacheKey: string;
+    inputs: { [key: string]: any };
+    outputs: { objects: any[] };
+  }) => Promise<any>;
 
   callback: RunAssistantCallback;
 
@@ -162,9 +190,38 @@ export abstract class AgentExecutorBase {
       inputParameters: inputs,
     });
 
-    const outputs = await this.process(agent, { ...options, inputs });
+    let result: any = undefined;
 
-    const result = await this.validateOutputs(agent, { inputs, outputs });
+    // query cache if the agent has cache enabled
+    const cacheKey = this.cacheKey(agent, { inputs: options.inputs || {} });
+    if (agent.cache?.enable && agent.identity) {
+      try {
+        const cache = await this.context.queryCache({ ...agent.identity, cacheKey });
+        result = await this.validateOutputs(agent, { inputs, outputs: cache?.outputs });
+        if (isEmpty(result)) result = undefined;
+      } catch (error) {
+        logger.error('query and validate cache error', { error });
+      }
+
+      if (typeof result?.$text === 'string') {
+        this.context.callback?.({
+          type: AssistantResponseType.CHUNK,
+          taskId: options.taskId,
+          assistantId: agent.id,
+          delta: { content: result.$text },
+        });
+      }
+    }
+
+    if (result === undefined) {
+      const outputs = await this.process(agent, { ...options, inputs });
+      result = await this.validateOutputs(agent, { inputs, outputs });
+
+      // set cache if needed
+      if (!isEmpty(result) && agent.cache?.enable && agent.identity) {
+        await this.context.setCache({ ...agent.identity, cacheKey, inputs, outputs: result });
+      }
+    }
 
     await this.postProcessOutputs(agent, { outputs: result });
 
@@ -194,6 +251,17 @@ export abstract class AgentExecutorBase {
     });
 
     return result;
+  }
+
+  private cacheKey(agent: GetAgentResult, { inputs }: { inputs: { [key: string]: any } }) {
+    // TODO: support custom cache key by specifying inputs of agent
+    const i = Object.fromEntries(
+      (agent.parameters ?? [])
+        .filter((i): i is typeof i & { key: string } => !!i.key)
+        .map((i) => [i.key, inputs[i.key]])
+    );
+
+    return hash('md5', jsonStableStringify(i), 'hex');
   }
 
   private async prepareInputs(agent: GetAgentResult, { inputs, taskId, variables }: AgentExecutorOptions) {

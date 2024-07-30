@@ -9,6 +9,7 @@ import { EventSourceParserStream } from '@blocklet/ai-kit/api/utils/event-stream
 import { call, getComponentMountPoint } from '@blocklet/sdk/lib/component';
 import config, { logger } from '@blocklet/sdk/lib/config';
 import dayjs from 'dayjs';
+import equal from 'fast-deep-equal';
 import Joi from 'joi';
 import pick from 'lodash/pick';
 import { joinURL, withQuery } from 'ufo';
@@ -88,7 +89,15 @@ export class LogicAgentExecutor extends AgentExecutorBase {
         let object: any;
 
         for await (const chunk of result) {
-          object = parseJSONInVM(chunk);
+          const newObj = parseJSONInVM(chunk);
+
+          // skip if the object is equal
+          // TODO: throttle the output
+          if (equal(object, newObj)) {
+            continue;
+          }
+
+          object = newObj;
 
           try {
             const obj = await this.validateOutputs(agent, { outputs: object, partial: true });
