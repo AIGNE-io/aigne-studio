@@ -1,3 +1,8 @@
+## 0.4.14 (2024-7-30)
+
+- feat: support cache agent outputs
+- feat: add streaming json template support
+
 ## 0.4.13 (2024-7-29)
 
 - fix: editor color highlight issue with existing variables
