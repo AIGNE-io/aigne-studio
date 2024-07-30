@@ -1,6 +1,4 @@
-import { login } from '@blocklet/testlab/utils/playwright';
-import { ensureWallet } from '@blocklet/testlab/utils/wallet';
-import { Page, expect, test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 import { createProject } from './utils/project';
 
