@@ -1,0 +1,36 @@
+data: {"type":"CHUNK","taskId":"473437403600650240","assistantId":"20240730182406-O5axmW","delta":{},"messageId":"473437403600650240"}
+
+data: {"type":"INPUT_PARAMETER","taskId":"473437403600650240","assistantId":"20240730182406-O5axmW","delta":{"content":"{\n  \"question\": \"hello\",\n  \"$clientTime\": \"2024-07-30T10:31:12.726Z\"\n}"},"messageId":"473437403600650240"}
+
+data: {"type":"INPUT","assistantId":"20240730182406-O5axmW","taskId":"473437403600650240","assistantName":"未命名 Agent","inputParameters":{"question":"hello","$clientTime":"2024-07-30T10:31:12.726Z"},"messageId":"473437403600650240"}
+
+data: {"type":"EXECUTE","taskId":"473437403600650240","assistantId":"20240730182406-O5axmW","assistantName":"未命名 Agent","execution":{"currentPhase":"EXECUTE_BLOCK_RUNNING"},"messageId":"473437403600650240"}
+
+data: {"type":"INPUT","assistantId":"20240730182406-O5axmW","taskId":"473437403600650240","assistantName":"未命名 Agent","inputParameters":{"question":"hello","$clientTime":"2024-07-30T10:31:12.726Z"},"messageId":"473437403600650240"}
+
+data: {"type":"INPUT","assistantId":"20240730182406-O5axmW","taskId":"473437403600650240","assistantName":"未命名 Agent","inputParameters":{"question":"hello","$clientTime":"2024-07-30T10:31:12.726Z"},"promptMessages":[{"role":"user","content":"hello"}],"messageId":"473437403600650240"}
+
+data: {"type":"CHUNK","taskId":"473437403600650240","assistantId":"20240730182406-O5axmW","delta":{"content":"Hello"},"messageId":"473437403600650240"}
+
+data: {"type":"CHUNK","taskId":"473437403600650240","assistantId":"20240730182406-O5axmW","delta":{"content":"!"},"messageId":"473437403600650240"}
+
+data: {"type":"CHUNK","taskId":"473437403600650240","assistantId":"20240730182406-O5axmW","delta":{"content":" How"},"messageId":"473437403600650240"}
+
+data: {"type":"CHUNK","taskId":"473437403600650240","assistantId":"20240730182406-O5axmW","delta":{"content":" can"},"messageId":"473437403600650240"}
+
+data: {"type":"CHUNK","taskId":"473437403600650240","assistantId":"20240730182406-O5axmW","delta":{"content":" I"},"messageId":"473437403600650240"}
+
+data: {"type":"CHUNK","taskId":"473437403600650240","assistantId":"20240730182406-O5axmW","delta":{"content":" assist"},"messageId":"473437403600650240"}
+
+data: {"type":"CHUNK","taskId":"473437403600650240","assistantId":"20240730182406-O5axmW","delta":{"content":" you"},"messageId":"473437403600650240"}
+
+data: {"type":"CHUNK","taskId":"473437403600650240","assistantId":"20240730182406-O5axmW","delta":{"content":" today"},"messageId":"473437403600650240"}
+
+data: {"type":"CHUNK","taskId":"473437403600650240","assistantId":"20240730182406-O5axmW","delta":{"content":"?"},"messageId":"473437403600650240"}
+
+data: {"type":"USAGE","taskId":"473437403600650240","assistantId":"20240730182406-O5axmW","usage":{"promptTokens":8,"completionTokens":9,"totalTokens":17},"messageId":"473437403600650240"}
+
+data: {"type":"CHUNK","taskId":"473437403600650240","assistantId":"20240730182406-O5axmW","delta":{"object":{"$text":"Hello! How can I assist you today?"}},"messageId":"473437403600650240"}
+
+data: {"type":"EXECUTE","taskId":"473437403600650240","assistantId":"20240730182406-O5axmW","assistantName":"未命名 Agent","execution":{"currentPhase":"EXECUTE_ASSISTANT_END"},"messageId":"473437403600650240"}
+

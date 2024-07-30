@@ -11,7 +11,6 @@ test('agent name and description', async ({ page }) => {
   await title.click();
   await title.fill('E2E Test');
   await title.press('Enter');
-  console.log('title', title, title.getAttribute('value'));
   expect(await title.getAttribute('value')).toBe('E2E Test');
 
   const description = page.getByTestId('agent-description').locator('textarea').first();
@@ -196,16 +195,17 @@ test('agent debug', async ({ page }) => {
   await input.fill('hello');
 
   const list = page.locator("[data-testid='virtuoso-item-list']>div");
-  const count = await list.count();
-  const responsePromise = page.waitForResponse(
-    (response) => response.url().includes('/ai/call') && response.status() === 200
-  );
-  await page.getByRole('button', { name: 'Execute' }).click();
-  await responsePromise;
-  const newCount = await list.count();
 
-  expect(newCount).toBe(count + 2);
-  await expect(list.last()).toContainText('AI Chat');
+  page.route(/\/api\/ai\/call/, (route) => {
+    route.fulfill({
+      status: 200,
+      contentType: 'text/event-stream',
+      path: 'tests/agent-debug.txt',
+    });
+  });
+
+  await page.getByRole('button', { name: 'Execute' }).click();
+  await expect(list.last()).toContainText('Hello! How can I assist you today?');
 
   // clear session
   await page.getByLabel('Clear current session history').click();
@@ -227,10 +227,16 @@ test('debug tests', async ({ page }) => {
   await input.fill('hello');
   await page.getByRole('button', { name: 'Save as test case' }).click();
 
-  const firstCase = page.locator('test-case').first();
-  const responsePromise = page.waitForResponse(/\/ai\/call/);
+  const firstCase = page.locator('.test-case').first();
+  page.route(/\/api\/ai\/call/, (route) => {
+    route.fulfill({
+      status: 200,
+      contentType: 'text/event-stream',
+      path: 'tests/agent-debug.txt',
+    });
+  });
   await firstCase.getByTestId('run-test').first().click();
-  await responsePromise;
+  expect(firstCase).toContainText('Hello! How can I assist you today?');
 });
 
 test('collaboration', async ({ page }) => {
