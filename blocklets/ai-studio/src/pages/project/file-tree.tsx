@@ -128,7 +128,7 @@ const FileTree = forwardRef<
   const navigate = useNavigate();
   const { dialog, showDialog } = useDialog();
 
-  const { store, synced, config, setConfig } = useProjectStore(projectId, gitRef);
+  const { store, synced, config } = useProjectStore(projectId, gitRef);
   const { deleted, changes, getOriginTemplate } = useAssistantChangesState(projectId, gitRef);
   const dialogState = usePopupState({ variant: 'dialog' });
   const [compareAssistant, setCompareAssistant] = useState('');
@@ -156,9 +156,7 @@ const FileTree = forwardRef<
     (options: Partial<Omit<Parameters<ReturnType<typeof useCreateFile>>[0], 'store'>> = {}) => {
       const { filepath, file } = createFile({ ...options, store });
       if (!store.files[config?.entry!]) {
-        setConfig((config) => {
-          config.entry = file.id;
-        });
+        config.entry = file.id;
       }
 
       const { parent } = options;
@@ -483,9 +481,7 @@ const FileTree = forwardRef<
                     });
                   }}
                   onSetAsEntry={(assistant) => {
-                    setConfig((config) => {
-                      config.entry = assistant.id;
-                    });
+                    config.entry = assistant.id;
                   }}
                 />
               );

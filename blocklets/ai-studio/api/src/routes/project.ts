@@ -30,7 +30,7 @@ import omit from 'lodash/omit';
 import omitBy from 'lodash/omitBy';
 import pick from 'lodash/pick';
 import uniqBy from 'lodash/uniqBy';
-import { joinURL, parseAuth, parseURL } from 'ufo';
+import { parseAuth, parseURL } from 'ufo';
 import { parse } from 'yaml';
 
 import { getProjectFromResource, getResourceProjects } from '../libs/resource';
@@ -42,15 +42,13 @@ import {
 import Project, { nextProjectId } from '../store/models/project';
 import {
   ASSETS_DIR,
-  CONFIG_FILENAME,
-  CONFIG_FILE_KEY,
-  CONFIG_FOLDER,
+  CONFIG_FILE_PATH,
+  CRON_CONFIG_FILE_PATH,
   LOGO_FILENAME,
-  OLD_SETTINGS_FILE,
+  OLD_PROJECT_FILE_PATH,
+  PROJECT_FILE_PATH,
   ProjectRepo,
-  SETTINGS_FILE,
-  VARIABLE_FILENAME,
-  VARIABLE_KEY,
+  VARIABLE_FILE_PATH,
   autoSyncIfNeeded,
   defaultBranch,
   defaultRemote,
@@ -274,7 +272,7 @@ export function projectRoutes(router: Router) {
         const branches = await repository.listBranches();
 
         const working = await repository.working({ ref: project.gitDefaultBranch });
-        const projectSetting = working.syncedStore.files[SETTINGS_FILE] as ProjectSettings | undefined;
+        const projectSetting = working.syncedStore.files[PROJECT_FILE_PATH] as ProjectSettings | undefined;
 
         const users = await getAuthorsOfProject({
           projectId: project.id,
@@ -413,12 +411,12 @@ export function projectRoutes(router: Router) {
     const repo = await ProjectRepo.load({ projectId });
     if (query.working) {
       const w = await repo.working({ ref: query.projectRef || project.gitDefaultBranch || defaultBranch });
-      settings = w.syncedStore.files[SETTINGS_FILE] as ProjectSettings;
+      settings = w.syncedStore.files[PROJECT_FILE_PATH] as ProjectSettings;
     } else {
       try {
         const { blob } = await repo.readBlob({
           ref: project.gitDefaultBranch || defaultBranch,
-          filepath: SETTINGS_FILE,
+          filepath: PROJECT_FILE_PATH,
         });
         const str = Buffer.from(blob).toString();
         settings = parse(str);
@@ -616,8 +614,8 @@ export function projectRoutes(router: Router) {
             Buffer.from(
               (
                 await git
-                  .readBlob({ fs, gitdir, oid, filepath: SETTINGS_FILE })
-                  .catch(() => git.readBlob({ fs, gitdir, oid, filepath: OLD_SETTINGS_FILE }))
+                  .readBlob({ fs, gitdir, oid, filepath: PROJECT_FILE_PATH })
+                  .catch(() => git.readBlob({ fs, gitdir, oid, filepath: OLD_PROJECT_FILE_PATH }))
               ).blob
             ).toString()
           )
@@ -658,12 +656,12 @@ export function projectRoutes(router: Router) {
               await repository
                 .readBlob({
                   ref: originDefaultBranch!,
-                  filepath: SETTINGS_FILE,
+                  filepath: PROJECT_FILE_PATH,
                 })
                 .catch(() =>
                   repository.readBlob({
                     ref: originDefaultBranch!,
-                    filepath: OLD_SETTINGS_FILE,
+                    filepath: OLD_PROJECT_FILE_PATH,
                   })
                 )
             ).blob
@@ -721,7 +719,7 @@ export function projectRoutes(router: Router) {
     if (!isNil(name) || !isNil(description)) {
       const repository = await getRepository({ projectId });
       const working = await repository.working({ ref: project.gitDefaultBranch });
-      const projectSetting = working.syncedStore.files[SETTINGS_FILE] as ProjectSettings | undefined;
+      const projectSetting = working.syncedStore.files[PROJECT_FILE_PATH] as ProjectSettings | undefined;
       if (projectSetting) {
         if (!isNil(name)) projectSetting.name = name;
         if (!isNil(description)) projectSetting.description = description;
@@ -959,7 +957,7 @@ export function projectRoutes(router: Router) {
       const repo = await getRepository({ projectId });
 
       const working = await repo.working({ ref });
-      const settings = working.syncedStore.files[SETTINGS_FILE];
+      const settings = working.syncedStore.files[PROJECT_FILE_PATH];
 
       const agent = await getAssistantFromRepository({
         repository: repo,
@@ -1132,8 +1130,8 @@ async function copyProject({
   const workingDir = join(dirname(repo.root), `${project.id}.cooperative/${defaultBranch}/working`);
   await copyRecursive(srcWorking.workingDir, workingDir);
   const working = await repo.working({ ref: defaultBranch });
-  working.syncedStore.files[SETTINGS_FILE] ??= {};
-  const settings = working.syncedStore.files[SETTINGS_FILE] as ProjectSettings;
+  working.syncedStore.files[PROJECT_FILE_PATH] ??= {};
+  const settings = working.syncedStore.files[PROJECT_FILE_PATH] as ProjectSettings;
   Object.assign(settings, await projectSettingsSchema.validateAsync(project.dataValues));
   await working.commit({
     ref: defaultBranch,
@@ -1201,13 +1199,16 @@ async function createProjectFromTemplate(
     working.syncedStore.tree[id] = parent.concat(`${id}.yaml`).join('/');
   }
 
-  working.syncedStore.tree[VARIABLE_KEY] = joinURL(CONFIG_FOLDER, VARIABLE_FILENAME);
-  working.syncedStore.files[VARIABLE_KEY] = {
-    type: 'variables',
+  working.syncedStore.tree[VARIABLE_FILE_PATH] = VARIABLE_FILE_PATH;
+  working.syncedStore.files[VARIABLE_FILE_PATH] = {
     variables: (template.memory?.variables ?? []).map(variableToYjs),
   };
-  working.syncedStore.tree[CONFIG_FILE_KEY] = joinURL(CONFIG_FOLDER, CONFIG_FILENAME);
-  working.syncedStore.files[CONFIG_FILE_KEY] = template.config || {};
+
+  working.syncedStore.tree[CONFIG_FILE_PATH] = CONFIG_FILE_PATH;
+  working.syncedStore.files[CONFIG_FILE_PATH] = template.config || {};
+
+  working.syncedStore.tree[CRON_CONFIG_FILE_PATH] = CRON_CONFIG_FILE_PATH;
+  working.syncedStore.files[CRON_CONFIG_FILE_PATH] = template.cronConfig || {};
 
   const assetsDir = join(working.workingDir, 'assets/');
   await mkdir(assetsDir, { recursive: true });

@@ -12,7 +12,6 @@ export enum OnTaskCompletion {
 }
 
 export type Variables = {
-  type: 'variables';
   variables?: Variable[];
 };
 
@@ -20,7 +19,20 @@ export type ConfigFile = {
   entry?: string;
 };
 
-export type FileType = Assistant | Variables | ConfigFile | ProjectSettings | { $base64: string };
+export interface CronJob {
+  id: string;
+  name?: string;
+  cronExpression?: string;
+  enable?: boolean;
+  agentId?: string;
+  inputs?: { [key: string]: any };
+}
+
+export type CronConfigFile = {
+  jobs?: CronJob[];
+};
+
+export type FileType = Assistant | Variables | ConfigFile | ProjectSettings | CronConfigFile | { $base64: string };
 
 export type Assistant =
   | Agent

@@ -9,6 +9,7 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import {
   AssistantYjs,
   ConfigFileYjs,
+  CronConfigFileYjs,
   ExecuteBlock,
   FileTypeYjs,
   ProjectSettings,
@@ -488,7 +489,12 @@ export function AgentItemView({
 type ToolDialogForm = NonNullable<RouterAssistant['routes']>[number];
 type Option = {
   id: NonNullable<RouterAssistant['routes']>[number]['id'];
-  type: Exclude<FileTypeYjs, { $base64: string } | VariablesYjs | ProjectSettings | ConfigFileYjs>['type'] | string;
+  type:
+    | Exclude<
+        FileTypeYjs,
+        { $base64: string } | VariablesYjs | ProjectSettings | ConfigFileYjs | CronConfigFileYjs
+      >['type']
+    | string;
   name?: any;
   from?: NonNullable<RouterAssistant['routes']>[number]['from'];
   fromText?: string;

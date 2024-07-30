@@ -471,13 +471,13 @@ importers:
         version: 5.0.2(react@18.3.1)
       '@langchain/community':
         specifier: ^0.2.21
-        version: 0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0))(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0)
+        version: 0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)))(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0)
       '@langchain/core':
         specifier: ^0.2.18
-        version: 0.2.18(langchain@0.2.11(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0))(@langchain/community@0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0))(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(openai@4.53.2(encoding@0.1.13))
+        version: 0.2.18(langchain@0.2.11(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)))(@langchain/community@0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)))(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(openai@4.53.2(encoding@0.1.13))
       '@langchain/openai':
         specifier: ^0.2.5
-        version: 0.2.5(encoding@0.1.13)(langchain@0.2.11(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0))(@langchain/community@0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0))(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))
+        version: 0.2.5(encoding@0.1.13)(langchain@0.2.11(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)))(@langchain/community@0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)))(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))
       '@microsoft/fetch-event-source':
         specifier: ^2.0.1
         version: 2.0.1
@@ -504,7 +504,7 @@ importers:
         version: 7.11.1(@emotion/react@11.13.0(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.0(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/material@5.16.5(@emotion/react@11.13.0(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.0(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@mui/x-date-pickers':
         specifier: ^7.11.1
-        version: 7.11.1(@emotion/react@11.13.0(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.0(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/material@5.16.5(@emotion/react@11.13.0(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.0(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.3)(dayjs@1.11.12)(luxon@3.3.0)(moment@2.30.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        version: 7.11.1(@emotion/react@11.13.0(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.0(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/material@5.16.5(@emotion/react@11.13.0(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.0(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.3)(dayjs@1.11.12)(luxon@3.4.4)(moment@2.30.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@nedb/core':
         specifier: ^2.1.5
         version: 2.1.5
@@ -621,7 +621,7 @@ importers:
         version: 1.1.1
       langchain:
         specifier: ^0.2.11
-        version: 0.2.11(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0))(@langchain/community@0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0))(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0)
+        version: 0.2.11(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)))(@langchain/community@0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)))(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0)
       localforage:
         specifier: ^1.10.0
         version: 1.10.0
@@ -700,6 +700,9 @@ importers:
       react-infinite-scroll-hook:
         specifier: ^4.1.1
         version: 4.1.1(react@18.3.1)
+      react-js-cron:
+        specifier: ^5.0.1
+        version: 5.0.1(antd@5.19.4(luxon@3.4.4)(moment@2.30.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react-qr-code:
         specifier: ^2.0.15
         version: 2.0.15(react@18.3.1)
@@ -936,6 +939,9 @@ importers:
       axios:
         specifier: ^1.7.2
         version: 1.7.2(debug@4.3.6)
+      cron:
+        specifier: ^3.1.7
+        version: 3.1.7
       crypto:
         specifier: ^1.0.1
         version: 1.0.1
@@ -1427,6 +1433,36 @@ packages:
   '@ampproject/remapping@2.3.0':
     resolution: {integrity: sha512-30iZtAPgz+LTIYoeivqYo853f02jBYSd5uGnGpkFV0M3xOt9aN73erkgYAmZU43x4VfqcnLxW9Kpg3R5LC4YYw==}
     engines: {node: '>=6.0.0'}
+
+  '@ant-design/colors@7.1.0':
+    resolution: {integrity: sha512-MMoDGWn1y9LdQJQSHiCC20x3uZ3CwQnv9QMz6pCmJOrqdgM9YxsoVVY0wtrdXbmfSgnV0KNk6zi09NAhMR2jvg==}
+
+  '@ant-design/cssinjs-utils@1.0.3':
+    resolution: {integrity: sha512-BrztZZKuoYcJK8uEH40ylBemf/Mu/QPiDos56g2bv6eUoniQkgQHOCOvA3+pncoFO1TaS8xcUCIqGzDA0I+ZVQ==}
+    peerDependencies:
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  '@ant-design/cssinjs@1.21.0':
+    resolution: {integrity: sha512-gIilraPl+9EoKdYxnupxjHB/Q6IHNRjEXszKbDxZdsgv4sAZ9pjkCq8yanDWNvyfjp4leir2OVAJm0vxwKK8YA==}
+    peerDependencies:
+      react: '>=16.0.0'
+      react-dom: '>=16.0.0'
+
+  '@ant-design/icons-svg@4.4.2':
+    resolution: {integrity: sha512-vHbT+zJEVzllwP+CM+ul7reTEfBR0vgxFe7+lREAsAA7YGsYpboiq2sQNeQeRvh09GfQgs/GyFEvZpJ9cLXpXA==}
+
+  '@ant-design/icons@5.4.0':
+    resolution: {integrity: sha512-QZbWC5xQYexCI5q4/fehSEkchJr5UGtvAJweT743qKUQQGs9IH2DehNLP49DJ3Ii9m9CijD2HN6fNy3WKhIFdA==}
+    engines: {node: '>=8'}
+    peerDependencies:
+      react: '>=16.0.0'
+      react-dom: '>=16.0.0'
+
+  '@ant-design/react-slick@1.1.2':
+    resolution: {integrity: sha512-EzlvzE6xQUBrZuuhSAFTdsr4P2bBBHGZwKFemEfq8gIGyIQCxalYfZW/T2ORbtQx5rU69o+WycP3exY/7T1hGA==}
+    peerDependencies:
+      react: '>=16.9.0'
 
   '@apidevtools/json-schema-ref-parser@9.1.2':
     resolution: {integrity: sha512-r1w81DpR+KyRWd3f+rk6TNqMgedmAxZP5v5KWlXQWlgMUUtyEJch0DKEci1SorPMiSeM8XPl7MZ3miJ60JIpQg==}
@@ -2102,6 +2138,10 @@ packages:
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
     engines: {node: '>=12'}
 
+  '@ctrl/tinycolor@3.6.1':
+    resolution: {integrity: sha512-SITSV6aIXsuVNV3f3O0f2n/cgyEDWoSqtZMYiAmcsYHydcKrOz3gUxB/iXd/Qf08+IZX4KpgNbvUdMBmWz+kcA==}
+    engines: {node: '>=10'}
+
   '@dabh/diagnostics@2.0.3':
     resolution: {integrity: sha512-hrlQOIi7hAfzsMqlGSFyVucrx38O+j6wiGOf//H2ecvIEqYN4ADBSS2iLMh5UFyDunCNniUIPk/q3riFv45xRA==}
 
@@ -2131,6 +2171,9 @@ packages:
 
   '@emotion/css@11.13.0':
     resolution: {integrity: sha512-BUk99ylT+YHl+W/HN7nv1RCTkDYmKKqa1qbvM/qLSQEg61gipuBF5Hptk/2/ERmX2DCv0ccuFGhz9i0KSZOqPg==}
+
+  '@emotion/hash@0.8.0':
+    resolution: {integrity: sha512-kBJtf7PH6aWwZ6fka3zQ0p6SBYzx4fl1LoZXE2RrnYST9Xljm7WfKJrU4g/Xr3Beg72MLrp1AWNUmuYJTL7Cow==}
 
   '@emotion/hash@0.9.2':
     resolution: {integrity: sha512-MyqliTZGuOm3+5ZRSaaBGP3USLw6+EGykkwZns2EPC5g8jJ4z9OrdZY9apkl3+UP9+sdz76YYkwCKP5gh8iY3g==}
@@ -2171,6 +2214,9 @@ packages:
     peerDependenciesMeta:
       '@types/react':
         optional: true
+
+  '@emotion/unitless@0.7.5':
+    resolution: {integrity: sha512-OWORNpfjMsSSUBVrRBVGECkhWcULOAJz9ZW8uK9qgxD+87M7jHRcvh/A96XXNhXTLmKcoYSQtBEX7lHMO7YRwg==}
 
   '@emotion/unitless@0.9.0':
     resolution: {integrity: sha512-TP6GgNZtmtFaFcsOgExdnfxLLpRDla4Q66tnenA9CktvVSdNKDvMVuUah4QvWPIpNjrWsGg3qeGo9a43QooGZQ==}
@@ -3603,6 +3649,61 @@ packages:
   '@protobufjs/utf8@1.1.0':
     resolution: {integrity: sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw==}
 
+  '@rc-component/async-validator@5.0.4':
+    resolution: {integrity: sha512-qgGdcVIF604M9EqjNF0hbUTz42bz/RDtxWdWuU5EQe3hi7M8ob54B6B35rOsvX5eSvIHIzT9iH1R3n+hk3CGfg==}
+    engines: {node: '>=14.x'}
+
+  '@rc-component/color-picker@1.5.3':
+    resolution: {integrity: sha512-+tGGH3nLmYXTalVe0L8hSZNs73VTP5ueSHwUlDC77KKRaN7G4DS4wcpG5DTDzdcV/Yas+rzA6UGgIyzd8fS4cw==}
+    peerDependencies:
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  '@rc-component/context@1.4.0':
+    resolution: {integrity: sha512-kFcNxg9oLRMoL3qki0OMxK+7g5mypjgaaJp/pkOis/6rVxma9nJBF/8kCIuTYHUQNr0ii7MxqE33wirPZLJQ2w==}
+    peerDependencies:
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  '@rc-component/mini-decimal@1.1.0':
+    resolution: {integrity: sha512-jS4E7T9Li2GuYwI6PyiVXmxTiM6b07rlD9Ge8uGZSCz3WlzcG5ZK7g5bbuKNeZ9pgUuPK/5guV781ujdVpm4HQ==}
+    engines: {node: '>=8.x'}
+
+  '@rc-component/mutate-observer@1.1.0':
+    resolution: {integrity: sha512-QjrOsDXQusNwGZPf4/qRQasg7UFEj06XiCJ8iuiq/Io7CrHrgVi6Uuetw60WAMG1799v+aM8kyc+1L/GBbHSlw==}
+    engines: {node: '>=8.x'}
+    peerDependencies:
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  '@rc-component/portal@1.1.2':
+    resolution: {integrity: sha512-6f813C0IsasTZms08kfA8kPAGxbbkYToa8ALaiDIGGECU4i9hj8Plgbx0sNJDrey3EtHO30hmdaxtT0138xZcg==}
+    engines: {node: '>=8.x'}
+    peerDependencies:
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  '@rc-component/qrcode@1.0.0':
+    resolution: {integrity: sha512-L+rZ4HXP2sJ1gHMGHjsg9jlYBX/SLN2D6OxP9Zn3qgtpMWtO2vUfxVFwiogHpAIqs54FnALxraUy/BCO1yRIgg==}
+    engines: {node: '>=8.x'}
+    peerDependencies:
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  '@rc-component/tour@1.15.0':
+    resolution: {integrity: sha512-h6hyILDwL+In9GAgRobwRWihLqqsD7Uft3fZGrJ7L4EiyCoxbnNYwzPXDfz7vNDhWeVyvAWQJj9fJCzpI4+b4g==}
+    engines: {node: '>=8.x'}
+    peerDependencies:
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  '@rc-component/trigger@2.2.0':
+    resolution: {integrity: sha512-QarBCji02YE9aRFhZgRZmOpXBj0IZutRippsVBv85sxvG4FGk/vRxwAlkn3MS9zK5mwbETd86mAVg2tKqTkdJA==}
+    engines: {node: '>=8.x'}
+    peerDependencies:
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
   '@react-dnd/asap@5.0.2':
     resolution: {integrity: sha512-WLyfoHvxhs0V9U+GTsGilGgf2QsPl6ZZ44fnv0/b8T3nQyvzxidxsg/ZltbWssbsRDlYW8UKSQMTGotuTotZ6A==}
 
@@ -4303,6 +4404,9 @@ packages:
   '@types/luxon@3.3.8':
     resolution: {integrity: sha512-jYvz8UMLDgy3a5SkGJne8H7VA7zPV2Lwohjx0V8V31+SqAjNmurWMkk9cQhfvlcnXWudBpK9xPM1n4rljOcHYQ==}
 
+  '@types/luxon@3.4.2':
+    resolution: {integrity: sha512-TifLZlFudklWlMBfhubvgqTXRzLDI5pCbGa4P8a3wPyUQSW+1xQ5eDsreP9DWHX3tjq1ke96uYG/nwundroWcA==}
+
   '@types/mdast@3.0.15':
     resolution: {integrity: sha512-LnwD+mUEfxWMa1QpDraczIn6k0Ee3SMicuYSSzS6ZYl2gKS09EClnJYGd8Du6rfc5r/GZEk5o1mRb8TaTj03sQ==}
 
@@ -4827,6 +4931,12 @@ packages:
     resolution: {integrity: sha512-bN798gFfQX+viw3R7yrGWRqnrN2oRkEkUjjl4JNn4E8GxxbjtG3FbrEIIY3l8/hrwUwIeCZvi4QuOTP4MErVug==}
     engines: {node: '>=12'}
 
+  antd@5.19.4:
+    resolution: {integrity: sha512-bhSNzeScfaeN85LrQXZh5fD26y6uB+6c5cgoPUmW7lkC5oDN4mnT04yYcpqHpZD8p227AmycE+ZrcnilJH9log==}
+    peerDependencies:
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
   anymatch@3.1.3:
     resolution: {integrity: sha512-KMReFUr0B4t+D+OBkjR3KYqvocp2XaSzO55UcB6mgQMd3KbcE+mWTyvVV7D/zsdEbNnV6acZUutkiHQXvTr1Rw==}
     engines: {node: '>= 8'}
@@ -4887,6 +4997,9 @@ packages:
   array-includes@3.1.8:
     resolution: {integrity: sha512-itaWrbYbqpGXkGhZPGUulwnhVf5Hpy1xiCFsGqyIGglbBxmG5vSjxQen3/WGOjPpNEv1RtBLKxbmVXm8HpJStQ==}
     engines: {node: '>= 0.4'}
+
+  array-tree-filter@2.1.0:
+    resolution: {integrity: sha512-4ROwICNlNw/Hqa9v+rk5h22KjmzB1JGTMVKP2AKJBOCgb0yL0ASf0+YvCcLNNwquOHNX48jkeZIJ3a+oOQqKcw==}
 
   array-union@2.1.0:
     resolution: {integrity: sha512-HGyxoOTYUyCM6stUe6EJgnd4EoewAI7zMdfqO+kGjnlZmBDz/cR5pf8r/cR4Wq60sL/p0IkcjUEEPwS3GFrIyw==}
@@ -5571,6 +5684,9 @@ packages:
     resolution: {integrity: sha512-jaSIDzP9pZVS4ZfQ+TzvtiWhdpFhE2RDHz8QJkpX9SIpLq88VueF5jJw6t+6CUQcAoA6t+x89MLrWAqpfDE8iQ==}
     engines: {node: '>= 0.8.0'}
 
+  compute-scroll-into-view@3.1.0:
+    resolution: {integrity: sha512-rj8l8pD4bJ1nx+dAkMhV1xB5RuZEyVysfxJqB1pRchh1KVvwOv9b7CGB8ZfjTImVv2oF+sYMUkMZq6Na5Ftmbg==}
+
   concat-map@0.0.1:
     resolution: {integrity: sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==}
 
@@ -5754,6 +5870,9 @@ packages:
 
   cron@2.4.4:
     resolution: {integrity: sha512-MHlPImXJj3K7x7lyUHjtKEOl69CSlTOWxS89jiFgNkzXfvhVjhMz/nc7/EIfN9vgooZp8XTtXJ1FREdmbyXOiQ==}
+
+  cron@3.1.7:
+    resolution: {integrity: sha512-tlBg7ARsAMQLzgwqVxy8AZl/qlTc5nibqYwtNGoCrd+cV+ugI+tvZC1oT/8dFH8W455YrywGykx/KMmAqOr7Jw==}
 
   cropperjs@1.5.7:
     resolution: {integrity: sha512-sGj+G/ofKh+f6A4BtXLJwtcKJgMUsXYVUubfTo9grERiDGXncttefmue/fyQFvn8wfdyoD1KhDRYLfjkJFl0yw==}
@@ -8025,6 +8144,9 @@ packages:
   json-stringify-safe@5.0.1:
     resolution: {integrity: sha512-ZClg6AaYvamvYEE82d3Iyd3vSSIjQ+odgjaTzRuO3s7toCdFKczob2i0zCh7JE8kWn17yvAWhUVxvqGwUalsRA==}
 
+  json2mq@0.2.0:
+    resolution: {integrity: sha512-SzoRg7ux5DWTII9J2qkrZrqV1gt+rTaoufMxEzXbS26Uid0NwaJd123HcoB80TgubEppxxIGdNxCx50fEoEWQA==}
+
   json5@1.0.2:
     resolution: {integrity: sha512-g1MWMLBiz8FKi1e4w0UyVL3w+iJceWAFBAaBnnGKOpNa5f8TLktkbre1+s6oICydWAm+HRUGTmI+//xv2hvXYA==}
     hasBin: true
@@ -8627,6 +8749,10 @@ packages:
 
   luxon@3.3.0:
     resolution: {integrity: sha512-An0UCfG/rSiqtAIiBPO0Y9/zAnHUZxAMiCpTd5h2smgsj7GGmcenvrvww2cqNA8/4A5ZrD1gJpHN2mIHZQF+Mg==}
+    engines: {node: '>=12'}
+
+  luxon@3.4.4:
+    resolution: {integrity: sha512-zobTr7akeGHnv7eBOXcRgMeCP6+uyYsczwmeRCauvpvaAltgNyTbLH/+VaEAPUeWBT+1GuNmz4wC/6jtQzbbVA==}
     engines: {node: '>=12'}
 
   lz-string@1.5.0:
@@ -10255,6 +10381,234 @@ packages:
     resolution: {integrity: sha512-8zGqypfENjCIqGhgXToC8aB2r7YrBX+AQAfIPs/Mlk+BtPTztOvTS01NRW/3Eh60J+a48lt8qsCzirQ6loCVfA==}
     engines: {node: '>= 0.8'}
 
+  rc-cascader@3.27.0:
+    resolution: {integrity: sha512-z5uq8VvQadFUBiuZJ7YF5UAUGNkZtdEtcEYiIA94N/Kc2MIKr6lEbN5HyVddvYSgwWlKqnL6pH5bFXFuIK3MNg==}
+    peerDependencies:
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  rc-checkbox@3.3.0:
+    resolution: {integrity: sha512-Ih3ZaAcoAiFKJjifzwsGiT/f/quIkxJoklW4yKGho14Olulwn8gN7hOBve0/WGDg5o/l/5mL0w7ff7/YGvefVw==}
+    peerDependencies:
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  rc-collapse@3.7.3:
+    resolution: {integrity: sha512-60FJcdTRn0X5sELF18TANwtVi7FtModq649H11mYF1jh83DniMoM4MqY627sEKRCTm4+WXfGDcB7hY5oW6xhyw==}
+    peerDependencies:
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  rc-dialog@9.5.2:
+    resolution: {integrity: sha512-qVUjc8JukG+j/pNaHVSRa2GO2/KbV2thm7yO4hepQ902eGdYK913sGkwg/fh9yhKYV1ql3BKIN2xnud3rEXAPw==}
+    peerDependencies:
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  rc-drawer@7.2.0:
+    resolution: {integrity: sha512-9lOQ7kBekEJRdEpScHvtmEtXnAsy+NGDXiRWc2ZVC7QXAazNVbeT4EraQKYwCME8BJLa8Bxqxvs5swwyOepRwg==}
+    peerDependencies:
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  rc-dropdown@4.2.0:
+    resolution: {integrity: sha512-odM8Ove+gSh0zU27DUj5cG1gNKg7mLWBYzB5E4nNLrLwBmYEgYP43vHKDGOVZcJSVElQBI0+jTQgjnq0NfLjng==}
+    peerDependencies:
+      react: '>=16.11.0'
+      react-dom: '>=16.11.0'
+
+  rc-field-form@2.2.1:
+    resolution: {integrity: sha512-uoNqDoR7A4tn4QTSqoWPAzrR7ZwOK5I+vuZ/qdcHtbKx+ZjEsTg7QXm2wk/jalDiSksAQmATxL0T5LJkRREdIA==}
+    engines: {node: '>=8.x'}
+    peerDependencies:
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  rc-image@7.9.0:
+    resolution: {integrity: sha512-l4zqO5E0quuLMCtdKfBgj4Suv8tIS011F5k1zBBlK25iMjjiNHxA0VeTzGFtUZERSA45gvpXDg8/P6qNLjR25g==}
+    peerDependencies:
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  rc-input-number@9.1.0:
+    resolution: {integrity: sha512-NqJ6i25Xn/AgYfVxynlevIhX3FuKlMwIFpucGG1h98SlK32wQwDK0zhN9VY32McOmuaqzftduNYWWooWz8pXQA==}
+    peerDependencies:
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  rc-input@1.5.1:
+    resolution: {integrity: sha512-+nOzQJDeIfIpNP/SgY45LXSKbuMlp4Yap2y8c+ZpU7XbLmNzUd6+d5/S75sA/52jsVE6S/AkhkkDEAOjIu7i6g==}
+    peerDependencies:
+      react: '>=16.0.0'
+      react-dom: '>=16.0.0'
+
+  rc-mentions@2.14.0:
+    resolution: {integrity: sha512-qKR59FMuF8PK4ZqsbWX3UuA5P1M/snzyqV6Yt3y1DCFbCEdqUGIBgQp6vEfLCO6Z0RoRFlzXtCeSlBTcDDpg1A==}
+    peerDependencies:
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  rc-menu@9.14.1:
+    resolution: {integrity: sha512-5wlRb3M8S4yGlWhSoEYJ7ZVRElyScdcpUHxgiLxkeig1tEdyKrnED3B2fhpN0Rrpdp9jyhnmZR/Lwq2fH5VvDQ==}
+    peerDependencies:
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  rc-motion@2.9.2:
+    resolution: {integrity: sha512-fUAhHKLDdkAXIDLH0GYwof3raS58dtNUmzLF2MeiR8o6n4thNpSDQhOqQzWE4WfFZDCi9VEN8n7tiB7czREcyw==}
+    peerDependencies:
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  rc-notification@5.6.0:
+    resolution: {integrity: sha512-TGQW5T7waOxLwgJG7fXcw8l7AQiFOjaZ7ISF5PrU526nunHRNcTMuzKihQHaF4E/h/KfOCDk3Mv8eqzbu2e28w==}
+    engines: {node: '>=8.x'}
+    peerDependencies:
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  rc-overflow@1.3.2:
+    resolution: {integrity: sha512-nsUm78jkYAoPygDAcGZeC2VwIg/IBGSodtOY3pMof4W3M9qRJgqaDYm03ZayHlde3I6ipliAxbN0RUcGf5KOzw==}
+    peerDependencies:
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  rc-pagination@4.2.0:
+    resolution: {integrity: sha512-V6qeANJsT6tmOcZ4XiUmj8JXjRLbkusuufpuoBw2GiAn94fIixYjFLmbruD1Sbhn8fPLDnWawPp4CN37zQorvw==}
+    peerDependencies:
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  rc-picker@4.6.10:
+    resolution: {integrity: sha512-wNtbwAalqqSmBco+VSxU0ggR9YgvdzdMUTm9bFYn+l3hXmAFyFikBN8xN/iSn3Bwdf6chhh+ANOZKEEIBiq/Fw==}
+    engines: {node: '>=8.x'}
+    peerDependencies:
+      date-fns: '>= 2.x'
+      dayjs: '>= 1.x'
+      luxon: '>= 3.x'
+      moment: '>= 2.x'
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+    peerDependenciesMeta:
+      date-fns:
+        optional: true
+      dayjs:
+        optional: true
+      luxon:
+        optional: true
+      moment:
+        optional: true
+
+  rc-progress@4.0.0:
+    resolution: {integrity: sha512-oofVMMafOCokIUIBnZLNcOZFsABaUw8PPrf1/y0ZBvKZNpOiu5h4AO9vv11Sw0p4Hb3D0yGWuEattcQGtNJ/aw==}
+    peerDependencies:
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  rc-rate@2.13.0:
+    resolution: {integrity: sha512-oxvx1Q5k5wD30sjN5tqAyWTvJfLNNJn7Oq3IeS4HxWfAiC4BOXMITNAsw7u/fzdtO4MS8Ki8uRLOzcnEuoQiAw==}
+    engines: {node: '>=8.x'}
+    peerDependencies:
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  rc-resize-observer@1.4.0:
+    resolution: {integrity: sha512-PnMVyRid9JLxFavTjeDXEXo65HCRqbmLBw9xX9gfC4BZiSzbLXKzW3jPz+J0P71pLbD5tBMTT+mkstV5gD0c9Q==}
+    peerDependencies:
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  rc-segmented@2.3.0:
+    resolution: {integrity: sha512-I3FtM5Smua/ESXutFfb8gJ8ZPcvFR+qUgeeGFQHBOvRiRKyAk4aBE5nfqrxXx+h8/vn60DQjOt6i4RNtrbOobg==}
+    peerDependencies:
+      react: '>=16.0.0'
+      react-dom: '>=16.0.0'
+
+  rc-select@14.15.1:
+    resolution: {integrity: sha512-mGvuwW1RMm1NCSI8ZUoRoLRK51R2Nb+QJnmiAvbDRcjh2//ulCkxeV6ZRFTECPpE1t2DPfyqZMPw90SVJzQ7wQ==}
+    engines: {node: '>=8.x'}
+    peerDependencies:
+      react: '*'
+      react-dom: '*'
+
+  rc-slider@10.6.2:
+    resolution: {integrity: sha512-FjkoFjyvUQWcBo1F3RgSglky3ar0+qHLM41PlFVYB4Bj3RD8E/Mv7kqMouLFBU+3aFglMzzctAIWRwajEuueSw==}
+    engines: {node: '>=8.x'}
+    peerDependencies:
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  rc-steps@6.0.1:
+    resolution: {integrity: sha512-lKHL+Sny0SeHkQKKDJlAjV5oZ8DwCdS2hFhAkIjuQt1/pB81M0cA0ErVFdHq9+jmPmFw1vJB2F5NBzFXLJxV+g==}
+    engines: {node: '>=8.x'}
+    peerDependencies:
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  rc-switch@4.1.0:
+    resolution: {integrity: sha512-TI8ufP2Az9oEbvyCeVE4+90PDSljGyuwix3fV58p7HV2o4wBnVToEyomJRVyTaZeqNPAp+vqeo4Wnj5u0ZZQBg==}
+    peerDependencies:
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  rc-table@7.45.7:
+    resolution: {integrity: sha512-wi9LetBL1t1csxyGkMB2p3mCiMt+NDexMlPbXHvQFmBBAsMxrgNSAPwUci2zDLUq9m8QdWc1Nh8suvrpy9mXrg==}
+    engines: {node: '>=8.x'}
+    peerDependencies:
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  rc-tabs@15.1.1:
+    resolution: {integrity: sha512-Tc7bJvpEdkWIVCUL7yQrMNBJY3j44NcyWS48jF/UKMXuUlzaXK+Z/pEL5LjGcTadtPvVmNqA40yv7hmr+tCOAw==}
+    engines: {node: '>=8.x'}
+    peerDependencies:
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  rc-textarea@1.7.0:
+    resolution: {integrity: sha512-UxizYJkWkmxP3zofXgc487QiGyDmhhheDLLjIWbFtDmiru1ls30KpO8odDaPyqNUIy9ugj5djxTEuezIn6t3Jg==}
+    peerDependencies:
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  rc-tooltip@6.2.0:
+    resolution: {integrity: sha512-iS/3iOAvtDh9GIx1ulY7EFUXUtktFccNLsARo3NPgLf0QW9oT0w3dA9cYWlhqAKmD+uriEwdWz1kH0Qs4zk2Aw==}
+    peerDependencies:
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  rc-tree-select@5.22.1:
+    resolution: {integrity: sha512-b8mAK52xEpRgS+b2PTapCt29GoIrO5cO8jB7AfHttFsIJfcnynY9FCtnYzURsKXJkGHbFY6UzSEB2I3TETtdWg==}
+    peerDependencies:
+      react: '*'
+      react-dom: '*'
+
+  rc-tree@5.8.8:
+    resolution: {integrity: sha512-S+mCMWo91m5AJqjz3PdzKilGgbFm7fFJRFiTDOcoRbD7UfMOPnerXwMworiga0O2XIo383UoWuEfeHs1WOltag==}
+    engines: {node: '>=10.x'}
+    peerDependencies:
+      react: '*'
+      react-dom: '*'
+
+  rc-upload@4.6.0:
+    resolution: {integrity: sha512-Zr0DT1NHw/ApxrP7UAoxOtGaVYuzarrrCVr0ld7RiEFsKX07uFhE1EpCBxwL11ruFn89GMcshOKWp+s6FLyAlA==}
+    peerDependencies:
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  rc-util@5.43.0:
+    resolution: {integrity: sha512-AzC7KKOXFqAdIBqdGWepL9Xn7cm3vnAmjlHqUnoQaTMZYhM4VlXGLkkHHxj/BZ7Td0+SOPKB4RGPboBVKT9htw==}
+    peerDependencies:
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
+  rc-virtual-list@3.14.5:
+    resolution: {integrity: sha512-ZMOnkCLv2wUN8Jz7yI4XiSLa9THlYvf00LuMhb1JlsQCewuU7ydPuHw1rGVPhe9VZYl/5UqODtNd7QKJ2DMGfg==}
+    engines: {node: '>=8.x'}
+    peerDependencies:
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+
   rc9@2.1.2:
     resolution: {integrity: sha512-btXCnMmRIBINM2LDZoEmOogIZU7Qe7zn4BpomSKZ/ykbLObuBdvG+mFq11DL6fjH1DRwHhrlgtYWG96bJiC7Cg==}
 
@@ -10387,6 +10741,13 @@ packages:
 
   react-is@18.3.1:
     resolution: {integrity: sha512-/LLMVyas0ljjAtoYiPqYiL8VWXzUUdThrmU5+n20DZv+a+ClRoevUzw5JxU+Ieh5/c87ytoTBV9G1FiKfNJdmg==}
+
+  react-js-cron@5.0.1:
+    resolution: {integrity: sha512-qHUb/qWeMvXklGW6/hLtH9CjboRU7pu2hHxGGErUDTjHDOLn/b6CZHvVsx/e3ak+UObwf4Y0BHSQJzpn1JpvvA==}
+    peerDependencies:
+      antd: '>=5.8.0'
+      react: '>=17.0.0'
+      react-dom: '>=17.0.0'
 
   react-lazy-with-preload@2.2.1:
     resolution: {integrity: sha512-ONSb8gizLE5jFpdHAclZ6EAAKuFX2JydnFXPPPjoUImZlLjGtKzyBS8SJgJq7CpLgsGKh9QCZdugJyEEOVC16Q==}
@@ -10952,6 +11313,9 @@ packages:
     resolution: {integrity: sha512-9BakfsO2aUQN2K9Fdbj87RJIEZ82Q9IGim7FqM5OsebfoFC6ZHXgDq/KvniuLTPdeM8wY2o6Dj3WQ7KeQCj3cA==}
     engines: {node: '>=0.10.0'}
 
+  scroll-into-view-if-needed@3.1.0:
+    resolution: {integrity: sha512-49oNpRjWRvnU8NyGVmUaYG4jtTkNonFZI86MmGRDqBphEK2EXT9gdEUoQPZhuBM8yWHxCWbobltqYO5M4XrUvQ==}
+
   search-params@3.0.0:
     resolution: {integrity: sha512-8CYNl/bjkEhXWbDTU/K7c2jQtrnqEffIPyOLMqygW/7/b+ym8UtQumcAZjOfMLjZKR6AxK5tOr9fChbQZCzPqg==}
 
@@ -11340,6 +11704,9 @@ packages:
     resolution: {integrity: sha512-aqD2Q0144Z+/RqG52NeHEkZauTAUWJO8c6yTftGJKO3Tja5tUgIfmIl6kExvhtxSDP7fXB6DvzkfMpCd/F3G+Q==}
     engines: {node: '>=0.6.19'}
 
+  string-convert@0.2.1:
+    resolution: {integrity: sha512-u/1tdPl4yQnPBjnVrmdLo9gtuLvELKsAoRapekWggdiQNvvvum+jYF329d84NAa660KQw7pB2n36KrIKVoXa3A==}
+
   string-length@4.0.2:
     resolution: {integrity: sha512-+l6rNN5fYHNhZZy41RXsYptCjA2Igmq4EG7kZAYFQI1E1VTXarr6ZPXBg6eq7Y6eK4FEhY6AJlyuFIb/v/S0VQ==}
     engines: {node: '>=10'}
@@ -11554,6 +11921,10 @@ packages:
   throttle-debounce@3.0.1:
     resolution: {integrity: sha512-dTEWWNu6JmeVXY0ZYoPuH5cRIwc0MeGbJwah9KUNYSJwommQpCzTySTpEe8Gs1J23aeWEuAobe4Ag7EHVt/LOg==}
     engines: {node: '>=10'}
+
+  throttle-debounce@5.0.2:
+    resolution: {integrity: sha512-B71/4oyj61iNH0KeCamLuE2rmKuTO5byTOSVwECM5FA7TiAiAW+UqTKZ9ERueC4qvgSttUhdmq1mXC3kJqGX7A==}
+    engines: {node: '>=12.22'}
 
   through2@2.0.5:
     resolution: {integrity: sha512-/mrRod8xqpA+IHSLyGCQ2s8SPHiCDEeQJSep1jqLYeEUClOFG2Qsh+4FU6G9VeqpZnGW/Su8LQGc4YKni5rYSQ==}
@@ -12514,6 +12885,51 @@ snapshots:
     dependencies:
       '@jridgewell/gen-mapping': 0.3.5
       '@jridgewell/trace-mapping': 0.3.25
+
+  '@ant-design/colors@7.1.0':
+    dependencies:
+      '@ctrl/tinycolor': 3.6.1
+
+  '@ant-design/cssinjs-utils@1.0.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@ant-design/cssinjs': 1.21.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@babel/runtime': 7.24.8
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  '@ant-design/cssinjs@1.21.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@babel/runtime': 7.24.8
+      '@emotion/hash': 0.8.0
+      '@emotion/unitless': 0.7.5
+      classnames: 2.5.1
+      csstype: 3.1.3
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+      stylis: 4.3.2
+
+  '@ant-design/icons-svg@4.4.2': {}
+
+  '@ant-design/icons@5.4.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@ant-design/colors': 7.1.0
+      '@ant-design/icons-svg': 4.4.2
+      '@babel/runtime': 7.24.8
+      classnames: 2.5.1
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  '@ant-design/react-slick@1.1.2(react@18.3.1)':
+    dependencies:
+      '@babel/runtime': 7.24.8
+      classnames: 2.5.1
+      json2mq: 0.2.0
+      react: 18.3.1
+      resize-observer-polyfill: 1.5.1
+      throttle-debounce: 5.0.2
 
   '@apidevtools/json-schema-ref-parser@9.1.2':
     dependencies:
@@ -14447,6 +14863,8 @@ snapshots:
     dependencies:
       '@jridgewell/trace-mapping': 0.3.9
 
+  '@ctrl/tinycolor@3.6.1': {}
+
   '@dabh/diagnostics@2.0.3':
     dependencies:
       colorspace: 1.1.4
@@ -14604,6 +15022,8 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@emotion/hash@0.8.0': {}
+
   '@emotion/hash@0.9.2': {}
 
   '@emotion/is-prop-valid@0.8.8':
@@ -14660,6 +15080,8 @@ snapshots:
       '@types/react': 18.3.3
     transitivePeerDependencies:
       - supports-color
+
+  '@emotion/unitless@0.7.5': {}
 
   '@emotion/unitless@0.9.0': {}
 
@@ -15101,22 +15523,22 @@ snapshots:
 
   '@juggle/resize-observer@3.4.0': {}
 
-  '@langchain/community@0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0))(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0)':
+  '@langchain/community@0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)))(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0)':
     dependencies:
-      '@langchain/core': 0.2.18(langchain@0.2.11(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0))(@langchain/community@0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0))(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(openai@4.53.2(encoding@0.1.13))
-      '@langchain/openai': 0.2.5(encoding@0.1.13)(langchain@0.2.11(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0))(@langchain/community@0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0))(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))
+      '@langchain/core': 0.2.18(langchain@0.2.11(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)))(@langchain/community@0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)))(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(openai@4.53.2(encoding@0.1.13))
+      '@langchain/openai': 0.2.5(encoding@0.1.13)(langchain@0.2.11(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)))(@langchain/community@0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)))(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))
       binary-extensions: 2.3.0
       expr-eval: 2.0.2
       flat: 5.0.2
       js-yaml: 4.1.0
-      langchain: 0.2.11(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0))(@langchain/community@0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0))(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0)
-      langsmith: 0.1.39(3ykqybehgmn4jzpauoor7e3kkq)
+      langchain: 0.2.11(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)))(@langchain/community@0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)))(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0)
+      langsmith: 0.1.39(vmoawop4kbdhnykbi6b7ngknqa)
       uuid: 10.0.0
       zod: 3.23.8
       zod-to-json-schema: 3.23.0(zod@3.23.8)
     optionalDependencies:
       '@aws-sdk/client-s3': 3.591.0
-      '@aws-sdk/credential-provider-node': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0)
+      '@aws-sdk/credential-provider-node': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0))
       '@huggingface/inference': 2.8.0
       cheerio: 1.0.0-rc.12
       crypto-js: 4.2.0
@@ -15191,13 +15613,13 @@ snapshots:
       - peggy
       - pyodide
 
-  '@langchain/core@0.2.18(langchain@0.2.11(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0))(@langchain/community@0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0))(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(openai@4.53.2(encoding@0.1.13))':
+  '@langchain/core@0.2.18(langchain@0.2.11(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)))(@langchain/community@0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)))(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(openai@4.53.2(encoding@0.1.13))':
     dependencies:
       ansi-styles: 5.2.0
       camelcase: 6.3.0
       decamelize: 1.2.0
       js-tiktoken: 1.0.12
-      langsmith: 0.1.39(3ykqybehgmn4jzpauoor7e3kkq)
+      langsmith: 0.1.39(vmoawop4kbdhnykbi6b7ngknqa)
       ml-distance: 4.0.1
       mustache: 4.2.0
       p-queue: 6.6.2
@@ -15227,9 +15649,9 @@ snapshots:
       - langchain
       - openai
 
-  '@langchain/openai@0.2.5(encoding@0.1.13)(langchain@0.2.11(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0))(@langchain/community@0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0))(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))':
+  '@langchain/openai@0.2.5(encoding@0.1.13)(langchain@0.2.11(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)))(@langchain/community@0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)))(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))':
     dependencies:
-      '@langchain/core': 0.2.18(langchain@0.2.11(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0))(@langchain/community@0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0))(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(openai@4.53.2(encoding@0.1.13))
+      '@langchain/core': 0.2.18(langchain@0.2.11(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)))(@langchain/community@0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)))(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(openai@4.53.2(encoding@0.1.13))
       js-tiktoken: 1.0.12
       openai: 4.53.2(encoding@0.1.13)
       zod: 3.23.8
@@ -15249,9 +15671,9 @@ snapshots:
       - encoding
       - langchain
 
-  '@langchain/textsplitters@0.0.3(langchain@0.2.11(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0))(@langchain/community@0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0))(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(openai@4.53.2(encoding@0.1.13))':
+  '@langchain/textsplitters@0.0.3(langchain@0.2.11(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)))(@langchain/community@0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)))(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(openai@4.53.2(encoding@0.1.13))':
     dependencies:
-      '@langchain/core': 0.2.18(langchain@0.2.11(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0))(@langchain/community@0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0))(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(openai@4.53.2(encoding@0.1.13))
+      '@langchain/core': 0.2.18(langchain@0.2.11(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)))(@langchain/community@0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)))(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(openai@4.53.2(encoding@0.1.13))
       js-tiktoken: 1.0.12
     transitivePeerDependencies:
       - langchain
@@ -15728,7 +16150,7 @@ snapshots:
       - '@emotion/styled'
       - '@types/react'
 
-  '@mui/x-date-pickers@7.11.1(@emotion/react@11.13.0(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.0(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/material@5.16.5(@emotion/react@11.13.0(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.0(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.3)(dayjs@1.11.12)(luxon@3.3.0)(moment@2.30.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@mui/x-date-pickers@7.11.1(@emotion/react@11.13.0(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.0(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@mui/material@5.16.5(@emotion/react@11.13.0(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.0(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.3)(dayjs@1.11.12)(luxon@3.4.4)(moment@2.30.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@babel/runtime': 7.24.8
       '@mui/base': 5.0.0-beta.40(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -15745,7 +16167,7 @@ snapshots:
       '@emotion/react': 11.13.0(@types/react@18.3.3)(react@18.3.1)
       '@emotion/styled': 11.13.0(@emotion/react@11.13.0(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1)
       dayjs: 1.11.12
-      luxon: 3.3.0
+      luxon: 3.4.4
       moment: 2.30.1
     transitivePeerDependencies:
       - '@types/react'
@@ -16228,6 +16650,75 @@ snapshots:
   '@protobufjs/pool@1.1.0': {}
 
   '@protobufjs/utf8@1.1.0': {}
+
+  '@rc-component/async-validator@5.0.4':
+    dependencies:
+      '@babel/runtime': 7.24.8
+
+  '@rc-component/color-picker@1.5.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@babel/runtime': 7.24.8
+      '@ctrl/tinycolor': 3.6.1
+      classnames: 2.5.1
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  '@rc-component/context@1.4.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@babel/runtime': 7.24.8
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  '@rc-component/mini-decimal@1.1.0':
+    dependencies:
+      '@babel/runtime': 7.24.8
+
+  '@rc-component/mutate-observer@1.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@babel/runtime': 7.24.8
+      classnames: 2.5.1
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  '@rc-component/portal@1.1.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@babel/runtime': 7.24.8
+      classnames: 2.5.1
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  '@rc-component/qrcode@1.0.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@babel/runtime': 7.24.8
+      classnames: 2.5.1
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  '@rc-component/tour@1.15.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@babel/runtime': 7.24.8
+      '@rc-component/portal': 1.1.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@rc-component/trigger': 2.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      classnames: 2.5.1
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  '@rc-component/trigger@2.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@babel/runtime': 7.24.8
+      '@rc-component/portal': 1.1.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      classnames: 2.5.1
+      rc-motion: 2.9.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-resize-observer: 1.4.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
 
   '@react-dnd/asap@5.0.2': {}
 
@@ -17065,6 +17556,8 @@ snapshots:
 
   '@types/luxon@3.3.8': {}
 
+  '@types/luxon@3.4.2': {}
+
   '@types/mdast@3.0.15':
     dependencies:
       '@types/unist': 2.0.10
@@ -17723,6 +18216,64 @@ snapshots:
 
   ansi-styles@6.2.1: {}
 
+  antd@5.19.4(luxon@3.4.4)(moment@2.30.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@ant-design/colors': 7.1.0
+      '@ant-design/cssinjs': 1.21.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@ant-design/cssinjs-utils': 1.0.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@ant-design/icons': 5.4.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@ant-design/react-slick': 1.1.2(react@18.3.1)
+      '@babel/runtime': 7.24.8
+      '@ctrl/tinycolor': 3.6.1
+      '@rc-component/color-picker': 1.5.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@rc-component/mutate-observer': 1.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@rc-component/qrcode': 1.0.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@rc-component/tour': 1.15.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@rc-component/trigger': 2.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      classnames: 2.5.1
+      copy-to-clipboard: 3.3.3
+      dayjs: 1.11.12
+      rc-cascader: 3.27.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-checkbox: 3.3.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-collapse: 3.7.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-dialog: 9.5.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-drawer: 7.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-dropdown: 4.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-field-form: 2.2.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-image: 7.9.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-input: 1.5.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-input-number: 9.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-mentions: 2.14.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-menu: 9.14.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-motion: 2.9.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-notification: 5.6.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-pagination: 4.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-picker: 4.6.10(dayjs@1.11.12)(luxon@3.4.4)(moment@2.30.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-progress: 4.0.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-rate: 2.13.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-resize-observer: 1.4.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-segmented: 2.3.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-select: 14.15.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-slider: 10.6.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-steps: 6.0.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-switch: 4.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-table: 7.45.7(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-tabs: 15.1.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-textarea: 1.7.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-tooltip: 6.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-tree: 5.8.8(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-tree-select: 5.22.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-upload: 4.6.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+      scroll-into-view-if-needed: 3.1.0
+      throttle-debounce: 5.0.2
+    transitivePeerDependencies:
+      - date-fns
+      - luxon
+      - moment
+
   anymatch@3.1.3:
     dependencies:
       normalize-path: 3.0.0
@@ -17797,6 +18348,8 @@ snapshots:
       es-object-atoms: 1.0.0
       get-intrinsic: 1.2.4
       is-string: 1.0.7
+
+  array-tree-filter@2.1.0: {}
 
   array-union@2.1.0: {}
 
@@ -18651,6 +19204,8 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  compute-scroll-into-view@3.1.0: {}
+
   concat-map@0.0.1: {}
 
   concat-stream@1.6.2:
@@ -18873,6 +19428,11 @@ snapshots:
     dependencies:
       '@types/luxon': 3.3.8
       luxon: 3.3.0
+
+  cron@3.1.7:
+    dependencies:
+      '@types/luxon': 3.4.2
+      luxon: 3.4.4
 
   cropperjs@1.5.7: {}
 
@@ -21755,6 +22315,10 @@ snapshots:
 
   json-stringify-safe@5.0.1: {}
 
+  json2mq@0.2.0:
+    dependencies:
+      string-convert: 0.2.1
+
   json5@1.0.2:
     dependencies:
       minimist: 1.2.8
@@ -21873,17 +22437,17 @@ snapshots:
 
   kuler@2.0.0: {}
 
-  langchain@0.2.11(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0))(@langchain/community@0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0))(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0):
+  langchain@0.2.11(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)))(@langchain/community@0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)))(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0):
     dependencies:
-      '@langchain/core': 0.2.18(langchain@0.2.11(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0))(@langchain/community@0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0))(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(openai@4.53.2(encoding@0.1.13))
-      '@langchain/openai': 0.2.5(encoding@0.1.13)(langchain@0.2.11(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0))(@langchain/community@0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0))(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))
-      '@langchain/textsplitters': 0.0.3(langchain@0.2.11(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0))(@langchain/community@0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0))(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(openai@4.53.2(encoding@0.1.13))
+      '@langchain/core': 0.2.18(langchain@0.2.11(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)))(@langchain/community@0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)))(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(openai@4.53.2(encoding@0.1.13))
+      '@langchain/openai': 0.2.5(encoding@0.1.13)(langchain@0.2.11(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)))(@langchain/community@0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)))(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))
+      '@langchain/textsplitters': 0.0.3(langchain@0.2.11(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)))(@langchain/community@0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)))(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(openai@4.53.2(encoding@0.1.13))
       binary-extensions: 2.3.0
       js-tiktoken: 1.0.12
       js-yaml: 4.1.0
       jsonpointer: 5.0.1
       langchainhub: 0.0.11
-      langsmith: 0.1.39(3ykqybehgmn4jzpauoor7e3kkq)
+      langsmith: 0.1.39(vmoawop4kbdhnykbi6b7ngknqa)
       ml-distance: 4.0.1
       openapi-types: 12.1.3
       p-retry: 4.6.2
@@ -21893,8 +22457,8 @@ snapshots:
       zod-to-json-schema: 3.23.0(zod@3.23.8)
     optionalDependencies:
       '@aws-sdk/client-s3': 3.591.0
-      '@aws-sdk/credential-provider-node': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0)
-      '@langchain/community': 0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0))(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0)
+      '@aws-sdk/credential-provider-node': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0))
+      '@langchain/community': 0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)))(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0)
       axios: 1.7.2(debug@4.3.6)
       cheerio: 1.0.0-rc.12
       faiss-node: 0.5.1
@@ -21947,18 +22511,6 @@ snapshots:
 
   langchainhub@0.0.11: {}
 
-  langsmith@0.1.39(3ykqybehgmn4jzpauoor7e3kkq):
-    dependencies:
-      '@types/uuid': 9.0.8
-      commander: 10.0.1
-      p-queue: 6.6.2
-      p-retry: 4.6.2
-      uuid: 9.0.1
-    optionalDependencies:
-      '@langchain/core': 0.2.18(langchain@0.2.11(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0))(@langchain/community@0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0))(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(openai@4.53.2(encoding@0.1.13))
-      langchain: 0.2.11(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0))(@langchain/community@0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0))(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0)
-      openai: 4.53.2(encoding@0.1.13)
-
   langsmith@0.1.39(jay4fdnmtbk74rkkz6vif7coka):
     dependencies:
       '@types/uuid': 9.0.8
@@ -21969,6 +22521,18 @@ snapshots:
     optionalDependencies:
       '@langchain/core': 0.2.18(langchain@0.2.11(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0)(@langchain/community@0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0)(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(openai@4.53.2(encoding@0.1.13))
       langchain: 0.2.11(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0)(@langchain/community@0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0)(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0)
+      openai: 4.53.2(encoding@0.1.13)
+
+  langsmith@0.1.39(vmoawop4kbdhnykbi6b7ngknqa):
+    dependencies:
+      '@types/uuid': 9.0.8
+      commander: 10.0.1
+      p-queue: 6.6.2
+      p-retry: 4.6.2
+      uuid: 9.0.1
+    optionalDependencies:
+      '@langchain/core': 0.2.18(langchain@0.2.11(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)))(@langchain/community@0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)))(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(openai@4.53.2(encoding@0.1.13))
+      langchain: 0.2.11(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)))(@langchain/community@0.2.21(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)))(@huggingface/inference@2.8.0)(axios@1.7.2)(cheerio@1.0.0-rc.12)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(lodash@4.17.21)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0))(axios@1.7.2)(cheerio@1.0.0-rc.12)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(mammoth@1.8.0)(openai@4.53.2(encoding@0.1.13))(playwright@1.45.3)(redis@4.6.14)(ws@8.18.0)
       openai: 4.53.2(encoding@0.1.13)
 
   language-subtag-registry@0.3.23: {}
@@ -22405,6 +22969,8 @@ snapshots:
   luxon@1.28.1: {}
 
   luxon@3.3.0: {}
+
+  luxon@3.4.4: {}
 
   lz-string@1.5.0: {}
 
@@ -24631,6 +25197,327 @@ snapshots:
       iconv-lite: 0.4.24
       unpipe: 1.0.0
 
+  rc-cascader@3.27.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@babel/runtime': 7.24.8
+      array-tree-filter: 2.1.0
+      classnames: 2.5.1
+      rc-select: 14.15.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-tree: 5.8.8(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  rc-checkbox@3.3.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@babel/runtime': 7.24.8
+      classnames: 2.5.1
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  rc-collapse@3.7.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@babel/runtime': 7.24.8
+      classnames: 2.5.1
+      rc-motion: 2.9.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  rc-dialog@9.5.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@babel/runtime': 7.24.8
+      '@rc-component/portal': 1.1.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      classnames: 2.5.1
+      rc-motion: 2.9.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  rc-drawer@7.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@babel/runtime': 7.24.8
+      '@rc-component/portal': 1.1.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      classnames: 2.5.1
+      rc-motion: 2.9.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  rc-dropdown@4.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@babel/runtime': 7.24.8
+      '@rc-component/trigger': 2.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      classnames: 2.5.1
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  rc-field-form@2.2.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@babel/runtime': 7.24.8
+      '@rc-component/async-validator': 5.0.4
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  rc-image@7.9.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@babel/runtime': 7.24.8
+      '@rc-component/portal': 1.1.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      classnames: 2.5.1
+      rc-dialog: 9.5.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-motion: 2.9.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  rc-input-number@9.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@babel/runtime': 7.24.8
+      '@rc-component/mini-decimal': 1.1.0
+      classnames: 2.5.1
+      rc-input: 1.5.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  rc-input@1.5.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@babel/runtime': 7.24.8
+      classnames: 2.5.1
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  rc-mentions@2.14.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@babel/runtime': 7.24.8
+      '@rc-component/trigger': 2.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      classnames: 2.5.1
+      rc-input: 1.5.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-menu: 9.14.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-textarea: 1.7.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  rc-menu@9.14.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@babel/runtime': 7.24.8
+      '@rc-component/trigger': 2.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      classnames: 2.5.1
+      rc-motion: 2.9.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-overflow: 1.3.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  rc-motion@2.9.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@babel/runtime': 7.24.8
+      classnames: 2.5.1
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  rc-notification@5.6.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@babel/runtime': 7.24.8
+      classnames: 2.5.1
+      rc-motion: 2.9.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  rc-overflow@1.3.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@babel/runtime': 7.24.8
+      classnames: 2.5.1
+      rc-resize-observer: 1.4.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  rc-pagination@4.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@babel/runtime': 7.24.8
+      classnames: 2.5.1
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  rc-picker@4.6.10(dayjs@1.11.12)(luxon@3.4.4)(moment@2.30.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@babel/runtime': 7.24.8
+      '@rc-component/trigger': 2.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      classnames: 2.5.1
+      rc-overflow: 1.3.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-resize-observer: 1.4.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+    optionalDependencies:
+      dayjs: 1.11.12
+      luxon: 3.4.4
+      moment: 2.30.1
+
+  rc-progress@4.0.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@babel/runtime': 7.24.8
+      classnames: 2.5.1
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  rc-rate@2.13.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@babel/runtime': 7.24.8
+      classnames: 2.5.1
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  rc-resize-observer@1.4.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@babel/runtime': 7.24.8
+      classnames: 2.5.1
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+      resize-observer-polyfill: 1.5.1
+
+  rc-segmented@2.3.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@babel/runtime': 7.24.8
+      classnames: 2.5.1
+      rc-motion: 2.9.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  rc-select@14.15.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@babel/runtime': 7.24.8
+      '@rc-component/trigger': 2.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      classnames: 2.5.1
+      rc-motion: 2.9.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-overflow: 1.3.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-virtual-list: 3.14.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  rc-slider@10.6.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@babel/runtime': 7.24.8
+      classnames: 2.5.1
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  rc-steps@6.0.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@babel/runtime': 7.24.8
+      classnames: 2.5.1
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  rc-switch@4.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@babel/runtime': 7.24.8
+      classnames: 2.5.1
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  rc-table@7.45.7(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@babel/runtime': 7.24.8
+      '@rc-component/context': 1.4.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      classnames: 2.5.1
+      rc-resize-observer: 1.4.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-virtual-list: 3.14.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  rc-tabs@15.1.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@babel/runtime': 7.24.8
+      classnames: 2.5.1
+      rc-dropdown: 4.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-menu: 9.14.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-motion: 2.9.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-resize-observer: 1.4.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  rc-textarea@1.7.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@babel/runtime': 7.24.8
+      classnames: 2.5.1
+      rc-input: 1.5.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-resize-observer: 1.4.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  rc-tooltip@6.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@babel/runtime': 7.24.8
+      '@rc-component/trigger': 2.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      classnames: 2.5.1
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  rc-tree-select@5.22.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@babel/runtime': 7.24.8
+      classnames: 2.5.1
+      rc-select: 14.15.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-tree: 5.8.8(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  rc-tree@5.8.8(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@babel/runtime': 7.24.8
+      classnames: 2.5.1
+      rc-motion: 2.9.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-virtual-list: 3.14.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  rc-upload@4.6.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@babel/runtime': 7.24.8
+      classnames: 2.5.1
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  rc-util@5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@babel/runtime': 7.24.8
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+      react-is: 18.3.1
+
+  rc-virtual-list@3.14.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@babel/runtime': 7.24.8
+      classnames: 2.5.1
+      rc-resize-observer: 1.4.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-util: 5.43.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
   rc9@2.1.2:
     dependencies:
       defu: 6.1.4
@@ -24785,6 +25672,12 @@ snapshots:
   react-is@17.0.2: {}
 
   react-is@18.3.1: {}
+
+  react-js-cron@5.0.1(antd@5.19.4(luxon@3.4.4)(moment@2.30.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      antd: 5.19.4(luxon@3.4.4)(moment@2.30.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
 
   react-lazy-with-preload@2.2.1: {}
 
@@ -25563,6 +26456,10 @@ snapshots:
 
   screenfull@5.2.0: {}
 
+  scroll-into-view-if-needed@3.1.0:
+    dependencies:
+      compute-scroll-into-view: 3.1.0
+
   search-params@3.0.0: {}
 
   semver-compare@1.0.0: {}
@@ -25975,6 +26872,8 @@ snapshots:
 
   string-argv@0.3.2: {}
 
+  string-convert@0.2.1: {}
+
   string-length@4.0.2:
     dependencies:
       char-regex: 1.0.2
@@ -26232,6 +27131,8 @@ snapshots:
   throttle-debounce@2.3.0: {}
 
   throttle-debounce@3.0.1: {}
+
+  throttle-debounce@5.0.2: {}
 
   through2@2.0.5:
     dependencies:

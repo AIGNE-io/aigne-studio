@@ -138,6 +138,7 @@
     "react-helmet": "^6.1.0",
     "react-hook-form": "^7.52.1",
     "react-infinite-scroll-hook": "^4.1.1",
+    "react-js-cron": "^5.0.1",
     "react-qr-code": "^2.0.15",
     "react-resizable-panels": "^2.0.22",
     "react-router-dom": "^6.25.1",
