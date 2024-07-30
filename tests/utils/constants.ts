@@ -1,7 +1,9 @@
 import { join } from 'path';
 
 export const TestConstants = {
-  headless: process.env.HEADLESS !== 'false',
+  get headless() {
+    return process.env.HEADLESS !== 'false';
+  },
 
   get appUrl() {
     const url = process.env.TEST_BLOCKLET_APP_URL;
