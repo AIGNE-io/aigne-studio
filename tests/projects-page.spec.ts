@@ -87,7 +87,6 @@ test.describe.serial('handle project', () => {
     await importPromise;
   });
 
-  // todo: 找不到did space 中的项目
   test('import project from did space', async ({ page }) => {
     // 得到当前身份
     await page.getByLabel('User info button').click();

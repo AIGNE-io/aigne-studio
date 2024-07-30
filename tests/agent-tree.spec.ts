@@ -46,7 +46,7 @@ test.describe.serial('folder', () => {
     const folderCount = await folders.count();
     await page.getByLabel('New Group').getByRole('button').click({ force: true });
     const newFolderCount = await folders.count();
-    await expect(newFolderCount).toBe(folderCount + 1);
+    expect(newFolderCount).toBe(folderCount + 1);
 
     const folder = page.locator('.file-tree-folder').first();
     await folder.locator('..').hover();
@@ -65,21 +65,21 @@ test.describe.serial('folder', () => {
       .locator('div[role="list"]')
       .locator('div[role="listitem"]')
       .count();
-    await expect(newAgentsCount).toBe(1);
+    expect(newAgentsCount).toBe(1);
   });
 });
 
 test('create agent', async ({ page }) => {
   await deleteAllFoldersAndAgents({ page });
   await page.getByLabel('New Agent').getByRole('button').click({ force: true });
-  await expect(await page.locator('.agent-box').count()).toBe(1);
+  expect(await page.locator('.agent-box').count()).toBe(1);
 
   const firstAgent = page.locator('.agent-box').first();
   await firstAgent.press('Enter');
   await firstAgent.locator('> div').hover();
   await firstAgent.locator('button').click();
   await page.getByText('Duplicate').click({ force: true });
-  await expect(await page.locator('.agent-box').count()).toBe(2);
+  expect(await page.locator('.agent-box').count()).toBe(2);
 
   const duplicateAgent = page.locator('.agent-box').last();
   await duplicateAgent.press('Enter');

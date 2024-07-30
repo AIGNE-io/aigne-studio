@@ -45,7 +45,7 @@ test('setting-basic', async ({ page }) => {
   await page.getByTestId('header-actions-setting').click();
   await page.getByRole('tab', { name: 'Basic' }).click();
   await expect(projectName).toHaveAttribute('value', 'AI Chat(E2ETest)');
-  await expect(await projectDescription).toHaveValue('This is e2e test');
+  await expect(projectDescription).toHaveValue('This is e2e test');
 });
 
 test('add branch', async ({ page }) => {
