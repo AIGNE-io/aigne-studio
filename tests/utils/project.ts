@@ -1,4 +1,4 @@
-import { Page, expect } from '@playwright/test';
+import { Locator, Page, expect } from '@playwright/test';
 
 export async function createProject({ page }: { page: Page }) {
   await page.goto('/projects');
@@ -51,6 +51,26 @@ export async function deleteProject({ page }: { page: Page }) {
     }
     await responsePromise;
   }
+}
+
+export async function deleteOneProject({ page, project }: { page: Page; project: Locator }) {
+  await project.hover();
+  await project.locator('.action').click();
+  await page.getByRole('menuitem', { name: 'Delete' }).click();
+  const element = page.getByText('This will permanently delete project with name');
+  const text = await element.textContent();
+
+  const responsePromise = page.waitForResponse(
+    (response) => response.url().includes('/api/projects') && response.status() === 200,
+    {}
+  );
+  const match = (text || '').match(/"([^"]*)"/);
+  if (match && match[1]) {
+    await page.getByLabel('Please input ').click();
+    await page.getByLabel('Please input ').fill(match[1]);
+    await page.getByRole('button', { name: 'Delete' }).click();
+  }
+  await responsePromise;
 }
 
 export async function toggleAIChat({ page }: { page: Page }) {

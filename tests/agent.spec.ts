@@ -21,11 +21,13 @@ test('agent name and description', async ({ page }) => {
 });
 
 test('add/delete/edit input', async ({ page }) => {
+  await page.getByTestId('agent-name').locator('input[placeholder="Unnamed"]').waitFor();
   const inputTable = page.getByTestId('input-settings');
   const rows = page.getByTestId('input-table').locator('.input-table-row');
   const count = await rows.count();
   await inputTable.getByRole('button', { name: 'Input', exact: true }).click();
   await page.getByRole('menuitem', { name: 'Custom input' }).click();
+  await page.locator('.input-table-row').last().locator('input[placeholder="Name of Input"]').waitFor();
   expect(await rows.count()).toBe(count + 1);
 
   const newLine = rows.last();
@@ -40,7 +42,6 @@ test('add/delete/edit input', async ({ page }) => {
     await line.locator('td').last().getByRole('button').last().click();
     await page.getByRole('menuitem', { name: 'Delete' }).click();
     length = await rows.count();
-    console.log('length', length);
   }
   expect(await rows.count()).toBe(0);
 });

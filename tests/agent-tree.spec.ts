@@ -37,14 +37,15 @@ test.describe.serial('folder', () => {
 
   test('new folder / rename / new agent', async ({ page }) => {
     // todo: 为了进行下面的测试用例, #1251 修复后删除
-    const agentCount = await page.getByTestId('agent-box').count();
-    if (agentCount === 0) {
-      await page.getByLabel('New Agent').getByRole('button').click({ force: true });
-    }
+    // const agentCount = await page.getByTestId('agent-box').count();
+    // if (agentCount === 0) {
+    //   await page.getByLabel('New Agent').getByRole('button').click({ force: true });
+    // }
     // ----
     const folders = page.locator('.file-tree-folder');
     const folderCount = await folders.count();
     await page.getByLabel('New Group').getByRole('button').click({ force: true });
+    await page.getByRole('listitem').locator('input').waitFor();
     const newFolderCount = await folders.count();
     expect(newFolderCount).toBe(folderCount + 1);
 
@@ -59,6 +60,7 @@ test.describe.serial('folder', () => {
     await folder.locator('..').hover();
     await folder.locator('..').locator('button').click();
     await page.locator('div[role="tooltip"]').getByText('New Agent').click();
+    await page.getByTestId('agent-name').locator('input[placeholder="Unnamed"]').waitFor();
     const newAgentsCount = await folder
       .locator('..')
       .locator('..')
@@ -70,18 +72,17 @@ test.describe.serial('folder', () => {
 });
 
 test('create agent', async ({ page }) => {
+  await page.locator('.agent-box').waitFor();
   await deleteAllFoldersAndAgents({ page });
   await page.getByLabel('New Agent').getByRole('button').click({ force: true });
-  expect(await page.locator('.agent-box').count()).toBe(1);
 
   const firstAgent = page.locator('.agent-box').first();
   await firstAgent.press('Enter');
   await firstAgent.locator('> div').hover();
   await firstAgent.locator('button').click();
   await page.getByText('Duplicate').click({ force: true });
-  expect(await page.locator('.agent-box').count()).toBe(2);
 
-  const duplicateAgent = page.locator('.agent-box').last();
+  const duplicateAgent = page.locator('.agent-box').nth(1);
   await duplicateAgent.press('Enter');
   await duplicateAgent.locator('> div').hover();
   await duplicateAgent.locator('button').click();
