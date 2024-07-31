@@ -39,7 +39,7 @@ export class CronJobManager {
     delete group.jobs[jobId];
   }
 
-  private destroyGroup({ groupId }: { groupId: string }) {
+  destroyGroup({ groupId }: { groupId: string }) {
     const group = this.groups[groupId];
     if (!group) return;
 

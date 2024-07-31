@@ -2,6 +2,7 @@ import fs from 'fs';
 import { mkdir, mkdtemp, readFile, rm } from 'fs/promises';
 import { basename, dirname, isAbsolute, join } from 'path';
 
+import { projectCronManager } from '@api/libs/cron-jobs';
 import { Config } from '@api/libs/env';
 import { NoPermissionError, NotFoundError } from '@api/libs/error';
 import { sampleIcon } from '@api/libs/icon';
@@ -576,6 +577,8 @@ export function projectRoutes(router: Router) {
       });
     }
 
+    projectCronManager.reloadProjectJobs(project.id);
+
     res.json(project);
   });
 
@@ -763,6 +766,7 @@ export function projectRoutes(router: Router) {
     checkProjectPermission({ req, project });
 
     await project.destroy();
+    projectCronManager.destroyProjectJobs(projectId);
 
     const root = repositoryRoot(projectId);
     await Promise.all([

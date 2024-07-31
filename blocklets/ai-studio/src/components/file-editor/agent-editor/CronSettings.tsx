@@ -67,7 +67,7 @@ export function CronSettings({ agent }: { agent: AssistantYjs }) {
       cronConfig.jobs.push({
         id: randomId(),
         name: '',
-        cronExpression: '* * * * * *',
+        cronExpression: '0 0 * * * *',
         enable: false,
         agentId: agent.id,
         inputs: {},

@@ -15,6 +15,10 @@ const RELOAD_CRON_JOBS_THROTTLE = 3000;
 class ProjectCronManager extends CronJobManager {
   private projectObservers: Record<string, { unobserve?: () => void }> = {};
 
+  destroyProjectJobs(projectId: string) {
+    super.destroyGroup({ groupId: projectId });
+  }
+
   async reloadProjectJobs(projectId: string) {
     const repo = await ProjectRepo.load({ projectId });
     const working = await repo.working({ ref: defaultBranch });
