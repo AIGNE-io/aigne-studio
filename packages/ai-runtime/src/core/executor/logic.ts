@@ -1,17 +1,34 @@
+import 'dayjs/locale/zh';
+import 'dayjs/locale/ja';
+
+import crypto from 'crypto';
 import { join } from 'path';
 import { ReadableStream, TextDecoderStream } from 'stream/web';
 
 import { EventSourceParserStream } from '@blocklet/ai-kit/api/utils/event-stream';
-import { call } from '@blocklet/sdk/lib/component';
-import { isNil } from 'lodash';
+import { call, getComponentMountPoint } from '@blocklet/sdk/lib/component';
+import config, { logger } from '@blocklet/sdk/lib/config';
+import dayjs from 'dayjs';
+import equal from 'fast-deep-equal';
+import Joi from 'joi';
+import pick from 'lodash/pick';
 import { joinURL, withQuery } from 'ufo';
-import { NodeVM } from 'vm2';
+import { NodeVM, VM } from 'vm2';
 
 import { TranspileTs } from '../../builtin/complete';
 import { AssistantResponseType, FunctionAssistant } from '../../types';
+import { renderMustacheStream } from '../../types/assistant/mustache/ReadableMustache';
 import { BuiltinModules } from '../assistant/builtin';
 import { GetAgentResult } from '../assistant/type';
+import { geti } from '../utils/geti';
+import { renderMessage } from '../utils/render-message';
+import { nextTaskId } from '../utils/task-id';
 import { AgentExecutorBase, AgentExecutorOptions } from './base';
+
+function parseJSONInVM(str: string) {
+  const vm = new VM({});
+  return vm.run(`const json = ${str};json`);
+}
 
 export class LogicAgentExecutor extends AgentExecutorBase {
   override async process(agent: FunctionAssistant & GetAgentResult, { inputs, taskId }: AgentExecutorOptions) {
@@ -36,6 +53,77 @@ export class LogicAgentExecutor extends AgentExecutorBase {
       session: { id: this.context.sessionId },
     });
 
+    const $json = (variables: any, ...rest: any[]) => {
+      const taggedFn = async (t: TemplateStringsArray, ...rest: any[]) => {
+        const template = t.map((s, i) => `${s}${i === t.length - 1 ? '' : rest[i]}`).join('');
+
+        const renderCtx = {
+          ...args,
+          ...variables,
+          get: () => async (template: string, render: Function) => {
+            const s = await render(template);
+            return geti(renderCtx, s);
+          },
+          runAgent: () => async (template: string, render: Function) => {
+            const t = parseJSONInVM(template).template;
+
+            const s = await render(template);
+            const j = parseJSONInVM(s);
+            const { agentId, inputs } = await Joi.object<{ agentId: string; inputs: any }>({
+              agentId: Joi.string().required(),
+              inputs: Joi.object().pattern(Joi.string(), Joi.any()).required(),
+            }).validateAsync(j, { stripUnknown: true });
+
+            const a = await this.context.getAgent({ ...agent.identity, agentId, rejectOnEmpty: true });
+
+            const result = await this.context.execute(a, { taskId: nextTaskId(), parentTaskId: taskId, inputs });
+            return renderMessage(t, { ...renderCtx, $result: result });
+          },
+        };
+
+        const result = renderMustacheStream(template, (enqueue) => ({
+          ...renderCtx,
+          runAgent: () => enqueue(renderCtx.runAgent()),
+        }));
+
+        let object: any;
+
+        for await (const chunk of result) {
+          const newObj = parseJSONInVM(chunk);
+
+          // skip if the object is equal
+          // TODO: throttle the output
+          if (equal(object, newObj)) {
+            continue;
+          }
+
+          object = newObj;
+
+          try {
+            const obj = await this.validateOutputs(agent, { outputs: object, partial: true });
+
+            this.context.callback?.({
+              type: AssistantResponseType.CHUNK,
+              taskId,
+              assistantId: agent.id,
+              delta: { object: obj },
+            });
+          } catch (error) {
+            logger.error('validate LLM outputs error', error, object);
+          }
+        }
+
+        return object;
+      };
+
+      // 支持 $json({foo:"xxx"})`` 和 $json`` 两种调用方式
+      if (Array.isArray(variables) && Array.isArray((variables as any as TemplateStringsArray).raw)) {
+        return taggedFn(variables as any as TemplateStringsArray, ...rest);
+      }
+
+      return taggedFn;
+    };
+
     const vm = new NodeVM({
       console: 'redirect',
       require: {
@@ -43,19 +131,15 @@ export class LogicAgentExecutor extends AgentExecutorBase {
         mock: BuiltinModules,
       },
       sandbox: {
-        context: {
-          get: (name: any) => {
-            if (isNil(name) || name === '') return undefined;
-            let result = ctx?.[name];
-            while (typeof result === 'function') {
-              result = result();
-            }
-            return result;
-          },
-        },
+        context: ctx,
+        $json,
         fetch,
         URL,
         call,
+        getComponentMountPoint,
+        config: { env: pick(config.env, 'appId', 'appName', 'appDescription', 'appUrl') },
+        crypto,
+        dayjs,
         joinURL,
         withQuery,
         ReadableStream,

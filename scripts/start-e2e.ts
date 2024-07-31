@@ -14,6 +14,7 @@ import { $, argv } from 'zx';
 import { setupUsers } from '../tests/utils/auth';
 
 const ui = argv.ui;
+if (ui) process.env.HEADLESS = 'false';
 
 const portSchema = Joi.number<number>().integer().empty(['']);
 const blockletCli = process.env.BLOCKLET_CLI || 'blocklet';

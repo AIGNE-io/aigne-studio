@@ -4,6 +4,7 @@ import { getAgent, getMemoryVariables, getProject } from '@api/libs/agent';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
 import logger from '@api/libs/logger';
 import { ensureComponentCallOr } from '@api/libs/security';
+import ExecutionCache from '@api/store/models/execution-cache';
 import History from '@api/store/models/history';
 import Secrets from '@api/store/models/secret';
 import Session from '@api/store/models/session';
@@ -25,7 +26,7 @@ import user from '@blocklet/sdk/lib/middlewares/user';
 import compression from 'compression';
 import { Router } from 'express';
 import Joi from 'joi';
-import { pick } from 'lodash';
+import { omitBy, pick } from 'lodash';
 
 const router = Router();
 
@@ -237,6 +238,12 @@ router.post('/call', user(), ensureComponentCallOr(auth()), compression(), async
       entryProjectId: projectId,
       user: { id: userId, did: userId, ...req.user },
       sessionId: input.sessionId,
+      queryCache: ({ blockletDid, projectId, projectRef, agentId, cacheKey }) =>
+        ExecutionCache.findOne({
+          where: omitBy({ blockletDid, projectId, projectRef, agentId, cacheKey }, (v) => v === undefined),
+        }),
+      setCache: ({ blockletDid, projectId, projectRef, agentId, cacheKey, inputs, outputs }) =>
+        ExecutionCache.create({ blockletDid, projectId, projectRef, agentId, cacheKey, inputs, outputs }),
     });
 
     const result = await executor.execute(agent, {

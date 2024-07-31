@@ -10,8 +10,9 @@ import {
   isRouterAssistant,
 } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
+import Settings2 from '@iconify-icons/tabler/settings-2';
 import ZZZIcon from '@iconify-icons/tabler/zzz';
-import { Box, Stack } from '@mui/material';
+import { Box, Stack, Typography } from '@mui/material';
 import { useRequest } from 'ahooks';
 
 import ArrowLine from '../../../pages/project/icons/line';
@@ -25,6 +26,7 @@ import InputSettings from '../input/InputSettings';
 import OutputSettings from '../output/OutputSettings';
 import PromptAssistantEditor from '../prompt-file';
 import RouterAssistantEditor from '../router-file';
+import { AgentSettings } from './AgentSettings';
 
 export default function AgentEditor({
   projectId,
@@ -104,6 +106,23 @@ export default function AgentEditor({
           value={value}
           openApis={openApis}
         />
+      </Box>
+
+      <Box sx={{ borderRadius: 1, mt: 2 }}>
+        <Box sx={{ background: '#F9FAFB', py: 1.5, px: 2, pb: 2, borderRadius: 1 }}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
+            <Box display="flex" alignItems="center" gap={0.5}>
+              <Box component={Icon} icon={Settings2} fontSize={14} />
+              <Typography variant="subtitle2" mb={0}>
+                {t('settings')}
+              </Typography>
+            </Box>
+          </Stack>
+
+          <Box sx={{ bgcolor: '#fff', borderRadius: 1, p: 1, overflow: 'auto' }}>
+            <AgentSettings agent={value} />
+          </Box>
+        </Box>
       </Box>
     </Stack>
   );

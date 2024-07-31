@@ -347,7 +347,7 @@ export function AgentItemView({
                     </Typography>
 
                     {agent.parameters?.[parameter.key] || checkParametersInParameter(parameter.key) ? null : (
-                      <Tooltip title={!agent.parameters?.[parameter.key] ? t('addParamter') : undefined}>
+                      <Tooltip title={!agent.parameters?.[parameter.key] ? t('addParameter') : undefined}>
                         <Box
                           className={className}
                           component={Icon}

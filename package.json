@@ -1,7 +1,7 @@
 {
   "name": "ai-studio",
   "private": true,
-  "version": "0.4.13",
+  "version": "0.4.14",
   "workspaces": [
     "blocklets/*",
     "packages/*"
@@ -21,8 +21,9 @@
     "clean:deps": "rimraf ./**/node_modules",
     "build:libs": "pnpm -F @blocklet/* build",
     "bump-version": "zx scripts/bump-version.mjs",
-    "update:deps": "npx -y taze -r -w && pnpm install",
-    "e2e": "./scripts/start-e2e.ts"
+    "update:deps": "npx -y taze minor -r -w major -x '/nanoid|eslint/' && pnpm install",
+    "e2e": "./scripts/start-e2e.ts",
+    "postinstall": "npx simple-git-hooks"
   },
   "simple-git-hooks": {
     "pre-commit": "npx lint-staged"
@@ -63,7 +64,7 @@
     "prettier-plugin-import-sort": "^0.0.7",
     "rimraf": "^6.0.1",
     "simple-git-hooks": "^2.11.1",
-    "start-server-and-test": "^2.0.4",
+    "start-server-and-test": "^2.0.5",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.5.4",
@@ -76,17 +77,17 @@
     "@abtnode/file-stream-rotator": "^0.6.3",
     "@arcblock/did": "^1.18.126",
     "@arcblock/did-auth": "^1.18.126",
-    "@arcblock/did-connect": "^2.10.9",
+    "@arcblock/did-connect": "^2.10.10",
     "@arcblock/did-ext": "^1.18.126",
     "@arcblock/did-util": "^1.18.126",
     "@arcblock/jwt": "^1.18.126",
-    "@arcblock/ux": "^2.10.9",
+    "@arcblock/ux": "^2.10.10",
     "@arcblock/ws": "^1.18.126",
     "@blocklet/js-sdk": "1.16.28",
     "@blocklet/logger": "1.16.28",
     "@blocklet/meta": "1.16.28",
     "@blocklet/sdk": "1.16.28",
-    "@blocklet/ui-react": "^2.10.9",
+    "@blocklet/ui-react": "^2.10.10",
     "@blocklet/uploader": "^0.1.20",
     "@emotion/cache": "^11.13.1",
     "@emotion/css": "^11.13.0",
