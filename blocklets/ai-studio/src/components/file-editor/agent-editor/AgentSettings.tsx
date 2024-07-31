@@ -1,38 +1,46 @@
+import { useCurrentProject } from '@app/contexts/project';
+import { useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { AssistantYjs } from '@blocklet/ai-runtime/types';
-import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { Box, FormControl, Stack, Switch, Typography } from '@mui/material';
+import { Icon } from '@iconify-icon/react';
+import ChevronDown from '@iconify-icons/tabler/chevron-down';
+import { Accordion, AccordionDetails, AccordionSummary, Box, Typography } from '@mui/material';
 
+import { CacheSettings } from './CacheSettings';
 import { CronSettings } from './CronSettings';
 
 export function AgentSettings({ agent }: { agent: AssistantYjs }) {
   const { t } = useLocaleContext();
-  const doc = (getYjsValue(agent) as Map<any>).doc!;
+  const { projectId, projectRef } = useCurrentProject();
+  const { cronConfig } = useProjectStore(projectId, projectRef);
+
+  const jobs = cronConfig.jobs?.filter((i) => i.agentId === agent.id);
+
+  const list = [
+    { title: t('cache'), detail: <CacheSettings agent={agent} />, defaultExpanded: agent.cache?.enable },
+    { title: t('cronJobs'), detail: <CronSettings agent={agent} />, defaultExpanded: !!jobs && jobs.length > 0 },
+  ];
 
   return (
-    <Stack gap={2}>
-      <Stack gap={2} direction="row" justifyContent="space-between" alignItems="center">
-        <Typography variant="body2">{t('cache')}</Typography>
+    <Box>
+      {list.map((item) => (
+        <Accordion
+          key={item.title}
+          defaultExpanded={item.defaultExpanded}
+          disableGutters
+          elevation={0}
+          sx={{ bgcolor: 'transparent' }}>
+          <AccordionSummary expandIcon={<Icon icon={ChevronDown} />}>
+            <Typography>{item.title}</Typography>
+          </AccordionSummary>
 
-        <FormControl>
-          <Switch
-            size="small"
-            checked={agent.cache?.enable || false}
-            onChange={(_, check) => {
-              doc.transact(() => {
-                agent.cache ??= {};
-                agent.cache.enable = check;
-              });
-            }}
-          />
-        </FormControl>
-      </Stack>
-
-      <Box>
-        <Typography variant="body2">Cron Jobs</Typography>
-
-        <CronSettings agent={agent} />
-      </Box>
-    </Stack>
+          <AccordionDetails>
+            <Box bgcolor="background.paper" borderRadius={1}>
+              {item.detail}
+            </Box>
+          </AccordionDetails>
+        </Accordion>
+      ))}
+    </Box>
   );
 }

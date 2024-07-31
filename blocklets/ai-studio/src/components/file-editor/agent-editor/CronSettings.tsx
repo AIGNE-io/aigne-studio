@@ -21,14 +21,16 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableContainer,
   TableHead,
   TableRow,
   TextField,
   Typography,
 } from '@mui/material';
+import cronstrue from 'cronstrue';
 import { sortBy } from 'lodash';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
-import { MouseEvent, useCallback, useState } from 'react';
+import { MouseEvent, useCallback, useMemo, useState } from 'react';
 import { Cron } from 'react-js-cron';
 
 import PromptEditorField from '../prompt-editor-field';
@@ -58,62 +60,78 @@ export function CronSettings({ agent }: { agent: AssistantYjs }) {
     if (index >= 0) cronConfig.jobs.splice(index, 1);
   }, []);
 
+  const newJob = useCallback(() => {
+    doc.transact(() => {
+      cronConfig.jobs ??= [];
+      cronConfig.jobs.push({
+        id: randomId(),
+        name: '',
+        cronExpression: '* * * * * *',
+        enable: false,
+        agentId: agent.id,
+        inputs: {},
+      });
+    });
+  }, []);
+
+  if (!jobs?.length) {
+    return (
+      <Stack gap={1} p={2} alignItems="center">
+        <Typography variant="caption" color="text.secondary" textAlign="center">
+          {t('emptyObjectTip', { object: t('cronJob') })}
+        </Typography>
+
+        <Button startIcon={<Icon icon={PlusIcon} />} onClick={newJob}>
+          {t('new')}
+        </Button>
+      </Stack>
+    );
+  }
+
   return (
     <>
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>{t('name')}</TableCell>
-            <TableCell>{t('time')}</TableCell>
-            <TableCell width={50} align="center">
-              {t('enabled')}
-            </TableCell>
-            <TableCell width={50} align="right" />
-          </TableRow>
-        </TableHead>
-
-        <TableBody>
-          {jobs?.map((job) => (
-            <TableRow key={job.id} hover sx={{ cursor: 'pointer' }}>
-              <TableCell onClick={(e) => openSettingDialog(e, job)}>{job.name || t('unnamed')}</TableCell>
-              <TableCell onClick={(e) => openSettingDialog(e, job)}>{job.cronExpression}</TableCell>
-              <TableCell align="center">
-                <Switch size="small" checked={job.enable || false} onChange={(_, check) => (job.enable = check)} />
+      <TableContainer sx={{ td: { border: 'none', px: 1.5, py: 0.25, '&:last-of-type': { pr: 0.25 } } }}>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>{t('name')}</TableCell>
+              <TableCell>{t('time')}</TableCell>
+              <TableCell width={80} align="center">
+                {t('enabled')}
               </TableCell>
-              <TableCell align="right">
-                <Button sx={{ p: 0, minWidth: 28, minHeight: 28 }} onClick={() => deleteJob(job.id)}>
-                  <Icon icon={TrashIcon} />
-                </Button>
-              </TableCell>
+              <TableCell width={50} align="right" />
             </TableRow>
-          ))}
+          </TableHead>
 
-          <TableRow>
-            <TableCell colSpan={3}>
-              <Button
-                startIcon={<Icon icon={PlusIcon} />}
-                onClick={() => {
-                  doc.transact(() => {
-                    cronConfig.jobs ??= [];
-                    cronConfig.jobs.push({
-                      id: randomId(),
-                      name: '',
-                      cronExpression: '* * * * * *',
-                      enable: false,
-                      agentId: agent.id,
-                      inputs: {},
-                    });
-                  });
-                }}>
-                New
-              </Button>
-            </TableCell>
-          </TableRow>
-        </TableBody>
-      </Table>
+          <TableBody>
+            {jobs?.map((job) => (
+              <TableRow key={job.id} hover sx={{ cursor: 'pointer' }}>
+                <TableCell onClick={(e) => openSettingDialog(e, job)}>{job.name || t('unnamed')}</TableCell>
+                <TableCell onClick={(e) => openSettingDialog(e, job)}>
+                  {job.cronExpression && <CronFormatter time={job.cronExpression} />}
+                </TableCell>
+                <TableCell align="center">
+                  <Switch size="small" checked={job.enable || false} onChange={(_, check) => (job.enable = check)} />
+                </TableCell>
+                <TableCell align="right">
+                  <Button sx={{ p: 0, minWidth: 28, minHeight: 28 }} onClick={() => deleteJob(job.id)}>
+                    <Icon icon={TrashIcon} />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+
+        <Box m={0.5}>
+          <Button startIcon={<Icon icon={PlusIcon} />} onClick={newJob}>
+            {t('new')}
+          </Button>
+        </Box>
+      </TableContainer>
 
       <Dialog maxWidth="sm" fullWidth {...bindDialog(dialogState)}>
-        <DialogTitle>Cron Job Configuration</DialogTitle>
+        <DialogTitle>{t('objectSetting', { object: t('cronJob') })}</DialogTitle>
 
         <DialogContent>
           {job && (
@@ -125,6 +143,20 @@ export function CronSettings({ agent }: { agent: AssistantYjs }) {
                 <GlobalStyles
                   styles={(theme) => ({
                     '.ant-select-dropdown': { zIndex: theme.zIndex.modal + 1 },
+                    '.ant-select-selector': {
+                      borderColor: `${theme.palette.divider} !important`,
+                      backgroundColor: 'transparent !important',
+                      '&:hover': {
+                        borderColor: `${theme.palette.primary.main} !important`,
+                      },
+                    },
+                    '.ant-btn-primary.ant-btn-dangerous': {
+                      backgroundColor: '#030712',
+                      '&:hover': {
+                        backgroundColor: '#030712 !important',
+                        opacity: 0.7,
+                      },
+                    },
                   })}
                 />
                 <Box
@@ -203,4 +235,10 @@ function AgentInputsForm({
       })}
     </Box>
   );
+}
+
+function CronFormatter({ time }: { time: string }) {
+  return useMemo(() => {
+    return cronstrue.toString(time);
+  }, [time]);
 }

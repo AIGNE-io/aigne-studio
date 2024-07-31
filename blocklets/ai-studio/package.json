@@ -85,6 +85,7 @@
     "compression": "^1.7.4",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
+    "cronstrue": "^2.50.0",
     "dayjs": "^1.11.12",
     "dotenv-flow": "^4.1.0",
     "eventsource-parser": "^1.1.2",
