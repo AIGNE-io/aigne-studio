@@ -1,4 +1,5 @@
 import 'react-js-cron/dist/styles.css';
+import 'cronstrue/locales/zh_CN';
 
 import { useCurrentProject } from '@app/contexts/project';
 import { randomId, useProjectStore } from '@app/pages/project/yjs-state';
@@ -90,7 +91,7 @@ export function CronSettings({ agent }: { agent: AssistantYjs }) {
 
   return (
     <>
-      <TableContainer sx={{ td: { border: 'none', px: 1.5, py: 0.25, '&:last-of-type': { pr: 0.25 } } }}>
+      <TableContainer sx={{ 'th,td': { px: 1.5, py: 0.25, '&:last-of-type': { pr: 0.25 } }, td: { border: 'none' } }}>
         <Table size="small">
           <TableHead>
             <TableRow>
@@ -238,7 +239,9 @@ function AgentInputsForm({
 }
 
 function CronFormatter({ time }: { time: string }) {
+  const { locale } = useLocaleContext();
+
   return useMemo(() => {
-    return cronstrue.toString(time);
+    return cronstrue.toString(time, { locale: locale === 'zh' ? 'zh_CN' : locale });
   }, [time]);
 }
