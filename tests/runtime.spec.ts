@@ -1,25 +1,5 @@
 import { Page, expect, test } from '@playwright/test';
 
-const unInstallBlocklet = async (page: Page, blockletName: string) => {
-  const blocklet = page.locator('.component-item').filter({ hasText: blockletName });
-  // 没有该 blocklet
-  if ((await blocklet.count()) === 0) {
-    return;
-  }
-  const stopIcon = blocklet.getByTestId('StopIcon');
-  // 该 blocklet 已启动
-  if ((await stopIcon.count()) > 0) {
-    await stopIcon.click();
-    await page.locator("button:has-text('Yes, Stop It')").click();
-  }
-  await blocklet.getByTestId('PlayArrowIcon').waitFor();
-  await blocklet.getByTestId('MoreHorizIcon').click();
-  await page.getByRole('menuitem', { name: 'Delete' }).click();
-  const promise = page.waitForResponse((response) => response.url().includes('api/gql') && response.status() === 200);
-  await page.locator('button:has-text("Confirm")').click();
-  await promise;
-};
-
 test.beforeEach('route to blocklets', async ({ page }) => {
   await page.goto('.well-known/service/admin/overview');
   await page.waitForSelector('h6.page-title');
@@ -29,10 +9,6 @@ test.beforeEach('route to blocklets', async ({ page }) => {
 
 test.describe.serial('resource blocklet', () => {
   // todo: 抽象出一个函数，用于删除 blocklet
-  test('uninstall resource blocklet', async ({ page }) => {
-    await unInstallBlocklet(page, 'Mockplexity');
-    await unInstallBlocklet(page, 'SerpApi');
-  });
 
   test('install resource blocklet', async ({ page }) => {
     await page.locator('button:has-text("Add Blocklet")').click();

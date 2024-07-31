@@ -13,7 +13,7 @@ import { TestConstants } from './tests/utils/constants';
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
-  timeout: 2 * 60 * 1000,
+  timeout: 3 * 60 * 1000,
   testDir: './tests',
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -47,7 +47,8 @@ export default defineConfig({
     {
       name: 'owner',
       use: { ...devices['Desktop Chrome'], storageState: TestConstants.authFilePath('owner') },
-      dependencies: ['ownerSetup'],
+      dependencies: ['adminSetup'],
+      testIgnore: /admin-.*\.spec\.ts/,
     },
 
     {

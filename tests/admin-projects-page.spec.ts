@@ -9,6 +9,7 @@ test.beforeEach('route to agent page', async ({ page }) => {
   const examples = page.getByTestId('projects-examples');
   await examples.waitFor();
   await expect(examples).not.toBeEmpty();
+  await deleteProject({ page });
 });
 
 // 复制项目
