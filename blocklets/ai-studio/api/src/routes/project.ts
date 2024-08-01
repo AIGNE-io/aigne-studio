@@ -775,11 +775,7 @@ export function projectRoutes(router: Router) {
     projectCronManager.destroyProjectJobs(projectId);
 
     const repository = await getRepository({ projectId });
-    const working = await repository.working({ ref: defaultBranch });
-    working.transact(() => {
-      working.destroy();
-      repository.destroy();
-    });
+    await repository.destroy();
 
     const root = repositoryRoot(projectId);
     await Promise.all([
