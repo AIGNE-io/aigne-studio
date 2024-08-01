@@ -1,4 +1,3 @@
-import { ResourceType } from '@api/libs/resource';
 import { useIsAdmin } from '@app/contexts/session';
 import { getProjectIconUrl } from '@app/libs/project';
 import { useAgents } from '@app/store/agent';
@@ -6,6 +5,7 @@ import DID from '@arcblock/ux/lib/DID';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
+import { ResourceType } from '@blocklet/ai-runtime/types';
 import { AddComponent } from '@blocklet/ui-react';
 import { Icon } from '@iconify-icon/react';
 import BrandAppgalleryIcon from '@iconify-icons/tabler/brand-appgallery';
