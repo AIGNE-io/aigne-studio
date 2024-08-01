@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/prompt-editor",
-  "version": "0.4.14",
+  "version": "0.4.15",
   "description": "prompt editor for ai studio",
   "author": "arcblock",
   "license": "ISC",
@@ -72,7 +72,7 @@
     "@lexical/react": "0.13.1",
     "@lexical/selection": "0.13.1",
     "@lexical/utils": "0.13.1",
-    "@mui/material": "^5.16.5",
+    "@mui/material": "^5.16.6",
     "ahooks": "^3.8.0",
     "lexical": "0.13.1",
     "lodash-es": "^4.17.21",

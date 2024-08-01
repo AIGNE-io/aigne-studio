@@ -3,7 +3,6 @@ import path, { join } from 'path';
 
 import { customAlphabet } from 'nanoid';
 
-import init from '../init';
 import { wallet } from '../libs/auth';
 import downloadLogo from '../libs/download-logo';
 import { Config } from '../libs/env';
@@ -63,8 +62,6 @@ async function migrate() {
 
 (async () => {
   try {
-    await init();
-
     await migrate();
     logger.info(`migration ${version} success`);
     process.exit(0);

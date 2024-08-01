@@ -1,9 +1,9 @@
 import path, { join } from 'path';
 import { sep } from 'path/posix';
 
+import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { glob } from 'glob';
 
-import init from '../init';
 import { Config } from '../libs/env';
 import logger from '../libs/logger';
 import { getRepository } from '../store/repository';
@@ -24,7 +24,7 @@ async function migrate() {
       }
       return undefined;
     })
-    .filter((i): i is NonNullable<typeof i> => !!i);
+    .filter(isNonNullable);
 
   for (const { projectId, ref } of workings) {
     try {
@@ -46,8 +46,6 @@ async function migrate() {
 
 (async () => {
   try {
-    await init();
-
     await migrate();
     logger.info(`migration ${version} success`);
     process.exit(0);

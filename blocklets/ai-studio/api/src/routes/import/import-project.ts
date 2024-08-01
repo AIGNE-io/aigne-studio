@@ -2,7 +2,7 @@ import { join } from 'path';
 
 import { Config } from '@api/libs/env';
 import Project from '@api/store/models/project';
-import { OLD_SETTINGS_FILE, ProjectRepo, SETTINGS_FILE, defaultBranch } from '@api/store/repository';
+import { OLD_PROJECT_FILE_PATH, PROJECT_FILE_PATH, ProjectRepo, defaultBranch } from '@api/store/repository';
 import { projectSettingsSchema } from '@blocklet/ai-runtime/types';
 import { ListObjectCommand, SpaceClient, SyncFolderPullCommand } from '@did-space/client';
 import { Request, Response } from 'express';
@@ -88,8 +88,8 @@ export async function importProject(req: Request, res: Response) {
       Buffer.from(
         (
           await repo
-            .readBlob({ ref: branch, filepath: SETTINGS_FILE })
-            .catch(() => repo.readBlob({ ref: branch, filepath: OLD_SETTINGS_FILE }))
+            .readBlob({ ref: branch, filepath: PROJECT_FILE_PATH })
+            .catch(() => repo.readBlob({ ref: branch, filepath: OLD_PROJECT_FILE_PATH }))
         ).blob
       ).toString()
     )

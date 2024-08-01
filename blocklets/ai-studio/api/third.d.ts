@@ -6,7 +6,9 @@ declare module 'express-async-errors';
 
 declare module 'express-sse';
 
-declare module '@blocklet/logger';
+declare module '@blocklet/logger' {
+  export default function createLogger(name: string): typeof console;
+}
 
 declare module '@abtnode/cron';
 

@@ -1,3 +1,4 @@
+import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 import { intersection } from 'lodash';
 
@@ -75,7 +76,7 @@ export const saveContentToVectorStore = async ({
     doc.pageContent ? Segment.create({ documentId, targetId, content: doc.pageContent }) : Promise.resolve(null)
   );
   const results = await Promise.all(savePromises);
-  const ids = results.filter((i): i is NonNullable<typeof i> => !!i).map((result) => result?.id);
+  const ids = results.filter(isNonNullable).map((result) => result?.id);
 
   // 保存到向量数据库
   const store = await VectorStore.load(datasetId, embeddings);

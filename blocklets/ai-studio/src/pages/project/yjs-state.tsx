@@ -4,9 +4,10 @@ import {
   Assistant,
   AssistantYjs,
   ConfigFileYjs,
+  CronFileYjs,
   FileTypeYjs,
+  MemoryFileYjs,
   ProjectSettings,
-  VariablesYjs,
   isApiAssistant,
   isAssistant,
   isFunctionAssistant,
@@ -41,10 +42,10 @@ import { PREFIX } from '../../libs/api';
 
 export const PROMPTS_FOLDER_NAME = 'prompts';
 
-export const CONFIG_FILE_KEY = 'config';
-export const CONFIG_FILENAME = `${CONFIG_FILE_KEY}.yaml`;
-
-export const PROJECT_CONFIG_FILE = 'project.yaml';
+const VARIABLE_FILE_PATH = 'config/variable.yaml';
+const CONFIG_FILE_PATH = 'config/config.yaml';
+const CRON_CONFIG_FILE_PATH = 'config/cron.yaml';
+const PROJECT_FILE_PATH = 'project.yaml';
 
 export const isBuiltinFolder = (folder: string) => [PROMPTS_FOLDER_NAME].includes(folder);
 
@@ -182,41 +183,16 @@ export const useProjectStore = (projectId: string, gitRef: string, connect?: boo
 
   const syncedStore = useSyncedStore(store.store, [store.store]);
 
-  const config = syncedStore.files[CONFIG_FILE_KEY] as ConfigFileYjs | undefined;
-
-  const setConfig = useCallback(
-    (update: (config: ConfigFileYjs) => void) => {
-      let config = syncedStore.files[CONFIG_FILE_KEY] as ConfigFileYjs | undefined;
-      if (!config) {
-        syncedStore.files[CONFIG_FILE_KEY] = {};
-        config = syncedStore.files[CONFIG_FILE_KEY]!;
-        syncedStore.tree[CONFIG_FILE_KEY] = 'config/config.yaml';
-      }
-
-      update(config);
-    },
-    [syncedStore]
-  );
-
-  const projectSetting = syncedStore.files[PROJECT_CONFIG_FILE] as ProjectSettings | undefined;
-
-  const setProjectSetting = useCallback(
-    (update: (config: ProjectSettings) => void) => {
-      const config = syncedStore.files[PROJECT_CONFIG_FILE] as ProjectSettings | undefined;
-      if (!config) throw new Error('Missing required project.yaml');
-
-      update(config);
-    },
-    [syncedStore]
-  );
+  const config = syncedStore.files[CONFIG_FILE_PATH] as ConfigFileYjs;
+  const cronConfig = syncedStore.files[CRON_CONFIG_FILE_PATH] as CronFileYjs;
+  const projectSetting = syncedStore.files[PROJECT_FILE_PATH] as ProjectSettings;
 
   return {
     ...store,
     store: syncedStore,
     config,
-    setConfig,
+    cronConfig,
     projectSetting,
-    setProjectSetting,
     getTemplateById: useCallback(
       (templateId: string) => {
         const file = syncedStore.files[templateId];
@@ -232,15 +208,13 @@ export const useProjectStore = (projectId: string, gitRef: string, connect?: boo
       [syncedStore.files]
     ),
     getVariables: useCallback(() => {
-      const filepath = 'config/variable.yaml';
-      const key = 'variable';
-      const file = syncedStore.files[key];
+      const file = syncedStore.files[VARIABLE_FILE_PATH];
 
-      if (file && 'variables' in file) return file as VariablesYjs;
+      if (file && 'variables' in file) return file as MemoryFileYjs;
 
-      syncedStore.tree[key] = filepath;
-      syncedStore.files[key] = { type: 'variables', variables: [] };
-      return syncedStore.files[key] as VariablesYjs;
+      syncedStore.tree[VARIABLE_FILE_PATH] = VARIABLE_FILE_PATH;
+      syncedStore.files[VARIABLE_FILE_PATH] = { variables: [] };
+      return syncedStore.files[VARIABLE_FILE_PATH] as MemoryFileYjs;
     }, [syncedStore.files]),
   };
 };

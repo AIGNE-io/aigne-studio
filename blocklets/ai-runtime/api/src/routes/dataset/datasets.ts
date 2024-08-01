@@ -5,7 +5,7 @@ import { finished } from 'stream/promises';
 
 import { Config } from '@api/libs/env';
 import logger from '@api/libs/logger';
-import { getResourceKnowledgeList, getResourceKnowledgeWithData } from '@api/libs/resource';
+import { resourceManager } from '@api/libs/resource';
 import DatasetContent from '@api/store/models/dataset/content';
 import { copyRecursive } from '@blocklet/ai-runtime/utils/fs';
 import config from '@blocklet/sdk/lib/config';
@@ -57,7 +57,7 @@ router.get('/', user(), ensureComponentCallOr(userAuth()), async (req, res) => {
     order: [['updatedAt', 'DESC']],
   });
 
-  const resourceDatasets = query.excludeResource ? [] : await getResourceKnowledgeList();
+  const resourceDatasets = query.excludeResource ? [] : await resourceManager.getKnowledgeList();
 
   res.json([
     ...datasets,
@@ -82,7 +82,7 @@ router.get('/:datasetId', user(), ensureComponentCallOr(userAuth()), async (req,
   }).validateAsync(req.query, { stripUnknown: true });
 
   const dataset = blockletDid
-    ? (await getResourceKnowledgeWithData({ blockletDid, knowledgeId: datasetId }))?.knowledge
+    ? (await resourceManager.getKnowledge({ blockletDid, knowledgeId: datasetId }))?.knowledge
     : await Dataset.findOne({ where: { id: datasetId, ...(appId && { appId }), ...user } });
 
   res.json(dataset);

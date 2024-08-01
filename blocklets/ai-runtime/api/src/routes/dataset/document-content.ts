@@ -2,7 +2,7 @@ import { readFile } from 'fs/promises';
 import { join } from 'path';
 
 import logger from '@api/libs/logger';
-import { ResourceKnowledge } from '@api/libs/resource';
+import { ResourceKnowledge } from '@blocklet/ai-runtime/common/resource-manager';
 import { BN, toBN } from '@ocap/util';
 import mammoth from 'mammoth';
 import PDFParser from 'pdf2json';

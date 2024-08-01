@@ -753,4 +753,10 @@ export default flat({
   addParameter: 'Add Parameter',
   variableNotReferenced: 'The variable is not referenced',
   cache: 'Cache',
+  time: 'Time',
+  cronJob: 'Cron Job',
+  cronJobs: 'Cron Jobs',
+  objectSetting: '{object} Setting',
+  emptyObjectTip: 'No {object} yet.',
+  new: 'New',
 });

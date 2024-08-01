@@ -1,5 +1,5 @@
 import createLogger from '@blocklet/logger';
 
-const logger = createLogger('aigne-runtime:main');
+const logger = createLogger('aigne:aigne-runtime');
 
 export default logger;

@@ -1,9 +1,9 @@
 import { join } from 'path';
 import { sep } from 'path/posix';
 
+import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { glob } from 'glob';
 
-import init from '../init';
 import { Config } from '../libs/env';
 import logger from '../libs/logger';
 import { TemplateYjs, getRepository } from '../store/0.1.157/projects';
@@ -22,7 +22,7 @@ async function migrate() {
       }
       return undefined;
     })
-    .filter((i): i is NonNullable<typeof i> => !!i);
+    .filter(isNonNullable);
 
   const isOldTemplateYjs = (file: any): file is TemplateYjs =>
     !!file &&
@@ -58,8 +58,6 @@ async function migrate() {
 
 (async () => {
   try {
-    await init();
-
     await migrate();
     logger.info('migration 0.1.101 success');
     process.exit(0);
