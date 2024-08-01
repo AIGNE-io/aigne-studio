@@ -3,7 +3,6 @@ import { sep } from 'path/posix';
 
 import { glob } from 'glob';
 
-import init from '../init';
 import { Config } from '../libs/env';
 import logger from '../libs/logger';
 import { getRepository } from '../store/repository';
@@ -46,8 +45,6 @@ async function migrate() {
 
 (async () => {
   try {
-    await init();
-
     await migrate();
     logger.info(`migration ${version} success`);
     process.exit(0);
