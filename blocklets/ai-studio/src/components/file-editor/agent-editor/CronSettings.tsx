@@ -4,7 +4,7 @@ import 'cronstrue/locales/zh_CN';
 import { useCurrentProject } from '@app/contexts/project';
 import { randomId, useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, CronFileYjs } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, CronFileYjs, CronJob } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
 import PlusIcon from '@iconify-icons/tabler/plus';
@@ -134,56 +134,7 @@ export function CronSettings({ agent }: { agent: AssistantYjs }) {
       <Dialog maxWidth="sm" fullWidth {...bindDialog(dialogState)}>
         <DialogTitle>{t('objectSetting', { object: t('cronJob') })}</DialogTitle>
 
-        <DialogContent>
-          {job && (
-            <Stack gap={2}>
-              <TextField label={t('name')} value={job.name || ''} onChange={(e) => (job.name = e.target.value)} />
-
-              <Stack gap={1}>
-                <Typography variant="subtitle2">{t('time')}</Typography>
-                <GlobalStyles
-                  styles={(theme) => ({
-                    '.ant-select-dropdown': { zIndex: theme.zIndex.modal + 1 },
-                    '.ant-select-selector': {
-                      borderColor: `${theme.palette.divider} !important`,
-                      backgroundColor: 'transparent !important',
-                      '&:hover': {
-                        borderColor: `${theme.palette.primary.main} !important`,
-                      },
-                    },
-                    '.ant-btn-primary.ant-btn-dangerous': {
-                      backgroundColor: '#030712',
-                      '&:hover': {
-                        backgroundColor: '#030712 !important',
-                        opacity: 0.7,
-                      },
-                    },
-                  })}
-                />
-                <Box
-                  component={Cron}
-                  value={job.cronExpression || ''}
-                  setValue={(v: string) => (job.cronExpression = v)}
-                />
-              </Stack>
-
-              <Stack>
-                <Typography variant="subtitle2">{t('inputs')}</Typography>
-
-                <AgentInputsForm
-                  agent={agent}
-                  inputs={job.inputs}
-                  onChange={(update) => {
-                    doc.transact(() => {
-                      job.inputs ??= {};
-                      update(job.inputs);
-                    });
-                  }}
-                />
-              </Stack>
-            </Stack>
-          )}
-        </DialogContent>
+        <DialogContent>{job && <CronSettingsForm agent={agent} job={job} />}</DialogContent>
 
         <DialogActions>
           <Button variant="contained" onClick={dialogState.close}>
@@ -192,6 +143,95 @@ export function CronSettings({ agent }: { agent: AssistantYjs }) {
         </DialogActions>
       </Dialog>
     </>
+  );
+}
+
+const cronLocaleZH = {
+  everyText: '每',
+  emptyMonths: '每个月',
+  emptyMonthDays: '每个月的每一天',
+  emptyMonthDaysShort: '每月的某一天',
+  emptyWeekDays: '每周的每一天',
+  emptyWeekDaysShort: '每周的某一天',
+  emptyHours: '每小时',
+  emptyMinutes: '每分钟',
+  emptyMinutesForHourPeriod: '每',
+  yearOption: '年',
+  monthOption: '月',
+  weekOption: '周',
+  dayOption: '日',
+  hourOption: '小时',
+  minuteOption: '分钟',
+  rebootOption: '重启',
+  prefixPeriod: '每',
+  prefixMonths: '在',
+  prefixMonthDays: '在',
+  prefixWeekDays: '在',
+  prefixWeekDaysForMonthAndYearPeriod: '和',
+  prefixHours: '在',
+  prefixMinutes: ':',
+  prefixMinutesForHourPeriod: '在',
+  suffixMinutesForHourPeriod: '分钟',
+  errorInvalidCron: '无效的 cron 表达式',
+  clearButtonText: '清除',
+  weekDays: ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'],
+  months: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
+  altWeekDays: ['周日', '周一', '周二', '周三', '周四', '周五', '周六'],
+  altMonths: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
+};
+
+function CronSettingsForm({ agent, job }: { agent: AssistantYjs; job: CronJob }) {
+  const { t, locale } = useLocaleContext();
+  const doc = (getYjsValue(agent) as Map<any>).doc!;
+
+  return (
+    <Stack gap={2}>
+      <TextField label={t('name')} value={job.name || ''} onChange={(e) => (job.name = e.target.value)} />
+
+      <Stack gap={1}>
+        <Typography variant="subtitle2">{t('time')}</Typography>
+        <GlobalStyles
+          styles={(theme) => ({
+            '.ant-select-dropdown': { zIndex: theme.zIndex.modal + 1 },
+            '.ant-select-selector': {
+              borderColor: `${theme.palette.divider} !important`,
+              backgroundColor: 'transparent !important',
+              '&:hover': {
+                borderColor: `${theme.palette.primary.main} !important`,
+              },
+            },
+            '.ant-btn-primary.ant-btn-dangerous': {
+              backgroundColor: '#030712',
+              '&:hover': {
+                backgroundColor: '#030712 !important',
+                opacity: 0.7,
+              },
+            },
+          })}
+        />
+        <Box
+          component={Cron}
+          value={job.cronExpression || ''}
+          setValue={(v: string) => (job.cronExpression = v)}
+          locale={locale === 'zh' ? cronLocaleZH : undefined}
+        />
+      </Stack>
+
+      <Stack>
+        <Typography variant="subtitle2">{t('inputs')}</Typography>
+
+        <AgentInputsForm
+          agent={agent}
+          inputs={job.inputs}
+          onChange={(update) => {
+            doc.transact(() => {
+              job.inputs ??= {};
+              update(job.inputs);
+            });
+          }}
+        />
+      </Stack>
+    </Stack>
   );
 }
 
