@@ -1,3 +1,8 @@
+## 0.4.16 (2024-8-1)
+
+- fix: copy project with all config files
+- fix: config file maybe undefined
+
 ## 0.4.15 (2024-8-1)
 
 - refactor: add ResourceManager to manage the resource blocklets

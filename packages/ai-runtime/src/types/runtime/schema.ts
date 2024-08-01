@@ -102,7 +102,7 @@ export function outputVariablesToJsonSchema(
     if (variable.variable) {
       const { key, scope } = variable.variable;
       const v = variables.find((i) => toLower(i.key) === toLower(key) && i.scope === scope);
-      if (!v?.type) return undefined;
+      if (!v?.type) throw new Error(`Variable ${key} not found from ${scope}`);
 
       return variableToSchema(v.type);
     }
