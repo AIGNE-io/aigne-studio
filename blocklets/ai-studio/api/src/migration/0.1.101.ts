@@ -1,6 +1,7 @@
 import { join } from 'path';
 import { sep } from 'path/posix';
 
+import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { glob } from 'glob';
 
 import { Config } from '../libs/env';
@@ -21,7 +22,7 @@ async function migrate() {
       }
       return undefined;
     })
-    .filter((i): i is NonNullable<typeof i> => !!i);
+    .filter(isNonNullable);
 
   const isOldTemplateYjs = (file: any): file is TemplateYjs =>
     !!file &&

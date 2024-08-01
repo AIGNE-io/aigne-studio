@@ -4,6 +4,7 @@ import AigneLogo from '@app/icons/aigne-logo';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { AssistantYjs, fileToYjs, isAssistant, nextAssistantId } from '@blocklet/ai-runtime/types';
+import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { css } from '@emotion/css';
 import { Icon } from '@iconify-icon/react';
 import ArrowBackUpIcon from '@iconify-icons/tabler/arrow-back-up';
@@ -287,7 +288,7 @@ const FileTree = forwardRef<
 
       return undefined;
     })
-    .filter((i): i is NonNullable<typeof i> => !!i);
+    .filter(isNonNullable);
 
   const tree = [...folders, ...files]
     // filter all files not in the `/prompts/` folder

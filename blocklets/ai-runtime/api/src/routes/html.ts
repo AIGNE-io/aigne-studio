@@ -13,6 +13,7 @@ import {
   RUNTIME_RESOURCE_BLOCKLET_STATE_GLOBAL_VARIABLE,
   RuntimeResourceBlockletState,
 } from '@blocklet/ai-runtime/types/runtime/runtime-resource-blocklet-state';
+import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { getAgentProfile } from '@blocklet/aigne-sdk/utils/agent';
 import { getComponentMountPoint } from '@blocklet/sdk/lib/component';
 import { getBlockletJs } from '@blocklet/sdk/lib/config';
@@ -58,7 +59,7 @@ export default function setupHtmlRouter(app: Express, viteDevServer?: ViteDevSer
           project: i.project,
         });
       })
-      .filter((i): i is NonNullable<typeof i> => !!i);
+      .filter(isNonNullable);
 
     resourceBlockletState.applications.push(...apps);
 

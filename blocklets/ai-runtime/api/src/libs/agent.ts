@@ -3,6 +3,7 @@ import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { GetAgentOptions, GetAgentResult } from '@blocklet/ai-runtime/core';
 import { resolveSecretInputs } from '@blocklet/ai-runtime/core/utils/resolve-secret-inputs';
 import { BlockletAgent, ProjectSettings, Variable } from '@blocklet/ai-runtime/types';
+import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 
 import { getAgentFromAIStudio, getMemoryVariablesFromAIStudio, getProjectFromAIStudio } from './ai-studio';
 import { resourceManager } from './resource';
@@ -129,7 +130,7 @@ export async function getAgentSecretInputs(agent: GetAgentResult) {
         })
       )
     )
-  ).filter((i): i is NonNullable<typeof i> => !!i);
+  ).filter(isNonNullable);
 
   return secrets.map((i) => ({
     targetProjectId: i.agent.project.id,

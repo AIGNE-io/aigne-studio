@@ -10,7 +10,7 @@ import { parse } from 'yaml';
 import { AIGNE_STUDIO_COMPONENT_DID } from '../constants';
 import logger from '../logger';
 import { Assistant, ResourceProject, ResourceType, ResourceTypes, validateResourceProject } from '../types';
-import { isNonNil, isPropsNonNil } from '../utils/is-non-nil';
+import { isNonNullable, isPropsNonNullable } from '../utils/is-non-nullable';
 
 export type ResourceProjectItem = ResourceProject & {
   blocklet: { did: string };
@@ -65,7 +65,7 @@ const getResourceList = () => {
       ...i,
       type,
     }))
-  ).filter(isPropsNonNil('path'));
+  ).filter(isPropsNonNullable('path'));
 };
 
 async function loadProjectsFromResourceBlockletDir({
@@ -96,7 +96,7 @@ async function loadProjectsFromResourceBlockletDir({
         }
       })
     )
-  ).filter(isNonNil);
+  ).filter(isNonNullable);
 }
 
 const loadResourceKnowledge = async () => {
@@ -151,7 +151,7 @@ const loadResourceKnowledge = async () => {
     )
   )
     .flat()
-    .filter(isNonNil);
+    .filter(isNonNullable);
 };
 
 async function loadResources(): Promise<Resources> {

@@ -13,6 +13,7 @@ import {
   ResourceTypes,
 } from '@blocklet/ai-runtime/types';
 import { copyRecursive } from '@blocklet/ai-runtime/utils/fs';
+import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import component, { call } from '@blocklet/sdk/lib/component';
 import { user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
@@ -207,7 +208,7 @@ export function resourceRoutes(router: Router) {
                 }
               : null;
           })
-          .filter((i): i is NonNullable<typeof i> => !!i),
+          .filter(isNonNullable),
         (i) => i.type
       )
     );
@@ -311,7 +312,7 @@ export function resourceRoutes(router: Router) {
       resourceTypes
         .find(([type]) => type === 'knowledge')?.[1]
         .map((i) => i.knowledgeId)
-        .filter((i): i is NonNullable<typeof i> => !!i) ?? [];
+        .filter(isNonNullable) ?? [];
 
     const kbList = [...new Set([...selectedKBIds, ...referencedKBIds])].map((i) => ({
       id: i,
@@ -372,9 +373,7 @@ function getAssistantDependentComponents(assistant: Assistant | Assistant[]) {
 
         const outputVariables = (assistant.outputVariables ?? []).filter((i) => !i.hidden);
         const appearanceDeps =
-          outputVariables
-            .map((i) => i.appearance?.componentBlockletDid)
-            .filter((i): i is NonNullable<typeof i> => !!i) ?? [];
+          outputVariables.map((i) => i.appearance?.componentBlockletDid).filter(isNonNullable) ?? [];
 
         return [...inputDeps, ...executorDeps, ...appearanceDeps];
       })

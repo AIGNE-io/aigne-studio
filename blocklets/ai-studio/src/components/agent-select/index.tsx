@@ -6,6 +6,7 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
 import { ResourceType } from '@blocklet/ai-runtime/types';
+import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { AddComponent } from '@blocklet/ui-react';
 import { Icon } from '@iconify-icon/react';
 import BrandAppgalleryIcon from '@iconify-icons/tabler/brand-appgallery';
@@ -69,7 +70,7 @@ export default function AgentSelect<
         const v = agentMap[i.id];
         return v?.identity.blockletDid === i.blockletDid && v?.project.id === i.projectId ? v : undefined;
       })
-      .filter((i): i is NonNullable<typeof i> => !!i);
+      .filter(isNonNullable);
   } else if (value) {
     const v = agentMap[value.id];
     val = v && v?.identity.blockletDid === value.blockletDid && v?.project.id === value.projectId ? v : null;
