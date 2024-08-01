@@ -2,6 +2,7 @@ import path from 'path';
 
 import Project from '@api/store/models/project';
 import { Assistant } from '@blocklet/ai-runtime/types';
+import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 
@@ -67,7 +68,7 @@ export function treeRoutes(router: Router) {
           return undefined;
         })
       )
-    ).filter((i): i is NonNullable<typeof i> => !!i);
+    ).filter(isNonNullable);
 
     res.json({ files });
   });

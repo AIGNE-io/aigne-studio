@@ -11,7 +11,6 @@ import {
 import { getAllParameters, getRequiredFields } from '@blocklet/dataset-sdk/request/util';
 import { call } from '@blocklet/sdk/lib/component';
 import { logger } from '@blocklet/sdk/lib/config';
-import { isNil } from 'lodash';
 
 import { languages } from '../../constant/languages';
 import {
@@ -23,6 +22,7 @@ import {
   RuntimeOutputVariable,
   Tool,
 } from '../../types';
+import { isNonNullable } from '../../utils/is-non-nullable';
 import selectAgentName from '../assistant/select-agent';
 import { GetAgentResult, RunAssistantCallback, ToolCompletionDirective } from '../assistant/type';
 import { renderMessage } from '../utils/render-message';
@@ -135,7 +135,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase {
           };
         })
       )
-    ).filter((i): i is NonNullable<typeof i> => !isNil(i));
+    ).filter(isNonNullable);
 
     this.context.callback?.({
       type: AssistantResponseType.EXECUTE,

@@ -1,5 +1,6 @@
 import { useCurrentProject } from '@app/contexts/project';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Box, ListSubheader, MenuItem, Select, SelectProps, Stack, Typography } from '@mui/material';
 
 import { useProjectStore } from '../yjs-state';
@@ -7,7 +8,7 @@ import { defaultFonts } from './font-family-helmet';
 
 export default function FontFamilySetting() {
   const { projectId, projectRef } = useCurrentProject();
-  const { setProjectSetting, projectSetting } = useProjectStore(projectId, projectRef);
+  const { projectSetting } = useProjectStore(projectId, projectRef);
   const { appearance } = projectSetting || {};
 
   const { t } = useLocaleContext();
@@ -20,11 +21,12 @@ export default function FontFamilySetting() {
           <FontSelect
             value={appearance?.typography?.heading?.fontFamily || ''}
             onChange={(e) => {
-              setProjectSetting((config) => {
-                config.appearance ??= {};
-                config.appearance.typography ??= {};
-                config.appearance.typography.heading ??= {};
-                config.appearance.typography.heading.fontFamily = e.target.value;
+              const doc = (getYjsValue(projectSetting) as Map<any>).doc!;
+              doc.transact(() => {
+                projectSetting.appearance ??= {};
+                projectSetting.appearance.typography ??= {};
+                projectSetting.appearance.typography.heading ??= {};
+                projectSetting.appearance.typography.heading.fontFamily = e.target.value;
               });
             }}
           />
@@ -36,10 +38,11 @@ export default function FontFamilySetting() {
           <FontSelect
             value={appearance?.typography?.fontFamily || ''}
             onChange={(e) => {
-              setProjectSetting((config) => {
-                config.appearance ??= {};
-                config.appearance.typography ??= {};
-                config.appearance.typography.fontFamily = e.target.value;
+              const doc = (getYjsValue(projectSetting) as Map<any>).doc!;
+              doc.transact(() => {
+                projectSetting.appearance ??= {};
+                projectSetting.appearance.typography ??= {};
+                projectSetting.appearance.typography.fontFamily = e.target.value;
               });
             }}
           />

@@ -1,5 +1,5 @@
 import { copyFile, mkdir, readdir, rm, writeFile } from 'fs/promises';
-import path, { basename, dirname, extname, join, relative } from 'path';
+import path, { dirname, extname, join, relative } from 'path';
 
 import { EVENTS } from '@api/event';
 import { broadcast } from '@api/libs/ws';
@@ -9,13 +9,12 @@ import {
   ConfigFile,
   FileType,
   FileTypeYjs,
+  MemoryFile,
   ProjectSettings,
   Variable,
-  Variables,
   fileFromYjs,
   fileToYjs,
   isAssistant,
-  isVariables,
   projectSettingsSchema,
   variableFromYjs,
   variableToYjs,
@@ -39,13 +38,15 @@ import Project from './models/project';
 export const CONFIG_FOLDER = 'config';
 export const WORKING_FOLDER = 'working';
 
-export const VARIABLE_KEY = 'variable';
-export const VARIABLE_FILENAME = `${VARIABLE_KEY}.yaml`;
-export const VARIABLE_FILE_PATH = join(CONFIG_FOLDER, VARIABLE_FILENAME);
+export const OLD_VARIABLE_KEY = 'variable';
+export const OLD_VARIABLE_FILENAME = `${OLD_VARIABLE_KEY}.yaml`;
+export const VARIABLE_FILE_PATH = join(CONFIG_FOLDER, 'variable.yaml');
 
-export const CONFIG_FILE_KEY = 'config';
-export const CONFIG_FILENAME = `${CONFIG_FILE_KEY}.yaml`;
-export const CONFIG_FILE_PATH = join(CONFIG_FOLDER, CONFIG_FILENAME);
+export const OLD_CONFIG_FILE_KEY = 'config';
+export const OLD_CONFIG_FILENAME = `${OLD_CONFIG_FILE_KEY}.yaml`;
+export const CONFIG_FILE_PATH = join(CONFIG_FOLDER, 'config.yaml');
+
+export const CRON_FILE_PATH = join(CONFIG_FOLDER, 'cron.yaml');
 
 export const defaultBranch = 'main';
 
@@ -58,8 +59,8 @@ export const repositoryCooperativeRoot = (projectId: string) =>
 export const PROMPTS_FOLDER_NAME = 'prompts';
 export const TESTS_FOLDER_NAME = 'tests';
 export const LOGO_FILENAME = 'logo.png';
-export const OLD_SETTINGS_FILE = '.settings.yaml';
-export const SETTINGS_FILE = 'project.yaml';
+export const OLD_PROJECT_FILE_PATH = '.settings.yaml';
+export const PROJECT_FILE_PATH = 'project.yaml';
 
 export const ASSETS_DIR = 'assets';
 
@@ -115,22 +116,14 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
             }
           }
 
-          if (root === CONFIG_FOLDER) {
-            const filename = basename(filepath);
-            if (filename === VARIABLE_FILENAME) {
-              const variables: Variable[] = parse(Buffer.from(content).toString())?.variables;
-              return { filepath, key: VARIABLE_KEY, data: { variables: variables.map(variableToYjs) } };
-            }
-
-            if (filename === CONFIG_FILENAME) {
-              const config = parse(Buffer.from(content).toString());
-              return { filepath, key: CONFIG_FILE_KEY, data: config };
-            }
+          if (filepath === VARIABLE_FILE_PATH) {
+            const variables: Variable[] = parse(Buffer.from(content).toString())?.variables;
+            return { filepath, key: VARIABLE_FILE_PATH, data: { variables: variables.map(variableToYjs) } };
           }
 
-          if (filepath === OLD_SETTINGS_FILE || filepath === SETTINGS_FILE) {
+          if ([CONFIG_FILE_PATH, CRON_FILE_PATH, PROJECT_FILE_PATH, OLD_PROJECT_FILE_PATH].includes(filepath)) {
             const config = parse(Buffer.from(content).toString());
-            return { filepath: SETTINGS_FILE, key: SETTINGS_FILE, data: config };
+            return { filepath, key: filepath, data: config };
           }
 
           return null;
@@ -170,22 +163,11 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
             ];
           }
 
-          if (filepath === VARIABLE_FILE_PATH && isVariables(content)) {
-            const [root, filename] = filepath.split('/');
-            if (root === CONFIG_FOLDER && filename === VARIABLE_FILENAME) {
-              const { variables } = content;
-              return [{ filepath, data: stringify({ variables: variables?.map(variableFromYjs) }) }];
-            }
+          if (filepath === VARIABLE_FILE_PATH) {
+            return [{ filepath, data: stringify({ variables: (content as any)?.variables?.map(variableFromYjs) }) }];
           }
 
-          if (filepath === CONFIG_FILE_PATH) {
-            const [root, filename] = filepath.split('/');
-            if (root === CONFIG_FOLDER && filename === CONFIG_FILENAME) {
-              return [{ filepath, data: stringify(content) }];
-            }
-          }
-
-          if (filepath === SETTINGS_FILE) {
+          if ([CONFIG_FILE_PATH, PROJECT_FILE_PATH, CRON_FILE_PATH].includes(filepath)) {
             return [{ filepath, data: stringify(content) }];
           }
 
@@ -214,14 +196,25 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
   override async working({ ref }: { ref: string }): Promise<Working<FileTypeYjs>> {
     const working = await super.working({ ref });
 
+    // 兼容旧版数据，重命名 file key
+    if (working.syncedStore.files[OLD_CONFIG_FILE_KEY]) {
+      renameSyncedStoreFileKey(working, OLD_CONFIG_FILE_KEY, CONFIG_FILE_PATH);
+    }
+    if (working.syncedStore.files[OLD_VARIABLE_KEY]) {
+      renameSyncedStoreFileKey(working, OLD_VARIABLE_KEY, VARIABLE_FILE_PATH);
+    }
+
     // 兼容旧版数据，初始化 project.yaml
-    if (!working.syncedStore.files[SETTINGS_FILE]) {
+    if (!working.syncedStore.files[PROJECT_FILE_PATH]) {
       const project = await Project.findByPk(this.projectId, {
         rejectOnEmpty: new Error(`No such project ${this.projectId}`),
       });
 
-      working.syncedStore.files[SETTINGS_FILE] = await projectSettingsSchema.validateAsync(project.dataValues);
-      working.syncedStore.tree[SETTINGS_FILE] = SETTINGS_FILE;
+      working.syncedStore.files[PROJECT_FILE_PATH] = await projectSettingsSchema.validateAsync(project.dataValues);
+      working.syncedStore.tree[PROJECT_FILE_PATH] = PROJECT_FILE_PATH;
+
+      if (working.syncedStore.files[OLD_PROJECT_FILE_PATH]) delete working.syncedStore.files[OLD_PROJECT_FILE_PATH];
+      if (working.syncedStore.tree[OLD_PROJECT_FILE_PATH]) delete working.syncedStore.tree[OLD_PROJECT_FILE_PATH];
     }
 
     // 兼容旧版数据，从 main 分支复制 logo
@@ -237,6 +230,19 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
         await writeFile(logoPath, file);
       }
     }
+
+    // ensure config files
+    const ensureConfigFileExists = (filename: string, defaultValue: any = {}) => {
+      working.transact(() => {
+        if (!working.syncedStore.files[filename]) {
+          working.syncedStore.files[filename] = defaultValue;
+          working.syncedStore.tree[filename] = filename;
+        }
+      });
+    };
+    ensureConfigFileExists(CONFIG_FILE_PATH);
+    ensureConfigFileExists(CRON_FILE_PATH);
+    ensureConfigFileExists(VARIABLE_FILE_PATH, { variables: [] });
 
     return working;
   }
@@ -269,14 +275,14 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
       skipCommitIfNoChanges,
       beforeTransact: async ({ tx }) => {
         // reset files before commit
-        for (const file of [...RESET_FILES_BEFORE_COMMIT, OLD_SETTINGS_FILE]) {
+        for (const file of [...RESET_FILES_BEFORE_COMMIT, OLD_PROJECT_FILE_PATH]) {
           await rm(path.join(working.workingDir, file), { recursive: true, force: true });
           await tx.remove({ dir: working.workingDir, filepath: file });
         }
       },
       beforeCommit: async ({ tx }) => {
         // TODO: 支持前端编辑 README 文件
-        const setting = working.syncedStore.files[SETTINGS_FILE] as ProjectSettings | undefined;
+        const setting = working.syncedStore.files[PROJECT_FILE_PATH] as ProjectSettings | undefined;
         const readme = getReadmeOfProject({ name: setting?.name || '', description: setting?.description || '' });
         await writeFile(path.join(working.workingDir, 'README.md'), readme);
 
@@ -316,10 +322,10 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
           const changes = await tx.repo.statusMatrix({ dir: working.workingDir });
           const hasChange = !changes.every((i) => i[1] === 1 && i[2] === 1 && i[3] === 1);
           if (hasChange) {
-            const setting = working.syncedStore.files[SETTINGS_FILE] as ProjectSettings;
+            const setting = working.syncedStore.files[PROJECT_FILE_PATH] as ProjectSettings;
             if (!setting) throw new Error('Missing required project.yaml');
             setting.updatedAt = new Date().toISOString();
-            await writeFile(path.join(working.workingDir, SETTINGS_FILE), stringify(setting));
+            await writeFile(path.join(working.workingDir, PROJECT_FILE_PATH), stringify(setting));
           }
         }
       },
@@ -349,6 +355,11 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
     } finally {
       await rm(tmpFilename, { force: true, recursive: true });
     }
+  }
+
+  async readAndParseFile<T>({ ref, filepath }: { ref?: string; filepath: string }): Promise<T> {
+    const file = Buffer.from((await this.readBlob({ ref: ref || defaultBranch, filepath })).blob).toString();
+    return parse(file);
   }
 }
 
@@ -500,13 +511,13 @@ export async function getAssistantsOfRepository({
   projectId: string;
   ref: string;
   working?: boolean;
-}) {
+}): Promise<(Assistant & { parent: string[] })[]> {
   const repository = await getRepository({ projectId });
   if (working) {
     const w = await repository.working({ ref });
     return Object.values(w.syncedStore.files)
       .filter((i): i is AssistantYjs => !!i && isAssistant(i))
-      .map((i) => fileFromYjs(i) as Assistant);
+      .map((i) => fileFromYjs(i) as Assistant & { parent: string[] });
   }
   return repository
     .listFiles({ ref })
@@ -514,7 +525,7 @@ export async function getAssistantsOfRepository({
       Promise.all(
         files
           .filter((i) => i.startsWith(`${PROMPTS_FOLDER_NAME}/`) && i.endsWith('.yaml'))
-          .map((filepath) => {
+          .map(async (filepath) => {
             const paths = filepath.split('/').filter(Boolean);
             return repository
               .readBlob({ ref, filepath })
@@ -522,7 +533,7 @@ export async function getAssistantsOfRepository({
           })
       )
     )
-    .then((files) => files.filter((i): i is Assistant => isAssistant(i)));
+    .then((files) => files.filter((i): i is Assistant & { parent: string[] } => isAssistant(i)));
 }
 
 export async function getAssistantFromRepository({
@@ -628,7 +639,7 @@ export async function getProjectMemoryVariables({
   ref: string;
   working?: boolean;
 }) {
-  return getFileFromRepository<Variables>({ repository, ref, filepath: VARIABLE_FILE_PATH, working });
+  return getFileFromRepository<MemoryFile>({ repository, ref, filepath: VARIABLE_FILE_PATH, working });
 }
 
 export async function getProjectConfig({
@@ -659,4 +670,17 @@ export async function getEntryFromRepository({
   if (!entry) return undefined;
 
   return getAssistantFromRepository({ repository, ref, working, agentId: entry });
+}
+
+function renameSyncedStoreFileKey(working: Working<FileTypeYjs>, key: string, newKey: string) {
+  working.transact(() => {
+    const file = working.syncedStore.files[key];
+    if (!file) return;
+
+    if (working.syncedStore.files[key]) delete working.syncedStore.files[key];
+    if (working.syncedStore.tree[key]) delete working.syncedStore.tree[key];
+
+    working.syncedStore.tree[newKey] = newKey;
+    working.syncedStore.files[newKey] = JSON.parse(JSON.stringify(file));
+  });
 }

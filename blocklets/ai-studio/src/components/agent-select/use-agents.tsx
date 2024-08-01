@@ -1,6 +1,5 @@
-import { ResourceType } from '@api/libs/resource';
 import { UseAgentItem, useAgents } from '@app/store/agent';
-import { RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
+import { ResourceType, RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
 
 export interface AgentSelectFilter {
   type: ResourceType;

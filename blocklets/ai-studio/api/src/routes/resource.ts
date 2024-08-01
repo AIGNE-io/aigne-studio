@@ -2,11 +2,18 @@ import { copyFile, mkdir, mkdtemp, rm, writeFile } from 'fs/promises';
 import { join } from 'path';
 
 import { Config } from '@api/libs/env';
-import logger from '@api/libs/logger';
-import { ResourceTypes } from '@api/libs/resource';
 import { AIGNE_RUNTIME_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
-import { Assistant, projectSettingsSchema } from '@blocklet/ai-runtime/types';
+import {
+  Assistant,
+  ConfigFile,
+  CronFile,
+  MemoryFile,
+  ProjectSettings,
+  ResourceProject,
+  ResourceTypes,
+} from '@blocklet/ai-runtime/types';
 import { copyRecursive } from '@blocklet/ai-runtime/utils/fs';
+import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import component, { call } from '@blocklet/sdk/lib/component';
 import { user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
@@ -23,12 +30,14 @@ import Knowledge from '../store/models/dataset/dataset';
 import Project from '../store/models/project';
 import {
   ASSETS_DIR,
+  CONFIG_FILE_PATH,
+  CRON_FILE_PATH,
   LOGO_FILENAME,
+  PROJECT_FILE_PATH,
+  VARIABLE_FILE_PATH,
   defaultBranch,
   getAssistantsOfRepository,
   getEntryFromRepository,
-  getProjectConfig,
-  getProjectMemoryVariables,
   getRepository,
 } from '../store/repository';
 
@@ -199,7 +208,7 @@ export function resourceRoutes(router: Router) {
                 }
               : null;
           })
-          .filter((i): i is NonNullable<typeof i> => !!i),
+          .filter(isNonNullable),
         (i) => i.type
       )
     );
@@ -235,7 +244,7 @@ export function resourceRoutes(router: Router) {
           rejectOnEmpty: new Error(`no such project ${projectId}`),
         });
 
-        const assistants = await Promise.all(
+        const agents = await Promise.all(
           (await getAssistantsOfRepository({ projectId, ref: project.gitDefaultBranch || defaultBranch })).map(
             async (i) => {
               return {
@@ -247,16 +256,10 @@ export function resourceRoutes(router: Router) {
           )
         );
 
-        const config = await getProjectConfig({ repository, ref: project?.gitDefaultBranch || defaultBranch }).catch(
-          (error) => {
-            logger.error('failed to get project config', { error });
-          }
-        );
-
         // 判断是否有知识库的引用
-        for (const assistant of assistants) {
-          if (assistant.parameters?.length) {
-            (assistant.parameters || []).forEach((parameter) => {
+        for (const agent of agents) {
+          if (agent.parameters?.length) {
+            (agent.parameters || []).forEach((parameter) => {
               if (
                 parameter.type === 'source' &&
                 parameter.source?.variableFrom === 'knowledge' &&
@@ -270,18 +273,12 @@ export function resourceRoutes(router: Router) {
           }
         }
 
-        const data = {
-          assistants,
-          project: await projectSettingsSchema.validateAsync(project.dataValues),
-          config,
-          memory: {
-            variables: (
-              await getProjectMemoryVariables({
-                repository,
-                ref: project.gitDefaultBranch || defaultBranch,
-              })
-            )?.variables,
-          },
+        const data: ResourceProject = {
+          agents,
+          project: await repository.readAndParseFile<ProjectSettings>({ filepath: PROJECT_FILE_PATH }),
+          config: await repository.readAndParseFile<ConfigFile>({ filepath: CONFIG_FILE_PATH }),
+          cron: await repository.readAndParseFile<CronFile>({ filepath: CRON_FILE_PATH }),
+          memory: await repository.readAndParseFile<MemoryFile>({ filepath: VARIABLE_FILE_PATH }),
         };
 
         const tmpdir = join(Config.appDir, 'tmp');
@@ -315,7 +312,7 @@ export function resourceRoutes(router: Router) {
       resourceTypes
         .find(([type]) => type === 'knowledge')?.[1]
         .map((i) => i.knowledgeId)
-        .filter((i): i is NonNullable<typeof i> => !!i) ?? [];
+        .filter(isNonNullable) ?? [];
 
     const kbList = [...new Set([...selectedKBIds, ...referencedKBIds])].map((i) => ({
       id: i,
@@ -376,9 +373,7 @@ function getAssistantDependentComponents(assistant: Assistant | Assistant[]) {
 
         const outputVariables = (assistant.outputVariables ?? []).filter((i) => !i.hidden);
         const appearanceDeps =
-          outputVariables
-            .map((i) => i.appearance?.componentBlockletDid)
-            .filter((i): i is NonNullable<typeof i> => !!i) ?? [];
+          outputVariables.map((i) => i.appearance?.componentBlockletDid).filter(isNonNullable) ?? [];
 
         return [...inputDeps, ...executorDeps, ...appearanceDeps];
       })

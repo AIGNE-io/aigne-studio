@@ -12,6 +12,7 @@ import type {
   FileTypeYjs,
   FunctionAssistantYjs,
   ImageAssistantYjs,
+  MemoryFileYjs,
   OutputVariableYjs,
   ParameterYjs,
   PromptAssistantYjs,
@@ -20,7 +21,6 @@ import type {
   RuntimeOutputVariablesSchemaYjs,
   VariableTypeYjs,
   VariableYjs,
-  VariablesYjs,
 } from './yjs';
 import type {
   Agent,
@@ -31,6 +31,7 @@ import type {
   FileType,
   FunctionAssistant,
   ImageAssistant,
+  MemoryFile,
   OutputVariable,
   Parameter,
   Prompt,
@@ -38,7 +39,6 @@ import type {
   RouterAssistant,
   Variable,
   VariableType,
-  Variables,
 } from '.';
 
 export const randomId = customAlphabet('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
@@ -61,10 +61,10 @@ export function isExecuteBlock(
   return prompt.type === 'executeBlock';
 }
 
-export function isVariables(assistant: FileType): assistant is Variables;
-export function isVariables(assistant: FileTypeYjs): assistant is VariablesYjs;
-export function isVariables(assistant: FileType | FileTypeYjs): assistant is FileType | VariablesYjs {
-  return 'variables' in (assistant as any);
+export function isVariables(assistant: FileType): assistant is MemoryFile;
+export function isVariables(assistant: FileTypeYjs): assistant is MemoryFileYjs;
+export function isVariables(assistant: FileType | FileTypeYjs): assistant is FileType | MemoryFileYjs {
+  return 'variables' in assistant && Array.isArray(assistant.variables);
 }
 
 export function isAssistant(assistant: FileType): assistant is Assistant;

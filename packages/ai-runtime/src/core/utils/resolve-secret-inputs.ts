@@ -1,6 +1,7 @@
 import { uniqBy } from 'lodash';
 
 import { RuntimeOutputVariable, RuntimeOutputVariablesSchema, SecretParameter, SourceParameter } from '../../types';
+import { isNonNullable } from '../../utils/is-non-nullable';
 import { GetAgent, GetAgentResult } from '../assistant/type';
 
 export async function resolveSecretInputs(
@@ -38,7 +39,7 @@ export async function resolveSecretInputs(
       return null;
     }),
     ...(agent.executor?.agent?.id ? [agent.executor.agent] : []),
-  ].filter((i): i is NonNullable<typeof i> => !!i);
+  ].filter(isNonNullable);
 
   const nestedSecretInputs = (
     await Promise.all(
@@ -55,7 +56,7 @@ export async function resolveSecretInputs(
     )
   )
     .flat()
-    .filter((i): i is NonNullable<typeof i> => !!i);
+    .filter(isNonNullable);
 
   return uniqBy([...secretInputs, ...nestedSecretInputs], (i) => `${i.input.id}-${i.agent.id}-${i.agent.project?.id}`);
 }

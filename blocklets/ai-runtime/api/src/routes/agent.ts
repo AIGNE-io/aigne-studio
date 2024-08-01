@@ -1,10 +1,10 @@
 import { join } from 'path';
 
 import { getAgent, getAgentSecretInputs } from '@api/libs/agent';
-import { ResourceType, getProjectFromResource, getResourceProjects } from '@api/libs/resource';
+import { resourceManager } from '@api/libs/resource';
 import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
-import { Assistant, ProjectSettings } from '@blocklet/ai-runtime/types';
+import { Assistant, ProjectSettings, ResourceType } from '@blocklet/ai-runtime/types';
 import { Agent } from '@blocklet/aigne-sdk/api/agent';
 import { getComponentMountPoint } from '@blocklet/sdk';
 import { Router } from 'express';
@@ -29,16 +29,16 @@ const getAgentsQuerySchema = Joi.object<GetAgentsQuery>({
 router.get('/', async (req, res) => {
   const query = await getAgentsQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
-  const projects = await getResourceProjects({ type: query.type });
+  const projects = await resourceManager.getProjects({ type: query.type });
 
   const agents: Agent[] = projects.flatMap((project) =>
-    project.assistants
-      .filter((assistant) => {
+    project.agents
+      .filter((agent) => {
         if (query.type === 'application') {
-          return project.config?.entry === assistant.id;
+          return project.config?.entry === agent.id;
         }
         if (['tool', 'llm-adapter', 'aigc-adapter'].includes(query.type)) {
-          return assistant.public;
+          return agent.public;
         }
         return false;
       })
@@ -100,7 +100,7 @@ router.get('/:aid/logo', async (req, res) => {
   const { projectId, projectRef } = parseIdentity(aid, { rejectWhenError: true });
 
   if (blockletDid) {
-    const dir = (await getProjectFromResource({ blockletDid, projectId }))?.projectDir;
+    const dir = (await resourceManager.getProject({ blockletDid, projectId }))?.dir;
     const logo = dir ? join(dir, 'logo.png') : undefined;
     if (logo && (await exists(logo))) {
       res.sendFile(logo);
@@ -127,7 +127,7 @@ router.get('/:aid/assets/:filename', async (req, res) => {
   const { projectId, projectRef } = parseIdentity(aid, { rejectWhenError: true });
 
   if (blockletDid) {
-    const dir = (await getProjectFromResource({ blockletDid, projectId }))?.projectDir;
+    const dir = (await resourceManager.getProject({ blockletDid, projectId }))?.dir;
     const path = dir ? join(dir, 'assets', filename) : undefined;
     if (path && (await exists(path))) {
       res.sendFile(path);

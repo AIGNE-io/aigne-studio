@@ -1,9 +1,9 @@
-import { ResourceType } from '@api/libs/resource';
 import { useCurrentProject } from '@app/contexts/project';
 import { useCurrentProjectState } from '@app/pages/project/state';
 import { useAssistants, useProject } from '@app/pages/project/yjs-state';
 import {
   Assistant,
+  ResourceType,
   arrayFromYjs,
   fileFromYjs,
   isAssistant,
