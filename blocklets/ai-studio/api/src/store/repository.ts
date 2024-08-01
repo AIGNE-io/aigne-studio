@@ -356,6 +356,11 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
       await rm(tmpFilename, { force: true, recursive: true });
     }
   }
+
+  async readAndParseFile<T>({ ref, filepath }: { ref?: string; filepath: string }): Promise<T> {
+    const file = Buffer.from((await this.readBlob({ ref: ref || defaultBranch, filepath })).blob).toString();
+    return parse(file);
+  }
 }
 
 export async function getRepository({

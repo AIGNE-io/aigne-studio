@@ -28,6 +28,7 @@ class ProjectCronManager extends CronJobManager {
       logger.info('reload project jobs start', { projectId });
 
       const jobs: Job[] = (cronConfig.jobs ?? [])
+        .map((i) => JSON.parse(JSON.stringify(i)))
         .filter(
           (i): i is typeof i & Required<Pick<typeof i, 'agentId' | 'cronExpression'>> =>
             !!i.enable && !!i.agentId && !!i.cronExpression

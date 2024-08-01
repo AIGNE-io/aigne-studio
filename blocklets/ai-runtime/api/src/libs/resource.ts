@@ -4,16 +4,24 @@ import { basename, dirname, join } from 'path';
 import DatasetContent from '@api/store/models/dataset/content';
 import Dataset from '@api/store/models/dataset/dataset';
 import DatasetDocument from '@api/store/models/dataset/document';
-import { Assistant, ConfigFile, ProjectSettings, Variable, projectSettingsSchema } from '@blocklet/ai-runtime/types';
+import {
+  Assistant,
+  ConfigFile,
+  CronConfigFile,
+  ProjectSettings,
+  Variable,
+  projectSettingsSchema,
+} from '@blocklet/ai-runtime/types';
 import { getResources } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
 import { exists } from 'fs-extra';
-import { groupBy } from 'lodash';
+import { groupBy, throttle } from 'lodash';
 import { parse } from 'yaml';
 
 import logger from './logger';
 
 const AI_STUDIO_DID = 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
+const RELOAD_RESOURCES_THROTTLE = 3000;
 
 export type ResourceType =
   | 'template'
@@ -37,6 +45,7 @@ export const ResourceTypes: ResourceType[] = [
 interface ResourceProject {
   blocklet: { did: string };
   project: ProjectSettings;
+  cronConfig?: CronConfigFile;
   memory?: { variables: Variable[] };
   config?: ConfigFile;
   projectDir: string;
@@ -59,6 +68,8 @@ interface Resources {
       projects: ResourceProject[];
       blockletMap: {
         [blockletDid: string]: {
+          blockletDid: string;
+          status?: number;
           projectMap: {
             [projectId: string]: ResourceProject & {
               agentMap: {
@@ -150,6 +161,8 @@ async function loadResources(): Promise<Resources> {
           Object.entries(groupBy(projects, (i) => i.blocklet.did)).map(([blockletDid, projects]) => [
             blockletDid,
             {
+              blockletDid,
+              status: item.status,
               projectMap: Object.fromEntries(
                 projects.map(
                   (i) =>
@@ -256,7 +269,7 @@ const loadResourceKnowledge = async () => {
     .filter((i): i is NonNullable<typeof i> => !!i);
 };
 
-async function initResources({ reload }: { reload?: boolean } = {}) {
+export async function initResources({ reload }: { reload?: boolean } = {}) {
   if (reload) cache.promise = undefined;
   cache.promise ??= loadResources();
   return cache.promise;
@@ -355,21 +368,26 @@ export const getAssistantFromResourceBlocklet = async ({
 };
 
 export function initResourceStates() {
-  async function reloadStatesWithCatch() {
-    logger.info('reload resource states');
-    await initResources({ reload: true })
-      .then((resource) => {
-        logger.info('reload resource states success', {
-          projects: Object.values(resource.agents).reduce((res, i) => i.projects.length + res, 0),
-          knowledge: resource.knowledge.knowledgeList.length,
+  const reloadStatesWithCatch = throttle(
+    async () => {
+      logger.info('reload resource states');
+      await initResources({ reload: true })
+        .then((resource) => {
+          logger.info('reload resource states success', {
+            projects: Object.values(resource.agents).reduce((res, i) => i.projects.length + res, 0),
+            knowledge: resource.knowledge.knowledgeList.length,
+          });
+        })
+        .catch((error) => {
+          logger.error('reload resource states error', { error });
         });
-      })
-      .catch((error) => {
-        logger.error('reload resource states error', { error });
-      });
-  }
+    },
+    RELOAD_RESOURCES_THROTTLE,
+    { leading: false, trailing: true }
+  );
 
   reloadStatesWithCatch();
+  reloadStatesWithCatch.flush();
 
   config.events.on(config.Events.componentAdded, reloadStatesWithCatch);
   config.events.on(config.Events.componentRemoved, reloadStatesWithCatch);

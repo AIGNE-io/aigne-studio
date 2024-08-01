@@ -5,7 +5,7 @@ import { Config } from '@api/libs/env';
 import logger from '@api/libs/logger';
 import { ResourceTypes } from '@api/libs/resource';
 import { AIGNE_RUNTIME_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
-import { Assistant, projectSettingsSchema } from '@blocklet/ai-runtime/types';
+import { Assistant, CronConfigFile, ProjectSettings } from '@blocklet/ai-runtime/types';
 import { copyRecursive } from '@blocklet/ai-runtime/utils/fs';
 import component, { call } from '@blocklet/sdk/lib/component';
 import { user } from '@blocklet/sdk/lib/middlewares';
@@ -23,7 +23,9 @@ import Knowledge from '../store/models/dataset/dataset';
 import Project from '../store/models/project';
 import {
   ASSETS_DIR,
+  CRON_CONFIG_FILE_PATH,
   LOGO_FILENAME,
+  PROJECT_FILE_PATH,
   defaultBranch,
   getAssistantsOfRepository,
   getEntryFromRepository,
@@ -272,8 +274,9 @@ export function resourceRoutes(router: Router) {
 
         const data = {
           assistants,
-          project: await projectSettingsSchema.validateAsync(project.dataValues),
+          project: await repository.readAndParseFile<ProjectSettings>({ filepath: PROJECT_FILE_PATH }),
           config,
+          cronConfig: await repository.readAndParseFile<CronConfigFile>({ filepath: CRON_CONFIG_FILE_PATH }),
           memory: {
             variables: (
               await getProjectMemoryVariables({

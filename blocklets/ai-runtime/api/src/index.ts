@@ -9,6 +9,7 @@ import dotenv from 'dotenv-flow';
 import express, { ErrorRequestHandler } from 'express';
 
 import initCronJob from './jobs';
+import { cronManager } from './libs/cron-jobs';
 import { isDevelopment } from './libs/env';
 import logger from './libs/logger';
 import { initResourceStates } from './libs/resource';
@@ -65,4 +66,12 @@ export const server = app.listen(port, (err?: any) => {
 
   initCronJob();
   initResourceStates();
+  cronManager
+    .reloadAllProjectsJobs()
+    .then(() => {
+      logger.info('reload all blocklets jobs success');
+    })
+    .catch((error) => {
+      logger.error('reload all blocklets jobs error', { error });
+    });
 });
