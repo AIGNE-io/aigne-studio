@@ -321,7 +321,7 @@ const FileTree = forwardRef<
     );
   }
 
-  if (!files.length) {
+  if (!tree.length) {
     return (
       <>
         {dialog}
