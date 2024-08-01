@@ -747,4 +747,10 @@ export default flat({
   addParameter: '添加变量到输入参数',
   variableNotReferenced: '当前变量未被引用',
   cache: '缓存',
+  time: '时间',
+  cronJob: '定时任务',
+  cronJobs: '定时任务',
+  objectSetting: '{object}设置',
+  emptyObjectTip: '暂无{object}',
+  new: '新建',
 });

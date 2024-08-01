@@ -4,6 +4,7 @@ import { getDefaultBranch, useCurrentGitStore } from '@app/store/current-git-sto
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { defaultTextModel, getSupportedModels } from '@blocklet/ai-runtime/common';
+import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { CloseRounded, SaveRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
@@ -90,7 +91,15 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
   const [currentTabIndex, setCurrentTabIndex] = useState<string | undefined>(tabListInfo.list[0]);
 
   const { value: supportedModels, loading: getSupportedModelsLoading } = useAsync(() => getSupportedModels(), []);
-  const { setProjectSetting, projectSetting } = useProjectStore(projectId, projectRef);
+  const { projectSetting } = useProjectStore(projectId, projectRef);
+
+  const setProjectSetting = (update: (v: typeof projectSetting) => void) => {
+    const doc = (getYjsValue(projectSetting) as Map<any>).doc!;
+    doc.transact(() => {
+      update(projectSetting);
+    });
+  };
+
   const model = useMemo(
     () =>
       supportedModels?.find((i) => i.model === projectSetting?.model) ??

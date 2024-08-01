@@ -2,6 +2,7 @@ import { useComponent } from '@app/contexts/component';
 import { CreateDiscussionItem } from '@app/libs/dataset';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
+import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { Box, TextField } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useThrottle } from 'ahooks';
@@ -40,7 +41,7 @@ function DiscussionTable({
     }
   }, [error]);
 
-  const selection = useMemo(() => value.map((i) => i!.id).filter((i): i is NonNullable<typeof i> => !!i), [value]);
+  const selection = useMemo(() => value.map((i) => i!.id).filter(isNonNullable), [value]);
 
   const onRowSelectionModelChange = useCallback(
     (ids: readonly any[]) => {

@@ -3,7 +3,7 @@ import { resolve } from 'path';
 
 import { getAgent } from '@api/libs/agent';
 import logger from '@api/libs/logger';
-import { getResourceProjects } from '@api/libs/resource';
+import { resourceManager } from '@api/libs/resource';
 import History from '@api/store/models/history';
 import { parseIdentity } from '@blocklet/ai-runtime/common/aid';
 import { AIGNE_RUNTIME_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
@@ -13,6 +13,7 @@ import {
   RUNTIME_RESOURCE_BLOCKLET_STATE_GLOBAL_VARIABLE,
   RuntimeResourceBlockletState,
 } from '@blocklet/ai-runtime/types/runtime/runtime-resource-blocklet-state';
+import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { getAgentProfile } from '@blocklet/aigne-sdk/utils/agent';
 import { getComponentMountPoint } from '@blocklet/sdk/lib/component';
 import { getBlockletJs } from '@blocklet/sdk/lib/config';
@@ -38,14 +39,14 @@ export default function setupHtmlRouter(app: Express, viteDevServer?: ViteDevSer
 
     const componentId = req.get('x-blocklet-component-id')?.split('/').at(-1);
     const blockletDid = componentId !== AIGNE_RUNTIME_COMPONENT_DID ? componentId : undefined;
-    const projects = await getResourceProjects({ blockletDid, type: 'application' });
+    const projects = await resourceManager.getProjects({ blockletDid, type: 'application' });
 
     const apps = projects
       .map((i) => {
         const entry = i.config?.entry;
         if (!entry) return undefined;
 
-        const entryAgent = i.assistants.find((j) => j.id === entry);
+        const entryAgent = i.agents.find((j) => j.id === entry);
         if (!entryAgent) return undefined;
 
         return respondAgentFields({
@@ -58,7 +59,7 @@ export default function setupHtmlRouter(app: Express, viteDevServer?: ViteDevSer
           project: i.project,
         });
       })
-      .filter((i): i is NonNullable<typeof i> => !!i);
+      .filter(isNonNullable);
 
     resourceBlockletState.applications.push(...apps);
 

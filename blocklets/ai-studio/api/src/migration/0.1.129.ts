@@ -1,10 +1,10 @@
 import { join } from 'path';
 import { sep } from 'path/posix';
 
+import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { getYjsValue } from '@blocklet/co-git/yjs';
 import { glob } from 'glob';
 
-import init from '../init';
 import { Config } from '../libs/env';
 import logger from '../libs/logger';
 import { getRepository } from '../store/0.1.157/projects';
@@ -23,7 +23,7 @@ async function migrate() {
       }
       return undefined;
     })
-    .filter((i): i is NonNullable<typeof i> => !!i);
+    .filter(isNonNullable);
 
   const isPromptAssistant = (i: any): i is { id: string } => typeof i.id === 'string';
 
@@ -53,8 +53,6 @@ async function migrate() {
 
 (async () => {
   try {
-    await init();
-
     await migrate();
     logger.info(`migration ${__filename} success`);
     process.exit(0);

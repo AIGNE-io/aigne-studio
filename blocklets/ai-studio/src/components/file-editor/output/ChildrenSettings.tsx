@@ -1,6 +1,7 @@
 import { PROMPTS_FOLDER_NAME, useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { AssistantYjs, OutputVariableYjs, RuntimeOutputChildren, isAssistant } from '@blocklet/ai-runtime/types';
+import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Box, Typography } from '@mui/material';
 import { WritableDraft } from 'immer';
@@ -40,7 +41,7 @@ export default function ChildrenSettings({
 
   const value = (initialValue?.agents ?? [])
     .map((i) => options.find((o) => o.id === i.id))
-    .filter((i): i is NonNullable<typeof i> => !!i)
+    .filter(isNonNullable)
     .map((i) => ({ id: i.id, name: i.name }));
 
   return (

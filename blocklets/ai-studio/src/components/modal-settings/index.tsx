@@ -2,6 +2,7 @@ import { getSupportedModels } from '@api/libs/common';
 import { useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ExecuteBlockSelectByPromptYjs, FileTypeYjs, OnTaskCompletion, isAssistant } from '@blocklet/ai-runtime/types';
+import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { Icon } from '@iconify-icon/react';
 import SettingIcon from '@iconify-icons/tabler/settings-2';
 import { InfoOutlined } from '@mui/icons-material';
@@ -76,7 +77,7 @@ export function ModelSetting({
             if (!file) return null;
             return { index, data: { ...tool, file } };
           })
-          .filter((i): i is NonNullable<typeof i> => !!i)
+          .filter(isNonNullable)
       : []
   );
 

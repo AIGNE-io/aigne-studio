@@ -15,10 +15,11 @@ import express, { ErrorRequestHandler } from 'express';
 import fallback from 'express-history-api-fallback';
 import { Errors } from 'isomorphic-git';
 
+import { projectCronManager } from './libs/cron-jobs';
 import { Config, isDevelopment } from './libs/env';
 import { NoPermissionError, NotFoundError } from './libs/error';
 import logger from './libs/logger';
-import { initResourceStates } from './libs/resource';
+import { resourceManager } from './libs/resource';
 import { ensurePromptsEditor } from './libs/security';
 import routes from './routes';
 import { wss } from './routes/ws';
@@ -88,7 +89,23 @@ export const server = app.listen(port, (err?: any) => {
   if (err) throw err;
   logger.info(`> ${name} v${version} ready on ${port}`);
 
-  initResourceStates();
+  resourceManager
+    .reload()
+    .then(() => {
+      logger.info('init resource states success');
+    })
+    .catch((error) => {
+      logger.error('init resource states error', { error });
+    });
+
+  projectCronManager
+    .reloadAllProjectsJobs()
+    .then(() => {
+      logger.info('reload all projects jobs success');
+    })
+    .catch((error) => {
+      logger.error('reload all projects jobs error', { error });
+    });
 });
 
 server.on('upgrade', (req, socket, head) => {

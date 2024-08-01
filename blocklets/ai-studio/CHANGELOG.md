@@ -1,3 +1,8 @@
+## 0.4.15 (2024-8-1)
+
+- refactor: add ResourceManager to manage the resource blocklets
+- feat: add cron jobs support
+
 ## 0.4.14 (2024-7-30)
 
 - feat: support cache agent outputs

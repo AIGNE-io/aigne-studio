@@ -4,6 +4,7 @@ import AigneLogo from '@app/icons/aigne-logo';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { AssistantYjs, fileToYjs, isAssistant, nextAssistantId } from '@blocklet/ai-runtime/types';
+import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { css } from '@emotion/css';
 import { Icon } from '@iconify-icon/react';
 import ArrowBackUpIcon from '@iconify-icons/tabler/arrow-back-up';
@@ -128,7 +129,7 @@ const FileTree = forwardRef<
   const navigate = useNavigate();
   const { dialog, showDialog } = useDialog();
 
-  const { store, synced, config, setConfig } = useProjectStore(projectId, gitRef);
+  const { store, synced, config } = useProjectStore(projectId, gitRef);
   const { deleted, changes, getOriginTemplate } = useAssistantChangesState(projectId, gitRef);
   const dialogState = usePopupState({ variant: 'dialog' });
   const [compareAssistant, setCompareAssistant] = useState('');
@@ -156,9 +157,7 @@ const FileTree = forwardRef<
     (options: Partial<Omit<Parameters<ReturnType<typeof useCreateFile>>[0], 'store'>> = {}) => {
       const { filepath, file } = createFile({ ...options, store });
       if (!store.files[config?.entry!]) {
-        setConfig((config) => {
-          config.entry = file.id;
-        });
+        config.entry = file.id;
       }
 
       const { parent } = options;
@@ -289,7 +288,7 @@ const FileTree = forwardRef<
 
       return undefined;
     })
-    .filter((i): i is NonNullable<typeof i> => !!i);
+    .filter(isNonNullable);
 
   const tree = [...folders, ...files]
     // filter all files not in the `/prompts/` folder
@@ -486,9 +485,7 @@ const FileTree = forwardRef<
                     });
                   }}
                   onSetAsEntry={(assistant) => {
-                    setConfig((config) => {
-                      config.entry = assistant.id;
-                    });
+                    config.entry = assistant.id;
                   }}
                 />
               );

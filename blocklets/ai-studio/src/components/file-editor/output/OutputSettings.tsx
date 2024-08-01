@@ -4,6 +4,7 @@ import { useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { AssistantYjs, OutputVariableYjs, RuntimeOutputVariable, Tool, isAssistant } from '@blocklet/ai-runtime/types';
 import { outputVariablesFromOpenApi } from '@blocklet/ai-runtime/types/runtime/schema';
+import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { Icon } from '@iconify-icon/react';
@@ -542,7 +543,7 @@ export const useRoutesAssistantOutputs = ({
 
         return null;
       })
-      .filter((i): i is NonNullable<typeof i> => !!i);
+      .filter(isNonNullable);
 
     return agentAssistants;
   }, [cloneDeep(value), projectId, gitRef, t]);
@@ -650,7 +651,7 @@ export const useRoutesAssistantOutputs = ({
                 const outputs = getOutputVariables(agent.tool);
                 return outputs.find((x) => x.name === found.name);
               })
-              .filter((i): i is NonNullable<typeof i> => !!i);
+              .filter(isNonNullable);
 
             if (filterRequired.length === agentAssistants.length && filterRequired.every((x) => x.required)) {
               found.required = true;
