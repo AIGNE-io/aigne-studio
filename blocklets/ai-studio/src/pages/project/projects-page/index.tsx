@@ -249,7 +249,8 @@ function DeleteDialogConfirm({
       onClose={onClose}
       onConfirm={async () => {
         try {
-          await indexeddb.clearData();
+          await Promise.all([indexeddb.clearData(), indexeddb.destroy()]).catch((error) => console.error(error));
+
           await onConfirm();
         } catch (error) {
           Toast.error(getErrorMessage(error));
