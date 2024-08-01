@@ -7,11 +7,11 @@ import config from '@blocklet/sdk/lib/config';
 import throttle from 'lodash/throttle';
 
 import logger from './logger';
-import { initResources } from './resource';
+import { resourceManager } from './resource';
 
 const RELOAD_CRON_JOBS_THROTTLE = 3000;
 
-class AgentCronManager extends CronJobManager {
+class AIGNECronManager extends CronJobManager {
   destroyBlockletJobs(blockletDid: string) {
     super.destroyGroup({ groupId: blockletDid });
   }
@@ -19,13 +19,13 @@ class AgentCronManager extends CronJobManager {
   async reloadBlockletJobs(blockletDid: string) {
     this.destroyBlockletJobs(blockletDid);
 
-    const blocklet = (await initResources()).agents.application?.blockletMap[blockletDid];
+    const blocklet = (await resourceManager.resources).agents.application?.blockletMap[blockletDid];
     if (blocklet?.status !== constants.BlockletStatus.running) return;
 
     const projects = Object.values(blocklet.projectMap);
 
     const cronJobs = projects
-      .flatMap((i) => i.cronConfig?.jobs?.map((j) => ({ ...j, projectId: i.project.id })) ?? [])
+      .flatMap((i) => i.cron?.jobs?.map((j) => ({ ...j, projectId: i.project.id })) ?? [])
       .filter(
         (i): i is typeof i & Required<Pick<typeof i, 'agentId' | 'cronExpression'>> =>
           !!i?.agentId && !!i.cronExpression && !!i.enable
@@ -66,11 +66,11 @@ class AgentCronManager extends CronJobManager {
   async reloadAllProjectsJobs() {
     this.destroy();
 
-    const resource = await initResources();
-    const blocklets = Object.values(resource.agents.application?.blockletMap ?? {});
+    const resources = await resourceManager.resources;
+    const blocklets = Object.values(resources.agents.application?.blockletMap ?? {});
 
     for (const p of blocklets) {
-      await this.reloadBlockletJobs(p.blockletDid);
+      await this.reloadBlockletJobs(p.did);
     }
   }
 
@@ -79,7 +79,7 @@ class AgentCronManager extends CronJobManager {
   }
 }
 
-export const cronManager = new AgentCronManager();
+export const cronManager = new AIGNECronManager();
 
 const onComponentsChange = throttle(
   (components: { did: string }[]) => {

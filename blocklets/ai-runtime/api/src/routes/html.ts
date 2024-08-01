@@ -3,7 +3,7 @@ import { resolve } from 'path';
 
 import { getAgent } from '@api/libs/agent';
 import logger from '@api/libs/logger';
-import { getResourceProjects } from '@api/libs/resource';
+import { resourceManager } from '@api/libs/resource';
 import History from '@api/store/models/history';
 import { parseIdentity } from '@blocklet/ai-runtime/common/aid';
 import { AIGNE_RUNTIME_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
@@ -38,14 +38,14 @@ export default function setupHtmlRouter(app: Express, viteDevServer?: ViteDevSer
 
     const componentId = req.get('x-blocklet-component-id')?.split('/').at(-1);
     const blockletDid = componentId !== AIGNE_RUNTIME_COMPONENT_DID ? componentId : undefined;
-    const projects = await getResourceProjects({ blockletDid, type: 'application' });
+    const projects = await resourceManager.getProjects({ blockletDid, type: 'application' });
 
     const apps = projects
       .map((i) => {
         const entry = i.config?.entry;
         if (!entry) return undefined;
 
-        const entryAgent = i.assistants.find((j) => j.id === entry);
+        const entryAgent = i.agents.find((j) => j.id === entry);
         if (!entryAgent) return undefined;
 
         return respondAgentFields({

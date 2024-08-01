@@ -12,7 +12,7 @@ import initCronJob from './jobs';
 import { cronManager } from './libs/cron-jobs';
 import { isDevelopment } from './libs/env';
 import logger from './libs/logger';
-import { initResourceStates } from './libs/resource';
+import { resourceManager } from './libs/resource';
 import routes from './routes';
 import setupHtmlRouter from './routes/html';
 
@@ -65,7 +65,16 @@ export const server = app.listen(port, (err?: any) => {
   logger.info(`> ${name} v${version} ready on ${port}`);
 
   initCronJob();
-  initResourceStates();
+
+  resourceManager
+    .reload()
+    .then(() => {
+      logger.info('init resource states success');
+    })
+    .catch((error) => {
+      logger.error('init resource states error', { error });
+    });
+
   cronManager
     .reloadAllProjectsJobs()
     .then(() => {

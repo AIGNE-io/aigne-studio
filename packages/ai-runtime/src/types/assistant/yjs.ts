@@ -10,7 +10,7 @@ import type {
   ApiAssistant,
   AssistantBase,
   CallAssistant,
-  CronConfigFile,
+  CronFile,
   ExecuteBlock,
   ExecuteBlockSelectAll,
   ExecuteBlockSelectByPrompt,
@@ -29,7 +29,7 @@ export type ArrayToYjs<T extends Array<{ id: string }>> = { [key: string]: { ind
 
 export type VariableYjs = Omit<Variable, 'type'> & { type?: VariableTypeYjs };
 
-export type VariablesYjs = {
+export type MemoryFileYjs = {
   variables?: VariableYjs[];
 };
 
@@ -37,14 +37,14 @@ export type ConfigFileYjs = {
   entry?: string;
 };
 
-export type CronConfigFileYjs = CronConfigFile;
+export type CronFileYjs = CronFile;
 
 export type FileTypeYjs =
   | AssistantYjs
-  | VariablesYjs
+  | MemoryFileYjs
   | ConfigFileYjs
   | ProjectSettings
-  | CronConfigFileYjs
+  | CronFileYjs
   | { $base64: string };
 
 export type AssistantYjs =

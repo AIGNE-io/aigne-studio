@@ -19,7 +19,7 @@ import { projectCronManager } from './libs/cron-jobs';
 import { Config, isDevelopment } from './libs/env';
 import { NoPermissionError, NotFoundError } from './libs/error';
 import logger from './libs/logger';
-import { initResourceStates } from './libs/resource';
+import { resourceManager } from './libs/resource';
 import { ensurePromptsEditor } from './libs/security';
 import routes from './routes';
 import { wss } from './routes/ws';
@@ -89,7 +89,15 @@ export const server = app.listen(port, (err?: any) => {
   if (err) throw err;
   logger.info(`> ${name} v${version} ready on ${port}`);
 
-  initResourceStates();
+  resourceManager
+    .reload()
+    .then(() => {
+      logger.info('init resource states success');
+    })
+    .catch((error) => {
+      logger.error('init resource states error', { error });
+    });
+
   projectCronManager
     .reloadAllProjectsJobs()
     .then(() => {

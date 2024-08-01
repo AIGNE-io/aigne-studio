@@ -11,6 +11,7 @@ import logger from '@api/libs/logger';
 import AgentInputSecret from '@api/store/models/agent-input-secret';
 import {
   ProjectSettings,
+  ResourceProject,
   fileToYjs,
   isAssistant,
   nextAssistantId,
@@ -34,7 +35,7 @@ import uniqBy from 'lodash/uniqBy';
 import { parseAuth, parseURL } from 'ufo';
 import { parse } from 'yaml';
 
-import { getProjectFromResource, getResourceProjects } from '../libs/resource';
+import { resourceManager } from '../libs/resource';
 import {
   ensureComponentCallOrPromptsAdmin,
   ensureComponentCallOrPromptsEditor,
@@ -44,7 +45,7 @@ import Project, { nextProjectId } from '../store/models/project';
 import {
   ASSETS_DIR,
   CONFIG_FILE_PATH,
-  CRON_CONFIG_FILE_PATH,
+  CRON_FILE_PATH,
   LOGO_FILENAME,
   OLD_PROJECT_FILE_PATH,
   PROJECT_FILE_PATH,
@@ -288,11 +289,11 @@ export function projectRoutes(router: Router) {
       })
     );
 
-    const resourceTemplates = (await getResourceProjects('template')).map((i) => ({
+    const resourceTemplates = (await resourceManager.getProjects({ type: 'template' })).map((i) => ({
       ...i.project,
       blockletDid: i.blocklet.did,
     }));
-    const resourceExamples = (await getResourceProjects('example')).map((i) => ({
+    const resourceExamples = (await resourceManager.getProjects({ type: 'example' })).map((i) => ({
       ...i.project,
       blockletDid: i.blocklet.did,
     }));
@@ -358,10 +359,11 @@ export function projectRoutes(router: Router) {
     const query = await logoQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
     if (query.blockletDid) {
-      const resource = await getProjectFromResource({ blockletDid: query.blockletDid, projectId });
+      const resource = await resourceManager.getProject({ blockletDid: query.blockletDid, projectId });
 
-      if (resource?.gitLogoPath && (await exists(resource.gitLogoPath))) {
-        res.sendFile(resource.gitLogoPath);
+      const logoPath = resource?.dir && join(resource.dir, LOGO_FILENAME);
+      if (logoPath && (await exists(logoPath))) {
+        res.sendFile(logoPath);
         return;
       }
 
@@ -527,7 +529,11 @@ export function projectRoutes(router: Router) {
     if (templateId) {
       // create project from resource blocklet
       if (blockletDid) {
-        const resource = await getProjectFromResource({ projectId: templateId, type: ['template', 'example'] });
+        const resource = await resourceManager.getProject({
+          blockletDid,
+          projectId: templateId,
+          type: ['template', 'example'],
+        });
 
         if (resource) {
           project = await createProjectFromTemplate(resource, {
@@ -558,7 +564,7 @@ export function projectRoutes(router: Router) {
         const template = projectTemplates.find((i) => i.project.id === templateId);
         if (template) {
           project = await createProjectFromTemplate(
-            { ...template, assistants: [] },
+            { ...template, agents: [] },
             { name, description, author: req.user! }
           );
         }
@@ -1148,11 +1154,7 @@ async function copyProject({
 }
 
 async function createProjectFromTemplate(
-  template: Omit<(typeof projectTemplates)[number], 'project'> & {
-    project: Omit<(typeof projectTemplates)[number]['project'], 'createdAt' | 'updatedAt'>;
-    assetsDir?: string;
-    gitLogoPath?: string;
-  },
+  template: Partial<ResourceProject>,
   {
     name,
     description,
@@ -1168,10 +1170,10 @@ async function createProjectFromTemplate(
   const project = await Project.create({
     ...omit(template.project, 'name', 'files', 'createdAt', 'updatedAt', 'pinnedAt'),
     id: nextProjectId(),
-    duplicateFrom: withDuplicateFrom ? template.project.id : undefined,
+    duplicateFrom: withDuplicateFrom ? template.project?.id : undefined,
     createdBy: author.did,
     updatedBy: author.did,
-    gitDefaultBranch: template.project.gitDefaultBranch || defaultBranch,
+    gitDefaultBranch: defaultBranch,
     name,
     description,
   });
@@ -1183,7 +1185,7 @@ async function createProjectFromTemplate(
 
   const working = await repository.working({ ref: defaultBranch });
 
-  for (const { parent, ...file } of template.assistants) {
+  for (const { parent, ...file } of template.agents ?? []) {
     const id = file.id || nextAssistantId();
     const assistant = fileToYjs({ ...file, id });
 
@@ -1211,21 +1213,24 @@ async function createProjectFromTemplate(
   working.syncedStore.tree[CONFIG_FILE_PATH] = CONFIG_FILE_PATH;
   working.syncedStore.files[CONFIG_FILE_PATH] = template.config || {};
 
-  working.syncedStore.tree[CRON_CONFIG_FILE_PATH] = CRON_CONFIG_FILE_PATH;
-  working.syncedStore.files[CRON_CONFIG_FILE_PATH] = template.cronConfig || {};
+  working.syncedStore.tree[CRON_FILE_PATH] = CRON_FILE_PATH;
+  working.syncedStore.files[CRON_FILE_PATH] = template.cron || {};
 
   const assetsDir = join(working.workingDir, 'assets/');
   await mkdir(assetsDir, { recursive: true });
-  if (template.assetsDir && (await exists(template.assetsDir))) {
-    await copyRecursive(join(template.assetsDir, '/'), assetsDir);
+  const templateAssetsDir = template.dir && join(template.dir, 'assets/');
+  if (templateAssetsDir && (await exists(templateAssetsDir))) {
+    await copyRecursive(templateAssetsDir, assetsDir);
   }
+
+  const iconPath = template.dir && join(template.dir, LOGO_FILENAME);
 
   await repository.commitWorking({
     ref: defaultBranch,
     branch: defaultBranch,
     message: 'First Commit',
     author: { name: author.fullName, email: author.did },
-    icon: template?.gitLogoPath || (await sampleIcon()),
+    icon: iconPath && (await exists(iconPath)) ? iconPath : await sampleIcon(),
   });
 
   return project;

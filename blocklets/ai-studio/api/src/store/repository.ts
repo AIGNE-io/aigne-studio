@@ -9,9 +9,9 @@ import {
   ConfigFile,
   FileType,
   FileTypeYjs,
+  MemoryFile,
   ProjectSettings,
   Variable,
-  Variables,
   fileFromYjs,
   fileToYjs,
   isAssistant,
@@ -46,7 +46,7 @@ export const OLD_CONFIG_FILE_KEY = 'config';
 export const OLD_CONFIG_FILENAME = `${OLD_CONFIG_FILE_KEY}.yaml`;
 export const CONFIG_FILE_PATH = join(CONFIG_FOLDER, 'config.yaml');
 
-export const CRON_CONFIG_FILE_PATH = join(CONFIG_FOLDER, 'cron.yaml');
+export const CRON_FILE_PATH = join(CONFIG_FOLDER, 'cron.yaml');
 
 export const defaultBranch = 'main';
 
@@ -121,7 +121,7 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
             return { filepath, key: VARIABLE_FILE_PATH, data: { variables: variables.map(variableToYjs) } };
           }
 
-          if ([CONFIG_FILE_PATH, CRON_CONFIG_FILE_PATH, PROJECT_FILE_PATH, OLD_PROJECT_FILE_PATH].includes(filepath)) {
+          if ([CONFIG_FILE_PATH, CRON_FILE_PATH, PROJECT_FILE_PATH, OLD_PROJECT_FILE_PATH].includes(filepath)) {
             const config = parse(Buffer.from(content).toString());
             return { filepath, key: filepath, data: config };
           }
@@ -167,7 +167,7 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
             return [{ filepath, data: stringify({ variables: (content as any)?.variables?.map(variableFromYjs) }) }];
           }
 
-          if ([CONFIG_FILE_PATH, PROJECT_FILE_PATH, CRON_CONFIG_FILE_PATH].includes(filepath)) {
+          if ([CONFIG_FILE_PATH, PROJECT_FILE_PATH, CRON_FILE_PATH].includes(filepath)) {
             return [{ filepath, data: stringify(content) }];
           }
 
@@ -241,7 +241,7 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
       });
     };
     ensureConfigFileExists(CONFIG_FILE_PATH);
-    ensureConfigFileExists(CRON_CONFIG_FILE_PATH);
+    ensureConfigFileExists(CRON_FILE_PATH);
     ensureConfigFileExists(VARIABLE_FILE_PATH, { variables: [] });
 
     return working;
@@ -511,13 +511,13 @@ export async function getAssistantsOfRepository({
   projectId: string;
   ref: string;
   working?: boolean;
-}) {
+}): Promise<(Assistant & { parent: string[] })[]> {
   const repository = await getRepository({ projectId });
   if (working) {
     const w = await repository.working({ ref });
     return Object.values(w.syncedStore.files)
       .filter((i): i is AssistantYjs => !!i && isAssistant(i))
-      .map((i) => fileFromYjs(i) as Assistant);
+      .map((i) => fileFromYjs(i) as Assistant & { parent: string[] });
   }
   return repository
     .listFiles({ ref })
@@ -525,7 +525,7 @@ export async function getAssistantsOfRepository({
       Promise.all(
         files
           .filter((i) => i.startsWith(`${PROMPTS_FOLDER_NAME}/`) && i.endsWith('.yaml'))
-          .map((filepath) => {
+          .map(async (filepath) => {
             const paths = filepath.split('/').filter(Boolean);
             return repository
               .readBlob({ ref, filepath })
@@ -533,7 +533,7 @@ export async function getAssistantsOfRepository({
           })
       )
     )
-    .then((files) => files.filter((i): i is Assistant => isAssistant(i)));
+    .then((files) => files.filter((i): i is Assistant & { parent: string[] } => isAssistant(i)));
 }
 
 export async function getAssistantFromRepository({
@@ -639,7 +639,7 @@ export async function getProjectMemoryVariables({
   ref: string;
   working?: boolean;
 }) {
-  return getFileFromRepository<Variables>({ repository, ref, filepath: VARIABLE_FILE_PATH, working });
+  return getFileFromRepository<MemoryFile>({ repository, ref, filepath: VARIABLE_FILE_PATH, working });
 }
 
 export async function getProjectConfig({

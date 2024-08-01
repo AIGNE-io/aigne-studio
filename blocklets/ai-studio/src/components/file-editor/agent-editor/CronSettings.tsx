@@ -4,7 +4,7 @@ import 'cronstrue/locales/zh_CN';
 import { useCurrentProject } from '@app/contexts/project';
 import { randomId, useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, CronConfigFileYjs } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, CronFileYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
 import PlusIcon from '@iconify-icons/tabler/plus';
@@ -43,7 +43,7 @@ export function CronSettings({ agent }: { agent: AssistantYjs }) {
   const { cronConfig } = useProjectStore(projectId, projectRef);
 
   const jobs = cronConfig.jobs?.filter((i) => i.agentId === agent.id);
-  const [job, setJob] = useState<NonNullable<CronConfigFileYjs['jobs']>[number]>();
+  const [job, setJob] = useState<NonNullable<CronFileYjs['jobs']>[number]>();
 
   const dialogState = usePopupState({ variant: 'popper' });
 

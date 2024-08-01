@@ -933,6 +933,9 @@ importers:
       '@blocklet/dataset-sdk':
         specifier: workspace:^
         version: link:../dataset-sdk
+      '@blocklet/logger':
+        specifier: 1.16.28
+        version: 1.16.28
       '@blocklet/sdk':
         specifier: 1.16.28
         version: 1.16.28(encoding@0.1.13)
@@ -963,6 +966,9 @@ importers:
       fastq:
         specifier: ^1.17.1
         version: 1.17.1
+      fs-extra:
+        specifier: ^11.2.0
+        version: 11.2.0
       joi:
         specifier: ^17.13.3
         version: 17.13.3
@@ -1002,6 +1008,9 @@ importers:
       vm2:
         specifier: ^3.9.19
         version: 3.9.19
+      yaml:
+        specifier: ^2.5.0
+        version: 2.5.0
     devDependencies:
       '@arcblock/ux':
         specifier: ^2.10.10

@@ -4,10 +4,10 @@ import {
   Assistant,
   AssistantYjs,
   ConfigFileYjs,
-  CronConfigFileYjs,
+  CronFileYjs,
   FileTypeYjs,
+  MemoryFileYjs,
   ProjectSettings,
-  VariablesYjs,
   isApiAssistant,
   isAssistant,
   isFunctionAssistant,
@@ -183,7 +183,7 @@ export const useProjectStore = (projectId: string, gitRef: string, connect?: boo
   const syncedStore = useSyncedStore(store.store, [store.store]);
 
   const config = syncedStore.files[CONFIG_FILE_PATH] as ConfigFileYjs;
-  const cronConfig = syncedStore.files[CRON_CONFIG_FILE_PATH] as CronConfigFileYjs;
+  const cronConfig = syncedStore.files[CRON_CONFIG_FILE_PATH] as CronFileYjs;
   const projectSetting = syncedStore.files[PROJECT_FILE_PATH] as ProjectSettings;
 
   return {
@@ -209,11 +209,11 @@ export const useProjectStore = (projectId: string, gitRef: string, connect?: boo
     getVariables: useCallback(() => {
       const file = syncedStore.files[VARIABLE_FILE_PATH];
 
-      if (file && 'variables' in file) return file as VariablesYjs;
+      if (file && 'variables' in file) return file as MemoryFileYjs;
 
       syncedStore.tree[VARIABLE_FILE_PATH] = VARIABLE_FILE_PATH;
       syncedStore.files[VARIABLE_FILE_PATH] = { variables: [] };
-      return syncedStore.files[VARIABLE_FILE_PATH] as VariablesYjs;
+      return syncedStore.files[VARIABLE_FILE_PATH] as MemoryFileYjs;
     }, [syncedStore.files]),
   };
 };

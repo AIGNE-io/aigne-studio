@@ -9,14 +9,14 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import {
   AssistantYjs,
   ConfigFileYjs,
-  CronConfigFileYjs,
+  CronFileYjs,
   ExecuteBlock,
   FileTypeYjs,
+  MemoryFileYjs,
   ProjectSettings,
   RouterAssistant,
   RouterAssistantYjs,
   Tool,
-  VariablesYjs,
   isAssistant,
 } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
@@ -490,10 +490,7 @@ type ToolDialogForm = NonNullable<RouterAssistant['routes']>[number];
 type Option = {
   id: NonNullable<RouterAssistant['routes']>[number]['id'];
   type:
-    | Exclude<
-        FileTypeYjs,
-        { $base64: string } | VariablesYjs | ProjectSettings | ConfigFileYjs | CronConfigFileYjs
-      >['type']
+    | Exclude<FileTypeYjs, { $base64: string } | MemoryFileYjs | ProjectSettings | ConfigFileYjs | CronFileYjs>['type']
     | string;
   name?: any;
   from?: NonNullable<RouterAssistant['routes']>[number]['from'];

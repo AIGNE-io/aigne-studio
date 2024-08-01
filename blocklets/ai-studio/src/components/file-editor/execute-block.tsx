@@ -5,14 +5,14 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import {
   AssistantYjs,
   ConfigFileYjs,
-  CronConfigFileYjs,
+  CronFileYjs,
   ExecuteBlock,
   ExecuteBlockYjs,
   FileTypeYjs,
+  MemoryFileYjs,
   ProjectSettings,
   Role,
   Tool,
-  VariablesYjs,
   isAssistant,
 } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
@@ -808,10 +808,7 @@ function ToolItemView({
 type Option = {
   id: NonNullable<ExecuteBlock['tools']>[number]['id'];
   type:
-    | Exclude<
-        FileTypeYjs,
-        { $base64: string } | VariablesYjs | ProjectSettings | ConfigFileYjs | CronConfigFileYjs
-      >['type']
+    | Exclude<FileTypeYjs, { $base64: string } | MemoryFileYjs | ProjectSettings | ConfigFileYjs | CronFileYjs>['type']
     | string;
   name?: any;
   from?: NonNullable<ExecuteBlock['tools']>[number]['from'];

@@ -1,8 +1,8 @@
 import Project from '@api/store/models/project';
-import { CRON_CONFIG_FILE_PATH, ProjectRepo, defaultBranch } from '@api/store/repository';
+import { CRON_FILE_PATH, ProjectRepo, defaultBranch } from '@api/store/repository';
 import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { CronJobManager, Job } from '@blocklet/ai-runtime/core/utils/cron-job';
-import { CronConfigFileYjs, randomId } from '@blocklet/ai-runtime/types';
+import { CronFileYjs, randomId } from '@blocklet/ai-runtime/types';
 import { runAgent } from '@blocklet/aigne-sdk/server/api/agent';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { throttle } from 'lodash';
@@ -22,7 +22,7 @@ class ProjectCronManager extends CronJobManager {
   async reloadProjectJobs(projectId: string) {
     const repo = await ProjectRepo.load({ projectId });
     const working = await repo.working({ ref: defaultBranch });
-    const cronConfig = working.syncedStore.files[CRON_CONFIG_FILE_PATH] as CronConfigFileYjs;
+    const cronConfig = working.syncedStore.files[CRON_FILE_PATH] as CronFileYjs;
 
     const reloadJobs = () => {
       logger.info('reload project jobs start', { projectId });

@@ -5,7 +5,7 @@ import { resolveSecretInputs } from '@blocklet/ai-runtime/core/utils/resolve-sec
 import { BlockletAgent, ProjectSettings, Variable } from '@blocklet/ai-runtime/types';
 
 import { getAgentFromAIStudio, getMemoryVariablesFromAIStudio, getProjectFromAIStudio } from './ai-studio';
-import { getAssistantFromResourceBlocklet, getMemoryVariablesFromResource, getProjectFromResource } from './resource';
+import { resourceManager } from './resource';
 
 export interface GetProjectOptions {
   blockletDid?: string;
@@ -24,7 +24,7 @@ export async function getProject(
 export async function getProject({ blockletDid, projectId, projectRef, working, rejectOnEmpty }: GetProjectOptions) {
   let project: ProjectSettings | undefined;
   if (blockletDid) {
-    project = (await getProjectFromResource({ blockletDid, projectId }))?.project;
+    project = (await resourceManager.getProject({ blockletDid, projectId }))?.project;
   } else {
     project = await getProjectFromAIStudio({ projectId, projectRef, working });
   }
@@ -46,7 +46,7 @@ export async function getMemoryVariables({
 }: Omit<GetProjectOptions, 'rejectOnEmpty'>) {
   let variables: Variable[] | undefined;
   if (blockletDid) {
-    variables = await getMemoryVariablesFromResource({ blockletDid, projectId });
+    variables = (await resourceManager.getProject({ blockletDid, projectId }))?.memory.variables;
   } else if (projectRef) {
     variables = (await getMemoryVariablesFromAIStudio({ projectId, projectRef, working })).variables;
   }
@@ -71,7 +71,7 @@ export async function getAgent({
   let agent: GetAgentResult | undefined;
 
   if (blockletDid) {
-    const res = await getAssistantFromResourceBlocklet({
+    const res = await resourceManager.getAgent({
       blockletDid,
       projectId,
       agentId,
