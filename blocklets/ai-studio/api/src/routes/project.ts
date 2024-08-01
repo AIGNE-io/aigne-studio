@@ -19,6 +19,7 @@ import {
   variableToYjs,
 } from '@blocklet/ai-runtime/types';
 import { copyRecursive } from '@blocklet/ai-runtime/utils/fs';
+import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { call } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
 import { user } from '@blocklet/sdk/lib/middlewares';
@@ -45,6 +46,7 @@ import Project, { nextProjectId } from '../store/models/project';
 import {
   ASSETS_DIR,
   CONFIG_FILE_PATH,
+  COPY_REPO_FILES,
   CRON_FILE_PATH,
   LOGO_FILENAME,
   OLD_PROJECT_FILE_PATH,
@@ -1139,10 +1141,20 @@ async function copyProject({
   const repo = await getRepository({ projectId: project.id, author: { name: author.fullName, email: author.did } });
   const workingDir = join(dirname(repo.root), `${project.id}.cooperative/${defaultBranch}/working`);
   await copyRecursive(srcWorking.workingDir, workingDir);
+
   const working = await repo.working({ ref: defaultBranch });
-  working.syncedStore.files[PROJECT_FILE_PATH] ??= {};
-  const settings = working.syncedStore.files[PROJECT_FILE_PATH] as ProjectSettings;
-  Object.assign(settings, await projectSettingsSchema.validateAsync(project.dataValues));
+
+  for (const filepath of COPY_REPO_FILES) {
+    working.syncedStore.files[filepath] ??= {};
+    const file = working.syncedStore.files[filepath];
+
+    Object.assign(file, (getYjsValue(srcWorking.syncedStore.files[filepath]) as Map<any>).toJSON());
+
+    if (filepath === PROJECT_FILE_PATH) {
+      Object.assign(file, await projectSettingsSchema.validateAsync(project.dataValues));
+    }
+  }
+
   await working.commit({
     ref: defaultBranch,
     branch: defaultBranch,

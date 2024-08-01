@@ -48,6 +48,8 @@ export const CONFIG_FILE_PATH = join(CONFIG_FOLDER, 'config.yaml');
 
 export const CRON_FILE_PATH = join(CONFIG_FOLDER, 'cron.yaml');
 
+export const COPY_REPO_FILES = [CONFIG_FILE_PATH, CRON_FILE_PATH, VARIABLE_FILE_PATH];
+
 export const defaultBranch = 'main';
 
 export const defaultRemote = 'origin';
