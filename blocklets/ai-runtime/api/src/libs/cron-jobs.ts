@@ -94,10 +94,3 @@ const onComponentsChange = throttle(
 config.events.on(config.Events.componentStarted, onComponentsChange);
 config.events.on(config.Events.componentStopped, onComponentsChange);
 config.events.on(config.Events.componentUpdated, onComponentsChange);
-
-import.meta.hot?.on('vite:beforeFullReload', () => {
-  cronManager.destroy();
-});
-import.meta.hot?.dispose(() => {
-  cronManager.destroy();
-});

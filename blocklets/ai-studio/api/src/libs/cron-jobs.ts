@@ -102,10 +102,3 @@ class ProjectCronManager extends CronJobManager {
 }
 
 export const projectCronManager = new ProjectCronManager();
-
-import.meta.hot?.on('vite:beforeFullReload', () => {
-  projectCronManager.destroy();
-});
-import.meta.hot?.dispose(() => {
-  projectCronManager.destroy();
-});
