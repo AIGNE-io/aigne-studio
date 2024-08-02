@@ -222,6 +222,7 @@ export default function InputTable({
                 sx={{ top: 4, right: -8 }}
                 path={[assistant.id, 'parameters', parameter?.id ?? '', 'key']}>
                 <Input
+                  sx={{ color: parameter.hidden ? 'text.disabled' : undefined }}
                   id={`${parameter.id}-key`}
                   fullWidth
                   readOnly={readOnly || parameter.hidden}
