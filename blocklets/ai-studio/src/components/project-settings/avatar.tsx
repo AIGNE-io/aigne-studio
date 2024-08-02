@@ -13,7 +13,7 @@ export default function ProjectSettingsAvatar({ value, onChange }: { value: stri
   const uploaderRef = useUploader();
 
   const handleOpen = () => {
-    const allowedFileTypes = ['image/png'];
+    const allowedFileTypes = ['image/png', 'image/jpeg', 'image/jpg'];
     // @ts-ignore
     const uploader = uploaderRef?.current?.getUploader();
     if (uploader?.opts?.restrictions?.allowedFileTypes) {
