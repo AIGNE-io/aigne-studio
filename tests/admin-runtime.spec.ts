@@ -1,5 +1,6 @@
 import { Page, expect, test } from '@playwright/test';
 
+import { TestConstants } from './utils/constants';
 import { installBlocklet, unInstallBlocklet } from './utils/uninstall';
 
 test.beforeEach('route to blocklets', async ({ page }) => {
@@ -46,6 +47,10 @@ test.describe.serial('resource blocklet', () => {
 
   const secretKey = 'f712dac84b4f84c3c2fa079896572ed19e2738e23baf025f2c8764d5d8598deb';
   test('set agent secrets', async ({ page }) => {
+    test.slow();
+    // 总有失败的概率, 但是页面没有提示, 延迟等待一段时间
+    await page.waitForTimeout(30000);
+
     await page.goto('/mockplexity/');
     await page.getByTestId('aigne-runtime-header-menu-button').click();
     await page.getByRole('menuitem', { name: 'Settings' }).click();
@@ -55,7 +60,10 @@ test.describe.serial('resource blocklet', () => {
     await page.locator('button:has-text("Save")').click();
   });
 
-  test('input form', async ({ page }) => {
+  test('input form', async ({ page, context }) => {
+    test.slow();
+    // 总有失败的概率, 但是页面没有提示, 延迟等待一段时间
+    await page.waitForTimeout(30000);
     await page.goto('/mockplexity/');
     page.route(/\/api\/ai\/call/, (route) => {
       route.fulfill({
@@ -85,6 +93,9 @@ test.describe.serial('resource blocklet', () => {
   });
 
   test('clear session', async ({ page }) => {
+    test.slow();
+    // 总有失败的概率, 但是页面没有提示, 延迟等待一段时间
+    await page.waitForTimeout(30000);
     await page.goto('/mockplexity/');
     await page.getByTestId('aigne-runtime-header-menu-button').click();
     const responsePromise = page.waitForResponse(
