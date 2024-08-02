@@ -26,6 +26,7 @@ test.describe.serial('resource blocklet', () => {
   });
 
   test('open resource blocklet', async ({ page }) => {
+    test.setTimeout(180000);
     const blocklet = page.locator('.component-item').filter({ hasText: 'Mockplexity' });
     // 首先判断状态, 如果运行中, 什么都不做
     const stopIcon = blocklet.getByTestId('StopIcon');
@@ -38,6 +39,9 @@ test.describe.serial('resource blocklet', () => {
       await startIcon.click();
       await blocklet.getByTestId('StopIcon').waitFor();
     }
+
+    await blocklet.locator('span:has-text("Running")').waitFor();
+    await page.locator('.component-item').filter({ hasText: 'SerpApi' }).locator('span:has-text("Running")').waitFor();
   });
 
   const secretKey = 'f712dac84b4f84c3c2fa079896572ed19e2738e23baf025f2c8764d5d8598deb';
