@@ -74,6 +74,7 @@ export interface StoreContext {
     };
   };
   provider: WebsocketProvider;
+  indexeddb: IndexeddbPersistence;
 }
 
 const stores: Record<string, RecoilState<StoreContext>> = {};

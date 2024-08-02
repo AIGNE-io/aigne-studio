@@ -1,4 +1,5 @@
 import { getProjectDataUrlInSpace } from '@app/libs/did-spaces';
+import { useProjectStore } from '@app/pages/project/yjs-state';
 import currentGitStore, { getDefaultBranch } from '@app/store/current-git-store';
 import { EVENTS } from '@arcblock/did-connect/lib/Session/libs/constants';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
@@ -230,6 +231,36 @@ function TemplatesProjects({ list }: { list?: ProjectWithUserInfo[] }) {
   );
 }
 
+function DeleteDialogConfirm({
+  deleteItem,
+  onClose,
+  onConfirm,
+}: {
+  deleteItem: { project: Project; isReset?: boolean };
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
+  const { indexeddb } = useProjectStore(deleteItem.project.id, getDefaultBranch());
+
+  return (
+    <DeleteDialog
+      name={deleteItem.project?.name || deleteItem.project.id}
+      isReset={deleteItem.isReset}
+      onClose={onClose}
+      onConfirm={async () => {
+        try {
+          await Promise.all([indexeddb.clearData(), indexeddb.destroy()]).catch((error) => console.error(error));
+
+          await onConfirm();
+        } catch (error) {
+          Toast.error(getErrorMessage(error));
+          throw error;
+        }
+      }}
+    />
+  );
+}
+
 function ProjectMenu() {
   const { projectId } = useParams();
 
@@ -252,6 +283,23 @@ function ProjectMenu() {
     createLimitDialog,
     limitDialog,
   } = useProjectsState();
+
+  const getNewProjectName = (name: string) => {
+    let index = 0;
+
+    while (true) {
+      const n = index ? `${name} ${index}` : name;
+      index++;
+
+      const found = projects.find((i) => i.name === n);
+      if (!found) {
+        name = n;
+        break;
+      }
+    }
+
+    return name;
+  };
 
   const item =
     menuAnchor &&
@@ -344,7 +392,7 @@ function ProjectMenu() {
             await createProject({
               blockletDid: menuAnchor.blockletDid,
               templateId: menuAnchor.id,
-              name: `${item?.name || 'Unnamed'} Copy`,
+              name: getNewProjectName(`${item?.name || 'Unnamed'} Copy`),
               description: item?.description,
             })
               .catch((error) => {
@@ -445,22 +493,14 @@ function ProjectMenu() {
       </Popper>
 
       {deleteItem && (
-        <DeleteDialog
-          name={deleteItem.project?.name || deleteItem.project.id}
-          isReset={deleteItem.isReset}
-          onClose={() => {
-            setDeleteItem(null);
-          }}
+        <DeleteDialogConfirm
+          deleteItem={deleteItem}
+          onClose={() => setDeleteItem(null)}
           onConfirm={async () => {
-            try {
-              await deleteProject(deleteItem.project.id!);
-              setDeleteItem(null);
-              if (projectId === deleteItem.project.id) {
-                navigate('/projects', { replace: true });
-              }
-            } catch (error) {
-              Toast.error(getErrorMessage(error));
-              throw error;
+            await deleteProject(deleteItem.project.id!);
+            setDeleteItem(null);
+            if (projectId === deleteItem.project.id) {
+              navigate('/projects', { replace: true });
             }
           }}
         />
