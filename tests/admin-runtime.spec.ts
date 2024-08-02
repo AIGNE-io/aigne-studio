@@ -1,5 +1,7 @@
 import { Page, expect, test } from '@playwright/test';
 
+import { installBlocklet, unInstallBlocklet } from './utils/uninstall';
+
 test.beforeEach('route to blocklets', async ({ page }) => {
   await page.goto('.well-known/service/admin/overview');
   await page.waitForSelector('h6.page-title');
@@ -8,26 +10,19 @@ test.beforeEach('route to blocklets', async ({ page }) => {
 });
 
 test.describe.serial('resource blocklet', () => {
-  // todo: 抽象出一个函数，用于删除 blocklet
+  test('init', async ({ page }) => {
+    test.slow();
+    await page.goto('/projects');
+    await page.getByLabel('User info button').click();
+    await page.getByRole('menuitem', { name: 'Dashboard' }).click();
+    await page.locator('h6.page-title').waitFor();
+    await page.locator("button span:has-text('Blocklets')").click();
+    await page.locator('button:has-text("Add Blocklet")').waitFor();
 
-  test('install resource blocklet', async ({ page }) => {
-    await page.locator('button:has-text("Add Blocklet")').click();
-    await page.waitForSelector('.arcblock-blocklet');
-    const searchInput = page.locator('input[placeholder="Search the store"]');
-    await searchInput.fill('mockplexity');
+    await unInstallBlocklet(page, 'Mockplexity');
+    await unInstallBlocklet(page, 'SerpApi');
 
-    await page.waitForSelector('h3 span:has-text("Mockplexity")');
-    const mockplexity = page.locator('.arcblock-blocklet ').filter({ hasText: 'Mockplexity' });
-    const chooseBtn = mockplexity.locator('button:has-text("Choose")');
-    if (await chooseBtn.isVisible()) {
-      await chooseBtn.click();
-      await page.locator('button div:has-text("Add Mockplexity")').click();
-      await page.locator('button div:has-text("Agree to the EULA and continue")').click();
-      await page.locator('button div:has-text("Next")').click();
-      await page.locator('button div:has-text("Complete")').click();
-    } else {
-      await mockplexity.locator('button:has-text("Cancel")').click;
-    }
+    await installBlocklet(page);
   });
 
   test('open resource blocklet', async ({ page }) => {
