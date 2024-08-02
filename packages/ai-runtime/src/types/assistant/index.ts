@@ -326,6 +326,7 @@ export interface ParameterBase {
   helper?: string;
   required?: boolean;
   from?: 'editor' | 'agentParameter' | 'knowledgeParameter' | 'blockletAPIParameter';
+  hidden?: boolean;
 }
 
 export interface LLMInputMessagesParameter extends ParameterBase {

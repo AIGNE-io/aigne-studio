@@ -149,7 +149,7 @@ export default function InputTable({
     return true;
   };
 
-  const parameters = sortBy(Object.values(assistant.parameters ?? {}), (i) => i.index);
+  const parameters = sortBy(Object.values(assistant.parameters ?? {}), (i) => i.index).filter((i) => !i.data.hidden);
   const { data: knowledge = [] } = useRequest(() => getDatasets({ projectId }));
 
   const FROM_MAP = useMemo(() => {
@@ -195,7 +195,12 @@ export default function InputTable({
             };
 
             return (
-              <Box height={33} display="flex" alignItems="center" gap={0.5}>
+              <Box
+                height={33}
+                display="flex"
+                alignItems="center"
+                gap={0.5}
+                sx={{ color: parameter.hidden ? 'text.disabled' : undefined }}>
                 <Box component={Icon} icon={iconMap[parameter.key]} fontSize={16} />
                 <Box>{parameter.key}</Box>
               </Box>
@@ -203,7 +208,12 @@ export default function InputTable({
           }
 
           return (
-            <Stack direction="row" alignItems="center" gap={0.5} minWidth={100}>
+            <Stack
+              direction="row"
+              alignItems="center"
+              gap={0.5}
+              minWidth={100}
+              sx={{ color: parameter.hidden ? 'text.disabled' : undefined }}>
               <Box component={Icon} icon={FormsIcon} fontSize={16} />
 
               <WithAwareness
@@ -214,7 +224,7 @@ export default function InputTable({
                 <Input
                   id={`${parameter.id}-key`}
                   fullWidth
-                  readOnly={readOnly}
+                  readOnly={readOnly || parameter.hidden}
                   placeholder={t('inputParameterKeyPlaceholder')}
                   value={parameter.key || ''}
                   onChange={(e) => {
@@ -236,7 +246,7 @@ export default function InputTable({
         flex: 1,
         renderCell: ({ row: { data: parameter } }) => {
           if (parameter.type === 'source' && parameter.source?.variableFrom === 'history') {
-            return <Box>{t('history.title')}</Box>;
+            return <Box sx={{ color: parameter.hidden ? 'text.disabled' : undefined }}>{t('history.title')}</Box>;
           }
 
           return (
@@ -266,7 +276,10 @@ export default function InputTable({
             const { source } = parameter;
             if (source.variableFrom === 'tool') {
               return (
-                <Stack direction="row" alignItems="center">
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  sx={{ color: parameter.hidden ? 'text.disabled' : undefined }}>
                   <ListItemIcon sx={{ minWidth: 20 }}>
                     <Icon icon={BracesIcon} />
                   </ListItemIcon>
@@ -282,7 +295,10 @@ export default function InputTable({
                 (x) => x.key === source.variable?.key && x.scope && source.variable.scope
               );
               return (
-                <Stack direction="row" alignItems="center">
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  sx={{ color: parameter.hidden ? 'text.disabled' : undefined }}>
                   {variable?.type?.type ? (
                     <>
                       <ListItemIcon sx={{ minWidth: 20 }}>{TYPE_ICON_MAP[variable.type.type]}</ListItemIcon>
@@ -297,7 +313,10 @@ export default function InputTable({
 
             if (parameter.source.variableFrom === 'knowledge') {
               return (
-                <Stack direction="row" alignItems="center">
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  sx={{ color: parameter.hidden ? 'text.disabled' : undefined }}>
                   <ListItemIcon sx={{ minWidth: 20 }}>
                     <Icon icon={CursorTextIcon} />
                   </ListItemIcon>
@@ -386,6 +405,10 @@ export default function InputTable({
               const idReferenced = checkVariableReferenced(parameter.id, parameter.key || '');
 
               const getBackgroundColor = (theme: Theme) => {
+                if (parameter.hidden) {
+                  return alpha(theme.palette.common.black, theme.palette.action.hoverOpacity);
+                }
+
                 if (!idReferenced) {
                   return alpha(theme.palette.warning.light, theme.palette.action.focusOpacity);
                 }
@@ -398,6 +421,10 @@ export default function InputTable({
               };
 
               const getHoverBackgroundColor = (theme: Theme) => {
+                if (parameter.hidden) {
+                  return alpha(theme.palette.common.black, theme.palette.action.hoverOpacity);
+                }
+
                 if (!idReferenced) {
                   return `${alpha(theme.palette.warning.light, theme.palette.action.selectedOpacity)} !important`;
                 }
@@ -405,8 +432,20 @@ export default function InputTable({
                 return 'grey.100';
               };
 
+              const title = () => {
+                if (parameter.hidden) {
+                  return undefined;
+                }
+
+                if (idReferenced) {
+                  return undefined;
+                }
+
+                return t('variableNotReferenced');
+              };
+
               return (
-                <Tooltip title={idReferenced ? undefined : t('variableNotReferenced')} placement="bottom-start">
+                <Tooltip title={title()} placement="bottom-start">
                   <TableRow
                     key={parameter.id}
                     ref={(ref) => {
@@ -433,11 +472,7 @@ export default function InputTable({
                           <TableCell
                             key={column.field}
                             align={column.align}
-                            sx={{
-                              position: 'relative',
-                              px: 0,
-                              ...getDiffBackground('parameters', parameter.id),
-                            }}>
+                            sx={{ position: 'relative', px: 0, ...getDiffBackground('parameters', parameter.id) }}>
                             {index === 0 && (
                               <Stack
                                 className="hover-visible center"
@@ -543,8 +578,19 @@ function SelectFromSource({
     <>
       <PopperMenu
         ref={ref}
-        BoxProps={{
-          sx: { my: 1, p: 0, cursor: 'pointer' },
+        ButtonProps={{
+          variant: 'text',
+          sx: {
+            my: 1,
+            p: 0,
+            cursor: 'pointer',
+            color: parameter.hidden ? 'text.disabled' : 'text.primary',
+            fontWeight: 400,
+            ':hover': {
+              backgroundColor: 'transparent',
+            },
+          },
+          disabled: parameter.hidden,
           children: (
             <Box>
               <Box className="center" gap={1} justifyContent="flex-start">
@@ -664,7 +710,8 @@ function SelectInputType({
           disabled={
             parameter.key === 'question' ||
             parameter.from === FROM_PARAMETER ||
-            parameter.from === FROM_KNOWLEDGE_PARAMETER
+            parameter.from === FROM_KNOWLEDGE_PARAMETER ||
+            parameter.hidden
           }
           variant="standard"
           hiddenLabel
@@ -1130,23 +1177,25 @@ function checkKeyParameterIsUsed({ value, key }: { value: AssistantYjs; key: str
     return false;
   }
 
-  const parameters = Object.values(value?.parameters || {}).flatMap((x) => {
-    if (x.data.type === 'source') {
-      if (x.data.source?.variableFrom === 'tool') {
-        return [Object.values(x.data.source?.agent?.parameters || {})];
+  const parameters = Object.values(value?.parameters || {})
+    .filter((i) => !i.data.hidden)
+    .flatMap((x) => {
+      if (x.data.type === 'source') {
+        if (x.data.source?.variableFrom === 'tool') {
+          return [Object.values(x.data.source?.agent?.parameters || {})];
+        }
+
+        if (x.data.source?.variableFrom === 'knowledge') {
+          return [Object.values(x.data.source?.knowledge?.parameters || {})];
+        }
+
+        if (x.data.source?.variableFrom === 'blockletAPI') {
+          return [Object.values(x.data.source?.api?.parameters || {})];
+        }
       }
 
-      if (x.data.source?.variableFrom === 'knowledge') {
-        return [Object.values(x.data.source?.knowledge?.parameters || {})];
-      }
-
-      if (x.data.source?.variableFrom === 'blockletAPI') {
-        return [Object.values(x.data.source?.api?.parameters || {})];
-      }
-    }
-
-    return [];
-  });
+      return [];
+    });
 
   return !!parameters.find((x) => {
     return (x || []).find((str) => {
@@ -1160,12 +1209,14 @@ const useDelete = (value: AssistantYjs) => {
   const { deleteParameter } = useVariablesEditorOptions(value);
 
   const deleteUselessParameter = () => {
-    Object.values(value.parameters || {}).forEach((x) => {
-      const list = [FROM_API_PARAMETER, FROM_PARAMETER, FROM_API_PARAMETER];
-      if (x.data.from && list.includes(x.data.from) && !checkKeyParameterIsUsed({ value, key: x.data.key || '' })) {
-        deleteParameter(x.data);
-      }
-    });
+    Object.values(value.parameters || {})
+      .filter((i) => !i.data.hidden)
+      .forEach((x) => {
+        const list = [FROM_API_PARAMETER, FROM_PARAMETER, FROM_API_PARAMETER];
+        if (x.data.from && list.includes(x.data.from) && !checkKeyParameterIsUsed({ value, key: x.data.key || '' })) {
+          deleteParameter(x.data);
+        }
+      });
   };
 
   return {
@@ -1307,30 +1358,32 @@ function AgentParametersForm({
         <Typography variant="subtitle2">{t('inputs')}</Typography>
 
         <Box>
-          {agent.parameters?.map((data) => {
-            if (!data?.key || data.type === 'source') return null;
+          {agent.parameters
+            ?.filter((i) => !i.hidden)
+            ?.map((data) => {
+              if (!data?.key || data.type === 'source') return null;
 
-            const placeholder = data.placeholder?.replace(/([^\w]?)$/, '');
+              const placeholder = data.placeholder?.replace(/([^\w]?)$/, '');
 
-            return (
-              <Stack key={data.id}>
-                <Typography variant="caption">{data.label || data.key}</Typography>
+              return (
+                <Stack key={data.id}>
+                  <Typography variant="caption">{data.label || data.key}</Typography>
 
-                <PromptEditorField
-                  placeholder={`${placeholder ? `${placeholder}, ` : ''}default {{ ${data.key} }}`}
-                  value={parameter.source.agent?.parameters?.[data.key] || ''}
-                  projectId={projectId}
-                  gitRef={projectRef}
-                  assistant={assistant}
-                  path={[]}
-                  onChange={(value) => {
-                    parameter.source.agent!.parameters ??= {};
-                    parameter.source.agent!.parameters[data.key!] = value;
-                  }}
-                />
-              </Stack>
-            );
-          })}
+                  <PromptEditorField
+                    placeholder={`${placeholder ? `${placeholder}, ` : ''}default {{ ${data.key} }}`}
+                    value={parameter.source.agent?.parameters?.[data.key] || ''}
+                    projectId={projectId}
+                    gitRef={projectRef}
+                    assistant={assistant}
+                    path={[]}
+                    onChange={(value) => {
+                      parameter.source.agent!.parameters ??= {};
+                      parameter.source.agent!.parameters[data.key!] = value;
+                    }}
+                  />
+                </Stack>
+              );
+            })}
         </Box>
       </Box>
     </Stack>
@@ -1340,9 +1393,9 @@ function AgentParametersForm({
 export function AuthorizeButton({ agent }: { agent: NonNullable<ReturnType<typeof useAgent>> }) {
   const { t } = useLocaleContext();
 
-  const authInputs = agent.parameters?.filter(
-    (i) => i.key && i.type === 'source' && i.source?.variableFrom === 'secret'
-  );
+  const authInputs = agent.parameters
+    ?.filter((i) => !i.hidden)
+    ?.filter((i) => i.key && i.type === 'source' && i.source?.variableFrom === 'secret');
 
   const dialogState = usePopupState({ variant: 'dialog' });
   const { projectId } = useCurrentProject();
@@ -1391,9 +1444,9 @@ function AuthorizeParametersFormDialog({
 }: { agent: NonNullable<ReturnType<typeof useAgent>>; onSuccess?: () => void } & DialogProps) {
   const { t } = useLocaleContext();
 
-  const authInputs = agent.parameters?.filter(
-    (i) => i.key && i.type === 'source' && i.source?.variableFrom === 'secret'
-  );
+  const authInputs = agent.parameters
+    ?.filter((i) => !i.hidden)
+    ?.filter((i) => i.key && i.type === 'source' && i.source?.variableFrom === 'secret');
 
   const form = useForm();
   const { projectId } = useCurrentProject();
@@ -1498,8 +1551,14 @@ function PopperButton({
           <Paper sx={{ p: 0, minWidth: 140, maxWidth: 320, maxHeight: '80vh', overflow: 'auto' }}>
             <Stack gap={2}>
               <List>
+                <MenuItem onClick={() => (parameter.hidden = !parameter.hidden)}>
+                  {parameter.hidden ? t('activeParameterTip') : t('hideParameterTip')}
+                </MenuItem>
+
                 {!(parameter.from === FROM_PARAMETER || parameter.from === FROM_KNOWLEDGE_PARAMETER) && (
-                  <MenuItem onClick={dialogState.open}>{t('setting')}</MenuItem>
+                  <MenuItem onClick={dialogState.open} disabled={Boolean(parameter.hidden)}>
+                    {t('setting')}
+                  </MenuItem>
                 )}
                 <MenuItem sx={{ color: '#E11D48', fontSize: 13 }} onClick={onDelete}>
                   {t('delete')}

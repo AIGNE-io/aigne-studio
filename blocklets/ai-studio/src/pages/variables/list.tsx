@@ -89,14 +89,16 @@ function VariableList() {
       .filter((i): i is AssistantYjs => !!i && isAssistant(i));
 
     assistants.forEach((assistant) => {
-      Object.values(assistant.parameters || {}).forEach((parameter) => {
-        if (parameter.data.type === 'source' && parameter.data.source?.variableFrom === 'datastore') {
-          const s = parameter.data.source;
-          const key: string = `${s.variable?.scope || ''}_${s.variable?.key || ''}`;
-          map[key] ??= [];
-          map[key].push(assistant.id);
-        }
-      });
+      Object.values(assistant.parameters || {})
+        .filter((i) => !i.data.hidden)
+        .forEach((parameter) => {
+          if (parameter.data.type === 'source' && parameter.data.source?.variableFrom === 'datastore') {
+            const s = parameter.data.source;
+            const key: string = `${s.variable?.scope || ''}_${s.variable?.key || ''}`;
+            map[key] ??= [];
+            map[key].push(assistant.id);
+          }
+        });
 
       Object.values(assistant.outputVariables || {}).forEach((output) => {
         if (output?.data?.variable && output?.data?.variable?.key) {

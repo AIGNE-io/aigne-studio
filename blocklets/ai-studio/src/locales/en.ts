@@ -746,6 +746,8 @@ export default flat({
   hideOutputSetting: 'Hide current output setting',
   activeOutputTip: 'Active output',
   hideOutputTip: 'Hide output',
+  activeParameterTip: 'Active Input',
+  hideParameterTip: 'Hide Input',
   callAgent: 'Call Agent',
   referenceOutput: 'From {agent} Output',
   ref: 'From',

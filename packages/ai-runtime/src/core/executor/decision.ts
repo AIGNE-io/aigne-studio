@@ -89,6 +89,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase {
           });
           if (!toolAssistant) return undefined;
           const toolParameters = (toolAssistant.parameters ?? [])
+            .filter((i) => !i.hidden)
             .filter(
               (i): i is typeof i & Required<Pick<typeof i, 'key'>> =>
                 !!i.key && !tool.parameters?.[i.key] && i.type !== 'source'
@@ -110,6 +111,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase {
             });
 
           const required = (toolAssistant.parameters ?? [])
+            .filter((i) => !i.hidden)
             .filter((i): i is typeof i & { key: string } => !!i.key && i.type !== 'source')
             .filter((i) => !(tool?.parameters || {})[i.key])
             .filter((x) => x.required)
@@ -191,11 +193,12 @@ export class DecisionAgentExecutor extends AgentExecutorBase {
               inputs: {
                 ...inputs,
                 ...agent.executor?.inputValues,
-                [executor.parameters?.find((i) => i.type === 'llmInputMessages')?.key!]: [
+                [executor.parameters?.filter((i) => !i.hidden)?.find((i) => i.type === 'llmInputMessages')?.key!]: [
                   { role: 'user', content: message },
                 ],
-                [executor.parameters?.find((i) => i.type === 'llmInputTools')?.key!]: tools,
-                [executor.parameters?.find((i) => i.type === 'llmInputToolChoice')?.key!]: toolChoice,
+                [executor.parameters?.filter((i) => !i.hidden)?.find((i) => i.type === 'llmInputTools')?.key!]: tools,
+                [executor.parameters?.filter((i) => !i.hidden)?.find((i) => i.type === 'llmInputToolChoice')?.key!]:
+                  toolChoice,
               },
             })
           )[RuntimeOutputVariable.llmResponseStream] as ReadableStream<ChatCompletionResponse>)
@@ -418,12 +421,14 @@ export class DecisionAgentExecutor extends AgentExecutorBase {
           }
 
           await Promise.all(
-            toolAssistant.parameters?.map(async (item) => {
-              const message = tool.tool?.parameters?.[item.key!];
-              if (message) {
-                requestData[item.key!] = await renderMessage(message, inputs);
-              }
-            }) ?? []
+            toolAssistant.parameters
+              ?.filter((i) => !i.hidden)
+              ?.map(async (item) => {
+                const message = tool.tool?.parameters?.[item.key!];
+                if (message) {
+                  requestData[item.key!] = await renderMessage(message, inputs);
+                }
+              }) ?? []
           );
 
           const res = await this.context.executor(this.context.copy({ callback: cb })).execute(toolAssistant as any, {

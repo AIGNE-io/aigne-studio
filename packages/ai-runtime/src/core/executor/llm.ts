@@ -127,7 +127,8 @@ export class LLMAgentExecutor extends AgentExecutorBase {
               inputs: {
                 ...inputs,
                 ...agent.executor?.inputValues,
-                [executor.parameters?.find((i) => i.type === 'llmInputMessages')?.key!]: messagesWithSystemPrompt,
+                [executor.parameters?.filter((i) => !i.hidden)?.find((i) => i.type === 'llmInputMessages')?.key!]:
+                  messagesWithSystemPrompt,
               },
               taskId: nextTaskId(),
               parentTaskId: taskId,

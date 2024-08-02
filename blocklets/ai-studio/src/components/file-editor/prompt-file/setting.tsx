@@ -119,31 +119,33 @@ function AgentParametersForm({ assistant }: { assistant: AssistantYjs }) {
         <Typography variant="subtitle2">{t('inputs')}</Typography>
 
         <Stack gap={1}>
-          {agent.parameters?.map((data) => {
-            if (
-              !data?.key ||
-              data.type === 'source' ||
-              ['llmInputMessages', 'llmInputTools', 'llmInputToolChoice'].includes(data.type!)
-            )
-              return null;
+          {agent.parameters
+            ?.filter((i) => !i.hidden)
+            ?.map((data) => {
+              if (
+                !data?.key ||
+                data.type === 'source' ||
+                ['llmInputMessages', 'llmInputTools', 'llmInputToolChoice'].includes(data.type!)
+              )
+                return null;
 
-            return (
-              <Stack key={data.id}>
-                <Typography variant="caption">{data.label || data.key}</Typography>
+              return (
+                <Stack key={data.id}>
+                  <Typography variant="caption">{data.label || data.key}</Typography>
 
-                <ParameterField
-                  hiddenLabel
-                  parameter={data}
-                  value={assistant.executor?.inputValues?.[data.key] || ''}
-                  onChange={(value) => {
-                    assistant.executor ??= {};
-                    assistant.executor.inputValues ??= {};
-                    assistant.executor.inputValues[data.key!] = value;
-                  }}
-                />
-              </Stack>
-            );
-          })}
+                  <ParameterField
+                    hiddenLabel
+                    parameter={data}
+                    value={assistant.executor?.inputValues?.[data.key] || ''}
+                    onChange={(value) => {
+                      assistant.executor ??= {};
+                      assistant.executor.inputValues ??= {};
+                      assistant.executor.inputValues[data.key!] = value;
+                    }}
+                  />
+                </Stack>
+              );
+            })}
         </Stack>
       </Box>
     </Stack>

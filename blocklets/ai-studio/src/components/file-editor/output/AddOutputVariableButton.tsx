@@ -89,6 +89,7 @@ export default function AddOutputVariableButton({
   const inputs =
     assistant.parameters &&
     sortBy(Object.values(assistant.parameters), 'index')
+      .filter((i) => !i.data.hidden)
       .map((i) => i.data)
       .filter((i): i is typeof i & Required<Pick<typeof i, 'key'>> => !!i.key);
 

@@ -24,7 +24,10 @@ export default function AIFormView({
   const { t } = useLocaleContext();
 
   const parameters = useMemo(
-    () => (assistant.parameters ?? []).filter((i): i is typeof i & { key: string } => !!i.key),
+    () =>
+      (assistant.parameters ?? [])
+        .filter((i): i is typeof i => !i.hidden)
+        .filter((i): i is typeof i & { key: string } => !!i.key),
     [assistant.parameters]
   );
 

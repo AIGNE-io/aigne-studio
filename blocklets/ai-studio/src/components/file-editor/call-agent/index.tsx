@@ -246,14 +246,17 @@ export function AgentItemView({
   const parameters = useMemo(() => {
     return (
       target?.parameters &&
-      sortBy(Object.values(target.parameters), (i) => i.index).filter(
-        (i): i is typeof i & { data: { key: string } } => !!i.data.key
-      )
+      sortBy(Object.values(target.parameters), (i) => i.index)
+        .filter((i) => !i.data.hidden)
+        .filter((i): i is typeof i & { data: { key: string } } => !!i.data.key)
     );
   }, [target]);
 
   const checkParametersInParameter = (key: string) => {
-    const parameters = (assistant?.parameters && sortBy(Object.values(assistant.parameters), (i) => i.index)) || [];
+    const parameters =
+      (assistant?.parameters &&
+        sortBy(Object.values(assistant.parameters), (i) => i.index).filter((i) => !i.data.hidden)) ||
+      [];
     return Boolean(parameters.find((i) => i.data.key === key));
   };
 

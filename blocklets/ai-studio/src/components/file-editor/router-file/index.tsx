@@ -566,9 +566,9 @@ export const ToolDialog = forwardRef<
 
     return (
       file?.parameters &&
-      sortBy(Object.values(file.parameters), (i) => i.index).filter(
-        (i): i is typeof i & { data: { key: string } } => !!i.data.key
-      )
+      sortBy(Object.values(file.parameters), (i) => i.index)
+        .filter((i) => !i.data.hidden)
+        .filter((i): i is typeof i & { data: { key: string } } => !!i.data.key)
     );
   }, [file, option]);
 

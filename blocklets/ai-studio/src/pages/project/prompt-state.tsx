@@ -300,7 +300,13 @@ export function usePromptsState({
     [template]
   );
 
-  const assistantParameters = [...new Set([...Object.values(template?.parameters ?? {}).map((i) => i.data.key)])];
+  const assistantParameters = [
+    ...new Set([
+      ...Object.values(template?.parameters ?? {})
+        .filter((i) => !i.data.hidden)
+        .map((i) => i.data.key),
+    ]),
+  ];
 
   useEffect(() => {
     if (template) {
