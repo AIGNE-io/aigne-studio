@@ -183,9 +183,9 @@ export const useProjectStore = (projectId: string, gitRef: string, connect?: boo
 
   const syncedStore = useSyncedStore(store.store, [store.store]);
 
-  const config = syncedStore.files[CONFIG_FILE_PATH] as ConfigFileYjs;
-  const cronConfig = syncedStore.files[CRON_CONFIG_FILE_PATH] as CronFileYjs;
-  const projectSetting = syncedStore.files[PROJECT_FILE_PATH] as ProjectSettings;
+  const config = proxyConfigFile<ConfigFileYjs>(syncedStore, CONFIG_FILE_PATH);
+  const cronConfig = proxyConfigFile<CronFileYjs>(syncedStore, CRON_CONFIG_FILE_PATH);
+  const projectSetting = proxyConfigFile<ProjectSettings>(syncedStore, PROJECT_FILE_PATH);
 
   return {
     ...store,
@@ -474,3 +474,18 @@ export const useUndoManager = (projectId: string, ref: string, key: string) => {
 
   return state;
 };
+
+function proxyConfigFile<T extends object>(store: ReturnType<typeof syncedStore<State>>, filepath: string) {
+  return new Proxy({} as T, {
+    get(_, key: string) {
+      const c = store.files[filepath] as T;
+      return (c as any)?.[key];
+    },
+    set(_, p, newValue) {
+      const c = store.files[filepath] as any;
+      if (!c) throw new Error(`config file ${filepath} not found`);
+      c[p] = newValue;
+      return true;
+    },
+  });
+}
