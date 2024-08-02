@@ -1,4 +1,5 @@
 import { useCurrentProject } from '@app/contexts/project';
+import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { ClickAwayListener } from '@mui/base';
 import { Box, Divider, Popper, Stack, styled } from '@mui/material';
 import { useEffect, useState } from 'react';
@@ -10,7 +11,13 @@ const defaultColors = ['', '#F47373', '#697689', '#37D67A', '#2CCCE4', '#555555'
 
 export default function PrimaryColor() {
   const { projectId, projectRef } = useCurrentProject();
-  const { setProjectSetting, projectSetting } = useProjectStore(projectId, projectRef);
+  const { projectSetting } = useProjectStore(projectId, projectRef);
+  const setProjectSetting = (update: (v: typeof projectSetting) => void) => {
+    const doc = (getYjsValue(projectSetting) as Map<any>).doc!;
+    doc.transact(() => {
+      update(projectSetting);
+    });
+  };
 
   const [selectedColor, setSelectedColor] = useState(projectSetting?.appearance?.primaryColor || defaultColors[0]);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);

@@ -1,7 +1,7 @@
 import { mkdir, readFile, writeFile } from 'fs/promises';
 import path, { extname, join } from 'path';
 
-import { getResourceKnowledgeWithData } from '@api/libs/resource';
+import { resourceManager } from '@api/libs/resource';
 import config from '@blocklet/sdk/lib/config';
 import user from '@blocklet/sdk/lib/middlewares/user';
 import { Router } from 'express';
@@ -49,7 +49,7 @@ const searchQuerySchema = Joi.object<{ blockletDid?: string; message?: string; s
 type Input = { message?: string; searchAll?: boolean; n: number };
 
 const searchResourceKnowledge = async (blockletDid: string, knowledgeId: string, input: Input) => {
-  const resource = await getResourceKnowledgeWithData({ blockletDid, knowledgeId });
+  const resource = await resourceManager.getKnowledge({ blockletDid, knowledgeId });
 
   if (!resource) {
     return { docs: [] };
@@ -150,7 +150,7 @@ router.get('/:datasetId/documents', user(), userAuth(), async (req, res) => {
   }).validateAsync(req.query, { stripUnknown: true });
 
   if (blockletDid) {
-    const knowledge = await getResourceKnowledgeWithData({ blockletDid, knowledgeId: datasetId });
+    const knowledge = await resourceManager.getKnowledge({ blockletDid, knowledgeId: datasetId });
     const docs = [...(knowledge?.documents || [])].splice(page - 1, size);
     res.json({ items: docs, total: knowledge?.documents.length });
     return;

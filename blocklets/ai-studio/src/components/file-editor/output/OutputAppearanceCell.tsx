@@ -30,5 +30,7 @@ export default function OutputAppearanceCell({
   }, [output.from?.type, output?.appearance]);
 
   if (!appearance) return null;
+  if (!appearance?.componentName) return null;
+
   return <Chip className="ellipsis" label={appearance?.componentName} size="small" />;
 }

@@ -1,8 +1,6 @@
-import { ProjectSettings, Variable } from '@blocklet/ai-runtime/types';
+import { Assistant, ProjectSettings, Variable } from '@blocklet/ai-runtime/types';
 import { call } from '@blocklet/sdk/lib/component';
 import { joinURL } from 'ufo';
-
-import { getAssistantFromResourceBlocklet } from './resource';
 
 export async function getAgentFromAIStudio({
   projectId,
@@ -14,7 +12,7 @@ export async function getAgentFromAIStudio({
   projectRef: string;
   agentId: string;
   working?: boolean;
-}): Promise<NonNullable<Awaited<ReturnType<typeof getAssistantFromResourceBlocklet>>>> {
+}): Promise<{ agent: Assistant; project: ProjectSettings }> {
   return (
     await call({
       name: 'ai-studio',

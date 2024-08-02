@@ -16,6 +16,7 @@ import {
   Variable,
   outputVariablesToJoiSchema,
 } from '../../types';
+import { isNonNullable } from '../../utils/is-non-nullable';
 import { CallAI, CallAIImage, GetAgent, GetAgentResult, RunAssistantCallback } from '../assistant/type';
 import { HISTORY_API_ID, KNOWLEDGE_API_ID, MEMORY_API_ID, getBlockletAgent } from '../utils/get-blocklet-agent';
 import { renderMessage } from '../utils/render-message';
@@ -420,7 +421,7 @@ export abstract class AgentExecutorBase {
           const memories: { role: string; content: string; agentId?: string }[] = Array.isArray(result?.messages)
             ? result.messages
             : [];
-          const agentIds = new Set(memories.map((i) => i.agentId).filter((i): i is NonNullable<typeof i> => !!i));
+          const agentIds = new Set(memories.map((i) => i.agentId).filter(isNonNullable));
           const assistantNameMap = Object.fromEntries(
             (
               await Promise.all(
@@ -432,7 +433,7 @@ export abstract class AgentExecutorBase {
                 )
               )
             )
-              .filter((i): i is NonNullable<typeof i> => !!i)
+              .filter(isNonNullable)
               .map((i) => [
                 i.id,
                 (

@@ -1,3 +1,20 @@
+## 0.4.17 (2024-8-2)
+
+- fix: In multi-tenant mode, copied projects on the projects page have the same name #1262
+- fix: Appearance bug #1254
+- fix: Unable to create a new folder when there is no agent #1251
+- fix: Unable to sync YJS data when importing new data if there is a cache #1205
+
+## 0.4.16 (2024-8-1)
+
+- fix: copy project with all config files
+- fix: config file maybe undefined
+
+## 0.4.15 (2024-8-1)
+
+- refactor: add ResourceManager to manage the resource blocklets
+- feat: add cron jobs support
+
 ## 0.4.14 (2024-7-30)
 
 - feat: support cache agent outputs

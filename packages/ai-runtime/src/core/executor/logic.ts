@@ -3,7 +3,7 @@ import 'dayjs/locale/ja';
 
 import crypto from 'crypto';
 import { join } from 'path';
-import { ReadableStream, TextDecoderStream } from 'stream/web';
+import { ReadableStream, TextDecoderStream, TransformStream } from 'stream/web';
 
 import { EventSourceParserStream } from '@blocklet/ai-kit/api/utils/event-stream';
 import { call, getComponentMountPoint } from '@blocklet/sdk/lib/component';
@@ -143,6 +143,7 @@ export class LogicAgentExecutor extends AgentExecutorBase {
         joinURL,
         withQuery,
         ReadableStream,
+        TransformStream,
         TextDecoderStream,
         EventSourceParserStream,
         ...args,

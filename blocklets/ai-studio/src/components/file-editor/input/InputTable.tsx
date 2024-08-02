@@ -1,4 +1,3 @@
-import { ResourceType } from '@api/libs/resource';
 import Dataset from '@api/store/models/dataset/dataset';
 import AgentSelect from '@app/components/agent-select';
 import WithAwareness from '@app/components/awareness/with-awareness';
@@ -19,6 +18,7 @@ import {
   AssistantYjs,
   ExecuteBlock,
   ParameterYjs,
+  ResourceType,
   StringParameter,
   parseDirectivesOfTemplate,
 } from '@blocklet/ai-runtime/types';

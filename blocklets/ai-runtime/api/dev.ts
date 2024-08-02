@@ -1,3 +1,4 @@
+import { cronManager } from '@api/libs/cron-jobs';
 import setupHtmlRouter from '@api/routes/html';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { setupClient } from 'vite-plugin-blocklet';
@@ -13,3 +14,10 @@ import { app, server } from './src';
 
   setupHtmlRouter(app, vite);
 })();
+
+import.meta.hot?.on('vite:beforeFullReload', () => {
+  cronManager.destroy();
+});
+import.meta.hot?.dispose(() => {
+  cronManager.destroy();
+});

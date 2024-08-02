@@ -1,6 +1,7 @@
 import { getProject } from '@api/libs/agent';
 import { ensureAgentAdmin } from '@api/libs/security';
 import Secret from '@api/store/models/secret';
+import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { auth, user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
@@ -45,7 +46,7 @@ router.post('/', user(), auth(), async (req, res) => {
           return project.createdBy;
         })
       )
-    ).filter((i): i is NonNullable<typeof i> => !!i);
+    ).filter(isNonNullable);
   });
 
   await Promise.all(
