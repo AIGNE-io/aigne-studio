@@ -760,4 +760,5 @@ export default flat({
   objectSetting: '{object} Setting',
   emptyObjectTip: 'No {object} yet.',
   new: 'New',
+  cleanCache: 'Clean Cache',
 });

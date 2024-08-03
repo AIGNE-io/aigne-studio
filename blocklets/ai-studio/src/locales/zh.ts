@@ -754,4 +754,5 @@ export default flat({
   objectSetting: '{object}设置',
   emptyObjectTip: '暂无{object}',
   new: '新建',
+  cleanCache: '清除缓存',
 });
