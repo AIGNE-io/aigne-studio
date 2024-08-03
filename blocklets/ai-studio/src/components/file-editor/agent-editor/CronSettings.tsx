@@ -36,6 +36,26 @@ import { Cron } from 'react-js-cron';
 
 import PromptEditorField from '../prompt-editor-field';
 
+export function CronSettingsSummary({ agent }: { agent: AssistantYjs }) {
+  const { t } = useLocaleContext();
+
+  const { projectId, projectRef } = useCurrentProject();
+  const { cronConfig } = useProjectStore(projectId, projectRef);
+
+  if (!cronConfig.jobs?.length) return null;
+
+  const jobs = cronConfig.jobs.filter((i) => i.agentId === agent.id);
+  const enabledJobs = jobs.filter((i) => i.enable);
+
+  if (!jobs.length) return null;
+
+  return (
+    <Typography variant="caption" color="text.secondary">
+      {t('cronJobsSummary', { jobs: jobs.length, enabledJobs: enabledJobs.length })}
+    </Typography>
+  );
+}
+
 export function CronSettings({ agent }: { agent: AssistantYjs }) {
   const { t } = useLocaleContext();
   const doc = (getYjsValue(agent) as Map<any>).doc!;

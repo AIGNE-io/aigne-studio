@@ -756,6 +756,7 @@ export default flat({
   time: 'Time',
   cronJob: 'Cron Job',
   cronJobs: 'Cron Jobs',
+  cronJobsSummary: 'Jobs {jobs}, Enabled {enabledJobs}',
   objectSetting: '{object} Setting',
   emptyObjectTip: 'No {object} yet.',
   new: 'New',
