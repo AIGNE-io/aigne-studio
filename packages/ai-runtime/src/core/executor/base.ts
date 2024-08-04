@@ -555,7 +555,7 @@ export abstract class AgentExecutorBase {
     const outputInputs = outputVariables.reduce((res, output) => {
       const input =
         output.from?.type === 'input'
-          ? agent.parameters?.filter((i) => !i.hidden)?.find((input) => input.id === output.from?.id)
+          ? agent.parameters?.find((input) => input.id === output.from?.id && !input.hidden)
           : undefined;
 
       if (input?.key && output.name) {
