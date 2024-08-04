@@ -32,12 +32,12 @@ async function createNewKnowledgeBase({
 
 async function importKnowledgeBaseData(newKnowledgeBaseId: string, projectId: string, data: any) {
   const oldKnowledgeBaseId = data.id;
+  const map: { [key: string]: string } = {};
 
   // 新知识库的数据
   const newKnowledgeBase = { ...data, id: newKnowledgeBaseId, appId: projectId };
   await Knowledge.create(newKnowledgeBase);
 
-  const map: { [key: string]: string } = {};
   // 从旧知识库复制文档
   const documents = await KnowledgeDocuments.findAll({ where: { datasetId: oldKnowledgeBaseId } });
   const newDocuments = documents.map((document) => {
@@ -51,11 +51,9 @@ async function importKnowledgeBaseData(newKnowledgeBaseId: string, projectId: st
   await KnowledgeDocuments.bulkCreate(newDocuments);
 
   const ids = documents.map((doc) => doc.id);
-  // 从旧知识库复制内容
 
-  const contents = await KnowledgeContents.findAll({
-    where: { documentId: { [Op.in]: ids } },
-  });
+  // 从旧知识库复制内容
+  const contents = await KnowledgeContents.findAll({ where: { documentId: { [Op.in]: ids } } });
   const newContents = contents.map((content) => {
     const newContent = content.dataValues;
     newContent.documentId = map[content.documentId]! || nextId();
