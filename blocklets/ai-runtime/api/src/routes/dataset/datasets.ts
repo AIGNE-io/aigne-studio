@@ -23,6 +23,7 @@ import { ensureComponentCallOr, ensureComponentCallOrAdmin, userAuth } from '../
 import Dataset from '../../store/models/dataset/dataset';
 import DatasetDocument from '../../store/models/dataset/document';
 import { sse } from './embeddings';
+import createNewKnowledgeBase from './knowledge';
 
 const router = Router();
 
@@ -210,5 +211,19 @@ router.delete('/:datasetId', user(), userAuth(), async (req, res) => {
 });
 
 router.get('/:datasetId/embeddings', compression(), sse.init);
+
+router.put('/:datasetId/copy', user(), userAuth(), async (req, res) => {
+  const { datasetId } = req.params;
+  const { projectId, knowledgeId } = req.body;
+  if (!datasetId) throw new Error('missing required param `datasetId`');
+
+  const newKnowledgeBaseId = await createNewKnowledgeBase({
+    oldKnowledgeBaseId: knowledgeId,
+    oldProjectId: datasetId,
+    newProjectId: projectId,
+  });
+
+  res.json({ id: newKnowledgeBaseId });
+});
 
 export default router;

@@ -19,6 +19,7 @@ import {
   variableToYjs,
 } from '@blocklet/ai-runtime/types';
 import { copyRecursive } from '@blocklet/ai-runtime/utils/fs';
+import { AIGNE_RUNTIME_COMPONENT_DID } from '@blocklet/aigne-sdk/constants';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { call } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
@@ -33,7 +34,7 @@ import omit from 'lodash/omit';
 import omitBy from 'lodash/omitBy';
 import pick from 'lodash/pick';
 import uniqBy from 'lodash/uniqBy';
-import { parseAuth, parseURL } from 'ufo';
+import { joinURL, parseAuth, parseURL } from 'ufo';
 import { parse } from 'yaml';
 
 import { resourceManager } from '../libs/resource';
@@ -558,6 +559,8 @@ export function projectRoutes(router: Router) {
             author: req.user!,
             projectType: undefined,
           });
+
+          await copyKnowledge({ originProjectId: original.id!, currentProjectId: project.id!, user: req.user! });
         }
       }
 
@@ -1168,6 +1171,73 @@ async function copyProject({
   return project;
 }
 
+async function copyKnowledge({
+  originProjectId,
+  currentProjectId,
+  user,
+}: {
+  originProjectId: string;
+  currentProjectId: string;
+  user: any;
+}) {
+  // 缓存迁移过的知识库
+  const cache: { [oldKnowledgeBaseId: string]: string } = {};
+
+  const repository = await getRepository({ projectId: currentProjectId });
+  const branches = await repository.listBranches();
+
+  for (const branch of branches) {
+    // eslint-disable-next-line no-await-in-loop
+    const working = await repository.working({ ref: branch });
+    const prompts = Object.values(working.syncedStore.files).filter((i) => !!i && isAssistant(i));
+
+    for (const prompt of prompts) {
+      const parameters = Object.values(prompt.parameters || []).map((i) => i.data);
+      for (const parameter of parameters || []) {
+        if (parameter.key && parameter.type === 'source') {
+          if (parameter.source?.variableFrom === 'knowledge' && parameter.source.knowledge) {
+            const tool = parameter.source.knowledge;
+            const oldKnowledgeBaseId = tool.id;
+
+            if (cache[oldKnowledgeBaseId]) {
+              parameter.source.knowledge.id = cache[oldKnowledgeBaseId];
+            } else {
+              // eslint-disable-next-line no-await-in-loop
+              const { data } = await call({
+                name: AIGNE_RUNTIME_COMPONENT_DID,
+                path: joinURL('/api/datasets', originProjectId, 'copy'),
+                method: 'PUT',
+                data: { projectId: currentProjectId, knowledgeId: oldKnowledgeBaseId },
+                headers: {
+                  'x-user-did': user?.did,
+                  'x-user-role': user?.role,
+                  'x-user-provider': user?.provider,
+                  'x-user-fullname': user?.fullName && encodeURIComponent(user?.fullName),
+                  'x-user-wallet-os': user?.walletOS,
+                },
+              });
+
+              const newKnowledgeBaseId = data?.id;
+              cache[oldKnowledgeBaseId] = newKnowledgeBaseId;
+              parameter.source.knowledge.id = newKnowledgeBaseId;
+              parameter.source.knowledge.projectId = currentProjectId;
+            }
+          }
+        }
+      }
+    }
+
+    working.save({ flush: true });
+
+    // eslint-disable-next-line no-await-in-loop
+    await working.commit({
+      ref: branch,
+      branch,
+      message: 'Update Reference KnowledgeId',
+      author: { name: user.fullName, email: user.did },
+    });
+  }
+}
 async function createProjectFromTemplate(
   template: Partial<ResourceProject>,
   {

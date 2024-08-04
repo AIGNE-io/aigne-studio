@@ -5,7 +5,7 @@ import { sequelize } from '../../sequelize';
 
 const idGenerator = new Worker();
 
-const nextId = () => idGenerator.nextId().toString();
+export const nextId = () => idGenerator.nextId().toString();
 
 export default class Dataset extends Model<InferAttributes<Dataset>, InferCreationAttributes<Dataset>> {
   declare id: CreationOptional<string>;
