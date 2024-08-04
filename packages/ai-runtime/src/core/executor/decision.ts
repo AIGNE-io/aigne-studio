@@ -89,10 +89,9 @@ export class DecisionAgentExecutor extends AgentExecutorBase {
           });
           if (!toolAssistant) return undefined;
           const toolParameters = (toolAssistant.parameters ?? [])
-            .filter((i) => !i.hidden)
             .filter(
               (i): i is typeof i & Required<Pick<typeof i, 'key'>> =>
-                !!i.key && !tool.parameters?.[i.key] && i.type !== 'source'
+                !!i.key && !tool.parameters?.[i.key] && i.type !== 'source' && !i.hidden
             )
             .map((parameter) => {
               return [
@@ -111,10 +110,8 @@ export class DecisionAgentExecutor extends AgentExecutorBase {
             });
 
           const required = (toolAssistant.parameters ?? [])
-            .filter((i) => !i.hidden)
-            .filter((i): i is typeof i & { key: string } => !!i.key && i.type !== 'source')
-            .filter((i) => !(tool?.parameters || {})[i.key])
-            .filter((x) => x.required)
+            .filter((i): i is typeof i & { key: string } => !!i.key && i.type !== 'source' && !i.hidden)
+            .filter((i) => !(tool?.parameters || {})[i.key] && i.required)
             .map((x) => x.key);
 
           const name = tool?.functionName || toolAssistant?.description || toolAssistant?.name || '';
@@ -193,12 +190,11 @@ export class DecisionAgentExecutor extends AgentExecutorBase {
               inputs: {
                 ...inputs,
                 ...agent.executor?.inputValues,
-                [executor.parameters?.filter((i) => !i.hidden)?.find((i) => i.type === 'llmInputMessages')?.key!]: [
+                [executor.parameters?.find((i) => i.type === 'llmInputMessages' && !i.hidden)?.key!]: [
                   { role: 'user', content: message },
                 ],
-                [executor.parameters?.filter((i) => !i.hidden)?.find((i) => i.type === 'llmInputTools')?.key!]: tools,
-                [executor.parameters?.filter((i) => !i.hidden)?.find((i) => i.type === 'llmInputToolChoice')?.key!]:
-                  toolChoice,
+                [executor.parameters?.find((i) => i.type === 'llmInputTools' && !i.hidden)?.key!]: tools,
+                [executor.parameters?.find((i) => i.type === 'llmInputToolChoice' && !i.hidden)?.key!]: toolChoice,
               },
             })
           )[RuntimeOutputVariable.llmResponseStream] as ReadableStream<ChatCompletionResponse>)

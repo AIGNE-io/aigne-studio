@@ -16,10 +16,9 @@ export async function resolveSecretInputs(
   if (!agent.project) return [];
 
   const secretInputs = (agent.parameters ?? [])
-    .filter((i) => !i.hidden)
     .filter(
       (i): i is SourceParameter & { key: string; source: SecretParameter } =>
-        !!i.key && i.type === 'source' && i.source?.variableFrom === 'secret'
+        !!i.key && i.type === 'source' && i.source?.variableFrom === 'secret' && !i.hidden
     )
     .map((input) => ({ agent, input }));
 
@@ -29,18 +28,19 @@ export async function resolveSecretInputs(
 
   const referencedAgents = [
     ...(children?.agents ?? []).map((i) => ({ id: i.id, projectId: agent.project.id, blockletDid: undefined })),
-    ...(agent.parameters ?? [])
-      .filter((i) => !i.hidden)
-      .map((i) => {
-        if (i.type === 'source' && i.source?.variableFrom === 'tool' && i.source.agent?.id) {
-          return {
-            id: i.source.agent.id,
-            blockletDid: i.source.agent.blockletDid,
-            projectId: i.source.agent.projectId,
-          };
-        }
-        return null;
-      }),
+    ...(agent.parameters ?? []).map((i) => {
+      if (i.hidden) return null;
+
+      if (i.type === 'source' && i.source?.variableFrom === 'tool' && i.source.agent?.id) {
+        return {
+          id: i.source.agent.id,
+          blockletDid: i.source.agent.blockletDid,
+          projectId: i.source.agent.projectId,
+        };
+      }
+
+      return null;
+    }),
     ...(agent.executor?.agent?.id ? [agent.executor.agent] : []),
   ].filter(isNonNullable);
 

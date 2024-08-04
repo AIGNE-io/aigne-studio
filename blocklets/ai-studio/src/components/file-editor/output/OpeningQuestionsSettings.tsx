@@ -101,9 +101,9 @@ function EntryItemView({
   const { t } = useLocaleContext();
   const doc = (getYjsValue(item) as Map<any>).doc!;
 
-  const parameters = sortBy(Object.values(assistant.parameters ?? {}), (i) => i.index)
-    .filter((i) => !i.data.hidden)
-    .filter((i): i is typeof i & { data: { key: string } } => !!i.data.key);
+  const parameters = sortBy(Object.values(assistant.parameters ?? {}), (i) => i.index).filter(
+    (i): i is typeof i & { data: { key: string; hidden?: boolean } } => !!i.data.key && !i.data.hidden
+  );
 
   return (
     <Stack

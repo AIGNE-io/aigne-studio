@@ -355,21 +355,23 @@ function getAssistantDependentComponents(assistant: Assistant | Assistant[]) {
     ...new Set(
       [assistant].flat().flatMap((assistant) => {
         if (!assistant.parameters) return [];
-        const inputDeps = Object.values(assistant.parameters)
-          .filter((i) => !i.hidden)
-          .flatMap((i) => {
-            if (i.type === 'source' && i.source?.variableFrom === 'tool') {
-              const did = i.source.agent?.blockletDid;
-              return did ? [did] : [];
-            }
-
-            if (i.type === 'source' && i.source?.variableFrom === 'knowledge') {
-              const did = i.source.knowledge?.blockletDid;
-              return did ? [did] : [];
-            }
-
+        const inputDeps = Object.values(assistant.parameters).flatMap((i) => {
+          if (i.hidden) {
             return [];
-          });
+          }
+
+          if (i.type === 'source' && i.source?.variableFrom === 'tool') {
+            const did = i.source.agent?.blockletDid;
+            return did ? [did] : [];
+          }
+
+          if (i.type === 'source' && i.source?.variableFrom === 'knowledge') {
+            const did = i.source.knowledge?.blockletDid;
+            return did ? [did] : [];
+          }
+
+          return [];
+        });
 
         const executorDeps = assistant.executor?.agent?.blockletDid ? [assistant.executor?.agent?.blockletDid] : [];
 

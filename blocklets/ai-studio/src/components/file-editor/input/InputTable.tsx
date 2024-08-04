@@ -1178,25 +1178,27 @@ function checkKeyParameterIsUsed({ value, key }: { value: AssistantYjs; key: str
     return false;
   }
 
-  const parameters = Object.values(value?.parameters || {})
-    .filter((i) => !i.data.hidden)
-    .flatMap((x) => {
-      if (x.data.type === 'source') {
-        if (x.data.source?.variableFrom === 'tool') {
-          return [Object.values(x.data.source?.agent?.parameters || {})];
-        }
+  const parameters = Object.values(value?.parameters || {}).flatMap((x) => {
+    if (x.data.hidden) {
+      return [];
+    }
 
-        if (x.data.source?.variableFrom === 'knowledge') {
-          return [Object.values(x.data.source?.knowledge?.parameters || {})];
-        }
-
-        if (x.data.source?.variableFrom === 'blockletAPI') {
-          return [Object.values(x.data.source?.api?.parameters || {})];
-        }
+    if (x.data.type === 'source') {
+      if (x.data.source?.variableFrom === 'tool') {
+        return [Object.values(x.data.source?.agent?.parameters || {})];
       }
 
-      return [];
-    });
+      if (x.data.source?.variableFrom === 'knowledge') {
+        return [Object.values(x.data.source?.knowledge?.parameters || {})];
+      }
+
+      if (x.data.source?.variableFrom === 'blockletAPI') {
+        return [Object.values(x.data.source?.api?.parameters || {})];
+      }
+    }
+
+    return [];
+  });
 
   return !!parameters.find((x) => {
     return (x || []).find((str) => {
@@ -1359,32 +1361,30 @@ function AgentParametersForm({
         <Typography variant="subtitle2">{t('inputs')}</Typography>
 
         <Box>
-          {agent.parameters
-            ?.filter((i) => !i.hidden)
-            ?.map((data) => {
-              if (!data?.key || data.type === 'source') return null;
+          {agent.parameters?.map((data) => {
+            if (!data?.key || data.type === 'source' || data.hidden) return null;
 
-              const placeholder = data.placeholder?.replace(/([^\w]?)$/, '');
+            const placeholder = data.placeholder?.replace(/([^\w]?)$/, '');
 
-              return (
-                <Stack key={data.id}>
-                  <Typography variant="caption">{data.label || data.key}</Typography>
+            return (
+              <Stack key={data.id}>
+                <Typography variant="caption">{data.label || data.key}</Typography>
 
-                  <PromptEditorField
-                    placeholder={`${placeholder ? `${placeholder}, ` : ''}default {{ ${data.key} }}`}
-                    value={parameter.source.agent?.parameters?.[data.key] || ''}
-                    projectId={projectId}
-                    gitRef={projectRef}
-                    assistant={assistant}
-                    path={[]}
-                    onChange={(value) => {
-                      parameter.source.agent!.parameters ??= {};
-                      parameter.source.agent!.parameters[data.key!] = value;
-                    }}
-                  />
-                </Stack>
-              );
-            })}
+                <PromptEditorField
+                  placeholder={`${placeholder ? `${placeholder}, ` : ''}default {{ ${data.key} }}`}
+                  value={parameter.source.agent?.parameters?.[data.key] || ''}
+                  projectId={projectId}
+                  gitRef={projectRef}
+                  assistant={assistant}
+                  path={[]}
+                  onChange={(value) => {
+                    parameter.source.agent!.parameters ??= {};
+                    parameter.source.agent!.parameters[data.key!] = value;
+                  }}
+                />
+              </Stack>
+            );
+          })}
         </Box>
       </Box>
     </Stack>
@@ -1394,9 +1394,9 @@ function AgentParametersForm({
 export function AuthorizeButton({ agent }: { agent: NonNullable<ReturnType<typeof useAgent>> }) {
   const { t } = useLocaleContext();
 
-  const authInputs = agent.parameters
-    ?.filter((i) => !i.hidden)
-    ?.filter((i) => i.key && i.type === 'source' && i.source?.variableFrom === 'secret');
+  const authInputs = agent.parameters?.filter(
+    (i) => i.key && i.type === 'source' && i.source?.variableFrom === 'secret' && !i.hidden
+  );
 
   const dialogState = usePopupState({ variant: 'dialog' });
   const { projectId } = useCurrentProject();
@@ -1445,9 +1445,9 @@ function AuthorizeParametersFormDialog({
 }: { agent: NonNullable<ReturnType<typeof useAgent>>; onSuccess?: () => void } & DialogProps) {
   const { t } = useLocaleContext();
 
-  const authInputs = agent.parameters
-    ?.filter((i) => !i.hidden)
-    ?.filter((i) => i.key && i.type === 'source' && i.source?.variableFrom === 'secret');
+  const authInputs = agent.parameters?.filter(
+    (i) => i.key && i.type === 'source' && i.source?.variableFrom === 'secret' && !i.hidden
+  );
 
   const form = useForm();
   const { projectId } = useCurrentProject();

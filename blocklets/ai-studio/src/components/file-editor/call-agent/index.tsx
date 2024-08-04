@@ -246,9 +246,9 @@ export function AgentItemView({
   const parameters = useMemo(() => {
     return (
       target?.parameters &&
-      sortBy(Object.values(target.parameters), (i) => i.index)
-        .filter((i) => !i.data.hidden)
-        .filter((i): i is typeof i & { data: { key: string } } => !!i.data.key)
+      sortBy(Object.values(target.parameters), (i) => i.index).filter(
+        (i): i is typeof i & { data: { key: string; hidden?: boolean } } => !!i.data.key && !i.data.hidden
+      )
     );
   }, [target]);
 

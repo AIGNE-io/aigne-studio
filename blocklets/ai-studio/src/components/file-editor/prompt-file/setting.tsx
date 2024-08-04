@@ -119,33 +119,33 @@ function AgentParametersForm({ assistant }: { assistant: AssistantYjs }) {
         <Typography variant="subtitle2">{t('inputs')}</Typography>
 
         <Stack gap={1}>
-          {agent.parameters
-            ?.filter((i) => !i.hidden)
-            ?.map((data) => {
-              if (
-                !data?.key ||
-                data.type === 'source' ||
-                ['llmInputMessages', 'llmInputTools', 'llmInputToolChoice'].includes(data.type!)
-              )
-                return null;
+          {agent.parameters?.map((data) => {
+            if (data.hidden) return null;
 
-              return (
-                <Stack key={data.id}>
-                  <Typography variant="caption">{data.label || data.key}</Typography>
+            if (
+              !data?.key ||
+              data.type === 'source' ||
+              ['llmInputMessages', 'llmInputTools', 'llmInputToolChoice'].includes(data.type!)
+            )
+              return null;
 
-                  <ParameterField
-                    hiddenLabel
-                    parameter={data}
-                    value={assistant.executor?.inputValues?.[data.key] || ''}
-                    onChange={(value) => {
-                      assistant.executor ??= {};
-                      assistant.executor.inputValues ??= {};
-                      assistant.executor.inputValues[data.key!] = value;
-                    }}
-                  />
-                </Stack>
-              );
-            })}
+            return (
+              <Stack key={data.id}>
+                <Typography variant="caption">{data.label || data.key}</Typography>
+
+                <ParameterField
+                  hiddenLabel
+                  parameter={data}
+                  value={assistant.executor?.inputValues?.[data.key] || ''}
+                  onChange={(value) => {
+                    assistant.executor ??= {};
+                    assistant.executor.inputValues ??= {};
+                    assistant.executor.inputValues[data.key!] = value;
+                  }}
+                />
+              </Stack>
+            );
+          })}
         </Stack>
       </Box>
     </Stack>

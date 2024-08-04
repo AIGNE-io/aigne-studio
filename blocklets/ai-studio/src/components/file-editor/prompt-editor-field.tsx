@@ -56,9 +56,9 @@ export default function PromptEditorField({
 
       // 添加变量
       textNodes.forEach((node) => {
-        const currentVariables = Object.values(assistant.parameters ?? {})
-          .filter((i) => !i.data.hidden)
-          .filter((p) => p.data.from === from);
+        const currentVariables = Object.values(assistant.parameters ?? {}).filter(
+          (p) => p.data.from === from && !p.data.hidden
+        );
 
         const id = node.getAttribute('data-lexical-id');
         const variable = extractBracketContent(node.textContent || '').trim();
@@ -204,9 +204,7 @@ export default function PromptEditorField({
             const id = element.getAttribute('data-lexical-id');
 
             const objVariables = variables.map((i) => {
-              const found = Object.values(parameters)
-                .filter((i) => !i.data.hidden)
-                .find((p) => p.data.key === i);
+              const found = Object.values(parameters).find((p) => p.data.key === i && !p.data.hidden);
               return { key: i, id: found?.data.id! || '' };
             });
 
