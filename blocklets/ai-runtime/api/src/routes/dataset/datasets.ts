@@ -212,10 +212,13 @@ router.delete('/:datasetId', user(), userAuth(), async (req, res) => {
 
 router.get('/:datasetId/embeddings', compression(), sse.init);
 
-router.put('/:datasetId/copy', user(), userAuth(), async (req, res) => {
-  const { datasetId } = req.params;
-  const { projectId, knowledgeId } = req.body;
-  if (!datasetId) throw new Error('missing required param `datasetId`');
+router.put('/:datasetId/:knowledgeId/copy/:projectId', user(), userAuth(), async (req, res) => {
+  const schema = Joi.object<{ datasetId: string; projectId: string; knowledgeId: string }>({
+    datasetId: Joi.string().required(),
+    projectId: Joi.string().required(),
+    knowledgeId: Joi.string().required(),
+  });
+  const { datasetId, projectId, knowledgeId } = await schema.validateAsync(req.params, { stripUnknown: true });
 
   const newKnowledgeBaseId = await createNewKnowledgeBase({
     oldKnowledgeBaseId: knowledgeId,

@@ -1205,9 +1205,8 @@ async function copyKnowledge({
               // eslint-disable-next-line no-await-in-loop
               const { data } = await call({
                 name: AIGNE_RUNTIME_COMPONENT_DID,
-                path: joinURL('/api/datasets', originProjectId, 'copy'),
+                path: joinURL('/api/datasets', originProjectId, oldKnowledgeBaseId, 'copy', currentProjectId),
                 method: 'PUT',
-                data: { projectId: currentProjectId, knowledgeId: oldKnowledgeBaseId },
                 headers: {
                   'x-user-did': user?.did,
                   'x-user-role': user?.role,
