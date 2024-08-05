@@ -12,7 +12,7 @@ export class APIAgentExecutor extends AgentExecutorBase {
     const args = Object.fromEntries(
       await Promise.all(
         (agent.parameters ?? [])
-          .filter((i): i is typeof i & { key: string } => !!i.key)
+          .filter((i): i is typeof i & { key: string } => !!i.key && !i.hidden)
           .map(async (i) => [i.key, inputs?.[i.key] || i.defaultValue])
       )
     );

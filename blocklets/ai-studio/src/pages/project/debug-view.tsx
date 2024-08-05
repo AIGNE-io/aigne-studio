@@ -676,7 +676,7 @@ function DebugModeForm({
 
   const parameters = sortBy(Object.values(assistant.parameters ?? {}), (i) => i.index)
     .filter((i) => i.data.type !== 'source' || i.data.source?.variableFrom === 'secret')
-    .filter((i): i is typeof i & { data: { key: string } } => !!i.data.key);
+    .filter((i): i is typeof i & { data: { key: string } } => !!i.data.key && !i.data.hidden);
   const params = parameters.map((i) => i.data.key);
 
   const initForm = useMemo(

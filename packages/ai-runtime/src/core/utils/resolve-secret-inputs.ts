@@ -18,7 +18,7 @@ export async function resolveSecretInputs(
   const secretInputs = (agent.parameters ?? [])
     .filter(
       (i): i is SourceParameter & { key: string; source: SecretParameter } =>
-        !!i.key && i.type === 'source' && i.source?.variableFrom === 'secret'
+        !!i.key && i.type === 'source' && i.source?.variableFrom === 'secret' && !i.hidden
     )
     .map((input) => ({ agent, input }));
 
@@ -29,6 +29,8 @@ export async function resolveSecretInputs(
   const referencedAgents = [
     ...(children?.agents ?? []).map((i) => ({ id: i.id, projectId: agent.project.id, blockletDid: undefined })),
     ...(agent.parameters ?? []).map((i) => {
+      if (i.hidden) return null;
+
       if (i.type === 'source' && i.source?.variableFrom === 'tool' && i.source.agent?.id) {
         return {
           id: i.source.agent.id,
@@ -36,6 +38,7 @@ export async function resolveSecretInputs(
           projectId: i.source.agent.projectId,
         };
       }
+
       return null;
     }),
     ...(agent.executor?.agent?.id ? [agent.executor.agent] : []),

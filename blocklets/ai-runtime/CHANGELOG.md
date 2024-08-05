@@ -1,3 +1,7 @@
+## 0.4.19 (2024-8-5)
+
+- fix: add hidden input parameter button
+
 ## 0.4.18 (2024-8-2)
 
 - chore: remove unnecessary uploading dialog from project icon field
