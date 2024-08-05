@@ -1181,7 +1181,7 @@ async function copyKnowledge({
   currentProjectId: string;
   user: any;
 }) {
-  const { data: cache } = await call({
+  const { data: projectIdMap } = await call({
     name: AIGNE_RUNTIME_COMPONENT_DID,
     path: '/api/datasets',
     method: 'POST',
@@ -1207,8 +1207,8 @@ async function copyKnowledge({
           const tool = parameter.source.knowledge;
           const oldKnowledgeBaseId = tool.id;
 
-          if (cache[oldKnowledgeBaseId]) {
-            parameter.source.knowledge.id = cache[oldKnowledgeBaseId];
+          if (projectIdMap[oldKnowledgeBaseId]) {
+            parameter.source.knowledge.id = projectIdMap[oldKnowledgeBaseId];
             parameter.source.knowledge.projectId = currentProjectId;
           }
         }
