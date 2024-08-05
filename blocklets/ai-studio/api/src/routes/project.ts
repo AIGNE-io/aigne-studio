@@ -34,7 +34,7 @@ import omit from 'lodash/omit';
 import omitBy from 'lodash/omitBy';
 import pick from 'lodash/pick';
 import uniqBy from 'lodash/uniqBy';
-import { joinURL, parseAuth, parseURL } from 'ufo';
+import { parseAuth, parseURL } from 'ufo';
 import { parse } from 'yaml';
 
 import { resourceManager } from '../libs/resource';
@@ -559,8 +559,6 @@ export function projectRoutes(router: Router) {
             author: req.user!,
             projectType: undefined,
           });
-
-          await copyKnowledge({ originProjectId: original.id!, currentProjectId: project.id!, user: req.user! });
         }
       }
 
@@ -1145,8 +1143,9 @@ async function copyProject({
   });
 
   const repo = await getRepository({ projectId: project.id, author: { name: author.fullName, email: author.did } });
-  const workingDir = join(dirname(repo.root), `${project.id}.cooperative/${defaultBranch}/working`);
-  await copyRecursive(srcWorking.workingDir, workingDir);
+
+  const workingDir = join(dirname(repo.root), `${project.id}.cooperative/${defaultBranch}`);
+  await copyRecursive(srcWorking.options.root, workingDir);
 
   const working = await repo.working({ ref: defaultBranch });
 
@@ -1160,6 +1159,8 @@ async function copyProject({
       Object.assign(file, await projectSettingsSchema.validateAsync(project.dataValues));
     }
   }
+
+  await copyKnowledge({ originProjectId: original.id!, currentProjectId: project.id!, user: author });
 
   await working.commit({
     ref: defaultBranch,
@@ -1180,62 +1181,42 @@ async function copyKnowledge({
   currentProjectId: string;
   user: any;
 }) {
-  // 缓存迁移过的知识库
-  const cache: { [oldKnowledgeBaseId: string]: string } = {};
+  const { data: cache } = await call({
+    name: AIGNE_RUNTIME_COMPONENT_DID,
+    path: '/api/datasets',
+    method: 'POST',
+    data: { appId: currentProjectId, copyFromProjectId: originProjectId },
+    headers: {
+      'x-user-did': user?.did,
+      'x-user-role': user?.role,
+      'x-user-provider': user?.provider,
+      'x-user-fullname': user?.fullName && encodeURIComponent(user?.fullName),
+      'x-user-wallet-os': user?.walletOS,
+    },
+  });
 
   const repository = await getRepository({ projectId: currentProjectId });
-  const branches = await repository.listBranches();
+  const working = await repository.working({ ref: defaultBranch });
+  const agents = Object.values(working.syncedStore.files).filter((i) => !!i && isAssistant(i));
 
-  for (const branch of branches) {
-    // eslint-disable-next-line no-await-in-loop
-    const working = await repository.working({ ref: branch });
-    const prompts = Object.values(working.syncedStore.files).filter((i) => !!i && isAssistant(i));
+  for (const agent of agents) {
+    const parameters = Object.values(agent.parameters || []).map((i) => i.data);
+    for (const parameter of parameters || []) {
+      if (parameter.key && parameter.type === 'source') {
+        if (parameter.source?.variableFrom === 'knowledge' && parameter.source.knowledge) {
+          const tool = parameter.source.knowledge;
+          const oldKnowledgeBaseId = tool.id;
 
-    for (const prompt of prompts) {
-      const parameters = Object.values(prompt.parameters || []).map((i) => i.data);
-      for (const parameter of parameters || []) {
-        if (parameter.key && parameter.type === 'source') {
-          if (parameter.source?.variableFrom === 'knowledge' && parameter.source.knowledge) {
-            const tool = parameter.source.knowledge;
-            const oldKnowledgeBaseId = tool.id;
-
-            if (cache[oldKnowledgeBaseId]) {
-              parameter.source.knowledge.id = cache[oldKnowledgeBaseId];
-            } else {
-              // eslint-disable-next-line no-await-in-loop
-              const { data } = await call({
-                name: AIGNE_RUNTIME_COMPONENT_DID,
-                path: joinURL('/api/datasets', originProjectId, oldKnowledgeBaseId, 'copy', currentProjectId),
-                method: 'PUT',
-                headers: {
-                  'x-user-did': user?.did,
-                  'x-user-role': user?.role,
-                  'x-user-provider': user?.provider,
-                  'x-user-fullname': user?.fullName && encodeURIComponent(user?.fullName),
-                  'x-user-wallet-os': user?.walletOS,
-                },
-              });
-
-              const newKnowledgeBaseId = data?.id;
-              cache[oldKnowledgeBaseId] = newKnowledgeBaseId;
-              parameter.source.knowledge.id = newKnowledgeBaseId;
-              parameter.source.knowledge.projectId = currentProjectId;
-            }
+          if (cache[oldKnowledgeBaseId]) {
+            parameter.source.knowledge.id = cache[oldKnowledgeBaseId];
+            parameter.source.knowledge.projectId = currentProjectId;
           }
         }
       }
     }
-
-    working.save({ flush: true });
-
-    // eslint-disable-next-line no-await-in-loop
-    await working.commit({
-      ref: branch,
-      branch,
-      message: 'Update Reference KnowledgeId',
-      author: { name: user.fullName, email: user.did },
-    });
   }
+
+  working.save({ flush: true });
 }
 async function createProjectFromTemplate(
   template: Partial<ResourceProject>,

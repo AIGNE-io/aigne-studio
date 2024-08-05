@@ -1,11 +1,7 @@
 import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
-import { Worker } from 'snowflake-uuid';
 
+import nextId from '../../../libs/get-id';
 import { sequelize } from '../../sequelize';
-
-const idGenerator = new Worker();
-
-export const nextDocumentId = () => idGenerator.nextId().toString();
 
 export enum UploadStatus {
   Idle = 'idle',
@@ -79,7 +75,7 @@ DatasetDocument.init(
       type: DataTypes.STRING,
       primaryKey: true,
       allowNull: false,
-      defaultValue: nextDocumentId,
+      defaultValue: nextId,
     },
     datasetId: {
       type: DataTypes.STRING,

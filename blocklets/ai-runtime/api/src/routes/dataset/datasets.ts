@@ -19,18 +19,19 @@ import omitBy from 'lodash/omitBy';
 import { Op, Sequelize } from 'sequelize';
 import { stringify } from 'yaml';
 
+import copyKnowledgeBase from '../../libs/knowledge';
 import { ensureComponentCallOr, ensureComponentCallOrAdmin, userAuth } from '../../libs/security';
 import Dataset from '../../store/models/dataset/dataset';
 import DatasetDocument from '../../store/models/dataset/document';
 import { sse } from './embeddings';
-import createNewKnowledgeBase from './knowledge';
 
 const router = Router();
 
-const datasetSchema = Joi.object<{ name?: string; description?: string; appId?: string }>({
+const datasetSchema = Joi.object<{ name?: string; description?: string; appId?: string; copyFromProjectId?: string }>({
   name: Joi.string().allow('').empty(null).default(''),
   description: Joi.string().allow('').empty(null).default(''),
   appId: Joi.string().allow('').empty(null).default(''),
+  copyFromProjectId: Joi.string().allow('').empty(null).default(''),
 });
 
 const getDatasetsQuerySchema = Joi.object<{ excludeResource?: boolean; projectId?: string }>({
@@ -169,10 +170,33 @@ router.get('/:datasetId/export-resource', user(), ensureComponentCallOrAdmin(), 
 
 router.post('/', user(), userAuth(), async (req, res) => {
   const { did } = req.user!;
-  const { name = '', description = '', appId } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
+  const {
+    name = '',
+    description = '',
+    appId,
+    copyFromProjectId,
+  } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
+
+  if (appId && copyFromProjectId) {
+    const datasets = await Dataset.findAll({ where: { appId: copyFromProjectId } });
+
+    const map: { [oldKnowledgeBaseId: string]: string } = {};
+
+    for (const dataset of datasets) {
+      const newKnowledgeBaseId = await copyKnowledgeBase({
+        oldKnowledgeBaseId: dataset.id,
+        oldProjectId: copyFromProjectId,
+        newProjectId: appId,
+      });
+
+      map[dataset.id] = newKnowledgeBaseId;
+    }
+
+    return res.json(map);
+  }
 
   const dataset = await Dataset.create({ name, description, appId, createdBy: did, updatedBy: did });
-  res.json(dataset);
+  return res.json(dataset);
 });
 
 router.put('/:datasetId', user(), userAuth(), async (req, res) => {
@@ -211,22 +235,5 @@ router.delete('/:datasetId', user(), userAuth(), async (req, res) => {
 });
 
 router.get('/:datasetId/embeddings', compression(), sse.init);
-
-router.put('/:datasetId/:knowledgeId/copy/:projectId', user(), userAuth(), async (req, res) => {
-  const schema = Joi.object<{ datasetId: string; projectId: string; knowledgeId: string }>({
-    datasetId: Joi.string().required(),
-    projectId: Joi.string().required(),
-    knowledgeId: Joi.string().required(),
-  });
-  const { datasetId, projectId, knowledgeId } = await schema.validateAsync(req.params, { stripUnknown: true });
-
-  const newKnowledgeBaseId = await createNewKnowledgeBase({
-    oldKnowledgeBaseId: knowledgeId,
-    oldProjectId: datasetId,
-    newProjectId: projectId,
-  });
-
-  res.json({ id: newKnowledgeBaseId });
-});
 
 export default router;
