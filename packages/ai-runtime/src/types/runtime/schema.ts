@@ -147,7 +147,7 @@ export function outputVariablesToJoiSchema(
     let schema: Joi.AnySchema | undefined;
 
     if (variable.from?.type === 'input') {
-      const input = assistant.parameters?.find((i) => i.id === variable.from?.id);
+      const input = assistant.parameters?.find((i) => i.id === variable.from?.id && !i.hidden);
       if (input) {
         return Joi.any();
       }

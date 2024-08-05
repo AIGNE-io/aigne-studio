@@ -258,7 +258,7 @@ export abstract class AgentExecutorBase {
     // TODO: support custom cache key by specifying inputs of agent
     const i = Object.fromEntries(
       (agent.parameters ?? [])
-        .filter((i): i is typeof i & { key: string } => !!i.key)
+        .filter((i): i is typeof i & { key: string } => !!i.key && !i.hidden)
         .map((i) => [i.key, inputs[i.key]])
     );
 
@@ -269,7 +269,7 @@ export abstract class AgentExecutorBase {
     const inputParameters = Object.fromEntries(
       await Promise.all(
         (agent.parameters || [])
-          .filter((i): i is typeof i & { key: string } => !!i.key && i.type !== 'source')
+          .filter((i): i is typeof i & { key: string } => !!i.key && i.type !== 'source' && !i.hidden)
           .map(async (i) => {
             if (typeof inputs?.[i.key!] === 'string') {
               const template = String(inputs?.[i.key!] || '').trim();
@@ -304,7 +304,8 @@ export abstract class AgentExecutorBase {
       callback(args);
     };
 
-    for (const parameter of agent.parameters || []) {
+    const parameters = (agent.parameters || []).filter((i) => !i.hidden);
+    for (const parameter of parameters) {
       if (parameter.key && parameter.type === 'source') {
         if (!agent.project) {
           throw new Error('Agent project not found.');
@@ -553,7 +554,9 @@ export abstract class AgentExecutorBase {
 
     const outputInputs = outputVariables.reduce((res, output) => {
       const input =
-        output.from?.type === 'input' ? agent.parameters?.find((input) => input.id === output.from?.id) : undefined;
+        output.from?.type === 'input'
+          ? agent.parameters?.find((input) => input.id === output.from?.id && !input.hidden)
+          : undefined;
 
       if (input?.key && output.name) {
         const val = inputs?.[input.key];
