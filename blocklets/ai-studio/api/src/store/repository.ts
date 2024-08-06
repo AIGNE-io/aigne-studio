@@ -1,7 +1,8 @@
-import { copyFile, mkdir, readdir, rm, writeFile } from 'fs/promises';
+import { copyFile, mkdir, readFile, readdir, rm, writeFile } from 'fs/promises';
 import path, { dirname, extname, join, relative } from 'path';
 
 import { EVENTS } from '@api/event';
+import { projectCronManager } from '@api/libs/cron-jobs';
 import { broadcast } from '@api/libs/ws';
 import {
   Assistant,
@@ -19,11 +20,14 @@ import {
   variableFromYjs,
   variableToYjs,
 } from '@blocklet/ai-runtime/types';
+import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { Repository, RepositoryOptions, Working } from '@blocklet/co-git/repository';
+import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { SpaceClient, SyncFolderPushCommand, SyncFolderPushCommandOutput } from '@did-space/client';
-import { pathExists } from 'fs-extra';
+import { exists, pathExists } from 'fs-extra';
 import { glob } from 'glob';
 import { Errors } from 'isomorphic-git';
+import { throttle } from 'lodash';
 import isEmpty from 'lodash/isEmpty';
 import { nanoid } from 'nanoid';
 import { parseAuth, parseFilename, parseURL } from 'ufo';
@@ -34,6 +38,8 @@ import downloadImage, { md5file } from '../libs/download-logo';
 import { Config } from '../libs/env';
 import logger from '../libs/logger';
 import Project from './models/project';
+
+const RELOAD_CRON_JOBS_THROTTLE = 3000;
 
 export const CONFIG_FOLDER = 'config';
 export const WORKING_FOLDER = 'working';
@@ -221,7 +227,7 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
 
     // 兼容旧版数据，从 main 分支复制 logo
     const logoPath = path.join(working.workingDir, LOGO_FILENAME);
-    if (!(await pathExists(logoPath))) {
+    if (!(await pathExists(logoPath)) && ref !== defaultBranch) {
       const file = await this.readBlob({ ref: defaultBranch, filepath: LOGO_FILENAME })
         .then(({ blob }) => blob)
         .catch((error) => {
@@ -246,7 +252,46 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
     ensureConfigFileExists(CRON_FILE_PATH);
     ensureConfigFileExists(VARIABLE_FILE_PATH, { variables: [] });
 
+    this.listenWorkingChanges(working);
+
     return working;
+  }
+
+  private workingObservers: { [key: string]: { unobserve: () => void } } = {};
+
+  private listenWorkingChanges(working: Working<FileTypeYjs>) {
+    // observe cronConfig file changes and reload jobs
+    const key = `${working.options.ref}-${CRON_FILE_PATH}`;
+    if (!this.workingObservers[key]) {
+      const cronConfig = working.syncedStore.files[CRON_FILE_PATH] as FileTypeYjs | undefined;
+      if (!cronConfig) return;
+
+      const file = getYjsValue(cronConfig) as Map<any>;
+
+      const reloadJobsIfNeeded = throttle(
+        async () => {
+          const files = [await this.options.stringify(CRON_FILE_PATH, cronConfig)].flat().filter(isNonNullable);
+          await Promise.all(
+            files.map(async ({ filepath, data }) => {
+              const p = join(working.workingDir, filepath);
+              await mkdir(dirname(p), { recursive: true });
+              await writeFile(p, data);
+            })
+          );
+          projectCronManager.reloadProjectJobs(this.projectId);
+        },
+        RELOAD_CRON_JOBS_THROTTLE,
+        { leading: false, trailing: true }
+      );
+      file.observeDeep(reloadJobsIfNeeded);
+
+      this.workingObservers[key] = {
+        unobserve: () => {
+          file.unobserveDeep(reloadJobsIfNeeded);
+          delete this.workingObservers[key];
+        },
+      };
+    }
   }
 
   async commitWorking({
@@ -359,9 +404,62 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
     }
   }
 
-  async readAndParseFile<T>({ ref, filepath }: { ref?: string; filepath: string }): Promise<T> {
-    const file = Buffer.from((await this.readBlob({ ref: ref || defaultBranch, filepath })).blob).toString();
-    return parse(file);
+  async readAndParseFile<T>(options: {
+    ref?: string;
+    filepath: string;
+    working?: boolean;
+    readBlobFromGitIfWorkingNotInitialized?: boolean;
+    rejectOnEmpty: true;
+  }): Promise<T>;
+  async readAndParseFile<T>(options: {
+    ref?: string;
+    filepath: string;
+    working?: boolean;
+    readBlobFromGitIfWorkingNotInitialized?: boolean;
+    rejectOnEmpty?: false;
+  }): Promise<T | undefined>;
+  async readAndParseFile<T>({
+    ref = defaultBranch,
+    filepath,
+    working,
+    // skip load working, used to optimize performance, such as initializing cron jobs
+    readBlobFromGitIfWorkingNotInitialized,
+    rejectOnEmpty,
+  }: {
+    ref?: string;
+    filepath: string;
+    working?: boolean;
+    readBlobFromGitIfWorkingNotInitialized?: boolean;
+    rejectOnEmpty?: boolean;
+  }) {
+    let file: any;
+
+    if (working) {
+      if (this.workingMap[ref] || !readBlobFromGitIfWorkingNotInitialized) {
+        const w = await this.working({ ref });
+        const f = w.syncedStore.files[filepath];
+        file = f && (fileFromYjs(f) as T);
+      } else {
+        const workingDir = this.workingDir({ ref });
+        const path = join(workingDir, filepath);
+        if (await exists(path)) {
+          const raw = (await readFile(path)).toString();
+          file = parse(raw);
+        }
+      }
+    } else {
+      const raw = await this.readBlob({ ref, filepath })
+        .then(({ blob }) => Buffer.from(blob).toString())
+        .catch((error) => {
+          if (error instanceof Errors.NotFoundError) return null;
+          throw error;
+        });
+      file = raw && parse(raw);
+    }
+
+    if (rejectOnEmpty && !file) throw new Error(`No such file ${filepath}`);
+
+    return file;
   }
 }
 

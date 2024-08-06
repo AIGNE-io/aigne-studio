@@ -94,12 +94,20 @@ export default class Repository<T> {
     return path.join(this.root, '.git');
   }
 
-  private workingMap: { [key: string]: Promise<Working<T>> } = {};
+  protected workingMap: { [key: string]: Promise<Working<T>> } = {};
+
+  workingRoot({ ref }: { ref: string }) {
+    const { base, dir } = path.parse(this.root);
+    return path.join(dir, `${base}.cooperative`, ref);
+  }
+
+  workingDir({ ref }: { ref: string }) {
+    return path.join(this.workingRoot({ ref }), 'working');
+  }
 
   async working({ ref }: { ref: string }) {
     this.workingMap[ref] ??= (async () => {
-      const { base, dir } = path.parse(this.root);
-      const workingRoot = path.join(dir, `${base}.cooperative`, ref);
+      const workingRoot = this.workingRoot({ ref });
 
       const exists = await pathExists(workingRoot);
 

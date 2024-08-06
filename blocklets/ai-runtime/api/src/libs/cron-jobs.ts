@@ -3,7 +3,7 @@ import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { CronJobManager, Job } from '@blocklet/ai-runtime/core/utils/cron-job';
 import { randomId } from '@blocklet/ai-runtime/types';
 import { runAgent } from '@blocklet/aigne-sdk/server/api/agent';
-import constants from '@blocklet/constant';
+import { BlockletStatus } from '@blocklet/constant';
 import config from '@blocklet/sdk/lib/config';
 import throttle from 'lodash/throttle';
 
@@ -21,7 +21,7 @@ class AIGNECronManager extends CronJobManager {
     this.destroyBlockletJobs(blockletDid);
 
     const blocklet = (await resourceManager.resources).agents.application?.blockletMap[blockletDid];
-    if (blocklet?.status !== constants.BlockletStatus.running) return;
+    if (blocklet?.status !== BlockletStatus.running) return;
 
     const projects = Object.values(blocklet.projectMap);
 
