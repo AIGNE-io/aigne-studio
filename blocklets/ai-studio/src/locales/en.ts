@@ -763,4 +763,5 @@ export default flat({
   cleanCache: 'Clean Cache',
   durationSeconds: '{duration}s',
   executionHistory: 'Execution History',
+  error: 'Error',
 });

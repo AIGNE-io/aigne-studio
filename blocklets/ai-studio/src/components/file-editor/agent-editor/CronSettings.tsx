@@ -365,6 +365,7 @@ function CronJobHistories({ agent, job }: { agent: AssistantYjs; job: CronJob })
             <TableRow>
               <TableCell>{t('input')}</TableCell>
               <TableCell>{t('output')}</TableCell>
+              <TableCell>{t('error')}</TableCell>
               <TableCell>{t('startTime')}</TableCell>
               <TableCell align="right">{t('duration')}</TableCell>
             </TableRow>
@@ -374,14 +375,21 @@ function CronJobHistories({ agent, job }: { agent: AssistantYjs; job: CronJob })
             {data?.list.map((item) => (
               <TableRow key={item.id} hover onClick={() => openDialog(item)} sx={{ cursor: 'pointer' }}>
                 <TableCell>
-                  <Typography noWrap maxWidth={200}>
+                  <Typography noWrap maxWidth={150}>
                     {JSON.stringify(item.inputs)}
                   </Typography>
                 </TableCell>
                 <TableCell>
-                  <Typography noWrap maxWidth={200}>
+                  <Typography noWrap maxWidth={150}>
                     {JSON.stringify(item.outputs)}
                   </Typography>
+                </TableCell>
+                <TableCell>
+                  {item.error && (
+                    <Typography noWrap maxWidth={100}>
+                      {JSON.stringify(item.error)}
+                    </Typography>
+                  )}
                 </TableCell>
                 <TableCell>
                   <RelativeTime type="absolute" value={item.startTime} locale={locale} />
@@ -395,7 +403,19 @@ function CronJobHistories({ agent, job }: { agent: AssistantYjs; job: CronJob })
         </Table>
       </TableContainer>
 
-      {loading && !data?.list.length && <CircularProgress size={24} />}
+      {loading && !data?.list.length && (
+        <Stack alignItems="center" my={4}>
+          <CircularProgress size={24} />
+        </Stack>
+      )}
+
+      {data?.count === 0 && (
+        <Stack alignItems="center" my={4}>
+          <Typography variant="caption" color="text.secondary">
+            {t('noData')}
+          </Typography>
+        </Stack>
+      )}
 
       {data && (
         <Stack alignItems="flex-end" mt={4}>
@@ -414,6 +434,13 @@ function CronJobHistories({ agent, job }: { agent: AssistantYjs; job: CronJob })
 
               <Typography variant="caption">{t('output')}</Typography>
               <MdViewer content={`${'```json'}\n${JSON.stringify(selectedHistory.outputs, null, 2)}${'\n```'}`} />
+
+              {selectedHistory.error && (
+                <>
+                  <Typography variant="caption">{t('error')}</Typography>
+                  <MdViewer content={`${'```json'}\n${JSON.stringify(selectedHistory.error, null, 2)}${'\n```'}`} />
+                </>
+              )}
             </Stack>
           )}
         </DialogContent>

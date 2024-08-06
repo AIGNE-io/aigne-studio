@@ -757,4 +757,5 @@ export default flat({
   cleanCache: '清除缓存',
   durationSeconds: '{duration}秒',
   executionHistory: '运行记录',
+  error: '错误',
 });
