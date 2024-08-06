@@ -599,6 +599,7 @@ export default flat({
   maxChatRoundLimit: 'Maximum chat turns',
   reachMaxRoundLimitTip: 'Chat end message',
   enabled: 'Enabled',
+  disabled: 'Disabled',
   enableObject: 'Enable {object}',
   pricing: 'Pricing',
   pricingUnit: 'ABT / Message',

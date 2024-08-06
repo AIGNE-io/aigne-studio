@@ -596,6 +596,7 @@ export default flat({
   maxChatRoundLimit: '最大对话次数',
   reachMaxRoundLimitTip: '对话结束提示语',
   enabled: '已启用',
+  disabled: '已禁用',
   enableObject: '启用{object}',
   pricing: '价格',
   pricingRequiredMessage: '请输入价格',

@@ -15,11 +15,9 @@ export function CacheSettingsSummary({ agent }: { agent: AssistantYjs }) {
   const { t } = useLocaleContext();
 
   return (
-    agent.cache?.enable && (
-      <Typography variant="caption" color="text.secondary">
-        {t('enabled')}
-      </Typography>
-    )
+    <Typography variant="caption" color="text.secondary">
+      {agent.cache?.enable ? t('enabled') : t('disabled')}
+    </Typography>
   );
 }
 
