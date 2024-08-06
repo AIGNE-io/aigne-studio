@@ -408,10 +408,24 @@ export function moveFile({ store, from, to }: { store: StoreContext['store']; fr
 export function deleteFile({ store, path }: { store: StoreContext['store']; path: string[] }) {
   getYjsDoc(store).transact(() => {
     const p = path.join('/');
+
     for (const [key, filepath] of Object.entries(store.tree)) {
       if (filepath === p || filepath?.startsWith(p.concat('/'))) {
         delete store.tree[key];
         delete store.files[key];
+      }
+    }
+
+    // delete cron job that agent not exists
+    const cronConfig = store.files[CRON_CONFIG_FILE_PATH] as CronFileYjs;
+    if (cronConfig.jobs?.length) {
+      for (let i = 0; i < cronConfig.jobs.length; ) {
+        const agentId = cronConfig.jobs[i]?.agentId;
+        if (!agentId || !store.files[agentId]) {
+          cronConfig.jobs.splice(i, 1);
+        } else {
+          i++;
+        }
       }
     }
 

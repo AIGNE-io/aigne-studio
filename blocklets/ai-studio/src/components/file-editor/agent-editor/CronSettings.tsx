@@ -102,7 +102,7 @@ export function CronSettings({ agent }: { agent: AssistantYjs }) {
         inputs: {},
       });
     });
-  }, []);
+  }, [agent.id]);
 
   if (!jobs?.length) {
     return (
