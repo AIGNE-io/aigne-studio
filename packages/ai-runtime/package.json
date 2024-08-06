@@ -148,7 +148,7 @@
     "nanoid": "^3.3.7",
     "node-fetch": "2",
     "react-flags-select": "^2.2.3",
-    "react-hook-form": "^7.52.1",
+    "react-hook-form": "^7.52.2",
     "recoil": "^0.7.7",
     "snowflake-uuid": "^1.0.0",
     "typescript": "^5.5.4",
@@ -167,7 +167,7 @@
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@arcblock/ux": "^2.10.12",
+    "@arcblock/ux": "^2.10.13",
     "@emotion/css": "^11.13.0",
     "@emotion/react": "^11.13.0",
     "@jest/globals": "^29.7.0",
