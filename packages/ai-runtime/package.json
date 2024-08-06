@@ -127,7 +127,7 @@
   },
   "dependencies": {
     "@blocklet/ai-builtin": "workspace:^",
-    "@blocklet/ai-kit": "^0.1.45",
+    "@blocklet/ai-kit": "^0.1.46",
     "@blocklet/dataset-sdk": "workspace:^",
     "@blocklet/logger": "^1.16.29",
     "@blocklet/sdk": "^1.16.29",
