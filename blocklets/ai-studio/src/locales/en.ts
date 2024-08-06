@@ -761,4 +761,6 @@ export default flat({
   emptyObjectTip: 'No {object} yet.',
   new: 'New',
   cleanCache: 'Clean Cache',
+  durationSeconds: '{duration}s',
+  executionHistory: 'Execution History',
 });

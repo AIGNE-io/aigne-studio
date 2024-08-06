@@ -755,4 +755,6 @@ export default flat({
   emptyObjectTip: '暂无{object}',
   new: '新建',
   cleanCache: '清除缓存',
+  durationSeconds: '{duration}秒',
+  executionHistory: '运行记录',
 });
