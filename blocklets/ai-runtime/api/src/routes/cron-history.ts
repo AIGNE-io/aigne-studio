@@ -12,8 +12,9 @@ const createCronHistoryInputSchema = Joi.object<{
   projectRef?: string;
   agentId: string;
   cronJobId: string;
-  inputs: { [key: string]: any };
-  outputs: { [key: string]: any };
+  inputs?: { [key: string]: any };
+  outputs?: { [key: string]: any };
+  error?: { message: string };
   startTime: Date;
   endTime: Date;
 }>({
@@ -21,8 +22,9 @@ const createCronHistoryInputSchema = Joi.object<{
   projectRef: Joi.string().empty(['', null]),
   agentId: Joi.string().required(),
   cronJobId: Joi.string().required(),
-  inputs: Joi.object().pattern(Joi.string(), Joi.any()).required(),
-  outputs: Joi.object().pattern(Joi.string(), Joi.any()).required(),
+  inputs: Joi.object(),
+  outputs: Joi.object(),
+  error: Joi.object(),
   startTime: Joi.date().required(),
   endTime: Joi.date().required(),
 });
