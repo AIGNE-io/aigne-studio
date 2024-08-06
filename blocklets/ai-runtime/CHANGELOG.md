@@ -1,3 +1,7 @@
+## 0.4.21 (2024-8-6)
+
+- chore: disable auto start cron jobs
+
 ## 0.4.20 (2024-8-6)
 
 - chore: add cron job execution history support
