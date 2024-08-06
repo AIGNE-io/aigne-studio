@@ -292,7 +292,7 @@ function AgentInputsForm({
   onChange: (update: (value: { [key: string]: any }) => void) => void;
 }) {
   const { projectId, projectRef } = useCurrentProject();
-  const parameters = sortBy(Object.values(agent.parameters || {}), (i) => i.index);
+  const parameters = sortBy(Object.values(agent.parameters || {}), (i) => i.index).filter((i) => !i.data.hidden);
 
   return (
     <Box>

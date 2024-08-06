@@ -741,6 +741,8 @@ export default flat({
   hideOutputSetting: '隐藏当前输出设置',
   activeOutputTip: '激活输出',
   hideOutputTip: '隐藏输出',
+  activeParameterTip: '激活输入',
+  hideParameterTip: '隐藏参数',
   callAgent: '调用 Agent',
   referenceOutput: '引用 {agent} 输出',
   ref: '引用',

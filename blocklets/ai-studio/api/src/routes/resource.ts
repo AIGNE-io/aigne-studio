@@ -356,6 +356,10 @@ function getAssistantDependentComponents(assistant: Assistant | Assistant[]) {
       [assistant].flat().flatMap((assistant) => {
         if (!assistant.parameters) return [];
         const inputDeps = Object.values(assistant.parameters).flatMap((i) => {
+          if (i.hidden) {
+            return [];
+          }
+
           if (i.type === 'source' && i.source?.variableFrom === 'tool') {
             const did = i.source.agent?.blockletDid;
             return did ? [did] : [];

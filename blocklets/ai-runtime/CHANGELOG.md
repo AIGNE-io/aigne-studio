@@ -1,3 +1,11 @@
+## 0.4.19 (2024-8-5)
+
+- fix: add hidden input parameter button
+
+## 0.4.18 (2024-8-2)
+
+- chore: remove unnecessary uploading dialog from project icon field
+
 ## 0.4.17 (2024-8-2)
 
 - fix: In multi-tenant mode, copied projects on the projects page have the same name #1262

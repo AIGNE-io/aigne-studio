@@ -120,6 +120,8 @@ function AgentParametersForm({ assistant }: { assistant: AssistantYjs }) {
 
         <Stack gap={1}>
           {agent.parameters?.map((data) => {
+            if (data.hidden) return null;
+
             if (
               !data?.key ||
               data.type === 'source' ||
