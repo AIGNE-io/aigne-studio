@@ -1,3 +1,7 @@
+## 0.4.22 (2024-8-6)
+
+- fix: auto start cron jobs for all projects
+
 ## 0.4.21 (2024-8-6)
 
 - chore: disable auto start cron jobs
