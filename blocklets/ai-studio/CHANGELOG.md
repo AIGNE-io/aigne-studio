@@ -1,3 +1,8 @@
+## 0.4.20 (2024-8-6)
+
+- chore: add cron job execution history support
+- feat: support clear cache manual
+
 ## 0.4.19 (2024-8-5)
 
 - fix: add hidden input parameter button

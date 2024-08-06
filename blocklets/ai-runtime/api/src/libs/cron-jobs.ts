@@ -1,3 +1,4 @@
+import CronHistory from '@api/store/models/cron-history';
 import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { CronJobManager, Job } from '@blocklet/ai-runtime/core/utils/cron-job';
 import { randomId } from '@blocklet/ai-runtime/types';
@@ -38,20 +39,39 @@ class AIGNECronManager extends CronJobManager {
         id: job.id,
         cronTime: job.cronExpression,
         onTick: async () => {
-          try {
-            logger.info('run agent cron job start', { projectId: blockletDid, job });
-            const result = await runAgent({
-              // TODO: currently use application did as user did, should be replaced with real user did
-              user: { did: blockletDid },
-              blockletDid,
-              aid: stringifyIdentity({ projectId: job.projectId, agentId: job.agentId }),
-              sessionId: randomId(),
-              inputs: job.inputs,
+          const startTime = new Date();
+
+          logger.info('run agent cron job start', { projectId: blockletDid, job });
+          const { outputs, error } = await runAgent({
+            // TODO: currently use application did as user did, should be replaced with real user did
+            user: { did: blockletDid },
+            blockletDid,
+            aid: stringifyIdentity({ projectId: job.projectId, agentId: job.agentId }),
+            sessionId: randomId(),
+            inputs: job.inputs,
+          })
+            .then((outputs) => {
+              logger.info('run agent cron job success', { blockletDid, job, outputs });
+              return { outputs, error: undefined };
+            })
+            .catch((error) => {
+              logger.error('run agent cron job error', { blockletDid, job, error });
+              return { outputs: undefined, error };
             });
-            logger.info('run agent cron job success', { blockletDid, job, result });
-          } catch (error) {
-            logger.error('run agent cron job error', { blockletDid, job, error });
-          }
+
+          await CronHistory.create({
+            startTime,
+            endTime: new Date(),
+            blockletDid,
+            projectId: job.projectId,
+            agentId: job.agentId,
+            cronJobId: job.id,
+            inputs: job.inputs,
+            outputs,
+            error: error && { message: error.message },
+          }).catch((error) => {
+            logger.error('failed to create cron history', { blockletDid, job, error });
+          });
         },
       }));
 
