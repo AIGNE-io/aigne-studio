@@ -91,6 +91,7 @@ export default function PromptEditorField({
       number: t('multiline'),
       select: t('select'),
       language: t('language'),
+      boolean: t('boolean'),
       source: t('source'),
       llmInputMessages: t('llmInputMessages'),
       llmInputTools: t('llmInputTools'),

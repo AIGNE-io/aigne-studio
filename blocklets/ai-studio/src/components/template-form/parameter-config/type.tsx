@@ -1,5 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Icon } from '@iconify-icon/react';
+import SwitchIcon from '@iconify-icons/material-symbols/switches';
 import CursorTextIcon from '@iconify-icons/tabler/cursor-text';
 import DirectionsIcon from '@iconify-icons/tabler/directions';
 import HierarchyIcon from '@iconify-icons/tabler/hierarchy';
@@ -30,6 +31,11 @@ export default function ParameterConfigType(props: TextFieldProps) {
         icon: <Icon icon={SquareNumberIcon} />,
         label: t('number'),
         value: 'number',
+      },
+      {
+        icon: <Icon icon={SwitchIcon} />,
+        label: t('boolean'),
+        value: 'boolean',
       },
       {
         icon: <Icon icon={ListCheckIcon} />,

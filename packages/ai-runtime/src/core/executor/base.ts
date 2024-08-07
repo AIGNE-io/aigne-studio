@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 import { hash } from 'crypto';
 
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
@@ -273,7 +274,7 @@ export abstract class AgentExecutorBase {
           .map(async (i) => {
             if (typeof inputs?.[i.key!] === 'string') {
               const template = String(inputs?.[i.key!] || '').trim();
-              return [i.key, template ? await renderMessage(template, variables) : inputs?.[i.key!]];
+              return [i.key, template ? await renderMessage(template, variables, false) : inputs?.[i.key!]];
             }
 
             return [i.key, variables?.[i.key!] || inputs?.[i.key!]];
@@ -306,7 +307,9 @@ export abstract class AgentExecutorBase {
 
     const parameters = (agent.parameters || []).filter((i) => !i.hidden);
     for (const parameter of parameters) {
-      if (parameter.key && parameter.type === 'source') {
+      if (!parameter.key) continue;
+
+      if (parameter.type === 'source') {
         if (!agent.project) {
           throw new Error('Agent project not found.');
         }
@@ -342,7 +345,7 @@ export abstract class AgentExecutorBase {
 
           const result = await this.context.executor(this.context).execute(toolAgent, {
             inputs: tool.parameters,
-            variables: inputParameters,
+            variables: { ...inputParameters, ...inputVariables },
             taskId: currentTaskId,
             parentTaskId: taskId,
           });
@@ -469,9 +472,7 @@ export abstract class AgentExecutorBase {
 
           inputVariables[parameter.key] = result;
         }
-      }
-
-      if (parameter.key && ['llmInputMessages', 'llmInputTools', 'llmInputToolChoice'].includes(parameter.type!)) {
+      } else if (['llmInputMessages', 'llmInputTools', 'llmInputToolChoice'].includes(parameter.type!)) {
         const v = inputs?.[parameter.key];
         const tryParse = (s: string) => {
           try {
@@ -532,6 +533,12 @@ export abstract class AgentExecutorBase {
                 : undefined;
 
         inputVariables[parameter.key] = val;
+      } else if (parameter.type === 'boolean') {
+        inputVariables[parameter.key] = Boolean(inputVariables[parameter.key] || parameter.defaultValue);
+      } else if (parameter.type === 'number') {
+        inputVariables[parameter.key] = Number(inputVariables[parameter.key] || parameter.defaultValue);
+      } else {
+        inputVariables[parameter.key] ??= parameter.defaultValue;
       }
     }
 
