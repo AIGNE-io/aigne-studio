@@ -22,6 +22,7 @@ import logger from './libs/logger';
 import { resourceManager } from './libs/resource';
 import { ensurePromptsEditor } from './libs/security';
 import routes from './routes';
+import { getOpenEmbed } from './routes/open-embed';
 import { wss } from './routes/ws';
 
 export const app = express();
@@ -48,6 +49,8 @@ app.use(cookieParser());
 app.use(express.json({ limit: '1 mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1 mb' }));
 app.use(cors());
+
+app.get('/.well-known/blocklet/openembed', getOpenEmbed);
 
 app.use('/api', routes);
 

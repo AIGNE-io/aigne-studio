@@ -44,3 +44,6 @@ blocklets/ai-studio/.env.development
 .blocklet-server/
 .blocklet-tests/
 .playwright/
+
+
+**/public/assets/open-embed/
