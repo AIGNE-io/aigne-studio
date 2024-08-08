@@ -1,4 +1,3 @@
-/* eslint-disable no-await-in-loop */
 import { hash } from 'crypto';
 
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
@@ -100,7 +99,15 @@ export class ExecutorContext {
 
   entryProjectId: string;
 
-  user: { id: string; did: string };
+  user: {
+    id: string;
+    did: string;
+    role?: string;
+    fullName?: string;
+    provider?: string;
+    walletOS?: string;
+    isAdmin?: boolean;
+  };
 
   getMemoryVariables: (options: {
     blockletDid?: string;
@@ -274,7 +281,10 @@ export abstract class AgentExecutorBase {
           .map(async (i) => {
             if (typeof inputs?.[i.key!] === 'string') {
               const template = String(inputs?.[i.key!] || '').trim();
-              return [i.key, template ? await renderMessage(template, variables, false) : inputs?.[i.key!]];
+              return [
+                i.key,
+                template ? await renderMessage(template, variables, { stringify: false }) : inputs?.[i.key!],
+              ];
             }
 
             return [i.key, variables?.[i.key!] || inputs?.[i.key!]];

@@ -2,8 +2,8 @@ import { get } from 'lodash';
 
 import { Mustache } from '../../types/assistant';
 
-const isBracketStartAndEnd = (text: string) => {
-  const pattern = /^\{\{(.*)\}\}$/;
+const onlyOneVariable = (text: string) => {
+  const pattern = /^\{\{\s*(.*?)\s*\}\}$/;
   const match = text.match(pattern);
   return !!match;
 };
@@ -12,11 +12,15 @@ const isBracketStartAndEnd = (text: string) => {
 // Input
 // process
 // ReadableStream => 需要使用到 .slice(1, -1), 我看只有这一个地方使用到了, 是否需要将 slice 的逻辑提取到业务中?
-export async function renderMessage(message: string, parameters?: { [key: string]: any }, stringify = true) {
+export async function renderMessage(
+  message: string,
+  parameters?: { [key: string]: any },
+  options: { stringify: boolean } = { stringify: true }
+) {
   const fn = async () => {
     const spans = Mustache.parse(message);
-    if (spans.length === 1 && isBracketStartAndEnd(message.trim())) {
-      const span = spans[0]?.[1];
+    if (spans.length === 1 && onlyOneVariable(message.trim())) {
+      const span = (spans[0]?.[1] || '').trim();
       if (span) return get(parameters, span);
     }
 
@@ -29,5 +33,5 @@ export async function renderMessage(message: string, parameters?: { [key: string
   };
 
   const result = await fn();
-  return stringify ? (typeof result === 'object' ? JSON.stringify(result) : result) : result;
+  return options?.stringify ? (typeof result === 'object' ? JSON.stringify(result) : result) : result;
 }

@@ -48,7 +48,7 @@ export class LogicAgentExecutor extends AgentExecutorBase {
     );
 
     const getUserHeader = () => {
-      const user = this.context.user as any;
+      const { user } = this.context;
       return {
         'x-user-did': user?.did,
         'x-user-role': user?.role,
