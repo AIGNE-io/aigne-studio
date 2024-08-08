@@ -41,7 +41,7 @@ async function paginateAndInsert({
     };
 
     if (cursor) {
-      queryOptions.where.id = { [Op.lt]: cursor };
+      queryOptions.where.id = { [Op.gt]: cursor };
     }
 
     const list = await findDB(queryOptions);
