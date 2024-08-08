@@ -12,8 +12,8 @@ import { Op, Sequelize } from 'sequelize';
 
 import { AIKitEmbeddings } from '../../core/embeddings/ai-kit';
 import { Config } from '../../libs/env';
-import nextId from '../../libs/get-id';
 import logger from '../../libs/logger';
+import nextId from '../../libs/next-id';
 import { userAuth } from '../../libs/security';
 import DatasetContent from '../../store/models/dataset/content';
 import Dataset from '../../store/models/dataset/dataset';

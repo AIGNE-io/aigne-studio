@@ -1,6 +1,6 @@
 import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
 
-import nextId from '../../libs/get-id';
+import nextId from '../../libs/next-id';
 import { sequelize } from '../sequelize';
 
 export default class History extends Model<InferAttributes<History>, InferCreationAttributes<History>> {

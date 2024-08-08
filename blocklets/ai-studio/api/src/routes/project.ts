@@ -1181,7 +1181,7 @@ async function copyKnowledge({
   currentProjectId: string;
   user: any;
 }) {
-  const { data: projectIdMap } = await call({
+  const { data } = await call({
     name: AIGNE_RUNTIME_COMPONENT_DID,
     path: '/api/datasets',
     method: 'POST',
@@ -1194,6 +1194,12 @@ async function copyKnowledge({
       'x-user-wallet-os': user?.walletOS,
     },
   });
+
+  const projectIdMap = Object.fromEntries(
+    (data.copied || []).map((item: { from: { id: string }; to: { id: string } }) => {
+      return [item.from.id, item.to.id];
+    })
+  );
 
   const repository = await getRepository({ projectId: currentProjectId });
   const working = await repository.working({ ref: defaultBranch });

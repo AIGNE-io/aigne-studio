@@ -178,21 +178,23 @@ router.post('/', user(), userAuth(), async (req, res) => {
   } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
 
   if (appId && copyFromProjectId) {
-    const datasets = await Dataset.findAll({ where: { appId: copyFromProjectId } });
+    const knowledge = await Dataset.findAll({ where: { appId: copyFromProjectId } });
 
     const map: { [oldKnowledgeBaseId: string]: string } = {};
 
-    for (const dataset of datasets) {
-      const newKnowledgeBaseId = await copyKnowledgeBase({
-        oldKnowledgeBaseId: dataset.id,
+    for (const item of knowledge) {
+      // eslint-disable-next-line no-await-in-loop
+      const newKnowledgeId = await copyKnowledgeBase({
+        oldKnowledgeBaseId: item.id,
         oldProjectId: copyFromProjectId,
         newProjectId: appId,
       });
 
-      map[dataset.id] = newKnowledgeBaseId;
+      map[item.id] = newKnowledgeId;
     }
 
-    return res.json(map);
+    const copied = Object.entries(map).map(([from, to]) => ({ from: { id: from }, to: { id: to } }));
+    return res.json({ copied });
   }
 
   const dataset = await Dataset.create({ name, description, appId, createdBy: did, updatedBy: did });
