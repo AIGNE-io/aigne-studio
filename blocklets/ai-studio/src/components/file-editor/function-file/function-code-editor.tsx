@@ -1,9 +1,8 @@
 import { FunctionAssistantYjs } from '@blocklet/ai-runtime/types';
+import { CodeEditor } from '@blocklet/code-editor';
 import { Box, Stack } from '@mui/material';
 import { useEffect } from 'react';
 import { useAssistantCompare } from 'src/pages/project/state';
-
-import CodeEditor from '../../template-form/code-editor';
 
 export default function FunctionCodeEditor({
   value,
