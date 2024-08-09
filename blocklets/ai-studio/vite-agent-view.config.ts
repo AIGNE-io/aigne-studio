@@ -27,15 +27,18 @@ export default defineConfig({
     // 不要清除输出目录，里面会包含其它的 embeds
     emptyOutDir: false,
     lib: {
-      entry: resolve(__dirname, 'src/open-embed/agent-view.tsx'),
+      entry: {
+        'agent-view': resolve(__dirname, 'src/open-embed/agent-view.tsx'),
+        'agent-call': resolve(__dirname, 'src/open-embed/agent-call.ts'),
+      },
       formats: ['es'],
-      fileName: 'agent-view',
+      fileName: '[name]',
     },
     rollupOptions: {
       external: ['react'],
       output: {
         dir: 'public/assets/open-embed',
-        inlineDynamicImports: true,
+        // inlineDynamicImports: true,
       },
     },
   },

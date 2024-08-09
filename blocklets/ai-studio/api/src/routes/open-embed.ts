@@ -1,25 +1,39 @@
 import Project from '@api/store/models/project';
-import { defaultBranch, getAssistantsOfRepository } from '@api/store/repository';
+import { PROJECT_FILE_PATH, ProjectRepo, defaultBranch, getAssistantsOfRepository } from '@api/store/repository';
 import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
+import { ProjectSettings, RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
+import { getAgentProfile } from '@blocklet/aigne-sdk/utils/agent';
 import { Request, Response } from 'express';
 import { withQuery } from 'ufo';
 
 export async function getOpenEmbed(_: Request, res: Response) {
   const projects = await Project.findAll({});
 
+  // FIXME: @yechao 在发布前需要处理查询全部项目的问题， aigne.io 中有大量项目，不应该查询全部
   const agents = (
     await Promise.all(
-      projects.map(async (project) => {
-        const projectRef = project.gitDefaultBranch || defaultBranch;
+      projects.map(async (p) => {
+        const projectRef = p.gitDefaultBranch || defaultBranch;
+
+        const repository = await ProjectRepo.load({ projectId: p.id });
+
+        const project = await repository.readAndParseFile<ProjectSettings>({
+          filepath: PROJECT_FILE_PATH,
+          rejectOnEmpty: true,
+          working: true,
+        });
 
         const agents = await getAssistantsOfRepository({
-          projectId: project.id,
+          projectId: p.id,
           ref: projectRef,
           working: true,
         });
 
-        return agents.map((i) => ({ ...i, project }));
+        return agents.map((i) => ({
+          ...i,
+          project,
+        }));
       })
     )
   ).flat();
@@ -58,29 +72,33 @@ export async function getOpenEmbed(_: Request, res: Response) {
             };
           })
           .filter(isNonNullable);
-        // @FIXME: 优化这里的判断逻辑
-        const isApiCall = !parameters?.some((x) => x.name !== 'question') && agent.name !== 'Summarizer2';
+        // API 类型仅支持只有 question 输入和 text 输出的 agent
+        const isApiCall =
+          !parameters?.some((x) => x.name !== 'question') &&
+          agent.outputVariables?.length === 1 &&
+          agent.outputVariables.every((i) => i.name === RuntimeOutputVariable.text);
 
-        const scriptPath = isApiCall ? '/assets/open-embed/api-call.mjs' : '/assets/open-embed/agent-view.mjs';
+        const scriptPath = isApiCall ? '/assets/open-embed/agent-call.mjs' : '/assets/open-embed/agent-view.mjs';
 
-        // api
-        // 输入只有一个参数
-        // 输出只有一个参数
+        const aid = stringifyIdentity({
+          projectId: agent.project.id,
+          agentId: agent.id,
+        });
 
         return [
           withQuery(scriptPath, {
-            aid: stringifyIdentity({
-              projectId: agent.project.id,
-              agentId: agent.id,
-            }),
+            aid,
           }),
           {
             type: isApiCall ? 'function' : 'react',
             name: agent.name || 'Unnamed',
             description: agent.description,
             parameters,
-            // FIXME: 增加 icon 字段
-            // icon: agent.icon,
+            icon: getAgentProfile({
+              ...agent,
+              identity: { projectId: agent.project.id, agentId: agent.id, aid },
+              project: agent.project,
+            }).icon,
           },
         ];
       })
