@@ -46,4 +46,8 @@ blocklets/ai-studio/.env.development
 .playwright/
 
 
-**/public/assets/open-embed/
+**/public/assets/open-embed/*.mjs
+**/public/assets/open-embed/*.js
+**/public/assets/open-embed/*.cjs
+**/public/assets/open-embed/*.css
+!/blocklets/ai-studio/public/assets/open-embed/api-call.mjs

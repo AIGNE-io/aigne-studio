@@ -24,6 +24,8 @@ export default defineConfig({
     }),
   ],
   build: {
+    // 不要清除输出目录，里面会包含其它的 embeds
+    emptyOutDir: false,
     lib: {
       entry: resolve(__dirname, 'src/open-embed/agent-view.tsx'),
       formats: ['es'],

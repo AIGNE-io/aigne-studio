@@ -24,6 +24,9 @@ export async function getOpenEmbed(_: Request, res: Response) {
     )
   ).flat();
 
+  // NOTICE: 这个是必须设置的
+  res.header('x-blocklet-openembed', '0.1.0');
+
   res.json({
     openembed: '0.1.0',
     info: {
@@ -33,36 +36,51 @@ export async function getOpenEmbed(_: Request, res: Response) {
     },
     embeds: Object.fromEntries(
       agents.map((agent) => {
+        const parameters = agent.parameters
+          ?.map((i) => {
+            const type = !i.type
+              ? 'string'
+              : (<{ [key: string]: string }>{
+                  string: 'string',
+                  number: 'number',
+                  select: 'string',
+                  language: 'string',
+                })[i.type];
+            if (!type) return null;
+
+            return {
+              name: i.key || i.id,
+              description: i.placeholder || i.helper,
+              required: i.required,
+              schema: {
+                type,
+              },
+            };
+          })
+          .filter(isNonNullable);
+        // @FIXME: 优化这里的判断逻辑
+        const isApiCall = !parameters?.some((x) => x.name !== 'question') && agent.name !== 'Summarizer2';
+
+        const scriptPath = isApiCall ? '/assets/open-embed/api-call.mjs' : '/assets/open-embed/agent-view.mjs';
+
+        // api
+        // 输入只有一个参数
+        // 输出只有一个参数
+
         return [
-          withQuery('/assets/open-embed/agent-view.mjs', {
-            aid: stringifyIdentity({ projectId: agent.project.id, agentId: agent.id }),
+          withQuery(scriptPath, {
+            aid: stringifyIdentity({
+              projectId: agent.project.id,
+              agentId: agent.id,
+            }),
           }),
           {
-            type: 'react',
+            type: isApiCall ? 'function' : 'react',
             name: agent.name || 'Unnamed',
             description: agent.description,
-            parameters: agent.parameters
-              ?.map((i) => {
-                const type = !i.type
-                  ? 'string'
-                  : (<{ [key: string]: string }>{
-                      string: 'string',
-                      number: 'number',
-                      select: 'string',
-                      language: 'string',
-                    })[i.type];
-                if (!type) return null;
-
-                return {
-                  name: i.key || i.id,
-                  description: i.placeholder || i.helper,
-                  required: i.required,
-                  schema: {
-                    type,
-                  },
-                };
-              })
-              .filter(isNonNullable),
+            parameters,
+            // FIXME: 增加 icon 字段
+            // icon: agent.icon,
           },
         ];
       })
