@@ -1,7 +1,7 @@
 /* eslint-disable no-await-in-loop */
 import { copyRecursive } from '@blocklet/ai-runtime/utils/fs';
 import { exists, mkdir } from 'fs-extra';
-import { Op } from 'sequelize';
+import { CreationAttributes, Model, Op } from 'sequelize';
 
 import KnowledgeContents from '../store/models/dataset/content';
 import Knowledge from '../store/models/dataset/dataset';
@@ -11,32 +11,23 @@ import KnowledgeSegments from '../store/models/dataset/segment';
 import { vectorStorePath } from '../store/vector-store-faiss';
 import nextId from './next-id';
 
-async function paginateAndInsert({
-  findDB,
-  insetDB,
+async function paginateAndInsert<M extends Model>({
+  findAll,
+  bulkCreate,
   pageSize = 100,
   initialCursor = '',
 }: {
-  findDB: (data: {
-    limit: number;
-    order: [string, string][];
-    where: Record<string, any>;
-  }) => Promise<({ id: string } & { [key: string]: any })[]>;
-  insetDB: (data: any[]) => Promise<any>;
+  findAll: (options: { limit: number; order: [string, string][]; where: Record<string, any> }) => Promise<M[]>;
+  bulkCreate: (records: CreationAttributes<M>[]) => Promise<any>;
   pageSize?: number;
   initialCursor?: string;
 }) {
   let cursor = initialCursor;
-  let hasMore = true;
 
-  while (hasMore) {
-    const queryOptions: {
-      limit: number;
-      order: [string, string][];
-      where: Record<string, any>;
-    } = {
+  while (true) {
+    const queryOptions: { limit: number; order: [string, string][]; where: Record<string, any> } = {
       limit: pageSize,
-      order: [['createdAt', 'ASC']],
+      order: [['id', 'ASC']],
       where: {},
     };
 
@@ -44,13 +35,13 @@ async function paginateAndInsert({
       queryOptions.where.id = { [Op.gt]: cursor };
     }
 
-    const list = await findDB(queryOptions);
+    const list = await findAll(queryOptions);
 
     if (list.length > 0) {
-      await insetDB(list.map((item) => item.dataValues));
-      cursor = list[list.length - 1]?.id || '';
+      await bulkCreate(list.map((item) => item.dataValues));
+      cursor = list[list.length - 1]?.dataValues?.id || '';
     } else {
-      hasMore = false;
+      break;
     }
   }
 }
@@ -87,34 +78,32 @@ async function importKnowledgeData(
   await Knowledge.create({ ...fromKnowledge, id: newKnowledgeId, appId: newProjectId });
 
   // 从旧知识库复制文档
-  const documents = await KnowledgeDocuments.findAll({ where: { datasetId: oldKnowledgeId } });
-  const map = Object.fromEntries(documents.map((doc) => [doc.id, nextId()]));
-  const ids = documents.map((doc) => doc.id);
+  const map: { [oldDocumentId: string]: string } = {};
 
-  if (documents.length) {
-    await paginateAndInsert({
-      findDB: (data) => {
-        data.where.datasetId = oldKnowledgeId;
-        return KnowledgeDocuments.findAll(data);
-      },
-      insetDB: (list) => {
-        const format = list.map((dataValues) => ({
-          ...dataValues,
-          datasetId: newKnowledgeId,
-          id: map[dataValues.id]! || nextId(),
-        }));
-        return KnowledgeDocuments.bulkCreate(format);
-      },
-    });
-  }
+  await paginateAndInsert({
+    findAll: (data) => {
+      data.where.datasetId = oldKnowledgeId;
+      return KnowledgeDocuments.findAll(data);
+    },
+    bulkCreate: (list) => {
+      const format = list.map((dataValues) => {
+        map[dataValues.id!] = nextId();
+
+        return { ...dataValues, datasetId: newKnowledgeId, id: map[dataValues.id!] || nextId() };
+      });
+      return KnowledgeDocuments.bulkCreate(format);
+    },
+  });
+
+  const ids = Object.keys(map);
 
   // 从旧知识库复制段落
   await paginateAndInsert({
-    findDB: (data) => {
+    findAll: (data) => {
       data.where.documentId = { [Op.in]: ids };
       return KnowledgeSegments.findAll(data);
     },
-    insetDB: (list) => {
+    bulkCreate: (list) => {
       const format = list.map((dataValues) => ({
         ...dataValues,
         documentId: map[dataValues.documentId]! || nextId(),
@@ -126,11 +115,11 @@ async function importKnowledgeData(
 
   // 从旧知识库复制内容
   await paginateAndInsert({
-    findDB: (data) => {
+    findAll: (data) => {
       data.where.documentId = { [Op.in]: ids };
       return KnowledgeContents.findAll(data);
     },
-    insetDB: (list) => {
+    bulkCreate: (list) => {
       const format = list.map((dataValues) => ({
         ...dataValues,
         documentId: map[dataValues.documentId]! || nextId(),
@@ -142,12 +131,12 @@ async function importKnowledgeData(
 
   // 从旧知识库复制历史记录
   await paginateAndInsert({
-    findDB: (data) => {
+    findAll: (data) => {
       data.where.datasetId = oldKnowledgeId;
       data.where.documentId = { [Op.in]: ids };
       return KnowledgeEmbeddingHistory.findAll(data);
     },
-    insetDB: (list) => {
+    bulkCreate: (list) => {
       const format = list.map((dataValues) => ({
         ...dataValues,
         datasetId: newKnowledgeId,

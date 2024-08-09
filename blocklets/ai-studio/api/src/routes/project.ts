@@ -1125,7 +1125,7 @@ async function copyProject({
   ...patch
 }: {
   project: Project;
-  author: { fullName: string; did: string };
+  author: { did: string; role: string; fullName: string; provider: string; walletOS: string; isAdmin: boolean };
 } & Partial<Project['dataValues']>) {
   const srcRepo = await getRepository({ projectId: original.id! });
   const srcWorking = await srcRepo.working({ ref: original.gitDefaultBranch || defaultBranch });
@@ -1179,7 +1179,7 @@ async function copyKnowledge({
 }: {
   originProjectId: string;
   currentProjectId: string;
-  user: any;
+  user: { did: string; role: string; fullName: string; provider: string; walletOS: string; isAdmin: boolean };
 }) {
   const { data } = await call({
     name: AIGNE_RUNTIME_COMPONENT_DID,

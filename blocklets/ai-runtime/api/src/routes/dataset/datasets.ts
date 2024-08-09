@@ -183,7 +183,6 @@ router.post('/', user(), userAuth(), async (req, res) => {
     const map: { [oldKnowledgeBaseId: string]: string } = {};
 
     for (const item of knowledge) {
-      // eslint-disable-next-line no-await-in-loop
       const newKnowledgeId = await copyKnowledgeBase({
         oldKnowledgeBaseId: item.id,
         oldProjectId: copyFromProjectId,
