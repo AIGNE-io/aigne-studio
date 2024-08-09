@@ -762,9 +762,9 @@ export default flat({
   executionHistory: '运行记录',
   error: '错误',
   socket: {
-    connecting: 'Socket 连接中',
-    connected: 'Socket 已连接',
-    closed: 'Socket 已关闭',
-    closing: 'Socket 关闭中',
+    connecting: '连接中',
+    connected: '已连接',
+    closed: '已关闭',
+    closing: '关闭中',
   },
 });

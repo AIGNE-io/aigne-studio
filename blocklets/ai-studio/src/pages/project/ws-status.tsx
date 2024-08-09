@@ -1,8 +1,11 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { Box, Tooltip, styled } from '@mui/material';
+import { Icon } from '@iconify-icon/react';
+import Wifi from '@iconify-icons/tabler/wifi';
+import WifiOff from '@iconify-icons/tabler/wifi-off';
+import { Box, Tooltip } from '@mui/material';
 import { useMemo } from 'react';
 
-import { useProjectStore } from './yjs-state';
+import { useProjectStore, useWebSocketStatus } from './yjs-state';
 
 type StatusType = 'CONNECTING' | 'OPEN' | 'CLOSING' | 'CLOSED';
 
@@ -14,11 +17,14 @@ type ColorMap = {
 };
 
 function WsStatus({ projectId, gitRef }: { projectId: string; gitRef: string }) {
-  const { synced, status } = useProjectStore(projectId, gitRef, true);
+  const { synced } = useProjectStore(projectId, gitRef, true);
+  const status = useWebSocketStatus(projectId, gitRef);
   const { t } = useLocaleContext();
 
   const currentStatus: StatusType = useMemo(() => {
     if (!synced) {
+      if (status === 'CLOSED') return 'CLOSED';
+
       return 'CONNECTING';
     }
 
@@ -59,35 +65,18 @@ function WsStatus({ projectId, gitRef }: { projectId: string; gitRef: string }) 
     return map[currentStatus];
   }, [currentStatus, t]);
 
-  return (
-    <Tooltip title={text}>
-      <Status sx={{ backgroundColor: color?.backgroundColor }} />
-    </Tooltip>
-  );
+  const icon = useMemo(() => {
+    const map = {
+      CONNECTING: Wifi,
+      OPEN: Wifi,
+      CLOSED: WifiOff,
+      CLOSING: WifiOff,
+    };
+
+    return <Box component={Icon} icon={map[currentStatus]} sx={{ color: color.backgroundColor, fontSize: 24 }} />;
+  }, [color, currentStatus]);
+
+  return <Tooltip title={text}>{icon}</Tooltip>;
 }
-
-const Status = styled(Box)`
-  width: 8px;
-  height: 8px;
-  border-radius: 100%;
-  position: relative;
-  cursor: pointer;
-
-  &.loading {
-    animation: ball-scale infinite linear 2s;
-  }
-
-  @keyframes ball-scale {
-    0% {
-      transform: scale(0.1);
-      opacity: 1;
-    }
-
-    100% {
-      transform: scale(1.1);
-      opacity: 0;
-    }
-  }
-`;
 
 export default WsStatus;

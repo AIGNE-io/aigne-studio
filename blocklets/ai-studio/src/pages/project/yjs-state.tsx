@@ -115,8 +115,9 @@ const projectStore = (projectId: string, gitRef: string) => {
   return stores[key]!;
 };
 
-const useWebSocketStatus = (projectId: string, gitRef: string, provider: WebsocketProvider) => {
+export const useWebSocketStatus = (projectId: string, gitRef: string) => {
   const [status, setStatus] = useState<'CONNECTING' | 'OPEN' | 'CLOSING' | 'CLOSED'>('CONNECTING');
+  const { provider } = useProjectStore(projectId, gitRef, true);
 
   useEffect(() => {
     if (!provider) return undefined;
@@ -159,7 +160,6 @@ const useWebSocketStatus = (projectId: string, gitRef: string, provider: Websock
 
 export const useProjectStore = (projectId: string, gitRef: string, connect?: boolean) => {
   const [store, setStore] = useRecoilState(projectStore(projectId, gitRef));
-  const status = useWebSocketStatus(projectId, gitRef, store.provider);
 
   useEffect(() => {
     if (!connect) return undefined;
@@ -232,7 +232,6 @@ export const useProjectStore = (projectId: string, gitRef: string, connect?: boo
 
   return {
     ...store,
-    status,
     store: syncedStore,
     config,
     cronConfig,

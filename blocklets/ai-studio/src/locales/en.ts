@@ -768,9 +768,9 @@ export default flat({
   executionHistory: 'Execution History',
   error: 'Error',
   socket: {
-    connecting: 'Socket connecting',
-    connected: 'Socket connected',
-    closed: 'Socket closed',
-    closing: 'Socket closing',
+    connecting: 'Connecting',
+    connected: 'Online',
+    closed: 'Offline',
+    closing: 'Closing',
   },
 });
