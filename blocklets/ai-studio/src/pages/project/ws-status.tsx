@@ -35,7 +35,7 @@ function WsStatus({ projectId, gitRef }: { projectId: string; gitRef: string }) 
     const map: ColorMap = {
       CONNECTING: {
         color: '#fff',
-        backgroundColor: 'warning.light',
+        backgroundColor: 'grey.500',
       },
       OPEN: {
         color: '#fff',
