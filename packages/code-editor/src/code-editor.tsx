@@ -76,34 +76,36 @@ const CodeEditor = forwardRef(
     const theme = useTheme();
 
     return (
-      <Box
-        component={Editor}
-        theme={themeName}
-        {...props}
-        sx={{
-          '--vscode-menu-background': 'rgba(255,255,255,1)',
-          '--vscode-widget-shadow': 'rgba(0,0,0,0.1)',
-          '.overflowingContentWidgets': { position: 'relative', zIndex: theme.zIndex.tooltip },
-          ...props.sx,
-        }}
-        options={{
-          lineNumbersMinChars: 2,
-          formatOnPaste: true,
-          scrollBeyondLastLine: false,
-          padding: { bottom: 100 },
-          minimap: { enabled: false },
-          readOnly,
-          tabSize: 2,
-          insertSpaces: true,
-          fixedOverflowWidgets: true,
-          contextmenu: true,
-          ...props.options,
-          scrollbar: {
-            alwaysConsumeMouseWheel: false,
-            ...props.options?.scrollbar,
-          },
-        }}
-      />
+      <Box sx={{ position: 'relative', width: 1, height: 1 }}>
+        <Box
+          component={Editor}
+          theme={themeName}
+          {...props}
+          sx={{
+            '--vscode-menu-background': 'rgba(255,255,255,1)',
+            '--vscode-widget-shadow': 'rgba(0,0,0,0.1)',
+            '.overflowingContentWidgets': { position: 'relative', zIndex: theme.zIndex.tooltip },
+            ...props.sx,
+          }}
+          options={{
+            lineNumbersMinChars: 2,
+            formatOnPaste: true,
+            scrollBeyondLastLine: false,
+            padding: { bottom: 100 },
+            minimap: { enabled: false },
+            readOnly,
+            tabSize: 2,
+            insertSpaces: true,
+            fixedOverflowWidgets: true,
+            contextmenu: true,
+            ...props.options,
+            scrollbar: {
+              alwaysConsumeMouseWheel: false,
+              ...props.options?.scrollbar,
+            },
+          }}
+        />
+      </Box>
     );
   }
 );
