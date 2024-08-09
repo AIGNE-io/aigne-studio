@@ -1,3 +1,16 @@
+## 0.4.25 (2024-8-9)
+
+- feat: check socket connect status
+
+## 0.4.24 (2024-8-9)
+
+- fix: ensure knowledge is copied when duplicating a project
+
+## 0.4.23 (2024-8-9)
+
+- chore: simplify render message logic
+- fix: auto publish discuss error
+
 ## 0.4.22 (2024-8-6)
 
 - fix: auto start cron jobs for all projects

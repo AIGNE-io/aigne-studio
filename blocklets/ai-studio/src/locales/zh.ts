@@ -761,4 +761,10 @@ export default flat({
   durationSeconds: '{duration}秒',
   executionHistory: '运行记录',
   error: '错误',
+  socket: {
+    connecting: '连接中',
+    connected: '已连接',
+    closed: '已关闭',
+    closing: '关闭中',
+  },
 });
