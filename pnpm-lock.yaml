@@ -1254,6 +1254,9 @@ importers:
       joi:
         specifier: ^17.13.3
         version: 17.13.3
+      material-ui-popup-state:
+        specifier: ^5.1.2
+        version: 5.1.2(@mui/material@5.16.6(@emotion/react@11.13.0(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.0(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       monaco-editor:
         specifier: ^0.50.0
         version: 0.50.0
