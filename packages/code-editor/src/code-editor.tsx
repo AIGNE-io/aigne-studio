@@ -1,7 +1,7 @@
 import { cx } from '@emotion/css';
 import { Icon } from '@iconify-icon/react';
-import FullMaxIcon from '@iconify-icons/tabler/arrows-maximize';
-import FullMinIcon from '@iconify-icons/tabler/arrows-minimize';
+import FullMaxIcon from '@iconify-icons/tabler/arrows-diagonal';
+import FullMinIcon from '@iconify-icons/tabler/arrows-diagonal-minimize-2';
 import SettingIcon from '@iconify-icons/tabler/settings';
 import XIcon from '@iconify-icons/tabler/x';
 import Editor, { useMonaco } from '@monaco-editor/react';
@@ -13,17 +13,20 @@ import {
   DialogTitle,
   Divider,
   IconButton,
+  Stack,
   styled,
   useTheme,
 } from '@mui/material';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import useLocalStorageState from 'ahooks/lib/useLocalStorageState';
+import { get } from 'lodash';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { editor } from 'monaco-editor';
 import { customAlphabet } from 'nanoid';
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { FullScreen, useFullScreenHandle } from 'react-full-screen';
 
+import { translations } from '../locales';
 import Switch from './components/switch';
 
 const randomId = customAlphabet('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
@@ -41,6 +44,16 @@ function useMobileWidth() {
   const minWidth = isBreakpointsDownSm ? 300 : theme.breakpoints.values.sm;
   return { minWidth };
 }
+
+const useLocaleContext = (locale: string) => {
+  return {
+    t: (key: string) => {
+      const translation = (translations as any)[locale];
+      const translationValue = get(translation, key);
+      return translationValue;
+    },
+  };
+};
 
 const formatCode = async (code: string) => {
   return prettier.then(async ([prettier, typescriptPlugin, estreePlugin]) => {
@@ -93,7 +106,16 @@ function setupMonaco(monaco: typeof import('monaco-editor')) {
 }
 
 const CodeEditor = forwardRef(
-  ({ readOnly, maxHeight, ...props }: { readOnly?: boolean; maxHeight?: number } & BoxProps<typeof Editor>, ref) => {
+  (
+    {
+      readOnly,
+      maxHeight,
+      locale = 'en',
+      ...props
+    }: { readOnly?: boolean; maxHeight?: number; locale: string } & BoxProps<typeof Editor>,
+    ref
+  ) => {
+    const { t } = useLocaleContext(locale);
     const [editor, setEditor] = useState<ReturnType<(typeof import('monaco-editor'))['editor']['create']>>();
     const monaco = useMonaco();
     const theme = useTheme();
@@ -133,18 +155,16 @@ const CodeEditor = forwardRef(
 
     useImperativeHandle(ref, () => {});
 
-    return (
-      <>
-        <Full handle={handle}>
+    const editorRender = () => {
+      return (
+        <Container>
           <Box
             className={cx(props.className, settings?.vimMode === 'normal' && 'vim-normal')}
             component={Editor}
             theme={themeName}
             {...props}
             sx={{
-              '.monaco-editor:focus': {
-                outline: 'none !important',
-              },
+              '.monaco-editor': { outline: 'none !important' },
               '--vscode-menu-background': 'rgba(255,255,255,1)',
               '--vscode-widget-shadow': 'rgba(0,0,0,0.1)',
               '.overflowingContentWidgets': { position: 'relative', zIndex: theme.zIndex.tooltip },
@@ -205,15 +225,25 @@ const CodeEditor = forwardRef(
               />
             </IconButton>
 
-            <IconButton size="small" onClick={() => dialogState.open()}>
-              <Box component={Icon} icon={SettingIcon} sx={{ color: 'action.active', fontSize: 20 }} />
-            </IconButton>
+            {!handle.active && (
+              <IconButton size="small" onClick={() => dialogState.open()}>
+                <Box component={Icon} icon={SettingIcon} sx={{ color: 'action.active', fontSize: 20 }} />
+              </IconButton>
+            )}
           </Box>
+        </Container>
+      );
+    };
+
+    return (
+      <>
+        <Full handle={handle}>
+          {handle.active ? <FullScreenContainer locale={locale}>{editorRender()}</FullScreenContainer> : editorRender()}
         </Full>
 
         <Settings component="form" fullScreen={isBreakpointsDownSm} style={{ minWidth }} {...bindDialog(dialogState)}>
           <DialogTitle className="between">
-            <Box>编辑器设置</Box>
+            <Box>{t('settings')}</Box>
             <IconButton size="small" onClick={() => dialogState.close()}>
               <Box component={Icon} icon={XIcon} sx={{ color: 'action.active', fontSize: 20 }} />
             </IconButton>
@@ -222,7 +252,7 @@ const CodeEditor = forwardRef(
           <DialogContent style={{ minWidth }}>
             <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
               <Box sx={{ p: 2 }} className="between">
-                <Box className="key">开启VIM</Box>
+                <Box className="key">{t('vim')}</Box>
                 <Box>
                   <Switch
                     checked={Boolean(settings?.vim ?? false)}
@@ -234,7 +264,7 @@ const CodeEditor = forwardRef(
               <Divider />
 
               <Box sx={{ p: 2 }} className="between">
-                <Box className="key">格式化文档</Box>
+                <Box className="key">{t('format')}</Box>
                 <Box sx={{ color: 'action.disabled', fontSize: 12 }}>Shift + Alt + F</Box>
               </Box>
             </Box>
@@ -246,6 +276,12 @@ const CodeEditor = forwardRef(
 );
 
 const Full = styled(FullScreen)`
+  width: 100%;
+  height: 100%;
+  position: relative;
+`;
+
+const Container = styled(Box)`
   width: 100%;
   height: 100%;
   position: relative;
@@ -269,5 +305,61 @@ const Settings = styled(Dialog)`
     font-size: 14px;
   }
 `;
+
+function FullScreenContainer({ locale, children }: { locale: string; children: React.ReactNode }) {
+  const { t } = useLocaleContext(locale);
+
+  return (
+    <Stack gap={1} sx={{ borderRadius: 1, bgcolor: '#EFF6FF', px: 2, py: 1.5, width: 1, height: 1 }}>
+      <Box className="between" whiteSpace="nowrap" gap={2}>
+        <Box
+          display="flex"
+          alignItems="center"
+          gap={0.5}
+          minHeight={32}
+          width={1}
+          overflow="hidden"
+          textOverflow="ellipsis">
+          <Box sx={{ display: 'inline-flex', alignItems: 'center' }}>{t('editor')}</Box>
+        </Box>
+      </Box>
+
+      <Stack
+        height={0}
+        flex={1}
+        gap={1}
+        sx={{
+          borderRadius: 1,
+          bgcolor: '#EFF6FF',
+        }}>
+        <Box
+          border="1px solid #3B82F6"
+          borderRadius={1}
+          bgcolor="background.paper"
+          px={1.5}
+          py={1}
+          width={1}
+          height={1}>
+          <Box
+            sx={{
+              width: 1,
+              height: 1,
+              zIndex: (theme) => theme.zIndex.tooltip,
+              '.monaco-editor': {
+                borderBottomLeftRadius: (theme) => theme.shape.borderRadius * 2,
+                borderBottomRightRadius: (theme) => theme.shape.borderRadius * 2,
+                '.overflow-guard': {
+                  borderBottomLeftRadius: (theme) => theme.shape.borderRadius * 2,
+                  borderBottomRightRadius: (theme) => theme.shape.borderRadius * 2,
+                },
+              },
+            }}>
+            {children}
+          </Box>
+        </Box>
+      </Stack>
+    </Stack>
+  );
+}
 
 export default CodeEditor;
