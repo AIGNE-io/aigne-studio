@@ -1,3 +1,8 @@
+## 0.4.23 (2024-8-9)
+
+- chore: simplify render message logic
+- fix: auto publish discuss error
+
 ## 0.4.22 (2024-8-6)
 
 - fix: auto start cron jobs for all projects
