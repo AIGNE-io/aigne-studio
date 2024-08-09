@@ -1,7 +1,7 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Icon } from '@iconify-icon/react';
-import Wifi from '@iconify-icons/tabler/wifi';
-import WifiOff from '@iconify-icons/tabler/wifi-off';
+import Wifi from '@iconify-icons/material-symbols/wifi';
+import WifiOff from '@iconify-icons/material-symbols/wifi-off';
 import { Box, Tooltip } from '@mui/material';
 import { useMemo } from 'react';
 
@@ -73,7 +73,7 @@ function WsStatus({ projectId, gitRef }: { projectId: string; gitRef: string }) 
       CLOSING: WifiOff,
     };
 
-    return <Box component={Icon} icon={map[currentStatus]} sx={{ color: color.backgroundColor, fontSize: 24 }} />;
+    return <Box component={Icon} icon={map[currentStatus]} sx={{ color: color.backgroundColor, fontSize: 20 }} />;
   }, [color, currentStatus]);
 
   return <Tooltip title={text}>{icon}</Tooltip>;

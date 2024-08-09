@@ -145,13 +145,13 @@ export const useWebSocketStatus = (projectId: string, gitRef: string) => {
     provider.ws?.addEventListener('open', updateStatus);
     provider.ws?.addEventListener('close', updateStatus);
     provider.ws?.addEventListener('error', updateStatus);
-    const interval = window.setInterval(updateStatus, 1000);
+    // const interval = window.setInterval(updateStatus, 1000);
 
     return () => {
       provider.ws?.removeEventListener('open', updateStatus);
       provider.ws?.removeEventListener('close', updateStatus);
       provider.ws?.removeEventListener('error', updateStatus);
-      clearInterval(interval);
+      // clearInterval(interval);
     };
   }, [provider, projectId, gitRef]);
 
