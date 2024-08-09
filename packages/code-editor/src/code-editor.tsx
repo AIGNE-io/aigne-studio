@@ -265,7 +265,7 @@ const CodeEditor = forwardRef(
 
               <Box sx={{ p: 2 }} className="between">
                 <Box className="key">{t('format')}</Box>
-                <Box sx={{ color: 'action.disabled', fontSize: 12 }}>Shift + Alt + F</Box>
+                <Box sx={{ color: 'action.disabled', fontSize: 12 }}>Shift + Alt/Option + F</Box>
               </Box>
             </Box>
           </DialogContent>
