@@ -1,3 +1,7 @@
+## 0.4.26 (2024-8-9)
+
+- fix: number field cant input decimal
+
 ## 0.4.25 (2024-8-9)
 
 - feat: check socket connect status
