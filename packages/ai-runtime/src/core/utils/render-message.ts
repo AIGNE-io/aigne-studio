@@ -2,12 +2,6 @@ import { get } from 'lodash';
 
 import { Mustache } from '../../types/assistant';
 
-const onlyOneVariable = (text: string) => {
-  const pattern = /^\{\{\s*(.*?)\s*\}\}$/;
-  const match = text.match(pattern);
-  return !!match;
-};
-
 // 调用地方:
 // Input
 // process
@@ -18,7 +12,7 @@ export async function renderMessage(
   options: { stringify: boolean } = { stringify: true }
 ) {
   const spans = Mustache.parse(message.trim());
-  if (spans.length === 1 && onlyOneVariable(message.trim())) {
+  if (spans.length === 1) {
     const span = spans[0]!;
     if (span[0] === 'name') {
       const result = get(parameters, span[1]);
