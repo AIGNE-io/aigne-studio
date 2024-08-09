@@ -1,3 +1,7 @@
+## 0.4.24 (2024-8-9)
+
+- fix: ensure knowledge is copied when duplicating a project
+
 ## 0.4.23 (2024-8-9)
 
 - chore: simplify render message logic
