@@ -21,12 +21,14 @@ import {
   ResourceType,
   StringParameter,
   parseDirectivesOfTemplate,
+  parseDirectivesOfTemplateInput,
 } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
 import { DatasetObject } from '@blocklet/dataset-sdk/types';
 import getOpenApiTextFromI18n from '@blocklet/dataset-sdk/util/get-open-api-i18n-text';
 import { Icon } from '@iconify-icon/react';
+import SwitchIcon from '@iconify-icons/material-symbols/switches';
 import BracesIcon from '@iconify-icons/tabler/braces';
 import BracketsContainIcon from '@iconify-icons/tabler/brackets-contain';
 import CheckIcon from '@iconify-icons/tabler/check';
@@ -131,7 +133,10 @@ export default function InputTable({
   const checkVariableReferenced = (id: string, key: string) => {
     if (assistant.type === 'prompt' || assistant.type === 'image') {
       const textNodes = document.querySelectorAll('[data-lexical-variable]');
-      const variables = new Set(parseDirectivesOfTemplate(assistant).map((i) => i.name.split('.')[0]!));
+      const variables = new Set([
+        ...parseDirectivesOfTemplateInput(assistant).map((i) => i.name.split('.')[0]!),
+        ...parseDirectivesOfTemplate(assistant).map((i) => i.name.split('.')[0]!),
+      ]);
 
       const ids = [...textNodes].map((node) => node.getAttribute('data-lexical-id'));
       const foundId = ids.find((i) => i === id);
@@ -169,6 +174,7 @@ export default function InputTable({
       number: t('number'),
       object: t('object'),
       array: t('array'),
+      boolean: t('boolean'),
     };
   }, [t]);
 
@@ -178,6 +184,7 @@ export default function InputTable({
       number: <Icon icon={SquareNumberIcon} />,
       object: <Icon icon={BracesIcon} />,
       array: <Icon icon={BracketsContainIcon} />,
+      boolean: <Icon icon={SwitchIcon} />,
     };
   }, [t]);
 
@@ -556,24 +563,39 @@ function SelectFromSource({
   openApis: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
 }) {
   const dialogState = usePopupState({ variant: 'dialog', popupId: useId() });
-  const { t } = useLocaleContext();
+  const { t, locale } = useLocaleContext();
   const ref = useRef<PopperMenuImperative>(null);
 
   const currentKey = parameter.type === 'source' ? parameter.source?.variableFrom : 'custom';
-  const fromTitle =
-    parameter.type === 'source' && parameter.source?.variableFrom === 'tool' && parameter?.source?.agent?.id ? (
-      <span>
-        {t('variableParameter.call')}{' '}
-        <AgentName
-          type="tool"
-          blockletDid={parameter.source.agent.blockletDid}
-          projectId={parameter.source.agent.projectId}
-          agentId={parameter.source.agent.id}
-        />
-      </span>
-    ) : (
-      FROM_MAP[currentKey || 'custom']
-    );
+  const fromTitle = (() => {
+    if (parameter.type === 'source' && parameter.source?.variableFrom === 'tool' && parameter?.source?.agent?.id) {
+      return (
+        <span>
+          {t('variableParameter.call')}{' '}
+          <AgentName
+            type="tool"
+            blockletDid={parameter.source.agent.blockletDid}
+            projectId={parameter.source.agent.projectId}
+            agentId={parameter.source.agent.id}
+          />
+        </span>
+      );
+    }
+
+    if (parameter.type === 'source' && parameter.source?.variableFrom === 'blockletAPI' && parameter?.source?.api?.id) {
+      const id = parameter?.source?.api?.id;
+      const api = (openApis || []).find((x) => x.id === id);
+      const name = api ? getOpenApiTextFromI18n(api, 'summary', locale) || t('unnamed') : id;
+
+      return (
+        <span>
+          {t('variableParameter.call')} {name}
+        </span>
+      );
+    }
+
+    return FROM_MAP[currentKey || 'custom'];
+  })();
 
   return (
     <>

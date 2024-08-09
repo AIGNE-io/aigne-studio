@@ -34,8 +34,6 @@ export type WorkingStore<T> = {
 
 const YJS_STATE_FILE_PATH = (root: string) => path.join(root, 'state.yjs');
 
-const WORKING_DIR = (root: string) => path.join(root, 'working');
-
 export default class Working<T> extends Doc {
   static async load<T>(repo: Repository<T>, options: WorkingOptions) {
     const yjsPath = YJS_STATE_FILE_PATH(options.root);
@@ -71,7 +69,7 @@ export default class Working<T> extends Doc {
   }
 
   get workingDir() {
-    return WORKING_DIR(this.options.root);
+    return this.repo.workingDir({ ref: this.options.ref });
   }
 
   async reset() {

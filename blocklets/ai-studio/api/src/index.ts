@@ -98,14 +98,16 @@ export const server = app.listen(port, (err?: any) => {
       logger.error('init resource states error', { error });
     });
 
-  projectCronManager
-    .reloadAllProjectsJobs()
-    .then(() => {
-      logger.info('reload all projects jobs success');
-    })
-    .catch((error) => {
-      logger.error('reload all projects jobs error', { error });
-    });
+  if (process.env.AUTO_START_CRON_JOBS === 'true') {
+    projectCronManager
+      .reloadAllProjectsJobs()
+      .then(() => {
+        logger.info('reload all projects jobs success');
+      })
+      .catch((error) => {
+        logger.error('reload all projects jobs error', { error });
+      });
+  }
 });
 
 server.on('upgrade', (req, socket, head) => {

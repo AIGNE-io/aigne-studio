@@ -1,3 +1,21 @@
+## 0.4.23 (2024-8-9)
+
+- chore: simplify render message logic
+- fix: auto publish discuss error
+
+## 0.4.22 (2024-8-6)
+
+- fix: auto start cron jobs for all projects
+
+## 0.4.21 (2024-8-6)
+
+- chore: disable auto start cron jobs
+
+## 0.4.20 (2024-8-6)
+
+- chore: add cron job execution history support
+- feat: support clear cache manual
+
 ## 0.4.19 (2024-8-5)
 
 - fix: add hidden input parameter button
