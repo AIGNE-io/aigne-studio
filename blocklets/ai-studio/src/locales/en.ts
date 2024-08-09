@@ -767,4 +767,10 @@ export default flat({
   durationSeconds: '{duration}s',
   executionHistory: 'Execution History',
   error: 'Error',
+  socket: {
+    connecting: 'Connecting',
+    connected: 'Online',
+    closed: 'Offline',
+    closing: 'Closing',
+  },
 });

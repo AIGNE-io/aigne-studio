@@ -115,6 +115,49 @@ const projectStore = (projectId: string, gitRef: string) => {
   return stores[key]!;
 };
 
+export const useWebSocketStatus = (projectId: string, gitRef: string) => {
+  const [status, setStatus] = useState<'CONNECTING' | 'OPEN' | 'CLOSING' | 'CLOSED'>('CONNECTING');
+  const { provider } = useProjectStore(projectId, gitRef, true);
+
+  useEffect(() => {
+    if (!provider) return undefined;
+
+    const updateStatus = () => {
+      switch (provider.ws?.readyState) {
+        case WebSocket.CONNECTING:
+          setStatus('CONNECTING');
+          break;
+        case WebSocket.OPEN:
+          setStatus('OPEN');
+          break;
+        case WebSocket.CLOSING:
+          setStatus('CLOSING');
+          break;
+        case WebSocket.CLOSED:
+          setStatus('CLOSED');
+          break;
+        default:
+          setStatus('CLOSED');
+          break;
+      }
+    };
+
+    provider.ws?.addEventListener('open', updateStatus);
+    provider.ws?.addEventListener('close', updateStatus);
+    provider.ws?.addEventListener('error', updateStatus);
+    // const interval = window.setInterval(updateStatus, 1000);
+
+    return () => {
+      provider.ws?.removeEventListener('open', updateStatus);
+      provider.ws?.removeEventListener('close', updateStatus);
+      provider.ws?.removeEventListener('error', updateStatus);
+      // clearInterval(interval);
+    };
+  }, [provider, projectId, gitRef]);
+
+  return status;
+};
+
 export const useProjectStore = (projectId: string, gitRef: string, connect?: boolean) => {
   const [store, setStore] = useRecoilState(projectStore(projectId, gitRef));
 

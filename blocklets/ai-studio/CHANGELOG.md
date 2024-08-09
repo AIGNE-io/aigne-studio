@@ -1,3 +1,7 @@
+## 0.4.25 (2024-8-9)
+
+- feat: check socket connect status
+
 ## 0.4.24 (2024-8-9)
 
 - fix: ensure knowledge is copied when duplicating a project
