@@ -19,6 +19,7 @@ import {
   variableToYjs,
 } from '@blocklet/ai-runtime/types';
 import { copyRecursive } from '@blocklet/ai-runtime/utils/fs';
+import { AIGNE_RUNTIME_COMPONENT_DID } from '@blocklet/aigne-sdk/constants';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { call } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
@@ -1124,7 +1125,7 @@ async function copyProject({
   ...patch
 }: {
   project: Project;
-  author: { fullName: string; did: string };
+  author: { did: string; role: string; fullName: string; provider: string; walletOS: string; isAdmin: boolean };
 } & Partial<Project['dataValues']>) {
   const srcRepo = await getRepository({ projectId: original.id! });
   const srcWorking = await srcRepo.working({ ref: original.gitDefaultBranch || defaultBranch });
@@ -1142,8 +1143,9 @@ async function copyProject({
   });
 
   const repo = await getRepository({ projectId: project.id, author: { name: author.fullName, email: author.did } });
-  const workingDir = join(dirname(repo.root), `${project.id}.cooperative/${defaultBranch}/working`);
-  await copyRecursive(srcWorking.workingDir, workingDir);
+
+  const workingDir = join(dirname(repo.root), `${project.id}.cooperative/${defaultBranch}`);
+  await copyRecursive(srcWorking.options.root, workingDir);
 
   const working = await repo.working({ ref: defaultBranch });
 
@@ -1158,6 +1160,8 @@ async function copyProject({
     }
   }
 
+  await copyKnowledge({ originProjectId: original.id!, currentProjectId: project.id!, user: author });
+
   await working.commit({
     ref: defaultBranch,
     branch: defaultBranch,
@@ -1168,6 +1172,58 @@ async function copyProject({
   return project;
 }
 
+async function copyKnowledge({
+  originProjectId,
+  currentProjectId,
+  user,
+}: {
+  originProjectId: string;
+  currentProjectId: string;
+  user: { did: string; role: string; fullName: string; provider: string; walletOS: string; isAdmin: boolean };
+}) {
+  const { data } = await call({
+    name: AIGNE_RUNTIME_COMPONENT_DID,
+    path: '/api/datasets',
+    method: 'POST',
+    data: { appId: currentProjectId, copyFromProjectId: originProjectId },
+    headers: {
+      'x-user-did': user?.did,
+      'x-user-role': user?.role,
+      'x-user-provider': user?.provider,
+      'x-user-fullname': user?.fullName && encodeURIComponent(user?.fullName),
+      'x-user-wallet-os': user?.walletOS,
+    },
+  });
+
+  const projectIdMap = Object.fromEntries(
+    (data.copied || []).map((item: { from: { id: string }; to: { id: string } }) => {
+      return [item.from.id, item.to.id];
+    })
+  );
+
+  const repository = await getRepository({ projectId: currentProjectId });
+  const working = await repository.working({ ref: defaultBranch });
+  const agents = Object.values(working.syncedStore.files).filter((i) => !!i && isAssistant(i));
+
+  for (const agent of agents) {
+    const parameters = Object.values(agent.parameters || []).map((i) => i.data);
+    for (const parameter of parameters || []) {
+      if (parameter.key && parameter.type === 'source') {
+        if (parameter.source?.variableFrom === 'knowledge' && parameter.source.knowledge) {
+          const tool = parameter.source.knowledge;
+          const oldKnowledgeBaseId = tool.id;
+
+          if (projectIdMap[oldKnowledgeBaseId]) {
+            parameter.source.knowledge.id = projectIdMap[oldKnowledgeBaseId];
+            parameter.source.knowledge.projectId = currentProjectId;
+          }
+        }
+      }
+    }
+  }
+
+  working.save({ flush: true });
+}
 async function createProjectFromTemplate(
   template: Partial<ResourceProject>,
   {

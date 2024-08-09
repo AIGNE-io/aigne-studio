@@ -43,7 +43,13 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
       <Box>
         <Typography variant="subtitle2">{t('defaultValue')}</Typography>
 
-        {value.type === 'number' ? (
+        {value.type === 'boolean' ? (
+          <BaseSwitch
+            sx={{ mr: 1, mt: '1px' }}
+            checked={value.defaultValue || false}
+            onChange={(_, required) => !readOnly && (value.defaultValue = required)}
+          />
+        ) : value.type === 'number' ? (
           <NumberField
             hiddenLabel
             sx={{ width: 1 }}
