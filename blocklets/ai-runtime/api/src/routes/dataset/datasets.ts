@@ -19,6 +19,7 @@ import omitBy from 'lodash/omitBy';
 import { Op, Sequelize } from 'sequelize';
 import { stringify } from 'yaml';
 
+import copyKnowledgeBase from '../../libs/knowledge';
 import { ensureComponentCallOr, ensureComponentCallOrAdmin, userAuth } from '../../libs/security';
 import Dataset from '../../store/models/dataset/dataset';
 import DatasetDocument from '../../store/models/dataset/document';
@@ -26,10 +27,11 @@ import { sse } from './embeddings';
 
 const router = Router();
 
-const datasetSchema = Joi.object<{ name?: string; description?: string; appId?: string }>({
+const datasetSchema = Joi.object<{ name?: string; description?: string; appId?: string; copyFromProjectId?: string }>({
   name: Joi.string().allow('').empty(null).default(''),
   description: Joi.string().allow('').empty(null).default(''),
   appId: Joi.string().allow('').empty(null).default(''),
+  copyFromProjectId: Joi.string().allow('').empty(null).default(''),
 });
 
 const getDatasetsQuerySchema = Joi.object<{ excludeResource?: boolean; projectId?: string }>({
@@ -168,10 +170,34 @@ router.get('/:datasetId/export-resource', user(), ensureComponentCallOrAdmin(), 
 
 router.post('/', user(), userAuth(), async (req, res) => {
   const { did } = req.user!;
-  const { name = '', description = '', appId } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
+  const {
+    name = '',
+    description = '',
+    appId,
+    copyFromProjectId,
+  } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
+
+  if (appId && copyFromProjectId) {
+    const knowledge = await Dataset.findAll({ where: { appId: copyFromProjectId } });
+
+    const map: { [oldKnowledgeBaseId: string]: string } = {};
+
+    for (const item of knowledge) {
+      const newKnowledgeId = await copyKnowledgeBase({
+        oldKnowledgeBaseId: item.id,
+        oldProjectId: copyFromProjectId,
+        newProjectId: appId,
+      });
+
+      map[item.id] = newKnowledgeId;
+    }
+
+    const copied = Object.entries(map).map(([from, to]) => ({ from: { id: from }, to: { id: to } }));
+    return res.json({ copied });
+  }
 
   const dataset = await Dataset.create({ name, description, appId, createdBy: did, updatedBy: did });
-  res.json(dataset);
+  return res.json(dataset);
 });
 
 router.put('/:datasetId', user(), userAuth(), async (req, res) => {

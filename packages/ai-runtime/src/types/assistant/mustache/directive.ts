@@ -1,5 +1,5 @@
 import { isPromptAssistant, isPromptMessage } from '../utils';
-import { ImageAssistantYjs, PromptAssistantYjs } from '../yjs';
+import { AssistantYjs, ImageAssistantYjs, PromptAssistantYjs } from '../yjs';
 import Mustache from './mustache';
 
 type Directive = {
@@ -44,4 +44,30 @@ export function parseDirectivesOfTemplate(assistant: PromptAssistantYjs | ImageA
       : [assistant.prompt]
     ).filter((i): i is string => typeof i === 'string')
   );
+}
+
+export function parseDirectivesOfTemplateInput(assistant: AssistantYjs) {
+  const agentParameters = Object.values(assistant.parameters ?? {})
+    .map((i) => i.data)
+    .filter((i) => i.type === 'source');
+
+  const directives = agentParameters
+    .flatMap((i) => {
+      if (i.type === 'source' && i.source?.variableFrom === 'tool') {
+        return Object.values(i.source.agent?.parameters || {});
+      }
+
+      if (i.type === 'source' && i.source?.variableFrom === 'knowledge') {
+        return Object.values(i.source.knowledge?.parameters || {});
+      }
+
+      if (i.type === 'source' && i.source?.variableFrom === 'blockletAPI') {
+        return Object.values(i.source.api?.parameters || {});
+      }
+
+      return [];
+    })
+    .filter((i): i is string => typeof i === 'string');
+
+  return parseDirectives(...directives);
 }

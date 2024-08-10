@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/aigne-sdk",
-  "version": "0.4.22",
+  "version": "0.4.26",
   "description": "AIGNE SDK used to interact with AIGNE services",
   "publishConfig": {
     "access": "public"
@@ -35,6 +35,10 @@
     "./utils/*": {
       "import": "./lib/esm/utils/*.js",
       "require": "./lib/cjs/utils/*.js"
+    },
+    "./constants": {
+      "import": "./lib/esm/constants.js",
+      "require": "./lib/cjs/constants.js"
     }
   },
   "typesVersions": {
@@ -56,6 +60,9 @@
       ],
       "utils/*": [
         "./lib/types/utils/*.d.ts"
+      ],
+      "constants": [
+        "./lib/types/constants.d.ts"
       ]
     }
   },
