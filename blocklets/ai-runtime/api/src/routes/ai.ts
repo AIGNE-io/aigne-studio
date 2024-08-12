@@ -27,6 +27,7 @@ import compression from 'compression';
 import { Router } from 'express';
 import Joi from 'joi';
 import { omitBy, pick } from 'lodash';
+import { nanoid } from 'nanoid';
 
 const router = Router();
 
@@ -34,13 +35,13 @@ const callInputSchema = Joi.object<{
   blockletDid?: string;
   working?: boolean;
   aid: string;
-  sessionId: string;
+  sessionId?: string;
   inputs?: { [key: string]: any };
 }>({
   blockletDid: Joi.string().empty(['', null]),
   working: Joi.boolean().empty(['', null]).default(false),
   aid: Joi.string().required(),
-  sessionId: Joi.string().required(),
+  sessionId: Joi.string().empty(['', null]),
   inputs: Joi.object({
     $clientTime: Joi.string().isoDate().empty([null, '']),
   }).pattern(Joi.string(), Joi.any()),
@@ -149,11 +150,13 @@ router.post('/call', user(), ensureComponentCallOr(auth()), compression(), async
 
   const taskId = nextTaskId();
 
+  const sessionId = input.sessionId ?? nanoid();
+
   const history = await History.create({
     userId,
     projectId,
     agentId,
-    sessionId: input.sessionId,
+    sessionId,
     inputs: input.inputs,
     status: 'generating',
     blockletDid: input.blockletDid,
@@ -237,7 +240,7 @@ router.post('/call', user(), ensureComponentCallOr(auth()), compression(), async
       getAgent,
       entryProjectId: projectId,
       user: { id: userId, did: userId, ...req.user },
-      sessionId: input.sessionId,
+      sessionId,
       queryCache: ({ blockletDid, projectId, projectRef, agentId, cacheKey }) =>
         ExecutionCache.findOne({
           where: omitBy({ blockletDid, projectId, projectRef, agentId, cacheKey }, (v) => v === undefined),
