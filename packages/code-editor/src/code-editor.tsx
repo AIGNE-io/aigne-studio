@@ -4,11 +4,23 @@ import { cx } from '@emotion/css';
 import { Icon } from '@iconify-icon/react';
 import FullMaxIcon from '@iconify-icons/tabler/arrows-diagonal';
 import FullMinIcon from '@iconify-icons/tabler/arrows-diagonal-minimize-2';
+import LogosVim from '@iconify-icons/tabler/brand-vimeo';
 import ChecksIcon from '@iconify-icons/tabler/checks';
 import SettingIcon from '@iconify-icons/tabler/settings';
 import XIcon from '@iconify-icons/tabler/x';
 import Editor, { useMonaco } from '@monaco-editor/react';
-import { Box, BoxProps, Dialog, DialogContent, DialogTitle, IconButton, Stack, styled, useTheme } from '@mui/material';
+import {
+  Box,
+  BoxProps,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  Stack,
+  Tooltip,
+  styled,
+  useTheme,
+} from '@mui/material';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import useLocalStorageState from 'ahooks/lib/useLocalStorageState';
 import { get } from 'lodash';
@@ -21,7 +33,6 @@ import { ResizableBox } from 'react-resizable';
 
 import { translations } from '../locales';
 import Switch from './components/switch';
-import LogosVim from './components/vim';
 
 const randomId = customAlphabet('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
 const id = randomId();
@@ -227,10 +238,11 @@ const CodeEditor = forwardRef(
 
             <Box sx={{ display: 'flex', gap: 1, zIndex: 1, alignItems: 'center' }}>
               {settings?.vim && (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <Box component={LogosVim} sx={{ fontSize: 12, color: '#999' }} />
-                  <Box sx={{ fontSize: 10, color: '#999' }}>{t('vimEnable')}</Box>
-                </Box>
+                <Tooltip title={t('vimEnable')}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <Box component={Icon} icon={LogosVim} sx={{ fontSize: 14, color: '#999' }} />
+                  </Box>
+                </Tooltip>
               )}
 
               <IconButton
@@ -243,7 +255,7 @@ const CodeEditor = forwardRef(
                 sx={{ borderRadius: 1 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                   <Box component={Icon} icon={ChecksIcon} sx={{ fontSize: 16, color: '#999' }} />
-                  <Box sx={{ fontSize: 10, color: '#999' }}>{t('prettier')}</Box>
+                  <Box sx={{ fontSize: 12, color: '#999' }}>{t('prettier')}</Box>
                 </Box>
               </IconButton>
 
@@ -282,7 +294,7 @@ const CodeEditor = forwardRef(
 
           <DialogContent style={{ minWidth }}>
             <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
-              <Box sx={{ p: 2 }} className="between">
+              <Box sx={{ p: 1 }} className="between">
                 <Box className="key">{t('vim')}</Box>
                 <Box>
                   <Switch

@@ -48,6 +48,7 @@
     "test": "jest src/"
   },
   "dependencies": {
+    "@emotion/css": "^11.13.0",
     "@iconify-icon/react": "^2.1.0",
     "@iconify-icons/tabler": "^1.2.95",
     "@monaco-editor/react": "^4.6.0",
