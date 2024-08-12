@@ -5,4 +5,6 @@ export default flat({
   editor: 'Code Editor',
   format: 'Format Document',
   vim: 'Vim Mode',
+  prettier: 'Prettier',
+  vimEnable: 'VIM enabled',
 });

@@ -1,51 +1,63 @@
 import { styled } from '@mui/material/styles';
 import Switch, { SwitchProps } from '@mui/material/Switch';
 
-const IOSSwitch = styled((props: SwitchProps) => (
+interface IOSSwitchProps extends SwitchProps {
+  fontSize?: number;
+}
+
+const IOSSwitch = styled((props: IOSSwitchProps) => (
   <Switch focusVisibleClassName=".Mui-focusVisible" disableRipple {...props} />
-))(({ theme }) => ({
-  width: 42,
-  height: 26,
-  padding: 0,
-  '& .MuiSwitch-switchBase': {
+))(({ theme, fontSize = 16 }) => {
+  const switchWidth = fontSize * 2.625; // 根据 fontSize 动态计算宽度
+  const switchHeight = fontSize * 1.625; // 根据 fontSize 动态计算高度
+  const thumbSize = fontSize * 1.375; // 根据 fontSize 动态计算 thumb 大小
+  const translateX = fontSize; // 根据 fontSize 动态计算 transform 的位移
+
+  return {
+    width: switchWidth,
+    height: switchHeight,
     padding: 0,
-    margin: 2,
-    transitionDuration: '300ms',
-    '&.Mui-checked': {
-      transform: 'translateX(16px)',
-      color: '#fff',
-      '& + .MuiSwitch-track': {
-        backgroundColor: theme.palette.mode === 'dark' ? '#2ECA45' : '#65C466',
-        opacity: 1,
-        border: 0,
+    '& .MuiSwitch-switchBase': {
+      padding: 0,
+      margin: fontSize * 0.125, // 动态计算 margin
+      transitionDuration: '300ms',
+      '&.Mui-checked': {
+        transform: `translateX(${translateX}px)`,
+        color: '#fff',
+        '& + .MuiSwitch-track': {
+          backgroundColor: theme.palette.mode === 'dark' ? '#2ECA45' : '#65C466',
+          opacity: 1,
+          border: 0,
+        },
+        '&.Mui-disabled + .MuiSwitch-track': {
+          opacity: 0.5,
+        },
+      },
+      '&.Mui-focusVisible .MuiSwitch-thumb': {
+        color: '#33cf4d',
+        border: `${fontSize * 0.375}px solid #fff`, // 动态计算边框厚度
+      },
+      '&.Mui-disabled .MuiSwitch-thumb': {
+        color: theme.palette.mode === 'light' ? theme.palette.grey[100] : theme.palette.grey[600],
       },
       '&.Mui-disabled + .MuiSwitch-track': {
-        opacity: 0.5,
+        opacity: theme.palette.mode === 'light' ? 0.7 : 0.3,
       },
     },
-    '&.Mui-focusVisible .MuiSwitch-thumb': {
-      color: '#33cf4d',
-      border: '6px solid #fff',
+    '& .MuiSwitch-thumb': {
+      boxSizing: 'border-box',
+      width: thumbSize,
+      height: thumbSize,
     },
-    '&.Mui-disabled .MuiSwitch-thumb': {
-      color: theme.palette.mode === 'light' ? theme.palette.grey[100] : theme.palette.grey[600],
+    '& .MuiSwitch-track': {
+      borderRadius: switchHeight / 2,
+      backgroundColor: theme.palette.mode === 'light' ? '#E9E9EA' : '#39393D',
+      opacity: 1,
+      transition: theme.transitions.create(['background-color'], {
+        duration: 500,
+      }),
     },
-    '&.Mui-disabled + .MuiSwitch-track': {
-      opacity: theme.palette.mode === 'light' ? 0.7 : 0.3,
-    },
-  },
-  '& .MuiSwitch-thumb': {
-    boxSizing: 'border-box',
-    width: 22,
-    height: 22,
-  },
-  '& .MuiSwitch-track': {
-    borderRadius: 26 / 2,
-    backgroundColor: theme.palette.mode === 'light' ? '#E9E9EA' : '#39393D',
-    opacity: 1,
-    transition: theme.transitions.create(['background-color'], {
-      duration: 500,
-    }),
-  },
-}));
+  };
+});
+
 export default IOSSwitch;

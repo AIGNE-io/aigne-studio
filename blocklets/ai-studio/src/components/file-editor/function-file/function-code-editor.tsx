@@ -1,3 +1,4 @@
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { FunctionAssistantYjs } from '@blocklet/ai-runtime/types';
 import { CodeEditor } from '@blocklet/code-editor';
 import { Box, Stack } from '@mui/material';
@@ -16,6 +17,7 @@ export default function FunctionCodeEditor({
   isRemoteCompare?: boolean;
 }) {
   const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
+  const { locale } = useLocaleContext();
 
   useEffect(() => {
     if (!value.code) {
@@ -34,30 +36,31 @@ return {
         borderRadius: 1,
         bgcolor: '#EFF6FF',
       }}>
-      <Box border="1px solid #3B82F6" borderRadius={1} bgcolor="background.paper" px={1.5} py={1}>
-        <Box
-          sx={{
-            zIndex: (theme) => theme.zIndex.tooltip,
-            height: '300px',
-            '.monaco-editor': {
+      <Box
+        border="1px solid #3B82F6"
+        borderRadius={1}
+        bgcolor="background.paper"
+        sx={{
+          minHeight: '300px',
+          '.monaco-editor': {
+            borderBottomLeftRadius: (theme) => theme.shape.borderRadius * 2,
+            borderBottomRightRadius: (theme) => theme.shape.borderRadius * 2,
+            '.overflow-guard': {
               borderBottomLeftRadius: (theme) => theme.shape.borderRadius * 2,
               borderBottomRightRadius: (theme) => theme.shape.borderRadius * 2,
-              '.overflow-guard': {
-                borderBottomLeftRadius: (theme) => theme.shape.borderRadius * 2,
-                borderBottomRightRadius: (theme) => theme.shape.borderRadius * 2,
-                backgroundColor: getDiffBackground('code'),
-              },
               backgroundColor: getDiffBackground('code'),
             },
-          }}>
-          <CodeEditor
-            readOnly={readOnly}
-            language="typescript"
-            path="function.ts"
-            value={value.code}
-            onChange={(code) => (value.code = code)}
-          />
-        </Box>
+            backgroundColor: getDiffBackground('code'),
+          },
+        }}>
+        <CodeEditor
+          readOnly={readOnly}
+          language="typescript"
+          path="function.ts"
+          value={value.code}
+          onChange={(code) => (value.code = code)}
+          locale={locale}
+        />
       </Box>
     </Stack>
   );

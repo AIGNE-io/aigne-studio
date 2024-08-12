@@ -1,33 +1,27 @@
+import 'react-resizable/css/styles.css';
+
 import { cx } from '@emotion/css';
 import { Icon } from '@iconify-icon/react';
 import FullMaxIcon from '@iconify-icons/tabler/arrows-diagonal';
 import FullMinIcon from '@iconify-icons/tabler/arrows-diagonal-minimize-2';
+import ChecksIcon from '@iconify-icons/tabler/checks';
 import SettingIcon from '@iconify-icons/tabler/settings';
 import XIcon from '@iconify-icons/tabler/x';
 import Editor, { useMonaco } from '@monaco-editor/react';
-import {
-  Box,
-  BoxProps,
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  Divider,
-  IconButton,
-  Stack,
-  styled,
-  useTheme,
-} from '@mui/material';
+import { Box, BoxProps, Dialog, DialogContent, DialogTitle, IconButton, Stack, styled, useTheme } from '@mui/material';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import useLocalStorageState from 'ahooks/lib/useLocalStorageState';
 import { get } from 'lodash';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { editor } from 'monaco-editor';
 import { customAlphabet } from 'nanoid';
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { FullScreen, useFullScreenHandle } from 'react-full-screen';
+import { ResizableBox } from 'react-resizable';
 
 import { translations } from '../locales';
 import Switch from './components/switch';
+import LogosVim from './components/vim';
 
 const randomId = customAlphabet('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
 const id = randomId();
@@ -157,79 +151,116 @@ const CodeEditor = forwardRef(
 
     const editorRender = () => {
       return (
-        <Container>
-          <Box
-            className={cx(props.className, settings?.vimMode === 'normal' && 'vim-normal')}
-            component={Editor}
-            theme={themeName}
-            {...props}
-            sx={{
-              '.monaco-editor': { outline: 'none !important' },
-              '--vscode-menu-background': 'rgba(255,255,255,1)',
-              '--vscode-widget-shadow': 'rgba(0,0,0,0.1)',
-              '.overflowingContentWidgets': { position: 'relative', zIndex: theme.zIndex.tooltip },
-              ...props.sx,
-              '&.vim-normal .cursor.monaco-mouse-cursor-text':
-                settings?.vimMode === 'normal'
-                  ? {
-                      width: '9px !important',
-                      backgroundColor: '#aeafad',
-                      borderColor: '#aeafad',
-                      color: '#515052',
-                      opacity: 0.7,
-                    }
-                  : {},
-            }}
-            options={{
-              lineNumbersMinChars: 2,
-              formatOnPaste: true,
-              scrollBeyondLastLine: false,
-              padding: { bottom: 100 },
-              minimap: { enabled: false },
-              readOnly,
-              tabSize: 2,
-              insertSpaces: true,
-              fixedOverflowWidgets: true,
-              contextmenu: true,
-              ...props.options,
-              scrollbar: {
-                alwaysConsumeMouseWheel: false,
-                ...props.options?.scrollbar,
-              },
-            }}
-            onMount={(editor: editor.IStandaloneCodeEditor) => {
-              setEditor(editor);
-            }}
-          />
-
-          <Box sx={{ position: 'absolute', bottom: 0, left: 0, right: 0 }}>
-            <Box ref={statusRef} sx={{ fontSize: 12, color: 'action.active' }} />
+        <Container sx={{ overflow: 'hidden', borderRadius: 1 }}>
+          <Box flex={1} height={0} p={1}>
+            <Resizable
+              width={Infinity}
+              height={300}
+              resizeHandles={['se']}
+              axis="y"
+              minConstraints={[Infinity, 300]}
+              maxConstraints={[Infinity, 1000]}
+              style={{ width: '100%' }}>
+              <Box
+                className={cx(props.className, settings?.vim && settings?.vimMode === 'normal' && 'vim-normal')}
+                component={Editor}
+                theme={themeName}
+                {...props}
+                sx={{
+                  width: 1,
+                  height: 1,
+                  '.monaco-editor': { outline: 'none !important' },
+                  '--vscode-menu-background': 'rgba(255,255,255,1)',
+                  '--vscode-widget-shadow': 'rgba(0,0,0,0.1)',
+                  '.overflowingContentWidgets': { position: 'relative', zIndex: theme.zIndex.tooltip },
+                  ...props.sx,
+                  '&.vim-normal .cursor.monaco-mouse-cursor-text':
+                    settings?.vimMode === 'normal'
+                      ? {
+                          width: '9px !important',
+                          backgroundColor: '#aeafad',
+                          borderColor: '#aeafad',
+                          color: '#515052',
+                          opacity: 0.7,
+                        }
+                      : {},
+                }}
+                options={{
+                  lineNumbersMinChars: 2,
+                  formatOnPaste: true,
+                  scrollBeyondLastLine: false,
+                  padding: { bottom: 100 },
+                  minimap: { enabled: false },
+                  readOnly,
+                  tabSize: 2,
+                  insertSpaces: true,
+                  fixedOverflowWidgets: true,
+                  contextmenu: true,
+                  ...props.options,
+                  scrollbar: {
+                    alwaysConsumeMouseWheel: false,
+                    ...props.options?.scrollbar,
+                  },
+                }}
+                onMount={(editor: editor.IStandaloneCodeEditor) => setEditor(editor)}
+              />
+            </Resizable>
           </Box>
 
           <Box
-            className="settings"
             sx={{
-              position: 'absolute',
-              right: 20,
-              top: 0,
-              zIndex: 1,
-              display: 'none',
+              display: 'flex',
               alignItems: 'center',
-              gap: 0.5,
+              px: 1,
+              gap: 1,
+              backgroundColor: theme.palette.mode === 'dark' ? '#1e1e1e' : '#f5f5f5',
+              boxShadow:
+                theme.palette.mode === 'dark' ? '0 1px 3px rgba(0, 0, 0, 0.7)' : '0 1px 5px rgba(0, 0, 0, 0.1)',
+              zIndex: 1,
+              color: '#999',
+              py: 0.25,
+              // borderTop: '1px solid rgba(0, 0, 0, 0.1)',
             }}>
-            <IconButton size="small" onClick={handle.active ? handle.exit : handle.enter}>
-              <Box
-                component={Icon}
-                icon={handle.active ? FullMinIcon : FullMaxIcon}
-                sx={{ color: 'action.active', fontSize: 20 }}
-              />
-            </IconButton>
+            <Box sx={{ flex: 1 }}>
+              <Box ref={statusRef} sx={{ fontSize: 10, width: 1, mt: '1px', color: '#999' }} />
+            </Box>
 
-            {!handle.active && (
-              <IconButton size="small" onClick={() => dialogState.open()}>
-                <Box component={Icon} icon={SettingIcon} sx={{ color: 'action.active', fontSize: 20 }} />
+            <Box sx={{ display: 'flex', gap: 1, zIndex: 1, alignItems: 'center' }}>
+              {settings?.vim && (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Box component={LogosVim} sx={{ fontSize: 12, color: '#999' }} />
+                  <Box sx={{ fontSize: 10, color: '#999' }}>{t('vimEnable')}</Box>
+                </Box>
+              )}
+
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  if (props.value) {
+                    formatCode(props.value).then((value) => props.onChange?.(value, e as any));
+                  }
+                }}
+                sx={{ borderRadius: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Box component={Icon} icon={ChecksIcon} sx={{ fontSize: 16, color: '#999' }} />
+                  <Box sx={{ fontSize: 10, color: '#999' }}>{t('prettier')}</Box>
+                </Box>
               </IconButton>
-            )}
+
+              <IconButton size="small" onClick={handle.active ? handle.exit : handle.enter}>
+                <Box
+                  component={Icon}
+                  icon={handle.active ? FullMinIcon : FullMaxIcon}
+                  sx={{ color: '#999', fontSize: 16 }}
+                />
+              </IconButton>
+
+              {!handle.active && (
+                <IconButton size="small" onClick={() => dialogState.open()}>
+                  <Box component={Icon} icon={SettingIcon} sx={{ color: 'action.active', fontSize: 20 }} />
+                </IconButton>
+              )}
+            </Box>
           </Box>
         </Container>
       );
@@ -256,17 +287,20 @@ const CodeEditor = forwardRef(
                 <Box>
                   <Switch
                     checked={Boolean(settings?.vim ?? false)}
-                    onChange={(_, checked) => setSettings((r) => ({ ...r!, vim: checked }))}
+                    onChange={(_, checked) => {
+                      setSettings((r) => ({ ...r!, vim: checked }));
+                      dialogState.close();
+                    }}
                   />
                 </Box>
               </Box>
 
-              <Divider />
+              {/* <Divider />
 
               <Box sx={{ p: 2 }} className="between">
                 <Box className="key">{t('format')}</Box>
                 <Box sx={{ color: 'action.disabled', fontSize: 12 }}>Shift + Alt/Option + F</Box>
-              </Box>
+              </Box> */}
             </Box>
           </DialogContent>
         </Settings>
@@ -281,14 +315,26 @@ const Full = styled(FullScreen)`
   position: relative;
 `;
 
-const Container = styled(Box)`
+const Container = styled(Stack)`
   width: 100%;
   height: 100%;
   position: relative;
+`;
 
-  &:hover {
-    .settings {
-      display: flex;
+const Resizable = styled(ResizableBox)`
+  .react-resizable-handle-se {
+    background: transparent;
+
+    &::after {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      right: 0;
+      bottom: 0;
+      background: repeating-linear-gradient(135deg, #bdbdbd, #bdbdbd 1px, transparent 2px, transparent 4px);
+      clip-path: polygon(100% 0, 0 100%, 100% 100%);
+      cursor: se-resize;
     }
   }
 `;
@@ -303,6 +349,14 @@ const Settings = styled(Dialog)`
   .key {
     font-weight: 500;
     font-size: 14px;
+  }
+
+  .MuiDialogTitle-root {
+    padding: 16px;
+  }
+
+  .MuiDialogContent-root {
+    padding: 16px !important;
   }
 `;
 
@@ -324,38 +378,15 @@ function FullScreenContainer({ locale, children }: { locale: string; children: R
         </Box>
       </Box>
 
-      <Stack
-        height={0}
-        flex={1}
-        gap={1}
-        sx={{
-          borderRadius: 1,
-          bgcolor: '#EFF6FF',
-        }}>
+      <Stack height={0} flex={1} gap={1} sx={{ borderRadius: 1, bgcolor: '#EFF6FF' }}>
         <Box
           border="1px solid #3B82F6"
           borderRadius={1}
           bgcolor="background.paper"
-          px={1.5}
-          py={1}
           width={1}
-          height={1}>
-          <Box
-            sx={{
-              width: 1,
-              height: 1,
-              zIndex: (theme) => theme.zIndex.tooltip,
-              '.monaco-editor': {
-                borderBottomLeftRadius: (theme) => theme.shape.borderRadius * 2,
-                borderBottomRightRadius: (theme) => theme.shape.borderRadius * 2,
-                '.overflow-guard': {
-                  borderBottomLeftRadius: (theme) => theme.shape.borderRadius * 2,
-                  borderBottomRightRadius: (theme) => theme.shape.borderRadius * 2,
-                },
-              },
-            }}>
-            {children}
-          </Box>
+          height={1}
+          sx={{ zIndex: (theme) => theme.zIndex.tooltip }}>
+          {children}
         </Box>
       </Stack>
     </Stack>
