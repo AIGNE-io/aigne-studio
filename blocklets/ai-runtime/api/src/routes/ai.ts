@@ -250,6 +250,8 @@ router.post('/call', user(), ensureComponentCallOr(auth()), compression(), async
       entryProjectId: projectId,
       user: { id: userId, did: userId, ...req.user },
       sessionId,
+      messageId: history.id,
+      clientTime: input.inputs?.$clientTime || new Date().toISOString(),
       queryCache: ({ blockletDid, projectId, projectRef, agentId, cacheKey }) =>
         ExecutionCache.findOne({
           where: omitBy({ blockletDid, projectId, projectRef, agentId, cacheKey }, (v) => v === undefined),

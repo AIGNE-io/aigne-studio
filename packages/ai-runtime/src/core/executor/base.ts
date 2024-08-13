@@ -33,6 +33,8 @@ export class ExecutorContext {
       | 'getMemoryVariables'
       | 'user'
       | 'sessionId'
+      | 'messageId'
+      | 'clientTime'
       | 'executor'
       | 'entryProjectId'
       | 'getSecret'
@@ -47,6 +49,8 @@ export class ExecutorContext {
     this.getMemoryVariables = options.getMemoryVariables;
     this.user = options.user;
     this.sessionId = options.sessionId;
+    this.messageId = options.messageId;
+    this.clientTime = options.clientTime;
     this.executor = options.executor;
     this.entryProjectId = options.entryProjectId;
     this.getSecret = options.getSecret;
@@ -90,6 +94,10 @@ export class ExecutorContext {
   callback: RunAssistantCallback;
 
   sessionId: string;
+
+  messageId: string;
+
+  clientTime: string;
 
   promise?: Promise<{
     agents: (GetAgentResult & { openApi: DatasetObject })[];
@@ -262,7 +270,10 @@ export abstract class AgentExecutorBase {
     return result;
   }
 
-  private cacheKey(agent: GetAgentResult, { inputs }: { inputs: { [key: string]: any } }) {
+  private cacheKey(
+    agent: GetAgentResult,
+    { inputs, userRelated }: { inputs: { [key: string]: any }; userRelated?: boolean }
+  ) {
     // TODO: support custom cache key by specifying inputs of agent
     const i = Object.fromEntries(
       (agent.parameters ?? [])
@@ -270,7 +281,38 @@ export abstract class AgentExecutorBase {
         .map((i) => [i.key, inputs[i.key]])
     );
 
-    return hash('md5', jsonStableStringify(i), 'hex');
+    return hash(
+      'md5',
+      jsonStableStringify({ ...i, '$sys.user.did': userRelated ? this.globalContext.$sys.user.did : undefined }),
+      'hex'
+    );
+  }
+
+  getLocalContext(agent: GetAgentResult, { inputs = {} }: Pick<AgentExecutorOptions, 'inputs'>) {
+    const executor = this;
+
+    return {
+      $sys: {
+        ...this.globalContext.$sys,
+        get cacheKey() {
+          return executor.cacheKey(agent, { inputs });
+        },
+        get cacheKeyUserRelated() {
+          return executor.cacheKey(agent, { inputs, userRelated: true });
+        },
+      },
+    };
+  }
+
+  private get globalContext() {
+    return {
+      $sys: {
+        sessionId: this.context.sessionId,
+        messageId: this.context.messageId,
+        clientTime: this.context.clientTime,
+        user: this.context.user,
+      },
+    };
   }
 
   private async prepareInputs(agent: GetAgentResult, { inputs, taskId, variables }: AgentExecutorOptions) {

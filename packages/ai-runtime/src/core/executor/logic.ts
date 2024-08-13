@@ -72,6 +72,7 @@ export class LogicAgentExecutor extends AgentExecutorBase {
         const renderCtx = {
           ...args,
           ...variables,
+          ...this.getLocalContext(agent, { inputs }),
           get: () => async (template: string, render: Function) => {
             const s = await render(template);
             return geti(renderCtx, s);
@@ -159,6 +160,7 @@ export class LogicAgentExecutor extends AgentExecutorBase {
         TextDecoderStream,
         EventSourceParserStream,
         ...args,
+        ...this.getLocalContext(agent, { inputs }),
       },
     });
 

@@ -16,10 +16,10 @@ export class BlockletAgentExecutor extends AgentExecutorBase {
     }
 
     const params: { [key: string]: string } = {
-      userId: this.context.user?.did || '',
+      userId: this.context.user.did,
       projectId: this.context.entryProjectId,
       sessionId: this.context.sessionId,
-      assistantId: agent.id || '',
+      assistantId: agent.id,
     };
 
     const response = await callBlockletApi(blocklet.agent.openApi, inputs || {}, { user: this.context.user, params });

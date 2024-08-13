@@ -41,7 +41,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase {
       throw new Error('Route Assistant Prompt is required');
     }
 
-    const message = await renderMessage(agent.prompt, inputs);
+    const message = await renderMessage(agent.prompt, { ...inputs, ...this.getLocalContext(agent, { inputs }) });
     const routes = agent?.routes || [];
 
     const blocklet = await this.context.getBlockletAgent(agent.id);

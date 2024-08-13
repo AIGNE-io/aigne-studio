@@ -41,7 +41,7 @@ export class LLMAgentExecutor extends AgentExecutorBase {
                     ?.split('\n')
                     .filter((i) => !i.startsWith('//'))
                     .join('\n') || '',
-                  inputs
+                  { ...inputs, ...this.getLocalContext(agent, { inputs }) }
                 ),
               };
             }
