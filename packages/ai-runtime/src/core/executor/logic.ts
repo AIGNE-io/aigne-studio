@@ -149,6 +149,10 @@ export class LogicAgentExecutor extends AgentExecutorBase {
         fetch,
         URL,
         call,
+        runAgent: async ({ agentId, inputs }: { agentId: string; inputs: { [key: string]: any } }) => {
+          const a = await this.context.getAgent({ ...agent.identity, agentId, rejectOnEmpty: true });
+          return this.context.execute(a, { taskId: nextTaskId(), parentTaskId: taskId, inputs });
+        },
         getComponentMountPoint,
         config: { env: pick(config.env, 'appId', 'appName', 'appDescription', 'appUrl') },
         crypto,
