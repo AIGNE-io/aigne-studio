@@ -78,7 +78,7 @@ export async function getOpenEmbed(_: Request, res: Response) {
           agent.outputVariables?.length === 1 &&
           agent.outputVariables.every((i) => i.name === RuntimeOutputVariable.text);
 
-        const scriptPath = isApiCall ? '/assets/open-embed/agent-call.mjs' : '/assets/open-embed/agent-view.mjs';
+        const scriptPath = isApiCall ? '/open-embed/agent-call/index.mjs' : '/open-embed/agent-view/index.mjs';
 
         const aid = stringifyIdentity({
           projectId: agent.project.id,

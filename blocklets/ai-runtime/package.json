@@ -114,7 +114,7 @@
     "typescript": "^5.5.4",
     "vite": "^5.3.5",
     "vite-node": "^2.0.5",
-    "vite-plugin-blocklet": "^0.8.15",
+    "vite-plugin-blocklet": "^0.9.1",
     "vite-plugin-svgr": "^4.2.0",
     "vite-tsconfig-paths": "^4.3.2",
     "zx": "^8.1.4"
