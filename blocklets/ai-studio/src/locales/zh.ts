@@ -1,4 +1,5 @@
 import flat from 'flat';
+import { string } from 'joi';
 
 export default flat({
   name: '名称',
@@ -767,4 +768,6 @@ export default flat({
     closed: '已关闭',
     closing: '关闭中',
   },
+  string: '字符串',
+  arrayItem: '数组项',
 });

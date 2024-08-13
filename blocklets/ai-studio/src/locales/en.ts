@@ -1,4 +1,5 @@
 import flat from 'flat';
+import { boolean } from 'joi';
 
 export default flat({
   name: 'Name',
@@ -773,4 +774,6 @@ export default flat({
     closed: 'Offline',
     closing: 'Closing',
   },
+  string: 'String',
+  arrayItem: 'Array Item',
 });
