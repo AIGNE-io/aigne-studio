@@ -37,6 +37,7 @@ const callInputSchema = Joi.object<{
   aid: string;
   sessionId?: string;
   inputs?: { [key: string]: any };
+  debug?: boolean;
 }>({
   blockletDid: Joi.string().empty(['', null]),
   working: Joi.boolean().empty(['', null]).default(false),
@@ -45,6 +46,7 @@ const callInputSchema = Joi.object<{
   inputs: Joi.object({
     $clientTime: Joi.string().isoDate().empty([null, '']),
   }).pattern(Joi.string(), Joi.any()),
+  debug: Joi.boolean().empty(['', null]),
 }).rename('parameters', 'inputs', { ignoreUndefined: true, override: true });
 
 router.post('/call', user(), ensureComponentCallOr(auth()), compression(), async (req, res) => {
@@ -163,8 +165,15 @@ router.post('/call', user(), ensureComponentCallOr(auth()), compression(), async
     projectRef,
   });
 
-  const emit: RunAssistantCallback = (input) => {
-    const data = { ...input, messageId: history.id };
+  const emit: RunAssistantCallback = (response) => {
+    // skip debug message in production
+    if (!input.debug && response.type !== AssistantResponseType.ERROR) {
+      if (response.type !== AssistantResponseType.CHUNK || (mainTaskId && response.taskId !== mainTaskId)) {
+        return;
+      }
+    }
+
+    const data = { ...response, messageId: history.id };
 
     if (data.type === AssistantResponseType.CHUNK || data.type === AssistantResponseType.INPUT) {
       if (data.type === AssistantResponseType.CHUNK) {
