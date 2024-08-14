@@ -43,7 +43,7 @@ export const FullScreen: React.FC<FullScreenProps> = ({ handle, children, onChan
 
   return (
     <>
-      <CSSTransition in={handle.active} timeout={500} unmountOnExit>
+      <CSSTransition in={handle.active} timeout={500} classNames="full-screen" unmountOnExit nodeRef={handle.node}>
         <Box ref={handle.node} className={`full-screen-container ${className}`}>
           {handle.active && children}
         </Box>

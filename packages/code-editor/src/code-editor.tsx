@@ -197,7 +197,6 @@ const CodeEditor = forwardRef(
           resizeHandles={handle.active || !settings?.adjustHeight ? [] : ['se']}
           axis="y"
           minConstraints={[Infinity, 300]}
-          maxConstraints={[Infinity, 1000]}
           // @ts-ignore
           onResize={(_e, data) => {
             if (settings?.memoryHeight) setSettings((r) => ({ ...r!, currentHeight: data.size.height }));
