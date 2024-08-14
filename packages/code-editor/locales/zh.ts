@@ -7,4 +7,6 @@ export default flat({
   vim: 'Vim 模式',
   prettier: '格式化',
   vimEnable: '启用 VIM',
+  adjustHeight: '调整高度',
+  memoryHeight: '记忆高度',
 });

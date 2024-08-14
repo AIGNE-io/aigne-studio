@@ -7,4 +7,6 @@ export default flat({
   vim: 'Vim Mode',
   prettier: 'Prettier',
   vimEnable: 'VIM enabled',
+  adjustHeight: 'Adjust Height',
+  memoryHeight: 'Memory Height',
 });

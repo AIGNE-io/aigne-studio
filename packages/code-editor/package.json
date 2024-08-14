@@ -61,9 +61,9 @@
     "monaco-vim": "^0.4.1",
     "nanoid": "^3.3.7",
     "prettier": "^3.3.3",
-    "react-full-screen": "^1.1.1",
     "react-hook-form": "^7.52.2",
     "react-resizable": "^3.0.5",
+    "react-transition-group": "^4.4.5",
     "ufo": "^1.5.4"
   },
   "peerDependencies": {

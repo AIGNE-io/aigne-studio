@@ -15,8 +15,10 @@ import {
   Dialog,
   DialogContent,
   DialogTitle,
+  Divider,
   IconButton,
   Stack,
+  Switch,
   Tooltip,
   styled,
   useTheme,
@@ -26,17 +28,12 @@ import useLocalStorageState from 'ahooks/lib/useLocalStorageState';
 import { get } from 'lodash';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { editor } from 'monaco-editor';
-import { customAlphabet } from 'nanoid';
-import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { FullScreen, useFullScreenHandle } from 'react-full-screen';
+import React, { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { ResizableBox } from 'react-resizable';
 
 import { translations } from '../locales';
-import Switch from './components/switch';
+import { FullScreen, useFullScreenHandle } from './components/react-full-screen';
 
-const randomId = customAlphabet('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
-const id = randomId();
-const themeName = `customTheme${id}`;
 const prettier = Promise.all([
   import('prettier'),
   import('prettier/plugins/typescript'),
@@ -46,19 +43,12 @@ const prettier = Promise.all([
 function useMobileWidth() {
   const theme = useTheme();
   const isBreakpointsDownSm = useMediaQuery(theme.breakpoints.down('md'));
-  const minWidth = isBreakpointsDownSm ? 300 : theme.breakpoints.values.sm;
-  return { minWidth };
+  return { minWidth: isBreakpointsDownSm ? 300 : theme.breakpoints.values.sm };
 }
 
-const useLocaleContext = (locale: string) => {
-  return {
-    t: (key: string) => {
-      const translation = (translations as any)[locale];
-      const translationValue = get(translation, key);
-      return translationValue;
-    },
-  };
-};
+const useLocaleContext = (locale: string) => ({
+  t: (key: string) => get((translations as any)?.[locale], key),
+});
 
 const formatCode = async (code: string) => {
   return prettier.then(async ([prettier, typescriptPlugin, estreePlugin]) => {
@@ -78,7 +68,7 @@ const formatCode = async (code: string) => {
 
 let monacoConfigured = false;
 
-function setupMonaco(monaco: typeof import('monaco-editor')) {
+function setupMonaco({ themeName, monaco }: { themeName: string; monaco: typeof import('monaco-editor') }) {
   if (monacoConfigured) return;
   monacoConfigured = true;
 
@@ -95,7 +85,7 @@ function setupMonaco(monaco: typeof import('monaco-editor')) {
 
   monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
     noSemanticValidation: true,
-    noSyntaxValidation: true, // This line disables errors in jsx tags like <div>, etc.
+    noSyntaxValidation: true,
   });
 
   monaco.editor.defineTheme(themeName, {
@@ -110,68 +100,110 @@ function setupMonaco(monaco: typeof import('monaco-editor')) {
   monaco.editor.setTheme(themeName);
 }
 
+const useVimMode = (
+  editorInstance: ReturnType<(typeof import('monaco-editor'))['editor']['create']>,
+  statusRef: React.RefObject<HTMLElement>,
+  settings?: {
+    vim: boolean;
+    vimMode?: 'insert' | 'normal';
+    adjustHeight: boolean;
+    memoryHeight: boolean;
+    currentHeight: number;
+  },
+  setSettings?: any
+) => {
+  const vimModeRef = useRef<any>();
+
+  useEffect(() => {
+    if (settings?.vim && editorInstance) {
+      import('monaco-vim').then(({ initVimMode }) => {
+        vimModeRef.current = initVimMode(editorInstance, statusRef.current!);
+        setSettings?.((prev: { vimMode: string }) => ({ ...prev, vimMode: 'normal' }));
+        vimModeRef.current.on('vim-mode-change', ({ mode }: any) =>
+          setSettings?.((prev: { vimMode: string }) => ({ ...prev, vimMode: mode }))
+        );
+      });
+    } else {
+      vimModeRef.current?.dispose();
+    }
+
+    return () => vimModeRef.current?.dispose();
+  }, [settings?.vim, editorInstance]);
+};
+
+const useEditorSettings = (keyId: string) => {
+  return useLocalStorageState(`code-editor-${keyId}`, {
+    defaultValue: { vim: false, vimMode: undefined, adjustHeight: true, memoryHeight: true, currentHeight: 300 },
+  });
+};
+
 const CodeEditor = forwardRef(
   (
     {
+      keyId,
       readOnly,
       maxHeight,
       locale = 'en',
       ...props
-    }: { readOnly?: boolean; maxHeight?: number; locale: string } & BoxProps<typeof Editor>,
+    }: { keyId: string; readOnly?: boolean; maxHeight?: number; locale: string } & BoxProps<typeof Editor>,
     ref
   ) => {
+    const themeName = `customTheme${keyId}`;
+
     const { t } = useLocaleContext(locale);
     const [editor, setEditor] = useState<ReturnType<(typeof import('monaco-editor'))['editor']['create']>>();
     const monaco = useMonaco();
     const theme = useTheme();
     const handle = useFullScreenHandle();
-    const [settings, setSettings] = useLocalStorageState<{ vim: boolean; vimMode?: 'insert' | 'normal' }>(
-      'editor.vim.enable',
-      { defaultValue: { vim: false, vimMode: undefined } }
-    );
+    const [settings, setSettings] = useEditorSettings(keyId);
+
     const isBreakpointsDownSm = useMediaQuery(theme.breakpoints.down('md'));
     const { minWidth } = useMobileWidth();
     const dialogState = usePopupState({ variant: 'dialog' });
 
     const statusRef = useRef<HTMLElement>(null);
-    const vimModeRef = useRef<any>();
 
     useEffect(() => {
-      if (monaco) setupMonaco(monaco);
+      if (monaco) setupMonaco({ monaco, themeName });
     }, [monaco]);
 
-    useEffect(() => {
-      if (settings?.vim) {
-        if (editor) {
-          import('monaco-vim').then(({ initVimMode }) => {
-            vimModeRef.current = initVimMode(editor, statusRef.current!);
-            setSettings((r) => ({ ...r!, vimMode: 'normal' }));
-            vimModeRef.current.on('vim-mode-change', ({ mode }: any) => setSettings((r) => ({ ...r!, vimMode: mode })));
-          });
-        }
-      } else {
-        vimModeRef.current?.dispose();
+    useVimMode(editor!, statusRef, settings, setSettings);
+
+    useImperativeHandle(ref, () => ({}));
+
+    const currentHeight = useMemo(() => {
+      if (handle.active) {
+        return Infinity;
       }
-    }, [settings?.vim, editor]);
 
-    useEffect(() => {
-      return () => vimModeRef.current?.dispose();
-    }, []);
+      if (settings?.adjustHeight && settings?.memoryHeight) {
+        return settings?.currentHeight;
+      }
 
-    useImperativeHandle(ref, () => {});
+      return 300;
+    }, [
+      handle.active,
+      settings?.currentHeight,
+      settings?.adjustHeight,
+      settings?.memoryHeight,
+      settings?.currentHeight,
+    ]);
 
     const editorRender = () => {
       return (
-        <Container sx={{ overflow: 'hidden', borderRadius: 1 }}>
-          <Box flex={1} height={0} p={1}>
-            <Resizable
-              width={Infinity}
-              height={300}
-              resizeHandles={['se']}
-              axis="y"
-              minConstraints={[Infinity, 300]}
-              maxConstraints={[Infinity, 1000]}
-              style={{ width: '100%' }}>
+        <Resizable
+          width={Infinity}
+          height={currentHeight}
+          resizeHandles={handle.active || !settings?.adjustHeight ? [] : ['se']}
+          axis="y"
+          minConstraints={[Infinity, 300]}
+          maxConstraints={[Infinity, 1000]}
+          // @ts-ignore
+          onResize={(_e, data) => {
+            if (settings?.memoryHeight) setSettings((r) => ({ ...r!, currentHeight: data.size.height }));
+          }}>
+          <Container sx={{ overflow: 'hidden', borderRadius: 1 }}>
+            <Box flex={1} height={0} p={1}>
               <Box
                 className={cx(props.className, settings?.vim && settings?.vimMode === 'normal' && 'vim-normal')}
                 component={Editor}
@@ -215,66 +247,64 @@ const CodeEditor = forwardRef(
                 }}
                 onMount={(editor: editor.IStandaloneCodeEditor) => setEditor(editor)}
               />
-            </Resizable>
-          </Box>
-
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              px: 1,
-              gap: 1,
-              backgroundColor: theme.palette.mode === 'dark' ? '#1e1e1e' : '#f5f5f5',
-              boxShadow:
-                theme.palette.mode === 'dark' ? '0 1px 3px rgba(0, 0, 0, 0.7)' : '0 1px 5px rgba(0, 0, 0, 0.1)',
-              zIndex: 1,
-              color: '#999',
-              py: 0.25,
-              // borderTop: '1px solid rgba(0, 0, 0, 0.1)',
-            }}>
-            <Box sx={{ flex: 1 }}>
-              <Box ref={statusRef} sx={{ fontSize: 10, width: 1, mt: '1px', color: '#999' }} />
             </Box>
 
-            <Box sx={{ display: 'flex', gap: 1, zIndex: 1, alignItems: 'center' }}>
-              {settings?.vim && (
-                <Tooltip title={t('vimEnable')}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                px: 1,
+                gap: 1,
+                backgroundColor: theme.palette.mode === 'dark' ? '#1e1e1e' : '#f5f5f5',
+                boxShadow:
+                  theme.palette.mode === 'dark' ? '0 1px 3px rgba(0, 0, 0, 0.7)' : '0 1px 5px rgba(0, 0, 0, 0.1)',
+                zIndex: 1,
+                color: '#999',
+                py: 0.25,
+                // borderTop: '1px solid rgba(0, 0, 0, 0.1)',
+              }}>
+              <Box sx={{ flex: 1 }}>
+                <Box ref={statusRef} sx={{ fontSize: 10, width: 1, mt: '1px', color: '#999' }} />
+              </Box>
+
+              <Box sx={{ display: 'flex', gap: 1, zIndex: 1, alignItems: 'center' }}>
+                {settings?.vim && (
+                  <Tooltip title={t('vimEnable')}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <Box component={Icon} icon={LogosVim} sx={{ fontSize: 14, color: '#999' }} />
+                    </Box>
+                  </Tooltip>
+                )}
+
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    if (props.value) {
+                      formatCode(props.value).then((value) => props.onChange?.(value, e as any));
+                    }
+                  }}
+                  sx={{ borderRadius: 1 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    <Box component={Icon} icon={LogosVim} sx={{ fontSize: 14, color: '#999' }} />
+                    <Box component={Icon} icon={ChecksIcon} sx={{ fontSize: 16, color: '#999' }} />
+                    <Box sx={{ fontSize: 12, color: '#999' }}>{t('prettier')}</Box>
                   </Box>
-                </Tooltip>
-              )}
+                </IconButton>
 
-              <IconButton
-                size="small"
-                onClick={(e) => {
-                  if (props.value) {
-                    formatCode(props.value).then((value) => props.onChange?.(value, e as any));
-                  }
-                }}
-                sx={{ borderRadius: 1 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <Box component={Icon} icon={ChecksIcon} sx={{ fontSize: 16, color: '#999' }} />
-                  <Box sx={{ fontSize: 12, color: '#999' }}>{t('prettier')}</Box>
-                </Box>
-              </IconButton>
+                <IconButton size="small" onClick={handle.active ? handle.exit : handle.enter}>
+                  <Box
+                    component={Icon}
+                    icon={handle.active ? FullMinIcon : FullMaxIcon}
+                    sx={{ color: '#999', fontSize: 16 }}
+                  />
+                </IconButton>
 
-              <IconButton size="small" onClick={handle.active ? handle.exit : handle.enter}>
-                <Box
-                  component={Icon}
-                  icon={handle.active ? FullMinIcon : FullMaxIcon}
-                  sx={{ color: '#999', fontSize: 16 }}
-                />
-              </IconButton>
-
-              {!handle.active && (
                 <IconButton size="small" onClick={() => dialogState.open()}>
                   <Box component={Icon} icon={SettingIcon} sx={{ color: 'action.active', fontSize: 20 }} />
                 </IconButton>
-              )}
+              </Box>
             </Box>
-          </Box>
-        </Container>
+          </Container>
+        </Resizable>
       );
     };
 
@@ -284,7 +314,12 @@ const CodeEditor = forwardRef(
           {handle.active ? <FullScreenContainer locale={locale}>{editorRender()}</FullScreenContainer> : editorRender()}
         </Full>
 
-        <Settings component="form" fullScreen={isBreakpointsDownSm} style={{ minWidth }} {...bindDialog(dialogState)}>
+        <Settings
+          component="form"
+          fullScreen={isBreakpointsDownSm}
+          style={{ minWidth }}
+          {...bindDialog(dialogState)}
+          sx={{ zIndex: 15002 }}>
           <DialogTitle className="between">
             <Box>{t('settings')}</Box>
             <IconButton size="small" onClick={() => dialogState.close()}>
@@ -301,18 +336,42 @@ const CodeEditor = forwardRef(
                     checked={Boolean(settings?.vim ?? false)}
                     onChange={(_, checked) => {
                       setSettings((r) => ({ ...r!, vim: checked }));
-                      dialogState.close();
                     }}
                   />
                 </Box>
               </Box>
 
-              {/* <Divider />
+              <Divider />
 
-              <Box sx={{ p: 2 }} className="between">
-                <Box className="key">{t('format')}</Box>
-                <Box sx={{ color: 'action.disabled', fontSize: 12 }}>Shift + Alt/Option + F</Box>
-              </Box> */}
+              <Box sx={{ p: 1 }} className="between">
+                <Box className="key">{t('adjustHeight')}</Box>
+                <Box>
+                  <Switch
+                    checked={Boolean(settings?.adjustHeight ?? false)}
+                    onChange={(_, checked) => {
+                      setSettings((r) => ({ ...r!, adjustHeight: checked }));
+                    }}
+                  />
+                </Box>
+              </Box>
+
+              <Divider />
+
+              <Box sx={{ p: 1 }} className="between">
+                <Box className="key">{t('memoryHeight')}</Box>
+                <Box>
+                  <Switch
+                    checked={Boolean(settings?.memoryHeight ?? false)}
+                    onChange={(_, checked) => {
+                      setSettings((r) => ({
+                        ...r!,
+                        memoryHeight: checked,
+                        currentHeight: checked ? r?.currentHeight || 300 : 300,
+                      }));
+                    }}
+                  />
+                </Box>
+              </Box>
             </Box>
           </DialogContent>
         </Settings>
@@ -334,14 +393,18 @@ const Container = styled(Stack)`
 `;
 
 const Resizable = styled(ResizableBox)`
+  width: 100%;
+  height: 100%;
+
   .react-resizable-handle-se {
     background: transparent;
+    z-index: 2;
 
     &::after {
       content: '';
       position: absolute;
-      width: 16px;
-      height: 16px;
+      width: 14px;
+      height: 14px;
       right: 0;
       bottom: 0;
       background: repeating-linear-gradient(135deg, #bdbdbd, #bdbdbd 1px, transparent 2px, transparent 4px);
@@ -376,7 +439,9 @@ function FullScreenContainer({ locale, children }: { locale: string; children: R
   const { t } = useLocaleContext(locale);
 
   return (
-    <Stack gap={1} sx={{ borderRadius: 1, bgcolor: '#EFF6FF', px: 2, py: 1.5, width: 1, height: 1 }}>
+    <Stack
+      gap={1}
+      sx={{ borderRadius: 1, bgcolor: '#EFF6FF', px: 2, py: 1.5, width: 1, height: 1, overflow: 'hidden' }}>
       <Box className="between" whiteSpace="nowrap" gap={2}>
         <Box
           display="flex"

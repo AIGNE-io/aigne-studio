@@ -6,11 +6,15 @@ import { useEffect } from 'react';
 import { useAssistantCompare } from 'src/pages/project/state';
 
 export default function FunctionCodeEditor({
+  projectId,
+  gitRef,
   value,
   readOnly,
   compareValue,
   isRemoteCompare,
 }: {
+  projectId: string;
+  gitRef: string;
   value: FunctionAssistantYjs;
   readOnly?: boolean;
   compareValue?: FunctionAssistantYjs;
@@ -54,6 +58,7 @@ return {
           },
         }}>
         <CodeEditor
+          keyId={`${projectId}-${gitRef}-${value.id}`}
           readOnly={readOnly}
           language="typescript"
           path="function.ts"
