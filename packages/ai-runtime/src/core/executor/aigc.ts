@@ -1,10 +1,11 @@
 import { ImageAssistant } from '../../types';
-import { GetAgentResult } from '../assistant/type';
 import { renderMessage } from '../utils/render-message';
-import { AgentExecutorBase, AgentExecutorOptions } from './base';
+import { AgentExecutorBase } from './base';
 
-export class AIGCAgentExecutor extends AgentExecutorBase {
-  override async process(agent: ImageAssistant & GetAgentResult, { inputs }: AgentExecutorOptions) {
+export class AIGCAgentExecutor extends AgentExecutorBase<ImageAssistant> {
+  override async process({ inputs }: { inputs: { [key: string]: any } }) {
+    const { agent } = this;
+
     if (!agent.prompt?.length) throw new Error('Prompt cannot be empty');
 
     const prompt = await renderMessage(
@@ -12,7 +13,7 @@ export class AIGCAgentExecutor extends AgentExecutorBase {
         .split('\n')
         .filter((i) => !i.startsWith('//'))
         .join('\n'),
-      { ...inputs, ...this.getLocalContext(agent, { inputs }) }
+      { ...inputs, ...this.globalContext }
     );
 
     const { data } = await this.context.callAIImage({

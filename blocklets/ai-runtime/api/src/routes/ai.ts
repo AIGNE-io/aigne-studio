@@ -236,34 +236,38 @@ router.post('/call', user(), ensureComponentCallOr(auth()), compression(), async
       },
     });
 
-    const executor = new RuntimeExecutor({
-      getSecret: ({ targetProjectId, targetAgentId, targetInputKey }) =>
-        Secrets.findOne({
-          where: { projectId, targetProjectId, targetAgentId, targetInputKey },
-          rejectOnEmpty: new RuntimeError(RuntimeErrorType.MissingSecretError, 'Missing required secret'),
-        }),
-      callback: emit,
-      callAI,
-      callAIImage,
-      getMemoryVariables,
-      getAgent,
-      entryProjectId: projectId,
-      user: { id: userId, did: userId, ...req.user },
-      sessionId,
-      messageId: history.id,
-      clientTime: input.inputs?.$clientTime || new Date().toISOString(),
-      queryCache: ({ blockletDid, projectId, projectRef, agentId, cacheKey }) =>
-        ExecutionCache.findOne({
-          where: omitBy({ blockletDid, projectId, projectRef, agentId, cacheKey }, (v) => v === undefined),
-        }),
-      setCache: ({ blockletDid, projectId, projectRef, agentId, cacheKey, inputs, outputs }) =>
-        ExecutionCache.create({ blockletDid, projectId, projectRef, agentId, cacheKey, inputs, outputs }),
-    });
+    const executor = new RuntimeExecutor(
+      {
+        getSecret: ({ targetProjectId, targetAgentId, targetInputKey }) =>
+          Secrets.findOne({
+            where: { projectId, targetProjectId, targetAgentId, targetInputKey },
+            rejectOnEmpty: new RuntimeError(RuntimeErrorType.MissingSecretError, 'Missing required secret'),
+          }),
+        callback: emit,
+        callAI,
+        callAIImage,
+        getMemoryVariables,
+        getAgent,
+        entryProjectId: projectId,
+        user: { id: userId, did: userId, ...req.user },
+        sessionId,
+        messageId: history.id,
+        clientTime: input.inputs?.$clientTime || new Date().toISOString(),
+        queryCache: ({ blockletDid, projectId, projectRef, agentId, cacheKey }) =>
+          ExecutionCache.findOne({
+            where: omitBy({ blockletDid, projectId, projectRef, agentId, cacheKey }, (v) => v === undefined),
+          }),
+        setCache: ({ blockletDid, projectId, projectRef, agentId, cacheKey, inputs, outputs }) =>
+          ExecutionCache.create({ blockletDid, projectId, projectRef, agentId, cacheKey, inputs, outputs }),
+      },
+      agent,
+      {
+        inputs: input.inputs,
+        taskId,
+      }
+    );
 
-    const result = await executor.execute(agent, {
-      inputs: input.inputs,
-      taskId,
-    });
+    const result = await executor.execute();
 
     const llmResponseStream =
       result?.[RuntimeOutputVariable.llmResponseStream] instanceof ReadableStream

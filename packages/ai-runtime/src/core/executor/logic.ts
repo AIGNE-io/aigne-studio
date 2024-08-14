@@ -19,19 +19,23 @@ import { TranspileTs } from '../../builtin/complete';
 import { AssistantResponseType, FunctionAssistant } from '../../types';
 import { renderMustacheStream } from '../../types/assistant/mustache/ReadableMustache';
 import { BuiltinModules } from '../assistant/builtin';
-import { GetAgentResult } from '../assistant/type';
 import { geti } from '../utils/geti';
 import { renderMessage } from '../utils/render-message';
 import { nextTaskId } from '../utils/task-id';
-import { AgentExecutorBase, AgentExecutorOptions } from './base';
+import { AgentExecutorBase } from './base';
 
 function parseJSONInVM(str: string) {
   const vm = new VM({});
   return vm.run(`const json = ${str};json`);
 }
 
-export class LogicAgentExecutor extends AgentExecutorBase {
-  override async process(agent: FunctionAssistant & GetAgentResult, { inputs, taskId }: AgentExecutorOptions) {
+export class LogicAgentExecutor extends AgentExecutorBase<FunctionAssistant> {
+  override async process({ inputs }: { inputs: { [key: string]: any } }) {
+    const {
+      agent,
+      options: { taskId },
+    } = this;
+
     if (!agent.code) throw new Error(`Assistant ${agent.id}'s code is empty`);
     const code = await TranspileTs(`\
     export default async function(args) {
@@ -72,7 +76,7 @@ export class LogicAgentExecutor extends AgentExecutorBase {
         const renderCtx = {
           ...args,
           ...variables,
-          ...this.getLocalContext(agent, { inputs }),
+          ...this.globalContext,
           get: () => async (template: string, render: Function) => {
             const s = await render(template);
             return geti(renderCtx, s);
@@ -113,7 +117,7 @@ export class LogicAgentExecutor extends AgentExecutorBase {
           object = newObj;
 
           try {
-            const obj = await this.validateOutputs(agent, { outputs: object, partial: true });
+            const obj = await this.validateOutputs({ outputs: object, partial: true });
 
             this.context.callback?.({
               type: AssistantResponseType.CHUNK,
@@ -164,7 +168,7 @@ export class LogicAgentExecutor extends AgentExecutorBase {
         TextDecoderStream,
         EventSourceParserStream,
         ...args,
-        ...this.getLocalContext(agent, { inputs }),
+        ...this.globalContext,
       },
     });
 

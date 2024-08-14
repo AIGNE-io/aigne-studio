@@ -14,19 +14,20 @@ import {
   metadataOutputFormatPrompt,
   metadataStreamOutputFormatPrompt,
 } from '../assistant/generate-output';
-import { GetAgentResult } from '../assistant/type';
 import { renderMessage } from '../utils/render-message';
 import retry from '../utils/retry';
 import { nextTaskId } from '../utils/task-id';
-import { AgentExecutorBase, AgentExecutorOptions } from './base';
+import { AgentExecutorBase } from './base';
 
-export class LLMAgentExecutor extends AgentExecutorBase {
+export class LLMAgentExecutor extends AgentExecutorBase<PromptAssistant> {
   private retryTimes = 0;
 
-  override async process(
-    agent: PromptAssistant & GetAgentResult,
-    { inputs, taskId, parentTaskId }: AgentExecutorOptions
-  ) {
+  override async process({ inputs }: { inputs: { [key: string]: any } }) {
+    const {
+      agent,
+      options: { taskId, parentTaskId },
+    } = this;
+
     const messages = (
       await Promise.all(
         (agent.prompts ?? [])
@@ -41,7 +42,7 @@ export class LLMAgentExecutor extends AgentExecutorBase {
                     ?.split('\n')
                     .filter((i) => !i.startsWith('//'))
                     .join('\n') || '',
-                  { ...inputs, ...this.getLocalContext(agent, { inputs }) }
+                  { ...inputs, ...this.globalContext }
                 ),
               };
             }
@@ -123,16 +124,18 @@ export class LLMAgentExecutor extends AgentExecutorBase {
 
       const chatCompletionChunk = executor
         ? ((
-            await this.context.executor(this.context).execute(executor, {
-              inputs: {
-                ...inputs,
-                ...agent.executor?.inputValues,
-                [executor.parameters?.find((i) => i.type === 'llmInputMessages' && !i.hidden)?.key!]:
-                  messagesWithSystemPrompt,
-              },
-              taskId: nextTaskId(),
-              parentTaskId: taskId,
-            })
+            await this.context
+              .executor(executor, {
+                inputs: {
+                  ...inputs,
+                  ...agent.executor?.inputValues,
+                  [executor.parameters?.find((i) => i.type === 'llmInputMessages' && !i.hidden)?.key!]:
+                    messagesWithSystemPrompt,
+                },
+                taskId: nextTaskId(),
+                parentTaskId: taskId,
+              })
+              .execute()
           )[RuntimeOutputVariable.llmResponseStream] as ReadableStream<ChatCompletionResponse>)
         : await this.context.callAI({
             assistant: agent,
@@ -200,7 +203,7 @@ export class LLMAgentExecutor extends AgentExecutorBase {
       }
 
       try {
-        return await super.validateOutputs(agent, {
+        return await super.validateOutputs({
           inputs,
           outputs: { ...json, $text: result },
         });

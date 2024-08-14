@@ -14,6 +14,8 @@ import {
   RuntimeOutputProfile,
   RuntimeOutputVariable,
   Variable,
+  VariableScope,
+  isUserInputParameter,
   outputVariablesToJoiSchema,
 } from '../../types';
 import { isNonNullable } from '../../utils/is-non-nullable';
@@ -126,10 +128,10 @@ export class ExecutorContext {
 
   maxRetries = 5;
 
-  executor: (context?: ExecutorContext) => AgentExecutorBase;
+  executor: <T extends GetAgentResult>(agent: T, options: AgentExecutorOptions) => AgentExecutorBase<T>;
 
-  async execute(...args: Parameters<AgentExecutorBase['execute']>) {
-    return this.executor(this).execute(...args);
+  async execute<T extends GetAgentResult>(agent: T, options: AgentExecutorOptions) {
+    return this.executor(agent, options).execute();
   }
 
   copy(options: Partial<ExecutorContext>) {
@@ -162,12 +164,18 @@ const getUserHeader = (user: any) => {
   };
 };
 
-export abstract class AgentExecutorBase {
-  constructor(public readonly context: ExecutorContext) {}
+export abstract class AgentExecutorBase<T> {
+  constructor(
+    public readonly context: ExecutorContext,
+    public readonly agent: GetAgentResult & T,
+    public readonly options: AgentExecutorOptions
+  ) {}
 
-  abstract process(agent: GetAgentResult, options: AgentExecutorOptions): Promise<any>;
+  abstract process(options: { inputs: { [key: string]: any } }): Promise<any>;
 
-  async execute(agent: GetAgentResult, options: AgentExecutorOptions): Promise<any> {
+  async execute(): Promise<any> {
+    const { agent, options } = this;
+
     this.context.callback?.({
       type: AssistantResponseType.INPUT,
       assistantId: agent.id,
@@ -177,9 +185,9 @@ export abstract class AgentExecutorBase {
       inputParameters: options.inputs,
     });
 
-    const inputs = await this.prepareInputs(agent, options);
+    const inputs = await this.prepareInputs();
 
-    const partial = await this.validateOutputs(agent, { inputs, partial: true });
+    const partial = await this.validateOutputs({ inputs, partial: true });
     if (!isEmpty(partial)) {
       this.context.callback?.({
         type: AssistantResponseType.CHUNK,
@@ -210,11 +218,11 @@ export abstract class AgentExecutorBase {
     let result: any;
 
     // query cache if the agent has cache enabled
-    const cacheKey = this.cacheKey(agent, { inputs: options.inputs || {} });
+    const cacheKey = this.globalContext.$cache.key;
     if (agent.cache?.enable && agent.identity) {
       try {
         const cache = await this.context.queryCache({ ...agent.identity, cacheKey });
-        result = await this.validateOutputs(agent, { inputs, outputs: cache?.outputs });
+        result = await this.validateOutputs({ inputs, outputs: cache?.outputs });
         if (isEmpty(result)) result = undefined;
       } catch (error) {
         logger.error('query and validate cache error', { error });
@@ -231,8 +239,8 @@ export abstract class AgentExecutorBase {
     }
 
     if (result === undefined) {
-      const outputs = await this.process(agent, { ...options, inputs });
-      result = await this.validateOutputs(agent, { inputs, outputs });
+      const outputs = await this.process({ inputs });
+      result = await this.validateOutputs({ inputs, outputs });
 
       // set cache if needed
       if (!isEmpty(result) && agent.cache?.enable && agent.identity) {
@@ -270,15 +278,15 @@ export abstract class AgentExecutorBase {
     return result;
   }
 
-  private cacheKey(
-    agent: GetAgentResult,
-    { inputs, userRelated }: { inputs: { [key: string]: any }; userRelated?: boolean }
-  ) {
+  private cacheKey({ userRelated, onlyUserInputs }: { userRelated?: boolean; onlyUserInputs?: boolean } = {}) {
     // TODO: support custom cache key by specifying inputs of agent
     const i = Object.fromEntries(
-      (agent.parameters ?? [])
-        .filter((i): i is typeof i & { key: string } => !!i.key && !i.hidden)
-        .map((i) => [i.key, inputs[i.key]])
+      (this.agent.parameters ?? [])
+        .filter(
+          (i): i is typeof i & { key: string } =>
+            !!i.key && !i.hidden && (onlyUserInputs ? isUserInputParameter(i) : true)
+        )
+        .map((i) => [i.key, this.options.inputs?.[i.key]])
     );
 
     return hash(
@@ -288,23 +296,10 @@ export abstract class AgentExecutorBase {
     );
   }
 
-  getLocalContext(agent: GetAgentResult, { inputs = {} }: Pick<AgentExecutorOptions, 'inputs'>) {
+  get globalContext() {
     const executor = this;
+    const { agent } = this;
 
-    return {
-      $sys: {
-        ...this.globalContext.$sys,
-        get cacheKey() {
-          return executor.cacheKey(agent, { inputs });
-        },
-        get cacheKeyUserRelated() {
-          return executor.cacheKey(agent, { inputs, userRelated: true });
-        },
-      },
-    };
-  }
-
-  private get globalContext() {
     return {
       $sys: {
         sessionId: this.context.sessionId,
@@ -312,10 +307,40 @@ export abstract class AgentExecutorBase {
         clientTime: this.context.clientTime,
         user: this.context.user,
       },
+      $storage: {
+        async getItem(key: string, { scope = 'global', onlyOne }: { scope?: VariableScope; onlyOne?: boolean } = {}) {
+          return executor.getMemory({ key, agentId: agent.id, scope, onlyOne });
+        },
+        async setItem(
+          key: string,
+          value: any,
+          { scope = 'global', onlyOne }: { scope?: VariableScope; onlyOne?: boolean } = {}
+        ) {
+          return executor.setMemory({ key, data: value, agentId: agent.id, scope, reset: onlyOne });
+        },
+      },
+      $cache: {
+        get key() {
+          return executor.cacheKey({ onlyUserInputs: true });
+        },
+        async getItem(key: string, { agentId }: { agentId?: string } = {}) {
+          if (agent.type === 'blocklet') throw new Error('Unsupported calling query cache in blocklet agent');
+          return executor.context.queryCache({
+            ...agent.identity,
+            agentId: agentId || agent.identity.agentId,
+            cacheKey: key,
+          });
+        },
+      },
     };
   }
 
-  private async prepareInputs(agent: GetAgentResult, { inputs, taskId, variables }: AgentExecutorOptions) {
+  private async prepareInputs() {
+    const {
+      agent,
+      options: { inputs, taskId, variables },
+    } = this;
+
     const inputParameters = Object.fromEntries(
       await Promise.all(
         (agent.parameters || [])
@@ -335,7 +360,7 @@ export abstract class AgentExecutorBase {
     );
     const inputVariables: { [key: string]: any } = { ...(inputs || {}), ...inputParameters };
 
-    const partial = await this.validateOutputs(agent, { inputs: inputVariables, partial: true });
+    const partial = await this.validateOutputs({ inputs: inputVariables, partial: true });
     if (!isEmpty(partial)) {
       this.context.callback?.({
         type: AssistantResponseType.CHUNK,
@@ -395,12 +420,14 @@ export abstract class AgentExecutorBase {
           });
           if (!toolAgent) continue;
 
-          const result = await this.context.executor(this.context).execute(toolAgent, {
-            inputs: tool.parameters,
-            variables: { ...inputParameters, ...inputVariables },
-            taskId: currentTaskId,
-            parentTaskId: taskId,
-          });
+          const result = await this.context
+            .executor(toolAgent, {
+              inputs: tool.parameters,
+              variables: { ...inputParameters, ...inputVariables },
+              taskId: currentTaskId,
+              parentTaskId: taskId,
+            })
+            .execute();
 
           inputVariables[parameter.key] = result ?? parameter.defaultValue;
         } else if (parameter.source?.variableFrom === 'datastore') {
@@ -413,17 +440,19 @@ export abstract class AgentExecutorBase {
             throw new Error('Blocklet agent api not found.');
           }
 
-          const data = await this.context.executor(this.context).execute(blocklet.agent, {
-            inputs: {
-              userId,
-              projectId: this.context.entryProjectId,
-              sessionId: this.context.sessionId,
-              scope,
-              key,
-            },
-            taskId: currentTaskId,
-            parentTaskId: taskId,
-          });
+          const data = await this.context
+            .executor(blocklet.agent, {
+              inputs: {
+                userId,
+                projectId: this.context.entryProjectId,
+                sessionId: this.context.sessionId,
+                scope,
+                key,
+              },
+              taskId: currentTaskId,
+              parentTaskId: taskId,
+            })
+            .execute();
 
           const m = await this.context.getMemoryVariables(agent.identity);
           const list = (data.datastores || []).map((x: any) => x?.data).filter((x: any) => x);
@@ -445,13 +474,14 @@ export abstract class AgentExecutorBase {
           }
 
           const data = await this.context
-            .executor({ ...this.context, callback: cb(currentTaskId) } as ExecutorContext)
-            .execute(blocklet.agent, {
+            .copy({ callback: cb(currentTaskId) })
+            .executor(blocklet.agent, {
               inputs: tool?.parameters,
               variables: { ...inputVariables, blockletDid, datasetId: tool.id },
               taskId: currentTaskId,
               parentTaskId: taskId,
-            });
+            })
+            .execute();
 
           inputVariables[parameter.key] = JSON.stringify(data?.docs || []) ?? parameter.defaultValue;
         } else if (parameter.source?.variableFrom === 'history' && parameter.source.chatHistory) {
@@ -463,16 +493,18 @@ export abstract class AgentExecutorBase {
             throw new Error('Blocklet agent api not found.');
           }
 
-          const result = await this.context.executor(this.context).execute(blocklet.agent, {
-            inputs: {
-              sessionId: this.context.sessionId,
-              userId: this.context.user.did,
-              limit: chat.limit || 50,
-              keyword: await renderMessage(chat.keyword || '', inputVariables),
-            },
-            taskId: currentTaskId,
-            parentTaskId: taskId,
-          });
+          const result = await this.context
+            .executor(blocklet.agent, {
+              inputs: {
+                sessionId: this.context.sessionId,
+                userId: this.context.user.did,
+                limit: chat.limit || 50,
+                keyword: await renderMessage(chat.keyword || '', inputVariables),
+              },
+              taskId: currentTaskId,
+              parentTaskId: taskId,
+            })
+            .execute();
 
           const memories: { role: string; content: string; agentId?: string }[] = Array.isArray(result?.messages)
             ? result.messages
@@ -514,13 +546,14 @@ export abstract class AgentExecutorBase {
           }
 
           const result = await this.context
-            .executor({ ...this.context, callback: cb?.(currentTaskId) } as ExecutorContext)
-            .execute(blocklet.agent, {
+            .copy({ callback: cb?.(currentTaskId) })
+            .executor(blocklet.agent, {
               inputs: parameter.source.api.parameters,
               variables: inputVariables,
               taskId: currentTaskId,
               parentTaskId: taskId,
-            });
+            })
+            .execute();
 
           inputVariables[parameter.key] = result;
         }
@@ -597,14 +630,17 @@ export abstract class AgentExecutorBase {
     return inputVariables;
   }
 
-  protected async validateOutputs(
-    agent: GetAgentResult,
-    {
-      inputs,
-      outputs,
-      partial,
-    }: { inputs?: { [key: string]: any }; outputs?: { [key: string]: any }; partial?: boolean }
-  ) {
+  protected async validateOutputs({
+    inputs,
+    outputs,
+    partial,
+  }: {
+    inputs?: { [key: string]: any };
+    outputs?: { [key: string]: any };
+    partial?: boolean;
+  }) {
+    const { agent } = this;
+
     const joiSchema = outputVariablesToJoiSchema(agent, {
       partial,
       variables: agent.identity ? await this.context.getMemoryVariables(agent.identity) : [],
@@ -642,29 +678,82 @@ export abstract class AgentExecutorBase {
         (x) => toLower(x.key || '') === toLower(output.variable?.key || '') && x.scope === output.variable?.scope
       );
 
-      const params = {
-        params: {
-          userId: this.context.user.did,
-          projectId: this.context.entryProjectId,
-          sessionId: this.context.sessionId,
-          agentId: agent.id,
-          reset: variable?.reset,
-        },
-        data: {
-          data: value,
-          key: toLower(output.variable.key),
-          scope: output.variable.scope,
-        },
-      };
-
-      // TODO: @li-yechao 封装存储数据的方法
-      await call({
-        name: AIGNE_RUNTIME_COMPONENT_DID,
-        path: '/api/memories',
-        method: 'POST',
-        headers: getUserHeader(this.context.user),
-        ...params,
+      await this.setMemory({
+        key: toLower(output.variable.key),
+        data: value,
+        scope: output.variable.scope,
+        agentId: agent.id,
+        reset: variable?.reset,
       });
     }
+  }
+
+  private async setMemory({
+    key,
+    data,
+    scope,
+    agentId,
+    reset,
+  }: {
+    key: string;
+    data: any;
+    scope: VariableScope;
+    agentId: string;
+    reset?: boolean;
+  }): Promise<{ id: string; key: string; data: any; scope: VariableScope }> {
+    const res = await call({
+      name: AIGNE_RUNTIME_COMPONENT_DID,
+      path: '/api/memories',
+      method: 'POST',
+      headers: getUserHeader(this.context.user),
+      params: { projectId: this.context.entryProjectId, agentId, sessionId: this.context.sessionId, reset },
+      data: { key, data, scope },
+    });
+
+    return res.data;
+  }
+
+  private async getMemory(query: {
+    key: string;
+    scope: VariableScope;
+    agentId: string;
+    onlyOne: true;
+  }): Promise<{ id: string; key: string; data: any; scope: VariableScope } | null>;
+  private async getMemory(query: {
+    key: string;
+    scope: VariableScope;
+    agentId: string;
+    onlyOne?: false;
+  }): Promise<{ id: string; key: string; data: any; scope: VariableScope }[]>;
+  private async getMemory(query: {
+    key: string;
+    scope: VariableScope;
+    agentId: string;
+    onlyOne?: boolean;
+  }): Promise<
+    | { id: string; key: string; data: any; scope: VariableScope }[]
+    | { id: string; key: string; data: any; scope: VariableScope }
+    | null
+  >;
+  private async getMemory({
+    key,
+    scope,
+    agentId,
+    onlyOne,
+  }: {
+    key: string;
+    scope: VariableScope;
+    agentId: string;
+    onlyOne?: boolean;
+  }) {
+    const res = await call({
+      name: AIGNE_RUNTIME_COMPONENT_DID,
+      path: '/api/memories',
+      method: 'GET',
+      headers: getUserHeader(this.context.user),
+      params: { projectId: this.context.entryProjectId, agentId, sessionId: this.context.sessionId, key, scope },
+    });
+
+    return onlyOne ? res.data?.at(-1) : res.data;
   }
 }

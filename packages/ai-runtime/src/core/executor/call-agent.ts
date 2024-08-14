@@ -4,9 +4,9 @@ import { AssistantResponseType, CallAssistant, OutputVariable, RuntimeOutputVari
 import { GetAgentResult } from '../assistant/type';
 import { renderMessage } from '../utils/render-message';
 import { nextTaskId } from '../utils/task-id';
-import { AgentExecutorBase, AgentExecutorOptions, ExecutorContext } from './base';
+import { AgentExecutorBase } from './base';
 
-export class CallAgentExecutor extends AgentExecutorBase {
+export class CallAgentExecutor extends AgentExecutorBase<CallAssistant> {
   private async getCalledAgents(agent: CallAssistant & GetAgentResult) {
     if (!agent.agents || agent.agents.length === 0) {
       throw new Error('Must choose an agent to execute');
@@ -55,7 +55,9 @@ export class CallAgentExecutor extends AgentExecutorBase {
     return outputVariables;
   }
 
-  override async process(agent: CallAssistant & GetAgentResult, options: AgentExecutorOptions) {
+  override async process(options: { inputs: { [key: string]: any } }) {
+    const { agent } = this;
+
     if (!agent.agents || agent.agents.length === 0) {
       throw new Error('Must choose an agent to execute');
     }
@@ -80,8 +82,7 @@ export class CallAgentExecutor extends AgentExecutorBase {
 
       const taskId = nextTaskId();
       const result = await this.context
-        .executor({
-          ...this.context,
+        .copy({
           callback: (message) => {
             this.context.callback?.(message);
 
@@ -97,12 +98,13 @@ export class CallAgentExecutor extends AgentExecutorBase {
               this.context.callback?.({ ...message, ...options });
             }
           },
-        } as ExecutorContext)
-        .execute(callAgent.agent, {
+        })
+        .executor(callAgent.agent, {
           inputs: { ...(options.inputs || {}), ...(parameters || {}) },
           taskId,
-          parentTaskId: options.taskId,
-        });
+          parentTaskId: this.options.taskId,
+        })
+        .execute();
 
       return result;
     };
