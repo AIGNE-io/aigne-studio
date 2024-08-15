@@ -706,7 +706,13 @@ export abstract class AgentExecutorBase<T> {
       path: '/api/memories',
       method: 'POST',
       headers: getUserHeader(this.context.user),
-      params: { projectId: this.context.entryProjectId, agentId, sessionId: this.context.sessionId, reset },
+      params: {
+        projectId: this.context.entryProjectId,
+        agentId,
+        sessionId: this.context.sessionId,
+        reset,
+        userId: this.context.user.id,
+      },
       data: { key, data, scope },
     });
 
@@ -735,25 +741,24 @@ export abstract class AgentExecutorBase<T> {
     | { id: string; key: string; data: any; scope: VariableScope }
     | null
   >;
-  private async getMemory({
-    key,
-    scope,
-    agentId,
-    onlyOne,
-  }: {
-    key: string;
-    scope: VariableScope;
-    agentId: string;
-    onlyOne?: boolean;
-  }) {
+  private async getMemory({ key, scope, onlyOne }: { key: string; scope: VariableScope; onlyOne?: boolean }) {
     const res = await call({
       name: AIGNE_RUNTIME_COMPONENT_DID,
-      path: '/api/memories',
+      path: '/api/memories/variable-by-query',
       method: 'GET',
       headers: getUserHeader(this.context.user),
-      params: { projectId: this.context.entryProjectId, agentId, sessionId: this.context.sessionId, key, scope },
+      params: {
+        projectId: this.context.entryProjectId,
+        sessionId: this.context.sessionId,
+        key,
+        scope,
+        userId: this.context.user.id,
+      },
     });
 
-    return onlyOne ? res.data?.at(-1) : res.data;
+    const list = res.data?.datastores;
+    if (!Array.isArray(list) || !list.length) return null;
+
+    return onlyOne ? list.at(-1)!.data : list.map((i) => i.data);
   }
 }

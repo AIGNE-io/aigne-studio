@@ -261,4 +261,21 @@ router.get('/variable-by-query', user(), ensureComponentCallOrAdmin(), async (re
   return res.json({ datastores: [] });
 });
 
+const getMemoryByKeyQuerySchema = Joi.object<{ projectId: string; key: string }>({
+  projectId: Joi.string().required(),
+  key: Joi.string().required(),
+});
+
+router.get('/by-key', async (req, res) => {
+  const query = await getMemoryByKeyQuerySchema.validateAsync(req.query, { stripUnknown: true });
+  const { projectId, key } = query;
+
+  const memories = await Memory.findAll({
+    order: [['createdAt', 'ASC']],
+    where: { projectId, key },
+  });
+
+  return res.json({ memories });
+});
+
 export default router;
