@@ -1,3 +1,4 @@
+import logger from '../../logger';
 import { GetAgentResult } from '../assistant/type';
 import { AgentExecutor } from './agent';
 import { AIGCAgentExecutor } from './aigc';
@@ -66,6 +67,7 @@ export class RuntimeExecutor extends AgentExecutorBase<GetAgentResult> {
         return new BlockletAgentExecutor(this.context, agent, options).execute();
       }
       default: {
+        logger.error('Unsupported agent type', { agent });
         throw new Error(`Unsupported agent type: ${(agent as any)?.type}`);
       }
     }

@@ -214,9 +214,13 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
 
     // 兼容旧版数据，初始化 project.yaml
     if (!working.syncedStore.files[PROJECT_FILE_PATH]) {
-      const project = await Project.findByPk(this.projectId, {
-        rejectOnEmpty: new Error(`No such project ${this.projectId}`),
-      });
+      const project = await this.readBlob({ ref: defaultBranch, filepath: OLD_PROJECT_FILE_PATH })
+        .then(({ blob }) => parse(Buffer.from(blob).toString()))
+        .catch(() =>
+          Project.findByPk(this.projectId, {
+            rejectOnEmpty: new Error(`No such project ${this.projectId}`),
+          })
+        );
 
       working.syncedStore.files[PROJECT_FILE_PATH] = await projectSettingsSchema.validateAsync(project.dataValues);
       working.syncedStore.tree[PROJECT_FILE_PATH] = PROJECT_FILE_PATH;
