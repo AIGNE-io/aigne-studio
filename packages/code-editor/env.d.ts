@@ -4,5 +4,3 @@ declare module 'monaco-vim' {
     statusBar: HTMLElement
   ): { dispose: () => void };
 }
-
-declare module 'react-resizable';

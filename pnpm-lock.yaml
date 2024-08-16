@@ -1282,6 +1282,9 @@ importers:
       '@types/react':
         specifier: ^18.3.3
         version: 18.3.3
+      '@types/react-resizable':
+        specifier: ^3.0.8
+        version: 3.0.8
       npm-run-all:
         specifier: ^4.1.5
         version: 4.1.5
@@ -4665,6 +4668,9 @@ packages:
 
   '@types/react-helmet@6.1.11':
     resolution: {integrity: sha512-0QcdGLddTERotCXo3VFlUSWO3ztraw8nZ6e3zJSgG7apwV5xt+pJUS8ewPBqT4NYB1optGLprNQzFleIY84u/g==}
+
+  '@types/react-resizable@3.0.8':
+    resolution: {integrity: sha512-Pcvt2eGA7KNXldt1hkhVhAgZ8hK41m0mp89mFgQi7LAAEZiaLgm4fHJ5zbJZ/4m2LVaAyYrrRRv1LHDcrGQanA==}
 
   '@types/react-transition-group@4.4.10':
     resolution: {integrity: sha512-hT/+s0VQs2ojCX823m60m5f0sL5idt9SO6Tj6Dg+rdphGPIeJbJ6CxvBYkgkGKrYeDjvIpKTR38UzmtHJOGW3Q==}
@@ -17909,6 +17915,10 @@ snapshots:
       '@types/react': 18.3.3
 
   '@types/react-helmet@6.1.11':
+    dependencies:
+      '@types/react': 18.3.3
+
+  '@types/react-resizable@3.0.8':
     dependencies:
       '@types/react': 18.3.3
 
