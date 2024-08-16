@@ -28,6 +28,7 @@ export default defineConfig((config) => {
             'typeof window': JSON.stringify('object'),
           }),
         ],
+        embedExternals: ['react', '@arcblock/ux/lib/Locale/context', '@arcblock/did-connect/lib/Session'],
         // 并发打包 embed 的数量
         embedBuildConcurrency: 3,
       }),
