@@ -39,6 +39,7 @@ import SaveButton, { CommitForm, SaveButtonDialog } from './save-button';
 import Settings from './settings';
 import { useAssistantChangesState, useProjectState } from './state';
 import TokenUsage from './token-usage';
+import WsStatus from './ws-status';
 import { useProjectStore } from './yjs-state';
 
 export function AgentTokenUsage() {
@@ -90,6 +91,8 @@ export function HeaderActions() {
   return (
     <CurrentProjectProvider projectId={projectId} projectRef={gitRef}>
       <Box gap={1} className="center" sx={{ button: { whiteSpace: 'nowrap' } }}>
+        <WsStatus projectId={projectId} gitRef={gitRef} />
+
         <AgentTokenUsage />
 
         <CommitsTip

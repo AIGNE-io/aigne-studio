@@ -1,6 +1,6 @@
-import flat from 'flat';
+import { flatten } from 'flat';
 
-export default flat({
+export default flatten({
   name: 'Name',
   add: 'Add',
   project: 'Project',
@@ -767,4 +767,10 @@ export default flat({
   durationSeconds: '{duration}s',
   executionHistory: 'Execution History',
   error: 'Error',
+  socket: {
+    connecting: 'Connecting',
+    connected: 'Online',
+    closed: 'Offline',
+    closing: 'Closing',
+  },
 });

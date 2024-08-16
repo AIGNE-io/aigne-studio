@@ -1,0 +1,89 @@
+{
+  "name": "@blocklet/code-editor",
+  "version": "0.4.28",
+  "description": "Code Editor",
+  "publishConfig": {
+    "access": "public"
+  },
+  "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
+  "homepage": "https://github.com/blocklet/ai-studio#readme",
+  "license": "ISC",
+  "main": "./lib/cjs/index.js",
+  "module": "./lib/esm/index.js",
+  "types": "./lib/types/index.d.js",
+  "exports": {
+    ".": {
+      "import": "./lib/esm/index.js",
+      "require": "./lib/cjs/index.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./lib/types/index.d.ts"
+      ]
+    }
+  },
+  "files": [
+    "lib",
+    "LICENSE",
+    "package.json",
+    "README.md",
+    "tsconfig.json"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blocklet/ai-studio.git"
+  },
+  "scripts": {
+    "lint": "eslint src --ext .mjs,.js,.jsx,.ts,.tsx",
+    "lint:fix": "npm run lint -- --fix",
+    "build": "tsc --noEmit && run-p build:*",
+    "build:cjs": "tsc -p tsconfig.build.json --module commonjs --outDir lib/cjs > /dev/null || exit 0",
+    "build:esm": "tsc -p tsconfig.build.json --module es2022 --outDir lib/esm > /dev/null || exit 0",
+    "build:types": "tsc -p tsconfig.build.json --declaration --emitDeclarationOnly --outDir lib/types > /dev/null || exit 0",
+    "dev": "run-p 'build:* -- -w'",
+    "clean": "rimraf lib",
+    "prepublishOnly": "npm run build",
+    "test": "jest src/"
+  },
+  "dependencies": {
+    "@emotion/css": "^11.13.0",
+    "@iconify-icon/react": "^2.1.0",
+    "@iconify-icons/tabler": "^1.2.95",
+    "@monaco-editor/react": "^4.6.0",
+    "ahooks": "^3.8.1",
+    "flat": "^6.0.1",
+    "joi": "^17.13.3",
+    "lodash": "^4.17.21",
+    "material-ui-popup-state": "^5.1.2",
+    "monaco-editor": "^0.50.0",
+    "monaco-vim": "^0.4.1",
+    "nanoid": "^3.3.7",
+    "prettier": "^3.3.3",
+    "react-hook-form": "^7.52.2",
+    "react-resizable": "^3.0.5",
+    "react-transition-group": "^4.4.5",
+    "ufo": "^1.5.4"
+  },
+  "peerDependencies": {
+    "@mui/material": "^5.14.11",
+    "react": "^18.2.0",
+    "react-router-dom": "^6.16.0"
+  },
+  "devDependencies": {
+    "@jest/globals": "^29.7.0",
+    "@mui/material": "^5.16.7",
+    "@types/lodash": "^4.17.7",
+    "@types/mustache": "^4.2.5",
+    "@types/node-fetch": "^2.6.11",
+    "@types/react": "^18.3.3",
+    "@types/react-resizable": "^3.0.8",
+    "npm-run-all": "^4.1.5",
+    "react": "^18.3.1",
+    "react-router-dom": "^6.26.1",
+    "rimraf": "^6.0.1",
+    "ts-jest": "^29.2.4",
+    "typescript": "^5.5.4"
+  }
+}

@@ -1,12 +1,39 @@
-## 0.4.23 (2024-8-16)
+## 0.4.28 (2024-8-16)
 
+- feat: support resize and full screen the code editor (#1288)
+- chore(release): v0.4.23
 - chore(ai-studio): add default embedExternals
 - chore: clean code
 - chore(deps): update deps
 - feat(ai-studio): use vite-plugin-blocklet to build embeds
+- fix: number field cant input decimal (#1286)
+- feat: check socket connect status (#1285)
+- fix: ensure knowledge is copied when duplicating a project (#1271)
+- fix: auto publish discuss error (#1283)
 - chore: bundle agent-call function
 - chore(open-embed): polish open-embed integrate
 - feat: add embed apis
+
+## 0.4.27 (2024-8-16)
+
+- feat: support resize and full screen the code editor
+
+## 0.4.26 (2024-8-9)
+
+- fix: number field cant input decimal
+
+## 0.4.25 (2024-8-9)
+
+- feat: check socket connect status
+
+## 0.4.24 (2024-8-9)
+
+- fix: ensure knowledge is copied when duplicating a project
+
+## 0.4.23 (2024-8-9)
+
+- chore: simplify render message logic
+- fix: auto publish discuss error
 
 ## 0.4.22 (2024-8-6)
 

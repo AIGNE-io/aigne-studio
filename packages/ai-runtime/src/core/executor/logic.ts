@@ -47,10 +47,22 @@ export class LogicAgentExecutor extends AgentExecutorBase {
       )
     );
 
+    const getUserHeader = () => {
+      const { user } = this.context;
+      return {
+        'x-user-did': user?.did,
+        'x-user-role': user?.role,
+        'x-user-provider': user?.provider,
+        'x-user-fullname': user?.fullName && encodeURIComponent(user?.fullName),
+        'x-user-wallet-os': user?.walletOS,
+      };
+    };
+
     const ctx: { [key: string]: any } = Object.freeze({
       ...this.context,
       user: this.context.user,
       session: { id: this.context.sessionId },
+      getUserHeader,
     });
 
     const $json = (variables: any, ...rest: any[]) => {

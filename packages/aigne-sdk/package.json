@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/aigne-sdk",
-  "version": "0.4.23",
+  "version": "0.4.28",
   "description": "AIGNE SDK used to interact with AIGNE services",
   "publishConfig": {
     "access": "public"
@@ -35,6 +35,10 @@
     "./utils/*": {
       "import": "./lib/esm/utils/*.js",
       "require": "./lib/cjs/utils/*.js"
+    },
+    "./constants": {
+      "import": "./lib/esm/constants.js",
+      "require": "./lib/cjs/constants.js"
     }
   },
   "typesVersions": {
@@ -56,6 +60,9 @@
       ],
       "utils/*": [
         "./lib/types/utils/*.d.ts"
+      ],
+      "constants": [
+        "./lib/types/constants.d.ts"
       ]
     }
   },
@@ -86,13 +93,13 @@
     "@blocklet/ai-kit": "^0.1.46",
     "@blocklet/ai-runtime": "workspace:^",
     "@blocklet/js-sdk": "^1.16.29",
-    "@blocklet/pages-kit": "^0.2.396",
+    "@blocklet/pages-kit": "^0.2.397",
     "@blocklet/sdk": "^1.16.29",
     "@microsoft/fetch-event-source": "^2.0.1",
     "ahooks": "^3.8.1",
     "axios": "^1.7.4",
     "dayjs": "^1.11.12",
-    "eventsource-parser": "^1.1.2",
+    "eventsource-parser": "^2.0.1",
     "joi": "^17.13.3",
     "nanoid": "^3.3.7",
     "react-hook-form": "^7.52.2",

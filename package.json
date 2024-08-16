@@ -1,7 +1,7 @@
 {
   "name": "ai-studio",
   "private": true,
-  "version": "0.4.23",
+  "version": "0.4.28",
   "workspaces": [
     "blocklets/*",
     "packages/*"
@@ -21,7 +21,7 @@
     "clean:deps": "rimraf ./**/node_modules",
     "build:libs": "pnpm -F @blocklet/* build",
     "bump-version": "zx scripts/bump-version.mjs",
-    "update:deps": "npx -y taze minor -r -w major -x '/nanoid|eslint/' && pnpm install",
+    "update:deps": "npx -y taze major -r -w -x '/nanoid|eslint/' && pnpm install",
     "e2e": "./scripts/start-e2e.ts",
     "postinstall": "npx simple-git-hooks"
   },
@@ -50,7 +50,7 @@
   "devDependencies": {
     "@arcblock/eslint-config": "^0.3.2",
     "@arcblock/eslint-config-ts": "^0.3.2",
-    "@blocklet/testlab": "^0.0.10",
+    "@blocklet/testlab": "^0.0.11",
     "@playwright/test": "^1.46.0",
     "bumpp": "^9.5.1",
     "eslint": "^8.57.0",
@@ -111,6 +111,7 @@
     "openapi3-ts": "4.3.1",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
+    "vite-tsconfig-paths": "4.3.2",
     "ws": "^8.18.0"
   }
 }

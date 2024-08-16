@@ -13,10 +13,11 @@ import { Op, Sequelize } from 'sequelize';
 import { AIKitEmbeddings } from '../../core/embeddings/ai-kit';
 import { Config } from '../../libs/env';
 import logger from '../../libs/logger';
+import nextId from '../../libs/next-id';
 import { userAuth } from '../../libs/security';
 import DatasetContent from '../../store/models/dataset/content';
 import Dataset from '../../store/models/dataset/dataset';
-import DatasetDocument, { nextDocumentId } from '../../store/models/dataset/document';
+import DatasetDocument from '../../store/models/dataset/document';
 import EmbeddingHistories from '../../store/models/dataset/embedding-history';
 import VectorStore from '../../store/vector-store-faiss';
 import getAllContents, { getAllResourceContents, getContent } from './document-content';
@@ -360,7 +361,7 @@ router.post('/:datasetId/documents/file', user(), userAuth(), upload.single('dat
     return;
   }
 
-  const id = nextDocumentId();
+  const id = nextId();
   const newFilename = `${id}${extname(filename)}`;
   const filePath = path.join(Config.uploadDir, newFilename);
   await mkdir(Config.uploadDir, { recursive: true });

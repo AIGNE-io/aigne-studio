@@ -312,6 +312,7 @@ export type Parameter =
   | NumberParameter
   | SelectParameter
   | LanguageParameter
+  | BooleanParameter
   | SourceParameter
   | LLMInputMessagesParameter
   | LLMInputToolsParameter
@@ -357,6 +358,12 @@ export interface StringParameter extends ParameterBase {
   multiline?: boolean;
   minLength?: number;
   maxLength?: number;
+}
+
+export interface BooleanParameter extends ParameterBase {
+  type: 'boolean';
+  value?: boolean;
+  defaultValue?: boolean;
 }
 
 export interface NumberParameter extends ParameterBase {
