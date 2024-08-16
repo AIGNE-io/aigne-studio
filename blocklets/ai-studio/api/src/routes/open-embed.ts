@@ -7,6 +7,8 @@ import { getAgentProfile } from '@blocklet/aigne-sdk/utils/agent';
 import { Request, Response } from 'express';
 import { withQuery } from 'ufo';
 
+import { version } from '../../../package.json';
+
 export async function getOpenEmbed(_: Request, res: Response) {
   const projects = await Project.findAll({});
 
@@ -45,8 +47,8 @@ export async function getOpenEmbed(_: Request, res: Response) {
     openembed: '0.1.0',
     info: {
       title: 'AIGNE Studio',
-      description: 'Agents from AIGNE Studio',
-      version: '0.1.0',
+      description: 'Embeds from AIGNE Studio',
+      version,
     },
     embeds: Object.fromEntries(
       agents.map((agent) => {

@@ -93,7 +93,7 @@
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.6",
     "ajv": "^8.17.1",
-    "axios": "^1.7.3",
+    "axios": "^1.7.4",
     "express": "^4.19.2",
     "joi": "^17.13.3",
     "lodash": "^4.17.21",
