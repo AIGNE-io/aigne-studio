@@ -1,3 +1,13 @@
+## 0.4.23 (2024-8-16)
+
+- chore(ai-studio): add default embedExternals
+- chore: clean code
+- chore(deps): update deps
+- feat(ai-studio): use vite-plugin-blocklet to build embeds
+- chore: bundle agent-call function
+- chore(open-embed): polish open-embed integrate
+- feat: add embed apis
+
 ## 0.4.22 (2024-8-6)
 
 - fix: auto start cron jobs for all projects
