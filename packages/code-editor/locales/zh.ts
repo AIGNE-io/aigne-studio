@@ -1,6 +1,6 @@
-import flat from 'flat';
+import { flatten } from 'flat';
 
-export default flat({
+export default flatten({
   settings: '设置',
   editor: '编辑器',
   format: '文档格式化',
