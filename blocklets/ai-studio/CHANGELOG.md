@@ -1,3 +1,7 @@
+## 0.4.27 (2024-8-16)
+
+- feat: support resize and full screen the code editor
+
 ## 0.4.26 (2024-8-9)
 
 - fix: number field cant input decimal
