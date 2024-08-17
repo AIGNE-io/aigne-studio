@@ -1,3 +1,4 @@
+import { importPackageJson } from '@api/libs/package-json';
 import Project from '@api/store/models/project';
 import { PROJECT_FILE_PATH, ProjectRepo, defaultBranch, getAssistantsOfRepository } from '@api/store/repository';
 import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
@@ -7,7 +8,7 @@ import { getAgentProfile } from '@blocklet/aigne-sdk/utils/agent';
 import { Request, Response } from 'express';
 import { withQuery } from 'ufo';
 
-import { version } from '../../../package.json';
+const { version } = importPackageJson();
 
 export async function getOpenEmbed(_: Request, res: Response) {
   const projects = await Project.findAll({});

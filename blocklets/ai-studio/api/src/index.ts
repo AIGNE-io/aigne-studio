@@ -19,6 +19,7 @@ import { projectCronManager } from './libs/cron-jobs';
 import { Config, isDevelopment } from './libs/env';
 import { NoPermissionError, NotFoundError } from './libs/error';
 import logger from './libs/logger';
+import { importPackageJson } from './libs/package-json';
 import { resourceManager } from './libs/resource';
 import { ensurePromptsEditor } from './libs/security';
 import routes from './routes';
@@ -29,7 +30,7 @@ export const app = express();
 
 dotenv.config();
 
-const { name, version } = require('../../package.json');
+const { name, version } = importPackageJson();
 
 async function ensureUploadDirExists() {
   try {
