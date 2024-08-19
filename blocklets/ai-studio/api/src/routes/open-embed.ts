@@ -5,15 +5,15 @@ import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { ProjectSettings, RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { getAgentProfile } from '@blocklet/aigne-sdk/utils/agent';
+import { config } from '@blocklet/sdk';
 import { Request, Response } from 'express';
 import { withQuery } from 'ufo';
 
 const { version } = importPackageJson();
 
 export async function getOpenEmbed(_: Request, res: Response) {
-  const projects = await Project.findAll({});
+  const projects = config.env.tenantMode === 'multiple' ? [] : await Project.findAll({});
 
-  // FIXME: @yechao 在发布前需要处理查询全部项目的问题， aigne.io 中有大量项目，不应该查询全部
   const agents = (
     await Promise.all(
       projects.map(async (p) => {
