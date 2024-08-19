@@ -318,8 +318,6 @@ export abstract class AgentExecutorBase {
                 })
               );
 
-              console.log(resolvedArray);
-
               return [i.key, resolvedArray];
             }
 
@@ -328,7 +326,6 @@ export abstract class AgentExecutorBase {
       )
     );
     const inputVariables: { [key: string]: any } = { ...(inputs || {}), ...inputParameters };
-    console.log('inputVariables', JSON.stringify(inputVariables, null, 2));
 
     const partial = await this.validateOutputs(agent, { inputs: inputVariables, partial: true });
     if (!isEmpty(partial)) {
