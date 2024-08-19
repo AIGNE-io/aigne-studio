@@ -23,7 +23,7 @@ export interface TextModelInfo extends ModelInfoBase {
   maxTokensDefault?: number;
 }
 
-export type ServiceMode = 'single-tenant' | 'multi-tenant';
+export type ServiceMode = 'single' | 'multiple';
 export type ServiceModePermissionMap = {
   ensureViewAllProjectsRoles: string[] | undefined;
   ensurePromptsEditorRoles: string[] | undefined;
