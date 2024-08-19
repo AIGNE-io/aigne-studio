@@ -1,6 +1,6 @@
-## 0.4.28 (2024-8-16)
+## 0.4.28 (2024-8-19)
 
-- feat(open-embed): new agent-view and agent-call embed components
+- chore: support object type input parameter
 
 ## 0.4.27 (2024-8-16)
 
