@@ -773,4 +773,6 @@ export default flatten({
     closed: 'Offline',
     closing: 'Closing',
   },
+  string: 'String',
+  arrayItem: 'Array Item',
 });

@@ -25,7 +25,7 @@ import {
 } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
-import { DatasetObject } from '@blocklet/dataset-sdk/types';
+import { DatasetObject, SchemaObject } from '@blocklet/dataset-sdk/types';
 import getOpenApiTextFromI18n from '@blocklet/dataset-sdk/util/get-open-api-i18n-text';
 import { Icon } from '@iconify-icon/react';
 import SwitchIcon from '@iconify-icons/material-symbols/switches';
@@ -41,6 +41,7 @@ import GripVertical from '@iconify-icons/tabler/grip-vertical';
 import HistoryIcon from '@iconify-icons/tabler/history';
 import InfoCircleIcon from '@iconify-icons/tabler/info-circle';
 import MessageIcon from '@iconify-icons/tabler/message';
+import PlusIcon from '@iconify-icons/tabler/plus';
 import SquareNumberIcon from '@iconify-icons/tabler/square-number-1';
 import TrashIcon from '@iconify-icons/tabler/trash';
 import {
@@ -80,7 +81,7 @@ import {
 } from '@mui/material';
 import { GridColDef } from '@mui/x-data-grid';
 import { useRequest } from 'ahooks';
-import { get, sortBy } from 'lodash';
+import { cloneDeep, get, sortBy } from 'lodash';
 import { PopupState, bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { useId, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -1725,24 +1726,65 @@ function APIParameter({
 
                 return (
                   <Stack key={parameter.name}>
-                    <Typography variant="caption" mb={0.5}>
-                      {getOpenApiTextFromI18n(parameter, 'description', locale) ||
-                        getOpenApiTextFromI18n(parameter, 'name', locale)}
-                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }} mb={0.5}>
+                      <Typography variant="subtitle4">
+                        {getOpenApiTextFromI18n(parameter, 'description', locale) ||
+                          getOpenApiTextFromI18n(parameter, 'name', locale)}
+                      </Typography>
+                      <Typography
+                        variant="subtitle5"
+                        sx={{ lineHeight: '22px' }}>{`(${t(parameter?.type)})`}</Typography>
+                    </Box>
 
-                    <PromptEditorField
-                      placeholder={`{{ ${parameter.name} }}`}
-                      value={source?.api?.parameters?.[parameter.name] || ''}
-                      projectId={projectId}
-                      gitRef={gitRef}
-                      assistant={value}
-                      path={[]}
-                      onChange={(value) => {
-                        if (source?.api?.parameters) {
-                          source.api.parameters[parameter.name] = value;
+                    {parameter.type === 'object' ? (
+                      <OpenAPIObjectParameter
+                        assistant={value}
+                        projectId={projectId}
+                        gitRef={gitRef}
+                        parameter={parameter as SchemaObject}
+                        value={
+                          typeof source?.api?.parameters?.[parameter.name] === 'object'
+                            ? source?.api?.parameters?.[parameter.name]
+                            : {}
                         }
-                      }}
-                    />
+                        onChange={(value) => {
+                          if (source?.api?.parameters) {
+                            source.api.parameters[parameter.name] = value;
+                          }
+                        }}
+                      />
+                    ) : parameter.type === 'array' ? (
+                      <OpenAPIArrayParameter
+                        assistant={value}
+                        projectId={projectId}
+                        gitRef={gitRef}
+                        parameter={parameter as SchemaObject & { name: string }}
+                        value={
+                          Array.isArray(source?.api?.parameters?.[parameter.name])
+                            ? source?.api?.parameters?.[parameter.name]
+                            : []
+                        }
+                        onChange={(value) => {
+                          if (source?.api?.parameters) {
+                            source.api.parameters[parameter.name] = value;
+                          }
+                        }}
+                      />
+                    ) : (
+                      <PromptEditorField
+                        placeholder={`{{ ${parameter.name} }}`}
+                        value={source?.api?.parameters?.[parameter.name] || ''}
+                        projectId={projectId}
+                        gitRef={gitRef}
+                        assistant={value}
+                        path={[]}
+                        onChange={(value) => {
+                          if (source?.api?.parameters) {
+                            source.api.parameters[parameter.name] = value;
+                          }
+                        }}
+                      />
+                    )}
                   </Stack>
                 );
               })}
@@ -1754,4 +1796,136 @@ function APIParameter({
   }
 
   return null;
+}
+
+function OpenAPIObjectParameter({
+  parameter,
+  value,
+  projectId,
+  gitRef,
+  assistant,
+  onChange,
+}: {
+  parameter: SchemaObject;
+  value: { [key: string]: any };
+  projectId: string;
+  gitRef: string;
+  assistant: AssistantYjs;
+  onChange: (data: { [key: string]: any }) => void;
+}) {
+  const { t } = useLocaleContext();
+  return (
+    <Stack ml={1} gap={1}>
+      {Object.entries(parameter.properties || {}).map(([key, property]: [string, any]) => {
+        return (
+          <Stack key={key}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }} mb={0.5}>
+              <Typography variant="subtitle5">{key}</Typography>
+              <Typography variant="subtitle5">{`(${t(property?.type)})`}</Typography>
+            </Box>
+
+            <PromptEditorField
+              sx={{ '.ContentEditable__root': { py: 0.5 } }}
+              placeholder={`{{ ${key} }}`}
+              value={value?.[key] || ''}
+              projectId={projectId}
+              gitRef={gitRef}
+              assistant={assistant}
+              path={[]}
+              onChange={(val) => {
+                value ??= {};
+                value[key] = val;
+
+                onChange(cloneDeep(value));
+              }}
+            />
+          </Stack>
+        );
+      })}
+    </Stack>
+  );
+}
+
+function OpenAPIArrayParameter({
+  parameter,
+  value,
+  projectId,
+  gitRef,
+  assistant,
+  onChange,
+}: {
+  parameter: SchemaObject & { name: string };
+  value: any[];
+  projectId: string;
+  gitRef: string;
+  assistant: AssistantYjs;
+  onChange: (data: any) => void;
+}) {
+  const { t } = useLocaleContext();
+  const type = (parameter.items as any)?.type;
+  // 默认空数组值
+  const handleElementChange = (index: number, newValue: any) => {
+    const newValueArray = [...(value || [])];
+    newValueArray[index] = newValue;
+    onChange(cloneDeep(newValueArray));
+  };
+
+  const handleAddElement = () => {
+    const newItem = type === 'object' ? {} : type === 'array' ? [] : '';
+    const newValueArray = [...(value || []), newItem];
+    onChange(cloneDeep(newValueArray));
+  };
+
+  const handleRemoveElement = (index: number) => {
+    const newValueArray = [...(value || [])];
+    newValueArray.splice(index, 1);
+    onChange(cloneDeep(newValueArray));
+  };
+
+  return (
+    <Stack ml={1} gap={1}>
+      {(value || [])?.map((elementValue, index) => (
+        <Stack key={index}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1}>
+            <Typography variant="subtitle5">
+              {`[${t('arrayItem')}]`} ({t(type)})
+            </Typography>
+
+            <IconButton size="small" onClick={() => handleRemoveElement(index)}>
+              <Box component={Icon} icon={TrashIcon} sx={{ fontSize: 14 }} />
+            </IconButton>
+          </Stack>
+
+          {type === 'object' ? (
+            <OpenAPIObjectParameter
+              assistant={assistant}
+              projectId={projectId}
+              gitRef={gitRef}
+              parameter={parameter.items as SchemaObject}
+              value={elementValue || {}}
+              onChange={(val) => handleElementChange(index, val)}
+            />
+          ) : (
+            <PromptEditorField
+              sx={{
+                '.ContentEditable__root': {
+                  py: 0.5,
+                },
+              }}
+              placeholder={`Element ${index}`}
+              assistant={assistant}
+              projectId={projectId}
+              gitRef={gitRef}
+              path={[]}
+              value={elementValue || ''}
+              onChange={(val) => handleElementChange(index, val)}
+            />
+          )}
+        </Stack>
+      ))}
+      <Button variant="text" color="primary" onClick={handleAddElement}>
+        <Box component={Icon} icon={PlusIcon} />
+      </Button>
+    </Stack>
+  );
 }

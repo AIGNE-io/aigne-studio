@@ -767,4 +767,6 @@ export default flatten({
     closed: '已关闭',
     closing: '关闭中',
   },
+  string: '字符串',
+  arrayItem: '数组项',
 });

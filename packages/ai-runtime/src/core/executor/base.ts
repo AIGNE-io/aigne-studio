@@ -22,6 +22,10 @@ import { HISTORY_API_ID, KNOWLEDGE_API_ID, MEMORY_API_ID, getBlockletAgent } fro
 import { renderMessage } from '../utils/render-message';
 import { nextTaskId } from '../utils/task-id';
 
+function isPlainObject(value: any): boolean {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 export class ExecutorContext {
   constructor(
     options: Pick<
@@ -279,12 +283,42 @@ export abstract class AgentExecutorBase {
         (agent.parameters || [])
           .filter((i): i is typeof i & { key: string } => !!i.key && i.type !== 'source' && !i.hidden)
           .map(async (i) => {
-            if (typeof inputs?.[i.key!] === 'string') {
-              const template = String(inputs?.[i.key!] || '').trim();
-              return [
-                i.key,
-                template ? await renderMessage(template, variables, { stringify: false }) : inputs?.[i.key!],
-              ];
+            const inputValue = inputs?.[i.key!];
+
+            if (typeof inputValue === 'string') {
+              const template = String(inputValue || '').trim();
+              return [i.key, template ? await renderMessage(template, variables, { stringify: false }) : inputValue];
+            }
+
+            if (isPlainObject(inputValue)) {
+              const resolvedEntries = await Promise.all(
+                Object.entries(inputValue).map(async ([key, value]: any) => {
+                  return [key, await renderMessage(value, variables)];
+                })
+              );
+
+              return [i.key, Object.fromEntries(resolvedEntries)];
+            }
+
+            if (Array.isArray(inputValue) && inputValue.length) {
+              const resolvedArray = await Promise.all(
+                inputValue.map(async (item: any) => {
+                  if (isPlainObject(item)) {
+                    return Object.fromEntries(
+                      await Promise.all(
+                        Object.entries(item).map(async ([key, value]: any) => [
+                          key,
+                          await renderMessage(value, variables),
+                        ])
+                      )
+                    );
+                  }
+
+                  return await renderMessage(item, variables);
+                })
+              );
+
+              return [i.key, resolvedArray];
             }
 
             return [i.key, variables?.[i.key!] || inputs?.[i.key!]];
