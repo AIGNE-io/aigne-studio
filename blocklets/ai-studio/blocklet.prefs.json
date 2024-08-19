@@ -79,18 +79,9 @@
                 },
                 "name": "disablePaymentProject",
                 "x-reactions": {
-                  "dependencies": [
-                    {
-                      "property": "value",
-                      "type": "string | number",
-                      "source": "8ijnww1wdf9.drcj4aejnt5.serviceMode",
-                      "name": "serviceMode"
-                    }
-                  ],
+                  "dependencies": [],
                   "fulfill": {
-                    "state": {
-                      "visible": "{{$deps.serviceMode === 'multi-tenant'}}"
-                    }
+                    "state": {}
                   }
                 },
                 "default": false,
@@ -103,6 +94,6 @@
         }
       }
     },
-    "x-designable-id": "ipozzkmpc3h"
+    "x-designable-id": "bbnxuv54w10"
   }
 }
