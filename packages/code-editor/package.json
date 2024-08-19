@@ -1,7 +1,7 @@
 {
-  "name": "@blocklet/studio-ui",
+  "name": "@blocklet/code-editor",
   "version": "0.4.28",
-  "description": "UI components for studio",
+  "description": "Code Editor",
   "publishConfig": {
     "access": "public"
   },
@@ -38,41 +38,52 @@
   "scripts": {
     "lint": "eslint src --ext .mjs,.js,.jsx,.ts,.tsx",
     "lint:fix": "npm run lint -- --fix",
-    "build": "run-p build:*",
-    "build:cjs": "tsc --module commonjs --outDir lib/cjs",
-    "build:esm": "tsc --module es2022 --outDir lib/esm",
-    "build:types": "tsc --declaration --emitDeclarationOnly --outDir lib/types",
+    "build": "tsc --noEmit && run-p build:*",
+    "build:cjs": "tsc -p tsconfig.build.json --module commonjs --outDir lib/cjs > /dev/null || exit 0",
+    "build:esm": "tsc -p tsconfig.build.json --module es2022 --outDir lib/esm > /dev/null || exit 0",
+    "build:types": "tsc -p tsconfig.build.json --declaration --emitDeclarationOnly --outDir lib/types > /dev/null || exit 0",
     "dev": "run-p 'build:* -- -w'",
     "clean": "rimraf lib",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "test": "jest src/"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@emotion/css": "^11.13.0",
+    "@iconify-icon/react": "^2.1.0",
+    "@iconify-icons/tabler": "^1.2.95",
+    "@monaco-editor/react": "^4.6.0",
+    "ahooks": "^3.8.1",
+    "flat": "^6.0.1",
+    "joi": "^17.13.3",
+    "lodash": "^4.17.21",
+    "material-ui-popup-state": "^5.1.2",
+    "monaco-editor": "^0.50.0",
+    "monaco-vim": "^0.4.1",
+    "nanoid": "^3.3.7",
+    "prettier": "^3.3.3",
+    "react-hook-form": "^7.52.2",
+    "react-resizable": "^3.0.5",
+    "react-transition-group": "^4.4.5",
+    "ufo": "^1.5.4"
+  },
   "peerDependencies": {
-    "@arcblock/did-connect": "^2.9.51",
-    "@arcblock/ux": "^2.9.51",
-    "@blocklet/ui-react": "^2.9.51",
-    "@emotion/css": "^11.11.2",
-    "@emotion/react": "^11.11.1",
-    "@mui/icons-material": "^5.14.11",
-    "@mui/lab": "^5.0.0-alpha.146",
     "@mui/material": "^5.14.11",
     "react": "^18.2.0",
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@arcblock/did-connect": "^2.10.20",
-    "@arcblock/ux": "^2.10.20",
-    "@blocklet/ui-react": "^2.10.20",
-    "@emotion/css": "^11.13.0",
-    "@emotion/react": "^11.13.0",
-    "@mui/icons-material": "^5.16.7",
-    "@mui/lab": "^5.0.0-alpha.173",
+    "@jest/globals": "^29.7.0",
     "@mui/material": "^5.16.7",
+    "@types/lodash": "^4.17.7",
+    "@types/mustache": "^4.2.5",
+    "@types/node-fetch": "^2.6.11",
     "@types/react": "^18.3.3",
+    "@types/react-resizable": "^3.0.8",
     "npm-run-all": "^4.1.5",
     "react": "^18.3.1",
     "react-router-dom": "^6.26.1",
     "rimraf": "^6.0.1",
+    "ts-jest": "^29.2.4",
     "typescript": "^5.5.4"
   }
 }

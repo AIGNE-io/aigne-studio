@@ -1,7 +1,6 @@
-import flat from 'flat';
-import { string } from 'joi';
+import { flatten } from 'flat';
 
-export default flat({
+export default flatten({
   name: '名称',
   add: '添加',
   project: '项目',

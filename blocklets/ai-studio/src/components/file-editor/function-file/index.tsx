@@ -5,10 +5,12 @@ import { useReadOnly } from '../../../contexts/session';
 import FunctionCodeEditor from './function-code-editor';
 
 export default function FunctionAssistantEditor({
+  projectId,
   gitRef,
   value,
   disabled,
 }: {
+  projectId: string;
   gitRef: string;
   value: FunctionAssistantYjs;
   disabled?: boolean;
@@ -17,7 +19,7 @@ export default function FunctionAssistantEditor({
 
   return (
     <Stack gap={2.5}>
-      <FunctionCodeEditor value={value} readOnly={readOnly} />
+      <FunctionCodeEditor projectId={projectId} gitRef={gitRef} value={value} readOnly={readOnly} />
     </Stack>
   );
 }

@@ -1,7 +1,6 @@
-import flat from 'flat';
-import { boolean } from 'joi';
+import { flatten } from 'flat';
 
-export default flat({
+export default flatten({
   name: 'Name',
   add: 'Add',
   project: 'Project',
