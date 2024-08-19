@@ -676,7 +676,7 @@ function ProjectList({
                   navigate(joinURL('/projects', item.id!));
                 } else if (section === 'examples') {
                   // if is multi-tenant
-                  if (window.blocklet.preferences.serviceMode === 'multi-tenant') {
+                  if (window?.blocklet?.tenantMode === 'multiple') {
                     setMenuAnchor({
                       section,
                       // @ts-ignore

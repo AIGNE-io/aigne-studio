@@ -34,10 +34,7 @@ export const Config = {
 
   get serviceModePermissionMap() {
     const { disablePaymentProject } = config.env.preferences as { disablePaymentProject?: boolean };
-
-    return getServiceModePermissionMap(config.env.tenantMode as ServiceMode, {
-      disablePaymentProject,
-    });
+    return getServiceModePermissionMap(config.env.tenantMode as ServiceMode, { disablePaymentProject });
   },
 
   get createResourceBlockletEngineStore() {

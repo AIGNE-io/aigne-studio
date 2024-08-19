@@ -237,7 +237,7 @@ export const checkProjectPermission = ({ req, project }: { req: Request; project
 };
 
 export const checkProjectLimit = async ({ req }: { req: Request }) => {
-  if (config.env.preferences.serviceMode === 'multi-tenant') {
+  if (config.env.tenantMode === 'multiple') {
     // check project count limit
     const count = await Project.count({ where: { createdBy: req.user?.did } });
     const currentLimit = config.env.preferences.multiTenantProjectLimits;
@@ -302,7 +302,7 @@ export function projectRoutes(router: Router) {
     }));
 
     // multi-tenant mode
-    if (config.env.preferences.serviceMode === 'multi-tenant') {
+    if (config.env.tenantMode === 'multiple') {
       res.json({
         templates: uniqBy([...projectTemplates.map((i) => i.project), ...resourceTemplates], (i) => i.id),
         projects,

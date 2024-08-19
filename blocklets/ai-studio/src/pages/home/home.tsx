@@ -35,7 +35,7 @@ export default function Home() {
             <Stack direction="row" gap={3}>
               {!isAdmin && (
                 <Button onClick={session.user ? session.switchDid : session.login} variant="contained">
-                  {window.blocklet.preferences.serviceMode === 'multi-tenant' ? t('login') : t('loginAsAdminButton')}
+                  {window?.blocklet?.tenantMode === 'multiple' ? t('login') : t('loginAsAdminButton')}
                 </Button>
               )}
             </Stack>
