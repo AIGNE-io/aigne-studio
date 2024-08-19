@@ -1,6 +1,6 @@
 {
   "name": "ai-studio",
-  "version": "0.4.28",
+  "version": "0.4.29",
   "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
   "scripts": {
     "debug": "bn-dev",
@@ -167,6 +167,7 @@
     "zustand": "^4.5.5"
   },
   "devDependencies": {
+    "@rollup/plugin-replace": "^5.0.7",
     "@types/compression": "^1.7.5",
     "@types/cookie-parser": "^1.4.7",
     "@types/cors": "^2.8.17",
@@ -196,6 +197,7 @@
     "node-gyp": "^10.2.0",
     "nodemon": "^3.1.4",
     "npm-run-all": "^4.1.5",
+    "rollup-plugin-external-globals": "^0.12.0",
     "ts-node": "^10.9.2",
     "tsc-alias": "^1.8.10",
     "vite": "^5.4.1",
