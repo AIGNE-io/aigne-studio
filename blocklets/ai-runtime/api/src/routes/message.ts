@@ -9,66 +9,18 @@ import uniqBy from 'lodash/uniqBy';
 import zip from 'lodash/zip';
 import { Attributes, FindOptions, InferAttributes, Op, WhereOptions, cast, col, where } from 'sequelize';
 
-const searchOptionsSchema = Joi.object<{ sessionId?: string; userId: string; limit: number; keyword?: string }>({
+const searchOptionsSchema = Joi.object<{ sessionId?: string; limit: number; keyword?: string }>({
   sessionId: Joi.string().empty([null, '']),
-  userId: Joi.string().empty([null, '']),
   limit: Joi.number().empty([null, '']).integer().min(1).optional().default(10),
   keyword: Joi.string().empty([null, '']),
 });
 
 export function messageRoutes(router: Router) {
-  /**
-   * @openapi
-   * /api/messages:
-   *   get:
-   *     summary: Get history messages
-   *     x-summary-zh: 获取历史信息
-   *     description: Retrieve messages based on sessionId, last N messages, or keyword
-   *     x-description-zh: 根据 sessionId、最后N条消息或关键字检索历史消息
-   *     tags:
-   *       - Sessions
-   *     parameters:
-   *       - in: query
-   *         name: limit
-   *         schema:
-   *           type: integer
-   *         description: Number of last messages to retrieve
-   *         x-description-zh: 检索的消息的数目
-   *       - in: query
-   *         name: keyword
-   *         schema:
-   *           type: string
-   *         description: Keyword to search in messages
-   *         x-description-zh: 在消息中搜索的关键字
-   *     responses:
-   *       '200':
-   *         description: A list of history messages
-   *         x-description-zh: 检索历史消息列表
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 messages:
-   *                   type: array
-   *                   items:
-   *                     type: object
-   *                     properties:
-   *                       id:
-   *                         type: string
-   *                       taskId:
-   *                         type: string
-   *                       createdAt:
-   *                         type: string
-   *                         format: date-time
-   *                       updatedAt:
-   *                         type: string
-   *                         format: date-time
-   */
   router.get('/messages', user(), async (req, res) => {
     const query = await searchOptionsSchema.validateAsync(req.query, { stripUnknown: true });
+    const { did: userId } = req.user!;
 
-    if (!query.sessionId || !query.userId) {
+    if (!query.sessionId || !userId) {
       res.json({ messages: [] });
       return;
     }
@@ -89,7 +41,7 @@ export function messageRoutes(router: Router) {
     const queryOptions: FindOptions<Attributes<History>> = {
       where: {
         sessionId: query.sessionId,
-        userId: query.userId,
+        userId,
         outputs: { [Op.not]: null },
         error: { [Op.is]: null },
       },
