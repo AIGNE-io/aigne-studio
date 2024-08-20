@@ -6,6 +6,8 @@ declare module 'express-async-errors';
 
 declare module 'express-sse';
 
+declare module 'express-xss-sanitizer';
+
 declare module '@blocklet/logger' {
   export default function createLogger(name: string): typeof console;
 }

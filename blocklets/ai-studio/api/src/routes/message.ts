@@ -61,8 +61,6 @@ export function messageRoutes(router: Router) {
           })
         : [];
 
-    console.log(lastMessages, searchMessages);
-
     // 交替组合最后n条消息和关键词匹配到的n条消息，去重后取n条，并按时间排序
     const messages = orderBy(uniqBy(zip(lastMessages, searchMessages).flat(), 'id'), 'createdAt', 'asc')
       .map((i) => {

@@ -28,3 +28,4 @@ declare var blocklet:
 
 declare module '@arcblock/did-connect/*';
 declare module '@arcblock/ux/*';
+declare module 'express-xss-sanitizer';
