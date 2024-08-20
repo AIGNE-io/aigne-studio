@@ -12,6 +12,8 @@ declare module 'express-async-errors';
 
 declare module '@abtnode/cron';
 
+declare module 'express-xss-sanitizer';
+
 namespace Express {
   interface Request {
     user?: {
