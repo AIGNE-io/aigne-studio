@@ -13,6 +13,7 @@ import cors from 'cors';
 import dotenv from 'dotenv-flow';
 import express, { ErrorRequestHandler } from 'express';
 import fallback from 'express-history-api-fallback';
+import { xss } from 'express-xss-sanitizer';
 import { Errors } from 'isomorphic-git';
 
 import { projectCronManager } from './libs/cron-jobs';
@@ -50,7 +51,7 @@ app.use(cookieParser());
 app.use(express.json({ limit: '1 mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1 mb' }));
 app.use(cors());
-
+app.use(xss());
 app.get('/.well-known/blocklet/openembed', getOpenEmbed);
 
 app.use('/api', routes);
