@@ -1,3 +1,8 @@
+## 0.4.31 (2024-8-20)
+
+- fix: xss attack
+- fix: get userId from headers
+
 ## 0.4.30 (2024-8-19)
 
 - fix: switch the acquisition mode of multi-tenant mode
