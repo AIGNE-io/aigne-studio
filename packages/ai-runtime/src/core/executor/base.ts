@@ -350,8 +350,8 @@ export abstract class AgentExecutorBase<T> {
 
             if (isPlainObject(inputValue)) {
               const resolvedEntries = await Promise.all(
-                Object.entries(inputValue).map(async ([key, value]: any) => {
-                  return [key, await renderMessage(value, variables)];
+                Object.entries(inputValue).map(async ([key, value]) => {
+                  return [key, typeof value === 'string' ? await renderMessage(value, variables) : value];
                 })
               );
 
@@ -364,9 +364,9 @@ export abstract class AgentExecutorBase<T> {
                   if (isPlainObject(item)) {
                     return Object.fromEntries(
                       await Promise.all(
-                        Object.entries(item).map(async ([key, value]: any) => [
+                        Object.entries(item).map(async ([key, value]) => [
                           key,
-                          await renderMessage(value, variables),
+                          typeof value === 'string' ? await renderMessage(value, variables) : value,
                         ])
                       )
                     );
