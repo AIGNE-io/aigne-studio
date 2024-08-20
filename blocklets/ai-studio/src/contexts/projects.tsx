@@ -139,7 +139,7 @@ export const useProjectsState = () => {
       title: t('launchMore'),
       content: (
         <Box sx={{ whiteSpace: 'break-spaces' }}>
-          {t('launchMoreContent', { length: window?.blocklet?.preferences?.multiTenantProjectLimits })}
+          {t('launchMoreContent', { length: window.blocklet?.preferences?.multiTenantProjectLimits })}
         </Box>
       ),
       cancelText: t('cancel'),
@@ -149,10 +149,10 @@ export const useProjectsState = () => {
   };
 
   const checkProjectLimit = () => {
-    if (window?.blocklet?.preferences?.serviceMode === 'multi-tenant') {
+    if (window.blocklet?.tenantMode === 'multiple') {
       // check project count limit
       const count = state.projects.length;
-      const currentLimit = window?.blocklet?.preferences?.multiTenantProjectLimits;
+      const currentLimit = window.blocklet?.preferences?.multiTenantProjectLimits;
       if (count >= currentLimit && !isPromptAdmin) {
         createLimitDialog();
         throw new Error(`Project limit exceeded (current: ${count}, limit: ${currentLimit}) `);

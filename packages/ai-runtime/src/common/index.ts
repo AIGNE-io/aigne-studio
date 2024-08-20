@@ -220,26 +220,21 @@ export async function getSupportedImagesModels(): Promise<ImageModelInfo[]> {
   ];
 }
 
-export function getServiceModePermissionMap(
-  serviceMode: ServiceMode,
-  { disablePaymentProject = false }: { disablePaymentProject?: boolean } = {}
-): ServiceModePermissionMap {
+export function getServiceModePermissionMap(serviceMode: ServiceMode): ServiceModePermissionMap {
   const permissionMap = {
-    'single-tenant': {
-      ensureViewAllProjectsRoles: [],
+    single: {
+      ensureViewAllProjectsRoles: ['owner', 'admin', 'promptsEditor'],
       ensurePromptsEditorRoles: ['owner', 'admin', 'promptsEditor'],
       ensurePromptsAdminRoles: ['owner', 'admin', 'promptsEditor'],
-      ensurePaymentProjectRoles: undefined,
     },
-    'multi-tenant': {
+    multiple: {
       ensureViewAllProjectsRoles: [],
       // no need to check, everyone can do it, will check author permission in the backend
       ensurePromptsEditorRoles: undefined,
       ensurePromptsAdminRoles: ['owner', 'admin', 'promptsEditor'],
-      ensurePaymentProjectRoles: disablePaymentProject ? ['owner', 'admin', 'promptsEditor'] : undefined,
     },
   };
 
   // try to fallback to 'single-tenant'
-  return permissionMap[serviceMode] || permissionMap['single-tenant'];
+  return permissionMap[serviceMode] || permissionMap.single;
 }
