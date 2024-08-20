@@ -1,6 +1,7 @@
 import { TextFieldProps } from '@mui/material';
 
 import { Parameter } from '../../types/assistant';
+import BooleanField from './BooleanField';
 import LanguageField from './LanguageField';
 import NumberField from './NumberField';
 import SelectField from './SelectField';
@@ -39,6 +40,7 @@ export default function ParameterField({
       string: StringField,
       select: SelectField,
       language: LanguageField,
+      boolean: BooleanField,
     } as any
   )[parameter.key === 'question' ? 'string' : parameter.type || 'string'];
 
