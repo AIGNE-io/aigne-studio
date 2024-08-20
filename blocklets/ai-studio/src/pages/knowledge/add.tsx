@@ -224,7 +224,7 @@ function File({ datasetId, id }: { datasetId: string; id?: string }) {
                   form.append('data', file);
                   form.append('type', 'file');
 
-                  const limit: number = window?.blocklet?.preferences?.uploadFileLimit || 1;
+                  const limit: number = window.blocklet?.preferences?.uploadFileLimit || 1;
                   if (file.size > limit * 1000 * 1000) {
                     Toast.error(t('maxUploadFileLimit', { limit }));
                     return;
@@ -361,10 +361,10 @@ function Discussion({ datasetId }: { datasetId: string }) {
           <Typography variant="subtitle2">{t('discussionBoards')}</Typography>
           <Stack gap={1}>
             {Object.entries(group).map(([key, value]) => {
-              const prefix = (window?.blocklet?.componentMountPoints || []).find(
+              const prefix = (window.blocklet?.componentMountPoints || []).find(
                 (x) => x.name === 'did-comments'
               )?.mountPoint;
-              let url = joinURL(window?.blocklet?.appUrl || '', prefix || '/', 'discussions');
+              let url = joinURL(window.blocklet?.appUrl || '', prefix || '/', 'discussions');
 
               const map: any = {
                 discussion: 'discussions/boards',
@@ -385,7 +385,7 @@ function Discussion({ datasetId }: { datasetId: string }) {
                     flex={1}
                     flexWrap="wrap">
                     {value.map(({ id, title, type }) => {
-                      url = joinURL(window?.blocklet?.appUrl || '', prefix || '/', map[type], id);
+                      url = joinURL(window.blocklet?.appUrl || '', prefix || '/', map[type], id);
 
                       return (
                         <Tooltip

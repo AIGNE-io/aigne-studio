@@ -7,5 +7,5 @@ const TemplateImage = styled('img')({
 });
 
 export default function ProjectLogo() {
-  return <TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/logo.png')} alt="" />;
+  return <TemplateImage src={joinURL(window.blocklet?.prefix ?? '/', '/images/logo.png')} alt="" />;
 }

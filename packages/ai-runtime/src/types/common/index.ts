@@ -28,7 +28,6 @@ export type ServiceModePermissionMap = {
   ensureViewAllProjectsRoles: string[] | undefined;
   ensurePromptsEditorRoles: string[] | undefined;
   ensurePromptsAdminRoles: string[] | undefined;
-  ensurePaymentProjectRoles: string[] | undefined;
 };
 
 export interface ImageModelInfo extends ModelInfoBase {

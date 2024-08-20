@@ -220,23 +220,18 @@ export async function getSupportedImagesModels(): Promise<ImageModelInfo[]> {
   ];
 }
 
-export function getServiceModePermissionMap(
-  serviceMode: ServiceMode,
-  { disablePaymentProject = false }: { disablePaymentProject?: boolean } = {}
-): ServiceModePermissionMap {
+export function getServiceModePermissionMap(serviceMode: ServiceMode): ServiceModePermissionMap {
   const permissionMap = {
     single: {
       ensureViewAllProjectsRoles: ['owner', 'admin', 'promptsEditor'],
       ensurePromptsEditorRoles: ['owner', 'admin', 'promptsEditor'],
       ensurePromptsAdminRoles: ['owner', 'admin', 'promptsEditor'],
-      ensurePaymentProjectRoles: undefined,
     },
     multiple: {
       ensureViewAllProjectsRoles: [],
       // no need to check, everyone can do it, will check author permission in the backend
       ensurePromptsEditorRoles: undefined,
       ensurePromptsAdminRoles: ['owner', 'admin', 'promptsEditor'],
-      ensurePaymentProjectRoles: disablePaymentProject ? ['owner', 'admin', 'promptsEditor'] : undefined,
     },
   };
 
