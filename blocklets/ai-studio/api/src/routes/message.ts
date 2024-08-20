@@ -12,7 +12,7 @@ const searchOptionsSchema = Joi.object<{ sessionId?: string; limit: number; keyw
   keyword: Joi.string().empty([null, '']),
 });
 
-// TODO 废弃掉？移动到了 runtime
+// TODO 直接删除？ 目前都是使用了 runtime 的接口
 export function messageRoutes(router: Router) {
   router.get('/messages', user(), async (req, res) => {
     const query = await searchOptionsSchema.validateAsync(req.query, { stripUnknown: true });
