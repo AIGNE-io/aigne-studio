@@ -261,15 +261,6 @@ export abstract class AgentExecutorBase<T> {
       delta: { object: result },
     });
 
-    if (options.parentTaskId) {
-      this.context.callback?.({
-        type: AssistantResponseType.CHUNK,
-        taskId: options.taskId,
-        assistantId: agent.id,
-        delta: { content: JSON.stringify(result) },
-      });
-    }
-
     this.context.callback?.({
       type: AssistantResponseType.EXECUTE,
       taskId: options.taskId,

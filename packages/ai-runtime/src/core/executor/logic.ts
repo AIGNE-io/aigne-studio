@@ -153,9 +153,39 @@ export class LogicAgentExecutor extends AgentExecutorBase<FunctionAssistant> {
         fetch,
         URL,
         call,
-        runAgent: async ({ agentId, inputs }: { agentId: string; inputs: { [key: string]: any } }) => {
+        runAgent: async ({
+          agentId,
+          inputs,
+          streaming,
+        }: {
+          agentId: string;
+          inputs: { [key: string]: any };
+          streaming?: boolean;
+        }) => {
           const a = await this.context.getAgent({ ...agent.identity, agentId, rejectOnEmpty: true });
-          return this.context.execute(a, { taskId: nextTaskId(), parentTaskId: taskId, inputs });
+
+          const { callback } = this.context;
+          const currentTaskId = nextTaskId();
+
+          return this.context
+            .copy(
+              streaming
+                ? {
+                    callback: function hello(args) {
+                      callback(args);
+
+                      if (
+                        args.type === AssistantResponseType.CHUNK &&
+                        args.delta.content &&
+                        args.taskId === currentTaskId
+                      ) {
+                        callback({ ...args, taskId });
+                      }
+                    },
+                  }
+                : {}
+            )
+            .execute(a, { taskId: currentTaskId, parentTaskId: taskId, inputs });
         },
         getComponentMountPoint,
         config: { env: pick(config.env, 'appId', 'appName', 'appDescription', 'appUrl') },

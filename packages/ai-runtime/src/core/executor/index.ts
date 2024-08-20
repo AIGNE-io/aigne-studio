@@ -20,7 +20,9 @@ export class RuntimeExecutor extends AgentExecutorBase<GetAgentResult> {
     super(
       new ExecutorContext({
         ...context,
-        executor: (agent, options) => new RuntimeExecutor(this.context, agent, options, this.agent),
+        executor(agent, options) {
+          return new RuntimeExecutor(this, agent, options, agent);
+        },
       }),
       agent,
       options
