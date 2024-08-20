@@ -15,8 +15,8 @@ export function getAgentProfile(agent: Agent) {
   const url = avatar
     ? avatar.startsWith('http')
       ? avatar
-      : joinURL(appUrl(), mountPoint, '/api/agents', agent.identity.aid, 'assets', avatar)
-    : withQuery(joinURL(appUrl(), mountPoint, '/api/agents', agent.identity.aid, 'logo'), {
+      : joinURL(appUrl() || '', mountPoint || '', '/api/agents', agent.identity.aid, 'assets', avatar)
+    : withQuery(joinURL(appUrl() || '', mountPoint || '', '/api/agents', agent.identity.aid, 'logo'), {
         blockletDid: agent.project.iconVersion || agent.project.updatedAt,
         working: agent.identity.working,
       });

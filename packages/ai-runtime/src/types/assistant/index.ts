@@ -52,7 +52,7 @@ export type Tool = {
   projectId?: string;
   id: string;
   from?: 'assistant' | 'blockletAPI' | 'knowledge';
-  parameters?: { [key: string]: string };
+  parameters?: { [key: string]: any };
   functionName?: string;
   onEnd?: OnTaskCompletion;
 };

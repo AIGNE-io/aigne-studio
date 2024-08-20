@@ -1,6 +1,6 @@
-import flat from 'flat';
+import { flatten } from 'flat';
 
-export default flat({
+export default flatten({
   name: '名称',
   add: '添加',
   project: '项目',
@@ -767,4 +767,6 @@ export default flat({
     closed: '已关闭',
     closing: '关闭中',
   },
+  string: '字符串',
+  arrayItem: '数组项',
 });

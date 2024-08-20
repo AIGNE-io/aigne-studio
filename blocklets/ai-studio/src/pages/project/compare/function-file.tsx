@@ -42,11 +42,17 @@ export default function CompareFunctionAssistant({
 
       <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
         <Box flex={1} display="flex" flexDirection="column">
-          <FunctionCodeEditor value={remoteAssistant} readOnly />
+          <FunctionCodeEditor projectId={projectId} gitRef={gitRef} value={remoteAssistant} readOnly />
         </Box>
 
         <Box flex={1} display="flex" flexDirection="column">
-          <FunctionCodeEditor value={localeAssistant} compareValue={remoteAssistant} readOnly />
+          <FunctionCodeEditor
+            projectId={projectId}
+            gitRef={gitRef}
+            value={localeAssistant}
+            compareValue={remoteAssistant}
+            readOnly
+          />
         </Box>
       </Stack>
     </>

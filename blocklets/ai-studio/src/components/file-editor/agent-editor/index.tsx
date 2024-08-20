@@ -66,7 +66,7 @@ export default function AgentEditor({
           ) : isImageAssistant(value) ? (
             <ImageAssistantEditor projectId={projectId} gitRef={gitRef} value={value} disabled={disabled} />
           ) : isFunctionAssistant(value) ? (
-            <FunctionAssistantEditor gitRef={gitRef} value={value} disabled={disabled} />
+            <FunctionAssistantEditor projectId={projectId} gitRef={gitRef} value={value} disabled={disabled} />
           ) : isApiAssistant(value) ? (
             <ApiAssistantEditor projectId={projectId} gitRef={gitRef} value={value} disabled={disabled} />
           ) : isRouterAssistant(value) ? (
