@@ -1,6 +1,6 @@
 ## 0.4.33 (2024-8-21)
 
-- fix: global storage vim settings
+- fix: enable global shared vim settings
 
 ## 0.4.32 (2024-8-21)
 
