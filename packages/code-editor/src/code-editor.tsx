@@ -26,10 +26,12 @@ import {
   useTheme,
 } from '@mui/material';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import { useUpdate } from 'ahooks';
 import useLocalStorageState from 'ahooks/lib/useLocalStorageState';
 import { get } from 'lodash';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { editor } from 'monaco-editor';
+import { VimMode } from 'monaco-vim';
 import React, { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { ResizableBox } from 'react-resizable';
 
@@ -105,19 +107,22 @@ function setupMonaco({ themeName, monaco }: { themeName: string; monaco: typeof 
 const useVimMode = (
   editorInstance: ReturnType<(typeof import('monaco-editor'))['editor']['create']>,
   statusRef: React.RefObject<HTMLElement>,
-  settings?: { vim: boolean; vimMode?: 'insert' | 'normal' },
-  setSettings?: any
+  settings: { vim?: boolean; vimMode?: 'insert' | 'normal' },
+  setSettings: any
 ) => {
   const vimModeRef = useRef<any>();
+  const update = useUpdate();
 
   useEffect(() => {
     if (settings?.vim && editorInstance) {
       import('monaco-vim').then(({ initVimMode }) => {
         vimModeRef.current = initVimMode(editorInstance, statusRef.current!);
-        setSettings?.((prev: { vimMode: string }) => ({ ...prev, vimMode: 'normal' }));
-        vimModeRef.current.on('vim-mode-change', ({ mode }: any) =>
+
+        vimModeRef.current.on('vim-mode-change', ({ mode }: { mode: 'insert' | 'normal' }) =>
           setSettings?.((prev: { vimMode: string }) => ({ ...prev, vimMode: mode }))
         );
+
+        update();
       });
     } else {
       vimModeRef.current?.dispose();
@@ -125,17 +130,36 @@ const useVimMode = (
 
     return () => vimModeRef.current?.dispose();
   }, [settings?.vim, editorInstance]);
+
+  useEffect(() => {
+    if (vimModeRef.current) {
+      vimModeRef.current.dispatch('vim-mode-change', { mode: settings?.vimMode });
+
+      if (settings?.vimMode === 'insert') {
+        VimMode.Vim.handleKey(vimModeRef.current, 'i');
+      } else {
+        VimMode.Vim.exitInsertMode(vimModeRef.current);
+      }
+    }
+  }, [vimModeRef.current, settings?.vimMode]);
 };
 
 const useEditorSettings = (keyId: string) => {
-  return useLocalStorageState(`code-editor-${keyId}`, {
-    defaultValue: { adjustHeight: true, memoryHeight: true, currentHeight: 300 },
+  return useLocalStorageState<{
+    vimMode: 'insert' | 'normal';
+    adjustHeight: boolean;
+    memoryHeight: boolean;
+    currentHeight: number;
+  }>(`code-editor-${keyId}`, {
+    defaultValue: { vimMode: 'normal', adjustHeight: true, memoryHeight: true, currentHeight: 300 },
   });
 };
 
 const useGlobalEditorSettings = () => {
-  return useLocalStorageState('code-editor-global', {
-    defaultValue: { vim: false, vimMode: undefined },
+  return useLocalStorageState<{
+    vim: boolean;
+  }>('code-editor-global', {
+    defaultValue: { vim: false },
   });
 };
 
@@ -170,7 +194,7 @@ const CodeEditor = forwardRef(
       if (monaco) setupMonaco({ monaco, themeName });
     }, [monaco]);
 
-    useVimMode(editor!, statusRef, globalSettings, setGlobalSettings);
+    useVimMode(editor!, statusRef, { ...globalSettings, ...settings }, setSettings);
 
     useImperativeHandle(ref, () => ({}));
 
@@ -207,10 +231,7 @@ const CodeEditor = forwardRef(
           <Container sx={{ overflow: 'hidden', borderRadius: 1 }}>
             <Box flex={1} height={0} p={1}>
               <Box
-                className={cx(
-                  props.className,
-                  globalSettings?.vim && globalSettings?.vimMode === 'normal' && 'vim-normal'
-                )}
+                className={cx(props.className, globalSettings?.vim && settings?.vimMode === 'normal' && 'vim-normal')}
                 component={Editor}
                 theme={themeName}
                 {...props}
@@ -223,7 +244,7 @@ const CodeEditor = forwardRef(
                   '.overflowingContentWidgets': { position: 'relative', zIndex: theme.zIndex.tooltip },
                   ...props.sx,
                   '&.vim-normal .cursor.monaco-mouse-cursor-text':
-                    globalSettings?.vimMode === 'normal'
+                    settings?.vimMode === 'normal'
                       ? {
                           width: '9px !important',
                           backgroundColor: '#aeafad',
