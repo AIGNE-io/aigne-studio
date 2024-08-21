@@ -1,6 +1,6 @@
 {
   "name": "ai-runtime",
-  "version": "0.4.32",
+  "version": "0.4.33",
   "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
   "scripts": {
     "dev": "cross-env COMPONENT_STORE_URL=https://test.store.blocklet.dev blocklet dev",
@@ -65,6 +65,7 @@
     "express-async-errors": "^3.1.1",
     "express-sse": "^0.5.3",
     "express-ws": "^5.0.2",
+    "express-xss-sanitizer": "^1.2.0",
     "faiss-node": "^0.5.1",
     "fastq": "^1.17.1",
     "flat": "^6.0.1",
