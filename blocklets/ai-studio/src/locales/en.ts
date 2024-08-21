@@ -775,5 +775,5 @@ export default flatten({
   },
   string: 'String',
   arrayItem: 'Array Item',
-  openEmbed: 'Open Embed',
+  openEmbed: 'OpenEmbed',
 });
