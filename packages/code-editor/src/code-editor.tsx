@@ -1,5 +1,3 @@
-/// <reference path="../env.d.ts" />
-
 import 'react-resizable/css/styles.css';
 
 import { cx } from '@emotion/css';
@@ -17,6 +15,7 @@ import {
   Dialog,
   DialogContent,
   DialogTitle,
+  Divider,
   IconButton,
   Stack,
   Switch,
@@ -104,13 +103,7 @@ function setupMonaco({ themeName, monaco }: { themeName: string; monaco: typeof 
 const useVimMode = (
   editorInstance: ReturnType<(typeof import('monaco-editor'))['editor']['create']>,
   statusRef: React.RefObject<HTMLElement>,
-  settings?: {
-    vim: boolean;
-    vimMode?: 'insert' | 'normal';
-    adjustHeight: boolean;
-    memoryHeight: boolean;
-    currentHeight: number;
-  },
+  settings?: { vim: boolean; vimMode?: 'insert' | 'normal' },
   setSettings?: any
 ) => {
   const vimModeRef = useRef<any>();
@@ -134,7 +127,13 @@ const useVimMode = (
 
 const useEditorSettings = (keyId: string) => {
   return useLocalStorageState(`code-editor-${keyId}`, {
-    defaultValue: { vim: false, vimMode: undefined, adjustHeight: true, memoryHeight: true, currentHeight: 300 },
+    defaultValue: { adjustHeight: true, memoryHeight: true, currentHeight: 300 },
+  });
+};
+
+const useGlobalEditorSettings = () => {
+  return useLocalStorageState('code-editor-global', {
+    defaultValue: { vim: false, vimMode: undefined },
   });
 };
 
@@ -157,6 +156,7 @@ const CodeEditor = forwardRef(
     const theme = useTheme();
     const handle = useFullScreenHandle();
     const [settings, setSettings] = useEditorSettings(keyId);
+    const [globalSettings, setGlobalSettings] = useGlobalEditorSettings();
 
     const isBreakpointsDownSm = useMediaQuery(theme.breakpoints.down('md'));
     const { minWidth } = useMobileWidth();
@@ -168,7 +168,7 @@ const CodeEditor = forwardRef(
       if (monaco) setupMonaco({ monaco, themeName });
     }, [monaco]);
 
-    useVimMode(editor!, statusRef, settings, setSettings);
+    useVimMode(editor!, statusRef, globalSettings, setGlobalSettings);
 
     useImperativeHandle(ref, () => ({}));
 
@@ -205,7 +205,10 @@ const CodeEditor = forwardRef(
           <Container sx={{ overflow: 'hidden', borderRadius: 1 }}>
             <Box flex={1} height={0} p={1}>
               <Box
-                className={cx(props.className, settings?.vim && settings?.vimMode === 'normal' && 'vim-normal')}
+                className={cx(
+                  props.className,
+                  globalSettings?.vim && globalSettings?.vimMode === 'normal' && 'vim-normal'
+                )}
                 component={Editor}
                 theme={themeName}
                 {...props}
@@ -218,7 +221,7 @@ const CodeEditor = forwardRef(
                   '.overflowingContentWidgets': { position: 'relative', zIndex: theme.zIndex.tooltip },
                   ...props.sx,
                   '&.vim-normal .cursor.monaco-mouse-cursor-text':
-                    settings?.vimMode === 'normal'
+                    globalSettings?.vimMode === 'normal'
                       ? {
                           width: '9px !important',
                           backgroundColor: '#aeafad',
@@ -268,7 +271,7 @@ const CodeEditor = forwardRef(
               </Box>
 
               <Box sx={{ display: 'flex', gap: 1, zIndex: 1, alignItems: 'center' }}>
-                {settings?.vim && (
+                {globalSettings?.vim && (
                   <Tooltip title={t('vimEnable')}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                       <Box component={Icon} icon={LogosVim} sx={{ fontSize: 14, color: '#999' }} />
@@ -333,9 +336,41 @@ const CodeEditor = forwardRef(
                 <Box className="key">{t('vim')}</Box>
                 <Box>
                   <Switch
-                    checked={Boolean(settings?.vim ?? false)}
+                    checked={Boolean(globalSettings?.vim ?? false)}
                     onChange={(_, checked) => {
-                      setSettings((r) => ({ ...r!, vim: checked }));
+                      setGlobalSettings((r) => ({ ...r!, vim: checked }));
+                    }}
+                  />
+                </Box>
+              </Box>
+
+              <Divider />
+
+              <Box sx={{ p: 1 }} className="between">
+                <Box className="key">{t('adjustHeight')}</Box>
+                <Box>
+                  <Switch
+                    checked={Boolean(settings?.adjustHeight ?? false)}
+                    onChange={(_, checked) => {
+                      setSettings((r) => ({ ...r!, adjustHeight: checked }));
+                    }}
+                  />
+                </Box>
+              </Box>
+
+              <Divider />
+
+              <Box sx={{ p: 1 }} className="between">
+                <Box className="key">{t('memoryHeight')}</Box>
+                <Box>
+                  <Switch
+                    checked={Boolean(settings?.memoryHeight ?? false)}
+                    onChange={(_, checked) => {
+                      setSettings((r) => ({
+                        ...r!,
+                        memoryHeight: checked,
+                        currentHeight: checked ? r?.currentHeight || 300 : 300,
+                      }));
                     }}
                   />
                 </Box>
