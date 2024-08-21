@@ -159,6 +159,9 @@ export interface AssistantBase {
   cache?: {
     enable?: boolean;
   };
+  openEmbed?: {
+    enable?: boolean;
+  };
 }
 
 export interface VariableTypeBase {
