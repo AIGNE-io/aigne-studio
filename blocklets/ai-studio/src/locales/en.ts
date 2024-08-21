@@ -776,4 +776,5 @@ export default flatten({
   string: 'String',
   arrayItem: 'Array Item',
   integer: 'Integer',
+  openEmbed: 'OpenEmbed',
 });

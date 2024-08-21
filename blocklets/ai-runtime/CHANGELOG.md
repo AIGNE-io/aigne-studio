@@ -1,7 +1,11 @@
-## 0.4.31 (2024-8-20)
+## 0.4.32 (2024-8-21)
 
 - fix: xss attack
 - fix: get userId from headers
+
+## 0.4.31 (2024-8-21)
+
+- fix: filter open embed agents
 
 ## 0.4.30 (2024-8-19)
 
