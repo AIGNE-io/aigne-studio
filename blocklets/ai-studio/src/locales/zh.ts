@@ -769,4 +769,5 @@ export default flatten({
   },
   string: '字符串',
   arrayItem: '数组项',
+  openEmbed: 'Open Embed',
 });

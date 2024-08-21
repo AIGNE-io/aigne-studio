@@ -33,10 +33,12 @@ export async function getOpenEmbed(_: Request, res: Response) {
           working: true,
         });
 
-        return agents.map((i) => ({
-          ...i,
-          project,
-        }));
+        return agents
+          .filter((i) => i.openEmbed?.enable)
+          .map((i) => ({
+            ...i,
+            project,
+          }));
       })
     )
   ).flat();
