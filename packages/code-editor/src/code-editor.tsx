@@ -1,3 +1,5 @@
+/// <reference path="../env.d.ts" />
+
 import 'react-resizable/css/styles.css';
 
 import { cx } from '@emotion/css';
