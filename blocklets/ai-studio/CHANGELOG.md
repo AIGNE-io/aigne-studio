@@ -1,3 +1,7 @@
+## 0.4.31 (2024-8-21)
+
+- fix: global storage vim settings
+
 ## 0.4.30 (2024-8-19)
 
 - fix: switch the acquisition mode of multi-tenant mode
