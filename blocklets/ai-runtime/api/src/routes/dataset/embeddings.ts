@@ -180,7 +180,6 @@ const updateEmbeddingHistory = async ({
     }
 
     const previousEmbedding = await EmbeddingHistories.findOne({ where: ids });
-    console.log(previousEmbedding, update);
 
     if (previousEmbedding?.targetVersion && updatedAt) {
       if (
