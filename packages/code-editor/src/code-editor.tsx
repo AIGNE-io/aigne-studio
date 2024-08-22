@@ -17,7 +17,6 @@ import {
   Dialog,
   DialogContent,
   DialogTitle,
-  Divider,
   IconButton,
   Stack,
   Switch,
@@ -362,38 +361,6 @@ const CodeEditor = forwardRef(
                     checked={Boolean(globalSettings?.vim ?? false)}
                     onChange={(_, checked) => {
                       setGlobalSettings((r) => ({ ...r!, vim: checked }));
-                    }}
-                  />
-                </Box>
-              </Box>
-
-              <Divider />
-
-              <Box sx={{ p: 1 }} className="between">
-                <Box className="key">{t('adjustHeight')}</Box>
-                <Box>
-                  <Switch
-                    checked={Boolean(settings?.adjustHeight ?? false)}
-                    onChange={(_, checked) => {
-                      setSettings((r) => ({ ...r!, adjustHeight: checked }));
-                    }}
-                  />
-                </Box>
-              </Box>
-
-              <Divider />
-
-              <Box sx={{ p: 1 }} className="between">
-                <Box className="key">{t('memoryHeight')}</Box>
-                <Box>
-                  <Switch
-                    checked={Boolean(settings?.memoryHeight ?? false)}
-                    onChange={(_, checked) => {
-                      setSettings((r) => ({
-                        ...r!,
-                        memoryHeight: checked,
-                        currentHeight: checked ? r?.currentHeight || 300 : 300,
-                      }));
                     }}
                   />
                 </Box>
