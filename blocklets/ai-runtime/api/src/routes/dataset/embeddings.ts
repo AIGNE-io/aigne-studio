@@ -67,7 +67,7 @@ const documentItemJob = async (job: DocumentQueue) => {
     const res = await document.update({ embeddingStatus: UploadStatus.Uploading, embeddingStartAt: new Date() });
     sse.send({ documentId, ...res.dataValues }, 'change');
 
-    await handler(document, content);
+    await handler(document, content, job?.update);
   } catch (error) {
     logger.error('Job Error', error?.message);
   }
@@ -162,6 +162,7 @@ const updateEmbeddingHistory = async ({
   content,
   metadata,
   updatedAt,
+  update,
 }: {
   datasetId: string;
   documentId: string;
@@ -169,11 +170,17 @@ const updateEmbeddingHistory = async ({
   content?: string;
   metadata?: any;
   updatedAt?: Date | string;
+  update?: boolean;
 }) => {
   const ids = { targetId, datasetId, documentId };
 
   try {
+    if (update) {
+      await EmbeddingHistories.destroy({ where: { datasetId, documentId } });
+    }
+
     const previousEmbedding = await EmbeddingHistories.findOne({ where: ids });
+    console.log(previousEmbedding, update);
 
     if (previousEmbedding?.targetVersion && updatedAt) {
       if (
@@ -401,7 +408,8 @@ const discussKitMap: {
 const embeddingHandler: {
   [key in NonNullable<DatasetDocument['type']>]: (
     item: DatasetDocument,
-    content?: DatasetContent | null
+    content?: DatasetContent | null,
+    update?: boolean
   ) => Promise<void>;
 } = {
   // TODO: 已经废弃, discussKit包括所有 discuss 操作
@@ -426,7 +434,8 @@ const embeddingHandler: {
       sse.send({ documentId: document.id, ...result.dataValues }, 'complete');
     }
   },
-  file: async (document: DatasetDocument, content?: DatasetContent | null) => {
+
+  file: async (document: DatasetDocument, content?: DatasetContent | null, update?: boolean) => {
     const embed = await updateEmbeddingHistory({
       datasetId: document.datasetId,
       documentId: document.id,
@@ -436,6 +445,7 @@ const embeddingHandler: {
       metadata: {
         title: document.name,
       },
+      update,
     });
 
     if (embed) {
