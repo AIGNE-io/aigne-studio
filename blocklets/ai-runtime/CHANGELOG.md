@@ -1,3 +1,7 @@
+## 0.4.34 (2024-8-22)
+
+- fix: skip non-string parameter rendering
+
 ## 0.4.33 (2024-8-21)
 
 - fix: enable global shared vim settings
