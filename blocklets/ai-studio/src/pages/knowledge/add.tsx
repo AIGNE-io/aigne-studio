@@ -1,4 +1,5 @@
 import { useIsAdmin } from '@app/contexts/session';
+import UploaderProvider, { useUploader } from '@app/contexts/uploader';
 import { discussionBoards, getDiscussionStatus } from '@app/libs/discussion';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
@@ -113,6 +114,7 @@ function File({ datasetId, id }: { datasetId: string; id?: string }) {
   const [file, setFile] = useState<File | undefined>();
   const [loading, setLoading] = useState(false);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const uploaderRef = useUploader();
 
   const { refetch } = useDocuments(datasetId);
   const navigate = useNavigate();
@@ -195,7 +197,15 @@ function File({ datasetId, id }: { datasetId: string; id?: string }) {
                   {t('knowledge.file.content')}
                 </Box>
               </Stack>
+              <Box
+                onClick={() => {
+                  const uploader = uploaderRef?.current?.getUploader();
 
+                  uploader?.open();
+                }}>
+                312312
+              </Box>
+              {/* 
               <Box
                 id="upload"
                 type="file"
@@ -203,7 +213,7 @@ function File({ datasetId, id }: { datasetId: string; id?: string }) {
                 accept=".md, .txt, .doc, .docx, .pdf"
                 component="input"
                 display="none"
-              />
+              /> */}
             </Box>
           )}
         </Box>
@@ -653,58 +663,64 @@ export default function KnowledgeDocumentsAdd() {
   ].filter((i): i is any => !!i);
 
   return (
-    <Stack bgcolor="background.paper" p={2.5} height={1} gap={2.5} overflow="auto">
-      <Stack flexDirection="row" className="between">
-        <Box>
-          <Box
-            display="flex"
-            alignItems="center"
-            sx={{ cursor: 'pointer' }}
-            onClick={() => {
-              navigate(joinURL('..', datasetId || ''));
-            }}>
-            <Box component={Icon} icon={ArrowLeft} width={20} />
-            <Typography variant="subtitle2" mb={0}>
-              {t('addDocumentToDataset', { dataset: state.dataset?.name })}
-            </Typography>
-          </Box>
+    <UploaderProvider
+      apiPathProps={{
+        uploader: `/api/uploads?datasetId=${datasetId}`,
+        disableMediaKitPrefix: true,
+      }}>
+      <Stack bgcolor="background.paper" p={2.5} height={1} gap={2.5} overflow="auto">
+        <Stack flexDirection="row" className="between">
+          <Box>
+            <Box
+              display="flex"
+              alignItems="center"
+              sx={{ cursor: 'pointer' }}
+              onClick={() => {
+                navigate(joinURL('..', datasetId || ''));
+              }}>
+              <Box component={Icon} icon={ArrowLeft} width={20} />
+              <Typography variant="subtitle2" mb={0}>
+                {t('addDocumentToDataset', { dataset: state.dataset?.name })}
+              </Typography>
+            </Box>
 
-          {/* <Box display="flex" alignItems="center">
+            {/* <Box display="flex" alignItems="center">
             <Box width={20} />
             <Typography variant="subtitle2" color="#4B5563" fontWeight={400} mb={0}>
               {state.dataset?.d}
             </Typography>
           </Box> */}
-        </Box>
-      </Stack>
-
-      <TabContext value={value}>
-        <Stack flex={1} height={0} gap={2.5}>
-          <Box display="flex" gap={1} flexDirection={isMdOrAbove ? 'row' : 'column'}>
-            {cards.map((card) => (
-              <Card
-                selected={card.id === value}
-                disabled={Boolean(id && editType !== card.id)}
-                key={card.id}
-                icon={card.icon}
-                title={card.title}
-                subtitle={card.subtitle}
-                onClick={() => setValue(editType || card.id)}
-              />
-            ))}
           </Box>
-
-          <TabPanel value="file" sx={{ p: 0, height: 1 }}>
-            <File datasetId={datasetId || ''} id={id || ''} />
-          </TabPanel>
-          <TabPanel value="discussion" sx={{ p: 0, height: 1 }}>
-            <Discussion datasetId={datasetId || ''} />
-          </TabPanel>
-          <TabPanel value="custom" sx={{ p: 0, height: 1 }}>
-            <Custom datasetId={datasetId || ''} id={id || ''} value={document?.document} />
-          </TabPanel>
         </Stack>
-      </TabContext>
-    </Stack>
+
+        <TabContext value={value}>
+          <Stack flex={1} height={0} gap={2.5}>
+            <Box display="flex" gap={1} flexDirection={isMdOrAbove ? 'row' : 'column'}>
+              {cards.map((card) => (
+                <Card
+                  selected={card.id === value}
+                  disabled={Boolean(id && editType !== card.id)}
+                  key={card.id}
+                  icon={card.icon}
+                  title={card.title}
+                  subtitle={card.subtitle}
+                  onClick={() => setValue(editType || card.id)}
+                />
+              ))}
+            </Box>
+
+            <TabPanel value="file" sx={{ p: 0, height: 1 }}>
+              <File datasetId={datasetId || ''} id={id || ''} />
+            </TabPanel>
+            <TabPanel value="discussion" sx={{ p: 0, height: 1 }}>
+              <Discussion datasetId={datasetId || ''} />
+            </TabPanel>
+            <TabPanel value="custom" sx={{ p: 0, height: 1 }}>
+              <Custom datasetId={datasetId || ''} id={id || ''} value={document?.document} />
+            </TabPanel>
+          </Stack>
+        </TabContext>
+      </Stack>
+    </UploaderProvider>
   );
 }

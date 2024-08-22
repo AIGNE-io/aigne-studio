@@ -1,5 +1,7 @@
-import { Router } from 'express';
+import { initLocalStorageServer } from '@blocklet/uploader/middlewares';
+import express, { Router } from 'express';
 
+import { Config } from '../libs/env';
 import agent from './agent';
 import ai from './ai';
 import { branchRoutes } from './branch';
@@ -29,5 +31,26 @@ router.use('/agents', agent);
 router.use('/ai', ai);
 
 router.use('/import', importRouter);
+
+// init uploader server
+const localStorageServer = initLocalStorageServer({
+  path: Config.uploadDir,
+  express,
+  onUploadFinish: async (req: any, res: any, uploadMetadata: any) => {
+    console.warn(1111, req.query, uploadMetadata.runtime.absolutePath);
+
+    return {
+      ...uploadMetadata,
+      abc: true,
+    };
+  },
+  // only for debug uploader
+  // onUploadCreate(req, res, uploadMetadata) {
+  //   console.warn(uploadMetadata);
+  //   throw new Error('debug error');
+  // },
+});
+
+router.use('/uploads', localStorageServer.handle);
 
 export default router;

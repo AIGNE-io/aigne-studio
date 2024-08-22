@@ -9,6 +9,11 @@ const defaultAllowedFileTypes = ['image/png', 'image/jpeg', 'image/gif'];
 
 interface UploaderProviderProps {
   children: ReactNode;
+  apiPathProps?: {
+    uploader?: string;
+    companion?: string;
+    disableMediaKitPrefix?: boolean;
+  };
 }
 
 export const UploaderContext = createContext(null);
@@ -22,11 +27,13 @@ export function useUploader() {
 
   useEffect(() => {
     const uploader = (uploaderRef as any)?.current?.getUploader();
-    uploader.onClose(() => {
-      if (uploader?.opts?.restrictions?.allowedFileTypes) {
-        uploader.opts.restrictions.allowedFileTypes = defaultAllowedFileTypes;
-      }
-    });
+    if (uploader) {
+      uploader.onClose(() => {
+        if (uploader?.opts?.restrictions?.allowedFileTypes) {
+          uploader.opts.restrictions.allowedFileTypes = defaultAllowedFileTypes;
+        }
+      });
+    }
   }, [uploaderRef]);
 
   return uploaderRef;
@@ -69,7 +76,7 @@ export function UploaderButton({
   );
 }
 
-export default function UploaderProvider({ children }: UploaderProviderProps) {
+export default function UploaderProvider({ children, ...restProps }: UploaderProviderProps) {
   const uploaderRef = useRef(null);
 
   const handleUploadFinish = () => {
@@ -98,6 +105,7 @@ export default function UploaderProvider({ children }: UploaderProviderProps) {
             maxNumberOfFiles: 1,
           },
         }}
+        {...restProps}
       />
     </UploaderContext.Provider>
   );
