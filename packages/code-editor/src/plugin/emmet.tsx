@@ -10,6 +10,36 @@ const useEmmet = () => {
     emmetJSX(monaco);
     emmetHTML(monaco);
     emmetCSS(monaco);
+
+    // editor.addCommand(monaco.KeyCode.Tab, () => {
+    //   const position = editor.getPosition();
+    //   const model = editor.getModel();
+    //   if (!model || !position) return;
+
+    //   const word = model.getWordUntilPosition(position);
+    //   const range = new monaco.Range(position.lineNumber, word.startColumn, position.lineNumber, word.endColumn);
+    //   const endPosition = position.with(position.lineNumber, position.column);
+
+    //   const abbreviation = model.getValueInRange(range);
+    //   const expandedText = expandAbbreviation(abbreviation, { syntax: 'jsx' });
+
+    //   if (expandedText) {
+    //     editor.executeEdits(null, [
+    //       {
+    //         range: new monaco.Range(
+    //           endPosition.lineNumber,
+    //           endPosition.column,
+    //           endPosition.lineNumber,
+    //           endPosition.column
+    //         ),
+    //         text: expandedText,
+    //         forceMoveMarkers: true,
+    //       },
+    //     ]);
+
+    //     editor.setPosition(position);
+    //   }
+    // });
   };
 
   useEffect(() => {
