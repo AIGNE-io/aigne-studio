@@ -10,7 +10,7 @@ import LogosVim from '@iconify-icons/tabler/brand-vimeo';
 import ChecksIcon from '@iconify-icons/tabler/checks';
 import SettingIcon from '@iconify-icons/tabler/settings';
 import XIcon from '@iconify-icons/tabler/x';
-import Editor, { useMonaco } from '@monaco-editor/react';
+import Editor, { Monaco } from '@monaco-editor/react';
 import {
   Box,
   BoxProps,
@@ -36,72 +36,13 @@ import { ResizableBox } from 'react-resizable';
 
 import { translations } from '../locales';
 import { FullScreen, useFullScreenHandle } from './components/react-full-screen';
-
-const prettier = Promise.all([
-  import('prettier'),
-  import('prettier/plugins/typescript'),
-  import('prettier/plugins/estree'),
-]);
-
-function useMobileWidth() {
-  const theme = useTheme();
-  const isBreakpointsDownSm = useMediaQuery(theme.breakpoints.down('md'));
-  return { minWidth: isBreakpointsDownSm ? 300 : theme.breakpoints.values.sm };
-}
+// import useEmmet from './plugin/emmet';
+import useSetupMonaco from './plugin/setup';
+import useJsxTagCloser from './plugin/tags';
 
 const useLocaleContext = (locale: string) => ({
   t: (key: string) => get((translations as any)?.[locale], key),
 });
-
-const formatCode = async (code: string) => {
-  return prettier.then(async ([prettier, typescriptPlugin, estreePlugin]) => {
-    return prettier.format(code, {
-      parser: 'typescript',
-      plugins: [typescriptPlugin, estreePlugin.default],
-      printWidth: 120,
-      useTabs: false,
-      tabWidth: 2,
-      trailingComma: 'es5',
-      bracketSameLine: true,
-      semi: true,
-      singleQuote: true,
-    });
-  });
-};
-
-let monacoConfigured = false;
-
-function setupMonaco({ themeName, monaco }: { themeName: string; monaco: typeof import('monaco-editor') }) {
-  if (monacoConfigured) return;
-  monacoConfigured = true;
-
-  monaco.languages.registerDocumentFormattingEditProvider(['javascript', 'typescript'], {
-    async provideDocumentFormattingEdits(model) {
-      return [
-        {
-          range: model.getFullModelRange(),
-          text: await formatCode(model.getValue()),
-        },
-      ];
-    },
-  });
-
-  monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
-    noSemanticValidation: true,
-    noSyntaxValidation: true,
-  });
-
-  monaco.editor.defineTheme(themeName, {
-    base: 'vs',
-    inherit: true,
-    rules: [],
-    colors: {
-      'editor.background': '#ffffff',
-    },
-  });
-
-  monaco.editor.setTheme(themeName);
-}
 
 const useVimMode = (
   editorInstance: ReturnType<(typeof import('monaco-editor'))['editor']['create']>,
@@ -174,24 +115,22 @@ const CodeEditor = forwardRef(
     ref
   ) => {
     const themeName = `customTheme${keyId}`;
+    const statusRef = useRef<HTMLElement>(null);
+
+    // const { registerEmmet } = useEmmet();
+    const { registerJsxTagCloser } = useJsxTagCloser();
+    const { registerSetup, formatCode } = useSetupMonaco();
 
     const { t } = useLocaleContext(locale);
-    const [editor, setEditor] = useState<ReturnType<(typeof import('monaco-editor'))['editor']['create']>>();
-    const monaco = useMonaco();
     const theme = useTheme();
     const handle = useFullScreenHandle();
+
+    const [editor, setEditor] = useState<ReturnType<(typeof import('monaco-editor'))['editor']['create']>>();
     const [settings, setSettings] = useEditorSettings(keyId);
     const [globalSettings, setGlobalSettings] = useGlobalEditorSettings();
 
-    const isBreakpointsDownSm = useMediaQuery(theme.breakpoints.down('md'));
-    const { minWidth } = useMobileWidth();
     const dialogState = usePopupState({ variant: 'dialog' });
-
-    const statusRef = useRef<HTMLElement>(null);
-
-    useEffect(() => {
-      if (monaco) setupMonaco({ monaco, themeName });
-    }, [monaco]);
+    const isBreakpointsDownSm = useMediaQuery(theme.breakpoints.down('md'));
 
     useVimMode(editor!, statusRef, { ...globalSettings, ...settings }, setSettings);
 
@@ -207,13 +146,7 @@ const CodeEditor = forwardRef(
       }
 
       return 300;
-    }, [
-      handle.active,
-      settings?.currentHeight,
-      settings?.adjustHeight,
-      settings?.memoryHeight,
-      settings?.currentHeight,
-    ]);
+    }, [handle.active, settings?.adjustHeight, settings?.memoryHeight, settings?.currentHeight]);
 
     const editorRender = () => {
       return (
@@ -270,7 +203,13 @@ const CodeEditor = forwardRef(
                     ...props.options?.scrollbar,
                   },
                 }}
-                onMount={(editor: editor.IStandaloneCodeEditor) => setEditor(editor)}
+                onMount={(editor: editor.IStandaloneCodeEditor, monaco: Monaco) => {
+                  // registerEmmet(editor, monaco);
+                  registerJsxTagCloser(monaco);
+                  registerSetup({ themeName, monaco });
+
+                  setEditor(editor);
+                }}
               />
             </Box>
 
@@ -333,6 +272,7 @@ const CodeEditor = forwardRef(
       );
     };
 
+    const minWidth = isBreakpointsDownSm ? 300 : theme.breakpoints.values.sm;
     return (
       <>
         <Full handle={handle}>

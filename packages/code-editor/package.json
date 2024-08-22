@@ -53,6 +53,7 @@
     "@iconify-icons/tabler": "^1.2.95",
     "@monaco-editor/react": "^4.6.0",
     "ahooks": "^3.8.1",
+    "emmet-monaco-es": "^5.4.0",
     "flat": "^6.0.1",
     "joi": "^17.13.3",
     "lodash": "^4.17.21",
