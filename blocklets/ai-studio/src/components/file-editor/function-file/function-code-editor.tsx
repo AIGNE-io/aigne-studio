@@ -41,6 +41,7 @@ return {
         bgcolor: '#EFF6FF',
       }}>
       <Box
+        key={`${projectId}-${gitRef}-${value.id}`}
         border="1px solid #3B82F6"
         borderRadius={1}
         bgcolor="background.paper"
