@@ -15,8 +15,8 @@ export class BlockletAgentExecutor extends AgentExecutorBase<BlockletAgent> {
       throw new Error('Blocklet agent api not found.');
     }
 
-    const params: { [key: string]: string } = {
-      userId: this.context.user.did,
+    const params: { [key: string]: string | undefined } = {
+      userId: this.context.user?.did,
       projectId: this.context.entryProjectId,
       sessionId: this.context.sessionId,
       assistantId: this.agent.id,

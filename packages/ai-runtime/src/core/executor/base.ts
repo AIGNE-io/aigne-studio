@@ -113,7 +113,7 @@ export class ExecutorContext {
 
   entryProjectId: string;
 
-  user: {
+  user?: {
     id: string;
     did: string;
     role?: string;
@@ -286,7 +286,7 @@ export abstract class AgentExecutorBase<T> {
 
     return hash(
       'md5',
-      jsonStableStringify({ ...i, '$sys.user.did': userRelated ? this.globalContext.$sys.user.did : undefined }),
+      jsonStableStringify({ ...i, '$sys.user.did': userRelated ? this.globalContext.$sys.user?.did : undefined }),
       'hex'
     );
   }
@@ -395,7 +395,7 @@ export abstract class AgentExecutorBase<T> {
       });
     }
 
-    const userId = this.context.user.did;
+    const userId = this.context.user?.did;
 
     const { callback } = this.context;
 
@@ -522,7 +522,7 @@ export abstract class AgentExecutorBase<T> {
             .executor(blocklet.agent, {
               inputs: {
                 sessionId: this.context.sessionId,
-                userId: this.context.user.did,
+                userId,
                 limit: chat.limit || 50,
                 keyword: await renderMessage(chat.keyword || '', inputVariables),
               },
@@ -736,7 +736,7 @@ export abstract class AgentExecutorBase<T> {
         agentId,
         sessionId: this.context.sessionId,
         reset,
-        userId: this.context.user.id,
+        userId: this.context.user?.did,
       },
       data: { key, data, scope },
     });
@@ -777,7 +777,7 @@ export abstract class AgentExecutorBase<T> {
         sessionId: this.context.sessionId,
         key,
         scope,
-        userId: this.context.user.id,
+        userId: this.context.user?.id,
       },
     });
 

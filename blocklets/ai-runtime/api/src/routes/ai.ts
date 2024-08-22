@@ -3,7 +3,6 @@ import { ReadableStream } from 'stream/web';
 import { getAgent, getMemoryVariables, getProject } from '@api/libs/agent';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
 import logger from '@api/libs/logger';
-import { ensureComponentCallOr } from '@api/libs/security';
 import ExecutionCache from '@api/store/models/execution-cache';
 import History from '@api/store/models/history';
 import Secrets from '@api/store/models/secret';
@@ -21,7 +20,6 @@ import { CallAI, CallAIImage, RunAssistantCallback, RuntimeExecutor, nextTaskId 
 import { toolCallsTransform } from '@blocklet/ai-runtime/core/utils/tool-calls-transform';
 import { AssistantResponseType, RuntimeOutputVariable, isImageAssistant } from '@blocklet/ai-runtime/types';
 import { RuntimeError, RuntimeErrorType } from '@blocklet/ai-runtime/types/runtime/error';
-import { auth } from '@blocklet/sdk/lib/middlewares';
 import user from '@blocklet/sdk/lib/middlewares/user';
 import compression from 'compression';
 import { Router } from 'express';
@@ -49,7 +47,7 @@ const callInputSchema = Joi.object<{
   debug: Joi.boolean().empty(['', null]),
 }).rename('parameters', 'inputs', { ignoreUndefined: true, override: true });
 
-router.post('/call', user(), ensureComponentCallOr(auth()), compression(), async (req, res) => {
+router.post('/call', user(), compression(), async (req, res) => {
   const stream = req.accepts().includes('text/event-stream');
 
   const input = await callInputSchema.validateAsync(
@@ -68,7 +66,6 @@ router.post('/call', user(), ensureComponentCallOr(auth()), compression(), async
   );
 
   const userId = req.user?.did;
-  if (!userId) throw new Error('Missing required userId');
 
   const { projectId, projectRef, agentId } = parseIdentity(input.aid, { rejectWhenError: true });
 
@@ -249,7 +246,7 @@ router.post('/call', user(), ensureComponentCallOr(auth()), compression(), async
         getMemoryVariables,
         getAgent,
         entryProjectId: projectId,
-        user: { id: userId, did: userId, ...req.user },
+        user: userId ? { id: userId, did: userId, ...req.user } : undefined,
         sessionId,
         messageId: history.id,
         clientTime: input.inputs?.$clientTime || new Date().toISOString(),
