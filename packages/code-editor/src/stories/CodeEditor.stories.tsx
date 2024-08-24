@@ -25,7 +25,7 @@ export const Typescript: Story = {
           path="function.ts"
           value={`\
 console.log('hello world')
-          `}
+`}
           onChange={() => {}}
           locale="zh"
         />
@@ -43,7 +43,7 @@ export const Javascript: Story = {
           language="javascript"
           value={`\
 console.log('hello world')
-        `}
+`}
           onChange={() => {}}
           locale="zh"
         />
@@ -92,7 +92,7 @@ export const CSS: Story = {
 body {
   background-color: #f0f0f0;
 }
-        `}
+`}
           onChange={() => {}}
           locale="zh"
         />

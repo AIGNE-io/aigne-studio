@@ -1,7 +1,9 @@
 import { Monaco } from '@monaco-editor/react';
 
+import type { EditorInstance } from '../libs/type';
+
 const useCloseTag = () => {
-  const onMount = (editor: ReturnType<(typeof import('monaco-editor'))['editor']['create']>, monaco: Monaco) => {
+  const onMount = (editor: EditorInstance, monaco: Monaco) => {
     editor.onDidChangeModelContent(() => {
       const position = editor.getPosition();
       const model = editor.getModel();

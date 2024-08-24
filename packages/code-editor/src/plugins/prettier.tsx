@@ -1,5 +1,7 @@
 import { Monaco } from '@monaco-editor/react';
 
+import type { EditorInstance } from '../libs/type';
+
 // @ts-ignore
 // eslint-disable-next-line import/extensions
 // import reactRaw from '../types/index.d.ts?raw';
@@ -27,10 +29,7 @@ const formatCode = async (code: string) => {
 };
 
 const usePrettier = () => {
-  const registerPrettier = async (
-    _editor: ReturnType<(typeof import('monaco-editor'))['editor']['create']>,
-    monaco: Monaco
-  ) => {
+  const registerPrettier = async (_editor: EditorInstance, monaco: Monaco) => {
     monaco.languages.registerDocumentFormattingEditProvider(['javascript', 'typescript'], {
       async provideDocumentFormattingEdits(model) {
         return [

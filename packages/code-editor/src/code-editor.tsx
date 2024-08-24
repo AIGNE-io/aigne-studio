@@ -28,20 +28,19 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import { useUpdate } from 'ahooks';
 import useLocalStorageState from 'ahooks/lib/useLocalStorageState';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
-import { editor } from 'monaco-editor';
 import { VimMode } from 'monaco-vim';
 import React, { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { ResizableBox } from 'react-resizable';
 
 import { FullScreen, useFullScreenHandle } from './components/react-full-screen';
+import type { EditorInstance } from './libs/type';
 import useAutoCloseTag from './plugins/close-tag';
 import useEmmet from './plugins/emmet';
-// import useHighlighter from './plugins/highlighter';
 import useLocaleContext from './plugins/locale';
 import usePrettier from './plugins/prettier';
 
 const useVimMode = (
-  editorInstance: ReturnType<(typeof import('monaco-editor'))['editor']['create']>,
+  editorInstance: EditorInstance,
   statusRef: React.RefObject<HTMLElement>,
   settings: { vim?: boolean; vimMode?: 'insert' | 'normal' },
   setSettings: any
@@ -114,7 +113,7 @@ const CodeEditor = forwardRef(
     const dialogState = usePopupState({ variant: 'dialog' });
 
     const { t } = useLocaleContext(locale);
-    const [editor, setEditor] = useState<ReturnType<(typeof import('monaco-editor'))['editor']['create']>>();
+    const [editor, setEditor] = useState<EditorInstance>();
 
     const theme = useTheme();
     const handle = useFullScreenHandle();
@@ -126,7 +125,6 @@ const CodeEditor = forwardRef(
     const { registerEmmet } = useEmmet();
     const { registerPrettier, formatCode } = usePrettier();
     const { registerCloseTag } = useAutoCloseTag();
-    // const { registerHighlighter } = useHighlighter();
 
     useVimMode(editor!, statusRef, { ...globalSettings, ...settings }, setSettings);
 
@@ -198,7 +196,7 @@ const CodeEditor = forwardRef(
                     ...props.options?.scrollbar,
                   },
                 }}
-                onMount={async (editor: editor.IStandaloneCodeEditor, monaco: Monaco) => {
+                onMount={(editor: EditorInstance, monaco: Monaco) => {
                   registerEmmet(editor, monaco);
                   registerPrettier(editor, monaco);
                   registerCloseTag(editor, monaco);

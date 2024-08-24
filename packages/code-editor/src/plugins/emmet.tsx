@@ -2,10 +2,12 @@ import { Monaco } from '@monaco-editor/react';
 import { emmetCSS, emmetHTML, emmetJSX } from 'emmet-monaco-es';
 import { useEffect, useRef } from 'react';
 
+import type { EditorInstance } from '../libs/type';
+
 const useEmmet = () => {
   const dispose = useRef<{ html: any; css: any; jsx: any }>({ html: null, css: null, jsx: null });
 
-  const onMount = (_editor: ReturnType<(typeof import('monaco-editor'))['editor']['create']>, monaco: Monaco) => {
+  const onMount = (_editor: EditorInstance, monaco: Monaco) => {
     dispose.current = {
       html: emmetHTML(monaco),
       css: emmetCSS(monaco),
