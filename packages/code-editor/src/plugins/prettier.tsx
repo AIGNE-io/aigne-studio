@@ -1,10 +1,9 @@
 import { Monaco } from '@monaco-editor/react';
 
 import type { EditorInstance } from '../libs/type';
-
 // @ts-ignore
 // eslint-disable-next-line import/extensions
-// import reactRaw from '../types/index.d.ts?raw';
+import reactRaw from '../types/index.d.ts?raw';
 
 const prettier = Promise.all([
   import('prettier'),
@@ -29,7 +28,7 @@ const formatCode = async (code: string) => {
 };
 
 const usePrettier = () => {
-  const registerPrettier = async (_editor: EditorInstance, monaco: Monaco) => {
+  const registerPrettier = async (_editor: EditorInstance, monaco: Monaco, options?: { theme?: string }) => {
     monaco.languages.registerDocumentFormattingEditProvider(['javascript', 'typescript'], {
       async provideDocumentFormattingEdits(model) {
         return [
@@ -46,26 +45,29 @@ const usePrettier = () => {
       noSyntaxValidation: true,
     });
 
-    // // https://github.com/microsoft/monaco-editor/issues/264#issuecomment-654578687
-    // monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
-    //   target: monaco.languages.typescript.ScriptTarget.Latest,
-    //   allowNonTsExtensions: true,
-    //   moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
-    //   module: monaco.languages.typescript.ModuleKind.CommonJS,
-    //   noEmit: true,
-    //   esModuleInterop: true,
-    //   jsx: monaco.languages.typescript.JsxEmit.React,
-    //   reactNamespace: 'React',
-    //   allowJs: true,
-    //   typeRoots: ['node_modules/@types'],
-    // });
+    if (options?.theme) {
+      monaco.editor.setTheme(options.theme);
+    }
 
-    // monaco.languages.typescript.typescriptDefaults.addExtraLib(reactRaw, 'react.d.ts');
+    // https://github.com/microsoft/monaco-editor/issues/264#issuecomment-654578687
+    monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
+      target: monaco.languages.typescript.ScriptTarget.Latest,
+      allowNonTsExtensions: true,
+      moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
+      module: monaco.languages.typescript.ModuleKind.CommonJS,
+      noEmit: true,
+      esModuleInterop: true,
+      jsx: monaco.languages.typescript.JsxEmit.React,
+      reactNamespace: 'React',
+      allowJs: true,
+      typeRoots: ['node_modules/@types'],
+    });
+
+    monaco.languages.typescript.typescriptDefaults.addExtraLib(reactRaw, 'file:///node_modules/@types/react.d.ts');
   };
 
   return {
     registerPrettier,
-    formatCode,
   };
 };
 

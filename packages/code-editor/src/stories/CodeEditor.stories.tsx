@@ -24,7 +24,7 @@ export const Typescript: Story = {
           language="typescript"
           path="function.ts"
           value={`\
-console.log('hello world')
+// 开始使用 React\nReact.
 `}
           onChange={() => {}}
           locale="zh"

@@ -91,11 +91,7 @@ const useEditorSettings = (keyId: string) => {
 };
 
 const useGlobalEditorSettings = () => {
-  return useLocalStorageState<{
-    vim: boolean;
-  }>('code-editor-global', {
-    defaultValue: { vim: false },
-  });
+  return useLocalStorageState<{ vim: boolean }>('code-editor-global', { defaultValue: { vim: false } });
 };
 
 const CodeEditor = forwardRef(
@@ -123,7 +119,7 @@ const CodeEditor = forwardRef(
     const isBreakpointsDownSm = useMediaQuery(theme.breakpoints.down('md'));
 
     const { registerEmmet } = useEmmet();
-    const { registerPrettier, formatCode } = usePrettier();
+    const { registerPrettier } = usePrettier();
     const { registerCloseTag } = useAutoCloseTag();
 
     useVimMode(editor!, statusRef, { ...globalSettings, ...settings }, setSettings);
@@ -158,7 +154,6 @@ const CodeEditor = forwardRef(
               <Box
                 className={cx(props.className, globalSettings?.vim && settings?.vimMode === 'normal' && 'vim-normal')}
                 component={Editor}
-                theme={props.theme ?? 'red'}
                 {...props}
                 sx={{
                   width: 1,
@@ -182,6 +177,8 @@ const CodeEditor = forwardRef(
                 options={{
                   lineNumbersMinChars: 2,
                   formatOnPaste: true,
+                  autoIndent: true,
+                  formatOnType: true,
                   scrollBeyondLastLine: false,
                   padding: { bottom: 100 },
                   minimap: { enabled: false },
@@ -198,7 +195,7 @@ const CodeEditor = forwardRef(
                 }}
                 onMount={(editor: EditorInstance, monaco: Monaco) => {
                   registerEmmet(editor, monaco);
-                  registerPrettier(editor, monaco);
+                  registerPrettier(editor, monaco, { theme: props.theme });
                   registerCloseTag(editor, monaco);
 
                   setEditor(editor);
@@ -235,11 +232,7 @@ const CodeEditor = forwardRef(
 
                 <IconButton
                   size="small"
-                  onClick={(e) => {
-                    if (props.value) {
-                      formatCode(props.value).then((value) => props.onChange?.(value, e as any));
-                    }
-                  }}
+                  onClick={() => editor?.trigger('formatter', 'editor.action.formatDocument', {})}
                   sx={{ borderRadius: 1 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                     <Box component={Icon} icon={ChecksIcon} sx={{ fontSize: 16, color: '#999' }} />
