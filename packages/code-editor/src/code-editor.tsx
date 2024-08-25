@@ -10,7 +10,7 @@ import LogosVim from '@iconify-icons/tabler/brand-vimeo';
 import ChecksIcon from '@iconify-icons/tabler/checks';
 import SettingIcon from '@iconify-icons/tabler/settings';
 import XIcon from '@iconify-icons/tabler/x';
-import Editor, { Monaco } from '@monaco-editor/react';
+import Editor, { Monaco, useMonaco } from '@monaco-editor/react';
 import {
   Box,
   BoxProps,
@@ -31,8 +31,10 @@ import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { VimMode } from 'monaco-vim';
 import React, { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { ResizableBox } from 'react-resizable';
+import { createHighlighter } from 'shiki';
 
 import { FullScreen, useFullScreenHandle } from './components/react-full-screen';
+import { shikiToMonaco } from './libs/shiki-to-monaco';
 import type { EditorInstance } from './libs/type';
 import useAutoCloseTag from './plugins/close-tag';
 import useEmmet from './plugins/emmet';
@@ -107,6 +109,7 @@ const CodeEditor = forwardRef(
   ) => {
     const statusRef = useRef<HTMLElement>(null);
     const dialogState = usePopupState({ variant: 'dialog' });
+    const monaco = useMonaco();
 
     const { t } = useLocaleContext(locale);
     const [editor, setEditor] = useState<EditorInstance>();
@@ -121,6 +124,17 @@ const CodeEditor = forwardRef(
     const { registerEmmet } = useEmmet();
     const { registerPrettier } = usePrettier();
     const { registerCloseTag } = useAutoCloseTag();
+
+    useEffect(() => {
+      if (monaco && props.theme && props.language) {
+        createHighlighter({
+          themes: [props.theme],
+          langs: [props.language],
+        }).then((highlighter) => {
+          shikiToMonaco(highlighter, monaco);
+        });
+      }
+    }, [monaco, props.theme, props.language]);
 
     useVimMode(editor!, statusRef, { ...globalSettings, ...settings }, setSettings);
 
