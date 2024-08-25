@@ -170,6 +170,9 @@ importers:
       '@blocklet/uploader':
         specifier: ^0.1.23
         version: 0.1.23(kgb54fwsqhogxuqrclnrz6wjgm)
+      '@blocklet/xss':
+        specifier: ^0.1.4
+        version: 0.1.4
       '@langchain/community':
         specifier: ^0.2.28
         version: 0.2.28(@aws-sdk/client-s3@3.591.0)(@aws-sdk/credential-provider-node@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0(@aws-sdk/client-sso-oidc@3.590.0)))(@huggingface/inference@2.8.0)(axios@1.7.4)(crypto-js@4.2.0)(encoding@0.1.13)(faiss-node@0.5.1)(fast-xml-parser@4.4.0)(handlebars@4.7.8)(ignore@5.3.1)(jsdom@24.1.1(canvas@2.11.2(encoding@0.1.13)))(lodash@4.17.21)(mammoth@1.8.0)(openai@4.56.0(encoding@0.1.13)(zod@3.23.8))(playwright@1.46.1)(redis@4.6.14)(ws@8.18.0)
@@ -230,9 +233,6 @@ importers:
       express-ws:
         specifier: ^5.0.2
         version: 5.0.2(express@4.19.2)
-      express-xss-sanitizer:
-        specifier: ^1.2.0
-        version: 1.2.0
       faiss-node:
         specifier: ^0.5.1
         version: 0.5.1
@@ -456,6 +456,9 @@ importers:
       '@blocklet/uploader':
         specifier: ^0.1.23
         version: 0.1.23(kgb54fwsqhogxuqrclnrz6wjgm)
+      '@blocklet/xss':
+        specifier: ^0.1.4
+        version: 0.1.4
       '@did-space/client':
         specifier: ^0.5.27
         version: 0.5.27(encoding@0.1.13)(sqlite3@5.1.7)
@@ -582,9 +585,6 @@ importers:
       express-ws:
         specifier: ^5.0.2
         version: 5.0.2(express@4.19.2)
-      express-xss-sanitizer:
-        specifier: ^1.2.0
-        version: 1.2.0
       faiss-node:
         specifier: ^0.5.1
         version: 0.5.1
@@ -2261,6 +2261,9 @@ packages:
 
   '@blocklet/uploader@0.1.23':
     resolution: {integrity: sha512-TGx3uRla6y/A2M+g/yVhu+TGETlas/92en2HO1DHgOA5IZ1uzd4I0l1Ntm8ZyEDJjDkGF+yzYuGCRT2nkWHdpA==}
+
+  '@blocklet/xss@0.1.4':
+    resolution: {integrity: sha512-gKr4U/+bsd1z+xE3QsOU4STUZ3QQImzOgrrv691Ow7krudqNuwynbVZhsZn/Zkc1qDnYreLRA67dHaT0tc8R5Q==}
 
   '@colors/colors@1.6.0':
     resolution: {integrity: sha512-Ir+AOibqzrIsL6ajt3Rz3LskB7OiMVHqltZmspbW/TJuTVuyOMirVqAkjfY6JISiLHgyNqicAC8AyHHGzNd/dA==}
@@ -6166,6 +6169,9 @@ packages:
     engines: {node: '>=4'}
     hasBin: true
 
+  cssfilter@0.0.10:
+    resolution: {integrity: sha512-FAaLDaplstoRsDR8XGYH51znUN0UY7nMc6Z9/fvE8EXGwvJE9hu7W2vHwx1+bd6gCYnln9nLbzxFTrcO9YQDZw==}
+
   cssstyle@4.0.1:
     resolution: {integrity: sha512-8ZYiJ3A/3OkDd093CBT/0UKDWry7ak4BdPTFP2+QEP7cmhouyq/Up709ASSj2cK02BbZiMgk7kYjZNS4QP5qrQ==}
     engines: {node: '>=18'}
@@ -6960,9 +6966,6 @@ packages:
     engines: {node: '>=4.5.0'}
     peerDependencies:
       express: ^4.0.0 || ^5.0.0-alpha.1
-
-  express-xss-sanitizer@1.2.0:
-    resolution: {integrity: sha512-bQPdhxgBk0JXhaYgc7+PlwLto6Lcziyov1dvnLGhJo5FkSxZv1Sm+3H5GnmPGBq4kdMlDMMZhxFrDHp9wgGAJg==}
 
   express@4.19.2:
     resolution: {integrity: sha512-5T6nhjsT+EOMzuck8JjBHARTHfMht0POzlA60WV2pMD3gyXw2LZnZ+ueGdNxG+0calOJcWKbpFcuzLZ91YWq9Q==}
@@ -10250,9 +10253,6 @@ packages:
   parse-path@7.0.0:
     resolution: {integrity: sha512-Euf9GG8WT9CdqwuWJGdf3RkUcTBArppHABkO7Lm8IzRQp0e2r/kkFnmhu4TSK30Wcu5rVAZLmfPKSBBi9tWFog==}
 
-  parse-srcset@1.0.2:
-    resolution: {integrity: sha512-/2qh0lav6CmI15FzA3i/2Bzk2zCgQhGMkvhOhKNcBVQ1ldgpbfiNTVslmooUmWJcADi1f1kIeynbDRVzNlfR6Q==}
-
   parse-url@8.1.0:
     resolution: {integrity: sha512-xDvOoLU5XRrcOZvnI6b8zA6n9O9ejNk/GExuz1yBuWUGn9KA97GI6HTs6u02wKara1CeVmZhH+0TZFdWScR89w==}
 
@@ -11643,9 +11643,6 @@ packages:
 
   safer-buffer@2.1.2:
     resolution: {integrity: sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==}
-
-  sanitize-html@2.13.0:
-    resolution: {integrity: sha512-Xff91Z+4Mz5QiNSLdLWwjgBDm5b1RU6xBT0+12rapjiaR7SwfRdjw8f+6Rir2MXKLrDicRFHdb51hGOAxmsUIA==}
 
   sass@1.77.7:
     resolution: {integrity: sha512-9ywH75cO+rLjbrZ6en3Gp8qAMwPGBapFtlsMJoDTkcMU/bSe5a6cjKVUn5Jr4Gzg5GbP3HE8cm+02pLCgcoMow==}
@@ -13104,6 +13101,11 @@ packages:
 
   xmlchars@2.2.0:
     resolution: {integrity: sha512-JZnDKK8B0RCDw84FNdDAIpZK+JuJw+s7Lz8nksI7SIuU3UXJJslUthsi+uWBUYOwPFwW7W7PRLRfUKpxjtjFCw==}
+
+  xss@1.0.15:
+    resolution: {integrity: sha512-FVdlVVC67WOIPvfOwhoMETV72f6GbW7aOabBC3WxN/oUdoEMDyLz4OgRv5/gck2ZeNqEQu+Tb0kloovXOfpYVg==}
+    engines: {node: '>= 0.10.0'}
+    hasBin: true
 
   xtend@4.0.2:
     resolution: {integrity: sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==}
@@ -15363,6 +15365,11 @@ snapshots:
       - react-router-dom
       - supports-color
       - utf-8-validate
+
+  '@blocklet/xss@0.1.4':
+    dependencies:
+      lodash: 4.17.21
+      xss: 1.0.15
 
   '@colors/colors@1.6.0': {}
 
@@ -20108,6 +20115,8 @@ snapshots:
 
   cssesc@3.0.0: {}
 
+  cssfilter@0.0.10: {}
+
   cssstyle@4.0.1:
     dependencies:
       rrweb-cssom: 0.6.0
@@ -21098,10 +21107,6 @@ snapshots:
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
-
-  express-xss-sanitizer@1.2.0:
-    dependencies:
-      sanitize-html: 2.13.0
 
   express@4.19.2:
     dependencies:
@@ -25467,8 +25472,6 @@ snapshots:
     dependencies:
       protocols: 2.0.1
 
-  parse-srcset@1.0.2: {}
-
   parse-url@8.1.0:
     dependencies:
       parse-path: 7.0.0
@@ -27189,15 +27192,6 @@ snapshots:
 
   safer-buffer@2.1.2: {}
 
-  sanitize-html@2.13.0:
-    dependencies:
-      deepmerge: 4.3.1
-      escape-string-regexp: 4.0.0
-      htmlparser2: 8.0.2
-      is-plain-object: 5.0.0
-      parse-srcset: 1.0.2
-      postcss: 8.4.41
-
   sass@1.77.7:
     dependencies:
       chokidar: 3.6.0
@@ -28786,6 +28780,11 @@ snapshots:
   xmlbuilder@10.1.1: {}
 
   xmlchars@2.2.0: {}
+
+  xss@1.0.15:
+    dependencies:
+      commander: 2.20.3
+      cssfilter: 0.0.10
 
   xtend@4.0.2: {}
 

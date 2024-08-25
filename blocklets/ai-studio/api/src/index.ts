@@ -8,12 +8,12 @@ import path from 'path';
 
 import { AssistantResponseType } from '@blocklet/ai-runtime/types';
 import user from '@blocklet/sdk/lib/middlewares/user';
+import { xss } from '@blocklet/xss';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv-flow';
 import express, { ErrorRequestHandler } from 'express';
 import fallback from 'express-history-api-fallback';
-import { xss } from 'express-xss-sanitizer';
 import { Errors } from 'isomorphic-git';
 
 import { projectCronManager } from './libs/cron-jobs';
