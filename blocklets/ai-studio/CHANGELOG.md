@@ -1,3 +1,7 @@
+## 0.4.37 (2024-8-26)
+
+- feat: support editor emmet plugin & theme
+
 ## 0.4.36 (2024-8-26)
 
 - fix: skip xss middleware for some internal api
