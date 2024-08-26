@@ -3,7 +3,6 @@ import 'express-async-errors';
 import path from 'path';
 
 import { AssistantResponseType } from '@blocklet/ai-runtime/types';
-import { xss } from '@blocklet/xss';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv-flow';
@@ -14,6 +13,7 @@ import { cronManager } from './libs/cron-jobs';
 import { isDevelopment } from './libs/env';
 import logger from './libs/logger';
 import { resourceManager } from './libs/resource';
+import { xss } from './libs/xss';
 import routes from './routes';
 import setupHtmlRouter from './routes/html';
 
