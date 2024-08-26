@@ -395,8 +395,6 @@ export abstract class AgentExecutorBase<T> {
       });
     }
 
-    const userId = this.context.user?.did;
-
     const { callback } = this.context;
 
     const cb: (taskId: string) => RunAssistantCallback = (taskId) => (args) => {
@@ -468,7 +466,6 @@ export abstract class AgentExecutorBase<T> {
           const data = await this.context
             .executor(blocklet.agent, {
               inputs: {
-                userId,
                 projectId: this.context.entryProjectId,
                 sessionId: this.context.sessionId,
                 scope,
@@ -522,7 +519,6 @@ export abstract class AgentExecutorBase<T> {
             .executor(blocklet.agent, {
               inputs: {
                 sessionId: this.context.sessionId,
-                userId,
                 limit: chat.limit || 50,
                 keyword: await renderMessage(chat.keyword || '', inputVariables),
               },
@@ -736,7 +732,6 @@ export abstract class AgentExecutorBase<T> {
         agentId,
         sessionId: this.context.sessionId,
         reset,
-        userId: this.context.user?.did,
       },
       data: { key, data, scope },
     });

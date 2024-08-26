@@ -7,6 +7,7 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv-flow';
 import express, { ErrorRequestHandler } from 'express';
+import { xss } from 'express-xss-sanitizer';
 
 import initCronJob from './jobs';
 import { cronManager } from './libs/cron-jobs';
@@ -27,6 +28,7 @@ app.use(cookieParser());
 app.use(express.json({ limit: '1 mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1 mb' }));
 app.use(cors());
+app.use(xss());
 
 const router = express.Router();
 router.use('/api', routes);

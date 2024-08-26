@@ -1,3 +1,16 @@
+## 0.4.34 (2024-8-22)
+
+- fix: skip non-string parameter rendering
+
+## 0.4.33 (2024-8-21)
+
+- fix: enable global shared vim settings
+
+## 0.4.32 (2024-8-21)
+
+- fix: xss attack
+- fix: get userId from headers
+
 ## 0.4.31 (2024-8-21)
 
 - fix: filter open embed agents
