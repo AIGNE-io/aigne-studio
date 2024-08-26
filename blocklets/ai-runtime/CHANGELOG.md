@@ -1,3 +1,7 @@
+## 0.4.35 (2024-8-22)
+
+- chore: use @blocklet/uploader to uploader file
+
 ## 0.4.34 (2024-8-22)
 
 - fix: skip non-string parameter rendering

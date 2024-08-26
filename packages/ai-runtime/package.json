@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.4.34",
+  "version": "0.4.35",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -167,7 +167,7 @@
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@arcblock/ux": "^2.10.21",
+    "@arcblock/ux": "^2.10.22",
     "@emotion/css": "^11.13.0",
     "@emotion/react": "^11.13.3",
     "@jest/globals": "^29.7.0",
