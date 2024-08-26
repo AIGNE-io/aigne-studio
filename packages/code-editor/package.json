@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/code-editor",
-  "version": "0.4.36",
+  "version": "0.4.37",
   "description": "Code Editor",
   "publishConfig": {
     "access": "public"
@@ -61,11 +61,11 @@
     "joi": "^17.13.3",
     "lodash": "^4.17.21",
     "material-ui-popup-state": "^5.1.2",
-    "monaco-editor": "^0.50.0",
+    "monaco-editor": "^0.51.0",
     "monaco-vim": "^0.4.1",
     "nanoid": "^3.3.7",
     "prettier": "^3.3.3",
-    "react-hook-form": "^7.52.2",
+    "react-hook-form": "^7.53.0",
     "react-resizable": "^3.0.5",
     "react-transition-group": "^4.4.5",
     "shiki": "^1.14.1",
@@ -97,7 +97,7 @@
     "react-router-dom": "^6.26.1",
     "rimraf": "^6.0.1",
     "storybook": "^8.2.9",
-    "ts-jest": "^29.2.4",
+    "ts-jest": "^29.2.5",
     "typescript": "^5.5.4"
   }
 }

@@ -8,7 +8,6 @@ import path from 'path';
 
 import { AssistantResponseType } from '@blocklet/ai-runtime/types';
 import user from '@blocklet/sdk/lib/middlewares/user';
-import { xss } from '@blocklet/xss';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv-flow';
@@ -23,6 +22,7 @@ import logger from './libs/logger';
 import { importPackageJson } from './libs/package-json';
 import { resourceManager } from './libs/resource';
 import { ensurePromptsEditor } from './libs/security';
+import { xss } from './libs/xss';
 import routes from './routes';
 import { getOpenEmbed } from './routes/open-embed';
 import { wss } from './routes/ws';
