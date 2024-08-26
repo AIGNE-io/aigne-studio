@@ -1,3 +1,7 @@
+## 0.4.36 (2024-8-26)
+
+- feat: support theme
+
 ## 0.4.35 (2024-8-22)
 
 - chore: use @blocklet/uploader to uploader file
