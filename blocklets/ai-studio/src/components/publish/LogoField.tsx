@@ -17,9 +17,7 @@ export default function LogoField({
     <Stack
       sx={{ cursor: 'pointer', gap: 0.5 }}
       onClick={() => {
-        // @ts-ignore
         const uploader = uploaderRef?.current?.getUploader();
-
         uploader?.open();
 
         uploader.onceUploadSuccess(async ({ response }: any) => {

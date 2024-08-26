@@ -121,22 +121,6 @@ export async function updateTextDocument(
     .then((res) => res.data);
 }
 
-export async function createFileDocument(datasetId: string, form: FormData): Promise<DatasetDocument> {
-  return axios
-    .post(`/api/datasets/${datasetId}/documents/file`, form, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
-    .then((res) => res.data);
-}
-
-export async function updateFileDocument(
-  datasetId: string,
-  documentId: string,
-  form: FormData
-): Promise<DatasetDocument> {
-  return axios
-    .put(`/api/datasets/${datasetId}/documents/${documentId}/file`, form, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
-    .then((res) => res.data);
-}
-
 export async function uploadDocumentName(
   datasetId: string,
   documentId: string,
