@@ -9,4 +9,5 @@ export default flatten({
   vimEnable: '启用 VIM',
   adjustHeight: '调整高度',
   memoryHeight: '记忆高度',
+  theme: '主题',
 });

@@ -13,7 +13,6 @@ import cors from 'cors';
 import dotenv from 'dotenv-flow';
 import express, { ErrorRequestHandler } from 'express';
 import fallback from 'express-history-api-fallback';
-import { xss } from 'express-xss-sanitizer';
 import { Errors } from 'isomorphic-git';
 
 import { projectCronManager } from './libs/cron-jobs';
@@ -23,6 +22,7 @@ import logger from './libs/logger';
 import { importPackageJson } from './libs/package-json';
 import { resourceManager } from './libs/resource';
 import { ensurePromptsEditor } from './libs/security';
+import { xss } from './libs/xss';
 import routes from './routes';
 import { getOpenEmbed } from './routes/open-embed';
 import { wss } from './routes/ws';

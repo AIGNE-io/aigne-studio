@@ -1,17 +1,29 @@
 import UploadIcon from '@mui/icons-material/Upload';
 import { IconButton, IconButtonProps } from '@mui/material';
-import { ReactNode, createContext, lazy, useContext, useEffect, useRef } from 'react';
+import { ReactNode, createContext, lazy, useContext, useRef } from 'react';
 
 // @ts-ignore
 const UploaderComponent = lazy(() => import('@blocklet/uploader/react').then((res) => ({ default: res.Uploader })));
-
 const defaultAllowedFileTypes = ['image/png', 'image/jpeg', 'image/gif'];
 
 interface UploaderProviderProps {
   children: ReactNode;
+  plugins?: string[];
+  dashboardProps?: {
+    fileManagerSelectionType?: string;
+  };
+  restrictions?: {
+    allowedFileTypes?: string[];
+    maxFileSize?: number;
+  };
+  apiPathProps?: {
+    uploader?: string;
+    disableMediaKitPrefix?: boolean;
+    disableAutoPrefix?: boolean;
+  };
 }
 
-export const UploaderContext = createContext(null);
+export const UploaderContext = createContext<any>(null);
 
 export function useUploader() {
   const uploaderRef = useContext(UploaderContext);
@@ -19,15 +31,6 @@ export function useUploader() {
   if (!uploaderRef) {
     throw new Error('useUploader must be used within an UploaderProvider');
   }
-
-  useEffect(() => {
-    const uploader = (uploaderRef as any)?.current?.getUploader();
-    uploader.onClose(() => {
-      if (uploader?.opts?.restrictions?.allowedFileTypes) {
-        uploader.opts.restrictions.allowedFileTypes = defaultAllowedFileTypes;
-      }
-    });
-  }, [uploaderRef]);
 
   return uploaderRef;
 }
@@ -40,7 +43,6 @@ export function UploaderButton({
   const uploaderRef = useUploader();
 
   const handleOpen = () => {
-    // @ts-ignore
     const uploader = uploaderRef?.current?.getUploader();
     if (uploader?.opts?.restrictions?.allowedFileTypes) {
       uploader.opts.restrictions.allowedFileTypes = allowedFileTypes || defaultAllowedFileTypes;
@@ -49,10 +51,7 @@ export function UploaderButton({
     uploader?.open();
 
     if (onChange) {
-      // rewrite default emitter
-      uploader.onceUploadSuccess((...args: any) => {
-        onChange(...args);
-      });
+      uploader.onceUploadSuccess((...args: any) => onChange(...args));
     }
   };
 
@@ -69,13 +68,17 @@ export function UploaderButton({
   );
 }
 
-export default function UploaderProvider({ children }: UploaderProviderProps) {
-  const uploaderRef = useRef(null);
+export default function UploaderProvider({
+  children,
+  restrictions,
+  plugins,
+  dashboardProps,
+  apiPathProps,
+}: UploaderProviderProps) {
+  const uploaderRef = useRef<any>(null);
 
   const handleUploadFinish = () => {
-    // @ts-ignore
     const uploader = uploaderRef?.current?.getUploader();
-
     uploader.close();
   };
 
@@ -91,13 +94,17 @@ export default function UploaderProvider({ children }: UploaderProviderProps) {
         onUploadFinish={handleUploadFinish}
         dashboardProps={{
           hideProgressAfterFinish: true,
+          ...(dashboardProps || {}),
         }}
         coreProps={{
           restrictions: {
             allowedFileTypes: defaultAllowedFileTypes,
             maxNumberOfFiles: 1,
+            ...(restrictions || {}),
           },
         }}
+        apiPathProps={apiPathProps}
+        plugins={plugins}
       />
     </UploaderContext.Provider>
   );

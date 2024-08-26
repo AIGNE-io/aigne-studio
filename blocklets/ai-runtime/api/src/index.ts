@@ -7,13 +7,13 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv-flow';
 import express, { ErrorRequestHandler } from 'express';
-import { xss } from 'express-xss-sanitizer';
 
 import initCronJob from './jobs';
 import { cronManager } from './libs/cron-jobs';
 import { isDevelopment } from './libs/env';
 import logger from './libs/logger';
 import { resourceManager } from './libs/resource';
+import { xss } from './libs/xss';
 import routes from './routes';
 import setupHtmlRouter from './routes/html';
 

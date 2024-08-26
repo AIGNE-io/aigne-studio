@@ -1,19 +1,16 @@
-import { mkdir, readFile, writeFile } from 'fs/promises';
-import path, { extname, join } from 'path';
+import { join } from 'path';
 
 import { resourceManager } from '@api/libs/resource';
-import config from '@blocklet/sdk/lib/config';
 import user from '@blocklet/sdk/lib/middlewares/user';
-import { Router } from 'express';
+import { initLocalStorageServer } from '@blocklet/uploader/lib/middlewares';
+import express, { Router } from 'express';
 import Joi from 'joi';
 import { sortBy } from 'lodash';
-import multer from 'multer';
 import { Op, Sequelize } from 'sequelize';
 
 import { AIKitEmbeddings } from '../../core/embeddings/ai-kit';
 import { Config } from '../../libs/env';
 import logger from '../../libs/logger';
-import nextId from '../../libs/next-id';
 import { userAuth } from '../../libs/security';
 import DatasetContent from '../../store/models/dataset/content';
 import Dataset from '../../store/models/dataset/dataset';
@@ -25,7 +22,6 @@ import { queue } from './embeddings';
 import { updateHistoriesAndStore } from './vector-store';
 
 const router = Router();
-const upload = multer({ storage: multer.memoryStorage() });
 
 export interface CreateDiscussionItem {
   name: string;
@@ -319,78 +315,6 @@ router.post('/:datasetId/documents/discussion', user(), async (req, res) => {
   return res.json(Array.isArray(input) ? docs : docs[0]);
 });
 
-router.post('/:datasetId/documents/file', user(), userAuth(), upload.single('data'), async (req, res) => {
-  const { did } = req.user!;
-  const { datasetId } = req.params;
-  if (!datasetId) {
-    throw new Error('Missing required params `datasetId`');
-  }
-
-  if (!req?.file) {
-    res.status(400).send('No file was uploaded.');
-    return;
-  }
-
-  const { type, filename = req?.file.originalname, data = req?.file.buffer, size } = req.body;
-
-  if (!type || !filename || !data) {
-    res.status(500).json({ error: 'missing required body `type` or `filename` or `data`' });
-    return;
-  }
-
-  if (size > config.env.preferences.uploadFileLimit * 1000 * 1000) {
-    throw new Error(
-      `The number of files uploaded exceeds the maximum value. The number of files uploaded cannot exceed ${config.env.preferences.uploadFileLimit}MB`
-    );
-  }
-
-  let buffer = null;
-
-  if (type === 'base64') {
-    buffer = Buffer.from(data, 'base64');
-  } else if (type === 'path') {
-    buffer = await readFile(data);
-  } else if (type === 'file') {
-    buffer = data;
-  } else {
-    buffer = data;
-  }
-
-  if (!buffer) {
-    res.json({ error: 'invalid upload type, should be [file, path, base64]' });
-    return;
-  }
-
-  const id = nextId();
-  const newFilename = `${id}${extname(filename)}`;
-  const filePath = path.join(Config.uploadDir, newFilename);
-  await mkdir(Config.uploadDir, { recursive: true });
-  await writeFile(filePath, buffer, 'utf8');
-
-  const fileExtension = (path.extname(req.file.originalname) || '').replace('.', '');
-  const originalname = Buffer.from(
-    (req.file.originalname || '').replace(path.extname(req.file.originalname), ''),
-    'latin1'
-  ).toString('utf8');
-
-  const document = await DatasetDocument.create({
-    type: 'file',
-    name: originalname,
-    data: { type: fileExtension, path: filePath },
-    datasetId,
-    createdBy: did,
-    updatedBy: did,
-    embeddingStatus: 'idle',
-  });
-
-  // 不保存数据，在使用时，实时去取，防止数据太大，导致出错
-  await DatasetContent.create({ documentId: document.id, content: '' });
-
-  queue.checkAndPush({ type: 'document', documentId: document.id });
-
-  res.json(document);
-});
-
 router.put('/:datasetId/documents/:documentId/text', user(), userAuth(), async (req, res) => {
   const { did } = req.user! || {};
   const { datasetId, documentId } = await Joi.object<{
@@ -415,69 +339,6 @@ router.put('/:datasetId/documents/:documentId/text', user(), userAuth(), async (
 
   const document = await DatasetDocument.findOne({ where: { id: documentId, datasetId } });
 
-  if (document) queue.checkAndPush({ type: 'document', documentId: document.id });
-
-  res.json(document);
-});
-
-router.put('/:datasetId/documents/:documentId/file', user(), userAuth(), upload.single('data'), async (req, res) => {
-  const { did } = req.user!;
-  const { datasetId, documentId } = await Joi.object<{ datasetId: string; documentId: string }>({
-    datasetId: Joi.string().required(),
-    documentId: Joi.string().required(),
-  }).validateAsync(req.params, { stripUnknown: true });
-
-  if (!datasetId) {
-    throw new Error('Missing required params `datasetId`');
-  }
-
-  if (!req?.file) {
-    res.status(400).send('No file was uploaded.');
-    return;
-  }
-
-  const { type, filename = req?.file.originalname, data = req?.file.buffer } = req.body;
-
-  if (!type || !filename || !data) {
-    res.status(500).json({ error: 'missing required body `type` or `filename` or `data`' });
-    return;
-  }
-
-  let buffer = null;
-
-  if (type === 'base64') {
-    buffer = Buffer.from(data, 'base64');
-  } else if (type === 'path') {
-    buffer = await readFile(data, 'utf8');
-  } else if (type === 'file') {
-    buffer = data;
-  } else {
-    buffer = data;
-  }
-
-  if (!buffer) {
-    res.json({ error: 'invalid upload type, should be [file, path, base64]' });
-    return;
-  }
-
-  const newFilename = `${documentId}${extname(filename)}`;
-  const filePath = path.join(Config.uploadDir, newFilename);
-  await mkdir(Config.uploadDir, { recursive: true });
-  await writeFile(filePath, buffer, 'utf8');
-
-  const fileExtension = (path.extname(req.file.originalname) || '').replace('.', '');
-
-  await DatasetDocument.update(
-    {
-      error: null,
-      name: (req.file.originalname || '').replace(path.extname(req.file.originalname), ''),
-      data: { type: fileExtension, path: filePath },
-      updatedBy: did,
-    },
-    { where: { id: documentId, datasetId } }
-  );
-
-  const document = await DatasetDocument.findOne({ where: { id: documentId, datasetId } });
   if (document) queue.checkAndPush({ type: 'document', documentId: document.id });
 
   res.json(document);
@@ -528,5 +389,47 @@ router.post('/:datasetId/documents/:documentId/embedding', user(), userAuth(), a
 
   res.json(document);
 });
+
+const localStorageServer = initLocalStorageServer({
+  path: Config.uploadDir,
+  express,
+  onUploadFinish: async (req: any, _res: any, uploadMetadata: any) => {
+    const { documentId, datasetId } = req.query;
+    const { originFileName, absolutePath, type } = uploadMetadata.runtime;
+
+    if (documentId) {
+      await DatasetDocument.update(
+        {
+          error: null,
+          name: originFileName,
+          data: { type, path: absolutePath },
+          updatedBy: req.user.did,
+          embeddingStatus: 'idle',
+        },
+        { where: { id: documentId, datasetId } }
+      );
+
+      const document = await DatasetDocument.findOne({ where: { id: documentId, datasetId } });
+      if (document) queue.checkAndPush({ type: 'document', documentId: document.id, update: true });
+    } else {
+      const document = await DatasetDocument.create({
+        type: 'file',
+        name: originFileName,
+        data: { type, path: absolutePath },
+        datasetId,
+        createdBy: req.user.did,
+        updatedBy: req.user.did,
+        embeddingStatus: 'idle',
+      });
+
+      await DatasetContent.create({ documentId: document.id, content: '' });
+      if (document) queue.checkAndPush({ type: 'document', documentId: document.id });
+    }
+
+    return uploadMetadata;
+  },
+});
+
+router.use('/uploads', user(), localStorageServer.handle);
 
 export default router;

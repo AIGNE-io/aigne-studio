@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/prompt-editor",
-  "version": "0.4.34",
+  "version": "0.4.37",
   "description": "prompt editor for ai studio",
   "author": "arcblock",
   "license": "ISC",
@@ -83,7 +83,7 @@
     "yjs": "^13.6.18"
   },
   "devDependencies": {
-    "@rollup/plugin-babel": "5.3.0",
+    "@rollup/plugin-babel": "6.0.4",
     "@types/lodash-es": "^4.17.12",
     "@vitejs/plugin-react": "^4.3.1",
     "copyfiles": "^2.4.1",

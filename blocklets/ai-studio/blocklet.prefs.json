@@ -67,6 +67,56 @@
                 "description": "Limit the maximum number of projects each person can create in Multi Tenant (except for owner, admin, promptsEditor passport)"
               }
             }
+          },
+          "ds4lfn3f8en": {
+            "type": "void",
+            "x-component": "FormTab.TabPane",
+            "x-component-props": {
+              "tab": "Knowledge"
+            },
+            "x-designable-id": "ds4lfn3f8en",
+            "x-index": 1,
+            "properties": {
+              "uploadFileLimit": {
+                "type": "number",
+                "title": "Upload File Limits(MB)",
+                "x-decorator": "FormItem",
+                "x-component": "NumberPicker",
+                "x-validator": [
+                  {
+                    "exclusiveMinimum": 0,
+                    "min": null
+                  }
+                ],
+                "x-component-props": {
+                  "style": {
+                    "width": "auto"
+                  },
+                  "max": 100,
+                  "min": 0,
+                  "bordered": true,
+                  "keyboard": true
+                },
+                "x-decorator-props": {
+                  "layout": "vertical",
+                  "size": "default",
+                  "fullness": false,
+                  "colon": false
+                },
+                "name": "uploadFileLimit",
+                "default": 10,
+                "x-reactions": {
+                  "dependencies": [],
+                  "fulfill": {
+                    "state": {}
+                  }
+                },
+                "x-designable-id": "xd9eqqqhx9c",
+                "x-index": 0,
+                "description": "Limits the size of files uploaded to the knowledge (MB)",
+                "required": false
+              }
+            }
           }
         }
       }
