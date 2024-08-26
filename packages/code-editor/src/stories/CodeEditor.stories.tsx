@@ -21,7 +21,6 @@ export const Typescript: Story = {
       <Box width={1} height={1000}>
         <CodeEditor
           keyId="typescript"
-          theme="material-theme-lighter"
           language="typescript"
           path="function.ts"
           value={`\
@@ -41,8 +40,8 @@ export const Javascript: Story = {
       <Box width={1} height={1000}>
         <CodeEditor
           keyId="javascript"
-          theme="catppuccin-mocha"
           language="javascript"
+          path="function.js"
           value={`\
 console.log('hello world')
 `}
@@ -60,9 +59,8 @@ export const HTML: Story = {
       <Box width={1} height={1000}>
         <CodeEditor
           keyId="html"
-          theme="solarized-dark"
           language="html"
-          path="function.ts"
+          path="function.html"
           value={`\
 <!DOCTYPE html>
 <html lang="en">
