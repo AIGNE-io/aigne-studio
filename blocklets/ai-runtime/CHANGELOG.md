@@ -1,3 +1,7 @@
+## 0.4.40 (2024-8-28)
+
+- fix: remove untracked files in the repo
+
 ## 0.4.39 (2024-8-28)
 
 - fix: update the `monaco-editor` version for fix vim cannot be used
