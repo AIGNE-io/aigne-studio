@@ -27,6 +27,7 @@ export default function ImportFrom({
 }) {
   const { t } = useLocaleContext();
 
+  const [selectAll, setSelectAll] = useState(false);
   const [state, setState, { refetch }] = useRequest(projectId, gitRef);
   const counts = useRef<{ [key: string]: number }>({});
   const deps = useRef<{ [key: string]: TreeNode[] }>({});
@@ -65,6 +66,17 @@ export default function ImportFrom({
     });
   };
 
+  const isChecked = (item: TreeNode) => {
+    return Boolean(ids[item.text]);
+  };
+
+  const onChangeParent = (item: TreeNode, checked: boolean) => {
+    const temps = getDepTemplates(tree, item.text);
+    deps.current[item.text] = temps;
+    setDepCounts(temps, checked);
+    handleChange(item.text, checked);
+  };
+
   const ids = useMemo(() => {
     const obj: { [key: string]: boolean } = {};
 
@@ -79,9 +91,23 @@ export default function ImportFrom({
     return { ...selected, ...obj };
   }, [selected, counts]);
 
+  const handleSelectAll = (checked: boolean) => {
+    setSelectAll(checked);
+    tree.forEach((item) => onChangeParent(item, checked));
+  };
+
+  const getName = (file: TreeNode) => {
+    return file.type === 'file' ? file.data?.name || t('alert.unnamed') : file.text;
+  };
+
   useEffect(() => {
     onChange(ids, state.projectId, state.ref);
   }, [ids, state]);
+
+  useEffect(() => {
+    const allSelected = tree.every((item) => isChecked(item));
+    setSelectAll(allSelected);
+  }, [ids, tree]);
 
   return (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -97,6 +123,7 @@ export default function ImportFrom({
           isOptionEqualToValue={(o, v) => o.id === v.id}
           getOptionLabel={(v) => v.name || t('unnamed')}
           onChange={(_e, newValue) => {
+            setSelectAll(false);
             setSelected({});
             setState((r) => ({ ...r, projectId: newValue.id! }));
             refetch({ projectId: newValue.id!, ref: state.ref! });
@@ -119,6 +146,7 @@ export default function ImportFrom({
           getOptionDisabled={(option) => option === gitRef && state.projectId === projectId}
           getOptionLabel={(v) => v}
           onChange={(_e, newValue) => {
+            setSelectAll(false);
             setSelected({});
             setState((r) => ({ ...r, ref: newValue }));
             refetch({ projectId: state.projectId!, ref: newValue! });
@@ -140,23 +168,17 @@ export default function ImportFrom({
             </Box>
           )}
 
+          {!!tree.length && (
+            <FormControlLabel
+              control={
+                <Checkbox size="small" checked={selectAll} onChange={(e) => handleSelectAll(e.target.checked)} />
+              }
+              label={t('selectAll')}
+            />
+          )}
+
           {tree.map((item) => {
-            const getName = (file: TreeNode) => {
-              return file.type === 'file' ? file.data?.name || t('alert.unnamed') : file.text;
-            };
-
             const name = getName(item);
-
-            const isChecked = () => {
-              return Boolean(ids[item.text]);
-            };
-
-            const onChangeParent = (item: TreeNode, checked: boolean) => {
-              const temps = getDepTemplates(tree, item.text);
-              deps.current[item.text] = temps;
-              setDepCounts(temps, checked);
-              handleChange(item.text, checked);
-            };
 
             return (
               <Stack key={item.id} mb={0.25}>
@@ -185,7 +207,7 @@ export default function ImportFrom({
                   control={
                     <Checkbox
                       size="small"
-                      checked={isChecked()}
+                      checked={isChecked(item)}
                       onChange={(e) => {
                         onChangeParent(item, e.target.checked);
                       }}
