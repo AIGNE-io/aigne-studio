@@ -8,7 +8,7 @@ import Knowledge from '../store/models/dataset/dataset';
 import KnowledgeDocuments from '../store/models/dataset/document';
 import KnowledgeEmbeddingHistory from '../store/models/dataset/embedding-history';
 import KnowledgeSegments from '../store/models/dataset/segment';
-import { vectorStorePath } from '../store/vector-store-faiss';
+import { getKnowledgeDir } from './ensure-dir';
 import nextId from './next-id';
 
 async function paginateAndInsert<M extends Model>({
@@ -148,8 +148,8 @@ async function importKnowledgeData(
   });
 
   // 复制向量数据库
-  const newVectorStorePath = vectorStorePath(newKnowledgeId);
-  const oldVectorStorePath = vectorStorePath(oldKnowledgeId);
+  const newVectorStorePath = getKnowledgeDir(newKnowledgeId);
+  const oldVectorStorePath = getKnowledgeDir(oldKnowledgeId);
   await mkdir(newVectorStorePath, { recursive: true });
 
   if ((await exists(oldVectorStorePath)) && (await exists(newVectorStorePath))) {

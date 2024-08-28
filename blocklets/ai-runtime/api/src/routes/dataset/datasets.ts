@@ -101,7 +101,6 @@ router.get('/:datasetId/export-resource', user(), ensureComponentCallOrAdmin(), 
   const query = await exportResourceQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
   const dataset = await Dataset.findByPk(datasetId, { rejectOnEmpty: new Error(`No such dataset ${datasetId}`) });
-
   const documents = await DatasetDocument.findAll({ where: { datasetId, type: { [Op.ne]: 'discussKit' } } });
   const documentIds = documents.map((i) => i.id);
   const contents = await DatasetContent.findAll({ where: { documentId: { [Op.in]: documentIds } } });
@@ -179,6 +178,8 @@ router.post('/', user(), userAuth(), async (req, res) => {
 
   if (appId && copyFromProjectId) {
     const knowledge = await Dataset.findAll({ where: { appId: copyFromProjectId } });
+
+    console.log('knowledge', knowledge);
 
     const map: { [oldKnowledgeBaseId: string]: string } = {};
 

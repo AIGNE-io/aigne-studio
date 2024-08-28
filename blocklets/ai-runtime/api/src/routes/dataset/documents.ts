@@ -1,15 +1,18 @@
+import { copyFile, rm } from 'fs/promises';
 import { join } from 'path';
 
 import { resourceManager } from '@api/libs/resource';
 import user from '@blocklet/sdk/lib/middlewares/user';
 import { initLocalStorageServer } from '@blocklet/uploader/lib/middlewares';
-import express, { NextFunction, Router } from 'express';
+import express, { Router } from 'express';
 import Joi from 'joi';
 import { sortBy } from 'lodash';
 import { Op, Sequelize } from 'sequelize';
+import { joinURL } from 'ufo';
 
 import { AIKitEmbeddings } from '../../core/embeddings/ai-kit';
 import ensureKnowledgeDirExists, { getUploadDir } from '../../libs/ensure-dir';
+import { Config } from '../../libs/env';
 import logger from '../../libs/logger';
 import { userAuth } from '../../libs/security';
 import DatasetContent from '../../store/models/dataset/content';
@@ -390,52 +393,53 @@ router.post('/:datasetId/documents/:documentId/embedding', user(), userAuth(), a
   res.json(document);
 });
 
-function createLocalStorageMiddleware() {
-  return (req: any, res: any, next: NextFunction) => {
-    const localStorageServer = initLocalStorageServer({
-      path: getUploadDir(req?.query?.datasetId),
-      express,
-      onUploadFinish: async (req: any, _res: any, uploadMetadata: any) => {
-        const { documentId, datasetId } = req.query;
-        const { originFileName, absolutePath, type } = uploadMetadata.runtime;
+const localStorageServer = initLocalStorageServer({
+  path: Config.uploadDir,
+  express,
+  onUploadFinish: async (req: any, _res: any, uploadMetadata: any) => {
+    const { documentId, datasetId } = req.query;
+    const { hashFileName, originFileName, absolutePath, type } = uploadMetadata.runtime;
 
-        if (documentId) {
-          await DatasetDocument.update(
-            {
-              error: null,
-              name: originFileName,
-              data: { type, path: absolutePath },
-              updatedBy: req.user.did,
-              embeddingStatus: 'idle',
-            },
-            { where: { id: documentId, datasetId } }
-          );
+    const newFilePath = joinURL(getUploadDir(datasetId), hashFileName);
 
-          const document = await DatasetDocument.findOne({ where: { id: documentId, datasetId } });
-          if (document) queue.checkAndPush({ type: 'document', documentId: document.id, update: true });
-        } else {
-          const document = await DatasetDocument.create({
-            type: 'file',
-            name: originFileName,
-            data: { type, path: absolutePath },
-            datasetId,
-            createdBy: req.user.did,
-            updatedBy: req.user.did,
-            embeddingStatus: 'idle',
-          });
+    // move file to dataset dir
+    await ensureKnowledgeDirExists(datasetId);
+    await copyFile(absolutePath, newFilePath);
+    await rm(absolutePath, { recursive: true, force: true });
 
-          await DatasetContent.create({ documentId: document.id, content: '' });
-          if (document) queue.checkAndPush({ type: 'document', documentId: document.id });
-        }
+    if (documentId) {
+      await DatasetDocument.update(
+        {
+          error: null,
+          name: originFileName,
+          data: { type, path: newFilePath },
+          updatedBy: req.user.did,
+          embeddingStatus: 'idle',
+        },
+        { where: { id: documentId, datasetId } }
+      );
 
-        return uploadMetadata;
-      },
-    });
+      const document = await DatasetDocument.findOne({ where: { id: documentId, datasetId } });
+      if (document) queue.checkAndPush({ type: 'document', documentId: document.id, update: true });
+    } else {
+      const document = await DatasetDocument.create({
+        type: 'file',
+        name: originFileName,
+        data: { type, path: newFilePath },
+        datasetId,
+        createdBy: req.user.did,
+        updatedBy: req.user.did,
+        embeddingStatus: 'idle',
+      });
 
-    localStorageServer.handle(req, res, next);
-  };
-}
+      await DatasetContent.create({ documentId: document.id, content: '' });
+      if (document) queue.checkAndPush({ type: 'document', documentId: document.id });
+    }
 
-router.use('/uploads', user(), createLocalStorageMiddleware());
+    return uploadMetadata;
+  },
+});
+
+router.use('/uploads', user(), localStorageServer.handle);
 
 export default router;

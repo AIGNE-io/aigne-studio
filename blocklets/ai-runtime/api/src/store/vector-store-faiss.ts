@@ -5,6 +5,7 @@ import { FaissLibArgs, FaissStore } from '@langchain/community/vectorstores/fais
 import type { EmbeddingsInterface } from '@langchain/core/embeddings';
 import { pathExists } from 'fs-extra';
 
+import ensureKnowledgeDirExists, { getVectorDir } from '../libs/ensure-dir';
 import { Config } from '../libs/env';
 import logger from '../libs/logger';
 
@@ -33,8 +34,9 @@ export default class VectorStore extends FaissStore {
     super(embeddings, args);
   }
 
-  static override async load(path: string, embeddings: EmbeddingsInterface): Promise<VectorStore> {
-    const storePath = path.startsWith('/') ? path : vectorStorePath(path);
+  static override async load(knowledgeId: string, embeddings: EmbeddingsInterface): Promise<VectorStore> {
+    await ensureKnowledgeDirExists(knowledgeId);
+    const storePath = knowledgeId.startsWith('/') ? knowledgeId : getVectorDir(knowledgeId);
 
     let store = vectorStores.get(storePath);
     if (!store) {

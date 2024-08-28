@@ -33,5 +33,6 @@ async function ensureKnowledgeDirExists(knowledgeId?: string) {
 
 export const getUploadDir = (knowledgeId: string) => joinURL(Config.knowledgeDir, knowledgeId, 'uploads');
 export const getVectorDir = (knowledgeId: string) => joinURL(Config.knowledgeDir, knowledgeId, 'vectors');
+export const getKnowledgeDir = (knowledgeId: string) => joinURL(Config.knowledgeDir, knowledgeId);
 
 export default ensureKnowledgeDirExists;
