@@ -778,4 +778,5 @@ export default flatten({
   integer: 'Integer',
   openEmbed: 'OpenEmbed',
   selectAll: 'Select All',
+  syncTip: 'Save the modified data before data synchronization',
 });
