@@ -314,7 +314,7 @@ const CodeEditor = forwardRef(
                 <Box>
                   <TextField
                     select
-                    value={globalSettings?.theme ?? 'github-light'}
+                    value={globalSettings?.theme || 'github-light'}
                     onChange={(e) => setGlobalSettings((r) => ({ ...r!, theme: e.target.value }))}
                     variant="outlined"
                     fullWidth
