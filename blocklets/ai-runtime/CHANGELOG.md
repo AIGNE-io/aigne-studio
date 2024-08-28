@@ -1,3 +1,8 @@
+## 0.4.38 (2024-8-27)
+
+- feat: support select all agent button
+- fix: export agent projectId
+
 ## 0.4.37 (2024-8-26)
 
 - feat: support editor emmet plugin & theme
