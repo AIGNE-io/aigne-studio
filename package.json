@@ -1,7 +1,7 @@
 {
   "name": "ai-studio",
   "private": true,
-  "version": "0.4.37",
+  "version": "0.4.39",
   "workspaces": [
     "blocklets/*",
     "packages/*"
@@ -113,6 +113,7 @@
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
     "vite-tsconfig-paths": "4.3.2",
-    "ws": "^8.18.0"
+    "ws": "^8.18.0",
+    "monaco-editor": "0.50.0"
   }
 }
