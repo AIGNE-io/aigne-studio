@@ -1,6 +1,6 @@
 {
   "name": "ai-studio",
-  "version": "0.4.38",
+  "version": "0.4.39",
   "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
   "scripts": {
     "debug": "bn-dev",
@@ -123,7 +123,7 @@
     "marked-mangle": "^1.1.9",
     "material-ui-popup-state": "^5.1.2",
     "million": "^3.1.11",
-    "monaco-editor": "^0.50.0",
+    "monaco-editor": "^0.51.0",
     "multer": "^1.4.5-lts.1",
     "mustache": "^4.2.0",
     "nanoid": "^3.3.7",

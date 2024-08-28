@@ -777,4 +777,5 @@ export default flatten({
   arrayItem: 'Array Item',
   integer: 'Integer',
   openEmbed: 'OpenEmbed',
+  selectAll: 'Select All',
 });

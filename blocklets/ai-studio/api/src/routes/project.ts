@@ -1046,6 +1046,39 @@ export function projectRoutes(router: Router) {
           const p = (await repository.listFiles({ ref })).find((i) => i.endsWith(`${agentId}.yaml`));
           const parent = p ? p.split('/').slice(0, -1) : [];
           const result = await getAssistantFromRepository({ repository, ref, agentId });
+
+          (result?.parameters || []).forEach((parameter) => {
+            if (parameter.type === 'source') {
+              if (parameter?.source?.variableFrom === 'tool' && parameter?.source?.agent?.projectId) {
+                parameter.source.agent.projectId = req.params.projectId;
+              }
+
+              if (parameter?.source?.variableFrom === 'blockletAPI' && parameter?.source?.api?.projectId) {
+                parameter.source.api.projectId = req.params.projectId;
+              }
+
+              if (parameter?.source?.variableFrom === 'knowledge' && parameter?.source?.knowledge?.projectId) {
+                parameter.source.knowledge.projectId = req.params.projectId;
+              }
+            }
+          });
+
+          if (result?.type === 'callAgent') {
+            (result.agents || []).forEach((agent) => {
+              if (agent?.projectId) {
+                agent.projectId = req.params.projectId;
+              }
+            });
+          }
+
+          if (result?.type === 'router') {
+            (result.routes || []).forEach((route) => {
+              if (route?.projectId) {
+                route.projectId = req.params.projectId;
+              }
+            });
+          }
+
           return { ...result, parent };
         })
       )

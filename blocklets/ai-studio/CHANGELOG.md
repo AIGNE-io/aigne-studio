@@ -1,6 +1,11 @@
+## 0.4.39 (2024-8-28)
+
+- fix: update the `monaco-editor` version for fix vim cannot be used
+
 ## 0.4.38 (2024-8-27)
 
-- fix: update the `monaco-editor` version and modify the problem that vim cannot be used.
+- feat: support select all agent button
+- fix: export agent projectId
 
 ## 0.4.37 (2024-8-26)
 
