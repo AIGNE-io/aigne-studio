@@ -13,12 +13,13 @@ import user from '@blocklet/sdk/lib/middlewares/user';
 import archiver from 'archiver';
 import compression from 'compression';
 import { Router } from 'express';
-import { exists } from 'fs-extra';
+import { pathExists } from 'fs-extra';
 import Joi from 'joi';
 import omitBy from 'lodash/omitBy';
 import { Op, Sequelize } from 'sequelize';
 import { stringify } from 'yaml';
 
+import { getVectorStorePath } from '../../libs/ensure-dir';
 import copyKnowledgeBase from '../../libs/knowledge';
 import { ensureComponentCallOr, ensureComponentCallOrAdmin, userAuth } from '../../libs/security';
 import Dataset from '../../store/models/dataset/dataset';
@@ -141,9 +142,9 @@ router.get('/:datasetId/export-resource', user(), ensureComponentCallOrAdmin(), 
     await writeFile(join(knowledgeWithIdPath, 'documents.yaml'), stringify(documents));
 
     // 复制 vector db
+    const src = resolve(await getVectorStorePath(datasetId));
     const dst = join(knowledgeWithIdPath, 'vectors', datasetId);
-    const src = resolve(Config.dataDir, 'vectors', datasetId);
-    if (await exists(src)) {
+    if ((await pathExists(src)) && (await pathExists(dst))) {
       copyRecursive(src, dst);
     }
 
@@ -178,8 +179,6 @@ router.post('/', user(), userAuth(), async (req, res) => {
 
   if (appId && copyFromProjectId) {
     const knowledge = await Dataset.findAll({ where: { appId: copyFromProjectId } });
-
-    console.log('knowledge', knowledge);
 
     const map: { [oldKnowledgeBaseId: string]: string } = {};
 

@@ -1,6 +1,6 @@
 /* eslint-disable no-await-in-loop */
 import { copyRecursive } from '@blocklet/ai-runtime/utils/fs';
-import { exists, mkdir } from 'fs-extra';
+import { mkdir, pathExists } from 'fs-extra';
 import { CreationAttributes, Model, Op } from 'sequelize';
 
 import KnowledgeContents from '../store/models/dataset/content';
@@ -152,7 +152,7 @@ async function importKnowledgeData(
   const oldVectorStorePath = getKnowledgeDir(oldKnowledgeId);
   await mkdir(newVectorStorePath, { recursive: true });
 
-  if ((await exists(oldVectorStorePath)) && (await exists(newVectorStorePath))) {
+  if ((await pathExists(oldVectorStorePath)) && (await pathExists(newVectorStorePath))) {
     copyRecursive(oldVectorStorePath, newVectorStorePath);
   }
 }

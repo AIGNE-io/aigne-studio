@@ -1,17 +1,13 @@
 import { mkdir } from 'fs/promises';
-import { join } from 'path';
 
 import { FaissLibArgs, FaissStore } from '@langchain/community/vectorstores/faiss';
 import type { EmbeddingsInterface } from '@langchain/core/embeddings';
 import { pathExists } from 'fs-extra';
 
-import ensureKnowledgeDirExists, { getVectorDir } from '../libs/ensure-dir';
-import { Config } from '../libs/env';
+import ensureKnowledgeDirExists, { getVectorStorePath } from '../libs/ensure-dir';
 import logger from '../libs/logger';
 
 const vectorStores = new Map<string, Promise<VectorStore>>();
-
-export const vectorStorePath = (id: string) => join(Config.dataDir, 'vectors', id);
 
 FaissStore.importFaiss = async () => {
   try {
@@ -36,7 +32,7 @@ export default class VectorStore extends FaissStore {
 
   static override async load(knowledgeId: string, embeddings: EmbeddingsInterface): Promise<VectorStore> {
     await ensureKnowledgeDirExists(knowledgeId);
-    const storePath = knowledgeId.startsWith('/') ? knowledgeId : getVectorDir(knowledgeId);
+    const storePath = knowledgeId.startsWith('/') ? knowledgeId : await getVectorStorePath(knowledgeId);
 
     let store = vectorStores.get(storePath);
     if (!store) {
