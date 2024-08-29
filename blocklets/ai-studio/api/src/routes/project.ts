@@ -262,9 +262,7 @@ export interface CreateOrUpdateAgentInputSecretPayload {
 export function projectRoutes(router: Router) {
   router.get('/projects', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const list = await Project.findAll({
-      where: {
-        ...getProjectWhereConditions(req),
-      },
+      where: { ...getProjectWhereConditions(req) },
       order: [
         ['pinnedAt', 'DESC'],
         ['updatedAt', 'DESC'],
@@ -283,6 +281,7 @@ export function projectRoutes(router: Router) {
           projectId: project.id,
           gitDefaultBranch: project.gitDefaultBranch,
         });
+
         return {
           ...project.dataValues,
           users,
@@ -292,10 +291,6 @@ export function projectRoutes(router: Router) {
       })
     );
 
-    const resourceTemplates = (await resourceManager.getProjects({ type: 'template' })).map((i) => ({
-      ...i.project,
-      blockletDid: i.blocklet.did,
-    }));
     const resourceExamples = (await resourceManager.getProjects({ type: 'example' })).map((i) => ({
       ...i.project,
       blockletDid: i.blocklet.did,
@@ -304,23 +299,30 @@ export function projectRoutes(router: Router) {
     // multi-tenant mode
     if (config.env.tenantMode === 'multiple') {
       res.json({
-        templates: uniqBy([...projectTemplates.map((i) => i.project), ...resourceTemplates], (i) => i.id),
+        templates: [],
+        examples: [],
         projects,
-        examples: uniqBy(resourceExamples, (i) => i.id),
       });
       return;
     }
 
     // single-tenant mode
     const resourceExampleIds = new Set(resourceExamples.map((i) => i.id));
-    const exampleProjects = projects.filter((i) => resourceExampleIds.has(i.duplicateFrom!));
-    const exampleProjectFromIds = new Set(exampleProjects.map((i) => i.duplicateFrom));
-    const notCreatedExamples = resourceExamples.filter((i) => !exampleProjectFromIds.has(i.id));
+    res.json({
+      templates: [],
+      examples: [],
+      projects: projects.filter((i) => !resourceExampleIds.has(i.duplicateFrom!)),
+    });
+  });
+
+  router.get('/template-projects', user(), ensureComponentCallOrPromptsEditor(), async (_req, res) => {
+    const resourceTemplates = (await resourceManager.getProjects({ type: 'template' })).map((i) => ({
+      ...i.project,
+      blockletDid: i.blocklet.did,
+    }));
 
     res.json({
       templates: uniqBy([...projectTemplates.map((i) => i.project), ...resourceTemplates], (i) => i.id),
-      projects: projects.filter((i) => !resourceExampleIds.has(i.duplicateFrom!)),
-      examples: uniqBy([...exampleProjects, ...notCreatedExamples], (i) => i.id),
     });
   });
 

@@ -772,4 +772,5 @@ export default flatten({
   integer: '整数',
   openEmbed: 'OpenEmbed',
   selectAll: '全选',
+  projectToGetStart: '快速创建一个项目',
 });

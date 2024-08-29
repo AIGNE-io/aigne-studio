@@ -778,4 +778,5 @@ export default flatten({
   integer: 'Integer',
   openEmbed: 'OpenEmbed',
   selectAll: 'Select All',
+  projectToGetStart: 'Create a project to get started',
 });
