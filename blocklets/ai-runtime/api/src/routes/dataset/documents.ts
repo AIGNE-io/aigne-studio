@@ -402,9 +402,10 @@ const localStorageServer = initLocalStorageServer({
     const { hashFileName, originFileName, absolutePath, type } = uploadMetadata.runtime;
     const newFilePath = joinURL(getUploadDir(datasetId), hashFileName);
 
+    await ensureKnowledgeDirExists(datasetId);
+    await copyFile(absolutePath, newFilePath);
+
     const moveFile = async () => {
-      await ensureKnowledgeDirExists(datasetId);
-      await copyFile(absolutePath, newFilePath);
       await rm(absolutePath, { recursive: true, force: true });
     };
 

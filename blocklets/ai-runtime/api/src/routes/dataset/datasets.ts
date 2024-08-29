@@ -19,7 +19,7 @@ import omitBy from 'lodash/omitBy';
 import { Op, Sequelize } from 'sequelize';
 import { stringify } from 'yaml';
 
-import { getVectorStorePath } from '../../libs/ensure-dir';
+import ensureKnowledgeDirExists, { getUploadPathByCheckFile, getVectorStorePath } from '../../libs/ensure-dir';
 import copyKnowledgeBase from '../../libs/knowledge';
 import { ensureComponentCallOr, ensureComponentCallOrAdmin, userAuth } from '../../libs/security';
 import Dataset from '../../store/models/dataset/dataset';
@@ -132,7 +132,7 @@ router.get('/:datasetId/export-resource', user(), ensureComponentCallOrAdmin(), 
     for (const document of filterDocuments) {
       if (hasPath(document.data)) {
         const newPath = join(uploadsPath, basename(document.data.path));
-        await copyFile(document.data.path, newPath);
+        await copyFile(await getUploadPathByCheckFile(datasetId, document.data.path), newPath);
 
         // 特别注意，需要将 path 路径更换到新的路径, 在使用时，拼接 uploadsPath
         document.data.path = basename(document.data.path);
@@ -144,7 +144,8 @@ router.get('/:datasetId/export-resource', user(), ensureComponentCallOrAdmin(), 
     // 复制 vector db
     const src = resolve(await getVectorStorePath(datasetId));
     const dst = join(knowledgeWithIdPath, 'vectors', datasetId);
-    if ((await pathExists(src)) && (await pathExists(dst))) {
+
+    if (await pathExists(src)) {
       copyRecursive(src, dst);
     }
 
@@ -197,6 +198,8 @@ router.post('/', user(), userAuth(), async (req, res) => {
   }
 
   const dataset = await Dataset.create({ name, description, appId, createdBy: did, updatedBy: did });
+  await ensureKnowledgeDirExists(dataset.id);
+
   return res.json(dataset);
 });
 

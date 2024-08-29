@@ -23,8 +23,9 @@ async function ensureKnowledgeDirExists(knowledgeId?: string) {
   await ensureDirExists(Config.knowledgeDir);
 
   if (knowledgeId) {
-    const knowledgeDir = path.join(Config.knowledgeDir, knowledgeId);
+    if (knowledgeId.startsWith('/')) return;
 
+    const knowledgeDir = path.join(Config.knowledgeDir, knowledgeId);
     await Promise.all([
       ensureDirExists(path.join(knowledgeDir, 'uploads')),
       ensureDirExists(path.join(knowledgeDir, 'vectors')),
