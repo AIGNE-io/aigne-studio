@@ -590,6 +590,7 @@ export default function KnowledgeDocumentsAdd() {
           '.doc', // 允许 Word 文档
           '.docx', // 允许新版 Word 文档
           '.txt', // 允许文本文件
+          '.json', // 允许 JSON 文件
           'text/plain', // 文本文件 MIME 类型
           'application/pdf', // PDF 文件 MIME 类型
           'application/msword', // DOC 文件 MIME 类型

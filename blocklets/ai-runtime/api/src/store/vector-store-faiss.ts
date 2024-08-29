@@ -33,6 +33,7 @@ export default class VectorStore extends FaissStore {
   static override async load(knowledgeId: string, embeddings: EmbeddingsInterface): Promise<VectorStore> {
     await ensureKnowledgeDirExists(knowledgeId);
     const storePath = knowledgeId.startsWith('/') ? knowledgeId : await getVectorStorePath(knowledgeId);
+    logger.info('VectorStore Path', { storePath });
 
     let store = vectorStores.get(storePath);
     if (!store) {
