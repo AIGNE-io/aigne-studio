@@ -1,3 +1,7 @@
+## 0.4.41 (2024-8-29)
+
+- fix: sync git data to yjs
+
 ## 0.4.40 (2024-8-28)
 
 - fix: remove untracked files in the repo
