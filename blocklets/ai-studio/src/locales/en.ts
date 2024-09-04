@@ -779,4 +779,6 @@ export default flatten({
   openEmbed: 'OpenEmbed',
   selectAll: 'Select All',
   projectToGetStart: 'Create a project to get started',
+  selectTemplate:
+    'Choose a template for a quick start, or create your unique project - Click to begin your personalized journey!',
 });

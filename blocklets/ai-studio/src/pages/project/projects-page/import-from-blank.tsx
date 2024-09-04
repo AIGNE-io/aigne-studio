@@ -43,9 +43,7 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
   const { createLimitDialog, limitDialog } = useProjectsState();
 
   const { data, loading, error } = useRequest(() => getTemplatesProjects());
-  const list = error ? [] : data?.templates || [];
-  const blank = (list || []).find((x) => !x.blockletDid);
-  const templates = (list || []).filter((x) => x.blockletDid);
+  const templates = error ? [] : data?.templates || [];
 
   const form = useForm<BlankForm>({ defaultValues: { description: '', name: '', templateIds: '' } });
   const templateIds = form.watch('templateIds');
@@ -56,7 +54,7 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
         const { name, description, templateIds } = value;
 
         const project = await createProject({
-          templateId: blank?.id,
+          templateId: '',
           name,
           description,
           ...(templateIds
@@ -81,7 +79,7 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
         throw error;
       }
     },
-    [blank, form, navigate]
+    [form, navigate]
   );
 
   const template = templates.find((x) => `${x.blockletDid}-${x.id}` === templateIds);
@@ -92,7 +90,7 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
         data-testid="newProjectDialog"
         open
         disableEnforceFocus
-        maxWidth="sm"
+        maxWidth="md"
         fullWidth
         component="form"
         onSubmit={form.handleSubmit(save)}
@@ -107,7 +105,7 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
 
         <DialogContent>
           <Stack flexDirection="row" gap={4}>
-            <Stack flex={1} gap={1.5}>
+            <Stack flex={1} gap={2.5}>
               <Box>
                 <Typography variant="subtitle2">{t('choose')}</Typography>
                 <TextField
@@ -138,7 +136,7 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
                       const selectedItem = templates.find((item) => `${item.blockletDid}-${item.id}` === selected);
                       if (!selectedItem) return null;
                       return (
-                        <Stack direction="row" alignItems="center" spacing={2}>
+                        <Stack direction="row" alignItems="center" spacing={1}>
                           <DidAvatar did={selectedItem.blockletDid} size={20} />
                           <Typography variant="body2" noWrap>
                             {selectedItem?.name || t('unnamed')}
@@ -158,7 +156,7 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
                   {templates.map((item) => {
                     return (
                       <MenuItem key={item.id} value={`${item.blockletDid}-${item.id}`}>
-                        <Stack direction="row" alignItems="stretch" gap={2}>
+                        <Stack direction="row" alignItems="stretch" gap={1}>
                           <DidAvatar did={item.blockletDid} size={40} />
 
                           <Stack flex={1} width={1}>
@@ -182,13 +180,16 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
                     );
                   })}
                 </TextField>
+                <Typography variant="caption" color="text.disabled">
+                  {t('selectTemplate')}
+                </Typography>
               </Box>
 
               <Box>
                 <Typography variant="subtitle2">{template?.description}</Typography>
               </Box>
             </Stack>
-            <Stack flex={1} gap={1.5}>
+            <Stack flex={1} gap={2.5}>
               <Box>
                 <Typography variant="subtitle2">{t('name')}</Typography>
                 <TextField
@@ -207,8 +208,8 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
                   placeholder={t('newProjectDescriptionPlaceholder')}
                   hiddenLabel
                   multiline
-                  minRows={2}
-                  maxRows={3}
+                  minRows={3}
+                  maxRows={5}
                   sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
                   {...form.register('description')}
                 />

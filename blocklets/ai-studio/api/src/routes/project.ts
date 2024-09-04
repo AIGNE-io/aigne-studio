@@ -321,9 +321,7 @@ export function projectRoutes(router: Router) {
       blockletDid: i.blocklet.did,
     }));
 
-    res.json({
-      templates: uniqBy([...projectTemplates.map((i) => i.project), ...resourceTemplates], (i) => i.id),
-    });
+    res.json({ templates: uniqBy([...resourceTemplates], (i) => i.id) });
   });
 
   router.get('/projects/icons', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
@@ -520,16 +518,19 @@ export function projectRoutes(router: Router) {
   router.post('/projects', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { did } = req.user!;
 
-    const { blockletDid, templateId, name, description, withDuplicateFrom } = await createProjectSchema.validateAsync(
-      req.body,
-      {
-        stripUnknown: true,
-      }
-    );
+    const {
+      blockletDid,
+      templateId: id,
+      name,
+      description,
+      withDuplicateFrom,
+    } = await createProjectSchema.validateAsync(req.body, { stripUnknown: true });
 
     let project: Project | undefined;
 
     await checkProjectLimit({ req });
+
+    const templateId = id || projectTemplates.map((i) => i.project)[0]?.id;
 
     if (templateId) {
       // create project from resource blocklet

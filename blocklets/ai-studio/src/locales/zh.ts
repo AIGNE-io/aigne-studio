@@ -773,4 +773,5 @@ export default flatten({
   openEmbed: 'OpenEmbed',
   selectAll: '全选',
   projectToGetStart: '快速创建一个项目',
+  selectTemplate: '选择模板快速开始，或开创您的独特项目 - 点击创建您的专属之旅！',
 });
