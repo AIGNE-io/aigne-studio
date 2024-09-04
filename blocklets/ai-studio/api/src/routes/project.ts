@@ -516,8 +516,6 @@ export function projectRoutes(router: Router) {
   );
 
   router.post('/projects', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
-    const { did } = req.user!;
-
     const {
       blockletDid,
       templateId: id,
@@ -530,63 +528,56 @@ export function projectRoutes(router: Router) {
 
     await checkProjectLimit({ req });
 
-    const templateId = id || projectTemplates.map((i) => i.project)[0]?.id;
+    const templateId = id || projectTemplates[0]?.project?.id;
+    if (!templateId) {
+      throw new Error('No template project found');
+    }
 
-    if (templateId) {
-      // create project from resource blocklet
-      if (blockletDid) {
-        const resource = await resourceManager.getProject({
-          blockletDid,
-          projectId: templateId,
-          type: ['template', 'example'],
-        });
-
-        if (resource) {
-          project = await createProjectFromTemplate(resource, {
-            name,
-            description,
-            author: req.user!,
-            withDuplicateFrom,
-          });
-        }
-      }
-
-      // duplicate a project
-      if (!project) {
-        const original = await Project.findOne({ where: { id: templateId } });
-        if (original) {
-          project = await copyProject({
-            project: original,
-            name,
-            description,
-            author: req.user!,
-            projectType: undefined,
-          });
-        }
-      }
-
-      // create project from builtin templates
-      if (!project) {
-        const template = projectTemplates.find((i) => i.project.id === templateId);
-        if (template) {
-          project = await createProjectFromTemplate(
-            { ...template, agents: [] },
-            { name, description, author: req.user! }
-          );
-        }
-      }
-
-      if (!project) {
-        throw new Error(`No such template project ${templateId}`);
-      }
-    } else {
-      project = await Project.create({
-        createdBy: did,
-        updatedBy: did,
-        gitDefaultBranch: defaultBranch,
-        name,
-        description,
+    // create project from resource blocklet
+    if (blockletDid) {
+      const resource = await resourceManager.getProject({
+        blockletDid,
+        projectId: templateId,
+        type: ['template', 'example'],
       });
+
+      if (resource) {
+        project = await createProjectFromTemplate(resource, {
+          name,
+          description,
+          author: req.user!,
+          withDuplicateFrom,
+        });
+      }
+    }
+
+    // duplicate a project
+    if (!project) {
+      const original = await Project.findOne({ where: { id: templateId } });
+      if (original) {
+        project = await copyProject({
+          project: original,
+          name,
+          description,
+          author: req.user!,
+          projectType: undefined,
+        });
+      }
+    }
+
+    // create project from builtin templates
+    if (!project) {
+      const template = projectTemplates.find((i) => i.project.id === templateId);
+      if (template) {
+        project = await createProjectFromTemplate(
+          { ...template, agents: [] },
+          { name, description, author: req.user! }
+        );
+      }
+    }
+
+    if (!project) {
+      throw new Error(`No such template project ${templateId}`);
     }
 
     projectCronManager.reloadProjectJobs(project.id);
