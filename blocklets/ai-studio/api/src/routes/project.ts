@@ -912,6 +912,7 @@ export function projectRoutes(router: Router) {
       for (const ref of branches) {
         // eslint-disable-next-line no-await-in-loop
         await syncRepository({ repository, ref, author: { name: fullName, email: userId } });
+        (await repository.working({ ref })).reset();
       }
 
       return res.json({});
