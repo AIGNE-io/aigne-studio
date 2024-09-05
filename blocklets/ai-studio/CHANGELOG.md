@@ -1,6 +1,6 @@
 ## 0.4.41 (2024-8-29)
 
-- fix: sync git data to yjs
+- fix: reset working state after syncing remote repo
 
 ## 0.4.40 (2024-8-28)
 
