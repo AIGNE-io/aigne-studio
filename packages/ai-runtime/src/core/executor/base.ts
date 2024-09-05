@@ -230,8 +230,10 @@ export abstract class AgentExecutorBase<T> {
     if (agent.cache?.enable && agent.identity) {
       try {
         const cache = await this.context.queryCache({ ...agent.identity, cacheKey });
-        result = await this.validateOutputs({ inputs, outputs: cache?.outputs });
-        if (isEmpty(result)) result = undefined;
+        if (cache) {
+          result = await this.validateOutputs({ inputs, outputs: cache.outputs });
+          if (isEmpty(result)) result = undefined;
+        }
       } catch (error) {
         logger.error('query and validate cache error', { error });
       }
