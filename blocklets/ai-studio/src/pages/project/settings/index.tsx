@@ -584,7 +584,7 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                       </LoadingButton>
                     </Box>
                   </Stack>
-                  <RemoteRepoSetting projectId={projectId} />
+                  <RemoteRepoSetting projectId={projectId} gitRef={projectRef} />
                 </Stack>
               </Form>
             </Box>
