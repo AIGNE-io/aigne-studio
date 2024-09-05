@@ -143,10 +143,10 @@ router.get('/:datasetId/export-resource', user(), ensureComponentCallOrAdmin(), 
 
     // 复制 vector db
     const src = resolve(await getVectorStorePath(datasetId));
-    const dst = join(knowledgeWithIdPath, 'vectors', datasetId);
+    const dst = join(knowledgeWithIdPath, 'vectors');
 
     if (await pathExists(src)) {
-      copyRecursive(src, dst);
+      await copyRecursive(src, dst);
     }
 
     const zipPath = join(tmpFolder, `${datasetId}.zip`);
