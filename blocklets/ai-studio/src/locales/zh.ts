@@ -772,4 +772,5 @@ export default flatten({
   integer: '整数',
   openEmbed: 'OpenEmbed',
   selectAll: '全选',
+  syncTip: '同步数据前先保存暂存区数据',
 });
