@@ -16,6 +16,7 @@ import {
   Card,
   CardContent,
   Chip,
+  CircularProgress,
   Container,
   Dialog,
   DialogActions,
@@ -161,7 +162,11 @@ function DeploymentDetail() {
   const { data, loading, run } = useRequest(() => getDeployment({ id: id! }), { refreshDeps: [projectId, gitRef, id] });
 
   if (loading) {
-    return null;
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" height="800px">
+        <CircularProgress />
+      </Box>
+    );
   }
 
   const file = data?.deployment.agentId ? getFileById(data?.deployment.agentId) : { name: '', description: '' };
