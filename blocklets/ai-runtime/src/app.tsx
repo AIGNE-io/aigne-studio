@@ -11,6 +11,7 @@ import ApplicationPage from './pages/application';
 import HomePage from './pages/home';
 import MessagePage from './pages/message';
 import PreviewPage from './pages/preview';
+import SharePage from './pages/share';
 
 const theme = createTheme({ typography: { button: { textTransform: 'none' } } });
 
@@ -61,6 +62,7 @@ export default function WrappedApp() {
         <Route path="/" element={<HomePage />} />
         <Route path="/apps/:aid" element={<ApplicationPage />} />
         <Route path="/preview/:aid" element={<PreviewPage />} />
+        <Route path="/share/:publishId" element={<SharePage />} />
         <Route path="/messages/:messageId" element={<MessagePage />} />
       </Route>
     ),

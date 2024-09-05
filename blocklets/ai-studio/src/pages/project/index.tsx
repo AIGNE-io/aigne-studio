@@ -12,6 +12,8 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
 import Loading from '../../components/loading';
+import Deployments from '../deployments';
+import DeploymentDetail from '../deployments/detail';
 import KnowledgeRoutes from '../knowledge';
 import VariablesList from '../variables/list';
 import ProjectHeader from './project-header';
@@ -74,6 +76,11 @@ export default function ProjectRoutes() {
                   <Route path="variables">
                     <Route index element={<Navigate to={currentGitStore.getState().getCurrentBranch()} replace />} />
                     <Route path=":ref/*" element={<VariablesList />} />
+                  </Route>
+                  <Route path="deployments">
+                    <Route index element={<Navigate to={currentGitStore.getState().getCurrentBranch()} replace />} />
+                    <Route path=":ref/:id" element={<DeploymentDetail />} />
+                    <Route path=":ref/*" element={<Deployments />} />
                   </Route>
                 </Route>
               </Routes>

@@ -12,20 +12,16 @@ import {
   Box,
   Button,
   CircularProgress,
-  ClickAwayListener,
   Dialog,
   DialogContent,
   Divider,
   Drawer,
-  Grow,
   IconButton,
-  Paper,
-  Popper,
   Stack,
   Tooltip,
   Typography,
 } from '@mui/material';
-import { bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
+import { bindDialog, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -33,6 +29,7 @@ import { joinURL } from 'ufo';
 
 import CommitsTip, { CommitListView } from '../../components/template-form/commits-tip';
 import { getFileIdFromPath } from '../../utils/path';
+import DeploymentAction from './deployment-action';
 import PublishView from './publish-view';
 import PublishButton from './publish/publish-button';
 import SaveButton, { CommitForm, SaveButtonDialog } from './save-button';
@@ -64,15 +61,12 @@ export function HeaderActions() {
   if (!projectId || !gitRef) throw new Error('Missing required params `projectId` or `ref`');
 
   const navigate = useNavigate();
-  const previewPopperState = usePopupState({ variant: 'popper', popupId: 'preview' });
 
   const {
     state: { loading, commits },
   } = useProjectState(projectId, gitRef);
-  const { getFileById } = useProjectStore(projectId, gitRef, true);
 
   const fileId = filepath && getFileIdFromPath(filepath);
-  const file = fileId && getFileById(fileId);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -129,37 +123,7 @@ export function HeaderActions() {
 
         <PublishButton />
 
-        <>
-          <LoadingButton
-            variant="contained"
-            startIcon={<Box component={Icon} icon={EyeBoltIcon} sx={{ fontSize: 16 }} />}
-            size="small"
-            sx={{ px: 2 }}
-            {...bindTrigger(previewPopperState)}>
-            {t('preview')}
-          </LoadingButton>
-
-          <Popper {...bindPopper(previewPopperState)} sx={{ zIndex: 1101 }} transition placement="bottom-end">
-            {({ TransitionProps }) => (
-              <Grow style={{ transformOrigin: 'right top' }} {...TransitionProps}>
-                <Paper
-                  sx={{
-                    border: '1px solid #ddd',
-                    height: '100%',
-                    overflow: 'auto',
-                    mt: 1,
-                  }}>
-                  <ClickAwayListener
-                    onClickAway={(e) => (e.target as HTMLElement)?.localName !== 'body' && previewPopperState.close()}>
-                    <Box>
-                      {file ? <PublishView projectId={projectId} projectRef={gitRef} assistant={file} /> : null}
-                    </Box>
-                  </ClickAwayListener>
-                </Paper>
-              </Grow>
-            )}
-          </Popper>
-        </>
+        {projectId && gitRef && fileId && <DeploymentAction />}
       </Box>
     </CurrentProjectProvider>
   );
@@ -180,16 +144,6 @@ export function MobileHeaderActions() {
       <SettingsAction />
 
       <Divider sx={{ m: 0, p: 0 }} />
-
-      {/* <Box>
-        <PublishButton
-          fullWidth
-          variant="outlined"
-          sx={{ width: 1 }}
-          startIcon={<Box component={Icon} icon={BrandAppgalleryIcon} />}>
-          {t('publish')}
-        </PublishButton>
-      </Box> */}
 
       <PreviewAction />
     </CurrentProjectProvider>

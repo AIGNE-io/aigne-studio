@@ -39,6 +39,22 @@ export async function getAgent({
     .then((res) => res.data);
 }
 
+export async function getAgentByPublishId({
+  publishId,
+  blockletDid,
+  working,
+}: {
+  publishId: string;
+  blockletDid?: string;
+  working?: boolean;
+}): Promise<AgentWithConfig> {
+  return aigneRuntimeApi
+    .get(joinURL('/api/agents/publish/', publishId), {
+      params: { working, blockletDid },
+    })
+    .then((res) => res.data);
+}
+
 export interface RunAgentInput {
   blockletDid?: string;
   working?: boolean;

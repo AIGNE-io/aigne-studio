@@ -7,11 +7,14 @@ import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
 import { Assistant, ProjectSettings, ResourceType } from '@blocklet/ai-runtime/types';
 import { Agent } from '@blocklet/aigne-sdk/api/agent';
 import { getComponentMountPoint } from '@blocklet/sdk';
+import user from '@blocklet/sdk/lib/middlewares/user';
 import { Router } from 'express';
 import { exists } from 'fs-extra';
 import Joi from 'joi';
 import pick from 'lodash/pick';
 import { joinURL, withQuery } from 'ufo';
+
+import Deployment from '../store/models/deployment';
 
 const router = Router();
 
@@ -83,12 +86,45 @@ router.get('/:aid', async (req, res) => {
     return;
   }
 
-  res.json({
-    ...respondAgentFields(agent),
-    config: {
-      secrets: await getAgentSecretInputs(agent),
-    },
-  });
+  res.json({ ...respondAgentFields(agent), config: { secrets: await getAgentSecretInputs(agent) } });
+});
+
+router.get('/publish/:publishId', user(), async (req, res) => {
+  const { publishId } = req.params;
+  const { did: userId, role } = req.user! || {};
+  if (!publishId) throw new Error('Missing required param `publishId`');
+
+  const publish = await Deployment.findOne({ where: { id: publishId } });
+  if (!publish) {
+    res.status(404).json({ message: 'current agent application not published' });
+    return;
+  }
+
+  if (publish.access === 'private') {
+    if (!userId) {
+      res.status(403).json({ message: 'This is a private application. Please log in to access.' });
+      return;
+    }
+
+    const list = ['admin', 'owner'];
+    if (!list.includes(role)) {
+      res.status(403).json({ message: 'Only an administrator or owner can visit a private publication.' });
+      return;
+    }
+  }
+
+  const { blockletDid, working } = await getAgentQuerySchema.validateAsync(req.query, { stripUnknown: true });
+
+  const { projectId, projectRef, agentId } = publish;
+
+  const agent = await getAgent({ blockletDid, projectId, projectRef, agentId, working });
+
+  if (!agent) {
+    res.status(404).json({ message: 'No such agent' });
+    return;
+  }
+
+  res.json({ ...respondAgentFields(agent), config: { secrets: await getAgentSecretInputs(agent) } });
 });
 
 router.get('/:aid/logo', async (req, res) => {
