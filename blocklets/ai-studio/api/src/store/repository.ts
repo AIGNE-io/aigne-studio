@@ -8,9 +8,7 @@ import {
   Assistant,
   AssistantYjs,
   ConfigFile,
-  FileType,
   FileTypeYjs,
-  MemoryFile,
   ProjectSettings,
   Variable,
   fileFromYjs,
@@ -27,7 +25,7 @@ import { SpaceClient, SyncFolderPushCommand, SyncFolderPushCommandOutput } from 
 import { exists, pathExists } from 'fs-extra';
 import { glob } from 'glob';
 import { Errors } from 'isomorphic-git';
-import { throttle } from 'lodash';
+import { memoize, throttle } from 'lodash';
 import isEmpty from 'lodash/isEmpty';
 import { nanoid } from 'nanoid';
 import { parseAuth, parseFilename, parseURL } from 'ufo';
@@ -388,6 +386,10 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
     project.changed('updatedAt', true);
     await project.update({ updatedAt: new Date() });
 
+    // clear agent cache
+    this._memoizedReadAgent.cache.clear?.();
+    this._memoizedReadAndParseFile.cache.clear?.();
+
     return result;
   }
 
@@ -411,34 +413,14 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
     }
   }
 
-  async readAndParseFile<T>(options: {
-    ref?: string;
-    filepath: string;
-    working?: boolean;
-    readBlobFromGitIfWorkingNotInitialized?: boolean;
-    rejectOnEmpty: true;
-  }): Promise<T>;
-  async readAndParseFile<T>(options: {
-    ref?: string;
-    filepath: string;
-    working?: boolean;
-    readBlobFromGitIfWorkingNotInitialized?: boolean;
-    rejectOnEmpty?: false;
-  }): Promise<T | undefined>;
-  async readAndParseFile<T>({
+  private _readAndParseFile = async <T>({
     ref = defaultBranch,
     filepath,
     working,
     // skip load working, used to optimize performance, such as initializing cron jobs
     readBlobFromGitIfWorkingNotInitialized,
     rejectOnEmpty,
-  }: {
-    ref?: string;
-    filepath: string;
-    working?: boolean;
-    readBlobFromGitIfWorkingNotInitialized?: boolean;
-    rejectOnEmpty?: boolean;
-  }) {
+  }: ReadAndParseFileOptions) => {
     let file: any;
 
     if (working) {
@@ -467,7 +449,94 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
     if (rejectOnEmpty && !file) throw new Error(`No such file ${filepath}`);
 
     return file;
+  };
+
+  private _memoizedReadAndParseFile = memoize(
+    (options: ReadAndParseFileOptions) => this._readAndParseFile(options),
+    (o) => [o.working, o.filepath, o.rejectOnEmpty, o.readBlobFromGitIfWorkingNotInitialized, o.ref].join('/')
+  );
+
+  async readAndParseFile<T>(options: ReadAndParseFileOptions & { rejectOnEmpty: true }): Promise<T>;
+  async readAndParseFile<T>(options: ReadAndParseFileOptions & { rejectOnEmpty?: false }): Promise<T | undefined>;
+  async readAndParseFile(options: ReadAndParseFileOptions) {
+    if (!options.working) return this._memoizedReadAndParseFile(options);
+
+    return this._readAndParseFile(options);
   }
+
+  private _readAgent = async ({
+    ref = defaultBranch,
+    agentId,
+    working,
+    // skip load working, used to optimize performance, such as initializing cron jobs
+    readBlobFromGitIfWorkingNotInitialized,
+    rejectOnEmpty,
+  }: ReadAgentOptions) => {
+    let file: Assistant | undefined;
+
+    if (working) {
+      if (this.workingMap[ref] || !readBlobFromGitIfWorkingNotInitialized) {
+        const w = await this.working({ ref });
+        const f = w.syncedStore.files[agentId];
+        file = f && (fileFromYjs(f) as Assistant);
+      } else {
+        const workingDir = this.workingDir({ ref });
+        const matched = await glob(`./**/*.${agentId}.yaml`, { cwd: join(workingDir, PROMPTS_FOLDER_NAME) });
+        if (matched.length > 1) {
+          throw new Error(`Find agent got invalid matched files ${matched.length}`);
+        }
+        const path = matched[0];
+        if (path && (await exists(path))) {
+          const raw = (await readFile(path)).toString();
+          file = parse(raw);
+        }
+      }
+    } else {
+      const p = (await this.listFiles({ ref })).find((i) => i.endsWith(`${agentId}.yaml`));
+      file =
+        p &&
+        (await this.readBlob({ ref, filepath: p })
+          .then(({ blob }) => Buffer.from(blob).toString())
+          .then((raw) => parse(raw))
+          .catch((error) => {
+            if (error instanceof Errors.NotFoundError) return null;
+            throw error;
+          }));
+    }
+
+    if (rejectOnEmpty && !file) throw new Error(`No such agent ${agentId}`);
+
+    return file;
+  };
+
+  private _memoizedReadAgent = memoize(
+    (options: ReadAgentOptions) => this._readAgent(options),
+    (o) => [o.working, o.agentId, o.rejectOnEmpty, o.readBlobFromGitIfWorkingNotInitialized, o.ref].join('/')
+  );
+
+  async readAgent(options: ReadAgentOptions & { rejectOnEmpty: true }): Promise<Assistant>;
+  async readAgent(options: ReadAgentOptions & { rejectOnEmpty?: false }): Promise<Assistant | undefined>;
+  async readAgent(options: ReadAgentOptions) {
+    if (!options.working) return this._memoizedReadAgent(options);
+
+    return this._readAgent(options);
+  }
+}
+
+export interface ReadAndParseFileOptions {
+  ref?: string;
+  filepath: string;
+  working?: boolean;
+  readBlobFromGitIfWorkingNotInitialized?: boolean;
+  rejectOnEmpty?: boolean;
+}
+
+export interface ReadAgentOptions {
+  ref?: string;
+  agentId: string;
+  working?: boolean;
+  readBlobFromGitIfWorkingNotInitialized?: boolean;
+  rejectOnEmpty?: boolean;
 }
 
 export async function getRepository({
@@ -589,6 +658,7 @@ export async function syncToDidSpace({ project, userId }: { project: Project; us
 
   await project.update({ didSpaceLastSyncedAt: new Date() }, { silent: true });
 }
+
 function getReadmeOfProject(project: { name: string; description: string }) {
   return `\
 # ${project.name || 'AI Studio project'}
@@ -643,124 +713,6 @@ export async function getAssistantsOfRepository({
     .then((files) => files.filter((i): i is Assistant & { parent: string[] } => isAssistant(i)));
 }
 
-export async function getAssistantFromRepository({
-  repository,
-  ref,
-  working,
-  agentId,
-  rejectOnEmpty,
-}: {
-  repository: Repository<any>;
-  ref: string;
-  working?: boolean;
-  agentId: string;
-  rejectOnEmpty: true | Error;
-}): Promise<Assistant>;
-export async function getAssistantFromRepository({
-  repository,
-  ref,
-  working,
-  agentId,
-  rejectOnEmpty,
-}: {
-  repository: Repository<any>;
-  ref: string;
-  working?: boolean;
-  agentId: string;
-  rejectOnEmpty?: false;
-}): Promise<Assistant | undefined>;
-export async function getAssistantFromRepository({
-  repository,
-  ref,
-  working,
-  agentId,
-  rejectOnEmpty,
-}: {
-  repository: Repository<any>;
-  ref: string;
-  working?: boolean;
-  agentId: string;
-  rejectOnEmpty?: boolean | Error;
-}): Promise<Assistant | undefined> {
-  let file: Assistant;
-
-  if (working) {
-    const working = await repository.working({ ref });
-    const f = working.syncedStore.files[agentId];
-    file = f && fileFromYjs(f);
-  } else {
-    const p = (await repository.listFiles({ ref })).find((i) => i.endsWith(`${agentId}.yaml`));
-    file = p && parse(Buffer.from((await repository.readBlob({ ref, filepath: p })).blob).toString());
-  }
-
-  if (!file || !isAssistant(file)) {
-    if (rejectOnEmpty) {
-      throw typeof rejectOnEmpty !== 'boolean'
-        ? rejectOnEmpty
-        : new Error(`no such assistant ${JSON.stringify({ ref, agentId, working })}`);
-    }
-  }
-
-  return file;
-}
-
-export async function getFileFromRepository<F extends FileType>({
-  repository,
-  ref,
-  working,
-  filepath,
-}: {
-  repository: Awaited<ReturnType<typeof getRepository>>;
-  ref: string;
-  working?: boolean;
-  filepath: string;
-}): Promise<F | undefined> {
-  let file: FileTypeYjs | undefined;
-
-  if (working) {
-    const working = await repository.working({ ref });
-    const fileId = Object.entries(working.syncedStore.tree).find((i) => i[1] === filepath)?.[0];
-    if (fileId) {
-      file = working.syncedStore.files[fileId];
-    }
-  } else {
-    try {
-      const raw = (await repository.readBlob({ ref, filepath })).blob;
-      file = (await repository.options.parse(filepath, raw, { ref }))?.data || undefined;
-    } catch (error) {
-      if (!(error instanceof Errors.NotFoundError)) {
-        logger.error('read project config error', { error });
-      }
-    }
-  }
-
-  return file ? (fileFromYjs(file) as F) : undefined;
-}
-
-export async function getProjectMemoryVariables({
-  repository,
-  ref,
-  working,
-}: {
-  repository: Awaited<ReturnType<typeof getRepository>>;
-  ref: string;
-  working?: boolean;
-}) {
-  return getFileFromRepository<MemoryFile>({ repository, ref, filepath: VARIABLE_FILE_PATH, working });
-}
-
-export async function getProjectConfig({
-  repository,
-  ref,
-  working,
-}: {
-  repository: Awaited<ReturnType<typeof getRepository>>;
-  ref: string;
-  working?: boolean;
-}) {
-  return getFileFromRepository<ConfigFile>({ repository, ref, filepath: CONFIG_FILE_PATH, working });
-}
-
 export async function getEntryFromRepository({
   projectId,
   ref,
@@ -772,11 +724,11 @@ export async function getEntryFromRepository({
 }): Promise<Assistant | undefined> {
   const repository = await getRepository({ projectId });
 
-  const config = await getProjectConfig({ repository, ref, working });
+  const config = await repository.readAndParseFile<ConfigFile>({ ref, working, filepath: CONFIG_FILE_PATH });
   const entry = config?.entry;
   if (!entry) return undefined;
 
-  return getAssistantFromRepository({ repository, ref, working, agentId: entry });
+  return repository.readAgent({ ref, working, agentId: entry });
 }
 
 function renameSyncedStoreFileKey(working: Working<FileTypeYjs>, key: string, newKey: string) {
