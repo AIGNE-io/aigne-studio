@@ -5,6 +5,7 @@ import { resourceManager } from '@api/libs/resource';
 import user from '@blocklet/sdk/lib/middlewares/user';
 import { initLocalStorageServer } from '@blocklet/uploader/lib/middlewares';
 import express, { Router } from 'express';
+import { pathExists } from 'fs-extra';
 import Joi from 'joi';
 import { sortBy } from 'lodash';
 import { Op, Sequelize } from 'sequelize';
@@ -65,7 +66,10 @@ const searchResourceKnowledge = async (blockletDid: string, knowledgeId: string,
   }
 
   const embeddings = new AIKitEmbeddings({});
-  const store = await VectorStore.load(join(resource.vectorsPath, knowledgeId), embeddings);
+  const vectorPath = (await pathExists(join(resource.vectorsPath, 'faiss.index')))
+    ? resource.vectorsPath
+    : join(resource.vectorsPath, knowledgeId);
+  const store = await VectorStore.load(vectorPath, embeddings);
 
   if (store.getMapping() && !Object.keys(store.getMapping()).length) {
     logger.error('store get mapping is empty');
