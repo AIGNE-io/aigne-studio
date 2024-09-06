@@ -193,9 +193,9 @@ export abstract class AgentExecutorBase<T> {
       inputParameters: options.inputs,
     });
 
-    const inputs = await this.prepareInputs();
+    this.finalInputs = await this.prepareInputs();
 
-    const partial = await this.validateOutputs({ inputs, partial: true });
+    const partial = await this.validateOutputs({ inputs: this.finalInputs, partial: true });
     if (!isEmpty(partial)) {
       this.context.callback?.({
         type: AssistantResponseType.CHUNK,
@@ -220,7 +220,7 @@ export abstract class AgentExecutorBase<T> {
       taskId: options.taskId,
       parentTaskId: options.parentTaskId,
       assistantName: agent.name,
-      inputParameters: inputs,
+      inputParameters: this.finalInputs,
     });
 
     let result: any;
@@ -231,7 +231,7 @@ export abstract class AgentExecutorBase<T> {
       try {
         const cache = await this.context.queryCache({ ...agent.identity, cacheKey });
         if (cache) {
-          result = await this.validateOutputs({ inputs, outputs: cache.outputs });
+          result = await this.validateOutputs({ inputs: this.finalInputs, outputs: cache.outputs });
           if (isEmpty(result)) result = undefined;
         }
       } catch (error) {
@@ -249,12 +249,12 @@ export abstract class AgentExecutorBase<T> {
     }
 
     if (result === undefined) {
-      const outputs = await this.process({ inputs });
-      result = await this.validateOutputs({ inputs, outputs });
+      const outputs = await this.process({ inputs: this.finalInputs });
+      result = await this.validateOutputs({ inputs: this.finalInputs, outputs });
 
       // set cache if needed
       if (!isEmpty(result) && agent.cache?.enable && agent.identity) {
-        await this.context.setCache({ ...agent.identity, cacheKey, inputs, outputs: result });
+        await this.context.setCache({ ...agent.identity, cacheKey, inputs: this.finalInputs, outputs: result });
       }
     }
 
@@ -279,6 +279,17 @@ export abstract class AgentExecutorBase<T> {
     return result;
   }
 
+  private _finalInputs: { [key: string]: any } | undefined;
+
+  private get finalInputs() {
+    if (!this._finalInputs) throw new Error('Final inputs is not ready');
+    return this._finalInputs;
+  }
+
+  private set finalInputs(value: NonNullable<typeof this._finalInputs>) {
+    this._finalInputs = value;
+  }
+
   private cacheKey({ userRelated, onlyUserInputs }: { userRelated?: boolean; onlyUserInputs?: boolean } = {}) {
     // TODO: support custom cache key by specifying inputs of agent
     const i = Object.fromEntries(
@@ -287,7 +298,7 @@ export abstract class AgentExecutorBase<T> {
           (i): i is typeof i & { key: string } =>
             !!i.key && !i.hidden && (onlyUserInputs ? isUserInputParameter(i) : true)
         )
-        .map((i) => [i.key, this.options.inputs?.[i.key]])
+        .map((i) => [i.key, this.finalInputs[i.key]])
     );
 
     return hash(
