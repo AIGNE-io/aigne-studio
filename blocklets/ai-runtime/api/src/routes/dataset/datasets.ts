@@ -121,16 +121,21 @@ router.get('/:datasetId/export-resource', user(), ensureComponentCallOrAdmin(), 
     await writeFile(join(knowledgeWithIdPath, 'contents.yaml'), stringify(contents));
 
     // 复制 files 数据
-    const uploadsPath = join(knowledgeWithIdPath, 'uploads');
-    await copyRecursive(await getUploadDir(datasetId), uploadsPath);
+    const uploadSrc = resolve(await getUploadDir(datasetId));
+    const uploadsDst = join(knowledgeWithIdPath, 'uploads');
+
+    if (await pathExists(uploadSrc)) {
+      await copyRecursive(uploadSrc, uploadsDst);
+    }
+
     await writeFile(join(knowledgeWithIdPath, 'documents.yaml'), stringify(documents));
 
     // 复制 vector db
     const src = resolve(await getVectorStorePath(datasetId));
-    const vectorsPath = join(knowledgeWithIdPath, 'vectors');
+    const vectorsDst = join(knowledgeWithIdPath, 'vectors');
 
     if (await pathExists(src)) {
-      await copyRecursive(src, vectorsPath);
+      await copyRecursive(src, vectorsDst);
     }
 
     const zipPath = join(tmpFolder, `${datasetId}.zip`);
