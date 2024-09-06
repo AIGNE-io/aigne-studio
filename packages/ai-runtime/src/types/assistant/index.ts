@@ -162,6 +162,9 @@ export interface AssistantBase {
   openEmbed?: {
     enable?: boolean;
   };
+  access?: {
+    noLoginRequired?: boolean;
+  };
 }
 
 export interface VariableTypeBase {

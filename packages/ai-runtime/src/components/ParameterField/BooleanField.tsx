@@ -11,8 +11,6 @@ const BooleanField = forwardRef<
     onChange: (value: boolean) => void;
   } & Omit<TextFieldProps, 'onChange'>
 >(({ readOnly, parameter, onChange, ...props }, ref) => {
-  console.log(JSON.stringify({ parameter, props }, null, 2));
-
   return (
     <FormControl>
       <FormControlLabel

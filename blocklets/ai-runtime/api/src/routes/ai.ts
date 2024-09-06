@@ -69,6 +69,19 @@ router.post('/call', user(), compression(), async (req, res) => {
 
   const { projectId, projectRef, agentId } = parseIdentity(input.aid, { rejectWhenError: true });
 
+  const agent = await getAgent({
+    blockletDid: input.blockletDid,
+    projectId,
+    projectRef,
+    working: input.working,
+    agentId,
+    rejectOnEmpty: true,
+  });
+  if (!agent.access?.noLoginRequired && !userId) {
+    res.status(401).json({ error: { message: 'Unauthorized' } });
+    return;
+  }
+
   const usage = {
     promptTokens: 0,
     completionTokens: 0,
@@ -130,15 +143,6 @@ router.post('/call', user(), compression(), async (req, res) => {
       ),
     }));
   };
-
-  const agent = await getAgent({
-    blockletDid: input.blockletDid,
-    projectId,
-    projectRef,
-    working: input.working,
-    agentId,
-    rejectOnEmpty: true,
-  });
 
   let mainTaskId: string | undefined;
   let error: { type?: string; message: string } | undefined;
