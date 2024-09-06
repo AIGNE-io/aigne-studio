@@ -782,4 +782,5 @@ export default flatten({
   selectTemplate:
     'Choose a template for a quick start, or create your unique project - Click to begin your personalized journey!',
   syncTip: 'Save the modified data before data synchronization',
+  noTemplatesAvailable: 'No templates available',
 });

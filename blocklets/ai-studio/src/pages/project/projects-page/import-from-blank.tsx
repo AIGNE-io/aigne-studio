@@ -22,7 +22,7 @@ import {
 } from '@mui/material';
 import { useRequest } from 'ahooks';
 import { useCallback } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
@@ -108,78 +108,85 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
             <Stack flex={1} gap={2.5}>
               <Box>
                 <Typography variant="subtitle2">{t('choose')}</Typography>
-                <TextField
-                  select
-                  disabled={loading}
-                  hiddenLabel
-                  placeholder={t('choose')}
-                  autoFocus
-                  sx={{
-                    width: 1,
-                    border: '1px solid #E5E7EB',
-                    borderRadius: '8px',
-                    '.MuiSelect-select:focus': {
-                      background: 'transparent',
-                    },
-                  }}
-                  SelectProps={{
-                    displayEmpty: true,
-                    renderValue: (selected) => {
-                      if (!selected) {
-                        return (
-                          <Typography variant="body2" color="text.disabled">
-                            {t('choose')}
-                          </Typography>
-                        );
-                      }
-
-                      const selectedItem = templates.find((item) => `${item.blockletDid}-${item.id}` === selected);
-                      if (!selectedItem) return null;
-                      return (
-                        <Stack direction="row" alignItems="center" spacing={1}>
-                          <DidAvatar did={selectedItem.blockletDid} size={20} />
-                          <Typography variant="body2" noWrap>
-                            {selectedItem?.name || t('unnamed')}
-                          </Typography>
-                        </Stack>
-                      );
-                    },
-                  }}
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        {loading && <CircularProgress size={12} sx={{ mr: 2 }} />}
-                      </InputAdornment>
-                    ),
-                  }}
-                  {...form.register('templateIds')}>
-                  {templates.map((item) => {
-                    return (
-                      <MenuItem key={item.id} value={`${item.blockletDid}-${item.id}`}>
-                        <Stack direction="row" alignItems="stretch" gap={1}>
-                          <DidAvatar did={item.blockletDid} size={40} />
-
-                          <Stack flex={1} width={1}>
-                            <Typography variant="subtitle2" noWrap>
-                              {item?.name || t('unnamed')}
-                            </Typography>
-
-                            <Typography
-                              variant="caption"
-                              sx={{
-                                display: '-webkit-box',
-                                WebkitBoxOrient: 'vertical',
-                                WebkitLineClamp: 2,
-                                overflow: 'hidden',
-                              }}>
-                              {item?.description}
-                            </Typography>
-                          </Stack>
-                        </Stack>
-                      </MenuItem>
-                    );
-                  })}
-                </TextField>
+                <Controller
+                  name="templateIds"
+                  control={form.control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      select
+                      disabled={loading}
+                      hiddenLabel
+                      placeholder={t('choose')}
+                      autoFocus
+                      sx={{
+                        width: 1,
+                        border: '1px solid #E5E7EB',
+                        borderRadius: '8px',
+                        '.MuiSelect-select:focus': {
+                          background: 'transparent',
+                        },
+                      }}
+                      SelectProps={{
+                        displayEmpty: true,
+                        renderValue: (selected) => {
+                          if (!selected) {
+                            return (
+                              <Typography variant="body2" color="text.disabled">
+                                {t('choose')}
+                              </Typography>
+                            );
+                          }
+                          const selectedItem = templates.find((item) => `${item.blockletDid}-${item.id}` === selected);
+                          if (!selectedItem) return null;
+                          return (
+                            <Stack direction="row" alignItems="center" spacing={1}>
+                              <DidAvatar did={selectedItem.blockletDid} size={20} />
+                              <Typography variant="body2" noWrap>
+                                {selectedItem?.name || t('unnamed')}
+                              </Typography>
+                            </Stack>
+                          );
+                        },
+                      }}
+                      InputProps={{
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            {loading && <CircularProgress size={12} sx={{ mr: 2 }} />}
+                          </InputAdornment>
+                        ),
+                      }}>
+                      {templates.length === 0 ? (
+                        <MenuItem value="" disabled>
+                          <Typography variant="body2">{t('noTemplatesAvailable')}</Typography>
+                        </MenuItem>
+                      ) : (
+                        templates.map((item) => (
+                          <MenuItem key={item.id} value={`${item.blockletDid}-${item.id}`}>
+                            <Stack direction="row" alignItems="stretch" gap={1}>
+                              <DidAvatar did={item.blockletDid} size={40} />
+                              <Stack flex={1} width={1}>
+                                <Typography variant="subtitle2" noWrap>
+                                  {item?.name || t('unnamed')}
+                                </Typography>
+                                <Typography
+                                  variant="caption"
+                                  sx={{
+                                    display: '-webkit-box',
+                                    WebkitBoxOrient: 'vertical',
+                                    WebkitLineClamp: 2,
+                                    overflow: 'hidden',
+                                  }}>
+                                  {item?.description}
+                                </Typography>
+                              </Stack>
+                            </Stack>
+                          </MenuItem>
+                        ))
+                      )}
+                    </TextField>
+                  )}
+                />
                 <Typography variant="caption" color="text.disabled">
                   {t('selectTemplate')}
                 </Typography>

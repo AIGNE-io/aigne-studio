@@ -772,7 +772,8 @@ export default flatten({
   integer: '整数',
   openEmbed: 'OpenEmbed',
   selectAll: '全选',
-  projectToGetStart: '快速创建一个项目',
+  projectToGetStart: '创建项目',
   selectTemplate: '选择模板快速开始，或开创您的独特项目 - 点击创建您的专属之旅！',
   syncTip: '同步数据前先保存暂存区数据',
+  noTemplatesAvailable: '没有可用的模板',
 });

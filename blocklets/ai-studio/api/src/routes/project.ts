@@ -291,11 +291,6 @@ export function projectRoutes(router: Router) {
       })
     );
 
-    const resourceExamples = (await resourceManager.getProjects({ type: 'example' })).map((i) => ({
-      ...i.project,
-      blockletDid: i.blocklet.did,
-    }));
-
     // multi-tenant mode
     if (config.env.tenantMode === 'multiple') {
       res.json({
@@ -307,11 +302,10 @@ export function projectRoutes(router: Router) {
     }
 
     // single-tenant mode
-    const resourceExampleIds = new Set(resourceExamples.map((i) => i.id));
     res.json({
       templates: [],
       examples: [],
-      projects: projects.filter((i) => !resourceExampleIds.has(i.duplicateFrom!)),
+      projects,
     });
   });
 
@@ -518,7 +512,7 @@ export function projectRoutes(router: Router) {
   router.post('/projects', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const {
       blockletDid,
-      templateId: id,
+      templateId = projectTemplates[0]?.project?.id,
       name,
       description,
       withDuplicateFrom,
@@ -528,7 +522,6 @@ export function projectRoutes(router: Router) {
 
     await checkProjectLimit({ req });
 
-    const templateId = id || projectTemplates[0]?.project?.id;
     if (!templateId) {
       throw new Error('No template project found');
     }
