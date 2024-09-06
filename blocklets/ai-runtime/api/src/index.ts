@@ -10,7 +10,6 @@ import express, { ErrorRequestHandler } from 'express';
 
 import initCronJob from './jobs';
 import { cronManager } from './libs/cron-jobs';
-import ensureKnowledgeDirExists from './libs/ensure-dir';
 import { isDevelopment } from './libs/env';
 import logger from './libs/logger';
 import { resourceManager } from './libs/resource';
@@ -23,8 +22,6 @@ dotenv.config();
 const { name, version } = require('../../package.json');
 
 export const app = express();
-
-ensureKnowledgeDirExists().catch(console.error);
 
 app.set('trust proxy', true);
 app.use(cookieParser());

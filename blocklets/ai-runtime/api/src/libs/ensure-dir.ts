@@ -33,13 +33,13 @@ async function ensureKnowledgeDirExists(knowledgeId?: string) {
   }
 }
 
-const getDir = (type: 'uploads' | 'vectors' | '', knowledgeId: string) => {
+const getDir = (knowledgeId: string, type: 'uploads' | 'vectors' | '') => {
   return path.join(Config.knowledgeDir, knowledgeId, type);
 };
 
-export const getUploadDir = (knowledgeId: string) => getDir('uploads', knowledgeId);
-export const getVectorDir = (knowledgeId: string) => getDir('vectors', knowledgeId);
-export const getKnowledgeDir = (knowledgeId: string) => getDir('', knowledgeId);
+export const getUploadDir = (knowledgeId: string) => getDir(knowledgeId, 'uploads');
+export const getVectorDir = (knowledgeId: string) => getDir(knowledgeId, 'vectors');
+export const getKnowledgeDir = (knowledgeId: string) => getDir(knowledgeId, '');
 
 export const getOldVectorStorePath = (id: string) => path.join(Config.dataDir, 'vectors', id);
 export const getOldUploadPath = (file: string) => path.join(Config.uploadDir, file);

@@ -409,10 +409,6 @@ const localStorageServer = initLocalStorageServer({
     await ensureKnowledgeDirExists(datasetId);
     await copyFile(absolutePath, newFilePath);
 
-    const moveFile = async () => {
-      await rm(absolutePath, { recursive: true, force: true });
-    };
-
     const updateOrCreateDocument = async () => {
       const commonData = {
         error: null,
@@ -439,7 +435,9 @@ const localStorageServer = initLocalStorageServer({
     };
 
     // 延迟文件移动操作
-    setTimeout(moveFile, 3000);
+    setTimeout(async () => {
+      await rm(absolutePath, { recursive: true, force: true });
+    }, 3000);
 
     // 立即更新或创建文档
     await updateOrCreateDocument();

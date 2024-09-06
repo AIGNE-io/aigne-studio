@@ -1,6 +1,6 @@
 import { createWriteStream } from 'fs';
-import { copyFile, mkdir, mkdtemp, rm, writeFile } from 'fs/promises';
-import { basename, join, resolve } from 'path';
+import { mkdir, mkdtemp, rm, writeFile } from 'fs/promises';
+import { join, resolve } from 'path';
 import { finished } from 'stream/promises';
 
 import { Config } from '@api/libs/env';
@@ -19,7 +19,7 @@ import omitBy from 'lodash/omitBy';
 import { Op, Sequelize } from 'sequelize';
 import { stringify } from 'yaml';
 
-import ensureKnowledgeDirExists, { getUploadPathByCheckFile, getVectorStorePath } from '../../libs/ensure-dir';
+import ensureKnowledgeDirExists, { getUploadDir, getVectorStorePath } from '../../libs/ensure-dir';
 import copyKnowledgeBase from '../../libs/knowledge';
 import { ensureComponentCallOr, ensureComponentCallOrAdmin, userAuth } from '../../libs/security';
 import Dataset from '../../store/models/dataset/dataset';
@@ -122,31 +122,15 @@ router.get('/:datasetId/export-resource', user(), ensureComponentCallOrAdmin(), 
 
     // 复制 files 数据
     const uploadsPath = join(knowledgeWithIdPath, 'uploads');
-    await mkdir(uploadsPath, { recursive: true });
-
-    const hasPath = (data: any): data is { type: string; path: string } => {
-      return typeof data === 'object' && 'path' in data;
-    };
-    const filterDocuments = documents.filter((i) => hasPath(i.data));
-
-    for (const document of filterDocuments) {
-      if (hasPath(document.data)) {
-        const newPath = join(uploadsPath, basename(document.data.path));
-        await copyFile(await getUploadPathByCheckFile(datasetId, document.data.path), newPath);
-
-        // 特别注意，需要将 path 路径更换到新的路径, 在使用时，拼接 uploadsPath
-        document.data.path = basename(document.data.path);
-      }
-    }
-
+    await copyRecursive(await getUploadDir(datasetId), uploadsPath);
     await writeFile(join(knowledgeWithIdPath, 'documents.yaml'), stringify(documents));
 
     // 复制 vector db
     const src = resolve(await getVectorStorePath(datasetId));
-    const dst = join(knowledgeWithIdPath, 'vectors');
+    const vectorsPath = join(knowledgeWithIdPath, 'vectors');
 
     if (await pathExists(src)) {
-      await copyRecursive(src, dst);
+      await copyRecursive(src, vectorsPath);
     }
 
     const zipPath = join(tmpFolder, `${datasetId}.zip`);
