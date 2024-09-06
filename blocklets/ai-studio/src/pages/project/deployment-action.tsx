@@ -76,34 +76,36 @@ export default function DeploymentAction() {
               }}>
               <ClickAwayListener
                 onClickAway={(e) => (e.target as HTMLElement)?.localName !== 'body' && deploymentPopperState.close()}>
-                {data?.deployment ? (
-                  <Suspense fallback={<CircularProgress />}>
-                    <ComponentInstaller
-                      did={[
-                        'z2qa6fvjmjew4pWJyTsKaWFuNoMUMyXDh5A1D',
-                        'z2qaCNvKMv5GjouKdcDWexv6WqtHbpNPQDnAk',
-                        'z8iZiDFg3vkkrPwsiba1TLXy3H9XHzFERsP8o',
-                      ]}>
-                      <UpdateApp
-                        onClose={deploymentPopperState.close}
-                        run={run}
-                        projectId={projectId!}
-                        projectRef={gitRef!}
-                        agentId={fileId!}
-                        access={data.deployment.access}
-                        id={data.deployment.id}
-                      />
-                    </ComponentInstaller>
-                  </Suspense>
-                ) : (
-                  <DeployApp
-                    onClose={deploymentPopperState.close}
-                    run={run}
-                    projectId={projectId!}
-                    projectRef={gitRef!}
-                    agentId={fileId!}
-                  />
-                )}
+                <Box>
+                  {data?.deployment ? (
+                    <Suspense fallback={<CircularProgress />}>
+                      <ComponentInstaller
+                        did={[
+                          'z2qa6fvjmjew4pWJyTsKaWFuNoMUMyXDh5A1D',
+                          'z2qaCNvKMv5GjouKdcDWexv6WqtHbpNPQDnAk',
+                          'z8iZiDFg3vkkrPwsiba1TLXy3H9XHzFERsP8o',
+                        ]}>
+                        <UpdateApp
+                          onClose={deploymentPopperState.close}
+                          run={run}
+                          projectId={projectId!}
+                          projectRef={gitRef!}
+                          agentId={fileId!}
+                          access={data.deployment.access}
+                          id={data.deployment.id}
+                        />
+                      </ComponentInstaller>
+                    </Suspense>
+                  ) : (
+                    <DeployApp
+                      onClose={deploymentPopperState.close}
+                      run={run}
+                      projectId={projectId!}
+                      projectRef={gitRef!}
+                      agentId={fileId!}
+                    />
+                  )}
+                </Box>
               </ClickAwayListener>
             </Paper>
           </Grow>
@@ -226,7 +228,7 @@ function DeployApp({
           </Button>
 
           <LoadingButton variant="contained" onClick={onSubmit}>
-            {t('deploy')}
+            {t('deployments.title')}
           </LoadingButton>
         </Stack>
       </Box>

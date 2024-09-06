@@ -798,7 +798,9 @@ export default flatten({
     noDeployments: 'No Deployment Agents Yet',
     info: 'Info',
     link: 'Link',
+    deleteTitle: 'Delete Deployment',
+    deleteDescription: 'This will delete the deployment and cannot be recovered. Please be careful.',
+    deleteSuccess: 'Delete Success',
   },
   private: 'Private',
-  deploy: 'Deploy',
 });

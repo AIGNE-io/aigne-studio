@@ -28,7 +28,7 @@ export default function PreviewPage() {
           <CircularProgress size={24} />
         </Box>
       ) : (
-        <Box component={Result} status={error ? 500 : 404} sx={{ bgcolor: 'transparent', my: 10 }} />
+        <Box component={Result} status={error ? 403 : 404} sx={{ bgcolor: 'transparent', my: 10 }} />
       )}
     </>
   );

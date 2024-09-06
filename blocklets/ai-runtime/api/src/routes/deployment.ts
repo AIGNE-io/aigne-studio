@@ -112,4 +112,12 @@ router.put('/:id', user(), async (req, res) => {
   res.json({ deployment });
 });
 
+router.delete('/:id', user(), async (req, res) => {
+  const schema = Joi.object({ id: Joi.string().required() });
+  const { id } = await schema.validateAsync(req.params, { stripUnknown: true });
+
+  const deployment = await Deployment.destroy({ where: { id } });
+  res.json({ deployment });
+});
+
 export default router;

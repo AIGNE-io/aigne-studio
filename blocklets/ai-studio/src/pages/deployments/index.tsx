@@ -1,12 +1,14 @@
+import useDialog from '@app/utils/use-dialog';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { Box, Container, Stack, Typography, styled } from '@mui/material';
+import Toast from '@arcblock/ux/lib/Toast';
+import { Box, Button, Container, Stack, Typography, styled } from '@mui/material';
 import { DataGrid, GridColDef, gridClasses } from '@mui/x-data-grid';
 import { useRequest } from 'ahooks';
 import dayjs from 'dayjs';
 import { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { getDeployments } from '../../libs/deployment';
+import { deleteDeployment, getDeployments } from '../../libs/deployment';
 import { useProjectStore } from '../project/yjs-state';
 
 const pageSize = 10;
@@ -18,6 +20,7 @@ function Deployments() {
 
   const { getFileById } = useProjectStore(projectId, gitRef, true);
   const navigate = useNavigate();
+  const { dialog, showDialog } = useDialog();
 
   const { data, loading, run } = useRequest(getDeployments, {
     defaultParams: [{ projectId: projectId!, projectRef: gitRef!, page: 1, pageSize }],
@@ -26,6 +29,7 @@ function Deployments() {
 
   const columns = useMemo<
     GridColDef<{
+      id: string;
       createdBy: string;
       updatedBy: string;
       projectId: string;
@@ -50,10 +54,63 @@ function Deployments() {
         renderCell: (params) => t(params?.row?.access),
       },
       {
-        field: 'action',
+        field: 'createdAt',
         headerName: t('createdAt'),
         flex: 1,
         renderCell: (params) => dayjs(params?.row?.createdAt).format('YYYY-MM-DD HH:mm:ss'),
+      },
+      {
+        field: 'action',
+        headerName: t('actions'),
+        align: 'center',
+        headerAlign: 'center',
+        renderCell: (params) => {
+          return (
+            <Button
+              variant="text"
+              color="error"
+              onClick={(e) => {
+                e.stopPropagation();
+
+                showDialog({
+                  formSx: {
+                    '.MuiDialogTitle-root': {
+                      border: 0,
+                    },
+                    '.MuiDialogActions-root': {
+                      border: 0,
+                    },
+                  },
+                  maxWidth: 'sm',
+                  fullWidth: true,
+                  title: <Box sx={{ wordWrap: 'break-word' }}>{t('deployments.deleteTitle')}</Box>,
+                  content: (
+                    <Box>
+                      <Typography fontWeight={500} fontSize={16} lineHeight="28px" color="#4B5563">
+                        {t('deployments.deleteDescription')}
+                      </Typography>
+                    </Box>
+                  ),
+                  okText: t('alert.delete'),
+                  okColor: 'error',
+                  cancelText: t('cancel'),
+                  onOk: async () => {
+                    try {
+                      await deleteDeployment({ id: params.row.id });
+                      run({ projectId: projectId!, projectRef: gitRef!, page: 1, pageSize });
+                      Toast.success(t('deployments.deleteSuccess'));
+                    } catch (error) {
+                      Toast.error(
+                        error.response?.data?.error?.message || error.response?.data?.message || error.message || error
+                      );
+                    }
+                  },
+                });
+              }}>
+              {t('delete')}
+            </Button>
+          );
+        },
       },
     ],
     [t]
@@ -117,6 +174,7 @@ function Deployments() {
           </Stack>
         </Box>
       </Box>
+      {dialog}
     </Container>
   );
 }

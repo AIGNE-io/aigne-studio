@@ -67,3 +67,9 @@ export async function updateDeployment(
     .put(joinURL('/api/deployment', id), input, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
     .then((res) => res.data);
 }
+
+export async function deleteDeployment(input: { id: string }): Promise<{ deployment: Deployment }> {
+  return axios
+    .delete(joinURL('/api/deployment', input.id), { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
+    .then((res) => res.data);
+}

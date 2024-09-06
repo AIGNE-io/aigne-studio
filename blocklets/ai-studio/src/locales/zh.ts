@@ -792,7 +792,9 @@ export default flatten({
     noDeployments: '没有部署的应用',
     info: '信息',
     link: '链接',
+    deleteTitle: '删除部署',
+    deleteDescription: '删除后将无法恢复，请谨慎操作',
+    deleteSuccess: '删除成功',
   },
   private: '私有',
-  deploy: '部署',
 });

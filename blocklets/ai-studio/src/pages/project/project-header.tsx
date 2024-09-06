@@ -71,7 +71,7 @@ export default function ProjectHeader() {
       },
       {
         value: 'deployments',
-        label: t('deploy'),
+        label: t('deployments.title'),
         icon: <Box fontSize={15} component={Icon} icon={RocketIcon} mr={1} />,
       },
     ];
