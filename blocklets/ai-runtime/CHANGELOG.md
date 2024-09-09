@@ -1,3 +1,7 @@
+## 0.4.44 (2024-9-9)
+
+- fix: enterprise did space failed issue
+
 ## 0.4.43 (2024-9-9)
 
 - fix: reset agents cache after repo synced
