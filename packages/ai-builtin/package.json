@@ -46,7 +46,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@blocklet/sdk": "^1.16.30",
+    "@blocklet/sdk": "^1.16.31",
     "lodash": "^4.17.21",
     "node-fetch": "2",
     "typescript": "^5.5.4"
