@@ -32,7 +32,6 @@ pnpm-debug.log*
 lerna-debug.log*
 
 *.env
-blocklets/ai-studio/.env.development
 
 *.tsbuildinfo
 **/public/*.es.mjs
