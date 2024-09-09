@@ -296,6 +296,12 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
     }
   }
 
+  resetCache() {
+    // clear agent cache
+    this._memoizedReadAgent.cache.clear?.();
+    this._memoizedReadAndParseFile.cache.clear?.();
+  }
+
   async commitWorking({
     ref,
     branch,
@@ -387,8 +393,7 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
     await project.update({ updatedAt: new Date() });
 
     // clear agent cache
-    this._memoizedReadAgent.cache.clear?.();
-    this._memoizedReadAndParseFile.cache.clear?.();
+    this.resetCache();
 
     return result;
   }

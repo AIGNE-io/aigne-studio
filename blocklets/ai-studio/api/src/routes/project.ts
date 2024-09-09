@@ -905,6 +905,7 @@ export function projectRoutes(router: Router) {
     if (target === 'didSpace') {
       await syncToDidSpace({ project, userId });
 
+      repository.resetCache();
       return res.json({});
     }
 
@@ -920,6 +921,7 @@ export function projectRoutes(router: Router) {
         (await repository.working({ ref })).reset();
       }
 
+      repository.resetCache();
       return res.json({});
     }
 
