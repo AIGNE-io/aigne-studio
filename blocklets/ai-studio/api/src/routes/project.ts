@@ -10,6 +10,7 @@ import { uploadImageToImageBin } from '@api/libs/image-bin';
 import logger from '@api/libs/logger';
 import AgentInputSecret from '@api/store/models/agent-input-secret';
 import {
+  MemoryFile,
   ProjectSettings,
   ResourceProject,
   fileToYjs,
@@ -57,9 +58,7 @@ import {
   autoSyncIfNeeded,
   defaultBranch,
   defaultRemote,
-  getAssistantFromRepository,
   getAssistantIdFromPath,
-  getProjectMemoryVariables,
   getRepository,
   repositoryRoot,
   syncRepository,
@@ -935,8 +934,7 @@ export function projectRoutes(router: Router) {
 
     const repository = await getRepository({ projectId });
 
-    const assistant = await getAssistantFromRepository({
-      repository,
+    const assistant = await repository.readAgent({
       ref,
       agentId,
       working: query.working,
@@ -976,12 +974,7 @@ export function projectRoutes(router: Router) {
       const working = await repo.working({ ref });
       const settings = working.syncedStore.files[PROJECT_FILE_PATH];
 
-      const agent = await getAssistantFromRepository({
-        repository: repo,
-        ref,
-        agentId,
-        working: query.working,
-      });
+      const agent = await repo.readAgent({ ref, agentId, working: query.working, rejectOnEmpty: true });
 
       res.json({ agent, project: { ...project.dataValues, ...(working ? settings : {}) } });
     }
@@ -1000,13 +993,14 @@ export function projectRoutes(router: Router) {
 
       const repo = await getRepository({ projectId });
 
-      const variables = await getProjectMemoryVariables({
-        repository: repo,
+      const memoryFile = await repo.readAndParseFile<MemoryFile>({
         ref,
+        filepath: VARIABLE_FILE_PATH,
         working: query.working,
+        readBlobFromGitIfWorkingNotInitialized: true,
       });
 
-      res.json({ variables: variables?.variables ?? [] });
+      res.json({ variables: memoryFile?.variables ?? [] });
     }
   );
 
@@ -1024,8 +1018,7 @@ export function projectRoutes(router: Router) {
 
       const repository = await getRepository({ projectId });
 
-      const assistant = await getAssistantFromRepository({
-        repository,
+      const assistant = await repository.readAgent({
         ref,
         agentId,
         working: query.working,
@@ -1046,7 +1039,7 @@ export function projectRoutes(router: Router) {
           const repository = await getRepository({ projectId });
           const p = (await repository.listFiles({ ref })).find((i) => i.endsWith(`${agentId}.yaml`));
           const parent = p ? p.split('/').slice(0, -1) : [];
-          const result = await getAssistantFromRepository({ repository, ref, agentId });
+          const result = await repository.readAgent({ ref, agentId });
 
           (result?.parameters || []).forEach((parameter) => {
             if (parameter.type === 'source') {

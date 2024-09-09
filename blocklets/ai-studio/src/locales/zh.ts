@@ -773,4 +773,7 @@ export default flatten({
   openEmbed: 'OpenEmbed',
   selectAll: '全选',
   syncTip: '同步数据前先保存暂存区数据',
+  loginRequired: '要求登录',
+  loginRequiredHelper: '用户需要登录后才能使用该 Agent',
+  noLoginRequiredHelper: '用户无需登录即可使用该 Agent',
 });

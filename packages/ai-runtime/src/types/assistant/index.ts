@@ -109,12 +109,14 @@ export type Prompt =
     };
 
 export type Variable = {
-  scope?: 'session' | 'user' | 'global';
+  scope?: VariableScope;
   key: string;
   reset?: boolean;
   defaultValue?: any;
   type?: VariableType;
 };
+
+export type VariableScope = 'user' | 'session' | 'global';
 
 export interface AssistantBase {
   id: string;
@@ -160,6 +162,9 @@ export interface AssistantBase {
   openEmbed?: {
     enable?: boolean;
   };
+  access?: {
+    noLoginRequired?: boolean;
+  };
 }
 
 export interface VariableTypeBase {
@@ -196,7 +201,7 @@ export type VariableType = VariableTypeBase &
   );
 
 export type OutputVariable = VariableType & {
-  variable?: { key: string; scope: string };
+  variable?: { key: string; scope: VariableScope };
   from?: { type: 'input' | 'output'; id: string };
   appearance?: RuntimeOutputAppearance;
   initialValue?: RuntimeOutputVariablesSchema[RuntimeOutputVariable];
@@ -331,6 +336,10 @@ export interface ParameterBase {
   required?: boolean;
   from?: 'editor' | 'agentParameter' | 'knowledgeParameter' | 'blockletAPIParameter';
   hidden?: boolean;
+}
+
+export function isUserInputParameter(parameter: Parameter): parameter is Exclude<Parameter, SourceParameter> {
+  return parameter.type !== 'source';
 }
 
 export interface LLMInputMessagesParameter extends ParameterBase {

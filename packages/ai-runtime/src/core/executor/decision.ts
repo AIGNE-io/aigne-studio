@@ -24,24 +24,26 @@ import {
 } from '../../types';
 import { isNonNullable } from '../../utils/is-non-nullable';
 import selectAgentName from '../assistant/select-agent';
-import { GetAgentResult, RunAssistantCallback, ToolCompletionDirective } from '../assistant/type';
+import { RunAssistantCallback, ToolCompletionDirective } from '../assistant/type';
 import { renderMessage } from '../utils/render-message';
 import { nextTaskId } from '../utils/task-id';
 import { toolCallsTransform } from '../utils/tool-calls-transform';
-import { AgentExecutorBase, AgentExecutorOptions, ExecutorContext } from './base';
+import { AgentExecutorBase } from './base';
 
 const md5 = (str: string) => crypto.createHash('md5').update(str).digest('hex');
 
-export class DecisionAgentExecutor extends AgentExecutorBase {
-  override async process(
-    agent: RouterAssistant & GetAgentResult,
-    { inputs, taskId, parentTaskId }: AgentExecutorOptions
-  ) {
+export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
+  override async process({ inputs }: { inputs: { [key: string]: any } }) {
+    const {
+      agent,
+      options: { parentTaskId, taskId },
+    } = this;
+
     if (!agent.prompt) {
       throw new Error('Route Assistant Prompt is required');
     }
 
-    const message = await renderMessage(agent.prompt, inputs);
+    const message = await renderMessage(agent.prompt, { ...inputs, ...this.globalContext });
     const routes = agent?.routes || [];
 
     const blocklet = await this.context.getBlockletAgent(agent.id);
@@ -184,19 +186,21 @@ export class DecisionAgentExecutor extends AgentExecutorBase {
 
       const response = executor
         ? ((
-            await this.context.executor().execute(executor, {
-              taskId: nextTaskId(),
-              parentTaskId: taskId,
-              inputs: {
-                ...inputs,
-                ...agent.executor?.inputValues,
-                [executor.parameters?.find((i) => i.type === 'llmInputMessages' && !i.hidden)?.key!]: [
-                  { role: 'user', content: message },
-                ],
-                [executor.parameters?.find((i) => i.type === 'llmInputTools' && !i.hidden)?.key!]: tools,
-                [executor.parameters?.find((i) => i.type === 'llmInputToolChoice' && !i.hidden)?.key!]: toolChoice,
-              },
-            })
+            await this.context
+              .executor(executor, {
+                taskId: nextTaskId(),
+                parentTaskId: taskId,
+                inputs: {
+                  ...inputs,
+                  ...agent.executor?.inputValues,
+                  [executor.parameters?.find((i) => i.type === 'llmInputMessages' && !i.hidden)?.key!]: [
+                    { role: 'user', content: message },
+                  ],
+                  [executor.parameters?.find((i) => i.type === 'llmInputTools' && !i.hidden)?.key!]: tools,
+                  [executor.parameters?.find((i) => i.type === 'llmInputToolChoice' && !i.hidden)?.key!]: toolChoice,
+                },
+              })
+              .execute()
           )[RuntimeOutputVariable.llmResponseStream] as ReadableStream<ChatCompletionResponse>)
         : await this.context.callAI({
             assistant: agent,
@@ -405,13 +409,14 @@ export class DecisionAgentExecutor extends AgentExecutorBase {
             }
 
             const result = await this.context
-              .executor({ ...this.context, callback: cb } as ExecutorContext)
-              .execute(blocklet.agent, {
+              .copy({ callback: cb })
+              .executor(blocklet.agent, {
                 inputs: tool.tool.parameters,
                 variables: { ...inputs, ...requestData },
                 taskId: currentTaskId,
                 parentTaskId: taskId,
-              });
+              })
+              .execute();
 
             return result;
           }
@@ -427,11 +432,14 @@ export class DecisionAgentExecutor extends AgentExecutorBase {
               }) ?? []
           );
 
-          const res = await this.context.executor(this.context.copy({ callback: cb })).execute(toolAssistant as any, {
-            taskId: currentTaskId,
-            parentTaskId: taskId,
-            inputs: requestData,
-          });
+          const res = await this.context
+            .copy({ callback: cb })
+            .executor(toolAssistant as any, {
+              taskId: currentTaskId,
+              parentTaskId: taskId,
+              inputs: requestData,
+            })
+            .execute();
 
           if (tool.tool?.onEnd === OnTaskCompletion.EXIT) {
             throw new ToolCompletionDirective('The task has been stop. The tool will now exit.', OnTaskCompletion.EXIT);
