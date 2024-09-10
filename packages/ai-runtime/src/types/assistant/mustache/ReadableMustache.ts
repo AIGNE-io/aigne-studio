@@ -66,7 +66,7 @@ export function renderMustacheStream(
           };
         });
 
-        const render = async () => controller.enqueue(await renderMessage(template, ctx));
+        const render = async () => controller.enqueue(await renderMessage(template, ctx, { escapeJsonSymbols: true }));
 
         await render();
 
