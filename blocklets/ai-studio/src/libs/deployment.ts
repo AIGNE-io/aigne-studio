@@ -57,6 +57,18 @@ export async function getDeployments(input: {
   return axios.get('/api/deployment', { baseURL: AIGNE_RUNTIME_MOUNT_POINT, params: input }).then((res) => res.data);
 }
 
+export async function getAllDeployments(input: { page: number; pageSize: number }): Promise<{
+  deployments: Deployment[];
+  totalCount: number;
+  currentPage: number;
+  pageSize: number;
+  totalPages: number;
+}> {
+  return axios
+    .get('/api/deployment/list', { baseURL: AIGNE_RUNTIME_MOUNT_POINT, params: input })
+    .then((res) => res.data);
+}
+
 export async function updateDeployment(
   id: string,
   input: {

@@ -59,6 +59,32 @@ router.get('/', user(), async (req, res) => {
   }
 });
 
+router.get('/list', user(), async (req, res) => {
+  try {
+    const { page, pageSize } = await Joi.object({
+      page: Joi.number().integer().min(1).default(1),
+      pageSize: Joi.number().integer().min(1).max(100).default(10),
+    }).validateAsync(req.query, { stripUnknown: true });
+    const offset = (page - 1) * pageSize;
+
+    const { count, rows } = await Deployment.findAndCountAll({
+      limit: pageSize,
+      offset,
+      order: [['createdAt', 'DESC']],
+    });
+
+    res.json({
+      deployments: rows,
+      totalCount: count,
+      currentPage: page,
+      pageSize,
+      totalPages: Math.ceil(count / pageSize),
+    });
+  } catch (error) {
+    res.status(400).json({ code: 'bad_request', error: error.message });
+  }
+});
+
 router.post('/', user(), async (req, res) => {
   const { did: userId, role } = req.user!;
   const { projectId, projectRef, agentId, access } = await schema.validateAsync(req.body, { stripUnknown: true });

@@ -105,6 +105,31 @@ navigation:
       - promptsEditor
       - member
       - guest
+  - id: explore
+    title:
+      en: Explore
+      zh: 探索
+    icon: material-symbols:explore-outline
+    link: /admin/explore
+    section:
+      - dashboard
+      - sessionManager
+    role:
+      - owner
+      - admin
+      - promptsEditor
+  - id: category
+    title:
+      en: category
+      zh: 分类
+    icon: material-symbols:explore-outline
+    link: /admin/category
+    section:
+      - dashboard
+    role:
+      - owner
+      - admin
+      - promptsEditor
 resource:
   exportApi: /api/resources/export
   types:
