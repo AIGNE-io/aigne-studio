@@ -16,6 +16,7 @@ module.exports = {
       join(__dirname, 'packages/ai-runtime/tsconfig.json'),
       join(__dirname, 'packages/dataset-sdk/tsconfig.json'),
       join(__dirname, 'packages/ai-builtin/tsconfig.json'),
+      join(__dirname, 'packages/quickjs/tsconfig.json'),
     ],
   },
   rules: {
@@ -39,5 +40,7 @@ module.exports = {
     'unicorn/filename-case': 'off',
     '@typescript-eslint/return-await': 'off',
     'jsx-a11y/control-has-associated-label': 'off',
+    'guard-for-in': 'warn',
+    'no-restricted-syntax': 'warn',
   },
 };

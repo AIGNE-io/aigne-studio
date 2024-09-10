@@ -130,6 +130,7 @@
     "@blocklet/ai-kit": "^0.1.47",
     "@blocklet/dataset-sdk": "workspace:^",
     "@blocklet/logger": "^1.16.31",
+    "@blocklet/quickjs": "workspace:^",
     "@blocklet/sdk": "^1.16.31",
     "@microsoft/fetch-event-source": "^2.0.1",
     "ahooks": "^3.8.1",
