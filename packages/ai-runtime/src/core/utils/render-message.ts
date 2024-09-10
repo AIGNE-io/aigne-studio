@@ -5,7 +5,7 @@ import { Mustache } from '../../types/assistant';
 export async function renderMessage(
   message: string,
   parameters?: { [key: string]: any },
-  { stringify = true }: { stringify?: boolean } = {}
+  { stringify = true, escapeJsonSymbols }: { stringify?: boolean; escapeJsonSymbols?: boolean } = {}
 ) {
   const spans = Mustache.parse(message.trim());
   if (!stringify && spans.length === 1) {
@@ -18,7 +18,11 @@ export async function renderMessage(
   return Mustache.render(message, parameters, undefined, {
     escape: (v) => {
       const r = typeof v === 'object' ? JSON.stringify(v) : v;
-      return typeof r === 'string' ? JSON.stringify(r).slice(1, -1) : r;
+
+      if (typeof r === 'string' && escapeJsonSymbols) {
+        return JSON.stringify(r).slice(1, -1);
+      }
+      return r;
     },
   });
 }

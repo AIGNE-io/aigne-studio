@@ -368,7 +368,10 @@ export abstract class AgentExecutorBase<T> {
             if (isPlainObject(inputValue)) {
               const resolvedEntries = await Promise.all(
                 Object.entries(inputValue).map(async ([key, value]) => {
-                  return [key, typeof value === 'string' ? await renderMessage(value, variables) : value];
+                  return [
+                    key,
+                    typeof value === 'string' ? await renderMessage(value, variables, { stringify: false }) : value,
+                  ];
                 })
               );
 
@@ -383,13 +386,15 @@ export abstract class AgentExecutorBase<T> {
                       await Promise.all(
                         Object.entries(item).map(async ([key, value]) => [
                           key,
-                          typeof value === 'string' ? await renderMessage(value, variables) : value,
+                          typeof value === 'string'
+                            ? await renderMessage(value, variables, { stringify: false })
+                            : value,
                         ])
                       )
                     );
                   }
 
-                  return await renderMessage(item, variables);
+                  return await renderMessage(item, variables, { stringify: false });
                 })
               );
 
@@ -537,7 +542,7 @@ export abstract class AgentExecutorBase<T> {
               inputs: {
                 sessionId: this.context.sessionId,
                 limit: chat.limit || 50,
-                keyword: await renderMessage(chat.keyword || '', inputVariables),
+                keyword: await renderMessage(chat.keyword || '', inputVariables, { stringify: false }),
               },
               taskId: currentTaskId,
               parentTaskId: taskId,
