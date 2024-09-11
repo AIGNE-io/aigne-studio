@@ -1,3 +1,7 @@
+## 0.4.45 (2024-9-10)
+
+- fix: parameter result to string
+
 ## 0.4.44 (2024-9-9)
 
 - fix: enterprise did space failed issue
