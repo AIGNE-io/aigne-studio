@@ -49,6 +49,7 @@
     "@blocklet/logger": "^1.16.31",
     "@blocklet/payment-js": "^1.15.4",
     "@blocklet/prompt-editor": "workspace:^",
+    "@blocklet/quickjs": "workspace:^",
     "@blocklet/sdk": "^1.16.31",
     "@blocklet/studio-ui": "workspace:^",
     "@blocklet/ui-react": "^2.10.30",

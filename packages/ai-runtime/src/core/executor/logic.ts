@@ -3,7 +3,7 @@ import 'dayjs/locale/ja';
 
 import crypto from 'crypto';
 
-import { runUnsafeFunction } from '@blocklet/quickjs';
+import { runUnsafeFunction, transpileModule } from '@blocklet/quickjs';
 import { call, getComponentMountPoint } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
 import equal from 'fast-deep-equal';
@@ -14,7 +14,6 @@ import { VM } from 'vm2';
 import logger from '../../logger';
 import { AssistantResponseType, FunctionAssistant } from '../../types';
 import { renderMustacheStream } from '../../types/assistant/mustache/ReadableMustache';
-import { transpileModule } from '../../utils/typescript';
 import { geti } from '../utils/geti';
 import { renderMessage } from '../utils/render-message';
 import { nextTaskId } from '../utils/task-id';
@@ -33,11 +32,19 @@ export class LogicAgentExecutor extends AgentExecutorBase<FunctionAssistant> {
     } = this;
 
     if (!agent.code) throw new Error(`Assistant ${agent.id}'s code is empty`);
-    const code = await transpileModule(`\
+    const code = await transpileModule(
+      `\
 async function main() {
   ${agent.code}
 }
-`);
+`,
+      (ts) => ({
+        compilerOptions: {
+          module: ts.ModuleKind.ESNext,
+          target: ts.ScriptTarget.ES2020,
+        },
+      })
+    );
 
     const args = Object.fromEntries(
       await Promise.all(

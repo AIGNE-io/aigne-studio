@@ -152,7 +152,7 @@ importers:
         version: link:../../packages/dataset-sdk
       '@blocklet/discuss-kit':
         specifier: ^2.0.160
-        version: 2.0.160(fiarovud34r3lohj6rstjlkary)
+        version: 2.0.160(y3pnkj32vt2zqjrel35clidtp4)
       '@blocklet/js-sdk':
         specifier: 1.16.28
         version: 1.16.28
@@ -170,7 +170,7 @@ importers:
         version: 2.10.30(bahtwccq32gfxfgweg2kg5l7kq)
       '@blocklet/uploader':
         specifier: ^0.1.29
-        version: 0.1.29(dw3hbhocvmlgnq3v65mxnahza4)
+        version: 0.1.29(rw7naynp2uiffcmru6e6hkudvm)
       '@blocklet/xss':
         specifier: ^0.1.5
         version: 0.1.5
@@ -435,7 +435,7 @@ importers:
         version: link:../../packages/dataset-sdk
       '@blocklet/discuss-kit':
         specifier: ^2.0.160
-        version: 2.0.160(fiarovud34r3lohj6rstjlkary)
+        version: 2.0.160(y3pnkj32vt2zqjrel35clidtp4)
       '@blocklet/logger':
         specifier: 1.16.28
         version: 1.16.28
@@ -445,6 +445,9 @@ importers:
       '@blocklet/prompt-editor':
         specifier: workspace:^
         version: link:../../packages/prompt-editor
+      '@blocklet/quickjs':
+        specifier: workspace:^
+        version: link:../../packages/quickjs
       '@blocklet/sdk':
         specifier: 1.16.28
         version: 1.16.28(encoding@0.1.13)
@@ -456,7 +459,7 @@ importers:
         version: 2.10.30(bahtwccq32gfxfgweg2kg5l7kq)
       '@blocklet/uploader':
         specifier: ^0.1.29
-        version: 0.1.29(dw3hbhocvmlgnq3v65mxnahza4)
+        version: 0.1.29(rw7naynp2uiffcmru6e6hkudvm)
       '@blocklet/xss':
         specifier: ^0.1.5
         version: 0.1.5
@@ -1023,9 +1026,6 @@ importers:
       snowflake-uuid:
         specifier: ^1.0.0
         version: 1.0.0
-      typescript:
-        specifier: ^5.5.4
-        version: 5.5.4
       ufo:
         specifier: ^1.5.4
         version: 1.5.4
@@ -1084,6 +1084,9 @@ importers:
       ts-jest:
         specifier: ^29.2.5
         version: 29.2.5(@babel/core@7.24.7)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.24.7))(esbuild@0.21.5)(jest@29.7.0(@types/node@22.5.0)(babel-plugin-macros@3.1.0)(ts-node@10.9.2(@types/node@22.5.0)(typescript@5.5.4)))(typescript@5.5.4)
+      typescript:
+        specifier: ^5.5.4
+        version: 5.5.4
 
   packages/aigne-sdk:
     dependencies:
@@ -1539,9 +1542,9 @@ importers:
       glob:
         specifier: ^10.4.5
         version: 10.4.5
-      lodash:
-        specifier: ^4.17.21
-        version: 4.17.21
+      lru-cache:
+        specifier: ^10.4.3
+        version: 10.4.3
       nanoid:
         specifier: ^3.3.7
         version: 3.3.7
@@ -15018,7 +15021,7 @@ snapshots:
       '@aws-crypto/sha1-browser': 3.0.0
       '@aws-crypto/sha256-browser': 3.0.0
       '@aws-crypto/sha256-js': 3.0.0
-      '@aws-sdk/client-sso-oidc': 3.590.0
+      '@aws-sdk/client-sso-oidc': 3.590.0(@aws-sdk/client-sts@3.590.0)
       '@aws-sdk/client-sts': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0)
       '@aws-sdk/core': 3.588.0
       '@aws-sdk/credential-provider-node': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0)
@@ -15076,7 +15079,7 @@ snapshots:
     transitivePeerDependencies:
       - aws-crt
 
-  '@aws-sdk/client-sso-oidc@3.590.0':
+  '@aws-sdk/client-sso-oidc@3.590.0(@aws-sdk/client-sts@3.590.0)':
     dependencies:
       '@aws-crypto/sha256-browser': 3.0.0
       '@aws-crypto/sha256-js': 3.0.0
@@ -15119,6 +15122,7 @@ snapshots:
       '@smithy/util-utf8': 3.0.0
       tslib: 2.6.3
     transitivePeerDependencies:
+      - '@aws-sdk/client-sts'
       - aws-crt
 
   '@aws-sdk/client-sso@3.590.0':
@@ -15168,7 +15172,7 @@ snapshots:
     dependencies:
       '@aws-crypto/sha256-browser': 3.0.0
       '@aws-crypto/sha256-js': 3.0.0
-      '@aws-sdk/client-sso-oidc': 3.590.0
+      '@aws-sdk/client-sso-oidc': 3.590.0(@aws-sdk/client-sts@3.590.0)
       '@aws-sdk/core': 3.588.0
       '@aws-sdk/credential-provider-node': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0)(@aws-sdk/client-sts@3.590.0)
       '@aws-sdk/middleware-host-header': 3.577.0
@@ -15451,7 +15455,7 @@ snapshots:
 
   '@aws-sdk/token-providers@3.587.0(@aws-sdk/client-sso-oidc@3.590.0)':
     dependencies:
-      '@aws-sdk/client-sso-oidc': 3.590.0
+      '@aws-sdk/client-sso-oidc': 3.590.0(@aws-sdk/client-sts@3.590.0)
       '@aws-sdk/types': 3.577.0
       '@smithy/property-provider': 3.1.0
       '@smithy/shared-ini-file-loader': 3.1.0
@@ -16618,7 +16622,7 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@blocklet/discuss-kit-ux@2.0.160(twmv7ah44emlsmayies22oy52i)':
+  '@blocklet/discuss-kit-ux@2.0.160(kc2tbiqn7glkb7c5gcxtl2i5nq)':
     dependencies:
       '@arcblock/bridge': 2.10.30
       '@arcblock/did-connect': 2.10.30(pcmyezp2vaqh3lw546wgmb3q44)
@@ -16627,7 +16631,7 @@ snapshots:
       '@arcblock/ws': 1.18.135
       '@blocklet/editor': 2.0.160(qg2jxq4gpbsdji3vgklnzzbjum)
       '@blocklet/labels': 2.0.160(qjop4kgg672j3gwayo7up4eeni)
-      '@blocklet/uploader': 0.1.29(dw3hbhocvmlgnq3v65mxnahza4)
+      '@blocklet/uploader': 0.1.29(rw7naynp2uiffcmru6e6hkudvm)
       '@emotion/css': 11.13.0
       '@emotion/react': 11.13.3(@types/react@18.3.4)(react@18.3.1)
       '@emotion/styled': 11.13.0(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react@18.3.1)
@@ -16658,7 +16662,6 @@ snapshots:
       unstated-next: 1.1.0
       url-join: 4.0.1
     transitivePeerDependencies:
-      - '@aws-sdk/client-sso-oidc'
       - '@babel/core'
       - '@blocklet/js-sdk'
       - '@emotion/cache'
@@ -16687,12 +16690,12 @@ snapshots:
       - yjs
       - zod
 
-  '@blocklet/discuss-kit@2.0.160(fiarovud34r3lohj6rstjlkary)':
+  '@blocklet/discuss-kit@2.0.160(y3pnkj32vt2zqjrel35clidtp4)':
     dependencies:
       '@arcblock/did-connect': 2.10.30(pcmyezp2vaqh3lw546wgmb3q44)
       '@arcblock/ux': 2.10.30(@babel/core@7.24.7)(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react@18.3.1))(@mui/icons-material@5.16.7(@mui/material@5.16.7(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.4)(react@18.3.1))(@mui/material@5.16.7(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/node@22.5.0)(@types/react@18.3.4)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.26.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       '@arcblock/ws': 1.18.135
-      '@blocklet/discuss-kit-ux': 2.0.160(twmv7ah44emlsmayies22oy52i)
+      '@blocklet/discuss-kit-ux': 2.0.160(kc2tbiqn7glkb7c5gcxtl2i5nq)
       '@blocklet/editor': 2.0.160(qg2jxq4gpbsdji3vgklnzzbjum)
       '@blocklet/js-sdk': 1.16.28
       '@blocklet/ui-react': 2.10.30(bahtwccq32gfxfgweg2kg5l7kq)
@@ -16719,7 +16722,6 @@ snapshots:
       timeago.js: 4.0.2
       url-join: 4.0.1
     transitivePeerDependencies:
-      - '@aws-sdk/client-sso-oidc'
       - '@babel/core'
       - '@emotion/cache'
       - '@emotion/css'
@@ -17152,7 +17154,7 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  '@blocklet/uploader@0.1.29(dw3hbhocvmlgnq3v65mxnahza4)':
+  '@blocklet/uploader@0.1.29(rw7naynp2uiffcmru6e6hkudvm)':
     dependencies:
       '@abtnode/cron': 1.16.28
       '@blocklet/constant': 1.16.31
@@ -17163,7 +17165,7 @@ snapshots:
       '@mui/material': 5.16.7(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@tus/file-store': 1.0.0(@tus/server@1.0.0)
       '@tus/server': 1.0.0
-      '@uppy/companion': 4.13.2(@aws-sdk/client-sso-oidc@3.590.0)
+      '@uppy/companion': 4.13.2
       '@uppy/core': 3.11.2
       '@uppy/dashboard': 3.8.3(@uppy/core@3.11.2)
       '@uppy/drag-drop': 3.1.0(@uppy/core@3.11.2)
@@ -17198,7 +17200,6 @@ snapshots:
     transitivePeerDependencies:
       - '@arcblock/did-connect'
       - '@arcblock/ux'
-      - '@aws-sdk/client-sso-oidc'
       - '@blocklet/js-sdk'
       - '@emotion/react'
       - '@emotion/styled'
@@ -20722,7 +20723,7 @@ snapshots:
       namespace-emitter: 2.0.1
       p-retry: 6.2.0
 
-  '@uppy/companion@4.13.2(@aws-sdk/client-sso-oidc@3.590.0)':
+  '@uppy/companion@4.13.2':
     dependencies:
       '@aws-sdk/client-s3': 3.591.0
       '@aws-sdk/client-sts': 3.590.0(@aws-sdk/client-sso-oidc@3.590.0)
@@ -20765,7 +20766,6 @@ snapshots:
       validator: 13.12.0
       ws: 8.18.0
     transitivePeerDependencies:
-      - '@aws-sdk/client-sso-oidc'
       - aws-crt
       - bufferutil
       - supports-color

@@ -1,0 +1,50 @@
+import { LRUCache } from 'lru-cache';
+
+export interface MemoizedFn {
+  cache: LRUCache<any, any>;
+}
+
+export function memoize<T extends (...args: any) => any>(
+  fn: T,
+  {
+    lruOptions = {
+      max: 1024,
+    },
+    keyGenerator = JSON.stringify,
+  }: {
+    lruOptions?: ConstructorParameters<typeof LRUCache>[0];
+    keyGenerator?: (...args: any) => any;
+  } = {}
+): T & MemoizedFn {
+  const lru = new LRUCache(lruOptions);
+
+  const fnWithCache = (key: any, ...args: any[]) => {
+    const cache = lru.get(key);
+    if (cache) return cache;
+
+    const value = fn(...args);
+
+    if (value instanceof Promise) {
+      value.then((value) => {
+        lru.set(key, value);
+      });
+    } else {
+      lru.set(key, value);
+    }
+
+    return value;
+  };
+
+  const memoizedFn: T & MemoizedFn = function (...args) {
+    const key = keyGenerator(...args);
+    if (key instanceof Promise) {
+      return key.then((key) => fnWithCache(key, ...args));
+    }
+
+    return fnWithCache(key, ...args);
+  } as T as any;
+
+  memoizedFn.cache = lru;
+
+  return memoizedFn;
+}

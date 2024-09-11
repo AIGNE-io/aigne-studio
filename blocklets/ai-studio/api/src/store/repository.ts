@@ -21,12 +21,13 @@ import {
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { Repository, RepositoryOptions, Working } from '@blocklet/co-git/repository';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import { memoize } from '@blocklet/quickjs';
 import { SpaceClient, SyncFolderPushCommand, SyncFolderPushCommandOutput } from '@did-space/client';
 import { exists, pathExists } from 'fs-extra';
 import { glob } from 'glob';
 import { Errors } from 'isomorphic-git';
-import { memoize, throttle } from 'lodash';
 import isEmpty from 'lodash/isEmpty';
+import throttle from 'lodash/throttle';
 import { nanoid } from 'nanoid';
 import { parseAuth, parseFilename, parseURL } from 'ufo';
 import { parse, stringify } from 'yaml';
@@ -456,10 +457,12 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
     return file;
   };
 
-  private _memoizedReadAndParseFile = memoize(
-    (options: ReadAndParseFileOptions) => this._readAndParseFile(options),
-    (o) => [o.working, o.filepath, o.rejectOnEmpty, o.readBlobFromGitIfWorkingNotInitialized, o.ref].join('/')
-  );
+  private _memoizedReadAndParseFile = memoize((options: ReadAndParseFileOptions) => this._readAndParseFile(options), {
+    keyGenerator: (args) =>
+      [args.working, args.filepath, args.rejectOnEmpty, args.readBlobFromGitIfWorkingNotInitialized, args.ref].join(
+        '/'
+      ),
+  });
 
   async readAndParseFile<T>(options: ReadAndParseFileOptions & { rejectOnEmpty: true }): Promise<T>;
   async readAndParseFile<T>(options: ReadAndParseFileOptions & { rejectOnEmpty?: false }): Promise<T | undefined>;
@@ -514,10 +517,10 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
     return file;
   };
 
-  private _memoizedReadAgent = memoize(
-    (options: ReadAgentOptions) => this._readAgent(options),
-    (o) => [o.working, o.agentId, o.rejectOnEmpty, o.readBlobFromGitIfWorkingNotInitialized, o.ref].join('/')
-  );
+  private _memoizedReadAgent = memoize((options: ReadAgentOptions) => this._readAgent(options), {
+    keyGenerator: (args) =>
+      [args.working, args.agentId, args.rejectOnEmpty, args.readBlobFromGitIfWorkingNotInitialized, args.ref].join('/'),
+  });
 
   async readAgent(options: ReadAgentOptions & { rejectOnEmpty: true }): Promise<Assistant>;
   async readAgent(options: ReadAgentOptions & { rejectOnEmpty?: false }): Promise<Assistant | undefined>;

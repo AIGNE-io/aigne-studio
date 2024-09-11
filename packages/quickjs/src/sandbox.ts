@@ -16,7 +16,8 @@ export async function runUnsafeFunction({
   filename?: string;
   global: { [key: string]: any };
 }) {
-  const compiledCode = await transpileModule(`\
+  const compiledCode = await transpileModule(
+    `\
 import { dumpResult } from 'builtin';
 import { ReadableStream, TransformStream, TextDecoder, TextDecoderStream, EventSourceParserStream } from 'stream';
 import { fetch } from 'fetch';
@@ -28,7 +29,14 @@ export const result = await dumpResult((async function() {
 
   return ${functionName}()
 })())
-`);
+`,
+    (ts) => ({
+      compilerOptions: {
+        module: ts.ModuleKind.ESNext,
+        target: ts.ScriptTarget.ES2020,
+      },
+    })
+  );
 
   const quickJs = await newQuickJSWASMModule();
   const runtime = quickJs.newRuntime({

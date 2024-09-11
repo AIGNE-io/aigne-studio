@@ -1,11 +1,14 @@
 import { hash } from 'crypto';
 
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
+import { memoize } from '@blocklet/quickjs';
 import { call } from '@blocklet/sdk/lib/component';
 import { logger } from '@blocklet/sdk/lib/config';
 import Joi from 'joi';
 import jsonStableStringify from 'json-stable-stringify';
-import { isEmpty, isNil, memoize, toLower } from 'lodash';
+import isEmpty from 'lodash/isEmpty';
+import isNil from 'lodash/isNil';
+import toLower from 'lodash/toLower';
 
 import { AIGNE_RUNTIME_COMPONENT_DID } from '../../constants';
 import {
@@ -48,15 +51,16 @@ export class ExecutorContext {
       | 'setCache'
     >
   ) {
-    this.getAgent = memoize(options.getAgent, (o) =>
-      [o.blockletDid, o.projectId, o.projectRef, o.agentId, o.working].filter(isNonNullable).join('/')
-    );
+    this.getAgent = memoize(options.getAgent, {
+      keyGenerator: (o) =>
+        [o.blockletDid, o.projectId, o.projectRef, o.agentId, o.working].filter(isNonNullable).join('/'),
+    });
     this.callAI = options.callAI;
     this.callAIImage = options.callAIImage;
     this.callback = options.callback;
-    this.getMemoryVariables = memoize(options.getMemoryVariables, (o) =>
-      [o.blockletDid, o.projectId, o.projectRef, o.working].filter(isNonNullable).join('/')
-    );
+    this.getMemoryVariables = memoize(options.getMemoryVariables, {
+      keyGenerator: (o) => [o.blockletDid, o.projectId, o.projectRef, o.working].filter(isNonNullable).join('/'),
+    });
     this.user = options.user;
     this.sessionId = options.sessionId;
     this.messageId = options.messageId;

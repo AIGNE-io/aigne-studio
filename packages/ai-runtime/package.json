@@ -126,7 +126,6 @@
     "test": "jest src/"
   },
   "dependencies": {
-    "@blocklet/ai-builtin": "workspace:^",
     "@blocklet/ai-kit": "^0.1.47",
     "@blocklet/dataset-sdk": "workspace:^",
     "@blocklet/logger": "^1.16.31",
@@ -152,7 +151,6 @@
     "react-hook-form": "^7.53.0",
     "recoil": "^0.7.7",
     "snowflake-uuid": "^1.0.0",
-    "typescript": "^5.5.4",
     "ufo": "^1.5.4",
     "vm2": "^3.9.19",
     "yaml": "^2.5.0"
