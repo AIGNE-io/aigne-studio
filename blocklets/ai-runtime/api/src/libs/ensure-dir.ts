@@ -1,34 +1,20 @@
-import { access, mkdir } from 'fs/promises';
+import { mkdir } from 'fs/promises';
 import path from 'path';
 
 import { pathExists } from 'fs-extra';
 
 import { Config } from './env';
 
-async function ensureDirExists(dir: string) {
-  if (await pathExists(dir)) return;
-
-  try {
-    await access(dir);
-  } catch (error) {
-    if (error.code === 'ENOENT') {
-      await mkdir(dir, { recursive: true });
-    } else {
-      throw error;
-    }
-  }
-}
-
 async function ensureKnowledgeDirExists(knowledgeId?: string) {
-  await ensureDirExists(Config.knowledgeDir);
+  await mkdir(Config.knowledgeDir, { recursive: true });
 
   if (knowledgeId) {
     if (knowledgeId.startsWith('/')) return;
 
     const knowledgeDir = path.join(Config.knowledgeDir, knowledgeId);
     await Promise.all([
-      ensureDirExists(path.join(knowledgeDir, 'uploads')),
-      ensureDirExists(path.join(knowledgeDir, 'vectors')),
+      mkdir(path.join(knowledgeDir, 'uploads'), { recursive: true }),
+      mkdir(path.join(knowledgeDir, 'vectors'), { recursive: true }),
     ]);
   }
 }
