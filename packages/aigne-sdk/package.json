@@ -90,7 +90,7 @@
     "test": "jest src/"
   },
   "dependencies": {
-    "@blocklet/ai-kit": "^0.1.47",
+    "@blocklet/ai-kit": "^0.1.49",
     "@blocklet/ai-runtime": "workspace:^",
     "@blocklet/js-sdk": "^1.16.31",
     "@blocklet/pages-kit": "^0.2.404",
@@ -116,7 +116,7 @@
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@arcblock/ux": "^2.10.30",
+    "@arcblock/ux": "^2.10.31",
     "@emotion/css": "^11.13.0",
     "@emotion/react": "^11.13.3",
     "@jest/globals": "^29.7.0",
