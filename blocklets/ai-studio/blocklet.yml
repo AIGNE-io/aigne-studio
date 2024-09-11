@@ -97,7 +97,6 @@ navigation:
     icon: fluent:grid-24-regular
     link: /projects
     section:
-      - dashboard
       - sessionManager
     role:
       - owner

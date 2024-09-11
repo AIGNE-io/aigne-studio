@@ -1,3 +1,4 @@
+import { getCategories } from '@app/libs/category';
 import useDialog from '@app/utils/use-dialog';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
@@ -5,9 +6,12 @@ import { Box, Button, Container, Stack, Typography, styled } from '@mui/material
 import { DataGrid, GridColDef, gridClasses } from '@mui/x-data-grid';
 import { useRequest } from 'ahooks';
 import dayjs from 'dayjs';
-import { useMemo } from 'react';
+import { usePopupState } from 'material-ui-popup-state/hooks';
+import { useMemo, useState } from 'react';
 
 import { deleteDeployment, getAllDeployments } from '../../../libs/deployment';
+import type { Deployment } from '../../../libs/deployment';
+import DeploymentDialog from '../../deployments/dialog';
 import { useProjectStore } from '../../project/yjs-state';
 
 function ProjectAgentName({ projectId, gitRef, agentId }: { projectId: string; gitRef: string; agentId: string }) {
@@ -19,27 +23,22 @@ const pageSize = 10;
 
 function AdminList() {
   const { t } = useLocaleContext();
+  const dialogState = usePopupState({ variant: 'popper' });
 
   const { dialog, showDialog } = useDialog();
+  const [deployment, setDeployment] = useState<Deployment | null>(null);
 
   const { data, loading, run } = useRequest(getAllDeployments, {
     defaultParams: [{ page: 1, pageSize }],
     refreshDeps: [],
   });
 
-  const columns = useMemo<
-    GridColDef<{
-      id: string;
-      createdBy: string;
-      updatedBy: string;
-      projectId: string;
-      projectRef: string;
-      agentId: string;
-      createdAt: string;
-      updatedAt: string;
-      access: 'public' | 'private';
-    }>[]
-  >(
+  const { data: categories, loading: categoriesLoading } = useRequest(getCategories, {
+    defaultParams: [{ page: 1, pageSize: 1000 }],
+    refreshDeps: [],
+  });
+
+  const columns = useMemo<GridColDef<Deployment>[]>(
     () => [
       {
         field: 'title',
@@ -66,6 +65,16 @@ function AdminList() {
         renderCell: (params) => dayjs(params?.row?.createdAt).format('YYYY-MM-DD HH:mm:ss'),
       },
       {
+        field: 'categories',
+        headerName: t('categories'),
+        flex: 1,
+        renderCell: (params) => {
+          return params.row.categories
+            .map((category) => categories?.list?.find((c) => c.id === category)?.name)
+            .join(', ');
+        },
+      },
+      {
         field: 'action',
         headerName: t('actions'),
         align: 'center',
@@ -74,7 +83,13 @@ function AdminList() {
         renderCell: (params) => {
           return (
             <Box display="flex" alignItems="center" height={1} justifyContent="center">
-              <Button>编辑</Button>
+              <Button
+                onClick={() => {
+                  setDeployment(params.row);
+                  dialogState.open();
+                }}>
+                编辑
+              </Button>
               <Button
                 variant="text"
                 color="error"
@@ -126,7 +141,7 @@ function AdminList() {
         },
       },
     ],
-    [t]
+    [t, categories]
   );
 
   const handlePageChange = (newPage: number) => {
@@ -167,7 +182,7 @@ function AdminList() {
               paginationMode="server"
               onPaginationModelChange={({ page }) => handlePageChange(page)}
               getRowClassName={() => 'document-row'}
-              loading={loading}
+              loading={loading || categoriesLoading}
               slots={{
                 noRowsOverlay: () => (
                   <Box className="center" height={1}>
@@ -182,7 +197,16 @@ function AdminList() {
           </Stack>
         </Box>
       </Box>
+
       {dialog}
+
+      <DeploymentDialog
+        dialogState={dialogState}
+        id={deployment?.id!}
+        access={deployment?.access!}
+        categories={deployment?.categories!}
+        run={() => {}}
+      />
     </Container>
   );
 }

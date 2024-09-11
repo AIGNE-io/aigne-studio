@@ -1,3 +1,5 @@
+import { Category } from '@app/libs/category';
+import { Icon } from '@iconify-icon/react';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import BuildIcon from '@mui/icons-material/Build';
@@ -5,20 +7,21 @@ import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import SchoolIcon from '@mui/icons-material/School';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import { Box, List, ListItemButton, ListItemIcon, ListItemText, Stack, Typography } from '@mui/material';
+import {
+  Box,
+  CircularProgress,
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Stack,
+  Typography,
+} from '@mui/material';
 import { Outlet, useNavigate, useParams } from 'react-router-dom';
 
-const categories = [
-  { key: 'autonomous-agents', name: 'Autonomous Agents', icon: <AutoAwesomeIcon /> },
-  { key: 'marketing-sales', name: 'Marketing & Sales', icon: <ShoppingCartIcon /> },
-  { key: 'research-education', name: 'Research & Education', icon: <SchoolIcon /> },
-  { key: 'finance-legal', name: 'Finance & Legal', icon: <AccountBalanceIcon /> },
-  { key: 'fun-lifestyle', name: 'Fun & Lifestyle', icon: <EmojiEventsIcon /> },
-  { key: 'hr-operations', name: 'HR & Operations', icon: <BusinessCenterIcon /> },
-  { key: 'tools-integrations', name: 'Tools & Integrations', icon: <BuildIcon /> },
-];
+import { useCategoryState } from '../state';
 
-function CategoriesSidebar() {
+function CategoriesSidebar({ categories }: { categories: Category[] }) {
   const navigate = useNavigate();
   const params = useParams();
 
@@ -27,15 +30,15 @@ function CategoriesSidebar() {
       <Typography variant="h6" sx={{ p: 2, fontWeight: 'bold' }}>
         Categories
       </Typography>
-      <List>
+      <List sx={{ my: 0, py: 0 }}>
         {categories.map((category) => (
           <ListItemButton
-            key={category.key}
-            onClick={() => {
-              navigate(category.key);
-            }}
-            selected={category.key === params?.tag}>
-            <ListItemIcon sx={{ minWidth: 0, mr: 2 }}>{category.icon}</ListItemIcon>
+            key={category.id}
+            onClick={() => navigate(category.id)}
+            selected={category.id === params?.categoryId}>
+            <ListItemIcon sx={{ minWidth: 0, mr: 1.5 }}>
+              {category.icon ? <Icon icon={category.icon} /> : <Icon icon="tabler:settings" />}
+            </ListItemIcon>
             <ListItemText primary={category.name} />
           </ListItemButton>
         ))}
@@ -45,15 +48,27 @@ function CategoriesSidebar() {
 }
 
 export default function ExploreCategorySlide() {
+  const {
+    state: { loading, categories },
+  } = useCategoryState();
+
   return (
     <Stack width={1} height={1} overflow="hidden" direction="row">
-      <Box minWidth={300} maxWidth={500} width="20%">
-        <CategoriesSidebar />
-      </Box>
+      {loading ? (
+        <Box width={1} height={1} display="flex" justifyContent="center" alignItems="center">
+          <CircularProgress />
+        </Box>
+      ) : (
+        <>
+          <Box minWidth={300} maxWidth={500} width="20%">
+            <CategoriesSidebar categories={categories} />
+          </Box>
 
-      <Box flex={1} width={0} overflow="overlay" bgcolor="background.default">
-        <Outlet />
-      </Box>
+          <Box flex={1} width={0} overflow="overlay" bgcolor="background.default">
+            <Outlet />
+          </Box>
+        </>
+      )}
     </Stack>
   );
 }

@@ -16,6 +16,7 @@ import { resourceManager } from './libs/resource';
 import { xss } from './libs/xss';
 import routes from './routes';
 import setupHtmlRouter from './routes/html';
+import { initializeModels } from './store/models';
 
 dotenv.config();
 
@@ -67,6 +68,8 @@ export const server = app.listen(port, (err?: any) => {
   logger.info(`> ${name} v${version} ready on ${port}`);
 
   initCronJob();
+
+  initializeModels();
 
   resourceManager
     .reload()

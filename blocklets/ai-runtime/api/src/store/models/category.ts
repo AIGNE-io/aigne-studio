@@ -3,8 +3,8 @@ import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, 
 import nextId from '../../libs/next-id';
 import { sequelize } from '../sequelize';
 
-export class Category extends Model<InferAttributes<Category>, InferCreationAttributes<Category>> {
-  declare id: string;
+export default class Category extends Model<InferAttributes<Category>, InferCreationAttributes<Category>> {
+  declare id: CreationOptional<string>;
 
   declare name: string;
 
@@ -13,6 +13,14 @@ export class Category extends Model<InferAttributes<Category>, InferCreationAttr
   declare createdAt: CreationOptional<Date>;
 
   declare updatedAt: CreationOptional<Date>;
+
+  static associate(models: { [key: string]: any }) {
+    Category.belongsToMany(models.Deployment, {
+      through: models.DeploymentCategory,
+      foreignKey: 'categoryId',
+      otherKey: 'deploymentId',
+    });
+  }
 }
 
 Category.init(

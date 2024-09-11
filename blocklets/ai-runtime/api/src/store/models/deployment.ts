@@ -21,6 +21,16 @@ export default class Deployment extends Model<InferAttributes<Deployment>, Infer
   declare updatedAt: CreationOptional<Date>;
 
   declare access: 'private' | 'public';
+
+  declare categories?: string[];
+
+  static associate(models: { [key: string]: any }) {
+    Deployment.belongsToMany(models.Category, {
+      through: models.DeploymentCategory,
+      foreignKey: 'deploymentId',
+      otherKey: 'categoryId',
+    });
+  }
 }
 
 Deployment.init(

@@ -3,6 +3,7 @@ import { Router } from 'express';
 import agent from './agent';
 import ai from './ai';
 import cacheRouter from './cache';
+import category from './category';
 import cronHistoryRoutes from './cron-history';
 import datasets from './dataset/datasets';
 import datasetDocuments from './dataset/documents';
@@ -28,5 +29,6 @@ router.use('/datasets', datasetSegments);
 router.use('/', cacheRouter);
 router.use('/cron-histories', cronHistoryRoutes);
 router.use('/deployment', deployment);
+router.use('/category', category);
 
 export default router;

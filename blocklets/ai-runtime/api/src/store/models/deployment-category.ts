@@ -3,7 +3,7 @@ import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, 
 import nextId from '../../libs/next-id';
 import { sequelize } from '../sequelize';
 
-export class DeploymentCategory extends Model<
+export default class DeploymentCategory extends Model<
   InferAttributes<DeploymentCategory>,
   InferCreationAttributes<DeploymentCategory>
 > {
@@ -16,6 +16,16 @@ export class DeploymentCategory extends Model<
   declare createdAt: CreationOptional<Date>;
 
   declare updatedAt: CreationOptional<Date>;
+
+  static associate(models: { [key: string]: any }) {
+    DeploymentCategory.belongsTo(models.Deployment, {
+      foreignKey: 'deploymentId',
+    });
+
+    DeploymentCategory.belongsTo(models.Category, {
+      foreignKey: 'categoryId',
+    });
+  }
 }
 
 DeploymentCategory.init(
