@@ -33,7 +33,9 @@ function DeploymentDetail() {
 
   const navigate = useNavigate();
   const { getFileById } = useProjectStore(projectId!, gitRef!, true);
-  const { data, loading, run } = useRequest(() => getDeployment({ id: id! }), { refreshDeps: [projectId, gitRef, id] });
+  const { data, loading, refresh } = useRequest(() => getDeployment({ id: id! }), {
+    refreshDeps: [projectId, gitRef, id],
+  });
 
   if (loading) {
     return (
@@ -118,7 +120,7 @@ function DeploymentDetail() {
         id={id}
         access={data?.access!}
         categories={data?.categories!}
-        run={run}
+        run={refresh}
       />
     </>
   );

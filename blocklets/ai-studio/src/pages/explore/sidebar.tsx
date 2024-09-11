@@ -40,19 +40,21 @@ function CategoriesSidebar({ categories }: { categories: Category[] }) {
         </Stack>
       )}
 
-      <List sx={{ my: 0, py: 0 }}>
-        {categories.map((category) => (
-          <ListItemButton
-            key={category.id}
-            onClick={() => navigate(category.id)}
-            selected={category.id === params?.categoryId}>
-            <ListItemIcon sx={{ minWidth: 0, mr: 1.5 }}>
-              {category.icon ? <Icon icon={category.icon} /> : <Icon icon="tabler:settings" />}
-            </ListItemIcon>
-            <ListItemText primary={category.name} />
-          </ListItemButton>
-        ))}
-      </List>
+      {!!categories.length && (
+        <List sx={{ my: 0, py: 0 }}>
+          {categories.map((category) => (
+            <ListItemButton
+              key={category.id}
+              onClick={() => navigate(category.id)}
+              selected={category.id === params?.categoryId}>
+              <ListItemIcon sx={{ minWidth: 0, mr: 1.5 }}>
+                {category.icon ? <Icon icon={category.icon} /> : <Icon icon="tabler:settings" />}
+              </ListItemIcon>
+              <ListItemText primary={category.name} />
+            </ListItemButton>
+          ))}
+        </List>
+      )}
     </Stack>
   );
 }

@@ -36,7 +36,7 @@ router.get('/byId', user(), async (req, res) => {
     deployment.categories = categories.map((category) => category.categoryId);
   }
 
-  res.json({ deployment });
+  res.json({ ...deployment?.dataValues, categories: deployment?.categories });
 });
 
 router.get('/', user(), async (req, res) => {
@@ -55,7 +55,7 @@ router.get('/', user(), async (req, res) => {
     });
 
     res.json({
-      deployments: await Promise.all(
+      list: await Promise.all(
         rows.map(async (deployment) => {
           const categories = await DeploymentCategory.findAll({ where: { deploymentId: deployment.id } });
           return { ...deployment?.dataValues, categories: categories.map((category) => category.categoryId) };
@@ -86,7 +86,7 @@ router.get('/list', user(), async (req, res) => {
     });
 
     res.json({
-      deployments: await Promise.all(
+      list: await Promise.all(
         rows.map(async (deployment) => {
           const categories = await DeploymentCategory.findAll({ where: { deploymentId: deployment.id } });
           return { ...deployment.dataValues, categories: categories.map((category) => category.categoryId) };
@@ -155,7 +155,7 @@ router.post('/', user(), async (req, res) => {
 
   if (found) {
     await found.update({ access, updatedBy: userId });
-    res.json({ deployment: { ...found.dataValues, access, updatedBy: userId } });
+    res.json({ ...found.dataValues, access, updatedBy: userId });
     return;
   }
 
@@ -168,7 +168,7 @@ router.post('/', user(), async (req, res) => {
     access,
   });
 
-  res.json({ deployment });
+  res.json(deployment.dataValues);
 });
 
 router.get('/:id', user(), async (req, res) => {
@@ -184,17 +184,20 @@ router.get('/:id', user(), async (req, res) => {
 router.put('/:id', user(), async (req, res) => {
   const schema = Joi.object({
     access: Joi.string().valid('private', 'public').required(),
-    categories: Joi.array().items(Joi.string()).required(),
+    categories: Joi.array().items(Joi.string()).optional(),
   });
   const { access, categories } = await schema.validateAsync(req.body, { stripUnknown: true });
 
   const deployment = await Deployment.update({ access }, { where: { id: req.params.id! } });
-  await DeploymentCategory.destroy({ where: { deploymentId: req.params.id! } });
 
-  if (categories.length) {
-    await DeploymentCategory.bulkCreate(
-      categories.map((categoryId: string) => ({ deploymentId: req.params.id!, categoryId }))
-    );
+  if (categories) {
+    await DeploymentCategory.destroy({ where: { deploymentId: req.params.id! } });
+
+    if (categories.length) {
+      await DeploymentCategory.bulkCreate(
+        categories.map((categoryId: string) => ({ deploymentId: req.params.id!, categoryId }))
+      );
+    }
   }
 
   res.json(deployment);

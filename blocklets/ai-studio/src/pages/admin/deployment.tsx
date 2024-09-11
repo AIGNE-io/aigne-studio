@@ -171,7 +171,7 @@ function DeploymentList() {
               columnHeaderHeight={30}
               rowHeight={40}
               getRowId={(row) => row.id}
-              rows={data?.deployments || []}
+              rows={data?.list || []}
               columns={columns as any}
               rowCount={data?.totalCount || 0}
               pageSizeOptions={[20]}

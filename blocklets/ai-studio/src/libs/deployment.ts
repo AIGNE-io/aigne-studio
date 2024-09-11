@@ -24,9 +24,7 @@ export async function getDeploymentById({
   projectId: string;
   projectRef: string;
   agentId: string;
-}): Promise<{
-  deployment: Deployment;
-}> {
+}): Promise<Deployment> {
   return axios
     .get('/api/deployment/byId', { baseURL: AIGNE_RUNTIME_MOUNT_POINT, params: { projectId, projectRef, agentId } })
     .then((res) => res.data);
@@ -41,7 +39,7 @@ export async function createOrUpdateDeployment(input: {
   projectRef: string;
   agentId: string;
   access?: 'private' | 'public';
-}): Promise<{ deployment: Deployment }> {
+}): Promise<Deployment> {
   return axios.post('/api/deployment', input, { baseURL: AIGNE_RUNTIME_MOUNT_POINT }).then((res) => res.data);
 }
 
@@ -51,7 +49,7 @@ export async function getDeployments(input: {
   page: number;
   pageSize: number;
 }): Promise<{
-  deployments: Deployment[];
+  list: Deployment[];
   totalCount: number;
   currentPage: number;
   pageSize: number;
@@ -84,7 +82,7 @@ export async function getDeploymentsByCategoryId(input: {
 }
 
 export async function getAllDeployments(input: { page: number; pageSize: number }): Promise<{
-  deployments: Deployment[];
+  list: Deployment[];
   totalCount: number;
   currentPage: number;
   pageSize: number;
@@ -99,15 +97,15 @@ export async function updateDeployment(
   id: string,
   input: {
     access?: 'private' | 'public';
-    categories: string[];
+    categories?: string[];
   }
-): Promise<{ deployment: Deployment }> {
+): Promise<Deployment> {
   return axios
     .put(joinURL('/api/deployment', id), input, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
     .then((res) => res.data);
 }
 
-export async function deleteDeployment(input: { id: string }): Promise<{ deployment: Deployment }> {
+export async function deleteDeployment(input: { id: string }): Promise<Deployment> {
   return axios
     .delete(joinURL('/api/deployment', input.id), { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
     .then((res) => res.data);
