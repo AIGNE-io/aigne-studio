@@ -29,7 +29,9 @@ import { wss } from './routes/ws';
 
 export const app = express();
 
-dotenv.config();
+if (process.env.NODE_ENV === 'development') {
+  dotenv.config();
+}
 
 const { name, version } = importPackageJson();
 
