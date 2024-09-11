@@ -1,5 +1,6 @@
 declare interface BlockletQuickJSBuiltin {
   dumpResult(
+    resultKey: string,
     options:
       | { type: 'result'; data: any }
       | { type: 'error'; error: { message: string; stack?: string } }

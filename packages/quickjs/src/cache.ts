@@ -1,5 +1,7 @@
 import { LRUCache } from 'lru-cache';
 
+import { MAX_LRU_CACHE_SIZE_DEFAULT } from './constants';
+
 export interface MemoizedFn {
   cache: LRUCache<any, any>;
 }
@@ -8,7 +10,7 @@ export function memoize<T extends (...args: any) => any>(
   fn: T,
   {
     lruOptions = {
-      max: 1024,
+      max: MAX_LRU_CACHE_SIZE_DEFAULT,
     },
     keyGenerator = JSON.stringify,
   }: {

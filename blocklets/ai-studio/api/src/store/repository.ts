@@ -21,7 +21,7 @@ import {
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { Repository, RepositoryOptions, Working } from '@blocklet/co-git/repository';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { memoize } from '@blocklet/quickjs';
+import { memoize } from '@blocklet/quickjs/cache';
 import { SpaceClient, SyncFolderPushCommand, SyncFolderPushCommandOutput } from '@did-space/client';
 import { exists, pathExists } from 'fs-extra';
 import { glob } from 'glob';

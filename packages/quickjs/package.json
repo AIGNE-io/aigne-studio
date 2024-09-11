@@ -16,6 +16,19 @@
       "import": "./lib/esm/index.js",
       "require": "./lib/cjs/index.js",
       "types": "./lib/types/index.d.ts"
+    },
+    "./*": {
+      "import": "./lib/esm/*.js",
+      "require": "./lib/cjs/*.js",
+      "types": "./lib/types/*.d.ts"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./lib/types/index.d.ts",
+        "./lib/types/*.d.ts"
+      ]
     }
   },
   "files": [

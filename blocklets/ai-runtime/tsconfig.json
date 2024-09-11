@@ -19,8 +19,10 @@
       "@blocklet/ai-runtime/*": ["../../packages/ai-runtime/src/*"],
       "@blocklet/aigne-sdk/*": ["../../packages/aigne-sdk/src/*"],
       "@blocklet/dataset-sdk": ["../../packages/dataset-sdk/src"],
-      "@blocklet/dataset-sdk/*": ["../../packages/dataset-sdk/src/*"],
-      "@blocklet/quickjs": ["../../packages/quickjs/src"]
+      "@blocklet/dataset-sdk/*": ["../../packages/dataset-sdk/src/*"]
+      // NOTE: next two line will cause bundle error, so must be commented out when bundling
+      // "@blocklet/quickjs": ["../../packages/quickjs/src"],
+      // "@blocklet/quickjs/*": ["../../packages/quickjs/src/*"]
     }
   }
 }

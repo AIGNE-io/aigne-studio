@@ -1,6 +1,3 @@
-import 'dayjs/locale/zh';
-import 'dayjs/locale/ja';
-
 import crypto from 'crypto';
 
 import { runUnsafeFunction, transpileModule } from '@blocklet/quickjs';

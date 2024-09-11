@@ -6,46 +6,62 @@ import { joinURL, withQuery } from 'ufo';
 import { toQuickJsObject } from './convert';
 
 function builtinModule(): {
-  resultPromise: Promise<any>;
+  getResult: (resultKey: string) => Promise<any>;
   builtin: BlockletQuickJSBuiltin;
 } {
+  const scopes: {
+    [key: string]: {
+      readableStreamControllers: { [key: string]: ReadableStreamController<any> };
+      result: ReturnType<typeof Promise.withResolvers<any>>;
+    };
+  } = {};
+
+  const getScope = (resultKey: string) => {
+    let scope = scopes[resultKey];
+    if (!scope) {
+      scope = { readableStreamControllers: {}, result: Promise.withResolvers() };
+      scopes[resultKey] = scope;
+    }
+
+    return scope;
+  };
+
   const textDecoders: TextDecoder[] = [];
-  const readableStreamControllers: { [key: string]: ReadableStreamController<any> } = {};
-
-  const resultPromise = Promise.withResolvers<any>();
-
-  function restoreReadableStream(object: any, path: (string | number)[] = []): any {
-    if (object === '__AIGNE_LOGIC_RESULT_READABLE_STREAM__') {
-      return new ReadableStream({
-        start: (controller) => {
-          readableStreamControllers[path.join('.')] = controller;
-        },
-      });
-    }
-    if (Array.isArray(object)) return object.map((i, index) => restoreReadableStream(i, [...path, index]));
-    if (typeof object === 'object' && object) {
-      return Object.fromEntries(
-        Object.entries(object).map(([key, val]) => [key, restoreReadableStream(val, [...path, key])])
-      );
-    }
-
-    return object;
-  }
 
   return {
-    resultPromise: resultPromise.promise,
+    getResult: (resultKey: string) => getScope(resultKey).result.promise,
     builtin: {
-      dumpResult: (options) => {
+      dumpResult: (resultKey, options) => {
+        const scope = getScope(resultKey);
+
+        function restoreReadableStream(object: any, path: (string | number)[] = []): any {
+          if (object === '__AIGNE_LOGIC_RESULT_READABLE_STREAM__') {
+            return new ReadableStream({
+              start: (controller) => {
+                scope.readableStreamControllers[path.join('.')] = controller;
+              },
+            });
+          }
+          if (Array.isArray(object)) return object.map((i, index) => restoreReadableStream(i, [...path, index]));
+          if (typeof object === 'object' && object) {
+            return Object.fromEntries(
+              Object.entries(object).map(([key, val]) => [key, restoreReadableStream(val, [...path, key])])
+            );
+          }
+
+          return object;
+        }
+
         if (options.type === 'result') {
-          resultPromise.resolve(restoreReadableStream(options.data));
+          scope.result.resolve(restoreReadableStream(options.data));
         } else if (options.type === 'error') {
           const message =
             typeof options.error?.message === 'string' ? options.error.message : 'Error from QuickJS dumpResult';
           const error = new Error(message);
           error.stack = options.error.stack;
-          resultPromise.reject(error);
+          scope.result.reject(error);
         } else if (options.type === 'chunk') {
-          const ctrl = readableStreamControllers[options.path.join('.')];
+          const ctrl = scope.readableStreamControllers[options.path.join('.')];
           if (ctrl) {
             if (options.data.type === 'data') ctrl.enqueue(options.data.data);
             else if (options.data.type === 'error') ctrl.error(options.data.error);
@@ -94,13 +110,13 @@ function builtinModule(): {
 }
 
 export function setupBuiltinModules(context: QuickJSContext) {
-  const { resultPromise, builtin } = builtinModule();
+  const { getResult, builtin } = builtinModule();
 
   toQuickJsObject(context, builtin).consume((builtin) =>
     context.setProp(context.global, '__blocklet_quickjs_builtin__', builtin)
   );
 
-  return { resultPromise };
+  return { getResult };
 }
 
 export function setupGlobalVariables(context: QuickJSContext, global: { [key: string]: any }) {

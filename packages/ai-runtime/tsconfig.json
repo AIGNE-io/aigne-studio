@@ -8,7 +8,8 @@
       // "@blocklet/ai-kit/*": ["../../../ai-kit/packages/ai-kit/src/*"],
       "@blocklet/dataset-sdk": ["../../packages/dataset-sdk/src"],
       "@blocklet/dataset-sdk/*": ["../../packages/dataset-sdk/src/*"],
-      "@blocklet/quickjs": ["../../packages/quickjs/src"]
+      "@blocklet/quickjs": ["../../packages/quickjs/src"],
+      "@blocklet/quickjs/*": ["../../packages/quickjs/src/*"]
     }
   }
 }
