@@ -106,9 +106,9 @@ navigation:
       - guest
   - id: explore
     title:
-      en: Explore
-      zh: 探索
-    icon: material-symbols:explore-outline
+      en: Deployment
+      zh: 部署
+    icon: tabler:share
     link: /admin/explore
     section:
       - dashboard
@@ -119,9 +119,9 @@ navigation:
       - promptsEditor
   - id: category
     title:
-      en: category
+      en: Category
       zh: 分类
-    icon: material-symbols:explore-outline
+    icon: tabler:category
     link: /admin/category
     section:
       - dashboard

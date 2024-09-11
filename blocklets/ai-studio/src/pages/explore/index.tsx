@@ -7,7 +7,7 @@ import { Suspense, lazy } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
-import Loading from '../../../components/loading';
+import Loading from '../../components/loading';
 import ExploreCategoriesSidebar from './sidebar';
 
 export default function ExploreCategoryRoutes() {

@@ -801,6 +801,26 @@ export default flatten({
     deleteTitle: 'Delete Deployment',
     deleteDescription: 'This will delete the deployment and cannot be recovered. Please be careful.',
     deleteSuccess: 'Delete Success',
+    emptyDeployment: 'No Deployment Agents Yet',
   },
   private: 'Private',
+  category: {
+    title: 'Category',
+    name: 'Category Name',
+    icon: 'Icon',
+    create: 'Create Category',
+    delete: 'Delete Category',
+    edit: 'Edit Category',
+    add: 'Add Category',
+    iconVisit: '- Visit icon website:',
+    iconTip: `\
+- Use keywords to search for suitable icons
+- The icon format is 'xxx:yyyy', for example: 'mdi-light:account'
+`,
+    noCategories: 'No Categories',
+  },
+  updateSuccess: 'Update Success',
+  success: 'Success',
+  failed: 'Failed',
+  makeOwnVersion: 'Make Your Own Version',
 });

@@ -189,9 +189,9 @@ router.put('/:id', user(), async (req, res) => {
   const { access, categories } = await schema.validateAsync(req.body, { stripUnknown: true });
 
   const deployment = await Deployment.update({ access }, { where: { id: req.params.id! } });
+  await DeploymentCategory.destroy({ where: { deploymentId: req.params.id! } });
 
   if (categories.length) {
-    await DeploymentCategory.destroy({ where: { deploymentId: req.params.id! } });
     await DeploymentCategory.bulkCreate(
       categories.map((categoryId: string) => ({ deploymentId: req.params.id!, categoryId }))
     );

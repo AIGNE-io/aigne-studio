@@ -1,3 +1,4 @@
+import { getErrorMessage } from '@app/libs/api';
 import { getCategories } from '@app/libs/category';
 import useDialog from '@app/utils/use-dialog';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
@@ -9,10 +10,10 @@ import dayjs from 'dayjs';
 import { usePopupState } from 'material-ui-popup-state/hooks';
 import { useMemo, useState } from 'react';
 
-import { deleteDeployment, getAllDeployments } from '../../../libs/deployment';
-import type { Deployment } from '../../../libs/deployment';
-import DeploymentDialog from '../../deployments/dialog';
-import { useProjectStore } from '../../project/yjs-state';
+import { deleteDeployment, getAllDeployments } from '../../libs/deployment';
+import type { Deployment } from '../../libs/deployment';
+import DeploymentDialog from '../deployments/dialog';
+import { useProjectStore } from '../project/yjs-state';
 
 function ProjectAgentName({ projectId, gitRef, agentId }: { projectId: string; gitRef: string; agentId: string }) {
   const { getFileById } = useProjectStore(projectId, gitRef, true);
@@ -21,14 +22,14 @@ function ProjectAgentName({ projectId, gitRef, agentId }: { projectId: string; g
 
 const pageSize = 10;
 
-function AdminList() {
+function DeploymentList() {
   const { t } = useLocaleContext();
   const dialogState = usePopupState({ variant: 'popper' });
 
   const { dialog, showDialog } = useDialog();
   const [deployment, setDeployment] = useState<Deployment | null>(null);
 
-  const { data, loading, run } = useRequest(getAllDeployments, {
+  const { data, loading, run, refresh } = useRequest(getAllDeployments, {
     defaultParams: [{ page: 1, pageSize }],
     refreshDeps: [],
   });
@@ -42,7 +43,7 @@ function AdminList() {
     () => [
       {
         field: 'title',
-        headerName: t('deployments.name'),
+        headerName: t('agentName'),
         flex: 1,
         renderCell: (params) => (
           <ProjectAgentName
@@ -66,7 +67,7 @@ function AdminList() {
       },
       {
         field: 'categories',
-        headerName: t('categories'),
+        headerName: t('category.title'),
         flex: 1,
         renderCell: (params) => {
           return params.row.categories
@@ -88,7 +89,7 @@ function AdminList() {
                   setDeployment(params.row);
                   dialogState.open();
                 }}>
-                编辑
+                {t('edit')}
               </Button>
               <Button
                 variant="text"
@@ -124,12 +125,7 @@ function AdminList() {
                         run({ page: 1, pageSize });
                         Toast.success(t('deployments.deleteSuccess'));
                       } catch (error) {
-                        Toast.error(
-                          error.response?.data?.error?.message ||
-                            error.response?.data?.message ||
-                            error.message ||
-                            error
-                        );
+                        Toast.error(getErrorMessage(error));
                       }
                     },
                   });
@@ -141,18 +137,19 @@ function AdminList() {
         },
       },
     ],
-    [t, categories]
+    [t, categories, dialogState, run, showDialog]
   );
 
-  const handlePageChange = (newPage: number) => {
-    run({ page: newPage + 1, pageSize });
-  };
+  const handlePageChange = (newPage: number) => run({ page: newPage + 1, pageSize });
 
   return (
     <Container>
       <Box className="between" mt={2.5} mb={1.5}>
-        <Box sx={{ fontWeight: 700, fontSize: 24, lineHeight: '32px', color: '#030712' }}>{t('deployments.title')}</Box>
+        <Box sx={{ fontWeight: 700, fontSize: 24, lineHeight: '32px', color: '#030712' }}>
+          {t('deployments.deployApp')}
+        </Box>
       </Box>
+
       <Box sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1, px: 1.5 }}>
         <Box
           sx={{
@@ -205,13 +202,13 @@ function AdminList() {
         id={deployment?.id!}
         access={deployment?.access!}
         categories={deployment?.categories!}
-        run={() => {}}
+        run={refresh}
       />
     </Container>
   );
 }
 
-export default AdminList;
+export default DeploymentList;
 
 const Table = styled(DataGrid)`
   .MuiDataGrid-columnSeparator {

@@ -1,4 +1,5 @@
 import { useProjectStore } from '@app/pages/project/yjs-state';
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Result from '@arcblock/ux/lib/Result';
 import Toast from '@arcblock/ux/lib/Toast';
 import { getAgentByPublishId } from '@blocklet/aigne-sdk/api/agent';
@@ -11,7 +12,7 @@ import { useRequest } from 'ahooks';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { Deployment, getDeployment } from '../../../libs/deployment';
+import { Deployment, getDeployment } from '../../libs/deployment';
 
 export default function CategoryDetail() {
   const navigate = useNavigate();
@@ -35,8 +36,8 @@ export default function CategoryDetail() {
   return (
     <Stack p={2.5} height={1} overflow="hidden" gap={2.5}>
       <Box display="flex" alignItems="center" justifyContent="space-between">
-        <IconButton>
-          <Box component={Icon} icon={ChevronLeft} onClick={() => navigate(-1)} />
+        <IconButton onClick={() => navigate(-1)}>
+          <Box component={Icon} icon={ChevronLeft} />
         </IconButton>
       </Box>
 
@@ -49,6 +50,7 @@ function Agent({ data }: { data: Deployment }) {
   const [value, setValue] = useState('1');
   const handleChange = (_event: any, newValue: string) => setValue(newValue);
   const { getFileById } = useProjectStore(data.projectId, data.projectRef, true);
+  const { t } = useLocaleContext();
 
   return (
     <>
@@ -64,7 +66,7 @@ function Agent({ data }: { data: Deployment }) {
           onClick={() => {
             window.open('https://store.blocklet.dev/blocklets/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB', '_blank');
           }}>
-          Make your own version
+          {t('makeOwnVersion')}
         </Button>
       </Box>
 

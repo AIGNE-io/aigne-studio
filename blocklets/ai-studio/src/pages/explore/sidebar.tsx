@@ -1,12 +1,6 @@
 import { Category } from '@app/libs/category';
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Icon } from '@iconify-icon/react';
-import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
-import BuildIcon from '@mui/icons-material/Build';
-import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
-import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
-import SchoolIcon from '@mui/icons-material/School';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import {
   Box,
   CircularProgress,
@@ -19,17 +13,33 @@ import {
 } from '@mui/material';
 import { Outlet, useNavigate, useParams } from 'react-router-dom';
 
-import { useCategoryState } from '../state';
+import { useCategoryState } from './state';
 
 function CategoriesSidebar({ categories }: { categories: Category[] }) {
+  const { t } = useLocaleContext();
   const navigate = useNavigate();
   const params = useParams();
 
   return (
-    <Box sx={{ width: 1, height: 1, bgcolor: 'background.paper' }}>
+    <Stack sx={{ width: 1, height: 1, bgcolor: 'background.paper' }}>
       <Typography variant="h6" sx={{ p: 2, fontWeight: 'bold' }}>
-        Categories
+        {t('category.title')}
       </Typography>
+
+      {categories.length === 0 && (
+        <Stack flex={1} height={0} justifyContent="center" alignItems="center">
+          <Box
+            display="flex"
+            flexDirection="column"
+            alignItems="center"
+            gap={1}
+            onClick={() => navigate('/admin/category')}>
+            <Box component={Icon} icon="tabler:plus" sx={{ fontSize: 24, color: 'text.disabled' }} />
+            <Typography sx={{ color: 'text.disabled' }}>{t('category.noCategories')}</Typography>
+          </Box>
+        </Stack>
+      )}
+
       <List sx={{ my: 0, py: 0 }}>
         {categories.map((category) => (
           <ListItemButton
@@ -43,7 +53,7 @@ function CategoriesSidebar({ categories }: { categories: Category[] }) {
           </ListItemButton>
         ))}
       </List>
-    </Box>
+    </Stack>
   );
 }
 

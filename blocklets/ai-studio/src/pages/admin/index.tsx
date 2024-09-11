@@ -19,7 +19,7 @@ export default function ExploreAdminRoutes() {
       <ErrorBoundary>
         <Routes>
           <Route index element={<Navigate to="explore" replace />} />
-          <Route path="explore" element={<AdminList />} />
+          <Route path="explore" element={<AdminDeployment />} />
           <Route path="category" element={<AdminCategory />} />
         </Routes>
       </ErrorBoundary>
@@ -41,5 +41,5 @@ const AdminLayout = styled(Dashboard)`
   }
 `;
 
-const AdminList = lazy(() => import('./list'));
+const AdminDeployment = lazy(() => import('./deployment'));
 const AdminCategory = lazy(() => import('./category'));

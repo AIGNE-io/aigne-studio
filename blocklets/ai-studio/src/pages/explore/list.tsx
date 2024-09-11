@@ -131,7 +131,7 @@ function CategoryList() {
           <Stack flex={1} height={500} justifyContent="center" alignItems="center" gap={1}>
             <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
             <Typography color="text.disabled" sx={{ whiteSpace: 'break-spaces', textAlign: 'center' }}>
-              {t('explore.category.list.empty')}
+              {t('deployments.emptyDeployment')}
             </Typography>
           </Stack>
         )}

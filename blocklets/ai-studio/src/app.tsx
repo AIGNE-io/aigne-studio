@@ -131,9 +131,9 @@ function RouterErrorBoundary() {
   return null;
 }
 
-const ExploreAdmin = lazy(() => import('./pages/explore/admin'));
+const ExploreAdmin = lazy(() => import('./pages/admin'));
 
-const ExploreCategory = lazy(() => import('./pages/explore/category'));
+const ExploreCategory = lazy(() => import('./pages/explore'));
 
 const Home = lazy(() => import('./pages/home/home'));
 

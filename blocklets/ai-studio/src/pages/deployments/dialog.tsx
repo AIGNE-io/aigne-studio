@@ -27,6 +27,7 @@ import Autocomplete from '@mui/material/Autocomplete';
 import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
 import TextField from '@mui/material/TextField';
+import { useRequest } from 'ahooks';
 import { PopupState, bindDialog } from 'material-ui-popup-state/hooks';
 import { useEffect, useState } from 'react';
 import { Control, Controller, useForm } from 'react-hook-form';
@@ -55,24 +56,23 @@ export default function DeploymentDialog({
   const isAdmin = useIsAdmin();
   const { t } = useLocaleContext();
 
-  const { control, handleSubmit, setValue } = useForm<UpdateType>({
-    defaultValues: {
-      access,
-      categories,
-    },
+  const { control, handleSubmit, setValue } = useForm<UpdateType>({ defaultValues: { access, categories } });
+  const { data, loading: categoriesLoading } = useRequest(getCategories, {
+    defaultParams: [{ page: 1, pageSize: 1000 }],
+    refreshDeps: [],
   });
 
   useEffect(() => {
     setValue('categories', categories);
     setValue('access', access);
-  }, [access, categories]);
+  }, [access, categories, setValue]);
 
   const onSubmit = async (data: UpdateType) => {
     try {
       await updateDeployment(id, data);
       dialogState.close();
       run();
-      Toast.success('Updated successfully');
+      Toast.success(t('updateSuccess'));
     } catch (error) {
       Toast.error(error.message);
     }
@@ -88,33 +88,39 @@ export default function DeploymentDialog({
       </DialogTitle>
 
       <DialogContent>
-        <Stack gap={1}>
+        {categoriesLoading ? (
+          <Box display="flex" justifyContent="center" alignItems="center" height={400}>
+            <CircularProgress />
+          </Box>
+        ) : (
           <Stack gap={1}>
-            <Typography variant="body1">{t('deployments.visibility')}</Typography>
-            <Card sx={{ width: 1, boxShadow: 0 }}>
-              <CardContent sx={{ p: 0, m: 0 }}>
-                <VisibilityRadioGroup control={control} name="access" />
-              </CardContent>
+            <Stack gap={1}>
+              <Typography variant="body1">{t('deployments.visibility')}</Typography>
+              <Card sx={{ width: 1, boxShadow: 0 }}>
+                <CardContent sx={{ p: 0, m: 0 }}>
+                  <VisibilitySelect control={control} name="access" />
+                </CardContent>
 
-              {!isAdmin && (
-                <Typography variant="caption" mt={2}>
-                  {t('deployments.toEnablePrivateProjects')}
-                  <Box
-                    component="a"
-                    href="https://store.blocklet.dev/blocklets/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB"
-                    target="_blank">
-                    {t('deployments.launchAigne')}
-                  </Box>
-                </Typography>
-              )}
-            </Card>
-          </Stack>
+                {!isAdmin && (
+                  <Typography variant="caption" mt={2}>
+                    {t('deployments.toEnablePrivateProjects')}
+                    <Box
+                      component="a"
+                      href="https://store.blocklet.dev/blocklets/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB"
+                      target="_blank">
+                      {t('deployments.launchAigne')}
+                    </Box>
+                  </Typography>
+                )}
+              </Card>
+            </Stack>
 
-          <Stack gap={1}>
-            <Typography variant="body1">{t('category.title')}</Typography>
-            <CategorySelect control={control} name="categories" />
+            <Stack gap={1}>
+              <Typography variant="body1">{t('category.title')}</Typography>
+              <CategorySelect control={control} name="categories" categories={data?.list || []} />
+            </Stack>
           </Stack>
-        </Stack>
+        )}
       </DialogContent>
 
       <DialogActions>
@@ -131,7 +137,7 @@ export default function DeploymentDialog({
   );
 }
 
-function VisibilityRadioGroup({ control, name }: { control: Control<UpdateType>; name: 'access' }) {
+function VisibilitySelect({ control, name }: { control: Control<UpdateType>; name: 'access' }) {
   const isAdmin = useIsAdmin();
   const { t } = useLocaleContext();
 
@@ -186,37 +192,19 @@ function VisibilityRadioGroup({ control, name }: { control: Control<UpdateType>;
 function CategorySelect({
   control,
   name,
-  defaultValue = [],
+  categories,
 }: {
   control: Control<UpdateType>;
   name: 'categories';
-  defaultValue?: string[];
+  categories: Category[];
 }) {
   const [open, setOpen] = useState(false);
-  const [options, setOptions] = useState<readonly Category[]>([]);
-  const loading = open && options.length === 0;
-
-  useEffect(() => {
-    let active = true;
-
-    (async () => {
-      const { list } = await getCategories({ page: 1, pageSize: 1000 });
-
-      if (active) {
-        setOptions(list);
-      }
-    })();
-
-    return () => {
-      active = false;
-    };
-  }, []);
+  const loading = open && categories.length === 0;
 
   return (
     <Controller
       name={name}
       control={control}
-      defaultValue={defaultValue}
       render={({ field: { onChange, value } }) => (
         <Autocomplete
           multiple
@@ -227,23 +215,22 @@ function CategorySelect({
           isOptionEqualToValue={(option, value) => option.id === value.id}
           getOptionLabel={(option) => {
             if (typeof option === 'string') {
-              const film = options.find((film) => film.id === option);
-              return film ? film.name : '';
+              const category = categories.find((film) => film.id === option);
+              return category ? category.name : '';
             }
 
             return option.name;
           }}
-          options={options}
+          options={categories}
           loading={loading}
-          value={value as unknown[] as Category[]}
+          value={value.map((id) => categories.find((cat) => cat.id === id) || { id, name: '' })}
           onChange={(_event, newValue) => {
             onChange(newValue.map((item) => (typeof item === 'string' ? item : item.id)));
           }}
           renderTags={(value, getTagProps) =>
             value.map((item, index) => {
-              // @ts-ignore
-              const film = options.find((film) => film?.id === item);
-              return <Chip variant="outlined" label={film ? film.name : ''} {...getTagProps({ index })} />;
+              const category = categories.find((film) => film?.id === item.id);
+              return <Chip variant="outlined" label={category ? category.name : ''} {...getTagProps({ index })} />;
             })
           }
           renderInput={(params) => (

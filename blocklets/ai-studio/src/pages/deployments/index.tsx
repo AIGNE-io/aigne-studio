@@ -1,3 +1,4 @@
+import { getErrorMessage } from '@app/libs/api';
 import useDialog from '@app/utils/use-dialog';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
@@ -100,9 +101,7 @@ function Deployments() {
                       run({ projectId: projectId!, projectRef: gitRef!, page: 1, pageSize });
                       Toast.success(t('deployments.deleteSuccess'));
                     } catch (error) {
-                      Toast.error(
-                        error.response?.data?.error?.message || error.response?.data?.message || error.message || error
-                      );
+                      Toast.error(getErrorMessage(error));
                     }
                   },
                 });

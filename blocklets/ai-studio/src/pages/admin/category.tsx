@@ -1,4 +1,5 @@
 import PromiseLoadingButton from '@app/components/promise-loading-button';
+import { getErrorMessage } from '@app/libs/api';
 import { createCategory, deleteCategory, getCategories, updateCategory } from '@app/libs/category';
 import Close from '@app/pages/project/icons/close';
 import useDialog from '@app/utils/use-dialog';
@@ -56,17 +57,11 @@ function CategoryList() {
     formState: { errors },
     reset,
   } = useForm<{ id?: string; name: string; icon: string }>({
-    defaultValues: {
-      id: '',
-      name: '',
-      icon: '',
-    },
+    defaultValues: { id: '', name: '', icon: '' },
   });
 
-  const icon = useWatch({
-    control,
-    name: 'icon',
-  });
+  const icon = useWatch({ control, name: 'icon' });
+  const id = useWatch({ control, name: 'id' });
 
   const onSubmit = async (data: { id?: string; name: string; icon: string }) => {
     const { id, name, icon } = data;
@@ -80,11 +75,11 @@ function CategoryList() {
         await createCategory(actionData);
       }
 
-      Toast.success(`${action === 'update' ? '更新' : '创建'}成功`);
+      Toast.success(`${action === 'update' ? t('update') : t('create')} ${t('success')}`);
       dialogState.close();
       reset();
     } catch (error) {
-      Toast.error(`${action === 'update' ? '更新' : '创建'}失败`);
+      Toast.error(`${action === 'update' ? t('update') : t('create')} ${t('failed')}`);
       console.error(`Error ${action}ing category:`, error);
     }
   };
@@ -92,9 +87,9 @@ function CategoryList() {
   return (
     <Container>
       <Box className="between" mt={2.5} mb={1.5}>
-        <Box sx={{ fontWeight: 700, fontSize: 24, lineHeight: '32px', color: '#030712' }}>分类</Box>
+        <Box sx={{ fontWeight: 700, fontSize: 24, lineHeight: '32px', color: '#030712' }}>{t('category.title')}</Box>
         <Button variant="contained" color="primary" onClick={dialogState.open}>
-          添加分类
+          {t('category.add')}
         </Button>
       </Box>
 
@@ -148,15 +143,10 @@ function CategoryList() {
                         onOk: async () => {
                           try {
                             await deleteCategory(item.id);
-                            Toast.success('删除成功');
+                            Toast.success(t('alert.deleted'));
                             dataState.reload();
                           } catch (error) {
-                            Toast.error(
-                              error.response?.data?.error?.message ||
-                                error.response?.data?.message ||
-                                error.message ||
-                                error
-                            );
+                            Toast.error(getErrorMessage(error));
                           }
                         },
                       });
@@ -185,7 +175,7 @@ function CategoryList() {
         component="form"
         onSubmit={(e) => e.preventDefault()}>
         <DialogTitle className="between" zIndex="appBar" bgcolor="background.paper">
-          <Box sx={{ wordWrap: 'break-word' }}>新分类</Box>
+          <Box sx={{ wordWrap: 'break-word' }}>{id ? t('category.edit') : t('category.add')}</Box>
 
           <IconButton size="small" onClick={dialogState.close}>
             <Close />
@@ -195,7 +185,7 @@ function CategoryList() {
           <Box>
             <Stack gap={2}>
               <Box>
-                <Typography variant="subtitle2">{t('name')}</Typography>
+                <Typography variant="subtitle2">{t('category.name')}</Typography>
                 <Controller
                   name="name"
                   control={control}
@@ -213,7 +203,7 @@ function CategoryList() {
                 />
               </Box>
               <Box>
-                <Typography variant="subtitle2">{t('icon')}</Typography>
+                <Typography variant="subtitle2">{t('category.icon')}</Typography>
                 <Controller
                   name="icon"
                   control={control}
@@ -222,7 +212,7 @@ function CategoryList() {
                       {...field}
                       hiddenLabel
                       fullWidth
-                      placeholder={t('icon')}
+                      placeholder="mdi-light:account"
                       error={!!errors.icon}
                       helperText={errors.icon?.message}
                       InputProps={{
@@ -235,6 +225,18 @@ function CategoryList() {
                     />
                   )}
                 />
+
+                <Box display="flex" flexDirection="column">
+                  <Typography variant="caption">
+                    {t('category.iconVisit')}
+                    <a href="https://icon-sets.iconify.design/">https://icon-sets.iconify.design/</a>
+                  </Typography>
+                  <Typography
+                    sx={{ whiteSpace: 'break-spaces' }}
+                    variant="caption"
+                    dangerouslySetInnerHTML={{ __html: t('category.iconTip') }}
+                  />
+                </Box>
               </Box>
             </Stack>
           </Box>
@@ -252,7 +254,7 @@ function CategoryList() {
               loadingPosition="center"
               onClick={handleSubmit(onSubmit)}
               type="submit">
-              {t('save')}
+              {id ? t('category.edit') : t('category.add')}
             </PromiseLoadingButton>
           </Stack>
         </DialogActions>
