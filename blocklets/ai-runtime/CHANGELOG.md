@@ -1,3 +1,7 @@
+## 0.4.46 (2024-9-11)
+
+- fix: use quickjs instead of vm2 for better security
+
 ## 0.4.45 (2024-9-10)
 
 - fix: parameter result to string
