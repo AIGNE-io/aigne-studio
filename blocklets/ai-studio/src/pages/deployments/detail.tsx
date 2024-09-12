@@ -52,7 +52,7 @@ function DeploymentDetail() {
   }
 
   const file = data?.agentId ? getFileById(data?.agentId) : { name: '', description: '' };
-  const url = joinURL(globalThis.location.origin, AIGNE_RUNTIME_MOUNT_POINT, 'share', id);
+  const url = joinURL(globalThis.location.origin, AIGNE_RUNTIME_MOUNT_POINT, 'deployment', id);
   const rows = (data?.categories || []).map((category) => categories?.list?.find((c) => c.id === category)?.name);
 
   return (

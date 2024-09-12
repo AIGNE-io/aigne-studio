@@ -27,16 +27,16 @@ export default function CategoryDetail() {
 
   if (loading) {
     return (
-      <Stack p={2.5} height={1} overflow="hidden" gap={2.5}>
+      <Stack p={2.5} width={1} height={1} overflow="hidden" gap={2.5} className="center">
         <CircularProgress size={24} />
       </Stack>
     );
   }
 
   return (
-    <Stack p={2.5} height={1} overflow="hidden" gap={2.5}>
+    <Stack p={2.5} height={1} overflow="hidden" gap={1.5}>
       <Box display="flex" alignItems="center" justifyContent="space-between">
-        <IconButton onClick={() => navigate(-1)}>
+        <IconButton onClick={() => navigate(-1)} sx={{ ml: -2 }}>
           <Box component={Icon} icon={ChevronLeft} />
         </IconButton>
       </Box>
@@ -54,18 +54,12 @@ function Agent({ data }: { data: Deployment }) {
 
   return (
     <>
-      <Box display="flex" alignItems="center" justifyContent="space-between" height={64}>
+      <Box display="flex" alignItems="center" justifyContent="space-between">
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
           {getFileById(data.agentId)?.name}
         </Typography>
 
-        <Button
-          variant="contained"
-          color="primary"
-          size="small"
-          onClick={() => {
-            window.open('https://store.blocklet.dev/blocklets/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB', '_blank');
-          }}>
+        <Button variant="contained" color="primary" size="small" onClick={() => {}}>
           {t('makeOwnVersion')}
         </Button>
       </Box>

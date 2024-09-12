@@ -291,7 +291,10 @@ function UpdateApp({
                 text: t('deployments.appPage'),
                 icon: <Box component={Icon} icon={ShareIcon} sx={{ fontSize: 20 }} />,
                 handle: () => {
-                  window.open(joinURL(globalThis.location.origin, AIGNE_RUNTIME_MOUNT_POINT, 'share', id), '_blank');
+                  window.open(
+                    joinURL(globalThis.location.origin, AIGNE_RUNTIME_MOUNT_POINT, 'deployment', id),
+                    '_blank'
+                  );
                 },
               },
               {

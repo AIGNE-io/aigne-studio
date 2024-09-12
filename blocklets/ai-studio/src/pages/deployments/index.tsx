@@ -77,7 +77,7 @@ function Deployments() {
                   e.stopPropagation();
 
                   window.open(
-                    joinURL(globalThis.location.origin, AIGNE_RUNTIME_MOUNT_POINT, 'share', params.row.id),
+                    joinURL(globalThis.location.origin, AIGNE_RUNTIME_MOUNT_POINT, 'deployment', params.row.id),
                     '_blank'
                   );
                 }}>

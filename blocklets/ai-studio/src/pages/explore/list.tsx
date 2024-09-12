@@ -105,10 +105,10 @@ function CategoryCard({ projectId, projectRef, agentId }: { projectId: string; p
       </Box>
 
       <CardContent sx={{ flexGrow: 1 }}>
-        <Typography gutterBottom variant="h6" component="h2">
+        <Typography gutterBottom variant="h6" component="h2" className="ellipsis">
           {agent?.name}
         </Typography>
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" color="text.secondary" className="ellipsis">
           {agent?.description}
         </Typography>
       </CardContent>
@@ -135,6 +135,7 @@ function CategoryList() {
             </Typography>
           </Stack>
         )}
+
         {deployments.map((tool) => (
           <Grid item key={tool.id} xs={12} sm={6} md={4} onClick={() => navigate(tool.id)}>
             <CategoryCard projectId={tool.projectId} projectRef={tool.projectRef} agentId={tool.agentId} />
