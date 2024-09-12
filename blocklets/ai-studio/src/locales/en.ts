@@ -805,6 +805,7 @@ export default flatten({
     deleteDescription: 'This will delete the deployment and cannot be recovered. Please be careful.',
     deleteSuccess: 'Delete Success',
     emptyDeployment: 'No Deployment Agents Yet',
+    updateSuccess: 'Update Success',
   },
   private: 'Private',
   category: {

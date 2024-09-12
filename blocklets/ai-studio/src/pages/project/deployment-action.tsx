@@ -39,6 +39,7 @@ import { joinURL } from 'ufo';
 
 import { createOrUpdateDeployment, getDeploymentById } from '../../libs/deployment';
 import { getFileIdFromPath } from '../../utils/path';
+import { saveButtonState } from './state';
 
 export default function DeploymentAction() {
   const deploymentPopperState = usePopupState({ variant: 'popper', popupId: 'deployment' });
@@ -239,16 +240,12 @@ function DeployApp({
 function UpdateApp({
   projectId,
   projectRef,
-  agentId,
-  access,
   id,
   onClose,
   run,
 }: {
   projectId: string;
   projectRef: string;
-  agentId: string;
-  access: 'private' | 'public';
   id: string;
   onClose: () => void;
   run: () => void;
@@ -258,16 +255,11 @@ function UpdateApp({
 
   const onSubmit = async () => {
     try {
-      await createOrUpdateDeployment({
-        projectId,
-        projectRef,
-        agentId,
-        access,
-      });
+      await saveButtonState.getState().save?.({ skipConfirm: true, skipCommitIfNoChanges: true });
 
       run();
 
-      Toast.success('Updated successfully');
+      Toast.success(t('deployments.updateSuccess'));
     } catch (error) {
       Toast.error(error.message);
     }

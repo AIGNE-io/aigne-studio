@@ -798,6 +798,7 @@ export default flatten({
     deleteDescription: '删除后将无法恢复，请谨慎操作',
     deleteSuccess: '删除成功',
     emptyDeployment: '没有部署的应用',
+    updateSuccess: '更新成功',
   },
   category: {
     title: '分类',
