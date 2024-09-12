@@ -1,6 +1,6 @@
 import { createWriteStream } from 'fs';
-import { copyFile, mkdir, mkdtemp, rm, writeFile } from 'fs/promises';
-import { basename, join, resolve } from 'path';
+import { mkdir, mkdtemp, rm, writeFile } from 'fs/promises';
+import { join, resolve } from 'path';
 import { finished } from 'stream/promises';
 
 import { Config } from '@api/libs/env';
@@ -13,12 +13,13 @@ import user from '@blocklet/sdk/lib/middlewares/user';
 import archiver from 'archiver';
 import compression from 'compression';
 import { Router } from 'express';
-import { exists } from 'fs-extra';
+import { pathExists } from 'fs-extra';
 import Joi from 'joi';
 import omitBy from 'lodash/omitBy';
 import { Op, Sequelize } from 'sequelize';
 import { stringify } from 'yaml';
 
+import ensureKnowledgeDirExists, { getUploadDir, getVectorStorePath } from '../../libs/ensure-dir';
 import copyKnowledgeBase from '../../libs/knowledge';
 import { ensureComponentCallOr, ensureComponentCallOrAdmin, userAuth } from '../../libs/security';
 import Dataset from '../../store/models/dataset/dataset';
@@ -101,7 +102,6 @@ router.get('/:datasetId/export-resource', user(), ensureComponentCallOrAdmin(), 
   const query = await exportResourceQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
   const dataset = await Dataset.findByPk(datasetId, { rejectOnEmpty: new Error(`No such dataset ${datasetId}`) });
-
   const documents = await DatasetDocument.findAll({ where: { datasetId, type: { [Op.ne]: 'discussKit' } } });
   const documentIds = documents.map((i) => i.id);
   const contents = await DatasetContent.findAll({ where: { documentId: { [Op.in]: documentIds } } });
@@ -121,31 +121,21 @@ router.get('/:datasetId/export-resource', user(), ensureComponentCallOrAdmin(), 
     await writeFile(join(knowledgeWithIdPath, 'contents.yaml'), stringify(contents));
 
     // 复制 files 数据
-    const uploadsPath = join(knowledgeWithIdPath, 'uploads');
-    await mkdir(uploadsPath, { recursive: true });
+    const uploadSrc = resolve(await getUploadDir(datasetId));
+    const uploadsDst = join(knowledgeWithIdPath, 'uploads');
 
-    const hasPath = (data: any): data is { type: string; path: string } => {
-      return typeof data === 'object' && 'path' in data;
-    };
-    const filterDocuments = documents.filter((i) => hasPath(i.data));
-
-    for (const document of filterDocuments) {
-      if (hasPath(document.data)) {
-        const newPath = join(uploadsPath, basename(document.data.path));
-        await copyFile(document.data.path, newPath);
-
-        // 特别注意，需要将 path 路径更换到新的路径, 在使用时，拼接 uploadsPath
-        document.data.path = basename(document.data.path);
-      }
+    if (await pathExists(uploadSrc)) {
+      await copyRecursive(uploadSrc, uploadsDst);
     }
 
     await writeFile(join(knowledgeWithIdPath, 'documents.yaml'), stringify(documents));
 
     // 复制 vector db
-    const dst = join(knowledgeWithIdPath, 'vectors', datasetId);
-    const src = resolve(Config.dataDir, 'vectors', datasetId);
-    if (await exists(src)) {
-      copyRecursive(src, dst);
+    const src = resolve(await getVectorStorePath(datasetId));
+    const vectorsDst = join(knowledgeWithIdPath, 'vectors');
+
+    if (await pathExists(src)) {
+      await copyRecursive(src, vectorsDst);
     }
 
     const zipPath = join(tmpFolder, `${datasetId}.zip`);
@@ -197,6 +187,8 @@ router.post('/', user(), userAuth(), async (req, res) => {
   }
 
   const dataset = await Dataset.create({ name, description, appId, createdBy: did, updatedBy: did });
+  await ensureKnowledgeDirExists(dataset.id);
+
   return res.json(dataset);
 });
 

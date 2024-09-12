@@ -1,3 +1,7 @@
+## 0.4.46 (2024-9-12)
+
+- feat: update knowledge base storage method to application
+
 ## 0.4.45 (2024-9-10)
 
 - fix: parameter result to string
