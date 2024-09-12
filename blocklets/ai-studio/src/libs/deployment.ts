@@ -24,7 +24,9 @@ export async function getDeploymentById({
   projectRef: string;
   agentId: string;
 }): Promise<Deployment> {
-  return axios.get('/api/deployments/byId', { params: { projectId, projectRef, agentId } }).then((res) => res.data);
+  return axios
+    .get('/api/deployments/byAgentId', { params: { projectId, projectRef, agentId } })
+    .then((res) => res.data);
 }
 
 export async function getDeployment({ id }: { id: string }): Promise<Deployment> {

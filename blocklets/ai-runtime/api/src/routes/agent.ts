@@ -88,16 +88,16 @@ router.get('/:aid', async (req, res) => {
   res.json({ ...respondAgentFields(agent), config: { secrets: await getAgentSecretInputs(agent) } });
 });
 
-router.get('/publish/:publishId', user(), async (req, res) => {
-  const { publishId } = req.params;
+router.get('/publish/:deploymentId', user(), async (req, res) => {
+  const { deploymentId } = req.params;
   const { did: userId, role } = req.user! || {};
-  if (!publishId) throw new Error('Missing required param `publishId`');
+  if (!deploymentId) throw new Error('Missing required param `deploymentId`');
 
   const publish = (
     await call({
       name: 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB',
       method: 'GET',
-      path: joinURL('/api/deployments', publishId),
+      path: joinURL('/api/deployments', deploymentId),
     })
   ).data;
   if (!publish) {

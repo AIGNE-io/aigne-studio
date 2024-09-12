@@ -1,12 +1,12 @@
-import user from '@blocklet/sdk/lib/middlewares/user';
+import { auth, user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
 
+import checkUserAuth from '../libs/user-auth';
 import Deployment from '../store/models/deployment';
 import DeploymentCategory from '../store/models/deployment-category';
 
 const router = Router();
-
 const schema = Joi.object({
   projectId: Joi.string().required(),
   projectRef: Joi.string().required(),
@@ -34,7 +34,7 @@ const getByIdSchema = Joi.object({
 
 const deleteSchema = Joi.object({ id: Joi.string().required() });
 
-router.get('/byId', user(), async (req, res) => {
+router.get('/byAgentId', user(), auth(), async (req, res) => {
   const { projectId, projectRef, agentId } = await getByIdSchema.validateAsync(req.query, { stripUnknown: true });
   const deployment = await Deployment.findOne({ where: { projectId, projectRef, agentId } });
 
@@ -46,7 +46,7 @@ router.get('/byId', user(), async (req, res) => {
   res.json({ ...deployment?.dataValues, categories: deployment?.categories });
 });
 
-router.get('/', user(), async (req, res) => {
+router.get('/', user(), auth(), async (req, res) => {
   try {
     const { projectId, projectRef, page, pageSize } = await paginationSchema.validateAsync(req.query, {
       stripUnknown: true,
@@ -76,7 +76,7 @@ router.get('/', user(), async (req, res) => {
   }
 });
 
-router.get('/list', user(), async (req, res) => {
+router.get('/list', user(), auth(), async (req, res) => {
   try {
     const { page, pageSize } = await Joi.object({
       page: Joi.number().integer().min(1).default(1),
@@ -105,7 +105,7 @@ router.get('/list', user(), async (req, res) => {
   }
 });
 
-router.get('/categories/:categoryId', user(), async (req, res) => {
+router.get('/categories/:categoryId', user(), auth(), async (req, res) => {
   const schema = Joi.object({
     categoryId: Joi.string().required(),
     page: Joi.number().integer().min(1).default(1),
@@ -136,20 +136,12 @@ router.get('/categories/:categoryId', user(), async (req, res) => {
   });
 });
 
-router.post('/', user(), async (req, res) => {
-  const { did: userId, role } = req.user!;
+router.post('/', user(), auth(), async (req, res) => {
+  const { did: userId } = req.user!;
   const { projectId, projectRef, agentId, access } = await schema.validateAsync(req.body, { stripUnknown: true });
 
   if (access === 'private') {
-    const list = ['admin', 'owner'];
-
-    if (!list.includes(role)) {
-      res.status(403).json({
-        code: 'forbidden',
-        error: 'Only an administrator or owner can create a private publication.',
-      });
-      return;
-    }
+    checkUserAuth(req, res)();
   }
 
   const found = await Deployment.findOne({ where: { projectId, projectRef, agentId } });
@@ -172,7 +164,7 @@ router.post('/', user(), async (req, res) => {
   res.json(deployment.dataValues);
 });
 
-router.get('/:id', user(), async (req, res) => {
+router.get('/:id', async (req, res) => {
   const schema = Joi.object({ id: Joi.string().required() });
   const { id } = await schema.validateAsync(req.params, { stripUnknown: true });
 
@@ -182,8 +174,16 @@ router.get('/:id', user(), async (req, res) => {
   res.json({ ...deployment?.dataValues, categories: categories.map((category) => category.categoryId) });
 });
 
-router.put('/:id', user(), async (req, res) => {
+router.put('/:id', user(), auth(), async (req, res) => {
   const { did: userId } = req.user!;
+
+  const found = await Deployment.findByPk(req.params.id!);
+  if (!found) {
+    res.status(404).json({ code: 'not_found', error: 'deployment not found' });
+    return;
+  }
+
+  checkUserAuth(req, res)(found.createdBy);
 
   const { access, categories } = await updateSchema.validateAsync(req.body, { stripUnknown: true });
   const deployment = await Deployment.update({ access }, { where: { id: req.params.id! } });
@@ -206,11 +206,19 @@ router.put('/:id', user(), async (req, res) => {
   res.json(deployment);
 });
 
-router.delete('/:id', user(), async (req, res) => {
+router.delete('/:id', user(), auth(), async (req, res) => {
   const { id } = await deleteSchema.validateAsync(req.params, { stripUnknown: true });
 
-  const deployment = await Deployment.destroy({ where: { id } });
-  res.json(deployment);
+  const deployment = await Deployment.findByPk(id);
+  if (!deployment) {
+    res.status(404).json({ code: 'not_found', error: 'deployment not found' });
+    return;
+  }
+
+  checkUserAuth(req, res)(deployment.createdBy);
+
+  await Deployment.destroy({ where: { id } });
+  res.json({});
 });
 
 export default router;

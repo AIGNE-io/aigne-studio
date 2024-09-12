@@ -19,7 +19,7 @@ function checkAuth(req: Request, res: Response): (userId?: string) => void {
         throw new AuthError('Unauthorized, user information does not exist', 401);
       }
 
-      if (user.role !== 'admin' && user.role !== 'owner') {
+      if (!['admin', 'owner'].includes(user.role)) {
         throw new AuthError('Insufficient authority', 403);
       }
 

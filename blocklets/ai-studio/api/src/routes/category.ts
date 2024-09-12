@@ -1,4 +1,4 @@
-import user from '@blocklet/sdk/lib/middlewares/user';
+import { auth, user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
 
@@ -18,7 +18,7 @@ const updateCategorySchema = Joi.object({
   icon: Joi.string().optional().allow('').default(''),
 });
 
-router.get('/', user(), async (req, res) => {
+router.get('/', user(), auth(), async (req, res) => {
   const { page, pageSize } = await paginationSchema.validateAsync(req.query, { stripUnknown: true });
 
   const offset = (page - 1) * pageSize;
@@ -32,7 +32,7 @@ router.get('/', user(), async (req, res) => {
   res.json({ list: rows, totalCount: count, currentPage: page });
 });
 
-router.post('/', user(), async (req, res) => {
+router.post('/', user(), auth(), async (req, res) => {
   const { did } = req.user!;
   const { name, icon } = await updateCategorySchema.validateAsync(req.body, { stripUnknown: true });
 
@@ -48,7 +48,7 @@ router.post('/', user(), async (req, res) => {
   res.json(category);
 });
 
-router.put('/:id', user(), async (req, res) => {
+router.put('/:id', user(), auth(), async (req, res) => {
   const { did } = req.user!;
   const { id } = req.params;
   const { name, icon } = await updateCategorySchema.validateAsync(req.body, { stripUnknown: true });
@@ -66,8 +66,16 @@ router.put('/:id', user(), async (req, res) => {
   res.json(category);
 });
 
-router.delete('/:id', user(), async (req, res) => {
+router.delete('/:id', user(), auth(), async (req, res) => {
   const { id } = req.params;
+
+  const category = await Category.findByPk(id);
+  if (!category) {
+    res.status(404).json({ code: 'not_found', error: 'Category not found' });
+    return;
+  }
+
+  checkUserAuth(req, res)(category.createdBy);
 
   await Category.destroy({ where: { id } });
   await DeploymentCategory.destroy({ where: { categoryId: id } });

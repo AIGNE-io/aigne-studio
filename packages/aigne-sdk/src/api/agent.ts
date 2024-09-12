@@ -39,17 +39,17 @@ export async function getAgent({
     .then((res) => res.data);
 }
 
-export async function getAgentByPublishId({
-  publishId,
+export async function getAgentByDeploymentId({
+  deploymentId,
   blockletDid,
   working,
 }: {
-  publishId: string;
+  deploymentId: string;
   blockletDid?: string;
   working?: boolean;
 }): Promise<AgentWithConfig> {
   return aigneRuntimeApi
-    .get(joinURL('/api/agents/publish/', publishId), {
+    .get(joinURL('/api/agents/publish/', deploymentId), {
       params: { working, blockletDid },
     })
     .then((res) => res.data);

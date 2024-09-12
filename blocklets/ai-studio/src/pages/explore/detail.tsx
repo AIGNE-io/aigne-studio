@@ -2,7 +2,7 @@ import { useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Result from '@arcblock/ux/lib/Result';
 import Toast from '@arcblock/ux/lib/Toast';
-import { getAgentByPublishId } from '@blocklet/aigne-sdk/api/agent';
+import { getAgentByDeploymentId } from '@blocklet/aigne-sdk/api/agent';
 import AgentView from '@blocklet/aigne-sdk/components/AgentView';
 import { Icon } from '@iconify-icon/react';
 import ChevronLeft from '@iconify-icons/tabler/chevron-left';
@@ -17,7 +17,7 @@ import { Deployment, getDeployment } from '../../libs/deployment';
 export default function CategoryDetail() {
   const navigate = useNavigate();
   const { deploymentId } = useParams();
-  if (!deploymentId) throw new Error('Missing required param `publishId`');
+  if (!deploymentId) throw new Error('Missing required param `deploymentId`');
 
   const { data, loading } = useRequest(() => getDeployment({ id: deploymentId }), {
     onError: (error) => {
@@ -94,9 +94,9 @@ function Agent({ data }: { data: Deployment }) {
 
 function PreviewPage() {
   const { deploymentId } = useParams();
-  if (!deploymentId) throw new Error('Missing required param `publishId`');
+  if (!deploymentId) throw new Error('Missing required param `deploymentId`');
 
-  const { data, loading, error } = useRequest(() => getAgentByPublishId({ publishId: deploymentId, working: true }), {
+  const { data, loading, error } = useRequest(() => getAgentByDeploymentId({ deploymentId, working: true }), {
     onError: (error) => {
       Toast.error((error as any)?.response?.data?.message || error?.message);
     },
