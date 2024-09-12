@@ -87,13 +87,11 @@ export default function DeploymentAction() {
                           'z8iZiDFg3vkkrPwsiba1TLXy3H9XHzFERsP8o',
                         ]}>
                         <UpdateApp
-                          onClose={deploymentPopperState.close}
-                          run={run}
                           projectId={projectId!}
                           projectRef={gitRef!}
-                          agentId={fileId!}
-                          access={data.access}
                           id={data.id}
+                          onClose={deploymentPopperState.close}
+                          run={run}
                         />
                       </ComponentInstaller>
                     </Suspense>
