@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 
-import { runUnsafeFunction, transpileModule } from '@blocklet/quickjs';
+import { Sandbox } from '@blocklet/quickjs';
 import { call, getComponentMountPoint } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
 import equal from 'fast-deep-equal';
@@ -16,17 +16,15 @@ import { nextTaskId } from '../utils/task-id';
 import { AgentExecutorBase } from './base';
 
 async function parseJSONInVM(str: string) {
-  return runUnsafeFunction({
+  return Sandbox.callFunction({
     code: `\
-function parse() {
+function parse(json) {
   return eval(\`const j = \${json}; j\`)
 }
 `,
-    functionName: 'parse',
     filename: 'parserJSONInVm.js',
-    args: {
-      json: str.trim(),
-    },
+    functionName: 'parse',
+    args: [str.trim()],
   });
 }
 
@@ -38,19 +36,6 @@ export class LogicAgentExecutor extends AgentExecutorBase<FunctionAssistant> {
     } = this;
 
     if (!agent.code) throw new Error(`Assistant ${agent.id}'s code is empty`);
-    const code = await transpileModule(
-      `\
-async function main() {
-  ${agent.code}
-}
-`,
-      (ts) => ({
-        compilerOptions: {
-          module: ts.ModuleKind.ESNext,
-          target: ts.ScriptTarget.ES2020,
-        },
-      })
-    );
 
     const args = Object.fromEntries(
       await Promise.all(
@@ -132,67 +117,73 @@ async function main() {
       return taggedFn;
     };
 
-    const resultPromise = await runUnsafeFunction({
-      code,
-      functionName: 'main',
+    const global = {
+      console: <typeof console>{
+        // NOTE: do not return logger.xxx result, it will cause memory leak
+        log: (...args) => {
+          logger.info(...args);
+        },
+        warn: (...args) => {
+          logger.warn(...args);
+        },
+        error: (...args) => {
+          logger.error(...args);
+        },
+      },
+      $json,
+      getComponentMountPoint,
+      call: (...args: Parameters<typeof call>) => call(...args).then((res) => ({ data: res.data })),
+      runAgent: async ({
+        agentId,
+        inputs,
+        streaming,
+      }: {
+        agentId: string;
+        inputs: { [key: string]: any };
+        streaming?: boolean;
+      }) => {
+        const a = await this.context.getAgent({ ...agent.identity, agentId, rejectOnEmpty: true });
+
+        const { callback } = this.context;
+        const currentTaskId = nextTaskId();
+
+        return this.context
+          .copy(
+            streaming
+              ? {
+                  callback: function hello(args) {
+                    callback(args);
+
+                    if (
+                      args.type === AssistantResponseType.CHUNK &&
+                      args.delta.content &&
+                      args.taskId === currentTaskId
+                    ) {
+                      callback({ ...args, taskId });
+                    }
+                  },
+                }
+              : {}
+          )
+          .execute(a, { taskId: currentTaskId, parentTaskId: taskId, inputs });
+      },
+      crypto: { randomInt: crypto.randomInt },
+      config: { env: pick(config.env, 'appId', 'appName', 'appDescription', 'appUrl') },
+    };
+
+    const allArgs = { ...this.globalContext, ...args };
+    const argKeys = Object.keys(allArgs);
+
+    const resultPromise = await Sandbox.callFunction({
+      code: `\
+async function main({${argKeys.join(', ')}) {
+  ${agent.code}
+}
+`,
       filename: `${agent.name || agent.id}.js`,
-      global: {
-        console: <typeof console>{
-          // NOTE: do not return logger.xxx result, it will cause memory leak
-          log: (...args) => {
-            logger.info(...args);
-          },
-          warn: (...args) => {
-            logger.warn(...args);
-          },
-          error: (...args) => {
-            logger.error(...args);
-          },
-        },
-        $json,
-        getComponentMountPoint,
-        call: (...args: Parameters<typeof call>) => call(...args).then((res) => ({ data: res.data })),
-        runAgent: async ({
-          agentId,
-          inputs,
-          streaming,
-        }: {
-          agentId: string;
-          inputs: { [key: string]: any };
-          streaming?: boolean;
-        }) => {
-          const a = await this.context.getAgent({ ...agent.identity, agentId, rejectOnEmpty: true });
-
-          const { callback } = this.context;
-          const currentTaskId = nextTaskId();
-
-          return this.context
-            .copy(
-              streaming
-                ? {
-                    callback: function hello(args) {
-                      callback(args);
-
-                      if (
-                        args.type === AssistantResponseType.CHUNK &&
-                        args.delta.content &&
-                        args.taskId === currentTaskId
-                      ) {
-                        callback({ ...args, taskId });
-                      }
-                    },
-                  }
-                : {}
-            )
-            .execute(a, { taskId: currentTaskId, parentTaskId: taskId, inputs });
-        },
-        crypto: { randomInt: crypto.randomInt },
-        config: { env: pick(config.env, 'appId', 'appName', 'appDescription', 'appUrl') },
-      },
-      args: {
-        ...this.globalContext,
-        ...args,
-      },
+      global,
+      functionName: 'main',
+      args: [allArgs],
     });
 
     return resultPromise;

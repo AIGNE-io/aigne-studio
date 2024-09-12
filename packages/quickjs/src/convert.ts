@@ -1,5 +1,7 @@
 import { QuickJSContext, QuickJSHandle } from 'quickjs-emscripten';
 
+import { logger } from './logger';
+
 export function toQuickJsObject(vm: QuickJSContext, object: any): QuickJSHandle {
   if (typeof object === 'string') return vm.newString(object);
   if (typeof object === 'number') return vm.newNumber(object);
@@ -57,6 +59,9 @@ export function toQuickJsObject(vm: QuickJSContext, object: any): QuickJSHandle 
         })
         .catch((error) => {
           vm.newError({ name: error.name, message: error.message }).consume((error) => promise.reject(error));
+        })
+        .catch((error) => {
+          logger.error('return promise to quick js error', error);
         });
 
       return promise.handle;
