@@ -1,7 +1,7 @@
 {
-  "name": "@blocklet/co-git",
+  "name": "@blocklet/ai-builtin",
   "version": "0.4.47",
-  "description": "The cooperative component library for AI Studio",
+  "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
   },
@@ -15,26 +15,12 @@
     ".": {
       "import": "./lib/esm/index.js",
       "require": "./lib/cjs/index.js"
-    },
-    "./repository": {
-      "import": "./lib/esm/repository/index.js",
-      "require": "./lib/cjs/repository/index.js"
-    },
-    "./yjs": {
-      "import": "./lib/esm/yjs.js",
-      "require": "./lib/cjs/yjs.js"
     }
   },
   "typesVersions": {
     "*": {
       "*": [
         "./lib/types/index.d.ts"
-      ],
-      "repository": [
-        "./lib/types/repository/index.d.ts"
-      ],
-      "yjs": [
-        "./lib/types/yjs.d.ts"
       ]
     }
   },
@@ -51,7 +37,6 @@
   },
   "scripts": {
     "lint": "eslint src --ext .mjs,.js,.jsx,.ts,.tsx",
-    "lint:fix": "npm run lint -- --fix",
     "build": "run-p build:*",
     "build:cjs": "tsc --module commonjs --outDir lib/cjs",
     "build:esm": "tsc --module es2022 --outDir lib/esm",
@@ -61,22 +46,15 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@syncedstore/core": "^0.6.0",
-    "@syncedstore/react": "^0.6.0",
-    "fs-extra": "^11.2.0",
-    "isomorphic-git": "^1.27.1",
-    "lib0": "^0.2.97",
+    "@blocklet/sdk": "^1.16.31",
     "lodash": "^4.17.21",
-    "queue": "^7.0.0",
-    "ws": "^8.18.0",
-    "y-protocols": "^1.0.6",
-    "yjs": "^13.6.18"
+    "node-fetch": "2",
+    "typescript": "^5.5.4"
   },
   "devDependencies": {
-    "@types/fs-extra": "^11.0.4",
     "@types/lodash": "^4.17.7",
+    "@types/node-fetch": "^2.6.11",
     "npm-run-all": "^4.1.5",
-    "rimraf": "^6.0.1",
-    "typescript": "^5.5.4"
+    "rimraf": "^6.0.1"
   }
 }

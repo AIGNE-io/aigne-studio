@@ -1,6 +1,10 @@
-## 0.4.46 (2024-9-11)
+## 0.4.47 (2024-9-12)
 
-- fix: use quickjs instead of vm2 for better security
+- feat: multi-tenant project page
+
+## 0.4.46 (2024-9-12)
+
+- feat: update knowledge base storage method to application
 
 ## 0.4.45 (2024-9-10)
 
