@@ -772,6 +772,8 @@ export default flatten({
   integer: '整数',
   openEmbed: 'OpenEmbed',
   selectAll: '全选',
+  projectToGetStart: '创建项目',
+  selectTemplate: '选择模板快速开始，或开创您的独特项目 - 点击创建您的专属之旅！',
   syncTip: '同步数据前先保存暂存区数据',
   deployments: {
     name: '名称',
@@ -817,4 +819,8 @@ export default flatten({
   success: '成功',
   failed: '失败',
   makeOwnVersion: '制作自己的版本',
+  noTemplatesAvailable: '没有可用的模板',
+  loginRequired: '要求登录',
+  loginRequiredHelper: '用户需要登录后才能使用该 Agent',
+  noLoginRequiredHelper: '用户无需登录即可使用该 Agent',
 });

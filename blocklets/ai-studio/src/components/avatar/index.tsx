@@ -15,5 +15,5 @@ export default function Avatar({ src, ...rest }: Props) {
 
   if (!rest.did) return <MuiAvatar src={src} {...rest} />;
 
-  return <DidAvatar src={src} {...rest} />;
+  return <DidAvatar src={src!} {...rest} />;
 }

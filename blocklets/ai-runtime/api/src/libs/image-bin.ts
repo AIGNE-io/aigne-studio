@@ -3,6 +3,8 @@ import config from '@blocklet/sdk/lib/config';
 import axios from 'axios';
 import { joinURL } from 'ufo';
 
+import { wallet } from './auth';
+
 export async function uploadImageToImageBin({
   filename,
   data,
@@ -10,7 +12,7 @@ export async function uploadImageToImageBin({
 }: {
   filename: string;
   data: { url: string; b64Json?: undefined } | { url?: undefined; b64Json: string };
-  userId: string;
+  userId?: string;
 }) {
   const base64 =
     typeof data.url === 'string'
@@ -20,7 +22,7 @@ export async function uploadImageToImageBin({
   const { data: result } = await call<{ filename: string }>({
     name: 'image-bin',
     path: '/api/sdk/uploads',
-    headers: { 'x-user-did': userId },
+    headers: { 'x-user-did': userId || wallet.address },
     data: {
       type: 'base64',
       data: base64,

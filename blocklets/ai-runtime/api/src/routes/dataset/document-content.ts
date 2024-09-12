@@ -7,6 +7,7 @@ import { BN, toBN } from '@ocap/util';
 import mammoth from 'mammoth';
 import PDFParser from 'pdf2json';
 
+import { getUploadPathByCheckFile } from '../../libs/ensure-dir';
 import DatasetContent from '../../store/models/dataset/content';
 import DatasetDocument from '../../store/models/dataset/document';
 import { commentsIterator, discussionsIterator, getDiscussion } from './util';
@@ -139,13 +140,15 @@ export const getDiscussionContents = async (document: DatasetDocument, maxLength
   return [];
 };
 
-export const getContent = async (document: DatasetDocument, maxLength?: BN) => {
+export const getContent = async (datasetId: string, document: DatasetDocument, maxLength?: BN) => {
   let content: string[] = [];
   if (document.type === 'text') {
     content = [await getTextContent(document.id)];
   } else if (document.type === 'file') {
     const data = document?.data as { type: string; path: string };
-    content = [await getFileContent(data?.type || '', data?.path || '')];
+    const fileJoinPath = await getUploadPathByCheckFile(datasetId, data?.path);
+
+    content = [await getFileContent(data?.type || '', fileJoinPath)];
   } else if (document.type === 'discussKit') {
     content = await getDiscussionContents(document, maxLength);
   }
@@ -158,7 +161,7 @@ const getAllContents = async (datasetId: string) => {
   let maxLength = toBN('1000000'); // 100w 字段限制？？
 
   for (const document of documents) {
-    const content = await getContent(document, maxLength);
+    const content = await getContent(datasetId, document, maxLength);
 
     if (toBN(content.join('').length || 0).gt(maxLength)) {
       throw new Error('The current document data is too large to be considered as global variables');

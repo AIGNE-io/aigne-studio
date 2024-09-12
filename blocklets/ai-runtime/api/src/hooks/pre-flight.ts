@@ -2,7 +2,7 @@ import '@blocklet/sdk/lib/error-handler';
 
 import dotenv from 'dotenv-flow';
 
-import logger from '../libs/logger';
+const logger = console;
 
 (async () => {
   dotenv.config();
@@ -11,8 +11,8 @@ import logger from '../libs/logger';
     await import('../store/migrate').then((m) => m.default());
 
     process.exit(0);
-  } catch (err) {
-    logger.error('pre-flight error', err);
+  } catch (error) {
+    logger.error('pre-flight error', error);
     process.exit(1);
   }
 })();
