@@ -476,6 +476,7 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
                 }),
                 sessionId: session.sessionId,
                 inputs: message.parameters,
+                debug: true,
               });
 
         const reader = result.getReader();

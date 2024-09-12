@@ -34,7 +34,7 @@ export default function LogoField({
           onChange?.({ url, width: size?.naturalWidth, height: size?.naturalHeight });
         });
       }}>
-      <Box component={Avatar} src={value?.url} did={window.blocklet.appId} size={100} sx={{ borderRadius: 1 }} />
+      <Box component={Avatar} src={value?.url!} did={window.blocklet.appId} size={100} sx={{ borderRadius: 1 }} />
 
       <Typography variant="caption" color="text.secondary">
         {t('clickToUploadAgentLogo')}

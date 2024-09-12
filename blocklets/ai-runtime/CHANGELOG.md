@@ -1,3 +1,28 @@
+## 0.4.45 (2024-9-10)
+
+- fix: parameter result to string
+
+## 0.4.44 (2024-9-9)
+
+- fix: enterprise did space failed issue
+
+## 0.4.43 (2024-9-9)
+
+- fix: reset agents cache after repo synced
+
+## 0.4.42 (2024-9-9)
+
+- chore: memoize agent api
+- chore: optimize db performance by adding indexes
+- chore: add support for anonymous call agents
+- chore: support return streaming agent response in a logic agent
+- chore: skip debug message in production
+- chore: auto generate a random session id
+
+## 0.4.41 (2024-8-29)
+
+- fix: reset working state after syncing remote repo
+
 ## 0.4.40 (2024-8-28)
 
 - fix: remove untracked files in the repo

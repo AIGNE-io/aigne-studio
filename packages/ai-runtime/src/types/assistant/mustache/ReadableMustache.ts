@@ -21,6 +21,15 @@ export function renderMustacheStream(
           await render();
         }, 100);
 
+        let reject: ((error: any) => void) | undefined;
+        const errorPromise = new Promise((_, rej) => {
+          reject = rej;
+        });
+
+        queue.error((error) => {
+          if (error) reject?.(error);
+        });
+
         // 任务缓存，每个任务的 key 为渲染后的子模板（其中可能包含参数）
         const cache = new Map<string, { promise?: Promise<any>; result?: { data: any }; error?: { error: any } }>();
 
@@ -57,12 +66,12 @@ export function renderMustacheStream(
           };
         });
 
-        const render = async () => controller.enqueue(await renderMessage(template, ctx));
+        const render = async () => controller.enqueue(await renderMessage(template, ctx, { escapeJsonSymbols: true }));
 
         await render();
 
         // wait for all promise in the queue to be resolved
-        await queue.drained();
+        await Promise.race([queue.drained(), errorPromise]);
       } catch (error) {
         controller.error(error);
       }

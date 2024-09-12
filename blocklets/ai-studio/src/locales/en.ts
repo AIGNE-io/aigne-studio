@@ -778,4 +778,8 @@ export default flatten({
   integer: 'Integer',
   openEmbed: 'OpenEmbed',
   selectAll: 'Select All',
+  syncTip: 'Save the modified data before data synchronization',
+  loginRequired: 'Login Required',
+  loginRequiredHelper: 'The user needs to log in before using this agent',
+  noLoginRequiredHelper: 'The user can use this agent without logging in',
 });
