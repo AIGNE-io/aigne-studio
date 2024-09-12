@@ -88,7 +88,7 @@ router.get('/:aid', async (req, res) => {
   res.json({ ...respondAgentFields(agent), config: { secrets: await getAgentSecretInputs(agent) } });
 });
 
-router.get('/publish/:deploymentId', user(), async (req, res) => {
+router.get('/deployment/:deploymentId', user(), async (req, res) => {
   const { deploymentId } = req.params;
   const { did: userId, role } = req.user! || {};
   if (!deploymentId) throw new Error('Missing required param `deploymentId`');
@@ -98,6 +98,10 @@ router.get('/publish/:deploymentId', user(), async (req, res) => {
       name: 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB',
       method: 'GET',
       path: joinURL('/api/deployments', deploymentId),
+      headers: {
+        'x-user-did': userId,
+        'x-user-role': role,
+      },
     })
   ).data;
   if (!publish) {
@@ -106,23 +110,15 @@ router.get('/publish/:deploymentId', user(), async (req, res) => {
   }
 
   if (publish.access === 'private') {
-    if (!userId) {
-      res.status(403).json({ message: 'This is a private application. Please log in to access.' });
-      return;
-    }
-
-    const list = ['admin', 'owner'];
-    if (!list.includes(role)) {
-      res.status(403).json({ message: 'Only an administrator or owner can visit a private publication.' });
+    if (userId !== publish.createdBy || !['admin', 'owner'].includes(role)) {
+      res.status(404).json({ message: 'Not Found' });
       return;
     }
   }
 
-  const { blockletDid, working } = await getAgentQuerySchema.validateAsync(req.query, { stripUnknown: true });
-
+  const { working } = await getAgentQuerySchema.validateAsync(req.query, { stripUnknown: true });
   const { projectId, projectRef, agentId } = publish;
-
-  const agent = await getAgent({ blockletDid, projectId, projectRef, agentId, working });
+  const agent = await getAgent({ projectId, projectRef, agentId, working });
 
   if (!agent) {
     res.status(404).json({ message: 'No such agent' });

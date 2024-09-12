@@ -7,7 +7,8 @@ import Deployment from '../store/models/deployment';
 import DeploymentCategory from '../store/models/deployment-category';
 
 const router = Router();
-const schema = Joi.object({
+
+const deploymentSchema = Joi.object({
   projectId: Joi.string().required(),
   projectRef: Joi.string().required(),
   agentId: Joi.string().required(),
@@ -15,11 +16,22 @@ const schema = Joi.object({
 });
 
 const paginationSchema = Joi.object({
-  projectId: Joi.string().required(),
-  projectRef: Joi.string().required(),
   page: Joi.number().integer().min(1).default(1),
   pageSize: Joi.number().integer().min(1).max(100).default(10),
 });
+
+const searchProjectSchema = paginationSchema.concat(
+  Joi.object({
+    projectId: Joi.string().required(),
+    projectRef: Joi.string().required(),
+  })
+);
+
+const searchByCategoryIdSchema = paginationSchema.concat(
+  Joi.object({
+    categoryId: Joi.string().required(),
+  })
+);
 
 const updateSchema = Joi.object({
   access: Joi.string().valid('private', 'public').required(),
@@ -32,7 +44,7 @@ const getByIdSchema = Joi.object({
   agentId: Joi.string().required(),
 });
 
-const deleteSchema = Joi.object({ id: Joi.string().required() });
+const deploymentIdSchema = Joi.object({ id: Joi.string().required() });
 
 router.get('/byAgentId', user(), auth(), async (req, res) => {
   const { projectId, projectRef, agentId } = await getByIdSchema.validateAsync(req.query, { stripUnknown: true });
@@ -43,12 +55,12 @@ router.get('/byAgentId', user(), auth(), async (req, res) => {
     deployment.categories = categories.map((category) => category.categoryId);
   }
 
-  res.json({ ...deployment?.dataValues, categories: deployment?.categories });
+  res.json(deployment ? { ...deployment?.dataValues, categories: deployment?.categories } : null);
 });
 
 router.get('/', user(), auth(), async (req, res) => {
   try {
-    const { projectId, projectRef, page, pageSize } = await paginationSchema.validateAsync(req.query, {
+    const { projectId, projectRef, page, pageSize } = await searchProjectSchema.validateAsync(req.query, {
       stripUnknown: true,
     });
 
@@ -78,10 +90,7 @@ router.get('/', user(), auth(), async (req, res) => {
 
 router.get('/list', user(), auth(), async (req, res) => {
   try {
-    const { page, pageSize } = await Joi.object({
-      page: Joi.number().integer().min(1).default(1),
-      pageSize: Joi.number().integer().min(1).max(100).default(10),
-    }).validateAsync(req.query, { stripUnknown: true });
+    const { page, pageSize } = await paginationSchema.validateAsync(req.query, { stripUnknown: true });
     const offset = (page - 1) * pageSize;
 
     const { count, rows } = await Deployment.findAndCountAll({
@@ -106,12 +115,9 @@ router.get('/list', user(), auth(), async (req, res) => {
 });
 
 router.get('/categories/:categoryId', user(), auth(), async (req, res) => {
-  const schema = Joi.object({
-    categoryId: Joi.string().required(),
-    page: Joi.number().integer().min(1).default(1),
-    pageSize: Joi.number().integer().min(1).max(100).default(10),
+  const { categoryId, page, pageSize } = await searchByCategoryIdSchema.validateAsync(req.params, {
+    stripUnknown: true,
   });
-  const { categoryId, page, pageSize } = await schema.validateAsync(req.params, { stripUnknown: true });
 
   const offset = (page - 1) * pageSize;
 
@@ -138,40 +144,46 @@ router.get('/categories/:categoryId', user(), auth(), async (req, res) => {
 
 router.post('/', user(), auth(), async (req, res) => {
   const { did: userId } = req.user!;
-  const { projectId, projectRef, agentId, access } = await schema.validateAsync(req.body, { stripUnknown: true });
+  const { projectId, projectRef, agentId, access } = await deploymentSchema.validateAsync(req.body, {
+    stripUnknown: true,
+  });
 
   if (access === 'private') {
     checkUserAuth(req, res)();
   }
 
-  const found = await Deployment.findOne({ where: { projectId, projectRef, agentId } });
-
-  if (found) {
-    await found.update({ access, updatedBy: userId });
-    res.json({ ...found.dataValues, access, updatedBy: userId });
-    return;
-  }
-
-  const deployment = await Deployment.create({
-    createdBy: userId,
-    updatedBy: userId,
-    projectId,
-    projectRef,
-    agentId,
-    access,
+  let deployment = await Deployment.findOne({
+    where: { projectId, projectRef, agentId },
   });
+
+  if (deployment) {
+    deployment = await deployment.update({
+      access,
+      updatedBy: userId,
+    });
+  } else {
+    deployment = await Deployment.create({
+      projectId,
+      projectRef,
+      agentId,
+      access,
+      createdBy: userId,
+      updatedBy: userId,
+    });
+  }
 
   res.json(deployment.dataValues);
 });
 
-router.get('/:id', async (req, res) => {
-  const schema = Joi.object({ id: Joi.string().required() });
-  const { id } = await schema.validateAsync(req.params, { stripUnknown: true });
+router.get('/:id', user(), auth(), async (req, res) => {
+  const { id } = await deploymentIdSchema.validateAsync(req.params, { stripUnknown: true });
 
   const deployment = await Deployment.findOne({ where: { id } });
   const categories = await DeploymentCategory.findAll({ where: { deploymentId: id } });
 
-  res.json({ ...deployment?.dataValues, categories: categories.map((category) => category.categoryId) });
+  res.json(
+    deployment ? { ...deployment?.dataValues, categories: categories.map((category) => category.categoryId) } : null
+  );
 });
 
 router.put('/:id', user(), auth(), async (req, res) => {
@@ -207,7 +219,7 @@ router.put('/:id', user(), auth(), async (req, res) => {
 });
 
 router.delete('/:id', user(), auth(), async (req, res) => {
-  const { id } = await deleteSchema.validateAsync(req.params, { stripUnknown: true });
+  const { id } = await deploymentIdSchema.validateAsync(req.params, { stripUnknown: true });
 
   const deployment = await Deployment.findByPk(id);
   if (!deployment) {

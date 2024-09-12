@@ -41,16 +41,14 @@ export async function getAgent({
 
 export async function getAgentByDeploymentId({
   deploymentId,
-  blockletDid,
   working,
 }: {
   deploymentId: string;
-  blockletDid?: string;
   working?: boolean;
 }): Promise<AgentWithConfig> {
   return aigneRuntimeApi
-    .get(joinURL('/api/agents/publish/', deploymentId), {
-      params: { working, blockletDid },
+    .get(joinURL('/api/agents/deployment/', deploymentId), {
+      params: { working },
     })
     .then((res) => res.data);
 }

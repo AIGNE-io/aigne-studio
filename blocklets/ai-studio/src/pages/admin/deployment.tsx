@@ -1,5 +1,6 @@
 import { getErrorMessage } from '@app/libs/api';
 import { getCategories } from '@app/libs/category';
+import { AIGNE_RUNTIME_MOUNT_POINT } from '@app/libs/constants';
 import useDialog from '@app/utils/use-dialog';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
@@ -9,6 +10,7 @@ import { useRequest } from 'ahooks';
 import dayjs from 'dayjs';
 import { usePopupState } from 'material-ui-popup-state/hooks';
 import { useMemo, useState } from 'react';
+import { joinURL } from 'ufo';
 
 import { deleteDeployment, getAllDeployments } from '../../libs/deployment';
 import type { Deployment } from '../../libs/deployment';
@@ -85,11 +87,25 @@ function DeploymentList() {
           return (
             <Box display="flex" alignItems="center" height={1} justifyContent="center">
               <Button
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
+
                   setDeployment(params.row);
                   dialogState.open();
                 }}>
                 {t('edit')}
+              </Button>
+              <Button
+                variant="text"
+                onClick={(e) => {
+                  e.stopPropagation();
+
+                  window.open(
+                    joinURL(globalThis.location.origin, AIGNE_RUNTIME_MOUNT_POINT, 'share', params.row.id),
+                    '_blank'
+                  );
+                }}>
+                {t('share')}
               </Button>
               <Button
                 variant="text"
@@ -168,8 +184,8 @@ function DeploymentList() {
                 [`& .${gridClasses.footerContainer}`]: { border: 0 },
               }}
               disableColumnMenu
-              columnHeaderHeight={30}
-              rowHeight={40}
+              columnHeaderHeight={44}
+              rowHeight={44}
               getRowId={(row) => row.id}
               rows={data?.list || []}
               columns={columns as any}

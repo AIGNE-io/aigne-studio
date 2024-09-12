@@ -1,3 +1,4 @@
+import { getCategories } from '@app/libs/category';
 import { AIGNE_RUNTIME_MOUNT_POINT } from '@app/libs/constants';
 import DidAddress from '@arcblock/did-connect/lib/Address';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
@@ -33,11 +34,16 @@ function DeploymentDetail() {
 
   const navigate = useNavigate();
   const { getFileById } = useProjectStore(projectId!, gitRef!, true);
+
   const { data, loading, refresh } = useRequest(() => getDeployment({ id: id! }), {
     refreshDeps: [projectId, gitRef, id],
   });
+  const { data: categories, loading: categoriesLoading } = useRequest(getCategories, {
+    defaultParams: [{ page: 1, pageSize: 1000 }],
+    refreshDeps: [],
+  });
 
-  if (loading) {
+  if (loading || categoriesLoading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" height="800px">
         <CircularProgress />
@@ -47,6 +53,7 @@ function DeploymentDetail() {
 
   const file = data?.agentId ? getFileById(data?.agentId) : { name: '', description: '' };
   const url = joinURL(globalThis.location.origin, AIGNE_RUNTIME_MOUNT_POINT, 'share', id);
+  const rows = (data?.categories || []).map((category) => categories?.list?.find((c) => c.id === category)?.name);
 
   return (
     <>
@@ -95,6 +102,18 @@ function DeploymentDetail() {
               {t('deployments.visibility')}
             </Typography>
             <Chip label={t(data?.access!)} color="success" size="small" />
+          </Box>
+
+          <Box>
+            <Typography variant="subtitle1" gutterBottom>
+              {t('category.title')}
+            </Typography>
+
+            <Box display="flex" gap={1} alignItems="center">
+              {rows.map((row) => {
+                return <Chip key={row} label={row} size="small" />;
+              })}
+            </Box>
           </Box>
 
           <Box>

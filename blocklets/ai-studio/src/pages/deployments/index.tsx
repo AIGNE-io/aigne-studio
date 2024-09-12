@@ -1,4 +1,5 @@
 import { getErrorMessage } from '@app/libs/api';
+import { AIGNE_RUNTIME_MOUNT_POINT } from '@app/libs/constants';
 import useDialog from '@app/utils/use-dialog';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
@@ -8,6 +9,7 @@ import { useRequest } from 'ahooks';
 import dayjs from 'dayjs';
 import { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { joinURL } from 'ufo';
 
 import { deleteDeployment, getDeployments } from '../../libs/deployment';
 import { useProjectStore } from '../project/yjs-state';
@@ -64,50 +66,65 @@ function Deployments() {
         field: 'action',
         headerName: t('actions'),
         align: 'center',
+        flex: 1,
         headerAlign: 'center',
         renderCell: (params) => {
           return (
-            <Button
-              variant="text"
-              color="error"
-              onClick={(e) => {
-                e.stopPropagation();
+            <>
+              <Button
+                variant="text"
+                onClick={(e) => {
+                  e.stopPropagation();
 
-                showDialog({
-                  formSx: {
-                    '.MuiDialogTitle-root': {
-                      border: 0,
+                  window.open(
+                    joinURL(globalThis.location.origin, AIGNE_RUNTIME_MOUNT_POINT, 'share', params.row.id),
+                    '_blank'
+                  );
+                }}>
+                {t('share')}
+              </Button>
+              <Button
+                variant="text"
+                color="error"
+                onClick={(e) => {
+                  e.stopPropagation();
+
+                  showDialog({
+                    formSx: {
+                      '.MuiDialogTitle-root': {
+                        border: 0,
+                      },
+                      '.MuiDialogActions-root': {
+                        border: 0,
+                      },
                     },
-                    '.MuiDialogActions-root': {
-                      border: 0,
+                    maxWidth: 'sm',
+                    fullWidth: true,
+                    title: <Box sx={{ wordWrap: 'break-word' }}>{t('deployments.deleteTitle')}</Box>,
+                    content: (
+                      <Box>
+                        <Typography fontWeight={500} fontSize={16} lineHeight="28px" color="#4B5563">
+                          {t('deployments.deleteDescription')}
+                        </Typography>
+                      </Box>
+                    ),
+                    okText: t('alert.delete'),
+                    okColor: 'error',
+                    cancelText: t('cancel'),
+                    onOk: async () => {
+                      try {
+                        await deleteDeployment({ id: params.row.id });
+                        run({ projectId: projectId!, projectRef: gitRef!, page: 1, pageSize });
+                        Toast.success(t('deployments.deleteSuccess'));
+                      } catch (error) {
+                        Toast.error(getErrorMessage(error));
+                      }
                     },
-                  },
-                  maxWidth: 'sm',
-                  fullWidth: true,
-                  title: <Box sx={{ wordWrap: 'break-word' }}>{t('deployments.deleteTitle')}</Box>,
-                  content: (
-                    <Box>
-                      <Typography fontWeight={500} fontSize={16} lineHeight="28px" color="#4B5563">
-                        {t('deployments.deleteDescription')}
-                      </Typography>
-                    </Box>
-                  ),
-                  okText: t('alert.delete'),
-                  okColor: 'error',
-                  cancelText: t('cancel'),
-                  onOk: async () => {
-                    try {
-                      await deleteDeployment({ id: params.row.id });
-                      run({ projectId: projectId!, projectRef: gitRef!, page: 1, pageSize });
-                      Toast.success(t('deployments.deleteSuccess'));
-                    } catch (error) {
-                      Toast.error(getErrorMessage(error));
-                    }
-                  },
-                });
-              }}>
-              {t('delete')}
-            </Button>
+                  });
+                }}>
+                {t('delete')}
+              </Button>
+            </>
           );
         },
       },
@@ -142,8 +159,8 @@ function Deployments() {
                 [`& .${gridClasses.footerContainer}`]: { border: 0 },
               }}
               disableColumnMenu
-              columnHeaderHeight={30}
-              rowHeight={40}
+              columnHeaderHeight={44}
+              rowHeight={44}
               getRowId={(row) => row.id}
               rows={data?.list || []}
               columns={columns as any}

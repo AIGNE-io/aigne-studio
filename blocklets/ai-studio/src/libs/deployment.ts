@@ -23,13 +23,13 @@ export async function getDeploymentById({
   projectId: string;
   projectRef: string;
   agentId: string;
-}): Promise<Deployment> {
+}): Promise<Deployment | null> {
   return axios
     .get('/api/deployments/byAgentId', { params: { projectId, projectRef, agentId } })
     .then((res) => res.data);
 }
 
-export async function getDeployment({ id }: { id: string }): Promise<Deployment> {
+export async function getDeployment({ id }: { id: string }): Promise<Deployment | null> {
   return axios.get(joinURL('/api/deployments', id)).then((res) => res.data);
 }
 
