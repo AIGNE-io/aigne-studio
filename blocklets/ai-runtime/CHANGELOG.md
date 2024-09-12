@@ -1,3 +1,7 @@
+## 0.4.48 (2024-9-12)
+
+- fix: use quickjs instead of vm2 for better security
+
 ## 0.4.47 (2024-9-12)
 
 - feat: multi-tenant project page

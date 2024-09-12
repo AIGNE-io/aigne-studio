@@ -1,0 +1,75 @@
+{
+  "name": "@blocklet/quickjs",
+  "version": "0.4.48",
+  "description": "JS Sandbox powered by Quickjs",
+  "publishConfig": {
+    "access": "public"
+  },
+  "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
+  "homepage": "https://github.com/blocklet/ai-studio#readme",
+  "license": "ISC",
+  "main": "./lib/cjs/index.js",
+  "module": "./lib/esm/index.js",
+  "types": "./lib/types/index.d.js",
+  "exports": {
+    ".": {
+      "import": "./lib/esm/index.js",
+      "require": "./lib/cjs/index.js",
+      "types": "./lib/types/index.d.ts"
+    },
+    "./*": {
+      "import": "./lib/esm/*.js",
+      "require": "./lib/cjs/*.js",
+      "types": "./lib/types/*.d.ts"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./lib/types/index.d.ts",
+        "./lib/types/*.d.ts"
+      ]
+    }
+  },
+  "files": [
+    "lib",
+    "LICENSE",
+    "package.json",
+    "README.md",
+    "tsconfig.json"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blocklet/ai-studio.git"
+  },
+  "scripts": {
+    "lint": "eslint src --ext .mjs,.js,.jsx,.ts,.tsx",
+    "lint:fix": "npm run lint -- --fix",
+    "build": "tsc -p tsconfig.build.json --noEmit && run-s build:*",
+    "build:cjs": "tsc -p tsconfig.build.json --module commonjs --outDir lib/cjs > /dev/null || exit 0",
+    "build:esm": "tsc -p tsconfig.build.json --module es2022 --outDir lib/esm > /dev/null || exit 0",
+    "build:types": "tsc -p tsconfig.build.json --declaration --emitDeclarationOnly --outDir lib/types > /dev/null || exit 0",
+    "build:modules": "tsc -p tsconfig.modules.json --noEmit && scripts/build-modules.js",
+    "dev": "run-p 'build:* -- -w'",
+    "clean": "rimraf lib",
+    "prepublishOnly": "npm run build",
+    "test": "jest src/"
+  },
+  "dependencies": {
+    "@blocklet/sdk": "^1.16.31",
+    "dayjs": "^1.11.13",
+    "glob": "^10.4.5",
+    "lru-cache": "^10.4.3",
+    "nanoid": "^3.3.7",
+    "quickjs-emscripten": "^0.31.0",
+    "typescript": "^5.5.4",
+    "ufo": "^1.5.4"
+  },
+  "devDependencies": {
+    "@jest/globals": "^29.7.0",
+    "npm-run-all": "^4.1.5",
+    "rimraf": "^6.0.1",
+    "ts-jest": "^29.2.5",
+    "zx": "^8.1.4"
+  }
+}

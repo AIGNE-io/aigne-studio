@@ -17,7 +17,9 @@ import { xss } from './libs/xss';
 import routes from './routes';
 import setupHtmlRouter from './routes/html';
 
-dotenv.config();
+if (process.env.NODE_ENV === 'development') {
+  dotenv.config();
+}
 
 const { name, version } = require('../../package.json');
 
