@@ -21,6 +21,13 @@ export const up: Migration = async ({ context: queryInterface }) => {
     updatedAt: {
       type: DataTypes.DATE,
     },
+    createdBy: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    updatedBy: {
+      type: DataTypes.STRING,
+    },
   });
 
   await queryInterface.createTable('DeploymentCategories', {
@@ -40,6 +47,13 @@ export const up: Migration = async ({ context: queryInterface }) => {
     },
     updatedAt: {
       type: DataTypes.DATE,
+    },
+    createdBy: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    updatedBy: {
+      type: DataTypes.STRING,
     },
   });
 };

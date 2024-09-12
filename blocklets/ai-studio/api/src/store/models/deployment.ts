@@ -3,27 +3,29 @@ import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, 
 import nextId from '../../libs/next-id';
 import { sequelize } from '../sequelize';
 
-export default class Category extends Model<InferAttributes<Category>, InferCreationAttributes<Category>> {
+export default class Deployment extends Model<InferAttributes<Deployment>, InferCreationAttributes<Deployment>> {
   declare id: CreationOptional<string>;
 
-  declare name: string;
+  declare projectId: string;
 
-  declare icon: CreationOptional<string>;
+  declare projectRef: string;
+
+  declare agentId: string;
 
   declare createdAt: CreationOptional<Date>;
 
   declare updatedAt: CreationOptional<Date>;
 
-  static associate(models: { [key: string]: any }) {
-    Category.belongsToMany(models.Deployment, {
-      through: models.DeploymentCategory,
-      foreignKey: 'categoryId',
-      otherKey: 'deploymentId',
-    });
-  }
+  declare access: 'private' | 'public';
+
+  declare categories?: string[];
+
+  declare createdBy: string;
+
+  declare updatedBy: string;
 }
 
-Category.init(
+Deployment.init(
   {
     id: {
       type: DataTypes.STRING,
@@ -31,10 +33,13 @@ Category.init(
       allowNull: false,
       defaultValue: nextId,
     },
-    name: {
+    projectId: {
       type: DataTypes.STRING,
     },
-    icon: {
+    projectRef: {
+      type: DataTypes.STRING,
+    },
+    agentId: {
       type: DataTypes.STRING,
     },
     createdAt: {
@@ -42,6 +47,17 @@ Category.init(
     },
     updatedAt: {
       type: DataTypes.DATE,
+    },
+    access: {
+      type: DataTypes.STRING,
+      defaultValue: 'public',
+    },
+    createdBy: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    updatedBy: {
+      type: DataTypes.STRING,
     },
   },
   { sequelize }

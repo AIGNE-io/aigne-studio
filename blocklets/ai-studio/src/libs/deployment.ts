@@ -1,7 +1,6 @@
 import { joinURL } from 'ufo';
 
 import axios from './api';
-import { AIGNE_RUNTIME_MOUNT_POINT } from './constants';
 
 export type Deployment = {
   id: string;
@@ -25,13 +24,11 @@ export async function getDeploymentById({
   projectRef: string;
   agentId: string;
 }): Promise<Deployment> {
-  return axios
-    .get('/api/deployment/byId', { baseURL: AIGNE_RUNTIME_MOUNT_POINT, params: { projectId, projectRef, agentId } })
-    .then((res) => res.data);
+  return axios.get('/api/deployments/byId', { params: { projectId, projectRef, agentId } }).then((res) => res.data);
 }
 
 export async function getDeployment({ id }: { id: string }): Promise<Deployment> {
-  return axios.get(joinURL('/api/deployment', id), { baseURL: AIGNE_RUNTIME_MOUNT_POINT }).then((res) => res.data);
+  return axios.get(joinURL('/api/deployments', id)).then((res) => res.data);
 }
 
 export async function createOrUpdateDeployment(input: {
@@ -40,7 +37,7 @@ export async function createOrUpdateDeployment(input: {
   agentId: string;
   access?: 'private' | 'public';
 }): Promise<Deployment> {
-  return axios.post('/api/deployment', input, { baseURL: AIGNE_RUNTIME_MOUNT_POINT }).then((res) => res.data);
+  return axios.post('/api/deployments', input).then((res) => res.data);
 }
 
 export async function getDeployments(input: {
@@ -52,10 +49,8 @@ export async function getDeployments(input: {
   list: Deployment[];
   totalCount: number;
   currentPage: number;
-  pageSize: number;
-  totalPages: number;
 }> {
-  return axios.get('/api/deployment', { baseURL: AIGNE_RUNTIME_MOUNT_POINT, params: input }).then((res) => res.data);
+  return axios.get('/api/deployments', { params: input }).then((res) => res.data);
 }
 
 export async function getDeploymentsByCategoryId(input: {
@@ -66,31 +61,17 @@ export async function getDeploymentsByCategoryId(input: {
   list: Deployment[];
   totalCount: number;
   currentPage: number;
-  pageSize: number;
-  totalPages: number;
 }> {
   const { categoryId, page, pageSize } = input;
-  return axios
-    .get(`/api/deployment/categories/${categoryId}`, {
-      baseURL: AIGNE_RUNTIME_MOUNT_POINT,
-      params: {
-        page,
-        pageSize,
-      },
-    })
-    .then((res) => res.data);
+  return axios.get(`/api/deployments/categories/${categoryId}`, { params: { page, pageSize } }).then((res) => res.data);
 }
 
 export async function getAllDeployments(input: { page: number; pageSize: number }): Promise<{
   list: Deployment[];
   totalCount: number;
   currentPage: number;
-  pageSize: number;
-  totalPages: number;
 }> {
-  return axios
-    .get('/api/deployment/list', { baseURL: AIGNE_RUNTIME_MOUNT_POINT, params: input })
-    .then((res) => res.data);
+  return axios.get('/api/deployments/list', { params: input }).then((res) => res.data);
 }
 
 export async function updateDeployment(
@@ -100,13 +81,9 @@ export async function updateDeployment(
     categories?: string[];
   }
 ): Promise<Deployment> {
-  return axios
-    .put(joinURL('/api/deployment', id), input, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
-    .then((res) => res.data);
+  return axios.put(joinURL('/api/deployments', id), input).then((res) => res.data);
 }
 
 export async function deleteDeployment(input: { id: string }): Promise<Deployment> {
-  return axios
-    .delete(joinURL('/api/deployment', input.id), { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
-    .then((res) => res.data);
+  return axios.delete(joinURL('/api/deployments', input.id)).then((res) => res.data);
 }

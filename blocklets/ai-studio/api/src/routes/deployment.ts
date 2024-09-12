@@ -21,14 +21,21 @@ const paginationSchema = Joi.object({
   pageSize: Joi.number().integer().min(1).max(100).default(10),
 });
 
-router.get('/byId', user(), async (req, res) => {
-  const schema = Joi.object({
-    projectId: Joi.string().required(),
-    projectRef: Joi.string().required(),
-    agentId: Joi.string().required(),
-  });
-  const { projectId, projectRef, agentId } = await schema.validateAsync(req.query, { stripUnknown: true });
+const updateSchema = Joi.object({
+  access: Joi.string().valid('private', 'public').required(),
+  categories: Joi.array().items(Joi.string()).optional(),
+});
 
+const getByIdSchema = Joi.object({
+  projectId: Joi.string().required(),
+  projectRef: Joi.string().required(),
+  agentId: Joi.string().required(),
+});
+
+const deleteSchema = Joi.object({ id: Joi.string().required() });
+
+router.get('/byId', user(), async (req, res) => {
+  const { projectId, projectRef, agentId } = await getByIdSchema.validateAsync(req.query, { stripUnknown: true });
   const deployment = await Deployment.findOne({ where: { projectId, projectRef, agentId } });
 
   if (deployment) {
@@ -63,8 +70,6 @@ router.get('/', user(), async (req, res) => {
       ),
       totalCount: count,
       currentPage: page,
-      pageSize,
-      totalPages: Math.ceil(count / pageSize),
     });
   } catch (error) {
     res.status(400).json({ code: 'bad_request', error: error.message });
@@ -94,8 +99,6 @@ router.get('/list', user(), async (req, res) => {
       ),
       totalCount: count,
       currentPage: page,
-      pageSize,
-      totalPages: Math.ceil(count / pageSize),
     });
   } catch (error) {
     res.status(400).json({ code: 'bad_request', error: error.message });
@@ -130,8 +133,6 @@ router.get('/categories/:categoryId', user(), async (req, res) => {
     ).filter((deployment) => deployment !== null),
     totalCount: count,
     currentPage: page,
-    pageSize,
-    totalPages: Math.ceil(count / pageSize),
   });
 });
 
@@ -182,12 +183,9 @@ router.get('/:id', user(), async (req, res) => {
 });
 
 router.put('/:id', user(), async (req, res) => {
-  const schema = Joi.object({
-    access: Joi.string().valid('private', 'public').required(),
-    categories: Joi.array().items(Joi.string()).optional(),
-  });
-  const { access, categories } = await schema.validateAsync(req.body, { stripUnknown: true });
+  const { did: userId } = req.user!;
 
+  const { access, categories } = await updateSchema.validateAsync(req.body, { stripUnknown: true });
   const deployment = await Deployment.update({ access }, { where: { id: req.params.id! } });
 
   if (categories) {
@@ -195,7 +193,12 @@ router.put('/:id', user(), async (req, res) => {
 
     if (categories.length) {
       await DeploymentCategory.bulkCreate(
-        categories.map((categoryId: string) => ({ deploymentId: req.params.id!, categoryId }))
+        categories.map((categoryId: string) => ({
+          deploymentId: req.params.id!,
+          categoryId,
+          createdBy: userId,
+          updatedBy: userId,
+        }))
       );
     }
   }
@@ -204,8 +207,7 @@ router.put('/:id', user(), async (req, res) => {
 });
 
 router.delete('/:id', user(), async (req, res) => {
-  const schema = Joi.object({ id: Joi.string().required() });
-  const { id } = await schema.validateAsync(req.params, { stripUnknown: true });
+  const { id } = await deleteSchema.validateAsync(req.params, { stripUnknown: true });
 
   const deployment = await Deployment.destroy({ where: { id } });
   res.json(deployment);

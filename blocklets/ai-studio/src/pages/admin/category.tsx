@@ -77,7 +77,10 @@ function CategoryList() {
 
       Toast.success(`${action === 'update' ? t('update') : t('create')} ${t('success')}`);
       dialogState.close();
+
       reset();
+
+      dataState.reload();
     } catch (error) {
       Toast.error(`${action === 'update' ? t('update') : t('create')} ${t('failed')}`);
       console.error(`Error ${action}ing category:`, error);
@@ -93,80 +96,88 @@ function CategoryList() {
         </Button>
       </Box>
 
-      <>
-        <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
-          {categories.map((item) => {
-            return (
-              <StyledListItem key={item.id}>
-                <ListItemIcon sx={{ minWidth: 0, mr: 1.5 }}>
-                  {item.icon ? <Icon icon={item.icon} /> : <Icon icon="tabler:settings" />}
-                </ListItemIcon>
-                <ListItemText primary={item.name} />
-                <ListItemSecondaryAction sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                  <IconButton
-                    edge="end"
-                    aria-label="edit"
-                    onClick={() => {
-                      setValue('id', item.id);
-                      setValue('name', item.name);
-                      setValue('icon', item.icon);
-                      dialogState.open();
-                    }}>
-                    <Box component={Icon} icon={EditIcon} fontSize="small" />
-                  </IconButton>
-                  <IconButton
-                    edge="end"
-                    aria-label="delete"
-                    onClick={() => {
-                      showDialog({
-                        formSx: {
-                          '.MuiDialogTitle-root': {
-                            border: 0,
-                          },
-                          '.MuiDialogActions-root': {
-                            border: 0,
-                          },
-                        },
-                        maxWidth: 'sm',
-                        fullWidth: true,
-                        title: <Box sx={{ wordWrap: 'break-word' }}>{t('deployments.deleteTitle')}</Box>,
-                        content: (
-                          <Box>
-                            <Typography fontWeight={500} fontSize={16} lineHeight="28px" color="#4B5563">
-                              {t('deployments.deleteDescription')}
-                            </Typography>
-                          </Box>
-                        ),
-                        okText: t('alert.delete'),
-                        okColor: 'error',
-                        cancelText: t('cancel'),
-                        onOk: async () => {
-                          try {
-                            await deleteCategory(item.id);
-                            Toast.success(t('alert.deleted'));
-                            dataState.reload();
-                          } catch (error) {
-                            Toast.error(getErrorMessage(error));
-                          }
-                        },
-                      });
-                    }}>
-                    <Box component={Icon} icon={TrashIcon} fontSize="small" />
-                  </IconButton>
-                </ListItemSecondaryAction>
-              </StyledListItem>
-            );
-          })}
-        </List>
+      {categories?.length === 0 && (
+        <Box width={1} height={400} className="center">
+          <Typography>{t('category.noCategories')}</Typography>
+        </Box>
+      )}
 
-        {(dataState.loadingMore || dataState?.data?.next) && (
-          <Box width={1} height={60} className="center" ref={loadingRef}>
-            <Box display="flex" justifyContent="center">
-              <CircularProgress size={24} />
+      {!!categories.length && (
+        <>
+          <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
+            {categories.map((item) => {
+              return (
+                <StyledListItem key={item.id}>
+                  <ListItemIcon sx={{ minWidth: 0, mr: 1.5 }}>
+                    {item.icon ? <Icon icon={item.icon} /> : <Icon icon="tabler:settings" />}
+                  </ListItemIcon>
+                  <ListItemText primary={item.name} />
+                  <ListItemSecondaryAction sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    <IconButton
+                      edge="end"
+                      aria-label="edit"
+                      onClick={() => {
+                        setValue('id', item.id);
+                        setValue('name', item.name);
+                        setValue('icon', item.icon);
+                        dialogState.open();
+                      }}>
+                      <Box component={Icon} icon={EditIcon} fontSize="small" />
+                    </IconButton>
+                    <IconButton
+                      edge="end"
+                      aria-label="delete"
+                      onClick={() => {
+                        showDialog({
+                          formSx: {
+                            '.MuiDialogTitle-root': {
+                              border: 0,
+                            },
+                            '.MuiDialogActions-root': {
+                              border: 0,
+                            },
+                          },
+                          maxWidth: 'sm',
+                          fullWidth: true,
+                          title: <Box sx={{ wordWrap: 'break-word' }}>{t('deployments.deleteTitle')}</Box>,
+                          content: (
+                            <Box>
+                              <Typography fontWeight={500} fontSize={16} lineHeight="28px" color="#4B5563">
+                                {t('deployments.deleteDescription')}
+                              </Typography>
+                            </Box>
+                          ),
+                          okText: t('alert.delete'),
+                          okColor: 'error',
+                          cancelText: t('cancel'),
+                          onOk: async () => {
+                            try {
+                              await deleteCategory(item.id);
+                              Toast.success(t('alert.deleted'));
+                              dataState.reload();
+                            } catch (error) {
+                              Toast.error(getErrorMessage(error));
+                            }
+                          },
+                        });
+                      }}>
+                      <Box component={Icon} icon={TrashIcon} fontSize="small" />
+                    </IconButton>
+                  </ListItemSecondaryAction>
+                </StyledListItem>
+              );
+            })}
+          </List>
+
+          {(dataState.loadingMore || dataState?.data?.next) && (
+            <Box width={1} height={60} className="center" ref={loadingRef}>
+              <Box display="flex" justifyContent="center">
+                <CircularProgress size={24} />
+              </Box>
             </Box>
-          </Box>
-        )}
-      </>
+          )}
+        </>
+      )}
 
       <Dialog
         {...bindDialog(dialogState)}

@@ -17,15 +17,9 @@ export default class DeploymentCategory extends Model<
 
   declare updatedAt: CreationOptional<Date>;
 
-  static associate(models: { [key: string]: any }) {
-    DeploymentCategory.belongsTo(models.Deployment, {
-      foreignKey: 'deploymentId',
-    });
+  declare createdBy: string;
 
-    DeploymentCategory.belongsTo(models.Category, {
-      foreignKey: 'categoryId',
-    });
-  }
+  declare updatedBy: string;
 }
 
 DeploymentCategory.init(
@@ -47,6 +41,13 @@ DeploymentCategory.init(
     },
     updatedAt: {
       type: DataTypes.DATE,
+    },
+    createdBy: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    updatedBy: {
+      type: DataTypes.STRING,
     },
   },
   { sequelize }

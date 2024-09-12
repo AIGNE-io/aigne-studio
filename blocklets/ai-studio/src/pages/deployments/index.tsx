@@ -149,7 +149,7 @@ function Deployments() {
               columns={columns as any}
               rowCount={data?.totalCount || 0}
               pageSizeOptions={[20]}
-              paginationModel={{ page: (data?.currentPage || 1) - 1, pageSize: data?.pageSize || 20 }}
+              paginationModel={{ page: (data?.currentPage || 1) - 1, pageSize }}
               paginationMode="server"
               onPaginationModelChange={({ page }) => handlePageChange(page)}
               getRowClassName={() => 'document-row'}
