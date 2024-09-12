@@ -11,7 +11,7 @@ export async function dumpResult(resultKey: string, r: any) {
   } catch (error) {
     __blocklet_quickjs_builtin__.dumpResult(resultKey, {
       type: 'error',
-      error: { message: error.message, stack: error.stack },
+      error: { name: error.name, message: error.message, stack: error.stack },
     });
     throw error;
   }

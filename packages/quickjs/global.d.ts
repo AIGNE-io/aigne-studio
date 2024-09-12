@@ -3,7 +3,7 @@ declare interface BlockletQuickJSBuiltin {
     resultKey: string,
     options:
       | { type: 'result'; data: any }
-      | { type: 'error'; error: { message: string; stack?: string } }
+      | { type: 'error'; error: { name: string; message: string; stack: string } }
       | {
           type: 'chunk';
           path: (string | number)[];

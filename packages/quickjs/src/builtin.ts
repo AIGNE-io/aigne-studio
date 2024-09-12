@@ -57,8 +57,8 @@ function builtinModule(): {
         } else if (options.type === 'error') {
           const message =
             typeof options.error?.message === 'string' ? options.error.message : 'Error from QuickJS dumpResult';
-          const error = new Error(message);
-          error.stack = options.error.stack;
+          const error = new Error(message, { cause: options.error.stack });
+          error.name = options.error.name;
           scope.result.reject(error);
         } else if (options.type === 'chunk') {
           const ctrl = scope.readableStreamControllers[options.path.join('.')];

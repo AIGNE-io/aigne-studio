@@ -6,7 +6,6 @@ import config from '@blocklet/sdk/lib/config';
 import equal from 'fast-deep-equal';
 import Joi from 'joi';
 import pick from 'lodash/pick';
-import { VM } from 'vm2';
 
 import logger from '../../logger';
 import { AssistantResponseType, FunctionAssistant } from '../../types';
@@ -16,9 +15,19 @@ import { renderMessage } from '../utils/render-message';
 import { nextTaskId } from '../utils/task-id';
 import { AgentExecutorBase } from './base';
 
-function parseJSONInVM(str: string) {
-  const vm = new VM({});
-  return vm.run(`const json = ${str};json`);
+async function parseJSONInVM(str: string) {
+  return runUnsafeFunction({
+    code: `\
+function parse() {
+  return eval(\`const j = \${json}; j\`)
+}
+`,
+    functionName: 'parse',
+    filename: 'parserJSONInVm.js',
+    args: {
+      json: str.trim(),
+    },
+  });
 }
 
 export class LogicAgentExecutor extends AgentExecutorBase<FunctionAssistant> {
@@ -64,10 +73,10 @@ async function main() {
             return geti(renderCtx, s);
           },
           runAgent: () => async (template: string, render: Function) => {
-            const t = parseJSONInVM(template).template;
+            const t = (await parseJSONInVM(template))?.template;
 
             const s = await render(template);
-            const j = parseJSONInVM(s);
+            const j = await parseJSONInVM(s);
             const { agentId, inputs } = await Joi.object<{ agentId: string; inputs: any }>({
               agentId: Joi.string().required(),
               inputs: Joi.object().pattern(Joi.string(), Joi.any()).required(),
@@ -76,7 +85,7 @@ async function main() {
             const a = await this.context.getAgent({ ...agent.identity, agentId, rejectOnEmpty: true });
 
             const result = await this.context.execute(a, { taskId: nextTaskId(), parentTaskId: taskId, inputs });
-            return renderMessage(t, { ...renderCtx, $result: result });
+            return renderMessage(t, { ...renderCtx, $result: result }, { escapeJsonSymbols: true });
           },
         };
 
@@ -88,7 +97,7 @@ async function main() {
         let object: any;
 
         for await (const chunk of result) {
-          const newObj = parseJSONInVM(chunk);
+          const newObj = await parseJSONInVM(chunk);
 
           // skip if the object is equal
           // TODO: throttle the output
@@ -179,6 +188,8 @@ async function main() {
         },
         crypto: { randomInt: crypto.randomInt },
         config: { env: pick(config.env, 'appId', 'appName', 'appDescription', 'appUrl') },
+      },
+      args: {
         ...this.globalContext,
         ...args,
       },
