@@ -219,6 +219,7 @@ function DeploymentList() {
         access={deployment?.access!}
         categories={deployment?.categories!}
         run={refresh}
+        showCategories
       />
     </Container>
   );

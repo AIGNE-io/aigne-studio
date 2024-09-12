@@ -140,6 +140,7 @@ function DeploymentDetail() {
         access={data?.access!}
         categories={data?.categories!}
         run={refresh}
+        showCategories={false}
       />
     </>
   );

@@ -28,6 +28,9 @@ export const up: Migration = async ({ context: queryInterface }) => {
       type: DataTypes.STRING,
       defaultValue: 'public',
     },
+    banner: {
+      type: DataTypes.STRING,
+    },
     createdBy: {
       type: DataTypes.STRING,
       allowNull: false,

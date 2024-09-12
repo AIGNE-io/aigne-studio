@@ -45,6 +45,7 @@ export default function DeploymentDialog({
   id,
   access,
   categories,
+  showCategories = true,
   run,
 }: {
   dialogState: PopupState;
@@ -52,6 +53,7 @@ export default function DeploymentDialog({
   access: 'private' | 'public';
   categories: string[];
   run: () => void;
+  showCategories?: boolean;
 }) {
   const isAdmin = useIsAdmin();
   const { t } = useLocaleContext();
@@ -115,10 +117,12 @@ export default function DeploymentDialog({
               </Card>
             </Stack>
 
-            <Stack gap={1}>
-              <Typography variant="body1">{t('category.title')}</Typography>
-              <CategorySelect control={control} name="categories" categories={data?.list || []} />
-            </Stack>
+            {showCategories && (
+              <Stack gap={1}>
+                <Typography variant="body1">{t('category.title')}</Typography>
+                <CategorySelect control={control} name="categories" categories={data?.list || []} />
+              </Stack>
+            )}
           </Stack>
         )}
       </DialogContent>
