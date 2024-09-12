@@ -86,22 +86,49 @@ export function Slide() {
     </Box>
   );
 }
-function CategoryCard({ projectId, projectRef, agentId }: { projectId: string; projectRef: string; agentId: string }) {
+function CategoryCard({
+  projectId,
+  projectRef,
+  agentId,
+  banner,
+}: {
+  projectId: string;
+  projectRef: string;
+  agentId: string;
+  banner?: string;
+}) {
   const { getFileById } = useProjectStore(projectId, projectRef, true);
   const agent = getFileById(agentId);
 
   return (
     <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', cursor: 'pointer' }}>
       <Box width={1} pb="40%" position="relative">
-        <Box
-          position="absolute"
-          sx={{
-            inset: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
-        />
+        {banner ? (
+          <Box
+            component="img"
+            src={banner}
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              cursor: 'pointer',
+              objectFit: 'cover',
+              width: 1,
+              height: 1,
+              borderRadius: 1,
+            }}
+          />
+        ) : (
+          <Box
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              cursor: 'pointer',
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              backgroundSize: 'cover',
+              borderRadius: 1,
+            }}
+          />
+        )}
       </Box>
 
       <CardContent sx={{ flexGrow: 1 }}>
@@ -138,7 +165,12 @@ function CategoryList() {
 
         {deployments.map((tool) => (
           <Grid item key={tool.id} xs={12} sm={6} md={4} onClick={() => navigate(tool.id)}>
-            <CategoryCard projectId={tool.projectId} projectRef={tool.projectRef} agentId={tool.agentId} />
+            <CategoryCard
+              projectId={tool.projectId}
+              projectRef={tool.projectRef}
+              agentId={tool.agentId}
+              banner={tool.banner}
+            />
           </Grid>
         ))}
       </Grid>

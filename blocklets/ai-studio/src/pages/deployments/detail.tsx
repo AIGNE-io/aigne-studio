@@ -104,17 +104,19 @@ function DeploymentDetail() {
             <Chip label={t(data?.access!)} color="success" size="small" />
           </Box>
 
-          <Box>
-            <Typography variant="subtitle1" gutterBottom>
-              {t('category.title')}
-            </Typography>
+          {!!rows.length && (
+            <Box>
+              <Typography variant="subtitle1" gutterBottom>
+                {t('category.title')}
+              </Typography>
 
-            <Box display="flex" gap={1} alignItems="center">
-              {rows.map((row) => {
-                return <Chip key={row} label={row} size="small" />;
-              })}
+              <Box display="flex" gap={1} alignItems="center">
+                {rows.map((row) => {
+                  return <Chip key={row} label={row} size="small" />;
+                })}
+              </Box>
             </Box>
-          </Box>
+          )}
 
           <Box>
             <Typography variant="subtitle1" gutterBottom>
@@ -139,8 +141,10 @@ function DeploymentDetail() {
         id={id}
         access={data?.access!}
         categories={data?.categories!}
+        banner={data?.banner!}
         run={refresh}
         showCategories={false}
+        showBanner={false}
       />
     </>
   );

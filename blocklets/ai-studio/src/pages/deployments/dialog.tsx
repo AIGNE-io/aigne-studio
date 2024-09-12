@@ -1,5 +1,6 @@
 import LoadingButton from '@app/components/loading/loading-button';
 import { useIsAdmin } from '@app/contexts/session';
+import UploaderProvider, { useUploader } from '@app/contexts/uploader';
 import { Category, getCategories } from '@app/libs/category';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
@@ -38,6 +39,7 @@ import Close from '../project/icons/close';
 type UpdateType = {
   access: 'private' | 'public';
   categories: string[];
+  banner: string;
 };
 
 export default function DeploymentDialog({
@@ -45,15 +47,19 @@ export default function DeploymentDialog({
   id,
   access,
   categories,
+  banner = '',
   showCategories = true,
+  showBanner = true,
   run,
 }: {
   dialogState: PopupState;
   id: string;
   access: 'private' | 'public';
   categories: string[];
+  banner: string;
   run: () => void;
   showCategories?: boolean;
+  showBanner?: boolean;
 }) {
   const isAdmin = useIsAdmin();
   const { t } = useLocaleContext();
@@ -67,7 +73,8 @@ export default function DeploymentDialog({
   useEffect(() => {
     setValue('categories', categories);
     setValue('access', access);
-  }, [access, categories, setValue]);
+    setValue('banner', banner);
+  }, [access, categories, banner, setValue]);
 
   const onSubmit = async (data: UpdateType) => {
     try {
@@ -81,63 +88,77 @@ export default function DeploymentDialog({
   };
 
   return (
-    <Dialog {...bindDialog(dialogState)} fullWidth maxWidth="sm" component="form" onSubmit={(e) => e.preventDefault()}>
-      <DialogTitle className="between">
-        <Box>{t('deployments.updateApp')}</Box>
-        <IconButton size="small" onClick={dialogState.close}>
-          <Close />
-        </IconButton>
-      </DialogTitle>
+    <UploaderProvider>
+      <Dialog
+        {...bindDialog(dialogState)}
+        fullWidth
+        maxWidth="sm"
+        component="form"
+        onSubmit={(e) => e.preventDefault()}>
+        <DialogTitle className="between">
+          <Box>{t('deployments.updateApp')}</Box>
+          <IconButton size="small" onClick={dialogState.close}>
+            <Close />
+          </IconButton>
+        </DialogTitle>
 
-      <DialogContent>
-        {categoriesLoading ? (
-          <Box display="flex" justifyContent="center" alignItems="center" height={400}>
-            <CircularProgress />
-          </Box>
-        ) : (
-          <Stack gap={1}>
+        <DialogContent>
+          {categoriesLoading ? (
+            <Box display="flex" justifyContent="center" alignItems="center" height={400}>
+              <CircularProgress />
+            </Box>
+          ) : (
             <Stack gap={1}>
-              <Typography variant="body1">{t('deployments.visibility')}</Typography>
-              <Card sx={{ width: 1, boxShadow: 0 }}>
-                <CardContent sx={{ p: 0, m: 0 }}>
-                  <VisibilitySelect control={control} name="access" />
-                </CardContent>
-
-                {!isAdmin && (
-                  <Typography variant="caption" mt={2}>
-                    {t('deployments.toEnablePrivateProjects')}
-                    <Box
-                      component="a"
-                      href="https://store.blocklet.dev/blocklets/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB"
-                      target="_blank">
-                      {t('deployments.launchAigne')}
-                    </Box>
-                  </Typography>
-                )}
-              </Card>
-            </Stack>
-
-            {showCategories && (
               <Stack gap={1}>
-                <Typography variant="body1">{t('category.title')}</Typography>
-                <CategorySelect control={control} name="categories" categories={data?.list || []} />
-              </Stack>
-            )}
-          </Stack>
-        )}
-      </DialogContent>
+                <Typography variant="body1">{t('deployments.visibility')}</Typography>
+                <Card sx={{ width: 1, boxShadow: 0 }}>
+                  <CardContent sx={{ p: 0, m: 0 }}>
+                    <VisibilitySelect control={control} name="access" />
+                  </CardContent>
 
-      <DialogActions>
-        <Stack flexDirection="row" gap={1}>
-          <Button variant="outlined" onClick={dialogState.close}>
-            {t('cancel')}
-          </Button>
-          <LoadingButton variant="contained" onClick={handleSubmit(onSubmit)}>
-            {t('update')}
-          </LoadingButton>
-        </Stack>
-      </DialogActions>
-    </Dialog>
+                  {!isAdmin && (
+                    <Typography variant="caption" mt={2}>
+                      {t('deployments.toEnablePrivateProjects')}
+                      <Box
+                        component="a"
+                        href="https://store.blocklet.dev/blocklets/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB"
+                        target="_blank">
+                        {t('deployments.launchAigne')}
+                      </Box>
+                    </Typography>
+                  )}
+                </Card>
+              </Stack>
+
+              {showCategories && (
+                <Stack gap={1}>
+                  <Typography variant="body1">{t('category.title')}</Typography>
+                  <CategorySelect control={control} name="categories" categories={data?.list || []} />
+                </Stack>
+              )}
+
+              {showBanner && (
+                <Stack gap={1}>
+                  <Typography variant="body1">{t('category.banner')}</Typography>
+                  <BannerSelect control={control} name="banner" />
+                </Stack>
+              )}
+            </Stack>
+          )}
+        </DialogContent>
+
+        <DialogActions>
+          <Stack flexDirection="row" gap={1}>
+            <Button variant="outlined" onClick={dialogState.close}>
+              {t('cancel')}
+            </Button>
+            <LoadingButton variant="contained" onClick={handleSubmit(onSubmit)}>
+              {t('update')}
+            </LoadingButton>
+          </Stack>
+        </DialogActions>
+      </Dialog>
+    </UploaderProvider>
   );
 }
 
@@ -253,6 +274,59 @@ function CategorySelect({
             />
           )}
         />
+      )}
+    />
+  );
+}
+
+function BannerSelect({ control, name }: { control: Control<UpdateType>; name: 'banner' }) {
+  const uploaderRef = useUploader();
+
+  return (
+    <Controller
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <Box sx={{ width: 1, position: 'relative', pb: '40%' }}>
+          <Box
+            sx={{ position: 'absolute', inset: 0 }}
+            onClick={() => {
+              const uploader = uploaderRef?.current?.getUploader();
+              uploader?.open();
+
+              uploader.onceUploadSuccess(({ response }: any) => {
+                const url = response?.data?.url || response?.data?.fileUrl;
+                field.onChange(url);
+              });
+            }}>
+            {field.value ? (
+              <Box
+                component="img"
+                src={field.value}
+                sx={{
+                  position: 'absolute',
+                  inset: 0,
+                  cursor: 'pointer',
+                  objectFit: 'cover',
+                  width: 1,
+                  height: 1,
+                  borderRadius: 1,
+                }}
+              />
+            ) : (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  inset: 0,
+                  cursor: 'pointer',
+                  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                  backgroundSize: 'cover',
+                  borderRadius: 1,
+                }}
+              />
+            )}
+          </Box>
+        </Box>
       )}
     />
   );

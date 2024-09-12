@@ -218,8 +218,8 @@ function DeploymentList() {
         id={deployment?.id!}
         access={deployment?.access!}
         categories={deployment?.categories!}
+        banner={deployment?.banner!}
         run={refresh}
-        showCategories
       />
     </Container>
   );

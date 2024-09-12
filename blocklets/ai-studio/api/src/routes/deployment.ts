@@ -36,6 +36,7 @@ const searchByCategoryIdSchema = paginationSchema.concat(
 const updateSchema = Joi.object({
   access: Joi.string().valid('private', 'public').required(),
   categories: Joi.array().items(Joi.string()).optional(),
+  banner: Joi.string().allow('').empty(['', null]).optional(),
 });
 
 const getByIdSchema = Joi.object({
@@ -197,8 +198,12 @@ router.put('/:id', user(), auth(), async (req, res) => {
 
   checkUserAuth(req, res)(found.createdBy);
 
-  const { access, categories } = await updateSchema.validateAsync(req.body, { stripUnknown: true });
-  const deployment = await Deployment.update({ access }, { where: { id: req.params.id! } });
+  const { access, categories, banner } = await updateSchema.validateAsync(req.body, { stripUnknown: true });
+  const value = {
+    access,
+    ...(banner ? { banner } : {}),
+  };
+  const deployment = await Deployment.update(value, { where: { id: req.params.id! } });
 
   if (categories) {
     await DeploymentCategory.destroy({ where: { deploymentId: req.params.id! } });
