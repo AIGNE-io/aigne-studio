@@ -64,7 +64,7 @@ function Agent({ data }: { data: Deployment }) {
         </Button>
       </Box>
 
-      <Box flex={1}>
+      <Stack flex={1}>
         <TabContext value={value}>
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
             <TabList onChange={handleChange}>
@@ -73,15 +73,15 @@ function Agent({ data }: { data: Deployment }) {
             </TabList>
           </Box>
 
-          <TabPanel value="1">
+          <TabPanel value="1" sx={{ flex: 1, overflow: 'overlay' }}>
             <Box>Readme</Box>
           </TabPanel>
 
-          <TabPanel value="2">
+          <TabPanel value="2" sx={{ flex: 1, overflow: 'overlay' }}>
             <PreviewPage />
           </TabPanel>
         </TabContext>
-      </Box>
+      </Stack>
     </>
   );
 }
