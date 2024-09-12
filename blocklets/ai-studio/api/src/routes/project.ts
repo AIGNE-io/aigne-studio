@@ -7,7 +7,6 @@ import { Config } from '@api/libs/env';
 import { NoPermissionError, NotFoundError } from '@api/libs/error';
 import { sampleIcon } from '@api/libs/icon';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
-import logger from '@api/libs/logger';
 import AgentInputSecret from '@api/store/models/agent-input-secret';
 import {
   MemoryFile,
@@ -405,24 +404,12 @@ export function projectRoutes(router: Router) {
 
     const project = await Project.findByPk(projectId, { rejectOnEmpty: new NotFoundError('No such project') });
 
-    let settings: ProjectSettings | undefined;
-
     const repo = await ProjectRepo.load({ projectId });
-    if (query.working) {
-      const w = await repo.working({ ref: query.projectRef || project.gitDefaultBranch || defaultBranch });
-      settings = w.syncedStore.files[PROJECT_FILE_PATH] as ProjectSettings;
-    } else {
-      try {
-        const { blob } = await repo.readBlob({
-          ref: project.gitDefaultBranch || defaultBranch,
-          filepath: PROJECT_FILE_PATH,
-        });
-        const str = Buffer.from(blob).toString();
-        settings = parse(str);
-      } catch (error) {
-        logger.error('Error reading settings file', error);
-      }
-    }
+    const settings = await repo.readAndParseFile<ProjectSettings>({
+      filepath: PROJECT_FILE_PATH,
+      ref: query.projectRef || project.gitDefaultBranch,
+      working: query.working,
+    });
 
     checkProjectPermission({ req, project });
 

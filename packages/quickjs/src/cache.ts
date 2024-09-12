@@ -25,13 +25,10 @@ export function memoize<T extends (...args: any) => any>(
     if (cache) return cache;
 
     const value = fn(...args);
+    lru.set(key, value);
 
     if (value instanceof Promise) {
-      value.then((value) => {
-        lru.set(key, value);
-      });
-    } else {
-      lru.set(key, value);
+      value.catch(() => lru.delete(key));
     }
 
     return value;
