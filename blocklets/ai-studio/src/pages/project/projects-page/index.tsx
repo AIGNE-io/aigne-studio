@@ -12,7 +12,6 @@ import BrandGithubFilledIcon from '@iconify-icons/tabler/brand-github-filled';
 import ChevronDownIcon from '@iconify-icons/tabler/chevron-down';
 import CopyIcon from '@iconify-icons/tabler/copy';
 import DotsVerticalIcon from '@iconify-icons/tabler/dots-vertical';
-import FilePlusIcon from '@iconify-icons/tabler/file-plus';
 import PencilIcon from '@iconify-icons/tabler/pencil';
 import PinIcon from '@iconify-icons/tabler/pin';
 import PinnedOffIcon from '@iconify-icons/tabler/pinned-off';
@@ -66,7 +65,6 @@ import Pin from '../icons/pin';
 import ImportFromBlank from './import-from-blank';
 import ImportFromDidSpaces, { FROM_DID_SPACES_IMPORT, SelectDidSpacesImportWay } from './import-from-did-spaces';
 import ImportFromGit from './import-from-git';
-import ImportFromTemplates from './import-from-templates';
 
 const CARD_HEIGHT = 140;
 const MAX_WIDTH = 300;
@@ -74,23 +72,23 @@ const MAX_WIDTH = 300;
 export default function ProjectsPage() {
   const { t } = useLocaleContext();
   const { session, events } = useSessionContext();
+
   const [searchParams] = useSearchParams();
   const endpoint = searchParams.get('endpoint');
   const action = searchParams.get('action');
+
   const [showSelectDidSpacesImportWay, setShowSelectDidSpacesImportWay] = useState(false);
 
   useEffect(() => {
     events.on(EVENTS.CONNECT_TO_DID_SPACE_FOR_FULL_ACCESS, () => {
       if (action === FROM_DID_SPACES_IMPORT) {
-        setTimeout(() => {
-          setShowSelectDidSpacesImportWay(true);
-        }, 3000);
+        setTimeout(() => setShowSelectDidSpacesImportWay(true), 3000);
       }
     });
   }, []);
 
   const {
-    state: { loading, templates, projects, examples },
+    state: { loading, projects },
     refetch,
     clearState,
   } = useProjectsState();
@@ -109,19 +107,10 @@ export default function ProjectsPage() {
         {endpoint && <ImportFromDidSpaces />}
 
         {showSelectDidSpacesImportWay && (
-          <SelectDidSpacesImportWay
-            onClose={() => {
-              setShowSelectDidSpacesImportWay(false);
-            }}
-          />
+          <SelectDidSpacesImportWay onClose={() => setShowSelectDidSpacesImportWay(false)} />
         )}
 
-        {examples && examples.length > 0 && (
-          <Section title={t('examples')}>
-            <ProjectList section="examples" list={examples} />
-          </Section>
-        )}
-        <Section title={t('myProjects')} section="projects" list={templates}>
+        <Section title={t('myProjects')} section="projects" list={projects}>
           {projects.length ? (
             <ProjectList section="projects" list={projects} />
           ) : loading ? (
@@ -138,10 +127,9 @@ export default function ProjectsPage() {
               />
             </Stack>
           ) : (
-            <Stack alignItems="center" mt="15%">
-              <Typography variant="subtitle1">💻</Typography>
-              <Typography variant="subtitle4">{t('emptyProjectTitle')}</Typography>
-              <Typography variant="subtitle5">{t('emptyProjectSubtitle')}</Typography>
+            <Stack alignItems="center" mt="15%" gap={4}>
+              <Typography variant="h4">{t('projectToGetStart')}</Typography>
+              <ProjectsActionButton />
             </Stack>
           )}
         </Section>
@@ -150,9 +138,7 @@ export default function ProjectsPage() {
   );
 }
 
-function TemplatesProjects({ list }: { list?: ProjectWithUserInfo[] }) {
-  const blank = (list || []).find((x) => !x.blockletDid);
-  const resource = (list || []).filter((x) => x.blockletDid);
+function ProjectsActionButton() {
   const { t } = useLocaleContext();
   const [dialog, setDialog] = useState<any>(null);
   const { checkProjectLimit, limitDialog } = useProjectsState();
@@ -186,43 +172,15 @@ function TemplatesProjects({ list }: { list?: ProjectWithUserInfo[] }) {
           </Button>
         </ButtonPopper>
 
-        {resource.length ? (
-          <ButtonPopper
-            onClick={checkProjectLimit}
-            list={
-              <MenuList autoFocusItem>
-                <MenuItem
-                  onClick={() => {
-                    setDialog(<ImportFromBlank item={blank} onClose={() => setDialog(null)} />);
-                  }}>
-                  <Box component={Icon} icon={PlusIcon} sx={{ mr: 1 }} />
-                  <ListItemText sx={{ fontSize: 13, lineHeight: '22px' }}>{t('blank')}</ListItemText>
-                </MenuItem>
-
-                <MenuItem
-                  onClick={() => {
-                    setDialog(<ImportFromTemplates templates={resource} onClose={() => setDialog(null)} />);
-                  }}>
-                  <Box component={Icon} icon={FilePlusIcon} sx={{ mr: 1 }} />
-                  <ListItemText sx={{ fontSize: 13, lineHeight: '22px' }}>{t('agents')}</ListItemText>
-                </MenuItem>
-              </MenuList>
-            }>
-            <Button data-testid="newProject" startIcon={<Box component={Icon} icon={PlusIcon} />} variant="contained">
-              {t('newObject', { object: t('project') })}
-            </Button>
-          </ButtonPopper>
-        ) : (
-          <Button
-            data-testid="newProject"
-            startIcon={<Box component={Icon} icon={PlusIcon} />}
-            variant="contained"
-            onClick={() => {
-              setDialog(<ImportFromBlank item={blank} onClose={() => setDialog(null)} />);
-            }}>
-            {t('newObject', { object: t('project') })}
-          </Button>
-        )}
+        <Button
+          data-testid="newProject"
+          startIcon={<Box component={Icon} icon={PlusIcon} />}
+          variant="contained"
+          onClick={() => {
+            setDialog(<ImportFromBlank onClose={() => setDialog(null)} />);
+          }}>
+          {t('newObject', { object: t('project') })}
+        </Button>
       </Stack>
 
       {dialog}
@@ -557,7 +515,7 @@ function Section({
           )}
         </Stack>
 
-        {section === 'projects' && <TemplatesProjects list={list} />}
+        {section === 'projects' && !!list?.length && <ProjectsActionButton />}
       </Box>
 
       <Collapse in={enableCollapse ? templatesVisible : true} sx={{ position: 'relative' }}>

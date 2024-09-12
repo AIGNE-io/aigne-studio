@@ -1,3 +1,7 @@
+## 0.4.47 (2024-9-12)
+
+- feat: multi-tenant project page
+
 ## 0.4.46 (2024-9-12)
 
 - feat: update knowledge base storage method to application
