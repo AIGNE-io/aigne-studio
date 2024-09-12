@@ -14,7 +14,7 @@ const updateDiscussKnowledge = async () => {
   for (const dataset of datasets) {
     const documents = await DatasetDocument.findAll({ where: { type: 'discussKit', datasetId: dataset.id } });
     documents.forEach((document) => {
-      if (document.id) queue.checkAndPush({ type: 'document', documentId: document.id });
+      if (document.id) queue.checkAndPush({ type: 'document', datasetId: dataset.id, documentId: document.id });
     });
   }
 };

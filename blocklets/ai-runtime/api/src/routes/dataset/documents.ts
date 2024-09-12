@@ -1,14 +1,18 @@
+import { copyFile, rm } from 'fs/promises';
 import { join } from 'path';
 
 import { resourceManager } from '@api/libs/resource';
 import user from '@blocklet/sdk/lib/middlewares/user';
 import { initLocalStorageServer } from '@blocklet/uploader/lib/middlewares';
 import express, { Router } from 'express';
+import { pathExists } from 'fs-extra';
 import Joi from 'joi';
 import { sortBy } from 'lodash';
 import { Op, Sequelize } from 'sequelize';
+import { joinURL } from 'ufo';
 
 import { AIKitEmbeddings } from '../../core/embeddings/ai-kit';
+import ensureKnowledgeDirExists, { getUploadDir } from '../../libs/ensure-dir';
 import { Config } from '../../libs/env';
 import logger from '../../libs/logger';
 import { userAuth } from '../../libs/security';
@@ -62,7 +66,10 @@ const searchResourceKnowledge = async (blockletDid: string, knowledgeId: string,
   }
 
   const embeddings = new AIKitEmbeddings({});
-  const store = await VectorStore.load(join(resource.vectorsPath, knowledgeId), embeddings);
+  const vectorPath = (await pathExists(join(resource.vectorsPath, 'faiss.index')))
+    ? resource.vectorsPath
+    : join(resource.vectorsPath, knowledgeId);
+  const store = await VectorStore.load(vectorPath, embeddings);
 
   if (store.getMapping() && !Object.keys(store.getMapping()).length) {
     logger.error('store get mapping is empty');
@@ -251,7 +258,7 @@ router.post('/:datasetId/documents/text', user(), userAuth(), async (req, res) =
   });
   await DatasetContent.create({ documentId: document.id, content });
 
-  queue.checkAndPush({ type: 'document', documentId: document.id });
+  queue.checkAndPush({ type: 'document', datasetId, documentId: document.id });
 
   res.json(document);
 });
@@ -307,7 +314,7 @@ router.post('/:datasetId/documents/discussion', user(), async (req, res) => {
   const docs = await Promise.all(
     arr.map(async (item) => {
       const document = await createOrUpdate(item.name, item.data);
-      queue.checkAndPush({ type: 'document', documentId: document.id });
+      queue.checkAndPush({ type: 'document', datasetId, documentId: document.id });
       return document;
     })
   );
@@ -339,7 +346,7 @@ router.put('/:datasetId/documents/:documentId/text', user(), userAuth(), async (
 
   const document = await DatasetDocument.findOne({ where: { id: documentId, datasetId } });
 
-  if (document) queue.checkAndPush({ type: 'document', documentId: document.id });
+  if (document) queue.checkAndPush({ type: 'document', datasetId, documentId: document.id });
 
   res.json(document);
 });
@@ -374,18 +381,19 @@ router.get('/:datasetId/documents/:documentId/content', user(), userAuth(), asyn
     return res.json({ content: [] });
   }
 
-  const content = await getContent(document);
+  const content = await getContent(datasetId, document);
   return res.json({ content });
 });
 
 router.post('/:datasetId/documents/:documentId/embedding', user(), userAuth(), async (req, res) => {
-  const { documentId } = await Joi.object<{ documentId: string }>({
+  const { datasetId, documentId } = await Joi.object<{ datasetId: string; documentId: string }>({
     documentId: Joi.string().required(),
+    datasetId: Joi.string().required(),
   }).validateAsync(req.params, { stripUnknown: true });
 
   const [document] = await Promise.all([DatasetDocument.findOne({ where: { id: documentId } })]);
 
-  if (document) queue.checkAndPush({ type: 'document', documentId: document.id });
+  if (document) queue.checkAndPush({ type: 'document', datasetId, documentId: document.id });
 
   res.json(document);
 });
@@ -395,36 +403,44 @@ const localStorageServer = initLocalStorageServer({
   express,
   onUploadFinish: async (req: any, _res: any, uploadMetadata: any) => {
     const { documentId, datasetId } = req.query;
-    const { originFileName, absolutePath, type } = uploadMetadata.runtime;
+    const { hashFileName, originFileName, absolutePath, type } = uploadMetadata.runtime;
+    const newFilePath = joinURL(getUploadDir(datasetId), hashFileName);
 
-    if (documentId) {
-      await DatasetDocument.update(
-        {
-          error: null,
-          name: originFileName,
-          data: { type, path: absolutePath },
-          updatedBy: req.user.did,
-          embeddingStatus: 'idle',
-        },
-        { where: { id: documentId, datasetId } }
-      );
+    await ensureKnowledgeDirExists(datasetId);
+    await copyFile(absolutePath, newFilePath);
 
-      const document = await DatasetDocument.findOne({ where: { id: documentId, datasetId } });
-      if (document) queue.checkAndPush({ type: 'document', documentId: document.id, update: true });
-    } else {
-      const document = await DatasetDocument.create({
-        type: 'file',
+    const updateOrCreateDocument = async () => {
+      const commonData = {
+        error: null,
         name: originFileName,
-        data: { type, path: absolutePath },
-        datasetId,
-        createdBy: req.user.did,
+        data: { type, path: hashFileName },
         updatedBy: req.user.did,
         embeddingStatus: 'idle',
-      });
+      };
 
-      await DatasetContent.create({ documentId: document.id, content: '' });
-      if (document) queue.checkAndPush({ type: 'document', documentId: document.id });
-    }
+      if (documentId) {
+        await DatasetDocument.update(commonData, { where: { id: documentId, datasetId } });
+        const document = await DatasetDocument.findOne({ where: { id: documentId, datasetId } });
+        if (document) queue.checkAndPush({ type: 'document', datasetId, documentId: document.id, update: true });
+      } else {
+        const document = await DatasetDocument.create({
+          ...commonData,
+          type: 'file',
+          datasetId,
+          createdBy: req.user.did,
+        });
+        await DatasetContent.create({ documentId: document.id, content: '' });
+        if (document) queue.checkAndPush({ type: 'document', datasetId, documentId: document.id });
+      }
+    };
+
+    // 延迟文件移动操作
+    setTimeout(async () => {
+      await rm(absolutePath, { recursive: true, force: true });
+    }, 3000);
+
+    // 立即更新或创建文档
+    await updateOrCreateDocument();
 
     return uploadMetadata;
   },

@@ -5,6 +5,7 @@ import { sha3_256 } from 'js-sha3';
 import { isNil, omitBy } from 'lodash';
 import { joinURL } from 'ufo';
 
+import { getUploadPathByCheckFile } from '../../libs/ensure-dir';
 import logger from '../../libs/logger';
 import createQueue, {
   CommentQueue,
@@ -46,7 +47,9 @@ const documentItemJob = async (job: DocumentQueue) => {
       const data = document?.data as { type: string; path: string };
       let currentContent = '';
       try {
-        currentContent = await getFileContent(data?.type || '', data?.path || '');
+        const fileJoinPath = await getUploadPathByCheckFile(document.datasetId || job.datasetId, data?.path);
+
+        currentContent = await getFileContent(data?.type || '', fileJoinPath);
       } catch (error) {
         currentContent = '';
       }

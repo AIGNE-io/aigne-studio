@@ -7,12 +7,7 @@ import { user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 
 import { ensureComponentCallOrPromptsEditor } from '../libs/security';
-import {
-  PROMPTS_FOLDER_NAME,
-  getAssistantFromRepository,
-  getAssistantIdFromPath,
-  getRepository,
-} from '../store/repository';
+import { PROMPTS_FOLDER_NAME, getAssistantIdFromPath, getRepository } from '../store/repository';
 import { checkProjectPermission } from './project';
 
 export interface File {
@@ -61,7 +56,7 @@ export function treeRoutes(router: Router) {
                 type: 'file',
                 name: base,
                 parent,
-                meta: await getAssistantFromRepository({ repository, ref, agentId }),
+                meta: await repository.readAgent({ ref, agentId }),
               };
             }
           }

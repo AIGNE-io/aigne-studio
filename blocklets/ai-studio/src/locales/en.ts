@@ -783,4 +783,7 @@ export default flatten({
     'Choose a template for a quick start, or create your unique project - Click to begin your personalized journey!',
   syncTip: 'Save the modified data before data synchronization',
   noTemplatesAvailable: 'No templates available',
+  loginRequired: 'Login Required',
+  loginRequiredHelper: 'The user needs to log in before using this agent',
+  noLoginRequiredHelper: 'The user can use this agent without logging in',
 });

@@ -25,6 +25,10 @@ export const Config = {
   get uploadDir() {
     return join(config.env.dataDir, 'uploads');
   },
+
+  get knowledgeDir() {
+    return join(config.env.dataDir, 'knowledge');
+  },
 };
 
 config.events.on(config.Events.envUpdate, () => {

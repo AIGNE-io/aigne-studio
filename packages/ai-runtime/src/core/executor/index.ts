@@ -1,3 +1,4 @@
+import logger from '../../logger';
 import { GetAgentResult } from '../assistant/type';
 import { AgentExecutor } from './agent';
 import { AIGCAgentExecutor } from './aigc';
@@ -9,26 +10,32 @@ import { DecisionAgentExecutor } from './decision';
 import { LLMAgentExecutor } from './llm';
 import { LogicAgentExecutor } from './logic';
 
-export class RuntimeExecutor extends AgentExecutorBase {
+export class RuntimeExecutor extends AgentExecutorBase<GetAgentResult> {
   constructor(
-    options: Omit<ConstructorParameters<typeof ExecutorContext>[0], 'executor'>,
+    context: Omit<ConstructorParameters<typeof ExecutorContext>[0], 'executor'>,
+    agent: GetAgentResult,
+    options: AgentExecutorOptions,
     private parentAgent?: GetAgentResult
   ) {
     super(
       new ExecutorContext({
-        ...options,
-        executor: (context) => new RuntimeExecutor(context ?? this.context, this.agent),
-      })
+        ...context,
+        executor(agent, options) {
+          return new RuntimeExecutor(this, agent, options, agent);
+        },
+      }),
+      agent,
+      options
     );
   }
-
-  private agent?: GetAgentResult;
 
   override async process() {
     // ignore
   }
 
-  override async execute(agent: GetAgentResult, options: AgentExecutorOptions): Promise<any> {
+  override async execute(): Promise<any> {
+    const { agent, options } = this;
+
     if (this.parentAgent?.identity && agent.identity) {
       agent.identity.blockletDid ||= this.parentAgent.identity.blockletDid;
       agent.identity.projectId ||= this.parentAgent.identity.projectId;
@@ -36,34 +43,33 @@ export class RuntimeExecutor extends AgentExecutorBase {
       agent.identity.working ||= this.parentAgent.identity.working;
     }
 
-    this.agent = agent;
-
     switch (agent.type) {
       case 'agent': {
-        return new AgentExecutor(this.context).execute(agent, options);
+        return new AgentExecutor(this.context, agent, options).execute();
       }
       case 'prompt': {
-        return new LLMAgentExecutor(this.context).execute(agent, options);
+        return new LLMAgentExecutor(this.context, agent, options).execute();
       }
       case 'image': {
-        return new AIGCAgentExecutor(this.context).execute(agent, options);
+        return new AIGCAgentExecutor(this.context, agent, options).execute();
       }
       case 'api': {
-        return new APIAgentExecutor(this.context).execute(agent, options);
+        return new APIAgentExecutor(this.context, agent, options).execute();
       }
       case 'function': {
-        return new LogicAgentExecutor(this.context).execute(agent, options);
+        return new LogicAgentExecutor(this.context, agent, options).execute();
       }
       case 'router': {
-        return new DecisionAgentExecutor(this.context).execute(agent, options);
+        return new DecisionAgentExecutor(this.context, agent, options).execute();
       }
       case 'callAgent': {
-        return new CallAgentExecutor(this.context).execute(agent, options);
+        return new CallAgentExecutor(this.context, agent, options).execute();
       }
       case 'blocklet': {
-        return new BlockletAgentExecutor(this.context).execute(agent, options);
+        return new BlockletAgentExecutor(this.context, agent, options).execute();
       }
       default: {
+        logger.error('Unsupported agent type', { agent });
         throw new Error(`Unsupported agent type: ${(agent as any)?.type}`);
       }
     }

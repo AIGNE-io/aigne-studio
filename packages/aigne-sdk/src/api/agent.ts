@@ -43,7 +43,7 @@ export interface RunAgentInput {
   blockletDid?: string;
   working?: boolean;
   aid: string;
-  sessionId: string;
+  sessionId?: string;
   inputs?: { [key: string]: any };
 }
 
