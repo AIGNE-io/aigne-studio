@@ -5,7 +5,9 @@ import dotenv from 'dotenv-flow';
 const logger = console;
 
 (async () => {
-  dotenv.config();
+  if (process.env.NODE_ENV === 'development') {
+    dotenv.config();
+  }
 
   try {
     await import('../store/migrate').then((m) => m.default());

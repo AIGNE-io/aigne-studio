@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.4.47",
+  "version": "0.4.48",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -126,10 +126,10 @@
     "test": "jest src/"
   },
   "dependencies": {
-    "@blocklet/ai-builtin": "workspace:^",
-    "@blocklet/ai-kit": "^0.1.47",
+    "@blocklet/ai-kit": "^0.1.50",
     "@blocklet/dataset-sdk": "workspace:^",
     "@blocklet/logger": "^1.16.31",
+    "@blocklet/quickjs": "workspace:^",
     "@blocklet/sdk": "^1.16.31",
     "@microsoft/fetch-event-source": "^2.0.1",
     "ahooks": "^3.8.1",
@@ -151,7 +151,6 @@
     "react-hook-form": "^7.53.0",
     "recoil": "^0.7.7",
     "snowflake-uuid": "^1.0.0",
-    "typescript": "^5.5.4",
     "ufo": "^1.5.4",
     "vm2": "^3.9.19",
     "yaml": "^2.5.0"
@@ -167,7 +166,7 @@
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@arcblock/ux": "^2.10.30",
+    "@arcblock/ux": "^2.10.33",
     "@emotion/css": "^11.13.0",
     "@emotion/react": "^11.13.3",
     "@jest/globals": "^29.7.0",

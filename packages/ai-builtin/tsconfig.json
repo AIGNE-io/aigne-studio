@@ -1,8 +1,0 @@
-{
-  "extends": "../../tsconfig",
-  "compilerOptions": {
-    "noEmit": false,
-    "outDir": "lib",
-    "lib": ["ES2015"]
-  }
-}

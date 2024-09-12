@@ -1,32 +1,33 @@
-import 'dayjs/locale/zh';
-import 'dayjs/locale/ja';
-
 import crypto from 'crypto';
-import { join } from 'path';
-import { ReadableStream, TextDecoderStream, TransformStream } from 'stream/web';
 
-import { EventSourceParserStream } from '@blocklet/ai-kit/api/utils/event-stream';
+import { runUnsafeFunction, transpileModule } from '@blocklet/quickjs';
 import { call, getComponentMountPoint } from '@blocklet/sdk/lib/component';
-import config, { logger } from '@blocklet/sdk/lib/config';
-import dayjs from 'dayjs';
+import config from '@blocklet/sdk/lib/config';
 import equal from 'fast-deep-equal';
 import Joi from 'joi';
 import pick from 'lodash/pick';
-import { joinURL, withQuery } from 'ufo';
-import { NodeVM, VM } from 'vm2';
 
-import { TranspileTs } from '../../builtin/complete';
+import logger from '../../logger';
 import { AssistantResponseType, FunctionAssistant } from '../../types';
 import { renderMustacheStream } from '../../types/assistant/mustache/ReadableMustache';
-import { BuiltinModules } from '../assistant/builtin';
 import { geti } from '../utils/geti';
 import { renderMessage } from '../utils/render-message';
 import { nextTaskId } from '../utils/task-id';
 import { AgentExecutorBase } from './base';
 
-function parseJSONInVM(str: string) {
-  const vm = new VM({});
-  return vm.run(`const json = ${str};json`);
+async function parseJSONInVM(str: string) {
+  return runUnsafeFunction({
+    code: `\
+function parse() {
+  return eval(\`const j = \${json}; j\`)
+}
+`,
+    functionName: 'parse',
+    filename: 'parserJSONInVm.js',
+    args: {
+      json: str.trim(),
+    },
+  });
 }
 
 export class LogicAgentExecutor extends AgentExecutorBase<FunctionAssistant> {
@@ -37,11 +38,19 @@ export class LogicAgentExecutor extends AgentExecutorBase<FunctionAssistant> {
     } = this;
 
     if (!agent.code) throw new Error(`Assistant ${agent.id}'s code is empty`);
-    const code = await TranspileTs(`\
-    export default async function(args) {
-      ${agent.code}
-    }
-    `);
+    const code = await transpileModule(
+      `\
+async function main() {
+  ${agent.code}
+}
+`,
+      (ts) => ({
+        compilerOptions: {
+          module: ts.ModuleKind.ESNext,
+          target: ts.ScriptTarget.ES2020,
+        },
+      })
+    );
 
     const args = Object.fromEntries(
       await Promise.all(
@@ -50,24 +59,6 @@ export class LogicAgentExecutor extends AgentExecutorBase<FunctionAssistant> {
           .map(async (i) => [i.key, inputs?.[i.key] || i.defaultValue])
       )
     );
-
-    const getUserHeader = () => {
-      const { user } = this.context;
-      return {
-        'x-user-did': user?.did,
-        'x-user-role': user?.role,
-        'x-user-provider': user?.provider,
-        'x-user-fullname': user?.fullName && encodeURIComponent(user?.fullName),
-        'x-user-wallet-os': user?.walletOS,
-      };
-    };
-
-    const ctx: { [key: string]: any } = Object.freeze({
-      ...this.context,
-      user: this.context.user,
-      session: { id: this.context.sessionId },
-      getUserHeader,
-    });
 
     const $json = (variables: any, ...rest: any[]) => {
       const taggedFn = async (t: TemplateStringsArray, ...rest: any[]) => {
@@ -82,10 +73,10 @@ export class LogicAgentExecutor extends AgentExecutorBase<FunctionAssistant> {
             return geti(renderCtx, s);
           },
           runAgent: () => async (template: string, render: Function) => {
-            const t = parseJSONInVM(template).template;
+            const t = (await parseJSONInVM(template))?.template;
 
             const s = await render(template);
-            const j = parseJSONInVM(s);
+            const j = await parseJSONInVM(s);
             const { agentId, inputs } = await Joi.object<{ agentId: string; inputs: any }>({
               agentId: Joi.string().required(),
               inputs: Joi.object().pattern(Joi.string(), Joi.any()).required(),
@@ -94,7 +85,7 @@ export class LogicAgentExecutor extends AgentExecutorBase<FunctionAssistant> {
             const a = await this.context.getAgent({ ...agent.identity, agentId, rejectOnEmpty: true });
 
             const result = await this.context.execute(a, { taskId: nextTaskId(), parentTaskId: taskId, inputs });
-            return renderMessage(t, { ...renderCtx, $result: result });
+            return renderMessage(t, { ...renderCtx, $result: result }, { escapeJsonSymbols: true });
           },
         };
 
@@ -106,7 +97,7 @@ export class LogicAgentExecutor extends AgentExecutorBase<FunctionAssistant> {
         let object: any;
 
         for await (const chunk of result) {
-          const newObj = parseJSONInVM(chunk);
+          const newObj = await parseJSONInVM(chunk);
 
           // skip if the object is equal
           // TODO: throttle the output
@@ -134,25 +125,33 @@ export class LogicAgentExecutor extends AgentExecutorBase<FunctionAssistant> {
       };
 
       // 支持 $json({foo:"xxx"})`` 和 $json`` 两种调用方式
-      if (Array.isArray(variables) && Array.isArray((variables as any as TemplateStringsArray).raw)) {
+      if (Array.isArray(variables)) {
         return taggedFn(variables as any as TemplateStringsArray, ...rest);
       }
 
       return taggedFn;
     };
 
-    const vm = new NodeVM({
-      console: 'redirect',
-      require: {
-        external: { modules: ['@blocklet/ai-builtin'], transitive: true },
-        mock: BuiltinModules,
-      },
-      sandbox: {
-        context: ctx,
+    const resultPromise = await runUnsafeFunction({
+      code,
+      functionName: 'main',
+      filename: `${agent.name || agent.id}.js`,
+      global: {
+        console: <typeof console>{
+          // NOTE: do not return logger.xxx result, it will cause memory leak
+          log: (...args) => {
+            logger.info(...args);
+          },
+          warn: (...args) => {
+            logger.warn(...args);
+          },
+          error: (...args) => {
+            logger.error(...args);
+          },
+        },
         $json,
-        fetch,
-        URL,
-        call,
+        getComponentMountPoint,
+        call: (...args: Parameters<typeof call>) => call(...args).then((res) => ({ data: res.data })),
         runAgent: async ({
           agentId,
           inputs,
@@ -187,44 +186,15 @@ export class LogicAgentExecutor extends AgentExecutorBase<FunctionAssistant> {
             )
             .execute(a, { taskId: currentTaskId, parentTaskId: taskId, inputs });
         },
-        getComponentMountPoint,
+        crypto: { randomInt: crypto.randomInt },
         config: { env: pick(config.env, 'appId', 'appName', 'appDescription', 'appUrl') },
-        crypto,
-        dayjs,
-        joinURL,
-        withQuery,
-        ReadableStream,
-        TransformStream,
-        TextDecoderStream,
-        EventSourceParserStream,
-        ...args,
+      },
+      args: {
         ...this.globalContext,
+        ...args,
       },
     });
 
-    vm.on('console.log', (...data) => {
-      const logData = data
-        .map((datum) => {
-          if (typeof datum === 'object') {
-            return JSON.stringify(datum, null, 2);
-          }
-          return JSON.stringify(datum);
-        })
-        .join('   ');
-
-      this.context.callback?.({
-        type: AssistantResponseType.LOG,
-        taskId,
-        assistantId: agent.id,
-        log: logData,
-        timestamp: Date.now(),
-      });
-    });
-
-    const module = await vm.run(code, join(__dirname, 'assistant.js'));
-    if (typeof module.default !== 'function')
-      throw new Error('Invalid function file: function file must export default function');
-
-    return await module.default();
+    return resultPromise;
   }
 }

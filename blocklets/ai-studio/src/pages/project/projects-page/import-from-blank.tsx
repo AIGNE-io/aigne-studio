@@ -141,7 +141,7 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
                           if (!selectedItem) return null;
                           return (
                             <Stack direction="row" alignItems="center" spacing={1}>
-                              <DidAvatar did={selectedItem.blockletDid} size={20} />
+                              <DidAvatar did={selectedItem.blockletDid} size={20} src="" />
                               <Typography variant="body2" noWrap>
                                 {selectedItem?.name || t('unnamed')}
                               </Typography>
@@ -164,7 +164,7 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
                         templates.map((item) => (
                           <MenuItem key={item.id} value={`${item.blockletDid}-${item.id}`}>
                             <Stack direction="row" alignItems="stretch" gap={1}>
-                              <DidAvatar did={item.blockletDid} size={40} />
+                              <DidAvatar did={item.blockletDid} size={40} src="" />
                               <Stack flex={1} width={1}>
                                 <Typography variant="subtitle2" noWrap>
                                   {item?.name || t('unnamed')}
