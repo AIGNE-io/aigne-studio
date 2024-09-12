@@ -9,13 +9,6 @@ export const up: Migration = async ({ context: queryInterface }) => {
       primaryKey: true,
       allowNull: false,
     },
-    createdBy: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    updatedBy: {
-      type: DataTypes.STRING,
-    },
     projectId: {
       type: DataTypes.STRING,
     },
@@ -34,6 +27,13 @@ export const up: Migration = async ({ context: queryInterface }) => {
     access: {
       type: DataTypes.STRING,
       defaultValue: 'public',
+    },
+    createdBy: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    updatedBy: {
+      type: DataTypes.STRING,
     },
   });
 };

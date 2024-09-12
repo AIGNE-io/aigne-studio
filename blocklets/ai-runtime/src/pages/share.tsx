@@ -1,17 +1,17 @@
 import ApplicationHeader from '@app/components/application/ApplicationHeader';
 import Result from '@arcblock/ux/lib/Result';
 import Toast from '@arcblock/ux/lib/Toast';
-import { getAgentByPublishId } from '@blocklet/aigne-sdk/api/agent';
+import { getAgentByDeploymentId } from '@blocklet/aigne-sdk/api/agent';
 import AgentView from '@blocklet/aigne-sdk/components/AgentView';
 import { Box, CircularProgress } from '@mui/material';
 import { useRequest } from 'ahooks';
 import { useParams } from 'react-router-dom';
 
 export default function PreviewPage() {
-  const { publishId } = useParams();
-  if (!publishId) throw new Error('Missing required param `publishId`');
+  const { deploymentId } = useParams();
+  if (!deploymentId) throw new Error('Missing required param `deploymentId`');
 
-  const { data, loading, error } = useRequest(() => getAgentByPublishId({ publishId, working: true }), {
+  const { data, loading, error } = useRequest(() => getAgentByDeploymentId({ deploymentId, working: true }), {
     onError: (error) => {
       Toast.error((error as any)?.response?.data?.message || error?.message);
     },

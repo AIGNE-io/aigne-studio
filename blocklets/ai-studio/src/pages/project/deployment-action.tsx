@@ -77,7 +77,7 @@ export default function DeploymentAction() {
               <ClickAwayListener
                 onClickAway={(e) => (e.target as HTMLElement)?.localName !== 'body' && deploymentPopperState.close()}>
                 <Box>
-                  {data?.deployment ? (
+                  {data ? (
                     <Suspense fallback={<CircularProgress />}>
                       <ComponentInstaller
                         did={[
@@ -91,8 +91,8 @@ export default function DeploymentAction() {
                           projectId={projectId!}
                           projectRef={gitRef!}
                           agentId={fileId!}
-                          access={data.deployment.access}
-                          id={data.deployment.id}
+                          access={data.access}
+                          id={data.id}
                         />
                       </ComponentInstaller>
                     </Suspense>

@@ -6,10 +6,6 @@ import { sequelize } from '../sequelize';
 export default class Deployment extends Model<InferAttributes<Deployment>, InferCreationAttributes<Deployment>> {
   declare id: CreationOptional<string>;
 
-  declare createdBy: string;
-
-  declare updatedBy: string;
-
   declare projectId: string;
 
   declare projectRef: string;
@@ -21,6 +17,12 @@ export default class Deployment extends Model<InferAttributes<Deployment>, Infer
   declare updatedAt: CreationOptional<Date>;
 
   declare access: 'private' | 'public';
+
+  declare categories?: string[];
+
+  declare createdBy: string;
+
+  declare updatedBy: string;
 }
 
 Deployment.init(
@@ -30,13 +32,6 @@ Deployment.init(
       primaryKey: true,
       allowNull: false,
       defaultValue: nextId,
-    },
-    createdBy: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    updatedBy: {
-      type: DataTypes.STRING,
     },
     projectId: {
       type: DataTypes.STRING,
@@ -56,6 +51,13 @@ Deployment.init(
     access: {
       type: DataTypes.STRING,
       defaultValue: 'public',
+    },
+    createdBy: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    updatedBy: {
+      type: DataTypes.STRING,
     },
   },
   { sequelize }

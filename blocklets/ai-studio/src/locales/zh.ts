@@ -795,6 +795,26 @@ export default flatten({
     deleteTitle: '删除部署',
     deleteDescription: '删除后将无法恢复，请谨慎操作',
     deleteSuccess: '删除成功',
+    emptyDeployment: '没有部署的应用',
+  },
+  category: {
+    title: '分类',
+    name: '分类名称',
+    icon: '图标',
+    create: '创建分类',
+    delete: '删除分类',
+    edit: '编辑分类',
+    add: '添加分类',
+    iconVisit: '- 访问图标网站:',
+    iconTip: `\
+- 使用关键词搜索合适的图标
+- 图标格式为 'xxx:yyyy'，例如：'mdi-light:account'
+`,
+    noCategories: '没有分类',
   },
   private: '私有',
+  updateSuccess: '更新成功',
+  success: '成功',
+  failed: '失败',
+  makeOwnVersion: '制作自己的版本',
 });

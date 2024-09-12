@@ -97,7 +97,6 @@ navigation:
     icon: fluent:grid-24-regular
     link: /projects
     section:
-      - dashboard
       - sessionManager
     role:
       - owner
@@ -105,6 +104,31 @@ navigation:
       - promptsEditor
       - member
       - guest
+  - id: explore
+    title:
+      en: Deployment
+      zh: 部署
+    icon: tabler:share
+    link: /admin/explore
+    section:
+      - dashboard
+      - sessionManager
+    role:
+      - owner
+      - admin
+      - promptsEditor
+  - id: category
+    title:
+      en: Category
+      zh: 分类
+    icon: tabler:category
+    link: /admin/category
+    section:
+      - dashboard
+    role:
+      - owner
+      - admin
+      - promptsEditor
 resource:
   exportApi: /api/resources/export
   types:

@@ -7,14 +7,13 @@ import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
 import { Assistant, ProjectSettings, ResourceType } from '@blocklet/ai-runtime/types';
 import { Agent } from '@blocklet/aigne-sdk/api/agent';
 import { getComponentMountPoint } from '@blocklet/sdk';
+import { call } from '@blocklet/sdk/lib/component';
 import user from '@blocklet/sdk/lib/middlewares/user';
 import { Router } from 'express';
 import { exists } from 'fs-extra';
 import Joi from 'joi';
 import pick from 'lodash/pick';
 import { joinURL, withQuery } from 'ufo';
-
-import Deployment from '../store/models/deployment';
 
 const router = Router();
 
@@ -89,12 +88,18 @@ router.get('/:aid', async (req, res) => {
   res.json({ ...respondAgentFields(agent), config: { secrets: await getAgentSecretInputs(agent) } });
 });
 
-router.get('/publish/:publishId', user(), async (req, res) => {
-  const { publishId } = req.params;
+router.get('/publish/:deploymentId', user(), async (req, res) => {
+  const { deploymentId } = req.params;
   const { did: userId, role } = req.user! || {};
-  if (!publishId) throw new Error('Missing required param `publishId`');
+  if (!deploymentId) throw new Error('Missing required param `deploymentId`');
 
-  const publish = await Deployment.findOne({ where: { id: publishId } });
+  const publish = (
+    await call({
+      name: 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB',
+      method: 'GET',
+      path: joinURL('/api/deployments', deploymentId),
+    })
+  ).data;
   if (!publish) {
     res.status(404).json({ message: 'current agent application not published' });
     return;
