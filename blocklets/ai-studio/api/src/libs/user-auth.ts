@@ -19,13 +19,15 @@ function checkAuth(req: Request, res: Response): (userId?: string) => void {
         throw new AuthError('Unauthorized, user information does not exist', 401);
       }
 
-      if (!['admin', 'owner'].includes(user.role)) {
-        throw new AuthError('Insufficient authority', 403);
+      if (['admin', 'owner'].includes(user.role)) {
+        return;
       }
 
-      if (userId && userId !== user.did) {
-        throw new AuthError('User ID does not match', 403);
+      if (userId && userId === user.did) {
+        return;
       }
+
+      throw new AuthError('The access is prohibited because the permission is insufficient', 403);
     } catch (error) {
       if (error instanceof AuthError) {
         res.status(error.statusCode).json({ error: error.message });

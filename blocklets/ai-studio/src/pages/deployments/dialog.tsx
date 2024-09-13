@@ -224,7 +224,6 @@ function CategorySelect({
   categories: Category[];
 }) {
   const [open, setOpen] = useState(false);
-  const loading = open && categories.length === 0;
 
   return (
     <Controller
@@ -247,7 +246,6 @@ function CategorySelect({
             return option.name;
           }}
           options={categories}
-          loading={loading}
           value={value.map((id) => categories.find((cat) => cat.id === id) || { id, name: '' })}
           onChange={(_event, newValue) => {
             onChange(newValue.map((item) => (typeof item === 'string' ? item : item.id)));
@@ -266,7 +264,7 @@ function CategorySelect({
                 ...params.InputProps,
                 endAdornment: (
                   <>
-                    {loading ? <CircularProgress color="inherit" size={20} /> : null}
+                    {/* {loading ? <CircularProgress color="inherit" size={20} /> : null} */}
                     {params.InputProps.endAdornment}
                   </>
                 ),

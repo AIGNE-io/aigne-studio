@@ -36,7 +36,7 @@ router.post('/', user(), auth(), async (req, res) => {
   const { did } = req.user!;
   const { name, icon } = await updateCategorySchema.validateAsync(req.body, { stripUnknown: true });
 
-  checkUserAuth(req, res)();
+  checkUserAuth(req, res)(did);
 
   const category = await Category.create({
     name,

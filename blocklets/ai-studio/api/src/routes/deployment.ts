@@ -217,7 +217,7 @@ router.post('/', user(), auth(), async (req, res) => {
   });
 
   if (access === 'private') {
-    checkUserAuth(req, res)();
+    checkUserAuth(req, res)(userId);
   }
 
   let deployment = await Deployment.findOne({
