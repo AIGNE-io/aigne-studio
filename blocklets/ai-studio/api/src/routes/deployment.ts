@@ -5,6 +5,7 @@ import Joi from 'joi';
 import { Op } from 'sequelize';
 
 import checkUserAuth from '../libs/user-auth';
+import Category from '../store/models/category';
 import Deployment from '../store/models/deployment';
 import DeploymentCategory from '../store/models/deployment-category';
 
@@ -29,11 +30,9 @@ const searchProjectSchema = paginationSchema.concat(
   })
 );
 
-const searchByCategoryIdSchema = paginationSchema.concat(
-  Joi.object({
-    categoryId: Joi.string().required(),
-  })
-);
+const searchByCategoryIdSchema = Joi.object({
+  categoryId: Joi.string().required(),
+});
 
 const recommendSchema = paginationSchema.concat(
   Joi.object({
@@ -137,7 +136,7 @@ router.get('/recommend-list', async (req, res) => {
       where: { categoryId, ...where },
       limit: pageSize,
       offset,
-      order: [['createdAt', 'DESC']],
+      order: [['updatedAt', 'DESC']],
     });
 
     const ids = rows.map((item) => item.deploymentId);
@@ -150,7 +149,13 @@ router.get('/recommend-list', async (req, res) => {
           return {
             ...deployment.dataValues,
             agent: await getAgent(deployment.projectId, deployment.projectRef, deployment.agentId),
-            categories: categories.map((category) => category.categoryId),
+            categories: await Category.findAll({
+              where: {
+                id: {
+                  [Op.in]: categories.map((item) => item.categoryId),
+                },
+              },
+            }).catch(() => []),
           };
         })
       ),
@@ -163,7 +168,7 @@ router.get('/recommend-list', async (req, res) => {
     where,
     limit: pageSize,
     offset,
-    order: [['createdAt', 'DESC']],
+    order: [['updatedAt', 'DESC']],
   });
 
   return res.json({
@@ -173,7 +178,13 @@ router.get('/recommend-list', async (req, res) => {
         return {
           ...deployment.dataValues,
           agent: await getAgent(deployment.projectId, deployment.projectRef, deployment.agentId).catch(() => null),
-          categories: categories.map((category) => category.categoryId),
+          categories: await Category.findAll({
+            where: {
+              id: {
+                [Op.in]: categories.map((item) => item.categoryId),
+              },
+            },
+          }).catch(() => []),
         };
       })
     ),
@@ -183,9 +194,8 @@ router.get('/recommend-list', async (req, res) => {
 });
 
 router.get('/categories/:categoryId', user(), auth(), async (req, res) => {
-  const { categoryId, page, pageSize } = await searchByCategoryIdSchema.validateAsync(req.params, {
-    stripUnknown: true,
-  });
+  const { categoryId } = await searchByCategoryIdSchema.validateAsync(req.params, { stripUnknown: true });
+  const { page, pageSize } = await paginationSchema.validateAsync(req.query, { stripUnknown: true });
 
   const offset = (page - 1) * pageSize;
 

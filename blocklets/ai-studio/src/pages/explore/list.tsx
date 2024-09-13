@@ -15,6 +15,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Navigation } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
+const pageSize = 10;
+
 export function Slide() {
   return (
     <Box
@@ -194,15 +196,15 @@ const useFetchDeployments = (id?: string) => {
       d: { list: any[]; next: boolean; size: number; page: number } = {
         list: [],
         next: false,
-        size: 20,
+        size: pageSize,
         page: 1,
       }
     ) => {
       if (!id) {
-        return { list: [], next: false, size: 20, page: 1, total: 0 };
+        return { list: [], next: false, size: pageSize, page: 1, total: 0 };
       }
 
-      const { page = 1, size = 20 } = d || {};
+      const { page = 1, size = pageSize } = d || {};
       const { list: items, totalCount: total } = await getDeploymentsByCategoryId({
         categoryId: id,
         page,
