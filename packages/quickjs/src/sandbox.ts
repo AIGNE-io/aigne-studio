@@ -1,25 +1,14 @@
-import { LRUCache } from 'lru-cache';
+import { Pool, createPool } from 'generic-pool';
 import { QuickJSContext, QuickJSHandle, Scope, newQuickJSWASMModule } from 'quickjs-emscripten';
 
 import { setupBuiltinModules, setupGlobalVariables } from './builtin';
-import { MAX_CACHED_QUICKJS_CONTEXT } from './constants';
+import { QUICKJS_RUNTIME_POOL_SIZE_MAX } from './constants';
 import { toQuickJsObject } from './convert';
 import { logger } from './logger';
 import BuiltinModules from './modules';
 import { transpileModule } from './typescript';
 
-const sandboxCache = new LRUCache<string, Promise<Sandbox>>({
-  max: MAX_CACHED_QUICKJS_CONTEXT,
-  dispose: async (v) => {
-    const sandbox = await v;
-    try {
-      sandbox.dispose();
-      logger.info('dispose cached quickjs context success');
-    } catch (error) {
-      logger.error('dispose cached quickjs context error', error);
-    }
-  },
-});
+const sandboxCache = new Map<string, Pool<Sandbox>>();
 
 export interface SandboxOptions {
   context: QuickJSContext;
@@ -36,22 +25,50 @@ export interface SandboxInitOptions {
 }
 
 export class Sandbox {
-  static async create({ cache = true, ...options }: SandboxInitOptions) {
-    let sandbox = cache && sandboxCache.get(options.code);
-    if (sandbox) return sandbox;
+  static async create({ ...options }: SandboxInitOptions): Promise<Sandbox> {
+    return createRuntime(options).then((opt) => new Sandbox(opt));
+  }
 
-    sandbox = createRuntime(options).then((options) => new Sandbox(options));
+  static async acquire({ ...options }: SandboxInitOptions): Promise<Sandbox> {
+    let pool = sandboxCache.get(options.code);
+    if (!pool) {
+      pool = createPool(
+        {
+          create: () => createRuntime(options).then((opt) => new Sandbox(opt, pool)),
+          destroy: async (sandbox) => {
+            try {
+              sandbox.dispose();
+              logger.error('dispose sandbox from pool success', options.filename);
+            } catch (error) {
+              logger.error('dispose sandbox from pool error', error);
+            }
+          },
+        },
+        {
+          max: QUICKJS_RUNTIME_POOL_SIZE_MAX,
+        }
+      );
+      sandboxCache.set(options.code, pool);
+    }
 
-    if (cache) sandboxCache.set(options.code, sandbox);
-    return sandbox;
+    return pool.acquire();
   }
 
   static async callFunction(options: SandboxInitOptions & { functionName: string; args?: any[] }) {
-    const sandbox = await Sandbox.create(options);
-    return sandbox.callFunction(options);
+    const sandbox = await Sandbox.acquire(options);
+    return sandbox.callFunction(options).finally(() => {
+      sandbox.pool?.release(sandbox);
+    });
   }
 
-  private constructor(public readonly options: SandboxOptions) {}
+  private constructor(
+    public readonly options: SandboxOptions,
+    private readonly pool?: Pool<Sandbox>
+  ) {}
+
+  async release() {
+    await this.pool?.release(this);
+  }
 
   dispose() {
     this.options.module.dispose();

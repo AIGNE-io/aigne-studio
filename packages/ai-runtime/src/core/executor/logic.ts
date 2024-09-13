@@ -130,9 +130,14 @@ export class LogicAgentExecutor extends AgentExecutorBase<FunctionAssistant> {
           logger.error(...args);
         },
       },
-      $json,
       getComponentMountPoint,
       call: (...args: Parameters<typeof call>) => call(...args).then((res) => ({ data: res.data })),
+      crypto: { randomInt: crypto.randomInt },
+      config: { env: pick(config.env, 'appId', 'appName', 'appDescription', 'appUrl') },
+    };
+
+    const allArgs = {
+      $json,
       runAgent: async ({
         agentId,
         inputs,
@@ -167,11 +172,9 @@ export class LogicAgentExecutor extends AgentExecutorBase<FunctionAssistant> {
           )
           .execute(a, { taskId: currentTaskId, parentTaskId: taskId, inputs });
       },
-      crypto: { randomInt: crypto.randomInt },
-      config: { env: pick(config.env, 'appId', 'appName', 'appDescription', 'appUrl') },
+      ...this.globalContext,
+      ...args,
     };
-
-    const allArgs = { ...this.globalContext, ...args };
     const argKeys = Object.keys(allArgs);
 
     const resultPromise = await Sandbox.callFunction({

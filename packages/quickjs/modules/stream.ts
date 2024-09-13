@@ -4,7 +4,7 @@ import { TextDecoder } from 'util';
 import { createParser } from 'eventsource-parser';
 
 export class ReadableStream<R> {
-  constructor(options: UnderlyingSource<R>) {
+  constructor(public options: UnderlyingSource<R>) {
     this.controller = {
       desiredSize: null,
       enqueue: (value: R) => {
@@ -25,8 +25,6 @@ export class ReadableStream<R> {
         this.readerPromise = Promise.withResolvers();
       },
     };
-
-    options.start?.(this.controller);
   }
 
   controller: ReadableStreamDefaultController<R>;
@@ -40,6 +38,8 @@ export class ReadableStream<R> {
   private readerPromise = Promise.withResolvers<void>();
 
   getReader() {
+    this.options.start?.(this.controller);
+
     this.reader ??= {
       read: async () => {
         const data = this.buffer.shift();
