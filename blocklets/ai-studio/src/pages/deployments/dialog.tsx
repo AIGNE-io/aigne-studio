@@ -32,6 +32,7 @@ import { useRequest } from 'ahooks';
 import { PopupState, bindDialog } from 'material-ui-popup-state/hooks';
 import { useEffect, useState } from 'react';
 import { Control, Controller, useForm } from 'react-hook-form';
+import { withQuery } from 'ufo';
 
 import { updateDeployment } from '../../libs/deployment';
 import Close from '../project/icons/close';
@@ -300,7 +301,7 @@ function BannerSelect({ control, name }: { control: Control<UpdateType>; name: '
             {field.value ? (
               <Box
                 component="img"
-                src={field.value}
+                src={withQuery(field.value, { imageFilter: 'resize', w: 500 })}
                 sx={{
                   position: 'absolute',
                   inset: 0,

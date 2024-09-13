@@ -51,12 +51,13 @@ function Agent({ data }: { data: Deployment }) {
   const handleChange = (_event: any, newValue: string) => setValue(newValue);
   const { getFileById } = useProjectStore(data.projectId, data.projectRef, true);
   const { t } = useLocaleContext();
+  const agent = getFileById(data.agentId);
 
   return (
     <>
       <Box display="flex" alignItems="center" justifyContent="space-between">
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          {getFileById(data.agentId)?.name}
+          {agent?.name}
         </Typography>
 
         <Button variant="contained" color="primary" size="small" onClick={() => {}}>
@@ -74,7 +75,7 @@ function Agent({ data }: { data: Deployment }) {
           </Box>
 
           <TabPanel value="1" sx={{ flex: 1, overflow: 'overlay' }}>
-            <Box>Readme</Box>
+            <Box>{agent?.description || 'Readme'}</Box>
           </TabPanel>
 
           <TabPanel value="2" sx={{ flex: 1, overflow: 'overlay' }}>

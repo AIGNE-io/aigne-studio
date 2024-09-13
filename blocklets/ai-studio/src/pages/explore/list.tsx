@@ -14,6 +14,7 @@ import useInfiniteScrollHook from 'react-infinite-scroll-hook';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Navigation } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import { withQuery } from 'ufo';
 
 const pageSize = 10;
 
@@ -108,7 +109,7 @@ function CategoryCard({
         {banner ? (
           <Box
             component="img"
-            src={banner}
+            src={withQuery(banner, { imageFilter: 'resize', w: 500 })}
             sx={{
               position: 'absolute',
               inset: 0,
