@@ -38,6 +38,7 @@ const searchByCategoryIdSchema = paginationSchema.concat(
 const recommendSchema = paginationSchema.concat(
   Joi.object({
     categoryId: Joi.string().optional(),
+    access: Joi.string().valid('private', 'public').optional(),
   })
 );
 
@@ -125,13 +126,15 @@ router.get('/list', user(), auth(), async (req, res) => {
   });
 });
 
-router.get('/recommend-list', user(), auth(), async (req, res) => {
-  const { page, pageSize, categoryId } = await recommendSchema.validateAsync(req.query, { stripUnknown: true });
+router.get('/recommend-list', async (req, res) => {
+  const { page, pageSize, categoryId, access } = await recommendSchema.validateAsync(req.query, { stripUnknown: true });
   const offset = (page - 1) * pageSize;
+
+  const where = access ? { access } : {};
 
   if (categoryId) {
     const rows = await DeploymentCategory.findAll({
-      where: { categoryId },
+      where: { categoryId, ...where },
       limit: pageSize,
       offset,
       order: [['createdAt', 'DESC']],
@@ -157,6 +160,7 @@ router.get('/recommend-list', user(), auth(), async (req, res) => {
   }
 
   const { count, rows } = await Deployment.findAndCountAll({
+    where,
     limit: pageSize,
     offset,
     order: [['createdAt', 'DESC']],

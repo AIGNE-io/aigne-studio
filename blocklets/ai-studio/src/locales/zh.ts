@@ -799,6 +799,7 @@ export default flatten({
     deleteSuccess: '删除成功',
     emptyDeployment: '没有部署的应用',
     updateSuccess: '更新成功',
+    banner: '封面图',
   },
   category: {
     title: '分类',

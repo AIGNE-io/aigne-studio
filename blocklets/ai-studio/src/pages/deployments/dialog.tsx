@@ -139,7 +139,7 @@ export default function DeploymentDialog({
 
               {showBanner && (
                 <Stack gap={1}>
-                  <Typography variant="body1">{t('category.banner')}</Typography>
+                  <Typography variant="body1">{t('deployments.banner')}</Typography>
                   <BannerSelect control={control} name="banner" />
                 </Stack>
               )}

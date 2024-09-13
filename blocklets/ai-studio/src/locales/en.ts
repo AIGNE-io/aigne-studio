@@ -806,6 +806,7 @@ export default flatten({
     deleteSuccess: 'Delete Success',
     emptyDeployment: 'No Deployment Agents Yet',
     updateSuccess: 'Update Success',
+    banner: 'Banner',
   },
   private: 'Private',
   category: {
