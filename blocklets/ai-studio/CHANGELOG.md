@@ -1,3 +1,7 @@
+## 0.4.50 (2024-9-13)
+
+- fix: streaming json not working
+
 ## 0.4.49 (2024-9-13)
 
 - chore: optimize sandbox performance

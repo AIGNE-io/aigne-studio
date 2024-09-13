@@ -1,6 +1,7 @@
 import { logger } from './logger';
 
-export const MAX_CACHED_QUICKJS_CONTEXT = successOr(() => parseInt(process.env.MAX_CACHED_QUICKJS_CONTEXT!, 10)) || 100;
+export const QUICKJS_RUNTIME_POOL_SIZE_MAX =
+  successOr(() => parseInt(process.env.QUICKJS_RUNTIME_POOL_SIZE_MAX!, 10)) || 10;
 
 export const MAX_LRU_CACHE_SIZE_DEFAULT =
   successOr(() => parseInt(process.env.MAX_LRU_CACHE_SIZE_DEFAULT!, 10)) || 1024;

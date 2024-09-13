@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/quickjs",
-  "version": "0.4.49",
+  "version": "0.4.50",
   "description": "JS Sandbox powered by Quickjs",
   "publishConfig": {
     "access": "public"
@@ -58,9 +58,11 @@
   "dependencies": {
     "@blocklet/sdk": "^1.16.31",
     "dayjs": "^1.11.13",
+    "generic-pool": "^3.9.0",
     "glob": "^10.4.5",
     "lru-cache": "^10.4.3",
     "nanoid": "^3.3.7",
+    "queue": "^7.0.0",
     "quickjs-emscripten": "^0.31.0",
     "typescript": "^5.5.4",
     "ufo": "^1.5.4"

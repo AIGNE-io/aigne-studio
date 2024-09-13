@@ -7,7 +7,9 @@ export async function dumpResult(resultKey: string, r: any) {
     const { value, promise } = marshalReadableStream(resultKey, result);
     __blocklet_quickjs_builtin__.dumpResult(resultKey, { type: 'result', data: value });
 
-    return await promise;
+    await promise;
+
+    return result;
   } catch (error) {
     __blocklet_quickjs_builtin__.dumpResult(resultKey, {
       type: 'error',
