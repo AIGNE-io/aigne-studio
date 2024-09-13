@@ -1,7 +1,7 @@
 import { ReadableStream } from 'stream';
 
-export async function fetch(...args: Parameters<typeof globalThis.fetch>) {
-  return __blocklet_quickjs_builtin__.fetch(...args).then((res) => {
+export default async function fetch(...args: Parameters<typeof globalThis.fetch>) {
+  return globalThis.fetch(...args).then((res) => {
     return {
       ...res,
       body: new ReadableStream({

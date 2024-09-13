@@ -1,5 +1,5 @@
 import { LRUCache } from 'lru-cache';
-import { QuickJSContext, QuickJSHandle, newQuickJSWASMModule } from 'quickjs-emscripten';
+import { QuickJSContext, QuickJSHandle, Scope, newQuickJSWASMModule } from 'quickjs-emscripten';
 
 import { setupBuiltinModules, setupGlobalVariables } from './builtin';
 import { MAX_CACHED_QUICKJS_CONTEXT } from './constants';
@@ -8,17 +8,12 @@ import { logger } from './logger';
 import BuiltinModules from './modules';
 import { transpileModule } from './typescript';
 
-const cache = new LRUCache<
-  string,
-  Promise<{ context: QuickJSContext; main: QuickJSHandle; getResult: (resultKey: string) => Promise<any> }>
->({
+const sandboxCache = new LRUCache<string, Promise<Sandbox>>({
   max: MAX_CACHED_QUICKJS_CONTEXT,
   dispose: async (v) => {
-    const value = await v;
+    const sandbox = await v;
     try {
-      value.main.dispose();
-      value.context.dispose();
-      value.context.runtime.dispose();
+      sandbox.dispose();
       logger.info('dispose cached quickjs context success');
     } catch (error) {
       logger.error('dispose cached quickjs context error', error);
@@ -26,121 +21,63 @@ const cache = new LRUCache<
   },
 });
 
-async function compileCode({
-  code,
-  functionName,
-  filename,
-  global,
-}: {
-  code: string;
-  functionName: string;
-  filename?: string;
-  global: { [key: string]: any };
-}): Promise<{
-  getResult: (resultKey: string) => Promise<any>;
+export interface SandboxOptions {
   context: QuickJSContext;
-  main: QuickJSHandle;
-}> {
-  const compiledCode = await transpileModule(
-    `\
-import { dumpResult } from 'builtin';
-import { ReadableStream, TransformStream, TextDecoder, TextDecoderStream, EventSourceParserStream } from 'stream';
-import { fetch } from 'fetch';
-import dayjs from 'dayjs';
-import { joinURL, withQuery } from 'ufo';
-
-${code}
-
-export const __AIGNE_LOGIC_ENTRY__ = async function (resultKey: string, args?: any = {}) {
-  const __args__ = Object.keys(args)
-
-  const code = \`let {\${__args__.join(',')}} = args;\${${functionName}.toString()};${functionName}()\`
-
-  const result = eval(code)
-
-  return dumpResult(resultKey, await result)
-}
-`,
-    (ts) => ({
-      compilerOptions: {
-        module: ts.ModuleKind.ESNext,
-        target: ts.ScriptTarget.ES2020,
-      },
-    })
-  );
-
-  const quickJs = await newQuickJSWASMModule();
-  const runtime = quickJs.newRuntime({
-    memoryLimitBytes: 20 * 1024 * 1024,
-    moduleLoader: (moduleName: string) => {
-      return BuiltinModules[moduleName] || { error: new Error(`Unsupported module ${moduleName}`) };
-    },
-  });
-
-  const context = runtime.newContext();
-
-  try {
-    setupGlobalVariables(context, global);
-
-    const main = context
-      .evalCode(compiledCode, filename, { type: 'module' })
-      .unwrap()
-      .consume((v) => context.getProp(v, '__AIGNE_LOGIC_ENTRY__'));
-
-    const { getResult } = setupBuiltinModules(context);
-
-    return {
-      getResult,
-      context,
-      main,
-    };
-  } catch (error) {
-    logger.error('create quickjs runtime error', error);
-
-    try {
-      context.dispose();
-      runtime.dispose();
-    } catch (error) {
-      logger.error('dispose quickjs runtime error', error);
-    }
-
-    throw error;
-  }
+  module: QuickJSHandle;
+  dumpResult: (resultKey: string) => Promise<any>;
 }
 
-export async function runUnsafeFunction({
-  code,
-  functionName,
-  filename,
-  global = {},
-  args = {},
-}: {
+export interface SandboxInitOptions {
+  cache?: boolean;
   code: string;
-  functionName: string;
   filename?: string;
   global?: { [key: string]: any };
-  args?: { [key: string]: any };
-}) {
-  let instance = cache.get(code);
-  if (!instance) {
-    instance = compileCode({ code, functionName, filename, global });
-    cache.set(code, instance);
+  moduleLoader?: (moduleName: string) => string | undefined;
+}
+
+export class Sandbox {
+  static async create({ cache = true, ...options }: SandboxInitOptions) {
+    let sandbox = cache && sandboxCache.get(options.code);
+    if (sandbox) return sandbox;
+
+    sandbox = createRuntime(options).then((options) => new Sandbox(options));
+
+    if (cache) sandboxCache.set(options.code, sandbox);
+    return sandbox;
   }
 
-  const { context: vm, main, getResult } = await instance;
+  static async callFunction(options: SandboxInitOptions & { functionName: string; args?: any[] }) {
+    const sandbox = await Sandbox.create(options);
+    return sandbox.callFunction(options);
+  }
 
-  const resultKey = crypto.randomUUID();
-  const resultKeyHandle = vm.newString(resultKey);
+  private constructor(public readonly options: SandboxOptions) {}
 
-  try {
-    const result = toQuickJsObject(vm, args).consume((args) =>
-      vm.callFunction(main, vm.undefined, resultKeyHandle, args)
-    );
+  dispose() {
+    this.options.module.dispose();
+    this.options.context.dispose();
+    this.options.context.runtime.dispose();
+  }
+
+  async callFunction({ functionName, args = [] }: { functionName: string; args?: any[] }) {
+    const { context: vm, module, dumpResult } = this.options;
+
+    const resultKey = crypto.randomUUID();
+    const result = dumpResult(resultKey);
+
+    const r = Scope.withScope((scope) => {
+      const call = scope.manage(vm.getProp(module, 'callFunction'));
+      const fn = scope.manage(vm.newString(functionName));
+      const inputs = scope.manage(toQuickJsObject(vm, args));
+      const resultKeyHandle = scope.manage(vm.newString(resultKey));
+
+      return vm.callFunction(call, vm.undefined, resultKeyHandle, fn, inputs);
+    });
 
     const jobs = vm.runtime.executePendingJobs().unwrap();
     logger.debug('execute pending jobs', jobs);
 
-    result.unwrap().consume((promise) => {
+    r.unwrap().consume((promise) => {
       const state = vm.getPromiseState(promise);
 
       if (state.type === 'rejected') {
@@ -153,30 +90,83 @@ export async function runUnsafeFunction({
                 return error;
               })
             : state.error;
+
+        // NOTE: important to catch the error to avoid unhandled promise rejection
+        result.catch(() => {});
         throw error;
       }
 
-      const result =
+      const r =
         state.type === 'fulfilled'
           ? Promise.resolve(state.value.consume((v) => vm.dump(v)))
           : vm.resolvePromise(promise).then((v) => v.unwrap().consume((v) => vm.dump(v)));
 
-      result
-        .then((result) => {
-          logger.debug('quickjs runtime result', result);
-        })
-        .catch((error) => {
-          logger.error('quick runtime error', error);
-        });
+      r.then((result) => {
+        logger.debug('quickjs runtime result', result);
+      }).catch((error) => {
+        logger.error('quick runtime error', error);
+      });
     });
-  } finally {
-    try {
-      resultKeyHandle.dispose();
-      logger.info('dispose result key handle success');
-    } catch (error) {
-      logger.error('dispose result key handle error', error);
-    }
-  }
 
-  return getResult(resultKey);
+    return result;
+  }
+}
+
+async function createRuntime({ code, filename, global, moduleLoader }: SandboxInitOptions): Promise<SandboxOptions> {
+  const compiledCode = await transpileModule(
+    `\
+import { dumpResult } from 'builtin';
+import { ReadableStream, TransformStream, TextDecoder, TextDecoderStream, EventSourceParserStream } from 'stream';
+import dayjs from 'dayjs';
+import fetch from 'fetch';
+import { joinURL, withQuery } from 'ufo';
+
+${code}
+
+export async function callFunction(resultKey: string, functionName: string, args: any[] = []) {
+  const exports = eval(\`({ \${functionName} })\`)
+  return dumpResult(resultKey, exports[functionName](...args))
+}
+`,
+    (ts) => ({
+      compilerOptions: {
+        module: ts.ModuleKind.ESNext,
+        target: ts.ScriptTarget.ES2020,
+      },
+    })
+  );
+
+  const quickJs = await newQuickJSWASMModule();
+  const runtime = quickJs.newRuntime({
+    // TODO: make it configurable
+    memoryLimitBytes: 20 * 1024 * 1024,
+    moduleLoader: (moduleName: string) => {
+      return (
+        moduleLoader?.(moduleName) ??
+        (BuiltinModules[moduleName] || { error: new Error(`Unsupported module ${moduleName}`) })
+      );
+    },
+  });
+
+  const context = runtime.newContext();
+
+  try {
+    const { dumpResult } = setupBuiltinModules(context);
+    if (global) setupGlobalVariables(context, global);
+
+    const module = context.evalCode(compiledCode, filename, { type: 'module' }).unwrap();
+
+    return { dumpResult, context, module };
+  } catch (error) {
+    logger.error('create quickjs runtime error', error);
+
+    try {
+      context.dispose();
+      runtime.dispose();
+    } catch (error) {
+      logger.error('dispose quickjs runtime error', error);
+    }
+
+    throw error;
+  }
 }

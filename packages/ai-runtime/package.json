@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.4.48",
+  "version": "0.4.49",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -152,7 +152,6 @@
     "recoil": "^0.7.7",
     "snowflake-uuid": "^1.0.0",
     "ufo": "^1.5.4",
-    "vm2": "^3.9.19",
     "yaml": "^2.5.0"
   },
   "peerDependencies": {
