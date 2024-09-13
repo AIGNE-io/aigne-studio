@@ -1,6 +1,8 @@
+import { getAssistantsOfRepository } from '@api/store/repository';
 import { auth, user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
+import { Op } from 'sequelize';
 
 import checkUserAuth from '../libs/user-auth';
 import Deployment from '../store/models/deployment';
@@ -33,6 +35,12 @@ const searchByCategoryIdSchema = paginationSchema.concat(
   })
 );
 
+const recommendSchema = paginationSchema.concat(
+  Joi.object({
+    categoryId: Joi.string().optional(),
+  })
+);
+
 const updateSchema = Joi.object({
   access: Joi.string().valid('private', 'public').required(),
   categories: Joi.array().items(Joi.string()).optional(),
@@ -60,59 +68,114 @@ router.get('/byAgentId', user(), auth(), async (req, res) => {
 });
 
 router.get('/', user(), auth(), async (req, res) => {
-  try {
-    const { projectId, projectRef, page, pageSize } = await searchProjectSchema.validateAsync(req.query, {
-      stripUnknown: true,
-    });
+  const { projectId, projectRef, page, pageSize } = await searchProjectSchema.validateAsync(req.query, {
+    stripUnknown: true,
+  });
 
-    const offset = (page - 1) * pageSize;
+  const offset = (page - 1) * pageSize;
 
-    const { count, rows } = await Deployment.findAndCountAll({
-      where: { projectId, projectRef },
-      limit: pageSize,
-      offset,
-      order: [['createdAt', 'DESC']],
-    });
+  const { count, rows } = await Deployment.findAndCountAll({
+    where: { projectId, projectRef },
+    limit: pageSize,
+    offset,
+    order: [['createdAt', 'DESC']],
+  });
 
-    res.json({
-      list: await Promise.all(
-        rows.map(async (deployment) => {
-          const categories = await DeploymentCategory.findAll({ where: { deploymentId: deployment.id } });
-          return { ...deployment?.dataValues, categories: categories.map((category) => category.categoryId) };
-        })
-      ),
-      totalCount: count,
-      currentPage: page,
-    });
-  } catch (error) {
-    res.status(400).json({ code: 'bad_request', error: error.message });
-  }
+  res.json({
+    list: await Promise.all(
+      rows.map(async (deployment) => {
+        const categories = await DeploymentCategory.findAll({ where: { deploymentId: deployment.id } });
+        return { ...deployment?.dataValues, categories: categories.map((category) => category.categoryId) };
+      })
+    ),
+    totalCount: count,
+    currentPage: page,
+  });
 });
 
-router.get('/list', user(), auth(), async (req, res) => {
-  try {
-    const { page, pageSize } = await paginationSchema.validateAsync(req.query, { stripUnknown: true });
-    const offset = (page - 1) * pageSize;
+const getAgent = async (projectId: string, projectRef: string, agentId: string) => {
+  const agents = await getAssistantsOfRepository({
+    projectId,
+    ref: projectRef,
+    working: true,
+  });
 
-    const { count, rows } = await Deployment.findAndCountAll({
+  return agents.find((agent) => agent.id === agentId);
+};
+
+router.get('/list', user(), auth(), async (req, res) => {
+  const { page, pageSize } = await paginationSchema.validateAsync(req.query, { stripUnknown: true });
+  const offset = (page - 1) * pageSize;
+
+  const { count, rows } = await Deployment.findAndCountAll({
+    limit: pageSize,
+    offset,
+    order: [['createdAt', 'DESC']],
+  });
+
+  res.json({
+    list: await Promise.all(
+      rows.map(async (deployment) => {
+        const categories = await DeploymentCategory.findAll({ where: { deploymentId: deployment.id } });
+        return { ...deployment.dataValues, categories: categories.map((category) => category.categoryId) };
+      })
+    ),
+    totalCount: count,
+    currentPage: page,
+  });
+});
+
+router.get('/recommend-list', user(), auth(), async (req, res) => {
+  const { page, pageSize, categoryId } = await recommendSchema.validateAsync(req.query, { stripUnknown: true });
+  const offset = (page - 1) * pageSize;
+
+  if (categoryId) {
+    const rows = await DeploymentCategory.findAll({
+      where: { categoryId },
       limit: pageSize,
       offset,
       order: [['createdAt', 'DESC']],
     });
 
-    res.json({
+    const ids = rows.map((item) => item.deploymentId);
+    const deployments = await Deployment.findAll({ where: { id: { [Op.in]: ids } } });
+
+    return res.json({
       list: await Promise.all(
-        rows.map(async (deployment) => {
+        deployments.map(async (deployment) => {
           const categories = await DeploymentCategory.findAll({ where: { deploymentId: deployment.id } });
-          return { ...deployment.dataValues, categories: categories.map((category) => category.categoryId) };
+          return {
+            ...deployment.dataValues,
+            agent: await getAgent(deployment.projectId, deployment.projectRef, deployment.agentId),
+            categories: categories.map((category) => category.categoryId),
+          };
         })
       ),
-      totalCount: count,
+      totalCount: deployments.length,
       currentPage: page,
     });
-  } catch (error) {
-    res.status(400).json({ code: 'bad_request', error: error.message });
   }
+
+  const { count, rows } = await Deployment.findAndCountAll({
+    limit: pageSize,
+    offset,
+    order: [['createdAt', 'DESC']],
+  });
+
+  return res.json({
+    list: await Promise.all(
+      rows.map(async (deployment) => {
+        const categories = await DeploymentCategory.findAll({ where: { deploymentId: deployment.id } });
+        return {
+          ...deployment.dataValues,
+          agent: await getAgent(deployment.projectId, deployment.projectRef, deployment.agentId).catch(() => null),
+          categories: categories.map((category) => category.categoryId),
+        };
+      })
+    ),
+    totalCount: count,
+    currentPage: page,
+  });
 });
 
 router.get('/categories/:categoryId', user(), auth(), async (req, res) => {
