@@ -17,11 +17,14 @@ wss.on('connection', async (conn, req: any) => {
     return;
   }
 
+  const did = req.headers['x-user-did']?.toString();
+  const role = req.headers['x-user-role']?.toString();
+
   const readOnly = isRefReadOnly({
     ref,
     defaultBranch: project?.gitDefaultBranch ?? defaultBranch,
     project,
-    user: req.user,
+    user: { did, role },
   });
 
   const repository = await getRepository({ projectId });
