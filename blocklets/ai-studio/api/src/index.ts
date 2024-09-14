@@ -20,7 +20,7 @@ import { resourceManager } from './libs/resource';
 import { xss } from './libs/xss';
 import routes from './routes';
 import { getOpenEmbed } from './routes/open-embed';
-import { wss } from './routes/ws';
+import { handleYjsWebSocketUpgrade } from './routes/ws';
 
 export const app = express();
 
@@ -112,23 +112,4 @@ export const server = app.listen(port, (err?: any) => {
   }
 });
 
-server.on('upgrade', (req, socket, head) => {
-  if (req.url?.match(/^\/api\/ws/)) {
-    const did = req.headers['x-user-did']?.toString();
-    const role = req.headers['x-user-role']?.toString();
-
-    const roles = Config.serviceModePermissionMap.ensurePromptsEditorRoles;
-
-    if (!did || (roles && !roles.includes(role!))) {
-      logger.error('handle socket upgrade forbidden', { url: req.url });
-
-      socket.write('HTTP/1.1 403 Forbidden\r\n\r\n');
-      socket.destroy();
-      return;
-    }
-
-    wss.handleUpgrade(req, socket, head, (ws) => {
-      wss.emit('connection', ws, req);
-    });
-  }
-});
+handleYjsWebSocketUpgrade(server);

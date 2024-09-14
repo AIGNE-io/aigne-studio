@@ -1,10 +1,14 @@
+import { Server } from 'http';
+
+import { Config } from '@api/libs/env';
+import logger from '@api/libs/logger';
 import ws from 'ws';
 
 import { isRefReadOnly } from '../libs/security';
 import Project from '../store/models/project';
 import { defaultBranch, getRepository } from '../store/repository';
 
-export const wss = new ws.Server({ noServer: true });
+const wss = new ws.Server({ noServer: true });
 
 wss.on('connection', async (conn, req: any) => {
   const { projectId, ref } = req.url.match(/\/api\/ws\/(?<projectId>\w+)\/(?<ref>\w+)/)?.groups ?? {};
@@ -31,3 +35,26 @@ wss.on('connection', async (conn, req: any) => {
   const working = await repository.working({ ref });
   working.addConnection(conn, { readOnly });
 });
+
+export function handleYjsWebSocketUpgrade(server: Server) {
+  server.on('upgrade', (req, socket, head) => {
+    if (req.url?.match(/^\/api\/ws/)) {
+      const did = req.headers['x-user-did']?.toString();
+      const role = req.headers['x-user-role']?.toString();
+
+      const roles = Config.serviceModePermissionMap.ensurePromptsEditorRoles;
+
+      if (!did || (roles && !roles.includes(role!))) {
+        logger.error('handle socket upgrade forbidden', { url: req.url });
+
+        socket.write('HTTP/1.1 403 Forbidden\r\n\r\n');
+        socket.destroy();
+        return;
+      }
+
+      wss.handleUpgrade(req, socket, head, (ws) => {
+        wss.emit('connection', ws, req);
+      });
+    }
+  });
+}
