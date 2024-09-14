@@ -1,3 +1,7 @@
+## 0.4.51 (2024-9-14)
+
+- fix: handle exception for websocket upgrade connection
+
 ## 0.4.50 (2024-9-13)
 
 - fix: streaming json not working
