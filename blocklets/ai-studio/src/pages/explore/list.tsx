@@ -89,6 +89,7 @@ export function Slide() {
     </Box>
   );
 }
+
 function CategoryCard({
   projectId,
   projectRef,

@@ -11,6 +11,7 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
+import { useEffect } from 'react';
 import { Outlet, useNavigate, useParams } from 'react-router-dom';
 
 import { useCategoryState } from './state';
@@ -19,6 +20,12 @@ function CategoriesSidebar({ categories }: { categories: Category[] }) {
   const { t } = useLocaleContext();
   const navigate = useNavigate();
   const params = useParams();
+
+  useEffect(() => {
+    if (categories.length) {
+      navigate(`${categories?.[0]?.id}`);
+    }
+  }, []);
 
   return (
     <Stack sx={{ width: 1, height: 1, bgcolor: 'background.paper' }}>

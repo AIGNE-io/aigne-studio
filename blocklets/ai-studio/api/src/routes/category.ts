@@ -18,7 +18,7 @@ const updateCategorySchema = Joi.object({
   icon: Joi.string().optional().allow('').default(''),
 });
 
-router.get('/', user(), auth(), async (req, res) => {
+router.get('/', async (req, res) => {
   const { page, pageSize } = await paginationSchema.validateAsync(req.query, { stripUnknown: true });
 
   const offset = (page - 1) * pageSize;

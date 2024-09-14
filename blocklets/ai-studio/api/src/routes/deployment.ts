@@ -193,7 +193,7 @@ router.get('/recommend-list', async (req, res) => {
   });
 });
 
-router.get('/categories/:categoryId', user(), auth(), async (req, res) => {
+router.get('/categories/:categoryId', async (req, res) => {
   const { categoryId } = await searchByCategoryIdSchema.validateAsync(req.params, { stripUnknown: true });
   const { page, pageSize } = await paginationSchema.validateAsync(req.query, { stripUnknown: true });
 
