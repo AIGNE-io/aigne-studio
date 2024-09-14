@@ -4,6 +4,7 @@ import { QuickJSContext } from 'quickjs-emscripten';
 import { joinURL, withQuery } from 'ufo';
 
 import { toQuickJsObject } from './convert';
+import { withResolvers } from './promise';
 
 function builtinModule(): {
   dumpResult: (resultKey: string) => Promise<any>;
@@ -12,14 +13,14 @@ function builtinModule(): {
   const scopes: {
     [key: string]: {
       readableStreamControllers: { [key: string]: ReadableStreamController<any> };
-      result: ReturnType<typeof Promise.withResolvers<any>>;
+      result: ReturnType<typeof withResolvers<any>>;
     };
   } = {};
 
   const getScope = (resultKey: string) => {
     let scope = scopes[resultKey];
     if (!scope) {
-      scope = { readableStreamControllers: {}, result: Promise.withResolvers() };
+      scope = { readableStreamControllers: {}, result: withResolvers() };
       scopes[resultKey] = scope;
     }
 
