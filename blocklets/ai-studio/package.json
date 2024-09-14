@@ -47,7 +47,7 @@
     "@blocklet/dataset-sdk": "workspace:^",
     "@blocklet/discuss-kit": "^2.0.175",
     "@blocklet/logger": "^1.16.31",
-    "@blocklet/payment-js": "^1.15.4",
+    "@blocklet/payment-js": "^1.15.5",
     "@blocklet/prompt-editor": "workspace:^",
     "@blocklet/quickjs": "workspace:^",
     "@blocklet/sdk": "^1.16.31",
