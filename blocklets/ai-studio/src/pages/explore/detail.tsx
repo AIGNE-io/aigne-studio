@@ -49,7 +49,7 @@ export default function CategoryDetail() {
 function Agent({ data }: { data: Deployment }) {
   const [value, setValue] = useState('1');
   const handleChange = (_event: any, newValue: string) => setValue(newValue);
-  const { getFileById } = useProjectStore(data.projectId, data.projectRef, true);
+  const { getFileById } = useProjectStore(data.projectId, data.projectRef);
   const { t } = useLocaleContext();
   const agent = getFileById(data.agentId);
 

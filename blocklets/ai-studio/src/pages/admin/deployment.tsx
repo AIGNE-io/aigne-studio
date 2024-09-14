@@ -18,7 +18,7 @@ import DeploymentDialog from '../deployments/dialog';
 import { useProjectStore } from '../project/yjs-state';
 
 function ProjectAgentName({ projectId, gitRef, agentId }: { projectId: string; gitRef: string; agentId: string }) {
-  const { getFileById } = useProjectStore(projectId, gitRef, true);
+  const { getFileById } = useProjectStore(projectId, gitRef);
   return <Box>{getFileById(agentId)?.name}</Box>;
 }
 

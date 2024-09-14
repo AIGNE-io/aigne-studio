@@ -21,7 +21,7 @@ function Deployments() {
   const { t } = useLocaleContext();
   if (!projectId || !gitRef) throw new Error('Missing required params `projectId` or `ref`');
 
-  const { getFileById } = useProjectStore(projectId, gitRef, true);
+  const { getFileById } = useProjectStore(projectId, gitRef);
   const navigate = useNavigate();
   const { dialog, showDialog } = useDialog();
 

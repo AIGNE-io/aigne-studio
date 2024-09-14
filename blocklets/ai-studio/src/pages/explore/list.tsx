@@ -101,7 +101,7 @@ function CategoryCard({
   agentId: string;
   banner?: string;
 }) {
-  const { getFileById } = useProjectStore(projectId, projectRef, true);
+  const { getFileById } = useProjectStore(projectId, projectRef);
   const agent = getFileById(agentId);
 
   return (

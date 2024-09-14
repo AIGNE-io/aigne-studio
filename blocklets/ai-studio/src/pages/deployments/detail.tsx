@@ -33,7 +33,7 @@ function DeploymentDetail() {
   const dialogState = usePopupState({ variant: 'popper' });
 
   const navigate = useNavigate();
-  const { getFileById } = useProjectStore(projectId!, gitRef!, true);
+  const { getFileById } = useProjectStore(projectId!, gitRef!);
 
   const { data, loading, refresh } = useRequest(() => getDeployment({ id: id! }), {
     refreshDeps: [projectId, gitRef, id],
