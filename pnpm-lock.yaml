@@ -440,8 +440,8 @@ importers:
         specifier: 1.16.28
         version: 1.16.28
       '@blocklet/payment-js':
-        specifier: ^1.15.4
-        version: 1.15.4(encoding@0.1.13)
+        specifier: ^1.15.5
+        version: 1.15.5(encoding@0.1.13)
       '@blocklet/prompt-editor':
         specifier: workspace:^
         version: link:../../packages/prompt-editor
@@ -2795,8 +2795,14 @@ packages:
   '@blocklet/payment-js@1.15.4':
     resolution: {integrity: sha512-I5aKezF+9/NdQ2ZZD44ywiJ8T/QZ4UR1gycYTEZd0UwUWE2U3z3Vqa59qPwtFA6VsIefiBsNRVjpuxqVSe4iSA==}
 
+  '@blocklet/payment-js@1.15.5':
+    resolution: {integrity: sha512-rox/xfgQtpeJ3sLkJkGUs2hJSa78v0b2BaqAb3SNNal2nSjBkkcp61xmgu+H0L5bMLtgEaZGEZ9zZqmf0cZs5g==}
+
   '@blocklet/payment-types@1.15.4':
     resolution: {integrity: sha512-jZxny2YGIjt0w9sUnSiytJW8lp5DN7IEwi4fU15V5RpOizupUO9vRqvYkOVg8lYdQLNGEafPL2orbudncoqWag==}
+
+  '@blocklet/payment-types@1.15.5':
+    resolution: {integrity: sha512-rH1yXMYM7AzwY09Wz8Mye+6rqJBnowi2fC0wlJwhHKMXoLUhYkjT2+tEedE7ciIQsVuT3CgqfHGXXr/N62387g==}
 
   '@blocklet/pdf@2.0.175':
     resolution: {integrity: sha512-AQcJebQz//G9hVTGT2kxn1wrH05LbsJfJ3Lssug2r0dn37Z2p8P3NrQZbSgcQlIzfC7PNgIEaH8dHZGKxOu9yg==}
@@ -17050,7 +17056,20 @@ snapshots:
       - supports-color
       - utf-8-validate
 
+  '@blocklet/payment-js@1.15.5(encoding@0.1.13)':
+    dependencies:
+      '@blocklet/payment-types': 1.15.5
+      '@blocklet/sdk': 1.16.28(encoding@0.1.13)
+    transitivePeerDependencies:
+      - bufferutil
+      - debug
+      - encoding
+      - supports-color
+      - utf-8-validate
+
   '@blocklet/payment-types@1.15.4': {}
+
+  '@blocklet/payment-types@1.15.5': {}
 
   '@blocklet/pdf@2.0.175(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(encoding@0.1.13)(react-dom@18.3.1(react@18.3.1))':
     dependencies:

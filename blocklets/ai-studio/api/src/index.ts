@@ -1,13 +1,9 @@
 import 'express-async-errors';
-import 'nanoid';
-
-import './polyfills';
 
 import { access, mkdir } from 'fs/promises';
 import path from 'path';
 
 import { AssistantResponseType } from '@blocklet/ai-runtime/types';
-import user from '@blocklet/sdk/lib/middlewares/user';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv-flow';
@@ -21,11 +17,10 @@ import { NoPermissionError, NotFoundError } from './libs/error';
 import logger from './libs/logger';
 import { importPackageJson } from './libs/package-json';
 import { resourceManager } from './libs/resource';
-import { ensurePromptsEditor } from './libs/security';
 import { xss } from './libs/xss';
 import routes from './routes';
 import { getOpenEmbed } from './routes/open-embed';
-import { wss } from './routes/ws';
+import { handleYjsWebSocketUpgrade } from './routes/ws';
 
 export const app = express();
 
@@ -117,14 +112,4 @@ export const server = app.listen(port, (err?: any) => {
   }
 });
 
-server.on('upgrade', (req, socket, head) => {
-  if (req.url?.match(/^\/api\/ws/)) {
-    wss.handleUpgrade(req, socket, head, (ws) => {
-      ensurePromptsEditor(req as any, null as any, () => {
-        user()(req as any, null as any, () => {
-          wss.emit('connection', ws, req);
-        });
-      });
-    });
-  }
-});
+handleYjsWebSocketUpgrade(server);
