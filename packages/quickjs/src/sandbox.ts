@@ -46,8 +46,14 @@ export class Sandbox {
         },
         {
           max: QUICKJS_RUNTIME_POOL_SIZE_MAX,
+          autostart: false,
         }
       );
+      pool.on('factoryCreateError', (error) => {
+        // NOTE: avoid waiting for create runtime forever when the creation fails <https://github.com/coopernurse/node-pool/issues/175>
+        (pool as any)._waitingClientsQueue.dequeue().reject(error);
+      });
+
       sandboxCache.set(options.code, pool);
     }
 
