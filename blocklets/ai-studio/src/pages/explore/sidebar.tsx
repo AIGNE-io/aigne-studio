@@ -23,7 +23,7 @@ function CategoriesSidebar({ categories }: { categories: Category[] }) {
 
   useEffect(() => {
     if (categories.length) {
-      navigate(`${categories?.[0]?.id}`);
+      navigate(`${categories?.[0]?.id}`, { replace: true });
     }
   }, []);
 

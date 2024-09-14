@@ -1,10 +1,19 @@
 import ErrorBoundary from '@app/components/error/error-boundary';
+import { useSessionContext } from '@app/contexts/session';
 import Dashboard from '@blocklet/ui-react/lib/Dashboard';
 import { styled } from '@mui/material';
-import { lazy } from 'react';
+import { lazy, useEffect } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 
 export default function ExploreAdminRoutes() {
+  const { session } = useSessionContext();
+
+  useEffect(() => {
+    if (!session.user) {
+      session.login(() => {}, { openMode: 'redirect', redirect: window.location.href });
+    }
+  }, [session.user]);
+
   return (
     <AdminLayout
       footerProps={{ className: 'dashboard-footer' }}
