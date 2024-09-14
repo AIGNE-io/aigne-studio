@@ -67,7 +67,7 @@ router.get('/byAgentId', user(), auth(), async (req, res) => {
   res.json(deployment ? { ...deployment?.dataValues, categories: deployment?.categories } : null);
 });
 
-router.get('/', user(), auth(), async (req, res) => {
+router.get('/', async (req, res) => {
   const { projectId, projectRef, page, pageSize } = await searchProjectSchema.validateAsync(req.query, {
     stripUnknown: true,
   });
@@ -103,7 +103,7 @@ const getAgent = async (projectId: string, projectRef: string, agentId: string) 
   return agents.find((agent) => agent.id === agentId);
 };
 
-router.get('/list', user(), auth(), async (req, res) => {
+router.get('/list', async (req, res) => {
   const { page, pageSize } = await paginationSchema.validateAsync(req.query, { stripUnknown: true });
   const offset = (page - 1) * pageSize;
 
@@ -253,7 +253,7 @@ router.post('/', user(), auth(), async (req, res) => {
   res.json(deployment.dataValues);
 });
 
-router.get('/:id', user(), auth(), async (req, res) => {
+router.get('/:id', async (req, res) => {
   const { id } = await deploymentIdSchema.validateAsync(req.params, { stripUnknown: true });
 
   const deployment = await Deployment.findOne({ where: { id } });

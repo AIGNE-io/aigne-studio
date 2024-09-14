@@ -22,7 +22,7 @@ function CategoriesSidebar({ categories }: { categories: Category[] }) {
   const params = useParams();
 
   useEffect(() => {
-    if (categories.length) {
+    if (categories.length && !params?.deploymentId) {
       navigate(`${categories?.[0]?.id}`, { replace: true });
     }
   }, []);
