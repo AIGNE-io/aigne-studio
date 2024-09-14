@@ -1,3 +1,7 @@
+## 0.4.52 (2024-9-14)
+
+- fix: avoid waiting for runtime creation forever
+
 ## 0.4.51 (2024-9-14)
 
 - fix: handle exception for websocket upgrade connection
