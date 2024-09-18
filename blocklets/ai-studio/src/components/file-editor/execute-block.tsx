@@ -57,6 +57,7 @@ import {
 import { GridExpandMoreIcon } from '@mui/x-data-grid';
 import { useRequest } from 'ahooks';
 import axios from 'axios';
+import Cookie from 'js-cookie';
 import { cloneDeep, isNil, sortBy } from 'lodash';
 import { bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
@@ -1343,7 +1344,11 @@ const AsyncSelect: React.FC<AsyncSelectProps> = memo(
         } else if (remoteAPI) {
           const query = new URLSearchParams(queryParams).toString();
           const url = `${remoteAPI}?${query}`;
-          const { data } = await axios(url);
+          const { data } = await axios(url, {
+            headers: {
+              'x-csrf-token': Cookie.get('x-csrf-token'),
+            },
+          });
           setOptions(data);
         }
       } catch (err) {

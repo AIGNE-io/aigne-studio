@@ -1,6 +1,5 @@
 /// <reference path="../blocklet.d.ts" />
-
-import axios from 'axios';
+import { createAxios } from '@blocklet/js-sdk';
 
 const AI_STUDIO_DID = 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
 
@@ -9,10 +8,14 @@ export const AIStudioBaseUrl =
 
 export const API_TIMEOUT = 120 * 1000;
 
-export const aiStudioApi = axios.create({
-  baseURL: AIStudioBaseUrl,
-  timeout: API_TIMEOUT,
-});
+export const aiStudioApi = createAxios(
+  {
+    timeout: API_TIMEOUT,
+  },
+  {
+    componentDid: AI_STUDIO_DID,
+  }
+);
 
 export const getErrorMessage = (error: any) =>
   error.response?.data?.error?.message || error.response?.data?.message || error.message || error;

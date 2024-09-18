@@ -128,6 +128,7 @@
   "dependencies": {
     "@blocklet/ai-kit": "^0.1.50",
     "@blocklet/dataset-sdk": "workspace:^",
+    "@blocklet/js-sdk": "^1.16.31",
     "@blocklet/logger": "^1.16.31",
     "@blocklet/quickjs": "workspace:^",
     "@blocklet/sdk": "^1.16.31",
@@ -143,6 +144,7 @@
     "fs-extra": "^11.2.0",
     "joi": "^17.13.3",
     "js-base64": "^3.7.7",
+    "js-cookie": "^3.0.5",
     "json-stable-stringify": "^1.1.1",
     "lodash": "^4.17.21",
     "nanoid": "^3.3.7",

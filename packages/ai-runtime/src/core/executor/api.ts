@@ -1,4 +1,5 @@
 import axios, { isAxiosError } from 'axios';
+import Cookie from 'js-cookie';
 import { pick } from 'lodash';
 
 import { ApiAssistant } from '../../types';
@@ -27,6 +28,9 @@ export class APIAgentExecutor extends AgentExecutorBase<ApiAssistant> {
         method,
         params: isGet ? args : undefined,
         data: isGet ? undefined : args,
+        headers: {
+          'x-csrf-token': Cookie.get('x-csrf-token'),
+        },
       });
 
       return response.data;

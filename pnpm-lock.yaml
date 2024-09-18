@@ -923,6 +923,9 @@ importers:
       '@blocklet/dataset-sdk':
         specifier: workspace:^
         version: link:../dataset-sdk
+      '@blocklet/js-sdk':
+        specifier: 1.16.32-beta-93e1a798
+        version: 1.16.32-beta-93e1a798
       '@blocklet/logger':
         specifier: 1.16.32-beta-93e1a798
         version: 1.16.32-beta-93e1a798
@@ -968,6 +971,9 @@ importers:
       js-base64:
         specifier: ^3.7.7
         version: 3.7.7
+      js-cookie:
+        specifier: ^3.0.5
+        version: 3.0.5
       json-stable-stringify:
         specifier: ^1.1.1
         version: 1.1.1
@@ -1350,6 +1356,9 @@ importers:
       joi:
         specifier: ^17.13.3
         version: 17.13.3
+      js-cookie:
+        specifier: ^3.0.5
+        version: 3.0.5
       lodash:
         specifier: ^4.17.21
         version: 4.17.21
