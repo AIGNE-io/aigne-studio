@@ -25,5 +25,6 @@ export function getAgentProfile(agent: Agent) {
     icon: withQuery(url, { blockletDid: agent.identity.blockletDid, imageFilter: 'resize', w: 200 }),
     name: profile?.name || agent.project.name,
     description: profile?.description || agent.project.description,
+    ogImage: profile?.ogImage,
   };
 }
