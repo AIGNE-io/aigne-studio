@@ -19,6 +19,10 @@ export interface Agent {
   };
 
   project: ProjectSettings;
+
+  access?: {
+    noLoginRequired?: boolean;
+  };
 }
 
 export interface AgentWithConfig extends Agent {

@@ -114,6 +114,7 @@ export type RunAssistantChunk = {
   type: AssistantResponseType.CHUNK;
   taskId: string;
   assistantId: string;
+  sessionId: string;
   respondAs?: ExecuteBlock['respondAs'];
   delta: {
     content?: string | null;

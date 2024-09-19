@@ -25,7 +25,6 @@ import compression from 'compression';
 import { Router } from 'express';
 import Joi from 'joi';
 import { omitBy, pick } from 'lodash';
-import { nanoid } from 'nanoid';
 
 const router = Router();
 
@@ -153,7 +152,7 @@ router.post('/call', user(), compression(), async (req, res) => {
 
   const taskId = nextTaskId();
 
-  const sessionId = input.sessionId ?? nanoid();
+  const sessionId = input.sessionId ?? (await Session.create({ projectId, agentId })).id;
 
   const history = await History.create({
     userId,
@@ -174,7 +173,7 @@ router.post('/call', user(), compression(), async (req, res) => {
       }
     }
 
-    const data = { ...response, messageId: history.id };
+    const data = { ...response, messageId: history.id, sessionId };
 
     if (data.type === AssistantResponseType.CHUNK || data.type === AssistantResponseType.INPUT) {
       if (data.type === AssistantResponseType.CHUNK) {
