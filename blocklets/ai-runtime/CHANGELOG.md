@@ -1,3 +1,7 @@
+## 0.4.55 (2024-9-19)
+
+- chore: update deps
+
 ## 0.4.54 (2024-9-19)
 
 - chore: auto create a anonymous session
