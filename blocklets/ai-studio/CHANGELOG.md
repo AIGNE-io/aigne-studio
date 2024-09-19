@@ -1,3 +1,15 @@
+## 0.4.55 (2024-9-19)
+
+- chore: update deps
+
+## 0.4.54 (2024-9-19)
+
+- chore: auto create a anonymous session
+
+## 0.4.53 (2024-9-19)
+
+- chore: support custom open graph
+
 ## 0.4.52 (2024-9-14)
 
 - fix: avoid waiting for runtime creation forever
