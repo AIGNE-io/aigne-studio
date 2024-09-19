@@ -6,7 +6,7 @@ import { sequelize } from '../sequelize';
 export default class Session extends Model<InferAttributes<Session>, InferCreationAttributes<Session>> {
   declare id: CreationOptional<string>;
 
-  declare userId: string;
+  declare userId?: string;
 
   declare createdAt: CreationOptional<Date>;
 
@@ -36,7 +36,6 @@ Session.init(
     },
     userId: {
       type: DataTypes.STRING,
-      allowNull: false,
     },
     createdAt: {
       type: DataTypes.DATE,

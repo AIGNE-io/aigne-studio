@@ -1,3 +1,7 @@
+## 0.4.54 (2024-9-19)
+
+- chore: auto create a anonymous session
+
 ## 0.4.53 (2024-9-19)
 
 - chore: support custom open graph
