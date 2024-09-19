@@ -34,7 +34,7 @@ export type PromptMessages = Array<{
 // RunAssistantExecute 代表 Agent 执行状态
 // RunAssistantInput  代表 Agent 的输入
 // RunAssistantChunk 代表 Agent 的输出
-export type RunAssistantResponse = { messageId: string } & (
+export type RunAssistantResponse = { messageId: string; sessionId: string } & (
   | RunAssistantChunk
   | RunAssistantUsage
   | RunAssistantError
