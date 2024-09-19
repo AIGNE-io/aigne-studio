@@ -149,12 +149,20 @@ var ${RUNTIME_RESOURCE_BLOCKLET_STATE_GLOBAL_VARIABLE} = ${JSON.stringify(resour
 
     let html;
     try {
+      const { messageId } = req.query;
+      let ogImage: string | undefined;
+      if (typeof messageId === 'string') {
+        const message = await History.findByPk(messageId);
+        const image = message?.outputs?.objects?.find((i) => i.$images)?.$images?.[0]?.url;
+        if (image) ogImage = image;
+      }
+
       const info = app && getAgentProfile(app);
 
       html = Mustache.render(template, {
         ogTitle: info?.name || '',
         ogDescription: info?.description || '',
-        ogImage: info?.icon || '',
+        ogImage: ogImage || info?.ogImage || info?.icon || '',
       });
     } catch (error) {
       logger.error('render html error', { error });

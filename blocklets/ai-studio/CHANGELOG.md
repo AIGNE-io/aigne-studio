@@ -1,3 +1,7 @@
+## 0.4.53 (2024-9-19)
+
+- chore: support custom open graph
+
 ## 0.4.52 (2024-9-14)
 
 - fix: avoid waiting for runtime creation forever

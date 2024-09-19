@@ -357,6 +357,7 @@ export interface RuntimeOutputProfile {
   avatar?: string;
   name?: string;
   description?: string;
+  ogImage?: string;
 }
 
 export interface RuntimeOutputVariablesSchema {
