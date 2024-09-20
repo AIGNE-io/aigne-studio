@@ -1,11 +1,10 @@
 import LoadingButton from '@app/components/loading/loading-button';
+import { useCurrentProject } from '@app/contexts/project';
 import { useIsAdmin } from '@app/contexts/session';
-import { AIGNE_RUNTIME_MOUNT_POINT } from '@app/libs/constants';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import ComponentInstaller from '@blocklet/ui-react/lib/ComponentInstaller';
 import { Icon } from '@iconify-icon/react';
-import ClockIcon from '@iconify-icons/tabler/clock';
 import LockIcon from '@iconify-icons/tabler/lock';
 import RocketIcon from '@iconify-icons/tabler/rocket';
 import ShareIcon from '@iconify-icons/tabler/share';
@@ -22,6 +21,7 @@ import {
   Grow,
   List,
   ListItem,
+  ListItemButton,
   ListItemIcon,
   ListItemText,
   Paper,
@@ -34,24 +34,20 @@ import {
 import { useRequest } from 'ahooks';
 import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { Suspense, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
-import { createOrUpdateDeployment, getDeploymentById } from '../../libs/deployment';
-import { getFileIdFromPath } from '../../utils/path';
+import { createOrUpdateDeployment, getDeploymentByProjectId } from '../../libs/deployment';
 import { saveButtonState } from './state';
 
 export default function DeploymentAction() {
   const deploymentPopperState = usePopupState({ variant: 'popper', popupId: 'deployment' });
   const { t } = useLocaleContext();
 
-  const { projectId, ref: gitRef, '*': filepath } = useParams();
-  const fileId = filepath && getFileIdFromPath(filepath);
+  const { projectId, projectRef } = useCurrentProject();
 
-  const { data, loading, run } = useRequest(
-    () => getDeploymentById({ projectId: projectId!, projectRef: gitRef!, agentId: fileId! }),
-    { refreshDeps: [projectId, gitRef, fileId] }
-  );
+  const { data, loading, run } = useRequest(() => getDeploymentByProjectId({ projectId, projectRef }), {
+    refreshDeps: [projectId, projectRef],
+  });
 
   return (
     <>
@@ -62,7 +58,7 @@ export default function DeploymentAction() {
         sx={{ px: 2 }}
         disabled={loading}
         {...bindTrigger(deploymentPopperState)}>
-        {t('deployments.deployApp')}
+        {t('deploy')}
       </LoadingButton>
 
       <Popper {...bindPopper(deploymentPopperState)} sx={{ zIndex: 1101 }} transition placement="bottom-end">
@@ -86,22 +82,15 @@ export default function DeploymentAction() {
                           'z2qaCNvKMv5GjouKdcDWexv6WqtHbpNPQDnAk',
                           'z8iZiDFg3vkkrPwsiba1TLXy3H9XHzFERsP8o',
                         ]}>
-                        <UpdateApp
-                          projectId={projectId!}
-                          projectRef={gitRef!}
-                          id={data.id}
-                          onClose={deploymentPopperState.close}
-                          run={run}
-                        />
+                        <UpdateApp id={data.id} onClose={deploymentPopperState.close} run={run} />
                       </ComponentInstaller>
                     </Suspense>
                   ) : (
                     <DeployApp
                       onClose={deploymentPopperState.close}
                       run={run}
-                      projectId={projectId!}
-                      projectRef={gitRef!}
-                      agentId={fileId!}
+                      projectId={projectId}
+                      projectRef={projectRef}
                     />
                   )}
                 </Box>
@@ -117,13 +106,11 @@ export default function DeploymentAction() {
 function DeployApp({
   projectId,
   projectRef,
-  agentId,
   onClose,
   run,
 }: {
   projectId: string;
   projectRef: string;
-  agentId: string;
   onClose: () => void;
   run: () => void;
 }) {
@@ -140,7 +127,6 @@ function DeployApp({
       await createOrUpdateDeployment({
         projectId,
         projectRef,
-        agentId,
         access: visibility,
       });
 
@@ -157,7 +143,7 @@ function DeployApp({
       <Box p={3}>
         <Stack gap={0.75}>
           <Box component="h3" m={0}>
-            {t('deployments.deployApp')}
+            {t('deployment')}
           </Box>
           <Typography variant="caption">{t('deployments.deployDescription')}</Typography>
         </Stack>
@@ -227,7 +213,7 @@ function DeployApp({
           </Button>
 
           <LoadingButton variant="contained" onClick={onSubmit}>
-            {t('deployments.title')}
+            {t('deploy')}
           </LoadingButton>
         </Stack>
       </Box>
@@ -235,21 +221,8 @@ function DeployApp({
   );
 }
 
-function UpdateApp({
-  projectId,
-  projectRef,
-  id,
-  onClose,
-  run,
-}: {
-  projectId: string;
-  projectRef: string;
-  id: string;
-  onClose: () => void;
-  run: () => void;
-}) {
+function UpdateApp({ id, onClose, run }: { id: string; onClose: () => void; run: () => void }) {
   const { t } = useLocaleContext();
-  const navigate = useNavigate();
 
   const onSubmit = async () => {
     try {
@@ -264,45 +237,39 @@ function UpdateApp({
   };
 
   return (
-    <Box width={400}>
-      <Box p={3}>
+    <Stack width={400} gap={2} py={3}>
+      <Box px={3}>
         <Box component="h3" m={0}>
           {t('deployments.updateApp')}
         </Box>
+
         <Typography variant="caption">{t('deployments.updateAppDescription')}</Typography>
       </Box>
 
-      <Box p={3} pt={0}>
-        <Stack gap={1}>
-          <Typography variant="subtitle1">{t('deployments.currentDeployment')}</Typography>
-          <List sx={{ p: 0 }} component={Stack} gap={1}>
-            {[
-              {
-                text: t('deployments.appPage'),
-                icon: <Box component={Icon} icon={ShareIcon} sx={{ fontSize: 20 }} />,
-                handle: () => {
-                  window.open(
-                    joinURL(globalThis.location.origin, AIGNE_RUNTIME_MOUNT_POINT, 'deployment', id),
-                    '_blank'
-                  );
-                },
+      <Stack gap={1}>
+        <Typography variant="subtitle1" mx={3}>
+          {t('deployments.currentDeployment')}
+        </Typography>
+
+        <List sx={{ px: 2 }}>
+          {[
+            {
+              text: t('deployments.appPage'),
+              icon: <Box component={Icon} icon={ShareIcon} sx={{ fontSize: 20 }} />,
+              handle: () => {
+                window.open(joinURL(globalThis.location.origin, window.blocklet.prefix, 'explore/apps', id), '_blank');
               },
-              {
-                text: t('deployments.deploymentPage'),
-                icon: <Box component={Icon} icon={ClockIcon} sx={{ fontSize: 20 }} />,
-                handle: () => {
-                  navigate(joinURL('/projects', projectId, 'deployments', projectRef, id));
-                },
-              },
-            ].map((item) => (
-              <ListItem key={item.text} sx={{ m: 0, p: 0, cursor: 'pointer' }} onClick={item.handle}>
+            },
+          ].map((item) => (
+            <ListItem key={item.text} dense disablePadding onClick={item.handle}>
+              <ListItemButton>
                 <ListItemIcon sx={{ minWidth: 0, mr: 1 }}>{item.icon}</ListItemIcon>
                 <ListItemText primary={item.text} />
-              </ListItem>
-            ))}
-          </List>
-        </Stack>
-      </Box>
+              </ListItemButton>
+            </ListItem>
+          ))}
+        </List>
+      </Stack>
 
       {/* <Box p={3} pt={0}>
         <Divider sx={{ m: 0 }} />
@@ -317,7 +284,7 @@ function UpdateApp({
         </Box>
       </Box> */}
 
-      <Box p={3} pt={0}>
+      <Box px={3} pt={0}>
         <Stack flexDirection="row" justifyContent="space-between">
           <Button variant="outlined" onClick={onClose}>
             {t('cancel')}
@@ -328,6 +295,6 @@ function UpdateApp({
           </LoadingButton>
         </Stack>
       </Box>
-    </Box>
+    </Stack>
   );
 }

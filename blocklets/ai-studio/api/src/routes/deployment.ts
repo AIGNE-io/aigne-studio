@@ -1,7 +1,17 @@
-import { getAssistantsOfRepository } from '@api/store/repository';
+import { getAgentSecretInputs } from '@api/libs/runtime';
+import {
+  PROJECT_FILE_PATH,
+  ProjectRepo,
+  getAssistantsOfRepository,
+  getEntryFromRepository,
+} from '@api/store/repository';
+import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
+import { Assistant, ProjectSettings } from '@blocklet/ai-runtime/types';
+import { Agent } from '@blocklet/aigne-sdk/api/agent';
 import { auth, user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
+import pick from 'lodash/pick';
 import { Op } from 'sequelize';
 
 import checkUserAuth from '../libs/user-auth';
@@ -14,7 +24,6 @@ const router = Router();
 const deploymentSchema = Joi.object({
   projectId: Joi.string().required(),
   projectRef: Joi.string().required(),
-  agentId: Joi.string().required(),
   access: Joi.string().valid('private', 'public').required(),
 });
 
@@ -50,14 +59,13 @@ const updateSchema = Joi.object({
 const getByIdSchema = Joi.object({
   projectId: Joi.string().required(),
   projectRef: Joi.string().required(),
-  agentId: Joi.string().required(),
 });
 
 const deploymentIdSchema = Joi.object({ id: Joi.string().required() });
 
-router.get('/byAgentId', user(), auth(), async (req, res) => {
-  const { projectId, projectRef, agentId } = await getByIdSchema.validateAsync(req.query, { stripUnknown: true });
-  const deployment = await Deployment.findOne({ where: { projectId, projectRef, agentId } });
+router.get('/byProjectId', user(), auth(), async (req, res) => {
+  const { projectId, projectRef } = await getByIdSchema.validateAsync(req.query, { stripUnknown: true });
+  const deployment = await Deployment.findOne({ where: { projectId, projectRef } });
 
   if (deployment) {
     const categories = await DeploymentCategory.findAll({ where: { deploymentId: deployment.id } });
@@ -222,7 +230,7 @@ router.get('/categories/:categoryId', async (req, res) => {
 
 router.post('/', user(), auth(), async (req, res) => {
   const { did: userId } = req.user!;
-  const { projectId, projectRef, agentId, access } = await deploymentSchema.validateAsync(req.body, {
+  const { projectId, projectRef, access } = await deploymentSchema.validateAsync(req.body, {
     stripUnknown: true,
   });
 
@@ -231,7 +239,7 @@ router.post('/', user(), auth(), async (req, res) => {
   }
 
   let deployment = await Deployment.findOne({
-    where: { projectId, projectRef, agentId },
+    where: { projectId, projectRef },
   });
 
   if (deployment) {
@@ -243,7 +251,6 @@ router.post('/', user(), auth(), async (req, res) => {
     deployment = await Deployment.create({
       projectId,
       projectRef,
-      agentId,
       access,
       createdBy: userId,
       updatedBy: userId,
@@ -253,16 +260,69 @@ router.post('/', user(), auth(), async (req, res) => {
   res.json(deployment.dataValues);
 });
 
-router.get('/:id', async (req, res) => {
-  const { id } = await deploymentIdSchema.validateAsync(req.params, { stripUnknown: true });
+router.get('/:deploymentId', user(), async (req, res) => {
+  const { deploymentId } = req.params;
+  if (!deploymentId) throw new Error('Missing required param `deploymentId`');
 
-  const deployment = await Deployment.findOne({ where: { id } });
-  const categories = await DeploymentCategory.findAll({ where: { deploymentId: id } });
+  const { did: userId, role } = req.user! || {};
 
-  res.json(
-    deployment ? { ...deployment?.dataValues, categories: categories.map((category) => category.categoryId) } : null
-  );
+  const deployment = await Deployment.findByPk(deploymentId);
+
+  if (!deployment) {
+    res.status(404).json({ message: 'current agent application not published' });
+    return;
+  }
+
+  if (deployment.access === 'private') {
+    if (userId !== deployment.createdBy || !['admin', 'owner'].includes(role)) {
+      res.status(404).json({ message: 'Not Found' });
+      return;
+    }
+  }
+
+  const { projectId, projectRef } = deployment;
+  const repo = await ProjectRepo.load({ projectId });
+  const agent = await getEntryFromRepository({ projectId, ref: projectRef });
+
+  if (!agent) {
+    res.status(404).json({ message: 'No such agent' });
+    return;
+  }
+
+  res.json({
+    ...respondAgentFields({
+      ...agent,
+      identity: { projectId, projectRef, agentId: agent.id },
+      project: await repo.readAndParseFile({
+        ref: projectRef,
+        filepath: PROJECT_FILE_PATH,
+        readBlobFromGitIfWorkingNotInitialized: true,
+        rejectOnEmpty: true,
+      }),
+    }),
+    config: {
+      secrets: (await getAgentSecretInputs({ aid: stringifyIdentity({ projectId, projectRef, agentId: agent.id }) }))
+        .secrets,
+    },
+  });
 });
+
+// TODO: use
+// router.get('/:id', async (req, res) => {
+//   const { id } = await deploymentIdSchema.validateAsync(req.params, { stripUnknown: true });
+
+//   const deployment = await Deployment.findOne({ where: { id } });
+//   const categories = await DeploymentCategory.findAll({ where: { deploymentId: id } });
+
+//   res.json(
+//     deployment
+//       ? {
+//           ...deployment?.dataValues,
+//           categories: categories.map((category) => category.categoryId),
+//         }
+//       : null
+//   );
+// });
 
 router.put('/:id', user(), auth(), async (req, res) => {
   const { did: userId } = req.user!;
@@ -316,3 +376,29 @@ router.delete('/:id', user(), auth(), async (req, res) => {
 });
 
 export default router;
+
+export const respondAgentFields = (
+  agent: Assistant & {
+    identity: Omit<Agent['identity'], 'aid'>;
+    project: ProjectSettings;
+  }
+): Agent => ({
+  ...pick(agent, 'id', 'name', 'description', 'type', 'parameters', 'createdAt', 'updatedAt', 'createdBy', 'identity'),
+  access: pick(agent.access, 'noLoginRequired'),
+  outputVariables: (agent.outputVariables ?? []).filter((i) => !i.hidden),
+  project: pick(
+    agent.project,
+    'id',
+    'name',
+    'description',
+    'createdBy',
+    'createdAt',
+    'updatedAt',
+    'appearance',
+    'iconVersion'
+  ),
+  identity: {
+    ...agent.identity,
+    aid: stringifyIdentity(agent.identity),
+  },
+});

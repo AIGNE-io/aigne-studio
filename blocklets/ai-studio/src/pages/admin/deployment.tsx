@@ -161,9 +161,7 @@ function DeploymentList() {
   return (
     <Container>
       <Box className="between" mt={2.5} mb={1.5}>
-        <Box sx={{ fontWeight: 700, fontSize: 24, lineHeight: '32px', color: '#030712' }}>
-          {t('deployments.deployApp')}
-        </Box>
+        <Box sx={{ fontWeight: 700, fontSize: 24, lineHeight: '32px', color: '#030712' }}>{t('deployment')}</Box>
       </Box>
 
       <Box sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1, px: 1.5 }}>

@@ -6,7 +6,6 @@ import CloseIcon from '@iconify-icons/material-symbols/close';
 import MenuIcon from '@iconify-icons/material-symbols/menu';
 import BookIcon from '@iconify-icons/tabler/book-2';
 import BrainIcon from '@iconify-icons/tabler/brain';
-import RocketIcon from '@iconify-icons/tabler/rocket';
 import { Box, CircularProgress, Drawer, Hidden, IconButton, Stack, Theme, Typography } from '@mui/material';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { Suspense, useMemo, useState } from 'react';
@@ -45,10 +44,6 @@ export default function ProjectHeader() {
       return 'variables';
     }
 
-    if (pathname.includes(`${projectId}/deployments`)) {
-      return 'deployments';
-    }
-
     return 'prompts';
   }, [pathname, projectId]);
 
@@ -68,11 +63,6 @@ export default function ProjectHeader() {
         value: 'variables',
         label: t('memory.title'),
         icon: <Box fontSize={15} component={Icon} icon={BrainIcon} mr={1} />,
-      },
-      {
-        value: 'deployments',
-        label: t('deployments.title'),
-        icon: <Box fontSize={15} component={Icon} icon={RocketIcon} mr={1} />,
       },
     ];
   }, [t]);

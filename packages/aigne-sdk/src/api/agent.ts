@@ -46,8 +46,8 @@ export async function getAgentByDeploymentId({
   deploymentId: string;
   working?: boolean;
 }): Promise<AgentWithConfig> {
-  return aigneRuntimeApi
-    .get(joinURL('/api/agents/deployment/', deploymentId), {
+  return aigneStudioApi
+    .get(joinURL('/api/deployments', deploymentId), {
       params: { working },
     })
     .then((res) => res.data);

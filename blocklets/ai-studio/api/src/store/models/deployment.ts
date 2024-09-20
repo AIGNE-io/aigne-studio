@@ -10,8 +10,6 @@ export default class Deployment extends Model<InferAttributes<Deployment>, Infer
 
   declare projectRef: string;
 
-  declare agentId: string;
-
   declare createdAt: CreationOptional<Date>;
 
   declare updatedAt: CreationOptional<Date>;
@@ -39,9 +37,6 @@ Deployment.init(
       type: DataTypes.STRING,
     },
     projectRef: {
-      type: DataTypes.STRING,
-    },
-    agentId: {
       type: DataTypes.STRING,
     },
     createdAt: {

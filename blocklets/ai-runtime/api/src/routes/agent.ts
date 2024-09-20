@@ -7,8 +7,6 @@ import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
 import { Assistant, ProjectSettings, ResourceType } from '@blocklet/ai-runtime/types';
 import { Agent } from '@blocklet/aigne-sdk/api/agent';
 import { getComponentMountPoint } from '@blocklet/sdk';
-import { call } from '@blocklet/sdk/lib/component';
-import user from '@blocklet/sdk/lib/middlewares/user';
 import { Router } from 'express';
 import { exists } from 'fs-extra';
 import Joi from 'joi';
@@ -79,46 +77,6 @@ router.get('/:aid', async (req, res) => {
   const { projectId, projectRef, agentId } = parseIdentity(aid, { rejectWhenError: true });
 
   const agent = await getAgent({ blockletDid, projectId, projectRef, agentId, working });
-
-  if (!agent) {
-    res.status(404).json({ message: 'No such agent' });
-    return;
-  }
-
-  res.json({ ...respondAgentFields(agent), config: { secrets: await getAgentSecretInputs(agent) } });
-});
-
-router.get('/deployment/:deploymentId', user(), async (req, res) => {
-  const { deploymentId } = req.params;
-  const { did: userId, role } = req.user! || {};
-  if (!deploymentId) throw new Error('Missing required param `deploymentId`');
-
-  const publish = (
-    await call({
-      name: 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB',
-      method: 'GET',
-      path: joinURL('/api/deployments', deploymentId),
-      headers: {
-        'x-user-did': userId,
-        'x-user-role': role,
-      },
-    })
-  ).data;
-  if (!publish) {
-    res.status(404).json({ message: 'current agent application not published' });
-    return;
-  }
-
-  if (publish.access === 'private') {
-    if (userId !== publish.createdBy || !['admin', 'owner'].includes(role)) {
-      res.status(404).json({ message: 'Not Found' });
-      return;
-    }
-  }
-
-  const { working } = await getAgentQuerySchema.validateAsync(req.query, { stripUnknown: true });
-  const { projectId, projectRef, agentId } = publish;
-  const agent = await getAgent({ projectId, projectRef, agentId, working });
 
   if (!agent) {
     res.status(404).json({ message: 'No such agent' });

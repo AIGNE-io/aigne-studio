@@ -782,6 +782,8 @@ export default flatten({
   selectTemplate:
     'Choose a template for a quick start, or create your unique project - Click to begin your personalized journey!',
   syncTip: 'Save the modified data before data synchronization',
+  deployment: 'Deployment',
+  deploy: 'Deploy',
   deployments: {
     name: 'Name',
     title: 'Deployment',

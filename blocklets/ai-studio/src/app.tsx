@@ -104,6 +104,7 @@ function AppRoutes({ basename }: { basename: string }) {
         <Route index element={isPromptEditor ? <Navigate to="projects" replace /> : <Home />} />
         <Route path="explore">
           <Route path="category/*" element={<ExploreCategory />} />
+          <Route path="apps/:appId" element={<AppPage />} />
         </Route>
         <Route path="admin/*" element={<ExploreAdmin />} />
         {isPromptEditor ? (
@@ -134,6 +135,8 @@ function RouterErrorBoundary() {
 const ExploreAdmin = lazy(() => import('./pages/admin'));
 
 const ExploreCategory = lazy(() => import('./pages/explore'));
+
+const AppPage = lazy(() => import('./pages/explore/app'));
 
 const Home = lazy(() => import('./pages/home/home'));
 

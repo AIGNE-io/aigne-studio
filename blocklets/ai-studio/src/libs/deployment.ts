@@ -16,18 +16,14 @@ export type Deployment = {
   banner?: string;
 };
 
-export async function getDeploymentById({
+export async function getDeploymentByProjectId({
   projectId,
   projectRef,
-  agentId,
 }: {
   projectId: string;
   projectRef: string;
-  agentId: string;
 }): Promise<Deployment | null> {
-  return axios
-    .get('/api/deployments/byAgentId', { params: { projectId, projectRef, agentId } })
-    .then((res) => res.data);
+  return axios.get('/api/deployments/byProjectId', { params: { projectId, projectRef } }).then((res) => res.data);
 }
 
 export async function getDeployment({ id }: { id: string }): Promise<Deployment | null> {
@@ -37,7 +33,6 @@ export async function getDeployment({ id }: { id: string }): Promise<Deployment 
 export async function createOrUpdateDeployment(input: {
   projectId: string;
   projectRef: string;
-  agentId: string;
   access?: 'private' | 'public';
 }): Promise<Deployment> {
   return axios.post('/api/deployments', input).then((res) => res.data);
