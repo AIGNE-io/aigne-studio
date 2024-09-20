@@ -50,7 +50,7 @@ export default function DeploymentDialog({
   categories,
   banner = '',
   showCategories = true,
-  showBanner = true,
+  showVisibility = true,
   run,
 }: {
   dialogState: PopupState;
@@ -60,7 +60,7 @@ export default function DeploymentDialog({
   banner: string;
   run: () => void;
   showCategories?: boolean;
-  showBanner?: boolean;
+  showVisibility?: boolean;
 }) {
   const isAdmin = useIsAdmin();
   const { t } = useLocaleContext();
@@ -110,38 +110,33 @@ export default function DeploymentDialog({
             </Box>
           ) : (
             <Stack gap={1}>
-              <Stack gap={1}>
-                <Typography variant="body1">{t('deployments.visibility')}</Typography>
-                <Card sx={{ width: 1, boxShadow: 0 }}>
-                  <CardContent sx={{ p: 0, m: 0 }}>
-                    <VisibilitySelect control={control} name="access" />
-                  </CardContent>
+              {showVisibility && (
+                <Stack gap={1}>
+                  <Typography variant="body1">{t('deployments.visibility')}</Typography>
+                  <Card sx={{ width: 1, boxShadow: 0 }}>
+                    <CardContent sx={{ p: 0, m: 0 }}>
+                      <VisibilitySelect control={control} name="access" />
+                    </CardContent>
 
-                  {!isAdmin && (
-                    <Typography variant="caption" mt={2}>
-                      {t('deployments.toEnablePrivateProjects')}
-                      <Box
-                        component="a"
-                        href="https://store.blocklet.dev/blocklets/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB"
-                        target="_blank">
-                        {t('deployments.launchAigne')}
-                      </Box>
-                    </Typography>
-                  )}
-                </Card>
-              </Stack>
+                    {!isAdmin && (
+                      <Typography variant="caption" mt={2}>
+                        {t('deployments.toEnablePrivateProjects')}
+                        <Box
+                          component="a"
+                          href="https://store.blocklet.dev/blocklets/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB"
+                          target="_blank">
+                          {t('deployments.launchAigne')}
+                        </Box>
+                      </Typography>
+                    )}
+                  </Card>
+                </Stack>
+              )}
 
               {showCategories && (
                 <Stack gap={1}>
                   <Typography variant="body1">{t('category.title')}</Typography>
                   <CategorySelect control={control} name="categories" categories={data?.list || []} />
-                </Stack>
-              )}
-
-              {showBanner && (
-                <Stack gap={1}>
-                  <Typography variant="body1">{t('deployments.banner')}</Typography>
-                  <BannerSelect control={control} name="banner" />
                 </Stack>
               )}
             </Stack>
@@ -278,7 +273,7 @@ function CategorySelect({
   );
 }
 
-function BannerSelect({ control, name }: { control: Control<UpdateType>; name: 'banner' }) {
+export function BannerSelect({ control, name }: { control: Control<UpdateType>; name: 'banner' }) {
   const uploaderRef = useUploader();
 
   return (

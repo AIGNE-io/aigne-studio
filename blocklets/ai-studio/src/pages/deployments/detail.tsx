@@ -33,7 +33,7 @@ function DeploymentDetail() {
   const dialogState = usePopupState({ variant: 'popper' });
 
   const navigate = useNavigate();
-  const { getFileById } = useProjectStore(projectId!, gitRef!);
+  const { projectSetting } = useProjectStore(projectId, gitRef);
 
   const { data, loading, refresh } = useRequest(() => getDeployment({ id: id! }), {
     refreshDeps: [projectId, gitRef, id],
@@ -51,9 +51,10 @@ function DeploymentDetail() {
     );
   }
 
-  const file = data?.agentId ? getFileById(data?.agentId) : { name: '', description: '' };
   const url = joinURL(globalThis.location.origin, AIGNE_RUNTIME_MOUNT_POINT, 'deployment', id);
-  const rows = (data?.categories || []).map((category) => categories?.list?.find((c) => c.id === category)?.name);
+  const rows = (data?.deployment?.categories || []).map(
+    (category) => categories?.list?.find((c) => c.id === category)?.name
+  );
 
   return (
     <>
@@ -64,9 +65,10 @@ function DeploymentDetail() {
               <Typography component="span" sx={{ cursor: 'pointer' }} onClick={() => navigate('..')}>
                 {t('deployments.title')}
               </Typography>
-              <Typography sx={{ color: 'text.primary' }}>{file?.name || t('unnamed')}</Typography>
+              <Typography sx={{ color: 'text.primary' }}>{projectSetting?.name || t('unnamed')}</Typography>
             </Breadcrumbs>
           </Typography>
+
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="h5" sx={{ m: 0 }}>
               {t('deployments.info')}
@@ -101,7 +103,7 @@ function DeploymentDetail() {
             <Typography variant="subtitle1" gutterBottom>
               {t('deployments.visibility')}
             </Typography>
-            <Chip label={t(data?.access!)} color="success" size="small" />
+            <Chip label={t(data?.deployment?.access!)} color="success" size="small" />
           </Box>
 
           {!!rows.length && (
@@ -122,15 +124,15 @@ function DeploymentDetail() {
             <Typography variant="subtitle1" gutterBottom>
               {t('title')}
             </Typography>
-            <Typography>{file?.name || t('unnamed')}</Typography>
+            <Typography>{projectSetting?.name || t('unnamed')}</Typography>
           </Box>
 
-          {file?.description && (
+          {projectSetting?.description && (
             <Box>
               <Typography variant="subtitle1" gutterBottom>
                 {t('description')}
               </Typography>
-              <Typography>{file?.description}</Typography>
+              <Typography>{projectSetting?.description}</Typography>
             </Box>
           )}
         </Paper>
@@ -139,12 +141,11 @@ function DeploymentDetail() {
       <DeploymentDialog
         dialogState={dialogState}
         id={id}
-        access={data?.access!}
-        categories={data?.categories!}
-        banner={data?.banner!}
+        access={data?.deployment?.access!}
+        categories={data?.deployment?.categories!}
+        banner={data?.deployment?.banner!}
         run={refresh}
         showCategories={false}
-        showBanner={false}
       />
     </>
   );

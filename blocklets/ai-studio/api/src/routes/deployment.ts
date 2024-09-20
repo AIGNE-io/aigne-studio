@@ -1,10 +1,6 @@
 import { getAgentSecretInputs } from '@api/libs/runtime';
-import {
-  PROJECT_FILE_PATH,
-  ProjectRepo,
-  getAssistantsOfRepository,
-  getEntryFromRepository,
-} from '@api/store/repository';
+import Project from '@api/store/models/project';
+import { PROJECT_FILE_PATH, ProjectRepo, getEntryFromRepository } from '@api/store/repository';
 import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { Assistant, ProjectSettings } from '@blocklet/ai-runtime/types';
 import { Agent } from '@blocklet/aigne-sdk/api/agent';
@@ -101,16 +97,6 @@ router.get('/', async (req, res) => {
   });
 });
 
-const getAgent = async (projectId: string, projectRef: string, agentId: string) => {
-  const agents = await getAssistantsOfRepository({
-    projectId,
-    ref: projectRef,
-    working: true,
-  });
-
-  return agents.find((agent) => agent.id === agentId);
-};
-
 router.get('/list', async (req, res) => {
   const { page, pageSize } = await paginationSchema.validateAsync(req.query, { stripUnknown: true });
   const offset = (page - 1) * pageSize;
@@ -156,7 +142,7 @@ router.get('/recommend-list', async (req, res) => {
           const categories = await DeploymentCategory.findAll({ where: { deploymentId: deployment.id } });
           return {
             ...deployment.dataValues,
-            agent: await getAgent(deployment.projectId, deployment.projectRef, deployment.agentId),
+            project: await Project.findOne({ where: { id: deployment.projectId } }),
             categories: await Category.findAll({
               where: {
                 id: {
@@ -185,7 +171,7 @@ router.get('/recommend-list', async (req, res) => {
         const categories = await DeploymentCategory.findAll({ where: { deploymentId: deployment.id } });
         return {
           ...deployment.dataValues,
-          agent: await getAgent(deployment.projectId, deployment.projectRef, deployment.agentId).catch(() => null),
+          project: await Project.findOne({ where: { id: deployment.projectId } }),
           categories: await Category.findAll({
             where: {
               id: {
@@ -267,6 +253,7 @@ router.get('/:deploymentId', user(), async (req, res) => {
   const { did: userId, role } = req.user! || {};
 
   const deployment = await Deployment.findByPk(deploymentId);
+  const categories = await DeploymentCategory.findAll({ where: { deploymentId } });
 
   if (!deployment) {
     res.status(404).json({ message: 'current agent application not published' });
@@ -282,7 +269,7 @@ router.get('/:deploymentId', user(), async (req, res) => {
 
   const { projectId, projectRef } = deployment;
   const repo = await ProjectRepo.load({ projectId });
-  const agent = await getEntryFromRepository({ projectId, ref: projectRef });
+  const agent = await getEntryFromRepository({ projectId, ref: projectRef, working: true });
 
   if (!agent) {
     res.status(404).json({ message: 'No such agent' });
@@ -290,6 +277,7 @@ router.get('/:deploymentId', user(), async (req, res) => {
   }
 
   res.json({
+    deployment: { ...deployment.dataValues, categories: categories.map((category) => category.categoryId) },
     ...respondAgentFields({
       ...agent,
       identity: { projectId, projectRef, agentId: agent.id },
@@ -306,23 +294,6 @@ router.get('/:deploymentId', user(), async (req, res) => {
     },
   });
 });
-
-// TODO: use
-// router.get('/:id', async (req, res) => {
-//   const { id } = await deploymentIdSchema.validateAsync(req.params, { stripUnknown: true });
-
-//   const deployment = await Deployment.findOne({ where: { id } });
-//   const categories = await DeploymentCategory.findAll({ where: { deploymentId: id } });
-
-//   res.json(
-//     deployment
-//       ? {
-//           ...deployment?.dataValues,
-//           categories: categories.map((category) => category.categoryId),
-//         }
-//       : null
-//   );
-// });
 
 router.put('/:id', user(), auth(), async (req, res) => {
   const { did: userId } = req.user!;

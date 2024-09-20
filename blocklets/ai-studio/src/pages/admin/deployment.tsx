@@ -17,9 +17,9 @@ import type { Deployment } from '../../libs/deployment';
 import DeploymentDialog from '../deployments/dialog';
 import { useProjectStore } from '../project/yjs-state';
 
-function ProjectAgentName({ projectId, gitRef, agentId }: { projectId: string; gitRef: string; agentId: string }) {
-  const { getFileById } = useProjectStore(projectId, gitRef);
-  return <Box>{getFileById(agentId)?.name}</Box>;
+function ProjectAgentName({ projectId, gitRef }: { projectId: string; gitRef: string }) {
+  const { projectSetting } = useProjectStore(projectId, gitRef);
+  return <Box>{projectSetting?.name}</Box>;
 }
 
 const pageSize = 10;
@@ -48,11 +48,7 @@ function DeploymentList() {
         headerName: t('agentName'),
         flex: 1,
         renderCell: (params) => (
-          <ProjectAgentName
-            projectId={params?.row?.projectId!}
-            gitRef={params?.row?.projectRef!}
-            agentId={params?.row?.agentId!}
-          />
+          <ProjectAgentName projectId={params?.row?.projectId!} gitRef={params?.row?.projectRef!} />
         ),
       },
       {
@@ -212,6 +208,7 @@ function DeploymentList() {
       {dialog}
 
       <DeploymentDialog
+        showVisibility={false}
         dialogState={dialogState}
         id={deployment?.id!}
         access={deployment?.access!}

@@ -2,13 +2,14 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 
 import { getDeploymentsByCategoryId } from '@app/libs/deployment';
+import { getProjectIconUrl } from '@app/libs/project';
 import Empty from '@app/pages/project/icons/empty';
 import { useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Icon } from '@iconify-icon/react';
 import CircleArrowLeft from '@iconify-icons/tabler/circle-arrow-left';
 import CircleArrowRight from '@iconify-icons/tabler/circle-arrow-right';
-import { Box, Card, CardContent, CircularProgress, Grid, IconButton, Stack, Typography } from '@mui/material';
+import { Box, CardContent, CircularProgress, Grid, IconButton, Stack, Typography } from '@mui/material';
 import useInfiniteScroll from 'ahooks/lib/useInfiniteScroll';
 import useInfiniteScrollHook from 'react-infinite-scroll-hook';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -17,6 +18,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { withQuery } from 'ufo';
 
 const pageSize = 10;
+const spacing = 3;
 
 export function Slide() {
   return (
@@ -90,23 +92,29 @@ export function Slide() {
   );
 }
 
-function CategoryCard({
-  projectId,
-  projectRef,
-  agentId,
-  banner,
-}: {
-  projectId: string;
-  projectRef: string;
-  agentId: string;
-  banner?: string;
-}) {
-  const { getFileById } = useProjectStore(projectId, projectRef);
-  const agent = getFileById(agentId);
+function CategoryCard({ projectId, projectRef }: { projectId: string; projectRef: string }) {
+  const { projectSetting } = useProjectStore(projectId, projectRef);
+  const { t } = useLocaleContext();
+
+  const banner = getProjectIconUrl(projectSetting.id, { updatedAt: projectSetting.updatedAt });
 
   return (
-    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', cursor: 'pointer' }}>
-      <Box width={1} pb="40%" position="relative">
+    <Box
+      sx={{
+        borderRadius: 1.5,
+        overflow: 'hidden',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        cursor: 'pointer',
+        position: 'relative',
+        boxShadow: `
+        0px 0px 1px 1px rgba(3, 7, 18, 0.08),
+        0px 1px 2px -1px rgba(3, 7, 18, 0.08),
+        0px 2px 4px 0px rgba(3, 7, 18, 0.04)
+      `,
+      }}>
+      <Box width={1} pb="50%" position="relative">
         {banner ? (
           <Box
             component="img"
@@ -118,7 +126,6 @@ function CategoryCard({
               objectFit: 'cover',
               width: 1,
               height: 1,
-              borderRadius: 1,
             }}
           />
         ) : (
@@ -129,21 +136,40 @@ function CategoryCard({
               cursor: 'pointer',
               backgroundColor: 'rgba(0, 0, 0, 0.5)',
               backgroundSize: 'cover',
-              borderRadius: 1,
             }}
           />
         )}
       </Box>
 
       <CardContent sx={{ flexGrow: 1 }}>
-        <Typography gutterBottom variant="h6" component="h2" className="ellipsis">
-          {agent?.name}
+        <Typography
+          gutterBottom
+          sx={{
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
+            textOverflow: 'ellipsis',
+            color: '#030712',
+            fontWeight: 500,
+            fontSize: 16,
+            lineHeight: '24px',
+            mb: 0.5,
+          }}>
+          {projectSetting?.name || t('unnamed')}
         </Typography>
-        <Typography variant="body2" color="text.secondary" className="ellipsis">
-          {agent?.description}
+        <Typography
+          sx={{
+            overflow: 'hidden',
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            textOverflow: 'ellipsis',
+            fontSize: '13px',
+            lineHeight: '20px',
+          }}>
+          {projectSetting?.description}
         </Typography>
       </CardContent>
-    </Card>
+    </Box>
   );
 }
 
@@ -156,8 +182,8 @@ function CategoryList() {
   const { t } = useLocaleContext();
 
   return (
-    <Box sx={{ flexGrow: 1, p: 2.5 }}>
-      <Grid container spacing={2.5}>
+    <Box sx={{ flexGrow: 1, p: spacing }}>
+      <Grid container spacing={spacing}>
         {deployments.length === 0 && (
           <Stack flex={1} height={500} justifyContent="center" alignItems="center" gap={1}>
             <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
@@ -169,12 +195,7 @@ function CategoryList() {
 
         {deployments.map((tool) => (
           <Grid item key={tool.id} xs={12} sm={6} md={4} onClick={() => navigate(tool.id)}>
-            <CategoryCard
-              projectId={tool.projectId}
-              projectRef={tool.projectRef}
-              agentId={tool.agentId}
-              banner={tool.banner}
-            />
+            <CategoryCard projectId={tool.projectId} projectRef={tool.projectRef} />
           </Grid>
         ))}
       </Grid>

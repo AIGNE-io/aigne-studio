@@ -26,7 +26,9 @@ export async function getDeploymentByProjectId({
   return axios.get('/api/deployments/byProjectId', { params: { projectId, projectRef } }).then((res) => res.data);
 }
 
-export async function getDeployment({ id }: { id: string }): Promise<Deployment | null> {
+export async function getDeployment({ id }: { id: string }): Promise<{
+  deployment: Deployment | null;
+}> {
   return axios.get(joinURL('/api/deployments', id)).then((res) => res.data);
 }
 
