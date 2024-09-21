@@ -13,6 +13,7 @@ import { Box, Button, CircularProgress, Theme, useMediaQuery } from '@mui/materi
 import { useRequest } from 'ahooks';
 import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
+import { getQuery } from 'ufo';
 
 export default function MessagePage() {
   const { messageId } = useParams();
@@ -62,9 +63,9 @@ export default function MessagePage() {
   const resourceBlocklet = useComponent(blockletDid);
   const aigneRuntime = useComponent(AIGNE_RUNTIME_COMPONENT_DID);
 
-  const chatUrl = blockletDid
-    ? resourceBlocklet?.mountPoint
-    : aigneRuntime && `${aigneRuntime.mountPoint}/preview/${aid}`;
+  const chatUrl =
+    (getQuery(window.location.href).agentUrl as string) ||
+    (blockletDid ? resourceBlocklet?.mountPoint : aigneRuntime && `${aigneRuntime.mountPoint}/preview/${aid}`);
 
   const loaded = agent && message;
   const loading = messageLoading || agentLoading;

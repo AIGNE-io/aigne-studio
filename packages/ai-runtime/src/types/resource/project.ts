@@ -16,6 +16,7 @@ export type ProjectSettings = {
   maxTokens?: number;
   appearance?: {
     primaryColor?: string;
+    secondaryColor?: string;
     typography?: {
       fontFamily?: string;
       heading?: {

@@ -3,9 +3,11 @@ import Result from '@arcblock/ux/lib/Result';
 import Toast from '@arcblock/ux/lib/Toast';
 import { getAgentByDeploymentId } from '@blocklet/aigne-sdk/api/agent';
 import AgentView from '@blocklet/aigne-sdk/components/AgentView';
-import { Box, CircularProgress } from '@mui/material';
+import { Box, CircularProgress, ThemeProvider, createTheme } from '@mui/material';
 import { useRequest } from 'ahooks';
 import { useParams } from 'react-router-dom';
+
+const theme = createTheme({ typography: { button: { textTransform: 'none' } } });
 
 export default function AppPage() {
   const { appId } = useParams();
@@ -18,7 +20,7 @@ export default function AppPage() {
   });
 
   return (
-    <>
+    <ThemeProvider theme={theme}>
       <ApplicationHeader application={data} />
 
       {data?.identity?.aid ? (
@@ -35,6 +37,6 @@ export default function AppPage() {
           sx={{ bgcolor: 'transparent' }}
         />
       )}
-    </>
+    </ThemeProvider>
   );
 }
