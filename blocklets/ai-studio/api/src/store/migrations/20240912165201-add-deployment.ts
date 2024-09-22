@@ -15,9 +15,6 @@ export const up: Migration = async ({ context: queryInterface }) => {
     projectRef: {
       type: DataTypes.STRING,
     },
-    agentId: {
-      type: DataTypes.STRING,
-    },
     createdAt: {
       type: DataTypes.DATE,
     },

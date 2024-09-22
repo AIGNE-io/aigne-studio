@@ -7,7 +7,7 @@ import { Box, CircularProgress, ThemeProvider, createTheme } from '@mui/material
 import { useRequest } from 'ahooks';
 import { useParams } from 'react-router-dom';
 
-const theme = createTheme({ typography: { button: { textTransform: 'none' } } });
+const theme = createTheme({ typography: { button: { textTransform: 'none' } } as any });
 
 export default function AppPage() {
   const { appId } = useParams();

@@ -8,7 +8,6 @@ import Loading from './components/loading';
 import { SessionProvider } from './contexts/session';
 import { translations } from './locales';
 import ApplicationPage from './pages/application';
-import DeploymentPage from './pages/deployment';
 import HomePage from './pages/home';
 import MessagePage from './pages/message';
 import PreviewPage from './pages/preview';
@@ -62,7 +61,6 @@ export default function WrappedApp() {
         <Route path="/" element={<HomePage />} />
         <Route path="/apps/:aid" element={<ApplicationPage />} />
         <Route path="/preview/:aid" element={<PreviewPage />} />
-        <Route path="/deployment/:deploymentId" element={<DeploymentPage />} />
         <Route path="/messages/:messageId" element={<MessagePage />} />
       </Route>
     ),
