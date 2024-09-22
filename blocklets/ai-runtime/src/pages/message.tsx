@@ -79,11 +79,8 @@ export default function MessagePage() {
               <CurrentMessageProvider message={message}>
                 <CustomComponentRenderer
                   componentId={appearanceOutput.componentId as string}
-                  props={{
-                    blockletDid,
-                    aid,
-                    working: true,
-                  }}
+                  props={{ blockletDid, aid, working: true }}
+                  properties={appearanceOutput.componentProperties}
                 />
               </CurrentMessageProvider>
             </CurrentAgentProvider>
