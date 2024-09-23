@@ -1,3 +1,4 @@
+import { getAssetUrl } from '@app/libs/asset';
 import { getProjectIconUrl } from '@app/libs/project';
 import { useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
@@ -91,8 +92,15 @@ function Agent({ deployment }: { deployment: Deployment }) {
 
 function ReadmePage({ deployment, onRun }: { deployment: Deployment; onRun: () => void }) {
   const { projectSetting } = useProjectStore(deployment.projectId, deployment.projectRef);
-  const banner = getProjectIconUrl(projectSetting.id, { updatedAt: projectSetting.updatedAt });
   const { t } = useLocaleContext();
+
+  const banner = projectSetting?.banner
+    ? getAssetUrl({
+        projectId: deployment.projectId,
+        projectRef: deployment.projectRef,
+        filename: projectSetting?.banner,
+      })
+    : getProjectIconUrl(deployment.projectId, { updatedAt: projectSetting.updatedAt });
 
   return (
     <Stack gap={3}>

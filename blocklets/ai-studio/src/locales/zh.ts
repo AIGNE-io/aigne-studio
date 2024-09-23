@@ -199,6 +199,7 @@ export default flatten({
       body: '正文字体',
       title: '标题字体',
     },
+    banner: '配图',
   },
   notOpenFile: '请先从左侧文件列表中打开文件！',
   noProjectTip: '您还没有创建任何项目。 您可以从上面的模板创建项目！',
