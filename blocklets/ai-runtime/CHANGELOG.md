@@ -1,3 +1,7 @@
+## 0.4.57 (2024-9-24)
+
+- feat(security): support csrf defense mechanism
+
 ## 0.4.56 (2024-9-24)
 
 - feat: support deploy agent to explore
