@@ -76,7 +76,7 @@ function PublishDialog({
   const [logo] = useState(() => getProjectIconUrl(project.id, { original: true, updatedAt: project.updatedAt }));
 
   const { projectId, projectRef } = useCurrentProject();
-  const { store, config } = useProjectStore(projectId, projectRef);
+  const { store, config, projectSetting } = useProjectStore(projectId, projectRef);
   const hasEntry = store.files[config?.entry!];
 
   const isAdmin = useIsAdmin();
@@ -91,7 +91,7 @@ function PublishDialog({
         title={project.name || ''}
         description={project.description || ''}
         note=""
-        introduction=""
+        introduction={projectSetting?.readme || ''}
         logo={logo}
         componentDid={AIGNE_STUDIO_COMPONENT_DID}
         // 透传到 get blocklet resource 的参数

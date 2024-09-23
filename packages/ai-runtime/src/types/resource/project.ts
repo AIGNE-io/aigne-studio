@@ -26,6 +26,7 @@ export type ProjectSettings = {
   };
   iconVersion?: string;
   banner?: string;
+  readme?: string;
 };
 
 export const projectSettingsSchema = Joi.object<ProjectSettings>({
@@ -52,6 +53,7 @@ export const projectSettingsSchema = Joi.object<ProjectSettings>({
     }).empty(['', null]),
   }).empty(['', null]),
   banner: Joi.string().empty(['', null]).optional(),
+  readme: Joi.string().empty(['', null]).optional(),
 })
   .rename('_id', 'id', { override: true, ignoreUndefined: true })
   .options({ stripUnknown: true });

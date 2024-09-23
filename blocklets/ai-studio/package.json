@@ -46,6 +46,7 @@
     "@blocklet/constant": "^1.16.31",
     "@blocklet/dataset-sdk": "workspace:^",
     "@blocklet/discuss-kit": "^2.0.186",
+    "@blocklet/editor": "^2.0.190",
     "@blocklet/logger": "^1.16.31",
     "@blocklet/payment-js": "^1.15.7",
     "@blocklet/prompt-editor": "workspace:^",

@@ -7,6 +7,7 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { defaultTextModel, getSupportedModels } from '@blocklet/ai-runtime/common';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import { MarkdownEditor } from '@blocklet/editor/lib/main/markdown-editor';
 import { CloseRounded, SaveRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
@@ -37,6 +38,7 @@ import pick from 'lodash/pick';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useBeforeUnload, useBlocker } from 'react-router-dom';
 import { useAsync } from 'react-use';
+import { joinURL } from 'ufo';
 
 import { UpdateProjectInput } from '../../../../api/src/routes/project';
 import Loading from '../../../components/loading';
@@ -80,6 +82,11 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
   const origin = useRef<UpdateProjectInput>();
   const { session } = useSessionContext();
   const getCurrentBranch = useCurrentGitStore((i) => i.getCurrentBranch);
+
+  const mediaUrlPrefix = joinURL(
+    window.blocklet?.componentMountPoints?.find((x) => x.did === 'z8ia1mAXo8ZE7ytGF36L5uBf9kD2kenhqFGp9')?.mountPoint ??
+      ''
+  );
 
   const tabListInfo: { list: string[] } = {
     list: [
@@ -361,6 +368,7 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                     InputProps={{ readOnly }}
                   />
                 </Box>
+
                 <Box>
                   <Typography variant="subtitle2" mb={0.5}>
                     {t('projectSetting.description')}
@@ -377,6 +385,40 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                       });
                     }}
                     InputProps={{ readOnly }}
+                  />
+                </Box>
+
+                <Box>
+                  <Typography variant="subtitle2" mb={0.5}>
+                    {t('projectSetting.readme')}
+                  </Typography>
+
+                  <TextField
+                    label={t('projectSetting.readme')}
+                    sx={{ width: 1 }}
+                    value={projectSetting?.readme ?? ''}
+                    multiline
+                    rows={5}
+                    InputProps={{ readOnly: true }}
+                    onClick={() => {
+                      showDialog({
+                        maxWidth: 'md',
+                        fullWidth: true,
+                        title: t('projectSetting.readme'),
+                        content: (
+                          <MarkdownEditor
+                            placeholder={t('projectSetting.readme')}
+                            editorState={projectSetting.readme}
+                            mediaUrlPrefix={mediaUrlPrefix}
+                            onChange={(markdown) => {
+                              setProjectSetting((config) => {
+                                config.readme = markdown;
+                              });
+                            }}
+                          />
+                        ),
+                      });
+                    }}
                   />
                 </Box>
               </Stack>

@@ -340,7 +340,7 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
         // TODO: 支持前端编辑 README 文件
         const setting = working.syncedStore.files[PROJECT_FILE_PATH] as ProjectSettings | undefined;
         const readme = getReadmeOfProject({ name: setting?.name || '', description: setting?.description || '' });
-        await writeFile(path.join(working.workingDir, 'README.md'), readme);
+        await writeFile(path.join(working.workingDir, 'README.md'), setting?.readme || readme);
 
         // Download or copy icon file
         if (icon) {
