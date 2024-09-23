@@ -64,6 +64,7 @@ import {
   syncToDidSpace,
 } from '../store/repository';
 import { projectTemplates } from '../templates/projects';
+import { checkDeployment } from './deployment';
 import { getCommits } from './log';
 
 const AI_STUDIO_COMPONENT_DID = 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
@@ -495,7 +496,7 @@ export function projectRoutes(router: Router) {
     }
   );
 
-  router.post('/projects', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+  router.post('/projects', user(), ensureComponentCallOrPromptsEditor(), checkDeployment, async (req, res) => {
     const {
       blockletDid,
       templateId = projectTemplates[0]?.project?.id,

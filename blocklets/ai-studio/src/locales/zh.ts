@@ -799,6 +799,7 @@ export default flatten({
     deleteSuccess: '删除成功',
     emptyDeployment: '没有部署的应用',
     updateSuccess: '更新成功',
+    explore: '探索页面',
   },
   category: {
     title: '分类',
@@ -828,4 +829,5 @@ export default flatten({
   readme: 'Readme',
   run: '运行',
   makeYours: '制作个人版本',
+  shareOnTwitter: '分享到推特',
 });

@@ -1,11 +1,11 @@
 import { getAgentSecretInputs } from '@api/libs/runtime';
 import Project from '@api/store/models/project';
-import { PROJECT_FILE_PATH, ProjectRepo, getEntryFromRepository } from '@api/store/repository';
+import { PROJECT_FILE_PATH, ProjectRepo, getEntryFromRepository, getRepository } from '@api/store/repository';
 import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { Assistant, ProjectSettings } from '@blocklet/ai-runtime/types';
 import { Agent } from '@blocklet/aigne-sdk/api/agent';
 import { auth, user } from '@blocklet/sdk/lib/middlewares';
-import { Router } from 'express';
+import { NextFunction, Request, Response, Router } from 'express';
 import Joi from 'joi';
 import pick from 'lodash/pick';
 import { Op } from 'sequelize';
@@ -139,9 +139,14 @@ router.get('/recommend-list', async (req, res) => {
       list: await Promise.all(
         deployments.map(async (deployment) => {
           const categories = await DeploymentCategory.findAll({ where: { deploymentId: deployment.id } });
+
+          const repository = await getRepository({ projectId: deployment.projectId });
+          const working = await repository.working({ ref: deployment.projectRef });
+          const projectSetting = working.syncedStore.files[PROJECT_FILE_PATH] as ProjectSettings | undefined;
+
           return {
             ...deployment.dataValues,
-            project: await Project.findOne({ where: { id: deployment.projectId } }),
+            project: projectSetting || (await Project.findOne({ where: { id: deployment.projectId } })),
             categories: await Category.findAll({
               where: {
                 id: {
@@ -168,9 +173,14 @@ router.get('/recommend-list', async (req, res) => {
     list: await Promise.all(
       rows.map(async (deployment) => {
         const categories = await DeploymentCategory.findAll({ where: { deploymentId: deployment.id } });
+
+        const repository = await getRepository({ projectId: deployment.projectId });
+        const working = await repository.working({ ref: deployment.projectRef });
+        const projectSetting = working.syncedStore.files[PROJECT_FILE_PATH] as ProjectSettings | undefined;
+
         return {
           ...deployment.dataValues,
-          project: await Project.findOne({ where: { id: deployment.projectId } }),
+          project: projectSetting || (await Project.findOne({ where: { id: deployment.projectId } })),
           categories: await Category.findAll({
             where: {
               id: {
@@ -358,3 +368,32 @@ export const respondAgentFields = (
     aid: stringifyIdentity(agent.identity),
   },
 });
+
+const checkDeploymentSchema = Joi.object<{ deploymentId?: string }>({
+  deploymentId: Joi.string().empty([null, '']).optional(),
+});
+
+export const checkDeployment = async (req: Request, res: Response, next: NextFunction) => {
+  const { deploymentId } = await checkDeploymentSchema.validateAsync(req.body, { stripUnknown: true });
+
+  if (deploymentId) {
+    try {
+      const deployment = await Deployment.findOne({ where: { id: deploymentId } });
+      if (!deployment) {
+        res.status(404).json({ error: 'No such deployment' });
+        throw new Error('No such deployment');
+      }
+
+      if (deployment.access === 'private') {
+        const { did: userId } = req.user!;
+        checkUserAuth(req, res)(userId);
+      }
+
+      next();
+    } catch (error) {
+      next(error);
+    }
+  } else {
+    next();
+  }
+};

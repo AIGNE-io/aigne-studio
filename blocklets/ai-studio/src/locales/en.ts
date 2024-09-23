@@ -808,6 +808,7 @@ export default flatten({
     deleteSuccess: 'Delete Success',
     emptyDeployment: 'No Deployment Agents Yet',
     updateSuccess: 'Update Success',
+    explore: 'Explore Page',
   },
   private: 'Private',
   category: {
@@ -837,4 +838,5 @@ export default flatten({
   run: 'Run',
   makeYours: 'Make Yours',
   readme: 'Readme',
+  shareOnTwitter: 'Share on Twitter',
 });

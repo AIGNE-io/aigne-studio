@@ -1,8 +1,5 @@
-import LoadingButton from '@app/components/loading/loading-button';
-import { getErrorMessage } from '@app/libs/api';
-import { createProject, getProjectIconUrl } from '@app/libs/project';
+import { getProjectIconUrl } from '@app/libs/project';
 import { useProjectStore } from '@app/pages/project/yjs-state';
-import currentGitStore from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Result from '@arcblock/ux/lib/Result';
 import Toast from '@arcblock/ux/lib/Toast';
@@ -16,9 +13,10 @@ import { Box, Button, CircularProgress, Divider, Stack, Tab, Typography } from '
 import { useRequest } from 'ahooks';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { joinURL, withQuery } from 'ufo';
+import { withQuery } from 'ufo';
 
 import { Deployment, getDeployment } from '../../libs/deployment';
+import { MakeYoursButton, ShareButton } from './button';
 
 export default function CategoryDetail() {
   const { deploymentId } = useParams();
@@ -51,23 +49,6 @@ function Agent({ deployment }: { deployment: Deployment }) {
   const navigate = useNavigate();
   const { t } = useLocaleContext();
 
-  const onShare = () => {
-    window.open(joinURL(globalThis.location.origin, window.blocklet.prefix, '/explore/apps', deployment.id), '_blank');
-  };
-
-  const onMakeYours = async () => {
-    try {
-      const project = await createProject({ templateId: deployment.projectId });
-
-      currentGitStore.setState({
-        currentProjectId: project.id,
-      });
-      navigate(joinURL('/projects', project.id));
-    } catch (error) {
-      Toast.error(getErrorMessage(error));
-    }
-  };
-
   return (
     <Stack flex={1}>
       <TabContext value={value}>
@@ -97,28 +78,18 @@ function Agent({ deployment }: { deployment: Deployment }) {
         </Box>
 
         <TabPanel value="1" sx={{ flex: 1, overflow: 'overlay' }}>
-          <ReadmePage deployment={deployment} onRun={() => setValue('2')} onMakeYours={onMakeYours} onShare={onShare} />
+          <ReadmePage deployment={deployment} onRun={() => setValue('2')} />
         </TabPanel>
 
         <TabPanel value="2" sx={{ flex: 1, overflow: 'overlay', position: 'relative' }}>
-          <PreviewPage onMakeYours={onMakeYours} onShare={onShare} />
+          <PreviewPage deployment={deployment} />
         </TabPanel>
       </TabContext>
     </Stack>
   );
 }
 
-function ReadmePage({
-  deployment,
-  onRun,
-  onMakeYours,
-  onShare,
-}: {
-  deployment: Deployment;
-  onRun: () => void;
-  onMakeYours: () => void;
-  onShare: () => void;
-}) {
+function ReadmePage({ deployment, onRun }: { deployment: Deployment; onRun: () => void }) {
   const { projectSetting } = useProjectStore(deployment.projectId, deployment.projectRef);
   const banner = getProjectIconUrl(projectSetting.id, { updatedAt: projectSetting.updatedAt });
   const { t } = useLocaleContext();
@@ -167,13 +138,9 @@ function ReadmePage({
             {t('run')}
           </Button>
 
-          <LoadingButton variant="outlined" onClick={onMakeYours}>
-            {t('makeYours')}
-          </LoadingButton>
+          <MakeYoursButton deployment={deployment} />
 
-          <Button variant="outlined" onClick={onShare}>
-            {t('share')}
-          </Button>
+          <ShareButton deployment={deployment} />
         </Box>
       </Stack>
 
@@ -186,10 +153,9 @@ function ReadmePage({
   );
 }
 
-function PreviewPage({ onMakeYours, onShare }: { onMakeYours: () => void; onShare: () => void }) {
+function PreviewPage({ deployment }: { deployment: Deployment }) {
   const { deploymentId } = useParams();
   if (!deploymentId) throw new Error('Missing required param `deploymentId`');
-  const { t } = useLocaleContext();
 
   const { data, loading, error } = useRequest(() => getAgentByDeploymentId({ deploymentId, working: true }), {
     onError: (error) => {
@@ -209,14 +175,10 @@ function PreviewPage({ onMakeYours, onShare }: { onMakeYours: () => void; onShar
     return (
       <>
         <Box display="flex" gap={1} alignItems="stretch" sx={{ position: 'absolute', top: 10, right: 10 }}>
-          <LoadingButton variant="outlined" onClick={onMakeYours}>
-            {t('makeYours')}
-          </LoadingButton>
-
-          <Button variant="outlined" onClick={onShare}>
-            {t('share')}
-          </Button>
+          <MakeYoursButton deployment={deployment} />
+          <ShareButton deployment={deployment} />
         </Box>
+
         <AgentView aid={data?.identity?.aid} working />
       </>
     );

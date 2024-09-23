@@ -5,13 +5,13 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import ComponentInstaller from '@blocklet/ui-react/lib/ComponentInstaller';
 import { Icon } from '@iconify-icon/react';
+import CategoryIcon from '@iconify-icons/tabler/category';
 import LockIcon from '@iconify-icons/tabler/lock';
 import RocketIcon from '@iconify-icons/tabler/rocket';
 import ShareIcon from '@iconify-icons/tabler/share';
 import View360 from '@iconify-icons/tabler/view-360';
 import {
   Box,
-  Button,
   Card,
   CardContent,
   CircularProgress,
@@ -33,6 +33,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useRequest } from 'ahooks';
+import { compact } from 'lodash';
 import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { Suspense, useState } from 'react';
 import { joinURL } from 'ufo';
@@ -317,7 +318,7 @@ function UpdateApp({ id, data, run }: { id: string; data: Deployment; run: () =>
               },
             },
           }}>
-          {[
+          {compact([
             {
               text: t('deployments.appPage'),
               icon: <Box component={Icon} icon={ShareIcon} sx={{ fontSize: 20 }} />,
@@ -325,7 +326,24 @@ function UpdateApp({ id, data, run }: { id: string; data: Deployment; run: () =>
                 window.open(joinURL(globalThis.location.origin, window.blocklet.prefix, '/explore/apps', id), '_blank');
               },
             },
-          ].map((item) => (
+            (data?.categories || []).length
+              ? {
+                  text: t('deployments.explore'),
+                  icon: <Box component={Icon} icon={CategoryIcon} sx={{ fontSize: 20 }} />,
+                  handle: () => {
+                    window.open(
+                      joinURL(
+                        globalThis.location.origin,
+                        window.blocklet.prefix,
+                        '/explore/category',
+                        data?.categories[0]!,
+                        data.id
+                      )
+                    );
+                  },
+                }
+              : null,
+          ]).map((item) => (
             <ListItem key={item.text} dense disablePadding onClick={item.handle}>
               <ListItemButton sx={{ p: 0, m: 0 }}>
                 <ListItemIcon sx={{ minWidth: 0, mr: 1 }}>{item.icon}</ListItemIcon>
