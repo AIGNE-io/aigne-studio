@@ -4,7 +4,6 @@ import { access, mkdir } from 'fs/promises';
 import path from 'path';
 
 import { AssistantResponseType } from '@blocklet/ai-runtime/types';
-import { csrf } from '@blocklet/sdk/lib/middlewares';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv-flow';
@@ -13,6 +12,7 @@ import fallback from 'express-history-api-fallback';
 import { Errors } from 'isomorphic-git';
 
 import { projectCronManager } from './libs/cron-jobs';
+import { csrf } from './libs/csrf';
 import { Config, isDevelopment } from './libs/env';
 import { NoPermissionError, NotFoundError } from './libs/error';
 import logger from './libs/logger';

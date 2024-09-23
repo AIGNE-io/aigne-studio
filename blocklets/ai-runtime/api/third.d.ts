@@ -18,11 +18,12 @@ namespace Express {
   interface Request {
     user?: {
       did: string;
-      role: string;
-      fullName: string;
+      role: string | undefined;
       provider: string;
+      fullName: string;
       walletOS: string;
-      isAdmin: boolean;
+      emailVerified: boolean;
+      phoneVerified: boolean;
     };
   }
 }
