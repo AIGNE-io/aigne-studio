@@ -14,51 +14,63 @@
   "exports": {
     ".": {
       "import": "./lib/esm/index.js",
-      "require": "./lib/cjs/index.js"
+      "require": "./lib/cjs/index.js",
+      "types": "./lib/types/index.d.ts"
     },
     "./api": {
       "import": "./lib/esm/api/index.js",
-      "require": "./lib/cjs/api/index.js"
+      "require": "./lib/cjs/api/index.js",
+      "types": "./lib/types/api/index.d.ts"
     },
     "./api/*": {
       "import": "./lib/esm/api/*.js",
-      "require": "./lib/cjs/api/*.js"
+      "require": "./lib/cjs/api/*.js",
+      "types": "./lib/types/api/*.d.ts"
     },
     "./components": {
       "import": "./lib/esm/components/index.js",
-      "require": "./lib/cjs/components/index.js"
+      "require": "./lib/cjs/components/index.js",
+      "types": "./lib/types/components/index.d.ts"
     },
     "./types": {
       "import": "./lib/esm/types/index.js",
-      "require": "./lib/cjs/types/index.js"
+      "require": "./lib/cjs/types/index.js",
+      "types": "./lib/types/types/index.d.ts"
     },
     "./types/*": {
       "import": "./lib/esm/types/*.js",
-      "require": "./lib/cjs/types/*.js"
+      "require": "./lib/cjs/types/*.js",
+      "types": "./lib/types/types/*.d.ts"
     },
     "./core": {
       "import": "./lib/esm/core/index.js",
-      "require": "./lib/cjs/core/index.js"
+      "require": "./lib/cjs/core/index.js",
+      "types": "./lib/types/core/index.d.ts"
     },
     "./core/utils/*": {
       "import": "./lib/esm/core/utils/*.js",
-      "require": "./lib/cjs/core/utils/*.js"
+      "require": "./lib/cjs/core/utils/*.js",
+      "types": "./lib/types/core/utils/*.d.ts"
     },
     "./common": {
       "import": "./lib/esm/common/index.js",
-      "require": "./lib/cjs/common/index.js"
+      "require": "./lib/cjs/common/index.js",
+      "types": "./lib/types/common/index.d.ts"
     },
     "./common/*": {
       "import": "./lib/esm/common/*.js",
-      "require": "./lib/cjs/common/*.js"
+      "require": "./lib/cjs/common/*.js",
+      "types": "./lib/types/common/*.d.ts"
     },
     "./utils/*": {
       "import": "./lib/esm/utils/*.js",
-      "require": "./lib/cjs/utils/*.js"
+      "require": "./lib/cjs/utils/*.js",
+      "types": "./lib/types/utils/*.d.ts"
     },
     "./constants": {
       "import": "./lib/esm/constants.js",
-      "require": "./lib/cjs/constants.js"
+      "require": "./lib/cjs/constants.js",
+      "types": "./lib/types/constants.d.ts"
     }
   },
   "typesVersions": {
@@ -117,16 +129,16 @@
     "lint": "eslint src --ext .mjs,.js,.jsx,.ts,.tsx",
     "lint:fix": "npm run lint -- --fix",
     "build": "tsc --noEmit && run-p build:*",
-    "build:cjs": "tsc -p tsconfig.build.json --module commonjs --outDir lib/cjs > /dev/null || exit 0",
-    "build:esm": "tsc -p tsconfig.build.json --module es2022 --outDir lib/esm > /dev/null || exit 0",
-    "build:types": "tsc -p tsconfig.build.json --declaration --emitDeclarationOnly --outDir lib/types > /dev/null || exit 0",
+    "build:cjs": "tsc -p tsconfig.build.json --module commonjs --incremental false --outDir lib/cjs > /dev/null || exit 0",
+    "build:esm": "tsc -p tsconfig.build.json --module es2022 --incremental false --outDir lib/esm > /dev/null || exit 0",
+    "build:types": "tsc -p tsconfig.build.json --declaration --emitDeclarationOnly --incremental false --outDir lib/types > /dev/null || exit 0",
     "dev": "run-p 'build:* -- -w'",
     "clean": "rimraf lib",
     "prepublishOnly": "npm run build",
     "test": "jest src/"
   },
   "dependencies": {
-    "@blocklet/ai-kit": "^0.1.50",
+    "@blocklet/ai-kit": "^0.1.53",
     "@blocklet/dataset-sdk": "workspace:^",
     "@blocklet/logger": "^1.16.31",
     "@blocklet/quickjs": "workspace:^",

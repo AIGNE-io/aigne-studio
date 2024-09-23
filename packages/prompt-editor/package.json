@@ -10,11 +10,13 @@
   "exports": {
     ".": {
       "import": "./lib/esm/index.js",
-      "require": "./lib/cjs/index.js"
+      "require": "./lib/cjs/index.js",
+      "types": "./lib/types/index.d.ts"
     },
     "./utils": {
       "import": "./lib/esm/utils.js",
-      "require": "./lib/cjs/utils.js"
+      "require": "./lib/cjs/utils.js",
+      "types": "./lib/types/utils.d.ts"
     }
   },
   "typesVersions": {
@@ -47,9 +49,9 @@
     "lint:fix": "npm run lint -- --fix",
     "clean": "rimraf lib",
     "build": "npm run clean && run-p build:*",
-    "build:cjs": "tsc --module commonjs --outDir lib/cjs",
-    "build:esm": "tsc --module es2022 --outDir lib/esm",
-    "build:types": "tsc --declaration --emitDeclarationOnly --outDir lib/types",
+    "build:cjs": "tsc --module commonjs --incremental false --outDir lib/cjs > /dev/null || exit 0",
+    "build:esm": "tsc --module es2022 --incremental false --outDir lib/esm > /dev/null || exit 0",
+    "build:types": "tsc --declaration --emitDeclarationOnly --incremental false --outDir lib/types > /dev/null || exit 0",
     "build:css-cjs": "copyfiles -u 1 './src/**/*.css' lib/cjs/",
     "build:css-esm": "copyfiles -u 1 './src/**/*.css' lib/esm/",
     "dev": "run-p 'build:* -- -w'",

@@ -14,7 +14,8 @@
   "exports": {
     ".": {
       "import": "./lib/esm/index.js",
-      "require": "./lib/cjs/index.js"
+      "require": "./lib/cjs/index.js",
+      "types": "./lib/types/index.d.ts"
     }
   },
   "typesVersions": {
@@ -39,9 +40,9 @@
     "lint": "eslint src --ext .mjs,.js,.jsx,.ts,.tsx",
     "lint:fix": "npm run lint -- --fix",
     "build": "tsc --noEmit && run-p build:*",
-    "build:cjs": "tsc -p tsconfig.build.json --module commonjs --outDir lib/cjs > /dev/null || exit 0",
-    "build:esm": "tsc -p tsconfig.build.json --module es2022 --outDir lib/esm > /dev/null || exit 0",
-    "build:types": "tsc -p tsconfig.build.json --declaration --emitDeclarationOnly --outDir lib/types > /dev/null || exit 0",
+    "build:cjs": "tsc -p tsconfig.build.json --module commonjs --incremental false --outDir lib/cjs > /dev/null || exit 0",
+    "build:esm": "tsc -p tsconfig.build.json --module es2022 --incremental false --outDir lib/esm > /dev/null || exit 0",
+    "build:types": "tsc -p tsconfig.build.json --declaration --emitDeclarationOnly --incremental false --outDir lib/types > /dev/null || exit 0",
     "dev": "run-p 'build:* -- -w'",
     "clean": "rimraf lib",
     "prepublishOnly": "npm run build",
