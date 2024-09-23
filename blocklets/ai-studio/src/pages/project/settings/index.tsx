@@ -289,41 +289,6 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                     }}
                   />
                 </Box>
-                <Box>
-                  <Typography variant="subtitle2" mb={0.5}>
-                    {t('projectSetting.name')}
-                  </Typography>
-
-                  <TextField
-                    label={t('projectSetting.name')}
-                    sx={{ width: 1 }}
-                    value={projectSetting?.name ?? ''}
-                    onChange={(e) => {
-                      setProjectSetting((config) => {
-                        config.name = e.target.value;
-                      });
-                    }}
-                    InputProps={{ readOnly }}
-                  />
-                </Box>
-                <Box>
-                  <Typography variant="subtitle2" mb={0.5}>
-                    {t('projectSetting.description')}
-                  </Typography>
-                  <TextField
-                    label={t('projectSetting.description')}
-                    multiline
-                    rows={5}
-                    sx={{ width: 1 }}
-                    value={projectSetting?.description ?? ''}
-                    onChange={(e) => {
-                      setProjectSetting((config) => {
-                        config.description = e.target.value;
-                      });
-                    }}
-                    InputProps={{ readOnly }}
-                  />
-                </Box>
 
                 <Box>
                   <Typography variant="subtitle2" mb={0.5}>
@@ -377,6 +342,42 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                       />
                     </AssetField>
                   </Box>
+                </Box>
+
+                <Box>
+                  <Typography variant="subtitle2" mb={0.5}>
+                    {t('projectSetting.name')}
+                  </Typography>
+
+                  <TextField
+                    label={t('projectSetting.name')}
+                    sx={{ width: 1 }}
+                    value={projectSetting?.name ?? ''}
+                    onChange={(e) => {
+                      setProjectSetting((config) => {
+                        config.name = e.target.value;
+                      });
+                    }}
+                    InputProps={{ readOnly }}
+                  />
+                </Box>
+                <Box>
+                  <Typography variant="subtitle2" mb={0.5}>
+                    {t('projectSetting.description')}
+                  </Typography>
+                  <TextField
+                    label={t('projectSetting.description')}
+                    multiline
+                    rows={5}
+                    sx={{ width: 1 }}
+                    value={projectSetting?.description ?? ''}
+                    onChange={(e) => {
+                      setProjectSetting((config) => {
+                        config.description = e.target.value;
+                      });
+                    }}
+                    InputProps={{ readOnly }}
+                  />
                 </Box>
               </Stack>
             </Form>
