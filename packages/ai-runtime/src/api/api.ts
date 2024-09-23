@@ -8,14 +8,7 @@ export const AIStudioBaseUrl =
 
 export const API_TIMEOUT = 120 * 1000;
 
-export const aiStudioApi = createAxios(
-  {
-    timeout: API_TIMEOUT,
-  },
-  {
-    componentDid: AI_STUDIO_DID,
-  }
-);
+export const aiStudioApi = createAxios({ timeout: API_TIMEOUT }, { componentDid: AI_STUDIO_DID });
 
 export const getErrorMessage = (error: any) =>
   error.response?.data?.error?.message || error.response?.data?.message || error.message || error;
