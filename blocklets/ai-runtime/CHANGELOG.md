@@ -1,3 +1,7 @@
+## 0.4.56 (2024-9-24)
+
+- feat: support deploy agent to explore
+
 ## 0.4.55 (2024-9-19)
 
 - chore: update deps
