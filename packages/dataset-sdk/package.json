@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/dataset-sdk",
-  "version": "0.4.55",
+  "version": "0.4.56",
   "description": "The SDK for processing dataset protocol",
   "publishConfig": {
     "access": "public"
@@ -14,31 +14,38 @@
   "exports": {
     ".": {
       "import": "./lib/esm/index.js",
-      "require": "./lib/cjs/index.js"
+      "require": "./lib/cjs/index.js",
+      "types": "./lib/types/index.d.ts"
     },
     "./types": {
       "import": "./lib/esm/types/index.js",
-      "require": "./lib/cjs/types/index.js"
+      "require": "./lib/cjs/types/index.js",
+      "types": "./lib/types/types/index.d.ts"
     },
     "./request": {
       "import": "./lib/esm/request/index.js",
-      "require": "./lib/cjs/request/index.js"
+      "require": "./lib/cjs/request/index.js",
+      "types": "./lib/types/request/index.d.ts"
     },
     "./request/util": {
       "import": "./lib/esm/request/util.js",
-      "require": "./lib/cjs/request/util.js"
+      "require": "./lib/cjs/request/util.js",
+      "types": "./lib/types/request/util.d.ts"
     },
     "./openapi": {
       "import": "./lib/esm/openapi.js",
-      "require": "./lib/cjs/openapi.js"
+      "require": "./lib/cjs/openapi.js",
+      "types": "./lib/types/openapi.d.ts"
     },
     "./util/*": {
       "import": "./lib/esm/util/*.js",
-      "require": "./lib/cjs/util/*.js"
+      "require": "./lib/cjs/util/*.js",
+      "types": "./lib/types/util/*.d.ts"
     },
     "./plugin": {
       "import": "./lib/esm/plugin.js",
-      "require": "./lib/cjs/plugin.js"
+      "require": "./lib/cjs/plugin.js",
+      "types": "./lib/types/plugin.d.ts"
     }
   },
   "typesVersions": {
@@ -80,9 +87,9 @@
   "scripts": {
     "lint": "eslint src --ext .mjs,.js,.jsx,.ts,.tsx",
     "build": "run-p build:*",
-    "build:cjs": "tsc --module commonjs --outDir lib/cjs",
-    "build:esm": "tsc --module es2022 --outDir lib/esm",
-    "build:types": "tsc --declaration --emitDeclarationOnly --outDir lib/types",
+    "build:cjs": "tsc --module commonjs --incremental false --outDir lib/cjs > /dev/null || exit 0",
+    "build:esm": "tsc --module es2022 --incremental false --outDir lib/esm > /dev/null || exit 0",
+    "build:types": "tsc --declaration --emitDeclarationOnly --incremental false --outDir lib/types > /dev/null || exit 0",
     "dev": "run-p 'build:* -- -w'",
     "clean": "rimraf lib",
     "prepublishOnly": "npm run build"

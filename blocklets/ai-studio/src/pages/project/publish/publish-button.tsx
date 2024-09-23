@@ -6,10 +6,10 @@ import { getProjectIconUrl } from '@app/libs/project';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
 import { BlockletStudio } from '@blocklet/ui-react';
-import { Icon } from '@iconify-icon/react';
-import BrandAppgalleryIcon from '@iconify-icons/tabler/brand-appgallery';
+// import { Icon } from '@iconify-icon/react';
+// import BrandAppgalleryIcon from '@iconify-icons/tabler/brand-appgallery';
 import { LoadingButtonProps } from '@mui/lab';
-import { Box, Tooltip } from '@mui/material';
+import { Dialog, Tooltip } from '@mui/material';
 import { Suspense, useEffect, useState } from 'react';
 
 import { saveButtonState, useProjectState } from '../state';
@@ -26,6 +26,7 @@ export default function PublishButton({ ...props }: LoadingButtonProps) {
   const isAdmin = useIsAdmin();
 
   const [opened, setOpened] = useState(false);
+
   useEffect(() => {
     if (!showCreateResource) setOpened(false);
   }, [showCreateResource]);
@@ -34,28 +35,30 @@ export default function PublishButton({ ...props }: LoadingButtonProps) {
 
   return (
     <>
-      <Tooltip disableInteractive title={t('publish')}>
+      <Tooltip disableInteractive title={t('publishToStore')}>
         <LoadingButton
           variant="outlined"
-          sx={{ px: 2, minWidth: 0, minHeight: 0, height: 32, border: '1px solid #E5E7EB' }}
+          color="inherit"
+          sx={{ px: 2, minWidth: 0, minHeight: 0, height: 32 }}
           onClick={async (e) => {
             e.stopPropagation();
             await saveButtonState.getState().save?.({ skipConfirm: true, skipCommitIfNoChanges: true });
             setShowCreateResource(true);
           }}
           loading={showCreateResource && !opened}
-          startIcon={<Box component={Icon} icon={BrandAppgalleryIcon} />}
           {...props}>
-          {props.children || t('publish')}
+          {props.children || t('publishToStore')}
         </LoadingButton>
       </Tooltip>
 
       {project && showCreateResource && (
-        <PublishDialog
-          project={project}
-          onClose={() => setShowCreateResource(false)}
-          onOpened={() => setOpened(true)}
-        />
+        <Dialog open hideBackdrop>
+          <PublishDialog
+            project={project}
+            onClose={() => setShowCreateResource(false)}
+            onOpened={() => setOpened(true)}
+          />
+        </Dialog>
       )}
     </>
   );
@@ -73,7 +76,7 @@ function PublishDialog({
   const [logo] = useState(() => getProjectIconUrl(project.id, { original: true, updatedAt: project.updatedAt }));
 
   const { projectId, projectRef } = useCurrentProject();
-  const { store, config } = useProjectStore(projectId, projectRef);
+  const { store, config, projectSetting } = useProjectStore(projectId, projectRef);
   const hasEntry = store.files[config?.entry!];
 
   const isAdmin = useIsAdmin();
@@ -88,7 +91,7 @@ function PublishDialog({
         title={project.name || ''}
         description={project.description || ''}
         note=""
-        introduction=""
+        introduction={projectSetting?.readme || ''}
         logo={logo}
         componentDid={AIGNE_STUDIO_COMPONENT_DID}
         // 透传到 get blocklet resource 的参数

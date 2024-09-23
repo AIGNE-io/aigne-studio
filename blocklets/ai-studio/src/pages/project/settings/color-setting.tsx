@@ -9,7 +9,7 @@ import { useProjectStore } from '../yjs-state';
 
 const defaultColors = ['', '#F47373', '#697689', '#37D67A', '#2CCCE4', '#555555', '#dce775', '#ff8a65', '#ba68c8'];
 
-export default function PrimaryColor() {
+export default function ColorSetting({ type }: { type: 'primaryColor' | 'secondaryColor' }) {
   const { projectId, projectRef } = useCurrentProject();
   const { projectSetting } = useProjectStore(projectId, projectRef);
   const setProjectSetting = (update: (v: typeof projectSetting) => void) => {
@@ -19,7 +19,7 @@ export default function PrimaryColor() {
     });
   };
 
-  const [selectedColor, setSelectedColor] = useState(projectSetting?.appearance?.primaryColor || defaultColors[0]);
+  const [selectedColor, setSelectedColor] = useState(projectSetting?.appearance?.[type] || defaultColors[0]);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [open, setOpen] = useState(false);
 
@@ -38,7 +38,7 @@ export default function PrimaryColor() {
   useEffect(() => {
     setProjectSetting((config) => {
       config.appearance ??= {};
-      config.appearance.primaryColor = selectedColor;
+      config.appearance[type] = selectedColor;
     });
   }, [selectedColor]);
 

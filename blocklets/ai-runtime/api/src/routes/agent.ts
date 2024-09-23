@@ -11,7 +11,7 @@ import { Router } from 'express';
 import { exists } from 'fs-extra';
 import Joi from 'joi';
 import pick from 'lodash/pick';
-import { joinURL, withQuery } from 'ufo';
+import { joinURL, withHttps, withQuery } from 'ufo';
 
 const router = Router();
 
@@ -83,12 +83,7 @@ router.get('/:aid', async (req, res) => {
     return;
   }
 
-  res.json({
-    ...respondAgentFields(agent),
-    config: {
-      secrets: await getAgentSecretInputs(agent),
-    },
-  });
+  res.json({ ...respondAgentFields(agent), config: { secrets: await getAgentSecretInputs(agent) } });
 });
 
 router.get('/:aid/logo', async (req, res) => {
@@ -111,10 +106,19 @@ router.get('/:aid/logo', async (req, res) => {
   }
 
   res.redirect(
-    withQuery(joinURL(getComponentMountPoint(AIGNE_STUDIO_COMPONENT_DID), '/api/projects/', projectId, '/logo.png'), {
-      projectRef,
-      ...pick(req.query, 'version', 'working'),
-    })
+    withQuery(
+      joinURL(
+        withHttps(req.hostname),
+        getComponentMountPoint(AIGNE_STUDIO_COMPONENT_DID),
+        '/api/projects/',
+        projectId,
+        '/logo.png'
+      ),
+      {
+        projectRef,
+        ...pick(req.query, 'version', 'working'),
+      }
+    )
   );
 });
 
@@ -139,6 +143,7 @@ router.get('/:aid/assets/:filename', async (req, res) => {
 
   res.redirect(
     joinURL(
+      withHttps(req.hostname),
       getComponentMountPoint(AIGNE_STUDIO_COMPONENT_DID),
       '/api/projects/',
       projectId,

@@ -152,7 +152,7 @@ router.post('/call', user(), compression(), async (req, res) => {
 
   const taskId = nextTaskId();
 
-  const sessionId = input.sessionId ?? (await Session.create({ projectId, agentId })).id;
+  const sessionId = input.sessionId ?? (await Session.create({ userId, projectId, agentId })).id;
 
   const history = await History.create({
     userId,

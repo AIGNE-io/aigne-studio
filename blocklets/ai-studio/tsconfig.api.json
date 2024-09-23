@@ -1,6 +1,7 @@
 {
   "extends": "./tsconfig",
   "compilerOptions": {
+    "incremental": false,
     "outDir": "api/dist",
     "noEmit": false,
     "noEmitOnError": true,

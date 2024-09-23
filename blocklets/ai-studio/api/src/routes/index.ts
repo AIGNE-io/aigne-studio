@@ -3,6 +3,8 @@ import { Router } from 'express';
 import agent from './agent';
 import ai from './ai';
 import { branchRoutes } from './branch';
+import categories from './category';
+import deployments from './deployment';
 import { globalRoutes } from './global';
 import importRouter from './import';
 import { logRoutes } from './log';
@@ -29,5 +31,7 @@ router.use('/agents', agent);
 router.use('/ai', ai);
 
 router.use('/import', importRouter);
+router.use('/deployments', deployments);
+router.use('/categories', categories);
 
 export default router;

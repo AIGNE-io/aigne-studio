@@ -9,6 +9,19 @@ import { aigneRuntimeApi, aigneStudioApi, getMountPoint } from './api';
 
 export type { Agent, AgentWithConfig };
 
+type Deployment = {
+  id: string;
+  createdBy: string;
+  updatedBy: string;
+  projectId: string;
+  projectRef: string;
+  agentId: string;
+  createdAt: string;
+  updatedAt: string;
+  access: 'public' | 'private';
+  categories: string[];
+};
+
 export async function getAgents({
   type,
   from,
@@ -35,6 +48,20 @@ export async function getAgent({
   return aigneRuntimeApi
     .get(joinURL('/api/agents', aid), {
       params: { working, blockletDid },
+    })
+    .then((res) => res.data);
+}
+
+export async function getAgentByDeploymentId({
+  deploymentId,
+  working,
+}: {
+  deploymentId: string;
+  working?: boolean;
+}): Promise<AgentWithConfig & { deployment: Deployment }> {
+  return aigneStudioApi
+    .get(joinURL('/api/deployments', deploymentId), {
+      params: { working },
     })
     .then((res) => res.data);
 }
