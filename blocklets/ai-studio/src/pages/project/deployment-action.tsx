@@ -16,6 +16,7 @@ import {
   CardContent,
   CircularProgress,
   ClickAwayListener,
+  Divider,
   FormControl,
   FormControlLabel,
   Grow,
@@ -36,7 +37,13 @@ import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/
 import { Suspense, useState } from 'react';
 import { joinURL } from 'ufo';
 
-import { createOrUpdateDeployment, getDeploymentByProjectId } from '../../libs/deployment';
+import {
+  Deployment,
+  createOrUpdateDeployment,
+  getDeploymentByProjectId,
+  updateDeployment,
+} from '../../libs/deployment';
+import PublishButton from './publish/publish-button';
 import { saveButtonState } from './state';
 
 export default function DeploymentAction() {
@@ -58,7 +65,7 @@ export default function DeploymentAction() {
         sx={{ px: 2 }}
         disabled={loading}
         {...bindTrigger(deploymentPopperState)}>
-        {t('deploy')}
+        {t('deployments.title')}
       </LoadingButton>
 
       <Popper {...bindPopper(deploymentPopperState)} sx={{ zIndex: 1101 }} transition placement="bottom-end">
@@ -82,16 +89,11 @@ export default function DeploymentAction() {
                           'z2qaCNvKMv5GjouKdcDWexv6WqtHbpNPQDnAk',
                           'z8iZiDFg3vkkrPwsiba1TLXy3H9XHzFERsP8o',
                         ]}>
-                        <UpdateApp id={data.id} onClose={deploymentPopperState.close} run={run} />
+                        <UpdateApp id={data.id} data={data} run={run} />
                       </ComponentInstaller>
                     </Suspense>
                   ) : (
-                    <DeployApp
-                      onClose={deploymentPopperState.close}
-                      run={run}
-                      projectId={projectId}
-                      projectRef={projectRef}
-                    />
+                    <DeployApp run={run} projectId={projectId} projectRef={projectRef} />
                   )}
                 </Box>
               </ClickAwayListener>
@@ -103,17 +105,7 @@ export default function DeploymentAction() {
   );
 }
 
-function DeployApp({
-  projectId,
-  projectRef,
-  onClose,
-  run,
-}: {
-  projectId: string;
-  projectRef: string;
-  onClose: () => void;
-  run: () => void;
-}) {
+function DeployApp({ projectId, projectRef, run }: { projectId: string; projectRef: string; run: () => void }) {
   const isAdmin = useIsAdmin();
   const { t } = useLocaleContext();
   const [visibility, setVisibility] = useState<'public' | 'private'>('public');
@@ -143,7 +135,7 @@ function DeployApp({
       <Box p={3}>
         <Stack gap={0.75}>
           <Box component="h3" m={0}>
-            {t('deployment')}
+            {t('deployments.title')}
           </Box>
           <Typography variant="caption">{t('deployments.deployDescription')}</Typography>
         </Stack>
@@ -208,12 +200,12 @@ function DeployApp({
 
       <Box p={3} pt={0}>
         <Stack flexDirection="row" justifyContent="space-between">
-          <Button variant="outlined" onClick={onClose}>
-            {t('cancel')}
-          </Button>
+          <Box display="flex" gap={1} alignItems="center">
+            <PublishButton />
+          </Box>
 
           <LoadingButton variant="contained" onClick={onSubmit}>
-            {t('deploy')}
+            {t('deployments.title')}
           </LoadingButton>
         </Stack>
       </Box>
@@ -221,11 +213,20 @@ function DeployApp({
   );
 }
 
-function UpdateApp({ id, onClose, run }: { id: string; onClose: () => void; run: () => void }) {
+function UpdateApp({ id, data, run }: { id: string; data: Deployment; run: () => void }) {
   const { t } = useLocaleContext();
+  const isAdmin = useIsAdmin();
+
+  const [visibility, setVisibility] = useState<'public' | 'private'>(data.access || 'public');
+  const handleVisibilityChange = (event: any) => setVisibility(event.target.value);
 
   const onSubmit = async () => {
     try {
+      await updateDeployment(id, {
+        access: visibility,
+        categories: data.categories,
+      });
+
       await saveButtonState.getState().save?.({ skipConfirm: true, skipCommitIfNoChanges: true });
 
       run();
@@ -246,23 +247,87 @@ function UpdateApp({ id, onClose, run }: { id: string; onClose: () => void; run:
         <Typography variant="caption">{t('deployments.updateAppDescription')}</Typography>
       </Box>
 
-      <Stack gap={1}>
-        <Typography variant="subtitle1" mx={3}>
-          {t('deployments.currentDeployment')}
-        </Typography>
+      <Stack px={3} gap={0.5}>
+        <Typography variant="subtitle1">{t('deployments.visibility')}</Typography>
 
-        <List sx={{ px: 2 }}>
+        <Card sx={{ width: 1, boxShadow: 0 }}>
+          <CardContent sx={{ p: '0 !important', m: 0 }}>
+            <FormControl component="fieldset">
+              <RadioGroup value={visibility} onChange={handleVisibilityChange}>
+                <FormControlLabel
+                  sx={{ m: 0 }}
+                  value="public"
+                  control={<Radio />}
+                  label={
+                    <Box display="flex" alignItems="center">
+                      <Box component={Icon} icon={View360} sx={{ mr: 1, fontSize: 20 }} />
+                      <Box>
+                        <Typography variant="body1">{t('public')}</Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {t('deployments.publicDescription')}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  }
+                />
+                <FormControlLabel
+                  disabled={!isAdmin}
+                  sx={{ m: 0, mt: 1 }}
+                  value="private"
+                  control={<Radio />}
+                  label={
+                    <Box display="flex" alignItems="center">
+                      <Box component={Icon} icon={LockIcon} sx={{ mr: 1, fontSize: 20 }} />
+                      <Box>
+                        <Typography variant="body1">{t('private')}</Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {t('deployments.privateDescription')}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  }
+                />
+              </RadioGroup>
+            </FormControl>
+          </CardContent>
+
+          {!isAdmin && (
+            <Typography variant="caption" mt={2}>
+              {t('deployments.toEnablePrivateProjects')}
+              <Box component="a" href="https://store.blocklet.dev/blocklets/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB">
+                {t('deployments.launchAigne')}
+              </Box>
+            </Typography>
+          )}
+        </Card>
+      </Stack>
+
+      <Divider />
+
+      <Stack px={3} gap={0.5}>
+        <Typography variant="subtitle1">{t('deployments.currentDeployment')}</Typography>
+
+        <List
+          sx={{
+            m: 0,
+            p: 0,
+            ':hover': {
+              '.MuiListItemButton-root': {
+                backgroundColor: 'transparent',
+              },
+            },
+          }}>
           {[
             {
               text: t('deployments.appPage'),
               icon: <Box component={Icon} icon={ShareIcon} sx={{ fontSize: 20 }} />,
               handle: () => {
-                window.open(joinURL(globalThis.location.origin, window.blocklet.prefix, 'explore/apps', id), '_blank');
+                window.open(joinURL(globalThis.location.origin, window.blocklet.prefix, '/explore/apps', id), '_blank');
               },
             },
           ].map((item) => (
             <ListItem key={item.text} dense disablePadding onClick={item.handle}>
-              <ListItemButton>
+              <ListItemButton sx={{ p: 0, m: 0 }}>
                 <ListItemIcon sx={{ minWidth: 0, mr: 1 }}>{item.icon}</ListItemIcon>
                 <ListItemText primary={item.text} />
               </ListItemButton>
@@ -271,24 +336,11 @@ function UpdateApp({ id, onClose, run }: { id: string; onClose: () => void; run:
         </List>
       </Stack>
 
-      {/* <Box p={3} pt={0}>
-        <Divider sx={{ m: 0 }} />
-      </Box>
-
-      <Box p={3} pt={0}>
-        <Typography variant="subtitle1" gutterBottom>
-          {t('deployments.updateApp')}
-        </Typography>
-        <Box display="flex" alignItems="center" mb={2}>
-          <Typography variant="body2">{t('deployments.appIsUpToDate')}</Typography>
-        </Box>
-      </Box> */}
-
       <Box px={3} pt={0}>
         <Stack flexDirection="row" justifyContent="space-between">
-          <Button variant="outlined" onClick={onClose}>
-            {t('cancel')}
-          </Button>
+          <Box display="flex" gap={1} alignItems="center">
+            <PublishButton />
+          </Box>
 
           <LoadingButton variant="contained" onClick={onSubmit}>
             {t('update')}

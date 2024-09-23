@@ -31,7 +31,6 @@ import CommitsTip, { CommitListView } from '../../components/template-form/commi
 import { getFileIdFromPath } from '../../utils/path';
 import DeploymentAction from './deployment-action';
 import PublishView from './publish-view';
-import PublishButton from './publish/publish-button';
 import SaveButton, { CommitForm, SaveButtonDialog } from './save-button';
 import Settings from './settings';
 import { useAssistantChangesState, useProjectState } from './state';
@@ -120,8 +119,6 @@ export function HeaderActions() {
             <Settings boxProps={{}} onClose={toggleDrawer} />
           </Drawer>
         </>
-
-        <PublishButton />
 
         {projectId && gitRef && fileId && <DeploymentAction />}
       </Box>

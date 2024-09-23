@@ -13,7 +13,6 @@ export type Deployment = {
   updatedAt: string;
   access: 'public' | 'private';
   categories: string[];
-  banner?: string;
 };
 
 export async function getDeploymentByProjectId({
@@ -79,7 +78,6 @@ export async function updateDeployment(
   input: {
     access?: 'private' | 'public';
     categories?: string[];
-    banner?: string;
   }
 ): Promise<Deployment> {
   return axios.put(joinURL('/api/deployments', id), input).then((res) => res.data);

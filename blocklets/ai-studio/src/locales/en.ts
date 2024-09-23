@@ -788,7 +788,7 @@ export default flatten({
     name: 'Name',
     title: 'Deployment',
     deployApp: 'Deploy App',
-    deployDescription: 'This will create an application page that you can share',
+    deployDescription: 'Create application pages that can be shared',
     visibility: 'Visibility',
     publicDescription: 'Anyone can view and copy this project',
     privateDescription: 'Only admins can view and copy this project',
@@ -808,7 +808,6 @@ export default flatten({
     deleteSuccess: 'Delete Success',
     emptyDeployment: 'No Deployment Agents Yet',
     updateSuccess: 'Update Success',
-    banner: 'Banner',
   },
   private: 'Private',
   category: {
@@ -834,4 +833,8 @@ export default flatten({
   loginRequired: 'Login Required',
   loginRequiredHelper: 'The user needs to log in before using this agent',
   noLoginRequiredHelper: 'The user can use this agent without logging in',
+  publishToStore: 'Publish to Store',
+  run: 'Run',
+  makeYours: 'Make Yours',
+  readme: 'Readme',
 });

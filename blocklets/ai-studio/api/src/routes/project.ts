@@ -1141,7 +1141,7 @@ async function copyProject({
     name: patch.name || (original.name && `${original.name}-copy`),
     createdBy: author.did,
     updatedBy: author.did,
-    ...patch,
+    ...omit(patch, 'name'),
     gitDefaultBranch: defaultBranch,
   });
 

@@ -1,5 +1,9 @@
-import { getProjectIconUrl } from '@app/libs/project';
+import LoadingButton from '@app/components/loading/loading-button';
+import { getErrorMessage } from '@app/libs/api';
+import { createProject, getProjectIconUrl } from '@app/libs/project';
 import { useProjectStore } from '@app/pages/project/yjs-state';
+import currentGitStore from '@app/store/current-git-store';
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Result from '@arcblock/ux/lib/Result';
 import Toast from '@arcblock/ux/lib/Toast';
 import { getAgentByDeploymentId } from '@blocklet/aigne-sdk/api/agent';
@@ -12,7 +16,7 @@ import { Box, Button, CircularProgress, Divider, Stack, Tab, Typography } from '
 import { useRequest } from 'ahooks';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { withQuery } from 'ufo';
+import { joinURL, withQuery } from 'ufo';
 
 import { Deployment, getDeployment } from '../../libs/deployment';
 
@@ -45,6 +49,24 @@ function Agent({ deployment }: { deployment: Deployment }) {
   const [value, setValue] = useState('1');
   const handleChange = (_event: any, newValue: string) => setValue(newValue);
   const navigate = useNavigate();
+  const { t } = useLocaleContext();
+
+  const onShare = () => {
+    window.open(joinURL(globalThis.location.origin, window.blocklet.prefix, '/explore/apps', deployment.id), '_blank');
+  };
+
+  const onMakeYours = async () => {
+    try {
+      const project = await createProject({ templateId: deployment.projectId });
+
+      currentGitStore.setState({
+        currentProjectId: project.id,
+      });
+      navigate(joinURL('/projects', project.id));
+    } catch (error) {
+      Toast.error(getErrorMessage(error));
+    }
+  };
 
   return (
     <Stack flex={1}>
@@ -69,17 +91,17 @@ function Agent({ deployment }: { deployment: Deployment }) {
                 color: '#303030 !important',
               },
             }}>
-            <Tab label="Readme" value="1" />
-            <Tab label="Run" value="2" />
+            <Tab label={t('readme')} value="1" />
+            <Tab label={t('run')} value="2" />
           </TabList>
         </Box>
 
         <TabPanel value="1" sx={{ flex: 1, overflow: 'overlay' }}>
-          <ReadmePage deployment={deployment} onRun={() => setValue('2')} onMakeYours={() => {}} onShare={() => {}} />
+          <ReadmePage deployment={deployment} onRun={() => setValue('2')} onMakeYours={onMakeYours} onShare={onShare} />
         </TabPanel>
 
-        <TabPanel value="2" sx={{ flex: 1, overflow: 'overlay' }}>
-          <PreviewPage />
+        <TabPanel value="2" sx={{ flex: 1, overflow: 'overlay', position: 'relative' }}>
+          <PreviewPage onMakeYours={onMakeYours} onShare={onShare} />
         </TabPanel>
       </TabContext>
     </Stack>
@@ -99,6 +121,7 @@ function ReadmePage({
 }) {
   const { projectSetting } = useProjectStore(deployment.projectId, deployment.projectRef);
   const banner = getProjectIconUrl(projectSetting.id, { updatedAt: projectSetting.updatedAt });
+  const { t } = useLocaleContext();
 
   return (
     <Stack gap={3}>
@@ -141,27 +164,32 @@ function ReadmePage({
         <Box mt={2} display="flex" gap={1} alignItems="stretch">
           <Button variant="contained" onClick={onRun} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <Box component={Icon} icon={PlayIcon} sx={{ width: 14, height: 14, fontSize: 14, color: '#fff' }} />
-            Run
+            {t('run')}
           </Button>
-          <Button variant="outlined" onClick={onMakeYours}>
-            Make Yours
-          </Button>
+
+          <LoadingButton variant="outlined" onClick={onMakeYours}>
+            {t('makeYours')}
+          </LoadingButton>
+
           <Button variant="outlined" onClick={onShare}>
-            Share
+            {t('share')}
           </Button>
         </Box>
       </Stack>
 
       <Divider sx={{ borderColor: '#EFF1F5' }} />
 
-      <Stack>Readme</Stack>
+      <Stack>
+        <Typography>{t('readme')}</Typography>
+      </Stack>
     </Stack>
   );
 }
 
-function PreviewPage() {
+function PreviewPage({ onMakeYours, onShare }: { onMakeYours: () => void; onShare: () => void }) {
   const { deploymentId } = useParams();
   if (!deploymentId) throw new Error('Missing required param `deploymentId`');
+  const { t } = useLocaleContext();
 
   const { data, loading, error } = useRequest(() => getAgentByDeploymentId({ deploymentId, working: true }), {
     onError: (error) => {
@@ -178,7 +206,20 @@ function PreviewPage() {
   }
 
   if (data?.identity?.aid) {
-    return <AgentView aid={data?.identity?.aid} working />;
+    return (
+      <>
+        <Box display="flex" gap={1} alignItems="stretch" sx={{ position: 'absolute', top: 10, right: 10 }}>
+          <LoadingButton variant="outlined" onClick={onMakeYours}>
+            {t('makeYours')}
+          </LoadingButton>
+
+          <Button variant="outlined" onClick={onShare}>
+            {t('share')}
+          </Button>
+        </Box>
+        <AgentView aid={data?.identity?.aid} working />
+      </>
+    );
   }
 
   return <Box component={Result} status={error ? 403 : 404} sx={{ bgcolor: 'transparent', my: 10 }} />;

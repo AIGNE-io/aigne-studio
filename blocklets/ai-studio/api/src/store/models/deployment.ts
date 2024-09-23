@@ -18,8 +18,6 @@ export default class Deployment extends Model<InferAttributes<Deployment>, Infer
 
   declare categories?: string[];
 
-  declare banner?: string;
-
   declare createdBy: string;
 
   declare updatedBy: string;
@@ -48,9 +46,6 @@ Deployment.init(
     access: {
       type: DataTypes.STRING,
       defaultValue: 'public',
-    },
-    banner: {
-      type: DataTypes.STRING,
     },
     createdBy: {
       type: DataTypes.STRING,

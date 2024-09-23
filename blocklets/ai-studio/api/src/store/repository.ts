@@ -53,8 +53,6 @@ export const CONFIG_FILE_PATH = join(CONFIG_FOLDER, 'config.yaml');
 
 export const CRON_FILE_PATH = join(CONFIG_FOLDER, 'cron.yaml');
 
-export const COPY_REPO_FILES = [CONFIG_FILE_PATH, CRON_FILE_PATH, VARIABLE_FILE_PATH];
-
 export const defaultBranch = 'main';
 
 export const defaultRemote = 'origin';
@@ -70,6 +68,8 @@ export const OLD_PROJECT_FILE_PATH = '.settings.yaml';
 export const PROJECT_FILE_PATH = 'project.yaml';
 
 export const ASSETS_DIR = 'assets';
+
+export const COPY_REPO_FILES = [CONFIG_FILE_PATH, CRON_FILE_PATH, VARIABLE_FILE_PATH, PROJECT_FILE_PATH];
 
 const RESET_FILES_BEFORE_COMMIT = ['prompts', 'tests'];
 

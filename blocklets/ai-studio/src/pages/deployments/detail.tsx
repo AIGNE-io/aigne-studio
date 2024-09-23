@@ -1,5 +1,4 @@
 import { getCategories } from '@app/libs/category';
-import { AIGNE_RUNTIME_MOUNT_POINT } from '@app/libs/constants';
 import DidAddress from '@arcblock/did-connect/lib/Address';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Icon } from '@iconify-icon/react';
@@ -51,7 +50,7 @@ function DeploymentDetail() {
     );
   }
 
-  const url = joinURL(globalThis.location.origin, AIGNE_RUNTIME_MOUNT_POINT, 'deployment', id);
+  const url = joinURL(globalThis.location.origin, window.blocklet.prefix, '/explore/apps', id);
   const rows = (data?.deployment?.categories || []).map(
     (category) => categories?.list?.find((c) => c.id === category)?.name
   );
@@ -143,7 +142,6 @@ function DeploymentDetail() {
         id={id}
         access={data?.deployment?.access!}
         categories={data?.deployment?.categories!}
-        banner={data?.deployment?.banner!}
         run={refresh}
         showCategories={false}
       />

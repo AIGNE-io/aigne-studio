@@ -103,9 +103,8 @@ export default function ImportFromTemplates({
                             name,
                             description,
                           });
-                          currentGitStore.setState({
-                            currentProjectId: project.id,
-                          });
+
+                          currentGitStore.setState({ currentProjectId: project.id });
                           navigate(joinURL('/projects', project.id));
                         } catch (error) {
                           const message = getErrorMessage(error);

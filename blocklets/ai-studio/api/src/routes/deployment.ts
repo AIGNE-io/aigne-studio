@@ -49,7 +49,6 @@ const recommendSchema = paginationSchema.concat(
 const updateSchema = Joi.object({
   access: Joi.string().valid('private', 'public').required(),
   categories: Joi.array().items(Joi.string()).optional(),
-  banner: Joi.string().allow('').empty(['', null]).optional(),
 });
 
 const getByIdSchema = Joi.object({
@@ -224,23 +223,12 @@ router.post('/', user(), auth(), async (req, res) => {
     checkUserAuth(req, res)(userId);
   }
 
-  let deployment = await Deployment.findOne({
-    where: { projectId, projectRef },
-  });
+  let deployment = await Deployment.findOne({ where: { projectId, projectRef } });
 
   if (deployment) {
-    deployment = await deployment.update({
-      access,
-      updatedBy: userId,
-    });
+    deployment = await deployment.update({ access, updatedBy: userId });
   } else {
-    deployment = await Deployment.create({
-      projectId,
-      projectRef,
-      access,
-      createdBy: userId,
-      updatedBy: userId,
-    });
+    deployment = await Deployment.create({ projectId, projectRef, access, createdBy: userId, updatedBy: userId });
   }
 
   res.json(deployment.dataValues);
@@ -306,12 +294,9 @@ router.put('/:id', user(), auth(), async (req, res) => {
 
   checkUserAuth(req, res)(found.createdBy);
 
-  const { access, categories, banner } = await updateSchema.validateAsync(req.body, { stripUnknown: true });
-  const value = {
-    access,
-    ...(banner ? { banner } : {}),
-  };
-  const deployment = await Deployment.update(value, { where: { id: req.params.id! } });
+  const { access, categories } = await updateSchema.validateAsync(req.body, { stripUnknown: true });
+
+  const deployment = await Deployment.update({ access }, { where: { id: req.params.id! } });
 
   if (categories) {
     await DeploymentCategory.destroy({ where: { deploymentId: req.params.id! } });
