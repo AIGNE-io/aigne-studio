@@ -12,6 +12,7 @@ import fallback from 'express-history-api-fallback';
 import { Errors } from 'isomorphic-git';
 
 import { projectCronManager } from './libs/cron-jobs';
+import { csrf } from './libs/csrf';
 import { Config, isDevelopment } from './libs/env';
 import { NoPermissionError, NotFoundError } from './libs/error';
 import logger from './libs/logger';
@@ -49,6 +50,7 @@ app.use(express.json({ limit: '1 mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1 mb' }));
 app.use(cors());
 app.use(xss());
+app.use(csrf());
 app.get('/.well-known/blocklet/openembed', getOpenEmbed);
 
 app.use('/api', routes);

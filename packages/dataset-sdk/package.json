@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/dataset-sdk",
-  "version": "0.4.56",
+  "version": "0.4.57",
   "description": "The SDK for processing dataset protocol",
   "publishConfig": {
     "access": "public"
@@ -103,6 +103,7 @@
     "axios": "^1.7.5",
     "express": "^4.19.2",
     "joi": "^17.13.3",
+    "js-cookie": "^3.0.5",
     "lodash": "^4.17.21",
     "openapi-enforcer": "^1.23.0",
     "openapi-types": "^12.1.3",

@@ -1,11 +1,9 @@
-import axios from 'axios';
-
-export const PREFIX = window.blocklet?.prefix || '/';
+import { createAxios } from '@blocklet/js-sdk';
 
 export const API_TIMEOUT = 120 * 1000;
+export const PREFIX = window.blocklet?.prefix || '/';
 
-const api = axios.create({
-  baseURL: PREFIX,
+const api = createAxios({
   timeout: API_TIMEOUT,
 });
 

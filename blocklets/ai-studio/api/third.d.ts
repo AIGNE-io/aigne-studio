@@ -23,6 +23,8 @@ namespace Express {
       provider: string;
       walletOS: string;
       isAdmin: boolean;
+      emailVerified: boolean;
+      phoneVerified: boolean;
     };
   }
 }
