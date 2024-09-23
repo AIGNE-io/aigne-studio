@@ -143,7 +143,8 @@ function DeploymentDetail() {
         access={data?.deployment?.access!}
         categories={data?.deployment?.categories!}
         run={refresh}
-        showCategories={false}
+        productHuntUrl={data?.deployment?.productHuntUrl}
+        productHuntBannerUrl={data?.deployment?.productHuntBannerUrl}
       />
     </>
   );

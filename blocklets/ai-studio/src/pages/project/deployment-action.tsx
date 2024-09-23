@@ -38,12 +38,7 @@ import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/
 import { Suspense, useState } from 'react';
 import { joinURL } from 'ufo';
 
-import {
-  Deployment,
-  createOrUpdateDeployment,
-  getDeploymentByProjectId,
-  updateDeployment,
-} from '../../libs/deployment';
+import { Deployment, createDeployment, getDeploymentByProjectId, updateDeployment } from '../../libs/deployment';
 import PublishButton from './publish/publish-button';
 import { saveButtonState } from './state';
 
@@ -117,7 +112,7 @@ function DeployApp({ projectId, projectRef, run }: { projectId: string; projectR
 
   const onSubmit = async () => {
     try {
-      await createOrUpdateDeployment({
+      await createDeployment({
         projectId,
         projectRef,
         access: visibility,
@@ -226,6 +221,8 @@ function UpdateApp({ id, data, run }: { id: string; data: Deployment; run: () =>
       await updateDeployment(id, {
         access: visibility,
         categories: data.categories,
+        productHuntUrl: data.productHuntUrl,
+        productHuntBannerUrl: data.productHuntBannerUrl,
       });
 
       await saveButtonState.getState().save?.({ skipConfirm: true, skipCommitIfNoChanges: true });

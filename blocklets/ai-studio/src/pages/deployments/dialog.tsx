@@ -32,20 +32,16 @@ import { PopupState, bindDialog } from 'material-ui-popup-state/hooks';
 import { useEffect, useState } from 'react';
 import { Control, Controller, useForm } from 'react-hook-form';
 
-import { updateDeployment } from '../../libs/deployment';
+import { UpdateType, updateDeployment } from '../../libs/deployment';
 import Close from '../project/icons/close';
-
-type UpdateType = {
-  access: 'private' | 'public';
-  categories: string[];
-};
 
 export default function DeploymentDialog({
   dialogState,
   id,
   access,
   categories,
-  showCategories = true,
+  productHuntUrl,
+  productHuntBannerUrl,
   showVisibility = true,
   run,
 }: {
@@ -53,23 +49,29 @@ export default function DeploymentDialog({
   id: string;
   access: 'private' | 'public';
   categories: string[];
+  productHuntUrl?: string;
+  productHuntBannerUrl?: string;
   run: () => void;
-  showCategories?: boolean;
   showVisibility?: boolean;
 }) {
   const isAdmin = useIsAdmin();
   const { t } = useLocaleContext();
 
-  const { control, handleSubmit, setValue } = useForm<UpdateType>({ defaultValues: { access, categories } });
+  const { control, handleSubmit, setValue } = useForm<UpdateType>({
+    defaultValues: { access, categories, productHuntUrl, productHuntBannerUrl },
+  });
+
   const { data, loading: categoriesLoading } = useRequest(getCategories, {
     defaultParams: [{ page: 1, pageSize: 1000 }],
     refreshDeps: [],
   });
 
   useEffect(() => {
-    setValue('categories', categories);
     setValue('access', access);
-  }, [access, categories, setValue]);
+    setValue('categories', categories);
+    setValue('productHuntUrl', productHuntUrl || '');
+    setValue('productHuntBannerUrl', productHuntBannerUrl || '');
+  }, [access, categories, productHuntUrl, productHuntBannerUrl, setValue]);
 
   const onSubmit = async (data: UpdateType) => {
     try {
@@ -86,6 +88,7 @@ export default function DeploymentDialog({
     <Dialog {...bindDialog(dialogState)} fullWidth maxWidth="sm" component="form" onSubmit={(e) => e.preventDefault()}>
       <DialogTitle className="between">
         <Box>{t('deployments.updateApp')}</Box>
+
         <IconButton size="small" onClick={dialogState.close}>
           <Close />
         </IconButton>
@@ -121,12 +124,12 @@ export default function DeploymentDialog({
               </Stack>
             )}
 
-            {showCategories && (
-              <Stack gap={1}>
-                <Typography variant="body1">{t('category.title')}</Typography>
-                <CategorySelect control={control} name="categories" categories={data?.list || []} />
-              </Stack>
-            )}
+            <Stack gap={1}>
+              <Typography variant="body1">{t('category.title')}</Typography>
+              <CategorySelect control={control} name="categories" categories={data?.list || []} />
+            </Stack>
+
+            <ProductHuntFields control={control} />
           </Stack>
         )}
       </DialogContent>
@@ -257,5 +260,47 @@ function CategorySelect({
         />
       )}
     />
+  );
+}
+
+function ProductHuntFields({ control }: { control: Control<UpdateType> }) {
+  const { t } = useLocaleContext();
+
+  return (
+    <Stack gap={1}>
+      <Typography variant="body1">{t('deployments.productHunt')}</Typography>
+
+      <Controller
+        name="productHuntUrl"
+        control={control}
+        defaultValue=""
+        rules={{ pattern: /^https?:\/\/.+/ }}
+        render={({ field, fieldState: { error } }) => (
+          <TextField
+            {...field}
+            label={t('deployments.productHuntUrl')}
+            fullWidth
+            error={!!error}
+            helperText={error ? t('deployments.invalidUrl') : ''}
+          />
+        )}
+      />
+
+      <Controller
+        name="productHuntBannerUrl"
+        control={control}
+        defaultValue=""
+        rules={{ pattern: /^https?:\/\/.+/ }}
+        render={({ field, fieldState: { error } }) => (
+          <TextField
+            {...field}
+            label={t('deployments.productHuntBannerUrl')}
+            fullWidth
+            error={!!error}
+            helperText={error ? t('deployments.invalidUrl') : ''}
+          />
+        )}
+      />
+    </Stack>
   );
 }

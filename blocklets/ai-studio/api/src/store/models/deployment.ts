@@ -21,6 +21,10 @@ export default class Deployment extends Model<InferAttributes<Deployment>, Infer
   declare createdBy: string;
 
   declare updatedBy: string;
+
+  declare productHuntUrl?: string;
+
+  declare productHuntBannerUrl?: number;
 }
 
 Deployment.init(
@@ -52,6 +56,13 @@ Deployment.init(
       allowNull: false,
     },
     updatedBy: {
+      type: DataTypes.STRING,
+    },
+
+    productHuntUrl: {
+      type: DataTypes.STRING,
+    },
+    productHuntBannerUrl: {
       type: DataTypes.STRING,
     },
   },

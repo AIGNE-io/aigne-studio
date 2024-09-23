@@ -10,7 +10,7 @@ import { Icon } from '@iconify-icon/react';
 import ChevronLeft from '@iconify-icons/tabler/chevron-left';
 import PlayIcon from '@iconify-icons/tabler/player-play-filled';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
-import { Box, Button, CircularProgress, Divider, Stack, Tab, Typography } from '@mui/material';
+import { Box, Button, CircularProgress, Divider, Link, Stack, Tab, Typography } from '@mui/material';
 import { useRequest } from 'ahooks';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -131,16 +131,18 @@ function ReadmePage({ deployment, onRun }: { deployment: Deployment; onRun: () =
         )}
       </Box>
 
-      <Stack>
-        <Typography sx={{ fontSize: 24, fontWeight: 700, lineHeight: '32px', color: '#030712' }} gutterBottom>
-          {projectSetting.name}
-        </Typography>
+      <Stack gap={2}>
+        <Box>
+          <Typography sx={{ fontSize: 24, fontWeight: 700, lineHeight: '32px', color: '#030712' }} gutterBottom>
+            {projectSetting.name}
+          </Typography>
 
-        <Typography sx={{ fontSize: 16, fontWeight: 400, lineHeight: '24px', color: '#757575' }}>
-          {projectSetting.description}
-        </Typography>
+          <Typography sx={{ fontSize: 16, fontWeight: 400, lineHeight: '24px', color: '#757575' }}>
+            {projectSetting.description}
+          </Typography>
+        </Box>
 
-        <Box mt={2} display="flex" gap={1} alignItems="stretch">
+        <Box display="flex" gap={1} alignItems="stretch">
           <Button variant="contained" onClick={onRun} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <Box component={Icon} icon={PlayIcon} sx={{ width: 14, height: 14, fontSize: 14, color: '#fff' }} />
             {t('run')}
@@ -150,6 +152,14 @@ function ReadmePage({ deployment, onRun }: { deployment: Deployment; onRun: () =
 
           <ShareButton deployment={deployment} />
         </Box>
+
+        {deployment.productHuntUrl && deployment.productHuntBannerUrl && (
+          <Box>
+            <Box component={Link} href={deployment.productHuntUrl!} target="_blank">
+              <Box component="img" src={deployment.productHuntBannerUrl} />
+            </Box>
+          </Box>
+        )}
       </Stack>
 
       <Divider sx={{ borderColor: '#EFF1F5' }} />

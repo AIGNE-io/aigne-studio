@@ -801,6 +801,10 @@ export default flatten({
     emptyDeployment: '没有部署的应用',
     updateSuccess: '更新成功',
     explore: '探索页面',
+    productHunt: 'ProductHunt 设置',
+    productHuntUrl: 'ProductHunt 链接',
+    productHuntBannerUrl: 'ProductHunt 配图链接',
+    invalidUrl: '请输入一个有效的 URL',
   },
   category: {
     title: '分类',

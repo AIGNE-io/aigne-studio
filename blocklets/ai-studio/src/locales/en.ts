@@ -810,6 +810,10 @@ export default flatten({
     emptyDeployment: 'No Deployment Agents Yet',
     updateSuccess: 'Update Success',
     explore: 'Explore Page',
+    productHunt: 'ProductHunt',
+    productHuntUrl: 'ProductHunt Link',
+    productHuntBannerUrl: 'ProductHunt Banner Link',
+    invalidUrl: 'Please enter a valid URL',
   },
   private: 'Private',
   category: {
