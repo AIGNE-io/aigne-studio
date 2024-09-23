@@ -1,6 +1,5 @@
 import { getErrorMessage } from '@app/libs/api';
 import { getCategories } from '@app/libs/category';
-import { AIGNE_RUNTIME_MOUNT_POINT } from '@app/libs/constants';
 import useDialog from '@app/utils/use-dialog';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
@@ -97,7 +96,7 @@ function DeploymentList() {
                   e.stopPropagation();
 
                   window.open(
-                    joinURL(globalThis.location.origin, AIGNE_RUNTIME_MOUNT_POINT, 'deployment', params.row.id),
+                    joinURL(globalThis.location.origin, window.blocklet.prefix, '/explore/apps', params.row.id),
                     '_blank'
                   );
                 }}>
@@ -157,7 +156,7 @@ function DeploymentList() {
   return (
     <Container>
       <Box className="between" mt={2.5} mb={1.5}>
-        <Box sx={{ fontWeight: 700, fontSize: 24, lineHeight: '32px', color: '#030712' }}>{t('deployment')}</Box>
+        <Box sx={{ fontWeight: 700, fontSize: 24, lineHeight: '32px', color: '#030712' }}>{t('deployments.title')}</Box>
       </Box>
 
       <Box sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1, px: 1.5 }}>
@@ -213,7 +212,8 @@ function DeploymentList() {
         id={deployment?.id!}
         access={deployment?.access!}
         categories={deployment?.categories!}
-        banner={deployment?.banner!}
+        productHuntUrl={deployment?.productHuntUrl}
+        productHuntBannerUrl={deployment?.productHuntBannerUrl}
         run={refresh}
       />
     </Container>

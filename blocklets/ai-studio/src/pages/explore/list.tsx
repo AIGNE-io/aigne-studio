@@ -1,6 +1,7 @@
 import 'swiper/css';
 import 'swiper/css/navigation';
 
+import { getAssetUrl } from '@app/libs/asset';
 import { getDeploymentsByCategoryId } from '@app/libs/deployment';
 import { getProjectIconUrl } from '@app/libs/project';
 import Empty from '@app/pages/project/icons/empty';
@@ -96,7 +97,9 @@ function CategoryCard({ projectId, projectRef }: { projectId: string; projectRef
   const { projectSetting } = useProjectStore(projectId, projectRef);
   const { t } = useLocaleContext();
 
-  const banner = getProjectIconUrl(projectSetting.id, { updatedAt: projectSetting.updatedAt });
+  const banner = projectSetting?.banner
+    ? getAssetUrl({ projectId, projectRef, filename: projectSetting?.banner })
+    : getProjectIconUrl(projectSetting.id, { updatedAt: projectSetting.updatedAt });
 
   return (
     <Box

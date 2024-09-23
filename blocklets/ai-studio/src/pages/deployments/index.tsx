@@ -1,5 +1,4 @@
 import { getErrorMessage } from '@app/libs/api';
-import { AIGNE_RUNTIME_MOUNT_POINT } from '@app/libs/constants';
 import useDialog from '@app/utils/use-dialog';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
@@ -77,7 +76,7 @@ function Deployments() {
                   e.stopPropagation();
 
                   window.open(
-                    joinURL(globalThis.location.origin, AIGNE_RUNTIME_MOUNT_POINT, 'deployment', params.row.id),
+                    joinURL(globalThis.location.origin, window.blocklet.prefix, '/explore/apps', params.row.id),
                     '_blank'
                   );
                 }}>

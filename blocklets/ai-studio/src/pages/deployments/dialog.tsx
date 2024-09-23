@@ -1,6 +1,5 @@
 import LoadingButton from '@app/components/loading/loading-button';
 import { useIsAdmin } from '@app/contexts/session';
-import UploaderProvider, { useUploader } from '@app/contexts/uploader';
 import { Category, getCategories } from '@app/libs/category';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
@@ -32,24 +31,17 @@ import { useRequest } from 'ahooks';
 import { PopupState, bindDialog } from 'material-ui-popup-state/hooks';
 import { useEffect, useState } from 'react';
 import { Control, Controller, useForm } from 'react-hook-form';
-import { withQuery } from 'ufo';
 
-import { updateDeployment } from '../../libs/deployment';
+import { UpdateType, updateDeployment } from '../../libs/deployment';
 import Close from '../project/icons/close';
-
-type UpdateType = {
-  access: 'private' | 'public';
-  categories: string[];
-  banner: string;
-};
 
 export default function DeploymentDialog({
   dialogState,
   id,
   access,
   categories,
-  banner = '',
-  showCategories = true,
+  productHuntUrl,
+  productHuntBannerUrl,
   showVisibility = true,
   run,
 }: {
@@ -57,25 +49,29 @@ export default function DeploymentDialog({
   id: string;
   access: 'private' | 'public';
   categories: string[];
-  banner: string;
+  productHuntUrl?: string;
+  productHuntBannerUrl?: string;
   run: () => void;
-  showCategories?: boolean;
   showVisibility?: boolean;
 }) {
   const isAdmin = useIsAdmin();
   const { t } = useLocaleContext();
 
-  const { control, handleSubmit, setValue } = useForm<UpdateType>({ defaultValues: { access, categories } });
+  const { control, handleSubmit, setValue } = useForm<UpdateType>({
+    defaultValues: { access, categories, productHuntUrl, productHuntBannerUrl },
+  });
+
   const { data, loading: categoriesLoading } = useRequest(getCategories, {
     defaultParams: [{ page: 1, pageSize: 1000 }],
     refreshDeps: [],
   });
 
   useEffect(() => {
-    setValue('categories', categories);
     setValue('access', access);
-    setValue('banner', banner);
-  }, [access, categories, banner, setValue]);
+    setValue('categories', categories);
+    setValue('productHuntUrl', productHuntUrl || '');
+    setValue('productHuntBannerUrl', productHuntBannerUrl || '');
+  }, [access, categories, productHuntUrl, productHuntBannerUrl, setValue]);
 
   const onSubmit = async (data: UpdateType) => {
     try {
@@ -89,72 +85,66 @@ export default function DeploymentDialog({
   };
 
   return (
-    <UploaderProvider>
-      <Dialog
-        {...bindDialog(dialogState)}
-        fullWidth
-        maxWidth="sm"
-        component="form"
-        onSubmit={(e) => e.preventDefault()}>
-        <DialogTitle className="between">
-          <Box>{t('deployments.updateApp')}</Box>
-          <IconButton size="small" onClick={dialogState.close}>
-            <Close />
-          </IconButton>
-        </DialogTitle>
+    <Dialog {...bindDialog(dialogState)} fullWidth maxWidth="sm" component="form" onSubmit={(e) => e.preventDefault()}>
+      <DialogTitle className="between">
+        <Box>{t('deployments.updateApp')}</Box>
 
-        <DialogContent>
-          {categoriesLoading ? (
-            <Box display="flex" justifyContent="center" alignItems="center" height={400}>
-              <CircularProgress />
-            </Box>
-          ) : (
+        <IconButton size="small" onClick={dialogState.close}>
+          <Close />
+        </IconButton>
+      </DialogTitle>
+
+      <DialogContent>
+        {categoriesLoading ? (
+          <Box display="flex" justifyContent="center" alignItems="center" height={400}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <Stack gap={1}>
+            {showVisibility && (
+              <Stack gap={1}>
+                <Typography variant="body1">{t('deployments.visibility')}</Typography>
+                <Card sx={{ width: 1, boxShadow: 0 }}>
+                  <CardContent sx={{ p: 0, m: 0 }}>
+                    <VisibilitySelect control={control} name="access" />
+                  </CardContent>
+
+                  {!isAdmin && (
+                    <Typography variant="caption" mt={2}>
+                      {t('deployments.toEnablePrivateProjects')}
+                      <Box
+                        component="a"
+                        href="https://store.blocklet.dev/blocklets/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB"
+                        target="_blank">
+                        {t('deployments.launchAigne')}
+                      </Box>
+                    </Typography>
+                  )}
+                </Card>
+              </Stack>
+            )}
+
             <Stack gap={1}>
-              {showVisibility && (
-                <Stack gap={1}>
-                  <Typography variant="body1">{t('deployments.visibility')}</Typography>
-                  <Card sx={{ width: 1, boxShadow: 0 }}>
-                    <CardContent sx={{ p: 0, m: 0 }}>
-                      <VisibilitySelect control={control} name="access" />
-                    </CardContent>
-
-                    {!isAdmin && (
-                      <Typography variant="caption" mt={2}>
-                        {t('deployments.toEnablePrivateProjects')}
-                        <Box
-                          component="a"
-                          href="https://store.blocklet.dev/blocklets/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB"
-                          target="_blank">
-                          {t('deployments.launchAigne')}
-                        </Box>
-                      </Typography>
-                    )}
-                  </Card>
-                </Stack>
-              )}
-
-              {showCategories && (
-                <Stack gap={1}>
-                  <Typography variant="body1">{t('category.title')}</Typography>
-                  <CategorySelect control={control} name="categories" categories={data?.list || []} />
-                </Stack>
-              )}
+              <Typography variant="body1">{t('category.title')}</Typography>
+              <CategorySelect control={control} name="categories" categories={data?.list || []} />
             </Stack>
-          )}
-        </DialogContent>
 
-        <DialogActions>
-          <Stack flexDirection="row" gap={1}>
-            <Button variant="outlined" onClick={dialogState.close}>
-              {t('cancel')}
-            </Button>
-            <LoadingButton variant="contained" onClick={handleSubmit(onSubmit)}>
-              {t('update')}
-            </LoadingButton>
+            <ProductHuntFields control={control} />
           </Stack>
-        </DialogActions>
-      </Dialog>
-    </UploaderProvider>
+        )}
+      </DialogContent>
+
+      <DialogActions>
+        <Stack flexDirection="row" gap={1}>
+          <Button variant="outlined" onClick={dialogState.close}>
+            {t('cancel')}
+          </Button>
+          <LoadingButton variant="contained" onClick={handleSubmit(onSubmit)}>
+            {t('update')}
+          </LoadingButton>
+        </Stack>
+      </DialogActions>
+    </Dialog>
   );
 }
 
@@ -273,55 +263,44 @@ function CategorySelect({
   );
 }
 
-export function BannerSelect({ control, name }: { control: Control<UpdateType>; name: 'banner' }) {
-  const uploaderRef = useUploader();
+function ProductHuntFields({ control }: { control: Control<UpdateType> }) {
+  const { t } = useLocaleContext();
 
   return (
-    <Controller
-      control={control}
-      name={name}
-      render={({ field }) => (
-        <Box sx={{ width: 1, position: 'relative', pb: '40%' }}>
-          <Box
-            sx={{ position: 'absolute', inset: 0 }}
-            onClick={() => {
-              const uploader = uploaderRef?.current?.getUploader();
-              uploader?.open();
+    <Stack gap={1}>
+      <Typography variant="body1">{t('deployments.productHunt')}</Typography>
 
-              uploader.onceUploadSuccess(({ response }: any) => {
-                const url = response?.data?.url || response?.data?.fileUrl;
-                field.onChange(url);
-              });
-            }}>
-            {field.value ? (
-              <Box
-                component="img"
-                src={withQuery(field.value, { imageFilter: 'resize', w: 500 })}
-                sx={{
-                  position: 'absolute',
-                  inset: 0,
-                  cursor: 'pointer',
-                  objectFit: 'cover',
-                  width: 1,
-                  height: 1,
-                  borderRadius: 1,
-                }}
-              />
-            ) : (
-              <Box
-                sx={{
-                  position: 'absolute',
-                  inset: 0,
-                  cursor: 'pointer',
-                  backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                  backgroundSize: 'cover',
-                  borderRadius: 1,
-                }}
-              />
-            )}
-          </Box>
-        </Box>
-      )}
-    />
+      <Controller
+        name="productHuntUrl"
+        control={control}
+        defaultValue=""
+        rules={{ pattern: /^https?:\/\/.+/ }}
+        render={({ field, fieldState: { error } }) => (
+          <TextField
+            {...field}
+            label={t('deployments.productHuntUrl')}
+            fullWidth
+            error={!!error}
+            helperText={error ? t('deployments.invalidUrl') : ''}
+          />
+        )}
+      />
+
+      <Controller
+        name="productHuntBannerUrl"
+        control={control}
+        defaultValue=""
+        rules={{ pattern: /^https?:\/\/.+/ }}
+        render={({ field, fieldState: { error } }) => (
+          <TextField
+            {...field}
+            label={t('deployments.productHuntBannerUrl')}
+            fullWidth
+            error={!!error}
+            helperText={error ? t('deployments.invalidUrl') : ''}
+          />
+        )}
+      />
+    </Stack>
   );
 }

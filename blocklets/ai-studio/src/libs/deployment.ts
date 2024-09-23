@@ -13,7 +13,15 @@ export type Deployment = {
   updatedAt: string;
   access: 'public' | 'private';
   categories: string[];
-  banner?: string;
+  productHuntUrl?: string;
+  productHuntBannerUrl?: string;
+};
+
+export type UpdateType = {
+  access: 'private' | 'public';
+  categories: string[];
+  productHuntUrl?: string;
+  productHuntBannerUrl?: string;
 };
 
 export async function getDeploymentByProjectId({
@@ -32,7 +40,7 @@ export async function getDeployment({ id }: { id: string }): Promise<{
   return axios.get(joinURL('/api/deployments', id)).then((res) => res.data);
 }
 
-export async function createOrUpdateDeployment(input: {
+export async function createDeployment(input: {
   projectId: string;
   projectRef: string;
   access?: 'private' | 'public';
@@ -74,14 +82,7 @@ export async function getAllDeployments(input: { page: number; pageSize: number 
   return axios.get('/api/deployments/list', { params: input }).then((res) => res.data);
 }
 
-export async function updateDeployment(
-  id: string,
-  input: {
-    access?: 'private' | 'public';
-    categories?: string[];
-    banner?: string;
-  }
-): Promise<Deployment> {
+export async function updateDeployment(id: string, input: UpdateType): Promise<Deployment> {
   return axios.put(joinURL('/api/deployments', id), input).then((res) => res.data);
 }
 

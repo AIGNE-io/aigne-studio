@@ -1,5 +1,7 @@
+import { getAssetUrl } from '@app/libs/asset';
 import { getProjectIconUrl } from '@app/libs/project';
 import { useProjectStore } from '@app/pages/project/yjs-state';
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Result from '@arcblock/ux/lib/Result';
 import Toast from '@arcblock/ux/lib/Toast';
 import { getAgentByDeploymentId } from '@blocklet/aigne-sdk/api/agent';
@@ -8,13 +10,14 @@ import { Icon } from '@iconify-icon/react';
 import ChevronLeft from '@iconify-icons/tabler/chevron-left';
 import PlayIcon from '@iconify-icons/tabler/player-play-filled';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
-import { Box, Button, CircularProgress, Divider, Stack, Tab, Typography } from '@mui/material';
+import { Box, Button, CircularProgress, Divider, Link, Stack, Tab, Typography } from '@mui/material';
 import { useRequest } from 'ahooks';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { withQuery } from 'ufo';
 
 import { Deployment, getDeployment } from '../../libs/deployment';
+import { MakeYoursButton, ShareButton } from './button';
 
 export default function CategoryDetail() {
   const { deploymentId } = useParams();
@@ -45,6 +48,7 @@ function Agent({ deployment }: { deployment: Deployment }) {
   const [value, setValue] = useState('1');
   const handleChange = (_event: any, newValue: string) => setValue(newValue);
   const navigate = useNavigate();
+  const { t } = useLocaleContext();
 
   return (
     <Stack flex={1}>
@@ -69,36 +73,34 @@ function Agent({ deployment }: { deployment: Deployment }) {
                 color: '#303030 !important',
               },
             }}>
-            <Tab label="Readme" value="1" />
-            <Tab label="Run" value="2" />
+            <Tab label={t('readme')} value="1" />
+            <Tab label={t('run')} value="2" />
           </TabList>
         </Box>
 
         <TabPanel value="1" sx={{ flex: 1, overflow: 'overlay' }}>
-          <ReadmePage deployment={deployment} onRun={() => setValue('2')} onMakeYours={() => {}} onShare={() => {}} />
+          <ReadmePage deployment={deployment} onRun={() => setValue('2')} />
         </TabPanel>
 
-        <TabPanel value="2" sx={{ flex: 1, overflow: 'overlay' }}>
-          <PreviewPage />
+        <TabPanel value="2" sx={{ flex: 1, overflow: 'overlay', position: 'relative' }}>
+          <PreviewPage deployment={deployment} />
         </TabPanel>
       </TabContext>
     </Stack>
   );
 }
 
-function ReadmePage({
-  deployment,
-  onRun,
-  onMakeYours,
-  onShare,
-}: {
-  deployment: Deployment;
-  onRun: () => void;
-  onMakeYours: () => void;
-  onShare: () => void;
-}) {
+function ReadmePage({ deployment, onRun }: { deployment: Deployment; onRun: () => void }) {
   const { projectSetting } = useProjectStore(deployment.projectId, deployment.projectRef);
-  const banner = getProjectIconUrl(projectSetting.id, { updatedAt: projectSetting.updatedAt });
+  const { t } = useLocaleContext();
+
+  const banner = projectSetting?.banner
+    ? getAssetUrl({
+        projectId: deployment.projectId,
+        projectRef: deployment.projectRef,
+        filename: projectSetting?.banner,
+      })
+    : getProjectIconUrl(deployment.projectId, { updatedAt: projectSetting.updatedAt });
 
   return (
     <Stack gap={3}>
@@ -129,37 +131,47 @@ function ReadmePage({
         )}
       </Box>
 
-      <Stack>
-        <Typography sx={{ fontSize: 24, fontWeight: 700, lineHeight: '32px', color: '#030712' }} gutterBottom>
-          {projectSetting.name}
-        </Typography>
+      <Stack gap={2}>
+        <Box>
+          <Typography sx={{ fontSize: 24, fontWeight: 700, lineHeight: '32px', color: '#030712' }} gutterBottom>
+            {projectSetting.name}
+          </Typography>
 
-        <Typography sx={{ fontSize: 16, fontWeight: 400, lineHeight: '24px', color: '#757575' }}>
-          {projectSetting.description}
-        </Typography>
+          <Typography sx={{ fontSize: 16, fontWeight: 400, lineHeight: '24px', color: '#757575' }}>
+            {projectSetting.description}
+          </Typography>
+        </Box>
 
-        <Box mt={2} display="flex" gap={1} alignItems="stretch">
+        <Box display="flex" gap={1} alignItems="stretch">
           <Button variant="contained" onClick={onRun} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <Box component={Icon} icon={PlayIcon} sx={{ width: 14, height: 14, fontSize: 14, color: '#fff' }} />
-            Run
+            {t('run')}
           </Button>
-          <Button variant="outlined" onClick={onMakeYours}>
-            Make Yours
-          </Button>
-          <Button variant="outlined" onClick={onShare}>
-            Share
-          </Button>
+
+          <MakeYoursButton deployment={deployment} />
+
+          <ShareButton deployment={deployment} />
         </Box>
+
+        {deployment.productHuntUrl && deployment.productHuntBannerUrl && (
+          <Box>
+            <Box component={Link} href={deployment.productHuntUrl!} target="_blank">
+              <Box component="img" src={deployment.productHuntBannerUrl} />
+            </Box>
+          </Box>
+        )}
       </Stack>
 
       <Divider sx={{ borderColor: '#EFF1F5' }} />
 
-      <Stack>Readme</Stack>
+      <Stack>
+        <Typography>{t('readme')}</Typography>
+      </Stack>
     </Stack>
   );
 }
 
-function PreviewPage() {
+function PreviewPage({ deployment }: { deployment: Deployment }) {
   const { deploymentId } = useParams();
   if (!deploymentId) throw new Error('Missing required param `deploymentId`');
 
@@ -178,7 +190,16 @@ function PreviewPage() {
   }
 
   if (data?.identity?.aid) {
-    return <AgentView aid={data?.identity?.aid} working />;
+    return (
+      <>
+        <Box display="flex" gap={1} alignItems="stretch" sx={{ position: 'absolute', top: 10, right: 10 }}>
+          <MakeYoursButton deployment={deployment} />
+          <ShareButton deployment={deployment} />
+        </Box>
+
+        <AgentView aid={data?.identity?.aid} working />
+      </>
+    );
   }
 
   return <Box component={Result} status={error ? 403 : 404} sx={{ bgcolor: 'transparent', my: 10 }} />;
