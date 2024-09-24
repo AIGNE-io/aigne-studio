@@ -15,15 +15,9 @@ declare module '@abtnode/cron';
 declare module 'express-xss-sanitizer';
 
 namespace Express {
+  import type { SessionUser } from '@blocklet/sdk/lib/util/login';
+
   interface Request {
-    user?: {
-      did: string;
-      role: string | undefined;
-      provider: string;
-      fullName: string;
-      walletOS: string;
-      emailVerified: boolean;
-      phoneVerified: boolean;
-    };
+    user?: SessionUser;
   }
 }
