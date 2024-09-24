@@ -6,7 +6,7 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
 import twitterIcon from '@iconify-icons/tabler/brand-twitter';
-import contentCopyIcon from '@iconify-icons/tabler/copy';
+import externalLinkIcon from '@iconify-icons/tabler/external-link';
 import linkIcon from '@iconify-icons/tabler/link';
 import {
   Box,
@@ -22,7 +22,7 @@ import {
 } from '@mui/material';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { joinURL, withQuery } from 'ufo';
+import { joinURL } from 'ufo';
 
 import { useSessionContext } from '../../contexts/session';
 import { Deployment } from '../../libs/deployment';
@@ -108,7 +108,7 @@ export function ShareButton({ deployment }: { deployment: Deployment }) {
   const shareOptions = [
     {
       text: t('openInNewTab'),
-      icon: <Box component={Icon} icon={linkIcon} sx={{ fontSize: 20 }} />,
+      icon: <Box component={Icon} icon={externalLinkIcon} sx={{ fontSize: 20 }} />,
       handle: () => {
         window.open(shareUrl, '_blank');
         handleClose();
@@ -116,7 +116,7 @@ export function ShareButton({ deployment }: { deployment: Deployment }) {
     },
     {
       text: t('copyLink'),
-      icon: <Box component={Icon} icon={contentCopyIcon} sx={{ fontSize: 20 }} />,
+      icon: <Box component={Icon} icon={linkIcon} sx={{ fontSize: 20 }} />,
       handle: () => {
         navigator.clipboard.writeText(shareUrl);
         handleClose();
