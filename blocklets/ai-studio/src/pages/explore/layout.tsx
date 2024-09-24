@@ -18,9 +18,10 @@ import {
   Typography,
   useMediaQuery,
 } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { Outlet, useNavigate, useParams } from 'react-router-dom';
 
+import Loading from '../../components/loading';
 import ImportFromBlank from '../project/projects-page/import-from-blank';
 import { useCategoryState } from './state';
 
@@ -181,7 +182,9 @@ export default function ExploreCategoryLayout() {
           height: 1,
           overflow: 'hidden',
         }}>
-        <Outlet context={{ categories }} />
+        <Suspense fallback={<Loading fixed />}>
+          <Outlet context={{ categories }} />
+        </Suspense>
       </Box>
     </Stack>
   );

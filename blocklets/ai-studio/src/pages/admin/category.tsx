@@ -291,9 +291,7 @@ const useFetchCategories = () => {
       const { page = 1, size = 20 } = d || {};
       const { list: items, totalCount: total } = await getCategories({ page, pageSize: size });
 
-      const list = (d?.list?.length || 0) + items.length;
-      const next = Boolean(list < total);
-      return { list: items || [], next, size, page: (d?.page || 1) + 1, total };
+      return { list: items || [], next: items.length >= size, size, page: (d?.page || 1) + 1, total };
     },
     { isNoMore: (d) => !d?.next, reloadDeps: [] }
   );
