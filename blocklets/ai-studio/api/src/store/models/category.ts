@@ -17,6 +17,15 @@ export default class Category extends Model<InferAttributes<Category>, InferCrea
   declare createdBy: string;
 
   declare updatedBy: string;
+
+  static associate(models: { Deployment: any; DeploymentCategory: any }) {
+    this.belongsToMany(models.Deployment, {
+      through: models.DeploymentCategory,
+      foreignKey: 'categoryId',
+      otherKey: 'deploymentId',
+      as: 'deployments',
+    });
+  }
 }
 
 Category.init(

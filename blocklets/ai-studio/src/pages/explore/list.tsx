@@ -260,7 +260,7 @@ const useFetchDeployments = (id?: string) => {
         pageSize: size,
       });
 
-      return { list: items || [], next: items.length >= size, size, page: (d?.page || 1) + 1, total };
+      return { list: items || [].filter(Boolean), next: items.length >= size, size, page: (d?.page || 1) + 1, total };
     },
     { isNoMore: (d) => !d?.next, reloadDeps: [id] }
   );

@@ -69,7 +69,6 @@ export default function AppPage() {
         <Box sx={{ position: 'relative' }}>
           <Box display="flex" gap={1} alignItems="stretch" sx={{ position: 'absolute', top: 10, right: 10 }}>
             <MakeYoursButton deployment={data.deployment} />
-            {/* <ShareButton deployment={data.deployment} /> */}
           </Box>
 
           <AgentView aid={data?.identity?.aid} working />

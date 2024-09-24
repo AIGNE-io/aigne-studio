@@ -22,6 +22,7 @@ import { xss } from './libs/xss';
 import routes from './routes';
 import { getOpenEmbed } from './routes/open-embed';
 import { handleYjsWebSocketUpgrade } from './routes/ws';
+import { initModels } from './store/models/init-models';
 
 export const app = express();
 
@@ -115,3 +116,5 @@ export const server = app.listen(port, (err?: any) => {
 });
 
 handleYjsWebSocketUpgrade(server);
+
+initModels();

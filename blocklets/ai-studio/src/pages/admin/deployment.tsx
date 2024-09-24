@@ -1,9 +1,8 @@
 import { getErrorMessage } from '@app/libs/api';
-import { getCategories } from '@app/libs/category';
 import useDialog from '@app/utils/use-dialog';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { Box, Button, Container, Stack, Typography, styled } from '@mui/material';
+import { Box, Button, Chip, Container, Stack, Typography, styled } from '@mui/material';
 import { DataGrid, GridColDef, gridClasses } from '@mui/x-data-grid';
 import { useRequest } from 'ahooks';
 import dayjs from 'dayjs';
@@ -34,11 +33,6 @@ function DeploymentList() {
   const params = useMemo(() => ({ page: page + 1, pageSize }), [page, pageSize]);
 
   const { data, loading, run, refresh } = useRequest(getDeployments, { manual: true });
-
-  const { data: categories, loading: categoriesLoading } = useRequest(getCategories, {
-    defaultParams: [{ page: 1, pageSize: 1000 }],
-    refreshDeps: [],
-  });
 
   useEffect(() => {
     run(params);
@@ -71,9 +65,13 @@ function DeploymentList() {
         headerName: t('category.title'),
         flex: 1,
         renderCell: (params) => {
-          return params.row.categories
-            .map((category) => categories?.list?.find((c) => c.id === category)?.name)
-            .join(', ');
+          return (
+            <Box>
+              {params.row.categories.map((category) => {
+                return <Chip label={category.name} sx={{ mr: 1 }} key={category.id} size="small" />;
+              })}
+            </Box>
+          );
         },
       },
       {
@@ -152,7 +150,7 @@ function DeploymentList() {
         },
       },
     ],
-    [t, categories, dialogState, showDialog]
+    [t, dialogState, showDialog]
   );
 
   return (
@@ -190,7 +188,7 @@ function DeploymentList() {
               paginationMode="server"
               onPaginationModelChange={({ page }) => setPage(page)}
               getRowClassName={() => 'deployment-row'}
-              loading={loading || categoriesLoading}
+              loading={loading}
               slots={{
                 noRowsOverlay: () => (
                   <Box className="center" height={1}>
@@ -213,7 +211,7 @@ function DeploymentList() {
         dialogState={dialogState}
         id={deployment?.id!}
         access={deployment?.access!}
-        categories={deployment?.categories!}
+        categories={deployment?.categories! || []}
         productHuntUrl={deployment?.productHuntUrl}
         productHuntBannerUrl={deployment?.productHuntBannerUrl}
         run={refresh}

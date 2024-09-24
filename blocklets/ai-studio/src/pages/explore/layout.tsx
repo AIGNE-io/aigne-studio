@@ -48,7 +48,7 @@ function CreateProject() {
 }
 
 function CategoriesSidebar({
-  categories,
+  categories = [],
   onClose,
   isMobile,
 }: {

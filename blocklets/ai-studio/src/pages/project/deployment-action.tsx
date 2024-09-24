@@ -281,7 +281,7 @@ function UpdateApp({ id, data, run, sx }: { id: string; data: Deployment; run: (
     try {
       await updateDeployment(id, {
         access: visibility,
-        categories: data.categories,
+        categories: (data.categories || []).map((category) => category.id),
         productHuntUrl: data.productHuntUrl,
         productHuntBannerUrl: data.productHuntBannerUrl,
       });
@@ -405,7 +405,7 @@ function UpdateApp({ id, data, run, sx }: { id: string; data: Deployment; run: (
                         globalThis.location.origin,
                         window.blocklet.prefix,
                         '/explore/category',
-                        data?.categories[0]!,
+                        data?.categories[0]?.id || '',
                         data.id
                       )
                     );

@@ -12,7 +12,7 @@ export type Deployment = {
   createdAt: string;
   updatedAt: string;
   access: 'public' | 'private';
-  categories: string[];
+  categories: { id: string; name: string }[];
   productHuntUrl?: string;
   productHuntBannerUrl?: string;
 };

@@ -19,7 +19,7 @@ type Deployment = {
   createdAt: string;
   updatedAt: string;
   access: 'public' | 'private';
-  categories: string[];
+  categories: { id: string; name: string }[];
 };
 
 export async function getAgents({
