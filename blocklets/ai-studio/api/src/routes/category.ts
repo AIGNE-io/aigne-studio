@@ -29,7 +29,7 @@ router.get('/', async (req, res) => {
     order: [['createdAt', 'DESC']],
   });
 
-  res.json({ list: rows, totalCount: count, currentPage: page });
+  res.json({ list: rows, totalCount: count });
 });
 
 router.post('/', user(), auth(), async (req, res) => {

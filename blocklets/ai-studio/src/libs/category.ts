@@ -13,7 +13,6 @@ export async function createCategory(input: { name: string; icon: string }): Pro
 export async function getCategories(input: { page: number; pageSize: number }): Promise<{
   list: Category[];
   totalCount: number;
-  currentPage: number;
 }> {
   return axios.get('/api/categories', { params: input }).then((res) => res.data);
 }

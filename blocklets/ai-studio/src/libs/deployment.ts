@@ -48,19 +48,6 @@ export async function createDeployment(input: {
   return axios.post('/api/deployments', input).then((res) => res.data);
 }
 
-export async function getDeployments(input: {
-  projectId: string;
-  projectRef: string;
-  page: number;
-  pageSize: number;
-}): Promise<{
-  list: Deployment[];
-  totalCount: number;
-  currentPage: number;
-}> {
-  return axios.get('/api/deployments', { params: input }).then((res) => res.data);
-}
-
 export async function getDeploymentsByCategoryId(input: {
   categoryId: string;
   page: number;
@@ -68,18 +55,16 @@ export async function getDeploymentsByCategoryId(input: {
 }): Promise<{
   list: Deployment[];
   totalCount: number;
-  currentPage: number;
 }> {
   const { categoryId, page, pageSize } = input;
   return axios.get(`/api/deployments/categories/${categoryId}`, { params: { page, pageSize } }).then((res) => res.data);
 }
 
-export async function getAllDeployments(input: { page: number; pageSize: number }): Promise<{
+export async function getDeployments(input: { page: number; pageSize: number }): Promise<{
   list: Deployment[];
   totalCount: number;
-  currentPage: number;
 }> {
-  return axios.get('/api/deployments/list', { params: input }).then((res) => res.data);
+  return axios.get('/api/deployments', { params: input }).then((res) => res.data);
 }
 
 export async function updateDeployment(id: string, input: UpdateType): Promise<Deployment> {

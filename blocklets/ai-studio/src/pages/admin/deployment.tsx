@@ -8,10 +8,10 @@ import { DataGrid, GridColDef, gridClasses } from '@mui/x-data-grid';
 import { useRequest } from 'ahooks';
 import dayjs from 'dayjs';
 import { usePopupState } from 'material-ui-popup-state/hooks';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { joinURL } from 'ufo';
 
-import { deleteDeployment, getAllDeployments } from '../../libs/deployment';
+import { deleteDeployment, getDeployments } from '../../libs/deployment';
 import type { Deployment } from '../../libs/deployment';
 import DeploymentDialog from '../deployments/dialog';
 import { useProjectStore } from '../project/yjs-state';
@@ -31,16 +31,18 @@ function DeploymentList() {
   const [deployment, setDeployment] = useState<Deployment | null>(null);
 
   const [page, setPage] = useState(0);
+  const params = useMemo(() => ({ page: page + 1, pageSize }), [page, pageSize]);
 
-  const { data, loading, run, refresh } = useRequest(getAllDeployments, {
-    defaultParams: [{ page: page + 1, pageSize }],
-    refreshDeps: [page],
-  });
+  const { data, loading, run, refresh } = useRequest(getDeployments, { manual: true });
 
   const { data: categories, loading: categoriesLoading } = useRequest(getCategories, {
     defaultParams: [{ page: 1, pageSize: 1000 }],
     refreshDeps: [],
   });
+
+  useEffect(() => {
+    run(params);
+  }, [params, run]);
 
   const columns = useMemo<GridColDef<Deployment>[]>(
     () => [
@@ -135,7 +137,7 @@ function DeploymentList() {
                     onOk: async () => {
                       try {
                         await deleteDeployment({ id: params.row.id });
-                        run({ page: 1, pageSize });
+                        setPage(0);
                         Toast.success(t('deployments.deleteSuccess'));
                       } catch (error) {
                         Toast.error(getErrorMessage(error));
@@ -150,7 +152,7 @@ function DeploymentList() {
         },
       },
     ],
-    [t, categories, dialogState, run, showDialog]
+    [t, categories, dialogState, showDialog]
   );
 
   return (
@@ -183,11 +185,11 @@ function DeploymentList() {
               rows={data?.list || []}
               columns={columns as any}
               rowCount={data?.totalCount || 0}
-              pageSizeOptions={[20]}
+              pageSizeOptions={[1, 10]}
               paginationModel={{ page, pageSize }}
               paginationMode="server"
               onPaginationModelChange={({ page }) => setPage(page)}
-              getRowClassName={() => 'document-row'}
+              getRowClassName={() => 'deployment-row'}
               loading={loading || categoriesLoading}
               slots={{
                 noRowsOverlay: () => (

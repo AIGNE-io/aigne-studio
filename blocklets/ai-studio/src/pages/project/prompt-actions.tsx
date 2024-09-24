@@ -1,11 +1,9 @@
-import LoadingButton from '@app/components/loading/loading-button';
 import { CurrentProjectProvider } from '@app/contexts/project';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { isAssistant } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import ArrowLeft from '@iconify-icons/tabler/chevron-left';
 import FloppyIcon from '@iconify-icons/tabler/device-floppy';
-import EyeBoltIcon from '@iconify-icons/tabler/eye-bolt';
 import HistoryToggleIcon from '@iconify-icons/tabler/history-toggle';
 import SettingsIcon from '@iconify-icons/tabler/settings-2';
 import {
@@ -30,7 +28,6 @@ import { joinURL } from 'ufo';
 import CommitsTip, { CommitListView } from '../../components/template-form/commits-tip';
 import { getFileIdFromPath } from '../../utils/path';
 import DeploymentAction from './deployment-action';
-import PublishView from './publish-view';
 import SaveButton, { CommitForm, SaveButtonDialog } from './save-button';
 import Settings from './settings';
 import { useAssistantChangesState, useProjectState } from './state';

@@ -28,13 +28,6 @@ const paginationSchema = Joi.object({
   pageSize: Joi.number().integer().min(1).max(100).default(10),
 });
 
-const searchProjectSchema = paginationSchema.concat(
-  Joi.object({
-    projectId: Joi.string().required(),
-    projectRef: Joi.string().required(),
-  })
-);
-
 const searchByCategoryIdSchema = Joi.object({
   categoryId: Joi.string().required(),
 });
@@ -73,32 +66,6 @@ router.get('/byProjectId', user(), auth(), async (req, res) => {
 });
 
 router.get('/', async (req, res) => {
-  const { projectId, projectRef, page, pageSize } = await searchProjectSchema.validateAsync(req.query, {
-    stripUnknown: true,
-  });
-
-  const offset = (page - 1) * pageSize;
-
-  const { count, rows } = await Deployment.findAndCountAll({
-    where: { projectId, projectRef },
-    limit: pageSize,
-    offset,
-    order: [['createdAt', 'DESC']],
-  });
-
-  res.json({
-    list: await Promise.all(
-      rows.map(async (deployment) => {
-        const categories = await DeploymentCategory.findAll({ where: { deploymentId: deployment.id } });
-        return { ...deployment?.dataValues, categories: categories.map((category) => category.categoryId) };
-      })
-    ),
-    totalCount: count,
-    currentPage: page,
-  });
-});
-
-router.get('/list', async (req, res) => {
   const { page, pageSize } = await paginationSchema.validateAsync(req.query, { stripUnknown: true });
   const offset = (page - 1) * pageSize;
 
@@ -116,7 +83,6 @@ router.get('/list', async (req, res) => {
       })
     ),
     totalCount: count,
-    currentPage: page,
   });
 });
 
@@ -160,7 +126,6 @@ router.get('/recommend-list', async (req, res) => {
         })
       ),
       totalCount: deployments.length,
-      currentPage: page,
     });
   }
 
@@ -194,7 +159,6 @@ router.get('/recommend-list', async (req, res) => {
       })
     ),
     totalCount: count,
-    currentPage: page,
   });
 });
 
@@ -221,7 +185,6 @@ router.get('/categories/:categoryId', async (req, res) => {
       )
     ).filter((deployment) => deployment !== null),
     totalCount: count,
-    currentPage: page,
   });
 });
 
