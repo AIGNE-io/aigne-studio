@@ -32,6 +32,7 @@ export const useCategoryState = () => {
         loading = v.loading;
         return { ...v, loading: true };
       });
+
       if (loading && !force) return;
 
       try {
@@ -48,7 +49,7 @@ export const useCategoryState = () => {
   );
 
   useEffect(() => {
-    refetch();
+    refetch({ force: true });
   }, [refetch]);
 
   return {

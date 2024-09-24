@@ -6,16 +6,20 @@ import Toast from '@arcblock/ux/lib/Toast';
 import ComponentInstaller from '@blocklet/ui-react/lib/ComponentInstaller';
 import { Icon } from '@iconify-icon/react';
 import CategoryIcon from '@iconify-icons/tabler/category';
+import ArrowLeft from '@iconify-icons/tabler/chevron-left';
 import LockIcon from '@iconify-icons/tabler/lock';
 import RocketIcon from '@iconify-icons/tabler/rocket';
 import ShareIcon from '@iconify-icons/tabler/share';
 import View360 from '@iconify-icons/tabler/view-360';
 import {
   Box,
+  Button,
   Card,
   CardContent,
   CircularProgress,
   ClickAwayListener,
+  Dialog,
+  DialogContent,
   Divider,
   FormControl,
   FormControlLabel,
@@ -30,21 +34,27 @@ import {
   Radio,
   RadioGroup,
   Stack,
+  SxProps,
+  Theme,
   Typography,
+  useMediaQuery,
 } from '@mui/material';
 import { useRequest } from 'ahooks';
 import { compact } from 'lodash';
-import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
+import { bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { Suspense, useState } from 'react';
 import { joinURL } from 'ufo';
 
 import { Deployment, createDeployment, getDeploymentByProjectId, updateDeployment } from '../../libs/deployment';
+import PublishView from './publish-view';
 import PublishButton from './publish/publish-button';
 import { saveButtonState } from './state';
 
 export default function DeploymentAction() {
   const deploymentPopperState = usePopupState({ variant: 'popper', popupId: 'deployment' });
+  const deploymentDialogState = usePopupState({ variant: 'dialog', popupId: 'deployment' });
   const { t } = useLocaleContext();
+  const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
 
   const { projectId, projectRef } = useCurrentProject();
 
@@ -60,7 +70,7 @@ export default function DeploymentAction() {
         size="small"
         sx={{ px: 2 }}
         disabled={loading}
-        {...bindTrigger(deploymentPopperState)}>
+        {...(isMobile ? { onClick: deploymentDialogState.open } : { ...bindTrigger(deploymentPopperState) })}>
         {t('deployments.title')}
       </LoadingButton>
 
@@ -85,11 +95,11 @@ export default function DeploymentAction() {
                           'z2qaCNvKMv5GjouKdcDWexv6WqtHbpNPQDnAk',
                           'z8iZiDFg3vkkrPwsiba1TLXy3H9XHzFERsP8o',
                         ]}>
-                        <UpdateApp id={data.id} data={data} run={run} />
+                        <UpdateApp id={data.id} data={data} run={run} sx={{ width: 400, gap: 2, py: 3 }} />
                       </ComponentInstaller>
                     </Suspense>
                   ) : (
-                    <DeployApp run={run} projectId={projectId} projectRef={projectRef} />
+                    <DeployApp run={run} projectId={projectId} projectRef={projectRef} sx={{ width: 400 }} />
                   )}
                 </Box>
               </ClickAwayListener>
@@ -97,11 +107,58 @@ export default function DeploymentAction() {
           </Grow>
         )}
       </Popper>
+
+      <Dialog
+        {...bindDialog(deploymentDialogState)}
+        fullScreen
+        hideBackdrop
+        sx={{ mt: '65px' }}
+        PaperProps={{ elevation: 0 }}>
+        <DialogContent sx={{ px: '0 !important' }}>
+          <Stack gap={2}>
+            <Box px={1}>
+              <Button
+                sx={{ p: 0 }}
+                onClick={deploymentDialogState.close}
+                startIcon={<Box component={Icon} icon={ArrowLeft} sx={{ fontSize: 16 }} />}>
+                {t('back')}
+              </Button>
+            </Box>
+
+            <Box>
+              {data ? (
+                <Suspense fallback={<CircularProgress />}>
+                  <ComponentInstaller
+                    did={[
+                      'z2qa6fvjmjew4pWJyTsKaWFuNoMUMyXDh5A1D',
+                      'z2qaCNvKMv5GjouKdcDWexv6WqtHbpNPQDnAk',
+                      'z8iZiDFg3vkkrPwsiba1TLXy3H9XHzFERsP8o',
+                    ]}>
+                    <UpdateApp id={data.id} data={data} run={run} sx={{ width: 1, gap: 2 }} />
+                  </ComponentInstaller>
+                </Suspense>
+              ) : (
+                <DeployApp run={run} projectId={projectId} projectRef={projectRef} sx={{ width: 1 }} />
+              )}
+            </Box>
+          </Stack>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
 
-function DeployApp({ projectId, projectRef, run }: { projectId: string; projectRef: string; run: () => void }) {
+function DeployApp({
+  projectId,
+  projectRef,
+  run,
+  sx,
+}: {
+  projectId: string;
+  projectRef: string;
+  run: () => void;
+  sx?: SxProps;
+}) {
   const isAdmin = useIsAdmin();
   const { t } = useLocaleContext();
   const [visibility, setVisibility] = useState<'public' | 'private'>('public');
@@ -127,7 +184,7 @@ function DeployApp({ projectId, projectRef, run }: { projectId: string; projectR
   };
 
   return (
-    <Box width={400}>
+    <Box sx={sx}>
       <Box p={3}>
         <Stack gap={0.75}>
           <Box component="h3" m={0}>
@@ -209,12 +266,15 @@ function DeployApp({ projectId, projectRef, run }: { projectId: string; projectR
   );
 }
 
-function UpdateApp({ id, data, run }: { id: string; data: Deployment; run: () => void }) {
+function UpdateApp({ id, data, run, sx }: { id: string; data: Deployment; run: () => void; sx?: SxProps }) {
   const { t } = useLocaleContext();
   const isAdmin = useIsAdmin();
 
   const [visibility, setVisibility] = useState<'public' | 'private'>(data.access || 'public');
   const handleVisibilityChange = (event: any) => setVisibility(event.target.value);
+  const previewPopperState = usePopupState({ variant: 'popper', popupId: 'preview' });
+  const previewDialogState = usePopupState({ variant: 'dialog', popupId: 'preview' });
+  const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
 
   const onSubmit = async () => {
     try {
@@ -236,7 +296,7 @@ function UpdateApp({ id, data, run }: { id: string; data: Deployment; run: () =>
   };
 
   return (
-    <Stack width={400} gap={2} py={3}>
+    <Stack sx={sx}>
       <Box px={3}>
         <Box component="h3" m={0}>
           {t('deployments.updateApp')}
@@ -319,9 +379,12 @@ function UpdateApp({ id, data, run }: { id: string; data: Deployment; run: () =>
             {
               text: t('deployments.appPage'),
               icon: <Box component={Icon} icon={ShareIcon} sx={{ fontSize: 20 }} />,
-              handle: () => {
-                window.open(joinURL(globalThis.location.origin, window.blocklet.prefix, '/explore/apps', id), '_blank');
-              },
+              ...(isMobile
+                ? { handle: previewDialogState.open }
+                : {
+                    handle: () => {},
+                    bindTrigger: bindTrigger(previewPopperState),
+                  }),
             },
             (data?.categories || []).length
               ? {
@@ -341,7 +404,11 @@ function UpdateApp({ id, data, run }: { id: string; data: Deployment; run: () =>
                 }
               : null,
           ]).map((item) => (
-            <ListItem key={item.text} dense disablePadding onClick={item.handle}>
+            <ListItem
+              key={item.text}
+              dense
+              disablePadding
+              {...((item as any).bindTrigger ? (item as any).bindTrigger : { onClick: item.handle })}>
               <ListItemButton sx={{ p: 0, m: 0 }}>
                 <ListItemIcon sx={{ minWidth: 0, mr: 1 }}>{item.icon}</ListItemIcon>
                 <ListItemText primary={item.text} />
@@ -362,6 +429,60 @@ function UpdateApp({ id, data, run }: { id: string; data: Deployment; run: () =>
           </LoadingButton>
         </Stack>
       </Box>
+
+      <Popper {...bindPopper(previewPopperState)} sx={{ zIndex: 1101 }} transition placement="bottom-start">
+        {({ TransitionProps }) => (
+          <Grow style={{ transformOrigin: 'right top' }} {...TransitionProps}>
+            <Paper
+              sx={{
+                border: '1px solid #ddd',
+                height: '100%',
+                overflow: 'auto',
+                mt: 0.5,
+              }}>
+              <ClickAwayListener
+                onClickAway={(e) => (e.target as HTMLElement)?.localName !== 'body' && previewPopperState.close()}>
+                <Box>
+                  <PublishView projectId={data.projectId} projectRef={data.projectRef} deploymentId={id} />
+                </Box>
+              </ClickAwayListener>
+            </Paper>
+          </Grow>
+        )}
+      </Popper>
+
+      <Dialog
+        {...bindDialog(previewDialogState)}
+        fullScreen
+        hideBackdrop
+        sx={{ mt: '65px' }}
+        PaperProps={{ elevation: 0 }}>
+        <DialogContent>
+          <Stack gap={2}>
+            <Box>
+              <Button
+                sx={{ p: 0 }}
+                onClick={previewDialogState.close}
+                startIcon={<Box component={Icon} icon={ArrowLeft} sx={{ fontSize: 16 }} />}>
+                {t('back')}
+              </Button>
+            </Box>
+
+            <Box
+              sx={{
+                '.publish-container': {
+                  p: 0,
+
+                  '.qr-code': {
+                    alignSelf: 'center',
+                  },
+                },
+              }}>
+              <PublishView projectId={data.projectId} projectRef={data.projectRef} deploymentId={id} />
+            </Box>
+          </Stack>
+        </DialogContent>
+      </Dialog>
     </Stack>
   );
 }

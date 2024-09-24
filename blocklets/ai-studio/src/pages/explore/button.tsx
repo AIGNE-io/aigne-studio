@@ -73,7 +73,7 @@ export function ShareButton({ deployment }: { deployment: Deployment }) {
 
   const shareOptions = [
     {
-      text: t('deployments.appPage'),
+      text: t('openInNewTab'),
       icon: <Box component={Icon} icon={linkIcon} sx={{ fontSize: 20 }} />,
       handle: () => {
         window.open(shareUrl, '_blank');
@@ -81,7 +81,7 @@ export function ShareButton({ deployment }: { deployment: Deployment }) {
       },
     },
     {
-      text: t('duplicate'),
+      text: t('copyLink'),
       icon: <Box component={Icon} icon={contentCopyIcon} sx={{ fontSize: 20 }} />,
       handle: () => {
         navigator.clipboard.writeText(shareUrl);

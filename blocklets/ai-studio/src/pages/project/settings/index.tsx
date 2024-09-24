@@ -417,6 +417,7 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                             }}
                           />
                         ),
+                        okText: t('close'),
                       });
                     }}
                   />

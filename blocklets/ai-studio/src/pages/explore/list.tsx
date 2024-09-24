@@ -2,6 +2,7 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 
 import { getAssetUrl } from '@app/libs/asset';
+import { Category } from '@app/libs/category';
 import { getDeploymentsByCategoryId } from '@app/libs/deployment';
 import { getProjectIconUrl } from '@app/libs/project';
 import Empty from '@app/pages/project/icons/empty';
@@ -10,16 +11,29 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Icon } from '@iconify-icon/react';
 import CircleArrowLeft from '@iconify-icons/tabler/circle-arrow-left';
 import CircleArrowRight from '@iconify-icons/tabler/circle-arrow-right';
-import { Box, CardContent, CircularProgress, Grid, IconButton, Stack, Typography } from '@mui/material';
+import {
+  Box,
+  CardContent,
+  CircularProgress,
+  Grid,
+  IconButton,
+  Stack,
+  Theme,
+  Typography,
+  useMediaQuery,
+} from '@mui/material';
 import useInfiniteScroll from 'ahooks/lib/useInfiniteScroll';
 import useInfiniteScrollHook from 'react-infinite-scroll-hook';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import { Navigation } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { withQuery } from 'ufo';
 
+import { MobileSidebarHeader } from './layout';
+
 const pageSize = 10;
-const spacing = 3;
+const pcSpacing = 3;
+const mobileSpacing = 2;
 
 export function Slide() {
   return (
@@ -180,37 +194,46 @@ function CategoryList() {
   const navigate = useNavigate();
   const params = useParams();
 
+  const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
+
   const { loadingRef, dataState } = useFetchDeployments(params.categoryId);
+  const { categories } = useOutletContext<{ categories: Category[] }>();
   const deployments = dataState?.data?.list || [];
   const { t } = useLocaleContext();
 
+  const spacing = isMobile ? mobileSpacing : pcSpacing;
+
   return (
-    <Box sx={{ flexGrow: 1, p: spacing }}>
-      <Grid container spacing={spacing}>
-        {deployments.length === 0 && (
-          <Stack flex={1} height={500} justifyContent="center" alignItems="center" gap={1}>
-            <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
-            <Typography color="text.disabled" sx={{ whiteSpace: 'break-spaces', textAlign: 'center' }}>
-              {t('deployments.emptyDeployment')}
-            </Typography>
-          </Stack>
-        )}
+    <Stack sx={{ width: 1, height: 1, overflow: 'hidden' }}>
+      <MobileSidebarHeader categories={categories} />
 
-        {deployments.map((tool) => (
-          <Grid item key={tool.id} xs={12} sm={6} md={4} onClick={() => navigate(tool.id)}>
-            <CategoryCard projectId={tool.projectId} projectRef={tool.projectRef} />
-          </Grid>
-        ))}
-      </Grid>
+      <Box sx={{ flexGrow: 1, p: spacing, overflow: 'overlay' }}>
+        <Grid container spacing={spacing}>
+          {deployments.length === 0 && (
+            <Stack flex={1} height={500} justifyContent="center" alignItems="center" gap={1}>
+              <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
+              <Typography color="text.disabled" sx={{ whiteSpace: 'break-spaces', textAlign: 'center' }}>
+                {t('deployments.emptyDeployment')}
+              </Typography>
+            </Stack>
+          )}
 
-      {(dataState.loadingMore || dataState?.data?.next) && (
-        <Box width={1} height={60} className="center" ref={loadingRef}>
-          <Box display="flex" justifyContent="center">
-            <CircularProgress size={24} />
+          {deployments.map((tool) => (
+            <Grid item key={tool.id} xs={12} sm={6} md={4} onClick={() => navigate(tool.id)}>
+              <CategoryCard projectId={tool.projectId} projectRef={tool.projectRef} />
+            </Grid>
+          ))}
+        </Grid>
+
+        {(dataState.loadingMore || dataState?.data?.next) && (
+          <Box width={1} height={60} className="center" ref={loadingRef}>
+            <Box display="flex" justifyContent="center">
+              <CircularProgress size={24} />
+            </Box>
           </Box>
-        </Box>
-      )}
-    </Box>
+        )}
+      </Box>
+    </Stack>
   );
 }
 

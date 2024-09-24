@@ -791,7 +791,7 @@ export default flatten({
     updateApp: '更新部署',
     updateAppDescription: '刷新线上环境，呈现最新变更',
     currentDeployment: '当前部署概况',
-    appPage: '应用概览',
+    appPage: '应用预览',
     deploymentPage: '部署页面',
     appIsUpToDate: '您的部署已是最新版本 🎉',
     noDeployments: '没有部署的应用',
@@ -837,4 +837,6 @@ export default flatten({
   run: '运行',
   makeYours: '制作个人版本',
   shareOnTwitter: '分享到推特',
+  openInNewTab: '在新标签页中打开',
+  copyLink: '复制链接',
 });

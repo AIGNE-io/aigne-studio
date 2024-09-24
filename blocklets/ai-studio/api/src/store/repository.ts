@@ -69,7 +69,7 @@ export const PROJECT_FILE_PATH = 'project.yaml';
 
 export const ASSETS_DIR = 'assets';
 
-export const COPY_REPO_FILES = [CONFIG_FILE_PATH, CRON_FILE_PATH, VARIABLE_FILE_PATH, PROJECT_FILE_PATH];
+export const COPY_REPO_FILES = [CONFIG_FILE_PATH, CRON_FILE_PATH, VARIABLE_FILE_PATH];
 
 const RESET_FILES_BEFORE_COMMIT = ['prompts', 'tests'];
 
@@ -337,7 +337,6 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
         }
       },
       beforeCommit: async ({ tx }) => {
-        // TODO: 支持前端编辑 README 文件
         const setting = working.syncedStore.files[PROJECT_FILE_PATH] as ProjectSettings | undefined;
         const readme = getReadmeOfProject({ name: setting?.name || '', description: setting?.description || '' });
         await writeFile(path.join(working.workingDir, 'README.md'), setting?.readme || readme);

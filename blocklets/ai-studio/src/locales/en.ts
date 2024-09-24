@@ -800,7 +800,7 @@ export default flatten({
     updateApp: 'Update App',
     updateAppDescription: 'This will update your app',
     currentDeployment: 'Current Deployment',
-    appPage: 'App Page',
+    appPage: 'App Preview',
     deploymentPage: 'Deployment Page',
     appIsUpToDate: 'Your app is up to date 🎉',
     noDeployments: 'No Deployment Agents Yet',
@@ -846,4 +846,6 @@ export default flatten({
   makeYours: 'Make Yours',
   readme: 'Readme',
   shareOnTwitter: 'Share on Twitter',
+  openInNewTab: 'Open in new tab',
+  copyLink: 'Copy Link',
 });

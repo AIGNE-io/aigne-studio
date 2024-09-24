@@ -8,7 +8,7 @@ import { Route, Routes } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
 import Loading from '../../components/loading';
-import ExploreCategoriesSidebar from './sidebar';
+import ExploreCategoryLayout from './layout';
 
 export default function ExploreCategoryRoutes() {
   return (
@@ -51,7 +51,7 @@ export default function ExploreCategoryRoutes() {
         <ErrorBoundary>
           <Suspense fallback={<Loading fixed />}>
             <Routes>
-              <Route element={<ExploreCategoriesSidebar />}>
+              <Route element={<ExploreCategoryLayout />}>
                 <Route path=":categoryId?" element={<ExploreCategoryList />} />
                 <Route path=":categoryId/:deploymentId" element={<ExploreCategoryDetail />} />
               </Route>

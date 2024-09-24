@@ -1,7 +1,4 @@
-import { AIGNE_RUNTIME_MOUNT_POINT } from '@app/libs/constants';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
-import { AssistantYjs } from '@blocklet/ai-runtime/types';
 import ComponentInstaller from '@blocklet/ui-react/lib/ComponentInstaller';
 import { Icon } from '@iconify-icon/react';
 import CopyIcon from '@iconify-icons/tabler/copy';
@@ -22,11 +19,11 @@ import { joinURL } from 'ufo';
 export default function PublishView({
   projectId,
   projectRef,
-  assistant,
+  deploymentId,
 }: {
   projectId: string;
   projectRef: string;
-  assistant: AssistantYjs;
+  deploymentId: string;
 }) {
   return (
     <Suspense fallback={<CircularProgress />}>
@@ -36,7 +33,7 @@ export default function PublishView({
           'z2qaCNvKMv5GjouKdcDWexv6WqtHbpNPQDnAk',
           'z8iZiDFg3vkkrPwsiba1TLXy3H9XHzFERsP8o',
         ]}>
-        <PublishViewContent projectId={projectId} projectRef={projectRef} assistant={assistant} />
+        <PublishViewContent projectId={projectId} projectRef={projectRef} deploymentId={deploymentId} />
       </ComponentInstaller>
     </Suspense>
   );
@@ -45,22 +42,17 @@ export default function PublishView({
 function PublishViewContent({
   projectId,
   projectRef,
-  assistant,
+  deploymentId,
 }: {
   projectId: string;
   projectRef: string;
-  assistant: AssistantYjs;
+  deploymentId: string;
 }) {
   const { t } = useLocaleContext();
 
   const previewUrl = useMemo(() => {
-    return joinURL(
-      globalThis.location.origin,
-      AIGNE_RUNTIME_MOUNT_POINT,
-      'preview',
-      stringifyIdentity({ projectId, projectRef, agentId: assistant.id })
-    );
-  }, [assistant.id, projectId, projectRef]);
+    return joinURL(globalThis.location.origin, window.blocklet.prefix, '/explore/apps', deploymentId);
+  }, [deploymentId, projectId, projectRef]);
 
   const [copied, setCopied] = useState(false);
 

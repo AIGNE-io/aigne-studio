@@ -1,3 +1,4 @@
+import MdViewer from '@app/components/md-viewer';
 import { getAssetUrl } from '@app/libs/asset';
 import { getProjectIconUrl } from '@app/libs/project';
 import { useProjectStore } from '@app/pages/project/yjs-state';
@@ -10,7 +11,18 @@ import { Icon } from '@iconify-icon/react';
 import ChevronLeft from '@iconify-icons/tabler/chevron-left';
 import PlayIcon from '@iconify-icons/tabler/player-play-filled';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
-import { Box, Button, CircularProgress, Divider, Link, Stack, Tab, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Divider,
+  Link,
+  Stack,
+  Tab,
+  Theme,
+  Typography,
+  useMediaQuery,
+} from '@mui/material';
 import { useRequest } from 'ahooks';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -49,11 +61,19 @@ function Agent({ deployment }: { deployment: Deployment }) {
   const handleChange = (_event: any, newValue: string) => setValue(newValue);
   const navigate = useNavigate();
   const { t } = useLocaleContext();
+  const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
 
   return (
     <Stack flex={1}>
       <TabContext value={value}>
-        <Box sx={{ borderBottom: 1, borderColor: '#EFF1F5', display: 'flex', alignItems: 'center', px: 3 }}>
+        <Box
+          sx={{
+            borderBottom: 1,
+            borderColor: '#EFF1F5',
+            display: 'flex',
+            alignItems: 'center',
+            px: isMobile ? 1.5 : 3,
+          }}>
           <Box onClick={() => navigate(-1)} sx={{ cursor: 'pointer', width: 20, height: 20 }} className="center">
             <Box component={Icon} icon={ChevronLeft} sx={{ width: 20, height: 20, fontSize: 20, color: '#9CA3AF' }} />
           </Box>
@@ -164,9 +184,7 @@ function ReadmePage({ deployment, onRun }: { deployment: Deployment; onRun: () =
 
       <Divider sx={{ borderColor: '#EFF1F5' }} />
 
-      <Stack>
-        <Typography>{t('readme')}</Typography>
-      </Stack>
+      <Stack>{projectSetting?.readme && <MdViewer content={projectSetting?.readme} />}</Stack>
     </Stack>
   );
 }
