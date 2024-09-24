@@ -30,9 +30,11 @@ function DeploymentList() {
   const { dialog, showDialog } = useDialog();
   const [deployment, setDeployment] = useState<Deployment | null>(null);
 
+  const [page, setPage] = useState(0);
+
   const { data, loading, run, refresh } = useRequest(getAllDeployments, {
-    defaultParams: [{ page: 1, pageSize }],
-    refreshDeps: [],
+    defaultParams: [{ page: page + 1, pageSize }],
+    refreshDeps: [page],
   });
 
   const { data: categories, loading: categoriesLoading } = useRequest(getCategories, {
@@ -151,8 +153,6 @@ function DeploymentList() {
     [t, categories, dialogState, run, showDialog]
   );
 
-  const handlePageChange = (newPage: number) => run({ page: newPage + 1, pageSize });
-
   return (
     <Container>
       <Box className="between" mt={2.5} mb={1.5}>
@@ -184,9 +184,9 @@ function DeploymentList() {
               columns={columns as any}
               rowCount={data?.totalCount || 0}
               pageSizeOptions={[20]}
-              paginationModel={{ page: (data?.currentPage || 1) - 1, pageSize }}
+              paginationModel={{ page, pageSize }}
               paginationMode="server"
-              onPaginationModelChange={({ page }) => handlePageChange(page)}
+              onPaginationModelChange={({ page }) => setPage(page)}
               getRowClassName={() => 'document-row'}
               loading={loading || categoriesLoading}
               slots={{

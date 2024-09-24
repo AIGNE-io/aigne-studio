@@ -22,7 +22,7 @@ import {
   Typography,
   useMediaQuery,
 } from '@mui/material';
-import useInfiniteScroll from 'ahooks/lib/useInfiniteScroll';
+import { useInfiniteScroll } from 'ahooks';
 import useInfiniteScrollHook from 'react-infinite-scroll-hook';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import { Navigation } from 'swiper/modules';
