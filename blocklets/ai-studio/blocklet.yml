@@ -130,6 +130,14 @@ navigation:
       - owner
       - admin
       - promptsEditor
+  - id: publicExplore
+    title:
+      en: Explore
+      zh: 探索
+    icon: tabler:share
+    link: /explore/category
+    section:
+      - header
 resource:
   exportApi: /api/resources/export
   types:
