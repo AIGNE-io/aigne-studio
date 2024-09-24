@@ -1,3 +1,7 @@
+## 0.4.59 (2024-9-24)
+
+- chore: update deps
+
 ## 0.4.57 (2024-9-24)
 
 - feat(security): support csrf defense mechanism

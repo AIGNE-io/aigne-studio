@@ -1,3 +1,5 @@
+import { join } from 'path';
+
 /* eslint-disable import/no-extraneous-dependencies */
 import replace from '@rollup/plugin-replace';
 import react from '@vitejs/plugin-react';
@@ -34,5 +36,10 @@ export default defineConfig((config) => {
       }),
       svgr(),
     ],
+    server: {
+      fs: {
+        allow: [join(__dirname, '../..'), join(__dirname, '../../..', 'pages-kit')],
+      },
+    },
   };
 });
