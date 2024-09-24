@@ -1,6 +1,7 @@
 import LoadingButton from '@app/components/loading/loading-button';
 import { useCurrentProject } from '@app/contexts/project';
 import { useIsAdmin } from '@app/contexts/session';
+import { theme } from '@app/theme/theme';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import ComponentInstaller from '@blocklet/ui-react/lib/ComponentInstaller';
@@ -369,9 +370,17 @@ function UpdateApp({ id, data, run, sx }: { id: string; data: Deployment; run: (
           sx={{
             m: 0,
             p: 0,
-            ':hover': {
-              '.MuiListItemButton-root': {
+            '& .MuiListItem-root': {
+              transition: 'background-color 0.3s',
+              '&:hover': {
+                backgroundColor: theme.palette.action.hover,
+              },
+            },
+            '& .MuiListItemButton-root': {
+              transition: 'all 0.3s',
+              '&:hover': {
                 backgroundColor: 'transparent',
+                transform: 'translateX(4px)',
               },
             },
           }}>
@@ -408,10 +417,23 @@ function UpdateApp({ id, data, run, sx }: { id: string; data: Deployment; run: (
               key={item.text}
               dense
               disablePadding
+              sx={{
+                borderRadius: 1,
+                mb: 0.5,
+                overflow: 'hidden',
+              }}
               {...((item as any).bindTrigger ? (item as any).bindTrigger : { onClick: item.handle })}>
-              <ListItemButton sx={{ p: 0, m: 0 }}>
+              <ListItemButton sx={{ p: 0.5, m: 0 }}>
                 <ListItemIcon sx={{ minWidth: 0, mr: 1 }}>{item.icon}</ListItemIcon>
-                <ListItemText primary={item.text} />
+                <ListItemText
+                  primary={item.text}
+                  sx={{
+                    '& .MuiTypography-root': {
+                      fontWeight: 500,
+                      color: theme.palette.text.primary,
+                    },
+                  }}
+                />
               </ListItemButton>
             </ListItem>
           ))}

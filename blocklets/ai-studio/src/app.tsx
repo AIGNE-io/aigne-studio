@@ -103,6 +103,7 @@ function AppRoutes({ basename }: { basename: string }) {
       <Route path="/" ErrorBoundary={RouterErrorBoundary}>
         <Route index element={isPromptEditor ? <Navigate to="projects" replace /> : <Home />} />
         <Route path="explore">
+          <Route index element={<Navigate to="category" replace />} />
           <Route path="category/*" element={<ExploreCategory />} />
           <Route path="apps/:appId" element={<AppPage />} />
         </Route>

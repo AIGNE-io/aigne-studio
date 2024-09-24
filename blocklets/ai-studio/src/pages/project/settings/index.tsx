@@ -1,5 +1,6 @@
 import { AssetField } from '@app/components/publish/LogoField';
 import { useCurrentProject } from '@app/contexts/project';
+import UploaderProvider from '@app/contexts/uploader';
 import { getAssetUrl } from '@app/libs/asset';
 import { TOOL_TIP_LEAVE_TOUCH_DELAY } from '@app/libs/constants';
 import { getDefaultBranch, useCurrentGitStore } from '@app/store/current-git-store';
@@ -7,7 +8,6 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { defaultTextModel, getSupportedModels } from '@blocklet/ai-runtime/common';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { MarkdownEditor } from '@blocklet/editor/lib/main/markdown-editor';
 import { CloseRounded, SaveRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
@@ -38,7 +38,6 @@ import pick from 'lodash/pick';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useBeforeUnload, useBlocker } from 'react-router-dom';
 import { useAsync } from 'react-use';
-import { joinURL } from 'ufo';
 
 import { UpdateProjectInput } from '../../../../api/src/routes/project';
 import Loading from '../../../components/loading';
@@ -54,6 +53,7 @@ import { useProjectState } from '../state';
 import { useProjectStore } from '../yjs-state';
 import AppearanceSetting from './appearance-setting';
 import DidSpacesSetting from './did-spaces-setting';
+import Readme from './readme';
 import RemoteRepoSetting from './remote-repo-setting';
 
 const init = {
@@ -82,11 +82,6 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
   const origin = useRef<UpdateProjectInput>();
   const { session } = useSessionContext();
   const getCurrentBranch = useCurrentGitStore((i) => i.getCurrentBranch);
-
-  const mediaUrlPrefix = joinURL(
-    window.blocklet?.componentMountPoints?.find((x) => x.did === 'z8ia1mAXo8ZE7ytGF36L5uBf9kD2kenhqFGp9')?.mountPoint ??
-      ''
-  );
 
   const tabListInfo: { list: string[] } = {
     list: [
@@ -394,11 +389,11 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                   </Typography>
 
                   <TextField
-                    label={t('projectSetting.readme')}
                     sx={{ width: 1 }}
                     value={projectSetting?.readme ?? ''}
                     multiline
                     rows={5}
+                    hiddenLabel
                     InputProps={{ readOnly: true }}
                     onClick={() => {
                       showDialog({
@@ -406,16 +401,9 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                         fullWidth: true,
                         title: t('projectSetting.readme'),
                         content: (
-                          <MarkdownEditor
-                            placeholder={t('projectSetting.readme')}
-                            editorState={projectSetting.readme}
-                            mediaUrlPrefix={mediaUrlPrefix}
-                            onChange={(markdown) => {
-                              setProjectSetting((config) => {
-                                config.readme = markdown;
-                              });
-                            }}
-                          />
+                          <UploaderProvider>
+                            <Readme projectId={projectId} projectRef={projectRef} />
+                          </UploaderProvider>
                         ),
                         okText: t('close'),
                       });

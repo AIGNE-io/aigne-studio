@@ -26,6 +26,39 @@ import { joinURL, withQuery } from 'ufo';
 
 import { useSessionContext } from '../../contexts/session';
 import { Deployment } from '../../libs/deployment';
+import { useProjectStore } from '../project/yjs-state';
+
+function generateTwitterShareUrl(data: {
+  title: string;
+  description: string;
+  url: string;
+  hashtags?: string[];
+  via?: string;
+  related?: string[];
+}) {
+  const { title, description, url, hashtags = [], via, related = [] } = data;
+
+  const params = new URLSearchParams();
+
+  const tweetText = `${title}\n${description}`;
+  params.append('text', tweetText);
+
+  params.append('url', url);
+
+  if (hashtags.length > 0) {
+    params.append('hashtags', hashtags.join(','));
+  }
+
+  if (via) {
+    params.append('via', via);
+  }
+
+  if (related.length > 0) {
+    params.append('related', related.join(','));
+  }
+
+  return `https://twitter.com/intent/tweet?${params.toString()}`;
+}
 
 export function MakeYoursButton({ deployment }: { deployment: Deployment }) {
   const { t } = useLocaleContext();
@@ -62,6 +95,7 @@ export function MakeYoursButton({ deployment }: { deployment: Deployment }) {
 export function ShareButton({ deployment }: { deployment: Deployment }) {
   const { t } = useLocaleContext();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const { projectSetting } = useProjectStore(deployment.projectId, deployment.projectRef);
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => setAnchorEl(anchorEl ? null : event.currentTarget);
 
@@ -93,11 +127,16 @@ export function ShareButton({ deployment }: { deployment: Deployment }) {
       text: t('shareOnTwitter'),
       icon: <Box component={Icon} icon={twitterIcon} sx={{ fontSize: 20 }} />,
       handle: () => {
-        const tweetUrl = withQuery('https://twitter.com/intent/tweet', {
-          text: encodeURIComponent(`Just launched my app!\nCheck it out: ${shareUrl}`),
-        });
-
-        window.open(tweetUrl, '_blank');
+        window.open(
+          generateTwitterShareUrl({
+            title: projectSetting.name || '',
+            description: projectSetting.description || '',
+            url: shareUrl,
+            hashtags: ['Arcblock', 'AIGNE', 'AI'],
+            via: 'Arcblock',
+          }),
+          '_blank'
+        );
         handleClose();
       },
     },

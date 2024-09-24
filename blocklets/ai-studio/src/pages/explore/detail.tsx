@@ -124,7 +124,7 @@ function ReadmePage({ deployment, onRun }: { deployment: Deployment; onRun: () =
 
   return (
     <Stack gap={3}>
-      <Box width={1} pb="20%" position="relative">
+      <Box width={1} pb="20%" position="relative" sx={{ borderRadius: 1 }}>
         {banner ? (
           <Box
             component="img"
@@ -136,6 +136,7 @@ function ReadmePage({ deployment, onRun }: { deployment: Deployment; onRun: () =
               objectFit: 'cover',
               width: 1,
               height: 1,
+              borderRadius: 1,
             }}
           />
         ) : (
@@ -146,6 +147,7 @@ function ReadmePage({ deployment, onRun }: { deployment: Deployment; onRun: () =
               cursor: 'pointer',
               backgroundColor: 'rgba(0, 0, 0, 0.5)',
               backgroundSize: 'cover',
+              borderRadius: 1,
             }}
           />
         )}
