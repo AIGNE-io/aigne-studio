@@ -14,10 +14,16 @@ const paginationSchema = Joi.object({
   pageSize: Joi.number().integer().min(1).max(1000).default(10),
 });
 
-const updateCategorySchema = Joi.object({
+const updateCategorySchema = Joi.object<{
+  name: string;
+  icon: string;
+  slug: string;
+  orderIndex?: number;
+}>({
   name: Joi.string().required(),
   icon: Joi.string().optional().allow('').default(''),
   slug: Joi.string().optional().allow('').default('').optional(),
+  orderIndex: Joi.number().integer().empty(null).optional(),
 });
 
 router.get('/', async (req, res) => {
@@ -28,7 +34,10 @@ router.get('/', async (req, res) => {
     where: {},
     limit: pageSize,
     offset,
-    order: [['createdAt', 'DESC']],
+    order: [
+      ['orderIndex', 'ASC'],
+      ['id', 'DESC'],
+    ],
   });
 
   res.json({ list: rows, totalCount: count });
@@ -36,21 +45,17 @@ router.get('/', async (req, res) => {
 
 router.post('/', user(), auth(), async (req, res) => {
   const { did } = req.user!;
-  const { name, icon, slug } = await updateCategorySchema.validateAsync(req.body, { stripUnknown: true });
+  const { name, icon, slug, orderIndex } = await updateCategorySchema.validateAsync(req.body, { stripUnknown: true });
 
   checkUserAuth(req, res)(did);
 
   const currentSlug = slug || generateSlug(name);
-  const category = await Category.findOne({ where: { slug: currentSlug } });
-  if (category) {
-    res.status(400).json({ message: 'Slug conflict' });
-    return;
-  }
 
   const newCategory = await Category.create({
     name,
     icon,
     slug: currentSlug,
+    orderIndex,
     createdBy: did,
     updatedBy: did,
   });
@@ -61,7 +66,7 @@ router.post('/', user(), auth(), async (req, res) => {
 router.put('/:id', user(), auth(), async (req, res) => {
   const { did } = req.user!;
   const { id } = req.params;
-  const { name, icon, slug } = await updateCategorySchema.validateAsync(req.body, { stripUnknown: true });
+  const { name, icon, slug, orderIndex } = await updateCategorySchema.validateAsync(req.body, { stripUnknown: true });
 
   const category = await Category.findByPk(id);
   if (!category) {
@@ -70,14 +75,10 @@ router.put('/:id', user(), auth(), async (req, res) => {
   }
 
   const currentSlug = slug || generateSlug(name);
-  if (category.slug !== currentSlug) {
-    res.status(400).json({ message: 'Slug conflict' });
-    return;
-  }
 
   checkUserAuth(req, res)(category.createdBy);
 
-  await category.update({ name, icon, slug: currentSlug, updatedBy: did });
+  await category.update({ name, icon, slug: currentSlug, updatedBy: did, orderIndex });
   res.json(category);
 });
 

@@ -13,6 +13,7 @@ export type Deployment = {
   createdAt: string;
   updatedAt: string;
   access: 'public' | 'private';
+  orderIndex: number;
   categories: { id: string; name: string; slug: string }[];
   productHuntUrl?: string;
   productHuntBannerUrl?: string;
@@ -23,6 +24,7 @@ export type UpdateType = {
   categories: string[];
   productHuntUrl?: string;
   productHuntBannerUrl?: string;
+  orderIndex?: number;
 };
 
 export async function getDeploymentByProjectId({

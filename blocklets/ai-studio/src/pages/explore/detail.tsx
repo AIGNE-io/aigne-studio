@@ -150,7 +150,7 @@ function ReadmePage({
         {banner ? (
           <Box
             component="img"
-            src={withQuery(banner, { imageFilter: 'resize', w: 500 })}
+            src={withQuery(banner, { imageFilter: 'resize', w: 1200 })}
             sx={{
               position: 'absolute',
               inset: 0,

@@ -1,3 +1,8 @@
+## 0.4.63 (2024-9-26)
+
+- feat: support sort category and deployments
+- fix: correct OG route for application
+
 ## 0.4.62 (2024-9-25)
 
 - fix: filter deleted projects from deployments
