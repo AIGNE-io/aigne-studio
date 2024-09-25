@@ -83,7 +83,6 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
   );
 
   const template = templates.find((x) => `${x.blockletDid}-${x.id}` === templateIds);
-
   return (
     <>
       <Dialog
@@ -108,6 +107,7 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
             <Stack flex={1} gap={2.5}>
               <Box>
                 <Typography variant="subtitle2">{t('choose')}</Typography>
+
                 <Controller
                   name="templateIds"
                   control={form.control}
@@ -130,15 +130,18 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
                       SelectProps={{
                         displayEmpty: true,
                         renderValue: (selected) => {
-                          if (!selected) {
+                          const selectedItem = templates.find((item) => `${item.blockletDid}-${item.id}` === selected);
+                          if (!selectedItem) {
                             return (
-                              <Typography variant="body2" color="text.disabled">
-                                {t('choose')}
-                              </Typography>
+                              <Stack direction="row" alignItems="center" spacing={1}>
+                                <DidAvatar did={window.blocklet.appId} size={20} src="" />
+                                <Typography variant="subtitle2" noWrap>
+                                  {t('noTemplatesAvailable')}
+                                </Typography>
+                              </Stack>
                             );
                           }
-                          const selectedItem = templates.find((item) => `${item.blockletDid}-${item.id}` === selected);
-                          if (!selectedItem) return null;
+
                           return (
                             <Stack direction="row" alignItems="center" spacing={1}>
                               <DidAvatar did={selectedItem.blockletDid} size={20} src="" />
@@ -156,37 +159,43 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
                           </InputAdornment>
                         ),
                       }}>
-                      {templates.length === 0 ? (
-                        <MenuItem value="" disabled>
-                          <Typography variant="body2">{t('noTemplatesAvailable')}</Typography>
-                        </MenuItem>
-                      ) : (
-                        templates.map((item) => (
-                          <MenuItem key={item.id} value={`${item.blockletDid}-${item.id}`}>
-                            <Stack direction="row" alignItems="stretch" gap={1}>
-                              <DidAvatar did={item.blockletDid} size={40} src="" />
-                              <Stack flex={1} width={1}>
-                                <Typography variant="subtitle2" noWrap>
-                                  {item?.name || t('unnamed')}
-                                </Typography>
-                                <Typography
-                                  variant="caption"
-                                  sx={{
-                                    display: '-webkit-box',
-                                    WebkitBoxOrient: 'vertical',
-                                    WebkitLineClamp: 2,
-                                    overflow: 'hidden',
-                                  }}>
-                                  {item?.description}
-                                </Typography>
-                              </Stack>
+                      <MenuItem value="">
+                        <Stack direction="row" alignItems="stretch" gap={1}>
+                          <DidAvatar did={window.blocklet.appId} size={40} src="" />
+                          <Stack flex={1} width={1}>
+                            <Typography variant="subtitle2" noWrap>
+                              {t('noTemplatesAvailable')}
+                            </Typography>
+                          </Stack>
+                        </Stack>
+                      </MenuItem>
+
+                      {templates.map((item) => (
+                        <MenuItem key={item.id} value={`${item.blockletDid}-${item.id}`}>
+                          <Stack direction="row" alignItems="stretch" gap={1}>
+                            <DidAvatar did={item.blockletDid} size={40} src="" />
+                            <Stack flex={1} width={1}>
+                              <Typography variant="subtitle2" noWrap>
+                                {item?.name || t('unnamed')}
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  display: '-webkit-box',
+                                  WebkitBoxOrient: 'vertical',
+                                  WebkitLineClamp: 2,
+                                  overflow: 'hidden',
+                                }}>
+                                {item?.description}
+                              </Typography>
                             </Stack>
-                          </MenuItem>
-                        ))
-                      )}
+                          </Stack>
+                        </MenuItem>
+                      ))}
                     </TextField>
                   )}
                 />
+
                 <Typography variant="caption" color="text.disabled">
                   {t('selectTemplate')}
                 </Typography>
