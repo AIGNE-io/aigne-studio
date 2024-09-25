@@ -138,7 +138,7 @@
     "test": "jest src/"
   },
   "dependencies": {
-    "@blocklet/ai-kit": "^0.1.54",
+    "@blocklet/ai-kit": "^0.1.55",
     "@blocklet/dataset-sdk": "workspace:^",
     "@blocklet/js-sdk": "^1.16.31",
     "@blocklet/logger": "^1.16.31",
