@@ -95,12 +95,15 @@ router.get('/', async (req, res) => {
   const enhancedDeployments = await Promise.all(
     rows.map(async (deployment) => {
       const repository = await getRepository({ projectId: deployment.projectId });
-      const working = await repository.working({ ref: deployment.projectRef });
-      const projectSetting = working.syncedStore.files[PROJECT_FILE_PATH] as ProjectSettings | undefined;
+      const project = repository.readAndParseFile<ProjectSettings>({
+        ref: deployment.projectRef,
+        filepath: PROJECT_FILE_PATH,
+        readBlobFromGitIfWorkingNotInitialized: true,
+      });
 
       return {
         ...deployment.dataValues,
-        project: projectSetting,
+        project,
       };
     })
   );
@@ -179,10 +182,13 @@ router.get('/categories/:categorySlug', async (req, res) => {
   const enhancedDeployments = await Promise.all(
     rows.map(async (deployment) => {
       const repository = await getRepository({ projectId: deployment.projectId });
-      const working = await repository.working({ ref: deployment.projectRef });
-      const projectSetting = working.syncedStore.files[PROJECT_FILE_PATH] as ProjectSettings | undefined;
+      const project = await repository.readAndParseFile<ProjectSettings>({
+        ref: deployment.projectRef,
+        filepath: PROJECT_FILE_PATH,
+        readBlobFromGitIfWorkingNotInitialized: true,
+      });
 
-      return { ...deployment.dataValues, project: projectSetting };
+      return { ...deployment.dataValues, project };
     })
   );
 
