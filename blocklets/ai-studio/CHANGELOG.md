@@ -1,3 +1,9 @@
+## 0.4.61 (2024-9-25)
+
+- chore: improve explore ux on the mobile
+- chore: add slug support for explore categories (#1350)
+- fix: debug chat not working
+
 ## 0.4.60 (2024-9-25)
 
 - feat: add open graph for deployed apps
