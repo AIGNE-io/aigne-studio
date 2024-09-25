@@ -33,7 +33,7 @@ export default function setupHtmlRouter(app: Express, viteDevServer?: ViteDevSer
     return { html };
   };
 
-  router.get('/explore/apps/:appId', async (req, res) => {
+  router.get('/apps/:appId', async (req, res) => {
     const { appId } = req.params;
     const { messageId } = req.query;
     const { html: template } = await loadHtml(req);
