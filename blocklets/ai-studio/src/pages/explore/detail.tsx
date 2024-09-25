@@ -2,6 +2,7 @@ import MdViewer from '@app/components/md-viewer';
 import { getAssetUrl } from '@app/libs/asset';
 import { getProjectIconUrl } from '@app/libs/project';
 import { useProjectStore } from '@app/pages/project/yjs-state';
+import { agentViewTheme } from '@app/theme/agent-view-theme';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Result from '@arcblock/ux/lib/Result';
 import Toast from '@arcblock/ux/lib/Toast';
@@ -20,6 +21,7 @@ import {
   Stack,
   Tab,
   Theme,
+  ThemeProvider,
   Typography,
   useMediaQuery,
 } from '@mui/material';
@@ -224,13 +226,15 @@ function PreviewPage({ deployment }: { deployment: Deployment }) {
 
   if (data?.identity?.aid) {
     return (
-      <Box sx={{ position: 'relative', maxWidth: 900, width: 1, mx: 'auto' }}>
-        <Box display="flex" gap={1} alignItems="stretch" sx={{ position: 'absolute', top: 10, right: 10 }}>
-          <MakeYoursButton deployment={deployment} />
+      <Box sx={{ maxWidth: 900, width: 1, mx: 'auto' }}>
+        <Stack direction="row" justifyContent="flex-end" gap={1} px={3} my={2}>
+          <MakeYoursButton deployment={deployment} variant="contained" />
           <ShareButton deployment={deployment} />
-        </Box>
+        </Stack>
 
-        <AgentView aid={data?.identity?.aid} working />
+        <ThemeProvider theme={agentViewTheme}>
+          <AgentView aid={data?.identity?.aid} working />
+        </ThemeProvider>
       </Box>
     );
   }

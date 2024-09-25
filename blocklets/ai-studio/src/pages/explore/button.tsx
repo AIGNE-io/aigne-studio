@@ -8,6 +8,7 @@ import { Icon } from '@iconify-icon/react';
 import twitterIcon from '@iconify-icons/tabler/brand-twitter';
 import externalLinkIcon from '@iconify-icons/tabler/external-link';
 import linkIcon from '@iconify-icons/tabler/link';
+import { LoadingButtonProps } from '@mui/lab';
 import {
   Box,
   Button,
@@ -60,7 +61,7 @@ function generateTwitterShareUrl(data: {
   return `https://twitter.com/intent/tweet?${params.toString()}`;
 }
 
-export function MakeYoursButton({ deployment }: { deployment: Deployment }) {
+export function MakeYoursButton({ deployment, ...props }: { deployment: Deployment } & LoadingButtonProps) {
   const { t } = useLocaleContext();
   const navigate = useNavigate();
   const { session } = useSessionContext();
@@ -86,7 +87,7 @@ export function MakeYoursButton({ deployment }: { deployment: Deployment }) {
   }
 
   return (
-    <LoadingButton variant="outlined" onClick={onMakeYours}>
+    <LoadingButton variant="outlined" onClick={onMakeYours} {...props}>
       {t('makeYours')}
     </LoadingButton>
   );
