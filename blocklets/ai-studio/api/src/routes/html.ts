@@ -46,6 +46,19 @@ export default function setupHtmlRouter(app: Express, viteDevServer?: ViteDevSer
     res.send(html);
   });
 
+  router.get('/explore/:category/:appId', async (req, res) => {
+    const { appId } = req.params;
+    const { messageId } = req.query;
+    const { html: template } = await loadHtml(req);
+
+    const html = Mustache.render(
+      template,
+      await getOpenGraphInfo({ deploymentId: appId, messageId: typeof messageId === 'string' ? messageId : undefined })
+    );
+
+    res.send(html);
+  });
+
   router.get('/*', async (req, res, next) => {
     if (ASSETS_PATTERNS.some((i) => req.path.startsWith(i))) {
       next();
