@@ -69,6 +69,10 @@ export default class Project extends Model<InferAttributes<Project>, InferCreati
       };
     };
   };
+
+  static associate(models: { Deployment: any }) {
+    this.hasOne(models.Deployment, { foreignKey: 'projectId' });
+  }
 }
 
 Project.init(

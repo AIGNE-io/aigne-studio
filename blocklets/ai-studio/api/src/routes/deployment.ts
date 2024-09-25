@@ -1,4 +1,5 @@
 import { getAgentSecretInputs } from '@api/libs/runtime';
+import Project from '@api/store/models/project';
 import { PROJECT_FILE_PATH, ProjectRepo, getEntryFromRepository, getRepository } from '@api/store/repository';
 import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { Assistant, ProjectSettings } from '@blocklet/ai-runtime/types';
@@ -88,6 +89,11 @@ router.get('/', async (req, res) => {
         attributes: ['id', 'name', 'slug'],
         required: false,
       },
+      {
+        model: Project,
+        attributes: [],
+        required: true,
+      },
     ],
     distinct: true,
   });
@@ -124,6 +130,11 @@ router.get('/recommend-list', async (req, res) => {
         model: Category,
         as: 'categories',
         through: { attributes: [] },
+      },
+      {
+        model: Project,
+        attributes: [],
+        required: true,
       },
     ],
     limit: pageSize,
@@ -174,6 +185,11 @@ router.get('/categories/:categorySlug', async (req, res) => {
         as: 'categories',
         where: { slug: categorySlug },
         through: { attributes: [] },
+      },
+      {
+        model: Project,
+        attributes: [],
+        required: true,
       },
     ],
     limit: pageSize,
