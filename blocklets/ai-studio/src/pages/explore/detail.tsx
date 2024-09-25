@@ -57,11 +57,13 @@ export default function CategoryDetail() {
 }
 
 function Agent({ deployment }: { deployment: Deployment }) {
+  const { categorySlug } = useParams();
   const [value, setValue] = useState('1');
   const handleChange = (_event: any, newValue: string) => setValue(newValue);
   const navigate = useNavigate();
   const { t } = useLocaleContext();
   const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
+  const { projectSetting } = useProjectStore(deployment.projectId, deployment.projectRef);
 
   return (
     <Stack flex={1} height={0}>
@@ -74,8 +76,12 @@ function Agent({ deployment }: { deployment: Deployment }) {
             alignItems: 'center',
             px: isMobile ? 1.5 : 3,
           }}>
-          <Box onClick={() => navigate(-1)} sx={{ cursor: 'pointer', width: 20, height: 20 }} className="center">
+          <Box
+            onClick={() => navigate(`/explore/category/${categorySlug}`)}
+            sx={{ cursor: 'pointer', mr: 2 }}
+            className="center">
             <Box component={Icon} icon={ChevronLeft} sx={{ width: 20, height: 20, fontSize: 20, color: '#9CA3AF' }} />
+            <Box sx={{ color: '#9CA3AF' }}>{projectSetting?.name}</Box>
           </Box>
 
           <TabList

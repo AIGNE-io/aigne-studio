@@ -26,8 +26,8 @@ const paginationSchema = Joi.object({
   pageSize: Joi.number().integer().min(1).max(100).default(10),
 });
 
-const searchByCategoryIdSchema = Joi.object({
-  categoryId: Joi.string().required(),
+const searchByCategorySlugSchema = Joi.object({
+  categorySlug: Joi.string().required(),
 });
 
 const recommendSchema = paginationSchema.concat(
@@ -85,7 +85,7 @@ router.get('/', async (req, res) => {
         model: Category,
         as: 'categories',
         through: { attributes: [] },
-        attributes: ['id', 'name'],
+        attributes: ['id', 'name', 'slug'],
         required: false,
       },
     ],
@@ -145,8 +145,8 @@ router.get('/recommend-list', async (req, res) => {
   });
 });
 
-router.get('/categories/:categoryId', async (req, res) => {
-  const { categoryId } = await searchByCategoryIdSchema.validateAsync(req.params, { stripUnknown: true });
+router.get('/categories/:categorySlug', async (req, res) => {
+  const { categorySlug } = await searchByCategorySlugSchema.validateAsync(req.params, { stripUnknown: true });
   const { page, pageSize } = await paginationSchema.validateAsync(req.query, { stripUnknown: true });
 
   const offset = (page - 1) * pageSize;
@@ -156,7 +156,7 @@ router.get('/categories/:categoryId', async (req, res) => {
       {
         model: Category,
         as: 'categories',
-        where: { id: categoryId },
+        where: { slug: categorySlug },
         through: { attributes: [] },
       },
     ],
@@ -242,7 +242,7 @@ router.put('/:id', user(), auth(), async (req, res) => {
 
   const found = await Deployment.findByPk(req.params.id!);
   if (!found) {
-    res.status(404).json({ code: 'not_found', error: 'deployment not found' });
+    res.status(404).json({ message: 'deployment not found' });
     return;
   }
 
@@ -277,7 +277,7 @@ router.delete('/:id', user(), auth(), async (req, res) => {
 
   const deployment = await Deployment.findByPk(id);
   if (!deployment) {
-    res.status(404).json({ code: 'not_found', error: 'deployment not found' });
+    res.status(404).json({ message: 'deployment not found' });
     return;
   }
 
@@ -328,7 +328,7 @@ export const checkDeployment = async (req: Request, res: Response, next: NextFun
     try {
       const deployment = await Deployment.findOne({ where: { id: deploymentId } });
       if (!deployment) {
-        res.status(404).json({ error: 'No such deployment' });
+        res.status(404).json({ message: 'No such deployment' });
         throw new Error('No such deployment');
       }
 

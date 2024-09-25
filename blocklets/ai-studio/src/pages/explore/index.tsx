@@ -52,8 +52,8 @@ export default function ExploreCategoryRoutes() {
           <Suspense fallback={<Loading fixed />}>
             <Routes>
               <Route element={<ExploreCategoryLayout />}>
-                <Route path=":categoryId?" element={<ExploreCategoryList />} />
-                <Route path=":categoryId/:deploymentId" element={<ExploreCategoryDetail />} />
+                <Route path=":categorySlug?" element={<ExploreCategoryList />} />
+                <Route path=":categorySlug/:deploymentId" element={<ExploreCategoryDetail />} />
               </Route>
             </Routes>
           </Suspense>

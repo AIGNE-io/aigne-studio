@@ -48,7 +48,7 @@ export default function DeploymentDialog({
   dialogState: PopupState;
   id: string;
   access: 'private' | 'public';
-  categories: { id: string; name: string }[];
+  categories: { id: string; name: string; slug: string }[];
   productHuntUrl?: string;
   productHuntBannerUrl?: string;
   run: () => void;

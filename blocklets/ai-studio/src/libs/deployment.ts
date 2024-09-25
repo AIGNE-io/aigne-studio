@@ -12,7 +12,7 @@ export type Deployment = {
   createdAt: string;
   updatedAt: string;
   access: 'public' | 'private';
-  categories: { id: string; name: string }[];
+  categories: { id: string; name: string; slug: string }[];
   productHuntUrl?: string;
   productHuntBannerUrl?: string;
 };
@@ -34,9 +34,7 @@ export async function getDeploymentByProjectId({
   return axios.get('/api/deployments/byProjectId', { params: { projectId, projectRef } }).then((res) => res.data);
 }
 
-export async function getDeployment({ id }: { id: string }): Promise<{
-  deployment: Deployment | null;
-}> {
+export async function getDeployment({ id }: { id: string }): Promise<{ deployment: Deployment | null }> {
   return axios.get(joinURL('/api/deployments', id)).then((res) => res.data);
 }
 
@@ -48,16 +46,18 @@ export async function createDeployment(input: {
   return axios.post('/api/deployments', input).then((res) => res.data);
 }
 
-export async function getDeploymentsByCategoryId(input: {
-  categoryId: string;
+export async function getDeploymentsByCategorySlug(input: {
+  categorySlug: string;
   page: number;
   pageSize: number;
 }): Promise<{
   list: Deployment[];
   totalCount: number;
 }> {
-  const { categoryId, page, pageSize } = input;
-  return axios.get(`/api/deployments/categories/${categoryId}`, { params: { page, pageSize } }).then((res) => res.data);
+  const { categorySlug, page, pageSize } = input;
+  return axios
+    .get(`/api/deployments/categories/${categorySlug}`, { params: { page, pageSize } })
+    .then((res) => res.data);
 }
 
 export async function getDeployments(input: { page: number; pageSize: number }): Promise<{
