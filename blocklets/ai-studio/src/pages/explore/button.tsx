@@ -66,6 +66,12 @@ export function MakeYoursButton({ deployment, ...props }: { deployment: Deployme
   const navigate = useNavigate();
   const { session } = useSessionContext();
   const onMakeYours = async () => {
+    if (!session.user) {
+      await new Promise<void>((resolve) => {
+        session.login(() => resolve());
+      });
+    }
+
     try {
       const project = await createProject({ templateId: deployment.projectId, deploymentId: deployment.id });
 
@@ -102,7 +108,7 @@ export function ShareButton({ deployment }: { deployment: Deployment }) {
 
   const handleClose = () => setAnchorEl(null);
 
-  const shareUrl = joinURL(globalThis.location.origin, window.blocklet.prefix, '/explore/apps', deployment.id);
+  const shareUrl = joinURL(globalThis.location.origin, window.blocklet.prefix, '/apps', deployment.id);
 
   const open = Boolean(anchorEl);
 

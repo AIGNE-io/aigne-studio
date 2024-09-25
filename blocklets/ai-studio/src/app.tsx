@@ -107,11 +107,8 @@ function AppRoutes({ basename }: { basename: string }) {
     createRoutesFromElements(
       <Route path="/" ErrorBoundary={RouterErrorBoundary}>
         <Route index element={isPromptEditor ? <Navigate to="projects" replace /> : <Home />} />
-        <Route path="explore">
-          <Route index element={<Navigate to="category" replace />} />
-          <Route path="category/*" element={<ExploreCategory />} />
-          <Route path="apps/:appId" element={<AppPage />} />
-        </Route>
+        <Route path="explore/*" element={<ExploreCategory />} />
+        <Route path="apps/:appId" element={<AppPage />} />
         <Route path="admin/*" element={<ExploreAdmin />} />
         {isPromptEditor ? (
           <>

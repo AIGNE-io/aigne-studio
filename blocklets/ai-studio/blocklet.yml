@@ -135,7 +135,7 @@ navigation:
       en: Explore
       zh: 探索
     icon: tabler:share
-    link: /explore/category
+    link: /explore
     section:
       - header
 resource:

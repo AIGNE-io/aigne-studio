@@ -6,7 +6,6 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import ComponentInstaller from '@blocklet/ui-react/lib/ComponentInstaller';
 import { Icon } from '@iconify-icon/react';
-import CategoryIcon from '@iconify-icons/tabler/category';
 import ArrowLeft from '@iconify-icons/tabler/chevron-left';
 import LockIcon from '@iconify-icons/tabler/lock';
 import RocketIcon from '@iconify-icons/tabler/rocket';
@@ -44,7 +43,6 @@ import { useRequest } from 'ahooks';
 import { compact } from 'lodash';
 import { bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { Suspense, useState } from 'react';
-import { joinURL } from 'ufo';
 
 import { Deployment, createDeployment, getDeploymentByProjectId, updateDeployment } from '../../libs/deployment';
 import PublishView from './publish-view';

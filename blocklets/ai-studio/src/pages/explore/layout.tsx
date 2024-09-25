@@ -61,7 +61,7 @@ function CategoriesSidebar({
   const params = useParams();
 
   const handleCategoryClick = (categorySlug: string) => {
-    const newPath = `/explore/category/${categorySlug}`;
+    const newPath = `/explore/${categorySlug}`;
     navigate(newPath);
 
     if (isMobile) {

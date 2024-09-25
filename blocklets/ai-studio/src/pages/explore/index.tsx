@@ -24,7 +24,7 @@ export default function ExploreCategoryRoutes() {
         HeaderProps={{
           logo: <AigneLogo />,
           addons: (exists) => [<SubscribeButton />, ...exists],
-          homeLink: joinURL(blocklet?.prefix || '', 'explore/category'),
+          homeLink: joinURL(blocklet?.prefix || '', 'explore'),
         }}
         MenusDrawerProps={{ sx: { [`.${backdropClasses.root}`]: { top: 64 } } }}
         sx={{
