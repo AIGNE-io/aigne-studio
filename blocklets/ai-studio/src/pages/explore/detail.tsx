@@ -86,7 +86,7 @@ function Agent({ deployment }: { deployment: Deployment }) {
           <Stack
             direction="row"
             gap={1}
-            onClick={() => navigate(`/explore/category/${categorySlug}`)}
+            onClick={() => navigate(`/explore/${categorySlug}`)}
             sx={{ cursor: 'pointer', mr: 2 }}
             className="center">
             <Box component={Icon} icon={ChevronLeft} sx={{ width: 20, height: 20, fontSize: 20, color: '#9CA3AF' }} />
