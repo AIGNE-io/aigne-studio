@@ -26,13 +26,15 @@ export default class Deployment extends Model<InferAttributes<Deployment>, Infer
 
   declare productHuntBannerUrl?: number;
 
-  static associate(models: { Category: any; DeploymentCategory: any }) {
+  static associate(models: { Category: any; DeploymentCategory: any; Project: any }) {
     this.belongsToMany(models.Category, {
       through: models.DeploymentCategory,
       foreignKey: 'deploymentId',
       otherKey: 'categoryId',
       as: 'categories',
     });
+
+    this.belongsTo(models.Project, { foreignKey: 'projectId' });
   }
 }
 

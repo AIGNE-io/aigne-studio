@@ -1,3 +1,8 @@
+## 0.4.62 (2024-9-25)
+
+- fix: filter deleted projects from deployments
+- fix: correct deployment url
+
 ## 0.4.61 (2024-9-25)
 
 - chore: improve explore ux on the mobile
