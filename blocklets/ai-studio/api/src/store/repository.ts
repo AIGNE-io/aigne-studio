@@ -472,6 +472,13 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
     return this._readAndParseFile(options);
   }
 
+  get projectSettings() {
+    return this.readAndParseFile<ProjectSettings>({
+      filepath: PROJECT_FILE_PATH,
+      readBlobFromGitIfWorkingNotInitialized: true,
+    });
+  }
+
   private _readAgent = async ({
     ref = defaultBranch,
     agentId,
