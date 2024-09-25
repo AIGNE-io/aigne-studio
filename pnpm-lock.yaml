@@ -760,6 +760,9 @@ importers:
       sequelize:
         specifier: ^6.37.3
         version: 6.37.3(sqlite3@5.1.7)
+      slugify:
+        specifier: ^1.6.6
+        version: 1.6.6
       snowflake-uuid:
         specifier: ^1.0.0
         version: 1.0.0
@@ -769,6 +772,9 @@ importers:
       swiper:
         specifier: ^11.1.12
         version: 11.1.14
+      transliteration:
+        specifier: ^2.3.5
+        version: 2.3.5
       typescript:
         specifier: ^5.5.4
         version: 5.5.4
@@ -13565,6 +13571,11 @@ packages:
   tr46@5.0.0:
     resolution: {integrity: sha512-tk2G5R2KRwBd+ZN0zaEXpmzdKyOYksXwywulIX95MBODjSzMIuQnQ3m8JxgbhnL1LeVo7lqQKsYa1O3Htl7K5g==}
     engines: {node: '>=18'}
+
+  transliteration@2.3.5:
+    resolution: {integrity: sha512-HAGI4Lq4Q9dZ3Utu2phaWgtm3vB6PkLUFqWAScg/UW+1eZ/Tg6Exo4oC0/3VUol/w4BlefLhUUSVBr/9/ZGQOw==}
+    engines: {node: '>=6.0.0'}
+    hasBin: true
 
   treeverse@3.0.0:
     resolution: {integrity: sha512-gcANaAnd2QDZFmHFEOF4k7uc1J/6a6z3DJMd/QwEyxLoKGiptJRwid582r7QIsFlFMIZ3SnxfS52S4hm2DHkuQ==}
@@ -30653,6 +30664,10 @@ snapshots:
   tr46@5.0.0:
     dependencies:
       punycode: 2.3.1
+
+  transliteration@2.3.5:
+    dependencies:
+      yargs: 17.7.2
 
   treeverse@3.0.0: {}
 

@@ -8,7 +8,7 @@ import { Box, CircularProgress, ThemeProvider, createTheme } from '@mui/material
 import { useRequest } from 'ahooks';
 import { useParams } from 'react-router-dom';
 
-import { MakeYoursButton } from './button';
+// import { MakeYoursButton, ShareButton } from './button';
 
 const theme = createTheme({
   typography: { button: { textTransform: 'none' } } as any,
@@ -66,13 +66,14 @@ export default function AppPage() {
       <ApplicationHeader application={data} />
 
       {data?.identity?.aid ? (
-        <Box sx={{ position: 'relative' }}>
-          <Box display="flex" gap={1} alignItems="stretch" sx={{ position: 'absolute', top: 10, right: 10 }}>
+        <>
+          {/* <Box display="flex" gap={1} alignItems="stretch" sx={{ position: 'absolute', top: 10, right: 10 }}>
             <MakeYoursButton deployment={data.deployment} />
-          </Box>
+            <ShareButton deployment={data.deployment} />
+          </Box> */}
 
           <AgentView aid={data?.identity?.aid} working />
-        </Box>
+        </>
       ) : loading ? (
         <Box textAlign="center" my={10}>
           <CircularProgress size={24} />

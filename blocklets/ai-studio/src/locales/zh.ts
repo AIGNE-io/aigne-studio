@@ -828,7 +828,7 @@ export default flatten({
   success: '成功',
   failed: '失败',
   makeOwnVersion: '制作自己的版本',
-  noTemplatesAvailable: '没有可用的模板',
+  noTemplatesAvailable: '空模板',
   loginRequired: '要求登录',
   loginRequiredHelper: '用户需要登录后才能使用该 Agent',
   noLoginRequiredHelper: '用户无需登录即可使用该 Agent',

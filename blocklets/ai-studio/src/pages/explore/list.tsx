@@ -3,7 +3,7 @@ import 'swiper/css/navigation';
 
 import { getAssetUrl } from '@app/libs/asset';
 import { Category } from '@app/libs/category';
-import { getDeploymentsByCategoryId } from '@app/libs/deployment';
+import { getDeploymentsByCategorySlug } from '@app/libs/deployment';
 import { getProjectIconUrl } from '@app/libs/project';
 import Empty from '@app/pages/project/icons/empty';
 import { useProjectStore } from '@app/pages/project/yjs-state';
@@ -113,7 +113,9 @@ function CategoryCard({ projectId, projectRef }: { projectId: string; projectRef
 
   const banner = projectSetting?.banner
     ? getAssetUrl({ projectId, projectRef, filename: projectSetting?.banner })
-    : getProjectIconUrl(projectSetting.id, { updatedAt: projectSetting.updatedAt });
+    : projectSetting.id
+      ? getProjectIconUrl(projectSetting.id, { updatedAt: projectSetting.updatedAt })
+      : '';
 
   return (
     <Box
@@ -131,7 +133,7 @@ function CategoryCard({ projectId, projectRef }: { projectId: string; projectRef
         0px 2px 4px 0px rgba(3, 7, 18, 0.04)
       `,
       }}>
-      <Box width={1} pb="50%" position="relative">
+      <Box width={1} pb="30%" position="relative">
         {banner ? (
           <Box
             component="img"
@@ -196,7 +198,7 @@ function CategoryList() {
 
   const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
 
-  const { loadingRef, dataState } = useFetchDeployments(params.categoryId);
+  const { loadingRef, dataState } = useFetchDeployments(params.categorySlug);
   const { categories } = useOutletContext<{ categories: Category[] }>();
   const deployments = dataState?.data?.list || [];
   const { t } = useLocaleContext();
@@ -239,7 +241,7 @@ function CategoryList() {
 
 export default CategoryList;
 
-const useFetchDeployments = (id?: string) => {
+const useFetchDeployments = (categorySlug?: string) => {
   const dataState = useInfiniteScroll(
     async (
       d: { list: any[]; next: boolean; size: number; page: number } = {
@@ -249,20 +251,20 @@ const useFetchDeployments = (id?: string) => {
         page: 1,
       }
     ) => {
-      if (!id) {
+      if (!categorySlug) {
         return { list: [], next: false, size: pageSize, page: 1, total: 0 };
       }
 
       const { page = 1, size = pageSize } = d || {};
-      const { list: items, totalCount: total } = await getDeploymentsByCategoryId({
-        categoryId: id,
+      const { list: items, totalCount: total } = await getDeploymentsByCategorySlug({
+        categorySlug,
         page,
         pageSize: size,
       });
 
       return { list: items || [].filter(Boolean), next: items.length >= size, size, page: (d?.page || 1) + 1, total };
     },
-    { isNoMore: (d) => !d?.next, reloadDeps: [id] }
+    { isNoMore: (d) => !d?.next, reloadDeps: [categorySlug] }
   );
 
   const [loadingRef] = useInfiniteScrollHook({

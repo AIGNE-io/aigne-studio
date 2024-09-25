@@ -72,7 +72,7 @@ export default function DeploymentAction() {
         sx={{ px: 2 }}
         disabled={loading}
         {...(isMobile ? { onClick: deploymentDialogState.open } : { ...bindTrigger(deploymentPopperState) })}>
-        {t('deployments.title')}
+        {t('deploy')}
       </LoadingButton>
 
       <Popper {...bindPopper(deploymentPopperState)} sx={{ zIndex: 1101 }} transition placement="bottom-end">
@@ -176,6 +176,8 @@ function DeployApp({
         access: visibility,
       });
 
+      await saveButtonState.getState().save?.({ skipConfirm: true, skipCommitIfNoChanges: true });
+
       run();
 
       Toast.success('Deployed successfully');
@@ -259,7 +261,7 @@ function DeployApp({
           </Box>
 
           <LoadingButton variant="contained" onClick={onSubmit}>
-            {t('deployments.title')}
+            {t('deploy')}
           </LoadingButton>
         </Stack>
       </Box>
@@ -273,9 +275,6 @@ function UpdateApp({ id, data, run, sx }: { id: string; data: Deployment; run: (
 
   const [visibility, setVisibility] = useState<'public' | 'private'>(data.access || 'public');
   const handleVisibilityChange = (event: any) => setVisibility(event.target.value);
-  const previewPopperState = usePopupState({ variant: 'popper', popupId: 'preview' });
-  const previewDialogState = usePopupState({ variant: 'dialog', popupId: 'preview' });
-  const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
 
   const onSubmit = async () => {
     try {
@@ -388,55 +387,40 @@ function UpdateApp({ id, data, run, sx }: { id: string; data: Deployment; run: (
             {
               text: t('deployments.appPage'),
               icon: <Box component={Icon} icon={ShareIcon} sx={{ fontSize: 20 }} />,
-              ...(isMobile
-                ? { handle: previewDialogState.open }
-                : {
-                    handle: () => {},
-                    bindTrigger: bindTrigger(previewPopperState),
-                  }),
+              children: <PublishView projectId={data.projectId} projectRef={data.projectRef} deploymentId={id} />,
+              handle: () => {},
             },
-            (data?.categories || []).length
-              ? {
-                  text: t('deployments.explore'),
-                  icon: <Box component={Icon} icon={CategoryIcon} sx={{ fontSize: 20 }} />,
-                  handle: () => {
-                    window.open(
-                      joinURL(
-                        globalThis.location.origin,
-                        window.blocklet.prefix,
-                        '/explore/category',
-                        data?.categories[0]?.id || '',
-                        data.id
-                      )
-                    );
-                  },
-                }
-              : null,
-          ]).map((item) => (
-            <ListItem
-              key={item.text}
-              dense
-              disablePadding
-              sx={{
-                borderRadius: 1,
-                mb: 0.5,
-                overflow: 'hidden',
-              }}
-              {...((item as any).bindTrigger ? (item as any).bindTrigger : { onClick: item.handle })}>
-              <ListItemButton sx={{ p: 0.5, m: 0 }}>
-                <ListItemIcon sx={{ minWidth: 0, mr: 1 }}>{item.icon}</ListItemIcon>
-                <ListItemText
-                  primary={item.text}
-                  sx={{
-                    '& .MuiTypography-root': {
-                      fontWeight: 500,
-                      color: theme.palette.text.primary,
-                    },
-                  }}
-                />
-              </ListItemButton>
-            </ListItem>
-          ))}
+          ]).map((item) => {
+            if (item.children) {
+              return item.children;
+            }
+
+            return (
+              <ListItem
+                key={item.text}
+                dense
+                disablePadding
+                sx={{
+                  borderRadius: 1,
+                  mb: 0.5,
+                  overflow: 'hidden',
+                }}
+                onClick={item.handle}>
+                <ListItemButton sx={{ p: 0.5, m: 0 }}>
+                  <ListItemIcon sx={{ minWidth: 0, mr: 1 }}>{item.icon}</ListItemIcon>
+                  <ListItemText
+                    primary={item.text}
+                    sx={{
+                      '& .MuiTypography-root': {
+                        fontWeight: 500,
+                        color: theme.palette.text.primary,
+                      },
+                    }}
+                  />
+                </ListItemButton>
+              </ListItem>
+            );
+          })}
         </List>
       </Stack>
 
@@ -451,60 +435,6 @@ function UpdateApp({ id, data, run, sx }: { id: string; data: Deployment; run: (
           </LoadingButton>
         </Stack>
       </Box>
-
-      <Popper {...bindPopper(previewPopperState)} sx={{ zIndex: 1101 }} transition placement="bottom-start">
-        {({ TransitionProps }) => (
-          <Grow style={{ transformOrigin: 'right top' }} {...TransitionProps}>
-            <Paper
-              sx={{
-                border: '1px solid #ddd',
-                height: '100%',
-                overflow: 'auto',
-                mt: 0.5,
-              }}>
-              <ClickAwayListener
-                onClickAway={(e) => (e.target as HTMLElement)?.localName !== 'body' && previewPopperState.close()}>
-                <Box>
-                  <PublishView projectId={data.projectId} projectRef={data.projectRef} deploymentId={id} />
-                </Box>
-              </ClickAwayListener>
-            </Paper>
-          </Grow>
-        )}
-      </Popper>
-
-      <Dialog
-        {...bindDialog(previewDialogState)}
-        fullScreen
-        hideBackdrop
-        sx={{ mt: '65px' }}
-        PaperProps={{ elevation: 0 }}>
-        <DialogContent>
-          <Stack gap={2}>
-            <Box>
-              <Button
-                sx={{ p: 0 }}
-                onClick={previewDialogState.close}
-                startIcon={<Box component={Icon} icon={ArrowLeft} sx={{ fontSize: 16 }} />}>
-                {t('back')}
-              </Button>
-            </Box>
-
-            <Box
-              sx={{
-                '.publish-container': {
-                  p: 0,
-
-                  '.qr-code': {
-                    alignSelf: 'center',
-                  },
-                },
-              }}>
-              <PublishView projectId={data.projectId} projectRef={data.projectRef} deploymentId={id} />
-            </Box>
-          </Stack>
-        </DialogContent>
-      </Dialog>
     </Stack>
   );
 }

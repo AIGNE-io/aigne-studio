@@ -8,6 +8,8 @@ export default class Category extends Model<InferAttributes<Category>, InferCrea
 
   declare name: string;
 
+  declare slug: string;
+
   declare icon: CreationOptional<string>;
 
   declare createdAt: CreationOptional<Date>;
@@ -38,6 +40,11 @@ Category.init(
     },
     name: {
       type: DataTypes.STRING,
+    },
+    slug: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      unique: true,
     },
     icon: {
       type: DataTypes.STRING,

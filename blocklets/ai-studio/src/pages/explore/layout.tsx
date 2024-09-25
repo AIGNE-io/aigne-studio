@@ -60,8 +60,8 @@ function CategoriesSidebar({
   const navigate = useNavigate();
   const params = useParams();
 
-  const handleCategoryClick = (categoryId: string) => {
-    const newPath = `/explore/category/${categoryId}`;
+  const handleCategoryClick = (categorySlug: string) => {
+    const newPath = `/explore/category/${categorySlug}`;
     navigate(newPath);
 
     if (isMobile) {
@@ -123,8 +123,8 @@ function CategoriesSidebar({
                 '&.Mui-selected': { bgcolor: '#EBF6FF', '.icon, .text': { color: '#3B82F6' } },
               }}
               key={category.id}
-              onClick={() => handleCategoryClick(`${category.id}`)}
-              selected={category.id === params?.categoryId}>
+              onClick={() => handleCategoryClick(category.slug)}
+              selected={category.slug === params?.categorySlug}>
               <ListItemIcon sx={{ minWidth: 0, mr: 1.5 }} className="icon">
                 {category.icon ? (
                   <Icon icon={category.icon} style={{ width: 20, height: 20, fontSize: 20 }} className="center" />
@@ -154,8 +154,8 @@ export default function ExploreCategoryLayout() {
   const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
 
   useEffect(() => {
-    if (!loading && categories.length && !params?.categoryId && !params?.deploymentId) {
-      navigate(`${categories?.[0]?.id}`, { replace: true });
+    if (!loading && categories.length && !params?.categorySlug && !params?.deploymentId) {
+      navigate(`${categories?.[0]?.slug}`, { replace: true });
     }
   }, [loading]);
 
@@ -201,7 +201,7 @@ export function MobileSidebarHeader({ categories = [] }: { categories: Category[
     return null;
   }
 
-  const currentCategory = categories.find((category) => category.id === params?.categoryId);
+  const currentCategory = categories.find((category) => category.slug === params?.categorySlug);
   return (
     <>
       <Box display="flex" justifyContent="space-between" alignItems="center" p={2}>

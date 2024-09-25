@@ -13,12 +13,6 @@ import { joinURL } from 'ufo';
 import { deleteDeployment, getDeployments } from '../../libs/deployment';
 import type { Deployment } from '../../libs/deployment';
 import DeploymentDialog from '../deployments/dialog';
-import { useProjectStore } from '../project/yjs-state';
-
-function ProjectAgentName({ projectId, gitRef }: { projectId: string; gitRef: string }) {
-  const { projectSetting } = useProjectStore(projectId, gitRef);
-  return <Box>{projectSetting?.name}</Box>;
-}
 
 const pageSize = 10;
 
@@ -44,9 +38,7 @@ function DeploymentList() {
         field: 'title',
         headerName: t('agentName'),
         flex: 1,
-        renderCell: (params) => (
-          <ProjectAgentName projectId={params?.row?.projectId!} gitRef={params?.row?.projectRef!} />
-        ),
+        renderCell: (params) => <Box>{params.row.project?.name}</Box>,
       },
       {
         field: 'access',
