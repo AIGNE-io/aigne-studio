@@ -1,4 +1,4 @@
-import { createAxios, createFetch } from '@blocklet/js-sdk';
+import { createAxios } from '@blocklet/js-sdk';
 
 export const API_TIMEOUT = 120 * 1000;
 export const PREFIX = window.blocklet?.prefix || '/';
@@ -17,8 +17,6 @@ if (import.meta.env.DEV) {
 }
 
 export default api;
-
-export const aigneStudioFetch = createFetch();
 
 export const getErrorMessage = (error: any) =>
   error.response?.data?.error?.message || error.response?.data?.message || error.message || error;

@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.4.59",
+  "version": "0.4.60",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -138,7 +138,7 @@
     "test": "jest src/"
   },
   "dependencies": {
-    "@blocklet/ai-kit": "^0.1.54",
+    "@blocklet/ai-kit": "^0.1.55",
     "@blocklet/dataset-sdk": "workspace:^",
     "@blocklet/js-sdk": "^1.16.31",
     "@blocklet/logger": "^1.16.31",
@@ -179,7 +179,7 @@
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@arcblock/ux": "^2.10.36",
+    "@arcblock/ux": "^2.10.37",
     "@emotion/css": "^11.13.0",
     "@emotion/react": "^11.13.3",
     "@jest/globals": "^29.7.0",

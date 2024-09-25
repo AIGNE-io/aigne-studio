@@ -144,6 +144,7 @@ export default function ImportFromTemplates({
                         gap={2}
                         sx={{ fontSize: '12px', color: 'text.disabled' }}
                         alignItems="center">
+                        {/* @ts-ignore */}
                         {createdAt && <RelativeTime value={createdAt} locale={locale} />}
                       </Stack>
 

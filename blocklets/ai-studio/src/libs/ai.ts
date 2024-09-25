@@ -1,7 +1,12 @@
 import { createImageGenerationApi, createTextCompletionApi } from '@blocklet/ai-kit/api';
+import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
+import { createFetch } from '@blocklet/js-sdk';
 
-import axios, { aigneStudioFetch } from './api';
+import axios from './api';
 
-export const textCompletions = createTextCompletionApi({ fetch: aigneStudioFetch, path: '/api/ai/completions' });
+export const textCompletions = createTextCompletionApi({
+  fetch: createFetch(undefined, { componentDid: AIGNE_STUDIO_COMPONENT_DID }),
+  path: '/api/ai/completions',
+});
 
 export const imageGenerations = createImageGenerationApi({ axios, path: '/api/ai/image/generations' });

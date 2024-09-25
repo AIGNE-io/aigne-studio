@@ -32,6 +32,7 @@ export default function ApplicationHeader({ application }: { application?: Agent
         props.description = (
           <Stack direction="row" alignItems="center" maxWidth={200} fontSize={12} gap={1}>
             <Typography variant="caption">By</Typography>
+            {/* @ts-ignore */}
             <Box component={DID} did={application.project.createdBy} copyable={false} sx={{ flex: 1, width: 1 }} />
           </Stack>
         );
