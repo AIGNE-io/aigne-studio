@@ -115,7 +115,7 @@ export function HeaderActions() {
             </Button>
           </Tooltip>
 
-          <Drawer anchor="right" open={drawerOpen} onClose={toggleDrawer}>
+          <Drawer anchor="right" open={drawerOpen} onClose={toggleDrawer} disableEnforceFocus>
             <Settings boxProps={{}} onClose={toggleDrawer} />
           </Drawer>
         </>
@@ -323,7 +323,13 @@ function SettingsAction() {
         </Typography>
       </Box>
 
-      <Dialog {...bindDialog(dialogState)} fullScreen hideBackdrop sx={{ mt: '65px' }} PaperProps={{ elevation: 0 }}>
+      <Dialog
+        {...bindDialog(dialogState)}
+        fullScreen
+        hideBackdrop
+        sx={{ mt: '65px' }}
+        PaperProps={{ elevation: 0 }}
+        disableEnforceFocus>
         <DialogContent sx={{ p: '16px !important' }}>
           <Stack gap={2}>
             <Box>
