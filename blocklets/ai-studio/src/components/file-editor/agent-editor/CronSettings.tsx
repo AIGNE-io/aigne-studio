@@ -392,6 +392,7 @@ function CronJobHistories({ agent, job }: { agent: AssistantYjs; job: CronJob })
                   )}
                 </TableCell>
                 <TableCell>
+                  {/* @ts-ignore */}
                   <RelativeTime type="absolute" value={item.startTime} locale={locale} />
                 </TableCell>
                 <TableCell align="right">

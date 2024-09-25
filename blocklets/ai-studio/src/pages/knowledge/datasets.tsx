@@ -432,6 +432,7 @@ function DatasetItem({
 
             {blockletDid && (
               <Box maxWidth={200}>
+                {/* @ts-ignore */}
                 <DID did={blockletDid} copyable={false} />
               </Box>
             )}
@@ -439,6 +440,7 @@ function DatasetItem({
 
           {updatedAt && (
             <Typography variant="caption" color="text.secondary">
+              {/* @ts-ignore */}
               <RelativeTime value={updatedAt} />
             </Typography>
           )}

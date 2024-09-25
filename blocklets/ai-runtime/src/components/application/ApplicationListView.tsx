@@ -80,10 +80,12 @@ export default function ApplicationListView({
                     <Typography variant="caption">By</Typography>
 
                     <Box flex={1} width={0}>
+                      {/* @ts-ignore */}
                       <DID did={application.project.createdBy} copyable={false} />
                     </Box>
 
                     <Typography variant="caption" color="text.secondary">
+                      {/* @ts-ignore */}
                       <RelativeTime value={application.project.updatedAt} />
                     </Typography>
                   </Stack>

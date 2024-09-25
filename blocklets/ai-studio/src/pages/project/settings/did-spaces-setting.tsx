@@ -92,6 +92,7 @@ export default function DidSpacesSetting({ projectId }: { projectId: string }) {
 
           {state?.project?.didSpaceLastSyncedAt && (
             <Typography variant="caption" color="#9CA3AF">
+              {/* @ts-ignore */}
               <RelativeTime locale={locale} value={state.project.didSpaceLastSyncedAt} />
             </Typography>
           )}

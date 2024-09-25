@@ -47,7 +47,12 @@ export default function WrappedApp() {
               />
 
               <ToastProvider>
-                <LocaleProvider translations={translations} fallbackLocale="en">
+                <LocaleProvider
+                  translations={translations}
+                  fallbackLocale="en"
+                  locale={undefined}
+                  onLoadingTranslation={undefined}
+                  languages={undefined}>
                   <Suspense fallback={<Loading />}>
                     <SessionProvider serviceHost={basename}>
                       <Outlet />

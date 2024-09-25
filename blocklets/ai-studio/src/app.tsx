@@ -76,7 +76,12 @@ export default function App() {
 
         <RecoilRoot>
           <ToastProvider>
-            <LocaleProvider translations={translations} fallbackLocale="en">
+            <LocaleProvider
+              translations={translations}
+              fallbackLocale="en"
+              locale={undefined}
+              onLoadingTranslation={undefined}
+              languages={undefined}>
               <SessionProvider serviceHost={basename} protectedRoutes={[`${basename}/*`]}>
                 <Suspense fallback={<Loading fixed />}>
                   <ErrorBoundary>
