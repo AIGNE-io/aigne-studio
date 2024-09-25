@@ -827,6 +827,7 @@ function ProjectItem({
       <Stack direction="row" gap={2} height={20} alignItems="center" justifyContent="space-between">
         <Box display="flex" justifyContent="space-between" alignItems="center" width={1}>
           <Stack direction="row" gap={2} sx={{ fontSize: '12px', color: 'text.disabled' }} alignItems="center">
+            {/* @ts-ignore */}
             {createdAt && <RelativeTime value={createdAt} locale={locale} />}
 
             {!!formatGitUrl && (

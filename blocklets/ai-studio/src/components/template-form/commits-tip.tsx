@@ -144,6 +144,7 @@ export function CommitListView({
             </ListItemIcon>
             <ListItemText
               primary={item.commit.message}
+              // @ts-ignore
               secondary={<RelativeTime locale={locale} value={item.commit.author.timestamp * 1000} />}
               primaryTypographyProps={{ noWrap: true }}
               secondaryTypographyProps={{ noWrap: true }}

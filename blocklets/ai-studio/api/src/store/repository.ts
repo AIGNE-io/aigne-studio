@@ -374,15 +374,14 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
 
         await tx.add({ dir: working.workingDir, filepath: '.' });
 
-        if (skipCommitIfNoChanges) {
-          const changes = await tx.repo.statusMatrix({ dir: working.workingDir });
-          const hasChange = !changes.every((i) => i[1] === 1 && i[2] === 1 && i[3] === 1);
-          if (hasChange) {
-            const setting = working.syncedStore.files[PROJECT_FILE_PATH] as ProjectSettings;
-            if (!setting) throw new Error('Missing required project.yaml');
-            setting.updatedAt = new Date().toISOString();
-            await writeFile(path.join(working.workingDir, PROJECT_FILE_PATH), stringify(setting));
-          }
+        const changes = await tx.repo.statusMatrix({ dir: working.workingDir });
+        const hasChange = !changes.every((i) => i[1] === 1 && i[2] === 1 && i[3] === 1);
+
+        if (!skipCommitIfNoChanges || hasChange) {
+          const setting = working.syncedStore.files[PROJECT_FILE_PATH] as ProjectSettings;
+          if (!setting) throw new Error('Missing required project.yaml');
+          setting.updatedAt = new Date().toISOString();
+          await writeFile(path.join(working.workingDir, PROJECT_FILE_PATH), stringify(setting));
         }
       },
     });
@@ -470,6 +469,13 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
     if (!options.working) return this._memoizedReadAndParseFile(options);
 
     return this._readAndParseFile(options);
+  }
+
+  get projectSettings() {
+    return this.readAndParseFile<ProjectSettings>({
+      filepath: PROJECT_FILE_PATH,
+      readBlobFromGitIfWorkingNotInitialized: true,
+    });
   }
 
   private _readAgent = async ({

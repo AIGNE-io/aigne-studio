@@ -1,3 +1,7 @@
+## 0.4.60 (2024-9-25)
+
+- feat: add open graph for deployed apps
+
 ## 0.4.59 (2024-9-24)
 
 - chore: update deps

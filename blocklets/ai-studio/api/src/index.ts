@@ -8,7 +8,6 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv-flow';
 import express, { ErrorRequestHandler } from 'express';
-import fallback from 'express-history-api-fallback';
 import { Errors } from 'isomorphic-git';
 
 import { projectCronManager } from './libs/cron-jobs';
@@ -20,6 +19,7 @@ import { importPackageJson } from './libs/package-json';
 import { resourceManager } from './libs/resource';
 import { xss } from './libs/xss';
 import routes from './routes';
+import setupHtmlRouter from './routes/html';
 import { getOpenEmbed } from './routes/open-embed';
 import { handleYjsWebSocketUpgrade } from './routes/ws';
 
@@ -58,7 +58,7 @@ app.use('/api', routes);
 if (!isDevelopment) {
   const staticDir = path.resolve(Config.appDir, 'dist');
   app.use(express.static(staticDir, { maxAge: '30d', index: false }));
-  app.use(fallback('index.html', { root: staticDir }));
+  setupHtmlRouter(app);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

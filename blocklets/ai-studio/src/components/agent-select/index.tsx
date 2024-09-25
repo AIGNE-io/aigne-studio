@@ -226,12 +226,13 @@ function ProjectHeaderView({ project, ...props }: { project: AgentSelectOption['
           )}
 
           <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            {t('author')}{' '}
+            {t('author')} {/* @ts-ignore */}
             <Box component={DID} did={project.createdBy} copyable={false} responsive sx={{ flex: 2, width: 180 }} />
           </Typography>
 
           <Typography variant="caption">
             {t('updatedAt')} &nbsp;
+            {/* @ts-ignore */}
             <RelativeTime locale={locale} value={project.updatedAt} />
           </Typography>
         </Stack>

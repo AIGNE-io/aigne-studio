@@ -335,6 +335,7 @@ export default function RemoteRepoSetting({ projectId, gitRef }: { projectId: st
 
                   {state.project?.gitLastSyncedAt && (
                     <Typography variant="caption" color="#9CA3AF">
+                      {/* @ts-ignore */}
                       <RelativeTime locale={locale} value={state.project.gitLastSyncedAt} />
                     </Typography>
                   )}
