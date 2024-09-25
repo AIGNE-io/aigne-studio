@@ -51,7 +51,7 @@ function PublishViewContent({
   const { t } = useLocaleContext();
 
   const previewUrl = useMemo(() => {
-    return joinURL(globalThis.location.origin, window.blocklet.prefix, '/explore/apps', deploymentId);
+    return joinURL(globalThis.location.origin, window.blocklet.prefix, '/apps', deploymentId);
   }, [deploymentId, projectId, projectRef]);
 
   const [copied, setCopied] = useState(false);

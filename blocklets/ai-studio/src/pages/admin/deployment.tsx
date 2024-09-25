@@ -2,6 +2,7 @@ import { getErrorMessage } from '@app/libs/api';
 import useDialog from '@app/utils/use-dialog';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
+import { ProjectSettings } from '@blocklet/ai-runtime/types';
 import { Box, Button, Chip, Container, Stack, Typography, styled } from '@mui/material';
 import { DataGrid, GridColDef, gridClasses } from '@mui/x-data-grid';
 import { useRequest } from 'ahooks';
@@ -32,7 +33,7 @@ function DeploymentList() {
     run(params);
   }, [params, run]);
 
-  const columns = useMemo<GridColDef<Deployment>[]>(
+  const columns = useMemo<GridColDef<Deployment & { project: ProjectSettings }>[]>(
     () => [
       {
         field: 'title',
@@ -90,7 +91,7 @@ function DeploymentList() {
                   e.stopPropagation();
 
                   window.open(
-                    joinURL(globalThis.location.origin, window.blocklet.prefix, '/explore/apps', params.row.id),
+                    joinURL(globalThis.location.origin, window.blocklet.prefix, '/apps', params.row.id),
                     '_blank'
                   );
                 }}>
