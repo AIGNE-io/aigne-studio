@@ -64,7 +64,7 @@ function Agent({ deployment }: { deployment: Deployment }) {
   const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
 
   return (
-    <Stack flex={1}>
+    <Stack flex={1} height={0}>
       <TabContext value={value}>
         <Box
           sx={{
@@ -98,11 +98,11 @@ function Agent({ deployment }: { deployment: Deployment }) {
           </TabList>
         </Box>
 
-        <TabPanel value="1" sx={{ flex: 1, overflow: 'overlay' }}>
+        <TabPanel value="1" sx={{ flex: 1, overflow: 'overlay', position: 'relative' }}>
           <ReadmePage deployment={deployment} onRun={() => setValue('2')} />
         </TabPanel>
 
-        <TabPanel value="2" sx={{ flex: 1, overflow: 'overlay', position: 'relative' }}>
+        <TabPanel value="2" sx={{ p: 0, flex: 1, overflow: 'overlay', position: 'relative' }}>
           <PreviewPage deployment={deployment} />
         </TabPanel>
       </TabContext>
@@ -124,7 +124,7 @@ function ReadmePage({ deployment, onRun }: { deployment: Deployment; onRun: () =
 
   return (
     <Stack gap={3}>
-      <Box width={1} pb="20%" position="relative" sx={{ borderRadius: 1 }}>
+      <Box width={1} pb={{ xs: '50%', md: '30%' }} position="relative" sx={{ borderRadius: 1 }}>
         {banner ? (
           <Box
             component="img"
@@ -211,14 +211,14 @@ function PreviewPage({ deployment }: { deployment: Deployment }) {
 
   if (data?.identity?.aid) {
     return (
-      <>
+      <Box sx={{ position: 'relative', maxWidth: 900, width: 1, mx: 'auto' }}>
         <Box display="flex" gap={1} alignItems="stretch" sx={{ position: 'absolute', top: 10, right: 10 }}>
           <MakeYoursButton deployment={deployment} />
           <ShareButton deployment={deployment} />
         </Box>
 
         <AgentView aid={data?.identity?.aid} working />
-      </>
+      </Box>
     );
   }
 

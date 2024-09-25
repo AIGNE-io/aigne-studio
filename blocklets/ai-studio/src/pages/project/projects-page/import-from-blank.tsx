@@ -104,7 +104,7 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
         </DialogTitle>
 
         <DialogContent>
-          <Stack flexDirection="row" gap={4}>
+          <Stack flexDirection={{ xs: 'column', md: 'row' }} gap={{ xs: 2.5, md: 4 }}>
             <Stack flex={1} gap={2.5}>
               <Box>
                 <Typography variant="subtitle2">{t('choose')}</Typography>
@@ -192,10 +192,13 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
                 </Typography>
               </Box>
 
-              <Box>
-                <Typography variant="subtitle2">{template?.description}</Typography>
-              </Box>
+              {template?.description && (
+                <Box>
+                  <Typography variant="subtitle2">{template?.description}</Typography>
+                </Box>
+              )}
             </Stack>
+
             <Stack flex={1} gap={2.5}>
               <Box>
                 <Typography variant="subtitle2">{t('name')}</Typography>

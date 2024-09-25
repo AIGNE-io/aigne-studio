@@ -1,3 +1,4 @@
+import MdViewer from '@app/components/md-viewer';
 import { AssetField } from '@app/components/publish/LogoField';
 import { useCurrentProject } from '@app/contexts/project';
 import UploaderProvider from '@app/contexts/uploader';
@@ -383,32 +384,58 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                   />
                 </Box>
 
-                <Box>
+                <Box
+                  onClick={() => {
+                    showDialog({
+                      maxWidth: 'md',
+                      fullWidth: true,
+                      title: t('projectSetting.readme'),
+                      content: (
+                        <UploaderProvider>
+                          <Readme projectId={projectId} projectRef={projectRef} />
+                        </UploaderProvider>
+                      ),
+                      okText: t('close'),
+                    });
+                  }}>
                   <Typography variant="subtitle2" mb={0.5}>
                     {t('projectSetting.readme')}
                   </Typography>
 
-                  <TextField
-                    sx={{ width: 1 }}
-                    value={projectSetting?.readme ?? ''}
-                    multiline
-                    rows={5}
-                    hiddenLabel
-                    InputProps={{ readOnly: true }}
-                    onClick={() => {
-                      showDialog({
-                        maxWidth: 'md',
-                        fullWidth: true,
-                        title: t('projectSetting.readme'),
-                        content: (
-                          <UploaderProvider>
-                            <Readme projectId={projectId} projectRef={projectRef} />
-                          </UploaderProvider>
-                        ),
-                        okText: t('close'),
-                      });
-                    }}
-                  />
+                  {projectSetting?.readme ? (
+                    <MdViewer
+                      content={projectSetting?.readme}
+                      sx={{
+                        cursor: 'pointer',
+                        maxHeight: 128,
+                        height: 1,
+                        width: 1,
+                        overflowX: 'hidden',
+                        overflow: 'overlay',
+                        background: 'rgba(0, 0, 0, 0.03)',
+
+                        img: {
+                          width: '50%',
+                        },
+
+                        h1: { margin: 0 },
+                        h2: { margin: 0 },
+                        h3: { margin: 0 },
+                        h4: { margin: 0 },
+                        h5: { margin: 0 },
+                        h6: { margin: 0 },
+                      }}
+                    />
+                  ) : (
+                    <TextField
+                      sx={{ width: 1, cursor: 'pointer' }}
+                      value={projectSetting?.readme ?? ''}
+                      multiline
+                      rows={5}
+                      hiddenLabel
+                      InputProps={{ readOnly: true }}
+                    />
+                  )}
                 </Box>
               </Stack>
             </Form>

@@ -71,28 +71,30 @@ function PublishViewContent({
           },
         },
       }}>
-      <Stack gap={1} px={2} py={2} className="publish-container">
-        <Button variant="outlined" href={previewUrl} target="_blank" endIcon={<Icon icon={ShareIcon} />}>
-          {t('previewInNewTab')}
-        </Button>
-
-        <Tooltip title={copied ? t('copied') : undefined} placement="top" disableInteractive>
-          <Button
-            variant="outlined"
-            endIcon={<Icon icon={copied ? 'copy-check' : CopyIcon} />}
-            onClick={() => {
-              navigator.clipboard.writeText(previewUrl);
-              setCopied(true);
-            }}>
-            {t('copyPreviewUrl')}
+      <Stack gap={1} p={1} flexDirection={{ xs: 'column', md: 'row' }} className="publish-container">
+        <Stack gap={1} flex={1} justifyContent="space-around">
+          <Button variant="outlined" href={previewUrl} target="_blank" endIcon={<Icon icon={ShareIcon} />}>
+            {t('previewInNewTab')}
           </Button>
-        </Tooltip>
+
+          <Tooltip title={copied ? t('copied') : undefined} placement="top" disableInteractive>
+            <Button
+              variant="outlined"
+              endIcon={<Icon icon={copied ? 'copy-check' : CopyIcon} />}
+              onClick={() => {
+                navigator.clipboard.writeText(previewUrl);
+                setCopied(true);
+              }}>
+              {t('copyPreviewUrl')}
+            </Button>
+          </Tooltip>
+        </Stack>
 
         <Box textAlign="center" className="qr-code">
           <Box
             component={QRCode}
             value={previewUrl}
-            sx={{ display: 'block', width: 160, height: 160, p: 1, border: 1, borderRadius: 1, borderColor: 'divider' }}
+            sx={{ display: 'block', width: 80, height: 80, p: 1, border: 1, borderRadius: 1, borderColor: 'divider' }}
           />
         </Box>
       </Stack>

@@ -307,7 +307,9 @@ export const respondAgentFields = (
     'createdAt',
     'updatedAt',
     'appearance',
-    'iconVersion'
+    'iconVersion',
+    'readme',
+    'banner'
   ),
   identity: {
     ...agent.identity,
