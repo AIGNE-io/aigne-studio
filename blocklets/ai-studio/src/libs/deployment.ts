@@ -1,3 +1,4 @@
+import { ProjectSettings } from '@blocklet/ai-runtime/types';
 import { joinURL } from 'ufo';
 
 import axios from './api';
@@ -15,9 +16,6 @@ export type Deployment = {
   categories: { id: string; name: string; slug: string }[];
   productHuntUrl?: string;
   productHuntBannerUrl?: string;
-  project?: {
-    name: string;
-  };
 };
 
 export type UpdateType = {
@@ -37,7 +35,11 @@ export async function getDeploymentByProjectId({
   return axios.get('/api/deployments/byProjectId', { params: { projectId, projectRef } }).then((res) => res.data);
 }
 
-export async function getDeployment({ id }: { id: string }): Promise<{ deployment: Deployment | null }> {
+export async function getDeployment({
+  id,
+}: {
+  id: string;
+}): Promise<{ deployment: Deployment | null; project: ProjectSettings }> {
   return axios.get(joinURL('/api/deployments', id)).then((res) => res.data);
 }
 
@@ -54,7 +56,7 @@ export async function getDeploymentsByCategorySlug(input: {
   page: number;
   pageSize: number;
 }): Promise<{
-  list: Deployment[];
+  list: (Deployment & { project: ProjectSettings })[];
   totalCount: number;
 }> {
   const { categorySlug, page, pageSize } = input;

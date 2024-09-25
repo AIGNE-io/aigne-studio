@@ -3,11 +3,11 @@ import 'swiper/css/navigation';
 
 import { getAssetUrl } from '@app/libs/asset';
 import { Category } from '@app/libs/category';
-import { getDeploymentsByCategorySlug } from '@app/libs/deployment';
+import { Deployment, getDeploymentsByCategorySlug } from '@app/libs/deployment';
 import { getProjectIconUrl } from '@app/libs/project';
 import Empty from '@app/pages/project/icons/empty';
-import { useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { ProjectSettings } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import CircleArrowLeft from '@iconify-icons/tabler/circle-arrow-left';
 import CircleArrowRight from '@iconify-icons/tabler/circle-arrow-right';
@@ -107,15 +107,16 @@ export function Slide() {
   );
 }
 
-function CategoryCard({ projectId, projectRef }: { projectId: string; projectRef: string }) {
-  const { projectSetting } = useProjectStore(projectId, projectRef);
+function CategoryCard({ deployment, project }: { deployment: Deployment; project: ProjectSettings }) {
   const { t } = useLocaleContext();
 
-  const banner = projectSetting?.banner
-    ? getAssetUrl({ projectId, projectRef, filename: projectSetting?.banner })
-    : projectSetting.id
-      ? getProjectIconUrl(projectSetting.id, { updatedAt: projectSetting.updatedAt })
-      : '';
+  const banner = project.banner
+    ? getAssetUrl({
+        projectId: deployment.projectId,
+        projectRef: deployment.projectRef,
+        filename: project.banner,
+      })
+    : getProjectIconUrl(deployment.projectId, { updatedAt: project.updatedAt });
 
   return (
     <Box
@@ -173,7 +174,7 @@ function CategoryCard({ projectId, projectRef }: { projectId: string; projectRef
             lineHeight: '24px',
             mb: 0.5,
           }}>
-          {projectSetting?.name || t('unnamed')}
+          {project.name || t('unnamed')}
         </Typography>
         <Typography
           sx={{
@@ -185,7 +186,7 @@ function CategoryCard({ projectId, projectRef }: { projectId: string; projectRef
             fontSize: '13px',
             lineHeight: '20px',
           }}>
-          {projectSetting?.description}
+          {project.description}
         </Typography>
       </CardContent>
     </Box>
@@ -220,9 +221,9 @@ function CategoryList() {
             </Stack>
           )}
 
-          {deployments.map((tool) => (
-            <Grid item key={tool.id} xs={12} sm={6} md={4} onClick={() => navigate(tool.id)}>
-              <CategoryCard projectId={tool.projectId} projectRef={tool.projectRef} />
+          {deployments.map((deployment) => (
+            <Grid item key={deployment.id} xs={12} sm={6} md={4} onClick={() => navigate(deployment.id)}>
+              <CategoryCard deployment={deployment} project={deployment.project} />
             </Grid>
           ))}
         </Grid>

@@ -28,7 +28,7 @@ export default function AppPage() {
         <>
           <Stack direction="row" justifyContent="flex-end" gap={1} px={3} my={2}>
             <MakeYoursButton deployment={data.deployment} variant="contained" />
-            <ShareButton deployment={data.deployment} />
+            <ShareButton deployment={data.deployment} project={data.project} />
           </Stack>
 
           <AgentView aid={data?.identity?.aid} working />

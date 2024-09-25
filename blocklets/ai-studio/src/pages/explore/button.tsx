@@ -4,6 +4,7 @@ import { createProject } from '@app/libs/project';
 import currentGitStore from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
+import { ProjectSettings } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import twitterIcon from '@iconify-icons/tabler/brand-twitter';
 import externalLinkIcon from '@iconify-icons/tabler/external-link';
@@ -27,7 +28,6 @@ import { joinURL } from 'ufo';
 
 import { useSessionContext } from '../../contexts/session';
 import { Deployment } from '../../libs/deployment';
-import { useProjectStore } from '../project/yjs-state';
 
 function generateTwitterShareUrl(data: {
   title: string;
@@ -99,10 +99,9 @@ export function MakeYoursButton({ deployment, ...props }: { deployment: Deployme
   );
 }
 
-export function ShareButton({ deployment }: { deployment: Deployment }) {
+export function ShareButton({ deployment, project }: { deployment: Deployment; project: ProjectSettings }) {
   const { t } = useLocaleContext();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const { projectSetting } = useProjectStore(deployment.projectId, deployment.projectRef);
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => setAnchorEl(anchorEl ? null : event.currentTarget);
 
@@ -136,8 +135,8 @@ export function ShareButton({ deployment }: { deployment: Deployment }) {
       handle: () => {
         window.open(
           generateTwitterShareUrl({
-            title: projectSetting.name || '',
-            description: projectSetting.description || '',
+            title: project.name || '',
+            description: project.description || '',
             url: shareUrl,
             hashtags: ['Arcblock', 'AIGNE', 'AI'],
             via: 'Arcblock',
