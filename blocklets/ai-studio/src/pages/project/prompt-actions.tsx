@@ -116,7 +116,7 @@ export function HeaderActions() {
           </Tooltip>
 
           <Drawer anchor="right" open={drawerOpen} onClose={toggleDrawer} disableEnforceFocus>
-            <Settings boxProps={{}} onClose={toggleDrawer} />
+            <Settings boxProps={{ width: 500 }} onClose={toggleDrawer} />
           </Drawer>
         </>
 

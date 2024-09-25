@@ -245,7 +245,7 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
         </Box>
       )}
 
-      <SettingsContainer sx={{ px: 2, width: isMobile ? '100%' : '400px' }} className="setting-container">
+      <SettingsContainer px={2} className="setting-container">
         <Tabs
           variant="scrollable"
           scrollButtons={false}
