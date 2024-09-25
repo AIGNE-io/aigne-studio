@@ -1,11 +1,9 @@
-import LoadingButton from '@app/components/loading/loading-button';
 import { CurrentProjectProvider } from '@app/contexts/project';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { isAssistant } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import ArrowLeft from '@iconify-icons/tabler/chevron-left';
 import FloppyIcon from '@iconify-icons/tabler/device-floppy';
-import EyeBoltIcon from '@iconify-icons/tabler/eye-bolt';
 import HistoryToggleIcon from '@iconify-icons/tabler/history-toggle';
 import SettingsIcon from '@iconify-icons/tabler/settings-2';
 import {
@@ -30,7 +28,6 @@ import { joinURL } from 'ufo';
 import CommitsTip, { CommitListView } from '../../components/template-form/commits-tip';
 import { getFileIdFromPath } from '../../utils/path';
 import DeploymentAction from './deployment-action';
-import PublishView from './publish-view';
 import SaveButton, { CommitForm, SaveButtonDialog } from './save-button';
 import Settings from './settings';
 import { useAssistantChangesState, useProjectState } from './state';
@@ -127,8 +124,9 @@ export function HeaderActions() {
 }
 
 export function MobileHeaderActions() {
-  const { projectId, ref: gitRef } = useParams();
+  const { projectId, ref: gitRef, '*': filepath } = useParams();
   if (!projectId || !gitRef) throw new Error('Missing required params `projectId` or `ref`');
+  const fileId = filepath && getFileIdFromPath(filepath);
 
   return (
     <CurrentProjectProvider projectId={projectId} projectRef={gitRef}>
@@ -142,7 +140,7 @@ export function MobileHeaderActions() {
 
       <Divider sx={{ m: 0, p: 0 }} />
 
-      <PreviewAction />
+      {projectId && gitRef && fileId && <DeploymentAction />}
     </CurrentProjectProvider>
   );
 }
@@ -342,65 +340,6 @@ function SettingsAction() {
             </Box>
 
             <Settings boxProps={{ sx: { '.setting-container': { p: 0 } } }} />
-          </Stack>
-        </DialogContent>
-      </Dialog>
-    </>
-  );
-}
-
-function PreviewAction() {
-  const { t } = useLocaleContext();
-  const { projectId, ref: gitRef, '*': filepath } = useParams();
-  const dialogState = usePopupState({ variant: 'dialog' });
-
-  if (!projectId || !gitRef) throw new Error('Missing required params `projectId` or `ref`');
-
-  const { getFileById } = useProjectStore(projectId, gitRef, true);
-  const fileId = filepath && getFileIdFromPath(filepath);
-  const file = fileId && getFileById(fileId);
-
-  return (
-    <>
-      <Box
-        className="center"
-        justifyContent="flex-start"
-        key="history"
-        onClick={dialogState.open}
-        sx={{ cursor: 'pointer' }}>
-        <LoadingButton
-          sx={{ width: 1 }}
-          variant="contained"
-          startIcon={<Box component={Icon} icon={EyeBoltIcon} sx={{ fontSize: 16 }} />}
-          size="small">
-          {t('preview')}
-        </LoadingButton>
-      </Box>
-
-      <Dialog {...bindDialog(dialogState)} fullScreen hideBackdrop sx={{ mt: '65px' }} PaperProps={{ elevation: 0 }}>
-        <DialogContent>
-          <Stack gap={2}>
-            <Box>
-              <Button
-                sx={{ p: 0 }}
-                onClick={dialogState.close}
-                startIcon={<Box component={Icon} icon={ArrowLeft} sx={{ fontSize: 16 }} />}>
-                {t('back')}
-              </Button>
-            </Box>
-
-            <Box
-              sx={{
-                '.publish-container': {
-                  p: 0,
-
-                  '.qr-code': {
-                    alignSelf: 'center',
-                  },
-                },
-              }}>
-              {file ? <PublishView projectId={projectId} projectRef={gitRef} assistant={file} /> : null}
-            </Box>
           </Stack>
         </DialogContent>
       </Dialog>

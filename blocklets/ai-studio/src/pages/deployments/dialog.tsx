@@ -39,7 +39,7 @@ export default function DeploymentDialog({
   dialogState,
   id,
   access,
-  categories,
+  categories = [],
   productHuntUrl,
   productHuntBannerUrl,
   showVisibility = true,
@@ -48,7 +48,7 @@ export default function DeploymentDialog({
   dialogState: PopupState;
   id: string;
   access: 'private' | 'public';
-  categories: string[];
+  categories: { id: string; name: string; slug: string }[];
   productHuntUrl?: string;
   productHuntBannerUrl?: string;
   run: () => void;
@@ -58,7 +58,12 @@ export default function DeploymentDialog({
   const { t } = useLocaleContext();
 
   const { control, handleSubmit, setValue } = useForm<UpdateType>({
-    defaultValues: { access, categories, productHuntUrl, productHuntBannerUrl },
+    defaultValues: {
+      access,
+      categories: categories.map((category) => category.id),
+      productHuntUrl,
+      productHuntBannerUrl,
+    },
   });
 
   const { data, loading: categoriesLoading } = useRequest(getCategories, {
@@ -68,7 +73,10 @@ export default function DeploymentDialog({
 
   useEffect(() => {
     setValue('access', access);
-    setValue('categories', categories);
+    setValue(
+      'categories',
+      categories.map((category) => category.id)
+    );
     setValue('productHuntUrl', productHuntUrl || '');
     setValue('productHuntBannerUrl', productHuntBannerUrl || '');
   }, [access, categories, productHuntUrl, productHuntBannerUrl, setValue]);

@@ -22,6 +22,8 @@ const categoryState = () => {
   return categoryStates[key]!;
 };
 
+export const useCategories = () => useRecoilState(categoryState())[0];
+
 export const useCategoryState = () => {
   const [state, setState] = useRecoilState(categoryState());
 
@@ -32,6 +34,7 @@ export const useCategoryState = () => {
         loading = v.loading;
         return { ...v, loading: true };
       });
+
       if (loading && !force) return;
 
       try {
@@ -48,7 +51,7 @@ export const useCategoryState = () => {
   );
 
   useEffect(() => {
-    refetch();
+    refetch({ force: true });
   }, [refetch]);
 
   return {

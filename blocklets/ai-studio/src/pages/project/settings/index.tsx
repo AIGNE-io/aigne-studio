@@ -1,5 +1,7 @@
+import MdViewer from '@app/components/md-viewer';
 import { AssetField } from '@app/components/publish/LogoField';
 import { useCurrentProject } from '@app/contexts/project';
+import UploaderProvider from '@app/contexts/uploader';
 import { getAssetUrl } from '@app/libs/asset';
 import { TOOL_TIP_LEAVE_TOUCH_DELAY } from '@app/libs/constants';
 import { getDefaultBranch, useCurrentGitStore } from '@app/store/current-git-store';
@@ -7,7 +9,6 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { defaultTextModel, getSupportedModels } from '@blocklet/ai-runtime/common';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { MarkdownEditor } from '@blocklet/editor/lib/main/markdown-editor';
 import { CloseRounded, SaveRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
@@ -38,7 +39,6 @@ import pick from 'lodash/pick';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useBeforeUnload, useBlocker } from 'react-router-dom';
 import { useAsync } from 'react-use';
-import { joinURL } from 'ufo';
 
 import { UpdateProjectInput } from '../../../../api/src/routes/project';
 import Loading from '../../../components/loading';
@@ -54,6 +54,7 @@ import { useProjectState } from '../state';
 import { useProjectStore } from '../yjs-state';
 import AppearanceSetting from './appearance-setting';
 import DidSpacesSetting from './did-spaces-setting';
+import Readme from './readme';
 import RemoteRepoSetting from './remote-repo-setting';
 
 const init = {
@@ -82,11 +83,6 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
   const origin = useRef<UpdateProjectInput>();
   const { session } = useSessionContext();
   const getCurrentBranch = useCurrentGitStore((i) => i.getCurrentBranch);
-
-  const mediaUrlPrefix = joinURL(
-    window.blocklet?.componentMountPoints?.find((x) => x.did === 'z8ia1mAXo8ZE7ytGF36L5uBf9kD2kenhqFGp9')?.mountPoint ??
-      ''
-  );
 
   const tabListInfo: { list: string[] } = {
     list: [
@@ -388,38 +384,58 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                   />
                 </Box>
 
-                <Box>
+                <Box
+                  onClick={() => {
+                    showDialog({
+                      maxWidth: 'md',
+                      fullWidth: true,
+                      title: t('projectSetting.readme'),
+                      content: (
+                        <UploaderProvider>
+                          <Readme projectId={projectId} projectRef={projectRef} />
+                        </UploaderProvider>
+                      ),
+                      okText: t('close'),
+                    });
+                  }}>
                   <Typography variant="subtitle2" mb={0.5}>
                     {t('projectSetting.readme')}
                   </Typography>
 
-                  <TextField
-                    label={t('projectSetting.readme')}
-                    sx={{ width: 1 }}
-                    value={projectSetting?.readme ?? ''}
-                    multiline
-                    rows={5}
-                    InputProps={{ readOnly: true }}
-                    onClick={() => {
-                      showDialog({
-                        maxWidth: 'md',
-                        fullWidth: true,
-                        title: t('projectSetting.readme'),
-                        content: (
-                          <MarkdownEditor
-                            placeholder={t('projectSetting.readme')}
-                            editorState={projectSetting.readme}
-                            mediaUrlPrefix={mediaUrlPrefix}
-                            onChange={(markdown) => {
-                              setProjectSetting((config) => {
-                                config.readme = markdown;
-                              });
-                            }}
-                          />
-                        ),
-                      });
-                    }}
-                  />
+                  {projectSetting?.readme ? (
+                    <MdViewer
+                      content={projectSetting?.readme}
+                      sx={{
+                        cursor: 'pointer',
+                        maxHeight: 128,
+                        height: 1,
+                        width: 1,
+                        overflowX: 'hidden',
+                        overflow: 'overlay',
+                        background: 'rgba(0, 0, 0, 0.03)',
+
+                        img: {
+                          width: '50%',
+                        },
+
+                        h1: { margin: 0 },
+                        h2: { margin: 0 },
+                        h3: { margin: 0 },
+                        h4: { margin: 0 },
+                        h5: { margin: 0 },
+                        h6: { margin: 0 },
+                      }}
+                    />
+                  ) : (
+                    <TextField
+                      sx={{ width: 1, cursor: 'pointer' }}
+                      value={projectSetting?.readme ?? ''}
+                      multiline
+                      rows={5}
+                      hiddenLabel
+                      InputProps={{ readOnly: true }}
+                    />
+                  )}
                 </Box>
               </Stack>
             </Form>

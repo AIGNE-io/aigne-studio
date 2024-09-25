@@ -1,3 +1,4 @@
+import { generateSlug } from '@api/libs/utils';
 import { auth, user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
@@ -16,6 +17,7 @@ const paginationSchema = Joi.object({
 const updateCategorySchema = Joi.object({
   name: Joi.string().required(),
   icon: Joi.string().optional().allow('').default(''),
+  slug: Joi.string().optional().allow('').default('').optional(),
 });
 
 router.get('/', async (req, res) => {
@@ -29,40 +31,53 @@ router.get('/', async (req, res) => {
     order: [['createdAt', 'DESC']],
   });
 
-  res.json({ list: rows, totalCount: count, currentPage: page });
+  res.json({ list: rows, totalCount: count });
 });
 
 router.post('/', user(), auth(), async (req, res) => {
   const { did } = req.user!;
-  const { name, icon } = await updateCategorySchema.validateAsync(req.body, { stripUnknown: true });
+  const { name, icon, slug } = await updateCategorySchema.validateAsync(req.body, { stripUnknown: true });
 
   checkUserAuth(req, res)(did);
 
-  const category = await Category.create({
+  const currentSlug = slug || generateSlug(name);
+  const category = await Category.findOne({ where: { slug: currentSlug } });
+  if (category) {
+    res.status(400).json({ message: 'Slug conflict' });
+    return;
+  }
+
+  const newCategory = await Category.create({
     name,
     icon,
+    slug: currentSlug,
     createdBy: did,
     updatedBy: did,
   });
 
-  res.json(category);
+  res.json(newCategory);
 });
 
 router.put('/:id', user(), auth(), async (req, res) => {
   const { did } = req.user!;
   const { id } = req.params;
-  const { name, icon } = await updateCategorySchema.validateAsync(req.body, { stripUnknown: true });
+  const { name, icon, slug } = await updateCategorySchema.validateAsync(req.body, { stripUnknown: true });
 
   const category = await Category.findByPk(id);
   if (!category) {
-    res.status(404).json({ code: 'not_found', error: 'Category not found' });
+    res.status(404).json({ message: 'Category not found' });
+    return;
+  }
+
+  const currentSlug = slug || generateSlug(name);
+  if (category.slug !== currentSlug) {
+    res.status(400).json({ message: 'Slug conflict' });
     return;
   }
 
   checkUserAuth(req, res)(category.createdBy);
 
-  await category.update({ name, icon, updatedBy: did });
-
+  await category.update({ name, icon, slug: currentSlug, updatedBy: did });
   res.json(category);
 });
 
@@ -71,7 +86,7 @@ router.delete('/:id', user(), auth(), async (req, res) => {
 
   const category = await Category.findByPk(id);
   if (!category) {
-    res.status(404).json({ code: 'not_found', error: 'Category not found' });
+    res.status(404).json({ message: 'Category not found' });
     return;
   }
 

@@ -4,10 +4,12 @@ import { createProject } from '@app/libs/project';
 import currentGitStore from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
+import { ProjectSettings } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import twitterIcon from '@iconify-icons/tabler/brand-twitter';
-import contentCopyIcon from '@iconify-icons/tabler/copy';
+import externalLinkIcon from '@iconify-icons/tabler/external-link';
 import linkIcon from '@iconify-icons/tabler/link';
+import { LoadingButtonProps } from '@mui/lab';
 import {
   Box,
   Button,
@@ -22,16 +24,54 @@ import {
 } from '@mui/material';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { joinURL, withQuery } from 'ufo';
+import { joinURL } from 'ufo';
 
 import { useSessionContext } from '../../contexts/session';
 import { Deployment } from '../../libs/deployment';
 
-export function MakeYoursButton({ deployment }: { deployment: Deployment }) {
+function generateTwitterShareUrl(data: {
+  title: string;
+  description: string;
+  url: string;
+  hashtags?: string[];
+  via?: string;
+  related?: string[];
+}) {
+  const { title, description, url, hashtags = [], via, related = [] } = data;
+
+  const params = new URLSearchParams();
+
+  const tweetText = `${title}\n${description}`;
+  params.append('text', tweetText);
+
+  params.append('url', url);
+
+  if (hashtags.length > 0) {
+    params.append('hashtags', hashtags.join(','));
+  }
+
+  if (via) {
+    params.append('via', via);
+  }
+
+  if (related.length > 0) {
+    params.append('related', related.join(','));
+  }
+
+  return `https://twitter.com/intent/tweet?${params.toString()}`;
+}
+
+export function MakeYoursButton({ deployment, ...props }: { deployment: Deployment } & LoadingButtonProps) {
   const { t } = useLocaleContext();
   const navigate = useNavigate();
   const { session } = useSessionContext();
   const onMakeYours = async () => {
+    if (!session.user) {
+      await new Promise<void>((resolve) => {
+        session.login(() => resolve());
+      });
+    }
+
     try {
       const project = await createProject({ templateId: deployment.projectId, deploymentId: deployment.id });
 
@@ -53,13 +93,13 @@ export function MakeYoursButton({ deployment }: { deployment: Deployment }) {
   }
 
   return (
-    <LoadingButton variant="outlined" onClick={onMakeYours}>
+    <LoadingButton variant="outlined" onClick={onMakeYours} {...props}>
       {t('makeYours')}
     </LoadingButton>
   );
 }
 
-export function ShareButton({ deployment }: { deployment: Deployment }) {
+export function ShareButton({ deployment, project }: { deployment: Deployment; project: ProjectSettings }) {
   const { t } = useLocaleContext();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
@@ -67,22 +107,22 @@ export function ShareButton({ deployment }: { deployment: Deployment }) {
 
   const handleClose = () => setAnchorEl(null);
 
-  const shareUrl = joinURL(globalThis.location.origin, window.blocklet.prefix, '/explore/apps', deployment.id);
+  const shareUrl = joinURL(globalThis.location.origin, window.blocklet.prefix, '/apps', deployment.id);
 
   const open = Boolean(anchorEl);
 
   const shareOptions = [
     {
-      text: t('deployments.appPage'),
-      icon: <Box component={Icon} icon={linkIcon} sx={{ fontSize: 20 }} />,
+      text: t('openInNewTab'),
+      icon: <Box component={Icon} icon={externalLinkIcon} sx={{ fontSize: 20 }} />,
       handle: () => {
         window.open(shareUrl, '_blank');
         handleClose();
       },
     },
     {
-      text: t('duplicate'),
-      icon: <Box component={Icon} icon={contentCopyIcon} sx={{ fontSize: 20 }} />,
+      text: t('copyLink'),
+      icon: <Box component={Icon} icon={linkIcon} sx={{ fontSize: 20 }} />,
       handle: () => {
         navigator.clipboard.writeText(shareUrl);
         handleClose();
@@ -93,11 +133,16 @@ export function ShareButton({ deployment }: { deployment: Deployment }) {
       text: t('shareOnTwitter'),
       icon: <Box component={Icon} icon={twitterIcon} sx={{ fontSize: 20 }} />,
       handle: () => {
-        const tweetUrl = withQuery('https://twitter.com/intent/tweet', {
-          text: encodeURIComponent(`Just launched my app!\nCheck it out: ${shareUrl}`),
-        });
-
-        window.open(tweetUrl, '_blank');
+        window.open(
+          generateTwitterShareUrl({
+            title: project.name || '',
+            description: project.description || '',
+            url: shareUrl,
+            hashtags: ['Arcblock', 'AIGNE', 'AI'],
+            via: 'Arcblock',
+          }),
+          '_blank'
+        );
         handleClose();
       },
     },

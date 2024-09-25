@@ -2,24 +2,38 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 
 import { getAssetUrl } from '@app/libs/asset';
-import { getDeploymentsByCategoryId } from '@app/libs/deployment';
+import { Category } from '@app/libs/category';
+import { Deployment, getDeploymentsByCategorySlug } from '@app/libs/deployment';
 import { getProjectIconUrl } from '@app/libs/project';
 import Empty from '@app/pages/project/icons/empty';
-import { useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { ProjectSettings } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import CircleArrowLeft from '@iconify-icons/tabler/circle-arrow-left';
 import CircleArrowRight from '@iconify-icons/tabler/circle-arrow-right';
-import { Box, CardContent, CircularProgress, Grid, IconButton, Stack, Typography } from '@mui/material';
-import useInfiniteScroll from 'ahooks/lib/useInfiniteScroll';
+import {
+  Box,
+  CardContent,
+  CircularProgress,
+  Grid,
+  IconButton,
+  Stack,
+  Theme,
+  Typography,
+  useMediaQuery,
+} from '@mui/material';
+import { useInfiniteScroll } from 'ahooks';
 import useInfiniteScrollHook from 'react-infinite-scroll-hook';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import { Navigation } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { withQuery } from 'ufo';
 
+import { MobileSidebarHeader } from './layout';
+
 const pageSize = 10;
-const spacing = 3;
+const pcSpacing = 3;
+const mobileSpacing = 2;
 
 export function Slide() {
   return (
@@ -93,13 +107,16 @@ export function Slide() {
   );
 }
 
-function CategoryCard({ projectId, projectRef }: { projectId: string; projectRef: string }) {
-  const { projectSetting } = useProjectStore(projectId, projectRef);
+function CategoryCard({ deployment, project }: { deployment: Deployment; project: ProjectSettings }) {
   const { t } = useLocaleContext();
 
-  const banner = projectSetting?.banner
-    ? getAssetUrl({ projectId, projectRef, filename: projectSetting?.banner })
-    : getProjectIconUrl(projectSetting.id, { updatedAt: projectSetting.updatedAt });
+  const banner = project.banner
+    ? getAssetUrl({
+        projectId: deployment.projectId,
+        projectRef: deployment.projectRef,
+        filename: project.banner,
+      })
+    : getProjectIconUrl(deployment.projectId, { updatedAt: project.updatedAt });
 
   return (
     <Box
@@ -117,7 +134,7 @@ function CategoryCard({ projectId, projectRef }: { projectId: string; projectRef
         0px 2px 4px 0px rgba(3, 7, 18, 0.04)
       `,
       }}>
-      <Box width={1} pb="50%" position="relative">
+      <Box width={1} pb="30%" position="relative">
         {banner ? (
           <Box
             component="img"
@@ -157,7 +174,7 @@ function CategoryCard({ projectId, projectRef }: { projectId: string; projectRef
             lineHeight: '24px',
             mb: 0.5,
           }}>
-          {projectSetting?.name || t('unnamed')}
+          {project.name || t('unnamed')}
         </Typography>
         <Typography
           sx={{
@@ -169,7 +186,7 @@ function CategoryCard({ projectId, projectRef }: { projectId: string; projectRef
             fontSize: '13px',
             lineHeight: '20px',
           }}>
-          {projectSetting?.description}
+          {project.description}
         </Typography>
       </CardContent>
     </Box>
@@ -180,43 +197,52 @@ function CategoryList() {
   const navigate = useNavigate();
   const params = useParams();
 
-  const { loadingRef, dataState } = useFetchDeployments(params.categoryId);
+  const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
+
+  const { loadingRef, dataState } = useFetchDeployments(params.categorySlug);
+  const { categories } = useOutletContext<{ categories: Category[] }>();
   const deployments = dataState?.data?.list || [];
   const { t } = useLocaleContext();
 
+  const spacing = isMobile ? mobileSpacing : pcSpacing;
+
   return (
-    <Box sx={{ flexGrow: 1, p: spacing }}>
-      <Grid container spacing={spacing}>
-        {deployments.length === 0 && (
-          <Stack flex={1} height={500} justifyContent="center" alignItems="center" gap={1}>
-            <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
-            <Typography color="text.disabled" sx={{ whiteSpace: 'break-spaces', textAlign: 'center' }}>
-              {t('deployments.emptyDeployment')}
-            </Typography>
-          </Stack>
-        )}
+    <Stack sx={{ width: 1, height: 1, overflow: 'hidden' }}>
+      <MobileSidebarHeader categories={categories} />
 
-        {deployments.map((tool) => (
-          <Grid item key={tool.id} xs={12} sm={6} md={4} onClick={() => navigate(tool.id)}>
-            <CategoryCard projectId={tool.projectId} projectRef={tool.projectRef} />
-          </Grid>
-        ))}
-      </Grid>
+      <Box sx={{ flexGrow: 1, p: spacing, overflow: 'overlay' }}>
+        <Grid container spacing={spacing}>
+          {deployments.length === 0 && (
+            <Stack flex={1} height={500} justifyContent="center" alignItems="center" gap={1}>
+              <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
+              <Typography color="text.disabled" sx={{ whiteSpace: 'break-spaces', textAlign: 'center' }}>
+                {t('deployments.emptyDeployment')}
+              </Typography>
+            </Stack>
+          )}
 
-      {(dataState.loadingMore || dataState?.data?.next) && (
-        <Box width={1} height={60} className="center" ref={loadingRef}>
-          <Box display="flex" justifyContent="center">
-            <CircularProgress size={24} />
+          {deployments.map((deployment) => (
+            <Grid item key={deployment.id} xs={12} sm={6} md={4} onClick={() => navigate(deployment.id)}>
+              <CategoryCard deployment={deployment} project={deployment.project} />
+            </Grid>
+          ))}
+        </Grid>
+
+        {(dataState.loadingMore || dataState?.data?.next) && (
+          <Box width={1} height={60} className="center" ref={loadingRef}>
+            <Box display="flex" justifyContent="center">
+              <CircularProgress size={24} />
+            </Box>
           </Box>
-        </Box>
-      )}
-    </Box>
+        )}
+      </Box>
+    </Stack>
   );
 }
 
 export default CategoryList;
 
-const useFetchDeployments = (id?: string) => {
+const useFetchDeployments = (categorySlug?: string) => {
   const dataState = useInfiniteScroll(
     async (
       d: { list: any[]; next: boolean; size: number; page: number } = {
@@ -226,22 +252,20 @@ const useFetchDeployments = (id?: string) => {
         page: 1,
       }
     ) => {
-      if (!id) {
+      if (!categorySlug) {
         return { list: [], next: false, size: pageSize, page: 1, total: 0 };
       }
 
       const { page = 1, size = pageSize } = d || {};
-      const { list: items, totalCount: total } = await getDeploymentsByCategoryId({
-        categoryId: id,
+      const { list: items, totalCount: total } = await getDeploymentsByCategorySlug({
+        categorySlug,
         page,
         pageSize: size,
       });
 
-      const list = (d?.list?.length || 0) + items.length;
-      const next = Boolean(list < total);
-      return { list: items || [], next, size, page: (d?.page || 1) + 1, total };
+      return { list: items || [].filter(Boolean), next: items.length >= size, size, page: (d?.page || 1) + 1, total };
     },
-    { isNoMore: (d) => !d?.next, reloadDeps: [id] }
+    { isNoMore: (d) => !d?.next, reloadDeps: [categorySlug] }
   );
 
   const [loadingRef] = useInfiniteScrollHook({

@@ -1,16 +1,30 @@
+import MdViewer from '@app/components/md-viewer';
 import { getAssetUrl } from '@app/libs/asset';
 import { getProjectIconUrl } from '@app/libs/project';
-import { useProjectStore } from '@app/pages/project/yjs-state';
+import { agentViewTheme } from '@app/theme/agent-view-theme';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Result from '@arcblock/ux/lib/Result';
 import Toast from '@arcblock/ux/lib/Toast';
+import { ProjectSettings } from '@blocklet/ai-runtime/types';
 import { getAgentByDeploymentId } from '@blocklet/aigne-sdk/api/agent';
 import AgentView from '@blocklet/aigne-sdk/components/AgentView';
 import { Icon } from '@iconify-icon/react';
 import ChevronLeft from '@iconify-icons/tabler/chevron-left';
 import PlayIcon from '@iconify-icons/tabler/player-play-filled';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
-import { Box, Button, CircularProgress, Divider, Link, Stack, Tab, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Divider,
+  Link,
+  Stack,
+  Tab,
+  Theme,
+  ThemeProvider,
+  Typography,
+  useMediaQuery,
+} from '@mui/material';
 import { useRequest } from 'ahooks';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -18,6 +32,7 @@ import { withQuery } from 'ufo';
 
 import { Deployment, getDeployment } from '../../libs/deployment';
 import { MakeYoursButton, ShareButton } from './button';
+import { useCategories } from './state';
 
 export default function CategoryDetail() {
   const { deploymentId } = useParams();
@@ -39,24 +54,44 @@ export default function CategoryDetail() {
 
   return (
     <Stack height={1} overflow="hidden" gap={1.5}>
-      <Agent deployment={data?.deployment!} />
+      <Agent deployment={data?.deployment!} project={data?.project!} />
     </Stack>
   );
 }
 
-function Agent({ deployment }: { deployment: Deployment }) {
+function Agent({ deployment, project }: { deployment: Deployment; project: ProjectSettings }) {
+  const { categories } = useCategories();
+  const { categorySlug } = useParams();
+
+  const category = categories.find((x) => x.slug === categorySlug);
+
   const [value, setValue] = useState('1');
   const handleChange = (_event: any, newValue: string) => setValue(newValue);
   const navigate = useNavigate();
   const { t } = useLocaleContext();
+  const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
 
   return (
-    <Stack flex={1}>
+    <Stack flex={1} height={0}>
       <TabContext value={value}>
-        <Box sx={{ borderBottom: 1, borderColor: '#EFF1F5', display: 'flex', alignItems: 'center', px: 3 }}>
-          <Box onClick={() => navigate(-1)} sx={{ cursor: 'pointer', width: 20, height: 20 }} className="center">
+        <Box
+          sx={{
+            borderBottom: 1,
+            borderColor: '#EFF1F5',
+            display: 'flex',
+            alignItems: 'center',
+            px: isMobile ? 1.5 : 3,
+            gap: 2,
+          }}>
+          <Stack
+            direction="row"
+            gap={1}
+            onClick={() => navigate(`/explore/${categorySlug}`)}
+            sx={{ cursor: 'pointer', mr: 2 }}
+            className="center">
             <Box component={Icon} icon={ChevronLeft} sx={{ width: 20, height: 20, fontSize: 20, color: '#9CA3AF' }} />
-          </Box>
+            <Box sx={{ color: '#9CA3AF' }}>{category?.name}</Box>
+          </Stack>
 
           <TabList
             onChange={handleChange}
@@ -78,33 +113,40 @@ function Agent({ deployment }: { deployment: Deployment }) {
           </TabList>
         </Box>
 
-        <TabPanel value="1" sx={{ flex: 1, overflow: 'overlay' }}>
-          <ReadmePage deployment={deployment} onRun={() => setValue('2')} />
+        <TabPanel value="1" sx={{ flex: 1, overflow: 'overlay', position: 'relative' }}>
+          <ReadmePage deployment={deployment} project={project} onRun={() => setValue('2')} />
         </TabPanel>
 
-        <TabPanel value="2" sx={{ flex: 1, overflow: 'overlay', position: 'relative' }}>
-          <PreviewPage deployment={deployment} />
+        <TabPanel value="2" sx={{ p: 0, flex: 1, overflow: 'overlay', position: 'relative' }}>
+          <PreviewPage deployment={deployment} project={project} />
         </TabPanel>
       </TabContext>
     </Stack>
   );
 }
 
-function ReadmePage({ deployment, onRun }: { deployment: Deployment; onRun: () => void }) {
-  const { projectSetting } = useProjectStore(deployment.projectId, deployment.projectRef);
+function ReadmePage({
+  deployment,
+  project,
+  onRun,
+}: {
+  deployment: Deployment;
+  onRun: () => void;
+  project: ProjectSettings;
+}) {
   const { t } = useLocaleContext();
 
-  const banner = projectSetting?.banner
+  const banner = project?.banner
     ? getAssetUrl({
         projectId: deployment.projectId,
         projectRef: deployment.projectRef,
-        filename: projectSetting?.banner,
+        filename: project.banner,
       })
-    : getProjectIconUrl(deployment.projectId, { updatedAt: projectSetting.updatedAt });
+    : getProjectIconUrl(deployment.projectId, { updatedAt: project.updatedAt });
 
   return (
     <Stack gap={3}>
-      <Box width={1} pb="20%" position="relative">
+      <Box width={1} pb={{ xs: '50%', md: '30%' }} position="relative" sx={{ borderRadius: 1 }}>
         {banner ? (
           <Box
             component="img"
@@ -116,6 +158,7 @@ function ReadmePage({ deployment, onRun }: { deployment: Deployment; onRun: () =
               objectFit: 'cover',
               width: 1,
               height: 1,
+              borderRadius: 1,
             }}
           />
         ) : (
@@ -126,6 +169,7 @@ function ReadmePage({ deployment, onRun }: { deployment: Deployment; onRun: () =
               cursor: 'pointer',
               backgroundColor: 'rgba(0, 0, 0, 0.5)',
               backgroundSize: 'cover',
+              borderRadius: 1,
             }}
           />
         )}
@@ -134,11 +178,11 @@ function ReadmePage({ deployment, onRun }: { deployment: Deployment; onRun: () =
       <Stack gap={2}>
         <Box>
           <Typography sx={{ fontSize: 24, fontWeight: 700, lineHeight: '32px', color: '#030712' }} gutterBottom>
-            {projectSetting.name}
+            {project.name}
           </Typography>
 
           <Typography sx={{ fontSize: 16, fontWeight: 400, lineHeight: '24px', color: '#757575' }}>
-            {projectSetting.description}
+            {project.description}
           </Typography>
         </Box>
 
@@ -150,7 +194,7 @@ function ReadmePage({ deployment, onRun }: { deployment: Deployment; onRun: () =
 
           <MakeYoursButton deployment={deployment} />
 
-          <ShareButton deployment={deployment} />
+          <ShareButton deployment={deployment} project={project} />
         </Box>
 
         {deployment.productHuntUrl && deployment.productHuntBannerUrl && (
@@ -164,14 +208,12 @@ function ReadmePage({ deployment, onRun }: { deployment: Deployment; onRun: () =
 
       <Divider sx={{ borderColor: '#EFF1F5' }} />
 
-      <Stack>
-        <Typography>{t('readme')}</Typography>
-      </Stack>
+      <Stack>{project.readme && <MdViewer content={project.readme} />}</Stack>
     </Stack>
   );
 }
 
-function PreviewPage({ deployment }: { deployment: Deployment }) {
+function PreviewPage({ deployment, project }: { deployment: Deployment; project: ProjectSettings }) {
   const { deploymentId } = useParams();
   if (!deploymentId) throw new Error('Missing required param `deploymentId`');
 
@@ -191,14 +233,16 @@ function PreviewPage({ deployment }: { deployment: Deployment }) {
 
   if (data?.identity?.aid) {
     return (
-      <>
-        <Box display="flex" gap={1} alignItems="stretch" sx={{ position: 'absolute', top: 10, right: 10 }}>
-          <MakeYoursButton deployment={deployment} />
-          <ShareButton deployment={deployment} />
-        </Box>
+      <Box sx={{ maxWidth: 900, width: 1, mx: 'auto' }}>
+        <Stack direction="row" justifyContent="flex-end" gap={1} px={3} my={2}>
+          <MakeYoursButton deployment={deployment} variant="contained" />
+          <ShareButton deployment={deployment} project={project} />
+        </Stack>
 
-        <AgentView aid={data?.identity?.aid} working />
-      </>
+        <ThemeProvider theme={agentViewTheme}>
+          <AgentView aid={data?.identity?.aid} working />
+        </ThemeProvider>
+      </Box>
     );
   }
 

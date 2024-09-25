@@ -1,5 +1,4 @@
 import { getAgentSecretInputs } from '@api/libs/runtime';
-import Project from '@api/store/models/project';
 import { PROJECT_FILE_PATH, ProjectRepo, getEntryFromRepository, getRepository } from '@api/store/repository';
 import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { Assistant, ProjectSettings } from '@blocklet/ai-runtime/types';
@@ -8,7 +7,6 @@ import { auth, user } from '@blocklet/sdk/lib/middlewares';
 import { NextFunction, Request, Response, Router } from 'express';
 import Joi from 'joi';
 import pick from 'lodash/pick';
-import { Op } from 'sequelize';
 
 import checkUserAuth from '../libs/user-auth';
 import Category from '../store/models/category';
@@ -28,15 +26,8 @@ const paginationSchema = Joi.object({
   pageSize: Joi.number().integer().min(1).max(100).default(10),
 });
 
-const searchProjectSchema = paginationSchema.concat(
-  Joi.object({
-    projectId: Joi.string().required(),
-    projectRef: Joi.string().required(),
-  })
-);
-
-const searchByCategoryIdSchema = Joi.object({
-  categoryId: Joi.string().required(),
+const searchByCategorySlugSchema = Joi.object({
+  categorySlug: Joi.string().required(),
 });
 
 const recommendSchema = paginationSchema.concat(
@@ -62,43 +53,26 @@ const deploymentIdSchema = Joi.object({ id: Joi.string().required() });
 
 router.get('/byProjectId', user(), auth(), async (req, res) => {
   const { projectId, projectRef } = await getByIdSchema.validateAsync(req.query, { stripUnknown: true });
-  const deployment = await Deployment.findOne({ where: { projectId, projectRef } });
+  const deployment = await Deployment.findOne({
+    where: { projectId, projectRef },
+    include: [
+      {
+        model: Category,
+        as: 'categories',
+        through: { attributes: [] },
+      },
+    ],
+  });
 
-  if (deployment) {
-    const categories = await DeploymentCategory.findAll({ where: { deploymentId: deployment.id } });
-    deployment.categories = categories.map((category) => category.categoryId);
+  if (!deployment) {
+    res.json(null);
+    return;
   }
 
-  res.json(deployment ? { ...deployment?.dataValues, categories: deployment?.categories } : null);
+  res.json(deployment);
 });
 
 router.get('/', async (req, res) => {
-  const { projectId, projectRef, page, pageSize } = await searchProjectSchema.validateAsync(req.query, {
-    stripUnknown: true,
-  });
-
-  const offset = (page - 1) * pageSize;
-
-  const { count, rows } = await Deployment.findAndCountAll({
-    where: { projectId, projectRef },
-    limit: pageSize,
-    offset,
-    order: [['createdAt', 'DESC']],
-  });
-
-  res.json({
-    list: await Promise.all(
-      rows.map(async (deployment) => {
-        const categories = await DeploymentCategory.findAll({ where: { deploymentId: deployment.id } });
-        return { ...deployment?.dataValues, categories: categories.map((category) => category.categoryId) };
-      })
-    ),
-    totalCount: count,
-    currentPage: page,
-  });
-});
-
-router.get('/list', async (req, res) => {
   const { page, pageSize } = await paginationSchema.validateAsync(req.query, { stripUnknown: true });
   const offset = (page - 1) * pageSize;
 
@@ -106,17 +80,37 @@ router.get('/list', async (req, res) => {
     limit: pageSize,
     offset,
     order: [['createdAt', 'DESC']],
+    include: [
+      {
+        model: Category,
+        as: 'categories',
+        through: { attributes: [] },
+        attributes: ['id', 'name', 'slug'],
+        required: false,
+      },
+    ],
+    distinct: true,
   });
 
+  const enhancedDeployments = await Promise.all(
+    rows.map(async (deployment) => {
+      const repository = await getRepository({ projectId: deployment.projectId });
+      const project = repository.readAndParseFile<ProjectSettings>({
+        ref: deployment.projectRef,
+        filepath: PROJECT_FILE_PATH,
+        readBlobFromGitIfWorkingNotInitialized: true,
+      });
+
+      return {
+        ...deployment.dataValues,
+        project,
+      };
+    })
+  );
+
   res.json({
-    list: await Promise.all(
-      rows.map(async (deployment) => {
-        const categories = await DeploymentCategory.findAll({ where: { deploymentId: deployment.id } });
-        return { ...deployment.dataValues, categories: categories.map((category) => category.categoryId) };
-      })
-    ),
+    list: enhancedDeployments,
     totalCount: count,
-    currentPage: page,
   });
 });
 
@@ -124,104 +118,83 @@ router.get('/recommend-list', async (req, res) => {
   const { page, pageSize, categoryId, access } = await recommendSchema.validateAsync(req.query, { stripUnknown: true });
   const offset = (page - 1) * pageSize;
 
-  const where = access ? { access } : {};
-
-  if (categoryId) {
-    const rows = await DeploymentCategory.findAll({
-      where: { categoryId, ...where },
-      limit: pageSize,
-      offset,
-      order: [['updatedAt', 'DESC']],
-    });
-
-    const ids = rows.map((item) => item.deploymentId);
-    const deployments = await Deployment.findAll({ where: { id: { [Op.in]: ids } } });
-
-    return res.json({
-      list: await Promise.all(
-        deployments.map(async (deployment) => {
-          const categories = await DeploymentCategory.findAll({ where: { deploymentId: deployment.id } });
-
-          const repository = await getRepository({ projectId: deployment.projectId });
-          const working = await repository.working({ ref: deployment.projectRef });
-          const projectSetting = working.syncedStore.files[PROJECT_FILE_PATH] as ProjectSettings | undefined;
-
-          return {
-            ...deployment.dataValues,
-            project: projectSetting || (await Project.findOne({ where: { id: deployment.projectId } })),
-            categories: await Category.findAll({
-              where: {
-                id: {
-                  [Op.in]: categories.map((item) => item.categoryId),
-                },
-              },
-            }).catch(() => []),
-          };
-        })
-      ),
-      totalCount: deployments.length,
-      currentPage: page,
-    });
-  }
-
-  const { count, rows } = await Deployment.findAndCountAll({
-    where,
+  const query: { [key: string]: any } = {
+    include: [
+      {
+        model: Category,
+        as: 'categories',
+        through: { attributes: [] },
+      },
+    ],
     limit: pageSize,
     offset,
     order: [['updatedAt', 'DESC']],
-  });
+    distinct: true,
+  };
 
-  return res.json({
-    list: await Promise.all(
-      rows.map(async (deployment) => {
-        const categories = await DeploymentCategory.findAll({ where: { deploymentId: deployment.id } });
+  if (access) {
+    query.where = { access };
+  }
 
-        const repository = await getRepository({ projectId: deployment.projectId });
-        const working = await repository.working({ ref: deployment.projectRef });
-        const projectSetting = working.syncedStore.files[PROJECT_FILE_PATH] as ProjectSettings | undefined;
+  if (categoryId) {
+    query.include[0].where = { id: categoryId };
+  }
 
-        return {
-          ...deployment.dataValues,
-          project: projectSetting || (await Project.findOne({ where: { id: deployment.projectId } })),
-          categories: await Category.findAll({
-            where: {
-              id: {
-                [Op.in]: categories.map((item) => item.categoryId),
-              },
-            },
-          }).catch(() => []),
-        };
-      })
-    ),
+  const { count, rows } = await Deployment.findAndCountAll(query);
+
+  const enhancedDeployments = await Promise.all(
+    rows.map(async (deployment) => {
+      const repository = await getRepository({ projectId: deployment.projectId });
+      const working = await repository.working({ ref: deployment.projectRef });
+      const projectSetting = working.syncedStore.files[PROJECT_FILE_PATH] as ProjectSettings | undefined;
+
+      return { ...deployment.dataValues, project: projectSetting };
+    })
+  );
+
+  res.json({
+    list: enhancedDeployments,
     totalCount: count,
-    currentPage: page,
   });
 });
 
-router.get('/categories/:categoryId', async (req, res) => {
-  const { categoryId } = await searchByCategoryIdSchema.validateAsync(req.params, { stripUnknown: true });
+router.get('/categories/:categorySlug', async (req, res) => {
+  const { categorySlug } = await searchByCategorySlugSchema.validateAsync(req.params, { stripUnknown: true });
   const { page, pageSize } = await paginationSchema.validateAsync(req.query, { stripUnknown: true });
 
   const offset = (page - 1) * pageSize;
 
-  const { count, rows } = await DeploymentCategory.findAndCountAll({
-    where: { categoryId },
+  const { count, rows } = await Deployment.findAndCountAll({
+    include: [
+      {
+        model: Category,
+        as: 'categories',
+        where: { slug: categorySlug },
+        through: { attributes: [] },
+      },
+    ],
     limit: pageSize,
     offset,
     order: [['createdAt', 'DESC']],
+    distinct: true,
   });
 
+  const enhancedDeployments = await Promise.all(
+    rows.map(async (deployment) => {
+      const repository = await getRepository({ projectId: deployment.projectId });
+      const project = await repository.readAndParseFile<ProjectSettings>({
+        ref: deployment.projectRef,
+        filepath: PROJECT_FILE_PATH,
+        readBlobFromGitIfWorkingNotInitialized: true,
+      });
+
+      return { ...deployment.dataValues, project };
+    })
+  );
+
   res.json({
-    list: (
-      await Promise.all(
-        rows.map(async (item) => {
-          const deployment = await Deployment.findOne({ where: { id: item.deploymentId } });
-          return deployment;
-        })
-      )
-    ).filter((deployment) => deployment !== null),
+    list: enhancedDeployments,
     totalCount: count,
-    currentPage: page,
   });
 });
 
@@ -245,8 +218,10 @@ router.get('/:deploymentId', user(), async (req, res) => {
 
   const { did: userId, role } = req.user! || {};
 
-  const deployment = await Deployment.findByPk(deploymentId);
-  const categories = await DeploymentCategory.findAll({ where: { deploymentId } });
+  const deployment = await Deployment.findOne({
+    where: { id: deploymentId },
+    include: [{ model: Category, as: 'categories', through: { attributes: [] } }],
+  });
 
   if (!deployment) {
     res.status(404).json({ message: 'current agent application not published' });
@@ -270,7 +245,7 @@ router.get('/:deploymentId', user(), async (req, res) => {
   }
 
   res.json({
-    deployment: { ...deployment.dataValues, categories: categories.map((category) => category.categoryId) },
+    deployment,
     ...respondAgentFields({
       ...agent,
       identity: { projectId, projectRef, agentId: agent.id },
@@ -293,7 +268,7 @@ router.put('/:id', user(), auth(), async (req, res) => {
 
   const found = await Deployment.findByPk(req.params.id!);
   if (!found) {
-    res.status(404).json({ code: 'not_found', error: 'deployment not found' });
+    res.status(404).json({ message: 'deployment not found' });
     return;
   }
 
@@ -328,7 +303,7 @@ router.delete('/:id', user(), auth(), async (req, res) => {
 
   const deployment = await Deployment.findByPk(id);
   if (!deployment) {
-    res.status(404).json({ code: 'not_found', error: 'deployment not found' });
+    res.status(404).json({ message: 'deployment not found' });
     return;
   }
 
@@ -358,7 +333,9 @@ export const respondAgentFields = (
     'createdAt',
     'updatedAt',
     'appearance',
-    'iconVersion'
+    'iconVersion',
+    'readme',
+    'banner'
   ),
   identity: {
     ...agent.identity,
@@ -377,7 +354,7 @@ export const checkDeployment = async (req: Request, res: Response, next: NextFun
     try {
       const deployment = await Deployment.findOne({ where: { id: deploymentId } });
       if (!deployment) {
-        res.status(404).json({ error: 'No such deployment' });
+        res.status(404).json({ message: 'No such deployment' });
         throw new Error('No such deployment');
       }
 

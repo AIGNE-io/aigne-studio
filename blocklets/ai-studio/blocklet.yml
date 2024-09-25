@@ -15,7 +15,7 @@ repository:
   type: git
   url: git+https://github.com/blocklet/ai-studio.git
 specVersion: 1.2.8
-version: 0.4.60
+version: 0.4.61
 logo: logo.png
 files:
   - dist
@@ -130,6 +130,14 @@ navigation:
       - owner
       - admin
       - promptsEditor
+  - id: publicExplore
+    title:
+      en: Explore
+      zh: 探索
+    icon: tabler:share
+    link: /explore
+    section:
+      - header
 resource:
   exportApi: /api/resources/export
   types:

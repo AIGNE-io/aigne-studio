@@ -1,21 +1,25 @@
 import LoadingButton from '@app/components/loading/loading-button';
 import { useCurrentProject } from '@app/contexts/project';
 import { useIsAdmin } from '@app/contexts/session';
+import { theme } from '@app/theme/theme';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import ComponentInstaller from '@blocklet/ui-react/lib/ComponentInstaller';
 import { Icon } from '@iconify-icon/react';
-import CategoryIcon from '@iconify-icons/tabler/category';
+import ArrowLeft from '@iconify-icons/tabler/chevron-left';
 import LockIcon from '@iconify-icons/tabler/lock';
 import RocketIcon from '@iconify-icons/tabler/rocket';
 import ShareIcon from '@iconify-icons/tabler/share';
 import View360 from '@iconify-icons/tabler/view-360';
 import {
   Box,
+  Button,
   Card,
   CardContent,
   CircularProgress,
   ClickAwayListener,
+  Dialog,
+  DialogContent,
   Divider,
   FormControl,
   FormControlLabel,
@@ -30,21 +34,26 @@ import {
   Radio,
   RadioGroup,
   Stack,
+  SxProps,
+  Theme,
   Typography,
+  useMediaQuery,
 } from '@mui/material';
 import { useRequest } from 'ahooks';
 import { compact } from 'lodash';
-import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
+import { bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { Suspense, useState } from 'react';
-import { joinURL } from 'ufo';
 
 import { Deployment, createDeployment, getDeploymentByProjectId, updateDeployment } from '../../libs/deployment';
+import PublishView from './publish-view';
 import PublishButton from './publish/publish-button';
 import { saveButtonState } from './state';
 
 export default function DeploymentAction() {
   const deploymentPopperState = usePopupState({ variant: 'popper', popupId: 'deployment' });
+  const deploymentDialogState = usePopupState({ variant: 'dialog', popupId: 'deployment' });
   const { t } = useLocaleContext();
+  const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
 
   const { projectId, projectRef } = useCurrentProject();
 
@@ -60,8 +69,8 @@ export default function DeploymentAction() {
         size="small"
         sx={{ px: 2 }}
         disabled={loading}
-        {...bindTrigger(deploymentPopperState)}>
-        {t('deployments.title')}
+        {...(isMobile ? { onClick: deploymentDialogState.open } : { ...bindTrigger(deploymentPopperState) })}>
+        {t('deploy')}
       </LoadingButton>
 
       <Popper {...bindPopper(deploymentPopperState)} sx={{ zIndex: 1101 }} transition placement="bottom-end">
@@ -85,11 +94,11 @@ export default function DeploymentAction() {
                           'z2qaCNvKMv5GjouKdcDWexv6WqtHbpNPQDnAk',
                           'z8iZiDFg3vkkrPwsiba1TLXy3H9XHzFERsP8o',
                         ]}>
-                        <UpdateApp id={data.id} data={data} run={run} />
+                        <UpdateApp id={data.id} data={data} run={run} sx={{ width: 400, gap: 2, py: 3 }} />
                       </ComponentInstaller>
                     </Suspense>
                   ) : (
-                    <DeployApp run={run} projectId={projectId} projectRef={projectRef} />
+                    <DeployApp run={run} projectId={projectId} projectRef={projectRef} sx={{ width: 400 }} />
                   )}
                 </Box>
               </ClickAwayListener>
@@ -97,11 +106,58 @@ export default function DeploymentAction() {
           </Grow>
         )}
       </Popper>
+
+      <Dialog
+        {...bindDialog(deploymentDialogState)}
+        fullScreen
+        hideBackdrop
+        sx={{ mt: '65px' }}
+        PaperProps={{ elevation: 0 }}>
+        <DialogContent sx={{ px: '0 !important' }}>
+          <Stack gap={2}>
+            <Box px={1}>
+              <Button
+                sx={{ p: 0 }}
+                onClick={deploymentDialogState.close}
+                startIcon={<Box component={Icon} icon={ArrowLeft} sx={{ fontSize: 16 }} />}>
+                {t('back')}
+              </Button>
+            </Box>
+
+            <Box>
+              {data ? (
+                <Suspense fallback={<CircularProgress />}>
+                  <ComponentInstaller
+                    did={[
+                      'z2qa6fvjmjew4pWJyTsKaWFuNoMUMyXDh5A1D',
+                      'z2qaCNvKMv5GjouKdcDWexv6WqtHbpNPQDnAk',
+                      'z8iZiDFg3vkkrPwsiba1TLXy3H9XHzFERsP8o',
+                    ]}>
+                    <UpdateApp id={data.id} data={data} run={run} sx={{ width: 1, gap: 2 }} />
+                  </ComponentInstaller>
+                </Suspense>
+              ) : (
+                <DeployApp run={run} projectId={projectId} projectRef={projectRef} sx={{ width: 1 }} />
+              )}
+            </Box>
+          </Stack>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
 
-function DeployApp({ projectId, projectRef, run }: { projectId: string; projectRef: string; run: () => void }) {
+function DeployApp({
+  projectId,
+  projectRef,
+  run,
+  sx,
+}: {
+  projectId: string;
+  projectRef: string;
+  run: () => void;
+  sx?: SxProps;
+}) {
   const isAdmin = useIsAdmin();
   const { t } = useLocaleContext();
   const [visibility, setVisibility] = useState<'public' | 'private'>('public');
@@ -118,6 +174,8 @@ function DeployApp({ projectId, projectRef, run }: { projectId: string; projectR
         access: visibility,
       });
 
+      await saveButtonState.getState().save?.({ skipConfirm: true, skipCommitIfNoChanges: true });
+
       run();
 
       Toast.success('Deployed successfully');
@@ -127,7 +185,7 @@ function DeployApp({ projectId, projectRef, run }: { projectId: string; projectR
   };
 
   return (
-    <Box width={400}>
+    <Box sx={sx}>
       <Box p={3}>
         <Stack gap={0.75}>
           <Box component="h3" m={0}>
@@ -201,7 +259,7 @@ function DeployApp({ projectId, projectRef, run }: { projectId: string; projectR
           </Box>
 
           <LoadingButton variant="contained" onClick={onSubmit}>
-            {t('deployments.title')}
+            {t('deploy')}
           </LoadingButton>
         </Stack>
       </Box>
@@ -209,7 +267,7 @@ function DeployApp({ projectId, projectRef, run }: { projectId: string; projectR
   );
 }
 
-function UpdateApp({ id, data, run }: { id: string; data: Deployment; run: () => void }) {
+function UpdateApp({ id, data, run, sx }: { id: string; data: Deployment; run: () => void; sx?: SxProps }) {
   const { t } = useLocaleContext();
   const isAdmin = useIsAdmin();
 
@@ -220,7 +278,7 @@ function UpdateApp({ id, data, run }: { id: string; data: Deployment; run: () =>
     try {
       await updateDeployment(id, {
         access: visibility,
-        categories: data.categories,
+        categories: (data.categories || []).map((category) => category.id),
         productHuntUrl: data.productHuntUrl,
         productHuntBannerUrl: data.productHuntBannerUrl,
       });
@@ -236,7 +294,7 @@ function UpdateApp({ id, data, run }: { id: string; data: Deployment; run: () =>
   };
 
   return (
-    <Stack width={400} gap={2} py={3}>
+    <Stack sx={sx}>
       <Box px={3}>
         <Box component="h3" m={0}>
           {t('deployments.updateApp')}
@@ -309,9 +367,17 @@ function UpdateApp({ id, data, run }: { id: string; data: Deployment; run: () =>
           sx={{
             m: 0,
             p: 0,
-            ':hover': {
-              '.MuiListItemButton-root': {
+            '& .MuiListItem-root': {
+              transition: 'background-color 0.3s',
+              '&:hover': {
+                backgroundColor: theme.palette.action.hover,
+              },
+            },
+            '& .MuiListItemButton-root': {
+              transition: 'all 0.3s',
+              '&:hover': {
                 backgroundColor: 'transparent',
+                transform: 'translateX(4px)',
               },
             },
           }}>
@@ -319,35 +385,40 @@ function UpdateApp({ id, data, run }: { id: string; data: Deployment; run: () =>
             {
               text: t('deployments.appPage'),
               icon: <Box component={Icon} icon={ShareIcon} sx={{ fontSize: 20 }} />,
-              handle: () => {
-                window.open(joinURL(globalThis.location.origin, window.blocklet.prefix, '/explore/apps', id), '_blank');
-              },
+              children: <PublishView projectId={data.projectId} projectRef={data.projectRef} deploymentId={id} />,
+              handle: () => {},
             },
-            (data?.categories || []).length
-              ? {
-                  text: t('deployments.explore'),
-                  icon: <Box component={Icon} icon={CategoryIcon} sx={{ fontSize: 20 }} />,
-                  handle: () => {
-                    window.open(
-                      joinURL(
-                        globalThis.location.origin,
-                        window.blocklet.prefix,
-                        '/explore/category',
-                        data?.categories[0]!,
-                        data.id
-                      )
-                    );
-                  },
-                }
-              : null,
-          ]).map((item) => (
-            <ListItem key={item.text} dense disablePadding onClick={item.handle}>
-              <ListItemButton sx={{ p: 0, m: 0 }}>
-                <ListItemIcon sx={{ minWidth: 0, mr: 1 }}>{item.icon}</ListItemIcon>
-                <ListItemText primary={item.text} />
-              </ListItemButton>
-            </ListItem>
-          ))}
+          ]).map((item) => {
+            if (item.children) {
+              return item.children;
+            }
+
+            return (
+              <ListItem
+                key={item.text}
+                dense
+                disablePadding
+                sx={{
+                  borderRadius: 1,
+                  mb: 0.5,
+                  overflow: 'hidden',
+                }}
+                onClick={item.handle}>
+                <ListItemButton sx={{ p: 0.5, m: 0 }}>
+                  <ListItemIcon sx={{ minWidth: 0, mr: 1 }}>{item.icon}</ListItemIcon>
+                  <ListItemText
+                    primary={item.text}
+                    sx={{
+                      '& .MuiTypography-root': {
+                        fontWeight: 500,
+                        color: theme.palette.text.primary,
+                      },
+                    }}
+                  />
+                </ListItemButton>
+              </ListItem>
+            );
+          })}
         </List>
       </Stack>
 

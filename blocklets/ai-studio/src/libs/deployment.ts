@@ -1,3 +1,4 @@
+import { ProjectSettings } from '@blocklet/ai-runtime/types';
 import { joinURL } from 'ufo';
 
 import axios from './api';
@@ -12,7 +13,7 @@ export type Deployment = {
   createdAt: string;
   updatedAt: string;
   access: 'public' | 'private';
-  categories: string[];
+  categories: { id: string; name: string; slug: string }[];
   productHuntUrl?: string;
   productHuntBannerUrl?: string;
 };
@@ -34,9 +35,11 @@ export async function getDeploymentByProjectId({
   return axios.get('/api/deployments/byProjectId', { params: { projectId, projectRef } }).then((res) => res.data);
 }
 
-export async function getDeployment({ id }: { id: string }): Promise<{
-  deployment: Deployment | null;
-}> {
+export async function getDeployment({
+  id,
+}: {
+  id: string;
+}): Promise<{ deployment: Deployment | null; project: ProjectSettings }> {
   return axios.get(joinURL('/api/deployments', id)).then((res) => res.data);
 }
 
@@ -48,38 +51,25 @@ export async function createDeployment(input: {
   return axios.post('/api/deployments', input).then((res) => res.data);
 }
 
-export async function getDeployments(input: {
-  projectId: string;
-  projectRef: string;
+export async function getDeploymentsByCategorySlug(input: {
+  categorySlug: string;
   page: number;
   pageSize: number;
 }): Promise<{
+  list: (Deployment & { project: ProjectSettings })[];
+  totalCount: number;
+}> {
+  const { categorySlug, page, pageSize } = input;
+  return axios
+    .get(`/api/deployments/categories/${categorySlug}`, { params: { page, pageSize } })
+    .then((res) => res.data);
+}
+
+export async function getDeployments(input: { page: number; pageSize: number }): Promise<{
   list: Deployment[];
   totalCount: number;
-  currentPage: number;
 }> {
   return axios.get('/api/deployments', { params: input }).then((res) => res.data);
-}
-
-export async function getDeploymentsByCategoryId(input: {
-  categoryId: string;
-  page: number;
-  pageSize: number;
-}): Promise<{
-  list: Deployment[];
-  totalCount: number;
-  currentPage: number;
-}> {
-  const { categoryId, page, pageSize } = input;
-  return axios.get(`/api/deployments/categories/${categoryId}`, { params: { page, pageSize } }).then((res) => res.data);
-}
-
-export async function getAllDeployments(input: { page: number; pageSize: number }): Promise<{
-  list: Deployment[];
-  totalCount: number;
-  currentPage: number;
-}> {
-  return axios.get('/api/deployments/list', { params: input }).then((res) => res.data);
 }
 
 export async function updateDeployment(id: string, input: UpdateType): Promise<Deployment> {

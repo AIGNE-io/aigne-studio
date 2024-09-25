@@ -16,7 +16,7 @@ export default class Deployment extends Model<InferAttributes<Deployment>, Infer
 
   declare access: 'private' | 'public';
 
-  declare categories?: string[];
+  declare categories?: { id: string; name: string }[];
 
   declare createdBy: string;
 
@@ -25,6 +25,15 @@ export default class Deployment extends Model<InferAttributes<Deployment>, Infer
   declare productHuntUrl?: string;
 
   declare productHuntBannerUrl?: number;
+
+  static associate(models: { Category: any; DeploymentCategory: any }) {
+    this.belongsToMany(models.Category, {
+      through: models.DeploymentCategory,
+      foreignKey: 'deploymentId',
+      otherKey: 'categoryId',
+      as: 'categories',
+    });
+  }
 }
 
 Deployment.init(

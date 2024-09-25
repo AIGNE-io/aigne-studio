@@ -1,25 +1,18 @@
 import { getErrorMessage } from '@app/libs/api';
-import { getCategories } from '@app/libs/category';
 import useDialog from '@app/utils/use-dialog';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { Box, Button, Container, Stack, Typography, styled } from '@mui/material';
+import { Box, Button, Chip, Container, Stack, Typography, styled } from '@mui/material';
 import { DataGrid, GridColDef, gridClasses } from '@mui/x-data-grid';
 import { useRequest } from 'ahooks';
 import dayjs from 'dayjs';
 import { usePopupState } from 'material-ui-popup-state/hooks';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { joinURL } from 'ufo';
 
-import { deleteDeployment, getAllDeployments } from '../../libs/deployment';
+import { deleteDeployment, getDeployments } from '../../libs/deployment';
 import type { Deployment } from '../../libs/deployment';
 import DeploymentDialog from '../deployments/dialog';
-import { useProjectStore } from '../project/yjs-state';
-
-function ProjectAgentName({ projectId, gitRef }: { projectId: string; gitRef: string }) {
-  const { projectSetting } = useProjectStore(projectId, gitRef);
-  return <Box>{projectSetting?.name}</Box>;
-}
 
 const pageSize = 10;
 
@@ -30,15 +23,14 @@ function DeploymentList() {
   const { dialog, showDialog } = useDialog();
   const [deployment, setDeployment] = useState<Deployment | null>(null);
 
-  const { data, loading, run, refresh } = useRequest(getAllDeployments, {
-    defaultParams: [{ page: 1, pageSize }],
-    refreshDeps: [],
-  });
+  const [page, setPage] = useState(0);
+  const params = useMemo(() => ({ page: page + 1, pageSize }), [page, pageSize]);
 
-  const { data: categories, loading: categoriesLoading } = useRequest(getCategories, {
-    defaultParams: [{ page: 1, pageSize: 1000 }],
-    refreshDeps: [],
-  });
+  const { data, loading, run, refresh } = useRequest(getDeployments, { manual: true });
+
+  useEffect(() => {
+    run(params);
+  }, [params, run]);
 
   const columns = useMemo<GridColDef<Deployment>[]>(
     () => [
@@ -46,9 +38,7 @@ function DeploymentList() {
         field: 'title',
         headerName: t('agentName'),
         flex: 1,
-        renderCell: (params) => (
-          <ProjectAgentName projectId={params?.row?.projectId!} gitRef={params?.row?.projectRef!} />
-        ),
+        renderCell: (params) => <Box>{params.row.project?.name}</Box>,
       },
       {
         field: 'access',
@@ -67,9 +57,13 @@ function DeploymentList() {
         headerName: t('category.title'),
         flex: 1,
         renderCell: (params) => {
-          return params.row.categories
-            .map((category) => categories?.list?.find((c) => c.id === category)?.name)
-            .join(', ');
+          return (
+            <Box>
+              {params.row.categories.map((category) => {
+                return <Chip label={category.name} sx={{ mr: 1 }} key={category.id} size="small" />;
+              })}
+            </Box>
+          );
         },
       },
       {
@@ -133,7 +127,7 @@ function DeploymentList() {
                     onOk: async () => {
                       try {
                         await deleteDeployment({ id: params.row.id });
-                        run({ page: 1, pageSize });
+                        setPage(0);
                         Toast.success(t('deployments.deleteSuccess'));
                       } catch (error) {
                         Toast.error(getErrorMessage(error));
@@ -148,10 +142,8 @@ function DeploymentList() {
         },
       },
     ],
-    [t, categories, dialogState, run, showDialog]
+    [t, dialogState, showDialog]
   );
-
-  const handlePageChange = (newPage: number) => run({ page: newPage + 1, pageSize });
 
   return (
     <Container>
@@ -183,12 +175,12 @@ function DeploymentList() {
               rows={data?.list || []}
               columns={columns as any}
               rowCount={data?.totalCount || 0}
-              pageSizeOptions={[20]}
-              paginationModel={{ page: (data?.currentPage || 1) - 1, pageSize }}
+              pageSizeOptions={[1, 10]}
+              paginationModel={{ page, pageSize }}
               paginationMode="server"
-              onPaginationModelChange={({ page }) => handlePageChange(page)}
-              getRowClassName={() => 'document-row'}
-              loading={loading || categoriesLoading}
+              onPaginationModelChange={({ page }) => setPage(page)}
+              getRowClassName={() => 'deployment-row'}
+              loading={loading}
               slots={{
                 noRowsOverlay: () => (
                   <Box className="center" height={1}>
@@ -211,7 +203,7 @@ function DeploymentList() {
         dialogState={dialogState}
         id={deployment?.id!}
         access={deployment?.access!}
-        categories={deployment?.categories!}
+        categories={deployment?.categories! || []}
         productHuntUrl={deployment?.productHuntUrl}
         productHuntBannerUrl={deployment?.productHuntBannerUrl}
         run={refresh}

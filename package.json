@@ -1,7 +1,7 @@
 {
   "name": "ai-studio",
   "private": true,
-  "version": "0.4.60",
+  "version": "0.4.61",
   "workspaces": [
     "blocklets/*",
     "packages/*"
@@ -22,7 +22,7 @@
     "build:libs": "pnpm -F @blocklet/* build",
     "bump-version": "zx scripts/bump-version.mjs",
     "update:deps": "npx -y taze major -r -w -x '/nanoid|eslint/' && pnpm install",
-    "update:deps:internal": "npx -y taze major -r -w -n '/blocklet|abtnode|arcblock|ocap/' && pnpm install",
+    "update:deps:internal": "npx -y taze major -r -w -n '/blocklet|abtnode|arcblock|ocap|did-space/' && pnpm install",
     "e2e": "./scripts/start-e2e.ts",
     "postinstall": "npx simple-git-hooks"
   },

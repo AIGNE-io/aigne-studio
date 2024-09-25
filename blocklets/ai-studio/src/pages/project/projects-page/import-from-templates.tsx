@@ -131,13 +131,7 @@ export default function ImportFromTemplates({
                         </Box>
                       </Box>
 
-                      <Box
-                        className="desc"
-                        sx={{
-                          fontWeight: 400,
-                          fontSize: 13,
-                          lineHeight: '22px',
-                        }}>
+                      <Box className="desc" sx={{ fontWeight: 400, fontSize: 13, lineHeight: '22px' }}>
                         {description}
                       </Box>
                     </Box>

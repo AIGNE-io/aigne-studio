@@ -8,7 +8,7 @@ import { Route, Routes } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
 import Loading from '../../components/loading';
-import ExploreCategoriesSidebar from './sidebar';
+import ExploreCategoryLayout from './layout';
 
 export default function ExploreCategoryRoutes() {
   return (
@@ -24,7 +24,7 @@ export default function ExploreCategoryRoutes() {
         HeaderProps={{
           logo: <AigneLogo />,
           addons: (exists) => [<SubscribeButton />, ...exists],
-          homeLink: joinURL(blocklet?.prefix || '', 'explore/category'),
+          homeLink: joinURL(blocklet?.prefix || '', 'explore'),
         }}
         MenusDrawerProps={{ sx: { [`.${backdropClasses.root}`]: { top: 64 } } }}
         sx={{
@@ -51,9 +51,9 @@ export default function ExploreCategoryRoutes() {
         <ErrorBoundary>
           <Suspense fallback={<Loading fixed />}>
             <Routes>
-              <Route element={<ExploreCategoriesSidebar />}>
-                <Route path=":categoryId?" element={<ExploreCategoryList />} />
-                <Route path=":categoryId/:deploymentId" element={<ExploreCategoryDetail />} />
+              <Route element={<ExploreCategoryLayout />}>
+                <Route path=":categorySlug?" element={<ExploreCategoryList />} />
+                <Route path=":categorySlug/:deploymentId" element={<ExploreCategoryDetail />} />
               </Route>
             </Routes>
           </Suspense>

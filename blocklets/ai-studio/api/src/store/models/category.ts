@@ -8,6 +8,8 @@ export default class Category extends Model<InferAttributes<Category>, InferCrea
 
   declare name: string;
 
+  declare slug: string;
+
   declare icon: CreationOptional<string>;
 
   declare createdAt: CreationOptional<Date>;
@@ -17,6 +19,15 @@ export default class Category extends Model<InferAttributes<Category>, InferCrea
   declare createdBy: string;
 
   declare updatedBy: string;
+
+  static associate(models: { Deployment: any; DeploymentCategory: any }) {
+    this.belongsToMany(models.Deployment, {
+      through: models.DeploymentCategory,
+      foreignKey: 'categoryId',
+      otherKey: 'deploymentId',
+      as: 'deployments',
+    });
+  }
 }
 
 Category.init(
@@ -29,6 +40,11 @@ Category.init(
     },
     name: {
       type: DataTypes.STRING,
+    },
+    slug: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      unique: true,
     },
     icon: {
       type: DataTypes.STRING,

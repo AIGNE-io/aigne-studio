@@ -1,12 +1,14 @@
 import PromiseLoadingButton from '@app/components/promise-loading-button';
 import { getErrorMessage } from '@app/libs/api';
 import { createCategory, deleteCategory, getCategories, updateCategory } from '@app/libs/category';
+import { generateSlug } from '@app/libs/util';
 import Close from '@app/pages/project/icons/close';
 import useDialog from '@app/utils/use-dialog';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
 import EditIcon from '@iconify-icons/tabler/edit';
+import ExternalLinkIcon from '@iconify-icons/tabler/external-link';
 import TrashIcon from '@iconify-icons/tabler/trash';
 import {
   Box,
@@ -30,8 +32,10 @@ import {
 } from '@mui/material';
 import useInfiniteScroll from 'ahooks/lib/useInfiniteScroll';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
+import { useEffect } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import useInfiniteScrollHook from 'react-infinite-scroll-hook';
+import { joinURL } from 'ufo';
 
 const StyledListItem = styled(ListItem)(() => ({
   borderRadius: '8px',
@@ -56,17 +60,18 @@ function CategoryList() {
     handleSubmit,
     formState: { errors },
     reset,
-  } = useForm<{ id?: string; name: string; icon: string }>({
-    defaultValues: { id: '', name: '', icon: '' },
+  } = useForm<{ id?: string; name: string; icon: string; slug: string }>({
+    defaultValues: { id: '', name: '', icon: '', slug: '' },
   });
 
-  const icon = useWatch({ control, name: 'icon' });
   const id = useWatch({ control, name: 'id' });
+  const icon = useWatch({ control, name: 'icon' });
+  const name = useWatch({ control, name: 'name' });
 
-  const onSubmit = async (data: { id?: string; name: string; icon: string }) => {
-    const { id, name, icon } = data;
+  const onSubmit = async (data: { id?: string; name: string; icon: string; slug: string }) => {
+    const { id, name, icon, slug } = data;
     const action = id ? 'update' : 'create';
-    const actionData = { name, icon };
+    const actionData = { name, icon, slug: slug || generateSlug(name) };
 
     try {
       if (id) {
@@ -82,10 +87,13 @@ function CategoryList() {
 
       dataState.reload();
     } catch (error) {
-      Toast.error(`${action === 'update' ? t('update') : t('create')} ${t('failed')}`);
-      console.error(`Error ${action}ing category:`, error);
+      Toast.error(getErrorMessage(error));
     }
   };
+
+  useEffect(() => {
+    if (!id && name) setValue('slug', generateSlug(name));
+  }, [name, id]);
 
   return (
     <Container>
@@ -112,7 +120,20 @@ function CategoryList() {
                     {item.icon ? <Icon icon={item.icon} /> : <Icon icon="tabler:settings" />}
                   </ListItemIcon>
                   <ListItemText primary={item.name} />
+
                   <ListItemSecondaryAction sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    <IconButton
+                      edge="end"
+                      aria-label="edit"
+                      onClick={() => {
+                        window.open(
+                          joinURL(globalThis.location.origin, window.blocklet.prefix, 'explore/category', item.slug),
+                          '_blank'
+                        );
+                      }}>
+                      <Box component={Icon} icon={ExternalLinkIcon} fontSize="small" />
+                    </IconButton>
+
                     <IconButton
                       edge="end"
                       aria-label="edit"
@@ -120,6 +141,7 @@ function CategoryList() {
                         setValue('id', item.id);
                         setValue('name', item.name);
                         setValue('icon', item.icon);
+                        setValue('slug', item.slug || generateSlug(item.name));
                         dialogState.open();
                       }}>
                       <Box component={Icon} icon={EditIcon} fontSize="small" />
@@ -213,6 +235,26 @@ function CategoryList() {
                   )}
                 />
               </Box>
+
+              <Box>
+                <Typography variant="subtitle2">Slug</Typography>
+                <Controller
+                  name="slug"
+                  control={control}
+                  rules={{ required: 'Slug is required' }}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      hiddenLabel
+                      fullWidth
+                      placeholder="Slug"
+                      error={!!errors.slug}
+                      helperText={errors.slug?.message}
+                    />
+                  )}
+                />
+              </Box>
+
               <Box>
                 <Typography variant="subtitle2">{t('category.icon')}</Typography>
                 <Controller
@@ -291,9 +333,7 @@ const useFetchCategories = () => {
       const { page = 1, size = 20 } = d || {};
       const { list: items, totalCount: total } = await getCategories({ page, pageSize: size });
 
-      const list = (d?.list?.length || 0) + items.length;
-      const next = Boolean(list < total);
-      return { list: items || [], next, size, page: (d?.page || 1) + 1, total };
+      return { list: items || [], next: items.length >= size, size, page: (d?.page || 1) + 1, total };
     },
     { isNoMore: (d) => !d?.next, reloadDeps: [] }
   );
