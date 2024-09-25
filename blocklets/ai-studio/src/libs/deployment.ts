@@ -15,6 +15,9 @@ export type Deployment = {
   categories: { id: string; name: string; slug: string }[];
   productHuntUrl?: string;
   productHuntBannerUrl?: string;
+  project?: {
+    name: string;
+  };
 };
 
 export type UpdateType = {
