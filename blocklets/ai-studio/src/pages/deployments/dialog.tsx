@@ -40,6 +40,7 @@ export default function DeploymentDialog({
   id,
   access,
   categories = [],
+  orderIndex,
   productHuntUrl,
   productHuntBannerUrl,
   showVisibility = true,
@@ -49,6 +50,7 @@ export default function DeploymentDialog({
   id: string;
   access: 'private' | 'public';
   categories: { id: string; name: string; slug: string }[];
+  orderIndex?: number;
   productHuntUrl?: string;
   productHuntBannerUrl?: string;
   run: () => void;
@@ -57,12 +59,13 @@ export default function DeploymentDialog({
   const isAdmin = useIsAdmin();
   const { t } = useLocaleContext();
 
-  const { control, handleSubmit, setValue } = useForm<UpdateType>({
+  const { register, control, handleSubmit, setValue } = useForm<UpdateType>({
     defaultValues: {
       access,
       categories: categories.map((category) => category.id),
       productHuntUrl,
       productHuntBannerUrl,
+      orderIndex,
     },
   });
 
@@ -79,7 +82,8 @@ export default function DeploymentDialog({
     );
     setValue('productHuntUrl', productHuntUrl || '');
     setValue('productHuntBannerUrl', productHuntBannerUrl || '');
-  }, [access, categories, productHuntUrl, productHuntBannerUrl, setValue]);
+    setValue('orderIndex', orderIndex);
+  }, [access, categories, productHuntUrl, productHuntBannerUrl, orderIndex, setValue]);
 
   const onSubmit = async (data: UpdateType) => {
     try {
@@ -135,6 +139,17 @@ export default function DeploymentDialog({
             <Stack gap={1}>
               <Typography variant="body1">{t('category.title')}</Typography>
               <CategorySelect control={control} name="categories" categories={data?.list || []} />
+            </Stack>
+
+            <Stack gap={1}>
+              <Typography variant="body1">Order Index (ASC)</Typography>
+              <TextField
+                {...register('orderIndex', { valueAsNumber: true })}
+                hiddenLabel
+                fullWidth
+                type="number"
+                placeholder="Order Index"
+              />
             </Stack>
 
             <ProductHuntFields control={control} />

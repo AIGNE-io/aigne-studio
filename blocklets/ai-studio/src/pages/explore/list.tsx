@@ -31,7 +31,7 @@ import { withQuery } from 'ufo';
 
 import { MobileSidebarHeader } from './layout';
 
-const pageSize = 10;
+const pageSize = 50;
 const pcSpacing = 3;
 const mobileSpacing = 2;
 

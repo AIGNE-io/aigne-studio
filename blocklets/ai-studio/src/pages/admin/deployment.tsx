@@ -15,7 +15,7 @@ import { deleteDeployment, getDeployments } from '../../libs/deployment';
 import type { Deployment } from '../../libs/deployment';
 import DeploymentDialog from '../deployments/dialog';
 
-const pageSize = 10;
+const pageSize = 50;
 
 function DeploymentList() {
   const { t } = useLocaleContext();
@@ -158,7 +158,7 @@ function DeploymentList() {
             whiteSpace: 'nowrap',
             maxWidth: '100%',
           }}>
-          <Stack flex={1} minHeight={400} sx={{ overflowX: 'auto' }}>
+          <Stack flex={1} sx={{ overflowX: 'auto' }}>
             <Table
               sx={{
                 minWidth: 600,
@@ -176,7 +176,7 @@ function DeploymentList() {
               rows={data?.list || []}
               columns={columns as any}
               rowCount={data?.totalCount || 0}
-              pageSizeOptions={[1, 10]}
+              pageSizeOptions={[10, 20, 50, 100]}
               paginationModel={{ page, pageSize }}
               paginationMode="server"
               onPaginationModelChange={({ page }) => setPage(page)}
@@ -205,6 +205,7 @@ function DeploymentList() {
         id={deployment?.id!}
         access={deployment?.access!}
         categories={deployment?.categories! || []}
+        orderIndex={deployment?.orderIndex}
         productHuntUrl={deployment?.productHuntUrl}
         productHuntBannerUrl={deployment?.productHuntBannerUrl}
         run={refresh}

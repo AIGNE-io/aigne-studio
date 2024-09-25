@@ -26,6 +26,8 @@ export default class Deployment extends Model<InferAttributes<Deployment>, Infer
 
   declare productHuntBannerUrl?: number;
 
+  declare orderIndex: CreationOptional<number>;
+
   static associate(models: { Category: any; DeploymentCategory: any; Project: any }) {
     this.belongsToMany(models.Category, {
       through: models.DeploymentCategory,
@@ -75,6 +77,10 @@ Deployment.init(
     },
     productHuntBannerUrl: {
       type: DataTypes.STRING,
+    },
+    orderIndex: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
     },
   },
   { sequelize }

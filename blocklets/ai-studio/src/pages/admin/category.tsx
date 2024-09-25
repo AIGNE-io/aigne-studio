@@ -60,7 +60,8 @@ function CategoryList() {
     handleSubmit,
     formState: { errors },
     reset,
-  } = useForm<{ id?: string; name: string; icon: string; slug: string }>({
+    register,
+  } = useForm<{ id?: string; name: string; icon: string; slug: string; orderIndex?: number }>({
     defaultValues: { id: '', name: '', icon: '', slug: '' },
   });
 
@@ -68,10 +69,10 @@ function CategoryList() {
   const icon = useWatch({ control, name: 'icon' });
   const name = useWatch({ control, name: 'name' });
 
-  const onSubmit = async (data: { id?: string; name: string; icon: string; slug: string }) => {
-    const { id, name, icon, slug } = data;
+  const onSubmit = async (data: { id?: string; name: string; icon: string; slug: string; orderIndex?: number }) => {
+    const { id, name, icon, slug, orderIndex } = data;
     const action = id ? 'update' : 'create';
-    const actionData = { name, icon, slug: slug || generateSlug(name) };
+    const actionData = { name, icon, slug: slug || generateSlug(name), orderIndex };
 
     try {
       if (id) {
@@ -99,7 +100,13 @@ function CategoryList() {
     <Container>
       <Box className="between" mt={2.5} mb={1.5}>
         <Box sx={{ fontWeight: 700, fontSize: 24, lineHeight: '32px', color: '#030712' }}>{t('category.title')}</Box>
-        <Button variant="contained" color="primary" onClick={dialogState.open}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => {
+            reset({ id: '', name: '', icon: '', slug: '', orderIndex: undefined });
+            dialogState.open();
+          }}>
           {t('category.add')}
         </Button>
       </Box>
@@ -127,7 +134,7 @@ function CategoryList() {
                       aria-label="edit"
                       onClick={() => {
                         window.open(
-                          joinURL(globalThis.location.origin, window.blocklet.prefix, 'explore/category', item.slug),
+                          joinURL(globalThis.location.origin, window.blocklet.prefix, 'explore', item.slug),
                           '_blank'
                         );
                       }}>
@@ -138,10 +145,7 @@ function CategoryList() {
                       edge="end"
                       aria-label="edit"
                       onClick={() => {
-                        setValue('id', item.id);
-                        setValue('name', item.name);
-                        setValue('icon', item.icon);
-                        setValue('slug', item.slug || generateSlug(item.name));
+                        reset(item);
                         dialogState.open();
                       }}>
                       <Box component={Icon} icon={EditIcon} fontSize="small" />
@@ -252,6 +256,19 @@ function CategoryList() {
                       helperText={errors.slug?.message}
                     />
                   )}
+                />
+              </Box>
+
+              <Box>
+                <Typography variant="subtitle2">Order Index (ASC)</Typography>
+                <TextField
+                  {...register('orderIndex', { valueAsNumber: true })}
+                  hiddenLabel
+                  fullWidth
+                  type="number"
+                  placeholder="Order Index"
+                  error={!!errors.orderIndex}
+                  helperText={errors.orderIndex?.message}
                 />
               </Box>
 

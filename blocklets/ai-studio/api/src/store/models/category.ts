@@ -20,6 +20,8 @@ export default class Category extends Model<InferAttributes<Category>, InferCrea
 
   declare updatedBy: string;
 
+  declare orderIndex: CreationOptional<number>;
+
   static associate(models: { Deployment: any; DeploymentCategory: any }) {
     this.belongsToMany(models.Deployment, {
       through: models.DeploymentCategory,
@@ -61,6 +63,10 @@ Category.init(
     },
     updatedBy: {
       type: DataTypes.STRING,
+    },
+    orderIndex: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
     },
   },
   { sequelize }

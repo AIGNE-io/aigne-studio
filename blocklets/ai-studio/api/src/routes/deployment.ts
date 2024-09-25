@@ -41,6 +41,7 @@ const recommendSchema = paginationSchema.concat(
 const updateSchema = Joi.object({
   access: Joi.string().valid('private', 'public').required(),
   categories: Joi.array().items(Joi.string()).optional(),
+  orderIndex: Joi.number().integer().empty(null).optional(),
   productHuntUrl: Joi.string().allow('').empty([null, '']).optional(),
   productHuntBannerUrl: Joi.string().allow('').empty([null, '']).optional(),
 });
@@ -80,7 +81,10 @@ router.get('/', async (req, res) => {
   const { count, rows } = await Deployment.findAndCountAll({
     limit: pageSize,
     offset,
-    order: [['createdAt', 'DESC']],
+    order: [
+      ['orderIndex', 'ASC'],
+      ['updatedAt', 'DESC'],
+    ],
     include: [
       {
         model: Category,
@@ -139,7 +143,10 @@ router.get('/recommend-list', async (req, res) => {
     ],
     limit: pageSize,
     offset,
-    order: [['updatedAt', 'DESC']],
+    order: [
+      ['orderIndex', 'ASC'],
+      ['updatedAt', 'DESC'],
+    ],
     distinct: true,
   };
 
@@ -194,7 +201,10 @@ router.get('/categories/:categorySlug', async (req, res) => {
     ],
     limit: pageSize,
     offset,
-    order: [['createdAt', 'DESC']],
+    order: [
+      ['orderIndex', 'ASC'],
+      ['updatedAt', 'DESC'],
+    ],
     distinct: true,
   });
 
@@ -293,11 +303,15 @@ router.put('/:id', user(), auth(), async (req, res) => {
 
   checkUserAuth(req, res)(found.createdBy);
 
-  const { access, categories, productHuntUrl, productHuntBannerUrl } = await updateSchema.validateAsync(req.body, {
-    stripUnknown: true,
-  });
+  const { access, categories, productHuntUrl, productHuntBannerUrl, orderIndex } = await updateSchema.validateAsync(
+    req.body,
+    { stripUnknown: true }
+  );
 
-  await Deployment.update({ access, productHuntUrl, productHuntBannerUrl }, { where: { id: req.params.id! } });
+  await Deployment.update(
+    { access, productHuntUrl, productHuntBannerUrl, orderIndex },
+    { where: { id: req.params.id! } }
+  );
 
   if (categories) {
     await DeploymentCategory.destroy({ where: { deploymentId: req.params.id! } });
