@@ -22,6 +22,8 @@ const categoryState = () => {
   return categoryStates[key]!;
 };
 
+export const useCategories = () => useRecoilState(categoryState())[0];
+
 export const useCategoryState = () => {
   const [state, setState] = useRecoilState(categoryState());
 

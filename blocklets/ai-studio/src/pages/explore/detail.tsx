@@ -30,6 +30,7 @@ import { withQuery } from 'ufo';
 
 import { Deployment, getDeployment } from '../../libs/deployment';
 import { MakeYoursButton, ShareButton } from './button';
+import { useCategories } from './state';
 
 export default function CategoryDetail() {
   const { deploymentId } = useParams();
@@ -57,13 +58,16 @@ export default function CategoryDetail() {
 }
 
 function Agent({ deployment }: { deployment: Deployment }) {
+  const { categories } = useCategories();
   const { categorySlug } = useParams();
+
+  const category = categories.find((x) => x.slug === categorySlug);
+
   const [value, setValue] = useState('1');
   const handleChange = (_event: any, newValue: string) => setValue(newValue);
   const navigate = useNavigate();
   const { t } = useLocaleContext();
   const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
-  const { projectSetting } = useProjectStore(deployment.projectId, deployment.projectRef);
 
   return (
     <Stack flex={1} height={0}>
@@ -75,14 +79,17 @@ function Agent({ deployment }: { deployment: Deployment }) {
             display: 'flex',
             alignItems: 'center',
             px: isMobile ? 1.5 : 3,
+            gap: 2,
           }}>
-          <Box
+          <Stack
+            direction="row"
+            gap={1}
             onClick={() => navigate(`/explore/category/${categorySlug}`)}
             sx={{ cursor: 'pointer', mr: 2 }}
             className="center">
             <Box component={Icon} icon={ChevronLeft} sx={{ width: 20, height: 20, fontSize: 20, color: '#9CA3AF' }} />
-            <Box sx={{ color: '#9CA3AF' }}>{projectSetting?.name}</Box>
-          </Box>
+            <Box sx={{ color: '#9CA3AF' }}>{category?.name}</Box>
+          </Stack>
 
           <TabList
             onChange={handleChange}
