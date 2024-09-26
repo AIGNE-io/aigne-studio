@@ -2,6 +2,7 @@ import { generateSlug } from '@api/libs/utils';
 import { auth, user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
+import { Op } from 'sequelize';
 
 import checkUserAuth from '../libs/user-auth';
 import Category from '../store/models/category';
@@ -50,6 +51,11 @@ router.post('/', user(), auth(), async (req, res) => {
   checkUserAuth(req, res)(did);
 
   const currentSlug = slug || generateSlug(name);
+  const category = await Category.findOne({ where: { slug: currentSlug } });
+  if (category) {
+    res.status(400).json({ message: 'Slug conflict' });
+    return;
+  }
 
   const newCategory = await Category.create({
     name,
@@ -75,6 +81,11 @@ router.put('/:id', user(), auth(), async (req, res) => {
   }
 
   const currentSlug = slug || generateSlug(name);
+  const conflictCategory = await Category.findOne({ where: { slug: currentSlug, id: { [Op.ne]: id } } });
+  if (conflictCategory) {
+    res.status(400).json({ message: 'Slug conflict' });
+    return;
+  }
 
   checkUserAuth(req, res)(category.createdBy);
 

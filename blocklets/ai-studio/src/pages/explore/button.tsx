@@ -139,7 +139,7 @@ export function ShareButton({ deployment, project }: { deployment: Deployment; p
             description: project.description || '',
             url: shareUrl,
             hashtags: ['Arcblock', 'AIGNE', 'AI'],
-            via: 'Arcblock',
+            via: 'ArcBlock_io',
           }),
           '_blank'
         );
