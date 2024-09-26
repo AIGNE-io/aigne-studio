@@ -82,6 +82,7 @@ export default function OutputSettings({
     }
   }, [value]);
 
+  // console.log('value', JSON.stringify(value, null, 2));
   return (
     <Box sx={{ background: '#F9FAFB', py: 1.5, px: 2, pb: 2, borderRadius: 1 }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>

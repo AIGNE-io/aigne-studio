@@ -145,6 +145,7 @@ function ProjectPageView() {
   const layout = useRef<ImperativeColumnsLayout>(null);
   const fileTree = useRef<ImperativeFileTree>(null);
 
+  // console.log('file', JSON.stringify(file, null, 2));
   return (
     <ColumnsLayout
       ref={layout}
