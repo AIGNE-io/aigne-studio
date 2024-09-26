@@ -1,3 +1,7 @@
+## 0.4.66 (2024-9-26)
+
+- fix: reset identity when copying a project
+
 ## 0.4.65 (2024-9-26)
 
 - fix: full height agent view for better scroll ux

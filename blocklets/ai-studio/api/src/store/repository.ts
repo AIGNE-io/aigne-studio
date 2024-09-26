@@ -390,7 +390,7 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
     });
 
     await this.clean({});
-    await this.checkout();
+    await this.checkout({ ref: working.options.ref, force: true });
 
     project.changed('updatedAt', true);
     await project.update({ updatedAt: new Date() });

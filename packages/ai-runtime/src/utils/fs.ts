@@ -1,8 +1,14 @@
 import fs from 'fs';
 import path from 'path';
 
-export function copyFile(src: string, dest: string): Promise<void> {
-  return new Promise((resolve, reject) => {
+export async function copyFile(
+  src: string,
+  dest: string,
+  { skip }: { skip?: (src: string) => boolean } = {}
+): Promise<void> {
+  if (skip?.(src)) return;
+
+  await new Promise((resolve, reject) => {
     const readStream = fs.createReadStream(src);
     const writeStream = fs.createWriteStream(dest);
 
@@ -14,7 +20,13 @@ export function copyFile(src: string, dest: string): Promise<void> {
   });
 }
 
-export async function copyDirectory(src: string, dest: string): Promise<void> {
+export async function copyDirectory(
+  src: string,
+  dest: string,
+  { skip }: { skip?: (src: string) => boolean } = {}
+): Promise<void> {
+  if (skip?.(src)) return;
+
   await fs.promises.mkdir(dest, { recursive: true });
   const entries = await fs.promises.readdir(src, { withFileTypes: true });
 
@@ -23,19 +35,25 @@ export async function copyDirectory(src: string, dest: string): Promise<void> {
     const destPath = path.join(dest, entry.name);
 
     if (entry.isDirectory()) {
-      await copyDirectory(srcPath, destPath);
+      await copyDirectory(srcPath, destPath, { skip });
     } else {
-      await copyFile(srcPath, destPath);
+      await copyFile(srcPath, destPath, { skip });
     }
   }
 }
 
-export async function copyRecursive(src: string, dest: string): Promise<void> {
+export async function copyRecursive(
+  src: string,
+  dest: string,
+  { skip }: { skip?: (src: string) => boolean } = {}
+): Promise<void> {
+  if (skip?.(src)) return;
+
   const srcStats = await fs.promises.stat(src);
 
   if (srcStats.isDirectory()) {
-    await copyDirectory(src, dest);
+    await copyDirectory(src, dest, { skip });
   } else {
-    await copyFile(src, dest);
+    await copyFile(src, dest, { skip });
   }
 }
