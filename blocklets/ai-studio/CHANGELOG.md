@@ -1,6 +1,7 @@
 ## 0.4.64 (2024-9-26)
 
 - fix: set default order index for categories and deployments
+- fix: project settings errors when saving project
 
 ## 0.4.63 (2024-9-26)
 
