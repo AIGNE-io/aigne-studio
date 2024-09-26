@@ -35,11 +35,18 @@ export default function App() {
               width: '100%',
             },
             body: {
+              minHeight: '100%',
               height: '100%',
               width: '100%',
+              overflow: 'unset',
+              display: 'flex',
+              flexDirection: 'column',
             },
             '#app': {
               height: '100%',
+              flexGrow: 1,
+              display: 'flex',
+              flexDirection: 'column',
               width: '100%',
               fontSize: '0.875rem',
             },

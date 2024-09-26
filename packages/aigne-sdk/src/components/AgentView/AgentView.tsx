@@ -12,7 +12,7 @@ export default function AgentView({
   blockletDid?: string;
   aid: string;
   working?: boolean;
-} & ComponentPreferencesBase) {
+} & ComponentPreferencesBase & { [key: string]: any }) {
   return (
     <ComponentPreferencesProvider {...props}>
       <CustomComponentRenderer
