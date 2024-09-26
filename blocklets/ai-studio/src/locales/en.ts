@@ -832,6 +832,8 @@ export default flatten({
 - The icon format is 'xxx:yyyy', for example: 'mdi-light:account'
 `,
     noCategories: 'No Categories',
+    deleteConfirm: 'Are you sure you want to delete this category?',
+    deleteDescription: 'This will delete the category and cannot be recovered. Please be careful.',
   },
   updateSuccess: 'Update Success',
   success: 'Success',

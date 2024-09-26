@@ -67,6 +67,7 @@ Category.init(
     orderIndex: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      defaultValue: 0,
     },
   },
   { sequelize }

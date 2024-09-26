@@ -2,6 +2,7 @@ import { generateSlug } from '@api/libs/utils';
 import { auth, user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
+import { UniqueConstraintError } from 'sequelize';
 
 import checkUserAuth from '../libs/user-auth';
 import Category from '../store/models/category';
@@ -51,16 +52,24 @@ router.post('/', user(), auth(), async (req, res) => {
 
   const currentSlug = slug || generateSlug(name);
 
-  const newCategory = await Category.create({
-    name,
-    icon,
-    slug: currentSlug,
-    orderIndex,
-    createdBy: did,
-    updatedBy: did,
-  });
+  try {
+    const newCategory = await Category.create({
+      name,
+      icon,
+      slug: currentSlug,
+      orderIndex,
+      createdBy: did,
+      updatedBy: did,
+    });
 
-  res.json(newCategory);
+    res.json(newCategory);
+  } catch (error) {
+    if (error instanceof UniqueConstraintError) {
+      res.status(400).json({ message: `Duplicate category ${error.fields}` });
+      return;
+    }
+    throw error;
+  }
 });
 
 router.put('/:id', user(), auth(), async (req, res) => {
@@ -78,8 +87,17 @@ router.put('/:id', user(), auth(), async (req, res) => {
 
   checkUserAuth(req, res)(category.createdBy);
 
-  await category.update({ name, icon, slug: currentSlug, updatedBy: did, orderIndex });
-  res.json(category);
+  try {
+    await category.update({ name, icon, slug: currentSlug, updatedBy: did, orderIndex });
+    res.json(category);
+  } catch (error) {
+    if (error instanceof UniqueConstraintError) {
+      res.status(400).json({ message: `Duplicate category ${error.fields}` });
+      return;
+    }
+
+    throw error;
+  }
 });
 
 router.delete('/:id', user(), auth(), async (req, res) => {

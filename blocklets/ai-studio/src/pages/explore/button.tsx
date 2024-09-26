@@ -24,7 +24,7 @@ import {
 } from '@mui/material';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { joinURL } from 'ufo';
+import { joinURL, withQuery } from 'ufo';
 
 import { useSessionContext } from '../../contexts/session';
 import { Deployment } from '../../libs/deployment';
@@ -102,12 +102,15 @@ export function MakeYoursButton({ deployment, ...props }: { deployment: Deployme
 export function ShareButton({ deployment, project }: { deployment: Deployment; project: ProjectSettings }) {
   const { t } = useLocaleContext();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const { session } = useSessionContext();
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => setAnchorEl(anchorEl ? null : event.currentTarget);
 
   const handleClose = () => setAnchorEl(null);
 
-  const shareUrl = joinURL(globalThis.location.origin, window.blocklet.prefix, '/apps', deployment.id);
+  const shareUrl = withQuery(joinURL(globalThis.location.origin, window.blocklet.prefix, '/apps', deployment.id), {
+    inviter: session.user?.did,
+  });
 
   const open = Boolean(anchorEl);
 
@@ -139,7 +142,7 @@ export function ShareButton({ deployment, project }: { deployment: Deployment; p
             description: project.description || '',
             url: shareUrl,
             hashtags: ['Arcblock', 'AIGNE', 'AI'],
-            via: 'Arcblock',
+            via: 'ArcBlock_io',
           }),
           '_blank'
         );

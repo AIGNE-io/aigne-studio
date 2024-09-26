@@ -165,11 +165,11 @@ function CategoryList() {
                           },
                           maxWidth: 'sm',
                           fullWidth: true,
-                          title: <Box sx={{ wordWrap: 'break-word' }}>{t('deployments.deleteTitle')}</Box>,
+                          title: <Box sx={{ wordWrap: 'break-word' }}>{t('category.deleteConfirm')}</Box>,
                           content: (
                             <Box>
                               <Typography fontWeight={500} fontSize={16} lineHeight="28px" color="#4B5563">
-                                {t('deployments.deleteDescription')}
+                                {t('category.deleteDescription')}
                               </Typography>
                             </Box>
                           ),
@@ -299,7 +299,9 @@ function CategoryList() {
                 <Box display="flex" flexDirection="column">
                   <Typography variant="caption">
                     {t('category.iconVisit')}
-                    <a href="https://icon-sets.iconify.design/">https://icon-sets.iconify.design/</a>
+                    <a href="https://icon-sets.iconify.design/" target="_blank" rel="noreferrer">
+                      https://icon-sets.iconify.design/
+                    </a>
                   </Typography>
                   <Typography
                     sx={{ whiteSpace: 'break-spaces' }}
