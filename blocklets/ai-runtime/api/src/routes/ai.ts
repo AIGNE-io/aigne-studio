@@ -247,7 +247,12 @@ router.post('/call', user(), compression(), async (req, res) => {
         callAI,
         callAIImage,
         getMemoryVariables,
-        getAgent,
+        getAgent: (options) =>
+          getAgent({
+            ...options,
+            // NOTE: 仅允许调用当前项目或者 resource blocklet 中的 agent
+            projectId: options.blockletDid ? options.projectId : projectId,
+          } as Parameters<typeof getAgent>[0]),
         entryProjectId: projectId,
         user: userId ? { id: userId, did: userId, ...req.user } : undefined,
         sessionId,

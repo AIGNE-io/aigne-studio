@@ -1158,15 +1158,15 @@ async function copyProject({
     const file = working.syncedStore.files[filepath];
 
     Object.assign(file, (getYjsValue(srcWorking.syncedStore.files[filepath]) as Map<any>).toJSON());
-
-    if (filepath === PROJECT_FILE_PATH) {
-      Object.assign(file, await projectSettingsSchema.validateAsync(project.dataValues));
-    }
   }
+
+  const projectYaml = working.syncedStore.files[PROJECT_FILE_PATH];
+  if (!projectYaml) throw new Error('Missing project.yaml in the copied project');
+  Object.assign(projectYaml, await projectSettingsSchema.validateAsync(project.dataValues));
 
   await copyKnowledge({ originProjectId: original.id!, currentProjectId: project.id!, user: author });
 
-  await working.commit({
+  await repo.commitWorking({
     ref: defaultBranch,
     branch: defaultBranch,
     message: `Copy from ${original.name || original.id}`,
