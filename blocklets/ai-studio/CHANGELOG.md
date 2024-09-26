@@ -1,3 +1,9 @@
+## 0.4.65 (2024-9-26)
+
+- fix: full height agent view for better scroll ux
+- chore: only admin can CRUD categories
+- chore: optimize open graph by image service
+
 ## 0.4.64 (2024-9-26)
 
 - fix: set default order index for categories and deployments
