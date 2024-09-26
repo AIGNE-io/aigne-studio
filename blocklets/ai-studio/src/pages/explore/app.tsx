@@ -1,4 +1,5 @@
 import ApplicationHeader from '@app/components/application/ApplicationHeader';
+import { getErrorMessage } from '@app/libs/api';
 import { agentViewTheme } from '@app/theme/agent-view-theme';
 import Result from '@arcblock/ux/lib/Result';
 import Toast from '@arcblock/ux/lib/Toast';
@@ -16,7 +17,7 @@ export default function AppPage() {
 
   const { data, loading, error } = useRequest(() => getAgentByDeploymentId({ deploymentId: appId, working: true }), {
     onError: (error) => {
-      Toast.error((error as any)?.response?.data?.message || error?.message);
+      Toast.error(getErrorMessage(error));
     },
   });
 

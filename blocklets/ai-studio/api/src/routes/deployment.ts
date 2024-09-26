@@ -1,4 +1,5 @@
 import { getAgentSecretInputs } from '@api/libs/runtime';
+import { ensurePromptsAdmin } from '@api/libs/security';
 import Project from '@api/store/models/project';
 import { PROJECT_FILE_PATH, ProjectRepo, getEntryFromRepository, getRepository } from '@api/store/repository';
 import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
@@ -233,11 +234,20 @@ router.post('/', user(), auth(), async (req, res) => {
     stripUnknown: true,
   });
 
+  const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error(`No such project ${projectId}`) });
+
   if (access === 'private') {
-    checkUserAuth(req, res)(userId);
+    checkUserAuth(req, res)({ userId: project.createdBy });
   }
 
-  const deployment = await Deployment.create({ projectId, projectRef, access, createdBy: userId, updatedBy: userId });
+  const deployment = await Deployment.create({
+    projectId,
+    projectRef,
+    access,
+    createdBy: userId,
+    updatedBy: userId,
+  });
+
   res.json(deployment);
 });
 
@@ -293,40 +303,17 @@ router.get('/:deploymentId', user(), async (req, res) => {
 });
 
 router.put('/:id', user(), auth(), async (req, res) => {
-  const { did: userId } = req.user!;
-
   const found = await Deployment.findByPk(req.params.id!);
   if (!found) {
     res.status(404).json({ message: 'deployment not found' });
     return;
   }
 
-  checkUserAuth(req, res)(found.createdBy);
+  checkUserAuth(req, res)({ userId: found.createdBy });
 
-  const { access, categories, productHuntUrl, productHuntBannerUrl, orderIndex } = await updateSchema.validateAsync(
-    req.body,
-    { stripUnknown: true }
-  );
+  const { access } = await updateSchema.validateAsync(req.body, { stripUnknown: true });
 
-  await Deployment.update(
-    { access, productHuntUrl, productHuntBannerUrl, orderIndex },
-    { where: { id: req.params.id! } }
-  );
-
-  if (categories) {
-    await DeploymentCategory.destroy({ where: { deploymentId: req.params.id! } });
-
-    if (categories.length) {
-      await DeploymentCategory.bulkCreate(
-        categories.map((categoryId: string) => ({
-          deploymentId: req.params.id!,
-          categoryId,
-          createdBy: userId,
-          updatedBy: userId,
-        }))
-      );
-    }
-  }
+  await Deployment.update({ access }, { where: { id: req.params.id! } });
 
   res.json(await Deployment.findByPk(req.params.id!));
 });
@@ -340,7 +327,7 @@ router.delete('/:id', user(), auth(), async (req, res) => {
     return;
   }
 
-  checkUserAuth(req, res)(deployment.createdBy);
+  checkUserAuth(req, res)({ userId: deployment.createdBy });
 
   await Deployment.destroy({ where: { id } });
   res.json({});
@@ -393,7 +380,7 @@ export const checkDeployment = async (req: Request, res: Response, next: NextFun
 
       if (deployment.access === 'private') {
         const { did: userId } = req.user!;
-        checkUserAuth(req, res)(userId);
+        checkUserAuth(req, res)({ userId });
       }
 
       next();
@@ -404,3 +391,41 @@ export const checkDeployment = async (req: Request, res: Response, next: NextFun
     next();
   }
 };
+
+export function adminDeploymentRouter(router: Router) {
+  router.put('/:id', user(), ensurePromptsAdmin, async (req, res) => {
+    const { did: userId } = req.user!;
+
+    const found = await Deployment.findByPk(req.params.id!);
+    if (!found) {
+      res.status(404).json({ message: 'deployment not found' });
+      return;
+    }
+
+    const { categories, productHuntUrl, productHuntBannerUrl, orderIndex } = await updateSchema.validateAsync(
+      req.body,
+      { stripUnknown: true }
+    );
+
+    await Deployment.update({ productHuntUrl, productHuntBannerUrl, orderIndex }, { where: { id: req.params.id! } });
+
+    if (categories) {
+      await DeploymentCategory.destroy({ where: { deploymentId: req.params.id! } });
+
+      if (categories.length) {
+        await DeploymentCategory.bulkCreate(
+          categories.map((categoryId: string) => ({
+            deploymentId: req.params.id!,
+            categoryId,
+            createdBy: userId,
+            updatedBy: userId,
+          }))
+        );
+      }
+    }
+
+    res.json(await Deployment.findByPk(req.params.id!));
+  });
+
+  return router;
+}

@@ -1,10 +1,10 @@
+import { ensureAdmin } from '@api/libs/security';
 import { generateSlug } from '@api/libs/utils';
-import { auth, user } from '@blocklet/sdk/lib/middlewares';
+import { user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
 import { UniqueConstraintError } from 'sequelize';
 
-import checkUserAuth from '../libs/user-auth';
 import Category from '../store/models/category';
 import DeploymentCategory from '../store/models/deployment-category';
 
@@ -44,11 +44,9 @@ router.get('/', async (req, res) => {
   res.json({ list: rows, totalCount: count });
 });
 
-router.post('/', user(), auth(), async (req, res) => {
+router.post('/', user(), ensureAdmin, async (req, res) => {
   const { did } = req.user!;
   const { name, icon, slug, orderIndex } = await updateCategorySchema.validateAsync(req.body, { stripUnknown: true });
-
-  checkUserAuth(req, res)(did);
 
   const currentSlug = slug || generateSlug(name);
 
@@ -72,7 +70,7 @@ router.post('/', user(), auth(), async (req, res) => {
   }
 });
 
-router.put('/:id', user(), auth(), async (req, res) => {
+router.put('/:id', user(), ensureAdmin, async (req, res) => {
   const { did } = req.user!;
   const { id } = req.params;
   const { name, icon, slug, orderIndex } = await updateCategorySchema.validateAsync(req.body, { stripUnknown: true });
@@ -84,8 +82,6 @@ router.put('/:id', user(), auth(), async (req, res) => {
   }
 
   const currentSlug = slug || generateSlug(name);
-
-  checkUserAuth(req, res)(category.createdBy);
 
   try {
     await category.update({ name, icon, slug: currentSlug, updatedBy: did, orderIndex });
@@ -100,7 +96,7 @@ router.put('/:id', user(), auth(), async (req, res) => {
   }
 });
 
-router.delete('/:id', user(), auth(), async (req, res) => {
+router.delete('/:id', user(), ensureAdmin, async (req, res) => {
   const { id } = req.params;
 
   const category = await Category.findByPk(id);
@@ -108,8 +104,6 @@ router.delete('/:id', user(), auth(), async (req, res) => {
     res.status(404).json({ message: 'Category not found' });
     return;
   }
-
-  checkUserAuth(req, res)(category.createdBy);
 
   await Category.destroy({ where: { id } });
   await DeploymentCategory.destroy({ where: { categoryId: id } });

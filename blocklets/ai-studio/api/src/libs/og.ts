@@ -67,5 +67,7 @@ export async function getOpenGraphInfo({
     logger.error('getOpenGraphInfo error', { error });
   }
 
+  info.ogImage = withQuery(info.ogImage, { imageFilter: 'resize', f: 'webp', w: 1200 });
+
   return info;
 }

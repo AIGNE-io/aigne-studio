@@ -1,4 +1,5 @@
 import MdViewer from '@app/components/md-viewer';
+import { getErrorMessage } from '@app/libs/api';
 import { getAssetUrl } from '@app/libs/asset';
 import { getProjectIconUrl } from '@app/libs/project';
 import { agentViewTheme } from '@app/theme/agent-view-theme';
@@ -8,6 +9,7 @@ import Toast from '@arcblock/ux/lib/Toast';
 import { ProjectSettings } from '@blocklet/ai-runtime/types';
 import { getAgentByDeploymentId } from '@blocklet/aigne-sdk/api/agent';
 import AgentView from '@blocklet/aigne-sdk/components/AgentView';
+import ScrollView from '@blocklet/pages-kit/builtin/async/ai-runtime/components/ScrollView';
 import { Icon } from '@iconify-icon/react';
 import ChevronLeft from '@iconify-icons/tabler/chevron-left';
 import PlayIcon from '@iconify-icons/tabler/player-play-filled';
@@ -26,7 +28,7 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import { useRequest } from 'ahooks';
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { withQuery } from 'ufo';
 
@@ -38,9 +40,9 @@ export default function CategoryDetail() {
   const { deploymentId } = useParams();
   if (!deploymentId) throw new Error('Missing required param `deploymentId`');
 
-  const { data, loading } = useRequest(() => getDeployment({ id: deploymentId }), {
+  const { data, loading, error } = useRequest(() => getDeployment({ id: deploymentId }), {
     onError: (error) => {
-      Toast.error((error as any)?.response?.data?.message || error?.message);
+      Toast.error(getErrorMessage(error));
     },
   });
 
@@ -49,6 +51,17 @@ export default function CategoryDetail() {
       <Stack p={2.5} width={1} height={1} overflow="hidden" gap={2.5} className="center">
         <CircularProgress size={24} />
       </Stack>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box
+        component={Result}
+        status={(error as any)?.response?.status || 500}
+        description={error?.message}
+        sx={{ bgcolor: 'transparent', my: 10 }}
+      />
     );
   }
 
@@ -117,7 +130,7 @@ function Agent({ deployment, project }: { deployment: Deployment; project: Proje
           <ReadmePage deployment={deployment} project={project} onRun={() => setValue('2')} />
         </TabPanel>
 
-        <TabPanel value="2" sx={{ p: 0, flex: 1, overflow: 'overlay', position: 'relative' }}>
+        <TabPanel value="2" sx={{ p: 0, flex: 1, overflow: 'hidden', position: 'relative' }}>
           <PreviewPage deployment={deployment} project={project} />
         </TabPanel>
       </TabContext>
@@ -233,16 +246,43 @@ function PreviewPage({ deployment, project }: { deployment: Deployment; project:
 
   if (data?.identity?.aid) {
     return (
-      <Box sx={{ maxWidth: 900, width: 1, mx: 'auto' }}>
-        <Stack direction="row" justifyContent="flex-end" gap={1} px={3} my={2}>
+      <Stack sx={{ height: '100%', overflow: 'hidden' }}>
+        <Stack
+          direction="row"
+          justifyContent="flex-end"
+          gap={1}
+          px={3}
+          my={2}
+          sx={{ maxWidth: 900, width: 1, mx: 'auto' }}>
           <MakeYoursButton deployment={deployment} variant="contained" />
           <ShareButton deployment={deployment} project={project} />
         </Stack>
 
         <ThemeProvider theme={agentViewTheme}>
-          <AgentView aid={data?.identity?.aid} working />
+          <ScrollView
+            initialScrollBehavior="auto"
+            component={Stack}
+            sx={{
+              overscrollBehavior: 'contain',
+              flex: 1,
+              height: '100%',
+              width: '100%',
+              overflow: 'auto',
+              '.aigne-layout': {
+                px: 2,
+              },
+            }}>
+            <Suspense
+              fallback={
+                <Stack flexGrow={1} alignItems="center" justifyContent="center">
+                  <CircularProgress size={24} />
+                </Stack>
+              }>
+              <AgentView aid={data?.identity?.aid} working scrollViewProps={{ disabled: true }} hideHeaderMenuButton />
+            </Suspense>
+          </ScrollView>
         </ThemeProvider>
-      </Box>
+      </Stack>
     );
   }
 
