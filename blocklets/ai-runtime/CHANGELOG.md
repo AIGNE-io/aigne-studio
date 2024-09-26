@@ -1,3 +1,7 @@
+## 0.4.64 (2024-9-26)
+
+- fix: set default order index for categories and deployments
+
 ## 0.4.63 (2024-9-26)
 
 - feat: support sort category and deployments
