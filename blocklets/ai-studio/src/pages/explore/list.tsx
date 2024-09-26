@@ -3,7 +3,7 @@ import 'swiper/css/navigation';
 
 import { getAssetUrl } from '@app/libs/asset';
 import { Category } from '@app/libs/category';
-import { Deployment, getDeploymentsByCategorySlug } from '@app/libs/deployment';
+import { Deployment } from '@app/libs/deployment';
 import { getProjectIconUrl } from '@app/libs/project';
 import Empty from '@app/pages/project/icons/empty';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
@@ -22,16 +22,14 @@ import {
   Typography,
   useMediaQuery,
 } from '@mui/material';
-import { useInfiniteScroll } from 'ahooks';
-import useInfiniteScrollHook from 'react-infinite-scroll-hook';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import { Navigation } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { withQuery } from 'ufo';
 
 import { MobileSidebarHeader } from './layout';
+import { useFetchDeployments } from './state';
 
-const pageSize = 50;
 const pcSpacing = 3;
 const mobileSpacing = 2;
 
@@ -199,9 +197,9 @@ function CategoryList() {
 
   const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
 
-  const { loadingRef, dataState } = useFetchDeployments(params.categorySlug);
+  const { loadingRef, dataState, currentDeployments } = useFetchDeployments(params.categorySlug);
   const { categories } = useOutletContext<{ categories: Category[] }>();
-  const deployments = dataState?.data?.list || [];
+  const deployments = currentDeployments?.list || [];
   const { t } = useLocaleContext();
 
   const spacing = isMobile ? mobileSpacing : pcSpacing;
@@ -241,39 +239,3 @@ function CategoryList() {
 }
 
 export default CategoryList;
-
-const useFetchDeployments = (categorySlug?: string) => {
-  const dataState = useInfiniteScroll(
-    async (
-      d: { list: any[]; next: boolean; size: number; page: number } = {
-        list: [],
-        next: false,
-        size: pageSize,
-        page: 1,
-      }
-    ) => {
-      if (!categorySlug) {
-        return { list: [], next: false, size: pageSize, page: 1, total: 0 };
-      }
-
-      const { page = 1, size = pageSize } = d || {};
-      const { list: items, totalCount: total } = await getDeploymentsByCategorySlug({
-        categorySlug,
-        page,
-        pageSize: size,
-      });
-
-      return { list: items || [].filter(Boolean), next: items.length >= size, size, page: (d?.page || 1) + 1, total };
-    },
-    { isNoMore: (d) => !d?.next, reloadDeps: [categorySlug] }
-  );
-
-  const [loadingRef] = useInfiniteScrollHook({
-    loading: dataState.loading || dataState.loadingMore,
-    hasNextPage: Boolean(dataState.data?.next),
-    onLoadMore: () => dataState.loadMore(),
-    rootMargin: '0px 0px 200px 0px',
-  });
-
-  return { loadingRef, dataState };
-};
