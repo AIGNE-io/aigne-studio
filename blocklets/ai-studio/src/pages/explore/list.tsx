@@ -197,9 +197,9 @@ function CategoryList() {
 
   const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
 
-  const { loadingRef, dataState, currentDeployments } = useFetchDeployments(params.categorySlug);
+  const { loadingRef, dataState, currentDeploymentState } = useFetchDeployments(params.categorySlug);
   const { categories } = useOutletContext<{ categories: Category[] }>();
-  const deployments = currentDeployments?.list || [];
+  const deployments = currentDeploymentState?.list || [];
   const { t } = useLocaleContext();
 
   const spacing = isMobile ? mobileSpacing : pcSpacing;

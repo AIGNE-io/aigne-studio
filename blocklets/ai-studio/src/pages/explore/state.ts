@@ -121,7 +121,7 @@ export const useDeploymentsStore = create<DeploymentState>((set, get) => ({
 
 export const useFetchDeployments = (categorySlug?: string) => {
   const { deployments, fetchDeployments } = useDeploymentsStore();
-  const currentDeployments = categorySlug ? deployments[categorySlug] : null;
+  const currentDeploymentState = categorySlug ? deployments[categorySlug] : null;
 
   const dataState = useInfiniteScroll(
     async (d: { size: number; page: number } = { size: pageSize, page: 1 }) => {
@@ -143,5 +143,5 @@ export const useFetchDeployments = (categorySlug?: string) => {
     rootMargin: '0px 0px 200px 0px',
   });
 
-  return { loadingRef, dataState, currentDeployments };
+  return { loadingRef, dataState, currentDeploymentState };
 };
