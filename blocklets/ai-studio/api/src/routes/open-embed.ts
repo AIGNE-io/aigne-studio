@@ -23,9 +23,12 @@ export async function getOpenEmbed(_: Request, res: Response) {
 
         const project = await repository.readAndParseFile<ProjectSettings>({
           filepath: PROJECT_FILE_PATH,
-          rejectOnEmpty: true,
+          rejectOnEmpty: false,
           working: true,
+          readBlobFromGitIfWorkingNotInitialized: true,
         });
+
+        if (!project) return [];
 
         const agents = await getAssistantsOfRepository({
           projectId: p.id,
