@@ -1,4 +1,5 @@
 import { getAgentSecretInputs } from '@api/libs/runtime';
+import { ensurePromptsAdmin } from '@api/libs/security';
 import Project from '@api/store/models/project';
 import { PROJECT_FILE_PATH, ProjectRepo, getEntryFromRepository, getRepository } from '@api/store/repository';
 import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
@@ -233,11 +234,20 @@ router.post('/', user(), auth(), async (req, res) => {
     stripUnknown: true,
   });
 
+  const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error(`No such project ${projectId}`) });
+
   if (access === 'private') {
-    checkUserAuth(req, res)({ userId });
+    checkUserAuth(req, res)({ userId: project.createdBy });
   }
 
-  const deployment = await Deployment.create({ projectId, projectRef, access, createdBy: userId, updatedBy: userId });
+  const deployment = await Deployment.create({
+    projectId,
+    projectRef,
+    access,
+    createdBy: userId,
+    updatedBy: userId,
+  });
+
   res.json(deployment);
 });
 
@@ -383,7 +393,7 @@ export const checkDeployment = async (req: Request, res: Response, next: NextFun
 };
 
 export function adminDeploymentRouter(router: Router) {
-  router.put('/:id', user(), auth({ roles: ['admin', 'owner', 'promptsEditor'] }), async (req, res) => {
+  router.put('/:id', user(), ensurePromptsAdmin, async (req, res) => {
     const { did: userId } = req.user!;
 
     const found = await Deployment.findByPk(req.params.id!);
@@ -391,8 +401,6 @@ export function adminDeploymentRouter(router: Router) {
       res.status(404).json({ message: 'deployment not found' });
       return;
     }
-
-    checkUserAuth(req, res)({ userId: found.createdBy });
 
     const { categories, productHuntUrl, productHuntBannerUrl, orderIndex } = await updateSchema.validateAsync(
       req.body,
