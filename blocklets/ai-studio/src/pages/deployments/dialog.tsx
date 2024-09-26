@@ -255,7 +255,7 @@ function CategorySelect({
             return option.name;
           }}
           options={categories}
-          value={value.map((id) => categories.find((cat) => cat.id === id) || { id, name: '' })}
+          value={value?.map((id) => categories.find((cat) => cat.id === id) || { id, name: '' })}
           onChange={(_event, newValue) => {
             onChange(newValue.map((item) => (typeof item === 'string' ? item : item.id)));
           }}

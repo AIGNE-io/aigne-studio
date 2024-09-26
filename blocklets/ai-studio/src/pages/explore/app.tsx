@@ -1,10 +1,10 @@
 import ApplicationHeader from '@app/components/application/ApplicationHeader';
+import { getErrorMessage } from '@app/libs/api';
 import { agentViewTheme } from '@app/theme/agent-view-theme';
 import Result from '@arcblock/ux/lib/Result';
 import Toast from '@arcblock/ux/lib/Toast';
 import { getAgentByDeploymentId } from '@blocklet/aigne-sdk/api/agent';
 import AgentView from '@blocklet/aigne-sdk/components/AgentView';
-import { getErrorMessage } from '@did-space/client';
 import { Box, CircularProgress, Stack, ThemeProvider } from '@mui/material';
 import { useRequest } from 'ahooks';
 import { useParams } from 'react-router-dom';
