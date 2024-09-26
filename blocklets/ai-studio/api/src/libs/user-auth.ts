@@ -10,8 +10,12 @@ class AuthError extends Error {
   }
 }
 
-function checkAuth(req: Request, res: Response): (userId?: string) => void {
-  return (userId?: string) => {
+type CheckAuthType = {
+  userId?: string;
+};
+
+function checkUserAuth(req: Request, res: Response): (data?: CheckAuthType) => void {
+  return (data?: CheckAuthType) => {
     try {
       const { user } = req;
 
@@ -19,11 +23,11 @@ function checkAuth(req: Request, res: Response): (userId?: string) => void {
         throw new AuthError('Unauthorized, user information does not exist', 401);
       }
 
-      if (['admin', 'owner'].includes(user.role)) {
+      if (['admin', 'owner', 'promptsEditor'].includes(user.role)) {
         return;
       }
 
-      if (userId && userId === user.did) {
+      if (data?.userId && data.userId === user.did) {
         return;
       }
 
@@ -40,4 +44,4 @@ function checkAuth(req: Request, res: Response): (userId?: string) => void {
   };
 }
 
-export default checkAuth;
+export default checkUserAuth;

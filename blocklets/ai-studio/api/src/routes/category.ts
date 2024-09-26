@@ -48,7 +48,7 @@ router.post('/', user(), auth(), async (req, res) => {
   const { did } = req.user!;
   const { name, icon, slug, orderIndex } = await updateCategorySchema.validateAsync(req.body, { stripUnknown: true });
 
-  checkUserAuth(req, res)(did);
+  checkUserAuth(req, res)();
 
   const currentSlug = slug || generateSlug(name);
 
@@ -85,7 +85,7 @@ router.put('/:id', user(), auth(), async (req, res) => {
 
   const currentSlug = slug || generateSlug(name);
 
-  checkUserAuth(req, res)(category.createdBy);
+  checkUserAuth(req, res)({ userId: category.createdBy });
 
   try {
     await category.update({ name, icon, slug: currentSlug, updatedBy: did, orderIndex });
@@ -109,7 +109,7 @@ router.delete('/:id', user(), auth(), async (req, res) => {
     return;
   }
 
-  checkUserAuth(req, res)(category.createdBy);
+  checkUserAuth(req, res)({ userId: category.createdBy });
 
   await Category.destroy({ where: { id } });
   await DeploymentCategory.destroy({ where: { categoryId: id } });

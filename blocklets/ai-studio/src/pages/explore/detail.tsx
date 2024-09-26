@@ -1,4 +1,5 @@
 import MdViewer from '@app/components/md-viewer';
+import { getErrorMessage } from '@app/libs/api';
 import { getAssetUrl } from '@app/libs/asset';
 import { getProjectIconUrl } from '@app/libs/project';
 import { agentViewTheme } from '@app/theme/agent-view-theme';
@@ -38,9 +39,9 @@ export default function CategoryDetail() {
   const { deploymentId } = useParams();
   if (!deploymentId) throw new Error('Missing required param `deploymentId`');
 
-  const { data, loading } = useRequest(() => getDeployment({ id: deploymentId }), {
+  const { data, loading, error } = useRequest(() => getDeployment({ id: deploymentId }), {
     onError: (error) => {
-      Toast.error((error as any)?.response?.data?.message || error?.message);
+      Toast.error(getErrorMessage(error));
     },
   });
 
@@ -49,6 +50,17 @@ export default function CategoryDetail() {
       <Stack p={2.5} width={1} height={1} overflow="hidden" gap={2.5} className="center">
         <CircularProgress size={24} />
       </Stack>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box
+        component={Result}
+        status={(error as any)?.response?.status || 500}
+        description={error?.message}
+        sx={{ bgcolor: 'transparent', my: 10 }}
+      />
     );
   }
 

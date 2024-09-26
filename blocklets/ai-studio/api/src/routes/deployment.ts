@@ -234,7 +234,7 @@ router.post('/', user(), auth(), async (req, res) => {
   });
 
   if (access === 'private') {
-    checkUserAuth(req, res)(userId);
+    checkUserAuth(req, res)({ userId });
   }
 
   const deployment = await Deployment.create({ projectId, projectRef, access, createdBy: userId, updatedBy: userId });
@@ -301,7 +301,7 @@ router.put('/:id', user(), auth(), async (req, res) => {
     return;
   }
 
-  checkUserAuth(req, res)(found.createdBy);
+  checkUserAuth(req, res)({ userId: found.createdBy });
 
   const { access, categories, productHuntUrl, productHuntBannerUrl, orderIndex } = await updateSchema.validateAsync(
     req.body,
@@ -340,7 +340,7 @@ router.delete('/:id', user(), auth(), async (req, res) => {
     return;
   }
 
-  checkUserAuth(req, res)(deployment.createdBy);
+  checkUserAuth(req, res)({ userId: deployment.createdBy });
 
   await Deployment.destroy({ where: { id } });
   res.json({});
@@ -393,7 +393,7 @@ export const checkDeployment = async (req: Request, res: Response, next: NextFun
 
       if (deployment.access === 'private') {
         const { did: userId } = req.user!;
-        checkUserAuth(req, res)(userId);
+        checkUserAuth(req, res)({ userId });
       }
 
       next();

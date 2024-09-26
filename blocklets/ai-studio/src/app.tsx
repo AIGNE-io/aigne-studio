@@ -18,7 +18,7 @@ import { RecoilRoot } from 'recoil';
 import AigneLogo from './components/aigne-logo';
 import ErrorBoundary from './components/error/error-boundary';
 import Loading from './components/loading';
-import { SessionProvider, useInitialized, useIsPromptEditor } from './contexts/session';
+import { SessionProvider, useInitialized, useIsPromptEditor, useIsRole } from './contexts/session';
 import { translations } from './locales';
 import { theme } from './theme/theme';
 
@@ -100,6 +100,7 @@ export default function App() {
 function AppRoutes({ basename }: { basename: string }) {
   const initialized = useInitialized();
   const isPromptEditor = useIsPromptEditor();
+  const canAccessAdmin = useIsRole(['owner', 'admin', 'promptsEditor']);
 
   if (!initialized) return <Loading fixed />;
 
@@ -109,7 +110,7 @@ function AppRoutes({ basename }: { basename: string }) {
         <Route index element={isPromptEditor ? <Navigate to="projects" replace /> : <Home />} />
         <Route path="explore/*" element={<ExploreCategory />} />
         <Route path="apps/:appId" element={<AppPage />} />
-        <Route path="admin/*" element={<ExploreAdmin />} />
+        {canAccessAdmin && <Route path="admin/*" element={<ExploreAdmin />} />}
         {isPromptEditor ? (
           <>
             <Route path="playground/*" element={<Navigate to="../projects" replace />} />
