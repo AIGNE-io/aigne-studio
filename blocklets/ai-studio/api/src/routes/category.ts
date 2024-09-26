@@ -10,6 +10,8 @@ import DeploymentCategory from '../store/models/deployment-category';
 
 const router = Router();
 
+const adminRoles = ['admin', 'owner', 'promptsEditor'];
+
 const paginationSchema = Joi.object({
   page: Joi.number().integer().min(1).default(1),
   pageSize: Joi.number().integer().min(1).max(1000).default(10),
@@ -44,7 +46,7 @@ router.get('/', async (req, res) => {
   res.json({ list: rows, totalCount: count });
 });
 
-router.post('/', user(), auth(), async (req, res) => {
+router.post('/', user(), auth({ roles: adminRoles }), async (req, res) => {
   const { did } = req.user!;
   const { name, icon, slug, orderIndex } = await updateCategorySchema.validateAsync(req.body, { stripUnknown: true });
 
@@ -72,7 +74,7 @@ router.post('/', user(), auth(), async (req, res) => {
   }
 });
 
-router.put('/:id', user(), auth(), async (req, res) => {
+router.put('/:id', user(), auth({ roles: adminRoles }), async (req, res) => {
   const { did } = req.user!;
   const { id } = req.params;
   const { name, icon, slug, orderIndex } = await updateCategorySchema.validateAsync(req.body, { stripUnknown: true });
@@ -100,7 +102,7 @@ router.put('/:id', user(), auth(), async (req, res) => {
   }
 });
 
-router.delete('/:id', user(), auth(), async (req, res) => {
+router.delete('/:id', user(), auth({ roles: adminRoles }), async (req, res) => {
   const { id } = req.params;
 
   const category = await Category.findByPk(id);

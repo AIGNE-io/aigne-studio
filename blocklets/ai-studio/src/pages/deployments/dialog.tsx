@@ -32,7 +32,7 @@ import { PopupState, bindDialog } from 'material-ui-popup-state/hooks';
 import { useEffect, useState } from 'react';
 import { Control, Controller, useForm } from 'react-hook-form';
 
-import { UpdateType, updateDeployment } from '../../libs/deployment';
+import { UpdateType, adminUpdateDeployment } from '../../libs/deployment';
 import Close from '../project/icons/close';
 
 export default function DeploymentDialog({
@@ -87,7 +87,7 @@ export default function DeploymentDialog({
 
   const onSubmit = async (data: UpdateType) => {
     try {
-      await updateDeployment(id, data);
+      await adminUpdateDeployment(id, data);
       dialogState.close();
       run();
       Toast.success(t('updateSuccess'));

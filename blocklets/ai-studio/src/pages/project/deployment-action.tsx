@@ -276,12 +276,7 @@ function UpdateApp({ id, data, run, sx }: { id: string; data: Deployment; run: (
 
   const onSubmit = async () => {
     try {
-      await updateDeployment(id, {
-        access: visibility,
-        categories: (data.categories || []).map((category) => category.id),
-        productHuntUrl: data.productHuntUrl,
-        productHuntBannerUrl: data.productHuntBannerUrl,
-      });
+      await updateDeployment(id, { access: visibility });
 
       await saveButtonState.getState().save?.({ skipConfirm: true, skipCommitIfNoChanges: true });
 
@@ -385,7 +380,14 @@ function UpdateApp({ id, data, run, sx }: { id: string; data: Deployment; run: (
             {
               text: t('deployments.appPage'),
               icon: <Box component={Icon} icon={ShareIcon} sx={{ fontSize: 20 }} />,
-              children: <PublishView projectId={data.projectId} projectRef={data.projectRef} deploymentId={id} />,
+              children: (
+                <PublishView
+                  key="publish-view"
+                  projectId={data.projectId}
+                  projectRef={data.projectRef}
+                  deploymentId={id}
+                />
+              ),
               handle: () => {},
             },
           ]).map((item) => {

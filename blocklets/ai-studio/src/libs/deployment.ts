@@ -21,7 +21,7 @@ export type Deployment = {
 
 export type UpdateType = {
   access: 'private' | 'public';
-  categories: string[];
+  categories?: string[];
   productHuntUrl?: string;
   productHuntBannerUrl?: string;
   orderIndex?: number;
@@ -76,6 +76,10 @@ export async function getDeployments(input: { page: number; pageSize: number }):
 
 export async function updateDeployment(id: string, input: UpdateType): Promise<Deployment> {
   return axios.put(joinURL('/api/deployments', id), input).then((res) => res.data);
+}
+
+export async function adminUpdateDeployment(id: string, input: UpdateType): Promise<Deployment> {
+  return axios.put(joinURL('/api/admin/deployments', id), input).then((res) => res.data);
 }
 
 export async function deleteDeployment(input: { id: string }): Promise<Deployment> {

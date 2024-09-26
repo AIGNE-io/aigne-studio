@@ -293,8 +293,6 @@ router.get('/:deploymentId', user(), async (req, res) => {
 });
 
 router.put('/:id', user(), auth(), async (req, res) => {
-  const { did: userId } = req.user!;
-
   const found = await Deployment.findByPk(req.params.id!);
   if (!found) {
     res.status(404).json({ message: 'deployment not found' });
@@ -303,30 +301,9 @@ router.put('/:id', user(), auth(), async (req, res) => {
 
   checkUserAuth(req, res)({ userId: found.createdBy });
 
-  const { access, categories, productHuntUrl, productHuntBannerUrl, orderIndex } = await updateSchema.validateAsync(
-    req.body,
-    { stripUnknown: true }
-  );
+  const { access } = await updateSchema.validateAsync(req.body, { stripUnknown: true });
 
-  await Deployment.update(
-    { access, productHuntUrl, productHuntBannerUrl, orderIndex },
-    { where: { id: req.params.id! } }
-  );
-
-  if (categories) {
-    await DeploymentCategory.destroy({ where: { deploymentId: req.params.id! } });
-
-    if (categories.length) {
-      await DeploymentCategory.bulkCreate(
-        categories.map((categoryId: string) => ({
-          deploymentId: req.params.id!,
-          categoryId,
-          createdBy: userId,
-          updatedBy: userId,
-        }))
-      );
-    }
-  }
+  await Deployment.update({ access }, { where: { id: req.params.id! } });
 
   res.json(await Deployment.findByPk(req.params.id!));
 });
@@ -404,3 +381,43 @@ export const checkDeployment = async (req: Request, res: Response, next: NextFun
     next();
   }
 };
+
+export function adminDeploymentRouter(router: Router) {
+  router.put('/:id', user(), auth({ roles: ['admin', 'owner', 'promptsEditor'] }), async (req, res) => {
+    const { did: userId } = req.user!;
+
+    const found = await Deployment.findByPk(req.params.id!);
+    if (!found) {
+      res.status(404).json({ message: 'deployment not found' });
+      return;
+    }
+
+    checkUserAuth(req, res)({ userId: found.createdBy });
+
+    const { categories, productHuntUrl, productHuntBannerUrl, orderIndex } = await updateSchema.validateAsync(
+      req.body,
+      { stripUnknown: true }
+    );
+
+    await Deployment.update({ productHuntUrl, productHuntBannerUrl, orderIndex }, { where: { id: req.params.id! } });
+
+    if (categories) {
+      await DeploymentCategory.destroy({ where: { deploymentId: req.params.id! } });
+
+      if (categories.length) {
+        await DeploymentCategory.bulkCreate(
+          categories.map((categoryId: string) => ({
+            deploymentId: req.params.id!,
+            categoryId,
+            createdBy: userId,
+            updatedBy: userId,
+          }))
+        );
+      }
+    }
+
+    res.json(await Deployment.findByPk(req.params.id!));
+  });
+
+  return router;
+}

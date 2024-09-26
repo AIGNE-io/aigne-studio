@@ -778,6 +778,8 @@ export default flatten({
   projectToGetStart: '创建项目',
   selectTemplate: '选择模板快速开始，或开创您的独特项目 - 点击创建您的专属之旅！',
   syncTip: '同步数据前先保存暂存区数据',
+  deployment: '部署',
+  deploy: '部署',
   deployments: {
     name: '名称',
     title: '部署',
