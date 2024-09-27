@@ -52,7 +52,7 @@ export type Tool = {
   projectId?: string;
   id: string;
   from?: 'assistant' | 'blockletAPI' | 'knowledge';
-  parameters?: { [key: string]: string };
+  parameters?: { [key: string]: any };
   functionName?: string;
   onEnd?: OnTaskCompletion;
 };
@@ -109,12 +109,14 @@ export type Prompt =
     };
 
 export type Variable = {
-  scope?: 'session' | 'user' | 'global';
+  scope?: VariableScope;
   key: string;
   reset?: boolean;
   defaultValue?: any;
   type?: VariableType;
 };
+
+export type VariableScope = 'user' | 'session' | 'global';
 
 export interface AssistantBase {
   id: string;
@@ -157,6 +159,12 @@ export interface AssistantBase {
   cache?: {
     enable?: boolean;
   };
+  openEmbed?: {
+    enable?: boolean;
+  };
+  access?: {
+    noLoginRequired?: boolean;
+  };
 }
 
 export interface VariableTypeBase {
@@ -193,7 +201,7 @@ export type VariableType = VariableTypeBase &
   );
 
 export type OutputVariable = VariableType & {
-  variable?: { key: string; scope: string };
+  variable?: { key: string; scope: VariableScope };
   from?: { type: 'input' | 'output'; id: string };
   appearance?: RuntimeOutputAppearance;
   initialValue?: RuntimeOutputVariablesSchema[RuntimeOutputVariable];
@@ -312,6 +320,7 @@ export type Parameter =
   | NumberParameter
   | SelectParameter
   | LanguageParameter
+  | BooleanParameter
   | SourceParameter
   | LLMInputMessagesParameter
   | LLMInputToolsParameter
@@ -326,6 +335,11 @@ export interface ParameterBase {
   helper?: string;
   required?: boolean;
   from?: 'editor' | 'agentParameter' | 'knowledgeParameter' | 'blockletAPIParameter';
+  hidden?: boolean;
+}
+
+export function isUserInputParameter(parameter: Parameter): parameter is Exclude<Parameter, SourceParameter> {
+  return parameter.type !== 'source';
 }
 
 export interface LLMInputMessagesParameter extends ParameterBase {
@@ -356,6 +370,12 @@ export interface StringParameter extends ParameterBase {
   multiline?: boolean;
   minLength?: number;
   maxLength?: number;
+}
+
+export interface BooleanParameter extends ParameterBase {
+  type: 'boolean';
+  value?: boolean;
+  defaultValue?: boolean;
 }
 
 export interface NumberParameter extends ParameterBase {

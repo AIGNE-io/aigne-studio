@@ -2,7 +2,6 @@ import { readFile } from 'fs/promises';
 import path from 'path';
 
 import { syncedStore } from '@syncedstore/core';
-import { MappedTypeDescription } from '@syncedstore/core/types/doc';
 import { mkdir, pathExists, writeFile } from 'fs-extra';
 import * as decoding from 'lib0/decoding';
 import * as encoding from 'lib0/encoding';
@@ -14,6 +13,8 @@ import { Doc, applyUpdate, encodeStateAsUpdate } from 'yjs';
 
 import type Repository from './repository';
 import type { Transaction } from './repository';
+
+type MappedTypeDescription<T extends { [key: string]: any }> = ReturnType<typeof syncedStore<T>>;
 
 const autoSaveTimeout = 10000;
 const pingTimeout = 30000;
@@ -33,8 +34,6 @@ export type WorkingStore<T> = {
 };
 
 const YJS_STATE_FILE_PATH = (root: string) => path.join(root, 'state.yjs');
-
-const WORKING_DIR = (root: string) => path.join(root, 'working');
 
 export default class Working<T> extends Doc {
   static async load<T>(repo: Repository<T>, options: WorkingOptions) {
@@ -71,7 +70,7 @@ export default class Working<T> extends Doc {
   }
 
   get workingDir() {
-    return WORKING_DIR(this.options.root);
+    return this.repo.workingDir({ ref: this.options.ref });
   }
 
   async reset() {

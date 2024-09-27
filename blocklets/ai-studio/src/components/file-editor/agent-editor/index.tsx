@@ -66,7 +66,7 @@ export default function AgentEditor({
           ) : isImageAssistant(value) ? (
             <ImageAssistantEditor projectId={projectId} gitRef={gitRef} value={value} disabled={disabled} />
           ) : isFunctionAssistant(value) ? (
-            <FunctionAssistantEditor gitRef={gitRef} value={value} disabled={disabled} />
+            <FunctionAssistantEditor projectId={projectId} gitRef={gitRef} value={value} disabled={disabled} />
           ) : isApiAssistant(value) ? (
             <ApiAssistantEditor projectId={projectId} gitRef={gitRef} value={value} disabled={disabled} />
           ) : isRouterAssistant(value) ? (
@@ -108,7 +108,7 @@ export default function AgentEditor({
       </Box>
 
       <Box sx={{ bgcolor: '#F9FAFB', borderRadius: 1, mt: 2 }}>
-        <AgentSettings agent={value} />
+        <AgentSettings key={value.id} agent={value} />
       </Box>
     </Stack>
   );

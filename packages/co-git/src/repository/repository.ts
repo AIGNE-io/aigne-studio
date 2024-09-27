@@ -1,6 +1,6 @@
 import fs from 'fs';
-import { mkdir } from 'fs/promises';
-import path from 'path';
+import { mkdir, rm } from 'fs/promises';
+import { dirname, join, parse } from 'path';
 
 import { pathExists } from 'fs-extra';
 import * as git from 'isomorphic-git';
@@ -46,8 +46,8 @@ export default class Repository<T> {
     initialCommit?: Pick<Parameters<typeof git.commit>[0], 'message' | 'author'>;
     defaultBranch?: string;
   }) {
-    if (!(await pathExists(path.join(options.root, '.git')))) {
-      await mkdir(path.dirname(options.root), { recursive: true });
+    if (!(await pathExists(join(options.root, '.git')))) {
+      await mkdir(dirname(options.root), { recursive: true });
       await git.init({ fs, dir: options.root, defaultBranch });
     }
 
@@ -91,15 +91,23 @@ export default class Repository<T> {
   }
 
   get gitdir() {
-    return path.join(this.root, '.git');
+    return join(this.root, '.git');
   }
 
-  private workingMap: { [key: string]: Promise<Working<T>> } = {};
+  protected workingMap: { [key: string]: Promise<Working<T>> } = {};
+
+  workingRoot({ ref }: { ref: string }) {
+    const { base, dir } = parse(this.root);
+    return join(dir, `${base}.cooperative`, ref);
+  }
+
+  workingDir({ ref }: { ref: string }) {
+    return join(this.workingRoot({ ref }), 'working');
+  }
 
   async working({ ref }: { ref: string }) {
     this.workingMap[ref] ??= (async () => {
-      const { base, dir } = path.parse(this.root);
-      const workingRoot = path.join(dir, `${base}.cooperative`, ref);
+      const workingRoot = this.workingRoot({ ref });
 
       const exists = await pathExists(workingRoot);
 
@@ -203,6 +211,15 @@ export default class Repository<T> {
     });
   }
 
+  async clean({ dir }: { dir?: string }) {
+    const list = await git.statusMatrix({ fs, gitdir: this.gitdir, dir: dir || this.root });
+    for (const item of list) {
+      if (isUntrackedFile(item)) {
+        await rm(join(this.root, item[0].toString()));
+      }
+    }
+  }
+
   async checkout(options?: Omit<Parameters<typeof git.checkout>[0], 'fs' | 'dir'> & { dir?: string }) {
     return git.checkout({
       fs,
@@ -235,7 +252,7 @@ export default class Repository<T> {
   ) {
     const filepath = (await git.listFiles({ fs, gitdir: this.gitdir, ref })).find((i) => {
       if (i === filenameOrPath) return true;
-      const p = path.parse(i);
+      const p = parse(i);
       return p.name === filenameOrPath || p.base === filenameOrPath;
     });
     if (!filepath) {
@@ -283,4 +300,8 @@ export async function ignoreNotFoundError<T>(value: Promise<T>): Promise<T | und
     }
     throw error;
   }
+}
+
+function isUntrackedFile(file: Awaited<ReturnType<typeof git.statusMatrix>>[number]) {
+  return file[1] === 0 && file[2] === 2 && file[3] === 0;
 }

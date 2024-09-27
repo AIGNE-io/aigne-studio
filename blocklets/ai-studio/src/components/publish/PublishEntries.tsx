@@ -163,7 +163,7 @@ function PublishEntriesForm({
   const doc = (getYjsValue(entry) as Map<any>).doc!;
 
   const parameters = sortBy(Object.values(assistant.parameters ?? {}), (i) => i.index).filter(
-    (i): i is typeof i & { data: { key: string } } => !!i.data.key
+    (i): i is typeof i & { data: { key: string } } => !!i.data.key && !i.data.hidden
   );
 
   return (

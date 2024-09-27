@@ -7,7 +7,7 @@ import { Assistant, BlockletAgent, OnTaskCompletion, ProjectSettings, RunAssista
 
 type OmitBetterStrict<T, K extends keyof T> = T extends any ? Pick<T, Exclude<keyof T, K>> : never;
 
-export type RunAssistantCallback = (e: OmitBetterStrict<RunAssistantResponse, 'messageId'>) => void;
+export type RunAssistantCallback = (e: OmitBetterStrict<RunAssistantResponse, 'messageId' | 'sessionId'>) => void;
 
 export class ToolCompletionDirective extends Error {
   type: OnTaskCompletion;

@@ -34,7 +34,7 @@ import {
   useMergeConflictDialog,
   useUnauthorizedDialog,
 } from '../save-button';
-import { useProjectState } from '../state';
+import { useAssistantChangesState, useProjectState } from '../state';
 
 interface RemoteRepoSettingForm {
   url: string;
@@ -42,7 +42,7 @@ interface RemoteRepoSettingForm {
   password: string;
 }
 
-export default function RemoteRepoSetting({ projectId }: { projectId: string }) {
+export default function RemoteRepoSetting({ projectId, gitRef }: { projectId: string; gitRef: string }) {
   const { t, locale } = useLocaleContext();
 
   const { dialog: confirmDialog, showDialog: showConfirmDialog } = useDialog();
@@ -51,7 +51,7 @@ export default function RemoteRepoSetting({ projectId }: { projectId: string }) 
   const { dialog: unauthorizedDialog, showUnauthorizedDialog } = useUnauthorizedDialog({ projectId });
 
   const { state, addRemote, deleteProjectRemote, updateProject, sync } = useProjectState(projectId, getDefaultBranch());
-
+  const { disabled: disabledButton } = useAssistantChangesState(projectId, gitRef);
   const [authSyncUpdating, setAutoSyncUpdating] = useState<boolean | 'success' | 'error'>(false);
 
   const [checked, setChecked] = useState(false);
@@ -275,70 +275,73 @@ export default function RemoteRepoSetting({ projectId }: { projectId: string }) 
               ) : null}
             </Stack>
           </Stack>
-
           {state.project && state.project.gitUrl ? (
-            <Stack flexDirection="row" gap={1} flexWrap="wrap">
-              <Stack direction="row" alignItems="center" gap={1}>
-                <FormControlLabel
-                  sx={{ m: 0, lineHeight: 1 }}
-                  label={t('autoSync')}
-                  labelPlacement="end"
-                  slotProps={{ typography: { sx: { ml: 1 } } }}
-                  control={
-                    <Switch
-                      defaultChecked={state.project?.gitAutoSync ?? false}
-                      onChange={(_, checked) => changeAutoSync(checked)}
-                    />
-                  }
-                />
-
-                {authSyncUpdating ? (
-                  <Stack justifyContent="center" alignItems="center" width={24} height={24}>
-                    {authSyncUpdating === true ? (
-                      <CircularProgress size={16} />
-                    ) : authSyncUpdating === 'success' ? (
-                      <CheckCircleOutlineRounded color="success" sx={{ fontSize: 20 }} />
-                    ) : authSyncUpdating === 'error' ? (
-                      <ErrorOutlineRounded color="error" sx={{ fontSize: 20 }} />
-                    ) : null}
-                  </Stack>
-                ) : null}
-              </Stack>
-
-              <Stack direction="row" alignItems="center" gap={1}>
-                <PromiseLoadingButton
-                  size="small"
-                  variant="text"
-                  loadingPosition="start"
-                  startIcon={<SyncRounded />}
-                  onClick={async () => {
-                    try {
-                      await sync(projectId);
-                      Toast.success(t('synced'));
-                    } catch (error) {
-                      if (isTheErrorShouldShowMergeConflict(error)) {
-                        showMergeConflictDialog();
-                        return;
-                      }
-
-                      if (isTheErrorUnauthorizedAccessToken(error)) {
-                        showUnauthorizedDialog();
-                        return;
-                      }
-
-                      Toast.error(getErrorMessage(error));
+            <Tooltip title={!disabledButton ? t('syncTip') : undefined}>
+              <Stack flexDirection="row" gap={1} flexWrap="wrap">
+                <Stack direction="row" alignItems="center" gap={1}>
+                  <FormControlLabel
+                    sx={{ m: 0, lineHeight: 1 }}
+                    label={t('autoSync')}
+                    labelPlacement="end"
+                    slotProps={{ typography: { sx: { ml: 1 } } }}
+                    control={
+                      <Switch
+                        defaultChecked={state.project?.gitAutoSync ?? false}
+                        onChange={(_, checked) => changeAutoSync(checked)}
+                      />
                     }
-                  }}>
-                  {t('sync')}
-                </PromiseLoadingButton>
+                  />
 
-                {state.project?.gitLastSyncedAt && (
-                  <Typography variant="caption" color="#9CA3AF">
-                    <RelativeTime locale={locale} value={state.project.gitLastSyncedAt} />
-                  </Typography>
-                )}
+                  {authSyncUpdating ? (
+                    <Stack justifyContent="center" alignItems="center" width={24} height={24}>
+                      {authSyncUpdating === true ? (
+                        <CircularProgress size={16} />
+                      ) : authSyncUpdating === 'success' ? (
+                        <CheckCircleOutlineRounded color="success" sx={{ fontSize: 20 }} />
+                      ) : authSyncUpdating === 'error' ? (
+                        <ErrorOutlineRounded color="error" sx={{ fontSize: 20 }} />
+                      ) : null}
+                    </Stack>
+                  ) : null}
+                </Stack>
+
+                <Stack direction="row" alignItems="center" gap={1}>
+                  <PromiseLoadingButton
+                    size="small"
+                    variant="text"
+                    loadingPosition="start"
+                    startIcon={<SyncRounded />}
+                    disabled={!disabledButton}
+                    onClick={async () => {
+                      try {
+                        await sync(projectId);
+                        Toast.success(t('synced'));
+                      } catch (error) {
+                        if (isTheErrorShouldShowMergeConflict(error)) {
+                          showMergeConflictDialog();
+                          return;
+                        }
+
+                        if (isTheErrorUnauthorizedAccessToken(error)) {
+                          showUnauthorizedDialog();
+                          return;
+                        }
+
+                        Toast.error(getErrorMessage(error));
+                      }
+                    }}>
+                    {t('sync')}
+                  </PromiseLoadingButton>
+
+                  {state.project?.gitLastSyncedAt && (
+                    <Typography variant="caption" color="#9CA3AF">
+                      {/* @ts-ignore */}
+                      <RelativeTime locale={locale} value={state.project.gitLastSyncedAt} />
+                    </Typography>
+                  )}
+                </Stack>
               </Stack>
-            </Stack>
+            </Tooltip>
           ) : null}
         </Stack>
       </Collapse>

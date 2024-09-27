@@ -21,12 +21,14 @@ import {
   ResourceType,
   StringParameter,
   parseDirectivesOfTemplate,
+  parseDirectivesOfTemplateInput,
 } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
-import { DatasetObject } from '@blocklet/dataset-sdk/types';
+import { DatasetObject, SchemaObject } from '@blocklet/dataset-sdk/types';
 import getOpenApiTextFromI18n from '@blocklet/dataset-sdk/util/get-open-api-i18n-text';
 import { Icon } from '@iconify-icon/react';
+import SwitchIcon from '@iconify-icons/material-symbols/switches';
 import BracesIcon from '@iconify-icons/tabler/braces';
 import BracketsContainIcon from '@iconify-icons/tabler/brackets-contain';
 import CheckIcon from '@iconify-icons/tabler/check';
@@ -39,6 +41,7 @@ import GripVertical from '@iconify-icons/tabler/grip-vertical';
 import HistoryIcon from '@iconify-icons/tabler/history';
 import InfoCircleIcon from '@iconify-icons/tabler/info-circle';
 import MessageIcon from '@iconify-icons/tabler/message';
+import PlusIcon from '@iconify-icons/tabler/plus';
 import SquareNumberIcon from '@iconify-icons/tabler/square-number-1';
 import TrashIcon from '@iconify-icons/tabler/trash';
 import {
@@ -78,7 +81,7 @@ import {
 } from '@mui/material';
 import { GridColDef } from '@mui/x-data-grid';
 import { useRequest } from 'ahooks';
-import { get, sortBy } from 'lodash';
+import { cloneDeep, get, sortBy } from 'lodash';
 import { PopupState, bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { useId, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -131,7 +134,10 @@ export default function InputTable({
   const checkVariableReferenced = (id: string, key: string) => {
     if (assistant.type === 'prompt' || assistant.type === 'image') {
       const textNodes = document.querySelectorAll('[data-lexical-variable]');
-      const variables = new Set(parseDirectivesOfTemplate(assistant).map((i) => i.name.split('.')[0]!));
+      const variables = new Set([
+        ...parseDirectivesOfTemplateInput(assistant).map((i) => i.name.split('.')[0]!),
+        ...parseDirectivesOfTemplate(assistant).map((i) => i.name.split('.')[0]!),
+      ]);
 
       const ids = [...textNodes].map((node) => node.getAttribute('data-lexical-id'));
       const foundId = ids.find((i) => i === id);
@@ -149,7 +155,7 @@ export default function InputTable({
     return true;
   };
 
-  const parameters = sortBy(Object.values(assistant.parameters ?? {}), (i) => i.index);
+  const parameters = sortBy(Object.values(assistant.parameters ?? {}), (i) => i.index).filter((i) => !i.data.hidden);
   const { data: knowledge = [] } = useRequest(() => getDatasets({ projectId }));
 
   const FROM_MAP = useMemo(() => {
@@ -169,6 +175,7 @@ export default function InputTable({
       number: t('number'),
       object: t('object'),
       array: t('array'),
+      boolean: t('boolean'),
     };
   }, [t]);
 
@@ -178,6 +185,7 @@ export default function InputTable({
       number: <Icon icon={SquareNumberIcon} />,
       object: <Icon icon={BracesIcon} />,
       array: <Icon icon={BracketsContainIcon} />,
+      boolean: <Icon icon={SwitchIcon} />,
     };
   }, [t]);
 
@@ -195,7 +203,12 @@ export default function InputTable({
             };
 
             return (
-              <Box height={33} display="flex" alignItems="center" gap={0.5}>
+              <Box
+                height={33}
+                display="flex"
+                alignItems="center"
+                gap={0.5}
+                sx={{ color: parameter.hidden ? 'text.disabled' : undefined }}>
                 <Box component={Icon} icon={iconMap[parameter.key]} fontSize={16} />
                 <Box>{parameter.key}</Box>
               </Box>
@@ -203,7 +216,12 @@ export default function InputTable({
           }
 
           return (
-            <Stack direction="row" alignItems="center" gap={0.5} minWidth={100}>
+            <Stack
+              direction="row"
+              alignItems="center"
+              gap={0.5}
+              minWidth={100}
+              sx={{ color: parameter.hidden ? 'text.disabled' : undefined }}>
               <Box component={Icon} icon={FormsIcon} fontSize={16} />
 
               <WithAwareness
@@ -212,9 +230,10 @@ export default function InputTable({
                 sx={{ top: 4, right: -8 }}
                 path={[assistant.id, 'parameters', parameter?.id ?? '', 'key']}>
                 <Input
+                  sx={{ color: parameter.hidden ? 'text.disabled' : undefined }}
                   id={`${parameter.id}-key`}
                   fullWidth
-                  readOnly={readOnly}
+                  readOnly={readOnly || parameter.hidden}
                   placeholder={t('inputParameterKeyPlaceholder')}
                   value={parameter.key || ''}
                   onChange={(e) => {
@@ -236,7 +255,7 @@ export default function InputTable({
         flex: 1,
         renderCell: ({ row: { data: parameter } }) => {
           if (parameter.type === 'source' && parameter.source?.variableFrom === 'history') {
-            return <Box>{t('history.title')}</Box>;
+            return <Box sx={{ color: parameter.hidden ? 'text.disabled' : undefined }}>{t('history.title')}</Box>;
           }
 
           return (
@@ -266,7 +285,10 @@ export default function InputTable({
             const { source } = parameter;
             if (source.variableFrom === 'tool') {
               return (
-                <Stack direction="row" alignItems="center">
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  sx={{ color: parameter.hidden ? 'text.disabled' : undefined }}>
                   <ListItemIcon sx={{ minWidth: 20 }}>
                     <Icon icon={BracesIcon} />
                   </ListItemIcon>
@@ -282,7 +304,10 @@ export default function InputTable({
                 (x) => x.key === source.variable?.key && x.scope && source.variable.scope
               );
               return (
-                <Stack direction="row" alignItems="center">
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  sx={{ color: parameter.hidden ? 'text.disabled' : undefined }}>
                   {variable?.type?.type ? (
                     <>
                       <ListItemIcon sx={{ minWidth: 20 }}>{TYPE_ICON_MAP[variable.type.type]}</ListItemIcon>
@@ -297,7 +322,10 @@ export default function InputTable({
 
             if (parameter.source.variableFrom === 'knowledge') {
               return (
-                <Stack direction="row" alignItems="center">
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  sx={{ color: parameter.hidden ? 'text.disabled' : undefined }}>
                   <ListItemIcon sx={{ minWidth: 20 }}>
                     <Icon icon={CursorTextIcon} />
                   </ListItemIcon>
@@ -387,6 +415,10 @@ export default function InputTable({
               const idReferenced = checkVariableReferenced(parameter.id, parameter.key || '');
 
               const getBackgroundColor = (theme: Theme) => {
+                if (parameter.hidden) {
+                  return alpha(theme.palette.common.black, theme.palette.action.hoverOpacity);
+                }
+
                 if (!idReferenced) {
                   return alpha(theme.palette.warning.light, theme.palette.action.focusOpacity);
                 }
@@ -399,6 +431,10 @@ export default function InputTable({
               };
 
               const getHoverBackgroundColor = (theme: Theme) => {
+                if (parameter.hidden) {
+                  return alpha(theme.palette.common.black, theme.palette.action.hoverOpacity);
+                }
+
                 if (!idReferenced) {
                   return `${alpha(theme.palette.warning.light, theme.palette.action.selectedOpacity)} !important`;
                 }
@@ -406,11 +442,20 @@ export default function InputTable({
                 return 'grey.100';
               };
 
+              const title = () => {
+                if (parameter.hidden) {
+                  return undefined;
+                }
+
+                if (idReferenced) {
+                  return undefined;
+                }
+
+                return t('variableNotReferenced');
+              };
+
               return (
-                <Tooltip
-                  className="input-table-row"
-                  title={idReferenced ? undefined : t('variableNotReferenced')}
-                  placement="bottom-start">
+                <Tooltip title={title()} placement="bottom-start">
                   <TableRow
                     key={parameter.id}
                     ref={(ref) => {
@@ -437,11 +482,7 @@ export default function InputTable({
                           <TableCell
                             key={column.field}
                             align={column.align}
-                            sx={{
-                              position: 'relative',
-                              px: 0,
-                              ...getDiffBackground('parameters', parameter.id),
-                            }}>
+                            sx={{ position: 'relative', px: 0, ...getDiffBackground('parameters', parameter.id) }}>
                             {index === 0 && (
                               <Stack
                                 className="hover-visible center"
@@ -524,31 +565,57 @@ function SelectFromSource({
   openApis: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
 }) {
   const dialogState = usePopupState({ variant: 'dialog', popupId: useId() });
-  const { t } = useLocaleContext();
+  const { t, locale } = useLocaleContext();
   const ref = useRef<PopperMenuImperative>(null);
 
   const currentKey = parameter.type === 'source' ? parameter.source?.variableFrom : 'custom';
-  const fromTitle =
-    parameter.type === 'source' && parameter.source?.variableFrom === 'tool' && parameter?.source?.agent?.id ? (
-      <span>
-        {t('variableParameter.call')}{' '}
-        <AgentName
-          type="tool"
-          blockletDid={parameter.source.agent.blockletDid}
-          projectId={parameter.source.agent.projectId}
-          agentId={parameter.source.agent.id}
-        />
-      </span>
-    ) : (
-      FROM_MAP[currentKey || 'custom']
-    );
+  const fromTitle = (() => {
+    if (parameter.type === 'source' && parameter.source?.variableFrom === 'tool' && parameter?.source?.agent?.id) {
+      return (
+        <span>
+          {t('variableParameter.call')}{' '}
+          <AgentName
+            type="tool"
+            blockletDid={parameter.source.agent.blockletDid}
+            projectId={parameter.source.agent.projectId}
+            agentId={parameter.source.agent.id}
+          />
+        </span>
+      );
+    }
+
+    if (parameter.type === 'source' && parameter.source?.variableFrom === 'blockletAPI' && parameter?.source?.api?.id) {
+      const id = parameter?.source?.api?.id;
+      const api = (openApis || []).find((x) => x.id === id);
+      const name = api ? getOpenApiTextFromI18n(api, 'summary', locale) || t('unnamed') : id;
+
+      return (
+        <span>
+          {t('variableParameter.call')} {name}
+        </span>
+      );
+    }
+
+    return FROM_MAP[currentKey || 'custom'];
+  })();
 
   return (
     <>
       <PopperMenu
         ref={ref}
-        BoxProps={{
-          sx: { my: 1, p: 0, cursor: 'pointer' },
+        ButtonProps={{
+          variant: 'text',
+          sx: {
+            my: 1,
+            p: 0,
+            cursor: 'pointer',
+            color: parameter.hidden ? 'text.disabled' : 'text.primary',
+            fontWeight: 400,
+            ':hover': {
+              backgroundColor: 'transparent',
+            },
+          },
+          disabled: parameter.hidden,
           children: (
             <Box>
               <Box className="center" gap={1} justifyContent="flex-start">
@@ -668,7 +735,8 @@ function SelectInputType({
           disabled={
             parameter.key === 'question' ||
             parameter.from === FROM_PARAMETER ||
-            parameter.from === FROM_KNOWLEDGE_PARAMETER
+            parameter.from === FROM_KNOWLEDGE_PARAMETER ||
+            parameter.hidden
           }
           variant="standard"
           hiddenLabel
@@ -1135,6 +1203,10 @@ function checkKeyParameterIsUsed({ value, key }: { value: AssistantYjs; key: str
   }
 
   const parameters = Object.values(value?.parameters || {}).flatMap((x) => {
+    if (x.data.hidden) {
+      return [];
+    }
+
     if (x.data.type === 'source') {
       if (x.data.source?.variableFrom === 'tool') {
         return [Object.values(x.data.source?.agent?.parameters || {})];
@@ -1164,12 +1236,14 @@ const useDelete = (value: AssistantYjs) => {
   const { deleteParameter } = useVariablesEditorOptions(value);
 
   const deleteUselessParameter = () => {
-    Object.values(value.parameters || {}).forEach((x) => {
-      const list = [FROM_API_PARAMETER, FROM_PARAMETER, FROM_API_PARAMETER];
-      if (x.data.from && list.includes(x.data.from) && !checkKeyParameterIsUsed({ value, key: x.data.key || '' })) {
-        deleteParameter(x.data);
-      }
-    });
+    Object.values(value.parameters || {})
+      .filter((i) => !i.data.hidden)
+      .forEach((x) => {
+        const list = [FROM_API_PARAMETER, FROM_PARAMETER, FROM_API_PARAMETER];
+        if (x.data.from && list.includes(x.data.from) && !checkKeyParameterIsUsed({ value, key: x.data.key || '' })) {
+          deleteParameter(x.data);
+        }
+      });
   };
 
   return {
@@ -1312,7 +1386,7 @@ function AgentParametersForm({
 
         <Box>
           {agent.parameters?.map((data) => {
-            if (!data?.key || data.type === 'source') return null;
+            if (!data?.key || data.type === 'source' || data.hidden) return null;
 
             const placeholder = data.placeholder?.replace(/([^\w]?)$/, '');
 
@@ -1345,7 +1419,7 @@ export function AuthorizeButton({ agent }: { agent: NonNullable<ReturnType<typeo
   const { t } = useLocaleContext();
 
   const authInputs = agent.parameters?.filter(
-    (i) => i.key && i.type === 'source' && i.source?.variableFrom === 'secret'
+    (i) => i.key && i.type === 'source' && i.source?.variableFrom === 'secret' && !i.hidden
   );
 
   const dialogState = usePopupState({ variant: 'dialog' });
@@ -1396,7 +1470,7 @@ function AuthorizeParametersFormDialog({
   const { t } = useLocaleContext();
 
   const authInputs = agent.parameters?.filter(
-    (i) => i.key && i.type === 'source' && i.source?.variableFrom === 'secret'
+    (i) => i.key && i.type === 'source' && i.source?.variableFrom === 'secret' && !i.hidden
   );
 
   const form = useForm();
@@ -1502,8 +1576,14 @@ function PopperButton({
           <Paper sx={{ p: 0, minWidth: 140, maxWidth: 320, maxHeight: '80vh', overflow: 'auto' }}>
             <Stack gap={2}>
               <List>
+                <MenuItem onClick={() => (parameter.hidden = !parameter.hidden)}>
+                  {parameter.hidden ? t('activeParameterTip') : t('hideParameterTip')}
+                </MenuItem>
+
                 {!(parameter.from === FROM_PARAMETER || parameter.from === FROM_KNOWLEDGE_PARAMETER) && (
-                  <MenuItem onClick={dialogState.open}>{t('setting')}</MenuItem>
+                  <MenuItem onClick={dialogState.open} disabled={Boolean(parameter.hidden)}>
+                    {t('setting')}
+                  </MenuItem>
                 )}
                 <MenuItem sx={{ color: '#E11D48', fontSize: 13 }} onClick={onDelete}>
                   {t('delete')}
@@ -1647,24 +1727,65 @@ function APIParameter({
 
                 return (
                   <Stack key={parameter.name}>
-                    <Typography variant="caption" mb={0.5}>
-                      {getOpenApiTextFromI18n(parameter, 'description', locale) ||
-                        getOpenApiTextFromI18n(parameter, 'name', locale)}
-                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }} mb={0.5}>
+                      <Typography variant="subtitle4">
+                        {getOpenApiTextFromI18n(parameter, 'description', locale) ||
+                          getOpenApiTextFromI18n(parameter, 'name', locale)}
+                      </Typography>
+                      <Typography
+                        variant="subtitle5"
+                        sx={{ lineHeight: '22px' }}>{`(${t(parameter?.type)})`}</Typography>
+                    </Box>
 
-                    <PromptEditorField
-                      placeholder={`{{ ${parameter.name} }}`}
-                      value={source?.api?.parameters?.[parameter.name] || ''}
-                      projectId={projectId}
-                      gitRef={gitRef}
-                      assistant={value}
-                      path={[]}
-                      onChange={(value) => {
-                        if (source?.api?.parameters) {
-                          source.api.parameters[parameter.name] = value;
+                    {parameter.type === 'object' ? (
+                      <OpenAPIObjectParameter
+                        assistant={value}
+                        projectId={projectId}
+                        gitRef={gitRef}
+                        parameter={parameter as SchemaObject}
+                        value={
+                          typeof source?.api?.parameters?.[parameter.name] === 'object'
+                            ? source?.api?.parameters?.[parameter.name]
+                            : {}
                         }
-                      }}
-                    />
+                        onChange={(value) => {
+                          if (source?.api?.parameters) {
+                            source.api.parameters[parameter.name] = value;
+                          }
+                        }}
+                      />
+                    ) : parameter.type === 'array' ? (
+                      <OpenAPIArrayParameter
+                        assistant={value}
+                        projectId={projectId}
+                        gitRef={gitRef}
+                        parameter={parameter as SchemaObject & { name: string }}
+                        value={
+                          Array.isArray(source?.api?.parameters?.[parameter.name])
+                            ? source?.api?.parameters?.[parameter.name]
+                            : []
+                        }
+                        onChange={(value) => {
+                          if (source?.api?.parameters) {
+                            source.api.parameters[parameter.name] = value;
+                          }
+                        }}
+                      />
+                    ) : (
+                      <PromptEditorField
+                        placeholder={`{{ ${parameter.name} }}`}
+                        value={source?.api?.parameters?.[parameter.name] || ''}
+                        projectId={projectId}
+                        gitRef={gitRef}
+                        assistant={value}
+                        path={[]}
+                        onChange={(value) => {
+                          if (source?.api?.parameters) {
+                            source.api.parameters[parameter.name] = value;
+                          }
+                        }}
+                      />
+                    )}
                   </Stack>
                 );
               })}
@@ -1676,4 +1797,136 @@ function APIParameter({
   }
 
   return null;
+}
+
+function OpenAPIObjectParameter({
+  parameter,
+  value,
+  projectId,
+  gitRef,
+  assistant,
+  onChange,
+}: {
+  parameter: SchemaObject;
+  value: { [key: string]: any };
+  projectId: string;
+  gitRef: string;
+  assistant: AssistantYjs;
+  onChange: (data: { [key: string]: any }) => void;
+}) {
+  const { t } = useLocaleContext();
+  return (
+    <Stack ml={1} gap={1}>
+      {Object.entries(parameter.properties || {}).map(([key, property]: [string, any]) => {
+        return (
+          <Stack key={key}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }} mb={0.5}>
+              <Typography variant="subtitle5">{key}</Typography>
+              <Typography variant="subtitle5">{`(${t(property?.type)})`}</Typography>
+            </Box>
+
+            <PromptEditorField
+              sx={{ '.ContentEditable__root': { py: 0.5 } }}
+              placeholder={`{{ ${key} }}`}
+              value={value?.[key] || ''}
+              projectId={projectId}
+              gitRef={gitRef}
+              assistant={assistant}
+              path={[]}
+              onChange={(val) => {
+                value ??= {};
+                value[key] = val;
+
+                onChange(cloneDeep(value));
+              }}
+            />
+          </Stack>
+        );
+      })}
+    </Stack>
+  );
+}
+
+function OpenAPIArrayParameter({
+  parameter,
+  value,
+  projectId,
+  gitRef,
+  assistant,
+  onChange,
+}: {
+  parameter: SchemaObject & { name: string };
+  value: any[];
+  projectId: string;
+  gitRef: string;
+  assistant: AssistantYjs;
+  onChange: (data: any) => void;
+}) {
+  const { t } = useLocaleContext();
+  const type = (parameter.items as any)?.type;
+  // 默认空数组值
+  const handleElementChange = (index: number, newValue: any) => {
+    const newValueArray = [...(value || [])];
+    newValueArray[index] = newValue;
+    onChange(cloneDeep(newValueArray));
+  };
+
+  const handleAddElement = () => {
+    const newItem = type === 'object' ? {} : type === 'array' ? [] : '';
+    const newValueArray = [...(value || []), newItem];
+    onChange(cloneDeep(newValueArray));
+  };
+
+  const handleRemoveElement = (index: number) => {
+    const newValueArray = [...(value || [])];
+    newValueArray.splice(index, 1);
+    onChange(cloneDeep(newValueArray));
+  };
+
+  return (
+    <Stack ml={1} gap={1}>
+      {(value || [])?.map((elementValue, index) => (
+        <Stack key={index}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1}>
+            <Typography variant="subtitle5">
+              {`[${t('arrayItem')}]`} ({t(type)})
+            </Typography>
+
+            <IconButton size="small" onClick={() => handleRemoveElement(index)}>
+              <Box component={Icon} icon={TrashIcon} sx={{ fontSize: 14 }} />
+            </IconButton>
+          </Stack>
+
+          {type === 'object' ? (
+            <OpenAPIObjectParameter
+              assistant={assistant}
+              projectId={projectId}
+              gitRef={gitRef}
+              parameter={parameter.items as SchemaObject}
+              value={elementValue || {}}
+              onChange={(val) => handleElementChange(index, val)}
+            />
+          ) : (
+            <PromptEditorField
+              sx={{
+                '.ContentEditable__root': {
+                  py: 0.5,
+                },
+              }}
+              placeholder={`Element ${index}`}
+              assistant={assistant}
+              projectId={projectId}
+              gitRef={gitRef}
+              path={[]}
+              value={elementValue || ''}
+              onChange={(val) => handleElementChange(index, val)}
+            />
+          )}
+        </Stack>
+      ))}
+      <Button variant="text" color="primary" onClick={handleAddElement}>
+        <Box component={Icon} icon={PlusIcon} />
+      </Button>
+    </Stack>
+  );
 }

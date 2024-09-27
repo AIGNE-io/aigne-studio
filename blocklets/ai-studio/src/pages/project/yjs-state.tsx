@@ -74,6 +74,7 @@ export interface StoreContext {
     };
   };
   provider: WebsocketProvider;
+  indexeddb: IndexeddbPersistence;
 }
 
 const stores: Record<string, RecoilState<StoreContext>> = {};
@@ -112,6 +113,49 @@ const projectStore = (projectId: string, gitRef: string) => {
     })(),
   });
   return stores[key]!;
+};
+
+export const useWebSocketStatus = (projectId: string, gitRef: string) => {
+  const [status, setStatus] = useState<'CONNECTING' | 'OPEN' | 'CLOSING' | 'CLOSED'>('CONNECTING');
+  const { provider } = useProjectStore(projectId, gitRef, true);
+
+  useEffect(() => {
+    if (!provider) return undefined;
+
+    const updateStatus = () => {
+      switch (provider.ws?.readyState) {
+        case WebSocket.CONNECTING:
+          setStatus('CONNECTING');
+          break;
+        case WebSocket.OPEN:
+          setStatus('OPEN');
+          break;
+        case WebSocket.CLOSING:
+          setStatus('CLOSING');
+          break;
+        case WebSocket.CLOSED:
+          setStatus('CLOSED');
+          break;
+        default:
+          setStatus('CLOSED');
+          break;
+      }
+    };
+
+    provider.ws?.addEventListener('open', updateStatus);
+    provider.ws?.addEventListener('close', updateStatus);
+    provider.ws?.addEventListener('error', updateStatus);
+    // const interval = window.setInterval(updateStatus, 1000);
+
+    return () => {
+      provider.ws?.removeEventListener('open', updateStatus);
+      provider.ws?.removeEventListener('close', updateStatus);
+      provider.ws?.removeEventListener('error', updateStatus);
+      // clearInterval(interval);
+    };
+  }, [provider, projectId, gitRef]);
+
+  return status;
 };
 
 export const useProjectStore = (projectId: string, gitRef: string, connect?: boolean) => {
@@ -407,10 +451,24 @@ export function moveFile({ store, from, to }: { store: StoreContext['store']; fr
 export function deleteFile({ store, path }: { store: StoreContext['store']; path: string[] }) {
   getYjsDoc(store).transact(() => {
     const p = path.join('/');
+
     for (const [key, filepath] of Object.entries(store.tree)) {
       if (filepath === p || filepath?.startsWith(p.concat('/'))) {
         delete store.tree[key];
         delete store.files[key];
+      }
+    }
+
+    // delete cron job that agent not exists
+    const cronConfig = store.files[CRON_CONFIG_FILE_PATH] as CronFileYjs;
+    if (cronConfig.jobs?.length) {
+      for (let i = 0; i < cronConfig.jobs.length; ) {
+        const agentId = cronConfig.jobs[i]?.agentId;
+        if (!agentId || !store.files[agentId]) {
+          cronConfig.jobs.splice(i, 1);
+        } else {
+          i++;
+        }
       }
     }
 

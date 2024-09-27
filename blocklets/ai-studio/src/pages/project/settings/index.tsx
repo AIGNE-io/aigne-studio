@@ -1,4 +1,8 @@
+import MdViewer from '@app/components/md-viewer';
+import { AssetField } from '@app/components/publish/LogoField';
 import { useCurrentProject } from '@app/contexts/project';
+import UploaderProvider from '@app/contexts/uploader';
+import { getAssetUrl } from '@app/libs/asset';
 import { TOOL_TIP_LEAVE_TOUCH_DELAY } from '@app/libs/constants';
 import { getDefaultBranch, useCurrentGitStore } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
@@ -50,6 +54,7 @@ import { useProjectState } from '../state';
 import { useProjectStore } from '../yjs-state';
 import AppearanceSetting from './appearance-setting';
 import DidSpacesSetting from './did-spaces-setting';
+import Readme from './readme';
 import RemoteRepoSetting from './remote-repo-setting';
 
 const init = {
@@ -236,7 +241,7 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
         </Box>
       )}
 
-      <SettingsContainer sx={{ px: 2, width: isMobile ? '100%' : '400px' }} className="setting-container">
+      <SettingsContainer px={2} className="setting-container">
         <Tabs
           variant="scrollable"
           scrollButtons={false}
@@ -287,6 +292,61 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                     }}
                   />
                 </Box>
+
+                <Box>
+                  <Typography variant="subtitle2" mb={0.5}>
+                    {t('projectSetting.banner')}
+                  </Typography>
+
+                  <Box width={1} height={0} pb="50%" position="relative">
+                    <AssetField
+                      value={
+                        projectSetting?.banner
+                          ? { url: getAssetUrl({ projectId, projectRef, filename: projectSetting?.banner }) }
+                          : {
+                              url: getProjectIconUrl(projectId, {
+                                projectRef,
+                                working: true,
+                                updatedAt: projectSetting?.iconVersion,
+                              }),
+                            }
+                      }
+                      onChange={async (v) => {
+                        try {
+                          const { filename } = await uploadAsset({ projectId, ref: projectRef, source: v.url });
+                          setProjectSetting((config) => {
+                            config.banner = filename;
+                          });
+                        } catch (error) {
+                          Toast.error(error.message);
+                          throw error;
+                        }
+                      }}>
+                      <Box
+                        component="img"
+                        src={
+                          projectSetting?.banner
+                            ? getAssetUrl({ projectId, projectRef, filename: projectSetting?.banner })
+                            : getProjectIconUrl(projectId, {
+                                projectRef,
+                                working: true,
+                                updatedAt: projectSetting?.iconVersion,
+                              })
+                        }
+                        sx={{
+                          position: 'absolute',
+                          inset: 0,
+                          cursor: 'pointer',
+                          objectFit: 'cover',
+                          width: 1,
+                          height: 1,
+                          borderRadius: 1,
+                        }}
+                      />
+                    </AssetField>
+                  </Box>
+                </Box>
+
                 <Box>
                   <Typography variant="subtitle2" mb={0.5}>
                     {t('projectSetting.name')}
@@ -304,6 +364,7 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                     InputProps={{ readOnly }}
                   />
                 </Box>
+
                 <Box>
                   <Typography variant="subtitle2" mb={0.5}>
                     {t('projectSetting.description')}
@@ -321,6 +382,60 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                     }}
                     InputProps={{ readOnly }}
                   />
+                </Box>
+
+                <Box
+                  onClick={() => {
+                    showDialog({
+                      maxWidth: 'md',
+                      fullWidth: true,
+                      title: t('projectSetting.readme'),
+                      content: (
+                        <UploaderProvider>
+                          <Readme projectId={projectId} projectRef={projectRef} />
+                        </UploaderProvider>
+                      ),
+                      okText: t('close'),
+                    });
+                  }}>
+                  <Typography variant="subtitle2" mb={0.5}>
+                    {t('projectSetting.readme')}
+                  </Typography>
+
+                  {projectSetting?.readme ? (
+                    <MdViewer
+                      content={projectSetting?.readme}
+                      sx={{
+                        cursor: 'pointer',
+                        maxHeight: 128,
+                        height: 1,
+                        width: 1,
+                        overflowX: 'hidden',
+                        overflow: 'overlay',
+                        background: 'rgba(0, 0, 0, 0.03)',
+
+                        img: {
+                          width: '50%',
+                        },
+
+                        h1: { margin: 0 },
+                        h2: { margin: 0 },
+                        h3: { margin: 0 },
+                        h4: { margin: 0 },
+                        h5: { margin: 0 },
+                        h6: { margin: 0 },
+                      }}
+                    />
+                  ) : (
+                    <TextField
+                      sx={{ width: 1, cursor: 'pointer' }}
+                      value={projectSetting?.readme ?? ''}
+                      multiline
+                      rows={5}
+                      hiddenLabel
+                      InputProps={{ readOnly: true }}
+                    />
+                  )}
                 </Box>
               </Stack>
             </Form>
@@ -584,7 +699,7 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                       </LoadingButton>
                     </Box>
                   </Stack>
-                  <RemoteRepoSetting projectId={projectId} />
+                  <RemoteRepoSetting projectId={projectId} gitRef={projectRef} />
                 </Stack>
               </Form>
             </Box>

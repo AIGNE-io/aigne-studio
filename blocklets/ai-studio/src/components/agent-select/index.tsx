@@ -68,12 +68,17 @@ export default function AgentSelect<
     val = value
       .map((i) => {
         const v = agentMap[i.id];
-        return v?.identity.blockletDid === i.blockletDid && v?.project.id === i.projectId ? v : undefined;
+        return v?.identity.blockletDid === i.blockletDid && (!i.projectId || v?.project.id === i.projectId)
+          ? v
+          : undefined;
       })
       .filter(isNonNullable);
   } else if (value) {
     const v = agentMap[value.id];
-    val = v && v?.identity.blockletDid === value.blockletDid && v?.project.id === value.projectId ? v : null;
+    val =
+      v && v?.identity.blockletDid === value.blockletDid && (!value.projectId || v?.project.id === value.projectId)
+        ? v
+        : null;
   }
 
   const addComponentRef = useRef<{ onClick?: () => void; loading?: boolean }>();
@@ -100,9 +105,17 @@ export default function AgentSelect<
           onChange?.(
             e,
             (Array.isArray(v)
-              ? v.map((i) => ({ id: i.id, projectId: i.project.id, blockletDid: i.identity.blockletDid }))
+              ? v.map((i) => ({
+                  id: i.id,
+                  projectId: i.identity.blockletDid ? i.project.id : undefined,
+                  blockletDid: i.identity.blockletDid,
+                }))
               : v
-                ? { id: v.id, projectId: v.project.id, blockletDid: v.identity.blockletDid }
+                ? {
+                    id: v.id,
+                    projectId: v.identity.blockletDid ? v.project.id : undefined,
+                    blockletDid: v.identity.blockletDid,
+                  }
                 : v) as any,
             reason
           )
@@ -226,12 +239,13 @@ function ProjectHeaderView({ project, ...props }: { project: AgentSelectOption['
           )}
 
           <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            {t('author')}{' '}
+            {t('author')} {/* @ts-ignore */}
             <Box component={DID} did={project.createdBy} copyable={false} responsive sx={{ flex: 2, width: 180 }} />
           </Typography>
 
           <Typography variant="caption">
             {t('updatedAt')} &nbsp;
+            {/* @ts-ignore */}
             <RelativeTime locale={locale} value={project.updatedAt} />
           </Typography>
         </Stack>

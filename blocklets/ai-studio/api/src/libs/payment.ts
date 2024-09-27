@@ -1,6 +1,6 @@
 import History from '@api/store/models/history';
 import Release from '@api/store/models/release';
-import { getAssistantFromRepository, getRepository } from '@api/store/repository';
+import { getRepository } from '@api/store/repository';
 import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import payment from '@blocklet/payment-js';
 import { getComponentWebEndpoint } from '@blocklet/sdk/lib/component';
@@ -41,8 +41,7 @@ export async function createOrUpdatePaymentForRelease(
   const { projectId, projectRef, assistantId } = release;
 
   const repository = await getRepository({ projectId });
-  const assistant = await getAssistantFromRepository({
-    repository,
+  const assistant = await repository.readAgent({
     ref: projectRef,
     agentId: assistantId,
     rejectOnEmpty: true,

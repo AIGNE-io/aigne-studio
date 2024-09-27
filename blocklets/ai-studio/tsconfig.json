@@ -14,9 +14,11 @@
       "@api/*": ["./api/src/*"],
       // For local dev
       // "@blocklet/ai-kit/*": ["../../../ai-kit/packages/ai-kit/src/*"],
+      // "@blocklet/pages-kit/*": ["../../../pages-kit/packages/pages-kit/src/*"],
       "@blocklet/ai-runtime": ["../../packages/ai-runtime/src"],
       "@blocklet/ai-runtime/*": ["../../packages/ai-runtime/src/*"],
       "@blocklet/aigne-sdk/*": ["../../packages/aigne-sdk/src/*"],
+      "@blocklet/code-editor": ["../../packages/code-editor/src"],
       "@blocklet/co-git": ["../../packages/co-git/src"],
       "@blocklet/dataset-sdk": ["../../packages/dataset-sdk/src"],
       "@blocklet/dataset-sdk/*": ["../../packages/dataset-sdk/src/*"],
@@ -24,8 +26,8 @@
       "@blocklet/studio-ui": ["../../packages/studio-ui/src"],
       "@blocklet/prompt-editor": ["../../packages/prompt-editor/src"],
       "@blocklet/prompt-editor/*": ["../../packages/prompt-editor/src/*"],
-      "@blocklet/ai-builtin": ["../../packages/ai-builtin/src"],
-      "@blocklet/ai-builtin/*": ["../../packages/ai-builtin/src/*"]
+      "@blocklet/quickjs": ["../../packages/quickjs/src"],
+      "@blocklet/quickjs/*": ["../../packages/quickjs/src/*"]
     }
   }
 }

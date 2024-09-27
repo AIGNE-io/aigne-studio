@@ -1,22 +1,24 @@
-import { mkdir, readFile, writeFile } from 'fs/promises';
-import path, { extname, join } from 'path';
+import { copyFile, rm } from 'fs/promises';
+import { join } from 'path';
 
 import { resourceManager } from '@api/libs/resource';
-import config from '@blocklet/sdk/lib/config';
 import user from '@blocklet/sdk/lib/middlewares/user';
-import { Router } from 'express';
+import { initLocalStorageServer } from '@blocklet/uploader/lib/middlewares';
+import express, { Router } from 'express';
+import { pathExists } from 'fs-extra';
 import Joi from 'joi';
 import { sortBy } from 'lodash';
-import multer from 'multer';
 import { Op, Sequelize } from 'sequelize';
+import { joinURL } from 'ufo';
 
 import { AIKitEmbeddings } from '../../core/embeddings/ai-kit';
+import ensureKnowledgeDirExists, { getUploadDir } from '../../libs/ensure-dir';
 import { Config } from '../../libs/env';
 import logger from '../../libs/logger';
 import { userAuth } from '../../libs/security';
 import DatasetContent from '../../store/models/dataset/content';
 import Dataset from '../../store/models/dataset/dataset';
-import DatasetDocument, { nextDocumentId } from '../../store/models/dataset/document';
+import DatasetDocument from '../../store/models/dataset/document';
 import EmbeddingHistories from '../../store/models/dataset/embedding-history';
 import VectorStore from '../../store/vector-store-faiss';
 import getAllContents, { getAllResourceContents, getContent } from './document-content';
@@ -24,7 +26,6 @@ import { queue } from './embeddings';
 import { updateHistoriesAndStore } from './vector-store';
 
 const router = Router();
-const upload = multer({ storage: multer.memoryStorage() });
 
 export interface CreateDiscussionItem {
   name: string;
@@ -65,7 +66,10 @@ const searchResourceKnowledge = async (blockletDid: string, knowledgeId: string,
   }
 
   const embeddings = new AIKitEmbeddings({});
-  const store = await VectorStore.load(join(resource.vectorsPath, knowledgeId), embeddings);
+  const vectorPath = (await pathExists(join(resource.vectorsPath, 'faiss.index')))
+    ? resource.vectorsPath
+    : join(resource.vectorsPath, knowledgeId);
+  const store = await VectorStore.load(vectorPath, embeddings);
 
   if (store.getMapping() && !Object.keys(store.getMapping()).length) {
     logger.error('store get mapping is empty');
@@ -254,7 +258,7 @@ router.post('/:datasetId/documents/text', user(), userAuth(), async (req, res) =
   });
   await DatasetContent.create({ documentId: document.id, content });
 
-  queue.checkAndPush({ type: 'document', documentId: document.id });
+  queue.checkAndPush({ type: 'document', datasetId, documentId: document.id });
 
   res.json(document);
 });
@@ -310,84 +314,12 @@ router.post('/:datasetId/documents/discussion', user(), async (req, res) => {
   const docs = await Promise.all(
     arr.map(async (item) => {
       const document = await createOrUpdate(item.name, item.data);
-      queue.checkAndPush({ type: 'document', documentId: document.id });
+      queue.checkAndPush({ type: 'document', datasetId, documentId: document.id });
       return document;
     })
   );
 
   return res.json(Array.isArray(input) ? docs : docs[0]);
-});
-
-router.post('/:datasetId/documents/file', user(), userAuth(), upload.single('data'), async (req, res) => {
-  const { did } = req.user!;
-  const { datasetId } = req.params;
-  if (!datasetId) {
-    throw new Error('Missing required params `datasetId`');
-  }
-
-  if (!req?.file) {
-    res.status(400).send('No file was uploaded.');
-    return;
-  }
-
-  const { type, filename = req?.file.originalname, data = req?.file.buffer, size } = req.body;
-
-  if (!type || !filename || !data) {
-    res.status(500).json({ error: 'missing required body `type` or `filename` or `data`' });
-    return;
-  }
-
-  if (size > config.env.preferences.uploadFileLimit * 1000 * 1000) {
-    throw new Error(
-      `The number of files uploaded exceeds the maximum value. The number of files uploaded cannot exceed ${config.env.preferences.uploadFileLimit}MB`
-    );
-  }
-
-  let buffer = null;
-
-  if (type === 'base64') {
-    buffer = Buffer.from(data, 'base64');
-  } else if (type === 'path') {
-    buffer = await readFile(data);
-  } else if (type === 'file') {
-    buffer = data;
-  } else {
-    buffer = data;
-  }
-
-  if (!buffer) {
-    res.json({ error: 'invalid upload type, should be [file, path, base64]' });
-    return;
-  }
-
-  const id = nextDocumentId();
-  const newFilename = `${id}${extname(filename)}`;
-  const filePath = path.join(Config.uploadDir, newFilename);
-  await mkdir(Config.uploadDir, { recursive: true });
-  await writeFile(filePath, buffer, 'utf8');
-
-  const fileExtension = (path.extname(req.file.originalname) || '').replace('.', '');
-  const originalname = Buffer.from(
-    (req.file.originalname || '').replace(path.extname(req.file.originalname), ''),
-    'latin1'
-  ).toString('utf8');
-
-  const document = await DatasetDocument.create({
-    type: 'file',
-    name: originalname,
-    data: { type: fileExtension, path: filePath },
-    datasetId,
-    createdBy: did,
-    updatedBy: did,
-    embeddingStatus: 'idle',
-  });
-
-  // 不保存数据，在使用时，实时去取，防止数据太大，导致出错
-  await DatasetContent.create({ documentId: document.id, content: '' });
-
-  queue.checkAndPush({ type: 'document', documentId: document.id });
-
-  res.json(document);
 });
 
 router.put('/:datasetId/documents/:documentId/text', user(), userAuth(), async (req, res) => {
@@ -414,70 +346,7 @@ router.put('/:datasetId/documents/:documentId/text', user(), userAuth(), async (
 
   const document = await DatasetDocument.findOne({ where: { id: documentId, datasetId } });
 
-  if (document) queue.checkAndPush({ type: 'document', documentId: document.id });
-
-  res.json(document);
-});
-
-router.put('/:datasetId/documents/:documentId/file', user(), userAuth(), upload.single('data'), async (req, res) => {
-  const { did } = req.user!;
-  const { datasetId, documentId } = await Joi.object<{ datasetId: string; documentId: string }>({
-    datasetId: Joi.string().required(),
-    documentId: Joi.string().required(),
-  }).validateAsync(req.params, { stripUnknown: true });
-
-  if (!datasetId) {
-    throw new Error('Missing required params `datasetId`');
-  }
-
-  if (!req?.file) {
-    res.status(400).send('No file was uploaded.');
-    return;
-  }
-
-  const { type, filename = req?.file.originalname, data = req?.file.buffer } = req.body;
-
-  if (!type || !filename || !data) {
-    res.status(500).json({ error: 'missing required body `type` or `filename` or `data`' });
-    return;
-  }
-
-  let buffer = null;
-
-  if (type === 'base64') {
-    buffer = Buffer.from(data, 'base64');
-  } else if (type === 'path') {
-    buffer = await readFile(data, 'utf8');
-  } else if (type === 'file') {
-    buffer = data;
-  } else {
-    buffer = data;
-  }
-
-  if (!buffer) {
-    res.json({ error: 'invalid upload type, should be [file, path, base64]' });
-    return;
-  }
-
-  const newFilename = `${documentId}${extname(filename)}`;
-  const filePath = path.join(Config.uploadDir, newFilename);
-  await mkdir(Config.uploadDir, { recursive: true });
-  await writeFile(filePath, buffer, 'utf8');
-
-  const fileExtension = (path.extname(req.file.originalname) || '').replace('.', '');
-
-  await DatasetDocument.update(
-    {
-      error: null,
-      name: (req.file.originalname || '').replace(path.extname(req.file.originalname), ''),
-      data: { type: fileExtension, path: filePath },
-      updatedBy: did,
-    },
-    { where: { id: documentId, datasetId } }
-  );
-
-  const document = await DatasetDocument.findOne({ where: { id: documentId, datasetId } });
-  if (document) queue.checkAndPush({ type: 'document', documentId: document.id });
+  if (document) queue.checkAndPush({ type: 'document', datasetId, documentId: document.id });
 
   res.json(document);
 });
@@ -512,20 +381,71 @@ router.get('/:datasetId/documents/:documentId/content', user(), userAuth(), asyn
     return res.json({ content: [] });
   }
 
-  const content = await getContent(document);
+  const content = await getContent(datasetId, document);
   return res.json({ content });
 });
 
 router.post('/:datasetId/documents/:documentId/embedding', user(), userAuth(), async (req, res) => {
-  const { documentId } = await Joi.object<{ documentId: string }>({
+  const { datasetId, documentId } = await Joi.object<{ datasetId: string; documentId: string }>({
     documentId: Joi.string().required(),
+    datasetId: Joi.string().required(),
   }).validateAsync(req.params, { stripUnknown: true });
 
   const [document] = await Promise.all([DatasetDocument.findOne({ where: { id: documentId } })]);
 
-  if (document) queue.checkAndPush({ type: 'document', documentId: document.id });
+  if (document) queue.checkAndPush({ type: 'document', datasetId, documentId: document.id });
 
   res.json(document);
 });
+
+const localStorageServer = initLocalStorageServer({
+  path: Config.uploadDir,
+  express,
+  onUploadFinish: async (req: any, _res: any, uploadMetadata: any) => {
+    const { documentId, datasetId } = req.query;
+    const { hashFileName, originFileName, absolutePath, type } = uploadMetadata.runtime;
+    const newFilePath = joinURL(getUploadDir(datasetId), hashFileName);
+
+    await ensureKnowledgeDirExists(datasetId);
+    await copyFile(absolutePath, newFilePath);
+
+    const updateOrCreateDocument = async () => {
+      const commonData = {
+        error: null,
+        name: originFileName,
+        data: { type, path: hashFileName },
+        updatedBy: req.user.did,
+        embeddingStatus: 'idle',
+      };
+
+      if (documentId) {
+        await DatasetDocument.update(commonData, { where: { id: documentId, datasetId } });
+        const document = await DatasetDocument.findOne({ where: { id: documentId, datasetId } });
+        if (document) queue.checkAndPush({ type: 'document', datasetId, documentId: document.id, update: true });
+      } else {
+        const document = await DatasetDocument.create({
+          ...commonData,
+          type: 'file',
+          datasetId,
+          createdBy: req.user.did,
+        });
+        await DatasetContent.create({ documentId: document.id, content: '' });
+        if (document) queue.checkAndPush({ type: 'document', datasetId, documentId: document.id });
+      }
+    };
+
+    // 延迟文件移动操作
+    setTimeout(async () => {
+      await rm(absolutePath, { recursive: true, force: true });
+    }, 3000);
+
+    // 立即更新或创建文档
+    await updateOrCreateDocument();
+
+    return uploadMetadata;
+  },
+});
+
+router.use('/uploads', user(), localStorageServer.handle);
 
 export default router;

@@ -32,46 +32,6 @@
             "x-designable-id": "drcj4aejnt5",
             "x-index": 0,
             "properties": {
-              "serviceMode": {
-                "type": "string | number",
-                "title": "Service Mode",
-                "x-decorator": "FormItem",
-                "x-component": "Radio.Group",
-                "enum": [
-                  {
-                    "children": [],
-                    "label": "Single Tenant",
-                    "value": "single-tenant"
-                  },
-                  {
-                    "children": [],
-                    "label": "Multi Tenant",
-                    "value": "multi-tenant"
-                  }
-                ],
-                "x-validator": [],
-                "x-component-props": {
-                  "optionType": "default",
-                  "buttonStyle": "outline"
-                },
-                "x-decorator-props": {
-                  "tooltip": "",
-                  "asterisk": false,
-                  "colon": false,
-                  "fullness": true,
-                  "labelCol": null,
-                  "wrapperCol": null,
-                  "gridSpan": null,
-                  "wrapperWrap": true,
-                  "layout": "vertical"
-                },
-                "name": "serviceMode",
-                "required": true,
-                "description": "- Single Tenant: Member(including owner, admin, promptsEditor passport) can view all projects\n- Multi Tenant: Everyone can only see their own projects (except for owner, admin, promptsEditor passport, they can view all projects)",
-                "default": "single-tenant",
-                "x-designable-id": "dfjkqjey8h9",
-                "x-index": 0
-              },
               "multiTenantProjectLimits": {
                 "type": "number",
                 "title": "Multi Tenant Project Limits",
@@ -97,61 +57,70 @@
                 "name": "multiTenantProjectLimits",
                 "default": 3,
                 "x-reactions": {
-                  "dependencies": [
-                    {
-                      "property": "value",
-                      "type": "string | number",
-                      "source": "8ijnww1wdf9.drcj4aejnt5.serviceMode",
-                      "name": "serviceMode"
-                    }
-                  ],
+                  "dependencies": [],
                   "fulfill": {
-                    "state": {
-                      "visible": "{{$deps.serviceMode === 'multi-tenant'}}"
-                    }
+                    "state": {}
                   }
                 },
                 "x-designable-id": "pjjw2k56bus",
-                "x-index": 1,
+                "x-index": 0,
                 "description": "Limit the maximum number of projects each person can create in Multi Tenant (except for owner, admin, promptsEditor passport)"
-              },
-              "disablePaymentProject": {
-                "type": "boolean",
-                "title": "Disable Payment Project",
+              }
+            }
+          },
+          "ds4lfn3f8en": {
+            "type": "void",
+            "x-component": "FormTab.TabPane",
+            "x-component-props": {
+              "tab": "Knowledge"
+            },
+            "x-designable-id": "ds4lfn3f8en",
+            "x-index": 1,
+            "properties": {
+              "uploadFileLimit": {
+                "type": "number",
+                "title": "Upload File Limits(MB)",
                 "x-decorator": "FormItem",
-                "x-component": "Switch",
-                "x-validator": [],
-                "x-component-props": {},
+                "x-component": "NumberPicker",
+                "x-validator": [
+                  {
+                    "exclusiveMinimum": 0,
+                    "min": null
+                  }
+                ],
+                "x-component-props": {
+                  "style": {
+                    "width": "auto"
+                  },
+                  "max": 100,
+                  "min": 0,
+                  "bordered": true,
+                  "keyboard": true
+                },
                 "x-decorator-props": {
                   "layout": "vertical",
+                  "size": "default",
+                  "fullness": false,
                   "colon": false
                 },
-                "name": "disablePaymentProject",
+                "name": "uploadFileLimit",
+                "default": 10,
                 "x-reactions": {
-                  "dependencies": [
-                    {
-                      "property": "value",
-                      "type": "string | number",
-                      "source": "8ijnww1wdf9.drcj4aejnt5.serviceMode",
-                      "name": "serviceMode"
-                    }
-                  ],
+                  "dependencies": [],
                   "fulfill": {
-                    "state": {
-                      "visible": "{{$deps.serviceMode === 'multi-tenant'}}"
-                    }
+                    "state": {}
                   }
                 },
-                "default": false,
-                "description": "Limit whether everyone can release the payment project in Multi Tenant (except for owner, admin, promptsEditor passport)",
-                "x-designable-id": "kllog89clwt",
-                "x-index": 2
+                "x-designable-id": "xd9eqqqhx9c",
+                "x-index": 0,
+                "description": "Limits the size of files uploaded to the knowledge (MB)",
+                "required": false
               }
             }
           }
         }
       }
     },
-    "x-designable-id": "eraouvna7w7"
+    "x-designable-id": "3gwo6qgoyeq"
   }
 }

@@ -147,7 +147,7 @@ export function outputVariablesToJoiSchema(
     let schema: Joi.AnySchema | undefined;
 
     if (variable.from?.type === 'input') {
-      const input = assistant.parameters?.find((i) => i.id === variable.from?.id);
+      const input = assistant.parameters?.find((i) => i.id === variable.from?.id && !i.hidden);
       if (input) {
         return Joi.any();
       }
@@ -182,7 +182,7 @@ export function outputVariablesToJoiSchema(
 
       schema = variableToSchema(v.type);
     } else if (!variable.type || variable.type === 'string') {
-      schema = Joi.string().allow('');
+      schema = Joi.string().empty(['', null]);
     } else if (variable.type === 'number') {
       schema = Joi.number().empty([null, '']);
     } else if (variable.type === 'boolean') {
@@ -199,7 +199,7 @@ export function outputVariablesToJoiSchema(
           .empty([null, ''])
           .options({ stripUnknown: true });
       } else {
-        schema = Joi.any();
+        schema = Joi.any().empty(['', null]);
       }
     } else if (variable.type === 'array') {
       schema = Joi.array()
@@ -357,6 +357,7 @@ export interface RuntimeOutputProfile {
   avatar?: string;
   name?: string;
   description?: string;
+  ogImage?: string;
 }
 
 export interface RuntimeOutputVariablesSchema {

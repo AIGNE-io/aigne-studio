@@ -2,6 +2,8 @@ import { Router } from 'express';
 
 import agent from './agent';
 import ai from './ai';
+import cacheRouter from './cache';
+import cronHistoryRoutes from './cron-history';
 import datasets from './dataset/datasets';
 import datasetDocuments from './dataset/documents';
 import datasetSegments from './dataset/segments';
@@ -22,5 +24,7 @@ router.use('/memories', memory);
 router.use('/datasets', datasets);
 router.use('/datasets', datasetDocuments);
 router.use('/datasets', datasetSegments);
+router.use('/', cacheRouter);
+router.use('/cron-histories', cronHistoryRoutes);
 
 export default router;

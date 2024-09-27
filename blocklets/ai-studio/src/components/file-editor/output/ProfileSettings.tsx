@@ -79,6 +79,16 @@ export default function ProfileSettings({ output }: { output: OutputVariableYjs 
           onChange={(e) => setField((f) => (f.description = e.target.value))}
         />
       </Box>
+
+      <Box>
+        <Typography variant="subtitle2">{t('ogImage')}</Typography>
+        <TextField
+          fullWidth
+          hiddenLabel
+          value={initialValue?.ogImage || ''}
+          onChange={(e) => setField((f) => (f.ogImage = e.target.value))}
+        />
+      </Box>
     </Stack>
   );
 }

@@ -275,10 +275,13 @@ export function resourceRoutes(router: Router) {
 
         const data: ResourceProject = {
           agents,
-          project: await repository.readAndParseFile<ProjectSettings>({ filepath: PROJECT_FILE_PATH }),
-          config: await repository.readAndParseFile<ConfigFile>({ filepath: CONFIG_FILE_PATH }),
-          cron: await repository.readAndParseFile<CronFile>({ filepath: CRON_FILE_PATH }),
-          memory: await repository.readAndParseFile<MemoryFile>({ filepath: VARIABLE_FILE_PATH }),
+          project: await repository.readAndParseFile<ProjectSettings>({
+            filepath: PROJECT_FILE_PATH,
+            rejectOnEmpty: true,
+          }),
+          config: await repository.readAndParseFile<ConfigFile>({ filepath: CONFIG_FILE_PATH, rejectOnEmpty: true }),
+          cron: await repository.readAndParseFile<CronFile>({ filepath: CRON_FILE_PATH, rejectOnEmpty: true }),
+          memory: await repository.readAndParseFile<MemoryFile>({ filepath: VARIABLE_FILE_PATH, rejectOnEmpty: true }),
         };
 
         const tmpdir = join(Config.appDir, 'tmp');
@@ -356,6 +359,10 @@ function getAssistantDependentComponents(assistant: Assistant | Assistant[]) {
       [assistant].flat().flatMap((assistant) => {
         if (!assistant.parameters) return [];
         const inputDeps = Object.values(assistant.parameters).flatMap((i) => {
+          if (i.hidden) {
+            return [];
+          }
+
           if (i.type === 'source' && i.source?.variableFrom === 'tool') {
             const did = i.source.agent?.blockletDid;
             return did ? [did] : [];

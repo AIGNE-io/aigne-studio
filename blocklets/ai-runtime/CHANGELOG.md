@@ -1,3 +1,223 @@
+## 0.4.66 (2024-9-26)
+
+- fix: reset identity when copying a project
+
+## 0.4.65 (2024-9-26)
+
+- fix: full height agent view for better scroll ux
+- chore: only admin can CRUD categories
+- chore: optimize open graph by image service
+
+## 0.4.64 (2024-9-26)
+
+- fix: set default order index for categories and deployments
+- fix: project settings errors when saving project
+
+## 0.4.63 (2024-9-26)
+
+- feat: support sort category and deployments
+- fix: correct OG route for application
+
+## 0.4.62 (2024-9-25)
+
+- fix: filter deleted projects from deployments
+- fix: correct deployment url
+
+## 0.4.61 (2024-9-25)
+
+- chore: improve explore ux on the mobile
+- chore: add slug support for explore categories (#1350)
+- fix: debug chat not working
+
+## 0.4.60 (2024-9-25)
+
+- feat: add open graph for deployed apps
+
+## 0.4.59 (2024-9-24)
+
+- chore: update deps
+
+## 0.4.57 (2024-9-24)
+
+- feat(security): support csrf defense mechanism
+
+## 0.4.56 (2024-9-24)
+
+- feat: support deploy agent to explore
+
+## 0.4.55 (2024-9-19)
+
+- chore: update deps
+
+## 0.4.54 (2024-9-19)
+
+- chore: auto create a anonymous session
+
+## 0.4.53 (2024-9-19)
+
+- chore: support custom open graph
+
+## 0.4.52 (2024-9-14)
+
+- fix: avoid waiting for runtime creation forever
+
+## 0.4.51 (2024-9-14)
+
+- fix: handle exception for websocket upgrade connection
+
+## 0.4.50 (2024-9-13)
+
+- fix: streaming json not working
+
+## 0.4.49 (2024-9-13)
+
+- chore: optimize sandbox performance
+
+## 0.4.48 (2024-9-12)
+
+- fix: use quickjs instead of vm2 for better security
+
+## 0.4.47 (2024-9-12)
+
+- feat: multi-tenant project page
+
+## 0.4.46 (2024-9-12)
+
+- feat: update knowledge base storage method to application
+
+## 0.4.45 (2024-9-10)
+
+- fix: parameter result to string
+
+## 0.4.44 (2024-9-9)
+
+- fix: enterprise did space failed issue
+
+## 0.4.43 (2024-9-9)
+
+- fix: reset agents cache after repo synced
+
+## 0.4.42 (2024-9-9)
+
+- chore: memoize agent api
+- chore: optimize db performance by adding indexes
+- chore: add support for anonymous call agents
+- chore: support return streaming agent response in a logic agent
+- chore: skip debug message in production
+- chore: auto generate a random session id
+
+## 0.4.41 (2024-8-29)
+
+- fix: reset working state after syncing remote repo
+
+## 0.4.40 (2024-8-28)
+
+- fix: remove untracked files in the repo
+
+## 0.4.39 (2024-8-28)
+
+- fix: update the `monaco-editor` version for fix vim cannot be used
+
+## 0.4.38 (2024-8-27)
+
+- feat: support select all agent button
+- fix: export agent projectId
+
+## 0.4.37 (2024-8-26)
+
+- feat: support editor emmet plugin & theme
+
+## 0.4.36 (2024-8-26)
+
+- fix: skip xss middleware for some internal api
+
+## 0.4.35 (2024-8-22)
+
+- chore: use @blocklet/uploader to uploader file
+
+## 0.4.34 (2024-8-22)
+
+- fix: skip non-string parameter rendering
+
+## 0.4.33 (2024-8-21)
+
+- fix: enable global shared vim settings
+
+## 0.4.32 (2024-8-21)
+
+- fix: xss attack
+- fix: get userId from headers
+
+## 0.4.31 (2024-8-21)
+
+- fix: filter open embed agents
+
+## 0.4.30 (2024-8-19)
+
+- fix: switch the acquisition mode of multi-tenant mode
+
+## 0.4.29 (2024-8-19)
+
+- feat(open-embed): new agent-view and agent-call embed components
+
+## 0.4.28 (2024-8-19)
+
+- chore: support object type input parameter
+
+## 0.4.27 (2024-8-16)
+
+- feat: support resize and full screen the code editor
+
+## 0.4.26 (2024-8-9)
+
+- fix: number field cant input decimal
+
+## 0.4.25 (2024-8-9)
+
+- feat: check socket connect status
+
+## 0.4.24 (2024-8-9)
+
+- fix: ensure knowledge is copied when duplicating a project
+
+## 0.4.23 (2024-8-9)
+
+- chore: simplify render message logic
+- fix: auto publish discuss error
+
+## 0.4.22 (2024-8-6)
+
+- fix: auto start cron jobs for all projects
+
+## 0.4.21 (2024-8-6)
+
+- chore: disable auto start cron jobs
+
+## 0.4.20 (2024-8-6)
+
+- chore: add cron job execution history support
+- feat: support clear cache manual
+
+## 0.4.19 (2024-8-5)
+
+- fix: add hidden input parameter button
+
+## 0.4.18 (2024-8-2)
+
+- chore: remove unnecessary uploading dialog from project icon field
+
+## 0.4.17 (2024-8-2)
+
+- fix: In multi-tenant mode, copied projects on the projects page have the same name #1262
+- fix: Appearance bug #1254
+- fix: Unable to create a new folder when there is no agent #1251
+- fix: Unable to sync YJS data when importing new data if there is a cache #1205
+
+## 0.4.16 (2024-8-1)
+
+- fix: copy project with all config files
+- fix: config file maybe undefined
+
 ## 0.4.15 (2024-8-1)
 
 - refactor: add ResourceManager to manage the resource blocklets

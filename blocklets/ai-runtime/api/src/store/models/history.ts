@@ -1,16 +1,12 @@
 import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
-import { Worker } from 'snowflake-uuid';
 
+import nextId from '../../libs/next-id';
 import { sequelize } from '../sequelize';
-
-const idGenerator = new Worker();
-
-const nextId = () => idGenerator.nextId().toString();
 
 export default class History extends Model<InferAttributes<History>, InferCreationAttributes<History>> {
   declare id: CreationOptional<string>;
 
-  declare userId: string;
+  declare userId?: string;
 
   declare createdAt: CreationOptional<Date>;
 
@@ -62,7 +58,6 @@ History.init(
     },
     userId: {
       type: DataTypes.STRING,
-      allowNull: false,
     },
     createdAt: {
       type: DataTypes.DATE,

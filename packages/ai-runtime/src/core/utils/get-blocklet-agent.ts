@@ -35,14 +35,6 @@ export const buildInOpenAPI = {
         },
         {
           in: 'query',
-          name: 'userId',
-          schema: {
-            type: 'string',
-          },
-          description: 'User Id',
-        },
-        {
-          in: 'query',
           name: 'limit',
           schema: {
             type: 'integer',
@@ -227,15 +219,6 @@ export const buildInOpenAPI = {
             type: 'string',
           },
           description: 'The ID of the session',
-        },
-        {
-          name: 'userId',
-          in: 'query',
-          required: false,
-          schema: {
-            type: 'string',
-          },
-          description: 'The ID of the user',
         },
       ],
       responses: {

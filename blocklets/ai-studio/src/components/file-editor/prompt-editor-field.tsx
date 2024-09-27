@@ -56,7 +56,9 @@ export default function PromptEditorField({
 
       // 添加变量
       textNodes.forEach((node) => {
-        const currentVariables = Object.values(assistant.parameters ?? {}).filter((p) => p.data.from === from);
+        const currentVariables = Object.values(assistant.parameters ?? {}).filter(
+          (p) => p.data.from === from && !p.data.hidden
+        );
 
         const id = node.getAttribute('data-lexical-id');
         const variable = extractBracketContent(node.textContent || '').trim();
@@ -76,9 +78,10 @@ export default function PromptEditorField({
   });
 
   const getParameters = (text: string) => {
-    const list = Object.values(assistant?.parameters || []).map((i) => i.data.key);
+    const parameters = Object.values(assistant?.parameters || []).filter((i) => !i.data.hidden);
+    const list = parameters.map((i) => i.data.key);
     const index = list.findIndex((x) => x === text);
-    return Object.values(assistant?.parameters || [])[index]?.data;
+    return parameters[index]?.data;
   };
 
   const typeMap = useMemo(() => {
@@ -88,6 +91,7 @@ export default function PromptEditorField({
       number: t('multiline'),
       select: t('select'),
       language: t('language'),
+      boolean: t('boolean'),
       source: t('source'),
       llmInputMessages: t('llmInputMessages'),
       llmInputTools: t('llmInputTools'),
@@ -199,10 +203,9 @@ export default function PromptEditorField({
             const variable = (text || '').split('.')[0] || '';
 
             const id = element.getAttribute('data-lexical-id');
-            const parameters = assistant?.parameters || {};
 
             const objVariables = variables.map((i) => {
-              const found = Object.values(parameters).find((p) => p.data.key === i);
+              const found = Object.values(parameters).find((p) => p.data.key === i && !p.data.hidden);
               return { key: i, id: found?.data.id! || '' };
             });
 

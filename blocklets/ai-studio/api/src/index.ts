@@ -1,34 +1,36 @@
 import 'express-async-errors';
-import 'nanoid';
-
-import './polyfills';
 
 import { access, mkdir } from 'fs/promises';
 import path from 'path';
 
 import { AssistantResponseType } from '@blocklet/ai-runtime/types';
-import user from '@blocklet/sdk/lib/middlewares/user';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv-flow';
 import express, { ErrorRequestHandler } from 'express';
-import fallback from 'express-history-api-fallback';
 import { Errors } from 'isomorphic-git';
 
 import { projectCronManager } from './libs/cron-jobs';
+import { csrf } from './libs/csrf';
 import { Config, isDevelopment } from './libs/env';
 import { NoPermissionError, NotFoundError } from './libs/error';
 import logger from './libs/logger';
+import { importPackageJson } from './libs/package-json';
 import { resourceManager } from './libs/resource';
-import { ensurePromptsEditor } from './libs/security';
+import { xss } from './libs/xss';
 import routes from './routes';
-import { wss } from './routes/ws';
+import setupHtmlRouter from './routes/html';
+import { getOpenEmbed } from './routes/open-embed';
+import { handleYjsWebSocketUpgrade } from './routes/ws';
+import { initModels } from './store/models/init-models';
 
 export const app = express();
 
-dotenv.config();
+if (process.env.NODE_ENV === 'development') {
+  dotenv.config();
+}
 
-const { name, version } = require('../../package.json');
+const { name, version } = importPackageJson();
 
 async function ensureUploadDirExists() {
   try {
@@ -48,13 +50,16 @@ app.use(cookieParser());
 app.use(express.json({ limit: '1 mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1 mb' }));
 app.use(cors());
+app.use(xss());
+app.use(csrf());
+app.get('/.well-known/blocklet/openembed', getOpenEmbed);
 
 app.use('/api', routes);
 
 if (!isDevelopment) {
   const staticDir = path.resolve(Config.appDir, 'dist');
   app.use(express.static(staticDir, { maxAge: '30d', index: false }));
-  app.use(fallback('index.html', { root: staticDir }));
+  setupHtmlRouter(app);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -98,24 +103,18 @@ export const server = app.listen(port, (err?: any) => {
       logger.error('init resource states error', { error });
     });
 
-  projectCronManager
-    .reloadAllProjectsJobs()
-    .then(() => {
-      logger.info('reload all projects jobs success');
-    })
-    .catch((error) => {
-      logger.error('reload all projects jobs error', { error });
-    });
-});
-
-server.on('upgrade', (req, socket, head) => {
-  if (req.url?.match(/^\/api\/ws/)) {
-    wss.handleUpgrade(req, socket, head, (ws) => {
-      ensurePromptsEditor(req as any, null as any, () => {
-        user()(req as any, null as any, () => {
-          wss.emit('connection', ws, req);
-        });
+  if (process.env.AUTO_START_CRON_JOBS === 'true') {
+    projectCronManager
+      .reloadAllProjectsJobs()
+      .then(() => {
+        logger.info('reload all projects jobs success');
+      })
+      .catch((error) => {
+        logger.error('reload all projects jobs error', { error });
       });
-    });
   }
 });
+
+handleYjsWebSocketUpgrade(server);
+
+initModels();

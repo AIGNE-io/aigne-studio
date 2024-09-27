@@ -153,9 +153,12 @@ export function extractRequestBodyParameters(
   return Object.entries(schemaObject).map(([key, value]: [string, any]) => ({ name: key, ...value })) || [];
 }
 
-export function getAllParameters(dataset: DatasetObject): { name: string; description?: string }[] {
+export function getAllParameters(dataset: DatasetObject): { name: string; description?: string; type?: string }[] {
   const requestBody = extractRequestBodyParameters(dataset?.requestBody);
-  const datasetParameters = [...(dataset?.parameters ?? []), ...(requestBody ?? [])];
+  const datasetParameters = [
+    ...(dataset?.parameters ?? []).map((i) => ({ ...i, type: (i.schema as { type: string })?.type })),
+    ...(requestBody ?? []),
+  ];
   return datasetParameters;
 }
 

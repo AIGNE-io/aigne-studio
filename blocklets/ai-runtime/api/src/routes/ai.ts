@@ -3,7 +3,6 @@ import { ReadableStream } from 'stream/web';
 import { getAgent, getMemoryVariables, getProject } from '@api/libs/agent';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
 import logger from '@api/libs/logger';
-import { ensureComponentCallOr } from '@api/libs/security';
 import ExecutionCache from '@api/store/models/execution-cache';
 import History from '@api/store/models/history';
 import Secrets from '@api/store/models/secret';
@@ -21,7 +20,6 @@ import { CallAI, CallAIImage, RunAssistantCallback, RuntimeExecutor, nextTaskId 
 import { toolCallsTransform } from '@blocklet/ai-runtime/core/utils/tool-calls-transform';
 import { AssistantResponseType, RuntimeOutputVariable, isImageAssistant } from '@blocklet/ai-runtime/types';
 import { RuntimeError, RuntimeErrorType } from '@blocklet/ai-runtime/types/runtime/error';
-import { auth } from '@blocklet/sdk/lib/middlewares';
 import user from '@blocklet/sdk/lib/middlewares/user';
 import compression from 'compression';
 import { Router } from 'express';
@@ -34,19 +32,21 @@ const callInputSchema = Joi.object<{
   blockletDid?: string;
   working?: boolean;
   aid: string;
-  sessionId: string;
+  sessionId?: string;
   inputs?: { [key: string]: any };
+  debug?: boolean;
 }>({
   blockletDid: Joi.string().empty(['', null]),
   working: Joi.boolean().empty(['', null]).default(false),
   aid: Joi.string().required(),
-  sessionId: Joi.string().required(),
+  sessionId: Joi.string().empty(['', null]),
   inputs: Joi.object({
     $clientTime: Joi.string().isoDate().empty([null, '']),
   }).pattern(Joi.string(), Joi.any()),
+  debug: Joi.boolean().empty(['', null]),
 }).rename('parameters', 'inputs', { ignoreUndefined: true, override: true });
 
-router.post('/call', user(), ensureComponentCallOr(auth()), compression(), async (req, res) => {
+router.post('/call', user(), compression(), async (req, res) => {
   const stream = req.accepts().includes('text/event-stream');
 
   const input = await callInputSchema.validateAsync(
@@ -65,9 +65,21 @@ router.post('/call', user(), ensureComponentCallOr(auth()), compression(), async
   );
 
   const userId = req.user?.did;
-  if (!userId) throw new Error('Missing required userId');
 
   const { projectId, projectRef, agentId } = parseIdentity(input.aid, { rejectWhenError: true });
+
+  const agent = await getAgent({
+    blockletDid: input.blockletDid,
+    projectId,
+    projectRef,
+    working: input.working,
+    agentId,
+    rejectOnEmpty: true,
+  });
+  if (!agent.access?.noLoginRequired && !userId) {
+    res.status(401).json({ error: { message: 'Unauthorized' } });
+    return;
+  }
 
   const usage = {
     promptTokens: 0,
@@ -131,15 +143,6 @@ router.post('/call', user(), ensureComponentCallOr(auth()), compression(), async
     }));
   };
 
-  const agent = await getAgent({
-    blockletDid: input.blockletDid,
-    projectId,
-    projectRef,
-    working: input.working,
-    agentId,
-    rejectOnEmpty: true,
-  });
-
   let mainTaskId: string | undefined;
   let error: { type?: string; message: string } | undefined;
 
@@ -149,19 +152,28 @@ router.post('/call', user(), ensureComponentCallOr(auth()), compression(), async
 
   const taskId = nextTaskId();
 
+  const sessionId = input.sessionId ?? (await Session.create({ userId, projectId, agentId })).id;
+
   const history = await History.create({
     userId,
     projectId,
     agentId,
-    sessionId: input.sessionId,
+    sessionId,
     inputs: input.inputs,
     status: 'generating',
     blockletDid: input.blockletDid,
     projectRef,
   });
 
-  const emit: RunAssistantCallback = (input) => {
-    const data = { ...input, messageId: history.id };
+  const emit: RunAssistantCallback = (response) => {
+    // skip debug message in production
+    if (!input.debug && response.type !== AssistantResponseType.ERROR) {
+      if (response.type !== AssistantResponseType.CHUNK || (mainTaskId && response.taskId !== mainTaskId)) {
+        return;
+      }
+    }
+
+    const data = { ...response, messageId: history.id, sessionId };
 
     if (data.type === AssistantResponseType.CHUNK || data.type === AssistantResponseType.INPUT) {
       if (data.type === AssistantResponseType.CHUNK) {
@@ -224,32 +236,43 @@ router.post('/call', user(), ensureComponentCallOr(auth()), compression(), async
       },
     });
 
-    const executor = new RuntimeExecutor({
-      getSecret: ({ targetProjectId, targetAgentId, targetInputKey }) =>
-        Secrets.findOne({
-          where: { projectId, targetProjectId, targetAgentId, targetInputKey },
-          rejectOnEmpty: new RuntimeError(RuntimeErrorType.MissingSecretError, 'Missing required secret'),
-        }),
-      callback: emit,
-      callAI,
-      callAIImage,
-      getMemoryVariables,
-      getAgent,
-      entryProjectId: projectId,
-      user: { id: userId, did: userId, ...req.user },
-      sessionId: input.sessionId,
-      queryCache: ({ blockletDid, projectId, projectRef, agentId, cacheKey }) =>
-        ExecutionCache.findOne({
-          where: omitBy({ blockletDid, projectId, projectRef, agentId, cacheKey }, (v) => v === undefined),
-        }),
-      setCache: ({ blockletDid, projectId, projectRef, agentId, cacheKey, inputs, outputs }) =>
-        ExecutionCache.create({ blockletDid, projectId, projectRef, agentId, cacheKey, inputs, outputs }),
-    });
+    const executor = new RuntimeExecutor(
+      {
+        getSecret: ({ targetProjectId, targetAgentId, targetInputKey }) =>
+          Secrets.findOne({
+            where: { projectId, targetProjectId, targetAgentId, targetInputKey },
+            rejectOnEmpty: new RuntimeError(RuntimeErrorType.MissingSecretError, 'Missing required secret'),
+          }),
+        callback: emit,
+        callAI,
+        callAIImage,
+        getMemoryVariables,
+        getAgent: (options) =>
+          getAgent({
+            ...options,
+            // NOTE: 仅允许调用当前项目或者 resource blocklet 中的 agent
+            projectId: options.blockletDid ? options.projectId : projectId,
+          } as Parameters<typeof getAgent>[0]),
+        entryProjectId: projectId,
+        user: userId ? { id: userId, did: userId, ...req.user } : undefined,
+        sessionId,
+        messageId: history.id,
+        clientTime: input.inputs?.$clientTime || new Date().toISOString(),
+        queryCache: ({ blockletDid, projectId, projectRef, agentId, cacheKey }) =>
+          ExecutionCache.findOne({
+            where: omitBy({ blockletDid, projectId, projectRef, agentId, cacheKey }, (v) => v === undefined),
+          }),
+        setCache: ({ blockletDid, projectId, projectRef, agentId, cacheKey, inputs, outputs }) =>
+          ExecutionCache.create({ blockletDid, projectId, projectRef, agentId, cacheKey, inputs, outputs }),
+      },
+      agent,
+      {
+        inputs: input.inputs,
+        taskId,
+      }
+    );
 
-    const result = await executor.execute(agent, {
-      inputs: input.inputs,
-      taskId,
-    });
+    const result = await executor.execute();
 
     const llmResponseStream =
       result?.[RuntimeOutputVariable.llmResponseStream] instanceof ReadableStream

@@ -24,6 +24,7 @@ export default function useVariablesEditorOptions(assistant?: AssistantYjs) {
   const variableSet = new Set(
     assistant?.parameters &&
       Object.values(assistant.parameters)
+        .filter((i) => !i.data.hidden)
         .map((i) => i.data.key)
         .filter((i): i is string => !!i)
   );

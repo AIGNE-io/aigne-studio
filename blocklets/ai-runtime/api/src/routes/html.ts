@@ -127,10 +127,16 @@ var ${RUNTIME_RESOURCE_BLOCKLET_STATE_GLOBAL_VARIABLE} = ${JSON.stringify(resour
       const question = message?.inputs?.question;
       const answer = message?.outputs?.objects?.find((i) => i.$text)?.$text;
 
+      let ogImage: string | undefined;
+      if (typeof messageId === 'string') {
+        const image = message?.outputs?.objects?.find((i) => i.$images)?.$images?.[0]?.url;
+        if (image) ogImage = image;
+      }
+
       html = Mustache.render(template, {
-        ogTitle: question || info?.name || '',
-        ogDescription: answer || info?.description || '',
-        ogImage: info?.icon || '',
+        ogTitle: (question || info?.name || '').slice(0, 100),
+        ogDescription: (answer || info?.description || '').slice(0, 100),
+        ogImage: ogImage || info?.ogImage || info?.icon || '',
       });
     } catch (error) {
       logger.error('render html error', { error });
@@ -149,12 +155,20 @@ var ${RUNTIME_RESOURCE_BLOCKLET_STATE_GLOBAL_VARIABLE} = ${JSON.stringify(resour
 
     let html;
     try {
+      const { messageId } = req.query;
+      let ogImage: string | undefined;
+      if (typeof messageId === 'string') {
+        const message = await History.findByPk(messageId);
+        const image = message?.outputs?.objects?.find((i) => i.$images)?.$images?.[0]?.url;
+        if (image) ogImage = image;
+      }
+
       const info = app && getAgentProfile(app);
 
       html = Mustache.render(template, {
-        ogTitle: info?.name || '',
-        ogDescription: info?.description || '',
-        ogImage: info?.icon || '',
+        ogTitle: (info?.name || '').slice(0, 100),
+        ogDescription: (info?.description || '').slice(0, 100),
+        ogImage: ogImage || info?.ogImage || info?.icon || '',
       });
     } catch (error) {
       logger.error('render html error', { error });

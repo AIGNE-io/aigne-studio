@@ -35,6 +35,4 @@ export const useIsPromptAdmin = () => useIsRole(Config.serviceModePermissionMap.
 
 export const useIsPromptEditor = () => useIsRole(Config.serviceModePermissionMap.ensurePromptsEditorRoles);
 
-export const useCanReleasePaymentProject = () => useIsRole(Config.serviceModePermissionMap.ensurePaymentProjectRoles);
-
 export const useReadOnly = ({ ref }: { ref: string }) => !useIsPromptEditor() && ref === getDefaultBranch();

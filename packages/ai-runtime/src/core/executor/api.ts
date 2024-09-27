@@ -1,18 +1,20 @@
 import axios, { isAxiosError } from 'axios';
+import Cookie from 'js-cookie';
 import { pick } from 'lodash';
 
 import { ApiAssistant } from '../../types';
-import { GetAgentResult } from '../assistant/type';
-import { AgentExecutorBase, AgentExecutorOptions } from './base';
+import { AgentExecutorBase } from './base';
 
-export class APIAgentExecutor extends AgentExecutorBase {
-  override async process(agent: ApiAssistant & GetAgentResult, { inputs }: AgentExecutorOptions) {
+export class APIAgentExecutor extends AgentExecutorBase<ApiAssistant> {
+  override async process({ inputs }: { inputs: { [key: string]: any } }) {
+    const { agent } = this;
+
     if (!agent.requestUrl) throw new Error(`Assistant ${agent.id}'s url is empty`);
 
     const args = Object.fromEntries(
       await Promise.all(
         (agent.parameters ?? [])
-          .filter((i): i is typeof i & { key: string } => !!i.key)
+          .filter((i): i is typeof i & { key: string } => !!i.key && !i.hidden)
           .map(async (i) => [i.key, inputs?.[i.key] || i.defaultValue])
       )
     );
@@ -26,6 +28,9 @@ export class APIAgentExecutor extends AgentExecutorBase {
         method,
         params: isGet ? args : undefined,
         data: isGet ? undefined : args,
+        headers: {
+          'x-csrf-token': Cookie.get('x-csrf-token'),
+        },
       });
 
       return response.data;

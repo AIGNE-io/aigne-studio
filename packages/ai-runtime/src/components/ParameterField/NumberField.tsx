@@ -12,9 +12,21 @@ const NumberField = forwardRef<
     onChange: (value: number) => void;
   } & Omit<TextFieldProps, 'onChange'>
 >(({ readOnly, parameter, ...props }, ref) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let newValue = Number(e.target.value);
+    if (parameter?.min !== undefined && newValue < parameter?.min) {
+      newValue = parameter?.min;
+    }
+    if (parameter?.max !== undefined && newValue > parameter?.max) {
+      newValue = parameter?.max;
+    }
+    props.onChange?.(newValue);
+  };
+
   return (
     <TextField
       ref={ref}
+      type="number"
       helperText={parameter?.helper}
       {...pick(parameter, 'required', 'label', 'placeholder')}
       {...props}
@@ -23,14 +35,15 @@ const NumberField = forwardRef<
         readOnly,
         inputProps: {
           type: 'number',
-          inputMode: 'numeric',
+          inputMode: 'decimal',
           pattern: '[0-9]*',
           min: parameter?.min,
           max: parameter?.max,
           ...props.inputProps,
         },
       }}
-      onChange={(e) => props.onChange?.(Number(e.target.value))}
+      value={Number(props.value)}
+      onChange={handleChange}
     />
   );
 });

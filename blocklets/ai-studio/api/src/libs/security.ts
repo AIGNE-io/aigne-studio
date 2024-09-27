@@ -26,13 +26,13 @@ export const isRefReadOnly = ({
   ref: string;
   defaultBranch: string;
   project: any;
-  user: any;
+  user?: { did: string; role: string };
 }) => {
   if (project?.createdBy === user?.did) {
     return false;
   }
   return (
-    ref === defaultBranch && ![...(Config.serviceModePermissionMap.ensurePromptsAdminRoles || [])].includes(user?.role)
+    ref === defaultBranch && ![...(Config.serviceModePermissionMap.ensurePromptsAdminRoles || [])].includes(user?.role!)
   );
 };
 

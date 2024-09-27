@@ -1,0 +1,65 @@
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { AssistantYjs } from '@blocklet/ai-runtime/types';
+import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import { FormControl, FormControlLabel, FormHelperText, Stack, Switch } from '@mui/material';
+
+export function BaseAgentSettingsSummary(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _props: { agent: AssistantYjs }
+) {
+  return null;
+}
+
+export function BaseAgentSettings({ agent }: { agent: AssistantYjs }) {
+  const { t } = useLocaleContext();
+  const doc = (getYjsValue(agent) as Map<any>).doc!;
+
+  return (
+    <Stack direction="column" px={1.5} py={1} gap={1}>
+      <Stack alignItems="flex-start">
+        <FormControl>
+          <FormControlLabel
+            labelPlacement="start"
+            label={t('enableObject', { object: t('openEmbed') })}
+            control={
+              <Switch
+                size="small"
+                checked={agent.openEmbed?.enable || false}
+                onChange={(_, check) => {
+                  doc.transact(() => {
+                    agent.openEmbed ??= {};
+                    agent.openEmbed.enable = check;
+                  });
+                }}
+              />
+            }
+          />
+        </FormControl>
+      </Stack>
+
+      <Stack alignItems="flex-start">
+        <FormControl>
+          <FormControlLabel
+            labelPlacement="start"
+            label={t('loginRequired')}
+            control={
+              <Switch
+                size="small"
+                checked={!agent.access?.noLoginRequired}
+                onChange={(_, check) => {
+                  doc.transact(() => {
+                    agent.access ??= {};
+                    agent.access.noLoginRequired = !check;
+                  });
+                }}
+              />
+            }
+          />
+        </FormControl>
+        <FormHelperText sx={{ ml: 0 }}>
+          {t(!agent.access?.noLoginRequired ? 'loginRequiredHelper' : 'noLoginRequiredHelper')}
+        </FormHelperText>
+      </Stack>
+    </Stack>
+  );
+}

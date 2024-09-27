@@ -38,11 +38,17 @@ export async function getProjects(): Promise<{
   return axios.get('/api/projects').then((res) => res.data);
 }
 
+export async function getTemplatesProjects(): Promise<{
+  templates: ProjectWithUserInfo[];
+}> {
+  return axios.get('/api/template-projects').then((res) => res.data);
+}
+
 export async function getProject(projectId: string): Promise<Project> {
   return axios.get(`/api/projects/${projectId}`).then((res) => res.data);
 }
 
-export async function createProject(input?: CreateProjectInput): Promise<Project> {
+export async function createProject(input?: CreateProjectInput & { deploymentId?: string }): Promise<Project> {
   return axios.post('/api/projects', input).then((res) => res.data);
 }
 

@@ -7,7 +7,9 @@ import { authClient, customRoles } from '../libs/auth';
 (async () => {
   const logger = console;
 
-  dotenv.config();
+  if (process.env.NODE_ENV === 'development') {
+    dotenv.config();
+  }
 
   async function ensureRolesCreated() {
     const { roles } = await authClient.getRoles();

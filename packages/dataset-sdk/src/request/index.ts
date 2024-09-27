@@ -2,6 +2,7 @@ import { getComponentWebEndpoint } from '@blocklet/sdk/lib/component';
 import envConfig from '@blocklet/sdk/lib/config';
 import { sign } from '@blocklet/sdk/lib/util/verify-sign';
 import axios from 'axios';
+import Cookie from 'js-cookie';
 
 import { DatasetObject } from '../types';
 import { getRequestConfig } from './util';
@@ -30,6 +31,7 @@ export const callBlockletApi = (
       'x-component-sig': sign(body || {}),
       'x-component-did': pathItem.did || process.env.BLOCKLET_COMPONENT_DID,
       'x-user-did': did,
+      'x-csrf-token': Cookie.get('x-csrf-token'),
     },
   });
 };

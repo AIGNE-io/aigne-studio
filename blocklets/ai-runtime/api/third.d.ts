@@ -12,15 +12,12 @@ declare module 'express-async-errors';
 
 declare module '@abtnode/cron';
 
+declare module 'express-xss-sanitizer';
+
 namespace Express {
+  import type { SessionUser } from '@blocklet/sdk/lib/util/login';
+
   interface Request {
-    user?: {
-      did: string;
-      role: string;
-      fullName: string;
-      provider: string;
-      walletOS: string;
-      isAdmin: boolean;
-    };
+    user?: SessionUser;
   }
 }

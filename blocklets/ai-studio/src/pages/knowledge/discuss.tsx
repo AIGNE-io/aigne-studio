@@ -68,8 +68,9 @@ function DiscussionTable({
   return (
     <>
       {meilisearch && (
-        <Box mb={2}>
+        <Box my={1}>
           <TextField
+            sx={{ width: 1 }}
             label={t('alert.search')}
             size="small"
             value={search}
@@ -115,7 +116,7 @@ const useColumns = () => {
         field: 'title',
         headerName: t('title'),
         flex: 1,
-        valueGetter: (params: any) => params.row.title || t('unnamed'),
+        valueGetter: (params) => params || t('unnamed'),
       },
     ],
     [t]

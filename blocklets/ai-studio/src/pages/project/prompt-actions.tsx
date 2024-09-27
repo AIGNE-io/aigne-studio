@@ -1,31 +1,25 @@
-import LoadingButton from '@app/components/loading/loading-button';
 import { CurrentProjectProvider } from '@app/contexts/project';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { isAssistant } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import ArrowLeft from '@iconify-icons/tabler/chevron-left';
 import FloppyIcon from '@iconify-icons/tabler/device-floppy';
-import EyeBoltIcon from '@iconify-icons/tabler/eye-bolt';
 import HistoryToggleIcon from '@iconify-icons/tabler/history-toggle';
 import SettingsIcon from '@iconify-icons/tabler/settings-2';
 import {
   Box,
   Button,
   CircularProgress,
-  ClickAwayListener,
   Dialog,
   DialogContent,
   Divider,
   Drawer,
-  Grow,
   IconButton,
-  Paper,
-  Popper,
   Stack,
   Tooltip,
   Typography,
 } from '@mui/material';
-import { bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
+import { bindDialog, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -33,12 +27,12 @@ import { joinURL } from 'ufo';
 
 import CommitsTip, { CommitListView } from '../../components/template-form/commits-tip';
 import { getFileIdFromPath } from '../../utils/path';
-import PublishView from './publish-view';
-import PublishButton from './publish/publish-button';
+import DeploymentAction from './deployment-action';
 import SaveButton, { CommitForm, SaveButtonDialog } from './save-button';
 import Settings from './settings';
 import { useAssistantChangesState, useProjectState } from './state';
 import TokenUsage from './token-usage';
+import WsStatus from './ws-status';
 import { useProjectStore } from './yjs-state';
 
 export function AgentTokenUsage() {
@@ -63,15 +57,12 @@ export function HeaderActions() {
   if (!projectId || !gitRef) throw new Error('Missing required params `projectId` or `ref`');
 
   const navigate = useNavigate();
-  const previewPopperState = usePopupState({ variant: 'popper', popupId: 'preview' });
 
   const {
     state: { loading, commits },
   } = useProjectState(projectId, gitRef);
-  const { getFileById } = useProjectStore(projectId, gitRef, true);
 
   const fileId = filepath && getFileIdFromPath(filepath);
-  const file = fileId && getFileById(fileId);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -90,6 +81,8 @@ export function HeaderActions() {
   return (
     <CurrentProjectProvider projectId={projectId} projectRef={gitRef}>
       <Box gap={1} className="center" sx={{ button: { whiteSpace: 'nowrap' } }}>
+        <WsStatus projectId={projectId} gitRef={gitRef} />
+
         <AgentTokenUsage />
 
         <CommitsTip
@@ -119,52 +112,21 @@ export function HeaderActions() {
             </Button>
           </Tooltip>
 
-          <Drawer anchor="right" open={drawerOpen} onClose={toggleDrawer}>
-            <Settings boxProps={{}} onClose={toggleDrawer} />
+          <Drawer anchor="right" open={drawerOpen} onClose={toggleDrawer} disableEnforceFocus>
+            <Settings boxProps={{ width: 500 }} onClose={toggleDrawer} />
           </Drawer>
         </>
 
-        <PublishButton />
-
-        <>
-          <LoadingButton
-            variant="contained"
-            startIcon={<Box component={Icon} icon={EyeBoltIcon} sx={{ fontSize: 16 }} />}
-            size="small"
-            sx={{ px: 2 }}
-            {...bindTrigger(previewPopperState)}>
-            {t('preview')}
-          </LoadingButton>
-
-          <Popper {...bindPopper(previewPopperState)} sx={{ zIndex: 1101 }} transition placement="bottom-end">
-            {({ TransitionProps }) => (
-              <Grow style={{ transformOrigin: 'right top' }} {...TransitionProps}>
-                <Paper
-                  sx={{
-                    border: '1px solid #ddd',
-                    height: '100%',
-                    overflow: 'auto',
-                    mt: 1,
-                  }}>
-                  <ClickAwayListener
-                    onClickAway={(e) => (e.target as HTMLElement)?.localName !== 'body' && previewPopperState.close()}>
-                    <Box>
-                      {file ? <PublishView projectId={projectId} projectRef={gitRef} assistant={file} /> : null}
-                    </Box>
-                  </ClickAwayListener>
-                </Paper>
-              </Grow>
-            )}
-          </Popper>
-        </>
+        {projectId && gitRef && fileId && <DeploymentAction />}
       </Box>
     </CurrentProjectProvider>
   );
 }
 
 export function MobileHeaderActions() {
-  const { projectId, ref: gitRef } = useParams();
+  const { projectId, ref: gitRef, '*': filepath } = useParams();
   if (!projectId || !gitRef) throw new Error('Missing required params `projectId` or `ref`');
+  const fileId = filepath && getFileIdFromPath(filepath);
 
   return (
     <CurrentProjectProvider projectId={projectId} projectRef={gitRef}>
@@ -178,17 +140,7 @@ export function MobileHeaderActions() {
 
       <Divider sx={{ m: 0, p: 0 }} />
 
-      {/* <Box>
-        <PublishButton
-          fullWidth
-          variant="outlined"
-          sx={{ width: 1 }}
-          startIcon={<Box component={Icon} icon={BrandAppgalleryIcon} />}>
-          {t('publish')}
-        </PublishButton>
-      </Box> */}
-
-      <PreviewAction />
+      {projectId && gitRef && fileId && <DeploymentAction />}
     </CurrentProjectProvider>
   );
 }
@@ -369,7 +321,13 @@ function SettingsAction() {
         </Typography>
       </Box>
 
-      <Dialog {...bindDialog(dialogState)} fullScreen hideBackdrop sx={{ mt: '65px' }} PaperProps={{ elevation: 0 }}>
+      <Dialog
+        {...bindDialog(dialogState)}
+        fullScreen
+        hideBackdrop
+        sx={{ mt: '65px' }}
+        PaperProps={{ elevation: 0 }}
+        disableEnforceFocus>
         <DialogContent sx={{ p: '16px !important' }}>
           <Stack gap={2}>
             <Box>
@@ -382,65 +340,6 @@ function SettingsAction() {
             </Box>
 
             <Settings boxProps={{ sx: { '.setting-container': { p: 0 } } }} />
-          </Stack>
-        </DialogContent>
-      </Dialog>
-    </>
-  );
-}
-
-function PreviewAction() {
-  const { t } = useLocaleContext();
-  const { projectId, ref: gitRef, '*': filepath } = useParams();
-  const dialogState = usePopupState({ variant: 'dialog' });
-
-  if (!projectId || !gitRef) throw new Error('Missing required params `projectId` or `ref`');
-
-  const { getFileById } = useProjectStore(projectId, gitRef, true);
-  const fileId = filepath && getFileIdFromPath(filepath);
-  const file = fileId && getFileById(fileId);
-
-  return (
-    <>
-      <Box
-        className="center"
-        justifyContent="flex-start"
-        key="history"
-        onClick={dialogState.open}
-        sx={{ cursor: 'pointer' }}>
-        <LoadingButton
-          sx={{ width: 1 }}
-          variant="contained"
-          startIcon={<Box component={Icon} icon={EyeBoltIcon} sx={{ fontSize: 16 }} />}
-          size="small">
-          {t('preview')}
-        </LoadingButton>
-      </Box>
-
-      <Dialog {...bindDialog(dialogState)} fullScreen hideBackdrop sx={{ mt: '65px' }} PaperProps={{ elevation: 0 }}>
-        <DialogContent>
-          <Stack gap={2}>
-            <Box>
-              <Button
-                sx={{ p: 0 }}
-                onClick={dialogState.close}
-                startIcon={<Box component={Icon} icon={ArrowLeft} sx={{ fontSize: 16 }} />}>
-                {t('back')}
-              </Button>
-            </Box>
-
-            <Box
-              sx={{
-                '.publish-container': {
-                  p: 0,
-
-                  '.qr-code': {
-                    alignSelf: 'center',
-                  },
-                },
-              }}>
-              {file ? <PublishView projectId={projectId} projectRef={gitRef} assistant={file} /> : null}
-            </Box>
           </Stack>
         </DialogContent>
       </Dialog>

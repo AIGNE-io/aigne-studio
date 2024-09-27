@@ -1,10 +1,10 @@
 import { useIsAdmin } from '@app/contexts/session';
+import UploaderProvider, { useUploader } from '@app/contexts/uploader';
 import { discussionBoards, getDiscussionStatus } from '@app/libs/discussion';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
 import ArrowLeft from '@iconify-icons/tabler/chevron-left';
-import FileDiscIcon from '@iconify-icons/tabler/file-description';
 import LinkIcon from '@iconify-icons/tabler/link';
 import PencilIcon from '@iconify-icons/tabler/pencil';
 import UploadIcon from '@iconify-icons/tabler/upload';
@@ -31,33 +31,16 @@ import { groupBy, uniqWith } from 'lodash';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { joinURL } from 'ufo';
+import { joinURL, withQuery } from 'ufo';
 
 import { useDatasets } from '../../contexts/datasets/datasets';
 import { useDocuments } from '../../contexts/datasets/documents';
 import { getErrorMessage } from '../../libs/api';
-import {
-  CreateDiscussionItem,
-  createDatasetDocuments,
-  createFileDocument,
-  getDocument,
-  updateFileDocument,
-  updateTextDocument,
-} from '../../libs/dataset';
+import { AIGNE_RUNTIME_MOUNT_POINT } from '../../libs/constants';
+import { CreateDiscussionItem, createDatasetDocuments, getDocument, updateTextDocument } from '../../libs/dataset';
 import Discuss from '../project/icons/discuss';
 import DiscussList from './discuss';
 
-function formatBytes(bytes: number, decimals = 2) {
-  if (bytes === 0) return '0 Bytes';
-
-  const k = 1000;
-  const dm = decimals < 0 ? 0 : decimals;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-
-  return `${parseFloat((bytes / k ** i).toFixed(dm))} ${sizes[i]}`;
-}
 const CardContainer = styled(Stack)`
   border: 1px solid #e5e7eb;
   padding: 16px;
@@ -110,9 +93,8 @@ function Card({
 
 function File({ datasetId, id }: { datasetId: string; id?: string }) {
   const { t } = useLocaleContext();
-  const [file, setFile] = useState<File | undefined>();
-  const [loading, setLoading] = useState(false);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const uploaderRef = useUploader();
 
   const { refetch } = useDocuments(datasetId);
   const navigate = useNavigate();
@@ -125,14 +107,13 @@ function File({ datasetId, id }: { datasetId: string; id?: string }) {
   const onDrop = (event: React.DragEvent) => {
     event.preventDefault();
     setIsDraggingOver(false);
-    const { files } = event.dataTransfer;
-    setFile(files[0]);
-  };
 
-  const onInputChange = (event: any) => {
-    event.preventDefault();
-    const { files } = event.target;
-    setFile(files[0]);
+    const uploader = uploaderRef?.current?.getUploader();
+    uploader?.open();
+    uploader.onceUploadSuccess(async () => {
+      await refetch();
+      navigate(`../${datasetId}`, { replace: true });
+    });
   };
 
   return (
@@ -142,112 +123,50 @@ function File({ datasetId, id }: { datasetId: string; id?: string }) {
           {id ? t('knowledge.documents.update') : t('knowledge.documents.add')}
         </Typography>
 
-        <Box>
-          {file ? (
-            <Box
-              width={1}
-              display="flex"
-              alignItems="center"
-              sx={{ border: '1px dashed #E5E7EB' }}
-              bgcolor="#F9FAFB"
-              p={2}
-              borderRadius={1}>
-              <Box className="center" gap={1}>
-                <Box component={Icon} icon={FileDiscIcon} color="#3B82F6" />
-                <Typography>{file.name}</Typography>
-                <Typography>{formatBytes(file.size)}</Typography>
-              </Box>
+        <Box
+          width={1}
+          height={200}
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          sx={{ border: isDraggingOver ? '1px dashed #007bff' : '1px dashed #E5E7EB' }}
+          bgcolor="#F9FAFB"
+          borderRadius={1}
+          onClick={() => {
+            const uploader = uploaderRef?.current?.getUploader();
+            uploader?.open();
+            uploader.onceUploadSuccess(async () => {
+              await refetch();
+              navigate(`../${datasetId}`, { replace: true });
+            });
+          }}>
+          <Stack
+            htmlFor="upload"
+            component="label"
+            gap={1}
+            width={1}
+            height={1}
+            justifyContent="center"
+            alignItems="center"
+            onDragOver={onDragOver}
+            onDrop={onDrop}
+            onDragLeave={() => setIsDraggingOver(false)}
+            sx={{ cursor: 'pointer' }}>
+            <Box className="center" gap={1}>
+              <Box component={Icon} icon={UploadIcon} />
+              <Typography>{t('importFiles')}</Typography>
             </Box>
-          ) : (
+
             <Box
-              width={1}
-              height={200}
-              display="flex"
-              justifyContent="center"
-              alignItems="center"
-              sx={{ border: isDraggingOver ? '1px dashed #007bff' : '1px dashed #E5E7EB' }}
-              bgcolor="#F9FAFB"
-              borderRadius={1}>
-              <Stack
-                htmlFor="upload"
-                component="label"
-                gap={1}
-                width={1}
-                height={1}
-                justifyContent="center"
-                alignItems="center"
-                onDragOver={onDragOver}
-                onDrop={onDrop}
-                onDragLeave={() => setIsDraggingOver(false)}
-                sx={{ cursor: 'pointer' }}>
-                <Box className="center" gap={1}>
-                  <Box component={Icon} icon={UploadIcon} />
-                  <Typography>{t('importFiles')}</Typography>
-                </Box>
-
-                <Box
-                  sx={{
-                    fontSize: '14px',
-                    color: 'rgba( 56,55,67,1)',
-                    textAlign: 'center',
-                    whiteSpace: 'break-spaces',
-                  }}>
-                  {t('knowledge.file.content')}
-                </Box>
-              </Stack>
-
-              <Box
-                id="upload"
-                type="file"
-                onChange={onInputChange}
-                accept=".md, .txt, .doc, .docx, .pdf"
-                component="input"
-                display="none"
-              />
+              sx={{
+                fontSize: '14px',
+                color: 'rgba( 56,55,67,1)',
+                textAlign: 'center',
+                whiteSpace: 'break-spaces',
+              }}>
+              {t('knowledge.file.content')}
             </Box>
-          )}
-        </Box>
-
-        <Box>
-          <LoadingButton
-            sx={{ mb: 2 }}
-            type="submit"
-            variant="contained"
-            disabled={!file || loading}
-            startIcon={loading ? <CircularProgress sx={{ color: '#fff' }} size={16} /> : null}
-            onClick={async () => {
-              try {
-                setLoading(true);
-
-                if (file) {
-                  const form = new FormData();
-                  form.append('data', file);
-                  form.append('type', 'file');
-
-                  const limit: number = window?.blocklet?.preferences?.uploadFileLimit || 1;
-                  if (file.size > limit * 1000 * 1000) {
-                    Toast.error(t('maxUploadFileLimit', { limit }));
-                    return;
-                  }
-
-                  if (id) {
-                    await updateFileDocument(datasetId, id, form);
-                  } else {
-                    await createFileDocument(datasetId, form);
-                  }
-
-                  await refetch();
-
-                  navigate(`../${datasetId}`, { replace: true });
-                }
-              } catch (error) {
-                Toast.error(getErrorMessage(error));
-              } finally {
-                setLoading(false);
-              }
-            }}>
-            {loading ? t('processing') : t('save')}
-          </LoadingButton>
+          </Stack>
         </Box>
       </Stack>
     </Box>
@@ -361,10 +280,10 @@ function Discussion({ datasetId }: { datasetId: string }) {
           <Typography variant="subtitle2">{t('discussionBoards')}</Typography>
           <Stack gap={1}>
             {Object.entries(group).map(([key, value]) => {
-              const prefix = (window?.blocklet?.componentMountPoints || []).find(
+              const prefix = (window.blocklet?.componentMountPoints || []).find(
                 (x) => x.name === 'did-comments'
               )?.mountPoint;
-              let url = joinURL(window?.blocklet?.appUrl || '', prefix || '/', 'discussions');
+              let url = joinURL(window.blocklet?.appUrl || '', prefix || '/', 'discussions');
 
               const map: any = {
                 discussion: 'discussions/boards',
@@ -385,7 +304,7 @@ function Discussion({ datasetId }: { datasetId: string }) {
                     flex={1}
                     flexWrap="wrap">
                     {value.map(({ id, title, type }) => {
-                      url = joinURL(window?.blocklet?.appUrl || '', prefix || '/', map[type], id);
+                      url = joinURL(window.blocklet?.appUrl || '', prefix || '/', map[type], id);
 
                       return (
                         <Tooltip
@@ -653,58 +572,81 @@ export default function KnowledgeDocumentsAdd() {
   ].filter((i): i is any => !!i);
 
   return (
-    <Stack bgcolor="background.paper" p={2.5} height={1} gap={2.5} overflow="auto">
-      <Stack flexDirection="row" className="between">
-        <Box>
-          <Box
-            display="flex"
-            alignItems="center"
-            sx={{ cursor: 'pointer' }}
-            onClick={() => {
-              navigate(joinURL('..', datasetId || ''));
-            }}>
-            <Box component={Icon} icon={ArrowLeft} width={20} />
-            <Typography variant="subtitle2" mb={0}>
-              {t('addDocumentToDataset', { dataset: state.dataset?.name })}
-            </Typography>
+    <UploaderProvider
+      plugins={[]}
+      apiPathProps={{
+        uploader: withQuery(joinURL(AIGNE_RUNTIME_MOUNT_POINT, '/api/datasets/uploads'), {
+          datasetId: datasetId || '',
+          documentId: id || '',
+        }),
+        disableMediaKitPrefix: true,
+        disableAutoPrefix: true,
+      }}
+      restrictions={{
+        maxFileSize: (Number(window.blocklet?.preferences?.uploadFileLimit) || 10) * 1024 * 1024,
+        allowedFileTypes: [
+          '.md', // 允许 Markdown 文件
+          '.pdf', // 允许 PDF 文件
+          '.doc', // 允许 Word 文档
+          '.docx', // 允许新版 Word 文档
+          '.txt', // 允许文本文件
+          '.json', // 允许 JSON 文件
+          'text/plain', // 文本文件 MIME 类型
+          'application/pdf', // PDF 文件 MIME 类型
+          'application/msword', // DOC 文件 MIME 类型
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // DOCX 文件 MIME 类型
+          'text/markdown', // Markdown 文件 MIME 类型
+        ],
+      }}
+      dashboardProps={{
+        fileManagerSelectionType: 'files',
+      }}>
+      <Stack bgcolor="background.paper" p={2.5} height={1} gap={2.5} overflow="auto">
+        <Stack flexDirection="row" className="between">
+          <Box>
+            <Box
+              display="flex"
+              alignItems="center"
+              sx={{ cursor: 'pointer' }}
+              onClick={() => {
+                navigate(joinURL('..', datasetId || ''));
+              }}>
+              <Box component={Icon} icon={ArrowLeft} width={20} />
+              <Typography variant="subtitle2" mb={0}>
+                {t('addDocumentToDataset', { dataset: state.dataset?.name })}
+              </Typography>
+            </Box>
           </Box>
-
-          {/* <Box display="flex" alignItems="center">
-            <Box width={20} />
-            <Typography variant="subtitle2" color="#4B5563" fontWeight={400} mb={0}>
-              {state.dataset?.d}
-            </Typography>
-          </Box> */}
-        </Box>
-      </Stack>
-
-      <TabContext value={value}>
-        <Stack flex={1} height={0} gap={2.5}>
-          <Box display="flex" gap={1} flexDirection={isMdOrAbove ? 'row' : 'column'}>
-            {cards.map((card) => (
-              <Card
-                selected={card.id === value}
-                disabled={Boolean(id && editType !== card.id)}
-                key={card.id}
-                icon={card.icon}
-                title={card.title}
-                subtitle={card.subtitle}
-                onClick={() => setValue(editType || card.id)}
-              />
-            ))}
-          </Box>
-
-          <TabPanel value="file" sx={{ p: 0, height: 1 }}>
-            <File datasetId={datasetId || ''} id={id || ''} />
-          </TabPanel>
-          <TabPanel value="discussion" sx={{ p: 0, height: 1 }}>
-            <Discussion datasetId={datasetId || ''} />
-          </TabPanel>
-          <TabPanel value="custom" sx={{ p: 0, height: 1 }}>
-            <Custom datasetId={datasetId || ''} id={id || ''} value={document?.document} />
-          </TabPanel>
         </Stack>
-      </TabContext>
-    </Stack>
+
+        <TabContext value={value}>
+          <Stack flex={1} height={0} gap={2.5}>
+            <Box display="flex" gap={1} flexDirection={isMdOrAbove ? 'row' : 'column'}>
+              {cards.map((card) => (
+                <Card
+                  selected={card.id === value}
+                  disabled={Boolean(id && editType !== card.id)}
+                  key={card.id}
+                  icon={card.icon}
+                  title={card.title}
+                  subtitle={card.subtitle}
+                  onClick={() => setValue(editType || card.id)}
+                />
+              ))}
+            </Box>
+
+            <TabPanel value="file" sx={{ p: 0, height: 1 }}>
+              <File datasetId={datasetId || ''} id={id || ''} />
+            </TabPanel>
+            <TabPanel value="discussion" sx={{ p: 0, height: 1 }}>
+              <Discussion datasetId={datasetId || ''} />
+            </TabPanel>
+            <TabPanel value="custom" sx={{ p: 0, height: 1 }}>
+              <Custom datasetId={datasetId || ''} id={id || ''} value={document?.document} />
+            </TabPanel>
+          </Stack>
+        </TabContext>
+      </Stack>
+    </UploaderProvider>
   );
 }

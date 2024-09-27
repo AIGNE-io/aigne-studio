@@ -103,9 +103,8 @@ export default function ImportFromTemplates({
                             name,
                             description,
                           });
-                          currentGitStore.setState({
-                            currentProjectId: project.id,
-                          });
+
+                          currentGitStore.setState({ currentProjectId: project.id });
                           navigate(joinURL('/projects', project.id));
                         } catch (error) {
                           const message = getErrorMessage(error);
@@ -132,13 +131,7 @@ export default function ImportFromTemplates({
                         </Box>
                       </Box>
 
-                      <Box
-                        className="desc"
-                        sx={{
-                          fontWeight: 400,
-                          fontSize: 13,
-                          lineHeight: '22px',
-                        }}>
+                      <Box className="desc" sx={{ fontWeight: 400, fontSize: 13, lineHeight: '22px' }}>
                         {description}
                       </Box>
                     </Box>
@@ -151,6 +144,7 @@ export default function ImportFromTemplates({
                         gap={2}
                         sx={{ fontSize: '12px', color: 'text.disabled' }}
                         alignItems="center">
+                        {/* @ts-ignore */}
                         {createdAt && <RelativeTime value={createdAt} locale={locale} />}
                       </Stack>
 

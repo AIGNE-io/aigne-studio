@@ -320,7 +320,8 @@ const FileTree = forwardRef<
     );
   }
 
-  if (!files.length) {
+  const files1 = tree.filter((x) => x.parent);
+  if (!files1.length) {
     return (
       <>
         {dialog}
