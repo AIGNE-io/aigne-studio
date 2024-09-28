@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { Page, expect, test } from '@playwright/test';
 
 import { createProject, deleteProject } from './utils/project';
 
@@ -9,6 +9,17 @@ test.beforeEach('create project', async ({ page }) => {
   await deleteProject({ page });
   await createProject({ page });
 });
+
+const deleteToast = async (page: Page) => {
+  const confirmToast = page.locator('.SnackbarItem-action');
+  const count = await confirmToast.count();
+
+  if (count === 0) return;
+
+  await confirmToast.last().click();
+
+  await deleteToast(page);
+};
 
 test('user create deploy and update deploy', async ({ page }) => {
   await page.goto('/projects');
@@ -46,6 +57,8 @@ test('user create deploy and update deploy', async ({ page }) => {
   await page.getByTestId('add-deploy-button').click();
   await addDeployResponse;
 
+  await deleteToast(page);
+
   await expect(page.getByTestId('save-button')).toBeDisabled();
 
   // 需要点击两下，测试关闭弹窗
@@ -70,11 +83,4 @@ test('user create deploy and update deploy', async ({ page }) => {
 
   await agentNameInput.fill(`Update Agent ${Date.now()}`);
   await expect(page.getByTestId('save-button')).not.toBeDisabled();
-});
-
-test.afterEach('delete project', async ({ page }) => {
-  await page.goto('/projects');
-  await page.waitForLoadState('networkidle');
-
-  await deleteProject({ page });
 });
