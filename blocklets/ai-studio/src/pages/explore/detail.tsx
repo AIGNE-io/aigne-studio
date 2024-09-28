@@ -121,8 +121,8 @@ function Agent({ deployment, project }: { deployment: Deployment; project: Proje
                 color: '#303030 !important',
               },
             }}>
-            <Tab label={t('readme')} value="1" />
-            <Tab label={t('run')} value="2" />
+            <Tab label={t('readme')} value="1" data-testid="readme-tab" />
+            <Tab label={t('run')} value="2" data-testid="run-tab" />
           </TabList>
         </Box>
 
@@ -158,7 +158,7 @@ function ReadmePage({
     : getProjectIconUrl(deployment.projectId, { updatedAt: project.updatedAt });
 
   return (
-    <Stack gap={3}>
+    <Stack gap={3} data-testid="readme-page">
       <Box width={1} pb={{ xs: '50%', md: '30%' }} position="relative" sx={{ borderRadius: 1 }}>
         {banner ? (
           <Box
@@ -200,12 +200,16 @@ function ReadmePage({
         </Box>
 
         <Box display="flex" gap={1} alignItems="stretch">
-          <Button variant="contained" onClick={onRun} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <Button
+            variant="contained"
+            onClick={onRun}
+            sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+            data-testid="run-button">
             <Box component={Icon} icon={PlayIcon} sx={{ width: 14, height: 14, fontSize: 14, color: '#fff' }} />
             {t('run')}
           </Button>
 
-          <MakeYoursButton deployment={deployment} />
+          <MakeYoursButton deployment={deployment} data-testid="make-yours-button" />
 
           <ShareButton deployment={deployment} project={project} />
         </Box>
@@ -246,7 +250,7 @@ function PreviewPage({ deployment, project }: { deployment: Deployment; project:
 
   if (data?.identity?.aid) {
     return (
-      <Stack sx={{ height: '100%', overflow: 'hidden' }}>
+      <Stack sx={{ height: '100%', overflow: 'hidden' }} data-testid="preview-page">
         <Stack
           direction="row"
           justifyContent="flex-end"

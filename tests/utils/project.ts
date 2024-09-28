@@ -1,36 +1,43 @@
 import { Locator, Page, expect } from '@playwright/test';
 
-export async function createProject({ page }: { page: Page }) {
-  await page.goto('/projects');
-  await page.getByTestId('projects-examples').waitFor();
-  await page.getByTestId('newProject').click();
-
-  await page
-    .locator('[role=menuitem]')
-    .filter({ hasText: 'Blank' })
-    .click({ timeout: 3000 })
-    .catch((error) => console.warn('Failed to select project type "Blank" from the menu.', error));
-
+export async function createProjectDialog({ page }: { page: Page }) {
   const newProjectDialog = page.getByTestId('newProjectDialog');
   await expect(newProjectDialog).toBeVisible();
+
+  const projectName = `Test Project ${Date.now()}`;
 
   const createProjectPromise = page.waitForResponse(
     (response) => response.url().includes('/api/projects') && response.status() === 200,
     {}
   );
-  const nameField = newProjectDialog.getByTestId('projectNameField').locator('input');
-  await nameField.fill(`Test Project ${Date.now()}`);
-  await nameField.press('Enter');
+  await newProjectDialog.getByTestId('projectNameField').locator('input').fill(projectName);
+  await page.fill('[data-testid="projectDescriptionField"] textarea', 'This is a description of my new project.');
+  await newProjectDialog.getByRole('button', { name: 'Create' }).click();
+  await expect(newProjectDialog).not.toBeVisible();
   await createProjectPromise;
+}
 
-  await page.waitForSelector('span[aria-label="Import Agents"]');
-  await page.getByLabel('New Agent').getByRole('button').click({ force: true });
+export async function createProject({ page }: { page: Page }) {
+  await page.goto('/projects');
+  await page.waitForLoadState('networkidle');
+
+  await expect(page.getByText('Create a project to get started')).toBeVisible();
+
+  await expect(page.getByRole('button', { name: 'Import' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'New Project' })).toBeVisible();
+
+  await page.getByRole('button', { name: 'New Project' }).click();
+
+  await createProjectDialog({ page });
 }
 
 export async function deleteProject({ page }: { page: Page }) {
   await page.goto('/projects');
-  await page.getByTestId('projects-examples').waitFor();
-  const projects = await page.locator('.projects-projects-item').all();
+  await page.waitForLoadState('networkidle');
+
+  await expect(page.getByRole('button', { name: 'New Project' })).toBeVisible();
+
+  const projects = await page.getByTestId('projects-projects-item').all();
 
   for (let i = projects.length - 1; i >= 0; i--) {
     await projects[i]?.hover();
@@ -51,6 +58,9 @@ export async function deleteProject({ page }: { page: Page }) {
     }
     await responsePromise;
   }
+
+  await page.waitForTimeout(1000);
+  await expect(page.getByText('Create a project to get started')).toBeVisible();
 }
 
 export async function deleteOneProject({ page, project }: { page: Page; project: Locator }) {

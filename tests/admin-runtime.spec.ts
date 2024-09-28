@@ -1,6 +1,5 @@
-import { Page, expect, test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
-import { TestConstants } from './utils/constants';
 import { installBlocklet, unInstallBlocklet } from './utils/uninstall';
 
 test.beforeEach('route to blocklets', async ({ page }) => {
@@ -60,7 +59,7 @@ test.describe.serial('resource blocklet', () => {
     await page.locator('button:has-text("Save")').click();
   });
 
-  test('input form', async ({ page, context }) => {
+  test('input form', async ({ page }) => {
     test.slow();
     // 总有失败的概率, 但是页面没有提示, 延迟等待一段时间
     await page.waitForTimeout(30000);
@@ -78,7 +77,7 @@ test.describe.serial('resource blocklet', () => {
     await page.getByTestId('runtime-submit-button').click();
 
     // 等待按钮不再具有特定的类(class)
-    const buttonSelector = `button[type=submit]`;
+    const buttonSelector = 'button[type=submit]';
     await page.waitForFunction((buttonSelector) => {
       const button = document.querySelector(buttonSelector);
       return !button!.classList.contains('MuiLoadingButton-loading'); // 等待按钮不再具有 'some-class'

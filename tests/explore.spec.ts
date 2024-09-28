@@ -1,0 +1,151 @@
+import { expect, test } from '@playwright/test';
+
+import { deleteCategory } from './utils/category';
+import { deleteDeploy } from './utils/deploy';
+import { createProjectDialog, deleteProject } from './utils/project';
+
+test.beforeAll('initialize test environment', async ({ browser }) => {
+  const page = await browser.newPage();
+  await page.goto('/projects');
+  await page.waitForLoadState('networkidle');
+
+  await deleteProject({ page });
+  await deleteCategory({ page });
+  await deleteDeploy({ page });
+});
+
+test.describe.serial('explore', () => {
+  test('check empty category', async ({ page }) => {
+    await page.goto('/explore');
+    await page.waitForLoadState('networkidle');
+
+    const exploreCategoryItems = page.getByTestId('categories-sidebar').getByTestId('category-item');
+    await expect(exploreCategoryItems).toHaveCount(0);
+
+    await expect(page.getByText('No Categories')).toBeVisible();
+
+    await page.getByTestId('no-categories').click();
+    await page.waitForLoadState('networkidle');
+
+    await expect(page.getByText('No Categories')).toBeVisible();
+    await expect(page).toHaveURL('/admin/category', { timeout: 10000 });
+    // 添加第一个分类
+    await page.getByTestId('add-category-button').click();
+    await expect(page.getByTestId('add-category-form')).toBeVisible();
+    const addCategoryForm = page.getByTestId('add-category-form');
+
+    const addOneCategoryResponse = page.waitForResponse(
+      (response) => response.url().includes('/api/categories') && response.status() === 200
+    );
+    await addCategoryForm.getByTestId('name-field').locator('input').fill('test');
+    await addCategoryForm.getByTestId('slug-field').locator('input').fill('test');
+    await addCategoryForm.getByTestId('orderIndex-field').locator('input').fill('1');
+    await addCategoryForm.getByTestId('icon-field').locator('input').fill('tabler:a-b');
+    await page.getByTestId('save-button').click();
+    await addOneCategoryResponse;
+  });
+
+  test('one category', async ({ page }) => {
+    await page.goto('/explore');
+    await page.waitForLoadState('networkidle');
+
+    const exploreCategoryItems = page.getByTestId('categories-sidebar').getByTestId('category-item');
+    await expect(exploreCategoryItems).toHaveCount(1);
+  });
+
+  test('add one deployment', async ({ page }) => {
+    await page.goto('/explore');
+    await page.waitForLoadState('networkidle');
+
+    await page.getByTestId('create-project-button').click();
+    await createProjectDialog({ page });
+
+    // 发布 deployment
+    await page.getByTestId('new-agent-button').click();
+    await page.getByTestId('file-tree').click();
+
+    const agentNameInput = page.getByTestId('agent-name').locator('input');
+    await expect(agentNameInput).toBeVisible();
+    await agentNameInput.click();
+
+    await agentNameInput.fill(`Test Agent ${Date.now()}`);
+
+    await page.getByTestId('deploy-button').click();
+    await expect(page.getByTestId('create-deploy-popper')).toBeVisible();
+
+    const addDeployResponse = page.waitForResponse(
+      (response) => response.url().includes('/api/deployments') && response.status() === 200
+    );
+    await page.getByTestId('add-deploy-button').click();
+    await addDeployResponse;
+
+    await expect(page.getByTestId('save-button')).toBeDisabled();
+  });
+
+  test('add category for deployment', async ({ page }) => {
+    await page.goto('/admin/explore');
+    await page.waitForLoadState('networkidle');
+
+    const container = page.locator('.MuiDataGrid-root');
+    await expect(container).toBeVisible();
+    const items = await container.locator('.deployment-row');
+    await expect(items).toHaveCount(1);
+
+    await page.getByTestId('edit-deployment-button').first().click();
+    const addCategoryForm = page.getByTestId('deployment-dialog');
+    await expect(addCategoryForm).toBeVisible();
+
+    const addCategoryResponse = page.waitForResponse(
+      (response) => response.url().includes('/admin/deployments') && response.status() === 200
+    );
+    await page.getByTestId('category-select-input').click();
+    await page.waitForSelector('[role="listbox"] [role="option"]');
+    await page.locator('[role="listbox"] [role="option"]').first().click();
+
+    await page.getByTestId('update-button').click();
+    await addCategoryResponse;
+  });
+
+  test('visit explore card detail', async ({ page }) => {
+    await page.goto('/explore/test');
+    await page.waitForLoadState('networkidle');
+
+    const listPage = page.getByTestId('explore-list');
+    await expect(listPage).toBeVisible();
+
+    const card = page.getByTestId('explore-card');
+    await expect(card).toHaveCount(1);
+
+    await card.first().click();
+    await page.waitForLoadState('networkidle');
+
+    await expect(page.getByTestId('readme-tab')).toBeVisible();
+    await expect(page.getByTestId('run-tab')).toBeVisible();
+
+    await expect(page.getByTestId('run-button')).toBeVisible();
+    await expect(page.getByTestId('make-yours-button')).toBeVisible();
+    await expect(page.getByTestId('share-button')).toBeVisible();
+
+    await page.getByTestId('run-button').click();
+    await expect(page.getByTestId('run-tab')).toHaveClass(/Mui-selected/);
+
+    await page.getByTestId('readme-tab').click();
+    await page.getByTestId('share-button').click();
+
+    await expect(page.getByTestId('open-in-new-tab')).toBeVisible();
+    await expect(page.getByTestId('copy-link')).toBeVisible();
+    await expect(page.getByTestId('share-on-twitter')).toBeVisible();
+
+    const addCategoryResponse = page.waitForResponse(
+      (response) => response.url().includes('/api/projects') && response.status() === 200
+    );
+    await page.getByTestId('make-yours-button').click();
+    await addCategoryResponse;
+
+    await page.goto('/projects');
+    await page.waitForLoadState('networkidle');
+
+    const projects = await page.getByTestId('projects-projects-item');
+    await expect(projects).toHaveCount(2);
+  });
+});

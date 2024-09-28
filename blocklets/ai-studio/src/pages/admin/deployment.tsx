@@ -77,6 +77,7 @@ function DeploymentList() {
           return (
             <Box display="flex" alignItems="center" height={1} justifyContent="center">
               <Button
+                data-testid="edit-deployment-button"
                 onClick={(e) => {
                   e.stopPropagation();
 
@@ -86,6 +87,7 @@ function DeploymentList() {
                 {t('edit')}
               </Button>
               <Button
+                data-testid="share-deployment-button"
                 variant="text"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -98,6 +100,7 @@ function DeploymentList() {
                 {t('share')}
               </Button>
               <Button
+                data-testid="delete-deployment-button"
                 variant="text"
                 color="error"
                 onClick={(e) => {

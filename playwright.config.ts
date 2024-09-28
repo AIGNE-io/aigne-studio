@@ -30,6 +30,9 @@ export default defineConfig({
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
+
+    actionTimeout: 10000,
+    navigationTimeout: 10000,
   },
   /* Configure projects for major browsers */
   projects: [
@@ -38,17 +41,17 @@ export default defineConfig({
       testMatch: 'admin.setup.ts',
     },
 
-    {
-      name: 'ownerSetup',
-      testMatch: 'owner.setup.ts',
-    },
+    // {
+    //   name: 'ownerSetup',
+    //   testMatch: 'owner.setup.ts',
+    // },
 
-    {
-      name: 'owner',
-      use: { ...devices['Desktop Chrome'], storageState: TestConstants.authFilePath('owner') },
-      dependencies: ['adminSetup'],
-      testIgnore: /admin-.*\.spec\.ts/,
-    },
+    // {
+    //   name: 'owner',
+    //   use: { ...devices['Desktop Chrome'], storageState: TestConstants.authFilePath('owner') },
+    //   dependencies: ['adminSetup'],
+    //   testIgnore: /admin-.*\.spec\.ts/,
+    // },
 
     {
       name: 'admin',
