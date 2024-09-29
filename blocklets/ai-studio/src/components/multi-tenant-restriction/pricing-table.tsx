@@ -1,0 +1,161 @@
+import { Icon } from '@iconify-icon/react';
+import { Box, Button } from '@mui/material';
+import { ReactNode } from 'react';
+
+interface Plan {
+  icon: string;
+  name: string;
+  features: string[];
+  price?: ReactNode;
+  priceSuffix?: string;
+  buttonText: string;
+  buttonLink: string;
+  isFeatured?: boolean;
+}
+
+interface PricingTableProps {
+  plans?: Plan[];
+}
+
+const AI_STUDIO_STORE = 'https://registry.arcblock.io/blocklets/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
+
+function PricingTablePlan({ plan }: { plan: Plan }) {
+  return (
+    <Box
+      sx={{
+        flexBasis: { xs: '100%', md: '50%', lg: '25%' },
+        maxWidth: { xs: '100%', md: '50%', lg: '25%' },
+        p: 1,
+      }}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 1,
+          height: '100%',
+          p: 2,
+          bgcolor: 'grey.100',
+          borderRadius: 1,
+        }}>
+        <Box component={Icon} icon={plan.icon} sx={{ fontSize: 36 }} />
+        <Box sx={{ fontSize: 16, fontWeight: 'bold' }}>{plan.name}</Box>
+        <Box sx={{ fontWeight: 'bold' }}>
+          <Box component="span" sx={{ fontSize: 24 }}>
+            {plan.price}
+          </Box>
+          <Box component="span" sx={{ display: 'inline-block', ml: 1, fontSize: 14, verticalAlign: 'text-bottom' }}>
+            {plan.priceSuffix}
+          </Box>
+        </Box>
+        <Button
+          variant={plan.isFeatured ? 'contained' : 'outlined'}
+          color="primary"
+          sx={{ py: 1, ...(!plan.isFeatured && { bgcolor: '#fff' }) }}
+          onClick={() => {
+            window.open(plan.buttonLink, '_blank');
+          }}>
+          {plan.buttonText}
+        </Button>
+
+        <Box component="ul" sx={{ listStyle: 'none', p: 0, m: 0, mt: 2 }}>
+          {plan.features.map((feature) => (
+            <Box
+              component="li"
+              key={feature}
+              sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, lineHeight: 1.5 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '1.5em' }}>
+                <Box component={Icon} icon="tabler:check" sx={{ color: 'green' }} />
+              </Box>
+              <Box component="span" sx={{ color: 'text.secondary' }}>
+                {feature
+                  .split('\n')
+                  .filter(Boolean)
+                  .map((line, index) => {
+                    // eslint-disable-next-line react/no-array-index-key
+                    return <Box key={index}>{line}</Box>;
+                  })}
+              </Box>
+            </Box>
+          ))}
+        </Box>
+      </Box>
+    </Box>
+  );
+}
+
+/**
+ * TODO: 暂时仅考虑 plan 为 4 个的情况
+ */
+export function PricingTable({ plans = aignePlansEN, ...rest }: PricingTableProps) {
+  return (
+    <Box
+      sx={
+        {
+          // borderTop: '1px solid',
+          // borderBottom: '1px solid',
+          // borderColor: 'grey.100',
+        }
+      }
+      {...rest}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          mx: -1,
+        }}>
+        {plans.map((plan) => (
+          <PricingTablePlan key={plan.name} plan={plan} />
+        ))}
+      </Box>
+    </Box>
+  );
+}
+
+export const aignePlansEN = [
+  {
+    icon: 'tabler:home',
+    name: 'Free',
+    features: [
+      'Up to 3 projects',
+      'Up to 10 deployments',
+      'No support for publishing Private Agent',
+      'Data sync to DID Space \n(Bind DID Wallet)',
+    ],
+    price: '0 ABT',
+    buttonText: 'Sign up',
+    buttonLink: '#/',
+  },
+  {
+    icon: 'tabler:building',
+    name: 'Pro',
+    features: ['Unlimited projects', 'Unlimited deployments', 'Support for publishing Private Agent', 'Pay as you go'],
+    price: '10 ABT',
+    priceSuffix: '/month',
+    buttonText: 'Upgrade',
+    buttonLink: 'https://www.aigne.io/pricing',
+    isFeatured: true,
+  },
+  {
+    icon: 'tabler:building-community',
+    name: 'Serverless',
+    features: ['Unlimited projects', 'Unlimited deployments', 'Support for publishing Private Agent', 'Pay as you go'],
+    price: '15 ABT',
+    priceSuffix: '/month',
+    buttonText: 'Launch',
+    buttonLink: AI_STUDIO_STORE,
+  },
+  {
+    icon: 'tabler:building-skyscraper',
+    name: 'Dedicated',
+    features: [
+      'Unlimited projects',
+      'Unlimited deployments',
+      'Support for publishing Private Agent',
+      'Dedicated server instance',
+    ],
+    price: '20 ABT',
+    priceSuffix: '/month',
+    buttonText: 'Launch',
+    buttonLink: '#/',
+  },
+] as any;
