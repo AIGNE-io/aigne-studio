@@ -263,7 +263,7 @@ function DeployApp({
             <PublishButton />
           </Box>
 
-          <Tooltip title={!hasEntry ? t('noEntryAgent') : ''}>
+          <Tooltip title={!hasEntry ? `${t('noEntryAgent')}, ${t('noEntryAgentDescription')}` : ''}>
             <span>
               <LoadingButton variant="contained" onClick={onSubmit} disabled={!hasEntry}>
                 {t('deploy')}
@@ -441,7 +441,7 @@ function UpdateApp({ id, data, run, sx }: { id: string; data: Deployment; run: (
             <PublishButton />
           </Box>
 
-          <Tooltip title={!hasEntry ? t('noEntryAgent') : ''}>
+          <Tooltip title={!hasEntry ? `${t('noEntryAgent')},${t('noEntryAgentDescription')}` : ''}>
             <span>
               <LoadingButton variant="contained" onClick={onSubmit} disabled={!hasEntry}>
                 {t('update')}

@@ -19,7 +19,7 @@ export default function AppPage() {
 
   const { data, loading, error } = useRequest(() => getAgentByDeploymentId({ deploymentId: appId, working: true }), {
     onError: (error) => {
-      Toast.error((error as any)?.response?.data?.code === -1 ? t('noEntryAgent') : getErrorMessage(error));
+      Toast.error((error as any)?.response?.data?.code === -1 ? t('noEntryAgentDescription') : getErrorMessage(error));
     },
   });
 
@@ -44,7 +44,10 @@ export default function AppPage() {
         <Box
           component={Result}
           status={(error as any)?.response?.status || 500}
-          description={(error as any)?.response?.data?.code === -1 ? t('noEntryAgent') : getErrorMessage(error)}
+          title={(error as any)?.response?.data?.code === -1 ? t('noEntryAgent') : ''}
+          description={
+            (error as any)?.response?.data?.code === -1 ? t('noEntryAgentDescription') : getErrorMessage(error)
+          }
           sx={{ bgcolor: 'transparent' }}
         />
       )}
