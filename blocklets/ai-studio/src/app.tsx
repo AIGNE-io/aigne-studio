@@ -18,6 +18,7 @@ import { RecoilRoot } from 'recoil';
 import AigneLogo from './components/aigne-logo';
 import ErrorBoundary from './components/error/error-boundary';
 import Loading from './components/loading';
+import { PlanUpgrade } from './components/multi-tenant-restriction';
 import { SessionProvider, useInitialized, useIsPromptEditor, useIsRole } from './contexts/session';
 import { translations } from './locales';
 import { theme } from './theme/theme';
@@ -92,6 +93,7 @@ export default function App() {
               <SessionProvider serviceHost={basename} protectedRoutes={[`${basename}/*`]}>
                 <Suspense fallback={<Loading fixed />}>
                   <ErrorBoundary>
+                    <PlanUpgrade />
                     <AppRoutes basename={basename} />
                   </ErrorBoundary>
                 </Suspense>

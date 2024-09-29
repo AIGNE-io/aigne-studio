@@ -30,7 +30,7 @@
               "tab": "Knowledge"
             },
             "x-designable-id": "ds4lfn3f8en",
-            "x-index": 1,
+            "x-index": 0,
             "properties": {
               "uploadFileLimit": {
                 "type": "number",
@@ -150,12 +150,51 @@
                     }
                   }
                 }
+              },
+              "multiTenantProjectRequestLimits": {
+                "type": "number",
+                "title": "Multi Tenant Project Request Limits",
+                "x-decorator": "FormItem",
+                "x-component": "NumberPicker",
+                "x-validator": [
+                  {
+                    "exclusiveMinimum": 0,
+                    "min": null
+                  }
+                ],
+                "x-component-props": {
+                  "style": {
+                    "width": "auto"
+                  },
+                  "max": 1000,
+                  "min": 0,
+                  "bordered": true,
+                  "keyboard": true
+                },
+                "x-decorator-props": {
+                  "layout": "vertical",
+                  "size": "default",
+                  "fullness": false,
+                  "colon": false
+                },
+                "name": "multiTenantProjectRequestLimits",
+                "default": 10,
+                "x-reactions": {
+                  "dependencies": [],
+                  "fulfill": {
+                    "state": {}
+                  }
+                },
+                "x-designable-id": "96s0oi63rgm",
+                "x-index": 3,
+                "description": "",
+                "required": false
               }
             }
           }
         }
       }
     },
-    "x-designable-id": "eraouvna7w7"
+    "x-designable-id": "ivh0fuvdfsx"
   }
 }

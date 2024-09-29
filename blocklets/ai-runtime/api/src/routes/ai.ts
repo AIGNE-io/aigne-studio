@@ -20,6 +20,7 @@ import { CallAI, CallAIImage, RunAssistantCallback, RuntimeExecutor, nextTaskId 
 import { toolCallsTransform } from '@blocklet/ai-runtime/core/utils/tool-calls-transform';
 import { AssistantResponseType, RuntimeOutputVariable, isImageAssistant } from '@blocklet/ai-runtime/types';
 import { RuntimeError, RuntimeErrorType } from '@blocklet/ai-runtime/types/runtime/error';
+import config from '@blocklet/sdk/lib/config';
 import user from '@blocklet/sdk/lib/middlewares/user';
 import compression from 'compression';
 import { Router } from 'express';
@@ -46,6 +47,16 @@ const callInputSchema = Joi.object<{
   debug: Joi.boolean().empty(['', null]),
 }).rename('parameters', 'inputs', { ignoreUndefined: true, override: true });
 
+const checkProjectRequestLimit = async ({ role, projectId }: { role?: string; projectId: string }) => {
+  if (config.env.tenantMode === 'multiple') {
+    const historyCount = await History.count({ where: { projectId } });
+    const limit = config.env.preferences.multiTenantProjectRequestLimits;
+    if (historyCount >= limit && !['owner', 'admin', 'promptsEditor'].includes(role || '')) {
+      throw new Error(`Project request limit exceeded (current: ${historyCount}, limit: ${limit}) `);
+    }
+  }
+};
+
 router.post('/call', user(), compression(), async (req, res) => {
   const stream = req.accepts().includes('text/event-stream');
 
@@ -67,6 +78,11 @@ router.post('/call', user(), compression(), async (req, res) => {
   const userId = req.user?.did;
 
   const { projectId, projectRef, agentId } = parseIdentity(input.aid, { rejectWhenError: true });
+
+  // resource blocklet 不做限制
+  if (!input.blockletDid) {
+    await checkProjectRequestLimit({ role: req.user?.role, projectId });
+  }
 
   const agent = await getAgent({
     blockletDid: input.blockletDid,
