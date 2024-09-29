@@ -25,9 +25,8 @@ export function MultiTenantBrandGuard({ deployment, sx, children, ...rest }: Pro
     {
       position: 'relative',
       height: '100%',
-      p: 2,
-      pb: `${bottomHeight + 16}px`,
-      bgcolor: 'grey.100',
+      pb: `${bottomHeight}px`,
+      bgcolor: '#f0eee6',
 
       ...(brandBarRemoved && {
         p: 0,
@@ -48,17 +47,26 @@ export function MultiTenantBrandGuard({ deployment, sx, children, ...rest }: Pro
       <Box
         sx={{
           height: '100%',
-          overflow: 'hidden',
-          border: 1,
-          borderColor: 'grey.300',
-          borderRadius: 1.5,
+          border: '#eee solid 16px',
+          borderTopColor: 'grey.200',
+          borderBottomColor: 'grey.100',
+
+          ...(brandBarRemoved && { borderWidth: 0 }),
         }}>
         <Box
           sx={{
             height: '100%',
-            overflowY: 'auto',
+            borderRadius: 1.5,
+            overflow: 'hidden',
+            bgcolor: '#fff',
           }}>
-          {children}
+          <Box
+            sx={{
+              height: '100%',
+              overflowY: 'auto',
+            }}>
+            {children}
+          </Box>
         </Box>
       </Box>
       {brandBarRemoved && (
@@ -105,7 +113,7 @@ export function MultiTenantBrandGuard({ deployment, sx, children, ...rest }: Pro
             right: 0,
             height: bottomHeight,
             p: 2,
-            bgcolor: 'grey.200',
+            bgcolor: '#f0eee6',
           }}>
           <MadeWithAigne />
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -129,7 +137,7 @@ export function MultiTenantBrandGuard({ deployment, sx, children, ...rest }: Pro
                 children: <Box component={Icon} icon={DotsVerticalIcon} sx={{ fontSize: 16, color: 'text.primary' }} />,
               }}
               PopperProps={{ placement: 'bottom-end' }}>
-              <MenuItem onClick={removeBrand}>Remove AIGNE Logo</MenuItem>
+              <MenuItem onClick={removeBrand}>Remove AIGNE banner</MenuItem>
               <MenuItem onClick={() => navigate('/')}>About</MenuItem>
             </PopperMenu>
           </Box>
@@ -151,7 +159,9 @@ function MadeWithAigne() {
         color: 'text.secondary',
         whiteSpace: 'nowrap',
       }}>
-      <Box component="span">Made with</Box>
+      <Box component="span" sx={{ display: { xs: 'none', md: 'inline' } }}>
+        Made with
+      </Box>
       <Box sx={{ transform: 'scale(0.7) translateX(-25%)' }}>
         <AigneLogo />
       </Box>

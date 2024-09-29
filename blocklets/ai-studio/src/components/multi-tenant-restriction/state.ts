@@ -23,7 +23,7 @@ export const useMultiTenantRestrictionStore = create<{
   planUpgradeVisible: false,
   type: null,
   showPlanUpgrade: (type?: MultiTenantRestrictionType | null) => set({ planUpgradeVisible: true, type }),
-  hidePlanUpgrade: () => set({ planUpgradeVisible: false, type: null }),
+  hidePlanUpgrade: () => set({ planUpgradeVisible: false }),
 }));
 
 export const showPlanUpgrade = (type?: MultiTenantRestrictionType) => {
