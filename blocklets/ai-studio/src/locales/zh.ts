@@ -841,4 +841,6 @@ export default flatten({
   shareOnTwitter: '分享到推特',
   openInNewTab: '在新标签页中打开',
   copyLink: '复制链接',
+  noEntryAgent: '没有入口 Agent',
+  noEntryAgentDescription: '请设置一个入口 Agent',
 });
