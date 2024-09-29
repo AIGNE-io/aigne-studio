@@ -115,6 +115,7 @@ export default flatten({
   createdAt: 'Created at',
   home: 'Home',
   prompts: 'Prompts',
+  imageBlender: 'Image Blender',
   functions: 'Functions',
   function: 'Function',
   api: 'API',

@@ -12,6 +12,7 @@ import type {
   FileTypeYjs,
   FunctionAssistantYjs,
   ImageAssistantYjs,
+  ImageBlenderAssistantYjs,
   MemoryFileYjs,
   OutputVariableYjs,
   ParameterYjs,
@@ -31,6 +32,7 @@ import type {
   FileType,
   FunctionAssistant,
   ImageAssistant,
+  ImageBlenderAssistant,
   MemoryFile,
   OutputVariable,
   Parameter,
@@ -72,7 +74,9 @@ export function isAssistant(assistant: FileTypeYjs): assistant is AssistantYjs;
 export function isAssistant(assistant: FileType | FileTypeYjs): assistant is FileType | AssistantYjs {
   return (
     typeof (assistant as any).id === 'string' &&
-    ['agent', 'prompt', 'image', 'api', 'function', 'router', 'callAgent'].includes((assistant as any).type)
+    ['agent', 'prompt', 'image', 'api', 'function', 'router', 'callAgent', 'imageBlender'].includes(
+      (assistant as any).type
+    )
   );
 }
 
@@ -92,6 +96,14 @@ export function isCallAssistant(file: FileType): file is CallAssistant;
 export function isCallAssistant(file: FileTypeYjs): file is CallAssistantYjs;
 export function isCallAssistant(file: FileType | FileTypeYjs): file is CallAssistant | CallAssistantYjs {
   return (file as any).type === 'callAgent';
+}
+
+export function isImageBlenderAssistant(file: FileType): file is ImageBlenderAssistant;
+export function isImageBlenderAssistant(file: FileTypeYjs): file is ImageBlenderAssistantYjs;
+export function isImageBlenderAssistant(
+  file: FileType | FileTypeYjs
+): file is ImageBlenderAssistant | ImageBlenderAssistantYjs {
+  return (file as any).type === 'imageBlender';
 }
 
 export function isPromptAssistant(file: FileType): file is PromptAssistant;
@@ -368,6 +380,16 @@ export function fileToYjs(file: FileType): FileTypeYjs {
     };
   }
 
+  if (isImageBlenderAssistant(file)) {
+    return {
+      ...file,
+      parameters: file.parameters && arrayToYjs(file.parameters, parameterToYjs),
+      tests: file.tests && arrayToYjs(file.tests),
+      entries: file.entries && arrayToYjs(file.entries),
+      outputVariables: file.outputVariables && arrayToYjs(file.outputVariables.map(outputVariableToYjs)),
+    };
+  }
+
   return file;
 }
 
@@ -449,6 +471,16 @@ export function fileFromYjs(file: FileTypeYjs): FileType {
       entries: file.entries && arrayFromYjs(file.entries),
       outputVariables: file.outputVariables && arrayFromYjs(file.outputVariables).map(outputVariableFromYjs),
       agents: file.agents && arrayFromYjs(file.agents),
+    };
+  }
+
+  if (isImageBlenderAssistant(file)) {
+    return {
+      ...file,
+      parameters: file.parameters && arrayFromYjs(file.parameters, parameterFromYjs),
+      tests: file.tests && arrayFromYjs(file.tests),
+      entries: file.entries && arrayFromYjs(file.entries),
+      outputVariables: file.outputVariables && arrayFromYjs(file.outputVariables).map(outputVariableFromYjs),
     };
   }
 

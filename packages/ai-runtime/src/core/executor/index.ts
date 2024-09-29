@@ -7,6 +7,7 @@ import { AgentExecutorBase, AgentExecutorOptions, ExecutorContext } from './base
 import { BlockletAgentExecutor } from './blocklet';
 import { CallAgentExecutor } from './call-agent';
 import { DecisionAgentExecutor } from './decision';
+import { ImageBlenderAgentExecutor } from './image-blender';
 import { LLMAgentExecutor } from './llm';
 import { LogicAgentExecutor } from './logic';
 
@@ -67,6 +68,9 @@ export class RuntimeExecutor extends AgentExecutorBase<GetAgentResult> {
       }
       case 'blocklet': {
         return new BlockletAgentExecutor(this.context, agent, options).execute();
+      }
+      case 'imageBlender': {
+        return new ImageBlenderAgentExecutor(this.context, agent, options).execute();
       }
       default: {
         logger.error('Unsupported agent type', { agent });
