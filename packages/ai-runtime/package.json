@@ -138,12 +138,12 @@
     "test": "jest src/"
   },
   "dependencies": {
-    "@blocklet/ai-kit": "^0.1.56",
+    "@blocklet/ai-kit": "^0.1.57",
     "@blocklet/dataset-sdk": "workspace:^",
-    "@blocklet/js-sdk": "^1.16.31",
-    "@blocklet/logger": "^1.16.31",
+    "@blocklet/js-sdk": "^1.16.32",
+    "@blocklet/logger": "^1.16.32",
     "@blocklet/quickjs": "workspace:^",
-    "@blocklet/sdk": "^1.16.31",
+    "@blocklet/sdk": "^1.16.32",
     "@microsoft/fetch-event-source": "^2.0.1",
     "ahooks": "^3.8.1",
     "axios": "^1.7.5",
@@ -179,7 +179,7 @@
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@arcblock/ux": "^2.10.38",
+    "@arcblock/ux": "^2.10.39",
     "@emotion/css": "^11.13.0",
     "@emotion/react": "^11.13.3",
     "@jest/globals": "^29.7.0",
