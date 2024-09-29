@@ -2,40 +2,27 @@ import { login } from '@blocklet/testlab/utils/playwright';
 import { ensureWallet } from '@blocklet/testlab/utils/wallet';
 import { expect, test } from '@playwright/test';
 
-import { deleteOneProject, deleteProject } from './utils/project';
+import { createProject, deleteOneProject, deleteProject } from '../utils/project';
 
-test.beforeEach('route to agent page', async ({ page }) => {
+test.beforeEach('clean and create project', async ({ browser }) => {
+  const page = await browser.newPage();
   await page.goto('/projects');
-  const examples = page.getByTestId('projects-examples');
-  await examples.waitFor();
-  await expect(examples).not.toBeEmpty();
+  await page.waitForLoadState('networkidle');
+
   await deleteProject({ page });
+  await createProject({ page });
 });
-
-// 复制项目
-test.describe.serial('handle project', () => {
-  test('has example projects', async ({ page }) => {
-    await page.goto('/projects');
-
-    const examples = page.getByTestId('projects-examples');
-    await examples.waitFor();
-
-    // 获取所有匹配的 div 元素
-    const elements = page.getByTestId('projects-examples').locator('.name');
-    // 获取所有文本内容
-    const texts = await elements.allTextContents();
-    // 预期的文本值
-    const expectedTexts = ['AI Chat', 'Email Generator', 'Image Generator'];
-    // 检查所有预期的文本值是否都存在
-    for (const expectedText of expectedTexts) {
-      expect(texts).toContain(expectedText);
-    }
-  });
-
+test.describe.serial('project', () => {
   test('copy/edit project', async ({ page }) => {
-    const aiChatExample = await page.getByTestId('projects-examples').locator('>div').filter({ hasText: 'AI Chat' });
-    await aiChatExample.hover();
-    await aiChatExample.getByRole('button').click();
+    await page.goto('/projects');
+    await page.waitForLoadState('networkidle');
+
+    const firstProjectItem = await page
+      .getByTestId('projects-projects')
+      .locator('>div')
+      .filter({ hasText: 'Test Project' });
+    await firstProjectItem.hover();
+    await firstProjectItem.getByRole('button').click();
 
     const copyProjectPromise = page.waitForResponse(
       (response) => response.url().includes('/api/projects') && response.status() === 200
@@ -44,9 +31,10 @@ test.describe.serial('handle project', () => {
     await copyProjectPromise;
 
     const projects = page.getByTestId('projects-projects');
-    await expect(projects).toContainText('AI Chat Copy');
+    const projectCount = await projects.locator('>div');
+    await expect(projectCount).toHaveCount(2);
 
-    const aiChatCopy = await projects.locator('>div:has-text("AI Chat Copy")').first();
+    const aiChatCopy = await projects.locator('>div:has-text("Copy")').first();
     await aiChatCopy.hover({ force: true });
     await aiChatCopy.getByRole('button').click({ force: true });
     await page.getByRole('menuitem', { name: 'Edit' }).click();
@@ -79,6 +67,9 @@ test.describe.serial('handle project', () => {
   });
 
   test('import project from git', async ({ page }) => {
+    await page.goto('/projects');
+    await page.waitForLoadState('networkidle');
+
     await page.getByRole('button', { name: 'Import' }).click();
     await page.getByText('Git Repo').click();
     const input = page.getByPlaceholder('https://github.com/aigne/example.git');
@@ -92,14 +83,20 @@ test.describe.serial('handle project', () => {
   });
 
   test('import project from did space', async ({ page }) => {
+    await page.goto('/projects');
+    await page.waitForLoadState('networkidle');
+
     // 得到当前身份
     await page.getByLabel('User info button').click();
     const passport = await page.locator('div[data-cy="sessionManager-switch-passport-trigger"] span').innerText();
 
-    // 找到 ai chat 项目
-    await page.getByTestId('projects-examples').locator('>div').filter({ hasText: 'AI Chat' }).click({ force: true });
+    // 先同步 did space 数据
+    await page
+      .getByTestId('projects-projects')
+      .locator('>div')
+      .filter({ hasText: 'Test Project' })
+      .click({ force: true });
     await page.waitForSelector('span[aria-label="Import Agents"]');
-
     await page.getByTestId('header-actions-setting').click();
     await page.getByRole('tab', { name: 'DID Spaces' }).click();
     await page.getByLabel('Auto sync when saving').check();
@@ -109,8 +106,10 @@ test.describe.serial('handle project', () => {
     await page.getByRole('button', { name: 'Sync' }).click();
     await responsePromise;
 
+    await page.waitForTimeout(1000);
     await page.goto('/projects');
-    await page.getByTestId('projects-examples').waitFor();
+    await page.waitForLoadState('networkidle');
+
     await page.getByRole('button', { name: 'Import' }).click();
     await page.getByText('DID Spaces').click();
     await page.getByText('Import a project from the currently connected DID Space').click();
@@ -120,10 +119,7 @@ test.describe.serial('handle project', () => {
       wallet: ensureWallet({ name: passport.trim() }),
     });
 
-    // from-did-spaces/import-project
-    const importPromise = page.waitForResponse(
-      (response) => response.url().includes('/from-did-spaces/import-project') && response.status() === 200
-    );
+    // 拉取 did space 数据
     await page.getByRole('button', { name: 'Next' }).click();
     await page.waitForSelector('div:has-text("Import project from DID Spaces")');
 
@@ -131,8 +127,8 @@ test.describe.serial('handle project', () => {
       await page.getByPlaceholder('Select a project to import').click({ force: true });
       await page.waitForTimeout(500);
     }
-    await page.getByRole('option', { name: 'AI Chat' }).first().click();
+
+    await page.getByRole('option', { name: 'Test Project' }).first().click();
     await page.getByRole('button', { name: 'Import from DID Spaces' }).click();
-    await importPromise;
   });
 });

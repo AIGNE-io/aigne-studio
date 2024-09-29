@@ -55,7 +55,7 @@ export default function ColorSetting({ type }: { type: 'primaryColor' | 'seconda
         <ClickAwayListener onClickAway={() => setOpen(false)}>
           <Box sx={{ position: 'cursor' }}>
             <Box onClick={handleOpen}>
-              <ChromePickerBox bgcolor={selectedColor} />
+              <ChromePickerBox bgcolor={selectedColor} data-testid="chrome-picker-box" />
             </Box>
             <Popper open={open} anchorEl={anchorEl} sx={{ zIndex: 10000 }} placement="bottom-end">
               <Box mt={2}>

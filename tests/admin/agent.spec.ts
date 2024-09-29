@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { createProject } from './utils/project';
+import { createProject } from '../utils/project';
 
 test.beforeEach('route to agent page', async ({ page }) => {
   await createProject({ page });

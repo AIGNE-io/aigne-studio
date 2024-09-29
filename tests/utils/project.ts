@@ -12,7 +12,9 @@ export async function createProjectDialog({ page }: { page: Page }) {
   );
   await newProjectDialog.getByTestId('projectNameField').locator('input').fill(projectName);
   await page.fill('[data-testid="projectDescriptionField"] textarea', 'This is a description of my new project.');
-  await newProjectDialog.getByRole('button', { name: 'Create' }).click();
+
+  const createButton = newProjectDialog.getByRole('button', { name: 'Create' });
+  await Promise.all([createButton.click(), page.waitForLoadState('networkidle')]);
   await expect(newProjectDialog).not.toBeVisible();
   await createProjectPromise;
 }
@@ -83,10 +85,21 @@ export async function deleteOneProject({ page, project }: { page: Page; project:
   await responsePromise;
 }
 
-export async function toggleAIChat({ page }: { page: Page }) {
+export const enterAgentPage = async ({ page }: { page: Page }) => {
   await page.goto('/projects');
-  const aiChatProject = page.locator('.projects-examples-item').filter({ hasText: 'AI Chat' }).first();
-  await aiChatProject.click();
+  await page.waitForLoadState('networkidle');
 
-  await page.waitForSelector('span[aria-label="Import Agents"]');
-}
+  await expect(page.getByRole('button', { name: 'New Project' })).toBeVisible();
+  const projects = await page.getByTestId('projects-projects-item').all();
+
+  await expect(projects.length).toBeGreaterThan(0);
+
+  const firstProject = projects[0];
+  if (firstProject) {
+    const firstProjectName = await firstProject.locator('.name').innerText();
+
+    await firstProject.click();
+    await expect(page).toHaveURL(/\/projects\/.*/, { timeout: 10000 });
+    await expect(page.getByText(firstProjectName)).toBeVisible();
+  }
+};

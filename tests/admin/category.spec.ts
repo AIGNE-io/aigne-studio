@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { deleteCategory } from './utils/category';
+import { deleteCategory } from '../utils/category';
 
 test.beforeAll('initialize test environment', async ({ browser }) => {
   const page = await browser.newPage();

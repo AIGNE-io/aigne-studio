@@ -1,10 +1,10 @@
 import { expect, test } from '@playwright/test';
 
-import { deleteCategory } from './utils/category';
-import { deleteDeploy } from './utils/deploy';
-import { createProjectDialog, deleteProject } from './utils/project';
+import { deleteCategory } from '../utils/category';
+import { deleteDeploy } from '../utils/deploy';
+import { createProjectDialog, deleteProject } from '../utils/project';
 
-test.beforeAll('initialize test environment', async ({ browser }) => {
+test.beforeAll('clean and create project', async ({ browser }) => {
   const page = await browser.newPage();
   await page.goto('/projects');
   await page.waitForLoadState('networkidle');
