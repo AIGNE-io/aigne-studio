@@ -3,7 +3,6 @@ import { getErrorMessage } from '@app/libs/api';
 import { agentViewTheme } from '@app/theme/agent-view-theme';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Result from '@arcblock/ux/lib/Result';
-import Toast from '@arcblock/ux/lib/Toast';
 import { getAgentByDeploymentId } from '@blocklet/aigne-sdk/api/agent';
 import AgentView from '@blocklet/aigne-sdk/components/AgentView';
 import { Box, CircularProgress, Stack, ThemeProvider } from '@mui/material';
@@ -17,11 +16,9 @@ export default function AppPage() {
   const { t } = useLocaleContext();
   if (!appId) throw new Error('Missing required param `appId`');
 
-  const { data, loading, error } = useRequest(() => getAgentByDeploymentId({ deploymentId: appId, working: true }), {
-    onError: (error) => {
-      Toast.error((error as any)?.response?.data?.code === -1 ? t('noEntryAgentDescription') : getErrorMessage(error));
-    },
-  });
+  const { data, loading, error } = useRequest(() => getAgentByDeploymentId({ deploymentId: appId, working: true }));
+
+  const isNoSuchEntryAgentError = (error as any)?.response?.data?.error?.type === 'NoSuchEntryAgentError';
 
   return (
     <ThemeProvider theme={agentViewTheme}>
@@ -34,7 +31,7 @@ export default function AppPage() {
             <ShareButton deployment={data.deployment} project={data.project} />
           </Stack>
 
-          <AgentView aid={data?.identity?.aid} working />
+          <AgentView aid={data?.identity?.aid} />
         </>
       ) : loading ? (
         <Box textAlign="center" my={10}>
@@ -44,10 +41,8 @@ export default function AppPage() {
         <Box
           component={Result}
           status={(error as any)?.response?.status || 500}
-          title={(error as any)?.response?.data?.code === -1 ? t('noEntryAgent') : ''}
-          description={
-            (error as any)?.response?.data?.code === -1 ? t('noEntryAgentDescription') : getErrorMessage(error)
-          }
+          title={isNoSuchEntryAgentError ? t('noEntryAgent') : ''}
+          description={isNoSuchEntryAgentError ? t('noEntryAgentDescription') : getErrorMessage(error)}
           sx={{ bgcolor: 'transparent' }}
         />
       )}
