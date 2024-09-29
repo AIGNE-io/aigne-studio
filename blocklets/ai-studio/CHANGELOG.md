@@ -1,3 +1,7 @@
+## 0.4.67 (2024-9-29)
+
+- fix: no entry agent error
+
 ## 0.4.66 (2024-9-26)
 
 - fix: reset identity when copying a project
