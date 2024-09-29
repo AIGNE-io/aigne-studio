@@ -165,7 +165,6 @@ function DeployApp({
   const [visibility, setVisibility] = useState<'public' | 'private'>('public');
   const { store, config } = useProjectStore(projectId, projectRef);
   const hasEntry = store.files[config?.entry!];
-  console.log(hasEntry, config);
 
   const handleVisibilityChange = (event: any) => {
     setVisibility(event.target.value);
