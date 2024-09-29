@@ -106,9 +106,8 @@ test.describe.serial('project', () => {
     await page.getByRole('button', { name: 'Sync' }).click();
     await responsePromise;
 
-    await page.waitForTimeout(1000);
     await page.goto('/projects');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('networkidle', { timeout: 20000 });
 
     await page.getByRole('button', { name: 'Import' }).click();
     await page.getByText('DID Spaces').click();

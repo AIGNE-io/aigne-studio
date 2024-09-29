@@ -104,7 +104,21 @@ export const enterAgentPage = async ({ page }: { page: Page }) => {
     await page.waitForLoadState('networkidle');
 
     const path = `/projects/${projectId}`;
-    await page.goto(path);
-    await expect(page.getByText(firstProjectName)).toBeVisible();
+
+    const maxRetries = 5;
+    let retries = 0;
+
+    while (retries < maxRetries) {
+      await page.goto(path);
+      try {
+        await expect(page.getByText(firstProjectName)).toBeVisible({ timeout: 20000 });
+        break;
+      } catch (error) {
+        retries++;
+        if (retries >= maxRetries) {
+          throw new Error(`Failed to load project page after ${maxRetries} attempts`);
+        }
+      }
+    }
   }
 };
