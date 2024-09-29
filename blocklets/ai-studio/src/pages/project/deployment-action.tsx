@@ -36,6 +36,7 @@ import {
   Stack,
   SxProps,
   Theme,
+  Tooltip,
   Typography,
   useMediaQuery,
 } from '@mui/material';
@@ -48,6 +49,7 @@ import { Deployment, createDeployment, getDeploymentByProjectId, updateDeploymen
 import PublishView from './publish-view';
 import PublishButton from './publish/publish-button';
 import { saveButtonState } from './state';
+import { useProjectStore } from './yjs-state';
 
 export default function DeploymentAction() {
   const deploymentPopperState = usePopupState({ variant: 'popper', popupId: 'deployment' });
@@ -161,6 +163,9 @@ function DeployApp({
   const isAdmin = useIsAdmin();
   const { t } = useLocaleContext();
   const [visibility, setVisibility] = useState<'public' | 'private'>('public');
+  const { store, config } = useProjectStore(projectId, projectRef);
+  const hasEntry = store.files[config?.entry!];
+  console.log(hasEntry, config);
 
   const handleVisibilityChange = (event: any) => {
     setVisibility(event.target.value);
@@ -258,9 +263,13 @@ function DeployApp({
             <PublishButton />
           </Box>
 
-          <LoadingButton variant="contained" onClick={onSubmit}>
-            {t('deploy')}
-          </LoadingButton>
+          <Tooltip title={!hasEntry ? t('noEntryAgent') : ''}>
+            <span>
+              <LoadingButton variant="contained" onClick={onSubmit} disabled={!hasEntry}>
+                {t('deploy')}
+              </LoadingButton>
+            </span>
+          </Tooltip>
         </Stack>
       </Box>
     </Box>
@@ -270,6 +279,8 @@ function DeployApp({
 function UpdateApp({ id, data, run, sx }: { id: string; data: Deployment; run: () => void; sx?: SxProps }) {
   const { t } = useLocaleContext();
   const isAdmin = useIsAdmin();
+  const { store, config } = useProjectStore(data.projectId, data.projectRef);
+  const hasEntry = store.files[config?.entry!];
 
   const [visibility, setVisibility] = useState<'public' | 'private'>(data.access || 'public');
   const handleVisibilityChange = (event: any) => setVisibility(event.target.value);
@@ -430,9 +441,13 @@ function UpdateApp({ id, data, run, sx }: { id: string; data: Deployment; run: (
             <PublishButton />
           </Box>
 
-          <LoadingButton variant="contained" onClick={onSubmit}>
-            {t('update')}
-          </LoadingButton>
+          <Tooltip title={!hasEntry ? t('noEntryAgent') : ''}>
+            <span>
+              <LoadingButton variant="contained" onClick={onSubmit} disabled={!hasEntry}>
+                {t('update')}
+              </LoadingButton>
+            </span>
+          </Tooltip>
         </Stack>
       </Box>
     </Stack>

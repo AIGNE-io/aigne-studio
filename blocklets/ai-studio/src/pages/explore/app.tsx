@@ -1,6 +1,7 @@
 import ApplicationHeader from '@app/components/application/ApplicationHeader';
 import { getErrorMessage } from '@app/libs/api';
 import { agentViewTheme } from '@app/theme/agent-view-theme';
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Result from '@arcblock/ux/lib/Result';
 import Toast from '@arcblock/ux/lib/Toast';
 import { getAgentByDeploymentId } from '@blocklet/aigne-sdk/api/agent';
@@ -13,11 +14,12 @@ import { MakeYoursButton, ShareButton } from './button';
 
 export default function AppPage() {
   const { appId } = useParams();
+  const { t } = useLocaleContext();
   if (!appId) throw new Error('Missing required param `appId`');
 
   const { data, loading, error } = useRequest(() => getAgentByDeploymentId({ deploymentId: appId, working: true }), {
     onError: (error) => {
-      Toast.error(getErrorMessage(error));
+      Toast.error((error as any)?.response?.data?.code === -1 ? t('noEntryAgent') : getErrorMessage(error));
     },
   });
 
@@ -42,7 +44,7 @@ export default function AppPage() {
         <Box
           component={Result}
           status={(error as any)?.response?.status || 500}
-          description={error?.message}
+          description={(error as any)?.response?.data?.code === -1 ? t('noEntryAgent') : getErrorMessage(error)}
           sx={{ bgcolor: 'transparent' }}
         />
       )}

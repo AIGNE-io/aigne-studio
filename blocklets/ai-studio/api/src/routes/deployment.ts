@@ -279,7 +279,7 @@ router.get('/:deploymentId', user(), async (req, res) => {
   const agent = await getEntryFromRepository({ projectId, ref: projectRef, working: true });
 
   if (!agent) {
-    res.status(404).json({ message: 'No such agent' });
+    res.status(404).json({ code: -1, message: 'No such agent' });
     return;
   }
 
