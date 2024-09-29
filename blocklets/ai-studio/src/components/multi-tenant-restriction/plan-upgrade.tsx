@@ -2,25 +2,12 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Icon } from '@iconify-icon/react';
 import ArrowUpIcon from '@iconify-icons/tabler/circle-arrow-up';
 import { Close } from '@mui/icons-material';
-import {
-  Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  IconButton,
-  Link,
-  Theme,
-  useMediaQuery,
-} from '@mui/material';
+import { Alert, Box, Dialog, DialogContent, DialogTitle, IconButton, Theme, useMediaQuery } from '@mui/material';
 
+import { PricingTable } from './pricing-table';
 import { useMultiTenantRestriction } from './state';
 
 interface Props {}
-
-const AI_STUDIO_STORE = 'https://registry.arcblock.io/blocklets/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
 
 export function PlanUpgrade({ ...rest }: Props) {
   const { isRestricted, hidePlanUpgrade, planUpgradeVisible, type } = useMultiTenantRestriction();
@@ -36,7 +23,7 @@ export function PlanUpgrade({ ...rest }: Props) {
       fullScreen={downSm}
       open={planUpgradeVisible}
       onClose={hidePlanUpgrade}
-      PaperProps={{ sx: { width: 440, maxWidth: '100%' } }}
+      PaperProps={{ sx: { width: { xs: '100%', md: 860, lg: 1100 }, maxWidth: '100%' } }}
       {...rest}>
       <DialogTitle className="between" sx={{ border: 0 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -50,18 +37,46 @@ export function PlanUpgrade({ ...rest }: Props) {
       </DialogTitle>
 
       <DialogContent>
-        {type && <DialogContentText>{t(`multiTenantRestriction.${type}.desc`)}</DialogContentText>}
+        {/* {type && <DialogContentText>{t(`multiTenantRestriction.${type}.desc`)}</DialogContentText>} */}
 
-        <Box
+        {type && (
+          <Alert
+            variant="outlined"
+            severity="warning"
+            icon={<span />}
+            sx={{
+              position: 'relative',
+              px: 2.5,
+              borderColor: 'divider',
+              '.MuiAlert-icon': {
+                display: 'inline-block',
+                position: 'absolute',
+                top: 8,
+                bottom: 8,
+                left: 8,
+                width: 2,
+                bgcolor: 'warning.main',
+              },
+            }}>
+            {t(`multiTenantRestriction.${type}.desc`)}
+          </Alert>
+        )}
+
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, my: 3 }}>
+          <Box sx={{ fontSize: 16, fontWeight: 'bold' }}>All plans</Box>
+          <PricingTable />
+        </Box>
+
+        {/* <Box
           component={Link}
           href="https://www.arcblock.io/blog/tags/en/aigne"
           target="_blank"
           sx={{ display: 'block', color: 'text.secondary', fontSize: 14, mt: 1, textDecorationColor: 'inherit' }}>
           Learn how to launch a serverless AIGNE
-        </Box>
+        </Box> */}
       </DialogContent>
 
-      <DialogActions sx={{ border: 0 }}>
+      {/* <DialogActions sx={{ border: 0 }}>
         <Button onClick={hidePlanUpgrade} variant="outlined">
           {t('cancel')}
         </Button>
@@ -74,7 +89,7 @@ export function PlanUpgrade({ ...rest }: Props) {
           color="primary">
           Launch My Serverless AIGNE
         </Button>
-      </DialogActions>
+      </DialogActions> */}
     </Dialog>
   );
 }
