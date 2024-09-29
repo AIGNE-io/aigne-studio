@@ -1,3 +1,7 @@
+## 0.4.68 (2024-9-30)
+
+- fix: check entry agent configuration
+
 ## 0.4.67 (2024-9-29)
 
 - fix: destroy runtime to avoid memory leak
