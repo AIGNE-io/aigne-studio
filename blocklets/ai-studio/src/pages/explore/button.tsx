@@ -1,4 +1,5 @@
 import LoadingButton from '@app/components/loading/loading-button';
+import { showPlanUpgrade } from '@app/components/multi-tenant-restriction';
 import { getErrorMessage } from '@app/libs/api';
 import { createProject } from '@app/libs/project';
 import currentGitStore from '@app/store/current-git-store';
@@ -22,6 +23,7 @@ import {
   Paper,
   Popper,
 } from '@mui/material';
+import axios from 'axios';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { joinURL, withQuery } from 'ufo';
@@ -78,7 +80,12 @@ export function MakeYoursButton({ deployment, ...props }: { deployment: Deployme
       currentGitStore.setState({ currentProjectId: project.id });
       navigate(joinURL('/projects', project.id));
     } catch (error) {
-      Toast.error(getErrorMessage(error));
+      const errorMessage = axios.isAxiosError(error) ? error.response?.data?.error?.message : error.message;
+      if (String(errorMessage || '').includes('Project limit exceeded')) {
+        showPlanUpgrade('projectRequestLimitExceeded');
+      } else {
+        Toast.error(getErrorMessage(error));
+      }
     }
   };
 

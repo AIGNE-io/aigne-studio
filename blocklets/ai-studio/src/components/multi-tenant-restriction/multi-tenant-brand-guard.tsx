@@ -1,12 +1,14 @@
 import type { Deployment } from '@app/libs/deployment';
 import { MakeYoursButton } from '@app/pages/explore/button';
 import { Icon } from '@iconify-icon/react';
+import ArrowsShuffleIcon from '@iconify-icons/tabler/arrows-shuffle';
 import DotsVerticalIcon from '@iconify-icons/tabler/dots-vertical';
 import FullscreenExitOutlinedIcon from '@mui/icons-material/FullscreenExitOutlined';
 import { Box, BoxProps, Button, MenuItem } from '@mui/material';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import AigneLogo from '../aigne-logo';
 import PopperMenu from '../menu/PopperMenu';
 import { useMultiTenantRestriction } from './state';
 
@@ -66,21 +68,23 @@ export function MultiTenantBrandGuard({ deployment, sx, children, ...rest }: Pro
             sx={{
               position: 'absolute',
               bottom: 8,
-              left: 16,
+              left: 8,
+              display: 'flex',
+              alignItems: 'center',
+              width: 180,
+              height: 32,
               px: 1,
-              py: 0.25,
               borderRadius: 1,
-              bgcolor: 'rgba(0,0,0,0.15)',
-              color: 'grey.50',
+              bgcolor: 'rgba(0,0,0,0.08)',
             }}>
-            Made with AIGNE
+            <MadeWithAigne />
           </Box>
           <Button
             sx={{
               position: 'absolute',
               bottom: 8,
               right: 16,
-              bgcolor: 'rgba(0,0,0,0.1)',
+              bgcolor: 'rgba(0,0,0,0.08)',
               color: 'text.secondary',
               minWidth: 0,
             }}
@@ -103,21 +107,54 @@ export function MultiTenantBrandGuard({ deployment, sx, children, ...rest }: Pro
             p: 2,
             bgcolor: 'grey.200',
           }}>
-          <Box sx={{ fontSize: 14, fontWeight: 'medium', color: 'text.secondary' }}>Made with AIGNE</Box>
+          <MadeWithAigne />
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            {deployment && <MakeYoursButton deployment={deployment} color="primary" variant="contained" />}
+            {deployment && (
+              <MakeYoursButton
+                deployment={deployment}
+                color="primary"
+                variant="contained"
+                startIcon={<Box component={Icon} icon={ArrowsShuffleIcon} sx={{ fontSize: 14 }} />}
+                sx={{
+                  bgcolor: 'warning.main',
+                  '&:hover': {
+                    bgcolor: 'warning.dark',
+                  },
+                }}
+              />
+            )}
             <PopperMenu
               ButtonProps={{
                 sx: { minWidth: 0, p: 0.5, ml: -0.5 },
                 children: <Box component={Icon} icon={DotsVerticalIcon} sx={{ fontSize: 16, color: 'text.primary' }} />,
               }}
               PopperProps={{ placement: 'bottom-end' }}>
-              <MenuItem onClick={removeBrand}>Remove branding</MenuItem>
+              <MenuItem onClick={removeBrand}>Remove AIGNE Logo</MenuItem>
               <MenuItem onClick={() => navigate('/')}>About</MenuItem>
             </PopperMenu>
           </Box>
         </Box>
       )}
+    </Box>
+  );
+}
+
+function MadeWithAigne() {
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 1,
+        fontSize: 14,
+        fontWeight: 'bold',
+        color: 'text.secondary',
+        whiteSpace: 'nowrap',
+      }}>
+      <Box component="span">Made with</Box>
+      <Box sx={{ transform: 'scale(0.7) translateX(-25%)' }}>
+        <AigneLogo />
+      </Box>
     </Box>
   );
 }
