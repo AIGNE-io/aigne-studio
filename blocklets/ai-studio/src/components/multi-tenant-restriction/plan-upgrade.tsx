@@ -1,4 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { Icon } from '@iconify-icon/react';
+import ArrowUpIcon from '@iconify-icons/tabler/circle-arrow-up';
 import { Close } from '@mui/icons-material';
 import {
   Box,
@@ -21,23 +23,26 @@ interface Props {}
 const AI_STUDIO_STORE = 'https://registry.arcblock.io/blocklets/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
 
 export function PlanUpgrade({ ...rest }: Props) {
-  const { isRestricted, type, hidePlanUpgrade } = useMultiTenantRestriction();
+  const { isRestricted, hidePlanUpgrade, planUpgradeVisible, type } = useMultiTenantRestriction();
   const { t } = useLocaleContext();
   const downSm = useMediaQuery<Theme>((theme) => theme.breakpoints.down('sm'));
 
-  if (!isRestricted || !type) {
+  if (!isRestricted) {
     return null;
   }
 
   return (
     <Dialog
       fullScreen={downSm}
-      open={!!type}
+      open={planUpgradeVisible}
       onClose={hidePlanUpgrade}
       PaperProps={{ sx: { width: 440, maxWidth: '100%' } }}
       {...rest}>
       <DialogTitle className="between" sx={{ border: 0 }}>
-        <Box>Launch a serverless Aigne</Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <Icon icon={ArrowUpIcon} />
+          <span>Upgrade plan</span>
+        </Box>
 
         <IconButton size="small" onClick={hidePlanUpgrade}>
           <Close />
@@ -45,14 +50,14 @@ export function PlanUpgrade({ ...rest }: Props) {
       </DialogTitle>
 
       <DialogContent>
-        <DialogContentText>{t(`multiTenantRestriction.${type}.desc`)}</DialogContentText>
+        {type && <DialogContentText>{t(`multiTenantRestriction.${type}.desc`)}</DialogContentText>}
 
         <Box
           component={Link}
           href="https://www.arcblock.io/blog/tags/en/aigne"
           target="_blank"
           sx={{ display: 'block', color: 'text.secondary', fontSize: 14, mt: 1, textDecorationColor: 'inherit' }}>
-          Learn how to launch a serverless Aigne
+          Learn how to launch a serverless AIGNE
         </Box>
       </DialogContent>
 
@@ -67,7 +72,7 @@ export function PlanUpgrade({ ...rest }: Props) {
           }}
           variant="contained"
           color="primary">
-          Launch My Serverless Aigne
+          Launch My Serverless AIGNE
         </Button>
       </DialogActions>
     </Dialog>
