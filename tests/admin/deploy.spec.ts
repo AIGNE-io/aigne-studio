@@ -4,8 +4,6 @@ import { createProject, deleteProject, enterAgentPage } from '../utils/project';
 
 test.beforeAll('clean and create project', async ({ browser }) => {
   const page = await browser.newPage();
-  await page.goto('/projects');
-  await page.waitForLoadState('networkidle');
   await deleteProject({ page });
   await createProject({ page });
 });

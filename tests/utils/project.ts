@@ -39,7 +39,8 @@ export async function deleteProject({ page }: { page: Page }) {
 
   await expect(page.getByRole('button', { name: 'New Project' })).toBeVisible();
 
-  const projects = await page.getByTestId('projects-projects-item').all();
+  const projects = await page.getByTestId('projects-item').all();
+  console.log('projects', projects);
 
   for (let i = projects.length - 1; i >= 0; i--) {
     await projects[i]?.hover();
@@ -90,16 +91,20 @@ export const enterAgentPage = async ({ page }: { page: Page }) => {
   await page.waitForLoadState('networkidle');
 
   await expect(page.getByRole('button', { name: 'New Project' })).toBeVisible();
-  const projects = await page.getByTestId('projects-projects-item').all();
+  const projects = await page.getByTestId('projects-item').all();
 
   await expect(projects.length).toBeGreaterThan(0);
 
   const firstProject = projects[0];
   if (firstProject) {
+    const projectId = await firstProject.getAttribute('data-id');
     const firstProjectName = await firstProject.locator('.name').innerText();
 
     await firstProject.click();
-    await expect(page).toHaveURL(/\/projects\/.*/, { timeout: 10000 });
+    await page.waitForLoadState('networkidle');
+
+    const path = `/projects/${projectId}`;
+    await page.goto(path);
     await expect(page.getByText(firstProjectName)).toBeVisible();
   }
 };

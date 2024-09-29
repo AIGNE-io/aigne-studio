@@ -6,8 +6,6 @@ import { createProjectDialog, deleteProject } from '../utils/project';
 
 test.beforeAll('clean and create project', async ({ browser }) => {
   const page = await browser.newPage();
-  await page.goto('/projects');
-  await page.waitForLoadState('networkidle');
 
   await deleteProject({ page });
   await deleteCategory({ page });
@@ -145,7 +143,7 @@ test.describe.serial('explore', () => {
     await page.goto('/projects');
     await page.waitForLoadState('networkidle');
 
-    const projects = await page.getByTestId('projects-projects-item');
+    const projects = await page.getByTestId('projects-item');
     await expect(projects).toHaveCount(2);
   });
 });

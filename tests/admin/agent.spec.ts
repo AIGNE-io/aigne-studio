@@ -1,12 +1,24 @@
-import { expect, test } from '@playwright/test';
+import { Page, expect, test } from '@playwright/test';
 
-import { createProject } from '../utils/project';
+import { createProject, deleteProject, enterAgentPage } from '../utils/project';
 
-test.beforeEach('route to agent page', async ({ page }) => {
+test.beforeAll('clean and create project', async ({ browser }) => {
+  const page = await browser.newPage();
+  await deleteProject({ page });
   await createProject({ page });
 });
 
+const enterAgentAndCreateAgent = async ({ page }: { page: Page }) => {
+  await enterAgentPage({ page });
+
+  await page.getByTestId('new-agent-button').click();
+  await page.getByTestId('file-tree').getByRole('textbox').fill('Unamed Agent');
+  await page.getByTestId('file-tree').getByRole('textbox').press('Enter');
+};
+
 test('agent name and description', async ({ page }) => {
+  await enterAgentAndCreateAgent({ page });
+
   const title = page.getByTestId('agent-name').locator('input');
   await title.click();
   await title.fill('E2E Test');
@@ -21,6 +33,8 @@ test('agent name and description', async ({ page }) => {
 });
 
 test('add/delete/edit input', async ({ page }) => {
+  await enterAgentAndCreateAgent({ page });
+
   await page.getByTestId('agent-name').locator('input[placeholder="Unnamed"]').waitFor();
   const inputTable = page.getByTestId('input-settings');
   const rows = page.getByTestId('input-table').locator('.input-table-row');
@@ -47,17 +61,25 @@ test('add/delete/edit input', async ({ page }) => {
 });
 
 test('another agent', async ({ page }) => {
+  await enterAgentAndCreateAgent({ page });
+
+  await page.getByTestId('new-agent-button').click();
+  await page.getByTestId('file-tree').getByRole('textbox').fill('Another Agent');
+  await page.getByTestId('file-tree').getByRole('textbox').press('Enter');
+
   const rows = page.getByTestId('input-table').locator('.input-table-row');
   const newLine = rows.last();
-  await newLine.locator('td').nth(1).click();
-
-  await page.getByRole('menuitem', { name: 'Another Agent' }).click();
-  // todo: 这里未设置输入的 agent
+  await newLine.locator('td').nth(1).locator('button').click();
+  await page.getByTestId('tool-from-source').click();
+  await page.getByTestId('agent-select-input').click();
+  await page.getByRole('listbox').getByText('Test Agent').click();
   await page.getByRole('button', { name: 'Ok' }).click();
-  await expect(newLine).toContainText('Agent Outputs');
+  await expect(newLine).toContainText('Call Test Agent');
 });
 
 test('memory', async ({ page }) => {
+  await enterAgentAndCreateAgent({ page });
+
   await page.getByTestId('project-page-variables').click();
   await page.waitForSelector('[data-testid=variable-list]', { state: 'visible' });
   // 判断是否已经存在 memory
@@ -80,18 +102,18 @@ test('memory', async ({ page }) => {
   await page.getByLabel('New Agent').getByRole('button').click({ force: true });
   const rows = page.getByTestId('input-table').locator('.input-table-row');
   const newLine = rows.last();
-  await newLine.locator('td').nth(1).click();
-
-  // todo: do more actions
-  await page.getByRole('menu').getByText('Memory').click();
-  await page.getByPlaceholder('Select a memory').click();
-  await page.getByRole('option', { name: 'e2eTest' }).first().click();
+  await newLine.locator('td').nth(1).locator('button').click();
+  await page.getByTestId('datastore-from-source').click();
+  await page.getByTestId('select-memory-input').click();
+  await page.getByRole('listbox').getByText('e2eTest').click();
   await page.getByRole('button', { name: 'Ok' }).click();
 
   await expect(newLine).toContainText('Memory');
 });
 
 test('create knowledge', async ({ page }) => {
+  await enterAgentAndCreateAgent({ page });
+
   await page.getByTestId('project-page-knowledge').click();
   await page.getByText('Add Knowledge').click();
   await page.getByPlaceholder('Give your knowledge a name (e').fill('e2eTest');
@@ -105,9 +127,8 @@ test('create knowledge', async ({ page }) => {
   await page.getByLabel('New Agent').getByRole('button').click({ force: true });
   const rows = page.getByTestId('input-table').locator('.input-table-row');
   const newLine = rows.last();
-  await newLine.locator('td').nth(1).click();
-
-  await page.getByRole('menu').getByText('Knowledge').click();
+  await newLine.locator('td').nth(1).locator('button').click();
+  await page.getByTestId('knowledge-from-source').click();
   await page.getByPlaceholder('Select a knowledge to query').click();
   await page.getByRole('option', { name: 'e2eTest' }).first().click();
   await page.getByRole('button', { name: 'Ok' }).click();
@@ -116,6 +137,8 @@ test('create knowledge', async ({ page }) => {
 });
 
 test('set model', async ({ page }) => {
+  await enterAgentAndCreateAgent({ page });
+
   await page.getByTestId('OpenAIIcon').locator('rect').click();
   await page.waitForSelector('[data-testid=prompt-setting-model]');
 
@@ -124,30 +147,31 @@ test('set model', async ({ page }) => {
   await page.getByRole('option', { name: 'GPT4', exact: true }).click();
 
   const temperature = page.getByTestId('prompt-setting-temperature');
-  await temperature.getByRole('textbox').fill('2');
+  await temperature.locator('input').last().fill('1.1');
 
   const topP = page.getByTestId('prompt-setting-topP');
-  await topP.getByRole('textbox').fill('0');
+  await topP.locator('input').last().fill('0');
 
   const frequencyPenalty = page.getByTestId('prompt-setting-frequencyPenalty');
-  await frequencyPenalty.getByRole('textbox').fill('2');
+  await frequencyPenalty.locator('input').last().fill('2');
 
   const presencePenalty = page.getByTestId('prompt-setting-presencePenalty');
-  await presencePenalty.getByRole('textbox').fill('2');
+  await presencePenalty.locator('input').last().fill('2');
 
   const maxTokens = page.getByTestId('prompt-setting-maxTokens');
-  await maxTokens.getByRole('textbox').fill('128000');
-  await page.waitForSelector('[data-testid=prompt-setting-maxTokens]');
+  await maxTokens.locator('input').last().fill('8000');
 
   await expect(model).toHaveText('GPT4');
-  await expect(temperature.getByRole('textbox')).toHaveValue('2');
-  await expect(topP.getByRole('textbox')).toHaveValue('0');
-  await expect(frequencyPenalty.getByRole('textbox')).toHaveValue('2');
-  await expect(presencePenalty.getByRole('textbox')).toHaveValue('2');
-  await expect(maxTokens.getByRole('textbox')).toHaveValue('128000');
+  await expect(temperature.locator('input').last()).toHaveValue('1.1');
+  await expect(topP.locator('input').last().last()).toHaveValue('0');
+  await expect(frequencyPenalty.locator('input').last()).toHaveValue('2');
+  await expect(presencePenalty.locator('input').last()).toHaveValue('2');
+  await expect(maxTokens.locator('input').last()).toHaveValue('8000');
 });
 
 test('prompt message', async ({ page }) => {
+  await enterAgentAndCreateAgent({ page });
+
   const prompts = page.locator('.prompt-item');
   await page.getByRole('button', { name: 'Prompt Message' }).click();
   expect(await prompts.count()).toBe(2);
@@ -157,6 +181,8 @@ test('prompt message', async ({ page }) => {
 });
 
 test('agent output', async ({ page }) => {
+  await enterAgentAndCreateAgent({ page });
+
   await page.getByTestId('add-output-variable-button').click();
   await page.getByTestId('add-output-variable-button-custom-output').click();
 
@@ -192,6 +218,8 @@ test('agent output', async ({ page }) => {
 });
 
 test('agent debug', async ({ page }) => {
+  await enterAgentAndCreateAgent({ page });
+
   const input = page.locator("[data-testid='debug-mode-parameter'] textarea").first();
   await input.fill('hello');
 
@@ -224,6 +252,8 @@ test('agent debug', async ({ page }) => {
 });
 
 test('debug tests', async ({ page }) => {
+  await enterAgentAndCreateAgent({ page });
+
   const input = page.locator("[data-testid='debug-mode-parameter'] textarea").first();
   await input.fill('hello');
   await page.getByRole('button', { name: 'Save as test case' }).click();
@@ -241,6 +271,8 @@ test('debug tests', async ({ page }) => {
 });
 
 test('collaboration', async ({ page }) => {
+  await enterAgentAndCreateAgent({ page });
+
   await page.getByTestId('debug-view-collaboration').click();
   await page.locator('.be-editable.notranslate').fill('this is e2e test');
   const responsePromise = page.waitForResponse(/\/api\/comments/);

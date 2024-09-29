@@ -1,6 +1,6 @@
 import { Page, expect, test } from '@playwright/test';
 
-import { createProject } from '../utils/project';
+import { createProject, deleteProject, enterAgentPage } from '../utils/project';
 
 const deleteAllFoldersAndAgents = async ({ page }: { page: Page }) => {
   // 1. 找到所有的 folder
@@ -26,22 +26,16 @@ const deleteAllFoldersAndAgents = async ({ page }: { page: Page }) => {
   }
 };
 
-test.beforeEach('route to agent page', async ({ page }) => {
+test.beforeAll('clean and create project', async ({ browser }) => {
+  const page = await browser.newPage();
+  await deleteProject({ page });
   await createProject({ page });
 });
 
 test.describe.serial('folder', () => {
-  test('delete all folders', async ({ page }) => {
-    await deleteAllFoldersAndAgents({ page });
-  });
-
   test('new folder / rename / new agent', async ({ page }) => {
-    // todo: 为了进行下面的测试用例, #1251 修复后删除
-    // const agentCount = await page.getByTestId('agent-box').count();
-    // if (agentCount === 0) {
-    //   await page.getByLabel('New Agent').getByRole('button').click({ force: true });
-    // }
-    // ----
+    await enterAgentPage({ page });
+
     const folders = page.locator('.file-tree-folder');
     const folderCount = await folders.count();
     await page.getByLabel('New Group').getByRole('button').click({ force: true });
@@ -72,7 +66,8 @@ test.describe.serial('folder', () => {
 });
 
 test('create agent', async ({ page }) => {
-  await page.locator('.agent-box').waitFor();
+  await enterAgentPage({ page });
+
   await deleteAllFoldersAndAgents({ page });
   await page.getByLabel('New Agent').getByRole('button').click({ force: true });
 
@@ -82,7 +77,11 @@ test('create agent', async ({ page }) => {
   await firstAgent.locator('button').click();
   await page.getByText('Duplicate').click({ force: true });
 
-  const duplicateAgent = page.locator('.agent-box').nth(1);
+  await page.getByTestId('new-agent-button').click();
+  await page.getByTestId('file-tree').getByRole('textbox').fill('Unamed Agent 1');
+  await page.getByTestId('file-tree').getByRole('textbox').press('Enter');
+
+  const duplicateAgent = page.locator('.agent-box').first();
   await duplicateAgent.press('Enter');
   await duplicateAgent.locator('> div').hover();
   await duplicateAgent.locator('button').click();

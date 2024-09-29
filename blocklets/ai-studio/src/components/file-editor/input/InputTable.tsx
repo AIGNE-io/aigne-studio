@@ -457,6 +457,7 @@ export default function InputTable({
               return (
                 <Tooltip title={title()} placement="bottom-start">
                   <TableRow
+                    className="input-table-row"
                     key={parameter.id}
                     ref={(ref) => {
                       params.drop(ref);
@@ -629,6 +630,7 @@ function SelectFromSource({
         {Object.entries(FROM_MAP).map(([key, value]) => {
           return (
             <MenuItem
+              data-testid={`${key}-from-source`}
               key={key}
               selected={key === currentKey}
               onClick={(e) => {
