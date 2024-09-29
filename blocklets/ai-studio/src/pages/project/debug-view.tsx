@@ -1,10 +1,14 @@
 import { agentViewTheme } from '@app/theme/agent-view-theme';
+<<<<<<< HEAD
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+=======
+>>>>>>> 76e9a72a (feat: improve debug view)
 import { ImagePreview } from '@blocklet/ai-kit/components';
 import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { AssistantYjs, fileFromYjs } from '@blocklet/ai-runtime/types';
 import { AgentView } from '@blocklet/aigne-sdk/components';
 import { getYjsValue } from '@blocklet/co-git/yjs';
+<<<<<<< HEAD
 import { Icon } from '@iconify-icon/react';
 import HistoryIcon from '@iconify-icons/tabler/history';
 import PlusIcon from '@iconify-icons/tabler/plus';
@@ -26,6 +30,11 @@ import {
 import { ComponentProps, useEffect, useMemo } from 'react';
 
 import Empty from './icons/empty';
+=======
+import { Box, ThemeProvider, alpha, styled } from '@mui/material';
+import { ComponentProps, useEffect, useMemo } from 'react';
+
+>>>>>>> 76e9a72a (feat: improve debug view)
 import { useDebugState } from './state';
 import { useProjectStore } from './yjs-state';
 
@@ -46,6 +55,7 @@ export default function DebugView(props: { projectId: string; gitRef: string; as
     }
   });
 
+<<<<<<< HEAD
   return (
     <Box display="flex" flexDirection="column" flex={1} minHeight={0} key={state.currentSessionIndex}>
       <DebugViewContent {...props} />
@@ -64,10 +74,14 @@ function DebugViewContent(props: { projectId: string; gitRef: string; assistant:
 
   const currentSession = state.sessions.find((i) => i.index === state.currentSessionIndex);
 
+=======
+  const { projectId, gitRef, assistant } = props;
+>>>>>>> 76e9a72a (feat: improve debug view)
   const { projectSetting } = useProjectStore(projectId, gitRef);
   const aid = stringifyIdentity({ projectId, projectRef: gitRef, agentId: assistant.id });
   const debug = useMemo(
     () => ({
+<<<<<<< HEAD
       session: currentSession,
       agent: assistant,
       restAgentProps: { project: projectSetting, config: { secrets: [] } },
@@ -182,6 +196,25 @@ function EmptySessions({ projectId, templateId }: { projectId: string; templateI
         {t('newObject', { object: t('session') })}
       </Button>
     </Stack>
+=======
+      agent: assistant,
+      restAgentProps: {
+        project: projectSetting,
+        config: { secrets: [] },
+      },
+      getYjsValue,
+      fileFromYjs,
+    }),
+    [assistant, projectSetting]
+  );
+
+  return (
+    <ThemeProvider theme={agentViewTheme}>
+      <Box sx={{ overflowY: 'auto' }}>
+        <AgentView aid={aid} debug={debug} working />
+      </Box>
+    </ThemeProvider>
+>>>>>>> 76e9a72a (feat: improve debug view)
   );
 }
 
