@@ -1,3 +1,8 @@
+## 0.4.71 (2024-10-1)
+
+- feat: support call an agent in the outputs
+- fix: save selected template immediately
+
 ## 0.4.70 (2024-9-30)
 
 - feat: add image blender agent support
