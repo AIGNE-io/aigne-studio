@@ -1,6 +1,5 @@
 import { ImageBlenderAssistantYjs } from '@blocklet/ai-runtime/types';
-// import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { Box, TextField, Typography } from '@mui/material';
+import { Box, TextField } from '@mui/material';
 import { SelectTemplates } from '@nft-studio/react';
 import { useRef } from 'react';
 
@@ -8,14 +7,7 @@ function CustomTextField(props: any) {
   return <TextField {...props} InputProps={{ startAdornment: null, endAdornment: props?.InputProps?.endAdornment }} />;
 }
 
-export default function ImageBlenderAssistantEditor({
-  value,
-  disabled,
-}: {
-  value: ImageBlenderAssistantYjs;
-  disabled?: boolean;
-}) {
-  // const doc = (getYjsValue(value) as Map<any>).doc!;
+export default function ImageBlenderAssistantEditor({ value }: { value: ImageBlenderAssistantYjs }) {
   const selectedTemplatesRef = useRef({});
 
   return (
@@ -24,7 +16,6 @@ export default function ImageBlenderAssistantEditor({
         backgroundColor: 'white',
         pt: 2,
         borderRadius: 1,
-        // overflow: 'hidden',
       }}>
       <SelectTemplates
         ref={selectedTemplatesRef}
@@ -48,16 +39,16 @@ export default function ImageBlenderAssistantEditor({
         }}
         slots={{
           ConfigMode: {
-            top: (props: any) => (
-              <Box
-                sx={{
-                  width: '100%',
-                  mb: 2,
-                }}>
-                <Typography sx={{ fontSize: 16, fontWeight: 600, mb: 1 }}>SN</Typography>
-                <CustomTextField {...props} disabled={disabled} size="small" label="Sn" />
-              </Box>
-            ),
+            // top: (props: any) => (
+            //   <Box
+            //     sx={{
+            //       width: '100%',
+            //       mb: 2,
+            //     }}>
+            //     <Typography sx={{ fontSize: 16, fontWeight: 600, mb: 1 }}>SN</Typography>
+            //     <CustomTextField {...props} disabled={disabled} size="small" label="Sn" />
+            //   </Box>
+            // ),
           },
           TextField: CustomTextField,
         }}

@@ -82,7 +82,7 @@ export default function AgentEditor({
           ) : isCallAssistant(value) ? (
             <CallAgentEditor projectId={projectId} gitRef={gitRef} value={value} disabled={disabled} />
           ) : isImageBlenderAssistant(value) ? (
-            <ImageBlenderAssistantEditor value={value} disabled={disabled} />
+            <ImageBlenderAssistantEditor value={value} />
           ) : (
             <Stack alignItems="center">
               <Box sx={{ fontSize: 28, color: 'text.disabled' }}>
