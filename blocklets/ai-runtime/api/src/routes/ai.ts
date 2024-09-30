@@ -79,11 +79,6 @@ router.post('/call', user(), compression(), async (req, res) => {
 
   const { projectId, projectRef, agentId } = parseIdentity(input.aid, { rejectWhenError: true });
 
-  // resource blocklet 不做限制
-  if (!input.blockletDid) {
-    await checkProjectRequestLimit({ role: req.user?.role, projectId });
-  }
-
   const agent = await getAgent({
     blockletDid: input.blockletDid,
     projectId,
@@ -243,6 +238,11 @@ router.post('/call', user(), compression(), async (req, res) => {
   if (stream) emit({ type: AssistantResponseType.CHUNK, taskId, assistantId: agent.id, delta: {} });
 
   try {
+    // 检查 multi-tenant 请求数限制, resource blocklet 不做限制
+    if (!input.blockletDid) {
+      await checkProjectRequestLimit({ role: req.user?.role, projectId });
+    }
+
     emit({
       type: AssistantResponseType.INPUT_PARAMETER,
       taskId,
