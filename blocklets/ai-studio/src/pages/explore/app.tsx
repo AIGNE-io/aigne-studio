@@ -10,7 +10,7 @@ import { Box, CircularProgress, Stack, ThemeProvider } from '@mui/material';
 import { useRequest } from 'ahooks';
 import { useParams } from 'react-router-dom';
 
-import { MakeYoursButton, ShareButton } from './button';
+import { ShareButton } from './button';
 
 export default function AppPage() {
   const { appId } = useParams();
@@ -29,7 +29,6 @@ export default function AppPage() {
         {data?.identity?.aid ? (
           <>
             <Stack direction="row" justifyContent="flex-end" gap={1} px={3} my={2}>
-              <MakeYoursButton deployment={data.deployment} variant="contained" />
               <ShareButton deployment={data.deployment} project={data.project} />
             </Stack>
 
