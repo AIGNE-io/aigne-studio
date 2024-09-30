@@ -39,31 +39,60 @@ export default defineConfig({
   },
   /* Configure projects for major browsers */
   projects: [
+    // single tenant mode
     {
       name: 'singleTenantMode',
       testMatch: 'single-tenant-mode.setup.ts',
     },
     {
-      name: 'adminSetup',
+      name: 'singleTenantModeAdminSetup',
       testMatch: 'admin.setup.ts',
       dependencies: ['singleTenantMode'],
     },
     {
-      name: 'checkAdminTests',
+      name: 'singleTenantModeAdminRoleTests',
       use: { ...devices['Desktop Chrome'], storageState: TestConstants.authFilePath('admin') },
-      dependencies: ['adminSetup'],
+      dependencies: ['singleTenantModeAdminSetup'],
       testMatch: /single-tenant\/admin\/.*\.spec\.ts/,
     },
     {
-      name: 'guestSetup',
+      name: 'singleTenantModeGuestSetup',
       testMatch: 'guest.setup.ts',
-      dependencies: ['checkAdminTests'],
+      dependencies: ['singleTenantModeAdminRoleTests'],
     },
     {
-      name: 'checkGuestTests',
+      name: 'singleTenantModeGuestRoleTests',
       use: { ...devices['Desktop Chrome'], storageState: TestConstants.authFilePath('guest') },
-      dependencies: ['guestSetup'],
+      dependencies: ['singleTenantModeGuestSetup'],
       testMatch: /single-tenant\/guest\/.*\.spec\.ts/,
+    },
+    // multiple tenant mode
+    {
+      name: 'multipleTenantMode',
+      testMatch: 'multiple-tenant-mode.setup.ts',
+      dependencies: ['singleTenantModeGuestRoleTests'],
+    },
+    {
+      name: 'multipleTenantModeAdminSetup',
+      testMatch: 'admin.setup.ts',
+      dependencies: ['multipleTenantMode'],
+    },
+    {
+      name: 'multipleTenantModeAdminRoleTests',
+      use: { ...devices['Desktop Chrome'], storageState: TestConstants.authFilePath('admin') },
+      dependencies: ['multipleTenantModeAdminSetup'],
+      testMatch: /multiple-tenant\/admin\/.*\.spec\.ts/,
+    },
+    {
+      name: 'multipleTenantModeGuestSetup',
+      testMatch: 'guest.setup.ts',
+      dependencies: ['multipleTenantModeAdminRoleTests'],
+    },
+    {
+      name: 'multipleTenantModeGuestRoleTests',
+      use: { ...devices['Desktop Chrome'], storageState: TestConstants.authFilePath('guest') },
+      dependencies: ['multipleTenantModeGuestSetup'],
+      testMatch: /multiple-tenant\/guest\/.*\.spec\.ts/,
     },
 
     // {

@@ -8,12 +8,14 @@ import { TestConstants } from './constants';
 
 export async function setupUsers() {
   const appWallet = ensureWallet({ name: 'app', onlyFromCache: true });
-  // const ownerWallet = ensureWallet({ name: 'owner' });
+  const ownerWallet = ensureWallet({ name: 'owner' });
   const adminWallet = ensureWallet({ name: 'admin' });
+  const guestWallet = ensureWallet({ name: 'guest' });
 
   const wallets = [
-    // { wallet: ownerWallet, name: 'owner' },
+    { wallet: ownerWallet, name: 'owner' },
     { wallet: adminWallet, name: 'admin' },
+    { wallet: guestWallet, name: 'guest' },
   ];
 
   const browser = await chromium.launch({ headless: TestConstants.headless });
