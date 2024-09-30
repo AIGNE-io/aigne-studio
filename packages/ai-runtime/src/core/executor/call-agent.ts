@@ -45,7 +45,8 @@ export class CallAgentExecutor extends AgentExecutorBase<CallAssistant> {
 
     const outputVariables = (agent?.outputVariables || []).map((i) => {
       if (i.from?.type === 'output') {
-        const output = agentOutputVariables.find((r) => r.id === i?.from?.id);
+        const fromId = i.from.id;
+        const output = agentOutputVariables.find((r) => r.id === fromId);
         if (output) return output;
       }
 

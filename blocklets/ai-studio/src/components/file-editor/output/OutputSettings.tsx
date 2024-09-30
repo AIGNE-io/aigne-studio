@@ -1,4 +1,5 @@
 import { DragSortListYjs } from '@app/components/drag-sort-list';
+import PopperMenu from '@app/components/menu/PopperMenu';
 import AigneLogoOutput from '@app/icons/aigne-logo-output';
 import { useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
@@ -8,10 +9,12 @@ import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { Icon } from '@iconify-icon/react';
+import ChevronDownIcon from '@iconify-icons/tabler/chevron-down';
 import GripVertical from '@iconify-icons/tabler/grip-vertical';
 import {
   Box,
   BoxProps,
+  MenuItem,
   Stack,
   Table,
   TableBody,
@@ -25,11 +28,11 @@ import equal from 'fast-deep-equal';
 import jsonDiff from 'json-diff';
 import { cloneDeep, sortBy, uniqBy } from 'lodash';
 import { nanoid } from 'nanoid';
-import React, { ComponentType, ReactNode, useEffect, useMemo } from 'react';
+import React, { ComponentType, ReactNode, useEffect, useMemo, useRef } from 'react';
 
 import useCallAgentOutput from '../use-call-agent-output';
 import AddOutputVariableButton from './AddOutputVariableButton';
-import OutputActionsCell, { SettingActionDialogProvider } from './OutputActionsCell';
+import OutputActionsCell, { PopperButtonImperative, SettingActionDialogProvider } from './OutputActionsCell';
 import OutputAppearanceCell from './OutputAppearanceCell';
 import OutputDescriptionCell from './OutputDescriptionCell';
 import OutputFormatCell from './OutputFormatCell';
@@ -127,6 +130,7 @@ export default function OutputSettings({
                 <Box component={TableCell} width="30%">
                   {t('name')}
                 </Box>
+                <Box component={TableCell}>{t('from')}</Box>
                 <Box component={TableCell}>{t('description')}</Box>
                 <Box component={TableCell}>{t('format')}</Box>
                 <Box component={TableCell} width={74}>
@@ -266,7 +270,7 @@ function VariableRow({
   const { getVariables } = useProjectStore(projectId, gitRef);
   const variableYjs = getVariables();
   const { outputs, getRefOutputData } = useCallAgentOutput({ projectId, gitRef, assistant: value });
-  const refOutput = getRefOutputData(variable?.from?.id || '');
+  const refOutput = getRefOutputData((variable.from && 'id' in variable.from && variable.from.id) || '');
 
   const variables = (variableYjs?.variables || []).filter((x) => x.type?.type === (variable.type || 'string'));
   const datastoreVariable = variables.find((x) => {
@@ -320,11 +324,14 @@ function VariableRow({
     }
   }, [outputs.map((x) => x.id).join(','), refOutput]);
 
+  const settingRef = useRef<PopperButtonImperative>(null);
+
   if (variable.from?.type === 'output' && !refOutput) return null;
 
   return (
     <>
       <SettingActionDialogProvider
+        popperRef={settingRef}
         depth={depth}
         disabled={readOnly}
         onRemove={onRemove}
@@ -347,7 +354,7 @@ function VariableRow({
               cursor: readOnly ? 'not-allowed' : 'pointer',
               ...props.sx,
             }}>
-            <Box component={TableCell}>
+            <Box component={TableCell} onClick={settingRef.current?.open}>
               {firstColumnChildren}
 
               <Box sx={{ ml: depth === 0 ? depth : depth + 2 }}>
@@ -362,6 +369,9 @@ function VariableRow({
               </Box>
             </Box>
             <Box component={TableCell}>
+              <OutputFromSelector output={variable} openSettings={() => settingRef.current?.open()} />
+            </Box>
+            <Box component={TableCell}>
               <OutputDescriptionCell
                 projectId={projectId}
                 gitRef={gitRef}
@@ -370,7 +380,7 @@ function VariableRow({
                 TextFieldProps={{ disabled: readOnly }}
               />
             </Box>
-            <Box component={TableCell}>
+            <Box component={TableCell} onClick={settingRef.current?.open}>
               <OutputFormatCell
                 assistant={value}
                 output={variable}
@@ -378,13 +388,13 @@ function VariableRow({
                 TextFieldProps={{ disabled: readOnly }}
               />
             </Box>
-            <Box component={TableCell}>
+            <Box component={TableCell} onClick={settingRef.current?.open}>
               <OutputRequiredCell output={variable} disabled={Boolean(disabled)} />
             </Box>
-            <Box component={TableCell}>
+            <Box component={TableCell} onClick={settingRef.current?.open}>
               <OutputAppearanceCell projectId={projectId} gitRef={gitRef} assistant={value} output={variable} />
             </Box>
-            <Box component={TableCell} align="right" onClick={(e) => e.stopPropagation()}>
+            <Box component={TableCell} align="right">
               <OutputActionsCell
                 depth={depth}
                 disabled={disabled}
@@ -772,3 +782,60 @@ const useCheckConflictAssistantOutputAndSelectAgents = ({
 
   return result;
 };
+
+const OutputFromOptions = [
+  { value: 'process', label: 'Process', hidden: false },
+  { value: 'input', label: 'Input', hidden: true },
+  { value: 'output', label: 'Output', hidden: true },
+  { value: 'callAgent', label: 'Call Agent', hidden: false },
+] as const;
+
+const OutputFromOptionsMap = Object.fromEntries(OutputFromOptions.map((x) => [x.value, x]));
+
+function OutputFromSelector({ output, openSettings }: { output: OutputVariableYjs; openSettings?: () => void }) {
+  const doc = (getYjsValue(output) as Map<any>).doc!;
+  const current = OutputFromOptionsMap[output.from?.type || 'process'];
+
+  return (
+    <PopperMenu
+      ButtonProps={{
+        variant: 'text',
+        sx: {
+          my: 1,
+          p: 0,
+          cursor: 'pointer',
+          color: output.hidden ? 'text.disabled' : 'text.primary',
+          fontWeight: 400,
+          ':hover': {
+            backgroundColor: 'transparent',
+          },
+        },
+        disabled: output.hidden || current?.hidden,
+        children: (
+          <Box className="center" gap={1} justifyContent="flex-start">
+            <Box>{current?.label}</Box>
+            <Box component={Icon} icon={ChevronDownIcon} width={15} />
+          </Box>
+        ),
+      }}>
+      {OutputFromOptions.map(
+        (option) =>
+          !option.hidden && (
+            <MenuItem
+              key={option.value}
+              selected={option.value === current?.value}
+              onClick={() => {
+                if (current?.value === option.value) return;
+                doc.transact(() => {
+                  output.from ??= {};
+                  output.from.type = option.value === 'process' ? undefined : option.value;
+                });
+                if (option.value === 'callAgent') openSettings?.();
+              }}>
+              {option.label}
+            </MenuItem>
+          )
+      )}
+    </PopperMenu>
+  );
+}
