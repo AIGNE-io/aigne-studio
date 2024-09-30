@@ -843,4 +843,18 @@ export default flatten({
   copyLink: '复制链接',
   noEntryAgent: '没有入口 Agent',
   noEntryAgentDescription: '请设置一个入口 Agent',
+  multiTenantRestriction: {
+    projectRequestLimitExceeded: {
+      desc: '您已达到此项目的最大请求限制。您可以通过升级到专业版来增加限制。',
+    },
+    projectLimitExceeded: {
+      desc: '您已达到最大项目限制。升级到专业版以管理更多项目。',
+    },
+    customBranding: {
+      desc: '品牌定制仅在专业版或 Serverless AIGNE 中可用。请升级到专业版以访问此功能。',
+    },
+    useCronJob: {
+      desc: '定时任务功能仅在专业版或 Serverless AIGNE 中可用。请升级到专业版以访问此功能。',
+    },
+  },
 });
