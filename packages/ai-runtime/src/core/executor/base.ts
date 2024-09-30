@@ -3,11 +3,12 @@ import { hash } from 'crypto';
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { memoize } from '@blocklet/quickjs';
 import { call } from '@blocklet/sdk/lib/component';
-import { logger } from '@blocklet/sdk/lib/config';
+import config, { logger } from '@blocklet/sdk/lib/config';
 import Joi from 'joi';
 import jsonStableStringify from 'json-stable-stringify';
 import isEmpty from 'lodash/isEmpty';
 import isNil from 'lodash/isNil';
+import pick from 'lodash/pick';
 import toLower from 'lodash/toLower';
 
 import { AIGNE_RUNTIME_COMPONENT_DID } from '../../constants';
@@ -23,6 +24,7 @@ import {
 } from '../../types';
 import { isNonNullable } from '../../utils/is-non-nullable';
 import { CallAI, CallAIImage, GetAgent, GetAgentResult, RunAssistantCallback } from '../assistant/type';
+import { issueVC } from '../libs/blocklet/vc';
 import { HISTORY_API_ID, KNOWLEDGE_API_ID, MEMORY_API_ID, getBlockletAgent } from '../utils/get-blocklet-agent';
 import { renderMessage } from '../utils/render-message';
 import { nextTaskId } from '../utils/task-id';
@@ -322,6 +324,7 @@ export abstract class AgentExecutorBase<T> {
         messageId: this.context.messageId,
         clientTime: this.context.clientTime,
         user: this.context.user,
+        env: pick(config.env, 'appId', 'appName', 'appDescription', 'appUrl'),
       },
       $storage: {
         async getItem(key: string, { scope = 'global', onlyOne }: { scope?: VariableScope; onlyOne?: boolean } = {}) {
@@ -346,6 +349,13 @@ export abstract class AgentExecutorBase<T> {
             agentId: agentId || agent.identity.agentId,
             cacheKey: key,
           });
+        },
+      },
+      $blocklet: {
+        issueVC: (args: Omit<Parameters<typeof issueVC>[0], 'userDid'>) => {
+          const userDid = executor.context.user?.did;
+          if (!userDid) throw new Error('Issue VC requires user did');
+          return issueVC({ ...args, userDid });
         },
       },
     };

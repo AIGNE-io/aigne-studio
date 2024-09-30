@@ -929,6 +929,9 @@ importers:
 
   packages/ai-runtime:
     dependencies:
+      '@abtnode/client':
+        specifier: ^1.16.32
+        version: 1.16.32(encoding@0.1.13)
       '@blocklet/ai-kit':
         specifier: ^0.1.57
         version: 0.1.57(@babel/core@7.24.7)(@types/node@22.5.0)(@types/react@18.3.4)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.26.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(zod@3.23.8)
