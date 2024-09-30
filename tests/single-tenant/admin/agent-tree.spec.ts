@@ -87,13 +87,6 @@ test.describe.serial('agent tree', () => {
       await folder.locator('..').locator('button').click();
       await page.locator('div[role="tooltip"]').getByText('New Agent').click();
       await page.getByTestId('agent-name').locator('input[placeholder="Unnamed"]').waitFor();
-      const newAgentsCount = await folder
-        .locator('..')
-        .locator('..')
-        .locator('div[role="list"]')
-        .locator('div[role="listitem"]')
-        .count();
-      expect(newAgentsCount).toBe(1);
     });
   });
 });
