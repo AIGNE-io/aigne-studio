@@ -1,12 +1,9 @@
 import { expect, test } from '@playwright/test';
 
-import { deleteCategory } from '../utils/category';
+import { deleteCategory } from '../../utils/category';
 
-test.beforeAll('initialize test environment', async ({ browser }) => {
+test.beforeAll('delete category', async ({ browser }) => {
   const page = await browser.newPage();
-  await page.goto('/projects');
-  await page.waitForLoadState('networkidle');
-
   await deleteCategory({ page });
 });
 

@@ -1,6 +1,6 @@
 import { Page, expect, test } from '@playwright/test';
 
-import { createProject, deleteProject, enterAgentPage } from '../utils/project';
+import { createProject, deleteProject, enterAgentPage } from '../../utils/project';
 
 const deleteAllFoldersAndAgents = async ({ page }: { page: Page }) => {
   // 1. 找到所有的 folder

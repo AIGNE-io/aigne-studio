@@ -2,7 +2,7 @@ import { login } from '@blocklet/testlab/utils/playwright';
 import { ensureWallet } from '@blocklet/testlab/utils/wallet';
 import { expect, test } from '@playwright/test';
 
-import { createProject, deleteOneProject, deleteProject } from '../utils/project';
+import { createProject, deleteOneProject, deleteProject } from '../../utils/project';
 
 test.beforeEach('clean and create project', async ({ browser }) => {
   const page = await browser.newPage();

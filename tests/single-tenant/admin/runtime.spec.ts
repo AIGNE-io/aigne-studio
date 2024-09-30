@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { installBlocklet, unInstallBlocklet } from '../utils/uninstall';
+import { installBlocklet, unInstallBlocklet } from '../../utils/uninstall';
 
 test.beforeEach('route to blocklets', async ({ page }) => {
   await page.goto('.well-known/service/admin/overview');

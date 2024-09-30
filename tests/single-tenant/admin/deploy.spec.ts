@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { createProject, deleteProject, enterAgentPage } from '../utils/project';
+import { createProject, deleteProject, enterAgentPage } from '../../utils/project';
 
 test.beforeAll('clean and create project', async ({ browser }) => {
   const page = await browser.newPage();

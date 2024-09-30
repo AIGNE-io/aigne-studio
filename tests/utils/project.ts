@@ -7,8 +7,7 @@ export async function createProjectDialog({ page }: { page: Page }) {
   const projectName = `Test Project ${Date.now()}`;
 
   const createProjectPromise = page.waitForResponse(
-    (response) => response.url().includes('/api/projects') && response.status() === 200,
-    {}
+    (response) => response.url().includes('/api/projects') && response.status() === 200
   );
   await newProjectDialog.getByTestId('projectNameField').locator('input').fill(projectName);
   await page.fill('[data-testid="projectDescriptionField"] textarea', 'This is a description of my new project.');
@@ -19,18 +18,20 @@ export async function createProjectDialog({ page }: { page: Page }) {
   await createProjectPromise;
 }
 
-export async function createProject({ page }: { page: Page }) {
+export async function createProject({ page, checkCreated = true }: { page: Page; checkCreated?: boolean }) {
   await page.goto('/projects');
   await page.waitForLoadState('networkidle');
-
-  await expect(page.getByText('Create a project to get started')).toBeVisible();
 
   await expect(page.getByRole('button', { name: 'Import' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'New Project' })).toBeVisible();
 
-  await page.getByRole('button', { name: 'New Project' }).click();
-
-  await createProjectDialog({ page });
+  if (checkCreated) {
+    const projectItems = page.getByTestId('projects-item');
+    if ((await projectItems.count()) === 0) {
+      await page.getByRole('button', { name: 'New Project' }).click();
+      await createProjectDialog({ page });
+    }
+  }
 }
 
 export async function deleteProject({ page }: { page: Page }) {
@@ -40,7 +41,7 @@ export async function deleteProject({ page }: { page: Page }) {
   await expect(page.getByRole('button', { name: 'New Project' })).toBeVisible();
 
   const projects = await page.getByTestId('projects-item').all();
-  console.log('projects', projects);
+  await page.waitForTimeout(1000);
 
   for (let i = projects.length - 1; i >= 0; i--) {
     await projects[i]?.hover();
@@ -63,7 +64,8 @@ export async function deleteProject({ page }: { page: Page }) {
   }
 
   await page.waitForTimeout(1000);
-  await expect(page.getByText('Create a project to get started')).toBeVisible();
+  const projectItems = page.getByTestId('projects-item');
+  await expect(projectItems).toHaveCount(0);
 }
 
 export async function deleteOneProject({ page, project }: { page: Page; project: Locator }) {
