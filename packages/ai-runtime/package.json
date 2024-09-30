@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.4.68",
+  "version": "0.4.69",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -138,6 +138,7 @@
     "test": "jest src/"
   },
   "dependencies": {
+    "@abtnode/client": "^1.16.32",
     "@blocklet/ai-kit": "^0.1.57",
     "@blocklet/dataset-sdk": "workspace:^",
     "@blocklet/js-sdk": "^1.16.32",

@@ -61,8 +61,8 @@ importers:
         specifier: ^0.3.2
         version: 0.3.2(eslint-plugin-import@2.29.1(@typescript-eslint/parser@7.16.0(eslint@8.57.0)(typescript@5.5.4))(eslint@8.57.0))(eslint@8.57.0)(jest@29.7.0(@types/node@22.5.0)(babel-plugin-macros@3.1.0)(ts-node@10.9.2(@types/node@22.5.0)(typescript@5.5.4)))(prettier@3.3.3)(react@18.3.1)(typescript@5.5.4)
       '@blocklet/testlab':
-        specifier: ^0.0.13
-        version: 0.0.13
+        specifier: ^0.0.14
+        version: 0.0.14
       '@playwright/test':
         specifier: ^1.46.1
         version: 1.46.1
@@ -929,6 +929,9 @@ importers:
 
   packages/ai-runtime:
     dependencies:
+      '@abtnode/client':
+        specifier: ^1.16.32
+        version: 1.16.32(encoding@0.1.13)
       '@blocklet/ai-kit':
         specifier: ^0.1.57
         version: 0.1.57(@babel/core@7.24.7)(@types/node@22.5.0)(@types/react@18.3.4)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.26.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(zod@3.23.8)
@@ -1773,9 +1776,6 @@ packages:
 
   '@arcblock/validator@1.18.135':
     resolution: {integrity: sha512-NU5ia7R+EYVikaOoYyFuKNVAwON6TMtpQAXI49HEo6yw0a4A/53ArcIRzQ3aT1tWTDJzAlGOatjtWmlLV5Mwcw==}
-
-  '@arcblock/vc@1.18.133':
-    resolution: {integrity: sha512-j5UhZtfbee4216Ys1wac1W5QIdMIlN1ncB2g6lzaKch/caf0AzHnA/UbpErG+eJzFz/L1MeI0oPfpm2NqOMO0A==}
 
   '@arcblock/vc@1.18.135':
     resolution: {integrity: sha512-pE5elm7nhNdQxsW5LGXNmwxv21WFeKPhIu9M8i0fcQPxs0SO+nzQaPb9yPyc4k6kSaUl/YxVfsBcdP2YY3Tb9A==}
@@ -2818,8 +2818,8 @@ packages:
   '@blocklet/sdk@1.16.32':
     resolution: {integrity: sha512-zmLVR4IJF9Km7bxjOMNQsEjGm7qVTK175VHALLT+BRyFRi7Lj0+h4hv4KgUXOFsDAMbvWJKra92sTkiFezJFGw==}
 
-  '@blocklet/testlab@0.0.13':
-    resolution: {integrity: sha512-eePLKVEXOnfldgKXNLn6Gxm3N91Ea4k2xaoVeAQ0YQwf/OxKgLqUJY38TtrKXz7Zk7STUR/Xi9wJyGOUqGrx5Q==}
+  '@blocklet/testlab@0.0.14':
+    resolution: {integrity: sha512-5LjdtYPLnLoW7Ts45lV5B+CnE0/howodGonbACCKyawTWR8PrgTg9CWTa3EdtqAVjx+rTEAixh7xdsY808e18A==}
 
   '@blocklet/translation-input@2.1.3':
     resolution: {integrity: sha512-3o13eGs68nAH0/hcvchuVB7X9uDjzsE7u++ShN2ybb8IHHPAlSvGMEF2OfXaoKRMuThhvblBANy4wj/Ncmq+oQ==}
@@ -14865,19 +14865,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@arcblock/vc@1.18.133':
-    dependencies:
-      '@arcblock/did': 1.18.135
-      '@ocap/mcrypto': 1.18.135
-      '@ocap/util': 1.18.135
-      '@ocap/wallet': 1.18.135
-      debug: 4.3.7
-      is-absolute-url: 3.0.3
-      json-stable-stringify: 1.1.1
-      lodash: 4.17.21
-    transitivePeerDependencies:
-      - supports-color
-
   '@arcblock/vc@1.18.135':
     dependencies:
       '@arcblock/did': 1.18.135
@@ -17064,11 +17051,11 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@blocklet/testlab@0.0.13':
+  '@blocklet/testlab@0.0.14':
     dependencies:
       '@abtnode/constant': 1.16.32
       '@arcblock/jwt': 1.18.135
-      '@arcblock/vc': 1.18.133
+      '@arcblock/vc': 1.18.135
       '@ocap/mcrypto': 1.18.135
       '@ocap/util': 1.18.135
       '@ocap/wallet': 1.18.135
