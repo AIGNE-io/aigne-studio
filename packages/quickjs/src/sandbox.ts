@@ -63,7 +63,9 @@ export class Sandbox {
   static async callFunction(options: SandboxInitOptions & { functionName: string; args?: any[] }) {
     const sandbox = await Sandbox.acquire(options);
     return sandbox.callFunction(options).finally(() => {
-      sandbox.pool?.release(sandbox);
+      // FIXME: use pool.release(sandbox) instead of sandbox.destroy() to reuse the runtime
+      // but it will cause memory leak because the runtime is not disposed
+      sandbox.pool?.destroy(sandbox);
     });
   }
 

@@ -1,3 +1,19 @@
+## 0.4.70 (2024-9-30)
+
+- feat: add image blender agent support
+
+## 0.4.69 (2024-9-30)
+
+- feat: add issueVC api support
+
+## 0.4.68 (2024-9-30)
+
+- fix: check entry agent configuration
+
+## 0.4.67 (2024-9-29)
+
+- fix: destroy runtime to avoid memory leak
+
 ## 0.4.66 (2024-9-26)
 
 - fix: reset identity when copying a project

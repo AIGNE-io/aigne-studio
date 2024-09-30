@@ -1,3 +1,4 @@
+import { NoSuchEntryAgentError } from '@api/libs/error';
 import { getAgentSecretInputs } from '@api/libs/runtime';
 import { ensurePromptsAdmin } from '@api/libs/security';
 import Project from '@api/store/models/project';
@@ -279,7 +280,7 @@ router.get('/:deploymentId', user(), async (req, res) => {
   const agent = await getEntryFromRepository({ projectId, ref: projectRef, working: true });
 
   if (!agent) {
-    res.status(404).json({ message: 'No such agent' });
+    throw new NoSuchEntryAgentError('No such agent');
     return;
   }
 

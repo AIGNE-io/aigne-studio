@@ -115,6 +115,7 @@ export default flatten({
   createdAt: '创建于',
   home: '首页',
   prompts: '提示词',
+  imageBlender: 'Image Blender',
   functions: '工具',
   function: '函数',
   api: '接口',
@@ -841,4 +842,6 @@ export default flatten({
   shareOnTwitter: '分享到推特',
   openInNewTab: '在新标签页中打开',
   copyLink: '复制链接',
+  noEntryAgent: '没有入口 Agent',
+  noEntryAgentDescription: '请设置一个入口 Agent',
 });

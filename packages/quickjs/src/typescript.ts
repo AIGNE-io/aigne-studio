@@ -9,6 +9,6 @@ export const transpileModule = memoize(
   },
   {
     keyGenerator: async (source, options) =>
-      JSON.stringify([source, typeof options === 'function' ? options(await import('typescript')) : options]),
+      source + JSON.stringify(typeof options === 'function' ? options(await import('typescript')) : options),
   }
 );

@@ -115,6 +115,7 @@ export default flatten({
   createdAt: 'Created at',
   home: 'Home',
   prompts: 'Prompts',
+  imageBlender: 'Image Blender',
   functions: 'Functions',
   function: 'Function',
   api: 'API',
@@ -850,4 +851,6 @@ export default flatten({
   shareOnTwitter: 'Share on Twitter',
   openInNewTab: 'Open in new tab',
   copyLink: 'Copy Link',
+  noEntryAgent: 'No Entry Agent',
+  noEntryAgentDescription: 'Please set one as entry agent',
 });
