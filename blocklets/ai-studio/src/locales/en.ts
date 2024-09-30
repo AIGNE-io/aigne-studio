@@ -857,4 +857,18 @@ export default flatten({
   selectEntryAgentTitle: 'Select Entry Agent',
   selectEntryAgentDescription: 'Before deployment, you need to set up the entry point agent.',
   activeWhen: 'Active when',
+  multiTenantRestriction: {
+    projectRequestLimitExceeded: {
+      desc: 'You have reached the maximum request limit in this project. You may increase the limit by upgrading your plan to Pro.',
+    },
+    projectLimitExceeded: {
+      desc: 'You have reached the maximum project limit. Upgrade your plan to Pro to manage more projects.',
+    },
+    customBranding: {
+      desc: 'Branding customization is available only in the Pro plan or Serverless AIGNE. Please upgrade to the Pro plan to access this feature.',
+    },
+    useCronJob: {
+      desc: 'The Cron Jobs feature is available only in the Pro plan or Serverless AIGNE. Please upgrade to the Pro plan to access this feature.',
+    },
+  },
 });
