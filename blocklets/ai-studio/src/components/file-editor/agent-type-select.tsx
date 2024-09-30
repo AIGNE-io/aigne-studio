@@ -16,10 +16,17 @@ import { Box, ListItemIcon, MenuItem, Stack, Typography } from '@mui/material';
 import { sortBy } from 'lodash';
 import { nanoid } from 'nanoid';
 
+import blenderIcon from '../../icons/blender.png?url';
+
 export const agentTypes = [
   { type: 'agent', icon: <Icon icon={ZZZIcon} />, i18nKey: 'idle' },
   { type: 'prompt', icon: <Icon icon={SparklesIcon} />, i18nKey: 'largeLanguageModel' },
   { type: 'image', icon: <Icon icon={PhotoIcon} />, i18nKey: 'imageGeneration' },
+  {
+    type: 'imageBlender',
+    icon: <Box component="img" src={blenderIcon} width={14} height={14} />,
+    i18nKey: 'imageBlender',
+  },
   { type: 'function', icon: <Icon icon={CodeIcon} />, i18nKey: 'logic' },
   { type: 'api', icon: <Icon icon={APIIcon} />, i18nKey: 'api' },
   { type: 'router', icon: <Icon icon={BranchIcon} />, i18nKey: 'router' },
@@ -69,8 +76,8 @@ export default function AgentTypeSelect({ assistant }: { assistant: AssistantYjs
                 if (image) delete assistant.outputVariables?.[image.data.id];
               };
 
-              if (assistant.type === 'image') {
-                assistant.model = defaultImageModel;
+              if (assistant.type === 'image' || assistant.type === 'imageBlender') {
+                if (assistant.type === 'image') assistant.model = defaultImageModel;
                 const schema = { id: nanoid(), name: RuntimeOutputVariable.images };
                 assistant.outputVariables = arrayToYjs([schema]);
               } else {

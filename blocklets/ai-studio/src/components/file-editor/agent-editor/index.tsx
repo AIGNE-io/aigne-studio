@@ -6,6 +6,7 @@ import {
   isCallAssistant,
   isFunctionAssistant,
   isImageAssistant,
+  isImageBlenderAssistant,
   isPromptAssistant,
   isRouterAssistant,
 } from '@blocklet/ai-runtime/types';
@@ -20,6 +21,7 @@ import ApiAssistantEditor from '../api-assistant';
 import BasicInfoForm from '../basic-info-form';
 import CallAgentEditor from '../call-agent';
 import FunctionAssistantEditor from '../function-file';
+import ImageBlenderAssistantEditor from '../image-blender-agent';
 import ImageAssistantEditor from '../image-file';
 import InputSettings from '../input/InputSettings';
 import OutputSettings from '../output/OutputSettings';
@@ -79,6 +81,8 @@ export default function AgentEditor({
             />
           ) : isCallAssistant(value) ? (
             <CallAgentEditor projectId={projectId} gitRef={gitRef} value={value} disabled={disabled} />
+          ) : isImageBlenderAssistant(value) ? (
+            <ImageBlenderAssistantEditor value={value} />
           ) : (
             <Stack alignItems="center">
               <Box sx={{ fontSize: 28, color: 'text.disabled' }}>

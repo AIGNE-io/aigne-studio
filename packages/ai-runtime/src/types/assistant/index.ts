@@ -41,7 +41,8 @@ export type Assistant =
   | ApiAssistant
   | FunctionAssistant
   | RouterAssistant
-  | CallAssistant;
+  | CallAssistant
+  | ImageBlenderAssistant;
 
 export type Role = 'system' | 'user' | 'assistant';
 
@@ -232,6 +233,12 @@ export interface RouterAssistant extends AssistantBase {
   frequencyPenalty?: number;
   maxTokens?: number;
   model?: string;
+}
+
+export interface ImageBlenderAssistant extends AssistantBase {
+  type: 'imageBlender';
+  templateId?: string;
+  dynamicData?: { [key: string]: string };
 }
 
 export interface CallAssistant extends AssistantBase {

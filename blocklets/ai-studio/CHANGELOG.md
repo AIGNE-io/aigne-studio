@@ -1,3 +1,7 @@
+## 0.4.70 (2024-9-30)
+
+- feat: add image blender agent support
+
 ## 0.4.69 (2024-9-30)
 
 - feat: add issueVC api support

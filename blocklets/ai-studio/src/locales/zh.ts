@@ -115,6 +115,7 @@ export default flatten({
   createdAt: '创建于',
   home: '首页',
   prompts: '提示词',
+  imageBlender: 'Image Blender',
   functions: '工具',
   function: '函数',
   api: '接口',
