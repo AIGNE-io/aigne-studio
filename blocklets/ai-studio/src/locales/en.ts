@@ -851,4 +851,6 @@ export default flatten({
   shareOnTwitter: 'Share on Twitter',
   openInNewTab: 'Open in new tab',
   copyLink: 'Copy Link',
+  noEntryAgent: 'No Entry Agent',
+  noEntryAgentDescription: 'Please set one as entry agent',
 });

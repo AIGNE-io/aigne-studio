@@ -1,7 +1,7 @@
 {
   "name": "ai-studio",
   "private": true,
-  "version": "0.4.67",
+  "version": "0.4.69",
   "workspaces": [
     "blocklets/*",
     "packages/*"
@@ -51,7 +51,7 @@
   "devDependencies": {
     "@arcblock/eslint-config": "^0.3.2",
     "@arcblock/eslint-config-ts": "^0.3.2",
-    "@blocklet/testlab": "^0.0.13",
+    "@blocklet/testlab": "^0.0.14",
     "@playwright/test": "^1.46.1",
     "bumpp": "^9.5.2",
     "eslint": "^8.57.0",
