@@ -289,7 +289,7 @@ const PopperButton = forwardRef<PopperButtonImperative, PopperButtonProps>(
             )}
 
             {onDelete && (
-              <MenuItem sx={{ color: '#E11D48', fontSize: 13 }} onClick={onDelete}>
+              <MenuItem sx={{ color: 'error.main', fontSize: 13 }} onClick={onDelete}>
                 {t('delete')}
               </MenuItem>
             )}
