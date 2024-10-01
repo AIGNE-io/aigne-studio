@@ -55,9 +55,10 @@ export class LLMAgentExecutor extends AgentExecutorBase<PromptAssistant> {
       .flat()
       .filter((i): i is Required<NonNullable<typeof i>> => !!i?.content);
 
-    const filterOutputVariables = (agent.outputVariables ?? []).filter((i) => !i.hidden);
     const outputVariables =
-      filterOutputVariables.filter((i): i is typeof i & Required<Pick<typeof i, 'name'>> => !!i.name) ?? [];
+      (agent.outputVariables ?? []).filter(
+        (i): i is typeof i & Required<Pick<typeof i, 'name'>> => !!i.name && !i.hidden && i.from?.type !== 'callAgent'
+      ) ?? [];
 
     const schema = outputVariablesToJsonSchema(agent, {
       variables: await this.context.getMemoryVariables(agent.identity),

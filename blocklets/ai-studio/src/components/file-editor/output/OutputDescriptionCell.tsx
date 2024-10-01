@@ -39,7 +39,7 @@ export default function OutputDescriptionCell({
   const { t } = useLocaleContext();
   const { getFileById } = useProjectStore(projectId, gitRef);
 
-  const input = output.from?.type === 'input' ? assistant.parameters?.[output.from.id] : undefined;
+  const input = output.from?.type === 'input' ? assistant.parameters?.[output.from.id!] : undefined;
 
   const renderPlaceholder = () => {
     if (output.from?.type === 'input') {
@@ -47,13 +47,14 @@ export default function OutputDescriptionCell({
     }
 
     if (output.from?.type === 'output') {
+      const fromId = output.from.id;
       if (assistant.type === 'callAgent') {
         const agents = Object.values(assistant?.agents || {}).map((i) => i.data);
         for (const agent of agents) {
           const callAgent = getFileById(agent.id);
           const outputVariables =
             (callAgent?.outputVariables && sortBy(Object.values(callAgent.outputVariables), 'index')) || [];
-          const found = outputVariables.find((i) => i.data.id === output?.from?.id);
+          const found = outputVariables.find((i) => i.data.id === fromId);
 
           if (!!found) {
             return t('referenceOutput', { agent: callAgent?.name });
@@ -70,6 +71,8 @@ export default function OutputDescriptionCell({
 
     return t('outputVariablePlaceholder');
   };
+
+  if (output.from?.type === 'callAgent') return null;
 
   if (fromType.includes(output.from?.type || '')) {
     return <Typography sx={{ color: 'text.disabled', my: 0.8 }}>{renderPlaceholder()}</Typography>;

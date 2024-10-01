@@ -15,6 +15,8 @@ import { AIGNE_RUNTIME_COMPONENT_DID } from '../../constants';
 import {
   AssistantResponseType,
   ExecutionPhase,
+  OutputVariable,
+  Parameter,
   RuntimeOutputProfile,
   RuntimeOutputVariable,
   Variable,
@@ -256,7 +258,7 @@ export abstract class AgentExecutorBase<T> {
 
     if (result === undefined) {
       const outputs = await this.process({ inputs: this.finalInputs });
-      result = await this.validateOutputs({ inputs: this.finalInputs, outputs });
+      result = await this.validateOutputs({ inputs: this.finalInputs, outputs, processCallAgentOutputs: true });
 
       // set cache if needed
       if (!isEmpty(result) && agent.cache?.enable && agent.identity) {
@@ -691,10 +693,12 @@ export abstract class AgentExecutorBase<T> {
     inputs,
     outputs,
     partial,
+    processCallAgentOutputs,
   }: {
     inputs?: { [key: string]: any };
     outputs?: { [key: string]: any };
     partial?: boolean;
+    processCallAgentOutputs?: boolean;
   }) {
     const { agent } = this;
 
@@ -705,10 +709,11 @@ export abstract class AgentExecutorBase<T> {
     const outputVariables = (agent.outputVariables ?? []).filter((i) => !i.hidden);
 
     const outputInputs = outputVariables.reduce((res, output) => {
-      const input =
-        output.from?.type === 'input'
-          ? agent.parameters?.find((input) => input.id === output.from?.id && !input.hidden)
-          : undefined;
+      let input: Parameter | undefined;
+      if (output.from?.type === 'input') {
+        const fromId = output.from.id;
+        input = agent.parameters?.find((input) => input.id === fromId && !input.hidden);
+      }
 
       if (input?.key && output.name) {
         const val = inputs?.[input.key];
@@ -718,7 +723,82 @@ export abstract class AgentExecutorBase<T> {
       return res;
     }, {});
 
-    return joiSchema.validateAsync({ ...outputs, ...outputInputs }, { stripUnknown: true });
+    const result = await joiSchema.validateAsync({ ...outputs, ...outputInputs }, { stripUnknown: true });
+
+    if (processCallAgentOutputs && this.agent.outputVariables) {
+      const callAgentOutputs = this.agent.outputVariables.filter(
+        (i): i is typeof i & { name: string; from: { type: 'callAgent'; callAgent: { agentId: string } } } =>
+          i.from?.type === 'callAgent' && !!i.from.callAgent?.agentId && !!i.name
+      );
+      const templateOutputs = this.agent.outputVariables.filter(
+        (i): i is typeof i & Required<Pick<typeof i, 'name' | 'valueTemplate'>> => !!i.valueTemplate?.trim() && !!i.name
+      );
+
+      const isOutputActive = async (output: OutputVariable) => {
+        if (!output.activeWhen?.trim()) return true;
+
+        return Joi.boolean().validate(
+          await renderMessage(output.activeWhen, { ...inputs, ...outputs, ...result }, { stringify: false })
+        ).value;
+      };
+
+      const v = Object.fromEntries(
+        (
+          await Promise.all(
+            callAgentOutputs.map(async (i) => {
+              if (!(await isOutputActive(i))) return null;
+
+              return [
+                i.name,
+                await (async () => {
+                  if (!this.agent.identity) throw new Error('Agent identity not found');
+
+                  const toolAgent = await this.context.getAgent({
+                    blockletDid: i.from.callAgent.blockletDid || this.agent.identity.blockletDid,
+                    projectId: i.from.callAgent.projectId || this.agent.identity.projectId,
+                    projectRef: this.agent.identity.projectRef,
+                    agentId: i.from.callAgent.agentId,
+                    working: this.agent.identity.working,
+                  });
+                  if (!toolAgent) throw new Error('Tool agent not found');
+
+                  const currentTaskId = nextTaskId();
+
+                  return await this.context
+                    .executor(toolAgent, {
+                      inputs: i.from.callAgent.inputs,
+                      variables: { ...inputs, ...outputs },
+                      taskId: currentTaskId,
+                      parentTaskId: this.options.taskId,
+                    })
+                    .execute();
+                })(),
+              ];
+            })
+          )
+        ).filter(isNonNullable)
+      );
+
+      Object.assign(result, v);
+
+      const v1 = Object.fromEntries(
+        (
+          await Promise.all(
+            templateOutputs.map(async (i) => {
+              if (!(await isOutputActive(i))) return null;
+              return [
+                i.name,
+                await renderMessage(i.valueTemplate!, { ...inputs, ...outputs, ...v }, { stringify: false }),
+              ];
+            })
+          )
+        ).filter(isNonNullable)
+      );
+
+      Object.assign(result, v1);
+    }
+
+    return result;
   }
 
   private async postProcessOutputs(agent: GetAgentResult, { outputs }: { outputs: { [key: string]: any } }) {

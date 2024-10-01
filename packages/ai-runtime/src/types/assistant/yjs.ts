@@ -103,7 +103,20 @@ export interface RuntimeOutputOpeningQuestionsYjs {
 
 export type OutputVariableYjs = VariableTypeYjs & {
   variable?: { key: string; scope: string };
-  from?: { type: 'input' | 'output'; id: string };
+  valueTemplate?: string;
+  activeWhen?: string;
+  from?:
+    | { type?: undefined }
+    | { type: 'input' | 'output'; id?: string }
+    | {
+        type: 'callAgent';
+        callAgent?: {
+          blockletDid?: string;
+          projectId?: string;
+          agentId?: string;
+          inputs?: { [key: string]: any };
+        };
+      };
   appearance?: RuntimeOutputAppearance;
   initialValue?: RuntimeOutputVariablesSchemaYjs[RuntimeOutputVariable];
 };
