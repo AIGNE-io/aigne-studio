@@ -30,6 +30,7 @@ import { cloneDeep, sortBy, uniqBy } from 'lodash';
 import { nanoid } from 'nanoid';
 import React, { ComponentType, ReactNode, useEffect, useMemo, useRef } from 'react';
 
+import { AgentName } from '../input/InputTable';
 import useCallAgentOutput from '../use-call-agent-output';
 import AddOutputVariableButton from './AddOutputVariableButton';
 import OutputActionsCell, { PopperButtonImperative, SettingActionDialogProvider } from './OutputActionsCell';
@@ -784,10 +785,25 @@ const useCheckConflictAssistantOutputAndSelectAgents = ({
 };
 
 const OutputFromOptions = [
-  { value: 'process', label: 'Process', hidden: false },
-  { value: 'input', label: 'Input', hidden: true },
-  { value: 'output', label: 'Output', hidden: true },
-  { value: 'callAgent', label: 'Call Agent', hidden: false },
+  { value: 'process', label: () => 'Process', hidden: false },
+  { value: 'input', label: () => 'Input', hidden: true },
+  { value: 'output', label: () => 'Output', hidden: true },
+  {
+    value: 'callAgent',
+    label: ({ output }: { output: OutputVariableYjs }) => {
+      const a = output.from?.type === 'callAgent' ? output.from.callAgent : undefined;
+
+      if (!a?.agentId) return 'Call Agent';
+
+      return (
+        <Box component="span">
+          Call&nbsp;
+          <AgentName {...a} agentId={a.agentId} type="tool" />
+        </Box>
+      );
+    },
+    hidden: false,
+  },
 ] as const;
 
 const OutputFromOptionsMap = Object.fromEntries(OutputFromOptions.map((x) => [x.value, x]));
@@ -813,7 +829,7 @@ function OutputFromSelector({ output, openSettings }: { output: OutputVariableYj
         disabled: output.hidden || current?.hidden,
         children: (
           <Box className="center" gap={1} justifyContent="flex-start">
-            <Box>{current?.label}</Box>
+            <Box>{current?.label && <current.label output={output} />}</Box>
             <Box component={Icon} icon={ChevronDownIcon} width={15} />
           </Box>
         ),
@@ -832,7 +848,7 @@ function OutputFromSelector({ output, openSettings }: { output: OutputVariableYj
                 });
                 if (option.value === 'callAgent') openSettings?.();
               }}>
-              {option.label}
+              <option.label output={output} />
             </MenuItem>
           )
       )}

@@ -72,6 +72,8 @@ export default function OutputDescriptionCell({
     return t('outputVariablePlaceholder');
   };
 
+  if (output.from?.type === 'callAgent') return null;
+
   if (fromType.includes(output.from?.type || '')) {
     return <Typography sx={{ color: 'text.disabled', my: 0.8 }}>{renderPlaceholder()}</Typography>;
   }

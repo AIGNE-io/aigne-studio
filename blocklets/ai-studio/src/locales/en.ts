@@ -853,4 +853,5 @@ export default flatten({
   copyLink: 'Copy Link',
   noEntryAgent: 'No Entry Agent',
   noEntryAgentDescription: 'Please set one as entry agent',
+  activeWhen: 'Active when',
 });

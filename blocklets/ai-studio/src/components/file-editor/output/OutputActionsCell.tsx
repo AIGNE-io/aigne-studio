@@ -489,6 +489,7 @@ function AgentParametersForm({ agent, output }: { agent: AssistantYjs; output: O
                   gitRef={projectRef}
                   assistant={agent}
                   path={[]}
+                  includeOutputVariables
                   onChange={(value) => {
                     callAgent.inputs ??= {};
                     callAgent.inputs[data.key!] = value;
