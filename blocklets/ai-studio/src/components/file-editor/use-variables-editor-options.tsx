@@ -16,18 +16,26 @@ type VariableEditorOptions = {
   source?: any;
 };
 
-export default function useVariablesEditorOptions(assistant?: AssistantYjs) {
+export default function useVariablesEditorOptions(
+  assistant?: AssistantYjs,
+  { includeOutputVariables }: { includeOutputVariables?: boolean } = {}
+) {
   const { t } = useLocaleContext();
   const [highlightedId, setHighlightedId] = useHighlightedState();
   const from: 'editor' = 'editor';
 
-  const variableSet = new Set(
-    assistant?.parameters &&
-      Object.values(assistant.parameters)
-        .filter((i) => !i.data.hidden)
-        .map((i) => i.data.key)
-        .filter((i): i is string => !!i)
-  );
+  const variableSet = new Set([
+    ...Object.values(assistant?.parameters ?? {})
+      .filter((i) => !i.data.hidden)
+      .map((i) => i.data.key)
+      .filter((i): i is string => !!i),
+    ...(includeOutputVariables
+      ? Object.values(assistant?.outputVariables ?? {})
+          .filter((i) => !i.data.hidden)
+          .map((i) => i.data.name)
+          .filter((i): i is string => !!i)
+      : []),
+  ]);
 
   const variables = [...variableSet, '$user', '$clientTime'];
 

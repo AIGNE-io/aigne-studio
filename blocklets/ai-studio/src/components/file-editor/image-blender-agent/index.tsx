@@ -21,12 +21,12 @@ export default function ImageBlenderAssistantEditor({ value }: { value: ImageBle
         ref={selectedTemplatesRef}
         // @ts-ignore
         initialValue={
-          value.templateId && value.dynamicData
+          value.templateId
             ? [
                 {
                   _id: value.templateId,
                   templateId: value.templateId,
-                  dynamicData: value.dynamicData,
+                  dynamicData: value.dynamicData || {},
                 },
               ]
             : null

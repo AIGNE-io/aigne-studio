@@ -10,6 +10,7 @@ export default function OutputRequiredCell({ output, disabled }: { output: Outpu
   if (runtimeVariable) return;
   if (output.from?.type === 'input') return;
   if (output.from?.type === 'output') return;
+  if (output.from?.type === 'callAgent') return null;
 
   return (
     <Switch

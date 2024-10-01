@@ -844,4 +844,5 @@ export default flatten({
   copyLink: '复制链接',
   noEntryAgent: '没有入口 Agent',
   noEntryAgentDescription: '请设置一个入口 Agent',
+  activeWhen: '激活条件',
 });

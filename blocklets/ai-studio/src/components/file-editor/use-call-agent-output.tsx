@@ -1,6 +1,7 @@
 import { useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { AssistantYjs } from '@blocklet/ai-runtime/types';
+import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { cloneDeep, sortBy } from 'lodash';
 import { useCallback, useMemo } from 'react';
 
@@ -49,8 +50,8 @@ const useCallAgentOutput = ({
     () =>
       new Set(
         Object.values(assistant.outputVariables ?? {})
-          .filter((i) => i.data.from?.type === 'output')
-          .map((i) => i.data.from?.id)
+          .map((i) => (i.data.from?.type === 'output' ? i.data.from?.id : undefined))
+          .filter(isNonNullable)
       ),
     [cloneDeep(assistant.outputVariables)]
   );
@@ -58,7 +59,7 @@ const useCallAgentOutput = ({
   const getRefOutputId = useCallback(
     (id: string) => {
       const list = Object.values(assistant.outputVariables ?? {}).filter((i) => i.data.from?.type === 'output');
-      return list.find((x) => x.data.from?.id === id)?.data?.id;
+      return list.find((x) => x.data.from && 'id' in x.data.from && x.data.from.id === id)?.data?.id;
     },
     [cloneDeep(assistant.outputVariables)]
   );
