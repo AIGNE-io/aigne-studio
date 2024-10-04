@@ -76,7 +76,7 @@ export default function ProjectHeader() {
             flex={1}
             sx={{
               maxWidth: {
-                md: '30%',
+                md: '33.3%',
                 xs: 'calc(100% - 64px)',
               },
             }}>
