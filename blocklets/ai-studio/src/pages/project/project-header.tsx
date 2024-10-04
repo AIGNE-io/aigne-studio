@@ -77,6 +77,7 @@ export default function ProjectHeader() {
             sx={{
               maxWidth: {
                 md: '30%',
+                xs: 'calc(100% - 64px)',
               },
             }}>
             <ProjectBrand />
