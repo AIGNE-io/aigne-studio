@@ -1,6 +1,6 @@
 {
   "name": "ai-studio",
-  "version": "0.4.71",
+  "version": "0.4.72",
   "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
   "scripts": {
     "debug": "bn-dev",
@@ -78,7 +78,7 @@
     "@mui/x-data-grid": "^7.14.0",
     "@mui/x-date-pickers": "^7.14.0",
     "@nedb/core": "^2.1.5",
-    "@nft-studio/react": "^0.1.102",
+    "@nft-studio/react": "^0.1.107",
     "@ocap/client": "^1.18.135",
     "@ocap/mcrypto": "^1.18.135",
     "@ocap/util": "^1.18.135",

@@ -1,3 +1,5 @@
+## 0.4.72 (2024-10-4)
+
 ## 0.4.71 (2024-10-1)
 
 - feat: support call an agent in the outputs
