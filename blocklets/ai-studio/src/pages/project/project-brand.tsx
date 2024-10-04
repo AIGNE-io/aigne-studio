@@ -29,14 +29,29 @@ export default function ProjectBrand() {
   return (
     <Box display="flex" alignItems="center" gap={1}>
       {gitRef && (
-        <Stack flexDirection="row" alignItems="center" gap={1}>
+        <Stack
+          flexDirection="row"
+          alignItems="center"
+          gap={1}
+          sx={{
+            width: '100%',
+          }}>
           <ProjectIcon
             projectId={projectId}
             projectRef={gitRef}
             working
             sx={{ borderRadius: 1, maxWidth: 32, maxHeight: 32 }}
           />
-          <ProjectName projectId={projectId} projectRef={gitRef} working />
+          <ProjectName
+            projectId={projectId}
+            projectRef={gitRef}
+            working
+            sx={{
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          />
         </Stack>
       )}
 
