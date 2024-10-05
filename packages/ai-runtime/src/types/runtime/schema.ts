@@ -135,7 +135,9 @@ export function outputVariablesToJsonSchema(
     };
   };
 
-  const outputVariables = (assistant.outputVariables ?? []).filter((i) => !i.hidden);
+  const outputVariables = (assistant.outputVariables ?? []).filter(
+    (i) => !i.hidden && i.from?.type !== 'callAgent' && !i.valueTemplate?.trim()
+  );
   return variableToSchema({ type: 'object', properties: outputVariables });
 }
 
@@ -147,7 +149,8 @@ export function outputVariablesToJoiSchema(
     let schema: Joi.AnySchema | undefined;
 
     if (variable.from?.type === 'input') {
-      const input = assistant.parameters?.find((i) => i.id === variable.from?.id && !i.hidden);
+      const fromId = variable.from.id;
+      const input = assistant.parameters?.find((i) => i.id === fromId && !i.hidden);
       if (input) {
         return Joi.any();
       }
@@ -220,7 +223,9 @@ export function outputVariablesToJoiSchema(
     return schema;
   };
 
-  const outputVariables = (assistant.outputVariables ?? []).filter((i) => !i.hidden);
+  const outputVariables = (assistant.outputVariables ?? []).filter(
+    (i) => !i.hidden && i.from?.type !== 'callAgent' && !i.valueTemplate
+  );
   return variableToSchema({
     type: 'object',
     properties: partial ? outputVariables.map((i) => ({ ...i, required: false })) : outputVariables,

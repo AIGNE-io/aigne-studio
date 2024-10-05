@@ -54,7 +54,8 @@ export type AssistantYjs =
   | FunctionAssistantYjs
   | ImageAssistantYjs
   | RouterAssistantYjs
-  | CallAssistantYjs;
+  | CallAssistantYjs
+  | ImageBlenderAssistantYjs;
 
 export type ExecuteBlockSelectAllYjs = Omit<ExecuteBlockSelectAll, 'tools'> & {
   tools?: { [key: string]: { index: number; data: NonNullable<ExecuteBlock['tools']>[number] } };
@@ -102,7 +103,20 @@ export interface RuntimeOutputOpeningQuestionsYjs {
 
 export type OutputVariableYjs = VariableTypeYjs & {
   variable?: { key: string; scope: string };
-  from?: { type: 'input' | 'output'; id: string };
+  valueTemplate?: string;
+  activeWhen?: string;
+  from?:
+    | { type?: undefined }
+    | { type: 'input' | 'output'; id?: string }
+    | {
+        type: 'callAgent';
+        callAgent?: {
+          blockletDid?: string;
+          projectId?: string;
+          agentId?: string;
+          inputs?: { [key: string]: any };
+        };
+      };
   appearance?: RuntimeOutputAppearance;
   initialValue?: RuntimeOutputVariablesSchemaYjs[RuntimeOutputVariable];
 };
@@ -137,6 +151,12 @@ export interface RouterAssistantYjs extends Omit<AssistantBaseYjs<RouterAssistan
 
 export interface CallAssistantYjs extends Omit<AssistantBaseYjs<CallAssistant>, 'agents'> {
   agents?: ArrayToYjs<NonNullable<CallAssistant['agents']>>;
+}
+
+export interface ImageBlenderAssistantYjs extends AssistantBaseYjs<AssistantBase> {
+  type: 'imageBlender';
+  templateId?: string;
+  dynamicData?: { [key: string]: string };
 }
 
 export interface PromptAssistantYjs extends Omit<AssistantBaseYjs<PromptAssistant>, 'prompts'> {

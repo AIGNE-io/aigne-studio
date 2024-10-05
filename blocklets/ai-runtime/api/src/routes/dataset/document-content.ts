@@ -167,7 +167,7 @@ const getAllContents = async (datasetId: string) => {
       throw new Error('The current document data is too large to be considered as global variables');
     } else {
       maxLength = maxLength.sub(toBN(content.join('').length || 0));
-      if (maxLength.lt(0)) {
+      if (maxLength.ltn(0)) {
         throw new Error('The current document data is too large to be considered as global variables');
       }
     }
@@ -210,7 +210,7 @@ export const getAllResourceContents = async (resource: ResourceKnowledge) => {
       throw new Error('The current document data is too large to be considered as global variables');
     } else {
       maxLength = maxLength.sub(toBN(content.join('').length || 0));
-      if (maxLength.lt(0)) {
+      if (maxLength.ltn(0)) {
         throw new Error('The current document data is too large to be considered as global variables');
       }
     }

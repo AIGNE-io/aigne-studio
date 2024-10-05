@@ -36,6 +36,7 @@ export default function PromptEditorField({
   value,
   onChange,
   readOnly,
+  includeOutputVariables,
   ...props
 }: {
   placeholder?: string;
@@ -46,9 +47,12 @@ export default function PromptEditorField({
   value?: string;
   onChange: (value: string) => void;
   readOnly?: boolean;
+  includeOutputVariables?: boolean;
 } & Omit<ComponentProps<typeof PromptEditor>, 'value' | 'onChange'>) {
   const { t } = useLocaleContext();
-  const { from, options, variables, addParameter, updateParameter } = useVariablesEditorOptions(assistant);
+  const { from, options, variables, addParameter, updateParameter } = useVariablesEditorOptions(assistant, {
+    includeOutputVariables,
+  });
 
   const parameterChange = () => {
     if (assistant && (isPromptAssistant(assistant) || isImageAssistant(assistant))) {
