@@ -3,7 +3,7 @@ import useDialog from '@app/utils/use-dialog';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { ProjectSettings } from '@blocklet/ai-runtime/types';
-import { Box, Button, Chip, Container, Stack, Typography, styled } from '@mui/material';
+import { Box, Button, Chip, Container, Stack, Typography, buttonClasses, styled } from '@mui/material';
 import { DataGrid, GridColDef, gridClasses } from '@mui/x-data-grid';
 import { useRequest } from 'ahooks';
 import dayjs from 'dayjs';
@@ -72,10 +72,10 @@ function DeploymentList() {
         headerName: t('actions'),
         align: 'center',
         headerAlign: 'center',
-        flex: 1,
+        minWidth: 180,
         renderCell: (params) => {
           return (
-            <Box display="flex" alignItems="center" height={1} justifyContent="center">
+            <Box sx={{ [`.${buttonClasses.root}`]: { px: 1, py: 0.5, minWidth: 0, flexShrink: 0 } }}>
               <Button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -85,6 +85,7 @@ function DeploymentList() {
                 }}>
                 {t('edit')}
               </Button>
+
               <Button
                 variant="text"
                 onClick={(e) => {
@@ -97,6 +98,7 @@ function DeploymentList() {
                 }}>
                 {t('share')}
               </Button>
+
               <Button
                 variant="text"
                 color="error"
