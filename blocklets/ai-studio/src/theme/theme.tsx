@@ -421,7 +421,8 @@ export const theme = createTheme({
       variants: [
         {
           props: {},
-          style: ({ theme }) =>
+          // @ts-ignore
+          style: ({ theme, ownerState }) =>
             theme.unstable_sx({
               [`.${inputBaseClasses.root}`]: {
                 borderRadius: 1,
@@ -433,7 +434,11 @@ export const theme = createTheme({
 
                 [`&.${inputClasses.multiline}`]: {
                   py: 0,
-                  px: 0,
+                  pl: 0,
+                  pr: 0,
+                  '&.MuiInputBase-adornedEnd': {
+                    pr: 1.5,
+                  },
                 },
               },
               // standard
@@ -466,7 +471,7 @@ export const theme = createTheme({
 
                 [`.${inputBaseClasses.input}`]: {
                   pb: 0.5,
-                  pt: 2,
+                  pt: ownerState?.label ? 2 : 0.5,
                   px: 1,
 
                   ':focus': {
@@ -474,8 +479,8 @@ export const theme = createTheme({
                   },
 
                   [`&.${inputBaseClasses.inputSizeSmall}`]: {
-                    pt: 1.5,
                     pb: 0.25,
+                    pt: ownerState?.label ? 1.25 : 0.25,
                   },
 
                   [`&.${inputBaseClasses.inputHiddenLabel}`]: {
