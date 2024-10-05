@@ -1,6 +1,7 @@
 {
   "extends": "../../tsconfig",
   "compilerOptions": {
+    "incremental": false,
     "noEmit": false,
     "outDir": "lib",
     "noEmitOnError": false,

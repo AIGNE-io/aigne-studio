@@ -56,7 +56,8 @@ const useVimMode = (
 
   useEffect(() => {
     if (settings?.vim && editorInstance) {
-      import('monaco-vim').then(({ initVimMode }) => {
+      import('monaco-vim').then((m) => {
+        const initVimMode = m.initVimMode || m.default?.initVimMode;
         vimModeRef.current = initVimMode(editorInstance, statusRef.current!);
 
         vimModeRef.current.on('vim-mode-change', ({ mode }: { mode: 'insert' | 'normal' }) =>
