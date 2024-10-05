@@ -44,19 +44,16 @@ function DeploymentList() {
       {
         field: 'access',
         headerName: t('deployments.visibility'),
-        flex: 1,
         renderCell: (params) => t(params?.row?.access),
       },
       {
         field: 'createdAt',
         headerName: t('createdAt'),
-        flex: 1,
         renderCell: (params) => dayjs(params?.row?.createdAt).format('YYYY-MM-DD HH:mm:ss'),
       },
       {
         field: 'categories',
         headerName: t('category.title'),
-        flex: 1,
         renderCell: (params) => {
           return (
             <Box>
@@ -75,7 +72,7 @@ function DeploymentList() {
         minWidth: 180,
         renderCell: (params) => {
           return (
-            <Box sx={{ [`.${buttonClasses.root}`]: { px: 1, py: 0.5, minWidth: 0, flexShrink: 0 } }}>
+            <Box sx={{ [`.${buttonClasses.root}`]: { px: 1, py: 0.5, minWidth: 0 } }}>
               <Button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -171,6 +168,9 @@ function DeploymentList() {
                 },
                 [`& .${gridClasses.footerContainer}`]: { border: 0 },
               }}
+              autosizeOnMount
+              getRowHeight={() => 'auto'}
+              autosizeOptions={{ includeHeaders: true }}
               disableColumnMenu
               columnHeaderHeight={44}
               rowHeight={44}
