@@ -853,5 +853,7 @@ export default flatten({
   copyLink: 'Copy Link',
   noEntryAgent: 'No Entry Agent',
   noEntryAgentDescription: 'Please set one as entry agent',
+  selectEntryAgentTitle: 'Select Entry Agent',
+  selectEntryAgentDescription: 'Before deployment, you need to set up the entry point agent.',
   activeWhen: 'Active when',
 });

@@ -1,3 +1,10 @@
+## 0.4.73 (2024-10-5)
+
+- chore: set current tab in the query
+- chore: support setup entry agent before deploy
+- fix: auto size table columns
+- fix: actions menu hidden on mobile devices
+
 ## 0.4.72 (2024-10-4)
 
 - chore: update @nft-studio/react lib
