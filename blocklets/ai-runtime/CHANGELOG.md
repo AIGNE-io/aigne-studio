@@ -1,3 +1,9 @@
+## 0.4.72 (2024-10-5)
+
+- chore: support setup entry agent before deploy
+- fix: auto size table columns
+- fix: actions menu hidden on mobile devices
+
 ## 0.4.71 (2024-10-1)
 
 - feat: support call an agent in the outputs
