@@ -1,3 +1,8 @@
+## 0.4.74 (2024-10-5)
+
+- chore: export @blocklet/code-editor package
+- chore: update tips on the prompt editor
+
 ## 0.4.73 (2024-10-5)
 
 - chore: set current tab in the query
