@@ -844,5 +844,7 @@ export default flatten({
   copyLink: '复制链接',
   noEntryAgent: '没有入口 Agent',
   noEntryAgentDescription: '请设置一个入口 Agent',
+  selectEntryAgentTitle: '设置入口 Agent',
+  selectEntryAgentDescription: '在部署之前，您需要设置入口 Agent',
   activeWhen: '激活条件',
 });
