@@ -204,7 +204,7 @@ export default flatten({
     banner: '配图',
     readme: 'README',
   },
-  notOpenFile: '请先从左侧文件列表中打开文件！',
+  notOpenFile: '打开一个 Agent 后继续',
   noProjectTip: '您还没有创建任何项目。 您可以从上面的模板创建项目！',
   aboutTokens: '大约 {tokens}',
   test: '测试',

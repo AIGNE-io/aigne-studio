@@ -205,7 +205,7 @@ export default flatten({
     banner: 'Banner',
     readme: 'README',
   },
-  notOpenFile: 'Please open the file from the file list on the left first!',
+  notOpenFile: 'Open an agent to continue',
   noProjectTip: "You haven't created any projects yet. You can create one from the template above!",
   aboutTokens: 'About {tokens}',
   test: 'Tests',
