@@ -1,3 +1,7 @@
+## 0.4.75 (2024-10-6)
+
+- feat: support json_schema output for open ai models
+
 ## 0.4.74 (2024-10-5)
 
 - chore: export @blocklet/code-editor package
