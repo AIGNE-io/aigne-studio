@@ -1,11 +1,14 @@
 import { ReadableStream, TransformStream } from 'stream/web';
 
-import { ChatCompletionResponse, isChatCompletionUsage } from '@blocklet/ai-kit/api/types/index';
+import { ChatCompletionResponse, isChatCompletionChunk, isChatCompletionUsage } from '@blocklet/ai-kit/api/types/index';
 import { logger } from '@blocklet/sdk/lib/config';
 
+import { defaultTextModel, supportJsonSchemaModels } from '../../common';
 import {
   AssistantResponseType,
+  OutputVariable,
   PromptAssistant,
+  Role,
   RuntimeOutputVariable,
   outputVariablesToJsonSchema,
 } from '../../types';
@@ -14,6 +17,7 @@ import {
   metadataOutputFormatPrompt,
   metadataStreamOutputFormatPrompt,
 } from '../assistant/generate-output';
+import { GetAgentResult } from '../assistant/type';
 import { renderMessage } from '../utils/render-message';
 import retry from '../utils/retry';
 import { nextTaskId } from '../utils/task-id';
@@ -22,58 +26,147 @@ import { AgentExecutorBase } from './base';
 export class LLMAgentExecutor extends AgentExecutorBase<PromptAssistant> {
   private retryTimes = 0;
 
+  get modelInfo() {
+    const { agent } = this;
+
+    const model = agent.model || agent.project.model || defaultTextModel;
+    const defaultModelInfo = model === agent.project.model ? agent.project : undefined;
+    return {
+      model,
+      temperature: agent.temperature ?? defaultModelInfo?.temperature,
+      topP: agent.topP ?? defaultModelInfo?.topP,
+      presencePenalty: agent.presencePenalty ?? defaultModelInfo?.presencePenalty,
+      frequencyPenalty: agent.frequencyPenalty ?? defaultModelInfo?.frequencyPenalty,
+    };
+  }
+
+  private _executor: Promise<GetAgentResult | undefined> | undefined;
+
+  get executor() {
+    this._executor ??= (async () => {
+      const { agent } = this;
+
+      return agent.executor?.agent?.id
+        ? this.context.getAgent({
+            blockletDid: agent.executor.agent.blockletDid || agent.identity.blockletDid,
+            projectId: agent.executor.agent.projectId || agent.identity.projectId,
+            projectRef: agent.identity.projectRef,
+            working: agent.identity.working,
+            agentId: agent.executor.agent.id,
+            rejectOnEmpty: true,
+          })
+        : undefined;
+    })();
+
+    return this._executor;
+  }
+
+  private _outputsInfo:
+    | Promise<{ outputs: OutputVariable[]; schema: any; hasStreamingTextOutput: boolean; hasJsonOutputs: boolean }>
+    | undefined;
+
+  get outputsInfo() {
+    this._outputsInfo ??= (async () => {
+      const { agent } = this;
+
+      const outputVariables =
+        (agent.outputVariables ?? []).filter(
+          (i): i is typeof i & Required<Pick<typeof i, 'name'>> => !!i.name && !i.hidden && i.from?.type !== 'callAgent'
+        ) ?? [];
+
+      const schema = outputVariablesToJsonSchema(agent, {
+        variables: await this.context.getMemoryVariables(agent.identity),
+      });
+
+      const hasStreamingTextOutput = outputVariables.some((i) => i.name === RuntimeOutputVariable.text);
+      const hasJsonOutputs = !!schema && Object.values(schema.properties).length > 0;
+
+      return { outputs: outputVariables, schema, hasStreamingTextOutput, hasJsonOutputs };
+    })();
+
+    return this._outputsInfo;
+  }
+
+  private getMessages({ inputs }: { inputs: { [key: string]: any } }) {
+    const { agent } = this;
+
+    return (async () =>
+      (
+        await Promise.all(
+          (agent.prompts ?? [])
+            .filter((i) => i.visibility !== 'hidden')
+            .map(async (prompt) => {
+              if (prompt.type === 'message') {
+                return {
+                  role: prompt.data.role,
+                  content: await renderMessage(
+                    // 过滤注释节点
+                    prompt.data.content
+                      ?.split('\n')
+                      .filter((i) => !i.startsWith('//'))
+                      .join('\n') || '',
+                    { ...inputs, ...this.globalContext }
+                  ),
+                };
+              }
+
+              console.warn('Unsupported prompt type', prompt);
+              return undefined;
+            })
+        )
+      )
+        .flat()
+        .filter((i): i is Required<NonNullable<typeof i>> => !!i?.content))();
+  }
+
   override async process({ inputs }: { inputs: { [key: string]: any } }) {
+    const { hasJsonOutputs, hasStreamingTextOutput } = await this.outputsInfo;
+
+    const messages = await this.getMessages({ inputs });
+
+    const { modelInfo } = this;
+
+    const executor = await this.executor;
+
+    // NOTE: use json_schema output for models that support it
+    if (
+      supportJsonSchemaModels.includes(modelInfo.model) &&
+      hasJsonOutputs &&
+      // check the llm executor is support json schema output
+      (!executor || executor.parameters?.some((i) => i.type === 'llmInputResponseFormat'))
+    ) {
+      return this.processWithJsonSchemaFormat({ messages, inputs });
+    }
+
+    // only has streaming text output
+    if (!hasJsonOutputs && hasStreamingTextOutput) {
+      const { text } = await this.callAIGetTextStreamOutput({ messages, inputs });
+      return { $text: text };
+    }
+
+    return this.processWithOutJsonSchemaFormat({ inputs, messages });
+  }
+
+  private async processWithOutJsonSchemaFormat({
+    inputs,
+    messages,
+  }: {
+    inputs: { [key: string]: any };
+    messages: { role: Role; content: any }[];
+  }) {
     const {
       agent,
       options: { taskId, parentTaskId },
     } = this;
-
-    const messages = (
-      await Promise.all(
-        (agent.prompts ?? [])
-          .filter((i) => i.visibility !== 'hidden')
-          .map(async (prompt) => {
-            if (prompt.type === 'message') {
-              return {
-                role: prompt.data.role,
-                content: await renderMessage(
-                  // 过滤注释节点
-                  prompt.data.content
-                    ?.split('\n')
-                    .filter((i) => !i.startsWith('//'))
-                    .join('\n') || '',
-                  { ...inputs, ...this.globalContext }
-                ),
-              };
-            }
-
-            console.warn('Unsupported prompt type', prompt);
-            return undefined;
-          })
-      )
-    )
-      .flat()
-      .filter((i): i is Required<NonNullable<typeof i>> => !!i?.content);
-
-    const outputVariables =
-      (agent.outputVariables ?? []).filter(
-        (i): i is typeof i & Required<Pick<typeof i, 'name'>> => !!i.name && !i.hidden && i.from?.type !== 'callAgent'
-      ) ?? [];
-
-    const schema = outputVariablesToJsonSchema(agent, {
-      variables: await this.context.getMemoryVariables(agent.identity),
-    });
-
-    const hasTextStream = outputVariables.some((i) => i.name === RuntimeOutputVariable.text);
-    const hasJson = !!schema && Object.values(schema.properties).length > 0;
+    const { hasStreamingTextOutput, hasJsonOutputs, schema } = await this.outputsInfo;
 
     const outputSchema = JSON.stringify(schema);
 
     const messagesWithSystemPrompt = [...messages];
     const lastSystemIndex = messagesWithSystemPrompt.findLastIndex((i) => i.role === 'system');
 
-    if (hasJson) {
-      if (hasTextStream) {
+    if (hasJsonOutputs) {
+      if (hasStreamingTextOutput) {
         messagesWithSystemPrompt.splice(lastSystemIndex + 1, 0, {
           role: 'system',
           content: metadataStreamOutputFormatPrompt(outputSchema),
@@ -104,48 +197,7 @@ export class LLMAgentExecutor extends AgentExecutorBase<PromptAssistant> {
       let result = '';
       const metadataStrings: string[] = [];
 
-      const executor = agent.executor?.agent?.id
-        ? await this.context.getAgent({
-            blockletDid: agent.executor.agent.blockletDid || agent.identity.blockletDid,
-            projectId: agent.executor.agent.projectId || agent.identity.projectId,
-            projectRef: agent.identity.projectRef,
-            working: agent.identity.working,
-            agentId: agent.executor.agent.id,
-            rejectOnEmpty: true,
-          })
-        : undefined;
-
-      const modelInfo = {
-        model: agent.model,
-        temperature: agent.temperature,
-        topP: agent.topP,
-        presencePenalty: agent.presencePenalty,
-        frequencyPenalty: agent.frequencyPenalty,
-      };
-
-      const chatCompletionChunk = executor
-        ? ((
-            await this.context
-              .executor(executor, {
-                inputs: {
-                  ...inputs,
-                  ...agent.executor?.inputValues,
-                  [executor.parameters?.find((i) => i.type === 'llmInputMessages' && !i.hidden)?.key!]:
-                    messagesWithSystemPrompt,
-                },
-                taskId: nextTaskId(),
-                parentTaskId: taskId,
-              })
-              .execute()
-          )[RuntimeOutputVariable.llmResponseStream] as ReadableStream<ChatCompletionResponse>)
-        : await this.context.callAI({
-            assistant: agent,
-            input: {
-              stream: true,
-              messages: messagesWithSystemPrompt,
-              ...modelInfo,
-            },
-          });
+      const chatCompletionChunk = await this.callAIOrExecutor({ messages: messagesWithSystemPrompt, inputs });
 
       const stream = extractMetadataFromStream(
         chatCompletionChunk.pipeThrough(
@@ -164,7 +216,7 @@ export class LLMAgentExecutor extends AgentExecutorBase<PromptAssistant> {
             },
           })
         ),
-        hasJson
+        hasJsonOutputs
       );
 
       for await (const chunk of stream) {
@@ -173,7 +225,7 @@ export class LLMAgentExecutor extends AgentExecutorBase<PromptAssistant> {
 
           result += text;
 
-          if (hasTextStream && this.retryTimes === 1) {
+          if (hasStreamingTextOutput && this.retryTimes === 1) {
             this.context.callback?.({
               type: AssistantResponseType.CHUNK,
               taskId,
@@ -215,5 +267,137 @@ export class LLMAgentExecutor extends AgentExecutorBase<PromptAssistant> {
     };
 
     return await retry(run, this.context.maxRetries);
+  }
+
+  private async processWithJsonSchemaFormat({
+    messages,
+    inputs,
+  }: {
+    messages: { role: Role; content: any }[];
+    inputs: { [key: string]: any };
+  }) {
+    const { hasStreamingTextOutput, schema } = await this.outputsInfo;
+
+    const [json, { text }] = await Promise.all([
+      this.callAIGetJsonOutput({ messages, schema }),
+      hasStreamingTextOutput ? this.callAIGetTextStreamOutput({ messages, inputs }) : { text: undefined },
+    ]);
+
+    try {
+      return await super.validateOutputs({
+        inputs,
+        outputs: { ...json, $text: text },
+      });
+    } catch (error) {
+      logger.error('validate LLM outputs error', error);
+      throw new Error('Unexpected response format from AI');
+    }
+  }
+
+  private async callAIGetJsonOutput({ messages, schema }: { messages: { role: Role; content: any }[]; schema: any }) {
+    const { modelInfo } = this;
+
+    const result = await this.context.callAI({
+      assistant: this.agent,
+      input: {
+        messages,
+        ...modelInfo,
+        responseFormat: {
+          type: 'json_schema',
+          jsonSchema: {
+            name: 'output',
+            schema,
+          },
+        },
+      },
+    });
+
+    let json = '';
+
+    for await (const i of result) {
+      if (isChatCompletionChunk(i)) {
+        json += i.delta.content || '';
+      }
+    }
+
+    try {
+      return JSON.parse(json);
+    } catch (error) {
+      logger.error(json, error);
+      throw new Error('parse ai json schema output error');
+    }
+  }
+
+  private async callAIGetTextStreamOutput({
+    messages,
+    inputs,
+  }: {
+    messages: { role: Role; content: any }[];
+    inputs: { [key: string]: any };
+  }) {
+    const {
+      agent,
+      options: { taskId },
+    } = this;
+
+    const stream = await this.callAIOrExecutor({
+      messages,
+      inputs,
+    });
+
+    let text = '';
+
+    for await (const chunk of stream) {
+      if (isChatCompletionChunk(chunk)) {
+        text += chunk.delta.content || '';
+
+        this.context.callback?.({
+          type: AssistantResponseType.CHUNK,
+          taskId,
+          assistantId: agent.id,
+          delta: { content: chunk.delta.content },
+        });
+      }
+    }
+
+    return { text };
+  }
+
+  private async callAIOrExecutor({
+    messages,
+    inputs,
+  }: {
+    messages: { role: Role; content: any }[];
+    inputs: { [key: string]: any };
+  }) {
+    const {
+      agent,
+      modelInfo,
+      options: { taskId },
+    } = this;
+    const executor = await this.executor;
+
+    return executor
+      ? ((
+          await this.context
+            .executor(executor, {
+              inputs: {
+                ...inputs,
+                ...agent.executor?.inputValues,
+                [executor.parameters?.find((i) => i.type === 'llmInputMessages' && !i.hidden)?.key!]: messages,
+              },
+              taskId: nextTaskId(),
+              parentTaskId: taskId,
+            })
+            .execute()
+        )[RuntimeOutputVariable.llmResponseStream] as ReadableStream<ChatCompletionResponse>)
+      : await this.context.callAI({
+          assistant: agent,
+          input: {
+            stream: true,
+            messages,
+            ...modelInfo,
+          },
+        });
   }
 }

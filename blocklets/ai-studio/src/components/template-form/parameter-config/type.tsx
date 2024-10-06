@@ -4,6 +4,7 @@ import SwitchIcon from '@iconify-icons/material-symbols/switches';
 import CursorTextIcon from '@iconify-icons/tabler/cursor-text';
 import DirectionsIcon from '@iconify-icons/tabler/directions';
 import HierarchyIcon from '@iconify-icons/tabler/hierarchy';
+import JsonIcon from '@iconify-icons/tabler/json';
 import LanguageIcon from '@iconify-icons/tabler/language-hiragana';
 import ListCheckIcon from '@iconify-icons/tabler/list-check';
 import MessagesIcon from '@iconify-icons/tabler/messages';
@@ -61,6 +62,11 @@ export default function ParameterConfigType(props: TextFieldProps) {
         icon: <Icon icon={DirectionsIcon} />,
         label: t('llmInputToolChoice'),
         value: 'llmInputToolChoice',
+      },
+      {
+        icon: <Icon icon={JsonIcon} />,
+        label: t('llmInputResponseFormat'),
+        value: 'llmInputResponseFormat',
       },
     ];
   }, [t]);

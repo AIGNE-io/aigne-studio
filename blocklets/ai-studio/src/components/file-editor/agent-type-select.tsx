@@ -1,6 +1,6 @@
 import PopperMenu from '@app/components/menu/PopperMenu';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { defaultImageModel, defaultTextModel, defaultTextModelGPT4 } from '@blocklet/ai-runtime/common';
+import { defaultImageModel } from '@blocklet/ai-runtime/common';
 import { AssistantYjs, RuntimeOutputVariable, arrayToYjs, outputVariableToYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
@@ -85,7 +85,6 @@ export default function AgentTypeSelect({ assistant }: { assistant: AssistantYjs
               }
 
               if (assistant.type === 'prompt') {
-                assistant.model = defaultTextModel;
                 if (!Object.values(assistant.outputVariables).some((i) => i.data.name === RuntimeOutputVariable.text)) {
                   const id = nanoid();
                   assistant.outputVariables[id] = {
@@ -98,7 +97,6 @@ export default function AgentTypeSelect({ assistant }: { assistant: AssistantYjs
               }
 
               if (assistant.type === 'router') {
-                assistant.model = defaultTextModelGPT4;
                 assistant.prompt = '{{question}}';
               }
 

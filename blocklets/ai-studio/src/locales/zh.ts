@@ -731,6 +731,7 @@ export default flatten({
   llmInputMessages: '大语言模型消息',
   llmInputTools: '大语言模型工具',
   llmInputToolChoice: '大语言模型工具选择',
+  llmInputResponseFormat: '大语言模型输出格式',
   llmResponseStream: '大语言模型输出流',
   llmProviderPlaceholder: '从商店选择大语言模型提供商',
   provider: '提供商',

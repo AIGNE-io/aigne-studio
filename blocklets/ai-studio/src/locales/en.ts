@@ -737,6 +737,7 @@ export default flatten({
   llmInputMessages: 'LLM Messages',
   llmInputTools: 'LLM Tools',
   llmInputToolChoice: 'LLM Tool Choice',
+  llmInputResponseFormat: 'LLM Response Format',
   llmResponseStream: 'LLM Response Stream',
   llmProviderPlaceholder: 'Select a LLM provider from store',
   provider: 'Provider',

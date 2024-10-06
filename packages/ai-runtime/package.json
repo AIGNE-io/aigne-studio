@@ -139,7 +139,7 @@
   },
   "dependencies": {
     "@abtnode/client": "^1.16.32",
-    "@blocklet/ai-kit": "^0.1.57",
+    "@blocklet/ai-kit": "^0.1.58",
     "@blocklet/dataset-sdk": "workspace:^",
     "@blocklet/js-sdk": "^1.16.32",
     "@blocklet/logger": "^1.16.32",
