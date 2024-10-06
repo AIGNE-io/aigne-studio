@@ -120,7 +120,7 @@ export class LLMAgentExecutor extends AgentExecutorBase<PromptAssistant> {
   }
 
   override async process({ inputs }: { inputs: { [key: string]: any } }) {
-    const { hasJsonOutputs, hasStreamingTextOutput } = await this.outputsInfo;
+    const { hasJsonOutputs } = await this.outputsInfo;
 
     const messages = await this.getMessages({ inputs });
 
@@ -138,16 +138,10 @@ export class LLMAgentExecutor extends AgentExecutorBase<PromptAssistant> {
       return this.processWithJsonSchemaFormat({ messages, inputs });
     }
 
-    // only has streaming text output
-    if (!hasJsonOutputs && hasStreamingTextOutput) {
-      const { text } = await this.callAIGetTextStreamOutput({ messages, inputs });
-      return { $text: text };
-    }
-
-    return this.processWithOutJsonSchemaFormat({ inputs, messages });
+    return this.processWithOutJsonSchemaFormatSupport({ inputs, messages });
   }
 
-  private async processWithOutJsonSchemaFormat({
+  private async processWithOutJsonSchemaFormatSupport({
     inputs,
     messages,
   }: {
@@ -276,6 +270,21 @@ export class LLMAgentExecutor extends AgentExecutorBase<PromptAssistant> {
     messages: { role: Role; content: any }[];
     inputs: { [key: string]: any };
   }) {
+    const {
+      agent,
+      options: { parentTaskId, taskId },
+    } = this;
+
+    this.context.callback?.({
+      type: AssistantResponseType.INPUT,
+      assistantId: agent.id,
+      parentTaskId,
+      taskId,
+      assistantName: agent.name,
+      inputParameters: inputs,
+      promptMessages: messages,
+    });
+
     const { hasStreamingTextOutput, schema } = await this.outputsInfo;
 
     const [json, { text }] = await Promise.all([
