@@ -344,7 +344,8 @@ export type Parameter =
   | SourceParameter
   | LLMInputMessagesParameter
   | LLMInputToolsParameter
-  | LLMInputToolChoiceParameter;
+  | LLMInputToolChoiceParameter
+  | LLMInputResponseFormatParameter;
 
 export interface ParameterBase {
   id: string;
@@ -374,6 +375,11 @@ export interface LLMInputToolsParameter extends ParameterBase {
 
 export interface LLMInputToolChoiceParameter extends ParameterBase {
   type: 'llmInputToolChoice';
+  defaultValue?: any;
+}
+
+export interface LLMInputResponseFormatParameter extends ParameterBase {
+  type: 'llmInputResponseFormat';
   defaultValue?: any;
 }
 
