@@ -1,3 +1,25 @@
+## 0.4.75 (2024-10-6)
+
+- feat: support json_schema output for open ai models
+
+## 0.4.74 (2024-10-5)
+
+- chore: export @blocklet/code-editor package
+- chore: update tips on the prompt editor
+
+## 0.4.73 (2024-10-5)
+
+- chore: set current tab in the query
+- chore: support setup entry agent before deploy
+- fix: auto size table columns
+- fix: actions menu hidden on mobile devices
+
+## 0.4.72 (2024-10-4)
+
+- chore: update @nft-studio/react lib
+- chore: polish project brand ui
+- chore: polish theme override for better ux
+
 ## 0.4.71 (2024-10-1)
 
 - feat: support call an agent in the outputs

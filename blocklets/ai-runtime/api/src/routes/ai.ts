@@ -14,7 +14,7 @@ import {
   isChatCompletionChunk,
   isChatCompletionUsage,
 } from '@blocklet/ai-kit/api/types/index';
-import { defaultImageModel, getSupportedImagesModels } from '@blocklet/ai-runtime/common';
+import { defaultImageModel, defaultTextModel, getSupportedImagesModels } from '@blocklet/ai-runtime/common';
 import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { CallAI, CallAIImage, RunAssistantCallback, RuntimeExecutor, nextTaskId } from '@blocklet/ai-runtime/core';
 import { toolCallsTransform } from '@blocklet/ai-runtime/core/utils/tool-calls-transform';
@@ -91,7 +91,7 @@ router.post('/call', user(), compression(), async (req, res) => {
   const callAI: CallAI = async ({ input }) => {
     const stream = await chatCompletions({
       ...input,
-      model: input.model || project?.model,
+      model: input.model || project?.model || defaultTextModel,
       temperature: input.temperature || project?.temperature,
       topP: input.topP || project?.topP,
       frequencyPenalty: input.frequencyPenalty || project?.frequencyPenalty,

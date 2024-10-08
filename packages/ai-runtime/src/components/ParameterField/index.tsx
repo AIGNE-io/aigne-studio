@@ -30,7 +30,7 @@ export default function ParameterField({
     return null;
   }
 
-  if (['llmInputMessages', 'llmInputTools', 'llmInputToolChoice'].includes(parameter.type!)) {
+  if (['llmInputMessages', 'llmInputTools', 'llmInputToolChoice', 'llmInputResponseFormat'].includes(parameter.type!)) {
     return <StringField {...({ parameter } as any)} size="small" {...props} multiline />;
   }
 

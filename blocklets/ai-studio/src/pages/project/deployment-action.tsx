@@ -2,8 +2,10 @@ import LoadingButton from '@app/components/loading/loading-button';
 import { useCurrentProject } from '@app/contexts/project';
 import { useIsAdmin } from '@app/contexts/session';
 import { theme } from '@app/theme/theme';
+import useDialog from '@app/utils/use-dialog';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
+import { AssistantYjs, isAssistant } from '@blocklet/ai-runtime/types';
 import ComponentInstaller from '@blocklet/ui-react/lib/ComponentInstaller';
 import { Icon } from '@iconify-icon/react';
 import ArrowLeft from '@iconify-icons/tabler/chevron-left';
@@ -12,10 +14,12 @@ import RocketIcon from '@iconify-icons/tabler/rocket';
 import ShareIcon from '@iconify-icons/tabler/share';
 import View360 from '@iconify-icons/tabler/view-360';
 import {
+  Alert,
   Box,
   Button,
   Card,
   CardContent,
+  Checkbox,
   CircularProgress,
   ClickAwayListener,
   Dialog,
@@ -36,7 +40,6 @@ import {
   Stack,
   SxProps,
   Theme,
-  Tooltip,
   Typography,
   useMediaQuery,
 } from '@mui/material';
@@ -164,8 +167,7 @@ function DeployApp({
   const isAdmin = useIsAdmin();
   const { t } = useLocaleContext();
   const [visibility, setVisibility] = useState<'public' | 'private'>('public');
-  const { store, config } = useProjectStore(projectId, projectRef);
-  const hasEntry = store.files[config?.entry!];
+  const { dialog, ensureEntryAgent } = useEnsureEntryAgent();
 
   const handleVisibilityChange = (event: any) => {
     setVisibility(event.target.value);
@@ -173,13 +175,15 @@ function DeployApp({
 
   const onSubmit = async () => {
     try {
+      if (!(await ensureEntryAgent())) return;
+
+      await saveButtonState.getState().save?.({ skipConfirm: true, skipCommitIfNoChanges: true });
+
       await createDeployment({
         projectId,
         projectRef,
         access: visibility,
       });
-
-      await saveButtonState.getState().save?.({ skipConfirm: true, skipCommitIfNoChanges: true });
 
       run();
 
@@ -191,6 +195,8 @@ function DeployApp({
 
   return (
     <Box sx={sx} data-testid="create-deploy-popper">
+      {dialog}
+
       <Box p={3}>
         <Stack gap={0.75}>
           <Box component="h3" m={0}>
@@ -257,25 +263,17 @@ function DeployApp({
         </Stack>
       </Box>
 
-      <Box p={3} pt={0}>
+      <Stack p={3} pt={0}>
         <Stack flexDirection="row" justifyContent="space-between">
           <Box display="flex" gap={1} alignItems="center">
             <PublishButton />
           </Box>
 
-          <Tooltip title={!hasEntry ? `${t('noEntryAgent')}, ${t('noEntryAgentDescription')}` : ''}>
-            <span>
-              <LoadingButton
-                variant="contained"
-                onClick={onSubmit}
-                disabled={!hasEntry}
-                data-testid="add-deploy-button">
-                {t('deploy')}
-              </LoadingButton>
-            </span>
-          </Tooltip>
+          <LoadingButton variant="contained" onClick={onSubmit} data-testid="add-deploy-button">
+            {t('deploy')}
+          </LoadingButton>
         </Stack>
-      </Box>
+      </Stack>
     </Box>
   );
 }
@@ -283,17 +281,18 @@ function DeployApp({
 function UpdateApp({ id, data, run, sx }: { id: string; data: Deployment; run: () => void; sx?: SxProps }) {
   const { t } = useLocaleContext();
   const isAdmin = useIsAdmin();
-  const { store, config } = useProjectStore(data.projectId, data.projectRef);
-  const hasEntry = store.files[config?.entry!];
 
   const [visibility, setVisibility] = useState<'public' | 'private'>(data.access || 'public');
   const handleVisibilityChange = (event: any) => setVisibility(event.target.value);
+  const { dialog, ensureEntryAgent } = useEnsureEntryAgent();
 
   const onSubmit = async () => {
     try {
-      await updateDeployment(id, { access: visibility });
+      if (!(await ensureEntryAgent())) return;
 
       await saveButtonState.getState().save?.({ skipConfirm: true, skipCommitIfNoChanges: true });
+
+      await updateDeployment(id, { access: visibility });
 
       run();
 
@@ -305,6 +304,8 @@ function UpdateApp({ id, data, run, sx }: { id: string; data: Deployment; run: (
 
   return (
     <Stack sx={sx} data-testid="update-deploy-dialog">
+      {dialog}
+
       <Box px={3}>
         <Box component="h3" m={0}>
           {t('deployments.updateApp')}
@@ -445,19 +446,100 @@ function UpdateApp({ id, data, run, sx }: { id: string; data: Deployment; run: (
             <PublishButton />
           </Box>
 
-          <Tooltip title={!hasEntry ? `${t('noEntryAgent')},${t('noEntryAgentDescription')}` : ''}>
-            <span>
-              <LoadingButton
-                variant="contained"
-                onClick={onSubmit}
-                disabled={!hasEntry}
-                data-testid="update-deploy-button">
-                {t('update')}
-              </LoadingButton>
-            </span>
-          </Tooltip>
+          <LoadingButton variant="contained" onClick={onSubmit} data-testid="update-deploy-button">
+            {t('update')}
+          </LoadingButton>
         </Stack>
       </Box>
     </Stack>
+  );
+}
+
+function useEnsureEntryAgent() {
+  const { projectId, projectRef } = useCurrentProject();
+  const { t } = useLocaleContext();
+  const { store, config } = useProjectStore(projectId, projectRef);
+  const hasEntry = store.files[config?.entry!];
+  const { dialog, showDialog } = useDialog();
+
+  const ensureEntryAgent = async () => {
+    if (hasEntry) {
+      return true;
+    }
+
+    const files = Object.values(store.files).filter(
+      (file): file is NonNullable<AssistantYjs> => !!file && isAssistant(file)
+    );
+
+    if (!files.length) {
+      throw new Error('No entry agent found');
+    } else if (files.length === 1) {
+      config.entry = files[0]!.id;
+      return true;
+    }
+
+    return new Promise<boolean>((resolve) => {
+      let value = hasEntry ? config.entry : undefined;
+
+      showDialog({
+        maxWidth: 'md',
+        fullWidth: true,
+        title: t('selectEntryAgentTitle'),
+        content: (
+          <Box>
+            <Alert severity="info">{t('selectEntryAgentDescription')}</Alert>
+
+            <EntryAgentSelect files={files} value={value} onChange={(v) => (value = v)} />
+          </Box>
+        ),
+        cancelText: t('cancel'),
+        okText: t('confirm'),
+        onOk: () => {
+          if (!value) {
+            const error = new Error('Please select an entry agent');
+            Toast.error(error.message);
+            throw error;
+          }
+          config.entry = value;
+          resolve(true);
+        },
+        onCancel: () => resolve(false),
+      });
+    });
+  };
+
+  return { dialog, ensureEntryAgent };
+}
+
+function EntryAgentSelect({
+  files,
+  value,
+  onChange,
+}: {
+  files: AssistantYjs[];
+  value?: string;
+  onChange?: (value?: string) => void;
+}) {
+  const { t } = useLocaleContext();
+  const [checked, setChecked] = useState(value);
+
+  const handleChange = (file: AssistantYjs) => {
+    setChecked(file.id);
+    onChange?.(file.id);
+  };
+
+  return (
+    <List>
+      {files.map((file) => (
+        <ListItem
+          key={file.id}
+          disablePadding
+          secondaryAction={<Checkbox edge="end" onChange={() => handleChange(file)} checked={checked === file.id} />}>
+          <ListItemButton onClick={() => handleChange(file)}>
+            <ListItemText primary={file.name || t('unnamed')} />
+          </ListItemButton>
+        </ListItem>
+      ))}
+    </List>
   );
 }

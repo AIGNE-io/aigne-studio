@@ -3,6 +3,7 @@ import { getErrorMessage } from '@app/libs/api';
 import { getAssetUrl } from '@app/libs/asset';
 import { getProjectIconUrl } from '@app/libs/project';
 import { agentViewTheme } from '@app/theme/agent-view-theme';
+import { useTabFromQuery } from '@app/utils/use-tab-from-query';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Result from '@arcblock/ux/lib/Result';
 import Toast from '@arcblock/ux/lib/Toast';
@@ -28,7 +29,7 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import { useRequest } from 'ahooks';
-import { Suspense, useState } from 'react';
+import { Suspense } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { withQuery } from 'ufo';
 
@@ -78,15 +79,15 @@ function Agent({ deployment, project }: { deployment: Deployment; project: Proje
 
   const category = categories.find((x) => x.slug === categorySlug);
 
-  const [value, setValue] = useState('1');
-  const handleChange = (_event: any, newValue: string) => setValue(newValue);
+  const [tab, setTab] = useTabFromQuery(['readme', 'run']);
+
   const navigate = useNavigate();
   const { t } = useLocaleContext();
   const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
 
   return (
     <Stack flex={1} height={0}>
-      <TabContext value={value}>
+      <TabContext value={tab}>
         <Box
           sx={{
             borderBottom: 1,
@@ -107,7 +108,7 @@ function Agent({ deployment, project }: { deployment: Deployment; project: Proje
           </Stack>
 
           <TabList
-            onChange={handleChange}
+            onChange={(_, tab) => setTab(tab)}
             sx={{
               '.MuiTab-root': {
                 color: '#9CA3AF',
@@ -121,16 +122,16 @@ function Agent({ deployment, project }: { deployment: Deployment; project: Proje
                 color: '#303030 !important',
               },
             }}>
-            <Tab label={t('readme')} value="1" data-testid="readme-tab" />
-            <Tab label={t('run')} value="2" data-testid="run-tab" />
+            <Tab label={t('readme')} value="readme" data-testid="readme-tab" />
+            <Tab label={t('run')} value="run" data-testid="run-tab" />
           </TabList>
         </Box>
 
-        <TabPanel value="1" sx={{ flex: 1, overflow: 'overlay', position: 'relative' }}>
-          <ReadmePage deployment={deployment} project={project} onRun={() => setValue('2')} />
+        <TabPanel value="readme" sx={{ flex: 1, overflow: 'overlay', position: 'relative' }}>
+          <ReadmePage deployment={deployment} project={project} onRun={() => setTab('run')} />
         </TabPanel>
 
-        <TabPanel value="2" sx={{ p: 0, flex: 1, overflow: 'hidden', position: 'relative' }}>
+        <TabPanel value="run" sx={{ p: 0, flex: 1, overflow: 'hidden', position: 'relative' }}>
           <PreviewPage deployment={deployment} project={project} />
         </TabPanel>
       </TabContext>

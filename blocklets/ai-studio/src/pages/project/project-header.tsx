@@ -72,7 +72,14 @@ export default function ProjectHeader() {
       <Stack height={1} overflow="hidden">
         <FontFamilyHelmet />
         <Box height={64} borderBottom="1px solid #E5E7EB" px={{ xs: 2, md: 3 }} className="between">
-          <Box flex={1}>
+          <Box
+            flex={1}
+            sx={{
+              maxWidth: {
+                md: '33.3%',
+                xs: 'calc(100% - 64px)',
+              },
+            }}>
             <ProjectBrand />
           </Box>
 

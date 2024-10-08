@@ -616,7 +616,9 @@ export abstract class AgentExecutorBase<T> {
 
           inputVariables[parameter.key] = result;
         }
-      } else if (['llmInputMessages', 'llmInputTools', 'llmInputToolChoice'].includes(parameter.type!)) {
+      } else if (
+        ['llmInputMessages', 'llmInputTools', 'llmInputToolChoice', 'llmInputResponseFormat'].includes(parameter.type!)
+      ) {
         const v = inputs?.[parameter.key];
         const tryParse = (s: string) => {
           try {
@@ -660,6 +662,18 @@ export abstract class AgentExecutorBase<T> {
             )
             .empty([null, ''])
             .optional(),
+          llmInputResponseFormat: Joi.object({
+            type: Joi.string().valid('text', 'json_object', 'json_schema').empty([null, '']),
+          }).when(Joi.object({ type: Joi.valid('json_schema') }), {
+            then: Joi.object({
+              jsonSchema: Joi.object({
+                name: Joi.string().required(),
+                description: Joi.string().empty([null, '']),
+                schema: Joi.object().pattern(Joi.string(), Joi.any()).required(),
+                strict: Joi.boolean().empty([null, '']),
+              }),
+            }),
+          }),
         }[parameter.type as string]!;
 
         const val =
@@ -672,9 +686,7 @@ export abstract class AgentExecutorBase<T> {
               )
             : parameter.type === 'llmInputTools'
               ? await schema.validateAsync(Array.isArray(v) ? v : tryParse(v), { stripUnknown: true })
-              : parameter.type === 'llmInputToolChoice'
-                ? await schema.validateAsync(tryParse(v) || v, { stripUnknown: true })
-                : undefined;
+              : await schema.validateAsync(tryParse(v) || v, { stripUnknown: true });
 
         inputVariables[parameter.key] = val;
       } else if (parameter.type === 'boolean') {

@@ -1,9 +1,10 @@
 import { Monaco } from '@monaco-editor/react';
 
 import type { EditorInstance } from '../libs/type';
+
 // @ts-ignore
 // eslint-disable-next-line import/extensions
-import reactRaw from '../types/index.d.ts?raw';
+// import reactRaw from '../types/index.d.ts?raw';
 
 const prettier = Promise.all([
   import('prettier'),
@@ -63,7 +64,7 @@ const usePrettier = () => {
       typeRoots: ['node_modules/@types'],
     });
 
-    monaco.languages.typescript.typescriptDefaults.addExtraLib(reactRaw, 'file:///node_modules/@types/react.d.ts');
+    // monaco.languages.typescript.typescriptDefaults.addExtraLib(reactRaw, 'file:///node_modules/@types/react.d.ts');
   };
 
   return {

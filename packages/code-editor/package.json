@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/code-editor",
-  "version": "0.4.71",
+  "version": "0.4.75",
   "description": "Code Editor",
   "publishConfig": {
     "access": "public"
@@ -39,10 +39,13 @@
   "scripts": {
     "lint": "eslint src --ext .mjs,.js,.jsx,.ts,.tsx",
     "lint:fix": "npm run lint -- --fix",
-    "build": "tsc --noEmit && run-p build:*",
-    "build:cjs": "tsc -p tsconfig.build.json --module commonjs --incremental false --outDir lib/cjs > /dev/null || exit 0",
-    "build:esm": "tsc -p tsconfig.build.json --module es2022 --incremental false --outDir lib/esm > /dev/null || exit 0",
-    "build:types": "tsc -p tsconfig.build.json --declaration --emitDeclarationOnly --incremental false --outDir lib/types > /dev/null || exit 0",
+    "build": "tsc -p tsconfig.build.json --noEmit && run-p build:* && npm run copyfiles",
+    "build:cjs": "tsc -p tsconfig.build.json --module commonjs --outDir lib/cjs > /dev/null || exit 0",
+    "build:esm": "tsc -p tsconfig.build.json --module es2022 --outDir lib/esm > /dev/null || exit 0",
+    "build:types": "tsc -p tsconfig.build.json --declaration --emitDeclarationOnly --outDir lib/types > /dev/null || exit 0",
+    "copyfiles": "run-p copyfiles:*",
+    "copyfiles:cjs": "copyfiles -u 1 src/**/*.css lib/cjs",
+    "copyfiles:esm": "copyfiles -u 1 src/**/*.css lib/esm",
     "dev": "run-p 'build:* -- -w'",
     "clean": "rimraf lib",
     "prepublishOnly": "npm run build",
@@ -93,6 +96,7 @@
     "@types/mustache": "^4.2.5",
     "@types/react": "^18.3.4",
     "@types/react-resizable": "^3.0.8",
+    "copyfiles": "^2.4.1",
     "npm-run-all": "^4.1.5",
     "react": "^18.3.1",
     "react-router-dom": "^6.26.1",
