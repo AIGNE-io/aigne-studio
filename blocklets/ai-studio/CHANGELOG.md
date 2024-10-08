@@ -1,3 +1,7 @@
+## 0.4.76 (2024-10-8)
+
+- chore: update deps
+
 ## 0.4.75 (2024-10-6)
 
 - feat: support json_schema output for open ai models
