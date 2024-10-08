@@ -1,3 +1,4 @@
+import { getProPaymentLink } from '@blocklet/aigne-sdk/api/pro';
 import { Router } from 'express';
 import Joi from 'joi';
 import { uniqBy } from 'lodash';
@@ -117,5 +118,10 @@ export function globalRoutes(router: Router) {
     assistants.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 
     res.json({ assistants: assistants.slice(offset, limit ? offset + limit : undefined) });
+  });
+
+  router.get('/pro-payment-link', async (_, res) => {
+    const link = await getProPaymentLink();
+    res.json({ link });
   });
 }

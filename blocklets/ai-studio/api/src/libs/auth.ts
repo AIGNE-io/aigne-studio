@@ -1,6 +1,7 @@
 import path from 'path';
 
 import AuthStorage from '@arcblock/did-auth-storage-nedb';
+import { proPassport } from '@blocklet/aigne-sdk/api/pro';
 import AuthService from '@blocklet/sdk/lib/service/auth';
 import getWallet from '@blocklet/sdk/lib/wallet';
 import WalletAuthenticator from '@blocklet/sdk/lib/wallet-authenticator';
@@ -25,4 +26,5 @@ export const customRoles = [
     title: 'Prompts Editor',
     description: 'Someone with the Prompts Editor role can create and edit prompts',
   },
+  proPassport,
 ];
