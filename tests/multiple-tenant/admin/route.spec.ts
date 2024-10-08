@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test.describe.serial('page', () => {
+test.describe.serial('routing permissions', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
   });

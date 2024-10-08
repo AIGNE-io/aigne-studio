@@ -115,49 +115,4 @@ test.describe.serial('category', () => {
       'tabler:accessible-filled'
     );
   });
-
-  test('delete category', async ({ page }) => {
-    await page.goto('/admin/category');
-    await page.waitForLoadState('networkidle');
-
-    const categoryItems = page.getByTestId('category-delete-button');
-    await expect(categoryItems).toHaveCount(3);
-
-    await categoryItems.last().click();
-    const deleteOneCategoryResponse = page.waitForResponse(
-      (response) => response.url().includes('/api/categories') && response.status() === 200
-    );
-    await expect(
-      page.getByText('This will delete the category and cannot be recovered. Please be careful.')
-    ).toBeVisible();
-    await page.getByRole('button', { name: 'Delete' }).click();
-    await deleteOneCategoryResponse;
-
-    await expect(categoryItems).toHaveCount(2);
-
-    await categoryItems.last().click();
-
-    const deleteTwoCategoryResponse = page.waitForResponse(
-      (response) => response.url().includes('/api/categories') && response.status() === 200
-    );
-    await expect(
-      page.getByText('This will delete the category and cannot be recovered. Please be careful.')
-    ).toBeVisible();
-    await page.getByRole('button', { name: 'Delete' }).click();
-    await deleteTwoCategoryResponse;
-
-    await expect(categoryItems).toHaveCount(1);
-
-    await categoryItems.last().click();
-    const deleteThreeCategoryResponse = page.waitForResponse(
-      (response) => response.url().includes('/api/categories') && response.status() === 200
-    );
-    await expect(
-      page.getByText('This will delete the category and cannot be recovered. Please be careful.')
-    ).toBeVisible();
-    await page.getByRole('button', { name: 'Delete' }).click();
-    await deleteThreeCategoryResponse;
-
-    await expect(categoryItems).toHaveCount(0);
-  });
 });

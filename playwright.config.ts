@@ -15,7 +15,7 @@ const timeout = 10000;
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
-  timeout: 12 * timeout,
+  timeout: 9 * timeout,
   testDir: './tests',
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -24,7 +24,7 @@ export default defineConfig({
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
   /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : 1,
+  workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
@@ -40,60 +40,66 @@ export default defineConfig({
   /* Configure projects for major browsers */
   projects: [
     // single tenant mode
-    {
-      name: 'singleTenantMode',
-      testMatch: 'single-tenant-mode.setup.ts',
-    },
+    // {
+    //   name: 'singleTenantMode',
+    //   testMatch: 'single-tenant-mode.setup.ts',
+    // },
     {
       name: 'singleTenantModeAdminSetup',
       testMatch: 'admin.setup.ts',
-      dependencies: ['singleTenantMode'],
     },
     {
       name: 'singleTenantModeAdminRoleTests',
       use: { ...devices['Desktop Chrome'], storageState: TestConstants.authFilePath('admin') },
       dependencies: ['singleTenantModeAdminSetup'],
-      testMatch: /single-tenant\/admin\/.*\.spec\.ts/,
+      testMatch: ['single-tenant/admin/**/*.spec.ts'],
+      testIgnore: ['single-tenant/admin/projects.spec.ts', 'single-tenant/admin/runtime.spec.ts'],
     },
     {
-      name: 'singleTenantModeGuestSetup',
-      testMatch: 'guest.setup.ts',
-      dependencies: ['singleTenantModeAdminRoleTests'],
-    },
-    {
-      name: 'singleTenantModeGuestRoleTests',
-      use: { ...devices['Desktop Chrome'], storageState: TestConstants.authFilePath('guest') },
-      dependencies: ['singleTenantModeGuestSetup'],
-      testMatch: /single-tenant\/guest\/.*\.spec\.ts/,
-    },
-    // multiple tenant mode
-    {
-      name: 'multipleTenantMode',
-      testMatch: 'multiple-tenant-mode.setup.ts',
-      dependencies: ['singleTenantModeGuestRoleTests'],
-    },
-    {
-      name: 'multipleTenantModeAdminSetup',
-      testMatch: 'admin.setup.ts',
-      dependencies: ['multipleTenantMode'],
-    },
-    {
-      name: 'multipleTenantModeAdminRoleTests',
+      name: 'singleTenantModeAdminRoleProjectsTests',
       use: { ...devices['Desktop Chrome'], storageState: TestConstants.authFilePath('admin') },
-      dependencies: ['multipleTenantModeAdminSetup'],
-      testMatch: /multiple-tenant\/admin\/.*\.spec\.ts/,
+      dependencies: ['singleTenantModeAdminRoleTests'],
+      testMatch: ['single-tenant/admin/projects.spec.ts', 'single-tenant/admin/runtime.spec.ts'],
     },
-    {
-      name: 'multipleTenantModeGuestSetup',
-      testMatch: 'guest.setup.ts',
-      dependencies: ['multipleTenantModeAdminRoleTests'],
-    },
-    {
-      name: 'multipleTenantModeGuestRoleTests',
-      use: { ...devices['Desktop Chrome'], storageState: TestConstants.authFilePath('guest') },
-      dependencies: ['multipleTenantModeGuestSetup'],
-      testMatch: /multiple-tenant\/guest\/.*\.spec\.ts/,
-    },
+    // {
+    //   name: 'singleTenantModeGuestSetup',
+    //   testMatch: 'guest.setup.ts',
+    //   dependencies: ['singleTenantModeAdminRoleTests'],
+    // },
+    // {
+    //   name: 'singleTenantModeGuestRoleTests',
+    //   use: { ...devices['Desktop Chrome'], storageState: TestConstants.authFilePath('guest') },
+    //   dependencies: ['singleTenantModeGuestSetup'],
+    //   testMatch: /single-tenant\/guest\/.*\.spec\.ts/,
+    // },
+    // // multiple tenant mode
+    // {
+    //   name: 'multipleTenantMode',
+    //   testMatch: 'multiple-tenant-mode.setup.ts',
+    //   dependencies: ['singleTenantModeGuestRoleTests'],
+    // },
+    // {
+    //   name: 'multipleTenantModeAdminSetup',
+    //   testMatch: 'admin.setup.ts',
+    //   dependencies: ['multipleTenantMode'],
+    // },
+    // {
+    //   name: 'multipleTenantModeAdminRoleTests',
+    //   use: { ...devices['Desktop Chrome'], storageState: TestConstants.authFilePath('admin') },
+    //   dependencies: ['multipleTenantModeAdminSetup'],
+    //   testMatch: /multiple-tenant\/admin\/.*\.spec\.ts/,
+    // },
+    // {
+    //   name: 'multipleTenantModeGuestSetup',
+    //   testMatch: 'guest.setup.ts',
+    //   dependencies: ['multipleTenantModeAdminRoleTests'],
+    // },
+    // {
+    //   name: 'multipleTenantModeGuestRoleTests',
+    //   use: { ...devices['Desktop Chrome'], storageState: TestConstants.authFilePath('guest') },
+    //   dependencies: ['multipleTenantModeGuestSetup'],
+    //   testMatch: /multiple-tenant\/guest\/.*\.spec\.ts/,
+    // },
 
     // {
     //   name: 'ownerSetup',

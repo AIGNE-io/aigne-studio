@@ -1,6 +1,6 @@
 import { Page, expect, test } from '@playwright/test';
 
-import { createProject, deleteProject, enterAgentPage } from '../../utils/project';
+import { createProject } from '../../utils/project';
 
 const deleteAllFoldersAndAgents = async ({ page }: { page: Page }) => {
   // 1. 找到所有的 folder
@@ -26,67 +26,66 @@ const deleteAllFoldersAndAgents = async ({ page }: { page: Page }) => {
   }
 };
 
+let projectUrl: string;
+
 test.beforeAll('clean and create project', async ({ browser }) => {
   const page = await browser.newPage();
-  await deleteProject({ page });
   await createProject({ page });
+  projectUrl = page.url();
 });
 
-test.describe.serial('agent tree', () => {
-  test('create agent', async ({ page }) => {
-    await enterAgentPage({ page });
+test.beforeEach(async ({ page }) => {
+  await page.goto(projectUrl);
+  await page.waitForLoadState('networkidle');
+});
 
-    await deleteAllFoldersAndAgents({ page });
-    await page.getByLabel('New Agent').getByRole('button').click({ force: true });
+test('create agent', async ({ page }) => {
+  await deleteAllFoldersAndAgents({ page });
+  await page.getByLabel('New Agent').getByRole('button').click({ force: true });
 
-    const firstAgent = page.locator('.agent-box').first();
-    await firstAgent.press('Enter');
-    await firstAgent.locator('> div').hover();
-    await firstAgent.locator('button').click();
-    await page.getByText('Duplicate').click({ force: true });
+  const firstAgent = page.locator('.agent-box').first();
+  await firstAgent.press('Enter');
+  await firstAgent.locator('> div').hover();
+  await firstAgent.locator('button').click();
+  await page.getByText('Duplicate').click({ force: true });
 
-    await page.getByTestId('new-agent-button').click();
-    await page.getByTestId('file-tree').getByRole('textbox').fill('Unamed Agent 1');
-    await page.getByTestId('file-tree').getByRole('textbox').press('Enter');
+  await page.getByTestId('new-agent-button').click();
+  await page.getByTestId('file-tree').getByRole('textbox').fill('Unamed Agent 1');
+  await page.getByTestId('file-tree').getByRole('textbox').press('Enter');
 
-    const duplicateAgent = page.locator('.agent-box').first();
-    await duplicateAgent.press('Enter');
-    await duplicateAgent.locator('> div').hover();
-    await duplicateAgent.locator('button').click();
-    await page.getByText('Rename').click({ force: true });
-    await duplicateAgent.getByRole('textbox').fill('Renamed Agent');
-    await duplicateAgent.press('Enter');
-    await expect(firstAgent).toContainText('Renamed Agent');
+  const duplicateAgent = page.locator('.agent-box').first();
+  await duplicateAgent.press('Enter');
+  await duplicateAgent.locator('> div').hover();
+  await duplicateAgent.locator('button').click();
+  await page.getByText('Rename').click({ force: true });
+  await duplicateAgent.getByTestId('edit-text-item').locator('input').fill('Renamed Agent');
+  await duplicateAgent.press('Enter');
+  await expect(firstAgent).toContainText('Renamed Agent');
 
-    await firstAgent.locator('> div').hover();
-    await firstAgent.locator('button').click();
-    await page.getByText('Set as entry agent').click({ force: true });
-    await expect(firstAgent).toContainText('(Entry)');
-  });
+  await firstAgent.locator('> div').hover();
+  await firstAgent.locator('button').click();
+  await page.getByText('Set as entry agent').click({ force: true });
+  await expect(firstAgent).toContainText('(Entry)');
+});
 
-  test.describe.serial('folder', () => {
-    test('new folder / rename / new agent', async ({ page }) => {
-      await enterAgentPage({ page });
+test('new folder/rename / new agent', async ({ page }) => {
+  const folders = page.locator('.file-tree-folder');
+  const folderCount = await folders.count();
+  await page.getByLabel('New Group').getByRole('button').click({ force: true });
+  await page.getByRole('listitem').locator('input').waitFor();
+  const newFolderCount = await folders.count();
+  expect(newFolderCount).toBe(folderCount + 1);
 
-      const folders = page.locator('.file-tree-folder');
-      const folderCount = await folders.count();
-      await page.getByLabel('New Group').getByRole('button').click({ force: true });
-      await page.getByRole('listitem').locator('input').waitFor();
-      const newFolderCount = await folders.count();
-      expect(newFolderCount).toBe(folderCount + 1);
+  const folder = page.locator('.file-tree-folder').first();
+  await folder.locator('..').hover();
+  await folder.locator('..').locator('button').click();
+  await page.locator('div[role="tooltip"]').getByText('Rename').click();
+  await folder.getByRole('textbox').fill('Folder(Test Renamed)');
+  await folder.getByRole('textbox').press('Enter');
+  await expect(page.getByText('Folder(Test Renamed)', { exact: true })).toBeVisible();
 
-      const folder = page.locator('.file-tree-folder').first();
-      await folder.locator('..').hover();
-      await folder.locator('..').locator('button').click();
-      await page.locator('div[role="tooltip"]').getByText('Rename').click();
-      await folder.getByRole('textbox').fill('Folder(Test Renamed)');
-      await folder.getByRole('textbox').press('Enter');
-      await expect(page.getByText('Folder(Test Renamed)', { exact: true })).toBeVisible();
-
-      await folder.locator('..').hover();
-      await folder.locator('..').locator('button').click();
-      await page.locator('div[role="tooltip"]').getByText('New Agent').click();
-      await page.getByTestId('agent-name').locator('input[placeholder="Unnamed"]').waitFor();
-    });
-  });
+  await folder.locator('..').hover();
+  await folder.locator('..').locator('button').click();
+  await page.locator('div[role="tooltip"]').getByText('New Agent').click();
+  await page.getByTestId('agent-name').locator('input[placeholder="Unnamed"]').waitFor();
 });

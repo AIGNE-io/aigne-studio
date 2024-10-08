@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test.describe.serial('page', () => {
+test.describe.serial('routing permissions', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
   });
@@ -22,8 +22,7 @@ test.describe.serial('page', () => {
   test('explore', async ({ page }) => {
     await page.goto('/explore');
     await page.waitForLoadState('networkidle');
-
-    await expect(page).not.toHaveURL('explore');
+    await expect(page).toHaveURL(/explore/);
   });
 
   test('apps', async ({ page }) => {

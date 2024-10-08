@@ -2,7 +2,10 @@ import { login } from '@blocklet/testlab/utils/playwright';
 import { ensureWallet } from '@blocklet/testlab/utils/wallet';
 import { test as setup } from '@playwright/test';
 
+import { deleteCategory } from './utils/category';
 import { TestConstants } from './utils/constants';
+import { deleteDeploy } from './utils/deploy';
+import { deleteProject } from './utils/project';
 
 setup('admin authenticate', async ({ page }) => {
   await page.goto('/');
@@ -15,4 +18,8 @@ setup('admin authenticate', async ({ page }) => {
   });
 
   await page.context().storageState({ path: TestConstants.authFilePath('admin') });
+
+  await deleteProject({ page });
+  await deleteCategory({ page });
+  await deleteDeploy({ page });
 });

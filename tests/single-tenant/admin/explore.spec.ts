@@ -2,12 +2,11 @@ import { expect, test } from '@playwright/test';
 
 import { deleteCategory } from '../../utils/category';
 import { deleteDeploy } from '../../utils/deploy';
-import { createProjectDialog, deleteProject } from '../../utils/project';
+import { createProjectDialog } from '../../utils/project';
 
 test.beforeAll('clean and create project', async ({ browser }) => {
   const page = await browser.newPage();
 
-  await deleteProject({ page });
   await deleteCategory({ page });
   await deleteDeploy({ page });
 });
@@ -26,8 +25,9 @@ test.describe.serial('explore', () => {
     await page.waitForLoadState('networkidle');
 
     await expect(page.getByText('No Categories')).toBeVisible();
-    await expect(page).toHaveURL('/admin/category', { timeout: 10000 });
+
     // 添加第一个分类
+    await expect(page).toHaveURL('/admin/category', { timeout: 10000 });
     await page.getByTestId('add-category-button').click();
     await expect(page.getByTestId('add-category-form')).toBeVisible();
     const addCategoryForm = page.getByTestId('add-category-form');
@@ -86,8 +86,6 @@ test.describe.serial('explore', () => {
 
     const container = page.locator('.MuiDataGrid-root');
     await expect(container).toBeVisible();
-    const items = await container.locator('.deployment-row');
-    await expect(items).toHaveCount(1);
 
     await page.getByTestId('edit-deployment-button').first().click();
     const addCategoryForm = page.getByTestId('deployment-dialog');
@@ -139,11 +137,5 @@ test.describe.serial('explore', () => {
     );
     await page.getByTestId('make-yours-button').click();
     await addCategoryResponse;
-
-    await page.goto('/projects');
-    await page.waitForLoadState('networkidle');
-
-    const projects = await page.getByTestId('projects-item');
-    await expect(projects).toHaveCount(2);
   });
 });

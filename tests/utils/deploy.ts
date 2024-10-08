@@ -4,22 +4,16 @@ export async function deleteDeploy({ page }: { page: Page }) {
   await page.goto('/admin/explore');
   await page.waitForLoadState('networkidle');
 
-  const deleteAllDeploy = async () => {
-    const deployItems = page.getByTestId('delete-deployment-button');
-    const count = await deployItems.count();
+  const categoryItems = await page.getByTestId('delete-deployment-button').all();
 
-    if (count === 0) return;
-
+  for (let i = categoryItems.length - 1; i >= 0; i--) {
     const deleteResponse = page.waitForResponse(
       (response) => response.url().includes('api/deployments') && response.status() === 200
     );
-    await deployItems.last().click();
+    await categoryItems[i]?.click();
     await deleteResponse;
-
-    await deleteAllDeploy();
-  };
-
-  await deleteAllDeploy();
+    await page.waitForLoadState('networkidle', { timeout: 10000 });
+  }
 
   const deployItems = page.getByTestId('delete-deployment-button');
   await expect(deployItems).toHaveCount(0);

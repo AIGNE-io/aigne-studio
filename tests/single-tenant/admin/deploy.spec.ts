@@ -1,16 +1,19 @@
 import { expect, test } from '@playwright/test';
 
-import { createProject, deleteProject, enterAgentPage } from '../../utils/project';
+import { createProject } from '../../utils/project';
+
+let projectUrl: string;
 
 test.beforeAll('clean and create project', async ({ browser }) => {
   const page = await browser.newPage();
-  await deleteProject({ page });
   await createProject({ page });
+  projectUrl = page.url();
 });
 
 test.describe.serial('deploy', () => {
   test.beforeEach(async ({ page }) => {
-    await enterAgentPage({ page });
+    await page.goto(projectUrl);
+    await page.waitForLoadState('networkidle');
   });
 
   test('user create deploy', async ({ page }) => {

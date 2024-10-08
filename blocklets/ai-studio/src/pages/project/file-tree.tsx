@@ -815,6 +815,7 @@ function EditTextItem({
   };
   return editing ? (
     <Input
+      data-testid="edit-text-item"
       className="edit-text-item"
       disableUnderline
       fullWidth

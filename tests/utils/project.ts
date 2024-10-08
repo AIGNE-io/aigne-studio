@@ -1,10 +1,20 @@
 import { Locator, Page, expect } from '@playwright/test';
 
+const format = () => {
+  const now = new Date();
+
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+
+  return `${hours}-${minutes}-${seconds}-${now.getTime()}`;
+};
+
 export async function createProjectDialog({ page }: { page: Page }) {
   const newProjectDialog = page.getByTestId('newProjectDialog');
   await expect(newProjectDialog).toBeVisible();
 
-  const projectName = `Test Project ${Date.now()}`;
+  const projectName = `Test Project ${format()}`;
 
   const createProjectPromise = page.waitForResponse(
     (response) => response.url().includes('/api/projects') && response.status() === 200
@@ -16,9 +26,54 @@ export async function createProjectDialog({ page }: { page: Page }) {
   await Promise.all([createButton.click(), page.waitForLoadState('networkidle')]);
   await expect(newProjectDialog).not.toBeVisible();
   await createProjectPromise;
+
+  await page.goto('/projects');
+  await page.waitForLoadState('networkidle');
+
+  const targetProject = await page
+    .locator('[data-testid="projects-item"]')
+    .filter({ has: page.locator('.name', { hasText: projectName }) })
+    .first();
+  await expect(targetProject).toBeVisible({ timeout: 5000 });
+
+  if (targetProject) {
+    const projectId = await targetProject.getAttribute('data-id');
+    const firstProjectName = await targetProject.locator('.name').innerText();
+
+    await targetProject.click();
+    await page.waitForLoadState('networkidle');
+
+    const path = `/projects/${projectId}`;
+
+    const maxRetries = 5;
+    let retries = 0;
+
+    while (retries < maxRetries) {
+      await page.goto(path);
+
+      try {
+        await expect(page.getByText(firstProjectName)).toBeVisible({ timeout: 20000 });
+        break;
+      } catch (error) {
+        retries++;
+
+        if (retries >= maxRetries) {
+          throw new Error(`Failed to load project page after ${maxRetries} attempts`);
+        }
+      }
+    }
+  }
 }
 
-export async function createProject({ page, checkCreated = true }: { page: Page; checkCreated?: boolean }) {
+export async function createProject({
+  page,
+  checkCreated = true,
+  checkCount = false,
+}: {
+  page: Page;
+  checkCreated?: boolean;
+  checkCount?: boolean;
+}) {
   await page.goto('/projects');
   await page.waitForLoadState('networkidle');
 
@@ -27,7 +82,9 @@ export async function createProject({ page, checkCreated = true }: { page: Page;
 
   if (checkCreated) {
     const projectItems = page.getByTestId('projects-item');
-    if ((await projectItems.count()) === 0) {
+    const createNewProject = checkCount ? (await projectItems.count()) === 0 : true;
+
+    if (createNewProject) {
       await page.getByRole('button', { name: 'New Project' }).click();
       await createProjectDialog({ page });
     }
@@ -61,6 +118,7 @@ export async function deleteProject({ page }: { page: Page }) {
       await page.getByRole('button', { name: 'Delete' }).click();
     }
     await responsePromise;
+    await page.waitForLoadState('networkidle', { timeout: 10000 });
   }
 
   await page.waitForTimeout(1000);
@@ -87,40 +145,3 @@ export async function deleteOneProject({ page, project }: { page: Page; project:
   }
   await responsePromise;
 }
-
-export const enterAgentPage = async ({ page }: { page: Page }) => {
-  await page.goto('/projects');
-  await page.waitForLoadState('networkidle');
-
-  await expect(page.getByRole('button', { name: 'New Project' })).toBeVisible();
-  const projects = await page.getByTestId('projects-item').all();
-
-  await expect(projects.length).toBeGreaterThan(0);
-
-  const firstProject = projects[0];
-  if (firstProject) {
-    const projectId = await firstProject.getAttribute('data-id');
-    const firstProjectName = await firstProject.locator('.name').innerText();
-
-    await firstProject.click();
-    await page.waitForLoadState('networkidle');
-
-    const path = `/projects/${projectId}`;
-
-    const maxRetries = 5;
-    let retries = 0;
-
-    while (retries < maxRetries) {
-      await page.goto(path);
-      try {
-        await expect(page.getByText(firstProjectName)).toBeVisible({ timeout: 20000 });
-        break;
-      } catch (error) {
-        retries++;
-        if (retries >= maxRetries) {
-          throw new Error(`Failed to load project page after ${maxRetries} attempts`);
-        }
-      }
-    }
-  }
-};
