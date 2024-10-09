@@ -81,7 +81,17 @@ const httpsPort = (portSchema.validate(process.env.BLOCKLET_SERVER_HTTPS_PORT).v
   await setupUsers({ appName, appUrl });
   process.env.PW_TEST_HTML_REPORT_OPEN = 'never';
 
-  await $`TEST_BLOCKLET_APP_URL=${appUrl} TEST_BLOCKLET_APP_NAME=${appName} playwright test ${ui ? '--ui' : ''} --config=${configFile}`;
+  const command = [
+    `TEST_BLOCKLET_APP_URL=${appUrl}`,
+    `TEST_BLOCKLET_APP_NAME=${appName}`,
+    'playwright test',
+    ui ? '--ui' : '',
+    `--config=${configFile}`,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  await $`${command}`;
 
   await removeTestApp({ blockletCli, appSk: appWallet.secretKey });
 })();

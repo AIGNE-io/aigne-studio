@@ -23,10 +23,12 @@
     "bump-version": "zx scripts/bump-version.mjs",
     "update:deps": "npx -y taze major -r -w -x '/nanoid|eslint/' && pnpm install",
     "update:deps:internal": "npx -y taze major -r -w -n '/blocklet|abtnode|arcblock|ocap|did-space|nft-studio/' && pnpm install",
-    "e2e": "./scripts/start-e2e.ts",
     "e2e:single": "./scripts/start-e2e.ts --config playwright-single-tenant-mode.config.ts",
     "e2e:multiple": "./scripts/start-e2e.ts --config playwright-multiple-tenant-mode.config.ts",
-    "e2e:parallel": "npm-run-all --parallel \"e2e:single {@}\" \"e2e:multiple {@}\" --",
+    "e2e": "npm-run-all --parallel e2e:*",
+    "e2e:ui:single": "./scripts/start-e2e.ts --config playwright-single-tenant-mode.config.ts --ui",
+    "e2e:ui:multiple": "./scripts/start-e2e.ts --config playwright-multiple-tenant-mode.config.ts --ui",
+    "e2e:ui": "npm-run-all --parallel e2e:ui:*",
     "postinstall": "npx simple-git-hooks"
   },
   "simple-git-hooks": {
