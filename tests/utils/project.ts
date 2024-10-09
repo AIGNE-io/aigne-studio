@@ -7,7 +7,7 @@ const format = () => {
   const minutes = String(now.getMinutes()).padStart(2, '0');
   const seconds = String(now.getSeconds()).padStart(2, '0');
 
-  return `${hours}-${minutes}-${seconds}-${now.getTime()}`;
+  return `${hours}-${minutes}-${seconds}-${now.getMilliseconds()}`;
 };
 
 export async function createProjectDialog({ page }: { page: Page }) {

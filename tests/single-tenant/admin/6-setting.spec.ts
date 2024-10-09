@@ -58,7 +58,7 @@ test('setting-basic', async ({ page }) => {
   await expect(projectDescription).toHaveValue('This is e2e test');
 });
 
-test.skip('add branch', async ({ page }) => {
+test('add branch', async ({ page }) => {
   await page.getByTestId('header-actions-setting').click();
   await page.getByRole('tab', { name: 'Git' }).click();
   await page.getByLabel('Professional Mode').check();
@@ -66,7 +66,7 @@ test.skip('add branch', async ({ page }) => {
   await page.getByRole('button', { name: 'Save' }).first().click();
   await gitPromise;
 
-  while (!(await page.getByRole('tooltip').isVisible())) {
+  while (!(await page.getByTestId('branch-list').isVisible())) {
     await page.getByTestId('branch-icon').click({ force: true });
     await page.waitForTimeout(500);
   }

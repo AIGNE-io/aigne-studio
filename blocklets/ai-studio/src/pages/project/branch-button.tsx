@@ -179,12 +179,12 @@ export default function BranchButton({
             }}
           />
         }>
-        <Stack flexDirection="row" gap={0.5} className="center" sx={{ cursor: 'pointer' }}>
+        <Stack flexDirection="row" gap={0.5} className="center" sx={{ cursor: 'pointer' }} data-testid="branch-icon">
           <Box component={Icon} icon={ArrowRightIcon} width={15} color="#9CA3AF" />
           <Typography variant="subtitle3" color="#9CA3AF" lineHeight={1}>
             {gitRef}
           </Typography>
-          <Box data-testid="branch-icon" component={Icon} icon={ArrowDownIcon} width={15} color="#030712" />
+          <Box component={Icon} icon={ArrowDownIcon} width={15} color="#030712" />
         </Stack>
       </Dropdown>
     </>
@@ -216,6 +216,7 @@ function BranchList({
 
   return (
     <MenuList
+      data-testid="branch-list"
       autoFocusItem
       sx={{
         display: 'flex',

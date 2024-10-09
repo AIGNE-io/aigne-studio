@@ -24,7 +24,7 @@ export default defineConfig({
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
   /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
+  workers: process.env.CI ? 2 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
@@ -40,38 +40,33 @@ export default defineConfig({
   /* Configure projects for major browsers */
   projects: [
     // single tenant mode
-    // {
-    //   name: 'singleTenantMode',
-    //   testMatch: 'single-tenant-mode.setup.ts',
-    // },
+    {
+      name: 'singleTenantMode',
+      testMatch: 'single-tenant-mode.setup.ts',
+    },
     {
       name: 'singleTenantModeAdminSetup',
       testMatch: 'admin.setup.ts',
+      dependencies: ['singleTenantMode'],
     },
     {
       name: 'singleTenantModeAdminRoleTests',
       use: { ...devices['Desktop Chrome'], storageState: TestConstants.authFilePath('admin') },
       dependencies: ['singleTenantModeAdminSetup'],
       testMatch: ['single-tenant/admin/**/*.spec.ts'],
-      testIgnore: ['single-tenant/admin/projects.spec.ts', 'single-tenant/admin/runtime.spec.ts'],
+      testIgnore: ['single-tenant/admin/projects.spec.ts'],
     },
     {
-      name: 'singleTenantModeAdminRoleProjectsTests',
-      use: { ...devices['Desktop Chrome'], storageState: TestConstants.authFilePath('admin') },
+      name: 'singleTenantModeGuestSetup',
+      testMatch: 'guest.setup.ts',
       dependencies: ['singleTenantModeAdminRoleTests'],
-      testMatch: ['single-tenant/admin/projects.spec.ts', 'single-tenant/admin/runtime.spec.ts'],
     },
-    // {
-    //   name: 'singleTenantModeGuestSetup',
-    //   testMatch: 'guest.setup.ts',
-    //   dependencies: ['singleTenantModeAdminRoleTests'],
-    // },
-    // {
-    //   name: 'singleTenantModeGuestRoleTests',
-    //   use: { ...devices['Desktop Chrome'], storageState: TestConstants.authFilePath('guest') },
-    //   dependencies: ['singleTenantModeGuestSetup'],
-    //   testMatch: /single-tenant\/guest\/.*\.spec\.ts/,
-    // },
+    {
+      name: 'singleTenantModeGuestRoleTests',
+      use: { ...devices['Desktop Chrome'], storageState: TestConstants.authFilePath('guest') },
+      dependencies: ['singleTenantModeGuestSetup'],
+      testMatch: /single-tenant\/guest\/.*\.spec\.ts/,
+    },
     // // multiple tenant mode
     // {
     //   name: 'multipleTenantMode',

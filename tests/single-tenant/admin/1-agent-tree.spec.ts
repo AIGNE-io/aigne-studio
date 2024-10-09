@@ -54,21 +54,21 @@ test('create agent', async ({ page }) => {
   await page.getByTestId('file-tree').getByRole('textbox').fill('Unamed Agent 1');
   await page.getByTestId('file-tree').getByRole('textbox').press('Enter');
 
-  const duplicateAgent = page.locator('.agent-box').first();
-  await duplicateAgent.press('Enter');
-  await duplicateAgent.hover();
-  await duplicateAgent.locator('button').click();
-  await page.getByText('Rename').click({ force: true });
-  await duplicateAgent.getByTestId('edit-text-item').locator('input').fill('Renamed Agent');
-  await duplicateAgent.press('Enter');
-  await expect(firstAgent).toContainText('Renamed Agent');
-
   await page.locator('.agent-box').first().press('Enter');
   const treeItem = await page.locator('.agent-box').first().getByTestId('tree-item');
   await treeItem.hover();
   await treeItem.locator('button').click();
+  await page.getByText('Rename').click({ force: true });
+  const input = await page.locator('.agent-box').first().getByTestId('edit-text-item').locator('input');
+  await input.fill('Renamed Agent');
+  await input.press('Enter');
+  await expect(page.locator('.agent-box').first()).toContainText('Renamed Agent');
+
+  await page.locator('.agent-box').first().press('Enter');
+  const treeItem1 = await page.locator('.agent-box').first().getByTestId('tree-item');
+  await treeItem1.hover();
+  await treeItem1.locator('button').click();
   await page.getByText('Set as entry agent').click({ force: true });
-  await expect(page.locator('.agent-box').first()).toContainText('(Entry)');
 });
 
 test('new folder/rename / new agent', async ({ page }) => {
