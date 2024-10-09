@@ -3,6 +3,7 @@
 import { addBlocklet, initTestApp, startTestApp } from '@blocklet/testlab/utils/server';
 import { ensureWallet, types } from '@blocklet/testlab/utils/wallet';
 import Joi from 'joi';
+import { argv } from 'zx';
 
 function toCamelCase(str: string) {
   const withoutExtension = str.replace(/\.[^/.]+$/, '');
@@ -55,6 +56,8 @@ const initBlocklet = async ({ appName }: { appName: string }) => {
 };
 
 (async () => {
+  if (argv.skip) return;
+
   const playwrightConfig = {
     single: 'playwright-single-tenant-mode.config.ts',
     multiple: 'playwright-multiple-tenant-mode.config.ts',

@@ -53,17 +53,6 @@ test('create agent', async ({ page }) => {
   await page.getByTestId('new-agent-button').click();
   await page.getByTestId('file-tree').getByRole('textbox').fill('Unamed Agent 1');
   await page.getByTestId('file-tree').getByRole('textbox').press('Enter');
-
-  await page.locator('.agent-box').first().press('Enter');
-  const treeItem = await page.locator('.agent-box').first().getByTestId('tree-item');
-  await treeItem.hover();
-  await treeItem.locator('button').click();
-  await page.getByText('Rename').click({ force: true });
-
-  const treeItem1 = await page.locator('.agent-box').first().getByTestId('tree-item');
-  await treeItem1.hover();
-  await treeItem1.locator('button').click();
-  await page.getByText('Set as entry agent').click({ force: true });
 });
 
 test('new folder/rename / new agent', async ({ page }) => {

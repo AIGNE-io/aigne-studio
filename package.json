@@ -26,9 +26,11 @@
     "e2e:single": "./scripts/start-e2e.ts --config single",
     "e2e:multiple": "./scripts/start-e2e.ts --config multiple",
     "e2e": "./scripts/init-e2e.ts && npm-run-all --parallel e2e:*",
+    "e2e-skip": "npm-run-all --parallel e2e:*",
     "e2e-ui:single": "./scripts/start-e2e.ts --config single --ui",
     "e2e-ui:multiple": "./scripts/start-e2e.ts --config multiple --ui",
     "e2e-ui": "./scripts/init-e2e.ts && npm-run-all --parallel e2e-ui:*",
+    "e2e-ui-skip": "npm-run-all --parallel e2e-ui:*",
     "postinstall": "npx simple-git-hooks"
   },
   "simple-git-hooks": {
