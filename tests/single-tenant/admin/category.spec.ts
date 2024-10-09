@@ -22,8 +22,8 @@ test.describe.serial('category', () => {
     const addOneCategoryResponse = page.waitForResponse(
       (response) => response.url().includes('/api/categories') && response.status() === 200
     );
-    await addCategoryForm.getByTestId('name-field').locator('input').fill('test');
-    await addCategoryForm.getByTestId('slug-field').locator('input').fill('test');
+    await addCategoryForm.getByTestId('name-field').locator('input').fill('production');
+    await addCategoryForm.getByTestId('slug-field').locator('input').fill('production');
     await addCategoryForm.getByTestId('orderIndex-field').locator('input').fill('1');
     await addCategoryForm.getByTestId('icon-field').locator('input').fill('tabler:a-b');
     await page.getByTestId('save-button').click();
@@ -86,11 +86,7 @@ test.describe.serial('category', () => {
     await updateCategoryResponse;
     await expect(editForm).not.toBeVisible();
 
-    const getCategoryResponse = page.waitForResponse(
-      (response) => response.url().includes('/api/categories') && response.status() === 200
-    );
     await expect(page.getByTestId('category-item').first()).toHaveText('Updated Category');
-    await getCategoryResponse;
 
     // 分享按钮
     await page.getByTestId('category-link-button').first().click();

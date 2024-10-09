@@ -53,21 +53,13 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'], storageState: TestConstants.authFilePath('admin') },
       dependencies: ['singleTenantModeAdminSetup'],
       testMatch: ['single-tenant/admin/**/*.spec.ts'],
-      testIgnore: [
-        'single-tenant/admin/projects.spec.ts',
-        'single-tenant/admin/runtime.spec.ts',
-        'single-tenant/admin/explore.spec.ts',
-      ],
+      testIgnore: ['single-tenant/admin/projects.spec.ts', 'single-tenant/admin/runtime.spec.ts'],
     },
     {
       name: 'singleTenantModeAdminRoleProjectsTests',
       use: { ...devices['Desktop Chrome'], storageState: TestConstants.authFilePath('admin') },
       dependencies: ['singleTenantModeAdminRoleTests'],
-      testMatch: [
-        'single-tenant/admin/projects.spec.ts',
-        'single-tenant/admin/runtime.spec.ts',
-        'single-tenant/admin/explore.spec.ts',
-      ],
+      testMatch: ['single-tenant/admin/projects.spec.ts', 'single-tenant/admin/runtime.spec.ts'],
     },
     // {
     //   name: 'singleTenantModeGuestSetup',

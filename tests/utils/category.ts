@@ -7,7 +7,7 @@ export async function deleteCategory({ page }: { page: Page }) {
   await page.waitForLoadState('networkidle', { timeout: 30000 });
 
   const maxRetries = 3;
-  let retries = 0;
+  const retries = 0;
 
   while (retries < maxRetries) {
     const categoryItems = await page.getByTestId('category-delete-button').all();
@@ -27,16 +27,6 @@ export async function deleteCategory({ page }: { page: Page }) {
       await page.getByTestId('dialog-ok-button').click();
       await deleteResponse;
       await page.locator('.SnackbarItem-action').first().locator('button').click();
-    }
-
-    const remainingItems = await page.getByTestId('category-delete-button').count();
-    if (remainingItems === 0) {
-      break;
-    } else {
-      retries++;
-      if (retries === maxRetries) {
-        console.log(`Failed to delete all categories after ${maxRetries} attempts`);
-      }
     }
   }
 

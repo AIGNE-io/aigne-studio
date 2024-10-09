@@ -7,7 +7,7 @@ export async function deleteDeploy({ page }: { page: Page }) {
   await page.waitForLoadState('networkidle', { timeout: 30000 });
 
   const maxRetries = 3;
-  let retries = 0;
+  const retries = 0;
 
   while (retries < maxRetries) {
     const deployItems = await page.getByTestId('delete-deployment-button').all();
@@ -18,24 +18,15 @@ export async function deleteDeploy({ page }: { page: Page }) {
       break;
     }
 
-    for (const item of deployItems) {
-      await item.click();
+    while ((await page.getByTestId('delete-deployment-button').count()) > 0) {
+      await page.getByTestId('delete-deployment-button').first().click();
 
       const deleteResponse = page.waitForResponse(
         (response) => response.url().includes('/api/deployments') && response.status() === 200
       );
       await page.getByTestId('dialog-ok-button').click();
       await deleteResponse;
-    }
-
-    const remainingItems = await page.getByTestId('delete-deployment-button').count();
-    if (remainingItems === 0) {
-      break;
-    } else {
-      retries++;
-      if (retries === maxRetries) {
-        console.log(`Failed to delete all deployments after ${maxRetries} attempts`);
-      }
+      await page.locator('.SnackbarItem-action').first().locator('button').click();
     }
   }
 

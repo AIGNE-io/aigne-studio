@@ -30,6 +30,7 @@ test.describe.serial('explore', () => {
     await addDeployResponse;
 
     await expect(page.getByTestId('save-button')).toBeDisabled();
+    await page.locator('.SnackbarItem-action').first().locator('button').click();
   });
 
   test('add category for deployment', async ({ page }) => {
@@ -48,14 +49,13 @@ test.describe.serial('explore', () => {
     );
     await page.getByTestId('category-select-input').click();
     await page.waitForSelector('[role="listbox"] [role="option"]');
-    await page.locator('[role="listbox"] [role="option"]').first().click();
-
+    await page.locator('[role="listbox"] [role="option"]').filter({ hasText: 'production' }).first().click();
     await page.getByTestId('update-button').click();
     await addCategoryResponse;
   });
 
   test('visit explore card detail', async ({ page }) => {
-    await page.goto('/explore/test');
+    await page.goto('/explore/production');
     await page.waitForLoadState('networkidle');
 
     const listPage = page.getByTestId('explore-list');
