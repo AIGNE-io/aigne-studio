@@ -278,7 +278,8 @@ function ProjectPageView() {
                   },
                 }}>
                 <Tab value="debug" label={t('debug')} />
-                <Tab value="test" label={t('test')} />
+                {/* hide test tab */}
+                <Tab value="test" label={t('test')} sx={{ display: 'none' }} />
                 <Tab value="discuss" label={t('discuss')} />
               </Tabs>
 
@@ -292,7 +293,7 @@ function ProjectPageView() {
             {!file ? (
               <DebugEmptyView />
             ) : currentTab === 'debug' ? (
-              <DebugView projectId={projectId} gitRef={gitRef} assistant={file} setCurrentTab={setCurrentTab} />
+              <DebugView projectId={projectId} gitRef={gitRef} assistant={file} />
             ) : currentTab === 'test' ? (
               <TestView projectId={projectId} gitRef={gitRef} assistant={file} setCurrentTab={setCurrentTab} />
             ) : currentTab === 'discuss' ? (
