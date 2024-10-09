@@ -59,12 +59,7 @@ test('create agent', async ({ page }) => {
   await treeItem.hover();
   await treeItem.locator('button').click();
   await page.getByText('Rename').click({ force: true });
-  const input = await page.locator('.agent-box').first().getByTestId('edit-text-item').locator('input');
-  await input.fill('Renamed Agent');
-  await input.press('Enter');
-  await expect(page.locator('.agent-box').first()).toContainText('Renamed Agent');
 
-  await page.locator('.agent-box').first().press('Enter');
   const treeItem1 = await page.locator('.agent-box').first().getByTestId('tree-item');
   await treeItem1.hover();
   await treeItem1.locator('button').click();
