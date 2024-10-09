@@ -19,7 +19,6 @@ export async function deleteDeploy({ page }: { page: Page }) {
     }
 
     for (const item of deployItems) {
-      await item.scrollIntoViewIfNeeded();
       await item.click();
 
       const deleteResponse = page.waitForResponse(
@@ -31,10 +30,8 @@ export async function deleteDeploy({ page }: { page: Page }) {
 
     const remainingItems = await page.getByTestId('delete-deployment-button').count();
     if (remainingItems === 0) {
-      console.log('All deployments deleted successfully');
       break;
     } else {
-      console.log(`${remainingItems} deployments remaining. Retrying...`);
       retries++;
       if (retries === maxRetries) {
         console.log(`Failed to delete all deployments after ${maxRetries} attempts`);

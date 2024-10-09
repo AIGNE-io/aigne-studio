@@ -18,23 +18,21 @@ export async function deleteCategory({ page }: { page: Page }) {
       break;
     }
 
-    for (const item of categoryItems) {
-      await item.scrollIntoViewIfNeeded();
-      await item.click();
+    while ((await page.getByTestId('category-delete-button').count()) > 0) {
+      await page.getByTestId('category-delete-button').first().click();
 
       const deleteResponse = page.waitForResponse(
         (response) => response.url().includes('/api/categories') && response.status() === 200
       );
       await page.getByTestId('dialog-ok-button').click();
       await deleteResponse;
+      await page.locator('.SnackbarItem-action').first().locator('button').click();
     }
 
     const remainingItems = await page.getByTestId('category-delete-button').count();
     if (remainingItems === 0) {
-      console.log('All categories deleted successfully');
       break;
     } else {
-      console.log(`${remainingItems} categories remaining. Retrying...`);
       retries++;
       if (retries === maxRetries) {
         console.log(`Failed to delete all categories after ${maxRetries} attempts`);

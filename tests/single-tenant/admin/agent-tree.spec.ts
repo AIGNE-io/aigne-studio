@@ -46,7 +46,7 @@ test('create agent', async ({ page }) => {
 
   const firstAgent = page.locator('.agent-box').first();
   await firstAgent.press('Enter');
-  await firstAgent.locator('> div').hover();
+  await firstAgent.hover();
   await firstAgent.locator('button').click();
   await page.getByText('Duplicate').click({ force: true });
 
@@ -56,7 +56,7 @@ test('create agent', async ({ page }) => {
 
   const duplicateAgent = page.locator('.agent-box').first();
   await duplicateAgent.press('Enter');
-  await duplicateAgent.locator('> div').hover();
+  await duplicateAgent.hover();
   await duplicateAgent.locator('button').click();
   await page.getByText('Rename').click({ force: true });
   await duplicateAgent.getByTestId('edit-text-item').locator('input').fill('Renamed Agent');

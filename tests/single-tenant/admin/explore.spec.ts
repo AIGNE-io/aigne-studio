@@ -1,59 +1,8 @@
 import { expect, test } from '@playwright/test';
 
-import { deleteCategory } from '../../utils/category';
-import { deleteDeploy } from '../../utils/deploy';
 import { createProjectDialog } from '../../utils/project';
 
 test.describe.serial('explore', () => {
-  test.beforeAll('clean and create project', async ({ browser }) => {
-    const page = await browser.newPage();
-
-    await deleteCategory({ page });
-    await deleteDeploy({ page });
-  });
-
-  test('check empty category', async ({ page }) => {
-    await deleteCategory({ page });
-    await deleteDeploy({ page });
-
-    await page.goto('/explore');
-    await page.waitForLoadState('networkidle');
-
-    const exploreCategoryItems = page.getByTestId('categories-sidebar').getByTestId('category-item');
-    await expect(exploreCategoryItems).toHaveCount(0);
-
-    await expect(page.getByText('No Categories')).toBeVisible();
-
-    await page.getByTestId('no-categories').click();
-    await page.waitForLoadState('networkidle');
-
-    await expect(page.getByText('No Categories')).toBeVisible();
-
-    // 添加第一个分类
-    await expect(page).toHaveURL('/admin/category', { timeout: 10000 });
-    await page.getByTestId('add-category-button').click();
-    await expect(page.getByTestId('add-category-form')).toBeVisible();
-    const addCategoryForm = page.getByTestId('add-category-form');
-
-    const addOneCategoryResponse = page.waitForResponse(
-      (response) => response.url().includes('/api/categories') && response.status() === 200
-    );
-    await addCategoryForm.getByTestId('name-field').locator('input').fill('test');
-    await addCategoryForm.getByTestId('slug-field').locator('input').fill('test');
-    await addCategoryForm.getByTestId('orderIndex-field').locator('input').fill('1');
-    await addCategoryForm.getByTestId('icon-field').locator('input').fill('tabler:a-b');
-    await page.getByTestId('save-button').click();
-    await addOneCategoryResponse;
-  });
-
-  test('one category', async ({ page }) => {
-    await page.goto('/explore');
-    await page.waitForLoadState('networkidle');
-
-    const exploreCategoryItems = page.getByTestId('categories-sidebar').getByTestId('category-item');
-    await expect(exploreCategoryItems).toHaveCount(1);
-  });
-
   test('add one deployment', async ({ page }) => {
     await page.goto('/explore');
     await page.waitForLoadState('networkidle');

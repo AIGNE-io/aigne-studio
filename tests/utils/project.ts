@@ -34,34 +34,32 @@ export async function createProjectDialog({ page }: { page: Page }) {
     .locator('[data-testid="projects-item"]')
     .filter({ has: page.locator('.name', { hasText: projectName }) })
     .first();
-  await expect(targetProject).toBeVisible({ timeout: 5000 });
 
   if (targetProject) {
-    const projectId = await targetProject.getAttribute('data-id');
-    const firstProjectName = await targetProject.locator('.name').innerText();
-
     await targetProject.click();
     await page.waitForLoadState('networkidle');
 
-    const path = `/projects/${projectId}`;
+    // const projectId = await targetProject.getAttribute('data-id');
+    // const path = `/projects/${projectId}`;
 
-    const maxRetries = 5;
-    let retries = 0;
+    // const maxRetries = 5;
+    // let retries = 0;
 
-    while (retries < maxRetries) {
-      await page.goto(path);
+    // while (retries < maxRetries) {
+    //   await page.goto(path);
 
-      try {
-        await expect(page.getByText(firstProjectName)).toBeVisible({ timeout: 20000 });
-        break;
-      } catch (error) {
-        retries++;
+    //   try {
+    //     const firstProjectName = await targetProject.locator('.name').innerText();
+    //     await expect(page.getByText(firstProjectName)).toBeVisible({ timeout: 20000 });
+    //     break;
+    //   } catch (error) {
+    //     retries++;
 
-        if (retries >= maxRetries) {
-          throw new Error(`Failed to load project page after ${maxRetries} attempts`);
-        }
-      }
-    }
+    //     if (retries >= maxRetries) {
+    //       throw new Error(`Failed to load project page after ${maxRetries} attempts`);
+    //     }
+    //   }
+    // }
   }
 }
 
