@@ -14,11 +14,11 @@ export async function createProjectDialog({ page }: { page: Page }) {
   const newProjectDialog = page.getByTestId('newProjectDialog');
   await expect(newProjectDialog).toBeVisible();
 
-  const projectName = `Test Project ${format()}`;
-
   const createProjectPromise = page.waitForResponse(
     (response) => response.url().includes('/api/projects') && response.status() === 200
   );
+  await page.waitForTimeout(300);
+  const projectName = `Test Project ${format()}`;
   await newProjectDialog.getByTestId('projectNameField').locator('input').fill(projectName);
   await page.fill('[data-testid="projectDescriptionField"] textarea', 'This is a description of my new project.');
 

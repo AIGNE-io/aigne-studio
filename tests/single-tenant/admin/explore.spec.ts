@@ -4,15 +4,18 @@ import { deleteCategory } from '../../utils/category';
 import { deleteDeploy } from '../../utils/deploy';
 import { createProjectDialog } from '../../utils/project';
 
-test.beforeAll('clean and create project', async ({ browser }) => {
-  const page = await browser.newPage();
-
-  await deleteCategory({ page });
-  await deleteDeploy({ page });
-});
-
 test.describe.serial('explore', () => {
+  test.beforeAll('clean and create project', async ({ browser }) => {
+    const page = await browser.newPage();
+
+    await deleteCategory({ page });
+    await deleteDeploy({ page });
+  });
+
   test('check empty category', async ({ page }) => {
+    await deleteCategory({ page });
+    await deleteDeploy({ page });
+
     await page.goto('/explore');
     await page.waitForLoadState('networkidle');
 

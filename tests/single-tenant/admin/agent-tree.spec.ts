@@ -1,6 +1,6 @@
 import { Page, expect, test } from '@playwright/test';
 
-import { createProject } from '../../utils/project';
+import { createProject, deleteProject } from '../../utils/project';
 
 const deleteAllFoldersAndAgents = async ({ page }: { page: Page }) => {
   // 1. 找到所有的 folder
@@ -30,6 +30,7 @@ let projectUrl: string;
 
 test.beforeAll('clean and create project', async ({ browser }) => {
   const page = await browser.newPage();
+  await deleteProject({ page });
   await createProject({ page });
   projectUrl = page.url();
 });
@@ -62,10 +63,12 @@ test('create agent', async ({ page }) => {
   await duplicateAgent.press('Enter');
   await expect(firstAgent).toContainText('Renamed Agent');
 
-  await firstAgent.locator('> div').hover();
-  await firstAgent.locator('button').click();
+  await page.locator('.agent-box').first().press('Enter');
+  const treeItem = await page.locator('.agent-box').first().getByTestId('tree-item');
+  await treeItem.hover();
+  await treeItem.locator('button').click();
   await page.getByText('Set as entry agent').click({ force: true });
-  await expect(firstAgent).toContainText('(Entry)');
+  await expect(page.locator('.agent-box').first()).toContainText('(Entry)');
 });
 
 test('new folder/rename / new agent', async ({ page }) => {

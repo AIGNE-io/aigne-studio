@@ -886,6 +886,7 @@ function TreeItem({
 
   return (
     <Stack
+      data-testid="tree-item"
       direction="row"
       sx={{
         mx: 1,

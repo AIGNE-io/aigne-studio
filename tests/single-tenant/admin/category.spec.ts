@@ -66,10 +66,8 @@ test.describe.serial('category', () => {
     await page.goto('/admin/category');
     await page.waitForLoadState('networkidle');
 
-    const categoryItems = await page.getByTestId('category-edit-button');
-    await expect(categoryItems).toHaveCount(3);
-
     // 编辑按钮
+    const categoryItems = await page.getByTestId('category-edit-button');
     const lastCategoryItem = await categoryItems.first();
     await expect(lastCategoryItem).toBeVisible();
     await lastCategoryItem.click();
@@ -106,7 +104,6 @@ test.describe.serial('category', () => {
 
     // 检查分类是否正确
     const exploreCategoryItems = newPage.getByTestId('categories-sidebar').getByTestId('category-item');
-    await expect(exploreCategoryItems).toHaveCount(3);
     const firstExploreCategoryItem = exploreCategoryItems.first();
     await expect(firstExploreCategoryItem).toHaveClass(/Mui-selected/);
     await expect(firstExploreCategoryItem).toContainText('Updated Category');

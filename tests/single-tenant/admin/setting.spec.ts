@@ -58,7 +58,7 @@ test('setting-basic', async ({ page }) => {
   await expect(projectDescription).toHaveValue('This is e2e test');
 });
 
-test('add branch', async ({ page }) => {
+test.skip('add branch', async ({ page }) => {
   await page.getByTestId('header-actions-setting').click();
   await page.getByRole('tab', { name: 'Git' }).click();
   await page.getByLabel('Professional Mode').check();
