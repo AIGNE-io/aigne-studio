@@ -1,8 +1,11 @@
-import { useIsProUser } from '@app/contexts/session';
+import { useIsAdmin, useIsProUser } from '@app/contexts/session';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Icon } from '@iconify-icon/react';
+import BuildingIcon from '@iconify-icons/tabler/building';
 import ArrowUpIcon from '@iconify-icons/tabler/circle-arrow-up';
 import DiamondIcon from '@iconify-icons/tabler/diamond';
+import ExternalLinkIcon from '@iconify-icons/tabler/external-link';
+import HomeIcon from '@iconify-icons/tabler/home';
 import { Close } from '@mui/icons-material';
 import {
   Alert,
@@ -13,6 +16,7 @@ import {
   DialogTitle,
   IconButton,
   Theme,
+  Typography,
   useMediaQuery,
 } from '@mui/material';
 
@@ -21,9 +25,16 @@ import { useMultiTenantRestriction } from './state';
 
 interface Props {}
 
+const paymentMountPoint = blocklet?.componentMountPoints.find(
+  (i) => i.did === 'z2qaCNvKMv5GjouKdcDWexv6WqtHbpNPQDnAk'
+)?.mountPoint;
+
 export function PlanUpgrade({ ...rest }: Props) {
   const { hidePlanUpgrade, planUpgradeVisible, type } = useMultiTenantRestriction();
   const { t } = useLocaleContext();
+  const isProUser = useIsProUser();
+  const isAdmin = useIsAdmin();
+  const isFreeUser = !isProUser && !isAdmin;
   const downSm = useMediaQuery<Theme>((theme) => theme.breakpoints.down('sm'));
 
   return (
@@ -68,6 +79,62 @@ export function PlanUpgrade({ ...rest }: Props) {
             }}>
             {t(`multiTenantRestriction.${type}.desc`)}
           </Alert>
+        )}
+
+        {isFreeUser && (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, my: 3 }}>
+            <Box sx={{ fontSize: 16, fontWeight: 'bold' }}>Active Plan</Box>
+            <Box
+              sx={{
+                p: 2,
+                border: 1,
+                borderColor: 'divider',
+                borderRadius: 1,
+                bgcolor: 'grey.100',
+              }}>
+              <Typography variant="h5" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box component={Icon} icon={HomeIcon} sx={{ fontSize: 20 }} />
+                <span>Free</span>
+              </Typography>
+              <Box component="p" sx={{ my: 0.5 }}>
+                The Free plan offers essential features for personal use.
+              </Box>
+            </Box>
+          </Box>
+        )}
+
+        {isProUser && (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, my: 3 }}>
+            <Box sx={{ fontSize: 16, fontWeight: 'bold' }}>Active Plan</Box>
+            <Box
+              sx={{
+                p: 2,
+                border: 1,
+                borderColor: 'divider',
+                borderRadius: 1,
+                color: 'success.contrastText',
+                bgcolor: 'success.light',
+              }}>
+              <Typography variant="h5" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box component={Icon} icon={BuildingIcon} sx={{ fontSize: 20 }} />
+                <span>Pro</span>
+              </Typography>
+              <Box component="p" sx={{ my: 0.5 }}>
+                Pro plan with advanced features for professional and enterprise projects.
+              </Box>
+
+              {paymentMountPoint && (
+                <Box
+                  component="a"
+                  href={`${paymentMountPoint}/customer`}
+                  target="_blank"
+                  sx={{ display: 'flex', alignItems: 'center', gap: 0.25, color: 'grey.200', fontSize: 13 }}>
+                  <span>Subscription & Billing</span>
+                  <Box component={Icon} icon={ExternalLinkIcon} sx={{ color: 'inherit' }} />
+                </Box>
+              )}
+            </Box>
+          </Box>
         )}
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, my: 3 }}>

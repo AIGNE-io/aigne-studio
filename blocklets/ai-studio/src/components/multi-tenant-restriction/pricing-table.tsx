@@ -1,5 +1,9 @@
-import { useIsProUser } from '@app/contexts/session';
-import { Icon } from '@iconify-icon/react';
+import { useIsAdmin, useIsProUser } from '@app/contexts/session';
+import { Icon, IconifyIcon } from '@iconify-icon/react';
+import BuildingIcon from '@iconify-icons/tabler/building';
+import BuildingCommunityIcon from '@iconify-icons/tabler/building-community';
+import BuildingSkyscraperIcon from '@iconify-icons/tabler/building-skyscraper';
+import HomeIcon from '@iconify-icons/tabler/home';
 import { LoadingButton } from '@mui/lab';
 import { Box } from '@mui/material';
 import { ReactNode } from 'react';
@@ -7,7 +11,7 @@ import { ReactNode } from 'react';
 import { useProPaymentLink } from './state';
 
 interface Plan {
-  icon: string;
+  icon: string | IconifyIcon;
   name: string;
   features: string[];
   price?: ReactNode;
@@ -15,7 +19,7 @@ interface Plan {
   buttonText: string;
   buttonLink: string;
   buttonLoading?: boolean;
-  buttonDisabled?: boolean;
+  active?: boolean;
   isFeatured?: boolean;
 }
 
@@ -57,8 +61,11 @@ function PricingTablePlan({ plan }: { plan: Plan }) {
           variant={plan.isFeatured ? 'contained' : 'outlined'}
           color="primary"
           loading={plan.buttonLoading}
-          disabled={plan.buttonDisabled}
-          sx={{ py: 1, ...(!plan.isFeatured && { bgcolor: '#fff' }) }}
+          sx={{
+            py: 1,
+            ...(!plan.isFeatured && { bgcolor: '#fff' }),
+            ...(plan.active && { visibility: 'hidden' }),
+          }}
           onClick={() => {
             window.open(plan.buttonLink, '_blank');
           }}>
@@ -122,10 +129,11 @@ function InnerPricingTable({ plans, ...rest }: PricingTableProps) {
 export function PricingTable() {
   const { proPaymentLink, loading } = useProPaymentLink();
   const isProUser = useIsProUser();
+  const isAdmin = useIsAdmin();
 
   const aignePlansEN = [
     {
-      icon: 'tabler:home',
+      icon: HomeIcon,
       name: 'Free',
       features: [
         'Up to 3 projects',
@@ -136,9 +144,10 @@ export function PricingTable() {
       price: '0 ABT',
       buttonText: 'Sign up',
       buttonLink: '#/',
+      ...(!isAdmin && !isProUser && { active: true }),
     },
     {
-      icon: 'tabler:building',
+      icon: BuildingIcon,
       name: 'Pro',
       features: [
         'Up to 100 projects',
@@ -154,9 +163,10 @@ export function PricingTable() {
       buttonLoading: loading || !proPaymentLink,
       buttonDisabled: isProUser,
       isFeatured: true,
+      ...(isProUser && { active: true }),
     },
     {
-      icon: 'tabler:building-community',
+      icon: BuildingCommunityIcon,
       name: 'Serverless',
       features: [
         'Unlimited projects',
@@ -171,7 +181,7 @@ export function PricingTable() {
       buttonLink: AI_STUDIO_STORE,
     },
     {
-      icon: 'tabler:building-skyscraper',
+      icon: BuildingSkyscraperIcon,
       name: 'Dedicated',
       features: [
         'Unlimited projects',
