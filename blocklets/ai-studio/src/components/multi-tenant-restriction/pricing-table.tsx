@@ -129,7 +129,7 @@ export function PricingTable() {
       name: 'Free',
       features: [
         'Up to 3 projects',
-        'Up to 10 deployments',
+        'Up to 100k tokens',
         'No support for publishing Private Agent',
         'Data sync to DID Space \n(Bind DID Wallet)',
       ],
@@ -141,7 +141,8 @@ export function PricingTable() {
       icon: 'tabler:building',
       name: 'Pro',
       features: [
-        'Unlimited projects',
+        'Up to 100 projects',
+        'Up to 100m tokens',
         'Unlimited deployments',
         'Support for publishing Private Agent',
         'Pay as you go',
@@ -159,6 +160,7 @@ export function PricingTable() {
       name: 'Serverless',
       features: [
         'Unlimited projects',
+        'Unlimited tokens',
         'Unlimited deployments',
         'Support for publishing Private Agent',
         'Pay as you go',
@@ -173,6 +175,7 @@ export function PricingTable() {
       name: 'Dedicated',
       features: [
         'Unlimited projects',
+        'Unlimited tokens',
         'Unlimited deployments',
         'Support for publishing Private Agent',
         'Dedicated server instance',

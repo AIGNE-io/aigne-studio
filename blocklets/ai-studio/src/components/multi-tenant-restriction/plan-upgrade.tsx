@@ -1,8 +1,20 @@
+import { useIsProUser } from '@app/contexts/session';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Icon } from '@iconify-icon/react';
 import ArrowUpIcon from '@iconify-icons/tabler/circle-arrow-up';
+import DiamondIcon from '@iconify-icons/tabler/diamond';
 import { Close } from '@mui/icons-material';
-import { Alert, Box, Dialog, DialogContent, DialogTitle, IconButton, Theme, useMediaQuery } from '@mui/material';
+import {
+  Alert,
+  Box,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  Theme,
+  useMediaQuery,
+} from '@mui/material';
 
 import { PricingTable } from './pricing-table';
 import { useMultiTenantRestriction } from './state';
@@ -87,5 +99,18 @@ export function PlanUpgrade({ ...rest }: Props) {
         </Button>
       </DialogActions> */}
     </Dialog>
+  );
+}
+
+export function PlanUpgradeButton() {
+  const { showPlanUpgrade } = useMultiTenantRestriction();
+  const isPro = useIsProUser();
+  return (
+    <Button
+      color={isPro ? 'inherit' : 'primary'}
+      startIcon={<Icon icon={DiamondIcon} />}
+      onClick={() => showPlanUpgrade()}>
+      Pro Plan
+    </Button>
   );
 }
