@@ -12,7 +12,7 @@ setup('single tenant mode', async ({ page }) => {
   await login({
     page,
     wallet: ensureWallet({ name: 'owner' }),
-    appWallet: ensureWallet({ name: 'app', onlyFromCache: true }),
+    appWallet: ensureWallet({ name: process.env.TEST_BLOCKLET_APP_NAME, onlyFromCache: true }),
     passport: { name: 'owner', title: 'owner' },
   });
 

@@ -6,8 +6,8 @@ import { chromium } from '@playwright/test';
 import { cacheResult } from './cache';
 import { TestConstants } from './constants';
 
-export async function setupUsers() {
-  const appWallet = ensureWallet({ name: 'app', onlyFromCache: true });
+export async function setupUsers({ appName, appUrl }: { appName: string; appUrl: string }) {
+  const appWallet = ensureWallet({ name: appName, onlyFromCache: true });
   const ownerWallet = ensureWallet({ name: 'owner' });
   const adminWallet = ensureWallet({ name: 'admin' });
   const guestWallet = ensureWallet({ name: 'guest' });
@@ -38,7 +38,7 @@ export async function setupUsers() {
       const page = await browser.newPage();
 
       // login as owner and bind did space
-      await page.goto(TestConstants.appUrl);
+      await page.goto(appUrl);
 
       await login({ page, wallet, appWallet, passport: { name, title: name } });
 

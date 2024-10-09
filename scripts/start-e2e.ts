@@ -13,6 +13,20 @@ import { $, argv } from 'zx';
 
 import { setupUsers } from '../tests/utils/auth';
 
+function toCamelCase(str: string) {
+  const withoutExtension = str.replace(/\.[^/.]+$/, '');
+
+  return withoutExtension
+    .split(/[-_]/)
+    .map((word, index) => {
+      if (index === 0) {
+        return word.toLowerCase();
+      }
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    })
+    .join('');
+}
+
 const ui = argv.ui;
 if (ui) process.env.HEADLESS = 'false';
 
@@ -22,9 +36,12 @@ const httpPort = (portSchema.validate(process.env.BLOCKLET_SERVER_HTTP_PORT).val
 const httpsPort = (portSchema.validate(process.env.BLOCKLET_SERVER_HTTPS_PORT).value as number) || 443;
 
 (async () => {
+  const configFile = argv.config || 'playwright.config.ts';
+  const appName = toCamelCase(`${configFile.replace('playwright-', '').replace('.config.ts', '')}-app`);
+
   const serverWallet = ensureWallet({ name: 'server' });
-  const appWallet = ensureWallet({ name: 'app', role: types.RoleType.ROLE_APPLICATION });
   const ownerWallet = ensureWallet({ name: 'owner' });
+  const appWallet = ensureWallet({ name: appName, role: types.RoleType.ROLE_APPLICATION });
 
   await initTestApp({
     blockletCli,
@@ -57,16 +74,14 @@ const httpsPort = (portSchema.validate(process.env.BLOCKLET_SERVER_HTTPS_PORT).v
   const info = await getBlockletServerStatus();
   if (!info) throw new Error('Blocklet server is not running');
   console.log('info', info);
-  
 
   const appUrl = didToDomain({ did: appWallet.address, port: info.httpsPort });
-  process.env.TEST_BLOCKLET_APP_URL = appUrl;
   console.log('appUrl', appUrl);
 
-  await setupUsers();
-
+  await setupUsers({ appName, appUrl });
   process.env.PW_TEST_HTML_REPORT_OPEN = 'never';
-  await $`playwright test ${ui ? '--ui' : ''}`;
+
+  await $`TEST_BLOCKLET_APP_URL=${appUrl} TEST_BLOCKLET_APP_NAME=${appName} playwright test ${ui ? '--ui' : ''} --config=${configFile}`;
 
   await removeTestApp({ blockletCli, appSk: appWallet.secretKey });
 })();

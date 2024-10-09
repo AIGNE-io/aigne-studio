@@ -13,7 +13,7 @@ setup('guest authenticate', async ({ page }) => {
   await login({
     page,
     wallet: ensureWallet({ name: 'guest' }),
-    appWallet: ensureWallet({ name: 'app', onlyFromCache: true }),
+    appWallet: ensureWallet({ name: process.env.TEST_BLOCKLET_APP_NAME, onlyFromCache: true }),
     passport: { name: 'guest', title: 'guest' },
   });
 

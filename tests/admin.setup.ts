@@ -13,7 +13,7 @@ setup('admin authenticate', async ({ page }) => {
   await login({
     page,
     wallet: ensureWallet({ name: 'admin' }),
-    appWallet: ensureWallet({ name: 'app', onlyFromCache: true }),
+    appWallet: ensureWallet({ name: process.env.TEST_BLOCKLET_APP_NAME, onlyFromCache: true }),
     passport: { name: 'admin', title: 'admin' },
   });
 

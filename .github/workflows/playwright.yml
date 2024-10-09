@@ -39,7 +39,7 @@ jobs:
           pnpm -F ai-studio -F ai-runtime bundle
 
       - name: Run Playwright tests
-        run: pnpm e2e
+        run: pnpm e2e:parallel
 
       - uses: actions/upload-artifact@v4
         if: always()
