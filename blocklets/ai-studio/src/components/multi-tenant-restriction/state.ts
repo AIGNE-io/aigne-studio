@@ -3,14 +3,6 @@ import { aigneStudioApi } from '@blocklet/aigne-sdk/api/api';
 import { useRequest } from 'ahooks';
 import { create } from 'zustand';
 
-export const useIsMultiTenantRestricted = () => {
-  const isAdmin = useIsAdmin();
-  const isProUser = useIsProUser();
-  const isMultiTenantMode = window.blocklet?.tenantMode === 'multiple';
-  // aigne 在 multiple tenant 模式下会有一些使用限制, admin 和 pro 用户不受限制
-  return isMultiTenantMode && !isAdmin && !isProUser;
-};
-
 type MultiTenantRestrictionType =
   | 'projectRequestLimitExceeded'
   | 'projectLimitExceeded'
@@ -35,19 +27,21 @@ export const showPlanUpgrade = (type?: MultiTenantRestrictionType) => {
 
 export function useMultiTenantRestriction() {
   const { planUpgradeVisible, type, showPlanUpgrade, hidePlanUpgrade } = useMultiTenantRestrictionStore();
-  const isRestricted = useIsMultiTenantRestricted();
+  const isAdmin = useIsAdmin();
+  const isProUser = useIsProUser();
+  const isMultiTenantMode = window.blocklet?.tenantMode === 'multiple';
+
   return {
-    isRestricted,
     planUpgradeVisible,
     type,
     showPlanUpgrade,
     hidePlanUpgrade,
     checkMultiTenantRestriction: (type: MultiTenantRestrictionType) => {
-      if (isRestricted) {
-        showPlanUpgrade(type);
-        return false;
-      }
-      return true;
+      if (isAdmin || !isMultiTenantMode) return true;
+      // pro user 不允许使用 cron job
+      if (isProUser && type !== 'useCronJob') return true;
+      showPlanUpgrade(type);
+      return false;
     },
   };
 }

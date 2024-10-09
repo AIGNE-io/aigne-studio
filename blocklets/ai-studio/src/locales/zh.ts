@@ -855,7 +855,7 @@ export default flatten({
       desc: '品牌定制仅在专业版或 Serverless AIGNE 中可用。请升级到专业版以访问此功能。',
     },
     useCronJob: {
-      desc: '定时任务功能仅在专业版或 Serverless AIGNE 中可用。请升级到专业版以访问此功能。',
+      desc: '定时任务功能仅在 Serverless AIGNE 中可用。请运行 Serverless AIGNE 以访问此功能。',
     },
   },
   selectEntryAgentTitle: '设置入口 Agent',

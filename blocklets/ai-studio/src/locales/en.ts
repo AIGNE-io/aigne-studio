@@ -864,7 +864,7 @@ export default flatten({
       desc: 'Branding customization is available only in the Pro plan or Serverless AIGNE. Please upgrade to the Pro plan to access this feature.',
     },
     useCronJob: {
-      desc: 'The Cron Jobs feature is available only in the Pro plan or Serverless AIGNE. Please upgrade to the Pro plan to access this feature.',
+      desc: 'The Cron Jobs feature is available only in Serverless AIGNE. Please run a Serverless AIGNE to access this feature.',
     },
   },
   selectEntryAgentTitle: 'Select Entry Agent',

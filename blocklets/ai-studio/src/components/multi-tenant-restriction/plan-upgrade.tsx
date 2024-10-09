@@ -10,13 +10,9 @@ import { useMultiTenantRestriction } from './state';
 interface Props {}
 
 export function PlanUpgrade({ ...rest }: Props) {
-  const { isRestricted, hidePlanUpgrade, planUpgradeVisible, type } = useMultiTenantRestriction();
+  const { hidePlanUpgrade, planUpgradeVisible, type } = useMultiTenantRestriction();
   const { t } = useLocaleContext();
   const downSm = useMediaQuery<Theme>((theme) => theme.breakpoints.down('sm'));
-
-  if (!isRestricted) {
-    return null;
-  }
 
   return (
     <Dialog
