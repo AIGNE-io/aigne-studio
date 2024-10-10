@@ -1,20 +1,20 @@
 import { login } from '@blocklet/testlab/utils/playwright';
 import { ensureWallet } from '@blocklet/testlab/utils/wallet';
 
-import customSetup from './utils/base';
-import { deleteCategory } from './utils/category';
-import { TestConstants } from './utils/constants';
-import { deleteDeploy } from './utils/deploy';
-import { deleteProject } from './utils/project';
+import customSetup from '../utils/base';
+import { deleteCategory } from '../utils/category';
+import { TestConstants } from '../utils/constants';
+import { deleteDeploy } from '../utils/deploy';
+import { deleteProject } from '../utils/project';
 
-customSetup('owner authenticate', async ({ page, storageStatePath = 'owner', appName }) => {
+customSetup('admin authenticate', async ({ page, storageStatePath, appName }) => {
   await page.goto('/');
 
   await login({
     page,
-    wallet: ensureWallet({ name: 'owner' }),
+    wallet: ensureWallet({ name: 'admin' }),
     appWallet: ensureWallet({ name: appName, onlyFromCache: true }),
-    passport: { name: 'owner', title: 'owner' },
+    passport: { name: 'admin', title: 'admin' },
   });
 
   await page.context().storageState({ path: TestConstants.authFilePath(storageStatePath) });

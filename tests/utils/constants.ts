@@ -6,15 +6,10 @@ export const TestConstants = {
   },
 
   authFilePath(user: string) {
-    return join(process.cwd(), '.playwright/.auth/', process.env.TEST_BLOCKLET_APP_NAME || '', `${user}.json`);
+    return join(process.cwd(), '.playwright/.auth/', `${user}.json`);
   },
 
   didSpaceVCPath(user: string) {
-    return join(
-      process.cwd(),
-      '.blocklet-tests/.cache/did-space-vc/',
-      process.env.TEST_BLOCKLET_APP_NAME || '',
-      `${user}.json`
-    );
+    return join(process.cwd(), '.blocklet-tests/.cache/did-space-vc/', `${user}.json`);
   },
 };

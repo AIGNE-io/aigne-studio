@@ -1,17 +1,17 @@
 import { login } from '@blocklet/testlab/utils/playwright';
 import { ensureWallet } from '@blocklet/testlab/utils/wallet';
-import { test as setup } from '@playwright/test';
 
-import { TestConstants } from './utils/constants';
-import { checkTenantMode } from './utils/tenant';
+import customSetup from '../utils/base';
+import { TestConstants } from '../utils/constants';
+import { checkTenantMode } from '../utils/tenant';
 
-setup('multiple tenant mode', async ({ page }) => {
+customSetup('multiple tenant mode', async ({ page, appName }) => {
   await page.goto('/');
 
   await login({
     page,
     wallet: ensureWallet({ name: 'owner' }),
-    appWallet: ensureWallet({ name: process.env.TEST_BLOCKLET_APP_NAME, onlyFromCache: true }),
+    appWallet: ensureWallet({ name: appName, onlyFromCache: true }),
     passport: { name: 'owner', title: 'owner' },
   });
 

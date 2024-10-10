@@ -5,16 +5,7 @@ import { ensureWallet, types } from '@blocklet/testlab/utils/wallet';
 import Joi from 'joi';
 import { argv } from 'zx';
 
-function toCamelCase(str: string) {
-  const withoutExtension = str.replace(/\.[^/.]+$/, '');
-
-  return withoutExtension
-    .split(/[-_]/)
-    .map((word, index) => {
-      return index === 0 ? word.toLowerCase() : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-    })
-    .join('');
-}
+import { playwrightConfigAppNames } from '../tests/utils';
 
 const portSchema = Joi.number<number>().integer().empty(['']);
 const blockletCli = process.env.BLOCKLET_CLI || 'blocklet';
@@ -58,13 +49,12 @@ const initBlocklet = async ({ appName }: { appName: string }) => {
 (async () => {
   if (argv.skip) return;
 
-  const playwrightConfig = {
-    single: 'playwright-single-tenant-mode.config.ts',
-    multiple: 'playwright-multiple-tenant-mode.config.ts',
-  };
+  // const initPromises = Object.entries(playwrightConfigAppNames).map(([, appName]) => initBlocklet({ appName }));
+  // await Promise.all(initPromises);
 
-  for (const [, configFile] of Object.entries(playwrightConfig)) {
-    const appName = toCamelCase(`${configFile.replace('playwright-', '').replace('.config.ts', '')}-app`);
+  for (const [, appName] of Object.entries(playwrightConfigAppNames)) {
     await initBlocklet({ appName });
   }
+
+  console.log('All Blocklet applications initialized successfully');
 })();
