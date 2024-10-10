@@ -29,10 +29,10 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: |
-          pnpm install
-          pnpm exec playwright install --with-deps
+      # - name: Install dependencies
+      #   run: |
+      #     pnpm install
+      #     pnpm exec playwright install --with-deps
 
       # - name: Bundle blocklets
       #   run: |
@@ -54,10 +54,15 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: |
-          pnpm install
-          pnpm exec playwright install --with-deps
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
 
       - name: Run Playwright Tests
         uses: nick-fields/retry@v2
