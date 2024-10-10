@@ -60,6 +60,11 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Install dependencies
+        run: |
+          pnpm install
+          pnpm exec playwright install --with-deps
+
       - name: Run Playwright Tests
         uses: nick-fields/retry@v2
         with:
