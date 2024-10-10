@@ -29,18 +29,18 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      # - name: Install dependencies
-      #   run: |
-      #     pnpm install
-      #     pnpm exec playwright install --with-deps
+      - name: Install dependencies
+        run: |
+          pnpm install
+          pnpm exec playwright install --with-deps
 
-      # - name: Bundle blocklets
-      #   run: |
-      #     pnpm build:libs
-      #     pnpm -F ai-studio -F ai-runtime bundle
+      - name: Bundle blocklets
+        run: |
+          pnpm build:libs
+          pnpm -F ai-studio -F ai-runtime bundle
 
-      # - name: E2E Prepare
-      #   run: pnpm e2e:prepare
+      - name: E2E Prepare
+        run: pnpm e2e:prepare
 
   test:
     name: Run Tests
