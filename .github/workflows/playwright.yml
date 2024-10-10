@@ -46,23 +46,19 @@ jobs:
     name: Run Tests
     needs:
       - compile
+    timeout-minutes: 60
     runs-on: ubuntu-latest
+    container:
+      image: arcblock/blocklet-server-ci
+      ports:
+        - 80:80
+        - 443:443
 
     if: "! contains(toJSON(github.event.commits.*.message), '[skip ci]')"
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v3
-        with:
-          version: 9
-
-      - name: Setup node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: pnpm
 
       - name: Run Playwright Tests
         uses: nick-fields/retry@v2
