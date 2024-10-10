@@ -44,20 +44,13 @@ jobs:
 
   test:
     name: Run Tests
-    needs: compile
+    needs:
+      - compile
     runs-on: ubuntu-latest
 
     if: "! contains(toJSON(github.event.commits.*.message), '[skip ci]')"
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Install dependencies
-        run: |
-          pnpm install
-          pnpm exec playwright install --with-deps
-
       - name: Run Playwright Tests
         uses: nick-fields/retry@v2
         with:
