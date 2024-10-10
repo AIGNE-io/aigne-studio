@@ -13,7 +13,8 @@ on:
     branches: [main]
 
 jobs:
-  test:
+  compile:
+    name: Compile
     timeout-minutes: 60
     runs-on: ubuntu-latest
     container:
@@ -38,8 +39,31 @@ jobs:
           pnpm build:libs
           pnpm -F ai-studio -F ai-runtime bundle
 
-      - name: Run Playwright tests
-        run: pnpm e2e
+      - name: E2E Prepare
+        run: pnpm e2e:prepare
+
+  test:
+    name: Run Tests
+    needs: compile
+    runs-on: ubuntu-latest
+
+    if: "! contains(toJSON(github.event.commits.*.message), '[skip ci]')"
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          pnpm install
+          pnpm exec playwright install --with-deps
+
+      - name: Run Playwright Tests
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          command: pnpm e2e:start
 
       - uses: actions/upload-artifact@v4
         if: always()

@@ -26,7 +26,7 @@
     "e2e:prepare": "./scripts/init-e2e.ts",
     "e2e:start": "./scripts/start-e2e.ts",
     "e2e": "npm-run-all e2e:*",
-    "e2e-ui": "npm-run-all e2e:start -- --ui",
+    "e2e-ui": "pnpm e2e:start --ui",
     "postinstall": "npx simple-git-hooks"
   },
   "simple-git-hooks": {
