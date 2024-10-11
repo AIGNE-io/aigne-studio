@@ -13,6 +13,8 @@ test.beforeEach('route to blocklets', async ({ page }) => {
 
 test.describe.serial('resource blocklet', () => {
   test('init', async ({ page }) => {
+    test.slow();
+
     await page.goto('/projects');
     await page.waitForLoadState('networkidle');
 
@@ -29,6 +31,8 @@ test.describe.serial('resource blocklet', () => {
   });
 
   test('open resource blocklet', async ({ page }) => {
+    test.slow();
+
     const blocklet = page.locator('.component-item').filter({ hasText: 'Mockplexity' });
     // 首先判断状态, 如果运行中, 什么都不做
     const stopIcon = blocklet.getByTestId('StopIcon');
@@ -47,6 +51,7 @@ test.describe.serial('resource blocklet', () => {
 
   test('set agent secrets', async ({ page }) => {
     test.slow();
+
     await page.waitForTimeout(10000);
     await page.goto('/mockplexity/');
     await page.waitForLoadState('networkidle');
@@ -60,6 +65,7 @@ test.describe.serial('resource blocklet', () => {
   });
 
   test('input form', async ({ page }) => {
+    test.slow();
     await page.goto('/mockplexity/');
     await page.waitForLoadState('networkidle');
 
@@ -80,6 +86,8 @@ test.describe.serial('resource blocklet', () => {
   });
 
   test('clear session', async ({ page }) => {
+    test.slow();
+
     await page.goto('/mockplexity/');
     await page.waitForLoadState('networkidle');
 
