@@ -1,10 +1,12 @@
 import { showAssetOrVC } from '@blocklet/testlab/utils/auth';
 import { claimDIDSpace, getAuthUrl, login } from '@blocklet/testlab/utils/playwright';
 import { ensureWallet } from '@blocklet/testlab/utils/wallet';
-import { chromium } from '@playwright/test';
+import { chromium, test } from '@playwright/test';
 
 import { cacheResult } from './cache';
 import { TestConstants } from './constants';
+
+test.setTimeout(120000);
 
 export async function setupUsers({ appName, appUrl }: { appName: string; appUrl: string }) {
   const appWallet = ensureWallet({ name: appName, onlyFromCache: true });
@@ -18,7 +20,11 @@ export async function setupUsers({ appName, appUrl }: { appName: string; appUrl:
     { wallet: guestWallet, name: 'guest' },
   ];
 
-  const browser = await chromium.launch({ headless: TestConstants.headless, timeout: 200000 });
+  const browser = await chromium.launch({
+    headless: TestConstants.headless,
+    timeout: 200000,
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+  });
 
   // claim did space for wallet
   const vcs = await Promise.all(
