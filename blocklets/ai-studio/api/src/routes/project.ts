@@ -240,12 +240,13 @@ export const checkProjectLimit = async ({ req }: { req: Request }) => {
   if (config.env.tenantMode === 'multiple') {
     // check project count limit
     const count = await Project.count({ where: { createdBy: req.user?.did } });
-    const checkResult = quotaChecker.checkProjectLimit(count, req.user?.role);
     if (
       !ensureComponentCallOrRolesMatch(req, Config.serviceModePermissionMap.ensurePromptsAdminRoles) &&
-      !checkResult.passed
+      !quotaChecker.checkProjectLimit(count, req.user?.role)
     ) {
-      throw new Error(`Project limit exceeded (current: ${count}, limit: ${checkResult.quota}) `);
+      throw new Error(
+        `Project limit exceeded (current: ${count}, limit: ${quotaChecker.getQuota('projectLimit', req.user?.role)}) `
+      );
     }
   }
 };

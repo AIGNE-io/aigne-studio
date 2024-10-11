@@ -854,16 +854,16 @@ export default flatten({
   noEntryAgent: 'No Entry Agent',
   noEntryAgentDescription: 'Please set one as entry agent',
   multiTenantRestriction: {
-    projectRequestLimitExceeded: {
+    requestLimit: {
       desc: 'You have reached the maximum request limit in this project. You may increase the limit by upgrading your plan to Pro.',
     },
-    projectLimitExceeded: {
+    projectLimit: {
       desc: 'You have reached the maximum project limit. Upgrade your plan to Pro to manage more projects.',
     },
-    customBranding: {
+    customBrand: {
       desc: 'Branding customization is available only in the Pro plan or Serverless AIGNE. Please upgrade to the Pro plan to access this feature.',
     },
-    useCronJob: {
+    cronJobs: {
       desc: 'The Cron Jobs feature is available only in Serverless AIGNE. Please run a Serverless AIGNE to access this feature.',
     },
   },

@@ -46,7 +46,7 @@ export async function getProPaymentLink() {
     : null;
 }
 
-export const quotaChecker = new Quotas(config.env.preferences.quotas);
+export const quotaChecker = new Quotas(config.env.preferences.quotas, config.env.tenantMode === 'multiple');
 
 config.events.on(config.Events.envUpdate, () => {
   quotaChecker.setConfigs(config.env.preferences.quotas);

@@ -90,7 +90,7 @@ export function PlanUpgrade({ ...rest }: Props) {
                 border: 1,
                 borderColor: 'divider',
                 borderRadius: 1,
-                bgcolor: 'grey.100',
+                bgcolor: 'grey.50',
               }}>
               <Typography variant="h5" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Box component={Icon} icon={HomeIcon} sx={{ fontSize: 20 }} />
@@ -110,10 +110,9 @@ export function PlanUpgrade({ ...rest }: Props) {
               sx={{
                 p: 2,
                 border: 1,
-                borderColor: 'divider',
+                borderColor: 'success.light',
                 borderRadius: 1,
-                color: 'success.contrastText',
-                bgcolor: 'success.light',
+                bgcolor: 'grey.50',
               }}>
               <Typography variant="h5" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Box component={Icon} icon={BuildingIcon} sx={{ fontSize: 20 }} />
@@ -128,7 +127,7 @@ export function PlanUpgrade({ ...rest }: Props) {
                   component="a"
                   href={`${paymentMountPoint}/customer`}
                   target="_blank"
-                  sx={{ display: 'flex', alignItems: 'center', gap: 0.25, color: 'grey.200', fontSize: 13 }}>
+                  sx={{ display: 'flex', alignItems: 'center', gap: 0.25, color: 'grey.500', fontSize: 13 }}>
                   <span>Subscription & Billing</span>
                   <Box component={Icon} icon={ExternalLinkIcon} sx={{ color: 'inherit' }} />
                 </Box>

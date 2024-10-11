@@ -1,48 +1,48 @@
-import { useIsAdmin, useIsProUser } from '@app/contexts/session';
+import { useSessionContext } from '@app/contexts/session';
 import { aigneStudioApi } from '@blocklet/aigne-sdk/api/api';
+import { QuotaKey, Quotas } from '@blocklet/aigne-sdk/quotas';
 import { useRequest } from 'ahooks';
 import { create } from 'zustand';
 
-type MultiTenantRestrictionType =
-  | 'projectRequestLimitExceeded'
-  | 'projectLimitExceeded'
-  | 'useCronJob'
-  | 'customBranding';
-
 export const useMultiTenantRestrictionStore = create<{
   planUpgradeVisible: boolean;
-  type: MultiTenantRestrictionType | null;
-  showPlanUpgrade: (type?: MultiTenantRestrictionType | null) => void;
+  type: QuotaKey | null;
+  showPlanUpgrade: (type?: QuotaKey | null) => void;
   hidePlanUpgrade: () => void;
 }>((set) => ({
   planUpgradeVisible: false,
   type: null,
-  showPlanUpgrade: (type?: MultiTenantRestrictionType | null) => set({ planUpgradeVisible: true, type }),
+  showPlanUpgrade: (type?: QuotaKey | null) => set({ planUpgradeVisible: true, type }),
   hidePlanUpgrade: () => set({ planUpgradeVisible: false }),
 }));
 
-export const showPlanUpgrade = (type?: MultiTenantRestrictionType) => {
+export const showPlanUpgrade = (type?: QuotaKey) => {
   useMultiTenantRestrictionStore.setState({ planUpgradeVisible: true, type });
 };
 
 export function useMultiTenantRestriction() {
   const { planUpgradeVisible, type, showPlanUpgrade, hidePlanUpgrade } = useMultiTenantRestrictionStore();
-  const isAdmin = useIsAdmin();
-  const isProUser = useIsProUser();
-  const isMultiTenantMode = window.blocklet?.tenantMode === 'multiple';
+  const { session } = useSessionContext();
+  const quotas = new Quotas(window.blocklet?.preferences?.quotas, window.blocklet?.tenantMode === 'multiple');
+  const quotaChecker = {
+    checkCronJobs() {
+      if (quotas.checkCronJobs(session?.user?.role)) return true;
+      showPlanUpgrade('cronJobs');
+      return false;
+    },
+    checkCustomBrand() {
+      if (quotas.checkCustomBrand(session?.user?.role)) return true;
+      showPlanUpgrade('customBrand');
+      return false;
+    },
+  };
 
   return {
     planUpgradeVisible,
     type,
     showPlanUpgrade,
     hidePlanUpgrade,
-    checkMultiTenantRestriction: (type: MultiTenantRestrictionType) => {
-      if (isAdmin || !isMultiTenantMode) return true;
-      // pro user 不允许使用 cron job
-      if (isProUser && type !== 'useCronJob') return true;
-      showPlanUpgrade(type);
-      return false;
-    },
+    quotaChecker,
   };
 }
 

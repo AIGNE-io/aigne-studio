@@ -17,7 +17,7 @@ interface Props {
 }
 
 export function MultiTenantBrandGuard({ deployment, sx, children, ...rest }: Props & BoxProps) {
-  const { checkMultiTenantRestriction } = useMultiTenantRestriction();
+  const { quotaChecker } = useMultiTenantRestriction();
   const [brandBarRemoved, setBrandBarRemoved] = useState(false);
   const navigate = useNavigate();
   const bottomHeight = 64;
@@ -37,7 +37,7 @@ export function MultiTenantBrandGuard({ deployment, sx, children, ...rest }: Pro
   ];
 
   const removeBrand = () => {
-    if (checkMultiTenantRestriction('customBranding')) {
+    if (quotaChecker.checkCustomBrand()) {
       setBrandBarRemoved(!brandBarRemoved);
     }
   };

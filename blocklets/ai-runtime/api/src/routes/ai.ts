@@ -51,9 +51,13 @@ const callInputSchema = Joi.object<{
 const checkProjectRequestLimit = async ({ role, projectId }: { role?: string; projectId: string }) => {
   if (config.env.tenantMode === 'multiple') {
     const historyCount = await History.count({ where: { projectId, error: null } });
-    const checkResult = quotaChecker.checkRequestLimit(historyCount, role);
-    if (!checkResult.passed && !['owner', 'admin', 'promptsEditor'].includes(role || '')) {
-      throw new Error(`Project request limit exceeded (current: ${historyCount}, limit: ${checkResult.quota}) `);
+    if (
+      !quotaChecker.checkRequestLimit(historyCount, role) &&
+      !['owner', 'admin', 'promptsEditor'].includes(role || '')
+    ) {
+      throw new Error(
+        `Project request limit exceeded (current: ${historyCount}, limit: ${quotaChecker.getQuota('requestLimit', role)}) `
+      );
     }
   }
 };

@@ -82,7 +82,7 @@ export function MakeYoursButton({ deployment, ...props }: { deployment: Deployme
     } catch (error) {
       const errorMessage = axios.isAxiosError(error) ? error.response?.data?.error?.message : error.message;
       if (String(errorMessage || '').includes('Project limit exceeded')) {
-        showPlanUpgrade('projectRequestLimitExceeded');
+        showPlanUpgrade('projectLimit');
       } else {
         Toast.error(getErrorMessage(error));
       }

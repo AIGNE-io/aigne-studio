@@ -845,16 +845,16 @@ export default flatten({
   noEntryAgent: '没有入口 Agent',
   noEntryAgentDescription: '请设置一个入口 Agent',
   multiTenantRestriction: {
-    projectRequestLimitExceeded: {
+    requestLimit: {
       desc: '您已达到此项目的最大请求限制。您可以通过升级到专业版来增加限制。',
     },
-    projectLimitExceeded: {
+    projectLimit: {
       desc: '您已达到最大项目限制。升级到专业版以管理更多项目。',
     },
-    customBranding: {
+    customBrand: {
       desc: '品牌定制仅在专业版或 Serverless AIGNE 中可用。请升级到专业版以访问此功能。',
     },
-    useCronJob: {
+    cronJobs: {
       desc: '定时任务功能仅在 Serverless AIGNE 中可用。请运行 Serverless AIGNE 以访问此功能。',
     },
   },
