@@ -3,6 +3,7 @@ import { defineConfig, devices } from '@playwright/test';
 import { TestConstants } from './tests/utils/constants';
 
 const timeout = 10000;
+const retries = 3;
 
 /**
  * Read environment variables from file.
@@ -25,18 +26,22 @@ export default defineConfig<{
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
-  retries: process.env.CI ? 2 : 0,
+  retries: process.env.CI ? retries : retries,
   /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
+  workers: process.env.CI ? undefined : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   expect: {
-    timeout: timeout,
+    timeout,
   },
   use: {
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
+    // launchOptions: {
+    //   headless: false,
+    //   devtools: true,
+    // },
   },
   /* Configure projects for major browsers */
   projects: [

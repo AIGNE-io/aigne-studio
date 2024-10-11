@@ -11,8 +11,9 @@ test.beforeEach('route to blocklets', async ({ page }) => {
 
 test.describe.serial('resource blocklet', () => {
   test('init', async ({ page }) => {
-    test.slow();
     await page.goto('/projects');
+    await page.waitForLoadState('networkidle');
+
     await page.getByLabel('User info button').click();
     await page.getByRole('menuitem', { name: 'Dashboard' }).click();
     await page.locator('h6.page-title').waitFor();
@@ -26,7 +27,6 @@ test.describe.serial('resource blocklet', () => {
   });
 
   test('open resource blocklet', async ({ page }) => {
-    test.setTimeout(180000);
     const blocklet = page.locator('.component-item').filter({ hasText: 'Mockplexity' });
     // 首先判断状态, 如果运行中, 什么都不做
     const stopIcon = blocklet.getByTestId('StopIcon');
@@ -46,11 +46,9 @@ test.describe.serial('resource blocklet', () => {
 
   const secretKey = 'f712dac84b4f84c3c2fa079896572ed19e2738e23baf025f2c8764d5d8598deb';
   test('set agent secrets', async ({ page }) => {
-    test.slow();
-    // 总有失败的概率, 但是页面没有提示, 延迟等待一段时间
-    await page.waitForTimeout(30000);
-
     await page.goto('/mockplexity/');
+    await page.waitForLoadState('networkidle');
+
     await page.getByTestId('aigne-runtime-header-menu-button').click();
     await page.getByRole('menuitem', { name: 'Settings' }).click();
     const agentSecrets = page.locator('input');
@@ -77,14 +75,6 @@ test.describe.serial('resource blocklet', () => {
     const responsePromise = page.waitForResponse((response) => response.url().includes('/api/ai/call'));
     await page.getByTestId('runtime-submit-button').click();
     await responsePromise;
-
-    // await page.waitForSelector('.message-item', { state: 'visible', timeout: 30000 });
-    // const lastMessage = page.locator('.message-item').last();
-    // const assistantMessage = await lastMessage.locator('.assistant-message-content');
-    // await expect(assistantMessage).toContainText(question);
-    // await expect(assistantMessage).toContainText('Sources');
-    // await expect(assistantMessage).toContainText('Answer');
-    // await expect(assistantMessage).toContainText('Related');
   });
 
   test('clear session', async ({ page }) => {
@@ -92,11 +82,7 @@ test.describe.serial('resource blocklet', () => {
     await page.waitForLoadState('networkidle');
 
     await page.getByTestId('aigne-runtime-header-menu-button').click();
-    // const responsePromise = page.waitForResponse(
-    //   (response) => response.url().includes('clear') && response.status() === 200
-    // );
     await page.getByRole('menuitem', { name: 'Clear Session' }).click();
-    // await responsePromise;
 
     const message = await page.locator('.message-item').all();
     expect(message.length).toBe(0);

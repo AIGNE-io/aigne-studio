@@ -47,7 +47,8 @@ test('create agent', async ({ page }) => {
   const firstAgent = page.locator('.agent-box').first();
   await firstAgent.press('Enter');
   await firstAgent.hover();
-  await firstAgent.locator('button').click();
+  await firstAgent.getByTestId('tree-item-actions-button').first().click();
+  await expect(page.getByText('Duplicate')).toBeVisible();
   await page.getByText('Duplicate').click({ force: true });
 
   await page.getByTestId('new-agent-button').click();

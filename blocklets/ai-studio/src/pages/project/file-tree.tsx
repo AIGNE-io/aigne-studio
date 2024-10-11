@@ -492,7 +492,7 @@ const FileTree = forwardRef<
               );
 
               const children = (
-                <Box sx={{ position: 'relative' }} className="agent-box">
+                <Box sx={{ position: 'relative' }} className="agent-box" data-testid="agent-box">
                   <TreeItem
                     className="agent-tree-item"
                     key={node.id}

@@ -13,8 +13,7 @@ on:
     branches: [main]
 
 jobs:
-  compile:
-    name: Compile
+  test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     container:
@@ -39,38 +38,8 @@ jobs:
           pnpm build:libs
           pnpm -F ai-studio -F ai-runtime bundle
 
-      - name: E2E Prepare
-        run: pnpm e2e:prepare
-
-  test:
-    name: Run Tests
-    needs:
-      - compile
-    timeout-minutes: 60
-    runs-on: ubuntu-latest
-    container:
-      image: arcblock/blocklet-server-ci
-      ports:
-        - 80:80
-        - 443:443
-
-    if: "! contains(toJSON(github.event.commits.*.message), '[skip ci]')"
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Install dependencies
-        run: |
-          pnpm install
-          pnpm exec playwright install --with-deps
-
-      - name: Run Playwright Tests
-        uses: nick-fields/retry@v2
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          command: pnpm e2e:start
+      - name: Run Playwright tests
+        run: pnpm e2e
 
       - uses: actions/upload-artifact@v4
         if: always()

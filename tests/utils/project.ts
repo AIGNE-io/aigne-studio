@@ -96,7 +96,6 @@ export async function deleteProject({ page }: { page: Page }) {
   await expect(page.getByRole('button', { name: 'New Project' })).toBeVisible();
 
   const projects = await page.getByTestId('projects-item').all();
-  await page.waitForTimeout(1000);
 
   for (let i = projects.length - 1; i >= 0; i--) {
     await projects[i]?.hover();
@@ -119,7 +118,6 @@ export async function deleteProject({ page }: { page: Page }) {
     await page.waitForLoadState('networkidle', { timeout: 10000 });
   }
 
-  await page.waitForTimeout(1000);
   const projectItems = page.getByTestId('projects-item');
   await expect(projectItems).toHaveCount(0);
 }

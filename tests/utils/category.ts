@@ -30,7 +30,6 @@ export async function deleteCategory({ page }: { page: Page }) {
     }
   }
 
-  await page.waitForTimeout(2000);
   const deployItems = page.getByTestId('category-delete-button');
   await expect(deployItems).toHaveCount(0, { timeout: 15000 });
 }

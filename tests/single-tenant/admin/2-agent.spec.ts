@@ -66,7 +66,7 @@ test('another agent', async ({ page }) => {
   expect(await title.getAttribute('value')).toBe('Test Agent');
 
   await page.getByTestId('new-agent-button').click();
-  const newTitle = await page.getByTestId('file-tree').getByTestId('edit-text-item').locator('input');
+  const newTitle = page.getByTestId('agent-name').locator('input');
   await newTitle.fill('Another Agent');
   await newTitle.press('Enter');
 

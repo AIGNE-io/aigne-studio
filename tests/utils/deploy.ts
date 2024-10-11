@@ -30,8 +30,6 @@ export async function deleteDeploy({ page }: { page: Page }) {
     }
   }
 
-  // Final check
-  await page.waitForTimeout(2000);
   const finalDeployItems = page.getByTestId('delete-deployment-button');
   await expect(finalDeployItems).toHaveCount(0, { timeout: 15000 });
 }

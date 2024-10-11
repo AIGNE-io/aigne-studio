@@ -68,7 +68,6 @@ test('add branch', async ({ page }) => {
 
   while (!(await page.getByTestId('branch-list').isVisible())) {
     await page.getByTestId('branch-icon').click({ force: true });
-    await page.waitForTimeout(500);
   }
   await page.getByRole('menuitem', { name: 'New Branch' }).click();
   await page.getByLabel('Name').fill('e2e-test');

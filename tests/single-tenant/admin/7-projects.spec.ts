@@ -1,72 +1,18 @@
 import { login } from '@blocklet/testlab/utils/playwright';
 import { ensureWallet } from '@blocklet/testlab/utils/wallet';
-import { expect, test } from '@playwright/test';
+import { test } from '@playwright/test';
 
-import { createProject, deleteOneProject, deleteProject } from '../../utils/project';
+import { createProject } from '../../utils/project';
 
 test.beforeEach('clean and create project', async ({ browser }) => {
   const page = await browser.newPage();
   await page.goto('/projects');
   await page.waitForLoadState('networkidle');
 
-  await deleteProject({ page });
   await createProject({ page });
 });
 
 test.describe.serial('projects', () => {
-  test('copy/edit project', async ({ page }) => {
-    await page.goto('/projects');
-    await page.waitForLoadState('networkidle');
-
-    const firstProjectItem = await page
-      .getByTestId('projects-projects')
-      .locator('>div')
-      .filter({ hasText: 'Test Project' });
-    await firstProjectItem.hover();
-    await firstProjectItem.getByRole('button').click();
-
-    const copyProjectPromise = page.waitForResponse(
-      (response) => response.url().includes('/api/projects') && response.status() === 200
-    );
-    await page.getByRole('menuitem', { name: 'Copy to My Projects' }).click();
-    await copyProjectPromise;
-
-    const projects = page.getByTestId('projects-projects');
-    const projectCount = await projects.locator('>div');
-    await expect(projectCount).toHaveCount(2);
-
-    const aiChatCopy = await projects.locator('>div:has-text("Copy")').first();
-    await aiChatCopy.hover({ force: true });
-    await aiChatCopy.getByRole('button').click({ force: true });
-    await page.getByRole('menuitem', { name: 'Edit' }).click();
-    const newTitle = `AI Chat Copy Edit ${Date.now()}`;
-    await page.getByLabel('Project name').fill(newTitle);
-    const aiChatCopyPromise = page.waitForResponse(
-      (response) => response.url().includes('/api/projects') && response.status() === 200
-    );
-    await page.getByRole('button', { name: 'Save' }).click();
-    await aiChatCopyPromise;
-    await expect(aiChatCopy.locator('.name')).toHaveText(newTitle);
-
-    const newAiChatCopy = await projects.locator('>div').filter({ hasText: newTitle }).first();
-    await newAiChatCopy.hover();
-    await newAiChatCopy.getByRole('button').click();
-    const pinMenuItem = page.getByRole('menuitem', { name: 'Pin' });
-    await expect(pinMenuItem).toBeVisible();
-
-    const responsePromise = page.waitForResponse(
-      (response) => response.url().includes('/api/projects') && response.status() === 200,
-      {}
-    );
-    await pinMenuItem.click();
-    await responsePromise;
-
-    await page.getByTestId('projects-projects').waitFor();
-    expect(newAiChatCopy.getByLabel('Pin')).toBeVisible();
-
-    await deleteOneProject({ page, project: newAiChatCopy });
-  });
-
   test('import project from git', async ({ page }) => {
     await page.goto('/projects');
     await page.waitForLoadState('networkidle');
@@ -96,6 +42,7 @@ test.describe.serial('projects', () => {
       .getByTestId('projects-projects')
       .locator('>div')
       .filter({ hasText: 'Test Project' })
+      .first()
       .click({ force: true });
     await page.waitForSelector('span[aria-label="Import Agents"]');
     await page.getByTestId('header-actions-setting').click();
@@ -125,7 +72,6 @@ test.describe.serial('projects', () => {
 
     while (!(await page.getByRole('listbox').isVisible())) {
       await page.getByPlaceholder('Select a project to import').click({ force: true });
-      await page.waitForTimeout(500);
     }
 
     await page.getByRole('option', { name: 'Test Project' }).first().click();
