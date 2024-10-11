@@ -18,7 +18,7 @@ export async function setupUsers({ appName, appUrl }: { appName: string; appUrl:
     { wallet: guestWallet, name: 'guest' },
   ];
 
-  const browser = await chromium.launch({ headless: TestConstants.headless });
+  const browser = await chromium.launch({ headless: TestConstants.headless, timeout: 200000 });
 
   // claim did space for wallet
   const vcs = await Promise.all(
