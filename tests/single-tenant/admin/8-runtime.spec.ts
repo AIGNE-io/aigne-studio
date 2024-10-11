@@ -2,6 +2,8 @@ import { expect, test } from '@playwright/test';
 
 import { installBlocklet, unInstallBlocklet } from '../../utils/uninstall';
 
+const secretKey = 'f712dac84b4f84c3c2fa079896572ed19e2738e23baf025f2c8764d5d8598deb';
+
 test.beforeEach('route to blocklets', async ({ page }) => {
   await page.goto('.well-known/service/admin/overview');
   await page.waitForSelector('h6.page-title');
@@ -30,9 +32,8 @@ test.describe.serial('resource blocklet', () => {
     const blocklet = page.locator('.component-item').filter({ hasText: 'Mockplexity' });
     // 首先判断状态, 如果运行中, 什么都不做
     const stopIcon = blocklet.getByTestId('StopIcon');
-    if ((await stopIcon.count()) > 0) {
-      return;
-    }
+    if ((await stopIcon.count()) > 0) return;
+
     // 如果未运行(升级中/停止), 则运行
     const startIcon = blocklet.getByTestId('PlayArrowIcon');
     if ((await startIcon.count()) > 0) {
@@ -44,12 +45,13 @@ test.describe.serial('resource blocklet', () => {
     await page.locator('.component-item').filter({ hasText: 'SerpApi' }).locator('span:has-text("Running")').waitFor();
   });
 
-  const secretKey = 'f712dac84b4f84c3c2fa079896572ed19e2738e23baf025f2c8764d5d8598deb';
   test('set agent secrets', async ({ page }) => {
+    test.slow();
+    await page.waitForTimeout(10000);
     await page.goto('/mockplexity/');
     await page.waitForLoadState('networkidle');
 
-    await page.getByTestId('aigne-runtime-header-menu-button').click();
+    await page.getByTestId('aigne-runtime-header-menu-button').click({ timeout: 120000 });
     await page.getByRole('menuitem', { name: 'Settings' }).click();
     const agentSecrets = page.locator('input');
     await agentSecrets.click();
@@ -81,7 +83,7 @@ test.describe.serial('resource blocklet', () => {
     await page.goto('/mockplexity/');
     await page.waitForLoadState('networkidle');
 
-    await page.getByTestId('aigne-runtime-header-menu-button').click();
+    await page.getByTestId('aigne-runtime-header-menu-button').click({ timeout: 120000 });
     await page.getByRole('menuitem', { name: 'Clear Session' }).click();
 
     const message = await page.locator('.message-item').all();

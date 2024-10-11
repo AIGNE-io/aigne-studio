@@ -66,9 +66,11 @@ test('add branch', async ({ page }) => {
   await page.getByRole('button', { name: 'Save' }).first().click();
   await gitPromise;
 
-  while (!(await page.getByTestId('branch-list').isVisible())) {
-    await page.getByTestId('branch-icon').click({ force: true });
-  }
+  await page.goto(projectUrl);
+  await page.waitForLoadState('networkidle');
+  await page.waitForSelector('[data-testid="branch-icon"]', { state: 'visible', timeout: 10000 });
+  await page.getByTestId('branch-icon').first().click({ force: true });
+
   await page.getByRole('menuitem', { name: 'New Branch' }).click();
   await page.getByLabel('Name').fill('e2e-test');
   const responsePromise = page.waitForResponse(

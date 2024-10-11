@@ -212,11 +212,7 @@ test('agent debug', async ({ page }) => {
   const list = page.locator("[data-testid='virtuoso-item-list']>div");
 
   page.route(/\/api\/ai\/call/, (route) => {
-    route.fulfill({
-      status: 200,
-      contentType: 'text/event-stream',
-      path: 'tests/agent-debug.txt',
-    });
+    route.fulfill({ status: 200, contentType: 'text/event-stream', path: 'tests/agent-debug.txt' });
   });
 
   await page.getByRole('button', { name: 'Execute' }).click();
