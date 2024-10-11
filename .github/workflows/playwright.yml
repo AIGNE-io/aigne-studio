@@ -37,17 +37,20 @@ jobs:
           pnpm build:libs
           pnpm -F ai-studio -F ai-runtime bundle
 
-      - name: Upload entire workspace
+      - name: Upload bundle artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: workspace
-          path: .
+          name: blocklet-bundles
+          path: |
+            blocklets/ai-studio/.blocklet/bundle
+            blocklets/ai-runtime/.blocklet/bundle
           retention-days: 1
 
   test:
     name: Run Playwright Tests
     needs:
       - bundle
+    timeout-minutes: 60
     runs-on: ubuntu-latest
     container:
       image: arcblock/blocklet-server-ci
@@ -56,11 +59,14 @@ jobs:
         - 443:443
 
     steps:
-      - name: Download workspace
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Download bundle artifacts
         uses: actions/download-artifact@v4
         with:
-          name: workspace
-          path: .
+          name: blocklet-bundles
+          path: blocklets
 
       - name: Install dependencies
         run: |
