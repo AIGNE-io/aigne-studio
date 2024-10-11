@@ -30,10 +30,8 @@ async function cleanupApps(singleAppWallet: any, multipleAppWallet: any) {
   const singleAppUrl = didToDomain({ did: singleAppWallet.address, port: info.httpsPort });
   const multipleAppUrl = didToDomain({ did: multipleAppWallet.address, port: info.httpsPort });
 
-  await Promise.all([
-    setupUsers({ appName: playwrightConfigAppNames.single, appUrl: singleAppUrl }),
-    setupUsers({ appName: playwrightConfigAppNames.multiple, appUrl: multipleAppUrl }),
-  ]);
+  await setupUsers({ appName: playwrightConfigAppNames.single, appUrl: singleAppUrl });
+  await setupUsers({ appName: playwrightConfigAppNames.multiple, appUrl: multipleAppUrl });
 
   process.env.PW_TEST_HTML_REPORT_OPEN = 'never';
   await $({
