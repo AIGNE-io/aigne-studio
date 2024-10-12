@@ -67,6 +67,11 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
 
         currentGitStore.setState({ currentProjectId: project.id });
         navigate(joinURL('/projects', project.id));
+        gtag('event', 'create_project', {
+          project_id: project.id,
+          name,
+          description,
+        });
       } catch (error) {
         form.reset(value);
         const message = getErrorMessage(error);
