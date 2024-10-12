@@ -62,10 +62,13 @@ export class Sandbox {
 
   static async callFunction(options: SandboxInitOptions & { functionName: string; args?: any[] }) {
     const sandbox = await Sandbox.acquire(options);
-    return sandbox.callFunction(options).finally(() => {
-      // FIXME: use pool.release(sandbox) instead of sandbox.destroy() to reuse the runtime
-      // but it will cause memory leak because the runtime is not disposed
-      sandbox.pool?.destroy(sandbox);
+    return sandbox.callFunction({
+      ...options,
+      onClose: () => {
+        // FIXME: use pool.release(sandbox) instead of sandbox.destroy() to reuse the runtime
+        // but it will cause memory leak because the runtime is not disposed
+        sandbox.pool?.destroy(sandbox);
+      },
     });
   }
 
@@ -84,7 +87,15 @@ export class Sandbox {
     this.options.context.runtime.dispose();
   }
 
-  async callFunction({ functionName, args = [] }: { functionName: string; args?: any[] }) {
+  async callFunction({
+    functionName,
+    args = [],
+    onClose,
+  }: {
+    functionName: string;
+    args?: any[];
+    onClose?: () => void;
+  }) {
     const { context: vm, module, dumpResult } = this.options;
 
     const resultKey = crypto.randomUUID();
@@ -128,9 +139,13 @@ export class Sandbox {
 
       r.then((result) => {
         logger.debug('quickjs runtime result', result);
-      }).catch((error) => {
-        logger.error('quick runtime error', error);
-      });
+      })
+        .catch((error) => {
+          logger.error('quick runtime error', error);
+        })
+        .finally(() => {
+          onClose?.();
+        });
     });
 
     return result;

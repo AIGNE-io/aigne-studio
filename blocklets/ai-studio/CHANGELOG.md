@@ -1,3 +1,7 @@
+## 0.4.77 (2024-10-9)
+
+- fix: llm adapter not streaming text correctly
+
 ## 0.4.76 (2024-10-8)
 
 - chore: update deps
