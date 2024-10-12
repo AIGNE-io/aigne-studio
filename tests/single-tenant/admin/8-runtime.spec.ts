@@ -31,7 +31,7 @@ test.describe.serial('resource blocklet', () => {
     await installBlocklet(page);
   });
 
-  test.skip('open resource blocklet', async ({ page }) => {
+  test('open resource blocklet', async ({ page }) => {
     test.slow();
 
     const blocklet = page.locator('.component-item').filter({ hasText: 'Mockplexity' });
@@ -50,7 +50,7 @@ test.describe.serial('resource blocklet', () => {
     await page.locator('.component-item').filter({ hasText: 'SerpApi' }).locator('span:has-text("Running")').waitFor();
   });
 
-  test.skip('set agent secrets', async ({ page }) => {
+  test('set agent secrets', async ({ page }) => {
     test.slow();
 
     await page.waitForTimeout(10000);
@@ -65,7 +65,7 @@ test.describe.serial('resource blocklet', () => {
     await page.locator('button:has-text("Save")').click();
   });
 
-  test.skip('input form', async ({ page }) => {
+  test('input form', async ({ page }) => {
     test.slow();
     await page.goto('/mockplexity/');
     await page.waitForLoadState('networkidle');
@@ -86,7 +86,7 @@ test.describe.serial('resource blocklet', () => {
     await responsePromise;
   });
 
-  test.skip('clear session', async ({ page }) => {
+  test('clear session', async ({ page }) => {
     test.slow();
 
     await page.goto('/mockplexity/');
