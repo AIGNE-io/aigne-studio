@@ -65,6 +65,25 @@
                 "x-designable-id": "pjjw2k56bus",
                 "x-index": 0,
                 "description": "Limit the maximum number of projects each person can create in Multi Tenant (except for owner, admin, promptsEditor passport)"
+              },
+              "measurementId": {
+                "type": "string",
+                "title": "Google Analytics Tag ID",
+                "x-decorator": "FormItem",
+                "x-component": "Input",
+                "x-validator": [],
+                "x-component-props": {},
+                "x-decorator-props": {
+                  "layout": "vertical",
+                  "wrapperCol": null,
+                  "wrapperWidth": "inherit",
+                  "labelWidth": "inherit",
+                  "colon": false
+                },
+                "name": "measurementId",
+                "x-designable-id": "95rgctmfkaw",
+                "x-index": 1,
+                "description": "Reference link: https://support.google.com/analytics/answer/9539598"
               }
             }
           },
@@ -121,6 +140,6 @@
         }
       }
     },
-    "x-designable-id": "3gwo6qgoyeq"
+    "x-designable-id": "gjwcb8wgm8k"
   }
 }

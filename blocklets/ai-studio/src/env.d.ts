@@ -28,3 +28,5 @@ declare var blocklet: Omit<import('@blocklet/sdk').WindowBlocklet, 'componentMou
   componentId: string;
   componentMountPoints: { title: string; name: string; did: string; mountPoint: string; status: string }[];
 };
+
+declare function gtag(command: 'event', action: string, params?: Record<string, any>): void;

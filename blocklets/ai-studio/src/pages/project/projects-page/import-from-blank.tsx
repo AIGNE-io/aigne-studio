@@ -1,3 +1,4 @@
+import { sendEvent } from '@app/libs/google-analytics';
 import currentGitStore from '@app/store/current-git-store';
 import DidAvatar from '@arcblock/ux/lib/Avatar';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
@@ -67,6 +68,11 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
 
         currentGitStore.setState({ currentProjectId: project.id });
         navigate(joinURL('/projects', project.id));
+        sendEvent('create_project_button_click', {
+          agent_project_id: project.id,
+          agent_name: name,
+          agent_description: description,
+        });
       } catch (error) {
         form.reset(value);
         const message = getErrorMessage(error);

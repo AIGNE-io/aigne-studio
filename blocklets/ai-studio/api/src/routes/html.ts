@@ -2,7 +2,8 @@ import { readFileSync } from 'fs';
 import { resolve } from 'path';
 
 import { getOpenGraphInfo } from '@api/libs/og';
-import { getBlockletJs } from '@blocklet/sdk/lib/config';
+import config, { getBlockletJs } from '@blocklet/sdk/lib/config';
+import { user } from '@blocklet/sdk/lib/middlewares';
 import { Express, Request, Router } from 'express';
 import Mustache from 'mustache';
 import type { ViteDevServer } from 'vite';
@@ -28,6 +29,25 @@ export default function setupHtmlRouter(app: Express, viteDevServer?: ViteDevSer
     const blockletJs = getBlockletJs();
     if (blockletJs) {
       html = html.replace('<script src="__blocklet__.js"></script>', `<script>${blockletJs}</script>`);
+    }
+
+    const { measurementId } = config.env.preferences;
+
+    if (measurementId) {
+      const gtagConfig = `gtag('config', '${measurementId}'${req.user?.did ? `, { 'user_id': '${req.user.did}' }` : ''});`;
+      html = html.replace(
+        '<!-- Google_Tag -->',
+        `
+        <script async src="https://www.googletagmanager.com/gtag/js?id=${measurementId}"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          ${gtagConfig}
+        </script>
+        `
+      );
     }
 
     return { html };
@@ -59,7 +79,7 @@ export default function setupHtmlRouter(app: Express, viteDevServer?: ViteDevSer
     res.send(html);
   });
 
-  router.get('/*', async (req, res, next) => {
+  router.get('/*', user(), async (req, res, next) => {
     if (ASSETS_PATTERNS.some((i) => req.path.startsWith(i))) {
       next();
       return;

@@ -1,4 +1,5 @@
 import { getProjectDataUrlInSpace } from '@app/libs/did-spaces';
+import { sendEvent } from '@app/libs/google-analytics';
 import { useProjectStore } from '@app/pages/project/yjs-state';
 import currentGitStore, { getDefaultBranch } from '@app/store/current-git-store';
 import { EVENTS } from '@arcblock/did-connect/lib/Session/libs/constants';
@@ -177,6 +178,7 @@ function ProjectsActionButton() {
           startIcon={<Box component={Icon} icon={PlusIcon} />}
           variant="contained"
           onClick={() => {
+            sendEvent('new_project_button_click');
             setDialog(<ImportFromBlank onClose={() => setDialog(null)} />);
           }}>
           {t('newObject', { object: t('project') })}
