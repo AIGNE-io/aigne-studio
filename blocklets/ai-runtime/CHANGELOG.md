@@ -1,3 +1,7 @@
+## 0.4.78 (2024-10-12)
+
+- fix: delete cache permission and compare agent crash
+
 ## 0.4.77 (2024-10-9)
 
 - fix: llm adapter not streaming text correctly
