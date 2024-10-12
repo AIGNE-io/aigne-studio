@@ -12,8 +12,9 @@ test.beforeEach('route to blocklets', async ({ page }) => {
 });
 
 test.describe.serial('resource blocklet', () => {
-  test.skip('init', async ({ page }) => {
+  test('init', async ({ page }) => {
     test.slow();
+    await page.waitForTimeout(10000);
 
     await page.goto('/projects');
     await page.waitForLoadState('networkidle');

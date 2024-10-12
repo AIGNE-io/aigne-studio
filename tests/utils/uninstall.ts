@@ -23,11 +23,11 @@ export const unInstallBlocklet = async (page: Page, blockletName: string) => {
 export const installBlocklet = async (page: Page) => {
   await page.locator('button:has-text("Add Blocklet")').click();
   await page.waitForSelector('.arcblock-blocklet');
-  const searchInput = page.locator('input[placeholder="Search the store"]');
+  const searchInput = page.locator('input[data-cy="search-blocklet"]');
   await searchInput.fill('mockplexity');
 
   await page.waitForSelector('h3 span:has-text("Mockplexity")');
-  const mockplexity = page.locator('.arcblock-blocklet ').filter({ hasText: 'Mockplexity' });
+  const mockplexity = page.locator('.arcblock-blocklet ').filter({ hasText: 'Mockplexity' }).first();
   const chooseBtn = mockplexity.locator('button:has-text("Choose")');
   if (await chooseBtn.isVisible()) {
     await chooseBtn.click();
