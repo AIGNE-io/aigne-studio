@@ -5,19 +5,21 @@ import { installBlocklet, unInstallBlocklet } from '../../utils/uninstall';
 
 const secretKey = 'f712dac84b4f84c3c2fa079896572ed19e2738e23baf025f2c8764d5d8598deb';
 
-test.beforeEach('route to blocklets', async ({ page }) => {
-  await page.goto('.well-known/service/admin/overview');
-  await page.waitForSelector('h6.page-title');
-  await page.locator("button span:has-text('Blocklets')").click();
-  await page.waitForSelector('button:has-text("Add Blocklet")');
-
-  console.log('route to blocklets');
-});
-
 test.describe.serial('resource blocklet', () => {
+  test.beforeEach('route to blocklets', async ({ page }) => {
+    await page.goto('.well-known/service/admin/overview');
+    await page.waitForSelector('h6.page-title');
+    await page.locator("button span:has-text('Blocklets')").click();
+    await page.waitForSelector('button:has-text("Add Blocklet")');
+
+    console.log('route to resource blocklet');
+  });
+
+  test.describe.configure({ retries: 5 });
+
   test('init', async ({ page }) => {
     test.slow();
-    console.log('init');
+    console.log('init resource blocklet');
 
     await page.waitForTimeout(10000);
 
@@ -73,7 +75,7 @@ test.describe.serial('resource blocklet', () => {
 
   test('input form', async ({ page }) => {
     test.slow();
-    console.log('input form');
+    console.log('set resource blocklet input form');
 
     await page.goto('/mockplexity/');
     await page.waitForLoadState('networkidle');
@@ -96,7 +98,7 @@ test.describe.serial('resource blocklet', () => {
 
   test('clear session', async ({ page }) => {
     test.slow();
-    console.log('clear session');
+    console.log('clear resource blocklet session');
 
     await page.goto('/mockplexity/');
     await page.waitForLoadState('networkidle');

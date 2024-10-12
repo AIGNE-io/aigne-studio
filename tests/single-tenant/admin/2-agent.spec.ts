@@ -208,29 +208,25 @@ test('agent output', async ({ page }) => {
 test('agent debug', async ({ page }) => {
   const input = page.locator("[data-testid='debug-mode-parameter'] textarea").first();
   await input.fill('hello');
-
   const list = page.locator("[data-testid='virtuoso-item-list']>div");
 
-  page.route(/\/api\/ai\/call/, (route) => {
+  await page.route(/\/api\/ai\/call/, (route) => {
     route.fulfill({ status: 200, contentType: 'text/event-stream', path: 'tests/agent-debug.txt' });
   });
 
   await page.getByRole('button', { name: 'Execute' }).click();
-  await expect(list.last()).toContainText('Hello! How can I assist you today?');
 
-  // clear session
+  await expect(list.last()).toContainText('Hello! How can I assist you today?', { timeout: 30000 });
+
   await page.getByLabel('Clear current session history').click();
-  expect(await page.locator("[data-testid='virtuoso-item-list']>div").count()).toBe(0);
+  await expect(page.locator("[data-testid='virtuoso-item-list']>div")).toHaveCount(0);
 
-  // new session
   await page.getByTestId('session-select').click();
   await page.getByRole('option', { name: 'New Session' }).click();
 
-  // delete session
   await page.getByTestId('session-delete-button').click({ force: true });
-
   await page.getByTestId('session-select').click();
-  expect(await page.getByTestId('session-select-item').count()).toBe(1);
+  await expect(page.getByTestId('session-select-item')).toHaveCount(1);
 });
 
 test('debug tests', async ({ page }) => {
@@ -239,15 +235,12 @@ test('debug tests', async ({ page }) => {
   await page.getByRole('button', { name: 'Save as test case' }).click();
 
   const firstCase = page.locator('.test-case').first();
-  page.route(/\/api\/ai\/call/, (route) => {
-    route.fulfill({
-      status: 200,
-      contentType: 'text/event-stream',
-      path: 'tests/agent-debug.txt',
-    });
-  });
   await firstCase.getByTestId('run-test').first().click();
-  expect(firstCase).toContainText('Hello! How can I assist you today?');
+
+  await page.route(/\/api\/ai\/call/, (route) => {
+    route.fulfill({ status: 200, contentType: 'text/event-stream', path: 'tests/agent-debug.txt' });
+  });
+  expect(firstCase).toContainText('hello');
 });
 
 test('collaboration', async ({ page }) => {

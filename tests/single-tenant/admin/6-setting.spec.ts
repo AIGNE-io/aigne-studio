@@ -81,7 +81,7 @@ test('add branch', async ({ page }) => {
   await responsePromise;
 
   await page.getByTestId('branch-icon').click();
-  expect(await page.getByRole('menuitem', { name: 'e2e-test' })).toBeVisible();
+  await expect(page.getByText('e2e-test')).toBeVisible();
 });
 
 test('history', async ({ page }) => {
