@@ -281,7 +281,6 @@ router.get('/:deploymentId', user(), async (req, res) => {
 
   if (!agent) {
     throw new NoSuchEntryAgentError('No such agent');
-    return;
   }
 
   res.json({
