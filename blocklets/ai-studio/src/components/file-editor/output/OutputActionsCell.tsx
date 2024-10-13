@@ -30,6 +30,8 @@ import sortBy from 'lodash/sortBy';
 import { bindDialog, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { nanoid } from 'nanoid';
 import { ComponentType, Ref, forwardRef, useId, useImperativeHandle, useState } from 'react';
+import { StoreApi, UseBoundStore, create } from 'zustand';
+import { immer } from 'zustand/middleware/immer';
 
 import { AuthorizeButton } from '../input/InputTable';
 import PromptEditorField from '../prompt-editor-field';
@@ -129,6 +131,32 @@ export interface PopperButtonImperative {
   open: () => void;
 }
 
+export interface OutputSettingsState {
+  visible?: boolean;
+  open: () => void;
+  close: () => void;
+}
+
+const OutputSettingsCache: { [key: string]: UseBoundStore<StoreApi<OutputSettingsState>> } = {};
+
+export const createOutputSettingsState = ({ agentId, outputId }: { agentId: string; outputId: string }) => {
+  const key = `${agentId}-${outputId}`;
+  OutputSettingsCache[key] ??= create(
+    immer<OutputSettingsState>((set) => ({
+      open: () =>
+        set((state) => {
+          state.visible = true;
+        }),
+      close: () =>
+        set((state) => {
+          state.visible = false;
+        }),
+    }))
+  );
+
+  return OutputSettingsCache[key]!;
+};
+
 const PopperButton = forwardRef<PopperButtonImperative, PopperButtonProps>(
   (
     {
@@ -148,7 +176,7 @@ const PopperButton = forwardRef<PopperButtonImperative, PopperButtonProps>(
     ref
   ) => {
     const { t } = useLocaleContext();
-    const dialogState = usePopupState({ variant: 'dialog' });
+    const dialogState = createOutputSettingsState({ agentId: assistant.id, outputId: output.id })();
     const parameterSettingPopperState = usePopupState({ variant: 'popper', popupId: useId() });
 
     useImperativeHandle(ref, () => ({ open: dialogState.open }), [dialogState.open]);
@@ -298,7 +326,8 @@ const PopperButton = forwardRef<PopperButtonImperative, PopperButtonProps>(
 
         <Dialog
           disableEnforceFocus
-          {...bindDialog(dialogState)}
+          open={dialogState.visible || false}
+          onClose={dialogState.close}
           fullWidth
           maxWidth="sm"
           component="form"

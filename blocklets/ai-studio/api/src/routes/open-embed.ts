@@ -104,7 +104,7 @@ export async function getOpenEmbed(_: Request, res: Response) {
             parameters,
             icon: getAgentProfile({
               ...agent,
-              identity: { projectId: agent.project.id, agentId: agent.id, aid },
+              identity: { aid },
               project: agent.project,
             }).icon,
           },

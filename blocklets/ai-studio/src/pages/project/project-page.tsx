@@ -41,6 +41,7 @@ import DiscussView from './discuss-view';
 import FileTree, { ImperativeFileTree } from './file-tree';
 import DeveloperTools from './icons/developer-tools';
 import Empty from './icons/empty';
+import PreviewView from './preview-view';
 import { useProjectState } from './state';
 import { newDefaultPrompt } from './template';
 import TestView from './test-view';
@@ -90,7 +91,7 @@ function ProjectPageView() {
   const navigate = useNavigate();
   useTitle(project?.name || 'AI Studio');
 
-  const [currentTab, setCurrentTab] = useLocalStorageState(CURRENT_TAB(projectId), { defaultValue: 'debug' });
+  const [currentTab, setCurrentTab] = useLocalStorageState(CURRENT_TAB(projectId), { defaultValue: 'preview' });
 
   const [previousFilePath, setPreviousFilePath] = useLocalStorageState<{ [key: string]: string } | undefined>(
     PREVIOUS_FILE_PATH(projectId)
@@ -277,9 +278,9 @@ function ProjectPageView() {
                     },
                   },
                 }}>
+                <Tab value="preview" label={t('preview')} />
                 <Tab value="debug" label={t('debug')} />
-                {/* hide test tab */}
-                <Tab value="test" label={t('test')} sx={{ display: 'none' }} />
+                <Tab value="test" label={t('test')} />
                 <Tab value="discuss" label={t('discuss')} />
               </Tabs>
 
@@ -292,8 +293,10 @@ function ProjectPageView() {
           <Suspense>
             {!file ? (
               <DebugEmptyView />
+            ) : currentTab === 'preview' ? (
+              <PreviewView projectId={projectId} gitRef={gitRef} assistant={file} />
             ) : currentTab === 'debug' ? (
-              <DebugView projectId={projectId} gitRef={gitRef} assistant={file} />
+              <DebugView projectId={projectId} gitRef={gitRef} assistant={file} setCurrentTab={setCurrentTab} />
             ) : currentTab === 'test' ? (
               <TestView projectId={projectId} gitRef={gitRef} assistant={file} setCurrentTab={setCurrentTab} />
             ) : currentTab === 'discuss' ? (

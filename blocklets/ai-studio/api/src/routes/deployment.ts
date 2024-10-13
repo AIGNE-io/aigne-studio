@@ -287,8 +287,8 @@ router.get('/:deploymentId', user(), async (req, res) => {
   res.json({
     deployment,
     ...respondAgentFields({
-      ...agent,
-      identity: { projectId, projectRef, agentId: agent.id },
+      agent,
+      identity: { aid: stringifyIdentity({ projectId, projectRef, agentId: agent.id }) },
       project: await repo.readAndParseFile({
         ref: projectRef,
         filepath: PROJECT_FILE_PATH,
@@ -336,17 +336,23 @@ router.delete('/:id', user(), auth(), async (req, res) => {
 
 export default router;
 
-export const respondAgentFields = (
-  agent: Assistant & {
-    identity: Omit<Agent['identity'], 'aid'>;
-    project: ProjectSettings;
-  }
-): Agent => ({
-  ...pick(agent, 'id', 'name', 'description', 'type', 'parameters', 'createdAt', 'updatedAt', 'createdBy', 'identity'),
+export const respondAgentFields = ({
+  agent,
+  identity,
+  project,
+}: {
+  agent: Assistant;
+  project: ProjectSettings;
+  identity: {
+    aid: string;
+    working?: boolean;
+  };
+}): Agent => ({
+  ...pick(agent, 'id', 'name', 'description', 'type', 'parameters', 'createdAt', 'updatedAt', 'createdBy'),
   access: pick(agent.access, 'noLoginRequired'),
   outputVariables: (agent.outputVariables ?? []).filter((i) => !i.hidden),
   project: pick(
-    agent.project,
+    project,
     'id',
     'name',
     'description',
@@ -358,10 +364,7 @@ export const respondAgentFields = (
     'readme',
     'banner'
   ),
-  identity: {
-    ...agent.identity,
-    aid: stringifyIdentity(agent.identity),
-  },
+  identity,
 });
 
 const checkDeploymentSchema = Joi.object<{ deploymentId?: string }>({

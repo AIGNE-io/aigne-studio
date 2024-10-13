@@ -42,15 +42,17 @@ router.get('/', async (req, res) => {
         }
         return false;
       })
-      .map((a) =>
+      .map((agent) =>
         respondAgentFields({
-          ...a,
-          project: project.project,
+          agent,
           identity: {
-            blockletDid: project.blocklet.did,
-            projectId: project.project.id,
-            agentId: a.id,
+            aid: stringifyIdentity({
+              blockletDid: project.blocklet.did,
+              projectId: project.project.id,
+              agentId: agent.id,
+            }),
           },
+          project: project.project,
         })
       )
   );
@@ -60,39 +62,40 @@ router.get('/', async (req, res) => {
 
 export interface GetAgentQuery {
   working?: boolean;
-  blockletDid?: string;
 }
 
 const getAgentQuerySchema = Joi.object<GetAgentQuery>({
   working: Joi.boolean().empty([null, '']),
-  blockletDid: Joi.string().empty([null, '']),
 });
 
 router.get('/:aid', async (req, res) => {
   const { aid } = req.params;
   if (!aid) throw new Error('Missing required param `aid`');
 
-  const { blockletDid, working } = await getAgentQuerySchema.validateAsync(req.query, { stripUnknown: true });
+  const { working } = await getAgentQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
-  const { projectId, projectRef, agentId } = parseIdentity(aid, { rejectWhenError: true });
-
-  const agent = await getAgent({ blockletDid, projectId, projectRef, agentId, working });
+  const agent = await getAgent({ aid, working });
 
   if (!agent) {
     res.status(404).json({ message: 'No such agent' });
     return;
   }
 
-  res.json({ ...respondAgentFields(agent), config: { secrets: await getAgentSecretInputs(agent) } });
+  res.json({
+    ...respondAgentFields({
+      agent,
+      project: agent.project,
+      identity: agent.identity,
+    }),
+    config: { secrets: await getAgentSecretInputs(agent) },
+  });
 });
 
 router.get('/:aid/logo', async (req, res) => {
   const { aid } = req.params;
   if (!aid) throw new Error('Missing required param `aid`');
 
-  const { blockletDid } = await getAgentQuerySchema.validateAsync(req.query, { stripUnknown: true });
-
-  const { projectId, projectRef } = parseIdentity(aid, { rejectWhenError: true });
+  const { blockletDid, projectId, projectRef } = parseIdentity(aid, { rejectWhenError: true });
 
   if (blockletDid) {
     const dir = (await resourceManager.getProject({ blockletDid, projectId }))?.dir;
@@ -126,9 +129,7 @@ router.get('/:aid/assets/:filename', async (req, res) => {
   const { aid, filename } = req.params;
   if (!aid || !filename) throw new Error('Missing required param `aid` or `filename`');
 
-  const { blockletDid } = await getAgentQuerySchema.validateAsync(req.query, { stripUnknown: true });
-
-  const { projectId, projectRef } = parseIdentity(aid, { rejectWhenError: true });
+  const { blockletDid, projectId, projectRef = 'main' } = parseIdentity(aid, { rejectWhenError: true });
 
   if (blockletDid) {
     const dir = (await resourceManager.getProject({ blockletDid, projectId }))?.dir;
@@ -155,17 +156,23 @@ router.get('/:aid/assets/:filename', async (req, res) => {
   );
 });
 
-export const respondAgentFields = (
-  agent: Assistant & {
-    identity: Omit<Agent['identity'], 'aid'>;
-    project: ProjectSettings;
-  }
-): Agent => ({
-  ...pick(agent, 'id', 'name', 'description', 'type', 'parameters', 'createdAt', 'updatedAt', 'createdBy', 'identity'),
+export const respondAgentFields = ({
+  agent,
+  project,
+  identity,
+}: {
+  agent: Assistant;
+  project: ProjectSettings;
+  identity: {
+    aid: string;
+    working?: boolean;
+  };
+}): Agent => ({
+  ...pick(agent, 'id', 'name', 'description', 'type', 'parameters', 'createdAt', 'updatedAt', 'createdBy'),
   access: pick(agent.access, 'noLoginRequired'),
   outputVariables: (agent.outputVariables ?? []).filter((i) => !i.hidden),
   project: pick(
-    agent.project,
+    project,
     'id',
     'name',
     'description',
@@ -175,10 +182,7 @@ export const respondAgentFields = (
     'appearance',
     'iconVersion'
   ),
-  identity: {
-    ...agent.identity,
-    aid: stringifyIdentity(agent.identity),
-  },
+  identity,
 });
 
 export default router;

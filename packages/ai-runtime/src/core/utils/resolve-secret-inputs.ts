@@ -1,5 +1,6 @@
 import { uniqBy } from 'lodash';
 
+import { parseIdentity, stringifyIdentity } from '../../common/aid';
 import { RuntimeOutputVariable, RuntimeOutputVariablesSchema, SecretParameter, SourceParameter } from '../../types';
 import { isNonNullable } from '../../utils/is-non-nullable';
 import { GetAgent, GetAgentResult } from '../assistant/type';
@@ -9,7 +10,7 @@ export async function resolveSecretInputs(
   { getAgent }: { getAgent: GetAgent }
 ): Promise<
   {
-    agent: GetAgentResult & Required<Pick<GetAgentResult, 'project' | 'identity'>>;
+    agent: GetAgentResult & Required<Pick<GetAgentResult, 'project'>>;
     input: SourceParameter & { key: string; source: SecretParameter };
   }[]
 > {
@@ -44,14 +45,18 @@ export async function resolveSecretInputs(
     ...(agent.executor?.agent?.id ? [agent.executor.agent] : []),
   ].filter(isNonNullable);
 
+  const identity = parseIdentity(agent.identity.aid, { rejectWhenError: true });
+
   const nestedSecretInputs = (
     await Promise.all(
       referencedAgents.map(async (i) => {
         const res = await getAgent({
-          blockletDid: i.blockletDid,
-          projectId: i.projectId || agent.identity.projectId,
-          projectRef: agent.identity.projectRef,
-          agentId: i.id,
+          aid: stringifyIdentity({
+            blockletDid: i.blockletDid,
+            projectId: i.projectId || identity.projectId,
+            projectRef: identity.projectRef,
+            agentId: i.id,
+          }),
           working: agent.identity.working,
         });
         return res && resolveSecretInputs(res, { getAgent });

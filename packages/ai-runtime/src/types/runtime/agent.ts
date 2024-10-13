@@ -11,11 +11,7 @@ export interface Agent {
 
   identity: {
     aid: string;
-    projectId: string;
-    projectRef?: string;
-    blockletDid?: string;
     working?: boolean;
-    agentId: string;
   };
 
   project: ProjectSettings;

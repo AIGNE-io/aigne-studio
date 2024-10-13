@@ -1,28 +1,40 @@
 import { Base64 } from 'js-base64';
 
-const DEFAULT_PROJECT_REF = 'main';
-
 export interface Identity {
+  blockletDid?: string;
   projectId: string;
-  projectRef: string;
+  projectRef?: string;
   agentId: string;
 }
 
 export function parseIdentity(aid: string, options: { rejectWhenError: true }): Identity;
 export function parseIdentity(aid: string, options?: { rejectWhenError?: false }): Identity | undefined;
 export function parseIdentity(aid: string, options?: { rejectWhenError?: boolean }): Identity | undefined {
+  let blockletDid: string | undefined;
   let projectId: string | undefined;
   let projectRef: string | undefined;
   let agentId: string | undefined;
 
   try {
     const s = Base64.decode(aid).split('/');
-    [projectId, projectRef, agentId] = s.length === 3 ? s : s.length === 2 ? [s[0], 'main', s[1]] : [];
+    if (s.length === 4) {
+      [blockletDid, projectId, projectRef, agentId] = s;
+    } else if (s.length === 3) {
+      [projectId, projectRef, agentId] = s;
+    } else if (s.length === 2) {
+      [projectId, agentId] = s;
+    }
   } catch (error) {
     console.error('parse assistantId error', { error });
   }
 
-  if (projectId && projectRef && agentId) return { projectId, projectRef, agentId };
+  if (projectId && agentId)
+    return {
+      blockletDid: blockletDid || undefined,
+      projectId,
+      projectRef: projectRef || undefined,
+      agentId,
+    };
 
   if (options?.rejectWhenError) throw new Error(`Invalid assistant identity ${aid}`);
 
@@ -30,10 +42,12 @@ export function parseIdentity(aid: string, options?: { rejectWhenError?: boolean
 }
 
 export function stringifyIdentity({
+  blockletDid,
   projectId,
   projectRef,
   agentId,
 }: {
+  blockletDid?: string;
   projectId: string;
   projectRef?: string;
   agentId: string;
@@ -42,5 +56,5 @@ export function stringifyIdentity({
     throw new Error('Invalid aid fragments');
   }
 
-  return Base64.encodeURI([projectId, projectRef || DEFAULT_PROJECT_REF, agentId].join('/'));
+  return Base64.encodeURI([blockletDid || '', projectId, projectRef || '', agentId].join('/'));
 }
