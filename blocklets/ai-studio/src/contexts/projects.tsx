@@ -138,7 +138,7 @@ export const useProjectsState = () => {
       maxWidth: 'sm',
       title: t('launchMore'),
       content: (
-        <Box sx={{ whiteSpace: 'break-spaces' }}>
+        <Box sx={{ whiteSpace: 'break-spaces' }} data-testid="launchMoreContent">
           {t('launchMoreContent', { length: window.blocklet?.preferences?.multiTenantProjectLimits })}
         </Box>
       ),

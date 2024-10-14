@@ -224,6 +224,7 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
               <Box>
                 <Typography variant="subtitle2">{t('description')}</Typography>
                 <TextField
+                  data-testid="projectDescriptionField"
                   placeholder={t('newProjectDescriptionPlaceholder')}
                   hiddenLabel
                   multiline

@@ -146,11 +146,13 @@ export default function OutputSettings({
 
             {value.outputVariables && (
               <DragSortListYjs
+                data-testid="output-table"
                 component={TableBody}
                 list={value.outputVariables}
                 sx={{ '&.isDragging .hover-visible': { display: 'none' } }}
                 renderItem={(item, _, params) => (
                   <VariableRow
+                    className="output-variable-row"
                     key={item.id}
                     rowRef={(ref) => params.drop(params.preview(ref))}
                     firstColumnChildren={
@@ -360,6 +362,7 @@ function VariableRow({
 
               <Box sx={{ ml: depth === 0 ? depth : depth + 2 }}>
                 <OutputNameCell
+                  data-testid="output-name-cell"
                   projectId={projectId}
                   gitRef={gitRef}
                   assistant={value}
@@ -374,6 +377,7 @@ function VariableRow({
             </Box>
             <Box component={TableCell}>
               <OutputDescriptionCell
+                data-testid="output-variable-description"
                 projectId={projectId}
                 gitRef={gitRef}
                 assistant={value}
@@ -383,6 +387,7 @@ function VariableRow({
             </Box>
             <Box component={TableCell} onClick={settingRef.current?.open}>
               <OutputFormatCell
+                data-testid="output-variable-format"
                 assistant={value}
                 output={variable}
                 variable={datastoreVariable}
@@ -390,13 +395,20 @@ function VariableRow({
               />
             </Box>
             <Box component={TableCell} onClick={settingRef.current?.open}>
-              <OutputRequiredCell output={variable} disabled={Boolean(disabled)} />
+              <OutputRequiredCell data-testid="output-required-cell" output={variable} disabled={Boolean(disabled)} />
             </Box>
             <Box component={TableCell} onClick={settingRef.current?.open}>
-              <OutputAppearanceCell projectId={projectId} gitRef={gitRef} assistant={value} output={variable} />
+              <OutputAppearanceCell
+                data-testid="output-appearance-cell"
+                projectId={projectId}
+                gitRef={gitRef}
+                assistant={value}
+                output={variable}
+              />
             </Box>
             <Box component={TableCell} align="right">
               <OutputActionsCell
+                data-testid="output-variable-actions"
                 depth={depth}
                 disabled={disabled}
                 onRemove={onRemove}

@@ -1,0 +1,498 @@
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{},"messageId":"470853252372496384"}
+
+data: {"type":"INPUT_PARAMETER","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"{\n  \"$clientTime\": \"2024-07-23T07:22:43.357Z\",\n  \"question\": \"What is the arcblock?\"\n}"},"messageId":"470853252372496384"}
+
+data: {"type":"INPUT","assistantId":"20240521230017-getU5r","taskId":"470853252372496384","assistantName":"Mockplexity","inputParameters":{"$clientTime":"2024-07-23T07:22:43.357Z","question":"What is the arcblock?"},"messageId":"470853252372496384"}
+
+data: {"type":"INPUT","assistantId":"20240526105615-K8W4Rk","taskId":"470853252389273600","parentTaskId":"470853252372496384","assistantName":"Google Search","inputParameters":{"q":"{{ question }}"},"messageId":"470853252372496384"}
+
+data: {"type":"EXECUTE","taskId":"470853252389273600","parentTaskId":"470853252372496384","assistantId":"20240526105615-K8W4Rk","assistantName":"Google Search","execution":{"currentPhase":"EXECUTE_BLOCK_RUNNING"},"messageId":"470853252372496384"}
+
+data: {"type":"INPUT","assistantId":"20240526105615-K8W4Rk","taskId":"470853252389273600","parentTaskId":"470853252372496384","assistantName":"Google Search","inputParameters":{"q":"What is the arcblock?","api_key":"f712dac84b4f84c3c2fa079896572ed19e2738e23baf025f2c8764d5d8598deb"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252389273600","assistantId":"20240526105615-K8W4Rk","delta":{"object":{"knowledge_graph":{},"related_questions":[{"question":"What does ArcBlock do?","snippet":"About ArcBlock ArcBlock has created a powerful but easy to use development platform that utilizes the power of blockchain in combination with cloud computing that developers and businesses to achieve their goals successfully.","title":"ArcBlock - AWS Marketplace - Amazon.com","link":"https://aws.amazon.com/marketplace/seller-profile?id=9cb574a7-f330-4a90-bbc6-fc65c71b52e3#:~:text=About%20ArcBlock&text=ArcBlock%20has%20created%20a%20powerful,to%20achieve%20their%20goals%20successfully."},{"question":"Is ArcBlock a good investment?","snippet":"Per our technical indicators, the current sentiment is Bearish while the Fear & Greed Index is showing 69 (Greed). ArcBlock recorded 9/30 (30%) green days with 12.57% price volatility over the last 30 days. Based on the ArcBlock forecast, it's now a bad time to buy ArcBlock. Disclaimer: This is not investment advice.","title":"ArcBlock (ABT) Price Prediction 2024, 2025–2030 | CoinCodex","link":"https://coincodex.com/crypto/arcblock/price-prediction/#:~:text=Per%20our%20technical%20indicators%2C%20the,This%20is%20not%20investment%20advice."},{"question":"How much is ArcBlock coin worth?","snippet":"Arcblock Price Live Data The live Arcblock price today is $2.11 USD with a 24-hour trading volume of $3,549,399 USD. We update our ABT to USD price in real-time. Arcblock is up 2.03% in the last 24 hours. The current CoinMarketCap ranking is #232, with a live market cap of $207,877,802 USD.","title":"Arcblock price today, ABT to USD live price, marketcap and chart","link":"https://coinmarketcap.com/currencies/arcblock/#:~:text=Arcblock%20Price%20Live%20Data,market%20cap%20of%20%24207%2C877%2C802%20USD."},{"question":"Is ArcBlock on Ethereum?","snippet":"Ready for Multi-Chain Using Block Servers integrated Open Chain Access Protocol developers can use ArcBlock-powered blockchains, or integrate your data sources including Ethereum, Hyperledger, or Amazon's QLDB.","title":"ArcBlock Official Site","link":"https://www.arcblock.io/en/platform#:~:text=Ready%20for%20Multi%2DChain&text=Using%20Block%20Servers%20integrated%20Open,%2C%20Hyperledger%2C%20or%20Amazon's%20QLDB."}],"organic_results":[{"title":"ArcBlock (ABT) Review: Beginners Guide","link":"https://coinbureau.com/review/arcblock-abt/","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399a8e1086f39bec91e8aa3f344b96e1249.png","snippet":"ArcBlock (ABT) is another project that is trying to simplify the process of Decentralised Application (dApp) and blockchain development.","snippet_highlighted_words":["the process of Decentralised Application (dApp) and blockchain development"],"source":"The Coin Bureau"},{"title":"ArcBlock Official Site","link":"https://www.arcblock.io/en/platform","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b3990f444639de88df9bcb59e212ed5ccd4e.png","snippet":"ArcBlock Platform​​ Your decentralized dev environment that includes a blockchain framework, runtime and an ecosystem of Blocklets to make building DApps easy.","snippet_highlighted_words":["Your decentralized dev environment that includes a blockchain framework, runtime and an"],"source":"ArcBlock!"},{"title":"Welcome to ArcBlock!","link":"https://www.arcblock.io/en","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b3990194bdf4da63076a78b681f72c378359.png","snippet":"​ A total solution for building decentralized applications, redefine software architect and ecosystem.","snippet_highlighted_words":["A total solution for building decentralized applications"],"source":"ArcBlock!"},{"title":"ArcBlock DApp Platform","link":"https://www.abtnetwork.io/","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399777b218e3cf2974ac97efd62fd6098e4.png","snippet":"ArcBlock is your new decentralized developer platform that simplifies the development of DApps, DLT and Blockchains. LEARN HOWSTART NOW.","snippet_highlighted_words":["your new decentralized developer platform that simplifies the development of"],"source":"abtnetwork.io"},{"title":"Technical WhitePaper - ArcBlock","link":"https://arcblockio.cn/en/whitepaper/latest","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b39923875f9d9c555691d87692278251ee99.jpeg","snippet":"The ArcBlock Marketplace is a decentralized blockchain application built on ArcBlock platform itself. The app serves as a marketplace for listing, searching, ...","snippet_highlighted_words":["Marketplace is a decentralized blockchain application built on ArcBlock platform itself"],"source":"arcblockio.cn"},{"title":"Arcblock ABT Price, Live Charts, and News in United States","link":"https://www.coinbase.com/price/arcblock","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399974e6d13541e16508f2c897498359d37.png","snippet":"It is a solution that combines blockchain technology with Cloud Computing. Arcblock is a marketplace for reusable services, components, and even applications.","snippet_highlighted_words":["a solution that combines blockchain technology with Cloud Computing"],"source":"Coinbase"},{"title":"Arcblock price today, ABT to USD live ...","link":"https://coinmarketcap.com/currencies/arcblock/","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399f0b314e75d348eb41badf3feb07a38ed.png","snippet":"The live Arcblock price today is $1.95 USD with a 24-hour trading volume of $12,587,249 USD. We update our ABT to USD price in real-time. Arcblock is down 3.80% ...","snippet_highlighted_words":["1.95 USD"],"source":"CoinMarketCap"},{"title":"ArcBlock (@ArcBlock_io) / X","link":"https://twitter.com/arcblock_io","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399aae1daee0c4149f2977abf02bae9a563.png","snippet":"ArcBlock is America's Blockchain. #Decentralized, Open Source, and Permisionless systems, especially for LLM's & #AI, are the future. We are extremely ...","snippet_highlighted_words":["ArcBlock is America's Blockchain"],"source":"X · ArcBlock_io"},{"title":"ABT ArcBlock","link":"https://cryptoslate.com/coins/arcblock/","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399c3ffec5600e4dfcd55f5cffdbbbb964d.png","snippet":"ArcBlock is a platform and an ecosystem for building and deploying decentralized blockchain applications. The ABT is a utility token for paying the cost ...","snippet_highlighted_words":["a platform and an ecosystem for building and deploying decentralized blockchain applications"],"source":"CryptoSlate"}]}},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252389273600","assistantId":"20240526105615-K8W4Rk","delta":{"content":"{\"knowledge_graph\":{},\"related_questions\":[{\"question\":\"What does ArcBlock do?\",\"snippet\":\"About ArcBlock ArcBlock has created a powerful but easy to use development platform that utilizes the power of blockchain in combination with cloud computing that developers and businesses to achieve their goals successfully.\",\"title\":\"ArcBlock - AWS Marketplace - Amazon.com\",\"link\":\"https://aws.amazon.com/marketplace/seller-profile?id=9cb574a7-f330-4a90-bbc6-fc65c71b52e3#:~:text=About%20ArcBlock&text=ArcBlock%20has%20created%20a%20powerful,to%20achieve%20their%20goals%20successfully.\"},{\"question\":\"Is ArcBlock a good investment?\",\"snippet\":\"Per our technical indicators, the current sentiment is Bearish while the Fear & Greed Index is showing 69 (Greed). ArcBlock recorded 9/30 (30%) green days with 12.57% price volatility over the last 30 days. Based on the ArcBlock forecast, it's now a bad time to buy ArcBlock. Disclaimer: This is not investment advice.\",\"title\":\"ArcBlock (ABT) Price Prediction 2024, 2025–2030 | CoinCodex\",\"link\":\"https://coincodex.com/crypto/arcblock/price-prediction/#:~:text=Per%20our%20technical%20indicators%2C%20the,This%20is%20not%20investment%20advice.\"},{\"question\":\"How much is ArcBlock coin worth?\",\"snippet\":\"Arcblock Price Live Data The live Arcblock price today is $2.11 USD with a 24-hour trading volume of $3,549,399 USD. We update our ABT to USD price in real-time. Arcblock is up 2.03% in the last 24 hours. The current CoinMarketCap ranking is #232, with a live market cap of $207,877,802 USD.\",\"title\":\"Arcblock price today, ABT to USD live price, marketcap and chart\",\"link\":\"https://coinmarketcap.com/currencies/arcblock/#:~:text=Arcblock%20Price%20Live%20Data,market%20cap%20of%20%24207%2C877%2C802%20USD.\"},{\"question\":\"Is ArcBlock on Ethereum?\",\"snippet\":\"Ready for Multi-Chain Using Block Servers integrated Open Chain Access Protocol developers can use ArcBlock-powered blockchains, or integrate your data sources including Ethereum, Hyperledger, or Amazon's QLDB.\",\"title\":\"ArcBlock Official Site\",\"link\":\"https://www.arcblock.io/en/platform#:~:text=Ready%20for%20Multi%2DChain&text=Using%20Block%20Servers%20integrated%20Open,%2C%20Hyperledger%2C%20or%20Amazon's%20QLDB.\"}],\"organic_results\":[{\"title\":\"ArcBlock (ABT) Review: Beginners Guide\",\"link\":\"https://coinbureau.com/review/arcblock-abt/\",\"favicon\":\"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399a8e1086f39bec91e8aa3f344b96e1249.png\",\"snippet\":\"ArcBlock (ABT) is another project that is trying to simplify the process of Decentralised Application (dApp) and blockchain development.\",\"snippet_highlighted_words\":[\"the process of Decentralised Application (dApp) and blockchain development\"],\"source\":\"The Coin Bureau\"},{\"title\":\"ArcBlock Official Site\",\"link\":\"https://www.arcblock.io/en/platform\",\"favicon\":\"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b3990f444639de88df9bcb59e212ed5ccd4e.png\",\"snippet\":\"ArcBlock Platform​​ Your decentralized dev environment that includes a blockchain framework, runtime and an ecosystem of Blocklets to make building DApps easy.\",\"snippet_highlighted_words\":[\"Your decentralized dev environment that includes a blockchain framework, runtime and an\"],\"source\":\"ArcBlock!\"},{\"title\":\"Welcome to ArcBlock!\",\"link\":\"https://www.arcblock.io/en\",\"favicon\":\"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b3990194bdf4da63076a78b681f72c378359.png\",\"snippet\":\"​ A total solution for building decentralized applications, redefine software architect and ecosystem.\",\"snippet_highlighted_words\":[\"A total solution for building decentralized applications\"],\"source\":\"ArcBlock!\"},{\"title\":\"ArcBlock DApp Platform\",\"link\":\"https://www.abtnetwork.io/\",\"favicon\":\"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399777b218e3cf2974ac97efd62fd6098e4.png\",\"snippet\":\"ArcBlock is your new decentralized developer platform that simplifies the development of DApps, DLT and Blockchains. LEARN HOWSTART NOW.\",\"snippet_highlighted_words\":[\"your new decentralized developer platform that simplifies the development of\"],\"source\":\"abtnetwork.io\"},{\"title\":\"Technical WhitePaper - ArcBlock\",\"link\":\"https://arcblockio.cn/en/whitepaper/latest\",\"favicon\":\"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b39923875f9d9c555691d87692278251ee99.jpeg\",\"snippet\":\"The ArcBlock Marketplace is a decentralized blockchain application built on ArcBlock platform itself. The app serves as a marketplace for listing, searching, ...\",\"snippet_highlighted_words\":[\"Marketplace is a decentralized blockchain application built on ArcBlock platform itself\"],\"source\":\"arcblockio.cn\"},{\"title\":\"Arcblock ABT Price, Live Charts, and News in United States\",\"link\":\"https://www.coinbase.com/price/arcblock\",\"favicon\":\"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399974e6d13541e16508f2c897498359d37.png\",\"snippet\":\"It is a solution that combines blockchain technology with Cloud Computing. Arcblock is a marketplace for reusable services, components, and even applications.\",\"snippet_highlighted_words\":[\"a solution that combines blockchain technology with Cloud Computing\"],\"source\":\"Coinbase\"},{\"title\":\"Arcblock price today, ABT to USD live ...\",\"link\":\"https://coinmarketcap.com/currencies/arcblock/\",\"favicon\":\"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399f0b314e75d348eb41badf3feb07a38ed.png\",\"snippet\":\"The live Arcblock price today is $1.95 USD with a 24-hour trading volume of $12,587,249 USD. We update our ABT to USD price in real-time. Arcblock is down 3.80% ...\",\"snippet_highlighted_words\":[\"1.95 USD\"],\"source\":\"CoinMarketCap\"},{\"title\":\"ArcBlock (@ArcBlock_io) / X\",\"link\":\"https://twitter.com/arcblock_io\",\"favicon\":\"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399aae1daee0c4149f2977abf02bae9a563.png\",\"snippet\":\"ArcBlock is America's Blockchain. #Decentralized, Open Source, and Permisionless systems, especially for LLM's & #AI, are the future. We are extremely ...\",\"snippet_highlighted_words\":[\"ArcBlock is America's Blockchain\"],\"source\":\"X · ArcBlock_io\"},{\"title\":\"ABT ArcBlock\",\"link\":\"https://cryptoslate.com/coins/arcblock/\",\"favicon\":\"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399c3ffec5600e4dfcd55f5cffdbbbb964d.png\",\"snippet\":\"ArcBlock is a platform and an ecosystem for building and deploying decentralized blockchain applications. The ABT is a utility token for paying the cost ...\",\"snippet_highlighted_words\":[\"a platform and an ecosystem for building and deploying decentralized blockchain applications\"],\"source\":\"CryptoSlate\"}]}"},"messageId":"470853252372496384"}
+
+data: {"type":"EXECUTE","taskId":"470853252389273600","parentTaskId":"470853252372496384","assistantId":"20240526105615-K8W4Rk","assistantName":"Google Search","execution":{"currentPhase":"EXECUTE_ASSISTANT_END"},"messageId":"470853252372496384"}
+
+data: {"type":"EXECUTE","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","assistantName":"Mockplexity","execution":{"currentPhase":"EXECUTE_BLOCK_RUNNING"},"messageId":"470853252372496384"}
+
+data: {"type":"INPUT","assistantId":"20240521230017-getU5r","taskId":"470853252372496384","assistantName":"Mockplexity","inputParameters":{"$clientTime":"2024-07-23T07:22:43.357Z","question":"What is the arcblock?","searchResult":{"knowledge_graph":{},"related_questions":[{"question":"What does ArcBlock do?","snippet":"About ArcBlock ArcBlock has created a powerful but easy to use development platform that utilizes the power of blockchain in combination with cloud computing that developers and businesses to achieve their goals successfully.","title":"ArcBlock - AWS Marketplace - Amazon.com","link":"https://aws.amazon.com/marketplace/seller-profile?id=9cb574a7-f330-4a90-bbc6-fc65c71b52e3#:~:text=About%20ArcBlock&text=ArcBlock%20has%20created%20a%20powerful,to%20achieve%20their%20goals%20successfully."},{"question":"Is ArcBlock a good investment?","snippet":"Per our technical indicators, the current sentiment is Bearish while the Fear & Greed Index is showing 69 (Greed). ArcBlock recorded 9/30 (30%) green days with 12.57% price volatility over the last 30 days. Based on the ArcBlock forecast, it's now a bad time to buy ArcBlock. Disclaimer: This is not investment advice.","title":"ArcBlock (ABT) Price Prediction 2024, 2025–2030 | CoinCodex","link":"https://coincodex.com/crypto/arcblock/price-prediction/#:~:text=Per%20our%20technical%20indicators%2C%20the,This%20is%20not%20investment%20advice."},{"question":"How much is ArcBlock coin worth?","snippet":"Arcblock Price Live Data The live Arcblock price today is $2.11 USD with a 24-hour trading volume of $3,549,399 USD. We update our ABT to USD price in real-time. Arcblock is up 2.03% in the last 24 hours. The current CoinMarketCap ranking is #232, with a live market cap of $207,877,802 USD.","title":"Arcblock price today, ABT to USD live price, marketcap and chart","link":"https://coinmarketcap.com/currencies/arcblock/#:~:text=Arcblock%20Price%20Live%20Data,market%20cap%20of%20%24207%2C877%2C802%20USD."},{"question":"Is ArcBlock on Ethereum?","snippet":"Ready for Multi-Chain Using Block Servers integrated Open Chain Access Protocol developers can use ArcBlock-powered blockchains, or integrate your data sources including Ethereum, Hyperledger, or Amazon's QLDB.","title":"ArcBlock Official Site","link":"https://www.arcblock.io/en/platform#:~:text=Ready%20for%20Multi%2DChain&text=Using%20Block%20Servers%20integrated%20Open,%2C%20Hyperledger%2C%20or%20Amazon's%20QLDB."}],"organic_results":[{"title":"ArcBlock (ABT) Review: Beginners Guide","link":"https://coinbureau.com/review/arcblock-abt/","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399a8e1086f39bec91e8aa3f344b96e1249.png","snippet":"ArcBlock (ABT) is another project that is trying to simplify the process of Decentralised Application (dApp) and blockchain development.","snippet_highlighted_words":["the process of Decentralised Application (dApp) and blockchain development"],"source":"The Coin Bureau"},{"title":"ArcBlock Official Site","link":"https://www.arcblock.io/en/platform","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b3990f444639de88df9bcb59e212ed5ccd4e.png","snippet":"ArcBlock Platform​​ Your decentralized dev environment that includes a blockchain framework, runtime and an ecosystem of Blocklets to make building DApps easy.","snippet_highlighted_words":["Your decentralized dev environment that includes a blockchain framework, runtime and an"],"source":"ArcBlock!"},{"title":"Welcome to ArcBlock!","link":"https://www.arcblock.io/en","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b3990194bdf4da63076a78b681f72c378359.png","snippet":"​ A total solution for building decentralized applications, redefine software architect and ecosystem.","snippet_highlighted_words":["A total solution for building decentralized applications"],"source":"ArcBlock!"},{"title":"ArcBlock DApp Platform","link":"https://www.abtnetwork.io/","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399777b218e3cf2974ac97efd62fd6098e4.png","snippet":"ArcBlock is your new decentralized developer platform that simplifies the development of DApps, DLT and Blockchains. LEARN HOWSTART NOW.","snippet_highlighted_words":["your new decentralized developer platform that simplifies the development of"],"source":"abtnetwork.io"},{"title":"Technical WhitePaper - ArcBlock","link":"https://arcblockio.cn/en/whitepaper/latest","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b39923875f9d9c555691d87692278251ee99.jpeg","snippet":"The ArcBlock Marketplace is a decentralized blockchain application built on ArcBlock platform itself. The app serves as a marketplace for listing, searching, ...","snippet_highlighted_words":["Marketplace is a decentralized blockchain application built on ArcBlock platform itself"],"source":"arcblockio.cn"},{"title":"Arcblock ABT Price, Live Charts, and News in United States","link":"https://www.coinbase.com/price/arcblock","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399974e6d13541e16508f2c897498359d37.png","snippet":"It is a solution that combines blockchain technology with Cloud Computing. Arcblock is a marketplace for reusable services, components, and even applications.","snippet_highlighted_words":["a solution that combines blockchain technology with Cloud Computing"],"source":"Coinbase"},{"title":"Arcblock price today, ABT to USD live ...","link":"https://coinmarketcap.com/currencies/arcblock/","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399f0b314e75d348eb41badf3feb07a38ed.png","snippet":"The live Arcblock price today is $1.95 USD with a 24-hour trading volume of $12,587,249 USD. We update our ABT to USD price in real-time. Arcblock is down 3.80% ...","snippet_highlighted_words":["1.95 USD"],"source":"CoinMarketCap"},{"title":"ArcBlock (@ArcBlock_io) / X","link":"https://twitter.com/arcblock_io","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399aae1daee0c4149f2977abf02bae9a563.png","snippet":"ArcBlock is America's Blockchain. #Decentralized, Open Source, and Permisionless systems, especially for LLM's & #AI, are the future. We are extremely ...","snippet_highlighted_words":["ArcBlock is America's Blockchain"],"source":"X · ArcBlock_io"},{"title":"ABT ArcBlock","link":"https://cryptoslate.com/coins/arcblock/","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399c3ffec5600e4dfcd55f5cffdbbbb964d.png","snippet":"ArcBlock is a platform and an ecosystem for building and deploying decentralized blockchain applications. The ABT is a utility token for paying the cost ...","snippet_highlighted_words":["a platform and an ecosystem for building and deploying decentralized blockchain applications"],"source":"CryptoSlate"}]}},"messageId":"470853252372496384"}
+
+data: {"type":"INPUT","assistantId":"20240521230017-getU5r","taskId":"470853252372496384","assistantName":"Mockplexity","inputParameters":{"$clientTime":"2024-07-23T07:22:43.357Z","question":"What is the arcblock?","searchResult":{"knowledge_graph":{},"related_questions":[{"question":"What does ArcBlock do?","snippet":"About ArcBlock ArcBlock has created a powerful but easy to use development platform that utilizes the power of blockchain in combination with cloud computing that developers and businesses to achieve their goals successfully.","title":"ArcBlock - AWS Marketplace - Amazon.com","link":"https://aws.amazon.com/marketplace/seller-profile?id=9cb574a7-f330-4a90-bbc6-fc65c71b52e3#:~:text=About%20ArcBlock&text=ArcBlock%20has%20created%20a%20powerful,to%20achieve%20their%20goals%20successfully."},{"question":"Is ArcBlock a good investment?","snippet":"Per our technical indicators, the current sentiment is Bearish while the Fear & Greed Index is showing 69 (Greed). ArcBlock recorded 9/30 (30%) green days with 12.57% price volatility over the last 30 days. Based on the ArcBlock forecast, it's now a bad time to buy ArcBlock. Disclaimer: This is not investment advice.","title":"ArcBlock (ABT) Price Prediction 2024, 2025–2030 | CoinCodex","link":"https://coincodex.com/crypto/arcblock/price-prediction/#:~:text=Per%20our%20technical%20indicators%2C%20the,This%20is%20not%20investment%20advice."},{"question":"How much is ArcBlock coin worth?","snippet":"Arcblock Price Live Data The live Arcblock price today is $2.11 USD with a 24-hour trading volume of $3,549,399 USD. We update our ABT to USD price in real-time. Arcblock is up 2.03% in the last 24 hours. The current CoinMarketCap ranking is #232, with a live market cap of $207,877,802 USD.","title":"Arcblock price today, ABT to USD live price, marketcap and chart","link":"https://coinmarketcap.com/currencies/arcblock/#:~:text=Arcblock%20Price%20Live%20Data,market%20cap%20of%20%24207%2C877%2C802%20USD."},{"question":"Is ArcBlock on Ethereum?","snippet":"Ready for Multi-Chain Using Block Servers integrated Open Chain Access Protocol developers can use ArcBlock-powered blockchains, or integrate your data sources including Ethereum, Hyperledger, or Amazon's QLDB.","title":"ArcBlock Official Site","link":"https://www.arcblock.io/en/platform#:~:text=Ready%20for%20Multi%2DChain&text=Using%20Block%20Servers%20integrated%20Open,%2C%20Hyperledger%2C%20or%20Amazon's%20QLDB."}],"organic_results":[{"title":"ArcBlock (ABT) Review: Beginners Guide","link":"https://coinbureau.com/review/arcblock-abt/","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399a8e1086f39bec91e8aa3f344b96e1249.png","snippet":"ArcBlock (ABT) is another project that is trying to simplify the process of Decentralised Application (dApp) and blockchain development.","snippet_highlighted_words":["the process of Decentralised Application (dApp) and blockchain development"],"source":"The Coin Bureau"},{"title":"ArcBlock Official Site","link":"https://www.arcblock.io/en/platform","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b3990f444639de88df9bcb59e212ed5ccd4e.png","snippet":"ArcBlock Platform​​ Your decentralized dev environment that includes a blockchain framework, runtime and an ecosystem of Blocklets to make building DApps easy.","snippet_highlighted_words":["Your decentralized dev environment that includes a blockchain framework, runtime and an"],"source":"ArcBlock!"},{"title":"Welcome to ArcBlock!","link":"https://www.arcblock.io/en","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b3990194bdf4da63076a78b681f72c378359.png","snippet":"​ A total solution for building decentralized applications, redefine software architect and ecosystem.","snippet_highlighted_words":["A total solution for building decentralized applications"],"source":"ArcBlock!"},{"title":"ArcBlock DApp Platform","link":"https://www.abtnetwork.io/","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399777b218e3cf2974ac97efd62fd6098e4.png","snippet":"ArcBlock is your new decentralized developer platform that simplifies the development of DApps, DLT and Blockchains. LEARN HOWSTART NOW.","snippet_highlighted_words":["your new decentralized developer platform that simplifies the development of"],"source":"abtnetwork.io"},{"title":"Technical WhitePaper - ArcBlock","link":"https://arcblockio.cn/en/whitepaper/latest","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b39923875f9d9c555691d87692278251ee99.jpeg","snippet":"The ArcBlock Marketplace is a decentralized blockchain application built on ArcBlock platform itself. The app serves as a marketplace for listing, searching, ...","snippet_highlighted_words":["Marketplace is a decentralized blockchain application built on ArcBlock platform itself"],"source":"arcblockio.cn"},{"title":"Arcblock ABT Price, Live Charts, and News in United States","link":"https://www.coinbase.com/price/arcblock","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399974e6d13541e16508f2c897498359d37.png","snippet":"It is a solution that combines blockchain technology with Cloud Computing. Arcblock is a marketplace for reusable services, components, and even applications.","snippet_highlighted_words":["a solution that combines blockchain technology with Cloud Computing"],"source":"Coinbase"},{"title":"Arcblock price today, ABT to USD live ...","link":"https://coinmarketcap.com/currencies/arcblock/","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399f0b314e75d348eb41badf3feb07a38ed.png","snippet":"The live Arcblock price today is $1.95 USD with a 24-hour trading volume of $12,587,249 USD. We update our ABT to USD price in real-time. Arcblock is down 3.80% ...","snippet_highlighted_words":["1.95 USD"],"source":"CoinMarketCap"},{"title":"ArcBlock (@ArcBlock_io) / X","link":"https://twitter.com/arcblock_io","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399aae1daee0c4149f2977abf02bae9a563.png","snippet":"ArcBlock is America's Blockchain. #Decentralized, Open Source, and Permisionless systems, especially for LLM's & #AI, are the future. We are extremely ...","snippet_highlighted_words":["ArcBlock is America's Blockchain"],"source":"X · ArcBlock_io"},{"title":"ABT ArcBlock","link":"https://cryptoslate.com/coins/arcblock/","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399c3ffec5600e4dfcd55f5cffdbbbb964d.png","snippet":"ArcBlock is a platform and an ecosystem for building and deploying decentralized blockchain applications. The ABT is a utility token for paying the cost ...","snippet_highlighted_words":["a platform and an ecosystem for building and deploying decentralized blockchain applications"],"source":"CryptoSlate"}]}},"promptMessages":[{"role":"system","content":"Use the following context as your learned knowledge, inside <context></context> XML tags.\n<context>\n{\"knowledge_graph\":{},\"related_questions\":[{\"question\":\"What does ArcBlock do?\",\"snippet\":\"About ArcBlock ArcBlock has created a powerful but easy to use development platform that utilizes the power of blockchain in combination with cloud computing that developers and businesses to achieve their goals successfully.\",\"title\":\"ArcBlock - AWS Marketplace - Amazon.com\",\"link\":\"https://aws.amazon.com/marketplace/seller-profile?id=9cb574a7-f330-4a90-bbc6-fc65c71b52e3#:~:text=About%20ArcBlock&text=ArcBlock%20has%20created%20a%20powerful,to%20achieve%20their%20goals%20successfully.\"},{\"question\":\"Is ArcBlock a good investment?\",\"snippet\":\"Per our technical indicators, the current sentiment is Bearish while the Fear & Greed Index is showing 69 (Greed). ArcBlock recorded 9/30 (30%) green days with 12.57% price volatility over the last 30 days. Based on the ArcBlock forecast, it's now a bad time to buy ArcBlock. Disclaimer: This is not investment advice.\",\"title\":\"ArcBlock (ABT) Price Prediction 2024, 2025–2030 | CoinCodex\",\"link\":\"https://coincodex.com/crypto/arcblock/price-prediction/#:~:text=Per%20our%20technical%20indicators%2C%20the,This%20is%20not%20investment%20advice.\"},{\"question\":\"How much is ArcBlock coin worth?\",\"snippet\":\"Arcblock Price Live Data The live Arcblock price today is $2.11 USD with a 24-hour trading volume of $3,549,399 USD. We update our ABT to USD price in real-time. Arcblock is up 2.03% in the last 24 hours. The current CoinMarketCap ranking is #232, with a live market cap of $207,877,802 USD.\",\"title\":\"Arcblock price today, ABT to USD live price, marketcap and chart\",\"link\":\"https://coinmarketcap.com/currencies/arcblock/#:~:text=Arcblock%20Price%20Live%20Data,market%20cap%20of%20%24207%2C877%2C802%20USD.\"},{\"question\":\"Is ArcBlock on Ethereum?\",\"snippet\":\"Ready for Multi-Chain Using Block Servers integrated Open Chain Access Protocol developers can use ArcBlock-powered blockchains, or integrate your data sources including Ethereum, Hyperledger, or Amazon's QLDB.\",\"title\":\"ArcBlock Official Site\",\"link\":\"https://www.arcblock.io/en/platform#:~:text=Ready%20for%20Multi%2DChain&text=Using%20Block%20Servers%20integrated%20Open,%2C%20Hyperledger%2C%20or%20Amazon's%20QLDB.\"}],\"organic_results\":[{\"title\":\"ArcBlock (ABT) Review: Beginners Guide\",\"link\":\"https://coinbureau.com/review/arcblock-abt/\",\"favicon\":\"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399a8e1086f39bec91e8aa3f344b96e1249.png\",\"snippet\":\"ArcBlock (ABT) is another project that is trying to simplify the process of Decentralised Application (dApp) and blockchain development.\",\"snippet_highlighted_words\":[\"the process of Decentralised Application (dApp) and blockchain development\"],\"source\":\"The Coin Bureau\"},{\"title\":\"ArcBlock Official Site\",\"link\":\"https://www.arcblock.io/en/platform\",\"favicon\":\"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b3990f444639de88df9bcb59e212ed5ccd4e.png\",\"snippet\":\"ArcBlock Platform​​ Your decentralized dev environment that includes a blockchain framework, runtime and an ecosystem of Blocklets to make building DApps easy.\",\"snippet_highlighted_words\":[\"Your decentralized dev environment that includes a blockchain framework, runtime and an\"],\"source\":\"ArcBlock!\"},{\"title\":\"Welcome to ArcBlock!\",\"link\":\"https://www.arcblock.io/en\",\"favicon\":\"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b3990194bdf4da63076a78b681f72c378359.png\",\"snippet\":\"​ A total solution for building decentralized applications, redefine software architect and ecosystem.\",\"snippet_highlighted_words\":[\"A total solution for building decentralized applications\"],\"source\":\"ArcBlock!\"},{\"title\":\"ArcBlock DApp Platform\",\"link\":\"https://www.abtnetwork.io/\",\"favicon\":\"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399777b218e3cf2974ac97efd62fd6098e4.png\",\"snippet\":\"ArcBlock is your new decentralized developer platform that simplifies the development of DApps, DLT and Blockchains. LEARN HOWSTART NOW.\",\"snippet_highlighted_words\":[\"your new decentralized developer platform that simplifies the development of\"],\"source\":\"abtnetwork.io\"},{\"title\":\"Technical WhitePaper - ArcBlock\",\"link\":\"https://arcblockio.cn/en/whitepaper/latest\",\"favicon\":\"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b39923875f9d9c555691d87692278251ee99.jpeg\",\"snippet\":\"The ArcBlock Marketplace is a decentralized blockchain application built on ArcBlock platform itself. The app serves as a marketplace for listing, searching, ...\",\"snippet_highlighted_words\":[\"Marketplace is a decentralized blockchain application built on ArcBlock platform itself\"],\"source\":\"arcblockio.cn\"},{\"title\":\"Arcblock ABT Price, Live Charts, and News in United States\",\"link\":\"https://www.coinbase.com/price/arcblock\",\"favicon\":\"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399974e6d13541e16508f2c897498359d37.png\",\"snippet\":\"It is a solution that combines blockchain technology with Cloud Computing. Arcblock is a marketplace for reusable services, components, and even applications.\",\"snippet_highlighted_words\":[\"a solution that combines blockchain technology with Cloud Computing\"],\"source\":\"Coinbase\"},{\"title\":\"Arcblock price today, ABT to USD live ...\",\"link\":\"https://coinmarketcap.com/currencies/arcblock/\",\"favicon\":\"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399f0b314e75d348eb41badf3feb07a38ed.png\",\"snippet\":\"The live Arcblock price today is $1.95 USD with a 24-hour trading volume of $12,587,249 USD. We update our ABT to USD price in real-time. Arcblock is down 3.80% ...\",\"snippet_highlighted_words\":[\"1.95 USD\"],\"source\":\"CoinMarketCap\"},{\"title\":\"ArcBlock (@ArcBlock_io) / X\",\"link\":\"https://twitter.com/arcblock_io\",\"favicon\":\"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399aae1daee0c4149f2977abf02bae9a563.png\",\"snippet\":\"ArcBlock is America's Blockchain. #Decentralized, Open Source, and Permisionless systems, especially for LLM's & #AI, are the future. We are extremely ...\",\"snippet_highlighted_words\":[\"ArcBlock is America's Blockchain\"],\"source\":\"X · ArcBlock_io\"},{\"title\":\"ABT ArcBlock\",\"link\":\"https://cryptoslate.com/coins/arcblock/\",\"favicon\":\"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399c3ffec5600e4dfcd55f5cffdbbbb964d.png\",\"snippet\":\"ArcBlock is a platform and an ecosystem for building and deploying decentralized blockchain applications. The ABT is a utility token for paying the cost ...\",\"snippet_highlighted_words\":[\"a platform and an ecosystem for building and deploying decentralized blockchain applications\"],\"source\":\"CryptoSlate\"}]}\n</context>\nWhen answer to user:\n- If you don't know, just say that you don't know.\n- If you don't know when you are not sure, ask for clarification.\nAvoid mentioning that you obtained the information from the context.\nAnd answer according to the language of the user's question.\n\nIf there are obviously irrelevant items in the list of the context, ignore those. \n\nWrite a comprehensive report and try the best to cover everything in the context. "},{"role":"user","content":"What is the arcblock?"}],"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"Arc"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"Block"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" is"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" a"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" development"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" platform"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" designed"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" to"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" simplify"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" the"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" creation"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" and"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" deployment"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" of"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" decentralized"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" applications"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" ("},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"D"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"Apps"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"),"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" blockchain"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" technologies"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":","},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" and"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" decentralized"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" led"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"gers"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"."},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" It"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" combines"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" blockchain"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" technology"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" with"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" cloud"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" computing"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" to"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" provide"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" a"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" powerful"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" yet"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" user"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"-friendly"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" environment"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" for"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" developers"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" and"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" businesses"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"."},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" Key"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" features"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" of"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" Arc"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"Block"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" include"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":":\n\n"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"1"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"."},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" **"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"Dec"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"entral"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"ized"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" Development"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" Environment"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":":**"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" \n"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"  "},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" -"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" Arc"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"Block"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" offers"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" a"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" blockchain"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" framework"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":","},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" runtime"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":","},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" and"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" ecosystem"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" of"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" Block"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"lets"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" that"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" make"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" it"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" easier"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" to"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" build"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" D"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"Apps"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" and"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" blockchain"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" applications"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":".\n\n"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"2"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"."},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" **"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"Multi"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"-"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"Chain"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" Compatibility"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":":"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"**\n"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"  "},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" -"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" The"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" platform"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" supports"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" integration"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" with"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" various"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" block"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"chains"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":","},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" including"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" Ethereum"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":","},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" Hyper"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"ledger"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":","},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" and"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" Amazon"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"'s"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" Q"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"L"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"DB"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":","},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" through"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" its"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" Block"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" Servers"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" and"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" Open"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" Chain"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" Access"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" Protocol"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":".\n\n"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"3"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"."},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" **"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"Marketplace"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" and"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" Ecos"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"ystem"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":":"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"**\n"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"  "},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" -"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" Arc"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"Block"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" includes"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" a"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" decentralized"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" marketplace"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" for"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" reusable"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" services"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":","},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" components"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":","},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" and"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" applications"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":","},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" enhancing"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" the"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" development"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" experience"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" by"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" providing"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" ready"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"-to"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"-use"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" tools"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" and"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" resources"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":".\n\n"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"4"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"."},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" **"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"Utility"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" Token"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" ("},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"AB"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"T"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"):"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"**\n"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"  "},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" -"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" The"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" AB"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"T"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" token"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" is"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" used"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" as"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" a"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" utility"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" token"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" within"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" the"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" Arc"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"Block"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" ecosystem"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" to"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" pay"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" for"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" services"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" and"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" operations"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":".\n\n"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"For"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" developers"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":","},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" Arc"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"Block"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" serves"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" as"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" a"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" comprehensive"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" tool"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"set"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" to"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" create"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" decentralized"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" applications"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" more"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" efficiently"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":","},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" leveraging"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" both"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" blockchain"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" and"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" cloud"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":" technologies"},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"content":"."},"messageId":"470853252372496384"}
+
+data: {"type":"USAGE","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","usage":{"promptTokens":2048,"completionTokens":234,"totalTokens":2282},"messageId":"470853252372496384"}
+
+data: {"type":"CHUNK","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","delta":{"object":{"$text":"ArcBlock is a development platform designed to simplify the creation and deployment of decentralized applications (DApps), blockchain technologies, and decentralized ledgers. It combines blockchain technology with cloud computing to provide a powerful yet user-friendly environment for developers and businesses. Key features of ArcBlock include:\n\n1. **Decentralized Development Environment:** \n   - ArcBlock offers a blockchain framework, runtime, and ecosystem of Blocklets that make it easier to build DApps and blockchain applications.\n\n2. **Multi-Chain Compatibility:**\n   - The platform supports integration with various blockchains, including Ethereum, Hyperledger, and Amazon's QLDB, through its Block Servers and Open Chain Access Protocol.\n\n3. **Marketplace and Ecosystem:**\n   - ArcBlock includes a decentralized marketplace for reusable services, components, and applications, enhancing the development experience by providing ready-to-use tools and resources.\n\n4. **Utility Token (ABT):**\n   - The ABT token is used as a utility token within the ArcBlock ecosystem to pay for services and operations.\n\nFor developers, ArcBlock serves as a comprehensive toolset to create decentralized applications more efficiently, leveraging both blockchain and cloud technologies.","question":"What is the arcblock?","sources":{"knowledge_graph":{},"related_questions":[{"question":"What does ArcBlock do?","snippet":"About ArcBlock ArcBlock has created a powerful but easy to use development platform that utilizes the power of blockchain in combination with cloud computing that developers and businesses to achieve their goals successfully.","title":"ArcBlock - AWS Marketplace - Amazon.com","link":"https://aws.amazon.com/marketplace/seller-profile?id=9cb574a7-f330-4a90-bbc6-fc65c71b52e3#:~:text=About%20ArcBlock&text=ArcBlock%20has%20created%20a%20powerful,to%20achieve%20their%20goals%20successfully."},{"question":"Is ArcBlock a good investment?","snippet":"Per our technical indicators, the current sentiment is Bearish while the Fear & Greed Index is showing 69 (Greed). ArcBlock recorded 9/30 (30%) green days with 12.57% price volatility over the last 30 days. Based on the ArcBlock forecast, it's now a bad time to buy ArcBlock. Disclaimer: This is not investment advice.","title":"ArcBlock (ABT) Price Prediction 2024, 2025–2030 | CoinCodex","link":"https://coincodex.com/crypto/arcblock/price-prediction/#:~:text=Per%20our%20technical%20indicators%2C%20the,This%20is%20not%20investment%20advice."},{"question":"How much is ArcBlock coin worth?","snippet":"Arcblock Price Live Data The live Arcblock price today is $2.11 USD with a 24-hour trading volume of $3,549,399 USD. We update our ABT to USD price in real-time. Arcblock is up 2.03% in the last 24 hours. The current CoinMarketCap ranking is #232, with a live market cap of $207,877,802 USD.","title":"Arcblock price today, ABT to USD live price, marketcap and chart","link":"https://coinmarketcap.com/currencies/arcblock/#:~:text=Arcblock%20Price%20Live%20Data,market%20cap%20of%20%24207%2C877%2C802%20USD."},{"question":"Is ArcBlock on Ethereum?","snippet":"Ready for Multi-Chain Using Block Servers integrated Open Chain Access Protocol developers can use ArcBlock-powered blockchains, or integrate your data sources including Ethereum, Hyperledger, or Amazon's QLDB.","title":"ArcBlock Official Site","link":"https://www.arcblock.io/en/platform#:~:text=Ready%20for%20Multi%2DChain&text=Using%20Block%20Servers%20integrated%20Open,%2C%20Hyperledger%2C%20or%20Amazon's%20QLDB."}],"organic_results":[{"title":"ArcBlock (ABT) Review: Beginners Guide","link":"https://coinbureau.com/review/arcblock-abt/","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399a8e1086f39bec91e8aa3f344b96e1249.png","snippet":"ArcBlock (ABT) is another project that is trying to simplify the process of Decentralised Application (dApp) and blockchain development.","snippet_highlighted_words":["the process of Decentralised Application (dApp) and blockchain development"],"source":"The Coin Bureau"},{"title":"ArcBlock Official Site","link":"https://www.arcblock.io/en/platform","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b3990f444639de88df9bcb59e212ed5ccd4e.png","snippet":"ArcBlock Platform​​ Your decentralized dev environment that includes a blockchain framework, runtime and an ecosystem of Blocklets to make building DApps easy.","snippet_highlighted_words":["Your decentralized dev environment that includes a blockchain framework, runtime and an"],"source":"ArcBlock!"},{"title":"Welcome to ArcBlock!","link":"https://www.arcblock.io/en","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b3990194bdf4da63076a78b681f72c378359.png","snippet":"​ A total solution for building decentralized applications, redefine software architect and ecosystem.","snippet_highlighted_words":["A total solution for building decentralized applications"],"source":"ArcBlock!"},{"title":"ArcBlock DApp Platform","link":"https://www.abtnetwork.io/","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399777b218e3cf2974ac97efd62fd6098e4.png","snippet":"ArcBlock is your new decentralized developer platform that simplifies the development of DApps, DLT and Blockchains. LEARN HOWSTART NOW.","snippet_highlighted_words":["your new decentralized developer platform that simplifies the development of"],"source":"abtnetwork.io"},{"title":"Technical WhitePaper - ArcBlock","link":"https://arcblockio.cn/en/whitepaper/latest","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b39923875f9d9c555691d87692278251ee99.jpeg","snippet":"The ArcBlock Marketplace is a decentralized blockchain application built on ArcBlock platform itself. The app serves as a marketplace for listing, searching, ...","snippet_highlighted_words":["Marketplace is a decentralized blockchain application built on ArcBlock platform itself"],"source":"arcblockio.cn"},{"title":"Arcblock ABT Price, Live Charts, and News in United States","link":"https://www.coinbase.com/price/arcblock","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399974e6d13541e16508f2c897498359d37.png","snippet":"It is a solution that combines blockchain technology with Cloud Computing. Arcblock is a marketplace for reusable services, components, and even applications.","snippet_highlighted_words":["a solution that combines blockchain technology with Cloud Computing"],"source":"Coinbase"},{"title":"Arcblock price today, ABT to USD live ...","link":"https://coinmarketcap.com/currencies/arcblock/","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399f0b314e75d348eb41badf3feb07a38ed.png","snippet":"The live Arcblock price today is $1.95 USD with a 24-hour trading volume of $12,587,249 USD. We update our ABT to USD price in real-time. Arcblock is down 3.80% ...","snippet_highlighted_words":["1.95 USD"],"source":"CoinMarketCap"},{"title":"ArcBlock (@ArcBlock_io) / X","link":"https://twitter.com/arcblock_io","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399aae1daee0c4149f2977abf02bae9a563.png","snippet":"ArcBlock is America's Blockchain. #Decentralized, Open Source, and Permisionless systems, especially for LLM's & #AI, are the future. We are extremely ...","snippet_highlighted_words":["ArcBlock is America's Blockchain"],"source":"X · ArcBlock_io"},{"title":"ABT ArcBlock","link":"https://cryptoslate.com/coins/arcblock/","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399c3ffec5600e4dfcd55f5cffdbbbb964d.png","snippet":"ArcBlock is a platform and an ecosystem for building and deploying decentralized blockchain applications. The ABT is a utility token for paying the cost ...","snippet_highlighted_words":["a platform and an ecosystem for building and deploying decentralized blockchain applications"],"source":"CryptoSlate"}]},"relates":{"knowledge_graph":{},"related_questions":[{"question":"What does ArcBlock do?","snippet":"About ArcBlock ArcBlock has created a powerful but easy to use development platform that utilizes the power of blockchain in combination with cloud computing that developers and businesses to achieve their goals successfully.","title":"ArcBlock - AWS Marketplace - Amazon.com","link":"https://aws.amazon.com/marketplace/seller-profile?id=9cb574a7-f330-4a90-bbc6-fc65c71b52e3#:~:text=About%20ArcBlock&text=ArcBlock%20has%20created%20a%20powerful,to%20achieve%20their%20goals%20successfully."},{"question":"Is ArcBlock a good investment?","snippet":"Per our technical indicators, the current sentiment is Bearish while the Fear & Greed Index is showing 69 (Greed). ArcBlock recorded 9/30 (30%) green days with 12.57% price volatility over the last 30 days. Based on the ArcBlock forecast, it's now a bad time to buy ArcBlock. Disclaimer: This is not investment advice.","title":"ArcBlock (ABT) Price Prediction 2024, 2025–2030 | CoinCodex","link":"https://coincodex.com/crypto/arcblock/price-prediction/#:~:text=Per%20our%20technical%20indicators%2C%20the,This%20is%20not%20investment%20advice."},{"question":"How much is ArcBlock coin worth?","snippet":"Arcblock Price Live Data The live Arcblock price today is $2.11 USD with a 24-hour trading volume of $3,549,399 USD. We update our ABT to USD price in real-time. Arcblock is up 2.03% in the last 24 hours. The current CoinMarketCap ranking is #232, with a live market cap of $207,877,802 USD.","title":"Arcblock price today, ABT to USD live price, marketcap and chart","link":"https://coinmarketcap.com/currencies/arcblock/#:~:text=Arcblock%20Price%20Live%20Data,market%20cap%20of%20%24207%2C877%2C802%20USD."},{"question":"Is ArcBlock on Ethereum?","snippet":"Ready for Multi-Chain Using Block Servers integrated Open Chain Access Protocol developers can use ArcBlock-powered blockchains, or integrate your data sources including Ethereum, Hyperledger, or Amazon's QLDB.","title":"ArcBlock Official Site","link":"https://www.arcblock.io/en/platform#:~:text=Ready%20for%20Multi%2DChain&text=Using%20Block%20Servers%20integrated%20Open,%2C%20Hyperledger%2C%20or%20Amazon's%20QLDB."}],"organic_results":[{"title":"ArcBlock (ABT) Review: Beginners Guide","link":"https://coinbureau.com/review/arcblock-abt/","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399a8e1086f39bec91e8aa3f344b96e1249.png","snippet":"ArcBlock (ABT) is another project that is trying to simplify the process of Decentralised Application (dApp) and blockchain development.","snippet_highlighted_words":["the process of Decentralised Application (dApp) and blockchain development"],"source":"The Coin Bureau"},{"title":"ArcBlock Official Site","link":"https://www.arcblock.io/en/platform","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b3990f444639de88df9bcb59e212ed5ccd4e.png","snippet":"ArcBlock Platform​​ Your decentralized dev environment that includes a blockchain framework, runtime and an ecosystem of Blocklets to make building DApps easy.","snippet_highlighted_words":["Your decentralized dev environment that includes a blockchain framework, runtime and an"],"source":"ArcBlock!"},{"title":"Welcome to ArcBlock!","link":"https://www.arcblock.io/en","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b3990194bdf4da63076a78b681f72c378359.png","snippet":"​ A total solution for building decentralized applications, redefine software architect and ecosystem.","snippet_highlighted_words":["A total solution for building decentralized applications"],"source":"ArcBlock!"},{"title":"ArcBlock DApp Platform","link":"https://www.abtnetwork.io/","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399777b218e3cf2974ac97efd62fd6098e4.png","snippet":"ArcBlock is your new decentralized developer platform that simplifies the development of DApps, DLT and Blockchains. LEARN HOWSTART NOW.","snippet_highlighted_words":["your new decentralized developer platform that simplifies the development of"],"source":"abtnetwork.io"},{"title":"Technical WhitePaper - ArcBlock","link":"https://arcblockio.cn/en/whitepaper/latest","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b39923875f9d9c555691d87692278251ee99.jpeg","snippet":"The ArcBlock Marketplace is a decentralized blockchain application built on ArcBlock platform itself. The app serves as a marketplace for listing, searching, ...","snippet_highlighted_words":["Marketplace is a decentralized blockchain application built on ArcBlock platform itself"],"source":"arcblockio.cn"},{"title":"Arcblock ABT Price, Live Charts, and News in United States","link":"https://www.coinbase.com/price/arcblock","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399974e6d13541e16508f2c897498359d37.png","snippet":"It is a solution that combines blockchain technology with Cloud Computing. Arcblock is a marketplace for reusable services, components, and even applications.","snippet_highlighted_words":["a solution that combines blockchain technology with Cloud Computing"],"source":"Coinbase"},{"title":"Arcblock price today, ABT to USD live ...","link":"https://coinmarketcap.com/currencies/arcblock/","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399f0b314e75d348eb41badf3feb07a38ed.png","snippet":"The live Arcblock price today is $1.95 USD with a 24-hour trading volume of $12,587,249 USD. We update our ABT to USD price in real-time. Arcblock is down 3.80% ...","snippet_highlighted_words":["1.95 USD"],"source":"CoinMarketCap"},{"title":"ArcBlock (@ArcBlock_io) / X","link":"https://twitter.com/arcblock_io","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399aae1daee0c4149f2977abf02bae9a563.png","snippet":"ArcBlock is America's Blockchain. #Decentralized, Open Source, and Permisionless systems, especially for LLM's & #AI, are the future. We are extremely ...","snippet_highlighted_words":["ArcBlock is America's Blockchain"],"source":"X · ArcBlock_io"},{"title":"ABT ArcBlock","link":"https://cryptoslate.com/coins/arcblock/","favicon":"https://serpapi.com/searches/669f5a44cca0141750892a23/images/53798e9c0dd00caa1ae429eb4bf9b399c3ffec5600e4dfcd55f5cffdbbbb964d.png","snippet":"ArcBlock is a platform and an ecosystem for building and deploying decentralized blockchain applications. The ABT is a utility token for paying the cost ...","snippet_highlighted_words":["a platform and an ecosystem for building and deploying decentralized blockchain applications"],"source":"CryptoSlate"}]}}},"messageId":"470853252372496384"}
+
+data: {"type":"EXECUTE","taskId":"470853252372496384","assistantId":"20240521230017-getU5r","assistantName":"Mockplexity","execution":{"currentPhase":"EXECUTE_ASSISTANT_END"},"messageId":"470853252372496384"}
+

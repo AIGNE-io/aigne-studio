@@ -42,7 +42,11 @@ export default function PromptSetting({
 
   return (
     <>
-      <Box position="relative" className="between" sx={{ backgroundColor: getDiffBackground('executor') }}>
+      <Box
+        data-testid="prompt-setting"
+        position="relative"
+        className="between"
+        sx={{ backgroundColor: getDiffBackground('executor') }}>
         <Box flex={1}>
           <FormLabel>{t('provider')}</FormLabel>
         </Box>
@@ -189,6 +193,7 @@ function DefaultPromptSetting({
             gitRef={projectRef}
             path={[agent.id, 'model']}>
             <ModelSelectField
+              data-testid="prompt-setting-model"
               hiddenLabel
               fullWidth
               value={agent.model || projectSetting?.model || defaultTextModel}
@@ -202,7 +207,11 @@ function DefaultPromptSetting({
       {model && (
         <>
           {!isNil(model.temperatureMin) && (
-            <Box position="relative" className="between" sx={{ backgroundColor: getDiffBackground('temperature') }}>
+            <Box
+              position="relative"
+              data-testid="prompt-setting-temperature"
+              className="between"
+              sx={{ backgroundColor: getDiffBackground('temperature') }}>
               <Box flex={1}>
                 <Tooltip
                   title={t('temperatureTip')}
@@ -238,7 +247,11 @@ function DefaultPromptSetting({
           )}
 
           {!isNil(model.topPMin) && (
-            <Box position="relative" className="between" sx={{ backgroundColor: getDiffBackground('topP') }}>
+            <Box
+              position="relative"
+              className="between"
+              data-testid="prompt-setting-topP"
+              sx={{ backgroundColor: getDiffBackground('topP') }}>
               <Box flex={1}>
                 <Tooltip
                   title={t('topPTip')}
@@ -274,7 +287,11 @@ function DefaultPromptSetting({
           )}
 
           {!isNil(model.presencePenaltyMin) && (
-            <Box position="relative" className="between" sx={{ backgroundColor: getDiffBackground('presencePenalty') }}>
+            <Box
+              position="relative"
+              className="between"
+              data-testid="prompt-setting-presencePenalty"
+              sx={{ backgroundColor: getDiffBackground('presencePenalty') }}>
               <Box flex={1}>
                 <Tooltip
                   title={t('presencePenaltyTip')}
@@ -313,6 +330,7 @@ function DefaultPromptSetting({
             <Box
               position="relative"
               className="between"
+              data-testid="prompt-setting-frequencyPenalty"
               sx={{ backgroundColor: getDiffBackground('frequencyPenalty') }}>
               <Box flex={1}>
                 <Tooltip
@@ -349,7 +367,11 @@ function DefaultPromptSetting({
           )}
 
           {!isNil(model.maxTokensMin) && (
-            <Box position="relative" className="between" sx={{ backgroundColor: getDiffBackground('maxTokens') }}>
+            <Box
+              position="relative"
+              data-testid="prompt-setting-maxTokens"
+              className="between"
+              sx={{ backgroundColor: getDiffBackground('maxTokens') }}>
               <Box flex={1}>
                 <Tooltip
                   title={t('maxTokensTip')}

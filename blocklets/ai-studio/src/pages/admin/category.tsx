@@ -101,6 +101,7 @@ function CategoryList() {
       <Box className="between" mt={2.5} mb={1.5}>
         <Box sx={{ fontWeight: 700, fontSize: 24, lineHeight: '32px', color: '#030712' }}>{t('category.title')}</Box>
         <Button
+          data-testid="add-category-button"
           variant="contained"
           color="primary"
           onClick={() => {
@@ -122,14 +123,15 @@ function CategoryList() {
           <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
             {categories.map((item) => {
               return (
-                <StyledListItem key={item.id}>
-                  <ListItemIcon sx={{ minWidth: 0, mr: 1.5 }}>
+                <StyledListItem key={item.id} data-testid="category-item">
+                  <ListItemIcon sx={{ minWidth: 0, mr: 1.5 }} data-testid="category-icon">
                     {item.icon ? <Icon icon={item.icon} /> : <Icon icon="tabler:settings" />}
                   </ListItemIcon>
                   <ListItemText primary={item.name} />
 
                   <ListItemSecondaryAction sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                     <IconButton
+                      data-testid="category-link-button"
                       edge="end"
                       aria-label="edit"
                       onClick={() => {
@@ -142,6 +144,7 @@ function CategoryList() {
                     </IconButton>
 
                     <IconButton
+                      data-testid="category-edit-button"
                       edge="end"
                       aria-label="edit"
                       onClick={() => {
@@ -151,6 +154,7 @@ function CategoryList() {
                       <Box component={Icon} icon={EditIcon} fontSize="small" />
                     </IconButton>
                     <IconButton
+                      data-testid="category-delete-button"
                       edge="end"
                       aria-label="delete"
                       onClick={() => {
@@ -218,7 +222,7 @@ function CategoryList() {
             <Close />
           </IconButton>
         </DialogTitle>
-        <DialogContent sx={{ py: 1 }}>
+        <DialogContent sx={{ py: 1 }} data-testid="add-category-form">
           <Box>
             <Stack gap={2}>
               <Box>
@@ -229,6 +233,7 @@ function CategoryList() {
                   rules={{ required: 'Name is required' }}
                   render={({ field }) => (
                     <TextField
+                      data-testid="name-field"
                       {...field}
                       hiddenLabel
                       fullWidth
@@ -248,6 +253,7 @@ function CategoryList() {
                   rules={{ required: 'Slug is required' }}
                   render={({ field }) => (
                     <TextField
+                      data-testid="slug-field"
                       {...field}
                       hiddenLabel
                       fullWidth
@@ -262,6 +268,7 @@ function CategoryList() {
               <Box>
                 <Typography variant="subtitle2">Order Index (ASC)</Typography>
                 <TextField
+                  data-testid="orderIndex-field"
                   {...register('orderIndex', { valueAsNumber: true })}
                   hiddenLabel
                   fullWidth
@@ -279,6 +286,7 @@ function CategoryList() {
                   control={control}
                   render={({ field }) => (
                     <TextField
+                      data-testid="icon-field"
                       {...field}
                       hiddenLabel
                       fullWidth
@@ -321,6 +329,7 @@ function CategoryList() {
             </Button>
 
             <PromiseLoadingButton
+              data-testid="save-button"
               className="save"
               variant="contained"
               loadingPosition="center"

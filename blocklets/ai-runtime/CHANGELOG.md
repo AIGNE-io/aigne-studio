@@ -1,3 +1,7 @@
+## 0.4.78 (2024-10-14)
+
+- test: add more e2e test cases
+
 ## 0.4.77 (2024-10-9)
 
 - fix: llm adapter not streaming text correctly

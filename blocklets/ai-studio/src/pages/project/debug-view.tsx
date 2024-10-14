@@ -121,7 +121,7 @@ function DebugViewContent({
         justifyContent="space-between"
         bgcolor="background.paper"
         sx={{ zIndex: 2 }}>
-        <Box maxWidth={200}>
+        <Box maxWidth={200} data-testid="session-select">
           <SessionSelect projectId={projectId} assistantId={assistant.id} />
         </Box>
 
@@ -134,6 +134,7 @@ function DebugViewContent({
 
           <Tooltip title={t('deleteSession')} placement="bottom-end">
             <IconButton
+              data-testid="session-delete-button"
               size="small"
               sx={{ color: '#E11D48' }}
               onClick={(e) => {
@@ -319,7 +320,7 @@ function SessionSelect({ projectId, assistantId }: { projectId: string; assistan
       renderValue={(value) => `${t('session')} ${value}`}
       onChange={(e) => setCurrentSession(e.target.value as number)}>
       {state.sessions.map((session) => (
-        <MenuItem key={session.index} value={session.index}>
+        <MenuItem key={session.index} value={session.index} data-testid="session-select-item">
           {t('session')} {session.index}
         </MenuItem>
       ))}
@@ -453,7 +454,11 @@ const MessageView = memo(
                           : alpha(theme.palette.primary.main, theme.palette.action.hoverOpacity),
                       position: 'relative',
                     }}>
-                    <MdViewer content={message.content} className={cx(message.loading && 'writing')} />
+                    <MdViewer
+                      data-testid="debug-view-message"
+                      content={message.content}
+                      className={cx(message.loading && 'writing')}
+                    />
 
                     {images && images.length > 0 && <ImagePreviewB64 itemWidth={100} spacing={1} dataSource={images} />}
 
@@ -466,7 +471,11 @@ const MessageView = memo(
                 ) : null}
 
                 {object && (
-                  <MdViewer key={index} content={`${'```json'}\n${JSON.stringify(object, null, 2)}\n${'```'}`} />
+                  <MdViewer
+                    data-testid="debug-view-json"
+                    key={index}
+                    content={`${'```json'}\n${JSON.stringify(object, null, 2)}\n${'```'}`}
+                  />
                 )}
 
                 {message.error ? (
@@ -802,7 +811,7 @@ function DebugModeForm({
                 const { required, min, max, minLength, maxLength } = (parameter as any) ?? {};
 
                 return (
-                  <Box key={parameter.id}>
+                  <Box key={parameter.id} data-testid="debug-mode-parameter">
                     <Controller
                       control={form.control}
                       name={parameter.key}

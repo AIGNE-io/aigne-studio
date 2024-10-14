@@ -33,7 +33,11 @@ export default function ModelSelectField({ isImageModel, ...props }: { isImageMo
   if (loading) return null;
 
   return (
-    <TextField {...props} select sx={{ [`.${filledInputClasses.root}`]: { border: '1px solid #E5E7EB' } }}>
+    <TextField
+      data-testid="model-select-field"
+      {...props}
+      select
+      sx={{ [`.${filledInputClasses.root}`]: { border: '1px solid #E5E7EB' } }}>
       {value?.map((model) => {
         const icon = brandIcon(model!.brand);
 

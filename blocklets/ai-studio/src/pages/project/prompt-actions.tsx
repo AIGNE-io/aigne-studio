@@ -106,6 +106,7 @@ export function HeaderActions() {
         <>
           <Tooltip disableInteractive title={t('setting')}>
             <Button
+              data-testid="header-actions-setting"
               sx={{ minWidth: 32, minHeight: 0, width: 32, height: 32, border: '1px solid #E5E7EB' }}
               onClick={toggleDrawer}>
               <Box component={Icon} icon={SettingsIcon} sx={{ fontSize: 18, color: '#030712' }} />

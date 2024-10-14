@@ -52,17 +52,17 @@ export default function ProjectHeader() {
       {
         value: 'prompts',
         label: t('agent'),
-        icon: <Box fontSize={15} component={AigneLogo} mr={1} />,
+        icon: <Box data-testid="prompts" fontSize={15} component={AigneLogo} mr={1} />,
       },
       {
         value: 'knowledge',
         label: t('knowledge.menu'),
-        icon: <Box fontSize={15} component={Icon} icon={BookIcon} mr={1} />,
+        icon: <Box data-testid="knowledge" fontSize={15} component={Icon} icon={BookIcon} mr={1} />,
       },
       {
         value: 'variables',
         label: t('memory.title'),
-        icon: <Box fontSize={15} component={Icon} icon={BrainIcon} mr={1} />,
+        icon: <Box data-testid="memory" fontSize={15} component={Icon} icon={BrainIcon} mr={1} />,
       },
     ];
   }, [t]);

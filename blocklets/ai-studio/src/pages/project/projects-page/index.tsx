@@ -274,6 +274,7 @@ function ProjectMenu() {
     if (!item) return [];
 
     const result: {
+      dataTestId: string;
       visible?: (item: ProjectWithUserInfo) => boolean;
       title: ReactNode;
       icon: ReactNode;
@@ -282,6 +283,7 @@ function ProjectMenu() {
     }[][] = [
       [
         {
+          dataTestId: 'projects-item-edit-button',
           visible: () => menuAnchor?.section === 'projects',
           title: t('alert.edit'),
           icon: <Box component={Icon} icon={PencilIcon} />,
@@ -341,6 +343,7 @@ function ProjectMenu() {
           },
         },
         {
+          dataTestId: 'projects-item-copy-button',
           visible: () => menuAnchor?.section === 'projects' || menuAnchor?.section === 'examples',
           title: t('copyToMyProjects'),
           icon: <Box component={Icon} icon={CopyIcon} />,
@@ -370,6 +373,7 @@ function ProjectMenu() {
           },
         },
         {
+          dataTestId: 'projects-item-pin-button',
           visible: () => menuAnchor?.section === 'projects',
           title: item?.pinnedAt ? t('unpin') : t('pin'),
           icon: item?.pinnedAt ? (
@@ -391,6 +395,7 @@ function ProjectMenu() {
           },
         },
         {
+          dataTestId: 'projects-item-delete-button',
           visible: () => menuAnchor.section === 'projects',
           icon: <Box component={Icon} icon={TrashIcon} color="warning.main" />,
           title: t('delete'),
@@ -401,6 +406,7 @@ function ProjectMenu() {
           },
         },
         {
+          dataTestId: 'projects-item-reset-button',
           visible: () => menuAnchor.section === 'examples' && !item.blockletDid && !!item.duplicateFrom,
           icon: <Box component={Icon} icon={RefreshIcon} color="warning.main" />,
           title: t('reset'),
@@ -419,6 +425,7 @@ function ProjectMenu() {
   return (
     <>
       <Popper
+        data-testid="projects-item-menu"
         key={menuAnchor?.id}
         open={Boolean(menuAnchor)}
         anchorEl={menuAnchor?.anchor}
@@ -433,7 +440,8 @@ function ProjectMenu() {
                     key={`${i}-${j}`}
                     disabled={readOnly}
                     onClick={menu.onClick}
-                    sx={{ color: menu.color, svg: { color: menu.color } }}>
+                    sx={{ color: menu.color, svg: { color: menu.color } }}
+                    data-testid={menu.dataTestId}>
                     <ListItemIcon>{menu.icon}</ListItemIcon>
                     {menu.title}
                   </LoadingMenuItem>
@@ -553,7 +561,8 @@ function ProjectList({
 
           return (
             <ProjectItem
-              className={cx(menuOpen && 'selected')}
+              data-testid={`projects-${section}-item`}
+              className={cx(menuOpen && 'selected', `projects-${section}-item`)}
               section={section}
               id={item.id!}
               tabIndex={0}
@@ -680,6 +689,7 @@ function ProjectList({
               actions={
                 section !== 'templates' && (
                   <IconButton
+                    data-testid="projects-item-menu-button"
                     size="small"
                     sx={{
                       backgroundColor: 'transparent',
@@ -785,7 +795,7 @@ function ProjectItem({
   }, [session?.user?.didSpace?.endpoint, id]);
 
   return (
-    <ProjectItemRoot {...props} className={cx(props.className)} gap={2}>
+    <ProjectItemRoot {...props} className={cx(props.className)} gap={2} data-testid="projects-item" data-id={id}>
       <Stack direction="row" gap={1.5} alignItems="center">
         <Box className="logo" sx={{ width: '72px', height: '72px' }}>
           <Box component="img" src={getProjectIconUrl(id, { blockletDid, updatedAt, working: true })} />
@@ -800,7 +810,7 @@ function ProjectItem({
 
               {pinned && (
                 <Tooltip title={t('pin')} placement="top">
-                  <Box className="center">
+                  <Box className="center" data-testid="projects-item-pin">
                     <Pin />
                   </Box>
                 </Tooltip>
