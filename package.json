@@ -25,8 +25,7 @@
     "update:deps:internal": "npx -y taze major -r -w -n '/blocklet|abtnode|arcblock|ocap|did-space|nft-studio/' && pnpm install",
     "e2e:prepare": "./scripts/init-e2e.ts",
     "e2e:start": "./scripts/start-e2e.ts",
-    "e2e": "npm-run-all e2e:*",
-    "e2e-ui": "pnpm e2e:start --ui",
+    "e2e": "npm run e2e:prepare && npm run e2e:start",
     "postinstall": "npx simple-git-hooks"
   },
   "simple-git-hooks": {

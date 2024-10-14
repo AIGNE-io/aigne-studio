@@ -36,7 +36,15 @@ async function cleanupApps(singleAppWallet: any, multipleAppWallet: any) {
   process.env.PW_TEST_HTML_REPORT_OPEN = 'never';
   await $({
     stdio: 'inherit',
-  })`SINGLE_TENANT_APP_URL=${singleAppUrl} MULTIPLE_TENANT_APP_URL=${multipleAppUrl} SINGLE_TENANT_APP_NAME=${playwrightConfigAppNames.single} MULTIPLE_TENANT_APP_NAME=${playwrightConfigAppNames.multiple} playwright test ${ui ? '--ui' : ''}`;
+    env: {
+      ...process.env,
+      HEADLESS: ui ? 'false' : undefined,
+      SINGLE_TENANT_APP_URL: singleAppUrl,
+      MULTIPLE_TENANT_APP_URL: multipleAppUrl,
+      SINGLE_TENANT_APP_NAME: playwrightConfigAppNames.single,
+      MULTIPLE_TENANT_APP_NAME: playwrightConfigAppNames.multiple,
+    },
+  })`playwright test ${ui ? '--ui' : ''}`;
 
   await cleanupApps(singleAppWallet, multipleAppWallet);
 })();

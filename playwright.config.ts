@@ -5,6 +5,14 @@ import { TestConstants } from './tests/utils/constants';
 const timeout = 10000;
 const retries = 3;
 
+const headless = process.env.HEADLESS !== 'false';
+
+const singleTenantAppName = process.env.SINGLE_TENANT_APP_NAME;
+const singleTenantBaseURL = process.env.SINGLE_TENANT_APP_URL;
+
+const multipleTenantAppName = process.env.MULTIPLE_TENANT_APP_NAME;
+const multipleTenantBaseURL = process.env.MULTIPLE_TENANT_APP_URL;
+
 /**
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
@@ -26,9 +34,9 @@ export default defineConfig<{
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
-  retries: process.env.CI ? retries : retries,
+  retries,
   /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? undefined : undefined,
+  workers: undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
@@ -38,10 +46,12 @@ export default defineConfig<{
   use: {
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
-    // launchOptions: {
-    //   headless: false,
-    //   devtools: true,
-    // },
+    launchOptions: headless
+      ? undefined
+      : {
+          headless: false,
+          devtools: true,
+        },
   },
   /* Configure projects for major browsers */
   projects: [
@@ -50,8 +60,8 @@ export default defineConfig<{
       name: 'singleTenant.setup',
       testMatch: 'single-tenant/mode.setup.ts',
       use: {
-        appName: process.env.SINGLE_TENANT_APP_NAME,
-        baseURL: process.env.SINGLE_TENANT_APP_URL,
+        appName: singleTenantAppName,
+        baseURL: singleTenantBaseURL,
       },
     },
     {
@@ -60,8 +70,8 @@ export default defineConfig<{
       dependencies: ['singleTenant.setup'],
       use: {
         storageStatePath: 'singleTenant.admin',
-        appName: process.env.SINGLE_TENANT_APP_NAME,
-        baseURL: process.env.SINGLE_TENANT_APP_URL,
+        appName: singleTenantAppName,
+        baseURL: singleTenantBaseURL,
       },
     },
     {
@@ -71,8 +81,8 @@ export default defineConfig<{
       use: {
         ...devices['Desktop Chrome'],
         storageState: TestConstants.authFilePath('singleTenant.admin'),
-        appName: process.env.SINGLE_TENANT_APP_NAME,
-        baseURL: process.env.SINGLE_TENANT_APP_URL,
+        appName: singleTenantAppName,
+        baseURL: singleTenantBaseURL,
       },
     },
     {
@@ -81,8 +91,8 @@ export default defineConfig<{
       dependencies: ['singleTenant.setup'],
       use: {
         storageStatePath: 'singleTenant.guest',
-        appName: process.env.SINGLE_TENANT_APP_NAME,
-        baseURL: process.env.SINGLE_TENANT_APP_URL,
+        appName: singleTenantAppName,
+        baseURL: singleTenantBaseURL,
       },
     },
     {
@@ -92,8 +102,8 @@ export default defineConfig<{
       use: {
         ...devices['Desktop Chrome'],
         storageState: TestConstants.authFilePath('singleTenant.guest'),
-        appName: process.env.SINGLE_TENANT_APP_NAME,
-        baseURL: process.env.SINGLE_TENANT_APP_URL,
+        appName: singleTenantAppName,
+        baseURL: singleTenantBaseURL,
       },
     },
 
@@ -102,8 +112,8 @@ export default defineConfig<{
       name: 'multipleTenant.setup',
       testMatch: 'multiple-tenant/mode.setup.ts',
       use: {
-        appName: process.env.MULTIPLE_TENANT_APP_NAME,
-        baseURL: process.env.MULTIPLE_TENANT_APP_URL,
+        appName: multipleTenantAppName,
+        baseURL: multipleTenantBaseURL,
       },
     },
     {
@@ -112,8 +122,8 @@ export default defineConfig<{
       dependencies: ['multipleTenant.setup'],
       use: {
         storageStatePath: 'multipleTenant.admin',
-        appName: process.env.MULTIPLE_TENANT_APP_NAME,
-        baseURL: process.env.MULTIPLE_TENANT_APP_URL,
+        appName: multipleTenantAppName,
+        baseURL: multipleTenantBaseURL,
       },
     },
     {
@@ -123,8 +133,8 @@ export default defineConfig<{
       use: {
         ...devices['Desktop Chrome'],
         storageState: TestConstants.authFilePath('multipleTenant.admin'),
-        appName: process.env.MULTIPLE_TENANT_APP_NAME,
-        baseURL: process.env.MULTIPLE_TENANT_APP_URL,
+        appName: multipleTenantAppName,
+        baseURL: multipleTenantBaseURL,
       },
     },
     {
@@ -133,8 +143,8 @@ export default defineConfig<{
       dependencies: ['multipleTenant.setup'],
       use: {
         storageStatePath: 'multipleTenant.guest',
-        appName: process.env.MULTIPLE_TENANT_APP_NAME,
-        baseURL: process.env.MULTIPLE_TENANT_APP_URL,
+        appName: multipleTenantAppName,
+        baseURL: multipleTenantBaseURL,
       },
     },
     {
@@ -144,8 +154,8 @@ export default defineConfig<{
       use: {
         ...devices['Desktop Chrome'],
         storageState: TestConstants.authFilePath('multipleTenant.guest'),
-        appName: process.env.MULTIPLE_TENANT_APP_NAME,
-        baseURL: process.env.MULTIPLE_TENANT_APP_URL,
+        appName: multipleTenantAppName,
+        baseURL: multipleTenantBaseURL,
       },
     },
   ],
