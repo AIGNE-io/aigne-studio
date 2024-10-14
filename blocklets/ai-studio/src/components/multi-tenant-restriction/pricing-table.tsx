@@ -1,19 +1,23 @@
-import { useIsAdmin, useIsProUser } from '@app/contexts/session';
+import { useIsAdmin } from '@app/contexts/session';
+import { AIGNE_STUDIO_MOUNT_POINT } from '@app/libs/constants';
 import { Icon, IconifyIcon } from '@iconify-icon/react';
 import BuildingIcon from '@iconify-icons/tabler/building';
 import BuildingCommunityIcon from '@iconify-icons/tabler/building-community';
 import BuildingSkyscraperIcon from '@iconify-icons/tabler/building-skyscraper';
 import HomeIcon from '@iconify-icons/tabler/home';
+import InfoCircleIcon from '@iconify-icons/tabler/info-circle';
 import { LoadingButton } from '@mui/lab';
-import { Box } from '@mui/material';
+import { Box, Tooltip } from '@mui/material';
 import { ReactNode } from 'react';
+import { joinURL } from 'ufo';
 
-import { useProPaymentLink } from './state';
+import { useIsProUser, useProPaymentLink } from './state';
 
 interface Plan {
   icon: string | IconifyIcon;
   name: string;
-  features: string[];
+  featuresDescription?: string;
+  features: ReactNode[];
   price?: ReactNode;
   priceSuffix?: string;
   buttonText: string;
@@ -49,7 +53,7 @@ function PricingTablePlan({ plan }: { plan: Plan }) {
           ...(plan.active && { border: 1, borderColor: 'success.light' }),
         }}>
         <Box component={Icon} icon={plan.icon} sx={{ fontSize: 36 }} />
-        <Box sx={{ fontSize: 16, fontWeight: 'bold' }}>{plan.name}</Box>
+        <Box sx={{ fontSize: 16, fontWeight: 'bold', color: 'grey.800' }}>{plan.name}</Box>
         <Box sx={{ fontWeight: 'bold' }}>
           <Box component="span" sx={{ fontSize: 24 }}>
             {plan.price}
@@ -79,10 +83,14 @@ function PricingTablePlan({ plan }: { plan: Plan }) {
         </Box>
 
         <Box component="ul" sx={{ listStyle: 'none', p: 0, m: 0, mt: 2 }}>
-          {plan.features.map((feature) => (
+          <Box component="li" sx={{ fontSize: 14, fontWeight: 'bold', mb: 1 }}>
+            {plan.featuresDescription}
+          </Box>
+          {plan.features.map((feature, index) => (
             <Box
               component="li"
-              key={feature}
+              // eslint-disable-next-line react/no-array-index-key
+              key={index}
               sx={{
                 display: 'flex',
                 alignItems: 'flex-start',
@@ -93,13 +101,7 @@ function PricingTablePlan({ plan }: { plan: Plan }) {
                 <Box component={Icon} icon="tabler:check" sx={{ color: 'green' }} />
               </Box>
               <Box component="span" sx={{ color: 'text.secondary' }}>
-                {feature
-                  .split('\n')
-                  .filter(Boolean)
-                  .map((line, index) => {
-                    // eslint-disable-next-line react/no-array-index-key
-                    return <Box key={index}>{line}</Box>;
-                  })}
+                {feature}
               </Box>
             </Box>
           ))}
@@ -145,30 +147,32 @@ export function PricingTable() {
   const aignePlansEN = [
     {
       icon: HomeIcon,
-      name: 'Free',
+      name: 'Hobby',
+      featuresDescription: 'Includes',
       features: [
-        'Up to 3 projects',
-        'Up to 100k tokens',
-        'No support for publishing Private Agent',
-        'Data sync to DID Space \n(Bind DID Wallet)',
+        '3 projects',
+        '100 requests per project',
+        'Dataset collection',
+        'Testing and evaluation',
+        'Prompt management',
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <span>Data sync with DID Space</span>
+          <Tooltip title="DID Wallet required">
+            <Box component={Icon} icon={InfoCircleIcon} sx={{ fontSize: 18 }} />
+          </Tooltip>
+        </Box>,
       ],
-      // price: '0 ABT',
       price: 'FREE',
       buttonText: isProUser ? '' : 'Sign up',
-      buttonLink: '#/',
+      buttonLink: joinURL('/', AIGNE_STUDIO_MOUNT_POINT),
       ...(!isAdmin && !isProUser && { active: true }),
     },
     {
       icon: BuildingIcon,
       name: 'Pro',
-      features: [
-        'Up to 100 projects',
-        'Up to 100m tokens',
-        'Unlimited deployments',
-        'Support for publishing Private Agent',
-        'Pay as you go',
-      ],
-      price: '10 ABT',
+      featuresDescription: 'Everything in Hobby, plus',
+      features: ['20 projects', '1000 requests per project', 'Unlimited agent deployments', 'Private agent publishing'],
+      price: '9.99 ABT',
       priceSuffix: '/month',
       buttonText: isProUser ? 'Subscribed' : 'Upgrade',
       buttonLink: proPaymentLink,
@@ -180,29 +184,25 @@ export function PricingTable() {
     {
       icon: BuildingCommunityIcon,
       name: 'Serverless',
+      featuresDescription: 'Everything in Pro, plus',
       features: [
         'Unlimited projects',
-        'Unlimited tokens',
-        'Unlimited deployments',
-        'Support for publishing Private Agent',
+        'Unlimited requests per project',
+        'Unlimited agent deployments',
+        'Private agent publishing',
         'Pay as you go',
       ],
-      price: '15 ABT',
-      priceSuffix: '/month',
+      price: '0.4 ABT',
+      priceSuffix: '/day',
       buttonText: 'Launch',
       buttonLink: AI_STUDIO_STORE,
     },
     {
       icon: BuildingSkyscraperIcon,
       name: 'Dedicated',
-      features: [
-        'Unlimited projects',
-        'Unlimited tokens',
-        'Unlimited deployments',
-        'Support for publishing Private Agent',
-        'Dedicated server instance',
-      ],
-      price: '20 ABT',
+      featuresDescription: 'Everything in Serverless, plus',
+      features: ['Dedicated server instance'],
+      price: '49 ABT',
       priceSuffix: '/month',
       buttonText: 'Launch',
       buttonLink: '#/',

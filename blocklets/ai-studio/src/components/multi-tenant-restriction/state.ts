@@ -4,6 +4,13 @@ import { QuotaKey, Quotas } from '@blocklet/aigne-sdk/quotas';
 import { useRequest } from 'ahooks';
 import { create } from 'zustand';
 
+const PRO_ROLE = 'aignePro';
+
+export const useIsProUser = () => {
+  const { session } = useSessionContext();
+  return session?.user?.passports?.map((x: any) => x.name).includes(PRO_ROLE);
+};
+
 export const useMultiTenantRestrictionStore = create<{
   planUpgradeVisible: boolean;
   type: QuotaKey | null;

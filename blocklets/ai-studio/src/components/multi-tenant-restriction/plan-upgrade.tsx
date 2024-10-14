@@ -1,4 +1,3 @@
-import { useIsProUser } from '@app/contexts/session';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Icon } from '@iconify-icon/react';
 import ArrowUpIcon from '@iconify-icons/tabler/circle-arrow-up';
@@ -13,11 +12,14 @@ import {
   DialogTitle,
   IconButton,
   Theme,
+  ToggleButton,
+  ToggleButtonGroup,
   useMediaQuery,
 } from '@mui/material';
+import { useState } from 'react';
 
 import { PricingTable } from './pricing-table';
-import { useMultiTenantRestriction } from './state';
+import { useIsProUser, useMultiTenantRestriction } from './state';
 
 interface Props {}
 
@@ -25,13 +27,18 @@ export function PlanUpgrade({ ...rest }: Props) {
   const { hidePlanUpgrade, planUpgradeVisible, type } = useMultiTenantRestriction();
   const { t } = useLocaleContext();
   const downSm = useMediaQuery<Theme>((theme) => theme.breakpoints.down('sm'));
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+  const options = [
+    { value: 'monthly', label: 'Monthly' },
+    { value: 'yearly', label: 'Yearly (20% OFF)' },
+  ];
 
   return (
     <Dialog
       fullScreen={downSm}
       open={planUpgradeVisible}
       onClose={hidePlanUpgrade}
-      PaperProps={{ sx: { width: { xs: '100%', md: 860, lg: 1100 }, maxWidth: '100%' } }}
+      PaperProps={{ sx: { width: { xs: '100%', md: 860, lg: 1200 }, maxWidth: '100%' } }}
       {...rest}>
       <DialogTitle className="between" sx={{ border: 0 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -68,34 +75,45 @@ export function PlanUpgrade({ ...rest }: Props) {
           </Alert>
         )}
 
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, my: 3 }}>
-          <Box sx={{ fontSize: 16, fontWeight: 'bold' }}>All plans</Box>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: type ? 2 : 0 }}>
+          {/* <Box sx={{ fontSize: 16, fontWeight: 'bold' }}>All plans</Box> */}
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              py: 2,
+              bgcolor: 'grey.100',
+              borderRadius: 1,
+            }}>
+            <ToggleButtonGroup
+              color="primary"
+              size="small"
+              value={billingCycle}
+              exclusive
+              onChange={(_, v) => setBillingCycle(v)}
+              sx={{
+                '.MuiToggleButtonGroup-grouped': {
+                  border: 0,
+                  fontWeight: 'bold',
+                  bgcolor: '#fff',
+                },
+                '.MuiToggleButtonGroup-grouped.Mui-selected': {
+                  bgcolor: 'primary.light',
+                  color: '#fff',
+                },
+              }}>
+              {options.map((x) => {
+                return (
+                  <ToggleButton key={x.value} value={x.value}>
+                    {x.label}
+                  </ToggleButton>
+                );
+              })}
+            </ToggleButtonGroup>
+          </Box>
           <PricingTable />
         </Box>
-
-        {/* <Box
-          component={Link}
-          href="https://www.arcblock.io/blog/tags/en/aigne"
-          target="_blank"
-          sx={{ display: 'block', color: 'text.secondary', fontSize: 14, mt: 1, textDecorationColor: 'inherit' }}>
-          Learn how to launch a serverless AIGNE
-        </Box> */}
       </DialogContent>
-
-      {/* <DialogActions sx={{ border: 0 }}>
-        <Button onClick={hidePlanUpgrade} variant="outlined">
-          {t('cancel')}
-        </Button>
-        <Button
-          onClick={() => {
-            hidePlanUpgrade();
-            window.open(AI_STUDIO_STORE, '_blank');
-          }}
-          variant="contained"
-          color="primary">
-          Launch My Serverless AIGNE
-        </Button>
-      </DialogActions> */}
     </Dialog>
   );
 }
