@@ -121,7 +121,7 @@ export function CommitListView({
   return (
     <List disablePadding dense {...(listProps || {})}>
       {commits?.map((item) => (
-        <ListItem disablePadding key={item.oid}>
+        <ListItem disablePadding key={item.oid} className="commit-item">
           <ListItemButton
             selected={selected === item.oid}
             onClick={async () => {

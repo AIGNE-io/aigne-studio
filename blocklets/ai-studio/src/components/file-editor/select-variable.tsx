@@ -56,7 +56,9 @@ function SelectVariable({
           // groupBy={(option) => option.scope || ''}
           getOptionLabel={(option) => `${option.key}`}
           sx={{ width: 1, flex: 1 }}
-          renderInput={(params) => <TextField hiddenLabel {...params} placeholder={placeholder} />}
+          renderInput={(params) => (
+            <TextField data-testid="select-memory-input" hiddenLabel {...params} placeholder={placeholder} />
+          )}
           key={Boolean(variable).toString()}
           disableClearable
           clearOnBlur

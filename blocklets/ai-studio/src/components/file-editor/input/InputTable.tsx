@@ -407,6 +407,7 @@ export default function InputTable({
           </TableHead>
 
           <DragSortListYjs
+            data-testid="input-table"
             disabled={readOnly}
             list={assistant.parameters! ?? []}
             component={TableBody}
@@ -456,6 +457,7 @@ export default function InputTable({
               return (
                 <Tooltip title={title()} placement="bottom-start">
                   <TableRow
+                    className="input-table-row"
                     key={parameter.id}
                     ref={(ref) => {
                       params.drop(ref);
@@ -538,7 +540,7 @@ export default function InputTable({
       </Box>
 
       <Stack direction="row" mt={1}>
-        {!readOnly && <AddInputButton assistant={assistant} />}
+        {!readOnly && <AddInputButton assistant={assistant} data-testid="add-input-button" />}
       </Stack>
     </Box>
   );
@@ -628,6 +630,7 @@ function SelectFromSource({
         {Object.entries(FROM_MAP).map(([key, value]) => {
           return (
             <MenuItem
+              data-testid={`${key}-from-source`}
               key={key}
               selected={key === currentKey}
               onClick={(e) => {

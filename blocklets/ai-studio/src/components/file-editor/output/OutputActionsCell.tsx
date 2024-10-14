@@ -296,6 +296,7 @@ const PopperButton = forwardRef<PopperButtonImperative, PopperButtonProps>(
 
             {depth === 0 && (
               <MenuItem
+                data-testid="output-actions-cell-setting"
                 disabled={Boolean(output.from?.type === 'output')}
                 onClick={() => {
                   setSetting('setting');
@@ -317,7 +318,10 @@ const PopperButton = forwardRef<PopperButtonImperative, PopperButtonProps>(
             )}
 
             {onDelete && (
-              <MenuItem sx={{ color: 'error.main', fontSize: 13 }} onClick={onDelete}>
+              <MenuItem
+                data-testid="output-actions-cell-delete"
+                sx={{ color: 'error.main', fontSize: 13 }}
+                onClick={onDelete}>
                 {t('delete')}
               </MenuItem>
             )}
@@ -331,6 +335,7 @@ const PopperButton = forwardRef<PopperButtonImperative, PopperButtonProps>(
           fullWidth
           maxWidth="sm"
           component="form"
+          data-testid="output-actions-cell-dialog"
           onSubmit={(e) => e.preventDefault()}>
           <DialogTitle className="between">
             <Box>

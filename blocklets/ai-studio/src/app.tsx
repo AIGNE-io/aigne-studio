@@ -25,7 +25,7 @@ import { theme } from './theme/theme';
 
 export default function App() {
   const basename = window.blocklet?.prefix || '/';
-  console.log('AgentView', AgentView);
+  console.warn('AgentView', AgentView);
 
   return (
     <ThemeProvider theme={theme}>
@@ -173,7 +173,7 @@ function NotFound() {
   return (
     <Layout>
       <Box flexGrow={1} textAlign="center">
-        <div>Not Found.</div>
+        <Box data-testid="not-found">Not Found.</Box>
       </Box>
 
       <Footer

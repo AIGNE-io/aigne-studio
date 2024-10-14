@@ -6,17 +6,23 @@ import { chromium } from '@playwright/test';
 import { cacheResult } from './cache';
 import { TestConstants } from './constants';
 
-export async function setupUsers() {
-  const appWallet = ensureWallet({ name: 'app', onlyFromCache: true });
+export async function setupUsers({ appName, appUrl }: { appName: string; appUrl: string }) {
+  const appWallet = ensureWallet({ name: appName, onlyFromCache: true });
   const ownerWallet = ensureWallet({ name: 'owner' });
   const adminWallet = ensureWallet({ name: 'admin' });
+  const guestWallet = ensureWallet({ name: 'guest' });
 
   const wallets = [
     { wallet: ownerWallet, name: 'owner' },
     { wallet: adminWallet, name: 'admin' },
+    { wallet: guestWallet, name: 'guest' },
   ];
 
-  const browser = await chromium.launch({ headless: TestConstants.headless });
+  const browser = await chromium.launch({
+    headless: TestConstants.headless,
+    timeout: 200000,
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+  });
 
   // claim did space for wallet
   const vcs = await Promise.all(
@@ -36,12 +42,12 @@ export async function setupUsers() {
       const page = await browser.newPage();
 
       // login as owner and bind did space
-      await page.goto(TestConstants.appUrl);
+      await page.goto(appUrl);
 
       await login({ page, wallet, appWallet, passport: { name, title: name } });
 
       const authUrl = await getAuthUrl({ page }).catch((error) => {
-        console.log('failed to get auth url to connect to did space, skip it', error);
+        console.error('failed to get auth url to connect to did space, skip it', error);
         return null;
       });
 

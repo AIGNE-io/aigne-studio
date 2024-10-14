@@ -85,6 +85,7 @@ export default function PromptPrompts({
 
               return (
                 <DragSortItemContainer
+                  className="prompt-item"
                   preview={params.preview}
                   drop={params.drop}
                   drag={params.drag}
@@ -202,6 +203,7 @@ function PromptItemMessage({
 
       <StyledPromptEditor
         readOnly={readOnly}
+        data-testid="prompt-editor"
         placeholder={t('promptPlaceholder')}
         projectId={projectId}
         gitRef={gitRef}

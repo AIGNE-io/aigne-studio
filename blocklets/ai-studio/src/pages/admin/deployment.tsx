@@ -74,6 +74,7 @@ function DeploymentList() {
           return (
             <Box sx={{ [`.${buttonClasses.root}`]: { px: 1, py: 0.5, minWidth: 0 } }}>
               <Button
+                data-testid="edit-deployment-button"
                 onClick={(e) => {
                   e.stopPropagation();
 
@@ -84,6 +85,7 @@ function DeploymentList() {
               </Button>
 
               <Button
+                data-testid="share-deployment-button"
                 variant="text"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -97,6 +99,7 @@ function DeploymentList() {
               </Button>
 
               <Button
+                data-testid="delete-deployment-button"
                 variant="text"
                 color="error"
                 onClick={(e) => {

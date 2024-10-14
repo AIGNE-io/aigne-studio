@@ -106,7 +106,7 @@ export default function DeploymentDialog({
         </IconButton>
       </DialogTitle>
 
-      <DialogContent>
+      <DialogContent data-testid="deployment-dialog">
         {categoriesLoading ? (
           <Box display="flex" justifyContent="center" alignItems="center" height={400}>
             <CircularProgress />
@@ -162,7 +162,7 @@ export default function DeploymentDialog({
           <Button variant="outlined" onClick={dialogState.close}>
             {t('cancel')}
           </Button>
-          <LoadingButton variant="contained" onClick={handleSubmit(onSubmit)}>
+          <LoadingButton variant="contained" onClick={handleSubmit(onSubmit)} data-testid="update-button">
             {t('update')}
           </LoadingButton>
         </Stack>
@@ -267,6 +267,7 @@ function CategorySelect({
           }
           renderInput={(params) => (
             <TextField
+              data-testid="category-select-input"
               {...params}
               hiddenLabel
               InputProps={{

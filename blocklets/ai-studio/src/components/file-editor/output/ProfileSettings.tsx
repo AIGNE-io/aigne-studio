@@ -56,6 +56,7 @@ export default function ProfileSettings({ output }: { output: OutputVariableYjs 
       <Box>
         <Typography variant="subtitle2">{t('agentName')}</Typography>
         <TextField
+          data-testid="profile-setting-agent-name"
           fullWidth
           hiddenLabel
           multiline
@@ -68,6 +69,7 @@ export default function ProfileSettings({ output }: { output: OutputVariableYjs 
       <Box>
         <Typography variant="subtitle2">{t('agentDescription')}</Typography>
         <TextField
+          data-testid="profile-setting-agent-description"
           fullWidth
           hiddenLabel
           multiline

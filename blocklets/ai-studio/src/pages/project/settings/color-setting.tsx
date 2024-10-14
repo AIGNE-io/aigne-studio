@@ -43,7 +43,7 @@ export default function ColorSetting({ type }: { type: 'primaryColor' | 'seconda
   }, [selectedColor]);
 
   return (
-    <Stack gap={2}>
+    <Stack gap={2} data-testid="primary-color">
       <Stack direction="row" gap={1} alignItems="center">
         {defaultColors?.map((color) => (
           <Box key={color} border={color === selectedColor ? '1px solid #030712' : ''} borderRadius="4px">
@@ -53,9 +53,9 @@ export default function ColorSetting({ type }: { type: 'primaryColor' | 'seconda
 
         <Divider orientation="vertical" flexItem sx={{ mx: '2px' }} />
         <ClickAwayListener onClickAway={() => setOpen(false)}>
-          <Box>
+          <Box sx={{ position: 'cursor' }}>
             <Box onClick={handleOpen}>
-              <ChromePickerBox bgcolor={selectedColor} />
+              <ChromePickerBox bgcolor={selectedColor} data-testid="chrome-picker-box" />
             </Box>
             <Popper open={open} anchorEl={anchorEl} sx={{ zIndex: 10000 }} placement="bottom-end">
               <Box mt={2}>

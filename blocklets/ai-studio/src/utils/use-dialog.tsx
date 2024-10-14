@@ -110,6 +110,7 @@ export default function useDialog() {
 
               <Stack direction="row" gap={1} alignItems="center">
                 <Button
+                  data-testid="dialog-cancel-button"
                   className="cancel"
                   variant="outlined"
                   onClick={async () => {
@@ -121,6 +122,7 @@ export default function useDialog() {
                 </Button>
                 {onOk && (
                   <PromiseLoadingButton
+                    data-testid="dialog-ok-button"
                     className="save"
                     variant={okVariant || 'contained'}
                     color={okColor}

@@ -32,6 +32,7 @@ function CreateProject() {
   return (
     <>
       <Button
+        data-testid="create-project-button"
         variant="contained"
         sx={{ px: 2, py: 1, gap: 1, borderRadius: 1 }}
         className="center"
@@ -71,6 +72,7 @@ function CategoriesSidebar({
 
   return (
     <Stack
+      data-testid="categories-sidebar"
       sx={{
         width: 1,
         height: 1,
@@ -101,6 +103,7 @@ function CategoriesSidebar({
       {categories.length === 0 && (
         <Stack flex={1} height={0} justifyContent="center" alignItems="center">
           <Box
+            data-testid="no-categories"
             display="flex"
             flexDirection="column"
             alignItems="center"
@@ -116,6 +119,7 @@ function CategoriesSidebar({
         <List sx={{ m: 0, p: 0, px: 2 }}>
           {categories.map((category) => (
             <ListItemButton
+              data-testid="category-item"
               sx={{
                 borderRadius: 1,
                 p: 1,
@@ -125,7 +129,11 @@ function CategoriesSidebar({
               key={category.id}
               onClick={() => handleCategoryClick(category.slug)}
               selected={category.slug === params?.categorySlug}>
-              <ListItemIcon sx={{ minWidth: 0, mr: 1.5 }} className="icon">
+              <ListItemIcon
+                sx={{ minWidth: 0, mr: 1.5 }}
+                className="icon"
+                data-testid="category-icon"
+                data-icon={category.icon}>
                 {category.icon ? (
                   <Icon icon={category.icon} style={{ width: 20, height: 20, fontSize: 20 }} className="center" />
                 ) : (

@@ -69,6 +69,7 @@ export default function DeploymentAction() {
   return (
     <>
       <LoadingButton
+        data-testid="deploy-button"
         variant="contained"
         startIcon={<Box component={Icon} icon={RocketIcon} sx={{ fontSize: 16 }} />}
         size="small"
@@ -193,7 +194,7 @@ function DeployApp({
   };
 
   return (
-    <Box sx={sx}>
+    <Box sx={sx} data-testid="create-deploy-popper">
       {dialog}
 
       <Box p={3}>
@@ -218,7 +219,7 @@ function DeployApp({
                     value="public"
                     control={<Radio />}
                     label={
-                      <Box display="flex" alignItems="center">
+                      <Box display="flex" alignItems="center" data-testid="public-visibility-label">
                         <Box component={Icon} icon={View360} sx={{ mr: 1, fontSize: 20 }} />
                         <Box>
                           <Typography variant="body1">{t('public')}</Typography>
@@ -235,7 +236,7 @@ function DeployApp({
                     value="private"
                     control={<Radio />}
                     label={
-                      <Box display="flex" alignItems="center">
+                      <Box display="flex" alignItems="center" data-testid="private-visibility-label">
                         <Box component={Icon} icon={LockIcon} sx={{ mr: 1, fontSize: 20 }} />
                         <Box>
                           <Typography variant="body1">{t('private')}</Typography>
@@ -268,7 +269,7 @@ function DeployApp({
             <PublishButton />
           </Box>
 
-          <LoadingButton variant="contained" onClick={onSubmit}>
+          <LoadingButton variant="contained" onClick={onSubmit} data-testid="add-deploy-button">
             {t('deploy')}
           </LoadingButton>
         </Stack>
@@ -302,7 +303,7 @@ function UpdateApp({ id, data, run, sx }: { id: string; data: Deployment; run: (
   };
 
   return (
-    <Stack sx={sx}>
+    <Stack sx={sx} data-testid="update-deploy-dialog">
       {dialog}
 
       <Box px={3}>
@@ -325,7 +326,7 @@ function UpdateApp({ id, data, run, sx }: { id: string; data: Deployment; run: (
                   value="public"
                   control={<Radio />}
                   label={
-                    <Box display="flex" alignItems="center">
+                    <Box display="flex" alignItems="center" data-testid="public-visibility-label">
                       <Box component={Icon} icon={View360} sx={{ mr: 1, fontSize: 20 }} />
                       <Box>
                         <Typography variant="body1">{t('public')}</Typography>
@@ -342,7 +343,7 @@ function UpdateApp({ id, data, run, sx }: { id: string; data: Deployment; run: (
                   value="private"
                   control={<Radio />}
                   label={
-                    <Box display="flex" alignItems="center">
+                    <Box display="flex" alignItems="center" data-testid="private-visibility-label">
                       <Box component={Icon} icon={LockIcon} sx={{ mr: 1, fontSize: 20 }} />
                       <Box>
                         <Typography variant="body1">{t('private')}</Typography>
@@ -445,7 +446,7 @@ function UpdateApp({ id, data, run, sx }: { id: string; data: Deployment; run: (
             <PublishButton />
           </Box>
 
-          <LoadingButton variant="contained" onClick={onSubmit}>
+          <LoadingButton variant="contained" onClick={onSubmit} data-testid="update-deploy-button">
             {t('update')}
           </LoadingButton>
         </Stack>
