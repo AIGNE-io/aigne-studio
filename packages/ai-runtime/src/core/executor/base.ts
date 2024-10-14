@@ -57,8 +57,7 @@ export class ExecutorContext {
     >
   ) {
     this.getAgent = memoize(options.getAgent, {
-      keyGenerator: (o) =>
-        [o.blockletDid, o.projectId, o.projectRef, o.agentId, o.working].filter(isNonNullable).join('/'),
+      keyGenerator: (o) => [o.aid, o.working].filter(isNonNullable).join('/'),
     });
     this.callAI = options.callAI;
     this.callAIImage = options.callAIImage;
