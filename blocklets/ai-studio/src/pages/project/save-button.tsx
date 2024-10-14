@@ -71,6 +71,7 @@ export default function SaveButton({
       <Tooltip disableInteractive title={t('save')}>
         <span>
           <Button
+            data-testid="save-button"
             {...bindTrigger(dialogState)}
             disabled={disabled ?? (submitting || disabledButton)}
             sx={{

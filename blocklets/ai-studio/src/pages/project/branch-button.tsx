@@ -110,7 +110,11 @@ export default function BranchButton({
                 },
                 maxWidth: 'sm',
                 fullWidth: true,
-                title: <Box sx={{ wordWrap: 'break-word' }}>{t('alert.deleteBranch', { branch: gitRef })}</Box>,
+                title: (
+                  <Box data-testid="project-delete-title" sx={{ wordWrap: 'break-word' }}>
+                    {t('alert.deleteBranch', { branch: gitRef })}
+                  </Box>
+                ),
                 content: (
                   <Box>
                     <Typography fontWeight={500} fontSize={16} lineHeight="28px" color="#4B5563">
@@ -175,7 +179,7 @@ export default function BranchButton({
             }}
           />
         }>
-        <Stack flexDirection="row" gap={0.5} className="center" sx={{ cursor: 'pointer' }}>
+        <Stack flexDirection="row" gap={0.5} className="center" sx={{ cursor: 'pointer' }} data-testid="branch-icon">
           <Box component={Icon} icon={ArrowRightIcon} width={15} color="#9CA3AF" />
           <Typography variant="subtitle3" color="#9CA3AF" lineHeight={1}>
             {gitRef}
@@ -212,6 +216,7 @@ function BranchList({
 
   return (
     <MenuList
+      data-testid="branch-list"
       autoFocusItem
       sx={{
         display: 'flex',
@@ -228,7 +233,7 @@ function BranchList({
         },
       }}>
       {branches.map((branch) => (
-        <MenuItem key={branch} selected={branch === ref} onClick={() => onItemClick?.(branch)}>
+        <MenuItem className="branch-item" key={branch} selected={branch === ref} onClick={() => onItemClick?.(branch)}>
           {branch === ref ? <Box component={Icon} icon={CheckIcon} mr={1} width={15} /> : <Box mr={1} width={15} />}
           {branch}
         </MenuItem>

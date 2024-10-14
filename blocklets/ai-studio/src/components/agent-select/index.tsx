@@ -127,7 +127,14 @@ export default function AgentSelect<
         }
         renderInput={(params) => (
           <Stack direction="row">
-            <TextField placeholder={placeholder} {...params} hiddenLabel autoFocus={props.autoFocus} fullWidth />
+            <TextField
+              data-testid="agent-select-input"
+              placeholder={placeholder}
+              {...params}
+              hiddenLabel
+              autoFocus={props.autoFocus}
+              fullWidth
+            />
           </Stack>
         )}
         getOptionKey={(o) => [o.project.id, o.id].join('/')}

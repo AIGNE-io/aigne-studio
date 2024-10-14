@@ -13,7 +13,8 @@ on:
     branches: [main]
 
 jobs:
-  test:
+  bundle:
+    name: Bundle Blocklets
     timeout-minutes: 60
     runs-on: ubuntu-latest
     container:
@@ -29,19 +30,54 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: |
-          pnpm install
-          pnpm exec playwright install --with-deps
+        run: pnpm install
 
       - name: Bundle blocklets
         run: |
           pnpm build:libs
           pnpm -F ai-studio -F ai-runtime bundle
 
+      - name: Upload bundle artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: blocklet-bundles
+          path: |
+            blocklets/ai-studio/.blocklet/bundle
+            blocklets/ai-runtime/.blocklet/bundle
+          retention-days: 1
+
+  test:
+    name: Run Playwright Tests
+    needs:
+      - bundle
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    container:
+      image: arcblock/blocklet-server-ci
+      ports:
+        - 80:80
+        - 443:443
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Download bundle artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: blocklet-bundles
+          path: blocklets
+
+      - name: Install dependencies
+        run: |
+          pnpm install
+          pnpm exec playwright install --with-deps
+
       - name: Run Playwright tests
         run: pnpm e2e
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: playwright-report

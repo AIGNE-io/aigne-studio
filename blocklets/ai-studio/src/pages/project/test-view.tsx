@@ -74,7 +74,7 @@ export default function DebugView({
       </Stack>
 
       {tests.map(({ data }) => (
-        <Box px={2} key={data.id}>
+        <Box px={2} key={data.id} className="test-case">
           <TestCaseView
             ref={(ref) => (refs.current[data.id] = ref)}
             projectId={projectId}
@@ -187,13 +187,18 @@ const TestCaseView = forwardRef<
 
   return (
     <>
-      <Box className="between" mb={0.5}>
+      <Box className="between" mb={0.5} data-testid="test-case-view-header">
         <Typography variant="subtitle3">{t('output')}</Typography>
 
         <Stack direction="row" justifyContent="flex-end" mb={0.5}>
           <Tooltip title={t('runThisCase')}>
             <span>
-              <Button sx={{ minWidth: 0, width: 32, height: 32 }} size="small" disabled={loading} onClick={runTest}>
+              <Button
+                data-testid="run-test"
+                sx={{ minWidth: 0, width: 32, height: 32 }}
+                size="small"
+                disabled={loading}
+                onClick={runTest}>
                 <Box component={Icon} icon={RocketIcon} sx={{ fontSize: 15 }} />
               </Button>
             </span>
@@ -209,7 +214,12 @@ const TestCaseView = forwardRef<
 
           <Tooltip title={t('deleteThisCase')}>
             <span>
-              <Button sx={{ minWidth: 0, width: 32, height: 32 }} size="small" onClick={deleteTest} color="warning">
+              <Button
+                data-testid="delete-test"
+                sx={{ minWidth: 0, width: 32, height: 32 }}
+                size="small"
+                onClick={deleteTest}
+                color="warning">
                 <Box component={Icon} icon={TrashIcon} sx={{ fontSize: 15 }} />
               </Button>
             </span>
@@ -218,6 +228,7 @@ const TestCaseView = forwardRef<
       </Box>
 
       <Box
+        data-testid="test-case-view-body"
         sx={{
           border: '1px solid #E5E7EB',
           background: '#F9FAFB',

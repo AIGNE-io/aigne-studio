@@ -163,14 +163,22 @@ function ProjectPageView() {
               <Box flex={1} />
 
               {project?.homePageUrl && (
-                <Button sx={{ minWidth: 0 }} color="secondary" onClick={() => window.open(project.homePageUrl)}>
+                <Button
+                  data-testid="home-page-button"
+                  sx={{ minWidth: 0 }}
+                  color="secondary"
+                  onClick={() => window.open(project.homePageUrl)}>
                   <Box component={Icon} icon={PlayerPlayIcon} fontSize={20} color="#3B82F6" />
                 </Button>
               )}
 
               <Tooltip title={t('importObject', { object: t('agents') })} disableInteractive>
                 <span>
-                  <Button disabled={readOnly} sx={{ minWidth: 0 }} onClick={() => fileTree.current?.importFrom()}>
+                  <Button
+                    data-testid="import-agent-button"
+                    disabled={readOnly}
+                    sx={{ minWidth: 0 }}
+                    onClick={() => fileTree.current?.importFrom()}>
                     <Box component={Icon} icon={TableImportIcon} fontSize={20} color="#3B82F6" />
                   </Button>
                 </span>
@@ -179,6 +187,7 @@ function ProjectPageView() {
               <Tooltip title={t('newObject', { object: t('group') })} disableInteractive>
                 <span>
                   <Button
+                    data-testid="new-group-button"
                     disabled={readOnly}
                     sx={{ minWidth: 0 }}
                     onClick={() => {
@@ -193,6 +202,7 @@ function ProjectPageView() {
               <Tooltip title={t('newObject', { object: t('agent') })} disableInteractive>
                 <span>
                   <Button
+                    data-testid="new-agent-button"
                     disabled={readOnly}
                     sx={{ minWidth: 0 }}
                     onClick={() => {
@@ -277,9 +287,9 @@ function ProjectPageView() {
                     },
                   },
                 }}>
-                <Tab value="debug" label={t('debug')} />
-                <Tab value="test" label={t('test')} />
-                <Tab value="discuss" label={t('discuss')} />
+                <Tab value="debug" label={t('debug')} data-testid="debug-view-debug" />
+                <Tab value="test" label={t('test')} data-testid="debug-view-tests" />
+                <Tab value="discuss" label={t('discuss')} data-testid="debug-view-collaboration" />
               </Tabs>
 
               <Box flex={1} />

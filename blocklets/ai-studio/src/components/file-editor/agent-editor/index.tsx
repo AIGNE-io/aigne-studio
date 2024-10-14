@@ -102,7 +102,13 @@ export default function AgentEditor({
       </Box>
 
       <Box sx={{ borderRadius: 1 }}>
-        <OutputSettings projectId={projectId} gitRef={gitRef} value={value} openApis={openApis} />
+        <OutputSettings
+          data-testid="agent-editor-output-settings"
+          projectId={projectId}
+          gitRef={gitRef}
+          value={value}
+          openApis={openApis}
+        />
       </Box>
 
       <Box sx={{ bgcolor: '#F9FAFB', borderRadius: 1, mt: 2 }}>

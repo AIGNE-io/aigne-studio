@@ -11,20 +11,31 @@ import { didToDomain, ensureWallet, types } from '@blocklet/testlab/utils/wallet
 import Joi from 'joi';
 import { $, argv } from 'zx';
 
+import { playwrightConfigAppNames } from '../tests/utils';
 import { setupUsers } from '../tests/utils/auth';
 
+const skipInstall = argv['skip-install'] === true;
 const ui = argv.ui;
 if (ui) process.env.HEADLESS = 'false';
 
+console.log(argv, { skipInstall });
+
 const portSchema = Joi.number<number>().integer().empty(['']);
-const blockletCli = process.env.BLOCKLET_CLI || 'blocklet';
 const httpPort = (portSchema.validate(process.env.BLOCKLET_SERVER_HTTP_PORT).value as number) || 80;
 const httpsPort = (portSchema.validate(process.env.BLOCKLET_SERVER_HTTPS_PORT).value as number) || 443;
+const blockletCli = process.env.BLOCKLET_CLI || 'blocklet';
 
-(async () => {
+async function cleanupApps(singleAppWallet: any, multipleAppWallet: any) {
+  await Promise.all([
+    removeTestApp({ blockletCli, appSk: singleAppWallet.secretKey }),
+    removeTestApp({ blockletCli, appSk: multipleAppWallet.secretKey }),
+  ]);
+}
+
+const initBlocklet = async ({ appName }: { appName: string }) => {
   const serverWallet = ensureWallet({ name: 'server' });
-  const appWallet = ensureWallet({ name: 'app', role: types.RoleType.ROLE_APPLICATION });
   const ownerWallet = ensureWallet({ name: 'owner' });
+  const appWallet = ensureWallet({ name: appName, role: types.RoleType.ROLE_APPLICATION });
 
   await initTestApp({
     blockletCli,
@@ -53,17 +64,41 @@ const httpsPort = (portSchema.validate(process.env.BLOCKLET_SERVER_HTTPS_PORT).v
   });
 
   await startTestApp({ blockletCli, appWallet });
+};
+
+(async () => {
+  if (!skipInstall) {
+    for (const appName of Object.values(playwrightConfigAppNames)) {
+      await initBlocklet({ appName });
+    }
+    console.log('All Blocklet applications initialized successfully');
+  }
+
+  const singleAppWallet = ensureWallet({ name: playwrightConfigAppNames.single, onlyFromCache: true });
+  const multipleAppWallet = ensureWallet({ name: playwrightConfigAppNames.multiple, onlyFromCache: true });
 
   const info = await getBlockletServerStatus();
   if (!info) throw new Error('Blocklet server is not running');
+  console.log('info', info);
 
-  const appUrl = didToDomain({ did: appWallet.address, port: info.httpsPort });
-  process.env.TEST_BLOCKLET_APP_URL = appUrl;
+  const singleAppUrl = didToDomain({ did: singleAppWallet.address, port: info.httpsPort });
+  const multipleAppUrl = didToDomain({ did: multipleAppWallet.address, port: info.httpsPort });
 
-  await setupUsers();
+  await setupUsers({ appName: playwrightConfigAppNames.single, appUrl: singleAppUrl });
+  await setupUsers({ appName: playwrightConfigAppNames.multiple, appUrl: multipleAppUrl });
 
   process.env.PW_TEST_HTML_REPORT_OPEN = 'never';
-  await $`playwright test ${ui ? '--ui' : ''}`;
+  await $({
+    stdio: 'inherit',
+    env: {
+      ...process.env,
+      HEADLESS: ui ? 'false' : undefined,
+      SINGLE_TENANT_APP_URL: singleAppUrl,
+      MULTIPLE_TENANT_APP_URL: multipleAppUrl,
+      SINGLE_TENANT_APP_NAME: playwrightConfigAppNames.single,
+      MULTIPLE_TENANT_APP_NAME: playwrightConfigAppNames.multiple,
+    },
+  })`playwright test ${ui ? '--ui' : ''}`;
 
-  await removeTestApp({ blockletCli, appSk: appWallet.secretKey });
+  await cleanupApps(singleAppWallet, multipleAppWallet);
 })();

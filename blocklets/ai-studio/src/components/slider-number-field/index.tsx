@@ -35,6 +35,7 @@ export default function SliderNumberField({
   return (
     <Stack direction="row" alignItems="center" {...props}>
       <Slider
+        data-testid="slider"
         disabled={disabled}
         min={min}
         max={max}

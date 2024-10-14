@@ -235,7 +235,7 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
             bgcolor: '#fff',
             zIndex: 10000,
           }}>
-          <Button onClick={onClose} sx={{ minWidth: 32, minHeight: 32, mt: 1, mx: 1 }}>
+          <Button data-testid="settings-close-btn" onClick={onClose} sx={{ minWidth: 32, minHeight: 32, mt: 1, mx: 1 }}>
             <CloseRounded />
           </Button>
         </Box>
@@ -444,7 +444,7 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
           {currentTabIndex === 'modelInfo' && (
             <Box mt={2}>
               <Stack gap={2}>
-                <Box>
+                <Box data-testid="project-setting-model">
                   <Typography variant="subtitle2" mb={0.5}>
                     {t('model')}
                   </Typography>
@@ -483,7 +483,7 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                         </Tooltip>
                       </Box>
 
-                      <Box>
+                      <Box data-testid="project-settings-temperature">
                         <SliderNumberField
                           readOnly={readOnly}
                           min={model.temperatureMin}
@@ -518,7 +518,7 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                         </Tooltip>
                       </Box>
 
-                      <Box>
+                      <Box data-testid="project-settings-topP">
                         <SliderNumberField
                           readOnly={readOnly}
                           min={model.topPMin}
@@ -553,7 +553,7 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                         </Tooltip>
                       </Box>
 
-                      <Box>
+                      <Box data-testid="project-settings-presence-penalty">
                         <SliderNumberField
                           readOnly={readOnly}
                           min={model.presencePenaltyMin}
@@ -588,7 +588,7 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                         </Tooltip>
                       </Box>
 
-                      <Box>
+                      <Box data-testid="project-settings-frequency-penalty">
                         <SliderNumberField
                           readOnly={readOnly}
                           min={model.frequencyPenaltyMin}
@@ -623,7 +623,7 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                         </Tooltip>
                       </Box>
 
-                      <Box>
+                      <Box data-testid="project-settings-max-tokens">
                         <SliderNumberField
                           readOnly={readOnly}
                           min={model.maxTokensMin}

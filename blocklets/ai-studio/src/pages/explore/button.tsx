@@ -116,6 +116,7 @@ export function ShareButton({ deployment, project }: { deployment: Deployment; p
 
   const shareOptions = [
     {
+      testid: 'open-in-new-tab',
       text: t('openInNewTab'),
       icon: <Box component={Icon} icon={externalLinkIcon} sx={{ fontSize: 20 }} />,
       handle: () => {
@@ -124,6 +125,7 @@ export function ShareButton({ deployment, project }: { deployment: Deployment; p
       },
     },
     {
+      testid: 'copy-link',
       text: t('copyLink'),
       icon: <Box component={Icon} icon={linkIcon} sx={{ fontSize: 20 }} />,
       handle: () => {
@@ -133,6 +135,7 @@ export function ShareButton({ deployment, project }: { deployment: Deployment; p
       },
     },
     {
+      testid: 'share-on-twitter',
       text: t('shareOnTwitter'),
       icon: <Box component={Icon} icon={twitterIcon} sx={{ fontSize: 20 }} />,
       handle: () => {
@@ -153,7 +156,7 @@ export function ShareButton({ deployment, project }: { deployment: Deployment; p
 
   return (
     <>
-      <Button variant="outlined" onClick={handleClick}>
+      <Button variant="outlined" onClick={handleClick} data-testid="share-button">
         {t('share')}
       </Button>
 
@@ -162,7 +165,7 @@ export function ShareButton({ deployment, project }: { deployment: Deployment; p
           <Paper sx={{ mt: 1 }}>
             <List>
               {shareOptions.map((item) => (
-                <ListItem key={item.text} dense disablePadding onClick={item.handle}>
+                <ListItem key={item.text} dense disablePadding onClick={item.handle} data-testid={item.testid}>
                   <ListItemButton>
                     <ListItemIcon sx={{ minWidth: 0, mr: 1 }}>{item.icon}</ListItemIcon>
                     <ListItemText primary={item.text} />

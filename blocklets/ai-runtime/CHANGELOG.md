@@ -1,6 +1,10 @@
-## 0.4.78 (2024-10-12)
+## 0.4.79 (2024-10-14)
 
 - fix: delete cache permission and compare agent crash
+
+## 0.4.78 (2024-10-14)
+
+- test: add more e2e test cases
 
 ## 0.4.77 (2024-10-9)
 

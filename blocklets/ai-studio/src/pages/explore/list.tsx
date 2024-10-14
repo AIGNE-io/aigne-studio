@@ -208,7 +208,7 @@ function CategoryList() {
     <Stack sx={{ width: 1, height: 1, overflow: 'hidden' }}>
       <MobileSidebarHeader categories={categories} />
 
-      <Box sx={{ flexGrow: 1, p: spacing, overflow: 'overlay' }}>
+      <Box sx={{ flexGrow: 1, p: spacing, overflow: 'overlay' }} data-testid="explore-list">
         <Grid container spacing={spacing}>
           {deployments.length === 0 && (
             <Stack flex={1} height={500} justifyContent="center" alignItems="center" gap={1}>
@@ -220,7 +220,14 @@ function CategoryList() {
           )}
 
           {deployments.map((deployment) => (
-            <Grid item key={deployment.id} xs={12} sm={6} md={4} onClick={() => navigate(deployment.id)}>
+            <Grid
+              item
+              key={deployment.id}
+              xs={12}
+              sm={6}
+              md={4}
+              onClick={() => navigate(deployment.id)}
+              data-testid="explore-card">
               <CategoryCard deployment={deployment} project={deployment.project} />
             </Grid>
           ))}
