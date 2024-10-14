@@ -10,25 +10,21 @@ const router = Router();
 
 router.delete('/agents/:aid/cache', user(), async (req, res) => {
   const { aid } = req.params;
-
   if (!aid) throw new Error('Missing required param `aid`');
 
   const { projectId, agentId } = parseIdentity(aid, { rejectWhenError: true });
 
-  const cache = await ExecutionCache.findOne({ where: { projectId, agentId } });
-  if (cache) {
-    const agent = await getAgent({
-      projectId,
-      agentId,
-      projectRef: cache.projectRef,
-      working: true,
-      rejectOnEmpty: true,
-    });
+  const agent = await getAgent({
+    projectId,
+    agentId,
+    working: true,
+    rejectOnEmpty: true,
+  });
 
-    checkUserAuth(req, res)({ userId: agent.createdBy });
-  }
+  checkUserAuth(req, res)({ userId: agent.createdBy });
 
   const deleted = await ExecutionCache.destroy({ where: { projectId, agentId } });
+
   res.json({ deleted });
 });
 
