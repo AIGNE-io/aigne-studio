@@ -1,15 +1,28 @@
 #!/usr/bin/env -S node -r ts-node/register
 
-import { getBlockletServerStatus, removeTestApp } from '@blocklet/testlab/utils/server';
-import { didToDomain, ensureWallet } from '@blocklet/testlab/utils/wallet';
+import {
+  addBlocklet,
+  getBlockletServerStatus,
+  initTestApp,
+  removeTestApp,
+  startTestApp,
+} from '@blocklet/testlab/utils/server';
+import { didToDomain, ensureWallet, types } from '@blocklet/testlab/utils/wallet';
+import Joi from 'joi';
 import { $, argv } from 'zx';
 
 import { playwrightConfigAppNames } from '../tests/utils';
 import { setupUsers } from '../tests/utils/auth';
 
+const skipInstall = argv['skip-install'] === true;
 const ui = argv.ui;
 if (ui) process.env.HEADLESS = 'false';
 
+console.log(argv, { skipInstall });
+
+const portSchema = Joi.number<number>().integer().empty(['']);
+const httpPort = (portSchema.validate(process.env.BLOCKLET_SERVER_HTTP_PORT).value as number) || 80;
+const httpsPort = (portSchema.validate(process.env.BLOCKLET_SERVER_HTTPS_PORT).value as number) || 443;
 const blockletCli = process.env.BLOCKLET_CLI || 'blocklet';
 
 async function cleanupApps(singleAppWallet: any, multipleAppWallet: any) {
@@ -19,7 +32,48 @@ async function cleanupApps(singleAppWallet: any, multipleAppWallet: any) {
   ]);
 }
 
+const initBlocklet = async ({ appName }: { appName: string }) => {
+  const serverWallet = ensureWallet({ name: 'server' });
+  const ownerWallet = ensureWallet({ name: 'owner' });
+  const appWallet = ensureWallet({ name: appName, role: types.RoleType.ROLE_APPLICATION });
+
+  await initTestApp({
+    blockletCli,
+    serverWallet,
+    appWallet,
+    ownerWallet,
+    httpPort,
+    httpsPort,
+  });
+
+  await addBlocklet({
+    blockletCli,
+    appId: appWallet.address,
+    bundle: 'blocklets/ai-studio/.blocklet/bundle',
+    mountPoint: '/',
+  });
+
+  // FIXME: remove next sleep after issue https://github.com/ArcBlock/blocklet-server/issues/9353 fixed
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+
+  await addBlocklet({
+    blockletCli,
+    appId: appWallet.address,
+    bundle: 'blocklets/ai-runtime/.blocklet/bundle',
+    mountPoint: '/aigne-runtime',
+  });
+
+  await startTestApp({ blockletCli, appWallet });
+};
+
 (async () => {
+  if (!skipInstall) {
+    for (const appName of Object.values(playwrightConfigAppNames)) {
+      await initBlocklet({ appName });
+    }
+    console.log('All Blocklet applications initialized successfully');
+  }
+
   const singleAppWallet = ensureWallet({ name: playwrightConfigAppNames.single, onlyFromCache: true });
   const multipleAppWallet = ensureWallet({ name: playwrightConfigAppNames.multiple, onlyFromCache: true });
 
