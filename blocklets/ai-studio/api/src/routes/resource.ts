@@ -19,6 +19,7 @@ import { user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import { pathExists } from 'fs-extra';
 import Joi from 'joi';
+import { uniqBy } from 'lodash';
 import groupBy from 'lodash/groupBy';
 import uniq from 'lodash/uniq';
 import { joinURL } from 'ufo';
@@ -215,6 +216,7 @@ export function resourceRoutes(router: Router) {
 
     const resourceDir = await getResourceDir({ projectId, releaseId: releaseId || '' });
     const arr = [];
+    const secretKeys: { id: string; key?: string; label?: string }[] = [];
 
     const referencedKBIds: string[] = [];
     for (const [type, value] of resourceTypes) {
@@ -268,6 +270,17 @@ export function resourceRoutes(router: Router) {
                 !parameter.source.knowledge?.blockletDid
               ) {
                 referencedKBIds.push(parameter.source.knowledge.id);
+              }
+            });
+          }
+        }
+
+        // 判断参数中是否有 security 参数
+        for (const agent of agents) {
+          if (agent.parameters?.length) {
+            (agent.parameters || []).forEach((parameter) => {
+              if (parameter.type === 'source' && parameter.source?.variableFrom === 'secret' && parameter.key) {
+                secretKeys.push(parameter);
               }
             });
           }
@@ -344,6 +357,17 @@ export function resourceRoutes(router: Router) {
           version: 'latest',
         },
       };
+    }
+
+    if (secretKeys.length > 0) {
+      blockletYml.environments = uniqBy(secretKeys, 'key').map((i) => ({
+        name: (i.key || '').toLocaleUpperCase(),
+        description: i.label || `Your ${(i.key || '').toLocaleUpperCase()} secret key`,
+        required: false,
+        default: '',
+        secure: false,
+        shared: true,
+      }));
     }
 
     const releaseDir = component.getReleaseExportDir({ projectId, releaseId });

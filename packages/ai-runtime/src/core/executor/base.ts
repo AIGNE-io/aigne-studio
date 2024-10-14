@@ -459,6 +459,7 @@ export abstract class AgentExecutorBase<T> {
         if (parameter.source?.variableFrom === 'secret') {
           const secret =
             inputs?.[parameter.key] ||
+            config.env[(parameter.key || '').toLocaleUpperCase()] ||
             (
               await this.context.getSecret({
                 targetProjectId: agent.project.id,

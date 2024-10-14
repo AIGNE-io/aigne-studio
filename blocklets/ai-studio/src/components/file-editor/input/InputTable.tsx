@@ -1428,14 +1428,20 @@ export function AuthorizeButton({ agent }: { agent: NonNullable<ReturnType<typeo
   const { projectId } = useCurrentProject();
 
   const [authorized, setAuthorized] = useState(false);
-  const { value: { secrets = [] } = {}, loading } = useAsync(
-    () => getSecrets({ projectId, targetProjectId: agent.project.id, targetAgentId: agent.id }),
+  const { value: { secrets = [], globalAuthorized = false } = {}, loading } = useAsync(
+    () =>
+      getSecrets({
+        projectId,
+        targetProjectId: agent.project.id,
+        targetAgentId: agent.id,
+        blockletDid: agent?.identity?.blockletDid,
+      }),
     [projectId, agent.project.id, agent.id]
   );
 
   const isAuthorized = secrets.length > 0 || authorized;
 
-  if (!authInputs?.length || loading) return null;
+  if (globalAuthorized || !authInputs?.length || loading) return null;
 
   return (
     <Box>
