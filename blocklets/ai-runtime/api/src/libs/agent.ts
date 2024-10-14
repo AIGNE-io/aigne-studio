@@ -85,8 +85,8 @@ export async function getAgent({
         identity: { blockletDid, projectId, agentId, aid: stringifyIdentity({ projectId, agentId }) },
       };
     }
-  } else if (projectRef) {
-    const res = await getAgentFromAIStudio({ projectId, projectRef, agentId, working });
+  } else {
+    const res = await getAgentFromAIStudio({ projectId, projectRef: projectRef || 'main', agentId, working });
     if (res)
       agent = {
         ...res.agent,
