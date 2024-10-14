@@ -68,7 +68,7 @@ export default function Compare({
       const data = await api.get(joinURL('/api/projects/compare', projectId, hash, templateId || ''), {
         params: { working: false },
       });
-      setState((r) => ({ ...r, template: fileToYjs(data?.data as any) as AssistantYjs }));
+      setState((r) => ({ ...r, template: data?.data ? (fileToYjs(data?.data) as AssistantYjs) : undefined }));
     } catch (error) {
       setState((r) => ({ ...r, template: undefined, loading: false }));
     } finally {

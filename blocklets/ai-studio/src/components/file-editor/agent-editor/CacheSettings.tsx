@@ -1,5 +1,6 @@
 import LoadingButton from '@app/components/loading/loading-button';
 import { useCurrentProject } from '@app/contexts/project';
+import { getErrorMessage } from '@app/libs/api';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
@@ -57,7 +58,7 @@ function DeleteCacheButton({ agent }: { agent: AssistantYjs }) {
 
   const { run, error, data } = useRequest(
     () => deleteAgentCache({ aid: stringifyIdentity({ projectId, projectRef, agentId: agent.id }) }),
-    { manual: true, onError: (error) => Toast.error(error.message) }
+    { manual: true, onError: (error) => Toast.error(getErrorMessage(error)) }
   );
 
   return (
