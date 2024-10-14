@@ -1,21 +1,3 @@
-<<<<<<< HEAD
-import { agentViewTheme } from '@app/theme/agent-view-theme';
-<<<<<<< HEAD
-import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-=======
->>>>>>> 76e9a72a (feat: improve debug view)
-import { ImagePreview } from '@blocklet/ai-kit/components';
-import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
-import { AssistantYjs, fileFromYjs } from '@blocklet/ai-runtime/types';
-import { AgentView } from '@blocklet/aigne-sdk/components';
-import { getYjsValue } from '@blocklet/co-git/yjs';
-<<<<<<< HEAD
-import { Icon } from '@iconify-icon/react';
-import HistoryIcon from '@iconify-icons/tabler/history';
-import PlusIcon from '@iconify-icons/tabler/plus';
-import TrashIcon from '@iconify-icons/tabler/trash';
-import {
-=======
 import ErrorCard from '@app/components/error-card';
 import ErrorBoundary from '@app/components/error/error-boundary';
 import LoadingButton from '@app/components/loading/loading-button';
@@ -47,39 +29,22 @@ import {
   AccordionSummary,
   Alert,
   Avatar,
->>>>>>> 7d91721b (add debug agent view)
   Box,
   Button,
   IconButton,
   MenuItem,
   Select,
   Stack,
-<<<<<<< HEAD
-  ThemeProvider,
-  Tooltip,
-=======
   TextField,
   Tooltip,
   Typography,
   accordionSummaryClasses,
   alertClasses,
->>>>>>> 7d91721b (add debug agent view)
   alpha,
   outlinedInputClasses,
   selectClasses,
   styled,
 } from '@mui/material';
-<<<<<<< HEAD
-import { ComponentProps, useEffect, useMemo } from 'react';
-
-import Empty from './icons/empty';
-=======
-import { Box, ThemeProvider, alpha, styled } from '@mui/material';
-import { ComponentProps, useEffect, useMemo } from 'react';
-
->>>>>>> 76e9a72a (feat: improve debug view)
-import { useDebugState } from './state';
-=======
 import { useLocalStorageState, useThrottleEffect } from 'ahooks';
 import dayjs from 'dayjs';
 import { pick, sortBy } from 'lodash';
@@ -93,7 +58,6 @@ import { useSessionContext } from '../../contexts/session';
 import Empty from './icons/empty';
 import SegmentedControl from './segmented-control';
 import { SessionItem, useDebugState, useProjectState } from './state';
->>>>>>> 7d91721b (add debug agent view)
 import { useProjectStore } from './yjs-state';
 
 export default function DebugView(props: {
@@ -118,26 +82,14 @@ export default function DebugView(props: {
     }
   });
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-  return (
-    <Box display="flex" flexDirection="column" flex={1} minHeight={0} key={state.currentSessionIndex}>
-=======
   return (
     <Box display="flex" flexDirection="column" flex={1} key={state.currentSessionIndex}>
->>>>>>> 7d91721b (add debug agent view)
       <DebugViewContent {...props} />
       {!state.sessions.length && <EmptySessions projectId={props.projectId} templateId={props.assistant.id} />}
     </Box>
   );
 }
 
-<<<<<<< HEAD
-function DebugViewContent(props: { projectId: string; gitRef: string; assistant: AssistantYjs }) {
-  const { projectId, gitRef, assistant } = props;
-  const { t } = useLocaleContext();
-  const { state, clearCurrentSession, deleteSession } = useDebugState({
-=======
 function DebugViewContent({
   projectId,
   gitRef,
@@ -152,41 +104,16 @@ function DebugViewContent({
   const { t } = useLocaleContext();
 
   const { state, setSession, clearCurrentSession, deleteSession } = useDebugState({
->>>>>>> 7d91721b (add debug agent view)
     projectId,
     assistantId: assistant.id,
   });
 
   const currentSession = state.sessions.find((i) => i.index === state.currentSessionIndex);
 
-<<<<<<< HEAD
-=======
-  const { projectId, gitRef, assistant } = props;
->>>>>>> 76e9a72a (feat: improve debug view)
-  const { projectSetting } = useProjectStore(projectId, gitRef);
-  const aid = stringifyIdentity({ projectId, projectRef: gitRef, agentId: assistant.id });
-  const debug = useMemo(
-    () => ({
-<<<<<<< HEAD
-      session: currentSession,
-      agent: assistant,
-      restAgentProps: { project: projectSetting, config: { secrets: [] } },
-      getYjsValue,
-      fileFromYjs,
-    }),
-    [assistant, currentSession, projectSetting]
-  );
-
-  if (!currentSession) return null;
-
-  return (
-    <Box display="flex" flexDirection="column" minHeight={0}>
-=======
   if (!currentSession) return null;
 
   return (
     <>
->>>>>>> 7d91721b (add debug agent view)
       <Box
         px={2.5}
         py={1.5}
@@ -218,88 +145,6 @@ function DebugViewContent({
           </Tooltip>
         </Stack>
       </Box>
-<<<<<<< HEAD
-      <Box overflow="auto" flex={1}>
-        <ThemeProvider theme={agentViewTheme}>
-          <AgentView aid={aid} debug={debug} working />
-        </ThemeProvider>
-      </Box>
-    </Box>
-  );
-}
-
-function SessionSelect({ projectId, assistantId }: { projectId: string; assistantId: string }) {
-  const { t } = useLocaleContext();
-  const { state, newSession, setCurrentSession } = useDebugState({
-    projectId,
-    assistantId,
-  });
-
-  return (
-    <Select
-      variant="standard"
-      value={state.currentSessionIndex}
-      placeholder={t('newObject', { object: t('session') })}
-      fullWidth
-      sx={{
-        [`.${selectClasses.select}`]: {
-          py: 0.5,
-          '&:focus': {
-            background: 'transparent',
-          },
-        },
-        [`.${outlinedInputClasses.notchedOutline}`]: {
-          borderRadius: 100,
-        },
-      }}
-      renderValue={(value) => `${t('session')} ${value}`}
-      onChange={(e) => setCurrentSession(e.target.value as number)}>
-      {state.sessions.map((session) => (
-        <MenuItem key={session.index} value={session.index}>
-          {t('session')} {session.index}
-        </MenuItem>
-      ))}
-      <MenuItem
-        value="new"
-        onClick={(e) => {
-          e.preventDefault();
-          newSession();
-        }}
-        sx={{ justifyContent: 'center', color: 'primary.main', fontSize: 'button.fontSize' }}>
-        {t('newObject', { object: t('session') })}
-      </MenuItem>
-    </Select>
-  );
-}
-
-function EmptySessions({ projectId, templateId }: { projectId: string; templateId: string }) {
-  const { newSession } = useDebugState({ projectId, assistantId: templateId });
-  const { t } = useLocaleContext();
-
-  return (
-    <Stack mt={10} gap={2} alignItems="center">
-      <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
-
-      <Button
-        startIcon={<Box component={Icon} icon={PlusIcon} />}
-        onClick={(e) => {
-          e.preventDefault();
-          newSession();
-        }}>
-        {t('newObject', { object: t('session') })}
-      </Button>
-    </Stack>
-=======
-      agent: assistant,
-      restAgentProps: {
-        project: projectSetting,
-        config: { secrets: [] },
-      },
-      getYjsValue,
-      fileFromYjs,
-    }),
-    [assistant, projectSetting]
-=======
 
       <ScrollMessages currentSession={currentSession} key={assistant.id} projectId={projectId} gitRef={gitRef} />
 
@@ -380,7 +225,6 @@ function ScrollMessages({
     },
     [lastAssistantContent, scrollToBottom],
     { wait: 300 }
->>>>>>> 7d91721b (add debug agent view)
   );
 
   return (
@@ -421,10 +265,6 @@ function ScrollMessages({
           )}
         />
       </Box>
-<<<<<<< HEAD
-    </ThemeProvider>
->>>>>>> 76e9a72a (feat: improve debug view)
-=======
       {!hitBottom && (
         <Box
           onClick={() => {
@@ -1053,7 +893,6 @@ function EmptySessions({ projectId, templateId }: { projectId: string; templateI
         {t('newObject', { object: t('session') })}
       </Button>
     </Stack>
->>>>>>> 7d91721b (add debug agent view)
   );
 }
 
