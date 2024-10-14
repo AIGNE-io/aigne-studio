@@ -46,6 +46,7 @@ function PricingTablePlan({ plan }: { plan: Plan }) {
           p: 2,
           bgcolor: 'grey.100',
           borderRadius: 1,
+          ...(plan.active && { border: 1, borderColor: 'success.light' }),
         }}>
         <Box component={Icon} icon={plan.icon} sx={{ fontSize: 36 }} />
         <Box sx={{ fontSize: 16, fontWeight: 'bold' }}>{plan.name}</Box>
@@ -57,27 +58,37 @@ function PricingTablePlan({ plan }: { plan: Plan }) {
             {plan.priceSuffix}
           </Box>
         </Box>
-        <LoadingButton
-          variant={plan.isFeatured ? 'contained' : 'outlined'}
-          color="primary"
-          loading={plan.buttonLoading}
-          sx={{
-            py: 1,
-            ...(!plan.isFeatured && { bgcolor: '#fff' }),
-            ...(plan.active && { visibility: 'hidden' }),
-          }}
-          onClick={() => {
-            window.open(plan.buttonLink, '_blank');
-          }}>
-          {plan.buttonText}
-        </LoadingButton>
+        <Box sx={{ height: 36 }}>
+          {plan.buttonText && (
+            <LoadingButton
+              variant={plan.isFeatured ? 'contained' : 'outlined'}
+              color="primary"
+              loading={plan.buttonLoading}
+              disabled={plan.active}
+              sx={{
+                width: 1,
+                py: 1,
+                ...(!plan.isFeatured && { bgcolor: '#fff' }),
+              }}
+              onClick={() => {
+                window.open(plan.buttonLink, '_blank');
+              }}>
+              {plan.buttonText}
+            </LoadingButton>
+          )}
+        </Box>
 
         <Box component="ul" sx={{ listStyle: 'none', p: 0, m: 0, mt: 2 }}>
           {plan.features.map((feature) => (
             <Box
               component="li"
               key={feature}
-              sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, lineHeight: 1.5 }}>
+              sx={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 1,
+                lineHeight: 1.5,
+              }}>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '1.5em' }}>
                 <Box component={Icon} icon="tabler:check" sx={{ color: 'green' }} />
               </Box>
@@ -143,7 +154,7 @@ export function PricingTable() {
       ],
       // price: '0 ABT',
       price: 'FREE',
-      buttonText: 'Sign up',
+      buttonText: isProUser ? '' : 'Sign up',
       buttonLink: '#/',
       ...(!isAdmin && !isProUser && { active: true }),
     },
@@ -159,7 +170,7 @@ export function PricingTable() {
       ],
       price: '10 ABT',
       priceSuffix: '/month',
-      buttonText: 'Upgrade',
+      buttonText: isProUser ? 'Subscribed' : 'Upgrade',
       buttonLink: proPaymentLink,
       buttonLoading: loading || !proPaymentLink,
       buttonDisabled: isProUser,
