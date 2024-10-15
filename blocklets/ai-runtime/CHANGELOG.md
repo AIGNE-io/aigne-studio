@@ -1,3 +1,8 @@
+## 0.4.80 (2024-10-15)
+
+- chore: add llm adapter global setting
+- feat: add global config for resource blocklet
+
 ## 0.4.79 (2024-10-14)
 
 - fix: delete cache permission and compare agent crash
