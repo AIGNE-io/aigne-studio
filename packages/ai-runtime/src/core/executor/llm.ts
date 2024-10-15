@@ -181,7 +181,7 @@ export class LLMAgentExecutor extends AgentExecutorBase<PromptAssistant> {
       parentTaskId,
       taskId,
       assistantName: agent.name,
-      inputParameters: inputs,
+      inputParameters: this.hideSecretInputs(inputs, agent),
       promptMessages: messagesWithSystemPrompt,
     });
 
@@ -281,7 +281,7 @@ export class LLMAgentExecutor extends AgentExecutorBase<PromptAssistant> {
       parentTaskId,
       taskId,
       assistantName: agent.name,
-      inputParameters: inputs,
+      inputParameters: this.hideSecretInputs(inputs, agent),
       promptMessages: messages,
     });
 
