@@ -1,17 +1,7 @@
-import { useIsAdmin } from '@app/contexts/session';
-import { AIGNE_STUDIO_MOUNT_POINT } from '@app/libs/constants';
 import { Icon, IconifyIcon } from '@iconify-icon/react';
-import BuildingIcon from '@iconify-icons/tabler/building';
-import BuildingCommunityIcon from '@iconify-icons/tabler/building-community';
-import BuildingSkyscraperIcon from '@iconify-icons/tabler/building-skyscraper';
-import HomeIcon from '@iconify-icons/tabler/home';
-import InfoCircleIcon from '@iconify-icons/tabler/info-circle';
 import { LoadingButton } from '@mui/lab';
-import { Box, Tooltip } from '@mui/material';
+import { Box } from '@mui/material';
 import { ReactNode } from 'react';
-import { joinURL } from 'ufo';
-
-import { useIsProUser, useProPaymentLink } from './state';
 
 interface Plan {
   icon: string | IconifyIcon;
@@ -30,8 +20,6 @@ interface Plan {
 interface PricingTableProps {
   plans: Plan[];
 }
-
-const AI_STUDIO_STORE = 'https://registry.arcblock.io/blocklets/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
 
 function PricingTablePlan({ plan }: { plan: Plan }) {
   return (
@@ -114,7 +102,7 @@ function PricingTablePlan({ plan }: { plan: Plan }) {
 /**
  * TODO: 暂时仅考虑 plan 为 4 个的情况
  */
-function InnerPricingTable({ plans, ...rest }: PricingTableProps) {
+export function PricingTable({ plans, ...rest }: PricingTableProps) {
   return (
     <Box
       sx={
@@ -137,77 +125,4 @@ function InnerPricingTable({ plans, ...rest }: PricingTableProps) {
       </Box>
     </Box>
   );
-}
-
-export function PricingTable() {
-  const { proPaymentLink, loading } = useProPaymentLink();
-  const isProUser = useIsProUser();
-  const isAdmin = useIsAdmin();
-
-  const aignePlansEN = [
-    {
-      icon: HomeIcon,
-      name: 'Hobby',
-      featuresDescription: 'Includes',
-      features: [
-        '3 projects',
-        '100 requests per project',
-        'Dataset collection',
-        'Testing and evaluation',
-        'Prompt management',
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <span>Data sync with DID Space</span>
-          <Tooltip title="DID Wallet required">
-            <Box component={Icon} icon={InfoCircleIcon} sx={{ fontSize: 18 }} />
-          </Tooltip>
-        </Box>,
-      ],
-      price: 'FREE',
-      buttonText: isProUser ? '' : 'Sign up',
-      buttonLink: joinURL('/', AIGNE_STUDIO_MOUNT_POINT),
-      ...(!isAdmin && !isProUser && { active: true }),
-    },
-    {
-      icon: BuildingIcon,
-      name: 'Pro',
-      featuresDescription: 'Everything in Hobby, plus',
-      features: ['20 projects', '1000 requests per project', 'Unlimited agent deployments', 'Private agent publishing'],
-      price: '9.99 ABT',
-      priceSuffix: '/month',
-      buttonText: isProUser ? 'Subscribed' : 'Upgrade',
-      buttonLink: proPaymentLink,
-      buttonLoading: loading || !proPaymentLink,
-      buttonDisabled: isProUser,
-      isFeatured: true,
-      ...(isProUser && { active: true }),
-    },
-    {
-      icon: BuildingCommunityIcon,
-      name: 'Serverless',
-      featuresDescription: 'Everything in Pro, plus',
-      features: [
-        'Unlimited projects',
-        'Unlimited requests per project',
-        'Unlimited agent deployments',
-        'Private agent publishing',
-        'Pay as you go',
-      ],
-      price: '0.4 ABT',
-      priceSuffix: '/day',
-      buttonText: 'Launch',
-      buttonLink: AI_STUDIO_STORE,
-    },
-    {
-      icon: BuildingSkyscraperIcon,
-      name: 'Dedicated',
-      featuresDescription: 'Everything in Serverless, plus',
-      features: ['Dedicated server instance'],
-      price: '49 ABT',
-      priceSuffix: '/month',
-      buttonText: 'Launch',
-      buttonLink: '#/',
-    },
-  ] as any;
-
-  return <InnerPricingTable plans={aignePlansEN} />;
 }

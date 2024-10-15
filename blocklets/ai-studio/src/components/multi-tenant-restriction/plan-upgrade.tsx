@@ -1,7 +1,14 @@
+import { useIsAdmin, useSessionContext } from '@app/contexts/session';
+import { AIGNE_STUDIO_MOUNT_POINT } from '@app/libs/constants';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Icon } from '@iconify-icon/react';
+import BuildingIcon from '@iconify-icons/tabler/building';
+import BuildingCommunityIcon from '@iconify-icons/tabler/building-community';
+import BuildingSkyscraperIcon from '@iconify-icons/tabler/building-skyscraper';
 import ArrowUpIcon from '@iconify-icons/tabler/circle-arrow-up';
 import DiamondIcon from '@iconify-icons/tabler/diamond';
+import HomeIcon from '@iconify-icons/tabler/home';
+import InfoCircleIcon from '@iconify-icons/tabler/info-circle';
 import { Close } from '@mui/icons-material';
 import {
   Alert,
@@ -14,18 +21,26 @@ import {
   Theme,
   ToggleButton,
   ToggleButtonGroup,
+  Tooltip,
   useMediaQuery,
 } from '@mui/material';
 import { useState } from 'react';
+import { joinURL } from 'ufo';
 
 import { PricingTable } from './pricing-table';
-import { useIsProUser, useMultiTenantRestriction } from './state';
+import { useIsProUser, useMultiTenantRestriction, useProPaymentLink } from './state';
 
 interface Props {}
+
+// const AI_STUDIO_STORE = 'https://registry.arcblock.io/blocklets/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
 
 export function PlanUpgrade({ ...rest }: Props) {
   const { hidePlanUpgrade, planUpgradeVisible, type } = useMultiTenantRestriction();
   const { t } = useLocaleContext();
+  const { proPaymentLink, loading } = useProPaymentLink();
+  const { session } = useSessionContext();
+  const isProUser = useIsProUser();
+  const isAdmin = useIsAdmin();
   const downSm = useMediaQuery<Theme>((theme) => theme.breakpoints.down('sm'));
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const options = [
@@ -33,12 +48,79 @@ export function PlanUpgrade({ ...rest }: Props) {
     { value: 'yearly', label: 'Yearly (20% OFF)' },
   ];
 
+  const aignePlansEN = [
+    {
+      icon: HomeIcon,
+      name: 'Hobby',
+      featuresDescription: 'Includes',
+      features: [
+        '3 projects',
+        '100 requests per project',
+        'Dataset collection',
+        'Testing and evaluation',
+        'Prompt management',
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <span>Data sync with DID Space</span>
+          <Tooltip title="DID Wallet required">
+            <Box component={Icon} icon={InfoCircleIcon} sx={{ fontSize: 18 }} />
+          </Tooltip>
+        </Box>,
+      ],
+      price: 'FREE',
+      buttonText: isProUser || session?.user ? '' : 'Sign up',
+      buttonLink: joinURL('/', AIGNE_STUDIO_MOUNT_POINT),
+      ...(!isAdmin && !isProUser && { active: true }),
+    },
+    {
+      icon: BuildingIcon,
+      name: 'Pro',
+      featuresDescription: 'Everything in Hobby, plus',
+      features: ['20 projects', '1000 requests per project', 'Unlimited agent deployments', 'Private agent publishing'],
+      price: billingCycle === 'monthly' ? '10 ABT' : '8 ABT',
+      priceSuffix: '/month',
+      buttonText: isProUser ? 'Subscribed' : 'Upgrade',
+      buttonLink: proPaymentLink,
+      buttonLoading: loading || !proPaymentLink,
+      buttonDisabled: isProUser,
+      isFeatured: true,
+      ...(isProUser && { active: true }),
+    },
+    {
+      icon: BuildingCommunityIcon,
+      name: 'Serverless',
+      featuresDescription: 'Everything in Pro, plus',
+      features: [
+        'Unlimited projects',
+        'Unlimited requests per project',
+        'Unlimited agent deployments',
+        'Private agent publishing',
+        'Pay as you go',
+      ],
+      price: '0.4 ABT',
+      priceSuffix: '/day',
+      buttonText: 'Launch',
+      buttonLink:
+        'https://launcher.arcblock.io/app/?blocklet_meta_url=https%3A%2F%2Fstore.blocklet.dev%2Fapi%2Fblocklets%2Fz8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB%2Fblocklet.json&product_type=serverless',
+    },
+    {
+      icon: BuildingSkyscraperIcon,
+      name: 'Dedicated',
+      featuresDescription: 'Everything in Serverless, plus',
+      features: ['Dedicated server instance'],
+      price: '49 ABT',
+      priceSuffix: '/month',
+      buttonText: 'Launch',
+      buttonLink:
+        'https://launcher.arcblock.io/app/?blocklet_meta_url=https%3A%2F%2Fstore.blocklet.dev%2Fapi%2Fblocklets%2Fz8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB%2Fblocklet.json&product_type=dedicated',
+    },
+  ] as any;
+
   return (
     <Dialog
       fullScreen={downSm}
       open={planUpgradeVisible}
       onClose={hidePlanUpgrade}
-      PaperProps={{ sx: { width: { xs: '100%', md: 860, lg: 1200 }, maxWidth: '100%' } }}
+      PaperProps={{ sx: { width: { xs: '100%', md: 860, lg: 1200 }, maxWidth: '100%', pb: 2 } }}
       {...rest}>
       <DialogTitle className="between" sx={{ border: 0 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -98,8 +180,11 @@ export function PlanUpgrade({ ...rest }: Props) {
                   bgcolor: '#fff',
                 },
                 '.MuiToggleButtonGroup-grouped.Mui-selected': {
-                  bgcolor: 'primary.light',
+                  bgcolor: '#000',
                   color: '#fff',
+                  '&:hover': {
+                    bgcolor: '#000',
+                  },
                 },
               }}>
               {options.map((x) => {
@@ -111,7 +196,7 @@ export function PlanUpgrade({ ...rest }: Props) {
               })}
             </ToggleButtonGroup>
           </Box>
-          <PricingTable />
+          <PricingTable plans={aignePlansEN} />
         </Box>
       </DialogContent>
     </Dialog>
@@ -120,12 +205,8 @@ export function PlanUpgrade({ ...rest }: Props) {
 
 export function PlanUpgradeButton() {
   const { showPlanUpgrade } = useMultiTenantRestriction();
-  const isPro = useIsProUser();
   return (
-    <Button
-      color={isPro ? 'inherit' : 'primary'}
-      startIcon={<Icon icon={DiamondIcon} />}
-      onClick={() => showPlanUpgrade()}>
+    <Button color="primary" startIcon={<Icon icon={DiamondIcon} />} onClick={() => showPlanUpgrade()}>
       Upgrade Plan
     </Button>
   );
