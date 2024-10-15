@@ -1,6 +1,8 @@
 import { Component, getComponents } from '@app/libs/components';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { AIGNE_COMPONENTS_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
 import { OutputVariableYjs, RuntimeOutputAppearance, RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
+import { getDefaultOutputComponent } from '@blocklet/aigne-sdk/components';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
 import {
@@ -32,7 +34,7 @@ const ignoreIconTitleSettingsOutputs = new Set<string>([
   RuntimeOutputVariable.profile,
 ]);
 
-export default function AppearanceSettings({
+export default function AppearanceComponentSettings({
   output,
   disableTitleAndIcon,
 }: {
@@ -70,6 +72,29 @@ export default function AppearanceSettings({
   );
 
   if (ignoreAppearanceSettingsOutputs.has(output.name!)) return null;
+
+  const defaultOutputComponent = getDefaultOutputComponent(output);
+  const defaultComponent:
+    | Required<Pick<RuntimeOutputAppearance, 'componentBlockletDid' | 'componentId' | 'componentName'>>
+    | undefined = defaultOutputComponent && {
+    componentBlockletDid: AIGNE_COMPONENTS_COMPONENT_DID,
+    componentId: defaultOutputComponent.componentId,
+    componentName: defaultOutputComponent.componentName,
+  };
+
+  const currentComponent = appearance?.componentId
+    ? {
+        blockletDid: appearance.componentBlockletDid,
+        id: appearance.componentId,
+        name: appearance.componentName,
+      }
+    : defaultComponent
+      ? {
+          blockletDid: AIGNE_COMPONENTS_COMPONENT_DID,
+          id: defaultComponent.componentId,
+          name: defaultComponent.componentName,
+        }
+      : null;
 
   return (
     <Box>
@@ -135,15 +160,7 @@ export default function AppearanceSettings({
           <ComponentSelect
             tags={tags}
             remoteReact={remoteReact || []}
-            value={
-              appearance?.componentId
-                ? {
-                    blockletDid: appearance.componentBlockletDid,
-                    id: appearance.componentId,
-                    name: appearance.componentName,
-                  }
-                : null
-            }
+            value={currentComponent}
             onChange={(_, v) =>
               setField((config) => {
                 config.componentBlockletDid = v?.blockletDid;
@@ -161,7 +178,9 @@ export default function AppearanceSettings({
           />
         </Box>
 
-        {appearance?.componentId && <ComponentSettings value={appearance} remoteReact={remoteReact} />}
+        {currentComponent && (
+          <ComponentSettings defaultComponent={defaultComponent} output={output} remoteReact={remoteReact} />
+        )}
       </Stack>
     </Box>
   );
@@ -216,7 +235,7 @@ function ComponentSelect({
         (o, v) =>
           o.id === v.id &&
           ((!o.blockletDid && !v.blockletDid) || o.blockletDid === v.blockletDid) &&
-          ((!o.name && !v.name) || o.name === v.name) // FIXME: 临时解决方案，等后端返回 name 字段后可以删掉
+          (o.id !== REMOTE_REACT_COMPONENT || o.name === v.name) // FIXME: 临时解决方案，等后端返回 name 字段后可以删掉
       }
       renderGroup={(params) => {
         return (

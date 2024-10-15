@@ -3,18 +3,9 @@ import { UploaderButton, getImageSize, getVideoSize } from '@app/contexts/upload
 import { Component, getComponent } from '@app/libs/components';
 import { uploadAsset } from '@app/libs/project';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { RuntimeOutputAppearance } from '@blocklet/ai-runtime/types';
+import { OutputVariableYjs, RuntimeOutputAppearance } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import {
-  Alert,
-  Box,
-  CircularProgress,
-  InputAdornment,
-  Stack,
-  TextField,
-  TextFieldProps,
-  Typography,
-} from '@mui/material';
+import { Alert, InputAdornment, Stack, TextField, TextFieldProps, Typography } from '@mui/material';
 import { useAsync } from 'react-use';
 
 import Switch from '../../../components/custom/switch';
@@ -22,17 +13,23 @@ import { REMOTE_REACT_COMPONENT } from '../../../libs/constants';
 import { RemoteComponent } from '../../../libs/type';
 
 export default function ComponentSettings({
-  value,
+  defaultComponent,
+  output,
   remoteReact,
 }: {
-  value: RuntimeOutputAppearance;
+  defaultComponent?: Partial<RuntimeOutputAppearance>;
+  output: OutputVariableYjs;
   remoteReact?: RemoteComponent[];
 }) {
-  if (value.componentId !== REMOTE_REACT_COMPONENT) {
-    return <CustomComponentSettings value={value} />;
+  const componentId = output.appearance?.componentId || defaultComponent?.componentId;
+
+  if (componentId !== REMOTE_REACT_COMPONENT) {
+    return <CustomComponentSettings defaultComponent={defaultComponent} output={output} />;
   }
 
-  return <RemoteReactComponentSettings value={value} remoteReact={remoteReact} />;
+  if (!output?.appearance) throw new Error('appearance value is required when componentId is remote-react-component');
+
+  return <RemoteReactComponentSettings value={output.appearance} remoteReact={remoteReact} />;
 }
 
 function RemoteReactComponentSettings({
@@ -76,7 +73,8 @@ function RemoteReactComponentSettings({
                     value.componentProps ??= {};
                     value.componentProps[key] = defaultValue;
                   });
-                }}></PropsValueField>
+                }}
+              />
             </Stack>
           );
         })}
@@ -85,34 +83,31 @@ function RemoteReactComponentSettings({
   );
 }
 
-function CustomComponentSettings({ value }: { value: RuntimeOutputAppearance }) {
+function CustomComponentSettings({
+  defaultComponent,
+  output,
+}: {
+  defaultComponent?: Partial<RuntimeOutputAppearance>;
+  output: OutputVariableYjs;
+}) {
+  const componentId = output.appearance?.componentId || defaultComponent?.componentId;
+
   const {
     value: componentState,
     error,
     loading,
   } = useAsync(
-    async () =>
-      value.componentId && value.componentId !== REMOTE_REACT_COMPONENT
-        ? getComponent({ componentId: value.componentId })
-        : undefined,
-    [value.componentId]
+    async () => (componentId && componentId !== REMOTE_REACT_COMPONENT ? getComponent({ componentId }) : undefined),
+    [componentId]
   );
 
-  const doc = (getYjsValue(value) as Map<any>).doc!;
+  const doc = (getYjsValue(output) as Map<any>).doc!;
 
   const { locale } = useLocaleContext();
 
   if (error) return <Alert severity="error">{error.message}</Alert>;
 
-  if (loading) {
-    return (
-      <Box my={4} className="center">
-        <CircularProgress size={16} />
-      </Box>
-    );
-  }
-
-  if (!componentState) return null;
+  if (loading || !componentState) return null;
 
   const properties = componentState?.component?.properties || [];
 
@@ -132,14 +127,20 @@ function CustomComponentSettings({ value }: { value: RuntimeOutputAppearance }) 
               hiddenLabel
               {...(item.multiline ? { multiline: true, minRows: 2 } : {})}
               value={
-                value.componentProperties?.[item.id]?.value ??
+                output.appearance?.componentProperties?.[item.id]?.value ??
                 item.locales?.[locale]?.defaultValue ??
                 item.locales?.[componentState.defaultLocale!]?.defaultValue
               }
               onChange={(v) => {
                 doc.transact(() => {
-                  value.componentProperties ??= {};
-                  value.componentProperties[item.id] = { value: v };
+                  output.appearance ??= {};
+
+                  if (!output.appearance.componentId && defaultComponent) {
+                    Object.assign(output.appearance, defaultComponent);
+                  }
+
+                  output.appearance.componentProperties ??= {};
+                  output.appearance.componentProperties[item.id] = { value: v };
                 });
               }}
             />

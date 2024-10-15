@@ -27,7 +27,7 @@ import {
   Typography,
 } from '@mui/material';
 import sortBy from 'lodash/sortBy';
-import { bindDialog, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
+import { bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { nanoid } from 'nanoid';
 import { ComponentType, Ref, forwardRef, useId, useImperativeHandle, useState } from 'react';
 import { StoreApi, UseBoundStore, create } from 'zustand';
@@ -36,7 +36,7 @@ import { immer } from 'zustand/middleware/immer';
 import { AuthorizeButton } from '../input/InputTable';
 import PromptEditorField from '../prompt-editor-field';
 import SelectVariable from '../select-variable';
-import AppearanceSettings from './AppearanceSettings';
+import AppearanceComponentSettings from './AppearanceComponentSettings';
 import ChildrenSettings from './ChildrenSettings';
 import OpeningMessageSettings from './OpeningMessageSettings';
 import OpeningQuestionsSettings from './OpeningQuestionsSettings';
@@ -97,8 +97,6 @@ export default function OutputActionsCell({
 
       <PopperButton
         depth={depth}
-        projectId={projectId}
-        gitRef={gitRef}
         assistant={assistant}
         isSaveAs={Boolean(depth === 0 && !runtimeVariable && !fromType.includes(output.from?.type || ''))}
         runtimeVariable={Boolean(runtimeVariable)}
@@ -114,8 +112,6 @@ export default function OutputActionsCell({
 
 export interface PopperButtonProps {
   depth: number;
-  projectId: string;
-  gitRef: string;
   assistant: AssistantYjs;
   variables: VariableYjs[];
   variable?: VariableYjs;
@@ -158,23 +154,7 @@ export const createOutputSettingsState = ({ agentId, outputId }: { agentId: stri
 };
 
 const PopperButton = forwardRef<PopperButtonImperative, PopperButtonProps>(
-  (
-    {
-      depth,
-      projectId,
-      gitRef,
-      assistant,
-      variables,
-      variable,
-      isSaveAs,
-      runtimeVariable,
-      output,
-      disabled,
-      onDelete,
-      children,
-    },
-    ref
-  ) => {
+  ({ depth, assistant, variables, variable, isSaveAs, runtimeVariable, output, disabled, onDelete, children }, ref) => {
     const { t } = useLocaleContext();
     const dialogState = createOutputSettingsState({ agentId: assistant.id, outputId: output.id })();
     const parameterSettingPopperState = usePopupState({ variant: 'popper', popupId: useId() });
@@ -189,7 +169,7 @@ const PopperButton = forwardRef<PopperButtonImperative, PopperButtonProps>(
       }
 
       if (RuntimeOutputVariable.openingQuestions === output.name) {
-        return <OpeningQuestionsSettings assistant={assistant} output={output} />;
+        return <OpeningQuestionsSettings agent={assistant} output={output} />;
       }
 
       if (RuntimeOutputVariable.openingMessage === output.name) {
@@ -201,7 +181,7 @@ const PopperButton = forwardRef<PopperButtonImperative, PopperButtonProps>(
       }
 
       if (output.name === RuntimeOutputVariable.children) {
-        return <ChildrenSettings assistant={assistant} projectId={projectId} gitRef={gitRef} output={output} />;
+        return <ChildrenSettings agent={assistant} output={output} />;
       }
 
       if (currentSetting === 'setting') {
@@ -357,7 +337,7 @@ const PopperButton = forwardRef<PopperButtonImperative, PopperButtonProps>(
 
               {settingsChildren}
 
-              <AppearanceSettings output={output} />
+              <AppearanceComponentSettings output={output} />
             </Stack>
           </DialogContent>
 
@@ -583,8 +563,6 @@ export function SettingActionDialogProvider({
     <PopperButton
       ref={popperRef}
       depth={depth}
-      projectId={projectId}
-      gitRef={gitRef}
       assistant={assistant}
       isSaveAs={Boolean(depth === 0 && !runtimeVariable && !fromType.includes(output.from?.type || ''))}
       runtimeVariable={Boolean(runtimeVariable)}

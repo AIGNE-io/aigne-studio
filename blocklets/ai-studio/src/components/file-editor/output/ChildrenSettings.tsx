@@ -1,3 +1,4 @@
+import { useCurrentProject } from '@app/contexts/project';
 import { PROMPTS_FOLDER_NAME, useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { AssistantYjs, OutputVariableYjs, RuntimeOutputChildren, isAssistant } from '@blocklet/ai-runtime/types';
@@ -8,20 +9,11 @@ import { WritableDraft } from 'immer';
 
 import { SelectTool } from '../input/InputTable';
 
-export default function ChildrenSettings({
-  assistant,
-  output,
-  projectId,
-  gitRef,
-}: {
-  assistant: AssistantYjs;
-  output: OutputVariableYjs;
-  projectId: string;
-  gitRef: string;
-}) {
+export default function ChildrenSettings({ agent, output }: { agent: AssistantYjs; output: OutputVariableYjs }) {
   const { t } = useLocaleContext();
+  const { projectId, projectRef } = useCurrentProject();
 
-  const { store } = useProjectStore(projectId, gitRef);
+  const { store } = useProjectStore(projectId, projectRef);
 
   const initialValue = output.initialValue as RuntimeOutputChildren | undefined;
 
@@ -36,7 +28,7 @@ export default function ChildrenSettings({
   const options = Object.entries(store.tree)
     .filter(([, filepath]) => filepath?.startsWith(`${PROMPTS_FOLDER_NAME}/`))
     .map(([id]) => store.files[id])
-    .filter((i): i is AssistantYjs => !!i && isAssistant(i) && i.id !== assistant.id)
+    .filter((i): i is AssistantYjs => !!i && isAssistant(i) && i.id !== agent.id)
     .map((i) => ({ id: i.id, name: i.name }));
 
   const value = (initialValue?.agents ?? [])

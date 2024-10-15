@@ -16,10 +16,10 @@ import sortBy from 'lodash/sortBy';
 import { nanoid } from 'nanoid';
 
 export default function OpeningQuestionsSettings({
-  assistant,
+  agent,
   output,
 }: {
-  assistant: AssistantYjs;
+  agent: AssistantYjs;
   output: OutputVariableYjs;
 }) {
   const { t } = useLocaleContext();
@@ -68,7 +68,7 @@ export default function OpeningQuestionsSettings({
                 },
               }}
               onDelete={() => onDelete(item)}>
-              <EntryItemView key={item.id} assistant={assistant} item={item} />
+              <EntryItemView key={item.id} assistant={agent} item={item} />
             </DragSortItemContainer>
           )}
         />
