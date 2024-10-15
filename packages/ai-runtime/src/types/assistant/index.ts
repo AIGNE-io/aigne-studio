@@ -1,4 +1,4 @@
-import { ProjectSettings } from '../resource';
+import { AgentExecutor, ProjectSettings } from '../resource';
 import type { RuntimeOutputAppearance, RuntimeOutputVariable, RuntimeOutputVariablesSchema } from '../runtime';
 
 export * from './utils';
@@ -257,16 +257,6 @@ export interface ImageBlenderAssistant extends AssistantBase {
 export interface CallAssistant extends AssistantBase {
   type: 'callAgent';
   agents?: Tool[];
-}
-
-export interface AgentExecutor {
-  agent?: {
-    blockletDid?: string;
-    projectId?: string;
-    id: string;
-  };
-
-  inputValues?: { [key: string]: any };
 }
 
 export interface PromptAssistant extends AssistantBase {
