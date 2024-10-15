@@ -1,6 +1,6 @@
 import { useCurrentProject } from '@app/contexts/project';
 import { UploaderButton, getImageSize, getVideoSize } from '@app/contexts/uploader';
-import { Component, getComponent } from '@app/libs/components';
+import { Component, getCustomComponent } from '@app/libs/components';
 import { uploadAsset } from '@app/libs/project';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { OutputVariableYjs, RuntimeOutputAppearance } from '@blocklet/ai-runtime/types';
@@ -97,7 +97,8 @@ function CustomComponentSettings({
     error,
     loading,
   } = useAsync(
-    async () => (componentId && componentId !== REMOTE_REACT_COMPONENT ? getComponent({ componentId }) : undefined),
+    async () =>
+      componentId && componentId !== REMOTE_REACT_COMPONENT ? getCustomComponent({ componentId }) : undefined,
     [componentId]
   );
 

@@ -337,7 +337,7 @@ const PopperButton = forwardRef<PopperButtonImperative, PopperButtonProps>(
 
               {settingsChildren}
 
-              <AppearanceComponentSettings output={output} />
+              <AppearanceComponentSettings agent={assistant} output={output} />
             </Stack>
           </DialogContent>
 

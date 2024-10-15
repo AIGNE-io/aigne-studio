@@ -7,6 +7,7 @@ import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/ai
 import { AssistantYjs, RuntimeOutputVariable, fileFromYjs, isAssistant } from '@blocklet/ai-runtime/types';
 import { RuntimeDebug } from '@blocklet/aigne-sdk/components';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import { getAgent } from '@blocklet/pages-kit/builtin/async/ai-runtime/api/agent';
 import { Box, Dialog, DialogContent, DialogTitle, Stack, Tab, Tabs, TabsProps, ThemeProvider } from '@mui/material';
 import sortBy from 'lodash/sortBy';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
@@ -40,56 +41,73 @@ export default function PreviewView(props: { projectId: string; gitRef: string; 
   const [settingsProps, setSettingsProps] = useState<ComponentProps<typeof AppearanceSettings>>();
   const settingsState = usePopupState({ variant: 'dialog' });
 
+  const getAgentYjs: NonNullable<ComponentProps<typeof RuntimeDebug>['ApiProps']>['getAgent'] = async ({ aid }) => {
+    const identity = parseIdentity(aid, { rejectWhenError: true });
+
+    if (identity.projectId === projectId) {
+      const { agentId } = identity;
+      const agent = getFileById(agentId);
+      if (!agent) throw new Error(`No such agent ${agentId}`);
+
+      const convertToAgent = () => {
+        const file = fileFromYjs((getYjsValue(agent) as Map<any>).toJSON());
+        if (!isAssistant(file)) throw new Error(`Invalid agent file type ${agentId}`);
+
+        return {
+          ...file,
+          project: projectSetting,
+          config: {
+            // TODO: get secrets
+            secrets: [],
+          },
+        };
+      };
+
+      return {
+        ...convertToAgent(),
+        // TODO: throttle the update
+        observe: (listener) => {
+          const yjs = getYjsValue(agent) as Map<any>;
+          const observer = () => listener(convertToAgent());
+          yjs.observeDeep(observer);
+          return () => yjs.unobserveDeep(observer);
+        },
+      };
+    }
+
+    return getAgent({ aid, working: true });
+  };
+
+  const openOutputSettings: NonNullable<ComponentProps<typeof RuntimeDebug>['ApiProps']>['openOutputSettings'] = ({
+    e,
+    aid,
+    output,
+  }) => {
+    const { agentId } = parseIdentity(aid, { rejectWhenError: true });
+
+    const agent = getFileById(agentId);
+    if (!agent) throw new Error(`Agent ${agentId} not found`);
+
+    let outputId;
+    if ('id' in output) {
+      outputId = output.id;
+    } else {
+      outputId = getOrAddOutputByName({ agent, outputName: output.name }).data.id;
+    }
+
+    setSettingsProps({ agentId, outputId });
+    settingsState.open(e);
+  };
+
   return (
     <>
       <ThemeProvider theme={agentViewTheme}>
         <Stack sx={{ overflowY: 'auto', flex: 1 }}>
           <RuntimeDebug
             aid={aid}
-            getAgentYjs={(agentId) => {
-              const agent = getFileById(agentId);
-              if (!agent) throw new Error(`No such agent ${agentId}`);
-
-              const convertToAgent = () => {
-                const file = fileFromYjs((getYjsValue(agent) as Map<any>).toJSON());
-                if (!isAssistant(file)) throw new Error(`Invalid agent file type ${agentId}`);
-
-                return {
-                  ...file,
-                  project: projectSetting,
-                  config: {
-                    // TODO: get secrets
-                    secrets: [],
-                  },
-                };
-              };
-
-              return {
-                ...convertToAgent(),
-                // TODO: throttle the update
-                observe: (listener) => {
-                  const yjs = getYjsValue(agent) as Map<any>;
-                  const observer = () => listener(convertToAgent());
-                  yjs.observeDeep(observer);
-                  return () => yjs.unobserveDeep(observer);
-                },
-              };
-            }}
-            openOutputSettings={({ e, aid, output }) => {
-              const { agentId } = parseIdentity(aid, { rejectWhenError: true });
-
-              const agent = getFileById(agentId);
-              if (!agent) throw new Error(`Agent ${agentId} not found`);
-
-              let outputId;
-              if ('id' in output) {
-                outputId = output.id;
-              } else {
-                outputId = getOrAddOutputByName({ agent, outputName: output.name }).data.id;
-              }
-
-              setSettingsProps({ agentId, outputId });
-              settingsState.open(e);
+            ApiProps={{
+              getAgent: getAgentYjs,
+              openOutputSettings,
             }}
           />
         </Stack>
@@ -102,7 +120,6 @@ export default function PreviewView(props: { projectId: string; gitRef: string; 
           {settingsProps && (
             <AgentAppearanceSettings agentId={settingsProps.agentId} outputId={settingsProps.outputId} />
           )}
-          {/* {settingsProps && <AppearanceSettings {...settingsProps} />} */}
         </DialogContent>
       </Dialog>
     </>

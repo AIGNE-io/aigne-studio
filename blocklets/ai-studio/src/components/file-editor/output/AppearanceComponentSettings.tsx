@@ -1,7 +1,16 @@
-import { Component, getComponents } from '@app/libs/components';
+import { ComponentSelectDialog, ComponentSelectValue } from '@app/components/component-select/ComponentSelect';
+import { useCurrentProject } from '@app/contexts/project';
+import { REMOTE_REACT_COMPONENT } from '@app/libs/constants';
+import { RemoteComponent } from '@app/libs/type';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { AIGNE_COMPONENTS_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
-import { OutputVariableYjs, RuntimeOutputAppearance, RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
+import {
+  AssistantYjs,
+  OutputVariableYjs,
+  RuntimeOutputAppearance,
+  RuntimeOutputVariable,
+} from '@blocklet/ai-runtime/types';
 import { getDefaultOutputComponent } from '@blocklet/aigne-sdk/components';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
@@ -17,12 +26,11 @@ import {
   Typography,
 } from '@mui/material';
 import { WritableDraft } from 'immer';
+import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { useMemo } from 'react';
 import { useAsync } from 'react-use';
 
-import { getOpenComponents } from '../../../libs/components';
-import { REMOTE_REACT_COMPONENT } from '../../../libs/constants';
-import { RemoteComponent } from '../../../libs/type';
+import { getCustomComponents, getOpenComponents } from '../../../libs/components';
 import ComponentSettings from './ComponentSettings';
 
 const ignoreAppearanceSettingsOutputs = new Set<string>([RuntimeOutputVariable.children]);
@@ -35,13 +43,18 @@ const ignoreIconTitleSettingsOutputs = new Set<string>([
 ]);
 
 export default function AppearanceComponentSettings({
+  agent,
   output,
   disableTitleAndIcon,
 }: {
+  agent: AssistantYjs;
   output: OutputVariableYjs;
   disableTitleAndIcon?: boolean;
 }) {
+  const { projectId, projectRef } = useCurrentProject();
   const { t } = useLocaleContext();
+
+  const aid = stringifyIdentity({ projectId, projectRef, agentId: agent.id });
 
   const { appearance } = output;
 
@@ -70,6 +83,8 @@ export default function AppearanceComponentSettings({
       ),
     [tags]
   );
+
+  const componentSelectState = usePopupState({ variant: 'dialog' });
 
   if (ignoreAppearanceSettingsOutputs.has(output.name!)) return null;
 
@@ -157,25 +172,46 @@ export default function AppearanceComponentSettings({
 
         <Box>
           <Typography variant="subtitle2">{t('selectCustomComponent')}</Typography>
-          <ComponentSelect
-            tags={tags}
-            remoteReact={remoteReact || []}
-            value={currentComponent}
-            onChange={(_, v) =>
-              setField((config) => {
-                config.componentBlockletDid = v?.blockletDid;
-                config.componentId = v?.id;
-                config.componentName = v?.name;
 
-                if (config.componentProperties) delete config.componentProperties;
-                if (config.componentProps) delete config.componentProps;
-                if (v?.id === REMOTE_REACT_COMPONENT)
-                  config.componentProperties = Object.fromEntries(
-                    Object.entries(v.componentProperties || {}).map(([key, value]) => [key, { value }])
-                  );
-              })
-            }
-          />
+          {output.name === RuntimeOutputVariable.appearancePage ? (
+            <>
+              <TextField
+                fullWidth
+                InputProps={{ readOnly: true }}
+                value={currentComponent?.name || currentComponent?.id}
+                onClick={() => componentSelectState.open()}
+              />
+
+              <ComponentSelectDialog
+                aid={aid}
+                tags={tags}
+                value={currentComponent}
+                onChange={(v) => {
+                  setField((config) => {
+                    config.componentBlockletDid = v.blockletDid;
+                    config.componentId = v.id;
+                    config.componentProperties = v.componentProperties;
+                    config.componentName = v.name;
+                  });
+                }}
+                {...bindDialog(componentSelectState)}
+              />
+            </>
+          ) : (
+            <ComponentSelectAutoComplete
+              tags={tags}
+              remoteReact={remoteReact || []}
+              value={currentComponent}
+              onChange={(_, v) =>
+                setField((config) => {
+                  config.componentBlockletDid = v?.blockletDid;
+                  config.componentId = v?.id;
+                  config.componentName = v?.name;
+                  config.componentProperties = v?.componentProperties;
+                })
+              }
+            />
+          )}
         </Box>
 
         {currentComponent && (
@@ -186,7 +222,7 @@ export default function AppearanceComponentSettings({
   );
 }
 
-function ComponentSelect({
+function ComponentSelectAutoComplete({
   tags,
   remoteReact = [],
   ...props
@@ -195,13 +231,13 @@ function ComponentSelect({
   remoteReact?: RemoteComponent[];
 } & Partial<
   AutocompleteProps<
-    Pick<Component, 'id' | 'name'> & { blockletDid?: string; componentProperties?: {}; group?: string },
+    Pick<ComponentSelectValue, 'id' | 'name'> & { blockletDid?: string; componentProperties?: {}; group?: string },
     false,
     false,
     false
   >
 >) {
-  const { value, loading } = useAsync(() => getComponents({ tags }), [tags]);
+  const { value, loading } = useAsync(() => getCustomComponents({ tags }), [tags]);
   const { t } = useLocaleContext();
 
   const components = useMemo(() => {
@@ -215,7 +251,7 @@ function ComponentSelect({
       ...(remoteReact || []).map((x) => ({
         id: REMOTE_REACT_COMPONENT,
         name: x.name,
-        componentProperties: { componentPath: x.url, blockletDid: x.did },
+        componentProperties: { componentPath: { value: x.url }, blockletDid: { value: x.did } },
         group: t('remote'),
       })),
     ];

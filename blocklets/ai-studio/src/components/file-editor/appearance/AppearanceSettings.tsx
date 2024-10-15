@@ -38,7 +38,7 @@ export default function AppearanceSettings({ agentId, outputId }: { agentId: str
         </>
       )}
 
-      <AppearanceComponentSettings output={output} />
+      <AppearanceComponentSettings agent={file} output={output} />
     </Stack>
   );
 }
