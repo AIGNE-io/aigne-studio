@@ -1,15 +1,18 @@
 import { Icon, IconifyIcon } from '@iconify-icon/react';
 import { LoadingButton } from '@mui/lab';
-import { Box } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { ReactNode } from 'react';
 
 interface Plan {
   icon: string | IconifyIcon;
   name: string;
+  description: string;
   featuresDescription?: string;
   features: ReactNode[];
   price?: ReactNode;
   priceSuffix?: string;
+  discount?: string;
+  isStartingPrice?: boolean;
   buttonText: string;
   buttonLink: string;
   buttonLoading?: boolean;
@@ -25,8 +28,8 @@ function PricingTablePlan({ plan }: { plan: Plan }) {
   return (
     <Box
       sx={{
-        flexBasis: { xs: '100%', md: '50%', lg: '25%' },
-        maxWidth: { xs: '100%', md: '50%', lg: '25%' },
+        flexBasis: { xs: '100%', md: '33.33%' },
+        maxWidth: { xs: '100%', md: '33.33%' },
         p: 1,
       }}>
       <Box
@@ -35,22 +38,86 @@ function PricingTablePlan({ plan }: { plan: Plan }) {
           flexDirection: 'column',
           gap: 1,
           height: '100%',
-          p: 2,
+          p: 4,
           bgcolor: 'grey.100',
           borderRadius: 1,
           ...(plan.active && { border: 1, borderColor: 'success.light' }),
         }}>
-        <Box component={Icon} icon={plan.icon} sx={{ fontSize: 36 }} />
-        <Box sx={{ fontSize: 16, fontWeight: 'bold', color: 'grey.800' }}>{plan.name}</Box>
-        <Box sx={{ fontWeight: 'bold' }}>
-          <Box component="span" sx={{ fontSize: 24 }}>
+        <Typography
+          variant="h2"
+          sx={{
+            position: 'relative',
+            fontSize: 18,
+            fontWeight: 'bold',
+            color: 'grey.800',
+          }}>
+          {plan.name}
+
+          {plan.isFeatured && (
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 0,
+                right: 0,
+                px: 1,
+                py: 0.25,
+                border: 2,
+                borderColor: 'divider',
+                borderRadius: 0.75,
+                fontSize: 12,
+                color: 'text.secondary',
+              }}>
+              Most popular
+            </Box>
+          )}
+        </Typography>
+        <Box
+          sx={{
+            position: 'relative',
+            mt: 2,
+            fontWeight: 'bold',
+          }}>
+          {plan.isStartingPrice && (
+            <Box
+              component="span"
+              sx={{
+                position: 'absolute',
+                top: -8,
+                left: 0,
+                fontSize: 13,
+                color: 'text.secondary',
+                fontWeight: 'medium',
+              }}>
+              Starting at
+            </Box>
+          )}
+          <Box component="span" sx={{ fontSize: 36 }}>
             {plan.price}
           </Box>
-          <Box component="span" sx={{ display: 'inline-block', ml: 1, fontSize: 14, verticalAlign: 'text-bottom' }}>
-            {plan.priceSuffix}
+          <Box
+            sx={{
+              display: 'inline-flex',
+              flexDirection: 'column',
+              ml: 1,
+              verticalAlign: 'text-bottom',
+            }}>
+            {plan.discount && (
+              <Box component="span" sx={{ lineHeight: 1, fontSize: 12, color: 'warning.main' }}>
+                {plan.discount}
+              </Box>
+            )}
+            <Box
+              component="span"
+              sx={{
+                display: 'inline-block',
+                fontSize: 14,
+                color: 'text.secondary',
+              }}>
+              {plan.priceSuffix}
+            </Box>
           </Box>
         </Box>
-        <Box sx={{ height: 36 }}>
+        <Box sx={{ height: { xs: 'auto', md: 36 } }}>
           {plan.buttonText && (
             <LoadingButton
               variant={plan.isFeatured ? 'contained' : 'outlined'}
@@ -59,7 +126,7 @@ function PricingTablePlan({ plan }: { plan: Plan }) {
               disabled={plan.active}
               sx={{
                 width: 1,
-                py: 1,
+                py: 0.75,
                 ...(!plan.isFeatured && { bgcolor: '#fff' }),
               }}
               onClick={() => {
@@ -83,9 +150,9 @@ function PricingTablePlan({ plan }: { plan: Plan }) {
                 display: 'flex',
                 alignItems: 'flex-start',
                 gap: 1,
-                lineHeight: 1.5,
+                lineHeight: 1.65,
               }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '1.5em' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '1.65em' }}>
                 <Box component={Icon} icon="tabler:check" sx={{ color: 'green' }} />
               </Box>
               <Box component="span" sx={{ color: 'text.secondary' }}>
