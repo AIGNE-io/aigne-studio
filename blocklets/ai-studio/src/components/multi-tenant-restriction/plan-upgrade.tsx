@@ -88,7 +88,8 @@ export function PlanUpgrade({ ...rest }: Props) {
       icon: BuildingCommunityIcon,
       name: 'Team',
       description: 'Run your own AIGNE Studio with your own brand',
-      featuresDescription: 'Full control and customization',
+      // featuresDescription: 'Full control and customization',
+      featuresDescription: 'Run your own AIGNE Studio',
       features: [
         'Unlimited projects',
         'Unlimited requests per project',

@@ -61,11 +61,10 @@ function PricingTablePlan({ plan }: { plan: Plan }) {
                 right: 0,
                 px: 1,
                 py: 0.25,
-                border: 2,
-                borderColor: 'divider',
+                color: 'primary.contrastText',
+                bgcolor: 'primary.light',
                 borderRadius: 0.75,
                 fontSize: 12,
-                color: 'text.secondary',
               }}>
               Most popular
             </Box>
@@ -117,27 +116,8 @@ function PricingTablePlan({ plan }: { plan: Plan }) {
             </Box>
           </Box>
         </Box>
-        <Box sx={{ height: { xs: 'auto', md: 36 } }}>
-          {plan.buttonText && (
-            <LoadingButton
-              variant={plan.isFeatured ? 'contained' : 'outlined'}
-              color="primary"
-              loading={plan.buttonLoading}
-              disabled={plan.active}
-              sx={{
-                width: 1,
-                py: 0.75,
-                ...(!plan.isFeatured && { bgcolor: '#fff' }),
-              }}
-              onClick={() => {
-                window.open(plan.buttonLink, '_blank');
-              }}>
-              {plan.buttonText}
-            </LoadingButton>
-          )}
-        </Box>
 
-        <Box component="ul" sx={{ listStyle: 'none', p: 0, m: 0, mt: 2 }}>
+        <Box component="ul" sx={{ listStyle: 'none', p: 0, m: 0, mt: 2, mb: 6 }}>
           <Box component="li" sx={{ fontSize: 14, fontWeight: 'bold', mb: 1 }}>
             {plan.featuresDescription}
           </Box>
@@ -160,6 +140,25 @@ function PricingTablePlan({ plan }: { plan: Plan }) {
               </Box>
             </Box>
           ))}
+        </Box>
+        <Box sx={{ mt: 'auto' }}>
+          {plan.buttonText && (
+            <LoadingButton
+              variant={plan.isFeatured ? 'contained' : 'outlined'}
+              color="primary"
+              loading={plan.buttonLoading}
+              disabled={plan.active}
+              sx={{
+                width: 1,
+                py: 0.75,
+                ...(!plan.isFeatured && { bgcolor: '#fff' }),
+              }}
+              onClick={() => {
+                window.open(plan.buttonLink, '_blank');
+              }}>
+              {plan.buttonText}
+            </LoadingButton>
+          )}
         </Box>
       </Box>
     </Box>
