@@ -4,13 +4,17 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Icon } from '@iconify-icon/react';
 import BuildingIcon from '@iconify-icons/tabler/building';
 import BuildingCommunityIcon from '@iconify-icons/tabler/building-community';
-// import BuildingSkyscraperIcon from '@iconify-icons/tabler/building-skyscraper';
 import ArrowUpIcon from '@iconify-icons/tabler/circle-arrow-up';
+import CircleMinusIcon from '@iconify-icons/tabler/circle-minus';
+import CirclePlusIcon from '@iconify-icons/tabler/circle-plus';
 import DiamondIcon from '@iconify-icons/tabler/diamond';
 import HelpIcon from '@iconify-icons/tabler/help';
 import HomeIcon from '@iconify-icons/tabler/home';
 import { Close } from '@mui/icons-material';
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Alert,
   Box,
   Button,
@@ -18,10 +22,13 @@ import {
   DialogContent,
   DialogTitle,
   IconButton,
+  Link,
+  SxProps,
   Theme,
   ToggleButton,
   ToggleButtonGroup,
   Tooltip,
+  Typography,
   useMediaQuery,
 } from '@mui/material';
 import { useState } from 'react';
@@ -72,7 +79,7 @@ export function PlanUpgrade({ ...rest }: Props) {
       icon: BuildingIcon,
       name: 'PRO',
       description: 'The best plan for individual AI enthusiasts',
-      featuresDescription: 'Everything in Hobby, plus',
+      featuresDescription: 'Everything in Free, plus',
       features: ['20 projects', '1000 requests per project', 'Unlimited agent deployments', 'Private agent publishing'],
       price: billingCycle === 'monthly' ? '10 ABT' : '8 ABT',
       priceSuffix: '/ month',
@@ -86,7 +93,7 @@ export function PlanUpgrade({ ...rest }: Props) {
     },
     {
       icon: BuildingCommunityIcon,
-      name: 'Team',
+      name: 'Serverless',
       description: 'Run your own AIGNE Studio with your own brand',
       // featuresDescription: 'Full control and customization',
       featuresDescription: 'Run your own AIGNE Studio',
@@ -200,6 +207,28 @@ export function PlanUpgrade({ ...rest }: Props) {
             </ToggleButtonGroup>
           </Box>
           <PricingTable plans={aignePlansEN} />
+
+          <Typography variant="h3" sx={{ fontSize: 18, fontWeight: 'medium', mt: 5, textAlign: 'center' }}>
+            Frequently asked questions
+          </Typography>
+          <Box>
+            <StyledAccordion title="What is AI Kit Service?">
+              <Link href="https://www.arcblock.io/docs/ai-service/en/ai-service-introduction" target="_blank">
+                https://www.arcblock.io/docs/ai-service/en/ai-service-introduction
+              </Link>
+              <br />
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse malesuada lacus ex, sit amet blandit
+              leo lobortis eget.
+            </StyledAccordion>
+            <StyledAccordion title='What does "Run your own AIGNE Studio" mean?'>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse malesuada lacus ex, sit amet blandit
+              leo
+            </StyledAccordion>
+            <StyledAccordion title="Serverless or Dedicated Server?">
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse malesuada lacus ex, sit amet blandit
+              leo
+            </StyledAccordion>
+          </Box>
         </Box>
       </DialogContent>
     </Dialog>
@@ -212,5 +241,35 @@ export function PlanUpgradeButton() {
     <Button color="primary" startIcon={<Icon icon={DiamondIcon} />} onClick={() => showPlanUpgrade()}>
       Upgrade Plan
     </Button>
+  );
+}
+
+function StyledAccordion({ children, title, sx }: { children: React.ReactNode; title: string; sx?: SxProps }) {
+  const [expanded, setExpanded] = useState(false);
+  const handleChange = () => {
+    setExpanded(!expanded);
+  };
+  return (
+    <Accordion
+      onChange={handleChange}
+      sx={{
+        '& + &': { borderTop: 1, borderColor: 'divider' },
+        '&.Mui-expanded': { m: 0, '&:before': { display: 'none' } },
+        ...(Array.isArray(sx) ? sx : [sx]),
+      }}
+      elevation={0}>
+      <AccordionSummary
+        expandIcon={<Box component={Icon} icon={expanded ? CircleMinusIcon : CirclePlusIcon} sx={{ fontSize: 20 }} />}
+        sx={{
+          px: 0,
+          '&, &.Mui-expanded': { minHeight: 0 },
+          '.MuiAccordionSummary-content': { '&, &.Mui-expanded': { my: 1 } },
+        }}>
+        <Typography variant="subtitle2" sx={{}}>
+          {title}
+        </Typography>
+      </AccordionSummary>
+      <AccordionDetails sx={{ px: 0 }}>{children}</AccordionDetails>
+    </Accordion>
   );
 }
