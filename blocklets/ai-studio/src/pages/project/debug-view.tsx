@@ -3,6 +3,7 @@ import ErrorBoundary from '@app/components/error/error-boundary';
 import LoadingButton from '@app/components/loading/loading-button';
 import MdViewer from '@app/components/md-viewer';
 import BasicTree from '@app/components/trace';
+import UploaderProvider, { useUploader } from '@app/contexts/uploader';
 import { getProjectIconUrl } from '@app/libs/project';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ImagePreview } from '@blocklet/ai-kit/components';
@@ -56,6 +57,7 @@ import { Virtuoso } from 'react-virtuoso';
 
 import { useSessionContext } from '../../contexts/session';
 import Empty from './icons/empty';
+// import Image from './image';
 import SegmentedControl from './segmented-control';
 import { SessionItem, useDebugState, useProjectState } from './state';
 import { useProjectStore } from './yjs-state';
@@ -113,7 +115,10 @@ function DebugViewContent({
   if (!currentSession) return null;
 
   return (
-    <>
+    <UploaderProvider
+      restrictions={{
+        maxNumberOfFiles: 3,
+      }}>
       <Box
         px={2.5}
         py={1.5}
@@ -172,7 +177,7 @@ function DebugViewContent({
           />
         </Box>
       </Stack>
-    </>
+    </UploaderProvider>
   );
 }
 
@@ -663,6 +668,7 @@ function DebugModeForm({
 }) {
   const { t } = useLocaleContext();
   const key = `${projectId}-${gitRef}-${assistant.id}`;
+  const uploaderRef = useUploader();
 
   const {
     session: { user },
@@ -700,7 +706,16 @@ function DebugModeForm({
     [currentSession?.debugForm, parameters, assistant.id]
   );
 
-  const form = useForm<{ [key: string]: any }>({ defaultValues: initForm });
+  const form = useForm<{ [key: string]: any }>({
+    defaultValues: {
+      ...initForm,
+      ...Object.fromEntries(
+        parameters
+          .filter(({ data: parameter }) => parameter.type === 'image')
+          .map(({ data: parameter }) => [parameter.key, []])
+      ),
+    },
+  });
 
   useEffect(() => {
     form.reset(initForm);
@@ -806,6 +821,7 @@ function DebugModeForm({
           </AccordionSummary>
 
           <AccordionDetails sx={{ p: 0, maxHeight: '50vh', overflow: !isExpanded ? 'hidden' : 'auto' }}>
+            {/* <Image /> */}
             <Stack gap={1}>
               {parameters.map(({ data: parameter }) => {
                 const { required, min, max, minLength, maxLength } = (parameter as any) ?? {};
@@ -835,6 +851,50 @@ function DebugModeForm({
                             : undefined,
                       }}
                       render={({ field, fieldState }) => {
+                        if (parameter.type === 'image') {
+                          return (
+                            <Box>
+                              <Stack direction="row" flexWrap="wrap" gap={1} mt={1}>
+                                {Array.isArray(field.value) &&
+                                  field.value.map((url, index) => (
+                                    <Box key={url} position="relative">
+                                      <img
+                                        src={url}
+                                        alt={`Uploaded ${index + 1}`}
+                                        style={{ width: '100px', height: '100px', objectFit: 'cover' }}
+                                      />
+                                      <Button
+                                        size="small"
+                                        sx={{ position: 'absolute', top: 0, right: 0, minWidth: 'unset', p: 0.5 }}
+                                        onClick={() => {
+                                          const newUrls = field.value.filter((_: any, i: any) => i !== index);
+                                          field.onChange({ target: { value: newUrls } });
+                                        }}>
+                                        <Icon icon={TrashIcon} style={{ color: 'red' }} />
+                                      </Button>
+                                    </Box>
+                                  ))}
+                              </Stack>
+
+                              <Button
+                                variant="outlined"
+                                onClick={() => {
+                                  const uploader = uploaderRef?.current?.getUploader();
+                                  uploader?.open();
+                                  uploader.offUploadSuccess(() => {});
+                                  uploader.onUploadSuccess(({ response }: any) => {
+                                    const url = response?.data?.url || response?.data?.fileUrl;
+                                    const urls = form.getValues(parameter.key);
+                                    const currentUrls = Array.isArray(urls) ? urls : [urls];
+                                    field.onChange({ target: { value: [...currentUrls, url] } });
+                                  });
+                                }}>
+                                {t('Add Content')}
+                              </Button>
+                            </Box>
+                          );
+                        }
+
                         return (
                           <ParameterField
                             label={parameter.label || parameter.key}

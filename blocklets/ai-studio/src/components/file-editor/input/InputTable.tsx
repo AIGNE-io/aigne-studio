@@ -412,7 +412,8 @@ export default function InputTable({
             list={assistant.parameters! ?? []}
             component={TableBody}
             renderItem={(parameter, _, params) => {
-              const idReferenced = checkVariableReferenced(parameter.id, parameter.key || '');
+              const idReferenced =
+                parameter.type === 'image' ? true : checkVariableReferenced(parameter.id, parameter.key || '');
 
               const getBackgroundColor = (theme: Theme) => {
                 if (parameter.hidden) {
@@ -726,6 +727,8 @@ function SelectInputType({
   const doc = (getYjsValue(value) as Map<any>)?.doc!;
   const dialogState = usePopupState({ variant: 'dialog', popupId: useId() });
 
+  const haveImage = Object.values(value.parameters || {}).some((i) => i.data.type === 'image');
+
   return (
     <>
       <WithAwareness
@@ -740,6 +743,7 @@ function SelectInputType({
             parameter.from === FROM_KNOWLEDGE_PARAMETER ||
             parameter.hidden
           }
+          haveImage={haveImage}
           variant="standard"
           hiddenLabel
           SelectProps={{ autoWidth: true }}
@@ -1588,7 +1592,11 @@ function PopperButton({
                   {parameter.hidden ? t('activeParameterTip') : t('hideParameterTip')}
                 </MenuItem>
 
-                {!(parameter.from === FROM_PARAMETER || parameter.from === FROM_KNOWLEDGE_PARAMETER) && (
+                {!(
+                  parameter.from === FROM_PARAMETER ||
+                  parameter.from === FROM_KNOWLEDGE_PARAMETER ||
+                  parameter.type === 'image'
+                ) && (
                   <MenuItem onClick={dialogState.open} disabled={Boolean(parameter.hidden)}>
                     {t('setting')}
                   </MenuItem>

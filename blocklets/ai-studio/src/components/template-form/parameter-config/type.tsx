@@ -8,12 +8,13 @@ import JsonIcon from '@iconify-icons/tabler/json';
 import LanguageIcon from '@iconify-icons/tabler/language-hiragana';
 import ListCheckIcon from '@iconify-icons/tabler/list-check';
 import MessagesIcon from '@iconify-icons/tabler/messages';
+import ImageIcon from '@iconify-icons/tabler/picture-in-picture';
 import SquareNumberIcon from '@iconify-icons/tabler/square-number-1';
 import TextWrapIcon from '@iconify-icons/tabler/text-wrap';
 import { ListItemIcon, MenuItem, TextField, TextFieldProps } from '@mui/material';
 import { useMemo } from 'react';
 
-export default function ParameterConfigType(props: TextFieldProps) {
+export default function ParameterConfigType(props: TextFieldProps & { haveImage: boolean }) {
   const { t } = useLocaleContext();
 
   const list = useMemo(() => {
@@ -68,13 +69,18 @@ export default function ParameterConfigType(props: TextFieldProps) {
         label: t('llmInputResponseFormat'),
         value: 'llmInputResponseFormat',
       },
+      {
+        icon: <Icon icon={ImageIcon} />,
+        label: t('image'),
+        value: 'image',
+      },
     ];
   }, [t]);
 
   return (
     <TextField {...props} select>
       {list.map((item) => (
-        <MenuItem value={item.value} key={item.value}>
+        <MenuItem value={item.value} key={item.value} disabled={item.value === 'image' && props.haveImage}>
           <ListItemIcon>{item.icon}</ListItemIcon>
 
           {item.label}

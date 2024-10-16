@@ -87,36 +87,62 @@ export class LLMAgentExecutor extends AgentExecutorBase<PromptAssistant> {
     return this._outputsInfo;
   }
 
-  private getMessages({ inputs }: { inputs: { [key: string]: any } }) {
+  private async getMessages({ inputs }: { inputs: { [key: string]: any } }): Promise<{ role: Role; content: any }[]> {
     const { agent } = this;
 
-    return (async () =>
-      (
-        await Promise.all(
-          (agent.prompts ?? [])
-            .filter((i) => i.visibility !== 'hidden')
-            .map(async (prompt) => {
-              if (prompt.type === 'message') {
-                return {
-                  role: prompt.data.role,
-                  content: await renderMessage(
-                    // 过滤注释节点
-                    prompt.data.content
-                      ?.split('\n')
-                      .filter((i) => !i.startsWith('//'))
-                      .join('\n') || '',
-                    { ...inputs, ...this.globalContext }
-                  ),
-                };
-              }
+    const imageInputs = (agent.parameters || []).filter((key) => key.type === 'image').map((i) => i.key);
+    const imageMessages = imageInputs
+      .map((i) => {
+        if (i && inputs[i]) {
+          const images = (Array.isArray(inputs[i]) ? inputs[i] : [inputs[i]]).filter((i) => !!i);
+          if (images.length > 0) {
+            return [
+              {
+                role: 'user',
+                content: images.map((image) => ({ type: 'image_url', imageUrl: { url: image } })),
+              },
+            ];
+          }
+        }
 
-              console.warn('Unsupported prompt type', prompt);
-              return undefined;
-            })
-        )
+        return [];
+      })
+      .flat() as { role: Role; content: any }[];
+
+    const message = (
+      await Promise.all(
+        (agent.prompts ?? [])
+          .filter((i) => i.visibility !== 'hidden')
+          .map(async (prompt) => {
+            if (prompt.type === 'message') {
+              return {
+                role: prompt.data.role,
+                content: await renderMessage(
+                  // 过滤注释节点
+                  prompt.data.content
+                    ?.split('\n')
+                    .filter((i) => !i.startsWith('//'))
+                    .join('\n') || '',
+                  { ...inputs, ...this.globalContext }
+                ),
+              };
+            }
+
+            console.warn('Unsupported prompt type', prompt);
+            return undefined;
+          })
       )
-        .flat()
-        .filter((i): i is Required<NonNullable<typeof i>> => !!i?.content))();
+    )
+      .flat()
+      .filter((i): i is Required<NonNullable<typeof i>> => !!i?.content);
+
+    const lastUserIndex = message.findLastIndex((i) => i.role === 'user');
+
+    if (lastUserIndex !== -1) {
+      return [...message.slice(0, lastUserIndex), ...imageMessages, ...message.slice(lastUserIndex)];
+    }
+
+    return [...message, ...imageMessages];
   }
 
   override async process({ inputs }: { inputs: { [key: string]: any } }) {

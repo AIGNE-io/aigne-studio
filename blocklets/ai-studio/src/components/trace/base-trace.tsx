@@ -53,7 +53,9 @@ export function PromptMessagesComponent({ value }: { value: PromptMessages }) {
         <Typography>{i.role}</Typography>
       </AccordionSummary>
       <AccordionDetails sx={{ fontSize: 18, py: 1 }}>
-        <Typography sx={{ whiteSpace: 'pre-wrap' }}>{i.content}</Typography>
+        <Typography sx={{ whiteSpace: 'pre-wrap' }}>
+          {typeof i.content === 'string' ? i.content : JSON.stringify(i.content)}
+        </Typography>
       </AccordionDetails>
     </Accordion>
   ));
