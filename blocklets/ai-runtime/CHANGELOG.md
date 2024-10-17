@@ -1,3 +1,7 @@
+## 0.4.81 (2024-10-17)
+
+- feat: support preview agent and components
+
 ## 0.4.80 (2024-10-17)
 
 - feat: new aigne runtime components
