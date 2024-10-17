@@ -10,12 +10,12 @@ export interface Agent {
   createdBy?: string;
 
   identity: {
-    aid: string;
+    blockletDid?: string;
     projectId: string;
     projectRef?: string;
-    blockletDid?: string;
-    working?: boolean;
     agentId: string;
+    aid: string;
+    working?: boolean;
   };
 
   project: ProjectSettings;

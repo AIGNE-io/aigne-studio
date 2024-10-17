@@ -12,6 +12,7 @@ import { getAllParameters, getRequiredFields } from '@blocklet/dataset-sdk/reque
 import { call } from '@blocklet/sdk/lib/component';
 import { logger } from '@blocklet/sdk/lib/config';
 
+import { parseIdentity, stringifyIdentity } from '../../common/aid';
 import { languages } from '../../constant/languages';
 import {
   Assistant,
@@ -82,11 +83,15 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
             };
           }
 
+          const identity = parseIdentity(agent.identity.aid, { rejectWhenError: true });
+
           const toolAssistant = await this.context.getAgent({
-            blockletDid: tool.blockletDid || agent.identity.blockletDid,
-            projectId: tool.projectId || agent.identity.projectId,
-            projectRef: agent.identity.projectRef,
-            agentId: tool.id,
+            aid: stringifyIdentity({
+              blockletDid: tool.blockletDid || identity.blockletDid,
+              projectId: tool.projectId || identity.projectId,
+              projectRef: identity.projectRef,
+              agentId: tool.id,
+            }),
             working: agent.identity.working,
           });
           if (!toolAssistant) return undefined;
@@ -173,12 +178,16 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
         toolChoice,
       });
 
+      const identity = parseIdentity(agent.identity.aid, { rejectWhenError: true });
+
       const executor = agent.executor?.agent?.id
         ? await this.context.getAgent({
-            blockletDid: agent.executor.agent.blockletDid || agent.identity.blockletDid,
-            projectId: agent.executor.agent.projectId || agent.identity.projectId,
-            projectRef: agent.identity.projectRef,
-            agentId: agent.executor.agent.id,
+            aid: stringifyIdentity({
+              blockletDid: agent.executor.agent.blockletDid || identity.blockletDid,
+              projectId: agent.executor.agent.projectId || identity.projectId,
+              projectRef: identity.projectRef,
+              agentId: agent.executor.agent.id,
+            }),
             working: agent.identity.working,
             rejectOnEmpty: true,
           })

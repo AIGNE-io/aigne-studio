@@ -1,3 +1,7 @@
+## 0.4.80 (2024-10-17)
+
+- feat: new aigne runtime components
+
 ## 0.4.79 (2024-10-14)
 
 - fix: delete cache permission and compare agent crash
