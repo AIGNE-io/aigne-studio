@@ -174,6 +174,7 @@ export interface VariableTypeBase {
   description?: string;
   required?: boolean;
   hidden?: boolean;
+  faker?: any;
 }
 
 export type VariableType = VariableTypeBase &

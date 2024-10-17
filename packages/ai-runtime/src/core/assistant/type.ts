@@ -19,29 +19,22 @@ export class ToolCompletionDirective extends Error {
 }
 
 export interface GetAgentOptions {
-  blockletDid?: string;
-  projectId: string;
-  projectRef?: string;
-  agentId: string;
+  aid: string;
   working?: boolean;
   rejectOnEmpty?: boolean | Error;
 }
 
 export type GetAgentResult =
   | (Assistant & {
-      project: ProjectSettings;
       identity: {
-        projectId: string;
-        projectRef?: string;
-        blockletDid?: string;
-        working?: boolean;
-        agentId: string;
         aid: string;
+        working?: boolean;
       };
+      project: ProjectSettings;
     })
   | (BlockletAgent & {
-      project?: undefined;
       identity?: undefined;
+      project?: undefined;
     });
 
 export interface GetAgent {

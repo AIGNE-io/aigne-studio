@@ -4,6 +4,7 @@ import { ChatCompletionResponse, isChatCompletionChunk, isChatCompletionUsage } 
 import { logger } from '@blocklet/sdk/lib/config';
 
 import { defaultTextModel, supportJsonSchemaModels } from '../../common';
+import { parseIdentity, stringifyIdentity } from '../../common/aid';
 import {
   AssistantResponseType,
   OutputVariable,
@@ -46,13 +47,17 @@ export class LLMAgentExecutor extends AgentExecutorBase<PromptAssistant> {
     this._executor ??= (async () => {
       const { agent } = this;
 
+      const identity = parseIdentity(agent.identity.aid, { rejectWhenError: true });
+
       return agent.executor?.agent?.id
         ? this.context.getAgent({
-            blockletDid: agent.executor.agent.blockletDid || agent.identity.blockletDid,
-            projectId: agent.executor.agent.projectId || agent.identity.projectId,
-            projectRef: agent.identity.projectRef,
+            aid: stringifyIdentity({
+              blockletDid: agent.executor.agent.blockletDid || identity.blockletDid,
+              projectId: agent.executor.agent.projectId || identity.projectId,
+              projectRef: identity.projectRef,
+              agentId: agent.executor.agent.id,
+            }),
             working: agent.identity.working,
-            agentId: agent.executor.agent.id,
             rejectOnEmpty: true,
           })
         : undefined;
@@ -75,7 +80,10 @@ export class LLMAgentExecutor extends AgentExecutorBase<PromptAssistant> {
         ) ?? [];
 
       const schema = outputVariablesToJsonSchema(agent, {
-        variables: await this.context.getMemoryVariables(agent.identity),
+        variables: await this.context.getMemoryVariables({
+          ...parseIdentity(agent.identity.aid, { rejectWhenError: true }),
+          working: agent.identity.working,
+        }),
       });
 
       const hasStreamingTextOutput = outputVariables.some((i) => i.name === RuntimeOutputVariable.text);

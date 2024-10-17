@@ -1,6 +1,7 @@
 import { ChatCompletionResponse } from '@blocklet/ai-kit/api/types/chat';
 import Joi from 'joi';
-import { toLower } from 'lodash';
+import omitBy from 'lodash/omitBy';
+import toLower from 'lodash/toLower';
 import { nanoid } from 'nanoid';
 
 import type { Assistant, BlockletAgent, OutputVariable, Variable, VariableTypeYjs } from '..';
@@ -18,10 +19,13 @@ export const variableBlockListForAgent: {
 
 type OmitUnion<T, K extends keyof any> = T extends any ? Omit<T, K> : never;
 
-export const runtimeVariablesSchema: { [key in RuntimeOutputVariable]?: OmitUnion<OutputVariable, 'id'> } = {
+export const runtimeVariablesSchema: {
+  [key in RuntimeOutputVariable]?: OmitUnion<OutputVariable, 'id'>;
+} = {
   $text: {
     type: 'string',
     description: 'Text Stream',
+    faker: 'lorem.paragraph',
   },
   $images: {
     type: 'array',
@@ -36,6 +40,7 @@ export const runtimeVariablesSchema: { [key in RuntimeOutputVariable]?: OmitUnio
           name: 'url',
           description: 'Image Url',
           required: true,
+          faker: 'image.url',
         },
       ],
     },
@@ -52,6 +57,7 @@ export const runtimeVariablesSchema: { [key in RuntimeOutputVariable]?: OmitUnio
           type: 'string',
           name: 'question',
           required: true,
+          faker: 'lorem.sentence',
         },
       ],
     },
@@ -68,12 +74,14 @@ export const runtimeVariablesSchema: { [key in RuntimeOutputVariable]?: OmitUnio
           id: '',
           type: 'string',
           name: 'title',
+          faker: 'lorem.sentence',
         },
         {
           id: '',
           type: 'string',
           name: 'url',
           required: true,
+          faker: 'internet.url',
         },
       ],
     },
@@ -83,11 +91,16 @@ export const runtimeVariablesSchema: { [key in RuntimeOutputVariable]?: OmitUnio
 
 export function outputVariablesToJsonSchema(
   assistant: Assistant,
-  { variables }: { variables: Variable[] }
+  {
+    variables,
+    includeRuntimeOutputVariables,
+    includeFaker,
+  }: { variables: Variable[]; includeRuntimeOutputVariables?: boolean; includeFaker?: boolean }
 ): { type: 'object'; properties: { [key: string]: any } } | undefined {
-  const variableToSchema = (variable: OmitUnion<OutputVariable, 'id'>): any => {
+  const variableToSchema = (variable: OmitUnion<OutputVariable, 'id'> & { faker?: any }): any => {
     if (variable.from?.type === 'input') return undefined;
-    if (ignoreJsonSchemaOutputs.has(variable.name as RuntimeOutputVariable)) return undefined;
+    if (!includeRuntimeOutputVariables && ignoreJsonSchemaOutputs.has(variable.name as RuntimeOutputVariable))
+      return undefined;
 
     if (variable.name && isRuntimeOutputVariable(variable.name)) {
       const runtimeVariable = runtimeVariablesSchema[variable.name as RuntimeOutputVariable];
@@ -107,32 +120,36 @@ export function outputVariablesToJsonSchema(
       return variableToSchema(v.type);
     }
 
-    return {
-      type: variable.type || 'string',
-      description: variable.description,
-      properties:
-        variable.type === 'object' && variable.properties
-          ? Object.fromEntries(
-              variable.properties
-                .map((property) => [property.name, variableToSchema(property)] as const)
-                .filter((i) => i[0] && i[1])
-            )
-          : undefined,
-      items: variable.type === 'array' && variable.element ? variableToSchema(variable.element) : undefined,
-      required:
-        variable.type === 'object' && variable.properties?.length
-          ? variable.properties
-              .filter(
-                (i) =>
-                  i.name &&
-                  (i.required ||
-                    (runtimeOutputVariableSet.has(i.name as RuntimeOutputVariable) &&
-                      runtimeVariablesSchema[i.name as RuntimeOutputVariable] &&
-                      !ignoreJsonSchemaOutputs.has(i.name as RuntimeOutputVariable)))
+    return omitBy(
+      {
+        type: variable.type || 'string',
+        description: variable.description,
+        properties:
+          variable.type === 'object' && variable.properties
+            ? Object.fromEntries(
+                variable.properties
+                  .map((property) => [property.name, variableToSchema(property)] as const)
+                  .filter((i) => i[0] && i[1])
               )
-              .map((i) => i.name)
-          : undefined,
-    };
+            : undefined,
+        items: variable.type === 'array' && variable.element ? variableToSchema(variable.element) : undefined,
+        required:
+          variable.type === 'object' && variable.properties?.length
+            ? variable.properties
+                .filter(
+                  (i) =>
+                    i.name &&
+                    (i.required ||
+                      (runtimeOutputVariableSet.has(i.name as RuntimeOutputVariable) &&
+                        runtimeVariablesSchema[i.name as RuntimeOutputVariable] &&
+                        !ignoreJsonSchemaOutputs.has(i.name as RuntimeOutputVariable)))
+                )
+                .map((i) => i.name)
+            : undefined,
+        faker: includeFaker ? variable.faker : undefined,
+      },
+      (v) => v === undefined
+    );
   };
 
   const outputVariables = (assistant.outputVariables ?? []).filter(
@@ -338,6 +355,7 @@ export interface RuntimeOutputAppearance {
   componentProps?: { [key: string]: any };
   title?: string;
   icon?: string;
+  jsonataExpression?: string;
 }
 
 export interface RuntimeOutputChildren {
