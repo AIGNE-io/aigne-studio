@@ -1,8 +1,8 @@
 import { getAgent, getAgentSecretInputs, getProject } from '@api/libs/agent';
 import { ensureAgentAdmin } from '@api/libs/security';
 import Secret from '@api/store/models/secret';
-import { parseIdentity } from '@blocklet/ai-runtime/common/aid';
 import { ResourceType } from '@blocklet/ai-runtime/types';
+import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import config from '@blocklet/sdk/lib/config';
 import { auth, user } from '@blocklet/sdk/lib/middlewares';
@@ -110,10 +110,12 @@ router.get('/has-value', user(), auth(), async (req, res) => {
 
   if (query.blockletDid) {
     const agent = await getAgent({
-      blockletDid: query.blockletDid,
-      projectId: query.targetProjectId,
-      projectRef: 'main',
-      agentId: query.targetAgentId,
+      aid: stringifyIdentity({
+        blockletDid: query.blockletDid,
+        projectId: query.targetProjectId,
+        projectRef: 'main',
+        agentId: query.targetAgentId,
+      }),
       working: true,
       rejectOnEmpty: true,
     });
@@ -140,19 +142,17 @@ router.get('/has-value', user(), auth(), async (req, res) => {
 });
 
 const getSecretsQuerySchema = Joi.object<{
-  blockletDid?: string;
   aid: string;
   working?: boolean;
 }>({
-  blockletDid: Joi.string().empty([null, '']),
   aid: Joi.string().required(),
   working: Joi.boolean().empty([null, '']),
 });
 
 router.get('/by-aid', async (req, res) => {
-  const { blockletDid, aid, working } = await getSecretsQuerySchema.validateAsync(req.query, { stripUnknown: true });
+  const { aid, working } = await getSecretsQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
-  const agent = await getAgent({ ...parseIdentity(aid, { rejectWhenError: true }), blockletDid, working });
+  const agent = await getAgent({ aid, working });
   if (!agent) {
     res.status(404).json({ message: 'No such agent' });
     return;

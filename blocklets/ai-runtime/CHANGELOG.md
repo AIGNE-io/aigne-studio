@@ -1,7 +1,11 @@
-## 0.4.80 (2024-10-15)
+## 0.4.81 (2024-10-17)
 
 - chore: add llm adapter global setting
 - feat: add global config for resource blocklet
+
+## 0.4.80 (2024-10-17)
+
+- feat: new aigne runtime components
 
 ## 0.4.79 (2024-10-14)
 

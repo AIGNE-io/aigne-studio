@@ -12,10 +12,10 @@ export function memoize<T extends (...args: any) => any>(
     lruOptions = {
       max: MAX_LRU_CACHE_SIZE_DEFAULT,
     },
-    keyGenerator = JSON.stringify,
+    keyGenerator = (...args) => JSON.stringify(args),
   }: {
     lruOptions?: ConstructorParameters<typeof LRUCache>[0];
-    keyGenerator?: (...args: any) => any;
+    keyGenerator?: (...args: Parameters<T>) => any;
   } = {}
 ): T & MemoizedFn {
   const lru = new LRUCache(lruOptions);
@@ -35,7 +35,7 @@ export function memoize<T extends (...args: any) => any>(
   };
 
   const memoizedFn: T & MemoizedFn = function (...args) {
-    const key = keyGenerator(...args);
+    const key = keyGenerator(...(args as any));
     if (key instanceof Promise) {
       return key.then((key) => fnWithCache(key, ...args));
     }

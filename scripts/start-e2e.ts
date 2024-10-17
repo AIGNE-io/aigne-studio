@@ -1,5 +1,7 @@
 #!/usr/bin/env -S node -r ts-node/register
 
+/* eslint-disable import/no-extraneous-dependencies,no-console */
+
 import {
   addBlocklet,
   getBlockletServerStatus,
@@ -15,10 +17,10 @@ import { playwrightConfigAppNames } from '../tests/utils';
 import { setupUsers } from '../tests/utils/auth';
 
 const skipInstall = argv['skip-install'] === true;
-const ui = argv.ui;
+const { ui } = argv;
 if (ui) process.env.HEADLESS = 'false';
 
-console.log(argv, { skipInstall });
+console.info(argv, { skipInstall });
 
 const portSchema = Joi.number<number>().integer().empty(['']);
 const httpPort = (portSchema.validate(process.env.BLOCKLET_SERVER_HTTP_PORT).value as number) || 80;
@@ -54,7 +56,9 @@ const initBlocklet = async ({ appName }: { appName: string }) => {
   });
 
   // FIXME: remove next sleep after issue https://github.com/ArcBlock/blocklet-server/issues/9353 fixed
-  await new Promise((resolve) => setTimeout(resolve, 2000));
+  await new Promise<void>((resolve) => {
+    setTimeout(() => resolve(), 2000);
+  });
 
   await addBlocklet({
     blockletCli,
@@ -71,7 +75,7 @@ const initBlocklet = async ({ appName }: { appName: string }) => {
     for (const appName of Object.values(playwrightConfigAppNames)) {
       await initBlocklet({ appName });
     }
-    console.log('All Blocklet applications initialized successfully');
+    console.info('All Blocklet applications initialized successfully');
   }
 
   const singleAppWallet = ensureWallet({ name: playwrightConfigAppNames.single, onlyFromCache: true });
@@ -79,7 +83,7 @@ const initBlocklet = async ({ appName }: { appName: string }) => {
 
   const info = await getBlockletServerStatus();
   if (!info) throw new Error('Blocklet server is not running');
-  console.log('info', info);
+  console.info('info', info);
 
   const singleAppUrl = didToDomain({ did: singleAppWallet.address, port: info.httpsPort });
   const multipleAppUrl = didToDomain({ did: multipleAppWallet.address, port: info.httpsPort });

@@ -4,6 +4,7 @@ import { ChatCompletionInput, ChatCompletionResponse } from '@blocklet/ai-kit/ap
 import { ImageGenerationInput } from '@blocklet/ai-kit/api/types/image';
 
 import { Assistant, BlockletAgent, OnTaskCompletion, ProjectSettings, RunAssistantResponse } from '../../types';
+import { Agent } from '../../types/runtime/agent';
 
 type OmitBetterStrict<T, K extends keyof T> = T extends any ? Pick<T, Exclude<keyof T, K>> : never;
 
@@ -19,29 +20,19 @@ export class ToolCompletionDirective extends Error {
 }
 
 export interface GetAgentOptions {
-  blockletDid?: string;
-  projectId: string;
-  projectRef?: string;
-  agentId: string;
+  aid: string;
   working?: boolean;
   rejectOnEmpty?: boolean | Error;
 }
 
 export type GetAgentResult =
   | (Assistant & {
+      identity: Agent['identity'];
       project: ProjectSettings;
-      identity: {
-        projectId: string;
-        projectRef?: string;
-        blockletDid?: string;
-        working?: boolean;
-        agentId: string;
-        aid: string;
-      };
     })
   | (BlockletAgent & {
-      project?: undefined;
       identity?: undefined;
+      project?: undefined;
     });
 
 export interface GetAgent {

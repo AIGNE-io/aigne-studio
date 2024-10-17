@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.4.80",
+  "version": "0.4.81",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -71,6 +71,16 @@
       "import": "./lib/esm/constants.js",
       "require": "./lib/cjs/constants.js",
       "types": "./lib/types/constants.d.ts"
+    },
+    "./front": {
+      "import": "./lib/esm/front/index.js",
+      "require": "./lib/cjs/front/index.js",
+      "types": "./lib/types/front/index.d.ts"
+    },
+    "./front/*": {
+      "import": "./lib/esm/front/*.js",
+      "require": "./lib/cjs/front/*.js",
+      "types": "./lib/types/front/*.d.ts"
     }
   },
   "typesVersions": {
@@ -111,6 +121,13 @@
       ],
       "constants": [
         "./lib/types/constants.d.ts"
+      ],
+      "front": [
+        "./lib/types/front/index.d.ts"
+      ],
+      "front/*": [
+        "./lib/types/front/*.d.ts",
+        "./lib/types/front/*/index.d.ts"
       ]
     }
   },
@@ -139,14 +156,22 @@
   },
   "dependencies": {
     "@abtnode/client": "^1.16.32",
-    "@blocklet/ai-kit": "^0.1.58",
+    "@arcblock/did-connect": "^2.10.47",
+    "@blocklet/ai-kit": "^0.1.59",
+    "@blocklet/co-git": "workspace:^",
     "@blocklet/dataset-sdk": "workspace:^",
     "@blocklet/js-sdk": "^1.16.32",
     "@blocklet/logger": "^1.16.32",
     "@blocklet/quickjs": "workspace:^",
     "@blocklet/sdk": "^1.16.32",
+    "@iconify-icons/tabler": "^1.2.95",
+    "@iconify/react": "^5.0.2",
     "@microsoft/fetch-event-source": "^2.0.1",
+    "@types/file-saver": "^2.0.7",
+    "@types/react-scroll-to-bottom": "^4.2.5",
+    "@types/react-syntax-highlighter": "^15.5.13",
     "ahooks": "^3.8.1",
+    "ajv": "^8.17.1",
     "axios": "^1.7.5",
     "cron": "^3.1.7",
     "crypto": "^1.0.1",
@@ -154,20 +179,36 @@
     "eventsource-parser": "^2.0.1",
     "fast-deep-equal": "^3.1.3",
     "fastq": "^1.17.1",
+    "file-saver": "^2.0.5",
     "fs-extra": "^11.2.0",
+    "html2pdf.js": "^0.10.2",
+    "isomorphic-dompurify": "^2.16.0",
     "joi": "^17.13.3",
     "js-base64": "^3.7.7",
     "js-cookie": "^3.0.5",
     "json-stable-stringify": "^1.1.1",
+    "jsonata": "^2.0.5",
     "lodash": "^4.17.21",
+    "material-ui-popup-state": "^5.1.2",
     "nanoid": "^3.3.7",
     "node-fetch": "2",
+    "react-error-boundary": "^4.0.13",
     "react-flags-select": "^2.2.3",
+    "react-helmet": "^6.1.0",
     "react-hook-form": "^7.53.0",
+    "react-markdown": "^9.0.1",
+    "react-promise-suspense": "^0.3.4",
+    "react-scroll-to-bottom": "^4.2.0",
+    "react-share": "^5.1.0",
+    "react-syntax-highlighter": "^15.6.1",
+    "react-transition-group": "^4.4.5",
+    "react-wrap-balancer": "^1.1.1",
     "recoil": "^0.7.7",
+    "remark-gfm": "^4.0.0",
     "snowflake-uuid": "^1.0.0",
     "ufo": "^1.5.4",
-    "yaml": "^2.5.0"
+    "yaml": "^2.5.0",
+    "zustand": "^4.5.5"
   },
   "peerDependencies": {
     "@arcblock/ux": "^2.9.51",
@@ -180,7 +221,7 @@
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@arcblock/ux": "^2.10.45",
+    "@arcblock/ux": "^2.10.47",
     "@emotion/css": "^11.13.0",
     "@emotion/react": "^11.13.3",
     "@jest/globals": "^29.7.0",
