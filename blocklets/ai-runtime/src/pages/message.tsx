@@ -1,17 +1,20 @@
 import { useComponent } from '@app/contexts/component';
-import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { AIGNE_RUNTIME_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
 import { RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
 import { getAgent } from '@blocklet/aigne-sdk/api/agent';
 import { getMessageById } from '@blocklet/aigne-sdk/api/message';
-import { CurrentAgentProvider, CurrentMessageProvider, RuntimeProvider } from '@blocklet/aigne-sdk/components';
+import {
+  CurrentAgentProvider,
+  CurrentMessageProvider,
+  RuntimeProvider,
+  getDefaultOutputComponent,
+} from '@blocklet/aigne-sdk/components/ai-runtime';
 import { Result } from '@blocklet/pages-kit/builtin/arcblock/ux';
-import { DEFAULT_OUTPUT_COMPONENT_ID } from '@blocklet/pages-kit/builtin/async/ai-runtime/constants';
 import { useLocaleContext } from '@blocklet/pages-kit/builtin/locale';
 import { CustomComponentRenderer } from '@blocklet/pages-kit/components';
-import { Box, Button, CircularProgress, Theme, useMediaQuery } from '@mui/material';
-import { useRequest } from 'ahooks';
+import { Box, Button, Theme, useMediaQuery } from '@mui/material';
 import { useMemo } from 'react';
+import usePromise from 'react-promise-suspense';
 import { useParams } from 'react-router-dom';
 import { getQuery } from 'ufo';
 
@@ -19,35 +22,15 @@ export default function MessagePage() {
   const { messageId } = useParams();
   if (!messageId) throw new Error('Missing required param `messageId`');
 
-  const isMobile = useMediaQuery<Theme>((theme) => theme.breakpoints.down('md'));
   const { t } = useLocaleContext();
 
-  const { data: message, loading: messageLoading, error } = useRequest(() => getMessageById({ messageId }));
-  if (error) throw error;
+  const isMobile = useMediaQuery<Theme>((theme) => theme.breakpoints.down('md'));
 
-  const { blockletDid, projectId, agentId, projectRef = 'main' } = message || {};
+  const message = usePromise(getMessageById, [{ messageId }]);
 
-  let aid: string | undefined;
-  if (projectId && agentId) {
-    aid = stringifyIdentity({ projectId, agentId, projectRef });
-  }
+  const { aid, blockletDid } = message;
 
-  const {
-    loading: agentLoading,
-    data: agent,
-    error: agentError,
-  } = useRequest(getAgent, {
-    ready: !!(projectId && agentId && aid),
-    defaultParams: [
-      {
-        aid: aid as string,
-        working: true,
-        blockletDid,
-      },
-    ],
-  });
-
-  if (agentError) throw agentError;
+  const agent = usePromise(getAgent, [{ aid }]);
 
   const appearanceOutput = useMemo(() => {
     const appearance = agent?.outputVariables?.find(
@@ -56,7 +39,7 @@ export default function MessagePage() {
     if (appearance?.componentId) return appearance;
 
     return {
-      componentId: DEFAULT_OUTPUT_COMPONENT_ID,
+      componentId: getDefaultOutputComponent({ name: RuntimeOutputVariable.appearanceOutput })?.componentId,
     };
   }, [agent]);
 
@@ -68,14 +51,13 @@ export default function MessagePage() {
     (blockletDid ? resourceBlocklet?.mountPoint : aigneRuntime && `${aigneRuntime.mountPoint}/preview/${aid}`);
 
   const loaded = agent && message;
-  const loading = messageLoading || agentLoading;
 
   return (
     <Box sx={{ display: 'flex', justifyContent: 'center', mt: 5 }}>
       {loaded ? (
         <Box sx={{ width: isMobile ? '80vw' : '60vw' }}>
-          <RuntimeProvider blockletDid={blockletDid} aid={aid as string} working>
-            <CurrentAgentProvider agentId={agentId as string}>
+          <RuntimeProvider aid={aid} working>
+            <CurrentAgentProvider aid={aid}>
               <CurrentMessageProvider message={message}>
                 <CustomComponentRenderer
                   componentId={appearanceOutput.componentId as string}
@@ -117,10 +99,6 @@ export default function MessagePage() {
               </Box>
             </Box>
           )}
-        </Box>
-      ) : loading ? (
-        <Box textAlign="center" my={10}>
-          <CircularProgress size={24} />
         </Box>
       ) : (
         <Box component={Result} status={404} sx={{ bgcolor: 'transparent', my: 10 }} />

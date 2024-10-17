@@ -5,25 +5,27 @@ export type * from '@blocklet/pages-kit/builtin/async/ai-runtime';
 type RuntimeLib = typeof import('@blocklet/pages-kit/builtin/async/ai-runtime');
 
 const {
-  useCurrentMessage,
-  useCurrentAgent,
-  useRuntimeState,
-  useSessionState,
+  getAgent,
+  getDefaultOutputComponent,
+  CurrentMessageOutputProvider,
+  CurrentMessageProvider,
+  RuntimeDebug,
+  RuntimeProvider,
   ComponentPreferencesProvider,
   CurrentAgentProvider,
-  CurrentMessageProvider,
-  RuntimeProvider,
+  ScrollView,
 } = (window as any)[BuiltinModulesGlobalVariableName].require(
   '@blocklet/pages-kit/builtin/async/ai-runtime'
 ) as RuntimeLib;
 
 export {
-  useCurrentMessage,
-  useCurrentAgent,
-  useRuntimeState,
-  useSessionState,
+  getAgent,
+  getDefaultOutputComponent,
+  CurrentMessageOutputProvider,
+  CurrentMessageProvider,
+  RuntimeDebug,
+  RuntimeProvider,
   ComponentPreferencesProvider,
   CurrentAgentProvider,
-  CurrentMessageProvider,
-  RuntimeProvider,
+  ScrollView,
 };

@@ -26,7 +26,7 @@ export interface Component {
   blocklet?: { did: string };
 }
 
-export async function getComponents({
+export async function getCustomComponents({
   blockletId,
   tags,
 }: {
@@ -38,7 +38,7 @@ export async function getComponents({
     .then((res) => res.data);
 }
 
-export async function getComponent({
+export async function getCustomComponent({
   componentId,
 }: {
   componentId: string;
@@ -62,4 +62,15 @@ export async function getOpenComponents(): Promise<RemoteComponent[]> {
       })
     )
     .catch(() => []);
+}
+
+export async function getComponents({ tags }: { tags: string }) {
+  const [{ components: customComponents }, openComponents] = await Promise.all([
+    getCustomComponents({ tags }),
+    getOpenComponents().then((components) =>
+      components.filter((component) => (component?.tags || []).some((tag) => tags.includes(tag)))
+    ),
+  ]);
+
+  return { customComponents, openComponents };
 }

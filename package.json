@@ -52,6 +52,7 @@
     "@arcblock/eslint-config": "^0.3.2",
     "@arcblock/eslint-config-ts": "^0.3.2",
     "@blocklet/testlab": "^0.0.17",
+    "@blocklet/ai-runtime": "workspace:^",
     "@playwright/test": "^1.46.1",
     "bumpp": "^9.5.2",
     "eslint": "^8.57.0",

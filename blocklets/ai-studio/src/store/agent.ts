@@ -1,6 +1,7 @@
 import { useCurrentProject } from '@app/contexts/project';
 import { useCurrentProjectState } from '@app/pages/project/state';
 import { useAssistants, useProject } from '@app/pages/project/yjs-state';
+import { parseIdentity } from '@blocklet/ai-runtime/common/aid';
 import {
   Assistant,
   ResourceType,
@@ -19,7 +20,14 @@ import { immer } from 'zustand/middleware/immer';
 export interface ResourceAgentsState {
   loading?: boolean;
   loaded?: boolean;
-  agents?: Agent[];
+  agents?: (Agent & {
+    identity: Agent['identity'] & {
+      projectId: string;
+      projectRef?: string;
+      blockletDid?: string;
+      agentId: string;
+    };
+  })[];
   error?: Error;
   load: () => Promise<void>;
 }
@@ -36,7 +44,13 @@ const resourceAgentsState = ({ type }: { type: ResourceType }) => {
         try {
           const { agents } = await getAgents({ type });
           set((state) => {
-            state.agents = agents;
+            state.agents = agents.map((i) => ({
+              ...i,
+              identity: {
+                ...parseIdentity(i.identity.aid, { rejectWhenError: true }),
+                ...i.identity,
+              },
+            }));
           });
         } catch (error) {
           set((state) => {
@@ -66,7 +80,14 @@ export function useResourceAgents({ type }: { type: ResourceType }) {
   return state;
 }
 
-export type UseAgentItem = Omit<Agent, 'identity'> & { identity: Omit<Agent['identity'], 'aid'> };
+export type UseAgentItem = Omit<Agent, 'identity'> & {
+  identity: Omit<Agent['identity'], 'aid'> & {
+    projectId: string;
+    projectRef?: string;
+    blockletDid?: string;
+    agentId: string;
+  };
+};
 
 export function useAgents({ type }: { type: ResourceType }) {
   const { agents = [], load } = useResourceAgents({ type });

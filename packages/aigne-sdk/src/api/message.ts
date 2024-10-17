@@ -3,6 +3,7 @@ import { joinURL } from 'ufo';
 import { aigneRuntimeApi } from './api';
 
 export interface Message {
+  aid: string;
   id: string;
   agentId: string;
   blockletDid?: string;
