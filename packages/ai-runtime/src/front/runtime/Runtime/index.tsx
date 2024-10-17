@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet';
 import { useSearchParams } from 'react-router-dom';
 
 import AgentSettingsDialog from '../../components/AgentSettings/AgentSettingsDialog';
+import ScrollView from '../../components/ScrollView';
 import { useAgent } from '../../contexts/Agent';
 import { useEntryAgent } from '../../contexts/EntryAgent';
 import { RuntimeProvider } from '../../contexts/Runtime';
@@ -37,10 +38,12 @@ function RuntimeView() {
         {agent.project.description && <meta name="description" content={agent.project.description} />}
       </Helmet>
 
-      <CustomComponentRenderer
-        componentId={appearancePage.componentId}
-        properties={appearancePage.componentProperties}
-      />
+      <ScrollView scroll="window" initialScrollBehavior="auto">
+        <CustomComponentRenderer
+          componentId={appearancePage.componentId}
+          properties={appearancePage.componentProperties}
+        />
+      </ScrollView>
 
       <AgentSettingsDialog />
     </>
