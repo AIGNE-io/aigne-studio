@@ -1,7 +1,6 @@
 import { LocaleProvider } from '@arcblock/ux/lib/Locale/context';
 import { ToastProvider } from '@arcblock/ux/lib/Toast';
 import { SubscribeButton } from '@blocklet/ai-kit/components';
-import AgentView from '@blocklet/aigne-sdk/components/AgentView';
 import { Dashboard } from '@blocklet/studio-ui';
 import Footer from '@blocklet/ui-react/lib/Footer';
 import { Box, CssBaseline, GlobalStyles, ThemeProvider } from '@mui/material';
@@ -25,7 +24,6 @@ import { theme } from './theme/theme';
 
 export default function App() {
   const basename = window.blocklet?.prefix || '/';
-  console.warn('AgentView', AgentView);
 
   return (
     <ThemeProvider theme={theme}>

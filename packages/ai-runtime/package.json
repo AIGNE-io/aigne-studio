@@ -124,6 +124,7 @@
   },
   "files": [
     "lib",
+    "src",
     "LICENSE",
     "package.json",
     "README.md",
