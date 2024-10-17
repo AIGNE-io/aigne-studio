@@ -4,6 +4,7 @@ import { ChatCompletionInput, ChatCompletionResponse } from '@blocklet/ai-kit/ap
 import { ImageGenerationInput } from '@blocklet/ai-kit/api/types/image';
 
 import { Assistant, BlockletAgent, OnTaskCompletion, ProjectSettings, RunAssistantResponse } from '../../types';
+import { Agent } from '../../types/runtime/agent';
 
 type OmitBetterStrict<T, K extends keyof T> = T extends any ? Pick<T, Exclude<keyof T, K>> : never;
 
@@ -26,10 +27,7 @@ export interface GetAgentOptions {
 
 export type GetAgentResult =
   | (Assistant & {
-      identity: {
-        aid: string;
-        working?: boolean;
-      };
+      identity: Agent['identity'];
       project: ProjectSettings;
     })
   | (BlockletAgent & {

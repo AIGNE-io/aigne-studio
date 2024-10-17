@@ -10,6 +10,10 @@ export interface Agent {
   createdBy?: string;
 
   identity: {
+    blockletDid?: string;
+    projectId: string;
+    projectRef?: string;
+    agentId: string;
     aid: string;
     working?: boolean;
   };
