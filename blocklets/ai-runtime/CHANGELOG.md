@@ -1,3 +1,7 @@
+## 0.4.82 (2024-10-18)
+
+- feat: support tracking pageView and events for GA
+
 ## 0.4.81 (2024-10-17)
 
 - feat: support preview agent and components
