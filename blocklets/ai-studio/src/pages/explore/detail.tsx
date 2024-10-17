@@ -283,7 +283,7 @@ function PreviewPage({ deployment, project }: { deployment: Deployment; project:
                   <CircularProgress size={24} />
                 </Stack>
               }>
-              <AgentView aid={data?.identity?.aid} working scrollViewProps={{ disabled: true }} hideHeaderMenuButton />
+              <AgentView aid={data?.identity?.aid} working hideHeaderMenuButton />
             </Suspense>
           </ScrollView>
         </ThemeProvider>

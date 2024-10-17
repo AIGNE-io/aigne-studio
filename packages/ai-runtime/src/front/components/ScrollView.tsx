@@ -10,46 +10,32 @@ import { useScrollView } from '../contexts/ScrollView';
 const Composer = scrollToBottom.Composer as typeof scrollToBottom.default;
 
 export default function ScrollView({
-  disabled,
   children,
-  scroll,
-  component,
+  scroll = 'element',
+  component = 'div',
   initialScrollBehavior,
   ...props
 }: BoxProps & {
-  disabled?: boolean;
-  scroll?: 'window';
+  scroll?: 'window' | 'element';
   initialScrollBehavior?: ComponentProps<typeof Composer>['initialScrollBehavior'];
 }) {
   const ctx = useScrollView();
 
-  if (disabled || ctx?.disabled) {
-    const c = component || ctx?.component;
-
-    if (c) {
-      return (
-        <Box component={c} {...props}>
-          {children}
-        </Box>
-      );
-    }
-
-    return children;
-  }
-
   return (
     <Composer initialScrollBehavior={initialScrollBehavior || ctx?.initialScrollBehavior || 'auto'}>
-      <ScrollViewWithinWindow
-        scroll={scroll || ctx?.scroll || 'window'}
-        component={component || ctx?.component}
-        {...props}>
+      <ScrollViewWithinWindow scroll={ctx?.scroll || scroll} component={ctx?.component || component} {...props}>
         {children}
       </ScrollViewWithinWindow>
     </Composer>
   );
 }
 
-function ScrollViewWithinWindow({ children, scroll, component, ...props }: BoxProps & { scroll?: 'window' }) {
+function ScrollViewWithinWindow({
+  children,
+  scroll,
+  component,
+  ...props
+}: BoxProps & { scroll: 'window' | 'element' }) {
   const { setTarget } = useInternalContext();
   const ele = useFakeScrollElementOfWindow();
 
@@ -62,7 +48,7 @@ function ScrollViewWithinWindow({ children, scroll, component, ...props }: BoxPr
   if (!component) return children;
 
   return (
-    <Box component={component} {...props} ref={!scroll ? setTarget : undefined}>
+    <Box component={component} {...props} ref={scroll === 'element' ? setTarget : undefined}>
       {children}
     </Box>
   );
