@@ -14,6 +14,10 @@ export default defineConfig((config) => {
   return {
     optimizeDeps: {
       // force: true,
+      exclude: [
+        // force watch @blocklet/ai-runtime for @blocklet/pages-kit
+        '@blocklet/ai-runtime',
+      ],
     },
     plugins: [
       tsconfigPaths(),

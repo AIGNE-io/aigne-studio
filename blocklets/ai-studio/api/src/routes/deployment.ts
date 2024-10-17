@@ -3,7 +3,7 @@ import { getAgentSecretInputs } from '@api/libs/runtime';
 import { ensurePromptsAdmin } from '@api/libs/security';
 import Project from '@api/store/models/project';
 import { PROJECT_FILE_PATH, ProjectRepo, getEntryFromRepository, getRepository } from '@api/store/repository';
-import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
+import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { Assistant, ProjectSettings } from '@blocklet/ai-runtime/types';
 import { Agent } from '@blocklet/aigne-sdk/api/agent';
 import { auth, user } from '@blocklet/sdk/lib/middlewares';
@@ -286,8 +286,8 @@ router.get('/:deploymentId', user(), async (req, res) => {
   res.json({
     deployment,
     ...respondAgentFields({
-      ...agent,
-      identity: { projectId, projectRef, agentId: agent.id },
+      agent,
+      identity: { aid: stringifyIdentity({ projectId, projectRef, agentId: agent.id }) },
       project: await repo.readAndParseFile({
         ref: projectRef,
         filepath: PROJECT_FILE_PATH,
@@ -335,17 +335,23 @@ router.delete('/:id', user(), auth(), async (req, res) => {
 
 export default router;
 
-export const respondAgentFields = (
-  agent: Assistant & {
-    identity: Omit<Agent['identity'], 'aid'>;
-    project: ProjectSettings;
-  }
-): Agent => ({
-  ...pick(agent, 'id', 'name', 'description', 'type', 'parameters', 'createdAt', 'updatedAt', 'createdBy', 'identity'),
+export const respondAgentFields = ({
+  agent,
+  identity,
+  project,
+}: {
+  agent: Assistant;
+  project: ProjectSettings;
+  identity: {
+    aid: string;
+    working?: boolean;
+  };
+}): Agent => ({
+  ...pick(agent, 'id', 'name', 'description', 'type', 'parameters', 'createdAt', 'updatedAt', 'createdBy'),
   access: pick(agent.access, 'noLoginRequired'),
   outputVariables: (agent.outputVariables ?? []).filter((i) => !i.hidden),
   project: pick(
-    agent.project,
+    project,
     'id',
     'name',
     'description',
@@ -357,9 +363,10 @@ export const respondAgentFields = (
     'readme',
     'banner'
   ),
+
   identity: {
-    ...agent.identity,
-    aid: stringifyIdentity(agent.identity),
+    ...parseIdentity(identity.aid, { rejectWhenError: true }),
+    ...identity,
   },
 });
 

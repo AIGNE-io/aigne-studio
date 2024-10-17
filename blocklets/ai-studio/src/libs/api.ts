@@ -9,9 +9,9 @@ const api = createAxios({ timeout: API_TIMEOUT });
 // @ts-ignore
 if (import.meta.env.DEV) {
   api.interceptors.request.use(async (config) => {
-    await new Promise((resolve) => {
-      setTimeout(resolve, 500);
-    });
+    // await new Promise((resolve) => {
+    //   setTimeout(resolve, 500);
+    // });
     return config;
   });
 }

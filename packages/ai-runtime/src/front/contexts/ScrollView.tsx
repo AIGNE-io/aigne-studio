@@ -1,8 +1,7 @@
 import { createContext, useContext } from 'react';
 
 export interface ScrollViewContextValue {
-  disabled?: boolean;
-  scroll?: 'window';
+  scroll?: 'window' | 'element';
   initialScrollBehavior?: 'auto' | 'smooth';
   component?: React.ElementType<any, keyof React.JSX.IntrinsicElements>;
 }

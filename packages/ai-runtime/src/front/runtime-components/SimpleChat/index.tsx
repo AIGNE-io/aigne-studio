@@ -1,10 +1,9 @@
 import { Box, CircularProgress, Stack, alpha } from '@mui/material';
-import { ComponentProps, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useScrollToBottom } from 'react-scroll-to-bottom';
 
 import CustomComponentRenderer from '../../components/CustomComponentRenderer/CustomComponentRenderer';
 import SimpleLayout from '../../components/Layout/SimpleLayout';
-import ScrollView from '../../components/ScrollView';
 import { useActiveAgent } from '../../contexts/ActiveAgent';
 import {
   ComponentPreferencesBase,
@@ -26,18 +25,11 @@ export interface SimpleChatPreferences extends ComponentPreferencesBase {
   backgroundImage?: { url?: string; width?: number; height?: number };
 }
 
-export default function SimpleChat({
-  scrollViewProps,
-  ...preferences
-}: {
-  scrollViewProps?: ComponentProps<typeof ScrollView>;
-} & SimpleChatPreferences) {
+export default function SimpleChat({ ...preferences }: {} & SimpleChatPreferences) {
   return (
     <ComponentPreferencesProvider {...preferences}>
-      <ScrollView {...scrollViewProps}>
-        <BackgroundImage />
-        <SimpleChatView />
-      </ScrollView>
+      <BackgroundImage />
+      <SimpleChatView />
     </ComponentPreferencesProvider>
   );
 }
