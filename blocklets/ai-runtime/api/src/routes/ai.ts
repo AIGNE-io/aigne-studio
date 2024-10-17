@@ -29,16 +29,14 @@ import { omitBy, pick } from 'lodash';
 const router = Router();
 
 const callInputSchema = Joi.object<{
-  blockletDid?: string;
-  working?: boolean;
   aid: string;
+  working?: boolean;
   sessionId?: string;
   inputs?: { [key: string]: any };
   debug?: boolean;
 }>({
-  blockletDid: Joi.string().empty(['', null]),
-  working: Joi.boolean().empty(['', null]).default(false),
   aid: Joi.string().required(),
+  working: Joi.boolean().empty(['', null]).default(false),
   sessionId: Joi.string().empty(['', null]),
   inputs: Joi.object({
     $clientTime: Joi.string().isoDate().empty([null, '']),
@@ -66,14 +64,11 @@ router.post('/call', user(), compression(), async (req, res) => {
 
   const userId = req.user?.did;
 
-  const { projectId, projectRef, agentId } = parseIdentity(input.aid, { rejectWhenError: true });
+  const { blockletDid, projectId, projectRef, agentId } = parseIdentity(input.aid, { rejectWhenError: true });
 
   const agent = await getAgent({
-    blockletDid: input.blockletDid,
-    projectId,
-    projectRef,
+    aid: input.aid,
     working: input.working,
-    agentId,
     rejectOnEmpty: true,
   });
   if (!agent.access?.noLoginRequired && !userId) {
@@ -86,7 +81,7 @@ router.post('/call', user(), compression(), async (req, res) => {
     completionTokens: 0,
   };
 
-  const project = await getProject({ blockletDid: input.blockletDid, projectId, projectRef, working: input.working });
+  const project = await getProject({ blockletDid, projectId, projectRef, working: input.working });
 
   const callAI: CallAI = async ({ input }) => {
     const stream = await chatCompletions({
@@ -161,7 +156,7 @@ router.post('/call', user(), compression(), async (req, res) => {
     sessionId,
     inputs: input.inputs,
     status: 'generating',
-    blockletDid: input.blockletDid,
+    blockletDid,
     projectRef,
   });
 
@@ -246,24 +241,37 @@ router.post('/call', user(), compression(), async (req, res) => {
         callback: emit,
         callAI,
         callAIImage,
-        getMemoryVariables,
-        getAgent: (options) =>
-          getAgent({
+        getMemoryVariables: (options) =>
+          getMemoryVariables({ ...options, working: options.projectId === projectId ? input.working : undefined }),
+        getAgent: (options) => {
+          const identity = parseIdentity(options.aid, { rejectWhenError: true });
+
+          return getAgent({
             ...options,
-            // NOTE: 仅允许调用当前项目或者 resource blocklet 中的 agent
-            projectId: options.blockletDid ? options.projectId : projectId,
-          } as Parameters<typeof getAgent>[0]),
+            aid: stringifyIdentity({
+              ...identity,
+              // NOTE: 仅允许调用当前项目或者 resource blocklet 中的 agent
+              projectId: identity.blockletDid ? identity.projectId : projectId,
+            }),
+            working: identity.projectId === projectId ? input.working : undefined,
+          } as Parameters<typeof getAgent>[0]);
+        },
         entryProjectId: projectId,
         user: userId ? { id: userId, did: userId, ...req.user } : undefined,
         sessionId,
         messageId: history.id,
         clientTime: input.inputs?.$clientTime || new Date().toISOString(),
-        queryCache: ({ blockletDid, projectId, projectRef, agentId, cacheKey }) =>
-          ExecutionCache.findOne({
+        queryCache: ({ aid, cacheKey }) => {
+          const { blockletDid, projectId, projectRef, agentId } = parseIdentity(aid, { rejectWhenError: true });
+          return ExecutionCache.findOne({
             where: omitBy({ blockletDid, projectId, projectRef, agentId, cacheKey }, (v) => v === undefined),
-          }),
-        setCache: ({ blockletDid, projectId, projectRef, agentId, cacheKey, inputs, outputs }) =>
-          ExecutionCache.create({ blockletDid, projectId, projectRef, agentId, cacheKey, inputs, outputs }),
+          });
+        },
+        setCache: ({ aid, cacheKey, inputs, outputs }) => {
+          const { blockletDid, projectId, projectRef, agentId } = parseIdentity(aid, { rejectWhenError: true });
+
+          return ExecutionCache.create({ blockletDid, projectId, projectRef, agentId, cacheKey, inputs, outputs });
+        },
       },
       agent,
       {

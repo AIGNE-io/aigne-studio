@@ -47,7 +47,7 @@ export async function setupUsers({ appName, appUrl }: { appName: string; appUrl:
       await login({ page, wallet, appWallet, passport: { name, title: name } });
 
       const authUrl = await getAuthUrl({ page }).catch((error) => {
-        console.log('failed to get auth url to connect to did space, skip it', error);
+        console.error('failed to get auth url to connect to did space, skip it', error);
         return null;
       });
 

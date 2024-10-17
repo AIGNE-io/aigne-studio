@@ -1,3 +1,4 @@
+import { parseIdentity, stringifyIdentity } from '../../common/aid';
 import logger from '../../logger';
 import { GetAgentResult } from '../assistant/type';
 import { AgentExecutor } from './agent';
@@ -38,9 +39,15 @@ export class RuntimeExecutor extends AgentExecutorBase<GetAgentResult> {
     const { agent, options } = this;
 
     if (this.parentAgent?.identity && agent.identity) {
-      agent.identity.blockletDid ||= this.parentAgent.identity.blockletDid;
-      agent.identity.projectId ||= this.parentAgent.identity.projectId;
-      agent.identity.projectRef ||= this.parentAgent.identity.projectRef;
+      const parent = parseIdentity(this.parentAgent.identity.aid, { rejectWhenError: true });
+      const identity = parseIdentity(agent.identity.aid, { rejectWhenError: true });
+
+      agent.identity.aid = stringifyIdentity({
+        ...identity,
+        blockletDid: identity.blockletDid || parent.blockletDid,
+        projectId: identity.projectId || parent.projectId,
+        projectRef: identity.projectRef || parent.projectRef,
+      });
       agent.identity.working ||= this.parentAgent.identity.working;
     }
 

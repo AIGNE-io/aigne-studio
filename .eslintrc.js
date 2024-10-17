@@ -42,5 +42,8 @@ module.exports = {
     'jsx-a11y/control-has-associated-label': 'off',
     'guard-for-in': 'warn',
     'no-restricted-syntax': 'warn',
+    'react/jsx-no-duplicate-props': 'warn',
+    '@typescript-eslint/no-throw-literal': 'warn',
+    'react/function-component-definition': 'off',
   },
 };

@@ -5,7 +5,7 @@ import { getAgent } from '@api/libs/agent';
 import logger from '@api/libs/logger';
 import { resourceManager } from '@api/libs/resource';
 import History from '@api/store/models/history';
-import { parseIdentity } from '@blocklet/ai-runtime/common/aid';
+import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { AIGNE_RUNTIME_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
 import { GetAgentResult } from '@blocklet/ai-runtime/core';
 import { BlockletAgent } from '@blocklet/ai-runtime/types';
@@ -50,11 +50,13 @@ export default function setupHtmlRouter(app: Express, viteDevServer?: ViteDevSer
         if (!entryAgent) return undefined;
 
         return respondAgentFields({
-          ...entryAgent,
+          agent: entryAgent,
           identity: {
-            blockletDid: i.blocklet.did,
-            projectId: i.project.id,
-            agentId: entryAgent.id,
+            aid: stringifyIdentity({
+              blockletDid: i.blocklet.did,
+              projectId: i.project.id,
+              agentId: entryAgent.id,
+            }),
           },
           project: i.project,
         });
@@ -74,13 +76,18 @@ export default function setupHtmlRouter(app: Express, viteDevServer?: ViteDevSer
     const previewAid = req.path.match(/\/preview\/(?<aid>\w+)/)?.groups?.aid;
 
     const app = previewAid
-      ? respondAgentFields(
-          await getAgent({
-            ...parseIdentity(previewAid, { rejectWhenError: true }),
+      ? await (async () => {
+          const agent = await getAgent({
+            aid: previewAid,
             working: true,
             rejectOnEmpty: true,
-          })
-        )
+          });
+          return respondAgentFields({
+            agent,
+            identity: agent.identity,
+            project: agent.project,
+          });
+        })()
       : resourceBlockletState.applications[0];
 
     html = html.replace(
@@ -115,7 +122,10 @@ var ${RUNTIME_RESOURCE_BLOCKLET_STATE_GLOBAL_VARIABLE} = ${JSON.stringify(resour
 
     const { projectId, blockletDid, agentId, projectRef } = message as History;
     try {
-      agent = await getAgent({ blockletDid, projectRef, projectId, agentId, working: true });
+      agent = await getAgent({
+        aid: stringifyIdentity({ blockletDid, projectRef, projectId, agentId }),
+        working: true,
+      });
     } catch (error) {
       logger.error('agent not found', { error });
     }

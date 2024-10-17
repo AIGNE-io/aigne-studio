@@ -1,0 +1,81 @@
+import { Stack, Typography, TypographyProps } from '@mui/material';
+
+import OutputFieldContainer from '../../components/OutputFieldContainer';
+import { useCurrentAgent } from '../../contexts/CurrentAgent';
+import { useCurrentMessage, useCurrentMessageOutput } from '../../contexts/CurrentMessage';
+import { useSession } from '../../contexts/Session';
+
+export type SuggestedQuestionsViewPropValue = Array<{ question: string }>;
+
+export default function SuggestedQuestionsView({ onlyLastMessage }: { onlyLastMessage?: boolean }) {
+  const { outputValue, output } = useCurrentMessageOutput<SuggestedQuestionsViewPropValue>();
+
+  const { message } = useCurrentMessage({ optional: true }) ?? {};
+  const { lastMessage, runAgent } = useSession((s) => ({
+    lastMessage: s.messages?.at(0),
+    runAgent: s.runAgent,
+  }));
+  const isLastMessage = !!message && message.id === lastMessage?.id;
+
+  const { aid } = useCurrentAgent();
+
+  if (!message || (!isLastMessage && onlyLastMessage) || !outputValue.length) return null;
+
+  return (
+    <OutputFieldContainer output={output}>
+      <Stack gap={1}>
+        {outputValue.map((item) => (
+          <MessageSuggestedQuestion
+            key={item.question}
+            onClick={() => {
+              runAgent({ aid, parameters: { ...message.inputs, question: item.question } });
+            }}>
+            {item.question}
+          </MessageSuggestedQuestion>
+        ))}
+      </Stack>
+    </OutputFieldContainer>
+  );
+}
+
+function MessageSuggestedQuestion({ ...props }: TypographyProps) {
+  return (
+    <Typography
+      variant="subtitle2"
+      {...props}
+      sx={{
+        display: 'inline-block',
+        border: 1,
+        borderColor: 'rgba(229, 231, 235, 1)',
+        borderRadius: 1,
+        py: 1,
+        px: 2,
+        cursor: 'pointer',
+        '&:hover': {
+          backgroundColor: 'rgba(239, 246, 255, 1)',
+        },
+        ...props.sx,
+      }}
+    />
+  );
+}
+
+SuggestedQuestionsView.outputValueSchema = {
+  type: 'object',
+  properties: {
+    outputValue: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          question: {
+            type: 'string',
+            faker: 'lorem.sentence',
+          },
+        },
+        required: ['question'],
+      },
+    },
+  },
+  required: ['outputValue'],
+};
