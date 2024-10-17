@@ -1,7 +1,9 @@
 import { TextFieldProps } from '@mui/material';
 
+import UploaderProvider from '../../context/uploader';
 import { Parameter } from '../../types/assistant';
 import BooleanField from './BooleanField';
+import ImageFiled from './ImageField';
 import LanguageField from './LanguageField';
 import NumberField from './NumberField';
 import SelectField from './SelectField';
@@ -32,6 +34,14 @@ export default function ParameterField({
 
   if (['llmInputMessages', 'llmInputTools', 'llmInputToolChoice', 'llmInputResponseFormat'].includes(parameter.type!)) {
     return <StringField {...({ parameter } as any)} size="small" {...props} multiline />;
+  }
+
+  if (parameter.type === 'string' && parameter.image) {
+    return (
+      <UploaderProvider>
+        <ImageFiled {...({ parameter } as any)} size="small" {...props} />
+      </UploaderProvider>
+    );
   }
 
   const Field = (

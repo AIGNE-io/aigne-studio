@@ -395,6 +395,7 @@ export interface StringParameter extends ParameterBase {
   value?: string;
   defaultValue?: string;
   multiline?: boolean;
+  image?: boolean;
   minLength?: number;
   maxLength?: number;
 }

@@ -722,7 +722,18 @@ function SelectInputType({
   projectId: string;
   gitRef: string;
 }) {
-  const multiline = (!parameter.type || parameter.type === 'string') && parameter?.multiline;
+  const getParameterType = (parameter?: Partial<ParameterYjs>): string => {
+    if (!parameter) {
+      return 'string';
+    }
+
+    if (parameter.type === 'string') {
+      return parameter?.image ? 'image' : parameter?.multiline ? 'multiline' : 'string';
+    }
+
+    return parameter?.type || 'string';
+  };
+
   const doc = (getYjsValue(value) as Map<any>)?.doc!;
   const dialogState = usePopupState({ variant: 'dialog', popupId: useId() });
 
@@ -743,7 +754,7 @@ function SelectInputType({
           variant="standard"
           hiddenLabel
           SelectProps={{ autoWidth: true }}
-          value={(parameter.key === 'question' ? 'string' : multiline ? 'multiline' : parameter?.type) ?? 'string'}
+          value={(parameter.key === 'question' ? 'string' : getParameterType(parameter)) ?? 'string'}
           InputProps={{ readOnly }}
           onChange={(e) => {
             const newValue = e.target.value;
@@ -756,6 +767,11 @@ function SelectInputType({
               if (newValue === 'multiline') {
                 parameter.type = 'string';
                 (parameter as StringParameter)!.multiline = true;
+                (parameter as StringParameter)!.image = false;
+              } else if (newValue === 'image') {
+                parameter.type = 'string';
+                (parameter as StringParameter)!.image = true;
+                (parameter as StringParameter)!.multiline = false;
               } else {
                 parameter.type = newValue as any;
                 if (typeof (parameter as StringParameter).multiline !== 'undefined') {

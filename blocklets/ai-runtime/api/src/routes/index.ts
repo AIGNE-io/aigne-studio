@@ -7,6 +7,7 @@ import cronHistoryRoutes from './cron-history';
 import datasets from './dataset/datasets';
 import datasetDocuments from './dataset/documents';
 import datasetSegments from './dataset/segments';
+import image from './image';
 import memory from './memory';
 import { messageRoutes } from './message';
 import secret from './secret';
@@ -26,5 +27,6 @@ router.use('/datasets', datasetDocuments);
 router.use('/datasets', datasetSegments);
 router.use('/', cacheRouter);
 router.use('/cron-histories', cronHistoryRoutes);
+router.use('/images', image);
 
 export default router;
