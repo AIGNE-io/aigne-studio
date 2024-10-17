@@ -2,14 +2,11 @@ import { useIsAdmin, useSessionContext } from '@app/contexts/session';
 import { AIGNE_STUDIO_MOUNT_POINT } from '@app/libs/constants';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Icon } from '@iconify-icon/react';
-import BuildingIcon from '@iconify-icons/tabler/building';
-import BuildingCommunityIcon from '@iconify-icons/tabler/building-community';
 import ArrowUpIcon from '@iconify-icons/tabler/circle-arrow-up';
 import CircleMinusIcon from '@iconify-icons/tabler/circle-minus';
 import CirclePlusIcon from '@iconify-icons/tabler/circle-plus';
 import DiamondIcon from '@iconify-icons/tabler/diamond';
 import HelpIcon from '@iconify-icons/tabler/help';
-import HomeIcon from '@iconify-icons/tabler/home';
 import { Close } from '@mui/icons-material';
 import {
   Accordion,
@@ -53,9 +50,7 @@ export function PlanUpgrade({ ...rest }: Props) {
 
   const aignePlansEN = [
     {
-      icon: HomeIcon,
-      name: 'Free Plan',
-      description: 'To discover AIGNE Studio and get started with AI',
+      name: 'Starter',
       featuresDescription: 'Includes',
       features: [
         '3 projects',
@@ -76,10 +71,8 @@ export function PlanUpgrade({ ...rest }: Props) {
       ...(!isAdmin && !isProUser && { active: true }),
     },
     {
-      icon: BuildingIcon,
-      name: 'PRO',
-      description: 'The best plan for individual AI enthusiasts',
-      featuresDescription: 'Everything in Free, plus',
+      name: 'Premium',
+      featuresDescription: 'Everything in Starter, plus',
       features: ['20 projects', '1000 requests per project', 'Unlimited agent deployments', 'Private agent publishing'],
       price: billingCycle === 'monthly' ? '10 ABT' : '8 ABT',
       priceSuffix: '/ month',
@@ -92,9 +85,7 @@ export function PlanUpgrade({ ...rest }: Props) {
       ...(isProUser && { active: true }),
     },
     {
-      icon: BuildingCommunityIcon,
-      name: 'Serverless',
-      description: 'Run your own AIGNE Studio with your own brand',
+      name: 'Professional',
       // featuresDescription: 'Full control and customization',
       featuresDescription: 'Run your own AIGNE Studio',
       features: [
@@ -109,24 +100,13 @@ export function PlanUpgrade({ ...rest }: Props) {
           </Tooltip>
         </Box>,
       ],
-      price: '0.4 ABT',
-      priceSuffix: '/ day',
+      price: '12 ABT',
+      priceSuffix: '/ month',
       isStartingPrice: true,
       buttonText: 'Launch',
       buttonLink:
         'https://launcher.arcblock.io/app/?blocklet_meta_url=https%3A%2F%2Fstore.blocklet.dev%2Fapi%2Fblocklets%2Fz8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB%2Fblocklet.json&product_type=serverless',
     },
-    // {
-    //   icon: BuildingSkyscraperIcon,
-    //   name: 'Dedicated',
-    //   featuresDescription: 'Everything in Serverless, plus',
-    //   features: ['Dedicated server instance'],
-    //   price: '49 ABT',
-    //   priceSuffix: '/month',
-    //   buttonText: 'Launch',
-    //   buttonLink:
-    //     'https://launcher.arcblock.io/app/?blocklet_meta_url=https%3A%2F%2Fstore.blocklet.dev%2Fapi%2Fblocklets%2Fz8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB%2Fblocklet.json&product_type=dedicated',
-    // },
   ] as any;
 
   return (
