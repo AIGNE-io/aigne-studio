@@ -1,7 +1,7 @@
 {
   "name": "ai-studio",
   "private": true,
-  "version": "0.4.82",
+  "version": "0.4.83",
   "workspaces": [
     "blocklets/*",
     "packages/*"
@@ -79,11 +79,11 @@
     "@abtnode/file-stream-rotator": "^0.6.3",
     "@arcblock/did": "^1.18.135",
     "@arcblock/did-auth": "^1.18.135",
-    "@arcblock/did-connect": "^2.10.47",
+    "@arcblock/did-connect": "^2.10.48",
     "@arcblock/did-ext": "^1.18.135",
     "@arcblock/did-util": "^1.18.135",
     "@arcblock/jwt": "^1.18.135",
-    "@arcblock/ux": "^2.10.47",
+    "@arcblock/ux": "^2.10.48",
     "@arcblock/ws": "^1.18.135",
     "@blocklet/js-sdk": "1.16.33-beta-20241015-065257-56072e40",
     "@blocklet/logger": "1.16.33-beta-20241015-065257-56072e40",

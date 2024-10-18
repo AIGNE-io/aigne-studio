@@ -93,7 +93,7 @@ const MessageOutputValueRenderer = memo(
     // NOTE: get the output value schema of the custom component
     const schema = (useComponent({ instanceId: componentId, componentId })?.Component as any)?.outputValueSchema;
 
-    const validate = useAjvInstance(!schema);
+    const validate = useAjvInstance(schema);
 
     const valid = useMemo(() => {
       // skip validation if no schema
@@ -105,11 +105,10 @@ const MessageOutputValueRenderer = memo(
     if (!valid) return null;
 
     return (
-      <CurrentMessageOutputProvider output={output} outputValue={outputValue}>
+      <CurrentMessageOutputProvider output={output} outputValue={valid.outputValue}>
         <CustomComponentRenderer
           aid={message.aid}
           output={{ id: output.id }}
-          key={output.id}
           instanceId={output.id}
           componentId={componentId}
           properties={output.appearance?.componentProperties}
