@@ -11,9 +11,8 @@ import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
 import HelpIcon from '@iconify-icons/tabler/help';
 import { Box, FormLabel, Stack, Tooltip, Typography } from '@mui/material';
-import cloneDeep from 'lodash/cloneDeep';
 import isNil from 'lodash/isNil';
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useAsync } from 'react-use';
 
 import { useAssistantCompare } from '../../../pages/project/state';
@@ -40,16 +39,6 @@ export default function PromptSetting({
   const { t } = useLocaleContext();
 
   const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
-  const { projectSetting } = useProjectStore(projectId, gitRef);
-
-  useEffect(() => {
-    if (!value.executor?.agent?.id && !value.model && projectSetting?.executor?.agent?.id) {
-      const doc = (getYjsValue(value) as Map<any>).doc!;
-      doc.transact(() => {
-        value.executor = cloneDeep(projectSetting?.executor);
-      });
-    }
-  }, []);
 
   return (
     <>

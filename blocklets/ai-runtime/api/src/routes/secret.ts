@@ -1,7 +1,6 @@
 import { getAgent, getAgentSecretInputs, getProject } from '@api/libs/agent';
 import { ensureAgentAdmin } from '@api/libs/security';
 import Secret from '@api/store/models/secret';
-import { ResourceType } from '@blocklet/ai-runtime/types';
 import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import config from '@blocklet/sdk/lib/config';
@@ -83,15 +82,14 @@ export interface GetHasValueQuery {
   projectId: string;
   targetProjectId: string;
   targetAgentId: string;
-  blockletDid?: string;
-  type: ResourceType;
+  targetBlockletDid?: string;
 }
 
 const getHasValueQuerySchema = Joi.object<GetHasValueQuery>({
   projectId: Joi.string().required(),
   targetProjectId: Joi.string().required(),
   targetAgentId: Joi.string().required(),
-  blockletDid: Joi.string().empty([null, '']).default('').optional(),
+  targetBlockletDid: Joi.string().empty([null, '']),
 });
 
 router.get('/has-value', user(), auth(), async (req, res) => {
@@ -108,12 +106,11 @@ router.get('/has-value', user(), auth(), async (req, res) => {
 
   let globalAuthorized = false;
 
-  if (query.blockletDid) {
+  if (query.targetBlockletDid) {
     const agent = await getAgent({
       aid: stringifyIdentity({
-        blockletDid: query.blockletDid,
+        blockletDid: query.targetBlockletDid,
         projectId: query.targetProjectId,
-        projectRef: 'main',
         agentId: query.targetAgentId,
       }),
       working: true,
@@ -124,8 +121,8 @@ router.get('/has-value', user(), auth(), async (req, res) => {
       const authInputs = (agent.parameters || [])?.filter(
         (i) => i.key && i.type === 'source' && i.source?.variableFrom === 'secret' && !i.hidden
       );
-      const secrets = authInputs?.map((i) => config.env[(i.key || '')?.toLocaleUpperCase()]).filter(isNonNullable);
-      globalAuthorized = secrets.length > 0;
+
+      globalAuthorized = authInputs.every((i) => !!config.env[i.key?.toLocaleUpperCase()!]);
     }
   }
 

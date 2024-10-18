@@ -1434,7 +1434,7 @@ export function AuthorizeButton({ agent }: { agent: NonNullable<ReturnType<typeo
         projectId,
         targetProjectId: agent.project.id,
         targetAgentId: agent.id,
-        blockletDid: agent?.identity?.blockletDid,
+        targetBlockletDid: agent.identity.blockletDid,
       }),
     [projectId, agent.project.id, agent.id]
   );

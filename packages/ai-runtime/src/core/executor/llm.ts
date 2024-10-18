@@ -41,7 +41,9 @@ export class LLMAgentExecutor extends AgentExecutorBase<PromptAssistant> {
     };
   }
 
-  private _executor: Promise<GetAgentResult | undefined> | undefined;
+  private _executor:
+    | Promise<{ executor: GetAgentResult; inputValues?: { [key: string]: any } } | undefined>
+    | undefined;
 
   get executor() {
     this._executor ??= (async () => {
@@ -50,17 +52,34 @@ export class LLMAgentExecutor extends AgentExecutorBase<PromptAssistant> {
       const identity = parseIdentity(agent.identity.aid, { rejectWhenError: true });
 
       return agent.executor?.agent?.id
-        ? this.context.getAgent({
-            aid: stringifyIdentity({
-              blockletDid: agent.executor.agent.blockletDid || identity.blockletDid,
-              projectId: agent.executor.agent.projectId || identity.projectId,
-              projectRef: identity.projectRef,
-              agentId: agent.executor.agent.id,
+        ? {
+            executor: await this.context.getAgent({
+              aid: stringifyIdentity({
+                blockletDid: agent.executor.agent.blockletDid || identity.blockletDid,
+                projectId: agent.executor.agent.projectId || identity.projectId,
+                projectRef: identity.projectRef,
+                agentId: agent.executor.agent.id,
+              }),
+              working: agent.identity.working,
+              rejectOnEmpty: true,
             }),
-            working: agent.identity.working,
-            rejectOnEmpty: true,
-          })
-        : undefined;
+            inputValues: agent.executor.inputValues,
+          }
+        : agent.project.executor?.agent?.id
+          ? {
+              executor: await this.context.getAgent({
+                aid: stringifyIdentity({
+                  blockletDid: agent.project.executor.agent.blockletDid || identity.blockletDid,
+                  projectId: agent.project.executor.agent.projectId || identity.projectId,
+                  projectRef: identity.projectRef,
+                  agentId: agent.project.executor.agent.id,
+                }),
+                working: agent.identity.working,
+                rejectOnEmpty: true,
+              }),
+              inputValues: agent.project.executor.inputValues,
+            }
+          : undefined;
     })();
 
     return this._executor;
@@ -134,14 +153,14 @@ export class LLMAgentExecutor extends AgentExecutorBase<PromptAssistant> {
 
     const { modelInfo } = this;
 
-    const executor = await this.executor;
+    const e = await this.executor;
 
     // NOTE: use json_schema output for models that support it
     if (
       supportJsonSchemaModels.includes(modelInfo.model) &&
       hasJsonOutputs &&
       // check the llm executor is support json schema output
-      (!executor || executor.parameters?.some((i) => i.type === 'llmInputResponseFormat'))
+      (!e || e.executor.parameters?.some((i) => i.type === 'llmInputResponseFormat'))
     ) {
       return this.processWithJsonSchemaFormat({ messages, inputs });
     }
@@ -392,16 +411,16 @@ export class LLMAgentExecutor extends AgentExecutorBase<PromptAssistant> {
       modelInfo,
       options: { taskId },
     } = this;
-    const executor = await this.executor;
+    const e = await this.executor;
 
-    return executor
+    return e
       ? ((
           await this.context
-            .executor(executor, {
+            .executor(e.executor, {
               inputs: {
                 ...inputs,
-                ...agent.executor?.inputValues,
-                [executor.parameters?.find((i) => i.type === 'llmInputMessages' && !i.hidden)?.key!]: messages,
+                ...e.inputValues,
+                [e.executor.parameters?.find((i) => i.type === 'llmInputMessages' && !i.hidden)?.key!]: messages,
               },
               taskId: nextTaskId(),
               parentTaskId: taskId,
