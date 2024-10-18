@@ -11,11 +11,11 @@ export default function SuggestedQuestionsView({ onlyLastMessage }: { onlyLastMe
   const { outputValue, output } = useCurrentMessageOutput<SuggestedQuestionsViewPropValue>();
 
   const { message } = useCurrentMessage({ optional: true }) ?? {};
-  const { lastMessage, runAgent } = useSession((s) => ({
-    lastMessage: s.messages?.at(0),
+  const { lastMessageId, runAgent } = useSession((s) => ({
+    lastMessageId: s.messages?.at(0)?.id,
     runAgent: s.runAgent,
   }));
-  const isLastMessage = !!message && message.id === lastMessage?.id;
+  const isLastMessage = !!message && message.id === lastMessageId;
 
   const { aid } = useCurrentAgent();
 

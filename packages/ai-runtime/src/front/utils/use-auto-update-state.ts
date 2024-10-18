@@ -26,5 +26,5 @@ export function useAutoUpdateState<S>(
     update();
   }, []);
 
-  return [state, setState];
+  return [current.current, setState];
 }

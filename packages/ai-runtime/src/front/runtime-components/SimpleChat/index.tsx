@@ -47,7 +47,7 @@ function SimpleChatView() {
   }, [scrollToBottom, running]);
 
   return (
-    <SimpleLayout px={0}>
+    <SimpleLayout>
       <HeaderView />
 
       {loading ? (
@@ -68,6 +68,7 @@ function SimpleChatView() {
           <CurrentAgentProvider aid={activeAid}>
             <InputsView
               className="aigne-inputs aigne-simple-chat-inputs"
+              collapsible
               sx={{
                 position: 'sticky',
                 bottom: 0,
