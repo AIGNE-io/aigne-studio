@@ -59,6 +59,8 @@ export default function PromptSetting({
     return [];
   }, [value.type]);
 
+  const valueModel = isPromptAssistant(value) || isRouterAssistant(value) ? value.model : undefined;
+
   const defaultModel = useMemo(() => {
     if (isPromptAssistant(value) || isRouterAssistant(value)) {
       return value?.model || projectSetting?.model || defaultTextModel;
@@ -93,6 +95,14 @@ export default function PromptSetting({
               blockletDid={value.executor.agent.blockletDid}
               projectId={value.executor.agent.projectId}
               agentId={value.executor.agent.id}
+            />
+          ) : !valueModel && projectSetting.executor?.agent?.id ? (
+            <AgentName
+              type="llm-adapter"
+              showIcon
+              blockletDid={projectSetting.executor.agent.blockletDid}
+              projectId={projectSetting.executor.agent.projectId}
+              agentId={projectSetting.executor.agent.id}
             />
           ) : (
             <>

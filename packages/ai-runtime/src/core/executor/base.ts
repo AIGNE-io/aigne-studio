@@ -189,7 +189,7 @@ export abstract class AgentExecutorBase<T> {
       taskId: options.taskId,
       parentTaskId: options.parentTaskId,
       assistantName: agent.name,
-      inputParameters: options.inputs,
+      inputParameters: this.hideSecretInputs(options.inputs || {}, agent),
     });
 
     this.finalInputs = await this.prepareInputs();
@@ -200,7 +200,7 @@ export abstract class AgentExecutorBase<T> {
         type: AssistantResponseType.CHUNK,
         taskId: options.taskId,
         assistantId: agent.id,
-        delta: { object: partial },
+        delta: { object: this.hideSecretInputs(partial, agent) },
       });
     }
 
@@ -219,7 +219,7 @@ export abstract class AgentExecutorBase<T> {
       taskId: options.taskId,
       parentTaskId: options.parentTaskId,
       assistantName: agent.name,
-      inputParameters: this.finalInputs,
+      inputParameters: this.hideSecretInputs(this.finalInputs, agent),
     });
 
     let result: any;
@@ -446,6 +446,7 @@ export abstract class AgentExecutorBase<T> {
         if (parameter.source?.variableFrom === 'secret') {
           const secret =
             inputs?.[parameter.key] ||
+            config.env[(parameter.key || '').toLocaleUpperCase()] ||
             (
               await this.context.getSecret({
                 targetProjectId: agent.project.id,
@@ -921,5 +922,24 @@ export abstract class AgentExecutorBase<T> {
     if (!Array.isArray(list) || !list.length) return null;
 
     return onlyOne ? list.at(-1)!.data : list.map((i) => i.data);
+  }
+
+  hideSecretInputs(partial: { [key: string]: any }, agent: GetAgentResult) {
+    const authInputs = (agent.parameters || []).filter(
+      (i) => i.key && i.type === 'source' && i.source?.variableFrom === 'secret' && !i.hidden
+    );
+
+    const secretInputs = authInputs.reduce(
+      (res, i) => {
+        res[i.key!] = '******';
+        return res;
+      },
+      {} as { [key: string]: any }
+    );
+
+    return {
+      ...(partial || {}),
+      ...secretInputs,
+    };
   }
 }

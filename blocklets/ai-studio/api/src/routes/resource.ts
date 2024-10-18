@@ -8,6 +8,7 @@ import {
   ConfigFile,
   CronFile,
   MemoryFile,
+  Parameter,
   ProjectSettings,
   ResourceProject,
   ResourceTypes,
@@ -21,6 +22,7 @@ import { pathExists } from 'fs-extra';
 import Joi from 'joi';
 import groupBy from 'lodash/groupBy';
 import uniq from 'lodash/uniq';
+import uniqBy from 'lodash/uniqBy';
 import { joinURL } from 'ufo';
 import { Extract } from 'unzipper';
 import { stringify } from 'yaml';
@@ -215,6 +217,7 @@ export function resourceRoutes(router: Router) {
 
     const resourceDir = await getResourceDir({ projectId, releaseId: releaseId || '' });
     const arr = [];
+    const secretKeys: Parameter[] = [];
 
     const referencedKBIds: string[] = [];
     for (const [type, value] of resourceTypes) {
@@ -272,6 +275,14 @@ export function resourceRoutes(router: Router) {
             });
           }
         }
+
+        secretKeys.push(
+          ...agents
+            .flatMap((i) =>
+              (i.parameters ?? []).map((p) => (p.type === 'source' && p.source?.variableFrom === 'secret' ? p : null))
+            )
+            .filter(isNonNullable)
+        );
 
         const data: ResourceProject = {
           agents,
@@ -344,6 +355,17 @@ export function resourceRoutes(router: Router) {
           version: 'latest',
         },
       };
+    }
+
+    if (secretKeys.length > 0) {
+      blockletYml.environments = uniqBy(secretKeys, 'key').map((i) => ({
+        name: (i.key || '').toLocaleUpperCase(),
+        description: i.label || i.placeholder || `Your ${(i.key || '').toLocaleUpperCase()} secret key`,
+        required: false,
+        default: '',
+        secure: true,
+        shared: true,
+      }));
     }
 
     const releaseDir = component.getReleaseExportDir({ projectId, releaseId });

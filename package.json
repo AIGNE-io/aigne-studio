@@ -1,7 +1,7 @@
 {
   "name": "ai-studio",
   "private": true,
-  "version": "0.4.84",
+  "version": "0.4.85",
   "workspaces": [
     "blocklets/*",
     "packages/*"
@@ -73,9 +73,9 @@
     "zx": "^8.1.4"
   },
   "resolutions": {
-    "@abtnode/client": "1.16.33-beta-20241001-015316-119b726d",
-    "@abtnode/constant": "1.16.33-beta-20241001-015316-119b726d",
-    "@abtnode/cron": "1.16.33-beta-20241001-015316-119b726d",
+    "@abtnode/client": "1.16.33-beta-20241015-065257-56072e40",
+    "@abtnode/constant": "1.16.33-beta-20241015-065257-56072e40",
+    "@abtnode/cron": "1.16.33-beta-20241015-065257-56072e40",
     "@abtnode/file-stream-rotator": "^0.6.3",
     "@arcblock/did": "^1.18.135",
     "@arcblock/did-auth": "^1.18.135",
@@ -85,10 +85,10 @@
     "@arcblock/jwt": "^1.18.135",
     "@arcblock/ux": "^2.10.48",
     "@arcblock/ws": "^1.18.135",
-    "@blocklet/js-sdk": "1.16.33-beta-20241001-015316-119b726d",
-    "@blocklet/logger": "1.16.33-beta-20241001-015316-119b726d",
-    "@blocklet/meta": "1.16.33-beta-20241001-015316-119b726d",
-    "@blocklet/sdk": "1.16.33-beta-20241001-015316-119b726d",
+    "@blocklet/js-sdk": "1.16.33-beta-20241015-065257-56072e40",
+    "@blocklet/logger": "1.16.33-beta-20241015-065257-56072e40",
+    "@blocklet/meta": "1.16.33-beta-20241015-065257-56072e40",
+    "@blocklet/sdk": "1.16.33-beta-20241015-065257-56072e40",
     "@blocklet/ui-react": "^2.10.48",
     "@blocklet/uploader": "^0.1.45",
     "@emotion/cache": "^11.13.1",

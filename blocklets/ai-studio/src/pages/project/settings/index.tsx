@@ -3,7 +3,6 @@ import { AssetField } from '@app/components/publish/LogoField';
 import { useCurrentProject } from '@app/contexts/project';
 import UploaderProvider from '@app/contexts/uploader';
 import { getAssetUrl } from '@app/libs/asset';
-import { TOOL_TIP_LEAVE_TOUCH_DELAY } from '@app/libs/constants';
 import { getDefaultBranch, useCurrentGitStore } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
@@ -17,14 +16,12 @@ import {
   Button,
   FormControl,
   FormControlLabel,
-  FormLabel,
   Radio,
   RadioGroup,
   Stack,
   Tabs,
   TextField,
   Theme,
-  Tooltip,
   Typography,
   styled,
   tabClasses,
@@ -43,17 +40,15 @@ import { useAsync } from 'react-use';
 import { UpdateProjectInput } from '../../../../api/src/routes/project';
 import Loading from '../../../components/loading';
 import Avatar from '../../../components/project-settings/avatar';
-import ModelSelectField from '../../../components/selector/model-select-field';
-import SliderNumberField from '../../../components/slider-number-field';
 import { useReadOnly, useSessionContext } from '../../../contexts/session';
 import { getErrorMessage } from '../../../libs/api';
 import { getProjectIconUrl, uploadAsset } from '../../../libs/project';
 import useDialog from '../../../utils/use-dialog';
-import InfoOutlined from '../icons/question';
 import { useProjectState } from '../state';
 import { useProjectStore } from '../yjs-state';
 import AppearanceSetting from './appearance-setting';
 import DidSpacesSetting from './did-spaces-setting';
+import ModelSettings from './model-setting';
 import Readme from './readme';
 import RemoteRepoSetting from './remote-repo-setting';
 
@@ -443,205 +438,7 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
 
           {currentTabIndex === 'modelInfo' && (
             <Box mt={2}>
-              <Stack gap={2}>
-                <Box data-testid="project-setting-model">
-                  <Typography variant="subtitle2" mb={0.5}>
-                    {t('model')}
-                  </Typography>
-
-                  <ModelSelectField
-                    hiddenLabel
-                    fullWidth
-                    value={projectSetting?.model || defaultTextModel}
-                    onChange={(e) => {
-                      setProjectSetting((config) => {
-                        config.model = e.target.value;
-                      });
-                    }}
-                    InputProps={{ readOnly }}
-                    sx={{ width: 1 }}
-                  />
-                </Box>
-
-                {model && (
-                  <Stack gap={1} py={1}>
-                    <Box className="prefer-inline">
-                      <Box>
-                        <Tooltip
-                          title={t('temperatureTip')}
-                          placement="top"
-                          disableInteractive
-                          enterTouchDelay={0}
-                          leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
-                          <FormLabel>
-                            {t('temperature')}
-                            <InfoOutlined
-                              fontSize="small"
-                              sx={{ verticalAlign: 'bottom', ml: 1, color: 'info.main' }}
-                            />
-                          </FormLabel>
-                        </Tooltip>
-                      </Box>
-
-                      <Box data-testid="project-settings-temperature">
-                        <SliderNumberField
-                          readOnly={readOnly}
-                          min={model.temperatureMin}
-                          max={model.temperatureMax}
-                          step={0.1}
-                          sx={{ flex: 1 }}
-                          value={projectSetting?.temperature ?? model.temperatureDefault}
-                          onChange={(_, v) => {
-                            setProjectSetting((config) => {
-                              config.temperature = v;
-                            });
-                          }}
-                        />
-                      </Box>
-                    </Box>
-
-                    <Box className="prefer-inline">
-                      <Box>
-                        <Tooltip
-                          title={t('topPTip')}
-                          placement="top"
-                          disableInteractive
-                          enterTouchDelay={0}
-                          leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
-                          <FormLabel>
-                            {t('topP')}
-                            <InfoOutlined
-                              fontSize="small"
-                              sx={{ verticalAlign: 'bottom', ml: 1, color: 'info.main' }}
-                            />
-                          </FormLabel>
-                        </Tooltip>
-                      </Box>
-
-                      <Box data-testid="project-settings-topP">
-                        <SliderNumberField
-                          readOnly={readOnly}
-                          min={model.topPMin}
-                          max={model.topPMax}
-                          step={0.1}
-                          value={projectSetting?.topP ?? model.topPDefault}
-                          onChange={(_, v) => {
-                            setProjectSetting((config) => {
-                              config.topP = v;
-                            });
-                          }}
-                          sx={{ flex: 1 }}
-                        />
-                      </Box>
-                    </Box>
-
-                    <Box className="prefer-inline">
-                      <Box>
-                        <Tooltip
-                          title={t('presencePenaltyTip')}
-                          placement="top"
-                          disableInteractive
-                          enterTouchDelay={0}
-                          leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
-                          <FormLabel>
-                            {t('presencePenalty')}
-                            <InfoOutlined
-                              fontSize="small"
-                              sx={{ verticalAlign: 'bottom', ml: 1, color: 'info.main' }}
-                            />
-                          </FormLabel>
-                        </Tooltip>
-                      </Box>
-
-                      <Box data-testid="project-settings-presence-penalty">
-                        <SliderNumberField
-                          readOnly={readOnly}
-                          min={model.presencePenaltyMin}
-                          max={model.presencePenaltyMax}
-                          step={0.1}
-                          sx={{ flex: 1 }}
-                          value={projectSetting?.presencePenalty ?? model.presencePenaltyDefault}
-                          onChange={(_, v) => {
-                            setProjectSetting((config) => {
-                              config.presencePenalty = v;
-                            });
-                          }}
-                        />
-                      </Box>
-                    </Box>
-
-                    <Box className="prefer-inline">
-                      <Box>
-                        <Tooltip
-                          title={t('frequencyPenaltyTip')}
-                          placement="top"
-                          disableInteractive
-                          enterTouchDelay={0}
-                          leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
-                          <FormLabel>
-                            {t('frequencyPenalty')}
-                            <InfoOutlined
-                              fontSize="small"
-                              sx={{ verticalAlign: 'bottom', ml: 1, color: 'info.main' }}
-                            />
-                          </FormLabel>
-                        </Tooltip>
-                      </Box>
-
-                      <Box data-testid="project-settings-frequency-penalty">
-                        <SliderNumberField
-                          readOnly={readOnly}
-                          min={model.frequencyPenaltyMin}
-                          max={model.frequencyPenaltyMax}
-                          step={0.1}
-                          sx={{ flex: 1 }}
-                          value={projectSetting?.frequencyPenalty ?? model.frequencyPenaltyDefault}
-                          onChange={(_, v) => {
-                            setProjectSetting((config) => {
-                              config.frequencyPenalty = v;
-                            });
-                          }}
-                        />
-                      </Box>
-                    </Box>
-
-                    <Box className="prefer-inline">
-                      <Box>
-                        <Tooltip
-                          title={t('maxTokensTip')}
-                          placement="top"
-                          disableInteractive
-                          enterTouchDelay={0}
-                          leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
-                          <FormLabel>
-                            {t('maxTokens')}
-                            <InfoOutlined
-                              fontSize="small"
-                              sx={{ verticalAlign: 'bottom', ml: 1, color: 'info.main' }}
-                            />
-                          </FormLabel>
-                        </Tooltip>
-                      </Box>
-
-                      <Box data-testid="project-settings-max-tokens">
-                        <SliderNumberField
-                          readOnly={readOnly}
-                          min={model.maxTokensMin}
-                          max={model.maxTokensMax}
-                          step={1}
-                          sx={{ flex: 1 }}
-                          value={projectSetting?.maxTokens ?? model.maxTokensDefault}
-                          onChange={(_, v) => {
-                            setProjectSetting((config) => {
-                              config.maxTokens = v;
-                            });
-                          }}
-                        />
-                      </Box>
-                    </Box>
-                  </Stack>
-                )}
-              </Stack>
+              <ModelSettings projectId={projectId} projectRef={projectRef} model={model} />
             </Box>
           )}
 
