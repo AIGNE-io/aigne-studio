@@ -1,12 +1,10 @@
 import { useSessionContext } from '@app/contexts/session';
-import { aigneStudioApi } from '@blocklet/aigne-sdk/api/api';
 import { QuotaKey, Quotas } from '@blocklet/aigne-sdk/quotas';
-import { useRequest } from 'ahooks';
 import { create } from 'zustand';
 
 const PRO_ROLE = 'aignePro';
 
-export const useIsProUser = () => {
+export const useIsPremiumUser = () => {
   const { session } = useSessionContext();
   return session?.user?.passports?.map((x: any) => x.name).includes(PRO_ROLE);
 };
@@ -30,7 +28,7 @@ export const showPlanUpgrade = (type?: QuotaKey) => {
 export function useMultiTenantRestriction() {
   const { planUpgradeVisible, type, showPlanUpgrade, hidePlanUpgrade } = useMultiTenantRestrictionStore();
   const { session } = useSessionContext();
-  const quotas = new Quotas(window.blocklet?.preferences?.quotas, window.blocklet?.tenantMode === 'multiple');
+  const quotas = new Quotas(window.blocklet?.preferences?.quotas);
   const quotaChecker = {
     checkCronJobs() {
       if (quotas.checkCronJobs(session?.user?.role)) return true;
@@ -51,14 +49,4 @@ export function useMultiTenantRestriction() {
     hidePlanUpgrade,
     quotaChecker,
   };
-}
-
-export async function getProPaymentLink(): Promise<string | null> {
-  // await new Promise((resolve) => setTimeout(resolve, 3000));
-  return aigneStudioApi.get('/api/pro-payment-link').then((res) => res.data?.link);
-}
-
-export function useProPaymentLink() {
-  const { data, loading, error } = useRequest(getProPaymentLink);
-  return { proPaymentLink: loading || error ? null : data, loading };
 }

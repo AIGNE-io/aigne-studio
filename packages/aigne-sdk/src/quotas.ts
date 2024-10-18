@@ -19,10 +19,7 @@ const UNLIMITED_QUOTA = Number.MAX_SAFE_INTEGER;
 export class Quotas implements QuotaChecker {
   private quotaConfigs: Record<string, QuotaPreferenceConfigItem> = {};
 
-  constructor(
-    preferenceConfig: QuotaPreferenceConfigItem[],
-    private isMultiTenantMode: boolean
-  ) {
+  constructor(preferenceConfig: QuotaPreferenceConfigItem[]) {
     this.setConfigs(preferenceConfig || []);
   }
 

@@ -24,7 +24,7 @@ import { useState } from 'react';
 import { joinURL } from 'ufo';
 
 import { PricingTable } from './pricing-table';
-import { useIsProUser, useMultiTenantRestriction, useProPaymentLink } from './state';
+import { useIsProUser, useMultiTenantRestriction } from './state';
 
 interface Props {}
 
@@ -33,7 +33,6 @@ interface Props {}
 export function PlanUpgrade({ ...rest }: Props) {
   const { hidePlanUpgrade, planUpgradeVisible, type } = useMultiTenantRestriction();
   const { t } = useLocaleContext();
-  const { proPaymentLink, loading } = useProPaymentLink();
   const { session } = useSessionContext();
   const isProUser = useIsProUser();
   const downSm = useMediaQuery<Theme>((theme) => theme.breakpoints.down('sm'));
@@ -73,8 +72,12 @@ export function PlanUpgrade({ ...rest }: Props) {
       buttonText: 'Upgrade',
       isFeatured: true,
 
-      buttonLink: proPaymentLink,
-      buttonLoading: loading || !proPaymentLink,
+      buttonLink: {
+        monthly:
+          'https://bbqa24gzb36oqfvidahqzdnducqbxbscoaha6askp24.did.abtnet.io/payment/checkout/pay/cs_hnwYahllmYPFo9GNdkLfmY41Ze0uBWjDVuFWXXiM8Ux4m9SZPi9vvdAAFb?',
+        yearly:
+          'https://bbqa24gzb36oqfvidahqzdnducqbxbscoaha6askp24.did.abtnet.io/payment/checkout/pay/cs_0vnjqiQmDAsLYlJJ9ks3ZIXI9CKixgEp6xkwRw5CEOFlwnf2gAr5lR1ypG?',
+      },
       buttonDisabled: isProUser,
       ...(isProUser && { active: true, buttonText: 'Subscribed' }),
     },

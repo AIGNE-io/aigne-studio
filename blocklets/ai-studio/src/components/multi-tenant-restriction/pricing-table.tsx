@@ -4,21 +4,19 @@ import { LoadingButton } from '@mui/lab';
 import { Box, SxProps, Tooltip, Typography } from '@mui/material';
 
 type BillingCycle = 'monthly' | 'yearly';
+type CycleBasedValue = string | { monthly: string; yearly: string };
 type Feature = string | { text: string; tooltip?: string };
-type Price = string | { monthly: string; yearly: string };
-type Discount = string | { monthly: string; yearly: string };
 
 interface Plan {
   name: string;
   featuresDescription?: string;
   features: Feature[];
-  price?: Price;
+  price?: CycleBasedValue;
   priceSuffix?: string;
-  discount?: Discount;
+  discount?: CycleBasedValue;
   isStartingPrice?: boolean;
   buttonText: string;
-  buttonLink: string;
-  buttonLoading?: boolean;
+  link: CycleBasedValue;
   active?: boolean;
   isFeatured?: boolean;
 }
@@ -171,7 +169,6 @@ function PricingTablePlan({ plan, billingCycle }: { plan: Plan; billingCycle?: B
             <LoadingButton
               variant={plan.isFeatured ? 'contained' : 'outlined'}
               color="primary"
-              loading={plan.buttonLoading}
               disabled={plan.active}
               sx={{
                 width: 1,
@@ -179,7 +176,7 @@ function PricingTablePlan({ plan, billingCycle }: { plan: Plan; billingCycle?: B
                 ...(!plan.isFeatured && { bgcolor: '#fff' }),
               }}
               onClick={() => {
-                window.open(plan.buttonLink, '_blank');
+                window.open(typeof plan.link === 'string' ? plan.link : plan.link[billingCycle!], '_blank');
               }}>
               {plan.buttonText}
             </LoadingButton>
