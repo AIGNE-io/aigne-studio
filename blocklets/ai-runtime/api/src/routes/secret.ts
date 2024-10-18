@@ -110,7 +110,7 @@ router.get('/has-value', user(), auth(), async (req, res) => {
 
   if (query.blockletDid) {
     const agent = await getAgent({
-      aid: stringifyIdentity({ 
+      aid: stringifyIdentity({
         blockletDid: query.blockletDid,
         projectId: query.targetProjectId,
         projectRef: 'main',
