@@ -6,6 +6,7 @@ import { AgentErrorView } from '../../components/AgentErrorBoundary';
 import CustomComponentRenderer from '../../components/CustomComponentRenderer/CustomComponentRenderer';
 import SimpleLayout from '../../components/Layout/SimpleLayout';
 import { DEFAULT_HEADER_COMPONENT_ID } from '../../constants';
+import { useActiveAgent } from '../../contexts/ActiveAgent';
 import { ComponentPreferencesBase, ComponentPreferencesProvider } from '../../contexts/ComponentPreferences';
 import { CurrentAgentProvider, useCurrentAgent } from '../../contexts/CurrentAgent';
 import { CurrentMessageProvider } from '../../contexts/CurrentMessage';
@@ -14,23 +15,29 @@ import { useAppearances, useProfile } from '../../hooks/use-appearances';
 import InputsView from '../SimpleChat/InputsView';
 import OpeningMessageView from './OpeningMessageView';
 
-export interface SimplePagePreferences extends ComponentPreferencesBase {}
+export interface SimplePagePreferences extends ComponentPreferencesBase {
+  resultTitle?: string;
+}
 
-export default function SimplePage({ resultTitle, ...preferences }: { resultTitle?: string } & SimplePagePreferences) {
+export default function SimplePage({ ...preferences }: SimplePagePreferences) {
+  const { aid: activeAid } = useActiveAgent();
+
   return (
     <ComponentPreferencesProvider {...preferences}>
       <SimpleLayout pb={4}>
-        <HeaderView px={{ xs: 2, sm: 3 }} />
+        <CurrentAgentProvider aid={activeAid}>
+          <HeaderView px={{ xs: 2, sm: 3 }} />
 
-        <OpeningMessageView my={4} px={{ xs: 2, sm: 3 }} />
+          <OpeningMessageView my={4} px={{ xs: 2, sm: 3 }} />
 
-        <InputsView className="aigne-inputs aigne-simple-page-inputs" />
+          <InputsView className="aigne-inputs aigne-simple-page-inputs" />
 
-        <OutputView
-          className="aigne-outputs aigne-simple-page-outputs"
-          resultTitle={resultTitle}
-          px={{ xs: 2, sm: 3 }}
-        />
+          <OutputView
+            className="aigne-outputs aigne-simple-page-outputs"
+            resultTitle={preferences.resultTitle}
+            px={{ xs: 2, sm: 3 }}
+          />
+        </CurrentAgentProvider>
       </SimpleLayout>
     </ComponentPreferencesProvider>
   );

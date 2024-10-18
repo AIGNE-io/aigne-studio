@@ -48,24 +48,22 @@ function SimpleChatView() {
 
   return (
     <SimpleLayout>
-      <HeaderView />
+      <CurrentAgentProvider aid={activeAid}>
+        <HeaderView />
 
-      {loading ? (
-        <Box textAlign="center" my={10}>
-          <CircularProgress size={24} />
-        </Box>
-      ) : (
-        <>
-          <CurrentAgentProvider aid={activeAid}>
+        {loading ? (
+          <Box textAlign="center" my={10}>
+            <CircularProgress size={24} />
+          </Box>
+        ) : (
+          <>
             <MessagesView
               className="aigne-outputs aigne-simple-chat-outputs"
               flexGrow={1}
               pb={10}
               px={{ xs: 2, sm: 3 }}
             />
-          </CurrentAgentProvider>
 
-          <CurrentAgentProvider aid={activeAid}>
             <InputsView
               className="aigne-inputs aigne-simple-chat-inputs"
               collapsible
@@ -78,9 +76,9 @@ function SimpleChatView() {
                 backdropFilter: 'blur(16px)',
               }}
             />
-          </CurrentAgentProvider>
-        </>
-      )}
+          </>
+        )}
+      </CurrentAgentProvider>
     </SimpleLayout>
   );
 }

@@ -1,15 +1,12 @@
 import MarkdownRenderer from '../../components/MarkdownRenderer';
 import OutputFieldContainer from '../../components/OutputFieldContainer';
-import { useCurrentAgent } from '../../contexts/CurrentAgent';
 import { useCurrentMessageOutput } from '../../contexts/CurrentMessage';
 import { useOpeningMessage } from '../../hooks/use-appearances';
 
 export default function OpeningQuestionsView() {
   const { output } = useCurrentMessageOutput();
 
-  const { aid } = useCurrentAgent();
-
-  const opening = useOpeningMessage({ aid });
+  const opening = useOpeningMessage();
 
   if (!opening?.message) return null;
 
