@@ -1,8 +1,9 @@
-import { ReactNode, createContext, useContext, useMemo, useState } from 'react';
+import { ReactNode, createContext, useContext, useMemo } from 'react';
 
 import { parseIdentity, stringifyIdentity } from '../../common/aid';
 import { RuntimeOutputVariable } from '../../types';
 import { getOutputVariableInitialValue } from '../utils/runtime-output-schema';
+import { useAutoUpdateState } from '../utils/use-auto-update-state';
 import { useAgent } from './Agent';
 import { useEntryAgent } from './EntryAgent';
 
@@ -31,8 +32,8 @@ export function ActiveAgentProvider({ children }: { children?: ReactNode }) {
     return stringifyIdentity({ ...parseIdentity(entryAid, { rejectWhenError: true }), agentId });
   }, [entryAid, agent]);
 
-  const [activeAid, setActiveAid] = useState(childAid);
-  const activeAgent = useMemo(() => ({ aid: activeAid, setActiveAid }), [activeAid, setActiveAid]);
+  const [activeAid, setActiveAid] = useAutoUpdateState(childAid, [childAid]);
+  const context = useMemo(() => ({ aid: activeAid, setActiveAid }), [activeAid, setActiveAid]);
 
-  return <activeAgentContext.Provider value={activeAgent}>{children}</activeAgentContext.Provider>;
+  return <activeAgentContext.Provider value={context}>{children}</activeAgentContext.Provider>;
 }
