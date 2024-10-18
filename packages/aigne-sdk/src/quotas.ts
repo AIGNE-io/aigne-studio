@@ -6,17 +6,9 @@ type QuotaPreferenceConfigItem = {
   quotas: { passport: string; value: number }[];
 };
 
-interface QuotaChecker {
-  getQuota: (quotaKey: QuotaKey, passport?: string) => number;
-  checkProjectLimit: (used: number, passport?: string) => boolean;
-  checkRequestLimit: (used: number, passport?: string) => boolean;
-  checkCronJobs: (passport?: string) => boolean;
-  checkCustomBrand: (passport?: string) => boolean;
-}
-
 const UNLIMITED_QUOTA = Number.MAX_SAFE_INTEGER;
 
-export class Quotas implements QuotaChecker {
+export class Quotas {
   private quotaConfigs: Record<string, QuotaPreferenceConfigItem> = {};
 
   constructor(preferenceConfig: QuotaPreferenceConfigItem[]) {
