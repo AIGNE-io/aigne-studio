@@ -857,4 +857,5 @@ export default flatten({
   selectEntryAgentTitle: 'Select Entry Agent',
   selectEntryAgentDescription: 'Before deployment, you need to set up the entry point agent.',
   activeWhen: 'Active when',
+  selectTemplateDynamicInputTip: 'Taken over automatically by Agent',
 });

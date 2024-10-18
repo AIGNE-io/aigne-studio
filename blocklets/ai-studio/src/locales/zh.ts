@@ -848,4 +848,5 @@ export default flatten({
   selectEntryAgentTitle: '设置入口 Agent',
   selectEntryAgentDescription: '在部署之前，您需要设置入口 Agent',
   activeWhen: '激活条件',
+  selectTemplateDynamicInputTip: '已被 Agent 自动接管',
 });
