@@ -363,7 +363,7 @@ export function resourceRoutes(router: Router) {
         description: i.label || i.placeholder || `Your ${(i.key || '').toLocaleUpperCase()} secret key`,
         required: false,
         default: '',
-        secure: false,
+        secure: true,
         shared: true,
       }));
     }
