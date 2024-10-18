@@ -1,3 +1,7 @@
+## 0.4.83 (2024-10-18)
+
+- fix: opening message not working
+
 ## 0.4.82 (2024-10-18)
 
 - feat: support tracking pageView and events for GA
