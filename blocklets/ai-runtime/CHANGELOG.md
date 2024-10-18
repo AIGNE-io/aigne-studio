@@ -1,3 +1,7 @@
+## 0.4.85 (2024-10-19)
+
+- feat: support global config secrets for resource blocklet
+
 ## 0.4.84 (2024-10-18)
 
 - feat: add pricing, plans, and quota management
