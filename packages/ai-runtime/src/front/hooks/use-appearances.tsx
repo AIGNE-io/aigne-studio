@@ -125,13 +125,11 @@ export function useProfile(args?: { aid: string }) {
 export function useOpeningMessage(args?: { aid: string }) {
   const { aid: entryAid } = useEntryAgent();
   const entryAgent = useAgent({ aid: entryAid });
-
   const entryProfile = useProfile({ aid: entryAid });
 
   const { aid } = useCurrentAgent();
   const agent = useAgent({ aid: args?.aid || aid });
-
-  const profile = useProfile(args);
+  const profile = useProfile({ aid: args?.aid || aid });
 
   return useMemo(() => {
     const agentOpening = getOutputVariableInitialValue(agent, RuntimeOutputVariable.openingMessage);
@@ -144,7 +142,6 @@ export function useOpeningMessage(args?: { aid: string }) {
     }
 
     const entryOpening = getOutputVariableInitialValue(entryAgent, RuntimeOutputVariable.openingMessage);
-
     if (entryOpening?.message) {
       return {
         agent: entryAgent,
