@@ -1,3 +1,7 @@
+## 0.4.84 (2024-10-18)
+
+- feat: add pricing, plans, and quota management
+
 ## 0.4.83 (2024-10-18)
 
 - fix: opening message not working
