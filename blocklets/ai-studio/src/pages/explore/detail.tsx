@@ -10,7 +10,7 @@ import Toast from '@arcblock/ux/lib/Toast';
 import { ProjectSettings } from '@blocklet/ai-runtime/types';
 import { getAgentByDeploymentId } from '@blocklet/aigne-sdk/api/agent';
 import AgentView from '@blocklet/aigne-sdk/components/AgentView';
-import ScrollView from '@blocklet/pages-kit/builtin/async/ai-runtime/components/ScrollView';
+import { ScrollView } from '@blocklet/aigne-sdk/components/ai-runtime';
 import { Icon } from '@iconify-icon/react';
 import ChevronLeft from '@iconify-icons/tabler/chevron-left';
 import PlayIcon from '@iconify-icons/tabler/player-play-filled';
@@ -283,7 +283,7 @@ function PreviewPage({ deployment, project }: { deployment: Deployment; project:
                   <CircularProgress size={24} />
                 </Stack>
               }>
-              <AgentView aid={data?.identity?.aid} working scrollViewProps={{ disabled: true }} hideHeaderMenuButton />
+              <AgentView aid={data?.identity?.aid} working hideHeaderMenuButton />
             </Suspense>
           </ScrollView>
         </ThemeProvider>

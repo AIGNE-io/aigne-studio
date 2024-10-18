@@ -179,7 +179,10 @@ export default function AddOutputVariableButton({
 
       <Divider sx={{ my: '4px !important', p: 0 }} />
 
-      <MenuItem data-testid="add-output-variable-button-custom-output" onClick={() => onSelect?.({ name: '' })} disabled={disabled}>
+      <MenuItem
+        data-testid="add-output-variable-button-custom-output"
+        onClick={() => onSelect?.({ name: '' })}
+        disabled={disabled}>
         <ListItemIcon>
           <Icon icon={PlusIcon} />
         </ListItemIcon>
