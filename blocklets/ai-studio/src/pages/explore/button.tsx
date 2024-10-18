@@ -5,7 +5,7 @@ import { createProject } from '@app/libs/project';
 import currentGitStore from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { ProjectSettings } from '@blocklet/ai-runtime/types';
+import { ProjectSettings, RuntimeErrorType } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import twitterIcon from '@iconify-icons/tabler/brand-twitter';
 import externalLinkIcon from '@iconify-icons/tabler/external-link';
@@ -80,8 +80,8 @@ export function MakeYoursButton({ deployment, ...props }: { deployment: Deployme
       currentGitStore.setState({ currentProjectId: project.id });
       navigate(joinURL('/projects', project.id));
     } catch (error) {
-      const errorMessage = axios.isAxiosError(error) ? error.response?.data?.error?.message : error.message;
-      if (String(errorMessage || '').includes('Project limit exceeded')) {
+      const type = axios.isAxiosError(error) ? error.response?.data?.error?.type : error.type;
+      if (type === RuntimeErrorType.ProjectLimitExceededError) {
         showPlanUpgrade('projectLimit');
       } else {
         Toast.error(getErrorMessage(error));

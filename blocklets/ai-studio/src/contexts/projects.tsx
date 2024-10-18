@@ -1,5 +1,6 @@
 import { showPlanUpgrade } from '@app/components/multi-tenant-restriction';
 import { useCurrentGitStore } from '@app/store/current-git-store';
+import { RuntimeError, RuntimeErrorType } from '@blocklet/ai-runtime/types/runtime/error';
 import { useCallback, useEffect } from 'react';
 import { atom, useRecoilState } from 'recoil';
 
@@ -128,7 +129,10 @@ export const useProjectsState = () => {
       const currentLimit = window.blocklet?.preferences?.multiTenantProjectLimits;
       if (count >= currentLimit && !isPromptAdmin) {
         createLimitDialog();
-        throw new Error(`Project limit exceeded (current: ${count}, limit: ${currentLimit}) `);
+        throw new RuntimeError(
+          RuntimeErrorType.ProjectLimitExceededError,
+          `Project limit exceeded (current: ${count}, limit: ${currentLimit}) `
+        );
       }
     }
   };

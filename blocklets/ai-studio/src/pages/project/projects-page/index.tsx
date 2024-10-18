@@ -5,6 +5,7 @@ import { EVENTS } from '@arcblock/did-connect/lib/Session/libs/constants';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
+import { RuntimeErrorType } from '@blocklet/ai-runtime/types/runtime/error';
 import { cx } from '@emotion/css';
 import { Icon } from '@iconify-icon/react';
 import GithubIcon from '@iconify-icons/tabler/brand-github';
@@ -356,7 +357,7 @@ function ProjectMenu() {
             })
               .catch((error) => {
                 const message = getErrorMessage(error);
-                if (String(message || '').includes('Project limit exceeded')) {
+                if (error.type === RuntimeErrorType.ProjectLimitExceededError) {
                   createLimitDialog();
                 } else {
                   Toast.error(message);
@@ -624,7 +625,7 @@ function ProjectList({
                         navigate(joinURL('/projects', project.id));
                       } catch (error) {
                         const message = getErrorMessage(error);
-                        if (String(message || '').includes('Project limit exceeded')) {
+                        if (error.type === RuntimeErrorType.ProjectLimitExceededError) {
                           createLimitDialog();
                         } else {
                           Toast.error(message);
@@ -666,7 +667,7 @@ function ProjectList({
                       navigate(joinURL('/projects', project.id!));
                     } catch (error) {
                       const message = getErrorMessage(error);
-                      if (String(message || '').includes('Project limit exceeded')) {
+                      if (error.type === RuntimeErrorType.ProjectLimitExceededError) {
                         createLimitDialog();
                       } else {
                         Toast.error(message);

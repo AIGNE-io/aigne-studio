@@ -3,6 +3,7 @@ import currentGitStore from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
+import { RuntimeErrorType } from '@blocklet/ai-runtime/types/runtime/error';
 import RocketLaunchRoundedIcon from '@mui/icons-material/RocketLaunchRounded';
 import {
   Avatar,
@@ -108,7 +109,7 @@ export default function ImportFromTemplates({
                           navigate(joinURL('/projects', project.id));
                         } catch (error) {
                           const message = getErrorMessage(error);
-                          if (String(message || '').includes('Project limit exceeded')) {
+                          if (error.type === RuntimeErrorType.ProjectLimitExceededError) {
                             createLimitDialog();
                           } else {
                             Toast.error(message);

@@ -6,6 +6,7 @@ import currentGitStore from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { getWalletDid } from '@arcblock/ux/lib/SessionUser/libs/utils';
 import Toast from '@arcblock/ux/lib/Toast';
+import { RuntimeErrorType } from '@blocklet/ai-runtime/types/runtime/error';
 import { Icon } from '@iconify-icon/react';
 import ArrowRightAltRoundedIcon from '@iconify-icons/material-symbols/arrow-right-alt-rounded';
 import PlusIcon from '@iconify-icons/tabler/plus';
@@ -222,7 +223,7 @@ export default function FromDidSpacesImport() {
     } catch (error) {
       console.error(error);
       const message = getErrorMessage(error);
-      if (String(message || '').includes('Project limit exceeded')) {
+      if (error.type === RuntimeErrorType.ProjectLimitExceededError) {
         createLimitDialog();
       } else {
         Toast.error(message);
@@ -266,7 +267,7 @@ export default function FromDidSpacesImport() {
       } catch (error) {
         form.reset(value);
         const message = getErrorMessage(error);
-        if (String(message || '').includes('Project limit exceeded')) {
+        if (error.type === RuntimeErrorType.ProjectLimitExceededError) {
           createLimitDialog();
         } else {
           Toast.error(message);

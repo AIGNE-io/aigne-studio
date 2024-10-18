@@ -12,6 +12,8 @@ import {
   MemoryFile,
   ProjectSettings,
   ResourceProject,
+  RuntimeError,
+  RuntimeErrorType,
   fileToYjs,
   isAssistant,
   nextAssistantId,
@@ -244,8 +246,9 @@ export const checkProjectLimit = async ({ req }: { req: Request }) => {
       !ensureComponentCallOrRolesMatch(req, Config.serviceModePermissionMap.ensurePromptsAdminRoles) &&
       !quotaChecker.checkProjectLimit(count, req.user?.role)
     ) {
-      throw new Error(
-        `Project limit exceeded (current: ${count}, limit: ${quotaChecker.getQuota('projectLimit', req.user?.role)}) `
+      throw new RuntimeError(
+        RuntimeErrorType.ProjectLimitExceededError,
+        `Project limit exceeded (current: ${count}, limit: ${quotaChecker.getQuota('projectLimit', req.user?.role)})`
       );
     }
   }
