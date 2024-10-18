@@ -7,7 +7,7 @@ type BillingCycle = 'monthly' | 'yearly';
 type CycleBasedValue = string | { monthly: string; yearly: string };
 type Feature = string | { text: string; tooltip?: string };
 
-interface Plan {
+export interface Plan {
   name: string;
   featuresDescription?: string;
   features: Feature[];
@@ -15,10 +15,10 @@ interface Plan {
   priceSuffix?: string;
   discount?: CycleBasedValue;
   isStartingPrice?: boolean;
-  buttonText: string;
+  buttonText: string | [string, string];
   link: CycleBasedValue;
-  active?: boolean;
   isFeatured?: boolean;
+  qualified?: boolean;
 }
 
 interface PricingTableProps {
@@ -47,6 +47,8 @@ function PricingTablePlan({ plan, billingCycle }: { plan: Plan; billingCycle?: B
       </Box>
     );
   };
+  const buttonText =
+    typeof plan.buttonText === 'string' ? plan.buttonText : plan.qualified ? plan.buttonText[1] : plan.buttonText[0];
   return (
     <Box
       sx={{
@@ -165,11 +167,11 @@ function PricingTablePlan({ plan, billingCycle }: { plan: Plan; billingCycle?: B
           ))}
         </Box>
         <Box sx={{ mt: 'auto' }}>
-          {plan.buttonText && (
+          {buttonText && (
             <LoadingButton
               variant={plan.isFeatured ? 'contained' : 'outlined'}
               color="primary"
-              disabled={plan.active}
+              disabled={plan.qualified}
               sx={{
                 width: 1,
                 py: 0.75,
@@ -178,7 +180,7 @@ function PricingTablePlan({ plan, billingCycle }: { plan: Plan; billingCycle?: B
               onClick={() => {
                 window.open(typeof plan.link === 'string' ? plan.link : plan.link[billingCycle!], '_blank');
               }}>
-              {plan.buttonText}
+              {buttonText}
             </LoadingButton>
           )}
         </Box>

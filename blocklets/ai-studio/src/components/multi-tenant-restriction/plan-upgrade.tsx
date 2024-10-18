@@ -1,5 +1,3 @@
-import { useSessionContext } from '@app/contexts/session';
-import { AIGNE_STUDIO_MOUNT_POINT } from '@app/libs/constants';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Icon } from '@iconify-icon/react';
 import ArrowUpIcon from '@iconify-icons/tabler/circle-arrow-up';
@@ -21,95 +19,27 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import { useState } from 'react';
-import { joinURL } from 'ufo';
 
 import { PricingTable } from './pricing-table';
-import { useIsProUser, useMultiTenantRestriction } from './state';
+import { useMultiTenantRestriction, usePlans } from './state';
 
-interface Props {}
-
-// const AI_STUDIO_STORE = 'https://registry.arcblock.io/blocklets/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
-
-export function PlanUpgrade({ ...rest }: Props) {
+export function PlanUpgrade() {
   const { hidePlanUpgrade, planUpgradeVisible, type } = useMultiTenantRestriction();
   const { t } = useLocaleContext();
-  const { session } = useSessionContext();
-  const isProUser = useIsProUser();
   const downSm = useMediaQuery<Theme>((theme) => theme.breakpoints.down('sm'));
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+  const plans = usePlans();
 
-  const aignePlansEN = [
-    {
-      name: 'Starter',
-      featuresDescription: 'Includes',
-      features: [
-        '3 projects',
-        '100 requests per project',
-        'Dataset collection',
-        'Testing and evaluation',
-        'Prompt management',
-        {
-          text: 'Data sync with DID Space',
-          tooltip: 'DID Wallet required',
-        },
-      ],
-      price: 'FREE',
-      buttonText: 'Sign up',
-
-      buttonLink: joinURL('/', AIGNE_STUDIO_MOUNT_POINT),
-      ...(session?.user && { buttonText: '' }),
-    },
-    {
-      name: 'Premium',
-      featuresDescription: 'Everything in Starter, plus',
-      features: ['20 projects', '1000 requests per project', 'Unlimited agent deployments', 'Private agent publishing'],
-      price: {
-        monthly: '10 ABT',
-        yearly: '8 ABT',
-      },
-      priceSuffix: '/ month',
-      discount: { monthly: '', yearly: '20% OFF' },
-      buttonText: 'Upgrade',
-      isFeatured: true,
-
-      buttonLink: {
-        monthly:
-          'https://bbqa24gzb36oqfvidahqzdnducqbxbscoaha6askp24.did.abtnet.io/payment/checkout/pay/cs_hnwYahllmYPFo9GNdkLfmY41Ze0uBWjDVuFWXXiM8Ux4m9SZPi9vvdAAFb?',
-        yearly:
-          'https://bbqa24gzb36oqfvidahqzdnducqbxbscoaha6askp24.did.abtnet.io/payment/checkout/pay/cs_0vnjqiQmDAsLYlJJ9ks3ZIXI9CKixgEp6xkwRw5CEOFlwnf2gAr5lR1ypG?',
-      },
-      buttonDisabled: isProUser,
-      ...(isProUser && { active: true, buttonText: 'Subscribed' }),
-    },
-    {
-      name: 'Professional',
-      featuresDescription: 'Run your own AIGNE Studio',
-      features: [
-        'Unlimited projects',
-        'Unlimited requests per project',
-        'Unlimited agent deployments',
-        'Private agent publishing',
-        {
-          text: 'Pay as you go',
-          tooltip: 'Use your own API key or subscribe to our AI Kit Service',
-        },
-      ],
-      price: '12 ABT',
-      priceSuffix: '/ month',
-      isStartingPrice: true,
-      buttonText: 'Launch',
-      buttonLink:
-        'https://launcher.arcblock.io/app/?blocklet_meta_url=https%3A%2F%2Fstore.blocklet.dev%2Fapi%2Fblocklets%2Fz8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB%2Fblocklet.json&product_type=serverless',
-    },
-  ] as any;
+  if (!plans) {
+    return null;
+  }
 
   return (
     <Dialog
       fullScreen={downSm}
       open={planUpgradeVisible}
       onClose={hidePlanUpgrade}
-      PaperProps={{ sx: { width: { xs: '100%', md: 860, lg: 1100 }, maxWidth: '100%', pb: 2 } }}
-      {...rest}>
+      PaperProps={{ sx: { width: { xs: '100%', md: 860, lg: 1100 }, maxWidth: '100%', pb: 2 } }}>
       <DialogTitle className="between" sx={{ border: 0 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
           <Icon icon={ArrowUpIcon} />
@@ -179,7 +109,7 @@ export function PlanUpgrade({ ...rest }: Props) {
               <ToggleButton value="yearly">Yearly</ToggleButton>
             </ToggleButtonGroup>
           </Box>
-          <PricingTable plans={aignePlansEN} billingCycle={billingCycle} sx={{ mt: 1 }} />
+          <PricingTable plans={plans} billingCycle={billingCycle} sx={{ mt: 1 }} />
 
           <Box
             component={Link}
