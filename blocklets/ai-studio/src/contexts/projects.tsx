@@ -1,7 +1,6 @@
+import { showPlanUpgrade } from '@app/components/multi-tenant-restriction';
 import { useCurrentGitStore } from '@app/store/current-git-store';
-import useDialog from '@app/utils/use-dialog';
-import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { Box } from '@mui/material';
+import { RuntimeError, RuntimeErrorType } from '@blocklet/ai-runtime/types/runtime/error';
 import { useCallback, useEffect } from 'react';
 import { atom, useRecoilState } from 'recoil';
 
@@ -9,8 +8,6 @@ import * as api from '../libs/project';
 import { useIsPromptAdmin, useSessionContext } from './session';
 
 export type ProjectsSection = 'templates' | 'projects' | 'examples';
-
-const AI_STUDIO_STORE = 'https://registry.arcblock.io/blocklets/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
 
 export interface ProjectsState {
   templates: api.ProjectWithUserInfo[];
@@ -37,9 +34,7 @@ export const useProjectsState = () => {
   const { session } = useSessionContext();
   const setProjectGitSettings = useCurrentGitStore((i) => i.setProjectGitSettings);
   const isPromptAdmin = useIsPromptAdmin();
-  const { dialog, showDialog } = useDialog();
 
-  const { t } = useLocaleContext();
   const refetch = useCallback(async () => {
     setState((v) => ({ ...v, loading: true }));
     try {
@@ -124,28 +119,7 @@ export const useProjectsState = () => {
   );
 
   const createLimitDialog = () => {
-    showDialog({
-      formSx: {
-        '.MuiDialogTitle-root': {
-          border: 0,
-        },
-        '.MuiDialogActions-root': {
-          border: 0,
-        },
-      },
-      disableEnforceFocus: true,
-      fullWidth: true,
-      maxWidth: 'sm',
-      title: t('launchMore'),
-      content: (
-        <Box sx={{ whiteSpace: 'break-spaces' }} data-testid="launchMoreContent">
-          {t('launchMoreContent', { length: window.blocklet?.preferences?.multiTenantProjectLimits })}
-        </Box>
-      ),
-      cancelText: t('cancel'),
-      okText: t('launchMoreConfirm'),
-      onOk: () => window.open(AI_STUDIO_STORE, '_blank'),
-    });
+    showPlanUpgrade('projectLimit');
   };
 
   const checkProjectLimit = () => {
@@ -155,7 +129,10 @@ export const useProjectsState = () => {
       const currentLimit = window.blocklet?.preferences?.multiTenantProjectLimits;
       if (count >= currentLimit && !isPromptAdmin) {
         createLimitDialog();
-        throw new Error(`Project limit exceeded (current: ${count}, limit: ${currentLimit}) `);
+        throw new RuntimeError(
+          RuntimeErrorType.ProjectLimitExceededError,
+          `Project limit exceeded (current: ${count}, limit: ${currentLimit}) `
+        );
       }
     }
   };
@@ -189,6 +166,5 @@ export const useProjectsState = () => {
     checkProjectLimit,
     clearState,
     createLimitDialog,
-    limitDialog: dialog,
   };
 };

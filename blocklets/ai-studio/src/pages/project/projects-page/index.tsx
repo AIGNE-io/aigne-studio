@@ -1,10 +1,12 @@
 import { getProjectDataUrlInSpace } from '@app/libs/did-spaces';
+import { checkErrorType } from '@app/libs/util';
 import { useProjectStore } from '@app/pages/project/yjs-state';
 import currentGitStore, { getDefaultBranch } from '@app/store/current-git-store';
 import { EVENTS } from '@arcblock/did-connect/lib/Session/libs/constants';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
+import { RuntimeErrorType } from '@blocklet/ai-runtime/types/runtime/error';
 import { cx } from '@emotion/css';
 import { Icon } from '@iconify-icon/react';
 import GithubIcon from '@iconify-icons/tabler/brand-github';
@@ -141,7 +143,7 @@ export default function ProjectsPage() {
 function ProjectsActionButton() {
   const { t } = useLocaleContext();
   const [dialog, setDialog] = useState<any>(null);
-  const { checkProjectLimit, limitDialog } = useProjectsState();
+  const { checkProjectLimit } = useProjectsState();
 
   return (
     <>
@@ -184,7 +186,6 @@ function ProjectsActionButton() {
       </Stack>
 
       {dialog}
-      {limitDialog}
     </>
   );
 }
@@ -239,7 +240,6 @@ function ProjectMenu() {
     setMenuAnchor,
     checkProjectLimit,
     createLimitDialog,
-    limitDialog,
   } = useProjectsState();
 
   const getNewProjectName = (name: string) => {
@@ -358,7 +358,7 @@ function ProjectMenu() {
             })
               .catch((error) => {
                 const message = getErrorMessage(error);
-                if (String(message || '').includes('Project limit exceeded')) {
+                if (checkErrorType(error, RuntimeErrorType.ProjectLimitExceededError)) {
                   createLimitDialog();
                 } else {
                   Toast.error(message);
@@ -473,7 +473,6 @@ function ProjectMenu() {
       )}
 
       {dialog}
-      {limitDialog}
     </>
   );
 }
@@ -550,7 +549,6 @@ function ProjectList({
     setMenuAnchor,
     checkProjectLimit,
     createLimitDialog,
-    limitDialog,
   } = useProjectsState();
 
   return (
@@ -628,7 +626,7 @@ function ProjectList({
                         navigate(joinURL('/projects', project.id));
                       } catch (error) {
                         const message = getErrorMessage(error);
-                        if (String(message || '').includes('Project limit exceeded')) {
+                        if (checkErrorType(error, RuntimeErrorType.ProjectLimitExceededError)) {
                           createLimitDialog();
                         } else {
                           Toast.error(message);
@@ -670,7 +668,7 @@ function ProjectList({
                       navigate(joinURL('/projects', project.id!));
                     } catch (error) {
                       const message = getErrorMessage(error);
-                      if (String(message || '').includes('Project limit exceeded')) {
+                      if (checkErrorType(error, RuntimeErrorType.ProjectLimitExceededError)) {
                         createLimitDialog();
                       } else {
                         Toast.error(message);
@@ -719,7 +717,6 @@ function ProjectList({
       </ProjectListContainer>
 
       {dialog}
-      {limitDialog}
     </>
   );
 }

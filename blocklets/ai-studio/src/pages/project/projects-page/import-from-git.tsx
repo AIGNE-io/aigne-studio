@@ -1,6 +1,8 @@
+import { checkErrorType } from '@app/libs/util';
 import currentGitStore from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
+import { RuntimeErrorType } from '@blocklet/ai-runtime/types/runtime/error';
 import { Icon } from '@iconify-icon/react';
 import PlusIcon from '@iconify-icons/tabler/plus';
 import { LoadingButton } from '@mui/lab';
@@ -43,7 +45,7 @@ export default function ImportFromGit({ onClose }: { onClose: () => void }) {
   const { t } = useLocaleContext();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const { importProject, createLimitDialog, limitDialog } = useProjectsState();
+  const { importProject, createLimitDialog } = useProjectsState();
 
   const form = useForm<RemoteRepoSettingForm>({
     defaultValues: {
@@ -73,7 +75,7 @@ export default function ImportFromGit({ onClose }: { onClose: () => void }) {
       } catch (error) {
         form.reset(value);
         const message = getErrorMessage(error);
-        if (String(message || '').includes('Project limit exceeded')) {
+        if (checkErrorType(error, RuntimeErrorType.ProjectLimitExceededError)) {
           createLimitDialog();
         } else {
           Toast.error(message);
@@ -85,172 +87,168 @@ export default function ImportFromGit({ onClose }: { onClose: () => void }) {
   );
 
   return (
-    <>
-      <Dialog open maxWidth="sm" fullWidth component="form" onSubmit={form.handleSubmit(saveSetting)} onClose={onClose}>
-        <DialogTitle className="between">
-          <Box>{t('remoteGitRepo')}</Box>
+    <Dialog open maxWidth="sm" fullWidth component="form" onSubmit={form.handleSubmit(saveSetting)} onClose={onClose}>
+      <DialogTitle className="between">
+        <Box>{t('remoteGitRepo')}</Box>
 
-          <IconButton size="small" onClick={() => onClose()}>
-            <Close />
-          </IconButton>
-        </DialogTitle>
+        <IconButton size="small" onClick={() => onClose()}>
+          <Close />
+        </IconButton>
+      </DialogTitle>
 
-        <DialogContent>
-          <Stack gap={1.5}>
-            <Box>
-              <Typography variant="subtitle2">{`${t('gitUrl')}*`}</Typography>
-              <TextField
-                hiddenLabel
-                autoFocus
-                fullWidth
-                placeholder="https://github.com/aigne/example.git"
-                onPaste={(e) => {
-                  try {
-                    const url = gitUrlParse(e.clipboardData.getData('text/plain'));
-                    const https = gitUrlParse.stringify(url, 'https');
-                    form.setValue('url', https, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
-                    form.setValue('username', url.owner, {
+      <DialogContent>
+        <Stack gap={1.5}>
+          <Box>
+            <Typography variant="subtitle2">{`${t('gitUrl')}*`}</Typography>
+            <TextField
+              hiddenLabel
+              autoFocus
+              fullWidth
+              placeholder="https://github.com/aigne/example.git"
+              onPaste={(e) => {
+                try {
+                  const url = gitUrlParse(e.clipboardData.getData('text/plain'));
+                  const https = gitUrlParse.stringify(url, 'https');
+                  form.setValue('url', https, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+                  form.setValue('username', url.owner, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                    shouldTouch: true,
+                  });
+                  form.setValue('name', url.name, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+
+                  const { password } = url as any;
+                  if (password && typeof password === 'string') {
+                    form.setValue('password', password, {
                       shouldValidate: true,
                       shouldDirty: true,
                       shouldTouch: true,
                     });
-                    form.setValue('name', url.name, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
-
-                    const { password } = url as any;
-                    if (password && typeof password === 'string') {
-                      form.setValue('password', password, {
-                        shouldValidate: true,
-                        shouldDirty: true,
-                        shouldTouch: true,
-                      });
-                    }
-                    e.preventDefault();
-                  } catch {
-                    // empty
                   }
-                }}
-                {...form.register('url', {
-                  required: true,
-                  validate: (value) =>
-                    /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/.test(
-                      value
-                    ) || t('validation.urlPattern'),
-                })}
-                InputProps={{
-                  readOnly: true,
-                  onFocus: (e) => (e.currentTarget.readOnly = false),
-                }}
-                InputLabelProps={{ shrink: form.watch('url') ? true : undefined }}
-                error={Boolean(form.formState.errors.url)}
-                helperText={form.formState.errors.url?.message}
-                sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
-              />
-            </Box>
-
-            <Box sx={{ display: 'none' }}>
-              <Typography variant="subtitle2">{t('username')}</Typography>
-              <TextField
-                fullWidth
-                label={t('username')}
-                {...form.register('username')}
-                error={Boolean(form.formState.errors.username)}
-                helperText={form.formState.errors.username?.message}
-                InputLabelProps={{ shrink: form.watch('username') ? true : undefined }}
-                sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
-              />
-            </Box>
-
-            <Box>
-              <Typography variant="subtitle2">{t('accessToken')}</Typography>
-              <TextField
-                hiddenLabel
-                fullWidth
-                {...form.register('password')}
-                autoComplete="false"
-                placeholder={t('importFromGitAccessTokenPlaceholder')}
-                error={Boolean(form.formState.errors.password)}
-                helperText={
-                  form.formState.errors.password?.message || (
-                    <Box component="span">
-                      {t('remoteGitRepoPasswordHelper')}{' '}
-                      <Tooltip
-                        title={t('githubTokenTip')}
-                        placement="top"
-                        slotProps={{ popper: { sx: { whiteSpace: 'pre-wrap' } } }}>
-                        <Link href="https://github.com/settings/tokens?type=beta" target="_blank">
-                          github access token
-                        </Link>
-                      </Tooltip>
-                    </Box>
-                  )
+                  e.preventDefault();
+                } catch {
+                  // empty
                 }
-                type={showPassword ? 'text' : 'password'}
-                InputLabelProps={{ shrink: form.watch('password') ? true : undefined }}
-                InputProps={{
-                  readOnly: true,
-                  onFocus: (e) => (e.currentTarget.readOnly = false),
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                        {showPassword ? <EyeNo /> : <Eye />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{ '.MuiInputBase-root': { width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' } }}
-              />
-            </Box>
+              }}
+              {...form.register('url', {
+                required: true,
+                validate: (value) =>
+                  /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/.test(
+                    value
+                  ) || t('validation.urlPattern'),
+              })}
+              InputProps={{
+                readOnly: true,
+                onFocus: (e) => (e.currentTarget.readOnly = false),
+              }}
+              InputLabelProps={{ shrink: form.watch('url') ? true : undefined }}
+              error={Boolean(form.formState.errors.url)}
+              helperText={form.formState.errors.url?.message}
+              sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
+            />
+          </Box>
 
-            <Box>
-              <Typography variant="subtitle2">{t('name')}</Typography>
-              <TextField
-                hiddenLabel
-                placeholder={t('newProjectNamePlaceholder')}
-                {...form.register('name')}
-                InputProps={{
-                  readOnly: true,
-                  onFocus: (e) => (e.currentTarget.readOnly = false),
-                }}
-                InputLabelProps={{ shrink: form.watch('name') ? true : undefined }}
-                sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
-              />
-            </Box>
+          <Box sx={{ display: 'none' }}>
+            <Typography variant="subtitle2">{t('username')}</Typography>
+            <TextField
+              fullWidth
+              label={t('username')}
+              {...form.register('username')}
+              error={Boolean(form.formState.errors.username)}
+              helperText={form.formState.errors.username?.message}
+              InputLabelProps={{ shrink: form.watch('username') ? true : undefined }}
+              sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
+            />
+          </Box>
 
-            <Box>
-              <Typography variant="subtitle2">{t('description')}</Typography>
-              <TextField
-                hiddenLabel
-                multiline
-                minRows={2}
-                maxRows={3}
-                placeholder={t('newProjectDescriptionPlaceholder')}
-                {...form.register('description')}
-                InputProps={{
-                  readOnly: true,
-                  onFocus: (e) => (e.currentTarget.readOnly = false),
-                }}
-                sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
-              />
-            </Box>
-          </Stack>
-        </DialogContent>
+          <Box>
+            <Typography variant="subtitle2">{t('accessToken')}</Typography>
+            <TextField
+              hiddenLabel
+              fullWidth
+              {...form.register('password')}
+              autoComplete="false"
+              placeholder={t('importFromGitAccessTokenPlaceholder')}
+              error={Boolean(form.formState.errors.password)}
+              helperText={
+                form.formState.errors.password?.message || (
+                  <Box component="span">
+                    {t('remoteGitRepoPasswordHelper')}{' '}
+                    <Tooltip
+                      title={t('githubTokenTip')}
+                      placement="top"
+                      slotProps={{ popper: { sx: { whiteSpace: 'pre-wrap' } } }}>
+                      <Link href="https://github.com/settings/tokens?type=beta" target="_blank">
+                        github access token
+                      </Link>
+                    </Tooltip>
+                  </Box>
+                )
+              }
+              type={showPassword ? 'text' : 'password'}
+              InputLabelProps={{ shrink: form.watch('password') ? true : undefined }}
+              InputProps={{
+                readOnly: true,
+                onFocus: (e) => (e.currentTarget.readOnly = false),
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                      {showPassword ? <EyeNo /> : <Eye />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              sx={{ '.MuiInputBase-root': { width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' } }}
+            />
+          </Box>
 
-        <DialogActions>
-          <Button onClick={onClose} variant="outlined">
-            {t('cancel')}
-          </Button>
-          <LoadingButton
-            variant="contained"
-            type="submit"
-            loading={form.formState.isSubmitting}
-            loadingPosition="start"
-            startIcon={<Box component={Icon} icon={PlusIcon} />}>
-            {t('import.remote')}
-          </LoadingButton>
-        </DialogActions>
-      </Dialog>
+          <Box>
+            <Typography variant="subtitle2">{t('name')}</Typography>
+            <TextField
+              hiddenLabel
+              placeholder={t('newProjectNamePlaceholder')}
+              {...form.register('name')}
+              InputProps={{
+                readOnly: true,
+                onFocus: (e) => (e.currentTarget.readOnly = false),
+              }}
+              InputLabelProps={{ shrink: form.watch('name') ? true : undefined }}
+              sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
+            />
+          </Box>
 
-      {limitDialog}
-    </>
+          <Box>
+            <Typography variant="subtitle2">{t('description')}</Typography>
+            <TextField
+              hiddenLabel
+              multiline
+              minRows={2}
+              maxRows={3}
+              placeholder={t('newProjectDescriptionPlaceholder')}
+              {...form.register('description')}
+              InputProps={{
+                readOnly: true,
+                onFocus: (e) => (e.currentTarget.readOnly = false),
+              }}
+              sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
+            />
+          </Box>
+        </Stack>
+      </DialogContent>
+
+      <DialogActions>
+        <Button onClick={onClose} variant="outlined">
+          {t('cancel')}
+        </Button>
+        <LoadingButton
+          variant="contained"
+          type="submit"
+          loading={form.formState.isSubmitting}
+          loadingPosition="start"
+          startIcon={<Box component={Icon} icon={PlusIcon} />}>
+          {t('import.remote')}
+        </LoadingButton>
+      </DialogActions>
+    </Dialog>
   );
 }
