@@ -1,12 +1,12 @@
 import type { Deployment } from '@app/libs/deployment';
-import { MakeYoursButton } from '@app/pages/explore/button';
+import { MakeYoursButton, ShareButton } from '@app/pages/explore/button';
+import { ProjectSettings } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import ArrowsShuffleIcon from '@iconify-icons/tabler/arrows-shuffle';
 import DotsVerticalIcon from '@iconify-icons/tabler/dots-vertical';
 import FullscreenExitOutlinedIcon from '@mui/icons-material/FullscreenExitOutlined';
-import { Box, BoxProps, Button, MenuItem } from '@mui/material';
+import { Box, BoxProps, Button, Link, MenuItem } from '@mui/material';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 import AigneLogo from '../aigne-logo';
 import PopperMenu from '../menu/PopperMenu';
@@ -14,12 +14,12 @@ import { useMultiTenantRestriction } from './state';
 
 interface Props {
   deployment?: Deployment;
+  project?: ProjectSettings;
 }
 
-export function MultiTenantBrandGuard({ deployment, sx, children, ...rest }: Props & BoxProps) {
+export function MultiTenantBrandGuard({ deployment, project, sx, children, ...rest }: Props & BoxProps) {
   const { quotaChecker } = useMultiTenantRestriction();
   const [brandBarRemoved, setBrandBarRemoved] = useState(false);
-  const navigate = useNavigate();
   const bottomHeight = 64;
   const mergedSx = [
     {
@@ -117,19 +117,23 @@ export function MultiTenantBrandGuard({ deployment, sx, children, ...rest }: Pro
           }}>
           <MadeWithAigne />
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            {deployment && (
-              <MakeYoursButton
-                deployment={deployment}
-                color="primary"
-                variant="contained"
-                startIcon={<Box component={Icon} icon={ArrowsShuffleIcon} sx={{ fontSize: 14 }} />}
-                sx={{
-                  bgcolor: 'warning.main',
-                  '&:hover': {
-                    bgcolor: 'warning.dark',
-                  },
-                }}
-              />
+            {deployment && project && (
+              <>
+                <MakeYoursButton
+                  deployment={deployment}
+                  color="primary"
+                  variant="contained"
+                  startIcon={<Box component={Icon} icon={ArrowsShuffleIcon} sx={{ fontSize: 14 }} />}
+                  sx={{
+                    bgcolor: 'warning.main',
+                    '&:hover': {
+                      bgcolor: 'warning.dark',
+                    },
+                  }}
+                />
+
+                <ShareButton deployment={deployment} project={project} />
+              </>
             )}
             <PopperMenu
               ButtonProps={{
@@ -138,7 +142,9 @@ export function MultiTenantBrandGuard({ deployment, sx, children, ...rest }: Pro
               }}
               PopperProps={{ placement: 'bottom-end' }}>
               <MenuItem onClick={removeBrand}>Remove AIGNE banner</MenuItem>
-              <MenuItem onClick={() => navigate('/')}>About</MenuItem>
+              <MenuItem component={Link} href="https://www.aigne.io">
+                About
+              </MenuItem>
             </PopperMenu>
           </Box>
         </Box>
@@ -150,7 +156,10 @@ export function MultiTenantBrandGuard({ deployment, sx, children, ...rest }: Pro
 function MadeWithAigne() {
   return (
     <Box
+      component="a"
+      href="https://www.aigne.io"
       sx={{
+        textDecoration: 'none',
         display: 'flex',
         alignItems: 'center',
         gap: 1,

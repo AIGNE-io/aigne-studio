@@ -269,11 +269,9 @@ function PreviewPage({ deployment, project }: { deployment: Deployment; project:
             initialScrollBehavior="auto"
             component={Stack}
             sx={{
-              overscrollBehavior: 'contain',
               flex: 1,
               height: '100%',
               width: '100%',
-              overflow: 'auto',
               '.aigne-layout': {
                 px: 2,
               },
