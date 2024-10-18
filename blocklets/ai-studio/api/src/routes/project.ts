@@ -21,7 +21,7 @@ import {
   variableToYjs,
 } from '@blocklet/ai-runtime/types';
 import { copyRecursive } from '@blocklet/ai-runtime/utils/fs';
-import { quotaChecker } from '@blocklet/aigne-sdk/api/premium';
+import { getUserPassports, quotaChecker } from '@blocklet/aigne-sdk/api/premium';
 import { AIGNE_RUNTIME_COMPONENT_DID } from '@blocklet/aigne-sdk/constants';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { call } from '@blocklet/sdk/lib/component';
@@ -244,7 +244,7 @@ export const checkProjectLimit = async ({ req }: { req: Request }) => {
     const count = await Project.count({ where: { createdBy: req.user?.did } });
     if (
       !ensureComponentCallOrRolesMatch(req, Config.serviceModePermissionMap.ensurePromptsAdminRoles) &&
-      !quotaChecker.checkProjectLimit(count, req.user?.role)
+      !quotaChecker.checkProjectLimit(count, await getUserPassports(req.user?.did))
     ) {
       throw new RuntimeError(
         RuntimeErrorType.ProjectLimitExceededError,

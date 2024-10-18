@@ -59,26 +59,26 @@ export class Quotas {
     );
   }
 
-  checkProjectLimit(used: number, passport?: string) {
+  checkProjectLimit(used: number, passports?: string[]) {
     if (used < 0) {
       throw new Error('`used` cannot be negative');
     }
-    const quota = this.getQuota('projectLimit', passport);
+    const quota = this.getQuota('projectLimit', passports);
     return used < quota;
   }
 
-  checkRequestLimit(used: number, passport?: string) {
-    const quota = this.getQuota('requestLimit', passport);
+  checkRequestLimit(used: number, passports?: string[]) {
+    const quota = this.getQuota('requestLimit', passports);
     return used < quota;
   }
 
-  checkCronJobs(passport?: string) {
-    const quota = this.getQuota('cronJobs', passport);
+  checkCronJobs(passports?: string[]) {
+    const quota = this.getQuota('cronJobs', passports);
     return quota > 0;
   }
 
-  checkCustomBrand(passport?: string) {
-    const quota = this.getQuota('customBrand', passport);
+  checkCustomBrand(passports?: string[]) {
+    const quota = this.getQuota('customBrand', passports);
     return quota > 0;
   }
 }

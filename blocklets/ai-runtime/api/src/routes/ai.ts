@@ -21,7 +21,7 @@ import { CallAI, CallAIImage, RunAssistantCallback, RuntimeExecutor, nextTaskId 
 import { toolCallsTransform } from '@blocklet/ai-runtime/core/utils/tool-calls-transform';
 import { AssistantResponseType, RuntimeOutputVariable, isImageAssistant } from '@blocklet/ai-runtime/types';
 import { RuntimeError, RuntimeErrorType } from '@blocklet/ai-runtime/types/runtime/error';
-import { quotaChecker } from '@blocklet/aigne-sdk/api/premium';
+import { getUserPassports, quotaChecker } from '@blocklet/aigne-sdk/api/premium';
 import user from '@blocklet/sdk/lib/middlewares/user';
 import compression from 'compression';
 import { Router } from 'express';
@@ -65,7 +65,7 @@ const checkProjectRequestLimit = async ({
     where: { projectId, error: null, userId: { [Op.not]: project.createdBy } },
   });
   if (
-    !quotaChecker.checkRequestLimit(historyCount, role) &&
+    !quotaChecker.checkRequestLimit(historyCount, await getUserPassports(userId)) &&
     !['owner', 'admin', 'promptsEditor'].includes(role || '')
   ) {
     throw new RuntimeError(
