@@ -65,8 +65,9 @@ const checkProjectRequestLimit = async ({
     !quotaChecker.checkRequestLimit(historyCount, role) &&
     !['owner', 'admin', 'promptsEditor'].includes(role || '')
   ) {
-    throw new Error(
-      `Project request limit exceeded (current: ${historyCount}, limit: ${quotaChecker.getQuota('requestLimit', role)}) `
+    throw new RuntimeError(
+      RuntimeErrorType.ProjectRequestExceededError,
+      `Project request limit exceeded (current: ${historyCount}, limit: ${quotaChecker.getQuota('requestLimit', role)})`
     );
   }
 };

@@ -1,5 +1,6 @@
 import ApplicationHeader from '@app/components/application/ApplicationHeader';
 import { MultiTenantBrandGuard } from '@app/components/multi-tenant-restriction';
+import { RuntimeErrorHandler } from '@app/components/multi-tenant-restriction/runtime-error-handler';
 import { getErrorMessage } from '@app/libs/api';
 import { agentViewTheme } from '@app/theme/agent-view-theme';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
@@ -32,7 +33,9 @@ export default function AppPage() {
               <ShareButton deployment={data.deployment} project={data.project} />
             </Stack>
 
-            <AgentView aid={data?.identity?.aid} />
+            <AgentView aid={data?.identity?.aid}>
+              <RuntimeErrorHandler />
+            </AgentView>
           </>
         ) : loading ? (
           <Box textAlign="center" my={10}>

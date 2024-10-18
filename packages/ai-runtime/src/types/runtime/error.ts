@@ -1,5 +1,6 @@
 export enum RuntimeErrorType {
   MissingSecretError = 'MissingSecretError',
+  ProjectRequestExceededError = 'ProjectRequestExceededError',
 }
 
 export class RuntimeError extends Error {
