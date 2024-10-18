@@ -2,10 +2,12 @@
 import Project from '@api/store/models/project';
 import { useSessionContext } from '@app/contexts/session';
 import { didSpaceReady, getImportUrl } from '@app/libs/did-spaces';
+import { checkErrorType } from '@app/libs/util';
 import currentGitStore from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { getWalletDid } from '@arcblock/ux/lib/SessionUser/libs/utils';
 import Toast from '@arcblock/ux/lib/Toast';
+import { RuntimeErrorType } from '@blocklet/ai-runtime/types/runtime/error';
 import { Icon } from '@iconify-icon/react';
 import ArrowRightAltRoundedIcon from '@iconify-icons/material-symbols/arrow-right-alt-rounded';
 import PlusIcon from '@iconify-icons/tabler/plus';
@@ -202,7 +204,7 @@ export default function FromDidSpacesImport() {
   const id = useId();
   const navigate = useNavigate();
   const dialogState = usePopupState({ variant: 'dialog', popupId: id });
-  const { listProjectsByDidSpaces, fromDidSpacesImport, createLimitDialog, limitDialog } = useProjectsState();
+  const { listProjectsByDidSpaces, fromDidSpacesImport, createLimitDialog } = useProjectsState();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(false);
   const { session } = useSessionContext();
@@ -222,7 +224,7 @@ export default function FromDidSpacesImport() {
     } catch (error) {
       console.error(error);
       const message = getErrorMessage(error);
-      if (String(message || '').includes('Project limit exceeded')) {
+      if (checkErrorType(error, RuntimeErrorType.ProjectLimitExceededError)) {
         createLimitDialog();
       } else {
         Toast.error(message);
@@ -266,7 +268,7 @@ export default function FromDidSpacesImport() {
       } catch (error) {
         form.reset(value);
         const message = getErrorMessage(error);
-        if (String(message || '').includes('Project limit exceeded')) {
+        if (error.type === RuntimeErrorType.ProjectLimitExceededError) {
           createLimitDialog();
         } else {
           Toast.error(message);
@@ -404,8 +406,6 @@ export default function FromDidSpacesImport() {
           </LoadingButton>
         </DialogActions>
       </Dialog>
-
-      {limitDialog}
     </>
   );
 }

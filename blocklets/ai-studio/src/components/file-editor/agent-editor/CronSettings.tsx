@@ -2,6 +2,7 @@ import 'react-js-cron/dist/styles.css';
 import 'cronstrue/locales/zh_CN';
 
 import MdViewer from '@app/components/md-viewer';
+import { useMultiTenantRestriction } from '@app/components/multi-tenant-restriction';
 import { useCurrentProject } from '@app/contexts/project';
 import { randomId, useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
@@ -70,6 +71,7 @@ export function CronSettings({ agent }: { agent: AssistantYjs }) {
   const doc = (getYjsValue(agent) as Map<any>).doc!;
   const { projectId, projectRef } = useCurrentProject();
   const { cronConfig } = useProjectStore(projectId, projectRef);
+  const { quotaChecker } = useMultiTenantRestriction();
 
   const jobs = cronConfig.jobs?.filter((i) => i.agentId === agent.id);
   const [job, setJob] = useState<{ job: NonNullable<CronFileYjs['jobs']>[number]; type: 'edit' | 'history' }>();
@@ -141,7 +143,15 @@ export function CronSettings({ agent }: { agent: AssistantYjs }) {
                   {job.cronExpression && <CronFormatter time={job.cronExpression} />}
                 </TableCell>
                 <TableCell align="center">
-                  <Switch size="small" checked={job.enable || false} onChange={(_, check) => (job.enable = check)} />
+                  <Switch
+                    size="small"
+                    checked={job.enable || false}
+                    onChange={(_, checked) => {
+                      if (quotaChecker.checkCronJobs()) {
+                        job.enable = checked;
+                      }
+                    }}
+                  />
                 </TableCell>
                 <TableCell align="right">
                   <Button
