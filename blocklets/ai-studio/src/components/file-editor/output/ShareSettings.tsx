@@ -51,7 +51,7 @@ export default function ShareSettings({ output }: { output: OutputVariableYjs })
   return (
     <Stack gap={2}>
       <Stack>
-        <Typography variant="subtitle1">{t('share')}</Typography>
+        <Typography variant="subtitle2">{t('share')}</Typography>
         <FormControl sx={{ mt: 2, mx: 2 }} component="fieldset" variant="standard">
           <FormLabel component="legend">To</FormLabel>
           <FormGroup sx={{ my: 1 }}>
@@ -99,4 +99,10 @@ export default function ShareSettings({ output }: { output: OutputVariableYjs })
   );
 }
 
-const SupportedShares = [{ to: 'twitter' }, { to: 'copy' }, { to: 'saveAs' }, { to: 'community' }, { to: 'link' }];
+export const SupportedShares = [
+  { to: 'twitter' },
+  { to: 'copy' },
+  { to: 'saveAs' },
+  { to: 'community' },
+  { to: 'link' },
+];

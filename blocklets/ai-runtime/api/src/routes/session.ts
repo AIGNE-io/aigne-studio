@@ -11,14 +11,7 @@ export function sessionRoutes(router: Router) {
 
   router.get('/sessions', user(), auth(), async (req, res) => {
     const { did: userId } = req.user!;
-    const query = await sessionsQuerySchema.validateAsync(
-      {
-        ...req.query,
-        // 兼容旧版的接口参数，一段时间后删掉下面这行
-        aid: req.query.aid ?? stringifyIdentity(req.query as any),
-      },
-      { stripUnknown: true }
-    );
+    const query = await sessionsQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
     const { projectId, agentId } = parseIdentity(query.aid, { rejectWhenError: true });
 

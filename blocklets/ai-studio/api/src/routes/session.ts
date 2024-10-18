@@ -20,7 +20,11 @@ export function sessionRoutes(router: Router) {
       { stripUnknown: true }
     );
 
-    const { projectId, projectRef, agentId: assistantId } = parseIdentity(query.aid, { rejectWhenError: true });
+    const {
+      projectId,
+      projectRef = 'main',
+      agentId: assistantId,
+    } = parseIdentity(query.aid, { rejectWhenError: true });
 
     const sessions = await Session.getUserSessions({
       userId,
@@ -66,7 +70,11 @@ export function sessionRoutes(router: Router) {
       { stripUnknown: true }
     );
 
-    const { projectId, projectRef, agentId: assistantId } = parseIdentity(input.aid, { rejectWhenError: true });
+    const {
+      projectId,
+      projectRef = 'main',
+      agentId: assistantId,
+    } = parseIdentity(input.aid, { rejectWhenError: true });
 
     const session = await Session.create({ userId, projectId, projectRef, assistantId, name: input.name });
     const sessions = await Session.getUserSessions({ userId, projectId, projectRef, assistantId });

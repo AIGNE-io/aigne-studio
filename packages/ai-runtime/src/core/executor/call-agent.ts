@@ -1,5 +1,6 @@
 import { logger } from '@blocklet/sdk/lib/config';
 
+import { parseIdentity, stringifyIdentity } from '../../common/aid';
 import { AssistantResponseType, CallAssistant, OutputVariable, RuntimeOutputVariable, Tool } from '../../types';
 import { GetAgentResult } from '../assistant/type';
 import { renderMessage } from '../utils/render-message';
@@ -12,15 +13,19 @@ export class CallAgentExecutor extends AgentExecutorBase<CallAssistant> {
       throw new Error('Must choose an agent to execute');
     }
 
+    const identity = parseIdentity(agent.identity.aid, { rejectWhenError: true });
+
     return await Promise.all(
       agent.agents.map(async (item) => ({
         item,
         agent: await this.context.getAgent({
-          blockletDid: agent.identity.blockletDid,
-          projectId: agent.identity.projectId,
-          projectRef: agent.identity.projectRef,
+          aid: stringifyIdentity({
+            blockletDid: identity.blockletDid,
+            projectId: identity.projectId,
+            projectRef: identity.projectRef,
+            agentId: item.id,
+          }),
           working: agent.identity.working,
-          agentId: item.id,
           rejectOnEmpty: true,
         }),
       }))

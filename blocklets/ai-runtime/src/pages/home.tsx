@@ -45,7 +45,7 @@ export default function HomePage() {
           sx={{ bgcolor: 'transparent', my: 20 }}
         />
       ) : app ? (
-        <AgentView blockletDid={app.identity.blockletDid} aid={app.identity.aid} />
+        <AgentView aid={app.identity.aid} />
       ) : (
         <ApplicationListView applications={applications} />
       )}

@@ -1,7 +1,14 @@
-## 0.4.80 (2024-10-15)
+## 0.4.82 (2024-10-18)
 
-- chore: add llm adapter global setting
-- feat: add global config for resource blocklet
+- feat: support tracking pageView and events for GA
+
+## 0.4.81 (2024-10-17)
+
+- feat: support preview agent and components
+
+## 0.4.80 (2024-10-17)
+
+- feat: new aigne runtime components
 
 ## 0.4.79 (2024-10-14)
 

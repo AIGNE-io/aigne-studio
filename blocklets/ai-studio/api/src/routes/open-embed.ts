@@ -1,7 +1,7 @@
 import { importPackageJson } from '@api/libs/package-json';
 import Project from '@api/store/models/project';
 import { PROJECT_FILE_PATH, ProjectRepo, defaultBranch, getAssistantsOfRepository } from '@api/store/repository';
-import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
+import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { ProjectSettings, RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { getAgentProfile } from '@blocklet/aigne-sdk/utils/agent';
@@ -104,7 +104,7 @@ export async function getOpenEmbed(_: Request, res: Response) {
             parameters,
             icon: getAgentProfile({
               ...agent,
-              identity: { projectId: agent.project.id, agentId: agent.id, aid },
+              identity: { ...parseIdentity(aid, { rejectWhenError: true }), aid },
               project: agent.project,
             }).icon,
           },

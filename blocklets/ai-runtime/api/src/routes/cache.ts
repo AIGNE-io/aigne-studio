@@ -15,8 +15,7 @@ router.delete('/agents/:aid/cache', user(), async (req, res) => {
   const { projectId, agentId } = parseIdentity(aid, { rejectWhenError: true });
 
   const agent = await getAgent({
-    projectId,
-    agentId,
+    aid,
     working: true,
     rejectOnEmpty: true,
   });

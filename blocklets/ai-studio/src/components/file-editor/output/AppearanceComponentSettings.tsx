@@ -1,26 +1,24 @@
-import { Component, getComponents } from '@app/libs/components';
+import { ComponentSelectDialog } from '@app/components/component-select/ComponentSelect';
+import { useCurrentProject } from '@app/contexts/project';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { OutputVariableYjs, RuntimeOutputAppearance, RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
+import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
+import { AIGNE_COMPONENTS_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
+import {
+  AssistantYjs,
+  OutputVariableYjs,
+  RuntimeOutputAppearance,
+  RuntimeOutputVariable,
+} from '@blocklet/ai-runtime/types';
+import { getDefaultOutputComponent } from '@blocklet/aigne-sdk/components/ai-runtime';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
-import {
-  Autocomplete,
-  AutocompleteProps,
-  Box,
-  Divider,
-  IconButton,
-  InputAdornment,
-  Stack,
-  TextField,
-  Typography,
-} from '@mui/material';
+import { Box, Divider, IconButton, InputAdornment, Stack, TextField, Typography } from '@mui/material';
 import { WritableDraft } from 'immer';
+import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { useMemo } from 'react';
 import { useAsync } from 'react-use';
 
 import { getOpenComponents } from '../../../libs/components';
-import { REMOTE_REACT_COMPONENT } from '../../../libs/constants';
-import { RemoteComponent } from '../../../libs/type';
 import ComponentSettings from './ComponentSettings';
 
 const ignoreAppearanceSettingsOutputs = new Set<string>([RuntimeOutputVariable.children]);
@@ -32,14 +30,19 @@ const ignoreIconTitleSettingsOutputs = new Set<string>([
   RuntimeOutputVariable.profile,
 ]);
 
-export default function AppearanceSettings({
+export default function AppearanceComponentSettings({
+  agent,
   output,
   disableTitleAndIcon,
 }: {
+  agent: AssistantYjs;
   output: OutputVariableYjs;
   disableTitleAndIcon?: boolean;
 }) {
+  const { projectId, projectRef } = useCurrentProject();
   const { t } = useLocaleContext();
+
+  const aid = stringifyIdentity({ projectId, projectRef, agentId: agent.id });
 
   const { appearance } = output;
 
@@ -69,7 +72,32 @@ export default function AppearanceSettings({
     [tags]
   );
 
+  const componentSelectState = usePopupState({ variant: 'dialog' });
+
   if (ignoreAppearanceSettingsOutputs.has(output.name!)) return null;
+
+  const defaultOutputComponent = getDefaultOutputComponent(output);
+  const defaultComponent:
+    | Required<Pick<RuntimeOutputAppearance, 'componentBlockletDid' | 'componentId' | 'componentName'>>
+    | undefined = defaultOutputComponent && {
+    componentBlockletDid: AIGNE_COMPONENTS_COMPONENT_DID,
+    componentId: defaultOutputComponent.componentId,
+    componentName: defaultOutputComponent.componentName,
+  };
+
+  const currentComponent = appearance?.componentId
+    ? {
+        blockletDid: appearance.componentBlockletDid,
+        id: appearance.componentId,
+        name: appearance.componentName,
+      }
+    : defaultComponent
+      ? {
+          blockletDid: AIGNE_COMPONENTS_COMPONENT_DID,
+          id: defaultComponent.componentId,
+          name: defaultComponent.componentName,
+        }
+      : null;
 
   return (
     <Box>
@@ -127,107 +155,57 @@ export default function AppearanceSettings({
         )}
 
         <Divider textAlign="left" sx={{ mt: 2 }}>
+          {t('transform')}
+        </Divider>
+
+        <TextField
+          label="JSONata Expression"
+          multiline
+          minRows={2}
+          fullWidth
+          value={output.appearance?.jsonataExpression || ''}
+          onChange={(e) =>
+            setField((s) => {
+              s.jsonataExpression = e.target.value;
+            })
+          }
+        />
+
+        <Divider textAlign="left" sx={{ mt: 2 }}>
           {t('appearance')}
         </Divider>
 
         <Box>
           <Typography variant="subtitle2">{t('selectCustomComponent')}</Typography>
-          <ComponentSelect
-            tags={tags}
-            remoteReact={remoteReact || []}
-            value={
-              appearance?.componentId
-                ? {
-                    blockletDid: appearance.componentBlockletDid,
-                    id: appearance.componentId,
-                    name: appearance.componentName,
-                  }
-                : null
-            }
-            onChange={(_, v) =>
-              setField((config) => {
-                config.componentBlockletDid = v?.blockletDid;
-                config.componentId = v?.id;
-                config.componentName = v?.name;
 
-                if (config.componentProperties) delete config.componentProperties;
-                if (config.componentProps) delete config.componentProps;
-                if (v?.id === REMOTE_REACT_COMPONENT)
-                  config.componentProperties = Object.fromEntries(
-                    Object.entries(v.componentProperties || {}).map(([key, value]) => [key, { value }])
-                  );
-              })
-            }
+          <TextField
+            fullWidth
+            InputProps={{ readOnly: true }}
+            value={currentComponent?.name || currentComponent?.id}
+            onClick={() => componentSelectState.open()}
+          />
+
+          <ComponentSelectDialog
+            output={output}
+            aid={aid}
+            tags={tags}
+            value={currentComponent}
+            onChange={(v) => {
+              setField((config) => {
+                config.componentBlockletDid = v.blockletDid;
+                config.componentId = v.id;
+                config.componentProperties = v.componentProperties;
+                config.componentName = v.name;
+              });
+            }}
+            {...bindDialog(componentSelectState)}
           />
         </Box>
 
-        {appearance?.componentId && <ComponentSettings value={appearance} remoteReact={remoteReact} />}
+        {currentComponent && (
+          <ComponentSettings defaultComponent={defaultComponent} output={output} remoteReact={remoteReact} />
+        )}
       </Stack>
     </Box>
-  );
-}
-
-function ComponentSelect({
-  tags,
-  remoteReact = [],
-  ...props
-}: {
-  tags?: string;
-  remoteReact?: RemoteComponent[];
-} & Partial<
-  AutocompleteProps<
-    Pick<Component, 'id' | 'name'> & { blockletDid?: string; componentProperties?: {}; group?: string },
-    false,
-    false,
-    false
-  >
->) {
-  const { value, loading } = useAsync(() => getComponents({ tags }), [tags]);
-  const { t } = useLocaleContext();
-
-  const components = useMemo(() => {
-    return [
-      ...(value?.components || []).map((x) => ({
-        blockletDid: x.blocklet?.did,
-        id: x.id,
-        name: x.name,
-        group: t('buildIn'),
-      })),
-      ...(remoteReact || []).map((x) => ({
-        id: REMOTE_REACT_COMPONENT,
-        name: x.name,
-        componentProperties: { componentPath: x.url, blockletDid: x.did },
-        group: t('remote'),
-      })),
-    ];
-  }, [value, remoteReact]);
-
-  return (
-    <Autocomplete
-      groupBy={(option) => option.group || ''}
-      options={components}
-      loading={loading}
-      {...props}
-      renderInput={(params) => <TextField hiddenLabel {...params} />}
-      getOptionLabel={(component) =>
-        component.blockletDid ? component.name || component.id : `${component.name || component.id} (Local)`
-      }
-      isOptionEqualToValue={
-        (o, v) =>
-          o.id === v.id &&
-          ((!o.blockletDid && !v.blockletDid) || o.blockletDid === v.blockletDid) &&
-          ((!o.name && !v.name) || o.name === v.name) // FIXME: 临时解决方案，等后端返回 name 字段后可以删掉
-      }
-      renderGroup={(params) => {
-        return (
-          <Box key={params.key}>
-            <Typography p={2} py={1} pl={1} lineHeight="20px" color="#9CA3AF">
-              {params.group}
-            </Typography>
-            <Box>{params.children}</Box>
-          </Box>
-        );
-      }}
-    />
   );
 }

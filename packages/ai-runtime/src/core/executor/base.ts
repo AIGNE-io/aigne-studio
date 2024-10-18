@@ -11,6 +11,7 @@ import isNil from 'lodash/isNil';
 import pick from 'lodash/pick';
 import toLower from 'lodash/toLower';
 
+import { parseIdentity, stringifyIdentity } from '../../common/aid';
 import { AIGNE_RUNTIME_COMPONENT_DID } from '../../constants';
 import {
   AssistantResponseType,
@@ -56,8 +57,7 @@ export class ExecutorContext {
     >
   ) {
     this.getAgent = memoize(options.getAgent, {
-      keyGenerator: (o) =>
-        [o.blockletDid, o.projectId, o.projectRef, o.agentId, o.working].filter(isNonNullable).join('/'),
+      keyGenerator: (o) => [o.aid, o.working].filter(isNonNullable).join('/'),
     });
     this.callAI = options.callAI;
     this.callAIImage = options.callAIImage;
@@ -88,22 +88,13 @@ export class ExecutorContext {
 
   callAIImage: CallAIImage;
 
-  queryCache: (options: {
-    blockletDid?: string;
-    projectId: string;
-    projectRef?: string;
-    agentId: string;
-    cacheKey: string;
-  }) => Promise<{
+  queryCache: (options: { aid: string; cacheKey: string }) => Promise<{
     inputs: { [key: string]: any };
     outputs: { [key: string]: any };
   } | null>;
 
   setCache: (options: {
-    blockletDid?: string;
-    projectId: string;
-    projectRef?: string;
-    agentId: string;
+    aid: string;
     cacheKey: string;
     inputs: { [key: string]: any };
     outputs: { objects: any[] };
@@ -237,7 +228,7 @@ export abstract class AgentExecutorBase<T> {
     const cacheKey = this.globalContext.$cache.key;
     if (agent.cache?.enable && agent.identity) {
       try {
-        const cache = await this.context.queryCache({ ...agent.identity, cacheKey });
+        const cache = await this.context.queryCache({ aid: agent.identity.aid, cacheKey });
         if (cache) {
           result = await this.validateOutputs({ inputs: this.finalInputs, outputs: cache.outputs });
           if (isEmpty(result)) result = undefined;
@@ -262,7 +253,7 @@ export abstract class AgentExecutorBase<T> {
 
       // set cache if needed
       if (!isEmpty(result) && agent.cache?.enable && agent.identity) {
-        await this.context.setCache({ ...agent.identity, cacheKey, inputs: this.finalInputs, outputs: result });
+        await this.context.setCache({ aid: agent.identity.aid, cacheKey, inputs: this.finalInputs, outputs: result });
       }
     }
 
@@ -346,9 +337,9 @@ export abstract class AgentExecutorBase<T> {
         },
         async getItem(key: string, { agentId }: { agentId?: string } = {}) {
           if (agent.type === 'blocklet') throw new Error('Unsupported calling query cache in blocklet agent');
+          const identity = parseIdentity(agent.identity.aid, { rejectWhenError: true });
           return executor.context.queryCache({
-            ...agent.identity,
-            agentId: agentId || agent.identity.agentId,
+            aid: stringifyIdentity({ ...identity, agentId: agentId || identity.agentId }),
             cacheKey: key,
           });
         },
@@ -452,10 +443,6 @@ export abstract class AgentExecutorBase<T> {
           throw new Error('Agent project not found.');
         }
 
-        if (!agent.identity) {
-          throw new Error('Agent identity not found.');
-        }
-
         if (parameter.source?.variableFrom === 'secret') {
           const secret =
             inputs?.[parameter.key] ||
@@ -473,11 +460,15 @@ export abstract class AgentExecutorBase<T> {
           const currentTaskId = nextTaskId();
           const { agent: tool } = parameter.source;
 
+          const identity = parseIdentity(agent.identity.aid, { rejectWhenError: true });
+
           const toolAgent = await this.context.getAgent({
-            blockletDid: tool.blockletDid || agent.identity.blockletDid,
-            projectId: tool.projectId || agent.identity.projectId,
-            projectRef: agent.identity.projectRef,
-            agentId: tool.id,
+            aid: stringifyIdentity({
+              blockletDid: tool.blockletDid || identity.blockletDid,
+              projectId: tool.projectId || identity.projectId,
+              projectRef: identity.projectRef,
+              agentId: tool.id,
+            }),
             working: agent.identity.working,
           });
           if (!toolAgent) continue;
@@ -515,7 +506,10 @@ export abstract class AgentExecutorBase<T> {
             })
             .execute();
 
-          const m = await this.context.getMemoryVariables(agent.identity);
+          const m = await this.context.getMemoryVariables({
+            ...parseIdentity(agent.identity.aid, { rejectWhenError: true }),
+            working: agent.identity.working,
+          });
           const list = (data.datastores || []).map((x: any) => x?.data).filter((x: any) => x);
           const storageVariable = m.find((x) => toLower(x.key || '') === toLower(key || '') && x.scope === scope);
           let result = (list?.length > 0 ? list : [storageVariable?.defaultValue]).filter((x: any) => x);
@@ -527,7 +521,9 @@ export abstract class AgentExecutorBase<T> {
         } else if (parameter.source?.variableFrom === 'knowledge' && parameter.source.knowledge) {
           const currentTaskId = nextTaskId();
           const tool = parameter.source.knowledge;
-          const blockletDid = parameter.source.knowledge.blockletDid || agent.identity.blockletDid;
+          const blockletDid =
+            parameter.source.knowledge.blockletDid ||
+            parseIdentity(agent.identity.aid, { rejectWhenError: true }).blockletDid;
 
           const blocklet = await this.context.getBlockletAgent(KNOWLEDGE_API_ID);
           if (!blocklet.agent) {
@@ -569,15 +565,18 @@ export abstract class AgentExecutorBase<T> {
           const memories: { role: string; content: string; agentId?: string }[] = Array.isArray(result?.messages)
             ? result.messages
             : [];
-          const agentIds = new Set(memories.map((i) => i.agentId).filter(isNonNullable));
+          const agentIds = new Set(memories.map((i) => i.agentId).filter((i): i is NonNullable<typeof i> => !!i));
+          const identity = parseIdentity(agent.identity.aid, { rejectWhenError: true });
           const assistantNameMap = Object.fromEntries(
             (
               await Promise.all(
                 [...agentIds].map((agentId) =>
-                  this.context.getAgent({ ...agent.identity, agentId }).catch((error) => {
-                    logger.error('get assistant in conversation history error', { error });
-                    return null;
-                  })
+                  this.context
+                    .getAgent({ aid: stringifyIdentity({ ...identity, agentId }), working: agent.identity.working })
+                    .catch((error) => {
+                      logger.error('get assistant in conversation history error', { error });
+                      return null;
+                    })
                 )
               )
             )
@@ -717,7 +716,12 @@ export abstract class AgentExecutorBase<T> {
 
     const joiSchema = outputVariablesToJoiSchema(agent, {
       partial,
-      variables: agent.identity ? await this.context.getMemoryVariables(agent.identity) : [],
+      variables: agent.identity
+        ? await this.context.getMemoryVariables({
+            ...parseIdentity(agent.identity.aid, { rejectWhenError: true }),
+            working: agent.identity.working,
+          })
+        : [],
     });
     const outputVariables = (agent.outputVariables ?? []).filter((i) => !i.hidden);
 
@@ -766,11 +770,15 @@ export abstract class AgentExecutorBase<T> {
                 await (async () => {
                   if (!this.agent.identity) throw new Error('Agent identity not found');
 
+                  const identity = parseIdentity(this.agent.identity.aid, { rejectWhenError: true });
+
                   const toolAgent = await this.context.getAgent({
-                    blockletDid: i.from.callAgent.blockletDid || this.agent.identity.blockletDid,
-                    projectId: i.from.callAgent.projectId || this.agent.identity.projectId,
-                    projectRef: this.agent.identity.projectRef,
-                    agentId: i.from.callAgent.agentId,
+                    aid: stringifyIdentity({
+                      blockletDid: i.from.callAgent.blockletDid || identity.blockletDid,
+                      projectId: i.from.callAgent.projectId || identity.projectId,
+                      projectRef: identity.projectRef,
+                      agentId: i.from.callAgent.agentId,
+                    }),
                     working: this.agent.identity.working,
                   });
                   if (!toolAgent) throw new Error('Tool agent not found');
@@ -815,7 +823,12 @@ export abstract class AgentExecutorBase<T> {
   }
 
   private async postProcessOutputs(agent: GetAgentResult, { outputs }: { outputs: { [key: string]: any } }) {
-    const memoryVariables = agent.identity ? await this.context.getMemoryVariables(agent.identity) : [];
+    const memoryVariables = agent.identity
+      ? await this.context.getMemoryVariables({
+          ...parseIdentity(agent.identity.aid, { rejectWhenError: true }),
+          working: agent.identity.working,
+        })
+      : [];
     const outputVariables = (agent.outputVariables ?? []).filter((i) => !i.hidden);
 
     for (const output of outputVariables) {

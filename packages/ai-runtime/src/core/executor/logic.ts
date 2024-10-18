@@ -7,6 +7,7 @@ import equal from 'fast-deep-equal';
 import Joi from 'joi';
 import pick from 'lodash/pick';
 
+import { parseIdentity, stringifyIdentity } from '../../common/aid';
 import logger from '../../logger';
 import { AssistantResponseType, FunctionAssistant } from '../../types';
 import { renderMustacheStream } from '../../types/assistant/mustache/ReadableMustache';
@@ -67,7 +68,11 @@ export class LogicAgentExecutor extends AgentExecutorBase<FunctionAssistant> {
               inputs: Joi.object().pattern(Joi.string(), Joi.any()).required(),
             }).validateAsync(j, { stripUnknown: true });
 
-            const a = await this.context.getAgent({ ...agent.identity, agentId, rejectOnEmpty: true });
+            const a = await this.context.getAgent({
+              aid: stringifyIdentity({ ...parseIdentity(agent.identity.aid, { rejectWhenError: true }), agentId }),
+              working: agent.identity.working,
+              rejectOnEmpty: true,
+            });
 
             const result = await this.context.execute(a, { taskId: nextTaskId(), parentTaskId: taskId, inputs });
             return renderMessage(t, { ...renderCtx, $result: result }, { escapeJsonSymbols: true });
@@ -147,7 +152,11 @@ export class LogicAgentExecutor extends AgentExecutorBase<FunctionAssistant> {
         inputs: { [key: string]: any };
         streaming?: boolean;
       }) => {
-        const a = await this.context.getAgent({ ...agent.identity, agentId, rejectOnEmpty: true });
+        const a = await this.context.getAgent({
+          aid: stringifyIdentity({ ...parseIdentity(agent.identity.aid, { rejectWhenError: true }), agentId }),
+          working: agent.identity.working,
+          rejectOnEmpty: true,
+        });
 
         const { callback } = this.context;
         const currentTaskId = nextTaskId();

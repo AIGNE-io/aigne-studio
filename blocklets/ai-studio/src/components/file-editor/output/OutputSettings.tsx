@@ -41,6 +41,17 @@ import OutputNameCell from './OutputNameCell';
 import OutputRequiredCell from './OutputRequiredCell';
 import { getRuntimeOutputVariable } from './type';
 
+const ignoredOutputVariables = new Set<string>([
+  RuntimeOutputVariable.children,
+  RuntimeOutputVariable.profile,
+  RuntimeOutputVariable.appearancePage,
+  RuntimeOutputVariable.appearanceInput,
+  RuntimeOutputVariable.appearanceOutput,
+  RuntimeOutputVariable.share,
+  RuntimeOutputVariable.openingMessage,
+  RuntimeOutputVariable.openingQuestions,
+]);
+
 export default function OutputSettings({
   value,
   projectId,
@@ -150,44 +161,46 @@ export default function OutputSettings({
                 component={TableBody}
                 list={value.outputVariables}
                 sx={{ '&.isDragging .hover-visible': { display: 'none' } }}
-                renderItem={(item, _, params) => (
-                  <VariableRow
-                    className="output-variable-row"
-                    key={item.id}
-                    rowRef={(ref) => params.drop(params.preview(ref))}
-                    firstColumnChildren={
-                      <Stack
-                        className="hover-visible"
-                        ref={params.drag}
-                        sx={{
-                          display: 'none',
-                          p: 0.5,
-                          cursor: 'move',
-                          position: 'absolute',
-                          left: -6,
-                          top: '50%',
-                          transform: 'translateY(-50%)',
-                        }}>
-                        <Box component={Icon} icon={GripVertical} sx={{ color: '#9CA3AF', fontSize: 14 }} />
-                      </Stack>
-                    }
-                    sx={{
-                      position: 'relative',
-                      '&:hover .hover-visible': { display: 'flex' },
-                    }}
-                    // firstCellChildren
-                    selectAgentOutputVariables={checkOutputVariables?.outputVariables || {}}
-                    variable={item}
-                    value={value}
-                    projectId={projectId}
-                    gitRef={gitRef}
-                    onRemove={() =>
-                      setField(() => {
-                        delete value.outputVariables?.[item.id];
-                      })
-                    }
-                  />
-                )}
+                renderItem={(item, _, params) =>
+                  !ignoredOutputVariables.has(item.name as any) && (
+                    <VariableRow
+                      className="output-variable-row"
+                      key={item.id}
+                      rowRef={(ref) => params.drop(params.preview(ref))}
+                      firstColumnChildren={
+                        <Stack
+                          className="hover-visible"
+                          ref={params.drag}
+                          sx={{
+                            display: 'none',
+                            p: 0.5,
+                            cursor: 'move',
+                            position: 'absolute',
+                            left: -6,
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                          }}>
+                          <Box component={Icon} icon={GripVertical} sx={{ color: '#9CA3AF', fontSize: 14 }} />
+                        </Stack>
+                      }
+                      sx={{
+                        position: 'relative',
+                        '&:hover .hover-visible': { display: 'flex' },
+                      }}
+                      // firstCellChildren
+                      selectAgentOutputVariables={checkOutputVariables?.outputVariables || {}}
+                      variable={item}
+                      value={value}
+                      projectId={projectId}
+                      gitRef={gitRef}
+                      onRemove={() =>
+                        setField(() => {
+                          delete value.outputVariables?.[item.id];
+                        })
+                      }
+                    />
+                  )
+                }
               />
             )}
           </Table>
