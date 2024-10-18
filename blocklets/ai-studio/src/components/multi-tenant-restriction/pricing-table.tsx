@@ -47,8 +47,13 @@ function PricingTablePlan({ plan, billingCycle }: { plan: Plan; billingCycle?: B
       </Box>
     );
   };
-  const buttonText =
+  const link = typeof plan.link === 'string' ? plan.link : plan.link[billingCycle!];
+  let buttonText =
     typeof plan.buttonText === 'string' ? plan.buttonText : plan.qualified ? plan.buttonText[1] : plan.buttonText[0];
+  if (!link) {
+    buttonText = 'Unavailable';
+  }
+  const buttonDisabled = !link || plan.qualified;
   return (
     <Box
       sx={{
@@ -171,14 +176,14 @@ function PricingTablePlan({ plan, billingCycle }: { plan: Plan; billingCycle?: B
             <LoadingButton
               variant={plan.isFeatured ? 'contained' : 'outlined'}
               color="primary"
-              disabled={plan.qualified}
+              disabled={buttonDisabled}
               sx={{
                 width: 1,
                 py: 0.75,
                 ...(!plan.isFeatured && { bgcolor: '#fff' }),
               }}
               onClick={() => {
-                window.open(typeof plan.link === 'string' ? plan.link : plan.link[billingCycle!], '_blank');
+                window.open(link, '_blank');
               }}>
               {buttonText}
             </LoadingButton>
