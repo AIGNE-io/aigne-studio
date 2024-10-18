@@ -2,6 +2,7 @@
 import Project from '@api/store/models/project';
 import { useSessionContext } from '@app/contexts/session';
 import { didSpaceReady, getImportUrl } from '@app/libs/did-spaces';
+import { checkErrorType } from '@app/libs/util';
 import currentGitStore from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { getWalletDid } from '@arcblock/ux/lib/SessionUser/libs/utils';
@@ -223,7 +224,7 @@ export default function FromDidSpacesImport() {
     } catch (error) {
       console.error(error);
       const message = getErrorMessage(error);
-      if (error.type === RuntimeErrorType.ProjectLimitExceededError) {
+      if (checkErrorType(error, RuntimeErrorType.ProjectLimitExceededError)) {
         createLimitDialog();
       } else {
         Toast.error(message);

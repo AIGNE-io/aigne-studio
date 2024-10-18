@@ -1,4 +1,5 @@
 import { useProjectsState } from '@app/contexts/projects';
+import { checkErrorType } from '@app/libs/util';
 import currentGitStore from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
@@ -109,7 +110,7 @@ export default function ImportFromTemplates({
                           navigate(joinURL('/projects', project.id));
                         } catch (error) {
                           const message = getErrorMessage(error);
-                          if (error.type === RuntimeErrorType.ProjectLimitExceededError) {
+                          if (checkErrorType(error, RuntimeErrorType.ProjectLimitExceededError)) {
                             createLimitDialog();
                           } else {
                             Toast.error(message);

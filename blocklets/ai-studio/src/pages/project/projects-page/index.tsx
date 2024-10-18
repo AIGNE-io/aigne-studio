@@ -1,4 +1,5 @@
 import { getProjectDataUrlInSpace } from '@app/libs/did-spaces';
+import { checkErrorType } from '@app/libs/util';
 import { useProjectStore } from '@app/pages/project/yjs-state';
 import currentGitStore, { getDefaultBranch } from '@app/store/current-git-store';
 import { EVENTS } from '@arcblock/did-connect/lib/Session/libs/constants';
@@ -357,7 +358,7 @@ function ProjectMenu() {
             })
               .catch((error) => {
                 const message = getErrorMessage(error);
-                if (error.type === RuntimeErrorType.ProjectLimitExceededError) {
+                if (checkErrorType(error, RuntimeErrorType.ProjectLimitExceededError)) {
                   createLimitDialog();
                 } else {
                   Toast.error(message);
@@ -625,7 +626,7 @@ function ProjectList({
                         navigate(joinURL('/projects', project.id));
                       } catch (error) {
                         const message = getErrorMessage(error);
-                        if (error.type === RuntimeErrorType.ProjectLimitExceededError) {
+                        if (checkErrorType(error, RuntimeErrorType.ProjectLimitExceededError)) {
                           createLimitDialog();
                         } else {
                           Toast.error(message);
@@ -667,7 +668,7 @@ function ProjectList({
                       navigate(joinURL('/projects', project.id!));
                     } catch (error) {
                       const message = getErrorMessage(error);
-                      if (error.type === RuntimeErrorType.ProjectLimitExceededError) {
+                      if (checkErrorType(error, RuntimeErrorType.ProjectLimitExceededError)) {
                         createLimitDialog();
                       } else {
                         Toast.error(message);

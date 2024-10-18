@@ -2,6 +2,7 @@ import LoadingButton from '@app/components/loading/loading-button';
 import { showPlanUpgrade } from '@app/components/multi-tenant-restriction';
 import { getErrorMessage } from '@app/libs/api';
 import { createProject } from '@app/libs/project';
+import { checkErrorType } from '@app/libs/util';
 import currentGitStore from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
@@ -23,7 +24,6 @@ import {
   Paper,
   Popper,
 } from '@mui/material';
-import axios from 'axios';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { joinURL, withQuery } from 'ufo';
@@ -80,8 +80,7 @@ export function MakeYoursButton({ deployment, ...props }: { deployment: Deployme
       currentGitStore.setState({ currentProjectId: project.id });
       navigate(joinURL('/projects', project.id));
     } catch (error) {
-      const type = axios.isAxiosError(error) ? error.response?.data?.error?.type : error.type;
-      if (type === RuntimeErrorType.ProjectLimitExceededError) {
+      if (checkErrorType(error, RuntimeErrorType.ProjectLimitExceededError)) {
         showPlanUpgrade('projectLimit');
       } else {
         Toast.error(getErrorMessage(error));

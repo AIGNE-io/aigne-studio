@@ -1,3 +1,4 @@
+import { checkErrorType } from '@app/libs/util';
 import currentGitStore from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
@@ -74,7 +75,7 @@ export default function ImportFromGit({ onClose }: { onClose: () => void }) {
       } catch (error) {
         form.reset(value);
         const message = getErrorMessage(error);
-        if (error.type === RuntimeErrorType.ProjectLimitExceededError) {
+        if (checkErrorType(error, RuntimeErrorType.ProjectLimitExceededError)) {
           createLimitDialog();
         } else {
           Toast.error(message);
