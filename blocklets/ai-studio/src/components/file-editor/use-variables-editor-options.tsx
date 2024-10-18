@@ -14,6 +14,7 @@ type VariableEditorOptions = {
   from?: 'editor' | 'agentParameter' | 'knowledgeParameter' | 'blockletAPIParameter';
   type?: any;
   source?: any;
+  isImage?: boolean;
 };
 
 export default function useVariablesEditorOptions(
@@ -77,7 +78,7 @@ export default function useVariablesEditorOptions(
   }, [variables?.join('/'), t]);
 
   const addParameter = useCallback(
-    (parameter: string, { from, source, type }: VariableEditorOptions = {}) => {
+    (parameter: string, { from, source, type, isImage }: VariableEditorOptions = {}) => {
       if (!assistant) return undefined;
 
       const doc = (getYjsValue(assistant) as Map<any>).doc!;
@@ -88,7 +89,14 @@ export default function useVariablesEditorOptions(
 
         const key = (parameter || '').split('.')[0] || '';
         if (!parameter || !variables.includes(key)) {
-          const data = { id, key, ...(from ? { from } : {}), ...(type ? { type } : {}), ...(source ? { source } : {}) };
+          const data = {
+            id,
+            key,
+            ...(from ? { from } : {}),
+            ...(type ? { type } : {}),
+            ...(source ? { source } : {}),
+            ...(isImage ? { image: true } : {}),
+          };
 
           assistant.parameters[id] = {
             index: Math.max(-1, ...Object.values(assistant.parameters).map((i) => i.index)) + 1,
