@@ -27,6 +27,7 @@ import compression from 'compression';
 import { Router } from 'express';
 import Joi from 'joi';
 import { omitBy, pick } from 'lodash';
+import { Op } from 'sequelize';
 
 const router = Router();
 
@@ -60,7 +61,9 @@ const checkProjectRequestLimit = async ({
   if (project.createdBy && project.createdBy === userId) {
     return;
   }
-  const historyCount = await History.count({ where: { projectId, error: null } });
+  const historyCount = await History.count({
+    where: { projectId, error: null, userId: { [Op.not]: project.createdBy } },
+  });
   if (
     !quotaChecker.checkRequestLimit(historyCount, role) &&
     !['owner', 'admin', 'promptsEditor'].includes(role || '')
