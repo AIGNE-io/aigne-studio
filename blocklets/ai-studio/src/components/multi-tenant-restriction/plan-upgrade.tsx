@@ -3,15 +3,11 @@ import { AIGNE_STUDIO_MOUNT_POINT } from '@app/libs/constants';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Icon } from '@iconify-icon/react';
 import ArrowUpIcon from '@iconify-icons/tabler/circle-arrow-up';
-import CircleMinusIcon from '@iconify-icons/tabler/circle-minus';
-import CirclePlusIcon from '@iconify-icons/tabler/circle-plus';
 import DiamondIcon from '@iconify-icons/tabler/diamond';
 import HelpIcon from '@iconify-icons/tabler/help';
+import InfoCircleIcon from '@iconify-icons/tabler/info-circle';
 import { Close } from '@mui/icons-material';
 import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
   Alert,
   Box,
   Button,
@@ -20,12 +16,10 @@ import {
   DialogTitle,
   IconButton,
   Link,
-  SxProps,
   Theme,
   ToggleButton,
   ToggleButtonGroup,
   Tooltip,
-  Typography,
   useMediaQuery,
 } from '@mui/material';
 import { useState } from 'react';
@@ -86,7 +80,6 @@ export function PlanUpgrade({ ...rest }: Props) {
     },
     {
       name: 'Professional',
-      // featuresDescription: 'Full control and customization',
       featuresDescription: 'Run your own AIGNE Studio',
       features: [
         'Unlimited projects',
@@ -151,8 +144,7 @@ export function PlanUpgrade({ ...rest }: Props) {
           </Alert>
         )}
 
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: type ? 2 : 0 }}>
-          {/* <Box sx={{ fontSize: 16, fontWeight: 'bold' }}>All plans</Box> */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', mt: type ? 2 : 0 }}>
           <Box
             sx={{
               display: 'flex',
@@ -186,28 +178,23 @@ export function PlanUpgrade({ ...rest }: Props) {
               <ToggleButton value="yearly">Yearly</ToggleButton>
             </ToggleButtonGroup>
           </Box>
-          <PricingTable plans={aignePlansEN} />
+          <PricingTable plans={aignePlansEN} sx={{ mt: 1 }} />
 
-          <Typography variant="h3" sx={{ fontSize: 18, fontWeight: 'medium', mt: 5, textAlign: 'center' }}>
-            Frequently asked questions
-          </Typography>
-          <Box>
-            <StyledAccordion title="What is AI Kit Service?">
-              <Link href="https://www.arcblock.io/docs/ai-service/en/ai-service-introduction" target="_blank">
-                https://www.arcblock.io/docs/ai-service/en/ai-service-introduction
-              </Link>
-              <br />
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse malesuada lacus ex, sit amet blandit
-              leo lobortis eget.
-            </StyledAccordion>
-            <StyledAccordion title='What does "Run your own AIGNE Studio" mean?'>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse malesuada lacus ex, sit amet blandit
-              leo
-            </StyledAccordion>
-            <StyledAccordion title="Serverless or Dedicated Server?">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse malesuada lacus ex, sit amet blandit
-              leo
-            </StyledAccordion>
+          <Box
+            component={Link}
+            href="https://www.arcblock.io/docs/ai-service/en/ai-service-introduction"
+            target="_blank"
+            sx={{
+              alignSelf: 'flex-start',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              fontSize: 13,
+              color: 'text.secondary',
+              textDecoration: 'underline',
+            }}>
+            <Box component={Icon} icon={InfoCircleIcon} sx={{ fontSize: 16 }} />
+            Learn more about AI Service
           </Box>
         </Box>
       </DialogContent>
@@ -217,39 +204,12 @@ export function PlanUpgrade({ ...rest }: Props) {
 
 export function PlanUpgradeButton() {
   const { showPlanUpgrade } = useMultiTenantRestriction();
+  if (window.blocklet?.tenantMode === 'single') {
+    return null;
+  }
   return (
     <Button color="primary" startIcon={<Icon icon={DiamondIcon} />} onClick={() => showPlanUpgrade()}>
       Upgrade Plan
     </Button>
-  );
-}
-
-function StyledAccordion({ children, title, sx }: { children: React.ReactNode; title: string; sx?: SxProps }) {
-  const [expanded, setExpanded] = useState(false);
-  const handleChange = () => {
-    setExpanded(!expanded);
-  };
-  return (
-    <Accordion
-      onChange={handleChange}
-      sx={{
-        '& + &': { borderTop: 1, borderColor: 'divider' },
-        '&.Mui-expanded': { m: 0, '&:before': { display: 'none' } },
-        ...(Array.isArray(sx) ? sx : [sx]),
-      }}
-      elevation={0}>
-      <AccordionSummary
-        expandIcon={<Box component={Icon} icon={expanded ? CircleMinusIcon : CirclePlusIcon} sx={{ fontSize: 20 }} />}
-        sx={{
-          px: 0,
-          '&, &.Mui-expanded': { minHeight: 0 },
-          '.MuiAccordionSummary-content': { '&, &.Mui-expanded': { my: 1 } },
-        }}>
-        <Typography variant="subtitle2" sx={{}}>
-          {title}
-        </Typography>
-      </AccordionSummary>
-      <AccordionDetails sx={{ px: 0 }}>{children}</AccordionDetails>
-    </Accordion>
   );
 }
