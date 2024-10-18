@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.4.80",
+  "version": "0.4.82",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -73,14 +73,9 @@
       "types": "./lib/types/constants.d.ts"
     },
     "./front": {
-      "import": "./lib/esm/front/index.js",
+      "import": "./src/front/index.tsx",
       "require": "./lib/cjs/front/index.js",
       "types": "./lib/types/front/index.d.ts"
-    },
-    "./front/*": {
-      "import": "./lib/esm/front/*.js",
-      "require": "./lib/cjs/front/*.js",
-      "types": "./lib/types/front/*.d.ts"
     }
   },
   "typesVersions": {
@@ -124,15 +119,12 @@
       ],
       "front": [
         "./lib/types/front/index.d.ts"
-      ],
-      "front/*": [
-        "./lib/types/front/*.d.ts",
-        "./lib/types/front/*/index.d.ts"
       ]
     }
   },
   "files": [
     "lib",
+    "src",
     "LICENSE",
     "package.json",
     "README.md",

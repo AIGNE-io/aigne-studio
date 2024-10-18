@@ -26,7 +26,6 @@ import ScrollView from '../../components/ScrollView';
 import { AIGNEApiContextValue } from '../../contexts/Api';
 import { useEntryAgent } from '../../contexts/EntryAgent';
 import { RuntimeProvider } from '../../contexts/Runtime';
-import { ScrollViewProvider } from '../../contexts/ScrollView';
 import { SessionProvider, useSession } from '../../contexts/Session';
 import { useSessions } from '../../contexts/Sessions';
 import { useAppearances } from '../../hooks/use-appearances';
@@ -68,6 +67,7 @@ function DebugView() {
       <Stack sx={{ flex: 1, flexDirection: 'column', overflow: 'hidden', transform: 'translate(0,0)' }}>
         <ScrollView
           initialScrollBehavior="auto"
+          scroll="element"
           component={Stack}
           sx={{
             flex: 1,
@@ -80,11 +80,9 @@ function DebugView() {
               flexDirection: 'column',
             },
           }}>
-          <ScrollViewProvider value={{ disabled: true }}>
-            <AgentView />
+          <AgentView />
 
-            <AgentSettingsDialog />
-          </ScrollViewProvider>
+          <AgentSettingsDialog />
         </ScrollView>
       </Stack>
     </Suspense>

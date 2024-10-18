@@ -1,5 +1,6 @@
 import { LocaleProvider } from '@arcblock/ux/lib/Locale/context';
 import { ToastProvider } from '@arcblock/ux/lib/Toast';
+import withTracker from '@arcblock/ux/lib/withTracker';
 import { SubscribeButton } from '@blocklet/ai-kit/components';
 import { Dashboard } from '@blocklet/studio-ui';
 import Footer from '@blocklet/ui-react/lib/Footer';
@@ -7,6 +8,7 @@ import { Box, CssBaseline, GlobalStyles, ThemeProvider } from '@mui/material';
 import { ReactNode, Suspense, lazy } from 'react';
 import {
   Navigate,
+  Outlet,
   Route,
   RouterProvider,
   createBrowserRouter,
@@ -104,6 +106,12 @@ export default function App() {
   );
 }
 
+function Root() {
+  return <Outlet />;
+}
+
+const TrackedRoot = withTracker(Root);
+
 function AppRoutes({ basename }: { basename: string }) {
   const initialized = useInitialized();
   const isPromptEditor = useIsPromptEditor();
@@ -113,7 +121,7 @@ function AppRoutes({ basename }: { basename: string }) {
 
   const router = createBrowserRouter(
     createRoutesFromElements(
-      <Route path="/" ErrorBoundary={RouterErrorBoundary}>
+      <Route path="/" element={<TrackedRoot />} ErrorBoundary={RouterErrorBoundary}>
         <Route index element={isPromptEditor ? <Navigate to="projects" replace /> : <Home />} />
         <Route path="explore/*" element={<ExploreCategory />} />
         <Route path="apps/:appId" element={<AppPage />} />

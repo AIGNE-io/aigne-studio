@@ -25,9 +25,7 @@ export interface AIGNEApiContextValue {
 
 const aigneApiContext = createContext<AIGNEApiContextValue | null>(null);
 
-export const AIGNEApiProvider = aigneApiContext.Provider;
-
-export const AIGNEApiProviderCommon = ({
+export const AIGNEApiProvider = ({
   working,
   children,
   ...api
@@ -58,7 +56,7 @@ export const AIGNEApiProviderCommon = ({
     []
   );
 
-  return <AIGNEApiProvider value={value}>{children}</AIGNEApiProvider>;
+  return <aigneApiContext.Provider value={value}>{children}</aigneApiContext.Provider>;
 };
 
 export const useAIGNEApi = () => {
