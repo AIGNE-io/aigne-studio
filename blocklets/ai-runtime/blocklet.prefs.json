@@ -209,7 +209,22 @@
                 "x-component-props": {},
                 "x-decorator-props": {},
                 "name": "quotas",
-                "default": "{{[\n  {\n    \"name\": \"Request Limit\",\n    \"key\": \"requestLimit\",\n    \"quotas\": [\n      { \"passport\": \"\", \"value\": 3 },\n      { \"passport\": \"aignePro\", \"value\": 100 },\n    ]\n  },\n]}}",
+                "default": [
+                  {
+                    "name": "Request Limit",
+                    "key": "requestLimit",
+                    "quotas": [
+                      {
+                        "passport": "",
+                        "value": 3
+                      },
+                      {
+                        "passport": "aignePro",
+                        "value": 100
+                      }
+                    ]
+                  }
+                ],
                 "x-designable-id": "gfep3tdeqnu",
                 "x-index": 0,
                 "items": {
@@ -381,6 +396,6 @@
         }
       }
     },
-    "x-designable-id": "9vecf7pmi49"
+    "x-designable-id": "n8hipjf4bok"
   }
 }

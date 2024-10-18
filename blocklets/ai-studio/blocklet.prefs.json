@@ -135,7 +135,58 @@
                 "x-component-props": {},
                 "x-decorator-props": {},
                 "name": "quotas",
-                "default": "{{[\n  { \n    \"name\": \"Project Limit\",\n    \"key\": \"projectLimit\",\n    \"quotas\": [\n      { \"passport\": \"\", \"value\": 3 },\n      { \"passport\": \"aignePro\", \"value\": 100 },\n    ]\n  },\n  {\n    \"name\": \"Cron Jobs\",\n    \"key\": \"cronJobs\",\n    \"quotas\": [\n      { \"passport\": \"\", \"value\": 0 },\n      { \"passport\": \"aignePro\", \"value\": 0 },\n      { \"passport\": \"aigneProPro\", \"value\": 1 },\n    ]\n  },\n  {\n    \"name\": \"Custom Brand\",\n    \"key\": \"customBrand\",\n    \"quotas\": [\n      { \"passport\": \"\", \"value\": 0 },\n      { \"passport\": \"aignePro\", \"value\": 1 },\n      { \"passport\": \"aigneProPro\", \"value\": 1 },\n    ]\n  }\n]}}",
+                "default": [
+                  {
+                    "name": "Project Limit",
+                    "key": "projectLimit",
+                    "quotas": [
+                      {
+                        "passport": "",
+                        "value": 3
+                      },
+                      {
+                        "passport": "aignePro",
+                        "value": 100
+                      }
+                    ]
+                  },
+                  {
+                    "name": "Cron Jobs",
+                    "key": "cronJobs",
+                    "quotas": [
+                      {
+                        "passport": "",
+                        "value": 0
+                      },
+                      {
+                        "passport": "aignePro",
+                        "value": 0
+                      },
+                      {
+                        "passport": "aigneProPro",
+                        "value": 1
+                      }
+                    ]
+                  },
+                  {
+                    "name": "Custom Brand",
+                    "key": "customBrand",
+                    "quotas": [
+                      {
+                        "passport": "",
+                        "value": 0
+                      },
+                      {
+                        "passport": "aignePro",
+                        "value": 1
+                      },
+                      {
+                        "passport": "aigneProPro",
+                        "value": 1
+                      }
+                    ]
+                  }
+                ],
                 "x-designable-id": "il97ffpgujy",
                 "x-index": 0,
                 "items": {

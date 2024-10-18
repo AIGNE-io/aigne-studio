@@ -1,12 +1,10 @@
-import { Icon, IconifyIcon } from '@iconify-icon/react';
+import { Icon } from '@iconify-icon/react';
 import { LoadingButton } from '@mui/lab';
-import { Box, Typography } from '@mui/material';
+import { Box, SxProps, Typography } from '@mui/material';
 import { ReactNode } from 'react';
 
 interface Plan {
-  icon: string | IconifyIcon;
   name: string;
-  description: string;
   featuresDescription?: string;
   features: ReactNode[];
   price?: ReactNode;
@@ -22,6 +20,7 @@ interface Plan {
 
 interface PricingTableProps {
   plans: Plan[];
+  sx?: SxProps;
 }
 
 function PricingTablePlan({ plan }: { plan: Plan }) {
@@ -41,7 +40,6 @@ function PricingTablePlan({ plan }: { plan: Plan }) {
           p: 4,
           bgcolor: 'grey.100',
           borderRadius: 1,
-          ...(plan.active && { border: 1, borderColor: 'success.light' }),
         }}>
         <Typography
           variant="h2"
@@ -166,19 +164,11 @@ function PricingTablePlan({ plan }: { plan: Plan }) {
 }
 
 /**
- * TODO: 暂时仅考虑 plan 为 4 个的情况
+ * TODO: 暂时仅考虑 plan 为 3 个的情况
  */
-export function PricingTable({ plans, ...rest }: PricingTableProps) {
+export function PricingTable({ plans, sx, ...rest }: PricingTableProps) {
   return (
-    <Box
-      sx={
-        {
-          // borderTop: '1px solid',
-          // borderBottom: '1px solid',
-          // borderColor: 'grey.100',
-        }
-      }
-      {...rest}>
+    <Box sx={sx} {...rest}>
       <Box
         sx={{
           display: 'flex',
