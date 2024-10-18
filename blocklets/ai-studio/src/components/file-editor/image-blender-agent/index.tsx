@@ -12,6 +12,63 @@ function CustomTextField(props: any) {
   return <TextField {...props} InputProps={{ startAdornment: null, endAdornment: props?.InputProps?.endAdornment }} />;
 }
 
+function ConfigWrapper(props: any) {
+  return (
+    <Box
+      sx={{
+        height: '100%',
+        position: 'relative',
+        px: 0.25,
+      }}>
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backdropFilter: 'blur(1.8px)',
+          backgroundColor: 'rgba(255, 255, 255, 0.4)',
+          zIndex: 10,
+        }}
+      />
+      <Box
+        sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          width: '100%',
+          transform: 'translate(-50%, -50%)',
+          zIndex: 11,
+          textAlign: 'center',
+          fontWeight: 'bold',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 0.25,
+        }}>
+        <Box
+          sx={{
+            animation: 'headShake 1.5s ease-in-out infinite',
+            '@keyframes headShake': {
+              '0%': { transform: 'translateX(0)' },
+              '6.5%': { transform: 'translateX(-6px) rotateY(-9deg)' },
+              '18.5%': { transform: 'translateX(5px) rotateY(7deg)' },
+              '31.5%': { transform: 'translateX(-3px) rotateY(-5deg)' },
+              '43.5%': { transform: 'translateX(2px) rotateY(3deg)' },
+              '50%': { transform: 'translateX(0)' },
+            },
+          }}>
+          <AigneLogo />
+        </Box>
+        <Box>{props?.t?.('selectTemplateDynamicInputTip')}</Box>
+      </Box>
+
+      {props?.children}
+    </Box>
+  );
+}
+
 export default function ImageBlenderAssistantEditor({ value }: { value: ImageBlenderAssistantYjs }) {
   const selectedTemplatesRef = useRef({});
   const { addParameter } = useVariablesEditorOptions(value);
@@ -67,61 +124,7 @@ export default function ImageBlenderAssistantEditor({ value }: { value: ImageBle
         slots={{
           ConfigMode: {
             infoWrapper: () => null,
-            configWrapper: (props: any) => {
-              return (
-                <Box
-                  sx={{
-                    height: '100%',
-                    position: 'relative',
-                    px: 1,
-                  }}>
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      backdropFilter: 'blur(2px)',
-                      backgroundColor: 'rgba(255, 255, 255, 0.5)',
-                      zIndex: 10,
-                    }}
-                  />
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      top: '50%',
-                      left: '50%',
-                      width: '100%',
-                      transform: 'translate(-50%, -50%)',
-                      zIndex: 11,
-                      textAlign: 'center',
-                      fontWeight: 'bold',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                    }}>
-                    <Box
-                      sx={{
-                        animation: 'headShake 1.5s ease-in-out infinite',
-                        '@keyframes headShake': {
-                          '0%': { transform: 'translateX(0)' },
-                          '6.5%': { transform: 'translateX(-6px) rotateY(-9deg)' },
-                          '18.5%': { transform: 'translateX(5px) rotateY(7deg)' },
-                          '31.5%': { transform: 'translateX(-3px) rotateY(-5deg)' },
-                          '43.5%': { transform: 'translateX(2px) rotateY(3deg)' },
-                          '50%': { transform: 'translateX(0)' },
-                        },
-                      }}>
-                      <AigneLogo />
-                    </Box>
-                    <Box>{t('selectTemplateDynamicInputTip')}</Box>
-                  </Box>
-
-                  {props.children}
-                </Box>
-              );
-            },
+            configWrapper: (props: any) => <ConfigWrapper {...props} t={t} />,
           },
           TextField: CustomTextField,
         }}
