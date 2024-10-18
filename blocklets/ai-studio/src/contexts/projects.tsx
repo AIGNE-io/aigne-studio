@@ -1,6 +1,5 @@
 import { showPlanUpgrade } from '@app/components/multi-tenant-restriction';
 import { useCurrentGitStore } from '@app/store/current-git-store';
-import useDialog from '@app/utils/use-dialog';
 import { useCallback, useEffect } from 'react';
 import { atom, useRecoilState } from 'recoil';
 
@@ -34,7 +33,6 @@ export const useProjectsState = () => {
   const { session } = useSessionContext();
   const setProjectGitSettings = useCurrentGitStore((i) => i.setProjectGitSettings);
   const isPromptAdmin = useIsPromptAdmin();
-  const { dialog } = useDialog();
 
   const refetch = useCallback(async () => {
     setState((v) => ({ ...v, loading: true }));
@@ -164,6 +162,5 @@ export const useProjectsState = () => {
     checkProjectLimit,
     clearState,
     createLimitDialog,
-    limitDialog: dialog,
   };
 };

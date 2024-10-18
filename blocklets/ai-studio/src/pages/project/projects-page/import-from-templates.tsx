@@ -37,7 +37,7 @@ export default function ImportFromTemplates({
   const { t, locale } = useLocaleContext();
   const { dialog, showDialog } = useDialog();
   const navigate = useNavigate();
-  const { createLimitDialog, limitDialog } = useProjectsState();
+  const { createLimitDialog } = useProjectsState();
 
   return (
     <>
@@ -177,7 +177,6 @@ export default function ImportFromTemplates({
       </Dialog>
 
       {dialog}
-      {limitDialog}
     </>
   );
 }

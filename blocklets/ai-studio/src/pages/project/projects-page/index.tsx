@@ -141,7 +141,7 @@ export default function ProjectsPage() {
 function ProjectsActionButton() {
   const { t } = useLocaleContext();
   const [dialog, setDialog] = useState<any>(null);
-  const { checkProjectLimit, limitDialog } = useProjectsState();
+  const { checkProjectLimit } = useProjectsState();
 
   return (
     <>
@@ -184,7 +184,6 @@ function ProjectsActionButton() {
       </Stack>
 
       {dialog}
-      {limitDialog}
     </>
   );
 }
@@ -239,7 +238,6 @@ function ProjectMenu() {
     setMenuAnchor,
     checkProjectLimit,
     createLimitDialog,
-    limitDialog,
   } = useProjectsState();
 
   const getNewProjectName = (name: string) => {
@@ -473,7 +471,6 @@ function ProjectMenu() {
       )}
 
       {dialog}
-      {limitDialog}
     </>
   );
 }
@@ -550,7 +547,6 @@ function ProjectList({
     setMenuAnchor,
     checkProjectLimit,
     createLimitDialog,
-    limitDialog,
   } = useProjectsState();
 
   return (
@@ -719,7 +715,6 @@ function ProjectList({
       </ProjectListContainer>
 
       {dialog}
-      {limitDialog}
     </>
   );
 }

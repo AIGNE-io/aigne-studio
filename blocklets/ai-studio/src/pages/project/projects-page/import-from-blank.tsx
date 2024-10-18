@@ -40,7 +40,7 @@ interface BlankForm {
 export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
   const { t } = useLocaleContext();
   const navigate = useNavigate();
-  const { createLimitDialog, limitDialog } = useProjectsState();
+  const { createLimitDialog } = useProjectsState();
 
   const { data, loading, error } = useRequest(() => getTemplatesProjects());
   const templates = error ? [] : data?.templates || [];
@@ -84,178 +84,174 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
 
   const template = templates.find((x) => `${x.blockletDid}-${x.id}` === templateIds);
   return (
-    <>
-      <Dialog
-        data-testid="newProjectDialog"
-        open
-        disableEnforceFocus
-        maxWidth="md"
-        fullWidth
-        component="form"
-        onSubmit={form.handleSubmit(save)}
-        onClose={onClose}>
-        <DialogTitle className="between">
-          <Box>{t('newObject', { object: t('project') })}</Box>
+    <Dialog
+      data-testid="newProjectDialog"
+      open
+      disableEnforceFocus
+      maxWidth="md"
+      fullWidth
+      component="form"
+      onSubmit={form.handleSubmit(save)}
+      onClose={onClose}>
+      <DialogTitle className="between">
+        <Box>{t('newObject', { object: t('project') })}</Box>
 
-          <IconButton size="small" onClick={() => onClose()}>
-            <Close />
-          </IconButton>
-        </DialogTitle>
+        <IconButton size="small" onClick={() => onClose()}>
+          <Close />
+        </IconButton>
+      </DialogTitle>
 
-        <DialogContent>
-          <Stack flexDirection={{ xs: 'column', md: 'row' }} gap={{ xs: 2.5, md: 4 }}>
-            <Stack flex={1} gap={2.5}>
-              <Box>
-                <Typography variant="subtitle2">{t('choose')}</Typography>
+      <DialogContent>
+        <Stack flexDirection={{ xs: 'column', md: 'row' }} gap={{ xs: 2.5, md: 4 }}>
+          <Stack flex={1} gap={2.5}>
+            <Box>
+              <Typography variant="subtitle2">{t('choose')}</Typography>
 
-                <Controller
-                  name="templateIds"
-                  control={form.control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      select
-                      disabled={loading}
-                      hiddenLabel
-                      placeholder={t('choose')}
-                      autoFocus
-                      sx={{
-                        width: 1,
-                        border: '1px solid #E5E7EB',
-                        borderRadius: '8px',
-                        '.MuiSelect-select:focus': {
-                          background: 'transparent',
-                        },
-                      }}
-                      SelectProps={{
-                        displayEmpty: true,
-                        renderValue: (selected) => {
-                          const selectedItem = templates.find((item) => `${item.blockletDid}-${item.id}` === selected);
-                          if (!selectedItem) {
-                            return (
-                              <Stack direction="row" alignItems="center" spacing={1}>
-                                <DidAvatar did={window.blocklet.appId} size={20} src="" />
-                                <Typography variant="subtitle2" noWrap>
-                                  {t('noTemplatesAvailable')}
-                                </Typography>
-                              </Stack>
-                            );
-                          }
-
+              <Controller
+                name="templateIds"
+                control={form.control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    select
+                    disabled={loading}
+                    hiddenLabel
+                    placeholder={t('choose')}
+                    autoFocus
+                    sx={{
+                      width: 1,
+                      border: '1px solid #E5E7EB',
+                      borderRadius: '8px',
+                      '.MuiSelect-select:focus': {
+                        background: 'transparent',
+                      },
+                    }}
+                    SelectProps={{
+                      displayEmpty: true,
+                      renderValue: (selected) => {
+                        const selectedItem = templates.find((item) => `${item.blockletDid}-${item.id}` === selected);
+                        if (!selectedItem) {
                           return (
                             <Stack direction="row" alignItems="center" spacing={1}>
-                              <DidAvatar did={selectedItem.blockletDid} size={20} src="" />
-                              <Typography variant="body2" noWrap>
-                                {selectedItem?.name || t('unnamed')}
+                              <DidAvatar did={window.blocklet.appId} size={20} src="" />
+                              <Typography variant="subtitle2" noWrap>
+                                {t('noTemplatesAvailable')}
                               </Typography>
                             </Stack>
                           );
-                        },
-                      }}
-                      InputProps={{
-                        endAdornment: (
-                          <InputAdornment position="end">
-                            {loading && <CircularProgress size={12} sx={{ mr: 2 }} />}
-                          </InputAdornment>
-                        ),
-                      }}>
-                      <MenuItem value="">
+                        }
+
+                        return (
+                          <Stack direction="row" alignItems="center" spacing={1}>
+                            <DidAvatar did={selectedItem.blockletDid} size={20} src="" />
+                            <Typography variant="body2" noWrap>
+                              {selectedItem?.name || t('unnamed')}
+                            </Typography>
+                          </Stack>
+                        );
+                      },
+                    }}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          {loading && <CircularProgress size={12} sx={{ mr: 2 }} />}
+                        </InputAdornment>
+                      ),
+                    }}>
+                    <MenuItem value="">
+                      <Stack direction="row" alignItems="stretch" gap={1}>
+                        <DidAvatar did={window.blocklet.appId} size={40} src="" />
+                        <Stack flex={1} width={1}>
+                          <Typography variant="subtitle2" noWrap>
+                            {t('noTemplatesAvailable')}
+                          </Typography>
+                        </Stack>
+                      </Stack>
+                    </MenuItem>
+
+                    {templates.map((item) => (
+                      <MenuItem key={item.id} value={`${item.blockletDid}-${item.id}`}>
                         <Stack direction="row" alignItems="stretch" gap={1}>
-                          <DidAvatar did={window.blocklet.appId} size={40} src="" />
+                          <DidAvatar did={item.blockletDid} size={40} src="" />
                           <Stack flex={1} width={1}>
                             <Typography variant="subtitle2" noWrap>
-                              {t('noTemplatesAvailable')}
+                              {item?.name || t('unnamed')}
+                            </Typography>
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                display: '-webkit-box',
+                                WebkitBoxOrient: 'vertical',
+                                WebkitLineClamp: 2,
+                                overflow: 'hidden',
+                              }}>
+                              {item?.description}
                             </Typography>
                           </Stack>
                         </Stack>
                       </MenuItem>
+                    ))}
+                  </TextField>
+                )}
+              />
 
-                      {templates.map((item) => (
-                        <MenuItem key={item.id} value={`${item.blockletDid}-${item.id}`}>
-                          <Stack direction="row" alignItems="stretch" gap={1}>
-                            <DidAvatar did={item.blockletDid} size={40} src="" />
-                            <Stack flex={1} width={1}>
-                              <Typography variant="subtitle2" noWrap>
-                                {item?.name || t('unnamed')}
-                              </Typography>
-                              <Typography
-                                variant="caption"
-                                sx={{
-                                  display: '-webkit-box',
-                                  WebkitBoxOrient: 'vertical',
-                                  WebkitLineClamp: 2,
-                                  overflow: 'hidden',
-                                }}>
-                                {item?.description}
-                              </Typography>
-                            </Stack>
-                          </Stack>
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  )}
-                />
+              <Typography variant="caption" color="text.disabled">
+                {t('selectTemplate')}
+              </Typography>
+            </Box>
 
-                <Typography variant="caption" color="text.disabled">
-                  {t('selectTemplate')}
-                </Typography>
-              </Box>
-
-              {template?.description && (
-                <Box>
-                  <Typography variant="subtitle2">{template?.description}</Typography>
-                </Box>
-              )}
-            </Stack>
-
-            <Stack flex={1} gap={2.5}>
+            {template?.description && (
               <Box>
-                <Typography variant="subtitle2">{t('name')}</Typography>
-                <TextField
-                  data-testid="projectNameField"
-                  placeholder={t('newProjectNamePlaceholder')}
-                  hiddenLabel
-                  autoFocus
-                  sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
-                  {...form.register('name')}
-                />
+                <Typography variant="subtitle2">{template?.description}</Typography>
               </Box>
-
-              <Box>
-                <Typography variant="subtitle2">{t('description')}</Typography>
-                <TextField
-                  data-testid="projectDescriptionField"
-                  placeholder={t('newProjectDescriptionPlaceholder')}
-                  hiddenLabel
-                  multiline
-                  minRows={3}
-                  maxRows={5}
-                  sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
-                  {...form.register('description')}
-                />
-              </Box>
-            </Stack>
+            )}
           </Stack>
-        </DialogContent>
 
-        <DialogActions>
-          <Button onClick={onClose} className="cancel" variant="outlined">
-            {t('cancel')}
-          </Button>
+          <Stack flex={1} gap={2.5}>
+            <Box>
+              <Typography variant="subtitle2">{t('name')}</Typography>
+              <TextField
+                data-testid="projectNameField"
+                placeholder={t('newProjectNamePlaceholder')}
+                hiddenLabel
+                autoFocus
+                sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
+                {...form.register('name')}
+              />
+            </Box>
 
-          <LoadingButton
-            className="save"
-            variant="contained"
-            type="submit"
-            loading={form.formState.isSubmitting}
-            loadingPosition="start"
-            startIcon={<Box component={Icon} icon={PlusIcon} />}>
-            {t('create')}
-          </LoadingButton>
-        </DialogActions>
-      </Dialog>
+            <Box>
+              <Typography variant="subtitle2">{t('description')}</Typography>
+              <TextField
+                data-testid="projectDescriptionField"
+                placeholder={t('newProjectDescriptionPlaceholder')}
+                hiddenLabel
+                multiline
+                minRows={3}
+                maxRows={5}
+                sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
+                {...form.register('description')}
+              />
+            </Box>
+          </Stack>
+        </Stack>
+      </DialogContent>
 
-      {limitDialog}
-    </>
+      <DialogActions>
+        <Button onClick={onClose} className="cancel" variant="outlined">
+          {t('cancel')}
+        </Button>
+
+        <LoadingButton
+          className="save"
+          variant="contained"
+          type="submit"
+          loading={form.formState.isSubmitting}
+          loadingPosition="start"
+          startIcon={<Box component={Icon} icon={PlusIcon} />}>
+          {t('create')}
+        </LoadingButton>
+      </DialogActions>
+    </Dialog>
   );
 }

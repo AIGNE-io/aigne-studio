@@ -113,7 +113,7 @@ export function PlanUpgrade() {
 
           <Box
             component={Link}
-            href="https://www.arcblock.io/docs/ai-service/en/ai-service-introduction"
+            href="https://www.arcblock.io/blog/tags/aigne"
             target="_blank"
             sx={{
               alignSelf: 'flex-start',

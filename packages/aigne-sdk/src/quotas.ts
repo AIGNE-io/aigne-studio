@@ -34,7 +34,7 @@ export class Quotas {
     );
   }
 
-  getQuota(quotaKey: QuotaKey, passport: string = '') {
+  getPassportQuota(quotaKey: QuotaKey, passport: string = '') {
     // 管理员或非多租户模式下, 无任何限制
     if (['admin', 'owner'].includes(passport)) {
       return UNLIMITED_QUOTA;
@@ -50,6 +50,13 @@ export class Quotas {
     // 未指定 passport 的 quota 配置
     const fallback = config.quotas.find((x) => !x.passport?.trim());
     return this.normalizeQuotaValue(fallback?.value);
+  }
+
+  getQuota(quotaKey: QuotaKey, passports?: string | string[]) {
+    return Math.max(
+      0,
+      ...(Array.isArray(passports) ? passports : [passports]).map((i) => this.getPassportQuota(quotaKey, i))
+    );
   }
 
   checkProjectLimit(used: number, passport?: string) {

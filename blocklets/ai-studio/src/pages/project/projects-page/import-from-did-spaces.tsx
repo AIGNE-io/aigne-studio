@@ -202,7 +202,7 @@ export default function FromDidSpacesImport() {
   const id = useId();
   const navigate = useNavigate();
   const dialogState = usePopupState({ variant: 'dialog', popupId: id });
-  const { listProjectsByDidSpaces, fromDidSpacesImport, createLimitDialog, limitDialog } = useProjectsState();
+  const { listProjectsByDidSpaces, fromDidSpacesImport, createLimitDialog } = useProjectsState();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(false);
   const { session } = useSessionContext();
@@ -404,8 +404,6 @@ export default function FromDidSpacesImport() {
           </LoadingButton>
         </DialogActions>
       </Dialog>
-
-      {limitDialog}
     </>
   );
 }
