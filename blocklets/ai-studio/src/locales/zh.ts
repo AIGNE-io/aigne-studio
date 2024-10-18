@@ -849,4 +849,18 @@ export default flatten({
   selectEntryAgentDescription: '在部署之前，您需要设置入口 Agent',
   activeWhen: '激活条件',
   selectTemplateDynamicInputTip: '已被 Agent 自动接管',
+  multiTenantRestriction: {
+    requestLimit: {
+      desc: '您已达到此项目的最大请求限制。您可以通过升级到高级版来增加限制。',
+    },
+    projectLimit: {
+      desc: '您已达到最大项目限制。升级到高级版以管理更多项目。',
+    },
+    customBrand: {
+      desc: '品牌定制仅在高级版或 Serverless AIGNE 中可用。请升级到高级版以访问此功能。',
+    },
+    cronJobs: {
+      desc: '定时任务功能仅在 Serverless AIGNE 中可用。请运行 Serverless AIGNE 以访问此功能。',
+    },
+  },
 });

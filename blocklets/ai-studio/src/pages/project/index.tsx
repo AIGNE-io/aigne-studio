@@ -12,6 +12,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
 import Loading from '../../components/loading';
+import { PlanUpgradeButton } from '../../components/multi-tenant-restriction';
 import KnowledgeRoutes from '../knowledge';
 import VariablesList from '../variables/list';
 import ProjectHeader from './project-header';
@@ -30,7 +31,7 @@ export default function ProjectRoutes() {
         <StyledDashboard
           HeaderProps={{
             logo: <AigneLogo />,
-            addons: (exists) => [<SubscribeButton />, ...exists],
+            addons: (exists) => [<PlanUpgradeButton />, <SubscribeButton />, ...exists],
             homeLink: joinURL(blocklet?.prefix || '', 'projects'),
           }}
           MenusDrawerProps={{ sx: { [`.${backdropClasses.root}`]: { top: 64 } } }}

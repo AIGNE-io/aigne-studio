@@ -11,7 +11,7 @@ import { CustomError } from '../../error';
 import { useAppearances } from '../../hooks/use-appearances';
 import { useHeaderMenu } from '../../hooks/use-header-menu';
 
-export default function Runtime(props: { aid?: string; working?: boolean }) {
+export default function Runtime(props: { aid?: string; working?: boolean; children?: React.ReactNode }) {
   const [query] = useSearchParams();
 
   const aid = props.aid || query.get('aid');
@@ -20,6 +20,7 @@ export default function Runtime(props: { aid?: string; working?: boolean }) {
   return (
     <RuntimeProvider aid={aid} working={props.working}>
       <RuntimeView />
+      {props.children}
     </RuntimeProvider>
   );
 }

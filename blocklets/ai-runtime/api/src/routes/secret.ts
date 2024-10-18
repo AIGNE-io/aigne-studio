@@ -1,13 +1,14 @@
 import { getAgent, getAgentSecretInputs, getProject } from '@api/libs/agent';
 import { ensureAgentAdmin } from '@api/libs/security';
 import Secret from '@api/store/models/secret';
+import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
+import config from '@blocklet/sdk/lib/config';
 import { auth, user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
 
 const router = Router();
-
 export interface CreateOrUpdateSecretsInput {
   secrets: {
     projectId: string;
@@ -81,12 +82,14 @@ export interface GetHasValueQuery {
   projectId: string;
   targetProjectId: string;
   targetAgentId: string;
+  targetBlockletDid?: string;
 }
 
 const getHasValueQuerySchema = Joi.object<GetHasValueQuery>({
   projectId: Joi.string().required(),
   targetProjectId: Joi.string().required(),
   targetAgentId: Joi.string().required(),
+  targetBlockletDid: Joi.string().empty([null, '']),
 });
 
 router.get('/has-value', user(), auth(), async (req, res) => {
@@ -101,6 +104,28 @@ router.get('/has-value', user(), auth(), async (req, res) => {
     return project.createdBy ?? [];
   });
 
+  let globalAuthorized = false;
+
+  if (query.targetBlockletDid) {
+    const agent = await getAgent({
+      aid: stringifyIdentity({
+        blockletDid: query.targetBlockletDid,
+        projectId: query.targetProjectId,
+        agentId: query.targetAgentId,
+      }),
+      working: true,
+      rejectOnEmpty: true,
+    });
+
+    if (agent) {
+      const authInputs = (agent.parameters || [])?.filter(
+        (i) => i.key && i.type === 'source' && i.source?.variableFrom === 'secret' && !i.hidden
+      );
+
+      globalAuthorized = authInputs.every((i) => !!config.env[i.key?.toLocaleUpperCase()!]);
+    }
+  }
+
   const secrets = await Secret.findAll({
     where: {
       projectId: query.projectId,
@@ -110,7 +135,7 @@ router.get('/has-value', user(), auth(), async (req, res) => {
     attributes: { exclude: ['secret'] },
   });
 
-  res.json({ secrets });
+  res.json({ secrets, globalAuthorized });
 });
 
 const getSecretsQuerySchema = Joi.object<{

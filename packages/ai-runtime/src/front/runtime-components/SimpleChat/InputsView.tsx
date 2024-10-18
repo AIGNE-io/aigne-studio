@@ -16,12 +16,16 @@ import DrawerOpenCloseIcon from './DrawerOpenCloseIcon';
 
 const COLLAPSED_SIZE = 80;
 
-export default function InputsView({ ...props }: StackProps) {
+export interface InputsViewProps extends StackProps {
+  collapsible?: boolean;
+}
+
+export default function InputsView({ collapsible, ...props }: InputsViewProps) {
   const { aid } = useActiveAgent();
   const agent = useAgent({ aid });
 
   const inputs = useMemo(() => agent.parameters?.filter(isValidInput), [agent]);
-  const enableCollapse = !!inputs && inputs.length > 1;
+  const enableCollapse = collapsible && !!inputs && inputs.length > 1;
 
   const [open, setOpen] = useState(true);
 

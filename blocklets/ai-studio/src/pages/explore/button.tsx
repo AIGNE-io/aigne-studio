@@ -1,10 +1,12 @@
 import LoadingButton from '@app/components/loading/loading-button';
+import { showPlanUpgrade } from '@app/components/multi-tenant-restriction';
 import { getErrorMessage } from '@app/libs/api';
 import { createProject } from '@app/libs/project';
+import { checkErrorType } from '@app/libs/util';
 import currentGitStore from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { ProjectSettings } from '@blocklet/ai-runtime/types';
+import { ProjectSettings, RuntimeErrorType } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import twitterIcon from '@iconify-icons/tabler/brand-twitter';
 import externalLinkIcon from '@iconify-icons/tabler/external-link';
@@ -78,7 +80,11 @@ export function MakeYoursButton({ deployment, ...props }: { deployment: Deployme
       currentGitStore.setState({ currentProjectId: project.id });
       navigate(joinURL('/projects', project.id));
     } catch (error) {
-      Toast.error(getErrorMessage(error));
+      if (checkErrorType(error, RuntimeErrorType.ProjectLimitExceededError)) {
+        showPlanUpgrade('projectLimit');
+      } else {
+        Toast.error(getErrorMessage(error));
+      }
     }
   };
 
