@@ -1,15 +1,20 @@
 import { Icon } from '@iconify-icon/react';
+import HelpIcon from '@iconify-icons/tabler/help';
 import { LoadingButton } from '@mui/lab';
-import { Box, SxProps, Typography } from '@mui/material';
-import { ReactNode } from 'react';
+import { Box, SxProps, Tooltip, Typography } from '@mui/material';
+
+type BillingCycle = 'monthly' | 'yearly';
+type Feature = string | { text: string; tooltip?: string };
+type Price = string | { monthly: string; yearly: string };
+type Discount = string | { monthly: string; yearly: string };
 
 interface Plan {
   name: string;
   featuresDescription?: string;
-  features: ReactNode[];
-  price?: ReactNode;
+  features: Feature[];
+  price?: Price;
   priceSuffix?: string;
-  discount?: string;
+  discount?: Discount;
   isStartingPrice?: boolean;
   buttonText: string;
   buttonLink: string;
@@ -21,9 +26,29 @@ interface Plan {
 interface PricingTableProps {
   plans: Plan[];
   sx?: SxProps;
+  billingCycle?: BillingCycle;
 }
 
-function PricingTablePlan({ plan }: { plan: Plan }) {
+function PricingTablePlan({ plan, billingCycle }: { plan: Plan; billingCycle?: BillingCycle }) {
+  const renderFeature = (feature: Feature) => {
+    if (typeof feature === 'string') {
+      return (
+        <Box component="span" sx={{ color: 'text.secondary' }}>
+          {feature}
+        </Box>
+      );
+    }
+    return (
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <span>{feature.text}</span>
+        {feature.tooltip && (
+          <Tooltip title={feature.tooltip}>
+            <Box component={Icon} icon={HelpIcon} sx={{ fontSize: 18 }} />
+          </Tooltip>
+        )}
+      </Box>
+    );
+  };
   return (
     <Box
       sx={{
@@ -88,9 +113,11 @@ function PricingTablePlan({ plan }: { plan: Plan }) {
               Starting at
             </Box>
           )}
-          <Box component="span" sx={{ fontSize: 36 }}>
-            {plan.price}
-          </Box>
+          {plan.price && (
+            <Box component="span" sx={{ fontSize: 36 }}>
+              {typeof plan.price === 'string' ? plan.price : plan.price[billingCycle!]}
+            </Box>
+          )}
           <Box
             sx={{
               display: 'inline-flex',
@@ -100,7 +127,7 @@ function PricingTablePlan({ plan }: { plan: Plan }) {
             }}>
             {plan.discount && (
               <Box component="span" sx={{ lineHeight: 1, fontSize: 12, color: 'warning.main' }}>
-                {plan.discount}
+                {typeof plan.discount === 'string' ? plan.discount : plan.discount[billingCycle!]}
               </Box>
             )}
             <Box
@@ -134,7 +161,7 @@ function PricingTablePlan({ plan }: { plan: Plan }) {
                 <Box component={Icon} icon="tabler:check" sx={{ color: 'green' }} />
               </Box>
               <Box component="span" sx={{ color: 'text.secondary' }}>
-                {feature}
+                {renderFeature(feature)}
               </Box>
             </Box>
           ))}
@@ -166,7 +193,7 @@ function PricingTablePlan({ plan }: { plan: Plan }) {
 /**
  * TODO: 暂时仅考虑 plan 为 3 个的情况
  */
-export function PricingTable({ plans, sx, ...rest }: PricingTableProps) {
+export function PricingTable({ plans, sx, billingCycle, ...rest }: PricingTableProps) {
   return (
     <Box sx={sx} {...rest}>
       <Box
@@ -176,7 +203,7 @@ export function PricingTable({ plans, sx, ...rest }: PricingTableProps) {
           mx: -1,
         }}>
         {plans.map((plan) => (
-          <PricingTablePlan key={plan.name} plan={plan} />
+          <PricingTablePlan key={plan.name} plan={plan} billingCycle={billingCycle} />
         ))}
       </Box>
     </Box>

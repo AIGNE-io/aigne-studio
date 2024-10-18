@@ -47,7 +47,7 @@ export class Quotas implements QuotaChecker {
 
   getQuota(quotaKey: QuotaKey, passport: string = '') {
     // 管理员或非多租户模式下, 无任何限制
-    if (['admin', 'owner'].includes(passport) || !this.isMultiTenantMode) {
+    if (['admin', 'owner'].includes(passport)) {
       return UNLIMITED_QUOTA;
     }
     const config = this.quotaConfigs[quotaKey];

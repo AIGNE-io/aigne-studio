@@ -1,10 +1,9 @@
-import { useIsAdmin, useSessionContext } from '@app/contexts/session';
+import { useSessionContext } from '@app/contexts/session';
 import { AIGNE_STUDIO_MOUNT_POINT } from '@app/libs/constants';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Icon } from '@iconify-icon/react';
 import ArrowUpIcon from '@iconify-icons/tabler/circle-arrow-up';
 import DiamondIcon from '@iconify-icons/tabler/diamond';
-import HelpIcon from '@iconify-icons/tabler/help';
 import InfoCircleIcon from '@iconify-icons/tabler/info-circle';
 import { Close } from '@mui/icons-material';
 import {
@@ -19,7 +18,6 @@ import {
   Theme,
   ToggleButton,
   ToggleButtonGroup,
-  Tooltip,
   useMediaQuery,
 } from '@mui/material';
 import { useState } from 'react';
@@ -38,7 +36,6 @@ export function PlanUpgrade({ ...rest }: Props) {
   const { proPaymentLink, loading } = useProPaymentLink();
   const { session } = useSessionContext();
   const isProUser = useIsProUser();
-  const isAdmin = useIsAdmin();
   const downSm = useMediaQuery<Theme>((theme) => theme.breakpoints.down('sm'));
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
 
@@ -52,31 +49,34 @@ export function PlanUpgrade({ ...rest }: Props) {
         'Dataset collection',
         'Testing and evaluation',
         'Prompt management',
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <span>Data sync with DID Space</span>
-          <Tooltip title="DID Wallet required">
-            <Box component={Icon} icon={HelpIcon} sx={{ fontSize: 18 }} />
-          </Tooltip>
-        </Box>,
+        {
+          text: 'Data sync with DID Space',
+          tooltip: 'DID Wallet required',
+        },
       ],
       price: 'FREE',
-      buttonText: isProUser || session?.user ? '' : 'Sign up',
+      buttonText: 'Sign up',
+
       buttonLink: joinURL('/', AIGNE_STUDIO_MOUNT_POINT),
-      ...(!isAdmin && !isProUser && { active: true }),
+      ...(session?.user && { buttonText: '' }),
     },
     {
       name: 'Premium',
       featuresDescription: 'Everything in Starter, plus',
       features: ['20 projects', '1000 requests per project', 'Unlimited agent deployments', 'Private agent publishing'],
-      price: billingCycle === 'monthly' ? '10 ABT' : '8 ABT',
+      price: {
+        monthly: '10 ABT',
+        yearly: '8 ABT',
+      },
       priceSuffix: '/ month',
-      discount: billingCycle === 'yearly' ? '20% OFF' : undefined,
-      buttonText: isProUser ? 'Subscribed' : 'Upgrade',
+      discount: { monthly: '', yearly: '20% OFF' },
+      buttonText: 'Upgrade',
+      isFeatured: true,
+
       buttonLink: proPaymentLink,
       buttonLoading: loading || !proPaymentLink,
       buttonDisabled: isProUser,
-      isFeatured: true,
-      ...(isProUser && { active: true }),
+      ...(isProUser && { active: true, buttonText: 'Subscribed' }),
     },
     {
       name: 'Professional',
@@ -86,12 +86,10 @@ export function PlanUpgrade({ ...rest }: Props) {
         'Unlimited requests per project',
         'Unlimited agent deployments',
         'Private agent publishing',
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <span>Pay as you go</span>
-          <Tooltip title="Use your own API key or subscribe to our AI Kit Service">
-            <Box component={Icon} icon={HelpIcon} sx={{ fontSize: 18 }} />
-          </Tooltip>
-        </Box>,
+        {
+          text: 'Pay as you go',
+          tooltip: 'Use your own API key or subscribe to our AI Kit Service',
+        },
       ],
       price: '12 ABT',
       priceSuffix: '/ month',
@@ -178,7 +176,7 @@ export function PlanUpgrade({ ...rest }: Props) {
               <ToggleButton value="yearly">Yearly</ToggleButton>
             </ToggleButtonGroup>
           </Box>
-          <PricingTable plans={aignePlansEN} sx={{ mt: 1 }} />
+          <PricingTable plans={aignePlansEN} billingCycle={billingCycle} sx={{ mt: 1 }} />
 
           <Box
             component={Link}
@@ -204,9 +202,6 @@ export function PlanUpgrade({ ...rest }: Props) {
 
 export function PlanUpgradeButton() {
   const { showPlanUpgrade } = useMultiTenantRestriction();
-  if (window.blocklet?.tenantMode === 'single') {
-    return null;
-  }
   return (
     <Button color="primary" startIcon={<Icon icon={DiamondIcon} />} onClick={() => showPlanUpgrade()}>
       Upgrade Plan
