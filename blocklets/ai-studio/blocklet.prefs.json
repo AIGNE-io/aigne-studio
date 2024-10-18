@@ -145,8 +145,8 @@
                         "value": 3
                       },
                       {
-                        "passport": "aignePro",
-                        "value": 100
+                        "passport": "aignePremium",
+                        "value": 20
                       }
                     ]
                   },
@@ -159,12 +159,8 @@
                         "value": 0
                       },
                       {
-                        "passport": "aignePro",
+                        "passport": "aignePremium",
                         "value": 0
-                      },
-                      {
-                        "passport": "aigneProPro",
-                        "value": 1
                       }
                     ]
                   },
@@ -177,11 +173,7 @@
                         "value": 0
                       },
                       {
-                        "passport": "aignePro",
-                        "value": 1
-                      },
-                      {
-                        "passport": "aigneProPro",
+                        "passport": "aignePremium",
                         "value": 1
                       }
                     ]
@@ -377,7 +369,8 @@
                 },
                 "name": "premiumPassport",
                 "x-designable-id": "c598gcwt4r7",
-                "x-index": 0
+                "x-index": 0,
+                "default": "aignePremium"
               },
               "plansEn": {
                 "type": "string",
@@ -414,6 +407,6 @@
         }
       }
     },
-    "x-designable-id": "fhlhf4mr0vn"
+    "x-designable-id": "mjkiic2sggr"
   }
 }

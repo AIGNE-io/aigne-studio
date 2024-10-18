@@ -1,6 +1,7 @@
 import { ReadableStream } from 'stream/web';
 
 import { getAgent, getMemoryVariables, getProject } from '@api/libs/agent';
+import { getProjectFromAIStudio } from '@api/libs/ai-studio';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
 import logger from '@api/libs/logger';
 import ExecutionCache from '@api/store/models/execution-cache';
@@ -21,7 +22,6 @@ import { toolCallsTransform } from '@blocklet/ai-runtime/core/utils/tool-calls-t
 import { AssistantResponseType, RuntimeOutputVariable, isImageAssistant } from '@blocklet/ai-runtime/types';
 import { RuntimeError, RuntimeErrorType } from '@blocklet/ai-runtime/types/runtime/error';
 import { quotaChecker } from '@blocklet/aigne-sdk/api/premium';
-import config from '@blocklet/sdk/lib/config';
 import user from '@blocklet/sdk/lib/middlewares/user';
 import compression from 'compression';
 import { Router } from 'express';
@@ -46,17 +46,28 @@ const callInputSchema = Joi.object<{
   debug: Joi.boolean().empty(['', null]),
 }).rename('parameters', 'inputs', { ignoreUndefined: true, override: true });
 
-const checkProjectRequestLimit = async ({ role, projectId }: { role?: string; projectId: string }) => {
-  if (config.env.tenantMode === 'multiple') {
-    const historyCount = await History.count({ where: { projectId, error: null } });
-    if (
-      !quotaChecker.checkRequestLimit(historyCount, role) &&
-      !['owner', 'admin', 'promptsEditor'].includes(role || '')
-    ) {
-      throw new Error(
-        `Project request limit exceeded (current: ${historyCount}, limit: ${quotaChecker.getQuota('requestLimit', role)}) `
-      );
-    }
+const checkProjectRequestLimit = async ({
+  userId,
+  role,
+  projectId,
+}: {
+  userId: string;
+  role?: string;
+  projectId: string;
+}) => {
+  const project = await getProjectFromAIStudio({ projectId });
+  // 不限制自己创建的项目
+  if (project.createdBy && project.createdBy === userId) {
+    return;
+  }
+  const historyCount = await History.count({ where: { projectId, error: null } });
+  if (
+    !quotaChecker.checkRequestLimit(historyCount, role) &&
+    !['owner', 'admin', 'promptsEditor'].includes(role || '')
+  ) {
+    throw new Error(
+      `Project request limit exceeded (current: ${historyCount}, limit: ${quotaChecker.getQuota('requestLimit', role)}) `
+    );
   }
 };
 
@@ -238,7 +249,7 @@ router.post('/call', user(), compression(), async (req, res) => {
   if (stream) emit({ type: AssistantResponseType.CHUNK, taskId, assistantId: agent.id, delta: {} });
 
   try {
-    await checkProjectRequestLimit({ role: req.user?.role, projectId });
+    await checkProjectRequestLimit({ userId, role: req.user?.role, projectId });
 
     emit({
       type: AssistantResponseType.INPUT_PARAMETER,

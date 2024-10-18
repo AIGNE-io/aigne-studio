@@ -216,11 +216,11 @@
                     "quotas": [
                       {
                         "passport": "",
-                        "value": 3
+                        "value": 100
                       },
                       {
-                        "passport": "aignePro",
-                        "value": 100
+                        "passport": "aignePremium",
+                        "value": 1000
                       }
                     ]
                   }
