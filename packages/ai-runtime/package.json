@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.4.85",
+  "version": "0.4.86",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -73,7 +73,7 @@
       "types": "./lib/types/constants.d.ts"
     },
     "./front": {
-      "import": "./src/front/index.tsx",
+      "import": "./lib/esm/front/index.js",
       "require": "./lib/cjs/front/index.js",
       "types": "./lib/types/front/index.d.ts"
     }
