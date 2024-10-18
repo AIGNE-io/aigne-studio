@@ -19,7 +19,7 @@ import {
   variableToYjs,
 } from '@blocklet/ai-runtime/types';
 import { copyRecursive } from '@blocklet/ai-runtime/utils/fs';
-import { AIGNE_RUNTIME_COMPONENT_DID } from '@blocklet/aigne-sdk/constants';
+import { AIGNE_RUNTIME_COMPONENT_DID, NFT_BLENDER_COMPONENT_DID } from '@blocklet/aigne-sdk/constants';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { call } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
@@ -1165,6 +1165,28 @@ async function copyProject({
   Object.assign(projectYaml, await projectSettingsSchema.validateAsync(project.dataValues));
 
   await copyKnowledge({ originProjectId: original.id!, currentProjectId: project.id!, user: author });
+
+  const agents = Object.values(working.syncedStore.files).filter((i) => !!i && isAssistant(i));
+  for (const agent of agents) {
+    if (agent.type === 'imageBlender' && agent.templateId) {
+      // eslint-disable-next-line no-await-in-loop
+      const { data } = await call({
+        name: NFT_BLENDER_COMPONENT_DID,
+        path: '/api/sdk/templates/copy-snapshot',
+        method: 'POST',
+        data: { templateId: agent.templateId, userDid: author.did, name: project.name },
+        headers: {
+          'x-user-did': author?.did,
+          'x-user-role': author?.role,
+          'x-user-provider': author?.provider,
+          'x-user-fullname': author?.fullName && encodeURIComponent(author?.fullName),
+          'x-user-wallet-os': author?.walletOS,
+        },
+      });
+      agent.templateId = data.templateId;
+    }
+  }
+  working.save({ flush: true });
 
   await repo.commitWorking({
     ref: defaultBranch,
