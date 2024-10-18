@@ -19,6 +19,7 @@ import {
   variableToYjs,
 } from '@blocklet/ai-runtime/types';
 import { copyRecursive } from '@blocklet/ai-runtime/utils/fs';
+import { quotaChecker } from '@blocklet/aigne-sdk/api/pro';
 import { AIGNE_RUNTIME_COMPONENT_DID } from '@blocklet/aigne-sdk/constants';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { call } from '@blocklet/sdk/lib/component';
@@ -239,12 +240,13 @@ export const checkProjectLimit = async ({ req }: { req: Request }) => {
   if (config.env.tenantMode === 'multiple') {
     // check project count limit
     const count = await Project.count({ where: { createdBy: req.user?.did } });
-    const currentLimit = config.env.preferences.multiTenantProjectLimits;
     if (
-      count >= currentLimit &&
-      !ensureComponentCallOrRolesMatch(req, Config.serviceModePermissionMap.ensurePromptsAdminRoles)
+      !ensureComponentCallOrRolesMatch(req, Config.serviceModePermissionMap.ensurePromptsAdminRoles) &&
+      !quotaChecker.checkProjectLimit(count, req.user?.role)
     ) {
-      throw new Error(`Project limit exceeded (current: ${count}, limit: ${currentLimit}) `);
+      throw new Error(
+        `Project limit exceeded (current: ${count}, limit: ${quotaChecker.getQuota('projectLimit', req.user?.role)}) `
+      );
     }
   }
 };

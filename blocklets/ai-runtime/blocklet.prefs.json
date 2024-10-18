@@ -191,10 +191,196 @@
                 "required": false
               }
             }
+          },
+          "8yw0wv6lh7s": {
+            "type": "void",
+            "x-component": "FormTab.TabPane",
+            "x-component-props": {
+              "tab": "Quotas"
+            },
+            "x-designable-id": "8yw0wv6lh7s",
+            "x-index": 1,
+            "properties": {
+              "quotas": {
+                "type": "array",
+                "x-decorator": "FormItem",
+                "x-component": "ArrayTable",
+                "x-validator": [],
+                "x-component-props": {},
+                "x-decorator-props": {},
+                "name": "quotas",
+                "default": "{{[\n  {\n    \"name\": \"Request Limit\",\n    \"key\": \"requestLimit\",\n    \"quotas\": [\n      { \"passport\": \"\", \"value\": 3 },\n      { \"passport\": \"aignePro\", \"value\": 100 },\n    ]\n  },\n]}}",
+                "x-designable-id": "gfep3tdeqnu",
+                "x-index": 0,
+                "items": {
+                  "type": "object",
+                  "x-validator": [],
+                  "x-designable-id": "vgfrjlnxojp",
+                  "properties": {
+                    "4tdwtedm3ax": {
+                      "type": "void",
+                      "x-component": "ArrayTable.Column",
+                      "x-component-props": {
+                        "title": "Name",
+                        "width": 120
+                      },
+                      "x-designable-id": "4tdwtedm3ax",
+                      "x-index": 0,
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "x-component": "Text",
+                          "x-component-props": {},
+                          "name": "name",
+                          "x-designable-id": "akxb4tsizkk",
+                          "x-index": 0
+                        }
+                      }
+                    },
+                    "7eumhf7qp9e": {
+                      "type": "void",
+                      "x-component": "ArrayTable.Column",
+                      "x-component-props": {
+                        "title": "Key",
+                        "width": 100
+                      },
+                      "x-display": "none",
+                      "x-designable-id": "7eumhf7qp9e",
+                      "x-index": 1,
+                      "properties": {
+                        "key": {
+                          "type": "string",
+                          "x-decorator": "FormItem",
+                          "x-component": "Input",
+                          "x-validator": [],
+                          "x-component-props": {},
+                          "x-decorator-props": {},
+                          "name": "key",
+                          "x-designable-id": "2xfps8nltgq",
+                          "x-index": 0
+                        }
+                      }
+                    },
+                    "ayuns83oavq": {
+                      "type": "void",
+                      "x-component": "ArrayTable.Column",
+                      "x-component-props": {
+                        "title": "Quotas"
+                      },
+                      "x-designable-id": "ayuns83oavq",
+                      "x-index": 2,
+                      "properties": {
+                        "quotas": {
+                          "type": "array",
+                          "x-decorator": "FormItem",
+                          "x-component": "ArrayTable",
+                          "x-validator": [],
+                          "x-component-props": {},
+                          "x-decorator-props": {},
+                          "name": "quotas",
+                          "x-designable-id": "pb02zpn6e0u",
+                          "x-index": 0,
+                          "items": {
+                            "type": "object",
+                            "x-designable-id": "vfzexyb8t8b",
+                            "properties": {
+                              "g1x5lqye3go": {
+                                "type": "void",
+                                "x-component": "ArrayTable.Column",
+                                "x-component-props": {
+                                  "title": "Passport",
+                                  "width": 300
+                                },
+                                "x-designable-id": "g1x5lqye3go",
+                                "x-index": 0,
+                                "properties": {
+                                  "passport": {
+                                    "type": "string",
+                                    "x-decorator": "FormItem",
+                                    "x-component": "Input",
+                                    "x-validator": [],
+                                    "x-component-props": {},
+                                    "x-decorator-props": {},
+                                    "name": "passport",
+                                    "x-designable-id": "fsdfi64rkz1",
+                                    "x-index": 0
+                                  }
+                                }
+                              },
+                              "xprkdu595jo": {
+                                "type": "void",
+                                "x-component": "ArrayTable.Column",
+                                "x-component-props": {
+                                  "title": "Value"
+                                },
+                                "x-designable-id": "xprkdu595jo",
+                                "x-index": 1,
+                                "properties": {
+                                  "value": {
+                                    "type": "number",
+                                    "x-decorator": "FormItem",
+                                    "x-component": "NumberPicker",
+                                    "x-validator": [],
+                                    "x-component-props": {},
+                                    "x-decorator-props": {},
+                                    "name": "value",
+                                    "x-designable-id": "cda9dj59a48",
+                                    "x-index": 0
+                                  }
+                                }
+                              },
+                              "pyb9sz64b5j": {
+                                "type": "void",
+                                "x-component": "ArrayTable.Column",
+                                "x-component-props": {
+                                  "title": "Actions",
+                                  "width": 160
+                                },
+                                "x-designable-id": "pyb9sz64b5j",
+                                "x-index": 2,
+                                "properties": {
+                                  "gcc8kjmy1q5": {
+                                    "type": "void",
+                                    "x-component": "ArrayTable.Remove",
+                                    "x-designable-id": "gcc8kjmy1q5",
+                                    "x-index": 0
+                                  },
+                                  "m55nvgskrvp": {
+                                    "type": "void",
+                                    "x-component": "ArrayTable.MoveDown",
+                                    "x-designable-id": "m55nvgskrvp",
+                                    "x-index": 1
+                                  },
+                                  "pmqd0iadkdh": {
+                                    "type": "void",
+                                    "x-component": "ArrayTable.MoveUp",
+                                    "x-designable-id": "pmqd0iadkdh",
+                                    "x-index": 2
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "properties": {
+                            "8skungmyiqx": {
+                              "type": "void",
+                              "title": "Addition",
+                              "x-component": "ArrayTable.Addition",
+                              "x-designable-id": "8skungmyiqx",
+                              "x-index": 0
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
     },
-    "x-designable-id": "ivh0fuvdfsx"
+    "x-designable-id": "9vecf7pmi49"
   }
 }

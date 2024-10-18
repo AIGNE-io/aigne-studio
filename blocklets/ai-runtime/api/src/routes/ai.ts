@@ -20,6 +20,7 @@ import { CallAI, CallAIImage, RunAssistantCallback, RuntimeExecutor, nextTaskId 
 import { toolCallsTransform } from '@blocklet/ai-runtime/core/utils/tool-calls-transform';
 import { AssistantResponseType, RuntimeOutputVariable, isImageAssistant } from '@blocklet/ai-runtime/types';
 import { RuntimeError, RuntimeErrorType } from '@blocklet/ai-runtime/types/runtime/error';
+import { quotaChecker } from '@blocklet/aigne-sdk/api/pro';
 import config from '@blocklet/sdk/lib/config';
 import user from '@blocklet/sdk/lib/middlewares/user';
 import compression from 'compression';
@@ -47,10 +48,14 @@ const callInputSchema = Joi.object<{
 
 const checkProjectRequestLimit = async ({ role, projectId }: { role?: string; projectId: string }) => {
   if (config.env.tenantMode === 'multiple') {
-    const historyCount = await History.count({ where: { projectId } });
-    const limit = config.env.preferences.multiTenantProjectRequestLimits;
-    if (historyCount >= limit && !['owner', 'admin', 'promptsEditor'].includes(role || '')) {
-      throw new Error(`Project request limit exceeded (current: ${historyCount}, limit: ${limit}) `);
+    const historyCount = await History.count({ where: { projectId, error: null } });
+    if (
+      !quotaChecker.checkRequestLimit(historyCount, role) &&
+      !['owner', 'admin', 'promptsEditor'].includes(role || '')
+    ) {
+      throw new Error(
+        `Project request limit exceeded (current: ${historyCount}, limit: ${quotaChecker.getQuota('requestLimit', role)}) `
+      );
     }
   }
 };

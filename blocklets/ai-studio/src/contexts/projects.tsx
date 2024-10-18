@@ -120,7 +120,7 @@ export const useProjectsState = () => {
   );
 
   const createLimitDialog = () => {
-    showPlanUpgrade('projectLimitExceeded');
+    showPlanUpgrade('projectLimit');
   };
 
   const checkProjectLimit = () => {

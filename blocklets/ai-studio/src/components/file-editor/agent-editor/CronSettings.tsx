@@ -71,7 +71,7 @@ export function CronSettings({ agent }: { agent: AssistantYjs }) {
   const doc = (getYjsValue(agent) as Map<any>).doc!;
   const { projectId, projectRef } = useCurrentProject();
   const { cronConfig } = useProjectStore(projectId, projectRef);
-  const { checkMultiTenantRestriction } = useMultiTenantRestriction();
+  const { quotaChecker } = useMultiTenantRestriction();
 
   const jobs = cronConfig.jobs?.filter((i) => i.agentId === agent.id);
   const [job, setJob] = useState<{ job: NonNullable<CronFileYjs['jobs']>[number]; type: 'edit' | 'history' }>();
@@ -147,7 +147,7 @@ export function CronSettings({ agent }: { agent: AssistantYjs }) {
                     size="small"
                     checked={job.enable || false}
                     onChange={(_, checked) => {
-                      if (checkMultiTenantRestriction('useCronJob')) {
+                      if (quotaChecker.checkCronJobs()) {
                         job.enable = checked;
                       }
                     }}

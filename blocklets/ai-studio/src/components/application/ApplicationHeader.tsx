@@ -4,7 +4,21 @@ import { getAgentProfile } from '@blocklet/aigne-sdk/utils/agent';
 import { useHeaderState } from '@blocklet/pages-kit/builtin/page/header';
 import Header from '@blocklet/ui-react/lib/Header';
 import { Avatar, Box, Stack, Theme, Typography, useMediaQuery } from '@mui/material';
-import { useMemo } from 'react';
+import { ReactNode, useMemo } from 'react';
+
+import { PlanUpgradeButton } from '../multi-tenant-restriction';
+
+export const prependHeaderAddon = (
+  prepend: ReactNode,
+  addons: ReactNode[] | ((existing: ReactNode[]) => ReactNode[])
+) => {
+  if (typeof addons === 'function') {
+    return (existing: ReactNode[]) => {
+      return [prepend, ...existing];
+    };
+  }
+  return [prepend, ...addons];
+};
 
 export default function ApplicationHeader({ application }: { application?: Agent }) {
   const { addons } = useHeaderState();
@@ -46,7 +60,7 @@ export default function ApplicationHeader({ application }: { application?: Agent
       hideNavMenu={!!application}
       {...props}
       sx={{ position: 'sticky', top: 0, '.header-container': { maxWidth: '100%' } }}
-      addons={addons}
+      addons={prependHeaderAddon(<PlanUpgradeButton />, addons || [])}
     />
   );
 }
