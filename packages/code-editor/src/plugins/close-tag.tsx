@@ -1,62 +1,14 @@
 import { Monaco } from '@monaco-editor/react';
+import * as MaterialUI from '@mui/material';
 
 import type { EditorInstance } from '../libs/type';
 
-const muiComponents = [
-  'Box',
-  'Button',
-  'TextField',
-  'Typography',
-  'Container',
-  'Grid',
-  'Paper',
-  'Card',
-  'CardContent',
-  'CardActions',
-  'AppBar',
-  'Toolbar',
-  'IconButton',
-  'Menu',
-  'MenuItem',
-  'List',
-  'ListItem',
-  'Divider',
-  'Drawer',
-  'Table',
-  'TableBody',
-  'TableCell',
-  'TableHead',
-  'TableRow',
-  'Dialog',
-  'DialogTitle',
-  'DialogContent',
-  'DialogActions',
-  'Select',
-  'FormControl',
-  'InputLabel',
-  'Checkbox',
-  'Radio',
-  'Switch',
-  'Slider',
-  'Snackbar',
-  'CircularProgress',
-  'LinearProgress',
-  'Tabs',
-  'Tab',
-  'Accordion',
-  'AccordionSummary',
-  'AccordionDetails',
-  'Breadcrumbs',
-  'Pagination',
-  'Stepper',
-  'Step',
-  'StepLabel',
-  'BottomNavigation',
-  'BottomNavigationAction',
-  'Avatar',
-  'Chip',
-  'Badge',
-];
+const getAllMUIComponents = () => {
+  return Object.keys(MaterialUI).filter((key) => {
+    return /^[A-Z]/.test(key);
+  });
+};
+const muiComponents = getAllMUIComponents();
 
 let isProviderRegistered = false;
 const registerMUIComponentsAutocomplete = (monaco: Monaco) => {
