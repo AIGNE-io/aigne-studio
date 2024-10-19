@@ -8,7 +8,6 @@ export default function SimpleLayout({ ...props }: StackProps) {
       maxWidth="md"
       width="100%"
       mx="auto"
-      px={{ xs: 2, sm: 3 }}
       {...props}
       className={cx('aigne-layout aigne-layout-simple', props.className)}
     />
