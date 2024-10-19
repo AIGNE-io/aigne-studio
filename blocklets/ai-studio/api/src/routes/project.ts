@@ -1188,6 +1188,10 @@ async function copyProject({
           'x-user-wallet-os': author?.walletOS,
         },
       });
+      if (!data?.templateId) {
+        throw new Error('copy nft template failed');
+      }
+
       agent.templateId = data.templateId;
     }
   }
