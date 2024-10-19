@@ -1,10 +1,9 @@
 import { Box, CircularProgress, Stack, alpha } from '@mui/material';
-import { ComponentProps, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useScrollToBottom } from 'react-scroll-to-bottom';
 
 import CustomComponentRenderer from '../../components/CustomComponentRenderer/CustomComponentRenderer';
 import SimpleLayout from '../../components/Layout/SimpleLayout';
-import ScrollView from '../../components/ScrollView';
 import { useActiveAgent } from '../../contexts/ActiveAgent';
 import {
   ComponentPreferencesBase,
@@ -26,18 +25,11 @@ export interface SimpleChatPreferences extends ComponentPreferencesBase {
   backgroundImage?: { url?: string; width?: number; height?: number };
 }
 
-export default function SimpleChat({
-  scrollViewProps,
-  ...preferences
-}: {
-  scrollViewProps?: ComponentProps<typeof ScrollView>;
-} & SimpleChatPreferences) {
+export default function SimpleChat({ ...preferences }: {} & SimpleChatPreferences) {
   return (
     <ComponentPreferencesProvider {...preferences}>
-      <ScrollView {...scrollViewProps}>
-        <BackgroundImage />
-        <SimpleChatView />
-      </ScrollView>
+      <BackgroundImage />
+      <SimpleChatView />
     </ComponentPreferencesProvider>
   );
 }
@@ -55,27 +47,26 @@ function SimpleChatView() {
   }, [scrollToBottom, running]);
 
   return (
-    <SimpleLayout px={0}>
-      <HeaderView />
+    <SimpleLayout>
+      <CurrentAgentProvider aid={activeAid}>
+        <HeaderView />
 
-      {loading ? (
-        <Box textAlign="center" my={10}>
-          <CircularProgress size={24} />
-        </Box>
-      ) : (
-        <>
-          <CurrentAgentProvider aid={activeAid}>
+        {loading ? (
+          <Box textAlign="center" my={10}>
+            <CircularProgress size={24} />
+          </Box>
+        ) : (
+          <>
             <MessagesView
               className="aigne-outputs aigne-simple-chat-outputs"
               flexGrow={1}
               pb={10}
               px={{ xs: 2, sm: 3 }}
             />
-          </CurrentAgentProvider>
 
-          <CurrentAgentProvider aid={activeAid}>
             <InputsView
               className="aigne-inputs aigne-simple-chat-inputs"
+              collapsible
               sx={{
                 position: 'sticky',
                 bottom: 0,
@@ -85,9 +76,9 @@ function SimpleChatView() {
                 backdropFilter: 'blur(16px)',
               }}
             />
-          </CurrentAgentProvider>
-        </>
-      )}
+          </>
+        )}
+      </CurrentAgentProvider>
     </SimpleLayout>
   );
 }

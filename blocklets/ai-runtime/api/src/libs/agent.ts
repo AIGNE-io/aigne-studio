@@ -92,6 +92,7 @@ export async function getAgent({ aid, working, rejectOnEmpty }: GetAgentOptions)
         project: res.project,
         identity: {
           projectId,
+          projectRef,
           agentId,
           aid: stringifyIdentity({ projectId, projectRef, agentId }),
           working,

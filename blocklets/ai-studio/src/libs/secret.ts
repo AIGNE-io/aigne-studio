@@ -13,15 +13,17 @@ export async function getSecrets({
   projectId,
   targetProjectId,
   targetAgentId,
+  targetBlockletDid,
 }: {
   projectId: string;
   targetProjectId: string;
   targetAgentId: string;
-}): Promise<{ secrets: Secret[] }> {
+  targetBlockletDid?: string;
+}): Promise<{ secrets: Secret[]; globalAuthorized: boolean }> {
   return axios
     .get('/api/secrets/has-value', {
       baseURL: AIGNE_RUNTIME_MOUNT_POINT,
-      params: { projectId, targetProjectId, targetAgentId },
+      params: { projectId, targetProjectId, targetAgentId, targetBlockletDid },
     })
     .then((res) => res.data);
 }

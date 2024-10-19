@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet';
 import { useSearchParams } from 'react-router-dom';
 
 import AgentSettingsDialog from '../../components/AgentSettings/AgentSettingsDialog';
+import ScrollView from '../../components/ScrollView';
 import { useAgent } from '../../contexts/Agent';
 import { useEntryAgent } from '../../contexts/EntryAgent';
 import { RuntimeProvider } from '../../contexts/Runtime';
@@ -10,7 +11,7 @@ import { CustomError } from '../../error';
 import { useAppearances } from '../../hooks/use-appearances';
 import { useHeaderMenu } from '../../hooks/use-header-menu';
 
-export default function Runtime(props: { aid?: string; working?: boolean }) {
+export default function Runtime(props: { aid?: string; working?: boolean; children?: React.ReactNode }) {
   const [query] = useSearchParams();
 
   const aid = props.aid || query.get('aid');
@@ -19,6 +20,7 @@ export default function Runtime(props: { aid?: string; working?: boolean }) {
   return (
     <RuntimeProvider aid={aid} working={props.working}>
       <RuntimeView />
+      {props.children}
     </RuntimeProvider>
   );
 }
@@ -37,10 +39,12 @@ function RuntimeView() {
         {agent.project.description && <meta name="description" content={agent.project.description} />}
       </Helmet>
 
-      <CustomComponentRenderer
-        componentId={appearancePage.componentId}
-        properties={appearancePage.componentProperties}
-      />
+      <ScrollView scroll="window" initialScrollBehavior="auto">
+        <CustomComponentRenderer
+          componentId={appearancePage.componentId}
+          properties={appearancePage.componentProperties}
+        />
+      </ScrollView>
 
       <AgentSettingsDialog />
     </>

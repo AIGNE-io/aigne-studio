@@ -1,4 +1,5 @@
 import History from '@api/store/models/history';
+import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
 import { auth, user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
@@ -89,7 +90,15 @@ export function messageRoutes(router: Router) {
 
     if (!messageId) throw new Error('Missing required param `messageId`');
     const message = await History.findByPk(messageId, { rejectOnEmpty: new Error('No such message') });
-    res.json(message);
+    res.json({
+      ...message.dataValues,
+      aid: stringifyIdentity({
+        blockletDid: message.blockletDid,
+        projectId: message.projectId,
+        projectRef: message.projectRef,
+        agentId: message.agentId,
+      }),
+    });
   });
 
   const getMessagesQuerySchema = Joi.object<{
@@ -128,9 +137,15 @@ export function messageRoutes(router: Router) {
     });
 
     res.json({
-      messages: messages.map((i) =>
-        pick(i, ['id', 'sessionId', 'agentId', 'createdAt', 'updatedAt', 'inputs', 'outputs', 'error'])
-      ),
+      messages: messages.map((i) => ({
+        ...pick(i, ['id', 'sessionId', 'agentId', 'createdAt', 'updatedAt', 'inputs', 'outputs', 'error']),
+        aid: stringifyIdentity({
+          blockletDid: i.blockletDid,
+          projectId: i.projectId,
+          projectRef: i.projectRef,
+          agentId: i.agentId,
+        }),
+      })),
       count,
     });
   });

@@ -17,7 +17,7 @@ export default function MessagesView({ ...props }: StackProps) {
 
   return (
     <Stack gap={2} {...props}>
-      {showOpeningMessage && <OpeningMessageView isMessagesEmpty={!messages?.length} />}
+      {showOpeningMessage && <OpeningMessageView />}
 
       {mapRight(messages, (message, index) => (
         <React.Fragment key={message.id}>

@@ -1,8 +1,12 @@
 export { getDefaultOutputComponent } from './constants';
 
-export { runAgent } from './api/session';
+export * from './api/agent';
+export * from './api/session';
+export * from './api/message';
 
 export * from './components/AgentErrorBoundary';
+export { default as ScrollView } from './components/ScrollView';
+
 export * from './contexts/ComponentPreferences';
 export * from './contexts/Agent';
 export * from './contexts/Api';
@@ -31,6 +35,7 @@ export { default as SimpleHeader } from './runtime-components/Header/SimpleHeade
 export { default as SuggestedQuestionsView } from './runtime-components/SuggestedQuestionsView';
 export { default as ReferencedLinksView } from './runtime-components/ReferencedLinksView';
 export { default as ShareView } from './runtime-components/ShareView';
+export { default as OpeningMessageView } from './runtime-components/OpeningMessageView';
 export { default as OpeningQuestionsView } from './runtime-components/OpeningQuestionsView';
 export { default as ImagesView } from './runtime-components/ImagesView';
 

@@ -27,6 +27,7 @@ export type ProjectSettings = {
   iconVersion?: string;
   banner?: string;
   readme?: string;
+  executor?: AgentExecutor;
 };
 
 export const projectSettingsSchema = Joi.object<ProjectSettings>({
@@ -54,6 +55,17 @@ export const projectSettingsSchema = Joi.object<ProjectSettings>({
   }).empty(['', null]),
   banner: Joi.string().empty(['', null]).optional(),
   readme: Joi.string().empty(['', null]).optional(),
+  executor: Joi.object<AgentExecutor>().empty(['', null]).optional(),
 })
   .rename('_id', 'id', { override: true, ignoreUndefined: true })
   .options({ stripUnknown: true });
+
+export interface AgentExecutor {
+  agent?: {
+    blockletDid?: string;
+    projectId?: string;
+    id: string;
+  };
+
+  inputValues?: { [key: string]: any };
+}

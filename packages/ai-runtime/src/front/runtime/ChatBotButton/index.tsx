@@ -92,7 +92,7 @@ function ChatBotContent() {
               <CustomComponentRenderer
                 componentId={appearancePage.componentId}
                 properties={appearancePage.componentProperties}
-                props={{ scrollViewProps: { disabled: true }, hideHeaderMenuButton: true }}
+                props={{ hideHeaderMenuButton: true }}
               />
             </Suspense>
           </ScrollView>

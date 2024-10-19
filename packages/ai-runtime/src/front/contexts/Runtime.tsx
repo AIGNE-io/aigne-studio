@@ -5,7 +5,7 @@ import { parseIdentity } from '../../common/aid';
 import { RuntimeLocaleProvider } from '../components/RuntimeCommonProvider';
 import ThemeProvider from '../components/ThemeProvider';
 import { ActiveAgentProvider } from './ActiveAgent';
-import { AIGNEApiContextValue, AIGNEApiProviderCommon } from './Api';
+import { AIGNEApiContextValue, AIGNEApiProvider } from './Api';
 import { CurrentAgentProvider } from './CurrentAgent';
 import { EntryAgentProvider } from './EntryAgent';
 import { SessionProvider } from './Session';
@@ -26,7 +26,7 @@ export const RuntimeProvider = ({
 
   return (
     <EntryAgentProvider aid={aid}>
-      <AIGNEApiProviderCommon
+      <AIGNEApiProvider
         working={({ aid }) => (parseIdentity(aid, { rejectWhenError: true }).projectId === projectId ? working : false)}
         {...ApiProps}>
         <ThemeProvider>
@@ -40,7 +40,7 @@ export const RuntimeProvider = ({
             </SessionsProvider>
           </RuntimeLocaleProvider>
         </ThemeProvider>
-      </AIGNEApiProviderCommon>
+      </AIGNEApiProvider>
     </EntryAgentProvider>
   );
 };

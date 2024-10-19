@@ -1,4 +1,5 @@
 import MdViewer from '@app/components/md-viewer';
+import { RuntimeErrorHandler } from '@app/components/multi-tenant-restriction/runtime-error-handler';
 import { getErrorMessage } from '@app/libs/api';
 import { getAssetUrl } from '@app/libs/asset';
 import { getProjectIconUrl } from '@app/libs/project';
@@ -10,7 +11,7 @@ import Toast from '@arcblock/ux/lib/Toast';
 import { ProjectSettings } from '@blocklet/ai-runtime/types';
 import { getAgentByDeploymentId } from '@blocklet/aigne-sdk/api/agent';
 import AgentView from '@blocklet/aigne-sdk/components/AgentView';
-import ScrollView from '@blocklet/pages-kit/builtin/async/ai-runtime/components/ScrollView';
+import { ScrollView } from '@blocklet/aigne-sdk/components/ai-runtime';
 import { Icon } from '@iconify-icon/react';
 import ChevronLeft from '@iconify-icons/tabler/chevron-left';
 import PlayIcon from '@iconify-icons/tabler/player-play-filled';
@@ -268,11 +269,9 @@ function PreviewPage({ deployment, project }: { deployment: Deployment; project:
             initialScrollBehavior="auto"
             component={Stack}
             sx={{
-              overscrollBehavior: 'contain',
               flex: 1,
               height: '100%',
               width: '100%',
-              overflow: 'auto',
               '.aigne-layout': {
                 px: 2,
               },
@@ -283,7 +282,9 @@ function PreviewPage({ deployment, project }: { deployment: Deployment; project:
                   <CircularProgress size={24} />
                 </Stack>
               }>
-              <AgentView aid={data?.identity?.aid} working scrollViewProps={{ disabled: true }} hideHeaderMenuButton />
+              <AgentView aid={data?.identity?.aid} working>
+                <RuntimeErrorHandler />
+              </AgentView>
             </Suspense>
           </ScrollView>
         </ThemeProvider>

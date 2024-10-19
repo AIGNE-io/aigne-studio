@@ -1,3 +1,23 @@
+## 0.4.85 (2024-10-19)
+
+- feat: support global config secrets for resource blocklet
+
+## 0.4.84 (2024-10-18)
+
+- feat: add pricing, plans, and quota management
+
+## 0.4.83 (2024-10-18)
+
+- fix: opening message not working
+
+## 0.4.82 (2024-10-18)
+
+- feat: support tracking pageView and events for GA
+
+## 0.4.81 (2024-10-17)
+
+- feat: support preview agent and components
+
 ## 0.4.80 (2024-10-17)
 
 - feat: new aigne runtime components

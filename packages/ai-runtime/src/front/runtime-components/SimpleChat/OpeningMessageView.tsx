@@ -8,13 +8,17 @@ import { DEFAULT_OUTPUT_COMPONENTS } from '../../constants';
 import { useAgent } from '../../contexts/Agent';
 import { useComponentPreferences } from '../../contexts/ComponentPreferences';
 import { useCurrentAgent } from '../../contexts/CurrentAgent';
+import { CurrentMessageOutputProvider } from '../../contexts/CurrentMessage';
 import { useEntryAgent } from '../../contexts/EntryAgent';
+import { useSession } from '../../contexts/Session';
 import { useOpeningMessage, useOpeningQuestions, useProfile } from '../../hooks/use-appearances';
 import { MessageBodyContainer } from './MessageView';
 import type { SimpleChatPreferences } from '.';
 
-const OpeningMessageView = memo(({ isMessagesEmpty }: { isMessagesEmpty?: boolean }) => {
+const OpeningMessageView = memo(() => {
   const { aid } = useEntryAgent();
+
+  const isMessagesEmpty = useSession((s) => !s.messages?.length);
 
   const { hideAgentAvatar, backgroundImage } = useComponentPreferences<SimpleChatPreferences>() ?? {};
   const hasBg = !!backgroundImage?.url;
@@ -48,26 +52,28 @@ const OpeningMessageView = memo(({ isMessagesEmpty }: { isMessagesEmpty?: boolea
 
   const children = (
     <MessageBodyContainer>
-      {openingMessage && openingMessageOutput && openingMessageComponentId && (
-        <CustomComponentRenderer
-          aid={aid}
-          output={{ id: openingMessageOutput.id }}
-          instanceId={openingMessageOutput.id}
-          componentId={openingMessageComponentId}
-          properties={openingMessageOutput.appearance?.componentProperties}
-          props={{ output: openingMessageOutput, outputValue: openingMessage.message }}
-        />
+      {openingMessage?.message && openingMessageOutput && openingMessageComponentId && (
+        <CurrentMessageOutputProvider output={openingMessageOutput} outputValue={undefined}>
+          <CustomComponentRenderer
+            aid={aid}
+            output={{ id: openingMessageOutput.id }}
+            instanceId={`${agent.id}-${openingMessageOutput.id}`}
+            componentId={openingMessageComponentId}
+            properties={openingMessageOutput?.appearance?.componentProperties}
+          />
+        </CurrentMessageOutputProvider>
       )}
 
       {isMessagesEmpty && openingQuestionsOutput && openingQuestionsComponentId && (
-        <CustomComponentRenderer
-          aid={aid}
-          output={{ id: openingQuestionsOutput.id }}
-          instanceId={agent.id}
-          componentId={openingQuestionsComponentId}
-          properties={openingQuestionsOutput?.appearance?.componentProperties}
-          props={{ output: openingQuestionsOutput }}
-        />
+        <CurrentMessageOutputProvider output={openingQuestionsOutput} outputValue={undefined}>
+          <CustomComponentRenderer
+            aid={aid}
+            output={{ id: openingQuestionsOutput.id }}
+            instanceId={`${agent.id}-${openingQuestionsOutput.id}`}
+            componentId={openingQuestionsComponentId}
+            properties={openingQuestionsOutput?.appearance?.componentProperties}
+          />
+        </CurrentMessageOutputProvider>
       )}
     </MessageBodyContainer>
   );

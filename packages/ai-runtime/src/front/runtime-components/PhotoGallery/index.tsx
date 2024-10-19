@@ -6,49 +6,39 @@ import Balancer from 'react-wrap-balancer';
 
 import { AgentErrorView } from '../../components/AgentErrorBoundary';
 import CustomComponentRenderer from '../../components/CustomComponentRenderer/CustomComponentRenderer';
+import SimpleLayout from '../../components/Layout/SimpleLayout';
 import LoadingButton from '../../components/LoadingButton';
 import { useActiveAgent } from '../../contexts/ActiveAgent';
-import { CurrentAgentProvider, useCurrentAgent } from '../../contexts/CurrentAgent';
+import { ComponentPreferencesBase, ComponentPreferencesProvider } from '../../contexts/ComponentPreferences';
+import { CurrentAgentProvider } from '../../contexts/CurrentAgent';
 import { CurrentMessageProvider } from '../../contexts/CurrentMessage';
 import { useEntryAgent } from '../../contexts/EntryAgent';
 import { MessageItem, useSession } from '../../contexts/Session';
 import { useAppearances, useProfile } from '../../hooks/use-appearances';
+import InputsView from '../SimpleChat/InputsView';
+import OpeningMessageView from '../SimplePage/OpeningMessageView';
 
-export default function PhotoGallery({ resultTitle }: { resultTitle?: string }) {
+export interface GalleryLayoutPreferences extends ComponentPreferencesBase {
+  resultTitle?: string;
+}
+
+export default function PhotoGallery({ ...preferences }: GalleryLayoutPreferences) {
   const { aid: activeAid } = useActiveAgent();
 
   return (
-    <Stack className="aigne-layout aigne-photo-wall-layout">
-      <HeaderView />
+    <ComponentPreferencesProvider {...preferences}>
+      <SimpleLayout pb={4}>
+        <CurrentAgentProvider aid={activeAid}>
+          <HeaderView px={{ xs: 2, sm: 3 }} />
 
-      <CurrentAgentProvider aid={activeAid}>
-        <InputView
-          className="aigne-inputs aigne-photo-wall-inputs"
-          maxWidth="md"
-          mx="auto"
-          width="100%"
-          px={{ xs: 2, sm: 3 }}
-        />
-      </CurrentAgentProvider>
+          <OpeningMessageView my={4} px={{ xs: 2, sm: 3 }} />
 
-      <OutputView resultTitle={resultTitle} className="aigne-outputs aigne-photo-wall-outputs" gap={2} />
-    </Stack>
-  );
-}
+          <InputsView className="aigne-inputs aigne-photo-wall-inputs" />
 
-function InputView({ ...props }: StackProps) {
-  const { aid } = useCurrentAgent();
-  const { appearanceInput } = useAppearances();
-
-  return (
-    <Stack {...props}>
-      <CustomComponentRenderer
-        aid={aid}
-        output={appearanceInput.outputSettings}
-        componentId={appearanceInput.componentId}
-        properties={appearanceInput.componentProperties}
-      />
-    </Stack>
+          <OutputView resultTitle={preferences.resultTitle} className="aigne-outputs aigne-photo-wall-outputs" />
+        </CurrentAgentProvider>
+      </SimpleLayout>
+    </ComponentPreferencesProvider>
   );
 }
 
@@ -68,7 +58,7 @@ function OutputView({ resultTitle, ...props }: { resultTitle?: string } & StackP
   const { messages = [], running, loaded, noMoreMessage, loadMoreMessages } = useSession((s) => s);
 
   return (
-    <Stack width="100%" alignItems="center" px={{ xs: 2, sm: 3 }} mt={{ xs: 2, sm: 3 }} {...props}>
+    <Stack width="100%" alignItems="center" px={{ xs: 2, sm: 3 }} mt={{ xs: 2, sm: 3 }} gap={2} {...props}>
       {resultTitle && (
         <Typography width="100%" component="h2" fontSize={36} fontWeight={700} textAlign="center">
           <Balancer>{resultTitle}</Balancer>
@@ -82,7 +72,7 @@ function OutputView({ resultTitle, ...props }: { resultTitle?: string } & StackP
         columns={{ xs: 2, sm: 3, md: 4, lg: 5 }}
         spacing={1}
         sequential
-        sx={{ width: '100%', overflow: 'hidden', '> *': { borderRadius: 1 } }}>
+        sx={{ width: '100%', overflow: 'hidden', '> *': { borderRadius: 1, minHeight: 100 } }}>
         {running && (
           <Skeleton
             variant="rectangular"
@@ -130,12 +120,12 @@ const OutputItemView = memo(({ message }: { message: MessageItem }) => {
   );
 });
 
-function HeaderView() {
+function HeaderView({ ...props }: StackProps) {
   const { aid } = useEntryAgent();
   const profile = useProfile({ aid });
 
   return (
-    <Stack maxWidth="md" mx="auto" width="100%" px={{ xs: 2, sm: 3 }}>
+    <Stack {...props}>
       <CustomComponentRenderer
         aid={aid}
         output={profile.outputSettings}
