@@ -11,11 +11,10 @@ const highlightedState = atom<null | string>({ key: 'highlightedState', default:
 const useHighlightedState = () => useRecoilState(highlightedState);
 
 type VariableEditorOptions = {
-  from?: 'editor' | 'agentParameter' | 'knowledgeParameter' | 'blockletAPIParameter';
+  from?: 'editor' | 'agentParameter' | 'knowledgeParameter' | 'blockletAPIParameter' | 'imageBlenderParameter';
   type?: any;
   source?: any;
   isImage?: boolean;
-  disabled?: boolean;
 };
 
 export default function useVariablesEditorOptions(
@@ -79,7 +78,7 @@ export default function useVariablesEditorOptions(
   }, [variables?.join('/'), t]);
 
   const addParameter = useCallback(
-    (parameter: string, { from, source, type, isImage, disabled }: VariableEditorOptions = {}) => {
+    (parameter: string, { from, source, type, isImage }: VariableEditorOptions = {}) => {
       if (!assistant) return undefined;
 
       const doc = (getYjsValue(assistant) as Map<any>).doc!;
@@ -97,7 +96,6 @@ export default function useVariablesEditorOptions(
             ...(type ? { type } : {}),
             ...(source ? { source } : {}),
             ...(isImage ? { image: true } : {}),
-            ...(disabled ? { disabled: true } : {}),
           };
 
           assistant.parameters[id] = {

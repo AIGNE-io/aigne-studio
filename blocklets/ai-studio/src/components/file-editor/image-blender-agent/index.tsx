@@ -1,6 +1,7 @@
 import AigneLogo from '@app/icons/aigne-logo';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ImageBlenderAssistantYjs } from '@blocklet/ai-runtime/types';
+import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Box, TextField } from '@mui/material';
 import { SelectTemplates } from '@nft-studio/react';
 import { cloneDeep } from 'lodash';
@@ -103,23 +104,36 @@ export default function ImageBlenderAssistantEditor({ value }: { value: ImageBle
           value.dynamicData = cloneDeep(currentTemplate?.dynamicData || {});
           const dynamicInputList = cloneDeep(currentTemplate?.dynamicInputList || []);
 
-          if (Array.isArray(dynamicInputList)) {
-            dynamicInputList.forEach((item) => {
-              item.value = `{{${item.key}}}`;
-
-              if (value.dynamicData) {
-                value.dynamicData[item.key] = item.value;
+          const doc = (getYjsValue(value) as Map<any>).doc!;
+          doc.transact(() => {
+            const parameters = Object.values(value?.parameters ?? {});
+            parameters.forEach((parameter) => {
+              if (parameter.data.from === 'imageBlenderParameter') {
+                if (!value.parameters) return;
+                delete value.parameters[parameter.data.id];
+                Object.values(value.parameters).forEach((item, index) => (item.index = index));
               }
-
-              const isImage = item.type === 'basic-image';
-              const parameter = Object.values(value?.parameters ?? {});
-              const found = parameter.find((i) => {
-                return i.data.key === item.key && i.data.type === 'string' && (isImage ? i.data.image : true);
-              });
-
-              if (!found) addParameter(item.key, { isImage, type: 'string', disabled: true });
             });
-          }
+
+            if (Array.isArray(dynamicInputList)) {
+              const parameters = Object.values(value?.parameters ?? {});
+
+              dynamicInputList.forEach((item) => {
+                item.value = `{{${item.key}}}`;
+
+                if (value.dynamicData) {
+                  value.dynamicData[item.key] = item.value;
+                }
+
+                const isImage = item.type === 'basic-image';
+                const found = parameters.find((i) => {
+                  return i.data.key === item.key && i.data.type === 'string' && (isImage ? i.data.image : true);
+                });
+
+                if (!found) addParameter(item.key, { isImage, type: 'string', from: 'imageBlenderParameter' });
+              });
+            }
+          });
         }}
         slots={{
           ConfigMode: {
