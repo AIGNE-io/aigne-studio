@@ -234,6 +234,7 @@ export default function InputTable({
                   id={`${parameter.id}-key`}
                   fullWidth
                   readOnly={readOnly || parameter.hidden}
+                  disabled={parameter.disabled}
                   placeholder={t('inputParameterKeyPlaceholder')}
                   value={parameter.key || ''}
                   onChange={(e) => {
@@ -616,7 +617,7 @@ function SelectFromSource({
               backgroundColor: 'transparent',
             },
           },
-          disabled: parameter.hidden,
+          disabled: parameter.hidden || parameter.disabled,
           children: (
             <Box>
               <Box className="center" gap={1} justifyContent="flex-start">
@@ -749,7 +750,8 @@ function SelectInputType({
             parameter.key === 'question' ||
             parameter.from === FROM_PARAMETER ||
             parameter.from === FROM_KNOWLEDGE_PARAMETER ||
-            parameter.hidden
+            parameter.hidden ||
+            parameter.disabled
           }
           variant="standard"
           hiddenLabel
@@ -1600,12 +1602,12 @@ function PopperButton({
           <Paper sx={{ p: 0, minWidth: 140, maxWidth: 320, maxHeight: '80vh', overflow: 'auto' }}>
             <Stack gap={2}>
               <List>
-                <MenuItem onClick={() => (parameter.hidden = !parameter.hidden)}>
+                <MenuItem disabled={parameter.disabled} onClick={() => (parameter.hidden = !parameter.hidden)}>
                   {parameter.hidden ? t('activeParameterTip') : t('hideParameterTip')}
                 </MenuItem>
 
                 {!(parameter.from === FROM_PARAMETER || parameter.from === FROM_KNOWLEDGE_PARAMETER) && (
-                  <MenuItem onClick={dialogState.open} disabled={Boolean(parameter.hidden)}>
+                  <MenuItem onClick={dialogState.open} disabled={Boolean(parameter.hidden) || parameter.disabled}>
                     {t('setting')}
                   </MenuItem>
                 )}

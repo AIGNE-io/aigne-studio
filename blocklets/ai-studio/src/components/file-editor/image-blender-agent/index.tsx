@@ -117,7 +117,7 @@ export default function ImageBlenderAssistantEditor({ value }: { value: ImageBle
                 return i.data.key === item.key && i.data.type === 'string' && (isImage ? i.data.image : true);
               });
 
-              if (!found) addParameter(item.key, { isImage, type: 'string' });
+              if (!found) addParameter(item.key, { isImage, type: 'string', disabled: true });
             });
           }
         }}

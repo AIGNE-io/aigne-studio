@@ -348,6 +348,7 @@ export interface ParameterBase {
   required?: boolean;
   from?: 'editor' | 'agentParameter' | 'knowledgeParameter' | 'blockletAPIParameter';
   hidden?: boolean;
+  disabled?: boolean;
 }
 
 export function isUserInputParameter(parameter: Parameter): parameter is Exclude<Parameter, SourceParameter> {
