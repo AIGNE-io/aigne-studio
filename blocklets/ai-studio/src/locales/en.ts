@@ -857,6 +857,7 @@ export default flatten({
   selectEntryAgentTitle: 'Select Entry Agent',
   selectEntryAgentDescription: 'Before deployment, you need to set up the entry point agent.',
   activeWhen: 'Active when',
+  selectTemplateDynamicInputTip: 'Taken over automatically by Agent',
   multiTenantRestriction: {
     requestLimit: {
       desc: 'You have reached the maximum request limit in this project. You may increase the limit by upgrading your plan to Premium.',
