@@ -4,10 +4,9 @@ import { ImageBlenderAssistantYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Box, TextField } from '@mui/material';
 import { SelectTemplates } from '@nft-studio/react';
-import { cloneDeep } from 'lodash';
+import { cloneDeep, uniqBy } from 'lodash';
+import { nanoid } from 'nanoid';
 import { useRef } from 'react';
-
-import useVariablesEditorOptions from '../use-variables-editor-options';
 
 function CustomTextField(props: any) {
   return <TextField {...props} InputProps={{ startAdornment: null, endAdornment: props?.InputProps?.endAdornment }} />;
@@ -72,7 +71,6 @@ function ConfigWrapper(props: any) {
 
 export default function ImageBlenderAssistantEditor({ value }: { value: ImageBlenderAssistantYjs }) {
   const selectedTemplatesRef = useRef({});
-  const { addParameter } = useVariablesEditorOptions(value);
   const { t } = useLocaleContext();
 
   return (
@@ -96,43 +94,49 @@ export default function ImageBlenderAssistantEditor({ value }: { value: ImageBle
               ]
             : null
         }
-        // @ts-ignore
-        onChange={(templates: any[]) => {
+        onChange={(templates: any) => {
           const [currentTemplate] = templates;
 
           value.templateId = currentTemplate?.templateId;
           value.dynamicData = cloneDeep(currentTemplate?.dynamicData || {});
-          const dynamicInputList = cloneDeep(currentTemplate?.dynamicInputList || []);
+          const dynamicInputList = uniqBy(cloneDeep(currentTemplate?.dynamicInputList || []), 'key');
+
+          const originalKeys = new Set(Object.values(value.parameters || {}).map((i) => i.data.key));
+          const dynamicInputKeys = new Set(dynamicInputList.map((i: any) => i.key));
 
           const doc = (getYjsValue(value) as Map<any>).doc!;
           doc.transact(() => {
-            const parameters = Object.values(value?.parameters ?? {});
+            value.parameters ??= {};
+            const parameters = Object.values(value.parameters);
             parameters.forEach((parameter) => {
-              if (parameter.data.from === 'imageBlenderParameter') {
-                if (!value.parameters) return;
-                delete value.parameters[parameter.data.id];
-                Object.values(value.parameters).forEach((item, index) => (item.index = index));
+              if (parameter.data.from === 'imageBlenderParameter' && !dynamicInputKeys.has(parameter.data.key)) {
+                delete value.parameters![parameter.data.id];
               }
             });
 
             if (Array.isArray(dynamicInputList)) {
-              const parameters = Object.values(value?.parameters ?? {});
-
-              dynamicInputList.forEach((item) => {
-                item.value = `{{${item.key}}}`;
-
-                if (value.dynamicData) {
-                  value.dynamicData[item.key] = item.value;
-                }
-
+              dynamicInputList.forEach((item: any, index) => {
+                value.dynamicData ??= {};
+                value.dynamicData[item.key] = `{{${item.key}}}`;
                 const isImage = item.type === 'basic-image';
-                const found = parameters.find((i) => {
-                  return i.data.key === item.key && i.data.type === 'string' && (isImage ? i.data.image : true);
-                });
-
-                if (!found) addParameter(item.key, { isImage, type: 'string', from: 'imageBlenderParameter' });
+                if (!originalKeys.has(item.key)) {
+                  const id = nanoid();
+                  value.parameters![id] = {
+                    index: parameters.length + index,
+                    data: {
+                      id,
+                      key: item.key,
+                      type: 'string',
+                      from: 'imageBlenderParameter',
+                      label: item.key,
+                      image: isImage ? true : undefined,
+                    },
+                  };
+                }
               });
             }
+
+            Object.values(value.parameters).forEach((item, index) => (item.index = index));
           });
         }}
         slots={{
