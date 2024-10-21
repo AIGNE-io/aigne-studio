@@ -751,8 +751,7 @@ function SelectInputType({
             parameter.key === 'question' ||
             parameter.from === FROM_PARAMETER ||
             parameter.from === FROM_KNOWLEDGE_PARAMETER ||
-            parameter.hidden ||
-            parameter.from === FROM_IMAGE_BLENDER
+            parameter.hidden
           }
           variant="standard"
           hiddenLabel
