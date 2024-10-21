@@ -100,6 +100,7 @@ import AddInputButton from './AddInputButton';
 const FROM_PARAMETER = 'agentParameter';
 const FROM_KNOWLEDGE_PARAMETER = 'knowledgeParameter';
 const FROM_API_PARAMETER = 'blockletAPIParameter';
+const FROM_IMAGE_BLENDER = 'imageBlenderParameter';
 
 export default function InputTable({
   assistant,
@@ -234,6 +235,7 @@ export default function InputTable({
                   id={`${parameter.id}-key`}
                   fullWidth
                   readOnly={readOnly || parameter.hidden}
+                  disabled={parameter.from === FROM_IMAGE_BLENDER}
                   placeholder={t('inputParameterKeyPlaceholder')}
                   value={parameter.key || ''}
                   onChange={(e) => {
@@ -518,7 +520,7 @@ export default function InputTable({
                           </Button>
                         )}
 
-                        {!readOnly && (
+                        {!readOnly && parameter.from !== FROM_IMAGE_BLENDER && (
                           <PopperButton
                             knowledge={knowledge.map((x) => ({ ...x, from: FROM_KNOWLEDGE }))}
                             openApis={openApis}
@@ -617,7 +619,7 @@ function SelectFromSource({
               backgroundColor: 'transparent',
             },
           },
-          disabled: parameter.hidden,
+          disabled: parameter.hidden || parameter.from === FROM_IMAGE_BLENDER,
           children: (
             <Box>
               <Box className="center" gap={1} justifyContent="flex-start">
@@ -723,7 +725,18 @@ function SelectInputType({
   projectId: string;
   gitRef: string;
 }) {
-  const multiline = (!parameter.type || parameter.type === 'string') && parameter?.multiline;
+  const getParameterType = (parameter?: Partial<ParameterYjs>): string => {
+    if (!parameter) {
+      return 'string';
+    }
+
+    if (parameter.type === 'string') {
+      return parameter?.image ? 'image' : parameter?.multiline ? 'multiline' : 'string';
+    }
+
+    return parameter?.type || 'string';
+  };
+
   const doc = (getYjsValue(value) as Map<any>)?.doc!;
   const dialogState = usePopupState({ variant: 'dialog', popupId: useId() });
 
@@ -741,13 +754,14 @@ function SelectInputType({
             parameter.key === 'question' ||
             parameter.from === FROM_PARAMETER ||
             parameter.from === FROM_KNOWLEDGE_PARAMETER ||
-            parameter.hidden
+            parameter.hidden ||
+            parameter.from === FROM_IMAGE_BLENDER
           }
           haveImage={haveImage}
           variant="standard"
           hiddenLabel
           SelectProps={{ autoWidth: true }}
-          value={(parameter.key === 'question' ? 'string' : multiline ? 'multiline' : parameter?.type) ?? 'string'}
+          value={(parameter.key === 'question' ? 'string' : getParameterType(parameter)) ?? 'string'}
           InputProps={{ readOnly }}
           onChange={(e) => {
             const newValue = e.target.value;
@@ -760,6 +774,11 @@ function SelectInputType({
               if (newValue === 'multiline') {
                 parameter.type = 'string';
                 (parameter as StringParameter)!.multiline = true;
+                (parameter as StringParameter)!.image = false;
+              } else if (newValue === 'image') {
+                parameter.type = 'string';
+                (parameter as StringParameter)!.image = true;
+                (parameter as StringParameter)!.multiline = false;
               } else {
                 parameter.type = newValue as any;
                 if (typeof (parameter as StringParameter).multiline !== 'undefined') {
@@ -1438,7 +1457,7 @@ export function AuthorizeButton({ agent }: { agent: NonNullable<ReturnType<typeo
         projectId,
         targetProjectId: agent.project.id,
         targetAgentId: agent.id,
-        blockletDid: agent?.identity?.blockletDid,
+        targetBlockletDid: agent.identity.blockletDid,
       }),
     [projectId, agent.project.id, agent.id]
   );

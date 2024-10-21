@@ -1,8 +1,10 @@
 import { useProjectsState } from '@app/contexts/projects';
+import { checkErrorType } from '@app/libs/util';
 import currentGitStore from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
+import { RuntimeErrorType } from '@blocklet/ai-runtime/types/runtime/error';
 import RocketLaunchRoundedIcon from '@mui/icons-material/RocketLaunchRounded';
 import {
   Avatar,
@@ -37,7 +39,7 @@ export default function ImportFromTemplates({
   const { t, locale } = useLocaleContext();
   const { dialog, showDialog } = useDialog();
   const navigate = useNavigate();
-  const { createLimitDialog, limitDialog } = useProjectsState();
+  const { createLimitDialog } = useProjectsState();
 
   return (
     <>
@@ -108,7 +110,7 @@ export default function ImportFromTemplates({
                           navigate(joinURL('/projects', project.id));
                         } catch (error) {
                           const message = getErrorMessage(error);
-                          if (String(message || '').includes('Project limit exceeded')) {
+                          if (checkErrorType(error, RuntimeErrorType.ProjectLimitExceededError)) {
                             createLimitDialog();
                           } else {
                             Toast.error(message);
@@ -177,7 +179,6 @@ export default function ImportFromTemplates({
       </Dialog>
 
       {dialog}
-      {limitDialog}
     </>
   );
 }

@@ -8,6 +8,7 @@ import {
   ConfigFile,
   CronFile,
   MemoryFile,
+  Parameter,
   ProjectSettings,
   ResourceProject,
   ResourceTypes,
@@ -19,9 +20,9 @@ import { user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import { pathExists } from 'fs-extra';
 import Joi from 'joi';
-import { uniqBy } from 'lodash';
 import groupBy from 'lodash/groupBy';
 import uniq from 'lodash/uniq';
+import uniqBy from 'lodash/uniqBy';
 import { joinURL } from 'ufo';
 import { Extract } from 'unzipper';
 import { stringify } from 'yaml';
@@ -216,7 +217,7 @@ export function resourceRoutes(router: Router) {
 
     const resourceDir = await getResourceDir({ projectId, releaseId: releaseId || '' });
     const arr = [];
-    const secretKeys: { id: string; key?: string; label?: string }[] = [];
+    const secretKeys: Parameter[] = [];
 
     const referencedKBIds: string[] = [];
     for (const [type, value] of resourceTypes) {
@@ -275,16 +276,13 @@ export function resourceRoutes(router: Router) {
           }
         }
 
-        // 判断参数中是否有 security 参数
-        for (const agent of agents) {
-          if (agent.parameters?.length) {
-            (agent.parameters || []).forEach((parameter) => {
-              if (parameter.type === 'source' && parameter.source?.variableFrom === 'secret' && parameter.key) {
-                secretKeys.push(parameter);
-              }
-            });
-          }
-        }
+        secretKeys.push(
+          ...agents
+            .flatMap((i) =>
+              (i.parameters ?? []).map((p) => (p.type === 'source' && p.source?.variableFrom === 'secret' ? p : null))
+            )
+            .filter(isNonNullable)
+        );
 
         const data: ResourceProject = {
           agents,
@@ -362,10 +360,10 @@ export function resourceRoutes(router: Router) {
     if (secretKeys.length > 0) {
       blockletYml.environments = uniqBy(secretKeys, 'key').map((i) => ({
         name: (i.key || '').toLocaleUpperCase(),
-        description: i.label || `Your ${(i.key || '').toLocaleUpperCase()} secret key`,
+        description: i.label || i.placeholder || `Your ${(i.key || '').toLocaleUpperCase()} secret key`,
         required: false,
         default: '',
-        secure: false,
+        secure: true,
         shared: true,
       }));
     }

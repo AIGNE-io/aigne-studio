@@ -1,5 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, isImageAssistant, isPromptAssistant } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, ParameterYjs, isImageAssistant, isPromptAssistant } from '@blocklet/ai-runtime/types';
 import PromptEditor, { EditorState } from '@blocklet/prompt-editor';
 import { editorState2Text, text2EditorState } from '@blocklet/prompt-editor/utils';
 import { Box, Button, Paper, Stack } from '@mui/material';
@@ -88,11 +88,24 @@ export default function PromptEditorField({
     return parameters[index]?.data;
   };
 
-  const typeMap = useMemo(() => {
+  const getParameterType = (parameter?: Partial<ParameterYjs>): string => {
+    if (!parameter) {
+      return 'string';
+    }
+
+    if (parameter.type === 'string') {
+      return parameter?.image ? 'image' : parameter?.multiline ? 'multiline' : 'string';
+    }
+
+    return parameter?.type || 'string';
+  };
+
+  const typeMap: Record<string, string> = useMemo(() => {
     return {
       string: t('text'),
       multiline: t('multiline'),
-      number: t('multiline'),
+      image: t('image'),
+      number: t('number'),
       select: t('select'),
       language: t('language'),
       boolean: t('boolean'),
@@ -125,8 +138,7 @@ export default function PromptEditorField({
 
           if ((variables || []).includes(variable)) {
             const parameter = getParameters(variable);
-
-            const type = (parameter as { multiline: boolean })?.multiline ? 'multiline' : parameter?.type || 'string';
+            const type = getParameterType(parameter);
 
             return (
               <Paper>

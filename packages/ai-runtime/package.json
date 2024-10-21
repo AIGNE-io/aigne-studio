@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.4.82",
+  "version": "0.4.87",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -73,7 +73,7 @@
       "types": "./lib/types/constants.d.ts"
     },
     "./front": {
-      "import": "./src/front/index.tsx",
+      "import": "./lib/esm/front/index.js",
       "require": "./lib/cjs/front/index.js",
       "types": "./lib/types/front/index.d.ts"
     }
@@ -148,7 +148,7 @@
   },
   "dependencies": {
     "@abtnode/client": "^1.16.32",
-    "@arcblock/did-connect": "^2.10.47",
+    "@arcblock/did-connect": "^2.10.48",
     "@blocklet/ai-kit": "^0.1.59",
     "@blocklet/co-git": "workspace:^",
     "@blocklet/dataset-sdk": "workspace:^",
@@ -156,6 +156,7 @@
     "@blocklet/logger": "^1.16.32",
     "@blocklet/quickjs": "workspace:^",
     "@blocklet/sdk": "^1.16.32",
+    "@blocklet/uploader": "^0.1.45",
     "@iconify-icons/tabler": "^1.2.95",
     "@iconify/react": "^5.0.2",
     "@microsoft/fetch-event-source": "^2.0.1",
@@ -213,7 +214,7 @@
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@arcblock/ux": "^2.10.47",
+    "@arcblock/ux": "^2.10.48",
     "@emotion/css": "^11.13.0",
     "@emotion/react": "^11.13.3",
     "@jest/globals": "^29.7.0",

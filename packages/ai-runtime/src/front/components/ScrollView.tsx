@@ -1,32 +1,45 @@
 import { Box, BoxProps } from '@mui/material';
-import { ComponentProps, useEffect, useMemo } from 'react';
+import { ComponentProps, createContext, useContext, useEffect, useMemo } from 'react';
 import * as scrollToBottom from 'react-scroll-to-bottom';
 // @ts-ignore
 import useInternalContext from 'react-scroll-to-bottom/lib/esm/hooks/internal/useInternalContext';
 
-import { useScrollView } from '../contexts/ScrollView';
-
 // @ts-ignore
 const Composer = scrollToBottom.Composer as typeof scrollToBottom.default;
+
+const scrollViewContext = createContext<boolean | null>(null);
+
+const useScrollViewContext = () => useContext(scrollViewContext);
 
 export default function ScrollView({
   children,
   scroll = 'element',
-  component = 'div',
-  initialScrollBehavior,
+  component = Box,
+  initialScrollBehavior = 'auto',
   ...props
 }: BoxProps & {
   scroll?: 'window' | 'element';
   initialScrollBehavior?: ComponentProps<typeof Composer>['initialScrollBehavior'];
 }) {
-  const ctx = useScrollView();
+  const ctx = useScrollViewContext();
+
+  // Skip scroll view if we are in a scroll view
+  if (ctx) {
+    return (
+      <Box component={component} {...props}>
+        {children}
+      </Box>
+    );
+  }
 
   return (
-    <Composer initialScrollBehavior={initialScrollBehavior || ctx?.initialScrollBehavior || 'auto'}>
-      <ScrollViewWithinWindow scroll={ctx?.scroll || scroll} component={ctx?.component || component} {...props}>
-        {children}
-      </ScrollViewWithinWindow>
-    </Composer>
+    <scrollViewContext.Provider value>
+      <Composer initialScrollBehavior={initialScrollBehavior}>
+        <ScrollViewWithinWindow scroll={scroll} component={component} {...props}>
+          {children}
+        </ScrollViewWithinWindow>
+      </Composer>
+    </scrollViewContext.Provider>
   );
 }
 
@@ -48,7 +61,14 @@ function ScrollViewWithinWindow({
   if (!component) return children;
 
   return (
-    <Box component={component} {...props} ref={scroll === 'element' ? setTarget : undefined}>
+    <Box
+      component={component}
+      {...props}
+      ref={scroll === 'element' ? setTarget : undefined}
+      sx={{
+        ...(scroll === 'element' ? { flex: 1, height: '100%', overflow: 'auto', overscrollBehavior: 'contain' } : {}),
+        ...props.sx,
+      }}>
       {children}
     </Box>
   );

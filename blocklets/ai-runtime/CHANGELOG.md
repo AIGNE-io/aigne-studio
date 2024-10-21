@@ -1,3 +1,20 @@
+## 0.4.87 (2024-10-20)
+
+- feat: add image type for agent inputs
+- chore: auto manage image blender inputs
+
+## 0.4.85 (2024-10-19)
+
+- feat: support global config secrets for resource blocklet
+
+## 0.4.84 (2024-10-18)
+
+- feat: add pricing, plans, and quota management
+
+## 0.4.83 (2024-10-18)
+
+- fix: opening message not working
+
 ## 0.4.82 (2024-10-18)
 
 - feat: support tracking pageView and events for GA

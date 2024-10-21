@@ -12,6 +12,8 @@ import {
   MemoryFile,
   ProjectSettings,
   ResourceProject,
+  RuntimeError,
+  RuntimeErrorType,
   fileToYjs,
   isAssistant,
   nextAssistantId,
@@ -19,7 +21,8 @@ import {
   variableToYjs,
 } from '@blocklet/ai-runtime/types';
 import { copyRecursive } from '@blocklet/ai-runtime/utils/fs';
-import { AIGNE_RUNTIME_COMPONENT_DID } from '@blocklet/aigne-sdk/constants';
+import { getUserPassports, quotaChecker } from '@blocklet/aigne-sdk/api/premium';
+import { AIGNE_RUNTIME_COMPONENT_DID, NFT_BLENDER_COMPONENT_DID } from '@blocklet/aigne-sdk/constants';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { call } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
@@ -239,12 +242,14 @@ export const checkProjectLimit = async ({ req }: { req: Request }) => {
   if (config.env.tenantMode === 'multiple') {
     // check project count limit
     const count = await Project.count({ where: { createdBy: req.user?.did } });
-    const currentLimit = config.env.preferences.multiTenantProjectLimits;
     if (
-      count >= currentLimit &&
-      !ensureComponentCallOrRolesMatch(req, Config.serviceModePermissionMap.ensurePromptsAdminRoles)
+      !ensureComponentCallOrRolesMatch(req, Config.serviceModePermissionMap.ensurePromptsAdminRoles) &&
+      !quotaChecker.checkProjectLimit(count, await getUserPassports(req.user?.did))
     ) {
-      throw new Error(`Project limit exceeded (current: ${count}, limit: ${currentLimit}) `);
+      throw new RuntimeError(
+        RuntimeErrorType.ProjectLimitExceededError,
+        `Project limit exceeded (current: ${count}, limit: ${quotaChecker.getQuota('projectLimit', req.user?.role)})`
+      );
     }
   }
 };
@@ -1165,6 +1170,32 @@ async function copyProject({
   Object.assign(projectYaml, await projectSettingsSchema.validateAsync(project.dataValues));
 
   await copyKnowledge({ originProjectId: original.id!, currentProjectId: project.id!, user: author });
+
+  const agents = Object.values(working.syncedStore.files).filter((i) => !!i && isAssistant(i));
+  for (const agent of agents) {
+    if (agent.type === 'imageBlender' && agent.templateId) {
+      // eslint-disable-next-line no-await-in-loop
+      const { data } = await call({
+        name: NFT_BLENDER_COMPONENT_DID,
+        path: '/api/sdk/templates/copy-snapshot',
+        method: 'POST',
+        data: { templateId: agent.templateId, userDid: author.did, name: project.name },
+        headers: {
+          'x-user-did': author?.did,
+          'x-user-role': author?.role,
+          'x-user-provider': author?.provider,
+          'x-user-fullname': author?.fullName && encodeURIComponent(author?.fullName),
+          'x-user-wallet-os': author?.walletOS,
+        },
+      });
+      if (!data?.templateId) {
+        throw new Error('copy nft template failed');
+      }
+
+      agent.templateId = data.templateId;
+    }
+  }
+  working.save({ flush: true });
 
   await repo.commitWorking({
     ref: defaultBranch,

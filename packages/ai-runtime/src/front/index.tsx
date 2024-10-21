@@ -35,6 +35,7 @@ export { default as SimpleHeader } from './runtime-components/Header/SimpleHeade
 export { default as SuggestedQuestionsView } from './runtime-components/SuggestedQuestionsView';
 export { default as ReferencedLinksView } from './runtime-components/ReferencedLinksView';
 export { default as ShareView } from './runtime-components/ShareView';
+export { default as OpeningMessageView } from './runtime-components/OpeningMessageView';
 export { default as OpeningQuestionsView } from './runtime-components/OpeningQuestionsView';
 export { default as ImagesView } from './runtime-components/ImagesView';
 
