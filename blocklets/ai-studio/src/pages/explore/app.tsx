@@ -25,7 +25,7 @@ export default function AppPage() {
   return (
     <ThemeProvider theme={agentViewTheme}>
       <MultiTenantBrandGuard deployment={data?.deployment} project={data?.project}>
-        <ScrollView scroll="element" initialScrollBehavior="auto">
+        <ScrollView component={Stack} scroll="element" initialScrollBehavior="auto">
           <Suspense fallback={<Loading />}>
             {(data || !loading) && <ApplicationHeader application={data} />}
 
