@@ -124,6 +124,7 @@ export default function ImageBlenderAssistantEditor({ value }: { value: ImageBle
                 value.dynamicData ??= {};
                 value.dynamicData[item.key] = `{{${item.key}}}`;
                 const isImage = item.type === 'basic-image';
+
                 if (!originalKeys.has(item.key)) {
                   const id = nanoid();
                   value.parameters![id] = {
@@ -131,10 +132,9 @@ export default function ImageBlenderAssistantEditor({ value }: { value: ImageBle
                     data: {
                       id,
                       key: item.key,
-                      type: 'string',
+                      type: isImage ? 'image' : 'string',
                       from: 'imageBlenderParameter',
                       label: item.key,
-                      image: isImage ? true : undefined,
                     },
                   };
                 }

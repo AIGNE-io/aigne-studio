@@ -336,7 +336,8 @@ export type Parameter =
   | LLMInputMessagesParameter
   | LLMInputToolsParameter
   | LLMInputToolChoiceParameter
-  | LLMInputResponseFormatParameter;
+  | LLMInputResponseFormatParameter
+  | ImageParameter;
 
 export interface ParameterBase {
   id: string;
@@ -385,7 +386,6 @@ export interface StringParameter extends ParameterBase {
   value?: string;
   defaultValue?: string;
   multiline?: boolean;
-  image?: boolean;
   minLength?: number;
   maxLength?: number;
 }
@@ -417,6 +417,13 @@ export interface LanguageParameter extends ParameterBase {
   type: 'language';
   value?: string;
   defaultValue?: string;
+}
+
+export interface ImageParameter extends ParameterBase {
+  type: 'image';
+  value?: string | string[];
+  multiline?: boolean;
+  defaultValue?: string | string[];
 }
 
 export interface User {

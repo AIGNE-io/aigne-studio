@@ -730,7 +730,7 @@ function SelectInputType({
     }
 
     if (parameter.type === 'string') {
-      return parameter?.image ? 'image' : parameter?.multiline ? 'multiline' : 'string';
+      return parameter?.multiline ? 'multiline' : 'string';
     }
 
     return parameter?.type || 'string';
@@ -769,11 +769,6 @@ function SelectInputType({
               if (newValue === 'multiline') {
                 parameter.type = 'string';
                 (parameter as StringParameter)!.multiline = true;
-                (parameter as StringParameter)!.image = false;
-              } else if (newValue === 'image') {
-                parameter.type = 'string';
-                (parameter as StringParameter)!.image = true;
-                (parameter as StringParameter)!.multiline = false;
               } else {
                 parameter.type = newValue as any;
                 if (typeof (parameter as StringParameter).multiline !== 'undefined') {
