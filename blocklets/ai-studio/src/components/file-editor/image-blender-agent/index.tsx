@@ -1,14 +1,77 @@
+import AigneLogo from '@app/icons/aigne-logo';
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ImageBlenderAssistantYjs } from '@blocklet/ai-runtime/types';
+import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Box, TextField } from '@mui/material';
 import { SelectTemplates } from '@nft-studio/react';
+import { cloneDeep, uniqBy } from 'lodash';
+import { nanoid } from 'nanoid';
 import { useRef } from 'react';
 
 function CustomTextField(props: any) {
   return <TextField {...props} InputProps={{ startAdornment: null, endAdornment: props?.InputProps?.endAdornment }} />;
 }
 
+function ConfigWrapper(props: any) {
+  return (
+    <Box
+      sx={{
+        height: '100%',
+        position: 'relative',
+        px: 0.25,
+      }}>
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backdropFilter: 'blur(1.8px)',
+          backgroundColor: 'rgba(255, 255, 255, 0.4)',
+          zIndex: 10,
+        }}
+      />
+      <Box
+        sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          width: '100%',
+          transform: 'translate(-50%, -50%)',
+          zIndex: 11,
+          textAlign: 'center',
+          fontWeight: 'bold',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 0.25,
+        }}>
+        <Box
+          sx={{
+            animation: 'headShake 1.5s ease-in-out infinite',
+            '@keyframes headShake': {
+              '0%': { transform: 'translateX(0)' },
+              '6.5%': { transform: 'translateX(-6px) rotateY(-9deg)' },
+              '18.5%': { transform: 'translateX(5px) rotateY(7deg)' },
+              '31.5%': { transform: 'translateX(-3px) rotateY(-5deg)' },
+              '43.5%': { transform: 'translateX(2px) rotateY(3deg)' },
+              '50%': { transform: 'translateX(0)' },
+            },
+          }}>
+          <AigneLogo />
+        </Box>
+        <Box>{props?.t?.('selectTemplateDynamicInputTip')}</Box>
+      </Box>
+
+      {props?.children}
+    </Box>
+  );
+}
+
 export default function ImageBlenderAssistantEditor({ value }: { value: ImageBlenderAssistantYjs }) {
   const selectedTemplatesRef = useRef({});
+  const { t } = useLocaleContext();
 
   return (
     <Box
@@ -20,7 +83,7 @@ export default function ImageBlenderAssistantEditor({ value }: { value: ImageBle
       <SelectTemplates
         ref={selectedTemplatesRef}
         // @ts-ignore
-        initialValue={
+        value={
           value.templateId
             ? [
                 {
@@ -31,24 +94,55 @@ export default function ImageBlenderAssistantEditor({ value }: { value: ImageBle
               ]
             : null
         }
-        // @ts-ignore
-        onChange={(templates: any[]) => {
+        onChange={(templates: any) => {
           const [currentTemplate] = templates;
+
           value.templateId = currentTemplate?.templateId;
-          value.dynamicData = currentTemplate?.dynamicData;
+          value.dynamicData = cloneDeep(currentTemplate?.dynamicData || {});
+          const dynamicInputList = uniqBy(cloneDeep(currentTemplate?.dynamicInputList || []), 'key');
+
+          const originalKeys = new Set(Object.values(value.parameters || {}).map((i) => i.data.key));
+          const dynamicInputKeys = new Set(dynamicInputList.map((i: any) => i.key));
+
+          const doc = (getYjsValue(value) as Map<any>).doc!;
+          doc.transact(() => {
+            value.parameters ??= {};
+            const parameters = Object.values(value.parameters);
+            parameters.forEach((parameter) => {
+              if (parameter.data.from === 'imageBlenderParameter' && !dynamicInputKeys.has(parameter.data.key)) {
+                delete value.parameters![parameter.data.id];
+              }
+            });
+
+            if (Array.isArray(dynamicInputList)) {
+              dynamicInputList.forEach((item: any, index) => {
+                value.dynamicData ??= {};
+                value.dynamicData[item.key] = `{{${item.key}}}`;
+                const isImage = item.type === 'basic-image';
+                if (!originalKeys.has(item.key)) {
+                  const id = nanoid();
+                  value.parameters![id] = {
+                    index: parameters.length + index,
+                    data: {
+                      id,
+                      key: item.key,
+                      type: 'string',
+                      from: 'imageBlenderParameter',
+                      label: item.key,
+                      image: isImage ? true : undefined,
+                    },
+                  };
+                }
+              });
+            }
+
+            Object.values(value.parameters).forEach((item, index) => (item.index = index));
+          });
         }}
         slots={{
           ConfigMode: {
-            // top: (props: any) => (
-            //   <Box
-            //     sx={{
-            //       width: '100%',
-            //       mb: 2,
-            //     }}>
-            //     <Typography sx={{ fontSize: 16, fontWeight: 600, mb: 1 }}>SN</Typography>
-            //     <CustomTextField {...props} disabled={disabled} size="small" label="Sn" />
-            //   </Box>
-            // ),
+            infoWrapper: () => null,
+            configWrapper: (props: any) => <ConfigWrapper {...props} t={t} />,
           },
           TextField: CustomTextField,
         }}

@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.4.86",
+  "version": "0.4.88",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -156,6 +156,7 @@
     "@blocklet/logger": "^1.16.32",
     "@blocklet/quickjs": "workspace:^",
     "@blocklet/sdk": "^1.16.32",
+    "@blocklet/uploader": "^0.1.45",
     "@iconify-icons/tabler": "^1.2.95",
     "@iconify/react": "^5.0.2",
     "@microsoft/fetch-event-source": "^2.0.1",
