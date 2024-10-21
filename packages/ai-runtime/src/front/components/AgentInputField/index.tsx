@@ -77,10 +77,7 @@ export default function AgentInputField({
   const FIELDS: { [type in NonNullable<Parameter['type']>]?: ComponentType<any> } = {
     number: NumberField,
     string: StringField,
-    select:
-      parameter.type === 'select' && parameter.options?.length && parameter.options.length <= 8
-        ? RadioField
-        : SelectField,
+    select: parameter.type === 'select' && parameter.style === 'checkbox' ? RadioField : SelectField,
     language: LanguageField,
     boolean: BooleanField,
   };

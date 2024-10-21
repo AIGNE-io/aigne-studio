@@ -406,8 +406,10 @@ export interface NumberParameter extends ParameterBase {
 
 export interface SelectParameter extends ParameterBase {
   type: 'select';
-  value?: string;
-  defaultValue?: string;
+  value?: string | string[];
+  defaultValue?: string | string[];
+  multiple?: boolean;
+  style?: 'dropdown' | 'checkbox';
   options?: { id: string; label: string; value: string }[];
 }
 

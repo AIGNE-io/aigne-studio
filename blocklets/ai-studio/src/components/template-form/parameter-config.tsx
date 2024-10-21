@@ -2,7 +2,7 @@ import BaseSwitch from '@app/components/custom/switch';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ParameterField } from '@blocklet/ai-runtime/components';
 import { ParameterYjs, parameterFromYjs } from '@blocklet/ai-runtime/types';
-import { Box, FormControl, FormControlLabel, Stack, TextField, Typography } from '@mui/material';
+import { Box, FormControl, FormControlLabel, MenuItem, Stack, TextField, Typography } from '@mui/material';
 
 import NumberField from './number-field';
 import SelectOptionsConfig from './select-options-config';
@@ -40,6 +40,29 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
         />
       </Box>
 
+      {value.type === 'select' && (
+        <Box>
+          <FormControl>
+            <FormControlLabel
+              sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
+              labelPlacement="start"
+              label={
+                <Typography variant="subtitle2" my={0}>
+                  {t('multiple')}
+                </Typography>
+              }
+              control={
+                <BaseSwitch
+                  sx={{ mr: 1, mt: '1px' }}
+                  checked={value.multiple || false}
+                  onChange={(_, multiple) => !readOnly && (value.multiple = multiple)}
+                />
+              }
+            />
+          </FormControl>
+        </Box>
+      )}
+
       <Box>
         <Typography variant="subtitle2">{t('defaultValue')}</Typography>
 
@@ -76,10 +99,24 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
       </Box>
 
       {value.type === 'select' && (
-        <Box>
-          <Typography variant="subtitle2">{t('options')}</Typography>
-          <SelectOptionsConfig readOnly={readOnly} select={value} />
-        </Box>
+        <>
+          <Box>
+            <Typography variant="subtitle2">{t('options')}</Typography>
+            <SelectOptionsConfig readOnly={readOnly} select={value} />
+          </Box>
+
+          <Box>
+            <Typography variant="subtitle2">{t('style')}</Typography>
+            <TextField
+              select
+              fullWidth
+              value={value.style || 'dropdown'}
+              onChange={(e) => (value.style = e.target.value as any)}>
+              <MenuItem value="dropdown">{t('dropdown')}</MenuItem>
+              <MenuItem value="checkbox">{t('checkbox')}</MenuItem>
+            </TextField>
+          </Box>
+        </>
       )}
 
       <Box display="flex" alignItems="center" gap={2}>
@@ -161,7 +198,11 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
           <FormControlLabel
             sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
             labelPlacement="start"
-            label={t('inputParameterRequiredLabel')}
+            label={
+              <Typography variant="subtitle2" my={0}>
+                {t('required')}
+              </Typography>
+            }
             control={
               <BaseSwitch
                 sx={{ mr: 1, mt: '1px' }}
