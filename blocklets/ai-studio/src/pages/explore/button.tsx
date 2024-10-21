@@ -8,13 +8,16 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { ProjectSettings, RuntimeErrorType } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
+import ArrowsShuffleIcon from '@iconify-icons/tabler/arrows-shuffle';
 import twitterIcon from '@iconify-icons/tabler/brand-twitter';
 import linkIcon from '@iconify-icons/tabler/link';
+import ShareIcon from '@iconify-icons/tabler/share';
 import { LoadingButtonProps } from '@mui/lab';
 import {
   Box,
   Button,
   ClickAwayListener,
+  IconButton,
   List,
   ListItem,
   ListItemButton,
@@ -62,7 +65,11 @@ function generateTwitterShareUrl(data: {
   return `https://twitter.com/intent/tweet?${params.toString()}`;
 }
 
-export function MakeYoursButton({ deployment, ...props }: { deployment: Deployment } & LoadingButtonProps) {
+export function MakeYoursButton({
+  deployment,
+  iconButton = false,
+  ...props
+}: { deployment: Deployment; iconButton?: boolean } & LoadingButtonProps) {
   const { t } = useLocaleContext();
   const navigate = useNavigate();
   const { session } = useSessionContext();
@@ -97,6 +104,14 @@ export function MakeYoursButton({ deployment, ...props }: { deployment: Deployme
     }
   }
 
+  if (iconButton) {
+    return (
+      <IconButton onClick={onMakeYours} title={t('makeYours')}>
+        <Box component={Icon} icon={ArrowsShuffleIcon} sx={{ fontSize: 20 }} />
+      </IconButton>
+    );
+  }
+
   return (
     <LoadingButton variant="outlined" onClick={onMakeYours} {...props}>
       {t('makeYours')}
@@ -112,7 +127,15 @@ export function useShareUrl({ deployment }: { deployment: Deployment }) {
   return { shareUrl, openInNewTab: () => window.open(shareUrl, '_blank') };
 }
 
-export function ShareButton({ deployment, project }: { deployment: Deployment; project: ProjectSettings }) {
+export function ShareButton({
+  deployment,
+  project,
+  iconButton = false,
+}: {
+  deployment: Deployment;
+  project: ProjectSettings;
+  iconButton?: boolean;
+}) {
   const { t } = useLocaleContext();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
@@ -154,13 +177,24 @@ export function ShareButton({ deployment, project }: { deployment: Deployment; p
       },
     },
   ];
-
-  return (
-    <>
+  const renderButton = () => {
+    if (iconButton) {
+      return (
+        <IconButton onClick={handleClick} data-testid="share-button">
+          <Box component={Icon} icon={ShareIcon} sx={{ fontSize: 20 }} />
+        </IconButton>
+      );
+    }
+    return (
       <Button variant="outlined" onClick={handleClick} data-testid="share-button">
         {t('share')}
       </Button>
+    );
+  };
 
+  return (
+    <>
+      {renderButton()}
       <Popper open={open} anchorEl={anchorEl} placement="bottom-start">
         <ClickAwayListener onClickAway={handleClose}>
           <Paper sx={{ mt: 1 }}>

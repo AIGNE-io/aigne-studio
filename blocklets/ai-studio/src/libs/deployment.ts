@@ -17,6 +17,7 @@ export type Deployment = {
   categories: { id: string; name: string; slug: string }[];
   productHuntUrl?: string;
   productHuntBannerUrl?: string;
+  aigneBannerVisible?: boolean;
 };
 
 export type UpdateType = {
@@ -84,4 +85,10 @@ export async function adminUpdateDeployment(id: string, input: UpdateType): Prom
 
 export async function deleteDeployment(input: { id: string }): Promise<Deployment> {
   return axios.delete(joinURL('/api/deployments', input.id)).then((res) => res.data);
+}
+
+export async function updateAigneBannerVisible(id: string, visible: boolean): Promise<Deployment> {
+  return axios
+    .put(joinURL('/api/deployments', id, 'aigneBannerVisible'), { aigneBannerVisible: visible })
+    .then((res) => res.data);
 }

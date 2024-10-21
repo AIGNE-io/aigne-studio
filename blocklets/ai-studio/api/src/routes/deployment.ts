@@ -318,6 +318,22 @@ router.put('/:id', user(), auth(), async (req, res) => {
   res.json(await Deployment.findByPk(req.params.id!));
 });
 
+router.put('/:id/aigneBannerVisible', user(), auth(), async (req, res) => {
+  const found = await Deployment.findByPk(req.params.id!);
+  if (!found) {
+    res.status(404).json({ message: 'deployment not found' });
+    return;
+  }
+
+  checkUserAuth(req, res)({ userId: found.createdBy });
+  const { aigneBannerVisible } = await Joi.object({
+    aigneBannerVisible: Joi.boolean(),
+  }).validateAsync(req.body, { stripUnknown: true });
+
+  await Deployment.update({ aigneBannerVisible }, { where: { id: req.params.id! } });
+  res.json(await Deployment.findByPk(req.params.id!));
+});
+
 router.delete('/:id', user(), auth(), async (req, res) => {
   const { id } = await deploymentIdSchema.validateAsync(req.params, { stripUnknown: true });
 

@@ -1,25 +1,31 @@
-import type { Deployment } from '@app/libs/deployment';
+import { Deployment, updateAigneBannerVisible } from '@app/libs/deployment';
 import { MakeYoursButton, ShareButton } from '@app/pages/explore/button';
 import { ProjectSettings } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import ArrowsShuffleIcon from '@iconify-icons/tabler/arrows-shuffle';
-import DotsVerticalIcon from '@iconify-icons/tabler/dots-vertical';
-import FullscreenExitOutlinedIcon from '@mui/icons-material/FullscreenExitOutlined';
-import { Box, BoxProps, Button, MenuItem } from '@mui/material';
-import { useState } from 'react';
+import { Close } from '@mui/icons-material';
+import { Box, BoxProps, IconButton } from '@mui/material';
+import { useEffect, useState } from 'react';
 
 import AigneLogo from '../aigne-logo';
-import PopperMenu from '../menu/PopperMenu';
 import { premiumPlanEnabled, useMultiTenantRestriction } from './state';
 
 interface Props {
   deployment?: Deployment;
   project?: ProjectSettings;
+  onRemoveAigneBanner?: () => void;
 }
 
-export function MultiTenantBrandGuard({ deployment, project, sx, children, ...rest }: Props & BoxProps) {
+export function MultiTenantBrandGuard({
+  deployment,
+  project,
+  onRemoveAigneBanner,
+  sx,
+  children,
+  ...rest
+}: Props & BoxProps) {
   const { quotaChecker } = useMultiTenantRestriction();
-  const [brandBarRemoved, setBrandBarRemoved] = useState(!premiumPlanEnabled);
+  const [aigneBannerVisible, setAigneBannerVisible] = useState(false);
   const bottomHeight = 64;
   const mergedSx = [
     {
@@ -28,7 +34,7 @@ export function MultiTenantBrandGuard({ deployment, project, sx, children, ...re
       pb: `${bottomHeight}px`,
       bgcolor: '#f0eee6',
 
-      ...(brandBarRemoved && {
+      ...(!aigneBannerVisible && {
         p: 0,
         pb: 0,
       }),
@@ -36,18 +42,27 @@ export function MultiTenantBrandGuard({ deployment, project, sx, children, ...re
     ...(Array.isArray(sx) ? sx : [sx]),
   ];
 
-  const removeBrand = () => {
+  const removeBrand = async () => {
     if (quotaChecker.checkCustomBrand()) {
-      setBrandBarRemoved(!brandBarRemoved);
+      await updateAigneBannerVisible(deployment?.id!, false);
+      setAigneBannerVisible(false);
+      onRemoveAigneBanner?.();
     }
   };
+
+  useEffect(() => {
+    if (typeof deployment?.aigneBannerVisible === 'boolean') {
+      setAigneBannerVisible(deployment.aigneBannerVisible);
+    } else {
+      setAigneBannerVisible(true);
+    }
+  }, [deployment]);
 
   return (
     <Box sx={mergedSx} {...rest}>
       <Box
         sx={{
           height: '100%',
-          ...(brandBarRemoved && { borderWidth: 0 }),
         }}>
         <Box
           sx={{
@@ -64,39 +79,7 @@ export function MultiTenantBrandGuard({ deployment, project, sx, children, ...re
           </Box>
         </Box>
       </Box>
-      {brandBarRemoved && (
-        <>
-          <Box
-            color="primary"
-            sx={{
-              position: 'absolute',
-              bottom: 8,
-              left: 8,
-              display: 'flex',
-              alignItems: 'center',
-              width: 180,
-              height: 32,
-              px: 1,
-              borderRadius: 1,
-              bgcolor: 'rgba(0,0,0,0.08)',
-            }}>
-            <MadeWithAigne />
-          </Box>
-          <Button
-            sx={{
-              position: 'absolute',
-              bottom: 8,
-              right: 16,
-              bgcolor: 'rgba(0,0,0,0.08)',
-              color: 'text.secondary',
-              minWidth: 0,
-            }}
-            onClick={removeBrand}>
-            <FullscreenExitOutlinedIcon style={{ fontSize: 20 }} />
-          </Button>
-        </>
-      )}
-      {!brandBarRemoved && (
+      {aigneBannerVisible && (
         <Box
           sx={{
             display: 'flex',
@@ -130,14 +113,10 @@ export function MultiTenantBrandGuard({ deployment, project, sx, children, ...re
                 <ShareButton deployment={deployment} project={project} />
               </>
             )}
-            <PopperMenu
-              ButtonProps={{
-                sx: { minWidth: 0, p: 0.5, ml: -0.5 },
-                children: <Box component={Icon} icon={DotsVerticalIcon} sx={{ fontSize: 16, color: 'text.primary' }} />,
-              }}
-              PopperProps={{ placement: 'bottom-end' }}>
-              <MenuItem onClick={removeBrand}>Remove AIGNE banner</MenuItem>
-            </PopperMenu>
+
+            <IconButton size="small" onClick={removeBrand}>
+              <Close />
+            </IconButton>
           </Box>
         </Box>
       )}
