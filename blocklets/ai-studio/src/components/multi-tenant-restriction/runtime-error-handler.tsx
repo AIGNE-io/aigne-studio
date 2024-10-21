@@ -1,4 +1,4 @@
-import { useSession } from '@blocklet/ai-runtime/front/contexts/Session';
+import { useSession } from '@blocklet/aigne-sdk/components/ai-runtime';
 import { useCallback, useEffect } from 'react';
 
 import { showPlanUpgrade } from './state';
