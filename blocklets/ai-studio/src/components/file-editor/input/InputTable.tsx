@@ -519,7 +519,7 @@ export default function InputTable({
                           </Button>
                         )}
 
-                        {!readOnly && parameter.from !== FROM_IMAGE_BLENDER && (
+                        {!readOnly && (
                           <PopperButton
                             knowledge={knowledge.map((x) => ({ ...x, from: FROM_KNOWLEDGE }))}
                             openApis={openApis}
@@ -1597,18 +1597,22 @@ function PopperButton({
           <Paper sx={{ p: 0, minWidth: 140, maxWidth: 320, maxHeight: '80vh', overflow: 'auto' }}>
             <Stack gap={2}>
               <List>
-                <MenuItem onClick={() => (parameter.hidden = !parameter.hidden)}>
-                  {parameter.hidden ? t('activeParameterTip') : t('hideParameterTip')}
-                </MenuItem>
+                {parameter.from !== 'imageBlenderParameter' && (
+                  <MenuItem onClick={() => (parameter.hidden = !parameter.hidden)}>
+                    {parameter.hidden ? t('activeParameterTip') : t('hideParameterTip')}
+                  </MenuItem>
+                )}
 
                 {!(parameter.from === FROM_PARAMETER || parameter.from === FROM_KNOWLEDGE_PARAMETER) && (
                   <MenuItem onClick={dialogState.open} disabled={Boolean(parameter.hidden)}>
                     {t('setting')}
                   </MenuItem>
                 )}
-                <MenuItem sx={{ color: '#E11D48', fontSize: 13 }} onClick={onDelete}>
-                  {t('delete')}
-                </MenuItem>
+                {parameter.from !== 'imageBlenderParameter' && (
+                  <MenuItem sx={{ color: '#E11D48', fontSize: 13 }} onClick={onDelete}>
+                    {t('delete')}
+                  </MenuItem>
+                )}
               </List>
             </Stack>
           </Paper>
