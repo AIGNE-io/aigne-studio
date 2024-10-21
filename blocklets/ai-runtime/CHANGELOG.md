@@ -1,3 +1,7 @@
+## 0.4.90 (2024-10-21)
+
+- chore: add `image` type for inputs
+
 ## 0.4.89 (2024-10-21)
 
 - chore: improve ux for appearance settings

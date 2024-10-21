@@ -28,7 +28,7 @@ export default function AgentInputField({
     return null;
   }
 
-  if (parameter.type === 'string' && parameter.image) {
+  if (parameter.type === 'image') {
     const handleFiles = async (file: File) => {
       try {
         const formData = new FormData();
