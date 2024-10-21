@@ -1,5 +1,5 @@
 import { useCurrentProject } from '@app/contexts/project';
-import { getComponents } from '@app/libs/components';
+import { getComponents, getComponentsByIds } from '@app/libs/components';
 import { REMOTE_REACT_COMPONENT } from '@app/libs/constants';
 import { useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
@@ -40,15 +40,46 @@ import {
   styled,
   useRadioGroup,
 } from '@mui/material';
+import Ajv from 'ajv';
 import stringify from 'json-stable-stringify';
 import { pick } from 'lodash';
 import { nanoid } from 'nanoid';
-import { ComponentProps, ReactNode, Suspense, useEffect, useMemo, useState } from 'react';
+import { ComponentProps, ReactNode, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { useAsync } from 'react-use';
 
 import ErrorBoundary from '../error/error-boundary';
 import { generateFakeProps } from './fake-props';
 import { useAIGNEApiProps } from './get-agent';
+
+const ajv = new Ajv();
+
+function outputToJsonSchema(output: Record<string, any>) {
+  if (!output || output.from?.type === 'input') return {};
+  function convert(data: Record<string, any>) {
+    const ans: Record<string, any> = { type: data.type ?? 'string' };
+
+    if (data.type === 'object' && data.properties) {
+      ans.properties = {};
+      for (const [, v] of Object.entries(data.properties)) {
+        const value = v as { data: Record<string, any> };
+        ans.properties[value.data.name] = convert(value.data);
+        if (value.data.required) {
+          ans.required = ans.required ?? [];
+          ans.required.push(value.data.name);
+        }
+      }
+      return ans;
+    }
+
+    if (data.type === 'array' && data.element) {
+      ans.items = convert(data.element);
+      return ans;
+    }
+
+    return ans;
+  }
+  return convert(output);
+}
 
 export interface ComponentSelectValue {
   blockletDid?: string;
@@ -104,9 +135,34 @@ export default function ComponentSelect({
         group: t('remote'),
       })),
     ];
-  }, [customComponents, openComponents]);
+  }, [customComponents, openComponents, t]);
 
   const componentsMap = useMemo(() => Object.fromEntries(components.map((i) => [i.value, i])), [components]);
+
+  const { value: instances } = useAsync(
+    () => getComponentsByIds({ componentIds: components.map((i) => i.id) }),
+    [components]
+  );
+
+  const resolveValidate = useCallback(() => {
+    if (!output) return () => false;
+    const outputSchema = outputToJsonSchema(output);
+    return ajv.compile(outputSchema);
+  }, [output]);
+
+  const validatedComponentIds = useMemo(() => {
+    const validate = resolveValidate();
+    const validatedComponents =
+      instances?.filter((instance) => {
+        const schema = (instance?.Component as any).outputValueSchema;
+        if (!schema) return true;
+        const faked = schema ? (generateFakeProps(schema) as any)?.outputValue : null;
+        return faked ? validate(faked) : false;
+      }) ?? [];
+    return new Set(validatedComponents.map((i) => i?.component.id).filter(Boolean));
+  }, [instances, resolveValidate]);
+
+  const validatedComponents = components.filter((i) => validatedComponentIds.has(i.id));
 
   return (
     <Grid
@@ -119,7 +175,7 @@ export default function ComponentSelect({
       }}
       container
       spacing={2}>
-      {components.map((i) => (
+      {validatedComponents.map((i) => (
         <Grid item key={i.value} xs={12} sm={6} md={4}>
           <ComponentSelectItem output={output} aid={aid} customComponent={i} />
         </Grid>
