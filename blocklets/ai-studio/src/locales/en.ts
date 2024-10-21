@@ -872,6 +872,9 @@ export default flatten({
       desc: 'The Cron Jobs feature is available only in Serverless AIGNE. Please run a Serverless AIGNE to access this feature.',
     },
   },
+  pricingAndPlans: {
+    currentPlan: 'This is your current plan',
+  },
   multiple: 'Multiple',
   dropdown: 'Dropdown',
   checkbox: 'Checkbox',
