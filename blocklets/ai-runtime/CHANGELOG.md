@@ -1,3 +1,8 @@
+## 0.4.91 (2024-10-21)
+
+- chore: support multiple option for select input
+- chore: support change input format for blender agent
+
 ## 0.4.90 (2024-10-21)
 
 - chore: add `image` type for inputs
