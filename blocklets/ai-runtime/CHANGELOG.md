@@ -1,3 +1,7 @@
+## 0.4.89 (2024-10-21)
+
+- chore: improve ux for appearance settings
+
 ## 0.4.88 (2024-10-21)
 
 - fix: agent view crash
