@@ -5,7 +5,7 @@ import { Icon } from '@iconify-icon/react';
 import ArrowsShuffleIcon from '@iconify-icons/tabler/arrows-shuffle';
 import DotsVerticalIcon from '@iconify-icons/tabler/dots-vertical';
 import FullscreenExitOutlinedIcon from '@mui/icons-material/FullscreenExitOutlined';
-import { Box, BoxProps, Button, Link, MenuItem } from '@mui/material';
+import { Box, BoxProps, Button, MenuItem } from '@mui/material';
 import { useState } from 'react';
 
 import AigneLogo from '../aigne-logo';
@@ -47,16 +47,11 @@ export function MultiTenantBrandGuard({ deployment, project, sx, children, ...re
       <Box
         sx={{
           height: '100%',
-          border: '#eee solid 16px',
-          borderTopColor: 'grey.200',
-          borderBottomColor: 'grey.100',
-
           ...(brandBarRemoved && { borderWidth: 0 }),
         }}>
         <Box
           sx={{
             height: '100%',
-            borderRadius: 1.5,
             overflow: 'hidden',
             bgcolor: '#fff',
           }}>
@@ -142,9 +137,6 @@ export function MultiTenantBrandGuard({ deployment, project, sx, children, ...re
               }}
               PopperProps={{ placement: 'bottom-end' }}>
               <MenuItem onClick={removeBrand}>Remove AIGNE banner</MenuItem>
-              <MenuItem component={Link} href="https://www.aigne.io">
-                About
-              </MenuItem>
             </PopperMenu>
           </Box>
         </Box>
@@ -158,6 +150,7 @@ function MadeWithAigne() {
     <Box
       component="a"
       href="https://www.aigne.io"
+      target="_blank"
       sx={{
         textDecoration: 'none',
         display: 'flex',
