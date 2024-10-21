@@ -1,3 +1,7 @@
+## 0.4.88 (2024-10-21)
+
+- fix: agent view crash
+
 ## 0.4.87 (2024-10-20)
 
 - feat: add image type for agent inputs
