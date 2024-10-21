@@ -841,7 +841,7 @@ export default flatten({
   success: 'Success',
   failed: 'Failed',
   makeOwnVersion: 'Make Your Own Version',
-  noTemplatesAvailable: 'Empty Template',
+  blankTemplate: 'Blank Template',
   loginRequired: 'Login Required',
   loginRequiredHelper: 'The user needs to log in before using this agent',
   noLoginRequiredHelper: 'The user can use this agent without logging in',
