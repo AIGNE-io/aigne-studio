@@ -1,5 +1,6 @@
 import { Icon } from '@iconify-icon/react';
 import HelpIcon from '@iconify-icons/tabler/help';
+import VerifiedIcon from '@mui/icons-material/Verified';
 import { LoadingButton } from '@mui/lab';
 import { Box, SxProps, Tooltip, Typography } from '@mui/material';
 
@@ -19,6 +20,7 @@ export interface Plan {
   link: CycleBasedValue;
   isFeatured?: boolean;
   qualified?: boolean;
+  active?: boolean;
 }
 
 interface PricingTableProps {
@@ -79,7 +81,14 @@ function PricingTablePlan({ plan, billingCycle }: { plan: Plan; billingCycle?: B
             fontWeight: 'bold',
             color: 'grey.800',
           }}>
-          {plan.name}
+          <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            {plan.name}
+            {plan.active && (
+              <Tooltip title="This is your current plan">
+                <Box component={VerifiedIcon} sx={{ fontSize: 22, color: 'success.light' }} />
+              </Tooltip>
+            )}
+          </Box>
 
           {plan.isFeatured && (
             <Box
@@ -188,6 +197,7 @@ function PricingTablePlan({ plan, billingCycle }: { plan: Plan; billingCycle?: B
               {buttonText}
             </LoadingButton>
           )}
+          {plan.active && 'current'}
         </Box>
       </Box>
     </Box>
