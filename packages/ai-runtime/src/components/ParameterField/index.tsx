@@ -36,7 +36,7 @@ export default function ParameterField({
     return <StringField {...({ parameter } as any)} size="small" {...props} multiline />;
   }
 
-  if (parameter.type === 'string' && parameter.image) {
+  if (parameter.type === 'image') {
     return (
       <UploaderProvider>
         <ImageFiled {...({ parameter } as any)} size="small" {...props} />

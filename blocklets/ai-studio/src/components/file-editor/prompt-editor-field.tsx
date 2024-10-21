@@ -94,7 +94,7 @@ export default function PromptEditorField({
     }
 
     if (parameter.type === 'string') {
-      return parameter?.image ? 'image' : parameter?.multiline ? 'multiline' : 'string';
+      return parameter?.multiline ? 'multiline' : 'string';
     }
 
     return parameter?.type || 'string';

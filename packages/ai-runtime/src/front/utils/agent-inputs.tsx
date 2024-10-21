@@ -6,6 +6,7 @@ export const USER_INPUT_PARAMETER_TYPES: NonNullable<Parameter['type']>[] = [
   'select',
   'language',
   'boolean',
+  'image',
 ];
 
 export function isValidInput(input: Parameter): input is Parameter & { key: string } {
