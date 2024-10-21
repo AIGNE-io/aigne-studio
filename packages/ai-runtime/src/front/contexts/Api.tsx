@@ -1,6 +1,5 @@
-import { MouseEvent, ReactNode, createContext, useContext, useMemo } from 'react';
+import { ReactNode, createContext, useContext, useMemo } from 'react';
 
-import { RuntimeOutputVariable } from '../../types';
 import { Agent, getAgent } from '../api/agent';
 import { GetMessagesQuery, Message, getMessages } from '../api/message';
 import { Session, clearSession, createSession, deleteSession, getSession, getSessions, runAgent } from '../api/session';
@@ -16,11 +15,6 @@ export interface AIGNEApiContextValue {
   getMessages: (options: { sessionId: string } & GetMessagesQuery) => Promise<{ messages: Message[] }>;
   getAgent: (options: { aid: string }) => Promise<Agent>;
   runAgent: typeof runAgent;
-  openOutputSettings?: (options: {
-    e: MouseEvent;
-    aid: string;
-    output: { id: string } | { name: RuntimeOutputVariable };
-  }) => void;
 }
 
 const aigneApiContext = createContext<AIGNEApiContextValue | null>(null);

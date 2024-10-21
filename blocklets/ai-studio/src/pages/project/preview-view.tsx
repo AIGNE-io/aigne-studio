@@ -4,41 +4,34 @@ import { useCurrentProject } from '@app/contexts/project';
 import { agentViewTheme } from '@app/theme/agent-view-theme';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
+import { DebugProvider, useDebug } from '@blocklet/ai-runtime/front/contexts/Debug';
 import { AssistantYjs, RuntimeOutputVariable, fileFromYjs, isAssistant } from '@blocklet/ai-runtime/types';
 import { RuntimeDebug, getAgent } from '@blocklet/aigne-sdk/components/ai-runtime';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { Box, Dialog, DialogContent, DialogTitle, Stack, Tab, Tabs, TabsProps, ThemeProvider } from '@mui/material';
+import { Icon } from '@iconify-icon/react';
+import CloseIcon from '@iconify-icons/tabler/x';
+import {
+  Box,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  Stack,
+  Tab,
+  Tabs,
+  TabsProps,
+  ThemeProvider,
+} from '@mui/material';
 import sortBy from 'lodash/sortBy';
-import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { nanoid } from 'nanoid';
-import { ComponentProps, useEffect, useState } from 'react';
+import { ComponentProps, ReactNode, useCallback } from 'react';
 
-import { useDebugState } from './state';
 import { useProjectStore } from './yjs-state';
 
 export default function PreviewView(props: { projectId: string; gitRef: string; assistant: AssistantYjs }) {
-  const { state, setCurrentSession } = useDebugState({
-    projectId: props.projectId,
-    assistantId: props.assistant.id,
-  });
-
-  useEffect(() => {
-    if (!state.sessions.length) {
-      return;
-    }
-
-    const current = state.sessions.find((i) => i.index === state.currentSessionIndex);
-    if (!current) {
-      setCurrentSession(state.sessions[state.sessions.length - 1]?.index);
-    }
-  });
-
   const { projectId, gitRef, assistant } = props;
   const { projectSetting, getFileById } = useProjectStore(projectId, gitRef);
   const aid = stringifyIdentity({ projectId, projectRef: gitRef, agentId: assistant.id });
-
-  const [settingsProps, setSettingsProps] = useState<ComponentProps<typeof AppearanceSettings>>();
-  const settingsState = usePopupState({ variant: 'dialog' });
 
   const getAgentYjs: NonNullable<ComponentProps<typeof RuntimeDebug>['ApiProps']>['getAgent'] = async ({ aid }) => {
     const identity = parseIdentity(aid, { rejectWhenError: true });
@@ -77,13 +70,7 @@ export default function PreviewView(props: { projectId: string; gitRef: string; 
     return getAgent({ aid, working: true });
   };
 
-  const openOutputSettings: NonNullable<ComponentProps<typeof RuntimeDebug>['ApiProps']>['openOutputSettings'] = ({
-    e,
-    aid,
-    output,
-  }) => {
-    const { agentId } = parseIdentity(aid, { rejectWhenError: true });
-
+  const openSettings: ComponentProps<typeof DebugProvider>['openSettings'] = useCallback(({ agentId, output }) => {
     const agent = getFileById(agentId);
     if (!agent) throw new Error(`Agent ${agentId} not found`);
 
@@ -94,34 +81,43 @@ export default function PreviewView(props: { projectId: string; gitRef: string; 
       outputId = getOrAddOutputByName({ agent, outputName: output.name }).data.id;
     }
 
-    setSettingsProps({ agentId, outputId });
-    settingsState.open(e);
-  };
+    return { agentId, outputId };
+  }, []);
 
   return (
-    <>
+    <DebugProvider openSettings={openSettings}>
       <ThemeProvider theme={agentViewTheme}>
         <Stack sx={{ overflowY: 'auto', flex: 1 }}>
-          <RuntimeDebug
-            aid={aid}
-            ApiProps={{
-              getAgent: getAgentYjs,
-              openOutputSettings,
-            }}
-          />
+          <RuntimeDebug aid={aid} ApiProps={{ getAgent: getAgentYjs }} />
         </Stack>
       </ThemeProvider>
 
-      <Dialog {...bindDialog(settingsState)} maxWidth="md" fullWidth>
-        <DialogTitle>Settings</DialogTitle>
+      <SettingsDialog>
+        <RuntimeDebug hideSessionsBar aid={aid} ApiProps={{ getAgent: getAgentYjs }} />
+      </SettingsDialog>
+    </DebugProvider>
+  );
+}
 
-        <DialogContent sx={{ minHeight: '50vh' }}>
-          {settingsProps && (
-            <AgentAppearanceSettings agentId={settingsProps.agentId} outputId={settingsProps.outputId} />
-          )}
-        </DialogContent>
-      </Dialog>
-    </>
+function SettingsDialog({ children }: { children?: ReactNode }) {
+  const { t } = useLocaleContext();
+  const agentId = useDebug((s) => s.agentId);
+  const close = useDebug((s) => s.close);
+
+  return (
+    <Dialog open={!!agentId} fullWidth PaperProps={{ sx: { maxWidth: 'none', height: '100%' } }} onClose={close}>
+      <DialogTitle sx={{ display: 'flex' }}>
+        <Box flex={1}>{t('appearance')}</Box>
+
+        <IconButton sx={{ p: 0, minWidth: 32, minHeight: 32 }} onClick={close}>
+          <Icon icon={CloseIcon} />
+        </IconButton>
+      </DialogTitle>
+
+      <DialogContent sx={{ padding: '0 !important' }}>
+        <AgentAppearanceSettings>{children}</AgentAppearanceSettings>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -136,17 +132,33 @@ const internalOutputs = new Set([
   RuntimeOutputVariable.openingQuestions,
 ]);
 
-function AgentAppearanceSettings({ agentId, outputId }: { agentId: string; outputId: string }) {
-  const [current, setCurrent] = useState(outputId);
+function AgentAppearanceSettings({ children }: { children?: ReactNode }) {
+  const agentId = useDebug((s) => s.agentId);
+  const outputId = useDebug((s) => s.outputId);
+  const open = useDebug((s) => s.open);
+
+  if (!agentId) return null;
 
   return (
-    <>
-      <AppearanceSettingTabs agentId={agentId} value={current} onChange={(_, v) => setCurrent(v)} />
-
-      <Box my={2}>
-        <AppearanceSettings agentId={agentId} outputId={current} />
+    <Stack direction="row" height="100%">
+      <Box py={2}>
+        <AppearanceSettingTabs
+          orientation="vertical"
+          variant="scrollable"
+          agentId={agentId}
+          value={outputId}
+          onChange={(_, v) => open?.({ output: { id: v } })}
+        />
       </Box>
-    </>
+
+      <Stack flex={2} height="100%">
+        {children}
+      </Stack>
+
+      <Box my={2} flex={1} p={2}>
+        {outputId && <AppearanceSettings agentId={agentId} outputId={outputId} />}
+      </Box>
+    </Stack>
   );
 }
 
@@ -174,7 +186,6 @@ function AppearanceSettingTabs({ agentId, ...props }: { agentId: string } & Tabs
 
   return (
     <Tabs
-      variant="scrollable"
       {...props}
       value={current}
       onChange={(e, v) => {
