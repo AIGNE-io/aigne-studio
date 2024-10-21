@@ -35,7 +35,7 @@ export default function AgentInputField({
         formData.append('image', file);
 
         const response = await uploadImage({ input: formData });
-        props.onChange(response.uploads.url);
+        props.onChange((response.uploads as { url: string })?.url);
       } catch (error) {
         Toast.error(error.message);
       }

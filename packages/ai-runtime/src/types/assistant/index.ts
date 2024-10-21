@@ -386,7 +386,6 @@ export interface StringParameter extends ParameterBase {
   value?: string;
   defaultValue?: string;
   multiline?: boolean;
-  image?: boolean;
   minLength?: number;
   maxLength?: number;
 }
@@ -420,8 +419,9 @@ export interface LanguageParameter extends ParameterBase {
 
 export interface ImageParameter extends ParameterBase {
   type: 'image';
-  value?: string;
-  defaultValue?: string;
+  value?: string | string[];
+  multiline?: boolean;
+  defaultValue?: string | string[];
 }
 
 export interface User {

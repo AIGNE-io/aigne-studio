@@ -9,7 +9,7 @@ import omit from 'lodash/omit';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 
-import { uploadImage } from '../../api/image';
+import { uploadImage } from '../../../api/ai-runtime/image';
 import AgentInputField from '../../components/AgentInputField';
 import LoadingButton from '../../components/LoadingButton';
 import { useAgent } from '../../contexts/Agent';
@@ -109,7 +109,11 @@ export default function AutoForm({
               const response = await uploadImage({ input: formData });
 
               const urls = Array.isArray(old) ? old : [old];
-              field.onChange({ target: { value: [...urls, ...response.uploads.map((upload) => upload.url)] } });
+              field.onChange({
+                target: {
+                  value: [...urls, ...((response.uploads || []) as { url: string }[]).map((upload) => upload.url)],
+                },
+              });
             } catch (error) {
               Toast.error(error.message);
             }

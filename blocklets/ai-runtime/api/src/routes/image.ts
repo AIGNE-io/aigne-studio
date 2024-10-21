@@ -28,16 +28,14 @@ const upload = multer({
     if (!file.mimetype.startsWith('image/')) {
       return cb(new Error('Only image files can be uploaded'));
     }
-
     return cb(null, true);
   },
 });
 
 router.post(
   '/upload',
-  (req: Request & { isSingleUpload?: boolean }, res: Response, next: NextFunction) => {
-    const isSingleUpload = req.header('X-Single-Upload') === 'true';
-    const uploadMiddleware = isSingleUpload ? upload.single('image') : upload.array('images', 3);
+  (req: Request, res: Response, next: NextFunction) => {
+    const uploadMiddleware = req.body.image ? upload.single('image') : upload.array('images', 3);
 
     uploadMiddleware(req, res, (err) => {
       if (err) {
@@ -45,13 +43,11 @@ router.post(
         return;
       }
 
-      req.isSingleUpload = isSingleUpload;
-
       next();
     });
   },
-  async (req: Request & { isSingleUpload?: boolean }, res: Response) => {
-    const files = (req.isSingleUpload ? [req.file] : req.files) as Express.Multer.File[];
+  async (req: Request, res: Response) => {
+    const files = (req.file ? [req.file] : req.files) as Express.Multer.File[];
 
     if (!files || files.length === 0) {
       res.status(400).json({ error: 'Please select an image to upload' });
@@ -71,7 +67,7 @@ router.post(
       });
 
       const results = await Promise.all(uploadPromises);
-      res.json({ uploads: req.isSingleUpload ? results[0] : results });
+      res.json({ uploads: req.file ? results[0] : results });
     } finally {
       files.forEach((file) => {
         try {
