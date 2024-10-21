@@ -346,7 +346,7 @@ export interface ParameterBase {
   placeholder?: string;
   helper?: string;
   required?: boolean;
-  from?: 'editor' | 'agentParameter' | 'knowledgeParameter' | 'blockletAPIParameter';
+  from?: 'editor' | 'agentParameter' | 'knowledgeParameter' | 'blockletAPIParameter' | 'imageBlenderParameter';
   hidden?: boolean;
 }
 
@@ -385,6 +385,7 @@ export interface StringParameter extends ParameterBase {
   value?: string;
   defaultValue?: string;
   multiline?: boolean;
+  image?: boolean;
   minLength?: number;
   maxLength?: number;
 }

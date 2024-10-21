@@ -8,6 +8,7 @@ import JsonIcon from '@iconify-icons/tabler/json';
 import LanguageIcon from '@iconify-icons/tabler/language-hiragana';
 import ListCheckIcon from '@iconify-icons/tabler/list-check';
 import MessagesIcon from '@iconify-icons/tabler/messages';
+import ImageIcon from '@iconify-icons/tabler/picture-in-picture-top';
 import SquareNumberIcon from '@iconify-icons/tabler/square-number-1';
 import TextWrapIcon from '@iconify-icons/tabler/text-wrap';
 import { ListItemIcon, MenuItem, TextField, TextFieldProps } from '@mui/material';
@@ -27,6 +28,11 @@ export default function ParameterConfigType(props: TextFieldProps) {
         icon: <Icon icon={TextWrapIcon} />,
         label: t('multiline'),
         value: 'multiline',
+      },
+      {
+        icon: <Icon icon={ImageIcon} />,
+        label: t('image'),
+        value: 'image',
       },
       {
         icon: <Icon icon={SquareNumberIcon} />,
