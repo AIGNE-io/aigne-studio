@@ -29,6 +29,7 @@ export default function SelectOptionsConfig({
           renderItem={(option, _, params) => (
             <Stack direction="row" alignItems="center" gap={1} ref={params.drop}>
               <Stack
+                flex={1}
                 direction="row"
                 gap={1}
                 bgcolor="background.paper"
@@ -43,13 +44,15 @@ export default function SelectOptionsConfig({
                   placeholder={t('label')}
                   value={option.label}
                   onChange={(e) => (option.label = e.target.value)}
+                  sx={{ flex: 1 }}
                 />
                 <TextField
                   hiddenLabel
                   InputProps={{ readOnly }}
-                  placeholder={t('value')}
+                  placeholder={option.label || t('value')}
                   value={option.value}
                   onChange={(e) => (option.value = e.target.value)}
+                  sx={{ flex: 1 }}
                 />
               </Stack>
 

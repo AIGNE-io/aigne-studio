@@ -461,8 +461,8 @@ importers:
         specifier: ^0.2.435
         version: 0.2.435(p7m4hgnua3voykbfabx6jry2yy)
       '@blocklet/payment-js':
-        specifier: ^1.15.19
-        version: 1.15.19(encoding@0.1.13)
+        specifier: ^1.15.20
+        version: 1.15.20(encoding@0.1.13)
       '@blocklet/prompt-editor':
         specifier: workspace:^
         version: link:../../packages/prompt-editor
@@ -2951,8 +2951,8 @@ packages:
   '@blocklet/payment-js@1.15.17':
     resolution: {integrity: sha512-dilk3QESuFUplQlbSxjkOtWLFYjHT9p6/U3kb/cKf7nl0L0iDMFW+sINzM7NQp9pCt6Ch4F4aJIY4V/AZHcDEw==}
 
-  '@blocklet/payment-js@1.15.19':
-    resolution: {integrity: sha512-BNlbNpuQGy1AsT5WOzJmkgpazlcpwDNuO3taKL+M3cmAmKjspoDc5TnUi81R7IXEyhEvr7RGjGjsazYkrwW1SQ==}
+  '@blocklet/payment-js@1.15.20':
+    resolution: {integrity: sha512-5U2WaIlO0mRwSP1uGQvfaYsG4xdZMYYOS8sKawx4b7OdkCZmFQ/W3MPQ75Gh4FUGSw6HUPiDFkn2CSga+lcddQ==}
 
   '@blocklet/payment-react@1.15.10':
     resolution: {integrity: sha512-nezCiATcRFe317eFVC0WWhIgiVeyQ0XPnOpOVYWtfdVcNSRLCuyTxgzNx2acu3+BlpxoVT2i7O32nSIMAhUxmQ==}
@@ -2962,8 +2962,8 @@ packages:
   '@blocklet/payment-types@1.15.17':
     resolution: {integrity: sha512-nnAEltqqx484tMeCNrQbzgPT+d8nTOA6QbCQgtX0rIGU65S+h2/mGnucMp2FtaoR7cCbugSEuCrrnIlXcs9nww==}
 
-  '@blocklet/payment-types@1.15.19':
-    resolution: {integrity: sha512-4gH/rIeiB8M4PyLqu51tg/dosMUnmRO/KV3qFlUAUw/Ez90bFurYkbxF02fUCCLdgPJlUxPgna9mOckmEeD9Xg==}
+  '@blocklet/payment-types@1.15.20':
+    resolution: {integrity: sha512-PJ9fb/0flf5S7WMj9PLreaYDwgIyc6q9mlyteksxaL2SKVhRfrN8QNay/TqbZaWhakQk+lIIashOaywopQV70w==}
 
   '@blocklet/pdf@1.6.264':
     resolution: {integrity: sha512-fq5R+pocm0MqRe2AUvOHkreWc1K5dYF9HMSlHJ7E9GMrI0LggxMyEo3Zy7QKxjA3oCdlJwAyrenjdBUoq2rY0Q==}
@@ -19589,9 +19589,9 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@blocklet/payment-js@1.15.19(encoding@0.1.13)':
+  '@blocklet/payment-js@1.15.20(encoding@0.1.13)':
     dependencies:
-      '@blocklet/payment-types': 1.15.19
+      '@blocklet/payment-types': 1.15.20
       '@blocklet/sdk': 1.16.33-beta-20241015-065257-56072e40(encoding@0.1.13)
     transitivePeerDependencies:
       - bufferutil
@@ -19649,7 +19649,7 @@ snapshots:
 
   '@blocklet/payment-types@1.15.17': {}
 
-  '@blocklet/payment-types@1.15.19': {}
+  '@blocklet/payment-types@1.15.20': {}
 
   '@blocklet/pdf@1.6.264(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(encoding@0.1.13)(react-dom@18.3.1(react@18.3.1))':
     dependencies:

@@ -863,4 +863,7 @@ export default flatten({
       desc: '定时任务功能仅在 Serverless AIGNE 中可用。请运行 Serverless AIGNE 以访问此功能。',
     },
   },
+  multiple: '多选',
+  dropdown: '下拉选择',
+  checkbox: '平铺选择',
 });

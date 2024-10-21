@@ -143,6 +143,7 @@ function AgentAppearanceSettings({ children }: { children?: ReactNode }) {
     <Stack direction="row" height="100%">
       <Box py={2}>
         <AppearanceSettingTabs
+          sx={{ height: '100%' }}
           orientation="vertical"
           variant="scrollable"
           agentId={agentId}
@@ -155,7 +156,7 @@ function AgentAppearanceSettings({ children }: { children?: ReactNode }) {
         {children}
       </Stack>
 
-      <Box my={2} flex={1} p={2}>
+      <Box flex={1} p={2} height="100%" sx={{ overflow: 'auto', overscrollBehavior: 'contain' }}>
         {outputId && <AppearanceSettings agentId={agentId} outputId={outputId} />}
       </Box>
     </Stack>

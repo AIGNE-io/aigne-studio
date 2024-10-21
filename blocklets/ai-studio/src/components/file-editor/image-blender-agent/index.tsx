@@ -95,18 +95,23 @@ export default function ImageBlenderAssistantEditor({ value }: { value: ImageBle
             : null
         }
         onChange={(templates: any) => {
-          const [currentTemplate] = templates;
-
-          value.templateId = currentTemplate?.templateId;
-          value.dynamicData = cloneDeep(currentTemplate?.dynamicData || {});
-          const dynamicInputList = uniqBy(cloneDeep(currentTemplate?.dynamicInputList || []), 'key');
-
-          const originalKeys = new Set(Object.values(value.parameters || {}).map((i) => i.data.key));
-          const dynamicInputKeys = new Set(dynamicInputList.map((i: any) => i.key));
-
           const doc = (getYjsValue(value) as Map<any>).doc!;
           doc.transact(() => {
+            const [currentTemplate] = templates;
+
+            if (!value.templateId && currentTemplate?.templateId) {
+              value.parameters = {};
+            }
+
             value.parameters ??= {};
+
+            value.templateId = currentTemplate?.templateId;
+            value.dynamicData = cloneDeep(currentTemplate?.dynamicData || {});
+            const dynamicInputList = uniqBy(cloneDeep(currentTemplate?.dynamicInputList || []), 'key');
+
+            const originalKeys = new Set(Object.values(value.parameters || {}).map((i) => i.data.key));
+            const dynamicInputKeys = new Set(dynamicInputList.map((i: any) => i.key));
+
             const parameters = Object.values(value.parameters);
             parameters.forEach((parameter) => {
               if (parameter.data.from === 'imageBlenderParameter' && !dynamicInputKeys.has(parameter.data.key)) {
