@@ -1,11 +1,15 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import Toast from '@arcblock/ux/lib/Toast';
 import { cx } from '@emotion/css';
-import { Box, FormLabel, InputAdornment, Stack, formLabelClasses, styled } from '@mui/material';
+import AttachFileIcon from '@mui/icons-material/AttachFile';
+import CancelIcon from '@mui/icons-material/Cancel';
+import { Box, Button, FormLabel, IconButton, InputAdornment, Stack, formLabelClasses, styled } from '@mui/material';
 import isEmpty from 'lodash/isEmpty';
 import omit from 'lodash/omit';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 
+import { uploadImage } from '../../../api/ai-runtime/image';
 import AgentInputField from '../../components/AgentInputField';
 import LoadingButton from '../../components/LoadingButton';
 import { useAgent } from '../../contexts/Agent';
@@ -13,6 +17,8 @@ import { useComponentPreferences } from '../../contexts/ComponentPreferences';
 import { useCurrentAgent } from '../../contexts/CurrentAgent';
 import { useSession } from '../../contexts/Session';
 import { isValidInput } from '../../utils/agent-inputs';
+
+const MAX_FILES = 3;
 
 export default function AutoForm({
   submitText,
@@ -30,7 +36,7 @@ export default function AutoForm({
   const preferences = useComponentPreferences();
 
   const submitRef = useRef<HTMLButtonElement>(null);
-
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { t } = useLocaleContext();
   const { aid } = useCurrentAgent();
   const agent = useAgent({ aid });
@@ -41,14 +47,35 @@ export default function AutoForm({
     () =>
       agent.parameters
         ?.filter((i) => isValidInput(i) && !preferences?.hideInputFields?.includes(i.key))
-        .map((i) => ({
-          ...i,
-          label: i.label?.trim() || undefined,
-        })),
+        .map((i) => ({ ...i, label: i.label?.trim() || undefined })),
     [agent.parameters]
   );
 
-  const defaultForm = useInitialFormValues();
+  const imageParameters = useMemo(() => parameters?.filter((i) => i.type === 'image'), [parameters]);
+  const imageParametersMap = useMemo(
+    () =>
+      imageParameters?.reduce(
+        (acc, curr) => {
+          if (curr.multiple) {
+            acc[curr.key!] = [];
+          } else {
+            acc[curr.key!] = '';
+          }
+
+          return acc;
+        },
+        {} as Record<string, string | string[]>
+      ),
+    [imageParameters]
+  );
+
+  const isOnlyOneImageParameter = useMemo(() => (imageParameters?.length || 0) === 1, [imageParameters]);
+  const initialFormValues = useInitialFormValues();
+  const changeImageParameterRender = agent.type === 'prompt' && isOnlyOneImageParameter;
+
+  const defaultForm = useMemo(() => {
+    return { ...initialFormValues, ...(imageParametersMap || {}) };
+  }, [initialFormValues, imageParametersMap]);
 
   const form = useForm({ defaultValues: defaultForm });
 
@@ -59,6 +86,107 @@ export default function AutoForm({
       submitRef.current?.form?.requestSubmit();
     }
   }, [defaultForm, preferences?.autoGenerate]);
+
+  const isInInput = submitInQuestionField && parameters?.some((i) => i.key === 'question');
+
+  const renderImageUploadIcon = () => {
+    if (!isOnlyOneImageParameter) return null;
+    if (!imageParameters?.[0]) return null;
+
+    return (
+      <Controller
+        control={form.control}
+        name={imageParameters[0]!.key!}
+        render={({ field }) => {
+          const handleFiles = async (files: File[]) => {
+            const old = form.getValues(imageParameters[0]!.key!) || [];
+
+            if (imageParameters[0]!.multiple) {
+              if (old.length + files.length > MAX_FILES) {
+                Toast.error(t('maxFilesLimit', { limit: MAX_FILES }));
+                return;
+              }
+            }
+
+            try {
+              const formData = new FormData();
+              files.forEach((file) => formData.append('images', file));
+
+              const response = await uploadImage({ input: formData });
+              const urls = Array.isArray(old) ? old : [old];
+
+              field.onChange({
+                target: {
+                  value: imageParameters[0]!.multiple
+                    ? [
+                        ...urls,
+                        ...((response.uploads || []) as unknown as { url: string }[]).map((upload) => upload.url),
+                      ]
+                    : response.uploads[0]?.url,
+                },
+              });
+            } catch (error) {
+              console.error('error', error);
+              Toast.error(error.message);
+            }
+          };
+
+          const list = (Array.isArray(field.value) ? field.value : [field.value]).filter(Boolean);
+          return (
+            <>
+              <input
+                type="file"
+                accept="image/*"
+                multiple={Boolean(imageParameters[0]!.multiple)}
+                style={{ display: 'none' }}
+                ref={fileInputRef}
+                onChange={(e) => handleFiles(Array.from(e.target.files || []))}
+              />
+              <IconButton onClick={() => fileInputRef.current?.click()} disabled={list.length >= MAX_FILES}>
+                <AttachFileIcon sx={{ fontSize: !isInInput ? 20 : 18 }} />
+              </IconButton>
+            </>
+          );
+        }}
+      />
+    );
+  };
+
+  const previewsValue = useWatch({
+    control: form.control,
+    name: changeImageParameterRender ? imageParameters?.[0]?.key || '' : '',
+  });
+
+  const renderImageUploadPreview = () => {
+    if (!changeImageParameterRender) return null;
+    if (!imageParameters?.[0]) return null;
+
+    const list = (Array.isArray(previewsValue) ? previewsValue : [previewsValue]).filter(Boolean);
+    if (!list.length) return null;
+
+    return (
+      <Stack direction="row" alignItems="center" flexWrap="wrap" gap={1}>
+        {list.map((url, index) => (
+          <Box key={url} position="relative" display="flex">
+            <img
+              src={url}
+              alt={`Uploaded ${index + 1}`}
+              style={{ width: '100px', height: '100px', objectFit: 'cover' }}
+            />
+            <Button
+              size="small"
+              sx={{ position: 'absolute', top: 0, right: 0, minWidth: 'unset', p: 0.5 }}
+              onClick={() => {
+                const newUrls = list.filter((_: any, i: any) => i !== index);
+                form.setValue(imageParameters[0]!.key!, newUrls);
+              }}>
+              <CancelIcon style={{ color: 'red' }} />
+            </Button>
+          </Box>
+        ))}
+      </Stack>
+    );
+  };
 
   useEffect(() => {
     if (autoFillLastForm && !form.formState.isSubmitted && !form.formState.isSubmitting) {
@@ -82,9 +210,12 @@ export default function AutoForm({
       component="form"
       className={cx('form', `label-position-${inlineLabel ? 'start' : 'top'}`)}
       onSubmit={form.handleSubmit(onSubmit)}>
+      {isInInput && changeImageParameterRender && renderImageUploadPreview()}
+
       {parameters?.map((parameter, index) => {
         const { key, required } = parameter ?? {};
         if (!key) return null;
+        if (parameter.type === 'image' && changeImageParameterRender) return null;
 
         return (
           <Box key={parameter.id}>
@@ -135,16 +266,20 @@ export default function AutoForm({
                           ? {
                               endAdornment: (
                                 <InputAdornment position="end" sx={{ py: 3, mr: -0.75, alignSelf: 'flex-end' }}>
-                                  <LoadingButton
-                                    data-testid="runtime-submit-button"
-                                    ref={submitRef}
-                                    type="submit"
-                                    variant="contained"
-                                    loading={running}
-                                    disabled={submitDisabled}
-                                    sx={{ borderRadius: 1.5 }}>
-                                    {submitText}
-                                  </LoadingButton>
+                                  <Stack direction="row" alignItems="center" gap={1}>
+                                    {changeImageParameterRender && renderImageUploadIcon()}
+
+                                    <LoadingButton
+                                      data-testid="runtime-submit-button"
+                                      ref={submitRef}
+                                      type="submit"
+                                      variant="contained"
+                                      loading={running}
+                                      disabled={submitDisabled}
+                                      sx={{ borderRadius: 1.5 }}>
+                                      {submitText}
+                                    </LoadingButton>
+                                  </Stack>
                                 </InputAdornment>
                               ),
                             }
@@ -159,17 +294,25 @@ export default function AutoForm({
         );
       })}
 
-      {!(submitInQuestionField && parameters?.some((i) => i.key === 'question')) && (
-        <LoadingButton
-          data-testid="runtime-submit-button"
-          ref={submitRef}
-          type="submit"
-          variant="contained"
-          loading={running}
-          disabled={submitDisabled}
-          sx={{ height: 40 }}>
-          {submitText || t('generate')}
-        </LoadingButton>
+      {!isInInput && (
+        <Stack gap={1}>
+          {changeImageParameterRender && renderImageUploadPreview()}
+
+          <Stack gap={1} direction="row" alignItems="center">
+            {changeImageParameterRender && renderImageUploadIcon()}
+
+            <LoadingButton
+              data-testid="runtime-submit-button"
+              ref={submitRef}
+              type="submit"
+              variant="contained"
+              loading={running}
+              disabled={submitDisabled}
+              sx={{ height: 40, flex: 1 }}>
+              {submitText || t('generate')}
+            </LoadingButton>
+          </Stack>
+        </Stack>
       )}
     </Form>
   );

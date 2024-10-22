@@ -1,6 +1,8 @@
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
-import { IconButton, InputAdornment, Stack, TextFieldProps } from '@mui/material';
+import CancelIcon from '@mui/icons-material/Cancel';
+import { Box, Button, IconButton, InputAdornment, Stack, TextFieldProps } from '@mui/material';
 import { ComponentType, useRef } from 'react';
 
 import { uploadImage } from '../../../api/ai-runtime/image';
@@ -12,15 +14,18 @@ import RadioField from './RadioField';
 import SelectField from './SelectField';
 import StringField from './StringField';
 
+const MAX_FILES = 3;
+
 export default function AgentInputField({
   parameter,
   ...props
 }: {
   readOnly?: boolean;
   parameter: Parameter;
-  onChange: (value: string | number | undefined) => void;
+  onChange: (value: string | number | undefined | string[]) => void;
 } & Omit<TextFieldProps, 'onChange'>) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { t } = useLocaleContext();
 
   if (parameter.type === 'source') return null;
 
@@ -29,48 +34,82 @@ export default function AgentInputField({
   }
 
   if (parameter.type === 'image') {
-    const handleFiles = async (file: File) => {
+    const list = (Array.isArray(props.value) ? props.value : [props.value]).filter(Boolean);
+
+    const handleFiles = async (files: File[]) => {
+      if (parameter.multiple) {
+        if (list.length + files.length > MAX_FILES) {
+          Toast.error(t('maxFilesLimit', { limit: MAX_FILES }));
+          return;
+        }
+      }
+
       try {
         const formData = new FormData();
-        formData.append('image', file);
+        files.forEach((file) => formData.append('images', file));
 
         const response = await uploadImage({ input: formData });
-        props.onChange(response.uploads.url);
+        props.onChange(
+          parameter.multiple ? [...list, ...(response.uploads || []).map((i) => i.url)] : response.uploads[0]?.url
+        );
       } catch (error) {
         Toast.error(error.message);
       }
     };
 
     return (
-      <StringField
-        {...({ parameter } as any)}
-        size="small"
-        {...props}
-        multiline={false}
-        InputProps={{
-          endAdornment: (
-            <InputAdornment position="end" sx={{ mr: -0.75 }}>
-              <Stack direction="row" alignItems="center" gap={1}>
-                <input
-                  type="file"
-                  accept="image/*"
-                  style={{ display: 'none' }}
-                  ref={fileInputRef}
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      handleFiles(file);
-                    }
-                  }}
+      <>
+        {!!parameter.multiple && !!list.length && (
+          <Stack direction="row" alignItems="center" flexWrap="wrap" gap={1}>
+            {list.map((url, index) => (
+              <Box key={url} position="relative" display="flex">
+                <img
+                  src={url}
+                  alt={`Uploaded ${index + 1}`}
+                  style={{ width: '100px', height: '100px', objectFit: 'cover' }}
                 />
-                <IconButton onClick={() => fileInputRef.current?.click()}>
-                  <AttachFileIcon sx={{ fontSize: 18 }} />
-                </IconButton>
-              </Stack>
-            </InputAdornment>
-          ),
-        }}
-      />
+                <Button
+                  size="small"
+                  sx={{ position: 'absolute', top: 0, right: 0, minWidth: 'unset', p: 0.5 }}
+                  onClick={() => {
+                    const newUrls = list.filter((_: any, i: any) => i !== index);
+                    props.onChange(newUrls as any);
+                  }}>
+                  <CancelIcon style={{ color: 'red' }} />
+                </Button>
+              </Box>
+            ))}
+          </Stack>
+        )}
+
+        <StringField
+          {...({ parameter } as any)}
+          size="small"
+          {...props}
+          multiline={false}
+          disabled={parameter.multiple}
+          value={parameter.multiple ? '' : props.value}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end" sx={{ mr: -0.75 }}>
+                <Stack direction="row" alignItems="center" gap={1}>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    multiple={Boolean(parameter.multiple)}
+                    ref={fileInputRef}
+                    onChange={(e) => handleFiles(Array.from(e.target.files ?? []))}
+                  />
+                  <IconButton onClick={() => fileInputRef.current?.click()}>
+                    <AttachFileIcon sx={{ fontSize: 18 }} />
+                  </IconButton>
+                </Stack>
+              </InputAdornment>
+            ),
+          }}
+        />
+      </>
     );
   }
 

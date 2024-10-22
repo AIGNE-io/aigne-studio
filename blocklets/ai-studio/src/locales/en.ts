@@ -875,4 +875,5 @@ export default flatten({
   multiple: 'Multiple',
   dropdown: 'Dropdown',
   checkbox: 'Checkbox',
+  imageParameterInNotUserRole: 'Image parameters can only be used in the user role',
 });

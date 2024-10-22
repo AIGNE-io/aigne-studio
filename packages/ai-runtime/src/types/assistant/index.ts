@@ -422,7 +422,7 @@ export interface LanguageParameter extends ParameterBase {
 export interface ImageParameter extends ParameterBase {
   type: 'image';
   value?: string | string[];
-  multiline?: boolean;
+  multiple?: boolean;
   defaultValue?: string | string[];
 }
 
