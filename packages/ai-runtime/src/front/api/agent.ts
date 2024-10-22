@@ -13,7 +13,7 @@ export interface Agent {
   entries?: { id: string; title?: string; parameters?: { [key: string]: any } }[];
   release?: AssistantBase['release'];
   createdBy?: string;
-  type: string;
+  type?: string;
 
   project: {
     id: string;

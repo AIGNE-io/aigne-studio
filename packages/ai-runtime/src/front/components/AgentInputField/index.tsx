@@ -14,12 +14,12 @@ import RadioField from './RadioField';
 import SelectField from './SelectField';
 import StringField from './StringField';
 
-const MAX_FILES = 3;
-
 export default function AgentInputField({
+  maxFiles = 3,
   parameter,
   ...props
 }: {
+  maxFiles?: number;
   readOnly?: boolean;
   parameter: Parameter;
   onChange: (value: string | number | undefined | string[]) => void;
@@ -38,8 +38,8 @@ export default function AgentInputField({
 
     const handleFiles = async (files: File[]) => {
       if (parameter.multiple) {
-        if (list.length + files.length > MAX_FILES) {
-          Toast.error(t('maxFilesLimit', { limit: MAX_FILES }));
+        if (list.length + files.length > maxFiles) {
+          Toast.error(t('maxFilesLimit', { limit: maxFiles }));
           return;
         }
       }

@@ -18,20 +18,20 @@ import { useCurrentAgent } from '../../contexts/CurrentAgent';
 import { useSession } from '../../contexts/Session';
 import { isValidInput } from '../../utils/agent-inputs';
 
-const MAX_FILES = 3;
-
 export default function AutoForm({
   submitText,
   inlineLabel,
   autoFillLastForm = true,
   submitInQuestionField,
   chatMode,
+  maxFiles = 3,
 }: {
   submitText?: string;
   inlineLabel?: boolean;
   autoFillLastForm?: boolean;
   submitInQuestionField?: boolean;
   chatMode?: boolean;
+  maxFiles?: number;
 }) {
   const preferences = useComponentPreferences();
 
@@ -102,8 +102,8 @@ export default function AutoForm({
             const old = form.getValues(imageParameters[0]!.key!) || [];
 
             if (imageParameters[0]!.multiple) {
-              if (old.length + files.length > MAX_FILES) {
-                Toast.error(t('maxFilesLimit', { limit: MAX_FILES }));
+              if (old.length + files.length > maxFiles) {
+                Toast.error(t('maxFilesLimit', { limit: maxFiles }));
                 return;
               }
             }
@@ -142,7 +142,7 @@ export default function AutoForm({
                 ref={fileInputRef}
                 onChange={(e) => handleFiles(Array.from(e.target.files || []))}
               />
-              <IconButton onClick={() => fileInputRef.current?.click()} disabled={list.length >= MAX_FILES}>
+              <IconButton onClick={() => fileInputRef.current?.click()} disabled={list.length >= maxFiles}>
                 <AttachFileIcon sx={{ fontSize: !isInInput ? 20 : 18 }} />
               </IconButton>
             </>
@@ -247,6 +247,7 @@ export default function AutoForm({
                     {parameter.label && <FormLabel>{parameter.label}</FormLabel>}
 
                     <AgentInputField
+                      maxFiles={maxFiles}
                       inputProps={{ 'data-testid': `runtime-input-${key}` }}
                       inputRef={field.ref}
                       autoFocus={index === 0}
