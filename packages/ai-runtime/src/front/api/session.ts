@@ -86,6 +86,7 @@ export async function deleteSession({
 }
 
 export interface RunAgentInput {
+  entryAid?: string;
   aid: string;
   working?: boolean;
   debug?: boolean;
@@ -107,6 +108,7 @@ export async function runAgent({ responseType, ...input }: RunAgentInput & { res
         Accept: 'text/event-stream',
       },
       body: JSON.stringify({
+        entryAid: input.entryAid,
         aid: input.aid,
         sessionId: input.sessionId,
         inputs: { ...input.inputs, $clientTime: new Date().toISOString() },
