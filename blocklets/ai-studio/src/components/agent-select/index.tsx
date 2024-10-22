@@ -29,7 +29,7 @@ import {
   Typography,
   chipClasses,
 } from '@mui/material';
-import { useRef } from 'react';
+import React, { useRef } from 'react';
 
 import { AgentSelectFilter, useAgentSelectOptions } from './use-agents';
 
@@ -183,8 +183,8 @@ export default function AgentSelect<
             </li>
           );
         }}
-        renderOption={(props, option) => (
-          <>
+        renderOption={({ key, ...props }, option) => (
+          <React.Fragment key={key}>
             <MenuItem {...props}>
               <ListItemText
                 primary={option.name}
@@ -195,11 +195,12 @@ export default function AgentSelect<
             </MenuItem>
 
             <Divider />
-          </>
+          </React.Fragment>
         )}
         renderTags={(value) =>
           value.map((option) => (
             <Chip
+              key={option.id}
               sx={{
                 height: 'auto',
                 width: '100%',
@@ -225,13 +226,19 @@ export default function AgentSelect<
   );
 }
 
-function ProjectHeaderView({ project, ...props }: { project: AgentSelectOption['project'] } & ListSubheaderProps) {
+function ProjectHeaderView({
+  project,
+  ...props
+}: { project: AgentSelectOption['project'] & { blockletDid?: string } } & ListSubheaderProps) {
   const { t, locale } = useLocaleContext();
 
   return (
     <ListSubheader component="div" {...props}>
       <Stack direction="row" alignItems="center" mt={2} gap={2}>
-        <Avatar variant="rounded" src={getProjectIconUrl(project.id, { updatedAt: project.updatedAt })} />
+        <Avatar
+          variant="rounded"
+          src={getProjectIconUrl(project.id, { blockletDid: project.blockletDid, updatedAt: project.updatedAt })}
+        />
 
         <Stack flex={1} width={1}>
           <Typography variant="subtitle2" noWrap>
