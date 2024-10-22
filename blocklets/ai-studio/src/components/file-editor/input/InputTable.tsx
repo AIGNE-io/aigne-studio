@@ -701,7 +701,7 @@ export function AgentName({
     <>
       {showIcon && (
         <Avatar
-          src={getProjectIconUrl(agent.project.id, { updatedAt: agent.project.updatedAt })}
+          src={getProjectIconUrl(agent.project.id, { blockletDid, updatedAt: agent.project.updatedAt })}
           {...IconProps}
           sx={{ width: 22, height: 22, ...IconProps?.sx }}
         />

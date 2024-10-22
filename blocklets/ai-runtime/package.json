@@ -1,6 +1,6 @@
 {
   "name": "ai-runtime",
-  "version": "0.4.92",
+  "version": "0.4.93",
   "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
   "scripts": {
     "dev": "cross-env COMPONENT_STORE_URL=https://test.store.blocklet.dev blocklet dev",
@@ -39,7 +39,7 @@
     "@blocklet/aigne-sdk": "workspace:^",
     "@blocklet/constant": "^1.16.32",
     "@blocklet/dataset-sdk": "workspace:^",
-    "@blocklet/discuss-kit": "^2.1.15",
+    "@blocklet/discuss-kit": "^2.1.16",
     "@blocklet/js-sdk": "^1.16.32",
     "@blocklet/logger": "^1.16.32",
     "@blocklet/pages-kit": "^0.2.435",
