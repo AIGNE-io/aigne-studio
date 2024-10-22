@@ -52,9 +52,9 @@ export async function resolveSecretInputs(
       referencedAgents.map(async (i) => {
         const res = await getAgent({
           aid: stringifyIdentity({
-            blockletDid: i.blockletDid,
+            blockletDid: i.blockletDid || identity.blockletDid,
             projectId: i.projectId || identity.projectId,
-            projectRef: identity.projectRef,
+            projectRef: identity.projectRef || identity.projectRef,
             agentId: i.id,
           }),
           working: agent.identity.working,

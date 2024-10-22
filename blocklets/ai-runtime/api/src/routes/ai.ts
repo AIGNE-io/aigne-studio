@@ -1,7 +1,6 @@
 import { ReadableStream } from 'stream/web';
 
 import { getAgent, getMemoryVariables, getProject } from '@api/libs/agent';
-import { getProjectFromAIStudio } from '@api/libs/ai-studio';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
 import logger from '@api/libs/logger';
 import ExecutionCache from '@api/store/models/execution-cache';
@@ -50,13 +49,16 @@ const callInputSchema = Joi.object<{
 const checkProjectRequestLimit = async ({
   userId,
   role,
+  blockletDid,
   projectId,
 }: {
   userId: string;
   role?: string;
+  blockletDid?: string;
   projectId: string;
 }) => {
-  const project = await getProjectFromAIStudio({ projectId });
+  const project = await getProject({ blockletDid, projectId, rejectOnEmpty: true });
+
   // 不限制自己创建的项目
   if (project.createdBy && project.createdBy === userId) {
     return;
@@ -253,7 +255,7 @@ router.post('/call', user(), compression(), async (req, res) => {
   if (stream) emit({ type: AssistantResponseType.CHUNK, taskId, assistantId: agent.id, delta: {} });
 
   try {
-    await checkProjectRequestLimit({ userId, role: req.user?.role, projectId });
+    await checkProjectRequestLimit({ userId, role: req.user?.role, blockletDid, projectId });
 
     emit({
       type: AssistantResponseType.INPUT_PARAMETER,

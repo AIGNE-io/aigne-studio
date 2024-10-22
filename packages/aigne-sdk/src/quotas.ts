@@ -55,7 +55,9 @@ export class Quotas {
   getQuota(quotaKey: QuotaKey, passports?: string | string[]) {
     return Math.max(
       0,
-      ...(Array.isArray(passports) ? passports : [passports]).map((i) => this.getPassportQuota(quotaKey, i))
+      ...[undefined, ...(Array.isArray(passports) ? passports : [passports])].map((i) =>
+        this.getPassportQuota(quotaKey, i)
+      )
     );
   }
 
