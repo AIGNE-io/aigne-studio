@@ -138,6 +138,7 @@ function AgentParametersForm({ assistant }: { assistant: AssistantYjs }) {
                 <Typography variant="caption">{data.label || data.key}</Typography>
 
                 <ParameterField
+                  label=""
                   hiddenLabel
                   parameter={data}
                   value={assistant.executor?.inputValues?.[data.key] || ''}

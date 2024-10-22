@@ -1,3 +1,7 @@
+## 0.4.92 (2024-10-22)
+
+- fix: adapter icon oops
+
 ## 0.4.91 (2024-10-21)
 
 - chore: support multiple option for select input

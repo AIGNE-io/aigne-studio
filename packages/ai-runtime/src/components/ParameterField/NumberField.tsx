@@ -42,7 +42,7 @@ const NumberField = forwardRef<
           ...props.inputProps,
         },
       }}
-      value={Number(props.value)}
+      value={props.value}
       onChange={handleChange}
     />
   );
