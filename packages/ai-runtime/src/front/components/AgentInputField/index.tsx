@@ -1,6 +1,7 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
+import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import CancelIcon from '@mui/icons-material/Cancel';
 import { Box, Button, IconButton, InputAdornment, Stack, TextFieldProps } from '@mui/material';
 import { ComponentType, useRef } from 'react';
@@ -25,6 +26,7 @@ export default function AgentInputField({
   onChange: (value: string | number | undefined | string[]) => void;
 } & Omit<TextFieldProps, 'onChange'>) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const { t } = useLocaleContext();
 
   if (parameter.type === 'source') return null;
@@ -92,7 +94,7 @@ export default function AgentInputField({
           InputProps={{
             endAdornment: (
               <InputAdornment position="end" sx={{ mr: -0.75 }}>
-                <Stack direction="row" alignItems="center" gap={1}>
+                <Stack direction="row" alignItems="center" gap={0}>
                   <input
                     type="file"
                     accept="image/*"
@@ -101,7 +103,24 @@ export default function AgentInputField({
                     ref={fileInputRef}
                     onChange={(e) => handleFiles(Array.from(e.target.files ?? []))}
                   />
-                  <IconButton onClick={() => fileInputRef.current?.click()}>
+
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    style={{ display: 'none' }}
+                    ref={cameraInputRef}
+                    onChange={(e) => handleFiles(Array.from(e.target.files || []))}
+                  />
+
+                  <IconButton
+                    onClick={() => cameraInputRef.current?.click()}
+                    disabled={list.length >= maxFiles}
+                    sx={{ display: { xs: 'block', md: 'none' } }}>
+                    <CameraAltIcon sx={{ fontSize: 18 }} />
+                  </IconButton>
+
+                  <IconButton onClick={() => fileInputRef.current?.click()} disabled={list.length >= maxFiles}>
                     <AttachFileIcon sx={{ fontSize: 18 }} />
                   </IconButton>
                 </Stack>

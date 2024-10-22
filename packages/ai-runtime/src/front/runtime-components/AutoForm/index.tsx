@@ -2,6 +2,7 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { cx } from '@emotion/css';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
+import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import CancelIcon from '@mui/icons-material/Cancel';
 import { Box, Button, FormLabel, IconButton, InputAdornment, Stack, formLabelClasses, styled } from '@mui/material';
 import isEmpty from 'lodash/isEmpty';
@@ -37,6 +38,7 @@ export default function AutoForm({
 
   const submitRef = useRef<HTMLButtonElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const { t } = useLocaleContext();
   const { aid } = useCurrentAgent();
   const agent = useAgent({ aid });
@@ -142,9 +144,29 @@ export default function AutoForm({
                 ref={fileInputRef}
                 onChange={(e) => handleFiles(Array.from(e.target.files || []))}
               />
-              <IconButton onClick={() => fileInputRef.current?.click()} disabled={list.length >= maxFiles}>
-                <AttachFileIcon sx={{ fontSize: !isInInput ? 20 : 18 }} />
-              </IconButton>
+
+              <input
+                type="file"
+                accept="image/*"
+                capture="environment"
+                multiple={Boolean(imageParameters[0]!.multiple)}
+                style={{ display: 'none' }}
+                ref={cameraInputRef}
+                onChange={(e) => handleFiles(Array.from(e.target.files || []))}
+              />
+
+              <Stack flexDirection="row" gap={0}>
+                <IconButton
+                  onClick={() => cameraInputRef.current?.click()}
+                  disabled={list.length >= maxFiles}
+                  sx={{ display: { xs: 'block', md: 'none' } }}>
+                  <CameraAltIcon sx={{ fontSize: !isInInput ? 20 : 18 }} />
+                </IconButton>
+
+                <IconButton onClick={() => fileInputRef.current?.click()} disabled={list.length >= maxFiles}>
+                  <AttachFileIcon sx={{ fontSize: !isInInput ? 20 : 18 }} />
+                </IconButton>
+              </Stack>
             </>
           );
         }}

@@ -6,7 +6,7 @@ import { Request, Response, Router } from 'express';
 import mime from 'mime-types';
 import multer from 'multer';
 import { nanoid } from 'nanoid';
-import { joinURL } from 'ufo';
+import { joinURL, withQuery } from 'ufo';
 
 import { Config } from '../libs/env';
 
@@ -49,7 +49,13 @@ router.post('/upload', upload.array('images', 3), async (req: Request, res: Resp
         data: { type: 'path', data: file.path, filename: file.originalname },
       });
 
-      return { url: joinURL(config.env.appUrl, getComponentMountPoint('image-bin'), 'uploads', result.filename) };
+      return {
+        url: withQuery(joinURL(config.env.appUrl, getComponentMountPoint('image-bin'), 'uploads', result.filename), {
+          imageFilter: 'resize',
+          f: 'webp',
+          w: 200,
+        }),
+      };
     });
 
     const results = await Promise.all(uploadPromises);
