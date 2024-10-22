@@ -56,5 +56,5 @@ export default function ParameterField({
 
   if (!Field) return null;
 
-  return <Field data-testid="parameter-field" {...({ parameter } as any)} size="small" {...props} />;
+  return <Field data-testid="parameter-field" {...({ parameter } as any)} {...props} />;
 }
