@@ -1,3 +1,8 @@
+## 0.4.93 (2024-10-22)
+
+- fix: reset agent inputs after adapter changed
+- fix: adapter icon oops
+
 ## 0.4.92 (2024-10-22)
 
 - fix: adapter icon oops
