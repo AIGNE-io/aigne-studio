@@ -10,7 +10,9 @@ export interface Component {
   createdAt: string;
   updatedAt: string;
   name?: string;
+  description?: string;
   tags?: string[];
+  previewImage?: string;
   properties?: {
     id: string;
     key?: string;

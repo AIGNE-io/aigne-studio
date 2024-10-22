@@ -2,6 +2,7 @@ import { useCurrentProject } from '@app/contexts/project';
 import { getComponents, getComponentsByIds } from '@app/libs/components';
 import { REMOTE_REACT_COMPONENT } from '@app/libs/constants';
 import { useProjectStore } from '@app/pages/project/yjs-state';
+import Empty from '@arcblock/ux/lib/Empty';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { parseIdentity } from '@blocklet/ai-runtime/common/aid';
 import {
@@ -122,6 +123,8 @@ export default function ComponentSelect({
         blockletDid: x.blocklet?.did,
         id: x.id,
         name: x.name,
+        description: x.description,
+        previewImage: x.previewImage,
         group: t('buildIn'),
       })),
       ...(openComponents ?? []).map((x) => ({
@@ -197,7 +200,14 @@ function ComponentSelectItem({
 }: {
   output: OutputVariableYjs;
   aid: string;
-  customComponent: { value: string; blockletDid?: string; id: string; name?: string; componentProperties?: any };
+  customComponent: {
+    value: string;
+    blockletDid?: string;
+    id: string;
+    name?: string;
+    description?: string;
+    componentProperties?: any;
+  };
 }) {
   const radioGroup = useRadioGroup();
   const checked = radioGroup?.value === customComponent.value;
@@ -235,6 +245,9 @@ function ComponentSelectItem({
         <Divider />
         <Typography sx={{ m: 1 }} noWrap>
           {customComponent.name || t('unnamed')}
+          <Typography sx={{ display: 'block' }} variant="caption" noWrap>
+            {customComponent.description}
+          </Typography>
         </Typography>
       </Box>
     </Card>
@@ -254,7 +267,39 @@ function ItemPreviewer({
     return <PageComponentPreviewer aid={aid} customComponent={customComponent} />;
   }
 
-  return <ComponentPreviewer output={output} aid={aid} customComponent={customComponent} />;
+  return <ComponentPreviewImagePreviewer customComponent={customComponent} />;
+}
+
+function ComponentPreviewImagePreviewer({
+  customComponent,
+}: {
+  customComponent: {
+    id: string;
+    name?: string;
+    description?: string;
+    previewImage?: string;
+  };
+}) {
+  const { t } = useLocaleContext();
+  const { previewImage, name } = customComponent;
+  return (
+    <Box position="relative" paddingBottom="100%">
+      <Box position="absolute" left={0} top={0} right={0} bottom={0}>
+        {previewImage ? (
+          <Box
+            component="img"
+            sx={{ width: '100%', height: '100%', objectFit: 'contain' }}
+            src={previewImage}
+            alt={name}
+          />
+        ) : (
+          <Empty size={30}>
+            <Box sx={{ fontSize: '16px' }}>{t('noPreviewImage')}</Box>
+          </Empty>
+        )}
+      </Box>
+    </Box>
+  );
 }
 
 function ComponentPreviewer({

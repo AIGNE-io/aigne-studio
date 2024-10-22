@@ -866,4 +866,5 @@ export default flatten({
   multiple: '多选',
   dropdown: '下拉选择',
   checkbox: '平铺选择',
+  noPreviewImage: '暂无预览图',
 });

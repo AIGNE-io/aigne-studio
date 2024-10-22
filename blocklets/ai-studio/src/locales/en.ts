@@ -875,4 +875,5 @@ export default flatten({
   multiple: 'Multiple',
   dropdown: 'Dropdown',
   checkbox: 'Checkbox',
+  noPreviewImage: 'No Preview Image',
 });
