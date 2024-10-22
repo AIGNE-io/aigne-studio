@@ -1,3 +1,7 @@
+## 0.4.94 (2024-10-22)
+
+- fix: correct query resource agent from resource blocklet
+
 ## 0.4.93 (2024-10-22)
 
 - fix: reset agent inputs after adapter changed
