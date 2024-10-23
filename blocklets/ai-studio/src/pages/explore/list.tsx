@@ -1,193 +1,83 @@
 import 'swiper/css';
 import 'swiper/css/navigation';
 
-import { getAssetUrl } from '@app/libs/asset';
 import { Category } from '@app/libs/category';
 import { Deployment } from '@app/libs/deployment';
 import { getProjectIconUrl } from '@app/libs/project';
 import Empty from '@app/pages/project/icons/empty';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ProjectSettings } from '@blocklet/ai-runtime/types';
-import { Icon } from '@iconify-icon/react';
-import CircleArrowLeft from '@iconify-icons/tabler/circle-arrow-left';
-import CircleArrowRight from '@iconify-icons/tabler/circle-arrow-right';
-import {
-  Box,
-  CardContent,
-  CircularProgress,
-  Grid,
-  IconButton,
-  Stack,
-  Theme,
-  Typography,
-  useMediaQuery,
-} from '@mui/material';
+import { Box, CircularProgress, Container, Divider, Stack, Typography } from '@mui/material';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
-import { Navigation } from 'swiper/modules';
-import { Swiper, SwiperSlide } from 'swiper/react';
 import { withQuery } from 'ufo';
 
 import { MobileSidebarHeader } from './layout';
 import { useFetchDeployments } from './state';
 
-const pcSpacing = 3;
-const mobileSpacing = 2;
-
-export function Slide() {
-  return (
-    <Box
-      sx={{
-        mb: 2.5,
-        height: 300,
-        borderRadius: 1,
-        position: 'relative',
-        border: '1px solid red',
-        boxSizing: 'border-box',
-
-        '.swiper': {
-          height: 1,
-        },
-      }}>
-      <Box
-        loop
-        component={Swiper}
-        modules={[Navigation]}
-        navigation={{
-          nextEl: '.swiper-button-next-custom',
-          prevEl: '.swiper-button-prev-custom',
-        }}
-        slidesPerView={1}>
-        <SwiperSlide>
-          <Box width={1} height={1}>
-            Slide 1
-          </Box>
-        </SwiperSlide>
-        <SwiperSlide>
-          <Box width={1} height={1}>
-            Slide 2
-          </Box>
-        </SwiperSlide>
-        <SwiperSlide>
-          <Box width={1} height={1}>
-            Slide 3
-          </Box>
-        </SwiperSlide>
-        <SwiperSlide>
-          <Box width={1} height={1}>
-            Slide 4
-          </Box>
-        </SwiperSlide>
-      </Box>
-
-      <IconButton
-        className="swiper-button-prev-custom"
-        sx={{
-          position: 'absolute',
-          top: '50%',
-          left: 0,
-          transform: 'translateY(-50%)',
-          zIndex: 10,
-        }}>
-        <Box component={Icon} icon={CircleArrowLeft} sx={{ fontSize: 30 }} />
-      </IconButton>
-      <IconButton
-        className="swiper-button-next-custom"
-        sx={{
-          position: 'absolute',
-          top: '50%',
-          right: 0,
-          transform: 'translateY(-50%)',
-          zIndex: 10,
-        }}>
-        <Box component={Icon} icon={CircleArrowRight} sx={{ fontSize: 30 }} />
-      </IconButton>
-    </Box>
-  );
-}
-
 function CategoryCard({ deployment, project }: { deployment: Deployment; project: ProjectSettings }) {
   const { t } = useLocaleContext();
-
-  const banner = project.banner
-    ? getAssetUrl({
-        projectId: deployment.projectId,
-        projectRef: deployment.projectRef,
-        filename: project.banner,
-      })
-    : getProjectIconUrl(deployment.projectId, { updatedAt: project.updatedAt });
+  const icon = getProjectIconUrl(deployment.projectId, { updatedAt: project.updatedAt });
 
   return (
-    <Box
+    <Stack
       sx={{
-        borderRadius: 1.5,
+        borderRadius: 1,
         overflow: 'hidden',
         height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
+        p: 2,
         cursor: 'pointer',
         position: 'relative',
         boxShadow: `
-        0px 0px 1px 1px rgba(3, 7, 18, 0.08),
-        0px 1px 2px -1px rgba(3, 7, 18, 0.08),
-        0px 2px 4px 0px rgba(3, 7, 18, 0.04)
-      `,
+          0px 0px 1px 1px rgba(3, 7, 18, 0.08),
+          0px 1px 2px -1px rgba(3, 7, 18, 0.08),
+          0px 2px 4px 0px rgba(3, 7, 18, 0.04)
+        `,
       }}>
-      <Box width={1} pb="30%" position="relative">
-        {banner ? (
-          <Box
-            component="img"
-            src={withQuery(banner, { imageFilter: 'resize', w: 500 })}
+      <Stack direction="row" gap={{ xs: 1.5, xl: 2 }}>
+        <Box
+          component="img"
+          src={withQuery(icon, { imageFilter: 'resize', w: 300 })}
+          sx={{
+            width: { xs: 64, xl: 88 },
+            height: { xs: 64, xl: 88 },
+            borderRadius: 1,
+          }}
+        />
+        <Box sx={{ flex: 1, overflow: 'hidden' }}>
+          <Typography
+            gutterBottom
             sx={{
-              position: 'absolute',
-              inset: 0,
-              cursor: 'pointer',
-              objectFit: 'cover',
-              width: 1,
-              height: 1,
-            }}
-          />
-        ) : (
-          <Box
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              color: '#030712',
+              fontWeight: 500,
+              fontSize: 16,
+              lineHeight: '24px',
+              mb: 0.5,
+            }}>
+            {project.name || t('unnamed')}
+          </Typography>
+          <Typography
             sx={{
-              position: 'absolute',
-              inset: 0,
-              cursor: 'pointer',
-              backgroundColor: 'rgba(0, 0, 0, 0.5)',
-              backgroundSize: 'cover',
-            }}
-          />
-        )}
+              overflow: 'hidden',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              textOverflow: 'ellipsis',
+              fontSize: '13px',
+              lineHeight: '20px',
+            }}>
+            {project.description}
+          </Typography>
+        </Box>
+      </Stack>
+      <Divider sx={{ my: 2 }} />
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Box>xxxu user</Box>
+        <Box>2.2K</Box>
       </Box>
-
-      <CardContent sx={{ flexGrow: 1 }}>
-        <Typography
-          gutterBottom
-          sx={{
-            overflow: 'hidden',
-            whiteSpace: 'nowrap',
-            textOverflow: 'ellipsis',
-            color: '#030712',
-            fontWeight: 500,
-            fontSize: 16,
-            lineHeight: '24px',
-            mb: 0.5,
-          }}>
-          {project.name || t('unnamed')}
-        </Typography>
-        <Typography
-          sx={{
-            overflow: 'hidden',
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-            textOverflow: 'ellipsis',
-            fontSize: '13px',
-            lineHeight: '20px',
-          }}>
-          {project.description}
-        </Typography>
-      </CardContent>
-    </Box>
+    </Stack>
   );
 }
 
@@ -195,21 +85,16 @@ function CategoryList() {
   const navigate = useNavigate();
   const params = useParams();
 
-  const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
-
   const { loadingRef, dataState, currentDeploymentState } = useFetchDeployments(params.categorySlug);
   const { categories } = useOutletContext<{ categories: Category[] }>();
   const deployments = currentDeploymentState?.list || [];
   const { t } = useLocaleContext();
 
-  const spacing = isMobile ? mobileSpacing : pcSpacing;
-
   return (
-    <Stack sx={{ width: 1, height: 1, overflow: 'hidden' }}>
+    <Stack sx={{ height: 1, overflow: 'hidden' }}>
       <MobileSidebarHeader categories={categories} />
-
-      <Box sx={{ flexGrow: 1, p: spacing, overflow: 'overlay' }} data-testid="explore-list">
-        <Grid container spacing={spacing}>
+      <Box sx={{ flex: 1, overflow: 'auto' }} data-testid="explore-list">
+        <Container>
           {deployments.length === 0 && (
             <Stack flex={1} height={500} justifyContent="center" alignItems="center" gap={1}>
               <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
@@ -218,29 +103,31 @@ function CategoryList() {
               </Typography>
             </Stack>
           )}
-
-          {deployments.map((deployment) => (
-            <Grid
-              item
-              key={deployment.id}
-              xs={12}
-              sm={6}
-              md={4}
-              onClick={() => navigate(deployment.id)}
-              data-testid="explore-card">
-              <CategoryCard deployment={deployment} project={deployment.project} />
-            </Grid>
-          ))}
-        </Grid>
-
-        {(dataState.loadingMore || dataState?.data?.next) && (
-          <Box width={1} height={60} className="center" ref={loadingRef}>
-            <Box display="flex" justifyContent="center">
-              <CircularProgress size={24} />
-            </Box>
+          <Box component="ul" sx={{ display: 'flex', flexWrap: 'wrap', mx: -1.5, p: 0, listStyle: 'none' }}>
+            {deployments.map((deployment) => (
+              <Box
+                key={deployment.id}
+                component="li"
+                onClick={() => navigate(deployment.id)}
+                data-testid="explore-card"
+                sx={{
+                  width: { xs: 1, md: 1 / 2, lg: 1 / 3 },
+                  p: 1.5,
+                }}>
+                <CategoryCard deployment={deployment} project={deployment.project} />
+              </Box>
+            ))}
           </Box>
-        )}
+        </Container>
       </Box>
+
+      {(dataState.loadingMore || dataState?.data?.next) && (
+        <Box width={1} height={60} className="center" ref={loadingRef}>
+          <Box display="flex" justifyContent="center">
+            <CircularProgress size={24} />
+          </Box>
+        </Box>
+      )}
     </Stack>
   );
 }
