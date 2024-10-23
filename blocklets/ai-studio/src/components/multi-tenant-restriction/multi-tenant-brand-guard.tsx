@@ -51,10 +51,8 @@ export function MultiTenantBrandGuard({
   };
 
   useEffect(() => {
-    if (typeof deployment?.aigneBannerVisible === 'boolean') {
-      setAigneBannerVisible(deployment.aigneBannerVisible);
-    } else {
-      setAigneBannerVisible(true);
+    if (deployment) {
+      setAigneBannerVisible(deployment.aigneBannerVisible ?? true);
     }
   }, [deployment]);
 
