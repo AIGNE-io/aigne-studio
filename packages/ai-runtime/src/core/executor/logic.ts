@@ -122,18 +122,23 @@ export class LogicAgentExecutor extends AgentExecutorBase<FunctionAssistant> {
       return taggedFn;
     };
 
+    const log = (...args: any) =>
+      this.context.callback({
+        type: AssistantResponseType.LOG,
+        log: JSON.stringify(args),
+        timestamp: Date.now(),
+        taskId,
+        assistantId: agent.id,
+      });
+
     const global = {
       console: <typeof console>{
         // NOTE: do not return logger.xxx result, it will cause memory leak
-        log: (...args) => {
-          logger.info(...args);
-        },
-        warn: (...args) => {
-          logger.warn(...args);
-        },
-        error: (...args) => {
-          logger.error(...args);
-        },
+        log: (...args) => log(...args),
+        info: (...args) => log(...args),
+        debug: (...args) => log(...args),
+        warn: (...args) => log(...args),
+        error: (...args) => log(...args),
       },
       getComponentMountPoint,
       call: (...args: Parameters<typeof call>) => call(...args).then((res) => ({ data: res.data })),
