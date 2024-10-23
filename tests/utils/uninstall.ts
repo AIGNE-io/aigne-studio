@@ -27,7 +27,7 @@ export const installBlocklet = async (page: Page) => {
   await searchInput.fill('mockplexity');
 
   await page.waitForSelector('h3 span:has-text("Mockplexity")');
-  const mockplexity = page.locator('.arcblock-blocklet ').filter({ hasText: 'Mockplexity' }).first();
+  const mockplexity = page.locator('.arcblock-blocklet').filter({ hasText: 'Mockplexity' }).first();
   const chooseBtn = mockplexity.locator('button:has-text("Choose")');
   if (await chooseBtn.isVisible()) {
     await chooseBtn.click();
@@ -37,5 +37,28 @@ export const installBlocklet = async (page: Page) => {
     await page.locator('button div:has-text("Complete")').click();
   } else {
     await mockplexity.locator('button:has-text("Cancel")').click;
+  }
+};
+
+export const installBlockletResourceKnowledgeBlocklet = async (page: Page) => {
+  await page.locator('button:has-text("Add Blocklet")').click();
+  await page.waitForSelector('.arcblock-blocklet');
+
+  await page.locator('[data-cy="add-component-select-store"]').click();
+  await page.locator('[data-cy="https://test.store.blocklet.dev"]').click();
+
+  const searchInput = page.locator('input[data-cy="search-blocklet"]');
+  await searchInput.fill('新版本知识库');
+
+  await page.locator('.arcblock-blocklet').first().waitFor();
+
+  const chooseBtn = page.locator('.arcblock-blocklet').first().locator('button:has-text("Choose")');
+  if (await chooseBtn.isVisible()) {
+    await chooseBtn.click();
+    await page.locator('button div:has-text("Add 新版本知识库")').click();
+    await page.locator('button div:has-text("Agree to the EULA and continue")').click();
+    await page.locator('button div:has-text("Complete")').click();
+  } else {
+    await page.locator('button:has-text("Cancel")').click();
   }
 };

@@ -1,7 +1,8 @@
 /* eslint-disable no-console */
 import { expect, test } from '@playwright/test';
 
-import { installBlocklet, unInstallBlocklet } from '../../utils/uninstall';
+import { createProject } from '../../utils/project';
+import { installBlocklet, installBlockletResourceKnowledgeBlocklet, unInstallBlocklet } from '../../utils/uninstall';
 
 const secretKey = 'f712dac84b4f84c3c2fa079896572ed19e2738e23baf025f2c8764d5d8598deb';
 
@@ -34,8 +35,25 @@ test.describe.serial('resource blocklet', () => {
 
     await unInstallBlocklet(page, 'Mockplexity');
     await unInstallBlocklet(page, 'SerpApi');
+    await unInstallBlocklet(page, '新版本知识库');
 
     await installBlocklet(page);
+    await installBlockletResourceKnowledgeBlocklet(page);
+  });
+
+  test('start resource knowledge blocklet', async ({ page }) => {
+    test.slow();
+    console.log('start resource knowledge blocklet');
+    const blocklet = page.locator('.component-item').filter({ hasText: '新版本知识库' });
+
+    const stopIcon = blocklet.getByTestId('StopIcon');
+    if ((await stopIcon.count()) > 0) return;
+
+    const startIcon = blocklet.getByTestId('PlayArrowIcon');
+    if ((await startIcon.count()) > 0) {
+      await startIcon.click();
+      await blocklet.getByTestId('StopIcon').waitFor();
+    }
   });
 
   test('open resource blocklet', async ({ page }) => {
@@ -108,5 +126,18 @@ test.describe.serial('resource blocklet', () => {
 
     const message = await page.locator('.message-item').all();
     expect(message.length).toBe(0);
+  });
+
+  test('resource knowledge blocklet', async ({ page }) => {
+    await page.goto('/projects');
+    await page.waitForLoadState('networkidle');
+
+    await createProject({ page });
+    await page.waitForLoadState('networkidle');
+
+    await page.getByTestId('project-page-knowledge').click();
+    await page.getByText('新版本知识库').first().click();
+    await expect(page.getByText('Add Document')).not.toBeVisible();
+    await expect(page.getByText('Actions')).not.toBeVisible();
   });
 });
