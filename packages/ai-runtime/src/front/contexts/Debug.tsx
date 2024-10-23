@@ -7,6 +7,10 @@ import { RuntimeOutputVariable } from '../../types';
 export interface DebugContextValue {
   agentId?: string;
   outputId?: string;
+  hoverOutputId?: string;
+  tabId?: string;
+  setTabId?: (id: string) => void;
+  setHoverOutputId: (id: string) => void;
   open: (options: { agentId?: string; output?: { id: string } | { name: RuntimeOutputVariable } }) => void;
   close: () => void;
 }
@@ -40,6 +44,19 @@ export function DebugProvider({
           set((state) => {
             state.agentId = undefined;
             state.outputId = undefined;
+            state.hoverOutputId = undefined;
+          });
+        },
+        // hover Tab Show Output Component
+        setHoverOutputId: (id: string) => {
+          set((state) => {
+            state.hoverOutputId = id;
+          });
+        },
+        // hover Output Component Show Tab
+        setTabId: (id: string) => {
+          set((state) => {
+            state.tabId = id;
           });
         },
       }))

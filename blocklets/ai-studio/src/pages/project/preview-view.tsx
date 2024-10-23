@@ -18,13 +18,14 @@ import {
   IconButton,
   Stack,
   Tab,
+  TabProps,
   Tabs,
   TabsProps,
   ThemeProvider,
 } from '@mui/material';
 import sortBy from 'lodash/sortBy';
 import { nanoid } from 'nanoid';
-import { ComponentProps, ReactNode, useCallback } from 'react';
+import React, { ComponentProps, ReactNode, useCallback, useEffect, useState } from 'react';
 
 import { useProjectStore } from './yjs-state';
 
@@ -32,6 +33,7 @@ export default function PreviewView(props: { projectId: string; gitRef: string; 
   const { projectId, gitRef, assistant } = props;
   const { projectSetting, getFileById } = useProjectStore(projectId, gitRef);
   const aid = stringifyIdentity({ projectId, projectRef: gitRef, agentId: assistant.id });
+  const [open, setOpen] = useState(false);
 
   const getAgentYjs: NonNullable<ComponentProps<typeof RuntimeDebug>['ApiProps']>['getAgent'] = async ({ aid }) => {
     const identity = parseIdentity(aid, { rejectWhenError: true });
@@ -85,31 +87,67 @@ export default function PreviewView(props: { projectId: string; gitRef: string; 
   }, []);
 
   return (
-    <DebugProvider openSettings={openSettings}>
+    <>
       <ThemeProvider theme={agentViewTheme}>
         <Stack sx={{ overflowY: 'auto', flex: 1 }}>
-          <RuntimeDebug aid={aid} ApiProps={{ getAgent: getAgentYjs }} />
+          <RuntimeDebug aid={aid} ApiProps={{ getAgent: getAgentYjs }} onOpenSettings={() => setOpen(true)} />
         </Stack>
       </ThemeProvider>
 
-      <SettingsDialog>
-        <RuntimeDebug hideSessionsBar aid={aid} ApiProps={{ getAgent: getAgentYjs }} />
-      </SettingsDialog>
-    </DebugProvider>
+      <DebugProvider openSettings={openSettings}>
+        <SettingsDialog open={open} setOpen={setOpen} agentId={assistant.id}>
+          <RuntimeDebug hideSessionsBar aid={aid} ApiProps={{ getAgent: getAgentYjs }} />
+        </SettingsDialog>
+      </DebugProvider>
+    </>
   );
 }
 
-function SettingsDialog({ children }: { children?: ReactNode }) {
+function SettingsDialog({
+  open,
+  setOpen,
+  children,
+  agentId,
+}: {
+  open: boolean;
+  setOpen: any;
+  agentId: string;
+  children?: ReactNode;
+}) {
   const { t } = useLocaleContext();
-  const agentId = useDebug((s) => s.agentId);
+  const isOpen = useDebug((s) => s.agentId);
   const close = useDebug((s) => s.close);
+  const openSettings = useDebug((s) => s.open);
+
+  const { projectId, projectRef } = useCurrentProject();
+  const { getFileById } = useProjectStore(projectId, projectRef);
+
+  const agent = getFileById(agentId);
+
+  useEffect(() => {
+    if (open) {
+      const outputNameIds = Object.fromEntries(
+        Object.values(agent?.outputVariables ?? {}).map((i) => [i.data.name, i.data.id])
+      );
+
+      openSettings?.({
+        agentId,
+        output: { id: outputNameIds[RuntimeOutputVariable.profile] || RuntimeOutputVariable.profile },
+      });
+    }
+  }, [open]);
+
+  const onClose = () => {
+    close?.();
+    setOpen();
+  };
 
   return (
-    <Dialog open={!!agentId} fullWidth PaperProps={{ sx: { maxWidth: 'none', height: '100%' } }} onClose={close}>
+    <Dialog open={!!isOpen} fullWidth PaperProps={{ sx: { maxWidth: 'none', height: '100%' } }} onClose={onClose}>
       <DialogTitle sx={{ display: 'flex' }}>
         <Box flex={1}>{t('appearance')}</Box>
 
-        <IconButton sx={{ p: 0, minWidth: 32, minHeight: 32 }} onClick={close}>
+        <IconButton sx={{ p: 0, minWidth: 32, minHeight: 32 }} onClick={onClose}>
           <Icon icon={CloseIcon} />
         </IconButton>
       </DialogTitle>
@@ -133,15 +171,26 @@ const internalOutputs = new Set([
 ]);
 
 function AgentAppearanceSettings({ children }: { children?: ReactNode }) {
+  const { t } = useLocaleContext();
   const agentId = useDebug((s) => s.agentId);
   const outputId = useDebug((s) => s.outputId);
   const open = useDebug((s) => s.open);
+  const setHoverOutputId = useDebug((s) => s.setHoverOutputId);
+
+  const { projectId, projectRef } = useCurrentProject();
+  const { getFileById } = useProjectStore(projectId, projectRef);
 
   if (!agentId) return null;
+
+  const agent = getFileById(agentId);
 
   return (
     <Stack direction="row" height="100%">
       <Box py={2}>
+        <Box sx={{ fontSize: 18, fontWeight: 'bold', mx: 'auto', textAlign: 'center', px: 3 }}>
+          {agent?.name || t('unnamed')}
+        </Box>
+
         <AppearanceSettingTabs
           sx={{ height: '100%' }}
           orientation="vertical"
@@ -149,6 +198,8 @@ function AgentAppearanceSettings({ children }: { children?: ReactNode }) {
           agentId={agentId}
           value={outputId}
           onChange={(_, v) => open?.({ output: { id: v } })}
+          onTabHover={(v) => setHoverOutputId?.(v || '')}
+          onTabMouseLeave={() => setHoverOutputId?.('')}
         />
       </Box>
 
@@ -163,7 +214,41 @@ function AgentAppearanceSettings({ children }: { children?: ReactNode }) {
   );
 }
 
-function AppearanceSettingTabs({ agentId, ...props }: { agentId: string } & TabsProps) {
+interface HoverableTabsProps extends TabsProps {
+  onTabHover?: (value: string) => void;
+  onTabMouseLeave?: () => void;
+  TabProps?: Partial<TabProps>;
+}
+
+const HoverableTabs = ({ onTabHover, onTabMouseLeave, TabProps, ...props }: HoverableTabsProps) => {
+  const hoveredTabId = useDebug((s) => s.tabId);
+
+  return (
+    <Tabs {...props}>
+      {React.Children.map(props.children, (child) => {
+        if (!React.isValidElement(child)) return child;
+
+        return React.cloneElement(child, {
+          ...TabProps,
+          onMouseEnter: () => onTabHover?.(child.props.value),
+          onMouseLeave: () => onTabMouseLeave?.(),
+          ...child.props,
+          sx: {
+            backgroundColor: hoveredTabId === child.props.value ? 'action.hover' : undefined,
+            ...child.props.sx,
+          },
+        });
+      })}
+    </Tabs>
+  );
+};
+
+function AppearanceSettingTabs({
+  agentId,
+  onTabHover,
+  onTabMouseLeave,
+  ...props
+}: { agentId: string; onTabHover?: (value: string) => void; onTabMouseLeave?: () => void } & TabsProps) {
   const { t } = useLocaleContext();
 
   const { projectId, projectRef } = useCurrentProject();
@@ -186,7 +271,7 @@ function AppearanceSettingTabs({ agentId, ...props }: { agentId: string } & Tabs
   const current = (internalOutputs.has(value) && outputNameIds[value]) || value;
 
   return (
-    <Tabs
+    <HoverableTabs
       {...props}
       value={current}
       onChange={(e, v) => {
@@ -194,7 +279,9 @@ function AppearanceSettingTabs({ agentId, ...props }: { agentId: string } & Tabs
           v = getOrAddOutputByName({ agent, outputName: v }).data.id;
         }
         props.onChange?.(e, v);
-      }}>
+      }}
+      onTabHover={(value) => onTabHover?.(value)}
+      onTabMouseLeave={() => onTabMouseLeave?.()}>
       <Tab value={outputNameIds[RuntimeOutputVariable.profile] || RuntimeOutputVariable.profile} label={t('profile')} />
       <Tab
         value={outputNameIds[RuntimeOutputVariable.children] || RuntimeOutputVariable.children}
@@ -232,7 +319,7 @@ function AppearanceSettingTabs({ agentId, ...props }: { agentId: string } & Tabs
           />
         );
       })}
-    </Tabs>
+    </HoverableTabs>
   );
 }
 

@@ -1,6 +1,7 @@
 import Toast from '@arcblock/ux/lib/Toast';
 import MessageXIcon from '@iconify-icons/tabler/message-x';
 import PlusIcon from '@iconify-icons/tabler/plus';
+import SettingsIcon from '@iconify-icons/tabler/settings';
 import TrashIcon from '@iconify-icons/tabler/trash';
 import { Icon } from '@iconify/react';
 import {
@@ -34,10 +35,12 @@ export default function RuntimeDebug({
   aid,
   ApiProps,
   hideSessionsBar,
+  onOpenSettings,
 }: {
   aid: string;
   ApiProps?: Partial<AIGNEApiContextValue>;
   hideSessionsBar?: boolean;
+  onOpenSettings?: () => void;
 }) {
   const hostTheme = useTheme();
 
@@ -45,7 +48,7 @@ export default function RuntimeDebug({
     <RuntimeProvider aid={aid} working ApiProps={ApiProps}>
       {!hideSessionsBar && (
         <ThemeProvider theme={hostTheme}>
-          <SessionsBar />
+          <SessionsBar onOpenSettings={onOpenSettings} />
 
           <Divider />
         </ThemeProvider>
@@ -104,7 +107,7 @@ function AgentView() {
   );
 }
 
-function SessionsBar() {
+function SessionsBar({ onOpenSettings }: { onOpenSettings?: () => void }) {
   const { sessions, loaded, createSession, setCurrentSessionId, currentSessionId } = useSessions((s) =>
     pick(s, ['sessions', 'loaded', 'createSession', 'setCurrentSessionId', 'currentSessionId'])
   );
@@ -165,6 +168,10 @@ function SessionsBar() {
       )}
 
       <Box flex={1} />
+
+      <LoadingButton onClick={onOpenSettings} sx={{ minWidth: 32, minHeight: 32, p: 0 }}>
+        <Icon icon={SettingsIcon} fontSize={18} />
+      </LoadingButton>
 
       {currentSessionId && (
         <Suspense>
