@@ -1,27 +1,9 @@
-import { useCurrentProject } from '@app/contexts/project';
 import { getComponents, getComponentsByIds } from '@app/libs/components';
 import { REMOTE_REACT_COMPONENT } from '@app/libs/constants';
-import { useProjectStore } from '@app/pages/project/yjs-state';
 import Empty from '@arcblock/ux/lib/Empty';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { parseIdentity } from '@blocklet/ai-runtime/common/aid';
-import {
-  OutputVariable,
-  OutputVariableYjs,
-  RuntimeOutputVariable,
-  fileFromYjs,
-  isAssistant,
-  outputVariableFromYjs,
-  outputVariablesToJsonSchema,
-  variableFromYjs,
-} from '@blocklet/ai-runtime/types';
-import {
-  CurrentMessageOutputProvider,
-  CurrentMessageProvider,
-  RuntimeDebug,
-  RuntimeProvider,
-} from '@blocklet/aigne-sdk/components/ai-runtime';
-import { CustomComponentRenderer, CustomComponentRendererProvider } from '@blocklet/pages-kit/components';
+import { OutputVariableYjs, RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
+import { RuntimeDebug } from '@blocklet/aigne-sdk/components/ai-runtime';
 import {
   Alert,
   Box,
@@ -44,8 +26,7 @@ import {
 import Ajv from 'ajv';
 import stringify from 'json-stable-stringify';
 import { pick } from 'lodash';
-import { nanoid } from 'nanoid';
-import { ComponentProps, ReactNode, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { ComponentProps, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { useAsync } from 'react-use';
 
 import ErrorBoundary from '../error/error-boundary';
@@ -299,123 +280,6 @@ function ComponentPreviewImagePreviewer({
         )}
       </Box>
     </Box>
-  );
-}
-
-function ComponentPreviewer({
-  output,
-  aid,
-  customComponent,
-}: {
-  output: OutputVariableYjs;
-  aid: string;
-  customComponent: { blockletDid?: string; id: string; name?: string; componentProperties?: any };
-}) {
-  const { projectId, projectRef } = useCurrentProject();
-  const { agentId } = useMemo(() => parseIdentity(aid, { rejectWhenError: true }), [aid]);
-  const { getFileById, getVariables } = useProjectStore(projectId, projectRef);
-
-  const agent = getFileById(agentId);
-  if (!agent) throw new Error(`No such agent ${agentId}`);
-  if (!isAssistant(agent)) throw new Error(`Invalid agent file type ${agentId}`);
-
-  const fakeMessage = useMemo<ComponentProps<typeof CurrentMessageProvider>['message']>(() => {
-    const { agentId } = parseIdentity(aid, { rejectWhenError: true });
-
-    const file = fileFromYjs(agent);
-    if (!isAssistant(file)) throw new Error(`Invalid agent file type ${agentId}`);
-
-    const outputSchema = outputVariablesToJsonSchema(file, {
-      variables: getVariables().variables?.map(variableFromYjs) ?? [],
-      includeRuntimeOutputVariables: true,
-      includeFaker: true,
-    });
-
-    const output = outputSchema ? generateFakeProps(outputSchema) : {};
-
-    return {
-      id: nanoid(),
-      aid,
-      agentId,
-      sessionId: nanoid(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      outputs: {
-        objects: [output as any],
-      },
-    };
-  }, [aid]);
-
-  const api = useAIGNEApiProps({
-    apiUniqueKey: `ComponentSelectPreviewer-${customComponent.id}-${output.name}`,
-    customComponent,
-  });
-
-  const customComponentCtx = useMemo(
-    () => ({
-      customRendererComponent: FakeMessageOutputValueProvider,
-      customRendererComponentProps: { output: outputVariableFromYjs(output) },
-    }),
-    []
-  );
-
-  console.warn(customComponentCtx);
-
-  return (
-    <Box position="relative" paddingBottom="100%">
-      <Box position="absolute" left={0} top={0} right={0} bottom={0}>
-        <ErrorBoundary FallbackComponent={ErrorView}>
-          <Suspense
-            fallback={
-              <Box textAlign="center" my={2}>
-                <CircularProgress size={24} />
-              </Box>
-            }>
-            <PreviewerContent>
-              <Box
-                sx={{
-                  position: 'absolute',
-                  width: '100%',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%,-50%)',
-                }}>
-                <RuntimeProvider aid={aid} working ApiProps={api}>
-                  <CurrentMessageProvider message={fakeMessage}>
-                    <CustomComponentRendererProvider value={customComponentCtx}>
-                      <CustomComponentRenderer componentId={customComponent.id} />
-                    </CustomComponentRendererProvider>
-                  </CurrentMessageProvider>
-                </RuntimeProvider>
-              </Box>
-            </PreviewerContent>
-          </Suspense>
-        </ErrorBoundary>
-      </Box>
-    </Box>
-  );
-}
-
-function FakeMessageOutputValueProvider({
-  output,
-  children,
-  Component,
-}: {
-  output: OutputVariable;
-  children?: ReactNode;
-  // @ts-ignore
-  Component: CustomComponentType;
-}) {
-  const fakeValue = useMemo(
-    () =>
-      Component.outputValueSchema ? (generateFakeProps(Component.outputValueSchema) as any)?.outputValue : undefined,
-    [Component.outputValueSchema]
-  );
-
-  return (
-    <CurrentMessageOutputProvider output={output} outputValue={fakeValue}>
-      {children}
-    </CurrentMessageOutputProvider>
   );
 }
 
