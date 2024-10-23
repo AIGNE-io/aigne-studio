@@ -1,3 +1,7 @@
+## 0.4.95 (2024-10-23)
+
+- fix: special agent id for the session automatically created
+
 ## 0.4.94 (2024-10-22)
 
 - fix: correct query resource agent from resource blocklet

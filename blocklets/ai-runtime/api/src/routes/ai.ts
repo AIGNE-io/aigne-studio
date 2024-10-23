@@ -31,12 +31,14 @@ import { Op } from 'sequelize';
 const router = Router();
 
 const callInputSchema = Joi.object<{
+  entryAid?: string;
   aid: string;
   working?: boolean;
   sessionId?: string;
   inputs?: { [key: string]: any };
   debug?: boolean;
 }>({
+  entryAid: Joi.string().empty(['', null]),
   aid: Joi.string().required(),
   working: Joi.boolean().empty(['', null]).default(false),
   sessionId: Joi.string().empty(['', null]),
@@ -180,7 +182,15 @@ router.post('/call', user(), compression(), async (req, res) => {
 
   const taskId = nextTaskId();
 
-  const sessionId = input.sessionId ?? (await Session.create({ userId, projectId, agentId })).id;
+  const sessionId =
+    input.sessionId ??
+    (
+      await Session.create({
+        userId,
+        projectId,
+        agentId: input.entryAid ? parseIdentity(input.entryAid, { rejectWhenError: true }).agentId : agentId,
+      })
+    ).id;
 
   const history = await History.create({
     userId,

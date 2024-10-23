@@ -7,6 +7,7 @@ import { parseIdentity } from '../../common/aid';
 import { Message } from '../api/message';
 import { Session } from '../api/session';
 import { AIGNEApiContextValue, useAIGNEApi } from './Api';
+import { useEntryAgent } from './EntryAgent';
 
 const GET_MESSAGES_LIMIT = 100;
 const GET_MESSAGES_ORDER_DIRECTION = 'desc';
@@ -44,10 +45,11 @@ export const SessionProvider = ({
   onChange?: (sessionId: string) => void;
   children?: ReactNode;
 }) => {
+  const { aid: entryAid } = useEntryAgent();
   const { runAgent, getSession, getMessages, clearSession } = useAIGNEApi();
 
   const state = useMemo(
-    () => createSessionState({ sessionId, runAgent, getSession, getMessages, clearSession }),
+    () => createSessionState({ entryAid, sessionId, runAgent, getSession, getMessages, clearSession }),
     [sessionId]
   );
 
@@ -73,6 +75,7 @@ const STATE_CACHE: { [sessionId: string]: UseBoundStore<StoreApi<SessionContextV
 
 function createSessionState(
   options: {
+    entryAid: string;
     sessionId?: string;
   } & Pick<AIGNEApiContextValue, 'runAgent' | 'getSession' | 'getMessages' | 'clearSession'>
 ) {
@@ -100,6 +103,7 @@ function createSessionState(
 
           try {
             const res = await options.runAgent({
+              entryAid: options.entryAid,
               aid,
               sessionId,
               inputs: { ...parameters, $clientTime: new Date().toISOString() },
