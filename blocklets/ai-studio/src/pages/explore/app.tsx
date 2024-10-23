@@ -9,9 +9,9 @@ import Result from '@arcblock/ux/lib/Result';
 import { getAgentByDeploymentId } from '@blocklet/aigne-sdk/api/agent';
 import AgentView from '@blocklet/aigne-sdk/components/AgentView';
 import { ScrollView } from '@blocklet/aigne-sdk/components/ai-runtime';
-import { Box, CircularProgress, Stack, ThemeProvider } from '@mui/material';
+import { Box, CircularProgress, Container, Stack, ThemeProvider } from '@mui/material';
 import { useRequest } from 'ahooks';
-import { Suspense, useMemo } from 'react';
+import { Suspense } from 'react';
 import { useParams } from 'react-router-dom';
 
 export default function AppPage() {
@@ -24,23 +24,16 @@ export default function AppPage() {
   );
 
   const isNoSuchEntryAgentError = (error as any)?.response?.data?.error?.type === 'NoSuchEntryAgentError';
-  const headerAddons = useMemo(() => {
+  const renderButtons = () => {
     if (!data) return undefined;
     if (data.deployment.aigneBannerVisible) return undefined;
-    return [
-      <ShareButton deployment={data.deployment} project={data.project} iconButton />,
-      <MakeYoursButton
-        deployment={data.deployment}
-        iconButton
-        sx={{
-          bgcolor: 'warning.main',
-          '&:hover': {
-            bgcolor: 'warning.dark',
-          },
-        }}
-      />,
-    ];
-  }, [data]);
+    return (
+      <Container maxWidth="md" sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mb: 2 }}>
+        <ShareButton deployment={data.deployment} project={data.project} />
+        <MakeYoursButton deployment={data.deployment} variant="contained" />
+      </Container>
+    );
+  };
 
   return (
     <ThemeProvider theme={agentViewTheme}>
@@ -55,8 +48,9 @@ export default function AppPage() {
         }>
         <ScrollView component={Stack} scroll="element" initialScrollBehavior="auto">
           <Suspense fallback={<Loading />}>
-            {(data || !loading) && <ApplicationHeader application={data} addons={headerAddons} />}
+            {(data || !loading) && <ApplicationHeader application={data} />}
 
+            {renderButtons()}
             {data?.identity?.aid ? (
               <AgentView aid={data?.identity?.aid}>
                 <RuntimeErrorHandler />

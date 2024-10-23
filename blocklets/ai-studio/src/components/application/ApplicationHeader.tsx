@@ -4,28 +4,22 @@ import { getAgentProfile } from '@blocklet/aigne-sdk/utils/agent';
 import { HeaderWidgetCreator, useHeaderState } from '@blocklet/pages-kit/builtin/page/header';
 import Header from '@blocklet/ui-react/lib/Header';
 import { Avatar, Box, Stack, Theme, Typography, useMediaQuery } from '@mui/material';
-import { ReactNode, useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import { PlanUpgradeButton } from '../multi-tenant-restriction';
 
-export default function ApplicationHeader({
-  application,
-  addons: headerAddons,
-}: {
-  application?: Agent;
-  addons?: ReactNode[];
-}) {
+export default function ApplicationHeader({ application }: { application?: Agent }) {
   const { addons, add: addHeader, delete: deleteHeader } = useHeaderState();
 
   useEffect(() => {
     const creator: HeaderWidgetCreator = () => ({
-      addons: (exists) => [...(headerAddons || []), <PlanUpgradeButton />, ...exists],
+      addons: (exists) => [<PlanUpgradeButton />, ...exists],
     });
 
     addHeader(creator);
 
     return () => deleteHeader(creator);
-  }, [headerAddons]);
+  }, []);
 
   const isMobile = useMediaQuery<Theme>((theme) => theme.breakpoints.down('sm'));
 
