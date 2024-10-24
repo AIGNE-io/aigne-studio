@@ -9,10 +9,12 @@ type QuotaPreferenceConfigItem = {
 const UNLIMITED_QUOTA = Number.MAX_SAFE_INTEGER;
 
 export class Quotas {
+  private premiumPlanEnabled = false;
+
   private quotaConfigs: Record<string, QuotaPreferenceConfigItem> = {};
 
-  constructor(preferenceConfig: QuotaPreferenceConfigItem[]) {
-    this.setConfigs(preferenceConfig || []);
+  constructor(preferences: Record<string, any>) {
+    this.setPreferences(preferences);
   }
 
   private normalizeQuotaValue(value: number | null | undefined) {
@@ -24,19 +26,20 @@ export class Quotas {
     return value < 0 ? 0 : value;
   }
 
-  setConfigs(preferenceConfig: QuotaPreferenceConfigItem[]) {
-    this.quotaConfigs = preferenceConfig.reduce(
+  setPreferences(preferences: Record<string, any>) {
+    this.quotaConfigs = ((preferences?.quotas || []) as QuotaPreferenceConfigItem[]).reduce(
       (acc, curr) => {
         acc[curr.key] = curr;
         return acc;
       },
       {} as Record<string, QuotaPreferenceConfigItem>
     );
+    this.premiumPlanEnabled = preferences?.premiumPlanEnabled;
   }
 
   getPassportQuota(quotaKey: QuotaKey, passport: string = '') {
-    // 管理员或非多租户模式下, 无任何限制
-    if (['admin', 'owner'].includes(passport)) {
+    // 管理员或未开启 premium plan 时, 无任何限制
+    if (['admin', 'owner'].includes(passport) || !this.premiumPlanEnabled) {
       return UNLIMITED_QUOTA;
     }
     const config = this.quotaConfigs[quotaKey];

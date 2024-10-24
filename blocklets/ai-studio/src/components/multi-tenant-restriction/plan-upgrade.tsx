@@ -21,7 +21,7 @@ import {
 import { useState } from 'react';
 
 import { PricingTable } from './pricing-table';
-import { useMultiTenantRestriction, usePlans } from './state';
+import { premiumPlanEnabled, useMultiTenantRestriction, usePlans } from './state';
 
 export function PlanUpgrade() {
   const { hidePlanUpgrade, planUpgradeVisible, type } = useMultiTenantRestriction();
@@ -30,7 +30,7 @@ export function PlanUpgrade() {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const plans = usePlans();
 
-  if (!plans) {
+  if (!plans || !premiumPlanEnabled) {
     return null;
   }
 
@@ -135,6 +135,9 @@ export function PlanUpgrade() {
 
 export function PlanUpgradeButton() {
   const { showPlanUpgrade } = useMultiTenantRestriction();
+  if (!premiumPlanEnabled) {
+    return null;
+  }
   return (
     <Button color="primary" startIcon={<Icon icon={DiamondIcon} />} onClick={() => showPlanUpgrade()}>
       Upgrade Plan
