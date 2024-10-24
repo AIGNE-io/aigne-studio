@@ -51,7 +51,7 @@ export function MultiTenantBrandGuard({
   };
 
   useEffect(() => {
-    if (deployment) {
+    if (deployment && premiumPlanEnabled) {
       setAigneBannerVisible(deployment.aigneBannerVisible ?? true);
     }
   }, [deployment]);
