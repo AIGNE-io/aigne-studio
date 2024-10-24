@@ -342,7 +342,7 @@ export class LLMAgentExecutor extends AgentExecutorBase<PromptAssistant> {
           type: 'json_schema',
           jsonSchema: {
             name: 'output',
-            schema: { ...schema, additionalProperties: false },
+            schema,
             strict: true,
           },
         },

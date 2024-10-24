@@ -133,6 +133,7 @@ export function outputVariablesToJsonSchema(
               )
             : undefined,
         items: variable.type === 'array' && variable.element ? variableToSchema(variable.element) : undefined,
+        additionalProperties: variable.type === 'object' ? false : undefined,
         required:
           variable.type === 'object' && variable.properties?.length
             ? variable.properties
