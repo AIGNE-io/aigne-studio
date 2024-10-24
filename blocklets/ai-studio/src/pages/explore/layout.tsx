@@ -167,7 +167,8 @@ export default function ExploreCategoryLayout() {
     }
   }, [loading]);
 
-  if (loading) {
+  // NOTE: 直接使用 `loading` 值作为条件可能会导致 `Outlet` re-mount.
+  if (loading !== false) {
     return (
       <Box width={1} height={1} display="flex" justifyContent="center" alignItems="center">
         <CircularProgress />
