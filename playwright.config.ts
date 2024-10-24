@@ -51,7 +51,7 @@ export default defineConfig<{
       ? undefined
       : {
           headless: false,
-          devtools: true,
+          devtools: false,
         },
   },
   /* Configure projects for major browsers */
