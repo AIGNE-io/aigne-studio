@@ -1,6 +1,10 @@
-## 0.4.99 (2024-10-24)
+## 0.4.100 (2024-10-24)
 
 - fix: parsing pdf content is deranged content
+
+## 0.4.99 (2024-10-24)
+
+- feat: add preference to toggle premium plan
 
 ## 0.4.98 (2024-10-24)
 
