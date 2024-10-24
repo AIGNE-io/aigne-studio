@@ -116,6 +116,7 @@ export default function AutoForm({
                     {parameter.label && <FormLabel>{parameter.label}</FormLabel>}
 
                     <AgentInputField
+                      aid={aid}
                       inputProps={{ 'data-testid': `runtime-input-${key}` }}
                       inputRef={field.ref}
                       autoFocus={index === 0}

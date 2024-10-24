@@ -34,6 +34,7 @@
     "@arcblock/did-auth-storage-nedb": "^1.7.1",
     "@arcblock/did-connect": "^2.10.48",
     "@arcblock/ux": "^2.10.48",
+    "@arcblock/vc": "^1.18.136",
     "@blocklet/ai-kit": "^0.1.59",
     "@blocklet/ai-runtime": "workspace:^",
     "@blocklet/aigne-sdk": "workspace:^",

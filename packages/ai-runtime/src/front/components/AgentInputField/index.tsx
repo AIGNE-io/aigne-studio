@@ -11,11 +11,14 @@ import NumberField from './NumberField';
 import RadioField from './RadioField';
 import SelectField from './SelectField';
 import StringField from './StringField';
+import VerifyVC from './VerifyVC';
 
 export default function AgentInputField({
+  aid,
   parameter,
   ...props
 }: {
+  aid: string;
   readOnly?: boolean;
   parameter: Parameter;
   onChange: (value: string | number | undefined) => void;
@@ -80,12 +83,15 @@ export default function AgentInputField({
     select: parameter.type === 'select' && parameter.style === 'checkbox' ? RadioField : SelectField,
     language: LanguageField,
     boolean: BooleanField,
+    verify_vc: VerifyVC,
   };
 
   const Field = FIELDS[parameter.type || 'string'] || StringField;
 
   return (
     <Field
+      aid={aid}
+      parameter={parameter}
       label={parameter?.label}
       helperText={parameter?.helper}
       placeholder={parameter?.placeholder}

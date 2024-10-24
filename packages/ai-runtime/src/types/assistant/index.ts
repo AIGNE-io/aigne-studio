@@ -337,7 +337,8 @@ export type Parameter =
   | LLMInputToolsParameter
   | LLMInputToolChoiceParameter
   | LLMInputResponseFormatParameter
-  | ImageParameter;
+  | ImageParameter
+  | VerifyVCParameter;
 
 export interface ParameterBase {
   id: string;
@@ -388,6 +389,14 @@ export interface StringParameter extends ParameterBase {
   multiline?: boolean;
   minLength?: number;
   maxLength?: number;
+}
+
+export interface VerifyVCParameter extends ParameterBase {
+  type?: 'verify_vc';
+  value?: any;
+  defaultValue?: any;
+  vcItem?: string[];
+  vcTrustedIssuers?: string[];
 }
 
 export interface BooleanParameter extends ParameterBase {

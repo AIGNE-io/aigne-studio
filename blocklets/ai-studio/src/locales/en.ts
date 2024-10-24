@@ -875,4 +875,7 @@ export default flatten({
   multiple: 'Multiple',
   dropdown: 'Dropdown',
   checkbox: 'Checkbox',
+  verifyVC: 'Verify VC',
+  vcItem: 'VC Name',
+  trustedIssuers: 'Trusted Issuers',
 });
