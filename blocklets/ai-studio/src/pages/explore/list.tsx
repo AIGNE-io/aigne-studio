@@ -1,15 +1,20 @@
 import 'swiper/css';
 import 'swiper/css/navigation';
 
+import { useSessionContext } from '@app/contexts/session';
 import { Category } from '@app/libs/category';
 import { Deployment } from '@app/libs/deployment';
 import { getProjectIconUrl } from '@app/libs/project';
 import Empty from '@app/pages/project/icons/empty';
+import Avatar from '@arcblock/did-connect/lib/Avatar';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ProjectSettings } from '@blocklet/ai-runtime/types';
+import { Icon } from '@iconify-icon/react';
+import PlayIcon from '@iconify-icons/tabler/play';
+import UserIcon from '@iconify-icons/tabler/user';
 import { Box, CircularProgress, Container, Divider, Stack, Typography } from '@mui/material';
-import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
-import { withQuery } from 'ufo';
+import { useOutletContext, useParams } from 'react-router-dom';
+import { joinURL, withQuery } from 'ufo';
 
 import { MobileSidebarHeader } from './layout';
 import { useFetchDeployments, useProjectStats } from './state';
@@ -27,14 +32,20 @@ function CategoryCard({
 }) {
   const { t } = useLocaleContext();
   const icon = getProjectIconUrl(deployment.projectId, { updatedAt: project.updatedAt });
-
+  const { session } = useSessionContext();
   return (
     <Stack
+      component="a"
+      href={withQuery(joinURL(globalThis.location.origin, window.blocklet.prefix, '/apps', deployment.id), {
+        inviter: session.user?.did,
+      })}
       sx={{
         borderRadius: 1,
         overflow: 'hidden',
         height: '100%',
         p: 2,
+        textDecoration: 'none',
+        color: 'inherit',
         cursor: 'pointer',
         position: 'relative',
         boxShadow: `
@@ -84,16 +95,36 @@ function CategoryCard({
       </Stack>
       <Divider sx={{ my: 2 }} />
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Box>xxxu user</Box>
-        <Box>{totalUsers}</Box>
-        <Box>{totalRuns}</Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary', fontSize: 12 }}>
+          <Avatar
+            did={project.createdBy}
+            // src={user?.avatar}
+            size={20}
+            shape="circle"
+            variant="circle"
+            sx={{
+              width: '100%',
+              height: '100%',
+            }}
+          />
+          <span>wangqi</span>
+        </Box>
+        <Box sx={{ display: 'flex', gap: 3, fontSize: 12, color: 'text.secondary' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box component={Icon} icon={UserIcon} sx={{ fontSize: 14 }} />
+            <span>{totalUsers}</span>
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box component={Icon} icon={PlayIcon} sx={{ fontSize: 13 }} />
+            <span>{totalRuns}</span>
+          </Box>
+        </Box>
       </Box>
     </Stack>
   );
 }
 
 function CategoryList() {
-  const navigate = useNavigate();
   const params = useParams();
 
   const { loadingRef, dataState, currentDeploymentState } = useFetchDeployments(params.categorySlug);
@@ -120,7 +151,6 @@ function CategoryList() {
               <Box
                 key={deployment.id}
                 component="li"
-                onClick={() => navigate(deployment.id)}
                 data-testid="explore-card"
                 sx={{
                   width: { xs: 1, md: 1 / 2, lg: 1 / 3 },
