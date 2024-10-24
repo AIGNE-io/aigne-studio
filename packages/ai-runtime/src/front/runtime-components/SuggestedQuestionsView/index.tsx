@@ -59,23 +59,3 @@ function MessageSuggestedQuestion({ ...props }: TypographyProps) {
     />
   );
 }
-
-SuggestedQuestionsView.outputValueSchema = {
-  type: 'object',
-  properties: {
-    outputValue: {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: {
-          question: {
-            type: 'string',
-            faker: 'lorem.sentence',
-          },
-        },
-        required: ['question'],
-      },
-    },
-  },
-  required: ['outputValue'],
-};

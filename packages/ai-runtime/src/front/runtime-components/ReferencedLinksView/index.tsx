@@ -22,27 +22,3 @@ export default function ReferencedLinksView() {
     </OutputFieldContainer>
   );
 }
-
-ReferencedLinksView.outputValueSchema = {
-  type: 'object',
-  properties: {
-    outputValue: {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: {
-          title: {
-            type: 'string',
-            faker: 'lorem.sentence',
-          },
-          url: {
-            type: 'string',
-            faker: 'internet.url',
-          },
-        },
-        required: ['title', 'url'],
-      },
-    },
-  },
-  required: ['outputValue'],
-};

@@ -1,4 +1,4 @@
-import { getComponents, getComponentsByIds } from '@app/libs/components';
+import { getComponents } from '@app/libs/components';
 import { REMOTE_REACT_COMPONENT } from '@app/libs/constants';
 import Empty from '@arcblock/ux/lib/Empty';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
@@ -26,14 +26,14 @@ import {
 import Ajv from 'ajv';
 import stringify from 'json-stable-stringify';
 import { pick } from 'lodash';
-import { ComponentProps, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { ComponentProps, Suspense, useEffect, useMemo, useState } from 'react';
 import { useAsync } from 'react-use';
 
 import ErrorBoundary from '../error/error-boundary';
 import { generateFakeProps } from './fake-props';
 import { useAIGNEApiProps } from './get-agent';
 
-const ajv = new Ajv();
+const ajv = new Ajv({ strict: false });
 
 function outputToJsonSchema(output: Record<string, any>) {
   if (!output || output.from?.type === 'input') return {};
@@ -106,6 +106,7 @@ export default function ComponentSelect({
         name: x.name,
         description: x.description,
         previewImage: x.previewImage,
+        aigneOutputValueSchema: x.aigneOutputValueSchema,
         group: t('buildIn'),
       })),
       ...(openComponents ?? []).map((x) => ({
@@ -123,28 +124,19 @@ export default function ComponentSelect({
 
   const componentsMap = useMemo(() => Object.fromEntries(components.map((i) => [i.value, i])), [components]);
 
-  const { value: instances } = useAsync(
-    () => getComponentsByIds({ componentIds: components.map((i) => i.id) }),
-    [components]
-  );
-
-  const resolveValidate = useCallback(() => {
-    if (!output) return () => false;
-    const outputSchema = outputToJsonSchema(output);
-    return ajv.compile(outputSchema);
-  }, [output]);
-
   const validatedComponentIds = useMemo(() => {
-    const validate = resolveValidate();
+    if (!output) return new Set([]);
+    const outputSchema = outputToJsonSchema(output);
+    const outputSchemaFakedData = generateFakeProps(outputSchema);
     const validatedComponents =
-      instances?.filter((instance) => {
-        const schema = (instance?.Component as any).outputValueSchema;
-        if (!schema) return true;
-        const faked = schema ? (generateFakeProps(schema) as any)?.outputValue : null;
-        return faked ? validate(faked) : false;
+      components?.filter((i) => {
+        const componentSchema = (i as any).aigneOutputValueSchema;
+        if (!componentSchema) return true;
+        const validate = ajv.compile(componentSchema);
+        return validate({ outputValue: outputSchemaFakedData });
       }) ?? [];
-    return new Set(validatedComponents.map((i) => i?.component.id).filter(Boolean));
-  }, [instances, resolveValidate]);
+    return new Set(validatedComponents.map((i) => i.id).filter(Boolean));
+  }, [components, output]);
 
   const validatedComponents = components.filter((i) => validatedComponentIds.has(i.id));
 

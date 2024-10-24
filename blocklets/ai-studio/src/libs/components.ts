@@ -1,4 +1,3 @@
-import { customComponentStates } from '@blocklet/pages-kit/components';
 import { joinURL } from 'ufo';
 
 import axios from './api';
@@ -13,6 +12,7 @@ export interface Component {
   description?: string;
   tags?: string[];
   previewImage?: string;
+  aigneOutputValueSchema?: Record<string, any>;
   properties?: {
     id: string;
     key?: string;
@@ -76,12 +76,4 @@ export async function getComponents({ tags }: { tags: string }) {
   ]);
 
   return { customComponents, openComponents };
-}
-
-export async function getComponentsByIds({ componentIds }: { componentIds: string[] }) {
-  const state = customComponentStates().getState();
-  await Promise.all(componentIds.map((id) => state.loadComponents({ instances: [{ id, component: { id } }] })));
-
-  const components = componentIds.map((id) => ({ componentId: id, locale: 'en' }));
-  return await Promise.all(components.map((i) => state.getComponent(i)));
 }

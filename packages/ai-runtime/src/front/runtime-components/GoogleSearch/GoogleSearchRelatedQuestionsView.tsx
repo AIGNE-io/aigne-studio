@@ -58,35 +58,3 @@ export default function GoogleSearchRelatedView({ onlyLastMessage }: { onlyLastM
     </OutputFieldContainer>
   );
 }
-
-GoogleSearchRelatedView.outputValueSchema = {
-  type: 'object',
-  properties: {
-    outputValue: {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: {
-          question: {
-            type: 'string',
-            faker: 'lorem.sentence',
-          },
-          link: {
-            type: 'string',
-            faker: 'internet.url',
-          },
-          snippet: {
-            type: 'string',
-            faker: 'lorem.paragraph',
-          },
-          title: {
-            type: 'string',
-            faker: 'lorem.sentence',
-          },
-        },
-        required: ['question', 'link', 'title'],
-      },
-    },
-  },
-  required: ['outputValue'],
-};
