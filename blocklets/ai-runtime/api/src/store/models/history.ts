@@ -1,4 +1,4 @@
-import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
+import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model, Sequelize } from 'sequelize';
 
 import nextId from '../../libs/next-id';
 import { sequelize } from '../sequelize';
@@ -46,6 +46,23 @@ export default class History extends Model<InferAttributes<History>, InferCreati
     completionTokens: number;
     totalTokens: number;
   };
+
+  static async countRunsPerProject(projectIds: string[]) {
+    // Find all records that match the given project IDs and count the number of runs for each project.
+    const counts = await this.findAll({
+      where: { projectId: projectIds },
+      attributes: ['projectId', [Sequelize.fn('COUNT', Sequelize.col('id')), 'count']],
+      group: ['projectId'],
+    });
+
+    return counts.reduce(
+      (acc, cur) => {
+        acc[cur.projectId] = (cur.get('count') ?? 0) as number;
+        return acc;
+      },
+      {} as Record<string, number>
+    );
+  }
 }
 
 History.init(

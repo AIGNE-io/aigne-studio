@@ -313,6 +313,21 @@ export function projectRoutes(router: Router) {
     });
   });
 
+  const getProjectStatsSchema = Joi.object<{ projectIds: string[] }>({
+    projectIds: Joi.array().items(Joi.string()).required(),
+  });
+
+  router.get('/projects/stats', async (req, res) => {
+    const { projectIds } = await getProjectStatsSchema.validateAsync(req.query, { stripUnknown: true });
+    const { data } = await call({
+      name: AIGNE_RUNTIME_COMPONENT_DID,
+      path: '/api/projects/stats',
+      method: 'POST',
+      data: { projectIds },
+    });
+    res.json(data);
+  });
+
   router.get('/template-projects', user(), ensureComponentCallOrPromptsEditor(), async (_req, res) => {
     const resourceTemplates = (await resourceManager.getProjects({ type: 'template' })).map((i) => ({
       ...i.project,

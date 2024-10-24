@@ -1,7 +1,8 @@
 import { Deployment, getDeploymentsByCategorySlug } from '@app/libs/deployment';
+import { getProjectStats } from '@app/libs/project';
 import { ProjectSettings } from '@blocklet/ai-runtime/types';
 import { useInfiniteScroll } from 'ahooks';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import useInfiniteScrollHook from 'react-infinite-scroll-hook';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 import { create } from 'zustand';
@@ -144,4 +145,32 @@ export const useFetchDeployments = (categorySlug?: string) => {
   });
 
   return { loadingRef, dataState, currentDeploymentState };
+};
+
+type ProjectStatsItem = { id: string; totalRuns: number; totalUsers: number };
+
+export const useProjectStats = (projectIds: string[]) => {
+  const [statsList, setStatsList] = useState<ProjectStatsItem[]>([]);
+  const statsMap = useMemo(
+    () => statsList.reduce((acc, i) => ({ ...acc, [i.id]: i }), {} as Record<string, ProjectStatsItem>),
+    [statsList]
+  );
+
+  const fetchStats = useCallback(async () => {
+    if (projectIds.length === 0) return;
+    const idsToFetch = projectIds.filter((id) => !statsMap[id]);
+    if (idsToFetch.length === 0) return;
+    try {
+      const result = await getProjectStats(idsToFetch);
+      setStatsList((prevStats) => [...prevStats, ...result]);
+    } catch (error) {
+      console.error('Failed to fetch project stats:', error);
+    }
+  }, [projectIds, statsMap]);
+
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats, projectIds]);
+
+  return { stats: statsMap };
 };

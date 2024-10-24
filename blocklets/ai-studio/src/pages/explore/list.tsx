@@ -12,9 +12,19 @@ import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import { withQuery } from 'ufo';
 
 import { MobileSidebarHeader } from './layout';
-import { useFetchDeployments } from './state';
+import { useFetchDeployments, useProjectStats } from './state';
 
-function CategoryCard({ deployment, project }: { deployment: Deployment; project: ProjectSettings }) {
+function CategoryCard({
+  deployment,
+  project,
+  totalRuns,
+  totalUsers,
+}: {
+  deployment: Deployment;
+  project: ProjectSettings;
+  totalRuns: number;
+  totalUsers: number;
+}) {
   const { t } = useLocaleContext();
   const icon = getProjectIconUrl(deployment.projectId, { updatedAt: project.updatedAt });
 
@@ -75,7 +85,8 @@ function CategoryCard({ deployment, project }: { deployment: Deployment; project
       <Divider sx={{ my: 2 }} />
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box>xxxu user</Box>
-        <Box>2.2K</Box>
+        <Box>{totalUsers}</Box>
+        <Box>{totalRuns}</Box>
       </Box>
     </Stack>
   );
@@ -88,6 +99,7 @@ function CategoryList() {
   const { loadingRef, dataState, currentDeploymentState } = useFetchDeployments(params.categorySlug);
   const { categories } = useOutletContext<{ categories: Category[] }>();
   const deployments = currentDeploymentState?.list || [];
+  const { stats } = useProjectStats(deployments.map((i) => i.projectId));
   const { t } = useLocaleContext();
 
   return (
@@ -114,20 +126,25 @@ function CategoryList() {
                   width: { xs: 1, md: 1 / 2, lg: 1 / 3 },
                   p: 1.5,
                 }}>
-                <CategoryCard deployment={deployment} project={deployment.project} />
+                <CategoryCard
+                  deployment={deployment}
+                  project={deployment.project}
+                  totalRuns={stats?.[deployment.projectId]?.totalRuns || 0}
+                  totalUsers={stats?.[deployment.projectId]?.totalUsers || 0}
+                />
               </Box>
             ))}
           </Box>
+
+          {(dataState.loadingMore || dataState?.data?.next) && (
+            <Box width={1} height={60} className="center" ref={loadingRef}>
+              <Box display="flex" justifyContent="center">
+                <CircularProgress size={24} />
+              </Box>
+            </Box>
+          )}
         </Container>
       </Box>
-
-      {(dataState.loadingMore || dataState?.data?.next) && (
-        <Box width={1} height={60} className="center" ref={loadingRef}>
-          <Box display="flex" justifyContent="center">
-            <CircularProgress size={24} />
-          </Box>
-        </Box>
-      )}
     </Stack>
   );
 }

@@ -165,3 +165,9 @@ export async function uploadAsset({
     .post(joinURL('/api/projects', projectId, 'refs', ref, 'assets'), { source, type })
     .then((res) => res.data);
 }
+
+export async function getProjectStats(
+  projectIds: string[]
+): Promise<{ id: string; totalRuns: number; totalUsers: number }[]> {
+  return axios.get('/api/projects/stats', { params: { projectIds } }).then((res) => res.data);
+}
