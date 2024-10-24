@@ -1,3 +1,7 @@
+## 0.4.96 (2024-10-24)
+
+- fix: strict json schema mode
+
 ## 0.4.95 (2024-10-23)
 
 - fix: special agent id for the session automatically created
