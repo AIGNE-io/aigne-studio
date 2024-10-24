@@ -1,3 +1,8 @@
+## 0.4.96 (2024-10-24)
+
+- fix: test broken
+- fix: knowledge documents ui and add test
+
 ## 0.4.95 (2024-10-23)
 
 - fix: special agent id for the session automatically created
