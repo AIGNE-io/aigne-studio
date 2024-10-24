@@ -1,4 +1,4 @@
-import { Box, BoxProps } from '@mui/material';
+import { Box, BoxProps, Stack } from '@mui/material';
 import { ComponentProps, createContext, useContext, useEffect, useMemo } from 'react';
 import * as scrollToBottom from 'react-scroll-to-bottom';
 // @ts-ignore
@@ -14,7 +14,7 @@ const useScrollViewContext = () => useContext(scrollViewContext);
 export default function ScrollView({
   children,
   scroll = 'element',
-  component = Box,
+  component = Stack,
   initialScrollBehavior = 'auto',
   ...props
 }: BoxProps & {
@@ -65,6 +65,7 @@ function ScrollViewWithinWindow({
       component={component}
       {...props}
       ref={scroll === 'element' ? setTarget : undefined}
+      flexGrow={1}
       sx={{
         ...(scroll === 'element' ? { flex: 1, height: '100%', overflow: 'auto', overscrollBehavior: 'contain' } : {}),
         ...props.sx,

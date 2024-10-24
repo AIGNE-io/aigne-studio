@@ -253,7 +253,7 @@ export default function KnowledgeDocuments() {
             return <Box>{dayjs(params.row.createdAt).format('YYYY-MM-DD HH:mm:ss')}</Box>;
           },
         },
-        !state?.dataset?.blockletDid
+        !blockletDid
           ? {
               field: 'actions',
               headerName: t('actions'),
@@ -389,7 +389,7 @@ export default function KnowledgeDocuments() {
             }}
           />
 
-          {state?.dataset?.blockletDid ? null : (
+          {blockletDid ? null : (
             <Button
               variant="contained"
               size="small"
@@ -426,7 +426,7 @@ export default function KnowledgeDocuments() {
             onPaginationModelChange={({ page, pageSize: size }) => refetch({ page, size })}
             getRowClassName={() => 'document-row'}
             onRowClick={(params) => {
-              if (state?.dataset?.blockletDid) return;
+              if (blockletDid) return;
               const rowId = params.row.id;
               navigate(`document/${rowId}`, { replace: true });
             }}
@@ -438,7 +438,7 @@ export default function KnowledgeDocuments() {
                     <Typography variant="subtitle4">{t('noDocument')}</Typography>
                     <Typography variant="subtitle5">{t('noDocumentDesc')}</Typography>
 
-                    {state?.dataset?.blockletDid ? null : (
+                    {blockletDid ? null : (
                       <Button variant="text" size="small" onClick={() => navigate('add')}>
                         {t('knowledge.documents.add')}
                       </Button>

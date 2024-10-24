@@ -1,3 +1,24 @@
+## 0.4.98 (2024-10-24)
+
+- fix: test broken
+- fix: knowledge documents ui and add test
+
+## 0.4.97 (2024-10-24)
+
+- fix: set additionalProperties to false for json_schema mode
+
+## 0.4.96 (2024-10-24)
+
+- fix: strict json schema mode
+
+## 0.4.95 (2024-10-23)
+
+- fix: special agent id for the session automatically created
+
+## 0.4.94 (2024-10-22)
+
+- fix: correct query resource agent from resource blocklet
+
 ## 0.4.93 (2024-10-22)
 
 - fix: reset agent inputs after adapter changed
