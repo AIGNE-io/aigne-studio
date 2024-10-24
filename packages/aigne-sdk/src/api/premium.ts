@@ -25,8 +25,8 @@ export async function getUserPassports(did: string) {
 
 const authClient = new AuthService();
 
-export const quotaChecker = new Quotas(config.env.preferences.quotas);
+export const quotaChecker = new Quotas(config.env.preferences);
 
 config.events.on(config.Events.envUpdate, () => {
-  quotaChecker.setConfigs(config.env.preferences.quotas);
+  quotaChecker.setPreferences(config.env.preferences);
 });
