@@ -59,11 +59,13 @@ export const showPlanUpgrade = (type?: QuotaKey) => {
   useMultiTenantRestrictionStore.setState({ planUpgradeVisible: true, type });
 };
 
+export const premiumPlanEnabled = !!window.blocklet?.preferences?.premiumPlanEnabled;
+
 export function useMultiTenantRestriction() {
   const { planUpgradeVisible, type, showPlanUpgrade, hidePlanUpgrade } = useMultiTenantRestrictionStore();
   const { session } = useSessionContext();
   const passports = session?.user?.passports?.map((x: any) => x.name);
-  const quotas = new Quotas(window.blocklet?.preferences?.quotas);
+  const quotas = new Quotas(window.blocklet?.preferences);
   const quotaChecker = {
     checkCronJobs() {
       if (quotas.checkCronJobs(passports)) return true;
