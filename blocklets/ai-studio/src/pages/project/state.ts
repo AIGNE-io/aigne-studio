@@ -37,6 +37,7 @@ import { textCompletions } from '../../libs/ai';
 import * as branchApi from '../../libs/branch';
 import { Commit, getLogs } from '../../libs/log';
 import * as projectApi from '../../libs/project';
+import { createSession, getSessions } from '../../libs/sesstions';
 import * as api from '../../libs/tree';
 import { PROMPTS_FOLDER_NAME, useProjectStore } from './yjs-state';
 
@@ -209,9 +210,6 @@ export type MessageInput = RunAssistantInput & {
 };
 
 export interface SessionItem {
-  index: number;
-  createdAt: string;
-  updatedAt: string;
   messages: {
     id: string;
     createdAt: string;
@@ -235,21 +233,30 @@ export interface SessionItem {
   }[];
   chatType?: 'chat' | 'debug';
   debugForm?: { [key: string]: any };
-  sessionId: string;
+
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  name?: string;
+  userId?: string;
+  projectId: string;
+  agentId: string;
 }
 
 export interface DebugState {
   projectId: string;
   assistantId: string;
   sessions: SessionItem[];
-  nextSessionIndex: number;
-  currentSessionIndex?: number;
+  currentSessionId?: string;
+  loading?: boolean;
+  loaded?: boolean;
+  error?: Error;
 }
 
 const debugStates: { [key: string]: RecoilState<DebugState> } = {};
 
-const getDebugState = (projectId: string, assistantId: string) => {
-  const key = `debugState-${projectId}-${assistantId}` as const;
+const getDebugState = (aid: string, projectId: string, assistantId: string) => {
+  const key = `debug-sessions-state-${aid}` as const;
 
   debugStates[key] ??= atom<DebugState>({
     key,
@@ -301,9 +308,65 @@ const getDebugState = (projectId: string, assistantId: string) => {
   return debugStates[key]!;
 };
 
-export const useDebugState = ({ projectId, assistantId }: { projectId: string; assistantId: string }) => {
-  const debugState = getDebugState(projectId, assistantId);
+export const useDebugState = ({
+  projectId,
+  gitRef,
+  assistantId,
+}: {
+  projectId: string;
+  gitRef: string;
+  assistantId: string;
+}) => {
+  const aid = stringifyIdentity({ projectId, projectRef: gitRef, agentId: assistantId });
+  const debugState = getDebugState(aid, projectId, assistantId);
   const [state, setState] = useRecoilState(debugState);
+
+  const reload = useCallback(
+    async (options?: { autoSetCurrentSessionId?: boolean }) => {
+      setState((state) => {
+        return {
+          ...state,
+          loading: true,
+        };
+      });
+
+      try {
+        const { sessions } = await getSessions({ aid });
+
+        setState((state) => {
+          return {
+            ...state,
+            sessions: state.sessions.map((i) => ({
+              ...i,
+              messages: [],
+            })),
+            loading: true,
+            error: undefined,
+            currentSessionId:
+              options?.autoSetCurrentSessionId && !state.currentSessionId ? sessions.at(-1)?.id : undefined,
+          };
+        });
+      } catch (error) {
+        setState((state) => {
+          return {
+            ...state,
+            error,
+          };
+        });
+
+        throw error;
+      } finally {
+        setState((state) => {
+          return {
+            ...state,
+            loaded: true,
+            loading: false,
+          };
+        });
+      }
+    },
+    [setState]
+  );
 
   const newSession = useCallback(
     (session?: Partial<SessionItem>) => {
@@ -333,6 +396,22 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
       });
     },
     [setState]
+  );
+
+  const setCurrentSessionId = useCallback(
+    (sessionId: string) => {
+      setState((state) => ({ ...state, currentSessionId: sessionId }));
+    },
+    [setState]
+  );
+
+  const createNewSession = useCallback(
+    async (name?: string) => {
+      const session = await createSession({ aid, name });
+      await reload();
+      return session;
+    },
+    [reload, aid]
   );
 
   const setSession = useCallback(

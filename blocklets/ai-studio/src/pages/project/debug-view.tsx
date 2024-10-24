@@ -68,6 +68,7 @@ export default function DebugView(props: {
 }) {
   const { state, setCurrentSession } = useDebugState({
     projectId: props.projectId,
+    gitRef: props.gitRef,
     assistantId: props.assistant.id,
   });
 
@@ -85,7 +86,9 @@ export default function DebugView(props: {
   return (
     <Box display="flex" flexDirection="column" flex={1} key={state.currentSessionIndex}>
       <DebugViewContent {...props} />
-      {!state.sessions.length && <EmptySessions projectId={props.projectId} templateId={props.assistant.id} />}
+      {!state.sessions.length && (
+        <EmptySessions projectId={props.projectId} gitRef={props.gitRef} templateId={props.assistant.id} />
+      )}
     </Box>
   );
 }
@@ -105,6 +108,7 @@ function DebugViewContent({
 
   const { state, setSession, clearCurrentSession, deleteSession } = useDebugState({
     projectId,
+    gitRef,
     assistantId: assistant.id,
   });
 
@@ -122,7 +126,7 @@ function DebugViewContent({
         bgcolor="background.paper"
         sx={{ zIndex: 2 }}>
         <Box maxWidth={200} data-testid="session-select">
-          <SessionSelect projectId={projectId} assistantId={assistant.id} />
+          <SessionSelect projectId={projectId} gitRef={gitRef} assistantId={assistant.id} />
         </Box>
 
         <Stack direction="row" alignItems="center" gap={1} overflow="hidden">
@@ -293,10 +297,11 @@ function ScrollMessages({
   );
 }
 
-function SessionSelect({ projectId, assistantId }: { projectId: string; assistantId: string }) {
+function SessionSelect({ projectId, gitRef, assistantId }: { projectId: string; gitRef: string; assistantId: string }) {
   const { t } = useLocaleContext();
   const { state, newSession, setCurrentSession } = useDebugState({
     projectId,
+    gitRef,
     assistantId,
   });
 
@@ -560,7 +565,7 @@ function ChatModeForm({
 
   const { projectSetting } = useProjectStore(projectId, gitRef);
 
-  const { state, sendMessage, cancelMessage } = useDebugState({ projectId, assistantId: assistant.id });
+  const { state, sendMessage, cancelMessage } = useDebugState({ projectId, gitRef, assistantId: assistant.id });
 
   const [question, setQuestion] = useState('');
 
@@ -670,6 +675,7 @@ function DebugModeForm({
 
   const { state, sendMessage, setSession, cancelMessage } = useDebugState({
     projectId,
+    gitRef,
     assistantId: assistant.id,
   });
 
@@ -885,8 +891,8 @@ function DebugModeForm({
   );
 }
 
-function EmptySessions({ projectId, templateId }: { projectId: string; templateId: string }) {
-  const { newSession } = useDebugState({ projectId, assistantId: templateId });
+function EmptySessions({ projectId, gitRef, templateId }: { projectId: string; gitRef: string; templateId: string }) {
+  const { newSession } = useDebugState({ projectId, gitRef, assistantId: templateId });
   const { t } = useLocaleContext();
 
   return (
