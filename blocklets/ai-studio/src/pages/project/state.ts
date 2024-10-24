@@ -2,6 +2,7 @@ import { useCurrentProject } from '@app/contexts/project';
 import { AIGNE_RUNTIME_MOUNT_POINT } from '@app/libs/constants';
 import { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import Toast from '@arcblock/ux/lib/Toast';
 import { SubscriptionError } from '@blocklet/ai-kit/api';
 import { runAssistant } from '@blocklet/ai-runtime/api';
 import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
@@ -37,7 +38,7 @@ import { textCompletions } from '../../libs/ai';
 import * as branchApi from '../../libs/branch';
 import { Commit, getLogs } from '../../libs/log';
 import * as projectApi from '../../libs/project';
-import { createSession, getSessions } from '../../libs/sesstions';
+import { createSession, deleteSession, getSessions } from '../../libs/sesstions';
 import * as api from '../../libs/tree';
 import { PROMPTS_FOLDER_NAME, useProjectStore } from './yjs-state';
 
@@ -249,7 +250,6 @@ export interface DebugState {
   sessions: SessionItem[];
   currentSessionId?: string;
   loading?: boolean;
-  loaded?: boolean;
   error?: Error;
 }
 
@@ -272,7 +272,7 @@ const getDebugState = (aid: string, projectId: string, assistantId: string) => {
             sessions: json.sessions.map((session) => ({
               ...session,
               messages: session.messages.map((i) => omit(i, 'loading')),
-              sessionId: session.sessionId ?? nanoid(),
+              id: session.id ?? nanoid(),
             })),
           };
         }
@@ -280,12 +280,13 @@ const getDebugState = (aid: string, projectId: string, assistantId: string) => {
         console.error('initialize default debug state error', error);
       }
 
-      const now = new Date().toISOString();
       return {
         projectId,
         assistantId,
-        sessions: [{ index: 1, createdAt: now, updatedAt: now, messages: [], chatType: 'debug', sessionId: nanoid() }],
-        nextSessionIndex: 2,
+        sessions: [],
+        currentSessionId: undefined,
+        loading: false,
+        error: undefined,
       };
     })(),
     effects: [
@@ -334,66 +335,30 @@ export const useDebugState = ({
         const { sessions } = await getSessions({ aid });
 
         setState((state) => {
+          const found = [...state.sessions, ...sessions].find((i) => i.id === state.currentSessionId);
+
           return {
             ...state,
-            sessions: state.sessions.map((i) => ({
-              ...i,
-              messages: [],
-            })),
+            sessions: sessions.map((i) => {
+              const found = state.sessions.find((j) => j.id === i.id);
+              return found || { ...i, messages: [] };
+            }),
             loading: true,
             error: undefined,
-            currentSessionId:
-              options?.autoSetCurrentSessionId && !state.currentSessionId ? sessions.at(-1)?.id : undefined,
+            currentSessionId: options?.autoSetCurrentSessionId && !found ? sessions.at(-1)?.id : state.currentSessionId,
           };
         });
       } catch (error) {
         setState((state) => {
-          return {
-            ...state,
-            error,
-          };
+          return { ...state, error };
         });
 
         throw error;
       } finally {
         setState((state) => {
-          return {
-            ...state,
-            loaded: true,
-            loading: false,
-          };
+          return { ...state, loading: false };
         });
       }
-    },
-    [setState]
-  );
-
-  const newSession = useCallback(
-    (session?: Partial<SessionItem>) => {
-      setState((state) => {
-        const currentSession = state.sessions.find((i) => i.index === state.currentSessionIndex);
-
-        const now = new Date().toISOString();
-        const index = state.nextSessionIndex;
-
-        return {
-          ...state,
-          sessions: [
-            ...state.sessions,
-            {
-              ...session,
-              index,
-              createdAt: now,
-              updatedAt: now,
-              messages: [],
-              chatType: currentSession?.chatType,
-              sessionId: nanoid(),
-            },
-          ],
-          nextSessionIndex: index + 1,
-          currentSessionIndex: index,
-        };
-      });
     },
     [setState]
   );
@@ -406,19 +371,29 @@ export const useDebugState = ({
   );
 
   const createNewSession = useCallback(
-    async (name?: string) => {
-      const session = await createSession({ aid, name });
-      await reload();
-      return session;
+    async (session?: Partial<SessionItem>) => {
+      const result = await createSession({ aid, name: session?.name });
+
+      setState((state) => {
+        return {
+          ...state,
+          sessions: [...state.sessions, { ...session, ...result.created, messages: [] }],
+          loading: false,
+          error: undefined,
+          currentSessionId: result.created.id,
+        };
+      });
+
+      return result;
     },
     [reload, aid]
   );
 
   const setSession = useCallback(
-    (index: number, recipe: (session: Draft<SessionItem>) => void) => {
+    (currentSessionId: string, recipe: (session: Draft<SessionItem>) => void) => {
       setState((state) =>
         produce(state, (state) => {
-          const session = state.sessions.find((i) => i.index === index);
+          const session = state.sessions.find((i) => i.id === currentSessionId);
           if (session) recipe(session);
         })
       );
@@ -429,53 +404,53 @@ export const useDebugState = ({
   const clearCurrentSession = useCallback(() => {
     setState((state) => {
       const sessions = state.sessions.map((session) =>
-        session.index === state.currentSessionIndex
+        session.id === state.currentSessionId
           ? { ...session, sessionId: nanoid(), messages: [], updatedAt: new Date().toISOString() }
           : session
       );
-      return {
-        ...state,
-        sessions,
-      };
+
+      return { ...state, sessions };
     });
   }, [setState]);
 
-  const setCurrentSession = useCallback(
-    (index?: number) => {
-      setState((state) => {
-        const session = state.sessions.find((i) => i.index === index) ?? state.sessions[state.sessions.length - 1];
-        return { ...state, currentSessionIndex: session?.index };
-      });
-    },
-    [setState]
-  );
+  const deleteCurrentSession = useCallback(
+    async (sessionId: string) => {
+      await deleteSession({ sessionId });
 
-  const deleteSession = useCallback(
-    (index: number) => {
-      setState(({ sessions: [...sessions], ...state }) => {
-        const i = sessions.findIndex((i) => i.index === index);
-        if (i >= 0) sessions.splice(i, 1);
+      setState((state) => {
         return {
           ...state,
-          sessions,
-          currentSessionIndex:
-            index === state.currentSessionIndex ? sessions[sessions.length - 1]?.index : state.currentSessionIndex,
+          currentSessionId: state.currentSessionId === sessionId ? undefined : state.currentSessionId,
         };
       });
+
+      await reload({ autoSetCurrentSessionId: true });
     },
-    [setState]
+    [reload, setState]
+  );
+
+  const newSession = useCallback(
+    async (session?: Partial<SessionItem>) => {
+      try {
+        const result = await createNewSession(session);
+        setCurrentSessionId(result.created.id);
+      } catch (error) {
+        Toast.error(error.message);
+      }
+    },
+    [createNewSession, setCurrentSessionId]
   );
 
   const setMessage = useCallback(
-    (sessionIndex: number, messageId: string, recipe: (draft: Draft<SessionItem['messages'][number]>) => void) => {
+    (currentSessionId: string, messageId: string, recipe: (draft: Draft<SessionItem['messages'][number]>) => void) => {
       requestAnimationFrame(() => {
         setState((state) =>
           produce(state, (state) => {
-            const session = state.sessions.find((i) => i.index === sessionIndex);
+            const session = state.sessions.find((i) => i.id === currentSessionId);
             const message = session?.messages.findLast((i) => i.id === messageId);
 
             if (message) recipe(message);
-            else console.error(`setMessage: message not found ${sessionIndex} ${messageId}`);
+            else console.error(`setMessage: message not found ${currentSessionId} ${messageId}`);
           })
         );
       });
@@ -485,10 +460,10 @@ export const useDebugState = ({
 
   const sendMessage = useCallback(
     async ({
-      sessionIndex,
+      currentSessionId,
       message,
     }: {
-      sessionIndex: number;
+      currentSessionId: string;
       message:
         | {
             type: 'chat';
@@ -514,7 +489,7 @@ export const useDebugState = ({
 
       setState((state) =>
         produce(state, (state) => {
-          const session = state.sessions.find((i) => i.index === sessionIndex);
+          const session = state.sessions.find((i) => i.id === currentSessionId);
           session?.messages.push(
             {
               id: messageId,
@@ -531,15 +506,19 @@ export const useDebugState = ({
         })
       );
 
-      const session = state.sessions.find((i) => i.index === sessionIndex);
-      if (!session) throw new Error('session does not exist');
+      const session = state.sessions.find((i) => i.id === currentSessionId);
+      if (!session?.id) {
+        const result = await createNewSession();
+        setCurrentSessionId(result.created.id);
+        currentSessionId = result.created.id;
+      }
 
       try {
         const result =
           message.type === 'chat'
             ? await textCompletions({
                 stream: true,
-                messages: session.messages
+                messages: (session?.messages || [])
                   .slice(-15)
                   .map((i) => pick(i, 'role', 'content'))
                   .concat({ role: 'user', content: message.content }),
@@ -553,7 +532,7 @@ export const useDebugState = ({
                   projectRef: message.gitRef,
                   agentId: message.assistantId,
                 }),
-                sessionId: session.sessionId,
+                sessionId: session?.id,
                 inputs: message.parameters,
                 debug: true,
               });
@@ -574,12 +553,12 @@ export const useDebugState = ({
             } else if (typeof value === 'string') {
               response += value;
             } else if (value.type === AssistantResponseType.INPUT_PARAMETER) {
-              setMessage(sessionIndex, messageId, (message) => {
+              setMessage(currentSessionId, messageId, (message) => {
                 message.content = value.delta.content || '';
                 message.loading = false;
               });
             } else if (value.type === AssistantResponseType.INPUT) {
-              setMessage(sessionIndex, responseId, (message) => {
+              setMessage(currentSessionId, responseId, (message) => {
                 message.inputMessages ??= [];
 
                 let lastInput = message.inputMessages.findLast((input) => input.taskId === value.taskId);
@@ -599,7 +578,7 @@ export const useDebugState = ({
                 response += value.delta.content || '';
 
                 if (value.delta.object) {
-                  setMessage(sessionIndex, responseId, (message) => {
+                  setMessage(currentSessionId, responseId, (message) => {
                     if (message.cancelled) return;
                     message.objects ??= [];
                     message.objects.push(value.delta.object);
@@ -607,7 +586,7 @@ export const useDebugState = ({
                 }
 
                 if (images?.length) {
-                  setMessage(sessionIndex, responseId, (message) => {
+                  setMessage(currentSessionId, responseId, (message) => {
                     if (message.cancelled) return;
                     message.images ??= [];
                     message.images.push(...images);
@@ -625,13 +604,13 @@ export const useDebugState = ({
                   msg.content = (msg.content || '') + (value.delta.content || '');
                   if (value.delta.images?.length) msg.images = (msg.images || []).concat(value.delta.images);
 
-                  setMessage(sessionIndex, responseId, (message) => {
+                  setMessage(currentSessionId, responseId, (message) => {
                     if (message.cancelled) return;
                     message.messages = JSON.parse(JSON.stringify(messages));
                   });
                 }
 
-                setMessage(sessionIndex, responseId, (message) => {
+                setMessage(currentSessionId, responseId, (message) => {
                   if (message.cancelled) return;
 
                   const lastInput = message.inputMessages?.findLast((input) => input.taskId === value.taskId);
@@ -646,7 +625,7 @@ export const useDebugState = ({
                 });
               }
             } else if (value.type === AssistantResponseType.EXECUTE) {
-              setMessage(sessionIndex, responseId, (message) => {
+              setMessage(currentSessionId, responseId, (message) => {
                 message.inputMessages ??= [];
 
                 const lastInput = message.inputMessages?.findLast((input) => input.taskId === value.taskId);
@@ -675,13 +654,13 @@ export const useDebugState = ({
                 }
               });
             } else if (value.type === AssistantResponseType.USAGE) {
-              setMessage(sessionIndex, responseId, (message) => {
+              setMessage(currentSessionId, responseId, (message) => {
                 if (message.cancelled) return;
                 const lastInput = message.inputMessages?.findLast((input) => input.taskId === value.taskId);
                 if (lastInput) lastInput.usage = value.usage;
               });
             } else if (value.type === AssistantResponseType.ERROR) {
-              setMessage(sessionIndex, responseId, (message) => {
+              setMessage(currentSessionId, responseId, (message) => {
                 if (message.cancelled) return;
                 message.error = pick(value.error, 'message', 'type', 'timestamp') as {
                   message: string;
@@ -689,7 +668,7 @@ export const useDebugState = ({
                 };
               });
             } else if (value.type === AssistantResponseType.LOG) {
-              setMessage(sessionIndex, responseId, (message) => {
+              setMessage(currentSessionId, responseId, (message) => {
                 if (message.cancelled) return;
                 const lastInput = message.inputMessages?.findLast((input) => input.taskId === value.taskId);
                 if (lastInput) {
@@ -701,7 +680,7 @@ export const useDebugState = ({
               console.error('Unknown AI response type', value);
             }
 
-            setMessage(sessionIndex, responseId, (message) => {
+            setMessage(currentSessionId, responseId, (message) => {
               if (message.cancelled) return;
               message.content = response;
             });
@@ -712,14 +691,14 @@ export const useDebugState = ({
           }
         }
 
-        setMessage(sessionIndex, responseId, (message) => {
+        setMessage(currentSessionId, responseId, (message) => {
           if (message.cancelled) return;
 
           message.done = true;
           message.loading = false;
         });
       } catch (error) {
-        setMessage(sessionIndex, responseId, (message) => {
+        setMessage(currentSessionId, responseId, (message) => {
           if (message.cancelled) return;
           if (error instanceof SubscriptionError) {
             message.error = { message: error.message, type: error.type, timestamp: error.timestamp };
@@ -729,7 +708,7 @@ export const useDebugState = ({
           message.loading = false;
         });
       } finally {
-        setMessage(sessionIndex, responseId, (message) => {
+        setMessage(currentSessionId, responseId, (message) => {
           message.loading = false;
         });
       }
@@ -738,8 +717,8 @@ export const useDebugState = ({
   );
 
   const cancelMessage = useCallback(
-    (sessionIndex: number, messageId: string) => {
-      setMessage(sessionIndex, messageId, (message) => {
+    (currentSessionId: string, messageId: string) => {
+      setMessage(currentSessionId, messageId, (message) => {
         message.cancelled = true;
         message.loading = false;
       });
@@ -749,13 +728,15 @@ export const useDebugState = ({
 
   return {
     state,
-    setSession,
-    setCurrentSession,
-    newSession,
-    clearCurrentSession,
-    deleteSession,
     sendMessage,
     cancelMessage,
+
+    reload,
+    setSession,
+    newSession,
+    setCurrentSessionId,
+    deleteCurrentSession,
+    clearCurrentSession,
   };
 };
 

@@ -12,6 +12,7 @@ interface Props {
   options: Option[];
   onChange?: (value: any) => void;
   sx?: SxProps;
+  disabled?: boolean;
 }
 
 export default function SegmentedControl({ value, options, onChange, sx, ...rest }: Props) {
@@ -27,10 +28,12 @@ export default function SegmentedControl({ value, options, onChange, sx, ...rest
         size="small"
         value={value}
         exclusive
+        disabled={Boolean(rest.disabled)}
         onChange={(_, v) => onChange?.(v)}
         sx={{
           '.MuiToggleButtonGroup-grouped': {
             m: 0.5,
+            mx: 1,
             border: 0,
             borderRadius: '100vh',
             lineHeight: 1.3,

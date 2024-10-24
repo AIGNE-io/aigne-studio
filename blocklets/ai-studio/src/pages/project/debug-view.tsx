@@ -18,7 +18,7 @@ import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { cx } from '@emotion/css';
 import { Icon } from '@iconify-icon/react';
 import ChevronDownIcon from '@iconify-icons/tabler/chevron-down';
-import HistoryIcon from '@iconify-icons/tabler/history';
+import MessageXIcon from '@iconify-icons/tabler/message-x';
 import PlusIcon from '@iconify-icons/tabler/plus';
 import SendIcon from '@iconify-icons/tabler/send';
 import TrashIcon from '@iconify-icons/tabler/trash';
@@ -31,7 +31,7 @@ import {
   Avatar,
   Box,
   Button,
-  IconButton,
+  CircularProgress,
   MenuItem,
   Select,
   Stack,
@@ -50,7 +50,17 @@ import dayjs from 'dayjs';
 import { pick, sortBy } from 'lodash';
 import cloneDeep from 'lodash/cloneDeep';
 import { nanoid } from 'nanoid';
-import { ComponentProps, SyntheticEvent, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  ComponentProps,
+  Suspense,
+  SyntheticEvent,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Virtuoso } from 'react-virtuoso';
 
@@ -66,26 +76,32 @@ export default function DebugView(props: {
   assistant: AssistantYjs;
   setCurrentTab: (tab: string) => void;
 }) {
-  const { state, setCurrentSession } = useDebugState({
+  const { state, reload } = useDebugState({
     projectId: props.projectId,
     gitRef: props.gitRef,
     assistantId: props.assistant.id,
   });
 
   useEffect(() => {
-    if (!state.sessions.length) {
-      return;
-    }
+    reload({ autoSetCurrentSessionId: true });
+  }, []);
 
-    const current = state.sessions.find((i) => i.index === state.currentSessionIndex);
-    if (!current) {
-      setCurrentSession(state.sessions[state.sessions.length - 1]?.index);
-    }
-  });
+  if (state.loading) {
+    return (
+      <Box className="center" height="100%">
+        <CircularProgress size={20} />
+      </Box>
+    );
+  }
+
+  if (state.error) {
+    return <Alert severity="error">{state.error.message}</Alert>;
+  }
 
   return (
-    <Box display="flex" flexDirection="column" flex={1} key={state.currentSessionIndex}>
-      <DebugViewContent {...props} />
+    <Box display="flex" flexDirection="column" flex={1} key={state.currentSessionId}>
+      {!!state.sessions.length && <DebugViewContent {...props} />}
+
       {!state.sessions.length && (
         <EmptySessions projectId={props.projectId} gitRef={props.gitRef} templateId={props.assistant.id} />
       )}
@@ -106,55 +122,49 @@ function DebugViewContent({
 }) {
   const { t } = useLocaleContext();
 
-  const { state, setSession, clearCurrentSession, deleteSession } = useDebugState({
+  const { state, setSession, clearCurrentSession, deleteCurrentSession } = useDebugState({
     projectId,
     gitRef,
     assistantId: assistant.id,
   });
 
-  const currentSession = state.sessions.find((i) => i.index === state.currentSessionIndex);
-
-  if (!currentSession) return null;
+  const currentSession = state.sessions.find((i) => i.id === state.currentSessionId);
 
   return (
     <>
-      <Box
-        px={2.5}
-        py={1.5}
-        display="flex"
-        justifyContent="space-between"
-        bgcolor="background.paper"
-        sx={{ zIndex: 2 }}>
+      <Stack p={2} direction="row" alignItems="center" gap={2}>
         <Box maxWidth={200} data-testid="session-select">
           <SessionSelect projectId={projectId} gitRef={gitRef} assistantId={assistant.id} />
         </Box>
 
-        <Stack direction="row" alignItems="center" gap={1} overflow="hidden">
-          <Tooltip title={t('clearSession')} placement="bottom-end">
-            <IconButton size="small" sx={{ color: '#000000' }} onClick={clearCurrentSession}>
-              <Box fontSize={15} component={Icon} icon={HistoryIcon} />
-            </IconButton>
-          </Tooltip>
+        <Box flex={1} />
 
-          <Tooltip title={t('deleteSession')} placement="bottom-end">
-            <IconButton
-              data-testid="session-delete-button"
-              size="small"
-              sx={{ color: '#E11D48' }}
-              onClick={(e) => {
-                e.stopPropagation();
-                deleteSession(currentSession.index);
-              }}>
-              <Box fontSize={15} component={Icon} icon={TrashIcon} />
-            </IconButton>
-          </Tooltip>
-        </Stack>
-      </Box>
+        {currentSession && (
+          <Suspense>
+            <Tooltip title="Clean messages">
+              <LoadingButton onClick={clearCurrentSession} sx={{ minWidth: 32, minHeight: 32, p: 0 }}>
+                <Box component={Icon} icon={MessageXIcon} sx={{ fontSize: 18 }} />
+              </LoadingButton>
+            </Tooltip>
+
+            <Tooltip title="Delete current session">
+              <LoadingButton
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteCurrentSession(currentSession.id);
+                }}
+                color="error"
+                sx={{ minWidth: 32, minHeight: 32, p: 0 }}>
+                <Box component={Icon} icon={TrashIcon} sx={{ fontSize: 18 }} />
+              </LoadingButton>
+            </Tooltip>
+          </Suspense>
+        )}
+      </Stack>
 
       <ScrollMessages currentSession={currentSession} key={assistant.id} projectId={projectId} gitRef={gitRef} />
-
       <Stack gap={1.5} sx={{ bgcolor: 'background.paper', p: '12px 20px', borderTop: '1px solid #E5E7EB' }}>
-        {currentSession.chatType === 'chat' ? (
+        {currentSession?.chatType === 'chat' ? (
           <ChatModeForm projectId={projectId} gitRef={gitRef} assistant={assistant} />
         ) : (
           <DebugModeForm projectId={projectId} gitRef={gitRef} assistant={assistant} setCurrentTab={setCurrentTab} />
@@ -162,16 +172,16 @@ function DebugViewContent({
 
         <Box textAlign="center">
           <SegmentedControl
-            value={currentSession.chatType ?? 'debug'}
+            disabled={!currentSession}
+            value={currentSession?.chatType ?? 'debug'}
             options={[
               { value: 'debug', label: t('debug') },
               { value: 'chat', label: t('chat') },
             ]}
             onChange={(v: any) => {
-              if (v)
-                setSession(currentSession.index, (session) => {
-                  session.chatType = v;
-                });
+              if (v && currentSession) {
+                setSession(currentSession?.id, (session) => (session.chatType = v));
+              }
             }}
           />
         </Box>
@@ -185,7 +195,7 @@ function ScrollMessages({
   projectId,
   gitRef,
 }: {
-  currentSession: SessionItem;
+  currentSession?: SessionItem;
   projectId: string;
   gitRef: string;
 }) {
@@ -210,8 +220,9 @@ function ScrollMessages({
     setHitBottom(isTouchBottom);
   };
 
-  const assistantArray = currentSession.messages.filter((i) => i.role === 'assistant');
-  const lastAssistantContent = currentSession.messages[currentSession.messages.length - 1]?.content;
+  const messages = currentSession?.messages || [];
+  const assistantArray = messages.filter((i) => i.role === 'assistant');
+  const lastAssistantContent = messages[messages.length - 1]?.content;
 
   useEffect(() => {
     autoScroll.current = true;
@@ -262,8 +273,8 @@ function ScrollMessages({
         }}>
         <Virtuoso
           customScrollParent={viewportRef.current!}
-          data={currentSession.messages}
-          initialTopMostItemIndex={currentSession.messages.length - 1}
+          data={messages}
+          initialTopMostItemIndex={messages.length - 1}
           computeItemKey={(_, item) => item.id}
           itemContent={(index, message) => (
             <MessageView index={index} message={message} projectId={projectId} gitRef={gitRef} />
@@ -299,16 +310,17 @@ function ScrollMessages({
 
 function SessionSelect({ projectId, gitRef, assistantId }: { projectId: string; gitRef: string; assistantId: string }) {
   const { t } = useLocaleContext();
-  const { state, newSession, setCurrentSession } = useDebugState({
+  const { state, newSession, setCurrentSessionId } = useDebugState({
     projectId,
     gitRef,
     assistantId,
   });
 
+  const currentSession = state.sessions.find((i) => i.id === state.currentSessionId);
   return (
     <Select
       variant="standard"
-      value={state.currentSessionIndex}
+      value={state.currentSessionId}
       placeholder={t('newObject', { object: t('session') })}
       fullWidth
       sx={{
@@ -322,11 +334,11 @@ function SessionSelect({ projectId, gitRef, assistantId }: { projectId: string; 
           borderRadius: 100,
         },
       }}
-      renderValue={(value) => `${t('session')} ${value}`}
-      onChange={(e) => setCurrentSession(e.target.value as number)}>
-      {state.sessions.map((session) => (
-        <MenuItem key={session.index} value={session.index} data-testid="session-select-item">
-          {t('session')} {session.index}
+      renderValue={() => `${currentSession?.name || currentSession?.updatedAt}`}
+      onChange={(e) => setCurrentSessionId(e.target.value)}>
+      {(state.sessions || []).map((session) => (
+        <MenuItem key={session.id} value={session.id} data-testid="session-select-item">
+          {session.name || session.updatedAt}
         </MenuItem>
       ))}
       <MenuItem
@@ -569,12 +581,12 @@ function ChatModeForm({
 
   const [question, setQuestion] = useState('');
 
-  const currentSession = state.sessions.find((i) => i.index === state.currentSessionIndex);
+  const currentSession = state.sessions.find((i) => i.id === state.currentSessionId);
   const lastMessage = currentSession?.messages.at(-1);
 
   const submit = () => {
     if (lastMessage?.loading && currentSession) {
-      cancelMessage(currentSession.index, lastMessage.id);
+      cancelMessage(currentSession.id, lastMessage.id);
       return;
     }
 
@@ -585,7 +597,7 @@ function ChatModeForm({
     const promptAssistant = isPromptAssistant(assistant) ? assistant : undefined;
 
     sendMessage({
-      sessionIndex: state.currentSessionIndex!,
+      currentSessionId: currentSession?.id!,
       message: {
         type: 'chat',
         content: question,
@@ -673,7 +685,7 @@ function DebugModeForm({
     session: { user },
   } = useSessionContext();
 
-  const { state, sendMessage, setSession, cancelMessage } = useDebugState({
+  const { state, setSession, sendMessage, cancelMessage } = useDebugState({
     projectId,
     gitRef,
     assistantId: assistant.id,
@@ -686,7 +698,7 @@ function DebugModeForm({
     setExpanded(isExpanded ? panel : false);
   };
 
-  const currentSession = state.sessions.find((i) => i.index === state.currentSessionIndex);
+  const currentSession = state.sessions.find((i) => i.id === state.currentSessionId);
   const lastMessage = currentSession?.messages.at(-1);
 
   const parameters = sortBy(Object.values(assistant.parameters ?? {}), (i) => i.index)
@@ -721,12 +733,12 @@ function DebugModeForm({
     parameters = pick(parameters, params);
 
     if (lastMessage?.loading && currentSession) {
-      cancelMessage(currentSession.index, lastMessage.id);
+      cancelMessage(currentSession.id, lastMessage.id);
       return;
     }
 
     sendMessage({
-      sessionIndex: state.currentSessionIndex!,
+      currentSessionId: currentSession?.id!,
       message: {
         type: 'debug',
         projectId,
@@ -735,9 +747,7 @@ function DebugModeForm({
         parameters: { ...parameters, $clientTime: new Date().toISOString() },
       },
     });
-    setSession(state.currentSessionIndex!, (session) => {
-      session.debugForm = { ...parameters };
-    });
+    setSession(currentSession?.id!, (session) => (session.debugForm = { ...parameters }));
   };
 
   const addToTest = () => {

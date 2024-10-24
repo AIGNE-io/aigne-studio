@@ -109,6 +109,7 @@ const TestCaseView = forwardRef<
 
   const { newSession } = useDebugState({
     projectId,
+    gitRef,
     assistantId: assistant.id,
   });
 
