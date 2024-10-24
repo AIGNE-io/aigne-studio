@@ -26,6 +26,14 @@ export default function CustomComponentRenderer({
 
   return (
     <Box
+      onMouseMove={(e) => {
+        e.stopPropagation();
+        setTabId?.('id' in output ? output.id : output.name);
+      }}
+      onMouseLeave={(e) => {
+        e.stopPropagation();
+        setTabId?.('');
+      }}
       className={cx('ai-runtime-custom-component-renderer', (hovered || selected) && 'selected')}
       sx={{
         position: 'relative',
@@ -44,8 +52,6 @@ export default function CustomComponentRenderer({
       <Box ref={buttonRef} className="settings" sx={{ position: 'absolute', left: 4, top: 4 }}>
         <Tooltip title="Setup component">
           <Button
-            onMouseEnter={() => setTabId?.('id' in output ? output.id : output.name)}
-            onMouseLeave={() => setTabId?.('')}
             variant="contained"
             sx={{ minWidth: 32, minHeight: 32, p: 0 }}
             onClick={() => openSettings({ agentId: parseIdentity(aid, { rejectWhenError: true }).agentId, output })}>

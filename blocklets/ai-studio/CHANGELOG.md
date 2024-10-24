@@ -1,3 +1,7 @@
+## 0.4.99 (2024-10-24)
+
+- fix: hover tab show preview ui
+
 ## 0.4.98 (2024-10-24)
 
 - fix: test broken
