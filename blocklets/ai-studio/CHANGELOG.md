@@ -1,7 +1,15 @@
-## 0.4.96 (2024-10-24)
+## 0.4.98 (2024-10-24)
 
 - fix: test broken
 - fix: knowledge documents ui and add test
+
+## 0.4.97 (2024-10-24)
+
+- fix: set additionalProperties to false for json_schema mode
+
+## 0.4.96 (2024-10-24)
+
+- fix: strict json schema mode
 
 ## 0.4.95 (2024-10-23)
 
