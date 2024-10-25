@@ -137,7 +137,7 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
                             <Stack direction="row" alignItems="center" spacing={1}>
                               <DidAvatar did={window.blocklet.appId} size={20} src="" />
                               <Typography variant="subtitle2" noWrap>
-                                {t('noTemplatesAvailable')}
+                                {t('blankTemplate')}
                               </Typography>
                             </Stack>
                           );
@@ -165,7 +165,7 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
                         <DidAvatar did={window.blocklet.appId} size={40} src="" />
                         <Stack flex={1} width={1}>
                           <Typography variant="subtitle2" noWrap>
-                            {t('noTemplatesAvailable')}
+                            {t('blankTemplate')}
                           </Typography>
                         </Stack>
                       </Stack>

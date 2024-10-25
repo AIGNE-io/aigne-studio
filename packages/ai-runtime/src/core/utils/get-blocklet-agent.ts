@@ -37,7 +37,7 @@ export const buildInOpenAPI = {
           in: 'query',
           name: 'limit',
           schema: {
-            type: 'integer',
+            type: 'number',
           },
           description: 'Number of last messages to retrieve',
           'x-description-zh': '检索的消息的数目',
@@ -136,7 +136,7 @@ export const buildInOpenAPI = {
           in: 'query',
           required: false,
           schema: {
-            type: 'integer',
+            type: 'number',
             default: 10,
           },
           description: 'The number of results to return',
@@ -290,10 +290,11 @@ function convertSchemaToVariableType(schema: OpenAPIResponseSchema): any {
   switch (schema.type) {
     case 'string':
       return { type: 'string', defaultValue: '' };
+    case 'integer':
     case 'number':
-      return { type: 'number', defaultValue: 0 };
+      return { type: 'number', defaultValue: undefined };
     case 'boolean':
-      return { type: 'boolean', defaultValue: false };
+      return { type: 'boolean', defaultValue: undefined };
     case 'object':
       return {
         type: 'object',

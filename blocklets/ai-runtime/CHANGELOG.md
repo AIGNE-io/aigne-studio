@@ -1,3 +1,12 @@
+## 0.4.103 (2024-10-25)
+
+- fix: support integer parameter for open api
+
+## 0.4.102 (2024-10-25)
+
+- fix: full height view for chat layout
+- chore: persistent aigne banner visibility & ui improvements
+
 ## 0.4.101 (2024-10-25)
 
 - fix: auto open login dialog when running an agent

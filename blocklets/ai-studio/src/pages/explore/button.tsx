@@ -9,7 +9,6 @@ import Toast from '@arcblock/ux/lib/Toast';
 import { ProjectSettings, RuntimeErrorType } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import twitterIcon from '@iconify-icons/tabler/brand-twitter';
-import externalLinkIcon from '@iconify-icons/tabler/external-link';
 import linkIcon from '@iconify-icons/tabler/link';
 import { LoadingButtonProps } from '@mui/lab';
 import {
@@ -105,31 +104,27 @@ export function MakeYoursButton({ deployment, ...props }: { deployment: Deployme
   );
 }
 
+export function useShareUrl({ deployment }: { deployment: Deployment }) {
+  const { session } = useSessionContext();
+  const shareUrl = withQuery(joinURL(globalThis.location.origin, window.blocklet.prefix, '/apps', deployment.id), {
+    inviter: session.user?.did,
+  });
+  return { shareUrl };
+}
+
 export function ShareButton({ deployment, project }: { deployment: Deployment; project: ProjectSettings }) {
   const { t } = useLocaleContext();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const { session } = useSessionContext();
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => setAnchorEl(anchorEl ? null : event.currentTarget);
 
   const handleClose = () => setAnchorEl(null);
 
-  const shareUrl = withQuery(joinURL(globalThis.location.origin, window.blocklet.prefix, '/apps', deployment.id), {
-    inviter: session.user?.did,
-  });
+  const { shareUrl } = useShareUrl({ deployment });
 
   const open = Boolean(anchorEl);
 
   const shareOptions = [
-    {
-      testid: 'open-in-new-tab',
-      text: t('openInNewTab'),
-      icon: <Box component={Icon} icon={externalLinkIcon} sx={{ fontSize: 20 }} />,
-      handle: () => {
-        window.open(shareUrl, '_blank');
-        handleClose();
-      },
-    },
     {
       testid: 'copy-link',
       text: t('copyLink'),
@@ -159,13 +154,11 @@ export function ShareButton({ deployment, project }: { deployment: Deployment; p
       },
     },
   ];
-
   return (
     <>
       <Button variant="outlined" onClick={handleClick} data-testid="share-button">
         {t('share')}
       </Button>
-
       <Popper open={open} anchorEl={anchorEl} placement="bottom-start">
         <ClickAwayListener onClickAway={handleClose}>
           <Paper sx={{ mt: 1 }}>

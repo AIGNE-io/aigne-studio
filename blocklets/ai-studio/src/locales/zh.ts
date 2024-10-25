@@ -832,7 +832,7 @@ export default flatten({
   success: '成功',
   failed: '失败',
   makeOwnVersion: '制作自己的版本',
-  noTemplatesAvailable: '空模板',
+  blankTemplate: '空白模板',
   loginRequired: '要求登录',
   loginRequiredHelper: '用户需要登录后才能使用该 Agent',
   noLoginRequiredHelper: '用户无需登录即可使用该 Agent',
@@ -862,6 +862,9 @@ export default flatten({
     cronJobs: {
       desc: '定时任务功能仅在 Serverless AIGNE 中可用。请运行 Serverless AIGNE 以访问此功能。',
     },
+  },
+  pricingAndPlans: {
+    currentPlan: '当前套餐',
   },
   multiple: '多选',
   dropdown: '下拉选择',
