@@ -25,6 +25,7 @@ import CustomComponentRenderer from '../../components/CustomComponentRenderer/Cu
 import LoadingButton from '../../components/LoadingButton';
 import ScrollView from '../../components/ScrollView';
 import { AIGNEApiContextValue } from '../../contexts/Api';
+import { useDebugGlobal } from '../../contexts/Debug';
 import { useEntryAgent } from '../../contexts/EntryAgent';
 import { RuntimeProvider } from '../../contexts/Runtime';
 import { SessionProvider, useSession } from '../../contexts/Session';
@@ -35,12 +36,10 @@ export default function RuntimeDebug({
   aid,
   ApiProps,
   hideSessionsBar,
-  onOpenSettings,
 }: {
   aid: string;
   ApiProps?: Partial<AIGNEApiContextValue>;
   hideSessionsBar?: boolean;
-  onOpenSettings?: () => void;
 }) {
   const hostTheme = useTheme();
 
@@ -48,7 +47,7 @@ export default function RuntimeDebug({
     <RuntimeProvider aid={aid} working ApiProps={ApiProps}>
       {!hideSessionsBar && (
         <ThemeProvider theme={hostTheme}>
-          <SessionsBar onOpenSettings={onOpenSettings} />
+          <SessionsBar />
 
           <Divider />
         </ThemeProvider>
@@ -107,10 +106,12 @@ function AgentView() {
   );
 }
 
-function SessionsBar({ onOpenSettings }: { onOpenSettings?: () => void }) {
+function SessionsBar() {
   const { sessions, loaded, createSession, setCurrentSessionId, currentSessionId } = useSessions((s) =>
     pick(s, ['sessions', 'loaded', 'createSession', 'setCurrentSessionId', 'currentSessionId'])
   );
+
+  const setOpen = useDebugGlobal((s) => s.setOpen);
 
   const newSession = async () => {
     try {
@@ -169,7 +170,7 @@ function SessionsBar({ onOpenSettings }: { onOpenSettings?: () => void }) {
 
       <Box flex={1} />
 
-      <LoadingButton onClick={onOpenSettings} sx={{ minWidth: 32, minHeight: 32, p: 0 }}>
+      <LoadingButton onClick={() => setOpen?.(true)} sx={{ minWidth: 32, minHeight: 32, p: 0 }}>
         <Icon icon={SettingsIcon} fontSize={18} />
       </LoadingButton>
 

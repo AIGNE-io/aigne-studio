@@ -4,6 +4,7 @@ import { REMOTE_REACT_COMPONENT } from '@app/libs/constants';
 import { useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { parseIdentity } from '@blocklet/ai-runtime/common/aid';
+import { DebugGlobalProvider } from '@blocklet/ai-runtime/front/contexts/Debug';
 import {
   OutputVariable,
   OutputVariableYjs,
@@ -340,7 +341,9 @@ function PageComponentPreviewer({
             </Box>
           }>
           <PreviewerContent>
-            <RuntimeDebug hideSessionsBar aid={aid} ApiProps={apiProps} />
+            <DebugGlobalProvider>
+              <RuntimeDebug hideSessionsBar aid={aid} ApiProps={apiProps} />
+            </DebugGlobalProvider>
           </PreviewerContent>
         </Suspense>
       </ErrorBoundary>

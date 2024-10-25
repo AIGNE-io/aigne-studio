@@ -3,7 +3,7 @@ import { cx } from '@emotion/css';
 import SettingsIcon from '@iconify-icons/tabler/settings';
 import { Icon } from '@iconify/react';
 import { Box, Button, Tooltip } from '@mui/material';
-import { ComponentProps, useRef } from 'react';
+import { ComponentProps } from 'react';
 
 import { parseIdentity } from '../../../common/aid';
 import { RuntimeOutputVariable } from '../../../types';

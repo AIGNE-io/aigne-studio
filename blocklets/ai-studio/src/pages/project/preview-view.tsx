@@ -4,7 +4,12 @@ import { useCurrentProject } from '@app/contexts/project';
 import { agentViewTheme } from '@app/theme/agent-view-theme';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
-import { DebugProvider, useDebug } from '@blocklet/ai-runtime/front/contexts/Debug';
+import {
+  DebugGlobalProvider,
+  DebugProvider,
+  useDebug,
+  useDebugGlobal,
+} from '@blocklet/ai-runtime/front/contexts/Debug';
 import { AssistantYjs, RuntimeOutputVariable, fileFromYjs, isAssistant } from '@blocklet/ai-runtime/types';
 import { RuntimeDebug, getAgent } from '@blocklet/aigne-sdk/components/ai-runtime';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
@@ -25,7 +30,7 @@ import {
 } from '@mui/material';
 import sortBy from 'lodash/sortBy';
 import { nanoid } from 'nanoid';
-import React, { ComponentProps, ReactNode, useCallback, useEffect, useState } from 'react';
+import React, { ComponentProps, ReactNode, useCallback, useEffect } from 'react';
 
 import { useProjectStore } from './yjs-state';
 
@@ -33,7 +38,6 @@ export default function PreviewView(props: { projectId: string; gitRef: string; 
   const { projectId, gitRef, assistant } = props;
   const { projectSetting, getFileById } = useProjectStore(projectId, gitRef);
   const aid = stringifyIdentity({ projectId, projectRef: gitRef, agentId: assistant.id });
-  const [open, setOpen] = useState(false);
 
   const getAgentYjs: NonNullable<ComponentProps<typeof RuntimeDebug>['ApiProps']>['getAgent'] = async ({ aid }) => {
     const identity = parseIdentity(aid, { rejectWhenError: true });
@@ -87,33 +91,23 @@ export default function PreviewView(props: { projectId: string; gitRef: string; 
   }, []);
 
   return (
-    <>
+    <DebugGlobalProvider>
       <ThemeProvider theme={agentViewTheme}>
         <Stack sx={{ overflowY: 'auto', flex: 1 }}>
-          <RuntimeDebug aid={aid} ApiProps={{ getAgent: getAgentYjs }} onOpenSettings={() => setOpen(true)} />
+          <RuntimeDebug aid={aid} ApiProps={{ getAgent: getAgentYjs }} />
         </Stack>
       </ThemeProvider>
 
       <DebugProvider openSettings={openSettings}>
-        <SettingsDialog open={open} setOpen={setOpen} agentId={assistant.id}>
+        <SettingsDialog agentId={assistant.id}>
           <RuntimeDebug hideSessionsBar aid={aid} ApiProps={{ getAgent: getAgentYjs }} />
         </SettingsDialog>
       </DebugProvider>
-    </>
+    </DebugGlobalProvider>
   );
 }
 
-function SettingsDialog({
-  open,
-  setOpen,
-  children,
-  agentId,
-}: {
-  open: boolean;
-  setOpen: any;
-  agentId: string;
-  children?: ReactNode;
-}) {
+function SettingsDialog({ children, agentId }: { agentId: string; children?: ReactNode }) {
   const { t } = useLocaleContext();
   const isOpen = useDebug((s) => s.agentId);
   const close = useDebug((s) => s.close);
@@ -123,6 +117,8 @@ function SettingsDialog({
   const { getFileById } = useProjectStore(projectId, projectRef);
 
   const agent = getFileById(agentId);
+  const open = useDebugGlobal((s) => s.open);
+  const setOpen = useDebugGlobal((s) => s.setOpen);
 
   useEffect(() => {
     if (open) {
@@ -139,7 +135,7 @@ function SettingsDialog({
 
   const onClose = () => {
     close?.();
-    setOpen();
+    setOpen?.(false);
   };
 
   return (
@@ -187,7 +183,7 @@ function AgentAppearanceSettings({ children }: { children?: ReactNode }) {
   return (
     <Stack direction="row" height="100%">
       <Box py={2}>
-        <Box sx={{ fontSize: 18, fontWeight: 'bold', mx: 'auto', textAlign: 'center', px: 3 }}>
+        <Box sx={{ fontSize: 18, fontWeight: 'bold', mx: 'auto', textAlign: 'center', px: 3, pb: 2 }}>
           {agent?.name || t('unnamed')}
         </Box>
 

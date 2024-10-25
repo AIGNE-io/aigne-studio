@@ -72,3 +72,33 @@ export function useDebug<U>(selector: (state: DebugContextValue) => U): U | unde
 
   return ctx(selector);
 }
+
+export interface DebugGlobalContextValue {
+  open?: boolean;
+  setOpen?: (open: boolean) => void;
+}
+
+const debugGlobalContext = createContext<UseBoundStore<StoreApi<DebugGlobalContextValue>> | null>(null);
+
+export function DebugGlobalProvider({ children }: { children?: React.ReactNode }) {
+  const [state] = useState(() =>
+    create(
+      immer<DebugGlobalContextValue>((set) => ({
+        setOpen: (open) => {
+          set((state) => {
+            state.open = open;
+          });
+        },
+      }))
+    )
+  );
+
+  return <debugGlobalContext.Provider value={state}>{children}</debugGlobalContext.Provider>;
+}
+
+export function useDebugGlobal<U>(selector: (state: DebugGlobalContextValue) => U): U | undefined {
+  const ctx = useContext(debugGlobalContext);
+  if (!ctx) return undefined;
+
+  return ctx(selector);
+}
