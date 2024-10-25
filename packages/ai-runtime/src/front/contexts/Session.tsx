@@ -1,4 +1,4 @@
-import { ReactNode, createContext, useContext, useEffect, useMemo } from 'react';
+import { ReactNode, createContext, useCallback, useContext, useEffect, useMemo } from 'react';
 import { StoreApi, UseBoundStore, create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { useShallow } from 'zustand/react/shallow';
@@ -6,7 +6,10 @@ import { useShallow } from 'zustand/react/shallow';
 import { parseIdentity } from '../../common/aid';
 import { Message } from '../api/message';
 import { Session } from '../api/session';
+import { useSessionContext } from '../utils/session';
+import { useAgent } from './Agent';
 import { AIGNEApiContextValue, useAIGNEApi } from './Api';
+import { useCurrentAgent } from './CurrentAgent';
 import { useEntryAgent } from './EntryAgent';
 
 const GET_MESSAGES_LIMIT = 100;
@@ -293,4 +296,30 @@ export function useSession<U>(selector: (state: SessionContextValue) => U): U {
   if (!state) throw new Error('No such session context. You should use `useSession` within the `SessionProvider`');
 
   return state(useShallow(selector));
+}
+
+export function useRunAgentWithLogin() {
+  const { session: authSession } = useSessionContext();
+  const { aid } = useCurrentAgent();
+  const agent = useAgent({ aid });
+
+  const login = useCallback(async () => {
+    await new Promise<void>((resolve) => {
+      authSession.login(() => resolve());
+    });
+  }, [authSession]);
+
+  const exec = useSession((s) => s.runAgent);
+
+  const runAgent: typeof exec = useCallback(
+    async (...args) => {
+      if (!agent.access?.noLoginRequired && !authSession.user) {
+        await login();
+      }
+      return exec(...args);
+    },
+    [agent.access?.noLoginRequired, authSession.user, exec, login]
+  );
+
+  return runAgent;
 }
