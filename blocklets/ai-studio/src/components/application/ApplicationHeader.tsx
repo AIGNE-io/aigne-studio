@@ -12,7 +12,9 @@ export default function ApplicationHeader({ application }: { application?: Agent
   const { addons, add: addHeader, delete: deleteHeader } = useHeaderState();
 
   useEffect(() => {
-    const creator: HeaderWidgetCreator = () => ({ addons: (exists) => [<PlanUpgradeButton />, ...exists] });
+    const creator: HeaderWidgetCreator = () => ({
+      addons: (exists) => [<PlanUpgradeButton />, ...exists],
+    });
 
     addHeader(creator);
 

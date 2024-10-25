@@ -20,18 +20,15 @@ export default function CustomComponentRenderer({
   const selected = useDebug((s) => 'id' in output && output.id === s.outputId);
   const hovered = useDebug((s) => 'id' in output && output.id === s.hoverOutputId);
   const setTabId = useDebug((s) => s.setTabId);
-  const buttonRef = useRef<HTMLDivElement>(null);
 
   if (!openSettings) return <CustomComponentRendererOriginal {...props} />;
 
   return (
     <Box
-      onMouseMove={(e) => {
-        e.stopPropagation();
+      onMouseMove={() => {
         setTabId?.('id' in output ? output.id : output.name);
       }}
-      onMouseLeave={(e) => {
-        e.stopPropagation();
+      onMouseLeave={() => {
         setTabId?.('');
       }}
       className={cx('ai-runtime-custom-component-renderer', (hovered || selected) && 'selected')}
@@ -49,7 +46,7 @@ export default function CustomComponentRenderer({
       }}>
       <CustomComponentRendererOriginal {...props} />
 
-      <Box ref={buttonRef} className="settings" sx={{ position: 'absolute', left: 4, top: 4 }}>
+      <Box className="settings" sx={{ position: 'absolute', left: 4, top: 4 }}>
         <Tooltip title="Setup component">
           <Button
             variant="contained"

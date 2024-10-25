@@ -41,12 +41,12 @@ const recommendSchema = paginationSchema.concat(
 );
 
 const updateSchema = Joi.object({
-  access: Joi.string().valid('private', 'public').required(),
-  categories: Joi.array().items(Joi.string()).optional(),
+  access: Joi.string().valid('private', 'public').optional(),
   orderIndex: Joi.number().integer().empty(null).optional(),
   productHuntUrl: Joi.string().allow('').empty([null, '']).optional(),
   productHuntBannerUrl: Joi.string().allow('').empty([null, '']).optional(),
-});
+  aigneBannerVisible: Joi.boolean().optional(),
+}).min(1);
 
 const getByIdSchema = Joi.object({
   projectId: Joi.string().required(),
@@ -302,20 +302,16 @@ router.get('/:deploymentId', user(), async (req, res) => {
   });
 });
 
-router.put('/:id', user(), auth(), async (req, res) => {
+router.patch('/:id', user(), auth(), async (req, res) => {
   const found = await Deployment.findByPk(req.params.id!);
   if (!found) {
     res.status(404).json({ message: 'deployment not found' });
     return;
   }
-
   checkUserAuth(req, res)({ userId: found.createdBy });
-
-  const { access } = await updateSchema.validateAsync(req.body, { stripUnknown: true });
-
-  await Deployment.update({ access }, { where: { id: req.params.id! } });
-
-  res.json(await Deployment.findByPk(req.params.id!));
+  const input = await updateSchema.validateAsync(req.body, { stripUnknown: true });
+  const updated = await found.update(input, { where: { id: req.params.id! } });
+  res.json(updated);
 });
 
 router.delete('/:id', user(), auth(), async (req, res) => {
@@ -400,7 +396,14 @@ export const checkDeployment = async (req: Request, res: Response, next: NextFun
 };
 
 export function adminDeploymentRouter(router: Router) {
-  router.put('/:id', user(), ensurePromptsAdmin, async (req, res) => {
+  const updateSchema = Joi.object({
+    categories: Joi.array().items(Joi.string()).optional(),
+    orderIndex: Joi.number().integer().empty(null).optional(),
+    productHuntUrl: Joi.string().allow('').empty([null, '']).optional(),
+    productHuntBannerUrl: Joi.string().allow('').empty([null, '']).optional(),
+  }).min(1);
+
+  router.patch('/:id', user(), ensurePromptsAdmin, async (req, res) => {
     const { did: userId } = req.user!;
 
     const found = await Deployment.findByPk(req.params.id!);
@@ -414,7 +417,10 @@ export function adminDeploymentRouter(router: Router) {
       { stripUnknown: true }
     );
 
-    await Deployment.update({ productHuntUrl, productHuntBannerUrl, orderIndex }, { where: { id: req.params.id! } });
+    const updated = await found.update(
+      { productHuntUrl, productHuntBannerUrl, orderIndex },
+      { where: { id: req.params.id! } }
+    );
 
     if (categories) {
       await DeploymentCategory.destroy({ where: { deploymentId: req.params.id! } });
@@ -431,7 +437,7 @@ export function adminDeploymentRouter(router: Router) {
       }
     }
 
-    res.json(await Deployment.findByPk(req.params.id!));
+    res.json(updated);
   });
 
   return router;
