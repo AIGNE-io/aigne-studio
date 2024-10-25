@@ -1,7 +1,7 @@
 import DidConnect from '@arcblock/did-connect/lib/Connect';
 import VerifiedIcon from '@iconify-icons/tabler/discount-check';
 import { Icon } from '@iconify/react';
-import { Box, Button } from '@mui/material';
+import { Box, Button, FormHelperText } from '@mui/material';
 import axios from 'axios';
 import { useMemo, useRef, useState } from 'react';
 
@@ -62,6 +62,8 @@ export default function VerifyVC({
         endIcon={verified ? <Box component={Icon} icon={VerifiedIcon} color="success.main" /> : undefined}>
         {verified ? parameter.buttonTitleVerified || 'Verify Succeed' : parameter.buttonTitle || 'Verify VC'}
       </Button>
+
+      {parameter.placeholder && <FormHelperText>{parameter.placeholder}</FormHelperText>}
 
       <DidConnect
         popup

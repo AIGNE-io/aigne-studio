@@ -1,8 +1,11 @@
 import { getAgent } from '@api/libs/agent';
 import { verifyPresentation } from '@arcblock/vc';
+import { VerifyVCParameter } from '@blocklet/ai-runtime/types';
 import Joi from 'joi';
 
 import { wallet } from '../../libs/auth';
+
+const CURRENT_APPLICATION_ISSUER = 'current_application';
 
 const verifyVCExtraParamsSchema = Joi.object<{
   aid: string;
@@ -22,6 +25,10 @@ async function getVerifyVCInput(extraParams: any) {
   return input;
 }
 
+function getTrustedIssuers(input: VerifyVCParameter) {
+  return [wallet.address, ...(input.vcTrustedIssuers ?? []).filter((i) => i !== CURRENT_APPLICATION_ISSUER)];
+}
+
 export default {
   action: 'verify-vc',
   claims: {
@@ -31,7 +38,7 @@ export default {
       return {
         description: 'Please provide your blocklet purchase NFT',
         item: input.vcItem ?? [],
-        trustedIssuers: [wallet.address, ...(input.vcTrustedIssuers ?? [])],
+        trustedIssuers: getTrustedIssuers(input),
       };
     },
   },
@@ -45,7 +52,7 @@ export default {
 
     verifyPresentation({
       presentation,
-      trustedIssuers: [wallet.address, ...(input.vcTrustedIssuers ?? [])],
+      trustedIssuers: getTrustedIssuers(input),
       challenge,
     });
 
