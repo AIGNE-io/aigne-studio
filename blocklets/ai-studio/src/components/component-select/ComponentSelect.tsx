@@ -1,5 +1,6 @@
 import { getComponents } from '@app/libs/components';
 import { REMOTE_REACT_COMPONENT } from '@app/libs/constants';
+import { getOptimizedImageAbsUrl } from '@app/libs/media';
 import Empty from '@arcblock/ux/lib/Empty';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { OutputVariableYjs, RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
@@ -266,7 +267,7 @@ function ComponentPreviewImagePreviewer({
           <Box
             component="img"
             sx={{ width: '100%', height: '100%', objectFit: 'contain' }}
-            src={previewImage}
+            src={getOptimizedImageAbsUrl(previewImage)}
             alt={name}
           />
         ) : (
