@@ -24,7 +24,7 @@ import AgentInputField from '../../components/AgentInputField';
 import LoadingButton from '../../components/LoadingButton';
 import { useAgent } from '../../contexts/Agent';
 import { useCurrentAgent } from '../../contexts/CurrentAgent';
-import { useSession } from '../../contexts/Session';
+import { useRunAgentWithLogin, useSession } from '../../contexts/Session';
 import { useSessions } from '../../contexts/Sessions';
 import { useOpeningQuestions } from '../../hooks/use-appearances';
 import { isValidInput } from '../../utils/agent-inputs';
@@ -48,7 +48,7 @@ export default function V0Input({
   const agent = useAgent({ aid });
   const [executeLoading, setExecuteLoading] = useState(false);
   const opening = useOpeningQuestions();
-  const runAgent = useSession((s) => s.runAgent);
+  const runAgent = useRunAgentWithLogin();
   const running = useSession((s) => s.running);
   const currentSessionId = useSessions((s) => s.currentSessionId);
   const { setCurrentMessageTaskId } = useV0RuntimeContext();
