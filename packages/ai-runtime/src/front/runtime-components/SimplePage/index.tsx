@@ -61,6 +61,7 @@ function HeaderView(props: StackProps) {
 }
 
 function OutputView({ resultTitle, ...props }: { resultTitle?: string } & StackProps) {
+  const error = useSession((s) => s.error);
   const lastMessage = useSession((s) => s.messages?.at(0));
 
   return (
@@ -78,6 +79,8 @@ function OutputView({ resultTitle, ...props }: { resultTitle?: string } & StackP
           </Stack>
         </>
       )}
+
+      {error && <AgentErrorView error={error} />}
     </Stack>
   );
 }

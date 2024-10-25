@@ -26,7 +26,7 @@ export default function ScrollView({
   // Skip scroll view if we are in a scroll view
   if (ctx) {
     return (
-      <Box component={component} {...props}>
+      <Box component={component} flexGrow={1} {...props}>
         {children}
       </Box>
     );
