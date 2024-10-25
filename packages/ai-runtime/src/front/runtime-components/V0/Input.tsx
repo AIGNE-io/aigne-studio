@@ -173,7 +173,6 @@ export default function V0Input({
                       {parameter.label && <FormLabel>{parameter.label}</FormLabel>}
 
                       <AgentInputField
-                        aid={aid}
                         inputRef={field.ref}
                         autoFocus={index === 0}
                         size="small"

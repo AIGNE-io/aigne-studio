@@ -3,13 +3,13 @@ import ErrorBoundary from '@app/components/error/error-boundary';
 import LoadingButton from '@app/components/loading/loading-button';
 import MdViewer from '@app/components/md-viewer';
 import BasicTree from '@app/components/trace';
+import { useDebugAIGNEApiProps } from '@app/contexts/debug';
 import { getProjectIconUrl } from '@app/libs/project';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ImagePreview } from '@blocklet/ai-kit/components';
 import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { ParameterField } from '@blocklet/ai-runtime/components';
-import { CurrentAgentProvider } from '@blocklet/ai-runtime/front';
-import { EntryAgentProvider } from '@blocklet/ai-runtime/front/contexts/EntryAgent';
+import { CurrentAgentProvider, RuntimeProvider } from '@blocklet/ai-runtime/front';
 import {
   AssistantYjs,
   Role,
@@ -758,8 +758,10 @@ function DebugModeForm({
 
   const aid = stringifyIdentity({ projectId, projectRef: gitRef, agentId: assistant.id });
 
+  const apiProps = useDebugAIGNEApiProps();
+
   return (
-    <EntryAgentProvider aid={aid} working>
+    <RuntimeProvider aid={aid} working ApiProps={apiProps}>
       <CurrentAgentProvider aid={aid}>
         <Stack component="form" onSubmit={form.handleSubmit(submit)} gap={1}>
           {!!parameters.length && (
@@ -891,7 +893,7 @@ function DebugModeForm({
           </Stack>
         </Stack>
       </CurrentAgentProvider>
-    </EntryAgentProvider>
+    </RuntimeProvider>
   );
 }
 

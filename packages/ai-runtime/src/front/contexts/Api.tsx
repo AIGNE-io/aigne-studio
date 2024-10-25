@@ -55,7 +55,7 @@ export const AIGNEApiProvider = ({
 
 export const useAIGNEApi = () => {
   const ctx = useContext(aigneApiContext);
-  if (!ctx) throw new Error('No such agent context. You should use `useAgent` within the `AgentProvider`');
+  if (!ctx) throw new Error('No such agent context. You should use `useAIGNEApi` within the `AIGNEApiProvider`');
 
   return ctx;
 };

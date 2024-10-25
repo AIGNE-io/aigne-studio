@@ -14,11 +14,9 @@ import StringField from './StringField';
 import VerifyVC from './VerifyVC';
 
 export default function AgentInputField({
-  aid,
   parameter,
   ...props
 }: {
-  aid: string;
   readOnly?: boolean;
   parameter: Parameter;
   onChange: (value: string | number | undefined) => void;
@@ -90,7 +88,6 @@ export default function AgentInputField({
 
   return (
     <Field
-      aid={aid}
       parameter={parameter}
       label={parameter?.label}
       helperText={parameter?.helper}

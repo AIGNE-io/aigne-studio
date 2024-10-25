@@ -1,7 +1,6 @@
 import { TextFieldProps } from '@mui/material';
 
 import UploaderProvider from '../../context/uploader';
-import { useCurrentAgent } from '../../front';
 import VerifyVC from '../../front/components/AgentInputField/VerifyVC';
 import { Parameter } from '../../types/assistant';
 import BooleanField from './BooleanField';
@@ -19,8 +18,6 @@ export default function ParameterField({
   parameter: Parameter;
   onChange: (value: string | number | undefined) => void;
 } & Omit<TextFieldProps, 'onChange'>) {
-  const aid = useCurrentAgent({ optional: true })?.aid;
-
   if (parameter.type === 'source') {
     if (parameter.source?.variableFrom === 'secret') {
       return (
@@ -55,11 +52,11 @@ export default function ParameterField({
       select: SelectField,
       language: LanguageField,
       boolean: BooleanField,
-      verify_vc: aid ? VerifyVC : undefined,
+      verify_vc: VerifyVC,
     } as any
   )[parameter.key === 'question' ? 'string' : parameter.type || 'string'];
 
   if (!Field) return null;
 
-  return <Field aid={aid} parameter={parameter} data-testid="parameter-field" {...({ parameter } as any)} {...props} />;
+  return <Field parameter={parameter} data-testid="parameter-field" {...({ parameter } as any)} {...props} />;
 }
