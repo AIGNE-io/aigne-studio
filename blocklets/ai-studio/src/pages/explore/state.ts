@@ -1,8 +1,7 @@
-import { Deployment, getDeploymentsByCategorySlug } from '@app/libs/deployment';
-import { getProjectStats } from '@app/libs/project';
+import { Deployment, ProjectStatsItem, getDeploymentsByCategorySlug } from '@app/libs/deployment';
 import { ProjectSettings } from '@blocklet/ai-runtime/types';
 import { useInfiniteScroll } from 'ahooks';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect } from 'react';
 import useInfiniteScrollHook from 'react-infinite-scroll-hook';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 import { create } from 'zustand';
@@ -12,14 +11,20 @@ import { Category, getCategories } from '../../libs/category';
 interface DeploymentState {
   deployments: Record<
     string,
-    { list: (Deployment & { project: ProjectSettings })[]; next: boolean; size: number; page: number; total: number }
+    {
+      list: (Deployment & { project: ProjectSettings; stats: ProjectStatsItem })[];
+      next: boolean;
+      size: number;
+      page: number;
+      total: number;
+    }
   >;
   fetchDeployments: (
     categorySlug: string,
     page: number,
     size: number
   ) => Promise<{
-    list: (Deployment & { project: ProjectSettings })[];
+    list: (Deployment & { project: ProjectSettings; stats: ProjectStatsItem })[];
     next: boolean;
     size: number;
     page: number;
@@ -145,32 +150,4 @@ export const useFetchDeployments = (categorySlug?: string) => {
   });
 
   return { loadingRef, dataState, currentDeploymentState };
-};
-
-type ProjectStatsItem = { id: string; totalRuns: number; totalUsers: number };
-
-export const useProjectStats = (projectIds: string[]) => {
-  const [statsList, setStatsList] = useState<ProjectStatsItem[]>([]);
-  const statsMap = useMemo(
-    () => statsList.reduce((acc, i) => ({ ...acc, [i.id]: i }), {} as Record<string, ProjectStatsItem>),
-    [statsList]
-  );
-
-  const fetchStats = useCallback(async () => {
-    if (projectIds.length === 0) return;
-    const idsToFetch = projectIds.filter((id) => !statsMap[id]);
-    if (idsToFetch.length === 0) return;
-    try {
-      const result = await getProjectStats(idsToFetch);
-      setStatsList((prevStats) => [...prevStats, ...result]);
-    } catch (error) {
-      console.error('Failed to fetch project stats:', error);
-    }
-  }, [projectIds, statsMap]);
-
-  useEffect(() => {
-    fetchStats();
-  }, [fetchStats, projectIds]);
-
-  return { stats: statsMap };
 };

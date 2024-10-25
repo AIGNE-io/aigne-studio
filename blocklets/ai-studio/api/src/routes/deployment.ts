@@ -1,5 +1,5 @@
 import { NoSuchEntryAgentError } from '@api/libs/error';
-import { getAgentSecretInputs } from '@api/libs/runtime';
+import { getAgentSecretInputs, getProjectStatsFromRuntime } from '@api/libs/runtime';
 import { ensurePromptsAdmin } from '@api/libs/security';
 import Project from '@api/store/models/project';
 import { PROJECT_FILE_PATH, ProjectRepo, getEntryFromRepository, getRepository } from '@api/store/repository';
@@ -210,6 +210,8 @@ router.get('/categories/:categorySlug', async (req, res) => {
     distinct: true,
   });
 
+  const stats = await getProjectStatsFromRuntime({ projectIds: rows.map((d) => d.projectId) });
+  const statsMap = new Map(stats.map((s) => [s.projectId, s]));
   const enhancedDeployments = await Promise.all(
     rows.map(async (deployment) => {
       const repository = await getRepository({ projectId: deployment.projectId });
@@ -219,7 +221,7 @@ router.get('/categories/:categorySlug', async (req, res) => {
         readBlobFromGitIfWorkingNotInitialized: true,
       });
 
-      return { ...deployment.dataValues, project };
+      return { ...deployment.dataValues, project, stats: statsMap.get(deployment.projectId) };
     })
   );
 

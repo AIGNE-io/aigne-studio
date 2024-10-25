@@ -13,10 +13,10 @@ export function projectRoutes(router: Router) {
     const { projectIds } = await getProjectStatsSchema.validateAsync(req.body, { stripUnknown: true });
     const users = await Session.countUniqueUsersPerProject(projectIds);
     const runs = await History.countRunsPerProject(projectIds);
-    const result = projectIds.map((id) => ({
-      id,
-      totalRuns: runs[id] || 0,
-      totalUsers: users[id] || 0,
+    const result = projectIds.map((projectId) => ({
+      projectId,
+      totalRuns: runs[projectId] || 0,
+      totalUsers: users[projectId] || 0,
     }));
     res.json(result);
   });

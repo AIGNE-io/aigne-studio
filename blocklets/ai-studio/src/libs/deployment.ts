@@ -20,6 +20,8 @@ export type Deployment = {
   aigneBannerVisible?: boolean;
 };
 
+export type ProjectStatsItem = { projectId: string; totalRuns: number; totalUsers: number };
+
 export type UpdateType = {
   access?: 'private' | 'public';
   categories?: string[];
@@ -60,7 +62,7 @@ export async function getDeploymentsByCategorySlug(input: {
   page: number;
   pageSize: number;
 }): Promise<{
-  list: (Deployment & { project: ProjectSettings })[];
+  list: (Deployment & { project: ProjectSettings; stats: ProjectStatsItem })[];
   totalCount: number;
 }> {
   const { categorySlug, page, pageSize } = input;

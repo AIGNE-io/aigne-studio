@@ -3,7 +3,7 @@ import 'swiper/css/navigation';
 
 import { useSessionContext } from '@app/contexts/session';
 import { Category } from '@app/libs/category';
-import { Deployment } from '@app/libs/deployment';
+import { Deployment, ProjectStatsItem } from '@app/libs/deployment';
 import { getProjectIconUrl } from '@app/libs/project';
 import Empty from '@app/pages/project/icons/empty';
 import Avatar from '@arcblock/did-connect/lib/Avatar';
@@ -17,22 +17,22 @@ import { useOutletContext, useParams } from 'react-router-dom';
 import { joinURL, withQuery } from 'ufo';
 
 import { MobileSidebarHeader } from './layout';
-import { useFetchDeployments, useProjectStats } from './state';
+import { useFetchDeployments } from './state';
 
 function CategoryCard({
   deployment,
   project,
-  totalRuns,
-  totalUsers,
+  stats,
 }: {
   deployment: Deployment;
   project: ProjectSettings;
-  totalRuns: number;
-  totalUsers: number;
+  stats: ProjectStatsItem;
 }) {
   const { t } = useLocaleContext();
   const icon = getProjectIconUrl(deployment.projectId, { updatedAt: project.updatedAt });
   const { session } = useSessionContext();
+  const totalUsers = stats?.totalUsers || 0;
+  const totalRuns = stats?.totalRuns || 0;
   return (
     <Stack
       component="a"
@@ -110,11 +110,15 @@ function CategoryCard({
           <span>wangqi</span>
         </Box>
         <Box sx={{ display: 'flex', gap: 3, fontSize: 12, color: 'text.secondary' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box
+            sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+            title={`This project has been used by ${totalUsers} users`}>
             <Box component={Icon} icon={UserIcon} sx={{ fontSize: 14 }} />
             <span>{totalUsers}</span>
           </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box
+            sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+            title={`This project has been executed ${totalRuns} times in total`}>
             <Box component={Icon} icon={PlayIcon} sx={{ fontSize: 13 }} />
             <span>{totalRuns}</span>
           </Box>
@@ -130,7 +134,6 @@ function CategoryList() {
   const { loadingRef, dataState, currentDeploymentState } = useFetchDeployments(params.categorySlug);
   const { categories } = useOutletContext<{ categories: Category[] }>();
   const deployments = currentDeploymentState?.list || [];
-  const { stats } = useProjectStats(deployments.map((i) => i.projectId));
   const { t } = useLocaleContext();
 
   return (
@@ -156,12 +159,7 @@ function CategoryList() {
                   width: { xs: 1, md: 1 / 2, lg: 1 / 3 },
                   p: 1.5,
                 }}>
-                <CategoryCard
-                  deployment={deployment}
-                  project={deployment.project}
-                  totalRuns={stats?.[deployment.projectId]?.totalRuns || 0}
-                  totalUsers={stats?.[deployment.projectId]?.totalUsers || 0}
-                />
+                <CategoryCard deployment={deployment} project={deployment.project} stats={deployment.stats} />
               </Box>
             ))}
           </Box>
