@@ -10,7 +10,7 @@ import { useState } from 'react';
 
 import AigneLogo from '../aigne-logo';
 import PopperMenu from '../menu/PopperMenu';
-import { useMultiTenantRestriction } from './state';
+import { premiumPlanEnabled, useMultiTenantRestriction } from './state';
 
 interface Props {
   deployment?: Deployment;
@@ -19,7 +19,7 @@ interface Props {
 
 export function MultiTenantBrandGuard({ deployment, project, sx, children, ...rest }: Props & BoxProps) {
   const { quotaChecker } = useMultiTenantRestriction();
-  const [brandBarRemoved, setBrandBarRemoved] = useState(false);
+  const [brandBarRemoved, setBrandBarRemoved] = useState(!premiumPlanEnabled);
   const bottomHeight = 64;
   const mergedSx = [
     {
