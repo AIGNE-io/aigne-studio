@@ -16,7 +16,7 @@ import LoadingButton from '../../components/LoadingButton';
 import { useAgent } from '../../contexts/Agent';
 import { useComponentPreferences } from '../../contexts/ComponentPreferences';
 import { useCurrentAgent } from '../../contexts/CurrentAgent';
-import { useSession } from '../../contexts/Session';
+import { useRunAgentWithLogin, useSession } from '../../contexts/Session';
 import { isValidInput } from '../../utils/agent-inputs';
 
 export default function AutoForm({
@@ -43,7 +43,8 @@ export default function AutoForm({
   const { aid } = useCurrentAgent();
   const agent = useAgent({ aid });
 
-  const { running, runAgent: execute } = useSession((s) => ({ running: s.running, runAgent: s.runAgent }));
+  const { running } = useSession((s) => ({ running: s.running }));
+  const runAgent = useRunAgentWithLogin();
 
   const parameters = useMemo(
     () =>
@@ -218,7 +219,7 @@ export default function AutoForm({
 
   const onSubmit = async (parameters: any) => {
     submitRef.current?.scrollIntoView({ block: 'center' });
-    await execute({
+    await runAgent({
       aid,
       parameters,
       onResponseStart: () => {

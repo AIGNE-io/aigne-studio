@@ -216,11 +216,11 @@
                     "quotas": [
                       {
                         "passport": "",
-                        "value": 100
+                        "value": 9999999999
                       },
                       {
                         "passport": "aignePremium",
-                        "value": 1000
+                        "value": 9999999999
                       }
                     ]
                   }
@@ -392,10 +392,36 @@
                 }
               }
             }
+          },
+          "9zmp5p7ws4d": {
+            "type": "void",
+            "x-component": "FormTab.TabPane",
+            "x-component-props": {
+              "tab": "Plans and pricing"
+            },
+            "x-designable-id": "9zmp5p7ws4d",
+            "properties": {
+              "premiumPlanEnabled": {
+                "type": "boolean",
+                "title": "Enable Premium Plan",
+                "x-decorator": "FormItem",
+                "x-component": "Switch",
+                "x-validator": [],
+                "x-component-props": {},
+                "x-decorator-props": {
+                  "labelAlign": "left"
+                },
+                "name": "premiumPlanEnabled",
+                "default": false,
+                "x-designable-id": "sl1lc1zp8gn",
+                "x-index": 0
+              }
+            },
+            "x-index": 2
           }
         }
       }
     },
-    "x-designable-id": "n8hipjf4bok"
+    "x-designable-id": "61dbyjhlytg"
   }
 }
