@@ -5,6 +5,7 @@ import { ParameterYjs, parameterFromYjs } from '@blocklet/ai-runtime/types';
 import {
   Autocomplete,
   Box,
+  Chip,
   FormControl,
   FormControlLabel,
   MenuItem,
@@ -15,6 +16,8 @@ import {
 
 import NumberField from './number-field';
 import SelectOptionsConfig from './select-options-config';
+
+const fixedTrustedIssuers = ['current_application'];
 
 export default function ParameterConfig({ readOnly, value }: { readOnly?: boolean; value: ParameterYjs }) {
   const { t } = useLocaleContext();
@@ -114,6 +117,30 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
       {value.type === 'verify_vc' && (
         <>
           <Box>
+            <Typography variant="subtitle2">{t('buttonTitle')}</Typography>
+            <TextField
+              fullWidth
+              hiddenLabel
+              placeholder="Verify VC"
+              value={value.buttonTitle || ''}
+              onChange={(e) => (value.buttonTitle = e.target.value)}
+              InputProps={{ readOnly }}
+            />
+          </Box>
+
+          <Box>
+            <Typography variant="subtitle2">{t('buttonTitleVerified')}</Typography>
+            <TextField
+              fullWidth
+              hiddenLabel
+              placeholder="Verify VC Succeed"
+              value={value.buttonTitleVerified || ''}
+              onChange={(e) => (value.buttonTitleVerified = e.target.value)}
+              InputProps={{ readOnly }}
+            />
+          </Box>
+
+          <Box>
             <Typography variant="subtitle2">{t('vcItem')}</Typography>
             <Autocomplete
               multiple
@@ -134,8 +161,23 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
               autoSelect
               options={[]}
               renderInput={(params) => <TextField hiddenLabel {...params} />}
-              value={value.vcTrustedIssuers ?? []}
+              value={[...new Set([...fixedTrustedIssuers, ...(value.vcTrustedIssuers ?? [])])]}
               onChange={(_, vcItem) => (value.vcTrustedIssuers = vcItem)}
+              renderTags={(tagValue, getTagProps) =>
+                tagValue.map((option, index) => {
+                  const { key, ...tagProps } = getTagProps({ index });
+                  const disabled = fixedTrustedIssuers.includes(option);
+                  return (
+                    <Chip
+                      key={key}
+                      label={option}
+                      {...tagProps}
+                      onDelete={disabled ? undefined : tagProps.onDelete}
+                      disabled={disabled}
+                    />
+                  );
+                })
+              }
             />
           </Box>
         </>

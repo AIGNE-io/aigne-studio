@@ -872,4 +872,6 @@ export default flatten({
   verifyVC: '验证 VC',
   vcItem: 'VC 名称',
   trustedIssuers: '信任的发布者',
+  buttonTitle: '按钮标题',
+  buttonTitleVerified: '按钮标题(验证成功)',
 });

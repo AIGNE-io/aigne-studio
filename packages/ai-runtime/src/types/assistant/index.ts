@@ -397,6 +397,9 @@ export interface VerifyVCParameter extends ParameterBase {
   defaultValue?: any;
   vcItem?: string[];
   vcTrustedIssuers?: string[];
+  buttonTitle?: string;
+  buttonTitleVerified?: string;
+  alertTitleVerified?: string;
 }
 
 export interface BooleanParameter extends ParameterBase {

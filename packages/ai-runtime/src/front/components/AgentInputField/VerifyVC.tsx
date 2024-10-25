@@ -6,7 +6,7 @@ import axios from 'axios';
 import { useMemo, useRef, useState } from 'react';
 
 import { AIGNE_RUNTIME_COMPONENT_DID } from '../../../constants';
-import { Parameter } from '../../../types';
+import { VerifyVCParameter } from '../../../types';
 import { useAgent } from '../../contexts/Agent';
 import { useComponentPreferences } from '../../contexts/ComponentPreferences';
 import { useCurrentAgent } from '../../contexts/CurrentAgent';
@@ -23,7 +23,7 @@ export default function VerifyVC({
   value,
   onChange,
 }: {
-  parameter: Parameter;
+  parameter: VerifyVCParameter;
   value?: any;
   onChange?: (value?: any) => void;
 }) {
@@ -60,7 +60,7 @@ export default function VerifyVC({
         variant="outlined"
         onClick={() => setOpen(true)}
         endIcon={verified ? <Box component={Icon} icon={VerifiedIcon} color="success.main" /> : undefined}>
-        {verified ? 'Verify Succeed' : 'Verify VC'}
+        {verified ? parameter.buttonTitleVerified || 'Verify Succeed' : parameter.buttonTitle || 'Verify VC'}
       </Button>
 
       <DidConnect
