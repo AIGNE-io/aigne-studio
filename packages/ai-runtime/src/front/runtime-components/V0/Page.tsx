@@ -62,6 +62,7 @@ function V0Page({ textColor = '#333', primaryColor = '#333' }: { textColor?: str
   }, [inheritedTheme, primaryColor, textColor]);
 
   const currentSessionId = useSession((s) => s.sessionId);
+  const error = useSession((s) => s.error);
 
   const { aid: activeAid } = useActiveAgent();
 
@@ -89,6 +90,9 @@ function V0Page({ textColor = '#333', primaryColor = '#333' }: { textColor?: str
               }}>
               {currentSessionId ? <V0DetailRender /> : <V0ListRender />}
             </Box>
+
+            {error && <AgentErrorView error={error} />}
+
             <Box
               sx={{
                 position: 'sticky',
@@ -122,16 +126,6 @@ function V0ListRender() {
   const { isMobile } = useV0RuntimeContext();
   const agent = useAgent({ aid: useEntryAgent().aid });
   const { t } = useLocaleContext();
-
-  useEffect(() => {
-    const loadData = async () => {
-      if (sessionsList?.length) {
-        // await loadLatestMessagesForAllSessions();
-      }
-    };
-
-    loadData();
-  }, [sessionsList?.length]);
 
   return (
     <Box key="list-render" flex={1}>
