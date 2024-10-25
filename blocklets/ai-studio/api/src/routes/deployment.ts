@@ -42,7 +42,6 @@ const recommendSchema = paginationSchema.concat(
 
 const updateSchema = Joi.object({
   access: Joi.string().valid('private', 'public').optional(),
-  categories: Joi.array().items(Joi.string()).optional(),
   orderIndex: Joi.number().integer().empty(null).optional(),
   productHuntUrl: Joi.string().allow('').empty([null, '']).optional(),
   productHuntBannerUrl: Joi.string().allow('').empty([null, '']).optional(),
@@ -397,6 +396,13 @@ export const checkDeployment = async (req: Request, res: Response, next: NextFun
 };
 
 export function adminDeploymentRouter(router: Router) {
+  const updateSchema = Joi.object({
+    categories: Joi.array().items(Joi.string()).optional(),
+    orderIndex: Joi.number().integer().empty(null).optional(),
+    productHuntUrl: Joi.string().allow('').empty([null, '']).optional(),
+    productHuntBannerUrl: Joi.string().allow('').empty([null, '']).optional(),
+  }).min(1);
+
   router.patch('/:id', user(), ensurePromptsAdmin, async (req, res) => {
     const { did: userId } = req.user!;
 
