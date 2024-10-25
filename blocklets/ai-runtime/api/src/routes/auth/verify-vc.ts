@@ -35,7 +35,7 @@ export default {
       };
     },
   },
-  onAuth: async ({ claims, challenge, extraParams }: any) => {
+  onAuth: async ({ claims, challenge, extraParams, updateSession }: any) => {
     const input = await getVerifyVCInput(extraParams);
 
     const presentation = JSON.parse(claims.find((x: any) => x.type === 'verifiableCredential').presentation);
@@ -49,6 +49,12 @@ export default {
       challenge,
     });
 
-    return true;
+    const vcArray = Array.isArray(presentation.verifiableCredential)
+      ? presentation.verifiableCredential
+      : [presentation.verifiableCredential];
+
+    const vc = JSON.parse(vcArray[0]);
+
+    updateSession({ vc });
   },
 };
