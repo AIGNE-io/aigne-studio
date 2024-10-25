@@ -1,3 +1,7 @@
+## 0.4.104 (2024-10-25)
+
+- feat: add vc input support
+
 ## 0.4.103 (2024-10-25)
 
 - fix: support integer parameter for open api
