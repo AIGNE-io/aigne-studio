@@ -1,3 +1,4 @@
+import { useIsAdmin, useSessionContext } from '@app/contexts/session';
 import { Deployment, updateAigneBannerVisible } from '@app/libs/deployment';
 import { MakeYoursButton, ShareButton } from '@app/pages/explore/button';
 import { ProjectSettings } from '@blocklet/ai-runtime/types';
@@ -26,6 +27,9 @@ export function MultiTenantBrandGuard({
 }: Props & BoxProps) {
   const { quotaChecker } = useMultiTenantRestriction();
   const [aigneBannerVisible, setAigneBannerVisible] = useState(false);
+  const { session } = useSessionContext();
+  const isAdmin = useIsAdmin();
+  const isDeploymentOwner = session?.user?.did && session.user.did === deployment?.createdBy;
   const bottomHeight = 64;
   const mergedSx = [
     {
@@ -112,9 +116,11 @@ export function MultiTenantBrandGuard({
               </>
             )}
 
-            <IconButton size="small" onClick={removeBrand}>
-              <Close />
-            </IconButton>
+            {(isAdmin || isDeploymentOwner) && (
+              <IconButton size="small" onClick={removeBrand}>
+                <Close />
+              </IconButton>
+            )}
           </Box>
         </Box>
       )}
