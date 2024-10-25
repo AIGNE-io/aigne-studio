@@ -21,11 +21,12 @@ export type Deployment = {
 };
 
 export type UpdateType = {
-  access: 'private' | 'public';
+  access?: 'private' | 'public';
   categories?: string[];
   productHuntUrl?: string;
   productHuntBannerUrl?: string;
   orderIndex?: number;
+  aigneBannerVisible?: boolean;
 };
 
 export async function getDeploymentByProjectId({
@@ -76,19 +77,13 @@ export async function getDeployments(input: { page: number; pageSize: number }):
 }
 
 export async function updateDeployment(id: string, input: UpdateType): Promise<Deployment> {
-  return axios.put(joinURL('/api/deployments', id), input).then((res) => res.data);
+  return axios.patch(joinURL('/api/deployments', id), input).then((res) => res.data);
 }
 
 export async function adminUpdateDeployment(id: string, input: UpdateType): Promise<Deployment> {
-  return axios.put(joinURL('/api/admin/deployments', id), input).then((res) => res.data);
+  return axios.patch(joinURL('/api/admin/deployments', id), input).then((res) => res.data);
 }
 
 export async function deleteDeployment(input: { id: string }): Promise<Deployment> {
   return axios.delete(joinURL('/api/deployments', input.id)).then((res) => res.data);
-}
-
-export async function updateAigneBannerVisible(id: string, visible: boolean): Promise<Deployment> {
-  return axios
-    .put(joinURL('/api/deployments', id, 'aigneBannerVisible'), { aigneBannerVisible: visible })
-    .then((res) => res.data);
 }

@@ -1,5 +1,5 @@
 import { useIsAdmin, useSessionContext } from '@app/contexts/session';
-import { Deployment, updateAigneBannerVisible } from '@app/libs/deployment';
+import { Deployment, updateDeployment } from '@app/libs/deployment';
 import { MakeYoursButton, ShareButton } from '@app/pages/explore/button';
 import { ProjectSettings } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
@@ -48,7 +48,7 @@ export function MultiTenantBrandGuard({
 
   const removeBrand = async () => {
     if (quotaChecker.checkCustomBrand()) {
-      await updateAigneBannerVisible(deployment?.id!, false);
+      await updateDeployment(deployment?.id!, { aigneBannerVisible: false });
       setAigneBannerVisible(false);
       onRemoveAigneBanner?.();
     }
