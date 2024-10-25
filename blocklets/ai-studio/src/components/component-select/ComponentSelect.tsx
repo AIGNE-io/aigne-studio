@@ -218,9 +218,13 @@ function ComponentSelectItem({
         <Divider />
         <Typography sx={{ m: 1 }} noWrap>
           {customComponent.name || t('unnamed')}
-          <Typography sx={{ display: 'block' }} variant="caption" noWrap>
-            {customComponent.description}
-          </Typography>
+        </Typography>
+        <Typography
+          sx={{ m: 1, WebkitLineClamp: 2, overflowWrap: 'break-word' }}
+          className="multi-line-ellipsis"
+          variant="caption"
+          title={customComponent.description}>
+          {customComponent.description}
         </Typography>
       </Box>
     </Card>
