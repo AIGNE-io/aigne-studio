@@ -49,6 +49,10 @@ export default function AutoForm({
     [agent.parameters]
   );
 
+  const isOnlyOneVCInput = parameters?.length === 1 && parameters[0]?.type === 'verify_vc';
+
+  const hiddenSubmit = isOnlyOneVCInput;
+
   const defaultForm = useInitialFormValues();
 
   const form = useForm({ defaultValues: defaultForm });
@@ -162,13 +166,14 @@ export default function AutoForm({
 
       {!(submitInQuestionField && parameters?.some((i) => i.key === 'question')) && (
         <LoadingButton
+          hidden={hiddenSubmit}
           data-testid="runtime-submit-button"
           ref={submitRef}
           type="submit"
           variant="contained"
           loading={running}
           disabled={submitDisabled}
-          sx={{ height: 40 }}>
+          sx={{ height: 40, display: hiddenSubmit ? 'none' : undefined }}>
           {submitText || t('generate')}
         </LoadingButton>
       )}
