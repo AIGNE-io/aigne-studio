@@ -130,7 +130,7 @@ function Agent({ deployment, project }: { deployment: Deployment; project: Proje
 
 function ReadmePage({ deployment, project }: { deployment: Deployment; project: ProjectSettings }) {
   const { t } = useLocaleContext();
-  const { openInNewTab } = useShareUrl({ deployment });
+  const { shareUrl } = useShareUrl({ deployment });
   const banner = project?.banner
     ? getAssetUrl({
         projectId: deployment.projectId,
@@ -184,7 +184,8 @@ function ReadmePage({ deployment, project }: { deployment: Deployment; project: 
         <Box display="flex" gap={1} alignItems="stretch">
           <Button
             variant="contained"
-            onClick={() => openInNewTab()}
+            href={shareUrl}
+            target="_blank"
             sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
             data-testid="run-button">
             <Box component={Icon} icon={PlayIcon} sx={{ width: 14, height: 14, fontSize: 14, color: '#fff' }} />

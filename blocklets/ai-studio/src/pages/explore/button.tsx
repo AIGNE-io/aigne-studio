@@ -109,7 +109,7 @@ export function useShareUrl({ deployment }: { deployment: Deployment }) {
   const shareUrl = withQuery(joinURL(globalThis.location.origin, window.blocklet.prefix, '/apps', deployment.id), {
     inviter: session.user?.did,
   });
-  return { shareUrl, openInNewTab: () => window.open(shareUrl, '_blank') };
+  return { shareUrl };
 }
 
 export function ShareButton({ deployment, project }: { deployment: Deployment; project: ProjectSettings }) {
