@@ -1,12 +1,12 @@
 import 'swiper/css';
 import 'swiper/css/navigation';
 
+import Avatar from '@app/components/avatar';
 import { useSessionContext } from '@app/contexts/session';
 import { Category } from '@app/libs/category';
 import { Deployment, ProjectStatsItem } from '@app/libs/deployment';
-import { getProjectIconUrl } from '@app/libs/project';
+import { User, getProjectIconUrl } from '@app/libs/project';
 import Empty from '@app/pages/project/icons/empty';
-import Avatar from '@arcblock/did-connect/lib/Avatar';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ProjectSettings } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
@@ -23,10 +23,12 @@ function CategoryCard({
   deployment,
   project,
   stats,
+  createdBy,
 }: {
   deployment: Deployment;
   project: ProjectSettings;
   stats: ProjectStatsItem;
+  createdBy?: User;
 }) {
   const { t } = useLocaleContext();
   const icon = getProjectIconUrl(deployment.projectId, { updatedAt: project.updatedAt });
@@ -97,8 +99,8 @@ function CategoryCard({
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary', fontSize: 12 }}>
           <Avatar
-            did={project.createdBy}
-            // src={user?.avatar}
+            did={createdBy?.did || deployment.createdBy}
+            src={createdBy?.avatar}
             size={20}
             shape="circle"
             variant="circle"
@@ -107,18 +109,18 @@ function CategoryCard({
               height: '100%',
             }}
           />
-          <span>wangqi</span>
+          <span>{createdBy?.fullName}</span>
         </Box>
         <Box sx={{ display: 'flex', gap: 3, fontSize: 12, color: 'text.secondary' }}>
           <Box
             sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-            title={`This project has been used by ${totalUsers} users`}>
+            title={totalUsers ? `This project has been used by ${totalUsers} users` : ''}>
             <Box component={Icon} icon={UserIcon} sx={{ fontSize: 14 }} />
             <span>{totalUsers}</span>
           </Box>
           <Box
             sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-            title={`This project has been executed ${totalRuns} times in total`}>
+            title={totalRuns ? `This project has been executed ${totalRuns} times in total` : ''}>
             <Box component={Icon} icon={PlayIcon} sx={{ fontSize: 13 }} />
             <span>{totalRuns}</span>
           </Box>
@@ -159,7 +161,12 @@ function CategoryList() {
                   width: { xs: 1, md: 1 / 2, lg: 1 / 3 },
                   p: 1.5,
                 }}>
-                <CategoryCard deployment={deployment} project={deployment.project} stats={deployment.stats} />
+                <CategoryCard
+                  deployment={deployment}
+                  project={deployment.project}
+                  stats={deployment.stats}
+                  createdBy={deployment.createdByInfo}
+                />
               </Box>
             ))}
           </Box>

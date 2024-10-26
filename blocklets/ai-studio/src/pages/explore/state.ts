@@ -1,4 +1,5 @@
 import { Deployment, ProjectStatsItem, getDeploymentsByCategorySlug } from '@app/libs/deployment';
+import { User } from '@app/libs/project';
 import { ProjectSettings } from '@blocklet/ai-runtime/types';
 import { useInfiniteScroll } from 'ahooks';
 import { useCallback, useEffect } from 'react';
@@ -12,7 +13,7 @@ interface DeploymentState {
   deployments: Record<
     string,
     {
-      list: (Deployment & { project: ProjectSettings; stats: ProjectStatsItem })[];
+      list: (Deployment & { project: ProjectSettings; stats: ProjectStatsItem; createdByInfo: User })[];
       next: boolean;
       size: number;
       page: number;
@@ -24,7 +25,7 @@ interface DeploymentState {
     page: number,
     size: number
   ) => Promise<{
-    list: (Deployment & { project: ProjectSettings; stats: ProjectStatsItem })[];
+    list: (Deployment & { project: ProjectSettings; stats: ProjectStatsItem; createdByInfo: User })[];
     next: boolean;
     size: number;
     page: number;

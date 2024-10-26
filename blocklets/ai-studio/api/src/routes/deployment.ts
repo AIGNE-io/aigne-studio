@@ -1,6 +1,7 @@
 import { NoSuchEntryAgentError } from '@api/libs/error';
 import { getAgentSecretInputs, getProjectStatsFromRuntime } from '@api/libs/runtime';
 import { ensurePromptsAdmin } from '@api/libs/security';
+import { getUsers } from '@api/libs/user';
 import Project from '@api/store/models/project';
 import { PROJECT_FILE_PATH, ProjectRepo, getEntryFromRepository, getRepository } from '@api/store/repository';
 import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
@@ -212,6 +213,7 @@ router.get('/categories/:categorySlug', async (req, res) => {
 
   const stats = await getProjectStatsFromRuntime({ projectIds: rows.map((d) => d.projectId) });
   const statsMap = new Map(stats.map((s) => [s.projectId, s]));
+  const users = await getUsers(rows.map((d) => d.createdBy));
   const enhancedDeployments = await Promise.all(
     rows.map(async (deployment) => {
       const repository = await getRepository({ projectId: deployment.projectId });
@@ -221,7 +223,12 @@ router.get('/categories/:categorySlug', async (req, res) => {
         readBlobFromGitIfWorkingNotInitialized: true,
       });
 
-      return { ...deployment.dataValues, project, stats: statsMap.get(deployment.projectId) };
+      return {
+        ...deployment.dataValues,
+        project,
+        stats: statsMap.get(deployment.projectId),
+        createdByInfo: users[deployment.createdBy],
+      };
     })
   );
 
