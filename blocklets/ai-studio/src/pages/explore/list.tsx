@@ -111,15 +111,15 @@ function CategoryCard({
           />
           <span>{createdBy?.fullName}</span>
         </Box>
-        <Box sx={{ display: 'flex', gap: 3, fontSize: 12, color: 'text.secondary' }}>
+        <Box sx={{ display: 'flex', gap: 2, fontSize: 12, color: 'text.secondary' }}>
           <Box
-            sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+            sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}
             title={totalUsers ? `This project has been used by ${totalUsers} users` : ''}>
             <Box component={Icon} icon={UserIcon} sx={{ fontSize: 14 }} />
             <span>{totalUsers}</span>
           </Box>
           <Box
-            sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+            sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}
             title={totalRuns ? `This project has been executed ${totalRuns} times in total` : ''}>
             <Box component={Icon} icon={PlayIcon} sx={{ fontSize: 13 }} />
             <span>{totalRuns}</span>
