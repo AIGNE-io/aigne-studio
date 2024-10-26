@@ -11,6 +11,7 @@ import {
   PromptAssistant,
   Role,
   RuntimeOutputVariable,
+  jsonSchemaToOpenAIJsonSchema,
   outputVariablesToJsonSchema,
 } from '../../types';
 import {
@@ -342,7 +343,7 @@ export class LLMAgentExecutor extends AgentExecutorBase<PromptAssistant> {
           type: 'json_schema',
           jsonSchema: {
             name: 'output',
-            schema,
+            schema: jsonSchemaToOpenAIJsonSchema(schema),
             strict: true,
           },
         },
