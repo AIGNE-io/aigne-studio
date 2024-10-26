@@ -1,3 +1,7 @@
+## 0.4.105 (2024-10-26)
+
+- fix: all fields must be required for json schema mode
+
 ## 0.4.104 (2024-10-25)
 
 - feat: add vc input support
