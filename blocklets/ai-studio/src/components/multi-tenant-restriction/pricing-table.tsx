@@ -1,7 +1,8 @@
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Icon } from '@iconify-icon/react';
 import HelpIcon from '@iconify-icons/tabler/help';
-import { LoadingButton } from '@mui/lab';
-import { Box, SxProps, Tooltip, Typography } from '@mui/material';
+import VerifiedIcon from '@mui/icons-material/Verified';
+import { Box, Button, SxProps, Tooltip, Typography } from '@mui/material';
 
 type BillingCycle = 'monthly' | 'yearly';
 type CycleBasedValue = string | { monthly: string; yearly: string };
@@ -19,6 +20,7 @@ export interface Plan {
   link: CycleBasedValue;
   isFeatured?: boolean;
   qualified?: boolean;
+  active?: boolean;
 }
 
 interface PricingTableProps {
@@ -28,6 +30,7 @@ interface PricingTableProps {
 }
 
 function PricingTablePlan({ plan, billingCycle }: { plan: Plan; billingCycle?: BillingCycle }) {
+  const { t } = useLocaleContext();
   const renderFeature = (feature: Feature) => {
     if (typeof feature === 'string') {
       return (
@@ -79,7 +82,9 @@ function PricingTablePlan({ plan, billingCycle }: { plan: Plan; billingCycle?: B
             fontWeight: 'bold',
             color: 'grey.800',
           }}>
-          {plan.name}
+          <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            {plan.name}
+          </Box>
 
           {plan.isFeatured && (
             <Box
@@ -172,8 +177,8 @@ function PricingTablePlan({ plan, billingCycle }: { plan: Plan; billingCycle?: B
           ))}
         </Box>
         <Box sx={{ mt: 'auto' }}>
-          {buttonText && (
-            <LoadingButton
+          {buttonText && !plan.active && (
+            <Button
               variant={plan.isFeatured ? 'contained' : 'outlined'}
               color="primary"
               disabled={buttonDisabled}
@@ -186,7 +191,26 @@ function PricingTablePlan({ plan, billingCycle }: { plan: Plan; billingCycle?: B
                 window.open(link, '_blank');
               }}>
               {buttonText}
-            </LoadingButton>
+            </Button>
+          )}
+          {plan.active && (
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 1,
+                py: 0.75,
+                border: 1,
+                borderColor: 'success.light',
+                borderRadius: 1,
+                color: 'success.light',
+                fontSize: 13,
+                textAlign: 'center',
+              }}>
+              {t('pricingAndPlans.currentPlan')}
+              <Box component={VerifiedIcon} sx={{ fontSize: 18, color: 'success.light' }} />
+            </Box>
           )}
         </Box>
       </Box>

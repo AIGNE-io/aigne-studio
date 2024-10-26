@@ -60,6 +60,8 @@ test.describe.serial('project', () => {
     await createButton.click();
     await createProjectPromise;
 
-    await expect(page.getByTestId('launchMoreContent')).toBeVisible();
+    await expect(
+      page.getByText('You have reached the maximum project limit. Upgrade your plan to Premium to manage more projects')
+    ).toBeVisible();
   });
 });
