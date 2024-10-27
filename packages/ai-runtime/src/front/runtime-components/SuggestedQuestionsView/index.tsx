@@ -28,7 +28,7 @@ export default function SuggestedQuestionsView({ onlyLastMessage }: { onlyLastMe
           <MessageSuggestedQuestion
             key={item.question}
             onClick={() => {
-              runAgent({ aid, parameters: { ...message.inputs, question: item.question } });
+              runAgent({ aid, inputs: { ...message.inputs, question: item.question } });
             }}>
             {item.question}
           </MessageSuggestedQuestion>

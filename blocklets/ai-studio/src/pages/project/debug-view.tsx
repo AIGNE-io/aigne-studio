@@ -851,7 +851,7 @@ function DebugModeForm({
                                 fullWidth
                                 parameter={parameterFromYjs(parameter)}
                                 maxRows={!parameter?.type || parameter?.type === 'string' ? 5 : undefined}
-                                value={field.value || ''}
+                                value={field.value ?? ''}
                                 onChange={(value) => field.onChange({ target: { value } })}
                                 error={Boolean(fieldState.error)}
                                 helperText={fieldState.error?.message || parameter?.helper}

@@ -43,7 +43,7 @@ export default function GoogleSearchRelatedView({ onlyLastMessage }: { onlyLastM
                 if (submitting) return;
                 setSubmitting(true);
                 try {
-                  await runAgent({ aid, parameters: { question: item.question } });
+                  await runAgent({ aid, inputs: { question: item.question } });
                 } finally {
                   setSubmitting(false);
                 }

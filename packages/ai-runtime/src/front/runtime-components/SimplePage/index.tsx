@@ -17,6 +17,7 @@ import OpeningMessageView from './OpeningMessageView';
 
 export interface SimplePagePreferences extends ComponentPreferencesBase {
   resultTitle?: string;
+  hideInputs?: string;
 }
 
 export default function SimplePage({ ...preferences }: SimplePagePreferences) {
@@ -30,7 +31,7 @@ export default function SimplePage({ ...preferences }: SimplePagePreferences) {
 
           <OpeningMessageView my={4} px={{ xs: 2, sm: 3 }} />
 
-          <InputsView className="aigne-inputs aigne-simple-page-inputs" />
+          {!preferences.hideInputs && <InputsView className="aigne-inputs aigne-simple-page-inputs" />}
 
           <OutputView
             className="aigne-outputs aigne-simple-page-outputs"
