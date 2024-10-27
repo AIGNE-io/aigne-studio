@@ -45,7 +45,7 @@ export function SessionsProvider({ aid, children }: { aid: string; children?: Re
 
                   if (options?.autoSetCurrentSessionId) {
                     // Set current session id to the last session id if it's not set
-                    if (!state.currentSessionId) state.currentSessionId = sessions.at(-1)?.id;
+                    if (!state.currentSessionId) state.currentSessionId = sessions.at(0)?.id;
                   }
                 });
               } catch (error) {
@@ -60,7 +60,7 @@ export function SessionsProvider({ aid, children }: { aid: string; children?: Re
                 });
               }
             },
-            createSession: async ({ name }) => {
+            createSession: async ({ name } = {}) => {
               const session = await createSession({ aid, name });
               await get().reload();
               return session;

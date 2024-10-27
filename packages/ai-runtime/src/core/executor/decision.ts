@@ -26,7 +26,6 @@ import {
 import { isNonNullable } from '../../utils/is-non-nullable';
 import selectAgentName from '../assistant/select-agent';
 import { RunAssistantCallback, ToolCompletionDirective } from '../assistant/type';
-import { renderMessage } from '../utils/render-message';
 import { nextTaskId } from '../utils/task-id';
 import { toolCallsTransform } from '../utils/tool-calls-transform';
 import { AgentExecutorBase } from './base';
@@ -44,7 +43,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
       throw new Error('Route Assistant Prompt is required');
     }
 
-    const message = await renderMessage(agent.prompt, { ...inputs, ...this.globalContext });
+    const message = await this.renderMessage(agent.prompt);
     const routes = agent?.routes || [];
 
     const blocklet = await this.context.getBlockletAgent(agent.id);
@@ -143,23 +142,6 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
       )
     ).filter(isNonNullable);
 
-    this.context.callback?.({
-      type: AssistantResponseType.EXECUTE,
-      assistantId: agent.id,
-      parentTaskId,
-      taskId,
-      execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
-    });
-
-    this.context.callback?.({
-      type: AssistantResponseType.INPUT,
-      assistantId: agent.id,
-      parentTaskId,
-      taskId,
-      assistantName: `${agent.name}`,
-      promptMessages: [{ role: 'user', content: message }],
-    });
-
     const runFunctionCall = async ({
       tools,
       toolChoice,
@@ -167,17 +149,6 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
       tools: ChatCompletionInput['tools'];
       toolChoice: ChatCompletionInput['toolChoice'];
     }) => {
-      logger.info('function call input', {
-        model: agent?.model,
-        temperature: agent?.temperature,
-        topP: agent?.topP,
-        presencePenalty: agent?.presencePenalty,
-        frequencyPenalty: agent?.frequencyPenalty,
-        messages: [{ role: 'user', content: message }],
-        tools,
-        toolChoice,
-      });
-
       const identity = parseIdentity(agent.identity.aid, { rejectWhenError: true });
 
       const executor = agent.executor?.agent?.id
@@ -193,6 +164,30 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
           })
         : undefined;
 
+      const messages: ChatCompletionInput['messages'] = [{ role: 'system', content: message }];
+
+      this.context.callback?.({
+        type: AssistantResponseType.INPUT,
+        assistantId: agent.id,
+        parentTaskId,
+        taskId,
+        assistantName: `${agent.name}`,
+        promptMessages: messages,
+      });
+
+      const input = {
+        model: agent?.model,
+        temperature: agent?.temperature,
+        topP: agent?.topP,
+        presencePenalty: agent?.presencePenalty,
+        frequencyPenalty: agent?.frequencyPenalty,
+        messages,
+        tools,
+        toolChoice,
+      };
+
+      logger.debug('Run decision agent', JSON.stringify(input, null, 2));
+
       const response = executor
         ? ((
             await this.context
@@ -202,9 +197,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
                 inputs: {
                   ...inputs,
                   ...agent.executor?.inputValues,
-                  [executor.parameters?.find((i) => i.type === 'llmInputMessages' && !i.hidden)?.key!]: [
-                    { role: 'user', content: message },
-                  ],
+                  [executor.parameters?.find((i) => i.type === 'llmInputMessages' && !i.hidden)?.key!]: messages,
                   [executor.parameters?.find((i) => i.type === 'llmInputTools' && !i.hidden)?.key!]: tools,
                   [executor.parameters?.find((i) => i.type === 'llmInputToolChoice' && !i.hidden)?.key!]: toolChoice,
                 },
@@ -213,16 +206,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
           )[RuntimeOutputVariable.llmResponseStream] as ReadableStream<ChatCompletionResponse>)
         : await this.context.callAI({
             assistant: agent,
-            input: {
-              model: agent?.model,
-              temperature: agent?.temperature,
-              topP: agent?.topP,
-              presencePenalty: agent?.presencePenalty,
-              frequencyPenalty: agent?.frequencyPenalty,
-              messages: [{ role: 'user', content: message }],
-              tools,
-              toolChoice,
-            },
+            input,
           });
 
       const calls: NonNullable<ChatCompletionChunk['delta']['toolCalls']> = [];
@@ -257,14 +241,10 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
       },
     }));
 
-    logger.info('function call tools', JSON.stringify(tools));
-
-    logger.info('call agent function start');
     const calls = await runFunctionCall({
       tools,
       toolChoice: 'required',
     });
-    logger.info('call agent function end');
 
     this.context.callback?.({
       type: AssistantResponseType.EXECUTE,
@@ -279,7 +259,6 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
 
     const matchAgentName = async () => {
       // requestCalls 没有找到，检查 jsonResult 是否存在
-      logger.info('match not call function agent name');
 
       let selectedAgent: { category_name?: string } = {};
       try {
@@ -319,7 +298,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
         if (found) return defaultTool?.function.name;
       }
 
-      logger.info('Get Current Selected Agent Name', {
+      logger.debug('Get Current Selected Agent Name', {
         from: 'from first agent',
         value: toolAssistants[0]?.function.name,
       });
@@ -328,7 +307,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
     };
 
     const matchRequestCalls = async () => {
-      logger.info('Get Current Selected Agent Name', {
+      logger.debug('Get Current Selected Agent Name', {
         from: 'function call',
         value: calls && JSON.stringify(calls),
       });
@@ -375,9 +354,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
       return [{ type: 'function', function: { name: agentName, arguments: '{}' } }];
     };
 
-    logger.info('match function name start');
     const requestCalls = await matchRequestCalls();
-    logger.info('match function name end');
 
     const result =
       requestCalls &&
@@ -436,7 +413,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
               ?.map(async (item) => {
                 const message = tool.tool?.parameters?.[item.key!];
                 if (message) {
-                  requestData[item.key!] = await renderMessage(message, inputs);
+                  requestData[item.key!] = await this.renderMessage(message);
                 }
               }) ?? []
           );

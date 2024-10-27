@@ -522,6 +522,9 @@ function VariableTypeField({ ...props }: TextFieldProps) {
       <MenuItem value="number" disabled={props.disabled}>
         {t('number')}
       </MenuItem>
+      <MenuItem value="boolean" disabled={props.disabled}>
+        {t('boolean')}
+      </MenuItem>
       <MenuItem value="object" disabled={props.disabled}>
         {t('object')}
       </MenuItem>

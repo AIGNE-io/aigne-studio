@@ -71,11 +71,11 @@ export default function AutoForm({
     }
   }, [defaultForm, autoFillLastForm, form, chatMode]);
 
-  const onSubmit = async (parameters: any) => {
+  const onSubmit = async (inputs: any) => {
     submitRef.current?.scrollIntoView({ block: 'center' });
     await runAgent({
       aid,
-      parameters,
+      inputs,
       onResponseStart: () => {
         if (chatMode) form.resetField('question', { defaultValue: '' });
       },

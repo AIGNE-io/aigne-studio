@@ -1,3 +1,7 @@
+## 0.4.106 (2024-10-27)
+
+- feat: support component schema filter & preview
+
 ## 0.4.105 (2024-10-26)
 
 - fix: all fields must be required for json schema mode

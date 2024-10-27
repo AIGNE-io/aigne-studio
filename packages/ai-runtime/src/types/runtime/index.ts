@@ -1,6 +1,7 @@
 import { SubscriptionError } from '@blocklet/ai-kit/api';
+import { ChatCompletionInput } from '@blocklet/ai-kit/api/types/chat';
 
-import type { ExecuteBlock, Role } from '../assistant';
+import type { ExecuteBlock } from '../assistant';
 import { RuntimeOutputVariablesSchema } from './schema';
 
 export * from './schema';
@@ -23,11 +24,6 @@ export enum AssistantResponseType {
   EXECUTE = 'EXECUTE',
   INPUT_PARAMETER = 'INPUT_PARAMETER',
 }
-
-export type PromptMessages = Array<{
-  role: Role;
-  content: string;
-}>;
 
 // RunAssistantInputParameter 用来展示 user 输入
 // 其他用来展示 assistant 输出，输出可能有多个 Agent
@@ -62,7 +58,7 @@ export type RunAssistantInput = {
   inputParameters?: { [key: string]: any };
   apiArgs?: any;
   fnArgs?: any;
-  promptMessages?: PromptMessages;
+  promptMessages?: ChatCompletionInput['messages'];
   modelParameters?: {
     temperature?: number;
     topP?: number;
