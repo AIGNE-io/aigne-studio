@@ -126,7 +126,8 @@ export default function ComponentSelect({
   const componentsMap = useMemo(() => Object.fromEntries(components.map((i) => [i.value, i])), [components]);
 
   const validatedComponentIds = useMemo(() => {
-    if (!output) return new Set([]);
+    if (!output.type) return new Set(components.map((i) => i.id));
+
     const outputSchema = outputToJsonSchema(output);
     const outputSchemaFakedData = generateFakeProps(outputSchema);
     const validatedComponents =
