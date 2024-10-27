@@ -9,7 +9,6 @@ import {
   isChatCompletionUsage,
 } from '@blocklet/ai-kit/api/types/index';
 import { getAllParameters, getRequiredFields } from '@blocklet/dataset-sdk/request/util';
-import { call } from '@blocklet/sdk/lib/component';
 import { logger } from '@blocklet/sdk/lib/config';
 
 import { parseIdentity, stringifyIdentity } from '../../common/aid';
@@ -57,8 +56,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
             if (!dataset) return undefined;
 
             const name = tool?.functionName || dataset.summary || dataset.description || '';
-            const hashName = md5(name);
-            const functionTranslateName = await getEnglishFunctionName({ assistant: agent, hashName, tool, name });
+            const functionTranslateName = await this.getEnglishFunctionName({ assistant: agent, tool, name });
             logger.info('function call api name', functionTranslateName);
 
             const datasetParameters = getAllParameters(dataset)
@@ -121,8 +119,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
             .map((x) => x.key);
 
           const name = tool?.functionName || toolAssistant?.description || toolAssistant?.name || '';
-          const hashName = md5(name);
-          const functionTranslateName = await getEnglishFunctionName({ assistant: agent, hashName, tool, name });
+          const functionTranslateName = await this.getEnglishFunctionName({ assistant: agent, tool, name });
           logger.info('function call agent name', functionTranslateName);
 
           return {
@@ -439,71 +436,78 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
 
     return obj;
   }
+
+  private async getEnglishFunctionName({
+    assistant,
+    tool,
+    name,
+  }: {
+    assistant: RouterAssistant;
+    tool: Tool;
+    name: string;
+  }) {
+    if (functionNameRegex.test(name)) return name;
+
+    const key = md5(
+      [assistant.id, tool.id, tool.functionName, assistant.name, assistant.description].filter(Boolean).join('/')
+    );
+
+    if (!cacheTranslateFunctionNames[key]) {
+      const result = await this.context.callAI({
+        assistant: this.agent,
+        input: {
+          messages: [
+            {
+              content: `\
+  # Role
+  You are an engineer who is proficient in programming. Please generate a function \
+  name that conforms to programming standards according to the following requirements
+
+  - The name of the function to be called. Must be a-z, A-Z, 0-9, or contain \
+  underscores and dashes, with a maximum length of 64.
+
+  # Output
+
+  - Do not explain
+  - Directly output the generated function name
+
+  # Requirements
+  - Semantic function name
+    - ${name}
+    - ${tool.functionName}
+    - ${assistant.name}
+  - Function description: ${assistant.description}
+                  `,
+              role: 'system',
+            },
+          ],
+          model: assistant?.model,
+          temperature: assistant?.temperature,
+          topP: assistant?.topP,
+          presencePenalty: assistant?.presencePenalty,
+          frequencyPenalty: assistant?.frequencyPenalty,
+        },
+      });
+
+      let generated = '';
+
+      for await (const i of result) {
+        if (isChatCompletionChunk(i)) {
+          generated += i.delta.content || '';
+        }
+      }
+
+      if (typeof generated !== 'string' || !functionNameRegex.test(generated)) {
+        throw new Error(`Generated function name is invalid: ${generated}`);
+      }
+
+      cacheTranslateFunctionNames[key] = generated;
+    }
+
+    return cacheTranslateFunctionNames[key]!;
+  }
 }
 
 const cacheTranslateFunctionNames: { [key: string]: string } = {};
 
-const getEnglishFunctionName = async ({
-  assistant,
-  hashName,
-  tool,
-  name,
-}: {
-  assistant: RouterAssistant;
-  hashName?: string;
-  tool: Tool;
-  name: string;
-}) => {
-  let functionTranslateName = '';
-  if (hashName) {
-    if (!cacheTranslateFunctionNames[`${assistant.id}-${tool.id}-${hashName}`]) {
-      try {
-        const result = await call({
-          name: 'ai-kit',
-          path: '/api/v1/completions',
-          method: 'POST',
-          data: {
-            stream: false,
-            messages: [
-              {
-                content: `\
-                # Roles: You are a translation master. You need to translate the user's input into English.
-
-                # rules:
-                - Please do not respond with unnecessary content, only provide the translation.
-                - You need to translate any input provided.
-                - Your translation should be in camelCase function name format.
-                - If the input is already in English, no translation is required.
-
-                # Examples:
-                - 测试: test
-                - 开始: start
-                - weapon: weapon
-                - 添加一个新的todo: AddANewTodo
-                `,
-                role: 'system',
-              },
-              {
-                content: name ?? '',
-                role: 'user',
-              },
-            ],
-            model: assistant?.model,
-            temperature: assistant?.temperature,
-            topP: assistant?.topP,
-            presencePenalty: assistant?.presencePenalty,
-            frequencyPenalty: assistant?.frequencyPenalty,
-          },
-        });
-
-        cacheTranslateFunctionNames[`${assistant.id}-${tool.id}-${hashName}`] = result?.data?.content;
-      } catch (error) {
-        logger.error(error);
-      }
-    }
-
-    functionTranslateName = cacheTranslateFunctionNames[`${assistant.id}-${tool.id}-${hashName}`] || '';
-  }
-
-  return functionTranslateName;
-};
+const functionNameRegex = /^[a-zA-Z0-9_-]{1,64}$/;

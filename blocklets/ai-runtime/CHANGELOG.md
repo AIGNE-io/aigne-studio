@@ -1,3 +1,7 @@
+## 0.4.108 (2024-10-27)
+
+- refactor: optimize decision function name generator
+
 ## 0.4.107 (2024-10-27)
 
 - fix: auto login when running agent
