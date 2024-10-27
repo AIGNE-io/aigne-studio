@@ -1,3 +1,7 @@
+## 0.4.107 (2024-10-27)
+
+- fix: auto login when running agent
+
 ## 0.4.106 (2024-10-27)
 
 - feat: support component schema filter & preview

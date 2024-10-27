@@ -295,21 +295,26 @@ export function useSession<U>(selector: (state: SessionContextValue) => U): U {
 
   if (!state) throw new Error('No such session context. You should use `useSession` within the `SessionProvider`');
 
-  return state(useShallow(selector));
+  const runAgent = useRunAgentWithLogin();
+
+  return state(useShallow((s) => selector({ ...s, runAgent })));
 }
 
-export function useRunAgentWithLogin() {
+function useRunAgentWithLogin() {
   const { session: authSession } = useSessionContext();
   const { aid } = useCurrentAgent();
   const agent = useAgent({ aid });
+
+  const state = useContext(sessionContext);
+  if (!state) throw new Error('No such session context. You should use `useSession` within the `SessionProvider`');
+
+  const exec = state((s) => s.runAgent);
 
   const login = useCallback(async () => {
     await new Promise<void>((resolve) => {
       authSession.login(() => resolve());
     });
   }, [authSession]);
-
-  const exec = useSession((s) => s.runAgent);
 
   const runAgent: typeof exec = useCallback(
     async (...args) => {
