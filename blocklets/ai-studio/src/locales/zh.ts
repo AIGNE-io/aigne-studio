@@ -870,6 +870,7 @@ export default flatten({
   dropdown: '下拉选择',
   checkbox: '平铺选择',
   noPreviewImage: '暂无预览图',
+  noOutputValueSchema: '组件缺少类型定义，可能导致渲染错误',
   verifyVC: '验证 VC',
   vcItem: 'VC 名称',
   trustedIssuers: '信任的发布者',

@@ -3,10 +3,13 @@ import { REMOTE_REACT_COMPONENT } from '@app/libs/constants';
 import { getOptimizedImageAbsUrl } from '@app/libs/media';
 import Empty from '@arcblock/ux/lib/Empty';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { OutputVariableYjs, RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
-import { RuntimeDebug } from '@blocklet/aigne-sdk/components/ai-runtime';
 import {
-  Alert,
+  OutputVariableYjs,
+  RuntimeOutputVariable,
+  isRuntimeOutputVariable,
+  runtimeVariablesSchema,
+} from '@blocklet/ai-runtime/types';
+import {
   Box,
   Button,
   Card,
@@ -21,47 +24,73 @@ import {
   Radio,
   RadioGroup,
   Typography,
-  styled,
   useRadioGroup,
 } from '@mui/material';
 import Ajv from 'ajv';
 import stringify from 'json-stable-stringify';
 import { pick } from 'lodash';
-import { ComponentProps, Suspense, useEffect, useMemo, useState } from 'react';
+import { ComponentProps, useEffect, useMemo, useState } from 'react';
 import { useAsync } from 'react-use';
 
-import ErrorBoundary from '../error/error-boundary';
 import { generateFakeProps } from './fake-props';
-import { useAIGNEApiProps } from './get-agent';
 
 const ajv = new Ajv({ strict: false });
 
-function outputToJsonSchema(output: Record<string, any>) {
-  if (!output || output.from?.type === 'input') return {};
-  function convert(data: Record<string, any>) {
-    const ans: Record<string, any> = { type: data.type ?? 'string' };
+function convertCustomOutput(data: Record<string, any>) {
+  const ans: Record<string, any> = { type: data.type ?? 'string' };
 
-    if (data.type === 'object' && data.properties) {
-      ans.properties = {};
-      for (const [, v] of Object.entries(data.properties)) {
-        const value = v as { data: Record<string, any> };
-        ans.properties[value.data.name] = convert(value.data);
-        if (value.data.required) {
-          ans.required = ans.required ?? [];
-          ans.required.push(value.data.name);
-        }
+  if (data.type === 'object' && data.properties) {
+    ans.properties = {};
+    for (const [, v] of Object.entries(data.properties)) {
+      const value = v as { data: Record<string, any> };
+      ans.properties[value.data.name] = convertCustomOutput(value.data);
+      if (value.data.required) {
+        ans.required = ans.required ?? [];
+        ans.required.push(value.data.name);
       }
-      return ans;
     }
-
-    if (data.type === 'array' && data.element) {
-      ans.items = convert(data.element);
-      return ans;
-    }
-
     return ans;
   }
-  return convert(output);
+
+  if (data.type === 'array' && data.element) {
+    ans.items = convertCustomOutput(data.element);
+    return ans;
+  }
+
+  return ans;
+}
+
+function convertRuntimeOutput(data: Record<string, any>) {
+  const ans: Record<string, any> = { type: data.type ?? 'string' };
+  if (data.type === 'object' && data.properties) {
+    ans.properties = {};
+    for (const i of data.properties) {
+      ans.properties[i.name] = convertRuntimeOutput(i);
+      if (i.required) {
+        ans.required = ans.required ?? [];
+        ans.required.push(i.name);
+      }
+    }
+    return ans;
+  }
+
+  if (data.type === 'array' && data.element) {
+    ans.items = convertRuntimeOutput(data.element);
+    return ans;
+  }
+
+  return ans;
+}
+
+function outputToJsonSchema(output: Record<string, any>) {
+  if (!output || output.from?.type === 'input') return {};
+
+  if (output.name && isRuntimeOutputVariable(output.name)) {
+    const schema = runtimeVariablesSchema[output.name as RuntimeOutputVariable];
+    return schema ? convertRuntimeOutput(schema) : {};
+  }
+
+  return convertCustomOutput(output);
 }
 
 export interface ComponentSelectValue {
@@ -74,13 +103,11 @@ export interface ComponentSelectValue {
 export default function ComponentSelect({
   output,
   tags,
-  aid,
   value,
   onChange,
 }: {
   output: OutputVariableYjs;
   tags: string;
-  aid: string;
   value?: ComponentSelectValue | null;
   onChange?: (value: ComponentSelectValue) => void;
 }) {
@@ -125,22 +152,26 @@ export default function ComponentSelect({
 
   const componentsMap = useMemo(() => Object.fromEntries(components.map((i) => [i.value, i])), [components]);
 
-  const validatedComponentIds = useMemo(() => {
-    if (!output.type) return new Set(components.map((i) => i.id));
-
+  const validatedComponents = useMemo(() => {
     const outputSchema = outputToJsonSchema(output);
     const outputSchemaFakedData = generateFakeProps(outputSchema);
-    const validatedComponents =
-      components?.filter((i) => {
-        const componentSchema = (i as any).aigneOutputValueSchema;
-        if (!componentSchema) return true;
-        const validate = ajv.compile(componentSchema);
-        return validate({ outputValue: outputSchemaFakedData });
-      }) ?? [];
-    return new Set(validatedComponents.map((i) => i.id).filter(Boolean));
-  }, [components, output]);
+    const validated =
+      components?.reduce(
+        (acc, i) => {
+          const componentSchema = (i as any).aigneOutputValueSchema;
+          if (!componentSchema) {
+            acc.withoutSchema.push(i);
+            return acc;
+          }
 
-  const validatedComponents = components.filter((i) => validatedComponentIds.has(i.id));
+          const validate = ajv.compile(componentSchema);
+          if (validate({ outputValue: outputSchemaFakedData })) acc.withSchema.push(i);
+          return acc;
+        },
+        { withSchema: [], withoutSchema: [] } as { withSchema: any[]; withoutSchema: any[] }
+      ) ?? {};
+    return [...validated.withSchema, ...validated.withoutSchema];
+  }, [components, output]);
 
   return (
     <Grid
@@ -155,7 +186,7 @@ export default function ComponentSelect({
       spacing={2}>
       {validatedComponents.map((i) => (
         <Grid item key={i.value} xs={12} sm={6} md={4}>
-          <ComponentSelectItem output={output} aid={aid} customComponent={i} />
+          <ComponentSelectItem output={output} customComponent={i} />
         </Grid>
       ))}
 
@@ -170,11 +201,9 @@ export default function ComponentSelect({
 
 function ComponentSelectItem({
   output,
-  aid,
   customComponent,
 }: {
   output: OutputVariableYjs;
-  aid: string;
   customComponent: {
     value: string;
     blockletDid?: string;
@@ -215,7 +244,7 @@ function ComponentSelectItem({
           role="button"
           // @ts-ignore React types doesn't support inert attribute https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/inert
           inert="ignore">
-          <ItemPreviewer output={output} aid={aid} customComponent={customComponent} />
+          <ComponentPreviewImagePreviewer output={output} customComponent={customComponent} />
         </Box>
         <Divider />
         <Typography sx={{ m: 1 }} noWrap>
@@ -233,37 +262,36 @@ function ComponentSelectItem({
   );
 }
 
-function ItemPreviewer({
+function ComponentPreviewImagePreviewer({
   output,
-  aid,
   customComponent,
 }: {
   output: OutputVariableYjs;
-  aid: string;
-  customComponent: { blockletDid?: string; id: string };
-}) {
-  if (output.name === RuntimeOutputVariable.appearancePage) {
-    return <PageComponentPreviewer aid={aid} customComponent={customComponent} />;
-  }
-
-  return <ComponentPreviewImagePreviewer customComponent={customComponent} />;
-}
-
-function ComponentPreviewImagePreviewer({
-  customComponent,
-}: {
   customComponent: {
     id: string;
     name?: string;
     description?: string;
     previewImage?: string;
+    aigneOutputValueSchema?: Record<string, any>;
   };
 }) {
   const { t } = useLocaleContext();
-  const { previewImage, name } = customComponent;
+  const { previewImage, name, aigneOutputValueSchema } = customComponent;
+
+  const ignoreAigneOutputValueSchema = [
+    RuntimeOutputVariable.appearancePage,
+    RuntimeOutputVariable.appearanceInput,
+    RuntimeOutputVariable.appearanceOutput,
+  ];
+
   return (
     <Box position="relative" paddingBottom="100%">
       <Box position="absolute" left={0} top={0} right={0} bottom={0}>
+        {!aigneOutputValueSchema && !ignoreAigneOutputValueSchema.includes(output.name as RuntimeOutputVariable) && (
+          <Box sx={{ p: 0.5, position: 'absolute', top: 0, left: 0, right: 0, color: 'text.secondary' }}>
+            {t('noOutputValueSchema')}
+          </Box>
+        )}
         {previewImage ? (
           <Box
             component="img"
@@ -281,65 +309,13 @@ function ComponentPreviewImagePreviewer({
   );
 }
 
-function PageComponentPreviewer({
-  aid,
-  customComponent,
-}: {
-  aid: string;
-  customComponent: { blockletDid?: string; id: string; name?: string; componentProperties?: any };
-}) {
-  const apiProps = useAIGNEApiProps({
-    apiUniqueKey: `PageComponentSelectPreviewer-${customComponent.id}`,
-    customComponent,
-  });
-
-  return (
-    <Box position="relative" paddingBottom="120%">
-      <ErrorBoundary FallbackComponent={ErrorView}>
-        <Suspense
-          fallback={
-            <Box textAlign="center" my={2}>
-              <CircularProgress size={24} />
-            </Box>
-          }>
-          <PreviewerContent>
-            <RuntimeDebug hideSessionsBar aid={aid} ApiProps={apiProps} />
-          </PreviewerContent>
-        </Suspense>
-      </ErrorBoundary>
-    </Box>
-  );
-}
-
-function ErrorView({ error }: { error: any }) {
-  return <Alert severity="error">{error.message}</Alert>;
-}
-
-const PreviewerContent = styled(Box)`
-  position: absolute;
-  left: 0;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 200%;
-  height: 200%;
-  overflow: auto;
-  display: flex;
-  flex-direction: column;
-  transform: scale(0.5);
-  transform-origin: top left;
-  pointer-events: none;
-  user-select: none;
-`;
-
 export function ComponentSelectDialog({
   output,
   tags,
-  aid,
   value,
   onChange,
   ...props
-}: Pick<ComponentProps<typeof ComponentSelect>, 'aid' | 'tags' | 'value' | 'onChange' | 'output'> &
+}: Pick<ComponentProps<typeof ComponentSelect>, 'tags' | 'value' | 'onChange' | 'output'> &
   Omit<DialogProps, 'onChange'>) {
   const [state, setState] = useState<ComponentSelectValue | null>();
 
@@ -354,7 +330,7 @@ export function ComponentSelectDialog({
       <DialogTitle>{t('selectObject', { object: t('appearance') })}</DialogTitle>
 
       <DialogContent sx={{ minHeight: '40vh' }}>
-        <ComponentSelect output={output} tags={tags} aid={aid} value={state} onChange={setState} />
+        <ComponentSelect output={output} tags={tags} value={state} onChange={setState} />
       </DialogContent>
 
       <DialogActions>

@@ -879,6 +879,7 @@ export default flatten({
   dropdown: 'Dropdown',
   checkbox: 'Checkbox',
   noPreviewImage: 'No Preview Image',
+  noOutputValueSchema: 'Component lacks type definition, may render incorrectly',
   verifyVC: 'Verify VC',
   vcItem: 'VC Name',
   trustedIssuers: 'Trusted Issuers',
