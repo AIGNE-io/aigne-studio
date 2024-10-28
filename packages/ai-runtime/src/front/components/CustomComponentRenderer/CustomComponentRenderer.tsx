@@ -25,10 +25,12 @@ export default function CustomComponentRenderer({
 
   return (
     <Box
-      onMouseMove={() => {
+      onMouseMove={(e) => {
+        e.stopPropagation();
         setTabId?.('id' in output ? output.id : output.name);
       }}
-      onMouseLeave={() => {
+      onMouseLeave={(e) => {
+        e.stopPropagation();
         setTabId?.('');
       }}
       className={cx('ai-runtime-custom-component-renderer', (hovered || selected) && 'selected')}
