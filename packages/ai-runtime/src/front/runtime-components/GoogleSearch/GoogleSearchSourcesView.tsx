@@ -162,38 +162,3 @@ function ItemContainer({ title, favicon, link }: { title: ReactNode; favicon: Re
     </Card>
   );
 }
-
-GoogleSearchSourcesView.outputValueSchema = {
-  type: 'object',
-  properties: {
-    outputValue: {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: {
-          title: {
-            type: 'string',
-            faker: 'lorem.sentence',
-          },
-          link: {
-            type: 'string',
-            faker: 'internet.url',
-          },
-          snippet: {
-            type: 'string',
-            faker: 'lorem.paragraph',
-          },
-          favicon: {
-            type: 'string',
-            faker: 'image.url',
-          },
-          source: {
-            type: 'string',
-            faker: 'lorem.word',
-          },
-        },
-        required: ['title', 'link'],
-      },
-    },
-  },
-};

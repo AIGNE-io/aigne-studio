@@ -2,13 +2,27 @@ import BaseSwitch from '@app/components/custom/switch';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ParameterField } from '@blocklet/ai-runtime/components';
 import { ParameterYjs, parameterFromYjs } from '@blocklet/ai-runtime/types';
-import { Box, FormControl, FormControlLabel, MenuItem, Stack, TextField, Typography } from '@mui/material';
+import {
+  Autocomplete,
+  Box,
+  Chip,
+  FormControl,
+  FormControlLabel,
+  MenuItem,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material';
 
 import NumberField from './number-field';
 import SelectOptionsConfig from './select-options-config';
 
+const fixedTrustedIssuers = ['current_application'];
+
 export default function ParameterConfig({ readOnly, value }: { readOnly?: boolean; value: ParameterYjs }) {
   const { t } = useLocaleContext();
+
+  const stringValue = !value.type || value.type === 'string' ? (value as typeof value & { type: 'string' }) : undefined;
 
   return (
     <Stack gap={2}>
@@ -63,46 +77,117 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
         </Box>
       )}
 
-      <Box>
-        <Typography variant="subtitle2">{t('defaultValue')}</Typography>
+      {value.type !== 'verify_vc' && (
+        <Box>
+          <Typography variant="subtitle2">{t('defaultValue')}</Typography>
 
-        {value.type === 'boolean' ? (
-          <BaseSwitch
-            sx={{ mr: 1, mt: '1px' }}
-            checked={value.defaultValue || false}
-            onChange={(_, required) => !readOnly && (value.defaultValue = required)}
-          />
-        ) : value.type === 'number' ? (
-          <NumberField
-            hiddenLabel
-            sx={{ width: 1 }}
-            fullWidth
-            size="medium"
-            NumberProps={{
-              readOnly,
-              value: value.defaultValue,
-              onChange: (_, defaultValue) => (value.defaultValue = defaultValue),
-            }}
-          />
-        ) : (
-          <ParameterField
-            readOnly={readOnly}
-            parameter={parameterFromYjs(value)}
-            label={undefined}
-            hiddenLabel
-            fullWidth
-            size="medium"
-            value={value.defaultValue ?? ''}
-            onChange={(defaultValue: any) => {
-              if (value.type === 'image' && value.multiple) {
-                value.defaultValue = [defaultValue];
-              } else {
-                value.defaultValue = defaultValue;
+          {value.type === 'boolean' ? (
+            <BaseSwitch
+              sx={{ mr: 1, mt: '1px' }}
+              checked={value.defaultValue || false}
+              onChange={(_, required) => !readOnly && (value.defaultValue = required)}
+            />
+          ) : value.type === 'number' ? (
+            <NumberField
+              hiddenLabel
+              sx={{ width: 1 }}
+              fullWidth
+              size="medium"
+              NumberProps={{
+                readOnly,
+                value: value.defaultValue,
+                onChange: (_, defaultValue) => (value.defaultValue = defaultValue),
+              }}
+            />
+          ) : (
+            <ParameterField
+              readOnly={readOnly}
+              parameter={parameterFromYjs(value)}
+              label={undefined}
+              hiddenLabel
+              fullWidth
+              size="medium"
+              value={value.defaultValue ?? ''}
+              onChange={(defaultValue: any) => {
+                if (value.type === 'image' && value.multiple) {
+                  value.defaultValue = [defaultValue];
+                } else {
+                  value.defaultValue = defaultValue;
+                }
+              }}
+            />
+          )}
+        </Box>
+      )}
+
+      {value.type === 'verify_vc' && (
+        <>
+          <Box>
+            <Typography variant="subtitle2">{t('buttonTitle')}</Typography>
+            <TextField
+              fullWidth
+              hiddenLabel
+              placeholder="Verify VC"
+              value={value.buttonTitle || ''}
+              onChange={(e) => (value.buttonTitle = e.target.value)}
+              InputProps={{ readOnly }}
+            />
+          </Box>
+
+          <Box>
+            <Typography variant="subtitle2">{t('buttonTitleVerified')}</Typography>
+            <TextField
+              fullWidth
+              hiddenLabel
+              placeholder="Verify VC Succeed"
+              value={value.buttonTitleVerified || ''}
+              onChange={(e) => (value.buttonTitleVerified = e.target.value)}
+              InputProps={{ readOnly }}
+            />
+          </Box>
+
+          <Box>
+            <Typography variant="subtitle2">{t('vcItem')}</Typography>
+            <Autocomplete
+              multiple
+              freeSolo
+              autoSelect
+              options={[]}
+              renderInput={(params) => <TextField hiddenLabel {...params} />}
+              value={value.vcItem ?? []}
+              onChange={(_, vcItem) => (value.vcItem = vcItem)}
+            />
+          </Box>
+
+          <Box>
+            <Typography variant="subtitle2">{t('trustedIssuers')}</Typography>
+            <Autocomplete
+              multiple
+              freeSolo
+              autoSelect
+              options={[]}
+              renderInput={(params) => <TextField hiddenLabel {...params} />}
+              value={[...new Set([...fixedTrustedIssuers, ...(value.vcTrustedIssuers ?? [])])]}
+              onChange={(_, vcItem) => (value.vcTrustedIssuers = vcItem)}
+              renderTags={(tagValue, getTagProps) =>
+                tagValue.map((option, index) => {
+                  const { key, ...tagProps } = getTagProps({ index });
+                  const disabled = fixedTrustedIssuers.includes(option);
+                  return (
+                    <Chip
+                      key={key}
+                      label={option}
+                      {...tagProps}
+                      onDelete={disabled ? undefined : tagProps.onDelete}
+                      disabled={disabled}
+                    />
+                  );
+                })
               }
-            }}
-          />
-        )}
-      </Box>
+            />
+          </Box>
+        </>
+      )}
 
       {value.type === 'select' && (
         <>
@@ -126,7 +211,7 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
       )}
 
       <Box display="flex" alignItems="center" gap={2}>
-        {(!value.type || value.type === 'string') && (
+        {stringValue && (
           <>
             <Box flex={1}>
               <Typography variant="subtitle2">{t('minLength')}</Typography>
@@ -139,8 +224,8 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
                 NumberProps={{
                   readOnly,
                   min: 1,
-                  value: value.minLength,
-                  onChange: (_, minLength) => (value.minLength = minLength),
+                  value: stringValue.minLength,
+                  onChange: (_, minLength) => (stringValue.minLength = minLength),
                 }}
               />
             </Box>
@@ -156,8 +241,8 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
                 NumberProps={{
                   readOnly,
                   min: 1,
-                  value: value.maxLength,
-                  onChange: (_, maxLength) => (value.maxLength = maxLength),
+                  value: stringValue.maxLength,
+                  onChange: (_, maxLength) => (stringValue.maxLength = maxLength),
                 }}
               />
             </Box>

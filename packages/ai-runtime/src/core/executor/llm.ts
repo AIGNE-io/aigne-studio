@@ -12,6 +12,7 @@ import {
   PromptAssistant,
   Role,
   RuntimeOutputVariable,
+  jsonSchemaToOpenAIJsonSchema,
   outputVariablesToJsonSchema,
 } from '../../types';
 import { parseDirectives } from '../../types/assistant/mustache/directive';
@@ -21,7 +22,6 @@ import {
   metadataStreamOutputFormatPrompt,
 } from '../assistant/generate-output';
 import { GetAgentResult } from '../assistant/type';
-import { renderMessage } from '../utils/render-message';
 import retry from '../utils/retry';
 import { nextTaskId } from '../utils/task-id';
 import { AgentExecutorBase } from './base';
@@ -129,7 +129,7 @@ export class LLMAgentExecutor extends AgentExecutorBase<PromptAssistant> {
 
       // 没有特殊变量
       if (!variables.length) {
-        const renderedContent = await renderMessage(content, { ...inputs, ...this.globalContext });
+        const renderedContent = await this.renderMessage(content, { ...inputs, ...this.globalContext });
         return renderedContent;
       }
 
@@ -137,7 +137,7 @@ export class LLMAgentExecutor extends AgentExecutorBase<PromptAssistant> {
       const haveImageParameter = parameters.filter((i) => i.type === 'image').some((i) => variables.includes(i.key!));
       logger.info('haveImageParameter', haveImageParameter);
       if (!haveImageParameter) {
-        const renderedContent = await renderMessage(content, { ...inputs, ...this.globalContext });
+        const renderedContent = await this.renderMessage(content, { ...inputs, ...this.globalContext });
         return renderedContent;
       }
 
@@ -157,7 +157,11 @@ export class LLMAgentExecutor extends AgentExecutorBase<PromptAssistant> {
           }
         });
 
-      const renderedContent = await renderMessage(content, { ...inputs, ...this.globalContext, ...imageVariablesMap });
+      const renderedContent = await this.renderMessage(content, {
+        ...inputs,
+        ...this.globalContext,
+        ...imageVariablesMap,
+      });
 
       const contentParts: {
         type: string;
@@ -424,7 +428,7 @@ export class LLMAgentExecutor extends AgentExecutorBase<PromptAssistant> {
           type: 'json_schema',
           jsonSchema: {
             name: 'output',
-            schema,
+            schema: jsonSchemaToOpenAIJsonSchema(schema),
             strict: true,
           },
         },

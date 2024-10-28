@@ -12,7 +12,6 @@ import logger from '../../logger';
 import { AssistantResponseType, FunctionAssistant } from '../../types';
 import { renderMustacheStream } from '../../types/assistant/mustache/ReadableMustache';
 import { geti } from '../utils/geti';
-import { renderMessage } from '../utils/render-message';
 import { nextTaskId } from '../utils/task-id';
 import { AgentExecutorBase } from './base';
 
@@ -42,7 +41,7 @@ export class LogicAgentExecutor extends AgentExecutorBase<FunctionAssistant> {
       await Promise.all(
         (agent.parameters ?? [])
           .filter((i): i is typeof i & { key: string } => !!i.key && !i.hidden)
-          .map(async (i) => [i.key, inputs?.[i.key] || i.defaultValue])
+          .map(async (i) => [i.key, inputs?.[i.key] ?? i.defaultValue])
       )
     );
 
@@ -75,7 +74,7 @@ export class LogicAgentExecutor extends AgentExecutorBase<FunctionAssistant> {
             });
 
             const result = await this.context.execute(a, { taskId: nextTaskId(), parentTaskId: taskId, inputs });
-            return renderMessage(t, { ...renderCtx, $result: result }, { escapeJsonSymbols: true });
+            return this.renderMessage(t, { ...renderCtx, $result: result }, { escapeJsonSymbols: true });
           },
         };
 

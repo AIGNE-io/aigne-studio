@@ -16,7 +16,7 @@ import LoadingButton from '../../components/LoadingButton';
 import { useAgent } from '../../contexts/Agent';
 import { useComponentPreferences } from '../../contexts/ComponentPreferences';
 import { useCurrentAgent } from '../../contexts/CurrentAgent';
-import { useRunAgentWithLogin, useSession } from '../../contexts/Session';
+import { useSession } from '../../contexts/Session';
 import { isValidInput } from '../../utils/agent-inputs';
 
 export default function AutoForm({
@@ -43,8 +43,7 @@ export default function AutoForm({
   const { aid } = useCurrentAgent();
   const agent = useAgent({ aid });
 
-  const { running } = useSession((s) => ({ running: s.running }));
-  const runAgent = useRunAgentWithLogin();
+  const { running, runAgent } = useSession((s) => ({ running: s.running, runAgent: s.runAgent }));
 
   const parameters = useMemo(
     () =>
@@ -75,6 +74,10 @@ export default function AutoForm({
   const isOnlyOneImageParameter = useMemo(() => (imageParameters?.length || 0) === 1, [imageParameters]);
   const initialFormValues = useInitialFormValues();
   const changeImageParameterRender = agent.type === 'prompt' && isOnlyOneImageParameter;
+
+  const isOnlyOneVCInput = parameters?.length === 1 && parameters[0]?.type === 'verify_vc';
+
+  const hiddenSubmit = isOnlyOneVCInput;
 
   const defaultForm = useMemo(() => {
     return { ...initialFormValues, ...(imageParametersMap || {}) };
@@ -217,11 +220,11 @@ export default function AutoForm({
     }
   }, [defaultForm, autoFillLastForm, form, chatMode]);
 
-  const onSubmit = async (parameters: any) => {
+  const onSubmit = async (inputs: any) => {
     submitRef.current?.scrollIntoView({ block: 'center' });
     await runAgent({
       aid,
-      parameters,
+      inputs,
       onResponseStart: () => {
         if (chatMode) form.resetField('question', { defaultValue: '' });
       },
@@ -326,13 +329,14 @@ export default function AutoForm({
             {changeImageParameterRender && renderImageUploadIcon()}
 
             <LoadingButton
+              hidden={hiddenSubmit}
               data-testid="runtime-submit-button"
               ref={submitRef}
               type="submit"
               variant="contained"
               loading={running}
               disabled={submitDisabled}
-              sx={{ height: 40, flex: 1 }}>
+              sx={{ height: 40, display: hiddenSubmit ? 'none' : undefined }}>
               {submitText || t('generate')}
             </LoadingButton>
           </Stack>

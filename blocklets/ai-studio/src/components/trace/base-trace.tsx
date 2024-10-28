@@ -1,4 +1,4 @@
-import { PromptMessages } from '@blocklet/ai-runtime/types';
+import { ChatCompletionInput } from '@blocklet/ai-kit/api/types/chat';
 import { Accordion, AccordionDetails, AccordionSummary, Box, Typography, styled } from '@mui/material';
 import { GridExpandMoreIcon } from '@mui/x-data-grid';
 import { ReactNode } from 'react';
@@ -26,7 +26,7 @@ export function JsonDisplay({ children }: { children: ReactNode }) {
   );
 }
 
-export function PromptMessagesComponent({ value }: { value: PromptMessages }) {
+export function PromptMessagesComponent({ value }: { value: ChatCompletionInput['messages'] }) {
   return value?.map((i, index) => (
     <Accordion
       sx={{
@@ -54,7 +54,7 @@ export function PromptMessagesComponent({ value }: { value: PromptMessages }) {
       </AccordionSummary>
       <AccordionDetails sx={{ fontSize: 18, py: 1 }}>
         <Typography sx={{ whiteSpace: 'pre-wrap' }}>
-          {typeof i.content === 'string' ? i.content : JSON.stringify(i.content)}
+          {typeof i.content === 'string' ? i.content : JSON.stringify(i.content, null, 2)}
         </Typography>
       </AccordionDetails>
     </Accordion>
