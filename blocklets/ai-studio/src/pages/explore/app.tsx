@@ -26,7 +26,6 @@ export default function AppPage() {
   const isNoSuchEntryAgentError = (error as any)?.response?.data?.error?.type === 'NoSuchEntryAgentError';
   const renderButtons = () => {
     if (!data) return undefined;
-    if (data.deployment.aigneBannerVisible) return undefined;
     return (
       <Container maxWidth="md" sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mb: 2 }}>
         <ShareButton deployment={data.deployment} project={data.project} />
