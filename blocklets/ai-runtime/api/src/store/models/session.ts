@@ -26,18 +26,13 @@ export default class Session extends Model<InferAttributes<Session>, InferCreati
   }
 
   static async countUniqueUsersPerProject(projectIds: string[]) {
+    if (!projectIds?.length) return {};
     const counts = await this.findAll({
       where: { projectId: projectIds },
       attributes: ['projectId', [Sequelize.fn('COUNT', Sequelize.col('userId')), 'count']],
       group: ['projectId'],
     });
-    return counts.reduce(
-      (acc, cur) => {
-        acc[cur.projectId] = (cur.get('count') ?? 0) as number;
-        return acc;
-      },
-      {} as Record<string, number>
-    );
+    return Object.fromEntries(counts.map((i) => [i.projectId, (i.get('count') ?? 0) as number]));
   }
 }
 

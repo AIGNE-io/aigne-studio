@@ -62,8 +62,7 @@ interface ProjectStatsItem {
 }
 
 const projectStatsCache = new LRUCache<string, ProjectStatsItem>({
-  maxSize: 500,
-  sizeCalculation: () => 1,
+  max: 500,
   ttl: Number(process.env.AIGNE_RUNTIME_STATISTICS_CACHE_TTL) || 60e3,
 });
 

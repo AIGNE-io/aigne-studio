@@ -48,6 +48,7 @@ export default class History extends Model<InferAttributes<History>, InferCreati
   };
 
   static async countRunsPerProject(projectIds: string[]) {
+    if (!projectIds?.length) return {};
     // Find all records that match the given project IDs and count the number of runs for each project.
     const counts = await this.findAll({
       where: { projectId: projectIds },
@@ -55,13 +56,7 @@ export default class History extends Model<InferAttributes<History>, InferCreati
       group: ['projectId'],
     });
 
-    return counts.reduce(
-      (acc, cur) => {
-        acc[cur.projectId] = (cur.get('count') ?? 0) as number;
-        return acc;
-      },
-      {} as Record<string, number>
-    );
+    return Object.fromEntries(counts.map((i) => [i.projectId, (i.get('count') ?? 0) as number]));
   }
 }
 

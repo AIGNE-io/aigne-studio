@@ -211,9 +211,11 @@ router.get('/categories/:categorySlug', async (req, res) => {
     distinct: true,
   });
 
-  const stats = await getProjectStatsFromRuntime({ projectIds: rows.map((d) => d.projectId) });
+  const [stats, users] = await Promise.all([
+    getProjectStatsFromRuntime({ projectIds: rows.map((d) => d.projectId) }),
+    getUsers(rows.map((d) => d.createdBy)),
+  ]);
   const statsMap = new Map(stats.map((s) => [s.projectId, s]));
-  const users = await getUsers(rows.map((d) => d.createdBy));
   const enhancedDeployments = await Promise.all(
     rows.map(async (deployment) => {
       const repository = await getRepository({ projectId: deployment.projectId });

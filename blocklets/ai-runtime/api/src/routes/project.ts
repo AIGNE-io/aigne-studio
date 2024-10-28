@@ -11,8 +11,11 @@ const getProjectStatsSchema = Joi.object<{ projectIds: string[] }>({
 export function projectRoutes(router: Router) {
   router.post('/projects/stats', ensureComponentCallOrAdmin(), async (req, res) => {
     const { projectIds } = await getProjectStatsSchema.validateAsync(req.body, { stripUnknown: true });
-    const users = await Session.countUniqueUsersPerProject(projectIds);
-    const runs = await History.countRunsPerProject(projectIds);
+    const uniqueProjectIds = [...new Set(projectIds)];
+    const [users, runs] = await Promise.all([
+      Session.countUniqueUsersPerProject(uniqueProjectIds),
+      History.countRunsPerProject(uniqueProjectIds),
+    ]);
     const result = projectIds.map((projectId) => ({
       projectId,
       totalRuns: runs[projectId] || 0,
