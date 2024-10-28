@@ -2,6 +2,7 @@ import { ProjectSettings } from '@blocklet/ai-runtime/types';
 import { joinURL } from 'ufo';
 
 import axios from './api';
+import { User } from './project';
 
 export type Deployment = {
   id: string;
@@ -19,6 +20,8 @@ export type Deployment = {
   productHuntBannerUrl?: string;
   aigneBannerVisible?: boolean;
 };
+
+export type ProjectStatsItem = { projectId: string; totalRuns: number; totalUsers: number };
 
 export type UpdateType = {
   access?: 'private' | 'public';
@@ -60,7 +63,7 @@ export async function getDeploymentsByCategorySlug(input: {
   page: number;
   pageSize: number;
 }): Promise<{
-  list: (Deployment & { project: ProjectSettings })[];
+  list: (Deployment & { project: ProjectSettings; stats: ProjectStatsItem; createdByInfo: User })[];
   totalCount: number;
 }> {
   const { categorySlug, page, pageSize } = input;

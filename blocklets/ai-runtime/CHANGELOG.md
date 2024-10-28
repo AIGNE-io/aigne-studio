@@ -1,3 +1,7 @@
+## 0.4.109 (2024-10-28)
+
+- chore: improve UI for explore list page
+
 ## 0.4.108 (2024-10-27)
 
 - refactor: optimize decision function name generator
