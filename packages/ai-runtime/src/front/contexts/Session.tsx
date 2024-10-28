@@ -29,7 +29,7 @@ export interface SessionContextValue {
   noMoreMessage?: boolean;
   messageLoading?: boolean;
   error?: Error;
-  runAgent: (options: { aid: string; debug?: boolean; parameters: any; onResponseStart?: () => void }) => Promise<void>;
+  runAgent: (options: { aid: string; debug?: boolean; inputs: any; onResponseStart?: () => void }) => Promise<void>;
   reload: () => Promise<void>;
   loadMoreMessages: (args?: { limit?: number }) => Promise<void>;
   clearSession: () => Promise<void>;
@@ -91,7 +91,7 @@ function createSessionState(
     immer<SessionContextValue>((set, get) => {
       return {
         sessionId: options.sessionId,
-        runAgent: async ({ aid, parameters, onResponseStart }) => {
+        runAgent: async ({ aid, inputs, onResponseStart }) => {
           const identity = parseIdentity(aid, { rejectWhenError: true });
 
           let responseStarted = false;
@@ -109,7 +109,7 @@ function createSessionState(
               entryAid: options.entryAid,
               aid,
               sessionId,
-              inputs: { ...parameters, $clientTime: new Date().toISOString() },
+              inputs: { ...inputs, $clientTime: new Date().toISOString() },
               responseType: 'stream',
             });
 
@@ -148,7 +148,7 @@ function createSessionState(
                     id: value.messageId,
                     agentId: identity.agentId,
                     sessionId,
-                    inputs: parameters,
+                    inputs,
                     createdAt: new Date().toISOString(),
                     updatedAt: new Date().toISOString(),
                     loading: true,
@@ -295,21 +295,26 @@ export function useSession<U>(selector: (state: SessionContextValue) => U): U {
 
   if (!state) throw new Error('No such session context. You should use `useSession` within the `SessionProvider`');
 
-  return state(useShallow(selector));
+  const runAgent = useRunAgentWithLogin();
+
+  return state(useShallow((s) => selector({ ...s, runAgent })));
 }
 
-export function useRunAgentWithLogin() {
+function useRunAgentWithLogin() {
   const { session: authSession } = useSessionContext();
   const { aid } = useCurrentAgent();
   const agent = useAgent({ aid });
+
+  const state = useContext(sessionContext);
+  if (!state) throw new Error('No such session context. You should use `useSession` within the `SessionProvider`');
+
+  const exec = state((s) => s.runAgent);
 
   const login = useCallback(async () => {
     await new Promise<void>((resolve) => {
       authSession.login(() => resolve());
     });
   }, [authSession]);
-
-  const exec = useSession((s) => s.runAgent);
 
   const runAgent: typeof exec = useCallback(
     async (...args) => {

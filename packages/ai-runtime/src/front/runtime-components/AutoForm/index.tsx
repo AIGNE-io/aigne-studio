@@ -11,7 +11,7 @@ import LoadingButton from '../../components/LoadingButton';
 import { useAgent } from '../../contexts/Agent';
 import { useComponentPreferences } from '../../contexts/ComponentPreferences';
 import { useCurrentAgent } from '../../contexts/CurrentAgent';
-import { useRunAgentWithLogin, useSession } from '../../contexts/Session';
+import { useSession } from '../../contexts/Session';
 import { isValidInput } from '../../utils/agent-inputs';
 
 export default function AutoForm({
@@ -35,8 +35,7 @@ export default function AutoForm({
   const { aid } = useCurrentAgent();
   const agent = useAgent({ aid });
 
-  const { running } = useSession((s) => ({ running: s.running }));
-  const runAgent = useRunAgentWithLogin();
+  const { running, runAgent } = useSession((s) => ({ running: s.running, runAgent: s.runAgent }));
 
   const parameters = useMemo(
     () =>
@@ -71,11 +70,11 @@ export default function AutoForm({
     }
   }, [defaultForm, autoFillLastForm, form, chatMode]);
 
-  const onSubmit = async (parameters: any) => {
+  const onSubmit = async (inputs: any) => {
     submitRef.current?.scrollIntoView({ block: 'center' });
     await runAgent({
       aid,
-      parameters,
+      inputs,
       onResponseStart: () => {
         if (chatMode) form.resetField('question', { defaultValue: '' });
       },

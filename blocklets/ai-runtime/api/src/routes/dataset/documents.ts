@@ -113,10 +113,6 @@ router.get('/:datasetId/search', async (req, res) => {
     return;
   }
 
-  if (!input.message) {
-    throw new Error('Not found search message');
-  }
-
   const embeddings = new AIKitEmbeddings({});
   const store = await VectorStore.load(datasetId, embeddings);
 
@@ -127,7 +123,8 @@ router.get('/:datasetId/search', async (req, res) => {
   }
 
   const docs = await store.similaritySearchWithScore(
-    input.message,
+    // Allow empty query to get some random results
+    input.message || ' ',
     Math.min(input.n, Object.keys(store.getMapping()).length)
   );
 
