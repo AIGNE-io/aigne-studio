@@ -135,7 +135,6 @@ export class LLMAgentExecutor extends AgentExecutorBase<PromptAssistant> {
 
       // 没有图片变量
       const haveImageParameter = parameters.filter((i) => i.type === 'image').some((i) => variables.includes(i.key!));
-      logger.info('haveImageParameter', haveImageParameter);
       if (!haveImageParameter) {
         const renderedContent = await this.renderMessage(content, { ...inputs, ...this.globalContext });
         return renderedContent;
@@ -235,7 +234,6 @@ export class LLMAgentExecutor extends AgentExecutorBase<PromptAssistant> {
     const { hasJsonOutputs } = await this.outputsInfo;
 
     const messages = await this.getMessages({ inputs });
-    logger.info('messages', JSON.stringify(messages, null, 2));
 
     const { modelInfo } = this;
 

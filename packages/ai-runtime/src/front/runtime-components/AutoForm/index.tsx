@@ -1,16 +1,11 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import Toast from '@arcblock/ux/lib/Toast';
 import { cx } from '@emotion/css';
-import AttachFileIcon from '@mui/icons-material/AttachFile';
-import CameraAltIcon from '@mui/icons-material/CameraAlt';
-import CancelIcon from '@mui/icons-material/Cancel';
-import { Box, Button, FormLabel, IconButton, InputAdornment, Stack, formLabelClasses, styled } from '@mui/material';
+import { Box, FormLabel, InputAdornment, Stack, formLabelClasses, styled } from '@mui/material';
 import isEmpty from 'lodash/isEmpty';
 import omit from 'lodash/omit';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 
-import { uploadImage } from '../../../api/ai-runtime/image';
 import AgentInputField from '../../components/AgentInputField';
 import LoadingButton from '../../components/LoadingButton';
 import { useAgent } from '../../contexts/Agent';
@@ -18,6 +13,7 @@ import { useComponentPreferences } from '../../contexts/ComponentPreferences';
 import { useCurrentAgent } from '../../contexts/CurrentAgent';
 import { useSession } from '../../contexts/Session';
 import { isValidInput } from '../../utils/agent-inputs';
+import { ImagePreview, ImageUpload } from './image-upload';
 
 export default function AutoForm({
   submitText,
@@ -25,20 +21,16 @@ export default function AutoForm({
   autoFillLastForm = true,
   submitInQuestionField,
   chatMode,
-  maxFiles = 3,
 }: {
   submitText?: string;
   inlineLabel?: boolean;
   autoFillLastForm?: boolean;
   submitInQuestionField?: boolean;
   chatMode?: boolean;
-  maxFiles?: number;
 }) {
   const preferences = useComponentPreferences();
 
   const submitRef = useRef<HTMLButtonElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
   const { t } = useLocaleContext();
   const { aid } = useCurrentAgent();
   const agent = useAgent({ aid });
@@ -96,86 +88,8 @@ export default function AutoForm({
   const isInInput = submitInQuestionField && parameters?.some((i) => i.key === 'question');
 
   const renderImageUploadIcon = () => {
-    if (!isOnlyOneImageParameter) return null;
-    if (!imageParameters?.[0]) return null;
-
-    return (
-      <Controller
-        control={form.control}
-        name={imageParameters[0]!.key!}
-        render={({ field }) => {
-          const handleFiles = async (files: File[]) => {
-            const old = form.getValues(imageParameters[0]!.key!) || [];
-
-            if (imageParameters[0]!.multiple) {
-              if (old.length + files.length > maxFiles) {
-                Toast.error(t('maxFilesLimit', { limit: maxFiles }));
-                return;
-              }
-            }
-
-            try {
-              const formData = new FormData();
-              files.forEach((file) => formData.append('images', file));
-
-              const response = await uploadImage({ input: formData });
-              const urls = Array.isArray(old) ? old : [old];
-
-              field.onChange({
-                target: {
-                  value: imageParameters[0]!.multiple
-                    ? [
-                        ...urls,
-                        ...((response.uploads || []) as unknown as { url: string }[]).map((upload) => upload.url),
-                      ]
-                    : response.uploads[0]?.url,
-                },
-              });
-            } catch (error) {
-              console.error('error', error);
-              Toast.error(error.message);
-            }
-          };
-
-          const list = (Array.isArray(field.value) ? field.value : [field.value]).filter(Boolean);
-          return (
-            <>
-              <input
-                type="file"
-                accept="image/*"
-                multiple={Boolean(imageParameters[0]!.multiple)}
-                style={{ display: 'none' }}
-                ref={fileInputRef}
-                onChange={(e) => handleFiles(Array.from(e.target.files || []))}
-              />
-
-              <input
-                type="file"
-                accept="image/*"
-                capture="environment"
-                multiple={Boolean(imageParameters[0]!.multiple)}
-                style={{ display: 'none' }}
-                ref={cameraInputRef}
-                onChange={(e) => handleFiles(Array.from(e.target.files || []))}
-              />
-
-              <Stack flexDirection="row" gap={0}>
-                <IconButton
-                  onClick={() => cameraInputRef.current?.click()}
-                  disabled={list.length >= maxFiles}
-                  sx={{ display: { xs: 'block', md: 'none' } }}>
-                  <CameraAltIcon sx={{ fontSize: !isInInput ? 20 : 18 }} />
-                </IconButton>
-
-                <IconButton onClick={() => fileInputRef.current?.click()} disabled={list.length >= maxFiles}>
-                  <AttachFileIcon sx={{ fontSize: !isInInput ? 20 : 18 }} />
-                </IconButton>
-              </Stack>
-            </>
-          );
-        }}
-      />
-    );
+    if (!isOnlyOneImageParameter || !imageParameters?.[0]) return null;
+    return <ImageUpload control={form.control} parameter={imageParameters[0]} isInInput={isInInput} />;
   };
 
   const previewsValue = useWatch({
@@ -184,33 +98,17 @@ export default function AutoForm({
   });
 
   const renderImageUploadPreview = () => {
-    if (!changeImageParameterRender) return null;
-    if (!imageParameters?.[0]) return null;
-
-    const list = (Array.isArray(previewsValue) ? previewsValue : [previewsValue]).filter(Boolean);
-    if (!list.length) return null;
-
+    if (!changeImageParameterRender || !imageParameters?.[0]) return null;
     return (
-      <Stack direction="row" alignItems="center" flexWrap="wrap" gap={1}>
-        {list.map((url, index) => (
-          <Box key={url} position="relative" display="flex">
-            <img
-              src={url}
-              alt={`Uploaded ${index + 1}`}
-              style={{ width: '100px', height: '100px', objectFit: 'cover' }}
-            />
-            <Button
-              size="small"
-              sx={{ position: 'absolute', top: 0, right: 0, minWidth: 'unset', p: 0.5 }}
-              onClick={() => {
-                const newUrls = list.filter((_: any, i: any) => i !== index);
-                form.setValue(imageParameters[0]!.key!, newUrls);
-              }}>
-              <CancelIcon style={{ color: 'red' }} />
-            </Button>
-          </Box>
-        ))}
-      </Stack>
+      <ImagePreview
+        value={previewsValue}
+        parameter={imageParameters[0]}
+        onRemove={(index) => {
+          const list = (Array.isArray(previewsValue) ? previewsValue : [previewsValue]).filter(Boolean);
+          const newUrls = list.filter((_: any, i: any) => i !== index);
+          form.setValue(imageParameters[0]!.key!, newUrls);
+        }}
+      />
     );
   };
 
@@ -273,7 +171,6 @@ export default function AutoForm({
                     {parameter.label && <FormLabel>{parameter.label}</FormLabel>}
 
                     <AgentInputField
-                      maxFiles={maxFiles}
                       inputProps={{ 'data-testid': `runtime-input-${key}` }}
                       inputRef={field.ref}
                       autoFocus={index === 0}

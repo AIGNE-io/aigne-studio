@@ -32,7 +32,8 @@ const upload = multer({
   },
 });
 
-router.post('/upload', upload.array('images', 3), async (req: Request, res: Response) => {
+const maxImageCount = config.env.preferences.maxImageCount || 1;
+router.post('/upload', upload.array('images', maxImageCount), async (req: Request, res: Response) => {
   const files = req.files as Express.Multer.File[];
 
   if (!files || files.length === 0) {

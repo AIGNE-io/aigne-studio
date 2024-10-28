@@ -400,6 +400,7 @@
               "tab": "Plans and pricing"
             },
             "x-designable-id": "9zmp5p7ws4d",
+            "x-index": 2,
             "properties": {
               "premiumPlanEnabled": {
                 "type": "boolean",
@@ -416,12 +417,43 @@
                 "x-designable-id": "sl1lc1zp8gn",
                 "x-index": 0
               }
+            }
+          },
+          "3a0uhy2d9iu": {
+            "type": "void",
+            "x-component": "FormTab.TabPane",
+            "x-component-props": {
+              "tab": "Settings"
             },
-            "x-index": 2
+            "x-designable-id": "3a0uhy2d9iu",
+            "properties": {
+              "maxImageCount": {
+                "type": "number",
+                "title": "Max File Number",
+                "x-decorator": "FormItem",
+                "x-component": "NumberPicker",
+                "x-validator": [],
+                "x-component-props": {
+                  "max": 10,
+                  "min": 1
+                },
+                "x-decorator-props": {
+                  "layout": "vertical",
+                  "labelWidth": "500px",
+                  "wrapperWidth": "500px"
+                },
+                "name": "maxImageCount",
+                "description": "The number of images uploaded simultaneously",
+                "default": 3,
+                "x-designable-id": "2pd2k6hvfy4",
+                "x-index": 0
+              }
+            },
+            "x-index": 3
           }
         }
       }
     },
-    "x-designable-id": "61dbyjhlytg"
+    "x-designable-id": "w7whgpec3e9"
   }
 }
