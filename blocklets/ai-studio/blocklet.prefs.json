@@ -65,6 +65,27 @@
                 "x-designable-id": "pjjw2k56bus",
                 "x-index": 0,
                 "description": "Limit the maximum number of projects each person can create in Multi Tenant (except for owner, admin, promptsEditor passport)"
+              },
+              "maxImageCount": {
+                "type": "number",
+                "title": "Max Image Upload Count",
+                "x-decorator": "FormItem",
+                "x-component": "NumberPicker",
+                "x-validator": [],
+                "x-component-props": {
+                  "min": 1,
+                  "max": 10
+                },
+                "x-decorator-props": {
+                  "layout": "vertical",
+                  "labelWidth": "inherit",
+                  "wrapperWidth": "inherit"
+                },
+                "name": "maxImageCount",
+                "description": "The number of images uploaded simultaneously",
+                "default": 3,
+                "x-designable-id": "mb163ekhkrv",
+                "x-index": 1
               }
             }
           },
@@ -430,6 +451,6 @@
         }
       }
     },
-    "x-designable-id": "6fb7tt3wa0v"
+    "x-designable-id": "asdb07rmd56"
   }
 }

@@ -10,15 +10,14 @@ import { uploadImage } from '../../../api/ai-runtime/image';
 import { ImageParameter } from '../../../types';
 import StringField from './StringField';
 
-const MAX_IMAGE_FILES = 3;
+const MAX_IMAGE_FILES = window.blocklet?.preferences?.maxImageCount || 1;
 
 export default function ImageField({
   parameter,
   ...props
 }: {
   parameter: ImageParameter;
-  onChange: (value: string | string[]) => void;
-  value: string | string[];
+  onChange: (value: string | number | undefined | string[]) => void;
 } & Omit<TextFieldProps, 'onChange'>) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);

@@ -16,7 +16,7 @@ interface ImageUploadProps {
   isInInput?: boolean;
 }
 
-const MAX_IMAGE_FILES = 3;
+const MAX_IMAGE_FILES = window.blocklet?.preferences?.maxImageCount || 1;
 
 export function ImageUpload({ control, parameter, isInInput }: ImageUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
