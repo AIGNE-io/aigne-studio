@@ -12,12 +12,14 @@ export function CurrentAgentProvider({ aid, children }: { aid: string; children?
   return <context.Provider value={value}>{children}</context.Provider>;
 }
 
-export const useCurrentAgent = () => {
+export function useCurrentAgent(args?: { optional?: false }): CurrentAgentState;
+export function useCurrentAgent(args: { optional: true }): CurrentAgentState | undefined;
+export function useCurrentAgent({ optional }: { optional?: boolean } = {}) {
   const ctx = useContext(context);
 
-  if (!ctx) {
+  if (!ctx && !optional) {
     throw new Error('No such current agent state. You should use `useCurrentAgent` within the `CurrentAgentProvider`');
   }
 
   return ctx;
-};
+}

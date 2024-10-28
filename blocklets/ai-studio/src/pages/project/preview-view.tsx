@@ -1,17 +1,18 @@
 import AppearanceSettings from '@app/components/file-editor/appearance/AppearanceSettings';
 import { runtimeOutputVariableNames } from '@app/components/file-editor/output/type';
+import { useDebugAIGNEApiProps } from '@app/contexts/debug';
 import { useCurrentProject } from '@app/contexts/project';
 import { agentViewTheme } from '@app/theme/agent-view-theme';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
+import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import {
   DebugGlobalProvider,
   DebugProvider,
   useDebug,
   useDebugGlobal,
 } from '@blocklet/ai-runtime/front/contexts/Debug';
-import { AssistantYjs, RuntimeOutputVariable, fileFromYjs, isAssistant } from '@blocklet/ai-runtime/types';
-import { RuntimeDebug, getAgent } from '@blocklet/aigne-sdk/components/ai-runtime';
+import { AssistantYjs, RuntimeOutputVariable, isAssistant } from '@blocklet/ai-runtime/types';
+import { RuntimeDebug } from '@blocklet/aigne-sdk/components/ai-runtime';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
 import CloseIcon from '@iconify-icons/tabler/x';
@@ -36,45 +37,10 @@ import { useProjectStore } from './yjs-state';
 
 export default function PreviewView(props: { projectId: string; gitRef: string; assistant: AssistantYjs }) {
   const { projectId, gitRef, assistant } = props;
-  const { projectSetting, getFileById } = useProjectStore(projectId, gitRef);
+  const { getFileById } = useProjectStore(projectId, gitRef);
   const aid = stringifyIdentity({ projectId, projectRef: gitRef, agentId: assistant.id });
 
-  const getAgentYjs: NonNullable<ComponentProps<typeof RuntimeDebug>['ApiProps']>['getAgent'] = async ({ aid }) => {
-    const identity = parseIdentity(aid, { rejectWhenError: true });
-
-    if (identity.projectId === projectId) {
-      const { agentId } = identity;
-      const agent = getFileById(agentId);
-      if (!agent) throw new Error(`No such agent ${agentId}`);
-
-      const convertToAgent = () => {
-        const file = fileFromYjs((getYjsValue(agent) as Map<any>).toJSON());
-        if (!isAssistant(file)) throw new Error(`Invalid agent file type ${agentId}`);
-
-        return {
-          ...file,
-          project: projectSetting,
-          config: {
-            // TODO: get secrets
-            secrets: [],
-          },
-        };
-      };
-
-      return {
-        ...convertToAgent(),
-        // TODO: throttle the update
-        observe: (listener) => {
-          const yjs = getYjsValue(agent) as Map<any>;
-          const observer = () => listener(convertToAgent());
-          yjs.observeDeep(observer);
-          return () => yjs.unobserveDeep(observer);
-        },
-      };
-    }
-
-    return getAgent({ aid, working: true });
-  };
+  const apiProps = useDebugAIGNEApiProps();
 
   const openSettings: ComponentProps<typeof DebugProvider>['openSettings'] = useCallback(({ agentId, output }) => {
     const agent = getFileById(agentId);
@@ -94,13 +60,13 @@ export default function PreviewView(props: { projectId: string; gitRef: string; 
     <DebugGlobalProvider>
       <ThemeProvider theme={agentViewTheme}>
         <Stack sx={{ overflowY: 'auto', flex: 1 }}>
-          <RuntimeDebug aid={aid} ApiProps={{ getAgent: getAgentYjs }} />
+          <RuntimeDebug aid={aid} ApiProps={apiProps} />
         </Stack>
       </ThemeProvider>
 
       <DebugProvider openSettings={openSettings}>
         <SettingsDialog agentId={assistant.id}>
-          <RuntimeDebug hideSessionsBar aid={aid} ApiProps={{ getAgent: getAgentYjs }} />
+          <RuntimeDebug hideSessionsBar aid={aid} ApiProps={apiProps} />
         </SettingsDialog>
       </DebugProvider>
     </DebugGlobalProvider>

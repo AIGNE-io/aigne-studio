@@ -1,3 +1,23 @@
+## 0.4.108 (2024-10-27)
+
+- refactor: optimize decision function name generator
+
+## 0.4.107 (2024-10-27)
+
+- fix: auto login when running agent
+
+## 0.4.106 (2024-10-27)
+
+- feat: support component schema filter & preview
+
+## 0.4.105 (2024-10-26)
+
+- fix: all fields must be required for json schema mode
+
+## 0.4.104 (2024-10-25)
+
+- feat: add vc input support
+
 ## 0.4.103 (2024-10-25)
 
 - fix: support integer parameter for open api
@@ -231,7 +251,7 @@
 
 ## 0.4.48 (2024-9-12)
 
-- fix: use quickjs instead of vm2 for better security
+- fix: use QuickJS instead of vm2 for better security
 
 ## 0.4.47 (2024-9-12)
 
@@ -489,7 +509,7 @@
 
 ## 0.3.27 (2024-7-11)
 
-- fix: multiple scrollbars of upload logo dialog
+- fix: multiple scrollbar of upload logo dialog
 
 ## 0.3.26 (2024-7-11)
 

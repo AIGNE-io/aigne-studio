@@ -28,7 +28,7 @@ export default function SuggestedQuestionsView({ onlyLastMessage }: { onlyLastMe
           <MessageSuggestedQuestion
             key={item.question}
             onClick={() => {
-              runAgent({ aid, parameters: { ...message.inputs, question: item.question } });
+              runAgent({ aid, inputs: { ...message.inputs, question: item.question } });
             }}>
             {item.question}
           </MessageSuggestedQuestion>
@@ -59,23 +59,3 @@ function MessageSuggestedQuestion({ ...props }: TypographyProps) {
     />
   );
 }
-
-SuggestedQuestionsView.outputValueSchema = {
-  type: 'object',
-  properties: {
-    outputValue: {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: {
-          question: {
-            type: 'string',
-            faker: 'lorem.sentence',
-          },
-        },
-        required: ['question'],
-      },
-    },
-  },
-  required: ['outputValue'],
-};
