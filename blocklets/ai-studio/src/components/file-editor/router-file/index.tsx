@@ -337,10 +337,107 @@ export function AgentItemView({
   const api = openApiOptions.find((i) => i.id === agent.id);
   const target = file ?? api;
 
-  if (!target) return null;
+  if (!target) {
+    const red = '#e0193e';
+    return (
+      <Tooltip title={t('agentNotFound')}>
+        <>
+          <Box className="center">
+            <Box component={Icon} icon={ArrowFork} sx={{ fontSize: 16, color: red }} />
+          </Box>
+
+          <Stack
+            key={`${projectId}-${projectRef}-${assistant.id}-${agent.id}`}
+            width={1}
+            direction="row"
+            {...props}
+            sx={{
+              background: '#F9FAFB',
+              py: 1,
+              px: 1.5,
+              minHeight: 40,
+              gap: 1,
+              alignItems: 'center',
+              cursor: 'pointer',
+              borderRadius: 1,
+              border: `1px solid ${red}`,
+              ':hover': {
+                '.hover-visible': {
+                  display: 'flex',
+                },
+              },
+              backgroundColor: { ...getDiffBackground('prepareExecutes', `${assistant.id}.data.routes.${agent.id}`) },
+            }}>
+            <Stack width={1}>
+              <TextField
+                disabled
+                onClick={(e) => e.stopPropagation()}
+                hiddenLabel
+                placeholder={t('agentNotFound')}
+                size="small"
+                variant="standard"
+                value={t('agentNotFound')}
+                InputProps={{ readOnly: true }}
+                sx={{
+                  mb: 0,
+                  lineHeight: '22px',
+                  fontWeight: 500,
+                  input: {
+                    fontSize: '12px',
+                    color: '#6D28D9',
+                  },
+                }}
+              />
+
+              <TextField
+                disabled
+                onClick={(e) => e.stopPropagation()}
+                hiddenLabel
+                placeholder={t('agentNotFound')}
+                size="small"
+                variant="standard"
+                value={t('agentNotFound')}
+                InputProps={{ readOnly: true }}
+                sx={{
+                  lineHeight: '24px',
+                  input: {
+                    fontSize: '14px',
+                    color: assistant.defaultToolId === agent.id ? 'primary.main' : '',
+                  },
+                }}
+              />
+            </Stack>
+
+            <Stack direction="row" className="hover-visible" sx={{ display: 'none' }} gap={0.5} flex={1}>
+              {!readOnly && (
+                <Button
+                  sx={{ minWidth: 24, minHeight: 24, p: 0 }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const doc = (getYjsValue(assistant) as Map<any>).doc!;
+                    doc.transact(() => {
+                      const selectTool = assistant.routes?.[agent.id];
+                      if (selectTool) {
+                        selectTool.data.onEnd = undefined;
+                      }
+
+                      if (assistant.routes) {
+                        delete assistant.routes[agent.id];
+                        sortBy(Object.values(assistant.routes), 'index').forEach((i, index) => (i.index = index));
+                      }
+                    });
+                  }}>
+                  <Box component={Icon} icon={Trash} sx={{ fontSize: 18, color: '#E11D48' }} />
+                </Button>
+              )}
+            </Stack>
+          </Stack>
+        </>
+      </Tooltip>
+    );
+  }
 
   const { name } = target;
-
   return (
     <>
       <Box className="center">
@@ -348,6 +445,7 @@ export function AgentItemView({
       </Box>
 
       <Stack
+        key={`${projectId}-${projectRef}-${assistant.id}-${agent.id}`}
         width={1}
         direction="row"
         {...props}

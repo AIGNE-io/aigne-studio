@@ -1,7 +1,8 @@
 import { useReadOnly } from '@app/contexts/session';
+import { isValidInput } from '@app/libs/util';
 import { PROMPTS_FOLDER_NAME, useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, CallAssistantYjs, Tool, isAssistant } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, CallAssistantYjs, ParameterYjs, Tool, isAssistant } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
 import ExternalLinkIcon from '@iconify-icons/tabler/external-link';
@@ -334,8 +335,9 @@ export function AgentItemView({
           </Tooltip>
 
           <Stack gap={1}>
-            {parameters?.map(({ data: parameter }: any) => {
+            {parameters?.map(({ data: parameter }: { data: ParameterYjs }) => {
               if (!parameter?.key) return null;
+              if (!isValidInput(parameter)) return null;
               const className = `hover-visible-${parameter.key}`;
 
               return (
