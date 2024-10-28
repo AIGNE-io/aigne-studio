@@ -1,3 +1,8 @@
+## 0.4.109 (2024-10-28)
+
+- fix: not found child agent in decision agent
+- fix: invalid input parameter in call agent
+
 ## 0.4.108 (2024-10-27)
 
 - refactor: optimize decision function name generator
