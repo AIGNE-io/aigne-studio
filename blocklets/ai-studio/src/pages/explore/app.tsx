@@ -2,7 +2,7 @@ import ApplicationHeader from '@app/components/application/ApplicationHeader';
 import { MultiTenantBrandGuard } from '@app/components/multi-tenant-restriction';
 import { RuntimeErrorHandler } from '@app/components/multi-tenant-restriction/runtime-error-handler';
 import { getErrorMessage } from '@app/libs/api';
-import { MakeYoursButton, ShareButton } from '@app/pages/explore/button';
+import { ShareButton } from '@app/pages/explore/button';
 import { agentViewTheme } from '@app/theme/agent-view-theme';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Result from '@arcblock/ux/lib/Result';
@@ -29,7 +29,6 @@ export default function AppPage() {
     return (
       <Container maxWidth="md" sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mb: 2 }}>
         <ShareButton deployment={data.deployment} project={data.project} />
-        <MakeYoursButton deployment={data.deployment} variant="contained" />
       </Container>
     );
   };

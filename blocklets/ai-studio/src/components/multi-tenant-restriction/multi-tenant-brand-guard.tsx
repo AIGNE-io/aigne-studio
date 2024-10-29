@@ -1,10 +1,13 @@
 import { useIsAdmin, useSessionContext } from '@app/contexts/session';
 import { Deployment, updateDeployment } from '@app/libs/deployment';
 import { ProjectSettings } from '@blocklet/ai-runtime/types';
-import { Close } from '@mui/icons-material';
-import { Box, BoxProps, IconButton } from '@mui/material';
+import { Icon } from '@iconify-icon/react';
+import ArrowsShuffleIcon from '@iconify-icons/tabler/arrows-shuffle';
+import InfoSquareIcon from '@iconify-icons/tabler/info-square';
+import { Box, BoxProps, IconButton, Tooltip } from '@mui/material';
 import { useEffect, useState } from 'react';
 
+import { MakeYoursButton } from '../../pages/explore/button';
 import AigneLogo from '../aigne-logo';
 import { premiumPlanEnabled, useMultiTenantRestriction } from './state';
 
@@ -94,10 +97,33 @@ export function MultiTenantBrandGuard({
           }}>
           <MadeWithAigne />
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            {deployment && project && (
+              <MakeYoursButton
+                deployment={deployment}
+                color="primary"
+                variant="contained"
+                startIcon={<Box component={Icon} icon={ArrowsShuffleIcon} sx={{ fontSize: 14 }} />}
+                sx={{
+                  bgcolor: 'warning.main',
+                  '&:hover': {
+                    bgcolor: 'warning.dark',
+                  },
+                }}
+              />
+            )}
             {(isAdmin || isDeploymentOwner) && (
-              <IconButton size="small" onClick={removeBrand}>
-                <Close />
-              </IconButton>
+              <Tooltip
+                title={
+                  <span>
+                    Click this button to remove AIGNE branding
+                    <br />
+                    (Only available for Premium users)
+                  </span>
+                }>
+                <IconButton size="small" onClick={removeBrand}>
+                  <Icon icon={InfoSquareIcon} />
+                </IconButton>
+              </Tooltip>
             )}
           </Box>
         </Box>
@@ -108,26 +134,28 @@ export function MultiTenantBrandGuard({
 
 function MadeWithAigne() {
   return (
-    <Box
-      component="a"
-      href="https://www.aigne.io"
-      target="_blank"
-      sx={{
-        textDecoration: 'none',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 1,
-        fontSize: 14,
-        fontWeight: 'bold',
-        color: 'text.secondary',
-        whiteSpace: 'nowrap',
-      }}>
-      <Box component="span" sx={{ display: { xs: 'none', md: 'inline' } }}>
-        Made with
+    <Tooltip title="Built with Aigne - Visit aigne.io to create your own AI applications">
+      <Box
+        component="a"
+        href="https://www.aigne.io"
+        target="_blank"
+        sx={{
+          textDecoration: 'none',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+          fontSize: 14,
+          fontWeight: 'bold',
+          color: 'text.secondary',
+          whiteSpace: 'nowrap',
+        }}>
+        <Box component="span" sx={{ display: { xs: 'none', md: 'inline' } }}>
+          Made with
+        </Box>
+        <Box sx={{ transform: 'scale(0.7) translateX(-25%)' }}>
+          <AigneLogo />
+        </Box>
       </Box>
-      <Box sx={{ transform: 'scale(0.7) translateX(-25%)' }}>
-        <AigneLogo />
-      </Box>
-    </Box>
+    </Tooltip>
   );
 }
