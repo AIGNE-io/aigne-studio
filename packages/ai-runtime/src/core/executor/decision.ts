@@ -10,6 +10,8 @@ import {
 } from '@blocklet/ai-kit/api/types/index';
 import { getAllParameters, getRequiredFields } from '@blocklet/dataset-sdk/request/util';
 import { logger } from '@blocklet/sdk/lib/config';
+import jsonLogic from 'json-logic-js';
+import { formatQuery } from 'react-querybuilder/formatQuery';
 
 import { parseIdentity, stringifyIdentity } from '../../common/aid';
 import { languages } from '../../constant/languages';
@@ -34,23 +36,114 @@ const md5 = (str: string) => crypto.createHash('md5').update(str).digest('hex');
 export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
   override async process({ inputs }: { inputs: { [key: string]: any } }) {
     const { agent } = this;
-
     if (agent.conditionalBranch) {
-      return this.processBranch({ inputs });
+      return this.branchProcess({ inputs });
     }
 
-    return this.processLLM({ inputs });
+    return this.llmProcess({ inputs });
   }
 
-  async processBranch({ inputs }: { inputs: { [key: string]: any } }) {
-    console.log('processBranch', inputs);
-    const { agent } = this;
-    console.log(agent.routes);
+  async branchProcess({ inputs }: { inputs: { [key: string]: any } }) {
+    const {
+      agent,
+      options: { taskId },
+    } = this;
+    const { callback } = this.context;
 
-    return [];
+    await Promise.all(
+      (agent.routes || []).flatMap(
+        (route) =>
+          route.condition?.rules
+            ?.filter((rule) => 'value' in rule && rule.value)
+            .map(async (rule) => {
+              if ('value' in rule && rule.value) {
+                rule.value = await this.renderMessage(rule.value, inputs);
+              }
+            }) ?? []
+      )
+    );
+
+    const matchedRoute = (agent.routes || []).find((route) => {
+      if (!route.condition) return false;
+      const condition = formatQuery(route.condition, { format: 'jsonlogic' });
+      const isValid = jsonLogic.apply(condition, inputs);
+      logger.info('route.condition is valid:', {
+        json: JSON.stringify(route.condition, null, 2),
+        jsonLogic: JSON.stringify(condition, null, 2),
+        inputs,
+        isValid,
+      });
+      return isValid;
+    });
+
+    const matched = matchedRoute || agent.defaultTool;
+
+    if (!matched?.id) {
+      throw new Error('No matched route or default tool, please check your agent configuration');
+    }
+
+    const identity = parseIdentity(agent.identity.aid, { rejectWhenError: true });
+
+    const executor = matched?.id
+      ? await this.context.getAgent({
+          aid: stringifyIdentity({
+            blockletDid: identity.blockletDid,
+            projectId: identity.projectId,
+            projectRef: identity.projectRef,
+            agentId: matched?.id,
+          }),
+          working: agent.identity.working,
+          rejectOnEmpty: true,
+        })
+      : undefined;
+
+    if (!executor) {
+      throw new Error('No matched tool, please check your agent configuration');
+    }
+
+    const parameters = Object.fromEntries(
+      await Promise.all(
+        Object.entries(matched.parameters || {}).map(async ([key, value]) => {
+          return [key, value ? await this.renderMessage(value, inputs) : inputs?.[key] || ''];
+        })
+      )
+    );
+
+    const currentTaskId = nextTaskId();
+
+    const cb: RunAssistantCallback = (args) => {
+      callback(args);
+
+      if (args.type === AssistantResponseType.CHUNK && args.taskId === currentTaskId) {
+        if (
+          Object.values(executor?.outputVariables || {}).find((x) => x.name === RuntimeOutputVariable.text) &&
+          Object.values(agent?.outputVariables || {}).find((x) => x.name === RuntimeOutputVariable.text) &&
+          args?.delta?.content
+        ) {
+          callback({ ...args, taskId });
+        }
+      }
+    };
+
+    const result = await this.context
+      .copy({ callback: cb })
+      .executor(executor, {
+        taskId: currentTaskId,
+        parentTaskId: taskId,
+        inputs: parameters,
+      })
+      .execute();
+
+    logger.info('executor selected', {
+      executorId: executor.id,
+      executorName: executor.name,
+      result: JSON.stringify(result, null, 2),
+    });
+
+    return result;
   }
 
-  async processLLM({ inputs }: { inputs: { [key: string]: any } }) {
+  async llmProcess({ inputs }: { inputs: { [key: string]: any } }) {
     const {
       agent,
       options: { parentTaskId, taskId },

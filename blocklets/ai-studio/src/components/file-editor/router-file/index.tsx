@@ -1,7 +1,9 @@
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { RouterAssistantYjs } from '@blocklet/ai-runtime/types';
 import { DatasetObject } from '@blocklet/dataset-sdk/types';
-import { Stack, Switch } from '@mui/material';
+import { FormGroup, Stack, Typography } from '@mui/material';
 
+import Switch from '../../custom/switch';
 import Branch from './branch';
 import LLM from './llm';
 
@@ -22,6 +24,8 @@ export default function RouterAssistantEditor({
   isRemoteCompare?: boolean;
   openApis?: DatasetObject[];
 }) {
+  const { t } = useLocaleContext();
+
   const props = {
     projectId,
     gitRef,
@@ -34,7 +38,16 @@ export default function RouterAssistantEditor({
 
   return (
     <Stack gap={1.5}>
-      <Switch checked={!!value.conditionalBranch} onChange={(e) => (value.conditionalBranch = !!e.target.checked)} />
+      <FormGroup row sx={{ alignItems: 'center', justifyContent: 'flex-end' }}>
+        <Typography>{t('decision.AI')}</Typography>
+        <Switch
+          sx={{ mx: 1 }}
+          checked={!!value.conditionalBranch}
+          onChange={(e) => (value.conditionalBranch = !!e.target.checked)}
+        />
+        <Typography>{t('decision.branch')}</Typography>
+      </FormGroup>
+
       {value.conditionalBranch ? <Branch {...props} /> : <LLM {...props} />}
     </Stack>
   );

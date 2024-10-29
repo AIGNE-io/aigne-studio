@@ -1,6 +1,7 @@
 import 'react-querybuilder/dist/query-builder.scss';
 
 import { useReadOnly } from '@app/contexts/session';
+import { isValidInput } from '@app/libs/util';
 import { useAssistantCompare } from '@app/pages/project/state';
 import { useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
@@ -27,7 +28,7 @@ import {
 import { QueryBuilderMaterial } from '@react-querybuilder/material';
 import { cloneDeep, sortBy } from 'lodash';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
-import { useMemo, useRef } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import type { RuleGroupType } from 'react-querybuilder';
 import { QueryBuilder } from 'react-querybuilder';
 import { useNavigate } from 'react-router-dom';
@@ -35,9 +36,16 @@ import { joinURL } from 'ufo';
 
 import PromptEditorField from '../prompt-editor-field';
 import useVariablesEditorOptions from '../use-variables-editor-options';
-import ToolDialog from './dialog';
+import ToolDialog, { StyledPromptEditor } from './dialog';
 
 const initialQuery: RuleGroupType = { combinator: 'and', rules: [] };
+
+const getInputType = (type?: string) => {
+  if (type === 'number') return 'number';
+  if (type === 'boolean') return 'checkbox';
+
+  return 'text';
+};
 
 export default function RouterAssistantBranchEditor({
   projectId,
@@ -58,7 +66,7 @@ export default function RouterAssistantBranchEditor({
   const dialogState = usePopupState({ variant: 'dialog' });
   const readOnly = useReadOnly({ ref: gitRef }) || disabled;
   const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
-  const fromDefaultTool = useRef<any>(null);
+  const setDefaultTool = useRef<any>(null);
 
   const parameters = useMemo(() => {
     return Object.values(value.parameters || {})
@@ -70,41 +78,43 @@ export default function RouterAssistantBranchEditor({
     return parameters.map((i) => ({
       name: i.key!,
       label: i.label || i.key!,
+      inputType: getInputType(i.type),
     }));
   }, [parameters]);
 
-  const routes = value.routes && sortBy(Object.entries(value.routes), ([, item]) => item.index);
-
-  console.log(JSON.stringify(value, null, 2));
+  const routes = useMemo(() => {
+    return value.routes && sortBy(Object.entries(value.routes), ([, item]) => item.index);
+  }, [value.routes]);
 
   return (
     <Stack gap={1.5}>
       <QueryBuilderMaterial>
         {(routes || []).map(([id, { data: item, index }]) => {
           return (
-            <BranchItem
-              getDiffBackground={getDiffBackground}
-              projectId={projectId}
-              gitRef={gitRef}
-              assistant={value}
-              readOnly={readOnly}
-              key={index}
-              index={index}
-              item={item}
-              fields={fields}
-              onDelete={() => {
-                if (readOnly) return;
-                if (value.routes) {
-                  delete value.routes[id];
-                  sortBy(Object.values(value.routes), 'index').forEach((i, index) => (i.index = index));
-                }
-              }}
-              onEdit={() => {
-                if (readOnly) return;
-                toolForm.current?.form.reset(cloneDeep(item));
-                dialogState.open();
-              }}
-            />
+            <React.Fragment key={id}>
+              <BranchItem
+                getDiffBackground={getDiffBackground}
+                projectId={projectId}
+                gitRef={gitRef}
+                assistant={value}
+                readOnly={readOnly}
+                index={index}
+                item={item}
+                fields={fields}
+                onDelete={() => {
+                  if (readOnly) return;
+                  if (value.routes) {
+                    delete value.routes[id];
+                    sortBy(Object.values(value.routes), 'index').forEach((i, index) => (i.index = index));
+                  }
+                }}
+                onEdit={() => {
+                  if (readOnly) return;
+                  toolForm.current?.form.reset(cloneDeep(item));
+                  dialogState.open();
+                }}
+              />
+            </React.Fragment>
           );
         })}
       </QueryBuilderMaterial>
@@ -123,7 +133,7 @@ export default function RouterAssistantBranchEditor({
               if (readOnly) return;
               toolForm.current?.form.reset({});
 
-              fromDefaultTool.current = true;
+              setDefaultTool.current = true;
               dialogState.open();
             }}
             onEdit={() => {
@@ -132,7 +142,7 @@ export default function RouterAssistantBranchEditor({
                 toolForm.current?.form.reset(cloneDeep(value.defaultTool));
               }
 
-              fromDefaultTool.current = true;
+              setDefaultTool.current = true;
               dialogState.open();
             }}
           />
@@ -160,7 +170,7 @@ export default function RouterAssistantBranchEditor({
         onSubmit={(tool) => {
           const doc = (getYjsValue(value) as Map<any>).doc!;
 
-          if (fromDefaultTool.current) {
+          if (setDefaultTool.current) {
             doc.transact(() => {
               value.defaultTool = tool;
             });
@@ -179,7 +189,7 @@ export default function RouterAssistantBranchEditor({
             });
           }
 
-          fromDefaultTool.current = false;
+          setDefaultTool.current = false;
           dialogState.close();
         }}
       />
@@ -212,6 +222,54 @@ export function BranchItem({
   onEdit,
   getDiffBackground,
 }: BranchItemProps) {
+  const { t } = useLocaleContext();
+
+  const defaultOperators = useMemo(() => {
+    return [
+      { name: '=', value: '=', label: t('operators.equals') },
+      { name: '!=', value: '!=', label: t('operators.doesNotEqual') },
+      { name: '<', value: '<', label: t('operators.lessThan') },
+      { name: '>', value: '>', label: t('operators.greaterThan') },
+      { name: '<=', value: '<=', label: t('operators.lessThanOrEqual') },
+      { name: '>=', value: '>=', label: t('operators.greaterThanOrEqual') },
+      { name: 'contains', value: 'contains', label: t('operators.contains') },
+      { name: 'beginsWith', value: 'beginsWith', label: t('operators.beginsWith') },
+      { name: 'endsWith', value: 'endsWith', label: t('operators.endsWith') },
+      { name: 'doesNotContain', value: 'doesNotContain', label: t('operators.doesNotContain') },
+      { name: 'doesNotBeginWith', value: 'doesNotBeginWith', label: t('operators.doesNotBeginWith') },
+      { name: 'doesNotEndWith', value: 'doesNotEndWith', label: t('operators.doesNotEndWith') },
+      { name: 'null', value: 'null', label: t('operators.isNull') },
+      { name: 'notNull', value: 'notNull', label: t('operators.isNotNull') },
+    ];
+  }, [t]);
+
+  const defaultCombinators = useMemo(() => {
+    return [
+      { name: 'and', value: 'and', label: t('operators.and') },
+      { name: 'or', value: 'or', label: t('operators.or') },
+    ];
+  }, [t]);
+
+  const AddRuleButton = ({ handleOnClick }: { handleOnClick: (_e: React.MouseEvent) => void }) => (
+    <Button
+      onClick={handleOnClick}
+      variant="outlined"
+      sx={{ minHeight: 32, background: '#030712', color: '#fff', '&:hover': { background: '#030712' } }}>
+      {t('decision.addRule')}
+    </Button>
+  );
+
+  const condition = useMemo(() => (item?.condition ? cloneDeep(item.condition) : initialQuery), [item?.condition]);
+
+  const handleQueryChange = useCallback(
+    (newQuery: any) => {
+      if (item) {
+        item.condition = cloneDeep(newQuery);
+      }
+    },
+    [item]
+  );
+
   return (
     <Stack
       direction="row"
@@ -242,7 +300,7 @@ export function BranchItem({
             color: 'text.secondary',
             fontSize: '0.75rem',
           }}>
-          CASE {index}
+          {t('decision.case')} {index}
         </Typography>
 
         <IconButton
@@ -268,12 +326,14 @@ export function BranchItem({
           }}>
           <QueryBuilderContainer>
             <QueryBuilder
+              key={item.condition?.id}
               fields={fields}
-              query={cloneDeep(item.condition ?? initialQuery)}
-              onQueryChange={(newQuery: any) => {
-                item.condition = newQuery;
-              }}
+              operators={defaultOperators}
+              combinators={defaultCombinators}
+              query={condition}
+              onQueryChange={handleQueryChange}
               controlElements={{
+                addRuleAction: AddRuleButton,
                 addGroupAction: () => null,
                 removeGroupAction: () => null,
                 cloneGroupAction: () => null,
@@ -304,6 +364,8 @@ export function ElseBranchItem({
   onEdit,
   onAdd,
 }: Omit<BranchItemProps, 'fields' | 'index' | 'onDelete' | 'getDiffBackground'> & { onAdd: () => void }) {
+  const { t } = useLocaleContext();
+
   return (
     <Stack direction="row" gap={1.5} position="relative">
       <Stack width={50}>
@@ -333,7 +395,7 @@ export function ElseBranchItem({
         <QueryBuilderContainer>
           <Box className="ruleGroup">
             <Typography variant="subtitle5" color="text.secondary" mb={0}>
-              用于定义当 if 条件不满足时应执行的逻辑。
+              {t('decision.elseDescription')}
             </Typography>
           </Box>
         </QueryBuilderContainer>
@@ -349,7 +411,7 @@ export function ElseBranchItem({
           />
         ) : (
           <Button variant="text" onClick={() => onAdd?.()}>
-            选择Agent
+            {t('select')} Agent
           </Button>
         )}
       </Stack>
@@ -420,7 +482,6 @@ export function AgentItemView({
         border: '1px solid transparent',
         borderColor: 'primary.main',
         ':hover': {
-          // bgcolor: 'action.hover',
           '.hover-visible': {
             display: 'flex',
           },
@@ -475,6 +536,7 @@ export function AgentItemView({
           <Stack gap={1}>
             {parameters?.map(({ data: parameter }: any) => {
               if (!parameter?.key) return null;
+              if (!isValidInput(parameter)) return null;
               const className = `hover-visible-${parameter.key}`;
 
               return (
@@ -550,34 +612,9 @@ export function AgentItemView({
 }
 
 const QueryBuilderContainer = styled(Box)`
-  .svg-font-color svg > path {
-    fill: var(--ifm-font-color-base);
-  }
-
   .queryBuilder {
     min-width: 420px;
     width: 100%;
-  }
-
-  .validateQuery .queryBuilder .ruleGroup.queryBuilder-invalid {
-    background-color: rgba(102, 51, 153, 0.4);
-  }
-  .validateQuery .queryBuilder .ruleGroup.queryBuilder-invalid .ruleGroup-addRule {
-    font-weight: bold !important;
-  }
-  .validateQuery .queryBuilder .ruleGroup.queryBuilder-invalid > .ruleGroup-header::after {
-    content: 'Empty groups are considered invalid. Avoid them by using addRuleToNewGroups.';
-    color: white;
-  }
-  .validateQuery .queryBuilder .rule.queryBuilder-invalid .rule-value {
-    background-color: rgba(102, 51, 153, 0.4);
-  }
-  .validateQuery .queryBuilder .rule.queryBuilder-invalid .rule-value::placeholder {
-    color: rgb(71.4, 35.7, 107.1);
-  }
-
-  html[data-theme='dark'] .validateQuery .queryBuilder .rule.queryBuilder-invalid .rule-value::placeholder {
-    color: rgb(147.9, 94.35, 201.45);
   }
 
   .MuiInputBase-input {
@@ -587,7 +624,7 @@ const QueryBuilderContainer = styled(Box)`
   }
 
   .MuiInput-root {
-    margin-top: 0;
+    margin-top: 0 !important;
   }
 
   .ruleGroup {
