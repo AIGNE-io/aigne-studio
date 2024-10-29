@@ -285,6 +285,10 @@ function VariableList() {
           variableYjs.variables.push(newVariable);
 
           dialogState.close();
+
+          if (data.scope) {
+            setScope(data.scope);
+          }
         })}>
         <DialogTitle className="between">
           <Box>{t('outputVariableParameter.addData')}</Box>

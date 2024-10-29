@@ -1,6 +1,7 @@
 import { AIGNE_RUNTIME_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
 import { SecretParameter, SourceParameter } from '@blocklet/ai-runtime/types';
 import { call } from '@blocklet/sdk/lib/component';
+import { LRUCache } from 'lru-cache';
 import { joinURL } from 'ufo';
 
 export async function getAgentSecretInputs({
@@ -52,4 +53,42 @@ export async function getMessageFromRuntime({ messageId }: { messageId: string }
     method: 'GET',
     path: joinURL('/api/messages', messageId),
   }).then((res) => res.data);
+}
+
+interface ProjectStatsItem {
+  projectId: string;
+  totalRuns: number;
+  totalUsers: number;
+}
+
+const projectStatsCache = new LRUCache<string, ProjectStatsItem>({
+  max: 500,
+  ttl: Number(process.env.AIGNE_RUNTIME_STATISTICS_CACHE_TTL) || 60e3,
+});
+
+export async function getProjectStatsFromRuntime({
+  projectIds,
+}: {
+  projectIds: string[];
+}): Promise<ProjectStatsItem[]> {
+  const misses = projectIds.filter((id) => !projectStatsCache.has(id));
+  if (misses.length) {
+    try {
+      const { data } = await call({
+        name: AIGNE_RUNTIME_COMPONENT_DID,
+        path: '/api/projects/stats',
+        method: 'POST',
+        data: { projectIds: misses },
+      });
+      data.forEach((item: ProjectStatsItem) => {
+        projectStatsCache.set(item.projectId, item);
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  return projectIds.map((id) => {
+    const cached = projectStatsCache.get(id);
+    return cached ?? { projectId: id, totalRuns: 0, totalUsers: 0 };
+  });
 }

@@ -1,7 +1,20 @@
+## 0.4.112 (2024-10-29)
+
+- chore: set current tab when saved memory data
+- chore: close dialog when path changed
+- fix: unexpected memory behavior
+
+## 0.4.111 (2024-10-29)
+
+- fix: change knowledge createBy when copy knowledge
+
+## 0.4.110 (2024-10-29)
+
+- chore: polish explore list page
+
 ## 0.4.109 (2024-10-28)
 
-- fix: not found child agent in decision agent
-- fix: invalid input parameter in call agent
+- chore: improve UI for explore list page
 
 ## 0.4.108 (2024-10-27)
 

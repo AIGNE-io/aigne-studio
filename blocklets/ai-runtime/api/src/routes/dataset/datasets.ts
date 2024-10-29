@@ -177,6 +177,7 @@ router.post('/', user(), userAuth(), async (req, res) => {
         oldKnowledgeBaseId: item.id,
         oldProjectId: copyFromProjectId,
         newProjectId: appId,
+        userId: did,
       });
 
       map[item.id] = newKnowledgeId;

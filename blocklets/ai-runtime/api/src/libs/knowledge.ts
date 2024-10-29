@@ -50,10 +50,12 @@ async function copyKnowledgeBase({
   oldKnowledgeBaseId,
   oldProjectId,
   newProjectId,
+  userId,
 }: {
   oldKnowledgeBaseId: string;
   oldProjectId: string;
   newProjectId: string;
+  userId: string;
 }): Promise<string> {
   const knowledgeId = nextId();
 
@@ -62,7 +64,7 @@ async function copyKnowledgeBase({
     rejectOnEmpty: new Error('Dataset not found'),
   });
 
-  await importKnowledgeData(knowledgeId, newProjectId, knowledge.dataValues);
+  await importKnowledgeData(knowledgeId, newProjectId, knowledge.dataValues, userId);
 
   return knowledgeId;
 }
@@ -70,12 +72,19 @@ async function copyKnowledgeBase({
 async function importKnowledgeData(
   newKnowledgeId: string,
   newProjectId: string,
-  fromKnowledge: Knowledge['dataValues']
+  fromKnowledge: Knowledge['dataValues'],
+  userId: string
 ) {
   const oldKnowledgeId = fromKnowledge.id;
 
   // 新知识库的数据
-  await Knowledge.create({ ...fromKnowledge, id: newKnowledgeId, appId: newProjectId });
+  await Knowledge.create({
+    ...fromKnowledge,
+    id: newKnowledgeId,
+    appId: newProjectId,
+    createdBy: userId,
+    updatedBy: userId,
+  });
 
   // 从旧知识库复制文档
   const map: { [oldDocumentId: string]: string } = {};
@@ -89,7 +98,13 @@ async function importKnowledgeData(
       const format = list.map((dataValues) => {
         map[dataValues.id!] = nextId();
 
-        return { ...dataValues, datasetId: newKnowledgeId, id: map[dataValues.id!] || nextId() };
+        return {
+          ...dataValues,
+          datasetId: newKnowledgeId,
+          id: map[dataValues.id!] || nextId(),
+          createdBy: userId,
+          updatedBy: userId,
+        };
       });
       return KnowledgeDocuments.bulkCreate(format);
     },
