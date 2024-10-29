@@ -1,3 +1,8 @@
+## 0.4.112 (2024-10-29)
+
+- chore: set current tab when saved memory data
+- chore: close dialog when path changed
+
 ## 0.4.111 (2024-10-29)
 
 - fix: change knowledge createBy when copy knowledge
