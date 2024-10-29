@@ -29,7 +29,8 @@ import {
 import sortBy from 'lodash/sortBy';
 import { bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { nanoid } from 'nanoid';
-import { ComponentType, Ref, forwardRef, useId, useImperativeHandle, useState } from 'react';
+import { ComponentType, Ref, forwardRef, useEffect, useId, useImperativeHandle, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { StoreApi, UseBoundStore, create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 
@@ -160,8 +161,13 @@ const PopperButton = forwardRef<PopperButtonImperative, PopperButtonProps>(
     const parameterSettingPopperState = usePopupState({ variant: 'popper', popupId: useId() });
 
     useImperativeHandle(ref, () => ({ open: dialogState.open }), [dialogState.open]);
+    const location = useLocation();
 
     const [currentSetting, setSetting] = useState<'setting' | 'save'>('setting');
+
+    useEffect(() => {
+      dialogState.close();
+    }, [location.pathname]);
 
     const renderParameterSettings = (output: OutputVariableYjs) => {
       if (currentSetting === 'save') {
