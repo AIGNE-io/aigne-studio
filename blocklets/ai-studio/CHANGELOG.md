@@ -1,3 +1,7 @@
+## 0.4.110 (2024-10-29)
+
+- chore: polish explore list page
+
 ## 0.4.109 (2024-10-28)
 
 - chore: improve UI for explore list page
