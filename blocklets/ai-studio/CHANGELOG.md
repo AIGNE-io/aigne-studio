@@ -2,6 +2,7 @@
 
 - chore: set current tab when saved memory data
 - chore: close dialog when path changed
+- fix: unexpected memory behavior
 
 ## 0.4.111 (2024-10-29)
 
