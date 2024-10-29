@@ -1140,11 +1140,16 @@ async function copyProject({
   const srcWorking = await srcRepo.working({ ref: original.gitDefaultBranch || defaultBranch });
   await srcWorking.save({ flush: true });
 
+  const originalProjectYaml = srcWorking.syncedStore.files[PROJECT_FILE_PATH] as { name: string };
+
   const project = await Project.create({
     ...omit(original.dataValues, 'createdAt', 'updatedAt'),
     id: nextProjectId(),
     duplicateFrom: original.id,
-    name: patch.name || (original.name && `${original.name}-copy`),
+    name:
+      patch.name ||
+      (originalProjectYaml?.name && `${originalProjectYaml?.name}-copy`) ||
+      (original.name && `${original.name}-copy`),
     createdBy: author.did,
     updatedBy: author.did,
     ...omit(patch, 'name'),
