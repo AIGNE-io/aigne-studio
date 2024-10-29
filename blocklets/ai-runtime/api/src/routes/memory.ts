@@ -11,13 +11,11 @@ const router = Router();
 
 const getMemoriesQuerySchema = Joi.object<{
   sessionId?: string;
-  agentId?: string;
   projectId: string;
   scope: string;
   key: string;
 }>({
   sessionId: Joi.string().empty([null, '']),
-  agentId: Joi.string().empty([null, '']),
   projectId: Joi.string().required(),
   scope: Joi.string().required(),
   key: Joi.string().required(),
@@ -35,12 +33,10 @@ const createMemoryInputSchema = Joi.object<{
 
 const createMemoryQuerySchema = Joi.object<{
   sessionId?: string;
-  agentId?: string;
   projectId: string;
   reset: boolean;
 }>({
   sessionId: Joi.string().empty([null, '']),
-  agentId: Joi.string().empty([null, '']),
   projectId: Joi.string().required(),
   reset: Joi.boolean().default(false),
 });
@@ -83,13 +79,13 @@ router.get('/', user(), ensureComponentCallOrAdmin(), async (req, res) => {
   const { did: userId } = req.user!;
   if (!userId) throw new Error('Can not get user info');
 
-  const { sessionId, agentId, projectId, key, scope } = await getMemoriesQuerySchema.validateAsync(req.query, {
+  const { sessionId, projectId, key, scope } = await getMemoriesQuerySchema.validateAsync(req.query, {
     stripUnknown: true,
   });
 
   const datastores = await Memory.findAll({
     order: [['createdAt', 'ASC']],
-    where: omitBy({ sessionId, projectId, agentId, scope, userId, key }, (v) => isNil(v)),
+    where: omitBy({ sessionId, projectId, scope, userId, key }, (v) => isNil(v)),
   });
 
   res.json(datastores);
@@ -100,13 +96,13 @@ router.post('/', user(), ensureComponentCallOrAdmin(), async (req, res) => {
   if (!userId) throw new Error('Can not get user info');
 
   const { key, data, scope } = await createMemoryInputSchema.validateAsync(req.body, { stripUnknown: true });
-  const { sessionId, agentId, projectId, reset } = await createMemoryQuerySchema.validateAsync(req.query, {
+  const { sessionId, projectId, reset } = await createMemoryQuerySchema.validateAsync(req.query, {
     stripUnknown: true,
   });
 
-  if (reset) await Memory.destroy({ where: omitBy({ projectId, agentId, sessionId, scope, key }, (v) => isNil(v)) });
+  if (reset) await Memory.destroy({ where: omitBy({ projectId, sessionId, scope, key }, (v) => isNil(v)) });
 
-  const datastore = await Memory.create({ key, scope, data, userId, sessionId, agentId, projectId });
+  const datastore = await Memory.create({ key, scope, data, userId, sessionId, projectId });
 
   res.json(datastore);
 });
