@@ -1,3 +1,8 @@
+## 0.4.113 (2024-10-29)
+
+- fix: not found child agent in decision agent
+- fix: invalid input parameter in call agent
+
 ## 0.4.112 (2024-10-29)
 
 - chore: set current tab when saved memory data
