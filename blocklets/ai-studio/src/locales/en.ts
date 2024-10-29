@@ -884,4 +884,5 @@ export default flatten({
   trustedIssuers: 'Trusted Issuers',
   buttonTitle: 'Button Title',
   buttonTitleVerified: 'Button Title (verified)',
+  agentNotFound: 'Agent Not Found',
 });

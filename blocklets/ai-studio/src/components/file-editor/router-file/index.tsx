@@ -337,17 +337,15 @@ export function AgentItemView({
   const api = openApiOptions.find((i) => i.id === agent.id);
   const target = file ?? api;
 
-  if (!target) return null;
-
-  const { name } = target;
-
+  const red = '#e0193e';
   return (
     <>
       <Box className="center">
-        <Box component={Icon} icon={ArrowFork} sx={{ fontSize: 16, color: '#6D28D9' }} />
+        <Box component={Icon} icon={ArrowFork} sx={{ fontSize: 16, color: !target ? red : '#6D28D9' }} />
       </Box>
 
       <Stack
+        key={`${projectId}-${projectRef}-${assistant.id}-${agent.id}`}
         width={1}
         direction="row"
         {...props}
@@ -360,9 +358,8 @@ export function AgentItemView({
           alignItems: 'center',
           cursor: 'pointer',
           borderRadius: 1,
-          border: '1px solid #7C3AED',
+          border: `1px solid ${!target ? red : '#7C3AED'}`,
           ':hover': {
-            // bgcolor: 'action.hover',
             '.hover-visible': {
               display: 'flex',
             },
@@ -371,12 +368,13 @@ export function AgentItemView({
         }}>
         <Stack width={1}>
           <TextField
+            disabled={!target}
             onClick={(e) => e.stopPropagation()}
             hiddenLabel
-            placeholder={name || t('unnamed')}
+            placeholder={target ? target?.name || t('unnamed') : t('agentNotFound')}
             size="small"
             variant="standard"
-            value={name || t('unnamed')}
+            value={target ? target?.name || t('unnamed') : t('agentNotFound')}
             InputProps={{ readOnly: true }}
             sx={{
               mb: 0,
@@ -390,9 +388,10 @@ export function AgentItemView({
           />
 
           <TextField
+            disabled={!target}
             onClick={(e) => e.stopPropagation()}
             hiddenLabel
-            placeholder={agent.functionName || t('routeDesc')}
+            placeholder={target ? agent.functionName || t('routeDesc') : t('agentNotFound')}
             size="small"
             variant="standard"
             value={agent.functionName}
@@ -408,45 +407,49 @@ export function AgentItemView({
         </Stack>
 
         <Stack direction="row" className="hover-visible" sx={{ display: 'none' }} gap={0.5} flex={1}>
-          <Button sx={{ minWidth: 24, minHeight: 24, p: 0 }} onClick={onEdit}>
-            <Box component={Icon} icon={PencilIcon} sx={{ fontSize: 18, color: 'text.secondary' }} />
-          </Button>
-
-          <Tooltip title={assistant.defaultToolId === agent.id ? t('unsetDefaultTool') : t('setDefaultTool')}>
-            <Button
-              sx={{ minWidth: 24, minHeight: 24, p: 0 }}
-              onClick={(e) => {
-                e.stopPropagation();
-                const doc = (getYjsValue(assistant) as Map<any>).doc!;
-                doc.transact(() => {
-                  if (assistant.defaultToolId === agent.id) {
-                    assistant.defaultToolId = undefined;
-                  } else {
-                    assistant.defaultToolId = agent.id;
-                  }
-                });
-              }}>
-              {assistant.defaultToolId === agent.id ? (
-                <Box
-                  component={Icon}
-                  icon={StarFill}
-                  sx={{
-                    fontSize: 18,
-                    color: 'primary.main',
-                  }}
-                />
-              ) : (
-                <Box
-                  component={Icon}
-                  icon={Star}
-                  sx={{
-                    fontSize: 18,
-                    color: 'text.secondary',
-                  }}
-                />
-              )}
+          {target && (
+            <Button sx={{ minWidth: 24, minHeight: 24, p: 0 }} onClick={onEdit}>
+              <Box component={Icon} icon={PencilIcon} sx={{ fontSize: 18, color: 'text.secondary' }} />
             </Button>
-          </Tooltip>
+          )}
+
+          {target && (
+            <Tooltip title={assistant.defaultToolId === agent.id ? t('unsetDefaultTool') : t('setDefaultTool')}>
+              <Button
+                sx={{ minWidth: 24, minHeight: 24, p: 0 }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const doc = (getYjsValue(assistant) as Map<any>).doc!;
+                  doc.transact(() => {
+                    if (assistant.defaultToolId === agent.id) {
+                      assistant.defaultToolId = undefined;
+                    } else {
+                      assistant.defaultToolId = agent.id;
+                    }
+                  });
+                }}>
+                {assistant.defaultToolId === agent.id ? (
+                  <Box
+                    component={Icon}
+                    icon={StarFill}
+                    sx={{
+                      fontSize: 18,
+                      color: 'primary.main',
+                    }}
+                  />
+                ) : (
+                  <Box
+                    component={Icon}
+                    icon={Star}
+                    sx={{
+                      fontSize: 18,
+                      color: 'text.secondary',
+                    }}
+                  />
+                )}
+              </Button>
+            </Tooltip>
+          )}
 
           {!readOnly && (
             <Button
@@ -470,7 +473,7 @@ export function AgentItemView({
             </Button>
           )}
 
-          {file && (
+          {file && target && (
             <Button
               sx={{ minWidth: 24, minHeight: 24, p: 0 }}
               onClick={(e) => {

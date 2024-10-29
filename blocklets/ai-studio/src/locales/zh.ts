@@ -875,4 +875,5 @@ export default flatten({
   trustedIssuers: '信任的发布者',
   buttonTitle: '按钮标题',
   buttonTitleVerified: '按钮标题(验证成功)',
+  agentNotFound: 'Agent 不存在',
 });
