@@ -238,7 +238,18 @@ export interface RouterAssistant extends AssistantBase {
   type: 'router';
   defaultToolId?: string;
   prompt?: string;
-  routes?: Tool[];
+  conditionalBranch?: boolean;
+  routes?: ({
+    condition?: {
+      combinator: 'and' | 'or';
+      not: boolean;
+      rules: {
+        field: string;
+        operator: string;
+        value: string;
+      }[];
+    };
+  } & Tool)[];
 
   // 参数配置，为了可以复用UI和 prompt一致
   temperature?: number;
