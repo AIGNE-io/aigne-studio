@@ -1,3 +1,7 @@
+## 0.4.111 (2024-10-29)
+
+- fix: change knowledge createBy when copy knowledge
+
 ## 0.4.110 (2024-10-29)
 
 - chore: polish explore list page
