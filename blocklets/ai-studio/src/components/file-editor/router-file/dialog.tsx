@@ -41,7 +41,8 @@ import { Controller, UseFormReturn, useForm } from 'react-hook-form';
 
 import PromptEditorField from '../prompt-editor-field';
 
-const FROM_API = 'blockletAPI';
+export const FROM_API = 'blockletAPI';
+export type RouteOption = { id: string; type: string; name?: string; from?: 'blockletAPI' };
 
 type ToolDialogForm = NonNullable<RouterAssistant['routes']>[number];
 type Option = {
@@ -58,7 +59,7 @@ interface ToolDialogImperative {
 }
 const filter = createFilterOptions<Option>();
 
-function isAPIOption(option: any): option is DatasetObject & { from: 'blockletAPI' } {
+export function isAPIOption(option: any): option is DatasetObject & { from: 'blockletAPI' } {
   return option && option.from === FROM_API;
 }
 

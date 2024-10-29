@@ -84,18 +84,29 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
 
     const identity = parseIdentity(agent.identity.aid, { rejectWhenError: true });
 
-    const executor = matched?.id
-      ? await this.context.getAgent({
-          aid: stringifyIdentity({
-            blockletDid: identity.blockletDid,
-            projectId: identity.projectId,
-            projectRef: identity.projectRef,
-            agentId: matched?.id,
-          }),
-          working: agent.identity.working,
-          rejectOnEmpty: true,
-        })
-      : undefined;
+    logger.info('matched route', { matched });
+
+    const getExecutor = async () => {
+      if (!matched.id) return undefined;
+
+      if (matched.from === 'blockletAPI') {
+        const blocklet = await this.context.getBlockletAgent(matched.id);
+        return blocklet?.agent;
+      }
+
+      return this.context.getAgent({
+        aid: stringifyIdentity({
+          blockletDid: identity.blockletDid,
+          projectId: identity.projectId,
+          projectRef: identity.projectRef,
+          agentId: matched?.id,
+        }),
+        working: agent.identity.working,
+        rejectOnEmpty: true,
+      });
+    };
+
+    const executor = await getExecutor();
 
     if (!executor) {
       throw new Error('No matched tool, please check your agent configuration');
@@ -131,6 +142,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
         taskId: currentTaskId,
         parentTaskId: taskId,
         inputs: parameters,
+        variables: { ...inputs },
       })
       .execute();
 

@@ -5,14 +5,16 @@ import { isValidInput } from '@app/libs/util';
 import { useAssistantCompare } from '@app/pages/project/state';
 import { useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { RouterAssistantYjs, Tool, isAssistant } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, RouterAssistantYjs, Tool, isAssistant } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
+import { DatasetObject } from '@blocklet/dataset-sdk/types';
+import getOpenApiTextFromI18n from '@blocklet/dataset-sdk/util/get-open-api-i18n-text';
 import { Icon } from '@iconify-icon/react';
 import ExternalLinkIcon from '@iconify-icons/tabler/external-link';
 import PencilIcon from '@iconify-icons/tabler/pencil';
 import PlusIcon from '@iconify-icons/tabler/plus';
-import { InfoOutlined } from '@mui/icons-material';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import { Cancel, InfoOutlined } from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -28,15 +30,17 @@ import {
 import { QueryBuilderMaterial } from '@react-querybuilder/material';
 import { cloneDeep, sortBy } from 'lodash';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
+import { nanoid } from 'nanoid';
 import React, { useCallback, useMemo, useRef } from 'react';
 import type { RuleGroupType } from 'react-querybuilder';
 import { QueryBuilder } from 'react-querybuilder';
 import { useNavigate } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
+import { useAllSelectDecisionAgentOutputs, useRoutesAssistantOutputs } from '../output/OutputSettings';
 import PromptEditorField from '../prompt-editor-field';
 import useVariablesEditorOptions from '../use-variables-editor-options';
-import ToolDialog, { StyledPromptEditor } from './dialog';
+import ToolDialog, { FROM_API, isAPIOption } from './dialog';
 
 const initialQuery: RuleGroupType = { combinator: 'and', rules: [] };
 
@@ -54,6 +58,7 @@ export default function RouterAssistantBranchEditor({
   compareValue,
   disabled,
   isRemoteCompare,
+  openApis,
 }: {
   projectId: string;
   gitRef: string;
@@ -61,37 +66,47 @@ export default function RouterAssistantBranchEditor({
   compareValue?: RouterAssistantYjs;
   disabled?: boolean;
   isRemoteCompare?: boolean;
+  openApis?: DatasetObject[];
 }) {
   const toolForm = useRef<any>(null);
+  const selectedTool = useRef<{ selected: string; default: boolean }>({ selected: '', default: false });
   const dialogState = usePopupState({ variant: 'dialog' });
+
   const readOnly = useReadOnly({ ref: gitRef }) || disabled;
   const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
-  const setDefaultTool = useRef<any>(null);
-
-  const parameters = useMemo(() => {
-    return Object.values(value.parameters || {})
-      .map((i) => i.data)
-      .filter((x) => x.key);
-  }, [value.parameters]);
+  const { getAllSelectCustomOutputs } = useAllSelectDecisionAgentOutputs({ value, projectId, gitRef });
+  const checkOutputVariables = useRoutesAssistantOutputs({ value, projectId, gitRef, openApis });
 
   const fields = useMemo(() => {
+    const parameters = Object.values(value.parameters || {})
+      .map((i) => i.data)
+      .filter((x) => x.key);
+
     return parameters.map((i) => ({
       name: i.key!,
       label: i.label || i.key!,
       inputType: getInputType(i.type),
     }));
-  }, [parameters]);
+  }, [value.parameters]);
 
-  const routes = useMemo(() => {
-    return value.routes && sortBy(Object.entries(value.routes), ([, item]) => item.index);
-  }, [value.routes]);
+  const routes = value.routes && sortBy(Object.values(value.routes), 'index');
+  const outputVariables = value.outputVariables && sortBy(Object.values(value.outputVariables), 'index');
+
+  const setField = (update: (outputVariables: NonNullable<AssistantYjs['outputVariables']>) => void) => {
+    const doc = (getYjsValue(value) as Map<any>).doc!;
+    doc.transact(() => {
+      value.outputVariables ??= {};
+      update(value.outputVariables);
+      sortBy(Object.values(value.outputVariables), 'index').forEach((item, index) => (item.index = index));
+    });
+  };
 
   return (
     <Stack gap={1.5}>
       <QueryBuilderMaterial>
-        {(routes || []).map(([id, { data: item, index }]) => {
+        {(routes || []).map(({ data: tool, index }) => {
           return (
-            <React.Fragment key={id}>
+            <React.Fragment key={tool.id}>
               <BranchItem
                 getDiffBackground={getDiffBackground}
                 projectId={projectId}
@@ -99,18 +114,21 @@ export default function RouterAssistantBranchEditor({
                 assistant={value}
                 readOnly={readOnly}
                 index={index}
-                item={item}
+                tool={tool}
                 fields={fields}
+                openApis={openApis}
                 onDelete={() => {
                   if (readOnly) return;
                   if (value.routes) {
-                    delete value.routes[id];
+                    delete value.routes[tool.id];
                     sortBy(Object.values(value.routes), 'index').forEach((i, index) => (i.index = index));
                   }
                 }}
                 onEdit={() => {
                   if (readOnly) return;
-                  toolForm.current?.form.reset(cloneDeep(item));
+                  toolForm.current?.form.reset(cloneDeep(tool));
+
+                  selectedTool.current = { selected: tool.id, default: false };
                   dialogState.open();
                 }}
               />
@@ -128,21 +146,23 @@ export default function RouterAssistantBranchEditor({
             gitRef={gitRef}
             assistant={value}
             readOnly={readOnly}
-            item={value.defaultTool}
+            tool={value.defaultTool}
+            openApis={openApis}
             onAdd={() => {
               if (readOnly) return;
-              toolForm.current?.form.reset({});
+              toolForm.current?.form.reset({ id: '' });
 
-              setDefaultTool.current = true;
+              selectedTool.current = { selected: '', default: true };
               dialogState.open();
             }}
             onEdit={() => {
               if (readOnly) return;
+
               if (value.defaultTool) {
                 toolForm.current?.form.reset(cloneDeep(value.defaultTool));
+                selectedTool.current = { selected: value.defaultTool.id, default: true };
               }
 
-              setDefaultTool.current = true;
               dialogState.open();
             }}
           />
@@ -154,23 +174,30 @@ export default function RouterAssistantBranchEditor({
         variant="text"
         startIcon={<Box component={Icon} icon={PlusIcon} sx={{ fontSize: 14 }} />}
         onClick={() => {
-          toolForm.current?.form.reset();
+          toolForm.current?.form.reset({ id: '' });
+
           dialogState.open();
         }}>
         {routes?.length ? 'ELIF' : 'IF'}
       </Button>
+
+      {checkOutputVariables?.error && (
+        <Typography variant="subtitle5" color="warning.main" ml={1}>
+          {checkOutputVariables?.error}
+        </Typography>
+      )}
 
       <ToolDialog
         ref={toolForm}
         projectId={projectId}
         assistant={value}
         gitRef={gitRef}
-        openApis={[]}
+        openApis={(openApis || []).map((x) => ({ ...x, from: FROM_API }))}
         DialogProps={{ ...bindDialog(dialogState) }}
         onSubmit={(tool) => {
           const doc = (getYjsValue(value) as Map<any>).doc!;
 
-          if (setDefaultTool.current) {
+          if (selectedTool.current.default) {
             doc.transact(() => {
               value.defaultTool = tool;
             });
@@ -178,18 +205,41 @@ export default function RouterAssistantBranchEditor({
             doc.transact(() => {
               value.routes ??= {};
 
-              const old = value.routes[tool.id];
+              if (selectedTool.current.selected) {
+                const old = value.routes[selectedTool.current.selected];
 
-              value.routes[tool.id] = {
-                index: old?.index ?? Math.max(-1, ...Object.values(value.routes).map((i) => i.index)) + 1,
-                data: { ...tool, condition: initialQuery },
-              };
+                value.routes[tool.id] = {
+                  index: old?.index ?? Math.max(-1, ...Object.values(value.routes).map((i) => i.index)) + 1,
+                  data: { condition: old?.data?.condition ? cloneDeep(old.data.condition) : initialQuery, ...tool },
+                };
+
+                delete value.routes[selectedTool.current.selected];
+              } else {
+                value.routes[tool.id] = {
+                  index: Math.max(-1, ...Object.values(value.routes).map((i) => i.index)) + 1,
+                  data: { condition: initialQuery, ...tool },
+                };
+              }
 
               sortBy(Object.values(value.routes), 'index').forEach((tool, index) => (tool.index = index));
             });
           }
 
-          setDefaultTool.current = false;
+          setField((vars) => {
+            cloneDeep(getAllSelectCustomOutputs(openApis || [])).forEach((data) => {
+              const exist = data.name ? outputVariables?.find((i) => i.data.name === data.name) : undefined;
+              if (!exist) {
+                const id = nanoid();
+                vars[id] = {
+                  index: Object.values(vars).length,
+                  data: { ...cloneDeep(data), required: undefined, id },
+                };
+              }
+              sortBy(Object.values(vars), 'index').forEach((item, index) => (item.index = index));
+            });
+          });
+
+          selectedTool.current = { selected: '', default: false };
           dialogState.close();
         }}
       />
@@ -203,11 +253,12 @@ interface BranchItemProps {
   assistant: RouterAssistantYjs;
   readOnly?: boolean;
   index: number;
-  item?: NonNullable<RouterAssistantYjs['routes']>[number]['data'];
+  tool?: NonNullable<RouterAssistantYjs['routes']>[number]['data'];
   fields: { name: string; label: string }[];
   onDelete?: () => void;
   onEdit?: () => void;
   getDiffBackground: (path: any, id?: string | undefined, defaultValue?: string | undefined) => { [x: string]: string };
+  openApis?: DatasetObject[];
 }
 
 export function BranchItem({
@@ -216,11 +267,12 @@ export function BranchItem({
   assistant,
   readOnly,
   index,
-  item,
+  tool,
   fields,
   onDelete,
   onEdit,
   getDiffBackground,
+  openApis,
 }: BranchItemProps) {
   const { t } = useLocaleContext();
 
@@ -233,11 +285,7 @@ export function BranchItem({
       { name: '<=', value: '<=', label: t('operators.lessThanOrEqual') },
       { name: '>=', value: '>=', label: t('operators.greaterThanOrEqual') },
       { name: 'contains', value: 'contains', label: t('operators.contains') },
-      { name: 'beginsWith', value: 'beginsWith', label: t('operators.beginsWith') },
-      { name: 'endsWith', value: 'endsWith', label: t('operators.endsWith') },
       { name: 'doesNotContain', value: 'doesNotContain', label: t('operators.doesNotContain') },
-      { name: 'doesNotBeginWith', value: 'doesNotBeginWith', label: t('operators.doesNotBeginWith') },
-      { name: 'doesNotEndWith', value: 'doesNotEndWith', label: t('operators.doesNotEndWith') },
       { name: 'null', value: 'null', label: t('operators.isNull') },
       { name: 'notNull', value: 'notNull', label: t('operators.isNotNull') },
     ];
@@ -259,15 +307,15 @@ export function BranchItem({
     </Button>
   );
 
-  const condition = useMemo(() => (item?.condition ? cloneDeep(item.condition) : initialQuery), [item?.condition]);
+  const condition = useMemo(() => (tool?.condition ? cloneDeep(tool.condition) : initialQuery), [tool?.condition]);
 
   const handleQueryChange = useCallback(
     (newQuery: any) => {
-      if (item) {
-        item.condition = cloneDeep(newQuery);
+      if (tool) {
+        tool.condition = cloneDeep(newQuery);
       }
     },
-    [item]
+    [tool]
   );
 
   return (
@@ -276,7 +324,8 @@ export function BranchItem({
       gap={1.5}
       position="relative"
       sx={{
-        backgroundColor: { ...getDiffBackground('prepareExecutes', `${assistant.id}.data.routes.${item?.id}`) },
+        backgroundColor: { ...getDiffBackground('prepareExecutes', `${assistant.id}.data.routes.${tool?.id}`) },
+
         '&:hover': {
           '.action-delete': {
             display: 'flex',
@@ -300,19 +349,19 @@ export function BranchItem({
             color: 'text.secondary',
             fontSize: '0.75rem',
           }}>
-          {t('decision.case')} {index}
+          {t('decision.case')} {index + 1}
         </Typography>
 
         <IconButton
           size="small"
           onClick={onDelete}
-          sx={{ position: 'absolute', right: 4, top: 4, display: 'none' }}
+          sx={{ position: 'absolute', right: -12, top: -12, display: 'none' }}
           className="action-delete">
-          <DeleteOutlineIcon fontSize="small" sx={{ color: '#E11D48' }} />
+          <Cancel fontSize="small" sx={{ color: '#E11D48' }} />
         </IconButton>
       </Stack>
 
-      {item && (
+      {tool && (
         <Stack
           flex={1}
           width={0}
@@ -326,7 +375,7 @@ export function BranchItem({
           }}>
           <QueryBuilderContainer>
             <QueryBuilder
-              key={item.condition?.id}
+              key={tool.condition?.id}
               fields={fields}
               operators={defaultOperators}
               combinators={defaultCombinators}
@@ -344,9 +393,10 @@ export function BranchItem({
           <AgentItemView
             projectId={projectId}
             gitRef={gitRef}
-            agent={item}
+            tool={tool}
             assistant={assistant}
             readOnly={readOnly}
+            openApis={openApis}
             onEdit={() => onEdit?.()}
           />
         </Stack>
@@ -360,9 +410,10 @@ export function ElseBranchItem({
   gitRef,
   assistant,
   readOnly,
-  item,
+  tool,
   onEdit,
   onAdd,
+  openApis,
 }: Omit<BranchItemProps, 'fields' | 'index' | 'onDelete' | 'getDiffBackground'> & { onAdd: () => void }) {
   const { t } = useLocaleContext();
 
@@ -400,14 +451,15 @@ export function ElseBranchItem({
           </Box>
         </QueryBuilderContainer>
 
-        {item ? (
+        {tool ? (
           <AgentItemView
             projectId={projectId}
             gitRef={gitRef}
-            agent={item}
+            tool={tool}
             assistant={assistant}
             readOnly={readOnly}
             onEdit={() => onEdit?.()}
+            openApis={openApis}
           />
         ) : (
           <Button variant="text" onClick={() => onAdd?.()}>
@@ -419,30 +471,52 @@ export function ElseBranchItem({
   );
 }
 
+const useFormatOpenApiToYjs = (openApis: DatasetObject[]) => {
+  const { t, locale } = useLocaleContext();
+  return openApis.map((api) => ({
+    ...api,
+    name:
+      getOpenApiTextFromI18n(api, 'summary', locale) ||
+      getOpenApiTextFromI18n(api, 'description', locale) ||
+      t('unnamed'),
+    description: getOpenApiTextFromI18n(api, 'description', locale),
+    parameters: Object.fromEntries(
+      getAllParameters(api).map(({ name, description, ...value }, index) => [
+        index,
+        { index, data: { ...value, key: name, label: description || name } },
+      ])
+    ),
+  }));
+};
+
 export function AgentItemView({
   projectId,
   gitRef,
-  agent,
+  tool,
   assistant,
   readOnly,
   onEdit,
+  openApis,
   ...props
 }: {
   assistant: RouterAssistantYjs;
   projectId: string;
   gitRef: string;
-  agent: Tool;
+  tool: Tool;
   readOnly?: boolean;
   onEdit: () => void;
+  openApis?: DatasetObject[];
 } & StackProps) {
   const navigate = useNavigate();
 
   const { t } = useLocaleContext();
   const { store } = useProjectStore(projectId, gitRef);
   const { addParameter } = useVariablesEditorOptions(assistant);
+  const formattedOpenApis = useFormatOpenApiToYjs(openApis || []);
 
-  const f = store.files[agent.id];
-  const target = f && isAssistant(f) ? f : undefined;
+  const f = store.files[tool.id];
+  const target = f && isAssistant(f) ? f : formattedOpenApis.find((x) => x.id === tool.id);
+  const isOpenApi = isAPIOption(tool);
 
   const parameters = useMemo(() => {
     return (
@@ -514,7 +588,6 @@ export function AgentItemView({
           size="small"
           variant="standard"
           value={description}
-          onChange={(e) => (agent.functionName = e.target.value)}
           sx={{
             lineHeight: '10px',
             input: { fontSize: '10px', color: 'text.disabled' },
@@ -536,9 +609,9 @@ export function AgentItemView({
           <Stack gap={1}>
             {parameters?.map(({ data: parameter }: any) => {
               if (!parameter?.key) return null;
-              if (!isValidInput(parameter)) return null;
-              const className = `hover-visible-${parameter.key}`;
+              if (!isOpenApi && !isValidInput(parameter)) return null;
 
+              const className = `hover-visible-${parameter.key}`;
               return (
                 <Stack
                   key={parameter.id}
@@ -550,16 +623,16 @@ export function AgentItemView({
                       {parameter.label || parameter.key}
                     </Typography>
 
-                    {agent.parameters?.[parameter.key] || checkParametersInParameter(parameter.key) ? null : (
-                      <Tooltip title={!agent.parameters?.[parameter.key] ? t('addParameter') : undefined}>
+                    {tool.parameters?.[parameter.key] || checkParametersInParameter(parameter.key) ? null : (
+                      <Tooltip title={!tool.parameters?.[parameter.key] ? t('addParameter') : undefined}>
                         <Box
                           className={className}
                           component={Icon}
                           icon={PlusIcon}
                           sx={{ fontSize: 12, cursor: 'pointer', color: 'primary.main', display: 'none' }}
                           onClick={() => {
-                            agent.parameters ??= {};
-                            agent.parameters[parameter.key] = `{{${parameter.key}}}`;
+                            tool.parameters ??= {};
+                            tool.parameters[parameter.key] = `{{${parameter.key}}}`;
                             addParameter(parameter.key);
                           }}
                         />
@@ -568,15 +641,15 @@ export function AgentItemView({
                   </Stack>
 
                   <PromptEditorField
-                    placeholder={`{{${parameter.label || parameter.key}}}`}
-                    value={agent.parameters?.[parameter.key] || ''}
+                    placeholder={`{{${parameter.key}}}`}
+                    value={tool.parameters?.[parameter.key] || ''}
                     projectId={projectId}
                     gitRef={gitRef}
                     assistant={assistant}
                     path={[]}
                     onChange={(value) => {
-                      agent.parameters ??= {};
-                      if (parameter.key) agent.parameters[parameter.key] = value;
+                      tool.parameters ??= {};
+                      if (parameter.key) tool.parameters[parameter.key] = value;
                     }}
                   />
                 </Stack>
@@ -596,7 +669,7 @@ export function AgentItemView({
           <Box component={Icon} icon={PencilIcon} sx={{ fontSize: 18, color: 'text.secondary' }} />
         </Button>
 
-        {target && (
+        {target && !isOpenApi && (
           <Button
             sx={{ minWidth: 24, minHeight: 24, p: 0 }}
             onClick={(e) => {

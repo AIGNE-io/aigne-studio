@@ -43,10 +43,7 @@ import { joinURL } from 'ufo';
 
 import { useAllSelectDecisionAgentOutputs, useRoutesAssistantOutputs } from '../output/OutputSettings';
 import PromptEditorField from '../prompt-editor-field';
-import ToolDialog from './dialog';
-
-type RouteOption = { id: string; type: string; name?: string; from?: 'blockletAPI' };
-const FROM_API = 'blockletAPI';
+import ToolDialog, { FROM_API, RouteOption } from './dialog';
 
 export default function RouterAssistantEditor({
   projectId,

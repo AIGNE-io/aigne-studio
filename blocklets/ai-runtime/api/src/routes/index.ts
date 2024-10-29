@@ -31,4 +31,8 @@ router.use('/', cacheRouter);
 router.use('/cron-histories', cronHistoryRoutes);
 router.use('/images', image);
 
+router.get('/test', async (req, res) => {
+  res.json({ message: 'ok' });
+});
+
 export default router;
