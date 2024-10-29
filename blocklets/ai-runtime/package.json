@@ -48,7 +48,7 @@
     "@blocklet/ui-react": "^2.10.53",
     "@blocklet/uploader": "^0.1.46",
     "@blocklet/xss": "^0.1.12",
-    "@langchain/community": "^0.2.31",
+    "@langchain/community": "^0.3.3",
     "@langchain/core": "^0.2.28",
     "@langchain/openai": "^0.2.7",
     "@mui/lab": "^5.0.0-alpha.173",
