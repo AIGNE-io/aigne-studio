@@ -2,7 +2,6 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 
 import Avatar from '@app/components/avatar';
-import { useSessionContext } from '@app/contexts/session';
 import { Category } from '@app/libs/category';
 import { Deployment, ProjectStatsItem } from '@app/libs/deployment';
 import { User, getProjectIconUrl } from '@app/libs/project';
@@ -13,8 +12,8 @@ import { Icon } from '@iconify-icon/react';
 import PlayIcon from '@iconify-icons/tabler/play';
 import UserIcon from '@iconify-icons/tabler/user';
 import { Box, CircularProgress, Container, Divider, Stack, Typography } from '@mui/material';
-import { useOutletContext, useParams } from 'react-router-dom';
-import { joinURL, withQuery } from 'ufo';
+import { Link, useOutletContext, useParams } from 'react-router-dom';
+import { withQuery } from 'ufo';
 
 import { MobileSidebarHeader } from './layout';
 import { useFetchDeployments } from './state';
@@ -32,15 +31,12 @@ function CategoryCard({
 }) {
   const { t } = useLocaleContext();
   const icon = getProjectIconUrl(deployment.projectId, { updatedAt: project.updatedAt });
-  const { session } = useSessionContext();
   const totalUsers = stats?.totalUsers || 0;
   const totalRuns = stats?.totalRuns || 0;
   return (
     <Stack
-      component="a"
-      href={withQuery(joinURL(globalThis.location.origin, window.blocklet.prefix, '/apps', deployment.id), {
-        inviter: session.user?.did,
-      })}
+      component={Link}
+      to={deployment.id}
       sx={{
         borderRadius: 1,
         overflow: 'hidden',
@@ -64,6 +60,7 @@ function CategoryCard({
             width: { xs: 64, xl: 88 },
             height: { xs: 64, xl: 88 },
             borderRadius: 1,
+            objectFit: 'cover',
           }}
         />
         <Box sx={{ flex: 1, overflow: 'hidden' }}>
