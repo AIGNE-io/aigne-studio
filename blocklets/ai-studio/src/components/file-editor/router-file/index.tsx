@@ -34,7 +34,7 @@ export default function RouterAssistantEditor({
 
   return (
     <Stack gap={1.5}>
-      <Switch onChange={(e) => (value.conditionalBranch = !!e.target.checked)} />
+      <Switch checked={!!value.conditionalBranch} onChange={(e) => (value.conditionalBranch = !!e.target.checked)} />
       {value.conditionalBranch ? <Branch {...props} /> : <LLM {...props} />}
     </Stack>
   );

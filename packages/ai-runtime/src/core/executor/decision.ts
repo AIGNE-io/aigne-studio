@@ -33,6 +33,24 @@ const md5 = (str: string) => crypto.createHash('md5').update(str).digest('hex');
 
 export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
   override async process({ inputs }: { inputs: { [key: string]: any } }) {
+    const { agent } = this;
+
+    if (agent.conditionalBranch) {
+      return this.processBranch({ inputs });
+    }
+
+    return this.processLLM({ inputs });
+  }
+
+  async processBranch({ inputs }: { inputs: { [key: string]: any } }) {
+    console.log('processBranch', inputs);
+    const { agent } = this;
+    console.log(agent.routes);
+
+    return [];
+  }
+
+  async processLLM({ inputs }: { inputs: { [key: string]: any } }) {
     const {
       agent,
       options: { parentTaskId, taskId },
