@@ -47,7 +47,9 @@ export default class History extends Model<InferAttributes<History>, InferCreati
     totalTokens: number;
   };
 
-  // 请求类型, 目前仅支持 `free` 和 `paid` 两种类型, 前者表示未登录用户的调用, 空值与 `paid` 含义相同
+  // 请求类型, 目前仅支持 `free` 和 `paid` 两种类型, 前者表示无偿调用, 费用由 project owner 承担,
+  // 若 agent 开启了匿名调用, 则所有调用记录的 requestType 都会标记为 'free'
+  // (空值与 `paid` 含义相同)
   declare requestType?: 'free' | 'paid';
 
   declare projectOwnerId?: string;
