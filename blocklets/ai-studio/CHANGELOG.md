@@ -1,3 +1,7 @@
+## 0.4.116 (2024-10-30)
+
+- fix: auto prefix VCs with AIGNE for those issued by agent
+
 ## 0.4.115 (2024-10-30)
 
 - chore: remove user passport caching
