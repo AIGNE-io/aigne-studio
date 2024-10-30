@@ -1,3 +1,7 @@
+## 0.4.114 (2024-10-29)
+
+- fix: should remove agentId condition from memory query
+
 ## 0.4.113 (2024-10-29)
 
 - fix: not found child agent in decision agent
