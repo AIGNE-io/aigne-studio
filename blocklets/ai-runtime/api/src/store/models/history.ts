@@ -1,12 +1,4 @@
-import {
-  CreationOptional,
-  DataTypes,
-  InferAttributes,
-  InferCreationAttributes,
-  Model,
-  QueryTypes,
-  Sequelize,
-} from 'sequelize';
+import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model, Op, Sequelize } from 'sequelize';
 
 import nextId from '../../libs/next-id';
 import { sequelize } from '../sequelize';
@@ -58,32 +50,20 @@ export default class History extends Model<InferAttributes<History>, InferCreati
   // 请求类型, 目前仅支持 `free` 和 `paid` 两种类型, 前者表示未登录用户的调用, 空值与 `paid` 含义相同
   declare requestType?: 'free' | 'paid';
 
+  declare projectOwnerId?: string;
+
   // 统计指定用户的有偿调用次数 (主动调用次数)
   static async countPaidRuns(userId: string) {
-    const result = await sequelize.query<{ count: number }>(
-      "SELECT COUNT(*) FROM Histories WHERE error IS NULL AND requestType != 'free' AND userId = :userId",
-      {
-        replacements: { userId },
-        type: QueryTypes.SELECT,
-        plain: true,
-      }
-    );
-    return result?.count ?? 0;
+    return this.count({
+      where: { error: null, requestType: { [Op.ne]: 'free' }, userId },
+    });
   }
 
   // 统计指定用户的无偿调用次数, 即包括未登录用户在内的任何人对该用户所创建的任何项目发起的免费调用次数的总和 (被动调用次数)
   static async countFreeRuns(userId: string) {
-    const result = await sequelize.query<{ count: number }>(
-      `SELECT COUNT(*) FROM Histories h, Projects p
-       WHERE p.id = h.projectId
-       AND h.error IS NULL AND h.requestType = 'free' AND p.createdBy = :userId`,
-      {
-        replacements: { userId },
-        type: QueryTypes.SELECT,
-        plain: true,
-      }
-    );
-    return result?.count ?? 0;
+    return this.count({
+      where: { error: null, requestType: 'free', projectOwnerId: userId },
+    });
   }
 
   // 统计指定用户所有的调用次数, 包括匿名调用和实名调用 2 部分
@@ -161,6 +141,9 @@ History.init(
       type: DataTypes.JSON,
     },
     requestType: {
+      type: DataTypes.STRING,
+    },
+    projectOwnerId: {
       type: DataTypes.STRING,
     },
   },

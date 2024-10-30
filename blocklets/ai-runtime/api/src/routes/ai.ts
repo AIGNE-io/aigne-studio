@@ -202,6 +202,7 @@ router.post('/call', user(), compression(), async (req, res) => {
     blockletDid,
     projectRef,
     requestType: agent.access?.noLoginRequired ? 'free' : 'paid',
+    projectOwnerId: project?.createdBy,
   });
 
   const emit: RunAssistantCallback = (response) => {
