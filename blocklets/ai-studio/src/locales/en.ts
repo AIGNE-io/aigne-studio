@@ -906,8 +906,8 @@ export default flatten({
   decision: {
     AI: 'AI Condition',
     branch: 'Branch Condition',
-    case: 'Case',
-    elseDescription: 'Used to define the logic to be executed when the if condition is not met.',
     addRule: 'Add Rule',
+    branchTip:
+      'Please set Agent condition rules first. When no condition rules are selected, you can set default execution tools, otherwise no Agent will be executed',
   },
 });

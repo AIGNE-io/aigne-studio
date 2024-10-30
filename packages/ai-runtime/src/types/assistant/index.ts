@@ -242,7 +242,6 @@ export interface RouterAssistant extends AssistantBase {
   prompt?: string;
   conditionalBranch?: boolean;
   routes?: ({ condition?: RuleGroupType } & Tool)[];
-  defaultTool?: Tool;
 
   // 参数配置，为了可以复用UI和 prompt一致
   temperature?: number;

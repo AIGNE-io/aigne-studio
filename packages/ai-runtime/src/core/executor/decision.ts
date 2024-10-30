@@ -57,7 +57,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
             ?.filter((rule) => 'value' in rule && rule.value)
             .map(async (rule) => {
               if ('value' in rule && rule.value) {
-                rule.value = await this.renderMessage(rule.value, inputs);
+                rule.value = typeof rule.value === 'string' ? await this.renderMessage(rule.value, inputs) : rule.value;
               }
             }) ?? []
       )
@@ -67,27 +67,31 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
       if (!route.condition) return false;
       const condition = formatQuery(route.condition, { format: 'jsonlogic' });
       const isValid = jsonLogic.apply(condition, inputs);
+
       logger.info('route.condition is valid:', {
         json: JSON.stringify(route.condition, null, 2),
         jsonLogic: JSON.stringify(condition, null, 2),
         inputs,
         isValid,
       });
+
       return isValid;
     });
 
-    const matched = matchedRoute || agent.defaultTool;
+    const matchedId = matchedRoute?.id || agent.defaultToolId;
 
-    if (!matched?.id) {
-      throw new Error('No matched route or default tool, please check your agent configuration');
+    if (!matchedId) {
+      logger.warn('No matched route or default tool, please check your agent configuration');
+      return undefined;
     }
 
     const identity = parseIdentity(agent.identity.aid, { rejectWhenError: true });
 
-    logger.info('matched route', { matched });
+    const matched = agent.routes?.find((x) => x.id === matchedId);
+    logger.info('matched route', { matchedId, matched, isDefault: matchedId === agent.defaultToolId });
 
     const getExecutor = async () => {
-      if (!matched.id) return undefined;
+      if (!matched?.id) return undefined;
 
       if (matched.from === 'blockletAPI') {
         const blocklet = await this.context.getBlockletAgent(matched.id);
@@ -114,7 +118,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
 
     const parameters = Object.fromEntries(
       await Promise.all(
-        Object.entries(matched.parameters || {}).map(async ([key, value]) => {
+        Object.entries(matched?.parameters || {}).map(async ([key, value]) => {
           return [key, value ? await this.renderMessage(value, inputs) : inputs?.[key] || ''];
         })
       )
