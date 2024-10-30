@@ -1,5 +1,6 @@
 import { ResponseRole, UserInfo } from '@abtnode/client';
 
+import { AIGNE_ISSUE_VC_PREFIX } from '../../../constants';
 import { authService } from '../../../lib/auth';
 
 export async function issueVC({
@@ -19,6 +20,9 @@ export async function issueVC({
   displayUrl?: string;
   notify?: boolean;
 }): Promise<{ user: UserInfo; vc: object }> {
+  // NOTE: ensure name starts with AIGNE_ISSUE_VC_PREFIX to avoid conflict with internal passports such as admin/owner
+  if (!name.startsWith(AIGNE_ISSUE_VC_PREFIX)) name = `${AIGNE_ISSUE_VC_PREFIX}${name}`;
+
   await createPassportIfNotExist({ name, title, description });
 
   const userResult = await authService.getUser(userDid, { includeTags: true });
