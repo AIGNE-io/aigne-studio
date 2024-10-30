@@ -1,7 +1,7 @@
 {
   "name": "ai-studio",
   "private": true,
-  "version": "0.4.116",
+  "version": "0.4.117",
   "workspaces": [
     "blocklets/*",
     "packages/*"
