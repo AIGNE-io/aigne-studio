@@ -1,6 +1,6 @@
 import { AIGNE_RUNTIME_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
 import { SecretParameter, SourceParameter } from '@blocklet/ai-runtime/types';
-import { call } from '@blocklet/sdk/lib/component';
+import { call } from '@blocklet/ai-runtime/utils/call';
 import { LRUCache } from 'lru-cache';
 import { joinURL } from 'ufo';
 

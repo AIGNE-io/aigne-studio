@@ -2,10 +2,10 @@ import type { IncomingMessage } from 'http';
 import { ReadableStream, TextDecoderStream } from 'stream/web';
 
 import { EventSourceParserStream, readableToWeb } from '@blocklet/ai-kit/api/utils/event-stream';
-import { call } from '@blocklet/sdk/lib/component';
 import { AxiosResponse } from 'axios';
 
 import { AssistantResponseType, RunAssistantChunk, RunAssistantError, RunAssistantResponse } from '../../types';
+import { call } from '../../utils/call';
 
 export interface CallAssistantInput {
   projectId: string;

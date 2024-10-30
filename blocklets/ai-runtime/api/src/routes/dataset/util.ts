@@ -1,4 +1,4 @@
-import { call } from '@blocklet/sdk/lib/component';
+import { call } from '@blocklet/ai-runtime/utils/call';
 
 export async function getDiscussion(
   discussionId: string,
