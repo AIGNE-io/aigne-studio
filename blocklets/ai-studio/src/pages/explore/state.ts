@@ -1,4 +1,5 @@
-import { Deployment, getDeploymentsByCategorySlug } from '@app/libs/deployment';
+import { Deployment, ProjectStatsItem, getDeploymentsByCategorySlug } from '@app/libs/deployment';
+import { User } from '@app/libs/project';
 import { ProjectSettings } from '@blocklet/ai-runtime/types';
 import { useInfiniteScroll } from 'ahooks';
 import { useCallback, useEffect } from 'react';
@@ -11,14 +12,20 @@ import { Category, getCategories } from '../../libs/category';
 interface DeploymentState {
   deployments: Record<
     string,
-    { list: (Deployment & { project: ProjectSettings })[]; next: boolean; size: number; page: number; total: number }
+    {
+      list: (Deployment & { project: ProjectSettings; stats: ProjectStatsItem; createdByInfo: User })[];
+      next: boolean;
+      size: number;
+      page: number;
+      total: number;
+    }
   >;
   fetchDeployments: (
     categorySlug: string,
     page: number,
     size: number
   ) => Promise<{
-    list: (Deployment & { project: ProjectSettings })[];
+    list: (Deployment & { project: ProjectSettings; stats: ProjectStatsItem; createdByInfo: User })[];
     next: boolean;
     size: number;
     page: number;

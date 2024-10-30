@@ -1,9 +1,6 @@
 import { useIsAdmin, useSessionContext } from '@app/contexts/session';
 import { Deployment, updateDeployment } from '@app/libs/deployment';
-import { MakeYoursButton, ShareButton } from '@app/pages/explore/button';
 import { ProjectSettings } from '@blocklet/ai-runtime/types';
-import { Icon } from '@iconify-icon/react';
-import ArrowsShuffleIcon from '@iconify-icons/tabler/arrows-shuffle';
 import { Close } from '@mui/icons-material';
 import { Box, BoxProps, IconButton } from '@mui/material';
 import { useEffect, useState } from 'react';
@@ -97,25 +94,6 @@ export function MultiTenantBrandGuard({
           }}>
           <MadeWithAigne />
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            {deployment && project && (
-              <>
-                <MakeYoursButton
-                  deployment={deployment}
-                  color="primary"
-                  variant="contained"
-                  startIcon={<Box component={Icon} icon={ArrowsShuffleIcon} sx={{ fontSize: 14 }} />}
-                  sx={{
-                    bgcolor: 'warning.main',
-                    '&:hover': {
-                      bgcolor: 'warning.dark',
-                    },
-                  }}
-                />
-
-                <ShareButton deployment={deployment} project={project} />
-              </>
-            )}
-
             {(isAdmin || isDeploymentOwner) && (
               <IconButton size="small" onClick={removeBrand}>
                 <Close />

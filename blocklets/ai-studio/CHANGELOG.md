@@ -1,3 +1,30 @@
+## 0.4.114 (2024-10-29)
+
+- fix: should remove agentId condition from memory query
+
+## 0.4.113 (2024-10-29)
+
+- fix: not found child agent in decision agent
+- fix: invalid input parameter in call agent
+
+## 0.4.112 (2024-10-29)
+
+- chore: set current tab when saved memory data
+- chore: close dialog when path changed
+- fix: unexpected memory behavior
+
+## 0.4.111 (2024-10-29)
+
+- fix: change knowledge createBy when copy knowledge
+
+## 0.4.110 (2024-10-29)
+
+- chore: polish explore list page
+
+## 0.4.109 (2024-10-28)
+
+- chore: improve UI for explore list page
+
 ## 0.4.108 (2024-10-27)
 
 - refactor: optimize decision function name generator
