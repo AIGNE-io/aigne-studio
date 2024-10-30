@@ -29,7 +29,7 @@ export default function AppPage() {
     return (
       <Container maxWidth="md" sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mb: 2 }}>
         <ShareButton deployment={data.deployment} project={data.project} />
-        <MakeYoursButton deployment={data.deployment} variant="contained" />
+        <MakeYoursButton project={data.project} deployment={data.deployment} variant="contained" />
       </Container>
     );
   };

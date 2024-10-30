@@ -224,6 +224,8 @@ export default flatten({
     fieldMinLength: '请输入至少{minLength}个字符',
     fieldMaxLength: '请输入少于{maxLength}个字符',
     urlPattern: '请输入正确的 http/https 地址',
+    whitespace: '请输入非空白字符',
+    nameExists: '项目名称已存在',
   },
   dependents: '依赖',
   addToTest: '添加到测试',

@@ -225,6 +225,8 @@ export default flatten({
     fieldMinLength: 'Please enter at least {minLength} characters',
     fieldMaxLength: 'Please enter fewer than {maxLength} characters',
     urlPattern: 'Please enter a valid http/https url',
+    whitespace: 'Please enter non-whitespace characters',
+    nameExists: 'Project name already exists',
   },
   dependents: 'dependents',
   addToTest: 'Save as test case',

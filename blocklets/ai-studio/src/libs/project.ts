@@ -64,6 +64,14 @@ export async function listProjectsByDidSpaces(endpoint: string): Promise<Project
   return axios.get(`/api/import/from-did-spaces/list-projects?endpoint=${endpoint}`).then((res) => res.data);
 }
 
+export async function checkProjectName(data: {
+  value: string;
+  createdBy: string;
+  currentName?: string;
+}): Promise<{ ok: boolean }> {
+  return axios.post('/api/projects/check-name', data).then((res) => res.data);
+}
+
 export async function exportAssistantsToProject(
   projectId: string,
   ref: string,

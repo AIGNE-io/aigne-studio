@@ -313,6 +313,19 @@ export function projectRoutes(router: Router) {
     });
   });
 
+  const checkProjectNameSchema = Joi.object<{ value: string; currentName: string }>({
+    value: Joi.string().required(),
+    currentName: Joi.string().empty([null, '']),
+  });
+
+  router.post('/projects/check-name', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+    const { value, currentName } = await checkProjectNameSchema.validateAsync(req.body, { stripUnknown: true });
+
+    const project = await Project.findOne({ where: { name: value, createdBy: req.user.did } });
+    const ok = value === currentName || !project;
+    res.json({ ok });
+  });
+
   router.get('/template-projects', user(), ensureComponentCallOrPromptsEditor(), async (_req, res) => {
     const resourceTemplates = (await resourceManager.getProjects({ type: 'template' })).map((i) => ({
       ...i.project,

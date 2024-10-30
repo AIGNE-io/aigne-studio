@@ -192,7 +192,7 @@ function ReadmePage({ deployment, project }: { deployment: Deployment; project: 
             {t('run')}
           </Button>
 
-          <MakeYoursButton deployment={deployment} data-testid="make-yours-button" />
+          <MakeYoursButton project={project} deployment={deployment} data-testid="make-yours-button" />
 
           <ShareButton deployment={deployment} project={project} />
         </Box>
