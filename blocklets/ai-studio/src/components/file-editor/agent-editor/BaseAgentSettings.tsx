@@ -3,6 +3,9 @@ import { AssistantYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { FormControl, FormControlLabel, FormHelperText, Stack, Switch } from '@mui/material';
 
+import { useIsAdmin } from '../../../contexts/session';
+import { useIsPremiumUser } from '../../multi-tenant-restriction';
+
 export function BaseAgentSettingsSummary(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _props: { agent: AssistantYjs }
@@ -13,6 +16,8 @@ export function BaseAgentSettingsSummary(
 export function BaseAgentSettings({ agent }: { agent: AssistantYjs }) {
   const { t } = useLocaleContext();
   const doc = (getYjsValue(agent) as Map<any>).doc!;
+  const isAdmin = useIsAdmin();
+  const isPremiumUser = useIsPremiumUser();
 
   return (
     <Stack direction="column" px={1.5} py={1} gap={1}>
@@ -44,6 +49,7 @@ export function BaseAgentSettings({ agent }: { agent: AssistantYjs }) {
             label={t('loginRequired')}
             control={
               <Switch
+                disabled={!isAdmin && !isPremiumUser}
                 size="small"
                 checked={!agent.access?.noLoginRequired}
                 onChange={(_, check) => {
