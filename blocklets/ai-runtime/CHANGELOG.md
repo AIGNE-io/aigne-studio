@@ -1,3 +1,8 @@
+## 0.4.115 (2024-10-30)
+
+- chore: remove user passport caching
+- chore(api): add stats/userinfo to recommend project list response
+
 ## 0.4.114 (2024-10-29)
 
 - fix: should remove agentId condition from memory query
