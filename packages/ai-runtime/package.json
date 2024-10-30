@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.4.115",
+  "version": "0.4.116",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -148,15 +148,15 @@
   },
   "dependencies": {
     "@abtnode/client": "^1.16.32",
-    "@arcblock/did-connect": "^2.10.53",
-    "@blocklet/ai-kit": "^0.1.59",
+    "@arcblock/did-connect": "^2.10.54",
+    "@blocklet/ai-kit": "^0.1.60",
     "@blocklet/co-git": "workspace:^",
     "@blocklet/dataset-sdk": "workspace:^",
     "@blocklet/js-sdk": "^1.16.32",
     "@blocklet/logger": "^1.16.32",
     "@blocklet/quickjs": "workspace:^",
     "@blocklet/sdk": "^1.16.32",
-    "@blocklet/uploader": "^0.1.46",
+    "@blocklet/uploader": "^0.1.47",
     "@iconify-icons/tabler": "^1.2.95",
     "@iconify/react": "^5.0.2",
     "@microsoft/fetch-event-source": "^2.0.1",
@@ -214,7 +214,7 @@
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@arcblock/ux": "^2.10.53",
+    "@arcblock/ux": "^2.10.54",
     "@emotion/css": "^11.13.0",
     "@emotion/react": "^11.13.3",
     "@jest/globals": "^29.7.0",
