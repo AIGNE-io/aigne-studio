@@ -91,7 +91,7 @@
     "@blocklet/meta": "1.16.33-beta-20241030-102817-90ad7cd5",
     "@blocklet/sdk": "1.16.33-beta-20241030-102817-90ad7cd5",
     "@blocklet/ui-react": "^2.10.54",
-    "@blocklet/uploader": "^0.1.47",
+    "@blocklet/uploader": "^0.1.50",
     "@emotion/cache": "^11.13.1",
     "@emotion/css": "^11.13.0",
     "@emotion/react": "^11.13.3",
