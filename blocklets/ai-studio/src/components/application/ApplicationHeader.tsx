@@ -7,7 +7,7 @@ import { useEffect, useMemo } from 'react';
 
 import { PlanUpgradeButton } from '../multi-tenant-restriction';
 
-export default function ApplicationHeader({ application }: { application?: Agent }) {
+export default function ApplicationHeader({ application, meta }: { application?: Agent; meta?: any }) {
   const { addons, add: addHeader, delete: deleteHeader } = useHeaderState();
 
   useEffect(() => {
@@ -35,8 +35,8 @@ export default function ApplicationHeader({ application }: { application?: Agent
   return (
     <Box
       component={Header}
-      hideNavMenu={!!application}
       {...props}
+      meta={meta}
       sx={{ position: 'sticky', top: 0, '.header-container': { maxWidth: '100%' } }}
       addons={addons}
     />

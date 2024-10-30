@@ -11,8 +11,11 @@ import AgentView from '@blocklet/aigne-sdk/components/AgentView';
 import { ScrollView } from '@blocklet/aigne-sdk/components/ai-runtime';
 import { Box, CircularProgress, Container, Stack, ThemeProvider } from '@mui/material';
 import { useRequest } from 'ahooks';
-import { Suspense } from 'react';
+import { Suspense, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
+import { joinURL } from 'ufo';
+
+import { AIGNE_STUDIO_MOUNT_POINT } from '../../libs/constants';
 
 export default function AppPage() {
   const { appId } = useParams();
@@ -21,6 +24,17 @@ export default function AppPage() {
 
   const { data, loading, error, mutate } = useRequest(() =>
     getAgentByDeploymentId({ deploymentId: appId, working: true })
+  );
+  const meta = useMemo(
+    () => ({
+      navigation: [
+        {
+          title: { en: 'About', zh: '关于' },
+          link: joinURL(AIGNE_STUDIO_MOUNT_POINT, `/explore/apps/${appId}`),
+        },
+      ],
+    }),
+    [appId]
   );
 
   const isNoSuchEntryAgentError = (error as any)?.response?.data?.error?.type === 'NoSuchEntryAgentError';
@@ -46,7 +60,7 @@ export default function AppPage() {
         }>
         <ScrollView component={Stack} scroll="element" initialScrollBehavior="auto">
           <Suspense fallback={<Loading />}>
-            {(data || !loading) && <ApplicationHeader application={data} />}
+            {(data || !loading) && <ApplicationHeader application={data} meta={meta} />}
 
             {renderButtons()}
             {data?.identity?.aid ? (
