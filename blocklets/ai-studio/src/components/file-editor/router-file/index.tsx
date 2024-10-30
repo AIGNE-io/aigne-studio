@@ -25,7 +25,7 @@ import PlusIcon from '@iconify-icons/tabler/plus';
 import Star from '@iconify-icons/tabler/star';
 import StarFill from '@iconify-icons/tabler/star-filled';
 import Trash from '@iconify-icons/tabler/trash';
-import { InfoOutlined } from '@mui/icons-material';
+import { Cancel, InfoOutlined } from '@mui/icons-material';
 import {
   Autocomplete,
   Avatar,
@@ -385,60 +385,64 @@ export function AgentItemView({
         }}>
         {assistant.conditionalBranch && <BranchConditionSelect assistant={assistant} tool={agent} sx={{ mb: 0 }} />}
 
-        <Stack width={1} sx={{ position: 'relative' }}>
-          <TextField
-            disabled={!target}
-            onClick={(e) => e.stopPropagation()}
-            hiddenLabel
-            placeholder={target ? target?.name || t('unnamed') : t('agentNotFound')}
-            size="small"
-            variant="standard"
-            value={target ? target?.name || t('unnamed') : t('agentNotFound')}
-            InputProps={{ readOnly: true }}
-            sx={{
-              mb: 0,
-              lineHeight: '22px',
-              fontWeight: 500,
-              input: {
-                fontSize: '18px',
-                color: '#1976d2',
-              },
-            }}
-          />
-
-          {assistant.conditionalBranch ? (
-            <TextField
-              onClick={(e) => e.stopPropagation()}
-              hiddenLabel
-              placeholder={target?.description || t('description')}
-              size="small"
-              variant="standard"
-              value={target?.description}
-              sx={{
-                lineHeight: '10px',
-                input: { fontSize: '10px', color: 'text.disabled' },
-              }}
-              inputProps={{ readOnly: true }}
-            />
-          ) : (
+        <Stack width={1} gap={1.5} sx={{ position: 'relative' }}>
+          <Stack>
             <TextField
               disabled={!target}
               onClick={(e) => e.stopPropagation()}
               hiddenLabel
-              placeholder={target ? agent.functionName || t('routeDesc') : t('agentNotFound')}
+              placeholder={target ? target?.name || t('unnamed') : t('agentNotFound')}
               size="small"
               variant="standard"
-              value={agent.functionName}
-              onChange={(e) => (agent.functionName = e.target.value)}
+              value={target ? target?.name || t('unnamed') : t('agentNotFound')}
+              InputProps={{ readOnly: true }}
               sx={{
-                lineHeight: '24px',
+                mb: 0,
+                lineHeight: '22px',
+                fontWeight: 500,
                 input: {
-                  fontSize: '14px',
-                  color: assistant.defaultToolId === agent.id ? 'primary.main' : '',
+                  fontSize: '18px',
+                  color: '#1976d2',
                 },
               }}
             />
-          )}
+
+            {assistant.conditionalBranch ? (
+              target?.description ? (
+                <TextField
+                  onClick={(e) => e.stopPropagation()}
+                  hiddenLabel
+                  placeholder={target?.description || t('description')}
+                  size="small"
+                  variant="standard"
+                  value={target?.description}
+                  sx={{
+                    lineHeight: '10px',
+                    input: { fontSize: '10px', color: 'text.disabled' },
+                  }}
+                  inputProps={{ readOnly: true }}
+                />
+              ) : null
+            ) : (
+              <TextField
+                disabled={!target}
+                onClick={(e) => e.stopPropagation()}
+                hiddenLabel
+                placeholder={target ? agent.functionName || t('routeDesc') : t('agentNotFound')}
+                size="small"
+                variant="standard"
+                value={agent.functionName}
+                onChange={(e) => (agent.functionName = e.target.value)}
+                sx={{
+                  lineHeight: '24px',
+                  input: {
+                    fontSize: '14px',
+                    color: assistant.defaultToolId === agent.id ? 'primary.main' : '',
+                  },
+                }}
+              />
+            )}
+          </Stack>
 
           <AgentItemViewParameters
             assistant={assistant}
@@ -579,9 +583,7 @@ function AddSelectAgentPopperButton({
   const exists =
     assistant.type === 'router' ? new Set(Object.values(assistant.routes ?? {}).map((i) => i.data.id)) : new Set();
 
-  if (!project) {
-    return null;
-  }
+  if (!project) return null;
 
   return (
     <PopperMenu
@@ -778,11 +780,11 @@ function AgentItemViewParameters({
     })
     .filter(isNonNullable);
 
-  if (!target) return null;
-  if (!filteredParameters?.length) return null;
+  if (!target) return <Box />;
+  if (!filteredParameters?.length) return <Box />;
 
   return (
-    <Box mt={1}>
+    <Box>
       <Tooltip title={t('parametersTip', { variable: '{variable}' })} placement="top-start" disableInteractive>
         <Stack justifyContent="space-between" direction="row" alignItems="center">
           <Typography variant="subtitle5" color="text.secondary" mb={0}>
@@ -795,6 +797,8 @@ function AgentItemViewParameters({
 
       <Stack gap={1}>
         {filteredParameters?.map((parameter) => {
+          if (!parameter?.key) return null;
+
           const className = `hover-visible-${parameter.key}`;
           return (
             <Stack
@@ -816,8 +820,8 @@ function AgentItemViewParameters({
                       sx={{ fontSize: 12, cursor: 'pointer', color: 'primary.main', display: 'none' }}
                       onClick={() => {
                         tool.parameters ??= {};
-                        tool.parameters[parameter.key] = `{{${parameter.key}}}`;
-                        addParameter(parameter.key);
+                        tool.parameters[parameter.key!] = `{{${parameter.key}}}`;
+                        addParameter(parameter.key!);
                       }}
                     />
                   </Tooltip>
@@ -916,6 +920,20 @@ function BranchConditionSelect({
       variant="outlined"
       sx={{ minHeight: 32, background: '#030712', color: '#fff', '&:hover': { background: '#030712' } }}>
       {t('decision.addRule')}
+    </Button>
+  );
+
+  const RemoveRuleButton = ({ handleOnClick }: { handleOnClick: (_e: React.MouseEvent) => void }) => (
+    <Button
+      onClick={handleOnClick}
+      sx={{
+        minWidth: 32,
+        minHeight: 32,
+        p: 0,
+        color: '#E11D48',
+        '&:hover': { background: 'rgba(225, 29, 72, 0.04)' },
+      }}>
+      <Cancel fontSize="small" />
     </Button>
   );
 
@@ -1035,6 +1053,7 @@ function BranchConditionSelect({
         }}
         controlElements={{
           addRuleAction: AddRuleButton,
+          removeRuleAction: RemoveRuleButton,
           addGroupAction: () => null,
           removeGroupAction: () => null,
           cloneGroupAction: () => null,

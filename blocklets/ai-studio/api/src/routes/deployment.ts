@@ -162,6 +162,11 @@ router.get('/recommend-list', async (req, res) => {
   }
 
   const { count, rows } = await Deployment.findAndCountAll(query);
+  const [stats, users] = await Promise.all([
+    getProjectStatsFromRuntime({ projectIds: rows.map((d) => d.projectId) }),
+    getUsers(rows.map((d) => d.createdBy)),
+  ]);
+  const statsMap = new Map(stats.map((s) => [s.projectId, s]));
 
   const enhancedDeployments = await Promise.all(
     rows.map(async (deployment) => {
@@ -172,7 +177,12 @@ router.get('/recommend-list', async (req, res) => {
         readBlobFromGitIfWorkingNotInitialized: true,
       });
 
-      return { ...deployment.dataValues, project };
+      return {
+        ...deployment.dataValues,
+        project,
+        stats: statsMap.get(deployment.projectId),
+        createdByInfo: users[deployment.createdBy],
+      };
     })
   );
 
