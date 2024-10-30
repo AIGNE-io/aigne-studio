@@ -9,8 +9,7 @@ const userPassportCache = new LRUCache<string, string[]>({
   sizeCalculation: () => {
     return 1;
   },
-  // 2h (ms)
-  ttl: 1000 * 60 * 60 * 2,
+  ttl: Number(process.env.AIGNE_PASSPORTS_CACHE_TTL) || 60e3,
 });
 
 export async function getUserPassports(did: string) {
