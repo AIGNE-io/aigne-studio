@@ -14,13 +14,13 @@ import { premiumPlanEnabled, useMultiTenantRestriction } from './state';
 interface Props {
   deployment?: Deployment;
   project?: ProjectSettings;
-  onRemoveAigneBanner?: () => void;
+  onAigneBannerVisibleUpdate?: (visible: boolean) => void;
 }
 
 export function MultiTenantBrandGuard({
   deployment,
   project,
-  onRemoveAigneBanner,
+  onAigneBannerVisibleUpdate,
   sx,
   children,
   ...rest
@@ -50,8 +50,14 @@ export function MultiTenantBrandGuard({
     if (quotaChecker.checkCustomBrand()) {
       await updateDeployment(deployment?.id!, { aigneBannerVisible: false });
       setAigneBannerVisible(false);
-      onRemoveAigneBanner?.();
+      onAigneBannerVisibleUpdate?.(false);
     }
+  };
+
+  const showBrand = async () => {
+    await updateDeployment(deployment?.id!, { aigneBannerVisible: true });
+    setAigneBannerVisible(true);
+    onAigneBannerVisibleUpdate?.(true);
   };
 
   useEffect(() => {
@@ -115,7 +121,7 @@ export function MultiTenantBrandGuard({
               <Tooltip
                 title={
                   <span>
-                    Click this button to remove AIGNE branding
+                    Click this button to remove AIGNE branding banner
                     <br />
                     (Only available for Premium users)
                   </span>
@@ -127,6 +133,20 @@ export function MultiTenantBrandGuard({
             )}
           </Box>
         </Box>
+      )}
+      {!aigneBannerVisible && (isAdmin || isDeploymentOwner) && (
+        <Tooltip
+          title={
+            <span>
+              Click this button to restore AIGNE branding banner
+              <br />
+              (Only available for Premium users)
+            </span>
+          }>
+          <IconButton size="small" onClick={showBrand} sx={{ position: 'absolute', right: 16, bottom: 16 }}>
+            <Icon icon={InfoSquareIcon} />
+          </IconButton>
+        </Tooltip>
       )}
     </Box>
   );

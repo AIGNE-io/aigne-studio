@@ -52,10 +52,10 @@ export default function AppPage() {
       <MultiTenantBrandGuard
         deployment={data?.deployment}
         project={data?.project}
-        onRemoveAigneBanner={() =>
+        onAigneBannerVisibleUpdate={(visible) =>
           mutate((prev) => ({
             ...prev!,
-            deployment: { ...prev!.deployment, aigneBannerVisible: false },
+            deployment: { ...prev!.deployment, aigneBannerVisible: visible },
           }))
         }>
         <ScrollView component={Stack} scroll="element" initialScrollBehavior="auto">
