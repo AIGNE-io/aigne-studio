@@ -73,17 +73,17 @@ export function useDebug<U>(selector: (state: DebugContextValue) => U): U | unde
   return ctx(selector);
 }
 
-export interface DebugGlobalContextValue {
+export interface DebugDialogContextValue {
   open?: boolean;
   setOpen?: (open: boolean) => void;
 }
 
-const debugGlobalContext = createContext<UseBoundStore<StoreApi<DebugGlobalContextValue>> | null>(null);
+const debugDialogContext = createContext<UseBoundStore<StoreApi<DebugDialogContextValue>> | null>(null);
 
-export function DebugGlobalProvider({ children }: { children?: React.ReactNode }) {
+export function DebugDialogProvider({ children }: { children?: React.ReactNode }) {
   const [state] = useState(() =>
     create(
-      immer<DebugGlobalContextValue>((set) => ({
+      immer<DebugDialogContextValue>((set) => ({
         setOpen: (open) => {
           set((state) => {
             state.open = open;
@@ -93,11 +93,11 @@ export function DebugGlobalProvider({ children }: { children?: React.ReactNode }
     )
   );
 
-  return <debugGlobalContext.Provider value={state}>{children}</debugGlobalContext.Provider>;
+  return <debugDialogContext.Provider value={state}>{children}</debugDialogContext.Provider>;
 }
 
-export function useDebugGlobal<U>(selector: (state: DebugGlobalContextValue) => U): U | undefined {
-  const ctx = useContext(debugGlobalContext);
+export function useDebugDialog<U>(selector: (state: DebugDialogContextValue) => U): U | undefined {
+  const ctx = useContext(debugDialogContext);
   if (!ctx) return undefined;
 
   return ctx(selector);

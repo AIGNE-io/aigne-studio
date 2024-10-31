@@ -3,6 +3,7 @@ import MessageXIcon from '@iconify-icons/tabler/message-x';
 import PlusIcon from '@iconify-icons/tabler/plus';
 import SettingsIcon from '@iconify-icons/tabler/settings';
 import TrashIcon from '@iconify-icons/tabler/trash';
+import WandIcon from '@iconify-icons/tabler/wand';
 import { Icon } from '@iconify/react';
 import {
   Box,
@@ -25,7 +26,7 @@ import CustomComponentRenderer from '../../components/CustomComponentRenderer/Cu
 import LoadingButton from '../../components/LoadingButton';
 import ScrollView from '../../components/ScrollView';
 import { AIGNEApiContextValue } from '../../contexts/Api';
-import { useDebugGlobal } from '../../contexts/Debug';
+import { useDebugDialog } from '../../contexts/Debug';
 import { useEntryAgent } from '../../contexts/EntryAgent';
 import { RuntimeProvider } from '../../contexts/Runtime';
 import { SessionProvider, useSession } from '../../contexts/Session';
@@ -111,7 +112,7 @@ function SessionsBar() {
     pick(s, ['sessions', 'loaded', 'createSession', 'setCurrentSessionId', 'currentSessionId'])
   );
 
-  const setOpen = useDebugGlobal((s) => s.setOpen);
+  const setOpen = useDebugDialog((s) => s.setOpen);
 
   const newSession = async () => {
     try {
@@ -171,7 +172,7 @@ function SessionsBar() {
       <Box flex={1} />
 
       <LoadingButton onClick={() => setOpen?.(true)} sx={{ minWidth: 32, minHeight: 32, p: 0 }}>
-        <Icon icon={SettingsIcon} fontSize={18} />
+        <Icon icon={WandIcon} fontSize={18} />
       </LoadingButton>
 
       {currentSessionId && (

@@ -3,7 +3,6 @@ import { REMOTE_REACT_COMPONENT } from '@app/libs/constants';
 import { getOptimizedImageAbsUrl } from '@app/libs/media';
 import Empty from '@arcblock/ux/lib/Empty';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { DebugGlobalProvider } from '@blocklet/ai-runtime/front/contexts/Debug';
 import { OutputVariableYjs, RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
 import { RuntimeDebug } from '@blocklet/aigne-sdk/components/ai-runtime';
 import {
@@ -304,9 +303,7 @@ function PageComponentPreviewer({
             </Box>
           }>
           <PreviewerContent>
-            <DebugGlobalProvider>
-              <RuntimeDebug hideSessionsBar aid={aid} ApiProps={apiProps} />
-            </DebugGlobalProvider>
+            <RuntimeDebug hideSessionsBar aid={aid} ApiProps={apiProps} />
           </PreviewerContent>
         </Suspense>
       </ErrorBoundary>

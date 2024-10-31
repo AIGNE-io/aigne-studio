@@ -6,10 +6,10 @@ import { agentViewTheme } from '@app/theme/agent-view-theme';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import {
-  DebugGlobalProvider,
+  DebugDialogProvider,
   DebugProvider,
   useDebug,
-  useDebugGlobal,
+  useDebugDialog,
 } from '@blocklet/ai-runtime/front/contexts/Debug';
 import { AssistantYjs, RuntimeOutputVariable, isAssistant } from '@blocklet/ai-runtime/types';
 import { RuntimeDebug } from '@blocklet/aigne-sdk/components/ai-runtime';
@@ -57,7 +57,7 @@ export default function PreviewView(props: { projectId: string; gitRef: string; 
   }, []);
 
   return (
-    <DebugGlobalProvider>
+    <DebugDialogProvider>
       <ThemeProvider theme={agentViewTheme}>
         <Stack sx={{ overflowY: 'auto', flex: 1 }}>
           <RuntimeDebug aid={aid} ApiProps={apiProps} />
@@ -69,7 +69,7 @@ export default function PreviewView(props: { projectId: string; gitRef: string; 
           <RuntimeDebug hideSessionsBar aid={aid} ApiProps={apiProps} />
         </SettingsDialog>
       </DebugProvider>
-    </DebugGlobalProvider>
+    </DebugDialogProvider>
   );
 }
 
@@ -83,8 +83,8 @@ function SettingsDialog({ children, agentId }: { agentId: string; children?: Rea
   const { getFileById } = useProjectStore(projectId, projectRef);
 
   const agent = getFileById(agentId);
-  const open = useDebugGlobal((s) => s.open);
-  const setOpen = useDebugGlobal((s) => s.setOpen);
+  const open = useDebugDialog((s) => s.open);
+  const setOpen = useDebugDialog((s) => s.setOpen);
 
   useEffect(() => {
     if (open) {
