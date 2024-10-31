@@ -148,7 +148,7 @@
   },
   "dependencies": {
     "@abtnode/client": "^1.16.32",
-    "@arcblock/did-connect": "^2.10.54",
+    "@arcblock/did-connect": "^2.10.55",
     "@blocklet/ai-kit": "^0.1.61",
     "@blocklet/co-git": "workspace:^",
     "@blocklet/constant": "^1.16.32",
@@ -157,7 +157,7 @@
     "@blocklet/logger": "^1.16.32",
     "@blocklet/quickjs": "workspace:^",
     "@blocklet/sdk": "^1.16.32",
-    "@blocklet/uploader": "^0.1.50",
+    "@blocklet/uploader": "^0.1.51",
     "@iconify-icons/tabler": "^1.2.95",
     "@iconify/react": "^5.0.2",
     "@microsoft/fetch-event-source": "^2.0.1",
@@ -218,7 +218,7 @@
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@arcblock/ux": "^2.10.54",
+    "@arcblock/ux": "^2.10.55",
     "@emotion/css": "^11.13.0",
     "@emotion/react": "^11.13.3",
     "@jest/globals": "^29.7.0",
