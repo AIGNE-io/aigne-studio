@@ -2,6 +2,7 @@ import { hash } from 'crypto';
 
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { memoize } from '@blocklet/quickjs';
+import { call } from '@blocklet/sdk/lib/component';
 import config, { logger } from '@blocklet/sdk/lib/config';
 import Joi from 'joi';
 import jsonStableStringify from 'json-stable-stringify';
@@ -25,7 +26,6 @@ import {
   isUserInputParameter,
   outputVariablesToJoiSchema,
 } from '../../types';
-import { call } from '../../utils/call';
 import { isNonNullable } from '../../utils/is-non-nullable';
 import { CallAI, CallAIImage, GetAgent, GetAgentResult, RunAssistantCallback } from '../assistant/type';
 import { issueVC } from '../libs/blocklet/vc';
