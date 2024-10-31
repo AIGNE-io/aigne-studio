@@ -552,7 +552,9 @@ export default flatten({
     keyword: 'Keyword of retrieved messages',
   },
   outputVariableParameter: {
-    addData: 'Add Memory',
+    add: 'Add',
+    edit: 'Edit',
+    memory: 'Memory',
     keyRequired: 'Key is Required',
     key: 'Key',
     scope: 'Scope',
@@ -885,4 +887,7 @@ export default flatten({
   buttonTitle: 'Button Title',
   buttonTitleVerified: 'Button Title (verified)',
   agentNotFound: 'Agent Not Found',
+  deleteMemory: 'Delete Memory',
+  deleteMemoryTip: 'The current Memory is used by the following Agent(s): {agents}, confirm deletion?',
+  memoryNotDefined: 'Memory Variable Not Defined Or Changed',
 });

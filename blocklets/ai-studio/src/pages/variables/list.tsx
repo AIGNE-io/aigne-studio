@@ -203,7 +203,6 @@ function VariableList() {
             <Stack direction="row" gap={1} justifyContent="flex-end">
               <Button
                 size="small"
-                variant="outlined"
                 onClick={() => {
                   currentVariable.current = params;
                   form.reset(params);
@@ -236,7 +235,7 @@ function VariableList() {
                       content: (
                         <Box>
                           <Typography fontWeight={500} fontSize={16} lineHeight="28px" color="#4B5563">
-                            {t('当前Memory被以下Agent使用, 确定删除吗?', { agents })}
+                            {t('deleteMemoryTip', { agents: agents.join(', ') })}
                           </Typography>
                         </Box>
                       ),
@@ -403,7 +402,7 @@ function VariableList() {
           }
         })}>
         <DialogTitle className="between">
-          <Box>{t('outputVariableParameter.addData')}</Box>
+          <Box>{`${currentVariable.current ? t('outputVariableParameter.edit') : t('outputVariableParameter.add')}${t('outputVariableParameter.memory')}`}</Box>
 
           <IconButton size="small" onClick={() => dialogState.close()}>
             <Close />
@@ -418,6 +417,12 @@ function VariableList() {
               rules={{
                 required: t('outputVariableParameter.keyRequired'),
                 validate: (value) => {
+                  if (currentVariable.current) {
+                    // 编辑时，key 相同，不报错
+                    if (currentVariable.current.key === value) {
+                      return true;
+                    }
+                  }
                   // key 和 scope 是否存在，如果存在，不运行创建
                   const found = (variableYjs.variables || [])?.find((x) => {
                     return `${x.scope}_${x.key}` === `${form.getValues('scope')}_${value}`;
@@ -484,6 +489,13 @@ function VariableList() {
               rules={{
                 required: t('outputVariableParameter.typeRequired'),
                 validate: (value) => {
+                  if (currentVariable.current) {
+                    // 编辑时，type 相同，不报错
+                    if (currentVariable.current.type === value?.type) {
+                      return true;
+                    }
+                  }
+
                   const foundKey = (variableYjs.variables || [])?.find((x) => {
                     return `${x.key}` === `${form.getValues('key')}`;
                   });
