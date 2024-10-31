@@ -951,11 +951,7 @@ function BranchConditionSelect({
       if (operator === 'null' || operator === 'notNull') return null;
 
       if (rest.valueSource === 'field') {
-        return (
-          <ValueEditorContainer>
-            <MaterialValueEditor {...props} />
-          </ValueEditorContainer>
-        );
+        return <MaterialValueEditor {...props} />;
       }
 
       if (fieldData.inputType === 'text' || fieldData.inputType === 'number') {
@@ -984,11 +980,7 @@ function BranchConditionSelect({
         );
       }
 
-      return (
-        <ValueEditorContainer>
-          <MaterialValueEditor {...props} />
-        </ValueEditorContainer>
-      );
+      return <MaterialValueEditor {...props} />;
     },
     [fields]
   );
