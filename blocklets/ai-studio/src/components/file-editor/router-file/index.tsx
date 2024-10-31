@@ -30,7 +30,6 @@ import {
   Avatar,
   Box,
   Button,
-  Checkbox,
   FormGroup,
   List,
   ListSubheader,
@@ -930,7 +929,7 @@ function BranchConditionSelect({
         minWidth: 32,
         minHeight: 32,
         p: 0,
-        color: '#E11D48',
+        color: 'action.disabled',
       }}>
       <Close fontSize="small" />
     </Button>
@@ -980,7 +979,7 @@ function BranchConditionSelect({
       if (fieldData.inputType === 'checkbox') {
         return (
           <ValueEditorContainer>
-            <Checkbox checked={Boolean(rest.value)} onChange={(e) => props.handleOnChange(e.target.checked)} />
+            <Switch checked={Boolean(rest.value)} onChange={(e) => props.handleOnChange(e.target.checked)} />
           </ValueEditorContainer>
         );
       }
