@@ -2,7 +2,6 @@ import { hash } from 'crypto';
 
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { memoize } from '@blocklet/quickjs';
-import { call } from '@blocklet/sdk/lib/component';
 import config, { logger } from '@blocklet/sdk/lib/config';
 import Joi from 'joi';
 import jsonStableStringify from 'json-stable-stringify';
@@ -18,6 +17,7 @@ import {
   ExecutionPhase,
   OutputVariable,
   Parameter,
+  ProjectSettings,
   RuntimeOutputProfile,
   RuntimeOutputVariable,
   Variable,
@@ -25,6 +25,7 @@ import {
   isUserInputParameter,
   outputVariablesToJoiSchema,
 } from '../../types';
+import { call } from '../../utils/call';
 import { isNonNullable } from '../../utils/is-non-nullable';
 import { CallAI, CallAIImage, GetAgent, GetAgentResult, RunAssistantCallback } from '../assistant/type';
 import { issueVC } from '../libs/blocklet/vc';
@@ -40,6 +41,7 @@ export class ExecutorContext {
   constructor(
     options: Pick<
       ExecutorContext,
+      | 'entry'
       | 'getAgent'
       | 'callAI'
       | 'callAIImage'
@@ -56,6 +58,7 @@ export class ExecutorContext {
       | 'setCache'
     >
   ) {
+    this.entry = options.entry;
     this.getAgent = memoize(options.getAgent, {
       keyGenerator: (o) => [o.aid, o.working].filter(isNonNullable).join('/'),
     });
@@ -75,6 +78,13 @@ export class ExecutorContext {
     this.queryCache = options.queryCache;
     this.setCache = options.setCache;
   }
+
+  entry: {
+    blockletDid?: string;
+    project: ProjectSettings;
+    working?: boolean;
+    appUrl?: string;
+  };
 
   getSecret: (args: {
     targetProjectId: string;
@@ -345,10 +355,14 @@ export abstract class AgentExecutorBase<T> {
         },
       },
       $blocklet: {
-        issueVC: (args: Omit<Parameters<typeof issueVC>[0], 'userDid'>) => {
+        issueVC: (args: Omit<Parameters<typeof issueVC>[0], 'userDid' | 'project'>) => {
           const userDid = executor.context.user?.did;
           if (!userDid) throw new Error('Issue VC requires user did');
-          return issueVC({ ...args, userDid });
+          return issueVC({
+            ...args,
+            userDid,
+            context: this.context,
+          });
         },
       },
     };

@@ -20,11 +20,11 @@ import {
   projectSettingsSchema,
   variableToYjs,
 } from '@blocklet/ai-runtime/types';
+import { call } from '@blocklet/ai-runtime/utils/call';
 import { copyRecursive } from '@blocklet/ai-runtime/utils/fs';
 import { getUserPassports, quotaChecker } from '@blocklet/aigne-sdk/api/premium';
 import { AIGNE_RUNTIME_COMPONENT_DID, NFT_BLENDER_COMPONENT_DID } from '@blocklet/aigne-sdk/constants';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { call } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
 import { user } from '@blocklet/sdk/lib/middlewares';
 import { Request, Router } from 'express';

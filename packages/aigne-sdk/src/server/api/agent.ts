@@ -3,7 +3,7 @@ import { ReadableStream, TextDecoderStream } from 'stream/web';
 import { EventSourceParserStream, readableToWeb } from '@blocklet/ai-kit/api/utils/event-stream';
 import { AssistantResponseType, RunAssistantResponse } from '@blocklet/ai-runtime/types';
 import { ResourceType } from '@blocklet/ai-runtime/types/resource';
-import { call } from '@blocklet/sdk/lib/component';
+import { call } from '@blocklet/ai-runtime/utils/call';
 import { joinURL } from 'ufo';
 
 import type { Agent, AgentWithConfig, RunAgentInput } from '../../api/agent';

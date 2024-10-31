@@ -1,3 +1,7 @@
+## 0.4.118 (2024-10-30)
+
+- chore: upgrade @blocklet/sdk & custom notification for issued vc
+
 ## 0.4.117 (2024-10-30)
 
 - chore: update @blocklet/uploader package
