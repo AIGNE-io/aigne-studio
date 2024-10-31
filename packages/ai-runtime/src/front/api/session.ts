@@ -92,6 +92,7 @@ export interface RunAgentInput {
   debug?: boolean;
   sessionId?: string;
   inputs?: { [key: string]: any };
+  appUrl?: string;
 }
 
 export async function runAgent(input: RunAgentInput & { responseType?: undefined }): Promise<{ [key: string]: any }>;
@@ -114,6 +115,7 @@ export async function runAgent({ responseType, ...input }: RunAgentInput & { res
         inputs: { ...input.inputs, $clientTime: new Date().toISOString() },
         working: input.working,
         debug: input.debug,
+        appUrl: input.appUrl || window.location.href,
       }),
     });
     if (!(res.status >= 200 && res.status < 300)) {
