@@ -2,8 +2,11 @@ import { ResponseRole, UserInfo } from '@abtnode/client';
 
 import { AIGNE_ISSUE_VC_PREFIX } from '../../../constants';
 import { authService } from '../../../lib/auth';
+import { getProjectIconUrl } from '../../../utils/project-icon';
+import type { ExecutorContext } from '../../executor/base';
 
 export async function issueVC({
+  context: { entry },
   userDid,
   name,
   title,
@@ -12,6 +15,7 @@ export async function issueVC({
   displayUrl,
   notify = true,
 }: {
+  context: ExecutorContext;
   userDid: string;
   name: string;
   title: string;
@@ -38,6 +42,34 @@ export async function issueVC({
     role: name,
     display: displayUrl ? { type: 'url', content: displayUrl } : undefined,
     notify,
+    notification: JSON.stringify({
+      title: `You just received a VC ${title}`,
+      body: description,
+      attachments: [
+        {
+          type: 'image',
+          data: {
+            url: displayUrl,
+            alt: title,
+          },
+        },
+      ],
+      appInfo: {
+        title: entry.project.name,
+        logo: getProjectIconUrl(entry.project.id, {
+          blockletDid: entry.blockletDid,
+          working: entry.working,
+          updatedAt: entry.project.updatedAt,
+        }),
+        url: entry.appUrl,
+        description: entry.project.description,
+      },
+      poweredBy: {
+        name: 'AIGNE',
+        url: 'https://www.aigne.io',
+      },
+      severity: 'success',
+    }),
   });
 
   if (issueResult.code !== ('ok' as any)) throw new Error(`Issue VC failed got ${issueResult.code}`);
