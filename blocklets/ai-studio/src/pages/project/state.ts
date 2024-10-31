@@ -211,6 +211,9 @@ export type MessageInput = RunAssistantInput & {
 };
 
 export interface SessionItem {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
   messages: {
     id: string;
     createdAt: string;
@@ -235,9 +238,6 @@ export interface SessionItem {
   chatType?: 'chat' | 'debug';
   debugForm?: { [key: string]: any };
 
-  id: string;
-  createdAt: string;
-  updatedAt: string;
   name?: string;
   userId?: string;
   projectId: string;
@@ -405,7 +405,7 @@ export const useDebugState = ({
     setState((state) => {
       const sessions = state.sessions.map((session) =>
         session.id === state.currentSessionId
-          ? { ...session, sessionId: nanoid(), messages: [], updatedAt: new Date().toISOString() }
+          ? { ...session, messages: [], updatedAt: new Date().toISOString() }
           : session
       );
 
@@ -418,9 +418,12 @@ export const useDebugState = ({
       await deleteSession({ sessionId });
 
       setState((state) => {
+        const sessions = state.sessions.filter((i) => i.id !== sessionId);
+
         return {
           ...state,
-          currentSessionId: state.currentSessionId === sessionId ? undefined : state.currentSessionId,
+          sessions,
+          currentSessionId: state.currentSessionId === sessionId ? sessions.at(-1)?.id : state.currentSessionId,
         };
       });
 
