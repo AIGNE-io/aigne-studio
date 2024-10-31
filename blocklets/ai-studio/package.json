@@ -45,6 +45,7 @@
     "@blocklet/code-editor": "workspace:^",
     "@blocklet/constant": "^1.16.32",
     "@blocklet/dataset-sdk": "workspace:^",
+    "@blocklet/did-space-react": "^0.5.58",
     "@blocklet/discuss-kit": "^2.1.24",
     "@blocklet/editor": "^2.1.24",
     "@blocklet/js-sdk": "^1.16.32",

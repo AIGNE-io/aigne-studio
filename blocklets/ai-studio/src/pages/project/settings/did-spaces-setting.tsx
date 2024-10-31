@@ -1,19 +1,19 @@
 import { useSessionContext } from '@app/contexts/session';
-import { getProjectDataUrlInSpace } from '@app/libs/did-spaces';
 import { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
+import SpaceCard from '@blocklet/did-space-react/lib/components/SpaceCard';
 import { CheckCircleOutlineRounded, ErrorOutlineRounded, SyncRounded } from '@mui/icons-material';
-import { Button, CircularProgress, FormControlLabel, Stack, Typography } from '@mui/material';
+import { CircularProgress, FormControlLabel, Stack, Typography } from '@mui/material';
 import { useCallback, useState } from 'react';
 
 import Switch from '../../../components/custom/switch';
 import PromiseLoadingButton from '../../../components/promise-loading-button';
 import { getErrorMessage } from '../../../libs/api';
-import DidSpaces from '../icons/did-spaces';
 import { isTheErrorShouldShowMergeConflict, useMergeConflictDialog } from '../save-button';
 import { useProjectState } from '../state';
+import GatewayAction from './gateway-action';
 
 export default function DidSpacesSetting({ projectId }: { projectId: string }) {
   const { t, locale } = useLocaleContext();
@@ -100,20 +100,13 @@ export default function DidSpacesSetting({ projectId }: { projectId: string }) {
       </Stack>
 
       <Stack direction="row" alignItems="center" gap={1}>
-        <Button
-          size="small"
-          variant="outlined"
-          startIcon={<DidSpaces />}
-          onClick={async () => {
-            try {
-              window.open(getProjectDataUrlInSpace(session.user?.didSpace?.endpoint, projectId));
-            } catch (error) {
-              console.error(error);
-              Toast.error(getErrorMessage(error));
-            }
-          }}>
-          {t('viewData')}
-        </Button>
+        <SpaceCard
+          sx={{ flex: 1 }}
+          selected
+          compat
+          endpoint={session.user?.didSpace?.endpoint}
+          action={(props) => <GatewayAction {...props} projectId={projectId} />}
+        />
       </Stack>
     </Stack>
   );
