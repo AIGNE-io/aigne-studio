@@ -110,6 +110,7 @@ export type Prompt =
     };
 
 export type Variable = {
+  id: string;
   scope?: VariableScope;
   key: string;
   reset?: boolean;
