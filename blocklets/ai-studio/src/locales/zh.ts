@@ -839,7 +839,8 @@ export default flatten({
   publishToStore: '发布到应用市场',
   readme: 'Readme',
   run: '运行',
-  makeYours: '制作个人版本',
+  makeYours: '复制并改进',
+  makeYoursTip: '复制此 AI 应用以制作您的个人版本',
   shareOnTwitter: '分享到推特',
   openInNewTab: '在新标签页中打开',
   copyLink: '复制链接',
@@ -876,4 +877,5 @@ export default flatten({
   buttonTitle: '按钮标题',
   buttonTitleVerified: '按钮标题(验证成功)',
   agentNotFound: 'Agent 不存在',
+  aigneBannerVisibility: '显示 AIGNE 品牌横幅',
 });

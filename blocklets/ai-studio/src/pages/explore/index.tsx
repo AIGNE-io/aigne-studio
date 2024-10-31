@@ -54,6 +54,7 @@ export default function ExploreCategoryRoutes() {
               <Route element={<ExploreCategoryLayout />}>
                 <Route path=":categorySlug?" element={<ExploreCategoryList />} />
                 <Route path=":categorySlug/:deploymentId" element={<ExploreCategoryDetail />} />
+                <Route path="apps/:deploymentId" element={<ExploreCategoryDetail />} />
               </Route>
             </Routes>
           </Suspense>

@@ -1,3 +1,7 @@
+## 0.4.121 (2024-10-31)
+
+- chore: polish explore detail page
+
 ## 0.4.120 (2024-10-31)
 
 - chore: update @blocklet/sdk

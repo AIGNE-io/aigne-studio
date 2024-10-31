@@ -848,6 +848,7 @@ export default flatten({
   publishToStore: 'Publish to Store',
   run: 'Run',
   makeYours: 'Make Yours',
+  makeYoursTip: 'Clone this AI application to create your own version',
   readme: 'Readme',
   shareOnTwitter: 'Share on Twitter',
   openInNewTab: 'Open in new tab',
@@ -885,4 +886,5 @@ export default flatten({
   buttonTitle: 'Button Title',
   buttonTitleVerified: 'Button Title (verified)',
   agentNotFound: 'Agent Not Found',
+  aigneBannerVisibility: 'AIGNE branding banner visibility',
 });
