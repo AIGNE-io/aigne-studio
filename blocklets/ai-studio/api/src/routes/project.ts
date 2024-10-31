@@ -20,11 +20,11 @@ import {
   projectSettingsSchema,
   variableToYjs,
 } from '@blocklet/ai-runtime/types';
+import { call } from '@blocklet/ai-runtime/utils/call';
 import { copyRecursive } from '@blocklet/ai-runtime/utils/fs';
 import { getUserPassports, quotaChecker } from '@blocklet/aigne-sdk/api/premium';
 import { AIGNE_RUNTIME_COMPONENT_DID, NFT_BLENDER_COMPONENT_DID } from '@blocklet/aigne-sdk/constants';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { call } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
 import { user } from '@blocklet/sdk/lib/middlewares';
 import { Request, Router } from 'express';
@@ -1140,11 +1140,16 @@ async function copyProject({
   const srcWorking = await srcRepo.working({ ref: original.gitDefaultBranch || defaultBranch });
   await srcWorking.save({ flush: true });
 
+  const originalProjectYaml = srcWorking.syncedStore.files[PROJECT_FILE_PATH] as { name: string };
+
   const project = await Project.create({
     ...omit(original.dataValues, 'createdAt', 'updatedAt'),
     id: nextProjectId(),
     duplicateFrom: original.id,
-    name: patch.name || (original.name && `${original.name}-copy`),
+    name:
+      patch.name ||
+      (originalProjectYaml?.name && `${originalProjectYaml?.name}-copy`) ||
+      (original.name && `${original.name}-copy`),
     createdBy: author.did,
     updatedBy: author.did,
     ...omit(patch, 'name'),

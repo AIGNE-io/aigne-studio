@@ -10,7 +10,6 @@ export const getRequestConfig = (
   const config: {
     url: string;
     method: string;
-    baseURL?: string;
     headers: { [key: string]: any };
     params: { [key: string]: any };
     data: { [key: string]: any };

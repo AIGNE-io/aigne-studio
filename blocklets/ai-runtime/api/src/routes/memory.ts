@@ -2,6 +2,8 @@ import { ensureComponentCallOrAdmin } from '@api/libs/security';
 import user from '@blocklet/sdk/lib/middlewares/user';
 import { Router } from 'express';
 import Joi from 'joi';
+import isNil from 'lodash/isNil';
+import omitBy from 'lodash/omitBy';
 
 import Memory from '../store/models/memory';
 
@@ -9,15 +11,13 @@ const router = Router();
 
 const getMemoriesQuerySchema = Joi.object<{
   sessionId?: string;
-  agentId?: string;
-  projectId?: string;
-  scope?: string;
+  projectId: string;
+  scope: string;
   key: string;
 }>({
   sessionId: Joi.string().empty([null, '']),
-  agentId: Joi.string().empty([null, '']),
-  projectId: Joi.string().empty([null, '']),
-  scope: Joi.string().empty([null, '']),
+  projectId: Joi.string().required(),
+  scope: Joi.string().required(),
   key: Joi.string().required(),
 });
 
@@ -33,13 +33,11 @@ const createMemoryInputSchema = Joi.object<{
 
 const createMemoryQuerySchema = Joi.object<{
   sessionId?: string;
-  agentId?: string;
-  projectId?: string;
+  projectId: string;
   reset: boolean;
 }>({
   sessionId: Joi.string().empty([null, '']),
-  agentId: Joi.string().empty([null, '']),
-  projectId: Joi.string().empty([null, '']).required(),
+  projectId: Joi.string().required(),
   reset: Joi.boolean().default(false),
 });
 
@@ -78,46 +76,34 @@ const getMemoryQuerySchema = Joi.object<{
 });
 
 router.get('/', user(), ensureComponentCallOrAdmin(), async (req, res) => {
-  const {
-    sessionId = '',
-    agentId = '',
-    projectId = '',
-    key = '',
-    scope = '',
-  } = await getMemoriesQuerySchema.validateAsync(req.query, { stripUnknown: true });
-
   const { did: userId } = req.user!;
-  if (!userId) {
-    throw new Error('Can not get user info');
-  }
+  if (!userId) throw new Error('Can not get user info');
 
-  const params: { [key: string]: string } = {
-    ...(userId && { userId }),
-    ...(sessionId && { sessionId }),
-    ...(projectId && { projectId }),
-    ...(agentId && { agentId }),
-    ...(scope && { scope }),
-    ...(key && { key }),
-  };
+  const { sessionId, projectId, key, scope } = await getMemoriesQuerySchema.validateAsync(req.query, {
+    stripUnknown: true,
+  });
 
-  const datastores = await Memory.findAll({ order: [['createdAt', 'ASC']], where: params });
+  const datastores = await Memory.findAll({
+    order: [['createdAt', 'ASC']],
+    where: omitBy({ sessionId, projectId, scope, userId, key }, (v) => isNil(v)),
+  });
+
   res.json(datastores);
 });
 
 router.post('/', user(), ensureComponentCallOrAdmin(), async (req, res) => {
+  const { did: userId } = req.user!;
+  if (!userId) throw new Error('Can not get user info');
+
   const { key, data, scope } = await createMemoryInputSchema.validateAsync(req.body, { stripUnknown: true });
-  const { sessionId, agentId, projectId, reset } = await createMemoryQuerySchema.validateAsync(req.query, {
+  const { sessionId, projectId, reset } = await createMemoryQuerySchema.validateAsync(req.query, {
     stripUnknown: true,
   });
 
-  const { did: userId } = req.user!;
-  if (!userId) {
-    throw new Error('Can not get user info');
-  }
+  if (reset) await Memory.destroy({ where: omitBy({ projectId, sessionId, scope, key }, (v) => isNil(v)) });
 
-  if (reset) await Memory.destroy({ where: { ...(scope && { scope }), ...(key && { key }) } });
+  const datastore = await Memory.create({ key, scope, data, userId, sessionId, projectId });
 
-  const datastore = await Memory.create({ key, scope, data, userId, sessionId, agentId, projectId });
   res.json(datastore);
 });
 

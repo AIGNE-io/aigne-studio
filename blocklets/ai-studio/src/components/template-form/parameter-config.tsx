@@ -8,6 +8,7 @@ import {
   Chip,
   FormControl,
   FormControlLabel,
+  FormHelperText,
   MenuItem,
   Stack,
   TextField,
@@ -157,6 +158,9 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
               value={value.vcItem ?? []}
               onChange={(_, vcItem) => (value.vcItem = vcItem)}
             />
+            <FormHelperText>
+              To verify VCs issued by AIGNE agents, prefix them with <code>AIGNE</code> such as <code>AIGNExxx</code>
+            </FormHelperText>
           </Box>
 
           <Box>
