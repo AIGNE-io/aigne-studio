@@ -1,3 +1,24 @@
+## 0.4.119 (2024-10-31)
+
+- fix: invalid sig error
+
+## 0.4.118 (2024-10-30)
+
+- chore: upgrade @blocklet/sdk & custom notification for issued vc
+
+## 0.4.117 (2024-10-30)
+
+- chore: update @blocklet/uploader package
+
+## 0.4.116 (2024-10-30)
+
+- fix: auto prefix VCs with AIGNE for those issued by agent
+
+## 0.4.115 (2024-10-30)
+
+- chore: remove user passport caching
+- chore(api): add stats/userinfo to recommend project list response
+
 ## 0.4.114 (2024-10-29)
 
 - fix: should remove agentId condition from memory query
