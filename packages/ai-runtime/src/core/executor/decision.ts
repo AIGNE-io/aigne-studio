@@ -53,13 +53,13 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
     await Promise.all(
       (agent.routes || []).flatMap(
         (route) =>
-          route.condition?.rules
-            ?.filter((rule) => 'value' in rule && rule.value)
-            .map(async (rule) => {
-              if ('value' in rule && rule.value) {
-                rule.value = typeof rule.value === 'string' ? await this.renderMessage(rule.value, inputs) : rule.value;
-              }
-            }) ?? []
+          (route.condition?.rules || []).map(async (rule) => {
+            if ('value' in rule && rule.value) {
+              rule.value = typeof rule.value === 'string' ? await this.renderMessage(rule.value, inputs) : rule.value;
+            }
+
+            return rule;
+          }) ?? []
       )
     );
 

@@ -25,14 +25,12 @@ import PlusIcon from '@iconify-icons/tabler/plus';
 import Star from '@iconify-icons/tabler/star';
 import StarFill from '@iconify-icons/tabler/star-filled';
 import Trash from '@iconify-icons/tabler/trash';
-import { Cancel, InfoOutlined } from '@mui/icons-material';
+import { Close, InfoOutlined } from '@mui/icons-material';
 import {
-  Autocomplete,
   Avatar,
   Box,
   Button,
   Checkbox,
-  Chip,
   FormGroup,
   List,
   ListSubheader,
@@ -911,6 +909,7 @@ function BranchConditionSelect({
       name: i.key!,
       label: i.label || i.key!,
       inputType: getInputType(i.type),
+      valueSources: ['field', 'value'],
     }));
   }, [JSON.stringify(assistant.parameters)]);
 
@@ -926,14 +925,14 @@ function BranchConditionSelect({
   const RemoveRuleButton = ({ handleOnClick }: { handleOnClick: (_e: React.MouseEvent) => void }) => (
     <Button
       onClick={handleOnClick}
+      variant="text"
       sx={{
         minWidth: 32,
         minHeight: 32,
         p: 0,
         color: '#E11D48',
-        '&:hover': { background: 'rgba(225, 29, 72, 0.04)' },
       }}>
-      <Cancel fontSize="small" />
+      <Close fontSize="small" />
     </Button>
   );
 
@@ -950,68 +949,28 @@ function BranchConditionSelect({
     (props: ValueEditorProps) => {
       const { fieldData, operator, ...rest } = props;
 
-      if (operator === 'null' || operator === 'notNull') {
-        return null;
+      if (operator === 'null' || operator === 'notNull') return null;
+
+      if (rest.valueSource === 'field') {
+        return (
+          <ValueEditorContainer>
+            <MaterialValueEditor {...props} />
+          </ValueEditorContainer>
+        );
       }
 
       if (fieldData.inputType === 'text' || fieldData.inputType === 'number') {
-        const options = fields
-          .filter((x) => x.name !== fieldData.name)
-          .map((field) => ({
-            label: field.label,
-            value: `{{${field.name}}}`,
-          }));
-
-        const currentOption = options.find((opt) => opt.value === rest.value);
-
-        if (currentOption) {
-          return (
-            <ValueEditorContainer>
-              <Chip
-                label={currentOption.value}
-                variant="filled"
-                color="primary"
-                onDelete={() => props.handleOnChange('')}
-              />
-            </ValueEditorContainer>
-          );
-        }
-
         return (
           <ValueEditorContainer>
-            <Autocomplete
-              freeSolo
+            <TextField
               size="small"
-              options={options}
-              value={rest.value || ''}
-              getOptionLabel={(optionOrValue) => {
-                if (typeof optionOrValue === 'object' && optionOrValue !== null) return optionOrValue.label;
-
-                const found = options.find((opt) => opt.value === optionOrValue);
-                return found?.label || optionOrValue || '';
-              }}
-              onChange={(_, newValue) => {
-                const value = typeof newValue === 'object' && newValue !== null ? newValue?.value : newValue;
-                props.handleOnChange(value || '');
-              }}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  type={fieldData.inputType === 'number' ? 'number' : undefined}
-                  variant="outlined"
-                  className={rest.className}
-                  onChange={(e) => {
-                    const value = fieldData.inputType === 'number' ? Number(e.target.value) : e.target.value;
-                    props.handleOnChange(value);
-                  }}
-                />
-              )}
-              sx={{
-                minWidth: 200,
-                padding: 0,
-                '& .MuiAutocomplete-input': {
-                  padding: '4px !important',
-                },
+              type={fieldData.inputType === 'number' ? 'number' : undefined}
+              variant="outlined"
+              className={rest.className}
+              value={rest.value}
+              onChange={(e) => {
+                const value = fieldData.inputType === 'number' ? Number(e.target.value) : e.target.value;
+                props.handleOnChange(value);
               }}
             />
           </ValueEditorContainer>
@@ -1090,14 +1049,19 @@ const QueryBuilderContainer = styled(Box)`
 
 const ValueEditorContainer = styled(Box)`
   div.MuiOutlinedInput-root,
-  div.MuiInputBase-root:not(:has(input[type='checkbox'])),
-  div.MuiAutocomplete-input {
+  div.MuiInputBase-root {
     height: 32px;
     background: #fff;
     border-radius: 8px;
+    font-size: 14px;
+    line-height: 1;
 
     fieldset {
       border: 0 !important;
     }
+  }
+
+  input.MuiInputBase-input {
+    padding: 0 8px !important;
   }
 `;
