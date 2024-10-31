@@ -31,7 +31,7 @@ import {
 } from '@mui/material';
 import sortBy from 'lodash/sortBy';
 import { nanoid } from 'nanoid';
-import React, { ComponentProps, ReactNode, useCallback, useEffect } from 'react';
+import React, { ComponentProps, ReactNode, useCallback } from 'react';
 
 import { useProjectStore } from './yjs-state';
 
@@ -64,8 +64,8 @@ export default function PreviewView(props: { projectId: string; gitRef: string; 
         </Stack>
       </ThemeProvider>
 
-      <DebugProvider openSettings={openSettings}>
-        <SettingsDialog agentId={assistant.id}>
+      <DebugProvider openSettings={openSettings} agentId={assistant.id}>
+        <SettingsDialog>
           <RuntimeDebug hideSessionsBar aid={aid} ApiProps={apiProps} />
         </SettingsDialog>
       </DebugProvider>
@@ -73,31 +73,12 @@ export default function PreviewView(props: { projectId: string; gitRef: string; 
   );
 }
 
-function SettingsDialog({ children, agentId }: { agentId: string; children?: ReactNode }) {
+function SettingsDialog({ children }: { children?: ReactNode }) {
   const { t } = useLocaleContext();
-  const isOpen = useDebug((s) => s.agentId);
   const close = useDebug((s) => s.close);
-  const openSettings = useDebug((s) => s.open);
 
-  const { projectId, projectRef } = useCurrentProject();
-  const { getFileById } = useProjectStore(projectId, projectRef);
-
-  const agent = getFileById(agentId);
   const open = useDebugDialog((s) => s.open);
   const setOpen = useDebugDialog((s) => s.setOpen);
-
-  useEffect(() => {
-    if (open) {
-      const outputNameIds = Object.fromEntries(
-        Object.values(agent?.outputVariables ?? {}).map((i) => [i.data.name, i.data.id])
-      );
-
-      openSettings?.({
-        agentId,
-        output: { id: outputNameIds[RuntimeOutputVariable.profile] || RuntimeOutputVariable.profile },
-      });
-    }
-  }, [open]);
 
   const onClose = () => {
     close?.();
@@ -105,7 +86,7 @@ function SettingsDialog({ children, agentId }: { agentId: string; children?: Rea
   };
 
   return (
-    <Dialog open={!!isOpen} fullWidth PaperProps={{ sx: { maxWidth: 'none', height: '100%' } }} onClose={onClose}>
+    <Dialog open={!!open} fullWidth PaperProps={{ sx: { maxWidth: 'none', height: '100%' } }} onClose={onClose}>
       <DialogTitle sx={{ display: 'flex' }}>
         <Box flex={1}>{t('appearance')}</Box>
 
@@ -145,6 +126,8 @@ function AgentAppearanceSettings({ children }: { children?: ReactNode }) {
   if (!agentId) return null;
 
   const agent = getFileById(agentId);
+  const outputIdWithDefault =
+    outputId ?? getOrAddOutputByName({ agent: agent!, outputName: RuntimeOutputVariable.appearancePage }).data.id;
 
   return (
     <Stack direction="row" height="100%">
@@ -158,7 +141,7 @@ function AgentAppearanceSettings({ children }: { children?: ReactNode }) {
           orientation="vertical"
           variant="scrollable"
           agentId={agentId}
-          value={outputId}
+          value={outputIdWithDefault}
           onChange={(_, v) => open?.({ output: { id: v } })}
           onTabHover={(v) => setHoverOutputId?.(v || '')}
           onTabMouseLeave={() => setHoverOutputId?.('')}
@@ -170,7 +153,7 @@ function AgentAppearanceSettings({ children }: { children?: ReactNode }) {
       </Stack>
 
       <Box flex={1} p={2} height="100%" sx={{ overflow: 'auto', overscrollBehavior: 'contain' }}>
-        {outputId && <AppearanceSettings agentId={agentId} outputId={outputId} />}
+        {outputIdWithDefault && <AppearanceSettings agentId={agentId} outputId={outputIdWithDefault} />}
       </Box>
     </Stack>
   );
