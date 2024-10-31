@@ -1,7 +1,7 @@
 {
   "name": "ai-studio",
   "private": true,
-  "version": "0.4.116",
+  "version": "0.4.119",
   "workspaces": [
     "blocklets/*",
     "packages/*"
@@ -85,12 +85,13 @@
     "@arcblock/jwt": "^1.18.136",
     "@arcblock/ux": "^2.10.54",
     "@arcblock/ws": "^1.18.136",
+    "@blocklet/constant": "1.16.33-beta-20241031-073543-49b1ff9b",
     "@blocklet/js-sdk": "1.16.33-beta-20241031-073543-49b1ff9b",
     "@blocklet/logger": "1.16.33-beta-20241031-073543-49b1ff9b",
     "@blocklet/meta": "1.16.33-beta-20241031-073543-49b1ff9b",
     "@blocklet/sdk": "1.16.33-beta-20241031-073543-49b1ff9b",
     "@blocklet/ui-react": "^2.10.54",
-    "@blocklet/uploader": "^0.1.47",
+    "@blocklet/uploader": "^0.1.50",
     "@emotion/cache": "^11.13.1",
     "@emotion/css": "^11.13.0",
     "@emotion/react": "^11.13.3",
