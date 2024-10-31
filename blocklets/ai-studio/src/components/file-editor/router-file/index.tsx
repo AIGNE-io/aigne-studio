@@ -53,7 +53,7 @@ import { joinURL } from 'ufo';
 import { useAllSelectDecisionAgentOutputs, useRoutesAssistantOutputs } from '../output/OutputSettings';
 import PromptEditorField from '../prompt-editor-field';
 import useVariablesEditorOptions from '../use-variables-editor-options';
-import ToolDialog, { FROM_API, RouteOption, isAPIOption, useFormatOpenApiToYjs } from './dialog';
+import ToolDialog, { FROM_API, RouteOption, useFormatOpenApiToYjs } from './dialog';
 
 export default function RouterAssistantEditor({
   projectId,
@@ -275,7 +275,9 @@ export default function RouterAssistantEditor({
                 },
               };
 
-              delete value.routes[selectedTool.current.selected];
+              if (selectedTool.current.selected !== tool.id) {
+                delete value.routes[selectedTool.current.selected];
+              }
             } else {
               value.routes[tool.id] = {
                 index: Math.max(-1, ...Object.values(value.routes).map((i) => i.index)) + 1,
@@ -350,8 +352,8 @@ export function AgentItemView({
 
   const f = store.files[agent.id];
   const formattedOpenApis = useFormatOpenApiToYjs(openApis || []);
-  const target = f && isAssistant(f) ? f : formattedOpenApis.find((x) => x.id === agent.id);
-  const isOpenApi = isAPIOption(agent);
+  const file = f && isAssistant(f) ? f : undefined;
+  const target = file ?? formattedOpenApis.find((x) => x.id === agent.id);
 
   const red = '#e0193e';
   return (
@@ -525,12 +527,12 @@ export function AgentItemView({
                 </Button>
               )}
 
-              {!isOpenApi && target && (
+              {file && (
                 <Button
                   sx={{ minWidth: 24, minHeight: 24, p: 0 }}
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigate(joinURL('.', `${target.id}.yaml`));
+                    navigate(joinURL('.', `${file.id}.yaml`));
                   }}>
                   <Box component={Icon} icon={ExternalLinkIcon} sx={{ fontSize: 18 }} />
                 </Button>
@@ -733,8 +735,8 @@ function AgentItemViewParameters({
   const formattedOpenApis = useFormatOpenApiToYjs(openApis || []);
 
   const f = store.files[tool.id];
-  const target = f && isAssistant(f) ? f : formattedOpenApis.find((x) => x.id === tool.id);
-  const isOpenApi = isAPIOption(tool);
+  const file = f && isAssistant(f) ? f : undefined;
+  const target = file ?? formattedOpenApis.find((x) => x.id === tool.id);
 
   const parameters = useMemo(() => {
     return (target?.parameters &&
@@ -757,7 +759,7 @@ function AgentItemViewParameters({
   const filteredParameters = (parameters || [])
     ?.map(({ data: parameter }) => {
       if (!parameter?.key) return null;
-      if (!isOpenApi && !isValidInput(parameter)) return null;
+      if (!file && !isValidInput(parameter)) return null;
 
       return parameter;
     })

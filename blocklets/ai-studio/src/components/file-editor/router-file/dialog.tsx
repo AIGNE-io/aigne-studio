@@ -1,3 +1,4 @@
+import { isValidInput } from '@app/libs/util';
 import { PROMPTS_FOLDER_NAME, useCreateFile, useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import {
@@ -60,10 +61,6 @@ interface ToolDialogImperative {
 }
 const filter = createFilterOptions<Option>();
 
-export function isAPIOption(option: any): option is DatasetObject & { from: 'blockletAPI' } {
-  return option && option.from === FROM_API;
-}
-
 const ToolDialog = forwardRef<
   ToolDialogImperative,
   {
@@ -82,6 +79,7 @@ const ToolDialog = forwardRef<
   const form = useForm<ToolDialogForm>({ defaultValues: {} });
 
   useImperativeHandle(ref, () => ({ form }), [form]);
+  const createFile = useCreateFile();
 
   const options = Object.entries(store.tree)
     .filter(([, filepath]) => filepath?.startsWith(`${PROMPTS_FOLDER_NAME}/`))
@@ -89,14 +87,6 @@ const ToolDialog = forwardRef<
     .filter((i): i is AssistantYjs => !!i && isAssistant(i))
     .filter((i) => i.id !== assistantId)
     .map((i) => ({ id: i.id, type: i.type, name: i.name, from: undefined }));
-
-  const getFromText = (from?: string) => {
-    if (from === FROM_API) {
-      return t('buildInData');
-    }
-
-    return t('agent');
-  };
 
   const formatOptions: Option[] = [
     ...options,
@@ -110,10 +100,8 @@ const ToolDialog = forwardRef<
       from: dataset.from,
     })),
   ]
-    .map((x) => ({ ...x, fromText: getFromText(x.from) }))
+    .map((x) => ({ ...x, fromText: x.from === FROM_API ? t('buildInData') : t('agent') }))
     .sort((a, b) => (b.from || '').localeCompare(a.from || ''));
-
-  const createFile = useCreateFile();
 
   return (
     <Dialog
@@ -282,14 +270,15 @@ const AgentParameters = ({
   form: UseFormReturn<ToolDialogForm>;
   placeholder?: string;
 }) => {
-  const { t, locale } = useLocaleContext();
+  const { t } = useLocaleContext();
   const { store } = useProjectStore(projectId, gitRef);
   const formattedOpenApis = useFormatOpenApiToYjs(openApis || []);
   const assistantId = assistant.id;
 
   const fileId = form.watch('id');
   const f = store.files[fileId];
-  const target = f && isAssistant(f) ? f : formattedOpenApis.find((x) => x.id === fileId);
+  const file = f && isAssistant(f) ? f : undefined;
+  const target = file ?? formattedOpenApis.find((x) => x.id === fileId);
 
   const parameters = useMemo(() => {
     return (target?.parameters &&
@@ -319,43 +308,37 @@ const AgentParameters = ({
 
       {parameters?.map(({ data: parameter }: any) => {
         if (!parameter?.key) return null;
+        if (!file && !isValidInput(parameter)) return null;
 
         if (parameter['x-parameter-type'] === 'boolean') {
           return (
             <Stack key={parameter.id}>
-              <Box>
-                <Controller
-                  control={form.control}
-                  name={`parameters.${parameter.key}`}
-                  render={({ field }) => {
-                    return (
-                      <FormControlLabel
-                        sx={{
-                          alignItems: 'flex-start',
-                          '.MuiCheckbox-root': {
-                            ml: -0.5,
-                          },
-                        }}
-                        control={
-                          <Switch
-                            defaultChecked={Boolean(field.value ?? false)}
-                            onChange={(_, checked) => {
-                              field.onChange({ target: { value: checked } });
-                            }}
-                          />
-                        }
-                        label={
-                          <Typography variant="caption">
-                            {getOpenApiTextFromI18n(parameter, 'description', locale) ||
-                              getOpenApiTextFromI18n(parameter, 'name', locale)}
-                          </Typography>
-                        }
-                        labelPlacement="top"
-                      />
-                    );
-                  }}
-                />
-              </Box>
+              <Controller
+                control={form.control}
+                name={`parameters.${parameter.key}`}
+                render={({ field }) => {
+                  return (
+                    <FormControlLabel
+                      sx={{
+                        alignItems: 'flex-start',
+                        '.MuiCheckbox-root': {
+                          ml: -0.5,
+                        },
+                      }}
+                      control={
+                        <Switch
+                          defaultChecked={Boolean(field.value ?? false)}
+                          onChange={(_, checked) => {
+                            field.onChange({ target: { value: checked } });
+                          }}
+                        />
+                      }
+                      label={<Typography variant="caption">{parameter.label || parameter.name}</Typography>}
+                      labelPlacement="top"
+                    />
+                  );
+                }}
+              />
             </Stack>
           );
         }
