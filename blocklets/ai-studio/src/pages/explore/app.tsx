@@ -22,9 +22,7 @@ export default function AppPage() {
   const { t } = useLocaleContext();
   if (!appId) throw new Error('Missing required param `appId`');
 
-  const { data, loading, error, mutate } = useRequest(() =>
-    getAgentByDeploymentId({ deploymentId: appId, working: true })
-  );
+  const { data, loading, error } = useRequest(() => getAgentByDeploymentId({ deploymentId: appId, working: true }));
   const meta = useMemo(
     () => ({
       navigation: [
@@ -49,15 +47,7 @@ export default function AppPage() {
 
   return (
     <ThemeProvider theme={agentViewTheme}>
-      <MultiTenantBrandGuard
-        deployment={data?.deployment}
-        project={data?.project}
-        onAigneBannerVisibleUpdate={(visible) =>
-          mutate((prev) => ({
-            ...prev!,
-            deployment: { ...prev!.deployment, aigneBannerVisible: visible },
-          }))
-        }>
+      <MultiTenantBrandGuard deployment={data?.deployment} project={data?.project}>
         <ScrollView component={Stack} scroll="element" initialScrollBehavior="auto">
           <Suspense fallback={<Loading />}>
             {(data || !loading) && <ApplicationHeader application={data} meta={meta} />}

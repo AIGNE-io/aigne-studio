@@ -46,7 +46,6 @@ const updateSchema = Joi.object({
   orderIndex: Joi.number().integer().empty(null).optional(),
   productHuntUrl: Joi.string().allow('').empty([null, '']).optional(),
   productHuntBannerUrl: Joi.string().allow('').empty([null, '']).optional(),
-  aigneBannerVisible: Joi.boolean().optional(),
 }).min(1);
 
 const getByIdSchema = Joi.object({

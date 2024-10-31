@@ -14,17 +14,9 @@ import { premiumPlanEnabled } from './state';
 interface Props {
   deployment?: Deployment;
   project?: ProjectSettings;
-  onAigneBannerVisibleUpdate?: (visible: boolean) => void;
 }
 
-export function MultiTenantBrandGuard({
-  deployment,
-  project,
-  onAigneBannerVisibleUpdate,
-  sx,
-  children,
-  ...rest
-}: Props & BoxProps) {
+export function MultiTenantBrandGuard({ deployment, project, sx, children, ...rest }: Props & BoxProps) {
   const [aigneBannerVisible, setAigneBannerVisible] = useState(false);
   const { session } = useSessionContext();
   const isAdmin = useIsAdmin();

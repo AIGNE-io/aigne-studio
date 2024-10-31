@@ -18,7 +18,6 @@ export type Deployment = {
   categories: { id: string; name: string; slug: string }[];
   productHuntUrl?: string;
   productHuntBannerUrl?: string;
-  aigneBannerVisible?: boolean;
 };
 
 export type ProjectStatsItem = { projectId: string; totalRuns: number; totalUsers: number };
@@ -29,7 +28,6 @@ export type UpdateType = {
   productHuntUrl?: string;
   productHuntBannerUrl?: string;
   orderIndex?: number;
-  aigneBannerVisible?: boolean;
 };
 
 export async function getDeploymentByProjectId({
