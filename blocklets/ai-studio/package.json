@@ -80,7 +80,7 @@
     "@mui/x-data-grid": "^7.14.0",
     "@mui/x-date-pickers": "^7.14.0",
     "@nedb/core": "^2.1.5",
-    "@nft-studio/react": "^0.1.135",
+    "@nft-studio/react": "^0.1.136",
     "@ocap/client": "^1.18.137",
     "@ocap/mcrypto": "^1.18.137",
     "@ocap/util": "^1.18.137",
