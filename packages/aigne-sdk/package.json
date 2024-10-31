@@ -97,10 +97,10 @@
     "test": "jest src/"
   },
   "dependencies": {
-    "@blocklet/ai-kit": "^0.1.60",
+    "@blocklet/ai-kit": "^0.1.61",
     "@blocklet/ai-runtime": "workspace:^",
     "@blocklet/js-sdk": "^1.16.32",
-    "@blocklet/pages-kit": "^0.2.439",
+    "@blocklet/pages-kit": "^0.2.440",
     "@blocklet/sdk": "^1.16.32",
     "@microsoft/fetch-event-source": "^2.0.1",
     "ahooks": "^3.8.1",
