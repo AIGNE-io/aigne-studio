@@ -26,7 +26,7 @@ import { getUserPassports, quotaChecker } from '@blocklet/aigne-sdk/api/premium'
 import { AIGNE_RUNTIME_COMPONENT_DID, NFT_BLENDER_COMPONENT_DID } from '@blocklet/aigne-sdk/constants';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import config from '@blocklet/sdk/lib/config';
-import middlewares from '@blocklet/sdk/lib/middlewares';
+import { session } from '@blocklet/sdk/lib/middlewares';
 import { Request, Router } from 'express';
 import { exists } from 'fs-extra';
 import * as git from 'isomorphic-git';
@@ -264,7 +264,7 @@ export interface CreateOrUpdateAgentInputSecretPayload {
 }
 
 export function projectRoutes(router: Router) {
-  router.get('/projects', middlewares.session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+  router.get('/projects', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const list = await Project.findAll({
       where: { ...getProjectWhereConditions(req) },
       order: [
@@ -313,7 +313,7 @@ export function projectRoutes(router: Router) {
     });
   });
 
-  router.get('/template-projects', middlewares.session(), ensureComponentCallOrPromptsEditor(), async (_req, res) => {
+  router.get('/template-projects', session(), ensureComponentCallOrPromptsEditor(), async (_req, res) => {
     const resourceTemplates = (await resourceManager.getProjects({ type: 'template' })).map((i) => ({
       ...i.project,
       blockletDid: i.blocklet.did,
@@ -322,7 +322,7 @@ export function projectRoutes(router: Router) {
     res.json({ templates: uniqBy([...resourceTemplates], (i) => i.id) });
   });
 
-  router.get('/projects/icons', middlewares.session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+  router.get('/projects/icons', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { did } = req.user!;
 
     const { data } = await call({
@@ -336,7 +336,7 @@ export function projectRoutes(router: Router) {
     res.json({ icons: data?.uploads || [] });
   });
 
-  router.delete('/projects/icon/:id', ensureComponentCallOrPromptsEditor(), middlewares.session(), async (req, res) => {
+  router.delete('/projects/icon/:id', ensureComponentCallOrPromptsEditor(), session(), async (req, res) => {
     const { did } = req.user!;
     const { data } = await call({
       name: 'image-bin',
@@ -402,7 +402,7 @@ export function projectRoutes(router: Router) {
     working: Joi.boolean().empty(['', null]),
   });
 
-  router.get('/projects/:projectId', middlewares.session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+  router.get('/projects/:projectId', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required param `projectId`');
 
@@ -424,7 +424,7 @@ export function projectRoutes(router: Router) {
 
   router.get(
     '/projects/:projectId/agent-input-secrets',
-    middlewares.session(),
+    session(),
     ensureComponentCallOrPromptsEditor(),
     async (req, res) => {
       const { projectId } = req.params;
@@ -456,7 +456,7 @@ export function projectRoutes(router: Router) {
 
   router.post(
     '/projects/:projectId/agent-input-secrets',
-    middlewares.session(),
+    session(),
     ensureComponentCallOrPromptsEditor(),
     async (req, res) => {
       const { did: userId } = req.user!;
@@ -501,82 +501,76 @@ export function projectRoutes(router: Router) {
     }
   );
 
-  router.post(
-    '/projects',
-    middlewares.session(),
-    ensureComponentCallOrPromptsEditor(),
-    checkDeployment,
-    async (req, res) => {
-      const {
-        blockletDid,
-        templateId = projectTemplates[0]?.project?.id,
-        name,
-        description,
-        withDuplicateFrom,
-      } = await createProjectSchema.validateAsync(req.body, { stripUnknown: true });
+  router.post('/projects', session(), ensureComponentCallOrPromptsEditor(), checkDeployment, async (req, res) => {
+    const {
+      blockletDid,
+      templateId = projectTemplates[0]?.project?.id,
+      name,
+      description,
+      withDuplicateFrom,
+    } = await createProjectSchema.validateAsync(req.body, { stripUnknown: true });
 
-      let project: Project | undefined;
+    let project: Project | undefined;
 
-      await checkProjectLimit({ req });
+    await checkProjectLimit({ req });
 
-      if (!templateId) {
-        throw new Error('No template project found');
-      }
-
-      // create project from resource blocklet
-      if (blockletDid) {
-        const resource = await resourceManager.getProject({
-          blockletDid,
-          projectId: templateId,
-          type: ['template', 'example'],
-        });
-
-        if (resource) {
-          project = await createProjectFromTemplate(resource, {
-            name,
-            description,
-            author: req.user!,
-            withDuplicateFrom,
-          });
-        }
-      }
-
-      // duplicate a project
-      if (!project) {
-        const original = await Project.findOne({ where: { id: templateId } });
-        if (original) {
-          project = await copyProject({
-            project: original,
-            name,
-            description,
-            author: req.user!,
-            projectType: undefined,
-          });
-        }
-      }
-
-      // create project from builtin templates
-      if (!project) {
-        const template = projectTemplates.find((i) => i.project.id === templateId);
-        if (template) {
-          project = await createProjectFromTemplate(
-            { ...template, agents: [] },
-            { name, description, author: req.user! }
-          );
-        }
-      }
-
-      if (!project) {
-        throw new Error(`No such template project ${templateId}`);
-      }
-
-      projectCronManager.reloadProjectJobs(project.id);
-
-      res.json(project);
+    if (!templateId) {
+      throw new Error('No template project found');
     }
-  );
 
-  router.post('/projects/import', middlewares.session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+    // create project from resource blocklet
+    if (blockletDid) {
+      const resource = await resourceManager.getProject({
+        blockletDid,
+        projectId: templateId,
+        type: ['template', 'example'],
+      });
+
+      if (resource) {
+        project = await createProjectFromTemplate(resource, {
+          name,
+          description,
+          author: req.user!,
+          withDuplicateFrom,
+        });
+      }
+    }
+
+    // duplicate a project
+    if (!project) {
+      const original = await Project.findOne({ where: { id: templateId } });
+      if (original) {
+        project = await copyProject({
+          project: original,
+          name,
+          description,
+          author: req.user!,
+          projectType: undefined,
+        });
+      }
+    }
+
+    // create project from builtin templates
+    if (!project) {
+      const template = projectTemplates.find((i) => i.project.id === templateId);
+      if (template) {
+        project = await createProjectFromTemplate(
+          { ...template, agents: [] },
+          { name, description, author: req.user! }
+        );
+      }
+    }
+
+    if (!project) {
+      throw new Error(`No such template project ${templateId}`);
+    }
+
+    projectCronManager.reloadProjectJobs(project.id);
+
+    res.json(project);
+  });
+
+  router.post('/projects/import', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     await checkProjectLimit({ req });
 
     const { name, username, password, description, url } = await importProjectSchema.validateAsync(req.body, {
@@ -685,269 +679,234 @@ export function projectRoutes(router: Router) {
     }
   });
 
-  router.patch(
-    '/projects/:projectId',
-    middlewares.session(),
-    ensureComponentCallOrPromptsEditor(),
-    async (req, res) => {
-      const { projectId } = req.params;
-      if (!projectId) throw new Error('Missing required parameter `projectId`');
+  router.patch('/projects/:projectId', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+    const { projectId } = req.params;
+    if (!projectId) throw new Error('Missing required parameter `projectId`');
 
-      const project = await Project.findOne({ where: { id: projectId } });
-      if (!project) {
-        res.status(404).json({ error: 'No such project' });
-        return;
-      }
-
-      checkProjectPermission({ req, project });
-
-      const { pinned, gitType, gitAutoSync, didSpaceAutoSync, name, description } =
-        await updateProjectSchema.validateAsync(req.body, {
-          stripUnknown: true,
-        });
-
-      if (gitAutoSync) {
-        const repo = await getRepository({ projectId });
-        const remote = (await repo.listRemotes()).find((i) => i.remote === defaultRemote);
-        if (!remote) throw new Error('The remote has not been set up yet');
-        if (!parseAuth(parseURL(remote.url).auth).password)
-          throw new Error('Automatic synchronization must use an access token');
-      }
-
-      const { did: userId, fullName } = req.user!;
-
-      // 把 name 和 description 写到 yjs 文件中
-      if (!isNil(name) || !isNil(description)) {
-        const repository = await getRepository({ projectId });
-        const working = await repository.working({ ref: project.gitDefaultBranch });
-        const projectSetting = working.syncedStore.files[PROJECT_FILE_PATH] as ProjectSettings | undefined;
-        if (projectSetting) {
-          if (!isNil(name)) projectSetting.name = name;
-          if (!isNil(description)) projectSetting.description = description;
-        }
-      }
-
-      project.changed('updatedAt', true);
-      await project.update(
-        omitBy(
-          {
-            pinnedAt: pinned ? new Date().toISOString() : pinned === false ? null : undefined,
-            updatedBy: userId,
-            gitType,
-            gitAutoSync,
-            didSpaceAutoSync,
-            updatedAt: new Date(),
-            name,
-            description,
-          },
-          (v) => v === undefined
-        )
-      );
-
-      const author = { name: fullName, email: userId };
-
-      await autoSyncIfNeeded({ project, author, userId });
-
-      res.json(project.dataValues);
+    const project = await Project.findOne({ where: { id: projectId } });
+    if (!project) {
+      res.status(404).json({ error: 'No such project' });
+      return;
     }
-  );
 
-  router.delete(
-    '/projects/:projectId',
-    middlewares.session(),
-    ensureComponentCallOrPromptsEditor(),
-    async (req, res) => {
-      const { projectId } = req.params;
-      if (!projectId) throw new Error('Missing required params `projectId`');
+    checkProjectPermission({ req, project });
 
-      const project = await Project.findOne({ where: { id: projectId } });
-      if (!project) {
-        res.status(404).json({ error: 'No such project' });
-        return;
+    const { pinned, gitType, gitAutoSync, didSpaceAutoSync, name, description } =
+      await updateProjectSchema.validateAsync(req.body, {
+        stripUnknown: true,
+      });
+
+    if (gitAutoSync) {
+      const repo = await getRepository({ projectId });
+      const remote = (await repo.listRemotes()).find((i) => i.remote === defaultRemote);
+      if (!remote) throw new Error('The remote has not been set up yet');
+      if (!parseAuth(parseURL(remote.url).auth).password)
+        throw new Error('Automatic synchronization must use an access token');
+    }
+
+    const { did: userId, fullName } = req.user!;
+
+    // 把 name 和 description 写到 yjs 文件中
+    if (!isNil(name) || !isNil(description)) {
+      const repository = await getRepository({ projectId });
+      const working = await repository.working({ ref: project.gitDefaultBranch });
+      const projectSetting = working.syncedStore.files[PROJECT_FILE_PATH] as ProjectSettings | undefined;
+      if (projectSetting) {
+        if (!isNil(name)) projectSetting.name = name;
+        if (!isNil(description)) projectSetting.description = description;
       }
-
-      checkProjectPermission({ req, project });
-
-      await project.destroy();
-      projectCronManager.destroyProjectJobs(projectId);
-
-      const repository = await getRepository({ projectId });
-      await repository.destroy();
-
-      const root = repositoryRoot(projectId);
-      await Promise.all([
-        rm(root, { recursive: true, force: true }),
-        rm(`${root}.cooperative`, { recursive: true, force: true }),
-      ]);
-
-      res.json(project);
     }
-  );
 
-  router.post(
-    '/projects/:projectId/remote',
-    middlewares.session(),
-    ensureComponentCallOrPromptsEditor(),
-    async (req, res) => {
-      const { projectId } = req.params;
-      if (!projectId) throw new Error('Missing required params `projectId`');
+    project.changed('updatedAt', true);
+    await project.update(
+      omitBy(
+        {
+          pinnedAt: pinned ? new Date().toISOString() : pinned === false ? null : undefined,
+          updatedBy: userId,
+          gitType,
+          gitAutoSync,
+          didSpaceAutoSync,
+          updatedAt: new Date(),
+          name,
+          description,
+        },
+        (v) => v === undefined
+      )
+    );
 
-      const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
+    const author = { name: fullName, email: userId };
 
-      checkProjectPermission({ req, project });
+    await autoSyncIfNeeded({ project, author, userId });
 
-      const input = await addProjectGitRemoteSchema.validateAsync(req.body, { stripUnknown: true });
+    res.json(project.dataValues);
+  });
 
-      const url = new URL(input.url);
-      if (input.username) url.username = input.username;
-      if (input.password) url.password = input.password;
+  router.delete('/projects/:projectId', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+    const { projectId } = req.params;
+    if (!projectId) throw new Error('Missing required params `projectId`');
 
-      const repository = await getRepository({ projectId });
-
-      // Check the connection
-      await repository.getRemoteInfo({ url: url.toString() });
-
-      await repository.addRemote({ remote: defaultRemote, url: url.toString(), force: true });
-
-      const urlWithoutPassword = new URL(url);
-      urlWithoutPassword.password = '';
-      await project.update({ gitUrl: urlWithoutPassword.toString() });
-
-      res.json({});
+    const project = await Project.findOne({ where: { id: projectId } });
+    if (!project) {
+      res.status(404).json({ error: 'No such project' });
+      return;
     }
-  );
 
-  router.delete(
-    '/projects/:projectId/remote',
-    middlewares.session(),
-    ensureComponentCallOrPromptsEditor(),
-    async (req, res) => {
-      const { projectId } = req.params;
-      if (!projectId) throw new Error('Missing required params `projectId`');
+    checkProjectPermission({ req, project });
 
-      const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
+    await project.destroy();
+    projectCronManager.destroyProjectJobs(projectId);
 
-      checkProjectPermission({ req, project });
+    const repository = await getRepository({ projectId });
+    await repository.destroy();
 
-      const repository = await getRepository({ projectId });
+    const root = repositoryRoot(projectId);
+    await Promise.all([
+      rm(root, { recursive: true, force: true }),
+      rm(`${root}.cooperative`, { recursive: true, force: true }),
+    ]);
 
-      await repository.deleteRemote({ remote: defaultRemote });
+    res.json(project);
+  });
 
-      await project.update({ gitUrl: null! });
+  router.post('/projects/:projectId/remote', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+    const { projectId } = req.params;
+    if (!projectId) throw new Error('Missing required params `projectId`');
 
-      res.json({});
+    const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
+
+    checkProjectPermission({ req, project });
+
+    const input = await addProjectGitRemoteSchema.validateAsync(req.body, { stripUnknown: true });
+
+    const url = new URL(input.url);
+    if (input.username) url.username = input.username;
+    if (input.password) url.password = input.password;
+
+    const repository = await getRepository({ projectId });
+
+    // Check the connection
+    await repository.getRemoteInfo({ url: url.toString() });
+
+    await repository.addRemote({ remote: defaultRemote, url: url.toString(), force: true });
+
+    const urlWithoutPassword = new URL(url);
+    urlWithoutPassword.password = '';
+    await project.update({ gitUrl: urlWithoutPassword.toString() });
+
+    res.json({});
+  });
+
+  router.delete('/projects/:projectId/remote', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+    const { projectId } = req.params;
+    if (!projectId) throw new Error('Missing required params `projectId`');
+
+    const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
+
+    checkProjectPermission({ req, project });
+
+    const repository = await getRepository({ projectId });
+
+    await repository.deleteRemote({ remote: defaultRemote });
+
+    await project.update({ gitUrl: null! });
+
+    res.json({});
+  });
+
+  router.post('/projects/:projectId/remote/push', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+    const { projectId } = req.params;
+    if (!projectId) throw new Error('Missing required params `projectId`');
+
+    const input = await pushInputSchema.validateAsync(req.body, { stripUnknown: true });
+
+    const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
+
+    checkProjectPermission({ req, project });
+
+    const repository = await getRepository({ projectId });
+    const branches = await repository.listBranches();
+
+    for (const ref of branches) {
+      await repository.push({ remote: defaultRemote, ref, force: input.force });
     }
-  );
 
-  router.post(
-    '/projects/:projectId/remote/push',
-    middlewares.session(),
-    ensureComponentCallOrPromptsEditor(),
-    async (req, res) => {
-      const { projectId } = req.params;
-      if (!projectId) throw new Error('Missing required params `projectId`');
+    await project.update({ gitLastSyncedAt: new Date() }, { silent: true });
 
-      const input = await pushInputSchema.validateAsync(req.body, { stripUnknown: true });
+    res.json({});
+  });
 
-      const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
+  router.post('/projects/:projectId/remote/pull', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+    const { did: userId, fullName } = req.user!;
 
-      checkProjectPermission({ req, project });
+    const { projectId } = req.params;
+    if (!projectId) throw new Error('Missing required params `projectId`');
 
-      const repository = await getRepository({ projectId });
-      const branches = await repository.listBranches();
+    const input = await pullInputSchema.validateAsync(req.body, { stripUnknown: true });
 
-      for (const ref of branches) {
-        await repository.push({ remote: defaultRemote, ref, force: input.force });
+    const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
+
+    checkProjectPermission({ req, project });
+
+    const repository = await getRepository({ projectId });
+    const remote = (await repository.listRemotes()).find((i) => i.remote === defaultRemote);
+    if (!remote) throw new Error('The remote has not been set up yet');
+
+    const branches = await repository.listBranches();
+
+    for (const ref of branches) {
+      if (input.force) {
+        await repository.fetch({ remote: defaultRemote, ref });
+        await repository.branch({ ref, object: `${defaultRemote}/${ref}`, checkout: true, force: true });
+        (await repository.working({ ref })).reset();
+      } else {
+        await repository.pull({ remote: defaultRemote, ref, author: { name: fullName, email: userId } });
       }
-
-      await project.update({ gitLastSyncedAt: new Date() }, { silent: true });
-
-      res.json({});
     }
-  );
+    await repository.checkout({ ref: defaultBranch, force: true });
 
-  router.post(
-    '/projects/:projectId/remote/pull',
-    middlewares.session(),
-    ensureComponentCallOrPromptsEditor(),
-    async (req, res) => {
-      const { did: userId, fullName } = req.user!;
+    await project.update({ gitLastSyncedAt: new Date() }, { silent: true });
 
-      const { projectId } = req.params;
-      if (!projectId) throw new Error('Missing required params `projectId`');
+    res.json({});
+  });
 
-      const input = await pullInputSchema.validateAsync(req.body, { stripUnknown: true });
+  router.post('/projects/:projectId/remote/sync', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+    const { did: userId, fullName } = req.user!;
 
-      const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
+    const { projectId } = req.params;
+    if (!projectId) throw new Error('Missing required params `projectId`');
 
-      checkProjectPermission({ req, project });
+    const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
 
-      const repository = await getRepository({ projectId });
+    checkProjectPermission({ req, project });
+
+    const repository = await getRepository({ projectId });
+
+    const target: SyncTarget = req.query.target as SyncTarget;
+    if (target === 'didSpace') {
+      await syncToDidSpace({ project, userId });
+
+      repository.resetCache();
+      return res.json({});
+    }
+
+    if (target === 'github') {
       const remote = (await repository.listRemotes()).find((i) => i.remote === defaultRemote);
       if (!remote) throw new Error('The remote has not been set up yet');
+      if (!parseAuth(parseURL(remote.url).auth).password) throw new Error('Synchronization must use an access token');
 
       const branches = await repository.listBranches();
-
       for (const ref of branches) {
-        if (input.force) {
-          await repository.fetch({ remote: defaultRemote, ref });
-          await repository.branch({ ref, object: `${defaultRemote}/${ref}`, checkout: true, force: true });
-          (await repository.working({ ref })).reset();
-        } else {
-          await repository.pull({ remote: defaultRemote, ref, author: { name: fullName, email: userId } });
-        }
+        // eslint-disable-next-line no-await-in-loop
+        await syncRepository({ repository, ref, author: { name: fullName, email: userId } });
+        (await repository.working({ ref })).reset();
       }
-      await repository.checkout({ ref: defaultBranch, force: true });
 
-      await project.update({ gitLastSyncedAt: new Date() }, { silent: true });
-
-      res.json({});
+      repository.resetCache();
+      return res.json({});
     }
-  );
 
-  router.post(
-    '/projects/:projectId/remote/sync',
-    middlewares.session(),
-    ensureComponentCallOrPromptsEditor(),
-    async (req, res) => {
-      const { did: userId, fullName } = req.user!;
-
-      const { projectId } = req.params;
-      if (!projectId) throw new Error('Missing required params `projectId`');
-
-      const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
-
-      checkProjectPermission({ req, project });
-
-      const repository = await getRepository({ projectId });
-
-      const target: SyncTarget = req.query.target as SyncTarget;
-      if (target === 'didSpace') {
-        await syncToDidSpace({ project, userId });
-
-        repository.resetCache();
-        return res.json({});
-      }
-
-      if (target === 'github') {
-        const remote = (await repository.listRemotes()).find((i) => i.remote === defaultRemote);
-        if (!remote) throw new Error('The remote has not been set up yet');
-        if (!parseAuth(parseURL(remote.url).auth).password) throw new Error('Synchronization must use an access token');
-
-        const branches = await repository.listBranches();
-        for (const ref of branches) {
-          // eslint-disable-next-line no-await-in-loop
-          await syncRepository({ repository, ref, author: { name: fullName, email: userId } });
-          (await repository.working({ ref })).reset();
-        }
-
-        repository.resetCache();
-        return res.json({});
-      }
-
-      throw new Error(`Could not back up to target(${target})`);
-    }
-  );
+    throw new Error(`Could not back up to target(${target})`);
+  });
 
   router.get('/projects/:projectId/refs/:ref/assistants/:agentId', async (req, res) => {
     const { projectId, ref, agentId } = req.params;
@@ -1029,7 +988,7 @@ export function projectRoutes(router: Router) {
 
   router.get(
     '/projects/compare/:projectId/:ref/:agentId',
-    middlewares.session(),
+    session(),
     ensureComponentCallOrPromptsEditor(),
     async (req, res) => {
       const { projectId, ref, agentId } = req.params;
@@ -1111,7 +1070,7 @@ export function projectRoutes(router: Router) {
 
   router.post(
     '/projects/:projectId/refs/:ref/assets',
-    middlewares.session(),
+    session(),
     ensureComponentCallOrPromptsEditor(),
     async (req, res) => {
       const { projectId, ref } = req.params;
