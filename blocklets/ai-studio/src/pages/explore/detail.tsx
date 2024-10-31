@@ -1,6 +1,6 @@
 import MdViewer from '@app/components/md-viewer';
 import { getErrorMessage } from '@app/libs/api';
-import { getProjectIconUrl } from '@app/libs/project';
+import { User, getProjectIconUrl } from '@app/libs/project';
 import { useTabFromQuery } from '@app/utils/use-tab-from-query';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Result from '@arcblock/ux/lib/Result';
@@ -8,7 +8,9 @@ import Toast from '@arcblock/ux/lib/Toast';
 import { ProjectSettings } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import ChevronLeft from '@iconify-icons/tabler/chevron-left';
-import PlayIcon from '@iconify-icons/tabler/player-play-filled';
+import PlayIcon from '@iconify-icons/tabler/play';
+import PlayFilledIcon from '@iconify-icons/tabler/player-play-filled';
+import UserIcon from '@iconify-icons/tabler/user';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
 import {
   Box,
@@ -26,7 +28,8 @@ import { useRequest } from 'ahooks';
 import { useNavigate, useParams } from 'react-router-dom';
 import { withQuery } from 'ufo';
 
-import { Deployment, getDeployment } from '../../libs/deployment';
+import Avatar from '../../components/avatar';
+import { Deployment, ProjectStatsItem, getDeployment } from '../../libs/deployment';
 import { MakeYoursButton, ShareButton, useShareUrl } from './button';
 
 export default function CategoryDetail() {
@@ -60,12 +63,27 @@ export default function CategoryDetail() {
 
   return (
     <Stack height={1} overflow="hidden" gap={1.5}>
-      <Agent deployment={data?.deployment!} project={data?.project!} />
+      <Agent
+        deployment={data?.deployment!}
+        project={data?.project!}
+        stats={data?.stats!}
+        createdByInfo={data?.createdByInfo!}
+      />
     </Stack>
   );
 }
 
-function Agent({ deployment, project }: { deployment: Deployment; project: ProjectSettings }) {
+function Agent({
+  deployment,
+  project,
+  stats,
+  createdByInfo,
+}: {
+  deployment: Deployment;
+  project: ProjectSettings;
+  stats: ProjectStatsItem;
+  createdByInfo: User;
+}) {
   const { categorySlug } = useParams();
 
   const [tab, setTab] = useTabFromQuery(['readme', 'run']);
@@ -115,17 +133,29 @@ function Agent({ deployment, project }: { deployment: Deployment; project: Proje
         </Box>
 
         <TabPanel value="readme" sx={{ flex: 1, overflow: 'overlay', position: 'relative' }}>
-          <ReadmePage deployment={deployment} project={project} />
+          <ReadmePage deployment={deployment} project={project} stats={stats} createdByInfo={createdByInfo} />
         </TabPanel>
       </TabContext>
     </Stack>
   );
 }
 
-function ReadmePage({ deployment, project }: { deployment: Deployment; project: ProjectSettings }) {
+function ReadmePage({
+  deployment,
+  project,
+  stats,
+  createdByInfo,
+}: {
+  deployment: Deployment;
+  project: ProjectSettings;
+  stats: ProjectStatsItem;
+  createdByInfo: User;
+}) {
   const { t } = useLocaleContext();
   const { shareUrl } = useShareUrl({ deployment });
   const icon = getProjectIconUrl(deployment.projectId, { updatedAt: project.updatedAt });
+  const totalUsers = stats?.totalUsers || 0;
+  const totalRuns = stats?.totalRuns || 0;
 
   return (
     <Stack gap={3} data-testid="readme-page">
@@ -152,6 +182,37 @@ function ReadmePage({ deployment, project }: { deployment: Deployment; project: 
             </Typography>
           </Box>
 
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary', fontSize: 12 }}>
+              <Avatar
+                did={createdByInfo?.did || deployment.createdBy}
+                src={createdByInfo?.avatar}
+                size={20}
+                shape="circle"
+                variant="circle"
+                sx={{
+                  width: '100%',
+                  height: '100%',
+                }}
+              />
+              <span>{createdByInfo?.fullName}</span>
+            </Box>
+            <Box sx={{ display: 'flex', gap: 2, fontSize: 12, color: 'text.secondary' }}>
+              <Box
+                sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}
+                title={totalUsers ? `This project has been used by ${totalUsers} users` : ''}>
+                <Box component={Icon} icon={UserIcon} sx={{ fontSize: 14 }} />
+                <span>{totalUsers}</span>
+              </Box>
+              <Box
+                sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}
+                title={totalRuns ? `This project has been executed ${totalRuns} times in total` : ''}>
+                <Box component={Icon} icon={PlayIcon} sx={{ fontSize: 13 }} />
+                <span>{totalRuns}</span>
+              </Box>
+            </Box>
+          </Box>
+
           <Box display="flex" gap={1} alignItems="stretch">
             <Button
               variant="contained"
@@ -159,7 +220,7 @@ function ReadmePage({ deployment, project }: { deployment: Deployment; project: 
               target="_blank"
               sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
               data-testid="run-button">
-              <Box component={Icon} icon={PlayIcon} sx={{ width: 14, height: 14, fontSize: 14, color: '#fff' }} />
+              <Box component={Icon} icon={PlayFilledIcon} sx={{ width: 14, height: 14, fontSize: 14, color: '#fff' }} />
               {t('run')}
             </Button>
 

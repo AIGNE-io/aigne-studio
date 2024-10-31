@@ -46,7 +46,7 @@ export async function getDeployment({
   id,
 }: {
   id: string;
-}): Promise<{ deployment: Deployment | null; project: ProjectSettings }> {
+}): Promise<{ deployment: Deployment | null; project: ProjectSettings; stats: ProjectStatsItem; createdByInfo: User }> {
   return axios.get(joinURL('/api/deployments', id)).then((res) => res.data);
 }
 
