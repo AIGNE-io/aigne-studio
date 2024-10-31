@@ -1,3 +1,7 @@
+## 0.4.122 (2024-11-1)
+
+- fix: optimize agents api for better performance
+
 ## 0.4.121 (2024-10-31)
 
 - chore: polish explore detail page
