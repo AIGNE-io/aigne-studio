@@ -1,6 +1,5 @@
 import MdViewer from '@app/components/md-viewer';
 import { getErrorMessage } from '@app/libs/api';
-import { getAssetUrl } from '@app/libs/asset';
 import { getProjectIconUrl } from '@app/libs/project';
 import { useTabFromQuery } from '@app/utils/use-tab-from-query';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
@@ -29,7 +28,6 @@ import { withQuery } from 'ufo';
 
 import { Deployment, getDeployment } from '../../libs/deployment';
 import { MakeYoursButton, ShareButton, useShareUrl } from './button';
-import { useCategories } from './state';
 
 export default function CategoryDetail() {
   const { deploymentId } = useParams();
@@ -68,10 +66,7 @@ export default function CategoryDetail() {
 }
 
 function Agent({ deployment, project }: { deployment: Deployment; project: ProjectSettings }) {
-  const { categories } = useCategories();
   const { categorySlug } = useParams();
-
-  const category = categories.find((x) => x.slug === categorySlug);
 
   const [tab, setTab] = useTabFromQuery(['readme', 'run']);
 
@@ -95,10 +90,9 @@ function Agent({ deployment, project }: { deployment: Deployment; project: Proje
             direction="row"
             gap={1}
             onClick={() => navigate(`/explore/${categorySlug}`)}
-            sx={{ cursor: 'pointer', mr: 2 }}
+            sx={{ cursor: 'pointer', mr: 0 }}
             className="center">
             <Box component={Icon} icon={ChevronLeft} sx={{ width: 20, height: 20, fontSize: 20, color: '#9CA3AF' }} />
-            <Box sx={{ color: '#9CA3AF' }}>{category?.name}</Box>
           </Stack>
 
           <TabList
@@ -131,79 +125,57 @@ function Agent({ deployment, project }: { deployment: Deployment; project: Proje
 function ReadmePage({ deployment, project }: { deployment: Deployment; project: ProjectSettings }) {
   const { t } = useLocaleContext();
   const { shareUrl } = useShareUrl({ deployment });
-  const banner = project?.banner
-    ? getAssetUrl({
-        projectId: deployment.projectId,
-        projectRef: deployment.projectRef,
-        filename: project.banner,
-      })
-    : getProjectIconUrl(deployment.projectId, { updatedAt: project.updatedAt });
+  const icon = getProjectIconUrl(deployment.projectId, { updatedAt: project.updatedAt });
 
   return (
     <Stack gap={3} data-testid="readme-page">
-      <Box width={1} pb={{ xs: '50%', md: '30%' }} position="relative" sx={{ borderRadius: 1 }}>
-        {banner ? (
-          <Box
-            component="img"
-            src={withQuery(banner, { imageFilter: 'resize', w: 1200 })}
-            sx={{
-              position: 'absolute',
-              inset: 0,
-              cursor: 'pointer',
-              objectFit: 'cover',
-              width: 1,
-              height: 1,
-              borderRadius: 1,
-            }}
-          />
-        ) : (
-          <Box
-            sx={{
-              position: 'absolute',
-              inset: 0,
-              cursor: 'pointer',
-              backgroundColor: 'rgba(0, 0, 0, 0.5)',
-              backgroundSize: 'cover',
-              borderRadius: 1,
-            }}
-          />
-        )}
-      </Box>
+      <Stack direction="row" gap={2}>
+        <Box
+          component="img"
+          src={withQuery(icon, { imageFilter: 'resize', w: 300 })}
+          sx={{
+            width: { xs: 64, md: 144 },
+            height: { xs: 64, md: 144 },
+            borderRadius: 1,
+            objectFit: 'cover',
+          }}
+        />
 
-      <Stack gap={2}>
-        <Box>
-          <Typography sx={{ fontSize: 24, fontWeight: 700, lineHeight: '32px', color: '#030712' }} gutterBottom>
-            {project.name}
-          </Typography>
-
-          <Typography sx={{ fontSize: 16, fontWeight: 400, lineHeight: '24px', color: '#757575' }}>
-            {project.description}
-          </Typography>
-        </Box>
-
-        <Box display="flex" gap={1} alignItems="stretch">
-          <Button
-            variant="contained"
-            href={shareUrl}
-            target="_blank"
-            sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
-            data-testid="run-button">
-            <Box component={Icon} icon={PlayIcon} sx={{ width: 14, height: 14, fontSize: 14, color: '#fff' }} />
-            {t('run')}
-          </Button>
-
-          <MakeYoursButton deployment={deployment} data-testid="make-yours-button" />
-
-          <ShareButton deployment={deployment} project={project} />
-        </Box>
-
-        {deployment.productHuntUrl && deployment.productHuntBannerUrl && (
+        <Stack gap={2}>
           <Box>
-            <Box component={Link} href={deployment.productHuntUrl!} target="_blank">
-              <Box component="img" src={deployment.productHuntBannerUrl} />
-            </Box>
+            <Typography sx={{ fontSize: 24, fontWeight: 700, lineHeight: '32px', color: '#030712' }} gutterBottom>
+              {project.name}
+            </Typography>
+
+            <Typography sx={{ fontSize: 16, fontWeight: 400, lineHeight: '24px', color: '#757575' }}>
+              {project.description}
+            </Typography>
           </Box>
-        )}
+
+          <Box display="flex" gap={1} alignItems="stretch">
+            <Button
+              variant="contained"
+              href={shareUrl}
+              target="_blank"
+              sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+              data-testid="run-button">
+              <Box component={Icon} icon={PlayIcon} sx={{ width: 14, height: 14, fontSize: 14, color: '#fff' }} />
+              {t('run')}
+            </Button>
+
+            <MakeYoursButton deployment={deployment} data-testid="make-yours-button" />
+
+            <ShareButton deployment={deployment} project={project} />
+          </Box>
+
+          {deployment.productHuntUrl && deployment.productHuntBannerUrl && (
+            <Box>
+              <Box component={Link} href={deployment.productHuntUrl!} target="_blank">
+                <Box component="img" src={deployment.productHuntBannerUrl} />
+              </Box>
+            </Box>
+          )}
+        </Stack>
       </Stack>
 
       <Divider sx={{ borderColor: '#EFF1F5' }} />
