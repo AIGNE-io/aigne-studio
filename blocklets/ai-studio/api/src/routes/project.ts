@@ -140,6 +140,7 @@ export interface UpdateProjectInput {
         fontFamily?: string;
       };
     };
+    aigneBannerVisible?: boolean;
   };
 }
 
@@ -165,6 +166,7 @@ const updateProjectSchema = Joi.object<UpdateProjectInput>({
         fontFamily: Joi.string().empty([null, '']),
       }),
     }),
+    aigneBannerVisible: Joi.boolean().empty([null]),
   }),
 });
 

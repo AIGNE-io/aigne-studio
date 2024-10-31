@@ -886,4 +886,5 @@ export default flatten({
   buttonTitle: 'Button Title',
   buttonTitleVerified: 'Button Title (verified)',
   agentNotFound: 'Agent Not Found',
+  aigneBannerVisibility: 'AIGNE branding banner visibility',
 });

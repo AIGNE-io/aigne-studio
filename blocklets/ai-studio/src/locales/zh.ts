@@ -877,4 +877,5 @@ export default flatten({
   buttonTitle: '按钮标题',
   buttonTitleVerified: '按钮标题(验证成功)',
   agentNotFound: 'Agent 不存在',
+  aigneBannerVisibility: '显示 AIGNE 品牌横幅',
 });
