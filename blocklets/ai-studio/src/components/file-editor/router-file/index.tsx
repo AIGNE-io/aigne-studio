@@ -990,6 +990,7 @@ function BranchConditionSelect({
   return (
     <QueryBuilderContainer {...props}>
       <QueryBuilder
+        controlClassnames={{ queryBuilder: 'queryBuilder-branches' }}
         key={tool.condition?.id}
         fields={fields}
         operators={defaultOperators}
