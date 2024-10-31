@@ -3,7 +3,8 @@ import { join } from 'path';
 
 import { resourceManager } from '@api/libs/resource';
 import user from '@blocklet/sdk/lib/middlewares/user';
-import { initLocalStorageServer } from '@blocklet/uploader/lib/middlewares';
+// @ts-ignore
+import { initLocalStorageServer } from '@blocklet/uploader-server';
 import express, { Router } from 'express';
 import { pathExists } from 'fs-extra';
 import Joi from 'joi';
@@ -113,10 +114,6 @@ router.get('/:datasetId/search', async (req, res) => {
     return;
   }
 
-  if (!input.message) {
-    throw new Error('Not found search message');
-  }
-
   const embeddings = new AIKitEmbeddings({});
   const store = await VectorStore.load(datasetId, embeddings);
 
@@ -127,7 +124,8 @@ router.get('/:datasetId/search', async (req, res) => {
   }
 
   const docs = await store.similaritySearchWithScore(
-    input.message,
+    // Allow empty query to get some random results
+    input.message || ' ',
     Math.min(input.n, Object.keys(store.getMapping()).length)
   );
 

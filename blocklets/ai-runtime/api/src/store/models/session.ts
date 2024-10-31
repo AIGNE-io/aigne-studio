@@ -1,4 +1,4 @@
-import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
+import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model, Sequelize } from 'sequelize';
 
 import nextId from '../../libs/next-id';
 import { sequelize } from '../sequelize';
@@ -23,6 +23,16 @@ export default class Session extends Model<InferAttributes<Session>, InferCreati
       where: { userId, projectId, agentId },
       order: [['id', 'desc']],
     });
+  }
+
+  static async countUniqueUsersPerProject(projectIds: string[]) {
+    if (!projectIds?.length) return {};
+    const counts = await this.findAll({
+      where: { projectId: projectIds },
+      attributes: ['projectId', [Sequelize.fn('COUNT', Sequelize.col('userId')), 'count']],
+      group: ['projectId'],
+    });
+    return Object.fromEntries(counts.map((i) => [i.projectId, (i.get('count') ?? 0) as number]));
   }
 }
 

@@ -11,6 +11,7 @@ import {
   PromptAssistant,
   Role,
   RuntimeOutputVariable,
+  jsonSchemaToOpenAIJsonSchema,
   outputVariablesToJsonSchema,
 } from '../../types';
 import {
@@ -19,7 +20,6 @@ import {
   metadataStreamOutputFormatPrompt,
 } from '../assistant/generate-output';
 import { GetAgentResult } from '../assistant/type';
-import { renderMessage } from '../utils/render-message';
 import retry from '../utils/retry';
 import { nextTaskId } from '../utils/task-id';
 import { AgentExecutorBase } from './base';
@@ -114,7 +114,7 @@ export class LLMAgentExecutor extends AgentExecutorBase<PromptAssistant> {
     return this._outputsInfo;
   }
 
-  private getMessages({ inputs }: { inputs: { [key: string]: any } }) {
+  private getMessages() {
     const { agent } = this;
 
     return (async () =>
@@ -126,13 +126,12 @@ export class LLMAgentExecutor extends AgentExecutorBase<PromptAssistant> {
               if (prompt.type === 'message') {
                 return {
                   role: prompt.data.role,
-                  content: await renderMessage(
+                  content: await this.renderMessage(
                     // 过滤注释节点
                     prompt.data.content
                       ?.split('\n')
                       .filter((i) => !i.startsWith('//'))
-                      .join('\n') || '',
-                    { ...inputs, ...this.globalContext }
+                      .join('\n') || ''
                   ),
                 };
               }
@@ -149,7 +148,7 @@ export class LLMAgentExecutor extends AgentExecutorBase<PromptAssistant> {
   override async process({ inputs }: { inputs: { [key: string]: any } }) {
     const { hasJsonOutputs } = await this.outputsInfo;
 
-    const messages = await this.getMessages({ inputs });
+    const messages = await this.getMessages();
 
     const { modelInfo } = this;
 
@@ -342,7 +341,7 @@ export class LLMAgentExecutor extends AgentExecutorBase<PromptAssistant> {
           type: 'json_schema',
           jsonSchema: {
             name: 'output',
-            schema,
+            schema: jsonSchemaToOpenAIJsonSchema(schema),
             strict: true,
           },
         },

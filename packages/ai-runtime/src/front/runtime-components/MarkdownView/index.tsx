@@ -20,13 +20,3 @@ export default function MarkdownView({ fontSize }: { fontSize?: string | number 
     </OutputFieldContainer>
   );
 }
-
-MarkdownView.outputValueSchema = {
-  type: 'object',
-  properties: {
-    outputValue: {
-      type: 'string',
-      faker: 'lorem.paragraphs',
-    },
-  },
-};

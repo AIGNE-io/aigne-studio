@@ -48,8 +48,7 @@ export default function V0Input({
   const agent = useAgent({ aid });
   const [executeLoading, setExecuteLoading] = useState(false);
   const opening = useOpeningQuestions();
-  const runAgent = useSession((s) => s.runAgent);
-  const running = useSession((s) => s.running);
+  const { running, runAgent } = useSession((s) => ({ running: s.running, runAgent: s.runAgent }));
   const currentSessionId = useSessions((s) => s.currentSessionId);
   const { setCurrentMessageTaskId } = useV0RuntimeContext();
 
@@ -74,15 +73,15 @@ export default function V0Input({
     }
   }, [defaultForm, autoFillLastForm, form, chatMode]);
 
-  const onSubmit = async (parameters: any) => {
+  const onSubmit = async (inputs: any) => {
     try {
-      if (!parameters?.question) return;
+      if (!inputs?.question) return;
       setExecuteLoading(true);
 
       // in session page, send message
       await runAgent({
         aid,
-        parameters,
+        inputs,
         onResponseStart: () => {
           setCurrentMessageTaskId(undefined);
           if (chatMode) form.resetField('question', { defaultValue: '' });

@@ -37,14 +37,14 @@ export const getFileContent = async (fileExtension: string, filePath: string) =>
     throw new Error('Not file path');
   }
 
-  if (fileExtension === 'pdf') {
+  if (filePath.endsWith('.pdf')) {
+    logger.info('load parsePDF', { filePath, fileExtension });
     return parsePDF(filePath);
   }
 
-  if (fileExtension === 'doc' || fileExtension === 'docx') {
-    return mammoth.extractRawText({ path: filePath }).then((result) => {
-      return result.value;
-    });
+  if (filePath.endsWith('.doc') || filePath.endsWith('.docx')) {
+    logger.info('load mammoth', { filePath, fileExtension });
+    return mammoth.extractRawText({ path: filePath }).then((result) => result.value);
   }
 
   return readFile(filePath, 'utf8');

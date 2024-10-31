@@ -1,7 +1,7 @@
 import { ReactNode, createContext, lazy, useContext, useRef } from 'react';
 
 // @ts-ignore
-const UploaderComponent = lazy(() => import('@blocklet/uploader/react').then((res) => ({ default: res.Uploader })));
+const UploaderComponent = lazy(() => import('@blocklet/uploader').then((res) => ({ default: res.Uploader })));
 const defaultAllowedFileTypes = ['image/png', 'image/jpeg', 'image/gif'];
 
 interface UploaderProviderProps {

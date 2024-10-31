@@ -28,6 +28,8 @@ export default class Deployment extends Model<InferAttributes<Deployment>, Infer
 
   declare orderIndex: CreationOptional<number>;
 
+  declare aigneBannerVisible: CreationOptional<boolean>;
+
   static associate(models: { Category: any; DeploymentCategory: any; Project: any }) {
     this.belongsToMany(models.Category, {
       through: models.DeploymentCategory,
@@ -82,6 +84,10 @@ Deployment.init(
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0,
+    },
+    aigneBannerVisible: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
     },
   },
   { sequelize }

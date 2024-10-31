@@ -21,6 +21,7 @@ type Deployment = {
   access: 'public' | 'private';
   categories: { id: string; name: string; slug: string }[];
   orderIndex: number;
+  aigneBannerVisible?: boolean;
 };
 
 export async function getAgents({
@@ -73,6 +74,7 @@ export interface RunAgentInput {
   aid: string;
   sessionId?: string;
   inputs?: { [key: string]: any };
+  appUrl?: string;
 }
 
 export async function runAgent({

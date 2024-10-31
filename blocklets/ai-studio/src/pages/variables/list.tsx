@@ -285,6 +285,10 @@ function VariableList() {
           variableYjs.variables.push(newVariable);
 
           dialogState.close();
+
+          if (data.scope) {
+            setScope(data.scope);
+          }
         })}>
         <DialogTitle className="between">
           <Box>{t('outputVariableParameter.addData')}</Box>
@@ -521,6 +525,9 @@ function VariableTypeField({ ...props }: TextFieldProps) {
       </MenuItem>
       <MenuItem value="number" disabled={props.disabled}>
         {t('number')}
+      </MenuItem>
+      <MenuItem value="boolean" disabled={props.disabled}>
+        {t('boolean')}
       </MenuItem>
       <MenuItem value="object" disabled={props.disabled}>
         {t('object')}

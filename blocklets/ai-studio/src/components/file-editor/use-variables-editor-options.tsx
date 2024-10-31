@@ -37,7 +37,7 @@ export default function useVariablesEditorOptions(
       : []),
   ]);
 
-  const variables = [...variableSet, '$user', '$clientTime'];
+  const variables = [...variableSet, '$sys'];
 
   const options = useMemo(() => {
     return (variables ?? [])

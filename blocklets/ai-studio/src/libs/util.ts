@@ -1,3 +1,4 @@
+import { ParameterYjs } from '@blocklet/ai-runtime/types';
 import { isAxiosError } from 'axios';
 import slugify from 'slugify';
 import { transliterate } from 'transliteration';
@@ -11,3 +12,17 @@ export const checkErrorType = (error: any, type: string) => {
   const errorType = isAxiosError(error) ? error.response?.data?.error?.type : error.type;
   return errorType === type;
 };
+
+export const USER_INPUT_PARAMETER_TYPES: NonNullable<ParameterYjs['type']>[] = [
+  'string',
+  'number',
+  'select',
+  'language',
+  'boolean',
+  'image',
+  'verify_vc',
+];
+
+export function isValidInput(input: ParameterYjs): input is ParameterYjs & { key: string } {
+  return !!input.key && USER_INPUT_PARAMETER_TYPES.includes(input.type || 'string');
+}

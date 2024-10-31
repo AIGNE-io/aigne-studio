@@ -30,7 +30,7 @@ export const getUsers = async (dids: string[]) => {
   if (!dids?.length) {
     return {};
   }
-
+  dids = [...new Set(dids)];
   const mapped = dids.map((did) => [did, cache.get(did)] as const);
   const misses = mapped.filter((item) => !item[1]).map((item) => item[0]);
 

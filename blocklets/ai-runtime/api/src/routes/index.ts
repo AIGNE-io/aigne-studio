@@ -10,6 +10,7 @@ import datasetSegments from './dataset/segments';
 import image from './image';
 import memory from './memory';
 import { messageRoutes } from './message';
+import { projectRoutes } from './project';
 import secret from './secret';
 import { sessionRoutes } from './session';
 
@@ -17,6 +18,7 @@ const router = Router();
 
 messageRoutes(router);
 sessionRoutes(router);
+projectRoutes(router);
 
 router.use('/ai', ai);
 router.use('/agents', agent);

@@ -25,7 +25,7 @@ export const RuntimeProvider = ({
   const projectId = useMemo(() => parseIdentity(aid, { rejectWhenError: true }).projectId, [aid]);
 
   return (
-    <EntryAgentProvider aid={aid}>
+    <EntryAgentProvider aid={aid} working={working}>
       <AIGNEApiProvider
         working={({ aid }) => (parseIdentity(aid, { rejectWhenError: true }).projectId === projectId ? working : false)}
         {...ApiProps}>

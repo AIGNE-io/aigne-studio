@@ -15,6 +15,7 @@ import logger from './libs/logger';
 import { resourceManager } from './libs/resource';
 import { xss } from './libs/xss';
 import routes from './routes';
+import { attachWalletHandlers } from './routes/auth';
 import setupHtmlRouter from './routes/html';
 
 if (process.env.NODE_ENV === 'development') {
@@ -33,6 +34,7 @@ app.use(cors());
 app.use(xss());
 
 const router = express.Router();
+attachWalletHandlers(router);
 router.use('/api', routes);
 app.use(router);
 

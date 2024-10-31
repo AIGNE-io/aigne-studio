@@ -35,7 +35,7 @@ export default function AutoForm({
   const { aid } = useCurrentAgent();
   const agent = useAgent({ aid });
 
-  const { running, runAgent: execute } = useSession((s) => ({ running: s.running, runAgent: s.runAgent }));
+  const { running, runAgent } = useSession((s) => ({ running: s.running, runAgent: s.runAgent }));
 
   const parameters = useMemo(
     () =>
@@ -47,6 +47,10 @@ export default function AutoForm({
         })),
     [agent.parameters]
   );
+
+  const isOnlyOneVCInput = parameters?.length === 1 && parameters[0]?.type === 'verify_vc';
+
+  const hiddenSubmit = isOnlyOneVCInput;
 
   const defaultForm = useInitialFormValues();
 
@@ -66,11 +70,11 @@ export default function AutoForm({
     }
   }, [defaultForm, autoFillLastForm, form, chatMode]);
 
-  const onSubmit = async (parameters: any) => {
+  const onSubmit = async (inputs: any) => {
     submitRef.current?.scrollIntoView({ block: 'center' });
-    await execute({
+    await runAgent({
       aid,
-      parameters,
+      inputs,
       onResponseStart: () => {
         if (chatMode) form.resetField('question', { defaultValue: '' });
       },
@@ -161,13 +165,14 @@ export default function AutoForm({
 
       {!(submitInQuestionField && parameters?.some((i) => i.key === 'question')) && (
         <LoadingButton
+          hidden={hiddenSubmit}
           data-testid="runtime-submit-button"
           ref={submitRef}
           type="submit"
           variant="contained"
           loading={running}
           disabled={submitDisabled}
-          sx={{ height: 40 }}>
+          sx={{ height: 40, display: hiddenSubmit ? 'none' : undefined }}>
           {submitText || t('generate')}
         </LoadingButton>
       )}
