@@ -22,6 +22,7 @@ export default function DidSpacesSetting({ projectId }: { projectId: string }) {
   const { session } = useSessionContext();
 
   const [authSyncUpdating, setAutoSyncUpdating] = useState<boolean | 'success' | 'error'>(false);
+  const [refreshSpaceCard, setRefreshSpaceCard] = useState(false);
 
   const changeDidSpaceAutoSync = useCallback(
     async (didSpaceAutoSync: boolean) => {
@@ -56,7 +57,6 @@ export default function DidSpacesSetting({ projectId }: { projectId: string }) {
               />
             }
           />
-
           {authSyncUpdating ? (
             <Stack justifyContent="center" alignItems="center" width={24} height={24}>
               {authSyncUpdating === true ? (
@@ -85,6 +85,8 @@ export default function DidSpacesSetting({ projectId }: { projectId: string }) {
                   return;
                 }
                 Toast.error(getErrorMessage(error));
+              } finally {
+                setRefreshSpaceCard((v) => !v);
               }
             }}>
             {t('sync')}
@@ -105,6 +107,7 @@ export default function DidSpacesSetting({ projectId }: { projectId: string }) {
           selected
           compat
           endpoint={session.user?.didSpace?.endpoint}
+          deps={[refreshSpaceCard]}
           action={(props) => <GatewayAction {...props} projectId={projectId} />}
         />
       </Stack>

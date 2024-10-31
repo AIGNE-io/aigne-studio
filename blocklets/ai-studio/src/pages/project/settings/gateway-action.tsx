@@ -9,7 +9,15 @@ import { Button } from '@mui/material';
 import { getErrorMessage } from '../../../libs/api';
 import DidSpaces from '../icons/did-spaces';
 
-function GatewayAction({ spaceStatus, projectId }: { spaceStatus: SpaceStatus; projectId: string }) {
+function GatewayAction({
+  spaceStatus,
+  refresh,
+  projectId,
+}: {
+  spaceStatus: SpaceStatus;
+  refresh: Function;
+  projectId: string;
+}) {
   const { t } = useLocaleContext();
   const { session } = useSessionContext();
 
@@ -37,9 +45,13 @@ function GatewayAction({ spaceStatus, projectId }: { spaceStatus: SpaceStatus; p
   if (spaceStatus === SpaceStatus.DISCONNECTED) {
     return (
       <ReConnect
+        variant="outlined"
         spaceDid={session.user?.didSpace?.did}
         spaceGatewayUrl={session.user?.didSpace?.url}
-        onConnected={() => session.refresh()}
+        onConnected={async () => {
+          session.refresh();
+          refresh();
+        }}
         onError={(error) => {
           console.error(error);
           Toast.error(getErrorMessage(error));
