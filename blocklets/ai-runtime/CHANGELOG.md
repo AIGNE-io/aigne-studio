@@ -1,3 +1,7 @@
+## 0.4.120 (2024-10-31)
+
+- chore: update @blocklet/sdk
+
 ## 0.4.119 (2024-10-31)
 
 - fix: invalid sig error
