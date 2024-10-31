@@ -240,7 +240,7 @@ export interface RouterAssistant extends AssistantBase {
   type: 'router';
   defaultToolId?: string;
   prompt?: string;
-  conditionalBranch?: boolean;
+  decisionType?: 'ai' | 'json-logic';
   routes?: ({ condition?: RuleGroupType } & Tool)[];
 
   // 参数配置，为了可以复用UI和 prompt一致

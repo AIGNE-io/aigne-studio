@@ -50,35 +50,3 @@ paths:
                         updatedAt:
                           type: string
                           format: date-time
-  /api/test:
-    get:
-      summary: Test
-      x-summary-zh: 测试
-      description: Test
-      x-description-zh: 测试
-      tags:
-        - Sessions
-      parameters:
-        - in: query
-          name: limit
-          schema:
-            type: integer
-          description: Number of last messages to retrieve
-          x-description-zh: 检索的消息的数目
-        - in: query
-          name: keyword
-          schema:
-            type: string
-          description: Keyword to search in messages
-          x-description-zh: 在消息中搜索的关键字
-      responses:
-        '200':
-          description: Test
-          x-description-zh: 测试
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string

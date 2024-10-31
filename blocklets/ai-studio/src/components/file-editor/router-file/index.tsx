@@ -13,7 +13,6 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { AssistantYjs, ParameterYjs, RouterAssistantYjs, Tool, isAssistant } from '@blocklet/ai-runtime/types';
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
 import { DatasetObject } from '@blocklet/dataset-sdk/types';
 import getOpenApiTextFromI18n from '@blocklet/dataset-sdk/util/get-open-api-i18n-text';
 import { Icon } from '@iconify-icon/react';
@@ -54,7 +53,7 @@ import { joinURL } from 'ufo';
 import { useAllSelectDecisionAgentOutputs, useRoutesAssistantOutputs } from '../output/OutputSettings';
 import PromptEditorField from '../prompt-editor-field';
 import useVariablesEditorOptions from '../use-variables-editor-options';
-import ToolDialog, { FROM_API, RouteOption, isAPIOption } from './dialog';
+import ToolDialog, { FROM_API, RouteOption, isAPIOption, useFormatOpenApiToYjs } from './dialog';
 
 export default function RouterAssistantEditor({
   projectId,
@@ -97,20 +96,23 @@ export default function RouterAssistantEditor({
     });
   };
 
+  const conditionalBranch = value.decisionType === 'json-logic';
   return (
     <Stack gap={1.5}>
       <FormGroup row sx={{ alignItems: 'center', justifyContent: 'flex-end' }}>
         <Typography>{t('decision.AI')}</Typography>
         <Switch
           sx={{ mx: 1 }}
-          checked={!!value.conditionalBranch}
-          onChange={(e) => (value.conditionalBranch = !!e.target.checked)}
+          checked={conditionalBranch}
+          onChange={(e) => {
+            value.decisionType = e.target.checked ? 'json-logic' : 'ai';
+          }}
         />
         <Typography>{t('decision.branch')}</Typography>
       </FormGroup>
 
       <Stack gap={1} width={1} ref={ref}>
-        {value.conditionalBranch ? (
+        {conditionalBranch ? (
           <Stack
             sx={{
               display: 'flex',
@@ -380,7 +382,9 @@ export function AgentItemView({
           },
           backgroundColor: { ...getDiffBackground('prepareExecutes', `${assistant.id}.data.routes.${agent.id}`) },
         }}>
-        {assistant.conditionalBranch && <BranchConditionSelect assistant={assistant} tool={agent} sx={{ mb: 0 }} />}
+        {assistant.decisionType === 'json-logic' && (
+          <BranchConditionSelect assistant={assistant} tool={agent} sx={{ mb: 0 }} />
+        )}
 
         <Stack width={1} gap={1.5} sx={{ position: 'relative' }}>
           <Stack>
@@ -404,7 +408,7 @@ export function AgentItemView({
               }}
             />
 
-            {assistant.conditionalBranch ? (
+            {assistant.decisionType === 'json-logic' ? (
               target?.description ? (
                 <TextField
                   onClick={(e) => e.stopPropagation()}
@@ -709,24 +713,6 @@ function GroupView({
     </ListSubheader>
   );
 }
-
-const useFormatOpenApiToYjs = (openApis: DatasetObject[]) => {
-  const { t, locale } = useLocaleContext();
-  return openApis.map((api) => ({
-    ...api,
-    name:
-      getOpenApiTextFromI18n(api, 'summary', locale) ||
-      getOpenApiTextFromI18n(api, 'description', locale) ||
-      t('unnamed'),
-    description: getOpenApiTextFromI18n(api, 'description', locale),
-    parameters: Object.fromEntries(
-      getAllParameters(api).map(({ name, description, ...value }, index) => [
-        index,
-        { index, data: { ...value, key: name, label: description || name } },
-      ])
-    ),
-  }));
-};
 
 function AgentItemViewParameters({
   projectId,

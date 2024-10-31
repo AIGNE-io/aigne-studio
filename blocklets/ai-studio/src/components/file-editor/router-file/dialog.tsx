@@ -7,6 +7,7 @@ import {
   ExecuteBlock,
   FileTypeYjs,
   MemoryFileYjs,
+  ParameterYjs,
   ProjectSettings,
   RouterAssistant,
   RouterAssistantYjs,
@@ -36,7 +37,7 @@ import {
   styled,
 } from '@mui/material';
 import { sortBy } from 'lodash';
-import { forwardRef, useCallback, useImperativeHandle, useMemo } from 'react';
+import { forwardRef, useImperativeHandle, useMemo } from 'react';
 import { Controller, UseFormReturn, useForm } from 'react-hook-form';
 
 import PromptEditorField from '../prompt-editor-field';
@@ -82,10 +83,6 @@ const ToolDialog = forwardRef<
 
   useImperativeHandle(ref, () => ({ form }), [form]);
 
-  const fileId = form.watch('id');
-  const f = store.files[fileId];
-  const file = f && isAssistant(f) ? f : undefined;
-
   const options = Object.entries(store.tree)
     .filter(([, filepath]) => filepath?.startsWith(`${PROMPTS_FOLDER_NAME}/`))
     .map(([id]) => store.files[id])
@@ -101,7 +98,6 @@ const ToolDialog = forwardRef<
     return t('agent');
   };
 
-  const option = [...options, ...openApis].find((x) => x.id === fileId);
   const formatOptions: Option[] = [
     ...options,
     ...openApis.map((dataset) => ({
@@ -116,134 +112,6 @@ const ToolDialog = forwardRef<
   ]
     .map((x) => ({ ...x, fromText: getFromText(x.from) }))
     .sort((a, b) => (b.from || '').localeCompare(a.from || ''));
-
-  const parameters = useMemo(() => {
-    if (isAPIOption(option)) {
-      return getAllParameters(option);
-    }
-
-    return (
-      file?.parameters &&
-      sortBy(Object.values(file.parameters), (i) => i.index).filter(
-        (i): i is typeof i & { data: { key: string } } => !!i.data.key && !i.data.hidden
-      )
-    );
-  }, [file, option]);
-
-  const renderParameters = useCallback(() => {
-    if (!option) {
-      return null;
-    }
-
-    if (isAPIOption(option)) {
-      return (
-        <Stack gap={1.5}>
-          {(parameters || [])?.map((parameter: any) => {
-            if (!parameter?.name) return null;
-
-            if (parameter['x-parameter-type'] === 'boolean') {
-              return (
-                <Stack key={parameter.name}>
-                  <Box>
-                    <Controller
-                      control={form.control}
-                      name={`parameters.${parameter.name}`}
-                      render={({ field }) => {
-                        return (
-                          <FormControlLabel
-                            sx={{
-                              alignItems: 'flex-start',
-                              '.MuiCheckbox-root': {
-                                ml: -0.5,
-                              },
-                            }}
-                            control={
-                              <Switch
-                                defaultChecked={Boolean(field.value ?? false)}
-                                onChange={(_, checked) => {
-                                  field.onChange({ target: { value: checked } });
-                                }}
-                              />
-                            }
-                            label={
-                              <Typography variant="caption">
-                                {getOpenApiTextFromI18n(parameter, 'description', locale) ||
-                                  getOpenApiTextFromI18n(parameter, 'name', locale)}
-                              </Typography>
-                            }
-                            labelPlacement="top"
-                          />
-                        );
-                      }}
-                    />
-                  </Box>
-                </Stack>
-              );
-            }
-
-            return (
-              <Stack key={parameter.name}>
-                <Typography variant="caption" mb={0.5}>
-                  {getOpenApiTextFromI18n(parameter, 'description', locale) ||
-                    getOpenApiTextFromI18n(parameter, 'name', locale)}
-                </Typography>
-
-                <Controller
-                  control={form.control}
-                  name={`parameters.${parameter.name}`}
-                  render={({ field }) => {
-                    return (
-                      <PromptEditorField
-                        placeholder={t('selectByPromptParameterPlaceholder')}
-                        value={field.value || ''}
-                        projectId={projectId}
-                        gitRef={gitRef}
-                        assistant={assistant}
-                        path={[assistantId, parameter.name]}
-                        onChange={(value) => field.onChange({ target: { value } })}
-                      />
-                    );
-                  }}
-                />
-              </Stack>
-            );
-          })}
-        </Stack>
-      );
-    }
-
-    return (
-      <Box>
-        {parameters?.map(({ data: parameter }: any) => {
-          if (!parameter?.key) return null;
-
-          return (
-            <Stack key={parameter.id}>
-              <Typography variant="caption" mx={1}>
-                {parameter.label || parameter.key}
-              </Typography>
-
-              <Controller
-                control={form.control}
-                name={`parameters.${parameter.key}`}
-                render={({ field }) => (
-                  <PromptEditorField
-                    placeholder={t('selectByPromptParameterPlaceholder')}
-                    value={field.value || ''}
-                    projectId={projectId}
-                    gitRef={gitRef}
-                    assistant={assistant}
-                    path={[assistantId, parameter.id]}
-                    onChange={(value) => field.onChange({ target: { value } })}
-                  />
-                )}
-              />
-            </Stack>
-          );
-        })}
-      </Box>
-    );
-  }, [option, parameters]);
 
   const createFile = useCreateFile();
 
@@ -356,26 +224,13 @@ const ToolDialog = forwardRef<
             />
           </Stack>
 
-          <Stack gap={1}>
-            {!!parameters?.length && (
-              <Box>
-                <Tooltip
-                  title={t('parametersTip', { variable: '{variable}' })}
-                  placement="top-start"
-                  disableInteractive>
-                  <Stack justifyContent="space-between" direction="row" alignItems="center">
-                    <Typography variant="subtitle2" color="text.secondary" mb={0}>
-                      {t('parameters')}
-                    </Typography>
-
-                    <InfoOutlined fontSize="small" sx={{ color: 'info.main', fontSize: 14 }} />
-                  </Stack>
-                </Tooltip>
-              </Box>
-            )}
-
-            {renderParameters()}
-          </Stack>
+          <AgentParameters
+            openApis={openApis}
+            projectId={projectId}
+            gitRef={gitRef}
+            assistant={assistant}
+            form={form}
+          />
         </Stack>
       </DialogContent>
 
@@ -393,6 +248,145 @@ const ToolDialog = forwardRef<
     </Dialog>
   );
 });
+
+export const useFormatOpenApiToYjs = (openApis: DatasetObject[]) => {
+  const { t, locale } = useLocaleContext();
+  return openApis.map((api) => ({
+    ...api,
+    name:
+      getOpenApiTextFromI18n(api, 'summary', locale) ||
+      getOpenApiTextFromI18n(api, 'description', locale) ||
+      t('unnamed'),
+    description: getOpenApiTextFromI18n(api, 'description', locale),
+    parameters: Object.fromEntries(
+      getAllParameters(api).map(({ name, description, ...value }, index) => [
+        index,
+        { index, data: { ...value, key: name, label: description || name } },
+      ])
+    ),
+  }));
+};
+
+const AgentParameters = ({
+  projectId,
+  gitRef,
+  assistant,
+  openApis,
+  form,
+  placeholder,
+}: {
+  projectId: string;
+  gitRef: string;
+  assistant: AssistantYjs;
+  openApis: DatasetObject[];
+  form: UseFormReturn<ToolDialogForm>;
+  placeholder?: string;
+}) => {
+  const { t, locale } = useLocaleContext();
+  const { store } = useProjectStore(projectId, gitRef);
+  const formattedOpenApis = useFormatOpenApiToYjs(openApis || []);
+  const assistantId = assistant.id;
+
+  const fileId = form.watch('id');
+  const f = store.files[fileId];
+  const target = f && isAssistant(f) ? f : formattedOpenApis.find((x) => x.id === fileId);
+
+  const parameters = useMemo(() => {
+    return (target?.parameters &&
+      sortBy(Object.values(target.parameters), (i) => i.index).filter(
+        (i): i is typeof i & { data: { key: string; hidden?: boolean } } => !!i.data.key && !i.data.hidden
+      )) as {
+      index: number;
+      data: ParameterYjs;
+    }[];
+  }, [target]);
+
+  return (
+    <Stack gap={1}>
+      {!!parameters?.length && (
+        <Box>
+          <Tooltip title={t('parametersTip', { variable: '{variable}' })} placement="top-start" disableInteractive>
+            <Stack justifyContent="space-between" direction="row" alignItems="center">
+              <Typography variant="subtitle2" color="text.secondary" mb={0}>
+                {t('parameters')}
+              </Typography>
+
+              <InfoOutlined fontSize="small" sx={{ color: 'info.main', fontSize: 14 }} />
+            </Stack>
+          </Tooltip>
+        </Box>
+      )}
+
+      {parameters?.map(({ data: parameter }: any) => {
+        if (!parameter?.key) return null;
+
+        if (parameter['x-parameter-type'] === 'boolean') {
+          return (
+            <Stack key={parameter.id}>
+              <Box>
+                <Controller
+                  control={form.control}
+                  name={`parameters.${parameter.key}`}
+                  render={({ field }) => {
+                    return (
+                      <FormControlLabel
+                        sx={{
+                          alignItems: 'flex-start',
+                          '.MuiCheckbox-root': {
+                            ml: -0.5,
+                          },
+                        }}
+                        control={
+                          <Switch
+                            defaultChecked={Boolean(field.value ?? false)}
+                            onChange={(_, checked) => {
+                              field.onChange({ target: { value: checked } });
+                            }}
+                          />
+                        }
+                        label={
+                          <Typography variant="caption">
+                            {getOpenApiTextFromI18n(parameter, 'description', locale) ||
+                              getOpenApiTextFromI18n(parameter, 'name', locale)}
+                          </Typography>
+                        }
+                        labelPlacement="top"
+                      />
+                    );
+                  }}
+                />
+              </Box>
+            </Stack>
+          );
+        }
+
+        return (
+          <Stack key={parameter.id}>
+            <Typography variant="caption" mx={1}>
+              {parameter.label || parameter.key}
+            </Typography>
+
+            <Controller
+              control={form.control}
+              name={`parameters.${parameter.key}`}
+              render={({ field }) => (
+                <PromptEditorField
+                  placeholder={placeholder ?? t('selectByPromptParameterPlaceholder')}
+                  value={field.value || ''}
+                  projectId={projectId}
+                  gitRef={gitRef}
+                  assistant={assistant}
+                  path={[assistantId, parameter.id]}
+                  onChange={(value) => field.onChange({ target: { value } })}
+                />
+              )}
+            />
+          </Stack>
+        );
+      })}
+    </Stack>
+  );
+};
 
 export default ToolDialog;
 

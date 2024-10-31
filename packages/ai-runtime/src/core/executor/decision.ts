@@ -36,39 +36,26 @@ const md5 = (str: string) => crypto.createHash('md5').update(str).digest('hex');
 export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
   override async process({ inputs }: { inputs: { [key: string]: any } }) {
     const { agent } = this;
-    if (agent.conditionalBranch) {
-      return this.branchProcess({ inputs });
+    if (agent.decisionType === 'json-logic') {
+      return this.processWithJsonLogic({ inputs });
     }
 
-    return this.llmProcess({ inputs });
+    return this.processWithLLM({ inputs });
   }
 
-  async branchProcess({ inputs }: { inputs: { [key: string]: any } }) {
+  async processWithJsonLogic({ inputs }: { inputs: { [key: string]: any } }) {
     const {
       agent,
       options: { taskId },
     } = this;
     const { callback } = this.context;
 
-    await Promise.all(
-      (agent.routes || []).flatMap(
-        (route) =>
-          (route.condition?.rules || []).map(async (rule) => {
-            if ('value' in rule && rule.value) {
-              rule.value = typeof rule.value === 'string' ? await this.renderMessage(rule.value, inputs) : rule.value;
-            }
-
-            return rule;
-          }) ?? []
-      )
-    );
-
     const matchedRoute = (agent.routes || []).find((route) => {
       if (!route.condition) return false;
       const condition = formatQuery(route.condition, { format: 'jsonlogic' });
       const isValid = jsonLogic.apply(condition, inputs);
 
-      logger.info('route.condition is valid:', {
+      logger.debug('route.condition is valid:', {
         json: JSON.stringify(route.condition, null, 2),
         jsonLogic: JSON.stringify(condition, null, 2),
         inputs,
@@ -82,38 +69,31 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
 
     if (!matchedId) {
       logger.warn('No matched route or default tool, please check your agent configuration');
-      return undefined;
+      return {};
     }
 
     const identity = parseIdentity(agent.identity.aid, { rejectWhenError: true });
-
     const matched = agent.routes?.find((x) => x.id === matchedId);
-    logger.info('matched route', { matchedId, matched, isDefault: matchedId === agent.defaultToolId });
+    logger.debug('matched route', { matchedId, matched, isDefault: matchedId === agent.defaultToolId });
 
-    const getExecutor = async () => {
-      if (!matched?.id) return undefined;
-
-      if (matched.from === 'blockletAPI') {
-        const blocklet = await this.context.getBlockletAgent(matched.id);
-        return blocklet?.agent;
-      }
-
-      return this.context.getAgent({
-        aid: stringifyIdentity({
-          blockletDid: identity.blockletDid,
-          projectId: identity.projectId,
-          projectRef: identity.projectRef,
-          agentId: matched?.id,
-        }),
-        working: agent.identity.working,
-        rejectOnEmpty: true,
-      });
-    };
-
-    const executor = await getExecutor();
+    const executor = !matched?.id
+      ? undefined
+      : matched.from === 'blockletAPI'
+        ? (await this.context.getBlockletAgent(matched.id))?.agent
+        : await this.context.getAgent({
+            aid: stringifyIdentity({
+              blockletDid: identity.blockletDid,
+              projectId: identity.projectId,
+              projectRef: identity.projectRef,
+              agentId: matched.id,
+            }),
+            working: agent.identity.working,
+            rejectOnEmpty: true,
+          });
 
     if (!executor) {
-      throw new Error('No matched tool, please check your agent configuration');
+      logger.warn('No matched tool, please check your agent configuration');
+      return {};
     }
 
     const parameters = Object.fromEntries(
@@ -131,9 +111,9 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
 
       if (args.type === AssistantResponseType.CHUNK && args.taskId === currentTaskId) {
         if (
-          Object.values(executor?.outputVariables || {}).find((x) => x.name === RuntimeOutputVariable.text) &&
-          Object.values(agent?.outputVariables || {}).find((x) => x.name === RuntimeOutputVariable.text) &&
-          args?.delta?.content
+          Object.values(executor.outputVariables || {}).find((x) => x.name === RuntimeOutputVariable.text) &&
+          Object.values(agent.outputVariables || {}).find((x) => x.name === RuntimeOutputVariable.text) &&
+          args.delta.content
         ) {
           callback({ ...args, taskId });
         }
@@ -150,7 +130,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
       })
       .execute();
 
-    logger.info('executor selected', {
+    logger.debug('executor selected', {
       executorId: executor.id,
       executorName: executor.name,
       result: JSON.stringify(result, null, 2),
@@ -159,7 +139,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
     return result;
   }
 
-  async llmProcess({ inputs }: { inputs: { [key: string]: any } }) {
+  async processWithLLM({ inputs }: { inputs: { [key: string]: any } }) {
     const {
       agent,
       options: { parentTaskId, taskId },
