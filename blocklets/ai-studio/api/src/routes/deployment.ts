@@ -1,7 +1,7 @@
 import { NoSuchEntryAgentError } from '@api/libs/error';
 import { getAgentSecretInputs, getProjectStatsFromRuntime } from '@api/libs/runtime';
 import { ensurePromptsAdmin } from '@api/libs/security';
-import { getUsers } from '@api/libs/user';
+import { getUser, getUsers } from '@api/libs/user';
 import Project from '@api/store/models/project';
 import { PROJECT_FILE_PATH, ProjectRepo, getEntryFromRepository, getRepository } from '@api/store/repository';
 import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
@@ -46,7 +46,6 @@ const updateSchema = Joi.object({
   orderIndex: Joi.number().integer().empty(null).optional(),
   productHuntUrl: Joi.string().allow('').empty([null, '']).optional(),
   productHuntBannerUrl: Joi.string().allow('').empty([null, '']).optional(),
-  aigneBannerVisible: Joi.boolean().optional(),
 }).min(1);
 
 const getByIdSchema = Joi.object({
@@ -304,6 +303,11 @@ router.get('/:deploymentId', middlewares.session(), async (req, res) => {
     throw new NoSuchEntryAgentError('No such agent');
   }
 
+  const [stats, user] = await Promise.all([
+    getProjectStatsFromRuntime({ projectIds: [projectId] }),
+    getUser(deployment.createdBy),
+  ]);
+
   res.json({
     deployment,
     ...respondAgentFields({
@@ -320,6 +324,8 @@ router.get('/:deploymentId', middlewares.session(), async (req, res) => {
       secrets: (await getAgentSecretInputs({ aid: stringifyIdentity({ projectId, projectRef, agentId: agent.id }) }))
         .secrets,
     },
+    createdByInfo: user,
+    stats: stats[0],
   });
 });
 

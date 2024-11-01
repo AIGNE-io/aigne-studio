@@ -46,6 +46,10 @@ export const getUsers = async (dids: string[]) => {
   return map;
 };
 
+export const getUser = async (did: string) => {
+  return (await getUsers([did]))[did];
+};
+
 export const userAuth = () => {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user?.did) {

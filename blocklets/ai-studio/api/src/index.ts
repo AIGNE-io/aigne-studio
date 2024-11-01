@@ -14,7 +14,7 @@ import { projectCronManager } from './libs/cron-jobs';
 import { csrf } from './libs/csrf';
 import { Config, isDevelopment } from './libs/env';
 import { NoPermissionError, NoSuchEntryAgentError, NotFoundError } from './libs/error';
-import logger from './libs/logger';
+import logger, { accessLogMiddleware } from './libs/logger';
 import { importPackageJson } from './libs/package-json';
 import { resourceManager } from './libs/resource';
 import { xss } from './libs/xss';
@@ -52,6 +52,7 @@ app.use(express.urlencoded({ extended: true, limit: '1 mb' }));
 app.use(cors());
 app.use(xss());
 app.use(csrf());
+app.use(accessLogMiddleware);
 app.get('/.well-known/blocklet/openembed', getOpenEmbed);
 
 app.use('/api', routes);

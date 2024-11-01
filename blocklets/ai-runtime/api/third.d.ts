@@ -1,7 +1,13 @@
 declare module 'vite-plugin-blocklet';
 
 declare module '@blocklet/logger' {
-  export default function createLogger(name: string): typeof console;
+  function createLogger(name: string): typeof console;
+
+  namespace createLogger {
+    function getAccessLogStream(): any;
+  }
+
+  export default createLogger;
 }
 
 declare module 'express-history-api-fallback';

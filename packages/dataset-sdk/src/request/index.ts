@@ -1,8 +1,8 @@
+import { call } from '@blocklet/sdk/lib/component';
 import { Method } from 'axios';
 import Cookie from 'js-cookie';
 
 import { DatasetObject } from '../types';
-import { call } from '../util/call';
 import { getRequestConfig } from './util';
 
 export interface User {

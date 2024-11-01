@@ -13,10 +13,9 @@ import {
   ResourceProject,
   ResourceTypes,
 } from '@blocklet/ai-runtime/types';
-import { call } from '@blocklet/ai-runtime/utils/call';
 import { copyRecursive } from '@blocklet/ai-runtime/utils/fs';
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
-import component from '@blocklet/sdk/lib/component';
+import component, { call } from '@blocklet/sdk/lib/component';
 import middlewares from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import { pathExists } from 'fs-extra';
