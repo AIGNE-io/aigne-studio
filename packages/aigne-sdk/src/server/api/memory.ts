@@ -1,4 +1,4 @@
-import { call } from '@blocklet/ai-runtime/utils/call';
+import { call } from '@blocklet/sdk/lib/component';
 
 import { AIGNE_RUNTIME_COMPONENT_DID } from '../../constants';
 

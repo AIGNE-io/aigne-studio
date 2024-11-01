@@ -1,3 +1,27 @@
+## 0.4.125 (2024-11-1)
+
+- fix: debug preview ui
+
+## 0.4.124 (2024-11-1)
+
+- chore(pro-plan): improve request limit validation logic
+
+## 0.4.123 (2024-11-1)
+
+- chore: support branch decision
+
+## 0.4.122 (2024-11-1)
+
+- fix: optimize agents api for better performance
+
+## 0.4.121 (2024-10-31)
+
+- chore: polish explore detail page
+
+## 0.4.120 (2024-10-31)
+
+- chore: update @blocklet/sdk
+
 ## 0.4.119 (2024-10-31)
 
 - fix: invalid sig error
