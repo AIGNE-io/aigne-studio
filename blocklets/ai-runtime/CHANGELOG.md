@@ -1,3 +1,7 @@
+## 0.4.120 (2024-11-1)
+
+- fix: support image context
+
 ## 0.4.119 (2024-10-31)
 
 - fix: invalid sig error
