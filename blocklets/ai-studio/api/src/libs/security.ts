@@ -1,5 +1,5 @@
 import { auth } from '@blocklet/sdk/lib/middlewares';
-import { verify } from '@blocklet/sdk/lib/util/verify-sign';
+import { getVerifyData, verify } from '@blocklet/sdk/lib/util/verify-sign';
 import { NextFunction, Request, Response } from 'express';
 
 import { Config } from './env';
@@ -41,7 +41,8 @@ export function ensureComponentCallOr(fallback: (req: Request, res: Response, ne
     try {
       const sig = req.get('x-component-sig');
       if (sig) {
-        const verified = verify(req.body ?? {}, sig);
+        const { data, sig } = getVerifyData(req);
+        const verified = verify(data, sig);
         if (verified) {
           next();
         } else {
@@ -75,7 +76,8 @@ export function ensureComponentCallOrRolesMatch(req: Request, roles?: string[]) 
   try {
     const sig = req.get('x-component-sig');
     if (sig) {
-      const verified = verify(req.body ?? {}, sig);
+      const { data, sig } = getVerifyData(req);
+      const verified = verify(data, sig);
       return verified;
     }
     if (roles) {

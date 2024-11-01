@@ -37,6 +37,7 @@ const callInputSchema = Joi.object<{
   sessionId?: string;
   inputs?: { [key: string]: any };
   debug?: boolean;
+  appUrl?: string;
 }>({
   entryAid: Joi.string().empty(['', null]),
   aid: Joi.string().required(),
@@ -46,6 +47,7 @@ const callInputSchema = Joi.object<{
     $clientTime: Joi.string().isoDate().empty([null, '']),
   }).pattern(Joi.string(), Joi.any()),
   debug: Joi.boolean().empty(['', null]),
+  appUrl: Joi.string().empty(['', null]),
 }).rename('parameters', 'inputs', { ignoreUndefined: true, override: true });
 
 const checkProjectRequestLimit = async ({
@@ -116,16 +118,16 @@ router.post('/call', user(), compression(), async (req, res) => {
     completionTokens: 0,
   };
 
-  const project = await getProject({ blockletDid, projectId, projectRef, working: input.working });
+  const project = await getProject({ blockletDid, projectId, projectRef, working: input.working, rejectOnEmpty: true });
 
   const callAI: CallAI = async ({ input }) => {
     const stream = await chatCompletions({
       ...input,
-      model: input.model || project?.model || defaultTextModel,
-      temperature: input.temperature || project?.temperature,
-      topP: input.topP || project?.topP,
-      frequencyPenalty: input.frequencyPenalty || project?.frequencyPenalty,
-      presencePenalty: input.presencePenalty || project?.presencePenalty,
+      model: input.model || project.model || defaultTextModel,
+      temperature: input.temperature || project.temperature,
+      topP: input.topP || project.topP,
+      frequencyPenalty: input.frequencyPenalty || project.frequencyPenalty,
+      presencePenalty: input.presencePenalty || project.presencePenalty,
       // maxTokens: input.maxTokens || project?.maxTokens,
     });
 
@@ -278,6 +280,12 @@ router.post('/call', user(), compression(), async (req, res) => {
 
     const executor = new RuntimeExecutor(
       {
+        entry: {
+          blockletDid,
+          project,
+          working: input.working,
+          appUrl: input.appUrl,
+        },
         getSecret: ({ targetProjectId, targetAgentId, targetInputKey }) =>
           Secrets.findOne({
             where: { projectId, targetProjectId, targetAgentId, targetInputKey },

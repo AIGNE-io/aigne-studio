@@ -3,7 +3,8 @@ import { join } from 'path';
 
 import { resourceManager } from '@api/libs/resource';
 import user from '@blocklet/sdk/lib/middlewares/user';
-import { initLocalStorageServer } from '@blocklet/uploader/lib/middlewares';
+// @ts-ignore
+import { initLocalStorageServer } from '@blocklet/uploader-server';
 import express, { Router } from 'express';
 import { pathExists } from 'fs-extra';
 import Joi from 'joi';

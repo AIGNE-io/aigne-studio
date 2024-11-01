@@ -18,6 +18,7 @@ import {
   ExecutionPhase,
   OutputVariable,
   Parameter,
+  ProjectSettings,
   RuntimeOutputProfile,
   RuntimeOutputVariable,
   Variable,
@@ -40,6 +41,7 @@ export class ExecutorContext {
   constructor(
     options: Pick<
       ExecutorContext,
+      | 'entry'
       | 'getAgent'
       | 'callAI'
       | 'callAIImage'
@@ -56,6 +58,7 @@ export class ExecutorContext {
       | 'setCache'
     >
   ) {
+    this.entry = options.entry;
     this.getAgent = memoize(options.getAgent, {
       keyGenerator: (o) => [o.aid, o.working].filter(isNonNullable).join('/'),
     });
@@ -75,6 +78,13 @@ export class ExecutorContext {
     this.queryCache = options.queryCache;
     this.setCache = options.setCache;
   }
+
+  entry: {
+    blockletDid?: string;
+    project: ProjectSettings;
+    working?: boolean;
+    appUrl?: string;
+  };
 
   getSecret: (args: {
     targetProjectId: string;
@@ -345,10 +355,14 @@ export abstract class AgentExecutorBase<T> {
         },
       },
       $blocklet: {
-        issueVC: (args: Omit<Parameters<typeof issueVC>[0], 'userDid'>) => {
+        issueVC: (args: Omit<Parameters<typeof issueVC>[0], 'userDid' | 'project'>) => {
           const userDid = executor.context.user?.did;
           if (!userDid) throw new Error('Issue VC requires user did');
-          return issueVC({ ...args, userDid });
+          return issueVC({
+            ...args,
+            userDid,
+            context: this.context,
+          });
         },
       },
     };
@@ -703,13 +717,14 @@ export abstract class AgentExecutorBase<T> {
         inputVariables[parameter.key] = val;
       } else if (parameter.type === 'boolean') {
         const val = inputVariables[parameter.key];
-        inputVariables[parameter.key] = Boolean(isNil(val) || val === '' ? parameter.defaultValue : val);
+        inputVariables[parameter.key] = Boolean(isNil(val) ? parameter.defaultValue : val);
       } else if (parameter.type === 'number') {
         const val = inputVariables[parameter.key];
-        inputVariables[parameter.key] = Number(isNil(val) || val === '' ? parameter.defaultValue : val);
+        const parsedValue = val && typeof val === 'number' ? val : (Number(val) ?? parameter.defaultValue ?? null);
+        inputVariables[parameter.key] = Number.isNaN(parsedValue) ? (parameter.defaultValue ?? null) : parsedValue;
       } else {
         const val = inputVariables[parameter.key];
-        if (!isNil(val) && val !== '') inputVariables[parameter.key] = val;
+        if (!isNil(val)) inputVariables[parameter.key] = val || null;
       }
     }
 

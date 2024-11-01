@@ -22,6 +22,7 @@ import {
   ListItemText,
   Paper,
   Popper,
+  Tooltip,
 } from '@mui/material';
 import { ReactElement, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -118,9 +119,12 @@ export function MakeYoursButton({
 
   return (
     <>
-      <LoadingButton variant="outlined" onClick={onClick} {...props}>
-        {t('makeYours')}
-      </LoadingButton>
+      <Tooltip title={t('makeYoursTip')}>
+        <LoadingButton variant="outlined" onClick={onClick} {...props}>
+          {t('makeYours')}
+        </LoadingButton>
+      </Tooltip>
+
       {dialog}
     </>
   );

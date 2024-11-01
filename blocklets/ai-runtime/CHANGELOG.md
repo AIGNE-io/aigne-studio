@@ -1,3 +1,35 @@
+## 0.4.123 (2024-11-1)
+
+- chore: support branch decision
+
+## 0.4.122 (2024-11-1)
+
+- fix: optimize agents api for better performance
+
+## 0.4.121 (2024-10-31)
+
+- chore: polish explore detail page
+
+## 0.4.120 (2024-10-31)
+
+- chore: update @blocklet/sdk
+
+## 0.4.119 (2024-10-31)
+
+- fix: invalid sig error
+
+## 0.4.118 (2024-10-30)
+
+- chore: upgrade @blocklet/sdk & custom notification for issued vc
+
+## 0.4.117 (2024-10-30)
+
+- chore: update @blocklet/uploader package
+
+## 0.4.116 (2024-10-30)
+
+- fix: auto prefix VCs with AIGNE for those issued by agent
+
 ## 0.4.115 (2024-10-30)
 
 - chore: remove user passport caching
