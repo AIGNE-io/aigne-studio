@@ -18,12 +18,22 @@ export default function CustomComponentRenderer({
 >) {
   const openSettings = useDebug((s) => s.open);
   const selected = useDebug((s) => 'id' in output && output.id === s.outputId);
+  const hovered = useDebug((s) => 'id' in output && output.id === s.hoverOutputId);
+  const setTabId = useDebug((s) => s.setTabId);
 
   if (!openSettings) return <CustomComponentRendererOriginal {...props} />;
 
   return (
     <Box
-      className={cx('ai-runtime-custom-component-renderer', selected && 'selected')}
+      onMouseMove={(e) => {
+        e.stopPropagation();
+        setTabId?.('id' in output ? output.id : output.name);
+      }}
+      onMouseLeave={(e) => {
+        e.stopPropagation();
+        setTabId?.('');
+      }}
+      className={cx('ai-runtime-custom-component-renderer', (hovered || selected) && 'selected')}
       sx={{
         position: 'relative',
         '> .settings': { display: 'none' },
