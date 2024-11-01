@@ -9,7 +9,7 @@ import { resourceManager } from '@api/libs/resource';
 import DatasetContent from '@api/store/models/dataset/content';
 import { copyRecursive } from '@blocklet/ai-runtime/utils/fs';
 import config from '@blocklet/sdk/lib/config';
-import user from '@blocklet/sdk/lib/middlewares/user';
+import middlewares from '@blocklet/sdk/lib/middlewares';
 import archiver from 'archiver';
 import compression from 'compression';
 import { Router } from 'express';
@@ -40,7 +40,7 @@ const getDatasetsQuerySchema = Joi.object<{ excludeResource?: boolean; projectId
   projectId: Joi.string().empty(['', null]),
 });
 
-router.get('/', user(), ensureComponentCallOr(userAuth()), async (req, res) => {
+router.get('/', middlewares.session(), ensureComponentCallOr(userAuth()), async (req, res) => {
   const query = await getDatasetsQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
   const sql = Sequelize.literal(
@@ -72,7 +72,7 @@ router.get('/', user(), ensureComponentCallOr(userAuth()), async (req, res) => {
   ]);
 });
 
-router.get('/:datasetId', user(), ensureComponentCallOr(userAuth()), async (req, res) => {
+router.get('/:datasetId', middlewares.session(), ensureComponentCallOr(userAuth()), async (req, res) => {
   const { datasetId } = req.params;
   if (!datasetId) throw new Error('missing required param `datasetId`');
 
@@ -95,7 +95,7 @@ export const exportResourceQuerySchema = Joi.object<{ public?: boolean }>({
   public: Joi.boolean().empty(['', null]),
 });
 
-router.get('/:datasetId/export-resource', user(), ensureComponentCallOrAdmin(), async (req, res) => {
+router.get('/:datasetId/export-resource', middlewares.session(), ensureComponentCallOrAdmin(), async (req, res) => {
   const { datasetId } = req.params;
   if (!datasetId) throw new Error('missing required param `datasetId`');
 
@@ -158,7 +158,7 @@ router.get('/:datasetId/export-resource', user(), ensureComponentCallOrAdmin(), 
   }
 });
 
-router.post('/', user(), userAuth(), async (req, res) => {
+router.post('/', middlewares.session(), userAuth(), async (req, res) => {
   const { did } = req.user!;
   const {
     name = '',
@@ -193,7 +193,7 @@ router.post('/', user(), userAuth(), async (req, res) => {
   return res.json(dataset);
 });
 
-router.put('/:datasetId', user(), userAuth(), async (req, res) => {
+router.put('/:datasetId', middlewares.session(), userAuth(), async (req, res) => {
   const { datasetId } = req.params;
   const { did } = req.user!;
 
@@ -214,7 +214,7 @@ router.put('/:datasetId', user(), userAuth(), async (req, res) => {
   res.json(await Dataset.findOne({ where: { id: datasetId } }));
 });
 
-router.delete('/:datasetId', user(), userAuth(), async (req, res) => {
+router.delete('/:datasetId', middlewares.session(), userAuth(), async (req, res) => {
   const { datasetId } = req.params;
 
   const dataset = await Dataset.findOne({ where: { [Op.or]: [{ id: datasetId }, { name: datasetId }] } });

@@ -21,7 +21,7 @@ import { toolCallsTransform } from '@blocklet/ai-runtime/core/utils/tool-calls-t
 import { AssistantResponseType, RuntimeOutputVariable, isImageAssistant } from '@blocklet/ai-runtime/types';
 import { RuntimeError, RuntimeErrorType } from '@blocklet/ai-runtime/types/runtime/error';
 import { getUserPassports, quotaChecker } from '@blocklet/aigne-sdk/api/premium';
-import user from '@blocklet/sdk/lib/middlewares/user';
+import middlewares from '@blocklet/sdk/lib/middlewares';
 import compression from 'compression';
 import { Router } from 'express';
 import Joi from 'joi';
@@ -79,7 +79,7 @@ const checkProjectRequestLimit = async ({
   }
 };
 
-router.post('/call', user(), compression(), async (req, res) => {
+router.post('/call', middlewares.session(), compression(), async (req, res) => {
   const stream = req.accepts().includes('text/event-stream');
 
   const input = await callInputSchema.validateAsync(

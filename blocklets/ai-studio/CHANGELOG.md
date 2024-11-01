@@ -1,3 +1,7 @@
+## 0.4.126 (2024-11-1)
+
+- chore: use middlewares.session replace middlewares.user
+
 ## 0.4.125 (2024-11-1)
 
 - fix: debug preview ui

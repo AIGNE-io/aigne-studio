@@ -26,7 +26,7 @@ import { AIGNE_RUNTIME_COMPONENT_DID, NFT_BLENDER_COMPONENT_DID } from '@blockle
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { call } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
-import { user } from '@blocklet/sdk/lib/middlewares';
+import { session } from '@blocklet/sdk/lib/middlewares';
 import { Request, Router } from 'express';
 import { exists } from 'fs-extra';
 import * as git from 'isomorphic-git';
@@ -266,7 +266,7 @@ export interface CreateOrUpdateAgentInputSecretPayload {
 }
 
 export function projectRoutes(router: Router) {
-  router.get('/projects', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+  router.get('/projects', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const list = await Project.findAll({
       where: { ...getProjectWhereConditions(req) },
       order: [
@@ -315,7 +315,7 @@ export function projectRoutes(router: Router) {
     });
   });
 
-  router.get('/template-projects', user(), ensureComponentCallOrPromptsEditor(), async (_req, res) => {
+  router.get('/template-projects', session(), ensureComponentCallOrPromptsEditor(), async (_req, res) => {
     const resourceTemplates = (await resourceManager.getProjects({ type: 'template' })).map((i) => ({
       ...i.project,
       blockletDid: i.blocklet.did,
@@ -324,7 +324,7 @@ export function projectRoutes(router: Router) {
     res.json({ templates: uniqBy([...resourceTemplates], (i) => i.id) });
   });
 
-  router.get('/projects/icons', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+  router.get('/projects/icons', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { did } = req.user!;
 
     const { data } = await call({
@@ -338,7 +338,7 @@ export function projectRoutes(router: Router) {
     res.json({ icons: data?.uploads || [] });
   });
 
-  router.delete('/projects/icon/:id', ensureComponentCallOrPromptsEditor(), user(), async (req, res) => {
+  router.delete('/projects/icon/:id', ensureComponentCallOrPromptsEditor(), session(), async (req, res) => {
     const { did } = req.user!;
     const { data } = await call({
       name: 'image-bin',
@@ -404,7 +404,7 @@ export function projectRoutes(router: Router) {
     working: Joi.boolean().empty(['', null]),
   });
 
-  router.get('/projects/:projectId', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+  router.get('/projects/:projectId', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required param `projectId`');
 
@@ -426,7 +426,7 @@ export function projectRoutes(router: Router) {
 
   router.get(
     '/projects/:projectId/agent-input-secrets',
-    user(),
+    session(),
     ensureComponentCallOrPromptsEditor(),
     async (req, res) => {
       const { projectId } = req.params;
@@ -458,7 +458,7 @@ export function projectRoutes(router: Router) {
 
   router.post(
     '/projects/:projectId/agent-input-secrets',
-    user(),
+    session(),
     ensureComponentCallOrPromptsEditor(),
     async (req, res) => {
       const { did: userId } = req.user!;
@@ -503,7 +503,7 @@ export function projectRoutes(router: Router) {
     }
   );
 
-  router.post('/projects', user(), ensureComponentCallOrPromptsEditor(), checkDeployment, async (req, res) => {
+  router.post('/projects', session(), ensureComponentCallOrPromptsEditor(), checkDeployment, async (req, res) => {
     const {
       blockletDid,
       templateId = projectTemplates[0]?.project?.id,
@@ -572,7 +572,7 @@ export function projectRoutes(router: Router) {
     res.json(project);
   });
 
-  router.post('/projects/import', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+  router.post('/projects/import', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     await checkProjectLimit({ req });
 
     const { name, username, password, description, url } = await importProjectSchema.validateAsync(req.body, {
@@ -681,7 +681,7 @@ export function projectRoutes(router: Router) {
     }
   });
 
-  router.patch('/projects/:projectId', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+  router.patch('/projects/:projectId', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required parameter `projectId`');
 
@@ -743,7 +743,7 @@ export function projectRoutes(router: Router) {
     res.json(project.dataValues);
   });
 
-  router.delete('/projects/:projectId', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+  router.delete('/projects/:projectId', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required params `projectId`');
 
@@ -770,7 +770,7 @@ export function projectRoutes(router: Router) {
     res.json(project);
   });
 
-  router.post('/projects/:projectId/remote', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+  router.post('/projects/:projectId/remote', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required params `projectId`');
 
@@ -798,7 +798,7 @@ export function projectRoutes(router: Router) {
     res.json({});
   });
 
-  router.delete('/projects/:projectId/remote', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+  router.delete('/projects/:projectId/remote', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required params `projectId`');
 
@@ -815,7 +815,7 @@ export function projectRoutes(router: Router) {
     res.json({});
   });
 
-  router.post('/projects/:projectId/remote/push', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+  router.post('/projects/:projectId/remote/push', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required params `projectId`');
 
@@ -837,7 +837,7 @@ export function projectRoutes(router: Router) {
     res.json({});
   });
 
-  router.post('/projects/:projectId/remote/pull', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+  router.post('/projects/:projectId/remote/pull', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { did: userId, fullName } = req.user!;
 
     const { projectId } = req.params;
@@ -871,7 +871,7 @@ export function projectRoutes(router: Router) {
     res.json({});
   });
 
-  router.post('/projects/:projectId/remote/sync', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+  router.post('/projects/:projectId/remote/sync', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { did: userId, fullName } = req.user!;
 
     const { projectId } = req.params;
@@ -1001,7 +1001,7 @@ export function projectRoutes(router: Router) {
 
   router.get(
     '/projects/compare/:projectId/:ref/:agentId',
-    user(),
+    session(),
     ensureComponentCallOrPromptsEditor(),
     async (req, res) => {
       const { projectId, ref, agentId } = req.params;
@@ -1083,7 +1083,7 @@ export function projectRoutes(router: Router) {
 
   router.post(
     '/projects/:projectId/refs/:ref/assets',
-    user(),
+    session(),
     ensureComponentCallOrPromptsEditor(),
     async (req, res) => {
       const { projectId, ref } = req.params;
