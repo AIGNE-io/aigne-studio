@@ -848,6 +848,7 @@ export default flatten({
   publishToStore: 'Publish to Store',
   run: 'Run',
   makeYours: 'Make Yours',
+  makeYoursTip: 'Clone this AI application to create your own version',
   readme: 'Readme',
   shareOnTwitter: 'Share on Twitter',
   openInNewTab: 'Open in new tab',
@@ -910,4 +911,5 @@ export default flatten({
     branchTip:
       'Please set Agent condition rules first. When no condition rules are selected, you can set default execution tools, otherwise no Agent will be executed',
   },
+  aigneBannerVisibility: 'AIGNE branding banner visibility',
 });

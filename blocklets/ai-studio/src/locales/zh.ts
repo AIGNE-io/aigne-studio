@@ -839,7 +839,8 @@ export default flatten({
   publishToStore: '发布到应用市场',
   readme: 'Readme',
   run: '运行',
-  makeYours: '制作个人版本',
+  makeYours: '复制并改进',
+  makeYoursTip: '复制此 AI 应用以制作您的个人版本',
   shareOnTwitter: '分享到推特',
   openInNewTab: '在新标签页中打开',
   copyLink: '复制链接',
@@ -900,4 +901,5 @@ export default flatten({
     addRule: '添加规则',
     branchTip: '请优先设置 Agent 条件规则，当条件规则没有选中时，可以设置默认的执行工具, 否则将不会执行任何 Agent',
   },
+  aigneBannerVisibility: '显示 AIGNE 品牌横幅',
 });

@@ -20,11 +20,11 @@ import {
   projectSettingsSchema,
   variableToYjs,
 } from '@blocklet/ai-runtime/types';
-import { call } from '@blocklet/ai-runtime/utils/call';
 import { copyRecursive } from '@blocklet/ai-runtime/utils/fs';
 import { getUserPassports, quotaChecker } from '@blocklet/aigne-sdk/api/premium';
 import { AIGNE_RUNTIME_COMPONENT_DID, NFT_BLENDER_COMPONENT_DID } from '@blocklet/aigne-sdk/constants';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import { call } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
 import { user } from '@blocklet/sdk/lib/middlewares';
 import { Request, Router } from 'express';
@@ -140,6 +140,7 @@ export interface UpdateProjectInput {
         fontFamily?: string;
       };
     };
+    aigneBannerVisible?: boolean;
   };
 }
 
@@ -165,6 +166,7 @@ const updateProjectSchema = Joi.object<UpdateProjectInput>({
         fontFamily: Joi.string().empty([null, '']),
       }),
     }),
+    aigneBannerVisible: Joi.boolean().empty([null]),
   }),
 });
 
@@ -949,16 +951,29 @@ export function projectRoutes(router: Router) {
 
       const query = await getAgentQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
-      const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error(`Project ${projectId} not found`) });
-
       const repo = await getRepository({ projectId });
 
-      const working = await repo.working({ ref });
-      const settings = working.syncedStore.files[PROJECT_FILE_PATH];
+      const [agent, settings] = await Promise.all([
+        repo.readAgent({
+          ref,
+          agentId,
+          working: query.working,
+          rejectOnEmpty: true,
+          readBlobFromGitIfWorkingNotInitialized: true,
+        }),
+        repo.readAndParseFile({
+          ref,
+          filepath: PROJECT_FILE_PATH,
+          working: query.working,
+          rejectOnEmpty: true,
+          readBlobFromGitIfWorkingNotInitialized: true,
+        }),
+      ]);
 
-      const agent = await repo.readAgent({ ref, agentId, working: query.working, rejectOnEmpty: true });
-
-      res.json({ agent, project: { ...project.dataValues, ...(working ? settings : {}) } });
+      res.json({
+        agent,
+        project: settings,
+      });
     }
   );
 
@@ -970,8 +985,6 @@ export function projectRoutes(router: Router) {
       if (!projectId || !ref) throw new Error('Missing required params `projectId`, `ref`');
 
       const query = await getAgentQuerySchema.validateAsync(req.query, { stripUnknown: true });
-
-      await Project.findByPk(projectId, { rejectOnEmpty: new Error(`Project ${projectId} not found`) });
 
       const repo = await getRepository({ projectId });
 
