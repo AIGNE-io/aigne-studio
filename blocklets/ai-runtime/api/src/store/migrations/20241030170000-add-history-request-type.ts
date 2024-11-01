@@ -12,9 +12,9 @@ export const up: Migration = async ({ context: queryInterface }) => {
 };
 
 export const down: Migration = async ({ context: queryInterface }) => {
-  await queryInterface.removeColumn('Histories', 'requestType');
-  await queryInterface.removeColumn('Histories', 'projectOwnerId');
-
   await queryInterface.removeIndex('Histories', ['requestType']);
   await queryInterface.removeIndex('Histories', ['projectOwnerId']);
+
+  await queryInterface.removeColumn('Histories', 'requestType');
+  await queryInterface.removeColumn('Histories', 'projectOwnerId');
 };
