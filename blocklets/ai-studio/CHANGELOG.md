@@ -1,3 +1,7 @@
+## 0.4.124 (2024-11-1)
+
+- chore(pro-plan): improve request limit validation logic
+
 ## 0.4.123 (2024-11-1)
 
 - chore: support branch decision

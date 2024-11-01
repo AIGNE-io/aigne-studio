@@ -5,6 +5,8 @@ import { create } from 'zustand';
 
 import type { Plan } from './pricing-table';
 
+type RestrictionType = QuotaKey | 'anonymousRequest';
+
 export const premiumPassport = window.blocklet?.preferences?.premiumPassport;
 
 function preparePlansData(locale: 'en' | 'zh') {
@@ -60,17 +62,17 @@ export const useCurrentPlan = () => {
 
 export const useMultiTenantRestrictionStore = create<{
   planUpgradeVisible: boolean;
-  type: QuotaKey | null;
-  showPlanUpgrade: (type?: QuotaKey | null) => void;
+  type: RestrictionType | null;
+  showPlanUpgrade: (type?: RestrictionType | null) => void;
   hidePlanUpgrade: () => void;
 }>((set) => ({
   planUpgradeVisible: false,
   type: null,
-  showPlanUpgrade: (type?: QuotaKey | null) => set({ planUpgradeVisible: true, type }),
+  showPlanUpgrade: (type?: RestrictionType | null) => set({ planUpgradeVisible: true, type }),
   hidePlanUpgrade: () => set({ planUpgradeVisible: false }),
 }));
 
-export const showPlanUpgrade = (type?: QuotaKey) => {
+export const showPlanUpgrade = (type?: RestrictionType) => {
   useMultiTenantRestrictionStore.setState({ planUpgradeVisible: true, type });
 };
 
@@ -79,6 +81,8 @@ export const premiumPlanEnabled = !!window.blocklet?.preferences?.premiumPlanEna
 export function useMultiTenantRestriction() {
   const { planUpgradeVisible, type, showPlanUpgrade, hidePlanUpgrade } = useMultiTenantRestrictionStore();
   const { session } = useSessionContext();
+  const isAdmin = useIsAdmin();
+  const isPremiumUser = useIsPremiumUser();
   const passports = session?.user?.passports?.map((x: any) => x.name);
   const quotas = new Quotas(window.blocklet?.preferences);
   const quotaChecker = {
@@ -90,6 +94,11 @@ export function useMultiTenantRestriction() {
     checkCustomBrand() {
       if (quotas.checkCustomBrand(passports)) return true;
       showPlanUpgrade('customBrand');
+      return false;
+    },
+    checkAnonymousRequest() {
+      if (isAdmin || isPremiumUser) return true;
+      showPlanUpgrade('anonymousRequest');
       return false;
     },
   };

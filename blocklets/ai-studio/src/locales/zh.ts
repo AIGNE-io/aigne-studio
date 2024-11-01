@@ -863,6 +863,9 @@ export default flatten({
     cronJobs: {
       desc: '定时任务功能仅在 Serverless AIGNE 中可用。请运行 Serverless AIGNE 以访问此功能。',
     },
+    anonymousRequest: {
+      desc: '匿名请求是高级功能。请升级到高级版以访问此功能。',
+    },
   },
   pricingAndPlans: {
     currentPlan: '当前套餐',

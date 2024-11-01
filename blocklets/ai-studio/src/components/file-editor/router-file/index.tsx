@@ -29,7 +29,6 @@ import {
   Avatar,
   Box,
   Button,
-  FormGroup,
   List,
   ListSubheader,
   ListSubheaderProps,
