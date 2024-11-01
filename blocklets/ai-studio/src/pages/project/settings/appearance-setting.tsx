@@ -1,6 +1,7 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Box, Stack, Typography } from '@mui/material';
 
+import AigneBannerSetting from './aigne-banner-setting';
 import ColorSetting from './color-setting';
 import FontFamilySetting from './font-family-setting';
 
@@ -28,6 +29,13 @@ export default function AppearanceSetting() {
           {t('fontFamily')}
         </Typography>
         <FontFamilySetting />
+      </Box>
+
+      <Box>
+        <Typography variant="subtitle2" mb={0.5}>
+          {t('aigneBannerVisibility')}
+        </Typography>
+        <AigneBannerSetting />
       </Box>
     </Stack>
   );

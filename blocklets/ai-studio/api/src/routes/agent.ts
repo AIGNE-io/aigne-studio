@@ -5,14 +5,14 @@ import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { Assistant, ProjectSettings } from '@blocklet/ai-runtime/types';
 import { Agent } from '@blocklet/aigne-sdk/api/agent';
 import { config } from '@blocklet/sdk';
-import { user } from '@blocklet/sdk/lib/middlewares';
+import middlewares from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import isEmpty from 'lodash/isEmpty';
 import pick from 'lodash/pick';
 
 const router = Router();
 
-router.get('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
+router.get('/', middlewares.session(), ensureComponentCallOrAuth(), async (req, res) => {
   const projects = await Project.findAll({
     where: { ...(req.user && config.env.tenantMode === 'multiple' ? { createdBy: req.user.did } : {}) },
   });

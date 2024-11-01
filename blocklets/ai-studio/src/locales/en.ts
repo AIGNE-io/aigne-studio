@@ -848,6 +848,7 @@ export default flatten({
   publishToStore: 'Publish to Store',
   run: 'Run',
   makeYours: 'Make Yours',
+  makeYoursTip: 'Clone this AI application to create your own version',
   readme: 'Readme',
   shareOnTwitter: 'Share on Twitter',
   openInNewTab: 'Open in new tab',
@@ -871,6 +872,9 @@ export default flatten({
     cronJobs: {
       desc: 'The Cron Jobs feature is available only in Serverless AIGNE. Please run a Serverless AIGNE to access this feature.',
     },
+    anonymousRequest: {
+      desc: 'Anonymous access control is a premium feature. Please upgrade to the Premium plan to access this feature.',
+    },
   },
   pricingAndPlans: {
     currentPlan: 'This is your current plan',
@@ -886,4 +890,30 @@ export default flatten({
   buttonTitle: 'Button Title',
   buttonTitleVerified: 'Button Title (verified)',
   agentNotFound: 'Agent Not Found',
+  operators: {
+    equals: 'Equals',
+    doesNotEqual: 'Does Not Equal',
+    lessThan: 'Less Than',
+    greaterThan: 'Greater Than',
+    lessThanOrEqual: 'Less Than Or Equal',
+    greaterThanOrEqual: 'Greater Than Or Equal',
+    contains: 'Contains',
+    beginsWith: 'Begins With',
+    endsWith: 'Ends With',
+    doesNotContain: 'Does Not Contain',
+    doesNotBeginWith: 'Does Not Begin With',
+    doesNotEndWith: 'Does Not End With',
+    isNull: 'Is Null',
+    isNotNull: 'Is Not Null',
+    and: 'And',
+    or: 'Or',
+  },
+  decision: {
+    AI: 'AI Condition',
+    branch: 'Branch Condition',
+    addRule: 'Add Rule',
+    branchTip:
+      'Please set Agent condition rules first. When no condition rules are selected, you can set default execution tools, otherwise no Agent will be executed',
+  },
+  aigneBannerVisibility: 'AIGNE branding banner visibility',
 });

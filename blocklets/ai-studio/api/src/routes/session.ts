@@ -1,6 +1,6 @@
 import Session from '@api/store/models/session';
 import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
-import { auth, user } from '@blocklet/sdk/lib/middlewares';
+import middlewares from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
 
@@ -9,7 +9,7 @@ import Histories from '../store/models/history';
 export function sessionRoutes(router: Router) {
   const sessionsQuerySchema = Joi.object<{ aid: string }>({ aid: Joi.string().required() });
 
-  router.get('/sessions', user(), auth(), async (req, res) => {
+  router.get('/sessions', middlewares.session(), middlewares.auth(), async (req, res) => {
     const { did: userId } = req.user!;
     const query = await sessionsQuerySchema.validateAsync(
       {
@@ -38,7 +38,7 @@ export function sessionRoutes(router: Router) {
     });
   });
 
-  router.get('/sessions/:sessionId', user(), auth(), async (req, res) => {
+  router.get('/sessions/:sessionId', middlewares.session(), middlewares.auth(), async (req, res) => {
     const { did: userId } = req.user!;
     const { sessionId } = req.params;
     if (!sessionId) throw new Error('Missing required param sessionId');
@@ -59,7 +59,7 @@ export function sessionRoutes(router: Router) {
     name: Joi.string().empty(['', null]),
   });
 
-  router.post('/sessions', user(), auth(), async (req, res) => {
+  router.post('/sessions', middlewares.session(), middlewares.auth(), async (req, res) => {
     const { did: userId } = req.user!;
     const input = await createSessionInput.validateAsync(
       {
@@ -90,7 +90,7 @@ export function sessionRoutes(router: Router) {
     parameters: Joi.object().pattern(Joi.string(), Joi.any()),
   });
 
-  router.patch('/sessions/:sessionId', user(), auth(), async (req, res) => {
+  router.patch('/sessions/:sessionId', middlewares.session(), middlewares.auth(), async (req, res) => {
     const { did: userId } = req.user!;
     const { sessionId } = req.params;
     const input = await updateSessionInput.validateAsync(req.body, { stripUnknown: true });
@@ -118,7 +118,7 @@ export function sessionRoutes(router: Router) {
     });
   });
 
-  router.delete('/sessions/:sessionId', user(), auth(), async (req, res) => {
+  router.delete('/sessions/:sessionId', middlewares.session(), middlewares.auth(), async (req, res) => {
     const { did: userId } = req.user!;
     const { sessionId } = req.params;
 
@@ -141,7 +141,7 @@ export function sessionRoutes(router: Router) {
     });
   });
 
-  router.post('/sessions/:sessionId/clear', user(), auth(), async (req, res) => {
+  router.post('/sessions/:sessionId/clear', middlewares.session(), middlewares.auth(), async (req, res) => {
     const { sessionId } = req.params;
     const { did: userId } = req.user!;
 
@@ -156,7 +156,7 @@ export function sessionRoutes(router: Router) {
     res.json({});
   });
 
-  router.delete('/sessions', user(), auth(), async (req, res) => {
+  router.delete('/sessions', middlewares.session(), middlewares.auth(), async (req, res) => {
     const { did: userId } = req.user!;
 
     const query = await sessionsQuerySchema.validateAsync(

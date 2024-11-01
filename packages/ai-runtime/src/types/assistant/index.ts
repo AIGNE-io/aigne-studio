@@ -1,3 +1,5 @@
+import type { RuleGroupType } from 'react-querybuilder';
+
 import { AgentExecutor, ProjectSettings } from '../resource';
 import type { RuntimeOutputAppearance, RuntimeOutputVariable, RuntimeOutputVariablesSchema } from '../runtime';
 
@@ -238,7 +240,8 @@ export interface RouterAssistant extends AssistantBase {
   type: 'router';
   defaultToolId?: string;
   prompt?: string;
-  routes?: Tool[];
+  decisionType?: 'ai' | 'json-logic';
+  routes?: ({ condition?: RuleGroupType } & Tool)[];
 
   // 参数配置，为了可以复用UI和 prompt一致
   temperature?: number;
