@@ -99,18 +99,6 @@ export default function RouterAssistantEditor({
   const conditionalBranch = value.decisionType === 'json-logic';
   return (
     <Stack gap={1.5}>
-      <FormGroup row sx={{ alignItems: 'center', justifyContent: 'flex-end' }}>
-        <Typography>{t('decision.AI')}</Typography>
-        <Switch
-          sx={{ mx: 1 }}
-          checked={conditionalBranch}
-          onChange={(e) => {
-            value.decisionType = e.target.checked ? 'json-logic' : 'ai';
-          }}
-        />
-        <Typography>{t('decision.branch')}</Typography>
-      </FormGroup>
-
       <Stack gap={1} width={1} ref={ref}>
         {conditionalBranch ? (
           <Stack

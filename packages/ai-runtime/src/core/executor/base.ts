@@ -717,14 +717,14 @@ export abstract class AgentExecutorBase<T> {
         inputVariables[parameter.key] = val;
       } else if (parameter.type === 'boolean') {
         const val = inputVariables[parameter.key];
-        inputVariables[parameter.key] = Boolean(isNil(val) || val === '' ? parameter.defaultValue : val);
+        inputVariables[parameter.key] = Boolean(isNil(val) ? parameter.defaultValue : val);
       } else if (parameter.type === 'number') {
         const val = inputVariables[parameter.key];
         const parsedValue = val && typeof val === 'number' ? val : (Number(val) ?? parameter.defaultValue ?? null);
         inputVariables[parameter.key] = Number.isNaN(parsedValue) ? (parameter.defaultValue ?? null) : parsedValue;
       } else {
         const val = inputVariables[parameter.key];
-        if (!isNil(val) && val !== '') inputVariables[parameter.key] = val;
+        if (!isNil(val)) inputVariables[parameter.key] = val || null;
       }
     }
 
