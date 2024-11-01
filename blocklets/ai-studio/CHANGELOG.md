@@ -1,3 +1,7 @@
+## 0.4.129 (2024-11-1)
+
+- fix: runtime component is optional for pages-kit
+
 ## 0.4.128 (2024-11-1)
 
 - fix: support image context
