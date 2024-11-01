@@ -307,7 +307,7 @@ function ProjectMenu() {
                 <Stack overflow="auto" gap={2}>
                   <Box>
                     <Typography variant="subtitle2">{t('projectSetting.name')}</Typography>
-                    <NameField form={form} currentName={item?.name} />
+                    <NameField form={form} projectId={item?.id} />
                   </Box>
 
                   <Box>

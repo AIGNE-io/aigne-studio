@@ -315,17 +315,22 @@ export function projectRoutes(router: Router) {
     });
   });
 
-  const checkProjectNameSchema = Joi.object<{ value: string; currentName: string }>({
-    value: Joi.string().required(),
-    currentName: Joi.string().empty([null, '']),
+  const checkProjectNameSchema = Joi.object<{ name: string; projectId: string }>({
+    name: Joi.string().required(),
+    projectId: Joi.string().empty([null, '']),
   });
 
-  router.post('/projects/check-name', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
-    const { value, currentName } = await checkProjectNameSchema.validateAsync(req.body, { stripUnknown: true });
+  router.get('/projects/check-name', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+    const { name, projectId } = await checkProjectNameSchema.validateAsync(req.query, { stripUnknown: true });
+    const projects = await Project.findAll({ where: { name, createdBy: req.user.did } });
 
-    const project = await Project.findOne({ where: { name: value, createdBy: req.user.did } });
-    const ok = value === currentName || !project;
-    res.json({ ok });
+    if (!projectId) {
+      res.json({ ok: projects.length === 0, project: projects?.[0] });
+      return;
+    }
+
+    const filtered = projects.filter((i) => i.id !== projectId);
+    res.json({ ok: filtered.length === 0, project: filtered?.[0] });
   });
 
   router.get('/template-projects', user(), ensureComponentCallOrPromptsEditor(), async (_req, res) => {

@@ -65,11 +65,10 @@ export async function listProjectsByDidSpaces(endpoint: string): Promise<Project
 }
 
 export async function checkProjectName(data: {
-  value: string;
-  createdBy: string;
-  currentName?: string;
-}): Promise<{ ok: boolean }> {
-  return axios.post('/api/projects/check-name', data).then((res) => res.data);
+  name: string;
+  projectId?: string;
+}): Promise<{ ok: boolean; project: Project }> {
+  return axios.get('/api/projects/check-name', { params: data }).then((res) => res.data);
 }
 
 export async function exportAssistantsToProject(
