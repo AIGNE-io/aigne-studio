@@ -1,3 +1,7 @@
+## 0.4.128 (2024-11-1)
+
+- fix: support image context
+
 ## 0.4.127 (2024-11-1)
 
 - chore: improve button styling consistency

@@ -55,7 +55,7 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
         />
       </Box>
 
-      {value.type === 'select' && (
+      {(value.type === 'select' || value.type === 'image') && (
         <Box>
           <FormControl>
             <FormControlLabel
@@ -109,7 +109,13 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
               fullWidth
               size="medium"
               value={value.defaultValue ?? ''}
-              onChange={(defaultValue: any) => (value.defaultValue = defaultValue)}
+              onChange={(defaultValue: any) => {
+                if (value.type === 'image' && value.multiple) {
+                  value.defaultValue = [defaultValue];
+                } else {
+                  value.defaultValue = defaultValue;
+                }
+              }}
             />
           )}
         </Box>
@@ -246,6 +252,7 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
             </Box>
           </>
         )}
+
         {value.type === 'number' && (
           <>
             <Box flex={1}>

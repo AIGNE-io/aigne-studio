@@ -210,6 +210,7 @@ function PromptItemMessage({
         path={[value.id, 'content']}
         assistant={assistant}
         value={value.content}
+        role={value.role}
         onChange={(content) => (value.content = content)}
         ContentProps={{
           sx: {

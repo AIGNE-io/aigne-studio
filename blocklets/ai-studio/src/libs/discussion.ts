@@ -11,7 +11,8 @@ const discuss = () => {
 
 export const getDiscussionStatus = () => {
   try {
-    return discuss()?.status === 'running';
+    // TODO: remove as any after issue fixed https://github.com/ArcBlock/blocklet-server/issues/10165
+    return (discuss()?.status as any) === 'running';
   } catch (error) {
     return false;
   }
