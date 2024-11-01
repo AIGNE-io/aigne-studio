@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.4.122",
+  "version": "0.4.123",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -182,6 +182,7 @@
     "joi": "^17.13.3",
     "js-base64": "^3.7.7",
     "js-cookie": "^3.0.5",
+    "json-logic-js": "^2.0.5",
     "json-stable-stringify": "^1.1.1",
     "jsonata": "^2.0.5",
     "lodash": "^4.17.21",
@@ -194,6 +195,7 @@
     "react-hook-form": "^7.53.0",
     "react-markdown": "^9.0.1",
     "react-promise-suspense": "^0.3.4",
+    "react-querybuilder": "^7.7.1",
     "react-scroll-to-bottom": "^4.2.0",
     "react-share": "^5.1.0",
     "react-syntax-highlighter": "^15.6.1",
@@ -225,6 +227,7 @@
     "@mui/icons-material": "^5.16.7",
     "@mui/lab": "^5.0.0-alpha.173",
     "@mui/material": "^5.16.7",
+    "@types/json-logic-js": "^2.0.7",
     "@types/lodash": "^4.17.7",
     "@types/mustache": "^4.2.5",
     "@types/node-fetch": "^2.6.11",

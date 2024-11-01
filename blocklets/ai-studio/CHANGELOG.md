@@ -1,3 +1,7 @@
+## 0.4.123 (2024-11-1)
+
+- chore: support branch decision
+
 ## 0.4.122 (2024-11-1)
 
 - fix: optimize agents api for better performance
