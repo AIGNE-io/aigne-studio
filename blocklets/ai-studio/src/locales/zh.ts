@@ -865,6 +865,9 @@ export default flatten({
     cronJobs: {
       desc: '定时任务功能仅在 Serverless AIGNE 中可用。请运行 Serverless AIGNE 以访问此功能。',
     },
+    anonymousRequest: {
+      desc: '匿名请求是高级功能。请升级到高级版以访问此功能。',
+    },
   },
   pricingAndPlans: {
     currentPlan: '当前套餐',
@@ -872,6 +875,7 @@ export default flatten({
   multiple: '多选',
   dropdown: '下拉选择',
   checkbox: '平铺选择',
+  imageParameterInNotUserRole: '图片参数只能在用户角色中使用',
   noPreviewImage: '暂无预览图',
   verifyVC: '验证 VC',
   vcItem: 'VC 名称',

@@ -5,7 +5,12 @@ import { useCurrentProject } from '@app/contexts/project';
 import { agentViewTheme } from '@app/theme/agent-view-theme';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
-import { DebugProvider, useDebug } from '@blocklet/ai-runtime/front/contexts/Debug';
+import {
+  DebugDialogProvider,
+  DebugProvider,
+  useDebug,
+  useDebugDialog,
+} from '@blocklet/ai-runtime/front/contexts/Debug';
 import { AssistantYjs, RuntimeOutputVariable, isAssistant } from '@blocklet/ai-runtime/types';
 import { RuntimeDebug } from '@blocklet/aigne-sdk/components/ai-runtime';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
@@ -19,13 +24,14 @@ import {
   IconButton,
   Stack,
   Tab,
+  TabProps,
   Tabs,
   TabsProps,
   ThemeProvider,
 } from '@mui/material';
 import sortBy from 'lodash/sortBy';
 import { nanoid } from 'nanoid';
-import { ComponentProps, ReactNode, useCallback } from 'react';
+import React, { ComponentProps, ReactNode, useCallback } from 'react';
 
 import { useProjectStore } from './yjs-state';
 
@@ -51,31 +57,40 @@ export default function PreviewView(props: { projectId: string; gitRef: string; 
   }, []);
 
   return (
-    <DebugProvider openSettings={openSettings}>
+    <DebugDialogProvider>
       <ThemeProvider theme={agentViewTheme}>
         <Stack sx={{ overflowY: 'auto', flex: 1 }}>
           <RuntimeDebug aid={aid} ApiProps={apiProps} />
         </Stack>
       </ThemeProvider>
 
-      <SettingsDialog>
-        <RuntimeDebug hideSessionsBar aid={aid} ApiProps={apiProps} />
-      </SettingsDialog>
-    </DebugProvider>
+      <DebugProvider openSettings={openSettings} agentId={assistant.id}>
+        <SettingsDialog>
+          <RuntimeDebug hideSessionsBar aid={aid} ApiProps={apiProps} />
+        </SettingsDialog>
+      </DebugProvider>
+    </DebugDialogProvider>
   );
 }
 
 function SettingsDialog({ children }: { children?: ReactNode }) {
   const { t } = useLocaleContext();
-  const agentId = useDebug((s) => s.agentId);
   const close = useDebug((s) => s.close);
 
+  const open = useDebugDialog((s) => s.open);
+  const setOpen = useDebugDialog((s) => s.setOpen);
+
+  const onClose = () => {
+    close?.();
+    setOpen?.(false);
+  };
+
   return (
-    <Dialog open={!!agentId} fullWidth PaperProps={{ sx: { maxWidth: 'none', height: '100%' } }} onClose={close}>
+    <Dialog open={!!open} fullWidth PaperProps={{ sx: { maxWidth: 'none', height: '100%' } }} onClose={onClose}>
       <DialogTitle sx={{ display: 'flex' }}>
         <Box flex={1}>{t('appearance')}</Box>
 
-        <IconButton sx={{ p: 0, minWidth: 32, minHeight: 32 }} onClick={close}>
+        <IconButton sx={{ p: 0, minWidth: 32, minHeight: 32 }} onClick={onClose}>
           <Icon icon={CloseIcon} />
         </IconButton>
       </DialogTitle>
@@ -99,22 +114,37 @@ const internalOutputs = new Set([
 ]);
 
 function AgentAppearanceSettings({ children }: { children?: ReactNode }) {
+  const { t } = useLocaleContext();
   const agentId = useDebug((s) => s.agentId);
   const outputId = useDebug((s) => s.outputId);
   const open = useDebug((s) => s.open);
+  const setHoverOutputId = useDebug((s) => s.setHoverOutputId);
+
+  const { projectId, projectRef } = useCurrentProject();
+  const { getFileById } = useProjectStore(projectId, projectRef);
 
   if (!agentId) return null;
+
+  const agent = getFileById(agentId);
+  const outputIdWithDefault =
+    outputId ?? getOrAddOutputByName({ agent: agent!, outputName: RuntimeOutputVariable.appearancePage }).data.id;
 
   return (
     <Stack direction="row" height="100%">
       <Box py={2}>
+        <Box sx={{ fontSize: 18, fontWeight: 'bold', mx: 'auto', textAlign: 'center', px: 3, pb: 2 }}>
+          {agent?.name || t('unnamed')}
+        </Box>
+
         <AppearanceSettingTabs
           sx={{ height: '100%' }}
           orientation="vertical"
           variant="scrollable"
           agentId={agentId}
-          value={outputId}
+          value={outputIdWithDefault}
           onChange={(_, v) => open?.({ output: { id: v } })}
+          onTabHover={(v) => setHoverOutputId?.(v || '')}
+          onTabMouseLeave={() => setHoverOutputId?.('')}
         />
       </Box>
 
@@ -123,13 +153,47 @@ function AgentAppearanceSettings({ children }: { children?: ReactNode }) {
       </Stack>
 
       <Box flex={1} p={2} height="100%" sx={{ overflow: 'auto', overscrollBehavior: 'contain' }}>
-        {outputId && <AppearanceSettings agentId={agentId} outputId={outputId} />}
+        {outputIdWithDefault && <AppearanceSettings agentId={agentId} outputId={outputIdWithDefault} />}
       </Box>
     </Stack>
   );
 }
 
-function AppearanceSettingTabs({ agentId, ...props }: { agentId: string } & TabsProps) {
+interface HoverableTabsProps extends TabsProps {
+  onTabHover?: (value: string) => void;
+  onTabMouseLeave?: () => void;
+  TabProps?: Partial<TabProps>;
+}
+
+const HoverableTabs = ({ onTabHover, onTabMouseLeave, TabProps, ...props }: HoverableTabsProps) => {
+  const hoveredTabId = useDebug((s) => s.tabId);
+
+  return (
+    <Tabs {...props}>
+      {React.Children.map(props.children, (child) => {
+        if (!React.isValidElement(child)) return child;
+
+        return React.cloneElement(child, {
+          ...TabProps,
+          onMouseEnter: () => onTabHover?.(child.props.value),
+          onMouseLeave: () => onTabMouseLeave?.(),
+          ...child.props,
+          sx: {
+            backgroundColor: hoveredTabId === child.props.value ? 'action.hover' : undefined,
+            ...child.props.sx,
+          },
+        });
+      })}
+    </Tabs>
+  );
+};
+
+function AppearanceSettingTabs({
+  agentId,
+  onTabHover,
+  onTabMouseLeave,
+  ...props
+}: { agentId: string; onTabHover?: (value: string) => void; onTabMouseLeave?: () => void } & TabsProps) {
   const { t } = useLocaleContext();
 
   const { projectId, projectRef } = useCurrentProject();
@@ -152,7 +216,7 @@ function AppearanceSettingTabs({ agentId, ...props }: { agentId: string } & Tabs
   const current = (internalOutputs.has(value) && outputNameIds[value]) || value;
 
   return (
-    <Tabs
+    <HoverableTabs
       {...props}
       value={current}
       onChange={(e, v) => {
@@ -160,7 +224,9 @@ function AppearanceSettingTabs({ agentId, ...props }: { agentId: string } & Tabs
           v = getOrAddOutputByName({ agent, outputName: v }).data.id;
         }
         props.onChange?.(e, v);
-      }}>
+      }}
+      onTabHover={(value) => onTabHover?.(value)}
+      onTabMouseLeave={() => onTabMouseLeave?.()}>
       <Tab value={outputNameIds[RuntimeOutputVariable.profile] || RuntimeOutputVariable.profile} label={t('profile')} />
       <Tab
         value={outputNameIds[RuntimeOutputVariable.children] || RuntimeOutputVariable.children}
@@ -198,7 +264,7 @@ function AppearanceSettingTabs({ agentId, ...props }: { agentId: string } & Tabs
           />
         );
       })}
-    </Tabs>
+    </HoverableTabs>
   );
 }
 

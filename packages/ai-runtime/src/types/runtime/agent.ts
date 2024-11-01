@@ -8,6 +8,7 @@ export interface Agent {
   parameters?: Parameter[];
   outputVariables?: OutputVariable[];
   createdBy?: string;
+  type?: string;
 
   identity: {
     blockletDid?: string;

@@ -9,22 +9,7 @@ interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
 
-declare var blocklet:
-  | {
-      prefix: string;
-      appId: string;
-      appName: string;
-      appDescription: string;
-      componentId: string;
-      componentMountPoints: {
-        title: string;
-        name: string;
-        did: string;
-        mountPoint: string;
-      }[];
-      languages?: { code: string; name: string }[];
-    }
-  | undefined;
+declare var blocklet: import('@blocklet/sdk').WindowBlocklet | undefined;
 
 declare module '@arcblock/did-connect/*';
 declare module '@arcblock/ux/*';

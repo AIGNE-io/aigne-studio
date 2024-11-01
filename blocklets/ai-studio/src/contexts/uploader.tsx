@@ -15,6 +15,7 @@ interface UploaderProviderProps {
   restrictions?: {
     allowedFileTypes?: string[];
     maxFileSize?: number;
+    maxNumberOfFiles?: number;
   };
   apiPathProps?: {
     uploader?: string;

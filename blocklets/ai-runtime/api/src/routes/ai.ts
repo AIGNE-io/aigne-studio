@@ -21,12 +21,11 @@ import { toolCallsTransform } from '@blocklet/ai-runtime/core/utils/tool-calls-t
 import { AssistantResponseType, RuntimeOutputVariable, isImageAssistant } from '@blocklet/ai-runtime/types';
 import { RuntimeError, RuntimeErrorType } from '@blocklet/ai-runtime/types/runtime/error';
 import { getUserPassports, quotaChecker } from '@blocklet/aigne-sdk/api/premium';
-import user from '@blocklet/sdk/lib/middlewares/user';
+import middlewares from '@blocklet/sdk/lib/middlewares';
 import compression from 'compression';
 import { Router } from 'express';
 import Joi from 'joi';
 import { omitBy, pick } from 'lodash';
-import { Op } from 'sequelize';
 
 const router = Router();
 
@@ -55,33 +54,32 @@ const checkProjectRequestLimit = async ({
   role,
   blockletDid,
   projectId,
+  loginRequired,
 }: {
-  userId: string;
+  userId?: string;
   role?: string;
   blockletDid?: string;
   projectId: string;
+  loginRequired?: boolean;
 }) => {
-  const project = await getProject({ blockletDid, projectId, rejectOnEmpty: true });
-
-  // 不限制自己创建的项目
-  if (project.createdBy && project.createdBy === userId) {
+  if (['owner', 'admin', 'promptsEditor'].includes(role || '')) {
     return;
   }
-  const historyCount = await History.count({
-    where: { projectId, error: null, userId: { [Op.not]: project.createdBy } },
-  });
-  if (
-    !quotaChecker.checkRequestLimit(historyCount, await getUserPassports(userId)) &&
-    !['owner', 'admin', 'promptsEditor'].includes(role || '')
-  ) {
+  const project = await getProject({ blockletDid, projectId, rejectOnEmpty: true });
+  const userIdToCheck = (loginRequired ? userId : project.createdBy)!;
+  const [runs, passports] = await Promise.all([
+    History.countRunsByUser(userIdToCheck),
+    getUserPassports(userIdToCheck),
+  ]);
+  if (!quotaChecker.checkRequestLimit(runs, passports)) {
     throw new RuntimeError(
       RuntimeErrorType.ProjectRequestExceededError,
-      `Project request limit exceeded (current: ${historyCount}, limit: ${quotaChecker.getQuota('requestLimit', role)})`
+      `Project request limit exceeded (current: ${runs}, limit: ${quotaChecker.getQuota('requestLimit', passports)})`
     );
   }
 };
 
-router.post('/call', user(), compression(), async (req, res) => {
+router.post('/call', middlewares.session(), compression(), async (req, res) => {
   const stream = req.accepts().includes('text/event-stream');
 
   const input = await callInputSchema.validateAsync(
@@ -203,6 +201,8 @@ router.post('/call', user(), compression(), async (req, res) => {
     status: 'generating',
     blockletDid,
     projectRef,
+    requestType: agent.access?.noLoginRequired ? 'free' : 'paid',
+    projectOwnerId: project?.createdBy,
   });
 
   const emit: RunAssistantCallback = (response) => {
@@ -267,7 +267,13 @@ router.post('/call', user(), compression(), async (req, res) => {
   if (stream) emit({ type: AssistantResponseType.CHUNK, taskId, assistantId: agent.id, delta: {} });
 
   try {
-    await checkProjectRequestLimit({ userId, role: req.user?.role, blockletDid, projectId });
+    await checkProjectRequestLimit({
+      userId,
+      role: req.user?.role,
+      blockletDid,
+      projectId,
+      loginRequired: !agent.access?.noLoginRequired,
+    });
 
     emit({
       type: AssistantResponseType.INPUT_PARAMETER,

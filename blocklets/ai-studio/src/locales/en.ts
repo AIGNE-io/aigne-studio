@@ -874,6 +874,9 @@ export default flatten({
     cronJobs: {
       desc: 'The Cron Jobs feature is available only in Serverless AIGNE. Please run a Serverless AIGNE to access this feature.',
     },
+    anonymousRequest: {
+      desc: 'Anonymous access control is a premium feature. Please upgrade to the Premium plan to access this feature.',
+    },
   },
   pricingAndPlans: {
     currentPlan: 'This is your current plan',
@@ -881,6 +884,7 @@ export default flatten({
   multiple: 'Multiple',
   dropdown: 'Dropdown',
   checkbox: 'Checkbox',
+  imageParameterInNotUserRole: 'Image parameters can only be used in the user role',
   noPreviewImage: 'No Preview Image',
   verifyVC: 'Verify VC',
   vcItem: 'VC Name',

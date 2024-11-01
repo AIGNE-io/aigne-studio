@@ -8,8 +8,10 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { ProjectSettings, RuntimeErrorType } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
+import ArrowsShuffleIcon from '@iconify-icons/tabler/arrows-shuffle';
 import twitterIcon from '@iconify-icons/tabler/brand-twitter';
 import linkIcon from '@iconify-icons/tabler/link';
+import Share2Icon from '@iconify-icons/tabler/share-2';
 import { LoadingButtonProps } from '@mui/lab';
 import {
   Box,
@@ -120,11 +122,15 @@ export function MakeYoursButton({
   return (
     <>
       <Tooltip title={t('makeYoursTip')}>
-        <LoadingButton variant="outlined" onClick={onClick} {...props}>
+        <LoadingButton
+          onClick={onClick}
+          color="primary"
+          variant="contained"
+          startIcon={<Box component={Icon} icon={ArrowsShuffleIcon} sx={{ fontSize: 14 }} />}
+          {...props}>
           {t('makeYours')}
         </LoadingButton>
       </Tooltip>
-
       {dialog}
     </>
   );
@@ -182,7 +188,11 @@ export function ShareButton({ deployment, project }: { deployment: Deployment; p
   ];
   return (
     <>
-      <Button variant="outlined" onClick={handleClick} data-testid="share-button">
+      <Button
+        variant="outlined"
+        onClick={handleClick}
+        data-testid="share-button"
+        startIcon={<Box component={Icon} icon={Share2Icon} sx={{ fontSize: '1.2em!important' }} />}>
         {t('share')}
       </Button>
       <Popper open={open} anchorEl={anchorEl} placement="bottom-start">
