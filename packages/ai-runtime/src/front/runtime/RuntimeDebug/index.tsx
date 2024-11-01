@@ -1,7 +1,6 @@
 import Toast from '@arcblock/ux/lib/Toast';
 import MessageXIcon from '@iconify-icons/tabler/message-x';
 import PlusIcon from '@iconify-icons/tabler/plus';
-import SettingsIcon from '@iconify-icons/tabler/settings';
 import TrashIcon from '@iconify-icons/tabler/trash';
 import WandIcon from '@iconify-icons/tabler/wand';
 import { Icon } from '@iconify/react';

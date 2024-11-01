@@ -2,7 +2,6 @@ import { useIsAdmin, useSessionContext } from '@app/contexts/session';
 import { Deployment } from '@app/libs/deployment';
 import { ProjectSettings } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
-import ArrowsShuffleIcon from '@iconify-icons/tabler/arrows-shuffle';
 import InfoSquareIcon from '@iconify-icons/tabler/info-square';
 import { Box, BoxProps, Tooltip } from '@mui/material';
 import { useEffect, useState } from 'react';
@@ -80,20 +79,7 @@ export function MultiTenantBrandGuard({ deployment, project, sx, children, ...re
           }}>
           <MadeWithAigne />
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            {deployment && project && (
-              <MakeYoursButton
-                deployment={deployment}
-                color="primary"
-                variant="contained"
-                startIcon={<Box component={Icon} icon={ArrowsShuffleIcon} sx={{ fontSize: 14 }} />}
-                sx={{
-                  bgcolor: 'warning.main',
-                  '&:hover': {
-                    bgcolor: 'warning.dark',
-                  },
-                }}
-              />
-            )}
+            {deployment && project && <MakeYoursButton deployment={deployment} />}
             {(isAdmin || isDeploymentOwner) && (
               <Tooltip title="The AIGNE branding banner can be disabled in your project appearance settings (Only available for Premium users)">
                 <Box component={Icon} icon={InfoSquareIcon} sx={{ fontSize: 18, color: 'text.secondary' }} />

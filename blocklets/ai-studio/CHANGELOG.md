@@ -1,3 +1,7 @@
+## 0.4.127 (2024-11-1)
+
+- chore: improve button styling consistency
+
 ## 0.4.126 (2024-11-1)
 
 - chore: use middlewares.session replace middlewares.user
