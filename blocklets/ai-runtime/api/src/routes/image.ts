@@ -6,7 +6,7 @@ import { Request, Response, Router } from 'express';
 import mime from 'mime-types';
 import multer from 'multer';
 import { nanoid } from 'nanoid';
-import { joinURL, withQuery } from 'ufo';
+import { joinURL } from 'ufo';
 
 import { Config } from '../libs/env';
 
@@ -51,11 +51,7 @@ router.post('/upload', upload.array('images', maxImageCount), async (req: Reques
       });
 
       return {
-        url: withQuery(joinURL(config.env.appUrl, getComponentMountPoint('image-bin'), 'uploads', result.filename), {
-          imageFilter: 'resize',
-          f: 'webp',
-          w: 200,
-        }),
+        url: joinURL(config.env.appUrl, getComponentMountPoint('image-bin'), 'uploads', result.filename),
       };
     });
 

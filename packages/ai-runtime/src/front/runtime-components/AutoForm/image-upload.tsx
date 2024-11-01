@@ -6,6 +6,7 @@ import ImageIcon from '@mui/icons-material/Image';
 import { Box, Button, IconButton, Stack } from '@mui/material';
 import { useRef } from 'react';
 import { Control, Controller } from 'react-hook-form';
+import { withQuery } from 'ufo';
 
 import { uploadImage } from '../../../api/ai-runtime/image';
 import { ImageParameter } from '../../../types';
@@ -114,7 +115,11 @@ export function ImagePreview({ value, parameter, onRemove }: ImagePreviewProps) 
       {list.map((url, index) => (
         <Box key={url} position="relative" display="flex">
           <img
-            src={url}
+            src={withQuery(url, {
+              imageFilter: 'resize',
+              f: 'webp',
+              w: 200,
+            })}
             alt={`Uploaded ${index + 1}`}
             style={{ width: '100px', height: '100px', objectFit: 'cover' }}
           />
