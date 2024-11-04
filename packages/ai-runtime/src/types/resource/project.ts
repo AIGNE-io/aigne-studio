@@ -23,6 +23,7 @@ export type ProjectSettings = {
         fontFamily?: string;
       };
     };
+    aigneBannerVisible?: boolean;
   };
   iconVersion?: string;
   banner?: string;

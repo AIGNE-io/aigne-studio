@@ -2,7 +2,7 @@ import { copyFile, rm } from 'fs/promises';
 import { join } from 'path';
 
 import { resourceManager } from '@api/libs/resource';
-import user from '@blocklet/sdk/lib/middlewares/user';
+import middlewares from '@blocklet/sdk/lib/middlewares';
 // @ts-ignore
 import { initLocalStorageServer } from '@blocklet/uploader-server';
 import express, { Router } from 'express';
@@ -138,7 +138,7 @@ router.get('/:datasetId/search', async (req, res) => {
   res.json({ docs: result });
 });
 
-router.get('/:datasetId/documents', user(), userAuth(), async (req, res) => {
+router.get('/:datasetId/documents', middlewares.session(), userAuth(), async (req, res) => {
   const { did, isAdmin } = req.user!;
   const { datasetId } = req.params;
   const user = isAdmin ? {} : { [Op.or]: [{ createdBy: did }, { updatedBy: did }] };
@@ -184,7 +184,7 @@ router.get('/:datasetId/documents', user(), userAuth(), async (req, res) => {
   res.json({ items, total });
 });
 
-router.delete('/:datasetId/documents/:documentId', user(), userAuth(), async (req, res) => {
+router.delete('/:datasetId/documents/:documentId', middlewares.session(), userAuth(), async (req, res) => {
   const { datasetId, documentId } = await Joi.object<{ datasetId: string; documentId: string }>({
     datasetId: Joi.string().required(),
     documentId: Joi.string().required(),
@@ -207,7 +207,7 @@ router.delete('/:datasetId/documents/:documentId', user(), userAuth(), async (re
   res.json(document);
 });
 
-router.put('/:datasetId/documents/:documentId/name', user(), userAuth(), async (req, res) => {
+router.put('/:datasetId/documents/:documentId/name', middlewares.session(), userAuth(), async (req, res) => {
   const { did } = req.user!;
   const { datasetId, documentId } = req.params;
 
@@ -229,7 +229,7 @@ router.put('/:datasetId/documents/:documentId/name', user(), userAuth(), async (
   res.json(document);
 });
 
-router.post('/:datasetId/documents/text', user(), userAuth(), async (req, res) => {
+router.post('/:datasetId/documents/text', middlewares.session(), userAuth(), async (req, res) => {
   const { did } = req.user!;
   const { datasetId } = req.params;
 
@@ -261,7 +261,7 @@ router.post('/:datasetId/documents/text', user(), userAuth(), async (req, res) =
   res.json(document);
 });
 
-router.post('/:datasetId/documents/discussion', user(), async (req, res) => {
+router.post('/:datasetId/documents/discussion', middlewares.session(), async (req, res) => {
   const { datasetId } = req.params;
 
   const createItemsSchema = Joi.object({
@@ -320,7 +320,7 @@ router.post('/:datasetId/documents/discussion', user(), async (req, res) => {
   return res.json(Array.isArray(input) ? docs : docs[0]);
 });
 
-router.put('/:datasetId/documents/:documentId/text', user(), userAuth(), async (req, res) => {
+router.put('/:datasetId/documents/:documentId/text', middlewares.session(), userAuth(), async (req, res) => {
   const { did } = req.user! || {};
   const { datasetId, documentId } = await Joi.object<{
     datasetId: string;
@@ -349,7 +349,7 @@ router.put('/:datasetId/documents/:documentId/text', user(), userAuth(), async (
   res.json(document);
 });
 
-router.get('/:datasetId/documents/:documentId', user(), userAuth(), async (req, res) => {
+router.get('/:datasetId/documents/:documentId', middlewares.session(), userAuth(), async (req, res) => {
   const { did, isAdmin } = req.user!;
   const user = isAdmin ? {} : { [Op.or]: [{ createdBy: did }, { updatedBy: did }] };
 
@@ -368,7 +368,7 @@ router.get('/:datasetId/documents/:documentId', user(), userAuth(), async (req, 
   res.json({ dataset, document });
 });
 
-router.get('/:datasetId/documents/:documentId/content', user(), userAuth(), async (req, res) => {
+router.get('/:datasetId/documents/:documentId/content', middlewares.session(), userAuth(), async (req, res) => {
   const { datasetId, documentId } = await Joi.object<{ datasetId: string; documentId: string }>({
     datasetId: Joi.string().required(),
     documentId: Joi.string().required(),
@@ -383,7 +383,7 @@ router.get('/:datasetId/documents/:documentId/content', user(), userAuth(), asyn
   return res.json({ content });
 });
 
-router.post('/:datasetId/documents/:documentId/embedding', user(), userAuth(), async (req, res) => {
+router.post('/:datasetId/documents/:documentId/embedding', middlewares.session(), userAuth(), async (req, res) => {
   const { datasetId, documentId } = await Joi.object<{ datasetId: string; documentId: string }>({
     documentId: Joi.string().required(),
     datasetId: Joi.string().required(),
@@ -444,6 +444,6 @@ const localStorageServer = initLocalStorageServer({
   },
 });
 
-router.use('/uploads', user(), localStorageServer.handle);
+router.use('/uploads', middlewares.session(), localStorageServer.handle);
 
 export default router;

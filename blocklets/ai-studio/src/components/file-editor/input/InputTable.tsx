@@ -235,7 +235,7 @@ export default function InputTable({
                   id={`${parameter.id}-key`}
                   fullWidth
                   readOnly={readOnly || parameter.hidden}
-                  disabled={parameter.from === FROM_IMAGE_BLENDER}
+                  disabled={assistant.type === 'imageBlender' && parameter.from === FROM_IMAGE_BLENDER}
                   placeholder={t('inputParameterKeyPlaceholder')}
                   value={parameter.key || ''}
                   onChange={(e) => {
@@ -618,7 +618,7 @@ function SelectFromSource({
               backgroundColor: 'transparent',
             },
           },
-          disabled: parameter.hidden || parameter.from === FROM_IMAGE_BLENDER,
+          disabled: parameter.hidden || (parameter.from === FROM_IMAGE_BLENDER && value.type === 'imageBlender'),
           children: (
             <Box>
               <Box className="center" gap={1} justifyContent="flex-start">
@@ -1597,7 +1597,7 @@ function PopperButton({
           <Paper sx={{ p: 0, minWidth: 140, maxWidth: 320, maxHeight: '80vh', overflow: 'auto' }}>
             <Stack gap={2}>
               <List>
-                {parameter.from !== 'imageBlenderParameter' && (
+                {!(parameter.from === FROM_IMAGE_BLENDER && value.type === 'imageBlender') && (
                   <MenuItem onClick={() => (parameter.hidden = !parameter.hidden)}>
                     {parameter.hidden ? t('activeParameterTip') : t('hideParameterTip')}
                   </MenuItem>
@@ -1608,7 +1608,7 @@ function PopperButton({
                     {t('setting')}
                   </MenuItem>
                 )}
-                {parameter.from !== 'imageBlenderParameter' && (
+                {!(parameter.from === FROM_IMAGE_BLENDER && value.type === 'imageBlender') && (
                   <MenuItem sx={{ color: '#E11D48', fontSize: 13 }} onClick={onDelete}>
                     {t('delete')}
                   </MenuItem>

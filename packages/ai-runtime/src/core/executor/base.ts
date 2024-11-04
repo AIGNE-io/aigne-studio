@@ -2,6 +2,7 @@ import { hash } from 'crypto';
 
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { memoize } from '@blocklet/quickjs';
+import { call } from '@blocklet/sdk/lib/component';
 import config, { logger } from '@blocklet/sdk/lib/config';
 import Joi from 'joi';
 import jsonStableStringify from 'json-stable-stringify';
@@ -25,7 +26,6 @@ import {
   isUserInputParameter,
   outputVariablesToJoiSchema,
 } from '../../types';
-import { call } from '../../utils/call';
 import { isNonNullable } from '../../utils/is-non-nullable';
 import { CallAI, CallAIImage, GetAgent, GetAgentResult, RunAssistantCallback } from '../assistant/type';
 import { issueVC } from '../libs/blocklet/vc';
@@ -717,13 +717,14 @@ export abstract class AgentExecutorBase<T> {
         inputVariables[parameter.key] = val;
       } else if (parameter.type === 'boolean') {
         const val = inputVariables[parameter.key];
-        inputVariables[parameter.key] = Boolean(isNil(val) || val === '' ? parameter.defaultValue : val);
+        inputVariables[parameter.key] = Boolean(isNil(val) ? parameter.defaultValue : val);
       } else if (parameter.type === 'number') {
         const val = inputVariables[parameter.key];
-        inputVariables[parameter.key] = Number(isNil(val) || val === '' ? parameter.defaultValue : val);
+        const parsedValue = val && typeof val === 'number' ? val : (Number(val) ?? parameter.defaultValue ?? null);
+        inputVariables[parameter.key] = Number.isNaN(parsedValue) ? (parameter.defaultValue ?? null) : parsedValue;
       } else {
         const val = inputVariables[parameter.key];
-        if (!isNil(val) && val !== '') inputVariables[parameter.key] = val;
+        if (!isNil(val)) inputVariables[parameter.key] = val || null;
       }
     }
 

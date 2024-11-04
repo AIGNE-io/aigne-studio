@@ -1,13 +1,13 @@
 import { NoSuchEntryAgentError } from '@api/libs/error';
 import { getAgentSecretInputs, getProjectStatsFromRuntime } from '@api/libs/runtime';
 import { ensurePromptsAdmin } from '@api/libs/security';
-import { getUsers } from '@api/libs/user';
+import { getUser, getUsers } from '@api/libs/user';
 import Project from '@api/store/models/project';
 import { PROJECT_FILE_PATH, ProjectRepo, getEntryFromRepository, getRepository } from '@api/store/repository';
 import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { Assistant, ProjectSettings } from '@blocklet/ai-runtime/types';
 import { Agent } from '@blocklet/aigne-sdk/api/agent';
-import { auth, user } from '@blocklet/sdk/lib/middlewares';
+import middlewares from '@blocklet/sdk/lib/middlewares';
 import { NextFunction, Request, Response, Router } from 'express';
 import Joi from 'joi';
 import pick from 'lodash/pick';
@@ -46,7 +46,6 @@ const updateSchema = Joi.object({
   orderIndex: Joi.number().integer().empty(null).optional(),
   productHuntUrl: Joi.string().allow('').empty([null, '']).optional(),
   productHuntBannerUrl: Joi.string().allow('').empty([null, '']).optional(),
-  aigneBannerVisible: Joi.boolean().optional(),
 }).min(1);
 
 const getByIdSchema = Joi.object({
@@ -56,7 +55,7 @@ const getByIdSchema = Joi.object({
 
 const deploymentIdSchema = Joi.object({ id: Joi.string().required() });
 
-router.get('/byProjectId', user(), auth(), async (req, res) => {
+router.get('/byProjectId', middlewares.session(), middlewares.auth(), async (req, res) => {
   const { projectId, projectRef } = await getByIdSchema.validateAsync(req.query, { stripUnknown: true });
   const deployment = await Deployment.findOne({
     where: { projectId, projectRef },
@@ -250,7 +249,7 @@ router.get('/categories/:categorySlug', async (req, res) => {
   });
 });
 
-router.post('/', user(), auth(), async (req, res) => {
+router.post('/', middlewares.session(), middlewares.auth(), async (req, res) => {
   const { did: userId } = req.user!;
   const { projectId, projectRef, access } = await deploymentSchema.validateAsync(req.body, {
     stripUnknown: true,
@@ -273,7 +272,7 @@ router.post('/', user(), auth(), async (req, res) => {
   res.json(deployment);
 });
 
-router.get('/:deploymentId', user(), async (req, res) => {
+router.get('/:deploymentId', middlewares.session(), async (req, res) => {
   const { deploymentId } = req.params;
   if (!deploymentId) throw new Error('Missing required param `deploymentId`');
 
@@ -304,6 +303,11 @@ router.get('/:deploymentId', user(), async (req, res) => {
     throw new NoSuchEntryAgentError('No such agent');
   }
 
+  const [stats, user] = await Promise.all([
+    getProjectStatsFromRuntime({ projectIds: [projectId] }),
+    getUser(deployment.createdBy),
+  ]);
+
   res.json({
     deployment,
     ...respondAgentFields({
@@ -320,10 +324,12 @@ router.get('/:deploymentId', user(), async (req, res) => {
       secrets: (await getAgentSecretInputs({ aid: stringifyIdentity({ projectId, projectRef, agentId: agent.id }) }))
         .secrets,
     },
+    createdByInfo: user,
+    stats: stats[0],
   });
 });
 
-router.patch('/:id', user(), auth(), async (req, res) => {
+router.patch('/:id', middlewares.session(), middlewares.auth(), async (req, res) => {
   const found = await Deployment.findByPk(req.params.id!);
   if (!found) {
     res.status(404).json({ message: 'deployment not found' });
@@ -335,7 +341,7 @@ router.patch('/:id', user(), auth(), async (req, res) => {
   res.json(updated);
 });
 
-router.delete('/:id', user(), auth(), async (req, res) => {
+router.delete('/:id', middlewares.session(), middlewares.auth(), async (req, res) => {
   const { id } = await deploymentIdSchema.validateAsync(req.params, { stripUnknown: true });
 
   const deployment = await Deployment.findByPk(id);
@@ -424,7 +430,7 @@ export function adminDeploymentRouter(router: Router) {
     productHuntBannerUrl: Joi.string().allow('').empty([null, '']).optional(),
   }).min(1);
 
-  router.patch('/:id', user(), ensurePromptsAdmin, async (req, res) => {
+  router.patch('/:id', middlewares.session(), ensurePromptsAdmin, async (req, res) => {
     const { did: userId } = req.user!;
 
     const found = await Deployment.findByPk(req.params.id!);

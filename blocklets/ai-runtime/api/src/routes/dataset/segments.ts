@@ -1,4 +1,4 @@
-import user from '@blocklet/sdk/lib/middlewares/user';
+import middlewares from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
 
@@ -7,7 +7,7 @@ import DatasetSegment from '../../store/models/dataset/segment';
 
 const router = Router();
 
-router.get('/:datasetId/documents/:documentId/segments', user(), userAuth(), async (req, res) => {
+router.get('/:datasetId/documents/:documentId/segments', middlewares.session(), userAuth(), async (req, res) => {
   const { documentId } = await Joi.object<{ documentId: string }>({
     documentId: Joi.string().required(),
   }).validateAsync(req.params, { stripUnknown: true });
@@ -29,46 +29,5 @@ router.get('/:datasetId/documents/:documentId/segments', user(), userAuth(), asy
 
   res.json({ items, total });
 });
-
-// router.post('/:datasetId/documents/:documentId/segments', user(), userAuth(), async (req, res) => {
-//   const { datasetId, documentId } = await Joi.object<{ datasetId: string; documentId: string }>({
-//     datasetId: Joi.string().required(),
-//     documentId: Joi.string().required(),
-//   }).validateAsync(req.params, { stripUnknown: true });
-
-//   const { content } = await Joi.object<{ content: string }>({
-//     content: Joi.string().required(),
-//   }).validateAsync(req.body, { stripUnknown: true });
-
-//   res.json({ data: 'success' });
-// });
-
-// router.put('/:datasetId/documents/:documentId/segments/:segmentId', user(), userAuth(), async (req, res) => {
-//   const { datasetId, segmentId } = await Joi.object<{ datasetId: string; segmentId: string }>({
-//     datasetId: Joi.string().required(),
-//     segmentId: Joi.string().required(),
-//   }).validateAsync(req.params, { stripUnknown: true });
-
-//   const { content } = await Joi.object<{ content: string }>({
-//     content: Joi.string().required(),
-//   }).validateAsync(req.body, { stripUnknown: true });
-
-//   await DatasetSegment.update({ content }, { where: { id: segmentId } });
-
-//   resetVectorStoreEmbedding(datasetId);
-
-//   res.json({ data: 'success' });
-// });
-
-// router.delete('/:datasetId/documents/:documentId/segments/:segmentId', user(), userAuth(), async (req, res) => {
-//   const { segmentId, datasetId } = await Joi.object<{ segmentId: string; datasetId: string }>({
-//     segmentId: Joi.string().required(),
-//     datasetId: Joi.string().required(),
-//   }).validateAsync(req.params, { stripUnknown: true });
-
-//   resetVectorStoreEmbedding(datasetId);
-
-//   res.json({ data: 'success' });
-// });
 
 export default router;

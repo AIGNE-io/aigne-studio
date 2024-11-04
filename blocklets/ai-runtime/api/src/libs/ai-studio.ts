@@ -1,5 +1,5 @@
 import { Assistant, ProjectSettings, Variable } from '@blocklet/ai-runtime/types';
-import { call } from '@blocklet/ai-runtime/utils/call';
+import { call } from '@blocklet/sdk/lib/component';
 import { joinURL } from 'ufo';
 
 export async function getAgentFromAIStudio({
