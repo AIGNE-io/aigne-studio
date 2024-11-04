@@ -2,8 +2,7 @@ import { useSessionContext } from '@app/contexts/session';
 import { getProjectDataUrlInSpace } from '@app/libs/did-spaces';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { ReConnect } from '@blocklet/did-space-react/lib/components/SessionConnectTo';
-import { SpaceStatus } from '@blocklet/did-space-react/lib/types';
+import { ReConnect, SpaceStatus } from '@blocklet/did-space-react';
 import { Button } from '@mui/material';
 
 import { getErrorMessage } from '../../../libs/api';
@@ -46,11 +45,11 @@ function GatewayAction({
     return (
       <ReConnect
         variant="outlined"
+        session={session}
         spaceDid={session.user?.didSpace?.did}
         spaceGatewayUrl={session.user?.didSpace?.url}
         onConnected={async () => {
-          session.refresh();
-          refresh();
+          await refresh();
         }}
         onError={(error) => {
           console.error(error);

@@ -3,7 +3,7 @@ import { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
-import SpaceCard from '@blocklet/did-space-react/lib/components/SpaceCard';
+import { SpaceCard } from '@blocklet/did-space-react';
 import { CheckCircleOutlineRounded, ErrorOutlineRounded, SyncRounded } from '@mui/icons-material';
 import { CircularProgress, FormControlLabel, Stack, Typography } from '@mui/material';
 import { useCallback, useState } from 'react';
