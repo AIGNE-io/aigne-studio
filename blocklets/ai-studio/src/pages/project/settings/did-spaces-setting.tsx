@@ -4,7 +4,7 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { SpaceCard } from '@blocklet/did-space-react';
 import { CheckCircleOutlineRounded, ErrorOutlineRounded } from '@mui/icons-material';
-import { CircularProgress, FormControlLabel, Stack, Typography } from '@mui/material';
+import { CircularProgress, FormControlLabel, Stack } from '@mui/material';
 import { useCallback, useState } from 'react';
 
 import Switch from '../../../components/custom/switch';
@@ -36,8 +36,6 @@ export default function DidSpacesSetting({ projectId }: { projectId: string }) {
 
   return (
     <Stack gap={2.5}>
-      <Typography variant="subtitle2">{t('didSpaces.title')}</Typography>
-
       <Stack direction="row" alignItems="center" justifyContent="flex-end" gap={1}>
         <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1}>
           <FormControlLabel
