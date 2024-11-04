@@ -358,7 +358,7 @@ export default function FromDidSpacesImport() {
 
             <Box>
               <Typography variant="subtitle2">{t('name')}</Typography>
-              <NameField form={form} />
+              <NameField form={form} beforeDuplicateProjectNavigate={() => dialogState.close()} />
             </Box>
 
             <Box>

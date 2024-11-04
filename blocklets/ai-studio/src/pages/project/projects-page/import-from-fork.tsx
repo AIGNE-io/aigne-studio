@@ -64,7 +64,7 @@ export default function ImportFromFork({
           <Stack flex={1} gap={2.5}>
             <Box>
               <Typography variant="subtitle2">{t('name')}</Typography>
-              <NameField form={form} triggerOnMount />
+              <NameField form={form} triggerOnMount beforeDuplicateProjectNavigate={() => onClose()} />
             </Box>
 
             <Box>

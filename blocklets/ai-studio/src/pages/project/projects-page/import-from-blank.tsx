@@ -217,7 +217,7 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
           <Stack flex={1} gap={2.5}>
             <Box>
               <Typography variant="subtitle2">{t('name')}</Typography>
-              <NameField form={form} />
+              <NameField form={form} beforeDuplicateProjectNavigate={onClose} />
             </Box>
 
             <Box>

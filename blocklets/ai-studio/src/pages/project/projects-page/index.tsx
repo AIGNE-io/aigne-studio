@@ -267,7 +267,7 @@ function ProjectMenu() {
       examples.find((i) => i.id === menuAnchor.id && i.blockletDid === menuAnchor.blockletDid));
 
   const form = useForm({ defaultValues: { name: '', description: '' }, reValidateMode: 'onSubmit' });
-  const { dialog, showDialog } = useDialog();
+  const { dialog, showDialog, closeDialog } = useDialog();
 
   const onDelete = ({ isReset }: { isReset?: boolean } = {}) => {
     if (!item) return;
@@ -307,7 +307,7 @@ function ProjectMenu() {
                 <Stack overflow="auto" gap={2}>
                   <Box>
                     <Typography variant="subtitle2">{t('projectSetting.name')}</Typography>
-                    <NameField form={form} projectId={item?.id} />
+                    <NameField form={form} projectId={item?.id} beforeDuplicateProjectNavigate={() => closeDialog()} />
                   </Box>
 
                   <Box>

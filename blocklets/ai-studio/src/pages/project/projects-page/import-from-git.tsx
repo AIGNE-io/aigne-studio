@@ -206,7 +206,7 @@ export default function ImportFromGit({ onClose }: { onClose: () => void }) {
 
           <Box>
             <Typography variant="subtitle2">{t('name')}</Typography>
-            <NameField form={form} />
+            <NameField form={form} beforeDuplicateProjectNavigate={() => onClose()} />
           </Box>
 
           <Box>
