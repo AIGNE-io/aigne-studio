@@ -201,7 +201,6 @@ export default flatten({
       body: '正文字体',
       title: '标题字体',
     },
-    banner: '配图',
     readme: 'README',
   },
   notOpenFile: '打开一个 Agent 后继续',
