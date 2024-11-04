@@ -1,6 +1,10 @@
-## 0.4.130 (2024-11-4)
+## 0.4.131 (2024-11-4)
 
 - fix(ai-studio): guide users through space connection failures
+
+## 0.4.130 (2024-11-4)
+
+- chore: remove project settings banner
 
 ## 0.4.129 (2024-11-1)
 
