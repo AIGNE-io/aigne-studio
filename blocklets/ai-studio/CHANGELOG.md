@@ -1,3 +1,7 @@
+## 0.4.130 (2024-11-4)
+
+- fix(ai-studio): guide users through space connection failures
+
 ## 0.4.129 (2024-11-1)
 
 - fix: runtime component is optional for pages-kit
