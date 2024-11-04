@@ -9,6 +9,7 @@ import {
   isRuntimeOutputVariable,
   runtimeVariablesSchema,
 } from '@blocklet/ai-runtime/types';
+import Warning from '@mui/icons-material/WarningAmberOutlined';
 import {
   Box,
   Button,
@@ -23,6 +24,7 @@ import {
   Grid,
   Radio,
   RadioGroup,
+  Tooltip,
   Typography,
   useRadioGroup,
 } from '@mui/material';
@@ -211,12 +213,23 @@ function ComponentSelectItem({
     name?: string;
     description?: string;
     componentProperties?: any;
+    aigneOutputValueSchema?: Record<string, any>;
   };
 }) {
   const radioGroup = useRadioGroup();
   const checked = radioGroup?.value === customComponent.value;
 
   const { t } = useLocaleContext();
+
+  const ignoreAigneOutputValueSchema = [
+    RuntimeOutputVariable.appearancePage,
+    RuntimeOutputVariable.appearanceInput,
+    RuntimeOutputVariable.appearanceOutput,
+  ];
+
+  const hasNoOutputValueSchema =
+    !customComponent.aigneOutputValueSchema &&
+    !ignoreAigneOutputValueSchema.includes(output.name as RuntimeOutputVariable);
 
   return (
     <Card
@@ -244,12 +257,19 @@ function ComponentSelectItem({
           role="button"
           // @ts-ignore React types doesn't support inert attribute https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/inert
           inert="ignore">
-          <ComponentPreviewImagePreviewer output={output} customComponent={customComponent} />
+          <ComponentPreviewImagePreviewer customComponent={customComponent} />
         </Box>
         <Divider />
-        <Typography sx={{ m: 1 }} noWrap>
-          {customComponent.name || t('unnamed')}
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Typography sx={{ m: 1 }} noWrap>
+            {customComponent.name || t('unnamed')}
+          </Typography>
+          {hasNoOutputValueSchema && (
+            <Tooltip title={t('noOutputValueSchema')}>
+              <Warning fontSize="small" sx={{ color: 'warning.main', fontSize: 16, mr: 1 }} />
+            </Tooltip>
+          )}
+        </Box>
         <Typography
           sx={{ m: 1, WebkitLineClamp: 2, overflowWrap: 'break-word' }}
           className="multi-line-ellipsis"
@@ -263,10 +283,8 @@ function ComponentSelectItem({
 }
 
 function ComponentPreviewImagePreviewer({
-  output,
   customComponent,
 }: {
-  output: OutputVariableYjs;
   customComponent: {
     id: string;
     name?: string;
@@ -276,22 +294,11 @@ function ComponentPreviewImagePreviewer({
   };
 }) {
   const { t } = useLocaleContext();
-  const { previewImage, name, aigneOutputValueSchema } = customComponent;
-
-  const ignoreAigneOutputValueSchema = [
-    RuntimeOutputVariable.appearancePage,
-    RuntimeOutputVariable.appearanceInput,
-    RuntimeOutputVariable.appearanceOutput,
-  ];
+  const { previewImage, name } = customComponent;
 
   return (
     <Box position="relative" paddingBottom="100%">
       <Box position="absolute" left={0} top={0} right={0} bottom={0}>
-        {!aigneOutputValueSchema && !ignoreAigneOutputValueSchema.includes(output.name as RuntimeOutputVariable) && (
-          <Box sx={{ p: 0.5, position: 'absolute', top: 0, left: 0, right: 0, color: 'text.secondary' }}>
-            {t('noOutputValueSchema')}
-          </Box>
-        )}
         {previewImage ? (
           <Box
             component="img"
