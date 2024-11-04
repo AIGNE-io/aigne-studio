@@ -10,22 +10,13 @@ import logger from './logger';
 import { getMessageFromRuntime } from './runtime';
 
 export function getProjectOpenGraphUrl(settings: ProjectSettings) {
-  const url = settings.banner
-    ? joinURL(
-        env.appUrl,
-        getComponentMountPoint(AIGNE_STUDIO_COMPONENT_DID),
-        '/api/projects/',
-        settings.id,
-        'refs/main/assets',
-        settings.banner
-      )
-    : joinURL(
-        env.appUrl,
-        getComponentMountPoint(AIGNE_STUDIO_COMPONENT_DID),
-        '/api/projects/',
-        settings.id,
-        '/logo.png'
-      );
+  const url = joinURL(
+    env.appUrl,
+    getComponentMountPoint(AIGNE_STUDIO_COMPONENT_DID),
+    '/api/projects/',
+    settings.id,
+    '/logo.png'
+  );
 
   return withQuery(url, { version: settings?.updatedAt });
 }
