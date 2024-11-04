@@ -18,7 +18,7 @@ export function getProjectOpenGraphUrl(settings: ProjectSettings) {
     '/logo.png'
   );
 
-  return withQuery(url, { version: settings?.updatedAt });
+  return withQuery(url, { version: settings?.updatedAt, imageFilter: 'resize', f: 'webp', w: 1200 });
 }
 
 export async function getOpenGraphInfo({
