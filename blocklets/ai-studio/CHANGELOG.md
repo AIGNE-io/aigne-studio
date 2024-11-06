@@ -1,6 +1,7 @@
 ## 0.4.132 (2024-11-6)
 
 - chore: polish runtime page
+- chore: replace @did-space/client with @blocklet/did-space-js
 
 ## 0.4.131 (2024-11-4)
 
