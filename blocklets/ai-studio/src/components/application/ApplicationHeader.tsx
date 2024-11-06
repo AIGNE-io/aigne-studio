@@ -41,7 +41,7 @@ export default function ApplicationHeader({
     );
   }
   if (application?.deployment?.id) {
-    props.homeLink = joinURL(AIGNE_STUDIO_MOUNT_POINT, `/apps/${application?.deployment?.id}`);
+    props.homeLink = joinURL(AIGNE_STUDIO_MOUNT_POINT, `/apps/${application.deployment.id}`);
   }
 
   return (
