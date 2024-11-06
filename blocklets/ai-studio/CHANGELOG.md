@@ -1,3 +1,7 @@
+## 0.4.132 (2024-11-6)
+
+- chore: polish runtime page
+
 ## 0.4.131 (2024-11-4)
 
 - fix(ai-studio): guide users through space connection failures
