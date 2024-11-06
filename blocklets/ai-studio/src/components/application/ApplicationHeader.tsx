@@ -40,12 +40,14 @@ export default function ApplicationHeader({
       </Tooltip>
     );
   }
+  if (application?.deployment?.id) {
+    props.homeLink = joinURL(AIGNE_STUDIO_MOUNT_POINT, `/apps/${application?.deployment?.id}`);
+  }
 
   return (
     <Box
       component={Header}
       {...props}
-      homeLink={joinURL(AIGNE_STUDIO_MOUNT_POINT, `/apps/${application?.deployment?.id}`)}
       meta={meta}
       sx={{ position: 'sticky', top: 0, '.header-container': { maxWidth: '100%' } }}
       addons={addons}
