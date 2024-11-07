@@ -1,8 +1,6 @@
 import MdViewer from '@app/components/md-viewer';
-import { AssetField } from '@app/components/publish/LogoField';
 import { useCurrentProject } from '@app/contexts/project';
 import UploaderProvider from '@app/contexts/uploader';
-import { getAssetUrl } from '@app/libs/asset';
 import { getDefaultBranch, useCurrentGitStore } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
@@ -286,60 +284,6 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                       }
                     }}
                   />
-                </Box>
-
-                <Box>
-                  <Typography variant="subtitle2" mb={0.5}>
-                    {t('projectSetting.banner')}
-                  </Typography>
-
-                  <Box width={1} height={0} pb="50%" position="relative">
-                    <AssetField
-                      value={
-                        projectSetting?.banner
-                          ? { url: getAssetUrl({ projectId, projectRef, filename: projectSetting?.banner }) }
-                          : {
-                              url: getProjectIconUrl(projectId, {
-                                projectRef,
-                                working: true,
-                                updatedAt: projectSetting?.iconVersion,
-                              }),
-                            }
-                      }
-                      onChange={async (v) => {
-                        try {
-                          const { filename } = await uploadAsset({ projectId, ref: projectRef, source: v.url });
-                          setProjectSetting((config) => {
-                            config.banner = filename;
-                          });
-                        } catch (error) {
-                          Toast.error(error.message);
-                          throw error;
-                        }
-                      }}>
-                      <Box
-                        component="img"
-                        src={
-                          projectSetting?.banner
-                            ? getAssetUrl({ projectId, projectRef, filename: projectSetting?.banner })
-                            : getProjectIconUrl(projectId, {
-                                projectRef,
-                                working: true,
-                                updatedAt: projectSetting?.iconVersion,
-                              })
-                        }
-                        sx={{
-                          position: 'absolute',
-                          inset: 0,
-                          cursor: 'pointer',
-                          objectFit: 'cover',
-                          width: 1,
-                          height: 1,
-                          borderRadius: 1,
-                        }}
-                      />
-                    </AssetField>
-                  </Box>
                 </Box>
 
                 <Box>

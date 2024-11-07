@@ -202,7 +202,6 @@ export default flatten({
       body: 'Body Font',
       title: 'Title Font',
     },
-    banner: 'Banner',
     readme: 'README',
   },
   notOpenFile: 'Open an agent to continue',

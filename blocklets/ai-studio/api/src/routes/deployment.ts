@@ -383,8 +383,7 @@ export const respondAgentFields = ({
     'updatedAt',
     'appearance',
     'iconVersion',
-    'readme',
-    'banner'
+    'readme'
   ),
 
   identity: {

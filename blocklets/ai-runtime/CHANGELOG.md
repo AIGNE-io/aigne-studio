@@ -1,3 +1,20 @@
+## 0.4.132 (2024-11-6)
+
+- chore: polish runtime page
+- chore: replace @did-space/client with @blocklet/did-space-js
+
+## 0.4.131 (2024-11-4)
+
+- fix(ai-studio): guide users through space connection failures
+
+## 0.4.130 (2024-11-4)
+
+- chore: remove project settings banner
+
+## 0.4.129 (2024-11-1)
+
+- fix: runtime component is optional for pages-kit
+
 ## 0.4.128 (2024-11-1)
 
 - fix: support image context
