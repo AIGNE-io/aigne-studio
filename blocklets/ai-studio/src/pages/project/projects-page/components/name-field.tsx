@@ -86,7 +86,9 @@ const HelperText = ({
   if (!message) return null;
   return (
     <Box component="span" display="flex" alignItems="center" gap={1}>
-      {message}
+      <Box component="span" sx={{ flexShrink: 0 }}>
+        {message}
+      </Box>
       {project && (
         <Box
           component="span"
@@ -98,10 +100,13 @@ const HelperText = ({
             cursor: onDuplicateProject ? 'pointer' : 'auto',
             color: 'text.secondary',
             textDecoration: 'underline',
+            minWidth: 0,
           }}
           onClick={() => onDuplicateProject?.(project)}>
           <Box component="img" src={getProjectIconUrl(project.id, {})} sx={{ width: 24, height: 24 }} />
-          <Box component="span">{project.name}</Box>
+          <Box component="span" className="ellipsis">
+            {project.name}
+          </Box>
         </Box>
       )}
     </Box>
