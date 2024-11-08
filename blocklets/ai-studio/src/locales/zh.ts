@@ -874,6 +874,7 @@ export default flatten({
   checkbox: '平铺选择',
   imageParameterInNotUserRole: '图片参数只能在用户角色中使用',
   noPreviewImage: '暂无预览图',
+  noOutputValueSchema: '组件缺少类型定义，可能导致渲染错误',
   verifyVC: '验证 VC',
   vcItem: 'VC 名称',
   trustedIssuers: '信任的发布者',
