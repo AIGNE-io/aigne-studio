@@ -1,5 +1,5 @@
-import { verifySig } from '@blocklet/ai-runtime/utils/call';
 import { auth } from '@blocklet/sdk/lib/middlewares';
+import { getVerifyData, verify } from '@blocklet/sdk/lib/util/verify-sign';
 import { NextFunction, Request, Response } from 'express';
 
 import logger from './logger';
@@ -24,7 +24,8 @@ export function ensureComponentCallOr(fallback: (req: Request, res: Response, ne
     try {
       const sig = req.get('x-component-sig');
       if (sig) {
-        const verified = verifySig(req);
+        const { data, sig } = getVerifyData(req);
+        const verified = verify(data, sig);
         if (verified) {
           next();
         } else {

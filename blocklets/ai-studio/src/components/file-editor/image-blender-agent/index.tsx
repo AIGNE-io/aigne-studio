@@ -83,6 +83,8 @@ export default function ImageBlenderAssistantEditor({ value }: { value: ImageBle
       <SelectTemplates
         ref={selectedTemplatesRef}
         // @ts-ignore
+        includeSnapshotTemplates
+        // @ts-ignore
         value={
           value.templateId
             ? [

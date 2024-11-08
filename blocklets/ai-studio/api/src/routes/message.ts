@@ -1,5 +1,5 @@
 import History from '@api/store/models/history';
-import { auth, user } from '@blocklet/sdk/lib/middlewares';
+import middlewares from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
 import { pick, uniqBy, zip } from 'lodash';
@@ -14,7 +14,7 @@ const searchOptionsSchema = Joi.object<{ sessionId?: string; limit: number; keyw
 
 // TODO 直接删除？ 目前都是使用了 runtime 的接口
 export function messageRoutes(router: Router) {
-  router.get('/messages', user(), async (req, res) => {
+  router.get('/messages', middlewares.session(), async (req, res) => {
     const query = await searchOptionsSchema.validateAsync(req.query, { stripUnknown: true });
     const { did: userId } = req.user!;
 
@@ -99,7 +99,7 @@ export function messageRoutes(router: Router) {
     orderDirection: Joi.string().empty([null, '']).valid('asc', 'desc').default('desc'),
   });
 
-  router.get('/sessions/:sessionId/messages', user(), auth(), async (req, res) => {
+  router.get('/sessions/:sessionId/messages', middlewares.session(), middlewares.auth(), async (req, res) => {
     const { did: userId } = req.user!;
 
     const { sessionId } = req.params;
@@ -130,7 +130,7 @@ export function messageRoutes(router: Router) {
     });
   });
 
-  router.delete('/sessions/:sessionId/messages', user(), auth(), async (req, res) => {
+  router.delete('/sessions/:sessionId/messages', middlewares.session(), middlewares.auth(), async (req, res) => {
     const { did: userId } = req.user!;
     const { sessionId } = req.params;
 
