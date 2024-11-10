@@ -35,7 +35,6 @@ test.describe.serial('resource blocklet', () => {
 
     await unInstallBlocklet(page, 'Mockplexity');
     await unInstallBlocklet(page, 'SerpApi');
-    await unInstallBlocklet(page, '新版本知识库');
 
     await installBlocklet(page);
   });
@@ -113,18 +112,15 @@ test.describe.serial('resource blocklet', () => {
   });
 
   test('start resource knowledge blocklet', async ({ page }) => {
+    await unInstallBlocklet(page, '新版本知识库');
     await installBlockletResourceKnowledgeBlocklet(page);
+    await page.waitForTimeout(5000);
 
-    test.slow();
-    console.log('start resource knowledge blocklet');
     const blocklet = page.locator('.component-item').filter({ hasText: '新版本知识库' }).first();
 
-    const stopIcon = blocklet.getByTestId('StopIcon');
-    if ((await stopIcon.count()) > 0) return;
-
-    const startIcon = blocklet.getByTestId('PlayArrowIcon');
-    if ((await startIcon.count()) > 0) {
-      await startIcon.click();
+    const isRunning = (await blocklet.getByTestId('StopIcon').count()) > 0;
+    if (!isRunning) {
+      await blocklet.getByTestId('PlayArrowIcon').click();
       await blocklet.getByTestId('StopIcon').waitFor();
     }
   });
