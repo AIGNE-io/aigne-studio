@@ -135,7 +135,7 @@ export function resourceRoutes(router: Router) {
         method: 'get',
         path: '/api/datasets',
         params: { excludeResource: true },
-        headers: { 'x-user-did': req.user?.did },
+        headers: { 'x-component-did': req.user?.did, 'x-user-did': req.user?.did },
       })
     ).data;
 

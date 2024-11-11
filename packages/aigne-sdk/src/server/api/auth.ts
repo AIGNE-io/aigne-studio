@@ -5,6 +5,7 @@ export interface User {
 
 export function userHeaders(user: User) {
   return {
+    'x-component-did': user.did,
     'x-user-did': user.did,
     'x-user-role': user.role,
     'x-user-provider': user.provider,

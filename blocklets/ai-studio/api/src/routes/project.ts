@@ -349,7 +349,7 @@ export function projectRoutes(router: Router) {
       name: 'image-bin',
       path: '/api/sdk/uploads',
       method: 'GET',
-      headers: { 'x-user-did': did },
+      headers: { 'x-component-did': did, 'x-user-did': did },
       params: { pageSize: 100, folderId: AI_STUDIO_COMPONENT_DID },
     });
 
@@ -362,7 +362,7 @@ export function projectRoutes(router: Router) {
       name: 'image-bin',
       path: `/api/sdk/uploads/${req.params.id}`,
       method: 'DELETE',
-      headers: { 'x-user-did': did },
+      headers: { 'x-component-did': did, 'x-user-did': did },
     });
     res.json({ icons: data?.uploads || [] });
   });
@@ -1217,6 +1217,7 @@ async function copyProject({
         method: 'POST',
         data: { templateId: agent.templateId, userDid: author.did, name: project.name },
         headers: {
+          'x-component-did': author.did,
           'x-user-did': author?.did,
           'x-user-role': author?.role,
           'x-user-provider': author?.provider,
@@ -1258,11 +1259,12 @@ async function copyKnowledge({
     method: 'POST',
     data: { appId: currentProjectId, copyFromProjectId: originProjectId },
     headers: {
-      'x-user-did': user?.did,
-      'x-user-role': user?.role,
-      'x-user-provider': user?.provider,
-      'x-user-fullname': user?.fullName && encodeURIComponent(user?.fullName),
-      'x-user-wallet-os': user?.walletOS,
+      'x-component-did': user.did,
+      'x-user-did': user.did,
+      'x-user-role': user.role,
+      'x-user-provider': user.provider,
+      'x-user-fullname': user.fullName && encodeURIComponent(user?.fullName),
+      'x-user-wallet-os': user.walletOS,
     },
   });
 

@@ -173,6 +173,7 @@ export interface AgentExecutorOptions {
 
 const getUserHeader = (user: any) => {
   return {
+    'x-component-did': user.did,
     'x-user-did': user?.did,
     'x-user-role': user?.role,
     'x-user-provider': user?.provider,

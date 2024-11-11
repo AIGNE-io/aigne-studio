@@ -22,7 +22,7 @@ export async function uploadImageToImageBin({
   const { data: result } = await call<{ filename: string }>({
     name: 'image-bin',
     path: '/api/sdk/uploads',
-    headers: { 'x-user-did': userId || wallet.address },
+    headers: { 'x-component-did': userId || wallet.address, 'x-user-did': userId || wallet.address },
     data: {
       type: 'base64',
       data: base64,

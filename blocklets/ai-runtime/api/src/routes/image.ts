@@ -46,7 +46,7 @@ router.post('/upload', upload.array('images', maxImageCount), async (req: Reques
       const { data: result } = await call<{ filename: string }>({
         name: 'image-bin',
         path: '/api/sdk/uploads',
-        headers: { 'x-user-did': config.env.appId },
+        headers: { 'x-component-did': config.env.appId, 'x-user-did': config.env.appId },
         data: { type: 'path', data: file.path, filename: file.originalname },
       });
 
