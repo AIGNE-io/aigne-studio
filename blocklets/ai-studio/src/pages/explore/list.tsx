@@ -11,7 +11,7 @@ import { ProjectSettings } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import PlayIcon from '@iconify-icons/tabler/play';
 import UserIcon from '@iconify-icons/tabler/user';
-import { Box, CircularProgress, Container, Divider, Stack, Typography } from '@mui/material';
+import { Box, CircularProgress, Divider, Stack, Typography } from '@mui/material';
 import { Link, useOutletContext, useParams } from 'react-router-dom';
 import { withQuery } from 'ufo';
 
@@ -139,7 +139,7 @@ function CategoryList() {
     <Stack sx={{ height: 1, overflow: 'hidden' }}>
       <MobileSidebarHeader categories={categories} />
       <Box sx={{ flex: 1, overflow: 'auto' }} data-testid="explore-list">
-        <Container>
+        <Box sx={{ px: 3 }}>
           {deployments.length === 0 && (
             <Stack flex={1} height={500} justifyContent="center" alignItems="center" gap={1}>
               <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
@@ -148,14 +148,14 @@ function CategoryList() {
               </Typography>
             </Stack>
           )}
-          <Box component="ul" sx={{ display: 'flex', flexWrap: 'wrap', mx: -1.5, p: 0, listStyle: 'none' }}>
+          <Box component="ul" sx={{ display: 'flex', flexWrap: 'wrap', mt: 2, mx: -1.5, p: 0, listStyle: 'none' }}>
             {deployments.map((deployment) => (
               <Box
                 key={deployment.id}
                 component="li"
                 data-testid="explore-card"
                 sx={{
-                  width: { xs: 1, md: 1 / 2, lg: 1 / 3 },
+                  width: { xs: 1, md: 1 / 2, lg: 1 / 3, xl: 1 / 4 },
                   p: 1.5,
                 }}>
                 <CategoryCard
@@ -175,7 +175,7 @@ function CategoryList() {
               </Box>
             </Box>
           )}
-        </Container>
+        </Box>
       </Box>
     </Stack>
   );
