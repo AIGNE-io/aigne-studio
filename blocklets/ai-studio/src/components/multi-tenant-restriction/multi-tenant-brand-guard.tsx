@@ -94,7 +94,7 @@ export function MultiTenantBrandGuard({ deployment, project, sx, children, ...re
 
 function MadeWithAigne() {
   return (
-    <Tooltip title="Built with Aigne - Visit aigne.io to create your own AI applications">
+    <Tooltip title="Built with AIGNE - Visit aigne.io to create your own AI applications">
       <Box
         component="a"
         href="https://www.aigne.io"
