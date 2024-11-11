@@ -548,7 +548,9 @@ export default flatten({
     keyword: '检索关键字',
   },
   outputVariableParameter: {
-    addData: '新建记忆',
+    add: '新建',
+    edit: '编辑',
+    memory: '记忆',
     keyRequired: '变量名称不能为空',
     key: '记忆名称',
     scope: '作用域',
@@ -881,6 +883,9 @@ export default flatten({
   buttonTitle: '按钮标题',
   buttonTitleVerified: '按钮标题(验证成功)',
   agentNotFound: 'Agent 不存在',
+  deleteMemory: '删除记忆',
+  deleteMemoryTip: '当前 Memory 被以下 Agent 使用: {agents}, 确定删除吗?',
+  memoryNotDefined: '记忆字段未定义或已更改',
   operators: {
     equals: '等于',
     doesNotEqual: '不等于',

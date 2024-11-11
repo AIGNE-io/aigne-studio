@@ -132,8 +132,27 @@ export default function InputTable({
     return validNameRegex.test(name);
   };
 
-  const checkVariableReferenced = (id: string, key: string) => {
+  const checkMemoryVariableDefined = (parameter: ParameterYjs, type?: string) => {
+    if (parameter.type === 'source' && parameter.source?.variableFrom === 'datastore') {
+      const { variable } = parameter.source;
+      if (variable && variable.key) {
+        const variableYjs = getVariables();
+        const found = variableYjs?.variables?.find((x) => x.key === variable.key && x.scope === variable.scope);
+
+        if (type) {
+          return found?.type?.type === type;
+        }
+
+        return !!found;
+      }
+    }
+
+    return true;
+  };
+
+  const checkVariableReferenced = (parameter: ParameterYjs, key: string) => {
     if (assistant.type === 'prompt' || assistant.type === 'image') {
+      const { id } = parameter;
       const textNodes = document.querySelectorAll('[data-lexical-variable]');
       const variables = new Set([
         ...parseDirectivesOfTemplateInput(assistant).map((i) => i.name.split('.')[0]!),
@@ -414,14 +433,15 @@ export default function InputTable({
             list={assistant.parameters! ?? []}
             component={TableBody}
             renderItem={(parameter, _, params) => {
-              const idReferenced = checkVariableReferenced(parameter.id, parameter.key || '');
+              const idReferenced = checkVariableReferenced(parameter, parameter.key || '');
+              const memoryNotDefined = checkMemoryVariableDefined(parameter);
 
               const getBackgroundColor = (theme: Theme) => {
                 if (parameter.hidden) {
                   return alpha(theme.palette.common.black, theme.palette.action.hoverOpacity);
                 }
 
-                if (!idReferenced) {
+                if (!idReferenced || !memoryNotDefined) {
                   return alpha(theme.palette.warning.light, theme.palette.action.focusOpacity);
                 }
 
@@ -437,7 +457,7 @@ export default function InputTable({
                   return alpha(theme.palette.common.black, theme.palette.action.hoverOpacity);
                 }
 
-                if (!idReferenced) {
+                if (!idReferenced && !memoryNotDefined) {
                   return `${alpha(theme.palette.warning.light, theme.palette.action.selectedOpacity)} !important`;
                 }
 
@@ -447,6 +467,10 @@ export default function InputTable({
               const title = () => {
                 if (parameter.hidden) {
                   return undefined;
+                }
+
+                if (!memoryNotDefined) {
+                  return t('memoryNotDefined');
                 }
 
                 if (idReferenced) {
