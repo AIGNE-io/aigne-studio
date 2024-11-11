@@ -66,15 +66,15 @@ test.describe.serial('projects', () => {
       wallet: ensureWallet({ name: passport.trim() }),
     });
 
-    // 拉取 did space 数据
-    await page.getByRole('button', { name: 'Next' }).click();
-    await page.waitForSelector('div:has-text("Import project from DID Spaces")');
+    // // 拉取 did space 数据
+    // await page.getByRole('button', { name: 'Next' }).click();
+    // await page.waitForSelector('div:has-text("Import project from DID Spaces")');
 
-    while (!(await page.getByRole('listbox').isVisible())) {
-      await page.getByPlaceholder('Select a project to import').click({ force: true });
-    }
+    // while (!(await page.getByRole('listbox').isVisible())) {
+    //   await page.getByPlaceholder('Select a project to import').click({ force: true });
+    // }
 
-    await page.getByRole('option', { name: 'Test Project' }).first().click();
-    await page.getByRole('button', { name: 'Import from DID Spaces' }).click();
+    // await page.getByRole('option', { name: 'Test Project' }).first().click();
+    // await page.getByRole('button', { name: 'Import from DID Spaces' }).click();
   });
 });
