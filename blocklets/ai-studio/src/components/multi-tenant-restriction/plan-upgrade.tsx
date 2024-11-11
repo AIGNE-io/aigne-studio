@@ -89,7 +89,11 @@ export function PlanUpgrade() {
               size="small"
               value={billingCycle}
               exclusive
-              onChange={(_, v) => setBillingCycle(v)}
+              onChange={(_, v) => {
+                if (v) {
+                  setBillingCycle(v);
+                }
+              }}
               sx={{
                 '.MuiToggleButtonGroup-grouped': {
                   width: 80,
