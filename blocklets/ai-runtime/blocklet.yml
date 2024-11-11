@@ -15,11 +15,10 @@ repository:
   type: git
   url: git+https://github.com/blocklet/ai-studio.git
 specVersion: 1.2.8
-version: 0.4.119
-logo: logo.png
+version: 0.4.135
+logo: screenshots/0453ca48c18784b78a0354c9369ad377.png
 files:
   - dist
-  - logo.png
   - screenshots
   - api/hooks/pre-flight.js
   - api/dist/store/migrate.js
@@ -51,9 +50,10 @@ environments: []
 capabilities:
   navigation: false
 screenshots:
-  - runtime-blocklets.png
-  - runtime-agents.png
-  - runtime-mockplexity.png
+  - 98f9f6d7eb0ed1cb200f9d91d80cd06d.png
+  - e337b06f832f22e279413b59a3b09876.png
+  - 6ccc8076726d6831f758662b0b4318a4.png
+  - 7de3859af11fe91e0498a8ee598a4a98.png
 components:
   - name: ai-kit
     required: true

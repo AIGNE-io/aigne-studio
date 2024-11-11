@@ -348,7 +348,7 @@ const PopperButton = forwardRef<PopperButtonImperative, PopperButtonProps>(
 
                 {settingsChildren}
 
-                {currentSetting !== 'save' && <AppearanceComponentSettings agent={assistant} output={output} />}
+                {currentSetting !== 'save' && <AppearanceComponentSettings output={output} />}
               </Stack>
             </DialogContent>
 

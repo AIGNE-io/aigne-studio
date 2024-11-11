@@ -1,4 +1,4 @@
-import { user } from '@blocklet/sdk/lib/middlewares';
+import middlewares from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
 
@@ -21,7 +21,7 @@ export function workingRoutes(router: Router) {
 
   router.post(
     '/projects/:projectId/workings/:ref/commit',
-    user(),
+    middlewares.session(),
     ensureComponentCallOrPromptsEditor(),
     async (req, res) => {
       const { fullName, did: userId } = req.user!;

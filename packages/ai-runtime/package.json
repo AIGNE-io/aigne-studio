@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.4.119",
+  "version": "0.4.135",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -148,8 +148,8 @@
   },
   "dependencies": {
     "@abtnode/client": "^1.16.32",
-    "@arcblock/did-connect": "^2.10.54",
-    "@blocklet/ai-kit": "^0.1.61",
+    "@arcblock/did-connect": "^2.10.63",
+    "@blocklet/ai-kit": "^0.1.62",
     "@blocklet/co-git": "workspace:^",
     "@blocklet/constant": "^1.16.32",
     "@blocklet/dataset-sdk": "workspace:^",
@@ -157,7 +157,7 @@
     "@blocklet/logger": "^1.16.32",
     "@blocklet/quickjs": "workspace:^",
     "@blocklet/sdk": "^1.16.32",
-    "@blocklet/uploader": "^0.1.50",
+    "@blocklet/uploader": "^0.1.51",
     "@iconify-icons/tabler": "^1.2.95",
     "@iconify/react": "^5.0.2",
     "@microsoft/fetch-event-source": "^2.0.1",
@@ -182,6 +182,7 @@
     "joi": "^17.13.3",
     "js-base64": "^3.7.7",
     "js-cookie": "^3.0.5",
+    "json-logic-js": "^2.0.5",
     "json-stable-stringify": "^1.1.1",
     "jsonata": "^2.0.5",
     "lodash": "^4.17.21",
@@ -194,6 +195,7 @@
     "react-hook-form": "^7.53.0",
     "react-markdown": "^9.0.1",
     "react-promise-suspense": "^0.3.4",
+    "react-querybuilder": "^7.7.1",
     "react-scroll-to-bottom": "^4.2.0",
     "react-share": "^5.1.0",
     "react-syntax-highlighter": "^15.6.1",
@@ -218,13 +220,14 @@
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@arcblock/ux": "^2.10.54",
+    "@arcblock/ux": "^2.10.63",
     "@emotion/css": "^11.13.0",
     "@emotion/react": "^11.13.3",
     "@jest/globals": "^29.7.0",
     "@mui/icons-material": "^5.16.7",
     "@mui/lab": "^5.0.0-alpha.173",
     "@mui/material": "^5.16.7",
+    "@types/json-logic-js": "^2.0.7",
     "@types/lodash": "^4.17.7",
     "@types/mustache": "^4.2.5",
     "@types/node-fetch": "^2.6.11",

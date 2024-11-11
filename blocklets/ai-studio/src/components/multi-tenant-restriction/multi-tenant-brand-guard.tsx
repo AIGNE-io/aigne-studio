@@ -1,28 +1,21 @@
 import { useIsAdmin, useSessionContext } from '@app/contexts/session';
-import { Deployment, updateDeployment } from '@app/libs/deployment';
+import { Deployment } from '@app/libs/deployment';
 import { ProjectSettings } from '@blocklet/ai-runtime/types';
-import { Close } from '@mui/icons-material';
-import { Box, BoxProps, IconButton } from '@mui/material';
+import { Icon } from '@iconify-icon/react';
+import InfoSquareIcon from '@iconify-icons/tabler/info-square';
+import { Box, BoxProps, Tooltip } from '@mui/material';
 import { useEffect, useState } from 'react';
 
+import { MakeYoursButton } from '../../pages/explore/button';
 import AigneLogo from '../aigne-logo';
-import { premiumPlanEnabled, useMultiTenantRestriction } from './state';
+import { premiumPlanEnabled } from './state';
 
 interface Props {
   deployment?: Deployment;
   project?: ProjectSettings;
-  onRemoveAigneBanner?: () => void;
 }
 
-export function MultiTenantBrandGuard({
-  deployment,
-  project,
-  onRemoveAigneBanner,
-  sx,
-  children,
-  ...rest
-}: Props & BoxProps) {
-  const { quotaChecker } = useMultiTenantRestriction();
+export function MultiTenantBrandGuard({ deployment, project, sx, children, ...rest }: Props & BoxProps) {
   const [aigneBannerVisible, setAigneBannerVisible] = useState(false);
   const { session } = useSessionContext();
   const isAdmin = useIsAdmin();
@@ -43,19 +36,11 @@ export function MultiTenantBrandGuard({
     ...(Array.isArray(sx) ? sx : [sx]),
   ];
 
-  const removeBrand = async () => {
-    if (quotaChecker.checkCustomBrand()) {
-      await updateDeployment(deployment?.id!, { aigneBannerVisible: false });
-      setAigneBannerVisible(false);
-      onRemoveAigneBanner?.();
-    }
-  };
-
   useEffect(() => {
-    if (deployment && premiumPlanEnabled) {
-      setAigneBannerVisible(deployment.aigneBannerVisible ?? true);
+    if (project && premiumPlanEnabled) {
+      setAigneBannerVisible(project?.appearance?.aigneBannerVisible ?? true);
     }
-  }, [deployment]);
+  }, [project]);
 
   return (
     <Box sx={mergedSx} {...rest}>
@@ -94,10 +79,11 @@ export function MultiTenantBrandGuard({
           }}>
           <MadeWithAigne />
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            {deployment && project && <MakeYoursButton deployment={deployment} />}
             {(isAdmin || isDeploymentOwner) && (
-              <IconButton size="small" onClick={removeBrand}>
-                <Close />
-              </IconButton>
+              <Tooltip title="The AIGNE branding banner can be disabled in your project appearance settings (Only available for Premium users)">
+                <Box component={Icon} icon={InfoSquareIcon} sx={{ fontSize: 18, color: 'text.secondary' }} />
+              </Tooltip>
             )}
           </Box>
         </Box>
@@ -108,26 +94,28 @@ export function MultiTenantBrandGuard({
 
 function MadeWithAigne() {
   return (
-    <Box
-      component="a"
-      href="https://www.aigne.io"
-      target="_blank"
-      sx={{
-        textDecoration: 'none',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 1,
-        fontSize: 14,
-        fontWeight: 'bold',
-        color: 'text.secondary',
-        whiteSpace: 'nowrap',
-      }}>
-      <Box component="span" sx={{ display: { xs: 'none', md: 'inline' } }}>
-        Made with
+    <Tooltip title="Built with Aigne - Visit aigne.io to create your own AI applications">
+      <Box
+        component="a"
+        href="https://www.aigne.io"
+        target="_blank"
+        sx={{
+          textDecoration: 'none',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+          fontSize: 14,
+          fontWeight: 'bold',
+          color: 'text.secondary',
+          whiteSpace: 'nowrap',
+        }}>
+        <Box component="span" sx={{ display: { xs: 'none', md: 'inline' } }}>
+          Made with
+        </Box>
+        <Box sx={{ transform: 'scale(0.7) translateX(-25%)' }}>
+          <AigneLogo />
+        </Box>
       </Box>
-      <Box sx={{ transform: 'scale(0.7) translateX(-25%)' }}>
-        <AigneLogo />
-      </Box>
-    </Box>
+    </Tooltip>
   );
 }

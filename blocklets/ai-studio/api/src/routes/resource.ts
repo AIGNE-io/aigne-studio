@@ -13,11 +13,10 @@ import {
   ResourceProject,
   ResourceTypes,
 } from '@blocklet/ai-runtime/types';
-import { call } from '@blocklet/ai-runtime/utils/call';
 import { copyRecursive } from '@blocklet/ai-runtime/utils/fs';
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
-import component from '@blocklet/sdk/lib/component';
-import { user } from '@blocklet/sdk/lib/middlewares';
+import component, { call } from '@blocklet/sdk/lib/component';
+import middlewares from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import { pathExists } from 'fs-extra';
 import Joi from 'joi';
@@ -113,7 +112,7 @@ export function resourceRoutes(router: Router) {
     return undefined;
   };
 
-  router.get('/resources/export', user(), ensurePromptsEditor, async (req, res) => {
+  router.get('/resources/export', middlewares.session(), ensurePromptsEditor, async (req, res) => {
     const query = await getExportedResourceQuerySchema.validateAsync(
       {
         ...req.query,
