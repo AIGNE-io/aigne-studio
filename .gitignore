@@ -7,6 +7,8 @@
 .pnp
 .pnp.js
 .DS_Store
+.idea
+.pnpm-store
 node_modules
 packages/*/lib
 
