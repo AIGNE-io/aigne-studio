@@ -864,16 +864,16 @@ export default flatten({
   selectTemplateDynamicInputTip: 'Taken over automatically by Agent',
   multiTenantRestriction: {
     requestLimit: {
-      desc: 'You have reached the maximum request limit in this project. You may increase the limit by upgrading your plan to Premium.',
+      desc: "You've reached your request limit. Upgrade to Premium to increase your request capacity.",
     },
     projectLimit: {
-      desc: 'You have reached the maximum project limit. Upgrade your plan to Premium to manage more projects.',
+      desc: "You've reached your maximum number of projects. Upgrade to Premium to create more projects.",
     },
     customBrand: {
-      desc: 'Branding customization is available only in the Premium plan or Serverless AIGNE. Please upgrade to the Premium plan to access this feature.',
+      desc: 'Custom branding is a Premium/Professional feature. Upgrade your plan to personalize your brand.',
     },
     cronJobs: {
-      desc: 'The Cron Jobs feature is available only in Serverless AIGNE. Please run a Serverless AIGNE to access this feature.',
+      desc: 'Cron Jobs is a Professional feature. Please upgrade to the Professional plan to access this feature.',
     },
     anonymousRequest: {
       desc: 'Anonymous access control is a premium feature. Please upgrade to the Premium plan to access this feature.',
