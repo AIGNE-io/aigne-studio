@@ -79,7 +79,7 @@ export function MultiTenantBrandGuard({ deployment, project, sx, children, ...re
           }}>
           <MadeWithAigne />
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            {deployment && project && <MakeYoursButton deployment={deployment} />}
+            {deployment && project && <MakeYoursButton deployment={deployment} project={project} />}
             {(isAdmin || isDeploymentOwner) && (
               <Tooltip title="The AIGNE branding banner can be disabled in your project appearance settings (Only available for Premium users)">
                 <Box component={Icon} icon={InfoSquareIcon} sx={{ fontSize: 18, color: 'text.secondary' }} />
