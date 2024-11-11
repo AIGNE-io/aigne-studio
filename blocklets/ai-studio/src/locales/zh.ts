@@ -794,7 +794,7 @@ export default flatten({
     publicDescription: '任何人可查看并复制项目',
     privateDescription: '仅管理员可查看并复制项目',
     toEnablePrivateProjects: '要启用私有项目',
-    launchAigne: '请启动你的 Aigne',
+    launchAigne: '请启动你的 AIGNE',
     updateApp: '更新部署',
     updateAppDescription: '刷新线上环境，呈现最新变更',
     currentDeployment: '当前部署概况',

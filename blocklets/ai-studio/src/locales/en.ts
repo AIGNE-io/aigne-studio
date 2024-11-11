@@ -801,7 +801,7 @@ export default flatten({
     publicDescription: 'Anyone can view and copy this project',
     privateDescription: 'Only admins can view and copy this project',
     toEnablePrivateProjects: 'To enable private projects',
-    launchAigne: 'Please launch your Aigne',
+    launchAigne: 'Please launch your AIGNE',
     updateApp: 'Update App',
     updateAppDescription: 'This will update your app',
     currentDeployment: 'Current Deployment',
