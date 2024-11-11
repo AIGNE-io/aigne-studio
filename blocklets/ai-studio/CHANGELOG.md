@@ -1,3 +1,7 @@
+## 0.4.136 (2024-11-11)
+
+- chore: support update memory
+
 ## 0.4.135 (2024-11-11)
 
 - chore: update e2e test
