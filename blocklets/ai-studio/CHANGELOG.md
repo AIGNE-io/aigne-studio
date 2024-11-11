@@ -1,3 +1,11 @@
+## 0.4.134 (2024-11-8)
+
+- chore: update screenshots
+
+## 0.4.133 (2024-11-8)
+
+- feat: improve component preview
+
 ## 0.4.132 (2024-11-6)
 
 - chore: polish runtime page

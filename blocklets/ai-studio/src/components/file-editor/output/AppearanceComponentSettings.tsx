@@ -1,14 +1,7 @@
 import { ComponentSelectDialog } from '@app/components/component-select/ComponentSelect';
-import { useCurrentProject } from '@app/contexts/project';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { AIGNE_COMPONENTS_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
-import {
-  AssistantYjs,
-  OutputVariableYjs,
-  RuntimeOutputAppearance,
-  RuntimeOutputVariable,
-} from '@blocklet/ai-runtime/types';
+import { OutputVariableYjs, RuntimeOutputAppearance, RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
 import { getDefaultOutputComponent } from '@blocklet/aigne-sdk/components/ai-runtime';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
@@ -31,18 +24,13 @@ const ignoreIconTitleSettingsOutputs = new Set<string>([
 ]);
 
 export default function AppearanceComponentSettings({
-  agent,
   output,
   disableTitleAndIcon,
 }: {
-  agent: AssistantYjs;
   output: OutputVariableYjs;
   disableTitleAndIcon?: boolean;
 }) {
-  const { projectId, projectRef } = useCurrentProject();
   const { t } = useLocaleContext();
-
-  const aid = stringifyIdentity({ projectId, projectRef, agentId: agent.id });
 
   const { appearance } = output;
 
@@ -187,7 +175,6 @@ export default function AppearanceComponentSettings({
 
           <ComponentSelectDialog
             output={output}
-            aid={aid}
             tags={tags}
             value={currentComponent}
             onChange={(v) => {

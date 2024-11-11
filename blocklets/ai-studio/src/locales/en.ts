@@ -885,6 +885,7 @@ export default flatten({
   checkbox: 'Checkbox',
   imageParameterInNotUserRole: 'Image parameters can only be used in the user role',
   noPreviewImage: 'No Preview Image',
+  noOutputValueSchema: 'Component lacks type definition, may render incorrectly',
   verifyVC: 'Verify VC',
   vcItem: 'VC Name',
   trustedIssuers: 'Trusted Issuers',

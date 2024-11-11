@@ -74,6 +74,7 @@ export const runtimeVariablesSchema: {
           id: '',
           type: 'string',
           name: 'title',
+          required: true,
           faker: 'lorem.sentence',
         },
         {
