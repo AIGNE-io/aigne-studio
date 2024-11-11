@@ -1,3 +1,7 @@
+## 0.4.135 (2024-11-11)
+
+- chore: update e2e test
+
 ## 0.4.134 (2024-11-8)
 
 - chore: update screenshots
