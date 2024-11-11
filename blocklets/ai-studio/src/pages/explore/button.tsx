@@ -26,12 +26,13 @@ import {
   Popper,
   Tooltip,
 } from '@mui/material';
-import { useMemo, useState } from 'react';
+import { ReactElement, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { joinURL, withQuery } from 'ufo';
 
 import { useSessionContext } from '../../contexts/session';
 import { Deployment } from '../../libs/deployment';
+import ImportFromFork from '../project/projects-page/import-from-fork';
 
 function generateTwitterShareUrl(data: {
   title: string;
@@ -65,22 +66,40 @@ function generateTwitterShareUrl(data: {
   return `https://twitter.com/intent/tweet?${params.toString()}`;
 }
 
-export function MakeYoursButton({ deployment, ...props }: { deployment: Deployment } & LoadingButtonProps) {
+export function MakeYoursButton({
+  project,
+  deployment,
+  ...props
+}: { project: ProjectSettings; deployment: Deployment } & LoadingButtonProps) {
   const { t } = useLocaleContext();
   const navigate = useNavigate();
   const { session } = useSessionContext();
-  const onMakeYours = async () => {
+  const [dialog, setDialog] = useState<ReactElement | null>(null);
+
+  const onDialogClose = () => {
+    setDialog(null);
+  };
+
+  const onClick = async () => {
     if (!session.user) {
       await new Promise<void>((resolve) => {
         session.login(() => resolve());
       });
     }
+    setDialog(<ImportFromFork project={project} onCreate={onMakeYours} onClose={onDialogClose} />);
+  };
 
+  const onMakeYours = async ({ name, description }: { name: string; description: string }) => {
     try {
-      const project = await createProject({ templateId: deployment.projectId, deploymentId: deployment.id });
-
-      currentGitStore.setState({ currentProjectId: project.id });
-      navigate(joinURL('/projects', project.id));
+      onDialogClose();
+      const forkedProject = await createProject({
+        name,
+        description,
+        templateId: deployment.projectId,
+        deploymentId: deployment.id,
+      });
+      currentGitStore.setState({ currentProjectId: forkedProject.id });
+      navigate(joinURL('/projects', forkedProject.id));
     } catch (error) {
       if (checkErrorType(error, RuntimeErrorType.ProjectLimitExceededError)) {
         showPlanUpgrade('projectLimit');
@@ -101,16 +120,19 @@ export function MakeYoursButton({ deployment, ...props }: { deployment: Deployme
   }
 
   return (
-    <Tooltip title={t('makeYoursTip')}>
-      <LoadingButton
-        onClick={onMakeYours}
-        color="primary"
-        variant="contained"
-        startIcon={<Box component={Icon} icon={ArrowsShuffleIcon} sx={{ fontSize: 14 }} />}
-        {...props}>
-        {t('makeYours')}
-      </LoadingButton>
-    </Tooltip>
+    <>
+      <Tooltip title={t('makeYoursTip')}>
+        <LoadingButton
+          onClick={onClick}
+          color="primary"
+          variant="contained"
+          startIcon={<Box component={Icon} icon={ArrowsShuffleIcon} sx={{ fontSize: 14 }} />}
+          {...props}>
+          {t('makeYours')}
+        </LoadingButton>
+      </Tooltip>
+      {dialog}
+    </>
   );
 }
 

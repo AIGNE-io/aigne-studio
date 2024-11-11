@@ -38,6 +38,7 @@ import { useProjectsState } from '../../../contexts/projects';
 import { getErrorMessage } from '../../../libs/api';
 import Close from '../icons/close';
 import DidSpacesLogo from '../icons/did-spaces';
+import NameField from './components/name-field';
 
 type ProjectSettingForm = {
   id: string;
@@ -240,6 +241,7 @@ export default function FromDidSpacesImport() {
       name: '',
       description: '',
     },
+    reValidateMode: 'onSubmit',
   });
 
   const importProject = useCallback(
@@ -356,18 +358,7 @@ export default function FromDidSpacesImport() {
 
             <Box>
               <Typography variant="subtitle2">{t('name')}</Typography>
-              <TextField
-                {...form.register('name')}
-                hiddenLabel
-                placeholder={t('newProjectNamePlaceholder')}
-                rows={4}
-                InputProps={{
-                  readOnly: true,
-                  onFocus: (e) => (e.currentTarget.readOnly = false),
-                }}
-                focused
-                sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
-              />
+              <NameField form={form} beforeDuplicateProjectNavigate={() => dialogState.close()} />
             </Box>
 
             <Box>

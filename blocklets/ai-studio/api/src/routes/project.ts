@@ -315,6 +315,24 @@ export function projectRoutes(router: Router) {
     });
   });
 
+  const checkProjectNameSchema = Joi.object<{ name: string; projectId: string }>({
+    name: Joi.string().required(),
+    projectId: Joi.string().empty([null, '']),
+  });
+
+  router.get('/projects/check-name', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+    const { name, projectId } = await checkProjectNameSchema.validateAsync(req.query, { stripUnknown: true });
+    const projects = await Project.findAll({ where: { name, createdBy: req.user.did } });
+
+    if (!projectId) {
+      res.json({ ok: projects.length === 0, project: projects?.[0] });
+      return;
+    }
+
+    const filtered = projects.filter((i) => i.id !== projectId);
+    res.json({ ok: filtered.length === 0, project: filtered?.[0] });
+  });
+
   router.get('/template-projects', session(), ensureComponentCallOrPromptsEditor(), async (_req, res) => {
     const resourceTemplates = (await resourceManager.getProjects({ type: 'template' })).map((i) => ({
       ...i.project,

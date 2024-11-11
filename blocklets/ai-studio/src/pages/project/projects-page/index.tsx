@@ -52,6 +52,7 @@ import {
   styled,
 } from '@mui/material';
 import { MouseEvent, ReactNode, cloneElement, useEffect, useMemo, useRef, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
@@ -64,6 +65,7 @@ import { ProjectWithUserInfo, User, createProject, getProjectIconUrl } from '../
 import useDialog from '../../../utils/use-dialog';
 import DidSpacesLogo from '../icons/did-spaces';
 import Pin from '../icons/pin';
+import NameField from './components/name-field';
 import ImportFromBlank from './import-from-blank';
 import ImportFromDidSpaces, { FROM_DID_SPACES_IMPORT, SelectDidSpacesImportWay } from './import-from-did-spaces';
 import ImportFromGit from './import-from-git';
@@ -225,7 +227,6 @@ function ProjectMenu() {
 
   const navigate = useNavigate();
   const [deleteItem, setDeleteItem] = useState<null | { project: Project; isReset?: boolean }>();
-  const { dialog, showDialog } = useDialog();
 
   const { t } = useLocaleContext();
 
@@ -265,6 +266,9 @@ function ProjectMenu() {
       templates.find((i) => i.id === menuAnchor.id && i.blockletDid === menuAnchor.blockletDid) ??
       examples.find((i) => i.id === menuAnchor.id && i.blockletDid === menuAnchor.blockletDid));
 
+  const form = useForm({ defaultValues: { name: '', description: '' }, reValidateMode: 'onSubmit' });
+  const { dialog, showDialog, closeDialog } = useDialog();
+
   const onDelete = ({ isReset }: { isReset?: boolean } = {}) => {
     if (!item) return;
     setDeleteItem({ project: item, isReset });
@@ -291,37 +295,29 @@ function ProjectMenu() {
             const id = menuAnchor?.id;
             if (!id) return;
             setMenuAnchor(undefined);
-
-            let name = item?.name || '';
-            let description = item?.description || '';
+            form.reset({ name: item?.name ?? '', description: item?.description ?? '' });
 
             showDialog({
               disableEnforceFocus: true,
               fullWidth: true,
               maxWidth: 'sm',
+              form,
               title: `${t('alert.edit')} ${t('project')}`,
               content: (
                 <Stack overflow="auto" gap={2}>
                   <Box>
                     <Typography variant="subtitle2">{t('projectSetting.name')}</Typography>
-                    <TextField
-                      autoFocus
-                      label={t('projectSetting.name')}
-                      defaultValue={item?.name || ''}
-                      onChange={(e) => (name = e.target.value)}
-                      sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
-                    />
+                    <NameField form={form} projectId={item?.id} beforeDuplicateProjectNavigate={() => closeDialog()} />
                   </Box>
 
                   <Box>
                     <Typography variant="subtitle2">{t('projectSetting.description')}</Typography>
                     <TextField
-                      label={t('projectSetting.description')}
                       multiline
                       rows={4}
                       defaultValue={item?.description || ''}
-                      onChange={(e) => (description = e.target.value)}
                       sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
+                      {...form.register('description')}
                     />
                   </Box>
                 </Stack>
@@ -329,7 +325,7 @@ function ProjectMenu() {
               cancelText: t('cancel'),
               okText: t('save'),
               okIcon: <SaveRoundedIcon />,
-              onOk: async () => {
+              onOk: async ({ name, description }) => {
                 await updateProject(id, { name, description })
                   .catch((error) => {
                     Toast.error(getErrorMessage(error));

@@ -1,3 +1,4 @@
+import type { DialogContentProps, DialogProps } from '@mui/material';
 import {
   Box,
   Button,
@@ -9,8 +10,8 @@ import {
   IconButton,
   Stack,
 } from '@mui/material';
-import type { DialogContentProps, DialogProps } from '@mui/material';
 import { ReactNode, useCallback, useMemo, useState } from 'react';
+import { UseFormReturn } from 'react-hook-form';
 
 import PromiseLoadingButton from '../components/promise-loading-button';
 import Close from '../pages/project/icons/close';
@@ -42,6 +43,7 @@ export default function useDialog() {
       onCancel,
       formSx,
       DialogContentProps,
+      form,
       ...props
     }: {
       title?: ReactNode;
@@ -55,18 +57,32 @@ export default function useDialog() {
       middleColor?: ButtonProps['color'];
       middleIcon?: ReactNode;
       middleVariant?: ButtonProps['variant'];
-      onOk?: () => Promise<any> | any;
+      onOk?: (...args: any[]) => Promise<any> | any;
       onMiddleClick?: () => Promise<any> | any;
       onCancel?: () => Promise<any> | any;
       onClose?: () => any;
       DialogContentProps?: DialogContentProps;
       formSx?: any;
+      form?: UseFormReturn<any>;
     } & Omit<DialogProps, 'title' | 'open' | 'content' | 'onClose'>) => {
+      const onSave = async (...args: any[]) => {
+        await onOk?.(...args);
+        closeDialog();
+        props.onClose?.();
+      };
+
+      const onSubmit = async () => {
+        if (form && onOk) {
+          await form.handleSubmit(onSave)();
+        } else {
+          await onSave();
+        }
+      };
+
       setProps({
         ...props,
         open: true,
         component: 'form',
-        onSubmit: (e) => e.preventDefault(),
         sx: { ...(formSx || {}) },
         children: (
           <>
@@ -122,18 +138,13 @@ export default function useDialog() {
                 </Button>
                 {onOk && (
                   <PromiseLoadingButton
+                    onClick={onSubmit}
                     data-testid="dialog-ok-button"
                     className="save"
                     variant={okVariant || 'contained'}
                     color={okColor}
                     startIcon={okIcon}
-                    loadingPosition={okIcon ? 'start' : 'center'}
-                    onClick={async () => {
-                      await onOk?.();
-                      closeDialog();
-                      props.onClose?.();
-                    }}
-                    type="submit">
+                    loadingPosition={okIcon ? 'start' : 'center'}>
                     {okText}
                   </PromiseLoadingButton>
                 )}
