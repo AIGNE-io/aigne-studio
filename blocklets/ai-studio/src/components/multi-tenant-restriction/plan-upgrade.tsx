@@ -25,7 +25,7 @@ import { premiumPlanEnabled, useIsPremiumUser, useMultiTenantRestriction, usePla
 
 export function PlanUpgrade() {
   const { hidePlanUpgrade, planUpgradeVisible, type } = useMultiTenantRestriction();
-  const { t } = useLocaleContext();
+  const { t, locale } = useLocaleContext();
   const downSm = useMediaQuery<Theme>((theme) => theme.breakpoints.down('sm'));
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const plans = usePlans();
@@ -113,7 +113,7 @@ export function PlanUpgrade() {
 
           <Box
             component={Link}
-            href="https://www.arcblock.io/blog/tags/aigne"
+            href={`https://www.arcblock.io/blog/tags/${locale}/aigne`}
             target="_blank"
             sx={{
               alignSelf: 'flex-start',
