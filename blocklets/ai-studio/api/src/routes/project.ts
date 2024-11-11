@@ -244,9 +244,11 @@ export const checkProjectLimit = async ({ req }: { req: Request }) => {
   if (config.env.tenantMode === 'multiple') {
     // check project count limit
     const count = await Project.count({ where: { createdBy: req.user?.did } });
+    // `+1`: 把正在创建的项目 (未存储到数据库) 也算在内
+    const used = count + 1;
     if (
       !ensureComponentCallOrRolesMatch(req, Config.serviceModePermissionMap.ensurePromptsAdminRoles) &&
-      !quotaChecker.checkProjectLimit(count, await getUserPassports(req.user?.did))
+      !quotaChecker.checkProjectLimit(used, await getUserPassports(req.user?.did))
     ) {
       throw new RuntimeError(
         RuntimeErrorType.ProjectLimitExceededError,
