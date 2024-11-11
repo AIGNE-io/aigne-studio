@@ -15,6 +15,7 @@ import { $, argv } from 'zx';
 
 import { playwrightConfigAppNames } from '../tests/utils';
 import { setupUsers } from '../tests/utils/auth';
+import { getOwnerWallet } from '../tests/utils/wallet';
 
 const skipInstall = argv['skip-install'] === true;
 const { ui } = argv;
@@ -36,7 +37,7 @@ async function cleanupApps(singleAppWallet: any, multipleAppWallet: any) {
 
 const initBlocklet = async ({ appName }: { appName: string }) => {
   const serverWallet = ensureWallet({ name: 'server' });
-  const ownerWallet = ensureWallet({ name: 'owner' });
+  const ownerWallet = getOwnerWallet();
   const appWallet = ensureWallet({ name: appName, role: types.RoleType.ROLE_APPLICATION });
 
   await initTestApp({

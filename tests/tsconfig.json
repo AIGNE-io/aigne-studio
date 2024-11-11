@@ -2,7 +2,10 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "types": ["jest", "node"],
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "paths": {
+      "@blocklet/testlab/utils/wallet": ["../../testlab/src/utils/wallet"]
+    }
   },
   "include": ["./**/*.ts", "./**/*.spec.ts"],
   "exclude": ["node_modules"]

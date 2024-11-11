@@ -40,7 +40,7 @@ const getDatasetsQuerySchema = Joi.object<{ excludeResource?: boolean; projectId
   projectId: Joi.string().empty(['', null]),
 });
 
-router.get('/', middlewares.session(), ensureComponentCallOr(userAuth()), async (req, res) => {
+router.get('/', middlewares.session({ componentCall: true }), ensureComponentCallOr(userAuth()), async (req, res) => {
   const query = await getDatasetsQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
   const sql = Sequelize.literal(
@@ -72,93 +72,103 @@ router.get('/', middlewares.session(), ensureComponentCallOr(userAuth()), async 
   ]);
 });
 
-router.get('/:datasetId', middlewares.session(), ensureComponentCallOr(userAuth()), async (req, res) => {
-  const { datasetId } = req.params;
-  if (!datasetId) throw new Error('missing required param `datasetId`');
+router.get(
+  '/:datasetId',
+  middlewares.session({ componentCall: true }),
+  ensureComponentCallOr(userAuth()),
+  async (req, res) => {
+    const { datasetId } = req.params;
+    if (!datasetId) throw new Error('missing required param `datasetId`');
 
-  const user =
-    !req.user || req.user.isAdmin ? {} : { [Op.or]: [{ createdBy: req.user.did }, { updatedBy: req.user.did }] };
+    const user =
+      !req.user || req.user.isAdmin ? {} : { [Op.or]: [{ createdBy: req.user.did }, { updatedBy: req.user.did }] };
 
-  const { blockletDid, appId } = await Joi.object<{ blockletDid?: string; appId?: string }>({
-    blockletDid: Joi.string().empty(['', null]),
-    appId: Joi.string().allow('').empty(null).default(''),
-  }).validateAsync(req.query, { stripUnknown: true });
+    const { blockletDid, appId } = await Joi.object<{ blockletDid?: string; appId?: string }>({
+      blockletDid: Joi.string().empty(['', null]),
+      appId: Joi.string().allow('').empty(null).default(''),
+    }).validateAsync(req.query, { stripUnknown: true });
 
-  const dataset = blockletDid
-    ? (await resourceManager.getKnowledge({ blockletDid, knowledgeId: datasetId }))?.knowledge
-    : await Dataset.findOne({ where: { id: datasetId, ...(appId && { appId }), ...user } });
+    const dataset = blockletDid
+      ? (await resourceManager.getKnowledge({ blockletDid, knowledgeId: datasetId }))?.knowledge
+      : await Dataset.findOne({ where: { id: datasetId, ...(appId && { appId }), ...user } });
 
-  res.json(dataset);
-});
+    res.json(dataset);
+  }
+);
 
 export const exportResourceQuerySchema = Joi.object<{ public?: boolean }>({
   public: Joi.boolean().empty(['', null]),
 });
 
-router.get('/:datasetId/export-resource', middlewares.session(), ensureComponentCallOrAdmin(), async (req, res) => {
-  const { datasetId } = req.params;
-  if (!datasetId) throw new Error('missing required param `datasetId`');
+router.get(
+  '/:datasetId/export-resource',
+  middlewares.session({ componentCall: true }),
+  ensureComponentCallOrAdmin(),
+  async (req, res) => {
+    const { datasetId } = req.params;
+    if (!datasetId) throw new Error('missing required param `datasetId`');
 
-  const query = await exportResourceQuerySchema.validateAsync(req.query, { stripUnknown: true });
+    const query = await exportResourceQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
-  const dataset = await Dataset.findByPk(datasetId, { rejectOnEmpty: new Error(`No such dataset ${datasetId}`) });
-  const documents = await DatasetDocument.findAll({ where: { datasetId, type: { [Op.ne]: 'discussKit' } } });
-  const documentIds = documents.map((i) => i.id);
-  const contents = await DatasetContent.findAll({ where: { documentId: { [Op.in]: documentIds } } });
+    const dataset = await Dataset.findByPk(datasetId, { rejectOnEmpty: new Error(`No such dataset ${datasetId}`) });
+    const documents = await DatasetDocument.findAll({ where: { datasetId, type: { [Op.ne]: 'discussKit' } } });
+    const documentIds = documents.map((i) => i.id);
+    const contents = await DatasetContent.findAll({ where: { documentId: { [Op.in]: documentIds } } });
 
-  const tmpdir = join(Config.dataDir, 'tmp');
-  await mkdir(tmpdir, { recursive: true });
-  const tmpFolder = await mkdtemp(join(tmpdir, 'knowledge-pack-'));
-  try {
-    const knowledgeWithIdPath = join(tmpFolder, datasetId);
-    await mkdir(knowledgeWithIdPath, { recursive: true });
+    const tmpdir = join(Config.dataDir, 'tmp');
+    await mkdir(tmpdir, { recursive: true });
+    const tmpFolder = await mkdtemp(join(tmpdir, 'knowledge-pack-'));
+    try {
+      const knowledgeWithIdPath = join(tmpFolder, datasetId);
+      await mkdir(knowledgeWithIdPath, { recursive: true });
 
-    // 首先将 projects documents contents 继续数据结构化
-    await writeFile(
-      join(knowledgeWithIdPath, 'knowledge.yaml'),
-      stringify({ ...dataset.dataValues, public: query.public })
-    );
-    await writeFile(join(knowledgeWithIdPath, 'contents.yaml'), stringify(contents));
+      // 首先将 projects documents contents 继续数据结构化
+      await writeFile(
+        join(knowledgeWithIdPath, 'knowledge.yaml'),
+        stringify({ ...dataset.dataValues, public: query.public })
+      );
+      await writeFile(join(knowledgeWithIdPath, 'contents.yaml'), stringify(contents));
 
-    // 复制 files 数据
-    const uploadSrc = resolve(await getUploadDir(datasetId));
-    const uploadsDst = join(knowledgeWithIdPath, 'uploads');
+      // 复制 files 数据
+      const uploadSrc = resolve(await getUploadDir(datasetId));
+      const uploadsDst = join(knowledgeWithIdPath, 'uploads');
 
-    if (await pathExists(uploadSrc)) {
-      await copyRecursive(uploadSrc, uploadsDst);
-    }
+      if (await pathExists(uploadSrc)) {
+        await copyRecursive(uploadSrc, uploadsDst);
+      }
 
-    await writeFile(join(knowledgeWithIdPath, 'documents.yaml'), stringify(documents));
+      await writeFile(join(knowledgeWithIdPath, 'documents.yaml'), stringify(documents));
 
-    // 复制 vector db
-    const src = resolve(await getVectorStorePath(datasetId));
-    const vectorsDst = join(knowledgeWithIdPath, 'vectors');
+      // 复制 vector db
+      const src = resolve(await getVectorStorePath(datasetId));
+      const vectorsDst = join(knowledgeWithIdPath, 'vectors');
 
-    if (await pathExists(src)) {
-      await copyRecursive(src, vectorsDst);
-    }
+      if (await pathExists(src)) {
+        await copyRecursive(src, vectorsDst);
+      }
 
-    const zipPath = join(tmpFolder, `${datasetId}.zip`);
-    const archive = archiver('zip');
-    const stream = archive.pipe(createWriteStream(zipPath));
+      const zipPath = join(tmpFolder, `${datasetId}.zip`);
+      const archive = archiver('zip');
+      const stream = archive.pipe(createWriteStream(zipPath));
 
-    archive.directory(knowledgeWithIdPath, false);
+      archive.directory(knowledgeWithIdPath, false);
 
-    await archive.finalize();
-    await finished(stream);
+      await archive.finalize();
+      await finished(stream);
 
-    await new Promise<void>((resolve) => {
-      res.sendFile(zipPath, (error) => {
-        resolve();
-        if (error) logger.error('sendFile error', error);
+      await new Promise<void>((resolve) => {
+        res.sendFile(zipPath, (error) => {
+          resolve();
+          if (error) logger.error('sendFile error', error);
+        });
       });
-    });
-  } finally {
-    await rm(tmpFolder, { recursive: true, force: true });
+    } finally {
+      await rm(tmpFolder, { recursive: true, force: true });
+    }
   }
-});
+);
 
-router.post('/', middlewares.session(), userAuth(), async (req, res) => {
+router.post('/', middlewares.session({ componentCall: true }), userAuth(), async (req, res) => {
   const { did } = req.user!;
   const {
     name = '',
@@ -193,7 +203,7 @@ router.post('/', middlewares.session(), userAuth(), async (req, res) => {
   return res.json(dataset);
 });
 
-router.put('/:datasetId', middlewares.session(), userAuth(), async (req, res) => {
+router.put('/:datasetId', middlewares.session({ componentCall: true }), userAuth(), async (req, res) => {
   const { datasetId } = req.params;
   const { did } = req.user!;
 
@@ -214,7 +224,7 @@ router.put('/:datasetId', middlewares.session(), userAuth(), async (req, res) =>
   res.json(await Dataset.findOne({ where: { id: datasetId } }));
 });
 
-router.delete('/:datasetId', middlewares.session(), userAuth(), async (req, res) => {
+router.delete('/:datasetId', middlewares.session({ componentCall: true }), userAuth(), async (req, res) => {
   const { datasetId } = req.params;
 
   const dataset = await Dataset.findOne({ where: { [Op.or]: [{ id: datasetId }, { name: datasetId }] } });

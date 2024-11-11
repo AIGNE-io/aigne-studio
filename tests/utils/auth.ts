@@ -5,17 +5,15 @@ import { chromium } from '@playwright/test';
 
 import { cacheResult } from './cache';
 import { TestConstants } from './constants';
+import { adminRootSeed, getAdminWallet, getGuestWallet, getOwnerWallet, guestRootSeed, ownerRootSeed } from './wallet';
 
 export async function setupUsers({ appName, appUrl }: { appName: string; appUrl: string }) {
   const appWallet = ensureWallet({ name: appName, onlyFromCache: true });
-  const ownerWallet = ensureWallet({ name: 'owner' });
-  const adminWallet = ensureWallet({ name: 'admin' });
-  const guestWallet = ensureWallet({ name: 'guest' });
 
   const wallets = [
-    { wallet: ownerWallet, name: 'owner' },
-    { wallet: adminWallet, name: 'admin' },
-    { wallet: guestWallet, name: 'guest' },
+    { wallet: getOwnerWallet(), name: 'owner', rootSeed: ownerRootSeed },
+    { wallet: getAdminWallet(), name: 'admin', rootSeed: adminRootSeed },
+    { wallet: getGuestWallet(), name: 'guest', rootSeed: guestRootSeed },
   ];
 
   const browser = await chromium.launch({
@@ -29,7 +27,7 @@ export async function setupUsers({ appName, appUrl }: { appName: string; appUrl:
     wallets.map(async ({ wallet, ...rest }) => {
       const vc = await cacheResult(TestConstants.didSpaceVCPath(rest.name), async () => {
         const page = await browser.newPage({});
-        const result = await claimDIDSpace({ page, wallet });
+        const result = await claimDIDSpace({ page, rootSeed: rest.rootSeed });
         await page.close();
         return result;
       });

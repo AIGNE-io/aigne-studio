@@ -6,13 +6,14 @@ import { deleteCategory } from '../utils/category';
 import { TestConstants } from '../utils/constants';
 import { deleteDeploy } from '../utils/deploy';
 import { deleteProject } from '../utils/project';
+import { getAdminWallet } from '../utils/wallet';
 
 customSetup('admin authenticate', async ({ page, storageStatePath, appName }) => {
   await page.goto('/');
 
   await login({
     page,
-    wallet: ensureWallet({ name: 'admin' }),
+    wallet: getAdminWallet(),
     appWallet: ensureWallet({ name: appName, onlyFromCache: true }),
     passport: { name: 'admin', title: 'admin' },
   });

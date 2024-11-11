@@ -79,7 +79,7 @@ const checkProjectRequestLimit = async ({
   }
 };
 
-router.post('/call', middlewares.session(), compression(), async (req, res) => {
+router.post('/call', middlewares.session({ componentCall: true }), compression(), async (req, res) => {
   const stream = req.accepts().includes('text/event-stream');
 
   const input = await callInputSchema.validateAsync(

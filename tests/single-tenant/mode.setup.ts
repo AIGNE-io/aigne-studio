@@ -5,13 +5,14 @@ import customSetup from '../utils/base';
 import { TestConstants } from '../utils/constants';
 import { logout } from '../utils/logout';
 import { checkTenantMode } from '../utils/tenant';
+import { getOwnerWallet } from '../utils/wallet';
 
 customSetup('single tenant mode', async ({ page, appName }) => {
   await page.goto('/');
 
   await login({
     page,
-    wallet: ensureWallet({ name: 'owner' }),
+    wallet: getOwnerWallet(),
     appWallet: ensureWallet({ name: appName, onlyFromCache: true }),
     passport: { name: 'owner', title: 'owner' },
   });

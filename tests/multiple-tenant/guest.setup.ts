@@ -4,6 +4,7 @@ import { ensureWallet } from '@blocklet/testlab/utils/wallet';
 import customSetup from '../utils/base';
 import { TestConstants } from '../utils/constants';
 import { logout } from '../utils/logout';
+import { getGuestWallet } from '../utils/wallet';
 
 customSetup('guest authenticate', async ({ page, storageStatePath, appName }) => {
   await logout({ page });
@@ -12,7 +13,7 @@ customSetup('guest authenticate', async ({ page, storageStatePath, appName }) =>
 
   await login({
     page,
-    wallet: ensureWallet({ name: 'guest' }),
+    wallet: getGuestWallet(),
     appWallet: ensureWallet({ name: appName, onlyFromCache: true }),
     passport: { name: 'guest', title: 'guest' },
   });

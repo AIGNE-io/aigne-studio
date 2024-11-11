@@ -4,13 +4,14 @@ import { ensureWallet } from '@blocklet/testlab/utils/wallet';
 import customSetup from '../utils/base';
 import { TestConstants } from '../utils/constants';
 import { checkTenantMode } from '../utils/tenant';
+import { getOwnerWallet } from '../utils/wallet';
 
 customSetup('multiple tenant mode', async ({ page, appName }) => {
   await page.goto('/');
 
   await login({
     page,
-    wallet: ensureWallet({ name: 'owner' }),
+    wallet: getOwnerWallet(),
     appWallet: ensureWallet({ name: appName, onlyFromCache: true }),
     passport: { name: 'owner', title: 'owner' },
   });

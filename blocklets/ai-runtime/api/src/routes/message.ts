@@ -17,7 +17,7 @@ const searchOptionsSchema = Joi.object<{ sessionId?: string; limit: number; keyw
 });
 
 export function messageRoutes(router: Router) {
-  router.get('/messages', middlewares.session(), async (req, res) => {
+  router.get('/messages', middlewares.session({ componentCall: true }), async (req, res) => {
     const query = await searchOptionsSchema.validateAsync(req.query, { stripUnknown: true });
     const { did: userId } = req.user!;
 
@@ -85,7 +85,7 @@ export function messageRoutes(router: Router) {
     res.json({ messages });
   });
 
-  router.get('/messages/:messageId', middlewares.session(), async (req, res) => {
+  router.get('/messages/:messageId', middlewares.session({ componentCall: true }), async (req, res) => {
     const { messageId } = req.params;
 
     if (!messageId) throw new Error('Missing required param `messageId`');
@@ -113,51 +113,61 @@ export function messageRoutes(router: Router) {
     orderDirection: Joi.string().empty([null, '']).valid('asc', 'desc').default('desc'),
   });
 
-  router.get('/sessions/:sessionId/messages', middlewares.session(), middlewares.auth(), async (req, res) => {
-    const { did: userId } = req.user!;
+  router.get(
+    '/sessions/:sessionId/messages',
+    middlewares.session({ componentCall: true }),
+    middlewares.auth(),
+    async (req, res) => {
+      const { did: userId } = req.user!;
 
-    const { sessionId } = req.params;
-    if (!sessionId) throw new Error('Missing required param `sessionId`');
+      const { sessionId } = req.params;
+      if (!sessionId) throw new Error('Missing required param `sessionId`');
 
-    const query = await getMessagesQuerySchema.validateAsync(req.query, { stripUnknown: true });
+      const query = await getMessagesQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
-    const where: WhereOptions<InferAttributes<History>> = { userId, sessionId };
+      const where: WhereOptions<InferAttributes<History>> = { userId, sessionId };
 
-    if (query.before) {
-      where.id = { ...(typeof where.id === 'object' ? where.id : {}), [Op.lt]: query.before };
+      if (query.before) {
+        where.id = { ...(typeof where.id === 'object' ? where.id : {}), [Op.lt]: query.before };
+      }
+      if (query.after) {
+        where.id = { ...(typeof where.id === 'object' ? where.id : {}), [Op.gt]: query.after };
+      }
+
+      const { rows: messages, count } = await History.findAndCountAll({
+        where,
+        order: [['id', query.orderDirection]],
+        limit: query.limit,
+      });
+
+      res.json({
+        messages: messages.map((i) => ({
+          ...pick(i, ['id', 'sessionId', 'agentId', 'createdAt', 'updatedAt', 'inputs', 'outputs', 'error']),
+          aid: stringifyIdentity({
+            blockletDid: i.blockletDid,
+            projectId: i.projectId,
+            projectRef: i.projectRef,
+            agentId: i.agentId,
+          }),
+        })),
+        count,
+      });
     }
-    if (query.after) {
-      where.id = { ...(typeof where.id === 'object' ? where.id : {}), [Op.gt]: query.after };
+  );
+
+  router.delete(
+    '/sessions/:sessionId/messages',
+    middlewares.session({ componentCall: true }),
+    middlewares.auth(),
+    async (req, res) => {
+      const { did: userId } = req.user!;
+      const { sessionId } = req.params;
+
+      const deletedCount = await History.destroy({
+        where: { userId, sessionId },
+      });
+
+      res.json({ deletedCount });
     }
-
-    const { rows: messages, count } = await History.findAndCountAll({
-      where,
-      order: [['id', query.orderDirection]],
-      limit: query.limit,
-    });
-
-    res.json({
-      messages: messages.map((i) => ({
-        ...pick(i, ['id', 'sessionId', 'agentId', 'createdAt', 'updatedAt', 'inputs', 'outputs', 'error']),
-        aid: stringifyIdentity({
-          blockletDid: i.blockletDid,
-          projectId: i.projectId,
-          projectRef: i.projectRef,
-          agentId: i.agentId,
-        }),
-      })),
-      count,
-    });
-  });
-
-  router.delete('/sessions/:sessionId/messages', middlewares.session(), middlewares.auth(), async (req, res) => {
-    const { did: userId } = req.user!;
-    const { sessionId } = req.params;
-
-    const deletedCount = await History.destroy({
-      where: { userId, sessionId },
-    });
-
-    res.json({ deletedCount });
-  });
+  );
 }
