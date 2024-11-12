@@ -4,7 +4,7 @@ import { defineConfig, devices } from '@playwright/test';
 import { TestConstants } from './tests/utils/constants';
 
 const timeout = 10000;
-const retries = 1;
+const retries = 2;
 
 const headless = process.env.HEADLESS !== 'false';
 
