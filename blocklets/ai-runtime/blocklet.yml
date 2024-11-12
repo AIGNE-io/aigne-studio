@@ -50,10 +50,11 @@ environments: []
 capabilities:
   navigation: false
 screenshots:
-  - 98f9f6d7eb0ed1cb200f9d91d80cd06d.png
-  - e337b06f832f22e279413b59a3b09876.png
-  - 6ccc8076726d6831f758662b0b4318a4.png
-  - 7de3859af11fe91e0498a8ee598a4a98.png
+  - 0b2b0e599a3b4deaa2ed3c99558f47f3.png
+  - 0ff21837b79b1537e8c5951bee2a0e79.png
+  - 7fb5a965b19eb7cde38997807e7d26f7.png
+  - e23ea6282be9e568f50ca5aafa2427f9.png
+  - 0453ca48c18784b78a0354c9369ad377.png
 components:
   - name: ai-kit
     required: true
