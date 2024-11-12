@@ -16,7 +16,7 @@ import { playwrightConfigAppNames } from '../tests/utils';
 import { setupUsers } from '../tests/utils/auth';
 
 const skipInstall = argv['skip-install'] === true;
-const rootSeed = argv['root-seed'] || process.env.ROOT_SEED;
+const rootSeed = argv.rootSeed || process.env.ROOT_SEED;
 const { ui } = argv;
 if (ui) process.env.HEADLESS = 'false';
 
