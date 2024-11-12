@@ -5,6 +5,7 @@ env:
   ABT_NODE_HOST: '172.17.0.1'
   ABT_NODE_MAX_CLUSTER_SIZE: 1
   COMPONENT_STORE_URL: ${{ secrets.STORE_ENDPOINT_TEST }}
+  ROOT_SEED: ${{ secrets.WALLET_SEED_WITH_DID_SPACE }}
 
 on:
   push:
@@ -28,6 +29,9 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+
+      - name: TEST
+        run: pnpm e2e:ci --root-seed ${{ secrets.WALLET_SEED_WITH_DID_SPACE }}
 
       - name: Install dependencies
         run: pnpm install
