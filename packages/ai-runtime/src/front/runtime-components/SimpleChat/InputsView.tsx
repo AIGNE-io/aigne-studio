@@ -26,6 +26,7 @@ export default function InputsView({ collapsible, ...props }: InputsViewProps) {
 
   const inputs = useMemo(() => agent.parameters?.filter(isValidInput), [agent]);
   const enableCollapse = collapsible && !!inputs && inputs.length > 1;
+  const collapseSx = enableCollapse ? { maxHeight: '40vh', overflow: 'auto' } : {};
 
   const [open, setOpen] = useState(true);
 
@@ -44,12 +45,7 @@ export default function InputsView({ collapsible, ...props }: InputsViewProps) {
         in={!enableCollapse || open}
         orientation="vertical"
         collapsedSize={enableCollapse ? COLLAPSED_SIZE : 0}
-        sx={{
-          py: 1,
-          maxHeight: '40vh',
-          px: { xs: 2, sm: 3 },
-          overflow: 'auto',
-        }}>
+        sx={{ py: 1, px: { xs: 2, sm: 3 }, ...collapseSx }}>
         <CurrentAgentProvider aid={aid}>
           <AgentInput />
         </CurrentAgentProvider>
