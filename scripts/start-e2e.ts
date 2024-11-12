@@ -17,11 +17,9 @@ import { playwrightConfigAppNames } from '../tests/utils';
 import { setupUsers } from '../tests/utils/auth';
 
 const skipInstall = argv['skip-install'] === true;
-const rootSeed = argv['root-seed'];
+const rootSeed = argv['root-seed'] || process.env.ROOT_SEED;
 const { ui } = argv;
 if (ui) process.env.HEADLESS = 'false';
-
-console.info({ skipInstall });
 
 const portSchema = Joi.number<number>().integer().empty(['']);
 const httpPort = (portSchema.validate(process.env.BLOCKLET_SERVER_HTTP_PORT).value as number) || 80;

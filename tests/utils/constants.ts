@@ -12,6 +12,6 @@ export const TestConstants = {
   },
 
   didSpaceVCPath(user: string) {
-    return join(process.cwd(), '.blocklet-tests/.cache/did-space-vc/', `${user}.json`);
+    return join(process.cwd(), '.blocklet-tests/.cache/did-space/', `${user}.json`);
   },
 };
