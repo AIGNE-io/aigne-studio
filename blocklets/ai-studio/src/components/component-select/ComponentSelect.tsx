@@ -253,7 +253,6 @@ function ComponentSelectItem({
       <Box component="label" htmlFor={`custom-component-${customComponent.value}`} sx={{ cursor: 'pointer' }}>
         <Box
           component="div"
-          p={1}
           role="button"
           // @ts-ignore React types doesn't support inert attribute https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/inert
           inert="ignore">
