@@ -2,7 +2,6 @@ import { hash } from 'crypto';
 
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { memoize } from '@blocklet/quickjs';
-import { call } from '@blocklet/sdk/lib/component';
 import config, { logger } from '@blocklet/sdk/lib/config';
 import Joi from 'joi';
 import jsonStableStringify from 'json-stable-stringify';
@@ -26,6 +25,7 @@ import {
   isUserInputParameter,
   outputVariablesToJoiSchema,
 } from '../../types';
+import { callComponentWithToken } from '../../utils/call';
 import { isNonNullable } from '../../utils/is-non-nullable';
 import { CallAI, CallAIImage, GetAgent, GetAgentResult, RunAssistantCallback } from '../assistant/type';
 import { issueVC } from '../libs/blocklet/vc';
@@ -47,6 +47,7 @@ export class ExecutorContext {
       | 'callAIImage'
       | 'callback'
       | 'getMemoryVariables'
+      | 'loginToken'
       | 'user'
       | 'sessionId'
       | 'messageId'
@@ -68,6 +69,7 @@ export class ExecutorContext {
     this.getMemoryVariables = memoize(options.getMemoryVariables, {
       keyGenerator: (o) => [o.blockletDid, o.projectId, o.projectRef, o.working].filter(isNonNullable).join('/'),
     });
+    this.loginToken = options.loginToken;
     this.user = options.user;
     this.sessionId = options.sessionId;
     this.messageId = options.messageId;
@@ -126,6 +128,8 @@ export class ExecutorContext {
 
   entryProjectId: string;
 
+  loginToken?: string;
+
   user?: {
     id: string;
     did: string;
@@ -170,16 +174,6 @@ export interface AgentExecutorOptions {
   parentTaskId?: string;
   variables?: { [key: string]: any };
 }
-
-const getUserHeader = (user: any) => {
-  return {
-    'x-user-did': user?.did,
-    'x-user-role': user?.role,
-    'x-user-provider': user?.provider,
-    'x-user-fullname': user?.fullName && encodeURIComponent(user?.fullName),
-    'x-user-wallet-os': user?.walletOS,
-  };
-};
 
 export abstract class AgentExecutorBase<T> {
   constructor(
@@ -895,18 +889,18 @@ export abstract class AgentExecutorBase<T> {
     agentId: string;
     reset?: boolean;
   }): Promise<{ id: string; key: string; data: any; scope: VariableScope }> {
-    const res = await call({
+    const res = await callComponentWithToken({
       name: AIGNE_RUNTIME_COMPONENT_DID,
       path: '/api/memories',
       method: 'POST',
-      headers: getUserHeader(this.context.user),
-      params: {
+      loginToken: this.context.loginToken,
+      query: {
         projectId: this.context.entryProjectId,
         agentId,
         sessionId: this.context.sessionId,
         reset,
       },
-      data: { key, data, scope },
+      body: { key, data, scope },
     });
 
     return res.data;
@@ -935,17 +929,16 @@ export abstract class AgentExecutorBase<T> {
     | null
   >;
   private async getMemory({ key, scope, onlyOne }: { key: string; scope: VariableScope; onlyOne?: boolean }) {
-    const res = await call({
+    const res = await callComponentWithToken({
       name: AIGNE_RUNTIME_COMPONENT_DID,
       path: '/api/memories/variable-by-query',
       method: 'GET',
-      headers: getUserHeader(this.context.user),
-      params: {
+      loginToken: this.context.loginToken,
+      query: {
         projectId: this.context.entryProjectId,
         sessionId: this.context.sessionId,
         key,
         scope,
-        userId: this.context.user?.id,
       },
     });
 

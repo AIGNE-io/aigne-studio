@@ -11,7 +11,7 @@ export interface CallComponentWithTokenOptions {
   body?: { [key: string]: any };
 }
 
-export async function callComponentWithToken({
+export async function callComponentWithToken<T = any>({
   name,
   path,
   method,
@@ -19,7 +19,7 @@ export async function callComponentWithToken({
   loginToken,
   query = {},
   body,
-}: CallComponentWithTokenOptions) {
+}: CallComponentWithTokenOptions): Promise<T> {
   const endpoint = getComponentWebEndpoint(name);
 
   if (loginToken) headers.Cookie = `login_token=${loginToken}`;

@@ -26,7 +26,7 @@ export const isRefReadOnly = ({
   ref: string;
   defaultBranch: string;
   project: any;
-  user?: { did: string; role: string };
+  user?: { did: string; role?: string };
 }) => {
   if (project?.createdBy === user?.did) {
     return false;

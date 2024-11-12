@@ -1,8 +1,5 @@
-import { call } from '@blocklet/sdk/lib/component';
-import { Method } from 'axios';
-import Cookie from 'js-cookie';
-
 import { DatasetObject } from '../types';
+import { callComponentWithToken } from '../util/call';
 import { getRequestConfig } from './util';
 
 export interface User {
@@ -12,27 +9,27 @@ export interface User {
 export const callBlockletApi = (
   pathItem: DatasetObject,
   data: { [key: string]: any },
-  options?: { user?: User; params?: { [key: string]: any }; data?: { [key: string]: any } }
+  options: {
+    loginToken?: string;
+    params?: { [key: string]: any };
+    data?: { [key: string]: any };
+  }
 ) => {
   const requestConfig = getRequestConfig(pathItem, data, {
     params: options?.params || {},
     data: options?.data || {},
   });
-  const { headers, body, method, url, ...config } = requestConfig;
-  const did = options?.user?.did || '';
+  const { headers, method, url, params } = requestConfig;
 
   if (!pathItem.name) throw new Error('Blocklet name is required to call blocklet api');
 
-  return call({
-    ...config,
-    method: method as Method,
+  return callComponentWithToken({
     name: pathItem.name,
+    method,
     path: url,
-    headers: {
-      ...(headers || {}),
-      'x-component-did': pathItem.did || process.env.BLOCKLET_COMPONENT_DID,
-      'x-user-did': did,
-      'x-csrf-token': Cookie.get('x-csrf-token'),
-    },
+    headers,
+    loginToken: options.loginToken,
+    query: params,
+    body: requestConfig.data,
   });
 };

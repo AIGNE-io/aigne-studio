@@ -40,7 +40,7 @@ const getDatasetsQuerySchema = Joi.object<{ excludeResource?: boolean; projectId
   projectId: Joi.string().empty(['', null]),
 });
 
-router.get('/', middlewares.session(), ensureComponentCallOr(userAuth()), async (req, res) => {
+router.get('/', middlewares.session(), middlewares.auth(), async (req, res) => {
   const query = await getDatasetsQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
   const sql = Sequelize.literal(

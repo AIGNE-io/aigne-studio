@@ -22,8 +22,11 @@ export class BlockletAgentExecutor extends AgentExecutorBase<BlockletAgent> {
       assistantId: this.agent.id,
     };
 
-    const response = await callBlockletApi(blocklet.agent.openApi, inputs || {}, { user: this.context.user, params });
+    const response = await callBlockletApi(blocklet.agent.openApi, inputs || {}, {
+      loginToken: this.context.loginToken,
+      params,
+    });
 
-    return response.data;
+    return response;
   }
 }

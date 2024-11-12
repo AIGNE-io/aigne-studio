@@ -316,6 +316,7 @@ router.post('/call', middlewares.session(), compression(), async (req, res) => {
           } as Parameters<typeof getAgent>[0]);
         },
         entryProjectId: projectId,
+        loginToken: req.cookies.login_token,
         user: userId ? { id: userId, did: userId, ...req.user } : undefined,
         sessionId,
         messageId: history.id,

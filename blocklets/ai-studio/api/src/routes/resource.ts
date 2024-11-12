@@ -13,6 +13,7 @@ import {
   ResourceProject,
   ResourceTypes,
 } from '@blocklet/ai-runtime/types';
+import { callComponentWithToken } from '@blocklet/ai-runtime/utils/call';
 import { copyRecursive } from '@blocklet/ai-runtime/utils/fs';
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import component, { call } from '@blocklet/sdk/lib/component';
@@ -129,15 +130,13 @@ export function resourceRoutes(router: Router) {
 
     const locale = locales[query.locale as keyof typeof locales] || locales.en;
 
-    const kbList = (
-      await call<Knowledge[]>({
-        name: AIGNE_RUNTIME_COMPONENT_DID,
-        method: 'get',
-        path: '/api/datasets',
-        params: { excludeResource: true },
-        headers: { 'x-user-did': req.user?.did },
-      })
-    ).data;
+    const kbList = await callComponentWithToken<Knowledge[]>({
+      name: AIGNE_RUNTIME_COMPONENT_DID,
+      method: 'get',
+      path: '/api/datasets',
+      query: { excludeResource: true },
+      loginToken: req.cookies.login_token,
+    });
 
     const resources = await Promise.all(
       projects.map(async (x) => {

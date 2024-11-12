@@ -159,7 +159,18 @@ function SessionsBar() {
 
             {sessions?.map((session) => (
               <MenuItem key={session.id} value={session.id}>
-                {session.name || <RelativeTime value={session.updatedAt} type="absolute" locale={locale} />}
+                {session.name || (
+                  <RelativeTime
+                    value={session.updatedAt}
+                    type="absolute"
+                    locale={locale}
+                    withoutSuffix={undefined}
+                    from={undefined}
+                    to={undefined}
+                    tz={undefined}
+                    relativeRange={undefined}
+                  />
+                )}
               </MenuItem>
             ))}
           </Select>

@@ -17,7 +17,7 @@ const searchOptionsSchema = Joi.object<{ sessionId?: string; limit: number; keyw
 });
 
 export function messageRoutes(router: Router) {
-  router.get('/messages', middlewares.session(), async (req, res) => {
+  router.get('/messages', middlewares.session(), middlewares.auth(), async (req, res) => {
     const query = await searchOptionsSchema.validateAsync(req.query, { stripUnknown: true });
     const { did: userId } = req.user!;
 
@@ -85,7 +85,7 @@ export function messageRoutes(router: Router) {
     res.json({ messages });
   });
 
-  router.get('/messages/:messageId', middlewares.session(), async (req, res) => {
+  router.get('/messages/:messageId', async (req, res) => {
     const { messageId } = req.params;
 
     if (!messageId) throw new Error('Missing required param `messageId`');

@@ -8,7 +8,6 @@ import { joinURL } from 'ufo';
 
 import type { Agent, AgentWithConfig, RunAgentInput } from '../../api/agent';
 import { AIGNE_RUNTIME_COMPONENT_DID, AIGNE_STUDIO_COMPONENT_DID } from '../../constants';
-import { User, userHeaders } from './auth';
 
 export async function getAgents({
   type,
@@ -44,7 +43,7 @@ export async function getAgent({
 }
 
 export interface RunAgentInputServer extends RunAgentInput {
-  user: User;
+  loginToken: string;
 }
 
 export async function runAgent(
@@ -53,7 +52,11 @@ export async function runAgent(
 export async function runAgent(
   input: RunAgentInputServer & { responseType: 'stream' }
 ): Promise<ReadableStream<RunAssistantResponse>>;
-export async function runAgent({ user, responseType, ...input }: RunAgentInputServer & { responseType?: 'stream' }) {
+export async function runAgent({
+  loginToken,
+  responseType,
+  ...input
+}: RunAgentInputServer & { responseType?: 'stream' }) {
   const path = '/api/ai/call';
 
   const request: Parameters<typeof call>[0] = {
@@ -62,7 +65,7 @@ export async function runAgent({ user, responseType, ...input }: RunAgentInputSe
     path,
     data: input,
     headers: {
-      ...userHeaders(user),
+      Cookie: `login_token=${loginToken}`,
     },
   };
 

@@ -1,4 +1,3 @@
-import { ensureComponentCallOrAdmin } from '@api/libs/security';
 import middlewares from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
@@ -57,7 +56,7 @@ const updateMemoryQuerySchema = Joi.object<{
   scope: Joi.string().allow('').empty([null, '']).optional(),
 });
 
-router.get('/', middlewares.session(), ensureComponentCallOrAdmin(), async (req, res) => {
+router.get('/', middlewares.session(), middlewares.auth(), async (req, res) => {
   const { did: userId } = req.user!;
   if (!userId) throw new Error('Can not get user info');
 
@@ -73,7 +72,7 @@ router.get('/', middlewares.session(), ensureComponentCallOrAdmin(), async (req,
   res.json(datastores);
 });
 
-router.post('/', middlewares.session(), ensureComponentCallOrAdmin(), async (req, res) => {
+router.post('/', middlewares.session(), middlewares.auth(), async (req, res) => {
   const { did: userId } = req.user!;
   if (!userId) throw new Error('Can not get user info');
 
@@ -89,7 +88,7 @@ router.post('/', middlewares.session(), ensureComponentCallOrAdmin(), async (req
   res.json(datastore);
 });
 
-router.put('/', middlewares.session(), ensureComponentCallOrAdmin(), async (req, res) => {
+router.put('/', middlewares.session(), middlewares.auth(), async (req, res) => {
   const { did: userId } = req.user!;
   if (!userId) throw new Error('Can not get user info');
 
@@ -110,7 +109,7 @@ router.put('/', middlewares.session(), ensureComponentCallOrAdmin(), async (req,
   res.json(result);
 });
 
-router.delete('/', middlewares.session(), ensureComponentCallOrAdmin(), async (req, res) => {
+router.delete('/', middlewares.session(), middlewares.auth(), async (req, res) => {
   const { did: userId } = req.user!;
   if (!userId) throw new Error('Can not get user info');
 
@@ -141,7 +140,7 @@ const getMemoryQuerySchema = Joi.object<{
   projectId: Joi.string().allow('').empty([null, '']).optional(),
 });
 
-router.get('/variable-by-query', middlewares.session(), ensureComponentCallOrAdmin(), async (req, res) => {
+router.get('/variable-by-query', middlewares.session(), middlewares.auth(), async (req, res) => {
   const query = await getMemoryQuerySchema.validateAsync(req.query, { stripUnknown: true });
   const { key, projectId, scope, sessionId } = query;
 
