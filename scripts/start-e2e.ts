@@ -17,10 +17,11 @@ import { playwrightConfigAppNames } from '../tests/utils';
 import { setupUsers } from '../tests/utils/auth';
 
 const skipInstall = argv['skip-install'] === true;
+const rootSeed = argv['root-seed'];
 const { ui } = argv;
 if (ui) process.env.HEADLESS = 'false';
 
-console.info(argv, { skipInstall });
+console.info({ skipInstall });
 
 const portSchema = Joi.number<number>().integer().empty(['']);
 const httpPort = (portSchema.validate(process.env.BLOCKLET_SERVER_HTTP_PORT).value as number) || 80;
@@ -88,8 +89,8 @@ const initBlocklet = async ({ appName }: { appName: string }) => {
   const singleAppUrl = didToDomain({ did: singleAppWallet.address, port: info.httpsPort });
   const multipleAppUrl = didToDomain({ did: multipleAppWallet.address, port: info.httpsPort });
 
-  await setupUsers({ appName: playwrightConfigAppNames.single, appUrl: singleAppUrl });
-  await setupUsers({ appName: playwrightConfigAppNames.multiple, appUrl: multipleAppUrl });
+  await setupUsers({ appName: playwrightConfigAppNames.single, appUrl: singleAppUrl, rootSeed });
+  await setupUsers({ appName: playwrightConfigAppNames.multiple, appUrl: multipleAppUrl, rootSeed });
 
   process.env.PW_TEST_HTML_REPORT_OPEN = 'never';
   await $({

@@ -1,3 +1,7 @@
+## 0.4.138 (2024-11-12)
+
+- fix: e2e test
+
 ## 0.4.137 (2024-11-11)
 
 - feat: support fork project name check

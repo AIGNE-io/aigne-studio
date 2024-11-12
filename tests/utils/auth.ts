@@ -9,9 +9,7 @@ import { chromium } from '@playwright/test';
 import { cacheResult } from './cache';
 import { SPACE_APP_ID, TestConstants } from './constants';
 
-const rootSeed = 'gjyeIs+GgP5GLFlCokQjwPTdukJWbCsHRr0VUJBbeVeQH2AG6OV69Su2WS/Fgb4YnbCar2gSEui3jCB5Vq9Nqg==';
-
-export async function setupUsers({ appName, appUrl }: { appName: string; appUrl: string }) {
+export async function setupUsers({ appName, appUrl, rootSeed }: { appName: string; appUrl: string; rootSeed: string }) {
   const appWallet = ensureWallet({ name: appName, onlyFromCache: true });
   const ownerWallet = ensureWallet({ name: 'owner' });
   const adminWallet = ensureWallet({ name: 'admin' });
