@@ -18,6 +18,7 @@ export default defineConfig(() => {
       commonjsOptions: {
         transformMixedEsModules: true,
       },
+      chunkSizeWarningLimit: 5000,
     },
     server: {
       fs: {
