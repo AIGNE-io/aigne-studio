@@ -30,11 +30,11 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: TEST
-        run: pnpm e2e:ci --root-seed ${{ secrets.WALLET_SEED_WITH_DID_SPACE }}
-
       - name: Install dependencies
         run: pnpm install
+
+      - name: TEST
+        run: pnpm e2e:ci --root-seed ${{ secrets.WALLET_SEED_WITH_DID_SPACE }}
 
       - name: Bundle blocklets
         run: |

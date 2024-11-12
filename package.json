@@ -121,8 +121,5 @@
     "react-dnd-html5-backend": "^16.0.1",
     "vite-tsconfig-paths": "4.3.2",
     "ws": "^8.18.0"
-  },
-  "dependencies": {
-    "dotenv": "^16.4.5"
   }
 }
