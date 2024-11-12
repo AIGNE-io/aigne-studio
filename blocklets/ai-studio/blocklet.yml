@@ -61,7 +61,6 @@ screenshots:
   - 8471a35fbb1674bdb0eb318290dbe02e.png
   - 8a1106d8f6217ef61a45a0bd424ebcf1.png
   - e2596d50b2440a3cf026eb90f0427395.png
-  - 305befbbaa9ea1e61ae18431431cf0d8.png
 components:
   - name: ai-kit
     required: true
