@@ -1,10 +1,13 @@
+import { DID_TYPE_ARCBLOCK } from '@arcblock/did';
+import { fromAppDid } from '@arcblock/did-ext';
 import { showAssetOrVC } from '@blocklet/testlab/utils/auth';
 import { claimDIDSpace, getAuthUrl, login } from '@blocklet/testlab/utils/playwright';
 import { ensureWallet } from '@blocklet/testlab/utils/wallet';
+import { fromBase64 } from '@ocap/util';
 import { chromium } from '@playwright/test';
 
 import { cacheResult } from './cache';
-import { TestConstants } from './constants';
+import { SPACE_APP_ID, TestConstants } from './constants';
 
 const rootSeed = 'gjyeIs+GgP5GLFlCokQjwPTdukJWbCsHRr0VUJBbeVeQH2AG6OV69Su2WS/Fgb4YnbCar2gSEui3jCB5Vq9Nqg==';
 
@@ -13,6 +16,10 @@ export async function setupUsers({ appName, appUrl }: { appName: string; appUrl:
   const ownerWallet = ensureWallet({ name: 'owner' });
   const adminWallet = ensureWallet({ name: 'admin' });
   const guestWallet = ensureWallet({ name: 'guest' });
+
+  const spaceWallet = fromAppDid(SPACE_APP_ID, fromBase64(rootSeed) as unknown as string, DID_TYPE_ARCBLOCK, 0);
+  // eslint-disable-next-line no-console
+  console.log('connect space wallet', spaceWallet);
 
   const wallets = [
     { wallet: ownerWallet, name: 'owner' },
@@ -31,7 +38,7 @@ export async function setupUsers({ appName, appUrl }: { appName: string; appUrl:
     wallets.map(async ({ wallet, ...rest }) => {
       const vc = await cacheResult(TestConstants.didSpaceVCPath(rest.name), async () => {
         const page = await browser.newPage({});
-        const result = await claimDIDSpace({ page, rootSeed });
+        const result = await claimDIDSpace({ page, wallet: spaceWallet });
         await page.close();
         return result;
       });
