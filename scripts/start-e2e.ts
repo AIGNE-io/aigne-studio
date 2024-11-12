@@ -20,6 +20,8 @@ const rootSeed = argv.rootSeed || process.env.ROOT_SEED;
 const { ui } = argv;
 if (ui) process.env.HEADLESS = 'false';
 
+console.info({ skipInstall, rootSeed });
+
 const portSchema = Joi.number<number>().integer().empty(['']);
 const httpPort = (portSchema.validate(process.env.BLOCKLET_SERVER_HTTP_PORT).value as number) || 80;
 const httpsPort = (portSchema.validate(process.env.BLOCKLET_SERVER_HTTPS_PORT).value as number) || 443;
@@ -69,7 +71,7 @@ const initBlocklet = async ({ appName }: { appName: string }) => {
 };
 
 (async () => {
-  await $`rm -rf .blocklet-tests/ .playwright/ playwright-report/`;
+  // await $`rm -rf .blocklet-tests/ .playwright/ playwright-report/`;
 
   if (!skipInstall) {
     for (const appName of Object.values(playwrightConfigAppNames)) {
