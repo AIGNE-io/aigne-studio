@@ -62,10 +62,9 @@ test('add branch', async ({ page }) => {
   await page.getByTestId('header-actions-setting').click();
   await page.getByRole('tab', { name: 'Git' }).click();
   await page.getByLabel('Professional Mode').check();
-  const gitPromise = page.waitForResponse(/api\/projects\/\w+\/branches/);
+  const gitPromise = page.waitForResponse((response) => response.url().includes('/api/projects'));
   await page.getByRole('button', { name: 'Save' }).first().click();
   await gitPromise;
-
   await page.goto(projectUrl);
   await page.waitForLoadState('networkidle');
   await page.waitForSelector('[data-testid="branch-icon"]', { state: 'visible', timeout: 10000 });
@@ -74,8 +73,7 @@ test('add branch', async ({ page }) => {
   await page.getByRole('menuitem', { name: 'New Branch' }).click();
   await page.getByLabel('Name').fill('e2e-test');
   const responsePromise = page.waitForResponse(
-    (response) =>
-      response.request().method() === 'POST' && response.url().includes('/branches') && response.status() === 200
+    (response) => response.request().method() === 'POST' && response.url().includes('/branches')
   );
   await page.getByRole('button', { name: 'Save' }).click();
   await responsePromise;

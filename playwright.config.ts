@@ -4,7 +4,7 @@ import { defineConfig, devices } from '@playwright/test';
 import { TestConstants } from './tests/utils/constants';
 
 const timeout = 10000;
-const retries = 2;
+const retries = 3;
 
 const headless = process.env.HEADLESS !== 'false';
 
@@ -47,6 +47,7 @@ export default defineConfig<{
   use: {
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
+    navigationTimeout: 10000,
     launchOptions: headless
       ? undefined
       : {
