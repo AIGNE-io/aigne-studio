@@ -1,7 +1,6 @@
-#!/usr/bin/env -S node -r ts-node/register
+#!/usr/bin/env -S node -r dotenv/config -r ts-node/register
 
 /* eslint-disable import/no-extraneous-dependencies,no-console */
-
 import {
   addBlocklet,
   getBlockletServerStatus,
@@ -20,6 +19,8 @@ const skipInstall = argv['skip-install'] === true;
 const rootSeed = argv['root-seed'] || process.env.ROOT_SEED;
 const { ui } = argv;
 if (ui) process.env.HEADLESS = 'false';
+
+console.log('rootSeed', rootSeed);
 
 const portSchema = Joi.number<number>().integer().empty(['']);
 const httpPort = (portSchema.validate(process.env.BLOCKLET_SERVER_HTTP_PORT).value as number) || 80;
@@ -70,6 +71,8 @@ const initBlocklet = async ({ appName }: { appName: string }) => {
 };
 
 (async () => {
+  await $`rm -rf .blocklet-tests/ .playwright/ playwright-report/`;
+
   if (!skipInstall) {
     for (const appName of Object.values(playwrightConfigAppNames)) {
       await initBlocklet({ appName });
