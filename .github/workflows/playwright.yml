@@ -34,7 +34,12 @@ jobs:
         run: pnpm install
 
       - name: TEST
+        env:
+          ROOT_SEED: ${{ secrets.WALLET_SEED_WITH_DID_SPACE }}
         run: pnpm e2e:ci --rootSeed="${{ secrets.WALLET_SEED_WITH_DID_SPACE }}"
+
+      - name: Debug
+        run: echo "Length of ROOT_SEED is ${#ROOT_SEED}"
 
       - name: Bundle blocklets
         run: |
