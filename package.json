@@ -58,6 +58,7 @@
     "@ocap/util": "^1.18.139",
     "@playwright/test": "^1.46.1",
     "bumpp": "^9.5.2",
+    "dotenv": "^16.4.5",
     "eslint": "^8.57.0",
     "eslint-plugin-prettier": "^5.2.1",
     "import-sort-style-module": "^6.0.0",
