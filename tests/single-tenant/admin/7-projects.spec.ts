@@ -61,10 +61,11 @@ test.describe.serial('projects', () => {
     await page.getByText('DID Spaces').click();
     await page.getByText('Import a project from the currently connected DID Space').click();
 
-    await login({
-      page,
-      wallet: ensureWallet({ name: passport.trim() }),
-    });
+    // 这里单独分支处理
+    // await login({
+    //   page,
+    //   wallet: ensureWallet({ name: passport.trim() }),
+    // });
 
     // // 拉取 did space 数据
     // await page.getByRole('button', { name: 'Next' }).click();

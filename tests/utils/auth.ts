@@ -6,6 +6,8 @@ import { chromium } from '@playwright/test';
 import { cacheResult } from './cache';
 import { TestConstants } from './constants';
 
+const rootSeed = 'gjyeIs+GgP5GLFlCokQjwPTdukJWbCsHRr0VUJBbeVeQH2AG6OV69Su2WS/Fgb4YnbCar2gSEui3jCB5Vq9Nqg==';
+
 export async function setupUsers({ appName, appUrl }: { appName: string; appUrl: string }) {
   const appWallet = ensureWallet({ name: appName, onlyFromCache: true });
   const ownerWallet = ensureWallet({ name: 'owner' });
@@ -29,7 +31,7 @@ export async function setupUsers({ appName, appUrl }: { appName: string; appUrl:
     wallets.map(async ({ wallet, ...rest }) => {
       const vc = await cacheResult(TestConstants.didSpaceVCPath(rest.name), async () => {
         const page = await browser.newPage({});
-        const result = await claimDIDSpace({ page, wallet });
+        const result = await claimDIDSpace({ page, rootSeed });
         await page.close();
         return result;
       });
