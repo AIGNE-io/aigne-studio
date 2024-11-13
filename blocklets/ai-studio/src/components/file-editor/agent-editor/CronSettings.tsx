@@ -44,6 +44,7 @@ import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { MouseEvent, useCallback, useMemo, useState } from 'react';
 import { Cron } from 'react-js-cron';
 
+import { PremiumFeatureTag } from '../../multi-tenant-restriction/premium-feature-tag';
 import PromptEditorField from '../prompt-editor-field';
 
 export function CronSettingsSummary({ agent }: { agent: AssistantYjs }) {
@@ -93,17 +94,19 @@ export function CronSettings({ agent }: { agent: AssistantYjs }) {
   }, []);
 
   const newJob = useCallback(() => {
-    doc.transact(() => {
-      cronConfig.jobs ??= [];
-      cronConfig.jobs.push({
-        id: randomId(),
-        name: '',
-        cronExpression: '0 * * * *',
-        enable: false,
-        agentId: agent.id,
-        inputs: {},
+    if (quotaChecker.checkCronJobs()) {
+      doc.transact(() => {
+        cronConfig.jobs ??= [];
+        cronConfig.jobs.push({
+          id: randomId(),
+          name: '',
+          cronExpression: '0 * * * *',
+          enable: false,
+          agentId: agent.id,
+          inputs: {},
+        });
       });
-    });
+    }
   }, [agent.id]);
 
   if (!jobs?.length) {
@@ -173,6 +176,7 @@ export function CronSettings({ agent }: { agent: AssistantYjs }) {
           <Button startIcon={<Icon icon={PlusIcon} />} onClick={newJob}>
             {t('new')}
           </Button>
+          <PremiumFeatureTag sx={{ ml: 2 }} onClick={() => quotaChecker.checkCronJobs()} />
         </Box>
       </TableContainer>
 

@@ -879,6 +879,7 @@ export default flatten({
       desc: 'Anonymous access control is a premium feature. Please upgrade to the Premium plan to access this feature.',
     },
   },
+  premiumFeatureTip: 'Premium feature',
   pricingAndPlans: {
     currentPlan: 'This is your current plan',
   },

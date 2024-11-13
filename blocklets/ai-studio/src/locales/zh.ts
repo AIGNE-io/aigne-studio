@@ -870,6 +870,7 @@ export default flatten({
       desc: '匿名请求是高级功能。请升级到高级版以访问此功能。',
     },
   },
+  premiumFeatureTip: '高级功能',
   pricingAndPlans: {
     currentPlan: '当前套餐',
   },
