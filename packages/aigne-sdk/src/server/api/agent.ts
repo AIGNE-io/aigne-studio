@@ -43,7 +43,7 @@ export async function getAgent({
 }
 
 export interface RunAgentInputServer extends RunAgentInput {
-  loginToken: string;
+  loginToken?: string;
 }
 
 export async function runAgent(
@@ -65,7 +65,7 @@ export async function runAgent({
     path,
     data: input,
     headers: {
-      Cookie: `login_token=${loginToken}`,
+      Cookie: loginToken ? `login_token=${loginToken}` : undefined,
     },
   };
 
