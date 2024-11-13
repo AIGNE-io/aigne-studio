@@ -1,4 +1,3 @@
-import { useIsAdmin } from '@app/contexts/session';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Icon } from '@iconify-icon/react';
 import ArrowUpIcon from '@iconify-icons/tabler/circle-arrow-up';
@@ -21,7 +20,7 @@ import {
 import { useState } from 'react';
 
 import { PricingTable } from './pricing-table';
-import { premiumPlanEnabled, useIsPremiumUser, useMultiTenantRestriction, usePlans } from './state';
+import { premiumPlanEnabled, useMultiTenantRestriction, usePlans } from './state';
 
 export function PlanUpgrade() {
   const { hidePlanUpgrade, planUpgradeVisible, type } = useMultiTenantRestriction();
@@ -139,9 +138,7 @@ export function PlanUpgrade() {
 
 export function PlanUpgradeButton() {
   const { showPlanUpgrade } = useMultiTenantRestriction();
-  const isAdmin = useIsAdmin();
-  const isPremiumUser = useIsPremiumUser();
-  if (!premiumPlanEnabled || isAdmin || isPremiumUser) return null;
+  if (!premiumPlanEnabled) return null;
   return (
     <IconButton onClick={() => showPlanUpgrade()}>
       <Box component={Icon} icon={DiamondIcon} sx={{ fontSize: 24 }} />
