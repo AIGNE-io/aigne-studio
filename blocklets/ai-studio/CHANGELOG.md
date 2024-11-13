@@ -1,6 +1,6 @@
 ## 0.4.138 (2024-11-12)
 
-- fix: e2e test
+- fix: the email vc verification failed and the e2e test failed
 
 ## 0.4.137 (2024-11-11)
 
