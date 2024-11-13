@@ -158,7 +158,7 @@ router.get('/:datasetId/export-resource', middlewares.session(), ensureComponent
   }
 });
 
-router.post('/', middlewares.session(), userAuth(), async (req, res) => {
+router.post('/', middlewares.user(), middlewares.session(), userAuth(), async (req, res) => {
   const { did } = req.user!;
   const {
     name = '',
