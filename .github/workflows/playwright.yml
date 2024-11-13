@@ -75,7 +75,7 @@ jobs:
           pnpm exec playwright install --with-deps
 
       - name: Run Playwright tests
-        run: pnpm e2e --rootSeed="${{ secrets.WALLET_SEED_WITH_DID_SPACE }}"
+        run: pnpm e2e
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
