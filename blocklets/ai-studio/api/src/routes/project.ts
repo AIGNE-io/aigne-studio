@@ -20,7 +20,6 @@ import {
   projectSettingsSchema,
   variableToYjs,
 } from '@blocklet/ai-runtime/types';
-import { callComponentWithToken } from '@blocklet/ai-runtime/utils/call';
 import { copyRecursive } from '@blocklet/ai-runtime/utils/fs';
 import { getUserPassports, quotaChecker } from '@blocklet/aigne-sdk/api/premium';
 import { AIGNE_RUNTIME_COMPONENT_DID, NFT_BLENDER_COMPONENT_DID } from '@blocklet/aigne-sdk/constants';
@@ -540,7 +539,6 @@ export function projectRoutes(router: Router) {
           description,
           author: req.user!,
           projectType: undefined,
-          loginToken: req.cookies.login_token,
         });
       }
     }
@@ -1137,12 +1135,10 @@ const getAuthorsOfProject = async ({
 async function copyProject({
   project: original,
   author,
-  loginToken,
   ...patch
 }: {
   project: Project;
   author: { did: string; role: string; fullName: string; provider: string; walletOS: string; isAdmin: boolean };
-  loginToken: string;
 } & Partial<Project['dataValues']>) {
   const srcRepo = await getRepository({ projectId: original.id! });
   const srcWorking = await srcRepo.working({ ref: original.gitDefaultBranch || defaultBranch });
@@ -1182,7 +1178,7 @@ async function copyProject({
   if (!projectYaml) throw new Error('Missing project.yaml in the copied project');
   Object.assign(projectYaml, await projectSettingsSchema.validateAsync(project.dataValues));
 
-  await copyKnowledge({ originProjectId: original.id!, currentProjectId: project.id!, loginToken });
+  await copyKnowledge({ originProjectId: original.id!, currentProjectId: project.id!, user: author });
 
   const agents = Object.values(working.syncedStore.files).filter((i) => !!i && isAssistant(i));
   for (const agent of agents) {
@@ -1216,18 +1212,18 @@ async function copyProject({
 async function copyKnowledge({
   originProjectId,
   currentProjectId,
-  loginToken,
+  user,
 }: {
   originProjectId: string;
   currentProjectId: string;
-  loginToken: string;
+  user: { did: string; role: string; fullName: string; provider: string; walletOS: string; isAdmin: boolean };
 }) {
-  const data = await callComponentWithToken({
+  const { data } = await call({
     name: AIGNE_RUNTIME_COMPONENT_DID,
     path: '/api/datasets',
     method: 'POST',
-    loginToken,
-    body: { appId: currentProjectId, copyFromProjectId: originProjectId },
+    params: { userId: user.did },
+    data: { appId: currentProjectId, copyFromProjectId: originProjectId },
   });
 
   const projectIdMap = Object.fromEntries(

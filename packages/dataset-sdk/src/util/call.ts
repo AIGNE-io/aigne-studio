@@ -1,51 +1,11 @@
-import { getComponentWebEndpoint } from '@blocklet/sdk/lib/component';
-import { joinURL, withQuery } from 'ufo';
+import { call as originalCall } from '@blocklet/sdk/lib/component';
+import isNil from 'lodash/isNil';
 
-export interface CallComponentWithTokenOptions {
-  name: string;
-  path: string;
-  method: RequestInit['method'];
-  headers?: { [key: string]: any };
-  loginToken?: string;
-  query?: { [key: string]: any };
-  body?: { [key: string]: any };
-}
-
-export async function callComponentWithToken({
-  name,
-  path,
-  method,
-  headers = {},
-  loginToken,
-  query = {},
-  body,
-}: CallComponentWithTokenOptions) {
-  const endpoint = getComponentWebEndpoint(name);
-
-  if (loginToken) headers.Cookie = `login_token=${loginToken}`;
-
-  if (body) headers['Content-Type'] = 'application/json';
-
-  const result = await fetch(withQuery(joinURL(endpoint, path), query), {
-    method,
-    headers,
-    body: method?.toLowerCase() !== 'get' && body ? JSON.stringify(body) : undefined,
+export const call: typeof originalCall = (options: any) => {
+  return originalCall({
+    ...(options as any),
+    params: Object.fromEntries(
+      Object.entries(options.params ?? {}).map(([key, value]) => [key, isNil(value) ? '' : String(value)])
+    ),
   });
-
-  let json;
-  let error;
-
-  try {
-    json = await result.json();
-  } catch (e) {
-    error = e;
-  }
-
-  if (!result.ok || error) {
-    throw new Error(
-      `call component ${name}:${path} failed with status ${result.status}: ${error?.message || json?.message}`
-    );
-  }
-
-  return json;
-}
+};

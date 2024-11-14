@@ -97,7 +97,7 @@ router.post('/call', middlewares.session(), compression(), async (req, res) => {
     { stripUnknown: true }
   );
 
-  const userId = req.user?.did;
+  const userId = req.user?.did ?? req.query.userId;
 
   const { blockletDid, projectId, projectRef, agentId } = parseIdentity(input.aid, { rejectWhenError: true });
 
@@ -316,7 +316,6 @@ router.post('/call', middlewares.session(), compression(), async (req, res) => {
           } as Parameters<typeof getAgent>[0]);
         },
         entryProjectId: projectId,
-        loginToken: req.cookies.login_token,
         user: userId ? { id: userId, did: userId, ...req.user } : undefined,
         sessionId,
         messageId: history.id,

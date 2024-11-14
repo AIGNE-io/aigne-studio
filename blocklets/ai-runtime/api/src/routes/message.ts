@@ -1,3 +1,4 @@
+import { ensureComponentCallOr, userAuth } from '@api/libs/security';
 import History from '@api/store/models/history';
 import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
@@ -17,9 +18,9 @@ const searchOptionsSchema = Joi.object<{ sessionId?: string; limit: number; keyw
 });
 
 export function messageRoutes(router: Router) {
-  router.get('/messages', middlewares.session(), middlewares.auth(), async (req, res) => {
+  router.get('/messages', middlewares.session(), ensureComponentCallOr(userAuth()), async (req, res) => {
     const query = await searchOptionsSchema.validateAsync(req.query, { stripUnknown: true });
-    const { did: userId } = req.user!;
+    const userId = req.user?.did ?? req.query.userId;
 
     if (!query.sessionId || !userId) {
       res.json({ messages: [] });

@@ -68,12 +68,11 @@ export async function getAgentByDeploymentId({
 }
 
 export interface RunAgentInput {
-  entryAid?: string;
-  aid: string;
+  blockletDid?: string;
   working?: boolean;
+  aid: string;
   sessionId?: string;
   inputs?: { [key: string]: any };
-  debug?: boolean;
   appUrl?: string;
 }
 

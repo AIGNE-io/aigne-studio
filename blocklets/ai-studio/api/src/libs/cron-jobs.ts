@@ -6,6 +6,7 @@ import { CronFile, CronJob, randomId } from '@blocklet/ai-runtime/types';
 import { runAgent } from '@blocklet/aigne-sdk/server/api/agent';
 import { createCronHistory } from '@blocklet/aigne-sdk/server/api/cron-history';
 
+import { wallet } from './auth';
 import logger from './logger';
 
 class ProjectCronManager extends CronJobManager {
@@ -40,6 +41,7 @@ class ProjectCronManager extends CronJobManager {
             logger.info('run agent cron job start', { projectId, job });
             const { outputs, error } = await runAgent({
               // TODO: currently use application did as user did, should be replaced with real user did
+              user: { did: wallet.address },
               aid: stringifyIdentity({ projectId, projectRef: defaultBranch, agentId: job.agentId }),
               working: true,
               sessionId: randomId(),

@@ -8,6 +8,7 @@ import { joinURL } from 'ufo';
 
 import type { Agent, AgentWithConfig, RunAgentInput } from '../../api/agent';
 import { AIGNE_RUNTIME_COMPONENT_DID, AIGNE_STUDIO_COMPONENT_DID } from '../../constants';
+import { User } from './auth';
 
 export async function getAgents({
   type,
@@ -43,7 +44,7 @@ export async function getAgent({
 }
 
 export interface RunAgentInputServer extends RunAgentInput {
-  loginToken?: string;
+  user: User;
 }
 
 export async function runAgent(
@@ -52,21 +53,17 @@ export async function runAgent(
 export async function runAgent(
   input: RunAgentInputServer & { responseType: 'stream' }
 ): Promise<ReadableStream<RunAssistantResponse>>;
-export async function runAgent({
-  loginToken,
-  responseType,
-  ...input
-}: RunAgentInputServer & { responseType?: 'stream' }) {
+export async function runAgent({ user, responseType, ...input }: RunAgentInputServer & { responseType?: 'stream' }) {
   const path = '/api/ai/call';
 
   const request: Parameters<typeof call>[0] = {
     name: AIGNE_RUNTIME_COMPONENT_DID,
     method: 'POST',
     path,
-    data: input,
-    headers: {
-      Cookie: loginToken ? `login_token=${loginToken}` : undefined,
+    params: {
+      userId: user.did,
     },
+    data: input,
   };
 
   if (responseType === 'stream') {
