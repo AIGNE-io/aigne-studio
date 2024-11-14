@@ -872,6 +872,7 @@ export default flatten({
   },
   premiumFeatureTip: '高级功能',
   pricingAndPlans: {
+    buttonTooltip: '套餐和定价',
     currentPlan: '当前套餐',
   },
   multiple: '多选',

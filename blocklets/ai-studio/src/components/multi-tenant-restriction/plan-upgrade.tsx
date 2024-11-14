@@ -15,6 +15,7 @@ import {
   Theme,
   ToggleButton,
   ToggleButtonGroup,
+  Tooltip,
   useMediaQuery,
 } from '@mui/material';
 import { useState } from 'react';
@@ -138,10 +139,13 @@ export function PlanUpgrade() {
 
 export function PlanUpgradeButton() {
   const { showPlanUpgrade } = useMultiTenantRestriction();
+  const { t } = useLocaleContext();
   if (!premiumPlanEnabled) return null;
   return (
-    <IconButton onClick={() => showPlanUpgrade()}>
-      <Box component={Icon} icon={DiamondIcon} sx={{ fontSize: 24 }} />
-    </IconButton>
+    <Tooltip title={t('pricingAndPlans.buttonTooltip')}>
+      <IconButton onClick={() => showPlanUpgrade()}>
+        <Box component={Icon} icon={DiamondIcon} sx={{ fontSize: 24 }} />
+      </IconButton>
+    </Tooltip>
   );
 }

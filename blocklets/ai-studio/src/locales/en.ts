@@ -881,6 +881,7 @@ export default flatten({
   },
   premiumFeatureTip: 'Premium feature',
   pricingAndPlans: {
+    buttonTooltip: 'Pricing and Plans',
     currentPlan: 'This is your current plan',
   },
   multiple: 'Multiple',
