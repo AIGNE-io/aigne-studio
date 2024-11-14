@@ -1,6 +1,4 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { Icon } from '@iconify-icon/react';
-import DiamondIcon from '@iconify-icons/tabler/diamond';
 import { Box, ChipProps, Tooltip } from '@mui/material';
 
 import { useIsAdmin } from '../../contexts/session';
@@ -12,12 +10,14 @@ export function PremiumFeatureTag({ sx, ...rest }: ChipProps) {
       display: 'inline-flex',
       justifyContent: 'center',
       alignItems: 'center',
-      width: 24,
       height: 20,
+      px: 1,
       border: 1,
-      borderColor: 'grey.400',
+      borderColor: '#fde68a',
       borderRadius: 0.5,
-      bgcolor: 'rgba(0, 0, 0, 0.04)',
+      fontSize: 12,
+      color: '#b45309',
+      bgcolor: '#fef4c7',
     },
     ...(Array.isArray(sx) ? sx : [sx]),
   ];
@@ -27,8 +27,8 @@ export function PremiumFeatureTag({ sx, ...rest }: ChipProps) {
   if (isAdmin || isPremiumUser) return null;
   return (
     <Tooltip title={t('premiumFeatureTip')}>
-      <Box sx={mergedSx} {...rest}>
-        <Box component={Icon} icon={DiamondIcon} sx={{ fontSize: 16, transform: 'scale(0.9)', color: 'grey.500' }} />
+      <Box component="span" sx={mergedSx} {...rest}>
+        PREMIUM
       </Box>
     </Tooltip>
   );
