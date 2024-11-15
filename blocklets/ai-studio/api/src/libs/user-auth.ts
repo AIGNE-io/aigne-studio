@@ -23,7 +23,7 @@ function checkUserAuth(req: Request, res: Response): (data?: CheckAuthType) => v
         throw new AuthError('Unauthorized, user information does not exist', 401);
       }
 
-      if (['admin', 'owner', 'promptsEditor'].includes(user.role)) {
+      if (['admin', 'owner', 'promptsEditor'].includes(user.role!)) {
         return;
       }
 

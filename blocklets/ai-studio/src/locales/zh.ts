@@ -794,7 +794,7 @@ export default flatten({
     publicDescription: '任何人可查看并复制项目',
     privateDescription: '仅管理员可查看并复制项目',
     toEnablePrivateProjects: '要启用私有项目',
-    launchAigne: '请启动你的 Aigne',
+    launchAigne: '请启动你的 AIGNE',
     updateApp: '更新部署',
     updateAppDescription: '刷新线上环境，呈现最新变更',
     currentDeployment: '当前部署概况',
@@ -855,22 +855,24 @@ export default flatten({
   selectTemplateDynamicInputTip: '已被 Agent 自动接管',
   multiTenantRestriction: {
     requestLimit: {
-      desc: '您已达到此项目的最大请求限制。您可以通过升级到高级版来增加限制。',
+      desc: '您已达到请求限制。升级到高级版以增加您的请求容量。',
     },
     projectLimit: {
-      desc: '您已达到最大项目限制。升级到高级版以管理更多项目。',
+      desc: '您已达到最大项目数量。升级到高级版以创建更多项目。',
     },
     customBrand: {
-      desc: '品牌定制仅在高级版或 Serverless AIGNE 中可用。请升级到高级版以访问此功能。',
+      desc: '自定义品牌仅在高级版/专业版中可用。升级到高级版/专业版以个性化您的品牌。',
     },
     cronJobs: {
-      desc: '定时任务功能仅在 Serverless AIGNE 中可用。请运行 Serverless AIGNE 以访问此功能。',
+      desc: '定时任务功能仅在专业版中可用。请升级到专业版以访问此功能。',
     },
     anonymousRequest: {
       desc: '匿名请求是高级功能。请升级到高级版以访问此功能。',
     },
   },
+  premiumFeatureTip: '高级功能',
   pricingAndPlans: {
+    buttonTooltip: '套餐和定价',
     currentPlan: '当前套餐',
   },
   multiple: '多选',

@@ -433,11 +433,13 @@ export const theme = createTheme({
                 },
 
                 [`&.${inputClasses.multiline}`]: {
-                  py: 0,
                   pl: 0,
                   pr: 0,
                   '&.MuiInputBase-adornedEnd': {
                     pr: 1.5,
+                  },
+                  '& .MuiInputBase-inputMultiline': {
+                    py: 0,
                   },
                 },
               },

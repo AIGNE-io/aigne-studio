@@ -69,12 +69,12 @@ export class Quotas {
       throw new Error('`used` cannot be negative');
     }
     const quota = this.getQuota('projectLimit', passports);
-    return used < quota;
+    return used <= quota;
   }
 
   checkRequestLimit(used: number, passports?: string[]) {
     const quota = this.getQuota('requestLimit', passports);
-    return used < quota;
+    return used <= quota;
   }
 
   checkCronJobs(passports?: string[]) {

@@ -21,9 +21,7 @@ declare module '@abtnode/cron';
 declare module 'express-xss-sanitizer';
 
 namespace Express {
-  import type { SessionUser } from '@blocklet/sdk/lib/util/login';
-
   interface Request {
-    user?: SessionUser;
+    user?: import('@blocklet/sdk/lib/util/login').SessionUser;
   }
 }

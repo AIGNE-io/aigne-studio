@@ -289,7 +289,7 @@ router.get('/:deploymentId', middlewares.session(), async (req, res) => {
   }
 
   if (deployment.access === 'private') {
-    if (userId !== deployment.createdBy || !['admin', 'owner'].includes(role)) {
+    if (userId !== deployment.createdBy || !['admin', 'owner'].includes(role!)) {
       res.status(404).json({ message: 'Not Found' });
       return;
     }

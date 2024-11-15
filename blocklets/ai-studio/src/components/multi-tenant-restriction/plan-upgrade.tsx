@@ -1,4 +1,3 @@
-import { useIsAdmin } from '@app/contexts/session';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Icon } from '@iconify-icon/react';
 import ArrowUpIcon from '@iconify-icons/tabler/circle-arrow-up';
@@ -16,16 +15,17 @@ import {
   Theme,
   ToggleButton,
   ToggleButtonGroup,
+  Tooltip,
   useMediaQuery,
 } from '@mui/material';
 import { useState } from 'react';
 
 import { PricingTable } from './pricing-table';
-import { premiumPlanEnabled, useIsPremiumUser, useMultiTenantRestriction, usePlans } from './state';
+import { premiumPlanEnabled, useMultiTenantRestriction, usePlans } from './state';
 
 export function PlanUpgrade() {
   const { hidePlanUpgrade, planUpgradeVisible, type } = useMultiTenantRestriction();
-  const { t } = useLocaleContext();
+  const { t, locale } = useLocaleContext();
   const downSm = useMediaQuery<Theme>((theme) => theme.breakpoints.down('sm'));
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const plans = usePlans();
@@ -89,7 +89,11 @@ export function PlanUpgrade() {
               size="small"
               value={billingCycle}
               exclusive
-              onChange={(_, v) => setBillingCycle(v)}
+              onChange={(_, v) => {
+                if (v) {
+                  setBillingCycle(v);
+                }
+              }}
               sx={{
                 '.MuiToggleButtonGroup-grouped': {
                   width: 80,
@@ -113,7 +117,7 @@ export function PlanUpgrade() {
 
           <Box
             component={Link}
-            href="https://www.arcblock.io/blog/tags/aigne"
+            href={`https://www.arcblock.io/blog/tags/${locale}/aigne`}
             target="_blank"
             sx={{
               alignSelf: 'flex-start',
@@ -135,12 +139,13 @@ export function PlanUpgrade() {
 
 export function PlanUpgradeButton() {
   const { showPlanUpgrade } = useMultiTenantRestriction();
-  const isAdmin = useIsAdmin();
-  const isPremiumUser = useIsPremiumUser();
-  if (!premiumPlanEnabled || isAdmin || isPremiumUser) return null;
+  const { t } = useLocaleContext();
+  if (!premiumPlanEnabled) return null;
   return (
-    <IconButton onClick={() => showPlanUpgrade()}>
-      <Box component={Icon} icon={DiamondIcon} sx={{ fontSize: 24 }} />
-    </IconButton>
+    <Tooltip title={t('pricingAndPlans.buttonTooltip')}>
+      <IconButton onClick={() => showPlanUpgrade()}>
+        <Box component={Icon} icon={DiamondIcon} sx={{ fontSize: 24 }} />
+      </IconButton>
+    </Tooltip>
   );
 }

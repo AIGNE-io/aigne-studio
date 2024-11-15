@@ -1,6 +1,5 @@
 import { call } from '@blocklet/sdk/lib/component';
 import { Method } from 'axios';
-import Cookie from 'js-cookie';
 
 import { DatasetObject } from '../types';
 import { getRequestConfig } from './util';
@@ -18,7 +17,7 @@ export const callBlockletApi = (
     params: options?.params || {},
     data: options?.data || {},
   });
-  const { headers, body, method, url, ...config } = requestConfig;
+  const { headers, method, url, params, ...config } = requestConfig;
   const did = options?.user?.did || '';
 
   if (!pathItem.name) throw new Error('Blocklet name is required to call blocklet api');
@@ -28,11 +27,7 @@ export const callBlockletApi = (
     method: method as Method,
     name: pathItem.name,
     path: url,
-    headers: {
-      ...(headers || {}),
-      'x-component-did': pathItem.did || process.env.BLOCKLET_COMPONENT_DID,
-      'x-user-did': did,
-      'x-csrf-token': Cookie.get('x-csrf-token'),
-    },
+    headers,
+    params: { ...params, userId: did },
   });
 };

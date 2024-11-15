@@ -57,9 +57,9 @@ const updateMemoryQuerySchema = Joi.object<{
   scope: Joi.string().allow('').empty([null, '']).optional(),
 });
 
-router.get('/', middlewares.session(), ensureComponentCallOrAdmin(), async (req, res) => {
-  const { did: userId } = req.user!;
-  if (!userId) throw new Error('Can not get user info');
+router.get('/', middlewares.session({ componentCall: true }), ensureComponentCallOrAdmin(), async (req, res) => {
+  const userId = req.user?.method === 'componentCall' ? req.query.userId : req.user?.did;
+  if (!userId || typeof userId !== 'string') throw new Error('Can not get user info');
 
   const { sessionId, projectId, key, scope } = await getMemoriesQuerySchema.validateAsync(req.query, {
     stripUnknown: true,
@@ -73,9 +73,9 @@ router.get('/', middlewares.session(), ensureComponentCallOrAdmin(), async (req,
   res.json(datastores);
 });
 
-router.post('/', middlewares.session(), ensureComponentCallOrAdmin(), async (req, res) => {
-  const { did: userId } = req.user!;
-  if (!userId) throw new Error('Can not get user info');
+router.post('/', middlewares.session({ componentCall: true }), ensureComponentCallOrAdmin(), async (req, res) => {
+  const userId = req.user?.method === 'componentCall' ? req.query.userId : req.user?.did;
+  if (!userId || typeof userId !== 'string') throw new Error('Can not get user info');
 
   const { key, data, scope } = await createMemoryInputSchema.validateAsync(req.body, { stripUnknown: true });
   const { sessionId, projectId, reset } = await createMemoryQuerySchema.validateAsync(req.query, {
@@ -89,9 +89,9 @@ router.post('/', middlewares.session(), ensureComponentCallOrAdmin(), async (req
   res.json(datastore);
 });
 
-router.put('/', middlewares.session(), ensureComponentCallOrAdmin(), async (req, res) => {
-  const { did: userId } = req.user!;
-  if (!userId) throw new Error('Can not get user info');
+router.put('/', middlewares.session({ componentCall: true }), ensureComponentCallOrAdmin(), async (req, res) => {
+  const userId = req.user?.method === 'componentCall' ? req.query.userId : req.user?.did;
+  if (!userId || typeof userId !== 'string') throw new Error('Can not get user info');
 
   const { sessionId, agentId, projectId, key, id, scope } = await updateMemoryQuerySchema.validateAsync(req.query, {
     stripUnknown: true,
@@ -110,9 +110,9 @@ router.put('/', middlewares.session(), ensureComponentCallOrAdmin(), async (req,
   res.json(result);
 });
 
-router.delete('/', middlewares.session(), ensureComponentCallOrAdmin(), async (req, res) => {
-  const { did: userId } = req.user!;
-  if (!userId) throw new Error('Can not get user info');
+router.delete('/', middlewares.session({ componentCall: true }), ensureComponentCallOrAdmin(), async (req, res) => {
+  const userId = req.user?.method === 'componentCall' ? req.query.userId : req.user?.did;
+  if (!userId || typeof userId !== 'string') throw new Error('Can not get user info');
 
   const { sessionId, agentId, projectId, scope, key, id } = await updateMemoryQuerySchema.validateAsync(req.query, {
     stripUnknown: true,
@@ -141,47 +141,52 @@ const getMemoryQuerySchema = Joi.object<{
   projectId: Joi.string().allow('').empty([null, '']).optional(),
 });
 
-router.get('/variable-by-query', middlewares.session(), ensureComponentCallOrAdmin(), async (req, res) => {
-  const query = await getMemoryQuerySchema.validateAsync(req.query, { stripUnknown: true });
-  const { key, projectId, scope, sessionId } = query;
+router.get(
+  '/variable-by-query',
+  middlewares.session({ componentCall: true }),
+  ensureComponentCallOrAdmin(),
+  async (req, res) => {
+    const query = await getMemoryQuerySchema.validateAsync(req.query, { stripUnknown: true });
+    const { key, projectId, scope, sessionId } = query;
 
-  const { did: userId } = req.user!;
-  if (!userId) throw new Error('Can not get user info');
+    const userId = req.user?.method === 'componentCall' ? req.query.userId : req.user?.did;
+    if (!userId || typeof userId !== 'string') throw new Error('Can not get user info');
 
-  const params: { [key: string]: any } = omitBy({ userId, projectId, key }, (v) => isNil(v));
+    const params: { [key: string]: any } = omitBy({ userId, projectId, key }, (v) => isNil(v));
 
-  if (scope === 'session') {
-    const datastores = await Memory.findAll({
-      order: [['createdAt', 'ASC']],
-      where: { ...params, scope, sessionId },
-    });
-    if (datastores.length) {
-      return res.json({ datastores });
+    if (scope === 'session') {
+      const datastores = await Memory.findAll({
+        order: [['createdAt', 'ASC']],
+        where: { ...params, scope, sessionId },
+      });
+      if (datastores.length) {
+        return res.json({ datastores });
+      }
     }
-  }
 
-  if (scope === 'session' || scope === 'user') {
-    const datastores = await Memory.findAll({
-      order: [['createdAt', 'ASC']],
-      where: { ...params, scope: 'user' },
-    });
-    if (datastores.length) {
-      return res.json({ datastores });
+    if (scope === 'session' || scope === 'user') {
+      const datastores = await Memory.findAll({
+        order: [['createdAt', 'ASC']],
+        where: { ...params, scope: 'user' },
+      });
+      if (datastores.length) {
+        return res.json({ datastores });
+      }
     }
-  }
 
-  if (scope === 'session' || scope === 'user' || scope === 'global') {
-    const datastores = await Memory.findAll({
-      order: [['createdAt', 'ASC']],
-      where: { ...params, scope: 'global' },
-    });
-    if (datastores.length) {
-      return res.json({ datastores });
+    if (scope === 'session' || scope === 'user' || scope === 'global') {
+      const datastores = await Memory.findAll({
+        order: [['createdAt', 'ASC']],
+        where: { ...params, scope: 'global' },
+      });
+      if (datastores.length) {
+        return res.json({ datastores });
+      }
     }
-  }
 
-  return res.json({ datastores: [] });
-});
+    return res.json({ datastores: [] });
+  }
+);
 
 const getMemoryByKeyQuerySchema = Joi.object<{ projectId: string; key: string }>({
   projectId: Joi.string().required(),

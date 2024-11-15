@@ -181,6 +181,7 @@ function ProjectsActionButton() {
           startIcon={<Box component={Icon} icon={PlusIcon} />}
           variant="contained"
           onClick={() => {
+            checkProjectLimit();
             setDialog(<ImportFromBlank onClose={() => setDialog(null)} />);
           }}>
           {t('newObject', { object: t('project') })}

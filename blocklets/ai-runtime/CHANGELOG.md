@@ -1,6 +1,12 @@
+## 0.4.139 (2024-11-15)
+
+- fix: pro plan improvements
+
 ## 0.4.138 (2024-11-12)
 
-- fix: the email vc verification failed and the e2e test failed
+- chore: polish screenshots
+- fix: pass user token for component calling
+- chore: format update time as the session name
 
 ## 0.4.137 (2024-11-11)
 

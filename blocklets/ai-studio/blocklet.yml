@@ -15,7 +15,7 @@ repository:
   type: git
   url: git+https://github.com/blocklet/ai-studio.git
 specVersion: 1.2.8
-version: 0.4.138
+version: 0.4.139
 logo: screenshots/305befbbaa9ea1e61ae18431431cf0d8.png
 files:
   - dist
@@ -56,11 +56,11 @@ capabilities:
   navigation: true
   didSpace: requiredOnConnect
 screenshots:
-  - 1059f6e819b6284f0f1ba529e6bff4a9.png
-  - 46d50812111a59f1bc14c4be56be6eff.png
-  - 8471a35fbb1674bdb0eb318290dbe02e.png
-  - 8a1106d8f6217ef61a45a0bd424ebcf1.png
-  - e2596d50b2440a3cf026eb90f0427395.png
+  - 8a662bc8bbd1efde9d48586aab6218ca.png
+  - 56fc403fdc9cab0a462563c4a93d6dbf.png
+  - 9ff6312330f18a9e0bcf545008a876ce.png
+  - 34e81a6b5193d8ede83d664ab686e3f4.png
+  - 9af94c0b4071092ac0e3b36d33c2f249.png
 components:
   - name: ai-kit
     required: true
