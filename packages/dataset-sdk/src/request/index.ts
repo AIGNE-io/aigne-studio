@@ -27,7 +27,7 @@ export const callBlockletApi = (
     method: method as Method,
     name: pathItem.name,
     path: url,
-    headers: { ...(headers || {}) },
+    headers,
     params: { ...params, userId: did },
   });
 };

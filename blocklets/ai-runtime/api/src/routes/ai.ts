@@ -79,7 +79,7 @@ const checkProjectRequestLimit = async ({
   }
 };
 
-router.post('/call', middlewares.session(), compression(), async (req, res) => {
+router.post('/call', middlewares.session({ componentCall: true }), compression(), async (req, res) => {
   const stream = req.accepts().includes('text/event-stream');
 
   const input = await callInputSchema.validateAsync(
@@ -97,7 +97,9 @@ router.post('/call', middlewares.session(), compression(), async (req, res) => {
     { stripUnknown: true }
   );
 
-  const userId = req.user?.did ?? req.query.userId;
+  // NOTE: Support custom user id for component calling
+  const userId = req.user?.method === 'componentCall' ? req.query.userId : req.user?.did;
+  if (userId && typeof userId !== 'string') throw new Error(`Invalid user id ${userId}`);
 
   const { blockletDid, projectId, projectRef, agentId } = parseIdentity(input.aid, { rejectWhenError: true });
 

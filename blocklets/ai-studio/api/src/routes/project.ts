@@ -27,6 +27,7 @@ import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { call } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
 import { session } from '@blocklet/sdk/lib/middlewares';
+import { SessionUser } from '@blocklet/sdk/lib/util/login';
 import { Request, Router } from 'express';
 import { exists } from 'fs-extra';
 import * as git from 'isomorphic-git';
@@ -320,7 +321,7 @@ export function projectRoutes(router: Router) {
 
   router.get('/projects/check-name', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { name, projectId } = await checkProjectNameSchema.validateAsync(req.query, { stripUnknown: true });
-    const projects = await Project.findAll({ where: { name, createdBy: req.user.did } });
+    const projects = await Project.findAll({ where: { name, createdBy: req.user?.did } });
 
     if (!projectId) {
       res.json({ ok: projects.length === 0, project: projects?.[0] });
@@ -1138,7 +1139,7 @@ async function copyProject({
   ...patch
 }: {
   project: Project;
-  author: { did: string; role: string; fullName: string; provider: string; walletOS: string; isAdmin: boolean };
+  author: SessionUser;
 } & Partial<Project['dataValues']>) {
   const srcRepo = await getRepository({ projectId: original.id! });
   const srcWorking = await srcRepo.working({ ref: original.gitDefaultBranch || defaultBranch });
@@ -1216,7 +1217,7 @@ async function copyKnowledge({
 }: {
   originProjectId: string;
   currentProjectId: string;
-  user: { did: string; role: string; fullName: string; provider: string; walletOS: string; isAdmin: boolean };
+  user: SessionUser;
 }) {
   const { data } = await call({
     name: AIGNE_RUNTIME_COMPONENT_DID,

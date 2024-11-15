@@ -63,10 +63,15 @@ async function verifyWSToken(req: IncomingMessage, roles: string[] | undefined) 
   const { token } = getQuery(req.url || '');
   if (typeof token !== 'string') return false;
 
-  const user = await verifyLoginToken({ token, strictMode: true });
-  if (!user) return false;
+  try {
+    const user = await verifyLoginToken({ token, strictMode: true });
+    if (!user) return false;
 
-  if (!user.did || (roles && !roles.includes(user.role!))) return false;
+    if (!user.did || (roles && !roles.includes(user.role!))) return false;
 
-  return user;
+    return user;
+  } catch (error) {
+    logger.error('verify ws token error', { error });
+  }
+  return false;
 }

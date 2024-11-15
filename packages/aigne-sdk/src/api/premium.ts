@@ -19,7 +19,7 @@ import { Quotas } from '../quotas';
 //   return userPassportCache.get(did);
 // }
 
-export async function getUserPassports(did: string) {
+export async function getUserPassports(did?: string) {
   if (!did) return [];
   const result = await authClient.getUser(did);
   return result?.user?.passports?.filter((x) => x.status === 'valid')?.map((x) => x.name) || [];

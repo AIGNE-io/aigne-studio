@@ -81,7 +81,7 @@ export function ensureComponentCallOrRolesMatch(req: Request, roles?: string[]) 
       return verified;
     }
     if (roles) {
-      return roles.includes(req.user!.role);
+      return roles.includes(req.user!.role!);
     }
   } catch (error) {
     // ignore error
