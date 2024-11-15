@@ -21,9 +21,7 @@ declare module '@blocklet/logger' {
 declare module '@abtnode/cron';
 
 namespace Express {
-  import type { SessionUser } from '@blocklet/sdk/lib/util/login';
-
   interface Request {
-    user?: SessionUser;
+    user?: import('@blocklet/sdk/lib/util/login').SessionUser;
   }
 }

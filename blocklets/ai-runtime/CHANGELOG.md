@@ -1,3 +1,9 @@
+## 0.4.138 (2024-11-12)
+
+- chore: polish screenshots
+- fix: pass user token for component calling
+- chore: format update time as the session name
+
 ## 0.4.137 (2024-11-11)
 
 - feat: support fork project name check

@@ -1,3 +1,5 @@
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
 import MessageXIcon from '@iconify-icons/tabler/message-x';
 import PlusIcon from '@iconify-icons/tabler/plus';
@@ -107,6 +109,8 @@ function AgentView() {
 }
 
 function SessionsBar() {
+  const { locale } = useLocaleContext();
+
   const { sessions, loaded, createSession, setCurrentSessionId, currentSessionId } = useSessions((s) =>
     pick(s, ['sessions', 'loaded', 'createSession', 'setCurrentSessionId', 'currentSessionId'])
   );
@@ -155,7 +159,18 @@ function SessionsBar() {
 
             {sessions?.map((session) => (
               <MenuItem key={session.id} value={session.id}>
-                {session.name || session.updatedAt}
+                {session.name || (
+                  <RelativeTime
+                    value={session.updatedAt}
+                    type="absolute"
+                    locale={locale}
+                    withoutSuffix={undefined}
+                    from={undefined}
+                    to={undefined}
+                    tz={undefined}
+                    relativeRange={undefined}
+                  />
+                )}
               </MenuItem>
             ))}
           </Select>

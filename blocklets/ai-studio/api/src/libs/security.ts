@@ -26,7 +26,7 @@ export const isRefReadOnly = ({
   ref: string;
   defaultBranch: string;
   project: any;
-  user?: { did: string; role: string };
+  user?: { did: string; role?: string };
 }) => {
   if (project?.createdBy === user?.did) {
     return false;
@@ -81,7 +81,7 @@ export function ensureComponentCallOrRolesMatch(req: Request, roles?: string[]) 
       return verified;
     }
     if (roles) {
-      return roles.includes(req.user!.role);
+      return roles.includes(req.user!.role!);
     }
   } catch (error) {
     // ignore error

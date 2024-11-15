@@ -171,16 +171,6 @@ export interface AgentExecutorOptions {
   variables?: { [key: string]: any };
 }
 
-const getUserHeader = (user: any) => {
-  return {
-    'x-user-did': user?.did,
-    'x-user-role': user?.role,
-    'x-user-provider': user?.provider,
-    'x-user-fullname': user?.fullName && encodeURIComponent(user?.fullName),
-    'x-user-wallet-os': user?.walletOS,
-  };
-};
-
 export abstract class AgentExecutorBase<T> {
   constructor(
     public readonly context: ExecutorContext,
@@ -899,8 +889,8 @@ export abstract class AgentExecutorBase<T> {
       name: AIGNE_RUNTIME_COMPONENT_DID,
       path: '/api/memories',
       method: 'POST',
-      headers: getUserHeader(this.context.user),
       params: {
+        userId: this.context.user?.did,
         projectId: this.context.entryProjectId,
         agentId,
         sessionId: this.context.sessionId,
@@ -939,13 +929,12 @@ export abstract class AgentExecutorBase<T> {
       name: AIGNE_RUNTIME_COMPONENT_DID,
       path: '/api/memories/variable-by-query',
       method: 'GET',
-      headers: getUserHeader(this.context.user),
       params: {
+        userId: this.context.user?.did,
         projectId: this.context.entryProjectId,
         sessionId: this.context.sessionId,
         key,
         scope,
-        userId: this.context.user?.id,
       },
     });
 
