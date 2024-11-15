@@ -1,3 +1,7 @@
+## 0.4.140 (2024-11-15)
+
+- fix: the email vc verification failed and the e2e test failed
+
 ## 0.4.139 (2024-11-15)
 
 - fix: pro plan improvements
