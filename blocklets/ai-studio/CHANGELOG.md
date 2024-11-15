@@ -1,3 +1,7 @@
+## 0.4.142 (2024-11-15)
+
+- fix: validate components issue
+
 ## 0.4.141 (2024-11-15)
 
 - fix: the email vc verification failed and the e2e test failed

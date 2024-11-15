@@ -155,6 +155,7 @@ export default function ComponentSelect({
   const componentsMap = useMemo(() => Object.fromEntries(components.map((i) => [i.value, i])), [components]);
 
   const validatedComponents = useMemo(() => {
+    const isOutputFromInput = output.from?.type === 'input';
     const outputSchema = outputToJsonSchema(output);
     const outputSchemaFakedData = generateFakeProps(outputSchema);
     const validated =
@@ -163,6 +164,12 @@ export default function ComponentSelect({
           const componentSchema = (i as any).aigneOutputValueSchema;
           if (!componentSchema) {
             acc.withoutSchema.push(i);
+            return acc;
+          }
+
+          // If the output comes from the input, we do not know the schema of the output.
+          if (isOutputFromInput) {
+            acc.withSchema.push(i);
             return acc;
           }
 
