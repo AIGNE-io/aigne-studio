@@ -1,3 +1,8 @@
+## 0.4.143 (2024-11-15)
+
+- fix: agent profile ogImage
+- fix: input view scrollbar
+
 ## 0.4.142 (2024-11-15)
 
 - fix: validate components issue
