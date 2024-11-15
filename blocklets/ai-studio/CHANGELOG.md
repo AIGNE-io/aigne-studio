@@ -1,6 +1,10 @@
-## 0.4.140 (2024-11-15)
+## 0.4.141 (2024-11-15)
 
 - fix: the email vc verification failed and the e2e test failed
+
+## 0.4.140 (2024-11-15)
+
+- fix: copy a project with knowledge failed
 
 ## 0.4.139 (2024-11-15)
 
