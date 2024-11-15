@@ -1,3 +1,7 @@
+## 0.4.139 (2024-11-15)
+
+- fix: pro plan improvements
+
 ## 0.4.138 (2024-11-12)
 
 - chore: polish screenshots
