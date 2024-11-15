@@ -1,3 +1,7 @@
+## 0.4.140 (2024-11-15)
+
+- fix: copy a project with knowledge failed
+
 ## 0.4.139 (2024-11-15)
 
 - fix: pro plan improvements
