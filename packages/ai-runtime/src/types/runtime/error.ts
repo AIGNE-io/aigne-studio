@@ -1,6 +1,7 @@
 export enum RuntimeErrorType {
   MissingSecretError = 'MissingSecretError',
-  ProjectRequestExceededError = 'ProjectRequestExceededError',
+  RequestExceededError = 'RequestExceededError',
+  ProjectOwnerRequestExceededError = 'ProjectOwnerRequestExceededError',
   ProjectLimitExceededError = 'ProjectLimitExceededError',
 }
 

@@ -72,10 +72,17 @@ const checkProjectRequestLimit = async ({
     getUserPassports(userIdToCheck),
   ]);
   if (!quotaChecker.checkRequestLimit(runs, passports)) {
-    throw new RuntimeError(
-      RuntimeErrorType.ProjectRequestExceededError,
-      `Project request limit exceeded (current: ${runs}, limit: ${quotaChecker.getQuota('requestLimit', passports)})`
-    );
+    if (loginRequired) {
+      throw new RuntimeError(
+        RuntimeErrorType.RequestExceededError,
+        `Project request limit exceeded (current: ${runs}, limit: ${quotaChecker.getQuota('requestLimit', passports)})`
+      );
+    } else {
+      throw new RuntimeError(
+        RuntimeErrorType.ProjectOwnerRequestExceededError,
+        'Project request limit exceeded for the project owner. Please contact the project owner for further assistance.'
+      );
+    }
   }
 };
 

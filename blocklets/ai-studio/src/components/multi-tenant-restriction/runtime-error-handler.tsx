@@ -7,7 +7,7 @@ export function RuntimeErrorHandler() {
   const sessionError = useSession((s) => s.error);
   const messageError = useSession((s) => s.messages?.at(0)?.error);
   const handleError = useCallback((error: any) => {
-    if (error.type === 'ProjectRequestExceededError') {
+    if (error.type === 'RequestExceededError') {
       showPlanUpgrade('requestLimit');
     }
   }, []);

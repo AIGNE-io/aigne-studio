@@ -1,6 +1,7 @@
 import { showPlanUpgrade } from '@app/components/multi-tenant-restriction';
 import { useCurrentGitStore } from '@app/store/current-git-store';
 import { RuntimeError, RuntimeErrorType } from '@blocklet/ai-runtime/types/runtime/error';
+import { Quotas } from '@blocklet/aigne-sdk/quotas';
 import { useCallback, useEffect } from 'react';
 import { atom, useRecoilState } from 'recoil';
 
@@ -28,6 +29,8 @@ const projectsState = atom<ProjectsState>({
     loading: false,
   },
 });
+
+const quotas = new Quotas(window.blocklet?.preferences);
 
 export const useProjectsState = () => {
   const [state, setState] = useRecoilState(projectsState);
@@ -126,12 +129,12 @@ export const useProjectsState = () => {
     if (window.blocklet?.tenantMode === 'multiple') {
       // check project count limit
       const count = state.projects.length;
-      const currentLimit = window.blocklet?.preferences?.multiTenantProjectLimits;
-      if (count >= currentLimit && !isPromptAdmin) {
+      const passports = session?.user?.passports?.map((x: any) => x.name);
+      if (!quotas.checkProjectLimit(count + 1, passports) && !isPromptAdmin) {
         createLimitDialog();
         throw new RuntimeError(
           RuntimeErrorType.ProjectLimitExceededError,
-          `Project limit exceeded (current: ${count}, limit: ${currentLimit}) `
+          `Project limit exceeded (current: ${count}, limit: ${quotas.getQuota('projectLimit', passports)}) `
         );
       }
     }

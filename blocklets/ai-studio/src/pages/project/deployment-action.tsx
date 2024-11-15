@@ -254,7 +254,10 @@ function DeployApp({
             {!isAdmin && (
               <Typography variant="caption" mt={2}>
                 {t('deployments.toEnablePrivateProjects')}
-                <Box component="a" href="https://store.blocklet.dev/blocklets/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB">
+                <Box
+                  component="a"
+                  href="https://store.blocklet.dev/blocklets/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB"
+                  sx={{ ml: 1 }}>
                   {t('deployments.launchAigne')}
                 </Box>
               </Typography>
@@ -361,7 +364,10 @@ function UpdateApp({ id, data, run, sx }: { id: string; data: Deployment; run: (
           {!isAdmin && (
             <Typography variant="caption" mt={2}>
               {t('deployments.toEnablePrivateProjects')}
-              <Box component="a" href="https://store.blocklet.dev/blocklets/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB">
+              <Box
+                component="a"
+                href="https://store.blocklet.dev/blocklets/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB"
+                sx={{ ml: 1 }}>
                 {t('deployments.launchAigne')}
               </Box>
             </Typography>

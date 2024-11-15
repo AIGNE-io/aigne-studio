@@ -4,6 +4,7 @@ import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { FormControl, FormControlLabel, FormHelperText, Stack, Switch } from '@mui/material';
 
 import { useMultiTenantRestriction } from '../../multi-tenant-restriction';
+import { PremiumFeatureTag } from '../../multi-tenant-restriction/premium-feature-tag';
 
 export function BaseAgentSettingsSummary(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -41,25 +42,28 @@ export function BaseAgentSettings({ agent }: { agent: AssistantYjs }) {
       </Stack>
 
       <Stack alignItems="flex-start">
-        <FormControl>
-          <FormControlLabel
-            labelPlacement="start"
-            label={t('loginRequired')}
-            control={
-              <Switch
-                size="small"
-                checked={!agent.access?.noLoginRequired}
-                onChange={(_, check) => {
-                  if (!quotaChecker.checkAnonymousRequest()) return;
-                  doc.transact(() => {
-                    agent.access ??= {};
-                    agent.access.noLoginRequired = !check;
-                  });
-                }}
-              />
-            }
-          />
-        </FormControl>
+        <Stack direction="row" alignItems="center">
+          <FormControl>
+            <FormControlLabel
+              labelPlacement="start"
+              label={t('loginRequired')}
+              control={
+                <Switch
+                  size="small"
+                  checked={!agent.access?.noLoginRequired}
+                  onChange={(_, check) => {
+                    if (!quotaChecker.checkAnonymousRequest()) return;
+                    doc.transact(() => {
+                      agent.access ??= {};
+                      agent.access.noLoginRequired = !check;
+                    });
+                  }}
+                />
+              }
+            />
+          </FormControl>
+          <PremiumFeatureTag sx={{ ml: 3 }} onClick={() => quotaChecker.checkAnonymousRequest()} />
+        </Stack>
         <FormHelperText sx={{ ml: 0 }}>
           {t(!agent.access?.noLoginRequired ? 'loginRequiredHelper' : 'noLoginRequiredHelper')}
         </FormHelperText>
