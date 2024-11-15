@@ -158,8 +158,10 @@ router.get('/:datasetId/export-resource', middlewares.session(), ensureComponent
   }
 });
 
-router.post('/', middlewares.session(), userAuth(), async (req, res) => {
-  const { did } = req.user!;
+router.post('/', middlewares.session({ componentCall: true }), ensureComponentCallOr(userAuth()), async (req, res) => {
+  const userId = req.user?.method === 'componentCall' ? req.query.userId : req.user?.did;
+  if (!userId || typeof userId !== 'string') throw new Error('Unauthorized');
+
   const {
     name = '',
     description = '',
@@ -177,7 +179,7 @@ router.post('/', middlewares.session(), userAuth(), async (req, res) => {
         oldKnowledgeBaseId: item.id,
         oldProjectId: copyFromProjectId,
         newProjectId: appId,
-        userId: did,
+        userId,
       });
 
       map[item.id] = newKnowledgeId;
@@ -187,7 +189,7 @@ router.post('/', middlewares.session(), userAuth(), async (req, res) => {
     return res.json({ copied });
   }
 
-  const dataset = await Dataset.create({ name, description, appId, createdBy: did, updatedBy: did });
+  const dataset = await Dataset.create({ name, description, appId, createdBy: userId, updatedBy: userId });
   await ensureKnowledgeDirExists(dataset.id);
 
   return res.json(dataset);
