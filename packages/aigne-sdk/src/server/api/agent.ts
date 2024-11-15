@@ -8,7 +8,7 @@ import { joinURL } from 'ufo';
 
 import type { Agent, AgentWithConfig, RunAgentInput } from '../../api/agent';
 import { AIGNE_RUNTIME_COMPONENT_DID, AIGNE_STUDIO_COMPONENT_DID } from '../../constants';
-import { User, userHeaders } from './auth';
+import { User } from './auth';
 
 export async function getAgents({
   type,
@@ -60,10 +60,10 @@ export async function runAgent({ user, responseType, ...input }: RunAgentInputSe
     name: AIGNE_RUNTIME_COMPONENT_DID,
     method: 'POST',
     path,
-    data: input,
-    headers: {
-      ...userHeaders(user),
+    params: {
+      userId: user.did,
     },
+    data: input,
   };
 
   if (responseType === 'stream') {

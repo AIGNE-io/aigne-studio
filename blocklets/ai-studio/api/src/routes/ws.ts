@@ -1,7 +1,9 @@
-import { Server } from 'http';
+import { IncomingMessage, Server } from 'http';
 
 import { Config } from '@api/libs/env';
 import logger from '@api/libs/logger';
+import { verifyLoginToken } from '@blocklet/sdk/lib/util/verify-session';
+import { getQuery } from 'ufo';
 import ws from 'ws';
 
 import { isRefReadOnly } from '../libs/security';
@@ -21,14 +23,17 @@ wss.on('connection', async (conn, req: any) => {
     return;
   }
 
-  const did = req.headers['x-user-did']?.toString();
-  const role = req.headers['x-user-role']?.toString();
+  const user = await verifyWSToken(req, Config.serviceModePermissionMap.ensurePromptsEditorRoles);
+  if (!user) {
+    conn.close(3001, 'You are not allowed to access this project');
+    return;
+  }
 
   const readOnly = isRefReadOnly({
     ref,
     defaultBranch: project?.gitDefaultBranch ?? defaultBranch,
     project,
-    user: { did, role },
+    user,
   });
 
   const repository = await getRepository({ projectId });
@@ -37,14 +42,9 @@ wss.on('connection', async (conn, req: any) => {
 });
 
 export function handleYjsWebSocketUpgrade(server: Server) {
-  server.on('upgrade', (req, socket, head) => {
+  server.on('upgrade', async (req, socket, head) => {
     if (req.url?.match(/^\/api\/ws/)) {
-      const did = req.headers['x-user-did']?.toString();
-      const role = req.headers['x-user-role']?.toString();
-
-      const roles = Config.serviceModePermissionMap.ensurePromptsEditorRoles;
-
-      if (!did || (roles && !roles.includes(role!))) {
+      if (!(await verifyWSToken(req, Config.serviceModePermissionMap.ensurePromptsEditorRoles))) {
         logger.error('handle socket upgrade forbidden', { url: req.url });
 
         socket.write('HTTP/1.1 403 Forbidden\r\n\r\n');
@@ -57,4 +57,21 @@ export function handleYjsWebSocketUpgrade(server: Server) {
       });
     }
   });
+}
+
+async function verifyWSToken(req: IncomingMessage, roles: string[] | undefined) {
+  const { token } = getQuery(req.url || '');
+  if (typeof token !== 'string') return false;
+
+  try {
+    const user = await verifyLoginToken({ token, strictMode: true });
+    if (!user) return false;
+
+    if (!user.did || (roles && !roles.includes(user.role!))) return false;
+
+    return user;
+  } catch (error) {
+    logger.error('verify ws token error', { error });
+  }
+  return false;
 }

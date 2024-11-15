@@ -27,6 +27,7 @@ import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { call } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
 import { session } from '@blocklet/sdk/lib/middlewares';
+import { SessionUser } from '@blocklet/sdk/lib/util/login';
 import { Request, Router } from 'express';
 import { exists } from 'fs-extra';
 import * as git from 'isomorphic-git';
@@ -69,8 +70,6 @@ import {
 import { projectTemplates } from '../templates/projects';
 import { checkDeployment } from './deployment';
 import { getCommits } from './log';
-
-const AI_STUDIO_COMPONENT_DID = 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
 
 export interface CreateProjectInput {
   blockletDid?: string;
@@ -324,7 +323,7 @@ export function projectRoutes(router: Router) {
 
   router.get('/projects/check-name', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { name, projectId } = await checkProjectNameSchema.validateAsync(req.query, { stripUnknown: true });
-    const projects = await Project.findAll({ where: { name, createdBy: req.user.did } });
+    const projects = await Project.findAll({ where: { name, createdBy: req.user?.did } });
 
     if (!projectId) {
       res.json({ ok: projects.length === 0, project: projects?.[0] });
@@ -342,31 +341,6 @@ export function projectRoutes(router: Router) {
     }));
 
     res.json({ templates: uniqBy([...resourceTemplates], (i) => i.id) });
-  });
-
-  router.get('/projects/icons', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
-    const { did } = req.user!;
-
-    const { data } = await call({
-      name: 'image-bin',
-      path: '/api/sdk/uploads',
-      method: 'GET',
-      headers: { 'x-user-did': did },
-      params: { pageSize: 100, folderId: AI_STUDIO_COMPONENT_DID },
-    });
-
-    res.json({ icons: data?.uploads || [] });
-  });
-
-  router.delete('/projects/icon/:id', ensureComponentCallOrPromptsEditor(), session(), async (req, res) => {
-    const { did } = req.user!;
-    const { data } = await call({
-      name: 'image-bin',
-      path: `/api/sdk/uploads/${req.params.id}`,
-      method: 'DELETE',
-      headers: { 'x-user-did': did },
-    });
-    res.json({ icons: data?.uploads || [] });
   });
 
   const logoQuerySchema = Joi.object<{ blockletDid?: string; projectRef?: string; working?: boolean }>({
@@ -1167,7 +1141,7 @@ async function copyProject({
   ...patch
 }: {
   project: Project;
-  author: { did: string; role: string; fullName: string; provider: string; walletOS: string; isAdmin: boolean };
+  author: SessionUser;
 } & Partial<Project['dataValues']>) {
   const srcRepo = await getRepository({ projectId: original.id! });
   const srcWorking = await srcRepo.working({ ref: original.gitDefaultBranch || defaultBranch });
@@ -1218,13 +1192,6 @@ async function copyProject({
         path: '/api/sdk/templates/copy-snapshot',
         method: 'POST',
         data: { templateId: agent.templateId, userDid: author.did, name: project.name },
-        headers: {
-          'x-user-did': author?.did,
-          'x-user-role': author?.role,
-          'x-user-provider': author?.provider,
-          'x-user-fullname': author?.fullName && encodeURIComponent(author?.fullName),
-          'x-user-wallet-os': author?.walletOS,
-        },
       });
       if (!data?.templateId) {
         throw new Error('copy nft template failed');
@@ -1252,20 +1219,14 @@ async function copyKnowledge({
 }: {
   originProjectId: string;
   currentProjectId: string;
-  user: { did: string; role: string; fullName: string; provider: string; walletOS: string; isAdmin: boolean };
+  user: SessionUser;
 }) {
   const { data } = await call({
     name: AIGNE_RUNTIME_COMPONENT_DID,
     path: '/api/datasets',
     method: 'POST',
+    params: { userId: user.did },
     data: { appId: currentProjectId, copyFromProjectId: originProjectId },
-    headers: {
-      'x-user-did': user?.did,
-      'x-user-role': user?.role,
-      'x-user-provider': user?.provider,
-      'x-user-fullname': user?.fullName && encodeURIComponent(user?.fullName),
-      'x-user-wallet-os': user?.walletOS,
-    },
   });
 
   const projectIdMap = Object.fromEntries(

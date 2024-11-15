@@ -134,8 +134,7 @@ export function resourceRoutes(router: Router) {
         name: AIGNE_RUNTIME_COMPONENT_DID,
         method: 'get',
         path: '/api/datasets',
-        params: { excludeResource: true },
-        headers: { 'x-user-did': req.user?.did },
+        params: { excludeResource: true, userId: req.user?.did },
       })
     ).data;
 

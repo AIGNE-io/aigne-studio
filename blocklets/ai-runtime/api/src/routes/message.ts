@@ -10,21 +10,17 @@ import uniqBy from 'lodash/uniqBy';
 import zip from 'lodash/zip';
 import { Attributes, FindOptions, InferAttributes, Op, WhereOptions, cast, col, where } from 'sequelize';
 
-const searchOptionsSchema = Joi.object<{ sessionId?: string; limit: number; keyword?: string }>({
-  sessionId: Joi.string().empty([null, '']),
+const searchOptionsSchema = Joi.object<{ sessionId: string; limit: number; keyword?: string }>({
+  sessionId: Joi.string().required(),
   limit: Joi.number().empty([null, '']).integer().min(1).optional().default(10),
   keyword: Joi.string().empty([null, '']),
 });
 
 export function messageRoutes(router: Router) {
-  router.get('/messages', middlewares.session(), async (req, res) => {
+  router.get('/messages', middlewares.session({ componentCall: true }), async (req, res) => {
     const query = await searchOptionsSchema.validateAsync(req.query, { stripUnknown: true });
-    const { did: userId } = req.user!;
-
-    if (!query.sessionId || !userId) {
-      res.json({ messages: [] });
-      return;
-    }
+    const userId = req.user?.method === 'componentCall' ? req.query.userId : req.user?.did;
+    if (!userId || typeof userId !== 'string') throw new Error('Can not get user info');
 
     const conditions = [];
 
@@ -85,7 +81,7 @@ export function messageRoutes(router: Router) {
     res.json({ messages });
   });
 
-  router.get('/messages/:messageId', middlewares.session(), async (req, res) => {
+  router.get('/messages/:messageId', async (req, res) => {
     const { messageId } = req.params;
 
     if (!messageId) throw new Error('Missing required param `messageId`');
