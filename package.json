@@ -1,7 +1,7 @@
 {
   "name": "ai-studio",
   "private": true,
-  "version": "0.4.140",
+  "version": "0.4.141",
   "workspaces": [
     "blocklets/*",
     "packages/*"
@@ -48,12 +48,16 @@
     }
   },
   "devDependencies": {
+    "@arcblock/did": "^1.18.139",
+    "@arcblock/did-ext": "^1.18.139",
     "@arcblock/eslint-config": "^0.3.3",
     "@arcblock/eslint-config-ts": "^0.3.3",
     "@blocklet/ai-runtime": "workspace:^",
     "@blocklet/testlab": "^0.0.17",
+    "@ocap/util": "^1.18.139",
     "@playwright/test": "^1.46.1",
     "bumpp": "^9.5.2",
+    "dotenv": "^16.4.5",
     "eslint": "^8.57.0",
     "eslint-plugin-prettier": "^5.2.1",
     "import-sort-style-module": "^6.0.0",

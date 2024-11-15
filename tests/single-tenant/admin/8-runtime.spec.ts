@@ -12,17 +12,14 @@ test.describe.serial('resource blocklet', () => {
     await page.waitForSelector('h6.page-title');
     await page.locator("button span:has-text('Blocklets')").click();
     await page.waitForSelector('button:has-text("Add Blocklet")');
-
-    console.log('route to resource blocklet');
   });
 
   test.describe.configure({ retries: 5 });
 
   test('init', async ({ page }) => {
-    test.slow();
     console.log('init resource blocklet');
 
-    await page.waitForTimeout(10000);
+    await page.waitForTimeout(5000);
 
     await page.goto('/projects');
     await page.waitForLoadState('networkidle');
@@ -40,14 +37,11 @@ test.describe.serial('resource blocklet', () => {
   });
 
   test('open resource blocklet', async ({ page }) => {
-    test.slow();
     console.log('open resource blocklet');
     const blocklet = page.locator('.component-item').filter({ hasText: 'Mockplexity' }).first();
-    // 首先判断状态, 如果运行中, 什么都不做
     const stopIcon = blocklet.getByTestId('StopIcon');
     if ((await stopIcon.count()) > 0) return;
 
-    // 如果未运行(升级中/停止), 则运行
     const startIcon = blocklet.getByTestId('PlayArrowIcon');
     if ((await startIcon.count()) > 0) {
       await startIcon.click();
@@ -62,7 +56,7 @@ test.describe.serial('resource blocklet', () => {
     test.slow();
     console.log('set agent secrets');
 
-    await page.waitForTimeout(10000);
+    await page.waitForTimeout(5000);
     await page.goto('/mockplexity/');
     await page.waitForLoadState('networkidle');
 
@@ -75,7 +69,6 @@ test.describe.serial('resource blocklet', () => {
   });
 
   test('input form', async ({ page }) => {
-    test.slow();
     console.log('set resource blocklet input form');
 
     await page.goto('/mockplexity/');
@@ -98,7 +91,6 @@ test.describe.serial('resource blocklet', () => {
   });
 
   test('clear session', async ({ page }) => {
-    test.slow();
     console.log('clear resource blocklet session');
 
     await page.goto('/mockplexity/');
