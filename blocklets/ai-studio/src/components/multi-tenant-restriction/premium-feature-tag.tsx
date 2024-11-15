@@ -18,6 +18,7 @@ export function PremiumFeatureTag({ sx, ...rest }: ChipProps) {
       fontSize: 12,
       color: '#b45309',
       bgcolor: '#fef4c7',
+      cursor: 'pointer',
     },
     ...(Array.isArray(sx) ? sx : [sx]),
   ];

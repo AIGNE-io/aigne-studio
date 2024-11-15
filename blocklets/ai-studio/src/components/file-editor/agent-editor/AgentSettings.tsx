@@ -5,8 +5,7 @@ import ChevronDown from '@iconify-icons/tabler/chevron-down';
 import { Accordion, AccordionDetails, AccordionSummary, Box, Stack, Typography, accordionClasses } from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
 
-import { useMultiTenantRestriction } from '../../multi-tenant-restriction';
-import { PremiumFeatureTag } from '../../multi-tenant-restriction/premium-feature-tag';
+import { PremiumFeatureTag, useMultiTenantRestriction } from '../../multi-tenant-restriction';
 import { BaseAgentSettings, BaseAgentSettingsSummary } from './BaseAgentSettings';
 import { CacheSettings, CacheSettingsSummary } from './CacheSettings';
 import { CronSettings, CronSettingsSummary } from './CronSettings';
