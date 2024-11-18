@@ -38,6 +38,10 @@ export async function getProjects(): Promise<{
   return axios.get('/api/projects').then((res) => res.data);
 }
 
+export async function countProjects(): Promise<number> {
+  return axios.get('/api/projects/count').then((res) => res.data.count);
+}
+
 export async function getTemplatesProjects(): Promise<{
   templates: ProjectWithUserInfo[];
 }> {

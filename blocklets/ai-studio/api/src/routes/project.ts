@@ -334,6 +334,11 @@ export function projectRoutes(router: Router) {
     res.json({ ok: filtered.length === 0, project: filtered?.[0] });
   });
 
+  router.get('/projects/count', session(), async (req, res) => {
+    const count = await Project.count({ where: { createdBy: req.user?.did } });
+    res.json({ count });
+  });
+
   router.get('/template-projects', session(), ensureComponentCallOrPromptsEditor(), async (_req, res) => {
     const resourceTemplates = (await resourceManager.getProjects({ type: 'template' })).map((i) => ({
       ...i.project,

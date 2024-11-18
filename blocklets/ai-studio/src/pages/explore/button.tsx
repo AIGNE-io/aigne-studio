@@ -30,6 +30,7 @@ import { ReactElement, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { joinURL, withQuery } from 'ufo';
 
+import { useProjectLimiting } from '../../contexts/projects';
 import { useSessionContext } from '../../contexts/session';
 import { Deployment } from '../../libs/deployment';
 import ImportFromFork from '../project/projects-page/import-from-fork';
@@ -75,6 +76,7 @@ export function MakeYoursButton({
   const navigate = useNavigate();
   const { session } = useSessionContext();
   const [dialog, setDialog] = useState<ReactElement | null>(null);
+  const { checkProjectLimitAsync } = useProjectLimiting();
 
   const onDialogClose = () => {
     setDialog(null);
@@ -86,7 +88,9 @@ export function MakeYoursButton({
         session.login(() => resolve());
       });
     }
-    setDialog(<ImportFromFork project={project} onCreate={onMakeYours} onClose={onDialogClose} />);
+    if (await checkProjectLimitAsync()) {
+      setDialog(<ImportFromFork project={project} onCreate={onMakeYours} onClose={onDialogClose} />);
+    }
   };
 
   const onMakeYours = async ({ name, description }: { name: string; description: string }) => {
