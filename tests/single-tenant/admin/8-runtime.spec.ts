@@ -1,8 +1,8 @@
 /* eslint-disable no-console */
 import { expect, test } from '@playwright/test';
 
-import { createProject } from '../../utils/project';
-import { installBlocklet, installBlockletResourceKnowledgeBlocklet, unInstallBlocklet } from '../../utils/uninstall';
+// import { createProject } from '../../utils/project';
+import { installBlocklet, unInstallBlocklet } from '../../utils/uninstall';
 
 const secretKey = 'f712dac84b4f84c3c2fa079896572ed19e2738e23baf025f2c8764d5d8598deb';
 
