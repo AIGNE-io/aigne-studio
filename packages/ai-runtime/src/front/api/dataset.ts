@@ -17,17 +17,17 @@ export async function getDataset({ datasetId }: { datasetId: string }): Promise<
   return result;
 }
 
-export async function getDatasets({ appId }: { appId: string }): Promise<Array<Dataset>> {
-  const url = withQuery('/api/datasets', { appId });
+export async function getKnowledgeList({ projectId }: { projectId: string }): Promise<Array<Dataset>> {
+  const url = withQuery('/api/datasets', { projectId });
   return request({ blocklet: AI_STUDIO_DID, url });
 }
 
 export async function createDataset({
-  appId,
+  projectId,
   name,
   description,
 }: {
-  appId: string;
+  projectId: string;
   name: string;
   description?: string;
 }) {
@@ -35,11 +35,7 @@ export async function createDataset({
     blocklet: AI_STUDIO_DID,
     method: 'POST',
     url: '/api/datasets',
-    body: {
-      appId,
-      name,
-      description,
-    },
+    body: { projectId, name, description },
   });
 }
 

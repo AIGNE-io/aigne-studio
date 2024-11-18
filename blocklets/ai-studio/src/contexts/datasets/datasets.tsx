@@ -1,21 +1,28 @@
 import { useUpdate } from 'ahooks';
+import useInfiniteScroll from 'ahooks/lib/useInfiniteScroll';
 import { Draft, produce } from 'immer';
 import { ReactNode, createContext, useCallback, useContext, useRef } from 'react';
+import useInfiniteScrollHook from 'react-infinite-scroll-hook';
 
-import Dataset from '../../../api/src/store/models/dataset/dataset';
 import {
+  KnowledgeCard,
   createDataset,
+  createDatasetFromResources,
   createTextDocument,
   deleteDataset,
-  getDatasets,
   getDocuments,
+  getKnowledgeList,
+  getResourcesKnowledgeList,
   updateDataset,
   updateTextDocument,
 } from '../../libs/dataset';
+import type { KnowledgeInput } from '../../libs/dataset';
 
-export interface DatasetsContext {
-  datasets: (Dataset & { blockletDid?: string })[];
+export interface KnowledgeContext {
+  datasets: KnowledgeCard[];
   loading: boolean;
+  resourceLoading: boolean;
+  resources: KnowledgeCard[];
   error?: Error;
   refetch: (projectId?: string) => Promise<void>;
   createDataset: any;
@@ -24,14 +31,46 @@ export interface DatasetsContext {
   createTextDocument: typeof createTextDocument;
   updateTextDocument: typeof updateTextDocument;
   getDocuments: typeof getDocuments;
+  getResourcesKnowledgeList: () => Promise<void>;
+  createDatasetFromResources: typeof createDatasetFromResources;
 }
 
-const ctx = createContext<DatasetsContext | undefined>(undefined);
+const ctx = createContext<KnowledgeContext | undefined>(undefined);
 
-export function DatasetsProvider({ projectId, children }: { projectId: string; children: ReactNode }) {
-  const value = useRef<DatasetsContext>({
+export const useFetchKnowledgeList = (projectId: string) => {
+  const dataState = useInfiniteScroll(
+    async (
+      d: { list: KnowledgeCard[]; next: boolean; size: number; page: number } = {
+        list: [],
+        next: false,
+        size: 20,
+        page: 1,
+      }
+    ) => {
+      const { page, size } = d || {};
+      const list = await getKnowledgeList({ page, size, projectId });
+
+      return { list: list || [], next: list.length >= size, size, page: (d?.page || 1) + 1 };
+    },
+    { isNoMore: (d) => !d?.next, reloadDeps: [] }
+  );
+
+  const [loadingRef] = useInfiniteScrollHook({
+    loading: dataState.loading || dataState.loadingMore,
+    hasNextPage: Boolean(dataState.data?.next),
+    onLoadMore: () => dataState.loadMore(),
+    rootMargin: '0px 0px 200px 0px',
+  });
+
+  return { loadingRef, dataState };
+};
+
+export function KnowledgeProvider({ projectId, children }: { projectId: string; children: ReactNode }) {
+  const value = useRef<KnowledgeContext>({
     datasets: [],
     loading: false,
+    resourceLoading: false,
+    resources: [],
     refetch: async () => {
       const state = value.current;
 
@@ -43,7 +82,7 @@ export function DatasetsProvider({ projectId, children }: { projectId: string; c
         v.loading = true;
       });
       try {
-        const datasets = await getDatasets({ projectId });
+        const datasets = await getKnowledgeList({ projectId });
 
         setValue((v) => {
           v.datasets = datasets;
@@ -55,10 +94,7 @@ export function DatasetsProvider({ projectId, children }: { projectId: string; c
         setValue((v) => (v.loading = false));
       }
     },
-    createDataset: async (
-      projectId: string,
-      input: { name?: string | null; description?: string | null; appId?: string }
-    ) => {
+    createDataset: async (projectId: string, input: KnowledgeInput) => {
       const dataset = await createDataset(input);
       await value.current.refetch(projectId);
       return dataset;
@@ -83,12 +119,34 @@ export function DatasetsProvider({ projectId, children }: { projectId: string; c
       const documents = await getDocuments(datasetId, {});
       return documents;
     },
+    getResourcesKnowledgeList: async () => {
+      const state = value.current;
+
+      if (state.resourceLoading) return;
+
+      setValue((v) => {
+        v.resourceLoading = true;
+      });
+      try {
+        const resources = await getResourcesKnowledgeList();
+        setValue((v) => (v.resources = resources));
+      } catch (error) {
+        setValue((v) => (v.error = error));
+        throw error;
+      } finally {
+        setValue((v) => (v.resourceLoading = false));
+      }
+    },
+    createDatasetFromResources: async (input: { items: KnowledgeInput[] }) => {
+      const datasets = await createDatasetFromResources(input);
+      return datasets;
+    },
   });
 
   const update = useUpdate();
 
   const setValue = useCallback(
-    (u: (draft: Draft<DatasetsContext>) => void) => {
+    (u: (draft: Draft<KnowledgeContext>) => void) => {
       value.current = produce(value.current, (draft) => {
         u(draft);
         return draft;
@@ -102,11 +160,11 @@ export function DatasetsProvider({ projectId, children }: { projectId: string; c
   return <ctx.Provider value={value.current}>{children}</ctx.Provider>;
 }
 
-export function useDatasets() {
+export function useKnowledge() {
   const state = useContext(ctx);
 
   if (!state) {
-    throw new Error('`useDatasets()` is only allowed to be used in a child of `DatasetsProvider`');
+    throw new Error('`useKnowledge()` is only allowed to be used in a child of `KnowledgeProvider`');
   }
 
   return state;

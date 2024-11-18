@@ -33,7 +33,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { joinURL, withQuery } from 'ufo';
 
-import { useDatasets } from '../../contexts/datasets/datasets';
+import { useKnowledge } from '../../contexts/datasets/datasets';
 import { useDocuments } from '../../contexts/datasets/documents';
 import { getErrorMessage } from '../../libs/api';
 import { AIGNE_RUNTIME_MOUNT_POINT } from '../../libs/constants';
@@ -412,7 +412,7 @@ function Custom({ datasetId, id, value }: { datasetId: string; id?: string; valu
   const form = useForm<{ name: string; content: string }>({
     defaultValues: { name: value?.name, content: value?.content },
   });
-  const { createTextDocument } = useDatasets();
+  const { createTextDocument } = useKnowledge();
   const { refetch } = useDocuments(datasetId || '');
   const navigate = useNavigate();
 

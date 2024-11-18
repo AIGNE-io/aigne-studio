@@ -60,7 +60,7 @@ async function copyKnowledgeBase({
   const knowledgeId = nextId();
 
   const knowledge = await Knowledge.findOne({
-    where: { appId: oldProjectId, id: oldKnowledgeBaseId },
+    where: { projectId: oldProjectId, id: oldKnowledgeBaseId },
     rejectOnEmpty: new Error('Dataset not found'),
   });
 
@@ -81,7 +81,7 @@ async function importKnowledgeData(
   await Knowledge.create({
     ...fromKnowledge,
     id: newKnowledgeId,
-    appId: newProjectId,
+    projectId: newProjectId,
     createdBy: userId,
     updatedBy: userId,
   });

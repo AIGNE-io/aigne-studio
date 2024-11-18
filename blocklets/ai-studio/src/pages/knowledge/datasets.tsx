@@ -38,7 +38,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import { withQuery } from 'ufo';
 
-import { useDatasets } from '../../contexts/datasets/datasets';
+import { useKnowledge } from '../../contexts/datasets/datasets';
 import { getErrorMessage } from '../../libs/api';
 import useDialog from '../../utils/use-dialog';
 import Close from '../project/icons/close';
@@ -51,7 +51,7 @@ export default function KnowledgeDatasets() {
   const { projectId } = useParams();
 
   const dialogState = usePopupState({ variant: 'dialog' });
-  const { datasets, refetch, createDataset, updateDataset, deleteDataset } = useDatasets();
+  const { datasets, refetch, createDataset, updateDataset, deleteDataset } = useKnowledge();
   const form = useForm<DatasetInput>({ defaultValues: { description: '', name: '' } });
 
   useEffect(() => {
@@ -61,7 +61,7 @@ export default function KnowledgeDatasets() {
   const onSave = useCallback(
     async (input: DatasetInput) => {
       try {
-        const dataset = await createDataset(projectId, { ...input, appId: projectId });
+        const dataset = await createDataset(projectId, { ...input, projectId });
         dialogState.close();
         navigate(`./${dataset.id}`);
       } catch (error) {

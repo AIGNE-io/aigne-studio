@@ -3,9 +3,9 @@ import flattenApiStructure from '@blocklet/dataset-sdk/util/flatten-open-api';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 import { joinURL } from 'ufo';
 
-import Dataset from '../../api/src/store/models/dataset/dataset';
-import DatasetDocument from '../../api/src/store/models/dataset/document';
-import DatasetSegment from '../../api/src/store/models/dataset/segment';
+import Knowledge from '../../api/src/store/models/dataset/dataset';
+import KnowledgeDocument from '../../api/src/store/models/dataset/document';
+import KnowledgeSegment from '../../api/src/store/models/dataset/segment';
 import axios from './api';
 import { AIGNE_RUNTIME_MOUNT_POINT } from './constants';
 
@@ -22,10 +22,19 @@ export interface CreateDiscussionItem {
 
 export type CreateDiscussionItemInput = CreateDiscussionItem | CreateDiscussionItem[];
 
-export interface DatasetInput {
-  name?: string | null;
-  description?: string | null;
-  appId?: string;
+export type KnowledgeCard = Knowledge & {
+  user: { did: string; fullName: string; avatar: string };
+  totalSize: number;
+  docs: number;
+  blockletDid?: string;
+};
+
+export interface KnowledgeInput {
+  name?: string;
+  description?: string;
+  projectId?: string;
+  resourceBlockletDid?: string;
+  knowledgeId?: string;
 }
 
 export async function searchKnowledge({
@@ -47,21 +56,39 @@ export async function getAPIList(): Promise<DatasetObject[]> {
     .catch(() => []);
 }
 
-export async function getDatasets({ projectId }: { projectId?: string }): Promise<Dataset[]> {
+export async function getKnowledgeList({
+  projectId,
+  page,
+  size,
+}: {
+  projectId?: string;
+  page?: number;
+  size?: number;
+}): Promise<KnowledgeCard[]> {
   return axios
-    .get('/api/datasets', { baseURL: AIGNE_RUNTIME_MOUNT_POINT, params: { projectId } })
+    .get('/api/datasets', { baseURL: AIGNE_RUNTIME_MOUNT_POINT, params: { projectId, page, size } })
     .then((res) => res.data);
 }
 
-export async function getDataset(datasetId: string): Promise<Dataset> {
+export async function getResourcesKnowledgeList(): Promise<KnowledgeCard[]> {
+  return axios.get('/api/datasets/resources', { baseURL: AIGNE_RUNTIME_MOUNT_POINT }).then((res) => res.data);
+}
+
+export async function getDataset(datasetId: string): Promise<Knowledge> {
   return axios.get(`/api/datasets/${datasetId}`, { baseURL: AIGNE_RUNTIME_MOUNT_POINT }).then((res) => res.data);
 }
 
-export async function createDataset(input?: DatasetInput): Promise<Dataset> {
+export async function createDataset(input?: KnowledgeInput): Promise<Knowledge> {
   return axios.post('/api/datasets', input, { baseURL: AIGNE_RUNTIME_MOUNT_POINT }).then((res) => res.data);
 }
 
-export async function updateDataset(datasetId: string, input: DatasetInput): Promise<Dataset> {
+export async function createDatasetFromResources(input: { items: KnowledgeInput[] }): Promise<Knowledge[]> {
+  return axios
+    .post('/api/datasets/knowledge-from-resources', input, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
+    .then((res) => res.data);
+}
+
+export async function updateDataset(datasetId: string, input: KnowledgeInput): Promise<Knowledge> {
   return axios.put(`/api/datasets/${datasetId}`, input, { baseURL: AIGNE_RUNTIME_MOUNT_POINT }).then((res) => res.data);
 }
 
@@ -81,7 +108,7 @@ export async function getDocuments(
 export async function getDocument(
   datasetId: string,
   documentId: string
-): Promise<{ dataset: Dataset; document: DatasetDocument }> {
+): Promise<{ dataset: Knowledge; document: KnowledgeDocument }> {
   return axios
     .get(`/api/datasets/${datasetId}/documents/${documentId}`, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
     .then((res) => res.data);
@@ -96,7 +123,7 @@ export async function getDocumentContent(datasetId: string, documentId: string):
 export async function deleteDocument(
   datasetId: string,
   documentId: string
-): Promise<{ dataset: Dataset; document: DatasetDocument }> {
+): Promise<{ dataset: Knowledge; document: KnowledgeDocument }> {
   return axios
     .delete(`/api/datasets/${datasetId}/documents/${documentId}`, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
     .then((res) => res.data);
@@ -105,7 +132,7 @@ export async function deleteDocument(
 export async function createTextDocument(
   datasetId: string,
   input: { name: string; content?: string }
-): Promise<DatasetDocument> {
+): Promise<KnowledgeDocument> {
   return axios
     .post(`/api/datasets/${datasetId}/documents/text`, input, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
     .then((res) => res.data);
@@ -115,7 +142,7 @@ export async function updateTextDocument(
   datasetId: string,
   documentId: string,
   input: { name: string; content?: string }
-): Promise<DatasetDocument> {
+): Promise<KnowledgeDocument> {
   return axios
     .put(`/api/datasets/${datasetId}/documents/${documentId}/text`, input, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
     .then((res) => res.data);
@@ -141,21 +168,24 @@ export async function getSegments(
   datasetId: string,
   documentId: string,
   params: { page?: number; size?: number } = {}
-): Promise<{ items: DatasetSegment[]; total: number; page: number }> {
+): Promise<{ items: KnowledgeSegment[]; total: number; page: number }> {
   return axios
     .get(`/api/datasets/${datasetId}/documents/${documentId}/segments`, { baseURL: AIGNE_RUNTIME_MOUNT_POINT, params })
     .then((res) => res.data);
 }
 
-export async function createDatasetDocuments(datasetId: string, input: CreateDiscussionItem): Promise<DatasetDocument>;
+export async function createDatasetDocuments(
+  datasetId: string,
+  input: CreateDiscussionItem
+): Promise<KnowledgeDocument>;
 export async function createDatasetDocuments(
   datasetId: string,
   input: CreateDiscussionItem[]
-): Promise<DatasetDocument[]>;
+): Promise<KnowledgeDocument[]>;
 export async function createDatasetDocuments(
   datasetId: string,
   input: CreateDiscussionItemInput
-): Promise<DatasetDocument | DatasetDocument[]> {
+): Promise<KnowledgeDocument | KnowledgeDocument[]> {
   return axios
     .post(`/api/datasets/${datasetId}/documents/discussion`, input, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
     .then((res) => res.data);

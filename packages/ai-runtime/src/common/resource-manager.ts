@@ -129,7 +129,7 @@ const loadResourceKnowledge = async () => {
                 const contents = parse((await readFile(contentsPath)).toString());
 
                 return {
-                  knowledge,
+                  knowledge: { projectId: knowledge.appId, ...knowledge },
                   blockletDid: item.did,
                   vectorsPath,
                   uploadPath,

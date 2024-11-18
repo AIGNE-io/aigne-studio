@@ -10,11 +10,13 @@ import DatasetContent from '@api/store/models/dataset/content';
 import { copyRecursive } from '@blocklet/ai-runtime/utils/fs';
 import config from '@blocklet/sdk/lib/config';
 import middlewares from '@blocklet/sdk/lib/middlewares';
+import AuthService from '@blocklet/sdk/lib/service/auth';
 import archiver from 'archiver';
 import compression from 'compression';
 import { Router } from 'express';
 import { pathExists } from 'fs-extra';
 import Joi from 'joi';
+import { pick } from 'lodash';
 import omitBy from 'lodash/omitBy';
 import { Op, Sequelize } from 'sequelize';
 import { stringify } from 'yaml';
@@ -22,54 +24,98 @@ import { stringify } from 'yaml';
 import ensureKnowledgeDirExists, { getUploadDir, getVectorStorePath } from '../../libs/ensure-dir';
 import copyKnowledgeBase from '../../libs/knowledge';
 import { ensureComponentCallOr, ensureComponentCallOrAdmin, userAuth } from '../../libs/security';
-import Dataset from '../../store/models/dataset/dataset';
-import DatasetDocument from '../../store/models/dataset/document';
+import Knowledge from '../../store/models/dataset/dataset';
+import KnowledgeDocument from '../../store/models/dataset/document';
 import { sse } from './embeddings';
 
 const router = Router();
+const authClient = new AuthService();
 
-const datasetSchema = Joi.object<{ name?: string; description?: string; appId?: string; copyFromProjectId?: string }>({
+const datasetSchema = Joi.object<{
+  name?: string;
+  description?: string;
+  projectId?: string;
+  copyFromProjectId?: string;
+  resourceBlockletDid?: string;
+  knowledgeId?: string;
+}>({
   name: Joi.string().allow('').empty(null).default(''),
   description: Joi.string().allow('').empty(null).default(''),
-  appId: Joi.string().allow('').empty(null).default(''),
+  projectId: Joi.string().allow('').empty(null).default(''),
   copyFromProjectId: Joi.string().allow('').empty(null).default(''),
+  resourceBlockletDid: Joi.string().allow('').empty(null).default(''),
+  knowledgeId: Joi.string().allow('').empty(null).default(''),
 });
 
-const getDatasetsQuerySchema = Joi.object<{ excludeResource?: boolean; projectId?: string }>({
-  excludeResource: Joi.boolean().empty(['', null]),
+const knowledgeFromResourceSchema = Joi.object<{ items: (typeof datasetSchema.type)[] }>({
+  items: Joi.array().items(datasetSchema).required(),
+});
+
+const getKnowledgeListQuerySchema = Joi.object<{ projectId?: string; page: number; size: number }>({
   projectId: Joi.string().empty(['', null]),
+  page: Joi.number().integer().min(1).default(1),
+  size: Joi.number().integer().min(1).max(100).default(20),
 });
 
 router.get('/', middlewares.session(), ensureComponentCallOr(userAuth()), async (req, res) => {
-  const query = await getDatasetsQuerySchema.validateAsync(req.query, { stripUnknown: true });
+  const query = await getKnowledgeListQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
-  const sql = Sequelize.literal(
+  const documentsCountSql = Sequelize.literal(
     '(SELECT COUNT(*) FROM DatasetDocuments WHERE DatasetDocuments.datasetId = Dataset.id)'
   );
 
-  const datasets = await Dataset.findAll({
-    where: omitBy(
-      {
-        appId: query.projectId,
-        // 多租户模式下，只能查看自己创建的知识库
-        createdBy: req.user && config.env.tenantMode === 'multiple' ? req.user.did : undefined,
-      },
-      (i) => i === undefined
-    ),
-    attributes: { include: [[sql, 'documents']] },
+  const totalSizeSql = Sequelize.literal(
+    '(SELECT COALESCE(SUM(size), 0) FROM DatasetDocuments WHERE DatasetDocuments.datasetId = Dataset.id)'
+  );
+
+  const params = omitBy(
+    {
+      projectId: query.projectId,
+      createdBy: req.user && config.env.tenantMode === 'multiple' ? req.user.did : undefined, // 多租户模式下，只能查看自己创建的知识库
+    },
+    (i) => i === undefined
+  );
+
+  const items = await Knowledge.findAll({
+    where: params,
+    attributes: {
+      include: [
+        [documentsCountSql, 'docs'],
+        [totalSizeSql, 'totalSize'],
+      ],
+    },
     order: [['updatedAt', 'DESC']],
+    offset: (query.page - 1) * query.size,
+    limit: query.size,
   });
 
-  const resourceDatasets = query.excludeResource ? [] : await resourceManager.getKnowledgeList();
+  const knowledge = await Promise.all(
+    items.map(async (item) => {
+      const { user } = await authClient.getUser(item.updatedBy);
+      return { ...item.dataValues, user: pick(user, ['did', 'fullName', 'avatar']) };
+    })
+  );
 
-  res.json([
-    ...datasets,
-    ...resourceDatasets.map((i) => ({
-      ...i.knowledge,
-      blockletDid: i.blockletDid,
-      documents: (i.documents || []).length,
-    })),
-  ]);
+  res.json(knowledge);
+});
+
+router.get('/resources', middlewares.session(), ensureComponentCallOr(userAuth()), async (_req, res) => {
+  const resources = await resourceManager.getKnowledgeList();
+
+  const knowledge = await Promise.all(
+    resources.map(async (item) => {
+      const { user } = item?.knowledge ? await authClient.getUser(item?.knowledge.updatedBy) : { user: {} };
+      return {
+        ...(item?.knowledge || {}),
+        user: pick(user, ['did', 'fullName', 'avatar']),
+        blockletDid: item.blockletDid,
+        totalSize: 0,
+        docs: item.documents?.length || 0,
+      };
+    })
+  );
+
+  res.json(knowledge);
 });
 
 router.get('/:datasetId', middlewares.session(), ensureComponentCallOr(userAuth()), async (req, res) => {
@@ -79,14 +125,14 @@ router.get('/:datasetId', middlewares.session(), ensureComponentCallOr(userAuth(
   const user =
     !req.user || req.user.isAdmin ? {} : { [Op.or]: [{ createdBy: req.user.did }, { updatedBy: req.user.did }] };
 
-  const { blockletDid, appId } = await Joi.object<{ blockletDid?: string; appId?: string }>({
+  const { blockletDid, projectId } = await Joi.object<{ blockletDid?: string; projectId?: string }>({
     blockletDid: Joi.string().empty(['', null]),
-    appId: Joi.string().allow('').empty(null).default(''),
+    projectId: Joi.string().allow('').empty(null).default(''),
   }).validateAsync(req.query, { stripUnknown: true });
 
   const dataset = blockletDid
     ? (await resourceManager.getKnowledge({ blockletDid, knowledgeId: datasetId }))?.knowledge
-    : await Dataset.findOne({ where: { id: datasetId, ...(appId && { appId }), ...user } });
+    : await Knowledge.findOne({ where: { id: datasetId, ...(projectId && { projectId }), ...user } });
 
   res.json(dataset);
 });
@@ -101,8 +147,8 @@ router.get('/:datasetId/export-resource', middlewares.session(), ensureComponent
 
   const query = await exportResourceQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
-  const dataset = await Dataset.findByPk(datasetId, { rejectOnEmpty: new Error(`No such dataset ${datasetId}`) });
-  const documents = await DatasetDocument.findAll({ where: { datasetId, type: { [Op.ne]: 'discussKit' } } });
+  const dataset = await Knowledge.findByPk(datasetId, { rejectOnEmpty: new Error(`No such dataset ${datasetId}`) });
+  const documents = await KnowledgeDocument.findAll({ where: { datasetId, type: { [Op.ne]: 'discussKit' } } });
   const documentIds = documents.map((i) => i.id);
   const contents = await DatasetContent.findAll({ where: { documentId: { [Op.in]: documentIds } } });
 
@@ -162,15 +208,11 @@ router.post('/', middlewares.session({ componentCall: true }), ensureComponentCa
   const userId = req.user?.method === 'componentCall' ? req.query.userId : req.user?.did;
   if (!userId || typeof userId !== 'string') throw new Error('Unauthorized');
 
-  const {
-    name = '',
-    description = '',
-    appId,
-    copyFromProjectId,
-  } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
+  const { name, description, projectId, copyFromProjectId, knowledgeId, resourceBlockletDid } =
+    await datasetSchema.validateAsync(req.body, { stripUnknown: true });
 
-  if (appId && copyFromProjectId) {
-    const knowledge = await Dataset.findAll({ where: { appId: copyFromProjectId } });
+  if (projectId && copyFromProjectId) {
+    const knowledge = await Knowledge.findAll({ where: { projectId: copyFromProjectId } });
 
     const map: { [oldKnowledgeBaseId: string]: string } = {};
 
@@ -178,7 +220,7 @@ router.post('/', middlewares.session({ componentCall: true }), ensureComponentCa
       const newKnowledgeId = await copyKnowledgeBase({
         oldKnowledgeBaseId: item.id,
         oldProjectId: copyFromProjectId,
-        newProjectId: appId,
+        newProjectId: projectId,
         userId,
       });
 
@@ -189,8 +231,32 @@ router.post('/', middlewares.session({ componentCall: true }), ensureComponentCa
     return res.json({ copied });
   }
 
-  const dataset = await Dataset.create({ name, description, appId, createdBy: userId, updatedBy: userId });
-  await ensureKnowledgeDirExists(dataset.id);
+  const params = omitBy({ name, description, projectId, knowledgeId, resourceBlockletDid }, (i) => i === undefined);
+  const dataset = await Knowledge.create({
+    ...params,
+    createdBy: userId,
+    updatedBy: userId,
+  });
+
+  if (!resourceBlockletDid && !knowledgeId) {
+    await ensureKnowledgeDirExists(dataset.id);
+  }
+
+  return res.json(dataset);
+});
+
+router.post('/knowledge-from-resources', middlewares.session(), ensureComponentCallOr(userAuth()), async (req, res) => {
+  const userId = req.user?.did;
+  if (!userId || typeof userId !== 'string') throw new Error('Unauthorized');
+
+  const { items } = await knowledgeFromResourceSchema.validateAsync(req.body, { stripUnknown: true });
+
+  const dataset = await Knowledge.bulkCreate(
+    items.map((item) => {
+      const params = omitBy(item, (i) => i === undefined);
+      return { ...params, createdBy: userId, updatedBy: userId };
+    })
+  );
 
   return res.json(dataset);
 });
@@ -199,33 +265,36 @@ router.put('/:datasetId', middlewares.session(), userAuth(), async (req, res) =>
   const { datasetId } = req.params;
   const { did } = req.user!;
 
-  const dataset = await Dataset.findOne({ where: { id: datasetId } });
+  const dataset = await Knowledge.findOne({ where: { id: datasetId } });
   if (!dataset) {
     res.status(404).json({ error: 'No such dataset' });
     return;
   }
 
-  const { name, description, appId } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
+  const { name, description, projectId } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
   const params: any = {};
   if (name) params.name = name;
   if (description) params.description = description;
-  if (appId) params.appId = appId;
+  if (projectId) params.projectId = projectId;
 
-  await Dataset.update({ ...params, updatedBy: did }, { where: { id: datasetId } });
+  await Knowledge.update({ ...params, updatedBy: did }, { where: { id: datasetId } });
 
-  res.json(await Dataset.findOne({ where: { id: datasetId } }));
+  res.json(await Knowledge.findOne({ where: { id: datasetId } }));
 });
 
 router.delete('/:datasetId', middlewares.session(), userAuth(), async (req, res) => {
   const { datasetId } = req.params;
 
-  const dataset = await Dataset.findOne({ where: { [Op.or]: [{ id: datasetId }, { name: datasetId }] } });
+  const dataset = await Knowledge.findOne({ where: { [Op.or]: [{ id: datasetId }, { name: datasetId }] } });
   if (!dataset) {
     res.status(404).json({ error: 'No such dataset' });
     return;
   }
 
-  await Promise.all([Dataset.destroy({ where: { id: datasetId } }), DatasetDocument.destroy({ where: { datasetId } })]);
+  await Promise.all([
+    Knowledge.destroy({ where: { id: datasetId } }),
+    KnowledgeDocument.destroy({ where: { datasetId } }),
+  ]);
 
   res.json(dataset);
 });

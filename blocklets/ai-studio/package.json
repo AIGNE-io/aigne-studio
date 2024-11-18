@@ -91,6 +91,7 @@
     "ahooks": "^3.8.1",
     "ajv": "^8.17.1",
     "axios": "^1.7.5",
+    "bytes": "^3.1.2",
     "circular-natal-horoscope-js": "^1.1.0",
     "compression": "^1.7.4",
     "cookie-parser": "^1.4.6",
@@ -184,6 +185,7 @@
   },
   "devDependencies": {
     "@rollup/plugin-replace": "^5.0.7",
+    "@types/bytes": "^3.1.4",
     "@types/compression": "^1.7.5",
     "@types/cookie-parser": "^1.4.7",
     "@types/cors": "^2.8.17",

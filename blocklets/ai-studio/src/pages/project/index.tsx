@@ -13,7 +13,7 @@ import { joinURL } from 'ufo';
 
 import Loading from '../../components/loading';
 import { PlanUpgradeButton } from '../../components/multi-tenant-restriction';
-import KnowledgeRoutes from '../knowledge';
+import KnowledgeRoutes from '../knowledges';
 import VariablesList from '../variables/list';
 import ProjectHeader from './project-header';
 
