@@ -3,6 +3,7 @@ import { ReadableStream } from 'stream/web';
 import { getAgent, getMemoryVariables, getProject } from '@api/libs/agent';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
 import logger from '@api/libs/logger';
+import AgentUsage from '@api/store/models/agent-usage';
 import ExecutionCache from '@api/store/models/execution-cache';
 import History from '@api/store/models/history';
 import Secrets from '@api/store/models/secret';
@@ -68,7 +69,7 @@ const checkProjectRequestLimit = async ({
   const project = await getProject({ blockletDid, projectId, rejectOnEmpty: true });
   const userIdToCheck = (loginRequired ? userId : project.createdBy)!;
   const [runs, passports] = await Promise.all([
-    History.countRunsByUser(userIdToCheck),
+    AgentUsage.countRunsByUser(userIdToCheck),
     getUserPassports(userIdToCheck),
   ]);
   if (!quotaChecker.checkRequestLimit(runs, passports)) {
@@ -226,8 +227,6 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
     status: 'generating',
     blockletDid,
     projectRef,
-    requestType: agent.access?.noLoginRequired ? 'free' : 'paid',
-    projectOwnerId: project?.createdBy,
   });
 
   const emit: RunAssistantCallback = (response) => {
@@ -440,16 +439,35 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
     res.end();
   }
 
+  const computedUsage =
+    usage.promptTokens || usage.completionTokens
+      ? { ...usage, totalTokens: usage.promptTokens + usage.completionTokens }
+      : undefined;
   await history?.update({
     error,
     outputs,
     status: 'done',
     steps: Object.values(executingLogs),
-    usage:
-      usage.promptTokens || usage.completionTokens
-        ? { ...usage, totalTokens: usage.promptTokens + usage.completionTokens }
-        : undefined,
+    usage: computedUsage,
   });
+
+  if (!error) {
+    await AgentUsage.create({
+      userId,
+      projectId,
+      agentId,
+      sessionId,
+      inputs: input.inputs,
+      blockletDid,
+      projectRef,
+      requestType: agent.access?.noLoginRequired ? 'free' : 'paid',
+      projectOwnerId: project.createdBy,
+
+      outputs,
+      steps: Object.values(executingLogs),
+      usage: computedUsage,
+    });
+  }
 });
 
 export default router;

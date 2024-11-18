@@ -1,9 +1,9 @@
-import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model, Sequelize } from 'sequelize';
+import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model, Op } from 'sequelize';
 
 import nextId from '../../libs/next-id';
 import { sequelize } from '../sequelize';
 
-export default class History extends Model<InferAttributes<History>, InferCreationAttributes<History>> {
+export default class AgentUsage extends Model<InferAttributes<AgentUsage>, InferCreationAttributes<AgentUsage>> {
   declare id: CreationOptional<string>;
 
   declare userId?: string;
@@ -37,30 +37,41 @@ export default class History extends Model<InferAttributes<History>, InferCreati
     objects?: any[];
   }[];
 
-  declare error?: { message: string } | null;
-
-  declare status?: 'generating' | 'done';
-
   declare usage?: {
     promptTokens: number;
     completionTokens: number;
     totalTokens: number;
   };
 
-  static async countRunsPerProject(projectIds: string[]) {
-    if (!projectIds?.length) return {};
-    // Find all records that match the given project IDs and count the number of runs for each project.
-    const counts = await this.findAll({
-      where: { projectId: projectIds },
-      attributes: ['projectId', [Sequelize.fn('COUNT', Sequelize.col('id')), 'count']],
-      group: ['projectId'],
-    });
+  // 请求类型, 目前仅支持 `free` 和 `paid` 两种类型, 前者表示无偿调用, 费用由 project owner 承担,
+  // 若 agent 开启了匿名调用, 则所有调用记录的 requestType 都会标记为 'free'
+  // (空值与 `paid` 含义相同)
+  declare requestType: 'free' | 'paid';
 
-    return Object.fromEntries(counts.map((i) => [i.projectId, (i.get('count') ?? 0) as number]));
+  declare projectOwnerId?: string;
+
+  // 统计指定用户的有偿调用次数 (主动调用次数)
+  static async countPaidRuns(userId: string) {
+    return this.count({
+      where: { requestType: { [Op.ne]: 'free' }, userId },
+    });
+  }
+
+  // 统计指定用户的无偿调用次数, 即包括未登录用户在内的任何人对该用户所创建的任何项目发起的免费调用次数的总和 (被动调用次数)
+  static async countFreeRuns(userId: string) {
+    return this.count({
+      where: { requestType: 'free', projectOwnerId: userId },
+    });
+  }
+
+  // 统计指定用户所有的调用次数, 包括匿名调用和实名调用 2 部分
+  static async countRunsByUser(userId: string) {
+    const [freeRuns, paidRuns] = await Promise.all([this.countFreeRuns(userId), this.countPaidRuns(userId)]);
+    return freeRuns + paidRuns;
   }
 }
 
-History.init(
+AgentUsage.init(
   {
     id: {
       type: DataTypes.STRING,
@@ -106,14 +117,15 @@ History.init(
     steps: {
       type: DataTypes.JSON,
     },
-    error: {
-      type: DataTypes.JSON,
-    },
-    status: {
-      type: DataTypes.STRING,
-    },
     usage: {
       type: DataTypes.JSON,
+    },
+    requestType: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    projectOwnerId: {
+      type: DataTypes.STRING,
     },
   },
   { sequelize }
