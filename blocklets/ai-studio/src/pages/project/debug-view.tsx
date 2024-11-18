@@ -367,6 +367,7 @@ function CustomAvatar({ role, projectId, gitRef }: { role: Role; projectId: stri
     <Box>
       <Box
         component="img"
+        alt=""
         src={
           getProjectIconUrl(projectId, { projectRef: gitRef, working: true, updatedAt: projectSetting?.iconVersion }) ||
           blocklet?.appLogo

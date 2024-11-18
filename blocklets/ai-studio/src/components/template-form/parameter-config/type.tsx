@@ -52,7 +52,7 @@ export default function ParameterConfigType(props: TextFieldProps) {
         value: 'select',
       },
       {
-        icon: <Box component="img" src={DIDConnectSvg} width={14} height={14} />,
+        icon: <Box component="img" alt="" src={DIDConnectSvg} width={14} height={14} />,
         label: t('verifyVC'),
         value: 'verify_vc',
       },

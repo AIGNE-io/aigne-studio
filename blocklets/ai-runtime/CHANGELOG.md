@@ -1,3 +1,7 @@
+## 0.4.145 (2024-11-18)
+
+- fix: add img tag alt attribute
+
 ## 0.4.144 (2024-11-18)
 
 - fix: uploader not working in appearance settings dialog

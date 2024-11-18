@@ -54,6 +54,7 @@ function CategoryCard({
       }}>
       <Stack direction="row" gap={{ xs: 1.5, xl: 2 }}>
         <Box
+          alt=""
           component="img"
           src={withQuery(icon, { imageFilter: 'resize', w: 300 })}
           sx={{
