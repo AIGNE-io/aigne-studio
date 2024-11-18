@@ -171,3 +171,25 @@ export const useProjectsState = () => {
     createLimitDialog,
   };
 };
+
+export const useProjectLimiting = () => {
+  const { session } = useSessionContext();
+  const passports = session?.user?.passports?.map((x: any) => x.name);
+  const isPromptAdmin = useIsPromptAdmin();
+  const checkProjectLimitAsync = async () => {
+    if (!session?.user?.did) {
+      return false;
+    }
+    if (window.blocklet?.tenantMode !== 'multiple' || isPromptAdmin) {
+      return true;
+    }
+    const count = await api.countProjects();
+    if (!quotas.checkProjectLimit(count + 1, passports)) {
+      showPlanUpgrade('projectLimit');
+      return false;
+    }
+    return true;
+  };
+
+  return { checkProjectLimitAsync };
+};
