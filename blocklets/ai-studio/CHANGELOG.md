@@ -1,3 +1,7 @@
+## 0.4.148 (2024-11-18)
+
+- chore: check project limit earlier(#1556)
+
 ## 0.4.147 (2024-11-18)
 
 - fix: improve error handling for agent request limiting(#1552)
