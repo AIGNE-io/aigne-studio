@@ -52,27 +52,22 @@ const callInputSchema = Joi.object<{
 
 const checkProjectRequestLimit = async ({
   userId,
-  role,
   blockletDid,
   projectId,
   loginRequired,
 }: {
   userId?: string;
-  role?: string;
   blockletDid?: string;
   projectId: string;
   loginRequired?: boolean;
 }) => {
-  if (['owner', 'admin', 'promptsEditor'].includes(role || '')) {
-    return;
-  }
   const project = await getProject({ blockletDid, projectId, rejectOnEmpty: true });
   const userIdToCheck = (loginRequired ? userId : project.createdBy)!;
   const [runs, passports] = await Promise.all([
     AgentUsage.countRunsByUser(userIdToCheck),
     getUserPassports(userIdToCheck),
   ]);
-  if (!quotaChecker.checkRequestLimit(runs, passports)) {
+  if (!quotaChecker.checkRequestLimit(runs + 1, passports)) {
     if (loginRequired) {
       throw new RuntimeError(
         RuntimeErrorType.RequestExceededError,
@@ -118,6 +113,7 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
     },
     { stripUnknown: true }
   );
+  const bypassRequestLimit = input.debug || ['owner', 'admin', 'promptsEditor'].includes(req.user?.role || '');
 
   // NOTE: Support custom user id for component calling
   const userId = req.user?.method === 'componentCall' ? req.query.userId : req.user?.did;
@@ -291,11 +287,9 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
   if (stream) emit({ type: AssistantResponseType.CHUNK, taskId, assistantId: agent.id, delta: {} });
 
   try {
-    // Skip request limit checking when in debug mode
-    if (!input.debug) {
+    if (!bypassRequestLimit) {
       await checkProjectRequestLimit({
         userId,
-        role: req.user?.role,
         blockletDid,
         projectId,
         loginRequired: !agent.access?.noLoginRequired,
@@ -451,7 +445,7 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
     usage: computedUsage,
   });
 
-  if (!error) {
+  if (!bypassRequestLimit && !error) {
     await AgentUsage.create({
       userId,
       projectId,
