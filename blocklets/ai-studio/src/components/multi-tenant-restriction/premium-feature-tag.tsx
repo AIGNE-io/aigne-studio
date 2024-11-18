@@ -1,9 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Box, ChipProps, Tooltip } from '@mui/material';
 
-import { useIsAdmin } from '../../contexts/session';
-import { useIsPremiumUser } from './state';
-
 export function PremiumFeatureTag({ sx, ...rest }: ChipProps) {
   const mergedSx = [
     {
@@ -22,10 +19,7 @@ export function PremiumFeatureTag({ sx, ...rest }: ChipProps) {
     },
     ...(Array.isArray(sx) ? sx : [sx]),
   ];
-  const isAdmin = useIsAdmin();
-  const isPremiumUser = useIsPremiumUser();
   const { t } = useLocaleContext();
-  if (isAdmin || isPremiumUser) return null;
   return (
     <Tooltip title={t('premiumFeatureTip')}>
       <Box component="span" sx={mergedSx} {...rest}>
