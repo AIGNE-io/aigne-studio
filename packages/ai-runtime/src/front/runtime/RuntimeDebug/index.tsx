@@ -23,7 +23,6 @@ import pick from 'lodash/pick';
 import { Suspense } from 'react';
 
 import AgentSettingsDialog from '../../components/AgentSettings/AgentSettingsDialog';
-import CustomComponentRenderer from '../../components/CustomComponentRenderer/CustomComponentRenderer';
 import LoadingButton from '../../components/LoadingButton';
 import ScrollView from '../../components/ScrollView';
 import { AIGNEApiContextValue } from '../../contexts/Api';
@@ -32,7 +31,7 @@ import { useEntryAgent } from '../../contexts/EntryAgent';
 import { RuntimeProvider } from '../../contexts/Runtime';
 import { SessionProvider, useSession } from '../../contexts/Session';
 import { useSessions } from '../../contexts/Sessions';
-import { useAppearances } from '../../hooks/use-appearances';
+import Runtime from '../Runtime';
 
 export default function RuntimeDebug({
   aid,
@@ -46,7 +45,7 @@ export default function RuntimeDebug({
   const hostTheme = useTheme();
 
   return (
-    <RuntimeProvider aid={aid} working ApiProps={ApiProps}>
+    <RuntimeProvider aid={aid} working ApiProps={ApiProps} debug>
       {!hideSessionsBar && (
         <ThemeProvider theme={hostTheme}>
           <SessionsBar />
@@ -95,17 +94,7 @@ function DebugView() {
 
 function AgentView() {
   const { aid } = useEntryAgent();
-  const { appearancePage } = useAppearances();
-
-  return (
-    <CustomComponentRenderer
-      aid={aid}
-      output={appearancePage.outputSettings}
-      componentId={appearancePage.componentId}
-      properties={appearancePage.componentProperties}
-      props={appearancePage.componentProps}
-    />
-  );
+  return <Runtime aid={aid} debug />;
 }
 
 function SessionsBar() {

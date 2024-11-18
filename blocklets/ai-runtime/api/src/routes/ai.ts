@@ -127,6 +127,10 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
 
   const project = await getProject({ blockletDid, projectId, projectRef, working: input.working, rejectOnEmpty: true });
 
+  if (project?.createdBy && project.createdBy !== userId && input.debug) {
+    throw new Error('Debug mode is only available to project owner.');
+  }
+
   const callAI: CallAI = async ({ input }) => {
     const stream = await chatCompletions({
       ...input,
@@ -276,13 +280,16 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
   if (stream) emit({ type: AssistantResponseType.CHUNK, taskId, assistantId: agent.id, delta: {} });
 
   try {
-    await checkProjectRequestLimit({
-      userId,
-      role: req.user?.role,
-      blockletDid,
-      projectId,
-      loginRequired: !agent.access?.noLoginRequired,
-    });
+    // Skip request limit checking when in debug mode
+    if (!input.debug) {
+      await checkProjectRequestLimit({
+        userId,
+        role: req.user?.role,
+        blockletDid,
+        projectId,
+        loginRequired: !agent.access?.noLoginRequired,
+      });
+    }
 
     emit({
       type: AssistantResponseType.INPUT_PARAMETER,
