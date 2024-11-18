@@ -133,14 +133,7 @@ export function CommitListView({
               }
             }}>
             <ListItemIcon>
-              <Box
-                component={Avatar}
-                width={32}
-                height={32}
-                src={item.commit.author.avatar}
-                did={item.commit.author.did}
-                variant="circle"
-              />
+              <Box component={Avatar} src={item.commit.author.avatar} did={item.commit.author.did} variant="circle" />
             </ListItemIcon>
             <ListItemText
               primary={item.commit.message}
