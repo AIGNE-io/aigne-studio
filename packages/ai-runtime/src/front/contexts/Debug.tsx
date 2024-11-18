@@ -9,9 +9,12 @@ export interface DebugContextValue {
   outputId?: string;
   hoverOutputId?: string;
   tabId?: string;
+  autoFocus?: boolean;
   setTabId?: (id: string) => void;
   setHoverOutputId: (id: string) => void;
-  open: (options: { agentId?: string; output?: { id: string } | { name: RuntimeOutputVariable } }) => void;
+  open:
+    | ((options: { agentId?: string; output?: { id: string } | { name: RuntimeOutputVariable } }) => void)
+    | undefined;
   close: () => void;
 }
 
@@ -21,28 +24,33 @@ export function DebugProvider({
   children,
   openSettings,
   agentId: defaultAgentId,
+  autoFocus = false,
 }: {
   children?: React.ReactNode;
-  openSettings: (options: { agentId: string; output: { id: string } | { name: RuntimeOutputVariable } }) => {
+  openSettings?: (options: { agentId: string; output: { id: string } | { name: RuntimeOutputVariable } }) => {
     agentId?: string;
     outputId?: string;
   };
   agentId?: string;
+  autoFocus?: boolean;
 }) {
   const [state] = useState(() =>
     create(
       immer<DebugContextValue>((set, get) => ({
         agentId: defaultAgentId,
-        open: ({ output, ...options }) => {
-          const agentId = options.agentId || get().agentId;
-          if (!agentId || !output) return;
+        autoFocus,
+        open: openSettings
+          ? ({ output, ...options }) => {
+              const agentId = options.agentId || get().agentId;
+              if (!agentId || !output) return;
 
-          const { outputId } = openSettings({ agentId, output });
-          set((state) => {
-            state.agentId = agentId;
-            state.outputId = outputId;
-          });
-        },
+              const { outputId } = openSettings({ agentId, output });
+              set((state) => {
+                state.agentId = agentId;
+                state.outputId = outputId;
+              });
+            }
+          : undefined,
         close: () => {
           set((state) => {
             state.agentId = defaultAgentId;
@@ -69,11 +77,13 @@ export function DebugProvider({
   return <debugContext.Provider value={state}>{children}</debugContext.Provider>;
 }
 
-export function useDebug<U>(selector: (state: DebugContextValue) => U): U | undefined {
+export function useDebug(): UseBoundStore<StoreApi<DebugContextValue>> | undefined;
+export function useDebug<U>(selector: (state: DebugContextValue) => U): U | undefined;
+export function useDebug<U>(selector?: (state: DebugContextValue) => U) {
   const ctx = useContext(debugContext);
   if (!ctx) return undefined;
-
-  return ctx(selector);
+  if (selector) return ctx(selector);
+  return ctx;
 }
 
 export interface DebugDialogContextValue {
