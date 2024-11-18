@@ -18,8 +18,9 @@ export default class DatasetDocument extends Model<
 
   declare datasetId: string;
 
-  declare type: 'discussion' | 'text' | 'file' | 'fullSite' | 'discussKit'; // 'discussion'和'fullSite'已经废弃，统一使用 'discussKit'
+  declare type: 'discussion' | 'text' | 'file' | 'fullSite' | 'discussKit' | 'url'; // 'discussion'和'fullSite'已经废弃，统一使用 'discussKit'
 
+  // 废弃
   declare data?:
     | {
         type: 'text';
@@ -67,6 +68,12 @@ export default class DatasetDocument extends Model<
   declare embeddingEndAt?: Date;
 
   declare embeddingStatus?: UploadStatus | string;
+
+  declare path?: string;
+
+  declare size?: number;
+
+  declare summary?: string;
 }
 
 DatasetDocument.init(
@@ -115,6 +122,15 @@ DatasetDocument.init(
     },
     embeddingStatus: {
       type: DataTypes.STRING,
+    },
+    path: {
+      type: DataTypes.STRING,
+    },
+    size: {
+      type: DataTypes.BIGINT,
+    },
+    summary: {
+      type: DataTypes.TEXT,
     },
   },
   { sequelize }

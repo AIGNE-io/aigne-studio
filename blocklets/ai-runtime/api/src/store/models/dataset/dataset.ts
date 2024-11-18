@@ -20,7 +20,11 @@ export default class Dataset extends Model<InferAttributes<Dataset>, InferCreati
 
   declare documents?: number;
 
-  declare appId?: string;
+  declare projectId?: string;
+
+  declare resourceBlockletDid?: string;
+
+  declare knowledgeId?: string;
 }
 
 Dataset.init(
@@ -51,7 +55,13 @@ Dataset.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    appId: {
+    projectId: {
+      type: DataTypes.STRING,
+    },
+    resourceBlockletDid: {
+      type: DataTypes.STRING,
+    },
+    knowledgeId: {
       type: DataTypes.STRING,
     },
   },
