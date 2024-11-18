@@ -433,16 +433,15 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
     res.end();
   }
 
-  const computedUsage =
-    usage.promptTokens || usage.completionTokens
-      ? { ...usage, totalTokens: usage.promptTokens + usage.completionTokens }
-      : undefined;
   await history?.update({
     error,
     outputs,
     status: 'done',
     steps: Object.values(executingLogs),
-    usage: computedUsage,
+    usage:
+      usage.promptTokens || usage.completionTokens
+        ? { ...usage, totalTokens: usage.promptTokens + usage.completionTokens }
+        : undefined,
   });
 
   if (!bypassRequestLimit && !error) {
@@ -451,15 +450,10 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
       projectId,
       agentId,
       sessionId,
-      inputs: input.inputs,
       blockletDid,
       projectRef,
       requestType: agent.access?.noLoginRequired ? 'free' : 'paid',
       projectOwnerId: project.createdBy,
-
-      outputs,
-      steps: Object.values(executingLogs),
-      usage: computedUsage,
     });
   }
 });

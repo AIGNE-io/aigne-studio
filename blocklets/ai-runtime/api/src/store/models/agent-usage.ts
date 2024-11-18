@@ -22,27 +22,6 @@ export default class AgentUsage extends Model<InferAttributes<AgentUsage>, Infer
 
   declare blockletDid?: string;
 
-  declare inputs?: { [key: string]: any } | null;
-
-  declare outputs?: {
-    content?: string;
-    objects?: any[];
-  } | null;
-
-  declare steps?: {
-    id: string;
-    agentId: string;
-    startTime: string;
-    endTime: string;
-    objects?: any[];
-  }[];
-
-  declare usage?: {
-    promptTokens: number;
-    completionTokens: number;
-    totalTokens: number;
-  };
-
   // 请求类型, 目前仅支持 `free` 和 `paid` 两种类型, 前者表示无偿调用, 费用由 project owner 承担,
   // 若 agent 开启了匿名调用, 则所有调用记录的 requestType 都会标记为 'free'
   // (空值与 `paid` 含义相同)
@@ -107,18 +86,6 @@ AgentUsage.init(
     },
     blockletDid: {
       type: DataTypes.STRING,
-    },
-    inputs: {
-      type: DataTypes.JSON,
-    },
-    outputs: {
-      type: DataTypes.JSON,
-    },
-    steps: {
-      type: DataTypes.JSON,
-    },
-    usage: {
-      type: DataTypes.JSON,
     },
     requestType: {
       type: DataTypes.STRING,

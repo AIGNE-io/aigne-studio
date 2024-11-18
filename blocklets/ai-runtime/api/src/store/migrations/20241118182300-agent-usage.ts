@@ -11,7 +11,6 @@ export const up: Migration = async ({ context: queryInterface }) => {
     },
     userId: {
       type: DataTypes.STRING,
-      allowNull: false,
     },
     createdAt: {
       type: DataTypes.DATE,
@@ -38,18 +37,6 @@ export const up: Migration = async ({ context: queryInterface }) => {
     },
     blockletDid: {
       type: DataTypes.STRING,
-    },
-    inputs: {
-      type: DataTypes.JSON,
-    },
-    outputs: {
-      type: DataTypes.JSON,
-    },
-    steps: {
-      type: DataTypes.JSON,
-    },
-    usage: {
-      type: DataTypes.JSON,
     },
     requestType: {
       type: DataTypes.STRING,
