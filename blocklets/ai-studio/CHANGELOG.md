@@ -1,3 +1,7 @@
+## 0.4.146 (2024-11-18)
+
+- chore(pro-plan): ui improvements(#1549,#1557)
+
 ## 0.4.145 (2024-11-18)
 
 - fix: add img tag alt attribute

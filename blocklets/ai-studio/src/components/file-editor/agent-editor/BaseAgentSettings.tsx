@@ -3,8 +3,7 @@ import { AssistantYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { FormControl, FormControlLabel, FormHelperText, Stack, Switch } from '@mui/material';
 
-import { useMultiTenantRestriction } from '../../multi-tenant-restriction';
-import { PremiumFeatureTag } from '../../multi-tenant-restriction/premium-feature-tag';
+import { PremiumFeatureTag, useMultiTenantRestriction } from '../../multi-tenant-restriction';
 
 export function BaseAgentSettingsSummary(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
