@@ -1,3 +1,7 @@
+## 0.4.147 (2024-11-18)
+
+- fix: improve error handling for agent request limiting(#1552)
+
 ## 0.4.146 (2024-11-18)
 
 - chore(pro-plan): ui improvements(#1549,#1557)
