@@ -11,6 +11,7 @@ import LoadingButton from '../../components/LoadingButton';
 import { useAgent } from '../../contexts/Agent';
 import { useComponentPreferences } from '../../contexts/ComponentPreferences';
 import { useCurrentAgent } from '../../contexts/CurrentAgent';
+import { useDebug } from '../../contexts/Debug';
 import { useSession } from '../../contexts/Session';
 import { isValidInput } from '../../utils/agent-inputs';
 import { ImagePreview, ImageUpload } from './image-upload';
@@ -34,6 +35,8 @@ export default function AutoForm({
   const { t } = useLocaleContext();
   const { aid } = useCurrentAgent();
   const agent = useAgent({ aid });
+  const debugStore = useDebug();
+  const autoFocus = debugStore ? debugStore((s) => s.autoFocus) : true;
 
   const { running, runAgent } = useSession((s) => ({ running: s.running, runAgent: s.runAgent }));
 
@@ -173,7 +176,7 @@ export default function AutoForm({
                     <AgentInputField
                       inputProps={{ 'data-testid': `runtime-input-${key}` }}
                       inputRef={field.ref}
-                      autoFocus={index === 0}
+                      autoFocus={autoFocus && index === 0}
                       size="small"
                       hiddenLabel
                       fullWidth
