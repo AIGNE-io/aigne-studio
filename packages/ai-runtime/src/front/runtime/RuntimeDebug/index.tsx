@@ -46,7 +46,7 @@ export default function RuntimeDebug({
   const hostTheme = useTheme();
 
   return (
-    <RuntimeProvider aid={aid} working ApiProps={ApiProps}>
+    <RuntimeProvider aid={aid} working ApiProps={ApiProps} debug>
       {!hideSessionsBar && (
         <ThemeProvider theme={hostTheme}>
           <SessionsBar />
