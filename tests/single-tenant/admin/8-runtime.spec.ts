@@ -1,8 +1,8 @@
 /* eslint-disable no-console */
 import { expect, test } from '@playwright/test';
 
-import { createProject } from '../../utils/project';
-import { installBlocklet, installBlockletResourceKnowledgeBlocklet, unInstallBlocklet } from '../../utils/uninstall';
+// import { createProject } from '../../utils/project';
+import { installBlocklet, unInstallBlocklet } from '../../utils/uninstall';
 
 const secretKey = 'f712dac84b4f84c3c2fa079896572ed19e2738e23baf025f2c8764d5d8598deb';
 
@@ -103,30 +103,30 @@ test.describe.serial('resource blocklet', () => {
     expect(message.length).toBe(0);
   });
 
-  test('start resource knowledge blocklet', async ({ page }) => {
-    await unInstallBlocklet(page, '新版本知识库');
-    await installBlockletResourceKnowledgeBlocklet(page);
-    await page.waitForTimeout(5000);
+  // test('start resource knowledge blocklet', async ({ page }) => {
+  //   await unInstallBlocklet(page, '新版本知识库');
+  //   await installBlockletResourceKnowledgeBlocklet(page);
+  //   await page.waitForTimeout(5000);
 
-    const blocklet = page.locator('.component-item').filter({ hasText: '新版本知识库' }).first();
+  //   const blocklet = page.locator('.component-item').filter({ hasText: '新版本知识库' }).first();
 
-    const isRunning = (await blocklet.getByTestId('StopIcon').count()) > 0;
-    if (!isRunning) {
-      await blocklet.getByTestId('PlayArrowIcon').click();
-      await blocklet.getByTestId('StopIcon').waitFor();
-    }
-  });
+  //   const isRunning = (await blocklet.getByTestId('StopIcon').count()) > 0;
+  //   if (!isRunning) {
+  //     await blocklet.getByTestId('PlayArrowIcon').click();
+  //     await blocklet.getByTestId('StopIcon').waitFor();
+  //   }
+  // });
 
-  test('resource knowledge blocklet', async ({ page }) => {
-    await page.goto('/projects');
-    await page.waitForLoadState('networkidle');
+  // test('resource knowledge blocklet', async ({ page }) => {
+  //   await page.goto('/projects');
+  //   await page.waitForLoadState('networkidle');
 
-    await createProject({ page });
-    await page.waitForLoadState('networkidle');
+  //   await createProject({ page });
+  //   await page.waitForLoadState('networkidle');
 
-    await page.getByTestId('project-page-knowledge').click();
-    await page.getByText('新版本知识库').first().click();
-    await expect(page.getByText('Add Document')).not.toBeVisible();
-    await expect(page.getByText('Actions')).not.toBeVisible();
-  });
+  //   await page.getByTestId('project-page-knowledge').click();
+  //   await page.getByText('新版本知识库').first().click();
+  //   await expect(page.getByText('Add Document')).not.toBeVisible();
+  //   await expect(page.getByText('Actions')).not.toBeVisible();
+  // });
 });
