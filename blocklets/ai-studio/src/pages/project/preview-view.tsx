@@ -86,7 +86,12 @@ function SettingsDialog({ children }: { children?: ReactNode }) {
   };
 
   return (
-    <Dialog open={!!open} fullWidth PaperProps={{ sx: { maxWidth: 'none', height: '100%' } }} onClose={onClose}>
+    <Dialog
+      open={!!open}
+      fullWidth
+      PaperProps={{ sx: { maxWidth: 'none', height: '100%' } }}
+      onClose={onClose}
+      disableEnforceFocus>
       <DialogTitle sx={{ display: 'flex' }}>
         <Box flex={1}>{t('appearance')}</Box>
 
