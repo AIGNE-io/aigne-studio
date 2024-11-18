@@ -1,3 +1,7 @@
+## 0.4.149 (2024-11-18)
+
+- fix: autoform autofocus
+
 ## 0.4.148 (2024-11-18)
 
 - chore: check project limit earlier(#1556)
