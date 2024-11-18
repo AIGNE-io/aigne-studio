@@ -1,3 +1,7 @@
+## 0.4.144 (2024-11-18)
+
+- fix: add img tag alt attribute
+
 ## 0.4.143 (2024-11-15)
 
 - fix: agent profile ogImage
