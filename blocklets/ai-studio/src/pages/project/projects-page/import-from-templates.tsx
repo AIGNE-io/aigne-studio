@@ -121,7 +121,11 @@ export default function ImportFromTemplates({
                   }}>
                   <Stack direction="row" gap={1.5} alignItems="center">
                     <Box className="logo" sx={{ width: '72px', height: '72px' }}>
-                      <Box component="img" src={getProjectIconUrl(id, { blockletDid: x.blockletDid, updatedAt })} />
+                      <Box
+                        component="img"
+                        alt=""
+                        src={getProjectIconUrl(id, { blockletDid: x.blockletDid, updatedAt })}
+                      />
                     </Box>
 
                     <Box flex={1} alignSelf="flex-start">
