@@ -1,3 +1,7 @@
+## 0.4.150 (2024-11-19)
+
+- chore: bypass request limiting when in debug mode
+
 ## 0.4.149 (2024-11-18)
 
 - fix: autoform autofocus
