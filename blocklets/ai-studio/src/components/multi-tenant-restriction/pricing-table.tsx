@@ -215,7 +215,7 @@ function PricingTablePlan({ plan, billingCycle }: { plan: Plan; billingCycle?: B
                 {t('pricingAndPlans.currentPlan')}
                 <Box component={VerifiedIcon} sx={{ fontSize: 18, color: 'success.light' }} />
               </Box>
-              <Box sx={{ position: 'absolute', bottom: -24 }}>{plan.billingLink}</Box>
+              {plan.billingLink && <Box sx={{ position: 'absolute', bottom: -24 }}>{plan.billingLink}</Box>}
             </Box>
           )}
         </Box>
