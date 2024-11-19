@@ -1,3 +1,7 @@
+## 0.4.151 (2024-11-19)
+
+- fix: support authorization header
+
 ## 0.4.150 (2024-11-19)
 
 - chore: bypass request limiting when in debug mode
