@@ -1,3 +1,16 @@
+import LoadingButton from '@app/components/loading/loading-button';
+import { useIsAdmin } from '@app/contexts/session';
+import UploaderProvider, { useUploader } from '@app/contexts/uploader';
+import { AIGNE_RUNTIME_MOUNT_POINT } from '@app/libs/constants';
+import {
+  CreateDiscussionItem,
+  createCrawlDocument,
+  createCustomDocument,
+  createDiscussionDocument,
+  createFileDocument,
+} from '@app/libs/dataset';
+import { getDiscussionStatus } from '@app/libs/discussion';
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
 import ArrowBarToUpIcon from '@iconify-icons/tabler/arrow-bar-to-up';
@@ -20,42 +33,108 @@ import {
   styled,
   useMediaQuery,
 } from '@mui/material';
-import { Suspense, useState } from 'react';
+import { Suspense, useMemo, useState } from 'react';
+import { joinURL, withQuery } from 'ufo';
 
+import Discuss from '../../project/icons/discuss';
 import DiscussView from '../discuss';
-import { CreateKnowledgeParams, SourceType, SourceTypeSelectType } from './type';
+import {
+  CrawlSettingsProps,
+  CrawlType,
+  CreateKnowledgeParams,
+  CustomInputProps,
+  CustomType,
+  FileType,
+  SourceType,
+  SourceTypeSelectType,
+} from './type';
 
-export default function ImportKnowledge({ onClose, onSubmit }: { onClose: () => void; onSubmit: () => void }) {
+function createKnowledge(knowledgeId: string, params: CreateKnowledgeParams) {
+  const { sourceType, ...rest } = params;
+
+  switch (sourceType) {
+    case 'file':
+      return createFileDocument(knowledgeId, {
+        size: rest.file?.runtime?.size!,
+        name: rest.file?.runtime?.originFileName!,
+        hash: rest.file?.runtime?.hashFileName!,
+        type: rest.file?.runtime?.type!,
+        relativePath: rest.file?.runtime?.relativePath!,
+      });
+    case 'custom':
+      return createCustomDocument(knowledgeId, {
+        title: rest.custom?.title!,
+        content: rest.custom?.content!,
+      });
+    case 'crawl':
+      return createCrawlDocument(knowledgeId, rest.crawl!);
+    case 'discuss':
+      return createDiscussionDocument(knowledgeId, rest.discussion!);
+    default:
+      throw new Error(`Unsupported source type: ${sourceType}`);
+  }
+}
+
+export default function ImportKnowledge({
+  knowledgeId,
+  onClose,
+  onSubmit,
+}: {
+  knowledgeId: string;
+  onClose: () => void;
+  onSubmit: () => void;
+}) {
   const [sourceType, setSourceType] = useState<SourceType>('file');
+  const { t } = useLocaleContext();
 
-  const sourceOptions = [
-    { id: 'file', label: 'Import from file', icon: FileIcon },
-    { id: 'custom', label: 'Custom', icon: PencilIcon },
-    { id: 'discuss', label: 'Discuss Kit', icon: DatabaseIcon },
-    { id: 'crawl', label: 'Crawl from URL', icon: DatabaseIcon },
-  ] as SourceTypeSelectType[];
+  const isAdmin = useIsAdmin();
+  const sourceOptions = (
+    [
+      {
+        id: 'file',
+        label: 'Import from file',
+        icon: <Box component={Icon} icon={FileIcon} width={18} height={18} borderRadius={1} className="center" />,
+      },
+      {
+        id: 'custom',
+        label: 'Custom',
+        icon: <Box component={Icon} icon={PencilIcon} width={18} height={18} borderRadius={1} className="center" />,
+      },
+      getDiscussionStatus() && isAdmin
+        ? {
+            id: 'discuss',
+            label: 'Discuss Kit',
+            icon: (
+              <Box width={18} height={18} borderRadius={1} className="center">
+                <Discuss sx={{ width: '100%', height: '100%' }} />
+              </Box>
+            ),
+          }
+        : null,
+      {
+        id: 'crawl',
+        label: 'Crawl from URL',
+        icon: <Box component={Icon} icon={DatabaseIcon} width={18} height={18} borderRadius={1} className="center" />,
+      },
+    ] as SourceTypeSelectType[]
+  ).filter(Boolean);
 
-  const [files, setFiles] = useState<File[]>([]);
-  const [content, setContent] = useState('');
-  const [provider, setProvider] = useState<'jina' | 'firecrawl'>('jina');
-  const [apiKey, setApiKey] = useState('');
-  const [url, setUrl] = useState('');
-
-  const createKnowledge = async (params: CreateKnowledgeParams) => {
-    return Promise.resolve(params);
-  };
+  const [file, setFile] = useState<FileType>();
+  const [custom, setCustom] = useState<CustomType>();
+  const [discussion, setDiscussion] = useState<CreateDiscussionItem[]>([]);
+  const [crawl, setCrawl] = useState<CrawlType>({ provider: 'jina' });
 
   const handleSubmit = async () => {
     try {
       const params = {
-        title: 'New Knowledge',
         sourceType,
-        ...(sourceType === 'file' && { files }),
-        ...(sourceType === 'custom' && { content }),
-        ...(sourceType === 'crawl' && { provider, apiKey, url }),
+        ...(sourceType === 'file' && { file }),
+        ...(sourceType === 'custom' && { custom }),
+        ...(sourceType === 'crawl' && { crawl }),
+        ...(sourceType === 'discuss' && { discussion }),
       };
 
-      await createKnowledge(params);
+      await createKnowledge(knowledgeId, params);
       Toast.success('Created knowledge');
       onSubmit();
     } catch (error) {
@@ -63,66 +142,119 @@ export default function ImportKnowledge({ onClose, onSubmit }: { onClose: () => 
     }
   };
 
+  const disabled = useMemo(() => {
+    if (sourceType === 'file') {
+      return !file;
+    }
+    if (sourceType === 'custom') {
+      return !custom?.title || !custom?.content;
+    }
+    if (sourceType === 'crawl') {
+      return !crawl.url || !crawl.apiKey;
+    }
+    if (sourceType === 'discuss') {
+      return discussion.length === 0;
+    }
+    return false;
+  }, [sourceType, file, custom, crawl, discussion]);
+
   return (
-    <Dialog
-      open
-      fullWidth
-      maxWidth="xl"
-      PaperProps={{ sx: { height: '100%' } }}
-      fullScreen={useMediaQuery<Theme>((theme) => theme.breakpoints.down('sm'))}>
-      <DialogTitle>
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}>
-          <Typography variant="h6" sx={{ fontSize: 16, fontWeight: 500 }}>
-            Import Knowledge
-          </Typography>
-
-          <IconButton size="small" onClick={onClose}>
-            <Box component={Icon} icon={XIcon} />
-          </IconButton>
-        </Box>
-      </DialogTitle>
-
-      <DialogContent>
-        <Stack gap={2.5}>
-          <Stack>
-            <Typography variant="h6" sx={{ fontSize: 16, fontWeight: 500, mb: 0.5 }}>
-              Select Data Source
+    <UploaderProvider
+      plugins={[]}
+      apiPathProps={{
+        uploader: withQuery(joinURL(AIGNE_RUNTIME_MOUNT_POINT, '/api/datasets/upload-document'), { knowledgeId }),
+        disableMediaKitPrefix: true,
+        disableAutoPrefix: true,
+      }}
+      restrictions={{
+        maxFileSize: (Number(window.blocklet?.preferences?.uploadFileLimit) || 10) * 1024 * 1024,
+        allowedFileTypes: [
+          '.md', // 允许 Markdown 文件
+          '.pdf', // 允许 PDF 文件
+          '.doc', // 允许 Word 文档
+          '.docx', // 允许新版 Word 文档
+          '.txt', // 允许文本文件
+          '.json', // 允许 JSON 文件
+          'text/plain', // 文本文件 MIME 类型
+        ],
+      }}
+      dashboardProps={{
+        fileManagerSelectionType: 'files',
+      }}>
+      <Dialog
+        open
+        fullWidth
+        maxWidth="xl"
+        PaperProps={{ sx: { height: '100%' } }}
+        fullScreen={useMediaQuery<Theme>((theme) => theme.breakpoints.down('sm'))}>
+        <DialogTitle>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}>
+            <Typography variant="h6" sx={{ fontSize: 16, fontWeight: 500 }}>
+              Import Knowledge
             </Typography>
-            <Typography variant="body2" color="text.secondary">
-              After adding sources, the AI can provide answers based on the information that matters most to you.
-            </Typography>
+
+            <IconButton size="small" onClick={onClose}>
+              <Box component={Icon} icon={XIcon} />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+
+        <DialogContent>
+          <Stack gap={2.5} height={1}>
+            <Stack>
+              <Typography variant="h6" sx={{ fontSize: 16, fontWeight: 500, mb: 0.5 }}>
+                Select Data Source
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                After adding sources, the AI can provide answers based on the information that matters most to you.
+              </Typography>
+            </Stack>
+
+            <SourceTypeSelect value={sourceType} onChange={setSourceType} options={sourceOptions} />
+
+            <Box flexGrow={1}>
+              <Suspense>
+                {sourceType === 'file' ? (
+                  <FileView fileName={file?.runtime?.originFileName} onChange={setFile} />
+                ) : sourceType === 'custom' ? (
+                  <CustomView
+                    title={custom?.title}
+                    content={custom?.content}
+                    onTitleChange={(value) => setCustom((prev) => ({ ...(prev || {}), title: value }))}
+                    onContentChange={(value) => setCustom((prev) => ({ ...(prev || {}), content: value }))}
+                  />
+                ) : sourceType === 'crawl' ? (
+                  <CrawlView
+                    provider={crawl.provider}
+                    apiKey={crawl.apiKey}
+                    url={crawl.url}
+                    onProviderChange={(value) => setCrawl((prev) => ({ ...(prev || {}), provider: value }))}
+                    onApiKeyChange={(value) => setCrawl((prev) => ({ ...(prev || {}), apiKey: value }))}
+                    onUrlChange={(value) => setCrawl((prev) => ({ ...(prev || {}), url: value }))}
+                  />
+                ) : sourceType === 'discuss' ? (
+                  <DiscussView onChange={setDiscussion} />
+                ) : null}
+              </Suspense>
+            </Box>
           </Stack>
+        </DialogContent>
 
-          <SourceTypeSelect value={sourceType} onChange={setSourceType} options={sourceOptions} />
-
-          <Suspense>
-            {sourceType === 'file' ? (
-              <FileView />
-            ) : sourceType === 'custom' ? (
-              <CustomView />
-            ) : sourceType === 'crawl' ? (
-              <CrawlView />
-            ) : sourceType === 'discuss' ? (
-              <DiscussView />
-            ) : null}
-          </Suspense>
-        </Stack>
-      </DialogContent>
-
-      <DialogActions>
-        <Button variant="outlined" onClick={onClose}>
-          Cancel
-        </Button>
-        <Button variant="contained" onClick={handleSubmit}>
-          Create
-        </Button>
-      </DialogActions>
-    </Dialog>
+        <DialogActions>
+          <Button variant="outlined" onClick={onClose}>
+            {t('cancel')}
+          </Button>
+          <LoadingButton variant="contained" onClick={handleSubmit} disabled={disabled}>
+            Create
+          </LoadingButton>
+        </DialogActions>
+      </Dialog>
+    </UploaderProvider>
   );
 }
 
@@ -141,7 +273,7 @@ const SourceTypeSelect = ({ value, onChange, options }: SourceTypeSelectProps) =
           variant={value === option.id ? 'contained' : 'outlined'}
           onClick={() => onChange(option.id)}
           disabled={option.disabled}
-          startIcon={option.icon ? <Box component={Icon} icon={option.icon} /> : null}>
+          startIcon={option.icon ?? null}>
           {option.label}
         </Button>
       ))}
@@ -149,40 +281,67 @@ const SourceTypeSelect = ({ value, onChange, options }: SourceTypeSelectProps) =
   );
 };
 
-const FileView = () => {
+const FileView = ({ fileName, onChange }: { fileName?: string; onChange: (value: FileType) => void }) => {
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const uploaderRef = useUploader();
+
+  const onDragOver = (event: React.DragEvent) => {
+    event.preventDefault();
+    setIsDraggingOver(true);
+  };
+
+  const onDrop = (event: React.DragEvent) => {
+    event.preventDefault();
+    setIsDraggingOver(false);
+
+    const uploader = uploaderRef?.current?.getUploader();
+    uploader?.open();
+    uploader.onceUploadSuccess(async ({ response }: any) => {
+      onChange(response?.data);
+    });
+  };
+
   return (
-    <Box
-      sx={{
-        bgcolor: '#F9FAFB',
-        border: '1px dashed #EFF1F5',
-        borderRadius: 1,
-        height: 400,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 1,
-        cursor: 'pointer',
-      }}>
-      <Box display="flex" alignItems="center" gap={1} color="#4B5563">
-        <Box component={Icon} icon={ArrowBarToUpIcon} />
-        <Typography sx={{ fontWeight: 500 }}>Import Files</Typography>
+    <Stack>
+      <Box
+        sx={{
+          bgcolor: '#F9FAFB',
+          border: isDraggingOver ? '1px dashed #007bff' : '1px dashed #EFF1F5',
+          borderRadius: 1,
+          height: 400,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 1,
+          cursor: 'pointer',
+        }}
+        onClick={() => {
+          const uploader = uploaderRef?.current?.getUploader();
+          uploader?.open();
+          uploader.onceUploadSuccess(async ({ response }: any) => {
+            onChange(response?.data);
+          });
+        }}
+        onDragOver={onDragOver}
+        onDrop={onDrop}
+        onDragLeave={() => setIsDraggingOver(false)}>
+        <Box display="flex" alignItems="center" gap={1} color="#4B5563">
+          <Box component={Icon} icon={ArrowBarToUpIcon} />
+          <Typography sx={{ fontWeight: 500 }}>Import Files</Typography>
+        </Box>
+
+        <Typography variant="subtitle5" sx={{ fontSize: 13 }}>
+          Drag and drop files here or click to upload
+        </Typography>
       </Box>
 
-      <Typography variant="subtitle5" sx={{ fontSize: 13 }}>
-        Drag and drop files here or click to upload
-      </Typography>
-    </Box>
+      <Box>{fileName}</Box>
+    </Stack>
   );
 };
 
-interface CustomInputProps {
-  value?: string;
-  onChange?: (value: string) => void;
-  placeholder?: string;
-}
-
-const CustomView = ({ value, onChange, placeholder }: CustomInputProps) => {
+const CustomView = ({ title, content, onTitleChange, onContentChange }: CustomInputProps) => {
   return (
     <Stack gap={2.5}>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -199,9 +358,9 @@ const CustomView = ({ value, onChange, placeholder }: CustomInputProps) => {
           fullWidth
           rows={1}
           multiline
-          placeholder={placeholder}
-          value={value}
-          onChange={(e) => onChange?.(e.target.value)}
+          placeholder="Enter title"
+          value={title}
+          onChange={(e) => onTitleChange?.(e.target.value)}
           variant="outlined"
         />
       </Box>
@@ -220,24 +379,15 @@ const CustomView = ({ value, onChange, placeholder }: CustomInputProps) => {
           fullWidth
           multiline
           rows={12}
-          placeholder={placeholder}
-          value={value}
-          onChange={(e) => onChange?.(e.target.value)}
+          placeholder="Enter content"
+          value={content}
+          onChange={(e) => onContentChange?.(e.target.value)}
           variant="outlined"
         />
       </Box>
     </Stack>
   );
 };
-
-interface CrawlSettingsProps {
-  provider: string;
-  onProviderChange: (provider: string) => void;
-  apiKey: string;
-  onApiKeyChange: (value: string) => void;
-  url: string;
-  onUrlChange: (value: string) => void;
-}
 
 const CrawlView = ({ provider, onProviderChange, apiKey, onApiKeyChange, url, onUrlChange }: CrawlSettingsProps) => {
   const providers = [
@@ -264,7 +414,7 @@ const CrawlView = ({ provider, onProviderChange, apiKey, onApiKeyChange, url, on
             <Button
               key={item.id}
               variant={provider === item.id ? 'contained' : 'outlined'}
-              onClick={() => onProviderChange(item.id)}
+              onClick={() => onProviderChange(item.id as 'jina' | 'firecrawl')}
               sx={{
                 textTransform: 'none',
                 bgcolor: provider === item.id ? 'black' : 'transparent',
@@ -335,7 +485,7 @@ const StyledTextField = styled(TextField)({
   '& .MuiOutlinedInput-root': {
     backgroundColor: '#F9FAFB',
     borderRadius: '8px',
-    padding: '9px 12px !important',
+    padding: '9px 6px !important',
     gap: '6px',
     width: '100%',
 

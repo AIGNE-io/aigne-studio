@@ -10,37 +10,14 @@ export type DocumentQueue = {
   documentId: string;
 };
 
-export type DiscussQueue = {
-  type: 'fullSite';
-  documentId: string;
-  currentIndex: number;
-  currentTotal: number;
-  discussionId: string;
-};
-
-export type CommentQueue = {
-  type: 'comment';
-  documentId: string;
-  discussionId: string;
-  metadata?: any;
-};
-
 export type Task = {
   id: string;
-  job: DocumentQueue | DiscussQueue | CommentQueue;
+  job: DocumentQueue;
 };
 
 export const isDocumentQueue = (job: any): job is DocumentQueue => {
   return job && job.type === 'document';
 };
-
-export function isDiscussQueue(job: any): job is DiscussQueue {
-  return job && job.type === 'fullSite';
-}
-
-export function isCommentQueue(job: any): job is CommentQueue {
-  return job && job.type === 'comment';
-}
 
 const tryWithTimeout = (asyncFn: () => Promise<any>, timeout = 5000) => {
   if (typeof asyncFn !== 'function') {

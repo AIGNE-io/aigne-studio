@@ -98,6 +98,42 @@ export async function deleteKnowledge(knowledgeId: string): Promise<any> {
   return axios.delete(`/api/datasets/${knowledgeId}`, { baseURL: AIGNE_RUNTIME_MOUNT_POINT }).then((res) => res.data);
 }
 
+export async function createFileDocument(
+  knowledgeId: string,
+  input: { hash: string; name: string; size: number; type: string; relativePath: string }
+): Promise<KnowledgeDocument> {
+  return axios
+    .post(`/api/datasets/${knowledgeId}/documents/file`, input, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
+    .then((res) => res.data);
+}
+
+export async function createCustomDocument(
+  knowledgeId: string,
+  input: { title: string; content: string }
+): Promise<KnowledgeDocument> {
+  return axios
+    .post(`/api/datasets/${knowledgeId}/documents/custom`, input, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
+    .then((res) => res.data);
+}
+
+export async function createDiscussionDocument(
+  knowledgeId: string,
+  input: CreateDiscussionItem[]
+): Promise<KnowledgeDocument> {
+  return axios
+    .post(`/api/datasets/${knowledgeId}/documents/discussion`, input, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
+    .then((res) => res.data);
+}
+
+export async function createCrawlDocument(
+  knowledgeId: string,
+  input: { provider: 'jina' | 'firecrawl'; apiKey?: string; url?: string }
+): Promise<KnowledgeDocument> {
+  return axios
+    .post(`/api/datasets/${knowledgeId}/documents/crawl`, input, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
+    .then((res) => res.data);
+}
+
 export async function getDocuments(
   datasetId: string,
   params: { blockletDid?: string; page?: number; size?: number }

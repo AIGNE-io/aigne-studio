@@ -210,7 +210,9 @@ export default function KnowledgeDetail() {
         )}
       </ColumnsLayout>
 
-      {showImportDialog && <ImportKnowledge onClose={() => setShowImportDialog(false)} onSubmit={() => {}} />}
+      {showImportDialog && (
+        <ImportKnowledge knowledgeId={knowledgeId} onClose={() => setShowImportDialog(false)} onSubmit={() => {}} />
+      )}
     </>
   );
 }
@@ -293,12 +295,11 @@ const Header = ({
                     border: 'none',
                     background: 'transparent',
                     width: '100%',
-                    fontFamily: 'inherit',
-                    fontSize: 'inherit',
-                    fontWeight: 'inherit',
+
                     '&:focus': {
                       outline: 'none',
                     },
+
                     input: {
                       p: '0 !important',
                       color: '#030712',
@@ -429,7 +430,7 @@ const KnowledgeIcon = ({ knowledgeId, icon }: { knowledgeId: string; icon?: stri
             setIcon(response?.data?.runtime?.hashFileName);
           });
         }}>
-        <Box component={Icon} icon={PencilIcon} fontSize={15} />
+        <Box component={Icon} icon={PencilIcon} fontSize={15} sx={{ color: '#fff' }} />
       </Box>
     </Box>
   );

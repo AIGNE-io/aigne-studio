@@ -18,26 +18,21 @@ export default class DatasetDocument extends Model<
 
   declare datasetId: string;
 
-  declare type: 'discussion' | 'text' | 'file' | 'fullSite' | 'discussKit' | 'url'; // 'discussion'和'fullSite'已经废弃，统一使用 'discussKit'
+  declare type: 'discussion' | 'text' | 'file' | 'fullSite' | 'discussKit' | 'crawl'; // 'discussion'和'fullSite'已经废弃，统一使用 'discussKit'
 
-  // 废弃
   declare data?:
     | {
+        type: 'file';
+        hash: string;
+        name: string;
+        size: number;
+        fileType: string;
+        relativePath: string;
+      }
+    | {
         type: 'text';
+        title: string;
         content: string;
-      }
-    | {
-        type: 'discussion';
-        id: string;
-      }
-    | {
-        type: 'fullSite';
-        ids: string[];
-        types: string[];
-      }
-    | {
-        type: string;
-        path: string;
       }
     | {
         type: 'discussKit';
@@ -47,7 +42,8 @@ export default class DatasetDocument extends Model<
           type?: 'discussion' | 'blog' | 'doc';
           from: 'discussion' | 'board' | 'discussionType';
         };
-      };
+      }
+    | { type: 'crawl'; provider: 'jina' | 'firecrawl'; apiKey?: string; url?: string };
 
   declare name?: string;
 

@@ -5,20 +5,12 @@ import { sha3_256 } from 'js-sha3';
 import { isNil, omitBy } from 'lodash';
 import { joinURL } from 'ufo';
 
-import { getUploadPathByCheckFile } from '../../libs/ensure-dir';
 import logger from '../../libs/logger';
-import createQueue, {
-  CommentQueue,
-  DiscussQueue,
-  DocumentQueue,
-  isCommentQueue,
-  isDiscussQueue,
-  isDocumentQueue,
-} from '../../libs/queue';
+import createQueue, { isDocumentQueue } from '../../libs/queue';
 import DatasetContent from '../../store/models/dataset/content';
 import DatasetDocument, { UploadStatus } from '../../store/models/dataset/document';
 import EmbeddingHistories from '../../store/models/dataset/embedding-history';
-import { getFileContent } from './document-content';
+import { PipelineProcessor } from './executor';
 import { commentsIterator, discussionsIterator, getDiscussion } from './util';
 import { saveContentToVectorStore } from './vector-store';
 
@@ -34,49 +26,30 @@ const handlerError = async (document: DatasetDocument, message: string) => {
   }
 };
 
-const documentItemJob = async (job: DocumentQueue) => {
-  try {
-    const documentId = job?.documentId;
-    if (!documentId) {
-      throw new Error('documentId not found');
-    }
+export const queue = createQueue({
+  options: {
+    concurrency: 3,
+    maxTimeout: 5 * 60 * 1000,
+    id: (job) => sha3_256(JSON.stringify(job)),
+  },
+  onJob: async (task) => {
+    const { job } = task;
+    logger.info('Job Start', task);
 
-    const document = await DatasetDocument.findOne({ where: { id: documentId } });
-    const content = await DatasetContent.findOne({ where: { documentId } });
-    if (document?.type === 'file') {
-      const data = document?.data as { type: string; path: string };
-      let currentContent = '';
+    if (isDocumentQueue(job)) {
       try {
-        const fileJoinPath = await getUploadPathByCheckFile(document.datasetId || job.datasetId, data?.path);
-
-        currentContent = await getFileContent(data?.type || '', fileJoinPath);
+        const pipeline = new PipelineProcessor({ knowledgeId: job.datasetId, documentId: job.documentId, sse });
+        await pipeline.execute();
       } catch (error) {
-        currentContent = '';
-      }
-
-      if (content) {
-        content.content = currentContent;
+        logger.error('Job Error', error?.message);
       }
     }
-    if (!document) throw new Error(`Dataset item ${documentId} not found`);
-    if (!document.data) return;
 
-    const handler = embeddingHandler[document.type];
-    if (!handler) {
-      await handlerError(document, 'no handler to embedding');
-      return;
-    }
+    logger.info('Job End', task);
+  },
+});
 
-    const res = await document.update({ embeddingStatus: UploadStatus.Uploading, embeddingStartAt: new Date() });
-    sse.send({ documentId, ...res.dataValues }, 'change');
-
-    await handler(document, content, job?.update);
-  } catch (error) {
-    logger.error('Job Error', error?.message);
-  }
-};
-
-const discussItemJob = async (job: DiscussQueue) => {
+export const discussItemJob = async (job: any) => {
   const { documentId, currentIndex, currentTotal, discussionId } = job;
   if (!documentId) {
     throw new Error('documentId not found');
@@ -97,7 +70,7 @@ const discussItemJob = async (job: DiscussQueue) => {
   }
 };
 
-const commentJob = async (job: CommentQueue) => {
+export const commentJob = async (job: any) => {
   const { documentId, discussionId, metadata } = job;
   const document = await DatasetDocument.findOne({ where: { id: documentId } });
 
@@ -132,33 +105,7 @@ const commentJob = async (job: CommentQueue) => {
   }
 };
 
-export const queue = createQueue({
-  options: {
-    concurrency: 3,
-    maxTimeout: 5 * 60 * 1000,
-    id: (job) => sha3_256(JSON.stringify(job)),
-  },
-  onJob: async (task) => {
-    const { job } = task;
-    logger.info('Job Start', task);
-
-    if (isDocumentQueue(job)) {
-      await documentItemJob(job);
-    }
-
-    if (isDiscussQueue(job)) {
-      await discussItemJob(job);
-    }
-
-    if (isCommentQueue(job)) {
-      await commentJob(job);
-    }
-
-    logger.info('Job End', task);
-  },
-});
-
-const updateEmbeddingHistory = async ({
+export const updateEmbeddingHistory = async ({
   datasetId,
   documentId,
   targetId,
@@ -241,7 +188,7 @@ const updateEmbeddingHistory = async ({
   }
 };
 
-async function updateDiscussionEmbeddings(discussionId: string, datasetId: string, documentId: string) {
+export async function updateDiscussionEmbeddings(discussionId: string, datasetId: string, documentId: string) {
   try {
     // 首先处理 discuss 当前文章数据
     // 然后处理多语言文章内容
@@ -313,7 +260,7 @@ async function updateDiscussionEmbeddings(discussionId: string, datasetId: strin
   }
 }
 
-const discussKitMap: {
+export const discussKitMap: {
   discussion: (document: DatasetDocument) => Promise<void>;
   board: (document: DatasetDocument) => Promise<void>;
   discussionType: (document: DatasetDocument) => Promise<void>;
@@ -322,7 +269,6 @@ const discussKitMap: {
     try {
       // discussId
       const targetId = (document.data as any)?.data?.id;
-
       const { post: discussion } = await getDiscussion(targetId);
       const found = await DatasetContent.findOne({ where: { documentId: document.id } });
       if (found) {
@@ -407,7 +353,7 @@ const discussKitMap: {
   },
 };
 
-const embeddingHandler: {
+export const embeddingHandler: {
   [key in NonNullable<DatasetDocument['type']>]: (
     item: DatasetDocument,
     content?: DatasetContent | null,
@@ -465,4 +411,5 @@ const embeddingHandler: {
 
     await handler(document);
   },
+  crawl: async () => {},
 };

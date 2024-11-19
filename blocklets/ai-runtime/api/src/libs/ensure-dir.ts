@@ -15,17 +15,19 @@ async function ensureKnowledgeDirExists(knowledgeId?: string) {
     await Promise.all([
       mkdir(path.join(knowledgeDir, 'uploads'), { recursive: true }),
       mkdir(path.join(knowledgeDir, 'vectors'), { recursive: true }),
+      mkdir(path.join(knowledgeDir, 'embeddings'), { recursive: true }),
     ]);
   }
 }
 
-const getDir = (knowledgeId: string, type: 'uploads' | 'vectors' | '') => {
-  return path.join(Config.knowledgeDir, knowledgeId, type);
+const getDir = (knowledgeId: string, type?: 'uploads' | 'vectors' | 'embeddings') => {
+  return path.join(Config.knowledgeDir, knowledgeId, type || '');
 };
 
 export const getUploadDir = (knowledgeId: string) => getDir(knowledgeId, 'uploads');
 export const getVectorDir = (knowledgeId: string) => getDir(knowledgeId, 'vectors');
-export const getKnowledgeDir = (knowledgeId: string) => getDir(knowledgeId, '');
+export const getEmbeddingDir = (knowledgeId: string) => getDir(knowledgeId, 'embeddings');
+export const getKnowledgeDir = (knowledgeId: string) => getDir(knowledgeId);
 
 export const getOldVectorStorePath = (id: string) => path.join(Config.dataDir, 'vectors', id);
 export const getOldUploadPath = (file: string) => path.join(Config.uploadDir, file);

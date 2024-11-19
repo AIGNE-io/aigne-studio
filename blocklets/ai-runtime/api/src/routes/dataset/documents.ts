@@ -1,4 +1,4 @@
-import { copyFile, rm } from 'fs/promises';
+import { copyFile, rm, stat, writeFile } from 'fs/promises';
 import { join } from 'path';
 
 import { resourceManager } from '@api/libs/resource';
@@ -6,7 +6,7 @@ import middlewares from '@blocklet/sdk/lib/middlewares';
 // @ts-ignore
 import { initLocalStorageServer } from '@blocklet/uploader-server';
 import express, { Router } from 'express';
-import { pathExists } from 'fs-extra';
+import { exists, pathExists } from 'fs-extra';
 import Joi from 'joi';
 import { sortBy } from 'lodash';
 import { Op, Sequelize } from 'sequelize';
@@ -229,42 +229,96 @@ router.put('/:datasetId/documents/:documentId/name', middlewares.session(), user
   res.json(document);
 });
 
-router.post('/:datasetId/documents/text', middlewares.session(), userAuth(), async (req, res) => {
+router.post('/:knowledgeId/documents/file', middlewares.session(), userAuth(), async (req, res) => {
   const { did } = req.user!;
-  const { datasetId } = req.params;
+  const { knowledgeId } = req.params;
 
-  const input = await Joi.object<{ name: string; content?: string }>({
-    name: Joi.string().allow('').default(''),
-    content: Joi.string().allow('').default(''),
-  }).validateAsync(req.body, { stripUnknown: true });
-
-  if (!datasetId) {
-    throw new Error('Missing required params `datasetId`');
+  if (!knowledgeId) {
+    throw new Error('Missing required params `knowledgeId`');
   }
 
-  const { name, content } = input;
-  const type = 'text';
+  const { name, hash, size, type, relativePath } = await Joi.object<{
+    hash: string;
+    name: string;
+    size: number;
+    type: string;
+    relativePath: string;
+  }>({
+    hash: Joi.string().required(),
+    name: Joi.string().allow('').default(''),
+    size: Joi.number().required(),
+    type: Joi.string().required(),
+    relativePath: Joi.string().required(),
+  }).validateAsync(req.body, { stripUnknown: true });
+
+  const newFilePath = joinURL(getUploadDir(knowledgeId), hash);
+
+  if (!(await exists(newFilePath))) {
+    throw new Error(`file ${newFilePath} not found`);
+  }
 
   const document = await DatasetDocument.create({
-    type,
+    type: 'file',
     name,
-    data: { type, content: content || '' },
-    datasetId,
+    datasetId: knowledgeId,
     createdBy: did,
     updatedBy: did,
     embeddingStatus: 'idle',
+    path: hash,
+    size,
+    data: {
+      type: 'file',
+      name,
+      hash,
+      size,
+      fileType: type,
+      relativePath,
+    },
   });
-  await DatasetContent.create({ documentId: document.id, content });
 
-  queue.checkAndPush({ type: 'document', datasetId, documentId: document.id });
+  queue.checkAndPush({ type: 'document', datasetId: knowledgeId, documentId: document.id });
 
   res.json(document);
 });
 
-router.post('/:datasetId/documents/discussion', middlewares.session(), async (req, res) => {
-  const { datasetId } = req.params;
+router.post('/:knowledgeId/documents/custom', middlewares.session(), userAuth(), async (req, res) => {
+  const { did } = req.user!;
+  const { knowledgeId } = req.params;
 
-  const createItemsSchema = Joi.object({
+  if (!knowledgeId) {
+    throw new Error('Missing required params `knowledgeId`');
+  }
+
+  const { title, content } = await Joi.object<{ title: string; content: string }>({
+    title: Joi.string().required(),
+    content: Joi.string().required(),
+  }).validateAsync(req.body, { stripUnknown: true });
+
+  const document = await DatasetDocument.create({
+    type: 'text',
+    name: title,
+    datasetId: knowledgeId,
+    createdBy: did,
+    updatedBy: did,
+    embeddingStatus: 'idle',
+    path: '',
+    size: 0,
+    data: {
+      type: 'text',
+      title,
+      content,
+    },
+  });
+
+  queue.checkAndPush({ type: 'document', datasetId: knowledgeId, documentId: document.id });
+
+  res.json(document);
+});
+
+router.post('/:knowledgeId/documents/discussion', middlewares.session(), async (req, res) => {
+  const { knowledgeId } = req.params;
+
+  const createItemsSchema = Joi.object<{ name: string; data: CreateDiscussionItem['data'] }>({
     name: Joi.string().empty(['', null]),
     data: Joi.object({
       from: Joi.string().valid('discussion', 'board', 'discussionType').required(),
@@ -280,8 +334,8 @@ router.post('/:datasetId/documents/discussion', middlewares.session(), async (re
     createItemsSchema
   );
 
-  if (!datasetId) {
-    throw new Error('Missing required params `datasetId`');
+  if (!knowledgeId) {
+    throw new Error('Missing required params `knowledgeId`');
   }
 
   const input = await createItemInputSchema.validateAsync(req.body, { stripUnknown: true });
@@ -290,19 +344,22 @@ router.post('/:datasetId/documents/discussion', middlewares.session(), async (re
   const arr = Array.isArray(input) ? input : [input];
 
   const createOrUpdate = async (name: string, data: CreateDiscussionItem['data']) => {
-    const found = await DatasetDocument.findOne({ where: { datasetId, 'data.id': data.id, 'data.from': data.from } });
+    const found = await DatasetDocument.findOne({
+      where: { datasetId: knowledgeId, 'data.id': data.id, 'data.from': data.from },
+    });
+
     if (found) {
       return found.update(
         { name, updatedBy: did },
-        { where: { datasetId, 'data.id': data.id, 'data.from': data.from } }
+        { where: { datasetId: knowledgeId, 'data.id': data.id, 'data.from': data.from } }
       );
     }
 
     return DatasetDocument.create({
+      name,
       type: 'discussKit',
       data: { type: 'discussKit', data },
-      name,
-      datasetId,
+      datasetId: knowledgeId,
       createdBy: did,
       updatedBy: did,
       embeddingStatus: 'idle',
@@ -312,12 +369,48 @@ router.post('/:datasetId/documents/discussion', middlewares.session(), async (re
   const docs = await Promise.all(
     arr.map(async (item) => {
       const document = await createOrUpdate(item.name, item.data);
-      queue.checkAndPush({ type: 'document', datasetId, documentId: document.id });
+      queue.checkAndPush({ type: 'document', datasetId: knowledgeId, documentId: document.id });
       return document;
     })
   );
 
   return res.json(Array.isArray(input) ? docs : docs[0]);
+});
+
+router.post('/:knowledgeId/documents/crawl', middlewares.session(), userAuth(), async (req, res) => {
+  const { did } = req.user!;
+  const { knowledgeId } = req.params;
+
+  if (!knowledgeId) {
+    throw new Error('Missing required params `knowledgeId`');
+  }
+
+  const { provider, url, apiKey } = await Joi.object<{ provider: 'jina' | 'firecrawl'; url: string; apiKey: string }>({
+    provider: Joi.string().valid('jina', 'firecrawl').required(),
+    url: Joi.string().required(),
+    apiKey: Joi.string().allow('', null).default(''),
+  }).validateAsync(req.body, { stripUnknown: true });
+
+  const document = await DatasetDocument.create({
+    type: 'crawl',
+    name: '',
+    datasetId: knowledgeId,
+    createdBy: did,
+    updatedBy: did,
+    embeddingStatus: 'idle',
+    path: '',
+    size: 0,
+    data: {
+      type: 'crawl',
+      provider,
+      url,
+      apiKey,
+    },
+  });
+
+  queue.checkAndPush({ type: 'document', datasetId: knowledgeId, documentId: document.id });
+
+  res.json(document);
 });
 
 router.put('/:datasetId/documents/:documentId/text', middlewares.session(), userAuth(), async (req, res) => {
@@ -400,50 +493,25 @@ const localStorageServer = initLocalStorageServer({
   path: Config.uploadDir,
   express,
   onUploadFinish: async (req: any, _res: any, uploadMetadata: any) => {
-    const { documentId, datasetId } = req.query;
-    const { hashFileName, originFileName, absolutePath, type } = uploadMetadata.runtime;
-    const newFilePath = joinURL(getUploadDir(datasetId), hashFileName);
+    const { knowledgeId } = req.query;
+    const { hashFileName, absolutePath } = uploadMetadata.runtime;
+    const newFilePath = joinURL(getUploadDir(knowledgeId), hashFileName);
 
-    await ensureKnowledgeDirExists(datasetId);
+    await ensureKnowledgeDirExists(knowledgeId);
     await copyFile(absolutePath, newFilePath);
-
-    const updateOrCreateDocument = async () => {
-      const commonData = {
-        error: null,
-        name: originFileName,
-        data: { type, path: hashFileName },
-        updatedBy: req.user.did,
-        embeddingStatus: 'idle',
-      };
-
-      if (documentId) {
-        await DatasetDocument.update(commonData, { where: { id: documentId, datasetId } });
-        const document = await DatasetDocument.findOne({ where: { id: documentId, datasetId } });
-        if (document) queue.checkAndPush({ type: 'document', datasetId, documentId: document.id, update: true });
-      } else {
-        const document = await DatasetDocument.create({
-          ...commonData,
-          type: 'file',
-          datasetId,
-          createdBy: req.user.did,
-        });
-        await DatasetContent.create({ documentId: document.id, content: '' });
-        if (document) queue.checkAndPush({ type: 'document', datasetId, documentId: document.id });
-      }
-    };
 
     // 延迟文件移动操作
     setTimeout(async () => {
       await rm(absolutePath, { recursive: true, force: true });
     }, 3000);
 
-    // 立即更新或创建文档
-    await updateOrCreateDocument();
-
-    return uploadMetadata;
+    return {
+      ...uploadMetadata,
+      newFilePath,
+    };
   },
 });
 
-router.use('/uploads', middlewares.session(), localStorageServer.handle);
+router.use('/upload-document', middlewares.session(), localStorageServer.handle);
 
 export default router;

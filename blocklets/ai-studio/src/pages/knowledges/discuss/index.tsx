@@ -27,18 +27,16 @@ import DiscussList from './discuss';
 
 const types = ['discussion', 'blog', 'doc'] as ['discussion', 'blog', 'doc'];
 
-export default function Discussion() {
+export default function Discussion({ onChange }: { onChange: (value: CreateDiscussionItem[]) => void }) {
   const { t } = useLocaleContext();
-  const state = useReactive<{
-    data: CreateDiscussionItem['data'][];
-  }>({ data: [] });
+  const state = useReactive<{ data: CreateDiscussionItem['data'][] }>({ data: [] });
 
   const result = useRequest(() => discussionBoards());
   const [boards, setBoards] = useState<{ id: string; title: string; type: 'discussion' | 'blog' | 'doc' }[]>([]);
   const [value, setValue] = useState('discussion');
   const isMdOrAbove = useMediaQuery<Theme>((theme) => theme.breakpoints.up('md'));
 
-  const onChange = (checked: boolean, data: CreateDiscussionItem['data']) => {
+  const onChangeDiscussion = (checked: boolean, data: CreateDiscussionItem['data']) => {
     const newCheckedValues = checked
       ? [...state.data, data]
       : state.data.filter((value) => !(value.id === data.id && value.from === data.from));
@@ -65,6 +63,15 @@ export default function Discussion() {
       setBoards(list);
     }
   }, [result.loading]);
+
+  useEffect(() => {
+    const data = uniqWith(state.data, (x, y) => `${x.from}_${x.id}` === `${y.from}_${y.id}`).map((x) => ({
+      name: x.title,
+      data: x,
+    }));
+
+    onChange(data);
+  }, [JSON.stringify(state.data)]);
 
   if (result.loading) {
     return (
@@ -109,7 +116,7 @@ export default function Discussion() {
                       checked={isChecked(name)}
                       onChange={(e) => {
                         const { name, checked } = e.target;
-                        onChange(checked, {
+                        onChangeDiscussion(checked, {
                           id: name,
                           title: name,
                           from: 'discussionType',
@@ -175,7 +182,7 @@ export default function Discussion() {
                                 checked={isChecked(id)}
                                 onChange={(e) => {
                                   const { name, checked } = e.target;
-                                  onChange(checked, { id: name, title, type, from: 'board' });
+                                  onChangeDiscussion(checked, { id: name, title, type, from: 'board' });
                                 }}
                                 name={id}
                               />
@@ -197,10 +204,7 @@ export default function Discussion() {
           <Box sx={{ width: '100%', typography: 'body1' }}>
             <TabContext value={value}>
               <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                <TabList
-                  onChange={(_event: React.SyntheticEvent, newValue: string) => {
-                    setValue(newValue);
-                  }}>
+                <TabList onChange={(_event: React.SyntheticEvent, newValue: string) => setValue(newValue)}>
                   {types.map((x) => {
                     return <Tab label={t(x)} value={x} key={x} />;
                   })}
@@ -210,13 +214,7 @@ export default function Discussion() {
               {types.map((x) => {
                 return (
                   <TabPanel value={x} sx={{ p: 0, height: 1 }} key={x}>
-                    <DiscussList
-                      type={x}
-                      value={getDiscussionValue(x)}
-                      onChange={(d) => {
-                        onChangeTable(x, d);
-                      }}
-                    />
+                    <DiscussList type={x} value={getDiscussionValue(x)} onChange={(d) => onChangeTable(x, d)} />
                   </TabPanel>
                 );
               })}

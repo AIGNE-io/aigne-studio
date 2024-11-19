@@ -44,6 +44,7 @@ const migrateKnowledge = async (knowledge: Knowledge) => {
 
       const newPath = join(getUploadDir(knowledge.id), basename(path));
       await copyFile(path, newPath);
+      // @ts-ignore
       await document.update({ data: { ...document.data, path: basename(path) } });
     });
 

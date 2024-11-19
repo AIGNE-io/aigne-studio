@@ -1,9 +1,6 @@
 import { call } from '@blocklet/sdk/lib/component';
 
-export async function getDiscussion(
-  discussionId: string,
-  locale?: string
-): Promise<{
+type Discussion = {
   post: {
     content: string;
     title: string;
@@ -16,9 +13,19 @@ export async function getDiscussion(
     labels: { name: string }[];
     board: { title: string; desc: string; id: string };
     type: string;
+    languagesResult: Discussion[];
   } | null;
   languages: string[];
-}> {
+  comments?: {
+    id: string;
+    content: string;
+    commentAuthorName: string;
+    commentCreatedAt: string;
+    commentUpdatedAt: string;
+  }[];
+};
+
+export async function getDiscussion(discussionId: string, locale?: string): Promise<Discussion> {
   try {
     const result = await call({
       method: 'GET',
@@ -33,10 +40,7 @@ export async function getDiscussion(
 
     return result.data;
   } catch (error) {
-    return {
-      post: null,
-      languages: [],
-    };
+    return { post: null, languages: [] };
   }
 }
 
