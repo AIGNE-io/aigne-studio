@@ -3,6 +3,7 @@ import { Icon } from '@iconify-icon/react';
 import HelpIcon from '@iconify-icons/tabler/help';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import { Box, Button, SxProps, Tooltip, Typography } from '@mui/material';
+import { ReactNode } from 'react';
 
 type BillingCycle = 'monthly' | 'yearly';
 type CycleBasedValue = string | { monthly: string; yearly: string };
@@ -21,6 +22,7 @@ export interface Plan {
   isFeatured?: boolean;
   qualified?: boolean;
   active?: boolean;
+  billingLink?: ReactNode;
 }
 
 interface PricingTableProps {
@@ -71,6 +73,7 @@ function PricingTablePlan({ plan, billingCycle }: { plan: Plan; billingCycle?: B
           gap: 1,
           height: '100%',
           p: 4,
+          pb: 5,
           bgcolor: 'grey.100',
           borderRadius: 1,
         }}>
@@ -194,22 +197,25 @@ function PricingTablePlan({ plan, billingCycle }: { plan: Plan; billingCycle?: B
             </Button>
           )}
           {plan.active && (
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 1,
-                py: 0.75,
-                border: 1,
-                borderColor: 'success.light',
-                borderRadius: 1,
-                color: 'success.light',
-                fontSize: 13,
-                textAlign: 'center',
-              }}>
-              {t('pricingAndPlans.currentPlan')}
-              <Box component={VerifiedIcon} sx={{ fontSize: 18, color: 'success.light' }} />
+            <Box sx={{ position: 'relative' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 1,
+                  py: 0.75,
+                  border: 1,
+                  borderColor: 'success.light',
+                  borderRadius: 1,
+                  color: 'success.light',
+                  fontSize: 13,
+                  textAlign: 'center',
+                }}>
+                {t('pricingAndPlans.currentPlan')}
+                <Box component={VerifiedIcon} sx={{ fontSize: 18, color: 'success.light' }} />
+              </Box>
+              {plan.billingLink && <Box sx={{ position: 'absolute', bottom: -24 }}>{plan.billingLink}</Box>}
             </Box>
           )}
         </Box>
