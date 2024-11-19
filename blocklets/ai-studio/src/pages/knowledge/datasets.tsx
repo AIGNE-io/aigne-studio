@@ -51,7 +51,7 @@ export default function KnowledgeDatasets() {
   const { projectId } = useParams();
 
   const dialogState = usePopupState({ variant: 'dialog' });
-  const { datasets, refetch, createDataset, updateDataset, deleteDataset } = useKnowledge();
+  const { datasets, refetch, createKnowledge, updateKnowledge, deleteKnowledge } = useKnowledge();
   const form = useForm<DatasetInput>({ defaultValues: { description: '', name: '' } });
 
   useEffect(() => {
@@ -61,7 +61,7 @@ export default function KnowledgeDatasets() {
   const onSave = useCallback(
     async (input: DatasetInput) => {
       try {
-        const dataset = await createDataset(projectId, { ...input, projectId });
+        const dataset = await createKnowledge({ ...input, projectId });
         dialogState.close();
         navigate(`./${dataset.id}`);
       } catch (error) {
@@ -74,7 +74,7 @@ export default function KnowledgeDatasets() {
   const onDelete = useCallback(
     async (datasetId: string) => {
       try {
-        await deleteDataset(projectId, datasetId);
+        await deleteKnowledge(projectId!, datasetId);
         dialogState.close();
       } catch (error) {
         Toast.error(getErrorMessage(error));
@@ -92,7 +92,7 @@ export default function KnowledgeDatasets() {
       }
     ) => {
       try {
-        await updateDataset(projectId || '', datasetId, data);
+        await updateKnowledge(projectId || '', datasetId, data);
       } catch (error) {
         Toast.error(getErrorMessage(error));
       }

@@ -25,6 +25,8 @@ export default class Dataset extends Model<InferAttributes<Dataset>, InferCreati
   declare resourceBlockletDid?: string;
 
   declare knowledgeId?: string;
+
+  declare icon?: string;
 }
 
 Dataset.init(

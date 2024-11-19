@@ -1,3 +1,5 @@
+import LoadingButton from '@app/components/loading/loading-button';
+import { AIGNE_RUNTIME_MOUNT_POINT } from '@app/libs/constants';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
@@ -24,8 +26,9 @@ import { useRequest } from 'ahooks';
 import bytes from 'bytes';
 import dayjs from 'dayjs';
 import { usePopupState } from 'material-ui-popup-state/hooks';
-import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useCallback, useEffect, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { joinURL } from 'ufo';
 
 import { useFetchKnowledgeList, useKnowledge } from '../../contexts/datasets/datasets';
 import backgroundIcon from '../../icons/background.png?url';
@@ -39,14 +42,27 @@ export default function Knowledge() {
 
   const { t } = useLocaleContext();
   const dialogState = usePopupState({ variant: 'dialog' });
+  const { createKnowledge } = useKnowledge();
   const { loadingRef, dataState } = useFetchKnowledgeList(projectId);
+  const navigate = useNavigate();
 
   const list = dataState?.data?.list || [];
+
+  const onCreate = useCallback(async () => {
+    try {
+      const knowledge = await createKnowledge({ projectId });
+      dataState.reload();
+      navigate(`./${knowledge.id}`);
+    } catch (error) {
+      Toast.error(error.message);
+    }
+  }, [navigate, projectId]);
+
   return (
     <>
       <Stack p={2.5} height={1} overflow="auto">
         <ListContainer gap={2.5}>
-          <CreateCard onImport={dialogState.open} onCreate={dialogState.open} />
+          <CreateCard onImport={dialogState.open} onCreate={onCreate} />
 
           {list.map((item) => {
             return (
@@ -60,6 +76,9 @@ export default function Knowledge() {
                   author={item.user.fullName}
                   authorAvatar={item.user.avatar}
                   date={item.updatedAt?.toLocaleString()}
+                  knowledgeId={item.id}
+                  icon={item.icon}
+                  onClick={() => navigate(`./${item.id}`)}
                 />
               </CardContainer>
             );
@@ -98,9 +117,9 @@ const CreateCard = ({ onImport, onCreate }: { onImport: () => void; onCreate: ()
       <Box className="shadow" />
 
       <Stack p={2.5} gap={1} className="button">
-        <Button variant="contained" size="large" onClick={onCreate} sx={{ fontSize: 16 }}>
+        <LoadingButton variant="contained" size="large" onClick={onCreate} sx={{ fontSize: 16 }}>
           {`${t('create')} ${t('knowledge.knowledge')}`}
-        </Button>
+        </LoadingButton>
         <Button variant="outlined" size="large" onClick={onImport} sx={{ fontSize: 16 }}>
           {`${t('alert.import')} ${t('knowledge.knowledge')}`}
         </Button>
@@ -120,6 +139,8 @@ const KnowledgeCard = ({
   date,
   maxLineClamp = 10,
   disabled,
+  icon,
+  knowledgeId,
   ...props
 }: {
   emoji: string;
@@ -132,6 +153,8 @@ const KnowledgeCard = ({
   date: string;
   disabled?: boolean;
   maxLineClamp?: number;
+  icon?: string;
+  knowledgeId?: string;
 } & StackProps) => {
   const { t } = useLocaleContext();
 
@@ -154,26 +177,42 @@ const KnowledgeCard = ({
           background: '#F1F3F5',
           borderRadius: 1,
           mb: 5,
+
+          img: {
+            width: 1,
+            height: 1,
+            borderRadius: 1,
+            objectFit: 'cover',
+          },
         }}>
-        <Typography fontSize={24}>{emoji}</Typography>
+        {icon ? (
+          <img
+            src={joinURL(AIGNE_RUNTIME_MOUNT_POINT, `/api/datasets/${knowledgeId}/icon.png?icon=${icon}`)}
+            alt="knowledge icon"
+          />
+        ) : (
+          <Typography fontSize={24}>{emoji}</Typography>
+        )}
       </Box>
 
-      <Stack flex={1} height={0} justifyContent="flex-end">
-        <Typography variant="h6" fontWeight={600}>
-          {title}
+      <Stack flex={1} height={0} gap={0.5} justifyContent="flex-end">
+        <Typography fontWeight={600} lineHeight="28px" fontSize={18}>
+          {title || t('unnamed')}
         </Typography>
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          sx={{
-            overflow: 'hidden',
-            display: '-webkit-box',
-            WebkitLineClamp: maxLineClamp,
-            WebkitBoxOrient: 'vertical',
-            mt: 0.5,
-          }}>
-          {description}
-        </Typography>
+
+        {description && (
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{
+              overflow: 'hidden',
+              display: '-webkit-box',
+              WebkitLineClamp: maxLineClamp,
+              WebkitBoxOrient: 'vertical',
+            }}>
+            {description}
+          </Typography>
+        )}
       </Stack>
 
       <Stack direction="row" gap={1.25} alignItems="center" mt={2.5} color="#9CA3AF">
@@ -316,6 +355,7 @@ const SelectKnowledgeModal = (
                   authorAvatar={item.user.avatar}
                   date={item.updatedAt?.toLocaleString()}
                   maxLineClamp={6}
+                  knowledgeId={item.id}
                   onClick={() =>
                     !disabled[key] && setSelectedKnowledge({ ...selectedKnowledge, [key]: !selectedKnowledge[key] })
                   }

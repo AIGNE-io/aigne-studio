@@ -1,9 +1,10 @@
 import { createWriteStream } from 'fs';
-import { mkdir, mkdtemp, rm, writeFile } from 'fs/promises';
+import { copyFile, mkdir, mkdtemp, rm, writeFile } from 'fs/promises';
 import { join, resolve } from 'path';
 import { finished } from 'stream/promises';
 
 import { Config } from '@api/libs/env';
+import { NotFoundError } from '@api/libs/error';
 import logger from '@api/libs/logger';
 import { resourceManager } from '@api/libs/resource';
 import DatasetContent from '@api/store/models/dataset/content';
@@ -11,14 +12,17 @@ import { copyRecursive } from '@blocklet/ai-runtime/utils/fs';
 import config from '@blocklet/sdk/lib/config';
 import middlewares from '@blocklet/sdk/lib/middlewares';
 import AuthService from '@blocklet/sdk/lib/service/auth';
+// @ts-ignore
+import { initLocalStorageServer } from '@blocklet/uploader-server';
 import archiver from 'archiver';
 import compression from 'compression';
-import { Router } from 'express';
-import { pathExists } from 'fs-extra';
+import express, { Router } from 'express';
+import { exists, pathExists } from 'fs-extra';
 import Joi from 'joi';
 import { pick } from 'lodash';
 import omitBy from 'lodash/omitBy';
 import { Op, Sequelize } from 'sequelize';
+import { joinURL } from 'ufo';
 import { stringify } from 'yaml';
 
 import ensureKnowledgeDirExists, { getUploadDir, getVectorStorePath } from '../../libs/ensure-dir';
@@ -118,23 +122,31 @@ router.get('/resources', middlewares.session(), ensureComponentCallOr(userAuth()
   res.json(knowledge);
 });
 
-router.get('/:datasetId', middlewares.session(), ensureComponentCallOr(userAuth()), async (req, res) => {
-  const { datasetId } = req.params;
-  if (!datasetId) throw new Error('missing required param `datasetId`');
+router.get('/:knowledgeId', middlewares.session(), ensureComponentCallOr(userAuth()), async (req, res) => {
+  const { knowledgeId } = req.params;
+  if (!knowledgeId) throw new Error('missing required param `knowledgeId`');
 
   const user =
     !req.user || req.user.isAdmin ? {} : { [Op.or]: [{ createdBy: req.user.did }, { updatedBy: req.user.did }] };
 
-  const { blockletDid, projectId } = await Joi.object<{ blockletDid?: string; projectId?: string }>({
-    blockletDid: Joi.string().empty(['', null]),
-    projectId: Joi.string().allow('').empty(null).default(''),
-  }).validateAsync(req.query, { stripUnknown: true });
+  const knowledge = await Knowledge.findOneWithDocs({ where: { id: knowledgeId, ...user } });
 
-  const dataset = blockletDid
-    ? (await resourceManager.getKnowledge({ blockletDid, knowledgeId: datasetId }))?.knowledge
-    : await Knowledge.findOne({ where: { id: datasetId, ...(projectId && { projectId }), ...user } });
+  if (knowledge?.resourceBlockletDid && knowledge?.knowledgeId) {
+    const item = await resourceManager.getKnowledge({
+      blockletDid: knowledge.resourceBlockletDid,
+      knowledgeId: knowledge.knowledgeId,
+    });
 
-  res.json(dataset);
+    return res.json({
+      ...(item?.knowledge || {}),
+      user: pick(user, ['did', 'fullName', 'avatar']),
+      blockletDid: item?.blockletDid,
+      totalSize: 0,
+      docs: item?.documents?.length || 0,
+    });
+  }
+
+  return res.json(knowledge);
 });
 
 export const exportResourceQuerySchema = Joi.object<{ public?: boolean }>({
@@ -301,4 +313,44 @@ router.delete('/:datasetId', middlewares.session(), userAuth(), async (req, res)
 
 router.get('/:datasetId/embeddings', compression(), sse.init);
 
+const localStorageServer = initLocalStorageServer({
+  path: Config.uploadDir,
+  express,
+  onUploadFinish: async (req: any, _res: any, uploadMetadata: any) => {
+    const { knowledgeId } = req.query;
+    const { hashFileName, absolutePath } = uploadMetadata.runtime;
+    const newFilePath = joinURL(getUploadDir(knowledgeId), hashFileName);
+
+    await copyFile(absolutePath, newFilePath);
+
+    // 延迟文件移动操作
+    setTimeout(async () => {
+      await rm(absolutePath, { recursive: true, force: true });
+    }, 3000);
+
+    await Knowledge.update({ icon: hashFileName }, { where: { id: knowledgeId } });
+
+    return uploadMetadata;
+  },
+});
+
+router.use('/upload-icon', middlewares.session(), localStorageServer.handle);
+
+router.get('/:knowledgeId/icon.png', async (req, res) => {
+  const { knowledgeId } = req.params;
+  if (!knowledgeId) throw new Error('Missing required parameter `knowledgeId`');
+
+  const original = await Knowledge.findOne({ where: { id: knowledgeId } });
+  if (original?.icon) {
+    const logoPath = joinURL(getUploadDir(knowledgeId), original.icon);
+
+    if (await exists(logoPath)) {
+      res.setHeader('Content-Type', 'image/png');
+      res.sendFile(logoPath);
+      return;
+    }
+  }
+
+  throw new NotFoundError(`No such knowledge ${knowledgeId}`);
+});
 export default router;

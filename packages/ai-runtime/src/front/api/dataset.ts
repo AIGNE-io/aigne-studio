@@ -9,7 +9,7 @@ export interface Dataset {
   description?: string;
 }
 
-export async function getDataset({ datasetId }: { datasetId: string }): Promise<Dataset> {
+export async function getKnowledge({ datasetId }: { datasetId: string }): Promise<Dataset> {
   const url = joinURL('/api/datasets/', datasetId);
   const result = await request<Dataset>({ blocklet: AI_STUDIO_DID, url });
   if (!result) throw new Error('Collection not found!');
@@ -22,7 +22,7 @@ export async function getKnowledgeList({ projectId }: { projectId: string }): Pr
   return request({ blocklet: AI_STUDIO_DID, url });
 }
 
-export async function createDataset({
+export async function createKnowledge({
   projectId,
   name,
   description,
@@ -39,7 +39,10 @@ export async function createDataset({
   });
 }
 
-export async function updateDataset(datasetId: string, input: Pick<Dataset, 'name' | 'description'>): Promise<Dataset> {
+export async function updateKnowledge(
+  datasetId: string,
+  input: Pick<Dataset, 'name' | 'description'>
+): Promise<Dataset> {
   return request({
     blocklet: AI_STUDIO_DID,
     method: 'PUT',
@@ -48,7 +51,7 @@ export async function updateDataset(datasetId: string, input: Pick<Dataset, 'nam
   });
 }
 
-export async function deleteDataset(datasetId: string): Promise<void> {
+export async function deleteKnowledge(datasetId: string): Promise<void> {
   const url = joinURL('/api/datasets', datasetId);
   return request({ blocklet: AI_STUDIO_DID, method: 'DELETE', url });
 }

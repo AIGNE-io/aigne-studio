@@ -6,14 +6,15 @@ import useInfiniteScrollHook from 'react-infinite-scroll-hook';
 
 import {
   KnowledgeCard,
-  createDataset,
   createDatasetFromResources,
+  createKnowledge,
   createTextDocument,
-  deleteDataset,
+  deleteKnowledge,
   getDocuments,
+  getKnowledge,
   getKnowledgeList,
   getResourcesKnowledgeList,
-  updateDataset,
+  updateKnowledge,
   updateTextDocument,
 } from '../../libs/dataset';
 import type { KnowledgeInput } from '../../libs/dataset';
@@ -25,9 +26,10 @@ export interface KnowledgeContext {
   resources: KnowledgeCard[];
   error?: Error;
   refetch: (projectId?: string) => Promise<void>;
-  createDataset: any;
-  deleteDataset: any;
-  updateDataset: (projectId: string, datasetId: string, data: { name: string; description: string }) => Promise<void>;
+  createKnowledge: (input: KnowledgeInput) => Promise<KnowledgeCard>;
+  getKnowledge: (knowledgeId: string) => Promise<KnowledgeCard>;
+  deleteKnowledge: (projectId: string, datasetId: string) => Promise<void>;
+  updateKnowledge: typeof updateKnowledge;
   createTextDocument: typeof createTextDocument;
   updateTextDocument: typeof updateTextDocument;
   getDocuments: typeof getDocuments;
@@ -65,46 +67,21 @@ export const useFetchKnowledgeList = (projectId: string) => {
   return { loadingRef, dataState };
 };
 
-export function KnowledgeProvider({ projectId, children }: { projectId: string; children: ReactNode }) {
+export function KnowledgeProvider({ children }: { children: ReactNode }) {
   const value = useRef<KnowledgeContext>({
     datasets: [],
     loading: false,
     resourceLoading: false,
     resources: [],
-    refetch: async () => {
-      const state = value.current;
-
-      if (state.loading) {
-        return;
-      }
-
-      setValue((v) => {
-        v.loading = true;
-      });
-      try {
-        const datasets = await getKnowledgeList({ projectId });
-
-        setValue((v) => {
-          v.datasets = datasets;
-        });
-      } catch (error) {
-        setValue((v) => (v.error = error));
-        throw error;
-      } finally {
-        setValue((v) => (v.loading = false));
-      }
-    },
-    createDataset: async (projectId: string, input: KnowledgeInput) => {
-      const dataset = await createDataset(input);
-      await value.current.refetch(projectId);
+    refetch: async () => {},
+    createKnowledge: async (input: KnowledgeInput) => {
+      const dataset = await createKnowledge(input);
       return dataset;
     },
-    updateDataset: async (projectId: string, datasetId: string, input: { name: string; description: string }) => {
-      await updateDataset(datasetId, input);
-      await value.current.refetch(projectId);
-    },
-    deleteDataset: async (projectId: string, datasetId: string) => {
-      await deleteDataset(datasetId);
+    getKnowledge,
+    updateKnowledge,
+    deleteKnowledge: async (projectId: string, datasetId: string) => {
+      await deleteKnowledge(datasetId);
       await value.current.refetch(projectId);
     },
     createTextDocument: async (datasetId, input: { name: string; content?: string }) => {

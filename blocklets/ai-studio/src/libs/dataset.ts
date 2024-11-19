@@ -74,11 +74,11 @@ export async function getResourcesKnowledgeList(): Promise<KnowledgeCard[]> {
   return axios.get('/api/datasets/resources', { baseURL: AIGNE_RUNTIME_MOUNT_POINT }).then((res) => res.data);
 }
 
-export async function getDataset(datasetId: string): Promise<Knowledge> {
-  return axios.get(`/api/datasets/${datasetId}`, { baseURL: AIGNE_RUNTIME_MOUNT_POINT }).then((res) => res.data);
+export async function getKnowledge(knowledgeId: string): Promise<KnowledgeCard> {
+  return axios.get(`/api/datasets/${knowledgeId}`, { baseURL: AIGNE_RUNTIME_MOUNT_POINT }).then((res) => res.data);
 }
 
-export async function createDataset(input?: KnowledgeInput): Promise<Knowledge> {
+export async function createKnowledge(input?: KnowledgeInput): Promise<KnowledgeCard> {
   return axios.post('/api/datasets', input, { baseURL: AIGNE_RUNTIME_MOUNT_POINT }).then((res) => res.data);
 }
 
@@ -88,12 +88,14 @@ export async function createDatasetFromResources(input: { items: KnowledgeInput[
     .then((res) => res.data);
 }
 
-export async function updateDataset(datasetId: string, input: KnowledgeInput): Promise<Knowledge> {
-  return axios.put(`/api/datasets/${datasetId}`, input, { baseURL: AIGNE_RUNTIME_MOUNT_POINT }).then((res) => res.data);
+export async function updateKnowledge(knowledgeId: string, input: KnowledgeInput): Promise<Knowledge> {
+  return axios
+    .put(`/api/datasets/${knowledgeId}`, input, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
+    .then((res) => res.data);
 }
 
-export async function deleteDataset(datasetId: string): Promise<any> {
-  return axios.delete(`/api/datasets/${datasetId}`, { baseURL: AIGNE_RUNTIME_MOUNT_POINT }).then((res) => res.data);
+export async function deleteKnowledge(knowledgeId: string): Promise<any> {
+  return axios.delete(`/api/datasets/${knowledgeId}`, { baseURL: AIGNE_RUNTIME_MOUNT_POINT }).then((res) => res.data);
 }
 
 export async function getDocuments(

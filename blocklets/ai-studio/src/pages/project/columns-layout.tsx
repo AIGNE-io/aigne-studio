@@ -89,22 +89,24 @@ const ColumnsLayout = forwardRef<
   return (
     <Box height="100%" bgcolor="background.paper">
       <Box component={PanelGroup} autoSaveId="ai-studio-template-layouts" direction="horizontal">
-        <Box
-          component={Panel}
-          ref={leftPanel}
-          defaultSize={10}
-          minSize={10}
-          collapsible
-          onCollapse={() => {
-            onLeftCollapse?.(true);
-            setLeftPanelCollapsed(true);
-          }}
-          onExpand={() => {
-            onLeftCollapse?.(false);
-            setLeftPanelCollapsed(false);
-          }}>
-          {left}
-        </Box>
+        {left && (
+          <Box
+            component={Panel}
+            ref={leftPanel}
+            defaultSize={10}
+            minSize={10}
+            collapsible
+            onCollapse={() => {
+              onLeftCollapse?.(true);
+              setLeftPanelCollapsed(true);
+            }}
+            onExpand={() => {
+              onLeftCollapse?.(false);
+              setLeftPanelCollapsed(false);
+            }}>
+            {left}
+          </Box>
+        )}
 
         <ResizeHandle
           collapsed={leftPanelCollapsed}

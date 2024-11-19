@@ -1,4 +1,4 @@
-import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
+import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model, Sequelize } from 'sequelize';
 
 import nextId from '../../../libs/next-id';
 import { sequelize } from '../../sequelize';
@@ -25,6 +25,28 @@ export default class Dataset extends Model<InferAttributes<Dataset>, InferCreati
   declare resourceBlockletDid?: string;
 
   declare knowledgeId?: string;
+
+  declare icon?: string;
+
+  static findOneWithDocs(props: { [key: string]: any } = {}) {
+    const documentsCountSql = Sequelize.literal(
+      '(SELECT COUNT(*) FROM DatasetDocuments WHERE DatasetDocuments.datasetId = Dataset.id)'
+    );
+
+    const totalSizeSql = Sequelize.literal(
+      '(SELECT COALESCE(SUM(size), 0) FROM DatasetDocuments WHERE DatasetDocuments.datasetId = Dataset.id)'
+    );
+
+    return this.findOne({
+      attributes: {
+        include: [
+          [documentsCountSql, 'docs'],
+          [totalSizeSql, 'totalSize'],
+        ],
+      },
+      ...props,
+    });
+  }
 }
 
 Dataset.init(
@@ -62,6 +84,9 @@ Dataset.init(
       type: DataTypes.STRING,
     },
     knowledgeId: {
+      type: DataTypes.STRING,
+    },
+    icon: {
       type: DataTypes.STRING,
     },
   },

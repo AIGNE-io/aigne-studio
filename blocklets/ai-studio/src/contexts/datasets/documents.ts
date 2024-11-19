@@ -5,7 +5,7 @@ import { RecoilState, atom, useRecoilState } from 'recoil';
 import Dataset from '../../../api/src/store/models/dataset/dataset';
 import DatasetDocument from '../../../api/src/store/models/dataset/document';
 import { getErrorMessage } from '../../libs/api';
-import { deleteDocument, getDataset, getDocuments } from '../../libs/dataset';
+import { deleteDocument, getDocuments, getKnowledge } from '../../libs/dataset';
 
 interface DatasetState {
   dataset?: Dataset & { blockletDid?: string };
@@ -47,7 +47,7 @@ export const useDocuments = (
       try {
         const [{ items, total }, dataset] = await Promise.all([
           getDocuments(datasetId, { blockletDid, page: (page ?? 0) + 1, size }),
-          getDataset(datasetId),
+          getKnowledge(datasetId),
         ]);
 
         setState((v) => ({ ...v, dataset, items, total }));
@@ -72,7 +72,7 @@ export const useDocuments = (
           return { ...v, loading: true };
         });
 
-        const [dataset] = await Promise.all([getDataset(datasetId), refetch()]);
+        const [dataset] = await Promise.all([getKnowledge(datasetId), refetch()]);
         setState((v) => ({ ...v, loading: false, error: undefined, dataset }));
       } catch (error) {
         setState((v) => ({ ...v, loading: false, error }));
