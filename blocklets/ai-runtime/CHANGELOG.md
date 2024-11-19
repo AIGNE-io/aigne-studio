@@ -1,3 +1,7 @@
+## 0.4.152 (2024-11-19)
+
+- chore: display billing link on pricing table for premium users
+
 ## 0.4.151 (2024-11-19)
 
 - fix: support authorization header
