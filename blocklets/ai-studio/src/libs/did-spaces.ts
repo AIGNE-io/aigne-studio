@@ -1,6 +1,8 @@
 import isEmpty from 'lodash/isEmpty';
 import { joinURL, withQuery } from 'ufo';
 
+import api from './api';
+
 export function didSpaceReady(user: any) {
   if (!user?.didSpace?.endpoint) {
     return false;
@@ -15,7 +17,18 @@ export function didSpaceReady(user: any) {
   return componentMountPoints.some((c) => c?.capabilities?.didSpace === 'requiredOnConnect');
 }
 
-export function getProjectDataUrlInSpace(endpoint: string, projectId: string): string {
+export function getDidConnectStr(userDid: string) {
+  return Buffer.from(
+    JSON.stringify({
+      forceConnected: userDid,
+      switchBehavior: 'auto',
+      showClose: false,
+    }),
+    'utf8'
+  ).toString('base64');
+}
+
+export function getProjectDataUrlInSpace(endpoint: string, projectId: string, spaceOwnerDid: string): string {
   if (isEmpty(endpoint)) {
     return '';
   }
@@ -28,6 +41,8 @@ export function getProjectDataUrlInSpace(endpoint: string, projectId: string): s
 
   return withQuery(joinURL(baseUrl, `space/${spaceDid}/apps/${appDid}/explorer`), {
     key: joinURL(`/apps/${appDid}/.components/${componentDid}/repositories/${projectId}/`),
+    // 携带 space 用户信息
+    '__did-connect__': getDidConnectStr(spaceOwnerDid),
   });
 }
 
@@ -65,13 +80,18 @@ export async function getImportUrl(endpoint: string, options: { redirectUrl: str
     return '';
   }
 
+  const { headers } = await api.head(`${endpoint}`, {
+    timeout: 1000 * 120,
+  });
+  const spaceOwnerDid = headers['x-space-owner-did'];
   const [, componentDid]: string[] = window.blocklet.componentId.split('/');
   const { spaceDid, appDid, baseUrl }: SpaceEndpointContext = getSpaceEndpointContext(endpoint);
-
   const importUrl = withQuery(joinURL(baseUrl, 'import'), {
     spaceDid,
     appDid,
     componentDid,
+    // 携带 space 用户信息
+    '__did-connect__': getDidConnectStr(spaceOwnerDid),
     ...options,
   });
 
