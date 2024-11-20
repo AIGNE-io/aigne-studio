@@ -145,7 +145,7 @@ export const getContent = async (datasetId: string, document: DatasetDocument, m
   if (document.type === 'text') {
     content = [await getTextContent(document.id)];
   } else if (document.type === 'file') {
-    const data = document?.data as { type: string; path: string };
+    const data = document?.data as any;
     const fileJoinPath = await getUploadPathByCheckFile(datasetId, data?.path);
 
     content = [await getFileContent(data?.type || '', fileJoinPath)];

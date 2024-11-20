@@ -1,10 +1,10 @@
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
+import { Document } from '@langchain/core/documents';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 import { intersection } from 'lodash';
 
 import { AIKitEmbeddings } from '../../core/embeddings/ai-kit';
 import Segment from '../../store/models/dataset/segment';
-import UpdateHistories from '../../store/models/dataset/update-history';
 import VectorStore from '../../store/vector-store-faiss';
 
 export const deleteStore = async (datasetId: string, ids: string[]) => {
@@ -21,25 +21,61 @@ export const deleteStore = async (datasetId: string, ids: string[]) => {
   }
 };
 
-export const updateHistoriesAndStore = async (datasetId: string, documentId: string, targetId?: string) => {
+const updateHistoriesAndStore = async (knowledgeId: string, documentId: string, targetId?: string) => {
   const where = targetId ? { documentId, targetId } : { documentId };
   const { rows: messages, count } = await Segment.findAndCountAll({ where });
 
   if (count > 0) {
     const ids = messages.map((x) => x.id);
-    // 仅仅做了save，没有其他地方使用,记录更新了哪些数据
-    const found = await UpdateHistories.findOne({ where: { datasetId, documentId } });
-    if (found) {
-      await found.update({ segmentId: ids });
-    } else {
-      await UpdateHistories.create({ segmentId: ids, datasetId, documentId });
-    }
 
-    await deleteStore(datasetId, ids);
+    await deleteStore(knowledgeId, ids);
 
     await Segment.destroy({ where });
   }
 };
+
+function formatDocument(doc: Document, metadata?: Record<string, unknown>) {
+  if (metadata && Object.keys(metadata).length) {
+    return {
+      ...doc,
+      pageContent: JSON.stringify({ content: doc.pageContent, ...metadata }),
+    };
+  }
+
+  return doc;
+}
+
+async function processContent(
+  content: string,
+  metadata?: Record<string, unknown>,
+  config?: { separators: string[]; chunkSize: number; chunkOverlap: number }
+) {
+  const splitter = new RecursiveCharacterTextSplitter(config);
+  const embeddings = new AIKitEmbeddings({ batchSize: 4 });
+
+  const chunks = await splitter.splitText(content);
+  const docs = await splitter.createDocuments(chunks, metadata ? [{ metadata }] : undefined);
+
+  const formattedDocs = docs.map((doc) => formatDocument(doc, metadata));
+  const vectors = await embeddings.embedDocuments(formattedDocs.map((d) => d.pageContent));
+
+  return { vectors, formattedDocs };
+}
+
+async function saveSegments(docs: Document[], documentId: string, targetId: string) {
+  const segments = await Promise.all(
+    docs.map((doc) => (doc.pageContent ? Segment.create({ documentId, targetId, content: doc.pageContent }) : null))
+  );
+
+  return segments.filter(isNonNullable).map((segment) => segment.id);
+}
+
+async function updateVectorStore(datasetId: string, vectors: number[][], docs: Document[], ids: string[]) {
+  const embeddings = new AIKitEmbeddings({ batchSize: 4 });
+  const store = await VectorStore.load(datasetId, embeddings);
+  await store.addVectors(vectors, docs, { ids });
+  await store.save();
+}
 
 export const saveContentToVectorStore = async ({
   metadata,
@@ -48,38 +84,28 @@ export const saveContentToVectorStore = async ({
   targetId = '',
   documentId,
 }: {
-  metadata?: any;
+  metadata?: Record<string, unknown>;
   content: string;
   datasetId: string;
   targetId: string;
   documentId: string;
 }) => {
-  const textSplitter = new RecursiveCharacterTextSplitter({ chunkSize: 1024 });
-  const embeddings = new AIKitEmbeddings({ batchSize: 4 });
-  const docs = await textSplitter.createDocuments([content], metadata ? [{ metadata }] : undefined);
+  // 文本分割配置提取
+  const splitterConfig = {
+    separators: ['\n\n', '\n', ' ', '。'],
+    chunkSize: 1024,
+    chunkOverlap: 50,
+  };
 
-  const formatDocuments = docs.map((doc) => {
-    if (metadata && typeof metadata === 'object' && Object.keys(metadata).length) {
-      return { ...doc, pageContent: JSON.stringify({ content: doc.pageContent, ...metadata }) };
-    }
+  // 文本处理和向量化
+  const { vectors, formattedDocs } = await processContent(content, metadata, splitterConfig);
 
-    return doc;
-  });
-
-  const vectors = await embeddings.embedDocuments(formatDocuments.map((d) => d.pageContent));
-
-  // 清除历史 Vectors Store
+  // 清理历史数据
   await updateHistoriesAndStore(datasetId, documentId, targetId);
 
-  // 获取索引数据，保存id
-  const savePromises = formatDocuments.map((doc) =>
-    doc.pageContent ? Segment.create({ documentId, targetId, content: doc.pageContent }) : Promise.resolve(null)
-  );
-  const results = await Promise.all(savePromises);
-  const ids = results.filter(isNonNullable).map((result) => result?.id);
+  // 保存分段并获取ID
+  const segments = await saveSegments(formattedDocs, documentId, targetId);
 
-  // 保存到向量数据库
-  const store = await VectorStore.load(datasetId, embeddings);
-  await store.addVectors(vectors, formatDocuments, { ids });
-  await store.save();
+  // 更新向量存储
+  await updateVectorStore(datasetId, vectors, formattedDocs, segments);
 };

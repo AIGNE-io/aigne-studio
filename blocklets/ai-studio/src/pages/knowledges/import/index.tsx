@@ -488,6 +488,7 @@ const StyledTextField = styled(TextField)({
     padding: '9px 6px !important',
     gap: '6px',
     width: '100%',
+    fontSize: '14px',
 
     '& fieldset': {
       borderColor: '#EFF1F5',

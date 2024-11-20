@@ -62,20 +62,14 @@ export default function KnowledgeDetail() {
 
   const { getKnowledge } = useKnowledge();
   const navigate = useNavigate();
-  const { data: knowledgeData, loading } = useRequest(() => getKnowledge(knowledgeId), {
+  const {
+    data: knowledgeData,
+    loading,
+    runAsync,
+  } = useRequest(() => getKnowledge(knowledgeId), {
     refreshDeps: [knowledgeId],
-    onSuccess: (data) => {
-      setShowImportDialog(!data?.docs);
-    },
+    onSuccess: (data) => setShowImportDialog(!data?.docs),
   });
-
-  if (loading) {
-    return (
-      <Box className="center" width={1} height={1}>
-        <CircularProgress />
-      </Box>
-    );
-  }
 
   return (
     <>
@@ -211,7 +205,18 @@ export default function KnowledgeDetail() {
       </ColumnsLayout>
 
       {showImportDialog && (
-        <ImportKnowledge knowledgeId={knowledgeId} onClose={() => setShowImportDialog(false)} onSubmit={() => {}} />
+        <ImportKnowledge
+          knowledgeId={knowledgeId}
+          onClose={() => setShowImportDialog(false)}
+          onSubmit={async () => {
+            try {
+              await runAsync();
+              setShowImportDialog(false);
+            } catch (error) {
+              Toast.error(error?.message);
+            }
+          }}
+        />
       )}
     </>
   );

@@ -4,6 +4,7 @@ import { join } from 'path';
 import { getEmbeddingDir } from '@api/libs/ensure-dir';
 
 import DatasetDocument from '../../../store/models/dataset/document';
+import { saveContentToVectorStore } from '../vector-store';
 
 export abstract class BaseProcessor {
   protected knowledgeId: string;
@@ -28,7 +29,9 @@ export abstract class BaseProcessor {
     if (!this.content) {
       throw new Error('Content is not available');
     }
+
     await writeFile(filePath, this.content!);
+
     await DatasetDocument.update(
       { size: (await stat(filePath)).size },
       { where: { id: this.documentId, datasetId: this.knowledgeId } }
@@ -47,12 +50,29 @@ export abstract class BaseProcessor {
     }
   }
 
+  preprocessText(text: string): string {
+    // 替换连续的空格、换行符和制表符
+    let processed = text.replace(/\s+/g, ' ');
+    // 删除 URL
+    processed = processed.replace(/https?:\/\/(?:[\w-]+\.)+[a-z]{2,}(?:\/[^\s]*)?/gi, '');
+    // 删除邮件地址
+    processed = processed.replace(/[\w.-]+@[\w.-]+\w+/g, '');
+
+    return processed.trim();
+  }
+
   protected abstract saveOriginalFile(): Promise<void>;
   protected abstract ProcessedFile(): Promise<void>;
-
   protected async startRAG(): Promise<void> {
     this.embeddingStatus = 'processing';
-    // RAG处理逻辑
+
+    await saveContentToVectorStore({
+      content: this.preprocessText(this.content!),
+      datasetId: this.knowledgeId,
+      documentId: this.documentId,
+      targetId: this.documentId,
+    });
+
     this.embeddingStatus = 'completed';
   }
 }

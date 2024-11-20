@@ -32,7 +32,7 @@ export class CustomProcessor extends BaseProcessor {
 
     const { title, content } = data;
     const originalFilePath = joinURL(getUploadDir(this.document.datasetId), `${this.documentId}.txt`);
-    await writeFile(originalFilePath, `${title}\n\n${content}`);
+    await writeFile(originalFilePath, `${title}\n${content}`);
     await this.document.update({ path: `${this.documentId}.txt` });
   }
 
