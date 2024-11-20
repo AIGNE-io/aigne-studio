@@ -68,7 +68,7 @@ export default function Knowledge() {
             return (
               <CardContainer key={item.id} height={400}>
                 <KnowledgeCard
-                  emoji="😀"
+                  emoji="📖"
                   title={item.name || t('unnamed')}
                   description={item.description || ''}
                   docsCount={item.docs}
@@ -346,7 +346,7 @@ const SelectKnowledgeModal = (
                 }}>
                 <KnowledgeCard
                   disabled={disabled[key]}
-                  emoji="😀"
+                  emoji="📖"
                   title={item.name || t('unnamed')}
                   description={item.description || ''}
                   docsCount={item.docs}

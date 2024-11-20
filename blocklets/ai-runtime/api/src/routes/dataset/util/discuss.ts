@@ -1,6 +1,6 @@
 import { call } from '@blocklet/sdk/lib/component';
 
-type Discussion = {
+export type Discussion = {
   post: {
     content: string;
     title: string;
@@ -10,19 +10,21 @@ type Discussion = {
     author: {
       fullName: string;
     };
+    excerpt: string;
+    status: string;
     labels: { name: string }[];
     board: { title: string; desc: string; id: string };
     type: string;
-    languagesResult: Discussion[];
+    languagesResult: Discussion['post'][];
+    comments?: {
+      id: string;
+      content: string;
+      commentAuthorName: string;
+      commentCreatedAt: string;
+      commentUpdatedAt: string;
+    }[];
   } | null;
   languages: string[];
-  comments?: {
-    id: string;
-    content: string;
-    commentAuthorName: string;
-    commentCreatedAt: string;
-    commentUpdatedAt: string;
-  }[];
 };
 
 export async function getDiscussion(discussionId: string, locale?: string): Promise<Discussion> {

@@ -1,9 +1,11 @@
-import { KnowledgeDocumentCard } from '@app/libs/dataset';
+import { KnowledgeDocumentCard, watchKnowledgeEmbeddings } from '@app/libs/dataset';
 import useDialog from '@app/utils/use-dialog';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import Toast from '@arcblock/ux/lib/Toast';
 import { Box, Button, Stack, Tooltip, Typography, styled } from '@mui/material';
-import { DataGrid, gridClasses } from '@mui/x-data-grid';
-import { useMemo } from 'react';
+import { DataGrid, GridColDef, gridClasses } from '@mui/x-data-grid';
+import { useReactive } from 'ahooks';
+import { useEffect, useMemo } from 'react';
 import { joinURL } from 'ufo';
 
 import Crawl from '../../../icons/crawl';
@@ -14,120 +16,155 @@ import PDF from '../../../icons/pdf';
 import TXT from '../../../icons/txt';
 import Unknown from '../../../icons/unknown';
 import Discuss from '../../project/icons/discuss';
+import Pending from './pending';
+
+function generateDiscussionUrl(params: any): string {
+  const prefix = (window.blocklet?.componentMountPoints || []).find((x) => x.name === 'did-comments')?.mountPoint;
+  let url = joinURL(window.blocklet?.appUrl || '', prefix || '/', 'discussions');
+
+  const from = params?.data?.from;
+  const id = params?.data?.id;
+  const type = params?.data?.type;
+  const boardId = params?.data?.boardId;
+
+  const map: Record<string, Record<string, string>> = {
+    discussionType: {
+      discussion: 'discussions',
+      doc: 'docs',
+      blog: 'blog',
+    },
+    board: {
+      discussion: 'discussions/boards',
+      doc: 'docs',
+      blog: 'blog/boards',
+    },
+    discussion: {
+      discussion: 'discussions',
+      doc: joinURL('docs', boardId || ''),
+      blog: 'blog/en',
+    },
+  };
+
+  if (from && map[from]) {
+    url = joinURL(window.blocklet?.appUrl || '', prefix || '/', map[from][type] || map[from].discussion!, id);
+  }
+
+  return url;
+}
 
 const KnowledgeDocuments = ({
-  rows,
   knowledgeId,
+  rows,
   total,
   page,
   onChangePage,
+  onRemove,
+  onRefetch,
+  onEmbedding,
 }: {
-  rows: KnowledgeDocumentCard[];
   knowledgeId: string;
+  rows: KnowledgeDocumentCard[];
   total: number;
   page: number;
   onChangePage: (page: number) => void;
+  onRemove: (documentId: string) => void;
+  onRefetch: () => void;
+  onEmbedding: (documentId: string) => void;
 }) => {
   const { t } = useLocaleContext();
+  const embeddings = useReactive<{ [key: string]: { [key: string]: any } }>({});
 
-  const columns = useMemo(
-    () =>
-      [
-        {
-          field: 'name',
-          headerName: t('knowledge.documents.name'),
-          flex: 1,
-          sortable: false,
-          renderCell: (params: any) => {
-            return (
-              <Stack width={1} flexDirection="row" alignItems="center" gap={1}>
-                <DocumentIcon document={params.row} />
-                <Box flexGrow={1} color="#030712">
-                  {params.row.name}
-                </Box>
-              </Stack>
-            );
-          },
+  useEffect(() => {
+    const abortController = new AbortController();
+
+    (async () => {
+      const res = await watchKnowledgeEmbeddings({ knowledgeId, signal: abortController.signal });
+      const reader = res.getReader();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        if (value) {
+          switch (value.type) {
+            case 'change': {
+              const { type, ...rest } = value;
+              embeddings[value.documentId] = rest;
+              break;
+            }
+            case 'complete': {
+              const { type, ...rest } = value;
+              embeddings[value.documentId] = rest;
+              break;
+            }
+            case 'error': {
+              const { type, message, ...rest } = value;
+              embeddings[value.documentId] = rest;
+              Toast.error(message);
+              break;
+            }
+            default:
+              console.warn('Unsupported event', value);
+          }
+        }
+      }
+    })();
+
+    return () => abortController.abort();
+  }, [knowledgeId]);
+
+  const columns = useMemo<GridColDef<KnowledgeDocumentCard>[]>(
+    () => [
+      {
+        field: 'name',
+        headerName: t('knowledge.documents.name'),
+        flex: 1,
+        sortable: false,
+        renderCell: (params) => {
+          return (
+            <Stack width={1} flexDirection="row" alignItems="center" gap={1}>
+              <DocumentIcon document={params.row} />
+              <Box flexGrow={1} color="#030712">
+                {params.row.name}
+              </Box>
+            </Stack>
+          );
         },
-        {
-          field: 'type',
-          headerName: t('knowledge.documents.type'),
-          width: 100,
-          sortable: false,
-          headerAlign: 'center',
-          renderCell: (params: any) => {
-            return <Box className="center">{t(params.row.type)}</Box>;
-          },
+      },
+      {
+        field: 'type',
+        headerName: t('knowledge.documents.type'),
+        width: 100,
+        sortable: false,
+        headerAlign: 'center',
+        renderCell: (params) => {
+          return <Box className="center">{t(params.row.type)}</Box>;
         },
-        {
-          field: 'embeddingStatus',
-          headerName: t('embeddingStatus'),
-          width: 150,
-          sortable: false,
-          headerAlign: 'center',
-          renderCell: (params: any) => {
-            const colors: any = {
-              idle: '#D97706',
-              uploading: '#D97706',
-              success: '#059669',
-              error: '#E11D48',
-            };
+      },
+      {
+        field: 'embeddingStatus',
+        headerName: t('embeddingStatus'),
+        width: 150,
+        sortable: false,
+        headerAlign: 'center',
+        renderCell: (params) => {
+          const colors: any = {
+            idle: '#D97706',
+            uploading: '#D97706',
+            success: '#059669',
+            error: '#E11D48',
+          };
 
-            function isSymmetricAroundSlash(str: string = '') {
-              try {
-                const [before, after] = (str || '').split('/');
-                return before === after;
-              } catch (error) {
-                return false;
-              }
+          function isSymmetricAroundSlash(str: string = '') {
+            try {
+              const [before, after] = (str || '').split('/');
+              return before === after;
+            } catch (error) {
+              return false;
             }
+          }
 
-            if (!params.row.embeddingStatus) {
-              return (
-                <Stack className="center" height="100%">
-                  <Box
-                    borderRadius={20}
-                    border="1px solid #E5E7EB"
-                    p="4px 12px"
-                    color="#030712"
-                    fontSize={13}
-                    display="flex"
-                    alignItems="center"
-                    lineHeight={1}
-                    gap={1}>
-                    <Box width={6} height={6} borderRadius={6} bgcolor={colors.idle} />
-                    <Box display="flex" alignItems="center">
-                      {t('embeddingStatus_idle')}
-                    </Box>
-                  </Box>
-                </Stack>
-              );
-            }
-
-            if (['idle', 'uploading', 'success', 'error'].includes(params.row.embeddingStatus)) {
-              return (
-                <Stack className="center" height="100%">
-                  <Tooltip title={params.row.error ?? undefined}>
-                    <Box
-                      borderRadius={20}
-                      p="4px 12px"
-                      color="#030712"
-                      fontSize={13}
-                      display="flex"
-                      alignItems="center"
-                      lineHeight={1}
-                      gap={1}>
-                      <Box display="flex" alignItems="center">
-                        {t(`embeddingStatus_${params.row.embeddingStatus}`)}
-                        {/* {params.row.embeddingStatus === 'uploading' && <Pending mt={1} />} */}
-                      </Box>
-                      <Box width={6} height={6} borderRadius={6} bgcolor={colors[params.row.embeddingStatus]} />
-                    </Box>
-                  </Tooltip>
-                </Stack>
-              );
-            }
-
+          if (!params.row.embeddingStatus) {
             return (
               <Stack className="center" height="100%">
                 <Box
@@ -140,96 +177,92 @@ const KnowledgeDocuments = ({
                   alignItems="center"
                   lineHeight={1}
                   gap={1}>
-                  <Box
-                    width={6}
-                    height={6}
-                    borderRadius={6}
-                    bgcolor={isSymmetricAroundSlash(params.row.embeddingStatus) ? colors.success : colors.uploading}
-                  />
-                  {params.row.embeddingStatus}
+                  <Box width={6} height={6} borderRadius={6} bgcolor={colors.idle} />
+                  <Box display="flex" alignItems="center">
+                    {t('embeddingStatus_idle')}
+                  </Box>
                 </Box>
               </Stack>
             );
-          },
+          }
+
+          if (['idle', 'uploading', 'success', 'error'].includes(params.row.embeddingStatus)) {
+            return (
+              <Stack className="center" height="100%">
+                <Tooltip title={params.row.error ?? undefined}>
+                  <Box
+                    borderRadius={20}
+                    p="4px 12px"
+                    color="#030712"
+                    fontSize={13}
+                    display="flex"
+                    alignItems="center"
+                    lineHeight={1}
+                    gap={1}>
+                    <Box display="flex" alignItems="center">
+                      {t(`embeddingStatus_${params.row.embeddingStatus}`)}
+                      {params.row.embeddingStatus === 'uploading' && <Pending mt={1} />}
+                    </Box>
+                    <Box width={6} height={6} borderRadius={6} bgcolor={colors[params.row.embeddingStatus]} />
+                  </Box>
+                </Tooltip>
+              </Stack>
+            );
+          }
+
+          return (
+            <Stack className="center" height="100%">
+              <Box
+                borderRadius={20}
+                border="1px solid #E5E7EB"
+                p="4px 12px"
+                color="#030712"
+                fontSize={13}
+                display="flex"
+                alignItems="center"
+                lineHeight={1}
+                gap={1}>
+                <Box
+                  width={6}
+                  height={6}
+                  borderRadius={6}
+                  bgcolor={isSymmetricAroundSlash(params.row.embeddingStatus) ? colors.success : colors.uploading}
+                />
+                {params.row.embeddingStatus}
+              </Box>
+            </Stack>
+          );
         },
-        {
-          field: 'actions',
-          headerName: t('actions'),
-          width: 200,
-          sortable: false,
-          headerAlign: 'center',
-          renderCell: (params: any) => (
-            <Actions
-              id={params.row.id}
-              type={params.row.type}
-              datasetId={knowledgeId}
-              error={params.row?.error}
-              onRemove={() => {}}
-              onRefetch={() => {}}
-              onEdit={(e) => {
-                e.stopPropagation();
-              }}
-              onEmbedding={async (e) => {
-                e.stopPropagation();
-              }}
-              onLink={(e) => {
-                e.stopPropagation();
-                const prefix = (window.blocklet?.componentMountPoints || []).find(
-                  (x) => x.name === 'did-comments'
-                )?.mountPoint;
-                let url = joinURL(window.blocklet?.appUrl || '', prefix || '/', 'discussions');
-
-                if (params.row.data?.data?.from === 'discussionType') {
-                  const map: Record<string, string> = {
-                    discussion: 'discussions',
-                    doc: 'docs',
-                    blog: 'blog',
-                  };
-
-                  url = joinURL(
-                    window.blocklet?.appUrl || '',
-                    prefix || '/',
-                    map[params.row.data?.data?.id] || map.discussion!
-                  );
-                } else if (params.row.data?.data?.from === 'board') {
-                  const map: Record<string, string> = {
-                    discussion: 'discussions/boards',
-                    doc: 'docs',
-                    blog: 'blog/boards',
-                  };
-
-                  url = joinURL(
-                    window.blocklet?.appUrl || '',
-                    prefix || '/',
-                    map[params.row.data?.data?.type] || map.discussion!,
-                    params.row.data?.data?.id
-                  );
-                } else if (params.row.data?.data?.from === 'discussion') {
-                  const map: Record<string, string> = {
-                    discussion: 'discussions',
-                    doc: joinURL('docs', params.row.data?.data?.boardId || ''),
-                    blog: 'blog/en',
-                  };
-
-                  url = joinURL(
-                    window.blocklet?.appUrl || '',
-                    prefix || '/',
-                    map[params.row.data?.data?.type] || map.discussion!,
-                    params.row.data?.data?.id
-                  );
-                } else {
-                  url = joinURL(window.blocklet?.appUrl || '', prefix || '/', 'discussions');
-                }
-
-                window.open(url, '_blank');
-              }}
-            />
-          ),
-        },
-      ].filter(Boolean),
+      },
+      {
+        field: 'actions',
+        headerName: t('actions'),
+        width: 200,
+        sortable: false,
+        headerAlign: 'center',
+        renderCell: (params) => (
+          <Actions
+            type={params.row.type}
+            error={params.row?.error ?? ''}
+            onRemove={() => onRemove(params.row.id)}
+            onRefetch={onRefetch}
+            onEmbedding={async (e) => {
+              e.stopPropagation();
+              onEmbedding(params.row.id);
+            }}
+            onLink={(e) => {
+              e.stopPropagation();
+              const url = generateDiscussionUrl(params.row.data);
+              window.open(url, '_blank');
+            }}
+          />
+        ),
+      },
+    ],
     [t]
   );
 
+  const list = (rows ?? []).map((i) => ({ ...i, ...(embeddings[i.id] || {}) }));
   return (
     <Stack sx={{ overflowX: 'auto', mt: 2.5 }}>
       <Table
@@ -246,7 +279,7 @@ const KnowledgeDocuments = ({
         columnHeaderHeight={30}
         rowHeight={44}
         getRowId={(v) => v.id}
-        rows={rows}
+        rows={list}
         columns={columns as any}
         rowCount={total ?? 0}
         pageSizeOptions={[10]}
@@ -261,22 +294,16 @@ const KnowledgeDocuments = ({
 
 function Actions({
   type,
-  id,
   error,
-  datasetId,
   onRefetch,
   onRemove,
-  onEdit,
   onEmbedding,
   onLink,
 }: {
   type: string;
-  id: string;
   error?: string;
-  datasetId: string;
-  onRemove: (datasetId: string, documentId: string) => void;
+  onRemove: () => void;
   onRefetch: () => void;
-  onEdit: (e: React.MouseEvent) => void;
   onEmbedding: (e: React.MouseEvent) => void;
   onLink: (e: React.MouseEvent) => void;
 }) {
@@ -288,7 +315,8 @@ function Actions({
       <Stack flexDirection="row" alignItems="center" justifyContent="center" height={1}>
         {['text', 'file'].includes(type) ? (
           <>
-            <Button onClick={onEdit}>{t('edit')}</Button>
+            {/* <Button onClick={onEdit}>{t('edit')}</Button> */}
+
             {error ? (
               <Button onClick={onEmbedding} color="error">
                 <Tooltip placement="top" arrow title={t('refreshTip')}>
@@ -304,6 +332,7 @@ function Actions({
                 <Box>{t('view')}</Box>
               </Tooltip>
             </Button>
+
             <Button onClick={onEmbedding}>
               <Tooltip placement="top" arrow title={t('refreshTip')}>
                 <Box>{t('refresh')}</Box>
@@ -343,7 +372,7 @@ function Actions({
               okColor: 'error',
               cancelText: t('cancel'),
               onOk: async () => {
-                await onRemove(datasetId, id);
+                await onRemove();
                 await onRefetch();
               },
             });

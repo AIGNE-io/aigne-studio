@@ -161,70 +161,45 @@ export async function getDocumentContent(datasetId: string, documentId: string):
 }
 
 export async function deleteDocument(
-  datasetId: string,
+  knowledgeId: string,
   documentId: string
 ): Promise<{ dataset: Knowledge; document: KnowledgeDocument }> {
   return axios
-    .delete(`/api/datasets/${datasetId}/documents/${documentId}`, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
+    .delete(`/api/datasets/${knowledgeId}/documents/${documentId}`, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
     .then((res) => res.data);
 }
 
-export async function uploadDocumentName(
-  datasetId: string,
-  documentId: string,
-  input: { name: string }
-): Promise<{ data: string }> {
+export async function refreshEmbedding(knowledgeId: string, documentId: string): Promise<{ data: string }> {
   return axios
-    .put(`/api/datasets/${datasetId}/documents/${documentId}/name`, input, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
-    .then((res) => res.data);
-}
-
-export async function reloadEmbedding(datasetId: string, documentId: string): Promise<{ data: string }> {
-  return axios
-    .post(`/api/datasets/${datasetId}/documents/${documentId}/embedding`, {}, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
+    .post(`/api/datasets/${knowledgeId}/documents/${documentId}/embedding`, {}, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
     .then((res) => res.data);
 }
 
 export async function getSegments(
-  datasetId: string,
+  knowledgeId: string,
   documentId: string,
   params: { page?: number; size?: number } = {}
 ): Promise<{ items: KnowledgeSegment[]; total: number; page: number }> {
   return axios
-    .get(`/api/datasets/${datasetId}/documents/${documentId}/segments`, { baseURL: AIGNE_RUNTIME_MOUNT_POINT, params })
+    .get(`/api/datasets/${knowledgeId}/documents/${documentId}/segments`, {
+      baseURL: AIGNE_RUNTIME_MOUNT_POINT,
+      params,
+    })
     .then((res) => res.data);
 }
 
-export async function createDatasetDocuments(
-  datasetId: string,
-  input: CreateDiscussionItem
-): Promise<KnowledgeDocument>;
-export async function createDatasetDocuments(
-  datasetId: string,
-  input: CreateDiscussionItem[]
-): Promise<KnowledgeDocument[]>;
-export async function createDatasetDocuments(
-  datasetId: string,
-  input: CreateDiscussionItemInput
-): Promise<KnowledgeDocument | KnowledgeDocument[]> {
-  return axios
-    .post(`/api/datasets/${datasetId}/documents/discussion`, input, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
-    .then((res) => res.data);
-}
-
-export async function watchDatasetEmbeddings({
-  datasetId,
+export async function watchKnowledgeEmbeddings({
+  knowledgeId,
   signal,
 }: {
-  datasetId: string;
+  knowledgeId: string;
   signal?: AbortSignal | null;
 }) {
-  const url = joinURL(window.location.origin, AIGNE_RUNTIME_MOUNT_POINT, `/api/datasets/${datasetId}/embeddings`);
+  const url = joinURL(window.location.origin, AIGNE_RUNTIME_MOUNT_POINT, `/api/datasets/${knowledgeId}/embeddings`);
 
   return new ReadableStream<
     | { type: 'change'; documentId: string; embeddingStatus: string; embeddingEndAt?: Date; embeddingStartAt?: Date }
     | { type: 'complete'; documentId: string; embeddingStatus: string; embeddingEndAt?: Date; embeddingStartAt?: Date }
-    | { type: 'event'; documentId: string }
     | { type: 'error'; documentId: string; embeddingStatus: string; message: string }
   >({
     async start(controller) {

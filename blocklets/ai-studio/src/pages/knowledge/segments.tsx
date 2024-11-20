@@ -34,7 +34,7 @@ import { Virtuoso } from 'react-virtuoso';
 
 import { useFetchSegments, useSegments } from '../../contexts/datasets/segments';
 import { getErrorMessage } from '../../libs/api';
-import { getDocumentContent, uploadDocumentName } from '../../libs/dataset';
+import { getDocumentContent } from '../../libs/dataset';
 import Empty from '../project/icons/empty';
 
 export default function KnowledgeSegments() {
@@ -364,8 +364,6 @@ export function SegmentsItem({
 }
 
 function UpdateDocumentName({
-  datasetId,
-  documentId,
   name,
   documentDialogState,
   onUpdate,
@@ -385,9 +383,8 @@ function UpdateDocumentName({
       maxWidth="sm"
       fullWidth
       component="form"
-      onSubmit={form.handleSubmit(async (data) => {
+      onSubmit={form.handleSubmit(async () => {
         try {
-          await uploadDocumentName(datasetId || '', documentId || '', data);
           form.reset({ name: '' });
 
           onUpdate();

@@ -1,43 +1,50 @@
 import { readFile, writeFile } from 'fs/promises';
 
-import { getUploadDir } from '@api/libs/ensure-dir';
-import DatasetDocument from '@api/store/models/dataset/document';
+import { getSourceFileDir } from '@api/libs/ensure-dir';
+import { exists } from 'fs-extra';
 import { joinURL } from 'ufo';
+import { stringify } from 'yaml';
 
 import { BaseProcessor } from './base';
 
 export class CustomProcessor extends BaseProcessor {
-  protected document: DatasetDocument;
+  protected originalFileName: string;
 
-  constructor({
-    knowledgeId,
-    documentId,
-    sse,
-    document,
-  }: {
-    knowledgeId: string;
-    documentId: string;
-    sse: any;
-    document: DatasetDocument;
-  }) {
+  constructor({ knowledgeId, documentId, sse }: { knowledgeId: string; documentId: string; sse: any }) {
     super({ knowledgeId, documentId, sse });
-    this.document = document;
+    this.originalFileName = `${documentId}.html`;
   }
 
   protected async saveOriginalFile(): Promise<void> {
-    const { data } = this.document;
+    const document = await this.getDocument();
+
+    const { data } = document;
     if (data?.type !== 'text') {
       throw new Error('document is not a text');
     }
 
     const { title, content } = data;
-    const originalFilePath = joinURL(getUploadDir(this.document.datasetId), `${this.documentId}.txt`);
+    const originalFilePath = joinURL(getSourceFileDir(this.knowledgeId), this.originalFileName);
     await writeFile(originalFilePath, `${title}\n${content}`);
-    await this.document.update({ path: `${this.documentId}.txt` });
+    await document.update({ path: this.originalFileName });
   }
 
   protected async ProcessedFile(): Promise<void> {
-    const originalFilePath = joinURL(getUploadDir(this.document.datasetId), `${this.documentId}.txt`);
-    this.content = await readFile(originalFilePath, 'utf8');
+    const document = await this.getDocument();
+    const { data } = document;
+
+    if (!document.path) {
+      throw new Error('get processed file path failed');
+    }
+
+    const originalFilePath = joinURL(getSourceFileDir(this.knowledgeId), document.path);
+    if (!(await exists(originalFilePath))) {
+      throw new Error(`processed file ${originalFilePath} not found`);
+    }
+
+    this.content = stringify({
+      content: await readFile(originalFilePath, 'utf8'),
+      metadata: { documentId: this.documentId, ...data },
+    });
   }
 }

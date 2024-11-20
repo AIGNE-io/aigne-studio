@@ -8,6 +8,7 @@ import {
   KnowledgeCard,
   createDatasetFromResources,
   createKnowledge,
+  deleteDocument,
   deleteKnowledge,
   getDocuments,
   getKnowledge,
@@ -26,9 +27,10 @@ export interface KnowledgeContext {
   refetch: (projectId?: string) => Promise<void>;
   createKnowledge: (input: KnowledgeInput) => Promise<KnowledgeCard>;
   getKnowledge: (knowledgeId: string) => Promise<KnowledgeCard>;
-  deleteKnowledge: (projectId: string, datasetId: string) => Promise<void>;
+  deleteKnowledge: typeof deleteKnowledge;
   updateKnowledge: typeof updateKnowledge;
   getDocuments: typeof getDocuments;
+  deleteDocument: typeof deleteDocument;
   getResourcesKnowledgeList: () => Promise<void>;
   createDatasetFromResources: typeof createDatasetFromResources;
 }
@@ -75,6 +77,7 @@ export function KnowledgeProvider({ children }: { children: ReactNode }) {
     updateKnowledge,
     deleteKnowledge,
     getDocuments,
+    deleteDocument,
     getResourcesKnowledgeList: async () => {
       const state = value.current;
 

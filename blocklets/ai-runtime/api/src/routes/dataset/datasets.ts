@@ -22,15 +22,14 @@ import Joi from 'joi';
 import { pick } from 'lodash';
 import omitBy from 'lodash/omitBy';
 import { Op, Sequelize } from 'sequelize';
-import { joinURL } from 'ufo';
 import { stringify } from 'yaml';
 
-import ensureKnowledgeDirExists, { getUploadDir, getVectorStorePath } from '../../libs/ensure-dir';
+import ensureKnowledgeDirExists, { getLogoPath, getSourceFileDir, getVectorStorePath } from '../../libs/ensure-dir';
 import copyKnowledgeBase from '../../libs/knowledge';
 import { ensureComponentCallOr, ensureComponentCallOrAdmin, userAuth } from '../../libs/security';
 import Knowledge from '../../store/models/dataset/dataset';
 import KnowledgeDocument from '../../store/models/dataset/document';
-import { sse } from './embeddings';
+import { sse } from './util';
 
 const router = Router();
 const authClient = new AuthService();
@@ -179,7 +178,7 @@ router.get('/:datasetId/export-resource', middlewares.session(), ensureComponent
     await writeFile(join(knowledgeWithIdPath, 'contents.yaml'), stringify(contents));
 
     // 复制 files 数据
-    const uploadSrc = resolve(await getUploadDir(datasetId));
+    const uploadSrc = resolve(await getSourceFileDir(datasetId));
     const uploadsDst = join(knowledgeWithIdPath, 'uploads');
 
     if (await pathExists(uploadSrc)) {
@@ -311,7 +310,7 @@ router.delete('/:datasetId', middlewares.session(), userAuth(), async (req, res)
   res.json(dataset);
 });
 
-router.get('/:datasetId/embeddings', compression(), sse.init);
+router.get('/:knowledgeId/embeddings', compression(), sse.init);
 
 const localStorageServer = initLocalStorageServer({
   path: Config.uploadDir,
@@ -319,9 +318,8 @@ const localStorageServer = initLocalStorageServer({
   onUploadFinish: async (req: any, _res: any, uploadMetadata: any) => {
     const { knowledgeId } = req.query;
     const { hashFileName, absolutePath } = uploadMetadata.runtime;
-    const newFilePath = joinURL(getUploadDir(knowledgeId), hashFileName);
 
-    await copyFile(absolutePath, newFilePath);
+    await copyFile(absolutePath, getLogoPath(knowledgeId));
 
     // 延迟文件移动操作
     setTimeout(async () => {
@@ -342,7 +340,7 @@ router.get('/:knowledgeId/icon.png', async (req, res) => {
 
   const original = await Knowledge.findOne({ where: { id: knowledgeId } });
   if (original?.icon) {
-    const logoPath = joinURL(getUploadDir(knowledgeId), original.icon);
+    const logoPath = getLogoPath(knowledgeId);
 
     if (await exists(logoPath)) {
       res.setHeader('Content-Type', 'image/png');

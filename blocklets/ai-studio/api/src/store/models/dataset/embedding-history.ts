@@ -1,12 +1,9 @@
 import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
-import { Worker } from 'snowflake-uuid';
 
+import nextId from '../../../libs/next-id';
 import { sequelize } from '../../sequelize';
 import { UploadStatus } from './document';
 
-const idGenerator = new Worker();
-
-const nextId = () => idGenerator.nextId().toString();
 export default class DatasetEmbeddingHistory extends Model<
   InferAttributes<DatasetEmbeddingHistory>,
   InferCreationAttributes<DatasetEmbeddingHistory>

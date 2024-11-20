@@ -1,84 +1,118 @@
 import { readFile, writeFile } from 'fs/promises';
 
-import { getUploadDir } from '@api/libs/ensure-dir';
+import { getSourceFileDir } from '@api/libs/ensure-dir';
 import logger from '@api/libs/logger';
-import DatasetDocument from '@api/store/models/dataset/document';
 import { getComponentMountPoint } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
+import { exists } from 'fs-extra';
+import { omitBy } from 'lodash';
 import { joinURL } from 'ufo';
 import { parse, stringify } from 'yaml';
 
-import { commentsIterator, discussionsIterator, getDiscussion } from '../util/discuss';
+import { Discussion, commentsIterator, discussionsIterator, getDiscussion } from '../util/discuss';
 import { BaseProcessor } from './base';
 
-export class DiscussKitProcessor extends BaseProcessor {
-  protected document: DatasetDocument;
+const commentsContent = async (discussionId: string) => {
+  const arr = [];
+  try {
+    for await (const comment of commentsIterator(discussionId)) {
+      arr.push(comment);
+    }
+  } catch (error) {
+    console.error(error?.message);
+  }
 
-  constructor({
-    knowledgeId,
-    documentId,
-    sse,
-    document,
-  }: {
-    knowledgeId: string;
-    documentId: string;
-    sse: any;
-    document: DatasetDocument;
-  }) {
+  return arr;
+};
+
+const getDiscussionContent = async (discussionId: string) => {
+  const discussion = await getDiscussion(discussionId);
+  if (!discussion?.post) return null;
+
+  const { post, languages = [] } = discussion;
+
+  const languagesResult = [];
+  for (const language of languages) {
+    if (language !== post?.locale) {
+      const res = await getDiscussion(discussionId, language);
+      if (res?.post) languagesResult.push(res?.post);
+    }
+  }
+
+  const comments = await commentsContent(discussionId);
+  post.comments = comments;
+
+  return post;
+};
+
+export class DiscussKitProcessor extends BaseProcessor {
+  protected originalFileName: string;
+
+  constructor({ knowledgeId, documentId, sse }: { knowledgeId: string; documentId: string; sse: any }) {
     super({ knowledgeId, documentId, sse });
-    this.document = document;
+    this.originalFileName = `${documentId}.yml`;
   }
 
   protected async saveOriginalFile(): Promise<void> {
-    const { data } = this.document;
+    const document = await this.getDocument();
+
+    const { data } = document;
     if (data?.type !== 'discussKit') {
       throw new Error('document is not a discussKit');
     }
 
     const post = await this.getDiscussion();
     const result = stringify(post);
-    const originalFilePath = joinURL(getUploadDir(this.document.datasetId), `${this.documentId}.yml`);
+    const originalFilePath = joinURL(getSourceFileDir(this.knowledgeId), this.originalFileName);
     await writeFile(originalFilePath, result);
-    await this.document.update({ path: `${this.documentId}.yml` });
+    await document.update({ path: this.originalFileName });
   }
 
-  // TODO:新增一个metadata 字段，用于存储处理后的数据
   protected async ProcessedFile(): Promise<void> {
-    const originalFilePath = joinURL(getUploadDir(this.document.datasetId), `${this.documentId}.yml`);
-    const contents = parse((await readFile(originalFilePath)).toString());
+    const document = await this.getDocument();
 
+    const { data } = document;
+
+    if (!document.path) {
+      throw new Error('get processed file path failed');
+    }
+
+    const originalFilePath = joinURL(getSourceFileDir(this.knowledgeId), document.path);
+    if (!(await exists(originalFilePath))) {
+      throw new Error(`processed file ${originalFilePath} not found`);
+    }
+
+    const contents = parse((await readFile(originalFilePath)).toString());
     const array = Object.values(contents)
-      .flatMap((item: any) => {
-        const arr = [];
+      .flatMap((value: unknown) => {
+        const { link, post } = value as { link: string; post: Discussion['post'] };
+        if (!post) return [];
 
         const current = {
-          locale: item.post.locale,
-          title: item.post.title,
-          content: item.post.content,
-          comments: item.comments,
+          content: omitBy(post, (value) => !value),
+          metadata: {
+            documentId: this.documentId,
+            ...data,
+            title: post.title,
+            locale: post.locale,
+            link,
+          },
         };
-        arr.push(current);
 
-        for (const language of item.languagesResult || []) {
-          const current = {
-            locale: language.post.locale,
-            title: language.post.title,
-            content: language.post.content,
-            comments: language.comments,
-          };
-          arr.push(current);
-        }
-
-        return arr;
+        return current;
       })
-      .map((item) => JSON.stringify(item, null, 2));
+      .map((item) => ({
+        content: JSON.stringify(item.content),
+        metadata: item.metadata,
+      }));
 
-    this.content = array.join('\n\n');
+    this.content = stringify(array);
   }
 
   private async discussion() {
     const result: Record<string, any> = {};
-    const targetId = (this.document?.data as any)?.data?.id;
+    const document = await this.getDocument();
+    const targetId = (document.data as any)?.data?.id;
     const post = await this.getDiscussionWithLanguagesAndComments(targetId);
     result[targetId] = post;
 
@@ -88,8 +122,9 @@ export class DiscussKitProcessor extends BaseProcessor {
   private async board() {
     const ids = [];
     try {
-      const type = (this.document.data as any)?.data?.type;
-      const boardId = (this.document.data as any)?.data?.id;
+      const document = await this.getDocument();
+      const type = (document.data as any)?.data?.type;
+      const boardId = (document.data as any)?.data?.id;
 
       for await (const { id: discussionId } of discussionsIterator(type, boardId)) {
         ids.push(discussionId);
@@ -114,7 +149,8 @@ export class DiscussKitProcessor extends BaseProcessor {
 
   private async discussionType() {
     const ids = [];
-    const type = (this.document.data as any)?.data?.id;
+    const document = await this.getDocument();
+    const type = (document.data as any)?.data?.id;
 
     try {
       for await (const { id: discussionId } of discussionsIterator(type)) {
@@ -139,7 +175,8 @@ export class DiscussKitProcessor extends BaseProcessor {
   }
 
   private async getDiscussion() {
-    const { data } = this.document;
+    const document = await this.getDocument();
+    const { data } = document;
     if (data?.type !== 'discussKit') {
       throw new Error('document is not a discussKit');
     }
@@ -160,17 +197,15 @@ export class DiscussKitProcessor extends BaseProcessor {
   }
 
   private async getDiscussionWithLanguagesAndComments(discussionId: string) {
-    const discussion = await this.getDiscussionWithComments(discussionId);
-    if (!discussion?.post) return {};
-
-    const { post, languages = [] } = discussion;
+    const post = await getDiscussionContent(discussionId);
+    if (!post) return {};
 
     const getPostLink = (type: string, locale?: string) => {
       switch (type) {
         case 'blog':
-          return joinURL('blog', locale || '');
+          return joinURL('blog', locale ?? '');
         case 'doc':
-          return joinURL('docs', post.board.id, locale || '');
+          return joinURL('docs', post.board.id, locale ?? '');
         case 'post':
           return 'discussions';
         default:
@@ -181,30 +216,6 @@ export class DiscussKitProcessor extends BaseProcessor {
     const link = new URL(config.env.appUrl);
     link.pathname = joinURL(getComponentMountPoint('did-comments'), getPostLink(post.type, post.locale), discussionId);
 
-    const languagesResult = [];
-    for (const language of languages) {
-      if (language !== post?.locale) {
-        logger.log('embedding language discuss', { language });
-        // eslint-disable-next-line no-await-in-loop
-        const res = await this.getDiscussionWithComments(discussionId, language);
-        if (res) languagesResult.push(res);
-      }
-    }
-
-    post.languagesResult = languagesResult;
-    return discussion;
-  }
-
-  private async getDiscussionWithComments(discussionId: string, language?: string) {
-    const comments = [];
-    const discussion = await getDiscussion(discussionId, language);
-    if (!discussion.post) return null;
-
-    for await (const data of commentsIterator(discussionId)) {
-      comments.push(data);
-    }
-
-    discussion.comments = comments;
-    return discussion;
+    return { post, link };
   }
 }

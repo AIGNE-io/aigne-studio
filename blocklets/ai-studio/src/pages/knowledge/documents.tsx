@@ -28,10 +28,10 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
 import { useDocuments } from '../../contexts/datasets/documents';
-import { reloadEmbedding, searchKnowledge, watchDatasetEmbeddings } from '../../libs/dataset';
+import { refreshEmbedding, searchKnowledge, watchKnowledgeEmbeddings } from '../../libs/dataset';
 import useDialog from '../../utils/use-dialog';
+import Pending from '../knowledges/document/pending';
 import Close from '../project/icons/close';
-import Pending from './pending';
 import { SegmentsItem } from './segments';
 
 export default function KnowledgeDocuments() {
@@ -54,7 +54,7 @@ export default function KnowledgeDocuments() {
     const abortController = new AbortController();
 
     (async () => {
-      const res = await watchDatasetEmbeddings({ datasetId: datasetId || '', signal: abortController.signal });
+      const res = await watchKnowledgeEmbeddings({ knowledgeId: datasetId || '', signal: abortController.signal });
       const reader = res.getReader();
 
       while (true) {
@@ -274,7 +274,7 @@ export default function KnowledgeDocuments() {
                   onEmbedding={async (e) => {
                     e.stopPropagation();
                     try {
-                      await reloadEmbedding(params.row.datasetId, params.row.id);
+                      await refreshEmbedding(params.row.datasetId, params.row.id);
                     } catch (error) {
                       Toast.error(error?.message);
                     }

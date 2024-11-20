@@ -37,6 +37,7 @@ import { Suspense, useCallback, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { joinURL, withQuery } from 'ufo';
 
+import { refreshEmbedding } from '../../libs/dataset';
 import EmptyDocuments from './document/empty';
 import KnowledgeDocuments from './document/list';
 import ImportKnowledge from './import';
@@ -65,7 +66,7 @@ export default function KnowledgeDetail() {
   const [currentTab, setCurrentTab] = useState('playground');
   const [showImportDialog, setShowImportDialog] = useState(false);
 
-  const { getKnowledge, getDocuments } = useKnowledge();
+  const { getKnowledge, getDocuments, deleteDocument } = useKnowledge();
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
 
@@ -215,11 +216,20 @@ export default function KnowledgeDetail() {
                   <Box flexGrow={1}>
                     {documents?.items?.length ? (
                       <KnowledgeDocuments
-                        rows={documents.items}
                         knowledgeId={knowledgeId}
-                        total={documents.total}
+                        rows={documents.items || []}
+                        total={documents.total ?? 0}
                         page={page}
                         onChangePage={setPage}
+                        onRemove={async (documentId) => {
+                          try {
+                            await deleteDocument(knowledgeId, documentId);
+                          } catch (error) {
+                            Toast.error(error?.message);
+                          }
+                        }}
+                        onRefetch={runAsync}
+                        onEmbedding={(documentId) => refreshEmbedding(knowledgeId, documentId)}
                       />
                     ) : (
                       <EmptyDocuments />
@@ -457,6 +467,7 @@ const Header = ({
 const KnowledgeIcon = ({ knowledgeId, icon }: { knowledgeId: string; icon?: string }) => {
   const uploaderRef = useUploader();
   const [localIcon, setIcon] = useState<string | undefined>(icon);
+  const url = joinURL(AIGNE_RUNTIME_MOUNT_POINT, `/api/datasets/${knowledgeId}/icon.png?icon=${localIcon}`);
 
   return (
     <Box
@@ -484,12 +495,20 @@ const KnowledgeIcon = ({ knowledgeId, icon }: { knowledgeId: string; icon?: stri
         }}>
         {localIcon ? (
           <img
-            src={joinURL(AIGNE_RUNTIME_MOUNT_POINT, `/api/datasets/${knowledgeId}/icon.png?icon=${localIcon}`)}
+            src={url}
             alt="knowledge icon"
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.style.display = 'none';
+              if (e.currentTarget.nextElementSibling) {
+                (e.currentTarget.nextElementSibling as any).style.display = 'block';
+              }
+            }}
           />
-        ) : (
-          <Typography fontSize={24}>😀</Typography>
-        )}
+        ) : null}
+        <Typography fontSize={24} style={{ display: localIcon ? 'none' : 'block' }}>
+          📖
+        </Typography>
       </Box>
 
       <Box

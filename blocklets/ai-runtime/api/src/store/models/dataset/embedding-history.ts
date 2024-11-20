@@ -10,8 +10,6 @@ export default class DatasetEmbeddingHistory extends Model<
 > {
   declare id: CreationOptional<string>;
 
-  declare targetId?: string;
-
   declare datasetId: string;
 
   declare documentId: string;
@@ -20,8 +18,6 @@ export default class DatasetEmbeddingHistory extends Model<
 
   declare updatedAt: CreationOptional<Date>;
 
-  declare targetVersion?: Date;
-
   declare error?: string;
 
   declare startAt?: Date;
@@ -29,6 +25,8 @@ export default class DatasetEmbeddingHistory extends Model<
   declare endAt?: Date;
 
   declare status?: UploadStatus;
+
+  declare contentHash?: string;
 }
 
 DatasetEmbeddingHistory.init(
@@ -38,9 +36,6 @@ DatasetEmbeddingHistory.init(
       primaryKey: true,
       allowNull: false,
       defaultValue: nextId,
-    },
-    targetId: {
-      type: DataTypes.STRING,
     },
     datasetId: {
       type: DataTypes.STRING,
@@ -54,9 +49,6 @@ DatasetEmbeddingHistory.init(
     updatedAt: {
       type: DataTypes.DATE,
     },
-    targetVersion: {
-      type: DataTypes.DATE,
-    },
     error: {
       type: DataTypes.STRING,
     },
@@ -67,6 +59,9 @@ DatasetEmbeddingHistory.init(
       type: DataTypes.DATE,
     },
     status: {
+      type: DataTypes.STRING,
+    },
+    contentHash: {
       type: DataTypes.STRING,
     },
   },

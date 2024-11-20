@@ -22,16 +22,16 @@ export class PipelineProcessor extends BaseProcessor {
 
     switch (document?.type) {
       case 'file': {
-        return new FileProcessor({ knowledgeId, documentId, sse, document }).execute();
+        return new FileProcessor({ knowledgeId, documentId, sse }).execute();
       }
       case 'text': {
-        return new CustomProcessor({ knowledgeId, documentId, sse, document }).execute();
+        return new CustomProcessor({ knowledgeId, documentId, sse }).execute();
       }
       case 'discussKit': {
-        return new DiscussKitProcessor({ knowledgeId, documentId, sse, document }).execute();
+        return new DiscussKitProcessor({ knowledgeId, documentId, sse }).execute();
       }
       case 'crawl': {
-        return new CrawlProcessor({ knowledgeId, documentId, sse, document }).execute();
+        return new CrawlProcessor({ knowledgeId, documentId, sse }).execute();
       }
       default: {
         logger.error('Unsupported document type', { document });

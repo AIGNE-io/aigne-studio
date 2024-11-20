@@ -36,7 +36,7 @@ import { joinURL, withQuery } from 'ufo';
 import { useDocuments } from '../../contexts/datasets/documents';
 import { getErrorMessage } from '../../libs/api';
 import { AIGNE_RUNTIME_MOUNT_POINT } from '../../libs/constants';
-import { CreateDiscussionItem, createDatasetDocuments, getDocument } from '../../libs/dataset';
+import { CreateDiscussionItem, getDocument } from '../../libs/dataset';
 import Discuss from '../project/icons/discuss';
 import DiscussList from './discuss';
 
@@ -384,11 +384,6 @@ function Discussion({ datasetId }: { datasetId: string }) {
               try {
                 setLoading(true);
 
-                const data = uniqWith(state.data, (x, y) => `${x.from}_${x.id}` === `${y.from}_${y.id}`).map((x) => {
-                  return { name: x.title, data: x };
-                });
-
-                await createDatasetDocuments(datasetId, data);
                 await refetch();
                 Toast.success(t('alert.saved'));
                 navigate(`../${datasetId}`, { replace: true });

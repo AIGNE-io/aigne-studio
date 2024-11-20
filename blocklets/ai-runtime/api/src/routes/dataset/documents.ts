@@ -13,7 +13,7 @@ import { Op } from 'sequelize';
 import { joinURL } from 'ufo';
 
 import { AIKitEmbeddings } from '../../core/embeddings/ai-kit';
-import ensureKnowledgeDirExists, { getUploadDir } from '../../libs/ensure-dir';
+import ensureKnowledgeDirExists, { getSourceFileDir } from '../../libs/ensure-dir';
 import { Config } from '../../libs/env';
 import logger from '../../libs/logger';
 import { userAuth } from '../../libs/security';
@@ -21,7 +21,7 @@ import Dataset from '../../store/models/dataset/dataset';
 import DatasetDocument from '../../store/models/dataset/document';
 import EmbeddingHistories from '../../store/models/dataset/embedding-history';
 import VectorStore from '../../store/vector-store-faiss';
-import getAllContents, { getAllResourceContents, getContent } from './content';
+import getAllContents, { getAllResourceContents } from './content';
 import { queue } from './embeddings';
 import { updateHistoriesAndStore } from './util/vector-store';
 
@@ -44,8 +44,8 @@ const getDocumentsSchema = Joi.object<{ blockletDid?: string; page: number; size
   size: Joi.number().integer().min(1).max(100).default(20),
 });
 
-const deleteDocumentSchema = Joi.object<{ datasetId: string; documentId: string }>({
-  datasetId: Joi.string().required(),
+const documentIdSchema = Joi.object<{ knowledgeId: string; documentId: string }>({
+  knowledgeId: Joi.string().required(),
   documentId: Joi.string().required(),
 });
 
@@ -173,20 +173,16 @@ router.get('/:knowledgeId/documents', middlewares.session(), userAuth(), async (
   res.json({ items, total });
 });
 
-router.delete('/:datasetId/documents/:documentId', middlewares.session(), userAuth(), async (req, res) => {
-  const { datasetId, documentId } = await deleteDocumentSchema.validateAsync(req.params, { stripUnknown: true });
+router.delete('/:knowledgeId/documents/:documentId', middlewares.session(), userAuth(), async (req, res) => {
+  const { knowledgeId, documentId } = await documentIdSchema.validateAsync(req.params, { stripUnknown: true });
 
-  if (!datasetId || !documentId) {
-    throw new Error('Missing required params `datasetId` or `documentId`');
-  }
+  const document = DatasetDocument.findOne({ where: { id: documentId, datasetId: knowledgeId } });
 
-  const document = DatasetDocument.findOne({ where: { id: documentId, datasetId } });
-
-  await updateHistoriesAndStore(datasetId, documentId);
+  await updateHistoriesAndStore(knowledgeId, documentId);
 
   await Promise.all([
-    DatasetDocument.destroy({ where: { id: documentId, datasetId } }),
-    EmbeddingHistories.destroy({ where: { documentId, datasetId } }),
+    DatasetDocument.destroy({ where: { id: documentId, datasetId: knowledgeId } }),
+    EmbeddingHistories.destroy({ where: { documentId, datasetId: knowledgeId } }),
   ]);
 
   res.json(document);
@@ -214,7 +210,7 @@ router.post('/:knowledgeId/documents/file', middlewares.session(), userAuth(), a
     relativePath: Joi.string().required(),
   }).validateAsync(req.body, { stripUnknown: true });
 
-  const newFilePath = joinURL(getUploadDir(knowledgeId), hash);
+  const newFilePath = joinURL(getSourceFileDir(knowledgeId), hash);
 
   if (!(await exists(newFilePath))) {
     throw new Error(`file ${newFilePath} not found`);
@@ -393,31 +389,11 @@ router.get('/:knowledgeId/documents/:documentId', middlewares.session(), userAut
   res.json({ dataset, document });
 });
 
-router.get('/:datasetId/documents/:documentId/content', middlewares.session(), userAuth(), async (req, res) => {
-  const { datasetId, documentId } = await Joi.object<{ datasetId: string; documentId: string }>({
-    datasetId: Joi.string().required(),
-    documentId: Joi.string().required(),
-  }).validateAsync(req.params);
-
-  const document = await DatasetDocument.findOne({ where: { datasetId, id: documentId } });
-  if (!document) {
-    return res.json({ content: [] });
-  }
-
-  const content = await getContent(datasetId, document);
-  return res.json({ content });
-});
-
-router.post('/:datasetId/documents/:documentId/embedding', middlewares.session(), userAuth(), async (req, res) => {
-  const { datasetId, documentId } = await Joi.object<{ datasetId: string; documentId: string }>({
-    documentId: Joi.string().required(),
-    datasetId: Joi.string().required(),
-  }).validateAsync(req.params, { stripUnknown: true });
+router.post('/:knowledgeId/documents/:documentId/embedding', middlewares.session(), userAuth(), async (req, res) => {
+  const { knowledgeId, documentId } = await documentIdSchema.validateAsync(req.params, { stripUnknown: true });
 
   const [document] = await Promise.all([DatasetDocument.findOne({ where: { id: documentId } })]);
-
-  if (document) queue.checkAndPush({ type: 'document', datasetId, documentId: document.id });
-
+  if (document) queue.checkAndPush({ type: 'document', datasetId: knowledgeId, documentId: document.id });
   res.json(document);
 });
 
@@ -427,7 +403,7 @@ const localStorageServer = initLocalStorageServer({
   onUploadFinish: async (req: any, _res: any, uploadMetadata: any) => {
     const { knowledgeId } = req.query;
     const { hashFileName, absolutePath } = uploadMetadata.runtime;
-    const newFilePath = joinURL(getUploadDir(knowledgeId), hashFileName);
+    const newFilePath = joinURL(getSourceFileDir(knowledgeId), hashFileName);
 
     await ensureKnowledgeDirExists(knowledgeId);
     await copyFile(absolutePath, newFilePath);

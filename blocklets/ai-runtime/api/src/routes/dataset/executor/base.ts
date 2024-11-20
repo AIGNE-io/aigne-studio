@@ -1,9 +1,14 @@
+import { hash } from 'crypto';
 import { stat, writeFile } from 'fs/promises';
 import { join } from 'path';
 
-import { getEmbeddingDir } from '@api/libs/ensure-dir';
+import { getProcessedFileDir } from '@api/libs/ensure-dir';
+import logger from '@api/libs/logger';
+import { exists, readFile } from 'fs-extra';
+import { parse } from 'yaml';
 
-import DatasetDocument from '../../../store/models/dataset/document';
+import DatasetDocument, { UploadStatus } from '../../../store/models/dataset/document';
+import EmbeddingHistories from '../../../store/models/dataset/embedding-history';
 import { saveContentToVectorStore } from '../util/vector-store';
 
 export abstract class BaseProcessor {
@@ -13,41 +18,63 @@ export abstract class BaseProcessor {
 
   protected sse: any;
 
-  protected embeddingStatus: 'idle' | 'processing' | 'completed' | 'error';
-
   public content?: string;
+
+  protected processedFileName: string;
 
   constructor({ knowledgeId, documentId, sse }: { knowledgeId: string; documentId: string; sse: any }) {
     this.knowledgeId = knowledgeId;
     this.documentId = documentId;
-    this.embeddingStatus = 'idle';
     this.sse = sse;
+
+    this.processedFileName = `${this.documentId}.yml`;
   }
 
   protected async saveContentToFile(): Promise<void> {
-    const filePath = join(getEmbeddingDir(this.knowledgeId), `${this.documentId}.txt`);
+    const processedFilePath = join(getProcessedFileDir(this.knowledgeId), this.processedFileName);
     if (!this.content) {
       throw new Error('Content is not available');
     }
 
-    await writeFile(filePath, this.content!);
+    await writeFile(processedFilePath, this.content!);
 
     await DatasetDocument.update(
-      { size: (await stat(filePath)).size },
+      { size: (await stat(processedFilePath)).size },
       { where: { id: this.documentId, datasetId: this.knowledgeId } }
     );
   }
 
+  private async send({ ...props }: any, type: 'error' | 'complete' | 'change') {
+    const document = await this.getDocument();
+    const result = await document.update({ ...props });
+    this.sse.send({ documentId: this.documentId, ...result.dataValues }, type);
+
+    return result.dataValues;
+  }
+
   async execute(): Promise<void> {
     try {
+      await this.send({ embeddingStatus: UploadStatus.Uploading, embeddingStartAt: new Date() }, 'change');
+
       await this.saveOriginalFile();
       await this.ProcessedFile();
       await this.saveContentToFile();
+
       await this.startRAG();
+
+      await this.send({ embeddingStatus: UploadStatus.Success, embeddingEndAt: new Date() }, 'complete');
     } catch (error) {
-      this.embeddingStatus = 'error';
+      const message = error?.message;
+      logger.error('execute embedding pipeline error', message);
+      await this.send({ error: message, embeddingStatus: UploadStatus.Error, embeddingEndAt: new Date() }, 'error');
       throw error;
     }
+  }
+
+  async getDocument(): Promise<DatasetDocument> {
+    const document = await DatasetDocument.findOne({ where: { id: this.documentId, datasetId: this.knowledgeId } });
+    if (!document) throw new Error(`document ${this.documentId} not found`);
+    return document;
   }
 
   preprocessText(text: string): string {
@@ -64,15 +91,82 @@ export abstract class BaseProcessor {
   protected abstract saveOriginalFile(): Promise<void>;
   protected abstract ProcessedFile(): Promise<void>;
   protected async startRAG(): Promise<void> {
-    this.embeddingStatus = 'processing';
+    const processedFilePath = join(getProcessedFileDir(this.knowledgeId), this.processedFileName);
+    if (!(await exists(processedFilePath))) {
+      throw new Error(`file ${processedFilePath} not found`);
+    }
 
-    await saveContentToVectorStore({
-      content: this.preprocessText(this.content!),
-      datasetId: this.knowledgeId,
-      documentId: this.documentId,
-      targetId: this.documentId,
+    const fileContent = await readFile(processedFilePath).toString();
+    const fileContentHash = hash('md5', fileContent, 'hex');
+    const previousEmbedding = await EmbeddingHistories.findOne({
+      where: { datasetId: this.knowledgeId, documentId: this.documentId },
     });
 
-    this.embeddingStatus = 'completed';
+    if (fileContentHash && previousEmbedding?.contentHash === fileContentHash) {
+      return;
+    }
+
+    if (previousEmbedding) {
+      await previousEmbedding.update({
+        contentHash: fileContentHash,
+        startAt: new Date(),
+        status: UploadStatus.Uploading,
+      });
+    } else {
+      await EmbeddingHistories.create({
+        contentHash: fileContentHash,
+        datasetId: this.knowledgeId,
+        documentId: this.documentId,
+        startAt: new Date(),
+        status: UploadStatus.Uploading,
+      });
+    }
+
+    const contents = parse(fileContent);
+    const array = Array.isArray(contents) ? contents : [contents];
+
+    const currentTotal = array.length;
+    let currentIndex = 0;
+
+    try {
+      for (const { content, metadata } of array) {
+        currentIndex++;
+        // eslint-disable-next-line no-await-in-loop
+        await saveContentToVectorStore({
+          metadata,
+          content: this.preprocessText(content),
+          datasetId: this.knowledgeId,
+          documentId: this.documentId,
+          targetId: this.documentId,
+        });
+
+        if (currentTotal > 1) {
+          const embeddingStatus = `${currentIndex}/${currentTotal}`;
+          this.sse.send({ embeddingStatus, embeddingEndAt: new Date() }, 'change');
+        }
+      }
+
+      await EmbeddingHistories.update(
+        { endAt: new Date(), status: UploadStatus.Success },
+        { where: { datasetId: this.knowledgeId, documentId: this.documentId } }
+      );
+    } catch (error) {
+      await EmbeddingHistories.update(
+        { error: error.message, status: UploadStatus.Error },
+        { where: { datasetId: this.knowledgeId, documentId: this.documentId } }
+      );
+
+      throw error;
+    }
+  }
+
+  async getProcessedFile(): Promise<string> {
+    const processedFilePath = join(getProcessedFileDir(this.knowledgeId), this.processedFileName);
+
+    if (!(await exists(processedFilePath))) {
+      return '';
+    }
+
+    return JSON.stringify(parse((await readFile(processedFilePath)).toString()));
   }
 }

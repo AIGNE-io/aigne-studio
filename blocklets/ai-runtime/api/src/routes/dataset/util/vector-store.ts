@@ -49,7 +49,7 @@ async function processContent(
   config?: { separators: string[]; chunkSize: number; chunkOverlap: number }
 ) {
   const splitter = new RecursiveCharacterTextSplitter(config);
-  const embeddings = new AIKitEmbeddings({ batchSize: 4 });
+  const embeddings = new AIKitEmbeddings();
 
   const chunks = await splitter.splitText(content);
   const docs = await splitter.createDocuments(chunks, metadata ? [{ metadata }] : undefined);
@@ -69,7 +69,7 @@ async function saveSegments(docs: Document[], documentId: string, targetId: stri
 }
 
 async function updateVectorStore(datasetId: string, vectors: number[][], docs: Document[], ids: string[]) {
-  const embeddings = new AIKitEmbeddings({ batchSize: 4 });
+  const embeddings = new AIKitEmbeddings();
   const store = await VectorStore.load(datasetId, embeddings);
   await store.addVectors(vectors, docs, { ids });
   await store.save();
@@ -90,9 +90,9 @@ export const saveContentToVectorStore = async ({
 }) => {
   // 文本分割配置提取
   const splitterConfig = {
-    separators: ['\n\n', '\n', ' ', '。'],
+    separators: ['\n\n', '\n'],
     chunkSize: 1024,
-    chunkOverlap: 50,
+    chunkOverlap: 100,
   };
 
   // 文本处理和向量化

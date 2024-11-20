@@ -1,6 +1,5 @@
 import { getComponentMountPoint } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
-import SSE from 'express-sse';
 import { sha3_256 } from 'js-sha3';
 import { isNil, omitBy } from 'lodash';
 import { joinURL } from 'ufo';
@@ -11,10 +10,9 @@ import DatasetContent from '../../store/models/dataset/content';
 import DatasetDocument, { UploadStatus } from '../../store/models/dataset/document';
 import EmbeddingHistories from '../../store/models/dataset/embedding-history';
 import { PipelineProcessor } from './executor';
+import { sse } from './util';
 import { commentsIterator, discussionsIterator, getDiscussion } from './util/discuss';
 import { saveContentToVectorStore } from './util/vector-store';
-
-export const sse = new SSE();
 
 export const queue = createQueue({
   options: {
