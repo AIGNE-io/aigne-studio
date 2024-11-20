@@ -11,20 +11,10 @@ import DatasetContent from '../../store/models/dataset/content';
 import DatasetDocument, { UploadStatus } from '../../store/models/dataset/document';
 import EmbeddingHistories from '../../store/models/dataset/embedding-history';
 import { PipelineProcessor } from './executor';
-import { commentsIterator, discussionsIterator, getDiscussion } from './util';
-import { saveContentToVectorStore } from './vector-store';
+import { commentsIterator, discussionsIterator, getDiscussion } from './util/discuss';
+import { saveContentToVectorStore } from './util/vector-store';
 
 export const sse = new SSE();
-
-const handlerError = async (document: DatasetDocument, message: string) => {
-  try {
-    logger.error(message);
-    sse.send({ documentId: document.id, embeddingStatus: UploadStatus.Error, message }, 'error');
-    await document.update({ error: message, embeddingStatus: UploadStatus.Error, embeddingEndAt: new Date() });
-  } catch (error) {
-    logger.error(error?.message);
-  }
-};
 
 export const queue = createQueue({
   options: {
@@ -48,6 +38,16 @@ export const queue = createQueue({
     logger.info('Job End', task);
   },
 });
+
+const handlerError = async (document: DatasetDocument, message: string) => {
+  try {
+    logger.error(message);
+    sse.send({ documentId: document.id, embeddingStatus: UploadStatus.Error, message }, 'error');
+    await document.update({ error: message, embeddingStatus: UploadStatus.Error, embeddingEndAt: new Date() });
+  } catch (error) {
+    logger.error(error?.message);
+  }
+};
 
 export const discussItemJob = async (job: any) => {
   const { documentId, currentIndex, currentTotal, discussionId } = job;

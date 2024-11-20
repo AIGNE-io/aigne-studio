@@ -4,7 +4,7 @@ import { join } from 'path';
 import { getEmbeddingDir } from '@api/libs/ensure-dir';
 
 import DatasetDocument from '../../../store/models/dataset/document';
-import { saveContentToVectorStore } from '../vector-store';
+import { saveContentToVectorStore } from '../util/vector-store';
 
 export abstract class BaseProcessor {
   protected knowledgeId: string;

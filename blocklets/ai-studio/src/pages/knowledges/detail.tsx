@@ -12,12 +12,15 @@ import SidebarLeft from '@iconify-icons/tabler/layout-sidebar';
 import SidebarRight from '@iconify-icons/tabler/layout-sidebar-right';
 import PencilIcon from '@iconify-icons/tabler/pencil';
 import PlusIcon from '@iconify-icons/tabler/plus';
+import SearchIcon from '@iconify-icons/tabler/search';
 import {
   Box,
   Button,
   ButtonProps,
   CircularProgress,
   Divider,
+  IconButton,
+  InputBase,
   Stack,
   Tab,
   Tabs,
@@ -30,10 +33,12 @@ import {
 } from '@mui/material';
 import { useRequest } from 'ahooks';
 import bytes from 'bytes';
-import { Suspense, useRef, useState } from 'react';
+import { Suspense, useCallback, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { joinURL, withQuery } from 'ufo';
 
+import EmptyDocuments from './document/empty';
+import KnowledgeDocuments from './document/list';
 import ImportKnowledge from './import';
 
 function PanelToggleButton({
@@ -60,16 +65,29 @@ export default function KnowledgeDetail() {
   const [currentTab, setCurrentTab] = useState('playground');
   const [showImportDialog, setShowImportDialog] = useState(false);
 
-  const { getKnowledge } = useKnowledge();
+  const { getKnowledge, getDocuments } = useKnowledge();
   const navigate = useNavigate();
+  const [page, setPage] = useState(1);
+
   const {
     data: knowledgeData,
     loading,
-    runAsync,
+    refresh: refreshKnowledge,
   } = useRequest(() => getKnowledge(knowledgeId), {
     refreshDeps: [knowledgeId],
     onSuccess: (data) => setShowImportDialog(!data?.docs),
   });
+
+  const { data: documents, refresh: refreshDocuments } = useRequest(
+    () => getDocuments(knowledgeId, { page, size: 10 }),
+    { refreshDeps: [knowledgeId, page] }
+  );
+
+  const runAsync = useCallback(async () => {
+    setPage(1);
+    await refreshKnowledge();
+    await refreshDocuments();
+  }, []);
 
   return (
     <>
@@ -132,7 +150,7 @@ export default function KnowledgeDetail() {
                       },
                     },
                   }}>
-                  <Tab value="playground" label={t('playground')} data-testid="debug-preview-view" />
+                  <Tab value="playground" label={t('knowledge.playground')} data-testid="debug-preview-view" />
                 </Tabs>
 
                 <Box flex={1} />
@@ -195,7 +213,17 @@ export default function KnowledgeDetail() {
                   />
 
                   <Box flexGrow={1}>
-                    <EmptyDocuments />
+                    {documents?.items?.length ? (
+                      <KnowledgeDocuments
+                        rows={documents.items}
+                        knowledgeId={knowledgeId}
+                        total={documents.total}
+                        page={page}
+                        onChangePage={setPage}
+                      />
+                    ) : (
+                      <EmptyDocuments />
+                    )}
                   </Box>
                 </Stack>
               )}
@@ -223,7 +251,54 @@ export default function KnowledgeDetail() {
 }
 
 const PlaygroundView = () => {
-  return <Box>1</Box>;
+  const { t } = useLocaleContext();
+  return (
+    <Stack height={1}>
+      <Box
+        sx={{
+          m: 2.5,
+          display: 'flex',
+          alignItems: 'center',
+          bgcolor: '#F1F3F5',
+          borderRadius: 1,
+          gap: '8px',
+          p: 1,
+          mb: 0,
+        }}>
+        <InputBase
+          placeholder="What is Arcblock and what are its key features?"
+          sx={{
+            flex: 1,
+            fontSize: '14px',
+            ml: 1,
+            '& .MuiInputBase-input': {
+              padding: '8px 0',
+            },
+          }}
+        />
+        <IconButton
+          sx={{
+            bgcolor: '#000',
+            borderRadius: 1,
+            padding: '8px 16px',
+            color: '#fff',
+            '&:hover': {
+              bgcolor: '#000',
+            },
+            fontSize: 14,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 0.5,
+          }}>
+          <Box component={Icon} icon={SearchIcon} fontSize={15} />
+          <Box>{t('search')}</Box>
+        </IconButton>
+      </Box>
+      <Box flexGrow={1} height={0} overflow="auto">
+        <Box p={2.5} />
+      </Box>
+    </Stack>
+  );
 };
 
 const Header = ({
@@ -437,20 +512,6 @@ const KnowledgeIcon = ({ knowledgeId, icon }: { knowledgeId: string; icon?: stri
         }}>
         <Box component={Icon} icon={PencilIcon} fontSize={15} sx={{ color: '#fff' }} />
       </Box>
-    </Box>
-  );
-};
-
-const EmptyDocuments = () => {
-  const { t } = useLocaleContext();
-  return (
-    <Box className="center" flex={1} height={1}>
-      <Stack alignItems="center">
-        <Typography variant="subtitle1">📚</Typography>
-        <Typography variant="subtitle5" maxWidth={170} textAlign="center">
-          {t("You haven't imported any knowledge yet.")}
-        </Typography>
-      </Stack>
     </Box>
   );
 };

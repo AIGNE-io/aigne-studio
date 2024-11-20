@@ -3,9 +3,9 @@ import { Document } from '@langchain/core/documents';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 import { intersection } from 'lodash';
 
-import { AIKitEmbeddings } from '../../core/embeddings/ai-kit';
-import Segment from '../../store/models/dataset/segment';
-import VectorStore from '../../store/vector-store-faiss';
+import { AIKitEmbeddings } from '../../../core/embeddings/ai-kit';
+import Segment from '../../../store/models/dataset/segment';
+import VectorStore from '../../../store/vector-store-faiss';
 
 export const deleteStore = async (datasetId: string, ids: string[]) => {
   const embeddings = new AIKitEmbeddings({});
@@ -21,15 +21,13 @@ export const deleteStore = async (datasetId: string, ids: string[]) => {
   }
 };
 
-const updateHistoriesAndStore = async (knowledgeId: string, documentId: string, targetId?: string) => {
+export const updateHistoriesAndStore = async (knowledgeId: string, documentId: string, targetId?: string) => {
   const where = targetId ? { documentId, targetId } : { documentId };
   const { rows: messages, count } = await Segment.findAndCountAll({ where });
 
   if (count > 0) {
     const ids = messages.map((x) => x.id);
-
     await deleteStore(knowledgeId, ids);
-
     await Segment.destroy({ where });
   }
 };

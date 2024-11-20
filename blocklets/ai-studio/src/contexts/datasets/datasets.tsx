@@ -8,14 +8,12 @@ import {
   KnowledgeCard,
   createDatasetFromResources,
   createKnowledge,
-  createTextDocument,
   deleteKnowledge,
   getDocuments,
   getKnowledge,
   getKnowledgeList,
   getResourcesKnowledgeList,
   updateKnowledge,
-  updateTextDocument,
 } from '../../libs/dataset';
 import type { KnowledgeInput } from '../../libs/dataset';
 
@@ -30,8 +28,6 @@ export interface KnowledgeContext {
   getKnowledge: (knowledgeId: string) => Promise<KnowledgeCard>;
   deleteKnowledge: (projectId: string, datasetId: string) => Promise<void>;
   updateKnowledge: typeof updateKnowledge;
-  createTextDocument: typeof createTextDocument;
-  updateTextDocument: typeof updateTextDocument;
   getDocuments: typeof getDocuments;
   getResourcesKnowledgeList: () => Promise<void>;
   createDatasetFromResources: typeof createDatasetFromResources;
@@ -74,28 +70,11 @@ export function KnowledgeProvider({ children }: { children: ReactNode }) {
     resourceLoading: false,
     resources: [],
     refetch: async () => {},
-    createKnowledge: async (input: KnowledgeInput) => {
-      const dataset = await createKnowledge(input);
-      return dataset;
-    },
+    createKnowledge,
     getKnowledge,
     updateKnowledge,
-    deleteKnowledge: async (projectId: string, datasetId: string) => {
-      await deleteKnowledge(datasetId);
-      await value.current.refetch(projectId);
-    },
-    createTextDocument: async (datasetId, input: { name: string; content?: string }) => {
-      const document = await createTextDocument(datasetId, input);
-      return document;
-    },
-    updateTextDocument: async (datasetId, documentId, input: { name: string; content?: string }) => {
-      const document = await updateTextDocument(datasetId, documentId, input);
-      return document;
-    },
-    getDocuments: async (datasetId) => {
-      const documents = await getDocuments(datasetId, {});
-      return documents;
-    },
+    deleteKnowledge,
+    getDocuments,
     getResourcesKnowledgeList: async () => {
       const state = value.current;
 

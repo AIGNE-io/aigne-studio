@@ -8,7 +8,7 @@ import config from '@blocklet/sdk/lib/config';
 import { joinURL } from 'ufo';
 import { parse, stringify } from 'yaml';
 
-import { commentsIterator, discussionsIterator, getDiscussion } from '../util';
+import { commentsIterator, discussionsIterator, getDiscussion } from '../util/discuss';
 import { BaseProcessor } from './base';
 
 export class DiscussKitProcessor extends BaseProcessor {

@@ -1,4 +1,4 @@
-import { copyFile, rm, stat, writeFile } from 'fs/promises';
+import { copyFile, rm } from 'fs/promises';
 import { join } from 'path';
 
 import { resourceManager } from '@api/libs/resource';
@@ -9,7 +9,7 @@ import express, { Router } from 'express';
 import { exists, pathExists } from 'fs-extra';
 import Joi from 'joi';
 import { sortBy } from 'lodash';
-import { Op, Sequelize } from 'sequelize';
+import { Op } from 'sequelize';
 import { joinURL } from 'ufo';
 
 import { AIKitEmbeddings } from '../../core/embeddings/ai-kit';
@@ -17,14 +17,13 @@ import ensureKnowledgeDirExists, { getUploadDir } from '../../libs/ensure-dir';
 import { Config } from '../../libs/env';
 import logger from '../../libs/logger';
 import { userAuth } from '../../libs/security';
-import DatasetContent from '../../store/models/dataset/content';
 import Dataset from '../../store/models/dataset/dataset';
 import DatasetDocument from '../../store/models/dataset/document';
 import EmbeddingHistories from '../../store/models/dataset/embedding-history';
 import VectorStore from '../../store/vector-store-faiss';
-import getAllContents, { getAllResourceContents, getContent } from './document-content';
+import getAllContents, { getAllResourceContents, getContent } from './content';
 import { queue } from './embeddings';
-import { updateHistoriesAndStore } from './vector-store';
+import { updateHistoriesAndStore } from './util/vector-store';
 
 const router = Router();
 
@@ -38,6 +37,17 @@ export interface CreateDiscussionItem {
     boardId?: string;
   };
 }
+
+const getDocumentsSchema = Joi.object<{ blockletDid?: string; page: number; size: number }>({
+  blockletDid: Joi.string().empty(['', null]),
+  page: Joi.number().integer().min(1).default(1),
+  size: Joi.number().integer().min(1).max(100).default(20),
+});
+
+const deleteDocumentSchema = Joi.object<{ datasetId: string; documentId: string }>({
+  datasetId: Joi.string().required(),
+  documentId: Joi.string().required(),
+});
 
 export type CreateDiscussionItemInput = CreateDiscussionItem | CreateDiscussionItem[];
 
@@ -138,57 +148,33 @@ router.get('/:datasetId/search', async (req, res) => {
   res.json({ docs: result });
 });
 
-router.get('/:datasetId/documents', middlewares.session(), userAuth(), async (req, res) => {
+router.get('/:knowledgeId/documents', middlewares.session(), userAuth(), async (req, res) => {
   const { did, isAdmin } = req.user!;
-  const { datasetId } = req.params;
+  const { knowledgeId } = req.params;
   const user = isAdmin ? {} : { [Op.or]: [{ createdBy: did }, { updatedBy: did }] };
 
-  if (!datasetId) throw new Error('Missing required params `datasetId`');
+  if (!knowledgeId) throw new Error('Missing required params `knowledgeId`');
 
-  const { blockletDid, page, size } = await Joi.object<{ blockletDid?: string; page: number; size: number }>({
-    blockletDid: Joi.string().empty(['', null]),
-    page: Joi.number().integer().min(1).default(1),
-    size: Joi.number().integer().min(1).max(100).default(20),
-  }).validateAsync(req.query, { stripUnknown: true });
+  const { blockletDid, page, size } = await getDocumentsSchema.validateAsync(req.query, { stripUnknown: true });
 
   if (blockletDid) {
-    const knowledge = await resourceManager.getKnowledge({ blockletDid, knowledgeId: datasetId });
+    const knowledge = await resourceManager.getKnowledge({ blockletDid, knowledgeId });
     const docs = [...(knowledge?.documents || [])].splice(page - 1, size);
     res.json({ items: docs, total: knowledge?.documents.length });
     return;
   }
 
+  const params = { datasetId: knowledgeId, ...user };
   const [items, total] = await Promise.all([
-    DatasetDocument.findAll({
-      order: [['createdAt', 'DESC']],
-      where: { datasetId, ...user },
-      offset: (page - 1) * size,
-      limit: size,
-      attributes: {
-        include: [
-          [
-            Sequelize.literal(`(
-              SELECT content
-              FROM DatasetContents
-              WHERE DatasetContents.documentId = DatasetDocument.id
-              LIMIT 1
-            )`),
-            'content',
-          ],
-        ],
-      },
-    }),
-    DatasetDocument.count({ where: { datasetId, ...user } }),
+    DatasetDocument.findAll({ order: [['createdAt', 'DESC']], where: params, offset: (page - 1) * size, limit: size }),
+    DatasetDocument.count({ where: params }),
   ]);
 
   res.json({ items, total });
 });
 
 router.delete('/:datasetId/documents/:documentId', middlewares.session(), userAuth(), async (req, res) => {
-  const { datasetId, documentId } = await Joi.object<{ datasetId: string; documentId: string }>({
-    datasetId: Joi.string().required(),
-    documentId: Joi.string().required(),
-  }).validateAsync(req.params, { stripUnknown: true });
+  const { datasetId, documentId } = await deleteDocumentSchema.validateAsync(req.params, { stripUnknown: true });
 
   if (!datasetId || !documentId) {
     throw new Error('Missing required params `datasetId` or `documentId`');
@@ -200,32 +186,9 @@ router.delete('/:datasetId/documents/:documentId', middlewares.session(), userAu
 
   await Promise.all([
     DatasetDocument.destroy({ where: { id: documentId, datasetId } }),
-    DatasetContent.destroy({ where: { documentId } }),
     EmbeddingHistories.destroy({ where: { documentId, datasetId } }),
   ]);
 
-  res.json(document);
-});
-
-router.put('/:datasetId/documents/:documentId/name', middlewares.session(), userAuth(), async (req, res) => {
-  const { did } = req.user!;
-  const { datasetId, documentId } = req.params;
-
-  const { name } = await Joi.object<{ name: string }>({ name: Joi.string().required() }).validateAsync(req.body, {
-    stripUnknown: true,
-  });
-
-  if (!datasetId) {
-    throw new Error('Missing required params `datasetId`');
-  }
-
-  if (!documentId) {
-    throw new Error('Missing required params `datasetId`');
-  }
-
-  await DatasetDocument.update({ name, updatedBy: did }, { where: { id: documentId, datasetId } });
-
-  const document = await DatasetDocument.findOne({ where: { id: documentId, datasetId } });
   res.json(document);
 });
 
@@ -413,51 +376,20 @@ router.post('/:knowledgeId/documents/crawl', middlewares.session(), userAuth(), 
   res.json(document);
 });
 
-router.put('/:datasetId/documents/:documentId/text', middlewares.session(), userAuth(), async (req, res) => {
-  const { did } = req.user! || {};
-  const { datasetId, documentId } = await Joi.object<{
-    datasetId: string;
-    documentId: string;
-  }>({
-    datasetId: Joi.string().required(),
-    documentId: Joi.string().required(),
-  }).validateAsync(req.params, { stripUnknown: true });
-
-  if (!datasetId) {
-    throw new Error('Missing required params `datasetId`');
-  }
-
-  const { name, content } = await Joi.object<{ name: string; content?: string }>({
-    name: Joi.string().allow('', null).optional(),
-    content: Joi.string().allow('', null).optional(),
-  }).validateAsync(req.body, { stripUnknown: true });
-
-  await DatasetDocument.update({ error: null, name, updatedBy: did }, { where: { id: documentId, datasetId } });
-  await DatasetContent.update({ content }, { where: { documentId } });
-
-  const document = await DatasetDocument.findOne({ where: { id: documentId, datasetId } });
-
-  if (document) queue.checkAndPush({ type: 'document', datasetId, documentId: document.id });
-
-  res.json(document);
-});
-
-router.get('/:datasetId/documents/:documentId', middlewares.session(), userAuth(), async (req, res) => {
+router.get('/:knowledgeId/documents/:documentId', middlewares.session(), userAuth(), async (req, res) => {
   const { did, isAdmin } = req.user!;
   const user = isAdmin ? {} : { [Op.or]: [{ createdBy: did }, { updatedBy: did }] };
 
-  const { datasetId, documentId } = await Joi.object<{ datasetId: string; documentId: string }>({
-    datasetId: Joi.string().required(),
+  const { knowledgeId, documentId } = await Joi.object<{ knowledgeId: string; documentId: string }>({
+    knowledgeId: Joi.string().required(),
     documentId: Joi.string().required(),
   }).validateAsync(req.params);
 
-  const [dataset, document, content] = await Promise.all([
-    Dataset.findOne({ where: { id: datasetId, ...user } }),
-    DatasetDocument.findOne({ where: { datasetId, id: documentId } }),
-    DatasetContent.findOne({ where: { documentId }, attributes: ['content'] }),
+  const [dataset, document] = await Promise.all([
+    Dataset.findOne({ where: { id: knowledgeId, ...user } }),
+    DatasetDocument.findOne({ where: { datasetId: knowledgeId, id: documentId } }),
   ]);
 
-  if (document?.dataValues) document.dataValues.content = content?.dataValues.content;
   res.json({ dataset, document });
 });
 
@@ -511,7 +443,6 @@ const localStorageServer = initLocalStorageServer({
     };
   },
 });
-
 router.use('/upload-document', middlewares.session(), localStorageServer.handle);
 
 export default router;

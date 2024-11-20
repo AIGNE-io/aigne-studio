@@ -29,6 +29,8 @@ export type KnowledgeCard = Knowledge & {
   blockletDid?: string;
 };
 
+export type KnowledgeDocumentCard = KnowledgeDocument & {};
+
 export interface KnowledgeInput {
   name?: string;
   description?: string;
@@ -137,7 +139,7 @@ export async function createCrawlDocument(
 export async function getDocuments(
   datasetId: string,
   params: { blockletDid?: string; page?: number; size?: number }
-): Promise<any> {
+): Promise<{ items: KnowledgeDocumentCard[]; total: number }> {
   return axios
     .get(`/api/datasets/${datasetId}/documents`, { baseURL: AIGNE_RUNTIME_MOUNT_POINT, params })
     .then((res) => res.data);
@@ -164,25 +166,6 @@ export async function deleteDocument(
 ): Promise<{ dataset: Knowledge; document: KnowledgeDocument }> {
   return axios
     .delete(`/api/datasets/${datasetId}/documents/${documentId}`, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
-    .then((res) => res.data);
-}
-
-export async function createTextDocument(
-  datasetId: string,
-  input: { name: string; content?: string }
-): Promise<KnowledgeDocument> {
-  return axios
-    .post(`/api/datasets/${datasetId}/documents/text`, input, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
-    .then((res) => res.data);
-}
-
-export async function updateTextDocument(
-  datasetId: string,
-  documentId: string,
-  input: { name: string; content?: string }
-): Promise<KnowledgeDocument> {
-  return axios
-    .put(`/api/datasets/${datasetId}/documents/${documentId}/text`, input, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
     .then((res) => res.data);
 }
 

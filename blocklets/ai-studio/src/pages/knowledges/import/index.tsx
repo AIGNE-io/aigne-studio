@@ -92,18 +92,18 @@ export default function ImportKnowledge({
     [
       {
         id: 'file',
-        label: 'Import from file',
+        label: t('knowledge.import'),
         icon: <Box component={Icon} icon={FileIcon} width={18} height={18} borderRadius={1} className="center" />,
       },
       {
         id: 'custom',
-        label: 'Custom',
+        label: t('knowledge.custom'),
         icon: <Box component={Icon} icon={PencilIcon} width={18} height={18} borderRadius={1} className="center" />,
       },
       getDiscussionStatus() && isAdmin
         ? {
             id: 'discuss',
-            label: 'Discuss Kit',
+            label: t('knowledge.discussKit'),
             icon: (
               <Box width={18} height={18} borderRadius={1} className="center">
                 <Discuss sx={{ width: '100%', height: '100%' }} />
@@ -113,7 +113,7 @@ export default function ImportKnowledge({
         : null,
       {
         id: 'crawl',
-        label: 'Crawl from URL',
+        label: t('knowledge.crawl'),
         icon: <Box component={Icon} icon={DatabaseIcon} width={18} height={18} borderRadius={1} className="center" />,
       },
     ] as SourceTypeSelectType[]
@@ -135,10 +135,10 @@ export default function ImportKnowledge({
       };
 
       await createKnowledge(knowledgeId, params);
-      Toast.success('Created knowledge');
+      Toast.success(t('knowledge.createKnowledgeSuccess'));
       onSubmit();
     } catch (error) {
-      Toast.error('Failed to create knowledge');
+      Toast.error(error?.message);
     }
   };
 
@@ -195,7 +195,7 @@ export default function ImportKnowledge({
               alignItems: 'center',
             }}>
             <Typography variant="h6" sx={{ fontSize: 16, fontWeight: 500 }}>
-              Import Knowledge
+              {`${t('alert.import')} ${t('knowledge.knowledge')}`}
             </Typography>
 
             <IconButton size="small" onClick={onClose}>
@@ -208,10 +208,10 @@ export default function ImportKnowledge({
           <Stack gap={2.5} height={1}>
             <Stack>
               <Typography variant="h6" sx={{ fontSize: 16, fontWeight: 500, mb: 0.5 }}>
-                Select Data Source
+                {t('knowledge.importKnowledge.title')}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                After adding sources, the AI can provide answers based on the information that matters most to you.
+                {t('knowledge.importKnowledge.description')}
               </Typography>
             </Stack>
 
@@ -250,7 +250,7 @@ export default function ImportKnowledge({
             {t('cancel')}
           </Button>
           <LoadingButton variant="contained" onClick={handleSubmit} disabled={disabled}>
-            Create
+            {t('create')}
           </LoadingButton>
         </DialogActions>
       </Dialog>
@@ -270,10 +270,14 @@ const SourceTypeSelect = ({ value, onChange, options }: SourceTypeSelectProps) =
       {options.map((option) => (
         <Button
           key={option.id}
-          variant={value === option.id ? 'contained' : 'outlined'}
+          variant="outlined"
           onClick={() => onChange(option.id)}
           disabled={option.disabled}
-          startIcon={option.icon ?? null}>
+          startIcon={option.icon ?? null}
+          sx={{
+            border: value === option.id ? '1px solid #3B82F6' : undefined,
+            color: value === option.id ? '#3B82F6' : undefined,
+          }}>
           {option.label}
         </Button>
       ))}
@@ -282,6 +286,8 @@ const SourceTypeSelect = ({ value, onChange, options }: SourceTypeSelectProps) =
 };
 
 const FileView = ({ fileName, onChange }: { fileName?: string; onChange: (value: FileType) => void }) => {
+  const { t } = useLocaleContext();
+
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const uploaderRef = useUploader();
 
@@ -328,11 +334,11 @@ const FileView = ({ fileName, onChange }: { fileName?: string; onChange: (value:
         onDragLeave={() => setIsDraggingOver(false)}>
         <Box display="flex" alignItems="center" gap={1} color="#4B5563">
           <Box component={Icon} icon={ArrowBarToUpIcon} />
-          <Typography sx={{ fontWeight: 500 }}>Import Files</Typography>
+          <Typography sx={{ fontWeight: 500 }}>{t('knowledge.importKnowledge.fileImport')}</Typography>
         </Box>
 
         <Typography variant="subtitle5" sx={{ fontSize: 13 }}>
-          Drag and drop files here or click to upload
+          {t('knowledge.importKnowledge.dragAndDrop')}
         </Typography>
       </Box>
 
@@ -342,6 +348,8 @@ const FileView = ({ fileName, onChange }: { fileName?: string; onChange: (value:
 };
 
 const CustomView = ({ title, content, onTitleChange, onContentChange }: CustomInputProps) => {
+  const { t } = useLocaleContext();
+
   return (
     <Stack gap={2.5}>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -352,13 +360,13 @@ const CustomView = ({ title, content, onTitleChange, onContentChange }: CustomIn
             fontSize: '14px',
             fontWeight: 500,
           }}>
-          Title
+          {t('title')}
         </Box>
         <StyledTextField
           fullWidth
           rows={1}
           multiline
-          placeholder="Enter title"
+          placeholder={t('title')}
           value={title}
           onChange={(e) => onTitleChange?.(e.target.value)}
           variant="outlined"
@@ -373,13 +381,13 @@ const CustomView = ({ title, content, onTitleChange, onContentChange }: CustomIn
             fontSize: '14px',
             fontWeight: 500,
           }}>
-          Content
+          {t('content')}
         </Box>
         <StyledTextField
           fullWidth
           multiline
           rows={12}
-          placeholder="Enter content"
+          placeholder={t('content')}
           value={content}
           onChange={(e) => onContentChange?.(e.target.value)}
           variant="outlined"
@@ -390,6 +398,7 @@ const CustomView = ({ title, content, onTitleChange, onContentChange }: CustomIn
 };
 
 const CrawlView = ({ provider, onProviderChange, apiKey, onApiKeyChange, url, onUrlChange }: CrawlSettingsProps) => {
+  const { t } = useLocaleContext();
   const providers = [
     { id: 'jina', label: 'Jina Reader' },
     { id: 'firecrawl', label: 'Firecrawl' },
@@ -407,7 +416,7 @@ const CrawlView = ({ provider, onProviderChange, apiKey, onApiKeyChange, url, on
             display: 'block',
             mb: 1,
           }}>
-          Provider
+          {t('knowledge.importKnowledge.provider')}
         </Typography>
         <Box sx={{ display: 'flex', gap: 1 }}>
           {providers.map((item) => (
@@ -440,7 +449,7 @@ const CrawlView = ({ provider, onProviderChange, apiKey, onApiKeyChange, url, on
             display: 'block',
             mb: 1,
           }}>
-          API Key
+          {t('knowledge.importKnowledge.apiKey')}
         </Typography>
 
         <StyledTextField
@@ -449,7 +458,7 @@ const CrawlView = ({ provider, onProviderChange, apiKey, onApiKeyChange, url, on
           rows={1}
           value={apiKey}
           onChange={(e) => onApiKeyChange(e.target.value)}
-          placeholder="Enter your API key"
+          placeholder={t('knowledge.importKnowledge.apiKey')}
           variant="outlined"
         />
       </Box>
@@ -464,7 +473,7 @@ const CrawlView = ({ provider, onProviderChange, apiKey, onApiKeyChange, url, on
             display: 'block',
             mb: 1,
           }}>
-          URL
+          {t('knowledge.importKnowledge.url')}
         </Typography>
 
         <StyledTextField
@@ -473,7 +482,7 @@ const CrawlView = ({ provider, onProviderChange, apiKey, onApiKeyChange, url, on
           rows={1}
           value={url}
           onChange={(e) => onUrlChange(e.target.value)}
-          placeholder="Enter URL to crawl"
+          placeholder={t('knowledge.importKnowledge.url')}
           variant="outlined"
         />
       </Box>

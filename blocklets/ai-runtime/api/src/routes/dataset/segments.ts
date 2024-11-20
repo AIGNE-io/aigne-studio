@@ -7,15 +7,18 @@ import DatasetSegment from '../../store/models/dataset/segment';
 
 const router = Router();
 
-router.get('/:datasetId/documents/:documentId/segments', middlewares.session(), userAuth(), async (req, res) => {
-  const { documentId } = await Joi.object<{ documentId: string }>({
-    documentId: Joi.string().required(),
-  }).validateAsync(req.params, { stripUnknown: true });
+const getSegmentsQuerySchema = Joi.object<{ page: number; size: number }>({
+  page: Joi.number().integer().min(1).default(1),
+  size: Joi.number().integer().min(1).max(100).default(20),
+});
 
-  const { page, size } = await Joi.object<{ page: number; size: number }>({
-    page: Joi.number().integer().min(1).default(1),
-    size: Joi.number().integer().min(1).max(100).default(20),
-  }).validateAsync(req.query, { stripUnknown: true });
+const getSegmentsParamsSchema = Joi.object<{ documentId: string }>({
+  documentId: Joi.string().required(),
+});
+
+router.get('/:knowledgeId/documents/:documentId/segments', middlewares.session(), userAuth(), async (req, res) => {
+  const { documentId } = await getSegmentsParamsSchema.validateAsync(req.params, { stripUnknown: true });
+  const { page, size } = await getSegmentsQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
   const [items, total] = await Promise.all([
     DatasetSegment.findAll({

@@ -33,11 +33,10 @@ import { Controller, useForm } from 'react-hook-form';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { joinURL, withQuery } from 'ufo';
 
-import { useKnowledge } from '../../contexts/datasets/datasets';
 import { useDocuments } from '../../contexts/datasets/documents';
 import { getErrorMessage } from '../../libs/api';
 import { AIGNE_RUNTIME_MOUNT_POINT } from '../../libs/constants';
-import { CreateDiscussionItem, createDatasetDocuments, getDocument, updateTextDocument } from '../../libs/dataset';
+import { CreateDiscussionItem, createDatasetDocuments, getDocument } from '../../libs/dataset';
 import Discuss from '../project/icons/discuss';
 import DiscussList from './discuss';
 
@@ -412,7 +411,6 @@ function Custom({ datasetId, id, value }: { datasetId: string; id?: string; valu
   const form = useForm<{ name: string; content: string }>({
     defaultValues: { name: value?.name, content: value?.content },
   });
-  const { createTextDocument } = useKnowledge();
   const { refetch } = useDocuments(datasetId || '');
   const navigate = useNavigate();
 
@@ -421,12 +419,7 @@ function Custom({ datasetId, id, value }: { datasetId: string; id?: string; valu
       maxWidth="720px"
       onSubmit={form.handleSubmit(async (data) => {
         try {
-          if (id) {
-            await updateTextDocument(datasetId || '', id, data);
-          } else {
-            await createTextDocument(datasetId || '', data);
-          }
-
+          console.log(data);
           form.reset({ name: '', content: '' });
 
           await refetch();

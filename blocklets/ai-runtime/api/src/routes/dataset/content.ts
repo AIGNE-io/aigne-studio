@@ -10,7 +10,7 @@ import PDFParser from 'pdf2json';
 import { getUploadPathByCheckFile } from '../../libs/ensure-dir';
 import DatasetContent from '../../store/models/dataset/content';
 import DatasetDocument from '../../store/models/dataset/document';
-import { commentsIterator, discussionsIterator, getDiscussion } from './util';
+import { commentsIterator, discussionsIterator, getDiscussion } from './util/discuss';
 
 function parsePDF(filePath: string): Promise<string> {
   // @ts-ignore
