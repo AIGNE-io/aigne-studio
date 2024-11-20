@@ -2,6 +2,7 @@ import { readFile, writeFile } from 'fs/promises';
 
 import { getSourceFileDir } from '@api/libs/ensure-dir';
 import { exists } from 'fs-extra';
+import { cloneDeep } from 'lodash';
 import { joinURL } from 'ufo';
 import { stringify } from 'yaml';
 
@@ -12,16 +13,14 @@ export class CustomProcessor extends BaseProcessor {
 
   constructor({ knowledgeId, documentId, sse }: { knowledgeId: string; documentId: string; sse: any }) {
     super({ knowledgeId, documentId, sse });
-    this.originalFileName = `${documentId}.html`;
+    this.originalFileName = `${documentId}.txt`;
   }
 
   protected async saveOriginalFile(): Promise<void> {
     const document = await this.getDocument();
 
     const { data } = document;
-    if (data?.type !== 'text') {
-      throw new Error('document is not a text');
-    }
+    if (data?.type !== 'text') throw new Error('document is not custom data');
 
     const { title, content } = data;
     const originalFilePath = joinURL(getSourceFileDir(this.knowledgeId), this.originalFileName);
@@ -44,7 +43,7 @@ export class CustomProcessor extends BaseProcessor {
 
     this.content = stringify({
       content: await readFile(originalFilePath, 'utf8'),
-      metadata: { documentId: this.documentId, ...data },
+      metadata: { documentId: this.documentId, data: cloneDeep(data) },
     });
   }
 }

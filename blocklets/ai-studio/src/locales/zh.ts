@@ -466,6 +466,7 @@ export default flatten({
       url: 'URL',
     },
     playground: 'Playground',
+    emptyDocuments: '还没有导入任何知识数据',
   },
   content: '内容',
   search: '搜索',

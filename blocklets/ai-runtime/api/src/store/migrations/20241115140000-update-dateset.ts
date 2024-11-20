@@ -10,11 +10,12 @@ export const up: Migration = async ({ context: queryInterface }) => {
 
   await queryInterface.addColumn('DatasetDocuments', 'path', { type: DataTypes.STRING });
   await queryInterface.addColumn('DatasetDocuments', 'size', { type: DataTypes.BIGINT });
-  await queryInterface.addColumn('DatasetDocuments', 'summary', { type: DataTypes.TEXT });
 
   await queryInterface.addColumn('DatasetEmbeddingHistories', 'contentHash', { type: DataTypes.STRING });
   await queryInterface.removeColumn('DatasetEmbeddingHistories', 'targetVersion');
   await queryInterface.removeColumn('DatasetEmbeddingHistories', 'targetId');
+
+  await queryInterface.dropTable('DatasetUpdateHistories');
 };
 
 export const down: Migration = async ({ context: queryInterface }) => {
@@ -25,7 +26,6 @@ export const down: Migration = async ({ context: queryInterface }) => {
 
   await queryInterface.removeColumn('DatasetDocuments', 'path');
   await queryInterface.removeColumn('DatasetDocuments', 'size');
-  await queryInterface.removeColumn('DatasetDocuments', 'summary');
 
   await queryInterface.removeColumn('DatasetEmbeddingHistories', 'contentHash');
 };

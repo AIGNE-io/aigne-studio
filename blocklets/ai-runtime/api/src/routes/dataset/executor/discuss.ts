@@ -5,7 +5,7 @@ import logger from '@api/libs/logger';
 import { getComponentMountPoint } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
 import { exists } from 'fs-extra';
-import { omitBy } from 'lodash';
+import { cloneDeep, omitBy } from 'lodash';
 import { joinURL } from 'ufo';
 import { parse, stringify } from 'yaml';
 
@@ -34,6 +34,7 @@ const getDiscussionContent = async (discussionId: string) => {
   const languagesResult = [];
   for (const language of languages) {
     if (language !== post?.locale) {
+      // eslint-disable-next-line no-await-in-loop
       const res = await getDiscussion(discussionId, language);
       if (res?.post) languagesResult.push(res?.post);
     }
@@ -57,9 +58,7 @@ export class DiscussKitProcessor extends BaseProcessor {
     const document = await this.getDocument();
 
     const { data } = document;
-    if (data?.type !== 'discussKit') {
-      throw new Error('document is not a discussKit');
-    }
+    if (data?.type !== 'discussKit') throw new Error('document is not discussKit data');
 
     const post = await this.getDiscussion();
     const result = stringify(post);
@@ -92,7 +91,7 @@ export class DiscussKitProcessor extends BaseProcessor {
           content: omitBy(post, (value) => !value),
           metadata: {
             documentId: this.documentId,
-            ...data,
+            data: cloneDeep(data),
             title: post.title,
             locale: post.locale,
             link,
@@ -177,9 +176,8 @@ export class DiscussKitProcessor extends BaseProcessor {
   private async getDiscussion() {
     const document = await this.getDocument();
     const { data } = document;
-    if (data?.type !== 'discussKit') {
-      throw new Error('document is not a discussKit');
-    }
+
+    if (data?.type !== 'discussKit') throw new Error('document is not discussKit data');
 
     const { data: discussData } = data;
     const from: 'discussion' | 'board' | 'discussionType' = discussData?.from;

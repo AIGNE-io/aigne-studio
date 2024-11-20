@@ -5,6 +5,7 @@ import logger from '@api/libs/logger';
 import { DocxLoader } from '@langchain/community/document_loaders/fs/docx';
 import { PDFLoader } from '@langchain/community/document_loaders/fs/pdf';
 import { exists } from 'fs-extra';
+import { cloneDeep } from 'lodash';
 import { joinURL } from 'ufo';
 import { stringify } from 'yaml';
 
@@ -43,7 +44,7 @@ export class FileProcessor extends BaseProcessor {
     });
 
     const content = await this.loadFile(filePath, fileExt);
-    this.content = stringify({ content, metadata: { documentId: this.documentId, ...data } });
+    this.content = stringify({ content, metadata: { documentId: this.documentId, data: cloneDeep(data) } });
   }
 
   private async loadFile(filePath: string, fileType: string): Promise<string> {

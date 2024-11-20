@@ -170,7 +170,7 @@ router.get('/:knowledgeId/documents', middlewares.session(), userAuth(), async (
     DatasetDocument.count({ where: params }),
   ]);
 
-  res.json({ items, total });
+  res.json({ items, total, page });
 });
 
 router.delete('/:knowledgeId/documents/:documentId', middlewares.session(), userAuth(), async (req, res) => {

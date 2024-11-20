@@ -30,7 +30,7 @@ export abstract class BaseProcessor {
     this.processedFileName = `${this.documentId}.yml`;
   }
 
-  protected async saveContentToFile(): Promise<void> {
+  protected async saveProcessedFile(): Promise<void> {
     const processedFilePath = join(getProcessedFileDir(this.knowledgeId), this.processedFileName);
     if (!this.content) {
       throw new Error('Content is not available');
@@ -56,13 +56,16 @@ export abstract class BaseProcessor {
     try {
       await this.send({ embeddingStatus: UploadStatus.Uploading, embeddingStartAt: new Date() }, 'change');
 
+      logger.info('save original file');
       await this.saveOriginalFile();
+      logger.info('processed file');
       await this.ProcessedFile();
-      await this.saveContentToFile();
-
+      logger.info('save processed file');
+      await this.saveProcessedFile();
+      logger.info('start RAG');
       await this.startRAG();
-
-      await this.send({ embeddingStatus: UploadStatus.Success, embeddingEndAt: new Date() }, 'complete');
+      logger.info('send complete');
+      await this.send({ embeddingStatus: UploadStatus.Success, embeddingEndAt: new Date(), error: null }, 'complete');
     } catch (error) {
       const message = error?.message;
       logger.error('execute embedding pipeline error', message);
@@ -96,13 +99,18 @@ export abstract class BaseProcessor {
       throw new Error(`file ${processedFilePath} not found`);
     }
 
-    const fileContent = await readFile(processedFilePath).toString();
+    const fileContent = (await readFile(processedFilePath)).toString();
     const fileContentHash = hash('md5', fileContent, 'hex');
     const previousEmbedding = await EmbeddingHistories.findOne({
       where: { datasetId: this.knowledgeId, documentId: this.documentId },
     });
 
-    if (fileContentHash && previousEmbedding?.contentHash === fileContentHash) {
+    if (
+      fileContentHash &&
+      previousEmbedding?.status === UploadStatus.Success &&
+      previousEmbedding?.contentHash === fileContentHash
+    ) {
+      logger.warn('embedding already exists', { knowledgeId: this.knowledgeId, documentId: this.documentId });
       return;
     }
 
@@ -142,7 +150,7 @@ export abstract class BaseProcessor {
 
         if (currentTotal > 1) {
           const embeddingStatus = `${currentIndex}/${currentTotal}`;
-          this.sse.send({ embeddingStatus, embeddingEndAt: new Date() }, 'change');
+          await this.send({ embeddingStatus, error: null }, 'change');
         }
       }
 

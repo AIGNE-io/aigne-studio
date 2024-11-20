@@ -8,7 +8,7 @@ const EmptyDocuments = () => {
       <Stack alignItems="center">
         <Typography variant="subtitle1">📚</Typography>
         <Typography variant="subtitle5" maxWidth={170} textAlign="center">
-          {t("You haven't imported any knowledge yet.")}
+          {t('knowledge.emptyDocuments')}
         </Typography>
       </Stack>
     </Box>

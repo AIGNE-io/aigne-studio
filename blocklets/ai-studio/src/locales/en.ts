@@ -462,6 +462,7 @@ export default flatten({
       url: 'URL',
     },
     playground: 'Playground',
+    emptyDocuments: "You haven't imported any knowledge yet.",
   },
   content: 'Content',
   search: 'Search',

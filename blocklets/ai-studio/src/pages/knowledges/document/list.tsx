@@ -98,9 +98,9 @@ const KnowledgeDocuments = ({
               break;
             }
             case 'error': {
-              const { type, message, ...rest } = value;
+              const { type, ...rest } = value;
               embeddings[value.documentId] = rest;
-              Toast.error(message);
+              Toast.error(rest.error);
               break;
             }
             default:
@@ -214,7 +214,6 @@ const KnowledgeDocuments = ({
             <Stack className="center" height="100%">
               <Box
                 borderRadius={20}
-                border="1px solid #E5E7EB"
                 p="4px 12px"
                 color="#030712"
                 fontSize={13}
@@ -222,13 +221,13 @@ const KnowledgeDocuments = ({
                 alignItems="center"
                 lineHeight={1}
                 gap={1}>
+                {params.row.embeddingStatus}
                 <Box
                   width={6}
                   height={6}
                   borderRadius={6}
                   bgcolor={isSymmetricAroundSlash(params.row.embeddingStatus) ? colors.success : colors.uploading}
                 />
-                {params.row.embeddingStatus}
               </Box>
             </Stack>
           );

@@ -139,7 +139,7 @@ export async function createCrawlDocument(
 export async function getDocuments(
   datasetId: string,
   params: { blockletDid?: string; page?: number; size?: number }
-): Promise<{ items: KnowledgeDocumentCard[]; total: number }> {
+): Promise<{ items: KnowledgeDocumentCard[]; total: number; page: number }> {
   return axios
     .get(`/api/datasets/${datasetId}/documents`, { baseURL: AIGNE_RUNTIME_MOUNT_POINT, params })
     .then((res) => res.data);
@@ -200,7 +200,7 @@ export async function watchKnowledgeEmbeddings({
   return new ReadableStream<
     | { type: 'change'; documentId: string; embeddingStatus: string; embeddingEndAt?: Date; embeddingStartAt?: Date }
     | { type: 'complete'; documentId: string; embeddingStatus: string; embeddingEndAt?: Date; embeddingStartAt?: Date }
-    | { type: 'error'; documentId: string; embeddingStatus: string; message: string }
+    | { type: 'error'; documentId: string; embeddingStatus: string; error: string }
   >({
     async start(controller) {
       await fetchEventSource(url, {

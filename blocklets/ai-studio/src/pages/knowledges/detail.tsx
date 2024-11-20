@@ -33,7 +33,7 @@ import {
 } from '@mui/material';
 import { useRequest } from 'ahooks';
 import bytes from 'bytes';
-import { Suspense, useCallback, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { joinURL, withQuery } from 'ufo';
 
@@ -68,28 +68,34 @@ export default function KnowledgeDetail() {
 
   const { getKnowledge, getDocuments, deleteDocument } = useKnowledge();
   const navigate = useNavigate();
-  const [page, setPage] = useState(1);
 
   const {
     data: knowledgeData,
-    loading,
-    refresh: refreshKnowledge,
+    loading: knowledgeLoading,
+    mutate: mutateKnowledge,
   } = useRequest(() => getKnowledge(knowledgeId), {
     refreshDeps: [knowledgeId],
     onSuccess: (data) => setShowImportDialog(!data?.docs),
   });
 
-  const { data: documents, refresh: refreshDocuments } = useRequest(
-    () => getDocuments(knowledgeId, { page, size: 10 }),
-    { refreshDeps: [knowledgeId, page] }
-  );
+  const {
+    data: document,
+    loading: documentsLoading,
+    mutate: mutateDocuments,
+    run,
+  } = useRequest((page = 1) => getDocuments(knowledgeId, { page, size: 10 }), { refreshDeps: [knowledgeId] });
 
   const runAsync = useCallback(async () => {
-    setPage(1);
-    await refreshKnowledge();
-    await refreshDocuments();
+    const [newKnowledge, newDocuments] = await Promise.all([
+      getKnowledge(knowledgeId),
+      getDocuments(knowledgeId, { page: 1, size: 10 }),
+    ]);
+
+    mutateKnowledge(newKnowledge);
+    mutateDocuments(newDocuments);
   }, []);
 
+  const loading = knowledgeLoading || documentsLoading;
   return (
     <>
       <ColumnsLayout
@@ -196,37 +202,33 @@ export default function KnowledgeDetail() {
             </Box>
 
             <Box flexGrow={1} overflow="hidden">
-              {loading ? (
-                <Box className="center" width={1} height={1}>
-                  <CircularProgress />
-                </Box>
-              ) : (
-                <Stack p={2.5} height={1}>
-                  <Header
-                    knowledgeId={knowledgeId}
-                    title={knowledgeData?.name}
-                    description={knowledgeData?.description}
-                    docs={knowledgeData?.docs}
-                    totalSize={knowledgeData?.totalSize}
-                    icon={knowledgeData?.icon}
-                    onAdd={() => setShowImportDialog(true)}
-                    onBack={() => navigate(-1)}
-                  />
+              <Stack p={2.5} height={1}>
+                <Header
+                  knowledgeId={knowledgeId}
+                  title={knowledgeData?.name}
+                  description={knowledgeData?.description}
+                  docs={knowledgeData?.docs}
+                  totalSize={knowledgeData?.totalSize}
+                  icon={knowledgeData?.icon}
+                  onAdd={() => setShowImportDialog(true)}
+                  onBack={() => navigate(-1)}
+                />
 
+                {loading ? (
+                  <Box flexGrow={1} className="center" width={1} height={1}>
+                    <CircularProgress />
+                  </Box>
+                ) : (
                   <Box flexGrow={1}>
-                    {documents?.items?.length ? (
+                    {document?.items?.length ? (
                       <KnowledgeDocuments
                         knowledgeId={knowledgeId}
-                        rows={documents.items || []}
-                        total={documents.total ?? 0}
-                        page={page}
-                        onChangePage={setPage}
+                        rows={document.items || []}
+                        total={document.total ?? 0}
+                        page={document.page ?? 1}
+                        onChangePage={(page) => run(page)}
                         onRemove={async (documentId) => {
-                          try {
-                            await deleteDocument(knowledgeId, documentId);
-                          } catch (error) {
-                            Toast.error(error?.message);
-                          }
+                          await deleteDocument(knowledgeId, documentId).catch((e) => Toast.error(e?.message));
                         }}
                         onRefetch={runAsync}
                         onEmbedding={(documentId) => refreshEmbedding(knowledgeId, documentId)}
@@ -235,8 +237,8 @@ export default function KnowledgeDetail() {
                       <EmptyDocuments />
                     )}
                   </Box>
-                </Stack>
-              )}
+                )}
+              </Stack>
             </Box>
           </Stack>
         )}
@@ -383,7 +385,7 @@ const Header = ({
                 sx={{
                   '.MuiInputBase-root': {
                     border: 'none',
-                    background: 'transparent',
+                    background: 'transparent !important',
                     width: '100%',
 
                     '&:focus': {
@@ -419,7 +421,7 @@ const Header = ({
                 sx={{
                   '.MuiInputBase-root': {
                     border: 'none',
-                    background: 'transparent',
+                    background: 'transparent !important',
                     width: '100%',
 
                     '&:focus': {
@@ -469,6 +471,10 @@ const KnowledgeIcon = ({ knowledgeId, icon }: { knowledgeId: string; icon?: stri
   const [localIcon, setIcon] = useState<string | undefined>(icon);
   const url = joinURL(AIGNE_RUNTIME_MOUNT_POINT, `/api/datasets/${knowledgeId}/icon.png?icon=${localIcon}`);
 
+  useEffect(() => {
+    setIcon(icon);
+  }, [icon]);
+
   return (
     <Box
       sx={{
@@ -498,6 +504,7 @@ const KnowledgeIcon = ({ knowledgeId, icon }: { knowledgeId: string; icon?: stri
             src={url}
             alt="knowledge icon"
             onError={(e) => {
+              console.log(123);
               e.currentTarget.onerror = null;
               e.currentTarget.style.display = 'none';
               if (e.currentTarget.nextElementSibling) {

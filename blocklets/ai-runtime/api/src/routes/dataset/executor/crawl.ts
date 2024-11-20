@@ -1,8 +1,9 @@
 import { writeFile } from 'fs/promises';
 
 import { getSourceFileDir } from '@api/libs/ensure-dir';
+import { CheerioWebBaseLoader } from '@langchain/community/document_loaders/web/cheerio';
 import { exists } from 'fs-extra';
-import { CheerioWebBaseLoader } from 'langchain/document_loaders/web/cheerio';
+import { cloneDeep } from 'lodash';
 import { joinURL } from 'ufo';
 import { stringify } from 'yaml';
 
@@ -20,9 +21,7 @@ export class CrawlProcessor extends BaseProcessor {
     const document = await this.getDocument();
 
     const { data } = document;
-    if (data?.type !== 'crawl') {
-      throw new Error('document is not a file');
-    }
+    if (data?.type !== 'crawl') throw new Error('document is not a crawl data');
 
     const { provider, url, apiKey } = data;
     const map = {
@@ -61,7 +60,7 @@ export class CrawlProcessor extends BaseProcessor {
     const docs = await loader.load();
     this.content = stringify({
       content: docs.map((doc: any) => doc.pageContent).join('\n'),
-      metadata: { documentId: this.documentId, ...data },
+      metadata: { documentId: this.documentId, data: cloneDeep(data) },
     });
   }
 }

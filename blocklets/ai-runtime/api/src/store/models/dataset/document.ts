@@ -69,8 +69,6 @@ export default class DatasetDocument extends Model<
   declare path?: string;
 
   declare size?: number;
-
-  declare summary?: string;
 }
 
 DatasetDocument.init(
@@ -125,9 +123,6 @@ DatasetDocument.init(
     },
     size: {
       type: DataTypes.BIGINT,
-    },
-    summary: {
-      type: DataTypes.TEXT,
     },
   },
   { sequelize }

@@ -351,4 +351,5 @@ router.get('/:knowledgeId/icon.png', async (req, res) => {
 
   throw new NotFoundError(`No such knowledge ${knowledgeId}`);
 });
+
 export default router;
