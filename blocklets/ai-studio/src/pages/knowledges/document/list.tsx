@@ -319,7 +319,7 @@ function Actions({
   return (
     <>
       <Stack flexDirection="row" alignItems="center" justifyContent="center" height={1}>
-        {['text', 'file'].includes(type) ? (
+        {['text', 'file', 'crawl'].includes(type) ? (
           <>
             {/* <Button onClick={onEdit}>{t('edit')}</Button> */}
 

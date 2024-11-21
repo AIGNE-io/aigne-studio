@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 import { hash } from 'crypto';
 import { stat, writeFile } from 'fs/promises';
 import { join } from 'path';
@@ -150,7 +151,7 @@ export abstract class BaseProcessor {
     try {
       for (const { content, metadata } of array) {
         currentIndex++;
-        // eslint-disable-next-line no-await-in-loop
+
         await saveContentToVectorStore({
           metadata,
           content: this.preprocessText(content),
@@ -170,6 +171,8 @@ export abstract class BaseProcessor {
         { where: { datasetId: this.knowledgeId, documentId: this.documentId } }
       );
     } catch (error) {
+      logger.error('startRAG error', error);
+
       await EmbeddingHistories.update(
         { error: error.message, status: UploadStatus.Error },
         { where: { datasetId: this.knowledgeId, documentId: this.documentId } }

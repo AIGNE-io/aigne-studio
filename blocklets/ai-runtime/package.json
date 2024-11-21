@@ -52,6 +52,7 @@
     "@langchain/core": "^0.3.18",
     "@langchain/openai": "^0.3.14",
     "@llamaindex/community": "^0.0.71",
+    "@mendable/firecrawl-js": "^1.8.5",
     "@mui/lab": "^5.0.0-alpha.173",
     "@mui/material": "^5.16.7",
     "@ocap/client": "^1.18.143",

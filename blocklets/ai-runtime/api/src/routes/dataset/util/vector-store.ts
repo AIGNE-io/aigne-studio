@@ -48,11 +48,17 @@ async function processContent(
   metadata?: Record<string, unknown>,
   config?: { separators: string[]; chunkSize: number; chunkOverlap: number }
 ) {
+  if (!content || typeof content !== 'string') {
+    throw new Error(`Invalid content: ${typeof content}`);
+  }
+
   const splitter = new RecursiveCharacterTextSplitter(config);
   const embeddings = new AIKitEmbeddings();
 
   const chunks = await splitter.splitText(content);
-  const docs = await splitter.createDocuments(chunks, metadata ? [{ metadata }] : undefined);
+
+  const metadataArray = metadata ? Array(chunks.length).fill({ metadata }) : undefined;
+  const docs = await splitter.createDocuments(chunks, metadataArray);
 
   const formattedDocs = docs.map((doc) => formatDocument(doc, metadata));
   const vectors = await embeddings.embedDocuments(formattedDocs.map((d) => d.pageContent));
