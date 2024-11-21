@@ -53,6 +53,7 @@ function generateDiscussionUrl(params: any): string {
 }
 
 const KnowledgeDocuments = ({
+  disabled,
   knowledgeId,
   rows,
   total,
@@ -62,6 +63,7 @@ const KnowledgeDocuments = ({
   onRefetch,
   onEmbedding,
 }: {
+  disabled: boolean;
   knowledgeId: string;
   rows: KnowledgeDocumentCard[];
   total: number;
@@ -113,8 +115,8 @@ const KnowledgeDocuments = ({
     return () => abortController.abort();
   }, [knowledgeId]);
 
-  const columns = useMemo<GridColDef<KnowledgeDocumentCard>[]>(
-    () => [
+  const columns = useMemo(() => {
+    const list: GridColDef<KnowledgeDocumentCard>[] = [
       {
         field: 'name',
         headerName: t('knowledge.documents.name'),
@@ -233,7 +235,10 @@ const KnowledgeDocuments = ({
           );
         },
       },
-      {
+    ];
+
+    if (!disabled) {
+      list.push({
         field: 'actions',
         headerName: t('actions'),
         width: 200,
@@ -256,10 +261,11 @@ const KnowledgeDocuments = ({
             }}
           />
         ),
-      },
-    ],
-    [t]
-  );
+      });
+    }
+
+    return list;
+  }, [t, disabled]);
 
   const list = (rows ?? []).map((i) => ({ ...i, ...(embeddings[i.id] || {}) }));
   return (
@@ -286,6 +292,7 @@ const KnowledgeDocuments = ({
         paginationMode="server"
         onPaginationModelChange={({ page }) => onChangePage(page + 1)}
         getRowClassName={() => 'document-row'}
+        disableRowSelectionOnClick={disabled}
       />
     </Stack>
   );

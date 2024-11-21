@@ -1,6 +1,5 @@
 import { Document } from '@langchain/core/documents';
 import { OpenAI } from '@langchain/openai';
-import { KeywordTableIndex, QueryFusionRetriever, VectorStoreIndex } from '@llamaindex/community';
 
 import { AIKitEmbeddings } from '../../../core/embeddings/ai-kit';
 import VectorStore from '../../../store/vector-store-faiss';

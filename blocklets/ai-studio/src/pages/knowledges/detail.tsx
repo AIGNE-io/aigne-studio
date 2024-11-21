@@ -31,7 +31,7 @@ import {
   tabClasses,
   tabsClasses,
 } from '@mui/material';
-import { useRequest } from 'ahooks';
+import { useRequest, useUpdate } from 'ahooks';
 import bytes from 'bytes';
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -100,6 +100,7 @@ export default function KnowledgeDetail() {
   }, []);
 
   const loading = knowledgeLoading || documentsLoading;
+  const disabled = knowledgeData?.resourceBlockletDid && knowledgeData?.knowledgeId;
   return (
     <>
       <ColumnsLayout
@@ -209,11 +210,12 @@ export default function KnowledgeDetail() {
               <Stack p={2.5} height={1}>
                 <Header
                   knowledgeId={knowledgeId}
-                  title={knowledgeData?.name}
-                  description={knowledgeData?.description}
-                  docs={knowledgeData?.docs}
-                  totalSize={knowledgeData?.totalSize}
-                  icon={knowledgeData?.icon}
+                  disabled={loading ? true : Boolean(disabled)}
+                  title={loading ? '' : knowledgeData?.name}
+                  description={loading ? '' : knowledgeData?.description}
+                  docs={loading ? 0 : knowledgeData?.docs}
+                  totalSize={loading ? 0 : knowledgeData?.totalSize}
+                  icon={loading ? '' : knowledgeData?.icon}
                   onAdd={() => setShowImportDialog(true)}
                   onBack={() => navigate(-1)}
                 />
@@ -226,14 +228,15 @@ export default function KnowledgeDetail() {
                   <Box flexGrow={1}>
                     {document?.items?.length ? (
                       <KnowledgeDocuments
+                        disabled={Boolean(disabled)}
                         knowledgeId={knowledgeId}
                         rows={document.items || []}
                         total={document.total ?? 0}
                         page={document.page ?? 1}
                         onChangePage={(page) => run(page)}
-                        onRemove={async (documentId) => {
-                          await deleteDocument(knowledgeId, documentId).catch((e) => Toast.error(e?.message));
-                        }}
+                        onRemove={(documentId) =>
+                          deleteDocument(knowledgeId, documentId).catch((e) => Toast.error(e?.message))
+                        }
                         onRefetch={runAsync}
                         onEmbedding={(documentId) => refreshEmbedding(knowledgeId, documentId)}
                       />
@@ -248,7 +251,7 @@ export default function KnowledgeDetail() {
         )}
       </ColumnsLayout>
 
-      {showImportDialog && (
+      {showImportDialog && !disabled && (
         <ImportKnowledge
           knowledgeId={knowledgeId}
           onClose={() => setShowImportDialog(false)}
@@ -402,6 +405,7 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
 };
 
 const Header = ({
+  disabled,
   knowledgeId,
   title,
   description,
@@ -411,6 +415,7 @@ const Header = ({
   onBack,
   onAdd,
 }: {
+  disabled: boolean;
   knowledgeId: string;
   title?: string;
   description?: string;
@@ -425,6 +430,10 @@ const Header = ({
 
   const ref = useRef<{ title?: string; description?: string }>({ title, description });
   const [state, setState] = useState({ title: title || t('unnamed'), description });
+
+  useEffect(() => {
+    setState({ title: title || t('unnamed'), description });
+  }, [title, description, t]);
 
   return (
     <UploaderProvider
@@ -451,10 +460,11 @@ const Header = ({
 
         <Stack direction="row" justifyContent="space-between" alignItems="self-end">
           <Stack direction="row" gap={1}>
-            <KnowledgeIcon knowledgeId={knowledgeId} icon={icon} />
+            <KnowledgeIcon knowledgeId={knowledgeId} icon={icon} disabled={disabled} />
 
             <Stack sx={{ alignSelf: 'flex-end' }}>
               <Typography
+                inputProps={{ readOnly: disabled }}
                 placeholder={t('title')}
                 variant="subtitle1"
                 component={TextField}
@@ -491,6 +501,7 @@ const Header = ({
               />
 
               <Typography
+                inputProps={{ readOnly: disabled }}
                 placeholder={t('description')}
                 variant="subtitle3"
                 component={TextField}
@@ -539,12 +550,14 @@ const Header = ({
               <Typography variant="subtitle5">{bytes.format(totalSize || 0)}</Typography>
             </Stack>
 
-            <Stack direction="row" gap={0.5} alignItems="center" sx={{ cursor: 'pointer' }} onClick={onAdd}>
-              <Box component={Icon} icon={PlusIcon} sx={{ color: '#3B82F6', fontSize: 15 }} />
-              <Typography variant="subtitle3" sx={{ color: '#3B82F6' }}>
-                {`${t('add')}${t('knowledge.knowledge')}`}
-              </Typography>
-            </Stack>
+            {!disabled && (
+              <Stack direction="row" gap={0.5} alignItems="center" sx={{ cursor: 'pointer' }} onClick={onAdd}>
+                <Box component={Icon} icon={PlusIcon} sx={{ color: '#3B82F6', fontSize: 15 }} />
+                <Typography variant="subtitle3" sx={{ color: '#3B82F6' }}>
+                  {`${t('add')}${t('knowledge.knowledge')}`}
+                </Typography>
+              </Stack>
+            )}
           </Stack>
         </Stack>
 
@@ -554,23 +567,20 @@ const Header = ({
   );
 };
 
-const KnowledgeIcon = ({ knowledgeId, icon }: { knowledgeId: string; icon?: string }) => {
+const KnowledgeIcon = ({ knowledgeId, icon, disabled }: { knowledgeId: string; icon?: string; disabled: boolean }) => {
   const uploaderRef = useUploader();
   const [localIcon, setIcon] = useState<string | undefined>(icon);
   const url = joinURL(AIGNE_RUNTIME_MOUNT_POINT, `/api/datasets/${knowledgeId}/icon.png?icon=${localIcon}`);
+  const update = useUpdate();
 
-  useEffect(() => {
-    setIcon(icon);
-  }, [icon]);
+  useEffect(() => setIcon(icon), [icon, knowledgeId]);
 
   return (
     <Box
       sx={{
         overflow: 'hidden',
         position: 'relative',
-        '&:hover .edit-overlay': {
-          opacity: 1,
-        },
+        '&:hover .edit-overlay': { opacity: disabled ? 0 : 1 },
       }}>
       <Box
         className="center"
@@ -587,20 +597,19 @@ const KnowledgeIcon = ({ knowledgeId, icon }: { knowledgeId: string; icon?: stri
             objectFit: 'cover',
           },
         }}>
-        {localIcon ? (
-          <img
-            src={url}
-            alt="knowledge icon"
-            onError={(e) => {
-              e.currentTarget.onerror = null;
-              e.currentTarget.style.display = 'none';
-              if (e.currentTarget.nextElementSibling) {
-                (e.currentTarget.nextElementSibling as any).style.display = 'block';
-              }
-            }}
-          />
-        ) : null}
-        <Typography fontSize={24} style={{ display: localIcon ? 'none' : 'block' }}>
+        <Box
+          component="img"
+          src={url}
+          alt="knowledge icon"
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.style.display = 'none';
+            if (e.currentTarget.nextElementSibling) {
+              (e.currentTarget.nextElementSibling as any).style.display = 'block';
+            }
+          }}
+        />
+        <Typography fontSize={24} style={{ display: 'none' }}>
           📖
         </Typography>
       </Box>
@@ -617,10 +626,12 @@ const KnowledgeIcon = ({ knowledgeId, icon }: { knowledgeId: string; icon?: stri
           cursor: 'pointer',
         }}
         onClick={() => {
+          if (disabled) return;
           const uploader = uploaderRef?.current?.getUploader();
           uploader?.open();
           uploader.onceUploadSuccess(({ response }: any) => {
             setIcon(response?.data?.runtime?.hashFileName);
+            update();
           });
         }}>
         <Box component={Icon} icon={PencilIcon} fontSize={15} sx={{ color: '#fff' }} />

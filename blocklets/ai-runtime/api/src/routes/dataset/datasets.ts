@@ -1,13 +1,13 @@
 import { createWriteStream } from 'fs';
 import { copyFile, mkdir, mkdtemp, rm, writeFile } from 'fs/promises';
-import { join, resolve } from 'path';
+import { join } from 'path';
 import { finished } from 'stream/promises';
 
 import { Config } from '@api/libs/env';
 import { NotFoundError } from '@api/libs/error';
 import logger from '@api/libs/logger';
 import { resourceManager } from '@api/libs/resource';
-import DatasetContent from '@api/store/models/dataset/content';
+import Segment from '@api/store/models/dataset/segment';
 import { copyRecursive } from '@blocklet/ai-runtime/utils/fs';
 import config from '@blocklet/sdk/lib/config';
 import middlewares from '@blocklet/sdk/lib/middlewares';
@@ -24,7 +24,7 @@ import omitBy from 'lodash/omitBy';
 import { Op, Sequelize } from 'sequelize';
 import { stringify } from 'yaml';
 
-import ensureKnowledgeDirExists, { getLogoPath, getSourceFileDir, getVectorStorePath } from '../../libs/ensure-dir';
+import ensureKnowledgeDirExists, { getKnowledgeDir, getLogoPath } from '../../libs/ensure-dir';
 import copyKnowledgeBase from '../../libs/knowledge';
 import { ensureComponentCallOr, ensureComponentCallOrAdmin, userAuth } from '../../libs/security';
 import Knowledge from '../../store/models/dataset/dataset';
@@ -94,8 +94,26 @@ router.get('/', middlewares.session(), ensureComponentCallOr(userAuth()), async 
 
   const knowledge = await Promise.all(
     items.map(async (item) => {
-      const { user } = await authClient.getUser(item.updatedBy);
-      return { ...item.dataValues, user: pick(user, ['did', 'fullName', 'avatar']) };
+      const knowledge = item.dataValues;
+
+      if (knowledge.resourceBlockletDid && knowledge.knowledgeId) {
+        const resource = await resourceManager.getKnowledge({
+          blockletDid: knowledge.resourceBlockletDid,
+          knowledgeId: knowledge.knowledgeId,
+        });
+
+        // @ts-ignore
+        knowledge.docs = resource?.documents.length;
+        // @ts-ignore
+        knowledge.totalSize = (resource?.documents || []).reduce((acc, i) => acc + i.size || 0, 0);
+
+        knowledge.name = resource?.knowledge.name;
+        knowledge.description = resource?.knowledge.description;
+        knowledge.updatedBy = resource?.knowledge.updatedBy || knowledge.updatedBy;
+      }
+
+      const { user } = await authClient.getUser(knowledge.updatedBy);
+      return { ...knowledge, user: pick(user, ['did', 'fullName', 'avatar']) };
     })
   );
 
@@ -128,74 +146,113 @@ router.get('/:knowledgeId', middlewares.session(), ensureComponentCallOr(userAut
   const user =
     !req.user || req.user.isAdmin ? {} : { [Op.or]: [{ createdBy: req.user.did }, { updatedBy: req.user.did }] };
 
-  const knowledge = await Knowledge.findOneWithDocs({ where: { id: knowledgeId, ...user } });
+  const result = await Knowledge.findOneWithDocs({ where: { id: knowledgeId, ...user } });
+  const knowledge = result?.dataValues;
 
   if (knowledge?.resourceBlockletDid && knowledge?.knowledgeId) {
-    const item = await resourceManager.getKnowledge({
+    const resource = await resourceManager.getKnowledge({
       blockletDid: knowledge.resourceBlockletDid,
       knowledgeId: knowledge.knowledgeId,
     });
 
-    return res.json({
-      ...(item?.knowledge || {}),
-      user: pick(user, ['did', 'fullName', 'avatar']),
-      blockletDid: item?.blockletDid,
-      totalSize: 0,
-      docs: item?.documents?.length || 0,
-    });
+    // @ts-ignore
+    knowledge.docs = resource?.documents.length;
+    // @ts-ignore
+    knowledge.totalSize = (resource?.documents || []).reduce((acc, i) => acc + i.size || 0, 0);
+
+    knowledge.name = resource?.knowledge.name;
+    knowledge.description = resource?.knowledge.description;
+    knowledge.updatedBy = resource?.knowledge.updatedBy || knowledge.updatedBy;
   }
 
-  return res.json(knowledge);
+  return res.json({ ...knowledge, user: pick(user, ['did', 'fullName', 'avatar']) });
 });
 
-export const exportResourceQuerySchema = Joi.object<{ public?: boolean }>({
-  public: Joi.boolean().empty(['', null]),
-});
+export const exportResourceQuerySchema = Joi.object<{ public?: boolean }>({ public: Joi.boolean().empty(['', null]) });
 
-router.get('/:datasetId/export-resource', middlewares.session(), ensureComponentCallOrAdmin(), async (req, res) => {
-  const { datasetId } = req.params;
-  if (!datasetId) throw new Error('missing required param `datasetId`');
+router.get('/:knowledgeId/export-resource', middlewares.session(), ensureComponentCallOrAdmin(), async (req, res) => {
+  // 以下为0.x.x 的存储方式,在使用时,可以比较好的，清楚之前的存储方式
+
+  // try {
+  //   const knowledgeWithIdPath = join(tmpFolder, datasetId);
+  //   await mkdir(knowledgeWithIdPath, { recursive: true });
+
+  //   // 首先将 projects documents contents 继续数据结构化
+  //   await writeFile(
+  //     join(knowledgeWithIdPath, 'knowledge.yaml'),
+  //     stringify({ ...dataset.dataValues, public: query.public })
+  //   );
+  //   await writeFile(join(knowledgeWithIdPath, 'contents.yaml'), stringify(contents));
+
+  //   // 复制 files 数据
+  //   const uploadSrc = resolve(await getSourceFileDir(datasetId));
+  //   const uploadsDst = join(knowledgeWithIdPath, 'uploads');
+
+  //   if (await pathExists(uploadSrc)) {
+  //     await copyRecursive(uploadSrc, uploadsDst);
+  //   }
+
+  //   await writeFile(join(knowledgeWithIdPath, 'documents.yaml'), stringify(documents));
+
+  //   // 复制 vector db
+  //   const src = resolve(await getVectorStorePath(datasetId));
+  //   const vectorsDst = join(knowledgeWithIdPath, 'vectors');
+
+  //   if (await pathExists(src)) {
+  //     await copyRecursive(src, vectorsDst);
+  //   }
+
+  //   const zipPath = join(tmpFolder, `${datasetId}.zip`);
+  //   const archive = archiver('zip');
+  //   const stream = archive.pipe(createWriteStream(zipPath));
+
+  //   archive.directory(knowledgeWithIdPath, false);
+
+  //   await archive.finalize();
+  //   await finished(stream);
+
+  //   await new Promise<void>((resolve) => {
+  //     res.sendFile(zipPath, (error) => {
+  //       resolve();
+  //       if (error) logger.error('sendFile error', error);
+  //     });
+  //   });
+  // } finally {
+  //   await rm(tmpFolder, { recursive: true, force: true });
+  // }
+
+  const { knowledgeId } = req.params;
+  if (!knowledgeId) throw new Error('missing required param `knowledgeId`');
 
   const query = await exportResourceQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
-  const dataset = await Knowledge.findByPk(datasetId, { rejectOnEmpty: new Error(`No such dataset ${datasetId}`) });
-  const documents = await KnowledgeDocument.findAll({ where: { datasetId, type: { [Op.ne]: 'discussKit' } } });
-  const documentIds = documents.map((i) => i.id);
-  const contents = await DatasetContent.findAll({ where: { documentId: { [Op.in]: documentIds } } });
+  const knowledge = await Knowledge.findByPk(knowledgeId, {
+    rejectOnEmpty: new Error(`No such dataset ${knowledgeId}`),
+  });
+  const documents = await KnowledgeDocument.findAll({ where: { datasetId: knowledgeId } });
+  const segments = await Segment.findAll({ where: { documentId: { [Op.in]: documents.map((i) => i.id) } } });
 
   const tmpdir = join(Config.dataDir, 'tmp');
   await mkdir(tmpdir, { recursive: true });
   const tmpFolder = await mkdtemp(join(tmpdir, 'knowledge-pack-'));
+
   try {
-    const knowledgeWithIdPath = join(tmpFolder, datasetId);
+    const knowledgeWithIdPath = join(tmpFolder, knowledgeId);
     await mkdir(knowledgeWithIdPath, { recursive: true });
 
-    // 首先将 projects documents contents 继续数据结构化
-    await writeFile(
-      join(knowledgeWithIdPath, 'knowledge.yaml'),
-      stringify({ ...dataset.dataValues, public: query.public })
-    );
-    await writeFile(join(knowledgeWithIdPath, 'contents.yaml'), stringify(contents));
-
-    // 复制 files 数据
-    const uploadSrc = resolve(await getSourceFileDir(datasetId));
-    const uploadsDst = join(knowledgeWithIdPath, 'uploads');
-
-    if (await pathExists(uploadSrc)) {
-      await copyRecursive(uploadSrc, uploadsDst);
+    // 复制当前知识库文件夹
+    const currentKnowledgeDir = await getKnowledgeDir(knowledgeId);
+    if (await pathExists(currentKnowledgeDir)) {
+      await copyRecursive(currentKnowledgeDir, knowledgeWithIdPath);
     }
 
+    // 首先将 projects documents segments 继续数据结构化
+    const knowledgeObjectPath = { ...knowledge.dataValues, public: query.public, version: '1.0.0' };
+    await writeFile(join(knowledgeWithIdPath, 'knowledge.yaml'), stringify(knowledgeObjectPath));
     await writeFile(join(knowledgeWithIdPath, 'documents.yaml'), stringify(documents));
+    await writeFile(join(knowledgeWithIdPath, 'segments.yaml'), stringify(segments));
 
-    // 复制 vector db
-    const src = resolve(await getVectorStorePath(datasetId));
-    const vectorsDst = join(knowledgeWithIdPath, 'vectors');
-
-    if (await pathExists(src)) {
-      await copyRecursive(src, vectorsDst);
-    }
-
-    const zipPath = join(tmpFolder, `${datasetId}.zip`);
+    const zipPath = join(tmpFolder, `${knowledgeId}.zip`);
     const archive = archiver('zip');
     const stream = archive.pipe(createWriteStream(zipPath));
 
@@ -227,15 +284,16 @@ router.post('/', middlewares.session({ componentCall: true }), ensureComponentCa
 
     const map: { [oldKnowledgeBaseId: string]: string } = {};
 
-    for (const item of knowledge) {
+    for (const oldKnowledge of knowledge) {
+      // eslint-disable-next-line no-await-in-loop
       const newKnowledgeId = await copyKnowledgeBase({
-        oldKnowledgeBaseId: item.id,
+        oldKnowledgeBaseId: oldKnowledge.id,
         oldProjectId: copyFromProjectId,
         newProjectId: projectId,
         userId,
       });
 
-      map[item.id] = newKnowledgeId;
+      map[oldKnowledge.id] = newKnowledgeId;
     }
 
     const copied = Object.entries(map).map(([from, to]) => ({ from: { id: from }, to: { id: to } }));
@@ -338,14 +396,28 @@ router.get('/:knowledgeId/icon.png', async (req, res) => {
   const { knowledgeId } = req.params;
   if (!knowledgeId) throw new Error('Missing required parameter `knowledgeId`');
 
-  const original = await Knowledge.findOne({ where: { id: knowledgeId } });
-  if (original?.icon) {
-    const logoPath = getLogoPath(knowledgeId);
+  const knowledge = await Knowledge.findOne({ where: { id: knowledgeId } });
 
-    if (await exists(logoPath)) {
-      res.setHeader('Content-Type', 'image/png');
-      res.sendFile(logoPath);
-      return;
+  if (knowledge) {
+    if (knowledge.resourceBlockletDid && knowledge.knowledgeId) {
+      const resource = await resourceManager.getKnowledge({
+        blockletDid: knowledge.resourceBlockletDid,
+        knowledgeId: knowledge.knowledgeId,
+      });
+
+      if (resource?.logoPath && (await exists(resource?.logoPath))) {
+        res.setHeader('Content-Type', 'image/png');
+        res.sendFile(resource?.logoPath);
+        return;
+      }
+    } else if (knowledge?.icon) {
+      const logoPath = getLogoPath(knowledgeId);
+
+      if (await exists(logoPath)) {
+        res.setHeader('Content-Type', 'image/png');
+        res.sendFile(logoPath);
+        return;
+      }
     }
   }
 

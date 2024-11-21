@@ -3,7 +3,6 @@ import { copyRecursive } from '@blocklet/ai-runtime/utils/fs';
 import { mkdir, pathExists } from 'fs-extra';
 import { CreationAttributes, Model, Op } from 'sequelize';
 
-import KnowledgeContents from '../store/models/dataset/content';
 import Knowledge from '../store/models/dataset/dataset';
 import KnowledgeDocuments from '../store/models/dataset/document';
 import KnowledgeEmbeddingHistory from '../store/models/dataset/embedding-history';
@@ -128,21 +127,21 @@ async function importKnowledgeData(
     },
   });
 
-  // 从旧知识库复制内容
-  await paginateAndInsert({
-    findAll: (data) => {
-      data.where.documentId = { [Op.in]: ids };
-      return KnowledgeContents.findAll(data);
-    },
-    bulkCreate: (list) => {
-      const format = list.map((dataValues) => ({
-        ...dataValues,
-        documentId: map[dataValues.documentId]! || nextId(),
-        id: undefined,
-      }));
-      return KnowledgeContents.bulkCreate(format);
-    },
-  });
+  // // 从旧知识库复制内容
+  // await paginateAndInsert({
+  //   findAll: (data) => {
+  //     data.where.documentId = { [Op.in]: ids };
+  //     return KnowledgeContents.findAll(data);
+  //   },
+  //   bulkCreate: (list) => {
+  //     const format = list.map((dataValues) => ({
+  //       ...dataValues,
+  //       documentId: map[dataValues.documentId]! || nextId(),
+  //       id: undefined,
+  //     }));
+  //     return KnowledgeContents.bulkCreate(format);
+  //   },
+  // });
 
   // 从旧知识库复制历史记录
   await paginateAndInsert({
@@ -162,13 +161,15 @@ async function importKnowledgeData(
     },
   });
 
-  // 复制向量数据库
-  const newVectorStorePath = getKnowledgeDir(newKnowledgeId);
-  const oldVectorStorePath = getKnowledgeDir(oldKnowledgeId);
-  await mkdir(newVectorStorePath, { recursive: true });
+  // 不是资源知识库，复制向量数据库
+  if (!fromKnowledge.resourceBlockletDid || !fromKnowledge.knowledgeId) {
+    const newVectorStorePath = getKnowledgeDir(newKnowledgeId);
+    const oldVectorStorePath = getKnowledgeDir(oldKnowledgeId);
+    await mkdir(newVectorStorePath, { recursive: true });
 
-  if ((await pathExists(oldVectorStorePath)) && (await pathExists(newVectorStorePath))) {
-    copyRecursive(oldVectorStorePath, newVectorStorePath);
+    if ((await pathExists(oldVectorStorePath)) && (await pathExists(newVectorStorePath))) {
+      copyRecursive(oldVectorStorePath, newVectorStorePath);
+    }
   }
 }
 

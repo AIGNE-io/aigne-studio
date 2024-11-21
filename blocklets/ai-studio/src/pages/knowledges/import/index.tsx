@@ -422,16 +422,11 @@ const CrawlView = ({ provider, onProviderChange, apiKey, onApiKeyChange, url, on
           {providers.map((item) => (
             <Button
               key={item.id}
-              variant={provider === item.id ? 'contained' : 'outlined'}
+              variant="outlined"
               onClick={() => onProviderChange(item.id as 'jina' | 'firecrawl')}
               sx={{
-                textTransform: 'none',
-                bgcolor: provider === item.id ? 'black' : 'transparent',
-                color: provider === item.id ? 'white' : 'inherit',
-                '&:hover': {
-                  bgcolor: provider === item.id ? 'black' : 'transparent',
-                },
-                borderColor: '#E5E7EB',
+                border: provider === item.id ? '1px solid #3B82F6' : undefined,
+                color: provider === item.id ? '#3B82F6' : undefined,
               }}>
               {item.label}
             </Button>

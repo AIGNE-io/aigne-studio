@@ -90,7 +90,7 @@ export const saveContentToVectorStore = async ({
 }) => {
   // 文本处理和向量化
   const { vectors, formattedDocs } = await processContent(content, metadata, {
-    separators: ['\n\n', '\n'],
+    separators: ['\n\n', '\n', ' ', ''],
     chunkSize: 1024,
     chunkOverlap: 100,
   });

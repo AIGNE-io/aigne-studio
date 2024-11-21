@@ -32,7 +32,7 @@ import { joinURL } from 'ufo';
 
 import { useFetchKnowledgeList, useKnowledge } from '../../contexts/datasets/datasets';
 import backgroundIcon from '../../icons/background.png?url';
-import checkDisabledIcon from '../../icons/check-disbaled.svg?url';
+import checkDisabledIcon from '../../icons/check-disabled.svg?url';
 import checkBoxIcon from '../../icons/check.svg?url';
 import type { KnowledgeCard as KnowledgeCardType } from '../../libs/dataset';
 
@@ -75,7 +75,7 @@ export default function Knowledge() {
                   size={item.totalSize}
                   author={item.user.fullName}
                   authorAvatar={item.user.avatar}
-                  date={item.updatedAt?.toLocaleString()}
+                  date={item.createdAt?.toLocaleString()}
                   knowledgeId={item.id}
                   icon={item.icon}
                   onClick={() => navigate(`./${item.id}`)}
@@ -158,6 +158,8 @@ const KnowledgeCard = ({
 } & StackProps) => {
   const { t } = useLocaleContext();
 
+  const url = joinURL(AIGNE_RUNTIME_MOUNT_POINT, `/api/datasets/${knowledgeId}/icon.png?icon=${icon}`);
+
   return (
     <Stack
       p={2}
@@ -185,14 +187,21 @@ const KnowledgeCard = ({
             objectFit: 'cover',
           },
         }}>
-        {icon ? (
-          <img
-            src={joinURL(AIGNE_RUNTIME_MOUNT_POINT, `/api/datasets/${knowledgeId}/icon.png?icon=${icon}`)}
-            alt="knowledge icon"
-          />
-        ) : (
-          <Typography fontSize={24}>{emoji}</Typography>
-        )}
+        <Box
+          component="img"
+          src={url}
+          alt="knowledge icon"
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.style.display = 'none';
+            if (e.currentTarget.nextElementSibling) {
+              (e.currentTarget.nextElementSibling as any).style.display = 'block';
+            }
+          }}
+        />
+        <Typography fontSize={24} style={{ display: 'none' }}>
+          {emoji}
+        </Typography>
       </Box>
 
       <Stack flex={1} height={0} gap={0.5} justifyContent="flex-end">
@@ -388,13 +397,13 @@ const SelectKnowledgeModal = (
             {t('cancel')}
           </Button>
 
-          <Button
+          <LoadingButton
             variant="contained"
             onClick={() => runImport(selectedKnowledgeIds)}
             disabled={!selectedKnowledgeIds.length || importLoading}>
             {importLoading && <CircularProgress size={14} />}
             {`Import Knowledge ${selectedKnowledgeIds.length ? `(${selectedKnowledgeIds.length})` : ''}`}
-          </Button>
+          </LoadingButton>
         </Stack>
       </DialogActions>
     </Dialog>

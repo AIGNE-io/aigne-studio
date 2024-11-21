@@ -1,11 +1,12 @@
 import { copyFile, rm } from 'fs/promises';
+import { join } from 'path';
 
 import { resourceManager } from '@api/libs/resource';
 import middlewares from '@blocklet/sdk/lib/middlewares';
 // @ts-ignore
 import { initLocalStorageServer } from '@blocklet/uploader-server';
 import express, { Router } from 'express';
-import { exists } from 'fs-extra';
+import { exists, pathExists } from 'fs-extra';
 import Joi from 'joi';
 import { Op } from 'sequelize';
 import { joinURL } from 'ufo';
@@ -13,8 +14,8 @@ import { joinURL } from 'ufo';
 import ensureKnowledgeDirExists, { getProcessedFileDir, getSourceFileDir } from '../../libs/ensure-dir';
 import { Config } from '../../libs/env';
 import { userAuth } from '../../libs/security';
-import Dataset from '../../store/models/dataset/dataset';
-import DatasetDocument from '../../store/models/dataset/document';
+import Knowledge from '../../store/models/dataset/dataset';
+import KnowledgeDocument from '../../store/models/dataset/document';
 import EmbeddingHistories from '../../store/models/dataset/embedding-history';
 import { queue } from './embeddings';
 import { HybridRetriever } from './util/search-langchain';
@@ -33,8 +34,7 @@ export interface CreateDiscussionItem {
   };
 }
 
-const getDocumentsSchema = Joi.object<{ blockletDid?: string; page: number; size: number }>({
-  blockletDid: Joi.string().empty(['', null]),
+const getDocumentsSchema = Joi.object<{ page: number; size: number }>({
   page: Joi.number().integer().min(1).default(1),
   size: Joi.number().integer().min(1).max(100).default(20),
 });
@@ -46,10 +46,8 @@ const documentIdSchema = Joi.object<{ knowledgeId: string; documentId: string }>
 
 export type CreateDiscussionItemInput = CreateDiscussionItem | CreateDiscussionItem[];
 
-const searchQuerySchema = Joi.object<{ blockletDid?: string; message?: string; searchAll?: boolean; n: number }>({
-  blockletDid: Joi.string().empty(['', null]),
+const searchQuerySchema = Joi.object<{ message?: string; n: number }>({
   message: Joi.string().empty(['', null]),
-  searchAll: Joi.boolean().default(false).empty(['', null]),
   n: Joi.number().empty(['', null]).min(1).default(4),
 });
 
@@ -57,13 +55,35 @@ router.get('/:knowledgeId/search', async (req, res) => {
   const { knowledgeId } = req.params;
   const input = await searchQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
-  const retriever = new HybridRetriever(knowledgeId);
+  const knowledge = await Knowledge.findOne({ where: { id: knowledgeId } });
+  if (!knowledge) {
+    throw new Error('No such knowledge');
+  }
+
+  let vectorPathOrKnowledgeId = knowledgeId;
+  if (knowledge.resourceBlockletDid && knowledge.knowledgeId) {
+    // 查找知识库的向量库路径
+    const resource = await resourceManager.getKnowledge({
+      blockletDid: knowledge.resourceBlockletDid,
+      knowledgeId: knowledge.knowledgeId,
+    });
+
+    if (!resource) {
+      throw new Error('No such knowledge resource');
+    }
+
+    vectorPathOrKnowledgeId = (await pathExists(join(resource.vectorsPath, 'faiss.index')))
+      ? resource.vectorsPath
+      : join(resource.vectorsPath, knowledgeId);
+  }
+
+  const retriever = new HybridRetriever(vectorPathOrKnowledgeId, input.n!);
   const result = await retriever.search(input.message!);
 
   const docs = await Promise.all(
     result.map(async (i) => {
       if (i.metadata?.metadata?.documentId) {
-        const doc = await DatasetDocument.findOne({ where: { id: i.metadata?.metadata?.documentId } });
+        const doc = await KnowledgeDocument.findOne({ where: { id: i.metadata?.metadata?.documentId } });
         return {
           content: i.pageContent,
           metadata: { document: doc?.dataValues, metadata: i.metadata },
@@ -81,22 +101,32 @@ router.get('/:knowledgeId/documents', middlewares.session(), userAuth(), async (
   const { did, isAdmin } = req.user!;
   const { knowledgeId } = req.params;
   const user = isAdmin ? {} : { [Op.or]: [{ createdBy: did }, { updatedBy: did }] };
-
   if (!knowledgeId) throw new Error('Missing required params `knowledgeId`');
 
-  const { blockletDid, page, size } = await getDocumentsSchema.validateAsync(req.query, { stripUnknown: true });
+  const { page, size } = await getDocumentsSchema.validateAsync(req.query, { stripUnknown: true });
 
-  if (blockletDid) {
-    const knowledge = await resourceManager.getKnowledge({ blockletDid, knowledgeId });
-    const docs = [...(knowledge?.documents || [])].splice(page - 1, size);
-    res.json({ items: docs, total: knowledge?.documents.length });
+  const knowledge = await Knowledge.findOne({ where: { id: knowledgeId } });
+
+  if (knowledge?.resourceBlockletDid && knowledge?.knowledgeId) {
+    const resource = await resourceManager.getKnowledge({
+      blockletDid: knowledge.resourceBlockletDid,
+      knowledgeId: knowledge.knowledgeId,
+    });
+
+    const docs = [...(resource?.documents || [])].splice(page - 1, size);
+    res.json({ items: docs, total: resource?.documents.length, page });
     return;
   }
 
   const params = { datasetId: knowledgeId, ...user };
   const [items, total] = await Promise.all([
-    DatasetDocument.findAll({ order: [['createdAt', 'DESC']], where: params, offset: (page - 1) * size, limit: size }),
-    DatasetDocument.count({ where: params }),
+    KnowledgeDocument.findAll({
+      order: [['createdAt', 'DESC']],
+      where: params,
+      offset: (page - 1) * size,
+      limit: size,
+    }),
+    KnowledgeDocument.count({ where: params }),
   ]);
 
   res.json({ items, total, page });
@@ -105,7 +135,7 @@ router.get('/:knowledgeId/documents', middlewares.session(), userAuth(), async (
 router.delete('/:knowledgeId/documents/:documentId', middlewares.session(), userAuth(), async (req, res) => {
   const { knowledgeId, documentId } = await documentIdSchema.validateAsync(req.params, { stripUnknown: true });
 
-  const document = await DatasetDocument.findOne({ where: { id: documentId, datasetId: knowledgeId } });
+  const document = await KnowledgeDocument.findOne({ where: { id: documentId, datasetId: knowledgeId } });
 
   await updateHistoriesAndStore(knowledgeId, documentId);
 
@@ -115,7 +145,7 @@ router.delete('/:knowledgeId/documents/:documentId', middlewares.session(), user
   }
 
   await Promise.all([
-    DatasetDocument.destroy({ where: { id: documentId, datasetId: knowledgeId } }),
+    KnowledgeDocument.destroy({ where: { id: documentId, datasetId: knowledgeId } }),
     EmbeddingHistories.destroy({ where: { documentId, datasetId: knowledgeId } }),
   ]);
 
@@ -150,7 +180,7 @@ router.post('/:knowledgeId/documents/file', middlewares.session(), userAuth(), a
     throw new Error(`file ${newFilePath} not found`);
   }
 
-  const document = await DatasetDocument.create({
+  const document = await KnowledgeDocument.create({
     type: 'file',
     name,
     datasetId: knowledgeId,
@@ -187,7 +217,7 @@ router.post('/:knowledgeId/documents/custom', middlewares.session(), userAuth(),
     content: Joi.string().required(),
   }).validateAsync(req.body, { stripUnknown: true });
 
-  const document = await DatasetDocument.create({
+  const document = await KnowledgeDocument.create({
     type: 'text',
     name: title,
     datasetId: knowledgeId,
@@ -237,7 +267,7 @@ router.post('/:knowledgeId/documents/discussion', middlewares.session(), async (
   const arr = Array.isArray(input) ? input : [input];
 
   const createOrUpdate = async (name: string, data: CreateDiscussionItem['data']) => {
-    const found = await DatasetDocument.findOne({
+    const found = await KnowledgeDocument.findOne({
       where: { datasetId: knowledgeId, 'data.id': data.id, 'data.from': data.from },
     });
 
@@ -248,7 +278,7 @@ router.post('/:knowledgeId/documents/discussion', middlewares.session(), async (
       );
     }
 
-    return DatasetDocument.create({
+    return KnowledgeDocument.create({
       name,
       type: 'discussKit',
       data: { type: 'discussKit', data },
@@ -284,7 +314,7 @@ router.post('/:knowledgeId/documents/crawl', middlewares.session(), userAuth(), 
     apiKey: Joi.string().allow('', null).default(''),
   }).validateAsync(req.body, { stripUnknown: true });
 
-  const document = await DatasetDocument.create({
+  const document = await KnowledgeDocument.create({
     type: 'crawl',
     name: '',
     datasetId: knowledgeId,
@@ -316,8 +346,8 @@ router.get('/:knowledgeId/documents/:documentId', middlewares.session(), userAut
   }).validateAsync(req.params);
 
   const [dataset, document] = await Promise.all([
-    Dataset.findOne({ where: { id: knowledgeId, ...user } }),
-    DatasetDocument.findOne({ where: { datasetId: knowledgeId, id: documentId } }),
+    Knowledge.findOne({ where: { id: knowledgeId, ...user } }),
+    KnowledgeDocument.findOne({ where: { datasetId: knowledgeId, id: documentId } }),
   ]);
 
   res.json({ dataset, document });
@@ -326,7 +356,7 @@ router.get('/:knowledgeId/documents/:documentId', middlewares.session(), userAut
 router.post('/:knowledgeId/documents/:documentId/embedding', middlewares.session(), userAuth(), async (req, res) => {
   const { knowledgeId, documentId } = await documentIdSchema.validateAsync(req.params, { stripUnknown: true });
 
-  const [document] = await Promise.all([DatasetDocument.findOne({ where: { id: documentId } })]);
+  const [document] = await Promise.all([KnowledgeDocument.findOne({ where: { id: documentId } })]);
   if (document) queue.checkAndPush({ type: 'document', datasetId: knowledgeId, documentId: document.id, update: true });
   res.json(document);
 });
