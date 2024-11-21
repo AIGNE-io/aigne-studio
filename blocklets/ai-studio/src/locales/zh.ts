@@ -939,4 +939,5 @@ export default flatten({
     branchTip: '请优先设置 Agent 条件规则，当条件规则没有选中时，可以设置默认的执行工具, 否则将不会执行任何 Agent',
   },
   aigneBannerVisibility: '显示 AIGNE 品牌横幅',
+  similarity: '相关度',
 });

@@ -10,12 +10,7 @@ import { stringify } from 'yaml';
 import { BaseProcessor } from './base';
 
 export class CrawlProcessor extends BaseProcessor {
-  protected originalFileName: string;
-
-  constructor({ knowledgeId, documentId, sse }: { knowledgeId: string; documentId: string; sse: any }) {
-    super({ knowledgeId, documentId, sse });
-    this.originalFileName = `${documentId}.html`;
-  }
+  protected originalFileName: string = `${this.documentId}.html`;
 
   protected async saveOriginalFile(): Promise<void> {
     const document = await this.getDocument();

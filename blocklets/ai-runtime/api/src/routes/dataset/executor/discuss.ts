@@ -47,12 +47,7 @@ const getDiscussionContent = async (discussionId: string) => {
 };
 
 export class DiscussKitProcessor extends BaseProcessor {
-  protected originalFileName: string;
-
-  constructor({ knowledgeId, documentId, sse }: { knowledgeId: string; documentId: string; sse: any }) {
-    super({ knowledgeId, documentId, sse });
-    this.originalFileName = `${documentId}.yml`;
-  }
+  protected originalFileName: string = `${this.documentId}.yml`;
 
   protected async saveOriginalFile(): Promise<void> {
     const document = await this.getDocument();

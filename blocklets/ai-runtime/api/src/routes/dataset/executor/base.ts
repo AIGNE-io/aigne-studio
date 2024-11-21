@@ -22,19 +22,30 @@ export abstract class BaseProcessor {
 
   protected processedFileName: string;
 
-  constructor({ knowledgeId, documentId, sse }: { knowledgeId: string; documentId: string; sse: any }) {
+  protected update: boolean;
+
+  constructor({
+    knowledgeId,
+    documentId,
+    sse,
+    update = false,
+  }: {
+    knowledgeId: string;
+    documentId: string;
+    sse: any;
+    update?: boolean;
+  }) {
     this.knowledgeId = knowledgeId;
     this.documentId = documentId;
     this.sse = sse;
+    this.update = update;
 
     this.processedFileName = `${this.documentId}.yml`;
   }
 
   protected async saveProcessedFile(): Promise<void> {
     const processedFilePath = join(getProcessedFileDir(this.knowledgeId), this.processedFileName);
-    if (!this.content) {
-      throw new Error('Content is not available');
-    }
+    if (!this.content) throw new Error('process file content is not available');
 
     await writeFile(processedFilePath, this.content!);
 
@@ -92,12 +103,12 @@ export abstract class BaseProcessor {
   }
 
   protected abstract saveOriginalFile(): Promise<void>;
+
   protected abstract ProcessedFile(): Promise<void>;
+
   protected async startRAG(): Promise<void> {
     const processedFilePath = join(getProcessedFileDir(this.knowledgeId), this.processedFileName);
-    if (!(await exists(processedFilePath))) {
-      throw new Error(`file ${processedFilePath} not found`);
-    }
+    if (!(await exists(processedFilePath))) throw new Error(`processedFilePath ${processedFilePath} not found`);
 
     const fileContent = (await readFile(processedFilePath)).toString();
     const fileContentHash = hash('md5', fileContent, 'hex');
@@ -143,9 +154,9 @@ export abstract class BaseProcessor {
         await saveContentToVectorStore({
           metadata,
           content: this.preprocessText(content),
-          datasetId: this.knowledgeId,
+          knowledgeId: this.knowledgeId,
           documentId: this.documentId,
-          targetId: this.documentId,
+          update: this.update,
         });
 
         if (currentTotal > 1) {
@@ -171,9 +182,7 @@ export abstract class BaseProcessor {
   async getProcessedFile(): Promise<string> {
     const processedFilePath = join(getProcessedFileDir(this.knowledgeId), this.processedFileName);
 
-    if (!(await exists(processedFilePath))) {
-      return '';
-    }
+    if (!(await exists(processedFilePath))) return '';
 
     return JSON.stringify(parse((await readFile(processedFilePath)).toString()));
   }

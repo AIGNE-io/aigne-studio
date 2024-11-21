@@ -13,14 +13,15 @@ export class HybridRetriever {
   }
 
   async search(knowledgeId: string, query: string, topK: number = 5): Promise<Document[]> {
-    const embeddings = new AIKitEmbeddings({});
+    const embeddings = new AIKitEmbeddings();
     const store = await VectorStore.load(knowledgeId, embeddings);
+    const docs = await store.similaritySearch(' ', 10000);
 
     // 创建 LlamaIndex 的向量索引
-    const vectorIndex = await VectorStoreIndex.fromDocuments(store.documents);
+    const vectorIndex = await VectorStoreIndex.fromDocuments(docs);
 
     // 创建关键词索引
-    const keywordIndex = await KeywordTableIndex.fromDocuments(store.documents);
+    const keywordIndex = await KeywordTableIndex.fromDocuments(docs);
 
     // 创建 RAG Fusion 检索器
     const fusionRetriever = new QueryFusionRetriever({

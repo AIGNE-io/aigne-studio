@@ -76,9 +76,9 @@ export default function KnowledgeDocuments() {
               break;
             }
             case 'error': {
-              const { type, message, ...rest } = value;
+              const { type, ...rest } = value;
               embeddings[value.documentId] = rest;
-              Toast.error(message);
+              Toast.error(rest.error);
               break;
             }
             default:
@@ -98,7 +98,7 @@ export default function KnowledgeDocuments() {
 
   const { data, loading } = useRequest(
     () => {
-      if (s) return searchKnowledge({ datasetId: datasetId || '', message: s });
+      if (s) return searchKnowledge({ knowledgeId: datasetId || '', message: s });
       return Promise.resolve({ docs: [] });
     },
     { refreshDeps: [s] }

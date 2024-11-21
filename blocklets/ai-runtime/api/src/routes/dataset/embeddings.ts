@@ -26,7 +26,12 @@ export const queue = createQueue({
 
     if (isDocumentQueue(job)) {
       try {
-        const pipeline = new PipelineProcessor({ knowledgeId: job.datasetId, documentId: job.documentId, sse });
+        const pipeline = new PipelineProcessor({
+          knowledgeId: job.datasetId,
+          documentId: job.documentId,
+          update: job.update,
+          sse,
+        });
         await pipeline.execute();
       } catch (error) {
         logger.error('Job Error', error?.message);
@@ -146,7 +151,7 @@ export const updateEmbeddingHistory = async ({
 
     const trimContent = String(content || '').trim();
     if (trimContent) {
-      await saveContentToVectorStore({ metadata, content: trimContent, datasetId, documentId, targetId });
+      await saveContentToVectorStore({ metadata, content: trimContent, knowledgeId, documentId, targetId });
     }
 
     const check = await EmbeddingHistories.findOne({ where: ids });

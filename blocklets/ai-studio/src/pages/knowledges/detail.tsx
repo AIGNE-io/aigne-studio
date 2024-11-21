@@ -37,9 +37,9 @@ import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { joinURL, withQuery } from 'ufo';
 
-import { refreshEmbedding } from '../../libs/dataset';
+import { refreshEmbedding, searchKnowledge } from '../../libs/dataset';
 import EmptyDocuments from './document/empty';
-import KnowledgeDocuments from './document/list';
+import KnowledgeDocuments, { DocumentIcon } from './document/list';
 import ImportKnowledge from './import';
 
 function PanelToggleButton({
@@ -76,6 +76,7 @@ export default function KnowledgeDetail() {
   } = useRequest(() => getKnowledge(knowledgeId), {
     refreshDeps: [knowledgeId],
     onSuccess: (data) => setShowImportDialog(!data?.docs),
+    onError: (e) => Toast.error(e?.message),
   });
 
   const {
@@ -83,7 +84,10 @@ export default function KnowledgeDetail() {
     loading: documentsLoading,
     mutate: mutateDocuments,
     run,
-  } = useRequest((page = 1) => getDocuments(knowledgeId, { page, size: 10 }), { refreshDeps: [knowledgeId] });
+  } = useRequest((page = 1) => getDocuments(knowledgeId, { page, size: 10 }), {
+    refreshDeps: [knowledgeId],
+    onError: (e) => Toast.error(e?.message),
+  });
 
   const runAsync = useCallback(async () => {
     const [newKnowledge, newDocuments] = await Promise.all([
@@ -166,7 +170,7 @@ export default function KnowledgeDetail() {
               </Box>
             </Box>
 
-            <Suspense>{currentTab === 'playground' ? <PlaygroundView /> : null}</Suspense>
+            <Suspense>{currentTab === 'playground' ? <PlaygroundView knowledgeId={knowledgeId} /> : null}</Suspense>
           </Stack>
         }>
         {({ leftOpen, rightOpen }) => (
@@ -262,8 +266,45 @@ export default function KnowledgeDetail() {
   );
 }
 
-const PlaygroundView = () => {
+const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
   const { t } = useLocaleContext();
+  const [search, setSearch] = useState('What is Arcblock and what are its key features?');
+
+  const { data, loading, run } = useRequest((s: string) => searchKnowledge({ knowledgeId, message: s }), {
+    refreshDeps: [],
+    manual: true,
+    onError: (e) => Toast.error(e?.message),
+  });
+
+  const results = (data?.docs || []).map((doc) => {
+    try {
+      const parsedContent = JSON.parse(doc.content);
+
+      if (typeof parsedContent.content === 'string') {
+        try {
+          const content = JSON.parse(parsedContent.content);
+
+          return {
+            content: content.content,
+            metadata: doc.metadata,
+          };
+        } catch (e) {
+          return {
+            content: parsedContent.content,
+            metadata: doc.metadata,
+          };
+        }
+      }
+
+      return {
+        content: parsedContent.content,
+        metadata: doc.metadata,
+      };
+    } catch {
+      return doc;
+    }
+  });
+
   return (
     <Stack height={1}>
       <Box
@@ -278,6 +319,8 @@ const PlaygroundView = () => {
           mb: 0,
         }}>
         <InputBase
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
           placeholder="What is Arcblock and what are its key features?"
           sx={{
             flex: 1,
@@ -301,13 +344,58 @@ const PlaygroundView = () => {
             display: 'flex',
             alignItems: 'center',
             gap: 0.5,
-          }}>
+          }}
+          onClick={() => run(search)}>
           <Box component={Icon} icon={SearchIcon} fontSize={15} />
           <Box>{t('search')}</Box>
         </IconButton>
       </Box>
       <Box flexGrow={1} height={0} overflow="auto">
-        <Box p={2.5} />
+        {loading ? (
+          <Box className="center" width={1} height={1}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <Box px={2.5}>
+            {results.map((result, index) => (
+              <Box key={index} py={2.5} borderBottom="1px solid #EFF1F5">
+                <Box sx={{ wordBreak: 'break-word' }}>
+                  {typeof result.content === 'string' ? result.content : JSON.stringify(result.content, null, 2)}
+                </Box>
+
+                {result.metadata.document && (
+                  <Stack
+                    width="fit-content"
+                    flexDirection="row"
+                    alignItems="center"
+                    gap={1}
+                    mt={1.5}
+                    py={1}
+                    px={1.5}
+                    borderRadius={1}
+                    border="1px solid #EFF1F5">
+                    <Stack direction="row" gap={1} alignItems="center">
+                      <DocumentIcon document={result.metadata.document} />
+                      <Box flexGrow={1} color="#030712">
+                        {result.metadata.document.name}
+                      </Box>
+                    </Stack>
+
+                    <Divider orientation="vertical" variant="middle" flexItem sx={{ my: 0.5 }} />
+
+                    <Stack direction="row" gap={1} alignItems="center">
+                      <Typography
+                        sx={{ fontSize: 13, color: result.metadata.metadata.finalScore > 0.5 ? '#059669' : '#BE123C' }}>
+                        {Number(result.metadata.metadata.finalScore * 100).toFixed(2)}%
+                      </Typography>
+                      <Typography sx={{ fontSize: 13, color: '#9CA3AF' }}>{t('similarity')}</Typography>
+                    </Stack>
+                  </Stack>
+                )}
+              </Box>
+            ))}
+          </Box>
+        )}
       </Box>
     </Stack>
   );
@@ -504,7 +592,6 @@ const KnowledgeIcon = ({ knowledgeId, icon }: { knowledgeId: string; icon?: stri
             src={url}
             alt="knowledge icon"
             onError={(e) => {
-              console.log(123);
               e.currentTarget.onerror = null;
               e.currentTarget.style.display = 'none';
               if (e.currentTarget.nextElementSibling) {

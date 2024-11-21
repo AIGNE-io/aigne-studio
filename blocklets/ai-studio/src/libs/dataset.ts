@@ -40,14 +40,14 @@ export interface KnowledgeInput {
 }
 
 export async function searchKnowledge({
-  datasetId,
+  knowledgeId,
   message,
 }: {
-  datasetId: string;
+  knowledgeId: string;
   message: string;
-}): Promise<{ docs: { content: string }[] }> {
+}): Promise<{ docs: { content: any; metadata: any }[] }> {
   return axios
-    .get(`/api/datasets/${datasetId}/search`, { baseURL: AIGNE_RUNTIME_MOUNT_POINT, params: { message } })
+    .get(`/api/datasets/${knowledgeId}/search`, { baseURL: AIGNE_RUNTIME_MOUNT_POINT, params: { message } })
     .then((res) => res.data);
 }
 

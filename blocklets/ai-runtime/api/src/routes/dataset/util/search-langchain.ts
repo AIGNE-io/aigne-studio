@@ -1,82 +1,236 @@
 import { BM25Retriever } from '@langchain/community/retrievers/bm25';
 import { Document } from '@langchain/core/documents';
+import { StringOutputParser } from '@langchain/core/output_parsers';
 import { PromptTemplate } from '@langchain/core/prompts';
 import { RunnableSequence } from '@langchain/core/runnables';
-import { OpenAI } from '@langchain/openai';
-import { EnsembleRetriever } from 'langchain/retrievers/ensemble';
+import { ChatOpenAI } from '@langchain/openai';
 import { MultiQueryRetriever } from 'langchain/retrievers/multi_query';
 
 import { AIKitEmbeddings } from '../../../core/embeddings/ai-kit';
+import logger from '../../../libs/logger';
 import VectorStore from '../../../store/vector-store-faiss';
 
 export class HybridRetriever {
-  private llm: OpenAI;
+  private readonly RRF_K = 60;
 
-  private embeddings: AIKitEmbeddings;
+  private readonly BM25_WEIGHT = 0.3;
 
-  constructor() {
-    this.llm = new OpenAI({ temperature: 0 });
-    this.embeddings = new AIKitEmbeddings({});
+  private readonly VECTOR_WEIGHT = 0.7;
+
+  private bm25Retriever: BM25Retriever | null = null;
+
+  private vectorStore: VectorStore | null = null;
+
+  constructor(private knowledgeId: string) {}
+
+  async initialize(): Promise<void> {
+    try {
+      if (!this.vectorStore) throw new Error('VectorStore is required');
+
+      logger.info('Initializing BM25Retriever...');
+      const docs = await this.vectorStore.similaritySearch(' ', 10000);
+      this.bm25Retriever = await BM25Retriever.fromDocuments(docs, { k: 10 });
+      logger.info('BM25Retriever initialized successfully');
+    } catch (error) {
+      throw new Error('Failed to initialize BM25Retriever');
+    }
   }
 
-  async search(knowledgeId: string, query: string, topK: number = 5): Promise<Document[]> {
-    // 1. 加载向量存储
-    const store = await VectorStore.load(knowledgeId, this.embeddings);
+  async search(query: string): Promise<Document[]> {
+    try {
+      if (!this.vectorStore) {
+        const embeddings = new AIKitEmbeddings();
+        this.vectorStore = await VectorStore.load(this.knowledgeId, embeddings);
+      }
 
-    // 2. 创建多查询检索器
-    const multiQueryRetriever = MultiQueryRetriever.fromLLM({
-      llm: this.llm as any,
-      retriever: store.asRetriever(topK * 2) as any,
-      queryCount: 3,
-    });
+      if (this.vectorStore.getMapping() && !Object.keys(this.vectorStore.getMapping()).length) {
+        logger.error('store get mapping is empty');
+        return [];
+      }
 
-    // 3. 创建 BM25 检索器
-    const bm25Retriever = new BM25Retriever({ k: topK * 2, docs: store.documents as any });
+      if (!this.bm25Retriever) {
+        await this.initialize();
+      }
 
-    // 4. 创建集成检索器
-    const ensembleRetriever = new EnsembleRetriever({
-      retrievers: [multiQueryRetriever, bm25Retriever as any],
-      weights: [0.7, 0.3], // 向量搜索权重更高
-    });
+      logger.info('Starting search process', { query });
 
-    // 5. 执行检索
-    let results = await ensembleRetriever.getRelevantDocuments(query);
+      // 1. 生成查询变体
+      const queries = await this.generateQueries(query);
+      logger.info('Generated query variations', { queries });
 
-    // 6. 重排序
-    results = await this.rerank(results, query);
+      // 2. 执行混合检索
+      const searchResults = await Promise.all(queries.map((q) => this.hybridSearch(q)));
 
-    return results.slice(0, topK);
+      // 3. 融合并重排序结果
+      const results = this.rerank(searchResults);
+
+      logger.info('Search completed', { resultCount: results.length, originalQuery: query });
+
+      return results;
+    } catch (error) {
+      logger.error('Search failed', { error, query });
+      throw error;
+    }
   }
 
-  private async rerank(docs: Document[], query: string): Promise<Document[]> {
-    // 创建重排序提示
-    const rerankPrompt = PromptTemplate.fromTemplate(`
-      根据查询对文档进行相关性评分。
-      查询: {query}
-      文档: {document}
-      
-      仅返回0-10之间的分数，不要解释。
-    `);
+  private async generateQueries(query: string): Promise<string[]> {
+    const template = `Given the following question, please generate three different ways to ask the same question. 
+    Maintain the original meaning but vary the wording and perspective.
+    Original question: {question}
+    
+    Return only the three questions, one per line.`;
 
-    const rerankChain = RunnableSequence.from([rerankPrompt, this.llm, (output) => parseFloat(output.text)]);
+    try {
+      const promptTemplate = PromptTemplate.fromTemplate(template);
 
-    // 为每个文档计算新的相关性分数
-    const scoredDocs = await Promise.all(
-      docs.map(async (doc) => {
-        const score = await rerankChain.invoke({
-          query,
-          document: doc.pageContent,
-        });
-        return { doc, score };
-      })
-    );
+      const chain = RunnableSequence.from([
+        promptTemplate,
+        new ChatOpenAI({ temperature: 0 }),
+        new StringOutputParser(),
+      ]);
 
-    // 按分数排序
-    return scoredDocs
-      .sort((a, b) => b.score - a.score)
-      .map(({ doc }) => {
-        doc.metadata.reranked_score = doc.score;
-        return doc;
+      const response = await chain.invoke({
+        question: query,
       });
+
+      const generatedQueries = response
+        .split('\n')
+        .filter((q) => q.trim())
+        .slice(0, 3);
+
+      return [query, ...generatedQueries];
+    } catch (error) {
+      logger.error('Query generation failed', { error, query });
+      return [query];
+    }
+  }
+
+  async generateQueriesByMultiQueryRetriever(query: string): Promise<string[]> {
+    if (!this.vectorStore) {
+      throw new Error('VectorStore is required');
+    }
+
+    if (!this.bm25Retriever) {
+      await this.initialize();
+    }
+
+    // 使用 MultiQueryRetriever 生成多个查询
+    const retriever = MultiQueryRetriever.fromLLM({
+      llm: new ChatOpenAI({ temperature: 0 }) as any,
+      retriever: this.vectorStore.asRetriever() as any,
+      verbose: true,
+    });
+
+    // 获取生成的查询
+    const generatedQueries = await retriever.invoke(query);
+
+    // 从结果中提取查询文本
+    return [query, ...generatedQueries.map((doc) => doc.pageContent)];
+  }
+
+  private async hybridSearch(query: string): Promise<Document[]> {
+    try {
+      if (!this.bm25Retriever) {
+        throw new Error('BM25Retriever not initialized');
+      }
+
+      if (!this.vectorStore) {
+        throw new Error('VectorStore is required');
+      }
+
+      const [vectorResults, bm25Results] = await Promise.all([
+        this.vectorStore.similaritySearch(query, 10),
+        this.bm25Retriever.invoke(query),
+      ]);
+
+      // 合并结果并添加权重
+      const scoredResults = [
+        ...vectorResults.map((doc, index) => ({
+          ...doc,
+          metadata: {
+            ...doc.metadata,
+            score: (1 / (index + 1)) * this.VECTOR_WEIGHT,
+            source: 'vector',
+          },
+        })),
+        ...bm25Results.map((doc, index) => ({
+          ...doc,
+          metadata: {
+            ...doc.metadata,
+            score: (1 / (index + 1)) * this.BM25_WEIGHT,
+            source: 'bm25',
+          },
+        })),
+      ];
+
+      return scoredResults;
+    } catch (error) {
+      logger.error('Hybrid search failed', { error, query });
+      throw error;
+    }
+  }
+
+  private rerank(resultSets: Document[][]): Document[] {
+    try {
+      const documentScores = new Map<
+        string,
+        {
+          doc: Document;
+          score: number;
+          sources: Set<string>;
+        }
+      >();
+
+      // 计算每个文档的RRF分数
+      resultSets.forEach((results) => {
+        results.forEach((doc, rank) => {
+          const docKey = this.getDocumentKey(doc);
+          const rrfScore = 1 / (this.RRF_K + rank + 1);
+
+          if (!documentScores.has(docKey)) {
+            documentScores.set(docKey, {
+              doc,
+              score: 0,
+              sources: new Set([doc.metadata.source]),
+            });
+          } else {
+            const current = documentScores.get(docKey)!;
+            current.sources.add(doc.metadata.source);
+          }
+
+          const current = documentScores.get(docKey)!;
+          // 结合原始相似度分数和RRF分数
+          current.score += rrfScore * (doc.metadata.score || 1);
+        });
+      });
+
+      // 额外的源一致性加权
+      documentScores.forEach((value) => {
+        if (value.sources.size > 1) {
+          // 如果文档同时出现在多个源中，增加其分数
+          value.score *= 1 + 0.1 * value.sources.size;
+        }
+      });
+
+      // 排序并返回结果
+      return Array.from(documentScores.values())
+        .sort((a, b) => b.score - a.score)
+        .map((item) => ({
+          ...item.doc,
+          metadata: {
+            ...item.doc.metadata,
+            finalScore: item.score,
+            sources: Array.from(item.sources),
+          },
+        }));
+    } catch (error) {
+      logger.error('Reranking failed', { error });
+      throw error;
+    }
+  }
+
+  private getDocumentKey(doc: Document): string {
+    // 使用文档内容和可能的元数据创建唯一键
+    return `${doc.pageContent}${doc.metadata.source || ''}`;
   }
 }

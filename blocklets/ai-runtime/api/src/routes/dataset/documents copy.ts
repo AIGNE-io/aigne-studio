@@ -1,23 +1,28 @@
 import { copyFile, rm } from 'fs/promises';
+import { join } from 'path';
 
 import { resourceManager } from '@api/libs/resource';
 import middlewares from '@blocklet/sdk/lib/middlewares';
 // @ts-ignore
 import { initLocalStorageServer } from '@blocklet/uploader-server';
 import express, { Router } from 'express';
-import { exists } from 'fs-extra';
+import { exists, pathExists } from 'fs-extra';
 import Joi from 'joi';
+import { sortBy } from 'lodash';
 import { Op } from 'sequelize';
 import { joinURL } from 'ufo';
 
-import ensureKnowledgeDirExists, { getProcessedFileDir, getSourceFileDir } from '../../libs/ensure-dir';
+import { AIKitEmbeddings } from '../../core/embeddings/ai-kit';
+import ensureKnowledgeDirExists, { getSourceFileDir } from '../../libs/ensure-dir';
 import { Config } from '../../libs/env';
+import logger from '../../libs/logger';
 import { userAuth } from '../../libs/security';
 import Dataset from '../../store/models/dataset/dataset';
 import DatasetDocument from '../../store/models/dataset/document';
 import EmbeddingHistories from '../../store/models/dataset/embedding-history';
+import VectorStore from '../../store/vector-store-faiss';
+import getAllContents, { getAllResourceContents } from './content';
 import { queue } from './embeddings';
-import { HybridRetriever } from './util/search-langchain';
 import { updateHistoriesAndStore } from './util/vector-store';
 
 const router = Router();
@@ -53,28 +58,94 @@ const searchQuerySchema = Joi.object<{ blockletDid?: string; message?: string; s
   n: Joi.number().empty(['', null]).min(1).default(4),
 });
 
-router.get('/:knowledgeId/search', async (req, res) => {
-  const { knowledgeId } = req.params;
-  const input = await searchQuerySchema.validateAsync(req.query, { stripUnknown: true });
+type Input = { message?: string; searchAll?: boolean; n: number };
 
-  const retriever = new HybridRetriever(knowledgeId);
-  const result = await retriever.search(input.message!);
+const searchResourceKnowledge = async (blockletDid: string, knowledgeId: string, input: Input) => {
+  const resource = await resourceManager.getKnowledge({ blockletDid, knowledgeId });
 
-  const docs = await Promise.all(
-    result.map(async (i) => {
-      if (i.metadata?.metadata?.documentId) {
-        const doc = await DatasetDocument.findOne({ where: { id: i.metadata?.metadata?.documentId } });
-        return {
-          content: i.pageContent,
-          metadata: { document: doc?.dataValues, metadata: i.metadata },
-        };
-      }
+  if (!resource) {
+    return { docs: [] };
+  }
 
-      return { content: i.pageContent, metadata: {} };
-    })
+  if (input.searchAll) {
+    const docs = await getAllResourceContents(resource);
+    return { docs };
+  }
+
+  if (!input.message) {
+    throw new Error('Not found search message');
+  }
+
+  const embeddings = new AIKitEmbeddings({});
+  const vectorPath = (await pathExists(join(resource.vectorsPath, 'faiss.index')))
+    ? resource.vectorsPath
+    : join(resource.vectorsPath, knowledgeId);
+  const store = await VectorStore.load(vectorPath, embeddings);
+
+  if (store.getMapping() && !Object.keys(store.getMapping()).length) {
+    logger.error('store get mapping is empty');
+    return { docs: [] };
+  }
+
+  const docs = await store.similaritySearchWithScore(
+    input.message,
+    Math.min(input.n, Object.keys(store.getMapping()).length)
   );
 
-  res.json({ docs });
+  // 分数越低越相近
+  const result = sortBy(docs, (item) => item[1]).map((x) => {
+    const info = x[0] || {};
+    return { content: info?.pageContent, ...(info?.metadata?.metadata || {}) };
+  });
+
+  return { docs: result };
+};
+
+router.get('/:datasetId/search', async (req, res) => {
+  const { datasetId } = req.params;
+  const input = await searchQuerySchema.validateAsync(req.query, { stripUnknown: true });
+  logger.info('knowledge search input', input);
+
+  if (input.blockletDid) {
+    res.json(await searchResourceKnowledge(input.blockletDid, datasetId, input));
+    return;
+  }
+
+  const dataset = await Dataset.findOne({ where: { id: datasetId } });
+  if (!dataset) {
+    logger.error(`dataset ${datasetId} not found`);
+    res.json({ docs: [] });
+    return;
+  }
+
+  if (input.searchAll) {
+    const docs = await getAllContents(datasetId);
+    res.json({ docs });
+    return;
+  }
+
+  const embeddings = new AIKitEmbeddings({});
+  const store = await VectorStore.load(datasetId, embeddings);
+
+  if (store.getMapping() && !Object.keys(store.getMapping()).length) {
+    logger.error('store get mapping is empty');
+    res.json({ docs: [] });
+    return;
+  }
+
+  const docs = await store.similaritySearchWithScore(
+    // Allow empty query to get some random results
+    input.message || ' ',
+    Math.min(input.n, Object.keys(store.getMapping()).length)
+  );
+
+  // 分数越低越相近
+  const result = sortBy(docs, (item) => item[1]).map((x) => {
+    const info = x[0] || {};
+    return { content: info?.pageContent, ...(info?.metadata?.metadata || {}) };
+  });
+
+  res.json({ docs: result });
 });
 
 router.get('/:knowledgeId/documents', middlewares.session(), userAuth(), async (req, res) => {
@@ -105,14 +176,9 @@ router.get('/:knowledgeId/documents', middlewares.session(), userAuth(), async (
 router.delete('/:knowledgeId/documents/:documentId', middlewares.session(), userAuth(), async (req, res) => {
   const { knowledgeId, documentId } = await documentIdSchema.validateAsync(req.params, { stripUnknown: true });
 
-  const document = await DatasetDocument.findOne({ where: { id: documentId, datasetId: knowledgeId } });
+  const document = DatasetDocument.findOne({ where: { id: documentId, datasetId: knowledgeId } });
 
   await updateHistoriesAndStore(knowledgeId, documentId);
-
-  if (document?.path) {
-    await rm(joinURL(getSourceFileDir(knowledgeId), document.path));
-    await rm(joinURL(getProcessedFileDir(knowledgeId), `${document.id}.yml`));
-  }
 
   await Promise.all([
     DatasetDocument.destroy({ where: { id: documentId, datasetId: knowledgeId } }),
@@ -327,7 +393,7 @@ router.post('/:knowledgeId/documents/:documentId/embedding', middlewares.session
   const { knowledgeId, documentId } = await documentIdSchema.validateAsync(req.params, { stripUnknown: true });
 
   const [document] = await Promise.all([DatasetDocument.findOne({ where: { id: documentId } })]);
-  if (document) queue.checkAndPush({ type: 'document', datasetId: knowledgeId, documentId: document.id, update: true });
+  if (document) queue.checkAndPush({ type: 'document', datasetId: knowledgeId, documentId: document.id });
   res.json(document);
 });
 

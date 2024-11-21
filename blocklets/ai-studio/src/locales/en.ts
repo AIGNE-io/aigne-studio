@@ -942,4 +942,5 @@ export default flatten({
       'Please set Agent condition rules first. When no condition rules are selected, you can set default execution tools, otherwise no Agent will be executed',
   },
   aigneBannerVisibility: 'AIGNE branding banner visibility',
+  similarity: 'Similarity',
 });

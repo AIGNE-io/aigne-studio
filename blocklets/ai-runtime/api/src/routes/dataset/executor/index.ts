@@ -16,22 +16,22 @@ export class PipelineProcessor extends BaseProcessor {
   }
 
   override async execute(): Promise<any> {
-    const { knowledgeId, documentId, sse } = this;
+    const { knowledgeId, documentId, sse, update } = this;
 
     const document = await DatasetDocument.findOne({ where: { id: documentId, datasetId: knowledgeId } });
 
     switch (document?.type) {
       case 'file': {
-        return new FileProcessor({ knowledgeId, documentId, sse }).execute();
+        return new FileProcessor({ knowledgeId, documentId, sse, update }).execute();
       }
       case 'text': {
-        return new CustomProcessor({ knowledgeId, documentId, sse }).execute();
+        return new CustomProcessor({ knowledgeId, documentId, sse, update }).execute();
       }
       case 'discussKit': {
-        return new DiscussKitProcessor({ knowledgeId, documentId, sse }).execute();
+        return new DiscussKitProcessor({ knowledgeId, documentId, sse, update }).execute();
       }
       case 'crawl': {
-        return new CrawlProcessor({ knowledgeId, documentId, sse }).execute();
+        return new CrawlProcessor({ knowledgeId, documentId, sse, update }).execute();
       }
       default: {
         logger.error('Unsupported document type', { document });

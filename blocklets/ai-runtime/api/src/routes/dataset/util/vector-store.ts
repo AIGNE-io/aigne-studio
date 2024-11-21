@@ -8,7 +8,7 @@ import Segment from '../../../store/models/dataset/segment';
 import VectorStore from '../../../store/vector-store-faiss';
 
 export const deleteStore = async (datasetId: string, ids: string[]) => {
-  const embeddings = new AIKitEmbeddings({});
+  const embeddings = new AIKitEmbeddings();
   const store = await VectorStore.load(datasetId, embeddings);
 
   const remoteIds = Object.values(store.getMapping()) || [];
@@ -21,8 +21,8 @@ export const deleteStore = async (datasetId: string, ids: string[]) => {
   }
 };
 
-export const updateHistoriesAndStore = async (knowledgeId: string, documentId: string, targetId?: string) => {
-  const where = targetId ? { documentId, targetId } : { documentId };
+export const updateHistoriesAndStore = async (knowledgeId: string, documentId: string) => {
+  const where = { documentId };
   const { rows: messages, count } = await Segment.findAndCountAll({ where });
 
   if (count > 0) {
@@ -36,7 +36,7 @@ function formatDocument(doc: Document, metadata?: Record<string, unknown>) {
   if (metadata && Object.keys(metadata).length) {
     return {
       ...doc,
-      pageContent: JSON.stringify({ content: doc.pageContent, ...metadata }),
+      pageContent: JSON.stringify({ content: doc.pageContent, metadata }),
     };
   }
 
@@ -60,17 +60,17 @@ async function processContent(
   return { vectors, formattedDocs };
 }
 
-async function saveSegments(docs: Document[], documentId: string, targetId: string) {
+async function saveSegments(docs: Document[], documentId: string) {
   const segments = await Promise.all(
-    docs.map((doc) => (doc.pageContent ? Segment.create({ documentId, targetId, content: doc.pageContent }) : null))
+    docs.map((doc) => (doc.pageContent ? Segment.create({ documentId, targetId: '', content: doc.pageContent }) : null))
   );
 
   return segments.filter(isNonNullable).map((segment) => segment.id);
 }
 
-async function updateVectorStore(datasetId: string, vectors: number[][], docs: Document[], ids: string[]) {
+async function updateVectorStore(knowledgeId: string, vectors: number[][], docs: Document[], ids: string[]) {
   const embeddings = new AIKitEmbeddings();
-  const store = await VectorStore.load(datasetId, embeddings);
+  const store = await VectorStore.load(knowledgeId, embeddings);
   await store.addVectors(vectors, docs, { ids });
   await store.save();
 }
@@ -78,32 +78,31 @@ async function updateVectorStore(datasetId: string, vectors: number[][], docs: D
 export const saveContentToVectorStore = async ({
   metadata,
   content,
-  datasetId,
-  targetId = '',
+  knowledgeId,
   documentId,
+  update = false,
 }: {
   metadata?: Record<string, unknown>;
   content: string;
-  datasetId: string;
-  targetId: string;
+  knowledgeId: string;
   documentId: string;
+  update?: boolean;
 }) => {
-  // 文本分割配置提取
-  const splitterConfig = {
+  // 文本处理和向量化
+  const { vectors, formattedDocs } = await processContent(content, metadata, {
     separators: ['\n\n', '\n'],
     chunkSize: 1024,
     chunkOverlap: 100,
-  };
-
-  // 文本处理和向量化
-  const { vectors, formattedDocs } = await processContent(content, metadata, splitterConfig);
+  });
 
   // 清理历史数据
-  await updateHistoriesAndStore(datasetId, documentId, targetId);
+  if (update) {
+    await updateHistoriesAndStore(knowledgeId, documentId);
+  }
 
   // 保存分段并获取ID
-  const segments = await saveSegments(formattedDocs, documentId, targetId);
+  const segments = await saveSegments(formattedDocs, documentId);
 
   // 更新向量存储
-  await updateVectorStore(datasetId, vectors, formattedDocs, segments);
+  await updateVectorStore(knowledgeId, vectors, formattedDocs, segments);
 };
