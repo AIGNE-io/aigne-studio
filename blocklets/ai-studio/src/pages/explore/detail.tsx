@@ -162,6 +162,7 @@ function ReadmePage({
       <Stack direction="row" gap={2}>
         <Box
           component="img"
+          alt=""
           src={withQuery(icon, { imageFilter: 'resize', w: 300 })}
           sx={{
             width: { xs: 64, md: 144 },

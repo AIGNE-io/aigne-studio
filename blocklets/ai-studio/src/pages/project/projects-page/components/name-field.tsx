@@ -103,7 +103,7 @@ const HelperText = ({
             minWidth: 0,
           }}
           onClick={() => onDuplicateProject?.(project)}>
-          <Box component="img" src={getProjectIconUrl(project.id, {})} sx={{ width: 24, height: 24 }} />
+          <Box component="img" alt="" src={getProjectIconUrl(project.id, {})} sx={{ width: 24, height: 24 }} />
           <Box component="span" className="ellipsis">
             {project.name}
           </Box>

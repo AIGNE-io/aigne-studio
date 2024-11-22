@@ -21,15 +21,18 @@ const aigneApiContext = createContext<AIGNEApiContextValue | null>(null);
 
 export const AIGNEApiProvider = ({
   working,
+  debug,
   children,
   ...api
 }: {
   working?: boolean | ((options: { aid: string }) => boolean | undefined);
+  debug?: boolean;
   children?: ReactNode;
 } & Partial<AIGNEApiContextValue>) => {
   const value = useMemo<AIGNEApiContextValue>(
     () => ({
       ...api,
+      debug,
       getSessions: api.getSessions || getSessions,
       createSession: api.createSession || (({ aid, name }) => createSession({ aid, name }).then((res) => res.created)),
       deleteSession: api.deleteSession || deleteSession,
@@ -45,6 +48,7 @@ export const AIGNEApiProvider = ({
           runAgent({
             ...options,
             working: typeof working === 'function' ? working(options) : working,
+            debug,
           } as Parameters<typeof runAgent>[0])),
     }),
     []

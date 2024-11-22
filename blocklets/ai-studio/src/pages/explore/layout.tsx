@@ -22,6 +22,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { Outlet, useNavigate, useParams } from 'react-router-dom';
 
 import Loading from '../../components/loading';
+import { useProjectLimiting } from '../../contexts/projects';
 import { useSessionContext } from '../../contexts/session';
 import ImportFromBlank from '../project/projects-page/import-from-blank';
 import { useCategoryState } from './state';
@@ -30,6 +31,7 @@ function CreateProject() {
   const { t } = useLocaleContext();
   const { session } = useSessionContext();
   const [dialog, setDialog] = useState<any>(null);
+  const { checkProjectLimitAsync } = useProjectLimiting();
 
   const handleClick = async () => {
     if (!session.user) {
@@ -37,7 +39,9 @@ function CreateProject() {
         session.login(() => resolve());
       });
     }
-    setDialog(<ImportFromBlank onClose={() => setDialog(null)} />);
+    if (await checkProjectLimitAsync()) {
+      setDialog(<ImportFromBlank onClose={() => setDialog(null)} />);
+    }
   };
 
   return (

@@ -1,3 +1,4 @@
+import useSpaceInfo from '@app/hooks/use-space-info';
 import { getProjectDataUrlInSpace } from '@app/libs/did-spaces';
 import { checkErrorType } from '@app/libs/util';
 import { useProjectStore } from '@app/pages/project/yjs-state';
@@ -769,6 +770,7 @@ function ProjectItem({
 } & StackProps) {
   const { t, locale } = useLocaleContext();
   const { session } = useSessionContext();
+  const { data: spaceInfo } = useSpaceInfo(session?.user?.didSpace?.endpoint);
 
   const formatGitUrl = useMemo(() => {
     try {
@@ -785,14 +787,17 @@ function ProjectItem({
   }, [gitUrl]);
 
   const projectDataUrlInSpace = useMemo(() => {
-    return getProjectDataUrlInSpace(session?.user?.didSpace?.endpoint, id);
-  }, [session?.user?.didSpace?.endpoint, id]);
+    if (spaceInfo?.spaceOwnerDid) {
+      return getProjectDataUrlInSpace(session?.user?.didSpace?.endpoint, id, spaceInfo.spaceOwnerDid);
+    }
+    return '';
+  }, [session?.user?.didSpace?.endpoint, id, spaceInfo?.spaceOwnerDid]);
 
   return (
     <ProjectItemRoot {...props} className={cx(props.className)} gap={2} data-testid="projects-item" data-id={id}>
       <Stack direction="row" gap={1.5} alignItems="center">
         <Box className="logo" sx={{ width: '72px', height: '72px' }}>
-          <Box component="img" src={getProjectIconUrl(id, { blockletDid, updatedAt, working: true })} />
+          <Box component="img" alt="" src={getProjectIconUrl(id, { blockletDid, updatedAt, working: true })} />
         </Box>
 
         <Box flex={1} width={0} alignSelf="flex-start">

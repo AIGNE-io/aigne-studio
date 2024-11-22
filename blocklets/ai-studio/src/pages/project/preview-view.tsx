@@ -42,25 +42,30 @@ export default function PreviewView(props: { projectId: string; gitRef: string; 
 
   const apiProps = useDebugAIGNEApiProps();
 
-  const openSettings: ComponentProps<typeof DebugProvider>['openSettings'] = useCallback(({ agentId, output }) => {
-    const agent = getFileById(agentId);
-    if (!agent) throw new Error(`Agent ${agentId} not found`);
+  const openSettings: ComponentProps<typeof DebugProvider>['openSettings'] = useCallback(
+    ({ agentId, output }: { agentId: string; output: { id: string } | { name: RuntimeOutputVariable } }) => {
+      const agent = getFileById(agentId);
+      if (!agent) throw new Error(`Agent ${agentId} not found`);
 
-    let outputId;
-    if ('id' in output) {
-      outputId = output.id;
-    } else {
-      outputId = getOrAddOutputByName({ agent, outputName: output.name }).data.id;
-    }
+      let outputId;
+      if ('id' in output) {
+        outputId = output.id;
+      } else {
+        outputId = getOrAddOutputByName({ agent, outputName: output.name }).data.id;
+      }
 
-    return { agentId, outputId };
-  }, []);
+      return { agentId, outputId };
+    },
+    []
+  );
 
   return (
     <DebugDialogProvider>
       <ThemeProvider theme={agentViewTheme}>
         <Stack sx={{ overflowY: 'auto', flex: 1 }}>
-          <RuntimeDebug aid={aid} ApiProps={apiProps} />
+          <DebugProvider>
+            <RuntimeDebug aid={aid} ApiProps={apiProps} />
+          </DebugProvider>
         </Stack>
       </ThemeProvider>
 
@@ -86,7 +91,12 @@ function SettingsDialog({ children }: { children?: ReactNode }) {
   };
 
   return (
-    <Dialog open={!!open} fullWidth PaperProps={{ sx: { maxWidth: 'none', height: '100%' } }} onClose={onClose}>
+    <Dialog
+      open={!!open}
+      fullWidth
+      PaperProps={{ sx: { maxWidth: 'none', height: '100%' } }}
+      onClose={onClose}
+      disableEnforceFocus>
       <DialogTitle sx={{ display: 'flex' }}>
         <Box flex={1}>{t('appearance')}</Box>
 

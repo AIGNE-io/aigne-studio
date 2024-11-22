@@ -3,6 +3,7 @@ import { ReadableStream } from 'stream/web';
 import { getAgent, getMemoryVariables, getProject } from '@api/libs/agent';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
 import logger from '@api/libs/logger';
+import AgentUsage from '@api/store/models/agent-usage';
 import ExecutionCache from '@api/store/models/execution-cache';
 import History from '@api/store/models/history';
 import Secrets from '@api/store/models/secret';
@@ -51,27 +52,22 @@ const callInputSchema = Joi.object<{
 
 const checkProjectRequestLimit = async ({
   userId,
-  role,
   blockletDid,
   projectId,
   loginRequired,
 }: {
   userId?: string;
-  role?: string;
   blockletDid?: string;
   projectId: string;
   loginRequired?: boolean;
 }) => {
-  if (['owner', 'admin', 'promptsEditor'].includes(role || '')) {
-    return;
-  }
   const project = await getProject({ blockletDid, projectId, rejectOnEmpty: true });
   const userIdToCheck = (loginRequired ? userId : project.createdBy)!;
   const [runs, passports] = await Promise.all([
-    History.countRunsByUser(userIdToCheck),
+    AgentUsage.countRunsByUser(userIdToCheck),
     getUserPassports(userIdToCheck),
   ]);
-  if (!quotaChecker.checkRequestLimit(runs, passports)) {
+  if (!quotaChecker.checkRequestLimit(runs + 1, passports)) {
     if (loginRequired) {
       throw new RuntimeError(
         RuntimeErrorType.RequestExceededError,
@@ -83,6 +79,20 @@ const checkProjectRequestLimit = async ({
         'Project request limit exceeded for the project owner. Please contact the project owner for further assistance.'
       );
     }
+  }
+};
+
+const validateDebugModeAccess = (
+  debug: boolean,
+  userId: string | undefined,
+  role: string,
+  projectOwnerId: string | undefined
+) => {
+  if (debug) {
+    if ((projectOwnerId && projectOwnerId === userId) || ['owner', 'admin'].includes(role)) {
+      return;
+    }
+    throw new Error('Debug mode is only available to project owner.');
   }
 };
 
@@ -103,6 +113,7 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
     },
     { stripUnknown: true }
   );
+  const bypassRequestLimit = input.debug || ['owner', 'admin', 'promptsEditor'].includes(req.user?.role || '');
 
   // NOTE: Support custom user id for component calling
   const userId = req.user?.method === 'componentCall' ? req.query.userId : req.user?.did;
@@ -126,6 +137,8 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
   };
 
   const project = await getProject({ blockletDid, projectId, projectRef, working: input.working, rejectOnEmpty: true });
+
+  await validateDebugModeAccess(!!input.debug, userId, req.user?.role || '', project.createdBy);
 
   const callAI: CallAI = async ({ input }) => {
     const stream = await chatCompletions({
@@ -210,8 +223,6 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
     status: 'generating',
     blockletDid,
     projectRef,
-    requestType: agent.access?.noLoginRequired ? 'free' : 'paid',
-    projectOwnerId: project?.createdBy,
   });
 
   const emit: RunAssistantCallback = (response) => {
@@ -276,13 +287,14 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
   if (stream) emit({ type: AssistantResponseType.CHUNK, taskId, assistantId: agent.id, delta: {} });
 
   try {
-    await checkProjectRequestLimit({
-      userId,
-      role: req.user?.role,
-      blockletDid,
-      projectId,
-      loginRequired: !agent.access?.noLoginRequired,
-    });
+    if (!bypassRequestLimit) {
+      await checkProjectRequestLimit({
+        userId,
+        blockletDid,
+        projectId,
+        loginRequired: !agent.access?.noLoginRequired,
+      });
+    }
 
     emit({
       type: AssistantResponseType.INPUT_PARAMETER,
@@ -431,6 +443,19 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
         ? { ...usage, totalTokens: usage.promptTokens + usage.completionTokens }
         : undefined,
   });
+
+  if (!bypassRequestLimit && !error) {
+    await AgentUsage.create({
+      userId,
+      projectId,
+      agentId,
+      sessionId,
+      blockletDid,
+      projectRef,
+      requestType: agent.access?.noLoginRequired ? 'free' : 'paid',
+      projectOwnerId: project.createdBy,
+    });
+  }
 });
 
 export default router;

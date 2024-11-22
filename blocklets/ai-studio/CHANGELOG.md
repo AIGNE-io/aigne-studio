@@ -1,3 +1,43 @@
+## 0.4.153 (2024-11-22)
+
+- fix(ai-studio): carrying user information when connecting to space
+
+## 0.4.152 (2024-11-19)
+
+- chore: display billing link on pricing table for premium users
+
+## 0.4.151 (2024-11-19)
+
+- fix: support authorization header
+
+## 0.4.150 (2024-11-19)
+
+- chore: bypass request limiting when in debug mode
+
+## 0.4.149 (2024-11-18)
+
+- fix: autoform autofocus
+
+## 0.4.148 (2024-11-18)
+
+- chore: check project limit earlier(#1556)
+
+## 0.4.147 (2024-11-18)
+
+- fix: improve error handling for agent request limiting(#1552)
+
+## 0.4.146 (2024-11-18)
+
+- chore(pro-plan): ui improvements(#1549,#1557)
+
+## 0.4.145 (2024-11-18)
+
+- fix: add img tag alt attribute
+
+## 0.4.144 (2024-11-18)
+
+- fix: uploader not working in appearance settings dialog
+
 ## 0.4.143 (2024-11-15)
 
 - fix: agent profile ogImage

@@ -24,7 +24,7 @@ export const agentTypes = [
   { type: 'image', icon: <Icon icon={PhotoIcon} />, i18nKey: 'imageGeneration' },
   {
     type: 'imageBlender',
-    icon: <Box component="img" src={blenderIcon} width={14} height={14} />,
+    icon: <Box component="img" alt="" src={blenderIcon} width={14} height={14} />,
     i18nKey: 'imageBlender',
   },
   { type: 'function', icon: <Icon icon={CodeIcon} />, i18nKey: 'logic' },
