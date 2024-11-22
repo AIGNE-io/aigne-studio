@@ -25,26 +25,26 @@ export class FileProcessor extends BaseProcessor {
       throw new Error('Document is not a file');
     }
 
-    if (!document.path) {
-      throw new Error('get processed file path failed');
-    }
-
-    const filePath = joinURL(getSourceFileDir(this.knowledgeId), document.path);
+    const filePath = joinURL(getSourceFileDir(this.knowledgeId), document.filename!);
     if (!(await exists(filePath))) {
       throw new Error(`processed file ${filePath} not found`);
     }
 
-    const fileExt = data.relativePath.split('.').pop() || '';
-    logger.info('create file document', {
-      name: data.name,
-      hash: data.hash,
-      relativePath: data.relativePath,
-      filePath,
-      fileExt,
-    });
+    const fileExt = (document.name || '').split('.').pop() || '';
 
     const content = await this.loadFile(filePath, fileExt);
-    this.content = stringify({ content, metadata: { documentId: this.documentId, data: cloneDeep(data) } });
+    this.content = stringify({
+      content,
+      metadata: {
+        documentId: this.documentId,
+        data: cloneDeep({
+          type: document.data?.type,
+          name: document.name,
+          filename: document.filename,
+          size: document.size,
+        }),
+      },
+    });
   }
 
   private async loadFile(filePath: string, fileType: string): Promise<string> {
@@ -59,7 +59,8 @@ export class FileProcessor extends BaseProcessor {
       case 'json':
         return this.loadText(filePath);
       default:
-        throw new Error(`Unsupported file type: ${fileType}`);
+        logger.warn(`Unsupported file type: ${fileType}`);
+        return this.loadText(filePath);
     }
   }
 

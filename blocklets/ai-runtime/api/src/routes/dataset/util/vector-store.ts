@@ -7,9 +7,9 @@ import { AIKitEmbeddings } from '../../../core/embeddings/ai-kit';
 import Segment from '../../../store/models/dataset/segment';
 import VectorStore from '../../../store/vector-store-faiss';
 
-export const deleteStore = async (datasetId: string, ids: string[]) => {
+export const deleteStore = async (knowledgeId: string, ids: string[]) => {
   const embeddings = new AIKitEmbeddings();
-  const store = await VectorStore.load(datasetId, embeddings);
+  const store = await VectorStore.load(knowledgeId, embeddings);
 
   const remoteIds = Object.values(store.getMapping()) || [];
   const deleteIds = intersection(remoteIds, ids);

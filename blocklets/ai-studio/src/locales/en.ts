@@ -943,4 +943,5 @@ export default flatten({
   },
   aigneBannerVisibility: 'AIGNE branding banner visibility',
   similarity: 'Similarity',
+  crawl: 'Crawl',
 });

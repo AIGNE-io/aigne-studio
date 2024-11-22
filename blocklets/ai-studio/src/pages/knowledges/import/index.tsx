@@ -57,16 +57,11 @@ function createKnowledge(knowledgeId: string, params: CreateKnowledgeParams) {
       return createFileDocument(knowledgeId, {
         size: rest.file?.runtime?.size!,
         name: rest.file?.runtime?.originFileName!,
-        hash: rest.file?.runtime?.hashFileName!,
-        type: rest.file?.runtime?.type!,
-        relativePath: rest.file?.runtime?.relativePath!,
+        filename: rest.file?.runtime?.hashFileName!,
       });
     case 'custom':
-      return createCustomDocument(knowledgeId, {
-        title: rest.custom?.title!,
-        content: rest.custom?.content!,
-      });
-    case 'crawl':
+      return createCustomDocument(knowledgeId, { title: rest.custom?.title!, content: rest.custom?.content! });
+    case 'url':
       return createCrawlDocument(knowledgeId, rest.crawl!);
     case 'discuss':
       return createDiscussionDocument(knowledgeId, rest.discussion!);
@@ -112,8 +107,8 @@ export default function ImportKnowledge({
           }
         : null,
       {
-        id: 'crawl',
-        label: t('knowledge.crawl'),
+        id: 'url',
+        label: t('knowledge.url'),
         icon: <Box component={Icon} icon={DatabaseIcon} width={18} height={18} borderRadius={1} className="center" />,
       },
     ] as SourceTypeSelectType[]
@@ -130,7 +125,7 @@ export default function ImportKnowledge({
         sourceType,
         ...(sourceType === 'file' && { file }),
         ...(sourceType === 'custom' && { custom }),
-        ...(sourceType === 'crawl' && { crawl }),
+        ...(sourceType === 'url' && { crawl }),
         ...(sourceType === 'discuss' && { discussion }),
       };
 
@@ -143,15 +138,9 @@ export default function ImportKnowledge({
   };
 
   const disabled = useMemo(() => {
-    if (sourceType === 'file') {
-      return !file;
-    }
-    if (sourceType === 'custom') {
-      return !custom?.title || !custom?.content;
-    }
-    if (sourceType === 'crawl') {
-      return !crawl.url || !crawl.apiKey;
-    }
+    if (sourceType === 'file') return !file;
+    if (sourceType === 'custom') return !custom?.title || !custom?.content;
+    if (sourceType === 'url') return !crawl.url || !crawl.provider;
     if (sourceType === 'discuss') {
       return discussion.length === 0;
     }
@@ -228,13 +217,11 @@ export default function ImportKnowledge({
                     onTitleChange={(value) => setCustom((prev) => ({ ...(prev || {}), title: value }))}
                     onContentChange={(value) => setCustom((prev) => ({ ...(prev || {}), content: value }))}
                   />
-                ) : sourceType === 'crawl' ? (
+                ) : sourceType === 'url' ? (
                   <CrawlView
                     provider={crawl.provider}
-                    apiKey={crawl.apiKey}
                     url={crawl.url}
                     onProviderChange={(value) => setCrawl((prev) => ({ ...(prev || {}), provider: value }))}
-                    onApiKeyChange={(value) => setCrawl((prev) => ({ ...(prev || {}), apiKey: value }))}
                     onUrlChange={(value) => setCrawl((prev) => ({ ...(prev || {}), url: value }))}
                   />
                 ) : sourceType === 'discuss' ? (
@@ -397,7 +384,7 @@ const CustomView = ({ title, content, onTitleChange, onContentChange }: CustomIn
   );
 };
 
-const CrawlView = ({ provider, onProviderChange, apiKey, onApiKeyChange, url, onUrlChange }: CrawlSettingsProps) => {
+const CrawlView = ({ provider, onProviderChange, url, onUrlChange }: CrawlSettingsProps) => {
   const { t } = useLocaleContext();
   const providers = [
     { id: 'jina', label: 'Jina Reader' },
@@ -434,7 +421,7 @@ const CrawlView = ({ provider, onProviderChange, apiKey, onApiKeyChange, url, on
         </Box>
       </Box>
 
-      <Box>
+      {/* <Box>
         <Typography
           component="label"
           sx={{
@@ -456,7 +443,7 @@ const CrawlView = ({ provider, onProviderChange, apiKey, onApiKeyChange, url, on
           placeholder={t('knowledge.importKnowledge.apiKey')}
           variant="outlined"
         />
-      </Box>
+      </Box> */}
 
       <Box>
         <Typography

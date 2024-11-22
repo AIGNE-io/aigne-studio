@@ -11,7 +11,6 @@ import Dataset from '../models/dataset/dataset';
 import DatasetDocument from '../models/dataset/document';
 import DatasetEmbeddingHistory from '../models/dataset/embedding-history';
 import DatasetSegment from '../models/dataset/segment';
-import DatasetUpdateHistory from '../models/dataset/update-history';
 
 export const up: Migration = async () => {
   try {
@@ -83,12 +82,6 @@ async function migrateFromAIStudio() {
   ).map((i) => i.dataValues);
   const datasetSegmentCount = (await DatasetSegment.bulkCreate(datasetSegments)).length;
   logger.info('Migrated dataset segments', { datasetSegmentCount });
-
-  const datasetUpdateHistories = (
-    (await aiStudioQueryInterface.select(DatasetUpdateHistory, 'DatasetUpdateHistories')) as DatasetUpdateHistory[]
-  ).map((i) => i.dataValues);
-  const datasetUpdateHistoryCount = (await DatasetUpdateHistory.bulkCreate(datasetUpdateHistories)).length;
-  logger.info('Migrated dataset update histories', { datasetUpdateHistoryCount });
 
   const aiStudioVectorsDir = join(aiStudioDataDir, 'vectors');
   if (await exists(aiStudioVectorsDir)) {

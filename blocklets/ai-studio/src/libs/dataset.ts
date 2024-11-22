@@ -37,6 +37,7 @@ export interface KnowledgeInput {
   projectId?: string;
   resourceBlockletDid?: string;
   knowledgeId?: string;
+  icon?: string;
 }
 
 export async function searchKnowledge({
@@ -102,7 +103,7 @@ export async function deleteKnowledge(knowledgeId: string): Promise<any> {
 
 export async function createFileDocument(
   knowledgeId: string,
-  input: { hash: string; name: string; size: number; type: string; relativePath: string }
+  input: { filename: string; name: string; size: number }
 ): Promise<KnowledgeDocument> {
   return axios
     .post(`/api/datasets/${knowledgeId}/documents/file`, input, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
@@ -132,7 +133,7 @@ export async function createCrawlDocument(
   input: { provider: 'jina' | 'firecrawl'; apiKey?: string; url?: string }
 ): Promise<KnowledgeDocument> {
   return axios
-    .post(`/api/datasets/${knowledgeId}/documents/crawl`, input, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
+    .post(`/api/datasets/${knowledgeId}/documents/url`, input, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
     .then((res) => res.data);
 }
 

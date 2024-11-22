@@ -124,7 +124,7 @@ const KnowledgeDocuments = ({
         sortable: false,
         renderCell: (params) => {
           return (
-            <Stack width={1} flexDirection="row" alignItems="center" gap={1}>
+            <Stack width={1} flexDirection="row" alignItems="center" height={1} gap={1}>
               <DocumentIcon document={params.row} />
               <Box flexGrow={1} color="#030712">
                 {params.row.name}
@@ -143,57 +143,39 @@ const KnowledgeDocuments = ({
           return <Box className="center">{t(params.row.type)}</Box>;
         },
       },
-      {
-        field: 'embeddingStatus',
-        headerName: t('embeddingStatus'),
-        width: 150,
-        sortable: false,
-        headerAlign: 'center',
-        renderCell: (params) => {
-          const colors: any = {
-            idle: '#D97706',
-            uploading: '#D97706',
-            success: '#059669',
-            error: '#E11D48',
-          };
+    ];
 
-          function isSymmetricAroundSlash(str: string = '') {
-            try {
-              const [before, after] = (str || '').split('/');
-              return before === after;
-            } catch (error) {
-              return false;
+    if (!disabled) {
+      list.push(
+        {
+          field: 'embeddingStatus',
+          headerName: t('embeddingStatus'),
+          width: 150,
+          sortable: false,
+          headerAlign: 'center',
+          renderCell: (params) => {
+            const colors: any = {
+              idle: '#D97706',
+              uploading: '#D97706',
+              success: '#059669',
+              error: '#E11D48',
+            };
+
+            function isSymmetricAroundSlash(str: string = '') {
+              try {
+                const [before, after] = (str || '').split('/');
+                return before === after;
+              } catch (error) {
+                return false;
+              }
             }
-          }
 
-          if (!params.row.embeddingStatus) {
-            return (
-              <Stack className="center" height="100%">
-                <Box
-                  borderRadius={20}
-                  border="1px solid #E5E7EB"
-                  p="4px 12px"
-                  color="#030712"
-                  fontSize={13}
-                  display="flex"
-                  alignItems="center"
-                  lineHeight={1}
-                  gap={1}>
-                  <Box width={6} height={6} borderRadius={6} bgcolor={colors.idle} />
-                  <Box display="flex" alignItems="center">
-                    {t('embeddingStatus_idle')}
-                  </Box>
-                </Box>
-              </Stack>
-            );
-          }
-
-          if (['idle', 'uploading', 'success', 'error'].includes(params.row.embeddingStatus)) {
-            return (
-              <Stack className="center" height="100%">
-                <Tooltip title={params.row.error ?? undefined}>
+            if (!params.row.embeddingStatus) {
+              return (
+                <Stack className="center" height="100%">
                   <Box
                     borderRadius={20}
+                    border="1px solid #E5E7EB"
                     p="4px 12px"
                     color="#030712"
                     fontSize={13}
@@ -201,67 +183,87 @@ const KnowledgeDocuments = ({
                     alignItems="center"
                     lineHeight={1}
                     gap={1}>
+                    <Box width={6} height={6} borderRadius={6} bgcolor={colors.idle} />
                     <Box display="flex" alignItems="center">
-                      {t(`embeddingStatus_${params.row.embeddingStatus}`)}
-                      {params.row.embeddingStatus === 'uploading' && <Pending mt={1} />}
+                      {t('embeddingStatus_idle')}
                     </Box>
-                    <Box width={6} height={6} borderRadius={6} bgcolor={colors[params.row.embeddingStatus]} />
                   </Box>
-                </Tooltip>
+                </Stack>
+              );
+            }
+
+            if (['idle', 'uploading', 'success', 'error'].includes(params.row.embeddingStatus)) {
+              return (
+                <Stack className="center" height="100%">
+                  <Tooltip title={params.row.error ?? undefined}>
+                    <Box
+                      borderRadius={20}
+                      p="4px 12px"
+                      color="#030712"
+                      fontSize={13}
+                      display="flex"
+                      alignItems="center"
+                      lineHeight={1}
+                      gap={1}>
+                      <Box display="flex" alignItems="center">
+                        {t(`embeddingStatus_${params.row.embeddingStatus}`)}
+                        {params.row.embeddingStatus === 'uploading' && <Pending mt={1} />}
+                      </Box>
+                      <Box width={6} height={6} borderRadius={6} bgcolor={colors[params.row.embeddingStatus]} />
+                    </Box>
+                  </Tooltip>
+                </Stack>
+              );
+            }
+
+            return (
+              <Stack className="center" height="100%">
+                <Box
+                  borderRadius={20}
+                  p="4px 12px"
+                  color="#030712"
+                  fontSize={13}
+                  display="flex"
+                  alignItems="center"
+                  lineHeight={1}
+                  gap={1}>
+                  {params.row.embeddingStatus}
+                  <Box
+                    width={6}
+                    height={6}
+                    borderRadius={6}
+                    bgcolor={isSymmetricAroundSlash(params.row.embeddingStatus) ? colors.success : colors.uploading}
+                  />
+                </Box>
               </Stack>
             );
-          }
-
-          return (
-            <Stack className="center" height="100%">
-              <Box
-                borderRadius={20}
-                p="4px 12px"
-                color="#030712"
-                fontSize={13}
-                display="flex"
-                alignItems="center"
-                lineHeight={1}
-                gap={1}>
-                {params.row.embeddingStatus}
-                <Box
-                  width={6}
-                  height={6}
-                  borderRadius={6}
-                  bgcolor={isSymmetricAroundSlash(params.row.embeddingStatus) ? colors.success : colors.uploading}
-                />
-              </Box>
-            </Stack>
-          );
+          },
         },
-      },
-    ];
-
-    if (!disabled) {
-      list.push({
-        field: 'actions',
-        headerName: t('actions'),
-        width: 200,
-        sortable: false,
-        headerAlign: 'center',
-        renderCell: (params) => (
-          <Actions
-            type={params.row.type}
-            error={params.row?.error ?? ''}
-            onRemove={() => onRemove(params.row.id)}
-            onRefetch={onRefetch}
-            onEmbedding={async (e) => {
-              e.stopPropagation();
-              onEmbedding(params.row.id);
-            }}
-            onLink={(e) => {
-              e.stopPropagation();
-              const url = generateDiscussionUrl(params.row.data);
-              window.open(url, '_blank');
-            }}
-          />
-        ),
-      });
+        {
+          field: 'actions',
+          headerName: t('actions'),
+          width: 200,
+          sortable: false,
+          headerAlign: 'center',
+          renderCell: (params) => (
+            <Actions
+              type={params.row.type}
+              error={params.row?.error ?? ''}
+              onRemove={() => onRemove(params.row.id)}
+              onRefetch={onRefetch}
+              onEmbedding={async (e) => {
+                e.stopPropagation();
+                onEmbedding(params.row.id);
+              }}
+              onLink={(e) => {
+                e.stopPropagation();
+                const url = generateDiscussionUrl(params.row.data);
+                window.open(url, '_blank');
+              }}
+            />
+          ),
+        }
+      );
     }
 
     return list;
@@ -319,7 +321,7 @@ function Actions({
   return (
     <>
       <Stack flexDirection="row" alignItems="center" justifyContent="center" height={1}>
-        {['text', 'file', 'crawl'].includes(type) ? (
+        {['text', 'file', 'url'].includes(type) ? (
           <>
             {/* <Button onClick={onEdit}>{t('edit')}</Button> */}
 
@@ -398,20 +400,20 @@ export const DocumentIcon = ({ document }: { document: KnowledgeDocumentCard }) 
   }
 
   if (document.type === 'file') {
-    if (document.data?.type === 'file') {
-      if (document.data?.relativePath.endsWith('.json') || document.data?.relativePath.endsWith('.md')) {
+    if (document.name) {
+      if (document.name.endsWith('.json') || document.name.endsWith('.md')) {
         return <Box component={JSON} width={20} height={20} />;
       }
 
-      if (document.data?.relativePath.endsWith('.pdf')) {
+      if (document.name.endsWith('.pdf')) {
         return <Box component={PDF} width={20} height={20} />;
       }
 
-      if (document.data?.relativePath.endsWith('.txt')) {
+      if (document.name.endsWith('.txt')) {
         return <Box component={TXT} width={20} height={20} />;
       }
 
-      if (document.data?.relativePath.endsWith('.doc') || document.data?.relativePath.endsWith('.docx')) {
+      if (document.name.endsWith('.doc') || document.name.endsWith('.docx')) {
         return <Box component={Documents} width={20} height={20} />;
       }
     }
@@ -423,7 +425,7 @@ export const DocumentIcon = ({ document }: { document: KnowledgeDocumentCard }) 
     return <Box component={Discuss} width={20} height={20} />;
   }
 
-  if (document.type === 'crawl') {
+  if (document.type === 'url') {
     return <Box component={Crawl} width={20} height={20} />;
   }
 

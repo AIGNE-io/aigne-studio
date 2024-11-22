@@ -59,7 +59,7 @@ export class DiscussKitProcessor extends BaseProcessor {
     const result = stringify(post);
     const originalFilePath = joinURL(getSourceFileDir(this.knowledgeId), this.originalFileName);
     await writeFile(originalFilePath, result);
-    await document.update({ path: this.originalFileName });
+    await document.update({ filename: this.originalFileName });
   }
 
   protected async ProcessedFile(): Promise<void> {
@@ -67,11 +67,7 @@ export class DiscussKitProcessor extends BaseProcessor {
 
     const { data } = document;
 
-    if (!document.path) {
-      throw new Error('get processed file path failed');
-    }
-
-    const originalFilePath = joinURL(getSourceFileDir(this.knowledgeId), document.path);
+    const originalFilePath = joinURL(getSourceFileDir(this.knowledgeId), document.filename!);
     if (!(await exists(originalFilePath))) {
       throw new Error(`processed file ${originalFilePath} not found`);
     }

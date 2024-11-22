@@ -572,6 +572,7 @@ const KnowledgeIcon = ({ knowledgeId, icon, disabled }: { knowledgeId: string; i
   const [localIcon, setIcon] = useState<string | undefined>(icon);
   const url = joinURL(AIGNE_RUNTIME_MOUNT_POINT, `/api/datasets/${knowledgeId}/icon.png?icon=${localIcon}`);
   const update = useUpdate();
+  const { updateKnowledge } = useKnowledge();
 
   useEffect(() => setIcon(icon), [icon, knowledgeId]);
 
@@ -597,19 +598,21 @@ const KnowledgeIcon = ({ knowledgeId, icon, disabled }: { knowledgeId: string; i
             objectFit: 'cover',
           },
         }}>
-        <Box
-          component="img"
-          src={url}
-          alt="knowledge icon"
-          onError={(e) => {
-            e.currentTarget.onerror = null;
-            e.currentTarget.style.display = 'none';
-            if (e.currentTarget.nextElementSibling) {
-              (e.currentTarget.nextElementSibling as any).style.display = 'block';
-            }
-          }}
-        />
-        <Typography fontSize={24} style={{ display: 'none' }}>
+        {localIcon ? (
+          <Box
+            component="img"
+            src={url}
+            alt="knowledge icon"
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.style.display = 'none';
+              if (e.currentTarget.nextElementSibling) {
+                (e.currentTarget.nextElementSibling as any).style.display = 'block';
+              }
+            }}
+          />
+        ) : null}
+        <Typography fontSize={24} style={{ display: localIcon ? 'none' : 'block' }}>
           📖
         </Typography>
       </Box>
@@ -629,8 +632,10 @@ const KnowledgeIcon = ({ knowledgeId, icon, disabled }: { knowledgeId: string; i
           if (disabled) return;
           const uploader = uploaderRef?.current?.getUploader();
           uploader?.open();
-          uploader.onceUploadSuccess(({ response }: any) => {
-            setIcon(response?.data?.runtime?.hashFileName);
+          uploader.onceUploadSuccess(async ({ response }: any) => {
+            const hashFileName = response?.data?.runtime?.hashFileName;
+            await updateKnowledge(knowledgeId, { icon: hashFileName }).catch(() => {});
+            setIcon(hashFileName);
             update();
           });
         }}>

@@ -18,7 +18,7 @@ export class PipelineProcessor extends BaseProcessor {
   override async execute(): Promise<any> {
     const { knowledgeId, documentId, sse, update } = this;
 
-    const document = await DatasetDocument.findOne({ where: { id: documentId, datasetId: knowledgeId } });
+    const document = await DatasetDocument.findOne({ where: { id: documentId, knowledgeId } });
 
     switch (document?.type) {
       case 'file': {
@@ -30,7 +30,7 @@ export class PipelineProcessor extends BaseProcessor {
       case 'discussKit': {
         return new DiscussKitProcessor({ knowledgeId, documentId, sse, update }).execute();
       }
-      case 'crawl': {
+      case 'url': {
         return new CrawlProcessor({ knowledgeId, documentId, sse, update }).execute();
       }
       default: {

@@ -16,23 +16,16 @@ export default class DatasetDocument extends Model<
 > {
   declare id: CreationOptional<string>;
 
-  declare datasetId: string;
+  declare knowledgeId: string;
 
-  declare type: 'discussion' | 'text' | 'file' | 'fullSite' | 'discussKit' | 'crawl'; // 'discussion'和'fullSite'已经废弃，统一使用 'discussKit'
+  declare type: 'file' | 'text' | 'discussKit' | 'url';
 
   declare data?:
     | {
         type: 'file';
-        hash: string;
-        name: string;
-        size: number;
-        fileType: string;
-        relativePath: string;
       }
     | {
         type: 'text';
-        title: string;
-        content: string;
       }
     | {
         type: 'discussKit';
@@ -44,7 +37,11 @@ export default class DatasetDocument extends Model<
           boardId?: string;
         };
       }
-    | { type: 'crawl'; provider: 'jina' | 'firecrawl'; apiKey?: string; url?: string };
+    | {
+        type: 'url';
+        provider: 'jina' | 'firecrawl';
+        url?: string;
+      };
 
   declare name?: string;
 
@@ -66,7 +63,7 @@ export default class DatasetDocument extends Model<
 
   declare embeddingStatus?: UploadStatus | string;
 
-  declare path?: string;
+  declare filename?: string;
 
   declare size?: number;
 }
@@ -79,7 +76,7 @@ DatasetDocument.init(
       allowNull: false,
       defaultValue: nextId,
     },
-    datasetId: {
+    knowledgeId: {
       type: DataTypes.STRING,
       allowNull: false,
     },
@@ -118,7 +115,7 @@ DatasetDocument.init(
     embeddingStatus: {
       type: DataTypes.STRING,
     },
-    path: {
+    filename: {
       type: DataTypes.STRING,
     },
     size: {

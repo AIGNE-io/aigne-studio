@@ -7,7 +7,7 @@ const nextTaskId = () => taskIdGenerator.nextId().toString();
 
 export type DocumentQueue = {
   type: 'document';
-  datasetId: string;
+  knowledgeId: string;
   documentId: string;
   update?: boolean;
 };

@@ -46,7 +46,19 @@ requirements:
 scripts:
   preFlight: node api/hooks/pre-flight.js
   dev: npm run start
-environments: []
+environments:
+  - name: JINA_API_KEY
+    description: Jina API Key
+    required: false
+    default: ''
+    secure: true
+    shared: true
+  - name: FIRECRAWL_API_KEY
+    description: Firecrawl API Key
+    required: false
+    default: ''
+    secure: true
+    shared: true
 capabilities:
   navigation: false
 screenshots:

@@ -1,6 +1,7 @@
 import { writeFile } from 'fs/promises';
 
 import { getSourceFileDir } from '@api/libs/ensure-dir';
+import config from '@blocklet/sdk/lib/config';
 import FirecrawlApp from '@mendable/firecrawl-js';
 import { exists } from 'fs-extra';
 import { TextLoader } from 'langchain/document_loaders/fs/text';
@@ -10,9 +11,6 @@ import { stringify } from 'yaml';
 
 import { BaseProcessor } from './base';
 
-// jina_3fdb68d24b264d1d8fde5a351cd78317bwlSQ7UV5WG1L6mvfSOz1lJQoHOa
-// fc-d033e208cfd14766b50318efbac34616
-
 export class CrawlProcessor extends BaseProcessor {
   protected originalFileName: string = `${this.documentId}.md`;
 
@@ -20,12 +18,14 @@ export class CrawlProcessor extends BaseProcessor {
     const document = await this.getDocument();
 
     const { data } = document;
-    if (data?.type !== 'crawl') throw new Error('document is not a crawl data');
+    if (data?.type !== 'url') throw new Error('document is not a url data');
 
-    const { provider, url, apiKey } = data;
+    const { provider, url } = data;
     const map = {
       jina: async () => {
-        const response = await fetch(`https://r.jina.ai/${url}`, { headers: { Authorization: `Bearer ${apiKey}` } });
+        const response = await fetch(`https://r.jina.ai/${url}`, {
+          headers: { Authorization: `Bearer ${config.env.JINA_API_KEY}` },
+        });
         const data = await response.text();
 
         return {
@@ -34,7 +34,7 @@ export class CrawlProcessor extends BaseProcessor {
         };
       },
       firecrawl: async () => {
-        const app = new FirecrawlApp({ apiKey });
+        const app = new FirecrawlApp({ apiKey: config.env.FIRECRAWL_API_KEY });
         const scrapeResult = (await app.scrapeUrl(url!)) as any;
 
         return {
@@ -51,18 +51,14 @@ export class CrawlProcessor extends BaseProcessor {
     const { title, content } = await map[provider]();
     const originalFilePath = joinURL(getSourceFileDir(this.knowledgeId), this.originalFileName);
     await writeFile(originalFilePath, `${title}\n${content}`);
-    await document.update({ path: this.originalFileName, name: title });
+    await document.update({ filename: this.originalFileName, name: title });
   }
 
   protected async ProcessedFile(): Promise<void> {
     const document = await this.getDocument();
     const { data } = document;
 
-    if (!document.path) {
-      throw new Error('get processed file path failed');
-    }
-
-    const originalFilePath = joinURL(getSourceFileDir(this.knowledgeId), document.path);
+    const originalFilePath = joinURL(getSourceFileDir(this.knowledgeId), document.filename!);
     if (!(await exists(originalFilePath))) {
       throw new Error(`processed file ${originalFilePath} not found`);
     }

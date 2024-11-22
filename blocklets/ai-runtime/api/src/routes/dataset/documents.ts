@@ -1,4 +1,4 @@
-import { copyFile, rm } from 'fs/promises';
+import { copyFile, rm, writeFile } from 'fs/promises';
 import { join } from 'path';
 
 import { resourceManager } from '@api/libs/resource';
@@ -17,8 +17,8 @@ import { userAuth } from '../../libs/security';
 import Knowledge from '../../store/models/dataset/dataset';
 import KnowledgeDocument from '../../store/models/dataset/document';
 import EmbeddingHistories from '../../store/models/dataset/embedding-history';
-import { queue } from './embeddings';
-import { HybridRetriever } from './util/search-langchain';
+import { HybridRetriever } from './retriever';
+import { queue } from './util/queue';
 import { updateHistoriesAndStore } from './util/vector-store';
 
 const router = Router();
@@ -56,9 +56,7 @@ router.get('/:knowledgeId/search', async (req, res) => {
   const input = await searchQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
   const knowledge = await Knowledge.findOne({ where: { id: knowledgeId } });
-  if (!knowledge) {
-    throw new Error('No such knowledge');
-  }
+  if (!knowledge) throw new Error('No such knowledge');
 
   let vectorPathOrKnowledgeId = knowledgeId;
   if (knowledge.resourceBlockletDid && knowledge.knowledgeId) {
@@ -118,7 +116,7 @@ router.get('/:knowledgeId/documents', middlewares.session(), userAuth(), async (
     return;
   }
 
-  const params = { datasetId: knowledgeId, ...user };
+  const params = { knowledgeId, ...user };
   const [items, total] = await Promise.all([
     KnowledgeDocument.findAll({
       order: [['createdAt', 'DESC']],
@@ -135,21 +133,31 @@ router.get('/:knowledgeId/documents', middlewares.session(), userAuth(), async (
 router.delete('/:knowledgeId/documents/:documentId', middlewares.session(), userAuth(), async (req, res) => {
   const { knowledgeId, documentId } = await documentIdSchema.validateAsync(req.params, { stripUnknown: true });
 
-  const document = await KnowledgeDocument.findOne({ where: { id: documentId, datasetId: knowledgeId } });
+  const document = await KnowledgeDocument.findOne({ where: { id: documentId, knowledgeId } });
 
   await updateHistoriesAndStore(knowledgeId, documentId);
 
-  if (document?.path) {
-    await rm(joinURL(getSourceFileDir(knowledgeId), document.path));
+  if (document && document.filename) {
+    await rm(joinURL(getSourceFileDir(knowledgeId), document.filename));
     await rm(joinURL(getProcessedFileDir(knowledgeId), `${document.id}.yml`));
   }
 
   await Promise.all([
-    KnowledgeDocument.destroy({ where: { id: documentId, datasetId: knowledgeId } }),
-    EmbeddingHistories.destroy({ where: { documentId, datasetId: knowledgeId } }),
+    KnowledgeDocument.destroy({ where: { id: documentId, knowledgeId } }),
+    EmbeddingHistories.destroy({ where: { documentId, knowledgeId } }),
   ]);
 
   res.json(document);
+});
+
+const fileSchema = Joi.object<{
+  filename: string;
+  name: string;
+  size: number;
+}>({
+  filename: Joi.string().required(),
+  name: Joi.string().allow('').default(''),
+  size: Joi.number().required(),
 });
 
 router.post('/:knowledgeId/documents/file', middlewares.session(), userAuth(), async (req, res) => {
@@ -160,21 +168,9 @@ router.post('/:knowledgeId/documents/file', middlewares.session(), userAuth(), a
     throw new Error('Missing required params `knowledgeId`');
   }
 
-  const { name, hash, size, type, relativePath } = await Joi.object<{
-    hash: string;
-    name: string;
-    size: number;
-    type: string;
-    relativePath: string;
-  }>({
-    hash: Joi.string().required(),
-    name: Joi.string().allow('').default(''),
-    size: Joi.number().required(),
-    type: Joi.string().required(),
-    relativePath: Joi.string().required(),
-  }).validateAsync(req.body, { stripUnknown: true });
+  const { name, filename, size } = await fileSchema.validateAsync(req.body, { stripUnknown: true });
 
-  const newFilePath = joinURL(getSourceFileDir(knowledgeId), hash);
+  const newFilePath = joinURL(getSourceFileDir(knowledgeId), filename);
 
   if (!(await exists(newFilePath))) {
     throw new Error(`file ${newFilePath} not found`);
@@ -183,23 +179,16 @@ router.post('/:knowledgeId/documents/file', middlewares.session(), userAuth(), a
   const document = await KnowledgeDocument.create({
     type: 'file',
     name,
-    datasetId: knowledgeId,
+    knowledgeId,
     createdBy: did,
     updatedBy: did,
     embeddingStatus: 'idle',
-    path: hash,
+    filename,
     size,
-    data: {
-      type: 'file',
-      name,
-      hash,
-      size,
-      fileType: type,
-      relativePath,
-    },
+    data: { type: 'file' },
   });
 
-  queue.checkAndPush({ type: 'document', datasetId: knowledgeId, documentId: document.id });
+  queue.checkAndPush({ type: 'document', knowledgeId, documentId: document.id });
 
   res.json(document);
 });
@@ -220,20 +209,23 @@ router.post('/:knowledgeId/documents/custom', middlewares.session(), userAuth(),
   const document = await KnowledgeDocument.create({
     type: 'text',
     name: title,
-    datasetId: knowledgeId,
+    knowledgeId,
     createdBy: did,
     updatedBy: did,
     embeddingStatus: 'idle',
-    path: '',
+    filename: '',
     size: 0,
     data: {
       type: 'text',
-      title,
-      content,
     },
   });
 
-  queue.checkAndPush({ type: 'document', datasetId: knowledgeId, documentId: document.id });
+  const originalFileName = `${document.id}.txt`;
+  const originalFilePath = joinURL(getSourceFileDir(knowledgeId), originalFileName);
+  await writeFile(originalFilePath, `${title}\n${content}`);
+  await document.update({ filename: originalFileName });
+
+  queue.checkAndPush({ type: 'document', knowledgeId, documentId: document.id });
 
   res.json(document);
 });
@@ -268,13 +260,13 @@ router.post('/:knowledgeId/documents/discussion', middlewares.session(), async (
 
   const createOrUpdate = async (name: string, data: CreateDiscussionItem['data']) => {
     const found = await KnowledgeDocument.findOne({
-      where: { datasetId: knowledgeId, 'data.id': data.id, 'data.from': data.from },
+      where: { knowledgeId, 'data.id': data.id, 'data.from': data.from },
     });
 
     if (found) {
       return found.update(
         { name, updatedBy: did },
-        { where: { datasetId: knowledgeId, 'data.id': data.id, 'data.from': data.from } }
+        { where: { knowledgeId, 'data.id': data.id, 'data.from': data.from } }
       );
     }
 
@@ -282,7 +274,7 @@ router.post('/:knowledgeId/documents/discussion', middlewares.session(), async (
       name,
       type: 'discussKit',
       data: { type: 'discussKit', data },
-      datasetId: knowledgeId,
+      knowledgeId,
       createdBy: did,
       updatedBy: did,
       embeddingStatus: 'idle',
@@ -292,7 +284,7 @@ router.post('/:knowledgeId/documents/discussion', middlewares.session(), async (
   const docs = await Promise.all(
     arr.map(async (item) => {
       const document = await createOrUpdate(item.name, item.data);
-      queue.checkAndPush({ type: 'document', datasetId: knowledgeId, documentId: document.id });
+      queue.checkAndPush({ type: 'document', knowledgeId, documentId: document.id });
       return document;
     })
   );
@@ -300,7 +292,7 @@ router.post('/:knowledgeId/documents/discussion', middlewares.session(), async (
   return res.json(Array.isArray(input) ? docs : docs[0]);
 });
 
-router.post('/:knowledgeId/documents/crawl', middlewares.session(), userAuth(), async (req, res) => {
+router.post('/:knowledgeId/documents/url', middlewares.session(), userAuth(), async (req, res) => {
   const { did } = req.user!;
   const { knowledgeId } = req.params;
 
@@ -308,30 +300,27 @@ router.post('/:knowledgeId/documents/crawl', middlewares.session(), userAuth(), 
     throw new Error('Missing required params `knowledgeId`');
   }
 
-  const { provider, url, apiKey } = await Joi.object<{ provider: 'jina' | 'firecrawl'; url: string; apiKey: string }>({
+  const { provider, url } = await Joi.object<{ provider: 'jina' | 'firecrawl'; url: string }>({
     provider: Joi.string().valid('jina', 'firecrawl').required(),
     url: Joi.string().required(),
-    apiKey: Joi.string().allow('', null).default(''),
   }).validateAsync(req.body, { stripUnknown: true });
 
   const document = await KnowledgeDocument.create({
-    type: 'crawl',
+    type: 'url',
     name: '',
-    datasetId: knowledgeId,
+    knowledgeId,
     createdBy: did,
     updatedBy: did,
     embeddingStatus: 'idle',
-    path: '',
     size: 0,
     data: {
-      type: 'crawl',
+      type: 'url',
       provider,
       url,
-      apiKey,
     },
   });
 
-  queue.checkAndPush({ type: 'document', datasetId: knowledgeId, documentId: document.id });
+  queue.checkAndPush({ type: 'document', knowledgeId, documentId: document.id });
 
   res.json(document);
 });
@@ -347,7 +336,7 @@ router.get('/:knowledgeId/documents/:documentId', middlewares.session(), userAut
 
   const [dataset, document] = await Promise.all([
     Knowledge.findOne({ where: { id: knowledgeId, ...user } }),
-    KnowledgeDocument.findOne({ where: { datasetId: knowledgeId, id: documentId } }),
+    KnowledgeDocument.findOne({ where: { knowledgeId, id: documentId } }),
   ]);
 
   res.json({ dataset, document });
@@ -357,7 +346,7 @@ router.post('/:knowledgeId/documents/:documentId/embedding', middlewares.session
   const { knowledgeId, documentId } = await documentIdSchema.validateAsync(req.params, { stripUnknown: true });
 
   const [document] = await Promise.all([KnowledgeDocument.findOne({ where: { id: documentId } })]);
-  if (document) queue.checkAndPush({ type: 'document', datasetId: knowledgeId, documentId: document.id, update: true });
+  if (document) queue.checkAndPush({ type: 'document', knowledgeId, documentId: document.id, update: true });
   res.json(document);
 });
 

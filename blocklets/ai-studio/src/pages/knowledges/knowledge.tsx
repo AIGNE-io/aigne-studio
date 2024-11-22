@@ -187,19 +187,21 @@ const KnowledgeCard = ({
             objectFit: 'cover',
           },
         }}>
-        <Box
-          component="img"
-          src={url}
-          alt="knowledge icon"
-          onError={(e) => {
-            e.currentTarget.onerror = null;
-            e.currentTarget.style.display = 'none';
-            if (e.currentTarget.nextElementSibling) {
-              (e.currentTarget.nextElementSibling as any).style.display = 'block';
-            }
-          }}
-        />
-        <Typography fontSize={24} style={{ display: 'none' }}>
+        {icon ? (
+          <Box
+            component="img"
+            src={url}
+            alt="knowledge icon"
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.style.display = 'none';
+              if (e.currentTarget.nextElementSibling) {
+                (e.currentTarget.nextElementSibling as any).style.display = 'block';
+              }
+            }}
+          />
+        ) : null}
+        <Typography fontSize={24} style={{ display: icon ? 'none' : 'block' }}>
           {emoji}
         </Typography>
       </Box>

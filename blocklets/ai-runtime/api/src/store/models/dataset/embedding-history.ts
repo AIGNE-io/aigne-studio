@@ -10,7 +10,7 @@ export default class DatasetEmbeddingHistory extends Model<
 > {
   declare id: CreationOptional<string>;
 
-  declare datasetId: string;
+  declare knowledgeId: string;
 
   declare documentId: string;
 
@@ -37,7 +37,7 @@ DatasetEmbeddingHistory.init(
       allowNull: false,
       defaultValue: nextId,
     },
-    datasetId: {
+    knowledgeId: {
       type: DataTypes.STRING,
     },
     documentId: {

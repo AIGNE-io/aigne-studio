@@ -1,7 +1,7 @@
 import logger from '@api/libs/logger';
 import config from '@blocklet/sdk/lib/config';
 
-import { queue } from '../routes/dataset/embeddings';
+import { queue } from '../routes/dataset/util/queue';
 import Dataset from '../store/models/dataset/dataset';
 import DatasetDocument from '../store/models/dataset/document';
 
@@ -12,9 +12,9 @@ const updateDiscussKnowledge = async () => {
 
   const datasets = await Dataset.findAll({});
   for (const dataset of datasets) {
-    const documents = await DatasetDocument.findAll({ where: { type: 'discussKit', datasetId: dataset.id } });
+    const documents = await DatasetDocument.findAll({ where: { type: 'discussKit', knowledgeId: dataset.id } });
     documents.forEach((document) => {
-      if (document.id) queue.checkAndPush({ type: 'document', datasetId: dataset.id, documentId: document.id });
+      if (document.id) queue.checkAndPush({ type: 'document', knowledgeId: dataset.id, documentId: document.id });
     });
   }
 };

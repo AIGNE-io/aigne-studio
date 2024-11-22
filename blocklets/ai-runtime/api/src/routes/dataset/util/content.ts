@@ -7,10 +7,10 @@ import { BN, toBN } from '@ocap/util';
 import mammoth from 'mammoth';
 import PDFParser from 'pdf2json';
 
-import { getUploadPathByCheckFile } from '../../libs/ensure-dir';
-import DatasetContent from '../../store/models/dataset/content';
-import DatasetDocument from '../../store/models/dataset/document';
-import { commentsIterator, discussionsIterator, getDiscussion } from './util/discuss';
+import { getUploadPathByCheckFile } from '../../../libs/ensure-dir';
+import DatasetContent from '../../../store/models/dataset/content';
+import DatasetDocument from '../../../store/models/dataset/document';
+import { commentsIterator, discussionsIterator, getDiscussion } from './discuss';
 
 function parsePDF(filePath: string): Promise<string> {
   // @ts-ignore
@@ -140,13 +140,13 @@ export const getDiscussionContents = async (document: DatasetDocument, maxLength
   return [];
 };
 
-export const getContent = async (datasetId: string, document: DatasetDocument, maxLength?: BN) => {
+export const getContent = async (knowledgeId: string, document: DatasetDocument, maxLength?: BN) => {
   let content: string[] = [];
   if (document.type === 'text') {
     content = [await getTextContent(document.id)];
   } else if (document.type === 'file') {
     const data = document?.data as any;
-    const fileJoinPath = await getUploadPathByCheckFile(datasetId, data?.path);
+    const fileJoinPath = await getUploadPathByCheckFile(knowledgeId, data?.path);
 
     content = [await getFileContent(data?.type || '', fileJoinPath)];
   } else if (document.type === 'discussKit') {
@@ -155,13 +155,13 @@ export const getContent = async (datasetId: string, document: DatasetDocument, m
   return content;
 };
 
-const getAllContents = async (datasetId: string) => {
-  const documents = await DatasetDocument.findAll({ order: [['createdAt', 'DESC']], where: { datasetId } });
+const getAllContents = async (knowledgeId: string) => {
+  const documents = await DatasetDocument.findAll({ order: [['createdAt', 'DESC']], where: { knowledgeId } });
   const docs: { title: string; content: string }[] = [];
   let maxLength = toBN('1000000'); // 100w 字段限制？？
 
   for (const document of documents) {
-    const content = await getContent(datasetId, document, maxLength);
+    const content = await getContent(knowledgeId, document, maxLength);
 
     if (toBN(content.join('').length || 0).gt(maxLength)) {
       throw new Error('The current document data is too large to be considered as global variables');

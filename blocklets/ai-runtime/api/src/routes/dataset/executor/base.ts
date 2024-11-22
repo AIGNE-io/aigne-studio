@@ -52,7 +52,7 @@ export abstract class BaseProcessor {
 
     await DatasetDocument.update(
       { size: (await stat(processedFilePath)).size },
-      { where: { id: this.documentId, datasetId: this.knowledgeId } }
+      { where: { id: this.documentId, knowledgeId: this.knowledgeId } }
     );
   }
 
@@ -70,6 +70,12 @@ export abstract class BaseProcessor {
 
       logger.info('save original file');
       await this.saveOriginalFile();
+
+      const document = await this.getDocument();
+      if (!document.filename) {
+        throw new Error('get processed file path failed');
+      }
+
       logger.info('processed file');
       await this.ProcessedFile();
       logger.info('save processed file');
@@ -87,7 +93,7 @@ export abstract class BaseProcessor {
   }
 
   async getDocument(): Promise<DatasetDocument> {
-    const document = await DatasetDocument.findOne({ where: { id: this.documentId, datasetId: this.knowledgeId } });
+    const document = await DatasetDocument.findOne({ where: { id: this.documentId, knowledgeId: this.knowledgeId } });
     if (!document) throw new Error(`document ${this.documentId} not found`);
     return document;
   }
@@ -114,7 +120,7 @@ export abstract class BaseProcessor {
     const fileContent = (await readFile(processedFilePath)).toString();
     const fileContentHash = hash('md5', fileContent, 'hex');
     const previousEmbedding = await EmbeddingHistories.findOne({
-      where: { datasetId: this.knowledgeId, documentId: this.documentId },
+      where: { knowledgeId: this.knowledgeId, documentId: this.documentId },
     });
 
     if (
@@ -135,7 +141,7 @@ export abstract class BaseProcessor {
     } else {
       await EmbeddingHistories.create({
         contentHash: fileContentHash,
-        datasetId: this.knowledgeId,
+        knowledgeId: this.knowledgeId,
         documentId: this.documentId,
         startAt: new Date(),
         status: UploadStatus.Uploading,
@@ -168,14 +174,14 @@ export abstract class BaseProcessor {
 
       await EmbeddingHistories.update(
         { endAt: new Date(), status: UploadStatus.Success },
-        { where: { datasetId: this.knowledgeId, documentId: this.documentId } }
+        { where: { knowledgeId: this.knowledgeId, documentId: this.documentId } }
       );
     } catch (error) {
       logger.error('startRAG error', error);
 
       await EmbeddingHistories.update(
         { error: error.message, status: UploadStatus.Error },
-        { where: { datasetId: this.knowledgeId, documentId: this.documentId } }
+        { where: { knowledgeId: this.knowledgeId, documentId: this.documentId } }
       );
 
       throw error;

@@ -940,4 +940,5 @@ export default flatten({
   },
   aigneBannerVisibility: '显示 AIGNE 品牌横幅',
   similarity: '相关度',
+  crawl: '爬取',
 });

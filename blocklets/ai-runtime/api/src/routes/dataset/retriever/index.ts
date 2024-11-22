@@ -100,8 +100,6 @@ export class HybridRetriever {
         this.bm25Retriever.invoke(query),
       ]);
 
-      console.log({ vectorResults, bm25Results });
-
       const scoredResults = [
         ...vectorResults.map((doc, index) => ({
           ...doc,
@@ -170,5 +168,46 @@ export class HybridRetriever {
   private getDocumentKey(doc: Document): string {
     // 使用文档内容和可能的元数据创建唯一键
     return `${doc.pageContent}${doc.metadata.source || ''}`;
+  }
+}
+
+export class Retriever {
+  async search(): Promise<Document[]> {
+    try {
+      await this.queryTranslate('');
+      await this.routing();
+      await this.queryConstruction();
+      await this.indexing();
+      await this.retrieval();
+      await this.generation();
+      return [];
+    } catch (error) {
+      logger.error('Search failed', { error });
+      throw error;
+    }
+  }
+
+  async queryTranslate(query: string): Promise<string> {
+    return query;
+  }
+
+  async routing() {
+    return '';
+  }
+
+  async queryConstruction() {
+    return '';
+  }
+
+  async indexing() {
+    return '';
+  }
+
+  async retrieval() {
+    return [];
+  }
+
+  async generation() {
+    return '';
   }
 }

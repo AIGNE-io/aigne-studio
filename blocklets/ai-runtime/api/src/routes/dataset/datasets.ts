@@ -41,6 +41,7 @@ const datasetSchema = Joi.object<{
   copyFromProjectId?: string;
   resourceBlockletDid?: string;
   knowledgeId?: string;
+  icon?: string;
 }>({
   name: Joi.string().allow('').empty(null).default(''),
   description: Joi.string().allow('').empty(null).default(''),
@@ -48,6 +49,7 @@ const datasetSchema = Joi.object<{
   copyFromProjectId: Joi.string().allow('').empty(null).default(''),
   resourceBlockletDid: Joi.string().allow('').empty(null).default(''),
   knowledgeId: Joi.string().allow('').empty(null).default(''),
+  icon: Joi.string().allow('').empty(null).default(''),
 });
 
 const knowledgeFromResourceSchema = Joi.object<{ items: (typeof datasetSchema.type)[] }>({
@@ -64,11 +66,11 @@ router.get('/', middlewares.session(), ensureComponentCallOr(userAuth()), async 
   const query = await getKnowledgeListQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
   const documentsCountSql = Sequelize.literal(
-    '(SELECT COUNT(*) FROM DatasetDocuments WHERE DatasetDocuments.datasetId = Dataset.id)'
+    '(SELECT COUNT(*) FROM DatasetDocuments WHERE DatasetDocuments.knowledgeId = Dataset.id)'
   );
 
   const totalSizeSql = Sequelize.literal(
-    '(SELECT COALESCE(SUM(size), 0) FROM DatasetDocuments WHERE DatasetDocuments.datasetId = Dataset.id)'
+    '(SELECT COALESCE(SUM(size), 0) FROM DatasetDocuments WHERE DatasetDocuments.knowledgeId = Dataset.id)'
   );
 
   const params = omitBy(
@@ -174,7 +176,7 @@ router.get('/:knowledgeId/export-resource', middlewares.session(), ensureCompone
   // 以下为0.x.x 的存储方式,在使用时,可以比较好的，清楚之前的存储方式
 
   // try {
-  //   const knowledgeWithIdPath = join(tmpFolder, datasetId);
+  //   const knowledgeWithIdPath = join(tmpFolder, knowledgeId);
   //   await mkdir(knowledgeWithIdPath, { recursive: true });
 
   //   // 首先将 projects documents contents 继续数据结构化
@@ -185,7 +187,7 @@ router.get('/:knowledgeId/export-resource', middlewares.session(), ensureCompone
   //   await writeFile(join(knowledgeWithIdPath, 'contents.yaml'), stringify(contents));
 
   //   // 复制 files 数据
-  //   const uploadSrc = resolve(await getSourceFileDir(datasetId));
+  //   const uploadSrc = resolve(await getSourceFileDir(knowledgeId));
   //   const uploadsDst = join(knowledgeWithIdPath, 'uploads');
 
   //   if (await pathExists(uploadSrc)) {
@@ -195,14 +197,14 @@ router.get('/:knowledgeId/export-resource', middlewares.session(), ensureCompone
   //   await writeFile(join(knowledgeWithIdPath, 'documents.yaml'), stringify(documents));
 
   //   // 复制 vector db
-  //   const src = resolve(await getVectorStorePath(datasetId));
+  //   const src = resolve(await getVectorStorePath(knowledgeId));
   //   const vectorsDst = join(knowledgeWithIdPath, 'vectors');
 
   //   if (await pathExists(src)) {
   //     await copyRecursive(src, vectorsDst);
   //   }
 
-  //   const zipPath = join(tmpFolder, `${datasetId}.zip`);
+  //   const zipPath = join(tmpFolder, `${knowledgeId}.zip`);
   //   const archive = archiver('zip');
   //   const stream = archive.pipe(createWriteStream(zipPath));
 
@@ -229,7 +231,7 @@ router.get('/:knowledgeId/export-resource', middlewares.session(), ensureCompone
   const knowledge = await Knowledge.findByPk(knowledgeId, {
     rejectOnEmpty: new Error(`No such dataset ${knowledgeId}`),
   });
-  const documents = await KnowledgeDocument.findAll({ where: { datasetId: knowledgeId } });
+  const documents = await KnowledgeDocument.findAll({ where: { knowledgeId } });
   const segments = await Segment.findAll({ where: { documentId: { [Op.in]: documents.map((i) => i.id) } } });
 
   const tmpdir = join(Config.dataDir, 'tmp');
@@ -330,39 +332,36 @@ router.post('/knowledge-from-resources', middlewares.session(), ensureComponentC
   return res.json(dataset);
 });
 
-router.put('/:datasetId', middlewares.session(), userAuth(), async (req, res) => {
-  const { datasetId } = req.params;
+router.put('/:knowledgeId', middlewares.session(), userAuth(), async (req, res) => {
+  const { knowledgeId } = req.params;
   const { did } = req.user!;
 
-  const dataset = await Knowledge.findOne({ where: { id: datasetId } });
+  const dataset = await Knowledge.findOne({ where: { id: knowledgeId } });
   if (!dataset) {
     res.status(404).json({ error: 'No such dataset' });
     return;
   }
 
-  const { name, description, projectId } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
-  const params: any = {};
-  if (name) params.name = name;
-  if (description) params.description = description;
-  if (projectId) params.projectId = projectId;
+  const { name, description, projectId, icon } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
+  const params = omitBy({ name, description, projectId, icon }, (i) => !i);
 
-  await Knowledge.update({ ...params, updatedBy: did }, { where: { id: datasetId } });
+  await Knowledge.update({ ...params, updatedBy: did }, { where: { id: knowledgeId } });
 
-  res.json(await Knowledge.findOne({ where: { id: datasetId } }));
+  res.json(await Knowledge.findOne({ where: { id: knowledgeId } }));
 });
 
-router.delete('/:datasetId', middlewares.session(), userAuth(), async (req, res) => {
-  const { datasetId } = req.params;
+router.delete('/:knowledgeId', middlewares.session(), userAuth(), async (req, res) => {
+  const { knowledgeId } = req.params;
 
-  const dataset = await Knowledge.findOne({ where: { [Op.or]: [{ id: datasetId }, { name: datasetId }] } });
+  const dataset = await Knowledge.findOne({ where: { [Op.or]: [{ id: knowledgeId }, { name: knowledgeId }] } });
   if (!dataset) {
     res.status(404).json({ error: 'No such dataset' });
     return;
   }
 
   await Promise.all([
-    Knowledge.destroy({ where: { id: datasetId } }),
-    KnowledgeDocument.destroy({ where: { datasetId } }),
+    Knowledge.destroy({ where: { id: knowledgeId } }),
+    KnowledgeDocument.destroy({ where: { knowledgeId } }),
   ]);
 
   res.json(dataset);

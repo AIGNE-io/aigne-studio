@@ -30,11 +30,11 @@ export default class Dataset extends Model<InferAttributes<Dataset>, InferCreati
 
   static findOneWithDocs(props: { [key: string]: any } = {}) {
     const documentsCountSql = Sequelize.literal(
-      '(SELECT COUNT(*) FROM DatasetDocuments WHERE DatasetDocuments.datasetId = Dataset.id)'
+      '(SELECT COUNT(*) FROM DatasetDocuments WHERE DatasetDocuments.knowledgeId = Dataset.id)'
     );
 
     const totalSizeSql = Sequelize.literal(
-      '(SELECT COALESCE(SUM(size), 0) FROM DatasetDocuments WHERE DatasetDocuments.datasetId = Dataset.id)'
+      '(SELECT COALESCE(SUM(size), 0) FROM DatasetDocuments WHERE DatasetDocuments.knowledgeId = Dataset.id)'
     );
 
     return this.findOne({

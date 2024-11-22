@@ -90,7 +90,7 @@ async function importKnowledgeData(
 
   await paginateAndInsert({
     findAll: (data) => {
-      data.where.datasetId = oldKnowledgeId;
+      data.where.knowledgeId = oldKnowledgeId;
       return KnowledgeDocuments.findAll(data);
     },
     bulkCreate: (list) => {
@@ -99,7 +99,7 @@ async function importKnowledgeData(
 
         return {
           ...dataValues,
-          datasetId: newKnowledgeId,
+          knowledgeId: newKnowledgeId,
           id: map[dataValues.id!] || nextId(),
           createdBy: userId,
           updatedBy: userId,
@@ -146,14 +146,14 @@ async function importKnowledgeData(
   // 从旧知识库复制历史记录
   await paginateAndInsert({
     findAll: (data) => {
-      data.where.datasetId = oldKnowledgeId;
+      data.where.knowledgeId = oldKnowledgeId;
       data.where.documentId = { [Op.in]: ids };
       return KnowledgeEmbeddingHistory.findAll(data);
     },
     bulkCreate: (list) => {
       const format = list.map((dataValues) => ({
         ...dataValues,
-        datasetId: newKnowledgeId,
+        knowledgeId: newKnowledgeId,
         documentId: map[dataValues.documentId]! || nextId(),
         id: undefined,
       }));
