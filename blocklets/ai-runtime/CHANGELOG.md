@@ -1,6 +1,6 @@
-## 0.4.152 (2024-11-22)
+## 0.4.152 (2024-11-19)
 
-- fix(ai-studio): carrying user information when connecting to space
+- chore: display billing link on pricing table for premium users
 
 ## 0.4.151 (2024-11-19)
 
