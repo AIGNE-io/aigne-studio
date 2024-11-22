@@ -1,6 +1,6 @@
 {
   "name": "ai-studio",
-  "version": "0.4.152",
+  "version": "0.4.153",
   "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
   "scripts": {
     "debug": "bn-dev",
@@ -45,8 +45,8 @@
     "@blocklet/code-editor": "workspace:^",
     "@blocklet/constant": "^1.16.33",
     "@blocklet/dataset-sdk": "workspace:^",
-    "@blocklet/did-space-js": "^0.5.68",
-    "@blocklet/did-space-react": "^0.5.68",
+    "@blocklet/did-space-js": "^0.5.70",
+    "@blocklet/did-space-react": "^0.5.70",
     "@blocklet/discuss-kit": "^2.1.40",
     "@blocklet/editor": "^2.1.40",
     "@blocklet/js-sdk": "^1.16.33",
