@@ -138,26 +138,26 @@ export async function createCrawlDocument(
 }
 
 export async function getDocuments(
-  datasetId: string,
+  knowledgeId: string,
   params: { blockletDid?: string; page?: number; size?: number }
 ): Promise<{ items: KnowledgeDocumentCard[]; total: number; page: number }> {
   return axios
-    .get(`/api/datasets/${datasetId}/documents`, { baseURL: AIGNE_RUNTIME_MOUNT_POINT, params })
+    .get(`/api/datasets/${knowledgeId}/documents`, { baseURL: AIGNE_RUNTIME_MOUNT_POINT, params })
     .then((res) => res.data);
 }
 
 export async function getDocument(
-  datasetId: string,
+  knowledgeId: string,
   documentId: string
 ): Promise<{ dataset: Knowledge; document: KnowledgeDocument }> {
   return axios
-    .get(`/api/datasets/${datasetId}/documents/${documentId}`, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
+    .get(`/api/datasets/${knowledgeId}/documents/${documentId}`, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
     .then((res) => res.data);
 }
 
-export async function getDocumentContent(datasetId: string, documentId: string): Promise<{ content: string[] }> {
+export async function getDocumentContent(knowledgeId: string, documentId: string): Promise<{ content: string[] }> {
   return axios
-    .get(`/api/datasets/${datasetId}/documents/${documentId}/content`, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
+    .get(`/api/datasets/${knowledgeId}/documents/${documentId}/content`, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
     .then((res) => res.data);
 }
 

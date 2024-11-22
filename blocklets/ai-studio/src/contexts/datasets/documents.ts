@@ -19,26 +19,26 @@ interface DatasetState {
 
 const datasets: Record<string, RecoilState<DatasetState>> = {};
 
-const dataset = (datasetId: string, blockletDid?: string) => {
-  let dataset = datasets[datasetId];
+const dataset = (knowledgeId: string, blockletDid?: string) => {
+  let dataset = datasets[knowledgeId];
   if (!dataset) {
     dataset = atom<DatasetState>({
-      key: `dataset-${datasetId}-${blockletDid}`,
+      key: `dataset-${knowledgeId}-${blockletDid}`,
       default: { page: 0, size: 20, loading: true },
     });
-    datasets[datasetId] = dataset;
+    datasets[knowledgeId] = dataset;
   }
   return dataset;
 };
 
-export const useDocumentState = (datasetId: string, blockletDid?: string) =>
-  useRecoilState(dataset(datasetId, blockletDid));
+export const useDocumentState = (knowledgeId: string, blockletDid?: string) =>
+  useRecoilState(dataset(knowledgeId, blockletDid));
 
 export const useDocuments = (
-  datasetId: string,
+  knowledgeId: string,
   { blockletDid, autoFetch = true }: { blockletDid?: string; autoFetch?: true } = {}
 ) => {
-  const [state, setState] = useDocumentState(datasetId, blockletDid);
+  const [state, setState] = useDocumentState(knowledgeId, blockletDid);
 
   const refetch = useCallback(
     async (options: { page?: number; size?: number } = {}) => {
@@ -46,8 +46,8 @@ export const useDocuments = (
 
       try {
         const [{ items, total }, dataset] = await Promise.all([
-          getDocuments(datasetId, { blockletDid, page: (page ?? 0) + 1, size }),
-          getKnowledge(datasetId),
+          getDocuments(knowledgeId, { blockletDid, page: (page ?? 0) + 1, size }),
+          getKnowledge(knowledgeId),
         ]);
 
         setState((v) => ({ ...v, dataset, items, total }));
@@ -58,7 +58,7 @@ export const useDocuments = (
         setState((v) => ({ ...v, page: page ?? v.page, size: size ?? v.size }));
       }
     },
-    [datasetId, setState]
+    [knowledgeId, setState]
   );
 
   const init = useCallback(
@@ -72,7 +72,7 @@ export const useDocuments = (
           return { ...v, loading: true };
         });
 
-        const [dataset] = await Promise.all([getKnowledge(datasetId), refetch()]);
+        const [dataset] = await Promise.all([getKnowledge(knowledgeId), refetch()]);
         setState((v) => ({ ...v, loading: false, error: undefined, dataset }));
       } catch (error) {
         setState((v) => ({ ...v, loading: false, error }));
@@ -81,12 +81,12 @@ export const useDocuments = (
         setState((v) => ({ ...v, page: page ?? v.page, size: size ?? v.size }));
       }
     },
-    [datasetId, setState]
+    [knowledgeId, setState]
   );
 
-  const remove = useCallback(async (datasetId: string, documentId: string) => {
+  const remove = useCallback(async (knowledgeId: string, documentId: string) => {
     try {
-      await deleteDocument(datasetId, documentId);
+      await deleteDocument(knowledgeId, documentId);
     } catch (error) {
       Toast.error(getErrorMessage(error));
     }

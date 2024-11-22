@@ -68,7 +68,7 @@ async function processContent(
 
 async function saveSegments(docs: Document[], documentId: string) {
   const segments = await Promise.all(
-    docs.map((doc) => (doc.pageContent ? Segment.create({ documentId, targetId: '', content: doc.pageContent }) : null))
+    docs.map((doc) => (doc.pageContent ? Segment.create({ documentId, content: doc.pageContent }) : null))
   );
 
   return segments.filter(isNonNullable).map((segment) => segment.id);

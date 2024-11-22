@@ -21,8 +21,8 @@ interface SegmentState {
 
 const datasets: Record<string, RecoilState<SegmentState>> = {};
 
-const dataset = (datasetId: string, documentId: string) => {
-  const key = `${datasetId}-${documentId}`;
+const dataset = (knowledgeId: string, documentId: string) => {
+  const key = `${knowledgeId}-${documentId}`;
 
   let dataset = datasets[key];
   if (!dataset) {
@@ -33,19 +33,23 @@ const dataset = (datasetId: string, documentId: string) => {
   return dataset;
 };
 
-export const useSegmentState = (datasetId: string, documentId: string) =>
-  useRecoilState(dataset(datasetId, documentId));
+export const useSegmentState = (knowledgeId: string, documentId: string) =>
+  useRecoilState(dataset(knowledgeId, documentId));
 
-export const useSegments = (datasetId: string, documentId: string, { autoFetch = true }: { autoFetch?: true } = {}) => {
-  const [state, setState] = useSegmentState(datasetId, documentId);
+export const useSegments = (
+  knowledgeId: string,
+  documentId: string,
+  { autoFetch = true }: { autoFetch?: true } = {}
+) => {
+  const [state, setState] = useSegmentState(knowledgeId, documentId);
 
   const refetch = useCallback(async () => {
     try {
       setState((v) => ({ ...v, loading: true }));
 
       const [{ dataset, document }, { items, total }] = await Promise.all([
-        getDocument(datasetId, documentId),
-        getSegments(datasetId, documentId),
+        getDocument(knowledgeId, documentId),
+        getSegments(knowledgeId, documentId),
       ]);
 
       setState((v) => ({
@@ -61,18 +65,18 @@ export const useSegments = (datasetId: string, documentId: string, { autoFetch =
       setState((v) => ({ ...v, loading: false, error }));
       throw error;
     }
-  }, [datasetId, documentId, setState]);
+  }, [knowledgeId, documentId, setState]);
 
   useEffect(() => {
     if (autoFetch && !state.dataset) {
       refetch();
     }
-  }, [datasetId, documentId]);
+  }, [knowledgeId, documentId]);
 
   return { state, refetch };
 };
 
-export const useFetchSegments = (datasetId: string, documentId: string) => {
+export const useFetchSegments = (knowledgeId: string, documentId: string) => {
   const dataState = useInfiniteScroll(
     async (
       d: { list: any[]; next: boolean; size: number; page: number } = {
@@ -83,13 +87,13 @@ export const useFetchSegments = (datasetId: string, documentId: string) => {
       }
     ) => {
       const { page = 1, size = 20 } = d || {};
-      const { items, total } = await getSegments(datasetId, documentId, { page, size });
+      const { items, total } = await getSegments(knowledgeId, documentId, { page, size });
 
       const list = (d?.list?.length || 0) + items.length;
       const next = Boolean(list < total);
       return { list: items || [], next, size, page: (d?.page || 1) + 1, total };
     },
-    { isNoMore: (d) => !d?.next, reloadDeps: [datasetId, documentId] }
+    { isNoMore: (d) => !d?.next, reloadDeps: [knowledgeId, documentId] }
   );
 
   const [loadingRef] = useInfiniteScrollHook({

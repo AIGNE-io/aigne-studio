@@ -66,15 +66,10 @@ export class HybridRetriever {
         weights: [0.3, 0.7],
       } as any);
 
-      await this.hybridSearch(query);
-
       const searchResults = await ensembleRetriever.invoke(query);
-      // console.log('searchResults', searchResults);
 
       // 3. 融合并重排序结果
       const results = this.rerank([searchResults]);
-
-      logger.info('Search completed', { resultCount: results.length, originalQuery: query });
 
       return results;
     } catch (error) {
@@ -83,7 +78,7 @@ export class HybridRetriever {
     }
   }
 
-  private async hybridSearch(query: string): Promise<Document[]> {
+  async hybridSearch(query: string): Promise<Document[]> {
     try {
       if (!this.bm25Retriever) {
         throw new Error('BM25Retriever not initialized');

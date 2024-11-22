@@ -40,7 +40,14 @@ import Empty from '../project/icons/empty';
 export default function KnowledgeSegments() {
   const { t } = useLocaleContext();
   const params = useParams();
-  const { datasetId, documentId } = params;
+  const { knowledgeId, documentId } = params;
+  if (!knowledgeId) {
+    throw new Error('knowledgeId is required');
+  }
+
+  if (!documentId) {
+    throw new Error('documentId is required');
+  }
   const navigate = useNavigate();
   const viewportRef = useRef<HTMLDivElement>(null);
   const autoScroll = useRef(true);
@@ -52,8 +59,8 @@ export default function KnowledgeSegments() {
   const [viewType, setViewType] = useState('SegmentsView');
   const [content, setContent] = useState<string[]>([]);
 
-  const { state, refetch } = useSegments(datasetId || '', documentId || '');
-  const { loadingRef, dataState } = useFetchSegments(datasetId || '', documentId || '');
+  const { state, refetch } = useSegments(knowledgeId, documentId);
+  const { loadingRef, dataState } = useFetchSegments(knowledgeId, documentId);
   const [readContent, setReadContent] = useState('');
   const isReadOnly = Boolean(readContent);
   const segments = dataState?.data?.list || [];
@@ -67,14 +74,14 @@ export default function KnowledgeSegments() {
   const { loading } = useRequest(
     async () => {
       if (viewType === 'ContentView' && !content?.length) {
-        const con = await getDocumentContent(datasetId || '', documentId || '');
+        const con = await getDocumentContent(knowledgeId, documentId);
         setContent((con?.content || []).filter((x) => x));
         return Promise.resolve(null);
       }
 
       return Promise.resolve(null);
     },
-    { refreshDeps: [viewType, content, datasetId, documentId] }
+    { refreshDeps: [viewType, content, knowledgeId, documentId] }
   );
 
   if (state.error) throw state.error;
@@ -99,7 +106,7 @@ export default function KnowledgeSegments() {
               alignItems="center"
               sx={{ cursor: 'pointer' }}
               onClick={() => {
-                navigate(`../${datasetId}`);
+                navigate(`../${knowledgeId}`);
               }}>
               <Box component={Icon} icon={ChevronLeftIcon} width={20} />
               <Typography variant="subtitle2" mb={0}>
@@ -272,7 +279,7 @@ export default function KnowledgeSegments() {
 
       <UpdateDocumentName
         onUpdate={refetch}
-        datasetId={datasetId || ''}
+        knowledgeId={knowledgeId}
         documentId={state.document?.id || ''}
         name={state.document?.name || ''}
         documentDialogState={documentDialogState}
@@ -368,7 +375,7 @@ function UpdateDocumentName({
   documentDialogState,
   onUpdate,
 }: {
-  datasetId: string;
+  knowledgeId: string;
   documentId: string;
   name: string;
   documentDialogState: any;
