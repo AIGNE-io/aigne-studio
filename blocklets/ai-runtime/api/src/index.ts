@@ -11,12 +11,14 @@ import express, { ErrorRequestHandler } from 'express';
 import initCronJob from './jobs';
 import { cronManager } from './libs/cron-jobs';
 import { isDevelopment } from './libs/env';
-import logger, { accessLogMiddleware } from './libs/logger';
+import logger, { accessLogMiddleware, registerLoggerToConsole } from './libs/logger';
 import { resourceManager } from './libs/resource';
 import { xss } from './libs/xss';
 import routes from './routes';
 import { attachWalletHandlers } from './routes/auth';
 import setupHtmlRouter from './routes/html';
+
+registerLoggerToConsole();
 
 if (process.env.NODE_ENV === 'development') {
   dotenv.config();

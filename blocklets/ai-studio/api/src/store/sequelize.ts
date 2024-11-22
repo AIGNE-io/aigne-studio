@@ -9,7 +9,7 @@ import logger from '../libs/logger';
 const url = `sqlite:${Config.dataDir}/aistudio.db`;
 
 export const sequelize = new Sequelize(url, {
-  logging: Config.verbose === false ? false : logger.info.bind(logger),
+  logging: (sql) => logger.debug(sql),
 });
 
 sequelize.query('pragma journal_mode = WAL;');
