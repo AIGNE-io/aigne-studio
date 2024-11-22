@@ -21,6 +21,11 @@ export const up: Migration = async ({ context: queryInterface }) => {
 
     await queryInterface.dropTable('DatasetContents');
 
+    await new Promise((resolve) => {
+      logger.info('queue drain');
+      queue.queue.drain = () => resolve(true);
+    });
+
     logger.info('Migrate knowledge success');
   } catch (error) {
     logger.error('Failed to migrate knowledge', { error });
