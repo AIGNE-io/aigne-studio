@@ -215,9 +215,7 @@ router.post('/:knowledgeId/documents/custom', middlewares.session(), userAuth(),
     embeddingStatus: 'idle',
     filename: '',
     size: 0,
-    data: {
-      type: 'text',
-    },
+    data: { type: 'text' },
   });
 
   const originalFileName = `${document.id}.txt`;

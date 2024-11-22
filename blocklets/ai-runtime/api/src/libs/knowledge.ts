@@ -168,7 +168,7 @@ async function importKnowledgeData(
     await mkdir(newVectorStorePath, { recursive: true });
 
     if ((await pathExists(oldVectorStorePath)) && (await pathExists(newVectorStorePath))) {
-      copyRecursive(oldVectorStorePath, newVectorStorePath);
+      await copyRecursive(oldVectorStorePath, newVectorStorePath);
     }
   }
 }
