@@ -69,6 +69,22 @@ function getSpaceEndpointContext(endpoint: string): SpaceEndpointContext {
 }
 
 /**
+ * @description 获取空间信息
+ * @export
+ * @param {string} endpoint
+ * @return {*}  {Promise<{ ownerDid: string }>}
+ */
+export async function getSpaceInfo(endpoint: string) {
+  const { headers } = await api.head(`${endpoint}`, {
+    timeout: 1000 * 120,
+  });
+
+  return {
+    spaceOwnerDid: headers['x-space-owner-did'],
+  };
+}
+
+/**
  * @description 获取 DID Spaces 的导入链接
  * @export
  * @param {string} endpoint
@@ -79,11 +95,7 @@ export async function getImportUrl(endpoint: string, options: { redirectUrl: str
   if (isEmpty(endpoint)) {
     return '';
   }
-
-  const { headers } = await api.head(`${endpoint}`, {
-    timeout: 1000 * 120,
-  });
-  const spaceOwnerDid = headers['x-space-owner-did'];
+  const { spaceOwnerDid } = await getSpaceInfo(endpoint);
   const [, componentDid]: string[] = window.blocklet.componentId.split('/');
   const { spaceDid, appDid, baseUrl }: SpaceEndpointContext = getSpaceEndpointContext(endpoint);
   const importUrl = withQuery(joinURL(baseUrl, 'import'), {
