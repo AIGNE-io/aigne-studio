@@ -38,7 +38,7 @@ export class Sandbox {
           destroy: async (sandbox) => {
             try {
               sandbox.dispose();
-              logger.info('dispose sandbox from pool success', options.filename);
+              logger.debug('dispose sandbox from pool success', options.filename);
             } catch (error) {
               logger.error('dispose sandbox from pool error', options.filename, error);
             }
