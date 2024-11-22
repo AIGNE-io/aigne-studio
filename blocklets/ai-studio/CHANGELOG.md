@@ -1,3 +1,7 @@
+## 0.4.152 (2024-11-22)
+
+- fix(ai-studio): carrying user information when connecting to space
+
 ## 0.4.151 (2024-11-19)
 
 - fix: support authorization header
