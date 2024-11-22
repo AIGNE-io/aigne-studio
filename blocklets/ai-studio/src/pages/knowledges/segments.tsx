@@ -1,8 +1,8 @@
-import Close from '@app/pages/project/icons/close';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
 import ChevronLeftIcon from '@iconify-icons/tabler/chevron-left';
+import XIcon from '@iconify-icons/tabler/x';
 import { SaveRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
@@ -247,7 +247,7 @@ export default function KnowledgeSegments() {
           <Box>{t('knowledge.segments.content')}</Box>
 
           <IconButton size="small" onClick={segmentDialogState.close}>
-            <Close />
+            <Box component={Icon} icon={XIcon} />
           </IconButton>
         </DialogTitle>
 
@@ -401,15 +401,15 @@ function UpdateDocumentName({
         }
       })}>
       <DialogTitle className="between">
-        <Box>{t('knowledge.documents.update')}</Box>
+        <Box>{t('knowledge.update')}</Box>
 
         <IconButton size="small" onClick={documentDialogState.close}>
-          <Close />
+          <Box component={Icon} icon={XIcon} />
         </IconButton>
       </DialogTitle>
 
       <DialogContent>
-        <TextField label={t('knowledge.documents.name')} sx={{ width: 1 }} {...form.register('name')} />
+        <TextField label={t('knowledge.name')} sx={{ width: 1 }} {...form.register('name')} />
       </DialogContent>
 
       <DialogActions>

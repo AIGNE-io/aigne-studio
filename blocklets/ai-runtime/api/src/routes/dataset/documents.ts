@@ -307,17 +307,13 @@ router.post('/:knowledgeId/documents/url', middlewares.session(), userAuth(), as
 
   const document = await KnowledgeDocument.create({
     type: 'url',
-    name: '',
+    name: url,
     knowledgeId,
     createdBy: did,
     updatedBy: did,
     embeddingStatus: 'idle',
     size: 0,
-    data: {
-      type: 'url',
-      provider,
-      url,
-    },
+    data: { type: 'url', provider, url },
   });
 
   queue.checkAndPush({ type: 'document', knowledgeId, documentId: document.id });

@@ -6,6 +6,7 @@ import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { Icon } from '@iconify-icon/react';
 import DatabaseIcon from '@iconify-icons/tabler/database';
 import FileIcon from '@iconify-icons/tabler/file-text';
+import XIcon from '@iconify-icons/tabler/x';
 import {
   Box,
   Button,
@@ -15,6 +16,7 @@ import {
   DialogContent,
   DialogProps,
   DialogTitle,
+  IconButton,
   Stack,
   StackProps,
   Theme,
@@ -325,7 +327,17 @@ const SelectKnowledgeModal = (
       fullScreen={useMediaQuery<Theme>((theme) => theme.breakpoints.down('sm'))}
       open={props.open}
       onClose={props.onClose}>
-      <DialogTitle>{`${t('select')}${t('knowledge.knowledge')}`}</DialogTitle>
+      <DialogTitle>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h6" sx={{ fontSize: 16, fontWeight: 500 }}>
+            {`${t('select')}${t('knowledge.knowledge')}`}
+          </Typography>
+
+          <IconButton size="small" onClick={props.onClose}>
+            <Box component={Icon} icon={XIcon} />
+          </IconButton>
+        </Box>
+      </DialogTitle>
 
       <DialogContent>
         {resourceLoading && (

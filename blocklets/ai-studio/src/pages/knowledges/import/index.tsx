@@ -177,12 +177,7 @@ export default function ImportKnowledge({
         PaperProps={{ sx: { height: '100%' } }}
         fullScreen={useMediaQuery<Theme>((theme) => theme.breakpoints.down('sm'))}>
         <DialogTitle>
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="h6" sx={{ fontSize: 16, fontWeight: 500 }}>
               {`${t('alert.import')} ${t('knowledge.knowledge')}`}
             </Typography>

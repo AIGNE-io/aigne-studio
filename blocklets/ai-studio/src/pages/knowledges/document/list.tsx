@@ -119,7 +119,7 @@ const KnowledgeDocuments = ({
     const list: GridColDef<KnowledgeDocumentCard>[] = [
       {
         field: 'name',
-        headerName: t('knowledge.documents.name'),
+        headerName: t('knowledge.name'),
         flex: 1,
         sortable: false,
         renderCell: (params) => {
@@ -135,7 +135,7 @@ const KnowledgeDocuments = ({
       },
       {
         field: 'type',
-        headerName: t('knowledge.documents.type'),
+        headerName: t('knowledge.type'),
         width: 100,
         sortable: false,
         headerAlign: 'center',
@@ -368,11 +368,11 @@ function Actions({
               },
               maxWidth: 'sm',
               fullWidth: true,
-              title: <Box sx={{ wordWrap: 'break-word' }}>{t('knowledge.documents.deleteTitle')}</Box>,
+              title: <Box sx={{ wordWrap: 'break-word' }}>{t('knowledge.deleteTitle')}</Box>,
               content: (
                 <Box>
                   <Typography fontWeight={500} fontSize={16} lineHeight="28px" color="#4B5563">
-                    {t('knowledge.documents.deleteDescription')}
+                    {t('knowledge.deleteDescription')}
                   </Typography>
                 </Box>
               ),

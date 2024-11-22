@@ -38,7 +38,7 @@ export class CrawlProcessor extends BaseProcessor {
         const scrapeResult = (await app.scrapeUrl(url!)) as any;
 
         return {
-          title: scrapeResult?.metadata?.title || url,
+          title: url,
           content: scrapeResult?.markdown || '',
         };
       },
