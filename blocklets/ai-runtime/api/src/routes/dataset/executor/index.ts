@@ -1,5 +1,5 @@
 import logger from '../../../libs/logger';
-import DatasetDocument from '../../../store/models/dataset/document';
+import KnowledgeDocument from '../../../store/models/dataset/document';
 import { BaseProcessor } from './base';
 import { CrawlProcessor } from './crawl';
 import { CustomProcessor } from './custom';
@@ -18,7 +18,7 @@ export class PipelineProcessor extends BaseProcessor {
   override async execute(): Promise<any> {
     const { knowledgeId, documentId, sse, update } = this;
 
-    const document = await DatasetDocument.findOne({ where: { id: documentId, knowledgeId } });
+    const document = await KnowledgeDocument.findOne({ where: { id: documentId, knowledgeId } });
 
     switch (document?.type) {
       case 'file': {

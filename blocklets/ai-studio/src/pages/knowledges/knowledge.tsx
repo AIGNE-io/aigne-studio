@@ -120,10 +120,10 @@ const CreateCard = ({ onImport, onCreate }: { onImport: () => void; onCreate: ()
 
       <Stack p={2.5} gap={1} className="button">
         <LoadingButton variant="contained" size="large" onClick={onCreate} sx={{ fontSize: 16 }}>
-          {`${t('create')} ${t('knowledge.knowledge')}`}
+          {t('createObject', { object: t('knowledge.knowledgeBase') })}
         </LoadingButton>
         <Button variant="outlined" size="large" onClick={onImport} sx={{ fontSize: 16 }}>
-          {`${t('alert.import')} ${t('knowledge.knowledge')}`}
+          {t('importObject', { object: t('knowledge.knowledgeBase') })}
         </Button>
       </Stack>
     </CreateKnowledgeContainer>
@@ -208,7 +208,7 @@ const KnowledgeCard = ({
         </Typography>
       </Box>
 
-      <Stack flex={1} height={0} gap={0.5} justifyContent="flex-end">
+      <Stack flex={1} height={0} gap={0.5} justifyContent="flex-start">
         <Typography fontWeight={600} lineHeight="28px" fontSize={18}>
           {title || t('unnamed')}
         </Typography>

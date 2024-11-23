@@ -179,7 +179,7 @@ export default function ImportKnowledge({
         <DialogTitle>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="h6" sx={{ fontSize: 16, fontWeight: 500 }}>
-              {`${t('alert.import')} ${t('knowledge.knowledge')}`}
+              {t('importObject', { object: t('knowledge.knowledgeBase') })}
             </Typography>
 
             <IconButton size="small" onClick={onClose}>

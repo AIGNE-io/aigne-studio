@@ -392,11 +392,9 @@ export default flatten({
   update: 'Update',
   knowledge: {
     namePlaceholder: "Give your knowledge a name (e.g. xxx's Docs / My Notes)",
+    knowledgeBase: 'Knowledge',
     knowledge: 'Knowledge',
     menu: 'Knowledge',
-    createTitle: 'Add Knowledge',
-    updateTitle: 'Update Knowledge',
-    createDescription: "Import your own text data to enhance the LLM's context.",
     name: 'Knowledge Name',
     description: 'Knowledge Description',
     deleteTitle: 'Delete this Knowledge?',
@@ -413,7 +411,7 @@ export default flatten({
     },
     configure: 'Configure',
     rename: 'Rename',
-    docs: 'Docs',
+    docs: 'Document',
     importKnowledgeSuccess: 'Import Resource as Knowledge success',
     noKnowledge: 'No Knowledge Yet',
     noKnowledgeTip: 'You can install knowledge from blocklet store',
@@ -917,4 +915,5 @@ export default flatten({
   aigneBannerVisibility: 'AIGNE branding banner visibility',
   similarity: 'Similarity',
   crawl: 'Crawl',
+  createObject: 'Create {object}',
 });

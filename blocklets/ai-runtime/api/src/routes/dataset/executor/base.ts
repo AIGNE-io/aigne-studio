@@ -8,7 +8,7 @@ import logger from '@api/libs/logger';
 import { exists, readFile } from 'fs-extra';
 import { parse } from 'yaml';
 
-import DatasetDocument, { UploadStatus } from '../../../store/models/dataset/document';
+import KnowledgeDocument, { UploadStatus } from '../../../store/models/dataset/document';
 import EmbeddingHistories from '../../../store/models/dataset/embedding-history';
 import { saveContentToVectorStore } from '../util/vector-store';
 
@@ -50,7 +50,7 @@ export abstract class BaseProcessor {
 
     await writeFile(processedFilePath, this.content!);
 
-    await DatasetDocument.update(
+    await KnowledgeDocument.update(
       { size: (await stat(processedFilePath)).size },
       { where: { id: this.documentId, knowledgeId: this.knowledgeId } }
     );
@@ -92,8 +92,8 @@ export abstract class BaseProcessor {
     }
   }
 
-  async getDocument(): Promise<DatasetDocument> {
-    const document = await DatasetDocument.findOne({ where: { id: this.documentId, knowledgeId: this.knowledgeId } });
+  async getDocument(): Promise<KnowledgeDocument> {
+    const document = await KnowledgeDocument.findOne({ where: { id: this.documentId, knowledgeId: this.knowledgeId } });
     if (!document) throw new Error(`document ${this.documentId} not found`);
     return document;
   }
@@ -118,35 +118,6 @@ export abstract class BaseProcessor {
     if (!(await exists(processedFilePath))) throw new Error(`processedFilePath ${processedFilePath} not found`);
 
     const fileContent = (await readFile(processedFilePath)).toString();
-    const fileContentHash = hash('md5', fileContent, 'hex');
-    const previousEmbedding = await EmbeddingHistories.findOne({
-      where: { knowledgeId: this.knowledgeId, documentId: this.documentId },
-    });
-
-    if (
-      fileContentHash &&
-      previousEmbedding?.status === UploadStatus.Success &&
-      previousEmbedding?.contentHash === fileContentHash
-    ) {
-      logger.warn('embedding already exists', { knowledgeId: this.knowledgeId, documentId: this.documentId });
-      return;
-    }
-
-    if (previousEmbedding) {
-      await previousEmbedding.update({
-        contentHash: fileContentHash,
-        startAt: new Date(),
-        status: UploadStatus.Uploading,
-      });
-    } else {
-      await EmbeddingHistories.create({
-        contentHash: fileContentHash,
-        knowledgeId: this.knowledgeId,
-        documentId: this.documentId,
-        startAt: new Date(),
-        status: UploadStatus.Uploading,
-      });
-    }
 
     const contents = parse(fileContent);
     const array = Array.isArray(contents) ? contents : [contents];
@@ -157,6 +128,53 @@ export abstract class BaseProcessor {
     try {
       for (const { content, metadata } of array) {
         currentIndex++;
+
+        const fileContentHash = hash('md5', content, 'hex');
+        const previousEmbedding = await EmbeddingHistories.findOne({
+          where: { knowledgeId: this.knowledgeId, documentId: this.documentId, contentHash: fileContentHash },
+        });
+
+        if (!fileContentHash || !content) {
+          logger.warn('file content hash is not available', { processedFilePath });
+
+          if (currentTotal > 1) {
+            const embeddingStatus = `${currentIndex}/${currentTotal}`;
+            await this.send({ embeddingStatus, error: null }, 'change');
+          }
+
+          continue;
+        }
+
+        if (previousEmbedding?.status === UploadStatus.Success && previousEmbedding?.contentHash === fileContentHash) {
+          logger.warn('embedding already exists', {
+            knowledgeId: this.knowledgeId,
+            documentId: this.documentId,
+            contentHash: fileContentHash,
+            previousEmbeddingContentHash: previousEmbedding.contentHash,
+          });
+
+          if (currentTotal > 1) {
+            const embeddingStatus = `${currentIndex}/${currentTotal}`;
+            await this.send({ embeddingStatus, error: null }, 'change');
+          }
+          continue;
+        }
+
+        if (previousEmbedding) {
+          await previousEmbedding.update({
+            contentHash: fileContentHash,
+            startAt: new Date(),
+            status: UploadStatus.Uploading,
+          });
+        } else {
+          await EmbeddingHistories.create({
+            contentHash: fileContentHash,
+            knowledgeId: this.knowledgeId,
+            documentId: this.documentId,
+            startAt: new Date(),
+            status: UploadStatus.Uploading,
+          });
+        }
 
         await saveContentToVectorStore({
           metadata,
@@ -170,12 +188,12 @@ export abstract class BaseProcessor {
           const embeddingStatus = `${currentIndex}/${currentTotal}`;
           await this.send({ embeddingStatus, error: null }, 'change');
         }
-      }
 
-      await EmbeddingHistories.update(
-        { endAt: new Date(), status: UploadStatus.Success },
-        { where: { knowledgeId: this.knowledgeId, documentId: this.documentId } }
-      );
+        await EmbeddingHistories.update(
+          { endAt: new Date(), status: UploadStatus.Success },
+          { where: { knowledgeId: this.knowledgeId, documentId: this.documentId } }
+        );
+      }
     } catch (error) {
       logger.error('startRAG error', error);
 

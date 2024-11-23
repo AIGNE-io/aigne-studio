@@ -9,7 +9,7 @@ import PDFParser from 'pdf2json';
 
 import { getUploadPathByCheckFile } from '../../../libs/ensure-dir';
 import DatasetContent from '../../../store/models/dataset/content';
-import DatasetDocument from '../../../store/models/dataset/document';
+import KnowledgeDocument from '../../../store/models/dataset/document';
 import { commentsIterator, discussionsIterator, getDiscussion } from './discuss';
 
 function parsePDF(filePath: string): Promise<string> {
@@ -89,7 +89,7 @@ export const getDiscussionContent = async (discussionId: string) => {
   return arr.filter((x) => x).join('\n');
 };
 
-export const getDiscussionContents = async (document: DatasetDocument, maxLength?: BN) => {
+export const getDiscussionContents = async (document: KnowledgeDocument, maxLength?: BN) => {
   const arr = [];
 
   if (document.data && document.data.type === 'discussKit') {
@@ -140,7 +140,7 @@ export const getDiscussionContents = async (document: DatasetDocument, maxLength
   return [];
 };
 
-export const getContent = async (knowledgeId: string, document: DatasetDocument, maxLength?: BN) => {
+export const getContent = async (knowledgeId: string, document: KnowledgeDocument, maxLength?: BN) => {
   let content: string[] = [];
   if (document.type === 'text') {
     content = [await getTextContent(document.id)];
@@ -156,7 +156,7 @@ export const getContent = async (knowledgeId: string, document: DatasetDocument,
 };
 
 const getAllContents = async (knowledgeId: string) => {
-  const documents = await DatasetDocument.findAll({ order: [['createdAt', 'DESC']], where: { knowledgeId } });
+  const documents = await KnowledgeDocument.findAll({ order: [['createdAt', 'DESC']], where: { knowledgeId } });
   const docs: { title: string; content: string }[] = [];
   let maxLength = toBN('1000000'); // 100w 字段限制？？
 

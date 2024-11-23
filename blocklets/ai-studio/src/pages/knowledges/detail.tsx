@@ -384,7 +384,7 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
                       </Box>
                     </Stack>
 
-                    <Divider orientation="vertical" variant="middle" flexItem sx={{ my: 0.5 }} />
+                    {/* <Divider orientation="vertical" variant="middle" flexItem sx={{ my: 0.5 }} />
 
                     <Stack direction="row" gap={1} alignItems="center">
                       <Typography
@@ -392,7 +392,7 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
                         {Number(result.metadata.metadata.finalScore * 100).toFixed(2)}%
                       </Typography>
                       <Typography sx={{ fontSize: 13, color: '#9CA3AF' }}>{t('similarity')}</Typography>
-                    </Stack>
+                    </Stack> */}
                   </Stack>
                 )}
               </Box>
@@ -554,7 +554,7 @@ const Header = ({
               <Stack direction="row" gap={0.5} alignItems="center" sx={{ cursor: 'pointer' }} onClick={onAdd}>
                 <Box component={Icon} icon={PlusIcon} sx={{ color: '#3B82F6', fontSize: 15 }} />
                 <Typography variant="subtitle3" sx={{ color: '#3B82F6' }}>
-                  {`${t('add')}${t('knowledge.knowledge')}`}
+                  {t('addObject', { object: t('knowledge.knowledge') })}
                 </Typography>
               </Stack>
             )}

@@ -4,13 +4,13 @@ import useInfiniteScrollHook from 'react-infinite-scroll-hook';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 
 import Dataset from '../../../api/src/store/models/dataset/dataset';
-import DatasetDocument from '../../../api/src/store/models/dataset/document';
+import KnowledgeDocument from '../../../api/src/store/models/dataset/document';
 import DatasetSegment from '../../../api/src/store/models/dataset/segment';
 import { getDocument, getSegments } from '../../libs/dataset';
 
 interface SegmentState {
   dataset?: Dataset;
-  document?: DatasetDocument;
+  document?: KnowledgeDocument;
   segments?: DatasetSegment[];
   loading?: boolean;
   error?: Error;

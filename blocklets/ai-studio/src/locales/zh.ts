@@ -389,11 +389,9 @@ export default flatten({
   update: '更新',
   knowledge: {
     namePlaceholder: '给你的知识起个名字吧 (例如: xxx文档、我的笔记)',
+    knowledgeBase: '知识库',
     knowledge: '知识',
     menu: '知识',
-    createTitle: '添加知识',
-    updateTitle: '更新知识',
-    createDescription: '导入您自己的文本数据以增强LLM 的上下文。',
     name: '知识名称',
     description: '知识描述',
     deleteTitle: '删除这个知识？',
@@ -908,4 +906,5 @@ export default flatten({
   aigneBannerVisibility: '显示 AIGNE 品牌横幅',
   similarity: '相关度',
   crawl: '爬取',
+  createObject: '创建{object}',
 });
