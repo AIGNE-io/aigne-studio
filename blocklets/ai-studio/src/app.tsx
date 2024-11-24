@@ -128,7 +128,7 @@ const ProjectsRoutes = lazy(() => import('./pages/project'));
 
 const EmbedRoutes = lazy(() => import('./pages/embed'));
 
-function DynamicHome() {
+function HomeRoute() {
   const isPromptEditor = useIsPromptEditor();
   return isPromptEditor ? <Navigate to="projects" replace /> : <Home />;
 }
@@ -136,7 +136,7 @@ function DynamicHome() {
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<TrackedRoot />} ErrorBoundary={RouterErrorBoundary}>
-      <Route index element={<DynamicHome />} />
+      <Route index element={<HomeRoute />} />
       <Route path="explore/*" element={<ExploreCategory />} />
       <Route path="apps/:appId" element={<AppPage />} />
       <Route element={<PrivateRoute roles={['owner', 'admin', 'promptsEditor']} />}>
