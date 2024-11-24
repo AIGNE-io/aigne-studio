@@ -83,7 +83,8 @@ export async function getKnowledge(knowledgeId: string): Promise<KnowledgeCard> 
 }
 
 export async function createKnowledge(input?: KnowledgeInput): Promise<KnowledgeCard> {
-  return axios.post('/api/datasets', input, { baseURL: AIGNE_RUNTIME_MOUNT_POINT }).then((res) => res.data);
+  await axios.get('/api/broadcast').then((res) => res.data);
+  throw new Error('Not implemented');
 }
 
 export async function createDatasetFromResources(input: { items: KnowledgeInput[] }): Promise<Knowledge[]> {

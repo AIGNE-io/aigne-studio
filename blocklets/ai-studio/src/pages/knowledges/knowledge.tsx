@@ -64,7 +64,7 @@ export default function Knowledge() {
     }
   }, [navigate, projectId]);
 
-  const sub = useSubscription('resource-event');
+  const sub = useSubscription('resourceEvent');
   useEffect(() => {
     if (sub) {
       sub.on('component.update', async () => {

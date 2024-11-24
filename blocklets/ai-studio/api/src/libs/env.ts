@@ -50,12 +50,10 @@ config.events.on(config.Events.envUpdate, () => {
   }
 });
 
-export const initResourceEvent = () => {
-  const reload = () => broadcast('resource-event', 'component.update', { type: 'resource' });
-
-  config.events.on(config.Events.componentAdded, reload);
-  config.events.on(config.Events.componentRemoved, reload);
-  config.events.on(config.Events.componentStarted, reload);
-  config.events.on(config.Events.componentStopped, reload);
-  config.events.on(config.Events.componentUpdated, reload);
+const reload = () => {
+  setTimeout(() => broadcast('resourceEvent', 'component.update', { type: 'resource' }), 5000);
 };
+
+config.events.on(config.Events.componentAdded, reload);
+config.events.on(config.Events.componentRemoved, reload);
+config.events.on(config.Events.componentUpdated, reload);
