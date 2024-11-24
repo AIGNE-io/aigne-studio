@@ -9,7 +9,7 @@ export default function KnowledgeRoutes() {
     <Routes>
       <Route index element={<Knowledge />} />
       <Route path=":knowledgeId" element={<DetailKnowledge />} />
-      <Route path=":knowledgeId/document/:documentId" element={<KnowledgeSegments />} />
+      <Route path=":knowledgeId/document/:documentId/segments" element={<KnowledgeSegments />} />
     </Routes>
   );
 }

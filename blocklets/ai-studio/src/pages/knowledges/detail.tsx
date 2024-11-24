@@ -271,7 +271,7 @@ export default function KnowledgeDetail() {
 
 const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
   const { t } = useLocaleContext();
-  const [search, setSearch] = useState('What is Arcblock and what are its key features?');
+  const [search, setSearch] = useState('');
 
   const { data, loading, run } = useRequest((s: string) => searchKnowledge({ knowledgeId, message: s }), {
     refreshDeps: [],

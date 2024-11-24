@@ -17,8 +17,6 @@ test.describe.serial('resource blocklet', () => {
   test.describe.configure({ retries: 5 });
 
   test('init', async ({ page }) => {
-    console.log('init resource blocklet');
-
     await page.waitForTimeout(5000);
 
     await page.goto('/projects');
@@ -37,7 +35,6 @@ test.describe.serial('resource blocklet', () => {
   });
 
   test('open resource blocklet', async ({ page }) => {
-    console.log('open resource blocklet');
     const blocklet = page.locator('.component-item').filter({ hasText: 'Mockplexity' }).first();
     const stopIcon = blocklet.getByTestId('StopIcon');
     if ((await stopIcon.count()) > 0) return;
@@ -54,8 +51,6 @@ test.describe.serial('resource blocklet', () => {
 
   test('set agent secrets', async ({ page }) => {
     test.slow();
-    console.log('set agent secrets');
-
     await page.waitForTimeout(5000);
     await page.goto('/mockplexity/');
     await page.waitForLoadState('networkidle');
@@ -69,9 +64,6 @@ test.describe.serial('resource blocklet', () => {
   });
 
   test('input form', async ({ page }) => {
-    console.log('set resource blocklet input form');
-
-    await page.goto('/mockplexity/');
     await page.waitForLoadState('networkidle');
 
     page.route(/\/api\/ai\/call/, (route) => {
@@ -91,8 +83,6 @@ test.describe.serial('resource blocklet', () => {
   });
 
   test('clear session', async ({ page }) => {
-    console.log('clear resource blocklet session');
-
     await page.goto('/mockplexity/');
     await page.waitForLoadState('networkidle');
 

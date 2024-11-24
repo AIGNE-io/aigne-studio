@@ -1,6 +1,6 @@
 import { IncomingMessage, Server } from 'http';
 
-import { Config } from '@api/libs/env';
+import { Config, initResourceEvent } from '@api/libs/env';
 import logger from '@api/libs/logger';
 import { verifyLoginToken } from '@blocklet/sdk/lib/util/verify-session';
 import { getQuery } from 'ufo';
@@ -39,6 +39,8 @@ wss.on('connection', async (conn, req: any) => {
   const repository = await getRepository({ projectId });
   const working = await repository.working({ ref });
   working.addConnection(conn, { readOnly });
+
+  initResourceEvent();
 });
 
 export function handleYjsWebSocketUpgrade(server: Server) {

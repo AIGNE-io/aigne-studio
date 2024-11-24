@@ -22,6 +22,7 @@ import Joi from 'joi';
 import { pick } from 'lodash';
 import omitBy from 'lodash/omitBy';
 import { Op, Sequelize } from 'sequelize';
+import { joinURL } from 'ufo';
 import { stringify } from 'yaml';
 
 import ensureKnowledgeDirExists, { getKnowledgeDir, getLogoPath } from '../../libs/ensure-dir';
@@ -112,25 +113,48 @@ router.get('/', middlewares.session(), ensureComponentCallOr(userAuth()), async 
         knowledge.name = resource?.knowledge.name;
         knowledge.description = resource?.knowledge.description;
         knowledge.updatedBy = resource?.knowledge.updatedBy || knowledge.updatedBy;
+
+        return {
+          ...knowledge,
+          user: {
+            did: resource?.did,
+            fullName: resource?.title,
+            avatar: joinURL(
+              config.env.appUrl,
+              '/.well-known/server/admin/blocklet/logo-bundle',
+              config.env.appId,
+              `${resource?.did}?v=1.0.1`
+            ),
+          },
+          installed: !!resource,
+        };
       }
 
       const { user } = await authClient.getUser(knowledge.updatedBy);
-      return { ...knowledge, user: pick(user, ['did', 'fullName', 'avatar']) };
+      return { ...knowledge, user: pick(user, ['did', 'fullName', 'avatar']), installed: true };
     })
   );
 
   res.json(knowledge);
 });
 
-router.get('/resources', middlewares.session(), ensureComponentCallOr(userAuth()), async (_req, res) => {
+const getResourceList = async () => {
   const resources = await resourceManager.getKnowledgeList();
 
-  const knowledge = await Promise.all(
+  const list = await Promise.all(
     resources.map(async (item) => {
-      const { user } = item?.knowledge ? await authClient.getUser(item?.knowledge.updatedBy) : { user: {} };
       return {
         ...(item?.knowledge || {}),
-        user: pick(user, ['did', 'fullName', 'avatar']),
+        user: {
+          did: item?.did,
+          fullName: item?.title,
+          avatar: joinURL(
+            config.env.appUrl,
+            '/.well-known/server/admin/blocklet/logo-bundle',
+            config.env.appId,
+            `${item?.did}?v=1.0.1`
+          ),
+        },
         blockletDid: item.blockletDid,
         totalSize: 0,
         docs: item.documents?.length || 0,
@@ -138,8 +162,19 @@ router.get('/resources', middlewares.session(), ensureComponentCallOr(userAuth()
     })
   );
 
-  res.json(knowledge);
-});
+  return list;
+};
+
+router.get(
+  '/resources',
+  middlewares.session({ componentCall: true }),
+  ensureComponentCallOr(userAuth()),
+  async (_req, res) => {
+    const resources = await getResourceList();
+
+    res.json(resources);
+  }
+);
 
 router.get('/:knowledgeId', middlewares.session(), ensureComponentCallOr(userAuth()), async (req, res) => {
   const { knowledgeId } = req.params;

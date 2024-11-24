@@ -1,16 +1,11 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
 import ChevronLeftIcon from '@iconify-icons/tabler/chevron-left';
 import XIcon from '@iconify-icons/tabler/x';
-import { SaveRounded } from '@mui/icons-material';
-import { LoadingButton } from '@mui/lab';
 import {
   Box,
-  Button,
   CircularProgress,
   Dialog,
-  DialogActions,
   DialogContent,
   DialogTitle,
   Divider,
@@ -25,22 +20,19 @@ import {
   Typography,
   styled,
 } from '@mui/material';
-import { useRequest } from 'ahooks';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Virtuoso } from 'react-virtuoso';
 
 import { useFetchSegments, useSegments } from '../../contexts/datasets/segments';
-import { getErrorMessage } from '../../libs/api';
-import { getDocumentContent } from '../../libs/dataset';
 import Empty from '../project/icons/empty';
 
 export default function KnowledgeSegments() {
   const { t } = useLocaleContext();
   const params = useParams();
   const { knowledgeId, documentId } = params;
+
   if (!knowledgeId) {
     throw new Error('knowledgeId is required');
   }
@@ -48,41 +40,18 @@ export default function KnowledgeSegments() {
   if (!documentId) {
     throw new Error('documentId is required');
   }
-  const navigate = useNavigate();
-  const viewportRef = useRef<HTMLDivElement>(null);
-  const autoScroll = useRef(true);
 
+  const navigate = useNavigate();
   const segmentDialogState = usePopupState({ variant: 'dialog', popupId: 'segment' });
-  const documentDialogState = usePopupState({ variant: 'dialog', popupId: 'document' });
 
   const form = useForm<{ content: string }>({ defaultValues: { content: '' } });
   const [viewType, setViewType] = useState('SegmentsView');
-  const [content, setContent] = useState<string[]>([]);
 
-  const { state, refetch } = useSegments(knowledgeId, documentId);
+  const { state } = useSegments(knowledgeId, documentId);
   const { loadingRef, dataState } = useFetchSegments(knowledgeId, documentId);
   const [readContent, setReadContent] = useState('');
   const isReadOnly = Boolean(readContent);
   const segments = dataState?.data?.list || [];
-
-  const [hitBottom, setHitBottom] = useState(true);
-  const handleScroll = (e: HTMLDivElement) => {
-    const isTouchBottom = e.scrollTop + e.offsetHeight >= e.scrollHeight - 20;
-    setHitBottom(isTouchBottom);
-  };
-
-  const { loading } = useRequest(
-    async () => {
-      if (viewType === 'ContentView' && !content?.length) {
-        const con = await getDocumentContent(knowledgeId, documentId);
-        setContent((con?.content || []).filter((x) => x));
-        return Promise.resolve(null);
-      }
-
-      return Promise.resolve(null);
-    },
-    { refreshDeps: [viewType, content, knowledgeId, documentId] }
-  );
 
   if (state.error) throw state.error;
 
@@ -113,23 +82,6 @@ export default function KnowledgeSegments() {
                 {state.document?.name}
               </Typography>
             </Box>
-
-            <Box display="flex" justifyContent="space-between" alignItems="center">
-              <Box>
-                <Box display="flex" gap={2} alignItems="center">
-                  <Tag>{t(state.document?.type)}</Tag>
-
-                  {viewType === 'SegmentsView' && (
-                    <>
-                      <Tag>{t('knowledge.auto')}</Tag>
-                      <Tag>
-                        {dataState?.data?.total} {t('knowledge.segments.segments')}
-                      </Tag>
-                    </>
-                  )}
-                </Box>
-              </Box>
-            </Box>
           </Stack>
 
           <Box>
@@ -148,59 +100,11 @@ export default function KnowledgeSegments() {
         <Divider />
 
         {viewType === 'ContentView' && (
-          <>
-            {!loading && (
-              <Stack flex={1} height={0} py={2}>
-                <Box width={1} height={1}>
-                  <Box
-                    position="relative"
-                    display="flex"
-                    flexGrow={1}
-                    height={0}
-                    flexDirection="column"
-                    sx={{
-                      border: '1px solid rgba(29,28,35,.12)',
-                      borderRadius: 0.5,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      m: '0 24px',
-                      height: 'calc(100% - 24px)',
-                      position: 'relative',
-                      overflow: 'hidden',
-                    }}
-                    ref={viewportRef}
-                    onScroll={(e) => handleScroll(e.currentTarget)}
-                    onWheel={(e) => {
-                      return (autoScroll.current = hitBottom && e.deltaY > 0);
-                    }}
-                    onTouchStart={() => {
-                      autoScroll.current = false;
-                    }}>
-                    <Virtuoso
-                      customScrollParent={viewportRef.current!}
-                      data={content || []}
-                      initialTopMostItemIndex={0}
-                      computeItemKey={(_, item) => item}
-                      itemContent={(index, message) => (
-                        <Box
-                          key={index}
-                          p={2}
-                          sx={{ wordBreak: 'break-word', whiteSpace: 'break-spaces' }}>{`${message}`}</Box>
-                      )}
-                    />
-                  </Box>
-                </Box>
-              </Stack>
-            )}
-
-            {loading && (
-              <Stack flex={1} height={0} py={2}>
-                <Box width={1} height={1} className="center">
-                  <CircularProgress size={20} />
-                </Box>
-              </Stack>
-            )}
-          </>
+          <Stack flex={1} height={0} py={2}>
+            <Box width={1} height={1} className="center">
+              <CircularProgress size={20} />
+            </Box>
+          </Stack>
         )}
 
         {viewType === 'SegmentsView' && (
@@ -276,14 +180,6 @@ export default function KnowledgeSegments() {
           />
         </DialogContent>
       </Dialog>
-
-      <UpdateDocumentName
-        onUpdate={refetch}
-        knowledgeId={knowledgeId}
-        documentId={state.document?.id || ''}
-        name={state.document?.name || ''}
-        documentDialogState={documentDialogState}
-      />
     </>
   );
 }
@@ -367,64 +263,6 @@ export function SegmentsItem({
         </Box>
       </Box>
     </SegmentRoot>
-  );
-}
-
-function UpdateDocumentName({
-  name,
-  documentDialogState,
-  onUpdate,
-}: {
-  knowledgeId: string;
-  documentId: string;
-  name: string;
-  documentDialogState: any;
-  onUpdate: () => any;
-}) {
-  const { t } = useLocaleContext();
-  const form = useForm<{ name: string }>({ defaultValues: { name } });
-
-  return (
-    <Dialog
-      {...bindDialog(documentDialogState)}
-      maxWidth="sm"
-      fullWidth
-      component="form"
-      onSubmit={form.handleSubmit(async () => {
-        try {
-          form.reset({ name: '' });
-
-          onUpdate();
-          documentDialogState.close();
-        } catch (error) {
-          Toast.error(getErrorMessage(error));
-        }
-      })}>
-      <DialogTitle className="between">
-        <Box>{t('knowledge.update')}</Box>
-
-        <IconButton size="small" onClick={documentDialogState.close}>
-          <Box component={Icon} icon={XIcon} />
-        </IconButton>
-      </DialogTitle>
-
-      <DialogContent>
-        <TextField label={t('knowledge.name')} sx={{ width: 1 }} {...form.register('name')} />
-      </DialogContent>
-
-      <DialogActions>
-        <Button onClick={documentDialogState.close}>{t('cancel')}</Button>
-
-        <LoadingButton
-          type="submit"
-          variant="contained"
-          startIcon={<SaveRounded />}
-          loadingPosition="start"
-          loading={form.formState.isSubmitting}>
-          {t('save')}
-        </LoadingButton>
-      </DialogActions>
-    </Dialog>
   );
 }
 

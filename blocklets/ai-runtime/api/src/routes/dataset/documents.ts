@@ -46,34 +46,46 @@ const documentIdSchema = Joi.object<{ knowledgeId: string; documentId: string }>
 
 export type CreateDiscussionItemInput = CreateDiscussionItem | CreateDiscussionItem[];
 
-const searchQuerySchema = Joi.object<{ message?: string; n: number }>({
+const searchQuerySchema = Joi.object<{ blockletDid?: string; message?: string; n: number }>({
+  blockletDid: Joi.string().empty(['', null]),
   message: Joi.string().empty(['', null]),
   n: Joi.number().empty(['', null]).min(1).default(4),
 });
+
+async function getVectorPath(blockletDid: string | null, knowledgeId: string, knowledge: any) {
+  let resourceToCheck = null;
+
+  if (blockletDid) {
+    resourceToCheck = { blockletDid, knowledgeId };
+  } else if (knowledge?.resourceBlockletDid && knowledge?.knowledgeId) {
+    resourceToCheck = {
+      blockletDid: knowledge.resourceBlockletDid,
+      knowledgeId: knowledge.knowledgeId,
+    };
+  }
+
+  if (resourceToCheck) {
+    const resource = await resourceManager.getKnowledge(resourceToCheck);
+
+    if (!resource) {
+      throw new Error('No such knowledge resource');
+    }
+
+    return (await pathExists(join(resource.vectorsPath, 'faiss.index')))
+      ? resource.vectorsPath
+      : join(resource.vectorsPath, knowledgeId);
+  }
+
+  return knowledgeId;
+}
 
 router.get('/:knowledgeId/search', async (req, res) => {
   const { knowledgeId } = req.params;
   const input = await searchQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
   const knowledge = await Knowledge.findOne({ where: { id: knowledgeId } });
-  if (!knowledge) throw new Error('No such knowledge');
 
-  let vectorPathOrKnowledgeId = knowledgeId;
-  if (knowledge.resourceBlockletDid && knowledge.knowledgeId) {
-    // 查找知识库的向量库路径
-    const resource = await resourceManager.getKnowledge({
-      blockletDid: knowledge.resourceBlockletDid,
-      knowledgeId: knowledge.knowledgeId,
-    });
-
-    if (!resource) {
-      throw new Error('No such knowledge resource');
-    }
-
-    vectorPathOrKnowledgeId = (await pathExists(join(resource.vectorsPath, 'faiss.index')))
-      ? resource.vectorsPath
-      : join(resource.vectorsPath, knowledgeId);
-  }
+  const vectorPathOrKnowledgeId = await getVectorPath(input.blockletDid!, knowledgeId, knowledge);
 
   const retriever = new HybridRetriever(vectorPathOrKnowledgeId, input.n!);
   const result = await retriever.search(input.message!);

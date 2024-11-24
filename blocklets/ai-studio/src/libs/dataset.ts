@@ -27,6 +27,7 @@ export type KnowledgeCard = Knowledge & {
   totalSize: number;
   docs: number;
   blockletDid?: string;
+  installed?: boolean;
 };
 
 export type KnowledgeDocumentCard = KnowledgeDocument & {};

@@ -433,7 +433,6 @@ export default flatten({
     },
     playground: 'Playground',
     emptyDocuments: "You haven't imported any knowledge yet.",
-    url: 'URL',
   },
   content: 'Content',
   search: 'Search',
@@ -916,4 +915,5 @@ export default flatten({
   similarity: 'Similarity',
   crawl: 'Crawl',
   createObject: 'Create {object}',
+  file: 'File',
 });

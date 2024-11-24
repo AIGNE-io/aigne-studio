@@ -14,8 +14,8 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
 import ArrowBarToUpIcon from '@iconify-icons/tabler/arrow-bar-to-up';
-import DatabaseIcon from '@iconify-icons/tabler/database';
-import FileIcon from '@iconify-icons/tabler/file-text';
+import FileIcon from '@iconify-icons/tabler/file';
+import NetworkIcon from '@iconify-icons/tabler/network';
 import PencilIcon from '@iconify-icons/tabler/pencil';
 import XIcon from '@iconify-icons/tabler/x';
 import {
@@ -88,19 +88,19 @@ export default function ImportKnowledge({
       {
         id: 'file',
         label: t('knowledge.import'),
-        icon: <Box component={Icon} icon={FileIcon} width={18} height={18} borderRadius={1} className="center" />,
+        icon: <Box component={Icon} icon={FileIcon} width={14} height={14} borderRadius={1} className="center" />,
       },
       {
         id: 'custom',
         label: t('knowledge.custom'),
-        icon: <Box component={Icon} icon={PencilIcon} width={18} height={18} borderRadius={1} className="center" />,
+        icon: <Box component={Icon} icon={PencilIcon} width={14} height={14} borderRadius={1} className="center" />,
       },
       getDiscussionStatus() && isAdmin
         ? {
             id: 'discuss',
             label: t('knowledge.discussKit'),
             icon: (
-              <Box width={18} height={18} borderRadius={1} className="center">
+              <Box width={14} height={14} borderRadius={1} className="center">
                 <Discuss sx={{ width: '100%', height: '100%' }} />
               </Box>
             ),
@@ -108,8 +108,8 @@ export default function ImportKnowledge({
         : null,
       {
         id: 'url',
-        label: t('knowledge.url'),
-        icon: <Box component={Icon} icon={DatabaseIcon} width={18} height={18} borderRadius={1} className="center" />,
+        label: t('knowledge.crawl'),
+        icon: <Box component={Icon} icon={NetworkIcon} width={14} height={14} borderRadius={1} className="center" />,
       },
     ] as SourceTypeSelectType[]
   ).filter(Boolean);
@@ -179,7 +179,7 @@ export default function ImportKnowledge({
         <DialogTitle>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="h6" sx={{ fontSize: 16, fontWeight: 500 }}>
-              {t('importObject', { object: t('knowledge.knowledgeBase') })}
+              {t('importObject', { object: t('knowledge.knowledge') })}
             </Typography>
 
             <IconButton size="small" onClick={onClose}>
@@ -259,6 +259,11 @@ const SourceTypeSelect = ({ value, onChange, options }: SourceTypeSelectProps) =
           sx={{
             border: value === option.id ? '1px solid #3B82F6' : undefined,
             color: value === option.id ? '#3B82F6' : undefined,
+            bgcolor: value === option.id ? '#EFF6FF' : undefined,
+
+            '.MuiButton-startIcon': {
+              mr: 0.5,
+            },
           }}>
           {option.label}
         </Button>
@@ -387,8 +392,8 @@ const CrawlView = ({ provider, onProviderChange, url, onUrlChange }: CrawlSettin
   ];
 
   return (
-    <Stack gap={2}>
-      <Box>
+    <Stack gap={2.5}>
+      <Stack gap={2.5} flexDirection="row" alignItems="center">
         <Typography
           component="label"
           sx={{
@@ -396,7 +401,6 @@ const CrawlView = ({ provider, onProviderChange, url, onUrlChange }: CrawlSettin
             fontSize: '14px',
             fontWeight: 500,
             display: 'block',
-            mb: 1,
           }}>
           {t('knowledge.importKnowledge.provider')}
         </Typography>
@@ -409,12 +413,13 @@ const CrawlView = ({ provider, onProviderChange, url, onUrlChange }: CrawlSettin
               sx={{
                 border: provider === item.id ? '1px solid #3B82F6' : undefined,
                 color: provider === item.id ? '#3B82F6' : undefined,
+                bgcolor: provider === item.id ? '#EFF6FF' : undefined,
               }}>
               {item.label}
             </Button>
           ))}
         </Box>
-      </Box>
+      </Stack>
 
       {/* <Box>
         <Typography

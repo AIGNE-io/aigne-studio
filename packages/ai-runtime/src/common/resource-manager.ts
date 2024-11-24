@@ -40,6 +40,8 @@ export interface ResourceKnowledge {
   sourcesPath: string;
   processedPath: string;
   logoPath: string;
+  title: string;
+  did: string;
 }
 
 export interface Resources {
@@ -139,6 +141,8 @@ const loadResourceKnowledge = async () => {
                 const segments = (await exists(segmentsPath)) ? parse((await readFile(segmentsPath)).toString()) : [];
 
                 return {
+                  title: item.title,
+                  did: item.did,
                   knowledge: { projectId: knowledge.appId, ...knowledge },
                   documents,
                   segments,

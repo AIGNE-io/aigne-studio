@@ -6,6 +6,7 @@ import { Box, Button, Stack, Tooltip, Typography, styled } from '@mui/material';
 import { DataGrid, GridColDef, gridClasses } from '@mui/x-data-grid';
 import { useReactive } from 'ahooks';
 import { useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
 import Crawl from '../../../icons/crawl';
@@ -75,6 +76,7 @@ const KnowledgeDocuments = ({
 }) => {
   const { t } = useLocaleContext();
   const embeddings = useReactive<{ [key: string]: { [key: string]: any } }>({});
+  const navigate = useNavigate();
 
   useEffect(() => {
     const abortController = new AbortController();
@@ -283,6 +285,7 @@ const KnowledgeDocuments = ({
           [`& .${gridClasses.footerContainer}`]: { border: 0 },
         }}
         disableColumnMenu
+        hideFooterSelectedRowCount
         columnHeaderHeight={30}
         rowHeight={44}
         getRowId={(v) => v.id}
@@ -295,6 +298,11 @@ const KnowledgeDocuments = ({
         onPaginationModelChange={({ page }) => onChangePage(page + 1)}
         getRowClassName={() => 'document-row'}
         disableRowSelectionOnClick={disabled}
+        onRowClick={(params) => {
+          if (disabled) return;
+
+          navigate(joinURL('document', params.row.id, 'segments'));
+        }}
       />
     </Stack>
   );

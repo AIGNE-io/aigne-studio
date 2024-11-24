@@ -1,5 +1,6 @@
 import path from 'path';
 
+import { broadcast } from '@api/libs/ws';
 import { getServiceModePermissionMap } from '@blocklet/ai-runtime/common';
 import { ServiceMode } from '@blocklet/ai-runtime/types';
 import config from '@blocklet/sdk/lib/config';
@@ -48,3 +49,13 @@ config.events.on(config.Events.envUpdate, () => {
     }
   }
 });
+
+export const initResourceEvent = () => {
+  const reload = () => broadcast('resource-event', 'component.update', { type: 'resource' });
+
+  config.events.on(config.Events.componentAdded, reload);
+  config.events.on(config.Events.componentRemoved, reload);
+  config.events.on(config.Events.componentStarted, reload);
+  config.events.on(config.Events.componentStopped, reload);
+  config.events.on(config.Events.componentUpdated, reload);
+};
