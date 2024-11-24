@@ -28,7 +28,7 @@ import { isNil, sortBy } from 'lodash';
 import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { useMemo } from 'react';
 
-import Dataset from '../../../api/src/store/models/dataset/dataset';
+import Knowledge from '../../../api/src/store/models/dataset/dataset';
 import { useProjectStore } from '../../pages/project/yjs-state';
 import IndicatorTextField from '../awareness/indicator-text-field';
 import PromptEditorField from './prompt-editor-field';
@@ -104,7 +104,7 @@ function ToolItemView({
   tool: Tool;
   readOnly?: boolean;
   openApis: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
-  datasets: (Dataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
+  datasets: (Knowledge['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
   value: ExecuteBlockYjs;
 } & StackProps) {
   const { t, locale } = useLocaleContext();

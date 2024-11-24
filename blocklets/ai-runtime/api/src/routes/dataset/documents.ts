@@ -1,12 +1,13 @@
 import { copyFile, rm, writeFile } from 'fs/promises';
 import { join } from 'path';
 
+import logger from '@api/libs/logger';
 import { resourceManager } from '@api/libs/resource';
 import middlewares from '@blocklet/sdk/lib/middlewares';
 // @ts-ignore
 import { initLocalStorageServer } from '@blocklet/uploader-server';
 import express, { Router } from 'express';
-import { exists, pathExists, readFile } from 'fs-extra';
+import { pathExists, readFile } from 'fs-extra';
 import Joi from 'joi';
 import { Op } from 'sequelize';
 import { joinURL } from 'ufo';
@@ -100,7 +101,7 @@ router.get('/:knowledgeId/search', async (req, res) => {
         };
       }
 
-      return { content: i.pageContent, metadata: {} };
+      return { content: i.pageContent, metadata: null };
     })
   );
 
@@ -150,8 +151,10 @@ router.delete('/:knowledgeId/documents/:documentId', middlewares.session(), user
   await updateHistoriesAndStore(knowledgeId, documentId);
 
   if (document && document.filename) {
-    await rm(joinURL(getSourceFileDir(knowledgeId), document.filename));
-    await rm(joinURL(getProcessedFileDir(knowledgeId), `${document.id}.yml`));
+    await Promise.all([
+      rm(joinURL(getSourceFileDir(knowledgeId), document.filename)),
+      rm(joinURL(getProcessedFileDir(knowledgeId), `${document.id}.yml`)),
+    ]).catch(logger.error);
   }
 
   await Promise.all([
@@ -175,18 +178,12 @@ const fileSchema = Joi.object<{
 router.post('/:knowledgeId/documents/file', middlewares.session(), userAuth(), async (req, res) => {
   const { did } = req.user!;
   const { knowledgeId } = req.params;
-
-  if (!knowledgeId) {
-    throw new Error('Missing required params `knowledgeId`');
-  }
+  if (!knowledgeId) throw new Error('Missing required params `knowledgeId`');
 
   const { name, filename, size } = await fileSchema.validateAsync(req.body, { stripUnknown: true });
-
   const newFilePath = joinURL(getSourceFileDir(knowledgeId), filename);
 
-  if (!(await exists(newFilePath))) {
-    throw new Error(`file ${newFilePath} not found`);
-  }
+  if (!(await pathExists(newFilePath))) throw new Error(`file ${newFilePath} not found`);
 
   const document = await KnowledgeDocument.create({
     type: 'file',
@@ -205,18 +202,17 @@ router.post('/:knowledgeId/documents/file', middlewares.session(), userAuth(), a
   res.json(document);
 });
 
+const customDocumentSchema = Joi.object<{ title: string; content: string }>({
+  title: Joi.string().required(),
+  content: Joi.string().required(),
+});
+
 router.post('/:knowledgeId/documents/custom', middlewares.session(), userAuth(), async (req, res) => {
   const { did } = req.user!;
   const { knowledgeId } = req.params;
+  if (!knowledgeId) throw new Error('Missing required params `knowledgeId`');
 
-  if (!knowledgeId) {
-    throw new Error('Missing required params `knowledgeId`');
-  }
-
-  const { title, content } = await Joi.object<{ title: string; content: string }>({
-    title: Joi.string().required(),
-    content: Joi.string().required(),
-  }).validateAsync(req.body, { stripUnknown: true });
+  const { title, content } = await customDocumentSchema.validateAsync(req.body, { stripUnknown: true });
 
   const document = await KnowledgeDocument.create({
     type: 'text',
@@ -240,31 +236,28 @@ router.post('/:knowledgeId/documents/custom', middlewares.session(), userAuth(),
   res.json(document);
 });
 
+const createItemsSchema = Joi.object<{ name: string; data: CreateDiscussionItem['data'] }>({
+  name: Joi.string().empty(['', null]),
+  data: Joi.object({
+    from: Joi.string().valid('discussion', 'board', 'discussionType').required(),
+    type: Joi.string().valid('discussion', 'blog', 'doc').optional(),
+    title: Joi.string().allow('', null).required(),
+    id: Joi.string().required(),
+    boardId: Joi.string().allow('', null).default(''),
+  }).required(),
+});
+
+const createItemInputSchema = Joi.alternatives<CreateDiscussionItemInput>().try(
+  Joi.array().items(createItemsSchema),
+  createItemsSchema
+);
+
 router.post('/:knowledgeId/documents/discussion', middlewares.session(), async (req, res) => {
+  const { did } = req.user!;
   const { knowledgeId } = req.params;
-
-  const createItemsSchema = Joi.object<{ name: string; data: CreateDiscussionItem['data'] }>({
-    name: Joi.string().empty(['', null]),
-    data: Joi.object({
-      from: Joi.string().valid('discussion', 'board', 'discussionType').required(),
-      type: Joi.string().valid('discussion', 'blog', 'doc').optional(),
-      title: Joi.string().allow('', null).required(),
-      id: Joi.string().required(),
-      boardId: Joi.string().allow('', null).default(''),
-    }).required(),
-  });
-
-  const createItemInputSchema = Joi.alternatives<CreateDiscussionItemInput>().try(
-    Joi.array().items(createItemsSchema),
-    createItemsSchema
-  );
-
-  if (!knowledgeId) {
-    throw new Error('Missing required params `knowledgeId`');
-  }
+  if (!knowledgeId) throw new Error('Missing required params `knowledgeId`');
 
   const input = await createItemInputSchema.validateAsync(req.body, { stripUnknown: true });
-  const { did } = req.user!;
 
   const arr = Array.isArray(input) ? input : [input];
 
@@ -302,18 +295,17 @@ router.post('/:knowledgeId/documents/discussion', middlewares.session(), async (
   return res.json(Array.isArray(input) ? docs : docs[0]);
 });
 
+const crawlSchema = Joi.object<{ provider: 'jina' | 'firecrawl'; url: string }>({
+  provider: Joi.string().valid('jina', 'firecrawl').required(),
+  url: Joi.string().required(),
+});
+
 router.post('/:knowledgeId/documents/url', middlewares.session(), userAuth(), async (req, res) => {
   const { did } = req.user!;
   const { knowledgeId } = req.params;
+  if (!knowledgeId) throw new Error('Missing required params `knowledgeId`');
 
-  if (!knowledgeId) {
-    throw new Error('Missing required params `knowledgeId`');
-  }
-
-  const { provider, url } = await Joi.object<{ provider: 'jina' | 'firecrawl'; url: string }>({
-    provider: Joi.string().valid('jina', 'firecrawl').required(),
-    url: Joi.string().required(),
-  }).validateAsync(req.body, { stripUnknown: true });
+  const { provider, url } = await crawlSchema.validateAsync(req.body, { stripUnknown: true });
 
   const document = await KnowledgeDocument.create({
     type: 'url',
@@ -335,10 +327,7 @@ router.get('/:knowledgeId/documents/:documentId', middlewares.session(), userAut
   const { did, isAdmin } = req.user!;
   const user = isAdmin ? {} : { [Op.or]: [{ createdBy: did }, { updatedBy: did }] };
 
-  const { knowledgeId, documentId } = await Joi.object<{ knowledgeId: string; documentId: string }>({
-    knowledgeId: Joi.string().required(),
-    documentId: Joi.string().required(),
-  }).validateAsync(req.params);
+  const { knowledgeId, documentId } = await documentIdSchema.validateAsync(req.params, { stripUnknown: true });
 
   const [dataset, document] = await Promise.all([
     Knowledge.findOne({ where: { id: knowledgeId, ...user } }),
@@ -363,8 +352,10 @@ router.get('/:knowledgeId/documents/:documentId/content', middlewares.session(),
 router.post('/:knowledgeId/documents/:documentId/embedding', middlewares.session(), userAuth(), async (req, res) => {
   const { knowledgeId, documentId } = await documentIdSchema.validateAsync(req.params, { stripUnknown: true });
 
-  const [document] = await Promise.all([KnowledgeDocument.findOne({ where: { id: documentId } })]);
+  const document = await KnowledgeDocument.findOne({ where: { id: documentId } });
+
   if (document) queue.checkAndPush({ type: 'document', knowledgeId, documentId: document.id, update: true });
+
   res.json(document);
 });
 
@@ -384,10 +375,7 @@ const localStorageServer = initLocalStorageServer({
       await rm(absolutePath, { recursive: true, force: true });
     }, 3000);
 
-    return {
-      ...uploadMetadata,
-      newFilePath,
-    };
+    return { ...uploadMetadata, newFilePath };
   },
 });
 router.use('/upload-document', middlewares.session(), localStorageServer.handle);

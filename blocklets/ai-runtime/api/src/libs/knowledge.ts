@@ -60,7 +60,7 @@ async function copyKnowledgeBase({
 
   const knowledge = await Knowledge.findOne({
     where: { projectId: oldProjectId, id: oldKnowledgeBaseId },
-    rejectOnEmpty: new Error('Dataset not found'),
+    rejectOnEmpty: new Error('Knowledge not found'),
   });
 
   await importKnowledgeData(knowledgeId, newProjectId, knowledge.dataValues, userId);
@@ -127,22 +127,6 @@ async function importKnowledgeData(
     },
   });
 
-  // // 从旧知识库复制内容
-  // await paginateAndInsert({
-  //   findAll: (data) => {
-  //     data.where.documentId = { [Op.in]: ids };
-  //     return KnowledgeContents.findAll(data);
-  //   },
-  //   bulkCreate: (list) => {
-  //     const format = list.map((dataValues) => ({
-  //       ...dataValues,
-  //       documentId: map[dataValues.documentId]! || nextId(),
-  //       id: undefined,
-  //     }));
-  //     return KnowledgeContents.bulkCreate(format);
-  //   },
-  // });
-
   // 从旧知识库复制历史记录
   await paginateAndInsert({
     findAll: (data) => {
@@ -161,14 +145,14 @@ async function importKnowledgeData(
     },
   });
 
-  // 不是资源知识库，复制向量数据库
+  // 如果不是资源知识库数据，复制向量数据库文件夹
   if (!fromKnowledge.resourceBlockletDid || !fromKnowledge.knowledgeId) {
-    const newVectorStorePath = getKnowledgeDir(newKnowledgeId);
-    const oldVectorStorePath = getKnowledgeDir(oldKnowledgeId);
-    await mkdir(newVectorStorePath, { recursive: true });
+    const oldKnowledgeFolder = getKnowledgeDir(oldKnowledgeId);
+    const newKnowledgeFolder = getKnowledgeDir(newKnowledgeId);
+    await mkdir(newKnowledgeFolder, { recursive: true });
 
-    if ((await pathExists(oldVectorStorePath)) && (await pathExists(newVectorStorePath))) {
-      await copyRecursive(oldVectorStorePath, newVectorStorePath);
+    if ((await pathExists(oldKnowledgeFolder)) && (await pathExists(newKnowledgeFolder))) {
+      await copyRecursive(oldKnowledgeFolder, newKnowledgeFolder);
     }
   }
 }

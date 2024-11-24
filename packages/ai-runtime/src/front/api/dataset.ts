@@ -3,21 +3,21 @@ import { joinURL, withQuery } from 'ufo';
 import { AI_STUDIO_DID } from '../constants';
 import { request } from './request';
 
-export interface Dataset {
+export interface Knowledge {
   id: string;
   name?: string;
   description?: string;
 }
 
-export async function getKnowledge({ datasetId: knowledgeId }: { datasetId: string }): Promise<Dataset> {
+export async function getKnowledge({ datasetId: knowledgeId }: { datasetId: string }): Promise<Knowledge> {
   const url = joinURL('/api/datasets/', knowledgeId);
-  const result = await request<Dataset>({ blocklet: AI_STUDIO_DID, url });
+  const result = await request<Knowledge>({ blocklet: AI_STUDIO_DID, url });
   if (!result) throw new Error('Collection not found!');
 
   return result;
 }
 
-export async function getKnowledgeList({ projectId }: { projectId: string }): Promise<Array<Dataset>> {
+export async function getKnowledgeList({ projectId }: { projectId: string }): Promise<Array<Knowledge>> {
   const url = withQuery('/api/datasets', { projectId });
   return request({ blocklet: AI_STUDIO_DID, url });
 }
@@ -41,8 +41,8 @@ export async function createKnowledge({
 
 export async function updateKnowledge(
   knowledgeId: string,
-  input: Pick<Dataset, 'name' | 'description'>
-): Promise<Dataset> {
+  input: Pick<Knowledge, 'name' | 'description'>
+): Promise<Knowledge> {
   return request({
     blocklet: AI_STUDIO_DID,
     method: 'PUT',

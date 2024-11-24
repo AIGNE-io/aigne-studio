@@ -310,7 +310,7 @@ export function usePromptsState({
 
   useEffect(() => {
     if (template) {
-      if (assistantParameters.includes('knowledgeId')) {
+      if (assistantParameters.includes('datasetId') || assistantParameters.includes('knowledgeId')) {
         addDatasetPrompt();
       } else {
         deleteDatasetPrompt();

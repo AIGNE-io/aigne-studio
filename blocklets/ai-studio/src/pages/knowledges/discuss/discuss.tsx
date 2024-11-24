@@ -80,11 +80,7 @@ function DiscussionTable({
       )}
 
       <DataGrid
-        sx={{
-          '.MuiDataGrid-cell': {
-            lineHeight: '3 !important',
-          },
-        }}
+        rowHeight={44}
         loading={loading}
         rows={res?.data ?? []}
         columns={columns}
@@ -98,9 +94,6 @@ function DiscussionTable({
         paginationModel={paginationModel}
         paginationMode="server"
         onPaginationModelChange={setPaginationModel}
-        getRowHeight={() => {
-          return 'auto';
-        }}
       />
     </>
   );

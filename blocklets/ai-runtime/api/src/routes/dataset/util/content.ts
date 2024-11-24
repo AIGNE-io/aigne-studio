@@ -1,3 +1,4 @@
+// NOTE: 目前是废弃，没有地方使用到
 import { readFile } from 'fs/promises';
 import { join } from 'path';
 

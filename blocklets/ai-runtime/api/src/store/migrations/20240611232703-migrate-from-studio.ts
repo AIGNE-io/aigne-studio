@@ -7,7 +7,7 @@ import { Sequelize } from 'sequelize';
 
 import type { Migration } from '../migrate';
 import DatasetContent from '../models/dataset/content';
-import Dataset from '../models/dataset/dataset';
+import Knowledge from '../models/dataset/dataset';
 import DatasetDocument from '../models/dataset/document';
 import DatasetEmbeddingHistory from '../models/dataset/embedding-history';
 import DatasetSegment from '../models/dataset/segment';
@@ -58,8 +58,10 @@ async function migrateFromAIStudio() {
   const datasetDocumentCount = (await DatasetDocument.bulkCreate(datasetDocuments)).length;
   logger.info('Migrated dataset documents', { datasetDocumentCount });
 
-  const datasets = ((await aiStudioQueryInterface.select(Dataset, 'Datasets')) as Dataset[]).map((i) => i.dataValues);
-  const datasetCount = (await Dataset.bulkCreate(datasets)).length;
+  const datasets = ((await aiStudioQueryInterface.select(Knowledge, 'Datasets')) as Knowledge[]).map(
+    (i) => i.dataValues
+  );
+  const datasetCount = (await Knowledge.bulkCreate(datasets)).length;
   logger.info('Migrated datasets', { datasetCount });
 
   const datasetContents = (

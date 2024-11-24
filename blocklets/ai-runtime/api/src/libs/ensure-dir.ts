@@ -30,7 +30,6 @@ export const getUploadDir = (knowledgeId: string) => getDir(knowledgeId, 'upload
 export const getVectorDir = (knowledgeId: string) => getDir(knowledgeId, 'vectors');
 export const getSourceFileDir = (knowledgeId: string) => getDir(knowledgeId, 'sources');
 export const getProcessedFileDir = (knowledgeId: string) => getDir(knowledgeId, 'processed');
-
 export const getLogoPath = (knowledgeId: string) => path.join(getKnowledgeDir(knowledgeId), 'logo.png');
 
 export const getOldVectorStorePath = (id: string) => path.join(Config.dataDir, 'vectors', id);

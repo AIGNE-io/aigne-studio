@@ -142,7 +142,7 @@ export function resourceRoutes(router: Router) {
             name: AIGNE_RUNTIME_COMPONENT_DID,
             method: 'get',
             path: '/api/datasets',
-            params: { projectId: x.id, excludeResource: true, userId: req.user?.did },
+            params: { projectId: x.id, userId: req.user?.did, size: 10000 },
           })
         ).data;
 
@@ -268,7 +268,7 @@ export function resourceRoutes(router: Router) {
                 name: AIGNE_RUNTIME_COMPONENT_DID,
                 method: 'get',
                 path: '/api/datasets',
-                params: { projectId, excludeResource: true, userId: req.user?.did },
+                params: { projectId, userId: req.user?.did, size: 10000 },
               })
             ).data;
 
@@ -405,6 +405,7 @@ function getAssistantDependentComponents(assistant: Assistant | Assistant[], kbL
 
           if (i.type === 'source' && i.source?.variableFrom === 'knowledge') {
             const id = i.source.knowledge?.id;
+
             const foundKnowledge = kbList.find((i) => i.id === id);
             if (foundKnowledge && foundKnowledge.resourceBlockletDid) {
               return [foundKnowledge.resourceBlockletDid];

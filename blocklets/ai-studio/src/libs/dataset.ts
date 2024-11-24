@@ -88,7 +88,7 @@ export async function createKnowledge(input?: KnowledgeInput): Promise<Knowledge
 
 export async function createDatasetFromResources(input: { items: KnowledgeInput[] }): Promise<Knowledge[]> {
   return axios
-    .post('/api/datasets/knowledge-from-resources', input, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
+    .post('/api/datasets/import-resources', input, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
     .then((res) => res.data);
 }
 

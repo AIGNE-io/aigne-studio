@@ -3,13 +3,13 @@ import { useCallback, useEffect } from 'react';
 import useInfiniteScrollHook from 'react-infinite-scroll-hook';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 
-import Dataset from '../../../api/src/store/models/dataset/dataset';
+import Knowledge from '../../../api/src/store/models/dataset/dataset';
 import KnowledgeDocument from '../../../api/src/store/models/dataset/document';
 import DatasetSegment from '../../../api/src/store/models/dataset/segment';
 import { getDocument, getSegments } from '../../libs/dataset';
 
 interface SegmentState {
-  dataset?: Dataset;
+  dataset?: Knowledge;
   document?: KnowledgeDocument;
   segments?: DatasetSegment[];
   loading?: boolean;

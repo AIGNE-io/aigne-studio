@@ -35,8 +35,15 @@ export const down: Migration = async ({ context: queryInterface }) => {
 
   await queryInterface.removeColumn('DatasetDocuments', 'filename');
   await queryInterface.removeColumn('DatasetDocuments', 'size');
+  await queryInterface.renameColumn('DatasetDocuments', 'knowledgeId', 'datasetId');
+  await queryInterface.addColumn('DatasetDocuments', 'content', { type: DataTypes.TEXT });
 
   await queryInterface.removeColumn('DatasetEmbeddingHistories', 'contentHash');
+  await queryInterface.renameColumn('DatasetEmbeddingHistories', 'knowledgeId', 'datasetId');
+  await queryInterface.addColumn('DatasetEmbeddingHistories', 'targetVersion', { type: DataTypes.STRING });
+  await queryInterface.addColumn('DatasetEmbeddingHistories', 'targetId', { type: DataTypes.STRING });
+
+  await queryInterface.addColumn('DatasetSegments', 'targetId', { type: DataTypes.STRING });
 
   // DatasetDocuments
   await queryInterface.removeIndex('DatasetDocuments', ['knowledgeId']);

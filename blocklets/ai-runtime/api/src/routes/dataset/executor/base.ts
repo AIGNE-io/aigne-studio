@@ -157,6 +157,7 @@ export abstract class BaseProcessor {
             const embeddingStatus = `${currentIndex}/${currentTotal}`;
             await this.send({ embeddingStatus, error: null }, 'change');
           }
+
           continue;
         }
 

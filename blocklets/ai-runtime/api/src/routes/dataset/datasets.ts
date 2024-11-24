@@ -17,12 +17,11 @@ import { initLocalStorageServer } from '@blocklet/uploader-server';
 import archiver from 'archiver';
 import compression from 'compression';
 import express, { Router } from 'express';
-import { exists, pathExists } from 'fs-extra';
+import { pathExists } from 'fs-extra';
 import Joi from 'joi';
 import { pick } from 'lodash';
 import omitBy from 'lodash/omitBy';
 import { Op, Sequelize } from 'sequelize';
-import { joinURL } from 'ufo';
 import { stringify } from 'yaml';
 
 import ensureKnowledgeDirExists, { getKnowledgeDir, getLogoPath } from '../../libs/ensure-dir';
@@ -30,12 +29,12 @@ import copyKnowledgeBase from '../../libs/knowledge';
 import { ensureComponentCallOr, ensureComponentCallOrAdmin, userAuth } from '../../libs/security';
 import Knowledge from '../../store/models/dataset/dataset';
 import KnowledgeDocument from '../../store/models/dataset/document';
-import { sse } from './util';
+import { getResourceAvatarPath, sse } from './util';
 
 const router = Router();
 const authClient = new AuthService();
 
-const datasetSchema = Joi.object<{
+const knowledgeSchema = Joi.object<{
   name?: string;
   description?: string;
   projectId?: string;
@@ -53,8 +52,8 @@ const datasetSchema = Joi.object<{
   icon: Joi.string().allow('').empty(null).default(''),
 });
 
-const knowledgeFromResourceSchema = Joi.object<{ items: (typeof datasetSchema.type)[] }>({
-  items: Joi.array().items(datasetSchema).required(),
+const knowledgeFromResourceSchema = Joi.object<{ items: (typeof knowledgeSchema.type)[] }>({
+  items: Joi.array().items(knowledgeSchema).required(),
 });
 
 const getKnowledgeListQuerySchema = Joi.object<{ projectId?: string; page: number; size: number }>({
@@ -112,19 +111,13 @@ router.get('/', middlewares.session(), ensureComponentCallOr(userAuth()), async 
 
         knowledge.name = resource?.knowledge.name;
         knowledge.description = resource?.knowledge.description;
-        knowledge.updatedBy = resource?.knowledge.updatedBy || knowledge.updatedBy;
 
         return {
           ...knowledge,
           user: {
             did: resource?.did,
             fullName: resource?.title,
-            avatar: joinURL(
-              config.env.appUrl,
-              '/.well-known/server/admin/blocklet/logo-bundle',
-              config.env.appId,
-              `${resource?.did}?v=1.0.1`
-            ),
+            avatar: getResourceAvatarPath(resource?.did!),
           },
           installed: !!resource,
         };
@@ -148,12 +141,7 @@ const getResourceList = async () => {
         user: {
           did: item?.did,
           fullName: item?.title,
-          avatar: joinURL(
-            config.env.appUrl,
-            '/.well-known/server/admin/blocklet/logo-bundle',
-            config.env.appId,
-            `${item?.did}?v=1.0.1`
-          ),
+          avatar: getResourceAvatarPath(item?.did!),
         },
         blockletDid: item.blockletDid,
         totalSize: 0,
@@ -165,16 +153,10 @@ const getResourceList = async () => {
   return list;
 };
 
-router.get(
-  '/resources',
-  middlewares.session({ componentCall: true }),
-  ensureComponentCallOr(userAuth()),
-  async (_req, res) => {
-    const resources = await getResourceList();
-
-    res.json(resources);
-  }
-);
+router.get('/resources', middlewares.session(), ensureComponentCallOr(userAuth()), async (_req, res) => {
+  const resources = await getResourceList();
+  res.json(resources);
+});
 
 router.get('/:knowledgeId', middlewares.session(), ensureComponentCallOr(userAuth()), async (req, res) => {
   const { knowledgeId } = req.params;
@@ -199,7 +181,6 @@ router.get('/:knowledgeId', middlewares.session(), ensureComponentCallOr(userAut
 
     knowledge.name = resource?.knowledge.name;
     knowledge.description = resource?.knowledge.description;
-    knowledge.updatedBy = resource?.knowledge.updatedBy || knowledge.updatedBy;
   }
 
   return res.json({ ...knowledge, user: pick(user, ['did', 'fullName', 'avatar']) });
@@ -211,9 +192,6 @@ router.get('/:knowledgeId/export-resource', middlewares.session(), ensureCompone
   // 以下为0.x.x 的存储方式,在使用时,可以比较好的，清楚之前的存储方式
 
   // try {
-  //   const knowledgeWithIdPath = join(tmpFolder, knowledgeId);
-  //   await mkdir(knowledgeWithIdPath, { recursive: true });
-
   //   // 首先将 projects documents contents 继续数据结构化
   //   await writeFile(
   //     join(knowledgeWithIdPath, 'knowledge.yaml'),
@@ -284,8 +262,8 @@ router.get('/:knowledgeId/export-resource', middlewares.session(), ensureCompone
     }
 
     // 首先将 projects documents segments 继续数据结构化
-    const knowledgeObjectPath = { ...knowledge.dataValues, public: query.public, version: '1.0.0' };
-    await writeFile(join(knowledgeWithIdPath, 'knowledge.yaml'), stringify(knowledgeObjectPath));
+    const knowledgeJSON = { ...knowledge.dataValues, public: query.public, version: '1.0.0' };
+    await writeFile(join(knowledgeWithIdPath, 'knowledge.yaml'), stringify(knowledgeJSON));
     await writeFile(join(knowledgeWithIdPath, 'documents.yaml'), stringify(documents));
     await writeFile(join(knowledgeWithIdPath, 'segments.yaml'), stringify(segments));
 
@@ -314,7 +292,7 @@ router.post('/', middlewares.session({ componentCall: true }), ensureComponentCa
   if (!userId || typeof userId !== 'string') throw new Error('Unauthorized');
 
   const { name, description, projectId, copyFromProjectId, knowledgeId, resourceBlockletDid } =
-    await datasetSchema.validateAsync(req.body, { stripUnknown: true });
+    await knowledgeSchema.validateAsync(req.body, { stripUnknown: true });
 
   if (projectId && copyFromProjectId) {
     const knowledge = await Knowledge.findAll({ where: { projectId: copyFromProjectId } });
@@ -338,46 +316,43 @@ router.post('/', middlewares.session({ componentCall: true }), ensureComponentCa
   }
 
   const params = omitBy({ name, description, projectId, knowledgeId, resourceBlockletDid }, (i) => i === undefined);
-  const dataset = await Knowledge.create({
-    ...params,
-    createdBy: userId,
-    updatedBy: userId,
-  });
+  const knowledge = await Knowledge.create({ ...params, createdBy: userId, updatedBy: userId });
 
+  // 导入非资源知识库
   if (!resourceBlockletDid && !knowledgeId) {
-    await ensureKnowledgeDirExists(dataset.id);
+    await ensureKnowledgeDirExists(knowledge.id);
   }
 
-  return res.json(dataset);
+  return res.json(knowledge);
 });
 
-router.post('/knowledge-from-resources', middlewares.session(), ensureComponentCallOr(userAuth()), async (req, res) => {
+router.post('/import-resources', middlewares.session(), ensureComponentCallOr(userAuth()), async (req, res) => {
   const userId = req.user?.did;
   if (!userId || typeof userId !== 'string') throw new Error('Unauthorized');
 
   const { items } = await knowledgeFromResourceSchema.validateAsync(req.body, { stripUnknown: true });
 
-  const dataset = await Knowledge.bulkCreate(
+  const list = await Knowledge.bulkCreate(
     items.map((item) => {
       const params = omitBy(item, (i) => i === undefined);
       return { ...params, createdBy: userId, updatedBy: userId };
     })
   );
 
-  return res.json(dataset);
+  return res.json(list);
 });
 
 router.put('/:knowledgeId', middlewares.session(), userAuth(), async (req, res) => {
   const { knowledgeId } = req.params;
   const { did } = req.user!;
 
-  const dataset = await Knowledge.findOne({ where: { id: knowledgeId } });
-  if (!dataset) {
-    res.status(404).json({ error: 'No such dataset' });
+  const knowledge = await Knowledge.findOne({ where: { id: knowledgeId } });
+  if (!knowledge) {
+    res.status(404).json({ error: 'No such knowledge' });
     return;
   }
 
-  const { name, description, projectId, icon } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
+  const { name, description, projectId, icon } = await knowledgeSchema.validateAsync(req.body, { stripUnknown: true });
   const params = omitBy({ name, description, projectId, icon }, (i) => !i);
 
   await Knowledge.update({ ...params, updatedBy: did }, { where: { id: knowledgeId } });
@@ -388,9 +363,9 @@ router.put('/:knowledgeId', middlewares.session(), userAuth(), async (req, res) 
 router.delete('/:knowledgeId', middlewares.session(), userAuth(), async (req, res) => {
   const { knowledgeId } = req.params;
 
-  const dataset = await Knowledge.findOne({ where: { [Op.or]: [{ id: knowledgeId }, { name: knowledgeId }] } });
-  if (!dataset) {
-    res.status(404).json({ error: 'No such dataset' });
+  const knowledge = await Knowledge.findOne({ where: { [Op.or]: [{ id: knowledgeId }, { name: knowledgeId }] } });
+  if (!knowledge) {
+    res.status(404).json({ error: 'No such knowledge' });
     return;
   }
 
@@ -399,7 +374,7 @@ router.delete('/:knowledgeId', middlewares.session(), userAuth(), async (req, re
     KnowledgeDocument.destroy({ where: { knowledgeId } }),
   ]);
 
-  res.json(dataset);
+  res.json(knowledge);
 });
 
 router.get('/:knowledgeId/embeddings', compression(), sse.init);
@@ -439,7 +414,7 @@ router.get('/:knowledgeId/icon.png', async (req, res) => {
         knowledgeId: knowledge.knowledgeId,
       });
 
-      if (resource?.logoPath && (await exists(resource?.logoPath))) {
+      if (resource?.logoPath && (await pathExists(resource?.logoPath))) {
         res.setHeader('Content-Type', 'image/png');
         res.sendFile(resource?.logoPath);
         return;
@@ -447,7 +422,7 @@ router.get('/:knowledgeId/icon.png', async (req, res) => {
     } else if (knowledge?.icon) {
       const logoPath = getLogoPath(knowledgeId);
 
-      if (await exists(logoPath)) {
+      if (await pathExists(logoPath)) {
         res.setHeader('Content-Type', 'image/png');
         res.sendFile(logoPath);
         return;

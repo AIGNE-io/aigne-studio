@@ -2,13 +2,13 @@ import Toast from '@arcblock/ux/lib/Toast';
 import { useCallback, useEffect } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 
-import Dataset from '../../../api/src/store/models/dataset/dataset';
+import Knowledge from '../../../api/src/store/models/dataset/dataset';
 import KnowledgeDocument from '../../../api/src/store/models/dataset/document';
 import { getErrorMessage } from '../../libs/api';
 import { deleteDocument, getDocuments, getKnowledge } from '../../libs/dataset';
 
 interface DatasetState {
-  dataset?: Dataset & { blockletDid?: string };
+  dataset?: Knowledge & { blockletDid?: string };
   items?: KnowledgeDocument[];
   page: number;
   size: number;
