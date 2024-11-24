@@ -26,7 +26,7 @@ import {
   Popper,
   Tooltip,
 } from '@mui/material';
-import { ReactElement, useMemo, useState } from 'react';
+import { ReactElement, ReactNode, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { joinURL, withQuery } from 'ufo';
 
@@ -67,6 +67,15 @@ function generateTwitterShareUrl(data: {
   return `https://twitter.com/intent/tweet?${params.toString()}`;
 }
 
+function ProjectLimitChecker({ children }: { children: ReactNode }) {
+  const { checkProjectLimitAsync } = useProjectLimiting();
+  const [passed, setPassed] = useState(false);
+  useEffect(() => {
+    checkProjectLimitAsync().then(setPassed);
+  }, [checkProjectLimitAsync]);
+  return passed ? children : null;
+}
+
 export function MakeYoursButton({
   project,
   deployment,
@@ -76,7 +85,6 @@ export function MakeYoursButton({
   const navigate = useNavigate();
   const { session } = useSessionContext();
   const [dialog, setDialog] = useState<ReactElement | null>(null);
-  const { checkProjectLimitAsync } = useProjectLimiting();
 
   const onDialogClose = () => {
     setDialog(null);
@@ -88,9 +96,14 @@ export function MakeYoursButton({
         session.login(() => resolve());
       });
     }
-    if (await checkProjectLimitAsync()) {
-      setDialog(<ImportFromFork project={project} onCreate={onMakeYours} onClose={onDialogClose} />);
-    }
+
+    // NOTE: 此处需要包裹 ProjectLimitChecker 组件，而不能直接调用 checkProjectLimitAsync 方法来检查项目数量限制.
+    // 原因: 若用户在未登录状态点击按钮, 登录后 session 状态未及时刷新, 此处的 session.user 依然为 null, 导致 checkProjectLimitAsync 结果错误
+    setDialog(
+      <ProjectLimitChecker>
+        <ImportFromFork project={project} onCreate={onMakeYours} onClose={onDialogClose} />
+      </ProjectLimitChecker>
+    );
   };
 
   const onMakeYours = async ({ name, description }: { name: string; description: string }) => {
