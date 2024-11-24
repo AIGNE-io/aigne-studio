@@ -10,11 +10,12 @@ const updateDiscussKnowledge = async () => {
 
   logger.info('action automatic update');
 
-  const datasets = await Knowledge.findAll({});
-  for (const dataset of datasets) {
-    const documents = await KnowledgeDocument.findAll({ where: { type: 'discussKit', knowledgeId: dataset.id } });
+  const list = await Knowledge.findAll({});
+  for (const knowledge of list) {
+    // eslint-disable-next-line no-await-in-loop
+    const documents = await KnowledgeDocument.findAll({ where: { type: 'discussKit', knowledgeId: knowledge.id } });
     documents.forEach((document) => {
-      if (document.id) queue.checkAndPush({ type: 'document', knowledgeId: dataset.id, documentId: document.id });
+      if (document.id) queue.checkAndPush({ type: 'document', knowledgeId: knowledge.id, documentId: document.id });
     });
   }
 };

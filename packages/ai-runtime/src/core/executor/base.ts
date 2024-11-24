@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 import { hash } from 'crypto';
 
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
@@ -550,7 +551,7 @@ export abstract class AgentExecutorBase<T> {
             .copy({ callback: cb(currentTaskId) })
             .executor(blocklet.agent, {
               inputs: tool?.parameters,
-              variables: { ...inputVariables, blockletDid, datasetId: tool.id },
+              variables: { ...inputVariables, blockletDid, datasetId: tool.id, knowledgeId: tool.id },
               taskId: currentTaskId,
               parentTaskId: taskId,
             })

@@ -6,7 +6,7 @@ import middlewares from '@blocklet/sdk/lib/middlewares';
 // @ts-ignore
 import { initLocalStorageServer } from '@blocklet/uploader-server';
 import express, { Router } from 'express';
-import { exists, pathExists } from 'fs-extra';
+import { exists, pathExists, readFile } from 'fs-extra';
 import Joi from 'joi';
 import { Op } from 'sequelize';
 import { joinURL } from 'ufo';
@@ -232,7 +232,7 @@ router.post('/:knowledgeId/documents/custom', middlewares.session(), userAuth(),
 
   const originalFileName = `${document.id}.txt`;
   const originalFilePath = joinURL(getSourceFileDir(knowledgeId), originalFileName);
-  await writeFile(originalFilePath, `${title}\n${content}`);
+  await writeFile(originalFilePath, content);
   await document.update({ filename: originalFileName });
 
   queue.checkAndPush({ type: 'document', knowledgeId, documentId: document.id });
@@ -346,6 +346,18 @@ router.get('/:knowledgeId/documents/:documentId', middlewares.session(), userAut
   ]);
 
   res.json({ dataset, document });
+});
+
+router.get('/:knowledgeId/documents/:documentId/content', middlewares.session(), userAuth(), async (req, res) => {
+  const { knowledgeId, documentId } = await documentIdSchema.validateAsync(req.params, { stripUnknown: true });
+
+  const document = await KnowledgeDocument.findOne({ where: { knowledgeId, id: documentId } });
+  if (!document?.filename) {
+    return res.json({ content: '' });
+  }
+
+  const content = await readFile(joinURL(getSourceFileDir(knowledgeId), document.filename), 'utf-8');
+  return res.json({ content });
 });
 
 router.post('/:knowledgeId/documents/:documentId/embedding', middlewares.session(), userAuth(), async (req, res) => {

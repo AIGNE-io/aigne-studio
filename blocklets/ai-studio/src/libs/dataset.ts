@@ -156,7 +156,7 @@ export async function getDocument(
     .then((res) => res.data);
 }
 
-export async function getDocumentContent(knowledgeId: string, documentId: string): Promise<{ content: string[] }> {
+export async function getDocumentContent(knowledgeId: string, documentId: string): Promise<{ content: string }> {
   return axios
     .get(`/api/datasets/${knowledgeId}/documents/${documentId}/content`, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
     .then((res) => res.data);

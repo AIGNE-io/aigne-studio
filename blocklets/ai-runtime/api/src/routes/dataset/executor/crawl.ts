@@ -50,7 +50,7 @@ export class CrawlProcessor extends BaseProcessor {
 
     const { title, content } = await map[provider]();
     const originalFilePath = joinURL(getSourceFileDir(this.knowledgeId), this.originalFileName);
-    await writeFile(originalFilePath, `${title}\n${content}`);
+    await writeFile(originalFilePath, content);
     await document.update({ filename: this.originalFileName, name: title });
   }
 

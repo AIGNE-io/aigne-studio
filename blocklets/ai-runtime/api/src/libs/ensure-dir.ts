@@ -13,22 +13,23 @@ async function ensureKnowledgeDirExists(knowledgeId?: string) {
 
     const knowledgeDir = path.join(Config.knowledgeDir, knowledgeId);
     await Promise.all([
-      mkdir(path.join(knowledgeDir, 'sources'), { recursive: true }),
+      mkdir(path.join(knowledgeDir, 'uploads'), { recursive: true }),
       mkdir(path.join(knowledgeDir, 'vectors'), { recursive: true }),
       mkdir(path.join(knowledgeDir, 'processed'), { recursive: true }),
+      mkdir(path.join(knowledgeDir, 'sources'), { recursive: true }),
     ]);
   }
 }
 
-const getDir = (knowledgeId: string, type?: 'sources' | 'vectors' | 'processed' | 'uploads') => {
+const getDir = (knowledgeId: string, type?: 'uploads' | 'vectors' | 'sources' | 'processed') => {
   return path.join(Config.knowledgeDir, knowledgeId, type || '');
 };
 
-export const getSourceFileDir = (knowledgeId: string) => getDir(knowledgeId, 'sources');
-export const getVectorDir = (knowledgeId: string) => getDir(knowledgeId, 'vectors');
-export const getProcessedFileDir = (knowledgeId: string) => getDir(knowledgeId, 'processed');
-export const getUploadDir = (knowledgeId: string) => getDir(knowledgeId, 'uploads');
 export const getKnowledgeDir = (knowledgeId: string) => getDir(knowledgeId);
+export const getUploadDir = (knowledgeId: string) => getDir(knowledgeId, 'uploads');
+export const getVectorDir = (knowledgeId: string) => getDir(knowledgeId, 'vectors');
+export const getSourceFileDir = (knowledgeId: string) => getDir(knowledgeId, 'sources');
+export const getProcessedFileDir = (knowledgeId: string) => getDir(knowledgeId, 'processed');
 
 export const getLogoPath = (knowledgeId: string) => path.join(getKnowledgeDir(knowledgeId), 'logo.png');
 
@@ -41,8 +42,8 @@ export const getVectorStorePath = async (knowledgeId: string) =>
     : getOldVectorStorePath(knowledgeId);
 
 export const getUploadPath = async (knowledgeId: string, file: string) =>
-  knowledgeId && (await pathExists(getSourceFileDir(knowledgeId)))
-    ? path.join(getSourceFileDir(knowledgeId), file)
+  knowledgeId && (await pathExists(getUploadDir(knowledgeId)))
+    ? path.join(getUploadDir(knowledgeId), file)
     : getOldUploadPath(file);
 
 export const getUploadPathByCheckFile = async (knowledgeId: string, file?: string) =>
