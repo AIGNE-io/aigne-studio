@@ -15,7 +15,6 @@ import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
 import ArrowBarToUpIcon from '@iconify-icons/tabler/arrow-bar-to-up';
 import FileIcon from '@iconify-icons/tabler/file';
-import NetworkIcon from '@iconify-icons/tabler/network';
 import PencilIcon from '@iconify-icons/tabler/pencil';
 import XIcon from '@iconify-icons/tabler/x';
 import {
@@ -109,7 +108,9 @@ export default function ImportKnowledge({
       {
         id: 'url',
         label: t('knowledge.crawl'),
-        icon: <Box component={Icon} icon={NetworkIcon} width={14} height={14} borderRadius={1} className="center" />,
+        icon: (
+          <Box component={Icon} icon="zondicons:network" width={14} height={14} borderRadius={1} className="center" />
+        ),
       },
     ] as SourceTypeSelectType[]
   ).filter(Boolean);
