@@ -5,6 +5,7 @@ import { basename, join } from 'path';
 import logger from '@api/libs/logger';
 import { copyRecursive } from '@blocklet/ai-runtime/utils/fs';
 import { pathExists } from 'fs-extra';
+import { Op } from 'sequelize';
 import { joinURL } from 'ufo';
 
 import { getProcessedFileDir, getSourceFileDir, getUploadDir, getVectorDir } from '../../libs/ensure-dir';
@@ -20,7 +21,13 @@ export const up: Migration = async () => {
     await Promise.all(knowledge.map(migrateKnowledge));
 
     // 删除没有用到文档
-    await Document.destroy({ where: { knowledgeId: { inq: knowledge.map((k) => k.id) } } });
+    await Document.destroy({
+      where: {
+        knowledgeId: {
+          [Op.notIn]: knowledge.map((k) => k.id),
+        },
+      },
+    });
 
     await new Promise((resolve) => {
       logger.info('queue drain');
@@ -72,14 +79,12 @@ const migrateKnowledge = async (knowledge: Knowledge) => {
         }
       } else if (document.type === 'text') {
         const content = await Content.findOne({ where: { documentId: document.id } });
-        console.log('content', content);
-        console.log('document.data', (document.data as any)?.content);
         await document.update({ embeddingStatus: 'idle', filename: '', size: 0, data: { type: 'text' } });
         queue.checkAndPush({ type: 'document', knowledgeId: knowledge.id, documentId: document.id });
 
         const originalFileName = `${document.id}.txt`;
         const originalFilePath = joinURL(getSourceFileDir(knowledge.id), originalFileName);
-        await writeFile(originalFilePath, `${content?.dataValues?.content || (document.data as any)?.content || ''}`);
+        await writeFile(originalFilePath, `${(document.data as any)?.content || content?.dataValues?.content || ''}`);
         await document.update({ filename: originalFileName });
         queue.checkAndPush({ type: 'document', knowledgeId: knowledge.id, documentId: document.id });
       } else if (document.type === 'discussKit') {
