@@ -14,7 +14,7 @@ import { projectCronManager } from './libs/cron-jobs';
 import { csrf } from './libs/csrf';
 import { Config, isDevelopment } from './libs/env';
 import { NoPermissionError, NoSuchEntryAgentError, NotFoundError } from './libs/error';
-import logger, { accessLogMiddleware } from './libs/logger';
+import logger, { accessLogMiddleware, registerLoggerToConsole } from './libs/logger';
 import { importPackageJson } from './libs/package-json';
 import { resourceManager } from './libs/resource';
 import { xss } from './libs/xss';
@@ -23,6 +23,8 @@ import setupHtmlRouter from './routes/html';
 import { getOpenEmbed } from './routes/open-embed';
 import { handleYjsWebSocketUpgrade } from './routes/ws';
 import { initModels } from './store/models/init-models';
+
+registerLoggerToConsole();
 
 export const app = express();
 

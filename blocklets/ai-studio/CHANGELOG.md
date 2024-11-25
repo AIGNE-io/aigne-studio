@@ -1,6 +1,14 @@
-## 0.4.153 (2024-11-22)
+## 0.4.155 (2024-11-25)
 
-- fix(ai-studio): carrying user information when connecting to space
+- fix: move route definitions to top level(#1470)
+
+## 0.4.154 (2024-11-23)
+
+- chore: replace global console with logger
+
+## 0.4.153 (2024-11-23)
+
+- chore: replace global console with logger
 
 ## 0.4.152 (2024-11-19)
 

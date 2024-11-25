@@ -23,3 +23,14 @@ export const accessLogMiddleware = (req: Request, res: Response, next: NextFunct
 
   morganInstance(req, res, next);
 };
+
+export function registerLoggerToConsole() {
+  // eslint-disable-next-line no-console
+  console.log = logger.info.bind(logger);
+  // eslint-disable-next-line no-console
+  console.debug = logger.debug.bind(logger);
+  // eslint-disable-next-line no-console
+  console.error = logger.error.bind(logger);
+  // eslint-disable-next-line no-console
+  console.warn = logger.warn.bind(logger);
+}
