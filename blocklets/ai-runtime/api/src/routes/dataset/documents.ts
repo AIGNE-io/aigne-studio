@@ -343,12 +343,13 @@ router.get('/:knowledgeId/documents/:documentId/content', middlewares.session(),
 
   const document = await KnowledgeDocument.findOne({ where: { knowledgeId, id: documentId } });
   if (!document?.filename) {
-    return res.json({ content: '' });
+    return res.json({ filename: '' });
   }
 
-  const pipeline = new PipelineProcessor({ knowledgeId, documentId, update: false, sse: {} });
-  const content = await pipeline.getSourceContent(document.filename);
-  return res.json({ content });
+  const filePath = joinURL(getSourceFileDir(knowledgeId), document.filename);
+  if (!(await pathExists(filePath))) throw new Error(`file ${filePath} not found`);
+
+  return res.json({ filename: document.filename });
 });
 
 router.post('/:knowledgeId/documents/:documentId/embedding', middlewares.session(), userAuth(), async (req, res) => {

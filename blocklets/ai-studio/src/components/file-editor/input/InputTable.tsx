@@ -1140,21 +1140,7 @@ function KnowledgeParameter({
                 if (!data) return null;
 
                 if (data.type === 'boolean') {
-                  return (
-                    <Stack key={data.name}>
-                      <Typography variant="caption">{data.description || data.name}</Typography>
-
-                      <Switch
-                        checked={Boolean(source?.knowledge?.parameters?.[data.name] ?? false)}
-                        onChange={(_, checked) => {
-                          if (source?.knowledge?.parameters) {
-                            // @ts-ignore
-                            source.knowledge.parameters[data.name] = checked;
-                          }
-                        }}
-                      />
-                    </Stack>
-                  );
+                  return null;
                 }
 
                 if (source?.knowledge?.parameters?.searchAll) {

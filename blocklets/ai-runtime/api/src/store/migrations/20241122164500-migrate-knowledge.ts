@@ -21,13 +21,7 @@ export const up: Migration = async () => {
     await Promise.all(knowledge.map(migrateKnowledge));
 
     // 删除没有用到文档
-    await Document.destroy({
-      where: {
-        knowledgeId: {
-          [Op.notIn]: knowledge.map((k) => k.id),
-        },
-      },
-    });
+    await Document.destroy({ where: { knowledgeId: { [Op.notIn]: knowledge.map((k) => k.id) } } });
 
     await new Promise((resolve) => {
       logger.info('queue drain');
@@ -70,22 +64,34 @@ const migrateKnowledge = async (knowledge: Knowledge) => {
     try {
       if (document.type === 'file') {
         const filepath = (document.data as any)?.path;
+
         if (filepath) {
           const oldPath = join(getUploadDir(knowledge.id), basename(filepath));
           if (await pathExists(oldPath)) {
-            await document.update({ data: { type: 'file' }, filename: basename(filepath), embeddingStatus: 'idle' });
+            await document.update({
+              data: { type: 'file' },
+              name: basename(filepath),
+              filename: basename(filepath),
+              embeddingStatus: 'idle',
+            });
+
             queue.checkAndPush({ type: 'document', knowledgeId: knowledge.id, documentId: document.id });
           }
         }
       } else if (document.type === 'text') {
         const content = await Content.findOne({ where: { documentId: document.id } });
-        await document.update({ embeddingStatus: 'idle', filename: '', size: 0, data: { type: 'text' } });
         queue.checkAndPush({ type: 'document', knowledgeId: knowledge.id, documentId: document.id });
 
         const originalFileName = `${document.id}.txt`;
         const originalFilePath = joinURL(getSourceFileDir(knowledge.id), originalFileName);
         await writeFile(originalFilePath, `${(document.data as any)?.content || content?.dataValues?.content || ''}`);
-        await document.update({ filename: originalFileName });
+
+        await document.update({
+          filename: originalFileName,
+          embeddingStatus: 'idle',
+          size: 0,
+          data: { type: 'text' },
+        });
         queue.checkAndPush({ type: 'document', knowledgeId: knowledge.id, documentId: document.id });
       } else if (document.type === 'discussKit') {
         await document.update({ embeddingStatus: 'idle' });

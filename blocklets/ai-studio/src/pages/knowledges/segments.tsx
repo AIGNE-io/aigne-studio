@@ -1,10 +1,12 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
 import XIcon from '@iconify-icons/tabler/x';
 import {
   Box,
   Breadcrumbs,
   CircularProgress,
+  Container,
   Dialog,
   DialogContent,
   DialogTitle,
@@ -22,14 +24,14 @@ import {
 } from '@mui/material';
 import { useRequest } from 'ahooks';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Virtuoso } from 'react-virtuoso';
 
 import { useFetchSegments, useSegments } from '../../contexts/datasets/segments';
 import { getDocumentContent } from '../../libs/dataset';
 import Empty from '../project/icons/empty';
+import Viewer from './viewer';
 
 export default function KnowledgeSegments() {
   const { t } = useLocaleContext();
@@ -46,14 +48,11 @@ export default function KnowledgeSegments() {
   }
 
   const navigate = useNavigate();
-  const viewportRef = useRef<HTMLDivElement>(null);
-  const autoScroll = useRef(true);
-
   const segmentDialogState = usePopupState({ variant: 'dialog', popupId: 'segment' });
 
   const form = useForm<{ content: string }>({ defaultValues: { content: '' } });
-  const [viewType, setViewType] = useState('SegmentsView');
-  const [content, setContent] = useState<string>('');
+  const [viewType, setViewType] = useState<'SegmentsView' | 'ContentView'>('ContentView');
+  const [filename, setFilename] = useState<string>('');
 
   const { state } = useSegments(knowledgeId, documentId);
   const { loadingRef, dataState } = useFetchSegments(knowledgeId, documentId);
@@ -61,23 +60,22 @@ export default function KnowledgeSegments() {
   const isReadOnly = Boolean(readContent);
   const segments = dataState?.data?.list || [];
 
-  const [hitBottom, setHitBottom] = useState(true);
-  const handleScroll = (e: HTMLDivElement) => {
-    const isTouchBottom = e.scrollTop + e.offsetHeight >= e.scrollHeight - 20;
-    setHitBottom(isTouchBottom);
-  };
-
   const { loading } = useRequest(
     async () => {
-      if (viewType === 'ContentView' && !content?.length) {
+      if (viewType === 'ContentView' && !filename) {
         const con = await getDocumentContent(knowledgeId, documentId);
-        setContent(con?.content || '');
+        setFilename(con.filename);
         return Promise.resolve(null);
       }
 
       return Promise.resolve(null);
     },
-    { refreshDeps: [viewType, content, knowledgeId, documentId] }
+    {
+      refreshDeps: [viewType, filename, knowledgeId, documentId],
+      onError: (e) => {
+        Toast.error(e.message);
+      },
+    }
   );
 
   if (state.error) throw state.error;
@@ -110,7 +108,9 @@ export default function KnowledgeSegments() {
               <Select
                 hiddenLabel
                 value={viewType}
-                onChange={(event: SelectChangeEvent) => setViewType(event.target.value)}>
+                onChange={(event: SelectChangeEvent) =>
+                  setViewType(event.target.value as 'SegmentsView' | 'ContentView')
+                }>
                 <MenuItem value="SegmentsView">{t('segmentsView')}</MenuItem>
                 <MenuItem value="ContentView">{t('contentView')}</MenuItem>
               </Select>
@@ -121,49 +121,11 @@ export default function KnowledgeSegments() {
         <Divider sx={{ borderColor: '#eff1f5' }} />
 
         {viewType === 'ContentView' && (
-          <>
-            {!loading && (
-              <Stack flex={1} height={0} py={2}>
-                <Box width={1} height={1}>
-                  <Box
-                    position="relative"
-                    display="flex"
-                    flexGrow={1}
-                    height={0}
-                    flexDirection="column"
-                    sx={{
-                      border: '1px solid rgba(29,28,35,.12)',
-                      borderRadius: 0.5,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      m: '0 24px',
-                      height: 'calc(100% - 24px)',
-                      position: 'relative',
-                      overflow: 'auto',
-                    }}
-                    ref={viewportRef}
-                    onScroll={(e) => handleScroll(e.currentTarget)}
-                    onWheel={(e) => {
-                      return (autoScroll.current = hitBottom && e.deltaY > 0);
-                    }}
-                    onTouchStart={() => {
-                      autoScroll.current = false;
-                    }}>
-                    <Virtuoso
-                      customScrollParent={viewportRef.current!}
-                      data={[content]}
-                      initialTopMostItemIndex={0}
-                      computeItemKey={(_, item) => item}
-                      itemContent={(index, message) => (
-                        <Box
-                          key={index}
-                          p={2}
-                          sx={{ wordBreak: 'break-word', whiteSpace: 'break-spaces' }}>{`${message}`}</Box>
-                      )}
-                    />
-                  </Box>
-                </Box>
-              </Stack>
+          <Stack px={2.5} flex={1} height={0} overflow="hidden" py={2}>
+            {!loading && filename && (
+              <Container sx={{ height: 1 }}>
+                <Viewer knowledgeId={knowledgeId} filename={filename} />
+              </Container>
             )}
 
             {loading && (
@@ -173,7 +135,7 @@ export default function KnowledgeSegments() {
                 </Box>
               </Stack>
             )}
-          </>
+          </Stack>
         )}
 
         {viewType === 'SegmentsView' && (

@@ -407,7 +407,7 @@ const SelectKnowledgeModal = (
 
       await createDatasetFromResources({ items });
       setSelectedKnowledge({});
-      Toast.success(t('importKnowledgeSuccess'));
+      Toast.success(t('knowledge.importKnowledgeSuccess'));
       props.onConfirm();
     },
     {
