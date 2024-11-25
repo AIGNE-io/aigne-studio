@@ -1,9 +1,9 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Icon } from '@iconify-icon/react';
-import ChevronLeftIcon from '@iconify-icons/tabler/chevron-left';
 import XIcon from '@iconify-icons/tabler/x';
 import {
   Box,
+  Breadcrumbs,
   CircularProgress,
   Dialog,
   DialogContent,
@@ -44,6 +44,7 @@ export default function KnowledgeSegments() {
   if (!documentId) {
     throw new Error('documentId is required');
   }
+
   const navigate = useNavigate();
   const viewportRef = useRef<HTMLDivElement>(null);
   const autoScroll = useRef(true);
@@ -96,18 +97,12 @@ export default function KnowledgeSegments() {
       <Stack overflow="hidden" height={1} bgcolor="#fff">
         <Box py={2} px={2.5} className="between">
           <Stack gap={1}>
-            <Box
-              display="flex"
-              alignItems="center"
-              sx={{ cursor: 'pointer' }}
-              onClick={() => {
-                navigate(`../${knowledgeId}`);
-              }}>
-              <Box component={Icon} icon={ChevronLeftIcon} width={20} />
-              <Typography variant="subtitle2" mb={0}>
-                {state.document?.name}
+            <Breadcrumbs sx={{ color: '#9CA3AF' }}>
+              <Typography sx={{ cursor: 'pointer' }} onClick={() => navigate(`../${knowledgeId}`)}>
+                {state?.dataset?.name || t('unnamed')}
               </Typography>
-            </Box>
+              <Typography sx={{ color: '#030712' }}>{state.document?.name}</Typography>
+            </Breadcrumbs>
           </Stack>
 
           <Box>
@@ -123,7 +118,7 @@ export default function KnowledgeSegments() {
           </Box>
         </Box>
 
-        <Divider />
+        <Divider sx={{ borderColor: '#eff1f5' }} />
 
         {viewType === 'ContentView' && (
           <>

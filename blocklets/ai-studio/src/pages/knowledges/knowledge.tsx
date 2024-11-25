@@ -2,6 +2,7 @@ import LoadingButton from '@app/components/loading/loading-button';
 import { useIsAdmin } from '@app/contexts/session';
 import useSubscription from '@app/hooks/use-subscription';
 import { AIGNE_RUNTIME_MOUNT_POINT } from '@app/libs/constants';
+import useDialog from '@app/utils/use-dialog';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
@@ -21,6 +22,7 @@ import {
   DialogProps,
   DialogTitle,
   IconButton,
+  MenuItem,
   Stack,
   StackProps,
   Theme,
@@ -33,7 +35,7 @@ import { useRequest } from 'ahooks';
 import bytes from 'bytes';
 import dayjs from 'dayjs';
 import { usePopupState } from 'material-ui-popup-state/hooks';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
@@ -42,14 +44,16 @@ import backgroundIcon from '../../icons/background.png?url';
 import checkDisabledIcon from '../../icons/check-disabled.svg?url';
 import checkBoxIcon from '../../icons/check.svg?url';
 import type { KnowledgeCard as KnowledgeCardType } from '../../libs/dataset';
+import PopperMenuButton from '../project/menu-button';
 
 export default function Knowledge() {
   const { projectId } = useParams();
   if (!projectId) throw new Error('projectId not Found');
 
+  const { dialog, showDialog } = useDialog();
   const { t } = useLocaleContext();
   const dialogState = usePopupState({ variant: 'dialog' });
-  const { createKnowledge, getResourcesKnowledgeList } = useKnowledge();
+  const { createKnowledge, getResourcesKnowledgeList, deleteKnowledge } = useKnowledge();
   const { loadingRef, dataState } = useFetchKnowledgeList(projectId);
   const navigate = useNavigate();
   const list = dataState?.data?.list || [];
@@ -102,6 +106,63 @@ export default function Knowledge() {
                     resourceBlockletDid={item.resourceBlockletDid}
                     disabled={!item.installed}
                     onClick={() => item.installed && navigate(`./${item.id}`)}
+                    action={
+                      <PopperMenuButton
+                        component={IconButton}
+                        PopperProps={{ placement: 'bottom-start', sx: { zIndex: 'snackbar' } }}
+                        menus={
+                          <MenuItem
+                            color="error"
+                            sx={{ color: '#E11D48' }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+
+                              showDialog({
+                                formSx: {
+                                  '.MuiDialogTitle-root': {
+                                    border: 0,
+                                  },
+                                  '.MuiDialogActions-root': {
+                                    border: 0,
+                                  },
+                                  '.save': {
+                                    background: '#d32f2f',
+                                  },
+                                },
+                                maxWidth: 'sm',
+                                fullWidth: true,
+                                title: (
+                                  <Box sx={{ wordWrap: 'break-word' }}>
+                                    {t('knowledge.deleteTitle', { object: t('knowledge.knowledgeBase') })}
+                                  </Box>
+                                ),
+                                content: (
+                                  <Box>
+                                    <Typography fontWeight={500} fontSize={16} lineHeight="28px" color="#4B5563">
+                                      {t('knowledge.deleteDescription')}
+                                    </Typography>
+                                  </Box>
+                                ),
+                                okText: t('alert.delete'),
+                                okColor: 'error',
+                                cancelText: t('cancel'),
+                                onOk: async () => {
+                                  try {
+                                    await deleteKnowledge(item.id);
+                                    dataState.reload();
+                                  } catch (error) {
+                                    Toast.error(error.message);
+                                  }
+                                },
+                              });
+                            }}>
+                            {t('delete')}
+                          </MenuItem>
+                        }
+                        sx={{ fontSize: 20, color: '#9CA3AF', cursor: 'pointer', p: '4px' }}>
+                        <Icon icon="tabler:dots" />
+                      </PopperMenuButton>
+                    }
                   />
                 </CardContainer>
               </Tooltip>
@@ -127,6 +188,8 @@ export default function Knowledge() {
           dialogState.close();
         }}
       />
+
+      {dialog}
     </>
   );
 }
@@ -166,6 +229,7 @@ const KnowledgeCard = ({
   icon,
   knowledgeId,
   resourceBlockletDid,
+  action,
   ...props
 }: {
   emoji: string;
@@ -181,9 +245,9 @@ const KnowledgeCard = ({
   icon?: string;
   knowledgeId?: string;
   resourceBlockletDid?: string;
+  action?: ReactNode;
 } & StackProps) => {
   const { t } = useLocaleContext();
-
   const url = joinURL(AIGNE_RUNTIME_MOUNT_POINT, `/api/datasets/${knowledgeId}/icon.png?icon=${icon}`);
 
   return (
@@ -197,44 +261,48 @@ const KnowledgeCard = ({
         pointerEvents: disabled ? 'none' : 'auto',
       }}
       {...props}>
-      <Box
-        className="center"
-        sx={{
-          width: 48,
-          height: 48,
-          background: '#F1F3F5',
-          borderRadius: 1,
-
-          img: {
-            width: 1,
-            height: 1,
+      <Stack direction="row" justifyContent="space-between" alignItems="flex-start" width={1}>
+        <Box
+          className="center"
+          sx={{
+            width: 48,
+            height: 48,
+            background: '#F1F3F5',
             borderRadius: 1,
-            objectFit: 'cover',
-          },
-        }}>
-        {icon ? (
-          <Box
-            component="img"
-            src={url}
-            alt="knowledge icon"
-            onError={(e) => {
-              e.currentTarget.onerror = null;
-              e.currentTarget.style.display = 'none';
-              if (e.currentTarget.nextElementSibling) {
-                (e.currentTarget.nextElementSibling as any).style.display = 'block';
-              }
-            }}
-          />
-        ) : null}
-        <Typography fontSize={24} style={{ display: icon ? 'none' : 'block' }}>
-          {emoji}
-        </Typography>
-      </Box>
+
+            img: {
+              width: 1,
+              height: 1,
+              borderRadius: 1,
+              objectFit: 'cover',
+            },
+          }}>
+          {icon ? (
+            <Box
+              component="img"
+              src={url}
+              alt="knowledge icon"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.style.display = 'none';
+                if (e.currentTarget.nextElementSibling) {
+                  (e.currentTarget.nextElementSibling as any).style.display = 'block';
+                }
+              }}
+            />
+          ) : null}
+          <Typography fontSize={24} style={{ display: icon ? 'none' : 'block' }}>
+            {emoji}
+          </Typography>
+        </Box>
+
+        {action}
+      </Stack>
 
       <Box height={40} className="center" justifyContent="flex-start" />
 
       <Stack flex={1} height={0} gap={0.5} justifyContent="flex-start">
-        <Typography fontWeight={600} lineHeight="28px" fontSize={18}>
+        <Typography fontWeight={600} lineHeight="28px" fontSize={18} sx={{ wordBreak: 'break-word' }}>
           {title || t('unnamed')}
         </Typography>
 
@@ -247,6 +315,7 @@ const KnowledgeCard = ({
               display: '-webkit-box',
               WebkitLineClamp: maxLineClamp,
               WebkitBoxOrient: 'vertical',
+              wordBreak: 'break-word',
             }}>
             {description}
           </Typography>
@@ -297,6 +366,7 @@ const SelectKnowledgeModal = (
   const { getResourcesKnowledgeList, createDatasetFromResources, resources, resourceLoading } = useKnowledge();
   const isAdmin = useIsAdmin();
   const addComponentRef = useRef<{ onClick?: () => void; loading?: boolean }>();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (props.open) {
@@ -360,7 +430,14 @@ const SelectKnowledgeModal = (
           return <Box />;
         }}
         onClose={() => {}}
-        onComplete={() => {}}
+        onComplete={() => {
+          setLoading(false);
+
+          setTimeout(() => {
+            getResourcesKnowledgeList();
+            setLoading(false);
+          }, 3000);
+        }}
       />
 
       <Dialog
@@ -383,65 +460,68 @@ const SelectKnowledgeModal = (
         </DialogTitle>
 
         <DialogContent>
-          {resourceLoading && (
+          {loading || resourceLoading ? (
             <Box className="center" flex={1} height={1}>
               <CircularProgress size={36} />
             </Box>
+          ) : (
+            <>
+              {!resources.length && (
+                <Box className="center" flex={1} height={1}>
+                  <Stack alignItems="center">
+                    <Typography variant="subtitle1">📚</Typography>
+                    <Typography variant="subtitle4">{t('knowledge.noKnowledge')}</Typography>
+                    <Typography variant="subtitle5">{t('knowledge.noKnowledgeTip')}</Typography>
+                  </Stack>
+                </Box>
+              )}
+
+              <KnowledgeListContainer gap={2.5}>
+                {resources.map((item) => {
+                  const key = `${item.blockletDid}${separator}${item.id}`;
+                  return (
+                    <CardContainer
+                      key={key}
+                      height={327}
+                      sx={{
+                        border: '1px solid transparent',
+                        borderColor: selectedKnowledge[key] ? '#3B82F6' : 'transparent',
+                      }}>
+                      <KnowledgeCard
+                        disabled={disabled[key]}
+                        emoji="📖"
+                        title={item.name || t('unnamed')}
+                        description={item.description || ''}
+                        docsCount={item.docs}
+                        size={item.totalSize}
+                        author={item.user.fullName}
+                        authorAvatar={item.user.avatar}
+                        date={item.updatedAt?.toLocaleString()}
+                        maxLineClamp={6}
+                        knowledgeId={item.id}
+                        onClick={() =>
+                          !disabled[key] &&
+                          setSelectedKnowledge({ ...selectedKnowledge, [key]: !selectedKnowledge[key] })
+                        }
+                      />
+
+                      {selectedKnowledge[key] && (
+                        <Box className="center" sx={{ position: 'absolute', top: 16, right: 16 }}>
+                          <Box component="img" src={checkBoxIcon} width={20} height={20} />
+                        </Box>
+                      )}
+
+                      {disabled[key] && (
+                        <Box className="center" sx={{ position: 'absolute', top: 16, right: 16 }}>
+                          <Box component="img" src={checkDisabledIcon} width={20} height={20} />
+                        </Box>
+                      )}
+                    </CardContainer>
+                  );
+                })}
+              </KnowledgeListContainer>
+            </>
           )}
-
-          {!resources.length && (
-            <Box className="center" flex={1} height={1}>
-              <Stack alignItems="center">
-                <Typography variant="subtitle1">📚</Typography>
-                <Typography variant="subtitle4">{t('knowledge.noKnowledge')}</Typography>
-                <Typography variant="subtitle5">{t('knowledge.noKnowledgeTip')}</Typography>
-              </Stack>
-            </Box>
-          )}
-
-          <KnowledgeListContainer gap={2.5}>
-            {resources.map((item) => {
-              const key = `${item.blockletDid}${separator}${item.id}`;
-              return (
-                <CardContainer
-                  key={key}
-                  height={327}
-                  sx={{
-                    border: '1px solid transparent',
-                    borderColor: selectedKnowledge[key] ? '#3B82F6' : 'transparent',
-                  }}>
-                  <KnowledgeCard
-                    disabled={disabled[key]}
-                    emoji="📖"
-                    title={item.name || t('unnamed')}
-                    description={item.description || ''}
-                    docsCount={item.docs}
-                    size={item.totalSize}
-                    author={item.user.fullName}
-                    authorAvatar={item.user.avatar}
-                    date={item.updatedAt?.toLocaleString()}
-                    maxLineClamp={6}
-                    knowledgeId={item.id}
-                    onClick={() =>
-                      !disabled[key] && setSelectedKnowledge({ ...selectedKnowledge, [key]: !selectedKnowledge[key] })
-                    }
-                  />
-
-                  {selectedKnowledge[key] && (
-                    <Box className="center" sx={{ position: 'absolute', top: 16, right: 16 }}>
-                      <Box component="img" src={checkBoxIcon} width={20} height={20} />
-                    </Box>
-                  )}
-
-                  {disabled[key] && (
-                    <Box className="center" sx={{ position: 'absolute', top: 16, right: 16 }}>
-                      <Box component="img" src={checkDisabledIcon} width={20} height={20} />
-                    </Box>
-                  )}
-                </CardContainer>
-              );
-            })}
-          </KnowledgeListContainer>
         </DialogContent>
 
         <DialogActions sx={{ justifyContent: 'space-between' }}>

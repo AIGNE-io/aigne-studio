@@ -128,7 +128,7 @@ const KnowledgeDocuments = ({
           return (
             <Stack width={1} flexDirection="row" alignItems="center" height={1} gap={1}>
               <DocumentIcon document={params.row} />
-              <Box flexGrow={1} color="#030712">
+              <Box flexGrow={1} color="#030712" className="ellipsis">
                 {params.row.name}
               </Box>
             </Stack>
@@ -349,7 +349,7 @@ function Actions({
               </Tooltip>
             </Button>
 
-            <Button onClick={onEmbedding}>
+            <Button onClick={onEmbedding} color="error">
               <Tooltip placement="top" arrow title={t('refreshTip')}>
                 <Box>{t('refresh')}</Box>
               </Tooltip>
@@ -376,7 +376,11 @@ function Actions({
               },
               maxWidth: 'sm',
               fullWidth: true,
-              title: <Box sx={{ wordWrap: 'break-word' }}>{t('knowledge.deleteTitle')}</Box>,
+              title: (
+                <Box sx={{ wordWrap: 'break-word' }}>
+                  {t('knowledge.deleteTitle', { object: t('knowledge.knowledge') })}
+                </Box>
+              ),
               content: (
                 <Box>
                   <Typography fontWeight={500} fontSize={16} lineHeight="28px" color="#4B5563">
@@ -388,8 +392,12 @@ function Actions({
               okColor: 'error',
               cancelText: t('cancel'),
               onOk: async () => {
-                await onRemove();
-                await onRefetch();
+                try {
+                  await onRemove();
+                  await onRefetch();
+                } catch (error) {
+                  Toast.error(error.message);
+                }
               },
             });
           }}>

@@ -201,7 +201,7 @@ export default function ImportKnowledge({
 
             <SourceTypeSelect value={sourceType} onChange={setSourceType} options={sourceOptions} />
 
-            <Box flexGrow={1}>
+            <Box flexGrow={1} pb={1.25}>
               <Suspense>
                 {sourceType === 'file' ? (
                   <FileView fileName={file?.runtime?.originFileName} onChange={setFile} />

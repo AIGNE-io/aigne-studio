@@ -1,14 +1,13 @@
 import config from '@blocklet/sdk/lib/config';
 import SSE from 'express-sse';
-import { joinURL } from 'ufo';
+import { joinURL, withQuery } from 'ufo';
 
 export const sse = new SSE();
 
 export const getResourceAvatarPath = (did: string) => {
-  return joinURL(
-    config.env.appUrl,
-    '/.well-known/server/admin/blocklet/logo-bundle',
-    config.env.appId,
-    `${did}?v=1.0.1`
-  );
+  return withQuery(joinURL(config.env.appUrl, '/.well-known/service/blocklet/logo-bundle', did), {
+    v: '1.0.1',
+    imageFilter: 'resize',
+    w: 100,
+  });
 };
