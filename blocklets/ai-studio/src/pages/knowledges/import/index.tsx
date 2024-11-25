@@ -1,3 +1,4 @@
+import DatasetDocument from '@api/store/models/dataset/document';
 import LoadingButton from '@app/components/loading/loading-button';
 import { useIsAdmin } from '@app/contexts/session';
 import UploaderProvider, { useUploader } from '@app/contexts/uploader';
@@ -16,6 +17,7 @@ import { Icon } from '@iconify-icon/react';
 import ArrowBarToUpIcon from '@iconify-icons/tabler/arrow-bar-to-up';
 import FileIcon from '@iconify-icons/tabler/file';
 import PencilIcon from '@iconify-icons/tabler/pencil';
+import TrashIcon from '@iconify-icons/tabler/trash';
 import XIcon from '@iconify-icons/tabler/x';
 import {
   Box,
@@ -32,11 +34,13 @@ import {
   styled,
   useMediaQuery,
 } from '@mui/material';
+import bytes from 'bytes';
 import { Suspense, useMemo, useState } from 'react';
 import { joinURL, withQuery } from 'ufo';
 
 import Discuss from '../../project/icons/discuss';
 import DiscussView from '../discuss';
+import { DocumentIcon } from '../document/list';
 import {
   CrawlSettingsProps,
   CrawlType,
@@ -205,7 +209,11 @@ export default function ImportKnowledge({
             <Box flexGrow={1} pb={1.25}>
               <Suspense>
                 {sourceType === 'file' ? (
-                  <FileView fileName={file?.runtime?.originFileName} onChange={setFile} />
+                  <FileView
+                    fileName={file?.runtime?.originFileName}
+                    size={file?.runtime?.size ?? 0}
+                    onChange={setFile}
+                  />
                 ) : sourceType === 'custom' ? (
                   <CustomView
                     title={custom?.title}
@@ -273,7 +281,15 @@ const SourceTypeSelect = ({ value, onChange, options }: SourceTypeSelectProps) =
   );
 };
 
-const FileView = ({ fileName, onChange }: { fileName?: string; onChange: (value: FileType) => void }) => {
+const FileView = ({
+  fileName,
+  size,
+  onChange,
+}: {
+  fileName?: string;
+  size?: number;
+  onChange: (value?: FileType) => void;
+}) => {
   const { t } = useLocaleContext();
 
   const [isDraggingOver, setIsDraggingOver] = useState(false);
@@ -330,7 +346,33 @@ const FileView = ({ fileName, onChange }: { fileName?: string; onChange: (value:
         </Typography>
       </Box>
 
-      <Box>{fileName}</Box>
+      {fileName && (
+        <Stack
+          direction="row"
+          gap={1}
+          justifyContent="space-between"
+          alignItems="center"
+          sx={{
+            border: '1px solid rgba(6,7,9, 0.10)',
+            p: '8px 10px',
+            overflow: 'hidden',
+            background: '#fff',
+            borderRadius: '8px',
+            mt: 2,
+          }}>
+          <Stack direction="row" gap={1} alignItems="center">
+            <DocumentIcon document={{ name: fileName, type: 'file' } as DatasetDocument} />
+            <Box>
+              <Box sx={{ color: 'rgba(6, 7, 9, 0.8)', fontSize: 14 }}>{fileName}</Box>
+              <Box sx={{ color: 'rgba(6, 7, 9, 0.5)', fontSize: 12 }}>{bytes(size ?? 0)}</Box>
+            </Box>
+          </Stack>
+
+          <IconButton size="small" onClick={() => onChange(undefined)}>
+            <Box component={Icon} icon={TrashIcon} sx={{ color: 'rgba(6, 7, 9, 0.5)', fontSize: 14 }} />
+          </IconButton>
+        </Stack>
+      )}
     </Stack>
   );
 };
