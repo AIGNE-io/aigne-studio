@@ -2,7 +2,7 @@ import { showPlanUpgrade } from '@app/components/multi-tenant-restriction';
 import { useCurrentGitStore } from '@app/store/current-git-store';
 import { RuntimeError, RuntimeErrorType } from '@blocklet/ai-runtime/types/runtime/error';
 import { Quotas } from '@blocklet/aigne-sdk/quotas';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import { atom, useRecoilState } from 'recoil';
 
 import * as api from '../libs/project';
@@ -174,16 +174,20 @@ export const useProjectsState = () => {
 
 export const useProjectLimiting = () => {
   const { session } = useSessionContext();
-  const passports = session?.user?.passports?.map((x: any) => x.name);
+  const sessionRef = useRef(session);
+  useLayoutEffect(() => {
+    sessionRef.current = session;
+  }, [session]);
   const isPromptAdmin = useIsPromptAdmin();
   const checkProjectLimitAsync = async () => {
-    if (!session?.user?.did) {
+    if (!sessionRef.current?.user?.did) {
       return false;
     }
     if (window.blocklet?.tenantMode !== 'multiple' || isPromptAdmin) {
       return true;
     }
     const count = await api.countProjects();
+    const passports = sessionRef.current?.user?.passports?.map((x: any) => x.name);
     if (!quotas.checkProjectLimit(count + 1, passports)) {
       showPlanUpgrade('projectLimit');
       return false;

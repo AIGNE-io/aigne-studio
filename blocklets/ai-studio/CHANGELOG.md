@@ -1,3 +1,7 @@
+## 0.4.155 (2024-11-25)
+
+- fix: move route definitions to top level(#1470)
+
 ## 0.4.154 (2024-11-23)
 
 - chore: replace global console with logger
