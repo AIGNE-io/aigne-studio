@@ -20,6 +20,9 @@ export const up: Migration = async ({ context: queryInterface }) => {
 
   await queryInterface.removeColumn('DatasetSegments', 'targetId');
 
+  await queryInterface.bulkDelete('DatasetEmbeddingHistories', {});
+  await queryInterface.bulkDelete('DatasetSegments', {});
+
   await queryInterface.dropTable('DatasetUpdateHistories');
 
   // DatasetDocuments
