@@ -3,7 +3,7 @@ import { hash } from 'crypto';
 import { stat, writeFile } from 'fs/promises';
 import { join } from 'path';
 
-import { getProcessedFileDir } from '@api/libs/ensure-dir';
+import { getProcessedFileDir, getSourceFileDir } from '@api/libs/ensure-dir';
 import logger from '@api/libs/logger';
 import { exists, readFile } from 'fs-extra';
 import { parse } from 'yaml';
@@ -207,11 +207,19 @@ export abstract class BaseProcessor {
     }
   }
 
-  async getProcessedFile(): Promise<string> {
+  async getProcessedContent(): Promise<string> {
     const processedFilePath = join(getProcessedFileDir(this.knowledgeId), this.processedFileName);
 
     if (!(await exists(processedFilePath))) return '';
 
     return JSON.stringify(parse((await readFile(processedFilePath)).toString()));
+  }
+
+  async getSourceContent(filename: string): Promise<string> {
+    const sourcePath = join(getSourceFileDir(this.knowledgeId), filename);
+
+    if (!(await exists(sourcePath))) return '';
+
+    return JSON.stringify(parse((await readFile(sourcePath)).toString()));
   }
 }

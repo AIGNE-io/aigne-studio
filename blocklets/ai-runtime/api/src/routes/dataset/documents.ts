@@ -7,7 +7,7 @@ import middlewares from '@blocklet/sdk/lib/middlewares';
 // @ts-ignore
 import { initLocalStorageServer } from '@blocklet/uploader-server';
 import express, { Router } from 'express';
-import { pathExists, readFile } from 'fs-extra';
+import { pathExists } from 'fs-extra';
 import Joi from 'joi';
 import { Op } from 'sequelize';
 import { joinURL } from 'ufo';
@@ -18,6 +18,7 @@ import { userAuth } from '../../libs/security';
 import Knowledge from '../../store/models/dataset/dataset';
 import KnowledgeDocument from '../../store/models/dataset/document';
 import EmbeddingHistories from '../../store/models/dataset/embedding-history';
+import { PipelineProcessor } from './executor';
 import { HybridRetriever } from './retriever';
 import { queue } from './util/queue';
 import { updateHistoriesAndStore } from './util/vector-store';
@@ -345,7 +346,8 @@ router.get('/:knowledgeId/documents/:documentId/content', middlewares.session(),
     return res.json({ content: '' });
   }
 
-  const content = await readFile(joinURL(getSourceFileDir(knowledgeId), document.filename), 'utf-8');
+  const pipeline = new PipelineProcessor({ knowledgeId, documentId, update: false, sse: {} });
+  const content = await pipeline.getSourceContent(document.filename);
   return res.json({ content });
 });
 

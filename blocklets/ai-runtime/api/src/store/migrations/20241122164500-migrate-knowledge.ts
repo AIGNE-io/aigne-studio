@@ -14,12 +14,13 @@ import Content from '../models/dataset/content';
 import Knowledge from '../models/dataset/dataset';
 import Document from '../models/dataset/document';
 
-export const up: Migration = async ({ context: queryInterface }) => {
+export const up: Migration = async () => {
   try {
     const knowledge = await Knowledge.findAll();
     await Promise.all(knowledge.map(migrateKnowledge));
 
-    await queryInterface.dropTable('DatasetContents');
+    // 删除没有用到文档
+    await Document.destroy({ where: { knowledgeId: { inq: knowledge.map((k) => k.id) } } });
 
     await new Promise((resolve) => {
       logger.info('queue drain');
@@ -71,12 +72,14 @@ const migrateKnowledge = async (knowledge: Knowledge) => {
         }
       } else if (document.type === 'text') {
         const content = await Content.findOne({ where: { documentId: document.id } });
+        console.log('content', content);
+        console.log('document.data', (document.data as any)?.content);
         await document.update({ embeddingStatus: 'idle', filename: '', size: 0, data: { type: 'text' } });
         queue.checkAndPush({ type: 'document', knowledgeId: knowledge.id, documentId: document.id });
 
         const originalFileName = `${document.id}.txt`;
         const originalFilePath = joinURL(getSourceFileDir(knowledge.id), originalFileName);
-        await writeFile(originalFilePath, `${document.name}\n${content?.content || (document.data as any)?.content}`);
+        await writeFile(originalFilePath, `${content?.dataValues?.content || (document.data as any)?.content || ''}`);
         await document.update({ filename: originalFileName });
         queue.checkAndPush({ type: 'document', knowledgeId: knowledge.id, documentId: document.id });
       } else if (document.type === 'discussKit') {
