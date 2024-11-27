@@ -22,7 +22,7 @@ import { groupBy, uniqWith } from 'lodash';
 import { useEffect, useState } from 'react';
 import { joinURL } from 'ufo';
 
-import { CreateDiscussionItem } from '../../../libs/dataset';
+import { CreateDiscussionItem } from '../../../libs/knowledge';
 import DiscussList from './discuss';
 
 const types = ['discussion', 'blog', 'doc'] as ['discussion', 'blog', 'doc'];

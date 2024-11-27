@@ -24,12 +24,12 @@ import {
 } from '@mui/material';
 import { useRequest } from 'ahooks';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { useFetchSegments, useSegments } from '../../contexts/datasets/segments';
-import { getDocumentContent } from '../../libs/dataset';
+import { useFetchSegments, useSegments } from '../../contexts/knowledge/segments';
+import { getDocumentContent } from '../../libs/knowledge';
 import Empty from '../project/icons/empty';
 import Viewer from './viewer';
 
@@ -56,8 +56,6 @@ export default function KnowledgeSegments() {
 
   const { state } = useSegments(knowledgeId, documentId);
   const { loadingRef, dataState } = useFetchSegments(knowledgeId, documentId);
-  const [readContent, setReadContent] = useState('');
-  const isReadOnly = Boolean(readContent);
   const segments = dataState?.data?.list || [];
 
   const { loading } = useRequest(
@@ -153,8 +151,14 @@ export default function KnowledgeSegments() {
                           index={index + 1}
                           content={item.content}
                           onClick={() => {
-                            form.setValue('content', item.content || '');
-                            setReadContent(item.content || '');
+                            let content = item.content || '';
+                            try {
+                              content = JSON.parse(content || '').content;
+                            } catch (e) {
+                              // ignore
+                            }
+
+                            form.setValue('content', content || '');
                             segmentDialogState.open();
                           }}
                           className="listItem"
@@ -177,7 +181,7 @@ export default function KnowledgeSegments() {
         )}
       </Stack>
 
-      <Dialog {...bindDialog(segmentDialogState)} maxWidth="sm" fullWidth component="form">
+      <Dialog {...bindDialog(segmentDialogState)} maxWidth="md" fullWidth component="form">
         <DialogTitle className="between">
           <Box>{t('knowledge.segments.content')}</Box>
 
@@ -190,9 +194,7 @@ export default function KnowledgeSegments() {
           <Controller
             control={form.control}
             name="content"
-            rules={{
-              required: t('validation.fieldRequired'),
-            }}
+            rules={{ required: t('validation.fieldRequired') }}
             render={({ field, fieldState }) => {
               return (
                 <TextField
@@ -201,7 +203,7 @@ export default function KnowledgeSegments() {
                   sx={{ width: 1 }}
                   multiline
                   rows={10}
-                  InputProps={{ readOnly: isReadOnly }}
+                  InputProps={{ readOnly: true }}
                   {...field}
                   error={Boolean(fieldState.error)}
                   helperText={fieldState.error?.message}
@@ -256,6 +258,14 @@ export function SegmentsItem({
 } & StackProps) {
   const { t } = useLocaleContext();
 
+  const result = useMemo(() => {
+    try {
+      return JSON.parse(content || '').content;
+    } catch (e) {
+      return content;
+    }
+  }, [content]);
+
   return (
     <SegmentRoot {...props}>
       <Box className="itemTitle">
@@ -285,12 +295,12 @@ export function SegmentsItem({
       </Box>
 
       <Box height={90}>
-        <Box className="itemDescription">{content || ''}</Box>
+        <Box className="itemDescription">{result || ''}</Box>
       </Box>
 
       <Box className="itemFooter">
         <Box className="itemStats">
-          <Tag>{`${content?.length} ${t('knowledge.segments.bits')}`}</Tag>
+          <Tag>{`${result?.length} ${t('knowledge.segments.bits')}`}</Tag>
         </Box>
       </Box>
     </SegmentRoot>

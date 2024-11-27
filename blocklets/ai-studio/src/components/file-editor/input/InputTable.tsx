@@ -6,7 +6,7 @@ import LoadingButton from '@app/components/loading/loading-button';
 import PopperMenu, { PopperMenuImperative } from '@app/components/menu/PopperMenu';
 import PasswordField from '@app/components/PasswordField';
 import { useCurrentProject } from '@app/contexts/project';
-import { getKnowledgeList } from '@app/libs/dataset';
+import { getKnowledgeList } from '@app/libs/knowledge';
 import { getProjectIconUrl } from '@app/libs/project';
 import { createOrUpdateSecrets, getSecrets } from '@app/libs/secret';
 import Close from '@app/pages/project/icons/close';

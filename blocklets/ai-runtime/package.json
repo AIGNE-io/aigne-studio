@@ -48,6 +48,7 @@
     "@blocklet/ui-react": "^2.10.67",
     "@blocklet/uploader-server": "^0.1.53",
     "@blocklet/xss": "^0.1.12",
+    "@huggingface/inference": "^2.8.0",
     "@langchain/community": "^0.3.15",
     "@langchain/core": "^0.3.18",
     "@langchain/openai": "^0.3.14",

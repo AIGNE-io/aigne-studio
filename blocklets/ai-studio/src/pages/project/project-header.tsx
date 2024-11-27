@@ -1,4 +1,4 @@
-import { KnowledgeProvider } from '@app/contexts/datasets/datasets';
+import { KnowledgeProvider } from '@app/contexts/knowledge/knowledge';
 import AigneLogo from '@app/icons/aigne-logo';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Icon } from '@iconify-icon/react';

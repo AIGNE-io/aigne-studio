@@ -5,6 +5,8 @@ import { join } from 'path';
 
 import { getProcessedFileDir, getSourceFileDir } from '@api/libs/ensure-dir';
 import logger from '@api/libs/logger';
+// @ts-ignore
+import { sendToRelay } from '@blocklet/sdk/service/notification';
 import { exists, readFile } from 'fs-extra';
 import { parse } from 'yaml';
 
@@ -17,8 +19,6 @@ export abstract class BaseProcessor {
 
   protected documentId: string;
 
-  protected sse: any;
-
   public content?: string;
 
   protected processedFileName: string;
@@ -28,17 +28,14 @@ export abstract class BaseProcessor {
   constructor({
     knowledgeId,
     documentId,
-    sse,
     update = false,
   }: {
     knowledgeId: string;
     documentId: string;
-    sse: any;
     update?: boolean;
   }) {
     this.knowledgeId = knowledgeId;
     this.documentId = documentId;
-    this.sse = sse;
     this.update = update;
 
     this.processedFileName = `${this.documentId}.yml`;
@@ -59,7 +56,12 @@ export abstract class BaseProcessor {
   private async send({ ...props }: any, type: 'error' | 'complete' | 'change') {
     const document = await this.getDocument();
     const result = await document.update({ ...props });
-    this.sse.send({ documentId: this.documentId, ...result.dataValues }, type);
+
+    sendToRelay(this.knowledgeId, 'embedding-change', {
+      eventType: type,
+      documentId: this.documentId,
+      ...result.dataValues,
+    }).catch((err: Error) => console.error(`Failed to broadcast info: vault.${this.knowledgeId}.${type}`, err));
 
     return result.dataValues;
   }
@@ -68,7 +70,7 @@ export abstract class BaseProcessor {
     try {
       await this.send({ embeddingStatus: UploadStatus.Uploading, embeddingStartAt: new Date() }, 'change');
 
-      logger.info('save original file');
+      logger.debug('save original file');
       await this.saveOriginalFile();
 
       const document = await this.getDocument();
@@ -76,13 +78,13 @@ export abstract class BaseProcessor {
         throw new Error('get processed file path failed');
       }
 
-      logger.info('processed file');
+      logger.debug('processed file');
       await this.ProcessedFile();
-      logger.info('save processed file');
+      logger.debug('save processed file');
       await this.saveProcessedFile();
-      logger.info('start RAG');
+      logger.debug('start RAG');
       await this.startRAG();
-      logger.info('send complete');
+      logger.debug('send complete');
       await this.send({ embeddingStatus: UploadStatus.Success, embeddingEndAt: new Date(), error: null }, 'complete');
     } catch (error) {
       const message = error?.message;

@@ -66,7 +66,7 @@ import { useAssistantCompare } from 'src/pages/project/state';
 import { joinURL } from 'ufo';
 
 import Knowledge from '../../../api/src/store/models/dataset/dataset';
-import { getAPIList, getKnowledgeList } from '../../libs/dataset';
+import { getAPIList, getKnowledgeList } from '../../libs/knowledge';
 import InfoOutlined from '../../pages/project/icons/question';
 import Trash from '../../pages/project/icons/trash';
 import { PROMPTS_FOLDER_NAME, useCreateFile, useProjectStore } from '../../pages/project/yjs-state';

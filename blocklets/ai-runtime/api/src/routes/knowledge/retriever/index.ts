@@ -33,11 +33,11 @@ export class HybridRetriever {
     try {
       if (!this.vectorStore) throw new Error('VectorStore is required');
 
-      logger.info('Initializing BM25Retriever...');
+      logger.debug('Initializing BM25Retriever...');
       const { k, length } = this.getTopK();
       const docs = await this.vectorStore.similaritySearch(' ', length);
       this.bm25Retriever = await BM25Retriever.fromDocuments(docs, { k });
-      logger.info('BM25Retriever initialized successfully');
+      logger.debug('BM25Retriever initialized successfully');
     } catch (error) {
       throw new Error('Failed to initialize BM25Retriever');
     }
@@ -59,7 +59,7 @@ export class HybridRetriever {
         await this.initialize();
       }
 
-      logger.info('Starting search process', { query });
+      logger.debug('Starting search process', { query });
 
       const ensembleRetriever = new EnsembleRetriever({
         retrievers: [this.bm25Retriever, this.vectorStore.asRetriever()],

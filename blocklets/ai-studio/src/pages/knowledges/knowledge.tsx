@@ -39,11 +39,11 @@ import { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
-import { useFetchKnowledgeList, useKnowledge } from '../../contexts/datasets/datasets';
+import { useFetchKnowledgeList, useKnowledge } from '../../contexts/knowledge/knowledge';
 import backgroundIcon from '../../icons/background.png?url';
 import checkDisabledIcon from '../../icons/check-disabled.svg?url';
 import checkBoxIcon from '../../icons/check.svg?url';
-import type { KnowledgeCard as KnowledgeCardType } from '../../libs/dataset';
+import type { KnowledgeCard as KnowledgeCardType } from '../../libs/knowledge';
 import PopperMenuButton from '../project/menu-button';
 
 export default function Knowledge() {

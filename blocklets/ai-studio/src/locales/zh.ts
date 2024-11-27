@@ -426,6 +426,7 @@ export default flatten({
       provider: '提供商',
       apiKey: 'API 密钥',
       url: 'URL',
+      apiKeyNotSet: '请先设置 API 密钥',
     },
     playground: 'Playground',
     emptyDocuments: '还没有导入任何知识数据',

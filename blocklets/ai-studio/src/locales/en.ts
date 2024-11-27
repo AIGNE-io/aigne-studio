@@ -428,6 +428,7 @@ export default flatten({
       provider: 'Provider',
       apiKey: 'API Key',
       url: 'URL',
+      apiKeyNotSet: 'Please set the API key first',
     },
     playground: 'Playground',
     emptyDocuments: "You haven't imported any knowledge yet.",

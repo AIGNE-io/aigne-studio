@@ -3,14 +3,15 @@ import LoadingButton from '@app/components/loading/loading-button';
 import { useIsAdmin } from '@app/contexts/session';
 import UploaderProvider, { useUploader } from '@app/contexts/uploader';
 import { AIGNE_RUNTIME_MOUNT_POINT } from '@app/libs/constants';
+import { getDiscussionStatus } from '@app/libs/discussion';
 import {
   CreateDiscussionItem,
   createCrawlDocument,
   createCustomDocument,
   createDiscussionDocument,
   createFileDocument,
-} from '@app/libs/dataset';
-import { getDiscussionStatus } from '@app/libs/discussion';
+} from '@app/libs/knowledge';
+import { getHasCrawlSecret } from '@app/libs/secret';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
@@ -22,6 +23,7 @@ import XIcon from '@iconify-icons/tabler/x';
 import {
   Box,
   Button,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -30,12 +32,14 @@ import {
   Stack,
   TextField,
   Theme,
+  Tooltip,
   Typography,
   styled,
   useMediaQuery,
 } from '@mui/material';
+import { useRequest } from 'ahooks';
 import bytes from 'bytes';
-import { Suspense, useMemo, useState } from 'react';
+import { Suspense, forwardRef, useMemo, useRef, useState } from 'react';
 import { joinURL, withQuery } from 'ufo';
 
 import Discuss from '../../project/icons/discuss';
@@ -84,6 +88,7 @@ export default function ImportKnowledge({
 }) {
   const [sourceType, setSourceType] = useState<SourceType>('file');
   const { t } = useLocaleContext();
+  const ref = useRef<HTMLDivElement>(null);
 
   const isAdmin = useIsAdmin();
   const sourceOptions = (
@@ -144,108 +149,112 @@ export default function ImportKnowledge({
 
   const disabled = useMemo(() => {
     if (sourceType === 'file') return !file;
-    if (sourceType === 'custom') return !custom?.title || !custom?.content;
-    if (sourceType === 'url') return !crawl.url || !crawl.provider;
-    if (sourceType === 'discuss') {
-      return discussion.length === 0;
-    }
+    if (sourceType === 'custom') return !(custom?.title || '').trim() || !(custom?.content || '').trim();
+    if (sourceType === 'url') return !(crawl.url || '').trim() || !(crawl.provider || '').trim();
+    if (sourceType === 'discuss') return discussion.length === 0;
     return false;
   }, [sourceType, file, custom, crawl, discussion]);
 
   return (
-    <UploaderProvider
-      plugins={[]}
-      apiPathProps={{
-        uploader: withQuery(joinURL(AIGNE_RUNTIME_MOUNT_POINT, '/api/datasets/upload-document'), { knowledgeId }),
-        disableMediaKitPrefix: true,
-        disableAutoPrefix: true,
-      }}
-      restrictions={{
-        maxFileSize: (Number(window.blocklet?.preferences?.uploadFileLimit) || 10) * 1024 * 1024,
-        allowedFileTypes: [
-          '.md', // 允许 Markdown 文件
-          '.pdf', // 允许 PDF 文件
-          '.doc', // 允许 Word 文档
-          '.docx', // 允许新版 Word 文档
-          '.txt', // 允许文本文件
-          '.json', // 允许 JSON 文件
-          'text/plain', // 文本文件 MIME 类型
-        ],
-      }}
-      dashboardProps={{
-        fileManagerSelectionType: 'files',
-      }}>
-      <Dialog
-        open
-        fullWidth
-        maxWidth="xl"
-        PaperProps={{ sx: { height: '100%' } }}
-        fullScreen={useMediaQuery<Theme>((theme) => theme.breakpoints.down('sm'))}>
-        <DialogTitle>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="h6" sx={{ fontSize: 16, fontWeight: 500 }}>
-              {t('importObject', { object: t('knowledge.knowledge') })}
+    <Dialog
+      open
+      fullWidth
+      maxWidth="xl"
+      PaperProps={{ sx: { height: '100%' } }}
+      fullScreen={useMediaQuery<Theme>((theme) => theme.breakpoints.down('sm'))}>
+      <DialogTitle>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h6" sx={{ fontSize: 16, fontWeight: 500 }}>
+            {t('importObject', { object: t('knowledge.knowledge') })}
+          </Typography>
+
+          <IconButton size="small" onClick={onClose}>
+            <Box component={Icon} icon={XIcon} />
+          </IconButton>
+        </Box>
+      </DialogTitle>
+
+      <DialogContent>
+        <Stack gap={2.5} height={1}>
+          <Stack>
+            <Typography variant="h6" sx={{ fontSize: 16, fontWeight: 500, mb: 0.5 }}>
+              {t('knowledge.importKnowledge.title')}
             </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {t('knowledge.importKnowledge.description')}
+            </Typography>
+          </Stack>
 
-            <IconButton size="small" onClick={onClose}>
-              <Box component={Icon} icon={XIcon} />
-            </IconButton>
-          </Box>
-        </DialogTitle>
+          <SourceTypeSelect value={sourceType} onChange={setSourceType} options={sourceOptions} />
 
-        <DialogContent>
-          <Stack gap={2.5} height={1}>
-            <Stack>
-              <Typography variant="h6" sx={{ fontSize: 16, fontWeight: 500, mb: 0.5 }}>
-                {t('knowledge.importKnowledge.title')}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {t('knowledge.importKnowledge.description')}
-              </Typography>
-            </Stack>
-
-            <SourceTypeSelect value={sourceType} onChange={setSourceType} options={sourceOptions} />
-
-            <Box flexGrow={1} pb={1.25}>
-              <Suspense>
-                {sourceType === 'file' ? (
+          <Box flexGrow={1} pb={1.25}>
+            <Suspense>
+              {sourceType === 'file' ? (
+                <UploaderProvider
+                  dropTargetProps={{}}
+                  plugins={[]}
+                  apiPathProps={{
+                    uploader: withQuery(joinURL(AIGNE_RUNTIME_MOUNT_POINT, '/api/datasets/upload-document'), {
+                      knowledgeId,
+                    }),
+                    disableMediaKitPrefix: true,
+                    disableAutoPrefix: true,
+                  }}
+                  restrictions={{
+                    maxFileSize: (Number(window.blocklet?.preferences?.uploadFileLimit) || 10) * 1024 * 1024,
+                    allowedFileTypes: [
+                      '.md', // 允许 Markdown 文件
+                      '.pdf', // 允许 PDF 文件
+                      '.doc', // 允许 Word 文档
+                      '.docx', // 允许新版 Word 文档
+                      '.txt', // 允许文本文件
+                      '.json', // 允许 JSON 文件
+                      'text/plain', // 文本文件 MIME 类型
+                    ],
+                  }}
+                  dashboardProps={{
+                    fileManagerSelectionType: 'files',
+                  }}>
                   <FileView
                     fileName={file?.runtime?.originFileName}
                     size={file?.runtime?.size ?? 0}
                     onChange={setFile}
+                    ref={ref}
                   />
-                ) : sourceType === 'custom' ? (
-                  <CustomView
-                    title={custom?.title}
-                    content={custom?.content}
-                    onTitleChange={(value) => setCustom((prev) => ({ ...(prev || {}), title: value }))}
-                    onContentChange={(value) => setCustom((prev) => ({ ...(prev || {}), content: value }))}
-                  />
-                ) : sourceType === 'url' ? (
-                  <CrawlView
-                    provider={crawl.provider}
-                    url={crawl.url}
-                    onProviderChange={(value) => setCrawl((prev) => ({ ...(prev || {}), provider: value }))}
-                    onUrlChange={(value) => setCrawl((prev) => ({ ...(prev || {}), url: value }))}
-                  />
-                ) : sourceType === 'discuss' ? (
-                  <DiscussView onChange={setDiscussion} />
-                ) : null}
-              </Suspense>
-            </Box>
-          </Stack>
-        </DialogContent>
+                </UploaderProvider>
+              ) : sourceType === 'custom' ? (
+                <CustomView
+                  title={custom?.title}
+                  content={custom?.content}
+                  onTitleChange={(value) => setCustom((prev) => ({ ...(prev || {}), title: value }))}
+                  onContentChange={(value) => setCustom((prev) => ({ ...(prev || {}), content: value }))}
+                  onSubmit={handleSubmit}
+                />
+              ) : sourceType === 'url' ? (
+                <CrawlView
+                  provider={crawl.provider}
+                  url={crawl.url}
+                  onProviderChange={(value) => setCrawl((prev) => ({ ...(prev || {}), provider: value }))}
+                  onUrlChange={(value) => setCrawl((prev) => ({ ...(prev || {}), url: value }))}
+                  onSubmit={handleSubmit}
+                />
+              ) : sourceType === 'discuss' ? (
+                <DiscussView onChange={setDiscussion} />
+              ) : null}
+            </Suspense>
+          </Box>
+        </Stack>
+      </DialogContent>
 
-        <DialogActions>
-          <Button variant="outlined" onClick={onClose}>
-            {t('cancel')}
-          </Button>
-          <LoadingButton variant="contained" onClick={handleSubmit} disabled={disabled}>
-            {t('create')}
-          </LoadingButton>
-        </DialogActions>
-      </Dialog>
-    </UploaderProvider>
+      <DialogActions>
+        <Button variant="outlined" onClick={onClose}>
+          {t('cancel')}
+        </Button>
+        <LoadingButton variant="contained" onClick={handleSubmit} disabled={disabled}>
+          {t('create')}
+        </LoadingButton>
+      </DialogActions>
+    </Dialog>
   );
 }
 
@@ -281,39 +290,22 @@ const SourceTypeSelect = ({ value, onChange, options }: SourceTypeSelectProps) =
   );
 };
 
-const FileView = ({
-  fileName,
-  size,
-  onChange,
-}: {
+interface FileViewProps {
   fileName?: string;
   size?: number;
   onChange: (value?: FileType) => void;
-}) => {
+}
+
+const FileView = forwardRef<HTMLDivElement, FileViewProps>(({ fileName, size, onChange }, ref) => {
   const { t } = useLocaleContext();
 
-  const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const [isDraggingOver] = useState(false);
   const uploaderRef = useUploader();
-
-  const onDragOver = (event: React.DragEvent) => {
-    event.preventDefault();
-    setIsDraggingOver(true);
-  };
-
-  const onDrop = (event: React.DragEvent) => {
-    event.preventDefault();
-    setIsDraggingOver(false);
-
-    const uploader = uploaderRef?.current?.getUploader();
-    uploader?.open();
-    uploader.onceUploadSuccess(async ({ response }: any) => {
-      onChange(response?.data);
-    });
-  };
 
   return (
     <Stack>
       <Box
+        ref={ref}
         sx={{
           bgcolor: '#F9FAFB',
           border: isDraggingOver ? '1px dashed #007bff' : '1px dashed #EFF1F5',
@@ -332,10 +324,7 @@ const FileView = ({
           uploader.onceUploadSuccess(async ({ response }: any) => {
             onChange(response?.data);
           });
-        }}
-        onDragOver={onDragOver}
-        onDrop={onDrop}
-        onDragLeave={() => setIsDraggingOver(false)}>
+        }}>
         <Box display="flex" alignItems="center" gap={1} color="#4B5563">
           <Box component={Icon} icon={ArrowBarToUpIcon} />
           <Typography sx={{ fontWeight: 500 }}>{t('knowledge.importKnowledge.fileImport')}</Typography>
@@ -375,13 +364,25 @@ const FileView = ({
       )}
     </Stack>
   );
-};
+});
 
-const CustomView = ({ title, content, onTitleChange, onContentChange }: CustomInputProps) => {
+const CustomView = ({
+  title,
+  content,
+  onTitleChange,
+  onContentChange,
+  onSubmit,
+}: CustomInputProps & { onSubmit: () => void }) => {
   const { t } = useLocaleContext();
 
   return (
-    <Stack gap={2.5}>
+    <Stack
+      gap={2.5}
+      component="form"
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSubmit?.();
+      }}>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
         <Box
           component="label"
@@ -394,8 +395,6 @@ const CustomView = ({ title, content, onTitleChange, onContentChange }: CustomIn
         </Box>
         <StyledTextField
           fullWidth
-          rows={1}
-          multiline
           placeholder={t('title')}
           value={title}
           onChange={(e) => onTitleChange?.(e.target.value)}
@@ -421,21 +420,36 @@ const CustomView = ({ title, content, onTitleChange, onContentChange }: CustomIn
           value={content}
           onChange={(e) => onContentChange?.(e.target.value)}
           variant="outlined"
+          className="multiline"
         />
       </Box>
     </Stack>
   );
 };
 
-const CrawlView = ({ provider, onProviderChange, url, onUrlChange }: CrawlSettingsProps) => {
+const CrawlView = ({
+  provider,
+  onProviderChange,
+  url,
+  onUrlChange,
+  onSubmit,
+}: CrawlSettingsProps & { onSubmit: () => void }) => {
   const { t } = useLocaleContext();
   const providers = [
     { id: 'jina', label: 'Jina Reader' },
     { id: 'firecrawl', label: 'Firecrawl' },
   ];
 
+  const { loading, data } = useRequest(getHasCrawlSecret);
+
   return (
-    <Stack gap={2.5}>
+    <Stack
+      gap={2.5}
+      component="form"
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSubmit?.();
+      }}>
       <Stack gap={2.5} flexDirection="row" alignItems="center">
         <Typography
           component="label"
@@ -464,30 +478,6 @@ const CrawlView = ({ provider, onProviderChange, url, onUrlChange }: CrawlSettin
         </Box>
       </Stack>
 
-      {/* <Box>
-        <Typography
-          component="label"
-          sx={{
-            color: '#111827',
-            fontSize: '14px',
-            fontWeight: 500,
-            display: 'block',
-            mb: 1,
-          }}>
-          {t('knowledge.importKnowledge.apiKey')}
-        </Typography>
-
-        <StyledTextField
-          fullWidth
-          multiline
-          rows={1}
-          value={apiKey}
-          onChange={(e) => onApiKeyChange(e.target.value)}
-          placeholder={t('knowledge.importKnowledge.apiKey')}
-          variant="outlined"
-        />
-      </Box> */}
-
       <Box>
         <Typography
           component="label"
@@ -501,15 +491,29 @@ const CrawlView = ({ provider, onProviderChange, url, onUrlChange }: CrawlSettin
           {t('knowledge.importKnowledge.url')}
         </Typography>
 
-        <StyledTextField
-          fullWidth
-          multiline
-          rows={1}
-          value={url}
-          onChange={(e) => onUrlChange(e.target.value)}
-          placeholder={t('knowledge.importKnowledge.url')}
-          variant="outlined"
-        />
+        <Tooltip
+          title={
+            loading || data?.[provider as 'jina' | 'firecrawl']
+              ? undefined
+              : t('knowledge.importKnowledge.apiKeyNotSet')
+          }>
+          <StyledTextField
+            fullWidth
+            value={url}
+            onChange={(e) => onUrlChange(e.target.value)}
+            placeholder={t('knowledge.importKnowledge.url')}
+            variant="outlined"
+            disabled={loading || !data?.[provider as 'jina' | 'firecrawl']}
+            InputProps={{
+              endAdornment: loading ? <CircularProgress size={16} /> : null,
+            }}
+            sx={{
+              '.MuiOutlinedInput-root': {
+                border: loading || data?.[provider as 'jina' | 'firecrawl'] ? undefined : '1px solid #E11D48',
+              },
+            }}
+          />
+        </Tooltip>
       </Box>
     </Stack>
   );
@@ -519,10 +523,10 @@ const StyledTextField = styled(TextField)({
   '& .MuiOutlinedInput-root': {
     backgroundColor: '#F9FAFB',
     borderRadius: '8px',
-    padding: '9px 6px !important',
     gap: '6px',
     width: '100%',
     fontSize: '14px',
+    paddingLeft: '6px',
 
     '& fieldset': {
       borderColor: '#EFF1F5',
@@ -537,5 +541,9 @@ const StyledTextField = styled(TextField)({
   },
   '& .MuiInputBase-input': {
     padding: 0,
+  },
+
+  '& .MuiInputBase-multiline': {
+    padding: '9px 6px !important',
   },
 });

@@ -6,7 +6,7 @@ import { RecoilState, atom, useRecoilState } from 'recoil';
 import Knowledge from '../../../api/src/store/models/dataset/dataset';
 import KnowledgeDocument from '../../../api/src/store/models/dataset/document';
 import DatasetSegment from '../../../api/src/store/models/dataset/segment';
-import { getDocument, getSegments } from '../../libs/dataset';
+import { getDocument, getSegments } from '../../libs/knowledge';
 
 interface SegmentState {
   dataset?: Knowledge;

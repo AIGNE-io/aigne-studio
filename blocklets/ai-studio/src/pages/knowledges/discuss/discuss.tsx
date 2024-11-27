@@ -1,5 +1,5 @@
 import { useComponent } from '@app/contexts/component';
-import { CreateDiscussionItem } from '@app/libs/dataset';
+import { CreateDiscussionItem } from '@app/libs/knowledge';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';

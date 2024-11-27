@@ -15,8 +15,8 @@ import {
   getKnowledgeList,
   getResourcesKnowledgeList,
   updateKnowledge,
-} from '../../libs/dataset';
-import type { KnowledgeInput } from '../../libs/dataset';
+} from '../../libs/knowledge';
+import type { KnowledgeInput } from '../../libs/knowledge';
 
 export interface KnowledgeContext {
   datasets: KnowledgeCard[];

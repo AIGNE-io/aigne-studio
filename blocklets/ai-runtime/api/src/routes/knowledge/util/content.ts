@@ -39,12 +39,12 @@ export const getFileContent = async (fileExtension: string, filePath: string) =>
   }
 
   if (filePath.endsWith('.pdf')) {
-    logger.info('load parsePDF', { filePath, fileExtension });
+    logger.debug('load parsePDF', { filePath, fileExtension });
     return parsePDF(filePath);
   }
 
   if (filePath.endsWith('.doc') || filePath.endsWith('.docx')) {
-    logger.info('load mammoth', { filePath, fileExtension });
+    logger.debug('load mammoth', { filePath, fileExtension });
     return mammoth.extractRawText({ path: filePath }).then((result) => result.value);
   }
 

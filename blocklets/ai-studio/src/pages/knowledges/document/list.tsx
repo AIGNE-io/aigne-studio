@@ -1,11 +1,10 @@
-import { KnowledgeDocumentCard, watchKnowledgeEmbeddings } from '@app/libs/dataset';
+import { KnowledgeDocumentCard } from '@app/libs/knowledge';
 import useDialog from '@app/utils/use-dialog';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Box, Button, Stack, Tooltip, Typography, styled } from '@mui/material';
 import { DataGrid, GridColDef, gridClasses } from '@mui/x-data-grid';
-import { useReactive } from 'ahooks';
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
@@ -55,7 +54,6 @@ function generateDiscussionUrl(params: any): string {
 
 const KnowledgeDocuments = ({
   disabled,
-  knowledgeId,
   rows,
   total,
   page,
@@ -63,9 +61,9 @@ const KnowledgeDocuments = ({
   onRemove,
   onRefetch,
   onEmbedding,
+  embeddings,
 }: {
   disabled: boolean;
-  knowledgeId: string;
   rows: KnowledgeDocumentCard[];
   total: number;
   page: number;
@@ -73,49 +71,10 @@ const KnowledgeDocuments = ({
   onRemove: (documentId: string) => void;
   onRefetch: () => void;
   onEmbedding: (documentId: string) => void;
+  embeddings: { [key: string]: { [key: string]: any } };
 }) => {
   const { t } = useLocaleContext();
-  const embeddings = useReactive<{ [key: string]: { [key: string]: any } }>({});
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const abortController = new AbortController();
-
-    (async () => {
-      const res = await watchKnowledgeEmbeddings({ knowledgeId, signal: abortController.signal });
-      const reader = res.getReader();
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        if (value) {
-          switch (value.type) {
-            case 'change': {
-              const { type, ...rest } = value;
-              embeddings[value.documentId] = rest;
-              break;
-            }
-            case 'complete': {
-              const { type, ...rest } = value;
-              embeddings[value.documentId] = rest;
-              break;
-            }
-            case 'error': {
-              const { type, ...rest } = value;
-              embeddings[value.documentId] = rest;
-              Toast.error(rest.error);
-              break;
-            }
-            default:
-              console.warn('Unsupported event', value);
-          }
-        }
-      }
-    })();
-
-    return () => abortController.abort();
-  }, [knowledgeId]);
 
   const columns = useMemo(() => {
     const list: GridColDef<KnowledgeDocumentCard>[] = [

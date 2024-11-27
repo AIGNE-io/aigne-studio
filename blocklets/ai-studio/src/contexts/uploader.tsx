@@ -9,6 +9,7 @@ const defaultAllowedFileTypes = ['image/png', 'image/jpeg', 'image/gif'];
 interface UploaderProviderProps {
   children: ReactNode;
   plugins?: string[];
+  dropTargetProps?: { target?: HTMLElement };
   dashboardProps?: {
     fileManagerSelectionType?: string;
   };
@@ -75,6 +76,7 @@ export default function UploaderProvider({
   plugins,
   dashboardProps,
   apiPathProps,
+  dropTargetProps,
 }: UploaderProviderProps) {
   const uploaderRef = useRef<any>(null);
 
@@ -106,6 +108,7 @@ export default function UploaderProvider({
         }}
         apiPathProps={apiPathProps}
         plugins={plugins}
+        dropTargetProps={dropTargetProps}
       />
     </UploaderContext.Provider>
   );

@@ -9,7 +9,7 @@ import { Op } from 'sequelize';
 import { joinURL } from 'ufo';
 
 import { getProcessedFileDir, getSourceFileDir, getUploadDir, getVectorDir } from '../../libs/ensure-dir';
-import { queue } from '../../routes/dataset/util/queue';
+import { queue } from '../../routes/knowledge/util/queue';
 import type { Migration } from '../migrate';
 import Content from '../models/dataset/content';
 import Knowledge from '../models/dataset/dataset';

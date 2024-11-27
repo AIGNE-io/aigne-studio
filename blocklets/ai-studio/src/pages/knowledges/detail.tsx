@@ -1,5 +1,6 @@
-import { useKnowledge } from '@app/contexts/datasets/datasets';
+import { useKnowledge } from '@app/contexts/knowledge/knowledge';
 import UploaderProvider, { useUploader } from '@app/contexts/uploader';
+import useSubscription from '@app/hooks/use-subscription';
 import { AIGNE_RUNTIME_MOUNT_POINT } from '@app/libs/constants';
 import ColumnsLayout, { ImperativeColumnsLayout } from '@app/pages/project/columns-layout';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
@@ -31,13 +32,13 @@ import {
   tabClasses,
   tabsClasses,
 } from '@mui/material';
-import { useRequest, useUpdate } from 'ahooks';
+import { useReactive, useRequest, useUpdate } from 'ahooks';
 import bytes from 'bytes';
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { joinURL, withQuery } from 'ufo';
 
-import { refreshEmbedding, searchKnowledge } from '../../libs/dataset';
+import { refreshEmbedding, searchKnowledge } from '../../libs/knowledge';
 import EmptyDocuments from './document/empty';
 import KnowledgeDocuments, { DocumentIcon } from './document/list';
 import ImportKnowledge from './import';
@@ -68,6 +69,7 @@ export default function KnowledgeDetail() {
 
   const { getKnowledge, getDocuments, deleteDocument } = useKnowledge();
   const navigate = useNavigate();
+  const embeddings = useReactive<{ [key: string]: { [key: string]: any } }>({});
 
   const {
     data: knowledgeData,
@@ -98,6 +100,43 @@ export default function KnowledgeDetail() {
     mutateKnowledge(newKnowledge);
     mutateDocuments(newDocuments);
   }, []);
+
+  const sub = useSubscription(knowledgeId);
+  useEffect(() => {
+    const fn = (data: { response: { eventType: string; documentId: string; [key: string]: any } }) => {
+      const value = data.response;
+
+      if (value) {
+        switch (value.eventType) {
+          case 'change': {
+            embeddings[value.documentId] = value;
+            break;
+          }
+          case 'complete': {
+            embeddings[value.documentId] = value;
+            break;
+          }
+          case 'error': {
+            embeddings[value.documentId] = value;
+            Toast.error(value.error);
+            break;
+          }
+          default:
+            console.warn('Unsupported event', value);
+        }
+      }
+    };
+
+    if (sub) {
+      sub.on('embedding-change', fn);
+    }
+
+    return () => {
+      if (sub) {
+        sub.off('embedding-change', fn);
+      }
+    };
+  }, [sub, knowledgeId]);
 
   const loading = knowledgeLoading || documentsLoading;
   const disabled = knowledgeData?.resourceBlockletDid && knowledgeData?.knowledgeId;
@@ -239,6 +278,7 @@ export default function KnowledgeDetail() {
                         }
                         onRefetch={runAsync}
                         onEmbedding={(documentId) => refreshEmbedding(knowledgeId, documentId)}
+                        embeddings={embeddings}
                       />
                     ) : (
                       <EmptyDocuments />

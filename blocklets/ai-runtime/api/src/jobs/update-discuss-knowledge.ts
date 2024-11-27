@@ -1,7 +1,7 @@
 import logger from '@api/libs/logger';
 import config from '@blocklet/sdk/lib/config';
 
-import { queue } from '../routes/dataset/util/queue';
+import { queue } from '../routes/knowledge/util/queue';
 import Knowledge from '../store/models/dataset/dataset';
 import KnowledgeDocument from '../store/models/dataset/document';
 

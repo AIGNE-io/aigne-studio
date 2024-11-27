@@ -1,7 +1,5 @@
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import flattenApiStructure from '@blocklet/dataset-sdk/util/flatten-open-api';
-import { fetchEventSource } from '@microsoft/fetch-event-source';
-import { joinURL } from 'ufo';
 
 import Knowledge from '../../api/src/store/models/dataset/dataset';
 import KnowledgeDocument from '../../api/src/store/models/dataset/document';
@@ -188,37 +186,4 @@ export async function getSegments(
       params,
     })
     .then((res) => res.data);
-}
-
-export async function watchKnowledgeEmbeddings({
-  knowledgeId,
-  signal,
-}: {
-  knowledgeId: string;
-  signal?: AbortSignal | null;
-}) {
-  const url = joinURL(window.location.origin, AIGNE_RUNTIME_MOUNT_POINT, `/api/datasets/${knowledgeId}/embeddings`);
-
-  return new ReadableStream<
-    | { type: 'change'; documentId: string; embeddingStatus: string; embeddingEndAt?: Date; embeddingStartAt?: Date }
-    | { type: 'complete'; documentId: string; embeddingStatus: string; embeddingEndAt?: Date; embeddingStartAt?: Date }
-    | { type: 'error'; documentId: string; embeddingStatus: string; error: string }
-  >({
-    async start(controller) {
-      await fetchEventSource(url, {
-        signal,
-        method: 'GET',
-        onmessage(e) {
-          const data = JSON.parse(e.data);
-          controller.enqueue({ ...data, type: e.event });
-        },
-        onerror(err) {
-          throw err;
-        },
-        onclose() {
-          controller.close();
-        },
-      });
-    },
-  });
 }

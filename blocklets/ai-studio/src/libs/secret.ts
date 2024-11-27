@@ -28,6 +28,10 @@ export async function getSecrets({
     .then((res) => res.data);
 }
 
+export async function getHasCrawlSecret(): Promise<{ jina: boolean; firecrawl: boolean }> {
+  return axios.get('/api/secrets/has-crawl-secret', { baseURL: AIGNE_RUNTIME_MOUNT_POINT }).then((res) => res.data);
+}
+
 export interface CreateOrUpdateSecretsInput {
   secrets: {
     targetProjectId: string;

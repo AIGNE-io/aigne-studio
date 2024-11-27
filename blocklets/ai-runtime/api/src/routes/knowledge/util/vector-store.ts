@@ -34,10 +34,7 @@ export const updateHistoriesAndStore = async (knowledgeId: string, documentId: s
 
 function formatDocument(doc: Document, metadata?: Record<string, unknown>) {
   if (metadata && Object.keys(metadata).length) {
-    return {
-      ...doc,
-      pageContent: JSON.stringify({ content: doc.pageContent, metadata }),
-    };
+    return { ...doc, pageContent: JSON.stringify({ content: doc.pageContent, metadata }) };
   }
 
   return doc;

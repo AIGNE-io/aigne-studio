@@ -5,7 +5,7 @@ import { RecoilState, atom, useRecoilState } from 'recoil';
 import Knowledge from '../../../api/src/store/models/dataset/dataset';
 import KnowledgeDocument from '../../../api/src/store/models/dataset/document';
 import { getErrorMessage } from '../../libs/api';
-import { deleteDocument, getDocuments, getKnowledge } from '../../libs/dataset';
+import { deleteDocument, getDocuments, getKnowledge } from '../../libs/knowledge';
 
 interface DatasetState {
   dataset?: Knowledge & { blockletDid?: string };
