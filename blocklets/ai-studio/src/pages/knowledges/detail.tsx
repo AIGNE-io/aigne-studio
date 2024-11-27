@@ -268,7 +268,6 @@ export default function KnowledgeDetail() {
                     {document?.items?.length ? (
                       <KnowledgeDocuments
                         disabled={Boolean(disabled)}
-                        knowledgeId={knowledgeId}
                         rows={document.items || []}
                         total={document.total ?? 0}
                         page={document.page ?? 1}
