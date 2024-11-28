@@ -37,13 +37,16 @@ export default class HybridRetriever extends BaseRetriever {
       const queries = await this.queryTranslate(query);
       logger.debug('queries', { queries });
       const documents = await this.getDocuments(queries);
-      logger.debug('documents', { documents });
-      const retrievedDocuments = await this.retrieval(documents, query);
-      logger.debug('retrievedDocuments', { retrievedDocuments });
-      const result = await this.rerank(retrievedDocuments, query);
-      logger.debug('result', { result });
+      logger.info('documents', { documents: documents.length });
 
-      return this.uniqueDocuments(result).slice(0, this.getTopK().k);
+      const uniqueDocuments = this.uniqueDocuments(documents);
+      logger.debug('uniqueDocuments', { uniqueDocuments: uniqueDocuments.length });
+      const extractorDocuments = await this.extractor(uniqueDocuments, query);
+      logger.debug('extractorDocuments', { extractorDocuments: extractorDocuments.length });
+      const rerankDocuments = await this.rerank(extractorDocuments, query);
+      logger.debug('rerankDocuments', { rerankDocuments: rerankDocuments.length });
+
+      return rerankDocuments.slice(0, this.getTopK().k);
     } catch (error) {
       logger.error('Search failed', { error });
       throw error;
@@ -56,7 +59,7 @@ export default class HybridRetriever extends BaseRetriever {
     try {
       // @ts-ignore
       const queries = await retriever._generateQueries(query);
-      return [query, ...queries];
+      return [query, ...(queries || [])];
     } catch (error) {
       return [query];
     }
@@ -77,7 +80,17 @@ export default class HybridRetriever extends BaseRetriever {
     return documents.flat();
   }
 
-  async retrieval(documents: Document[], query: string): Promise<Document[]> {
+  async extractor(documents: Document[], query: string): Promise<Document[]> {
+    const extractor = new LLMChainExtractor({
+      llmChain: this.llm,
+      getInput: (query: string, doc: Document): Record<string, unknown> => {
+        return { question: query, context: doc.pageContent };
+      },
+    });
+
+    const compressedDocuments = await extractor.compressDocuments(documents, query);
+    console.log('compressedDocuments', compressedDocuments);
+
     const vectorStore: MemoryVectorStore | null = await MemoryVectorStore.fromDocuments(documents, this.embeddings);
     const baseRetriever = vectorStore!.asRetriever(documents.length);
 
