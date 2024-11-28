@@ -12,8 +12,6 @@ import { copyRecursive } from '@blocklet/ai-runtime/utils/fs';
 import config from '@blocklet/sdk/lib/config';
 import middlewares from '@blocklet/sdk/lib/middlewares';
 import AuthService from '@blocklet/sdk/lib/service/auth';
-// @ts-ignore
-import { initLocalStorageServer } from '@blocklet/uploader-server';
 import archiver from 'archiver';
 import compression from 'compression';
 import express, { Router } from 'express';
@@ -30,6 +28,8 @@ import { ensureComponentCallOr, ensureComponentCallOrAdmin, userAuth } from '../
 import Knowledge from '../../store/models/dataset/dataset';
 import KnowledgeDocument from '../../store/models/dataset/document';
 import { getResourceAvatarPath, sse } from './util';
+
+const { initLocalStorageServer } = require('@blocklet/uploader-server');
 
 const router = Router();
 const authClient = new AuthService();
