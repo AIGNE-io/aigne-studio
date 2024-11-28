@@ -4,8 +4,6 @@ import { join } from 'path';
 import logger from '@api/libs/logger';
 import { resourceManager } from '@api/libs/resource';
 import middlewares from '@blocklet/sdk/lib/middlewares';
-// @ts-ignore
-import { initLocalStorageServer } from '@blocklet/uploader-server';
 import express, { Router } from 'express';
 import { pathExists } from 'fs-extra';
 import Joi from 'joi';
@@ -21,6 +19,8 @@ import EmbeddingHistories from '../../store/models/dataset/embedding-history';
 import HybridRetriever from './retriever';
 import { queue } from './util/queue';
 import { updateHistoriesAndStore } from './util/vector-store';
+
+ const { initLocalStorageServer } = require('@blocklet/uploader-server');
 
 const router = Router();
 
