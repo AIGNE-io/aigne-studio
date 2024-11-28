@@ -137,7 +137,7 @@ export default function ImportKnowledge({
         const { successful, failed } = await uploader.upload();
         file = successful[0]?.responseResult?.data;
 
-        if (!successful?.length || failed?.length || !file?.id) {
+        if (!successful?.length || failed?.length || !file?.id || !file) {
           Toast.warning(t('knowledge.importKnowledge.uploadFailed'));
           return;
         }
