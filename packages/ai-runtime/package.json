@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.4.156",
+  "version": "0.4.157",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
