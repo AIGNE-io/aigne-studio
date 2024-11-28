@@ -10,7 +10,7 @@ import logger from '../../../libs/logger';
 import VectorStore from '../../../store/vector-store-faiss';
 
 export default class BaseRetriever {
-  protected llm = new CustomLLM({}) as any;
+  protected llm = new CustomLLM({ temperature: 0 }) as any;
 
   protected embeddings = new AIKitEmbeddings();
 
@@ -51,9 +51,13 @@ export default class BaseRetriever {
   ) {}
 
   uniqueDocuments(documents: Document[]): Document[] {
+    if (!documents.length) return [];
+
     return uniqBy(
-      documents.map((doc) => ({ ...doc, hash: hash('md5', doc.pageContent, 'hex') })),
+      documents.map((doc) => ({ ...doc, hash: hash('md5', (doc.pageContent || '').trim(), 'hex') })),
       (doc) => doc.hash
-    ).map(({ hash, ...doc }) => doc);
+    ).map(({ hash: _, ...doc }) => {
+      return doc;
+    });
   }
 }

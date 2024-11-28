@@ -20,7 +20,7 @@ import HybridRetriever from './retriever';
 import { queue } from './util/queue';
 import { updateHistoriesAndStore } from './util/vector-store';
 
- const { initLocalStorageServer } = require('@blocklet/uploader-server');
+const { initLocalStorageServer } = require('@blocklet/uploader-server');
 
 const router = Router();
 
@@ -151,10 +151,7 @@ router.delete('/:knowledgeId/documents/:documentId', middlewares.session(), user
   await updateHistoriesAndStore(knowledgeId, documentId);
 
   if (document && document.filename) {
-    await Promise.all([
-      rm(joinURL(getSourceFileDir(knowledgeId), document.filename)),
-      rm(joinURL(getProcessedFileDir(knowledgeId), `${document.id}.yml`)),
-    ]).catch(logger.error);
+    await Promise.all([rm(joinURL(getProcessedFileDir(knowledgeId), `${document.id}.yml`))]).catch(logger.error);
   }
 
   await Promise.all([

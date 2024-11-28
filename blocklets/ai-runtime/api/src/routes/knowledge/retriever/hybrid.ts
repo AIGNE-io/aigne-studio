@@ -1,4 +1,4 @@
-import { HfInference } from '@huggingface/inference';
+import { CohereRerank } from '@langchain/cohere';
 import { Document } from '@langchain/core/documents';
 import { ContextualCompressionRetriever } from 'langchain/retrievers/contextual_compression';
 import { LLMChainExtractor } from 'langchain/retrievers/document_compressors/chain_extract';
@@ -9,12 +9,8 @@ import { MemoryVectorStore } from 'langchain/vectorstores/memory';
 import logger from '../../../libs/logger';
 import BaseRetriever from './base';
 
-const HF_TOKEN = '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';
-
 export default class HybridRetriever extends BaseRetriever {
   private vectorRetriever: any = null;
-
-  private hf: HfInference = new HfInference(HF_TOKEN);
 
   async search(query: string): Promise<Document[]> {
     try {
@@ -34,16 +30,16 @@ export default class HybridRetriever extends BaseRetriever {
         return [];
       }
 
-      const queries = await this.queryTranslate(query);
-      logger.info('queries', { queries });
-      const documents = await this.getDocuments(queries);
-      logger.info('documents', { documents: JSON.stringify(documents, null, 2) });
+      // const queries = await this.queryTranslate(query); // version 1
+      // logger.debug('queries', { queries });
+      const documents = await this.getDocuments([query]);
+      logger.debug('documents', { documents: documents.length });
       const extractorDocuments = await this.extractor(documents, query);
-      logger.info('extractorDocuments', { extractorDocuments: JSON.stringify(extractorDocuments, null, 2) });
+      logger.debug('extractorDocuments', { extractorDocuments: extractorDocuments.length });
       const rerankDocuments = await this.rerank(extractorDocuments, query);
-      logger.info('rerankDocuments', { rerankDocuments: JSON.stringify(rerankDocuments, null, 2) });
+      logger.debug('rerankDocuments', { rerankDocuments: rerankDocuments.length });
       const uniqueDocuments = this.uniqueDocuments(rerankDocuments);
-      logger.info('uniqueDocuments', { uniqueDocuments: JSON.stringify(uniqueDocuments, null, 2) });
+      logger.debug('uniqueDocuments', { uniqueDocuments: uniqueDocuments.length });
 
       return uniqueDocuments.slice(0, this.getTopK().k);
     } catch (error) {
@@ -53,7 +49,7 @@ export default class HybridRetriever extends BaseRetriever {
   }
 
   async queryTranslate(query: string): Promise<string[]> {
-    const retriever = MultiQueryRetriever.fromLLM({ llm: this.llm, retriever: this.vectorRetriever! });
+    const retriever = MultiQueryRetriever.fromLLM({ llm: this.llm, retriever: this.vectorRetriever });
 
     try {
       // @ts-ignore
@@ -66,13 +62,20 @@ export default class HybridRetriever extends BaseRetriever {
 
   async getDocuments(queries: string[]): Promise<Document[]> {
     const documents = await Promise.all(
-      queries.map((query) => {
-        const baseRetriever = new EnsembleRetriever({
+      queries.map(async (query) => {
+        const ensembleRetriever = new EnsembleRetriever({
           retrievers: [this.vectorRetriever, this.bm25Retriever!],
           weights: [0.7, 0.3],
         });
+        const multiQueryRetriever = MultiQueryRetriever.fromLLM({
+          retriever: this.vectorRetriever,
+          llm: this.llm,
+        });
 
-        return baseRetriever.invoke(query);
+        return [
+          ...((await ensembleRetriever.invoke(query)) || []),
+          ...((await multiQueryRetriever.invoke(query)) || []),
+        ];
       })
     );
 
@@ -80,6 +83,8 @@ export default class HybridRetriever extends BaseRetriever {
   }
 
   async extractor(documents: Document[], query: string): Promise<Document[]> {
+    if (!documents.length) return [];
+
     const memoryVectorStore = await MemoryVectorStore.fromDocuments(documents, this.embeddings);
     const baseRetriever = memoryVectorStore.asRetriever({ k: documents.length });
 
@@ -91,22 +96,15 @@ export default class HybridRetriever extends BaseRetriever {
   }
 
   async rerank(documents: Document[], query: string): Promise<Document[]> {
-    const scores = await Promise.all(
-      documents.map((doc) =>
-        this.hf.sentenceSimilarity({
-          model: 'sentence-transformers/all-MiniLM-L6-v2',
-          inputs: {
-            source_sentence: query,
-            sentences: [doc.pageContent],
-          },
-        })
-      )
-    );
+    if (!documents.length) return [];
 
-    const result = documents.map((doc, i) => ({ doc, score: scores?.[i]?.[0] || 0 })).sort((a, b) => b.score - a.score);
-    return result.map((item) => {
-      item.doc.metadata.score = item.score;
-      return item.doc;
+    const cohereRerank = new CohereRerank({
+      apiKey: process.env.COHERE_API_KEY,
+      topN: this.getTopK().k,
+      model: 'rerank-english-v2.0',
     });
+
+    const rerankedDocuments = await cohereRerank.compressDocuments(documents, query);
+    return rerankedDocuments;
   }
 }

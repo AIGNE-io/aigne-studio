@@ -7,6 +7,8 @@ import BaseRetriever from './base';
 export default class NormalRetriever extends BaseRetriever {
   private readonly RRF_K = 60;
 
+  private vectorRetriever: any = null;
+
   async search(query: string): Promise<Document[]> {
     try {
       if (!this.vectorStore) {
@@ -18,6 +20,8 @@ export default class NormalRetriever extends BaseRetriever {
       }
 
       const vectorStore = this.vectorStore!;
+      this.vectorRetriever = vectorStore.asRetriever(this.getTopK().k);
+
       if (vectorStore.getMapping() && !Object.keys(vectorStore.getMapping()).length) {
         logger.error('store get mapping is empty');
         return [];
@@ -26,9 +30,9 @@ export default class NormalRetriever extends BaseRetriever {
       logger.debug('Starting search process', { query });
 
       const ensembleRetriever = new EnsembleRetriever({
-        retrievers: [this.bm25Retriever, vectorStore.asRetriever()],
+        retrievers: [this.bm25Retriever, this.vectorRetriever],
         weights: [0.3, 0.7],
-      } as any);
+      });
 
       const searchResults = await ensembleRetriever.invoke(query);
 
@@ -45,7 +49,6 @@ export default class NormalRetriever extends BaseRetriever {
   private rerank(resultSets: Document[][]): Document[] {
     const documentScores = new Map<string, { doc: Document; score: number; sources: Set<string> }>();
 
-    // 计算每个文档的 RRF 分数
     resultSets.forEach((results) => {
       results.forEach((doc, rank) => {
         const docKey = this.getDocumentKey(doc);
@@ -63,20 +66,16 @@ export default class NormalRetriever extends BaseRetriever {
         }
 
         const current = documentScores.get(docKey)!;
-        // 结合原始相似度分数和RRF分数
         current.score += rrfScore * (doc.metadata.score || 1);
       });
     });
 
-    // 额外的源一致性加权
     documentScores.forEach((value) => {
       if (value.sources.size > 1) {
-        // 如果文档同时出现在多个源中，增加其分数
         value.score *= 1 + 0.1 * value.sources.size;
       }
     });
 
-    // 排序并返回结果
     return Array.from(documentScores.values())
       .sort((a, b) => b.score - a.score)
       .map((item) => ({
@@ -90,7 +89,6 @@ export default class NormalRetriever extends BaseRetriever {
   }
 
   private getDocumentKey(doc: Document): string {
-    // 使用文档内容和可能的元数据创建唯一键
     return `${doc.pageContent}${doc.metadata.source || ''}`;
   }
 }

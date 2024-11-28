@@ -446,8 +446,11 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
 
                     <Stack direction="row" gap={1} alignItems="center">
                       <Typography
-                        sx={{ fontSize: 13, color: result?.metadata?.metadata?.score > 0.5 ? '#059669' : '#BE123C' }}>
-                        {Number((result?.metadata?.metadata?.score || 0) * 100).toFixed(2)}%
+                        sx={{
+                          fontSize: 13,
+                          color: result?.metadata?.metadata?.relevanceScore > 0.5 ? '#059669' : '#BE123C',
+                        }}>
+                        {Number((result?.metadata?.metadata?.relevanceScore || 0) * 100).toFixed(2)}%
                       </Typography>
                       <Typography sx={{ fontSize: 13, color: '#9CA3AF' }}>{t('similarity')}</Typography>
                     </Stack>
