@@ -10,6 +10,7 @@ import express, { ErrorRequestHandler } from 'express';
 
 import initCronJob from './jobs';
 import { cronManager } from './libs/cron-jobs';
+import { getSourceFileDir } from './libs/ensure-dir';
 import { isDevelopment } from './libs/env';
 import logger, { accessLogMiddleware, registerLoggerToConsole } from './libs/logger';
 import { resourceManager } from './libs/resource';
@@ -45,6 +46,12 @@ app.use(express.json({ limit: '1 mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1 mb' }));
 app.use(cors());
 app.use(xss());
+
+app.use('/upload/:knowledgeId', (req, res, next) => {
+  const { knowledgeId } = req.params;
+  const sourceFileDir = getSourceFileDir(knowledgeId);
+  express.static(sourceFileDir, { maxAge: '365d', immutable: true, index: false })(req, res, next);
+});
 
 app.use(accessLogMiddleware);
 

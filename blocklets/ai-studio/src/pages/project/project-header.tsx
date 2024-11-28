@@ -1,4 +1,4 @@
-import { DatasetsProvider } from '@app/contexts/datasets/datasets';
+import { KnowledgeProvider } from '@app/contexts/knowledge/knowledge';
 import AigneLogo from '@app/icons/aigne-logo';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Icon } from '@iconify-icon/react';
@@ -68,7 +68,7 @@ export default function ProjectHeader() {
   }, [t]);
 
   return (
-    <DatasetsProvider projectId={projectId}>
+    <KnowledgeProvider>
       <Stack height={1} overflow="hidden">
         <FontFamilyHelmet />
         <Box height={64} borderBottom="1px solid #E5E7EB" px={{ xs: 2, md: 3 }} className="between">
@@ -163,7 +163,7 @@ export default function ProjectHeader() {
           </Drawer>
         )}
       </Stack>
-    </DatasetsProvider>
+    </KnowledgeProvider>
   );
 }
 

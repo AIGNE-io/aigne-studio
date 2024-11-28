@@ -15,17 +15,22 @@ async function ensureKnowledgeDirExists(knowledgeId?: string) {
     await Promise.all([
       mkdir(path.join(knowledgeDir, 'uploads'), { recursive: true }),
       mkdir(path.join(knowledgeDir, 'vectors'), { recursive: true }),
+      mkdir(path.join(knowledgeDir, 'processed'), { recursive: true }),
+      mkdir(path.join(knowledgeDir, 'sources'), { recursive: true }),
     ]);
   }
 }
 
-const getDir = (knowledgeId: string, type: 'uploads' | 'vectors' | '') => {
-  return path.join(Config.knowledgeDir, knowledgeId, type);
+const getDir = (knowledgeId: string, type?: 'uploads' | 'vectors' | 'sources' | 'processed') => {
+  return path.join(Config.knowledgeDir, knowledgeId, type || '');
 };
 
+export const getKnowledgeDir = (knowledgeId: string) => getDir(knowledgeId);
 export const getUploadDir = (knowledgeId: string) => getDir(knowledgeId, 'uploads');
 export const getVectorDir = (knowledgeId: string) => getDir(knowledgeId, 'vectors');
-export const getKnowledgeDir = (knowledgeId: string) => getDir(knowledgeId, '');
+export const getSourceFileDir = (knowledgeId: string) => getDir(knowledgeId, 'sources');
+export const getProcessedFileDir = (knowledgeId: string) => getDir(knowledgeId, 'processed');
+export const getLogoPath = (knowledgeId: string) => path.join(getKnowledgeDir(knowledgeId), 'logo.png');
 
 export const getOldVectorStorePath = (id: string) => path.join(Config.dataDir, 'vectors', id);
 export const getOldUploadPath = (file: string) => path.join(Config.uploadDir, file);

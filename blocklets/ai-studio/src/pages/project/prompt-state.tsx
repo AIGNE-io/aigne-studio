@@ -96,10 +96,10 @@ export function usePromptsState({
       if (exit) return;
 
       const tool: Tool = {
-        id: 'AI-Studio:/api/datasets/{datasetId}/search:get',
+        id: 'AI-Studio:/api/datasets/{knowledgeId}/search:get',
         from: 'blockletAPI',
         parameters: {
-          datasetId: '{{datasetId}}',
+          knowledgeId: '{{knowledgeId}}',
           message: '',
         },
       };
@@ -198,13 +198,13 @@ export function usePromptsState({
               type,
               prefix: 'Please use the following as context:',
               tools: {
-                'AI-Studio:/api/datasets/{datasetId}/search:get': {
+                'AI-Studio:/api/datasets/{knowledgeId}/search:get': {
                   index: 0,
                   data: {
-                    id: 'AI-Studio:/api/datasets/{datasetId}/search:get',
+                    id: 'AI-Studio:/api/datasets/{knowledgeId}/search:get',
                     from: 'blockletAPI',
                     parameters: {
-                      datasetId: '{{datasetId}}',
+                      knowledgeId: '{{knowledgeId}}',
                       message: '',
                     },
                   },
@@ -310,7 +310,7 @@ export function usePromptsState({
 
   useEffect(() => {
     if (template) {
-      if (assistantParameters.includes('datasetId')) {
+      if (assistantParameters.includes('datasetId') || assistantParameters.includes('knowledgeId')) {
         addDatasetPrompt();
       } else {
         deleteDatasetPrompt();

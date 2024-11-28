@@ -34,8 +34,14 @@ export interface ResourceKnowledge {
   blockletDid: string;
   documents: any[];
   contents: any[];
+  segments: any[];
   vectorsPath: string;
   uploadPath: string;
+  sourcesPath: string;
+  processedPath: string;
+  logoPath: string;
+  title: string;
+  did: string;
 }
 
 export interface Resources {
@@ -118,6 +124,9 @@ const loadResourceKnowledge = async () => {
                 const knowledgePath = join(item.path, knowledgeId);
                 const vectorsPath = join(knowledgePath, 'vectors');
                 const uploadPath = join(knowledgePath, 'uploads');
+                const sourcesPath = join(knowledgePath, 'sources');
+                const processedPath = join(knowledgePath, 'processed');
+                const logoPath = join(knowledgePath, 'logo.png');
 
                 const knowledgeJsonPath = join(knowledgePath, 'knowledge.yaml');
                 const knowledge: any & { public?: boolean } = parse((await readFile(knowledgeJsonPath)).toString());
@@ -126,15 +135,24 @@ const loadResourceKnowledge = async () => {
                 const documents = parse((await readFile(documentsPath)).toString());
 
                 const contentsPath = join(knowledgePath, 'contents.yaml');
-                const contents = parse((await readFile(contentsPath)).toString());
+                const contents = (await exists(contentsPath)) ? parse((await readFile(contentsPath)).toString()) : [];
+
+                const segmentsPath = join(knowledgePath, 'segments.yaml');
+                const segments = (await exists(segmentsPath)) ? parse((await readFile(segmentsPath)).toString()) : [];
 
                 return {
-                  knowledge,
+                  title: item.title,
+                  did: item.did,
+                  knowledge: { projectId: knowledge.appId, ...knowledge },
+                  documents,
+                  segments,
+                  contents,
                   blockletDid: item.did,
                   vectorsPath,
-                  uploadPath,
-                  documents,
-                  contents,
+                  uploadPath, // old source
+                  sourcesPath, // new source
+                  processedPath,
+                  logoPath,
                 };
               } catch (error) {
                 logger.error('read knowledge resource error', { error });

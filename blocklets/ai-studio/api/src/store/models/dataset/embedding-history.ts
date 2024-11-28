@@ -1,29 +1,22 @@
 import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
-import { Worker } from 'snowflake-uuid';
 
+import nextId from '../../../libs/next-id';
 import { sequelize } from '../../sequelize';
 import { UploadStatus } from './document';
 
-const idGenerator = new Worker();
-
-const nextId = () => idGenerator.nextId().toString();
 export default class DatasetEmbeddingHistory extends Model<
   InferAttributes<DatasetEmbeddingHistory>,
   InferCreationAttributes<DatasetEmbeddingHistory>
 > {
   declare id: CreationOptional<string>;
 
-  declare targetId?: string;
-
-  declare datasetId: string;
+  declare knowledgeId: string;
 
   declare documentId: string;
 
   declare createdAt: CreationOptional<Date>;
 
   declare updatedAt: CreationOptional<Date>;
-
-  declare targetVersion?: Date;
 
   declare error?: string;
 
@@ -32,6 +25,8 @@ export default class DatasetEmbeddingHistory extends Model<
   declare endAt?: Date;
 
   declare status?: UploadStatus;
+
+  declare contentHash?: string;
 }
 
 DatasetEmbeddingHistory.init(
@@ -42,10 +37,7 @@ DatasetEmbeddingHistory.init(
       allowNull: false,
       defaultValue: nextId,
     },
-    targetId: {
-      type: DataTypes.STRING,
-    },
-    datasetId: {
+    knowledgeId: {
       type: DataTypes.STRING,
     },
     documentId: {
@@ -55,9 +47,6 @@ DatasetEmbeddingHistory.init(
       type: DataTypes.DATE,
     },
     updatedAt: {
-      type: DataTypes.DATE,
-    },
-    targetVersion: {
       type: DataTypes.DATE,
     },
     error: {
@@ -70,6 +59,9 @@ DatasetEmbeddingHistory.init(
       type: DataTypes.DATE,
     },
     status: {
+      type: DataTypes.STRING,
+    },
+    contentHash: {
       type: DataTypes.STRING,
     },
   },

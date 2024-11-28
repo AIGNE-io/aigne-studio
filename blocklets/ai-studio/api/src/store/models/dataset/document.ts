@@ -1,11 +1,7 @@
 import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
-import { Worker } from 'snowflake-uuid';
 
+import nextId from '../../../libs/next-id';
 import { sequelize } from '../../sequelize';
-
-const idGenerator = new Worker();
-
-const nextId = () => idGenerator.nextId().toString();
 
 export enum UploadStatus {
   Idle = 'idle',
@@ -20,27 +16,16 @@ export default class DatasetDocument extends Model<
 > {
   declare id: CreationOptional<string>;
 
-  declare datasetId: string;
+  declare knowledgeId: string;
 
-  declare type: 'discussion' | 'text' | 'file' | 'fullSite' | 'discussKit'; // 'discussion'和'fullSite'已经废弃，统一使用 'discussKit'
+  declare type: 'file' | 'text' | 'discussKit' | 'url';
 
   declare data?:
     | {
+        type: 'file';
+      }
+    | {
         type: 'text';
-        content: string;
-      }
-    | {
-        type: 'discussion';
-        id: string;
-      }
-    | {
-        type: 'fullSite';
-        ids: string[];
-        types: string[];
-      }
-    | {
-        type: string;
-        path: string;
       }
     | {
         type: 'discussKit';
@@ -49,7 +34,13 @@ export default class DatasetDocument extends Model<
           title: string;
           type?: 'discussion' | 'blog' | 'doc';
           from: 'discussion' | 'board' | 'discussionType';
+          boardId?: string;
         };
+      }
+    | {
+        type: 'url';
+        provider: 'jina' | 'firecrawl';
+        url?: string;
       };
 
   declare name?: string;
@@ -71,6 +62,10 @@ export default class DatasetDocument extends Model<
   declare embeddingEndAt?: Date;
 
   declare embeddingStatus?: UploadStatus | string;
+
+  declare filename?: string;
+
+  declare size?: number;
 }
 
 DatasetDocument.init(
@@ -81,7 +76,7 @@ DatasetDocument.init(
       allowNull: false,
       defaultValue: nextId,
     },
-    datasetId: {
+    knowledgeId: {
       type: DataTypes.STRING,
       allowNull: false,
     },
@@ -119,6 +114,12 @@ DatasetDocument.init(
     },
     embeddingStatus: {
       type: DataTypes.STRING,
+    },
+    filename: {
+      type: DataTypes.STRING,
+    },
+    size: {
+      type: DataTypes.BIGINT,
     },
   },
   { sequelize }

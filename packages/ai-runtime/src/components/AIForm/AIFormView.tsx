@@ -60,15 +60,27 @@ export default function AIFormView({
                 name={parameter.key}
                 rules={{
                   required: required ? t('validation.fieldRequired') : undefined,
-                  min: typeof min === 'number' ? { value: min, message: t('validation.fieldMin', { min }) } : undefined,
-                  max: typeof max === 'number' ? { value: max, message: t('validation.fieldMax', { max }) } : undefined,
+                  min:
+                    typeof min === 'number'
+                      ? { value: min, message: t('validation.fieldMin', { min: min.toString() }) }
+                      : undefined,
+                  max:
+                    typeof max === 'number'
+                      ? { value: max, message: t('validation.fieldMax', { max: max.toString() }) }
+                      : undefined,
                   minLength:
                     typeof minLength === 'number'
-                      ? { value: minLength, message: t('validation.fieldMinLength', { minLength }) }
+                      ? {
+                          value: minLength,
+                          message: t('validation.fieldMinLength', { minLength: minLength.toString() }),
+                        }
                       : undefined,
                   maxLength:
                     typeof maxLength === 'number'
-                      ? { value: maxLength, message: t('validation.fieldMaxLength', { maxLength }) }
+                      ? {
+                          value: maxLength,
+                          message: t('validation.fieldMaxLength', { maxLength: maxLength.toString() }),
+                        }
                       : undefined,
                 }}
                 render={({ field, fieldState }) => {

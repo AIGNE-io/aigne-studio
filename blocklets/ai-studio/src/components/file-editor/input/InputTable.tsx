@@ -6,7 +6,7 @@ import LoadingButton from '@app/components/loading/loading-button';
 import PopperMenu, { PopperMenuImperative } from '@app/components/menu/PopperMenu';
 import PasswordField from '@app/components/PasswordField';
 import { useCurrentProject } from '@app/contexts/project';
-import { getDatasets } from '@app/libs/dataset';
+import { getKnowledgeList } from '@app/libs/knowledge';
 import { getProjectIconUrl } from '@app/libs/project';
 import { createOrUpdateSecrets, getSecrets } from '@app/libs/secret';
 import Close from '@app/pages/project/icons/close';
@@ -176,7 +176,7 @@ export default function InputTable({
   };
 
   const parameters = sortBy(Object.values(assistant.parameters ?? {}), (i) => i.index).filter((i) => !i.data.hidden);
-  const { data: knowledge = [] } = useRequest(() => getDatasets({ projectId }));
+  const { data: knowledge = [] } = useRequest(() => getKnowledgeList({ projectId }));
 
   const FROM_MAP = useMemo(() => {
     return {
@@ -1140,21 +1140,7 @@ function KnowledgeParameter({
                 if (!data) return null;
 
                 if (data.type === 'boolean') {
-                  return (
-                    <Stack key={data.name}>
-                      <Typography variant="caption">{data.description || data.name}</Typography>
-
-                      <Switch
-                        checked={Boolean(source?.knowledge?.parameters?.[data.name] ?? false)}
-                        onChange={(_, checked) => {
-                          if (source?.knowledge?.parameters) {
-                            // @ts-ignore
-                            source.knowledge.parameters[data.name] = checked;
-                          }
-                        }}
-                      />
-                    </Stack>
-                  );
+                  return null;
                 }
 
                 if (source?.knowledge?.parameters?.searchAll) {
@@ -1783,7 +1769,7 @@ function APIParameter({
                       </Typography>
                       <Typography
                         variant="subtitle5"
-                        sx={{ lineHeight: '22px' }}>{`(${t(parameter?.type)})`}</Typography>
+                        sx={{ lineHeight: '22px' }}>{`(${t(parameter?.type!)})`}</Typography>
                     </Box>
 
                     {parameter.type === 'object' ? (

@@ -1231,7 +1231,7 @@ async function copyKnowledge({
     path: '/api/datasets',
     method: 'POST',
     params: { userId: user.did },
-    data: { appId: currentProjectId, copyFromProjectId: originProjectId },
+    data: { projectId: currentProjectId, copyFromProjectId: originProjectId },
   });
 
   const projectIdMap = Object.fromEntries(

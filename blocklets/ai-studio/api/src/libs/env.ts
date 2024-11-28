@@ -1,5 +1,6 @@
 import path from 'path';
 
+import { broadcast } from '@api/libs/ws';
 import { getServiceModePermissionMap } from '@blocklet/ai-runtime/common';
 import { ServiceMode } from '@blocklet/ai-runtime/types';
 import config from '@blocklet/sdk/lib/config';
@@ -39,3 +40,11 @@ config.events.on(config.Events.envUpdate, () => {
     }
   }
 });
+
+const reload = () => {
+  setTimeout(() => broadcast('resourceEvent', 'component.update', { type: 'resource' }), 5000);
+};
+
+config.events.on(config.Events.componentAdded, reload);
+config.events.on(config.Events.componentRemoved, reload);
+config.events.on(config.Events.componentUpdated, reload);

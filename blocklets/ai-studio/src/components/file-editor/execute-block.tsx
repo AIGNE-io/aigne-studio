@@ -65,8 +65,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAssistantCompare } from 'src/pages/project/state';
 import { joinURL } from 'ufo';
 
-import Dataset from '../../../api/src/store/models/dataset/dataset';
-import { getAPIList, getDatasets } from '../../libs/dataset';
+import Knowledge from '../../../api/src/store/models/dataset/dataset';
+import { getAPIList, getKnowledgeList } from '../../libs/knowledge';
 import InfoOutlined from '../../pages/project/icons/question';
 import Trash from '../../pages/project/icons/trash';
 import { PROMPTS_FOLDER_NAME, useCreateFile, useProjectStore } from '../../pages/project/yjs-state';
@@ -110,7 +110,7 @@ export default function ExecuteBlockForm({
   const popperState = usePopupState({ variant: 'popper', popupId: 'settings' });
 
   const { data: openApis = [] } = useRequest(() => getAPIList());
-  const { data: datasets = [] } = useRequest(() => getDatasets({ projectId }));
+  const { data: datasets = [] } = useRequest(() => getKnowledgeList({ projectId }));
 
   const { getDiffBackground } = useAssistantCompare({
     value: assistant,
@@ -673,7 +673,7 @@ function ToolItemView({
   tool: Tool;
   readOnly?: boolean;
   openApis: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
-  datasets: (Dataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
+  datasets: (Knowledge['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
 } & StackProps) {
   const navigate = useNavigate();
 
@@ -844,7 +844,7 @@ export const ToolDialog = forwardRef<
     DialogProps?: DialogProps;
     assistant: AssistantYjs;
     openApis: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
-    datasets: (Dataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
+    datasets: (Knowledge['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
   }
 >(({ openApis, datasets, executeBlock, assistant, projectId, gitRef, onSubmit, DialogProps }, ref) => {
   const { t, locale } = useLocaleContext();

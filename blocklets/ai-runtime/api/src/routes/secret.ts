@@ -159,4 +159,8 @@ router.get('/by-aid', async (req, res) => {
   res.json({ secrets });
 });
 
+router.get('/has-crawl-secret', async (_req, res) => {
+  res.json({ jina: Boolean(config.env.JINA_API_KEY), firecrawl: Boolean(config.env.FIRECRAWL_API_KEY) });
+});
+
 export default router;
