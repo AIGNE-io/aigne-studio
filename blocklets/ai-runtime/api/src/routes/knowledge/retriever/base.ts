@@ -47,7 +47,7 @@ export default class BaseRetriever {
 
   constructor(
     private vectorPathOrKnowledgeId: string,
-    private n: number = 10
+    private n: number = 4
   ) {}
 
   uniqueDocuments(documents: Document[]): Document[] {

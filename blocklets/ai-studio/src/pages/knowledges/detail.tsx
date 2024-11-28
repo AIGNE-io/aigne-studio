@@ -402,7 +402,7 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
           <Box className="center" width={1} height={1}>
             <CircularProgress size={20} />
           </Box>
-        ) : (
+        ) : results.length ? (
           <Box px={2.5}>
             {results.map((result, index) => (
               <Box key={index} py={2.5} borderBottom="1px solid #EFF1F5">
@@ -441,6 +441,10 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
                 )}
               </Box>
             ))}
+          </Box>
+        ) : (
+          <Box className="center" width={1} height={1}>
+            <Typography>{t('noResults')}</Typography>
           </Box>
         )}
       </Box>

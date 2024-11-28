@@ -35,16 +35,16 @@ export default class HybridRetriever extends BaseRetriever {
       }
 
       const queries = await this.queryTranslate(query);
-      logger.debug('queries', { queries });
+      logger.info('queries', { queries });
       const documents = await this.getDocuments(queries);
       logger.info('documents', { documents: documents.length });
 
       const uniqueDocuments = this.uniqueDocuments(documents);
-      logger.debug('uniqueDocuments', { uniqueDocuments: uniqueDocuments.length });
+      logger.info('uniqueDocuments', { uniqueDocuments: uniqueDocuments.length });
       const extractorDocuments = await this.extractor(uniqueDocuments, query);
-      logger.debug('extractorDocuments', { extractorDocuments: extractorDocuments.length });
+      logger.info('extractorDocuments', { extractorDocuments: extractorDocuments.length });
       const rerankDocuments = await this.rerank(extractorDocuments, query);
-      logger.debug('rerankDocuments', { rerankDocuments: rerankDocuments.length });
+      logger.info('rerankDocuments', { rerankDocuments: rerankDocuments.length });
 
       return rerankDocuments.slice(0, this.getTopK().k);
     } catch (error) {
@@ -81,22 +81,11 @@ export default class HybridRetriever extends BaseRetriever {
   }
 
   async extractor(documents: Document[], query: string): Promise<Document[]> {
-    const extractor = new LLMChainExtractor({
-      llmChain: this.llm,
-      getInput: (query: string, doc: Document): Record<string, unknown> => {
-        return { question: query, context: doc.pageContent };
-      },
-    });
-
-    const compressedDocuments = await extractor.compressDocuments(documents, query);
-    console.log('compressedDocuments', compressedDocuments);
-
-    const vectorStore: MemoryVectorStore | null = await MemoryVectorStore.fromDocuments(documents, this.embeddings);
-    const baseRetriever = vectorStore!.asRetriever(documents.length);
+    const memoryVectorStore = await MemoryVectorStore.fromDocuments(documents, this.embeddings);
+    const baseRetriever = memoryVectorStore.asRetriever({ k: documents.length });
 
     const baseCompressor = LLMChainExtractor.fromLLM(this.llm);
     const retriever = new ContextualCompressionRetriever({ baseCompressor, baseRetriever });
-
     return await retriever.invoke(query);
   }
 
