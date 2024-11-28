@@ -92,6 +92,8 @@ export default class HybridRetriever extends BaseRetriever {
     const retriever = new ContextualCompressionRetriever({ baseCompressor, baseRetriever });
     const result = await retriever.invoke(query);
 
+    // await memoryVectorStore.delete();
+
     return result;
   }
 

@@ -11,7 +11,7 @@ export default class Retriever {
   ) {}
 
   async search(query: string): Promise<Document[]> {
-    if (!config.env.preferences.useHybridRetriever) {
+    if (config.env.preferences.useHybridRetriever) {
       return new HybridRetriever(this.vectorPathOrKnowledgeId, this.n).search(query);
     }
 

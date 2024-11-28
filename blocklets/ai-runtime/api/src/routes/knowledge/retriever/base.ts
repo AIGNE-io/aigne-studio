@@ -56,8 +56,6 @@ export default class BaseRetriever {
     return uniqBy(
       documents.map((doc) => ({ ...doc, hash: hash('md5', (doc.pageContent || '').trim(), 'hex') })),
       (doc) => doc.hash
-    ).map(({ hash: _, ...doc }) => {
-      return doc;
-    });
+    ).map(({ hash: _, ...doc }) => doc);
   }
 }
