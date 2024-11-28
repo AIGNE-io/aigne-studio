@@ -216,15 +216,7 @@ export default function ImportKnowledge({
                   }}
                   restrictions={{
                     maxFileSize: (Number(window.blocklet?.preferences?.uploadFileLimit) || 10) * 1024 * 1024,
-                    allowedFileTypes: [
-                      '.md', // 允许 Markdown 文件
-                      '.pdf', // 允许 PDF 文件
-                      '.doc', // 允许 Word 文档
-                      '.docx', // 允许新版 Word 文档
-                      '.txt', // 允许文本文件
-                      '.json', // 允许 JSON 文件
-                      'text/plain', // 文本文件 MIME 类型
-                    ],
+                    allowedFileTypes: ['.md', '.pdf', '.doc', '.docx', '.txt', '.json'],
                   }}
                   dashboardProps={{
                     fileManagerSelectionType: 'files',
