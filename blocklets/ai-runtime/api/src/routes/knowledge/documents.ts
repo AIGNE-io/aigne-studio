@@ -20,7 +20,7 @@ import { HybridRetriever } from './retriever';
 import { queue } from './util/queue';
 import { updateHistoriesAndStore } from './util/vector-store';
 
- const { initLocalStorageServer } = require('@blocklet/uploader-server');
+const { initLocalStorageServer } = require('@blocklet/uploader-server');
 
 const router = Router();
 
