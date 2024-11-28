@@ -137,7 +137,7 @@ export default function ImportKnowledge({
         const { successful, failed } = await uploader.upload();
         file = successful[0]?.responseResult?.data;
 
-        if (!successful?.length || failed?.length || !file?.id || !file) {
+        if (!successful?.length || failed?.length || !file?.id) {
           Toast.warning(t('knowledge.importKnowledge.uploadFailed'));
           return;
         }
@@ -167,6 +167,7 @@ export default function ImportKnowledge({
     return false;
   }, [sourceType, custom, crawl, discussion]);
 
+  const url = withQuery(joinURL(AIGNE_RUNTIME_MOUNT_POINT, '/api/datasets/upload-document'), { knowledgeId });
   return (
     <Dialog
       open
@@ -208,9 +209,7 @@ export default function ImportKnowledge({
                   dropTargetProps={{}}
                   plugins={[]}
                   apiPathProps={{
-                    uploader: withQuery(joinURL(AIGNE_RUNTIME_MOUNT_POINT, '/api/datasets/upload-document'), {
-                      knowledgeId,
-                    }),
+                    uploader: url,
                     disableMediaKitPrefix: true,
                     disableAutoPrefix: true,
                   }}

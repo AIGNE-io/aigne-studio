@@ -76,54 +76,61 @@ export function UploaderButton({
   );
 }
 
-const UploaderProvider = forwardRef<HTMLDivElement, UploaderProviderProps>(
-  (
-    { children, restrictions, plugins, dashboardProps, apiPathProps, dropTargetProps, popup = true, onUploadFinish },
-    ref
-  ) => {
-    const uploaderRef = useRef<any>(null);
+const UploaderProvider = forwardRef<HTMLDivElement, UploaderProviderProps>((props, ref) => {
+  const {
+    children,
+    restrictions,
+    plugins,
+    dashboardProps,
+    apiPathProps,
+    dropTargetProps,
+    popup = true,
+    onUploadFinish,
+  } = props;
 
-    useImperativeHandle(ref, () => uploaderRef.current);
-    const handleUploadFinish = async (...args: any) => {
-      if (typeof onUploadFinish === 'function') {
-        await onUploadFinish(...args);
-      }
+  const uploaderRef = useRef<any>(null);
 
-      if (popup) {
-        const uploader = uploaderRef?.current?.getUploader();
-        uploader.close();
-      }
-    };
+  useImperativeHandle(ref, () => uploaderRef.current);
 
-    return (
-      <UploaderContext.Provider value={uploaderRef as any}>
-        {children}
+  const handleUploadFinish = async (...args: any) => {
+    if (typeof onUploadFinish === 'function') {
+      await onUploadFinish(...args);
+    }
 
-        <UploaderComponent
-          key="uploader"
-          // @ts-ignore
-          ref={uploaderRef}
-          popup={popup}
-          onUploadFinish={handleUploadFinish}
-          dashboardProps={{
-            hideProgressAfterFinish: true,
-            ...(dashboardProps || {}),
-          }}
-          coreProps={{
-            restrictions: {
-              allowedFileTypes: defaultAllowedFileTypes,
-              maxNumberOfFiles: 1,
-              ...(restrictions || {}),
-            },
-          }}
-          apiPathProps={apiPathProps}
-          plugins={plugins}
-          dropTargetProps={dropTargetProps}
-        />
-      </UploaderContext.Provider>
-    );
-  }
-);
+    if (popup) {
+      const uploader = uploaderRef?.current?.getUploader();
+      uploader.close();
+    }
+  };
+
+  return (
+    <UploaderContext.Provider value={uploaderRef as any}>
+      {children}
+
+      <UploaderComponent
+        key="uploader"
+        // @ts-ignore
+        ref={uploaderRef}
+        popup={popup}
+        onUploadFinish={handleUploadFinish}
+        dashboardProps={{
+          hideProgressAfterFinish: true,
+          ...(dashboardProps || {}),
+        }}
+        coreProps={{
+          restrictions: {
+            allowedFileTypes: defaultAllowedFileTypes,
+            maxNumberOfFiles: 1,
+            ...(restrictions || {}),
+          },
+        }}
+        apiPathProps={apiPathProps}
+        plugins={plugins}
+        dropTargetProps={dropTargetProps}
+      />
+    </UploaderContext.Provider>
+  );
+});
 
 export default UploaderProvider;
 
