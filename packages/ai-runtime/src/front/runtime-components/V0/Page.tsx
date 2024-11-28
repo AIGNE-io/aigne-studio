@@ -250,7 +250,7 @@ function ItemView({ ConfirmDialogRef }: { ConfirmDialogRef: RefObject<{ open?: F
             size="small"
             onClick={() => {
               ConfirmDialogRef?.current?.open?.({
-                title: t('v0.deleteSessionTitle', { name: session.name }),
+                title: t('v0.deleteSessionTitle', { name: session.name! }),
                 children: <Box>{t('v0.deleteSessionTip')}</Box>,
                 onConfirm: async () => {
                   await deleteSession({
