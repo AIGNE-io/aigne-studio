@@ -32,7 +32,7 @@ import {
   tabClasses,
   tabsClasses,
 } from '@mui/material';
-import { useReactive, useRequest, useUpdate } from 'ahooks';
+import { useLocalStorageState, useReactive, useRequest, useUpdate } from 'ahooks';
 import bytes from 'bytes';
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -310,14 +310,25 @@ export default function KnowledgeDetail() {
 
 const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
   const { t } = useLocaleContext();
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useLocalStorageState<string>(`knowledge-${knowledgeId}-search`);
+  const [data, setData] = useLocalStorageState<{ docs: { content: any; metadata: any }[] }>(
+    `knowledge-${knowledgeId}-data`
+  );
   const [loaded, setLoaded] = useState(false);
+  const navigate = useNavigate();
 
-  const { data, loading, runAsync } = useRequest((s: string) => searchKnowledge({ knowledgeId, message: s }), {
-    refreshDeps: [],
-    manual: true,
-    onError: (e) => Toast.error(e?.message),
-  });
+  const { loading, runAsync } = useRequest(
+    async (s: string) => {
+      const results = await searchKnowledge({ knowledgeId, message: s });
+      setData(results);
+      return results;
+    },
+    {
+      refreshDeps: [],
+      manual: true,
+      onError: (e) => Toast.error(e?.message),
+    }
+  );
 
   const results = (data?.docs || []).map((doc) => {
     try {
@@ -355,7 +366,7 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
         onSubmit={async (e) => {
           try {
             e.preventDefault();
-            await runAsync(search);
+            await runAsync(search!);
             setLoaded(true);
           } catch (error) {
             Toast.error(error?.message);
@@ -385,6 +396,7 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
           }}
         />
         <IconButton
+          disabled={!search}
           sx={{
             bgcolor: '#000',
             borderRadius: 1,
@@ -401,7 +413,7 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
           onClick={async (e) => {
             try {
               e.preventDefault();
-              await runAsync(search);
+              await runAsync(search!);
               setLoaded(true);
             } catch (error) {
               Toast.error(error?.message);
@@ -434,7 +446,11 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
                     py={1}
                     px={1.5}
                     borderRadius={1}
-                    border="1px solid #EFF1F5">
+                    border="1px solid #EFF1F5"
+                    sx={{ cursor: 'pointer' }}
+                    onClick={() => {
+                      navigate(joinURL('document', result.metadata.document.id, 'segments'));
+                    }}>
                     <Stack direction="row" gap={1} alignItems="center">
                       <DocumentIcon document={result.metadata.document} />
                       <Box flexGrow={1} color="#030712">

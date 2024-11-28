@@ -541,7 +541,9 @@ const SelectKnowledgeModal = (
               onClick={() => runImport(selectedKnowledgeIds)}
               disabled={!selectedKnowledgeIds.length || importLoading}>
               {importLoading && <CircularProgress size={14} />}
-              {`Import Knowledge ${selectedKnowledgeIds.length ? `(${selectedKnowledgeIds.length})` : ''}`}
+              {`${t('importObject', { object: t('knowledge.knowledgeBase') })} ${
+                selectedKnowledgeIds.length ? `(${selectedKnowledgeIds.length})` : ''
+              }`}
             </LoadingButton>
           </Stack>
         </DialogActions>
