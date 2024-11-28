@@ -422,7 +422,7 @@ export default flatten({
       title: '选择数据源',
       description: '添加数据源后，AI 可以根据最重要的信息提供答案。',
       fileImport: '导入文件',
-      dragAndDrop: '点击或拖拽文件到此处上传 \n 支持 Markdown、Txt、Doc、PDF 格式的文档',
+      support: '支持 Markdown、Txt、Doc、PDF 格式的文档',
       provider: '提供商',
       apiKey: 'API 密钥',
       url: 'URL',

@@ -39,7 +39,7 @@ import {
 } from '@mui/material';
 import { useRequest } from 'ahooks';
 import bytes from 'bytes';
-import { Suspense, forwardRef, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, forwardRef, useMemo, useRef, useState } from 'react';
 import { joinURL, withQuery } from 'ufo';
 
 import Discuss from '../../project/icons/discuss';
@@ -222,7 +222,7 @@ export default function ImportKnowledge({
                     hideUploadButton: true,
                     hideRetryButton: true,
                     hideProgressAfterFinish: true,
-                    note: t('knowledge.importKnowledge.dragAndDrop'),
+                    note: t('knowledge.importKnowledge.support'),
                   }}
                 />
               ) : sourceType === 'custom' ? (
@@ -558,6 +558,26 @@ const UploaderDialogContent = styled(DialogContent)`
 
   .uppy-Dashboard-inner {
     width: 100% !important;
+    background: #f9fafb;
+    border-color: #eff1f5;
+
+    .uppy-Dashboard-AddFiles {
+      border: 0;
+
+      .uppy-Dashboard-AddFiles-title {
+        color: #4b5563;
+        font-size: 16px;
+      }
+
+      .uppy-Dashboard-AddFiles-list {
+        display: none;
+      }
+
+      .uppy-Dashboard-AddFiles-info {
+        position: static;
+        padding-top: 0;
+      }
+    }
   }
 
   .uppy-Dashboard-note {

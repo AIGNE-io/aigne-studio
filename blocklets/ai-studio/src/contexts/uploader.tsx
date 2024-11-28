@@ -1,3 +1,4 @@
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import UploadIcon from '@mui/icons-material/Upload';
 import { IconButton, IconButtonProps } from '@mui/material';
 import { ReactNode, createContext, forwardRef, lazy, useContext, useImperativeHandle, useRef } from 'react';
@@ -89,6 +90,7 @@ const UploaderProvider = forwardRef<HTMLDivElement, UploaderProviderProps>((prop
   } = props;
 
   const uploaderRef = useRef<any>(null);
+  const { locale } = useLocaleContext();
 
   useImperativeHandle(ref, () => uploaderRef.current);
 
@@ -113,6 +115,7 @@ const UploaderProvider = forwardRef<HTMLDivElement, UploaderProviderProps>((prop
         ref={uploaderRef}
         popup={popup}
         onUploadFinish={handleUploadFinish}
+        locale={locale}
         dashboardProps={{
           hideProgressAfterFinish: true,
           ...(dashboardProps || {}),
