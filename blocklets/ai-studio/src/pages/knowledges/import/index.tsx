@@ -186,7 +186,7 @@ export default function ImportKnowledge({
         </Box>
       </DialogTitle>
 
-      <DialogContent>
+      <UploaderDialogContent>
         <Stack gap={2.5} height={1}>
           <Stack>
             <Typography variant="h6" sx={{ fontSize: 16, fontWeight: 500, mb: 0.5 }}>
@@ -232,14 +232,8 @@ export default function ImportKnowledge({
                     hideRetryButton: true,
                     hideProgressAfterFinish: true,
                     note: t('knowledge.importKnowledge.dragAndDrop'),
-                  }}>
-                  {/* <FileView
-                    fileName={file?.runtime?.originFileName}
-                    size={file?.runtime?.size ?? 0}
-                    onChange={setFile}
-                    ref={ref}
-                  /> */}
-                </UploaderProvider>
+                  }}
+                />
               ) : sourceType === 'custom' ? (
                 <CustomView
                   title={custom?.title}
@@ -262,7 +256,7 @@ export default function ImportKnowledge({
             </Suspense>
           </Box>
         </Stack>
-      </DialogContent>
+      </UploaderDialogContent>
 
       <DialogActions>
         <Button variant="outlined" onClick={onClose}>
@@ -314,7 +308,7 @@ interface FileViewProps {
   onChange: (value?: FileType) => void;
 }
 
-const FileView = forwardRef<HTMLDivElement, FileViewProps>(({ fileName, size, onChange }, ref) => {
+export const FileView = forwardRef<HTMLDivElement, FileViewProps>(({ fileName, size, onChange }, ref) => {
   const { t } = useLocaleContext();
 
   const [isDraggingOver] = useState(false);
@@ -565,3 +559,18 @@ const StyledTextField = styled(TextField)({
     padding: '9px 6px !important',
   },
 });
+
+const UploaderDialogContent = styled(DialogContent)`
+  .uploader-container {
+    width: 100%;
+  }
+
+  .uppy-Dashboard-inner {
+    width: 100%;
+  }
+
+  .uppy-Dashboard-note {
+    color: #9ca3af;
+    font-size: 13px;
+  }
+`;

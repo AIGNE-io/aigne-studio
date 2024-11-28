@@ -93,33 +93,31 @@ const UploaderProvider = forwardRef<HTMLDivElement, UploaderProviderProps>(
     };
 
     return (
-      <div ref={ref}>
-        <UploaderContext.Provider value={uploaderRef as any}>
-          {children}
+      <UploaderContext.Provider value={uploaderRef as any}>
+        {children}
 
-          <UploaderComponent
-            key="uploader"
-            // @ts-ignore
-            ref={uploaderRef}
-            popup={popup}
-            onUploadFinish={handleUploadFinish}
-            dashboardProps={{
-              hideProgressAfterFinish: true,
-              ...(dashboardProps || {}),
-            }}
-            coreProps={{
-              restrictions: {
-                allowedFileTypes: defaultAllowedFileTypes,
-                maxNumberOfFiles: 1,
-                ...(restrictions || {}),
-              },
-            }}
-            apiPathProps={apiPathProps}
-            plugins={plugins}
-            dropTargetProps={dropTargetProps}
-          />
-        </UploaderContext.Provider>
-      </div>
+        <UploaderComponent
+          key="uploader"
+          // @ts-ignore
+          ref={uploaderRef}
+          popup={popup}
+          onUploadFinish={handleUploadFinish}
+          dashboardProps={{
+            hideProgressAfterFinish: true,
+            ...(dashboardProps || {}),
+          }}
+          coreProps={{
+            restrictions: {
+              allowedFileTypes: defaultAllowedFileTypes,
+              maxNumberOfFiles: 1,
+              ...(restrictions || {}),
+            },
+          }}
+          apiPathProps={apiPathProps}
+          plugins={plugins}
+          dropTargetProps={dropTargetProps}
+        />
+      </UploaderContext.Provider>
     );
   }
 );
