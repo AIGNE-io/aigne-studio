@@ -1,4 +1,5 @@
 import AgentInputSecret from '@api/store/models/agent-input-secret';
+import { ProjectWithInfo } from '@app/pages/project/state';
 import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
 import { Assistant } from '@blocklet/ai-runtime/types';
 import pick from 'lodash/pick';
@@ -48,7 +49,7 @@ export async function getTemplatesProjects(): Promise<{
   return axios.get('/api/template-projects').then((res) => res.data);
 }
 
-export async function getProject(projectId: string): Promise<Project> {
+export async function getProject(projectId: string): Promise<ProjectWithInfo> {
   return axios.get(`/api/projects/${projectId}`).then((res) => res.data);
 }
 

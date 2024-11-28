@@ -7,6 +7,7 @@ import { Config } from '@api/libs/env';
 import { NoPermissionError, NotFoundError } from '@api/libs/error';
 import { sampleIcon } from '@api/libs/icon';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
+import { getUser } from '@api/libs/user';
 import AgentInputSecret from '@api/store/models/agent-input-secret';
 import {
   MemoryFile,
@@ -420,7 +421,7 @@ export function projectRoutes(router: Router) {
 
     checkProjectPermission({ req, project });
 
-    res.json({ ...project.dataValues, ...settings });
+    res.json({ ...project.dataValues, ...settings, createdByInfo: await getUser(project.createdBy) });
   });
 
   router.get(

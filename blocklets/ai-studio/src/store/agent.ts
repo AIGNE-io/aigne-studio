@@ -59,7 +59,7 @@ const resourceAgentsState = ({ type }: { type: ResourceType }) => {
           throw error;
         } finally {
           set((state) => {
-            state.loading = true;
+            state.loading = false;
             state.loaded = true;
           });
         }
@@ -90,7 +90,7 @@ export type UseAgentItem = Omit<Agent, 'identity'> & {
 };
 
 export function useAgents({ type }: { type: ResourceType }) {
-  const { agents = [], load } = useResourceAgents({ type });
+  const { agents = [], load, loading } = useResourceAgents({ type });
   const { projectId, projectRef } = useCurrentProject();
   const {
     state: { project },
@@ -123,6 +123,7 @@ export function useAgents({ type }: { type: ResourceType }) {
           createdAt: String(project.createdAt),
           updatedAt: String(project.updatedAt),
           createdBy: project.createdBy,
+          createdByInfo: project.createdByInfo,
         },
       }));
 
@@ -137,7 +138,16 @@ export function useAgents({ type }: { type: ResourceType }) {
   }));
   const allProjectMap = Object.fromEntries(allProjects.map((i) => [i.id, i]));
 
-  return { load, agents: allAgents, agentMap: allAgentMap, project: allProjects, projectMap: allProjectMap };
+  return {
+    load,
+    loading,
+    agents: allAgents,
+    localAgents,
+    resourceAgents,
+    agentMap: allAgentMap,
+    project: allProjects,
+    projectMap: allProjectMap,
+  };
 }
 
 export function useAgent({

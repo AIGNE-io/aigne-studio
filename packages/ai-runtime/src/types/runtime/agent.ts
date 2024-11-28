@@ -4,6 +4,7 @@ import { ProjectSettings } from '../resource';
 export interface Agent {
   id: string;
   name?: string;
+  tags?: string[];
   description?: string;
   parameters?: Parameter[];
   outputVariables?: OutputVariable[];

@@ -272,6 +272,14 @@ export function useAssistants() {
   return Object.values(store.files).filter((i): i is AssistantYjs => !!i && isAssistant(i));
 }
 
+export function usePromptAgents() {
+  const { store } = useProject();
+  return Object.entries(store.tree)
+    .filter(([, filepath]) => filepath?.startsWith(`${PROMPTS_FOLDER_NAME}/`))
+    .map(([id]) => store.files[id])
+    .filter((i): i is AssistantYjs => !!i && isAssistant(i));
+}
+
 export function createFolder({
   store,
   name,

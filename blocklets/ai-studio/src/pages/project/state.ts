@@ -1,5 +1,6 @@
 import { useCurrentProject } from '@app/contexts/project';
 import { AIGNE_RUNTIME_MOUNT_POINT } from '@app/libs/constants';
+import { User } from '@app/libs/project';
 import { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { SubscriptionError } from '@blocklet/ai-kit/api';
@@ -40,8 +41,10 @@ import * as projectApi from '../../libs/project';
 import * as api from '../../libs/tree';
 import { PROMPTS_FOLDER_NAME, useProjectStore } from './yjs-state';
 
+export type ProjectWithInfo = Project & { createdByInfo?: User; updatedAt?: string };
+
 export interface ProjectState {
-  project?: Project;
+  project?: ProjectWithInfo;
   branches: string[];
   commits: Commit[];
   loading?: boolean;

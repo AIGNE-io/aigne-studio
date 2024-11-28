@@ -907,4 +907,6 @@ export default flatten({
   similarity: '相关度',
   crawl: '爬取',
   createObject: '创建{object}',
+  currentProject: '当前项目',
+  tools: '工具',
 });

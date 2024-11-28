@@ -7,6 +7,11 @@ export type ProjectSettings = {
   createdAt?: string;
   updatedAt?: string;
   createdBy?: string;
+  createdByInfo?: {
+    avatar?: string;
+    did?: string;
+    fullName?: string;
+  };
   updatedBy?: string;
   model?: string;
   temperature?: number;
@@ -41,6 +46,11 @@ export const projectSettingsSchema = Joi.object<ProjectSettings>({
   frequencyPenalty: Joi.number().empty(['', null]),
   maxTokens: Joi.number().empty(['', null]),
   createdAt: Joi.alternatives(Joi.string().isoDate(), Joi.date().cast('string')).empty(['', null]),
+  createdByInfo: Joi.object({
+    avatar: Joi.string().empty(['', null]),
+    did: Joi.string().empty(['', null]),
+    fullName: Joi.string().empty(['', null]),
+  }).empty(['', null]),
   updatedAt: Joi.alternatives(Joi.string().isoDate(), Joi.date().cast('string')).empty(['', null]),
   createdBy: Joi.string().empty(['', null]),
   updatedBy: Joi.string().empty(['', null]),
