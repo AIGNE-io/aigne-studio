@@ -444,7 +444,7 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
           </Box>
         ) : (
           <Box className="center" width={1} height={1}>
-            <Typography>{t('noResults')}</Typography>
+            {search ? <Typography variant="subtitle3">{t('noResults')}</Typography> : null}
           </Box>
         )}
       </Box>

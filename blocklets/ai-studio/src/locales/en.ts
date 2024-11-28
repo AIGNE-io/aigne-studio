@@ -915,4 +915,5 @@ export default flatten({
   crawl: 'Crawl',
   createObject: 'Create {object}',
   file: 'File',
+  noResults: 'No related results',
 });
