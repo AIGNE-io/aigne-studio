@@ -429,6 +429,7 @@ export default flatten({
       apiKey: 'API Key',
       url: 'URL',
       apiKeyNotSet: 'Please set the API key first',
+      uploadFailed: 'Failed to import file, please check whether to select the file',
     },
     playground: 'Playground',
     emptyDocuments: "You haven't imported any knowledge yet.",

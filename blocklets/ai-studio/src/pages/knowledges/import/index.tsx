@@ -39,7 +39,7 @@ import {
 } from '@mui/material';
 import { useRequest } from 'ahooks';
 import bytes from 'bytes';
-import { Suspense, forwardRef, useMemo, useRef, useState } from 'react';
+import { Suspense, forwardRef, useEffect, useMemo, useRef, useState } from 'react';
 import { joinURL, withQuery } from 'ufo';
 
 import Discuss from '../../project/icons/discuss';
@@ -88,7 +88,7 @@ export default function ImportKnowledge({
 }) {
   const [sourceType, setSourceType] = useState<SourceType>('file');
   const { t } = useLocaleContext();
-  const ref = useRef<HTMLDivElement>(null);
+  const providerRef = useRef<HTMLDivElement>(null);
 
   const isAdmin = useIsAdmin();
   const sourceOptions = (
@@ -124,13 +124,25 @@ export default function ImportKnowledge({
     ] as SourceTypeSelectType[]
   ).filter(Boolean);
 
-  const [file, setFile] = useState<FileType>();
   const [custom, setCustom] = useState<CustomType>();
   const [discussion, setDiscussion] = useState<CreateDiscussionItem[]>([]);
   const [crawl, setCrawl] = useState<CrawlType>({ provider: 'jina' });
 
   const handleSubmit = async () => {
+    // @ts-ignore
+    const uploader = providerRef?.current?.getUploader();
     try {
+      console.warn(uploader);
+
+      const { successful, failed } = await uploader.upload();
+      // get the first file
+      const file = successful[0]?.responseResult?.data;
+
+      if (!successful?.length || failed?.length || !file?.id) {
+        Toast.warning(t('knowledge.importKnowledge.uploadFailed'));
+        return;
+      }
+
       const params = {
         sourceType,
         ...(sourceType === 'file' && { file }),
@@ -148,12 +160,12 @@ export default function ImportKnowledge({
   };
 
   const disabled = useMemo(() => {
-    if (sourceType === 'file') return !file;
+    if (sourceType === 'file') return false; // will be set by submit
     if (sourceType === 'custom') return !(custom?.title || '').trim() || !(custom?.content || '').trim();
     if (sourceType === 'url') return !(crawl.url || '').trim() || !(crawl.provider || '').trim();
     if (sourceType === 'discuss') return discussion.length === 0;
     return false;
-  }, [sourceType, file, custom, crawl, discussion]);
+  }, [sourceType, custom, crawl, discussion]);
 
   return (
     <Dialog
@@ -191,6 +203,8 @@ export default function ImportKnowledge({
             <Suspense>
               {sourceType === 'file' ? (
                 <UploaderProvider
+                  ref={providerRef}
+                  popup={false}
                   dropTargetProps={{}}
                   plugins={[]}
                   apiPathProps={{
@@ -214,13 +228,17 @@ export default function ImportKnowledge({
                   }}
                   dashboardProps={{
                     fileManagerSelectionType: 'files',
+                    hideUploadButton: true,
+                    hideRetryButton: true,
+                    hideProgressAfterFinish: true,
+                    note: t('knowledge.importKnowledge.dragAndDrop'),
                   }}>
-                  <FileView
+                  {/* <FileView
                     fileName={file?.runtime?.originFileName}
                     size={file?.runtime?.size ?? 0}
                     onChange={setFile}
                     ref={ref}
-                  />
+                  /> */}
                 </UploaderProvider>
               ) : sourceType === 'custom' ? (
                 <CustomView

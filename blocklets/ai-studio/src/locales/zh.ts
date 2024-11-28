@@ -431,6 +431,7 @@ export default flatten({
     playground: 'Playground',
     emptyDocuments: '还没有导入任何知识数据',
     url: 'URL',
+    uploadFailed: '导入文件失败，请检查是否选择文件',
   },
   content: '内容',
   search: '搜索',
