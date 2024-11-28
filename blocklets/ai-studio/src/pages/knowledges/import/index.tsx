@@ -132,15 +132,15 @@ export default function ImportKnowledge({
     // @ts-ignore
     const uploader = providerRef?.current?.getUploader();
     try {
-      console.warn(uploader);
+      let file;
+      if (sourceType === 'file') {
+        const { successful, failed } = await uploader.upload();
+        file = successful[0]?.responseResult?.data;
 
-      const { successful, failed } = await uploader.upload();
-      // get the first file
-      const file = successful[0]?.responseResult?.data;
-
-      if (!successful?.length || failed?.length || !file?.id) {
-        Toast.warning(t('knowledge.importKnowledge.uploadFailed'));
-        return;
+        if (!successful?.length || failed?.length || !file?.id) {
+          Toast.warning(t('knowledge.importKnowledge.uploadFailed'));
+          return;
+        }
       }
 
       const params = {
