@@ -1,0 +1,109 @@
+import { HfInference } from '@huggingface/inference';
+import { Document } from '@langchain/core/documents';
+import { ContextualCompressionRetriever } from 'langchain/retrievers/contextual_compression';
+import { LLMChainExtractor } from 'langchain/retrievers/document_compressors/chain_extract';
+import { EnsembleRetriever } from 'langchain/retrievers/ensemble';
+import { MultiQueryRetriever } from 'langchain/retrievers/multi_query';
+import { MemoryVectorStore } from 'langchain/vectorstores/memory';
+
+import logger from '../../../libs/logger';
+import BaseRetriever from './base';
+
+const HF_TOKEN = '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';
+
+export default class HybridRetriever extends BaseRetriever {
+  private vectorRetriever: any = null;
+
+  private hf: HfInference = new HfInference(HF_TOKEN);
+
+  async search(query: string): Promise<Document[]> {
+    try {
+      if (!this.vectorStore) {
+        await this.initializeVectorStore();
+      }
+
+      if (!this.bm25Retriever) {
+        await this.initializeBM25Retriever();
+      }
+
+      const vectorStore = this.vectorStore!;
+      this.vectorRetriever = vectorStore.asRetriever(this.getTopK().k);
+
+      if (vectorStore.getMapping() && !Object.keys(vectorStore.getMapping()).length) {
+        logger.error('store get mapping is empty');
+        return [];
+      }
+
+      const queries = await this.queryTranslate(query);
+      logger.debug('queries', { queries });
+      const documents = await this.getDocuments(queries);
+      logger.debug('documents', { documents });
+      const retrievedDocuments = await this.retrieval(documents, query);
+      logger.debug('retrievedDocuments', { retrievedDocuments });
+      const result = await this.rerank(retrievedDocuments, query);
+      logger.debug('result', { result });
+
+      return this.uniqueDocuments(result).slice(0, this.getTopK().k);
+    } catch (error) {
+      logger.error('Search failed', { error });
+      throw error;
+    }
+  }
+
+  async queryTranslate(query: string): Promise<string[]> {
+    const retriever = MultiQueryRetriever.fromLLM({ llm: this.llm, retriever: this.vectorRetriever! });
+
+    try {
+      // @ts-ignore
+      const queries = await retriever._generateQueries(query);
+      return [query, ...queries];
+    } catch (error) {
+      return [query];
+    }
+  }
+
+  async getDocuments(queries: string[]): Promise<Document[]> {
+    const documents = await Promise.all(
+      queries.map((query) => {
+        const baseRetriever = new EnsembleRetriever({
+          retrievers: [this.vectorRetriever, this.bm25Retriever!],
+          weights: [0.7, 0.3],
+        });
+
+        return baseRetriever.invoke(query);
+      })
+    );
+
+    return documents.flat();
+  }
+
+  async retrieval(documents: Document[], query: string): Promise<Document[]> {
+    const vectorStore: MemoryVectorStore | null = await MemoryVectorStore.fromDocuments(documents, this.embeddings);
+    const baseRetriever = vectorStore!.asRetriever(documents.length);
+
+    const baseCompressor = LLMChainExtractor.fromLLM(this.llm);
+    const retriever = new ContextualCompressionRetriever({ baseCompressor, baseRetriever });
+
+    return await retriever.invoke(query);
+  }
+
+  async rerank(documents: Document[], query: string): Promise<Document[]> {
+    const scores = await Promise.all(
+      documents.map((doc) =>
+        this.hf.sentenceSimilarity({
+          model: 'sentence-transformers/all-MiniLM-L6-v2',
+          inputs: {
+            source_sentence: query,
+            sentences: [doc.pageContent],
+          },
+        })
+      )
+    );
+
+    const result = documents.map((doc, i) => ({ doc, score: scores?.[i]?.[0] || 0 })).sort((a, b) => b.score - a.score);
+    return result.map((item) => {
+      item.doc.metadata.score = item.score;
+      return item.doc;
+    });
+  }
+}

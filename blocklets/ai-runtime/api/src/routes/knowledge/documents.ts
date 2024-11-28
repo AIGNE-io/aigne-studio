@@ -18,7 +18,7 @@ import { userAuth } from '../../libs/security';
 import Knowledge from '../../store/models/dataset/dataset';
 import KnowledgeDocument from '../../store/models/dataset/document';
 import EmbeddingHistories from '../../store/models/dataset/embedding-history';
-import { HybridRetriever } from './retriever';
+import HybridRetriever from './retriever';
 import { queue } from './util/queue';
 import { updateHistoriesAndStore } from './util/vector-store';
 

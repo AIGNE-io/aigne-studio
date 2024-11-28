@@ -350,6 +350,11 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
   return (
     <Stack height={1}>
       <Box
+        component="form"
+        onSubmit={(e) => {
+          e.preventDefault();
+          run(search);
+        }}
         sx={{
           m: 2.5,
           display: 'flex',
@@ -395,7 +400,7 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
       <Box flexGrow={1} height={0} overflow="auto">
         {loading ? (
           <Box className="center" width={1} height={1}>
-            <CircularProgress />
+            <CircularProgress size={20} />
           </Box>
         ) : (
           <Box px={2.5}>
@@ -423,15 +428,15 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
                       </Box>
                     </Stack>
 
-                    {/* <Divider orientation="vertical" variant="middle" flexItem sx={{ my: 0.5 }} />
+                    <Divider orientation="vertical" variant="middle" flexItem sx={{ my: 0.5 }} />
 
                     <Stack direction="row" gap={1} alignItems="center">
                       <Typography
-                        sx={{ fontSize: 13, color: result.metadata.metadata.finalScore > 0.5 ? '#059669' : '#BE123C' }}>
-                        {Number(result.metadata.metadata.finalScore * 100).toFixed(2)}%
+                        sx={{ fontSize: 13, color: result?.metadata?.metadata?.score > 0.5 ? '#059669' : '#BE123C' }}>
+                        {Number((result?.metadata?.metadata?.score || 0) * 100).toFixed(2)}%
                       </Typography>
                       <Typography sx={{ fontSize: 13, color: '#9CA3AF' }}>{t('similarity')}</Typography>
-                    </Stack> */}
+                    </Stack>
                   </Stack>
                 )}
               </Box>
