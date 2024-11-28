@@ -1769,7 +1769,7 @@ function APIParameter({
                       </Typography>
                       <Typography
                         variant="subtitle5"
-                        sx={{ lineHeight: '22px' }}>{`(${t(parameter?.type)})`}</Typography>
+                        sx={{ lineHeight: '22px' }}>{`(${t(parameter?.type!)})`}</Typography>
                     </Box>
 
                     {parameter.type === 'object' ? (

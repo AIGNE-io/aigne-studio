@@ -43,7 +43,7 @@ export default function OutputDescriptionCell({
 
   const renderPlaceholder = () => {
     if (output.from?.type === 'input') {
-      return t('outputFromInputPlaceholder', { input: input?.data.key });
+      return t('outputFromInputPlaceholder', { input: input?.data.key! });
     }
 
     if (output.from?.type === 'output') {
@@ -57,12 +57,12 @@ export default function OutputDescriptionCell({
           const found = outputVariables.find((i) => i.data.id === fromId);
 
           if (!!found) {
-            return t('referenceOutput', { agent: callAgent?.name });
+            return t('referenceOutput', { agent: callAgent?.name! });
           }
         }
       }
 
-      return null;
+      return undefined;
     }
 
     if (assistant.type === 'prompt') {
@@ -72,7 +72,7 @@ export default function OutputDescriptionCell({
     return t('outputVariablePlaceholder');
   };
 
-  if (output.from?.type === 'callAgent') return null;
+  if (output.from?.type === 'callAgent') return undefined;
 
   if (fromType.includes(output.from?.type || '')) {
     return <Typography sx={{ color: 'text.disabled', my: 0.8 }}>{renderPlaceholder()}</Typography>;

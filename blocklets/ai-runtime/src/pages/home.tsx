@@ -42,6 +42,7 @@ export default function HomePage() {
               />
             )
           }
+          // @ts-ignore
           sx={{ bgcolor: 'transparent', my: 20 }}
         />
       ) : app ? (

@@ -967,7 +967,7 @@ function BranchConditionSelect({
       <QueryBuilder
         controlClassnames={{ queryBuilder: 'queryBuilder-branches' }}
         key={tool.condition?.id}
-        fields={fields}
+        fields={fields as any}
         operators={defaultOperators}
         combinators={defaultCombinators}
         query={condition}
