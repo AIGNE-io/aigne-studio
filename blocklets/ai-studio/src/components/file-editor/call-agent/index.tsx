@@ -33,6 +33,7 @@ import { useNavigate } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
 import PromptEditorField from '../prompt-editor-field';
+import SelectAgentDialog from '../select-agent-dialog';
 import useVariablesEditorOptions from '../use-variables-editor-options';
 
 export default function CallAgentEditor({
@@ -90,13 +91,10 @@ export default function CallAgentEditor({
         </Box>
       </Stack>
 
-      <ToolDialog
-        ref={toolForm}
-        projectId={projectId}
-        assistant={value}
-        gitRef={gitRef}
+      <SelectAgentDialog
+        currentAgent={value}
         DialogProps={{ ...bindDialog(dialogState) }}
-        onSubmit={(tool) => {
+        onSelect={(tool) => {
           const doc = (getYjsValue(value) as Map<any>).doc!;
 
           doc.transact(() => {
