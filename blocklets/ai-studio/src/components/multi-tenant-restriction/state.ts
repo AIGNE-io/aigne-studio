@@ -30,7 +30,7 @@ export const usePlans = () => {
   const { locale } = useLocaleContext();
   const { session } = useSessionContext();
   const isPremiumUser = useIsPremiumUser();
-  const plans = preparePlansData(locale);
+  const plans = preparePlansData(locale as 'en' | 'zh');
   const currentPlanIndex = useCurrentPlan();
   if (plans) {
     // 登录用户, 隐藏首个 plan 的 button

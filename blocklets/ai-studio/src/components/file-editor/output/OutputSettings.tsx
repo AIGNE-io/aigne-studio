@@ -632,7 +632,7 @@ export const useRoutesAssistantOutputs = ({
 
         if (found) {
           if (found.type && output.type && found.type !== output.type) {
-            error = t('diffRouteName', { agentName: `${agent?.agent?.name} Agent`, routeName: found.name });
+            error = t('diffRouteName', { agentName: `${agent?.agent?.name} Agent`, routeName: found.name! });
             break;
           } else {
             if (found?.type === 'object' && output.type === 'object') {
@@ -654,7 +654,7 @@ export const useRoutesAssistantOutputs = ({
               ) {
                 error = t('diffRouteNameByType', {
                   agentName: `${agent?.agent?.name} Agent`,
-                  routeName: found.name,
+                  routeName: found.name!,
                   type: 'object',
                 });
                 break;
@@ -680,7 +680,7 @@ export const useRoutesAssistantOutputs = ({
               ) {
                 error = t('diffRouteNameByType', {
                   agentName: `${agent?.agent?.name} Agent`,
-                  routeName: found.name,
+                  routeName: found.name!,
                   type: 'array',
                 });
                 break;
