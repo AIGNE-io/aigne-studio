@@ -88,8 +88,11 @@ const UploaderProvider = forwardRef<HTMLDivElement, UploaderProviderProps>(
       if (typeof onUploadFinish === 'function') {
         await onUploadFinish(...args);
       }
-      const uploader = uploaderRef?.current?.getUploader();
-      uploader.close();
+
+      if (popup) {
+        const uploader = uploaderRef?.current?.getUploader();
+        uploader.close();
+      }
     };
 
     return (

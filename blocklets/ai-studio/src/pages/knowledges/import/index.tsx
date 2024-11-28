@@ -566,7 +566,7 @@ const UploaderDialogContent = styled(DialogContent)`
   }
 
   .uppy-Dashboard-inner {
-    width: 100%;
+    width: 100% !important;
   }
 
   .uppy-Dashboard-note {
