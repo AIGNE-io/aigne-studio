@@ -424,11 +424,12 @@ export default flatten({
       description:
         'After adding sources, the AI can provide answers based on the information that matters most to you.',
       fileImport: 'Import Files',
-      dragAndDrop: 'Drag and drop files here or click to upload',
+      support: 'Support Markdown, Txt, Doc, PDF format',
       provider: 'Provider',
       apiKey: 'API Key',
       url: 'URL',
       apiKeyNotSet: 'Please set the API key first',
+      uploadFailed: 'Failed to import file, please check whether to select the file',
     },
     playground: 'Playground',
     emptyDocuments: "You haven't imported any knowledge yet.",

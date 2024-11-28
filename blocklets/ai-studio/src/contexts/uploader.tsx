@@ -1,17 +1,22 @@
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import UploadIcon from '@mui/icons-material/Upload';
 import { IconButton, IconButtonProps } from '@mui/material';
-import { ReactNode, createContext, lazy, useContext, useRef } from 'react';
+import { ReactNode, createContext, forwardRef, lazy, useContext, useImperativeHandle, useRef } from 'react';
 
 // @ts-ignore
 const UploaderComponent = lazy(() => import('@blocklet/uploader').then((res) => ({ default: res.Uploader })));
 const defaultAllowedFileTypes = ['image/png', 'image/jpeg', 'image/gif'];
 
 interface UploaderProviderProps {
-  children: ReactNode;
+  children?: ReactNode;
   plugins?: string[];
   dropTargetProps?: { target?: HTMLElement };
   dashboardProps?: {
     fileManagerSelectionType?: string;
+    hideUploadButton?: boolean;
+    hideRetryButton?: boolean;
+    hideProgressAfterFinish?: boolean;
+    note?: string | ReactNode;
   };
   restrictions?: {
     allowedFileTypes?: string[];
@@ -23,6 +28,8 @@ interface UploaderProviderProps {
     disableMediaKitPrefix?: boolean;
     disableAutoPrefix?: boolean;
   };
+  popup?: boolean;
+  onUploadFinish?: Function;
 }
 
 export const UploaderContext = createContext<any>(null);
@@ -70,19 +77,32 @@ export function UploaderButton({
   );
 }
 
-export default function UploaderProvider({
-  children,
-  restrictions,
-  plugins,
-  dashboardProps,
-  apiPathProps,
-  dropTargetProps,
-}: UploaderProviderProps) {
-  const uploaderRef = useRef<any>(null);
+const UploaderProvider = forwardRef<HTMLDivElement, UploaderProviderProps>((props, ref) => {
+  const {
+    children,
+    restrictions,
+    plugins,
+    dashboardProps,
+    apiPathProps,
+    dropTargetProps,
+    popup = true,
+    onUploadFinish,
+  } = props;
 
-  const handleUploadFinish = () => {
-    const uploader = uploaderRef?.current?.getUploader();
-    uploader.close();
+  const uploaderRef = useRef<any>(null);
+  const { locale } = useLocaleContext();
+
+  useImperativeHandle(ref, () => uploaderRef.current);
+
+  const handleUploadFinish = async (...args: any) => {
+    if (typeof onUploadFinish === 'function') {
+      await onUploadFinish(...args);
+    }
+
+    if (popup) {
+      const uploader = uploaderRef?.current?.getUploader();
+      uploader.close();
+    }
   };
 
   return (
@@ -93,8 +113,9 @@ export default function UploaderProvider({
         key="uploader"
         // @ts-ignore
         ref={uploaderRef}
-        popup
+        popup={popup}
         onUploadFinish={handleUploadFinish}
+        locale={locale}
         dashboardProps={{
           hideProgressAfterFinish: true,
           ...(dashboardProps || {}),
@@ -112,7 +133,9 @@ export default function UploaderProvider({
       />
     </UploaderContext.Provider>
   );
-}
+});
+
+export default UploaderProvider;
 
 export function getVideoSize(url: string) {
   return new Promise<{ naturalWidth: number; naturalHeight: number }>((resolve, reject) => {

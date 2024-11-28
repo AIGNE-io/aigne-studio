@@ -1,5 +1,6 @@
 import { LocaleProvider, useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Result from '@arcblock/ux/lib/Result';
+import { Box } from '@mui/material';
 import React, { ReactNode } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 
@@ -17,7 +18,12 @@ export default function RuntimeCommonProvider({ children }: { children?: ReactNo
 
 function ErrorRender({ error }: { error: any }) {
   return (
-    <Result status={error.status || 'error'} description={error.message} sx={{ bgcolor: 'transparent', mt: '20%' }} />
+    <Box
+      component={Result}
+      status={error.status || 'error'}
+      description={error.message}
+      sx={{ bgcolor: 'transparent', mt: '20%' }}
+    />
   );
 }
 

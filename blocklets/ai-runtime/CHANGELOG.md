@@ -1,3 +1,11 @@
+## 0.4.157 (2024-11-28)
+
+- chore: support new version knowledge ui
+
+## 0.4.156 (2024-11-25)
+
+- fix: handles bracket characters around variable nodes
+
 ## 0.4.155 (2024-11-25)
 
 - fix: move route definitions to top level(#1470)

@@ -88,7 +88,7 @@ export default function ImportKnowledge({
 }) {
   const [sourceType, setSourceType] = useState<SourceType>('file');
   const { t } = useLocaleContext();
-  const ref = useRef<HTMLDivElement>(null);
+  const providerRef = useRef<HTMLDivElement>(null);
 
   const isAdmin = useIsAdmin();
   const sourceOptions = (
@@ -124,13 +124,25 @@ export default function ImportKnowledge({
     ] as SourceTypeSelectType[]
   ).filter(Boolean);
 
-  const [file, setFile] = useState<FileType>();
   const [custom, setCustom] = useState<CustomType>();
   const [discussion, setDiscussion] = useState<CreateDiscussionItem[]>([]);
   const [crawl, setCrawl] = useState<CrawlType>({ provider: 'jina' });
 
   const handleSubmit = async () => {
+    // @ts-ignore
+    const uploader = providerRef?.current?.getUploader();
     try {
+      let file;
+      if (sourceType === 'file') {
+        const { successful, failed } = await uploader.upload();
+        file = successful[0]?.responseResult?.data;
+
+        if (!successful?.length || failed?.length || !file?.id) {
+          Toast.warning(t('knowledge.importKnowledge.uploadFailed'));
+          return;
+        }
+      }
+
       const params = {
         sourceType,
         ...(sourceType === 'file' && { file }),
@@ -148,13 +160,14 @@ export default function ImportKnowledge({
   };
 
   const disabled = useMemo(() => {
-    if (sourceType === 'file') return !file;
+    if (sourceType === 'file') return false; // will be set by submit
     if (sourceType === 'custom') return !(custom?.title || '').trim() || !(custom?.content || '').trim();
     if (sourceType === 'url') return !(crawl.url || '').trim() || !(crawl.provider || '').trim();
     if (sourceType === 'discuss') return discussion.length === 0;
     return false;
-  }, [sourceType, file, custom, crawl, discussion]);
+  }, [sourceType, custom, crawl, discussion]);
 
+  const url = withQuery(joinURL(AIGNE_RUNTIME_MOUNT_POINT, '/api/datasets/upload-document'), { knowledgeId });
   return (
     <Dialog
       open
@@ -174,7 +187,7 @@ export default function ImportKnowledge({
         </Box>
       </DialogTitle>
 
-      <DialogContent>
+      <UploaderDialogContent>
         <Stack gap={2.5} height={1}>
           <Stack>
             <Typography variant="h6" sx={{ fontSize: 16, fontWeight: 500, mb: 0.5 }}>
@@ -191,37 +204,27 @@ export default function ImportKnowledge({
             <Suspense>
               {sourceType === 'file' ? (
                 <UploaderProvider
+                  ref={providerRef}
+                  popup={false}
                   dropTargetProps={{}}
                   plugins={[]}
                   apiPathProps={{
-                    uploader: withQuery(joinURL(AIGNE_RUNTIME_MOUNT_POINT, '/api/datasets/upload-document'), {
-                      knowledgeId,
-                    }),
+                    uploader: url,
                     disableMediaKitPrefix: true,
                     disableAutoPrefix: true,
                   }}
                   restrictions={{
                     maxFileSize: (Number(window.blocklet?.preferences?.uploadFileLimit) || 10) * 1024 * 1024,
-                    allowedFileTypes: [
-                      '.md', // 允许 Markdown 文件
-                      '.pdf', // 允许 PDF 文件
-                      '.doc', // 允许 Word 文档
-                      '.docx', // 允许新版 Word 文档
-                      '.txt', // 允许文本文件
-                      '.json', // 允许 JSON 文件
-                      'text/plain', // 文本文件 MIME 类型
-                    ],
+                    allowedFileTypes: ['.md', '.pdf', '.doc', '.docx', '.txt', '.json'],
                   }}
                   dashboardProps={{
                     fileManagerSelectionType: 'files',
-                  }}>
-                  <FileView
-                    fileName={file?.runtime?.originFileName}
-                    size={file?.runtime?.size ?? 0}
-                    onChange={setFile}
-                    ref={ref}
-                  />
-                </UploaderProvider>
+                    hideUploadButton: true,
+                    hideRetryButton: true,
+                    hideProgressAfterFinish: true,
+                    note: t('knowledge.importKnowledge.support'),
+                  }}
+                />
               ) : sourceType === 'custom' ? (
                 <CustomView
                   title={custom?.title}
@@ -244,7 +247,7 @@ export default function ImportKnowledge({
             </Suspense>
           </Box>
         </Stack>
-      </DialogContent>
+      </UploaderDialogContent>
 
       <DialogActions>
         <Button variant="outlined" onClick={onClose}>
@@ -296,7 +299,7 @@ interface FileViewProps {
   onChange: (value?: FileType) => void;
 }
 
-const FileView = forwardRef<HTMLDivElement, FileViewProps>(({ fileName, size, onChange }, ref) => {
+export const FileView = forwardRef<HTMLDivElement, FileViewProps>(({ fileName, size, onChange }, ref) => {
   const { t } = useLocaleContext();
 
   const [isDraggingOver] = useState(false);
@@ -547,3 +550,38 @@ const StyledTextField = styled(TextField)({
     padding: '9px 6px !important',
   },
 });
+
+const UploaderDialogContent = styled(DialogContent)`
+  .uploader-container {
+    width: 100%;
+  }
+
+  .uppy-Dashboard-inner {
+    width: 100% !important;
+    background: #f9fafb;
+    border-color: #eff1f5;
+
+    .uppy-Dashboard-AddFiles {
+      border: 0;
+
+      .uppy-Dashboard-AddFiles-title {
+        color: #4b5563;
+        font-size: 16px;
+      }
+
+      .uppy-Dashboard-AddFiles-list {
+        display: none;
+      }
+
+      .uppy-Dashboard-AddFiles-info {
+        position: static;
+        padding-top: 0;
+      }
+    }
+  }
+
+  .uppy-Dashboard-note {
+    color: #9ca3af;
+    font-size: 13px;
+  }
+`;
