@@ -256,7 +256,7 @@ export default function KnowledgeDetail() {
                   totalSize={loading ? 0 : knowledgeData?.totalSize}
                   icon={loading ? '' : knowledgeData?.icon}
                   onAdd={() => setShowImportDialog(true)}
-                  onBack={() => navigate(-1)}
+                  onBack={() => navigate('../')}
                 />
 
                 {loading ? (
