@@ -311,8 +311,9 @@ export default function KnowledgeDetail() {
 const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
   const { t } = useLocaleContext();
   const [search, setSearch] = useState('');
+  const [loaded, setLoaded] = useState(false);
 
-  const { data, loading, run } = useRequest((s: string) => searchKnowledge({ knowledgeId, message: s }), {
+  const { data, loading, runAsync } = useRequest((s: string) => searchKnowledge({ knowledgeId, message: s }), {
     refreshDeps: [],
     manual: true,
     onError: (e) => Toast.error(e?.message),
@@ -351,9 +352,14 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
     <Stack height={1}>
       <Box
         component="form"
-        onSubmit={(e) => {
-          e.preventDefault();
-          run(search);
+        onSubmit={async (e) => {
+          try {
+            e.preventDefault();
+            await runAsync(search);
+            setLoaded(true);
+          } catch (error) {
+            Toast.error(error?.message);
+          }
         }}
         sx={{
           m: 2.5,
@@ -392,7 +398,15 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
             alignItems: 'center',
             gap: 0.5,
           }}
-          onClick={() => run(search)}>
+          onClick={async (e) => {
+            try {
+              e.preventDefault();
+              await runAsync(search);
+              setLoaded(true);
+            } catch (error) {
+              Toast.error(error?.message);
+            }
+          }}>
           <Box component={Icon} icon={SearchIcon} fontSize={15} />
           <Box>{t('search')}</Box>
         </IconButton>
@@ -444,7 +458,7 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
           </Box>
         ) : (
           <Box className="center" width={1} height={1}>
-            {search ? <Typography variant="subtitle3">{t('noResults')}</Typography> : null}
+            {loaded ? <Typography variant="subtitle3">{t('noResults')}</Typography> : null}
           </Box>
         )}
       </Box>

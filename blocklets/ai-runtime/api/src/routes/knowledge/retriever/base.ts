@@ -10,7 +10,7 @@ import logger from '../../../libs/logger';
 import VectorStore from '../../../store/vector-store-faiss';
 
 export default class BaseRetriever {
-  protected llm = new CustomLLM({ concurrency: 1 }) as any;
+  protected llm = new CustomLLM({}) as any;
 
   protected embeddings = new AIKitEmbeddings();
 

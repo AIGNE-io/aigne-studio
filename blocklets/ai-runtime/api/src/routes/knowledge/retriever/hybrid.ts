@@ -1,6 +1,5 @@
 import { HfInference } from '@huggingface/inference';
 import { Document } from '@langchain/core/documents';
-import { OpenAI } from '@langchain/openai';
 import { ContextualCompressionRetriever } from 'langchain/retrievers/contextual_compression';
 import { LLMChainExtractor } from 'langchain/retrievers/document_compressors/chain_extract';
 import { EnsembleRetriever } from 'langchain/retrievers/ensemble';
@@ -38,14 +37,13 @@ export default class HybridRetriever extends BaseRetriever {
       const queries = await this.queryTranslate(query);
       logger.info('queries', { queries });
       const documents = await this.getDocuments(queries);
-      logger.info('documents', { documents: documents.length });
-
+      logger.info('documents', { documents: JSON.stringify(documents, null, 2) });
       const extractorDocuments = await this.extractor(documents, query);
-      logger.info('extractorDocuments', { extractorDocuments: extractorDocuments.length });
+      logger.info('extractorDocuments', { extractorDocuments: JSON.stringify(extractorDocuments, null, 2) });
       const rerankDocuments = await this.rerank(extractorDocuments, query);
-      logger.info('rerankDocuments', { rerankDocuments: rerankDocuments.length });
+      logger.info('rerankDocuments', { rerankDocuments: JSON.stringify(rerankDocuments, null, 2) });
       const uniqueDocuments = this.uniqueDocuments(rerankDocuments);
-      logger.info('uniqueDocuments', { uniqueDocuments: uniqueDocuments.length });
+      logger.info('uniqueDocuments', { uniqueDocuments: JSON.stringify(uniqueDocuments, null, 2) });
 
       return uniqueDocuments.slice(0, this.getTopK().k);
     } catch (error) {
@@ -88,16 +86,8 @@ export default class HybridRetriever extends BaseRetriever {
     const baseCompressor = LLMChainExtractor.fromLLM(this.llm);
     const retriever = new ContextualCompressionRetriever({ baseCompressor, baseRetriever });
     const result = await retriever.invoke(query);
-    console.log('query', query);
-    console.log('result length', result.length);
 
-    const model = new OpenAI({ model: 'gpt-3.5-turbo-instruct', apiKey: process.env.OPENAI_API_KEY });
-    const baseCompressor1 = LLMChainExtractor.fromLLM(model as any);
-    const retriever1 = new ContextualCompressionRetriever({ baseCompressor: baseCompressor1, baseRetriever });
-    const result1 = await retriever1.invoke(query);
-    console.log('result length', result1.length);
-
-    return result1;
+    return result;
   }
 
   async rerank(documents: Document[], query: string): Promise<Document[]> {
