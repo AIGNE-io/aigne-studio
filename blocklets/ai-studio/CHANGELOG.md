@@ -1,3 +1,8 @@
+## 0.4.158 (2024-12-2)
+
+- fix: waiting for queue drained for knowledge migration
+- chore: re-enable agent tags feature
+
 ## 0.4.157 (2024-11-28)
 
 - chore: support new version knowledge ui
