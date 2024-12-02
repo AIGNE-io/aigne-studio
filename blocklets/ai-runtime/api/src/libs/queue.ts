@@ -1,6 +1,8 @@
 import fastq from 'fastq';
-import type { done, queue } from 'fastq';
+import type { queueAsPromised } from 'fastq';
 import { Worker } from 'snowflake-uuid';
+
+import logger from './logger';
 
 const taskIdGenerator = new Worker();
 const nextTaskId = () => taskIdGenerator.nextId().toString();
@@ -54,7 +56,7 @@ const createQueue = ({
     id?: (job: Task['job']) => string;
   };
 }): {
-  queue: queue<Task>;
+  queue: queueAsPromised<Task>;
   push: (job: Task['job'], jobId?: string) => void;
   checkAndPush: (job: Task['job'], jobId?: string) => void;
 } => {
@@ -66,14 +68,13 @@ const createQueue = ({
   const concurrency = Math.max(options.concurrency || defaults.concurrency, 1);
   const maxTimeout = Math.max(options.maxTimeout || defaults.maxTimeout, 0);
 
-  const q: queue<Task> = fastq(async (data: Task, cb: done) => {
-    try {
-      const result = await tryWithTimeout(() => onJob(data), maxTimeout);
-      cb(null, result);
-    } catch (err) {
-      cb(err);
-    }
-  }, concurrency);
+  const q: queueAsPromised<Task> = fastq.promise(
+    null,
+    async (data: Task) => {
+      return tryWithTimeout(() => onJob(data), maxTimeout);
+    },
+    concurrency
+  );
 
   const getJobId = (jobId: string, job: any): string =>
     jobId || (typeof options.id === 'function' ? options.id(job) : nextTaskId()) || nextTaskId();
@@ -97,10 +98,12 @@ const createQueue = ({
     const isExist = getJob(id);
     if (isExist) return;
 
-    setImmediate(() => {
-      q.push({ id, job }, (err) => {
-        if (err) console.error(err?.message);
-      });
+    setImmediate(async () => {
+      try {
+        await q.push({ id, job });
+      } catch (error) {
+        logger.error('Failed to execute job', { error });
+      }
     });
   };
 

@@ -23,10 +23,7 @@ export const up: Migration = async () => {
     // 删除没有用到文档
     await Document.destroy({ where: { knowledgeId: { [Op.notIn]: knowledge.map((k) => k.id) } } });
 
-    await new Promise((resolve) => {
-      logger.info('queue drain');
-      queue.queue.drain = () => resolve(true);
-    });
+    await queue.queue.drained();
 
     logger.info('Migrate knowledge success');
   } catch (error) {
