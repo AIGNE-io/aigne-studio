@@ -7,3 +7,17 @@ export function resolveModelType(type: AssistantYjs['type']): ModelType | null {
   if (type === 'image') return 'aigc';
   return null;
 }
+
+export function sortModels<T extends { model: string }>(
+  starredModels: string[],
+  recentModels: string[],
+  allModels: T[]
+): T[] {
+  const weights = new Map<string, number>();
+  [...recentModels, ...starredModels].forEach((model, index) => {
+    weights.set(model, index + 1);
+  });
+  return [...allModels].sort((a, b) => {
+    return (weights.get(b.model) ?? 0) - (weights.get(a.model) ?? 0);
+  });
+}

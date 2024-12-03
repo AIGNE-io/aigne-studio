@@ -28,6 +28,8 @@ export type ProjectSettings = {
   iconVersion?: string;
   readme?: string;
   executor?: AgentExecutor;
+  starredModels?: string[];
+  recentModels?: string[];
 };
 
 export const projectSettingsSchema = Joi.object<ProjectSettings>({
@@ -55,6 +57,8 @@ export const projectSettingsSchema = Joi.object<ProjectSettings>({
   }).empty(['', null]),
   readme: Joi.string().empty(['', null]).optional(),
   executor: Joi.object<AgentExecutor>().empty(['', null]).optional(),
+  starredModels: Joi.array().items(Joi.string()).optional(),
+  recentModels: Joi.array().items(Joi.string()).optional(),
 })
   .rename('_id', 'id', { override: true, ignoreUndefined: true })
   .options({ stripUnknown: true });

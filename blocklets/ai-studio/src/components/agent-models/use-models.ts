@@ -35,7 +35,7 @@ export function useModelsFromAgents(type: ModelType) {
   const adapterTypes = { llm: 'llm-adapter', aigc: 'aigc-adapter' };
   const { agents } = useAgentSelectOptions({ type: adapterTypes[type] as ResourceType });
   const models = agents.flatMap((agent) =>
-    (agent.parameters?.find((x) => x.key === 'model') as SelectParameter).options?.map((x) => ({
+    (agent.parameters?.find((x) => x.key === 'model') as SelectParameter)?.options?.map((x) => ({
       name: x.label || x.value,
       model: x.value || x.label,
     }))
