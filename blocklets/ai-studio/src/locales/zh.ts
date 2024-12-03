@@ -715,7 +715,7 @@ export default flatten({
   basic: '基础',
   appearanceTitlePlaceholder: '显示在该输出上方的标题',
   appearanceIconPlaceholder: '显示在该输出上方的图标',
-  addMoreAgentTools: '添加更多',
+  addMoreAgentTools: '安装更多模型',
   noAgents: '没有可选的 Agent',
   buildIn: '内置组件',
   remote: '远程组件',

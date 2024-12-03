@@ -1,6 +1,5 @@
 import { Box, SxProps } from '@mui/material';
 
-import { useModelBrand } from '../../hooks/use-models';
 import AzureIcon from '../selector/ai-icons/azure';
 import GoogleIcon from '../selector/ai-icons/google';
 import HuggingFaceIcon from '../selector/ai-icons/hugging-face';
@@ -8,6 +7,7 @@ import MistralIcon from '../selector/ai-icons/mistral.png?url';
 import OpenAIIcon from '../selector/ai-icons/openai';
 import ReplicateIcon from '../selector/ai-icons/replicate';
 import VertexAIIcon from '../selector/ai-icons/vertex-ai';
+import { useModelBrand } from './use-models';
 
 export const brandIcon = (brand: string) =>
   ({

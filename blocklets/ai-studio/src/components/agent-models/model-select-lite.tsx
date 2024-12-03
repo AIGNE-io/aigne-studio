@@ -7,11 +7,11 @@ import { bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-
 
 import { ModelBrandIcon } from './model-brand-icon';
 import { ModelSelectDialog } from './model-select';
-import { ModelSelectOption, ModelType } from './types';
+import { AgentModel, ModelType } from './types';
 import { useAgentDefaultModel, useSupportedModels } from './use-models';
 
 interface InternalModelSelectLiteProps {
-  options: ModelSelectOption[];
+  options: AgentModel[];
   value?: string | null;
   onChange: (value: string) => void;
   onAddMoreModel?: () => void;
@@ -150,7 +150,7 @@ export function ModelSelectLite({ type, projectId, gitRef, agent, ...rest }: Mod
         onChange={handleOnChange}
         onAddMoreModel={() => dialogState.open()}
       />
-      <ModelSelectDialog dialogProps={{ ...bindDialog(dialogState) }} />
+      <ModelSelectDialog type={type} dialogProps={{ ...bindDialog(dialogState) }} />
     </Box>
   );
 }
