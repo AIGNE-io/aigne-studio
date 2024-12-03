@@ -5,10 +5,10 @@ import PlusIcon from '@iconify-icons/tabler/plus';
 import { Box, Button, ClickAwayListener, Grow, Paper, Popper, Stack } from '@mui/material';
 import { bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 
-import { useProjectDefaultModel, useSupportedModels } from '../../hooks/use-models';
 import { ModelBrandIcon } from './model-brand-icon';
 import { ModelSelectDialog } from './model-select';
 import { ModelSelectOption, ModelType } from './types';
+import { useAgentDefaultModel, useSupportedModels } from './use-models';
 
 interface InternalModelSelectLiteProps {
   options: ModelSelectOption[];
@@ -128,15 +128,15 @@ interface ModelSelectLiteProps {
 }
 
 export function ModelSelectLite({ type, projectId, gitRef, agent, ...rest }: ModelSelectLiteProps) {
-  const supportedModels = useSupportedModels(type === 'aigc');
-  const defaultModel = useProjectDefaultModel({ projectId, gitRef, value: agent });
+  const supportedModels = useSupportedModels();
+  const defaultModel = useAgentDefaultModel({ projectId, gitRef, value: agent });
   const dialogState = usePopupState({ variant: 'dialog', popupId: 'model-select' });
 
   const handleOnChange = (value: string) => {
     agent.model = value;
   };
 
-  const options = supportedModels.map((model) => ({
+  const options = supportedModels[type].map((model) => ({
     ...model,
     name: model.name || model.model,
     maxTokens: (model as TextModelInfo).maxTokensDefault, // TODO: @wq
