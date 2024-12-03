@@ -101,13 +101,13 @@ const RECENT_MODELS_MAX_COUNT = 10;
 
 export function ModelSelectDialog({ type, dialogProps, agent }: ModelSelectDialogProps) {
   const { t } = useLocaleContext();
+  const [tags, setTags] = useState<string[]>([]);
   const models = useAllModels(type);
   const [selected, setSelected] = useState<string | null>(null);
   // console.log('🚀 ~ ModelSelectDialog ~ models:', models);
   const isAdmin = useIsAdmin();
   const addComponentRef = useRef<{ onClick?: () => void; loading?: boolean }>();
-  const [tags, setTags] = useState<string[]>([]);
-  const [isFavorites, setIsFavorites] = useState(false);
+  const [showStarred, setShowStarred] = useState(false);
   const { projectId, projectRef } = useCurrentProject();
   const { projectSetting } = useProjectStore(projectId, projectRef);
 
@@ -143,10 +143,23 @@ export function ModelSelectDialog({ type, dialogProps, agent }: ModelSelectDialo
     ...model,
     name: model.name || model.model,
     starred: projectSetting.starredModels?.includes(model.model),
-    maxTokens: (model as TextModelInfo).maxTokensDefault, // TODO: @wq
+    maxTokens: (model as TextModelInfo).maxTokensDefault,
   }));
+  const filteredOptions = options.filter((x) => {
+    if (!showStarred && !tags.length) {
+      return true;
+    }
+    if (showStarred && x.starred) {
+      return true;
+    }
+    return tags.includes(x.brand || '');
+  });
 
-  const sortedOptions = sortModels(projectSetting.starredModels ?? [], projectSetting.recentModels ?? [], options);
+  const sortedOptions = sortModels(
+    projectSetting.starredModels ?? [],
+    projectSetting.recentModels ?? [],
+    filteredOptions
+  );
 
   return (
     <Dialog maxWidth="md" fullWidth {...dialogProps}>
@@ -167,8 +180,8 @@ export function ModelSelectDialog({ type, dialogProps, agent }: ModelSelectDialo
                     Favorites
                   </span>
                 }
-                selected={isFavorites}
-                onClick={() => setIsFavorites(!isFavorites)}
+                selected={showStarred}
+                onClick={() => setShowStarred(!showStarred)}
               />
             }
           />

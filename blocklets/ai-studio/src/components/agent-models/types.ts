@@ -2,8 +2,9 @@
 export type ModelType = 'llm' | 'aigc';
 
 export interface AgentModel {
-  name: string;
+  name?: string;
   model: string;
+  brand?: string;
   maxTokens?: number;
   tags?: string[];
   starred?: boolean;
