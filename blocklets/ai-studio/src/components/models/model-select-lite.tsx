@@ -6,7 +6,7 @@ import { Box, Button, ClickAwayListener, Grow, Paper, Popper, Stack } from '@mui
 import { bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 
 import { useProjectDefaultModel, useSupportedModels } from '../../hooks/use-models';
-import { BrandModelIcon } from './icons';
+import { ModelBrandIcon } from './model-brand-icon';
 import { ModelSelectDialog } from './model-select';
 import { ModelSelectOption, ModelType } from './types';
 
@@ -22,10 +22,9 @@ function InternalModelSelectLite({ options, value, onChange, onAddMoreModel, ...
   const selectedOption = options.find((option) => option.model === value);
   return (
     <Box {...rest}>
-      {/* TODO: @wq - default value */}
-      <Button {...bindTrigger(popperState)}>
-        {selectedOption?.model && <BrandModelIcon model={selectedOption.model} size="small" sx={{ mr: 0.5 }} />}
-        <span>{selectedOption?.name || 'NULL'}</span>
+      <Button color="inherit" {...bindTrigger(popperState)}>
+        {selectedOption?.model && <ModelBrandIcon model={selectedOption.model} size="small" sx={{ mr: 0.5 }} />}
+        <span>{selectedOption?.name || 'Select a model'}</span>
       </Button>
 
       <Popper {...bindPopper(popperState)} sx={{ zIndex: 1101 }} transition placement="bottom-end">
@@ -63,7 +62,7 @@ function InternalModelSelectLite({ options, value, onChange, onAddMoreModel, ...
                             ...(isSelected && { bgcolor: 'action.selected' }),
                             ...(!isSelected && { '&:hover': { bgcolor: '#f0f0f0' } }),
                           }}>
-                          <BrandModelIcon model={option.model} />
+                          <ModelBrandIcon model={option.model} />
                           <Box>{option.name}</Box>
                           {option.maxTokens && (
                             <Box
