@@ -719,7 +719,7 @@ export default flatten({
   basic: 'Basic',
   appearanceTitlePlaceholder: 'The title displayed above this output',
   appearanceIconPlaceholder: 'The icon displayed above this output',
-  addMoreAgentTools: 'Add More',
+  addMoreAgentTools: 'Install more Models',
   noAgents: 'No Agents',
   buildIn: 'buildIn',
   remote: 'remote',
