@@ -1,0 +1,44 @@
+id: BLOCK_CHAIN_CHAT_BOT_AGENT_ID
+name: Block Chain Chat Bot
+description: A simple chat bot for ABT Block Chain
+
+inputs:
+  - id: BLOCK_CHAIN_CHAT_BOT_INPUT_QUESTION_ID
+    comment: User input question
+    name: Question
+    type: string
+    placeholder: Ask me anything about ABT
+    required: true
+
+knowledge:
+  - id: BLOCK_CHAIN_CHAT_BOT_KNOWLEDGE_ID_1
+    comment: Use ABT Chain knowledge to answer questions
+    knowledge:
+      id: ABT_CHAIN_KNOWLEDGE_ID
+
+processes:
+  - id: BLOCK_CHAIN_CHAT_BOT_PROCESS_ID
+    comment: Use LLM to answer questions
+    name: Answer
+    type: llm
+    llm:
+      prompt:
+        - id: BLOCK_CHAIN_CHAT_BOT_PROMPT_MESSAGE_ID_1
+          role: system
+          content: >-
+            You are a professional chat bot. you can answer any question
+            about ABT.
+
+        - id: BLOCK_CHAIN_CHAT_BOT_PROMPT_MESSAGE_ID_2
+          role: user
+          content: '{{Question}}'
+
+outputs:
+  - id: BLOCK_CHAIN_CHAT_BOT_OUTPUT_ANSWER_ID
+    comment: Return LLM answer to user
+    name: Answer
+    value:
+      from: variable
+      variableId: BLOCK_CHAIN_CHAT_BOT_PROCESS_ID
+      path:
+        - $text

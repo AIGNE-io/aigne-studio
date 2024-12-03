@@ -1,0 +1,22 @@
+id: CHAT_BOT_OUTPUT_COMPONENT_ID
+name: Chat Bot Output
+renderer:
+  type: sections
+  sections:
+    - id: CHAT_BOT_OUTPUT_SECTION_ID
+      comment: 使用 AIGNE 提供的 Output 组件展示 Bot 返回的数据
+      name: Output
+      renderer:
+        type: component
+        componentId: AIGNE_OUTPUT_COMPONENT_ID
+
+    - id: CHAT_BOT_OUTPUT_SHARE_SECTION_ID
+      comment: 使用分享组件展示分享按钮
+      name: Share
+      renderer:
+        type: component
+        componentId: AIGNE_SHARE_COMPONENT_ID
+        properties:
+          TEXT_PROP_ID:
+            type: variable
+            variableId: CHAT_BOT_OUTPUT_ANSWER_ID

@@ -1,0 +1,24 @@
+id: CHAT_BOT_OUTPUT_COMPONENT_ID
+name: Chat Bot Output
+renderer:
+  type: sections
+  sections:
+    - id: CHAT_BOT_OUTPUT_ANSWER_SECTION_ID
+      name: Answer
+      renderer:
+        type: component
+        componentId: AIGNE_MARKDOWN_COMPONENT_ID
+        properties:
+          CONTENT_PROP_ID:
+            type: variable
+            variableId: CHAT_BOT_OUTPUT_ANSWER_ID
+
+    - id: CHAT_BOT_OUTPUT_SHARE_SECTION_ID
+      name: Share
+      renderer:
+        type: component
+        componentId: AIGNE_SHARE_COMPONENT_ID
+        properties:
+          TEXT_PROP_ID:
+            type: variable
+            variableId: CHAT_BOT_OUTPUT_ANSWER_ID

@@ -1,0 +1,51 @@
+id: BLOCK_CHAIN_GQL_AGENT_ID
+name: Block Chain Api
+description: Query information ABT Block Chain
+
+inputs:
+  - id: BLOCK_CHAIN_GQL_AGENT_INPUT_QUERY_ID
+    comment: Gql query to ABT Block Chain
+    name: query
+    type: string
+    placeholder: GraphQL Query to ABT Block Chain
+    required: true
+
+processes:
+  - id: BLOCK_CHAIN_GQL_PROCESS_ID
+    comment: 调用 ABT Block Chain 查询
+    name: GQL
+    type: logic
+    logic:
+      script:
+        language: javascript
+        code: |-
+          const result = await fetch('https://main.abtnetwork.io/graphql', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              query: query,
+            }),
+          })
+
+          return await result.json()
+
+      outputs:
+        fields:
+          - id: BLOCK_CHAIN_GQL_PROCESS_OUTPUT_ID
+            name: data
+            description: Data from ABT Block Chain
+            type: object
+            required: true
+
+outputs:
+  - id: BLOCK_CHAIN_GQL_OUTPUT_DATA_ID
+    comment: Return data from ABT Block Chain
+    name: Data
+    description: Data from ABT Block Chain
+    value:
+      from: variable
+      variableId: BLOCK_CHAIN_GQL_PROCESS_ID
+      path:
+        - BLOCK_CHAIN_GQL_PROCESS_OUTPUT_ID
