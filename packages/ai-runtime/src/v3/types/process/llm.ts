@@ -31,6 +31,7 @@ export type LLMPromptMessage = {
 
 export type LLMOutputField = TypeRef & {
   id: string;
-  description?: boolean;
+  name?: string;
+  description?: string;
   required?: boolean;
 };

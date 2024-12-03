@@ -6,6 +6,12 @@ export interface ProcessCallAgent extends BlockBase {
   callAgent?: {
     agent?: { id: string };
 
-    inputs?: { [inputId: string]: { value: any } };
+    inputs?: {
+      [inputId: string]:
+        | undefined
+        | { value: any }
+        | { from: 'variable'; variableId: string; path?: string[] }
+        | { from: 'llm' };
+    };
   };
 }

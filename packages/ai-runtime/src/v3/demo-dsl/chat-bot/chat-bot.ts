@@ -26,6 +26,17 @@ export const chatBot: Project = {
         },
       },
 
+      knowledge: {
+        $indexes: ['CHAT_BOT_KNOWLEDGE_ID_1'] as any,
+
+        CHAT_BOT_KNOWLEDGE_ID_1: {
+          id: 'CHAT_BOT_KNOWLEDGE_ID_1',
+          knowledge: {
+            id: 'ABT_CHAIN_KNOWLEDGE_ID',
+          },
+        },
+      },
+
       processes: {
         $indexes: ['CHAT_BOT_PROCESS_LLM_ID'] as any,
         CHAT_BOT_PROCESS_LLM_ID: {
@@ -62,6 +73,16 @@ export const chatBot: Project = {
           },
         },
       },
+    },
+  },
+
+  knowledge: {
+    $indexes: ['ABT_CHAIN_KNOWLEDGE_ID'] as any,
+
+    ABT_CHAIN_KNOWLEDGE_ID: {
+      id: 'ABT_CHAIN_KNOWLEDGE_ID',
+      name: 'ABT Chain',
+      description: 'Knowledge about ABT Chain',
     },
   },
 
@@ -107,11 +128,21 @@ export const chatBot: Project = {
         path: '/chat',
         sections: {
           $indexes: [
+            'CHAT_BOT_PAGE_CHAT_SECTION_ID_0',
             'CHAT_BOT_PAGE_CHAT_SECTION_ID_1',
             'CHAT_BOT_PAGE_CHAT_SECTION_ID_2',
             'CHAT_BOT_PAGE_CHAT_SECTION_ID_3',
             'CHAT_BOT_PAGE_CHAT_SECTION_ID_4',
           ] as any,
+
+          CHAT_BOT_PAGE_CHAT_SECTION_ID_0: {
+            id: 'CHAT_BOT_PAGE_CHAT_SECTION_ID_0',
+            name: 'Session Manager',
+            renderer: {
+              type: 'component',
+              componentId: 'AIGNE_SESSION_MANAGER_COMPONENT_ID',
+            },
+          },
 
           CHAT_BOT_PAGE_CHAT_SECTION_ID_1: {
             id: 'CHAT_BOT_PAGE_CHAT_SECTION_ID_1',
@@ -136,6 +167,23 @@ export const chatBot: Project = {
                 AGENT_ID_PROP_ID: { value: 'CHAT_BOT_AGENT_ID' },
                 VARIABLE_PROP_ID: { value: 'chat' },
                 OUTPUT_COMPONENT_PROP_ID: { value: 'CHAT_BOT_OUTPUT_COMPONENT_ID' },
+                OPENING_MESSAGE_PROP_ID: { value: 'You are a professional chat bot.' },
+                OPENING_QUESTIONS_PROP_ID: {
+                  value: [
+                    {
+                      title: 'What ArcBlock can do?',
+                      inputs: {
+                        CHAT_BOT_INPUT_QUESTION_ID: { value: 'What ArcBlock can do?' },
+                      },
+                    },
+                    {
+                      title: 'How to launch a blockchain node?',
+                      inputs: {
+                        CHAT_BOT_INPUT_QUESTION_ID: { value: 'How to launch a blockchain node?' },
+                      },
+                    },
+                  ],
+                },
               },
             },
           },
