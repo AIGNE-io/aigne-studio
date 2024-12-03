@@ -20,7 +20,7 @@ import { useMemo } from 'react';
 
 import { useProjectStore } from '../../pages/project/yjs-state';
 import { useAgentSelectOptions } from '../agent-select/use-agents';
-import { ModelType } from './types';
+import { AgentModel, ModelType } from './types';
 
 export function useSupportedModels(): Record<ModelType, (ImageModelInfo | ImageModelInfo)[]> {
   async function getAllModels() {
@@ -31,7 +31,7 @@ export function useSupportedModels(): Record<ModelType, (ImageModelInfo | ImageM
   return data || { llm: [], aigc: [] };
 }
 
-export function useModelsFromAgents(type: ModelType) {
+export function useModelsFromAgents(type: ModelType): AgentModel[] {
   const adapterTypes = { llm: 'llm-adapter', aigc: 'aigc-adapter' };
   const { agents } = useAgentSelectOptions({ type: adapterTypes[type] as ResourceType });
   const models = agents.flatMap((agent) =>
@@ -44,11 +44,10 @@ export function useModelsFromAgents(type: ModelType) {
 }
 
 // 内置 model + agents models, 根据 model 标识去重, 内置 model 优先
-export function useAllModels(type: ModelType) {
+export function useAllModels(type: ModelType): AgentModel[] {
   const builtInModels = useSupportedModels()[type];
   const modelsFromAgents = useModelsFromAgents(type);
   const uniqueModelSet = new Set(builtInModels.map((x) => x.model));
-
   return [
     ...builtInModels,
     ...modelsFromAgents.filter((x) => {
