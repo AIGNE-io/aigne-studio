@@ -220,6 +220,11 @@ export async function getSupportedImagesModels(): Promise<ImageModelInfo[]> {
   ];
 }
 
+export async function getModelBrand(model: string) {
+  const modelsArray = await Promise.all([getSupportedModels(), getSupportedImagesModels()]);
+  return modelsArray.flat().find((m) => m.model === model)?.brand || null;
+}
+
 export function getServiceModePermissionMap(serviceMode: ServiceMode): ServiceModePermissionMap {
   const permissionMap = {
     single: {
