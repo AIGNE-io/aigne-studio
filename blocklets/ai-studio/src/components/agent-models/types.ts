@@ -6,6 +6,6 @@ export interface AgentModel {
   model: string;
   maxTokens?: number;
   tags?: string[];
-  starredAt?: number;
+  starred?: boolean;
   detail?: unknown; // TODO: @wq
 }

@@ -5,10 +5,12 @@ import PlusIcon from '@iconify-icons/tabler/plus';
 import { Box, Button, ClickAwayListener, Grow, Paper, Popper, Stack } from '@mui/material';
 import { bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 
+import { useProjectStore } from '../../pages/project/yjs-state';
 import { ModelBrandIcon } from './model-brand-icon';
 import { ModelSelectDialog } from './model-select';
 import { AgentModel, ModelType } from './types';
 import { useAgentDefaultModel, useSupportedModels } from './use-models';
+import { sortModels } from './utils';
 
 interface InternalModelSelectLiteProps {
   options: AgentModel[];
@@ -105,7 +107,7 @@ function InternalModelSelectLite({ options, value, onChange, onAddMoreModel, ...
                         borderTop: '1px solid',
                         borderColor: 'divider',
                       }}>
-                      <Button startIcon={<Icon icon={PlusIcon} />} onClick={onAddMoreModel}>
+                      <Button startIcon={<Icon icon={PlusIcon} />} onClick={onAddMoreModel} sx={{ width: '100%' }}>
                         Add more model
                       </Button>
                     </Box>
@@ -130,6 +132,7 @@ interface ModelSelectLiteProps {
 export function ModelSelectLite({ type, projectId, gitRef, agent, ...rest }: ModelSelectLiteProps) {
   const supportedModels = useSupportedModels();
   const defaultModel = useAgentDefaultModel({ projectId, gitRef, value: agent });
+  const { projectSetting } = useProjectStore(projectId, gitRef);
   const dialogState = usePopupState({ variant: 'dialog', popupId: 'model-select' });
 
   const handleOnChange = (value: string) => {
@@ -141,16 +144,17 @@ export function ModelSelectLite({ type, projectId, gitRef, agent, ...rest }: Mod
     name: model.name || model.model,
     maxTokens: (model as TextModelInfo).maxTokensDefault, // TODO: @wq
   }));
+  const sortedOptions = sortModels(projectSetting.starredModels ?? [], projectSetting.recentModels ?? [], options);
 
   return (
     <Box {...rest}>
       <InternalModelSelectLite
-        options={options}
+        options={sortedOptions}
         value={agent.model || defaultModel}
         onChange={handleOnChange}
         onAddMoreModel={() => dialogState.open()}
       />
-      <ModelSelectDialog type={type} dialogProps={{ ...bindDialog(dialogState) }} />
+      <ModelSelectDialog type={type} agent={agent} dialogProps={{ ...bindDialog(dialogState) }} />
     </Box>
   );
 }
