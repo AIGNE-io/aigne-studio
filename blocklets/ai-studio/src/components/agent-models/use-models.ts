@@ -7,7 +7,7 @@ import {
 } from '@blocklet/ai-runtime/common';
 import {
   AssistantYjs,
-  ModelInfoBase,
+  ImageModelInfo,
   ResourceType,
   SelectParameter,
   isImageAssistant,
@@ -22,7 +22,7 @@ import { useProjectStore } from '../../pages/project/yjs-state';
 import { useAgentSelectOptions } from '../agent-select/use-agents';
 import { ModelType } from './types';
 
-export function useSupportedModels(): Record<ModelType, ModelInfoBase[]> {
+export function useSupportedModels(): Record<ModelType, (ImageModelInfo | ImageModelInfo)[]> {
   async function getAllModels() {
     const [llm, aigc] = await Promise.all([getSupportedModels(), getSupportedImagesModels()]);
     return { llm, aigc };
