@@ -1,6 +1,6 @@
-id: CHAT_BOT_PROJECT_ID
-name: Chat Bot
-description: A simple chat bot project
+id: PRESS_RELEASE_PROJECT_ID
+name: Press Release
+description: Auto write press release by AI
 createdAt: '2021-01-01T00:00:00Z'
 updatedAt: '2021-01-01T00:00:00Z'
 createdBy: xxxxxxxxxxxxxxxxxxxxxx

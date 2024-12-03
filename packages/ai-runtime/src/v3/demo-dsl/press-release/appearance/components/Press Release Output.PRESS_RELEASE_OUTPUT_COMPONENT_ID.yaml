@@ -1,9 +1,9 @@
-id: CHAT_BOT_OUTPUT_COMPONENT_ID
-name: Chat Bot Output
+id: PRESS_RELEASE_OUTPUT_COMPONENT_ID
+name: Press Release Output
 renderer:
   type: sections
   sections:
-    - id: CHAT_BOT_OUTPUT_ANSWER_SECTION_ID
+    - id: ANSWER_SECTION_ID
       name: Answer
       renderer:
         type: component
@@ -11,10 +11,16 @@ renderer:
         properties:
           CONTENT_PROP_ID:
             type: variable
-            variableId: CHAT_BOT_OUTPUT_ANSWER_ID
+            variableId: OUTPUT_ANSWER_ID
 
-    - id: CHAT_BOT_OUTPUT_SHARE_SECTION_ID
+    - id: SHARE_SECTION_ID
       name: Share
       renderer:
         type: component
         componentId: AIGNE_SHARE_COMPONENT_ID
+
+    - id: FEEDBACK_SECTION_ID
+      name: Feedback
+      renderer:
+        type: component
+        componentId: AIGNE_FEEDBACK_COMPONENT_ID

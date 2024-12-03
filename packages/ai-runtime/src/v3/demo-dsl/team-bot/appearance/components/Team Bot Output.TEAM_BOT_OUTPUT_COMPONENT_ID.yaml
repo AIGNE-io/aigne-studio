@@ -1,0 +1,37 @@
+id: TEAM_BOT_OUTPUT_COMPONENT_ID
+name: Team Bot Output
+renderer:
+  type: sections
+  sections:
+    - id: SOURCE_SECTION_ID
+      name: Sources
+      renderer:
+        type: component
+        componentId: LINKS_COMPONENT_ID
+        properties:
+          CONTENT_PROP_ID:
+            type: variable
+            variableId: OUTPUT_SEARCH_RESULT_ID
+
+    - id: ANSWER_SECTION_ID
+      name: Answer
+      renderer:
+        type: component
+        componentId: AIGNE_MARKDOWN_COMPONENT_ID
+        properties:
+          CONTENT_PROP_ID:
+            type: variable
+            variableId: OUTPUT_ANSWER_ID
+
+    - id: SHARE_SECTION_ID
+      name: Share
+      renderer:
+        type: component
+        componentId: AIGNE_SHARE_COMPONENT_ID
+
+    # 用户反馈组件，由 AIGNE 提供，反馈数据会保存到数据库，并且每个 AIGNE Project 都有一个 dashboard 可以查看反馈数据
+    - id: FEEDBACK_SECTION_ID
+      name: Feedback
+      renderer:
+        type: component
+        componentId: AIGNE_FEEDBACK_COMPONENT_ID

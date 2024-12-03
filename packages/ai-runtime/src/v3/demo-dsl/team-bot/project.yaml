@@ -1,6 +1,6 @@
-id: CHAT_BOT_PROJECT_ID
-name: Chat Bot
-description: A simple chat bot project
+id: TEAM_BOT_PROJECT_ID
+name: Team Bot
+description: Team Bot for ArcBlock
 createdAt: '2021-01-01T00:00:00Z'
 updatedAt: '2021-01-01T00:00:00Z'
 createdBy: xxxxxxxxxxxxxxxxxxxxxx

@@ -1,0 +1,24 @@
+id: TEAM_BOT_PAGE_HOME_ID
+name: Home
+path: /
+sections:
+  - id: SECTION_ID_1
+    comment: 使用 Hero Component，用于展示一个 Hero Banner
+    name: Header
+    renderer:
+      type: component
+      componentId: HERO_COMPONENT_ID
+      properties:
+        TITLE_PROP_ID:
+          value: Team Bot
+
+        DESCRIPTION_PROP_ID:
+          value: Team Bot for ArcBlock
+
+        ACTIONS_PROP_ID:
+          value:
+            - type: button
+              label: Start Chat
+              navigation:
+                type: page
+                pageId: TEAM_BOT_PAGE_CHAT_ID

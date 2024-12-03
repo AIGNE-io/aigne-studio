@@ -1,0 +1,59 @@
+id: TEAM_BOT_AGENT_ID
+name: Team Bot
+description: Team Bot for ArcBlock
+
+inputs:
+  - id: INPUT_QUESTION_ID
+    comment: User input question
+    name: Question
+    type: string
+    placeholder: Ask me anything about ArcBlock
+    required: true
+
+processes:
+  - id: PROCESS_SEARCH_ID
+    comment: Search ArcBlock knowledge to answer questions
+    name: Search Result
+    type: call-agent
+    callAgent:
+      agent:
+        id: SEARCH_KIT_API
+      inputs:
+        query:
+          from: variable
+          variableId: INPUT_QUESTION_ID
+
+  - id: PROCESS_LLM_ID
+    comment: Use LLM to answer questions
+    name: LLM
+    type: llm
+    llm:
+      prompt:
+        - id: PROMPT_MESSAGE_ID_1
+          role: system
+          content: |-
+            You are a professional team bot. answer user's question base on the following knowledge.
+
+            ## Knowledge
+            {{Search Result}}
+
+        - id: PROMPT_MESSAGE_ID_2
+          role: user
+          content: '{{ Question }}'
+
+outputs:
+  - id: OUTPUT_ANSWER_ID
+    comment: Return LLM answer to user
+    name: Answer
+    value:
+      from: variable
+      variableId: PROCESS_LLM_ID
+      path:
+        - $text
+
+  - id: OUTPUT_SEARCH_RESULT_ID
+    comment: Return Related Knowledge to user
+    name: Search Result
+    value:
+      from: variable
+      variableId: PROCESS_SEARCH_ID
