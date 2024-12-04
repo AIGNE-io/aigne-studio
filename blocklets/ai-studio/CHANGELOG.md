@@ -1,3 +1,7 @@
+## 0.4.160 (2024-12-4)
+
+- chore: update blocklet sdk version
+
 ## 0.4.159 (2024-12-4)
 
 - fix: kb playground search not working
