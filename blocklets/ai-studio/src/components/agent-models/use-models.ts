@@ -18,9 +18,11 @@ import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { useRequest } from 'ahooks';
 import { useMemo } from 'react';
 
+import { useCurrentProject } from '../../contexts/project';
 import { useProjectStore } from '../../pages/project/yjs-state';
 import { useAgentSelectOptions } from '../agent-select/use-agents';
 import { AgentModel, ModelType } from './types';
+import { sortModels } from './utils';
 
 export function useSupportedModels(): Record<ModelType, (ImageModelInfo | ImageModelInfo)[]> {
   async function getAllModels() {
@@ -60,9 +62,12 @@ export function useAllModels(type: ModelType): AgentModel[] {
   ];
 }
 
-export function useAllSortedModels(type: ModelType) {
-  const models = useAllModels(type);
-  return models.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+export function useSuggestedModels(type: ModelType, limit: number = 8) {
+  const allModels = useAllModels(type);
+  const { projectId, projectRef } = useCurrentProject();
+  const { projectSetting } = useProjectStore(projectId, projectRef);
+  const sorted = sortModels(projectSetting.starredModels ?? [], projectSetting.recentModels ?? [], allModels);
+  return sorted.slice(0, limit);
 }
 
 export function useAgentDefaultModel({
@@ -103,11 +108,3 @@ export function useBrandTags() {
   const tags = Object.values(groupedModels).flatMap((x) => x.map((y) => y.brand));
   return Array.from(new Set(tags));
 }
-
-// 获取项目推荐模型
-// export function useProjectRecommendedModels() {
-//   const { data } = useRequest(() => getRecommendedModels(), {
-//     refreshDeps: [],
-//   });
-//   return data;
-// }

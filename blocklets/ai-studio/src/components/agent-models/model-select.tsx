@@ -165,7 +165,7 @@ export function ModelSelectDialog({ type, dialogProps, agent }: ModelSelectDialo
     <Dialog maxWidth="md" fullWidth {...dialogProps}>
       <DialogTitle>Models</DialogTitle>
 
-      <DialogContent sx={{ maxHeight: { xs: 'none', md: '50vh' } }}>
+      <DialogContent sx={{ height: { md: '50vh' }, maxHeight: 500 }}>
         <Box sx={{ my: 1.5, mb: 2.5 }}>
           <TagFilter
             value={tags}

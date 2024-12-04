@@ -5,12 +5,10 @@ import PlusIcon from '@iconify-icons/tabler/plus';
 import { Box, Button, ClickAwayListener, Grow, Paper, Popper, Stack } from '@mui/material';
 import { bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 
-import { useProjectStore } from '../../pages/project/yjs-state';
 import { ModelBrandIcon } from './model-brand-icon';
 import { ModelSelectDialog } from './model-select';
 import { AgentModel, ModelType } from './types';
-import { useAgentDefaultModel, useSupportedModels } from './use-models';
-import { sortModels } from './utils';
+import { useAgentDefaultModel, useSuggestedModels } from './use-models';
 
 interface InternalModelSelectLiteProps {
   options: AgentModel[];
@@ -130,26 +128,24 @@ interface ModelSelectLiteProps {
 }
 
 export function ModelSelectLite({ type, projectId, gitRef, agent, ...rest }: ModelSelectLiteProps) {
-  const supportedModels = useSupportedModels();
+  const suggestedModels = useSuggestedModels(type);
   const defaultModel = useAgentDefaultModel({ projectId, gitRef, value: agent });
-  const { projectSetting } = useProjectStore(projectId, gitRef);
   const dialogState = usePopupState({ variant: 'dialog', popupId: 'model-select' });
 
   const handleOnChange = (value: string) => {
     agent.model = value;
   };
 
-  const options = supportedModels[type].map((model) => ({
+  const options = suggestedModels.map((model) => ({
     ...model,
     name: model.name || model.model,
     maxTokens: (model as TextModelInfo).maxTokensDefault, // TODO: @wq
   }));
-  const sortedOptions = sortModels(projectSetting.starredModels ?? [], projectSetting.recentModels ?? [], options);
 
   return (
     <Box {...rest}>
       <InternalModelSelectLite
-        options={sortedOptions}
+        options={options}
         value={agent.model || defaultModel}
         onChange={handleOnChange}
         onAddMoreModel={() => dialogState.open()}
