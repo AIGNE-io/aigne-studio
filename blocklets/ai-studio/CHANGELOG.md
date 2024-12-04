@@ -1,3 +1,7 @@
+## 0.4.159 (2024-12-4)
+
+- fix: kb playground search not working
+
 ## 0.4.158 (2024-12-2)
 
 - fix: waiting for queue drained for knowledge migration

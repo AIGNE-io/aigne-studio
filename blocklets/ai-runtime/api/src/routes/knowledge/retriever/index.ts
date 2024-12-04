@@ -45,31 +45,41 @@ export class HybridRetriever {
 
   async search(query: string): Promise<Document[]> {
     try {
+      logger.debug('Starting search process', { query });
+
       if (!this.vectorStore) {
         const embeddings = new AIKitEmbeddings();
         this.vectorStore = await VectorStore.load(this.vectorPathOrKnowledgeId, embeddings);
       }
+
+      logger.debug('vectorStore initialized');
 
       if (this.vectorStore.getMapping() && !Object.keys(this.vectorStore.getMapping()).length) {
         logger.error('store get mapping is empty');
         return [];
       }
 
+      logger.debug('store get mapping is not empty');
+
       if (!this.bm25Retriever) {
         await this.initialize();
       }
 
-      logger.debug('Starting search process', { query });
+      logger.debug('bm25Retriever initialized');
 
+      logger.debug('Starting search process', { query });
       const ensembleRetriever = new EnsembleRetriever({
         retrievers: [this.bm25Retriever, this.vectorStore.asRetriever()],
         weights: [0.3, 0.7],
       } as any);
+      logger.debug('ensembleRetriever', { ensembleRetriever });
 
       const searchResults = await ensembleRetriever.invoke(query);
+      logger.debug('searchResults', { searchResults });
 
       // 3. 融合并重排序结果
       const results = this.rerank([searchResults]);
+      logger.debug('results', { results });
 
       return results;
     } catch (error) {
