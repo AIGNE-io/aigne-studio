@@ -62,11 +62,23 @@ export function useAllModels(type: ModelType): AgentModel[] {
   ];
 }
 
-export function useSuggestedModels(type: ModelType, limit: number = 8) {
+export function useSuggestedModels({
+  type,
+  pinnedModels = [],
+  limit = 8,
+}: {
+  type: ModelType;
+  pinnedModels?: string[]; // 使用场景: 避免 suggested models 中未包含 agent default model
+  limit?: number;
+}) {
   const allModels = useAllModels(type);
   const { projectId, projectRef } = useCurrentProject();
   const { projectSetting } = useProjectStore(projectId, projectRef);
-  const sorted = sortModels(projectSetting.starredModels ?? [], projectSetting.recentModels ?? [], allModels);
+  const sorted = sortModels(
+    [...(projectSetting.starredModels ?? []), ...pinnedModels],
+    projectSetting.recentModels ?? [],
+    allModels
+  );
   return sorted.slice(0, limit);
 }
 

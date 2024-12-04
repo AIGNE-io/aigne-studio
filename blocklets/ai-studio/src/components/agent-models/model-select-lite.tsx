@@ -46,6 +46,7 @@ function InternalModelSelectLite({ options, value, onChange, onAddMoreModel, ...
                       return (
                         <Stack
                           direction="row"
+                          justifyContent="space-between"
                           alignItems="center"
                           spacing={1}
                           key={option.model}
@@ -62,34 +63,39 @@ function InternalModelSelectLite({ options, value, onChange, onAddMoreModel, ...
                             ...(isSelected && { bgcolor: 'action.selected' }),
                             ...(!isSelected && { '&:hover': { bgcolor: '#f0f0f0' } }),
                           }}>
-                          <ModelBrandIcon model={option.model} />
-                          <Box>{option.name}</Box>
-                          {option.maxTokens && (
-                            <Box
-                              sx={{
-                                p: '1px 4px',
-                                border: 1,
-                                borderColor: 'divider',
-                                borderRadius: 0.5,
-                                bgcolor: 'grey.100',
-                                color: 'grey.800',
-                                fontSize: 12,
-                              }}>
-                              {option.maxTokens}
-                            </Box>
-                          )}
-                          {isSelected && (
+                          <Stack direction="row" alignItems="center" spacing={1} sx={{ flex: '0 0 auto' }}>
+                            <ModelBrandIcon model={option.model} />
+                            <Box>{option.name}</Box>
+                            {option.maxTokens && (
+                              <Box
+                                sx={{
+                                  p: '1px 4px',
+                                  border: 1,
+                                  borderColor: 'divider',
+                                  borderRadius: 0.5,
+                                  bgcolor: 'grey.100',
+                                  color: 'grey.800',
+                                  fontSize: 12,
+                                }}>
+                                {option.maxTokens}
+                              </Box>
+                            )}
+                          </Stack>
+                          <Stack
+                            direction="row"
+                            alignItems="center"
+                            justifyContent="flex-end"
+                            sx={{ flex: '0 0 auto', width: 64, pr: 1 }}>
                             <Box
                               component={Icon}
                               icon={CheckIcon}
                               sx={{
-                                ml: 'auto!important',
-                                transform: 'translateX(-8px)',
                                 color: 'primary.main',
                                 fontSize: 20,
+                                visibility: isSelected ? 'visible' : 'hidden',
                               }}
                             />
-                          )}
+                          </Stack>
                         </Stack>
                       );
                     })}
@@ -128,8 +134,8 @@ interface ModelSelectLiteProps {
 }
 
 export function ModelSelectLite({ type, projectId, gitRef, agent, ...rest }: ModelSelectLiteProps) {
-  const suggestedModels = useSuggestedModels(type);
   const defaultModel = useAgentDefaultModel({ projectId, gitRef, value: agent });
+  const suggestedModels = useSuggestedModels({ type, pinnedModels: defaultModel ? [defaultModel] : [] });
   const dialogState = usePopupState({ variant: 'dialog', popupId: 'model-select' });
 
   const handleOnChange = (value: string) => {

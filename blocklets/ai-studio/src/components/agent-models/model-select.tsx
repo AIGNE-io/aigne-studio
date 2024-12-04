@@ -128,11 +128,12 @@ export function ModelSelectDialog({ type, dialogProps, agent }: ModelSelectDialo
     if (!projectSetting.recentModels?.includes(selected)) {
       const doc = (getYjsValue(projectSetting) as Map<any>).doc!;
       doc.transact(() => {
-        projectSetting.recentModels ??= [];
-        projectSetting.recentModels.push(selected);
-        if (projectSetting.recentModels.length > RECENT_MODELS_MAX_COUNT) {
-          projectSetting.recentModels.pop();
+        const recentModels = (projectSetting.recentModels ?? []).slice();
+        recentModels.push(selected);
+        if (recentModels.length > RECENT_MODELS_MAX_COUNT) {
+          recentModels.shift();
         }
+        projectSetting.recentModels = recentModels;
       });
     }
     agent.model = selected || undefined;
