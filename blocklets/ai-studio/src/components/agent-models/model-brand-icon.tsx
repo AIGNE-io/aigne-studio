@@ -1,3 +1,5 @@
+import { Icon } from '@iconify-icon/react';
+import CubeIcon from '@iconify-icons/tabler/cube';
 import { Box, SxProps } from '@mui/material';
 
 import AzureIcon from '../selector/ai-icons/azure';
@@ -35,7 +37,6 @@ const sizeMap = {
 export function ModelBrandIcon({ model, size = 'medium', sx }: ModelIconProps) {
   const brand = useModelBrand(model);
   const computedSize = sizeMap[size];
-  if (!brand) return null;
   const mergedSx = [
     {
       display: 'inline-flex',
@@ -48,6 +49,10 @@ export function ModelBrandIcon({ model, size = 'medium', sx }: ModelIconProps) {
     },
     ...(Array.isArray(sx) ? sx : [sx]),
   ];
-
-  return <Box sx={mergedSx}>{brandIcon(brand)}</Box>;
+  const icon = brand ? (
+    brandIcon(brand)
+  ) : (
+    <Box component={Icon} icon={CubeIcon} sx={{ fontSize: computedSize, color: 'grey.400' }} />
+  );
+  return <Box sx={mergedSx}>{icon}</Box>;
 }
