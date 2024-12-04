@@ -1,6 +1,7 @@
 import { useKnowledge } from '@app/contexts/knowledge/knowledge';
 import UploaderProvider, { useUploader } from '@app/contexts/uploader';
 import useSubscription from '@app/hooks/use-subscription';
+import { getErrorMessage } from '@app/libs/api';
 import { AIGNE_RUNTIME_MOUNT_POINT } from '@app/libs/constants';
 import ColumnsLayout, { ImperativeColumnsLayout } from '@app/pages/project/columns-layout';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
@@ -326,38 +327,40 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
     {
       refreshDeps: [],
       manual: true,
-      onError: (e) => Toast.error(e?.message),
+      onError: (e) => Toast.error(getErrorMessage(e)),
     }
   );
 
-  const results = (data?.docs || []).map((doc) => {
-    try {
-      const parsedContent = JSON.parse(doc.content);
+  const results = (data?.docs || [])
+    .map((doc) => {
+      try {
+        const parsedContent = JSON.parse(doc.content);
 
-      if (typeof parsedContent.content === 'string') {
-        try {
-          const content = JSON.parse(parsedContent.content);
+        if (typeof parsedContent.content === 'string') {
+          try {
+            const content = JSON.parse(parsedContent.content);
 
-          return {
-            content: content.content,
-            metadata: doc.metadata,
-          };
-        } catch (e) {
-          return {
-            content: parsedContent.content,
-            metadata: doc.metadata,
-          };
+            return {
+              content: content.content,
+              metadata: doc.metadata,
+            };
+          } catch (e) {
+            return {
+              content: parsedContent.content,
+              metadata: doc.metadata,
+            };
+          }
         }
-      }
 
-      return {
-        content: parsedContent.content,
-        metadata: doc.metadata,
-      };
-    } catch {
-      return doc;
-    }
-  });
+        return {
+          content: parsedContent.content,
+          metadata: doc.metadata,
+        };
+      } catch {
+        return doc;
+      }
+    })
+    .filter((x) => x?.content);
 
   return (
     <Stack height={1}>
@@ -436,7 +439,7 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
                   {typeof result.content === 'string' ? result.content : JSON.stringify(result.content, null, 2)}
                 </Box>
 
-                {result.metadata.document && (
+                {result?.metadata?.document && (
                   <Stack
                     width="fit-content"
                     flexDirection="row"

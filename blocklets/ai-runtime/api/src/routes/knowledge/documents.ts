@@ -74,7 +74,7 @@ async function getVectorPath(blockletDid: string | null, knowledgeId: string, kn
 
     return (await pathExists(join(resource.vectorsPath, 'faiss.index')))
       ? resource.vectorsPath
-      : join(resource.vectorsPath, knowledgeId);
+      : join(resource.vectorsPath, resourceToCheck.knowledgeId);
   }
 
   return knowledgeId;
