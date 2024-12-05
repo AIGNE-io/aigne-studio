@@ -284,6 +284,11 @@ export interface ImageAssistant extends AssistantBase {
   quality?: string;
   style?: string;
   size?: string;
+
+  temperature?: number;
+  topP?: number;
+  presencePenalty?: number;
+  frequencyPenalty?: number;
 }
 
 export interface ApiAssistant extends AssistantBase {

@@ -1,4 +1,4 @@
-import { ModelDrivenAssistantYjs, TextModelInfo } from '@blocklet/ai-runtime/types';
+import { ModelBasedAssistantYjs, TextModelInfo } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import CheckIcon from '@iconify-icons/tabler/check';
 import PlusIcon from '@iconify-icons/tabler/plus';
@@ -130,7 +130,7 @@ interface ModelSelectLiteProps {
   type: ModelType;
   projectId: string;
   gitRef: string;
-  agent: ModelDrivenAssistantYjs;
+  agent: ModelBasedAssistantYjs;
 }
 
 export function ModelSelectLite({ type, projectId, gitRef, agent, ...rest }: ModelSelectLiteProps) {

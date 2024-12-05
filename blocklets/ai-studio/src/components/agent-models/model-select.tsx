@@ -1,5 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { ModelDrivenAssistantYjs, TextModelInfo } from '@blocklet/ai-runtime/types';
+import { ModelBasedAssistantYjs, TextModelInfo } from '@blocklet/ai-runtime/types';
 import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/aigne-sdk/constants';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { AddComponent } from '@blocklet/ui-react';
@@ -94,7 +94,7 @@ export function ModelSelect({ options, value, onChange, onStar, ...rest }: Props
 interface ModelSelectDialogProps {
   type: ModelType;
   dialogProps: DialogProps;
-  agent: ModelDrivenAssistantYjs;
+  agent: ModelBasedAssistantYjs;
 }
 
 const RECENT_MODELS_MAX_COUNT = 10;

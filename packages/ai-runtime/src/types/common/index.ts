@@ -3,6 +3,7 @@ export interface ModelInfoBase {
   model: string;
   name?: string;
   disabled?: boolean;
+  tags?: string[];
 }
 
 export interface TextModelInfo extends ModelInfoBase {
