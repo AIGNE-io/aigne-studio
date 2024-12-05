@@ -453,6 +453,9 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
                     h4: {
                       marginBottom: 1,
                     },
+                    'div > p': {
+                      padding: 0,
+                    },
                   }}
                   onClick={() => {
                     if (!result?.metadata?.document?.id) return;

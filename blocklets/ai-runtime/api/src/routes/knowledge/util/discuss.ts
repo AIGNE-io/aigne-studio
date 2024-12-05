@@ -162,7 +162,7 @@ export function discussionToMarkdown(post: Discussion['post'], link: string) {
           markdown += `#### ID:${lang.id}\n`;
         }
         if (lang.content) {
-          markdown += `#### Content\n\t${lang.content}\n`;
+          markdown += `#### Content\n ${lang.content}\n`;
         }
         if (lang.locale) {
           markdown += `#### Locale\n\t${lang.locale}\n`;
@@ -184,7 +184,7 @@ export function discussionToMarkdown(post: Discussion['post'], link: string) {
       } else {
         markdown += `#### ID:${comment.id}\n`;
       }
-      markdown += `#### Content\n\t${comment.content}\n`;
+      markdown += `#### Content\n ${comment.content}\n`;
       markdown += `#### Author\n\t${comment.commentAuthorName}\n`;
       markdown += `#### Created At\n\t${comment.commentCreatedAt}\n`;
       markdown += `#### Updated At\n\t${comment.commentUpdatedAt}\n\n`;
