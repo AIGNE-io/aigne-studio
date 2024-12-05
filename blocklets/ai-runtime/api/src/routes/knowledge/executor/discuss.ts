@@ -79,26 +79,14 @@ export class DiscussKitProcessor extends BaseProcessor {
         const { link, post } = value as { link: string; post: Discussion['post'] };
         if (!post) return [];
 
-        const { title, content, author, labels, board, comments, languagesResult, ...rest } =
-          omitBy(post, (value) => !value) || {};
-
         const current = {
-          content: {
-            title,
-            content,
-            author,
-            labels,
-            board,
-            comments,
-            languages: languagesResult,
-          },
+          content: omitBy(post, (value) => !value),
           metadata: {
             documentId: this.documentId,
             data: cloneDeep(data),
             title: post.title,
             locale: post.locale,
             link,
-            ...rest,
           },
         };
 

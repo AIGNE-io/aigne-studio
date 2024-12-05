@@ -1,11 +1,12 @@
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { Document } from '@langchain/core/documents';
-import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
+import { MarkdownTextSplitter, RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 import { intersection } from 'lodash';
 
 import { AIKitEmbeddings } from '../../../core/embeddings/ai-kit';
 import Segment from '../../../store/models/dataset/segment';
 import VectorStore from '../../../store/vector-store-faiss';
+import { discussionToMarkdown } from './discuss';
 
 export const deleteStore = async (knowledgeId: string, ids: string[]) => {
   const embeddings = new AIKitEmbeddings();
@@ -42,6 +43,7 @@ function formatDocument(doc: Document, metadata?: Record<string, unknown>) {
 
 async function processContent(
   content: string,
+  type: 'file' | 'text' | 'discussKit' | 'url',
   metadata?: Record<string, unknown>,
   config?: { separators: string[]; chunkSize: number; chunkOverlap: number }
 ) {
@@ -49,13 +51,30 @@ async function processContent(
     throw new Error(`Invalid content: ${typeof content}`);
   }
 
-  const splitter = new RecursiveCharacterTextSplitter(config);
   const embeddings = new AIKitEmbeddings();
+  let docs: Document[] = [];
+  const { chunkSize, chunkOverlap } = config || {};
 
-  const chunks = await splitter.splitText(content);
-
-  const metadataArray = metadata ? Array(chunks.length).fill({ metadata }) : undefined;
-  const docs = await splitter.createDocuments(chunks, metadataArray);
+  if (type === 'discussKit') {
+    try {
+      const json = JSON.parse(content);
+      const markdown = discussionToMarkdown(json);
+      const splitter = new MarkdownTextSplitter({ chunkSize, chunkOverlap });
+      const chunks = await splitter.splitText(markdown);
+      const metadataArray = metadata ? Array(chunks.length).fill({ metadata }) : undefined;
+      docs = await splitter.createDocuments(chunks, metadataArray);
+    } catch (error) {
+      const splitter = new RecursiveCharacterTextSplitter(config);
+      const chunks = await splitter.splitText(content);
+      const metadataArray = metadata ? Array(chunks.length).fill({ metadata }) : undefined;
+      docs = await splitter.createDocuments(chunks, metadataArray);
+    }
+  } else {
+    const splitter = new RecursiveCharacterTextSplitter(config);
+    const chunks = await splitter.splitText(content);
+    const metadataArray = metadata ? Array(chunks.length).fill({ metadata }) : undefined;
+    docs = await splitter.createDocuments(chunks, metadataArray);
+  }
 
   const formattedDocs = docs.map((doc) => formatDocument(doc, metadata));
   const vectors = await embeddings.embedDocuments(formattedDocs.map((d) => d.pageContent));
@@ -79,20 +98,22 @@ async function updateVectorStore(knowledgeId: string, vectors: number[][], docs:
 }
 
 export const saveContentToVectorStore = async ({
-  metadata,
   content,
+  metadata,
   knowledgeId,
   documentId,
   update = false,
+  type,
 }: {
-  metadata?: Record<string, unknown>;
   content: string;
+  metadata?: Record<string, unknown>;
   knowledgeId: string;
   documentId: string;
   update?: boolean;
+  type: 'file' | 'text' | 'discussKit' | 'url';
 }) => {
   // 文本处理和向量化
-  const { vectors, formattedDocs } = await processContent(content, metadata, {
+  const { vectors, formattedDocs } = await processContent(content, type, metadata, {
     separators: ['\n\n', '\n', ' ', ''],
     chunkSize: 1024,
     chunkOverlap: 100,

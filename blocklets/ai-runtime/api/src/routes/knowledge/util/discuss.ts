@@ -2,6 +2,7 @@ import { call } from '@blocklet/sdk/lib/component';
 
 export type Discussion = {
   post: {
+    id: string;
     content: string;
     title: string;
     createdAt: string;
@@ -144,3 +145,43 @@ export const getDiscussionIds = async (types: ('discussion' | 'blog' | 'doc')[] 
 
   return [...new Set(ids)];
 };
+
+export function discussionToMarkdown(post: Discussion['post']) {
+  if (!post) return '';
+
+  const languages = [post, ...(post?.languagesResult || [])];
+  let markdown = `## ${post.title}\n\n`;
+
+  if (languages && languages.length > 0) {
+    (languages || []).forEach((lang) => {
+      if (lang) {
+        markdown += '### Language\n';
+        markdown += `#### ID:${lang.id}\n`;
+        if (lang.content) {
+          markdown += `#### Content\n${lang.content}\n`;
+        }
+        if (lang.locale) {
+          markdown += `#### Locale:${lang.locale}\n`;
+        }
+        if (lang.author.fullName) {
+          markdown += `#### Author\n${lang.author.fullName}\n`;
+        }
+        markdown += `#### Created At\n${lang.createdAt}\n`;
+        markdown += `#### Updated At\n${lang.updatedAt}\n\n`;
+      }
+    });
+  }
+
+  if (post.comments && post.comments.length > 0) {
+    post.comments.forEach((comment) => {
+      markdown += '### Comments\n';
+      markdown += `#### ID:${comment.id}\n`;
+      markdown += `#### Content\n${comment.content}\n`;
+      markdown += `#### Author\n${comment.commentAuthorName}\n`;
+      markdown += `#### Created At\n${comment.commentCreatedAt}\n`;
+      markdown += `#### Updated At\n${comment.commentUpdatedAt}\n\n`;
+    });
+  }
+
+  return markdown;
+}
