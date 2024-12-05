@@ -112,7 +112,7 @@ function ModelSettings({ value, onChange, ...rest }: ModelSettingsProps) {
             </FormLabel>
           </Tooltip>
           <SliderNumberField
-            sx={{ flex: '0 0 50%' }}
+            sx={{ flex: 1 }}
             min={0}
             max={2}
             step={0.01}
@@ -133,7 +133,7 @@ function ModelSettings({ value, onChange, ...rest }: ModelSettingsProps) {
             </FormLabel>
           </Tooltip>
           <SliderNumberField
-            sx={{ flex: '0 0 50%' }}
+            sx={{ flex: 1 }}
             min={0}
             max={1}
             step={0.01}
@@ -154,7 +154,7 @@ function ModelSettings({ value, onChange, ...rest }: ModelSettingsProps) {
             </FormLabel>
           </Tooltip>
           <SliderNumberField
-            sx={{ flex: '0 0 50%' }}
+            sx={{ flex: 1 }}
             min={-2}
             max={2}
             step={0.01}
@@ -175,7 +175,7 @@ function ModelSettings({ value, onChange, ...rest }: ModelSettingsProps) {
             </FormLabel>
           </Tooltip>
           <SliderNumberField
-            sx={{ flex: '0 0 50%' }}
+            sx={{ flex: 1 }}
             min={-2}
             max={2}
             step={0.01}
