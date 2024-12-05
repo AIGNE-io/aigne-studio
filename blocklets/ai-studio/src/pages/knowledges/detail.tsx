@@ -447,9 +447,15 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
                     if (!result?.metadata?.document?.id) return;
                     navigate(joinURL('document', result?.metadata?.document?.id, 'segments'));
                   }}>
-                  <Box sx={{ wordBreak: 'break-word' }}>
-                    {typeof result.content === 'string' ? result.content : JSON.stringify(result.content, null, 2)}
-                  </Box>
+                  <Box
+                    sx={{ wordBreak: 'break-word' }}
+                    dangerouslySetInnerHTML={{
+                      __html: (typeof result.content === 'string'
+                        ? result.content
+                        : JSON.stringify(result.content, null, 2)
+                      ).replace(/\\n+/g, '<br />'),
+                    }}
+                  />
 
                   {title && (
                     <Stack

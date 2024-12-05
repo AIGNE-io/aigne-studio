@@ -83,9 +83,7 @@ async function getVectorPath(blockletDid: string | null, knowledgeId: string, kn
 router.get('/:knowledgeId/search', async (req, res) => {
   const { knowledgeId } = req.params;
   const input = await searchQuerySchema.validateAsync(req.query, { stripUnknown: true });
-
   const knowledge = await Knowledge.findOne({ where: { id: knowledgeId } });
-
   const vectorPathOrKnowledgeId = await getVectorPath(input.blockletDid!, knowledgeId, knowledge);
 
   const retriever = new HybridRetriever(vectorPathOrKnowledgeId, input.n!);
