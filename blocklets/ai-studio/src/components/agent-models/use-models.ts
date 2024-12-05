@@ -83,11 +83,12 @@ export function useSuggestedModels({
   limit?: number;
 }) {
   const allModels = useAllModels(type);
+  const modelSet = new Set(allModels.map((x) => x.model));
   const { projectId, projectRef } = useCurrentProject();
   const { projectSetting } = useProjectStore(projectId, projectRef);
   const sorted = sortModels(
-    [...(projectSetting.starredModels ?? []), ...pinnedModels],
-    projectSetting.recentModels ?? [],
+    [...(projectSetting.starredModels ?? []), ...pinnedModels].filter((x) => modelSet.has(x)),
+    (projectSetting.recentModels ?? []).filter((x) => modelSet.has(x)),
     allModels
   );
   return sorted.slice(0, limit);
