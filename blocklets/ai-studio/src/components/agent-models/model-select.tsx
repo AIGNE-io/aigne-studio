@@ -191,7 +191,12 @@ export function ModelSelectDialog({ type, dialogProps, agent }: ModelSelectDialo
       </DialogContent>
 
       <DialogActions sx={{ justifyContent: 'space-between' }}>
-        <Button variant="outlined" disabled={!isAdmin} onMouseDown={addComponentRef.current?.onClick}>
+        <Button
+          variant="outlined"
+          disabled={!isAdmin}
+          onMouseDown={() => {
+            addComponentRef.current?.onClick?.();
+          }}>
           {t('addMoreAgentTools')}
         </Button>
 
@@ -208,7 +213,7 @@ export function ModelSelectDialog({ type, dialogProps, agent }: ModelSelectDialo
       <AddComponent
         componentDid={window.blocklet.appId}
         resourceDid={AIGNE_STUDIO_COMPONENT_DID}
-        resourceType={type}
+        resourceType="llm-adapter"
         autoClose={false}
         render={({ onClick, loading }) => {
           addComponentRef.current = { onClick, loading };
