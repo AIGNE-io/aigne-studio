@@ -180,4 +180,4 @@ export type ParameterYjs =
   | Exclude<Parameter, { type: 'select' }>
   | (Omit<SelectParameter, 'options'> & { options?: ArrayToYjs<NonNullable<SelectParameter['options']>> });
 
-export type ModelDrivenAssistantYjs = PromptAssistantYjs | ImageAssistantYjs | RouterAssistantYjs;
+export type ModelBasedAssistantYjs = PromptAssistantYjs | ImageAssistantYjs;

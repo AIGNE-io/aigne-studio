@@ -917,4 +917,10 @@ export default flatten({
   createObject: 'Create {object}',
   file: 'File',
   noResults: 'No related results',
+  modelSettingsPresets: {
+    precise: '✨ Precise',
+    balance: '⚖️ Balance',
+    creative: '🎨 Creative',
+    custom: '🖊️ Custom',
+  },
 });
