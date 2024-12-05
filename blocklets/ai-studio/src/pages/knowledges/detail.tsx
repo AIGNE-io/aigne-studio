@@ -79,7 +79,7 @@ export default function KnowledgeDetail() {
   } = useRequest(() => getKnowledge(knowledgeId), {
     refreshDeps: [knowledgeId],
     onSuccess: (data) => setShowImportDialog(!data?.docs),
-    onError: (e) => Toast.error(e?.message),
+    onError: (e) => Toast.error(getErrorMessage(e)),
   });
 
   const {
@@ -89,7 +89,7 @@ export default function KnowledgeDetail() {
     run,
   } = useRequest((page = 1) => getDocuments(knowledgeId, { page, size: 10 }), {
     refreshDeps: [knowledgeId],
-    onError: (e) => Toast.error(e?.message),
+    onError: (e) => Toast.error(getErrorMessage(e)),
   });
 
   const runAsync = useCallback(async () => {
@@ -341,7 +341,7 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
             const content = JSON.parse(parsedContent.content);
 
             return {
-              content: content.content,
+              content: content?.content || content,
               metadata: doc.metadata,
             };
           } catch (e) {
@@ -356,7 +356,7 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
           content: parsedContent.content,
           metadata: doc.metadata,
         };
-      } catch {
+      } catch (err) {
         return doc;
       }
     })
@@ -433,50 +433,63 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
           </Box>
         ) : results.length ? (
           <Box px={2.5}>
-            {results.map((result, index) => (
-              <Box key={index} py={2.5} borderBottom="1px solid #EFF1F5">
-                <Box sx={{ wordBreak: 'break-word' }}>
-                  {typeof result.content === 'string' ? result.content : JSON.stringify(result.content, null, 2)}
+            {results.map((result, index) => {
+              const title = result?.metadata?.document?.name || result?.metadata?.metadata?.title;
+              const relevanceScore = result?.metadata?.metadata?.relevanceScore;
+
+              return (
+                <Box
+                  key={index}
+                  py={2.5}
+                  borderBottom="1px solid #EFF1F5"
+                  sx={{ cursor: result?.metadata?.document?.id ? 'pointer' : 'default' }}
+                  onClick={() => {
+                    if (!result?.metadata?.document?.id) return;
+                    navigate(joinURL('document', result?.metadata?.document?.id, 'segments'));
+                  }}>
+                  <Box sx={{ wordBreak: 'break-word' }}>
+                    {typeof result.content === 'string' ? result.content : JSON.stringify(result.content, null, 2)}
+                  </Box>
+
+                  {title && (
+                    <Stack
+                      width="fit-content"
+                      flexDirection="row"
+                      alignItems="center"
+                      gap={1}
+                      mt={1.5}
+                      py={1}
+                      px={1.5}
+                      borderRadius={1}
+                      border="1px solid #EFF1F5">
+                      <Stack direction="row" gap={1} alignItems="center" flex={1}>
+                        <DocumentIcon document={result.metadata.document} />
+                        <Box flexGrow={1} color="#030712">
+                          {title}
+                        </Box>
+                      </Stack>
+
+                      {relevanceScore && (
+                        <>
+                          <Divider orientation="vertical" variant="middle" flexItem sx={{ my: 0.5 }} />
+
+                          <Stack direction="row" gap={1} alignItems="center">
+                            <Typography
+                              sx={{
+                                fontSize: 13,
+                                color: result?.metadata?.metadata?.relevanceScore > 0.5 ? '#059669' : '#BE123C',
+                              }}>
+                              {Number((result?.metadata?.metadata?.relevanceScore || 0) * 100).toFixed(2)}%
+                            </Typography>
+                            <Typography sx={{ fontSize: 13, color: '#9CA3AF' }}>{t('similarity')}</Typography>
+                          </Stack>
+                        </>
+                      )}
+                    </Stack>
+                  )}
                 </Box>
-
-                {result?.metadata?.document && (
-                  <Stack
-                    width="fit-content"
-                    flexDirection="row"
-                    alignItems="center"
-                    gap={1}
-                    mt={1.5}
-                    py={1}
-                    px={1.5}
-                    borderRadius={1}
-                    border="1px solid #EFF1F5"
-                    sx={{ cursor: 'pointer' }}
-                    onClick={() => {
-                      navigate(joinURL('document', result.metadata.document.id, 'segments'));
-                    }}>
-                    <Stack direction="row" gap={1} alignItems="center">
-                      <DocumentIcon document={result.metadata.document} />
-                      <Box flexGrow={1} color="#030712">
-                        {result.metadata.document.name}
-                      </Box>
-                    </Stack>
-
-                    <Divider orientation="vertical" variant="middle" flexItem sx={{ my: 0.5 }} />
-
-                    <Stack direction="row" gap={1} alignItems="center">
-                      <Typography
-                        sx={{
-                          fontSize: 13,
-                          color: result?.metadata?.metadata?.relevanceScore > 0.5 ? '#059669' : '#BE123C',
-                        }}>
-                        {Number((result?.metadata?.metadata?.relevanceScore || 0) * 100).toFixed(2)}%
-                      </Typography>
-                      <Typography sx={{ fontSize: 13, color: '#9CA3AF' }}>{t('similarity')}</Typography>
-                    </Stack>
-                  </Stack>
-                )}
-              </Box>
-            ))}
+              );
+            })}
           </Box>
         ) : (
           <Box className="center" width={1} height={1}>

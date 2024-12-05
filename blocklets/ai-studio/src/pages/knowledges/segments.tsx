@@ -1,3 +1,4 @@
+import { getErrorMessage } from '@app/libs/api';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
@@ -70,9 +71,7 @@ export default function KnowledgeSegments() {
     },
     {
       refreshDeps: [viewType, filename, knowledgeId, documentId],
-      onError: (e) => {
-        Toast.error(e.message);
-      },
+      onError: (e) => Toast.error(getErrorMessage(e)),
     }
   );
 

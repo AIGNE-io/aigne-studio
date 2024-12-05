@@ -1,6 +1,7 @@
 import LoadingButton from '@app/components/loading/loading-button';
 import { useIsAdmin } from '@app/contexts/session';
 import useSubscription from '@app/hooks/use-subscription';
+import { getErrorMessage } from '@app/libs/api';
 import { AIGNE_RUNTIME_MOUNT_POINT } from '@app/libs/constants';
 import useDialog from '@app/utils/use-dialog';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
@@ -412,9 +413,7 @@ const SelectKnowledgeModal = (
     },
     {
       manual: true,
-      onError: (error: any) => {
-        Toast.error(error.message);
-      },
+      onError: (error: any) => Toast.error(getErrorMessage(error)),
     }
   );
 

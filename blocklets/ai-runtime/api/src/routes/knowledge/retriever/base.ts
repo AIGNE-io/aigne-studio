@@ -53,8 +53,28 @@ export default class BaseRetriever {
   uniqueDocuments(documents: Document[]): Document[] {
     if (!documents.length) return [];
 
+    const list = documents.map((doc) => {
+      try {
+        const parsedContent = JSON.parse(doc.pageContent);
+
+        if (typeof parsedContent.content === 'string') {
+          try {
+            const content = JSON.parse(parsedContent.content);
+
+            return { content: content.content, doc };
+          } catch (e) {
+            return { content: parsedContent.content, doc };
+          }
+        }
+
+        return { content: parsedContent.content, doc };
+      } catch {
+        return { doc };
+      }
+    });
+
     return uniqBy(
-      documents.map((doc) => ({ ...doc, hash: hash('md5', (doc.pageContent || '').trim(), 'hex') })),
+      list.map(({ doc, content }) => ({ ...doc, hash: hash('md5', (content || '').trim(), 'hex') })),
       (doc) => doc.hash
     ).map(({ hash: _, ...doc }) => doc);
   }

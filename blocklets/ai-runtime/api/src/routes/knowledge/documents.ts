@@ -95,13 +95,23 @@ router.get('/:knowledgeId/search', async (req, res) => {
     result.map(async (i) => {
       if (i.metadata?.metadata?.documentId) {
         const doc = await KnowledgeDocument.findOne({ where: { id: i.metadata?.metadata?.documentId } });
+
         return {
           content: i.pageContent,
-          metadata: { document: doc?.dataValues, metadata: i.metadata },
+          metadata: {
+            document: doc?.dataValues,
+            metadata: { ...(i.metadata?.metadata || {}), relevanceScore: i.metadata?.relevanceScore || 0 },
+          },
         };
       }
 
-      return { content: i.pageContent, metadata: null };
+      return {
+        content: i.pageContent,
+        metadata: {
+          document: null,
+          metadata: { ...(i.metadata?.metadata || {}), relevanceScore: i.metadata?.relevanceScore || 0 },
+        },
+      };
     })
   );
 

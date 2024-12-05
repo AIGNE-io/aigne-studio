@@ -12,6 +12,8 @@ import BaseRetriever from './base';
 export default class HybridRetriever extends BaseRetriever {
   private vectorRetriever: any = null;
 
+  private rerankThreshold: number = 0.3;
+
   async search(query: string): Promise<Document[]> {
     try {
       if (!this.vectorStore) {
@@ -40,8 +42,12 @@ export default class HybridRetriever extends BaseRetriever {
       logger.debug('rerankDocuments', { rerankDocuments: rerankDocuments.length });
       const uniqueDocuments = this.uniqueDocuments(rerankDocuments);
       logger.debug('uniqueDocuments', { uniqueDocuments: uniqueDocuments.length });
+      const filteredDocuments = uniqueDocuments.filter(
+        (doc: any) => (doc?.metadata?.relevanceScore || 0) >= this.rerankThreshold
+      );
+      logger.debug('filteredDocuments', { filteredDocuments: filteredDocuments.length });
 
-      return uniqueDocuments.slice(0, this.getTopK().k);
+      return filteredDocuments;
     } catch (error) {
       logger.error('Search failed', { error });
       throw error;
@@ -82,8 +88,10 @@ export default class HybridRetriever extends BaseRetriever {
     return documents.flat();
   }
 
-  async extractor(documents: Document[], query: string): Promise<Document[]> {
+  async extractor(documents: Document[], query: string, isCompress: boolean = false): Promise<Document[]> {
     if (!documents.length) return [];
+
+    if (!isCompress) return documents;
 
     const memoryVectorStore = await MemoryVectorStore.fromDocuments(documents, this.embeddings);
     const baseRetriever = memoryVectorStore.asRetriever({ k: documents.length });
@@ -102,8 +110,8 @@ export default class HybridRetriever extends BaseRetriever {
 
     const cohereRerank = new CohereRerank({
       apiKey: process.env.COHERE_API_KEY,
-      topN: this.getTopK().k,
-      model: 'rerank-english-v2.0',
+      topN: documents.length,
+      model: 'rerank-multilingual-v2.0',
     });
 
     const rerankedDocuments = await cohereRerank.compressDocuments(documents, query);

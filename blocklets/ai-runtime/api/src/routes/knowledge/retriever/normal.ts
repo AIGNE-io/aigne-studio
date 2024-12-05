@@ -14,10 +14,12 @@ export default class NormalRetriever extends BaseRetriever {
       if (!this.vectorStore) {
         await this.initializeVectorStore();
       }
+      logger.debug('vectorStore initialized');
 
       if (!this.bm25Retriever) {
         await this.initializeBM25Retriever();
       }
+      logger.debug('bm25Retriever initialized');
 
       const vectorStore = this.vectorStore!;
       this.vectorRetriever = vectorStore.asRetriever(this.getTopK().k);
@@ -26,19 +28,20 @@ export default class NormalRetriever extends BaseRetriever {
         logger.error('store get mapping is empty');
         return [];
       }
-
       logger.debug('Starting search process', { query });
 
       const ensembleRetriever = new EnsembleRetriever({
         retrievers: [this.bm25Retriever, this.vectorRetriever],
         weights: [0.3, 0.7],
       });
+      logger.debug('ensembleRetriever initialized');
 
       const searchResults = await ensembleRetriever.invoke(query);
+      logger.debug('searchResults', { searchResults });
 
       // 3. 融合并重排序结果
       const results = this.rerank([searchResults]);
-
+      logger.debug('results', { results });
       return results;
     } catch (error) {
       logger.error('Search failed', { error, query });
