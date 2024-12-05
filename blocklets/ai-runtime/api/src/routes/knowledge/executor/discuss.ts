@@ -42,6 +42,7 @@ const getDiscussionContent = async (discussionId: string) => {
 
   const comments = await commentsContent(discussionId);
   post.comments = comments;
+  post.languagesResult = languagesResult;
 
   return post;
 };
@@ -78,14 +79,26 @@ export class DiscussKitProcessor extends BaseProcessor {
         const { link, post } = value as { link: string; post: Discussion['post'] };
         if (!post) return [];
 
+        const { title, content, author, labels, board, comments, languagesResult, ...rest } =
+          omitBy(post, (value) => !value) || {};
+
         const current = {
-          content: omitBy(post, (value) => !value),
+          content: {
+            title,
+            content,
+            author,
+            labels,
+            board,
+            comments,
+            languages: languagesResult,
+          },
           metadata: {
             documentId: this.documentId,
             data: cloneDeep(data),
             title: post.title,
             locale: post.locale,
             link,
+            ...rest,
           },
         };
 
