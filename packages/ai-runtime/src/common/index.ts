@@ -25,6 +25,7 @@ export async function getSupportedModels(): Promise<TextModelInfo[]> {
       maxTokensMin: 1,
       maxTokensMax: 128000,
       maxTokensDefault: 128000,
+      tags: ['OpenAI', 'GPT'],
     },
     {
       brand: 'OpenAI',
@@ -45,6 +46,7 @@ export async function getSupportedModels(): Promise<TextModelInfo[]> {
       maxTokensMin: 1,
       maxTokensMax: 128000,
       maxTokensDefault: 128000,
+      tags: ['OpenAI', 'GPT'],
     },
     {
       brand: 'OpenAI',
@@ -65,6 +67,7 @@ export async function getSupportedModels(): Promise<TextModelInfo[]> {
       maxTokensMin: 1,
       maxTokensMax: 4096,
       maxTokensDefault: 4096,
+      tags: ['OpenAI', 'GPT'],
     },
     {
       brand: 'OpenAI',
@@ -85,6 +88,7 @@ export async function getSupportedModels(): Promise<TextModelInfo[]> {
       maxTokensMin: 1,
       maxTokensMax: 16385,
       maxTokensDefault: 16385,
+      tags: ['OpenAI', 'GPT'],
     },
     {
       brand: 'OpenAI',
@@ -105,6 +109,7 @@ export async function getSupportedModels(): Promise<TextModelInfo[]> {
       maxTokensMin: 1,
       maxTokensMax: 8192,
       maxTokensDefault: 8192,
+      tags: ['OpenAI', 'GPT'],
     },
     {
       brand: 'OpenAI',
@@ -125,6 +130,7 @@ export async function getSupportedModels(): Promise<TextModelInfo[]> {
       maxTokensMin: 1,
       maxTokensMax: 32768,
       maxTokensDefault: 32768,
+      tags: ['OpenAI', 'GPT'],
     },
     {
       brand: 'Google',
@@ -139,6 +145,7 @@ export async function getSupportedModels(): Promise<TextModelInfo[]> {
       maxTokensMin: 1,
       maxTokensMax: 2048,
       maxTokensDefault: 2048,
+      tags: ['Google'],
     },
     {
       brand: 'Mistral AI',
@@ -153,6 +160,7 @@ export async function getSupportedModels(): Promise<TextModelInfo[]> {
       maxTokensMin: 1,
       maxTokensMax: 8192,
       maxTokensDefault: 8192,
+      tags: ['Mistral AI'],
     },
     {
       brand: 'Mistral AI',
@@ -167,26 +175,7 @@ export async function getSupportedModels(): Promise<TextModelInfo[]> {
       maxTokensMin: 1,
       maxTokensMax: 32768,
       maxTokensDefault: 32768,
-    },
-    {
-      brand: 'Hugging Face',
-      model: 'Hugging Face',
-      disabled: true,
-    },
-    {
-      brand: 'Azure OpenAI',
-      model: 'Azure OpenAI',
-      disabled: true,
-    },
-    {
-      brand: 'Replicate',
-      model: 'Replicate',
-      disabled: true,
-    },
-    {
-      brand: 'Vertex AI',
-      model: 'Vertex AI',
-      disabled: true,
+      tags: ['Mistral AI'],
     },
   ];
 }
@@ -203,6 +192,7 @@ export async function getSupportedImagesModels(): Promise<ImageModelInfo[]> {
       nDefault: 1,
       size: ['256x256', '512x512', '1024x1024'],
       sizeDefault: '256x256',
+      tags: ['OpenAI'],
     },
     {
       brand: 'OpenAI',
@@ -216,6 +206,7 @@ export async function getSupportedImagesModels(): Promise<ImageModelInfo[]> {
       sizeDefault: '1024x1024',
       style: ['vivid', 'natural'],
       styleDefault: 'vivid',
+      tags: ['OpenAI'],
     },
   ];
 }
