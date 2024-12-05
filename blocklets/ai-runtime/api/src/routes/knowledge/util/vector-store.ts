@@ -58,7 +58,7 @@ async function processContent(
   if (type === 'discussKit') {
     try {
       const json = JSON.parse(content);
-      const markdown = discussionToMarkdown(json);
+      const markdown = discussionToMarkdown(json, metadata?.link as string);
       const splitter = new MarkdownTextSplitter({ chunkSize, chunkOverlap });
       const chunks = await splitter.splitText(markdown);
       const metadataArray = metadata ? Array(chunks.length).fill({ metadata }) : undefined;

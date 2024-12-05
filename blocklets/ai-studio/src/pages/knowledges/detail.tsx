@@ -1,3 +1,4 @@
+import MdViewer from '@app/components/md-viewer';
 import { useKnowledge } from '@app/contexts/knowledge/knowledge';
 import UploaderProvider, { useUploader } from '@app/contexts/uploader';
 import useSubscription from '@app/hooks/use-subscription';
@@ -442,19 +443,26 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
                   key={index}
                   py={2.5}
                   borderBottom="1px solid #EFF1F5"
-                  sx={{ cursor: result?.metadata?.document?.id ? 'pointer' : 'default' }}
+                  sx={{
+                    cursor: result?.metadata?.document?.id ? 'pointer' : 'default',
+                    pre: {
+                      border: '1px solid #eff1f5',
+                      borderTop: 0,
+                      whiteSpace: 'pre-wrap',
+                    },
+                    h4: {
+                      marginBottom: 1,
+                    },
+                  }}
                   onClick={() => {
                     if (!result?.metadata?.document?.id) return;
                     navigate(joinURL('document', result?.metadata?.document?.id, 'segments'));
                   }}>
-                  <Box
-                    sx={{ wordBreak: 'break-word' }}
-                    dangerouslySetInnerHTML={{
-                      __html: (typeof result.content === 'string'
-                        ? result.content
-                        : JSON.stringify(result.content, null, 2)
-                      ).replace(/\\n+/g, '<br />'),
-                    }}
+                  <MdViewer
+                    content={(typeof result.content === 'string'
+                      ? result.content
+                      : JSON.stringify(result.content, null, 2)
+                    ).replace(/\\n+/g, '<br />')}
                   />
 
                   {title && (

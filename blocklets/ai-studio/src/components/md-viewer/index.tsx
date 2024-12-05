@@ -182,6 +182,7 @@ function MdViewer(props: BoxProps & MdViewerProps) {
 
   useEffect(() => {
     const handleClick = (event: Event) => {
+      event.stopPropagation();
       const target = event.target as HTMLElement; // 类型断言
       if (target.classList.contains('copy-button')) {
         const code = (target.parentNode as HTMLElement)?.nextElementSibling?.querySelector('code')?.textContent;
