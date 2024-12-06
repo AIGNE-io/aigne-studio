@@ -213,7 +213,7 @@ export function ModelSelectDialog({ type, dialogProps, agent }: ModelSelectDialo
       <AddComponent
         componentDid={window.blocklet.appId}
         resourceDid={AIGNE_STUDIO_COMPONENT_DID}
-        resourceType="llm-adapter"
+        resourceType={`${type}-adapter`}
         autoClose={false}
         render={({ onClick, loading }) => {
           addComponentRef.current = { onClick, loading };
