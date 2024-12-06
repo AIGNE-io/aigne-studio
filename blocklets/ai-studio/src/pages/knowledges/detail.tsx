@@ -326,8 +326,8 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
       return results;
     },
     {
-      refreshDeps: [],
       manual: true,
+      refreshDeps: [],
       onError: (e) => Toast.error(getErrorMessage(e)),
     }
   );
@@ -486,7 +486,7 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
                         </Box>
                       </Stack>
 
-                      {relevanceScore && (
+                      {!!relevanceScore && (
                         <>
                           <Divider orientation="vertical" variant="middle" flexItem sx={{ my: 0.5 }} />
 
