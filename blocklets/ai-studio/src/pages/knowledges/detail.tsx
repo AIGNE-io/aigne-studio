@@ -1,4 +1,4 @@
-import MdViewer from '@app/components/md-viewer';
+// import MdViewer from '@app/components/md-viewer';
 import { useKnowledge } from '@app/contexts/knowledge/knowledge';
 import UploaderProvider, { useUploader } from '@app/contexts/uploader';
 import useSubscription from '@app/hooks/use-subscription';
@@ -461,12 +461,12 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
                     if (!result?.metadata?.document?.id) return;
                     navigate(joinURL('document', result?.metadata?.document?.id, 'segments'));
                   }}>
-                  <MdViewer
-                    content={(typeof result.content === 'string'
+                  <Box>
+                    {(typeof result.content === 'string'
                       ? result.content
                       : JSON.stringify(result.content, null, 2)
                     ).replace(/\\n+/g, '<br />')}
-                  />
+                  </Box>
 
                   {title && (
                     <Stack
