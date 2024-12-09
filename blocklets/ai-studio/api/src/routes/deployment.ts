@@ -76,7 +76,7 @@ router.get('/byProjectId', middlewares.session(), middlewares.auth(), async (req
   res.json(deployment);
 });
 
-router.get('/', async (req, res) => {
+router.get('/', middlewares.session(), middlewares.auth(), async (req, res) => {
   const { page, pageSize } = await paginationSchema.validateAsync(req.query, { stripUnknown: true });
   const offset = (page - 1) * pageSize;
 
