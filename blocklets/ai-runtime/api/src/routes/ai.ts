@@ -1,6 +1,6 @@
 import { ReadableStream } from 'stream/web';
 
-import { getAgent, getMemoryVariables, getProject } from '@api/libs/agent';
+import { getAdapter, getAgent, getMemoryVariables, getProject } from '@api/libs/agent';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
 import logger from '@api/libs/logger';
 import AgentUsage from '@api/store/models/agent-usage';
@@ -19,7 +19,12 @@ import { defaultImageModel, defaultTextModel, getSupportedImagesModels } from '@
 import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { CallAI, CallAIImage, RunAssistantCallback, RuntimeExecutor, nextTaskId } from '@blocklet/ai-runtime/core';
 import { toolCallsTransform } from '@blocklet/ai-runtime/core/utils/tool-calls-transform';
-import { AssistantResponseType, RuntimeOutputVariable, isImageAssistant } from '@blocklet/ai-runtime/types';
+import {
+  AssistantResponseType,
+  PromptAssistant,
+  RuntimeOutputVariable,
+  isImageAssistant,
+} from '@blocklet/ai-runtime/types';
 import { RuntimeError, RuntimeErrorType } from '@blocklet/ai-runtime/types/runtime/error';
 import { getUserPassports, quotaChecker } from '@blocklet/aigne-sdk/api/premium';
 import middlewares from '@blocklet/sdk/lib/middlewares';
@@ -140,7 +145,36 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
 
   await validateDebugModeAccess(!!input.debug, userId, req.user?.role || '', project.createdBy);
 
+  let executor: RuntimeExecutor;
+  const adapter = await getAdapter(agent);
+
   const callAI: CallAI = async ({ input }) => {
+    if (adapter) {
+      const adapterAgent = await executor.context.getAgent({
+        aid: stringifyIdentity({
+          blockletDid: adapter.blockletDid,
+          projectId: adapter.projectId,
+          projectRef,
+          agentId: adapter.agent.id,
+        }),
+        working: agent.identity.working,
+        rejectOnEmpty: true,
+      });
+
+      return (
+        await executor.context
+          .executor(adapterAgent, {
+            inputs: {
+              model: (agent as PromptAssistant).model,
+              [adapterAgent.parameters?.find((i) => i.type === 'llmInputMessages' && !i.hidden)?.key!]: input.messages,
+            },
+            taskId: nextTaskId(),
+            parentTaskId: taskId,
+          })
+          .execute()
+      )[RuntimeOutputVariable.llmResponseStream] as ReadableStream<ChatCompletionResponse>;
+    }
+
     const stream = await chatCompletions({
       ...input,
       model: input.model || project.model || defaultTextModel,
@@ -305,7 +339,7 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
       },
     });
 
-    const executor = new RuntimeExecutor(
+    executor = new RuntimeExecutor(
       {
         entry: {
           blockletDid,
