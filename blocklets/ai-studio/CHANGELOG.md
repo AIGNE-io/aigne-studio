@@ -1,3 +1,7 @@
+## 0.4.161 (2024-12-9)
+
+- fix: deployments api permission
+
 ## 0.4.160 (2024-12-4)
 
 - chore: update blocklet sdk version
