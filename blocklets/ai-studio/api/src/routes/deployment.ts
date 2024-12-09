@@ -12,6 +12,7 @@ import { NextFunction, Request, Response, Router } from 'express';
 import Joi from 'joi';
 import pick from 'lodash/pick';
 
+import { ensureAdmin } from '../libs/security';
 import checkUserAuth from '../libs/user-auth';
 import Category from '../store/models/category';
 import Deployment from '../store/models/deployment';
@@ -76,7 +77,7 @@ router.get('/byProjectId', middlewares.session(), middlewares.auth(), async (req
   res.json(deployment);
 });
 
-router.get('/', middlewares.session(), middlewares.auth(), async (req, res) => {
+router.get('/', middlewares.session(), ensureAdmin, async (req, res) => {
   const { page, pageSize } = await paginationSchema.validateAsync(req.query, { stripUnknown: true });
   const offset = (page - 1) * pageSize;
 
