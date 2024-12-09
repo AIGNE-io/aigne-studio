@@ -41,8 +41,10 @@ export default class NormalRetriever extends BaseRetriever {
 
       // 3. 融合并重排序结果
       const results = this.rerank([searchResults]);
-      logger.debug('results', { results });
-      return results;
+      const uniqueDocuments = this.uniqueDocuments(results);
+      logger.debug('uniqueDocuments', { uniqueDocuments: uniqueDocuments.length });
+
+      return uniqueDocuments;
     } catch (error) {
       logger.error('Search failed', { error, query });
       throw error;
