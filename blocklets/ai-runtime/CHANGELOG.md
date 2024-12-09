@@ -1,3 +1,7 @@
+## 0.4.162 (2024-12-9)
+
+- fix: kb size be limited when export resource
+
 ## 0.4.161 (2024-12-9)
 
 - fix: deployments api permission
