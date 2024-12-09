@@ -369,7 +369,9 @@ function Actions({
   );
 }
 
-export const DocumentIcon = ({ document }: { document: KnowledgeDocumentCard }) => {
+export const DocumentIcon = ({ document }: { document?: KnowledgeDocumentCard }) => {
+  if (!document) return <Box component={Unknown} width={20} height={20} />;
+
   if (document.type === 'text') {
     return <Box component={Custom} width={20} height={20} />;
   }

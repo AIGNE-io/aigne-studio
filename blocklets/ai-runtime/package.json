@@ -49,6 +49,7 @@
     "@blocklet/uploader-server": "^0.1.56",
     "@blocklet/xss": "^0.1.12",
     "@huggingface/inference": "^2.8.0",
+    "@langchain/cohere": "^0.3.1",
     "@langchain/community": "^0.3.15",
     "@langchain/core": "^0.3.18",
     "@langchain/openai": "^0.3.14",

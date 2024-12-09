@@ -42,6 +42,7 @@ const getDiscussionContent = async (discussionId: string) => {
 
   const comments = await commentsContent(discussionId);
   post.comments = comments;
+  post.languagesResult = languagesResult;
 
   return post;
 };
