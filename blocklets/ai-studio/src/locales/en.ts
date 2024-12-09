@@ -916,4 +916,6 @@ export default flatten({
   crawl: 'Crawl',
   createObject: 'Create {object}',
   file: 'File',
+  currentProject: 'Current Project',
+  tools: 'Tools',
 });
