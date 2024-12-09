@@ -60,12 +60,6 @@ environments:
     default: ''
     secure: true
     shared: true
-  - name: COHERE_API_KEY
-    description: Cohere API Key
-    required: false
-    default: ''
-    secure: true
-    shared: true
 capabilities:
   navigation: false
 screenshots:

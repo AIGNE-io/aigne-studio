@@ -32,29 +32,6 @@
             "x-designable-id": "ds4lfn3f8en",
             "x-index": 0,
             "properties": {
-              "useHybridRetriever": {
-                "type": "boolean",
-                "title": "Use Hybrid Retriever",
-                "x-decorator": "FormItem",
-                "x-component": "Switch",
-                "x-validator": [],
-                "x-component-props": {},
-                "x-decorator-props": {
-                  "layout": "vertical",
-                  "colon": false
-                },
-                "name": "useHybridRetriever",
-                "x-reactions": {
-                  "dependencies": [],
-                  "fulfill": {
-                    "state": {}
-                  }
-                },
-                "default": true,
-                "description": "The retrieval result is compressed and filtered.",
-                "x-designable-id": "04qva0osi1q",
-                "x-index": 0
-              },
               "uploadFileLimit": {
                 "type": "number",
                 "title": "Upload File Limits(MB)",
@@ -90,7 +67,7 @@
                   }
                 },
                 "x-designable-id": "xd9eqqqhx9c",
-                "x-index": 1,
+                "x-index": 0,
                 "description": "Limits the size of files uploaded to the knowledge (MB)",
                 "required": false
               },
@@ -115,7 +92,7 @@
                 "default": false,
                 "description": "Automatically update discuss data in the knowledge base",
                 "x-designable-id": "79qik9yi42x",
-                "x-index": 2
+                "x-index": 1
               },
               "autoUpdateTime": {
                 "title": "Automatic Update Time",
@@ -156,7 +133,7 @@
                   }
                 ],
                 "x-designable-id": "sak26frxvkv",
-                "x-index": 3,
+                "x-index": 2,
                 "default": "60",
                 "x-reactions": {
                   "dependencies": [
@@ -209,7 +186,7 @@
                   }
                 },
                 "x-designable-id": "96s0oi63rgm",
-                "x-index": 4,
+                "x-index": 3,
                 "description": "",
                 "required": false
               }
@@ -477,6 +454,6 @@
         }
       }
     },
-    "x-designable-id": "hpta515tlaa"
+    "x-designable-id": "dixw8588rvi"
   }
 }
