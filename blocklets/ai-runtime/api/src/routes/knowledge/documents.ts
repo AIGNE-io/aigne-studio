@@ -17,6 +17,7 @@ import Knowledge from '../../store/models/dataset/dataset';
 import KnowledgeDocument from '../../store/models/dataset/document';
 import EmbeddingHistories from '../../store/models/dataset/embedding-history';
 import HybridRetriever from './retriever';
+import SearchClient from './retriever/meilisearch';
 import { queue } from './util/queue';
 import { updateHistoriesAndStore } from './util/vector-store';
 
@@ -86,11 +87,12 @@ router.get('/:knowledgeId/search', async (req, res) => {
   const knowledge = await Knowledge.findOne({ where: { id: knowledgeId } });
   const vectorPathOrKnowledgeId = await getVectorPath(input.blockletDid!, knowledgeId, knowledge);
 
-  const retriever = new HybridRetriever(vectorPathOrKnowledgeId, input.n!);
-  const result = await retriever.search(input.message!);
+  const client = new SearchClient(knowledgeId, vectorPathOrKnowledgeId);
 
+  // const retriever = new HybridRetriever(vectorPathOrKnowledgeId, input.n!);
+  const result = (await client.search(input.message!)).hits;
   const docs = await Promise.all(
-    result.map(async (i) => {
+    result.map(async (i: any) => {
       if (i.metadata?.metadata?.documentId) {
         const doc = await KnowledgeDocument.findOne({ where: { id: i.metadata?.metadata?.documentId } });
 
@@ -98,7 +100,10 @@ router.get('/:knowledgeId/search', async (req, res) => {
           content: i.pageContent,
           metadata: {
             document: doc?.dataValues,
-            metadata: { ...(i.metadata?.metadata || {}), relevanceScore: i.metadata?.relevanceScore || 0 },
+            metadata: {
+              ...(i.metadata?.metadata || {}),
+              relevanceScore: i.metadata?.relevanceScore || i.metadata?.score || 0,
+            },
           },
         };
       }
@@ -107,7 +112,10 @@ router.get('/:knowledgeId/search', async (req, res) => {
         content: i.pageContent,
         metadata: {
           document: null,
-          metadata: { ...(i.metadata?.metadata || {}), relevanceScore: i.metadata?.relevanceScore || 0 },
+          metadata: {
+            ...(i.metadata?.metadata || {}),
+            relevanceScore: i.metadata?.relevanceScore || i.metadata?.score || 0,
+          },
         },
       };
     })
