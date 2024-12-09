@@ -29,7 +29,13 @@ const formatCode = async (code: string) => {
 };
 
 const usePrettier = () => {
-  const registerPrettier = async (_editor: EditorInstance, monaco: Monaco, options?: { theme?: string }) => {
+  const registerPrettier = async (
+    _editor: EditorInstance,
+    monaco: Monaco,
+    options: { theme?: string; typeScriptNoValidation?: boolean } = {
+      typeScriptNoValidation: true,
+    }
+  ) => {
     monaco.languages.registerDocumentFormattingEditProvider(['javascript', 'typescript'], {
       async provideDocumentFormattingEdits(model) {
         return [
@@ -42,8 +48,8 @@ const usePrettier = () => {
     });
 
     monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
-      noSemanticValidation: true,
-      noSyntaxValidation: true,
+      noSemanticValidation: options?.typeScriptNoValidation,
+      noSyntaxValidation: options?.typeScriptNoValidation,
     });
 
     if (options?.theme) {
