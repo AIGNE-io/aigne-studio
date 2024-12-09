@@ -1,3 +1,7 @@
+## 0.4.163 (2024-12-9)
+
+- fix: add a parameter to control whether typescript disables syntax checking.
+
 ## 0.4.162 (2024-12-9)
 
 - fix: kb size be limited when export resource
