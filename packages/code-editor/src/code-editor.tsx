@@ -111,9 +111,13 @@ const CodeEditor = forwardRef(
       maxHeight,
       locale = 'en',
       ...props
-    }: { keyId: string; readOnly?: boolean; maxHeight?: number; locale: string } & BoxProps<typeof Editor> & {
-        typeScriptNoValidation?: boolean;
-      },
+    }: {
+      keyId: string;
+      readOnly?: boolean;
+      maxHeight?: number;
+      locale: string;
+      typeScriptNoValidation?: boolean;
+    } & BoxProps<typeof Editor>,
     ref
   ) => {
     const statusRef = useRef<HTMLElement>(null);
@@ -220,7 +224,7 @@ const CodeEditor = forwardRef(
                   registerEmmet(editor, monaco);
                   registerPrettier(editor, monaco, {
                     theme: props.theme,
-                    typeScriptNoValidation: props.typeScriptNoValidation ?? true,
+                    typeScriptNoValidation: props.typeScriptNoValidation,
                   });
                   registerCloseTag(editor, monaco);
 
