@@ -1,5 +1,4 @@
 import { copyFile, rm, writeFile } from 'fs/promises';
-import { join } from 'path';
 
 import logger from '@api/libs/logger';
 import { resourceManager } from '@api/libs/resource';
@@ -16,8 +15,8 @@ import { userAuth } from '../../libs/security';
 import Knowledge from '../../store/models/dataset/dataset';
 import KnowledgeDocument from '../../store/models/dataset/document';
 import EmbeddingHistories from '../../store/models/dataset/embedding-history';
-import HybridRetriever from './retriever';
-import SearchClient from './retriever/meilisearch';
+import SearchClient, { KnowledgeSearchClient } from './retriever/meilisearch';
+import { getVectorPath } from './util';
 import { queue } from './util/queue';
 import { updateHistoriesAndStore } from './util/vector-store';
 
@@ -54,43 +53,45 @@ const searchQuerySchema = Joi.object<{ blockletDid?: string; message?: string; n
   n: Joi.number().empty(['', null]).min(1).default(4),
 });
 
-async function getVectorPath(blockletDid: string | null, knowledgeId: string, knowledge: any) {
-  let resourceToCheck = null;
-
-  if (blockletDid) {
-    resourceToCheck = { blockletDid, knowledgeId };
-  } else if (knowledge?.resourceBlockletDid && knowledge?.knowledgeId) {
-    resourceToCheck = {
-      blockletDid: knowledge.resourceBlockletDid,
-      knowledgeId: knowledge.knowledgeId,
-    };
-  }
-
-  if (resourceToCheck) {
-    const resource = await resourceManager.getKnowledge(resourceToCheck);
-
-    if (!resource) {
-      throw new Error('No such knowledge resource');
-    }
-
-    return (await pathExists(join(resource.vectorsPath, 'faiss.index')))
-      ? resource.vectorsPath
-      : join(resource.vectorsPath, resourceToCheck.knowledgeId);
-  }
-
-  return knowledgeId;
-}
-
 router.get('/:knowledgeId/search', async (req, res) => {
   const { knowledgeId } = req.params;
   const input = await searchQuerySchema.validateAsync(req.query, { stripUnknown: true });
   const knowledge = await Knowledge.findOne({ where: { id: knowledgeId } });
   const vectorPathOrKnowledgeId = await getVectorPath(input.blockletDid!, knowledgeId, knowledge);
 
+  if (!vectorPathOrKnowledgeId) {
+    return res.json({ docs: [] });
+  }
+
+  if (!(await pathExists(vectorPathOrKnowledgeId))) {
+    return res.json({ docs: [] });
+  }
+
   const client = new SearchClient(knowledgeId, vectorPathOrKnowledgeId);
 
-  // const retriever = new HybridRetriever(vectorPathOrKnowledgeId, input.n!);
-  const result = (await client.search(input.message!)).hits;
+  const fields = ['pageContent'];
+  const commonParams = {
+    ...(!!(await client.getEmbedders()) && { hybrid: { embedder: 'default', semanticRatio: 0.1 } }),
+  };
+  const modeParams = {
+    attributesToCrop: fields,
+    cropLength: 40,
+  };
+
+  const result = (
+    await client.search(input.message!, {
+      attributesToRetrieve: ['*'],
+      attributesToHighlight: fields,
+      highlightPreTag: '<mark>',
+      highlightPostTag: '</mark>',
+      showRankingScore: true,
+      showRankingScoreDetails: true,
+      rankingScoreThreshold: 0.4,
+      ...modeParams,
+      ...commonParams,
+    })
+  ).hits;
+
   const docs = await Promise.all(
     result.map(async (i: any) => {
       if (i.metadata?.metadata?.documentId) {
@@ -102,7 +103,7 @@ router.get('/:knowledgeId/search', async (req, res) => {
             document: doc?.dataValues,
             metadata: {
               ...(i.metadata?.metadata || {}),
-              relevanceScore: i.metadata?.relevanceScore || i.metadata?.score || 0,
+              relevanceScore: i._rankingScore || 0,
             },
           },
         };
@@ -114,14 +115,14 @@ router.get('/:knowledgeId/search', async (req, res) => {
           document: null,
           metadata: {
             ...(i.metadata?.metadata || {}),
-            relevanceScore: i.metadata?.relevanceScore || i.metadata?.score || 0,
+            relevanceScore: i._rankingScore || 0,
           },
         },
       };
     })
   );
 
-  res.json({ docs });
+  return res.json({ docs });
 });
 
 router.get('/:knowledgeId/documents', middlewares.session(), userAuth(), async (req, res) => {
@@ -169,6 +170,9 @@ router.delete('/:knowledgeId/documents/:documentId', middlewares.session(), user
   if (document && document.filename) {
     await Promise.all([rm(joinURL(getProcessedFileDir(knowledgeId), `${document.id}.yml`))]).catch(logger.error);
   }
+
+  const client = new KnowledgeSearchClient(knowledgeId);
+  await client.remove(documentId);
 
   await Promise.all([
     KnowledgeDocument.destroy({ where: { id: documentId, knowledgeId } }),

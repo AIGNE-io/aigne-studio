@@ -27,7 +27,9 @@ import copyKnowledgeBase from '../../libs/knowledge';
 import { ensureComponentCallOr, ensureComponentCallOrAdmin, userAuth } from '../../libs/security';
 import Knowledge from '../../store/models/dataset/dataset';
 import KnowledgeDocument from '../../store/models/dataset/document';
+import { KnowledgeSearchClient } from './retriever/meilisearch';
 import { getResourceAvatarPath, sse } from './util';
+import { embeddingSearchKitQueue } from './util/queue';
 
 const { initLocalStorageServer } = require('@blocklet/uploader-server');
 
@@ -308,6 +310,9 @@ router.post('/', middlewares.session({ componentCall: true }), ensureComponentCa
         userId,
       });
 
+      // 复制完成后，立即更新向量数据库
+      embeddingSearchKitQueue.push({ type: 'embedding-search-kit', from: 'db', knowledgeId: newKnowledgeId });
+
       map[oldKnowledge.id] = newKnowledgeId;
     }
 
@@ -322,6 +327,9 @@ router.post('/', middlewares.session({ componentCall: true }), ensureComponentCa
   if (!resourceBlockletDid && !knowledgeId) {
     await ensureKnowledgeDirExists(knowledge.id);
   }
+
+  // 复制完成后，立即更新向量数据库
+  embeddingSearchKitQueue.push({ type: 'embedding-search-kit', from: 'db', knowledgeId: knowledge.id });
 
   return res.json(knowledge);
 });
@@ -338,6 +346,11 @@ router.post('/import-resources', middlewares.session(), ensureComponentCallOr(us
       return { ...params, createdBy: userId, updatedBy: userId };
     })
   );
+
+  // 导入完成后，立即更新向量数据库
+  for (const knowledge of list) {
+    embeddingSearchKitQueue.push({ type: 'embedding-search-kit', from: 'db', knowledgeId: knowledge.id });
+  }
 
   return res.json(list);
 });
@@ -368,6 +381,10 @@ router.delete('/:knowledgeId', middlewares.session(), userAuth(), async (req, re
     res.status(404).json({ error: 'No such knowledge' });
     return;
   }
+
+  const client = new KnowledgeSearchClient(knowledgeId!);
+  const documents = await KnowledgeDocument.findAll({ where: { knowledgeId } });
+  await Promise.all(documents.map((i) => client.remove(i.id)));
 
   await Promise.all([
     Knowledge.destroy({ where: { id: knowledgeId } }),

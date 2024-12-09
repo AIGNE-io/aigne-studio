@@ -10,6 +10,7 @@ import express, { ErrorRequestHandler } from 'express';
 
 import initCronJob from './jobs';
 import { cronManager } from './libs/cron-jobs';
+import initEmbedding from './libs/embedding';
 import { getSourceFileDir } from './libs/ensure-dir';
 import { isDevelopment } from './libs/env';
 import logger, { accessLogMiddleware, registerLoggerToConsole } from './libs/logger';
@@ -93,6 +94,8 @@ export const server = app.listen(port, (err?: any) => {
   logger.info(`> ${name} v${version} ready on ${port}`);
 
   initCronJob();
+
+  initEmbedding();
 
   resourceManager
     .reload()

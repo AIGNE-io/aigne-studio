@@ -2,8 +2,10 @@
 import { hash } from 'crypto';
 
 import logger from '@api/libs/logger';
+import { Document } from '@langchain/core/documents';
 
 import { AIKitEmbeddings } from '../../../core/embeddings/ai-kit';
+import Segment from '../../../store/models/dataset/segment';
 import VectorStore from '../../../store/vector-store-faiss';
 import { retry, sleep } from '../util';
 
@@ -57,7 +59,7 @@ export default class SearchClient {
       const { postIndex } = this;
 
       if (deepClear) {
-        logger.info('Clear old post data');
+        logger.debug('Clear old post data');
         const { taskUid } = await postIndex.deleteAllDocuments();
         await this.waitForTask(taskUid);
       }
@@ -73,57 +75,76 @@ export default class SearchClient {
     return this.client!.waitForTask(uid, { timeOutMs, intervalMs });
   }
 
+  async formatDocuments(documents: Document[]) {
+    const list = documents.map((doc) => {
+      try {
+        const parsedContent = JSON.parse(doc.pageContent);
+
+        if (typeof parsedContent.content === 'string') {
+          try {
+            const content = JSON.parse(parsedContent.content);
+
+            return { content: content.content, doc };
+          } catch (e) {
+            return { content: parsedContent.content, doc };
+          }
+        }
+
+        return { content: parsedContent.content, doc };
+      } catch {
+        return { doc };
+      }
+    });
+    const posts = list.map(({ doc, content }) => ({ ...doc, id: hash('md5', (content || '').trim(), 'hex') }));
+
+    return posts;
+  }
+
   // https://www.meilisearch.com/docs/learn/indexing/indexing_best_practices#prefer-bigger-http-payloads
   async batchIndexPosts(size = 10000) {
     const vectorStore = await VectorStore.load(this.vectorPathOrKnowledgeId, this.embeddings);
     const { length } = Object.keys(vectorStore.getMapping());
+    if (length === 0) return;
+
     const docs = await vectorStore.similaritySearch(' ', length);
     const total = length;
     let processed = 0;
     while (processed < total) {
-      logger.info(`index posts: {skip=${processed}, total=${total}, size=${size}`);
+      logger.debug(`index posts: {skip=${processed}, total=${total}, size=${size}`);
 
       const documents = docs.slice(processed, processed + size);
-
-      const list = documents.map((doc) => {
-        try {
-          const parsedContent = JSON.parse(doc.pageContent);
-
-          if (typeof parsedContent.content === 'string') {
-            try {
-              const content = JSON.parse(parsedContent.content);
-
-              return { content: content.content, doc };
-            } catch (e) {
-              return { content: parsedContent.content, doc };
-            }
-          }
-
-          return { content: parsedContent.content, doc };
-        } catch {
-          return { doc };
-        }
-      });
-      const posts = list.map(({ doc, content }) => ({ ...doc, id: hash('md5', (content || '').trim(), 'hex') }));
-
-      const { taskUid } = await this.addPosts(posts);
-      logger.info(`index posts taskUid: ${taskUid}`);
+      const posts = await this.formatDocuments(documents);
+      const { taskUid } = await this.postIndex.addDocuments(posts, this.options);
+      logger.debug(`index posts taskUid: ${taskUid}`);
       await sleep(5000);
-      processed += list.length;
+      processed += documents.length;
     }
   }
 
-  search(text: string, { limit = 10, offset = 0, ...rest } = {}) {
+  search(
+    text: string,
+    { limit = 10, offset = 0, ...rest }: { limit?: number; offset?: number; [key: string]: any } = {}
+  ) {
     return this.postIndex.search(text, { limit, offset, ...rest });
   }
 
-  async addPosts(docs: { id: string; pageContent: string }[]) {
-    const res = await this.postIndex.addDocuments(docs, this.options);
+  async addPosts(documents: Document[]) {
+    const existPostIndex = await this.checkPostIndexExist();
+    if (!existPostIndex) {
+      await this.init();
+    }
+
+    const res = await this.postIndex.addDocuments(await this.formatDocuments(documents), this.options);
     return res;
   }
 
-  async updatePosts(docs: { id: string; pageContent: string }[]) {
-    const res = await this.postIndex.updateDocuments(docs, this.options);
+  async updatePosts(documents: Document[]) {
+    const existPostIndex = await this.checkPostIndexExist();
+    if (!existPostIndex) {
+      await this.init();
+    }
+
+    const res = await this.postIndex.updateDocuments(await this.formatDocuments(documents), this.options);
     return res;
   }
 
@@ -132,7 +153,6 @@ export default class SearchClient {
   }
 
   async checkPostIndexExist() {
-    console.log(JSON.stringify(this.postIndex));
     try {
       return !!(await this.postIndex.getRawInfo());
     } catch (error) {
@@ -146,10 +166,9 @@ export default class SearchClient {
 
   async updateEmbedders() {
     try {
-      logger.info('updateEmbedders');
       const embedders = resolveRestEmbedders({ documentTemplate });
       const { taskUid } = await this.postIndex.updateEmbedders(embedders);
-      logger.info(`updateEmbedders taskUid: ${taskUid}`);
+      logger.debug(`updateEmbedders taskUid: ${taskUid}`);
     } catch (e) {
       logger.error('updateEmbedders error - downgrade to basic search.', e);
     }
@@ -157,16 +176,14 @@ export default class SearchClient {
 
   async resetEmbedders() {
     try {
-      logger.info('resetEmbedders');
       const { taskUid } = await this.postIndex.resetEmbedders();
-      logger.info(`resetEmbedders taskUid: ${taskUid}`);
+      logger.debug(`resetEmbedders taskUid: ${taskUid}`);
     } catch (e) {
       logger.error('resetEmbedders error', e);
     }
   }
 
   async updateSettings(settings: any) {
-    logger.info('updateSettings');
     await this.postIndex.updateSettings(settings);
   }
 
@@ -177,7 +194,7 @@ export default class SearchClient {
       }
 
       const existPostIndex = await this.checkPostIndexExist();
-      logger.info(`exist post index: ${existPostIndex}`);
+      logger.debug(`exist post index: ${existPostIndex}`);
 
       if (!existPostIndex) {
         await this.updateEmbedders();
@@ -196,5 +213,23 @@ export default class SearchClient {
     } catch (err) {
       logger.error('checkUpdate error:', err);
     }
+  }
+}
+
+export class KnowledgeSearchClient extends SearchClient {
+  constructor(knowledgeId: string) {
+    super(knowledgeId, knowledgeId);
+  }
+
+  async update(documents: Document[]) {
+    await this.updatePosts(documents);
+  }
+
+  async remove(documentId: string) {
+    const { rows: messages } = await Segment.findAndCountAll({ where: { documentId } });
+    const ids = messages.map((x) => hash('md5', (x.content || '').trim(), 'hex'));
+    if (ids.length <= 0) return;
+
+    await this.removePost(ids);
   }
 }

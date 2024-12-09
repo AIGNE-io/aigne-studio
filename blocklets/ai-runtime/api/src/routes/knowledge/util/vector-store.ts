@@ -6,6 +6,7 @@ import { intersection } from 'lodash';
 import { AIKitEmbeddings } from '../../../core/embeddings/ai-kit';
 import Segment from '../../../store/models/dataset/segment';
 import VectorStore from '../../../store/vector-store-faiss';
+import { KnowledgeSearchClient } from '../retriever/meilisearch';
 import { discussionToMarkdown } from './discuss';
 
 export const deleteStore = async (knowledgeId: string, ids: string[]) => {
@@ -25,12 +26,14 @@ export const deleteStore = async (knowledgeId: string, ids: string[]) => {
 export const updateHistoriesAndStore = async (knowledgeId: string, documentId: string) => {
   const where = { documentId };
   const { rows: messages, count } = await Segment.findAndCountAll({ where });
+  const ids = messages.map((x) => x.id);
 
   if (count > 0) {
-    const ids = messages.map((x) => x.id);
     await deleteStore(knowledgeId, ids);
     await Segment.destroy({ where });
   }
+
+  return ids;
 };
 
 function formatDocument(doc: Document, metadata?: Record<string, unknown>) {
@@ -112,6 +115,8 @@ export const saveContentToVectorStore = async ({
   update?: boolean;
   type: 'file' | 'text' | 'discussKit' | 'url';
 }) => {
+  const client = new KnowledgeSearchClient(knowledgeId);
+
   // 文本处理和向量化
   const { vectors, formattedDocs } = await processContent(content, type, metadata, {
     separators: ['\n\n', '\n', ' ', ''],
@@ -119,9 +124,12 @@ export const saveContentToVectorStore = async ({
     chunkOverlap: 100,
   });
 
+  await client.update(formattedDocs);
+
   // 清理历史数据
   if (update) {
     await updateHistoriesAndStore(knowledgeId, documentId);
+    await client.remove(documentId);
   }
 
   // 保存分段并获取ID

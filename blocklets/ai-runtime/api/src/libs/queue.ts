@@ -14,13 +14,24 @@ export type DocumentQueue = {
   update?: boolean;
 };
 
+export type EmbeddingSearchKitQueue = {
+  type: 'embedding-search-kit';
+  from: 'db' | 'resource';
+  knowledgeId: string;
+  blockletDid?: string;
+};
+
 export type Task = {
   id: string;
-  job: DocumentQueue;
+  job: DocumentQueue | EmbeddingSearchKitQueue;
 };
 
 export const isDocumentQueue = (job: any): job is DocumentQueue => {
   return job && job.type === 'document';
+};
+
+export const isEmbeddingSearchKitQueue = (job: any): job is EmbeddingSearchKitQueue => {
+  return job && job.type === 'embedding-search-kit';
 };
 
 const tryWithTimeout = (asyncFn: () => Promise<any>, timeout = 5000) => {
@@ -86,7 +97,7 @@ const createQueue = ({
 
   const getDocumentJob = (documentId: string) => {
     const list = q.getQueue();
-    return Boolean(list.find((x) => x.job.documentId === documentId));
+    return Boolean(list.find((x) => isDocumentQueue(x.job) && x.job.documentId === documentId));
   };
 
   const push = (job: Task['job'], jobId?: string) => {
@@ -108,7 +119,7 @@ const createQueue = ({
   };
 
   const checkAndPush = (job: Task['job']) => {
-    const isExit = getDocumentJob(job.documentId);
+    const isExit = job.type === 'document' ? getDocumentJob(job.documentId) : false;
     if (isExit) return;
 
     push(job);
