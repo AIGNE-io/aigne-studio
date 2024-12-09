@@ -48,7 +48,7 @@ const usePrettier = () => {
     });
 
     monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
-      noSemanticValidation: options?.typeScriptNoValidation,
+      noSemanticValidation: true,
       noSyntaxValidation: options?.typeScriptNoValidation,
     });
 
