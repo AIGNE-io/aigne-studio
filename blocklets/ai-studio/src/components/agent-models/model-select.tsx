@@ -53,7 +53,7 @@ export function ModelSelect({ options, value, onChange, onStar, ...rest }: Props
                 ...(!isSelected && { '&:hover': { bgcolor: '#f0f0f0' } }),
               }}>
               <Stack direction="row" alignItems="center" spacing={1}>
-                <ModelBrandIcon model={option.model} size="large" />
+                <ModelBrandIcon model={option.model} url={option.icon} size="large" />
                 <Box>{option.name}</Box>
                 {option.maxTokens && (
                   <Box

@@ -24,6 +24,7 @@ export const brandIcon = (brand: string) =>
 
 interface ModelIconProps {
   model: string;
+  url?: string;
   size?: 'small' | 'medium' | 'large';
   sx?: SxProps;
 }
@@ -34,7 +35,7 @@ const sizeMap = {
   large: 48,
 };
 
-export function ModelBrandIcon({ model, size = 'medium', sx }: ModelIconProps) {
+export function ModelBrandIcon({ model, size = 'medium', sx, url }: ModelIconProps) {
   const brand = useModelBrand(model);
   const computedSize = sizeMap[size];
   const mergedSx = [
@@ -49,10 +50,15 @@ export function ModelBrandIcon({ model, size = 'medium', sx }: ModelIconProps) {
     },
     ...(Array.isArray(sx) ? sx : [sx]),
   ];
-  const icon = brand ? (
-    brandIcon(brand)
-  ) : (
-    <Box component={Icon} icon={CubeIcon} sx={{ fontSize: computedSize, color: 'grey.400' }} />
-  );
-  return <Box sx={mergedSx}>{icon}</Box>;
+  const renderIcon = () => {
+    if (url) {
+      return <Box component="img" src={url} width="0.85em" height="0.85em" alt={model} sx={{ objectFit: 'cover' }} />;
+    }
+    return brand ? (
+      brandIcon(brand)
+    ) : (
+      <Box component={Icon} icon={CubeIcon} sx={{ fontSize: computedSize, color: 'grey.400' }} />
+    );
+  };
+  return <Box sx={mergedSx}>{renderIcon()}</Box>;
 }
