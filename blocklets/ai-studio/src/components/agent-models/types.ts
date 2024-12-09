@@ -5,6 +5,7 @@ export interface AgentModel {
   name?: string;
   model: string;
   brand?: string;
+  icon?: string;
   maxTokens?: number;
   tags?: string[];
   starred?: boolean;

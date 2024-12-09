@@ -211,7 +211,6 @@ export function ModelSettingsMenuButton({ agent }: ModelSettingsMenuButtonProps)
       <IconButton size="small" onClick={dialogState.open}>
         <Icon icon={Menu2Icon} />
       </IconButton>
-      {/* <Dialog maxWidth="sm" fullWidth {...bindDialog(dialogState)}> */}
       <Dialog maxWidth="sm" fullWidth {...bindDialog(dialogState)}>
         <DialogTitle>Model Settings</DialogTitle>
         <DialogContent>

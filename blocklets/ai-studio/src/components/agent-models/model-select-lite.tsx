@@ -23,7 +23,9 @@ function InternalModelSelectLite({ options, value, onChange, onAddMoreModel, ...
   return (
     <Box {...rest}>
       <Button color="inherit" {...bindTrigger(popperState)}>
-        {selectedOption?.model && <ModelBrandIcon model={selectedOption.model} size="small" sx={{ mr: 0.5 }} />}
+        {selectedOption?.model && (
+          <ModelBrandIcon model={selectedOption.model} url={selectedOption.icon} size="small" sx={{ mr: 0.5 }} />
+        )}
         <span>{selectedOption?.name || 'Select a model'}</span>
       </Button>
 
@@ -64,7 +66,7 @@ function InternalModelSelectLite({ options, value, onChange, onAddMoreModel, ...
                             ...(!isSelected && { '&:hover': { bgcolor: '#f0f0f0' } }),
                           }}>
                           <Stack direction="row" alignItems="center" spacing={1} sx={{ flex: '0 0 auto' }}>
-                            <ModelBrandIcon model={option.model} />
+                            <ModelBrandIcon model={option.model} url={option.icon} />
                             <Box>{option.name}</Box>
                             {option.maxTokens && (
                               <Box

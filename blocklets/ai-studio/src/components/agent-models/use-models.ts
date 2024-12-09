@@ -19,6 +19,7 @@ import { useRequest } from 'ahooks';
 import { useMemo } from 'react';
 
 import { useCurrentProject } from '../../contexts/project';
+import { getProjectIconUrl } from '../../libs/project';
 import { useProjectStore } from '../../pages/project/yjs-state';
 import { useAgentSelectOptions } from '../agent-select/use-agents';
 import { AgentModel, ModelType } from './types';
@@ -37,20 +38,21 @@ export function useModelsFromAgents(type: ModelType): AgentModel[] {
   const adapterTypes = { llm: 'llm-adapter', aigc: 'aigc-adapter' };
   const { agents } = useAgentSelectOptions({ type: adapterTypes[type] as ResourceType });
 
-  // TODO: project icon link 不可用
-  // const projectIcons = new Map<string, string>(
-  //   agents.map((agent) => [
-  //     agent.identity.projectId,
-  //     getProjectIconUrl(agent.identity.projectId, {
-  //       blockletDid: agent.identity.blockletDid,
-  //     }),
-  //   ])
-  // );
+  const projectIcons = new Map<string, string>(
+    agents.map((agent) => [
+      agent.identity.projectId,
+      getProjectIconUrl(agent.project.id, {
+        blockletDid: agent.identity.blockletDid,
+        projectRef: agent.identity.projectRef,
+      }),
+    ])
+  );
 
   const models = agents.flatMap((agent) =>
     (agent.parameters?.find((x) => x.key === 'model') as SelectParameter)?.options?.map((x) => ({
       name: x.label || x.value,
       model: x.value || x.label,
+      icon: projectIcons.get(agent.project.id),
     }))
   );
   return models.filter(isNonNullable);
