@@ -1,4 +1,4 @@
-import { ModelBasedAssistantYjs, TextModelInfo } from '@blocklet/ai-runtime/types';
+import { ImageModelInfo, ModelBasedAssistantYjs, TextModelInfo } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import CheckIcon from '@iconify-icons/tabler/check';
 import PlusIcon from '@iconify-icons/tabler/plus';
@@ -8,11 +8,11 @@ import millify from 'millify';
 
 import { ModelBrandIcon } from './model-brand-icon';
 import { ModelSelectDialog } from './model-select';
-import { AgentModel, ModelType } from './types';
+import { ModelType } from './types';
 import { useAgentDefaultModel, useSuggestedModels } from './use-models';
 
 interface InternalModelSelectLiteProps {
-  options: AgentModel[];
+  options: TextModelInfo[] | ImageModelInfo[];
   value?: string | null;
   onChange: (value: string) => void;
   onAddMoreModel?: () => void;
@@ -69,7 +69,7 @@ function InternalModelSelectLite({ options, value, onChange, onAddMoreModel, ...
                           <Stack direction="row" alignItems="center" spacing={1} sx={{ flex: '0 0 auto' }}>
                             <ModelBrandIcon model={option.model} url={option.icon} />
                             <Box>{option.name}</Box>
-                            {option.maxTokens && (
+                            {'maxTokensMax' in option && option.maxTokensMax && (
                               <Box
                                 sx={{
                                   p: '1px 4px',
@@ -80,7 +80,7 @@ function InternalModelSelectLite({ options, value, onChange, onAddMoreModel, ...
                                   color: 'grey.800',
                                   fontSize: 12,
                                 }}>
-                                {millify(option.maxTokens, { precision: 0 })}
+                                {millify(option.maxTokensMax, { precision: 0 })}
                               </Box>
                             )}
                           </Stack>
@@ -148,7 +148,6 @@ export function ModelSelectLite({ type, projectId, gitRef, agent, ...rest }: Mod
   const options = suggestedModels.map((model) => ({
     ...model,
     name: model.name || model.model,
-    maxTokens: (model as TextModelInfo).maxTokensDefault, // TODO: @wq
   }));
 
   return (

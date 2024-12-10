@@ -10,6 +10,7 @@ import {
   ImageModelInfo,
   ResourceType,
   SelectParameter,
+  TextModelInfo,
   isImageAssistant,
   isPromptAssistant,
   isRouterAssistant,
@@ -22,19 +23,21 @@ import { useCurrentProject } from '../../contexts/project';
 import { getProjectIconUrl } from '../../libs/project';
 import { useProjectStore } from '../../pages/project/yjs-state';
 import { useAgentSelectOptions } from '../agent-select/use-agents';
-import { AgentModel, ModelType } from './types';
+import { ModelType } from './types';
 import { sortModels } from './utils';
 
-export function useSupportedModels(): Record<ModelType, (ImageModelInfo | ImageModelInfo)[]> {
-  async function getAllModels() {
-    const [llm, aigc] = await Promise.all([getSupportedModels(), getSupportedImagesModels()]);
-    return { llm, aigc };
+function useSupportedModels(type: ModelType): (TextModelInfo | ImageModelInfo)[] {
+  async function getModels() {
+    if (type === 'llm') {
+      return await getSupportedModels();
+    }
+    return await getSupportedImagesModels();
   }
-  const { data } = useRequest(getAllModels);
-  return data || { llm: [], aigc: [] };
+  const { data } = useRequest(getModels, { refreshDeps: [type] });
+  return data || [];
 }
 
-export function useModelsFromAgents(type: ModelType): AgentModel[] {
+export function useModelsFromAgents(type: ModelType): (TextModelInfo | ImageModelInfo)[] {
   const adapterTypes = { llm: 'llm-adapter', aigc: 'aigc-adapter' };
   const { agents } = useAgentSelectOptions({ type: adapterTypes[type] as ResourceType });
 
@@ -53,14 +56,15 @@ export function useModelsFromAgents(type: ModelType): AgentModel[] {
       name: x.label || x.value,
       model: x.value || x.label,
       icon: projectIcons.get(agent.project.id),
+      brand: '',
     }))
   );
   return models.filter(isNonNullable);
 }
 
 // 内置 model + agents models, 根据 model 标识去重, 内置 model 优先
-export function useAllModels(type: ModelType): AgentModel[] {
-  const builtInModels = useSupportedModels()[type];
+export function useAllModels(type: ModelType): (TextModelInfo | ImageModelInfo)[] {
+  const builtInModels = useSupportedModels(type);
   const modelsFromAgents = useModelsFromAgents(type);
   const uniqueModelSet = new Set(builtInModels.map((x) => x.model));
   return [
@@ -130,7 +134,8 @@ export function useModelBrand(model: string) {
 
 // 获取所有内置模型的品牌信息, 并将其用作 tags (用于筛选模型)
 export function useBrandTags() {
-  const groupedModels = useSupportedModels();
-  const tags = Object.values(groupedModels).flatMap((x) => x.map((y) => y.brand));
+  const llmModels = useSupportedModels('llm');
+  const aigcModels = useSupportedModels('aigc');
+  const tags = [...llmModels, ...aigcModels].map((x) => x.brand);
   return Array.from(new Set(tags));
 }
