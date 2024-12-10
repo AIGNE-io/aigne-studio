@@ -1,192 +1,20 @@
-import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { ModelBasedAssistantYjs } from '@blocklet/ai-runtime/types';
+import {
+  ImageAssistantYjs,
+  ImageModelInfo,
+  ModelBasedAssistantYjs,
+  PromptAssistantYjs,
+  TextModelInfo,
+} from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
-import HelpIcon from '@iconify-icons/tabler/help';
 import Menu2Icon from '@iconify-icons/tabler/menu-2';
-import { Box, Dialog, DialogContent, DialogTitle, FormLabel, IconButton, Stack, Tooltip } from '@mui/material';
-import isEqual from 'lodash/isEqual';
-import isNil from 'lodash/isNil';
+import { Dialog, DialogContent, DialogTitle, IconButton } from '@mui/material';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
-import { useEffect, useState } from 'react';
 
-import { TOOL_TIP_LEAVE_TOUCH_DELAY } from '../../libs/constants';
-import SliderNumberField from '../slider-number-field';
-
-interface Settings {
-  temperature: number;
-  topP: number;
-  presencePenalty: number;
-  frequencyPenalty: number;
-}
-
-interface ModelSettingsProps {
-  value: Settings;
-  onChange: (value: Partial<Settings>) => void;
-}
-
-const PRESETS = {
-  precise: { temperature: 0.1, topP: 1, presencePenalty: 0, frequencyPenalty: 0 },
-  balance: { temperature: 0.5, topP: 1, presencePenalty: 0, frequencyPenalty: 0 },
-  creative: { temperature: 0.8, topP: 1, presencePenalty: 0, frequencyPenalty: 0 },
-};
-
-type PresetName = keyof typeof PRESETS | 'custom';
-
-function normalizeSettings(settings: Partial<Settings>) {
-  if (Object.values(settings).some((v) => !isNil(v))) {
-    return {
-      temperature: settings.temperature ?? 1,
-      topP: settings.topP ?? 1,
-      frequencyPenalty: settings.frequencyPenalty ?? 0,
-      presencePenalty: settings.presencePenalty ?? 0,
-    };
-  }
-  return { ...PRESETS.precise };
-}
-
-function ModelSettings({ value, onChange, ...rest }: ModelSettingsProps) {
-  const { t } = useLocaleContext();
-  const [currentPreset, setCurrentPreset] = useState<PresetName>('precise');
-  const icon = <Box component={Icon} icon={HelpIcon} sx={{ fontSize: 16, color: '#9CA3AF', mt: 0.25 }} />;
-
-  const handleOnChange = (value: Partial<Settings>) => {
-    onChange?.(value);
-    setCurrentPreset('custom');
-  };
-
-  const handleSelectPreset = (preset: PresetName) => {
-    if (preset !== currentPreset) {
-      setCurrentPreset(preset);
-      if (preset !== 'custom') {
-        onChange?.({ ...PRESETS[preset] });
-      }
-    }
-  };
-
-  useEffect(() => {
-    const preset = Object.entries(PRESETS).find(([, preset]) => isEqual(preset, value));
-    setCurrentPreset((preset?.[0] as PresetName) || 'custom');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  return (
-    <Box {...rest}>
-      <Stack
-        direction="row"
-        spacing={2}
-        sx={{
-          '> div': {
-            width: '25%',
-            border: '1px solid',
-            borderColor: 'divider',
-            py: 2,
-            borderRadius: 1,
-            textAlign: 'center',
-            cursor: 'pointer',
-            '&:hover, &.model-settings-preset-selected': {
-              bgcolor: 'action.selected',
-              borderColor: 'primary.main',
-            },
-          },
-        }}>
-        {(['precise', 'balance', 'creative', 'custom'] as PresetName[]).map((preset) => (
-          <Box
-            key={preset}
-            className={preset === currentPreset ? 'model-settings-preset-selected' : ''}
-            onClick={() => handleSelectPreset(preset)}>
-            {t(`modelSettingsPresets.${preset}`)}
-          </Box>
-        ))}
-      </Stack>
-      <Stack gap={2} sx={{ py: 2, mt: 4 }}>
-        <Stack direction="row" alignItems="center" spacing={2}>
-          <Tooltip
-            title={t('temperatureTip')}
-            placement="top"
-            disableInteractive
-            enterTouchDelay={0}
-            leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
-            <FormLabel sx={{ flex: '0 0 50%', display: 'flex', alignItems: 'center', gap: 1 }}>
-              {t('temperature')}
-              {icon}
-            </FormLabel>
-          </Tooltip>
-          <SliderNumberField
-            sx={{ flex: 1 }}
-            min={0}
-            max={2}
-            step={0.01}
-            value={value.temperature}
-            onChange={(_, v) => handleOnChange({ temperature: v as number })}
-          />
-        </Stack>
-        <Stack direction="row" alignItems="center" spacing={2}>
-          <Tooltip
-            title={t('topPTip')}
-            placement="top"
-            disableInteractive
-            enterTouchDelay={0}
-            leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
-            <FormLabel sx={{ flex: '0 0 50%', display: 'flex', alignItems: 'center', gap: 1 }}>
-              {t('topP')}
-              {icon}
-            </FormLabel>
-          </Tooltip>
-          <SliderNumberField
-            sx={{ flex: 1 }}
-            min={0}
-            max={1}
-            step={0.01}
-            value={value.topP}
-            onChange={(_, v) => handleOnChange({ topP: v as number })}
-          />
-        </Stack>
-        <Stack direction="row" alignItems="center" spacing={2}>
-          <Tooltip
-            title={t('frequencyPenaltyTip')}
-            placement="top"
-            disableInteractive
-            enterTouchDelay={0}
-            leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
-            <FormLabel sx={{ flex: '0 0 50%', display: 'flex', alignItems: 'center', gap: 1 }}>
-              {t('frequencyPenalty')}
-              {icon}
-            </FormLabel>
-          </Tooltip>
-          <SliderNumberField
-            sx={{ flex: 1 }}
-            min={-2}
-            max={2}
-            step={0.01}
-            value={value.frequencyPenalty}
-            onChange={(_, v) => handleOnChange({ frequencyPenalty: v as number })}
-          />
-        </Stack>
-        <Stack direction="row" alignItems="center" spacing={2}>
-          <Tooltip
-            title={t('presencePenaltyTip')}
-            placement="top"
-            disableInteractive
-            enterTouchDelay={0}
-            leaveTouchDelay={TOOL_TIP_LEAVE_TOUCH_DELAY}>
-            <FormLabel sx={{ flex: '0 0 50%', display: 'flex', alignItems: 'center', gap: 1 }}>
-              {t('presencePenalty')}
-              {icon}
-            </FormLabel>
-          </Tooltip>
-          <SliderNumberField
-            sx={{ flex: 1 }}
-            min={-2}
-            max={2}
-            step={0.01}
-            value={value.presencePenalty}
-            onChange={(_, v) => handleOnChange({ presencePenalty: v as number })}
-          />
-        </Stack>
-      </Stack>
-    </Box>
-  );
-}
+import { useCurrentProject } from '../../contexts/project';
+import { AIGCModelSettings } from './settings/aigc-model-settings';
+import { LLMModelSettings } from './settings/llm-model-settings';
+import { useAgentDefaultModel, useAllModels } from './use-models';
+import { resolveModelType } from './utils';
 
 interface ModelSettingsMenuButtonProps {
   agent: ModelBasedAssistantYjs;
@@ -194,27 +22,26 @@ interface ModelSettingsMenuButtonProps {
 
 export function ModelSettingsMenuButton({ agent }: ModelSettingsMenuButtonProps) {
   const dialogState = usePopupState({ variant: 'dialog', popupId: 'model-settings' });
-
-  const handleOnChange = (value: Partial<Settings>) => {
-    Object.assign(agent, value);
-  };
-
-  const normalizedValue = normalizeSettings({
-    temperature: agent.temperature,
-    topP: agent.topP,
-    presencePenalty: agent.presencePenalty,
-    frequencyPenalty: agent.frequencyPenalty,
-  });
+  const modelType = resolveModelType(agent.type)!;
+  const models = useAllModels(modelType);
+  const { projectId, projectRef } = useCurrentProject();
+  const defaultModel = useAgentDefaultModel({ projectId, gitRef: projectRef, value: agent });
+  const model = models.find((x) => x.model === defaultModel);
 
   return (
     <>
-      <IconButton size="small" onClick={dialogState.open}>
+      <IconButton size="small" onClick={dialogState.open} disabled={!model}>
         <Icon icon={Menu2Icon} />
       </IconButton>
       <Dialog maxWidth="sm" fullWidth {...bindDialog(dialogState)}>
         <DialogTitle>Model Settings</DialogTitle>
         <DialogContent>
-          <ModelSettings value={normalizedValue} onChange={handleOnChange} />
+          {modelType === 'llm' && (
+            <LLMModelSettings agent={agent as PromptAssistantYjs} model={model as TextModelInfo} />
+          )}
+          {modelType === 'aigc' && (
+            <AIGCModelSettings agent={agent as ImageAssistantYjs} model={model as ImageModelInfo} />
+          )}
         </DialogContent>
       </Dialog>
     </>

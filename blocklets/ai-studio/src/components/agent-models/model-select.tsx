@@ -1,5 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { ModelBasedAssistantYjs, TextModelInfo } from '@blocklet/ai-runtime/types';
+import { ImageModelInfo, ModelBasedAssistantYjs, TextModelInfo } from '@blocklet/ai-runtime/types';
 import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/aigne-sdk/constants';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { AddComponent } from '@blocklet/ui-react';
@@ -8,30 +8,32 @@ import StarIcon from '@iconify-icons/tabler/star';
 import StarFilledIcon from '@iconify-icons/tabler/star-filled';
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogProps, DialogTitle, Stack } from '@mui/material';
 import millify from 'millify';
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 
 import { useCurrentProject } from '../../contexts/project';
 import { useIsAdmin } from '../../contexts/session';
 import { useProjectStore } from '../../pages/project/yjs-state';
 import { ModelBrandIcon } from './model-brand-icon';
 import { Tag, TagFilter } from './tag';
-import { AgentModel, ModelType } from './types';
+import { ModelType } from './types';
 import { useAllModels } from './use-models';
 import { sortModels } from './utils';
 
 interface Props {
-  options: AgentModel[];
+  options: TextModelInfo[] | ImageModelInfo[];
   value?: string | null;
   onChange: (value: string | null) => void;
   onStar: (model: string) => void;
+  starredModels?: Set<string>;
 }
 
-export function ModelSelect({ options, value, onChange, onStar, ...rest }: Props) {
+export function ModelSelect({ options, value, onChange, onStar, starredModels, ...rest }: Props) {
   return (
     <Box {...rest}>
       <Box>
         {options.map((option) => {
           const isSelected = option.model === value;
+          const isStarred = starredModels?.has(option.model);
           return (
             <Stack
               direction="row"
@@ -56,7 +58,7 @@ export function ModelSelect({ options, value, onChange, onStar, ...rest }: Props
               <Stack direction="row" alignItems="center" spacing={1}>
                 <ModelBrandIcon model={option.model} url={option.icon} size="large" />
                 <Box>{option.name}</Box>
-                {option.maxTokens && (
+                {'maxTokensMax' in option && option.maxTokensMax && (
                   <Box
                     sx={{
                       p: '1px 4px',
@@ -67,7 +69,7 @@ export function ModelSelect({ options, value, onChange, onStar, ...rest }: Props
                       color: 'grey.800',
                       fontSize: 12,
                     }}>
-                    {millify(option.maxTokens, { precision: 0 })}
+                    {millify(option.maxTokensMax, { precision: 0 })}
                   </Box>
                 )}
               </Stack>
@@ -78,7 +80,7 @@ export function ModelSelect({ options, value, onChange, onStar, ...rest }: Props
                   onStar(option.model);
                 }}
                 sx={{ pr: 1 }}>
-                {option.starred ? (
+                {isStarred ? (
                   <Box component={Icon} icon={StarFilledIcon} sx={{ color: 'warning.main' }} />
                 ) : (
                   <Box component={Icon} icon={StarIcon} />
@@ -141,17 +143,17 @@ export function ModelSelectDialog({ type, dialogProps, agent }: ModelSelectDialo
     dialogProps.onClose?.(e, 'backdropClick');
   };
 
+  const starredModelSet = useMemo(() => new Set(projectSetting.starredModels ?? []), [projectSetting.starredModels]);
+
   const options = models.map((model) => ({
     ...model,
     name: model.name || model.model,
-    starred: projectSetting.starredModels?.includes(model.model),
-    maxTokens: (model as TextModelInfo).maxTokensDefault,
   }));
   const filteredOptions = options.filter((x) => {
     if (!showStarred && !tags.length) {
       return true;
     }
-    if (showStarred && x.starred) {
+    if (showStarred && starredModelSet.has(x.model)) {
       return true;
     }
     return tags.includes(x.brand || '');
