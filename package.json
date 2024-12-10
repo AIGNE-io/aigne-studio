@@ -4,7 +4,8 @@
   "version": "0.4.160",
   "workspaces": [
     "blocklets/*",
-    "packages/*"
+    "packages/*",
+    "framework/*"
   ],
   "engines": {
     "node": ">=18",
@@ -23,7 +24,7 @@
     "bump-version": "zx scripts/bump-version.mjs",
     "update:deps": "npx -y taze major -r -w -n '/blocklet|abtnode|arcblock|ocap|did-space|nft-studio/' && pnpm install",
     "e2e": "./scripts/start-e2e.ts",
-    "postinstall": "npx simple-git-hooks && pnpm build:libs",
+    "postinstall": "npx simple-git-hooks",
     "remove:node_modules": "rm -rf ./node_modules ./**/*/node_modules"
   },
   "simple-git-hooks": {

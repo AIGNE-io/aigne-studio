@@ -17,6 +17,7 @@ module.exports = {
       join(__dirname, 'packages/dataset-sdk/tsconfig.json'),
       join(__dirname, 'packages/quickjs/tsconfig.json'),
       join(__dirname, 'tests/tsconfig.json'),
+      join(__dirname, 'framework/core/tsconfig.json'),
     ],
   },
   rules: {
