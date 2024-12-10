@@ -7,6 +7,7 @@ import { Icon } from '@iconify-icon/react';
 import StarIcon from '@iconify-icons/tabler/star';
 import StarFilledIcon from '@iconify-icons/tabler/star-filled';
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogProps, DialogTitle, Stack } from '@mui/material';
+import millify from 'millify';
 import { useRef, useState } from 'react';
 
 import { useCurrentProject } from '../../contexts/project';
@@ -66,7 +67,7 @@ export function ModelSelect({ options, value, onChange, onStar, ...rest }: Props
                       color: 'grey.800',
                       fontSize: 12,
                     }}>
-                    {option.maxTokens}
+                    {millify(option.maxTokens, { precision: 0 })}
                   </Box>
                 )}
               </Stack>
