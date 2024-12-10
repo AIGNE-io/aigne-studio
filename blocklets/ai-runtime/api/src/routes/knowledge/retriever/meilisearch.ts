@@ -49,8 +49,8 @@ export default class SearchClient {
     return this.client.index(this.knowledgeId);
   }
 
+  // fix: boardId and id conflict https://www.meilisearch.com/docs/learn/core_concepts/primary_key#index_primary_key_multiple_candidates_found
   get options() {
-    // fix: boardId and id conflict https://www.meilisearch.com/docs/learn/core_concepts/primary_key#index_primary_key_multiple_candidates_found
     return { primaryKey: 'id' };
   }
 
@@ -71,7 +71,16 @@ export default class SearchClient {
     }
   }
 
-  waitForTask(uid: number, { timeOutMs = 1000 * 10, intervalMs = 300 } = {}) {
+  async getDocumentsCount() {
+    try {
+      const stats = await this.postIndex.getStats();
+      return stats.numberOfDocuments;
+    } catch (error) {
+      return 0;
+    }
+  }
+
+  waitForTask(uid: number, { timeOutMs = 1000 * 120, intervalMs = 300 } = {}) {
     return this.client!.waitForTask(uid, { timeOutMs, intervalMs });
   }
 
@@ -95,13 +104,17 @@ export default class SearchClient {
         return { doc };
       }
     });
-    const posts = list.map(({ doc, content }) => ({ ...doc, id: hash('md5', (content || '').trim(), 'hex') }));
+
+    const posts = list
+      .filter((x) => x.content)
+      .map(({ doc, content }) => ({ ...doc, id: hash('md5', (content || '').trim(), 'hex') }));
 
     return posts;
   }
 
   // https://www.meilisearch.com/docs/learn/indexing/indexing_best_practices#prefer-bigger-http-payloads
   async batchIndexPosts(size = 10000) {
+    logger.debug('batchIndexPosts start', { vectorPathOrKnowledgeId: this.vectorPathOrKnowledgeId });
     const vectorStore = await VectorStore.load(this.vectorPathOrKnowledgeId, this.embeddings);
     const { length } = Object.keys(vectorStore.getMapping());
     if (length === 0) return;
@@ -109,16 +122,18 @@ export default class SearchClient {
     const docs = await vectorStore.similaritySearch(' ', length);
     const total = length;
     let processed = 0;
+
     while (processed < total) {
       logger.debug(`index posts: {skip=${processed}, total=${total}, size=${size}`);
-
       const documents = docs.slice(processed, processed + size);
       const posts = await this.formatDocuments(documents);
-      const { taskUid } = await this.postIndex.addDocuments(posts, this.options);
+      const { taskUid } = await this.updatePosts(posts);
       logger.debug(`index posts taskUid: ${taskUid}`);
       await sleep(5000);
       processed += documents.length;
     }
+
+    logger.debug('batchIndexPosts done', { vectorPathOrKnowledgeId: this.vectorPathOrKnowledgeId });
   }
 
   search(
@@ -129,8 +144,9 @@ export default class SearchClient {
   }
 
   async addPosts(documents: Document[]) {
-    const existPostIndex = await this.checkPostIndexExist();
-    if (!existPostIndex) {
+    const notExistPostIndex = await this.isNotExit();
+
+    if (notExistPostIndex) {
       await this.init();
     }
 
@@ -139,25 +155,35 @@ export default class SearchClient {
   }
 
   async updatePosts(documents: Document[]) {
-    const existPostIndex = await this.checkPostIndexExist();
-    if (!existPostIndex) {
-      await this.init();
-    }
-
     const res = await this.postIndex.updateDocuments(await this.formatDocuments(documents), this.options);
     return res;
   }
 
-  removePost(ids: string[]) {
+  removePosts(ids: string[]) {
     return this.postIndex.deleteDocuments(ids);
   }
 
   async checkPostIndexExist() {
     try {
-      return !!(await this.postIndex.getRawInfo());
+      const rawInfo = await this.postIndex.getRawInfo();
+      const count = await this.getDocumentsCount().catch(() => 0);
+      logger.debug('checkPostIndexExist', { isExist: !!rawInfo, count, knowledgeId: this.knowledgeId });
+
+      if (count === 0) {
+        logger.debug('postIndexNotExist', { count, knowledgeId: this.knowledgeId });
+      }
+
+      return { isExist: !!rawInfo, count };
     } catch (error) {
-      return false;
+      return { isExist: false, count: 0 };
     }
+  }
+
+  async isNotExit() {
+    const existPostIndex = await this.checkPostIndexExist();
+    logger.debug(`exist post index: ${existPostIndex}`);
+
+    return !existPostIndex.isExist || !existPostIndex.count;
   }
 
   getEmbedders() {
@@ -193,10 +219,11 @@ export default class SearchClient {
         throw new Error('No SearchKitClient instance');
       }
 
-      const existPostIndex = await this.checkPostIndexExist();
-      logger.debug(`exist post index: ${existPostIndex}`);
+      const notExistPostIndex = await this.isNotExit();
+      if (notExistPostIndex) {
+        await this.client.createIndex(this.knowledgeId, this.options);
 
-      if (!existPostIndex) {
+        logger.info('notExistPostIndex', { knowledgeId: this.knowledgeId });
         await this.updateEmbedders();
         await this.updateSettings(POST_SETTING);
         await this.init();
@@ -230,6 +257,6 @@ export class KnowledgeSearchClient extends SearchClient {
     const ids = messages.map((x) => hash('md5', (x.content || '').trim(), 'hex'));
     if (ids.length <= 0) return;
 
-    await this.removePost(ids);
+    await this.removePosts(ids);
   }
 }

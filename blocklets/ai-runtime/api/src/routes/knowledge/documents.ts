@@ -16,7 +16,7 @@ import Knowledge from '../../store/models/dataset/dataset';
 import KnowledgeDocument from '../../store/models/dataset/document';
 import EmbeddingHistories from '../../store/models/dataset/embedding-history';
 import SearchClient, { KnowledgeSearchClient } from './retriever/meilisearch';
-import { getVectorPath } from './util';
+import { getKnowledgeVectorPath } from './util';
 import { queue } from './util/queue';
 import { updateHistoriesAndStore } from './util/vector-store';
 
@@ -47,27 +47,34 @@ const documentIdSchema = Joi.object<{ knowledgeId: string; documentId: string }>
 
 export type CreateDiscussionItemInput = CreateDiscussionItem | CreateDiscussionItem[];
 
-const searchQuerySchema = Joi.object<{ blockletDid?: string; message?: string; n: number }>({
+const searchQuerySchema = Joi.object<{ blockletDid?: string; message: string }>({
   blockletDid: Joi.string().empty(['', null]),
-  message: Joi.string().empty(['', null]),
-  n: Joi.number().empty(['', null]).min(1).default(4),
+  message: Joi.string().empty(['', null]).required(),
 });
 
 router.get('/:knowledgeId/search', async (req, res) => {
   const { knowledgeId } = req.params;
   const input = await searchQuerySchema.validateAsync(req.query, { stripUnknown: true });
   const knowledge = await Knowledge.findOne({ where: { id: knowledgeId } });
-  const vectorPathOrKnowledgeId = await getVectorPath(input.blockletDid!, knowledgeId, knowledge);
+  const vectorPathOrKnowledgeId = await getKnowledgeVectorPath(input.blockletDid!, knowledgeId, knowledge);
+
+  logger.debug('vector path', { vectorPathOrKnowledgeId });
 
   if (!vectorPathOrKnowledgeId) {
+    logger.error('vector path is null');
     return res.json({ docs: [] });
   }
 
   if (!(await pathExists(vectorPathOrKnowledgeId))) {
+    logger.error('vector path not exists', { vectorPathOrKnowledgeId });
     return res.json({ docs: [] });
   }
 
   const client = new SearchClient(knowledgeId, vectorPathOrKnowledgeId);
+  if (!client.canUse) {
+    logger.error('search kit not working');
+    return res.json({ docs: [] });
+  }
 
   const fields = ['pageContent'];
   const commonParams = {
@@ -79,7 +86,7 @@ router.get('/:knowledgeId/search', async (req, res) => {
   };
 
   const result = (
-    await client.search(input.message!, {
+    await client.search(input.message, {
       attributesToRetrieve: ['*'],
       attributesToHighlight: fields,
       highlightPreTag: '<mark>',
@@ -101,10 +108,8 @@ router.get('/:knowledgeId/search', async (req, res) => {
           content: i.pageContent,
           metadata: {
             document: doc?.dataValues,
-            metadata: {
-              ...(i.metadata?.metadata || {}),
-              relevanceScore: i._rankingScore || 0,
-            },
+            metadata: i.metadata?.metadata,
+            rankingScore: i._rankingScore || 0,
           },
         };
       }
@@ -113,10 +118,8 @@ router.get('/:knowledgeId/search', async (req, res) => {
         content: i.pageContent,
         metadata: {
           document: null,
-          metadata: {
-            ...(i.metadata?.metadata || {}),
-            relevanceScore: i._rankingScore || 0,
-          },
+          metadata: i.metadata?.metadata,
+          rankingScore: i._rankingScore || 0,
         },
       };
     })
@@ -172,7 +175,7 @@ router.delete('/:knowledgeId/documents/:documentId', middlewares.session(), user
   }
 
   const client = new KnowledgeSearchClient(knowledgeId);
-  await client.remove(documentId);
+  if (client.canUse) await client.removePosts([documentId]);
 
   await Promise.all([
     KnowledgeDocument.destroy({ where: { id: documentId, knowledgeId } }),

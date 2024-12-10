@@ -124,12 +124,16 @@ export const saveContentToVectorStore = async ({
     chunkOverlap: 100,
   });
 
-  await client.update(formattedDocs);
+  if (client.canUse) {
+    await client.update(formattedDocs);
+  }
 
   // 清理历史数据
   if (update) {
     await updateHistoriesAndStore(knowledgeId, documentId);
-    await client.remove(documentId);
+    if (client.canUse) {
+      await client.remove(documentId);
+    }
   }
 
   // 保存分段并获取ID

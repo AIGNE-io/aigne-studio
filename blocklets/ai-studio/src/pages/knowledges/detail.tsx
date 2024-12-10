@@ -435,8 +435,11 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
         ) : results.length ? (
           <Box px={2.5}>
             {results.map((result, index) => {
-              const title = result?.metadata?.document?.name || result?.metadata?.metadata?.title;
-              const relevanceScore = result?.metadata?.metadata?.relevanceScore;
+              const title =
+                result?.metadata?.document?.name ||
+                result?.metadata?.metadata?.title ||
+                result?.metadata?.metadata?.name; // 适配老的知识库数据
+              const rankingScore = result?.metadata?.rankingScore;
 
               return (
                 <Box
@@ -486,7 +489,7 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
                         </Box>
                       </Stack>
 
-                      {!!relevanceScore && (
+                      {!!rankingScore && (
                         <>
                           <Divider orientation="vertical" variant="middle" flexItem sx={{ my: 0.5 }} />
 
@@ -494,9 +497,9 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
                             <Typography
                               sx={{
                                 fontSize: 13,
-                                color: result?.metadata?.metadata?.relevanceScore > 0.5 ? '#059669' : '#BE123C',
+                                color: rankingScore > 0.5 ? '#059669' : '#BE123C',
                               }}>
-                              {Number((result?.metadata?.metadata?.relevanceScore || 0) * 100).toFixed(2)}%
+                              {Number((rankingScore || 0) * 100).toFixed(2)}%
                             </Typography>
                             <Typography sx={{ fontSize: 13, color: '#9CA3AF' }}>{t('similarity')}</Typography>
                           </Stack>

@@ -383,8 +383,10 @@ router.delete('/:knowledgeId', middlewares.session(), userAuth(), async (req, re
   }
 
   const client = new KnowledgeSearchClient(knowledgeId!);
-  const documents = await KnowledgeDocument.findAll({ where: { knowledgeId } });
-  await Promise.all(documents.map((i) => client.remove(i.id)));
+  if (client.canUse) {
+    const documents = await KnowledgeDocument.findAll({ where: { knowledgeId } });
+    await Promise.all(documents.map((i) => client.remove(i.id)));
+  }
 
   await Promise.all([
     Knowledge.destroy({ where: { id: knowledgeId } }),

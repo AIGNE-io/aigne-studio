@@ -8,6 +8,7 @@ import { SEARCH_KIT_DID } from '../const';
 const init = async () => {
   const resources = await resourceManager.getKnowledgeList();
 
+  // 兼容老的搜索方式
   for (const resource of resources) {
     embeddingSearchKitQueue.push({
       type: 'embedding-search-kit',

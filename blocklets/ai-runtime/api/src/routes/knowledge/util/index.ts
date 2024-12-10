@@ -38,7 +38,11 @@ export const retry = (promiseCreator: () => Promise<unknown>, time = 0, interval
   });
 };
 
-export async function getVectorPath(blockletDid: string | null, knowledgeId: string, knowledge?: Knowledge | null) {
+export async function getKnowledgeVectorPath(
+  blockletDid: string | null,
+  knowledgeId: string,
+  knowledge?: Knowledge | null
+) {
   let resourceToCheck = null;
 
   if (blockletDid) {
