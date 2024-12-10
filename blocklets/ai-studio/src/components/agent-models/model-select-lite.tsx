@@ -4,6 +4,7 @@ import CheckIcon from '@iconify-icons/tabler/check';
 import PlusIcon from '@iconify-icons/tabler/plus';
 import { Box, Button, ClickAwayListener, Grow, Paper, Popper, Stack } from '@mui/material';
 import { bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
+import millify from 'millify';
 
 import { ModelBrandIcon } from './model-brand-icon';
 import { ModelSelectDialog } from './model-select';
@@ -79,7 +80,7 @@ function InternalModelSelectLite({ options, value, onChange, onAddMoreModel, ...
                                   color: 'grey.800',
                                   fontSize: 12,
                                 }}>
-                                {option.maxTokens}
+                                {millify(option.maxTokens, { precision: 0 })}
                               </Box>
                             )}
                           </Stack>
