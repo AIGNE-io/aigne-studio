@@ -70,7 +70,7 @@ router.get('/:knowledgeId/search', async (req, res) => {
     return res.json({ docs: [] });
   }
 
-  const client = new SearchClient(knowledgeId, vectorPathOrKnowledgeId);
+  const client = new SearchClient();
   if (!client.canUse) {
     logger.error('search kit not working');
     return res.json({ docs: [] });
@@ -87,6 +87,7 @@ router.get('/:knowledgeId/search', async (req, res) => {
 
   const result = (
     await client.search(input.message, {
+      filter: [`knowledgeId IN [${knowledgeId}]`],
       attributesToRetrieve: ['*'],
       attributesToHighlight: fields,
       highlightPreTag: '<mark>',
@@ -174,8 +175,8 @@ router.delete('/:knowledgeId/documents/:documentId', middlewares.session(), user
     await Promise.all([rm(joinURL(getProcessedFileDir(knowledgeId), `${document.id}.yml`))]).catch(logger.error);
   }
 
-  const client = new KnowledgeSearchClient(knowledgeId);
-  if (client.canUse) await client.removePosts([documentId]);
+  const client = new KnowledgeSearchClient();
+  if (client.canUse) await client.remove(knowledgeId, documentId);
 
   await Promise.all([
     KnowledgeDocument.destroy({ where: { id: documentId, knowledgeId } }),

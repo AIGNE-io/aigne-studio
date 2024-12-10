@@ -22,6 +22,7 @@ import omitBy from 'lodash/omitBy';
 import { Op, Sequelize } from 'sequelize';
 import { stringify } from 'yaml';
 
+import embeddingQueuePush from '../../libs/embedding/push';
 import ensureKnowledgeDirExists, { getKnowledgeDir, getLogoPath } from '../../libs/ensure-dir';
 import copyKnowledgeBase from '../../libs/knowledge';
 import { ensureComponentCallOr, ensureComponentCallOrAdmin, userAuth } from '../../libs/security';
@@ -29,7 +30,6 @@ import Knowledge from '../../store/models/dataset/dataset';
 import KnowledgeDocument from '../../store/models/dataset/document';
 import { KnowledgeSearchClient } from './retriever/meilisearch';
 import { getResourceAvatarPath, sse } from './util';
-import { embeddingSearchKitQueue } from './util/queue';
 
 const { initLocalStorageServer } = require('@blocklet/uploader-server');
 
@@ -311,7 +311,7 @@ router.post('/', middlewares.session({ componentCall: true }), ensureComponentCa
       });
 
       // 复制完成后，立即更新向量数据库
-      embeddingSearchKitQueue.push({ type: 'embedding-search-kit', from: 'db', knowledgeId: newKnowledgeId });
+      await embeddingQueuePush({ from: 'db', knowledgeId: newKnowledgeId });
 
       map[oldKnowledge.id] = newKnowledgeId;
     }
@@ -329,7 +329,7 @@ router.post('/', middlewares.session({ componentCall: true }), ensureComponentCa
   }
 
   // 复制完成后，立即更新向量数据库
-  embeddingSearchKitQueue.push({ type: 'embedding-search-kit', from: 'db', knowledgeId: knowledge.id });
+  await embeddingQueuePush({ from: 'db', knowledgeId: knowledge.id });
 
   return res.json(knowledge);
 });
@@ -349,7 +349,7 @@ router.post('/import-resources', middlewares.session(), ensureComponentCallOr(us
 
   // 导入完成后，立即更新向量数据库
   for (const knowledge of list) {
-    embeddingSearchKitQueue.push({ type: 'embedding-search-kit', from: 'db', knowledgeId: knowledge.id });
+    await embeddingQueuePush({ from: 'db', knowledgeId: knowledge.id });
   }
 
   return res.json(list);
@@ -382,10 +382,10 @@ router.delete('/:knowledgeId', middlewares.session(), userAuth(), async (req, re
     return;
   }
 
-  const client = new KnowledgeSearchClient(knowledgeId!);
+  const client = new KnowledgeSearchClient();
   if (client.canUse) {
     const documents = await KnowledgeDocument.findAll({ where: { knowledgeId } });
-    await Promise.all(documents.map((i) => client.remove(i.id)));
+    await Promise.all(documents.map((i) => client.remove(knowledgeId!, i.id)));
   }
 
   await Promise.all([

@@ -14,24 +14,13 @@ export type DocumentQueue = {
   update?: boolean;
 };
 
-export type EmbeddingSearchKitQueue = {
-  type: 'embedding-search-kit';
-  from: 'db' | 'resource';
-  knowledgeId: string;
-  blockletDid?: string;
-};
-
 export type Task = {
   id: string;
-  job: DocumentQueue | EmbeddingSearchKitQueue;
+  job: DocumentQueue;
 };
 
 export const isDocumentQueue = (job: any): job is DocumentQueue => {
   return job && job.type === 'document';
-};
-
-export const isEmbeddingSearchKitQueue = (job: any): job is EmbeddingSearchKitQueue => {
-  return job && job.type === 'embedding-search-kit';
 };
 
 const tryWithTimeout = (asyncFn: () => Promise<any>, timeout = 5000) => {

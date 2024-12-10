@@ -115,7 +115,7 @@ export const saveContentToVectorStore = async ({
   update?: boolean;
   type: 'file' | 'text' | 'discussKit' | 'url';
 }) => {
-  const client = new KnowledgeSearchClient(knowledgeId);
+  const client = new KnowledgeSearchClient();
 
   // 文本处理和向量化
   const { vectors, formattedDocs } = await processContent(content, type, metadata, {
@@ -124,16 +124,12 @@ export const saveContentToVectorStore = async ({
     chunkOverlap: 100,
   });
 
-  if (client.canUse) {
-    await client.update(formattedDocs);
-  }
+  if (client.canUse) await client.update(formattedDocs, knowledgeId);
 
   // 清理历史数据
   if (update) {
+    if (client.canUse) await client.remove(knowledgeId, documentId);
     await updateHistoriesAndStore(knowledgeId, documentId);
-    if (client.canUse) {
-      await client.remove(documentId);
-    }
   }
 
   // 保存分段并获取ID
