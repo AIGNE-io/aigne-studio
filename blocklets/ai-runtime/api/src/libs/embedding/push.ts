@@ -5,6 +5,7 @@ import { pathExists } from 'fs-extra';
 import SearchClient from '../../routes/knowledge/retriever/meilisearch/meilisearch';
 import { getKnowledgeVectorPath } from '../../routes/knowledge/util';
 import Knowledge from '../../store/models/dataset/dataset';
+import logger from '../logger';
 
 export interface PushParams {
   from: 'db' | 'resource';
@@ -24,8 +25,7 @@ const push = async ({ from, knowledgeId, blockletDid }: PushParams) => {
       if (client.canUse) await client.checkUpdate(vectorPath);
     }
   } catch (error) {
-    console.error('Error in push operation:', error);
-    throw error;
+    logger.error('push error', error);
   }
 };
 

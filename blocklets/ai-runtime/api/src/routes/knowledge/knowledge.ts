@@ -22,6 +22,7 @@ import omitBy from 'lodash/omitBy';
 import { Op, Sequelize } from 'sequelize';
 import { stringify } from 'yaml';
 
+import { getEmbeddingsStatus } from '../../libs/embedding';
 import embeddingQueuePush from '../../libs/embedding/push';
 import ensureKnowledgeDirExists, { getKnowledgeDir, getLogoPath } from '../../libs/ensure-dir';
 import copyKnowledgeBase from '../../libs/knowledge';
@@ -62,6 +63,11 @@ const getKnowledgeListQuerySchema = Joi.object<{ projectId?: string; page: numbe
   projectId: Joi.string().empty(['', null]),
   page: Joi.number().integer().min(1).default(1),
   size: Joi.number().integer().min(1).max(10000).default(20),
+});
+
+router.get('/embedding-status', async (_req, res) => {
+  const result = await getEmbeddingsStatus();
+  res.json(result);
 });
 
 router.get('/', middlewares.session(), ensureComponentCallOr(userAuth()), async (req, res) => {
@@ -311,7 +317,7 @@ router.post('/', middlewares.session({ componentCall: true }), ensureComponentCa
       });
 
       // 复制完成后，立即更新向量数据库
-      await embeddingQueuePush({ from: 'db', knowledgeId: newKnowledgeId });
+      embeddingQueuePush({ from: 'db', knowledgeId: newKnowledgeId });
 
       map[oldKnowledge.id] = newKnowledgeId;
     }
@@ -329,7 +335,7 @@ router.post('/', middlewares.session({ componentCall: true }), ensureComponentCa
   }
 
   // 复制完成后，立即更新向量数据库
-  await embeddingQueuePush({ from: 'db', knowledgeId: knowledge.id });
+  embeddingQueuePush({ from: 'db', knowledgeId: knowledge.id });
 
   return res.json(knowledge);
 });
@@ -349,7 +355,7 @@ router.post('/import-resources', middlewares.session(), ensureComponentCallOr(us
 
   // 导入完成后，立即更新向量数据库
   for (const knowledge of list) {
-    await embeddingQueuePush({ from: 'db', knowledgeId: knowledge.id });
+    embeddingQueuePush({ from: 'db', knowledgeId: knowledge.id });
   }
 
   return res.json(list);

@@ -58,7 +58,7 @@ export default class SearchClient {
   async init({ deepClear = false, vectorPathOrKnowledgeId }: { deepClear?: boolean; vectorPathOrKnowledgeId: string }) {
     try {
       if (deepClear) {
-        logger.debug('Clear old post data');
+        logger.info('Clear old post data');
         const { taskUid } = await this.postIndex.deleteAllDocuments();
         await this.waitForTask(taskUid);
       }
@@ -99,8 +99,8 @@ export default class SearchClient {
   }
 
   // https://www.meilisearch.com/docs/learn/indexing/indexing_best_practices#prefer-bigger-http-payloads
-  async batchIndexPosts({ size = 10000, vectorPathOrKnowledgeId }: { size?: number; vectorPathOrKnowledgeId: string }) {
-    logger.debug('batchIndexPosts start', { vectorPathOrKnowledgeId });
+  async batchIndexPosts({ vectorPathOrKnowledgeId }: { size?: number; vectorPathOrKnowledgeId: string }) {
+    logger.info('batchIndexPosts start', { vectorPathOrKnowledgeId });
 
     let docs = [];
     try {
@@ -116,20 +116,29 @@ export default class SearchClient {
       docs = length > 0 ? await vectorStore.similaritySearch(' ', length) : [];
     }
 
+    await this.batchUpdatePosts(docs);
+  }
+
+  async batchUpdatePosts(docs: Document[], size = 3000) {
+    logger.info('batchUpdatePosts start', { knowledgeId: this.knowledgeId });
+
     let processed = 0;
     const total = docs.length;
-    if (total === 0) return;
+    if (total === 0) {
+      logger.info('batch is empty', { knowledgeId: this.knowledgeId });
+      return;
+    }
 
     while (processed < total) {
-      logger.debug(`index posts: {skip=${processed}, total=${total}, size=${size}`);
+      logger.info(`index posts: {skip=${processed}, total=${total}, size=${size}`);
       const documents = docs.slice(processed, processed + size);
       const { taskUid } = await this.updatePosts(documents);
-      logger.debug(`index posts taskUid: ${taskUid}`);
+      logger.info(`index posts taskUid: ${taskUid}`);
       await sleep(5000);
       processed += documents.length;
     }
 
-    logger.debug('batchIndexPosts done', { vectorPathOrKnowledgeId });
+    logger.info('batchUpdatePosts done', { knowledgeId: this.knowledgeId });
   }
 
   search(
@@ -160,8 +169,6 @@ export default class SearchClient {
 
   async isNotExit() {
     const existPostIndex = await this.checkPostIndexExist();
-    logger.debug(`exist post index: ${existPostIndex}`);
-
     return !existPostIndex.isExist;
   }
 
@@ -173,7 +180,7 @@ export default class SearchClient {
     try {
       const embedders = resolveRestEmbedders({ documentTemplate });
       const { taskUid } = await this.postIndex.updateEmbedders(embedders);
-      logger.debug(`updateEmbedders taskUid: ${taskUid}`);
+      logger.info(`updateEmbedders taskUid: ${taskUid}`);
     } catch (e) {
       logger.error('updateEmbedders error - downgrade to basic search.', e);
     }
@@ -182,7 +189,7 @@ export default class SearchClient {
   async resetEmbedders() {
     try {
       const { taskUid } = await this.postIndex.resetEmbedders();
-      logger.debug(`resetEmbedders taskUid: ${taskUid}`);
+      logger.info(`resetEmbedders taskUid: ${taskUid}`);
     } catch (e) {
       logger.error('resetEmbedders error', e);
     }
@@ -194,18 +201,17 @@ export default class SearchClient {
 
   async checkUpdate(vectorPathOrKnowledgeId: string) {
     const upsert = async () => {
-      if (!this.client) {
-        throw new Error('No SearchKitClient instance');
-      }
+      if (!this.client) throw new Error('No SearchKitClient instance');
 
       const notExistPostIndex = await this.isNotExit();
       if (notExistPostIndex) {
-        logger.debug('notExistPostIndex', { knowledgeId: this.knowledgeId });
+        logger.info('notExistPostIndex', { knowledgeId: this.knowledgeId });
         await this.updateConfig();
         await this.init({ vectorPathOrKnowledgeId });
         return;
       }
 
+      await this.updateConfig();
       await this.init({ vectorPathOrKnowledgeId });
     };
 
@@ -218,7 +224,7 @@ export default class SearchClient {
   }
 
   async updateConfig() {
-    await this.clearAllTasks();
+    // await this.clearAllTasks();
     await this.updateEmbedders();
     await this.updateSettings(POST_SETTING);
   }
@@ -233,11 +239,18 @@ export default class SearchClient {
       return { results: [], total: 0 };
     }
   }
+
+  async getTasks() {
+    return this.client
+      .getTasks({ indexUids: [this.POST_INDEX_NAME], statuses: ['enqueued'] })
+      .then((res: any) => res.total)
+      .catch(() => 0);
+  }
 }
 
 export class KnowledgeSearchClient extends SearchClient {
   async update(documents: Document[]) {
-    await this.updatePosts(documents);
+    await this.batchUpdatePosts(documents);
   }
 
   async remove(documentId: string) {

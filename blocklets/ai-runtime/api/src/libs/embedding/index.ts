@@ -59,6 +59,40 @@ const getVectorPaths = async (resources: { blockletDid: string; knowledge: Knowl
 };
 
 const init = async () => {
+  try {
+    const embeddings = new AIKitEmbeddings();
+
+    const resources = await resourceManager.getKnowledgeList();
+    const knowledges = await Knowledge.findAll();
+
+    const paths = await getVectorPaths(resources, knowledges);
+
+    for (const path of paths) {
+      const list = await getDocsList(path.vectorPathOrKnowledgeId, embeddings);
+      const client = new SearchClient(path.knowledgeId);
+      if (client.canUse) await client.updateConfig();
+
+      const documents = client.formatDocuments(list);
+      const total = uniqBy(documents, 'id').length;
+      const searchTotal = (await client.getDocuments())?.total || 0;
+
+      logger.info('compare knowledge embedding total', {
+        total,
+        searchTotal,
+        knowledgeId: path.knowledgeId,
+        isNeedEmbedding: total > searchTotal,
+      });
+
+      if (total > searchTotal) await push(path.params);
+    }
+  } catch (error) {
+    logger.error('init embedding error', error);
+  }
+};
+
+export default init;
+
+export const getEmbeddingsStatus = async () => {
   const embeddings = new AIKitEmbeddings();
 
   const resources = await resourceManager.getKnowledgeList();
@@ -66,27 +100,27 @@ const init = async () => {
 
   const paths = await getVectorPaths(resources, knowledges);
 
-  for (const path of paths) {
-    const list = await getDocsList(path.vectorPathOrKnowledgeId, embeddings);
-    const client = new SearchClient(path.knowledgeId);
-    if (client.canUse) await client.updateConfig();
+  const result = await Promise.all(
+    paths.map(async (path) => {
+      const list = await getDocsList(path.vectorPathOrKnowledgeId, embeddings);
+      const client = new SearchClient(path.knowledgeId);
 
-    const documents = client.formatDocuments(list);
-    const total = uniqBy(documents, 'id').length;
-    const searchTotal = (await client.getDocuments())?.total || 0;
+      const documents = client.formatDocuments(list);
+      const total = uniqBy(documents, 'id').length;
+      const searchTotal = (await client.getDocuments())?.total || 0;
 
-    logger.info('compare knowledge embedding total', {
-      knowledgeId: path.knowledgeId,
-      total,
-      searchTotal,
-      isNeedEmbedding: total > searchTotal,
-    });
+      return {
+        total,
+        searchTotal,
+        knowledgeId: path.knowledgeId,
+        isNeedEmbedding: total > searchTotal,
+        queuedTasks: await client.getTasks(),
+      };
+    })
+  );
 
-    if (total > searchTotal) await push(path.params);
-  }
+  return result;
 };
-
-export default init;
 
 config.events.on(config.Events.componentStarted, (components) => {
   if (components.find((item: { did: string }) => item.did === SEARCH_KIT_DID)) {

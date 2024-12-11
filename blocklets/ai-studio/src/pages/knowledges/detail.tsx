@@ -431,7 +431,7 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
       </Box>
 
       <Box display="flex" alignItems="center" gap={1} sx={{ p: 2.5, pb: 0 }}>
-        <Box>Search Kit 检索</Box>
+        <Box>使用 Search Kit 检索</Box>
         <Switch checked={useSearchKit} onChange={(e) => setUseSearchKit(e.target.checked)} />
       </Box>
 

@@ -409,7 +409,7 @@ export default flatten({
     configure: '设置',
     rename: '重命名',
     docs: '条文档',
-    importKnowledgeSuccess: '导入资源为知识成功',
+    importKnowledgeSuccess: '导入知识成功',
     noKnowledge: '还没有知识',
     noKnowledgeTip: '你可以从 Blocklet 商店安装知识',
     installKnowledgeFromBlocklet: '从 Blocklet 商店安装知识',

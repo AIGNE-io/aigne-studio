@@ -90,4 +90,9 @@ components:
     source:
       name: z2qa6fvjmjew4pWJyTsKaWFuNoMUMyXDh5A1D
       version: latest
+  - name: search-kit
+    mountPoint: /search-kit
+    source:
+      name: meilisearch
+      version: latest
 egress: true

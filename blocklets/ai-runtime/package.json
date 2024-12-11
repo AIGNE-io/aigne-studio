@@ -45,7 +45,7 @@
     "@blocklet/logger": "^1.16.33",
     "@blocklet/pages-kit": "^0.2.456",
     "@blocklet/sdk": "^1.16.33",
-    "@blocklet/search-kit-js": "^0.2.17",
+    "@blocklet/search-kit-js": "^0.2.18",
     "@blocklet/ui-react": "^2.10.74",
     "@blocklet/uploader-server": "^0.1.56",
     "@blocklet/xss": "^0.1.12",
