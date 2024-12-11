@@ -56,7 +56,8 @@ export function useModelsFromAgents(type: ModelType): (TextModelInfo | ImageMode
       name: x.label || x.value,
       model: x.value || x.label,
       icon: projectIcons.get(agent.project.id),
-      brand: '',
+      brand: agent.name || '',
+      tags: agent.tags,
     }))
   );
   return models.filter(isNonNullable);
@@ -130,12 +131,4 @@ export function useModelBrand(model: string) {
     refreshDeps: [model],
   });
   return data;
-}
-
-// 获取所有内置模型的品牌信息, 并将其用作 tags (用于筛选模型)
-export function useBrandTags() {
-  const llmModels = useSupportedModels('llm');
-  const aigcModels = useSupportedModels('aigc');
-  const tags = [...llmModels, ...aigcModels].map((x) => x.brand);
-  return Array.from(new Set(tags));
 }

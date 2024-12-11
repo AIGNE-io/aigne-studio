@@ -1,7 +1,5 @@
 import { Chip, ChipProps, Stack } from '@mui/material';
 
-import { useBrandTags } from './use-models';
-
 export function Tag({ label, selected, ...rest }: { selected: boolean } & ChipProps) {
   const selectedStyle = {
     color: 'primary.dark',
@@ -33,17 +31,17 @@ interface TagFilterProps {
   value: string[];
   onChange: (value: string[]) => void;
   prepend?: React.ReactNode;
+  tags: string[];
 }
 
-export function TagFilter({ value, onChange, prepend }: TagFilterProps) {
-  const brandTags = useBrandTags();
+export function TagFilter({ value, onChange, prepend, tags }: TagFilterProps) {
   const handleTagClick = (tag: string) => {
     onChange(value.includes(tag) ? value.filter((t) => t !== tag) : [...value, tag]);
   };
   return (
     <Stack direction="row" spacing={1}>
       {prepend}
-      {brandTags.map((tag) => (
+      {tags.map((tag) => (
         <Tag key={tag} label={tag} selected={value.includes(tag)} onClick={() => handleTagClick(tag)} />
       ))}
     </Stack>

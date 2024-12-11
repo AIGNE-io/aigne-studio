@@ -24,6 +24,7 @@ export interface Agent {
   access?: {
     noLoginRequired?: boolean;
   };
+  tags?: string[];
 }
 
 export interface AgentWithConfig extends Agent {
