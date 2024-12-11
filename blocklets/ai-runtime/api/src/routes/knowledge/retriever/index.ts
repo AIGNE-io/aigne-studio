@@ -9,7 +9,8 @@ export default class Retriever {
   constructor(
     private knowledgeId: string,
     private vectorPathOrKnowledgeId: string,
-    private n: number = 10
+    private n: number = 10,
+    private useSearchKit: boolean = true
   ) {}
 
   async search(query: string): Promise<Document[]> {
@@ -24,6 +25,10 @@ export default class Retriever {
       return new Retriever(this.knowledgeId, this.vectorPathOrKnowledgeId, this.n).search(query);
     }
 
-    return new MeiliSearchRetriever(this.knowledgeId, this.vectorPathOrKnowledgeId, this.n).search(query);
+    if (this.useSearchKit) {
+      return new MeiliSearchRetriever(this.knowledgeId, this.vectorPathOrKnowledgeId, this.n).search(query);
+    }
+
+    return new NormalRetriever(this.knowledgeId, this.vectorPathOrKnowledgeId, this.n).search(query);
   }
 }

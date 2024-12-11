@@ -47,9 +47,10 @@ const documentIdSchema = Joi.object<{ knowledgeId: string; documentId: string }>
 
 export type CreateDiscussionItemInput = CreateDiscussionItem | CreateDiscussionItem[];
 
-const searchQuerySchema = Joi.object<{ blockletDid?: string; message: string }>({
+const searchQuerySchema = Joi.object<{ blockletDid?: string; message: string; useSearchKit?: boolean }>({
   blockletDid: Joi.string().empty(['', null]),
   message: Joi.string().empty(['', null]).required(),
+  useSearchKit: Joi.boolean().default(true),
 });
 
 router.get('/:knowledgeId/search', async (req, res) => {
@@ -70,7 +71,7 @@ router.get('/:knowledgeId/search', async (req, res) => {
     return res.json({ docs: [] });
   }
 
-  const retriever = new Retriever(knowledgeId, vectorPathOrKnowledgeId);
+  const retriever = new Retriever(knowledgeId, vectorPathOrKnowledgeId, 10, input.useSearchKit);
   const result = await retriever.search(input.message!);
 
   const docs = await Promise.all(

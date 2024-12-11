@@ -1,3 +1,4 @@
+import Switch from '@app/components/custom/switch';
 // import MdViewer from '@app/components/md-viewer';
 import { useKnowledge } from '@app/contexts/knowledge/knowledge';
 import UploaderProvider, { useUploader } from '@app/contexts/uploader';
@@ -318,10 +319,11 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
   );
   const [loaded, setLoaded] = useState(false);
   const navigate = useNavigate();
+  const [useSearchKit, setUseSearchKit] = useState(true);
 
   const { loading, runAsync } = useRequest(
-    async (s: string) => {
-      const results = await searchKnowledge({ knowledgeId, message: s });
+    async (s: string, useSearchKit: boolean) => {
+      const results = await searchKnowledge({ knowledgeId, message: s, useSearchKit });
       setData(results);
       return results;
     },
@@ -370,7 +372,7 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
         onSubmit={async (e) => {
           try {
             e.preventDefault();
-            await runAsync(search!);
+            await runAsync(search!, useSearchKit);
             setLoaded(true);
           } catch (error) {
             Toast.error(error?.message);
@@ -417,7 +419,7 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
           onClick={async (e) => {
             try {
               e.preventDefault();
-              await runAsync(search!);
+              await runAsync(search!, useSearchKit);
               setLoaded(true);
             } catch (error) {
               Toast.error(error?.message);
@@ -427,6 +429,12 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
           <Box>{t('search')}</Box>
         </IconButton>
       </Box>
+
+      <Box display="flex" alignItems="center" gap={1} sx={{ p: 2.5, pb: 0 }}>
+        <Box>Search Kit 检索</Box>
+        <Switch checked={useSearchKit} onChange={(e) => setUseSearchKit(e.target.checked)} />
+      </Box>
+
       <Box flexGrow={1} height={0} overflow="auto" sx={{ overflowX: 'hidden' }}>
         {loading ? (
           <Box className="center" width={1} height={1}>
