@@ -90,3 +90,9 @@ components:
     source:
       name: z2qa6fvjmjew4pWJyTsKaWFuNoMUMyXDh5A1D
       version: latest
+  - name: search-kit
+    required: true
+    mountPoint: /search-kit
+    source:
+      name: z8iZorY6mvb5tZrxXTqhBmwu89xjEEazrgT3t
+      version: latest
