@@ -66,7 +66,7 @@ const init = async () => {
   }
 
   const total = uniqBy(documents, 'id').length;
-  const searchTotal = (await client.getDocuments())?.total;
+  const searchTotal = (await client.getDocuments())?.total || 0;
 
   logger.info('vector total', total);
   logger.info('search total', searchTotal);

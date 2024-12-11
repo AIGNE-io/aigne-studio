@@ -117,10 +117,10 @@ export default class SearchClient {
       }
     });
 
-    const posts = list.map(({ doc, content }, i) => ({
+    const posts = list.map(({ doc, content }) => ({
       ...doc,
       knowledgeId,
-      id: getId(knowledgeId, content || i),
+      id: getId(knowledgeId, content || ''),
     }));
 
     return posts;
@@ -260,24 +260,14 @@ export default class SearchClient {
     await this.updateSettings(POST_SETTING);
   }
 
-  async getDocuments(
-    options: {
-      limit?: number;
-      offset?: number;
-      fields?: string[];
-    } = {}
-  ) {
+  async getDocuments(options: { limit?: number; offset?: number; fields?: string[] } = {}) {
     const { limit = 1, offset = 0, fields } = options;
 
     try {
-      return await this.postIndex.getDocuments({
-        limit,
-        offset,
-        fields,
-      });
+      return await this.postIndex.getDocuments({ limit, offset, fields });
     } catch (error) {
       logger.error('getDocuments error:', error);
-      return [];
+      return { documents: [], total: 0 };
     }
   }
 }
