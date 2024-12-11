@@ -2,6 +2,7 @@ import { Document } from '@langchain/core/documents';
 import { EnsembleRetriever } from 'langchain/retrievers/ensemble';
 
 import logger from '../../../libs/logger';
+import { getId } from '../util';
 import BaseRetriever from './base';
 
 export default class NormalRetriever extends BaseRetriever {
@@ -94,6 +95,6 @@ export default class NormalRetriever extends BaseRetriever {
   }
 
   private getDocumentKey(doc: Document): string {
-    return `${doc.pageContent}${doc.metadata.source || ''}`;
+    return getId(this.knowledgeId, `${doc.pageContent}`);
   }
 }

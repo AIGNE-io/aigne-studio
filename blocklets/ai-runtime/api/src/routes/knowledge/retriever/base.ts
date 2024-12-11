@@ -46,6 +46,7 @@ export default class BaseRetriever {
   }
 
   constructor(
+    protected knowledgeId: string,
     private vectorPathOrKnowledgeId: string,
     private n: number = 4
   ) {}

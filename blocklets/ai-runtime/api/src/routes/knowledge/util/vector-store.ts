@@ -6,7 +6,7 @@ import { intersection } from 'lodash';
 import { AIKitEmbeddings } from '../../../core/embeddings/ai-kit';
 import Segment from '../../../store/models/dataset/segment';
 import VectorStore from '../../../store/vector-store-faiss';
-import { KnowledgeSearchClient } from '../retriever/meilisearch';
+import { KnowledgeSearchClient } from '../retriever/meilisearch/meilisearch';
 import { discussionToMarkdown } from './discuss';
 
 export const deleteStore = async (knowledgeId: string, ids: string[]) => {
@@ -27,6 +27,9 @@ export const updateHistoriesAndStore = async (knowledgeId: string, documentId: s
   const where = { documentId };
   const { rows: messages, count } = await Segment.findAndCountAll({ where });
   const ids = messages.map((x) => x.id);
+
+  const client = new KnowledgeSearchClient(knowledgeId);
+  if (client.canUse) await client.remove(documentId);
 
   if (count > 0) {
     await deleteStore(knowledgeId, ids);
@@ -115,7 +118,7 @@ export const saveContentToVectorStore = async ({
   update?: boolean;
   type: 'file' | 'text' | 'discussKit' | 'url';
 }) => {
-  const client = new KnowledgeSearchClient();
+  const client = new KnowledgeSearchClient(knowledgeId);
 
   // 文本处理和向量化
   const { vectors, formattedDocs } = await processContent(content, type, metadata, {
@@ -124,11 +127,10 @@ export const saveContentToVectorStore = async ({
     chunkOverlap: 100,
   });
 
-  if (client.canUse) await client.update(formattedDocs, knowledgeId);
+  if (client.canUse) await client.update(formattedDocs);
 
   // 清理历史数据
   if (update) {
-    if (client.canUse) await client.remove(knowledgeId, documentId);
     await updateHistoriesAndStore(knowledgeId, documentId);
   }
 

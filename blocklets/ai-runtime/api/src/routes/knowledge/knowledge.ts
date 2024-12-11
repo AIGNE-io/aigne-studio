@@ -28,7 +28,7 @@ import copyKnowledgeBase from '../../libs/knowledge';
 import { ensureComponentCallOr, ensureComponentCallOrAdmin, userAuth } from '../../libs/security';
 import Knowledge from '../../store/models/dataset/dataset';
 import KnowledgeDocument from '../../store/models/dataset/document';
-import { KnowledgeSearchClient } from './retriever/meilisearch';
+import { KnowledgeSearchClient } from './retriever/meilisearch/meilisearch';
 import { getResourceAvatarPath, sse } from './util';
 
 const { initLocalStorageServer } = require('@blocklet/uploader-server');
@@ -382,10 +382,10 @@ router.delete('/:knowledgeId', middlewares.session(), userAuth(), async (req, re
     return;
   }
 
-  const client = new KnowledgeSearchClient();
+  const client = new KnowledgeSearchClient(knowledgeId!);
   if (client.canUse) {
     const documents = await KnowledgeDocument.findAll({ where: { knowledgeId } });
-    await Promise.all(documents.map((i) => client.remove(knowledgeId!, i.id)));
+    await Promise.all(documents.map((i) => client.remove(i.id)));
   }
 
   await Promise.all([

@@ -427,7 +427,7 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
           <Box>{t('search')}</Box>
         </IconButton>
       </Box>
-      <Box flexGrow={1} height={0} overflow="auto">
+      <Box flexGrow={1} height={0} overflow="auto" sx={{ overflowX: 'hidden' }}>
         {loading ? (
           <Box className="center" width={1} height={1}>
             <CircularProgress size={20} />
@@ -464,7 +464,7 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
                     if (!result?.metadata?.document?.id) return;
                     navigate(joinURL('document', result?.metadata?.document?.id, 'segments'));
                   }}>
-                  <Box>
+                  <Box sx={{ wordBreak: 'break-word' }}>
                     {(typeof result.content === 'string'
                       ? result.content
                       : JSON.stringify(result.content, null, 2)

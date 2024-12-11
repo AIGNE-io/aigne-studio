@@ -15,7 +15,7 @@ import { userAuth } from '../../libs/security';
 import Knowledge from '../../store/models/dataset/dataset';
 import KnowledgeDocument from '../../store/models/dataset/document';
 import EmbeddingHistories from '../../store/models/dataset/embedding-history';
-import SearchClient, { KnowledgeSearchClient } from './retriever/meilisearch';
+import Retriever from './retriever';
 import { getKnowledgeVectorPath } from './util';
 import { queue } from './util/queue';
 import { updateHistoriesAndStore } from './util/vector-store';
@@ -70,35 +70,8 @@ router.get('/:knowledgeId/search', async (req, res) => {
     return res.json({ docs: [] });
   }
 
-  const client = new SearchClient();
-  if (!client.canUse) {
-    logger.error('search kit not working');
-    return res.json({ docs: [] });
-  }
-
-  const fields = ['pageContent'];
-  const commonParams = {
-    ...(!!(await client.getEmbedders()) && { hybrid: { embedder: 'default', semanticRatio: 0.1 } }),
-  };
-  const modeParams = {
-    attributesToCrop: fields,
-    cropLength: 40,
-  };
-
-  const result = (
-    await client.search(input.message, {
-      filter: [`knowledgeId IN [${knowledgeId}]`],
-      attributesToRetrieve: ['*'],
-      attributesToHighlight: fields,
-      highlightPreTag: '<mark>',
-      highlightPostTag: '</mark>',
-      showRankingScore: true,
-      showRankingScoreDetails: true,
-      rankingScoreThreshold: 0.4,
-      ...modeParams,
-      ...commonParams,
-    })
-  ).hits;
+  const retriever = new Retriever(knowledgeId, vectorPathOrKnowledgeId);
+  const result = await retriever.search(input.message!);
 
   const docs = await Promise.all(
     result.map(async (i: any) => {
@@ -174,9 +147,6 @@ router.delete('/:knowledgeId/documents/:documentId', middlewares.session(), user
   if (document && document.filename) {
     await Promise.all([rm(joinURL(getProcessedFileDir(knowledgeId), `${document.id}.yml`))]).catch(logger.error);
   }
-
-  const client = new KnowledgeSearchClient();
-  if (client.canUse) await client.remove(knowledgeId, documentId);
 
   await Promise.all([
     KnowledgeDocument.destroy({ where: { id: documentId, knowledgeId } }),

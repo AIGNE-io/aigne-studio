@@ -1,3 +1,4 @@
+import { hash } from 'crypto';
 import { join } from 'path';
 
 import { getVectorStorePath } from '@api/libs/ensure-dir';
@@ -68,3 +69,6 @@ export async function getKnowledgeVectorPath(
 
   return getVectorStorePath(knowledgeId);
 }
+
+export const getId = (knowledgeId: string, content: string) =>
+  hash('md5', [knowledgeId, String(content || '').trim()].join('|'), 'hex');

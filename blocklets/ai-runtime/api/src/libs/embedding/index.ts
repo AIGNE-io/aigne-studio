@@ -5,17 +5,18 @@ import { resourceManager } from '@api/libs/resource';
 import { getKnowledgeVectorPath } from '@api/routes/knowledge/util';
 import VectorStore from '@api/store/vector-store-faiss';
 import config from '@blocklet/sdk/lib/config';
+import { Document } from '@langchain/core/documents';
 import { pathExists, readFile } from 'fs-extra';
 import { uniqBy } from 'lodash';
 
 import { AIKitEmbeddings } from '../../core/embeddings/ai-kit';
-import SearchClient from '../../routes/knowledge/retriever/meilisearch';
+import SearchClient from '../../routes/knowledge/retriever/meilisearch/meilisearch';
 import Knowledge from '../../store/models/dataset/dataset';
 import { SEARCH_KIT_DID } from '../const';
 import logger from '../logger';
-import push from './push';
+import push, { PushParams } from './push';
 
-const getDocsList = async (vectorPath: string, embeddings: any) => {
+const getDocsList = async (vectorPath: string, embeddings: any): Promise<Document[]> => {
   try {
     const docstore = join(vectorPath, 'docstore.json');
     if (await pathExists(docstore)) {
@@ -26,25 +27,32 @@ const getDocsList = async (vectorPath: string, embeddings: any) => {
     logger.error(`read docstore error: ${error}`);
     const vectorStore = await VectorStore.load(vectorPath, embeddings);
     const length = Object.keys(vectorStore.getMapping())?.length;
-    return length > 0 ? await vectorStore.similaritySearch(' ', length) : [];
+    return length > 0 ? ((await vectorStore.similaritySearch(' ', length)) as unknown as Document[]) : [];
   }
 
   return [];
 };
 
 const getVectorPaths = async (resources: { blockletDid: string; knowledge: Knowledge }[], knowledges: Knowledge[]) => {
-  const paths: { vectorPathOrKnowledgeId: string; knowledgeId: string }[] = [];
+  const paths: { vectorPathOrKnowledgeId: string; knowledgeId: string; params: PushParams }[] = [];
 
-  const checkAndAddPath = async (blockletDid: string | null, knowledge: Knowledge) => {
+  const checkAndAddPath = async (blockletDid: string | null, knowledge: Knowledge, params: PushParams) => {
     const vectorPath = await getKnowledgeVectorPath(blockletDid || null, knowledge.id, knowledge);
+
     if (vectorPath && (await pathExists(join(vectorPath, 'faiss.index')))) {
-      paths.push({ vectorPathOrKnowledgeId: vectorPath, knowledgeId: knowledge.id });
+      paths.push({ vectorPathOrKnowledgeId: vectorPath, knowledgeId: knowledge.id, params });
     }
   };
 
   await Promise.all([
-    ...resources.map((r: { blockletDid: string; knowledge: Knowledge }) => checkAndAddPath(r.blockletDid, r.knowledge)),
-    ...knowledges.map((k: Knowledge) => checkAndAddPath(null, k)),
+    ...resources.map((r: { blockletDid: string; knowledge: Knowledge }) =>
+      checkAndAddPath(r.blockletDid, r.knowledge, {
+        from: 'resource',
+        knowledgeId: r.knowledge.id,
+        blockletDid: r.blockletDid,
+      })
+    ),
+    ...knowledges.map((k: Knowledge) => checkAndAddPath(null, k, { from: 'db', knowledgeId: k.id })),
   ]);
 
   return paths;
@@ -52,30 +60,29 @@ const getVectorPaths = async (resources: { blockletDid: string; knowledge: Knowl
 
 const init = async () => {
   const embeddings = new AIKitEmbeddings();
-  const client = new SearchClient();
-  if (client.canUse) await client.updateConfig();
 
   const resources = await resourceManager.getKnowledgeList();
   const knowledges = await Knowledge.findAll();
 
-  const documents = [];
   const paths = await getVectorPaths(resources, knowledges);
+
   for (const path of paths) {
     const list = await getDocsList(path.vectorPathOrKnowledgeId, embeddings);
-    documents.push(...client.formatDocuments(list, path.knowledgeId));
-  }
+    const client = new SearchClient(path.knowledgeId);
+    if (client.canUse) await client.updateConfig();
 
-  const total = uniqBy(documents, 'id').length;
-  const searchTotal = (await client.getDocuments())?.total || 0;
+    const documents = client.formatDocuments(list);
+    const total = uniqBy(documents, 'id').length;
+    const searchTotal = (await client.getDocuments())?.total || 0;
 
-  logger.info('vector total', total);
-  logger.info('search total', searchTotal);
+    logger.info('compare knowledge embedding total', {
+      knowledgeId: path.knowledgeId,
+      total,
+      searchTotal,
+      isNeedEmbedding: total > searchTotal,
+    });
 
-  if (total > searchTotal) {
-    await Promise.all([
-      ...resources.map((r) => push({ from: 'resource', knowledgeId: r.knowledge.id, blockletDid: r.blockletDid })), // 兼容老的搜索方式
-      ...knowledges.map((k) => push({ from: 'db', knowledgeId: k.id })),
-    ]);
+    if (total > searchTotal) await push(path.params);
   }
 };
 
