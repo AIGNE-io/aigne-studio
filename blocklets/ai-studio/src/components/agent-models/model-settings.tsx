@@ -1,10 +1,4 @@
-import {
-  ImageAssistantYjs,
-  ImageModelInfo,
-  ModelBasedAssistantYjs,
-  PromptAssistantYjs,
-  TextModelInfo,
-} from '@blocklet/ai-runtime/types';
+import { ImageModelInfo, ModelBasedAssistantYjs, TextModelInfo } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import Menu2Icon from '@iconify-icons/tabler/menu-2';
 import { Dialog, DialogContent, DialogTitle, IconButton } from '@mui/material';
@@ -22,8 +16,7 @@ interface ModelSettingsMenuButtonProps {
 
 export function ModelSettingsMenuButton({ agent }: ModelSettingsMenuButtonProps) {
   const dialogState = usePopupState({ variant: 'dialog', popupId: 'model-settings' });
-  const modelType = resolveModelType(agent.type)!;
-  const models = useAllModels(modelType);
+  const models = useAllModels(resolveModelType(agent.type)!);
   const { projectId, projectRef } = useCurrentProject();
   const defaultModel = useAgentDefaultModel({ projectId, gitRef: projectRef, value: agent });
   const model = models.find((x) => x.model === defaultModel);
@@ -36,12 +29,8 @@ export function ModelSettingsMenuButton({ agent }: ModelSettingsMenuButtonProps)
       <Dialog maxWidth="sm" fullWidth {...bindDialog(dialogState)}>
         <DialogTitle>Model Settings</DialogTitle>
         <DialogContent>
-          {modelType === 'llm' && (
-            <LLMModelSettings agent={agent as PromptAssistantYjs} model={model as TextModelInfo} />
-          )}
-          {modelType === 'aigc' && (
-            <AIGCModelSettings agent={agent as ImageAssistantYjs} model={model as ImageModelInfo} />
-          )}
+          {agent.type === 'prompt' && <LLMModelSettings agent={agent} model={model as TextModelInfo} />}
+          {agent.type === 'image' && <AIGCModelSettings agent={agent} model={model as ImageModelInfo} />}
         </DialogContent>
       </Dialog>
     </>
