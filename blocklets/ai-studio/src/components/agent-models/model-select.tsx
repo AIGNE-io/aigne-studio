@@ -106,8 +106,8 @@ export function ModelSelectDialog({ type, dialogProps, agent }: ModelSelectDialo
   const { t } = useLocaleContext();
   const [tags, setTags] = useState<string[]>([]);
   const models = useAllModels(type);
+  const allTags = Array.from(new Set(models.map((x) => x.tags || []).flat()));
   const [selected, setSelected] = useState<string | null>(null);
-  // console.log('🚀 ~ ModelSelectDialog ~ models:', models);
   const isAdmin = useIsAdmin();
   const addComponentRef = useRef<{ onClick?: () => void; loading?: boolean }>();
   const [showStarred, setShowStarred] = useState(false);
@@ -156,7 +156,7 @@ export function ModelSelectDialog({ type, dialogProps, agent }: ModelSelectDialo
     if (showStarred && starredModelSet.has(x.model)) {
       return true;
     }
-    return tags.includes(x.brand || '');
+    return x.tags?.some((tag) => tags.includes(tag));
   });
 
   const sortedOptions = sortModels(
@@ -172,6 +172,7 @@ export function ModelSelectDialog({ type, dialogProps, agent }: ModelSelectDialo
       <DialogContent sx={{ height: { md: '50vh' }, maxHeight: 500 }}>
         <Box sx={{ my: 1.5, mb: 2.5 }}>
           <TagFilter
+            tags={allTags}
             value={tags}
             onChange={setTags}
             prepend={

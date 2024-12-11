@@ -168,7 +168,7 @@ export const respondAgentFields = ({
     working?: boolean;
   };
 }): Agent => ({
-  ...pick(agent, 'id', 'name', 'description', 'type', 'parameters', 'createdAt', 'updatedAt', 'createdBy'),
+  ...pick(agent, 'id', 'name', 'description', 'type', 'parameters', 'createdAt', 'updatedAt', 'createdBy', 'tags'),
   access: pick(agent.access, 'noLoginRequired'),
   outputVariables: (agent.outputVariables ?? []).filter((i) => !i.hidden),
   project: pick(
