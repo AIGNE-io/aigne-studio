@@ -134,7 +134,13 @@ function AgentParametersForm({ assistant }: { assistant: AssistantYjs }) {
             if (
               !data?.key ||
               data.type === 'source' ||
-              ['llmInputMessages', 'llmInputTools', 'llmInputToolChoice', 'llmInputResponseFormat'].includes(data.type!)
+              [
+                'aigcInputPrompt',
+                'llmInputMessages',
+                'llmInputTools',
+                'llmInputToolChoice',
+                'llmInputResponseFormat',
+              ].includes(data.type!)
             )
               return null;
 

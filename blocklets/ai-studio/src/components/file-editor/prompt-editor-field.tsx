@@ -112,6 +112,7 @@ export default function PromptEditorField({
       language: t('language'),
       boolean: t('boolean'),
       source: t('source'),
+      aigcInputPrompt: t('aigcInputPrompt'),
       llmInputMessages: t('llmInputMessages'),
       llmInputTools: t('llmInputTools'),
       llmInputToolChoice: t('llmInputToolChoice'),

@@ -63,6 +63,11 @@ export default function ParameterConfigType(props: TextFieldProps) {
       },
       {
         icon: <Icon icon={MessagesIcon} />,
+        label: t('aigcInputPrompt'),
+        value: 'aigcInputPrompt',
+      },
+      {
+        icon: <Icon icon={MessagesIcon} />,
         label: t('llmInputMessages'),
         value: 'llmInputMessages',
       },

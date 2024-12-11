@@ -343,6 +343,7 @@ export type Parameter =
   | LanguageParameter
   | BooleanParameter
   | SourceParameter
+  | AIGCInputPromptParameter
   | LLMInputMessagesParameter
   | LLMInputToolsParameter
   | LLMInputToolChoiceParameter
@@ -364,6 +365,11 @@ export interface ParameterBase {
 
 export function isUserInputParameter(parameter: Parameter): parameter is Exclude<Parameter, SourceParameter> {
   return parameter.type !== 'source';
+}
+
+export interface AIGCInputPromptParameter extends ParameterBase {
+  type: 'aigcInputPrompt';
+  defaultValue?: any;
 }
 
 export interface LLMInputMessagesParameter extends ParameterBase {

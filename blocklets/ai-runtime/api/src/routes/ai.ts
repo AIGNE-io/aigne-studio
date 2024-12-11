@@ -212,9 +212,15 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
   const callAIImage: CallAIImage = async ({ input }) => {
     const adapterAgent = await getAdapterAgent();
     if (adapterAgent) {
+      const promptKey = adapterAgent.parameters?.find((i) => i.type === 'aigcInputPrompt' && !i.hidden)?.key;
       const result = await executor.context
         .executor(adapterAgent, {
-          inputs: { ...input, model: (adapterAgent as ImageAssistant).model, ...agent.modelSettings },
+          inputs: {
+            ...input,
+            ...agent.modelSettings,
+            ...(promptKey ? { [promptKey]: input.prompt } : {}),
+            model: (adapterAgent as ImageAssistant).model,
+          },
           taskId: nextTaskId(),
           parentTaskId: taskId,
         })

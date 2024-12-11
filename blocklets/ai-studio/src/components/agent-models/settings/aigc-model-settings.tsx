@@ -47,7 +47,13 @@ function AgentParametersForm({
             if (
               !data?.key ||
               data.type === 'source' ||
-              ['llmInputMessages', 'llmInputTools', 'llmInputToolChoice', 'llmInputResponseFormat'].includes(data.type!) // TODO: 判断条件调整, llm* => aigc* ?
+              [
+                'aigcInputPrompt',
+                'llmInputMessages',
+                'llmInputTools',
+                'llmInputToolChoice',
+                'llmInputResponseFormat',
+              ].includes(data.type!)
             )
               return null;
 

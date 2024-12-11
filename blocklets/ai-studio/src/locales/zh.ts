@@ -720,6 +720,7 @@ export default flatten({
   buildIn: '内置组件',
   remote: '远程组件',
   onlyAdminsAllowAddMoreAgents: '仅允许管理员添加更多 Agents',
+  aigcInputPrompt: 'AIGC 输入提示',
   llmInputMessages: '大语言模型消息',
   llmInputTools: '大语言模型工具',
   llmInputToolChoice: '大语言模型工具选择',

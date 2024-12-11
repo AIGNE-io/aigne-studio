@@ -724,6 +724,7 @@ export default flatten({
   buildIn: 'buildIn',
   remote: 'remote',
   onlyAdminsAllowAddMoreAgents: 'Only admins can add more agents',
+  aigcInputPrompt: 'AIGC Prompt',
   llmInputMessages: 'LLM Messages',
   llmInputTools: 'LLM Tools',
   llmInputToolChoice: 'LLM Tool Choice',
