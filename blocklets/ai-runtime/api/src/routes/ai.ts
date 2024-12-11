@@ -211,11 +211,10 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
 
   const callAIImage: CallAIImage = async ({ input }) => {
     const adapterAgent = await getAdapterAgent();
-
     if (adapterAgent) {
       const result = await executor.context
         .executor(adapterAgent, {
-          inputs: { ...input, model: (adapterAgent as ImageAssistant).model },
+          inputs: { ...input, model: (adapterAgent as ImageAssistant).model, ...agent.modelSettings },
           taskId: nextTaskId(),
           parentTaskId: taskId,
         })

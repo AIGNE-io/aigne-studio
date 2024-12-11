@@ -169,6 +169,7 @@ export interface AssistantBase {
   access?: {
     noLoginRequired?: boolean;
   };
+  modelSettings?: { [key: string]: any };
 }
 
 export interface VariableTypeBase {

@@ -1,24 +1,88 @@
+import { UseAgentItem, useAgent } from '@app/store/agent';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { ParameterField } from '@blocklet/ai-runtime/components';
 import { ImageAssistantYjs, ImageModelInfo } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import HelpIcon from '@iconify-icons/tabler/help';
-import { Box, FormLabel, MenuItem, Stack, TextField, Tooltip } from '@mui/material';
+import { Box, FormLabel, MenuItem, Stack, TextField, Tooltip, Typography } from '@mui/material';
 
 import { useCurrentProject } from '../../../contexts/project';
 import { TOOL_TIP_LEAVE_TOUCH_DELAY } from '../../../libs/constants';
 import WithAwareness from '../../awareness/with-awareness';
 import SliderNumberField from '../../slider-number-field';
+import { useModelAdapterAgent } from '../use-models';
 
 interface AIGCModelSettingsProps {
   agent: ImageAssistantYjs;
   model: ImageModelInfo;
 }
 
+function AgentParametersForm({
+  adapterAgent,
+  assistant,
+}: {
+  adapterAgent: UseAgentItem;
+  assistant: ImageAssistantYjs;
+}) {
+  const { t } = useLocaleContext();
+
+  const agent = useAgent({
+    type: 'aigc-adapter',
+    blockletDid: adapterAgent.identity.blockletDid,
+    projectId: adapterAgent.identity.projectId,
+    agentId: adapterAgent.identity.agentId,
+  });
+
+  if (!agent) return null;
+
+  return (
+    <Stack gap={2}>
+      <Box>
+        <Typography variant="subtitle2">{t('inputs')}</Typography>
+
+        <Stack gap={1}>
+          {agent.parameters?.map((data) => {
+            if (data.hidden) return null;
+
+            if (
+              !data?.key ||
+              data.type === 'source' ||
+              ['llmInputMessages', 'llmInputTools', 'llmInputToolChoice', 'llmInputResponseFormat'].includes(data.type!) // TODO: 判断条件调整, llm* => aigc* ?
+            )
+              return null;
+
+            return (
+              <Stack key={data.id}>
+                <Typography variant="caption">{data.label || data.key}</Typography>
+
+                <ParameterField
+                  label=""
+                  hiddenLabel
+                  parameter={data}
+                  value={assistant.modelSettings?.[data.key] || data.defaultValue || ''}
+                  onChange={(value) => {
+                    assistant.modelSettings ??= {};
+                    assistant.modelSettings[data.key!] = value;
+                  }}
+                />
+              </Stack>
+            );
+          })}
+        </Stack>
+      </Box>
+    </Stack>
+  );
+}
+
 export function AIGCModelSettings({ agent, model }: AIGCModelSettingsProps) {
   const { t } = useLocaleContext();
   const { projectId, projectRef } = useCurrentProject();
-
+  const adapterAgent = useModelAdapterAgent(model.model, 'aigc');
   const icon = <Box component={Icon} icon={HelpIcon} sx={{ fontSize: 16, color: '#9CA3AF', mt: 0.25 }} />;
+
+  if (adapterAgent) {
+    return <AgentParametersForm adapterAgent={adapterAgent} assistant={agent} />;
+  }
 
   return (
     <Stack spacing={2}>

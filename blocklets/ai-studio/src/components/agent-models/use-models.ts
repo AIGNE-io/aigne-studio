@@ -37,10 +37,19 @@ function useSupportedModels(type: ModelType): (TextModelInfo | ImageModelInfo)[]
   return data || [];
 }
 
-export function useModelsFromAgents(type: ModelType): (TextModelInfo | ImageModelInfo)[] {
+function useIsBuiltinModel(model: string, type: ModelType) {
+  const supportedModels = useSupportedModels(type);
+  return supportedModels.some((x) => x.model === model);
+}
+
+function useAgents({ type }: { type: ModelType }) {
   const adapterTypes = { llm: 'llm-adapter', aigc: 'aigc-adapter' };
   const { agents } = useAgentSelectOptions({ type: adapterTypes[type] as ResourceType });
+  return agents;
+}
 
+export function useModelsFromAgents(type: ModelType): (TextModelInfo | ImageModelInfo)[] {
+  const agents = useAgents({ type });
   const projectIcons = new Map<string, string>(
     agents.map((agent) => [
       agent.identity.projectId,
@@ -131,4 +140,16 @@ export function useModelBrand(model: string) {
     refreshDeps: [model],
   });
   return data;
+}
+
+export function useModelAdapterAgent(model: string, type: ModelType) {
+  const isBuiltin = useIsBuiltinModel(model, type);
+  const agents = useAgents({ type });
+  if (isBuiltin) return null;
+  const agent = agents.find((agent) =>
+    (agent.parameters?.find((x) => x.key === 'model') as SelectParameter)?.options?.some(
+      (x) => x.value === model || x.label === model
+    )
+  );
+  return agent;
 }
