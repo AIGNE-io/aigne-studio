@@ -1,3 +1,7 @@
+## 0.4.166 (2024-12-12)
+
+- fix: code editor close tag not working
+
 ## 0.4.165 (2024-12-12)
 
 - fix: migrate data for vector db is empty
