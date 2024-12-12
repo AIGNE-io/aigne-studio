@@ -4,10 +4,11 @@ import { join } from 'path';
 import { resourceManager } from '@api/libs/resource';
 import { getKnowledgeVectorPath } from '@api/routes/knowledge/util';
 import VectorStore from '@api/store/vector-store-faiss';
-import config from '@blocklet/sdk/lib/config';
+import { BlockletStatus } from '@blocklet/constant';
+import config, { components } from '@blocklet/sdk/lib/config';
 import { Document } from '@langchain/core/documents';
 import { pathExists, readFile } from 'fs-extra';
-import { uniqBy } from 'lodash';
+import { orderBy, uniqBy } from 'lodash';
 
 import { AIKitEmbeddings } from '../../core/embeddings/ai-kit';
 import SearchClient from '../../routes/knowledge/retriever/meilisearch/meilisearch';
@@ -17,14 +18,15 @@ import logger from '../logger';
 import push, { PushParams } from './push';
 
 const getDocsList = async (vectorPath: string, embeddings: any): Promise<Document[]> => {
+  const docstore = join(vectorPath, 'docstore.json');
   try {
-    const docstore = join(vectorPath, 'docstore.json');
     if (await pathExists(docstore)) {
-      const [docs] = JSON.parse(await readFile(docstore, 'utf-8'));
-      return docs.map((i: [string, object]) => i[1]);
+      const content = await readFile(docstore, 'utf-8');
+      const [docs] = content ? JSON.parse(content) : [[]];
+      return docs.map((i: [string, object]) => i[1]).filter(Boolean);
     }
   } catch (error) {
-    logger.error(`read docstore error: ${error}`);
+    logger.error(`read docstore error: ${error}`, docstore);
     const vectorStore = await VectorStore.load(vectorPath, embeddings);
     const length = Object.keys(vectorStore.getMapping())?.length;
     return length > 0 ? ((await vectorStore.similaritySearch(' ', length)) as unknown as Document[]) : [];
@@ -67,8 +69,10 @@ const init = async () => {
 
     const paths = await getVectorPaths(resources, knowledges);
 
+    const component = components.find((item: { did: string }) => item.did === SEARCH_KIT_DID);
+    if (!component || component.status !== BlockletStatus.running) return;
+
     for (const path of paths) {
-      logger.info('path', path.vectorPathOrKnowledgeId);
       const list = await getDocsList(path.vectorPathOrKnowledgeId, embeddings);
       const client = new SearchClient(path.knowledgeId);
       if (client.canUse) client.updateConfig();
@@ -122,7 +126,7 @@ export const getEmbeddingsStatus = async () => {
     })
   );
 
-  return result;
+  return orderBy(result, ['isNeedEmbedding'], ['desc']);
 };
 
 config.events.on(config.Events.componentStarted, (components) => {

@@ -6,6 +6,7 @@ import middlewares from '@blocklet/sdk/lib/middlewares';
 import express, { Router } from 'express';
 import { pathExists } from 'fs-extra';
 import Joi from 'joi';
+import { orderBy } from 'lodash';
 import { Op } from 'sequelize';
 import { joinURL } from 'ufo';
 
@@ -81,6 +82,7 @@ router.get('/:knowledgeId/search', async (req, res) => {
 
         return {
           content: i.pageContent,
+          rankingScore: i._rankingScore || 0,
           metadata: {
             document: doc?.dataValues,
             metadata: i.metadata?.metadata,
@@ -91,6 +93,7 @@ router.get('/:knowledgeId/search', async (req, res) => {
 
       return {
         content: i.pageContent,
+        rankingScore: i._rankingScore || 0,
         metadata: {
           document: null,
           metadata: i.metadata?.metadata,
@@ -100,7 +103,7 @@ router.get('/:knowledgeId/search', async (req, res) => {
     })
   );
 
-  return res.json({ docs });
+  return res.json({ docs: orderBy(docs, 'rankingScore', 'desc') });
 });
 
 router.get('/:knowledgeId/documents', middlewares.session(), userAuth(), async (req, res) => {

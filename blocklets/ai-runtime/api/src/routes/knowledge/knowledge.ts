@@ -17,7 +17,7 @@ import compression from 'compression';
 import express, { Router } from 'express';
 import { pathExists } from 'fs-extra';
 import Joi from 'joi';
-import { pick } from 'lodash';
+import { isNil, pick } from 'lodash';
 import omitBy from 'lodash/omitBy';
 import { Op, Sequelize } from 'sequelize';
 import { stringify } from 'yaml';
@@ -65,9 +65,41 @@ const getKnowledgeListQuerySchema = Joi.object<{ projectId?: string; page: numbe
   size: Joi.number().integer().min(1).max(10000).default(20),
 });
 
-router.get('/embedding-status', async (_req, res) => {
+const embeddingStatusSchema = Joi.object<{
+  knowledgeId?: string;
+  isNeedEmbedding?: boolean;
+  runningQueuedTasks?: boolean;
+  hasError?: boolean;
+}>({
+  knowledgeId: Joi.string().optional(),
+  isNeedEmbedding: Joi.boolean().optional(),
+  runningQueuedTasks: Joi.boolean().optional(),
+  hasError: Joi.boolean().optional(),
+});
+
+router.get('/embedding-status', async (req, res) => {
   const result = await getEmbeddingsStatus();
-  res.json(result);
+  const query = await embeddingStatusSchema.validateAsync(req.query, { stripUnknown: true });
+
+  let list = result;
+
+  if (query.knowledgeId) {
+    list = list.filter((item) => item.knowledgeId === query.knowledgeId);
+  }
+
+  if (!isNil(query.isNeedEmbedding)) {
+    list = list.filter((item) => item.isNeedEmbedding === query.isNeedEmbedding);
+  }
+
+  if (!isNil(query.runningQueuedTasks)) {
+    list = list.filter((item) => item.queuedTasks > 0);
+  }
+
+  if (query.hasError) {
+    list = list.filter((item) => item.error);
+  }
+
+  res.json({ list, total: list.length });
 });
 
 router.get('/', middlewares.session(), ensureComponentCallOr(userAuth()), async (req, res) => {

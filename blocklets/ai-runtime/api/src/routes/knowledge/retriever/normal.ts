@@ -7,11 +7,7 @@ import BaseRetriever from './base';
 export default class NormalRetriever extends BaseRetriever {
   async search(query: string): Promise<Document[]> {
     try {
-      if (!this.vectorStore) {
-        await this.initializeVectorStore();
-      }
-      logger.debug('vectorStore initialized');
-
+      if (!this.vectorStore) await this.initializeVectorStore();
       const vectorStore = this.vectorStore!;
 
       if (vectorStore.getMapping() && !Object.keys(vectorStore.getMapping()).length) {

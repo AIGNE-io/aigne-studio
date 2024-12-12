@@ -372,7 +372,8 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
         onSubmit={async (e) => {
           try {
             e.preventDefault();
-            await runAsync(search!, useSearchKit);
+            if (!search) return;
+            await runAsync(search, useSearchKit);
             setLoaded(true);
           } catch (error) {
             Toast.error(error?.message);
@@ -419,7 +420,8 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
           onClick={async (e) => {
             try {
               e.preventDefault();
-              await runAsync(search!, useSearchKit);
+              if (!search) return;
+              await runAsync(search, useSearchKit);
               setLoaded(true);
             } catch (error) {
               Toast.error(error?.message);

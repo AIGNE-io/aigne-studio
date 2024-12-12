@@ -1,3 +1,4 @@
+import logger from '@api/libs/logger';
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { Document } from '@langchain/core/documents';
 import { MarkdownTextSplitter, RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
@@ -28,10 +29,10 @@ export const updateHistoriesAndStore = async (knowledgeId: string, documentId: s
   const { rows: messages, count } = await Segment.findAndCountAll({ where });
   const ids = messages.map((x) => x.id);
 
-  const client = new KnowledgeSearchClient(knowledgeId);
-  if (client.canUse) await client.remove(documentId);
-
   if (count > 0) {
+    const client = new KnowledgeSearchClient(knowledgeId);
+    if (client.canUse) await client.remove(documentId);
+
     await deleteStore(knowledgeId, ids);
     await Segment.destroy({ where });
   }
@@ -82,10 +83,10 @@ async function processContent(
     docs = await splitter.createDocuments(chunks, metadataArray);
   }
 
-  const formattedDocs = docs.map((doc) => formatDocument(doc, metadata));
-  const vectors = await embeddings.embedDocuments(formattedDocs.map((d) => d.pageContent));
+  const formattedDocuments = docs.map((doc) => formatDocument(doc, metadata));
+  const vectors = await embeddings.embedDocuments(formattedDocuments.map((d) => d.pageContent));
 
-  return { vectors, formattedDocs };
+  return { vectors, formattedDocuments };
 }
 
 async function saveSegments(docs: Document[], documentId: string) {
@@ -118,25 +119,25 @@ export const saveContentToVectorStore = async ({
   update?: boolean;
   type: 'file' | 'text' | 'discussKit' | 'url';
 }) => {
-  const client = new KnowledgeSearchClient(knowledgeId);
-
   // 文本处理和向量化
-  const { vectors, formattedDocs } = await processContent(content, type, metadata, {
+  const { vectors, formattedDocuments } = await processContent(content, type, metadata, {
     separators: ['\n\n', '\n', ' ', ''],
     chunkSize: 1024,
     chunkOverlap: 100,
   });
 
-  if (client.canUse) await client.update(formattedDocs);
-
   // 清理历史数据
   if (update) {
-    await updateHistoriesAndStore(knowledgeId, documentId);
+    await updateHistoriesAndStore(knowledgeId, documentId).catch((error) => {
+      logger.error('updateHistoriesAndStore error', error);
+    });
   }
 
   // 保存分段并获取ID
-  const segments = await saveSegments(formattedDocs, documentId);
+  const segments = await saveSegments(formattedDocuments, documentId);
 
   // 更新向量存储
-  await updateVectorStore(knowledgeId, vectors, formattedDocs, segments);
+  await updateVectorStore(knowledgeId, vectors, formattedDocuments, segments);
+
+  return formattedDocuments;
 };

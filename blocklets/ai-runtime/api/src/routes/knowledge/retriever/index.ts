@@ -24,6 +24,7 @@ export default class Retriever {
     logger.info('retriever search', {
       knowledgeId: this.knowledgeId,
       vectorPathOrKnowledgeId: this.vectorPathOrKnowledgeId,
+      searchKit: this.useSearchKit,
     });
 
     const Retriever = retrieverMAP[config.env.preferences.retriever];

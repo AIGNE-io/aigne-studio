@@ -6,8 +6,8 @@ import { PipelineProcessor } from '../executor';
 
 export const queue = createQueue({
   options: {
-    concurrency: 1,
-    maxTimeout: 5 * 60 * 1000,
+    concurrency: 3,
+    maxTimeout: 30 * 60 * 1000,
     id: (job) => sha3_256(JSON.stringify(job)),
   },
   onJob: async (task) => {

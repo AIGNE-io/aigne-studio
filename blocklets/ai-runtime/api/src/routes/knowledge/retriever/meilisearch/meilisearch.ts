@@ -1,7 +1,10 @@
 /* eslint-disable no-await-in-loop */
 import { join } from 'path';
 
+import { SEARCH_KIT_DID } from '@api/libs/const';
 import logger from '@api/libs/logger';
+import { BlockletStatus } from '@blocklet/constant';
+import { components } from '@blocklet/sdk/lib/config';
 import { Document } from '@langchain/core/documents';
 import { pathExists, readFile } from 'fs-extra';
 
@@ -39,7 +42,8 @@ export default class SearchClient {
   }
 
   get canUse() {
-    return !!this.client;
+    const component = components.find((item: { did: string }) => item.did === SEARCH_KIT_DID);
+    return component && component.status === BlockletStatus.running && !!this.client;
   }
 
   get postIndex() {
@@ -119,7 +123,7 @@ export default class SearchClient {
     await this.batchUpdatePosts(docs);
   }
 
-  async batchUpdatePosts(docs: Document[], size = 3000) {
+  async batchUpdatePosts(docs: Document[], size = 5000) {
     logger.info('batchUpdatePosts start', { knowledgeId: this.knowledgeId });
 
     let processed = 0;
@@ -133,7 +137,7 @@ export default class SearchClient {
       logger.info(`index posts: {skip=${processed}, total=${total}, size=${size}`);
       const documents = docs.slice(processed, processed + size);
       const { taskUid } = await this.updatePosts(documents);
-      logger.info(`index posts taskUid: ${taskUid}`);
+      logger.debug('index posts taskUid', taskUid);
       await sleep(5000);
       processed += documents.length;
     }
@@ -180,7 +184,7 @@ export default class SearchClient {
     try {
       const embedders = resolveRestEmbedders({ documentTemplate });
       const { taskUid } = await this.postIndex.updateEmbedders(embedders);
-      logger.info(`updateEmbedders taskUid: ${taskUid}`);
+      logger.debug('updateEmbedders taskUid', taskUid);
     } catch (e) {
       logger.error('updateEmbedders error - downgrade to basic search.', e);
     }
@@ -189,7 +193,7 @@ export default class SearchClient {
   async resetEmbedders() {
     try {
       const { taskUid } = await this.postIndex.resetEmbedders();
-      logger.info(`resetEmbedders taskUid: ${taskUid}`);
+      logger.debug('resetEmbedders taskUid', taskUid);
     } catch (e) {
       logger.error('resetEmbedders error', e);
     }
@@ -215,16 +219,10 @@ export default class SearchClient {
       await this.init({ vectorPathOrKnowledgeId });
     };
 
-    await retry(upsert, 3, 3000).catch((err) => logger.error('checkUpdate error:', err));
-  }
-
-  async clearAllTasks() {
-    const { taskUid } = await this.client.deleteTasks({ indexUids: [this.POST_INDEX_NAME] });
-    await this.waitForTask(taskUid);
+    await retry(upsert, 1, 3000).catch((err) => logger.error('checkUpdate error:', err));
   }
 
   async updateConfig() {
-    // await this.clearAllTasks();
     await this.updateEmbedders();
     await this.updateSettings(POST_SETTING);
   }
@@ -235,7 +233,6 @@ export default class SearchClient {
     try {
       return await this.postIndex.getDocuments({ limit, offset, fields });
     } catch (error) {
-      logger.error('getDocuments error:', error);
       return { results: [], total: 0 };
     }
   }
