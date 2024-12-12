@@ -35,10 +35,13 @@ export const getLogoPath = (knowledgeId: string) => path.join(getKnowledgeDir(kn
 export const getOldVectorStorePath = (id: string) => path.join(Config.dataDir, 'vectors', id);
 export const getOldUploadPath = (file: string) => path.join(Config.uploadDir, file);
 
-export const getVectorStorePath = async (knowledgeId: string) =>
-  knowledgeId && (await pathExists(getVectorDir(knowledgeId)))
-    ? getVectorDir(knowledgeId)
-    : getOldVectorStorePath(knowledgeId);
+export const getVectorStorePath = async (knowledgeId: string) => {
+  if (knowledgeId && (await pathExists(getVectorDir(knowledgeId)))) {
+    return getVectorDir(knowledgeId);
+  }
+
+  return getOldVectorStorePath(knowledgeId);
+};
 
 export const getUploadPath = async (knowledgeId: string, file: string) =>
   knowledgeId && (await pathExists(getUploadDir(knowledgeId)))

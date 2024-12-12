@@ -39,7 +39,7 @@ payment:
   share: []
 timeout:
   start: 60
-  script: 600
+  script: 1800
 requirements:
   server: '>=1.6.29'
   os: '*'
