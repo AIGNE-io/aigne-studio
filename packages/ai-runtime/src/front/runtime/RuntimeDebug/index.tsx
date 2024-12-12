@@ -1,7 +1,10 @@
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
 import MessageXIcon from '@iconify-icons/tabler/message-x';
 import PlusIcon from '@iconify-icons/tabler/plus';
 import TrashIcon from '@iconify-icons/tabler/trash';
+import WandIcon from '@iconify-icons/tabler/wand';
 import { Icon } from '@iconify/react';
 import {
   Box,
@@ -24,6 +27,7 @@ import CustomComponentRenderer from '../../components/CustomComponentRenderer/Cu
 import LoadingButton from '../../components/LoadingButton';
 import ScrollView from '../../components/ScrollView';
 import { AIGNEApiContextValue } from '../../contexts/Api';
+import { useDebugDialog } from '../../contexts/Debug';
 import { useEntryAgent } from '../../contexts/EntryAgent';
 import { RuntimeProvider } from '../../contexts/Runtime';
 import { SessionProvider, useSession } from '../../contexts/Session';
@@ -42,7 +46,7 @@ export default function RuntimeDebug({
   const hostTheme = useTheme();
 
   return (
-    <RuntimeProvider aid={aid} working ApiProps={ApiProps}>
+    <RuntimeProvider aid={aid} working ApiProps={ApiProps} debug>
       {!hideSessionsBar && (
         <ThemeProvider theme={hostTheme}>
           <SessionsBar />
@@ -105,9 +109,13 @@ function AgentView() {
 }
 
 function SessionsBar() {
+  const { locale } = useLocaleContext();
+
   const { sessions, loaded, createSession, setCurrentSessionId, currentSessionId } = useSessions((s) =>
     pick(s, ['sessions', 'loaded', 'createSession', 'setCurrentSessionId', 'currentSessionId'])
   );
+
+  const setOpen = useDebugDialog((s) => s.setOpen);
 
   const newSession = async () => {
     try {
@@ -151,7 +159,18 @@ function SessionsBar() {
 
             {sessions?.map((session) => (
               <MenuItem key={session.id} value={session.id}>
-                {session.name || session.updatedAt}
+                {session.name || (
+                  <RelativeTime
+                    value={session.updatedAt}
+                    type="absolute"
+                    locale={locale}
+                    withoutSuffix={undefined}
+                    from={undefined}
+                    to={undefined}
+                    tz={undefined}
+                    relativeRange={undefined}
+                  />
+                )}
               </MenuItem>
             ))}
           </Select>
@@ -165,6 +184,10 @@ function SessionsBar() {
       )}
 
       <Box flex={1} />
+
+      <LoadingButton onClick={() => setOpen?.(true)} sx={{ minWidth: 32, minHeight: 32, p: 0 }}>
+        <Icon icon={WandIcon} fontSize={18} />
+      </LoadingButton>
 
       {currentSessionId && (
         <Suspense>

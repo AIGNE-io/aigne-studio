@@ -1,9 +1,11 @@
-import { useSessionContext } from '@app/contexts/session';
+import { useIsAdmin, useSessionContext } from '@app/contexts/session';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { QuotaKey, Quotas } from '@blocklet/aigne-sdk/quotas';
 import { create } from 'zustand';
 
 import type { Plan } from './pricing-table';
+
+type RestrictionType = QuotaKey | 'anonymousRequest';
 
 export const premiumPassport = window.blocklet?.preferences?.premiumPassport;
 
@@ -28,12 +30,17 @@ export const usePlans = () => {
   const { locale } = useLocaleContext();
   const { session } = useSessionContext();
   const isPremiumUser = useIsPremiumUser();
-  const plans = preparePlansData(locale);
+  const plans = preparePlansData(locale as 'en' | 'zh');
+  const currentPlanIndex = useCurrentPlan();
   if (plans) {
     // 登录用户, 隐藏首个 plan 的 button
     plans[0]!.qualified = !!session?.user;
     // 如果当前用户是 premium 用户, 调整 premium plan
     plans[1]!.qualified = isPremiumUser;
+    // plan#active
+    if (currentPlanIndex !== null) {
+      plans[currentPlanIndex]!.active = true;
+    }
   }
   return plans;
 };
@@ -43,27 +50,41 @@ export const useIsPremiumUser = () => {
   return session?.user?.passports?.map((x: any) => x.name).includes(premiumPassport);
 };
 
+export const useCurrentPlan = () => {
+  const { session } = useSessionContext();
+  const isAdmin = useIsAdmin();
+  const isPremiumUser = useIsPremiumUser();
+  if (!session?.user) return null;
+  if (isAdmin) return 2;
+  if (isPremiumUser) return 1;
+  return 0;
+};
+
 export const useMultiTenantRestrictionStore = create<{
   planUpgradeVisible: boolean;
-  type: QuotaKey | null;
-  showPlanUpgrade: (type?: QuotaKey | null) => void;
+  type: RestrictionType | null;
+  showPlanUpgrade: (type?: RestrictionType | null) => void;
   hidePlanUpgrade: () => void;
 }>((set) => ({
   planUpgradeVisible: false,
   type: null,
-  showPlanUpgrade: (type?: QuotaKey | null) => set({ planUpgradeVisible: true, type }),
+  showPlanUpgrade: (type?: RestrictionType | null) => set({ planUpgradeVisible: true, type }),
   hidePlanUpgrade: () => set({ planUpgradeVisible: false }),
 }));
 
-export const showPlanUpgrade = (type?: QuotaKey) => {
+export const showPlanUpgrade = (type?: RestrictionType) => {
   useMultiTenantRestrictionStore.setState({ planUpgradeVisible: true, type });
 };
+
+export const premiumPlanEnabled = !!window.blocklet?.preferences?.premiumPlanEnabled;
 
 export function useMultiTenantRestriction() {
   const { planUpgradeVisible, type, showPlanUpgrade, hidePlanUpgrade } = useMultiTenantRestrictionStore();
   const { session } = useSessionContext();
+  const isAdmin = useIsAdmin();
+  const isPremiumUser = useIsPremiumUser();
   const passports = session?.user?.passports?.map((x: any) => x.name);
-  const quotas = new Quotas(window.blocklet?.preferences?.quotas);
+  const quotas = new Quotas(window.blocklet?.preferences);
   const quotaChecker = {
     checkCronJobs() {
       if (quotas.checkCronJobs(passports)) return true;
@@ -73,6 +94,11 @@ export function useMultiTenantRestriction() {
     checkCustomBrand() {
       if (quotas.checkCustomBrand(passports)) return true;
       showPlanUpgrade('customBrand');
+      return false;
+    },
+    checkAnonymousRequest() {
+      if (isAdmin || isPremiumUser) return true;
+      showPlanUpgrade('anonymousRequest');
       return false;
     },
   };

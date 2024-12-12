@@ -1,4 +1,5 @@
 import BaseSwitch from '@app/components/custom/switch';
+import useDialog from '@app/utils/use-dialog';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { NumberField } from '@blocklet/ai-runtime/components';
 import { AssistantYjs, OutputVariableYjs, VariableYjs, isAssistant } from '@blocklet/ai-runtime/types';
@@ -35,7 +36,7 @@ import sortBy from 'lodash/sortBy';
 import uniq from 'lodash/uniq';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { nanoid } from 'nanoid';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useParams } from 'react-router-dom';
 
@@ -60,14 +61,20 @@ function CustomNoRowsOverlay({ onAdd }: { onAdd: () => void }) {
   );
 }
 
+type MemoryVariable = VariableYjs & { assistants: string[] };
+
 function VariableList() {
+  const { dialog, showDialog } = useDialog();
   const { projectId, ref: gitRef } = useParams();
   const { t } = useLocaleContext();
   const [scope, setScope] = useState<'global' | 'user' | 'session'>('global');
+  const currentVariable = useRef<MemoryVariable | undefined>(undefined);
+
   const dialogState = usePopupState({ variant: 'dialog' });
+
   const { synced, store, getVariables, getFileById } = useProjectStore(projectId || '', gitRef || '', true);
   const variableYjs = getVariables();
-  const form = useForm<VariableYjs>({
+  const form = useForm<MemoryVariable>({
     defaultValues: { reset: false, scope: 'session', key: '', defaultValue: '', type: { type: 'string' } },
   });
 
@@ -114,11 +121,41 @@ function VariableList() {
 
     const list = filterVariables.map((x) => {
       const key: string = `${x?.scope || ''}_${x?.key || ''}`;
-      return { ...x, assistants: uniq(map[key] || []) };
+      return { ...x, assistants: uniq(map[key] || []) as string[] };
     });
 
     return list;
-  }, [scope, synced, variableYjs.variables?.length]);
+  }, [scope, synced, JSON.stringify(variableYjs.variables)]);
+
+  const updateAgentMemory = (variable: MemoryVariable, key: string) => {
+    const assistants = Object.entries(store.tree)
+      .filter(([, filepath]) => filepath?.startsWith(`${PROMPTS_FOLDER_NAME}/`))
+      .map(([id]) => store.files[id])
+      .filter((i): i is AssistantYjs => !!i && isAssistant(i))
+      .filter((i) => (variable.assistants || []).includes(i.id));
+
+    assistants.forEach((assistant) => {
+      Object.values(assistant.parameters || {})
+        .filter((i) => !i.data.hidden)
+        .forEach((parameter) => {
+          if (parameter.data.type === 'source' && parameter.data.source?.variableFrom === 'datastore') {
+            const s = parameter.data.source;
+            if (s.variable?.key === variable.key) {
+              s.variable.key = key;
+            }
+          }
+        });
+
+      Object.values(assistant.outputVariables || {}).forEach((output) => {
+        if (output?.data?.variable && output?.data?.variable?.key) {
+          const s = output.data.variable;
+          if (s.key === variable.key) {
+            s.key = key;
+          }
+        }
+      });
+    });
+  };
 
   const map: any = useMemo(() => {
     return {
@@ -163,21 +200,69 @@ function VariableList() {
         align: 'right',
         renderCell: (params: any) => {
           return (
-            <Box>
+            <Stack direction="row" gap={1} justifyContent="flex-end">
+              <Button
+                size="small"
+                onClick={() => {
+                  currentVariable.current = params;
+                  form.reset(params);
+                  dialogState.open();
+                }}>
+                {t('edit')}
+              </Button>
               <Button
                 size="small"
                 color="error"
                 onClick={() => {
-                  const index = (variableYjs?.variables || []).findIndex(
-                    (x) => x.key === params.key && x.scope === params.scope
-                  );
-                  if (index > -1) {
-                    (variableYjs?.variables || []).splice(index, 1);
+                  const agents = (params.assistants || []).map((id: string) => getFileById(id)?.name).filter(Boolean);
+
+                  if (agents.length) {
+                    showDialog({
+                      formSx: {
+                        '.MuiDialogTitle-root': {
+                          border: 0,
+                        },
+                        '.MuiDialogActions-root': {
+                          border: 0,
+                        },
+                        '.save': {
+                          background: '#d32f2f',
+                        },
+                      },
+                      maxWidth: 'sm',
+                      fullWidth: true,
+                      title: <Box sx={{ wordWrap: 'break-word' }}>{t('删除Memory')}</Box>,
+                      content: (
+                        <Box>
+                          <Typography fontWeight={500} fontSize={16} lineHeight="28px" color="#4B5563">
+                            {t('deleteMemoryTip', { agents: agents.join(', ') })}
+                          </Typography>
+                        </Box>
+                      ),
+                      okText: t('confirm'),
+                      okColor: 'error',
+                      cancelText: t('cancel'),
+                      onOk: () => {
+                        const index = (variableYjs?.variables || []).findIndex(
+                          (x) => x.key === params.key && x.scope === params.scope
+                        );
+                        if (index > -1) {
+                          (variableYjs?.variables || []).splice(index, 1);
+                        }
+                      },
+                    });
+                  } else {
+                    const index = (variableYjs?.variables || []).findIndex(
+                      (x) => x.key === params.key && x.scope === params.scope
+                    );
+                    if (index > -1) {
+                      (variableYjs?.variables || []).splice(index, 1);
+                    }
                   }
                 }}>
                 {t('delete')}
               </Button>
-            </Box>
+            </Stack>
           );
         },
       },
@@ -186,10 +271,12 @@ function VariableList() {
   );
 
   const onAdd = () => {
-    form.setValue('key', '');
-    form.setValue('defaultValue', '');
-    form.setValue('type', { type: 'string', id: nanoid(32) });
-    form.setValue('scope', scope);
+    form.reset({
+      key: '',
+      defaultValue: '',
+      type: { type: 'string', id: nanoid(32) },
+      scope,
+    });
     dialogState.open();
   };
 
@@ -273,21 +360,49 @@ function VariableList() {
         component="form"
         onSubmit={form.handleSubmit((data) => {
           variableYjs.variables ??= [];
+          const variable = currentVariable.current;
 
-          const newVariable = {
-            key: data.key || '',
-            scope: data.scope,
-            type: data.type,
-            reset: Boolean(data.reset),
-            defaultValue: data.defaultValue,
-          };
+          if (variable) {
+            const index = variableYjs.variables.findIndex((x) =>
+              variable.id
+                ? x.id === variable.id
+                : x.key === variable.key && x.scope === variable.scope && x.type === variable.type
+            );
 
-          variableYjs.variables.push(newVariable);
+            if (index > -1) {
+              variableYjs.variables.splice(index, 1, {
+                ...cloneDeep(data),
+                id: variable.id || nanoid(32),
+                reset: Boolean(data.reset),
+              });
+            }
 
+            // 如果仅仅修改 key, 更新 agent 数据
+            if (variable.key !== data.key && variable.scope === data.scope && variable.type === data.type) {
+              updateAgentMemory(variable, data.key);
+            }
+          } else {
+            const newVariable = {
+              id: nanoid(32),
+              key: data.key || '',
+              scope: data.scope,
+              type: data.type,
+              reset: Boolean(data.reset),
+              defaultValue: data.defaultValue,
+            };
+
+            variableYjs.variables.push(newVariable);
+          }
+
+          currentVariable.current = undefined;
           dialogState.close();
+
+          if (data.scope) {
+            setScope(data.scope);
+          }
         })}>
         <DialogTitle className="between">
-          <Box>{t('outputVariableParameter.addData')}</Box>
+          <Box>{`${currentVariable.current ? t('outputVariableParameter.edit') : t('outputVariableParameter.add')}${t('outputVariableParameter.memory')}`}</Box>
 
           <IconButton size="small" onClick={() => dialogState.close()}>
             <Close />
@@ -302,6 +417,12 @@ function VariableList() {
               rules={{
                 required: t('outputVariableParameter.keyRequired'),
                 validate: (value) => {
+                  if (currentVariable.current) {
+                    // 编辑时，key 相同，不报错
+                    if (currentVariable.current.key === value) {
+                      return true;
+                    }
+                  }
                   // key 和 scope 是否存在，如果存在，不运行创建
                   const found = (variableYjs.variables || [])?.find((x) => {
                     return `${x.scope}_${x.key}` === `${form.getValues('scope')}_${value}`;
@@ -368,6 +489,13 @@ function VariableList() {
               rules={{
                 required: t('outputVariableParameter.typeRequired'),
                 validate: (value) => {
+                  if (currentVariable.current) {
+                    // 编辑时，type 相同，不报错
+                    if (currentVariable.current.type === value?.type) {
+                      return true;
+                    }
+                  }
+
                   const foundKey = (variableYjs.variables || [])?.find((x) => {
                     return `${x.key}` === `${form.getValues('key')}`;
                   });
@@ -507,6 +635,8 @@ function VariableList() {
           </LoadingButton>
         </DialogActions>
       </Dialog>
+
+      {dialog}
     </Container>
   );
 }
@@ -521,6 +651,9 @@ function VariableTypeField({ ...props }: TextFieldProps) {
       </MenuItem>
       <MenuItem value="number" disabled={props.disabled}>
         {t('number')}
+      </MenuItem>
+      <MenuItem value="boolean" disabled={props.disabled}>
+        {t('boolean')}
       </MenuItem>
       <MenuItem value="object" disabled={props.disabled}>
         {t('object')}

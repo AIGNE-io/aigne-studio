@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 import { hash } from 'crypto';
 
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
@@ -18,6 +19,7 @@ import {
   ExecutionPhase,
   OutputVariable,
   Parameter,
+  ProjectSettings,
   RuntimeOutputProfile,
   RuntimeOutputVariable,
   Variable,
@@ -40,6 +42,7 @@ export class ExecutorContext {
   constructor(
     options: Pick<
       ExecutorContext,
+      | 'entry'
       | 'getAgent'
       | 'callAI'
       | 'callAIImage'
@@ -56,6 +59,7 @@ export class ExecutorContext {
       | 'setCache'
     >
   ) {
+    this.entry = options.entry;
     this.getAgent = memoize(options.getAgent, {
       keyGenerator: (o) => [o.aid, o.working].filter(isNonNullable).join('/'),
     });
@@ -75,6 +79,13 @@ export class ExecutorContext {
     this.queryCache = options.queryCache;
     this.setCache = options.setCache;
   }
+
+  entry: {
+    blockletDid?: string;
+    project: ProjectSettings;
+    working?: boolean;
+    appUrl?: string;
+  };
 
   getSecret: (args: {
     targetProjectId: string;
@@ -160,16 +171,6 @@ export interface AgentExecutorOptions {
   parentTaskId?: string;
   variables?: { [key: string]: any };
 }
-
-const getUserHeader = (user: any) => {
-  return {
-    'x-user-did': user?.did,
-    'x-user-role': user?.role,
-    'x-user-provider': user?.provider,
-    'x-user-fullname': user?.fullName && encodeURIComponent(user?.fullName),
-    'x-user-wallet-os': user?.walletOS,
-  };
-};
 
 export abstract class AgentExecutorBase<T> {
   constructor(
@@ -345,10 +346,14 @@ export abstract class AgentExecutorBase<T> {
         },
       },
       $blocklet: {
-        issueVC: (args: Omit<Parameters<typeof issueVC>[0], 'userDid'>) => {
+        issueVC: (args: Omit<Parameters<typeof issueVC>[0], 'userDid' | 'project'>) => {
           const userDid = executor.context.user?.did;
           if (!userDid) throw new Error('Issue VC requires user did');
-          return issueVC({ ...args, userDid });
+          return issueVC({
+            ...args,
+            userDid,
+            context: this.context,
+          });
         },
       },
     };
@@ -369,7 +374,10 @@ export abstract class AgentExecutorBase<T> {
 
             if (typeof inputValue === 'string') {
               const template = String(inputValue || '').trim();
-              return [i.key, template ? await renderMessage(template, variables, { stringify: false }) : inputValue];
+              return [
+                i.key,
+                template ? await this.renderMessage(template, variables, { stringify: false }) : inputValue,
+              ];
             }
 
             if (isPlainObject(inputValue)) {
@@ -377,7 +385,9 @@ export abstract class AgentExecutorBase<T> {
                 Object.entries(inputValue).map(async ([key, value]) => {
                   return [
                     key,
-                    typeof value === 'string' ? await renderMessage(value, variables, { stringify: false }) : value,
+                    typeof value === 'string'
+                      ? await this.renderMessage(value, variables, { stringify: false })
+                      : value,
                   ];
                 })
               );
@@ -394,14 +404,14 @@ export abstract class AgentExecutorBase<T> {
                         Object.entries(item).map(async ([key, value]) => [
                           key,
                           typeof value === 'string'
-                            ? await renderMessage(value, variables, { stringify: false })
+                            ? await this.renderMessage(value, variables, { stringify: false })
                             : value,
                         ])
                       )
                     );
                   }
 
-                  return await renderMessage(item, variables, { stringify: false });
+                  return await this.renderMessage(item, variables, { stringify: false });
                 })
               );
 
@@ -512,12 +522,19 @@ export abstract class AgentExecutorBase<T> {
           });
           const list = (data.datastores || []).map((x: any) => x?.data).filter((x: any) => x);
           const storageVariable = m.find((x) => toLower(x.key || '') === toLower(key || '') && x.scope === scope);
-          let result = (list?.length > 0 ? list : [storageVariable?.defaultValue]).filter((x: any) => x);
+          let result =
+            list?.length > 0
+              ? list
+              : [
+                  storageVariable?.type?.type === 'number' && typeof storageVariable?.defaultValue === 'string'
+                    ? Number(storageVariable.defaultValue)
+                    : storageVariable?.defaultValue,
+                ];
           if (storageVariable?.reset) {
             result = (result?.length > 1 ? result : result[0]) ?? '';
           }
 
-          inputVariables[parameter.key] = JSON.stringify(result) ?? parameter.defaultValue;
+          inputVariables[parameter.key] = result ?? parameter.defaultValue;
         } else if (parameter.source?.variableFrom === 'knowledge' && parameter.source.knowledge) {
           const currentTaskId = nextTaskId();
           const tool = parameter.source.knowledge;
@@ -534,7 +551,7 @@ export abstract class AgentExecutorBase<T> {
             .copy({ callback: cb(currentTaskId) })
             .executor(blocklet.agent, {
               inputs: tool?.parameters,
-              variables: { ...inputVariables, blockletDid, datasetId: tool.id },
+              variables: { ...inputVariables, blockletDid, datasetId: tool.id, knowledgeId: tool.id },
               taskId: currentTaskId,
               parentTaskId: taskId,
             })
@@ -555,7 +572,7 @@ export abstract class AgentExecutorBase<T> {
               inputs: {
                 sessionId: this.context.sessionId,
                 limit: chat.limit || 50,
-                keyword: await renderMessage(chat.keyword || '', inputVariables, { stringify: false }),
+                keyword: await this.renderMessage(chat.keyword || '', inputVariables, { stringify: false }),
               },
               taskId: currentTaskId,
               parentTaskId: taskId,
@@ -690,16 +707,24 @@ export abstract class AgentExecutorBase<T> {
 
         inputVariables[parameter.key] = val;
       } else if (parameter.type === 'boolean') {
-        inputVariables[parameter.key] = Boolean(inputVariables[parameter.key] || parameter.defaultValue);
+        const val = inputVariables[parameter.key];
+        inputVariables[parameter.key] = Boolean(isNil(val) ? parameter.defaultValue : val);
       } else if (parameter.type === 'number') {
-        inputVariables[parameter.key] = Number(inputVariables[parameter.key] || parameter.defaultValue);
+        const val = inputVariables[parameter.key];
+        const parsedValue = val && typeof val === 'number' ? val : (Number(val) ?? parameter.defaultValue ?? null);
+        inputVariables[parameter.key] = Number.isNaN(parsedValue) ? (parameter.defaultValue ?? null) : parsedValue;
       } else {
-        inputVariables[parameter.key] ??= parameter.defaultValue;
+        const val = inputVariables[parameter.key];
+        if (!isNil(val)) inputVariables[parameter.key] = val || null;
       }
     }
 
     return inputVariables;
   }
+
+  protected renderMessage: typeof renderMessage = async (template, variables, options) => {
+    return renderMessage(template, { ...this._finalInputs, ...variables, ...this.globalContext }, options);
+  };
 
   protected async validateOutputs({
     inputs,
@@ -755,7 +780,7 @@ export abstract class AgentExecutorBase<T> {
         if (!output.activeWhen?.trim()) return true;
 
         return Joi.boolean().validate(
-          await renderMessage(output.activeWhen, { ...inputs, ...outputs, ...result }, { stringify: false })
+          await this.renderMessage(output.activeWhen, { ...outputs, ...result }, { stringify: false })
         ).value;
       };
 
@@ -807,10 +832,7 @@ export abstract class AgentExecutorBase<T> {
           await Promise.all(
             templateOutputs.map(async (i) => {
               if (!(await isOutputActive(i))) return null;
-              return [
-                i.name,
-                await renderMessage(i.valueTemplate!, { ...inputs, ...outputs, ...v }, { stringify: false }),
-              ];
+              return [i.name, await this.renderMessage(i.valueTemplate!, { ...outputs, ...v }, { stringify: false })];
             })
           )
         ).filter(isNonNullable)
@@ -868,8 +890,8 @@ export abstract class AgentExecutorBase<T> {
       name: AIGNE_RUNTIME_COMPONENT_DID,
       path: '/api/memories',
       method: 'POST',
-      headers: getUserHeader(this.context.user),
       params: {
+        userId: this.context.user?.did,
         projectId: this.context.entryProjectId,
         agentId,
         sessionId: this.context.sessionId,
@@ -908,13 +930,12 @@ export abstract class AgentExecutorBase<T> {
       name: AIGNE_RUNTIME_COMPONENT_DID,
       path: '/api/memories/variable-by-query',
       method: 'GET',
-      headers: getUserHeader(this.context.user),
       params: {
+        userId: this.context.user?.did,
         projectId: this.context.entryProjectId,
         sessionId: this.context.sessionId,
         key,
         scope,
-        userId: this.context.user?.id,
       },
     });
 

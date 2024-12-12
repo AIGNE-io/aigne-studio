@@ -1,4 +1,4 @@
-import { getAPIList } from '@app/libs/dataset';
+import { getAPIList } from '@app/libs/knowledge';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import {
   AssistantYjs,

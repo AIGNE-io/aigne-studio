@@ -1,11 +1,13 @@
 import { CustomComponentRenderer as CustomComponentRendererOriginal } from '@blocklet/pages-kit/components';
+import { cx } from '@emotion/css';
 import SettingsIcon from '@iconify-icons/tabler/settings';
 import { Icon } from '@iconify/react';
 import { Box, Button, Tooltip } from '@mui/material';
 import { ComponentProps } from 'react';
 
+import { parseIdentity } from '../../../common/aid';
 import { RuntimeOutputVariable } from '../../../types';
-import { useAIGNEApi } from '../../contexts/Api';
+import { useDebug } from '../../contexts/Debug';
 
 export default function CustomComponentRenderer({
   aid,
@@ -14,20 +16,33 @@ export default function CustomComponentRenderer({
 }: { aid: string; output: { id: string } | { name: RuntimeOutputVariable } } & ComponentProps<
   typeof CustomComponentRendererOriginal
 >) {
-  const { openOutputSettings } = useAIGNEApi();
+  const openSettings = useDebug((s) => s.open);
+  const selected = useDebug((s) => 'id' in output && output.id === s.outputId);
+  const hovered = useDebug((s) => 'id' in output && output.id === s.hoverOutputId);
+  const setTabId = useDebug((s) => s.setTabId);
 
-  if (!openOutputSettings) return <CustomComponentRendererOriginal {...props} />;
+  if (!openSettings) return <CustomComponentRendererOriginal {...props} />;
 
   return (
     <Box
-      className="ai-runtime-custom-component-renderer"
+      onMouseMove={(e) => {
+        e.stopPropagation();
+        setTabId?.('id' in output ? output.id : output.name);
+      }}
+      onMouseLeave={(e) => {
+        e.stopPropagation();
+        setTabId?.('');
+      }}
+      className={cx('ai-runtime-custom-component-renderer', (hovered || selected) && 'selected')}
       sx={{
         position: 'relative',
         '> .settings': { display: 'none' },
-        ':not(:has(.ai-runtime-custom-component-renderer:hover)):hover': {
+        '&.selected,:not(:has(.ai-runtime-custom-component-renderer:hover)):hover': {
           outline: 1,
           outlineColor: 'primary.main',
           outlineOffset: -1,
+        },
+        ':not(:has(.ai-runtime-custom-component-renderer:hover)):hover': {
           '> .settings': { display: 'block' },
         },
       }}>
@@ -38,7 +53,7 @@ export default function CustomComponentRenderer({
           <Button
             variant="contained"
             sx={{ minWidth: 32, minHeight: 32, p: 0 }}
-            onClick={(e) => openOutputSettings({ e, aid, output })}>
+            onClick={() => openSettings({ agentId: parseIdentity(aid, { rejectWhenError: true }).agentId, output })}>
             <Icon icon={SettingsIcon} fontSize={24} />
           </Button>
         </Tooltip>

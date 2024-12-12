@@ -23,9 +23,9 @@ export type ProjectSettings = {
         fontFamily?: string;
       };
     };
+    aigneBannerVisible?: boolean;
   };
   iconVersion?: string;
-  banner?: string;
   readme?: string;
   executor?: AgentExecutor;
 };
@@ -53,7 +53,6 @@ export const projectSettingsSchema = Joi.object<ProjectSettings>({
       }).empty(['', null]),
     }).empty(['', null]),
   }).empty(['', null]),
-  banner: Joi.string().empty(['', null]).optional(),
   readme: Joi.string().empty(['', null]).optional(),
   executor: Joi.object<AgentExecutor>().empty(['', null]).optional(),
 })

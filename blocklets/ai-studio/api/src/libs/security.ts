@@ -1,5 +1,5 @@
-import { auth } from '@blocklet/sdk/lib/middlewares';
-import { verify } from '@blocklet/sdk/lib/util/verify-sign';
+import middlewares from '@blocklet/sdk/lib/middlewares';
+import { getVerifyData, verify } from '@blocklet/sdk/lib/util/verify-sign';
 import { NextFunction, Request, Response } from 'express';
 
 import { Config } from './env';
@@ -7,15 +7,15 @@ import logger from './logger';
 
 export const ADMIN_ROLES = ['owner', 'admin'];
 
-export const ensureAdmin = auth({ roles: ADMIN_ROLES });
+export const ensureAdmin = middlewares.auth({ roles: ADMIN_ROLES });
 
 // dynamic permission check
 export const ensurePromptsAdmin = (req: Request, res: Response, next: NextFunction) =>
-  auth({ roles: Config.serviceModePermissionMap.ensurePromptsAdminRoles })(req, res, next);
+  middlewares.auth({ roles: Config.serviceModePermissionMap.ensurePromptsAdminRoles })(req, res, next);
 
 // dynamic permission check
 export const ensurePromptsEditor = (req: Request, res: Response, next: NextFunction) =>
-  auth({ roles: Config.serviceModePermissionMap.ensurePromptsEditorRoles })(req, res, next);
+  middlewares.auth({ roles: Config.serviceModePermissionMap.ensurePromptsEditorRoles })(req, res, next);
 
 export const isRefReadOnly = ({
   ref,
@@ -26,7 +26,7 @@ export const isRefReadOnly = ({
   ref: string;
   defaultBranch: string;
   project: any;
-  user?: { did: string; role: string };
+  user?: { did: string; role?: string };
 }) => {
   if (project?.createdBy === user?.did) {
     return false;
@@ -41,7 +41,8 @@ export function ensureComponentCallOr(fallback: (req: Request, res: Response, ne
     try {
       const sig = req.get('x-component-sig');
       if (sig) {
-        const verified = verify(req.body ?? {}, sig);
+        const { data, sig } = getVerifyData(req);
+        const verified = verify(data, sig);
         if (verified) {
           next();
         } else {
@@ -75,11 +76,12 @@ export function ensureComponentCallOrRolesMatch(req: Request, roles?: string[]) 
   try {
     const sig = req.get('x-component-sig');
     if (sig) {
-      const verified = verify(req.body ?? {}, sig);
+      const { data, sig } = getVerifyData(req);
+      const verified = verify(data, sig);
       return verified;
     }
     if (roles) {
-      return roles.includes(req.user!.role);
+      return roles.includes(req.user!.role!);
     }
   } catch (error) {
     // ignore error
@@ -88,5 +90,5 @@ export function ensureComponentCallOrRolesMatch(req: Request, roles?: string[]) 
 }
 
 export function ensureComponentCallOrAuth() {
-  return ensureComponentCallOr(auth());
+  return ensureComponentCallOr(middlewares.auth());
 }

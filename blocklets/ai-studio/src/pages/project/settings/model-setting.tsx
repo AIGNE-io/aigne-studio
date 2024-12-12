@@ -54,6 +54,11 @@ export default function ModelSetting({
               if (v) {
                 setProjectSetting((config) => {
                   config.executor ??= {};
+
+                  if (v.id !== config.executor.agent?.id && v.projectId !== config.executor.agent?.projectId) {
+                    config.executor.inputValues = {};
+                  }
+
                   config.executor.agent = {
                     blockletDid: v.blockletDid,
                     projectId: v.projectId,

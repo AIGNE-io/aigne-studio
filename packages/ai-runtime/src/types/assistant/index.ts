@@ -1,3 +1,5 @@
+import type { RuleGroupType } from 'react-querybuilder';
+
 import { AgentExecutor, ProjectSettings } from '../resource';
 import type { RuntimeOutputAppearance, RuntimeOutputVariable, RuntimeOutputVariablesSchema } from '../runtime';
 
@@ -110,6 +112,7 @@ export type Prompt =
     };
 
 export type Variable = {
+  id: string;
   scope?: VariableScope;
   key: string;
   reset?: boolean;
@@ -238,7 +241,8 @@ export interface RouterAssistant extends AssistantBase {
   type: 'router';
   defaultToolId?: string;
   prompt?: string;
-  routes?: Tool[];
+  decisionType?: 'ai' | 'json-logic';
+  routes?: ({ condition?: RuleGroupType } & Tool)[];
 
   // 参数配置，为了可以复用UI和 prompt一致
   temperature?: number;
@@ -336,7 +340,9 @@ export type Parameter =
   | LLMInputMessagesParameter
   | LLMInputToolsParameter
   | LLMInputToolChoiceParameter
-  | LLMInputResponseFormatParameter;
+  | LLMInputResponseFormatParameter
+  | ImageParameter
+  | VerifyVCParameter;
 
 export interface ParameterBase {
   id: string;
@@ -385,9 +391,19 @@ export interface StringParameter extends ParameterBase {
   value?: string;
   defaultValue?: string;
   multiline?: boolean;
-  image?: boolean;
   minLength?: number;
   maxLength?: number;
+}
+
+export interface VerifyVCParameter extends ParameterBase {
+  type?: 'verify_vc';
+  value?: any;
+  defaultValue?: any;
+  vcItem?: string[];
+  vcTrustedIssuers?: string[];
+  buttonTitle?: string;
+  buttonTitleVerified?: string;
+  alertTitleVerified?: string;
 }
 
 export interface BooleanParameter extends ParameterBase {
@@ -406,8 +422,10 @@ export interface NumberParameter extends ParameterBase {
 
 export interface SelectParameter extends ParameterBase {
   type: 'select';
-  value?: string;
-  defaultValue?: string;
+  value?: string | string[];
+  defaultValue?: string | string[];
+  multiple?: boolean;
+  style?: 'dropdown' | 'checkbox';
   options?: { id: string; label: string; value: string }[];
 }
 
@@ -415,6 +433,13 @@ export interface LanguageParameter extends ParameterBase {
   type: 'language';
   value?: string;
   defaultValue?: string;
+}
+
+export interface ImageParameter extends ParameterBase {
+  type: 'image';
+  value?: string | string[];
+  multiple?: boolean;
+  defaultValue?: string | string[];
 }
 
 export interface User {

@@ -55,7 +55,7 @@ function OutputView({ resultTitle, ...props }: { resultTitle?: string } & StackP
 
   const ref = useRef<HTMLDivElement>(null);
 
-  const { messages = [], running, loaded, noMoreMessage, loadMoreMessages } = useSession((s) => s);
+  const { error, messages = [], running, loaded, noMoreMessage, loadMoreMessages } = useSession((s) => s);
 
   return (
     <Stack width="100%" alignItems="center" px={{ xs: 2, sm: 3 }} mt={{ xs: 2, sm: 3 }} gap={2} {...props}>
@@ -66,6 +66,8 @@ function OutputView({ resultTitle, ...props }: { resultTitle?: string } & StackP
       )}
 
       {loaded && !messages.length && <NoOutputs />}
+
+      {error && <AgentErrorView error={error} />}
 
       <Masonry
         ref={ref}

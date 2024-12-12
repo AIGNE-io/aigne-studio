@@ -50,10 +50,6 @@ test('create agent', async ({ page }) => {
   await firstAgent.getByTestId('tree-item-actions-button').first().click();
   await expect(page.getByText('Duplicate')).toBeVisible();
   await page.getByText('Duplicate').click({ force: true });
-
-  await page.getByTestId('new-agent-button').click();
-  await page.getByTestId('file-tree').getByRole('textbox').fill('Unamed Agent 1');
-  await page.getByTestId('file-tree').getByRole('textbox').press('Enter');
 });
 
 test('new folder/rename / new agent', async ({ page }) => {

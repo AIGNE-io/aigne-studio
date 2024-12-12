@@ -114,6 +114,7 @@ export const translations = {
     settings: 'Settings',
     setup: 'Setup',
     docLink: 'Document Link',
+    maxFilesLimit: 'You can only upload {limit} images at most',
   },
   zh: {
     by: '作者',
@@ -230,5 +231,6 @@ export const translations = {
     settings: '设置',
     setup: '设置',
     docLink: '文档链接',
+    maxFilesLimit: '最多只能上传 {limit} 张图片',
   },
 };

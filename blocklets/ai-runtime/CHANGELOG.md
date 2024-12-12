@@ -1,3 +1,329 @@
+## 0.4.165 (2024-12-12)
+
+- fix: migrate data for vector db is empty
+
+## 0.4.164 (2024-12-12)
+
+- chore: support copy aid
+- fix: auto reconnect websocket for agent editor
+
+## 0.4.163 (2024-12-9)
+
+- fix: add a parameter to control whether typescript disables syntax checking.
+
+## 0.4.162 (2024-12-9)
+
+- fix: kb size be limited when export resource
+
+## 0.4.161 (2024-12-9)
+
+- fix: deployments api permission
+
+## 0.4.160 (2024-12-4)
+
+- chore: update blocklet sdk version
+
+## 0.4.159 (2024-12-4)
+
+- fix: kb playground search not working
+
+## 0.4.158 (2024-12-2)
+
+- fix: waiting for queue drained for knowledge migration
+- chore: re-enable agent tags feature
+
+## 0.4.157 (2024-11-28)
+
+- chore: support new version knowledge ui
+
+## 0.4.156 (2024-11-25)
+
+- fix: handles bracket characters around variable nodes
+
+## 0.4.155 (2024-11-25)
+
+- fix: move route definitions to top level(#1470)
+
+## 0.4.154 (2024-11-23)
+
+- chore: replace global console with logger
+
+## 0.4.153 (2024-11-23)
+
+- chore: replace global console with logger
+
+## 0.4.152 (2024-11-19)
+
+- chore: display billing link on pricing table for premium users
+
+## 0.4.151 (2024-11-19)
+
+- fix: support authorization header
+
+## 0.4.150 (2024-11-19)
+
+- chore: bypass request limiting when in debug mode
+
+## 0.4.149 (2024-11-18)
+
+- fix: autoform autofocus
+
+## 0.4.148 (2024-11-18)
+
+- chore: check project limit earlier(#1556)
+
+## 0.4.147 (2024-11-18)
+
+- fix: improve error handling for agent request limiting(#1552)
+
+## 0.4.146 (2024-11-18)
+
+- chore(pro-plan): ui improvements(#1549,#1557)
+
+## 0.4.145 (2024-11-18)
+
+- fix: add img tag alt attribute
+
+## 0.4.144 (2024-11-18)
+
+- fix: uploader not working in appearance settings dialog
+
+## 0.4.143 (2024-11-15)
+
+- fix: agent profile ogImage
+- fix: input view scrollbar
+
+## 0.4.142 (2024-11-15)
+
+- fix: validate components issue
+
+## 0.4.141 (2024-11-15)
+
+- fix: the email vc verification failed and the e2e test failed
+
+## 0.4.140 (2024-11-15)
+
+- fix: copy a project with knowledge failed
+
+## 0.4.139 (2024-11-15)
+
+- fix: pro plan improvements
+
+## 0.4.138 (2024-11-12)
+
+- chore: polish screenshots
+- fix: pass user token for component calling
+- chore: format update time as the session name
+
+## 0.4.137 (2024-11-11)
+
+- feat: support fork project name check
+
+## 0.4.136 (2024-11-11)
+
+- chore: support update memory
+
+## 0.4.135 (2024-11-11)
+
+- chore: update e2e test
+
+## 0.4.134 (2024-11-8)
+
+- chore: update screenshots
+
+## 0.4.133 (2024-11-8)
+
+- feat: improve component preview
+
+## 0.4.132 (2024-11-6)
+
+- chore: polish runtime page
+- chore: replace @did-space/client with @blocklet/did-space-js
+
+## 0.4.131 (2024-11-4)
+
+- fix(ai-studio): guide users through space connection failures
+
+## 0.4.130 (2024-11-4)
+
+- chore: remove project settings banner
+
+## 0.4.129 (2024-11-1)
+
+- fix: runtime component is optional for pages-kit
+
+## 0.4.128 (2024-11-1)
+
+- fix: support image context
+
+## 0.4.127 (2024-11-1)
+
+- chore: improve button styling consistency
+
+## 0.4.126 (2024-11-1)
+
+- chore: use middlewares.session replace middlewares.user
+
+## 0.4.125 (2024-11-1)
+
+- fix: debug preview ui
+
+## 0.4.124 (2024-11-1)
+
+- chore(pro-plan): improve request limit validation logic
+
+## 0.4.123 (2024-11-1)
+
+- chore: support branch decision
+
+## 0.4.122 (2024-11-1)
+
+- fix: optimize agents api for better performance
+
+## 0.4.121 (2024-10-31)
+
+- chore: polish explore detail page
+
+## 0.4.120 (2024-10-31)
+
+- chore: update @blocklet/sdk
+
+## 0.4.119 (2024-10-31)
+
+- fix: invalid sig error
+
+## 0.4.118 (2024-10-30)
+
+- chore: upgrade @blocklet/sdk & custom notification for issued vc
+
+## 0.4.117 (2024-10-30)
+
+- chore: update @blocklet/uploader package
+
+## 0.4.116 (2024-10-30)
+
+- fix: auto prefix VCs with AIGNE for those issued by agent
+
+## 0.4.115 (2024-10-30)
+
+- chore: remove user passport caching
+- chore(api): add stats/userinfo to recommend project list response
+
+## 0.4.114 (2024-10-29)
+
+- fix: should remove agentId condition from memory query
+
+## 0.4.113 (2024-10-29)
+
+- fix: not found child agent in decision agent
+- fix: invalid input parameter in call agent
+
+## 0.4.112 (2024-10-29)
+
+- chore: set current tab when saved memory data
+- chore: close dialog when path changed
+- fix: unexpected memory behavior
+
+## 0.4.111 (2024-10-29)
+
+- fix: change knowledge createBy when copy knowledge
+
+## 0.4.110 (2024-10-29)
+
+- chore: polish explore list page
+
+## 0.4.109 (2024-10-28)
+
+- chore: improve UI for explore list page
+
+## 0.4.108 (2024-10-27)
+
+- refactor: optimize decision function name generator
+
+## 0.4.107 (2024-10-27)
+
+- fix: auto login when running agent
+
+## 0.4.106 (2024-10-27)
+
+- feat: support component schema filter & preview
+
+## 0.4.105 (2024-10-26)
+
+- fix: all fields must be required for json schema mode
+
+## 0.4.104 (2024-10-25)
+
+- feat: add vc input support
+
+## 0.4.103 (2024-10-25)
+
+- fix: support integer parameter for open api
+
+## 0.4.102 (2024-10-25)
+
+- fix: full height view for chat layout
+- chore: persistent aigne banner visibility & ui improvements
+
+## 0.4.101 (2024-10-25)
+
+- fix: auto open login dialog when running an agent
+
+## 0.4.100 (2024-10-24)
+
+- fix: parsing pdf content is deranged content
+
+## 0.4.99 (2024-10-24)
+
+- feat: add preference to toggle premium plan
+
+## 0.4.98 (2024-10-24)
+
+- fix: test broken
+- fix: knowledge documents ui and add test
+
+## 0.4.97 (2024-10-24)
+
+- fix: set additionalProperties to false for json_schema mode
+
+## 0.4.96 (2024-10-24)
+
+- fix: strict json schema mode
+
+## 0.4.95 (2024-10-23)
+
+- fix: special agent id for the session automatically created
+
+## 0.4.94 (2024-10-22)
+
+- fix: correct query resource agent from resource blocklet
+
+## 0.4.93 (2024-10-22)
+
+- fix: reset agent inputs after adapter changed
+- fix: adapter icon oops
+
+## 0.4.92 (2024-10-22)
+
+- fix: adapter icon oops
+
+## 0.4.91 (2024-10-21)
+
+- chore: support multiple option for select input
+- chore: support change input format for blender agent
+
+## 0.4.90 (2024-10-21)
+
+- chore: add `image` type for inputs
+
+## 0.4.89 (2024-10-21)
+
+- chore: improve ux for appearance settings
+
+## 0.4.88 (2024-10-21)
+
+- fix: agent view crash
+
 ## 0.4.87 (2024-10-20)
 
 - feat: add image type for agent inputs

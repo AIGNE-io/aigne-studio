@@ -1,13 +1,1 @@
-declare var blocklet:
-  | {
-      prefix: string;
-      appId: string;
-      appUrl: string;
-      appName: string;
-      appLogo: string;
-      appDescription: string;
-      version: string;
-      componentMountPoints: { title: string; name: string; did: string; mountPoint: string; status: string }[];
-      languages?: { code: string; name: string }[];
-    }
-  | undefined;
+declare var blocklet: import('@blocklet/sdk').WindowBlocklet | undefined;

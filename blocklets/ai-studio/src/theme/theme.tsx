@@ -433,11 +433,13 @@ export const theme = createTheme({
                 },
 
                 [`&.${inputClasses.multiline}`]: {
-                  py: 0,
                   pl: 0,
                   pr: 0,
                   '&.MuiInputBase-adornedEnd': {
                     pr: 1.5,
+                  },
+                  '& .MuiInputBase-inputMultiline': {
+                    py: 0,
                   },
                 },
               },
@@ -761,7 +763,7 @@ export const theme = createTheme({
           border: '1px solid #E5E7EB',
           fontSize: '13px',
           fontWeight: 500,
-          p: '5px 12px',
+          padding: '5px 12px',
 
           '&:hover': {
             border: '1px solid #E5E7EB',

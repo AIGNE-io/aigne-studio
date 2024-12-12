@@ -5,12 +5,14 @@ import ChevronDown from '@iconify-icons/tabler/chevron-down';
 import { Accordion, AccordionDetails, AccordionSummary, Box, Stack, Typography, accordionClasses } from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
 
+import { PremiumFeatureTag, useMultiTenantRestriction } from '../../multi-tenant-restriction';
 import { BaseAgentSettings, BaseAgentSettingsSummary } from './BaseAgentSettings';
 import { CacheSettings, CacheSettingsSummary } from './CacheSettings';
 import { CronSettings, CronSettingsSummary } from './CronSettings';
 
 export function AgentSettings({ agent }: { agent: AssistantYjs }) {
   const { t } = useLocaleContext();
+  const { quotaChecker } = useMultiTenantRestriction();
 
   const list = [
     {
@@ -28,6 +30,15 @@ export function AgentSettings({ agent }: { agent: AssistantYjs }) {
     {
       key: 'cronJobs',
       title: t('cronJobs'),
+      badge: (
+        <PremiumFeatureTag
+          sx={{ alignSelf: 'center' }}
+          onClick={(e) => {
+            e.stopPropagation();
+            quotaChecker.checkCronJobs();
+          }}
+        />
+      ),
       summary: <CronSettingsSummary agent={agent} />,
       detail: <CronSettings agent={agent} />,
     },
@@ -73,7 +84,7 @@ export function AgentSettings({ agent }: { agent: AssistantYjs }) {
           <AccordionSummary expandIcon={<Icon icon={ChevronDown} />}>
             <Stack direction="row" alignItems="baseline" gap={1}>
               <Typography>{item.title}</Typography>
-
+              {item.badge}
               <Box className="hidden-expanded">{item.summary}</Box>
             </Stack>
           </AccordionSummary>

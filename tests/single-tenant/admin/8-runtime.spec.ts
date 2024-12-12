@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import { expect, test } from '@playwright/test';
 
+// import { createProject } from '../../utils/project';
 import { installBlocklet, unInstallBlocklet } from '../../utils/uninstall';
 
 const secretKey = 'f712dac84b4f84c3c2fa079896572ed19e2738e23baf025f2c8764d5d8598deb';
@@ -11,17 +12,12 @@ test.describe.serial('resource blocklet', () => {
     await page.waitForSelector('h6.page-title');
     await page.locator("button span:has-text('Blocklets')").click();
     await page.waitForSelector('button:has-text("Add Blocklet")');
-
-    console.log('route to resource blocklet');
   });
 
   test.describe.configure({ retries: 5 });
 
   test('init', async ({ page }) => {
-    test.slow();
-    console.log('init resource blocklet');
-
-    await page.waitForTimeout(10000);
+    await page.waitForTimeout(5000);
 
     await page.goto('/projects');
     await page.waitForLoadState('networkidle');
@@ -39,14 +35,10 @@ test.describe.serial('resource blocklet', () => {
   });
 
   test('open resource blocklet', async ({ page }) => {
-    test.slow();
-    console.log('open resource blocklet');
-    const blocklet = page.locator('.component-item').filter({ hasText: 'Mockplexity' });
-    // 首先判断状态, 如果运行中, 什么都不做
+    const blocklet = page.locator('.component-item').filter({ hasText: 'Mockplexity' }).first();
     const stopIcon = blocklet.getByTestId('StopIcon');
     if ((await stopIcon.count()) > 0) return;
 
-    // 如果未运行(升级中/停止), 则运行
     const startIcon = blocklet.getByTestId('PlayArrowIcon');
     if ((await startIcon.count()) > 0) {
       await startIcon.click();
@@ -59,9 +51,7 @@ test.describe.serial('resource blocklet', () => {
 
   test('set agent secrets', async ({ page }) => {
     test.slow();
-    console.log('set agent secrets');
-
-    await page.waitForTimeout(10000);
+    await page.waitForTimeout(5000);
     await page.goto('/mockplexity/');
     await page.waitForLoadState('networkidle');
 
@@ -74,10 +64,6 @@ test.describe.serial('resource blocklet', () => {
   });
 
   test('input form', async ({ page }) => {
-    test.slow();
-    console.log('set resource blocklet input form');
-
-    await page.goto('/mockplexity/');
     await page.waitForLoadState('networkidle');
 
     page.route(/\/api\/ai\/call/, (route) => {
@@ -97,9 +83,6 @@ test.describe.serial('resource blocklet', () => {
   });
 
   test('clear session', async ({ page }) => {
-    test.slow();
-    console.log('clear resource blocklet session');
-
     await page.goto('/mockplexity/');
     await page.waitForLoadState('networkidle');
 
@@ -109,4 +92,31 @@ test.describe.serial('resource blocklet', () => {
     const message = await page.locator('.message-item').all();
     expect(message.length).toBe(0);
   });
+
+  // test('start resource knowledge blocklet', async ({ page }) => {
+  //   await unInstallBlocklet(page, '新版本知识库');
+  //   await installBlockletResourceKnowledgeBlocklet(page);
+  //   await page.waitForTimeout(5000);
+
+  //   const blocklet = page.locator('.component-item').filter({ hasText: '新版本知识库' }).first();
+
+  //   const isRunning = (await blocklet.getByTestId('StopIcon').count()) > 0;
+  //   if (!isRunning) {
+  //     await blocklet.getByTestId('PlayArrowIcon').click();
+  //     await blocklet.getByTestId('StopIcon').waitFor();
+  //   }
+  // });
+
+  // test('resource knowledge blocklet', async ({ page }) => {
+  //   await page.goto('/projects');
+  //   await page.waitForLoadState('networkidle');
+
+  //   await createProject({ page });
+  //   await page.waitForLoadState('networkidle');
+
+  //   await page.getByTestId('project-page-knowledge').click();
+  //   await page.getByText('新版本知识库').first().click();
+  //   await expect(page.getByText('Add Document')).not.toBeVisible();
+  //   await expect(page.getByText('Actions')).not.toBeVisible();
+  // });
 });

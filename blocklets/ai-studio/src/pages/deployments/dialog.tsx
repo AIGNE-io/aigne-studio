@@ -127,7 +127,8 @@ export default function DeploymentDialog({
                       <Box
                         component="a"
                         href="https://store.blocklet.dev/blocklets/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB"
-                        target="_blank">
+                        target="_blank"
+                        sx={{ ml: 1 }}>
                         {t('deployments.launchAigne')}
                       </Box>
                     </Typography>

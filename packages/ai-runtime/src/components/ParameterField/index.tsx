@@ -1,6 +1,7 @@
 import { TextFieldProps } from '@mui/material';
 
 import UploaderProvider from '../../context/uploader';
+import VerifyVC from '../../front/components/AgentInputField/VerifyVC';
 import { Parameter } from '../../types/assistant';
 import BooleanField from './BooleanField';
 import ImageFiled from './ImageField';
@@ -36,7 +37,7 @@ export default function ParameterField({
     return <StringField {...({ parameter } as any)} size="small" {...props} multiline />;
   }
 
-  if (parameter.type === 'string' && parameter.image) {
+  if (parameter.type === 'image') {
     return (
       <UploaderProvider>
         <ImageFiled {...({ parameter } as any)} size="small" {...props} />
@@ -51,10 +52,11 @@ export default function ParameterField({
       select: SelectField,
       language: LanguageField,
       boolean: BooleanField,
+      verify_vc: VerifyVC,
     } as any
   )[parameter.key === 'question' ? 'string' : parameter.type || 'string'];
 
   if (!Field) return null;
 
-  return <Field data-testid="parameter-field" {...({ parameter } as any)} size="small" {...props} />;
+  return <Field parameter={parameter} data-testid="parameter-field" {...({ parameter } as any)} {...props} />;
 }

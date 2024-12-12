@@ -1,5 +1,5 @@
 import { projectSettingsSchema } from '@blocklet/ai-runtime/types';
-import { ListObjectsCommand, ListObjectsCommandOutput, SpaceClient } from '@did-space/client';
+import { ListObjectsCommand, ListObjectsCommandOutput, SpaceClient } from '@blocklet/did-space-js';
 import { Request, Response } from 'express';
 import Joi from 'joi';
 

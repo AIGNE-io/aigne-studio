@@ -1,7 +1,7 @@
 import History from '@api/store/models/history';
 import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
-import { auth, user } from '@blocklet/sdk/lib/middlewares';
+import middlewares from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
 import orderBy from 'lodash/orderBy';
@@ -10,21 +10,17 @@ import uniqBy from 'lodash/uniqBy';
 import zip from 'lodash/zip';
 import { Attributes, FindOptions, InferAttributes, Op, WhereOptions, cast, col, where } from 'sequelize';
 
-const searchOptionsSchema = Joi.object<{ sessionId?: string; limit: number; keyword?: string }>({
-  sessionId: Joi.string().empty([null, '']),
+const searchOptionsSchema = Joi.object<{ sessionId: string; limit: number; keyword?: string }>({
+  sessionId: Joi.string().required(),
   limit: Joi.number().empty([null, '']).integer().min(1).optional().default(10),
   keyword: Joi.string().empty([null, '']),
 });
 
 export function messageRoutes(router: Router) {
-  router.get('/messages', user(), async (req, res) => {
+  router.get('/messages', middlewares.session({ componentCall: true }), async (req, res) => {
     const query = await searchOptionsSchema.validateAsync(req.query, { stripUnknown: true });
-    const { did: userId } = req.user!;
-
-    if (!query.sessionId || !userId) {
-      res.json({ messages: [] });
-      return;
-    }
+    const userId = req.user?.method === 'componentCall' ? req.query.userId : req.user?.did;
+    if (!userId || typeof userId !== 'string') throw new Error('Can not get user info');
 
     const conditions = [];
 
@@ -85,7 +81,7 @@ export function messageRoutes(router: Router) {
     res.json({ messages });
   });
 
-  router.get('/messages/:messageId', user(), async (req, res) => {
+  router.get('/messages/:messageId', async (req, res) => {
     const { messageId } = req.params;
 
     if (!messageId) throw new Error('Missing required param `messageId`');
@@ -113,7 +109,7 @@ export function messageRoutes(router: Router) {
     orderDirection: Joi.string().empty([null, '']).valid('asc', 'desc').default('desc'),
   });
 
-  router.get('/sessions/:sessionId/messages', user(), auth(), async (req, res) => {
+  router.get('/sessions/:sessionId/messages', middlewares.session(), middlewares.auth(), async (req, res) => {
     const { did: userId } = req.user!;
 
     const { sessionId } = req.params;
@@ -150,7 +146,7 @@ export function messageRoutes(router: Router) {
     });
   });
 
-  router.delete('/sessions/:sessionId/messages', user(), auth(), async (req, res) => {
+  router.delete('/sessions/:sessionId/messages', middlewares.session(), middlewares.auth(), async (req, res) => {
     const { did: userId } = req.user!;
     const { sessionId } = req.params;
 

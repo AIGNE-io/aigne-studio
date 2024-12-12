@@ -10,6 +10,7 @@ export function useSessionContext(): {
     login: (cb?: () => void) => any;
   };
   events: any;
+  connectApi: any;
 } {
   return useContext(SessionContext);
 }

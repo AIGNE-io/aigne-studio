@@ -32,6 +32,7 @@ import { useProjectsState } from '../../../contexts/projects';
 import { getErrorMessage } from '../../../libs/api';
 import { createProject, getTemplatesProjects } from '../../../libs/project';
 import Close from '../icons/close';
+import NameField from './components/name-field';
 
 interface BlankForm {
   description: string;
@@ -47,7 +48,10 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
   const { data, loading, error } = useRequest(() => getTemplatesProjects());
   const templates = error ? [] : data?.templates || [];
 
-  const form = useForm<BlankForm>({ defaultValues: { description: '', name: '', templateIds: '' } });
+  const form = useForm<BlankForm>({
+    defaultValues: { description: '', name: '', templateIds: '' },
+    reValidateMode: 'onSubmit',
+  });
   const templateIds = form.watch('templateIds');
 
   const save = useCallback(
@@ -85,6 +89,7 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
   );
 
   const template = templates.find((x) => `${x.blockletDid}-${x.id}` === templateIds);
+
   return (
     <Dialog
       data-testid="newProjectDialog"
@@ -137,7 +142,7 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
                             <Stack direction="row" alignItems="center" spacing={1}>
                               <DidAvatar did={window.blocklet.appId} size={20} src="" />
                               <Typography variant="subtitle2" noWrap>
-                                {t('noTemplatesAvailable')}
+                                {t('blankTemplate')}
                               </Typography>
                             </Stack>
                           );
@@ -165,7 +170,7 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
                         <DidAvatar did={window.blocklet.appId} size={40} src="" />
                         <Stack flex={1} width={1}>
                           <Typography variant="subtitle2" noWrap>
-                            {t('noTemplatesAvailable')}
+                            {t('blankTemplate')}
                           </Typography>
                         </Stack>
                       </Stack>
@@ -212,14 +217,7 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
           <Stack flex={1} gap={2.5}>
             <Box>
               <Typography variant="subtitle2">{t('name')}</Typography>
-              <TextField
-                data-testid="projectNameField"
-                placeholder={t('newProjectNamePlaceholder')}
-                hiddenLabel
-                autoFocus
-                sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
-                {...form.register('name')}
-              />
+              <NameField form={form} beforeDuplicateProjectNavigate={onClose} />
             </Box>
 
             <Box>

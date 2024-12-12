@@ -6,7 +6,6 @@ import { IconButton, ListItemIcon, MenuItem } from '@mui/material';
 import { settingsDialogState } from '../components/AgentSettings/AgentSettingsDialog';
 import PopperMenuButton from '../components/PopperMenuButton';
 import LoadingMenuItem from '../components/PopperMenuButton/LoadingMenuItem';
-import SocialShare from '../components/SocialShare';
 import { useAgent } from '../contexts/Agent';
 import { useComponentPreferences } from '../contexts/ComponentPreferences';
 import { useEntryAgent } from '../contexts/EntryAgent';
@@ -23,8 +22,6 @@ export function useHeaderMenu() {
   const agent = useAgent({ aid });
   const isAdmin = useIsAgentAdmin(agent);
   const hasSettings = agent.config.secrets.length > 0;
-
-  const shareContent = agent.project?.name ? `${agent.project.name}\n\n${agent.project?.description}` : '';
 
   useHeader(
     () =>
@@ -55,7 +52,6 @@ export function useHeaderMenu() {
                 ]}>
                 <Icon icon="tabler:dots" />
               </PopperMenuButton>,
-              <SocialShare data-testid="aigen-runtime-header-share-button" content={shareContent} />,
               ...exists,
             ],
           },

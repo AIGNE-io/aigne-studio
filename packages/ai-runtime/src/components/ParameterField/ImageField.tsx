@@ -1,4 +1,4 @@
-import AttachFileIcon from '@mui/icons-material/AttachFile';
+import ImageIcon from '@mui/icons-material/Image';
 import { IconButton, InputAdornment, Stack, TextField, TextFieldProps } from '@mui/material';
 import { pick } from 'lodash';
 import { forwardRef } from 'react';
@@ -39,7 +39,7 @@ const ImageField = forwardRef<
                     onChange(url);
                   });
                 }}>
-                <AttachFileIcon sx={{ fontSize: 18 }} />
+                <ImageIcon sx={{ fontSize: 18 }} />
               </IconButton>
             </Stack>
           </InputAdornment>

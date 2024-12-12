@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 import { copyFile, mkdir, mkdtemp, rm, writeFile } from 'fs/promises';
 import { join } from 'path';
 
@@ -16,7 +17,7 @@ import {
 import { copyRecursive } from '@blocklet/ai-runtime/utils/fs';
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import component, { call } from '@blocklet/sdk/lib/component';
-import { user } from '@blocklet/sdk/lib/middlewares';
+import middlewares from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import { pathExists } from 'fs-extra';
 import Joi from 'joi';
@@ -112,7 +113,7 @@ export function resourceRoutes(router: Router) {
     return undefined;
   };
 
-  router.get('/resources/export', user(), ensurePromptsEditor, async (req, res) => {
+  router.get('/resources/export', middlewares.session(), ensurePromptsEditor, async (req, res) => {
     const query = await getExportedResourceQuerySchema.validateAsync(
       {
         ...req.query,
@@ -129,23 +130,23 @@ export function resourceRoutes(router: Router) {
 
     const locale = locales[query.locale as keyof typeof locales] || locales.en;
 
-    const kbList = (
-      await call<Knowledge[]>({
-        name: AIGNE_RUNTIME_COMPONENT_DID,
-        method: 'get',
-        path: '/api/datasets',
-        params: { excludeResource: true },
-        headers: { 'x-user-did': req.user?.did },
-      })
-    ).data;
-
     const resources = await Promise.all(
       projects.map(async (x) => {
         const assistants = await getAssistantsOfRepository({
           projectId: x.id,
           ref: x.gitDefaultBranch || defaultBranch,
         });
-        const dependentComponents = getAssistantDependentComponents(assistants);
+
+        const kbList = (
+          await call<Knowledge[]>({
+            name: AIGNE_RUNTIME_COMPONENT_DID,
+            method: 'get',
+            path: '/api/datasets',
+            params: { projectId: x.id, userId: req.user?.did, size: 10000 },
+          })
+        ).data;
+
+        const dependentComponents = getAssistantDependentComponents(assistants, kbList);
 
         const entry = await getEntryFromRepository({ projectId: x.id, ref: x.gitDefaultBranch || defaultBranch });
 
@@ -262,15 +263,27 @@ export function resourceRoutes(router: Router) {
         // 判断是否有知识库的引用
         for (const agent of agents) {
           if (agent.parameters?.length) {
+            const kbList = (
+              await call<Knowledge[]>({
+                name: AIGNE_RUNTIME_COMPONENT_DID,
+                method: 'get',
+                path: '/api/datasets',
+                params: { projectId, userId: req.user?.did, size: 10000 },
+              })
+            ).data;
+
             (agent.parameters || []).forEach((parameter) => {
               if (
                 parameter.type === 'source' &&
                 parameter.source?.variableFrom === 'knowledge' &&
-                // 忽略引用 resource blocklet 中的知识库，会作为 blocklet components 依赖
-                parameter.source.knowledge?.id &&
-                !parameter.source.knowledge?.blockletDid
+                parameter.source.knowledge?.id
               ) {
-                referencedKBIds.push(parameter.source.knowledge.id);
+                // 查看当前引用的知识库是否是资源知识库
+                const id = parameter.source.knowledge?.id;
+                const foundKnowledge = kbList.find((i) => i.id === id);
+                if (foundKnowledge && !foundKnowledge.resourceBlockletDid) {
+                  referencedKBIds.push(id);
+                }
               }
             });
           }
@@ -375,7 +388,7 @@ export function resourceRoutes(router: Router) {
   });
 }
 
-function getAssistantDependentComponents(assistant: Assistant | Assistant[]) {
+function getAssistantDependentComponents(assistant: Assistant | Assistant[], kbList: Knowledge[]) {
   return [
     ...new Set(
       [assistant].flat().flatMap((assistant) => {
@@ -391,6 +404,13 @@ function getAssistantDependentComponents(assistant: Assistant | Assistant[]) {
           }
 
           if (i.type === 'source' && i.source?.variableFrom === 'knowledge') {
+            const id = i.source.knowledge?.id;
+
+            const foundKnowledge = kbList.find((i) => i.id === id);
+            if (foundKnowledge && foundKnowledge.resourceBlockletDid) {
+              return [foundKnowledge.resourceBlockletDid];
+            }
+
             const did = i.source.knowledge?.blockletDid;
             return did ? [did] : [];
           }

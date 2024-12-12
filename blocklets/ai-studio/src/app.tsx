@@ -21,13 +21,15 @@ import AigneLogo from './components/aigne-logo';
 import ErrorBoundary from './components/error/error-boundary';
 import Loading from './components/loading';
 import { PlanUpgrade } from './components/multi-tenant-restriction';
-import { SessionProvider, useInitialized, useIsPromptEditor, useIsRole } from './contexts/session';
+import { PrivateRoute } from './components/private-route';
+import { SessionProvider, useInitialized, useIsPromptEditor } from './contexts/session';
+import { Config } from './libs/env';
 import { translations } from './locales';
 import { theme } from './theme/theme';
 
-export default function App() {
-  const basename = window.blocklet?.prefix || '/';
+const basename = window.blocklet?.prefix || '/';
 
+export default function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline>
@@ -96,7 +98,7 @@ export default function App() {
                 <Suspense fallback={<Loading fixed />}>
                   <ErrorBoundary>
                     <PlanUpgrade />
-                    <AppRoutes basename={basename} />
+                    <AppRoutes />
                   </ErrorBoundary>
                 </Suspense>
               </SessionProvider>
@@ -114,45 +116,6 @@ function Root() {
 
 const TrackedRoot = withTracker(Root);
 
-function AppRoutes({ basename }: { basename: string }) {
-  const initialized = useInitialized();
-  const isPromptEditor = useIsPromptEditor();
-  const canAccessAdmin = useIsRole(['owner', 'admin', 'promptsEditor']);
-
-  if (!initialized) return <Loading fixed />;
-
-  const router = createBrowserRouter(
-    createRoutesFromElements(
-      <Route path="/" element={<TrackedRoot />} ErrorBoundary={RouterErrorBoundary}>
-        <Route index element={isPromptEditor ? <Navigate to="projects" replace /> : <Home />} />
-        <Route path="explore/*" element={<ExploreCategory />} />
-        <Route path="apps/:appId" element={<AppPage />} />
-        {canAccessAdmin && <Route path="admin/*" element={<ExploreAdmin />} />}
-        {isPromptEditor ? (
-          <>
-            <Route path="playground/*" element={<Navigate to="../projects" replace />} />
-            <Route path="projects/*" element={<ProjectsRoutes />} />
-            <Route path="embed/*" element={<EmbedRoutes />} />
-          </>
-        ) : (
-          <Route path="*" element={<Navigate to="/" />} />
-        )}
-        <Route path="*" element={<NotFound />} />
-      </Route>
-    ),
-    { basename }
-  );
-
-  return <RouterProvider router={router} />;
-}
-
-function RouterErrorBoundary() {
-  const error = useRouteError() as Error;
-  if (error) throw error;
-
-  return null;
-}
-
 const ExploreAdmin = lazy(() => import('./pages/admin'));
 
 const ExploreCategory = lazy(() => import('./pages/explore'));
@@ -164,6 +127,44 @@ const Home = lazy(() => import('./pages/home/home'));
 const ProjectsRoutes = lazy(() => import('./pages/project'));
 
 const EmbedRoutes = lazy(() => import('./pages/embed'));
+
+function HomeRoute() {
+  const isPromptEditor = useIsPromptEditor();
+  return isPromptEditor ? <Navigate to="projects" replace /> : <Home />;
+}
+
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <Route path="/" element={<TrackedRoot />} ErrorBoundary={RouterErrorBoundary}>
+      <Route index element={<HomeRoute />} />
+      <Route path="explore/*" element={<ExploreCategory />} />
+      <Route path="apps/:appId" element={<AppPage />} />
+      <Route element={<PrivateRoute roles={['owner', 'admin', 'promptsEditor']} />}>
+        <Route path="admin/*" element={<ExploreAdmin />} />
+      </Route>
+      <Route element={<PrivateRoute roles={Config.serviceModePermissionMap.ensurePromptsEditorRoles} />}>
+        <Route path="projects/*" element={<ProjectsRoutes />} />
+        <Route path="embed/*" element={<EmbedRoutes />} />
+      </Route>
+      <Route path="/playground/*" element={<Navigate to="/projects" replace />} />
+      <Route path="*" element={<NotFound />} />
+    </Route>
+  ),
+  { basename }
+);
+
+function AppRoutes() {
+  const initialized = useInitialized();
+  if (!initialized) return <Loading fixed />;
+  return <RouterProvider router={router} />;
+}
+
+function RouterErrorBoundary() {
+  const error = useRouteError() as Error;
+  if (error) throw error;
+
+  return null;
+}
 
 function Layout({ children }: { children: ReactNode }) {
   return (

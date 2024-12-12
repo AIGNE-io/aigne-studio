@@ -17,6 +17,7 @@ function replaceNodes({
   if (list && list.length) {
     const nodes = list.filter(Boolean).map((item) => {
       const isBracket = isBracketStartAndEnd(item);
+
       if (isBracket) {
         return $createVariableNode(item.trim());
       }

@@ -9,8 +9,9 @@ import {
   isChatCompletionUsage,
 } from '@blocklet/ai-kit/api/types/index';
 import { getAllParameters, getRequiredFields } from '@blocklet/dataset-sdk/request/util';
-import { call } from '@blocklet/sdk/lib/component';
 import { logger } from '@blocklet/sdk/lib/config';
+import jsonLogic from 'json-logic-js';
+import { formatQuery } from 'react-querybuilder/formatQuery';
 
 import { parseIdentity, stringifyIdentity } from '../../common/aid';
 import { languages } from '../../constant/languages';
@@ -26,7 +27,6 @@ import {
 import { isNonNullable } from '../../utils/is-non-nullable';
 import selectAgentName from '../assistant/select-agent';
 import { RunAssistantCallback, ToolCompletionDirective } from '../assistant/type';
-import { renderMessage } from '../utils/render-message';
 import { nextTaskId } from '../utils/task-id';
 import { toolCallsTransform } from '../utils/tool-calls-transform';
 import { AgentExecutorBase } from './base';
@@ -35,6 +35,111 @@ const md5 = (str: string) => crypto.createHash('md5').update(str).digest('hex');
 
 export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
   override async process({ inputs }: { inputs: { [key: string]: any } }) {
+    const { agent } = this;
+    if (agent.decisionType === 'json-logic') {
+      return this.processWithJsonLogic({ inputs });
+    }
+
+    return this.processWithLLM({ inputs });
+  }
+
+  async processWithJsonLogic({ inputs }: { inputs: { [key: string]: any } }) {
+    const {
+      agent,
+      options: { taskId },
+    } = this;
+    const { callback } = this.context;
+
+    const matchedRoute = (agent.routes || []).find((route) => {
+      if (!route.condition) return false;
+      const condition = formatQuery(route.condition, { format: 'jsonlogic' });
+      const isValid = jsonLogic.apply(condition, inputs);
+
+      logger.debug('route.condition is valid:', {
+        json: JSON.stringify(route.condition, null, 2),
+        jsonLogic: JSON.stringify(condition, null, 2),
+        inputs,
+        isValid,
+      });
+
+      return isValid;
+    });
+
+    const matchedId = matchedRoute?.id || agent.defaultToolId;
+
+    if (!matchedId) {
+      logger.warn('No matched route or default tool, please check your agent configuration');
+      return {};
+    }
+
+    const identity = parseIdentity(agent.identity.aid, { rejectWhenError: true });
+    const matched = agent.routes?.find((x) => x.id === matchedId);
+    logger.debug('matched route', { matchedId, matched, isDefault: matchedId === agent.defaultToolId });
+
+    const executor = !matched?.id
+      ? undefined
+      : matched.from === 'blockletAPI'
+        ? (await this.context.getBlockletAgent(matched.id))?.agent
+        : await this.context.getAgent({
+            aid: stringifyIdentity({
+              blockletDid: identity.blockletDid,
+              projectId: identity.projectId,
+              projectRef: identity.projectRef,
+              agentId: matched.id,
+            }),
+            working: agent.identity.working,
+            rejectOnEmpty: true,
+          });
+
+    if (!executor) {
+      logger.warn('No matched tool, please check your agent configuration');
+      return {};
+    }
+
+    const parameters = Object.fromEntries(
+      await Promise.all(
+        Object.entries(matched?.parameters || {}).map(async ([key, value]) => {
+          return [key, value ? await this.renderMessage(value, inputs) : inputs?.[key] || ''];
+        })
+      )
+    );
+
+    const currentTaskId = nextTaskId();
+
+    const cb: RunAssistantCallback = (args) => {
+      callback(args);
+
+      if (args.type === AssistantResponseType.CHUNK && args.taskId === currentTaskId) {
+        if (
+          Object.values(executor.outputVariables || {}).find((x) => x.name === RuntimeOutputVariable.text) &&
+          Object.values(agent.outputVariables || {}).find((x) => x.name === RuntimeOutputVariable.text) &&
+          args.delta.content
+        ) {
+          callback({ ...args, taskId });
+        }
+      }
+    };
+
+    const result = await this.context
+      .copy({ callback: cb })
+      .executor(executor, {
+        taskId: currentTaskId,
+        parentTaskId: taskId,
+        inputs: parameters,
+        variables: { ...inputs },
+      })
+      .execute();
+
+    logger.debug('executor selected', {
+      executorId: executor.id,
+      executorName: executor.name,
+      result: JSON.stringify(result, null, 2),
+    });
+
+    return result;
+  }
+
+  async processWithLLM({ inputs }: { inputs: { [key: string]: any } }) {
     const {
       agent,
       options: { parentTaskId, taskId },
@@ -44,7 +149,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
       throw new Error('Route Assistant Prompt is required');
     }
 
-    const message = await renderMessage(agent.prompt, { ...inputs, ...this.globalContext });
+    const message = await this.renderMessage(agent.prompt);
     const routes = agent?.routes || [];
 
     const blocklet = await this.context.getBlockletAgent(agent.id);
@@ -58,8 +163,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
             if (!dataset) return undefined;
 
             const name = tool?.functionName || dataset.summary || dataset.description || '';
-            const hashName = md5(name);
-            const functionTranslateName = await getEnglishFunctionName({ assistant: agent, hashName, tool, name });
+            const functionTranslateName = await this.getEnglishFunctionName({ assistant: agent, tool, name });
             logger.info('function call api name', functionTranslateName);
 
             const datasetParameters = getAllParameters(dataset)
@@ -122,8 +226,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
             .map((x) => x.key);
 
           const name = tool?.functionName || toolAssistant?.description || toolAssistant?.name || '';
-          const hashName = md5(name);
-          const functionTranslateName = await getEnglishFunctionName({ assistant: agent, hashName, tool, name });
+          const functionTranslateName = await this.getEnglishFunctionName({ assistant: agent, tool, name });
           logger.info('function call agent name', functionTranslateName);
 
           return {
@@ -143,23 +246,6 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
       )
     ).filter(isNonNullable);
 
-    this.context.callback?.({
-      type: AssistantResponseType.EXECUTE,
-      assistantId: agent.id,
-      parentTaskId,
-      taskId,
-      execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
-    });
-
-    this.context.callback?.({
-      type: AssistantResponseType.INPUT,
-      assistantId: agent.id,
-      parentTaskId,
-      taskId,
-      assistantName: `${agent.name}`,
-      promptMessages: [{ role: 'user', content: message }],
-    });
-
     const runFunctionCall = async ({
       tools,
       toolChoice,
@@ -167,17 +253,6 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
       tools: ChatCompletionInput['tools'];
       toolChoice: ChatCompletionInput['toolChoice'];
     }) => {
-      logger.info('function call input', {
-        model: agent?.model,
-        temperature: agent?.temperature,
-        topP: agent?.topP,
-        presencePenalty: agent?.presencePenalty,
-        frequencyPenalty: agent?.frequencyPenalty,
-        messages: [{ role: 'user', content: message }],
-        tools,
-        toolChoice,
-      });
-
       const identity = parseIdentity(agent.identity.aid, { rejectWhenError: true });
 
       const executor = agent.executor?.agent?.id
@@ -193,6 +268,30 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
           })
         : undefined;
 
+      const messages: ChatCompletionInput['messages'] = [{ role: 'system', content: message }];
+
+      this.context.callback?.({
+        type: AssistantResponseType.INPUT,
+        assistantId: agent.id,
+        parentTaskId,
+        taskId,
+        assistantName: `${agent.name}`,
+        promptMessages: messages,
+      });
+
+      const input = {
+        model: agent?.model,
+        temperature: agent?.temperature,
+        topP: agent?.topP,
+        presencePenalty: agent?.presencePenalty,
+        frequencyPenalty: agent?.frequencyPenalty,
+        messages,
+        tools,
+        toolChoice,
+      };
+
+      logger.debug('Run decision agent', JSON.stringify(input, null, 2));
+
       const response = executor
         ? ((
             await this.context
@@ -202,9 +301,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
                 inputs: {
                   ...inputs,
                   ...agent.executor?.inputValues,
-                  [executor.parameters?.find((i) => i.type === 'llmInputMessages' && !i.hidden)?.key!]: [
-                    { role: 'user', content: message },
-                  ],
+                  [executor.parameters?.find((i) => i.type === 'llmInputMessages' && !i.hidden)?.key!]: messages,
                   [executor.parameters?.find((i) => i.type === 'llmInputTools' && !i.hidden)?.key!]: tools,
                   [executor.parameters?.find((i) => i.type === 'llmInputToolChoice' && !i.hidden)?.key!]: toolChoice,
                 },
@@ -213,16 +310,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
           )[RuntimeOutputVariable.llmResponseStream] as ReadableStream<ChatCompletionResponse>)
         : await this.context.callAI({
             assistant: agent,
-            input: {
-              model: agent?.model,
-              temperature: agent?.temperature,
-              topP: agent?.topP,
-              presencePenalty: agent?.presencePenalty,
-              frequencyPenalty: agent?.frequencyPenalty,
-              messages: [{ role: 'user', content: message }],
-              tools,
-              toolChoice,
-            },
+            input,
           });
 
       const calls: NonNullable<ChatCompletionChunk['delta']['toolCalls']> = [];
@@ -257,14 +345,10 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
       },
     }));
 
-    logger.info('function call tools', JSON.stringify(tools));
-
-    logger.info('call agent function start');
     const calls = await runFunctionCall({
       tools,
       toolChoice: 'required',
     });
-    logger.info('call agent function end');
 
     this.context.callback?.({
       type: AssistantResponseType.EXECUTE,
@@ -279,7 +363,6 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
 
     const matchAgentName = async () => {
       // requestCalls 没有找到，检查 jsonResult 是否存在
-      logger.info('match not call function agent name');
 
       let selectedAgent: { category_name?: string } = {};
       try {
@@ -319,7 +402,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
         if (found) return defaultTool?.function.name;
       }
 
-      logger.info('Get Current Selected Agent Name', {
+      logger.debug('Get Current Selected Agent Name', {
         from: 'from first agent',
         value: toolAssistants[0]?.function.name,
       });
@@ -328,7 +411,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
     };
 
     const matchRequestCalls = async () => {
-      logger.info('Get Current Selected Agent Name', {
+      logger.debug('Get Current Selected Agent Name', {
         from: 'function call',
         value: calls && JSON.stringify(calls),
       });
@@ -375,9 +458,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
       return [{ type: 'function', function: { name: agentName, arguments: '{}' } }];
     };
 
-    logger.info('match function name start');
     const requestCalls = await matchRequestCalls();
-    logger.info('match function name end');
 
     const result =
       requestCalls &&
@@ -436,7 +517,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
               ?.map(async (item) => {
                 const message = tool.tool?.parameters?.[item.key!];
                 if (message) {
-                  requestData[item.key!] = await renderMessage(message, inputs);
+                  requestData[item.key!] = await this.renderMessage(message);
                 }
               }) ?? []
           );
@@ -462,71 +543,78 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
 
     return obj;
   }
+
+  private async getEnglishFunctionName({
+    assistant,
+    tool,
+    name,
+  }: {
+    assistant: RouterAssistant;
+    tool: Tool;
+    name: string;
+  }) {
+    if (functionNameRegex.test(name)) return name;
+
+    const key = md5(
+      [assistant.id, tool.id, tool.functionName, assistant.name, assistant.description].filter(Boolean).join('/')
+    );
+
+    if (!cacheTranslateFunctionNames[key]) {
+      const result = await this.context.callAI({
+        assistant: this.agent,
+        input: {
+          messages: [
+            {
+              content: `\
+  # Role
+  You are an engineer who is proficient in programming. Please generate a function \
+  name that conforms to programming standards according to the following requirements
+
+  - The name of the function to be called. Must be a-z, A-Z, 0-9, or contain \
+  underscores and dashes, with a maximum length of 64.
+
+  # Output
+
+  - Do not explain
+  - Directly output the generated function name
+
+  # Requirements
+  - Semantic function name
+    - ${name}
+    - ${tool.functionName}
+    - ${assistant.name}
+  - Function description: ${assistant.description}
+                  `,
+              role: 'system',
+            },
+          ],
+          model: assistant?.model,
+          temperature: assistant?.temperature,
+          topP: assistant?.topP,
+          presencePenalty: assistant?.presencePenalty,
+          frequencyPenalty: assistant?.frequencyPenalty,
+        },
+      });
+
+      let generated = '';
+
+      for await (const i of result) {
+        if (isChatCompletionChunk(i)) {
+          generated += i.delta.content || '';
+        }
+      }
+
+      if (typeof generated !== 'string' || !functionNameRegex.test(generated)) {
+        throw new Error(`Generated function name is invalid: ${generated}`);
+      }
+
+      cacheTranslateFunctionNames[key] = generated;
+    }
+
+    return cacheTranslateFunctionNames[key]!;
+  }
 }
 
 const cacheTranslateFunctionNames: { [key: string]: string } = {};
 
-const getEnglishFunctionName = async ({
-  assistant,
-  hashName,
-  tool,
-  name,
-}: {
-  assistant: RouterAssistant;
-  hashName?: string;
-  tool: Tool;
-  name: string;
-}) => {
-  let functionTranslateName = '';
-  if (hashName) {
-    if (!cacheTranslateFunctionNames[`${assistant.id}-${tool.id}-${hashName}`]) {
-      try {
-        const result = await call({
-          name: 'ai-kit',
-          path: '/api/v1/completions',
-          method: 'POST',
-          data: {
-            stream: false,
-            messages: [
-              {
-                content: `\
-                # Roles: You are a translation master. You need to translate the user's input into English.
-
-                # rules:
-                - Please do not respond with unnecessary content, only provide the translation.
-                - You need to translate any input provided.
-                - Your translation should be in camelCase function name format.
-                - If the input is already in English, no translation is required.
-
-                # Examples:
-                - 测试: test
-                - 开始: start
-                - weapon: weapon
-                - 添加一个新的todo: AddANewTodo
-                `,
-                role: 'system',
-              },
-              {
-                content: name ?? '',
-                role: 'user',
-              },
-            ],
-            model: assistant?.model,
-            temperature: assistant?.temperature,
-            topP: assistant?.topP,
-            presencePenalty: assistant?.presencePenalty,
-            frequencyPenalty: assistant?.frequencyPenalty,
-          },
-        });
-
-        cacheTranslateFunctionNames[`${assistant.id}-${tool.id}-${hashName}`] = result?.data?.content;
-      } catch (error) {
-        logger.error(error);
-      }
-    }
-
-    functionTranslateName = cacheTranslateFunctionNames[`${assistant.id}-${tool.id}-${hashName}`] || '';
-  }
-
-  return functionTranslateName;
-};
+const functionNameRegex = /^[a-zA-Z0-9_-]{1,64}$/;

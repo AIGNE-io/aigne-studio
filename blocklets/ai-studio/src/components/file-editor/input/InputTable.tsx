@@ -6,7 +6,7 @@ import LoadingButton from '@app/components/loading/loading-button';
 import PopperMenu, { PopperMenuImperative } from '@app/components/menu/PopperMenu';
 import PasswordField from '@app/components/PasswordField';
 import { useCurrentProject } from '@app/contexts/project';
-import { getDatasets } from '@app/libs/dataset';
+import { getKnowledgeList } from '@app/libs/knowledge';
 import { getProjectIconUrl } from '@app/libs/project';
 import { createOrUpdateSecrets, getSecrets } from '@app/libs/secret';
 import Close from '@app/pages/project/icons/close';
@@ -132,8 +132,27 @@ export default function InputTable({
     return validNameRegex.test(name);
   };
 
-  const checkVariableReferenced = (id: string, key: string) => {
+  const checkMemoryVariableDefined = (parameter: ParameterYjs, type?: string) => {
+    if (parameter.type === 'source' && parameter.source?.variableFrom === 'datastore') {
+      const { variable } = parameter.source;
+      if (variable && variable.key) {
+        const variableYjs = getVariables();
+        const found = variableYjs?.variables?.find((x) => x.key === variable.key && x.scope === variable.scope);
+
+        if (type) {
+          return found?.type?.type === type;
+        }
+
+        return !!found;
+      }
+    }
+
+    return true;
+  };
+
+  const checkVariableReferenced = (parameter: ParameterYjs, key: string) => {
     if (assistant.type === 'prompt' || assistant.type === 'image') {
+      const { id } = parameter;
       const textNodes = document.querySelectorAll('[data-lexical-variable]');
       const variables = new Set([
         ...parseDirectivesOfTemplateInput(assistant).map((i) => i.name.split('.')[0]!),
@@ -157,7 +176,7 @@ export default function InputTable({
   };
 
   const parameters = sortBy(Object.values(assistant.parameters ?? {}), (i) => i.index).filter((i) => !i.data.hidden);
-  const { data: knowledge = [] } = useRequest(() => getDatasets({ projectId }));
+  const { data: knowledge = [] } = useRequest(() => getKnowledgeList({ projectId }));
 
   const FROM_MAP = useMemo(() => {
     return {
@@ -235,7 +254,7 @@ export default function InputTable({
                   id={`${parameter.id}-key`}
                   fullWidth
                   readOnly={readOnly || parameter.hidden}
-                  disabled={parameter.from === FROM_IMAGE_BLENDER}
+                  disabled={assistant.type === 'imageBlender' && parameter.from === FROM_IMAGE_BLENDER}
                   placeholder={t('inputParameterKeyPlaceholder')}
                   value={parameter.key || ''}
                   onChange={(e) => {
@@ -414,14 +433,15 @@ export default function InputTable({
             list={assistant.parameters! ?? []}
             component={TableBody}
             renderItem={(parameter, _, params) => {
-              const idReferenced = checkVariableReferenced(parameter.id, parameter.key || '');
+              const idReferenced = checkVariableReferenced(parameter, parameter.key || '');
+              const memoryNotDefined = checkMemoryVariableDefined(parameter);
 
               const getBackgroundColor = (theme: Theme) => {
                 if (parameter.hidden) {
                   return alpha(theme.palette.common.black, theme.palette.action.hoverOpacity);
                 }
 
-                if (!idReferenced) {
+                if (!idReferenced || !memoryNotDefined) {
                   return alpha(theme.palette.warning.light, theme.palette.action.focusOpacity);
                 }
 
@@ -437,7 +457,7 @@ export default function InputTable({
                   return alpha(theme.palette.common.black, theme.palette.action.hoverOpacity);
                 }
 
-                if (!idReferenced) {
+                if (!idReferenced && !memoryNotDefined) {
                   return `${alpha(theme.palette.warning.light, theme.palette.action.selectedOpacity)} !important`;
                 }
 
@@ -447,6 +467,10 @@ export default function InputTable({
               const title = () => {
                 if (parameter.hidden) {
                   return undefined;
+                }
+
+                if (!memoryNotDefined) {
+                  return t('memoryNotDefined');
                 }
 
                 if (idReferenced) {
@@ -519,7 +543,7 @@ export default function InputTable({
                           </Button>
                         )}
 
-                        {!readOnly && parameter.from !== FROM_IMAGE_BLENDER && (
+                        {!readOnly && (
                           <PopperButton
                             knowledge={knowledge.map((x) => ({ ...x, from: FROM_KNOWLEDGE }))}
                             openApis={openApis}
@@ -618,7 +642,7 @@ function SelectFromSource({
               backgroundColor: 'transparent',
             },
           },
-          disabled: parameter.hidden || parameter.from === FROM_IMAGE_BLENDER,
+          disabled: parameter.hidden || (parameter.from === FROM_IMAGE_BLENDER && value.type === 'imageBlender'),
           children: (
             <Box>
               <Box className="center" gap={1} justifyContent="flex-start">
@@ -701,7 +725,7 @@ export function AgentName({
     <>
       {showIcon && (
         <Avatar
-          src={getProjectIconUrl(agent.project.id, { updatedAt: agent.project.updatedAt })}
+          src={getProjectIconUrl(agent.project.id, { blockletDid, updatedAt: agent.project.updatedAt })}
           {...IconProps}
           sx={{ width: 22, height: 22, ...IconProps?.sx }}
         />
@@ -730,7 +754,7 @@ function SelectInputType({
     }
 
     if (parameter.type === 'string') {
-      return parameter?.image ? 'image' : parameter?.multiline ? 'multiline' : 'string';
+      return parameter?.multiline ? 'multiline' : 'string';
     }
 
     return parameter?.type || 'string';
@@ -751,8 +775,7 @@ function SelectInputType({
             parameter.key === 'question' ||
             parameter.from === FROM_PARAMETER ||
             parameter.from === FROM_KNOWLEDGE_PARAMETER ||
-            parameter.hidden ||
-            parameter.from === FROM_IMAGE_BLENDER
+            parameter.hidden
           }
           variant="standard"
           hiddenLabel
@@ -770,11 +793,6 @@ function SelectInputType({
               if (newValue === 'multiline') {
                 parameter.type = 'string';
                 (parameter as StringParameter)!.multiline = true;
-                (parameter as StringParameter)!.image = false;
-              } else if (newValue === 'image') {
-                parameter.type = 'string';
-                (parameter as StringParameter)!.image = true;
-                (parameter as StringParameter)!.multiline = false;
               } else {
                 parameter.type = newValue as any;
                 if (typeof (parameter as StringParameter).multiline !== 'undefined') {
@@ -1122,21 +1140,7 @@ function KnowledgeParameter({
                 if (!data) return null;
 
                 if (data.type === 'boolean') {
-                  return (
-                    <Stack key={data.name}>
-                      <Typography variant="caption">{data.description || data.name}</Typography>
-
-                      <Switch
-                        checked={Boolean(source?.knowledge?.parameters?.[data.name] ?? false)}
-                        onChange={(_, checked) => {
-                          if (source?.knowledge?.parameters) {
-                            // @ts-ignore
-                            source.knowledge.parameters[data.name] = checked;
-                          }
-                        }}
-                      />
-                    </Stack>
-                  );
+                  return null;
                 }
 
                 if (source?.knowledge?.parameters?.searchAll) {
@@ -1603,18 +1607,22 @@ function PopperButton({
           <Paper sx={{ p: 0, minWidth: 140, maxWidth: 320, maxHeight: '80vh', overflow: 'auto' }}>
             <Stack gap={2}>
               <List>
-                <MenuItem onClick={() => (parameter.hidden = !parameter.hidden)}>
-                  {parameter.hidden ? t('activeParameterTip') : t('hideParameterTip')}
-                </MenuItem>
+                {!(parameter.from === FROM_IMAGE_BLENDER && value.type === 'imageBlender') && (
+                  <MenuItem onClick={() => (parameter.hidden = !parameter.hidden)}>
+                    {parameter.hidden ? t('activeParameterTip') : t('hideParameterTip')}
+                  </MenuItem>
+                )}
 
                 {!(parameter.from === FROM_PARAMETER || parameter.from === FROM_KNOWLEDGE_PARAMETER) && (
                   <MenuItem onClick={dialogState.open} disabled={Boolean(parameter.hidden)}>
                     {t('setting')}
                   </MenuItem>
                 )}
-                <MenuItem sx={{ color: '#E11D48', fontSize: 13 }} onClick={onDelete}>
-                  {t('delete')}
-                </MenuItem>
+                {!(parameter.from === FROM_IMAGE_BLENDER && value.type === 'imageBlender') && (
+                  <MenuItem sx={{ color: '#E11D48', fontSize: 13 }} onClick={onDelete}>
+                    {t('delete')}
+                  </MenuItem>
+                )}
               </List>
             </Stack>
           </Paper>
@@ -1761,7 +1769,7 @@ function APIParameter({
                       </Typography>
                       <Typography
                         variant="subtitle5"
-                        sx={{ lineHeight: '22px' }}>{`(${t(parameter?.type)})`}</Typography>
+                        sx={{ lineHeight: '22px' }}>{`(${t(parameter?.type!)})`}</Typography>
                     </Box>
 
                     {parameter.type === 'object' ? (

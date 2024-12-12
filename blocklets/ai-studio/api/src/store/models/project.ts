@@ -68,6 +68,7 @@ export default class Project extends Model<InferAttributes<Project>, InferCreati
         fontFamily?: string;
       };
     };
+    aigneBannerVisible?: boolean;
   };
 
   static associate(models: { Deployment: any }) {

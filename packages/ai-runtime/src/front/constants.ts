@@ -18,27 +18,27 @@ export const DEFAULT_OPENING_MESSAGE_COMPONENT_ID = '8v8lsoj64q1r8qi1';
 
 export const DEFAULT_OUTPUT_COMPONENTS: { [name: string]: { componentId: string; componentName: string } } = {
   [RuntimeOutputVariable.appearancePage]: {
-    componentId: DEFAULT_PAGE_COMPONENT_ID,
+    componentId: DEFAULT_PAGE_COMPONENT_ID, // Simple Page
     componentName: 'Default Layout',
   },
   [RuntimeOutputVariable.appearanceInput]: {
-    componentId: DEFAULT_INPUT_COMPONENT_ID,
+    componentId: DEFAULT_INPUT_COMPONENT_ID, // AUTO Form
     componentName: 'Default Input View',
   },
   [RuntimeOutputVariable.appearanceOutput]: {
-    componentId: DEFAULT_OUTPUT_COMPONENT_ID,
+    componentId: DEFAULT_OUTPUT_COMPONENT_ID, // Simple Output
     componentName: 'Default Output View',
   },
   [RuntimeOutputVariable.profile]: {
-    componentId: DEFAULT_HEADER_COMPONENT_ID,
+    componentId: DEFAULT_HEADER_COMPONENT_ID, // Header
     componentName: 'Default Header View',
   },
   [RuntimeOutputVariable.text]: {
-    componentId: DEFAULT_MARKDOWN_COMPONENT_ID,
+    componentId: DEFAULT_MARKDOWN_COMPONENT_ID, // Markdown View
     componentName: 'Markdown View',
   },
   [RuntimeOutputVariable.images]: {
-    componentId: DEFAULT_IMAGES_COMPONENT_ID,
+    componentId: DEFAULT_IMAGES_COMPONENT_ID, // Images View
     componentName: 'Images View',
   },
   [RuntimeOutputVariable.openingMessage]: {

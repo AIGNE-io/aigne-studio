@@ -8,18 +8,20 @@ import { parseIdentity, stringifyIdentity } from '../../common/aid';
 import {
   AssistantResponseType,
   OutputVariable,
+  Prompt,
   PromptAssistant,
   Role,
   RuntimeOutputVariable,
+  jsonSchemaToOpenAIJsonSchema,
   outputVariablesToJsonSchema,
 } from '../../types';
+import { parseDirectives } from '../../types/assistant/mustache/directive';
 import {
   extractMetadataFromStream,
   metadataOutputFormatPrompt,
   metadataStreamOutputFormatPrompt,
 } from '../assistant/generate-output';
 import { GetAgentResult } from '../assistant/type';
-import { renderMessage } from '../utils/render-message';
 import retry from '../utils/retry';
 import { nextTaskId } from '../utils/task-id';
 import { AgentExecutorBase } from './base';
@@ -117,6 +119,84 @@ export class LLMAgentExecutor extends AgentExecutorBase<PromptAssistant> {
   private getMessages({ inputs }: { inputs: { [key: string]: any } }) {
     const { agent } = this;
 
+    const createContentStructure = async (
+      content: string,
+      variables: string[],
+      agent: PromptAssistant,
+      prompt: Prompt
+    ) => {
+      const parameters = agent.parameters ?? [];
+
+      // 没有特殊变量
+      if (!variables.length) {
+        const renderedContent = await this.renderMessage(content, { ...inputs, ...this.globalContext });
+        return renderedContent;
+      }
+
+      // 没有图片变量
+      const haveImageParameter = parameters.filter((i) => i.type === 'image').some((i) => variables.includes(i.key!));
+      if (!haveImageParameter) {
+        const renderedContent = await this.renderMessage(content, { ...inputs, ...this.globalContext });
+        return renderedContent;
+      }
+
+      // 创建图片变量标记
+      const createImageMarker = (variable: string) => `__IMAGE_${variable}__`;
+      const imageVariablesMap: { [key: string]: string } = {};
+      const imageVariables: { marker: string; value: string }[] = [];
+
+      // 当前参数有图片变量
+      parameters
+        .filter((i) => i.type === 'image' && i.key && variables.includes(i.key!))
+        .forEach((param) => {
+          if (param.type === 'image' && param.key && inputs[param.key]) {
+            const marker = createImageMarker(param.key);
+            imageVariablesMap[param.key] = marker;
+            imageVariables.push({ marker, value: inputs[param.key] });
+          }
+        });
+
+      const renderedContent = await this.renderMessage(content, {
+        ...inputs,
+        ...this.globalContext,
+        ...imageVariablesMap,
+      });
+
+      const contentParts: {
+        type: string;
+        text?: string;
+        imageUrl?: { url: string };
+      }[] = [];
+
+      if (imageVariables.length === 0) {
+        return renderedContent;
+      }
+
+      let remainingContent = renderedContent;
+      for (const { marker, value } of imageVariables) {
+        const parts = remainingContent.split(marker);
+
+        if (parts[0]) {
+          contentParts.push({ type: 'text', text: parts[0] });
+        }
+
+        // 只有是 user 时，才处理
+        if (prompt.data.role === 'user') {
+          const list = Array.isArray(value) ? value : [value];
+          list.forEach((item) => contentParts.push({ type: 'image_url', imageUrl: { url: item } }));
+        }
+
+        remainingContent = parts[1] || '';
+      }
+
+      if (remainingContent) {
+        contentParts.push({ type: 'text', text: remainingContent });
+      }
+
+      logger.info('have image messages', contentParts);
+      return contentParts;
+    };
+
     return (async () =>
       (
         await Promise.all(
@@ -124,16 +204,20 @@ export class LLMAgentExecutor extends AgentExecutorBase<PromptAssistant> {
             .filter((i) => i.visibility !== 'hidden')
             .map(async (prompt) => {
               if (prompt.type === 'message') {
+                const content =
+                  prompt.data.content
+                    ?.split('\n')
+                    .filter((i) => !i.startsWith('//'))
+                    .join('\n') || '';
+
+                const variables = parseDirectives(content)
+                  .filter((i) => i.type === 'variable')
+                  .map((i) => i.name);
+                const contentStructure = await createContentStructure(content, variables, agent, prompt);
+
                 return {
                   role: prompt.data.role,
-                  content: await renderMessage(
-                    // 过滤注释节点
-                    prompt.data.content
-                      ?.split('\n')
-                      .filter((i) => !i.startsWith('//'))
-                      .join('\n') || '',
-                    { ...inputs, ...this.globalContext }
-                  ),
+                  content: contentStructure,
                 };
               }
 
@@ -342,7 +426,8 @@ export class LLMAgentExecutor extends AgentExecutorBase<PromptAssistant> {
           type: 'json_schema',
           jsonSchema: {
             name: 'output',
-            schema,
+            schema: jsonSchemaToOpenAIJsonSchema(schema),
+            strict: true,
           },
         },
       },

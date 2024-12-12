@@ -1,9 +1,10 @@
 import { logger } from '@blocklet/sdk/lib/config';
+import pick from 'lodash/pick';
 
 import { parseIdentity, stringifyIdentity } from '../../common/aid';
 import { AssistantResponseType, CallAssistant, OutputVariable, RuntimeOutputVariable, Tool } from '../../types';
+import { isNonNullable } from '../../utils/is-non-nullable';
 import { GetAgentResult } from '../assistant/type';
-import { renderMessage } from '../utils/render-message';
 import { nextTaskId } from '../utils/task-id';
 import { AgentExecutorBase } from './base';
 
@@ -81,7 +82,7 @@ export class CallAgentExecutor extends AgentExecutorBase<CallAssistant> {
       const parameters = Object.fromEntries(
         await Promise.all(
           Object.entries(callAgent.item.parameters || {}).map(async ([key, value]) => {
-            return [key, value ? await renderMessage(value, options.inputs) : options.inputs?.[key] || ''];
+            return [key, value ? await this.renderMessage(value) : options.inputs?.[key] || ''];
           })
         )
       );
@@ -115,12 +116,13 @@ export class CallAgentExecutor extends AgentExecutorBase<CallAssistant> {
       return result;
     };
 
-    const list = await Promise.all(calledAgents.map(fn));
-    const obj = Object.assign({}, ...list.flat());
-    const result = outputVariables.reduce((acc, item) => {
-      if (item?.name) acc[item.name] = obj[item.name];
-      return acc;
-    }, {} as any);
+    const obj = {};
+
+    for (const agent of calledAgents) {
+      Object.assign(obj, ...[await fn(agent)].flat());
+    }
+
+    const result = pick(obj, outputVariables.map((i) => i.name).filter(isNonNullable));
 
     logger.info('parallel call agent output', JSON.stringify(obj, null, 2));
     logger.info('filter call agent output', JSON.stringify(result, null, 2));

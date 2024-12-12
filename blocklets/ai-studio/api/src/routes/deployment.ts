@@ -1,16 +1,18 @@
 import { NoSuchEntryAgentError } from '@api/libs/error';
-import { getAgentSecretInputs } from '@api/libs/runtime';
+import { getAgentSecretInputs, getProjectStatsFromRuntime } from '@api/libs/runtime';
 import { ensurePromptsAdmin } from '@api/libs/security';
+import { getUser, getUsers } from '@api/libs/user';
 import Project from '@api/store/models/project';
 import { PROJECT_FILE_PATH, ProjectRepo, getEntryFromRepository, getRepository } from '@api/store/repository';
 import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { Assistant, ProjectSettings } from '@blocklet/ai-runtime/types';
 import { Agent } from '@blocklet/aigne-sdk/api/agent';
-import { auth, user } from '@blocklet/sdk/lib/middlewares';
+import middlewares from '@blocklet/sdk/lib/middlewares';
 import { NextFunction, Request, Response, Router } from 'express';
 import Joi from 'joi';
 import pick from 'lodash/pick';
 
+import { ensureAdmin } from '../libs/security';
 import checkUserAuth from '../libs/user-auth';
 import Category from '../store/models/category';
 import Deployment from '../store/models/deployment';
@@ -41,12 +43,11 @@ const recommendSchema = paginationSchema.concat(
 );
 
 const updateSchema = Joi.object({
-  access: Joi.string().valid('private', 'public').required(),
-  categories: Joi.array().items(Joi.string()).optional(),
+  access: Joi.string().valid('private', 'public').optional(),
   orderIndex: Joi.number().integer().empty(null).optional(),
   productHuntUrl: Joi.string().allow('').empty([null, '']).optional(),
   productHuntBannerUrl: Joi.string().allow('').empty([null, '']).optional(),
-});
+}).min(1);
 
 const getByIdSchema = Joi.object({
   projectId: Joi.string().required(),
@@ -55,7 +56,7 @@ const getByIdSchema = Joi.object({
 
 const deploymentIdSchema = Joi.object({ id: Joi.string().required() });
 
-router.get('/byProjectId', user(), auth(), async (req, res) => {
+router.get('/byProjectId', middlewares.session(), middlewares.auth(), async (req, res) => {
   const { projectId, projectRef } = await getByIdSchema.validateAsync(req.query, { stripUnknown: true });
   const deployment = await Deployment.findOne({
     where: { projectId, projectRef },
@@ -76,7 +77,7 @@ router.get('/byProjectId', user(), auth(), async (req, res) => {
   res.json(deployment);
 });
 
-router.get('/', async (req, res) => {
+router.get('/', middlewares.session(), ensureAdmin, async (req, res) => {
   const { page, pageSize } = await paginationSchema.validateAsync(req.query, { stripUnknown: true });
   const offset = (page - 1) * pageSize;
 
@@ -161,6 +162,11 @@ router.get('/recommend-list', async (req, res) => {
   }
 
   const { count, rows } = await Deployment.findAndCountAll(query);
+  const [stats, users] = await Promise.all([
+    getProjectStatsFromRuntime({ projectIds: rows.map((d) => d.projectId) }),
+    getUsers(rows.map((d) => d.createdBy)),
+  ]);
+  const statsMap = new Map(stats.map((s) => [s.projectId, s]));
 
   const enhancedDeployments = await Promise.all(
     rows.map(async (deployment) => {
@@ -171,7 +177,12 @@ router.get('/recommend-list', async (req, res) => {
         readBlobFromGitIfWorkingNotInitialized: true,
       });
 
-      return { ...deployment.dataValues, project };
+      return {
+        ...deployment.dataValues,
+        project,
+        stats: statsMap.get(deployment.projectId),
+        createdByInfo: users[deployment.createdBy],
+      };
     })
   );
 
@@ -210,6 +221,11 @@ router.get('/categories/:categorySlug', async (req, res) => {
     distinct: true,
   });
 
+  const [stats, users] = await Promise.all([
+    getProjectStatsFromRuntime({ projectIds: rows.map((d) => d.projectId) }),
+    getUsers(rows.map((d) => d.createdBy)),
+  ]);
+  const statsMap = new Map(stats.map((s) => [s.projectId, s]));
   const enhancedDeployments = await Promise.all(
     rows.map(async (deployment) => {
       const repository = await getRepository({ projectId: deployment.projectId });
@@ -219,7 +235,12 @@ router.get('/categories/:categorySlug', async (req, res) => {
         readBlobFromGitIfWorkingNotInitialized: true,
       });
 
-      return { ...deployment.dataValues, project };
+      return {
+        ...deployment.dataValues,
+        project,
+        stats: statsMap.get(deployment.projectId),
+        createdByInfo: users[deployment.createdBy],
+      };
     })
   );
 
@@ -229,7 +250,7 @@ router.get('/categories/:categorySlug', async (req, res) => {
   });
 });
 
-router.post('/', user(), auth(), async (req, res) => {
+router.post('/', middlewares.session(), middlewares.auth(), async (req, res) => {
   const { did: userId } = req.user!;
   const { projectId, projectRef, access } = await deploymentSchema.validateAsync(req.body, {
     stripUnknown: true,
@@ -252,7 +273,7 @@ router.post('/', user(), auth(), async (req, res) => {
   res.json(deployment);
 });
 
-router.get('/:deploymentId', user(), async (req, res) => {
+router.get('/:deploymentId', middlewares.session(), async (req, res) => {
   const { deploymentId } = req.params;
   if (!deploymentId) throw new Error('Missing required param `deploymentId`');
 
@@ -269,7 +290,7 @@ router.get('/:deploymentId', user(), async (req, res) => {
   }
 
   if (deployment.access === 'private') {
-    if (userId !== deployment.createdBy || !['admin', 'owner'].includes(role)) {
+    if (userId !== deployment.createdBy || !['admin', 'owner'].includes(role!)) {
       res.status(404).json({ message: 'Not Found' });
       return;
     }
@@ -282,6 +303,11 @@ router.get('/:deploymentId', user(), async (req, res) => {
   if (!agent) {
     throw new NoSuchEntryAgentError('No such agent');
   }
+
+  const [stats, user] = await Promise.all([
+    getProjectStatsFromRuntime({ projectIds: [projectId] }),
+    getUser(deployment.createdBy),
+  ]);
 
   res.json({
     deployment,
@@ -299,26 +325,24 @@ router.get('/:deploymentId', user(), async (req, res) => {
       secrets: (await getAgentSecretInputs({ aid: stringifyIdentity({ projectId, projectRef, agentId: agent.id }) }))
         .secrets,
     },
+    createdByInfo: user,
+    stats: stats[0],
   });
 });
 
-router.put('/:id', user(), auth(), async (req, res) => {
+router.patch('/:id', middlewares.session(), middlewares.auth(), async (req, res) => {
   const found = await Deployment.findByPk(req.params.id!);
   if (!found) {
     res.status(404).json({ message: 'deployment not found' });
     return;
   }
-
   checkUserAuth(req, res)({ userId: found.createdBy });
-
-  const { access } = await updateSchema.validateAsync(req.body, { stripUnknown: true });
-
-  await Deployment.update({ access }, { where: { id: req.params.id! } });
-
-  res.json(await Deployment.findByPk(req.params.id!));
+  const input = await updateSchema.validateAsync(req.body, { stripUnknown: true });
+  const updated = await found.update(input, { where: { id: req.params.id! } });
+  res.json(updated);
 });
 
-router.delete('/:id', user(), auth(), async (req, res) => {
+router.delete('/:id', middlewares.session(), middlewares.auth(), async (req, res) => {
   const { id } = await deploymentIdSchema.validateAsync(req.params, { stripUnknown: true });
 
   const deployment = await Deployment.findByPk(id);
@@ -360,8 +384,7 @@ export const respondAgentFields = ({
     'updatedAt',
     'appearance',
     'iconVersion',
-    'readme',
-    'banner'
+    'readme'
   ),
 
   identity: {
@@ -400,7 +423,14 @@ export const checkDeployment = async (req: Request, res: Response, next: NextFun
 };
 
 export function adminDeploymentRouter(router: Router) {
-  router.put('/:id', user(), ensurePromptsAdmin, async (req, res) => {
+  const updateSchema = Joi.object({
+    categories: Joi.array().items(Joi.string()).optional(),
+    orderIndex: Joi.number().integer().empty(null).optional(),
+    productHuntUrl: Joi.string().allow('').empty([null, '']).optional(),
+    productHuntBannerUrl: Joi.string().allow('').empty([null, '']).optional(),
+  }).min(1);
+
+  router.patch('/:id', middlewares.session(), ensurePromptsAdmin, async (req, res) => {
     const { did: userId } = req.user!;
 
     const found = await Deployment.findByPk(req.params.id!);
@@ -414,7 +444,10 @@ export function adminDeploymentRouter(router: Router) {
       { stripUnknown: true }
     );
 
-    await Deployment.update({ productHuntUrl, productHuntBannerUrl, orderIndex }, { where: { id: req.params.id! } });
+    const updated = await found.update(
+      { productHuntUrl, productHuntBannerUrl, orderIndex },
+      { where: { id: req.params.id! } }
+    );
 
     if (categories) {
       await DeploymentCategory.destroy({ where: { deploymentId: req.params.id! } });
@@ -431,7 +464,7 @@ export function adminDeploymentRouter(router: Router) {
       }
     }
 
-    res.json(await Deployment.findByPk(req.params.id!));
+    res.json(updated);
   });
 
   return router;

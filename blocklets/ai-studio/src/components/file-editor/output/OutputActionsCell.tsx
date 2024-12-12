@@ -29,7 +29,8 @@ import {
 import sortBy from 'lodash/sortBy';
 import { bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { nanoid } from 'nanoid';
-import { ComponentType, Ref, forwardRef, useId, useImperativeHandle, useState } from 'react';
+import { ComponentType, Ref, forwardRef, useEffect, useId, useImperativeHandle, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { StoreApi, UseBoundStore, create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 
@@ -160,10 +161,41 @@ const PopperButton = forwardRef<PopperButtonImperative, PopperButtonProps>(
     const parameterSettingPopperState = usePopupState({ variant: 'popper', popupId: useId() });
 
     useImperativeHandle(ref, () => ({ open: dialogState.open }), [dialogState.open]);
+    const location = useLocation();
 
     const [currentSetting, setSetting] = useState<'setting' | 'save'>('setting');
 
+    useEffect(() => {
+      dialogState.close();
+    }, [location.pathname]);
+
     const renderParameterSettings = (output: OutputVariableYjs) => {
+      if (currentSetting === 'save') {
+        return (
+          <Box>
+            <Typography variant="subtitle2" mb={0}>
+              {t('memory.saveMemory')}
+            </Typography>
+
+            <Box>
+              <SelectVariable
+                placeholder={t('selectMemoryPlaceholder')}
+                variables={variables}
+                variable={variable}
+                onDelete={() => {
+                  if (output.variable) delete output.variable;
+                }}
+                onChange={(_value) => {
+                  if (_value && output) {
+                    output.variable = { key: _value.key, scope: _value.scope || '' };
+                  }
+                }}
+              />
+            </Box>
+          </Box>
+        );
+      }
+
       if (RuntimeOutputVariable.profile === output.name) {
         return <ProfileSettings output={output} />;
       }
@@ -226,32 +258,6 @@ const PopperButton = forwardRef<PopperButtonImperative, PopperButtonProps>(
         ) : null;
       }
 
-      if (currentSetting === 'save') {
-        return (
-          <Box>
-            <Typography variant="subtitle2" mb={0}>
-              {t('memory.saveMemory')}
-            </Typography>
-
-            <Box>
-              <SelectVariable
-                placeholder={t('selectMemoryPlaceholder')}
-                variables={variables}
-                variable={variable}
-                onDelete={() => {
-                  if (output.variable) delete output.variable;
-                }}
-                onChange={(_value) => {
-                  if (_value && output) {
-                    output.variable = { key: _value.key, scope: _value.scope || '' };
-                  }
-                }}
-              />
-            </Box>
-          </Box>
-        );
-      }
-
       return null;
     };
 
@@ -308,45 +314,51 @@ const PopperButton = forwardRef<PopperButtonImperative, PopperButtonProps>(
           </PopperMenu>
         )}
 
-        <Dialog
-          disableEnforceFocus
-          open={dialogState.visible || false}
-          onClose={dialogState.close}
-          fullWidth
-          maxWidth="sm"
-          component="form"
-          data-testid="output-actions-cell-dialog"
-          onSubmit={(e) => e.preventDefault()}>
-          <DialogTitle className="between">
-            <Box>
-              <SettingDialogTitle output={output} />
-            </Box>
+        {!children && (
+          <Dialog
+            disableEnforceFocus
+            open={dialogState.visible || false}
+            onClose={dialogState.close}
+            fullWidth
+            maxWidth="sm"
+            component="form"
+            data-testid="output-actions-cell-dialog"
+            onSubmit={(e) => e.preventDefault()}>
+            <DialogTitle className="between">
+              <Box>
+                <SettingDialogTitle output={output} />
+              </Box>
 
-            <IconButton size="small" onClick={dialogState.close}>
-              <Close />
-            </IconButton>
-          </DialogTitle>
+              <IconButton size="small" onClick={dialogState.close}>
+                <Close />
+              </IconButton>
+            </DialogTitle>
 
-          <DialogContent>
-            <Stack gap={1}>
-              <OutputActiveWhen agent={assistant} output={output} />
+            <DialogContent>
+              <Stack gap={1}>
+                {currentSetting !== 'save' && (
+                  <>
+                    <OutputActiveWhen agent={assistant} output={output} />
 
-              <OutputFromSettings agent={assistant} output={output} />
+                    <OutputFromSettings agent={assistant} output={output} />
 
-              {settingsChildren && <Divider textAlign="left">{t('basic')}</Divider>}
+                    {settingsChildren && <Divider textAlign="left">{t('basic')}</Divider>}
+                  </>
+                )}
 
-              {settingsChildren}
+                {settingsChildren}
 
-              <AppearanceComponentSettings agent={assistant} output={output} />
-            </Stack>
-          </DialogContent>
+                {currentSetting !== 'save' && <AppearanceComponentSettings output={output} />}
+              </Stack>
+            </DialogContent>
 
-          <DialogActions>
-            <Button variant="contained" onClick={dialogState.close}>
-              {t('ok')}
-            </Button>
-          </DialogActions>
-        </Dialog>
+            <DialogActions>
+              <Button variant="contained" onClick={dialogState.close}>
+                {t('ok')}
+              </Button>
+            </DialogActions>
+          </Dialog>
+        )}
       </>
     );
   }

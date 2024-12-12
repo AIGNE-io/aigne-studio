@@ -1,48 +1,27 @@
 import fastq from 'fastq';
-import type { done, queue } from 'fastq';
+import type { queueAsPromised } from 'fastq';
 import { Worker } from 'snowflake-uuid';
+
+import logger from './logger';
 
 const taskIdGenerator = new Worker();
 const nextTaskId = () => taskIdGenerator.nextId().toString();
 
 export type DocumentQueue = {
   type: 'document';
-  datasetId: string;
+  knowledgeId: string;
   documentId: string;
   update?: boolean;
 };
 
-export type DiscussQueue = {
-  type: 'fullSite';
-  documentId: string;
-  currentIndex: number;
-  currentTotal: number;
-  discussionId: string;
-};
-
-export type CommentQueue = {
-  type: 'comment';
-  documentId: string;
-  discussionId: string;
-  metadata?: any;
-};
-
 export type Task = {
   id: string;
-  job: DocumentQueue | DiscussQueue | CommentQueue;
+  job: DocumentQueue;
 };
 
 export const isDocumentQueue = (job: any): job is DocumentQueue => {
   return job && job.type === 'document';
 };
-
-export function isDiscussQueue(job: any): job is DiscussQueue {
-  return job && job.type === 'fullSite';
-}
-
-export function isCommentQueue(job: any): job is CommentQueue {
-  return job && job.type === 'comment';
-}
 
 const tryWithTimeout = (asyncFn: () => Promise<any>, timeout = 5000) => {
   if (typeof asyncFn !== 'function') {
@@ -77,7 +56,7 @@ const createQueue = ({
     id?: (job: Task['job']) => string;
   };
 }): {
-  queue: queue<Task>;
+  queue: queueAsPromised<Task>;
   push: (job: Task['job'], jobId?: string) => void;
   checkAndPush: (job: Task['job'], jobId?: string) => void;
 } => {
@@ -89,14 +68,13 @@ const createQueue = ({
   const concurrency = Math.max(options.concurrency || defaults.concurrency, 1);
   const maxTimeout = Math.max(options.maxTimeout || defaults.maxTimeout, 0);
 
-  const q: queue<Task> = fastq(async (data: Task, cb: done) => {
-    try {
-      const result = await tryWithTimeout(() => onJob(data), maxTimeout);
-      cb(null, result);
-    } catch (err) {
-      cb(err);
-    }
-  }, concurrency);
+  const q: queueAsPromised<Task> = fastq.promise(
+    null,
+    async (data: Task) => {
+      return tryWithTimeout(() => onJob(data), maxTimeout);
+    },
+    concurrency
+  );
 
   const getJobId = (jobId: string, job: any): string =>
     jobId || (typeof options.id === 'function' ? options.id(job) : nextTaskId()) || nextTaskId();
@@ -120,10 +98,12 @@ const createQueue = ({
     const isExist = getJob(id);
     if (isExist) return;
 
-    setImmediate(() => {
-      q.push({ id, job }, (err) => {
-        if (err) console.error(err?.message);
-      });
+    setImmediate(async () => {
+      try {
+        await q.push({ id, job });
+      } catch (error) {
+        logger.error('Failed to execute job', { error });
+      }
     });
   };
 

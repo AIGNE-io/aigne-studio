@@ -16,13 +16,13 @@ function extractBracketContent(text: string) {
 }
 
 const variableStyle = `
-  color: rgb(234 179 8/1);
+  color: rgb(234, 179, 8);
   font-weight: bold;
   cursor: pointer;
 `;
 
 const textStyle = `
-  color: #ef5350;
+  color: rgb(239, 83, 80);
   font-weight: bold;
   cursor: pointer;
 `;
@@ -37,6 +37,7 @@ export default function PromptEditorField({
   onChange,
   readOnly,
   includeOutputVariables,
+  role,
   ...props
 }: {
   placeholder?: string;
@@ -48,6 +49,7 @@ export default function PromptEditorField({
   onChange: (value: string) => void;
   readOnly?: boolean;
   includeOutputVariables?: boolean;
+  role?: string;
 } & Omit<ComponentProps<typeof PromptEditor>, 'value' | 'onChange'>) {
   const { t } = useLocaleContext();
   const { from, options, variables, addParameter, updateParameter } = useVariablesEditorOptions(assistant, {
@@ -94,7 +96,7 @@ export default function PromptEditorField({
     }
 
     if (parameter.type === 'string') {
-      return parameter?.image ? 'image' : parameter?.multiline ? 'multiline' : 'string';
+      return parameter?.multiline ? 'multiline' : 'string';
     }
 
     return parameter?.type || 'string';
@@ -139,6 +141,22 @@ export default function PromptEditorField({
           if ((variables || []).includes(variable)) {
             const parameter = getParameters(variable);
             const type = getParameterType(parameter);
+
+            if (parameter?.type === 'image' && role && role !== 'user') {
+              return (
+                <Paper>
+                  <Box
+                    sx={{
+                      p: 1,
+                      minWidth: '100px',
+                      fontSize: (theme) => theme.typography.caption.fontSize,
+                      fontWeight: (theme) => theme.palette.text.disabled,
+                    }}>
+                    {t('imageParameterInNotUserRole')}
+                  </Box>
+                </Paper>
+              );
+            }
 
             return (
               <Paper>
@@ -223,11 +241,15 @@ export default function PromptEditorField({
 
             const objVariables = variables.map((i) => {
               const found = Object.values(parameters).find((p) => p.data.key === i && !p.data.hidden);
-              return { key: i, id: found?.data.id! || '' };
+              return { key: i, id: found?.data.id! || '', type: found?.data.type };
             });
 
             const isVariable = (objVariables || [])?.find((x) => x.key === variable);
-            element.style.cssText = isVariable ? variableStyle : textStyle;
+            if (role && role !== 'user' && isVariable?.type === 'image') {
+              element.style.cssText = textStyle;
+            } else {
+              element.style.cssText = isVariable ? variableStyle : textStyle;
+            }
 
             if (id) return;
 

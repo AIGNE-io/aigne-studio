@@ -1,4 +1,5 @@
-import { MenuItem, TextField, TextFieldProps } from '@mui/material';
+import { Box, Chip, MenuItem, TextField, TextFieldProps } from '@mui/material';
+import { isNil } from 'lodash';
 import { forwardRef } from 'react';
 
 import { SelectParameter } from '../../../types';
@@ -8,18 +9,39 @@ const SelectField = forwardRef<
   {
     readOnly?: boolean;
     parameter?: SelectParameter;
-    onChange: (value: string) => void;
+    onChange: (value: string | string[]) => void;
   } & Omit<TextFieldProps, 'onChange'>
 >(({ readOnly, parameter, onChange, ...props }, ref) => {
   return (
     <TextField
       ref={ref}
       select
-      onChange={(e) => onChange(e.target.value)}
       {...props}
+      value={
+        parameter?.multiple
+          ? Array.isArray(props.value)
+            ? props.value.filter((i) => !isNil(i) && i !== '')
+            : props.value
+              ? [props.value]
+              : []
+          : Array.isArray(props.value)
+            ? props.value[0]
+            : props.value
+      }
+      onChange={(e) => onChange(e.target.value)}
       InputProps={{ ...props.InputProps, readOnly }}
       SelectProps={{
         ...props.SelectProps,
+        multiple: parameter?.multiple,
+        renderValue: parameter?.multiple
+          ? (selected: any) => (
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                {selected.map((value: any) => (
+                  <Chip key={value} label={value} />
+                ))}
+              </Box>
+            )
+          : undefined,
         MenuProps: {
           disableScrollLock: true,
           ...props.SelectProps?.MenuProps,
@@ -32,8 +54,8 @@ const SelectField = forwardRef<
         },
       }}>
       {parameter?.options?.map((option) => (
-        <MenuItem key={option.id} value={option.value}>
-          {option.label}
+        <MenuItem key={option.id} value={option.value || option.label}>
+          {option.label || option.value}
         </MenuItem>
       ))}
     </TextField>

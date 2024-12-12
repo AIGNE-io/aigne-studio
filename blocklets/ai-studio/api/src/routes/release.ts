@@ -4,7 +4,7 @@ import {
   getPriceFromPaymentLink,
 } from '@api/libs/payment';
 import { parseIdentity } from '@blocklet/ai-runtime/common/aid';
-import { auth, user } from '@blocklet/sdk/lib/middlewares';
+import middlewares from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
 import { omitBy } from 'lodash';
@@ -80,7 +80,7 @@ router.get('/:releaseId', async (req, res) => {
   });
 });
 
-router.get('/:releaseId/subscription', user(), auth(), async (req, res) => {
+router.get('/:releaseId/subscription', middlewares.session(), middlewares.auth(), async (req, res) => {
   const { did } = req.user!;
   const { releaseId } = req.params;
 
@@ -110,7 +110,7 @@ const createReleaseInputSchema = Joi.object<CreateReleaseInput>({
   }),
 });
 
-router.post('/', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+router.post('/', middlewares.session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
   const { assistantId, projectId, projectRef, ...input } = await createReleaseInputSchema.validateAsync(req.body, {
     stripUnknown: true,
   });
@@ -155,7 +155,7 @@ const updateReleaseSchema = Joi.object<UpdateReleaseInput>({
   openerMessage: Joi.string().allow('', null),
 });
 
-router.patch('/:releaseId', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+router.patch('/:releaseId', middlewares.session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
   const { did } = req.user!;
   const { releaseId } = req.params;
 

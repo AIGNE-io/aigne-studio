@@ -3,7 +3,6 @@ import { copyRecursive } from '@blocklet/ai-runtime/utils/fs';
 import { mkdir, pathExists } from 'fs-extra';
 import { CreationAttributes, Model, Op } from 'sequelize';
 
-import KnowledgeContents from '../store/models/dataset/content';
 import Knowledge from '../store/models/dataset/dataset';
 import KnowledgeDocuments from '../store/models/dataset/document';
 import KnowledgeEmbeddingHistory from '../store/models/dataset/embedding-history';
@@ -50,19 +49,21 @@ async function copyKnowledgeBase({
   oldKnowledgeBaseId,
   oldProjectId,
   newProjectId,
+  userId,
 }: {
   oldKnowledgeBaseId: string;
   oldProjectId: string;
   newProjectId: string;
+  userId: string;
 }): Promise<string> {
   const knowledgeId = nextId();
 
   const knowledge = await Knowledge.findOne({
-    where: { appId: oldProjectId, id: oldKnowledgeBaseId },
-    rejectOnEmpty: new Error('Dataset not found'),
+    where: { projectId: oldProjectId, id: oldKnowledgeBaseId },
+    rejectOnEmpty: new Error('Knowledge not found'),
   });
 
-  await importKnowledgeData(knowledgeId, newProjectId, knowledge.dataValues);
+  await importKnowledgeData(knowledgeId, newProjectId, knowledge.dataValues, userId);
 
   return knowledgeId;
 }
@@ -70,26 +71,39 @@ async function copyKnowledgeBase({
 async function importKnowledgeData(
   newKnowledgeId: string,
   newProjectId: string,
-  fromKnowledge: Knowledge['dataValues']
+  fromKnowledge: Knowledge['dataValues'],
+  userId: string
 ) {
   const oldKnowledgeId = fromKnowledge.id;
 
   // 新知识库的数据
-  await Knowledge.create({ ...fromKnowledge, id: newKnowledgeId, appId: newProjectId });
+  await Knowledge.create({
+    ...fromKnowledge,
+    id: newKnowledgeId,
+    projectId: newProjectId,
+    createdBy: userId,
+    updatedBy: userId,
+  });
 
   // 从旧知识库复制文档
   const map: { [oldDocumentId: string]: string } = {};
 
   await paginateAndInsert({
     findAll: (data) => {
-      data.where.datasetId = oldKnowledgeId;
+      data.where.knowledgeId = oldKnowledgeId;
       return KnowledgeDocuments.findAll(data);
     },
     bulkCreate: (list) => {
       const format = list.map((dataValues) => {
         map[dataValues.id!] = nextId();
 
-        return { ...dataValues, datasetId: newKnowledgeId, id: map[dataValues.id!] || nextId() };
+        return {
+          ...dataValues,
+          knowledgeId: newKnowledgeId,
+          id: map[dataValues.id!] || nextId(),
+          createdBy: userId,
+          updatedBy: userId,
+        };
       });
       return KnowledgeDocuments.bulkCreate(format);
     },
@@ -113,33 +127,17 @@ async function importKnowledgeData(
     },
   });
 
-  // 从旧知识库复制内容
-  await paginateAndInsert({
-    findAll: (data) => {
-      data.where.documentId = { [Op.in]: ids };
-      return KnowledgeContents.findAll(data);
-    },
-    bulkCreate: (list) => {
-      const format = list.map((dataValues) => ({
-        ...dataValues,
-        documentId: map[dataValues.documentId]! || nextId(),
-        id: undefined,
-      }));
-      return KnowledgeContents.bulkCreate(format);
-    },
-  });
-
   // 从旧知识库复制历史记录
   await paginateAndInsert({
     findAll: (data) => {
-      data.where.datasetId = oldKnowledgeId;
+      data.where.knowledgeId = oldKnowledgeId;
       data.where.documentId = { [Op.in]: ids };
       return KnowledgeEmbeddingHistory.findAll(data);
     },
     bulkCreate: (list) => {
       const format = list.map((dataValues) => ({
         ...dataValues,
-        datasetId: newKnowledgeId,
+        knowledgeId: newKnowledgeId,
         documentId: map[dataValues.documentId]! || nextId(),
         id: undefined,
       }));
@@ -147,13 +145,15 @@ async function importKnowledgeData(
     },
   });
 
-  // 复制向量数据库
-  const newVectorStorePath = getKnowledgeDir(newKnowledgeId);
-  const oldVectorStorePath = getKnowledgeDir(oldKnowledgeId);
-  await mkdir(newVectorStorePath, { recursive: true });
+  // 如果不是资源知识库数据，复制向量数据库文件夹
+  if (!fromKnowledge.resourceBlockletDid || !fromKnowledge.knowledgeId) {
+    const oldKnowledgeFolder = getKnowledgeDir(oldKnowledgeId);
+    const newKnowledgeFolder = getKnowledgeDir(newKnowledgeId);
+    await mkdir(newKnowledgeFolder, { recursive: true });
 
-  if ((await pathExists(oldVectorStorePath)) && (await pathExists(newVectorStorePath))) {
-    copyRecursive(oldVectorStorePath, newVectorStorePath);
+    if ((await pathExists(oldKnowledgeFolder)) && (await pathExists(newKnowledgeFolder))) {
+      await copyRecursive(oldKnowledgeFolder, newKnowledgeFolder);
+    }
   }
 }
 

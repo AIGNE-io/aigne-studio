@@ -18,6 +18,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormGroup,
   IconButton,
   Stack,
   Typography,
@@ -26,6 +27,7 @@ import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { useMemo } from 'react';
 import { useAsync } from 'react-use';
 
+import Switch from '../custom/switch';
 import { brandIcon } from '../selector/model-select-field';
 import ImageSettings from './image-file/setting';
 import { AgentName } from './input/InputTable';
@@ -77,49 +79,66 @@ export default function PromptSetting({
     return supportedModels?.find((i) => i.model === defaultModel);
   }, [defaultModel, supportedModels]);
 
+  const conditionalBranch = value.type === 'router' && value.decisionType === 'json-logic';
   return (
-    <Box>
-      <Stack
-        direction="row"
-        alignItems="center"
-        gap={0.5}
-        sx={{ cursor: 'pointer' }}
-        onClick={() => {
-          dialogState.open();
-        }}>
-        <Stack direction="row" alignItems="center" gap={0.5}>
-          {value.executor?.agent?.id ? (
-            <AgentName
-              type="llm-adapter"
-              showIcon
-              blockletDid={value.executor.agent.blockletDid}
-              projectId={value.executor.agent.projectId}
-              agentId={value.executor.agent.id}
-            />
-          ) : !valueModel && projectSetting.executor?.agent?.id ? (
-            <AgentName
-              type="llm-adapter"
-              showIcon
-              blockletDid={projectSetting.executor.agent.blockletDid}
-              projectId={projectSetting.executor.agent.projectId}
-              agentId={projectSetting.executor.agent.id}
-            />
-          ) : (
-            <>
-              {modelDetail && <Box className="center">{brandIcon(modelDetail!.brand)}</Box>}
-              <Typography variant="subtitle3" color="#030712" mt={-0.25}>
-                {isPromptAssistant(value) || isRouterAssistant(value)
-                  ? modelDetail?.name || modelDetail?.model || modelDetail?.model
-                  : isImageAssistant(value)
-                    ? defaultModel
-                    : ''}
-              </Typography>
-            </>
-          )}
-        </Stack>
+    <Stack gap={2} direction="row" justifyContent="flex-end">
+      {value.type === 'router' && (
+        <FormGroup row sx={{ alignItems: 'center', justifyContent: 'flex-end' }}>
+          <Typography>{t('decision.AI')}</Typography>
+          <Switch
+            sx={{ mx: 1 }}
+            checked={conditionalBranch}
+            onChange={(e) => {
+              value.decisionType = e.target.checked ? 'json-logic' : 'ai';
+            }}
+          />
+          <Typography>{t('decision.branch')}</Typography>
+        </FormGroup>
+      )}
 
-        <Box component={Icon} icon={AdjustmentsIcon} sx={{ color: '#3B82F6', fontSize: 15 }} />
-      </Stack>
+      {!conditionalBranch && (
+        <Stack
+          direction="row"
+          alignItems="center"
+          gap={0.5}
+          sx={{ cursor: 'pointer' }}
+          onClick={() => {
+            dialogState.open();
+          }}>
+          <Stack direction="row" alignItems="center" gap={0.5}>
+            {value.executor?.agent?.id ? (
+              <AgentName
+                type="llm-adapter"
+                showIcon
+                blockletDid={value.executor.agent.blockletDid}
+                projectId={value.executor.agent.projectId}
+                agentId={value.executor.agent.id}
+              />
+            ) : !valueModel && projectSetting.executor?.agent?.id ? (
+              <AgentName
+                type="llm-adapter"
+                showIcon
+                blockletDid={projectSetting.executor.agent.blockletDid}
+                projectId={projectSetting.executor.agent.projectId}
+                agentId={projectSetting.executor.agent.id}
+              />
+            ) : (
+              <>
+                {modelDetail && <Box className="center">{brandIcon(modelDetail!.brand)}</Box>}
+                <Typography variant="subtitle3" color="#030712" mt={-0.25}>
+                  {isPromptAssistant(value) || isRouterAssistant(value)
+                    ? modelDetail?.name || modelDetail?.model || modelDetail?.model
+                    : isImageAssistant(value)
+                      ? defaultModel
+                      : ''}
+                </Typography>
+              </>
+            )}
+          </Stack>
+
+          <Box component={Icon} icon={AdjustmentsIcon} sx={{ color: '#3B82F6', fontSize: 15 }} />
+        </Stack>
+      )}
 
       <Dialog
         {...bindDialog(dialogState)}
@@ -153,6 +172,6 @@ export default function PromptSetting({
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+    </Stack>
   );
 }

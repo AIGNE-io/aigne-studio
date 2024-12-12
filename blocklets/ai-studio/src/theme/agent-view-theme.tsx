@@ -3,6 +3,9 @@ import { createTheme } from '@mui/material';
 
 export const agentViewTheme = createTheme({
   typography: { button: { textTransform: 'none' } } as any,
+  shape: {
+    borderRadius: 8,
+  },
   components: {
     MuiButton: {
       defaultProps: {

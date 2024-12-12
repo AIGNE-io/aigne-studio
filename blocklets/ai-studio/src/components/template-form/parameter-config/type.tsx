@@ -11,8 +11,10 @@ import MessagesIcon from '@iconify-icons/tabler/messages';
 import ImageIcon from '@iconify-icons/tabler/picture-in-picture-top';
 import SquareNumberIcon from '@iconify-icons/tabler/square-number-1';
 import TextWrapIcon from '@iconify-icons/tabler/text-wrap';
-import { ListItemIcon, MenuItem, TextField, TextFieldProps } from '@mui/material';
+import { Box, ListItemIcon, MenuItem, TextField, TextFieldProps } from '@mui/material';
 import { useMemo } from 'react';
+
+import DIDConnectSvg from '../../../icons/did-connect.svg?url';
 
 export default function ParameterConfigType(props: TextFieldProps) {
   const { t } = useLocaleContext();
@@ -48,6 +50,11 @@ export default function ParameterConfigType(props: TextFieldProps) {
         icon: <Icon icon={ListCheckIcon} />,
         label: t('select'),
         value: 'select',
+      },
+      {
+        icon: <Box component="img" alt="" src={DIDConnectSvg} width={14} height={14} />,
+        label: t('verifyVC'),
+        value: 'verify_vc',
       },
       {
         icon: <Icon icon={LanguageIcon} />,

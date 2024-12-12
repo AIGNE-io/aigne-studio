@@ -14,7 +14,7 @@ import { projectCronManager } from './libs/cron-jobs';
 import { csrf } from './libs/csrf';
 import { Config, isDevelopment } from './libs/env';
 import { NoPermissionError, NoSuchEntryAgentError, NotFoundError } from './libs/error';
-import logger from './libs/logger';
+import logger, { accessLogMiddleware, registerLoggerToConsole } from './libs/logger';
 import { importPackageJson } from './libs/package-json';
 import { resourceManager } from './libs/resource';
 import { xss } from './libs/xss';
@@ -23,6 +23,8 @@ import setupHtmlRouter from './routes/html';
 import { getOpenEmbed } from './routes/open-embed';
 import { handleYjsWebSocketUpgrade } from './routes/ws';
 import { initModels } from './store/models/init-models';
+
+registerLoggerToConsole();
 
 export const app = express();
 
@@ -47,11 +49,23 @@ ensureUploadDirExists().catch(console.error);
 
 app.set('trust proxy', true);
 app.use(cookieParser());
+
+// NOTE: 用来临时修复 middlewares.session 不支持从 Authorization header 中取 token 的问题
+app.use((req, _, next) => {
+  if (!req.cookies.login_token) {
+    const token = req.get('Authorization')?.replace('Bearer ', '');
+    if (token) req.cookies.login_token = token;
+  }
+
+  next();
+});
+
 app.use(express.json({ limit: '1 mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1 mb' }));
 app.use(cors());
 app.use(xss());
 app.use(csrf());
+app.use(accessLogMiddleware);
 app.get('/.well-known/blocklet/openembed', getOpenEmbed);
 
 app.use('/api', routes);

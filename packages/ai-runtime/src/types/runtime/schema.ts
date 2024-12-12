@@ -74,6 +74,7 @@ export const runtimeVariablesSchema: {
           id: '',
           type: 'string',
           name: 'title',
+          required: true,
           faker: 'lorem.sentence',
         },
         {
@@ -133,6 +134,7 @@ export function outputVariablesToJsonSchema(
               )
             : undefined,
         items: variable.type === 'array' && variable.element ? variableToSchema(variable.element) : undefined,
+        additionalProperties: variable.type === 'object' ? false : undefined,
         required:
           variable.type === 'object' && variable.properties?.length
             ? variable.properties
@@ -397,4 +399,32 @@ export interface RuntimeOutputVariablesSchema {
   [RuntimeOutputVariable.openingQuestions]?: RuntimeOutputOpeningQuestions;
   [RuntimeOutputVariable.openingMessage]?: RuntimeOutputOpeningMessage;
   [RuntimeOutputVariable.profile]?: RuntimeOutputProfile;
+}
+
+export function jsonSchemaToOpenAIJsonSchema(schema: any): any {
+  if (schema?.type === 'object') {
+    const { required, properties } = schema;
+
+    return {
+      ...schema,
+      properties: Object.fromEntries(
+        Object.entries(properties).map(([key, value]: any) => {
+          const valueSchema = jsonSchemaToOpenAIJsonSchema(value);
+
+          // NOTE: All fields must be required https://platform.openai.com/docs/guides/structured-outputs/all-fields-must-be-required
+          return [key, required?.includes(key) ? valueSchema : { anyOf: [valueSchema, { type: ['null'] }] }];
+        })
+      ),
+      required: Object.keys(properties),
+    };
+  }
+
+  if (schema?.type === 'array') {
+    return {
+      ...schema,
+      items: jsonSchemaToOpenAIJsonSchema(schema.items),
+    };
+  }
+
+  return schema;
 }

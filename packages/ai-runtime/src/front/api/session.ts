@@ -86,11 +86,13 @@ export async function deleteSession({
 }
 
 export interface RunAgentInput {
+  entryAid?: string;
   aid: string;
   working?: boolean;
   debug?: boolean;
   sessionId?: string;
   inputs?: { [key: string]: any };
+  appUrl?: string;
 }
 
 export async function runAgent(input: RunAgentInput & { responseType?: undefined }): Promise<{ [key: string]: any }>;
@@ -107,11 +109,13 @@ export async function runAgent({ responseType, ...input }: RunAgentInput & { res
         Accept: 'text/event-stream',
       },
       body: JSON.stringify({
+        entryAid: input.entryAid,
         aid: input.aid,
         sessionId: input.sessionId,
         inputs: { ...input.inputs, $clientTime: new Date().toISOString() },
         working: input.working,
         debug: input.debug,
+        appUrl: input.appUrl || window.location.href,
       }),
     });
     if (!(res.status >= 200 && res.status < 300)) {

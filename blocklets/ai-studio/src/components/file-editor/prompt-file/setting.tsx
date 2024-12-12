@@ -70,6 +70,11 @@ export default function PromptSetting({
                 if (v) {
                   doc.transact(() => {
                     value.executor ??= {};
+
+                    if (v.id !== value.executor.agent?.id && v.projectId !== value.executor.agent?.projectId) {
+                      value.executor.inputValues = {};
+                    }
+
                     value.executor.agent = {
                       blockletDid: v.blockletDid,
                       projectId: v.projectId,
@@ -138,9 +143,10 @@ function AgentParametersForm({ assistant }: { assistant: AssistantYjs }) {
                 <Typography variant="caption">{data.label || data.key}</Typography>
 
                 <ParameterField
+                  label=""
                   hiddenLabel
                   parameter={data}
-                  value={assistant.executor?.inputValues?.[data.key] || ''}
+                  value={assistant.executor?.inputValues?.[data.key] || data.defaultValue || ''}
                   onChange={(value) => {
                     assistant.executor ??= {};
                     assistant.executor.inputValues ??= {};

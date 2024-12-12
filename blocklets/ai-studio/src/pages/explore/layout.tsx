@@ -22,12 +22,27 @@ import { Suspense, useEffect, useState } from 'react';
 import { Outlet, useNavigate, useParams } from 'react-router-dom';
 
 import Loading from '../../components/loading';
+import { useProjectLimiting } from '../../contexts/projects';
+import { useSessionContext } from '../../contexts/session';
 import ImportFromBlank from '../project/projects-page/import-from-blank';
 import { useCategoryState } from './state';
 
 function CreateProject() {
   const { t } = useLocaleContext();
+  const { session } = useSessionContext();
   const [dialog, setDialog] = useState<any>(null);
+  const { checkProjectLimitAsync } = useProjectLimiting();
+
+  const handleClick = async () => {
+    if (!session.user) {
+      await new Promise<void>((resolve) => {
+        session.login(() => resolve());
+      });
+    }
+    if (await checkProjectLimitAsync()) {
+      setDialog(<ImportFromBlank onClose={() => setDialog(null)} />);
+    }
+  };
 
   return (
     <>
@@ -36,9 +51,7 @@ function CreateProject() {
         variant="contained"
         sx={{ px: 2, py: 1, gap: 1, borderRadius: 1 }}
         className="center"
-        onClick={() => {
-          setDialog(<ImportFromBlank onClose={() => setDialog(null)} />);
-        }}>
+        onClick={handleClick}>
         <Box component={Icon} icon={PlusIcon} sx={{ width: 16, height: 16 }} className="center" />
         <Typography>{t('newObject', { object: t('project') })}</Typography>
       </Button>
@@ -167,7 +180,8 @@ export default function ExploreCategoryLayout() {
     }
   }, [loading]);
 
-  if (loading) {
+  // NOTE: 直接使用 `loading` 值作为条件可能会导致 `Outlet` re-mount.
+  if (loading !== false) {
     return (
       <Box width={1} height={1} display="flex" justifyContent="center" alignItems="center">
         <CircularProgress />

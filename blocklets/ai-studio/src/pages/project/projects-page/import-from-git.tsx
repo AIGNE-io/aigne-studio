@@ -32,6 +32,7 @@ import { getErrorMessage } from '../../../libs/api';
 import Close from '../icons/close';
 import Eye from '../icons/eye';
 import EyeNo from '../icons/eye-no';
+import NameField from './components/name-field';
 
 interface RemoteRepoSettingForm {
   url: string;
@@ -54,6 +55,7 @@ export default function ImportFromGit({ onClose }: { onClose: () => void }) {
       password: '',
       name: '',
     },
+    reValidateMode: 'onSubmit',
   });
 
   const saveSetting = useCallback(
@@ -204,17 +206,7 @@ export default function ImportFromGit({ onClose }: { onClose: () => void }) {
 
           <Box>
             <Typography variant="subtitle2">{t('name')}</Typography>
-            <TextField
-              hiddenLabel
-              placeholder={t('newProjectNamePlaceholder')}
-              {...form.register('name')}
-              InputProps={{
-                readOnly: true,
-                onFocus: (e) => (e.currentTarget.readOnly = false),
-              }}
-              InputLabelProps={{ shrink: form.watch('name') ? true : undefined }}
-              sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
-            />
+            <NameField form={form} beforeDuplicateProjectNavigate={() => onClose()} />
           </Box>
 
           <Box>

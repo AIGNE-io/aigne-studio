@@ -83,5 +83,5 @@ export const brandIcon = (brand: string) =>
     Replicate: <ReplicateIcon fontSize="small" />,
     'Vertex AI': <VertexAIIcon fontSize="small" />,
     Google: <GoogleIcon fontSize="small" />,
-    'Mistral AI': <Box component="img" src={MistralIcon} width="1rem" height="1rem" />,
+    'Mistral AI': <Box component="img" src={MistralIcon} width="1rem" height="1rem" alt="Mistral AI" />,
   })[brand];

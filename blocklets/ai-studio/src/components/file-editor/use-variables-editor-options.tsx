@@ -14,7 +14,6 @@ type VariableEditorOptions = {
   from?: 'editor' | 'agentParameter' | 'knowledgeParameter' | 'blockletAPIParameter' | 'imageBlenderParameter';
   type?: any;
   source?: any;
-  isImage?: boolean;
 };
 
 export default function useVariablesEditorOptions(
@@ -38,7 +37,7 @@ export default function useVariablesEditorOptions(
       : []),
   ]);
 
-  const variables = [...variableSet, '$user', '$clientTime'];
+  const variables = [...variableSet, '$sys'];
 
   const options = useMemo(() => {
     return (variables ?? [])
@@ -78,7 +77,7 @@ export default function useVariablesEditorOptions(
   }, [variables?.join('/'), t]);
 
   const addParameter = useCallback(
-    (parameter: string, { from, source, type, isImage }: VariableEditorOptions = {}) => {
+    (parameter: string, { from, source, type }: VariableEditorOptions = {}) => {
       if (!assistant) return undefined;
 
       const doc = (getYjsValue(assistant) as Map<any>).doc!;
@@ -95,7 +94,6 @@ export default function useVariablesEditorOptions(
             ...(from ? { from } : {}),
             ...(type ? { type } : {}),
             ...(source ? { source } : {}),
-            ...(isImage ? { image: true } : {}),
           };
 
           assistant.parameters[id] = {

@@ -131,7 +131,10 @@ export function useAgents({ type }: { type: ResourceType }) {
   const allAgents: UseAgentItem[] = [...localAgents, ...resourceAgents];
   const allAgentMap = Object.fromEntries(allAgents.map((i) => [i.id, i]));
 
-  const allProjects = Object.values(groupBy(allAgents, (i) => i.project.id)).map((i) => i[0]!.project);
+  const allProjects = Object.values(groupBy(allAgents, (i) => i.project.id)).map((i) => ({
+    ...i[0]!.project,
+    blockletDid: i[0]!.identity.blockletDid,
+  }));
   const allProjectMap = Object.fromEntries(allProjects.map((i) => [i.id, i]));
 
   return { load, agents: allAgents, agentMap: allAgentMap, project: allProjects, projectMap: allProjectMap };

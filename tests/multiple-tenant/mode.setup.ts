@@ -17,7 +17,7 @@ customSetup('multiple tenant mode', async ({ page, appName }) => {
 
   await page.context().storageState({ path: TestConstants.authFilePath('owner') });
 
-  await checkTenantMode({ page, isSingle: false });
+  await checkTenantMode({ page, isSingle: false, openPricePlan: true });
 
   await page.getByLabel('User info button').click();
   await page.getByRole('menuitem', { name: 'Sign Out' }).click();

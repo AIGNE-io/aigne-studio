@@ -38,6 +38,10 @@ export async function getProjects(): Promise<{
   return axios.get('/api/projects').then((res) => res.data);
 }
 
+export async function countProjects(): Promise<number> {
+  return axios.get('/api/projects/count').then((res) => res.data.count);
+}
+
 export async function getTemplatesProjects(): Promise<{
   templates: ProjectWithUserInfo[];
 }> {
@@ -62,6 +66,13 @@ export async function deleteProject(projectId: string): Promise<Project> {
 
 export async function listProjectsByDidSpaces(endpoint: string): Promise<Project[]> {
   return axios.get(`/api/import/from-did-spaces/list-projects?endpoint=${endpoint}`).then((res) => res.data);
+}
+
+export async function checkProjectName(data: {
+  name: string;
+  projectId?: string;
+}): Promise<{ ok: boolean; project: Project }> {
+  return axios.get('/api/projects/check-name', { params: data }).then((res) => res.data);
 }
 
 export async function exportAssistantsToProject(

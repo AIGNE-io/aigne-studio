@@ -26,7 +26,8 @@ import { AIGNE_RUNTIME_COMPONENT_DID, NFT_BLENDER_COMPONENT_DID } from '@blockle
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { call } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
-import { user } from '@blocklet/sdk/lib/middlewares';
+import { session } from '@blocklet/sdk/lib/middlewares';
+import { SessionUser } from '@blocklet/sdk/lib/util/login';
 import { Request, Router } from 'express';
 import { exists } from 'fs-extra';
 import * as git from 'isomorphic-git';
@@ -69,8 +70,6 @@ import {
 import { projectTemplates } from '../templates/projects';
 import { checkDeployment } from './deployment';
 import { getCommits } from './log';
-
-const AI_STUDIO_COMPONENT_DID = 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
 
 export interface CreateProjectInput {
   blockletDid?: string;
@@ -140,6 +139,7 @@ export interface UpdateProjectInput {
         fontFamily?: string;
       };
     };
+    aigneBannerVisible?: boolean;
   };
 }
 
@@ -165,6 +165,7 @@ const updateProjectSchema = Joi.object<UpdateProjectInput>({
         fontFamily: Joi.string().empty([null, '']),
       }),
     }),
+    aigneBannerVisible: Joi.boolean().empty([null]),
   }),
 });
 
@@ -242,9 +243,11 @@ export const checkProjectLimit = async ({ req }: { req: Request }) => {
   if (config.env.tenantMode === 'multiple') {
     // check project count limit
     const count = await Project.count({ where: { createdBy: req.user?.did } });
+    // `+1`: 把正在创建的项目 (未存储到数据库) 也算在内
+    const used = count + 1;
     if (
       !ensureComponentCallOrRolesMatch(req, Config.serviceModePermissionMap.ensurePromptsAdminRoles) &&
-      !quotaChecker.checkProjectLimit(count, await getUserPassports(req.user?.did))
+      !quotaChecker.checkProjectLimit(used, await getUserPassports(req.user?.did))
     ) {
       throw new RuntimeError(
         RuntimeErrorType.ProjectLimitExceededError,
@@ -264,7 +267,7 @@ export interface CreateOrUpdateAgentInputSecretPayload {
 }
 
 export function projectRoutes(router: Router) {
-  router.get('/projects', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+  router.get('/projects', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const list = await Project.findAll({
       where: { ...getProjectWhereConditions(req) },
       order: [
@@ -313,38 +316,36 @@ export function projectRoutes(router: Router) {
     });
   });
 
-  router.get('/template-projects', user(), ensureComponentCallOrPromptsEditor(), async (_req, res) => {
+  const checkProjectNameSchema = Joi.object<{ name: string; projectId: string }>({
+    name: Joi.string().required(),
+    projectId: Joi.string().empty([null, '']),
+  });
+
+  router.get('/projects/check-name', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+    const { name, projectId } = await checkProjectNameSchema.validateAsync(req.query, { stripUnknown: true });
+    const projects = await Project.findAll({ where: { name, createdBy: req.user?.did } });
+
+    if (!projectId) {
+      res.json({ ok: projects.length === 0, project: projects?.[0] });
+      return;
+    }
+
+    const filtered = projects.filter((i) => i.id !== projectId);
+    res.json({ ok: filtered.length === 0, project: filtered?.[0] });
+  });
+
+  router.get('/projects/count', session(), async (req, res) => {
+    const count = await Project.count({ where: { createdBy: req.user?.did } });
+    res.json({ count });
+  });
+
+  router.get('/template-projects', session(), ensureComponentCallOrPromptsEditor(), async (_req, res) => {
     const resourceTemplates = (await resourceManager.getProjects({ type: 'template' })).map((i) => ({
       ...i.project,
       blockletDid: i.blocklet.did,
     }));
 
     res.json({ templates: uniqBy([...resourceTemplates], (i) => i.id) });
-  });
-
-  router.get('/projects/icons', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
-    const { did } = req.user!;
-
-    const { data } = await call({
-      name: 'image-bin',
-      path: '/api/sdk/uploads',
-      method: 'GET',
-      headers: { 'x-user-did': did },
-      params: { pageSize: 100, folderId: AI_STUDIO_COMPONENT_DID },
-    });
-
-    res.json({ icons: data?.uploads || [] });
-  });
-
-  router.delete('/projects/icon/:id', ensureComponentCallOrPromptsEditor(), user(), async (req, res) => {
-    const { did } = req.user!;
-    const { data } = await call({
-      name: 'image-bin',
-      path: `/api/sdk/uploads/${req.params.id}`,
-      method: 'DELETE',
-      headers: { 'x-user-did': did },
-    });
-    res.json({ icons: data?.uploads || [] });
   });
 
   const logoQuerySchema = Joi.object<{ blockletDid?: string; projectRef?: string; working?: boolean }>({
@@ -402,7 +403,7 @@ export function projectRoutes(router: Router) {
     working: Joi.boolean().empty(['', null]),
   });
 
-  router.get('/projects/:projectId', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+  router.get('/projects/:projectId', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required param `projectId`');
 
@@ -424,7 +425,7 @@ export function projectRoutes(router: Router) {
 
   router.get(
     '/projects/:projectId/agent-input-secrets',
-    user(),
+    session(),
     ensureComponentCallOrPromptsEditor(),
     async (req, res) => {
       const { projectId } = req.params;
@@ -456,7 +457,7 @@ export function projectRoutes(router: Router) {
 
   router.post(
     '/projects/:projectId/agent-input-secrets',
-    user(),
+    session(),
     ensureComponentCallOrPromptsEditor(),
     async (req, res) => {
       const { did: userId } = req.user!;
@@ -501,7 +502,7 @@ export function projectRoutes(router: Router) {
     }
   );
 
-  router.post('/projects', user(), ensureComponentCallOrPromptsEditor(), checkDeployment, async (req, res) => {
+  router.post('/projects', session(), ensureComponentCallOrPromptsEditor(), checkDeployment, async (req, res) => {
     const {
       blockletDid,
       templateId = projectTemplates[0]?.project?.id,
@@ -570,7 +571,7 @@ export function projectRoutes(router: Router) {
     res.json(project);
   });
 
-  router.post('/projects/import', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+  router.post('/projects/import', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     await checkProjectLimit({ req });
 
     const { name, username, password, description, url } = await importProjectSchema.validateAsync(req.body, {
@@ -679,7 +680,7 @@ export function projectRoutes(router: Router) {
     }
   });
 
-  router.patch('/projects/:projectId', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+  router.patch('/projects/:projectId', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required parameter `projectId`');
 
@@ -741,7 +742,7 @@ export function projectRoutes(router: Router) {
     res.json(project.dataValues);
   });
 
-  router.delete('/projects/:projectId', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+  router.delete('/projects/:projectId', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required params `projectId`');
 
@@ -768,7 +769,7 @@ export function projectRoutes(router: Router) {
     res.json(project);
   });
 
-  router.post('/projects/:projectId/remote', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+  router.post('/projects/:projectId/remote', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required params `projectId`');
 
@@ -796,7 +797,7 @@ export function projectRoutes(router: Router) {
     res.json({});
   });
 
-  router.delete('/projects/:projectId/remote', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+  router.delete('/projects/:projectId/remote', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required params `projectId`');
 
@@ -813,7 +814,7 @@ export function projectRoutes(router: Router) {
     res.json({});
   });
 
-  router.post('/projects/:projectId/remote/push', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+  router.post('/projects/:projectId/remote/push', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required params `projectId`');
 
@@ -835,7 +836,7 @@ export function projectRoutes(router: Router) {
     res.json({});
   });
 
-  router.post('/projects/:projectId/remote/pull', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+  router.post('/projects/:projectId/remote/pull', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { did: userId, fullName } = req.user!;
 
     const { projectId } = req.params;
@@ -869,7 +870,7 @@ export function projectRoutes(router: Router) {
     res.json({});
   });
 
-  router.post('/projects/:projectId/remote/sync', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+  router.post('/projects/:projectId/remote/sync', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { did: userId, fullName } = req.user!;
 
     const { projectId } = req.params;
@@ -949,16 +950,29 @@ export function projectRoutes(router: Router) {
 
       const query = await getAgentQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
-      const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error(`Project ${projectId} not found`) });
-
       const repo = await getRepository({ projectId });
 
-      const working = await repo.working({ ref });
-      const settings = working.syncedStore.files[PROJECT_FILE_PATH];
+      const [agent, settings] = await Promise.all([
+        repo.readAgent({
+          ref,
+          agentId,
+          working: query.working,
+          rejectOnEmpty: true,
+          readBlobFromGitIfWorkingNotInitialized: true,
+        }),
+        repo.readAndParseFile({
+          ref,
+          filepath: PROJECT_FILE_PATH,
+          working: query.working,
+          rejectOnEmpty: true,
+          readBlobFromGitIfWorkingNotInitialized: true,
+        }),
+      ]);
 
-      const agent = await repo.readAgent({ ref, agentId, working: query.working, rejectOnEmpty: true });
-
-      res.json({ agent, project: { ...project.dataValues, ...(working ? settings : {}) } });
+      res.json({
+        agent,
+        project: settings,
+      });
     }
   );
 
@@ -970,8 +984,6 @@ export function projectRoutes(router: Router) {
       if (!projectId || !ref) throw new Error('Missing required params `projectId`, `ref`');
 
       const query = await getAgentQuerySchema.validateAsync(req.query, { stripUnknown: true });
-
-      await Project.findByPk(projectId, { rejectOnEmpty: new Error(`Project ${projectId} not found`) });
 
       const repo = await getRepository({ projectId });
 
@@ -988,7 +1000,7 @@ export function projectRoutes(router: Router) {
 
   router.get(
     '/projects/compare/:projectId/:ref/:agentId',
-    user(),
+    session(),
     ensureComponentCallOrPromptsEditor(),
     async (req, res) => {
       const { projectId, ref, agentId } = req.params;
@@ -1070,7 +1082,7 @@ export function projectRoutes(router: Router) {
 
   router.post(
     '/projects/:projectId/refs/:ref/assets',
-    user(),
+    session(),
     ensureComponentCallOrPromptsEditor(),
     async (req, res) => {
       const { projectId, ref } = req.params;
@@ -1134,17 +1146,22 @@ async function copyProject({
   ...patch
 }: {
   project: Project;
-  author: { did: string; role: string; fullName: string; provider: string; walletOS: string; isAdmin: boolean };
+  author: SessionUser;
 } & Partial<Project['dataValues']>) {
   const srcRepo = await getRepository({ projectId: original.id! });
   const srcWorking = await srcRepo.working({ ref: original.gitDefaultBranch || defaultBranch });
   await srcWorking.save({ flush: true });
 
+  const originalProjectYaml = srcWorking.syncedStore.files[PROJECT_FILE_PATH] as { name: string };
+
   const project = await Project.create({
     ...omit(original.dataValues, 'createdAt', 'updatedAt'),
     id: nextProjectId(),
     duplicateFrom: original.id,
-    name: patch.name || (original.name && `${original.name}-copy`),
+    name:
+      patch.name ||
+      (originalProjectYaml?.name && `${originalProjectYaml?.name}-copy`) ||
+      (original.name && `${original.name}-copy`),
     createdBy: author.did,
     updatedBy: author.did,
     ...omit(patch, 'name'),
@@ -1180,13 +1197,6 @@ async function copyProject({
         path: '/api/sdk/templates/copy-snapshot',
         method: 'POST',
         data: { templateId: agent.templateId, userDid: author.did, name: project.name },
-        headers: {
-          'x-user-did': author?.did,
-          'x-user-role': author?.role,
-          'x-user-provider': author?.provider,
-          'x-user-fullname': author?.fullName && encodeURIComponent(author?.fullName),
-          'x-user-wallet-os': author?.walletOS,
-        },
       });
       if (!data?.templateId) {
         throw new Error('copy nft template failed');
@@ -1214,20 +1224,14 @@ async function copyKnowledge({
 }: {
   originProjectId: string;
   currentProjectId: string;
-  user: { did: string; role: string; fullName: string; provider: string; walletOS: string; isAdmin: boolean };
+  user: SessionUser;
 }) {
   const { data } = await call({
     name: AIGNE_RUNTIME_COMPONENT_DID,
     path: '/api/datasets',
     method: 'POST',
-    data: { appId: currentProjectId, copyFromProjectId: originProjectId },
-    headers: {
-      'x-user-did': user?.did,
-      'x-user-role': user?.role,
-      'x-user-provider': user?.provider,
-      'x-user-fullname': user?.fullName && encodeURIComponent(user?.fullName),
-      'x-user-wallet-os': user?.walletOS,
-    },
+    params: { userId: user.did },
+    data: { projectId: currentProjectId, copyFromProjectId: originProjectId },
   });
 
   const projectIdMap = Object.fromEntries(

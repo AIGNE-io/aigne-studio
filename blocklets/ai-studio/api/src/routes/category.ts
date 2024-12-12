@@ -1,6 +1,6 @@
 import { ensureAdmin } from '@api/libs/security';
 import { generateSlug } from '@api/libs/utils';
-import { user } from '@blocklet/sdk/lib/middlewares';
+import middlewares from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
 import { UniqueConstraintError } from 'sequelize';
@@ -44,7 +44,7 @@ router.get('/', async (req, res) => {
   res.json({ list: rows, totalCount: count });
 });
 
-router.post('/', user(), ensureAdmin, async (req, res) => {
+router.post('/', middlewares.session(), ensureAdmin, async (req, res) => {
   const { did } = req.user!;
   const { name, icon, slug, orderIndex } = await updateCategorySchema.validateAsync(req.body, { stripUnknown: true });
 
@@ -70,7 +70,7 @@ router.post('/', user(), ensureAdmin, async (req, res) => {
   }
 });
 
-router.put('/:id', user(), ensureAdmin, async (req, res) => {
+router.put('/:id', middlewares.session(), ensureAdmin, async (req, res) => {
   const { did } = req.user!;
   const { id } = req.params;
   const { name, icon, slug, orderIndex } = await updateCategorySchema.validateAsync(req.body, { stripUnknown: true });
@@ -96,7 +96,7 @@ router.put('/:id', user(), ensureAdmin, async (req, res) => {
   }
 });
 
-router.delete('/:id', user(), ensureAdmin, async (req, res) => {
+router.delete('/:id', middlewares.session(), ensureAdmin, async (req, res) => {
   const { id } = req.params;
 
   const category = await Category.findByPk(id);

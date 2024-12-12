@@ -10,12 +10,16 @@ import express, { ErrorRequestHandler } from 'express';
 
 import initCronJob from './jobs';
 import { cronManager } from './libs/cron-jobs';
+import { getSourceFileDir } from './libs/ensure-dir';
 import { isDevelopment } from './libs/env';
-import logger from './libs/logger';
+import logger, { accessLogMiddleware, registerLoggerToConsole } from './libs/logger';
 import { resourceManager } from './libs/resource';
 import { xss } from './libs/xss';
 import routes from './routes';
+import { attachWalletHandlers } from './routes/auth';
 import setupHtmlRouter from './routes/html';
+
+registerLoggerToConsole();
 
 if (process.env.NODE_ENV === 'development') {
   dotenv.config();
@@ -27,12 +31,32 @@ export const app = express();
 
 app.set('trust proxy', true);
 app.use(cookieParser());
+
+// NOTE: 用来临时修复 middlewares.session 不支持从 Authorization header 中取 token 的问题
+app.use((req, _, next) => {
+  if (!req.cookies.login_token) {
+    const token = req.get('Authorization')?.replace('Bearer ', '');
+    if (token) req.cookies.login_token = token;
+  }
+
+  next();
+});
+
 app.use(express.json({ limit: '1 mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1 mb' }));
 app.use(cors());
 app.use(xss());
 
+app.use('/upload/:knowledgeId', (req, res, next) => {
+  const { knowledgeId } = req.params;
+  const sourceFileDir = getSourceFileDir(knowledgeId);
+  express.static(sourceFileDir, { maxAge: '365d', immutable: true, index: false })(req, res, next);
+});
+
+app.use(accessLogMiddleware);
+
 const router = express.Router();
+attachWalletHandlers(router);
 router.use('/api', routes);
 app.use(router);
 

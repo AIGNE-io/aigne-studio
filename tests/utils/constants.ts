@@ -1,5 +1,7 @@
 import { join } from 'path';
 
+export const SPACE_APP_ID = 'zNKYwnJSLskANbQTNwbXnCbDwz4rwoyWzF9f';
+
 export const TestConstants = {
   get headless() {
     return process.env.HEADLESS !== 'false';

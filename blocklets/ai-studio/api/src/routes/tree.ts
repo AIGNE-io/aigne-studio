@@ -3,7 +3,7 @@ import path from 'path';
 import Project from '@api/store/models/project';
 import { Assistant } from '@blocklet/ai-runtime/types';
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
-import { user } from '@blocklet/sdk/lib/middlewares';
+import { session } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 
 import { ensureComponentCallOrPromptsEditor } from '../libs/security';
@@ -27,7 +27,7 @@ export type Entry = File | Folder;
 export type EntryWithMeta = Exclude<Entry, File> | (File & { meta: Assistant });
 
 export function treeRoutes(router: Router) {
-  router.get('/projects/:projectId/tree/:ref', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+  router.get('/projects/:projectId/tree/:ref', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required params `projectId`');
     const project = await Project.findOne({ where: { id: projectId }, rejectOnEmpty: new Error('Project not found') });

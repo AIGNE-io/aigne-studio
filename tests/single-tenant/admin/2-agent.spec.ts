@@ -193,12 +193,6 @@ test('agent output', async ({ page }) => {
   const requiredCell = customOutputLine.getByRole('checkbox');
   await requiredCell.check();
 
-  await customOutputLine.locator('td').last().getByRole('button').click();
-  await page.getByTestId('output-actions-cell-setting').click();
-  const dialog = await page.getByTestId('output-actions-cell-dialog');
-  await dialog.getByPlaceholder('The title displayed above').fill('e2eTest');
-  await page.getByRole('button', { name: 'Ok' }).click();
-
   await expect(nameCell).toHaveValue('customOutput');
   await expect(descriptionCell).toHaveValue('this is e2e test');
   await expect(formatCell).toHaveText('Text');
@@ -206,6 +200,7 @@ test('agent output', async ({ page }) => {
 });
 
 test('agent debug', async ({ page }) => {
+  await page.locator('button').filter({ hasText: 'Debug' }).click();
   const input = page.locator("[data-testid='debug-mode-parameter'] textarea").first();
   await input.fill('hello');
   const list = page.locator("[data-testid='virtuoso-item-list']>div");
@@ -230,6 +225,7 @@ test('agent debug', async ({ page }) => {
 });
 
 test('debug tests', async ({ page }) => {
+  await page.locator('button').filter({ hasText: 'Debug' }).click();
   const input = page.locator("[data-testid='debug-mode-parameter'] textarea").first();
   await input.fill('hello');
   await page.getByRole('button', { name: 'Save as test case' }).click();

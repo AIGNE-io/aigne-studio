@@ -216,11 +216,11 @@
                     "quotas": [
                       {
                         "passport": "",
-                        "value": 100
+                        "value": 9999999999
                       },
                       {
                         "passport": "aignePremium",
-                        "value": 1000
+                        "value": 9999999999
                       }
                     ]
                   }
@@ -392,10 +392,68 @@
                 }
               }
             }
+          },
+          "9zmp5p7ws4d": {
+            "type": "void",
+            "x-component": "FormTab.TabPane",
+            "x-component-props": {
+              "tab": "Plans and pricing"
+            },
+            "x-designable-id": "9zmp5p7ws4d",
+            "x-index": 2,
+            "properties": {
+              "premiumPlanEnabled": {
+                "type": "boolean",
+                "title": "Enable Premium Plan",
+                "x-decorator": "FormItem",
+                "x-component": "Switch",
+                "x-validator": [],
+                "x-component-props": {},
+                "x-decorator-props": {
+                  "labelAlign": "left"
+                },
+                "name": "premiumPlanEnabled",
+                "default": false,
+                "x-designable-id": "sl1lc1zp8gn",
+                "x-index": 0
+              }
+            }
+          },
+          "3a0uhy2d9iu": {
+            "type": "void",
+            "x-component": "FormTab.TabPane",
+            "x-component-props": {
+              "tab": "Settings"
+            },
+            "x-designable-id": "3a0uhy2d9iu",
+            "x-index": 3,
+            "properties": {
+              "maxImageCount": {
+                "type": "number",
+                "title": "Max Image Upload Count",
+                "x-decorator": "FormItem",
+                "x-component": "NumberPicker",
+                "x-validator": [],
+                "x-component-props": {
+                  "max": 10,
+                  "min": 1
+                },
+                "x-decorator-props": {
+                  "layout": "vertical",
+                  "labelWidth": "inherit",
+                  "wrapperWidth": "inherit"
+                },
+                "name": "maxImageCount",
+                "description": "The number of images uploaded simultaneously",
+                "default": 3,
+                "x-designable-id": "2pd2k6hvfy4",
+                "x-index": 0
+              }
+            }
           }
         }
       }
     },
-    "x-designable-id": "n8hipjf4bok"
+    "x-designable-id": "dixw8588rvi"
   }
 }

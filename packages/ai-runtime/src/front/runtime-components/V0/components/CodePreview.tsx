@@ -95,7 +95,7 @@ function RetryComponent({ message, tip }: { message: MessageItem | undefined; ti
 
             await runAgent({
               aid,
-              parameters: canUseParameters,
+              inputs: canUseParameters,
               onResponseStart: () => {
                 setCurrentMessageTaskId(undefined);
               },

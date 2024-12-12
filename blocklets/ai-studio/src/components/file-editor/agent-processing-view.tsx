@@ -36,7 +36,7 @@ export default function AgentProcessingView({
           alignItems="center"
           gap={0.5}
           minHeight={32}
-          width={1}
+          flex={1}
           overflow="hidden"
           textOverflow="ellipsis">
           <Box sx={{ display: 'inline-flex', alignItems: 'center' }}>

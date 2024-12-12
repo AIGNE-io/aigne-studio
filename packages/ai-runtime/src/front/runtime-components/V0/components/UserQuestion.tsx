@@ -51,7 +51,6 @@ export default function UserQuestion({ question }: { question?: string }) {
         {/* @ts-ignore */}
         <CopyButton
           locale={locale}
-          unstyled
           render={({ copyButton, containerRef }: any) => {
             return (
               <Box

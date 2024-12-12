@@ -1,7 +1,7 @@
 import { Faker, en } from '@faker-js/faker';
 import { JSONSchemaFaker } from 'json-schema-faker';
 
-JSONSchemaFaker.option({ alwaysFakeOptionals: true });
+JSONSchemaFaker.option({ requiredOnly: true });
 
 JSONSchemaFaker.extend('faker', () => {
   const faker = new Faker({ locale: [en] });

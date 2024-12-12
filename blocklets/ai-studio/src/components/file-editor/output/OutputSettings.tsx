@@ -281,6 +281,7 @@ function VariableRow({
   gitRef: string;
   disabled?: boolean;
 } & BoxProps<ComponentType<typeof TableRow>>) {
+  const { t } = useLocaleContext();
   const runtimeVariable = getRuntimeOutputVariable(variable);
 
   const { getVariables } = useProjectStore(projectId, gitRef);
@@ -301,6 +302,20 @@ function VariableRow({
     depth,
   });
 
+  const checkMemoryVariableDefined = (output: OutputVariableYjs) => {
+    if (output.variable) {
+      const { variable } = output;
+      if (variable && variable.key) {
+        const variableYjs = getVariables();
+        const found = variableYjs?.variables?.find((x) => x.key === variable.key && x.scope === variable.scope);
+
+        return found?.type?.type === output.type;
+      }
+    }
+
+    return true;
+  };
+
   const mergeVariable = datastoreVariable?.type
     ? {
         ...datastoreVariable?.type,
@@ -316,7 +331,7 @@ function VariableRow({
       return 'rgba(0, 0, 0, 0.04) !important';
     }
 
-    if (error) {
+    if (error || !checkMemoryVariableDefined(variable)) {
       return 'rgba(255, 215, 213, 0.4) !important';
     }
 
@@ -356,7 +371,9 @@ function VariableRow({
         projectId={projectId}
         gitRef={gitRef}
         assistant={value}>
-        <Tooltip title={error} placement="top-start">
+        <Tooltip
+          title={error || !checkMemoryVariableDefined(variable) ? t('memoryNotDefined') : undefined}
+          placement="top-start">
           <Box
             ref={rowRef}
             {...props}
@@ -615,7 +632,7 @@ export const useRoutesAssistantOutputs = ({
 
         if (found) {
           if (found.type && output.type && found.type !== output.type) {
-            error = t('diffRouteName', { agentName: `${agent?.agent?.name} Agent`, routeName: found.name });
+            error = t('diffRouteName', { agentName: `${agent?.agent?.name} Agent`, routeName: found.name! });
             break;
           } else {
             if (found?.type === 'object' && output.type === 'object') {
@@ -637,7 +654,7 @@ export const useRoutesAssistantOutputs = ({
               ) {
                 error = t('diffRouteNameByType', {
                   agentName: `${agent?.agent?.name} Agent`,
-                  routeName: found.name,
+                  routeName: found.name!,
                   type: 'object',
                 });
                 break;
@@ -663,7 +680,7 @@ export const useRoutesAssistantOutputs = ({
               ) {
                 error = t('diffRouteNameByType', {
                   agentName: `${agent?.agent?.name} Agent`,
-                  routeName: found.name,
+                  routeName: found.name!,
                   type: 'array',
                 });
                 break;

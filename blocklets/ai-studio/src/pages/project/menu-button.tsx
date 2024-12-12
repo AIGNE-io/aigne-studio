@@ -1,50 +1,63 @@
-import { MoreVert } from '@mui/icons-material';
 import {
-  IconButton,
+  Box,
+  BoxProps,
+  Button,
+  ClickAwayListener,
+  Grow,
   List,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
   Paper,
-  listItemButtonClasses,
+  Popper,
+  PopperProps,
   listItemIconClasses,
 } from '@mui/material';
-import { bindPopper, bindTrigger } from 'material-ui-popup-state';
-import { usePopupState } from 'material-ui-popup-state/hooks';
-import { ReactNode } from 'react';
+import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
+import React, { ReactNode, isValidElement } from 'react';
 
-import Popper from '../../components/template-form/popper';
-
-export default function MenuButton({
+export default function PopperMenuButton({
+  PopperProps,
   menus,
-}: {
-  menus: { disabled?: boolean; icon?: ReactNode; title: ReactNode; onClick: () => any }[];
-}) {
-  const popperState = usePopupState({ variant: 'popper', popupId: 'actions-menu' });
+  ...props
+}: { PopperProps: Omit<PopperProps, 'open'>; menus?: ReactNode } & BoxProps<typeof Button>) {
+  const state = usePopupState({ variant: 'popper' });
 
   return (
     <>
-      <IconButton {...bindTrigger(popperState)}>
-        <MoreVert />
-      </IconButton>
+      <Box
+        component={Button}
+        onClick={(e: any) => {
+          e.stopPropagation();
+          bindTrigger(state).onClick(e);
+        }}
+        {...props}
+      />
 
-      <Popper {...bindPopper(popperState)} onClose={popperState.close} placement="bottom-end">
-        <Paper sx={{ p: 0.5 }}>
-          <List
-            disablePadding
-            sx={{
-              [`.${listItemButtonClasses.root}`]: { borderRadius: 1 },
-              [`.${listItemIconClasses.root}`]: { minWidth: 32 },
-            }}>
-            {menus.map((menu, index) => (
-              <ListItemButton key={index} disabled={menu.disabled} onClick={menu.onClick}>
-                <ListItemIcon>{menu.icon}</ListItemIcon>
-
-                <ListItemText primary={menu.title} />
-              </ListItemButton>
-            ))}
-          </List>
-        </Paper>
+      <Popper transition {...PopperProps} {...bindPopper(state)}>
+        {({ TransitionProps }) => (
+          <ClickAwayListener onClickAway={state.close}>
+            <Grow {...TransitionProps}>
+              <Paper>
+                <List
+                  dense
+                  sx={{
+                    [`.${listItemIconClasses.root}`]: {
+                      minWidth: 24,
+                    },
+                  }}>
+                  {React.Children.map(menus, (menu) =>
+                    !isValidElement(menu)
+                      ? menu
+                      : React.cloneElement(menu, {
+                          onClick: async (...args: any[]) => {
+                            await menu.props.onClick?.(...args);
+                            state.close();
+                          },
+                        } as any)
+                  )}
+                </List>
+              </Paper>
+            </Grow>
+          </ClickAwayListener>
+        )}
       </Popper>
     </>
   );

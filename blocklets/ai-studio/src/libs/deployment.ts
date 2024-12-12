@@ -2,6 +2,7 @@ import { ProjectSettings } from '@blocklet/ai-runtime/types';
 import { joinURL } from 'ufo';
 
 import axios from './api';
+import { User } from './project';
 
 export type Deployment = {
   id: string;
@@ -19,8 +20,10 @@ export type Deployment = {
   productHuntBannerUrl?: string;
 };
 
+export type ProjectStatsItem = { projectId: string; totalRuns: number; totalUsers: number };
+
 export type UpdateType = {
-  access: 'private' | 'public';
+  access?: 'private' | 'public';
   categories?: string[];
   productHuntUrl?: string;
   productHuntBannerUrl?: string;
@@ -41,7 +44,7 @@ export async function getDeployment({
   id,
 }: {
   id: string;
-}): Promise<{ deployment: Deployment | null; project: ProjectSettings }> {
+}): Promise<{ deployment: Deployment | null; project: ProjectSettings; stats: ProjectStatsItem; createdByInfo: User }> {
   return axios.get(joinURL('/api/deployments', id)).then((res) => res.data);
 }
 
@@ -58,7 +61,7 @@ export async function getDeploymentsByCategorySlug(input: {
   page: number;
   pageSize: number;
 }): Promise<{
-  list: (Deployment & { project: ProjectSettings })[];
+  list: (Deployment & { project: ProjectSettings; stats: ProjectStatsItem; createdByInfo: User })[];
   totalCount: number;
 }> {
   const { categorySlug, page, pageSize } = input;
@@ -75,11 +78,11 @@ export async function getDeployments(input: { page: number; pageSize: number }):
 }
 
 export async function updateDeployment(id: string, input: UpdateType): Promise<Deployment> {
-  return axios.put(joinURL('/api/deployments', id), input).then((res) => res.data);
+  return axios.patch(joinURL('/api/deployments', id), input).then((res) => res.data);
 }
 
 export async function adminUpdateDeployment(id: string, input: UpdateType): Promise<Deployment> {
-  return axios.put(joinURL('/api/admin/deployments', id), input).then((res) => res.data);
+  return axios.patch(joinURL('/api/admin/deployments', id), input).then((res) => res.data);
 }
 
 export async function deleteDeployment(input: { id: string }): Promise<Deployment> {

@@ -23,6 +23,7 @@ export interface SimpleChatPreferences extends ComponentPreferencesBase {
   hideUserInputs?: boolean;
   hideAgentAvatar?: boolean;
   backgroundImage?: { url?: string; width?: number; height?: number };
+  hideInputs?: boolean;
 }
 
 export default function SimpleChat({ ...preferences }: {} & SimpleChatPreferences) {
@@ -35,6 +36,7 @@ export default function SimpleChat({ ...preferences }: {} & SimpleChatPreference
 }
 
 function SimpleChatView() {
+  const preferences = useComponentPreferences<SimpleChatPreferences>();
   const { aid: activeAid } = useActiveAgent();
 
   const { running, loading } = useSession((s) => ({ running: s.running, loading: s.loading }));
@@ -64,18 +66,20 @@ function SimpleChatView() {
               px={{ xs: 2, sm: 3 }}
             />
 
-            <InputsView
-              className="aigne-inputs aigne-simple-chat-inputs"
-              collapsible
-              sx={{
-                position: 'sticky',
-                bottom: 0,
-                zIndex: 10,
-                borderRadius: 1,
-                bgcolor: (theme) => alpha(theme.palette.background.paper, 0.8),
-                backdropFilter: 'blur(16px)',
-              }}
-            />
+            {!preferences?.hideInputs && (
+              <InputsView
+                className="aigne-inputs aigne-simple-chat-inputs"
+                collapsible
+                sx={{
+                  position: 'sticky',
+                  bottom: 0,
+                  zIndex: 10,
+                  borderRadius: 1,
+                  bgcolor: (theme) => alpha(theme.palette.background.paper, 0.8),
+                  backdropFilter: 'blur(16px)',
+                }}
+              />
+            )}
           </>
         )}
       </CurrentAgentProvider>

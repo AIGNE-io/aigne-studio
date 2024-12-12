@@ -38,9 +38,9 @@ export class Sandbox {
           destroy: async (sandbox) => {
             try {
               sandbox.dispose();
-              logger.error('dispose sandbox from pool success', options.filename);
+              logger.debug('dispose sandbox from pool success', options.filename);
             } catch (error) {
-              logger.error('dispose sandbox from pool error', error);
+              logger.error('dispose sandbox from pool error', options.filename, error);
             }
           },
         },
@@ -179,7 +179,7 @@ export async function callFunction(resultKey: string, functionName: string, args
   const quickJs = await newQuickJSWASMModule();
   const runtime = quickJs.newRuntime({
     // TODO: make it configurable
-    memoryLimitBytes: 20 * 1024 * 1024,
+    memoryLimitBytes: 100 * 1024 * 1024,
     moduleLoader: (moduleName: string) => {
       return (
         moduleLoader?.(moduleName) ??

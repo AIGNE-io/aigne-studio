@@ -3,31 +3,31 @@ import { joinURL, withQuery } from 'ufo';
 import { AI_STUDIO_DID } from '../constants';
 import { request } from './request';
 
-export interface Dataset {
+export interface Knowledge {
   id: string;
   name?: string;
   description?: string;
 }
 
-export async function getDataset({ datasetId }: { datasetId: string }): Promise<Dataset> {
-  const url = joinURL('/api/datasets/', datasetId);
-  const result = await request<Dataset>({ blocklet: AI_STUDIO_DID, url });
+export async function getKnowledge({ datasetId: knowledgeId }: { datasetId: string }): Promise<Knowledge> {
+  const url = joinURL('/api/datasets/', knowledgeId);
+  const result = await request<Knowledge>({ blocklet: AI_STUDIO_DID, url });
   if (!result) throw new Error('Collection not found!');
 
   return result;
 }
 
-export async function getDatasets({ appId }: { appId: string }): Promise<Array<Dataset>> {
-  const url = withQuery('/api/datasets', { appId });
+export async function getKnowledgeList({ projectId }: { projectId: string }): Promise<Array<Knowledge>> {
+  const url = withQuery('/api/datasets', { projectId });
   return request({ blocklet: AI_STUDIO_DID, url });
 }
 
-export async function createDataset({
-  appId,
+export async function createKnowledge({
+  projectId,
   name,
   description,
 }: {
-  appId: string;
+  projectId: string;
   name: string;
   description?: string;
 }) {
@@ -35,25 +35,24 @@ export async function createDataset({
     blocklet: AI_STUDIO_DID,
     method: 'POST',
     url: '/api/datasets',
-    body: {
-      appId,
-      name,
-      description,
-    },
+    body: { projectId, name, description },
   });
 }
 
-export async function updateDataset(datasetId: string, input: Pick<Dataset, 'name' | 'description'>): Promise<Dataset> {
+export async function updateKnowledge(
+  knowledgeId: string,
+  input: Pick<Knowledge, 'name' | 'description'>
+): Promise<Knowledge> {
   return request({
     blocklet: AI_STUDIO_DID,
     method: 'PUT',
-    url: joinURL('/api/datasets', datasetId),
+    url: joinURL('/api/datasets', knowledgeId),
     body: input,
   });
 }
 
-export async function deleteDataset(datasetId: string): Promise<void> {
-  const url = joinURL('/api/datasets', datasetId);
+export async function deleteKnowledge(knowledgeId: string): Promise<void> {
+  const url = joinURL('/api/datasets', knowledgeId);
   return request({ blocklet: AI_STUDIO_DID, method: 'DELETE', url });
 }
 
@@ -62,25 +61,25 @@ export interface Document {
   name?: string;
 }
 
-export async function deleteDocument(datasetId: string, documentId: string): Promise<void> {
+export async function deleteDocument(knowledgeId: string, documentId: string): Promise<void> {
   return request({
     blocklet: AI_STUDIO_DID,
     method: 'DELETE',
-    url: joinURL('/api/datasets', datasetId, 'documents', documentId),
+    url: joinURL('/api/datasets', knowledgeId, 'documents', documentId),
   });
 }
 
-export async function getDocuments(datasetId: string): Promise<{ items: Array<Document>; total: number }> {
+export async function getDocuments(knowledgeId: string): Promise<{ items: Array<Document>; total: number }> {
   return request({
     blocklet: AI_STUDIO_DID,
-    url: joinURL('/api/datasets', datasetId, 'documents'),
+    url: joinURL('/api/datasets', knowledgeId, 'documents'),
   });
 }
 
-export async function getDocument(datasetId: string, documentId: string): Promise<{ document: Document }> {
+export async function getDocument(knowledgeId: string, documentId: string): Promise<{ document: Document }> {
   const result = await request<{ document: Document }>({
     blocklet: AI_STUDIO_DID,
-    url: joinURL('/api/datasets', datasetId, 'documents', documentId),
+    url: joinURL('/api/datasets', knowledgeId, 'documents', documentId),
   });
   if (!result?.document) throw new Error('Document not found!');
 
@@ -88,21 +87,21 @@ export async function getDocument(datasetId: string, documentId: string): Promis
 }
 
 export async function createDocument(
-  datasetId: string,
+  knowledgeId: string,
   type: 'text' | 'file',
   input: { name: string; content: string } | File
 ) {
-  if (type === 'file') return createDocumentFile(datasetId, input as File);
+  if (type === 'file') return createDocumentFile(knowledgeId, input as File);
 
   return request({
     blocklet: AI_STUDIO_DID,
     method: 'POST',
-    url: joinURL('/api/datasets', datasetId, 'documents', type),
+    url: joinURL('/api/datasets', knowledgeId, 'documents', type),
     body: input,
   });
 }
 
-export async function createDocumentFile(datasetId: string, file: File) {
+export async function createDocumentFile(knowledgeId: string, file: File) {
   const form = new FormData();
   form.append('data', file);
   form.append('type', 'file');
@@ -111,13 +110,13 @@ export async function createDocumentFile(datasetId: string, file: File) {
   return request({
     blocklet: AI_STUDIO_DID,
     method: 'POST',
-    url: joinURL('/api/datasets', datasetId, 'documents/file'),
+    url: joinURL('/api/datasets', knowledgeId, 'documents/file'),
     body: form,
   });
 }
 
 export async function updateDocument(
-  datasetId: string,
+  knowledgeId: string,
   documentId: string,
   type: 'text',
   input: { name: string; content: string }
@@ -125,7 +124,7 @@ export async function updateDocument(
   return request({
     blocklet: AI_STUDIO_DID,
     method: 'PUT',
-    url: joinURL('/api/datasets', datasetId, 'documents', documentId, type),
+    url: joinURL('/api/datasets', knowledgeId, 'documents', documentId, type),
     body: input,
   });
 }

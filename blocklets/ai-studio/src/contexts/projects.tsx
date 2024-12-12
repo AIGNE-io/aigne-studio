@@ -1,7 +1,8 @@
 import { showPlanUpgrade } from '@app/components/multi-tenant-restriction';
 import { useCurrentGitStore } from '@app/store/current-git-store';
 import { RuntimeError, RuntimeErrorType } from '@blocklet/ai-runtime/types/runtime/error';
-import { useCallback, useEffect } from 'react';
+import { Quotas } from '@blocklet/aigne-sdk/quotas';
+import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import { atom, useRecoilState } from 'recoil';
 
 import * as api from '../libs/project';
@@ -28,6 +29,8 @@ const projectsState = atom<ProjectsState>({
     loading: false,
   },
 });
+
+const quotas = new Quotas(window.blocklet?.preferences);
 
 export const useProjectsState = () => {
   const [state, setState] = useRecoilState(projectsState);
@@ -126,12 +129,12 @@ export const useProjectsState = () => {
     if (window.blocklet?.tenantMode === 'multiple') {
       // check project count limit
       const count = state.projects.length;
-      const currentLimit = window.blocklet?.preferences?.multiTenantProjectLimits;
-      if (count >= currentLimit && !isPromptAdmin) {
+      const passports = session?.user?.passports?.map((x: any) => x.name);
+      if (!quotas.checkProjectLimit(count + 1, passports) && !isPromptAdmin) {
         createLimitDialog();
         throw new RuntimeError(
           RuntimeErrorType.ProjectLimitExceededError,
-          `Project limit exceeded (current: ${count}, limit: ${currentLimit}) `
+          `Project limit exceeded (current: ${count}, limit: ${quotas.getQuota('projectLimit', passports)}) `
         );
       }
     }
@@ -167,4 +170,30 @@ export const useProjectsState = () => {
     clearState,
     createLimitDialog,
   };
+};
+
+export const useProjectLimiting = () => {
+  const { session } = useSessionContext();
+  const sessionRef = useRef(session);
+  useLayoutEffect(() => {
+    sessionRef.current = session;
+  }, [session]);
+  const isPromptAdmin = useIsPromptAdmin();
+  const checkProjectLimitAsync = async () => {
+    if (!sessionRef.current?.user?.did) {
+      return false;
+    }
+    if (window.blocklet?.tenantMode !== 'multiple' || isPromptAdmin) {
+      return true;
+    }
+    const count = await api.countProjects();
+    const passports = sessionRef.current?.user?.passports?.map((x: any) => x.name);
+    if (!quotas.checkProjectLimit(count + 1, passports)) {
+      showPlanUpgrade('projectLimit');
+      return false;
+    }
+    return true;
+  };
+
+  return { checkProjectLimitAsync };
 };

@@ -65,6 +65,7 @@ function ProjectIcon({
   return (
     <Box
       component="img"
+      alt=""
       src={getProjectIconUrl(projectId, {
         projectRef,
         updatedAt: projectSetting?.iconVersion,

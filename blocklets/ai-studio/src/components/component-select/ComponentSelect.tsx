@@ -1,28 +1,16 @@
-import { useCurrentProject } from '@app/contexts/project';
 import { getComponents } from '@app/libs/components';
 import { REMOTE_REACT_COMPONENT } from '@app/libs/constants';
-import { useProjectStore } from '@app/pages/project/yjs-state';
+import { getOptimizedImageAbsUrl } from '@app/libs/media';
+import Empty from '@arcblock/ux/lib/Empty';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { parseIdentity } from '@blocklet/ai-runtime/common/aid';
 import {
-  OutputVariable,
   OutputVariableYjs,
   RuntimeOutputVariable,
-  fileFromYjs,
-  isAssistant,
-  outputVariableFromYjs,
-  outputVariablesToJsonSchema,
-  variableFromYjs,
+  isRuntimeOutputVariable,
+  runtimeVariablesSchema,
 } from '@blocklet/ai-runtime/types';
+import Warning from '@mui/icons-material/WarningAmberOutlined';
 import {
-  CurrentMessageOutputProvider,
-  CurrentMessageProvider,
-  RuntimeDebug,
-  RuntimeProvider,
-} from '@blocklet/aigne-sdk/components/ai-runtime';
-import { CustomComponentRenderer, CustomComponentRendererProvider } from '@blocklet/pages-kit/components';
-import {
-  Alert,
   Box,
   Button,
   Card,
@@ -36,19 +24,76 @@ import {
   Grid,
   Radio,
   RadioGroup,
+  Tooltip,
   Typography,
-  styled,
   useRadioGroup,
 } from '@mui/material';
+import Ajv from 'ajv';
 import stringify from 'json-stable-stringify';
 import { pick } from 'lodash';
-import { nanoid } from 'nanoid';
-import { ComponentProps, ReactNode, Suspense, useEffect, useMemo, useState } from 'react';
+import { ComponentProps, useEffect, useMemo, useState } from 'react';
 import { useAsync } from 'react-use';
 
-import ErrorBoundary from '../error/error-boundary';
 import { generateFakeProps } from './fake-props';
-import { useAIGNEApiProps } from './get-agent';
+
+const ajv = new Ajv({ strict: false });
+
+function convertCustomOutput(data: Record<string, any>) {
+  const ans: Record<string, any> = { type: data.type ?? 'string' };
+
+  if (data.type === 'object' && data.properties) {
+    ans.properties = {};
+    for (const [, v] of Object.entries(data.properties)) {
+      const value = v as { data: Record<string, any> };
+      ans.properties[value.data.name] = convertCustomOutput(value.data);
+      if (value.data.required) {
+        ans.required = ans.required ?? [];
+        ans.required.push(value.data.name);
+      }
+    }
+    return ans;
+  }
+
+  if (data.type === 'array' && data.element) {
+    ans.items = convertCustomOutput(data.element);
+    return ans;
+  }
+
+  return ans;
+}
+
+function convertRuntimeOutput(data: Record<string, any>) {
+  const ans: Record<string, any> = { type: data.type ?? 'string' };
+  if (data.type === 'object' && data.properties) {
+    ans.properties = {};
+    for (const i of data.properties) {
+      ans.properties[i.name] = convertRuntimeOutput(i);
+      if (i.required) {
+        ans.required = ans.required ?? [];
+        ans.required.push(i.name);
+      }
+    }
+    return ans;
+  }
+
+  if (data.type === 'array' && data.element) {
+    ans.items = convertRuntimeOutput(data.element);
+    return ans;
+  }
+
+  return ans;
+}
+
+function outputToJsonSchema(output: Record<string, any>) {
+  if (!output || output.from?.type === 'input') return {};
+
+  if (output.name && isRuntimeOutputVariable(output.name)) {
+    const schema = runtimeVariablesSchema[output.name as RuntimeOutputVariable];
+    return schema ? convertRuntimeOutput(schema) : {};
+  }
+
+  return convertCustomOutput(output);
+}
 
 export interface ComponentSelectValue {
   blockletDid?: string;
@@ -60,13 +105,11 @@ export interface ComponentSelectValue {
 export default function ComponentSelect({
   output,
   tags,
-  aid,
   value,
   onChange,
 }: {
   output: OutputVariableYjs;
   tags: string;
-  aid: string;
   value?: ComponentSelectValue | null;
   onChange?: (value: ComponentSelectValue) => void;
 }) {
@@ -91,6 +134,9 @@ export default function ComponentSelect({
         blockletDid: x.blocklet?.did,
         id: x.id,
         name: x.name,
+        description: x.description,
+        previewImage: x.previewImage,
+        aigneOutputValueSchema: x.aigneOutputValueSchema,
         group: t('buildIn'),
       })),
       ...(openComponents ?? []).map((x) => ({
@@ -104,9 +150,37 @@ export default function ComponentSelect({
         group: t('remote'),
       })),
     ];
-  }, [customComponents, openComponents]);
+  }, [customComponents, openComponents, t]);
 
   const componentsMap = useMemo(() => Object.fromEntries(components.map((i) => [i.value, i])), [components]);
+
+  const validatedComponents = useMemo(() => {
+    const isOutputFromInput = output.from?.type === 'input';
+    const outputSchema = outputToJsonSchema(output);
+    const outputSchemaFakedData = generateFakeProps(outputSchema);
+    const validated =
+      components?.reduce(
+        (acc, i) => {
+          const componentSchema = (i as any).aigneOutputValueSchema;
+          if (!componentSchema) {
+            acc.withoutSchema.push(i);
+            return acc;
+          }
+
+          // If the output comes from the input, we do not know the schema of the output.
+          if (isOutputFromInput) {
+            acc.withSchema.push(i);
+            return acc;
+          }
+
+          const validate = ajv.compile(componentSchema);
+          if (validate({ outputValue: outputSchemaFakedData })) acc.withSchema.push(i);
+          return acc;
+        },
+        { withSchema: [], withoutSchema: [] } as { withSchema: any[]; withoutSchema: any[] }
+      ) ?? {};
+    return [...validated.withSchema, ...validated.withoutSchema];
+  }, [components, output]);
 
   return (
     <Grid
@@ -119,9 +193,9 @@ export default function ComponentSelect({
       }}
       container
       spacing={2}>
-      {components.map((i) => (
+      {validatedComponents.map((i) => (
         <Grid item key={i.value} xs={12} sm={6} md={4}>
-          <ComponentSelectItem output={output} aid={aid} customComponent={i} />
+          <ComponentSelectItem output={output} customComponent={i} />
         </Grid>
       ))}
 
@@ -136,17 +210,33 @@ export default function ComponentSelect({
 
 function ComponentSelectItem({
   output,
-  aid,
   customComponent,
 }: {
   output: OutputVariableYjs;
-  aid: string;
-  customComponent: { value: string; blockletDid?: string; id: string; name?: string; componentProperties?: any };
+  customComponent: {
+    value: string;
+    blockletDid?: string;
+    id: string;
+    name?: string;
+    description?: string;
+    componentProperties?: any;
+    aigneOutputValueSchema?: Record<string, any>;
+  };
 }) {
   const radioGroup = useRadioGroup();
   const checked = radioGroup?.value === customComponent.value;
 
   const { t } = useLocaleContext();
+
+  const ignoreAigneOutputValueSchema = [
+    RuntimeOutputVariable.appearancePage,
+    RuntimeOutputVariable.appearanceInput,
+    RuntimeOutputVariable.appearanceOutput,
+  ];
+
+  const hasNoOutputValueSchema =
+    !customComponent.aigneOutputValueSchema &&
+    !ignoreAigneOutputValueSchema.includes(output.name as RuntimeOutputVariable);
 
   return (
     <Card
@@ -174,209 +264,72 @@ function ComponentSelectItem({
           role="button"
           // @ts-ignore React types doesn't support inert attribute https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/inert
           inert="ignore">
-          <ItemPreviewer output={output} aid={aid} customComponent={customComponent} />
+          <ComponentPreviewImagePreviewer customComponent={customComponent} />
         </Box>
         <Divider />
-        <Typography sx={{ m: 1 }} noWrap>
-          {customComponent.name || t('unnamed')}
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Typography sx={{ m: 1 }} noWrap>
+            {customComponent.name || t('unnamed')}
+          </Typography>
+          {hasNoOutputValueSchema && (
+            <Tooltip title={t('noOutputValueSchema')}>
+              <Warning fontSize="small" sx={{ color: 'warning.main', fontSize: 16, mr: 1 }} />
+            </Tooltip>
+          )}
+        </Box>
+        <Typography
+          sx={{ m: 1, WebkitLineClamp: 2, overflowWrap: 'break-word' }}
+          className="multi-line-ellipsis"
+          variant="caption"
+          title={customComponent.description}>
+          {customComponent.description}
         </Typography>
       </Box>
     </Card>
   );
 }
 
-function ItemPreviewer({
-  output,
-  aid,
+function ComponentPreviewImagePreviewer({
   customComponent,
 }: {
-  output: OutputVariableYjs;
-  aid: string;
-  customComponent: { blockletDid?: string; id: string };
+  customComponent: {
+    id: string;
+    name?: string;
+    description?: string;
+    previewImage?: string;
+    aigneOutputValueSchema?: Record<string, any>;
+  };
 }) {
-  if (output.name === RuntimeOutputVariable.appearancePage) {
-    return <PageComponentPreviewer aid={aid} customComponent={customComponent} />;
-  }
-
-  return <ComponentPreviewer output={output} aid={aid} customComponent={customComponent} />;
-}
-
-function ComponentPreviewer({
-  output,
-  aid,
-  customComponent,
-}: {
-  output: OutputVariableYjs;
-  aid: string;
-  customComponent: { blockletDid?: string; id: string; name?: string; componentProperties?: any };
-}) {
-  const { projectId, projectRef } = useCurrentProject();
-  const { agentId } = useMemo(() => parseIdentity(aid, { rejectWhenError: true }), [aid]);
-  const { getFileById, getVariables } = useProjectStore(projectId, projectRef);
-
-  const agent = getFileById(agentId);
-  if (!agent) throw new Error(`No such agent ${agentId}`);
-  if (!isAssistant(agent)) throw new Error(`Invalid agent file type ${agentId}`);
-
-  const fakeMessage = useMemo<ComponentProps<typeof CurrentMessageProvider>['message']>(() => {
-    const { agentId } = parseIdentity(aid, { rejectWhenError: true });
-
-    const file = fileFromYjs(agent);
-    if (!isAssistant(file)) throw new Error(`Invalid agent file type ${agentId}`);
-
-    const outputSchema = outputVariablesToJsonSchema(file, {
-      variables: getVariables().variables?.map(variableFromYjs) ?? [],
-      includeRuntimeOutputVariables: true,
-      includeFaker: true,
-    });
-
-    const output = outputSchema ? generateFakeProps(outputSchema) : {};
-
-    return {
-      id: nanoid(),
-      aid,
-      agentId,
-      sessionId: nanoid(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      outputs: {
-        objects: [output as any],
-      },
-    };
-  }, [aid]);
-
-  const api = useAIGNEApiProps({
-    apiUniqueKey: `ComponentSelectPreviewer-${customComponent.id}-${output.name}`,
-    customComponent,
-  });
-
-  const customComponentCtx = useMemo(
-    () => ({
-      customRendererComponent: FakeMessageOutputValueProvider,
-      customRendererComponentProps: { output: outputVariableFromYjs(output) },
-    }),
-    []
-  );
-
-  console.warn(customComponentCtx);
+  const { t } = useLocaleContext();
+  const { previewImage, name } = customComponent;
 
   return (
     <Box position="relative" paddingBottom="100%">
       <Box position="absolute" left={0} top={0} right={0} bottom={0}>
-        <ErrorBoundary FallbackComponent={ErrorView}>
-          <Suspense
-            fallback={
-              <Box textAlign="center" my={2}>
-                <CircularProgress size={24} />
-              </Box>
-            }>
-            <PreviewerContent>
-              <Box
-                sx={{
-                  position: 'absolute',
-                  width: '100%',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%,-50%)',
-                }}>
-                <RuntimeProvider aid={aid} working ApiProps={api}>
-                  <CurrentMessageProvider message={fakeMessage}>
-                    <CustomComponentRendererProvider value={customComponentCtx}>
-                      <CustomComponentRenderer componentId={customComponent.id} />
-                    </CustomComponentRendererProvider>
-                  </CurrentMessageProvider>
-                </RuntimeProvider>
-              </Box>
-            </PreviewerContent>
-          </Suspense>
-        </ErrorBoundary>
+        {previewImage ? (
+          <Box
+            component="img"
+            sx={{ width: '100%', height: '100%', objectFit: 'contain' }}
+            src={getOptimizedImageAbsUrl(previewImage)}
+            alt={name}
+          />
+        ) : (
+          <Empty size={30}>
+            <Box sx={{ fontSize: '16px' }}>{t('noPreviewImage')}</Box>
+          </Empty>
+        )}
       </Box>
     </Box>
   );
 }
 
-function FakeMessageOutputValueProvider({
-  output,
-  children,
-  Component,
-}: {
-  output: OutputVariable;
-  children?: ReactNode;
-  // @ts-ignore
-  Component: CustomComponentType;
-}) {
-  const fakeValue = useMemo(
-    () =>
-      Component.outputValueSchema ? (generateFakeProps(Component.outputValueSchema) as any)?.outputValue : undefined,
-    [Component.outputValueSchema]
-  );
-
-  return (
-    <CurrentMessageOutputProvider output={output} outputValue={fakeValue}>
-      {children}
-    </CurrentMessageOutputProvider>
-  );
-}
-
-function PageComponentPreviewer({
-  aid,
-  customComponent,
-}: {
-  aid: string;
-  customComponent: { blockletDid?: string; id: string; name?: string; componentProperties?: any };
-}) {
-  const apiProps = useAIGNEApiProps({
-    apiUniqueKey: `PageComponentSelectPreviewer-${customComponent.id}`,
-    customComponent,
-  });
-
-  return (
-    <Box position="relative" paddingBottom="120%">
-      <ErrorBoundary FallbackComponent={ErrorView}>
-        <Suspense
-          fallback={
-            <Box textAlign="center" my={2}>
-              <CircularProgress size={24} />
-            </Box>
-          }>
-          <PreviewerContent>
-            <RuntimeDebug hideSessionsBar aid={aid} ApiProps={apiProps} />
-          </PreviewerContent>
-        </Suspense>
-      </ErrorBoundary>
-    </Box>
-  );
-}
-
-function ErrorView({ error }: { error: any }) {
-  return <Alert severity="error">{error.message}</Alert>;
-}
-
-const PreviewerContent = styled(Box)`
-  position: absolute;
-  left: 0;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 200%;
-  height: 200%;
-  overflow: auto;
-  display: flex;
-  flex-direction: column;
-  transform: scale(0.5);
-  transform-origin: top left;
-  pointer-events: none;
-  user-select: none;
-`;
-
 export function ComponentSelectDialog({
   output,
   tags,
-  aid,
   value,
   onChange,
   ...props
-}: Pick<ComponentProps<typeof ComponentSelect>, 'aid' | 'tags' | 'value' | 'onChange' | 'output'> &
+}: Pick<ComponentProps<typeof ComponentSelect>, 'tags' | 'value' | 'onChange' | 'output'> &
   Omit<DialogProps, 'onChange'>) {
   const [state, setState] = useState<ComponentSelectValue | null>();
 
@@ -391,7 +344,7 @@ export function ComponentSelectDialog({
       <DialogTitle>{t('selectObject', { object: t('appearance') })}</DialogTitle>
 
       <DialogContent sx={{ minHeight: '40vh' }}>
-        <ComponentSelect output={output} tags={tags} aid={aid} value={state} onChange={setState} />
+        <ComponentSelect output={output} tags={tags} value={state} onChange={setState} />
       </DialogContent>
 
       <DialogActions>

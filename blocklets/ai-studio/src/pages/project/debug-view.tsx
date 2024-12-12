@@ -3,10 +3,13 @@ import ErrorBoundary from '@app/components/error/error-boundary';
 import LoadingButton from '@app/components/loading/loading-button';
 import MdViewer from '@app/components/md-viewer';
 import BasicTree from '@app/components/trace';
+import { useDebugAIGNEApiProps } from '@app/contexts/debug';
 import { getProjectIconUrl } from '@app/libs/project';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ImagePreview } from '@blocklet/ai-kit/components';
+import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { ParameterField } from '@blocklet/ai-runtime/components';
+import { CurrentAgentProvider, RuntimeProvider } from '@blocklet/ai-runtime/front';
 import {
   AssistantYjs,
   Role,
@@ -364,6 +367,7 @@ function CustomAvatar({ role, projectId, gitRef }: { role: Role; projectId: stri
     <Box>
       <Box
         component="img"
+        alt=""
         src={
           getProjectIconUrl(projectId, { projectRef: gitRef, working: true, updatedAt: projectSetting?.iconVersion }) ||
           blocklet?.appLogo
@@ -753,135 +757,144 @@ function DebugModeForm({
     setCurrentTab('test');
   };
 
+  const aid = stringifyIdentity({ projectId, projectRef: gitRef, agentId: assistant.id });
+
+  const apiProps = useDebugAIGNEApiProps();
+
   return (
-    <Stack component="form" onSubmit={form.handleSubmit(submit)} gap={1}>
-      {!!parameters.length && (
-        <CustomAccordion
-          disableGutters
-          expanded={isExpanded}
-          onChange={handleChange(parameters.length > 1 ? EXPANDED_NAME : false)}
-          elevation={0}
-          sx={{
-            ':before': { display: 'none' },
-            p: 0,
-            borderRadius: 1,
-          }}>
-          <AccordionSummary
-            sx={{
-              px: 2,
-              mb: 1,
-              minHeight: (theme) => theme.spacing(3.5),
-              [`.${accordionSummaryClasses.content}`]: {
-                m: 0,
-                py: 0,
-                overflow: 'hidden',
-                alignItems: 'center',
-                justifyContent: 'center',
-              },
-            }}>
-            <Box
+    <RuntimeProvider aid={aid} working ApiProps={apiProps}>
+      <CurrentAgentProvider aid={aid}>
+        <Stack component="form" onSubmit={form.handleSubmit(submit)} gap={1}>
+          {!!parameters.length && (
+            <CustomAccordion
+              disableGutters
+              expanded={isExpanded}
+              onChange={handleChange(parameters.length > 1 ? EXPANDED_NAME : false)}
+              elevation={0}
               sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                width: 1,
+                ':before': { display: 'none' },
+                p: 0,
+                borderRadius: 1,
               }}>
-              <Typography variant="subtitle2" mb={0}>
-                {t('inputs')}
-              </Typography>
-
-              {parameters.length > 1 && (
+              <AccordionSummary
+                sx={{
+                  px: 2,
+                  mb: 1,
+                  minHeight: (theme) => theme.spacing(3.5),
+                  [`.${accordionSummaryClasses.content}`]: {
+                    m: 0,
+                    py: 0,
+                    overflow: 'hidden',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  },
+                }}>
                 <Box
-                  component={Icon}
-                  icon={ChevronDownIcon}
                   sx={{
-                    fontSize: 20,
-                    transform: `rotateZ(${expanded ? '0' : '-180deg'})`,
-                    transition: (theme) => theme.transitions.create('all'),
-                    color: (theme) => theme.palette.text.disabled,
-                  }}
-                />
-              )}
-            </Box>
-          </AccordionSummary>
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    width: 1,
+                  }}>
+                  <Typography variant="subtitle2" mb={0}>
+                    {t('inputs')}
+                  </Typography>
 
-          <AccordionDetails sx={{ p: 0, maxHeight: '50vh', overflow: !isExpanded ? 'hidden' : 'auto' }}>
-            <Stack gap={1}>
-              {parameters.map(({ data: parameter }) => {
-                const { required, min, max, minLength, maxLength } = (parameter as any) ?? {};
-
-                return (
-                  <Box key={parameter.id} data-testid="debug-mode-parameter">
-                    <Controller
-                      control={form.control}
-                      name={parameter.key}
-                      rules={{
-                        required: required || parameter.key === 'question' ? t('validation.fieldRequired') : undefined,
-                        min:
-                          typeof min === 'number'
-                            ? { value: min, message: t('validation.fieldMin', { min }) }
-                            : undefined,
-                        max:
-                          typeof max === 'number'
-                            ? { value: max, message: t('validation.fieldMax', { max }) }
-                            : undefined,
-                        minLength:
-                          typeof minLength === 'number'
-                            ? { value: minLength, message: t('validation.fieldMinLength', { minLength }) }
-                            : undefined,
-                        maxLength:
-                          typeof maxLength === 'number'
-                            ? { value: maxLength, message: t('validation.fieldMaxLength', { maxLength }) }
-                            : undefined,
-                      }}
-                      render={({ field, fieldState }) => {
-                        return (
-                          <ParameterField
-                            label={parameter.label || parameter.key}
-                            fullWidth
-                            parameter={parameterFromYjs(parameter)}
-                            maxRows={!parameter?.type || parameter?.type === 'string' ? 5 : undefined}
-                            value={field.value || ''}
-                            onChange={(value) => field.onChange({ target: { value } })}
-                            error={Boolean(fieldState.error)}
-                            helperText={fieldState.error?.message || parameter?.helper}
-                          />
-                        );
+                  {parameters.length > 1 && (
+                    <Box
+                      component={Icon}
+                      icon={ChevronDownIcon}
+                      sx={{
+                        fontSize: 20,
+                        transform: `rotateZ(${expanded ? '0' : '-180deg'})`,
+                        transition: (theme) => theme.transitions.create('all'),
+                        color: (theme) => theme.palette.text.disabled,
                       }}
                     />
-                  </Box>
-                );
-              })}
-            </Stack>
-          </AccordionDetails>
-        </CustomAccordion>
-      )}
+                  )}
+                </Box>
+              </AccordionSummary>
 
-      <Stack gap={1} direction="row">
-        <Button variant="outlined" onClick={addToTest} sx={{ borderColor: '#E5E7EB', color: '#030712' }}>
-          {t('addToTest')}
-        </Button>
+              <AccordionDetails sx={{ p: 0, maxHeight: '50vh', overflow: !isExpanded ? 'hidden' : 'auto' }}>
+                <Stack gap={1}>
+                  {parameters.map(({ data: parameter }) => {
+                    const { required, min, max, minLength, maxLength } = (parameter as any) ?? {};
 
-        <Box flex={1} />
+                    return (
+                      <Box key={parameter.id} data-testid="debug-mode-parameter">
+                        <Controller
+                          control={form.control}
+                          name={parameter.key}
+                          rules={{
+                            required:
+                              required || parameter.key === 'question' ? t('validation.fieldRequired') : undefined,
+                            min:
+                              typeof min === 'number'
+                                ? { value: min, message: t('validation.fieldMin', { min }) }
+                                : undefined,
+                            max:
+                              typeof max === 'number'
+                                ? { value: max, message: t('validation.fieldMax', { max }) }
+                                : undefined,
+                            minLength:
+                              typeof minLength === 'number'
+                                ? { value: minLength, message: t('validation.fieldMinLength', { minLength }) }
+                                : undefined,
+                            maxLength:
+                              typeof maxLength === 'number'
+                                ? { value: maxLength, message: t('validation.fieldMaxLength', { maxLength }) }
+                                : undefined,
+                          }}
+                          render={({ field, fieldState }) => {
+                            return (
+                              <ParameterField
+                                label={parameter.label || parameter.key}
+                                fullWidth
+                                parameter={parameterFromYjs(parameter)}
+                                maxRows={!parameter?.type || parameter?.type === 'string' ? 5 : undefined}
+                                value={field.value ?? ''}
+                                onChange={(value) => field.onChange({ target: { value } })}
+                                error={Boolean(fieldState.error)}
+                                helperText={fieldState.error?.message || parameter?.helper}
+                              />
+                            );
+                          }}
+                        />
+                      </Box>
+                    );
+                  })}
+                </Stack>
+              </AccordionDetails>
+            </CustomAccordion>
+          )}
 
-        <LoadingButton
-          type="submit"
-          variant="contained"
-          sx={{
-            background: '#030712',
-            color: '#fff',
-            '&:hover': {
-              background: '#030712',
-            },
-          }}
-          disabled={!form.formState.isValid}
-          loading={lastMessage?.loading}
-          loadingPosition="end"
-          endIcon={<Icon icon={SendIcon} size={14} />}>
-          {t('execute')}
-        </LoadingButton>
-      </Stack>
-    </Stack>
+          <Stack gap={1} direction="row">
+            <Button variant="outlined" onClick={addToTest} sx={{ borderColor: '#E5E7EB', color: '#030712' }}>
+              {t('addToTest')}
+            </Button>
+
+            <Box flex={1} />
+
+            <LoadingButton
+              type="submit"
+              variant="contained"
+              sx={{
+                background: '#030712',
+                color: '#fff',
+                '&:hover': {
+                  background: '#030712',
+                },
+              }}
+              disabled={!form.formState.isValid}
+              loading={lastMessage?.loading}
+              loadingPosition="end"
+              endIcon={<Icon icon={SendIcon} size={14} />}>
+              {t('execute')}
+            </LoadingButton>
+          </Stack>
+        </Stack>
+      </CurrentAgentProvider>
+    </RuntimeProvider>
   );
 }
 

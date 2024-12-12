@@ -23,6 +23,11 @@ export function AgentErrorView({ error }: { error: any }) {
     return <SubscribeErrorAlert error={error} />;
   }
 
+  // 隐藏 session#message 的请求超限错误
+  if (error.type === 'RequestExceededError') {
+    return null;
+  }
+
   return <Alert severity="error">{String(error?.message)}</Alert>;
 }
 

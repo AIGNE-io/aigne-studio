@@ -1,7 +1,9 @@
 import { ensureComponentCallOrAdmin } from '@api/libs/security';
-import user from '@blocklet/sdk/lib/middlewares/user';
+import middlewares from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
+import isNil from 'lodash/isNil';
+import omitBy from 'lodash/omitBy';
 
 import Memory from '../store/models/memory';
 
@@ -9,15 +11,13 @@ const router = Router();
 
 const getMemoriesQuerySchema = Joi.object<{
   sessionId?: string;
-  agentId?: string;
-  projectId?: string;
-  scope?: string;
+  projectId: string;
+  scope: string;
   key: string;
 }>({
   sessionId: Joi.string().empty([null, '']),
-  agentId: Joi.string().empty([null, '']),
-  projectId: Joi.string().empty([null, '']),
-  scope: Joi.string().empty([null, '']),
+  projectId: Joi.string().required(),
+  scope: Joi.string().required(),
   key: Joi.string().required(),
 });
 
@@ -33,13 +33,11 @@ const createMemoryInputSchema = Joi.object<{
 
 const createMemoryQuerySchema = Joi.object<{
   sessionId?: string;
-  agentId?: string;
-  projectId?: string;
+  projectId: string;
   reset: boolean;
 }>({
   sessionId: Joi.string().empty([null, '']),
-  agentId: Joi.string().empty([null, '']),
-  projectId: Joi.string().empty([null, '']).required(),
+  projectId: Joi.string().required(),
   reset: Joi.boolean().default(false),
 });
 
@@ -53,99 +51,53 @@ const updateMemoryQuerySchema = Joi.object<{
 }>({
   id: Joi.string().allow('').empty([null, '']).optional(),
   key: Joi.string().allow('').empty([null, '']).optional(),
-  sessionId: Joi.string().empty([null, '']),
-  agentId: Joi.string().empty([null, '']),
-  projectId: Joi.string().empty([null, '']),
-  scope: Joi.string().empty([null, '']),
+  sessionId: Joi.string().allow('').empty([null, '']).optional(),
+  agentId: Joi.string().allow('').empty([null, '']).optional(),
+  projectId: Joi.string().allow('').empty([null, '']).optional(),
+  scope: Joi.string().allow('').empty([null, '']).optional(),
 });
 
-const getMemoryQuerySchema = Joi.object<{
-  offset?: number;
-  limit?: number;
-  key: string;
-  scope: string;
-  projectId?: string;
-  sessionId?: string;
-  agentId?: string;
-}>({
-  offset: Joi.number().integer().min(0).empty([null, '']).default(0).optional(),
-  limit: Joi.number().integer().min(1).empty([null, '']).default(5).optional(),
-  key: Joi.string().allow('').empty([null, '']).default(''),
-  scope: Joi.string().valid('global', 'session', 'user').default('global').required(),
-  sessionId: Joi.string().empty([null, '']),
-  agentId: Joi.string().empty([null, '']),
-  projectId: Joi.string().empty([null, '']),
-});
+router.get('/', middlewares.session({ componentCall: true }), ensureComponentCallOrAdmin(), async (req, res) => {
+  const userId = req.user?.method === 'componentCall' ? req.query.userId : req.user?.did;
+  if (!userId || typeof userId !== 'string') throw new Error('Can not get user info');
 
-router.get('/', user(), ensureComponentCallOrAdmin(), async (req, res) => {
-  const {
-    sessionId = '',
-    agentId = '',
-    projectId = '',
-    key = '',
-    scope = '',
-  } = await getMemoriesQuerySchema.validateAsync(req.query, { stripUnknown: true });
-
-  const { did: userId } = req.user!;
-  if (!userId) {
-    throw new Error('Can not get user info');
-  }
-
-  const params: { [key: string]: string } = {
-    ...(userId && { userId }),
-    ...(sessionId && { sessionId }),
-    ...(projectId && { projectId }),
-    ...(agentId && { agentId }),
-    ...(scope && { scope }),
-    ...(key && { key }),
-  };
-
-  const datastores = await Memory.findAll({ order: [['createdAt', 'ASC']], where: params });
-  res.json(datastores);
-});
-
-router.post('/', user(), ensureComponentCallOrAdmin(), async (req, res) => {
-  const { key, data, scope } = await createMemoryInputSchema.validateAsync(req.body, { stripUnknown: true });
-  const { sessionId, agentId, projectId, reset } = await createMemoryQuerySchema.validateAsync(req.query, {
+  const { sessionId, projectId, key, scope } = await getMemoriesQuerySchema.validateAsync(req.query, {
     stripUnknown: true,
   });
 
-  const { did: userId } = req.user!;
-  if (!userId) {
-    throw new Error('Can not get user info');
-  }
+  const datastores = await Memory.findAll({
+    order: [['createdAt', 'ASC']],
+    where: omitBy({ sessionId, projectId, scope, userId, key }, (v) => isNil(v)),
+  });
 
-  if (reset) await Memory.destroy({ where: { ...(scope && { scope }), ...(key && { key }) } });
+  res.json(datastores);
+});
 
-  const datastore = await Memory.create({ key, scope, data, userId, sessionId, agentId, projectId });
+router.post('/', middlewares.session({ componentCall: true }), ensureComponentCallOrAdmin(), async (req, res) => {
+  const userId = req.user?.method === 'componentCall' ? req.query.userId : req.user?.did;
+  if (!userId || typeof userId !== 'string') throw new Error('Can not get user info');
+
+  const { key, data, scope } = await createMemoryInputSchema.validateAsync(req.body, { stripUnknown: true });
+  const { sessionId, projectId, reset } = await createMemoryQuerySchema.validateAsync(req.query, {
+    stripUnknown: true,
+  });
+
+  if (reset) await Memory.destroy({ where: omitBy({ projectId, sessionId, scope, key }, (v) => isNil(v)) });
+
+  const datastore = await Memory.create({ key, scope, data, userId, sessionId, projectId });
+
   res.json(datastore);
 });
 
-router.put('/', user(), ensureComponentCallOrAdmin(), async (req, res) => {
-  const {
-    sessionId = '',
-    agentId = '',
-    projectId = '',
-    key = '',
-    id = '',
-    scope = '',
-  } = await updateMemoryQuerySchema.validateAsync(req.query, { stripUnknown: true });
+router.put('/', middlewares.session({ componentCall: true }), ensureComponentCallOrAdmin(), async (req, res) => {
+  const userId = req.user?.method === 'componentCall' ? req.query.userId : req.user?.did;
+  if (!userId || typeof userId !== 'string') throw new Error('Can not get user info');
 
-  const { did: userId } = req.user!;
-  if (!userId) {
-    throw new Error('Can not get user info');
-  }
+  const { sessionId, agentId, projectId, key, id, scope } = await updateMemoryQuerySchema.validateAsync(req.query, {
+    stripUnknown: true,
+  });
 
-  const params: { [key: string]: string } = {
-    ...(userId && { userId }),
-    ...(sessionId && { sessionId }),
-    ...(agentId && { agentId }),
-    ...(projectId && { projectId }),
-    ...(key && { key }),
-    ...(scope && { scope }),
-    ...(id && { id }),
-  };
-
+  const params = omitBy({ sessionId, agentId, projectId, id, scope, key }, (v) => isNil(v));
   const { data } = await Joi.object<{ data: any }>({ data: Joi.any() }).validateAsync(req.body, { stripUnknown: true });
 
   const dataItem = await Memory.findOne({ where: params });
@@ -158,88 +110,83 @@ router.put('/', user(), ensureComponentCallOrAdmin(), async (req, res) => {
   res.json(result);
 });
 
-router.delete('/', user(), ensureComponentCallOrAdmin(), async (req, res) => {
-  const {
-    sessionId = '',
-    agentId = '',
-    projectId = '',
-    scope = '',
-    key = '',
-    id = '',
-  } = await updateMemoryQuerySchema.validateAsync(req.query, { stripUnknown: true });
+router.delete('/', middlewares.session({ componentCall: true }), ensureComponentCallOrAdmin(), async (req, res) => {
+  const userId = req.user?.method === 'componentCall' ? req.query.userId : req.user?.did;
+  if (!userId || typeof userId !== 'string') throw new Error('Can not get user info');
 
-  const { did: userId } = req.user!;
-  if (!userId) {
-    throw new Error('Can not get user info');
-  }
+  const { sessionId, agentId, projectId, scope, key, id } = await updateMemoryQuerySchema.validateAsync(req.query, {
+    stripUnknown: true,
+  });
 
-  const params: { [key: string]: string } = {
-    ...(userId && { userId }),
-    ...(sessionId && { sessionId }),
-    ...(projectId && { projectId }),
-    ...(agentId && { agentId }),
-    ...(key && { key }),
-    ...(scope && { scope }),
-    ...(id && { id }),
-  };
+  const params = omitBy({ sessionId, agentId, projectId, id, scope, key }, (v) => isNil(v));
 
   try {
     await Memory.destroy({ where: params });
 
     res.json({ data: 'success' });
   } catch (error) {
-    console.error(error?.message);
     res.status(500).json({ error: error?.message });
   }
 });
 
-router.get('/variable-by-query', user(), ensureComponentCallOrAdmin(), async (req, res) => {
-  const query = await getMemoryQuerySchema.validateAsync(req.query, { stripUnknown: true });
-  const { key, projectId, scope, sessionId } = query;
-
-  const { did: userId } = req.user!;
-  if (!userId) {
-    throw new Error('Can not get user info');
-  }
-
-  const params: { [key: string]: any } = {
-    ...(userId && { userId }),
-    ...(projectId && { projectId }),
-    ...(key && { key }),
-  };
-
-  if (scope === 'session') {
-    const datastores = await Memory.findAll({
-      order: [['createdAt', 'ASC']],
-      where: { ...params, scope, sessionId },
-    });
-    if (datastores.length) {
-      return res.json({ datastores });
-    }
-  }
-
-  if (scope === 'session' || scope === 'user') {
-    const datastores = await Memory.findAll({
-      order: [['createdAt', 'ASC']],
-      where: { ...params, scope: 'user' },
-    });
-    if (datastores.length) {
-      return res.json({ datastores });
-    }
-  }
-
-  if (scope === 'session' || scope === 'user' || scope === 'global') {
-    const datastores = await Memory.findAll({
-      order: [['createdAt', 'ASC']],
-      where: { ...params, scope: 'global' },
-    });
-    if (datastores.length) {
-      return res.json({ datastores });
-    }
-  }
-
-  return res.json({ datastores: [] });
+const getMemoryQuerySchema = Joi.object<{
+  key: string;
+  scope: string;
+  projectId?: string;
+  sessionId?: string;
+}>({
+  key: Joi.string().allow('').empty([null, '']).default(''),
+  scope: Joi.string().valid('global', 'session', 'user').default('global').required(),
+  sessionId: Joi.string().allow('').empty([null, '']).optional(),
+  projectId: Joi.string().allow('').empty([null, '']).optional(),
 });
+
+router.get(
+  '/variable-by-query',
+  middlewares.session({ componentCall: true }),
+  ensureComponentCallOrAdmin(),
+  async (req, res) => {
+    const query = await getMemoryQuerySchema.validateAsync(req.query, { stripUnknown: true });
+    const { key, projectId, scope, sessionId } = query;
+
+    const userId = req.user?.method === 'componentCall' ? req.query.userId : req.user?.did;
+    if (!userId || typeof userId !== 'string') throw new Error('Can not get user info');
+
+    const params: { [key: string]: any } = omitBy({ userId, projectId, key }, (v) => isNil(v));
+
+    if (scope === 'session') {
+      const datastores = await Memory.findAll({
+        order: [['createdAt', 'ASC']],
+        where: { ...params, scope, sessionId },
+      });
+      if (datastores.length) {
+        return res.json({ datastores });
+      }
+    }
+
+    if (scope === 'session' || scope === 'user') {
+      const datastores = await Memory.findAll({
+        order: [['createdAt', 'ASC']],
+        where: { ...params, scope: 'user' },
+      });
+      if (datastores.length) {
+        return res.json({ datastores });
+      }
+    }
+
+    if (scope === 'session' || scope === 'user' || scope === 'global') {
+      const datastores = await Memory.findAll({
+        order: [['createdAt', 'ASC']],
+        where: { ...params, scope: 'global' },
+      });
+      if (datastores.length) {
+        return res.json({ datastores });
+      }
+    }
+
+    return res.json({ datastores: [] });
+  }
+);
 
 const getMemoryByKeyQuerySchema = Joi.object<{ projectId: string; key: string }>({
   projectId: Joi.string().required(),
@@ -247,8 +194,7 @@ const getMemoryByKeyQuerySchema = Joi.object<{ projectId: string; key: string }>
 });
 
 router.get('/by-key', async (req, res) => {
-  const query = await getMemoryByKeyQuerySchema.validateAsync(req.query, { stripUnknown: true });
-  const { projectId, key } = query;
+  const { projectId, key } = await getMemoryByKeyQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
   const memories = await Memory.findAll({
     order: [['createdAt', 'ASC']],

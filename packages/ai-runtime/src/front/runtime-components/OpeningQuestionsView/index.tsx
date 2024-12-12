@@ -34,7 +34,7 @@ export default function OpeningQuestionsView() {
                   setSubmitting(true);
                   await runAgent({
                     aid,
-                    parameters: { ...item.parameters, question: item.parameters.question || item.title },
+                    inputs: { ...item.parameters, question: item.parameters.question || item.title },
                   });
                 } finally {
                   setSubmitting(false);

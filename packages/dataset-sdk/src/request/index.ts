@@ -1,8 +1,5 @@
-import { getComponentWebEndpoint } from '@blocklet/sdk/lib/component';
-import envConfig from '@blocklet/sdk/lib/config';
-import { sign } from '@blocklet/sdk/lib/util/verify-sign';
-import axios from 'axios';
-import Cookie from 'js-cookie';
+import { call } from '@blocklet/sdk/lib/component';
+import { Method } from 'axios';
 
 import { DatasetObject } from '../types';
 import { getRequestConfig } from './util';
@@ -20,18 +17,17 @@ export const callBlockletApi = (
     params: options?.params || {},
     data: options?.data || {},
   });
-  const { headers, body, ...config } = requestConfig;
+  const { headers, method, url, params, ...config } = requestConfig;
   const did = options?.user?.did || '';
 
-  return axios({
+  if (!pathItem.name) throw new Error('Blocklet name is required to call blocklet api');
+
+  return call({
     ...config,
-    baseURL: pathItem.name ? getComponentWebEndpoint(pathItem.name) : envConfig.env.appUrl,
-    headers: {
-      ...(headers || {}),
-      'x-component-sig': sign(body || {}),
-      'x-component-did': pathItem.did || process.env.BLOCKLET_COMPONENT_DID,
-      'x-user-did': did,
-      'x-csrf-token': Cookie.get('x-csrf-token'),
-    },
+    method: method as Method,
+    name: pathItem.name,
+    path: url,
+    headers,
+    params: { ...params, userId: did },
   });
 };

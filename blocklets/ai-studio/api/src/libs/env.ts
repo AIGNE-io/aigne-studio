@@ -1,23 +1,15 @@
 import path from 'path';
 
+import { broadcast } from '@api/libs/ws';
 import { getServiceModePermissionMap } from '@blocklet/ai-runtime/common';
 import { ServiceMode } from '@blocklet/ai-runtime/types';
 import config from '@blocklet/sdk/lib/config';
-import Joi from 'joi';
 
 export const isDevelopment = config.env.mode === 'development';
 
 export const Config = {
   get appDir() {
     return process.env.BLOCKLET_APP_DIR!;
-  },
-
-  _verbose: undefined as boolean | undefined,
-  get verbose() {
-    if (this._verbose === undefined) {
-      this._verbose = Joi.boolean().validate(process.env.VERBOSE).value ?? false;
-    }
-    return this._verbose;
   },
 
   get dataDir() {
@@ -48,3 +40,11 @@ config.events.on(config.Events.envUpdate, () => {
     }
   }
 });
+
+const reload = () => {
+  setTimeout(() => broadcast('resourceEvent', 'component.update', { type: 'resource' }), 5000);
+};
+
+config.events.on(config.Events.componentAdded, reload);
+config.events.on(config.Events.componentRemoved, reload);
+config.events.on(config.Events.componentUpdated, reload);

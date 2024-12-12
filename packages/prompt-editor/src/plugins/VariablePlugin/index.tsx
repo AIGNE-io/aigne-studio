@@ -83,6 +83,23 @@ export default function VarContextPlugin({
         const node = $getNodeByKey(key);
         if (!node || !(node instanceof VariableTextNode)) continue;
 
+        const prevNode = node.getPreviousSibling();
+        const nextNode = node.getNextSibling();
+
+        if (prevNode && prevNode instanceof TextNode) {
+          const prevText = prevNode.getTextContent();
+          if (prevText.trim().endsWith('{')) {
+            editor.update(() => prevNode.setTextContent(prevText.replace(/\s*\{+\s*$/, '')));
+          }
+        }
+
+        if (nextNode && nextNode instanceof TextNode) {
+          const nextText = nextNode.getTextContent();
+          if (nextText.trim().startsWith('}')) {
+            editor.update(() => nextNode.setTextContent(nextText.replace(/^\s*\}+\s*/, '')));
+          }
+        }
+
         onChangeVariableNode?.({ editor, element, node, action });
       }
     });

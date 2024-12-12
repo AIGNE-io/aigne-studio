@@ -4,7 +4,7 @@ import Secret from '@api/store/models/secret';
 import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import config from '@blocklet/sdk/lib/config';
-import { auth, user } from '@blocklet/sdk/lib/middlewares';
+import middlewares from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
 
@@ -34,7 +34,7 @@ const createOrUpdateSecretsInputSchema = Joi.object<CreateOrUpdateSecretsInput>(
     .min(1),
 });
 
-router.post('/', user(), auth(), async (req, res) => {
+router.post('/', middlewares.session(), middlewares.auth(), async (req, res) => {
   const { did: userId } = req.user!;
 
   const input = await createOrUpdateSecretsInputSchema.validateAsync(req.body, { stripUnknown: true });
@@ -92,7 +92,7 @@ const getHasValueQuerySchema = Joi.object<GetHasValueQuery>({
   targetBlockletDid: Joi.string().empty([null, '']),
 });
 
-router.get('/has-value', user(), auth(), async (req, res) => {
+router.get('/has-value', middlewares.session(), middlewares.auth(), async (req, res) => {
   const query = await getHasValueQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
   await ensureAgentAdmin(req, async () => {
@@ -157,6 +157,10 @@ router.get('/by-aid', async (req, res) => {
 
   const secrets = await getAgentSecretInputs(agent);
   res.json({ secrets });
+});
+
+router.get('/has-crawl-secret', async (_req, res) => {
+  res.json({ jina: Boolean(config.env.JINA_API_KEY), firecrawl: Boolean(config.env.FIRECRAWL_API_KEY) });
 });
 
 export default router;

@@ -30,7 +30,7 @@ export const getUsers = async (dids: string[]) => {
   if (!dids?.length) {
     return {};
   }
-
+  dids = [...new Set(dids)];
   const mapped = dids.map((did) => [did, cache.get(did)] as const);
   const misses = mapped.filter((item) => !item[1]).map((item) => item[0]);
 
@@ -46,6 +46,10 @@ export const getUsers = async (dids: string[]) => {
   return map;
 };
 
+export const getUser = async (did: string) => {
+  return (await getUsers([did]))[did];
+};
+
 export const userAuth = () => {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user?.did) {
@@ -56,7 +60,7 @@ export const userAuth = () => {
       return;
     }
 
-    req.user.isAdmin = ['owner', 'admin'].includes(req.user?.role);
+    req.user.isAdmin = ['owner', 'admin'].includes(req.user?.role!);
     next();
   };
 };

@@ -40,7 +40,6 @@ export default function PopperMenuButton({
                     !isValidElement(menu)
                       ? menu
                       : React.cloneElement(menu, {
-                          // Close popper after the menu item click handler has been resolved
                           onClick: async (...args: any[]) => {
                             await menu.props.onClick?.(...args);
                             state.close();

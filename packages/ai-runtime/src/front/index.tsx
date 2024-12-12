@@ -13,6 +13,8 @@ export * from './contexts/Api';
 export * from './contexts/CurrentAgent';
 export * from './contexts/CurrentMessage';
 export * from './contexts/ActiveAgent';
+export * from './contexts/Session';
+export * from './contexts/Sessions';
 
 export * from './hooks/use-appearances';
 

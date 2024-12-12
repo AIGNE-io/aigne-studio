@@ -25,23 +25,3 @@ export default function ImagesView() {
     </OutputFieldContainer>
   );
 }
-
-ImagesView.outputValueSchema = {
-  type: 'object',
-  properties: {
-    outputValue: {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: {
-          url: {
-            type: 'string',
-            faker: 'image.url',
-          },
-        },
-        required: ['url'],
-      },
-    },
-  },
-  required: ['outputValue'],
-};

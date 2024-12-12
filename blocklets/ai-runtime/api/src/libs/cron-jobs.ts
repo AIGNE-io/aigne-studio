@@ -45,8 +45,7 @@ class AIGNECronManager extends CronJobManager {
           const { outputs, error } = await runAgent({
             // TODO: currently use application did as user did, should be replaced with real user did
             user: { did: blockletDid },
-            blockletDid,
-            aid: stringifyIdentity({ projectId: job.projectId, agentId: job.agentId }),
+            aid: stringifyIdentity({ blockletDid, projectId: job.projectId, agentId: job.agentId }),
             sessionId: randomId(),
             inputs: job.inputs,
           })

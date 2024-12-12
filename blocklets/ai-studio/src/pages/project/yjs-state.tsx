@@ -26,7 +26,6 @@ import {
   useSyncedStore,
   writeVarUint,
 } from '@blocklet/co-git/yjs';
-import Cookies from 'js-cookie';
 import cloneDeep from 'lodash/cloneDeep';
 import isEmpty from 'lodash/isEmpty';
 import pick from 'lodash/pick';
@@ -94,10 +93,7 @@ const projectStore = (projectId: string, gitRef: string) => {
 
       const doc = new Doc();
 
-      const provider = new WebsocketProvider(url, gitRef, doc, {
-        connect: false,
-        params: { token: Cookies.get('login_token')! },
-      });
+      const provider = new WebsocketProvider(url, gitRef, doc, { connect: false });
 
       const store = syncedStore<State>({ files: {}, tree: {} }, doc);
 

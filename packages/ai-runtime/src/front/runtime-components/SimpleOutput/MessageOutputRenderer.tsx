@@ -91,7 +91,7 @@ const MessageOutputValueRenderer = memo(
     const deferredOutputValue = useDeferredValue(outputValue);
 
     // NOTE: get the output value schema of the custom component
-    const schema = (useComponent({ instanceId: componentId, componentId })?.Component as any)?.outputValueSchema;
+    const schema = (useComponent({ instanceId: componentId, componentId })?.Component as any)?.aigneOutputValueSchema;
 
     const validate = useAjvInstance(schema);
 

@@ -93,17 +93,19 @@ export function CronSettings({ agent }: { agent: AssistantYjs }) {
   }, []);
 
   const newJob = useCallback(() => {
-    doc.transact(() => {
-      cronConfig.jobs ??= [];
-      cronConfig.jobs.push({
-        id: randomId(),
-        name: '',
-        cronExpression: '0 * * * *',
-        enable: false,
-        agentId: agent.id,
-        inputs: {},
+    if (quotaChecker.checkCronJobs()) {
+      doc.transact(() => {
+        cronConfig.jobs ??= [];
+        cronConfig.jobs.push({
+          id: randomId(),
+          name: '',
+          cronExpression: '0 * * * *',
+          enable: false,
+          agentId: agent.id,
+          inputs: {},
+        });
       });
-    });
+    }
   }, [agent.id]);
 
   if (!jobs?.length) {

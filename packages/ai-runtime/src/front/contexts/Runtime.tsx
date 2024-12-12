@@ -15,19 +15,22 @@ export const RuntimeProvider = ({
   children,
   aid,
   working,
+  debug,
   ApiProps,
 }: {
   children?: ReactNode;
   aid: string;
   working?: boolean;
+  debug?: boolean;
   ApiProps?: Partial<AIGNEApiContextValue>;
 }) => {
   const projectId = useMemo(() => parseIdentity(aid, { rejectWhenError: true }).projectId, [aid]);
 
   return (
-    <EntryAgentProvider aid={aid}>
+    <EntryAgentProvider aid={aid} working={working}>
       <AIGNEApiProvider
         working={({ aid }) => (parseIdentity(aid, { rejectWhenError: true }).projectId === projectId ? working : false)}
+        debug={debug}
         {...ApiProps}>
         <ThemeProvider>
           <RuntimeLocaleProvider>

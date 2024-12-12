@@ -15,11 +15,10 @@ repository:
   type: git
   url: git+https://github.com/blocklet/ai-studio.git
 specVersion: 1.2.8
-version: 0.4.87
-logo: logo.png
+version: 0.4.165
+logo: screenshots/0453ca48c18784b78a0354c9369ad377.png
 files:
   - dist
-  - logo.png
   - screenshots
   - api/hooks/pre-flight.js
   - api/dist/store/migrate.js
@@ -40,6 +39,7 @@ payment:
   share: []
 timeout:
   start: 60
+  script: 1800
 requirements:
   server: '>=1.6.29'
   os: '*'
@@ -47,13 +47,26 @@ requirements:
 scripts:
   preFlight: node api/hooks/pre-flight.js
   dev: npm run start
-environments: []
+environments:
+  - name: JINA_API_KEY
+    description: Jina API Key
+    required: false
+    default: ''
+    secure: true
+    shared: true
+  - name: FIRECRAWL_API_KEY
+    description: Firecrawl API Key
+    required: false
+    default: ''
+    secure: true
+    shared: true
 capabilities:
   navigation: false
 screenshots:
-  - runtime-blocklets.png
-  - runtime-agents.png
-  - runtime-mockplexity.png
+  - 93d6cc34f79912450a13ce917674df18.png
+  - ea48137b8e07703949fbce567444a0c1.png
+  - bf6c9bd80cd1e5afa46cdef3603d0ad4.png
+  - 7db93af939514eecef2a02046c915793.png
 components:
   - name: ai-kit
     required: true
@@ -77,3 +90,4 @@ components:
     source:
       name: z2qa6fvjmjew4pWJyTsKaWFuNoMUMyXDh5A1D
       version: latest
+egress: true

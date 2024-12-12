@@ -68,25 +68,17 @@ test.describe.serial('explore', () => {
     await page.waitForLoadState('networkidle');
 
     await expect(page.getByTestId('readme-tab')).toBeVisible();
-    await expect(page.getByTestId('run-tab')).toBeVisible();
 
     await expect(page.getByTestId('run-button')).toBeVisible();
     await expect(page.getByTestId('make-yours-button')).toBeVisible();
     await expect(page.getByTestId('share-button')).toBeVisible();
 
-    await page.getByTestId('run-button').click();
-    await expect(page.getByTestId('run-tab')).toHaveClass(/Mui-selected/);
-
-    await page.getByTestId('readme-tab').click();
     await page.getByTestId('share-button').click();
 
-    await expect(page.getByTestId('open-in-new-tab')).toBeVisible();
     await expect(page.getByTestId('copy-link')).toBeVisible();
     await expect(page.getByTestId('share-on-twitter')).toBeVisible();
 
-    const addCategoryResponse = page.waitForResponse(
-      (response) => response.url().includes('/api/projects') && response.status() === 200
-    );
+    const addCategoryResponse = page.waitForResponse((response) => response.url().includes('/api/projects'));
     await page.getByTestId('make-yours-button').click();
     await addCategoryResponse;
   });

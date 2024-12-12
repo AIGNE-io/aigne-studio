@@ -3,11 +3,11 @@ import { Icon } from '@iconify-icon/react';
 import ArrowUpIcon from '@iconify-icons/tabler/circle-arrow-up';
 import DiamondIcon from '@iconify-icons/tabler/diamond';
 import InfoCircleIcon from '@iconify-icons/tabler/info-circle';
+import ReceiptIcon from '@iconify-icons/tabler/receipt';
 import { Close } from '@mui/icons-material';
 import {
   Alert,
   Box,
-  Button,
   Dialog,
   DialogContent,
   DialogTitle,
@@ -16,22 +16,49 @@ import {
   Theme,
   ToggleButton,
   ToggleButtonGroup,
+  Tooltip,
   useMediaQuery,
 } from '@mui/material';
 import { useState } from 'react';
+import { joinURL } from 'ufo';
 
+import { PAYMENT_KIT_MOUNT_POINT } from '../../libs/constants';
 import { PricingTable } from './pricing-table';
-import { useMultiTenantRestriction, usePlans } from './state';
+import { premiumPlanEnabled, useIsPremiumUser, useMultiTenantRestriction, usePlans } from './state';
+
+const billingLink = joinURL(PAYMENT_KIT_MOUNT_POINT, '/customer');
 
 export function PlanUpgrade() {
   const { hidePlanUpgrade, planUpgradeVisible, type } = useMultiTenantRestriction();
-  const { t } = useLocaleContext();
+  const { t, locale } = useLocaleContext();
   const downSm = useMediaQuery<Theme>((theme) => theme.breakpoints.down('sm'));
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+  const isPremiumUser = useIsPremiumUser();
   const plans = usePlans();
 
-  if (!plans) {
+  if (!plans || !premiumPlanEnabled) {
     return null;
+  }
+
+  if (isPremiumUser) {
+    plans[1]!.billingLink = (
+      <Box
+        component={Link}
+        href={billingLink}
+        target="_blank"
+        sx={{
+          alignSelf: 'flex-start',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0.5,
+          fontSize: 13,
+          color: 'text.secondary',
+          textDecoration: 'underline',
+        }}>
+        <Box component={Icon} icon={ReceiptIcon} sx={{ fontSize: 16 }} />
+        View my billing information
+      </Box>
+    );
   }
 
   return (
@@ -89,7 +116,11 @@ export function PlanUpgrade() {
               size="small"
               value={billingCycle}
               exclusive
-              onChange={(_, v) => setBillingCycle(v)}
+              onChange={(_, v) => {
+                if (v) {
+                  setBillingCycle(v);
+                }
+              }}
               sx={{
                 '.MuiToggleButtonGroup-grouped': {
                   width: 80,
@@ -113,7 +144,7 @@ export function PlanUpgrade() {
 
           <Box
             component={Link}
-            href="https://www.arcblock.io/blog/tags/aigne"
+            href={`https://www.arcblock.io/blog/tags/${locale}/aigne`}
             target="_blank"
             sx={{
               alignSelf: 'flex-start',
@@ -135,9 +166,13 @@ export function PlanUpgrade() {
 
 export function PlanUpgradeButton() {
   const { showPlanUpgrade } = useMultiTenantRestriction();
+  const { t } = useLocaleContext();
+  if (!premiumPlanEnabled) return null;
   return (
-    <Button color="primary" startIcon={<Icon icon={DiamondIcon} />} onClick={() => showPlanUpgrade()}>
-      Upgrade Plan
-    </Button>
+    <Tooltip title={t('pricingAndPlans.buttonTooltip')}>
+      <IconButton onClick={() => showPlanUpgrade()}>
+        <Box component={Icon} icon={DiamondIcon} sx={{ fontSize: 24 }} />
+      </IconButton>
+    </Tooltip>
   );
 }

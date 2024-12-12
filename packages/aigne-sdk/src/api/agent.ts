@@ -73,6 +73,7 @@ export interface RunAgentInput {
   aid: string;
   sessionId?: string;
   inputs?: { [key: string]: any };
+  appUrl?: string;
 }
 
 export async function runAgent({

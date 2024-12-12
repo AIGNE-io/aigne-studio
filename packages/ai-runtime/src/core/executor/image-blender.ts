@@ -7,22 +7,19 @@ import { joinURL, withQuery } from 'ufo';
 
 import { NFT_BLENDER_COMPONENT_DID } from '../../constants';
 import { ImageBlenderAssistant } from '../../types';
-import { renderMessage } from '../utils/render-message';
 import { AgentExecutorBase } from './base';
 
 export class ImageBlenderAgentExecutor extends AgentExecutorBase<ImageBlenderAssistant> {
-  override async process({ inputs }: { inputs: { [key: string]: any } }) {
+  override async process() {
     const { agent } = this;
 
     if (!agent.templateId) throw new Error(`Missing templateId in image blender agent ${agent.id}`);
-
-    const vars = { ...this.globalContext, ...inputs };
 
     const dynamicData = Object.fromEntries(
       await Promise.all(
         Object.entries(agent.dynamicData ?? {}).map(async ([key, val]) => [
           key,
-          isNil(val) || typeof val === 'string' ? await renderMessage(val.trim() || `{{${key}}}`, vars) : val,
+          isNil(val) || typeof val === 'string' ? await this.renderMessage(val.trim() || `{{${key}}}`) : val,
         ])
       )
     );

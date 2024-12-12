@@ -4,7 +4,7 @@ import { Config } from '@api/libs/env';
 import Project from '@api/store/models/project';
 import { OLD_PROJECT_FILE_PATH, PROJECT_FILE_PATH, ProjectRepo, defaultBranch } from '@api/store/repository';
 import { projectSettingsSchema } from '@blocklet/ai-runtime/types';
-import { ListObjectCommand, SpaceClient, SyncFolderPullCommand } from '@did-space/client';
+import { ListObjectCommand, SpaceClient, SyncFolderPullCommand } from '@blocklet/did-space-js';
 import { Request, Response } from 'express';
 import Joi from 'joi';
 import yaml from 'yaml';

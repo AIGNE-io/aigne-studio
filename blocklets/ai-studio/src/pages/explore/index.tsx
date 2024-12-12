@@ -8,6 +8,7 @@ import { Route, Routes } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
 import Loading from '../../components/loading';
+import { PlanUpgradeButton } from '../../components/multi-tenant-restriction';
 import ExploreCategoryLayout from './layout';
 
 export default function ExploreCategoryRoutes() {
@@ -23,7 +24,7 @@ export default function ExploreCategoryRoutes() {
       <StyledDashboard
         HeaderProps={{
           logo: <AigneLogo />,
-          addons: (exists) => [<SubscribeButton />, ...exists],
+          addons: (exists) => [<SubscribeButton />, <PlanUpgradeButton />, ...exists],
           homeLink: joinURL(blocklet?.prefix || '', 'explore'),
         }}
         MenusDrawerProps={{ sx: { [`.${backdropClasses.root}`]: { top: 64 } } }}
@@ -54,6 +55,7 @@ export default function ExploreCategoryRoutes() {
               <Route element={<ExploreCategoryLayout />}>
                 <Route path=":categorySlug?" element={<ExploreCategoryList />} />
                 <Route path=":categorySlug/:deploymentId" element={<ExploreCategoryDetail />} />
+                <Route path="apps/:deploymentId" element={<ExploreCategoryDetail />} />
               </Route>
             </Routes>
           </Suspense>

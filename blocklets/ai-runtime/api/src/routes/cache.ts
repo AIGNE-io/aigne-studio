@@ -1,14 +1,14 @@
 import { getAgent } from '@api/libs/agent';
 import ExecutionCache from '@api/store/models/execution-cache';
 import { parseIdentity } from '@blocklet/ai-runtime/common/aid';
-import user from '@blocklet/sdk/lib/middlewares/user';
+import middlewares from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 
 import checkUserAuth from '../libs/user-auth';
 
 const router = Router();
 
-router.delete('/agents/:aid/cache', user(), async (req, res) => {
+router.delete('/agents/:aid/cache', middlewares.session(), async (req, res) => {
   const { aid } = req.params;
   if (!aid) throw new Error('Missing required param `aid`');
 
