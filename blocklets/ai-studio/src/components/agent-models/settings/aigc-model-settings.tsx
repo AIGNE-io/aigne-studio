@@ -43,11 +43,11 @@ function AgentParametersForm({
         <Stack gap={1}>
           {agent.parameters?.map((data) => {
             if (data.hidden) return null;
-
+            if (data.key === 'prompt') return null;
             if (
               !data?.key ||
               data.type === 'source' ||
-              ['llmInputMessages', 'llmInputTools', 'llmInputToolChoice', 'llmInputResponseFormat'].includes(data.type!) // TODO: 判断条件调整, llm* => aigc* ?
+              ['llmInputMessages', 'llmInputTools', 'llmInputToolChoice', 'llmInputResponseFormat'].includes(data.type!)
             )
               return null;
 

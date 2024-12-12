@@ -214,7 +214,7 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
     if (adapterAgent) {
       const result = await executor.context
         .executor(adapterAgent, {
-          inputs: { ...input, model: (adapterAgent as ImageAssistant).model, ...agent.modelSettings },
+          inputs: { ...input, ...agent.modelSettings, model: (adapterAgent as ImageAssistant).model },
           taskId: nextTaskId(),
           parentTaskId: taskId,
         })
