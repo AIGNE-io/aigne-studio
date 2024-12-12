@@ -21,7 +21,6 @@ export default class NormalRetriever extends BaseRetriever {
 
       const searchResults = await vectorStore.similaritySearch(query, this.getTopK().k);
 
-      // 3. 融合并重排序结果
       const results = searchResults.map((doc) => ({ ...doc, _rankingScore: 0 }));
       const uniqueDocuments = this.uniqueDocuments(results);
       logger.debug('uniqueDocuments', { uniqueDocuments: uniqueDocuments.length });
