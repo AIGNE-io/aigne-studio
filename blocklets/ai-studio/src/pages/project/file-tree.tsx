@@ -3,6 +3,7 @@ import { useCurrentProject } from '@app/contexts/project';
 import AigneLogo from '@app/icons/aigne-logo';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
+import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { AssistantYjs, fileToYjs, isAssistant, nextAssistantId } from '@blocklet/ai-runtime/types';
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { css } from '@emotion/css';
@@ -712,7 +713,13 @@ function TreeItemMenus({
           data-testid="copy-file-id"
           key="copyId"
           onClick={() => {
-            navigator.clipboard.writeText(joinURL(projectId, gitRef, item.meta.id));
+            navigator.clipboard.writeText(
+              stringifyIdentity({
+                projectId,
+                projectRef: gitRef,
+                agentId: item.meta.id,
+              })
+            );
           }}>
           <ListItemIcon>
             <Box component={Icon} icon={DiffIcon} />
