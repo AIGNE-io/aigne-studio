@@ -143,14 +143,14 @@ export async function getAgentSecretInputs(agent: GetAgentResult) {
   }));
 }
 
-async function isBuiltInModel(model: string) {
+async function isBuiltinModel(model: string) {
   const models = [...(await getSupportedImagesModels()), ...(await getSupportedModels())];
   return models.find((x) => x.model === model);
 }
 
 export async function getAdapter(agent: GetAgentResult) {
   if (agent.type === 'prompt' || agent.type === 'image') {
-    if (await isBuiltInModel(agent.model!)) {
+    if (await isBuiltinModel(agent.model!)) {
       return null;
     }
     const projects = await resourceManager.getProjects({
