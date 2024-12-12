@@ -43,7 +43,7 @@ function AgentParametersForm({
         <Stack gap={1}>
           {agent.parameters?.map((data) => {
             if (data.hidden) return null;
-            if (data.key === 'prompt') return null;
+            if (data.key === 'prompt' || data.key === 'model') return null;
             if (
               !data?.key ||
               data.type === 'source' ||
