@@ -1,3 +1,7 @@
+## 0.4.165 (2024-12-12)
+
+- fix: migrate data for vector db is empty
+
 ## 0.4.164 (2024-12-12)
 
 - chore: support copy aid
