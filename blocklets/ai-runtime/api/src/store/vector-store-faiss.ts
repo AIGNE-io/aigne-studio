@@ -39,7 +39,6 @@ export default class VectorStore extends FaissStore {
     logger.debug('VectorStore Path', { storePath });
 
     let store = vectorStores.get(storePath);
-
     if (!store) {
       store = (async () => {
         let faiss: FaissStore;

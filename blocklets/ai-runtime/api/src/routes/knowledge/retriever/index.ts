@@ -1,3 +1,4 @@
+import logger from '@api/libs/logger';
 import config from '@blocklet/sdk/lib/config';
 import { Document } from '@langchain/core/documents';
 
@@ -19,6 +20,11 @@ export default class Retriever {
       normal: NormalRetriever,
       meilisearch: MeiliSearchRetriever,
     };
+
+    logger.info('retriever search', {
+      knowledgeId: this.knowledgeId,
+      vectorPathOrKnowledgeId: this.vectorPathOrKnowledgeId,
+    });
 
     const Retriever = retrieverMAP[config.env.preferences.retriever];
     if (Retriever) {

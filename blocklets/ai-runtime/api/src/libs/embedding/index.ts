@@ -68,9 +68,10 @@ const init = async () => {
     const paths = await getVectorPaths(resources, knowledges);
 
     for (const path of paths) {
+      logger.info('path', path.vectorPathOrKnowledgeId);
       const list = await getDocsList(path.vectorPathOrKnowledgeId, embeddings);
       const client = new SearchClient(path.knowledgeId);
-      if (client.canUse) await client.updateConfig();
+      if (client.canUse) client.updateConfig();
 
       const documents = client.formatDocuments(list);
       const total = uniqBy(documents, 'id').length;
@@ -115,6 +116,8 @@ export const getEmbeddingsStatus = async () => {
         knowledgeId: path.knowledgeId,
         isNeedEmbedding: total > searchTotal,
         queuedTasks: await client.getTasks(),
+        vectorPathOrKnowledgeId: path.vectorPathOrKnowledgeId,
+        error: await client.updateConfig().catch((err) => err),
       };
     })
   );
