@@ -23,11 +23,7 @@ export async function uploadImageToImageBin({
     name: 'image-bin',
     path: '/api/sdk/uploads',
     headers: { 'x-user-did': userId || wallet.address },
-    data: {
-      type: 'base64',
-      data: base64,
-      filename,
-    },
+    data: { type: 'base64', data: base64, filename },
   });
 
   return { url: joinURL(config.env.appUrl, getComponentMountPoint('image-bin'), 'uploads', result.filename) };
