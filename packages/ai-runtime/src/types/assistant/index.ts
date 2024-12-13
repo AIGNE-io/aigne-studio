@@ -169,7 +169,6 @@ export interface AssistantBase {
   access?: {
     noLoginRequired?: boolean;
   };
-  modelSettings?: { [key: string]: any };
 }
 
 export interface VariableTypeBase {
@@ -285,11 +284,7 @@ export interface ImageAssistant extends AssistantBase {
   quality?: string;
   style?: string;
   size?: string;
-
-  temperature?: number;
-  topP?: number;
-  presencePenalty?: number;
-  frequencyPenalty?: number;
+  modelSettings?: { [key: string]: any };
 }
 
 export interface ApiAssistant extends AssistantBase {
