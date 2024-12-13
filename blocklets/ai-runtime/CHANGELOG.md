@@ -1,3 +1,7 @@
+## 0.4.167 (2024-12-13)
+
+- chore: update new type for upload image to media-kit
+
 ## 0.4.166 (2024-12-12)
 
 - fix: code editor close tag not working
