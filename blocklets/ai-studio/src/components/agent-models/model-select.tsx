@@ -6,7 +6,18 @@ import { AddComponent } from '@blocklet/ui-react';
 import { Icon } from '@iconify-icon/react';
 import StarIcon from '@iconify-icons/tabler/star';
 import StarFilledIcon from '@iconify-icons/tabler/star-filled';
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogProps, DialogTitle, Stack } from '@mui/material';
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogProps,
+  DialogTitle,
+  Stack,
+  Theme,
+  useMediaQuery,
+} from '@mui/material';
 import millify from 'millify';
 import { useMemo, useRef, useState } from 'react';
 
@@ -113,6 +124,7 @@ export function ModelSelectDialog({ type, dialogProps, agent }: ModelSelectDialo
   const [showStarred, setShowStarred] = useState(false);
   const { projectId, projectRef } = useCurrentProject();
   const { projectSetting } = useProjectStore(projectId, projectRef);
+  const downSm = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
 
   const handleToggleStar = (model: string) => {
     const doc = (getYjsValue(projectSetting) as Map<any>).doc!;
@@ -166,10 +178,10 @@ export function ModelSelectDialog({ type, dialogProps, agent }: ModelSelectDialo
   );
 
   return (
-    <Dialog maxWidth="md" fullWidth {...dialogProps}>
+    <Dialog maxWidth="md" fullWidth fullScreen={downSm} {...dialogProps}>
       <DialogTitle>Models</DialogTitle>
 
-      <DialogContent sx={{ height: { md: '50vh' }, maxHeight: 500 }}>
+      <DialogContent sx={{ height: { md: '50vh' }, maxHeight: { xs: 'none', sm: 500 } }}>
         <Box sx={{ my: 1.5, mb: 2.5 }}>
           <TagFilter
             tags={allTags}

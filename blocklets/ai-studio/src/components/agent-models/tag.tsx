@@ -39,7 +39,7 @@ export function TagFilter({ value, onChange, prepend, tags }: TagFilterProps) {
     onChange(value.includes(tag) ? value.filter((t) => t !== tag) : [...value, tag]);
   };
   return (
-    <Stack direction="row" spacing={1}>
+    <Stack direction="row" useFlexGap spacing={1} flexWrap="wrap">
       {prepend}
       {tags.map((tag) => (
         <Tag key={tag} label={tag} selected={value.includes(tag)} onClick={() => handleTagClick(tag)} />
