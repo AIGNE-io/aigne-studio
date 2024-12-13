@@ -1,3 +1,8 @@
+## 0.4.169 (2024-12-13)
+
+- fix: openapi post method params not working
+- fix: upload image type to image-bin
+
 ## 0.4.168 (2024-12-13)
 
 - feat: improve model selection and settings
