@@ -17,16 +17,19 @@ import compression from 'compression';
 import express, { Router } from 'express';
 import { pathExists } from 'fs-extra';
 import Joi from 'joi';
-import { pick } from 'lodash';
+import { isNil, pick } from 'lodash';
 import omitBy from 'lodash/omitBy';
 import { Op, Sequelize } from 'sequelize';
 import { stringify } from 'yaml';
 
+import { getEmbeddingsStatus } from '../../libs/embedding';
+import embeddingQueuePush from '../../libs/embedding/push';
 import ensureKnowledgeDirExists, { getKnowledgeDir, getLogoPath } from '../../libs/ensure-dir';
 import copyKnowledgeBase from '../../libs/knowledge';
 import { ensureComponentCallOr, ensureComponentCallOrAdmin, userAuth } from '../../libs/security';
 import Knowledge from '../../store/models/dataset/dataset';
 import KnowledgeDocument from '../../store/models/dataset/document';
+import { KnowledgeSearchClient } from './retriever/meilisearch/meilisearch';
 import { getResourceAvatarPath, sse } from './util';
 
 const { initLocalStorageServer } = require('@blocklet/uploader-server');
@@ -60,6 +63,43 @@ const getKnowledgeListQuerySchema = Joi.object<{ projectId?: string; page: numbe
   projectId: Joi.string().empty(['', null]),
   page: Joi.number().integer().min(1).default(1),
   size: Joi.number().integer().min(1).max(10000).default(20),
+});
+
+const embeddingStatusSchema = Joi.object<{
+  knowledgeId?: string;
+  isNeedEmbedding?: boolean;
+  runningQueuedTasks?: boolean;
+  hasError?: boolean;
+}>({
+  knowledgeId: Joi.string().optional(),
+  isNeedEmbedding: Joi.boolean().optional(),
+  runningQueuedTasks: Joi.boolean().optional(),
+  hasError: Joi.boolean().optional(),
+});
+
+router.get('/embedding-status', async (req, res) => {
+  const result = await getEmbeddingsStatus();
+  const query = await embeddingStatusSchema.validateAsync(req.query, { stripUnknown: true });
+
+  let list = result;
+
+  if (query.knowledgeId) {
+    list = list.filter((item) => item.knowledgeId === query.knowledgeId);
+  }
+
+  if (!isNil(query.isNeedEmbedding)) {
+    list = list.filter((item) => item.isNeedEmbedding === query.isNeedEmbedding);
+  }
+
+  if (!isNil(query.runningQueuedTasks)) {
+    list = list.filter((item) => item.queuedTasks > 0);
+  }
+
+  if (query.hasError) {
+    list = list.filter((item) => item.error);
+  }
+
+  res.json({ list, total: list.length });
 });
 
 router.get('/', middlewares.session(), ensureComponentCallOr(userAuth()), async (req, res) => {
@@ -308,6 +348,9 @@ router.post('/', middlewares.session({ componentCall: true }), ensureComponentCa
         userId,
       });
 
+      // 复制完成后，立即更新向量数据库
+      embeddingQueuePush({ from: 'db', knowledgeId: newKnowledgeId });
+
       map[oldKnowledge.id] = newKnowledgeId;
     }
 
@@ -322,6 +365,9 @@ router.post('/', middlewares.session({ componentCall: true }), ensureComponentCa
   if (!resourceBlockletDid && !knowledgeId) {
     await ensureKnowledgeDirExists(knowledge.id);
   }
+
+  // 复制完成后，立即更新向量数据库
+  embeddingQueuePush({ from: 'db', knowledgeId: knowledge.id });
 
   return res.json(knowledge);
 });
@@ -338,6 +384,11 @@ router.post('/import-resources', middlewares.session(), ensureComponentCallOr(us
       return { ...params, createdBy: userId, updatedBy: userId };
     })
   );
+
+  // 导入完成后，立即更新向量数据库
+  for (const knowledge of list) {
+    embeddingQueuePush({ from: 'db', knowledgeId: knowledge.id });
+  }
 
   return res.json(list);
 });
@@ -367,6 +418,12 @@ router.delete('/:knowledgeId', middlewares.session(), userAuth(), async (req, re
   if (!knowledge) {
     res.status(404).json({ error: 'No such knowledge' });
     return;
+  }
+
+  const client = new KnowledgeSearchClient(knowledgeId!);
+  if (client.canUse) {
+    const documents = await KnowledgeDocument.findAll({ where: { knowledgeId } });
+    await Promise.all(documents.map((i) => client.remove(i.id)));
   }
 
   await Promise.all([

@@ -12,6 +12,7 @@ import { parse } from 'yaml';
 
 import KnowledgeDocument, { UploadStatus } from '../../../store/models/dataset/document';
 import EmbeddingHistories from '../../../store/models/dataset/embedding-history';
+import { KnowledgeSearchClient } from '../retriever/meilisearch/meilisearch';
 import { saveContentToVectorStore } from '../util/vector-store';
 
 export abstract class BaseProcessor {
@@ -128,6 +129,8 @@ export abstract class BaseProcessor {
     const currentTotal = array.length;
     let currentIndex = 0;
 
+    const formattedDocuments = [];
+
     try {
       for (const { content, metadata } of array) {
         currentIndex++;
@@ -138,7 +141,7 @@ export abstract class BaseProcessor {
         });
 
         if (!fileContentHash || !content) {
-          logger.warn('file content hash is not available', { processedFilePath });
+          logger.warn('file content hash is not available', { processedFilePath, fileContentHash, content });
 
           if (currentTotal > 1) {
             const embeddingStatus = `${currentIndex}/${currentTotal}`;
@@ -148,7 +151,11 @@ export abstract class BaseProcessor {
           continue;
         }
 
-        if (previousEmbedding?.status === UploadStatus.Success && previousEmbedding?.contentHash === fileContentHash) {
+        if (
+          previousEmbedding &&
+          previousEmbedding.status === UploadStatus.Success &&
+          previousEmbedding.contentHash === fileContentHash
+        ) {
           logger.warn('embedding already exists', {
             knowledgeId: this.knowledgeId,
             documentId: this.documentId,
@@ -180,14 +187,19 @@ export abstract class BaseProcessor {
           });
         }
 
-        await saveContentToVectorStore({
+        const result = await saveContentToVectorStore({
           metadata,
           content: this.preprocessText(content),
           knowledgeId: this.knowledgeId,
           documentId: this.documentId,
           update: this.update,
           type: document.type,
+        }).catch((error) => {
+          logger.error('saveContentToVectorStore error', error);
+          return [];
         });
+
+        formattedDocuments.push(...result);
 
         if (currentTotal > 1) {
           const embeddingStatus = `${currentIndex}/${currentTotal}`;
@@ -200,7 +212,7 @@ export abstract class BaseProcessor {
         );
       }
     } catch (error) {
-      logger.error('startRAG error', error);
+      logger.error('start RAG error', error);
 
       await EmbeddingHistories.update(
         { error: error.message, status: UploadStatus.Error },
@@ -208,6 +220,12 @@ export abstract class BaseProcessor {
       );
 
       throw error;
+    } finally {
+      if (formattedDocuments.length) {
+        logger.info('embedding to search kit', formattedDocuments.length);
+        const client = new KnowledgeSearchClient(this.knowledgeId);
+        if (client.canUse) await client.update(formattedDocuments);
+      }
     }
   }
 

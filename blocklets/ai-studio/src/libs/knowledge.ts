@@ -42,12 +42,17 @@ export interface KnowledgeInput {
 export async function searchKnowledge({
   knowledgeId,
   message,
+  useSearchKit,
 }: {
   knowledgeId: string;
   message: string;
+  useSearchKit?: boolean;
 }): Promise<{ docs: { content: any; metadata: any }[] }> {
   return axios
-    .get(`/api/datasets/${knowledgeId}/search`, { baseURL: AIGNE_RUNTIME_MOUNT_POINT, params: { message } })
+    .get(`/api/datasets/${knowledgeId}/search`, {
+      baseURL: AIGNE_RUNTIME_MOUNT_POINT,
+      params: { message, useSearchKit },
+    })
     .then((res) => res.data);
 }
 

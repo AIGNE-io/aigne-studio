@@ -1,3 +1,4 @@
+import Switch from '@app/components/custom/switch';
 // import MdViewer from '@app/components/md-viewer';
 import { useKnowledge } from '@app/contexts/knowledge/knowledge';
 import UploaderProvider, { useUploader } from '@app/contexts/uploader';
@@ -318,10 +319,11 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
   );
   const [loaded, setLoaded] = useState(false);
   const navigate = useNavigate();
+  const [useSearchKit, setUseSearchKit] = useState(true);
 
   const { loading, runAsync } = useRequest(
-    async (s: string) => {
-      const results = await searchKnowledge({ knowledgeId, message: s });
+    async (s: string, useSearchKit: boolean) => {
+      const results = await searchKnowledge({ knowledgeId, message: s, useSearchKit });
       setData(results);
       return results;
     },
@@ -370,7 +372,8 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
         onSubmit={async (e) => {
           try {
             e.preventDefault();
-            await runAsync(search!);
+            if (!search) return;
+            await runAsync(search, useSearchKit);
             setLoaded(true);
           } catch (error) {
             Toast.error(error?.message);
@@ -417,7 +420,8 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
           onClick={async (e) => {
             try {
               e.preventDefault();
-              await runAsync(search!);
+              if (!search) return;
+              await runAsync(search, useSearchKit);
               setLoaded(true);
             } catch (error) {
               Toast.error(error?.message);
@@ -427,7 +431,13 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
           <Box>{t('search')}</Box>
         </IconButton>
       </Box>
-      <Box flexGrow={1} height={0} overflow="auto">
+
+      <Box display="flex" alignItems="center" gap={1} sx={{ p: 2.5, pb: 0 }}>
+        <Box>使用 Search Kit 检索</Box>
+        <Switch checked={useSearchKit} onChange={(e) => setUseSearchKit(e.target.checked)} />
+      </Box>
+
+      <Box flexGrow={1} height={0} overflow="auto" sx={{ overflowX: 'hidden' }}>
         {loading ? (
           <Box className="center" width={1} height={1}>
             <CircularProgress size={20} />
@@ -435,8 +445,11 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
         ) : results.length ? (
           <Box px={2.5}>
             {results.map((result, index) => {
-              const title = result?.metadata?.document?.name || result?.metadata?.metadata?.title;
-              const relevanceScore = result?.metadata?.metadata?.relevanceScore;
+              const title =
+                result?.metadata?.document?.name ||
+                result?.metadata?.metadata?.title ||
+                result?.metadata?.metadata?.name; // 适配老的知识库数据
+              const rankingScore = result?.metadata?.rankingScore;
 
               return (
                 <Box
@@ -461,7 +474,7 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
                     if (!result?.metadata?.document?.id) return;
                     navigate(joinURL('document', result?.metadata?.document?.id, 'segments'));
                   }}>
-                  <Box>
+                  <Box sx={{ wordBreak: 'break-word' }}>
                     {(typeof result.content === 'string'
                       ? result.content
                       : JSON.stringify(result.content, null, 2)
@@ -486,7 +499,7 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
                         </Box>
                       </Stack>
 
-                      {!!relevanceScore && (
+                      {!!rankingScore && (
                         <>
                           <Divider orientation="vertical" variant="middle" flexItem sx={{ my: 0.5 }} />
 
@@ -494,9 +507,9 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
                             <Typography
                               sx={{
                                 fontSize: 13,
-                                color: result?.metadata?.metadata?.relevanceScore > 0.5 ? '#059669' : '#BE123C',
+                                color: rankingScore > 0.5 ? '#059669' : '#BE123C',
                               }}>
-                              {Number((result?.metadata?.metadata?.relevanceScore || 0) * 100).toFixed(2)}%
+                              {Number((rankingScore || 0) * 100).toFixed(2)}%
                             </Typography>
                             <Typography sx={{ fontSize: 13, color: '#9CA3AF' }}>{t('similarity')}</Typography>
                           </Stack>

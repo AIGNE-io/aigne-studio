@@ -1,0 +1,260 @@
+/* eslint-disable no-await-in-loop */
+import { join } from 'path';
+
+import { SEARCH_KIT_DID } from '@api/libs/const';
+import logger from '@api/libs/logger';
+import { BlockletStatus } from '@blocklet/constant';
+import { components } from '@blocklet/sdk/lib/config';
+import { Document } from '@langchain/core/documents';
+import { pathExists, readFile } from 'fs-extra';
+
+import { AIKitEmbeddings } from '../../../../core/embeddings/ai-kit';
+import Segment from '../../../../store/models/dataset/segment';
+import VectorStore from '../../../../store/vector-store-faiss';
+import { getId, retry, sleep } from '../../util';
+
+const searchableAttributes = ['pageContent', 'knowledgeId'];
+const filterableAttributes = ['pageContent', 'knowledgeId'];
+const sortableAttributes = ['pageContent', 'knowledgeId'];
+const rankingRules = ['sort', 'exactness', 'words', 'typo', 'proximity', 'attribute'];
+const POST_SETTING = { searchableAttributes, filterableAttributes, sortableAttributes, rankingRules };
+const { SearchKitClient, resolveRestEmbedders } = require('@blocklet/search-kit-js');
+
+const documentTemplate = `
+  with the following content: {{ doc.pageContent }}
+`;
+
+export default class SearchClient {
+  private client: any = null;
+
+  protected embeddings = new AIKitEmbeddings();
+
+  protected POST_INDEX_NAME: string;
+
+  constructor(protected knowledgeId: string) {
+    try {
+      this.client = new SearchKitClient();
+    } catch (e) {
+      logger.error('SearchClient constructor error:', e);
+    }
+
+    this.POST_INDEX_NAME = `${process.env.BLOCKLET_APP_ID}-${knowledgeId}`;
+  }
+
+  get canUse() {
+    const component = components.find((item: { did: string }) => item.did === SEARCH_KIT_DID);
+    return component && component.status === BlockletStatus.running && !!this.client;
+  }
+
+  get postIndex() {
+    if (!this.client) {
+      throw new Error('SearchClient not initialized');
+    }
+
+    return this.client.index(this.POST_INDEX_NAME);
+  }
+
+  // fix: boardId and id conflict https://www.meilisearch.com/docs/learn/core_concepts/primary_key#index_primary_key_multiple_candidates_found
+  get options() {
+    return { primaryKey: 'id' };
+  }
+
+  async init({ deepClear = false, vectorPathOrKnowledgeId }: { deepClear?: boolean; vectorPathOrKnowledgeId: string }) {
+    try {
+      if (deepClear) {
+        logger.info('Clear old post data');
+        const { taskUid } = await this.postIndex.deleteAllDocuments();
+        await this.waitForTask(taskUid);
+      }
+
+      await this.batchIndexPosts({ vectorPathOrKnowledgeId });
+    } catch (e) {
+      logger.error('init data error', e);
+      throw e;
+    }
+  }
+
+  async getDocumentsCount() {
+    try {
+      const stats = await this.postIndex.getStats();
+      return stats.numberOfDocuments;
+    } catch (error) {
+      return 0;
+    }
+  }
+
+  waitForTask(uid: number, { timeOutMs = 1000 * 60 * 10, intervalMs = 1000 } = {}) {
+    return this.client!.waitForTask(uid, { timeOutMs, intervalMs });
+  }
+
+  formatDocuments(documents: Document[]) {
+    const list = documents.map((doc) => ({
+      content: doc?.pageContent || '',
+      doc: { ...doc, pageContent: doc?.pageContent || '' },
+    }));
+
+    const posts = list.map(({ doc, content }) => ({
+      ...doc,
+      knowledgeId: this.knowledgeId,
+      id: getId(this.knowledgeId, content),
+    }));
+
+    return posts;
+  }
+
+  // https://www.meilisearch.com/docs/learn/indexing/indexing_best_practices#prefer-bigger-http-payloads
+  async batchIndexPosts({ vectorPathOrKnowledgeId }: { size?: number; vectorPathOrKnowledgeId: string }) {
+    logger.info('batchIndexPosts start', { vectorPathOrKnowledgeId });
+
+    let docs = [];
+    try {
+      const docstore = join(vectorPathOrKnowledgeId, 'docstore.json');
+      if (await pathExists(docstore)) {
+        const [list] = JSON.parse(await readFile(docstore, 'utf-8'));
+        docs = list.map((i: [string, object]) => i[1]);
+      }
+    } catch (error) {
+      logger.error(`read docstore error: ${error}`);
+      const vectorStore = await VectorStore.load(vectorPathOrKnowledgeId, this.embeddings);
+      const { length } = Object.keys(vectorStore.getMapping());
+      docs = length > 0 ? await vectorStore.similaritySearch(' ', length) : [];
+    }
+
+    await this.batchUpdatePosts(docs);
+  }
+
+  async batchUpdatePosts(docs: Document[], size = 5000) {
+    logger.info('batchUpdatePosts start', { knowledgeId: this.knowledgeId });
+
+    let processed = 0;
+    const total = docs.length;
+    if (total === 0) {
+      logger.info('batch is empty', { knowledgeId: this.knowledgeId });
+      return;
+    }
+
+    while (processed < total) {
+      logger.info(`index posts: {skip=${processed}, total=${total}, size=${size}`);
+      const documents = docs.slice(processed, processed + size);
+      const { taskUid } = await this.updatePosts(documents);
+      logger.debug('index posts taskUid', taskUid);
+      await sleep(5000);
+      processed += documents.length;
+    }
+
+    logger.info('batchUpdatePosts done', { knowledgeId: this.knowledgeId });
+  }
+
+  search(
+    text: string,
+    { limit = 10, offset = 0, ...rest }: { limit?: number; offset?: number; [key: string]: any } = {}
+  ) {
+    return this.postIndex.search(text, { limit, offset, ...rest });
+  }
+
+  async updatePosts(documents: Document[]) {
+    const list = this.formatDocuments(documents);
+    const result = await this.postIndex.updateDocuments(list, this.options);
+    return result;
+  }
+
+  removePosts(ids: string[]) {
+    return this.postIndex.deleteDocuments(ids);
+  }
+
+  async checkPostIndexExist() {
+    try {
+      const rawInfo = await this.postIndex.getRawInfo();
+      return { isExist: !!rawInfo };
+    } catch (error) {
+      return { isExist: false };
+    }
+  }
+
+  async isNotExit() {
+    const existPostIndex = await this.checkPostIndexExist();
+    return !existPostIndex.isExist;
+  }
+
+  getEmbedders() {
+    return this.postIndex.getEmbedders();
+  }
+
+  async updateEmbedders() {
+    try {
+      const embedders = resolveRestEmbedders({ documentTemplate });
+      const { taskUid } = await this.postIndex.updateEmbedders(embedders);
+      logger.debug('updateEmbedders taskUid', taskUid);
+    } catch (e) {
+      logger.error('updateEmbedders error - downgrade to basic search.', e);
+    }
+  }
+
+  async resetEmbedders() {
+    try {
+      const { taskUid } = await this.postIndex.resetEmbedders();
+      logger.debug('resetEmbedders taskUid', taskUid);
+    } catch (e) {
+      logger.error('resetEmbedders error', e);
+    }
+  }
+
+  async updateSettings(settings: any) {
+    await this.postIndex.updateSettings(settings);
+  }
+
+  async checkUpdate(vectorPathOrKnowledgeId: string) {
+    const upsert = async () => {
+      if (!this.client) throw new Error('No SearchKitClient instance');
+
+      const notExistPostIndex = await this.isNotExit();
+      if (notExistPostIndex) {
+        logger.info('notExistPostIndex', { knowledgeId: this.knowledgeId });
+        await this.updateConfig();
+        await this.init({ vectorPathOrKnowledgeId });
+        return;
+      }
+
+      await this.updateConfig();
+      await this.init({ vectorPathOrKnowledgeId });
+    };
+
+    await retry(upsert, 1, 3000).catch((err) => logger.error('checkUpdate error:', err));
+  }
+
+  async updateConfig() {
+    await this.updateEmbedders();
+    await this.updateSettings(POST_SETTING);
+  }
+
+  async getDocuments(options: { limit?: number; offset?: number; fields?: string[] } = {}) {
+    const { limit = 1, offset = 0, fields } = options;
+
+    try {
+      return await this.postIndex.getDocuments({ limit, offset, fields });
+    } catch (error) {
+      return { results: [], total: 0 };
+    }
+  }
+
+  async getTasks() {
+    return this.client
+      .getTasks({ indexUids: [this.POST_INDEX_NAME], statuses: ['enqueued'] })
+      .then((res: any) => res.total)
+      .catch(() => 0);
+  }
+}
+
+export class KnowledgeSearchClient extends SearchClient {
+  async update(documents: Document[]) {
+    await this.batchUpdatePosts(documents);
+  }
+
+  async remove(documentId: string) {
+    const messages = await Segment.findAll({ where: { documentId } });
+    const ids = messages.map((x) => getId(this.knowledgeId, x.content!));
+    if (ids.length <= 0) return;
+
+    await this.removePosts(ids);
+  }
+}

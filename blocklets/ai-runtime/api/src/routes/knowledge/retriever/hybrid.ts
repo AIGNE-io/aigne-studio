@@ -32,8 +32,6 @@ export default class HybridRetriever extends BaseRetriever {
         return [];
       }
 
-      // const queries = await this.queryTranslate(query); // version 1
-      // logger.debug('queries', { queries });
       const documents = await this.getDocuments([query]);
       logger.debug('documents', { documents: documents.length });
       const extractorDocuments = await this.extractor(documents, query);
@@ -51,18 +49,6 @@ export default class HybridRetriever extends BaseRetriever {
     } catch (error) {
       logger.error('Search failed', { error });
       throw error;
-    }
-  }
-
-  async queryTranslate(query: string): Promise<string[]> {
-    const retriever = MultiQueryRetriever.fromLLM({ llm: this.llm, retriever: this.vectorRetriever });
-
-    try {
-      // @ts-ignore
-      const queries = await retriever._generateQueries(query);
-      return [query, ...(queries || [])];
-    } catch (error) {
-      return [query];
     }
   }
 
@@ -99,8 +85,6 @@ export default class HybridRetriever extends BaseRetriever {
     const baseCompressor = LLMChainExtractor.fromLLM(this.llm);
     const retriever = new ContextualCompressionRetriever({ baseCompressor, baseRetriever });
     const result = await retriever.invoke(query);
-
-    // await memoryVectorStore.delete();
 
     return result;
   }

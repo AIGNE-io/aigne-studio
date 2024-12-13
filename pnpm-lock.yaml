@@ -184,6 +184,9 @@ importers:
       '@blocklet/sdk':
         specifier: 1.16.34-beta-20241204-140321-4d75ca21
         version: 1.16.34-beta-20241204-140321-4d75ca21(encoding@0.1.13)
+      '@blocklet/search-kit-js':
+        specifier: ^0.2.18
+        version: 0.2.18(@blocklet/sdk@1.16.34-beta-20241204-140321-4d75ca21(encoding@0.1.13))(encoding@0.1.13)
       '@blocklet/ui-react':
         specifier: ^2.10.86
         version: 2.10.86(6chij4bgyi5pnudehsvnk3mtu4)
@@ -3058,6 +3061,11 @@ packages:
 
   '@blocklet/sdk@1.16.34-beta-20241204-140321-4d75ca21':
     resolution: {integrity: sha512-e4oNnt8jH4Pkv+iz/w7eswzGFc9h0Aqi8umi6RRYSKOFhPQcFPUWh44QEtEmR783Ua9JETP5xUDOCjz6kJREEw==}
+
+  '@blocklet/search-kit-js@0.2.18':
+    resolution: {integrity: sha512-puXkK5255NStlgRi1ESq/mHy6EZDXqKslMA4NggIL6pYvtfDt9Sj4oCLJjwhgnb524Bm5YWd0s/w/yZOZ0/9mw==}
+    peerDependencies:
+      '@blocklet/sdk': 1.16.34-beta-20241204-140321-4d75ca21
 
   '@blocklet/testlab@0.0.17':
     resolution: {integrity: sha512-qr1nI1QDADpkEqoora86iEQvkeeHAn/bftV/VI5ImeNxlDZ5xIIgt1pKMM+hiGiNQu4NqmVyo3kt9500x+9aXg==}
@@ -12529,6 +12537,9 @@ packages:
   medium-zoom@1.1.0:
     resolution: {integrity: sha512-ewyDsp7k4InCUp3jRmwHBRFGyjBimKps/AJLjRSox+2q/2H4p/PNpQf+pwONWlJiOudkBXtbdmVbFjqyybfTmQ==}
 
+  meilisearch@0.42.0:
+    resolution: {integrity: sha512-pXaOPx/uhVGYVpejNuOcXifQVJlRVSxtvpgrGKb7ygmYo4qSNXkQXPxq1p0Tv+4/RsPJug3W04pcNnYXiqungA==}
+
   memoize-one@5.2.1:
     resolution: {integrity: sha512-zYiwtZUcYyXKo/np96AGZAckk+FWWsUdJ3cHGGmld7+AhvcWmQyGCYUh1hc4Q/pkOhb65dQR/pqCyK0cOaHz4Q==}
 
@@ -20708,6 +20719,17 @@ snapshots:
       - encoding
       - supports-color
       - utf-8-validate
+
+  '@blocklet/search-kit-js@0.2.18(@blocklet/sdk@1.16.34-beta-20241204-140321-4d75ca21(encoding@0.1.13))(encoding@0.1.13)':
+    dependencies:
+      '@blocklet/sdk': 1.16.34-beta-20241204-140321-4d75ca21(encoding@0.1.13)
+      axios: 1.7.5(debug@4.3.6)
+      meilisearch: 0.42.0(encoding@0.1.13)
+      ufo: 1.5.4
+      zod: 3.23.8
+    transitivePeerDependencies:
+      - debug
+      - encoding
 
   '@blocklet/testlab@0.0.17':
     dependencies:
@@ -33358,6 +33380,12 @@ snapshots:
   media-typer@0.3.0: {}
 
   medium-zoom@1.1.0: {}
+
+  meilisearch@0.42.0(encoding@0.1.13):
+    dependencies:
+      cross-fetch: 3.1.8(encoding@0.1.13)
+    transitivePeerDependencies:
+      - encoding
 
   memoize-one@5.2.1: {}
 

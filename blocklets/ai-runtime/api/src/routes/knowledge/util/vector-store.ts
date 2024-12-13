@@ -1,3 +1,4 @@
+import logger from '@api/libs/logger';
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { Document } from '@langchain/core/documents';
 import { MarkdownTextSplitter, RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
@@ -6,6 +7,7 @@ import { intersection } from 'lodash';
 import { AIKitEmbeddings } from '../../../core/embeddings/ai-kit';
 import Segment from '../../../store/models/dataset/segment';
 import VectorStore from '../../../store/vector-store-faiss';
+import { KnowledgeSearchClient } from '../retriever/meilisearch/meilisearch';
 import { discussionToMarkdown } from './discuss';
 
 export const deleteStore = async (knowledgeId: string, ids: string[]) => {
@@ -25,12 +27,17 @@ export const deleteStore = async (knowledgeId: string, ids: string[]) => {
 export const updateHistoriesAndStore = async (knowledgeId: string, documentId: string) => {
   const where = { documentId };
   const { rows: messages, count } = await Segment.findAndCountAll({ where });
+  const ids = messages.map((x) => x.id);
 
   if (count > 0) {
-    const ids = messages.map((x) => x.id);
+    const client = new KnowledgeSearchClient(knowledgeId);
+    if (client.canUse) await client.remove(documentId);
+
     await deleteStore(knowledgeId, ids);
     await Segment.destroy({ where });
   }
+
+  return ids;
 };
 
 function formatDocument(doc: Document, metadata?: Record<string, unknown>) {
@@ -76,10 +83,10 @@ async function processContent(
     docs = await splitter.createDocuments(chunks, metadataArray);
   }
 
-  const formattedDocs = docs.map((doc) => formatDocument(doc, metadata));
-  const vectors = await embeddings.embedDocuments(formattedDocs.map((d) => d.pageContent));
+  const formattedDocuments = docs.map((doc) => formatDocument(doc, metadata));
+  const vectors = await embeddings.embedDocuments(formattedDocuments.map((d) => d.pageContent));
 
-  return { vectors, formattedDocs };
+  return { vectors, formattedDocuments };
 }
 
 async function saveSegments(docs: Document[], documentId: string) {
@@ -113,7 +120,7 @@ export const saveContentToVectorStore = async ({
   type: 'file' | 'text' | 'discussKit' | 'url';
 }) => {
   // 文本处理和向量化
-  const { vectors, formattedDocs } = await processContent(content, type, metadata, {
+  const { vectors, formattedDocuments } = await processContent(content, type, metadata, {
     separators: ['\n\n', '\n', ' ', ''],
     chunkSize: 1024,
     chunkOverlap: 100,
@@ -121,12 +128,16 @@ export const saveContentToVectorStore = async ({
 
   // 清理历史数据
   if (update) {
-    await updateHistoriesAndStore(knowledgeId, documentId);
+    await updateHistoriesAndStore(knowledgeId, documentId).catch((error) => {
+      logger.error('updateHistoriesAndStore error', error);
+    });
   }
 
   // 保存分段并获取ID
-  const segments = await saveSegments(formattedDocs, documentId);
+  const segments = await saveSegments(formattedDocuments, documentId);
 
   // 更新向量存储
-  await updateVectorStore(knowledgeId, vectors, formattedDocs, segments);
+  await updateVectorStore(knowledgeId, vectors, formattedDocuments, segments);
+
+  return formattedDocuments;
 };

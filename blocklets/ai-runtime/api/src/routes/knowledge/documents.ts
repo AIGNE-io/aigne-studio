@@ -1,5 +1,4 @@
 import { copyFile, rm, writeFile } from 'fs/promises';
-import { join } from 'path';
 
 import logger from '@api/libs/logger';
 import { resourceManager } from '@api/libs/resource';
@@ -7,6 +6,7 @@ import middlewares from '@blocklet/sdk/lib/middlewares';
 import express, { Router } from 'express';
 import { pathExists } from 'fs-extra';
 import Joi from 'joi';
+import { orderBy } from 'lodash';
 import { Op } from 'sequelize';
 import { joinURL } from 'ufo';
 
@@ -16,7 +16,8 @@ import { userAuth } from '../../libs/security';
 import Knowledge from '../../store/models/dataset/dataset';
 import KnowledgeDocument from '../../store/models/dataset/document';
 import EmbeddingHistories from '../../store/models/dataset/embedding-history';
-import HybridRetriever from './retriever';
+import Retriever from './retriever';
+import { getKnowledgeVectorPath } from './util';
 import { queue } from './util/queue';
 import { updateHistoriesAndStore } from './util/vector-store';
 
@@ -47,73 +48,62 @@ const documentIdSchema = Joi.object<{ knowledgeId: string; documentId: string }>
 
 export type CreateDiscussionItemInput = CreateDiscussionItem | CreateDiscussionItem[];
 
-const searchQuerySchema = Joi.object<{ blockletDid?: string; message?: string; n: number }>({
+const searchQuerySchema = Joi.object<{ blockletDid?: string; message: string; useSearchKit?: boolean }>({
   blockletDid: Joi.string().empty(['', null]),
-  message: Joi.string().empty(['', null]),
-  n: Joi.number().empty(['', null]).min(1).default(4),
+  message: Joi.string().empty(['', null]).required(),
+  useSearchKit: Joi.boolean().default(true),
 });
-
-async function getVectorPath(blockletDid: string | null, knowledgeId: string, knowledge: any) {
-  let resourceToCheck = null;
-
-  if (blockletDid) {
-    resourceToCheck = { blockletDid, knowledgeId };
-  } else if (knowledge?.resourceBlockletDid && knowledge?.knowledgeId) {
-    resourceToCheck = {
-      blockletDid: knowledge.resourceBlockletDid,
-      knowledgeId: knowledge.knowledgeId,
-    };
-  }
-
-  if (resourceToCheck) {
-    const resource = await resourceManager.getKnowledge(resourceToCheck);
-
-    if (!resource) {
-      throw new Error('No such knowledge resource');
-    }
-
-    return (await pathExists(join(resource.vectorsPath, 'faiss.index')))
-      ? resource.vectorsPath
-      : join(resource.vectorsPath, resourceToCheck.knowledgeId);
-  }
-
-  return knowledgeId;
-}
 
 router.get('/:knowledgeId/search', async (req, res) => {
   const { knowledgeId } = req.params;
   const input = await searchQuerySchema.validateAsync(req.query, { stripUnknown: true });
   const knowledge = await Knowledge.findOne({ where: { id: knowledgeId } });
-  const vectorPathOrKnowledgeId = await getVectorPath(input.blockletDid!, knowledgeId, knowledge);
+  const vectorPathOrKnowledgeId = await getKnowledgeVectorPath(input.blockletDid!, knowledgeId, knowledge);
 
-  const retriever = new HybridRetriever(vectorPathOrKnowledgeId, input.n!);
+  logger.debug('vector path', { vectorPathOrKnowledgeId });
+
+  if (!vectorPathOrKnowledgeId) {
+    logger.error('vector path is null');
+    return res.json({ docs: [] });
+  }
+
+  if (!(await pathExists(vectorPathOrKnowledgeId))) {
+    logger.error('vector path not exists', { vectorPathOrKnowledgeId });
+    return res.json({ docs: [] });
+  }
+
+  const retriever = new Retriever(knowledgeId, vectorPathOrKnowledgeId, 10, input.useSearchKit);
   const result = await retriever.search(input.message!);
 
   const docs = await Promise.all(
-    result.map(async (i) => {
+    result.map(async (i: any) => {
       if (i.metadata?.metadata?.documentId) {
         const doc = await KnowledgeDocument.findOne({ where: { id: i.metadata?.metadata?.documentId } });
 
         return {
           content: i.pageContent,
+          rankingScore: i._rankingScore || 0,
           metadata: {
             document: doc?.dataValues,
-            metadata: { ...(i.metadata?.metadata || {}), relevanceScore: i.metadata?.relevanceScore || 0 },
+            metadata: i.metadata?.metadata,
+            rankingScore: i._rankingScore || 0,
           },
         };
       }
 
       return {
         content: i.pageContent,
+        rankingScore: i._rankingScore || 0,
         metadata: {
           document: null,
-          metadata: { ...(i.metadata?.metadata || {}), relevanceScore: i.metadata?.relevanceScore || 0 },
+          metadata: i.metadata?.metadata,
+          rankingScore: i._rankingScore || 0,
         },
       };
     })
   );
 
-  res.json({ docs });
+  return res.json({ docs: orderBy(docs, 'rankingScore', 'desc') });
 });
 
 router.get('/:knowledgeId/documents', middlewares.session(), userAuth(), async (req, res) => {
