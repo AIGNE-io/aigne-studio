@@ -143,7 +143,7 @@ export function ModelSelectDialog({ type, dialogProps, agent }: ModelSelectDialo
     dialogProps.onClose?.(e, 'backdropClick');
   };
 
-  const starredModelSet = useMemo(() => new Set(projectSetting.starredModels ?? []), [projectSetting.starredModels]);
+  const starredModelSet = useMemo(() => new Set(projectSetting.starredModels ?? []), [projectSetting]);
 
   const options = models.map((model) => ({
     ...model,
@@ -191,7 +191,13 @@ export function ModelSelectDialog({ type, dialogProps, agent }: ModelSelectDialo
             }
           />
         </Box>
-        <ModelSelect options={sortedOptions} value={selected} onChange={setSelected} onStar={handleToggleStar} />
+        <ModelSelect
+          options={sortedOptions}
+          value={selected}
+          onChange={setSelected}
+          onStar={handleToggleStar}
+          starredModels={starredModelSet}
+        />
       </DialogContent>
 
       <DialogActions sx={{ justifyContent: 'space-between' }}>
