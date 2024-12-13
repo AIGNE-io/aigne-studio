@@ -104,13 +104,17 @@ export function LLMModelSettings({ agent, model }: LLMModelSettingsProps) {
           <Box
             key={preset}
             className={preset === currentPreset ? 'model-settings-preset-selected' : ''}
-            onClick={() => handleSelectPreset(preset)}>
+            onClick={() => handleSelectPreset(preset)}
+            sx={{ fontSize: { xs: 12, sm: 14 } }}>
             {t(`modelSettingsPresets.${preset}`)}
           </Box>
         ))}
       </Stack>
       <Stack gap={2} sx={{ py: 2, mt: 4 }}>
-        <Stack direction="row" alignItems="center" spacing={2}>
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          alignItems={{ xs: 'stretch', sm: 'center' }}
+          spacing={{ xs: 1, sm: 2 }}>
           <Tooltip
             title={t('temperatureTip')}
             placement="top"
@@ -139,7 +143,10 @@ export function LLMModelSettings({ agent, model }: LLMModelSettingsProps) {
             </WithAwareness>
           </Box>
         </Stack>
-        <Stack direction="row" alignItems="center" spacing={2}>
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          alignItems={{ xs: 'stretch', sm: 'center' }}
+          spacing={{ xs: 1, sm: 2 }}>
           <Tooltip
             title={t('topPTip')}
             placement="top"
@@ -168,7 +175,10 @@ export function LLMModelSettings({ agent, model }: LLMModelSettingsProps) {
             </WithAwareness>
           </Box>
         </Stack>
-        <Stack direction="row" alignItems="center" spacing={2}>
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          alignItems={{ xs: 'stretch', sm: 'center' }}
+          spacing={{ xs: 1, sm: 2 }}>
           <Tooltip
             title={t('frequencyPenaltyTip')}
             placement="top"
@@ -197,7 +207,10 @@ export function LLMModelSettings({ agent, model }: LLMModelSettingsProps) {
             </WithAwareness>
           </Box>
         </Stack>
-        <Stack direction="row" alignItems="center" spacing={2}>
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          alignItems={{ xs: 'stretch', sm: 'center' }}
+          spacing={{ xs: 1, sm: 2 }}>
           <Tooltip
             title={t('presencePenaltyTip')}
             placement="top"
