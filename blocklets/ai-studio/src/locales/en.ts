@@ -917,6 +917,7 @@ export default flatten({
   createObject: 'Create {object}',
   file: 'File',
   noResults: 'No related results',
+  modelSettings: 'Model Settings',
   modelSettingsPresets: {
     precise: '✨ Precise',
     balance: '⚖️ Balance',

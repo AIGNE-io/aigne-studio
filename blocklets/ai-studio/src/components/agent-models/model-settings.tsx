@@ -1,3 +1,4 @@
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ImageModelInfo, ModelBasedAssistantYjs, TextModelInfo } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import Menu2Icon from '@iconify-icons/tabler/menu-2';
@@ -16,6 +17,7 @@ interface ModelSettingsMenuButtonProps {
 }
 
 export function ModelSettingsMenuButton({ agent }: ModelSettingsMenuButtonProps) {
+  const { t } = useLocaleContext();
   const dialogState = usePopupState({ variant: 'dialog', popupId: 'model-settings' });
   const models = useAllModels(resolveModelType(agent.type)!);
   const { projectId, projectRef } = useCurrentProject();
@@ -30,7 +32,7 @@ export function ModelSettingsMenuButton({ agent }: ModelSettingsMenuButtonProps)
       </IconButton>
       <Dialog maxWidth="sm" fullWidth fullScreen={downSm} {...bindDialog(dialogState)}>
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span>Model Settings</span>
+          <span>{t('modelSettings')}</span>
           <IconButton size="small" onClick={() => dialogState.close()}>
             <Close />
           </IconButton>

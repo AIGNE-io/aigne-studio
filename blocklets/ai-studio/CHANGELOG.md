@@ -1,3 +1,7 @@
+## 0.4.170 (2024-12-13)
+
+- fix: i18n issue
+
 ## 0.4.169 (2024-12-13)
 
 - fix: openapi post method params error
