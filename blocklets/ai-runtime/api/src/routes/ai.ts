@@ -1,6 +1,6 @@
 import { ReadableStream } from 'stream/web';
 
-import { getAgent, getMemoryVariables, getProject } from '@api/libs/agent';
+import { getAdapter, getAgent, getMemoryVariables, getProject } from '@api/libs/agent';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
 import logger from '@api/libs/logger';
 import AgentUsage from '@api/store/models/agent-usage';
@@ -19,7 +19,12 @@ import { defaultImageModel, defaultTextModel, getSupportedImagesModels } from '@
 import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { CallAI, CallAIImage, RunAssistantCallback, RuntimeExecutor, nextTaskId } from '@blocklet/ai-runtime/core';
 import { toolCallsTransform } from '@blocklet/ai-runtime/core/utils/tool-calls-transform';
-import { AssistantResponseType, RuntimeOutputVariable, isImageAssistant } from '@blocklet/ai-runtime/types';
+import {
+  AssistantResponseType,
+  ImageAssistant,
+  PromptAssistant,
+  RuntimeOutputVariable,
+} from '@blocklet/ai-runtime/types';
 import { RuntimeError, RuntimeErrorType } from '@blocklet/ai-runtime/types/runtime/error';
 import { getUserPassports, quotaChecker } from '@blocklet/aigne-sdk/api/premium';
 import middlewares from '@blocklet/sdk/lib/middlewares';
@@ -140,7 +145,42 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
 
   await validateDebugModeAccess(!!input.debug, userId, req.user?.role || '', project.createdBy);
 
+  let executor: RuntimeExecutor;
+  const adapter = await getAdapter(agent);
+
+  const getAdapterAgent = async () => {
+    if (!adapter) return null;
+
+    return executor.context.getAgent({
+      aid: stringifyIdentity({
+        blockletDid: adapter.blockletDid,
+        projectId: adapter.projectId,
+        projectRef,
+        agentId: adapter.agent.id,
+      }),
+      working: agent.identity.working,
+      rejectOnEmpty: true,
+    });
+  };
+
   const callAI: CallAI = async ({ input }) => {
+    const adapterAgent = await getAdapterAgent();
+
+    if (adapterAgent) {
+      return (
+        await executor.context
+          .executor(adapterAgent, {
+            inputs: {
+              model: (agent as PromptAssistant).model,
+              [adapterAgent.parameters?.find((i) => i.type === 'llmInputMessages' && !i.hidden)?.key!]: input.messages,
+            },
+            taskId: nextTaskId(),
+            parentTaskId: taskId,
+          })
+          .execute()
+      )[RuntimeOutputVariable.llmResponseStream] as ReadableStream<ChatCompletionResponse>;
+    }
+
     const stream = await chatCompletions({
       ...input,
       model: input.model || project.model || defaultTextModel,
@@ -159,7 +199,6 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
               usage.promptTokens += chunk.usage.promptTokens;
               usage.completionTokens += chunk.usage.completionTokens;
             }
-
             controller.enqueue(chunk);
           }
         } catch (error) {
@@ -170,10 +209,28 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
     });
   };
 
-  const callAIImage: CallAIImage = async ({ assistant, input }) => {
-    const imageAssistant = isImageAssistant(assistant) ? assistant : undefined;
+  const callAIImage: CallAIImage = async ({ input }) => {
+    const adapterAgent = await getAdapterAgent();
+    if (adapterAgent) {
+      const result = await executor.context
+        .executor(adapterAgent, {
+          inputs: { ...input, ...agent.modelSettings },
+          taskId: nextTaskId(),
+          parentTaskId: taskId,
+        })
+        .execute();
+
+      const uploadImages = await Promise.all(
+        result[RuntimeOutputVariable.images].map(async (data: { url: string }) => ({
+          url: (await uploadImageToImageBin({ filename: `AI Generate ${Date.now()}.png`, data, userId })).url,
+        }))
+      );
+
+      return { data: uploadImages };
+    }
+
     const supportImages = await getSupportedImagesModels();
-    const imageModel = supportImages.find((i) => i.model === (imageAssistant?.model || defaultImageModel));
+    const imageModel = supportImages.find((i) => i.model === ((agent as ImageAssistant)?.model || defaultImageModel));
 
     const model = {
       model: input.model || imageModel?.model,
@@ -182,6 +239,7 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
       style: input.style || imageModel?.styleDefault,
       size: input.size || imageModel?.sizeDefault,
     };
+
     return imageGenerations({
       ...input,
       ...model,
@@ -305,7 +363,7 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
       },
     });
 
-    const executor = new RuntimeExecutor(
+    executor = new RuntimeExecutor(
       {
         entry: {
           blockletDid,

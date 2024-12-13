@@ -1,3 +1,7 @@
+## 0.4.168 (2024-12-13)
+
+- feat: improve model selection and settings
+
 ## 0.4.167 (2024-12-13)
 
 - chore: update new type for upload image to media-kit
