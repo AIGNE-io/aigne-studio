@@ -1,3 +1,7 @@
+## 0.4.171 (2024-12-13)
+
+- fix: remove unnecessary token middleware
+
 ## 0.4.170 (2024-12-13)
 
 - fix: i18n issue
