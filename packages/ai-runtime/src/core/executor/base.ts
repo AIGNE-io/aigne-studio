@@ -418,7 +418,7 @@ export abstract class AgentExecutorBase<T> {
               return [i.key, resolvedArray];
             }
 
-            return [i.key, variables?.[i.key!] || inputs?.[i.key!]];
+            return [i.key, variables?.[i.key!] ?? inputs?.[i.key!]];
           }) ?? []
       )
     );
@@ -715,7 +715,7 @@ export abstract class AgentExecutorBase<T> {
         inputVariables[parameter.key] = Number.isNaN(parsedValue) ? (parameter.defaultValue ?? null) : parsedValue;
       } else {
         const val = inputVariables[parameter.key];
-        if (!isNil(val)) inputVariables[parameter.key] = val || null;
+        if (!isNil(val)) inputVariables[parameter.key] = val ?? null;
       }
     }
 
