@@ -28,6 +28,7 @@ export const callBlockletApi = (
     name: pathItem.name,
     path: url,
     headers,
+    data: config.body || {},
     params: { ...params, userId: did },
   });
 };

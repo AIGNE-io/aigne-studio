@@ -48,6 +48,7 @@ function DeploymentList() {
       },
       {
         field: 'createdAt',
+        width: 150,
         headerName: t('createdAt'),
         renderCell: (params) => dayjs(params?.row?.createdAt).format('YYYY-MM-DD HH:mm:ss'),
       },
@@ -172,7 +173,6 @@ function DeploymentList() {
                 [`& .${gridClasses.footerContainer}`]: { border: 0 },
               }}
               autosizeOnMount
-              getRowHeight={() => 'auto'}
               autosizeOptions={{ includeHeaders: true }}
               disableColumnMenu
               columnHeaderHeight={44}

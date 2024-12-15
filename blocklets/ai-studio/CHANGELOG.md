@@ -1,3 +1,52 @@
+## 0.4.172 (2024-12-16)
+
+- fix: agent executor default params
+
+## 0.4.171 (2024-12-13)
+
+- fix: remove unnecessary token middleware
+
+## 0.4.170 (2024-12-13)
+
+- fix: i18n issue
+
+## 0.4.169 (2024-12-13)
+
+- fix: openapi post method params error
+
+## 0.4.168 (2024-12-13)
+
+- feat: improve model selection and settings
+
+## 0.4.167 (2024-12-13)
+
+- chore: update new type for upload image to media-kit
+
+## 0.4.166 (2024-12-12)
+
+- fix: code editor close tag not working
+
+## 0.4.165 (2024-12-12)
+
+- fix: migrate data for vector db is empty
+
+## 0.4.164 (2024-12-12)
+
+- chore: support copy aid
+- fix: auto reconnect websocket for agent editor
+
+## 0.4.163 (2024-12-9)
+
+- fix: add a parameter to control whether typescript disables syntax checking.
+
+## 0.4.162 (2024-12-9)
+
+- fix: kb size be limited when export resource
+
+## 0.4.161 (2024-12-9)
+
+- fix: deployments api permission
+
 ## 0.4.160 (2024-12-4)
 
 - chore: update blocklet sdk version

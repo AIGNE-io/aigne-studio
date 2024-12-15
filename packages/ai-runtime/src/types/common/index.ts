@@ -2,7 +2,9 @@ export interface ModelInfoBase {
   brand: string;
   model: string;
   name?: string;
+  icon?: string;
   disabled?: boolean;
+  tags?: string[];
 }
 
 export interface TextModelInfo extends ModelInfoBase {

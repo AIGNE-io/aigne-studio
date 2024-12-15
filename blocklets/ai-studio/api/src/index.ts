@@ -50,16 +50,6 @@ ensureUploadDirExists().catch(console.error);
 app.set('trust proxy', true);
 app.use(cookieParser());
 
-// NOTE: 用来临时修复 middlewares.session 不支持从 Authorization header 中取 token 的问题
-app.use((req, _, next) => {
-  if (!req.cookies.login_token) {
-    const token = req.get('Authorization')?.replace('Bearer ', '');
-    if (token) req.cookies.login_token = token;
-  }
-
-  next();
-});
-
 app.use(express.json({ limit: '1 mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1 mb' }));
 app.use(cors());

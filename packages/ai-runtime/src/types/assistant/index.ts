@@ -284,6 +284,7 @@ export interface ImageAssistant extends AssistantBase {
   quality?: string;
   style?: string;
   size?: string;
+  modelSettings?: { [key: string]: any };
 }
 
 export interface ApiAssistant extends AssistantBase {

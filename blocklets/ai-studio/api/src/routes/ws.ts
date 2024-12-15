@@ -3,7 +3,6 @@ import { IncomingMessage, Server } from 'http';
 import { Config } from '@api/libs/env';
 import logger from '@api/libs/logger';
 import { verifyLoginToken } from '@blocklet/sdk/lib/util/verify-session';
-import { getQuery } from 'ufo';
 import ws from 'ws';
 
 import { isRefReadOnly } from '../libs/security';
@@ -60,7 +59,7 @@ export function handleYjsWebSocketUpgrade(server: Server) {
 }
 
 async function verifyWSToken(req: IncomingMessage, roles: string[] | undefined) {
-  const { token } = getQuery(req.url || '');
+  const token = req.headers.cookie?.match('login_token=(?<token>[^;]+)')?.groups?.token;
   if (typeof token !== 'string') return false;
 
   try {

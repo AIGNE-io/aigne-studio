@@ -101,14 +101,14 @@ export abstract class BaseProcessor {
   }
 
   preprocessText(text: string): string {
-    // 替换连续的空格、换行符和制表符
-    let processed = text.replace(/\s+/g, ' ');
-    // 删除 URL
-    processed = processed.replace(/https?:\/\/(?:[\w-]+\.)+[a-z]{2,}(?:\/[^\s]*)?/gi, '');
-    // 删除邮件地址
-    processed = processed.replace(/[\w.-]+@[\w.-]+\w+/g, '');
+    // // 替换连续的空格、换行符和制表符
+    // let processed = text.replace(/\s+/g, ' ');
+    // // 删除 URL
+    // processed = processed.replace(/https?:\/\/(?:[\w-]+\.)+[a-z]{2,}(?:\/[^\s]*)?/gi, '');
+    // // 删除邮件地址
+    // processed = processed.replace(/[\w.-]+@[\w.-]+\w+/g, '');
 
-    return processed.trim();
+    return text.trim();
   }
 
   protected abstract saveOriginalFile(): Promise<void>;
@@ -120,6 +120,7 @@ export abstract class BaseProcessor {
     if (!(await exists(processedFilePath))) throw new Error(`processedFilePath ${processedFilePath} not found`);
 
     const fileContent = (await readFile(processedFilePath)).toString();
+    const document = await this.getDocument();
 
     const contents = parse(fileContent);
     const array = Array.isArray(contents) ? contents : [contents];
@@ -185,6 +186,7 @@ export abstract class BaseProcessor {
           knowledgeId: this.knowledgeId,
           documentId: this.documentId,
           update: this.update,
+          type: document.type,
         });
 
         if (currentTotal > 1) {

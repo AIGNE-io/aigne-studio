@@ -1,4 +1,4 @@
-import { rmSync } from 'fs';
+import { readFileSync, rmSync } from 'fs';
 
 import { call, getComponentMountPoint } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
@@ -33,6 +33,7 @@ const upload = multer({
 });
 
 const maxImageCount = config.env.preferences.maxImageCount || 1;
+
 router.post('/upload', upload.array('images', maxImageCount), async (req: Request, res: Response) => {
   const files = req.files as Express.Multer.File[];
 
@@ -47,7 +48,7 @@ router.post('/upload', upload.array('images', maxImageCount), async (req: Reques
         name: 'image-bin',
         path: '/api/sdk/uploads',
         headers: { 'x-user-did': config.env.appId },
-        data: { type: 'path', data: file.path, filename: file.originalname },
+        data: { type: 'base64', data: readFileSync(file.path).toString('base64'), filename: file.originalname },
       });
 
       return {
