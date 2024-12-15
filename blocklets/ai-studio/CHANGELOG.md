@@ -1,3 +1,7 @@
+## 0.4.172 (2024-12-16)
+
+- fix: agent executor default params
+
 ## 0.4.171 (2024-12-13)
 
 - fix: remove unnecessary token middleware
