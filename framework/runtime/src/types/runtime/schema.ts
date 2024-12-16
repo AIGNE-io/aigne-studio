@@ -250,15 +250,6 @@ export function outputVariablesToJoiSchema(
   })!;
 }
 
-type JSONSchema = {
-  type: string;
-  description?: string;
-  properties?: { [key: string]: JSONSchema };
-  items?: JSONSchema;
-  required?: string[];
-  [key: string]: any;
-};
-
 export enum RuntimeOutputVariable {
   llmResponseStream = '$llmResponseStream',
   text = '$text',

@@ -4,8 +4,6 @@ import AuthService from '@blocklet/sdk/lib/service/auth';
 import { AIGNE_ISSUE_VC_PREFIX } from '../../constants';
 import type { ExecutorContext } from '../../executor/base';
 
-export const authService = new AuthService();
-
 export async function issueVC({
   context: { entry },
   userDid,
@@ -29,6 +27,8 @@ export async function issueVC({
   if (!name.startsWith(AIGNE_ISSUE_VC_PREFIX)) name = `${AIGNE_ISSUE_VC_PREFIX}${name}`;
 
   await createPassportIfNotExist({ name, title, description });
+
+  const authService = new AuthService();
 
   const userResult = await authService.getUser(userDid, { includeTags: true });
   if (!userResult.user) throw new Error(`User not found ${userDid}`);
@@ -92,6 +92,8 @@ async function createPassportIfNotExist({
   title: string;
   description: string;
 }) {
+  const authService = new AuthService();
+
   CREATE_PASSPORT_TASKS[name] ??= (async () => {
     try {
       let result = await authService.getRole(name);
