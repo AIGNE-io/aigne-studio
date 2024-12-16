@@ -1,3 +1,7 @@
+## 0.4.173 (2024-12-16)
+
+- fix: call media-kit upload image api params
+
 ## 0.4.172 (2024-12-16)
 
 - fix: agent executor default params
