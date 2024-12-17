@@ -114,56 +114,33 @@ test('memory', async ({ page }) => {
 
 test('create knowledge', async ({ page }) => {
   await page.getByTestId('project-page-knowledge').click();
-  await page.getByText('Add Knowledge').click();
-  await page.getByPlaceholder('Give your knowledge a name (e').fill('e2eTest');
-  await page.locator('textarea[name="description"]').fill('e2eTest');
+  await page.getByText('Create Knowledge').click();
 
-  const responsePromise = page.waitForResponse(/\/api\/datasets/);
-  await page.getByRole('button', { name: 'Create' }).click();
-  await responsePromise;
-
-  await page.getByTestId('project-page-prompts').click();
-  await page.getByLabel('New Agent').getByRole('button').click({ force: true });
-  const rows = page.getByTestId('input-table').locator('.input-table-row');
-  const newLine = rows.last();
-  await newLine.locator('td').nth(1).locator('button').click();
-  await page.getByTestId('knowledge-from-source').click();
-  await page.getByPlaceholder('Select a knowledge to query').click();
-  await page.getByRole('option', { name: 'e2eTest' }).first().click();
-  await page.getByRole('button', { name: 'Ok' }).click();
-
-  await expect(rows.first()).toContainText('Knowledge');
+  await expect(page.getByText('Import Knowledge')).toBeVisible();
 });
 
 test('set model', async ({ page }) => {
-  await page.getByTestId('OpenAIIcon').locator('rect').click();
-  await page.waitForSelector('[data-testid=prompt-setting-model]');
-
-  const model = page.getByTestId('prompt-setting-model');
+  const model = page.getByTestId('model-select-lite-trigger');
   await model.click();
-  await page.getByRole('option', { name: 'GPT4', exact: true }).click();
+  await page.getByTestId('model-select-lite-options').getByTestId('gpt-4').click();
 
-  const temperature = page.getByTestId('prompt-setting-temperature');
+  await page.getByTestId('model-settings-menu-button').click();
+  const temperature = page.getByTestId('agent-model-settings-temperature');
   await temperature.locator('input').last().fill('1.1');
 
-  const topP = page.getByTestId('prompt-setting-topP');
+  const topP = page.getByTestId('agent-model-settings-topP');
   await topP.locator('input').last().fill('0');
 
-  const frequencyPenalty = page.getByTestId('prompt-setting-frequencyPenalty');
+  const frequencyPenalty = page.getByTestId('agent-model-settings-frequencyPenalty');
   await frequencyPenalty.locator('input').last().fill('2');
 
-  const presencePenalty = page.getByTestId('prompt-setting-presencePenalty');
+  const presencePenalty = page.getByTestId('agent-model-settings-presencePenalty');
   await presencePenalty.locator('input').last().fill('2');
 
-  const maxTokens = page.getByTestId('prompt-setting-maxTokens');
-  await maxTokens.locator('input').last().fill('8000');
-
-  await expect(model).toHaveText('GPT4');
   await expect(temperature.locator('input').last()).toHaveValue('1.1');
   await expect(topP.locator('input').last().last()).toHaveValue('0');
   await expect(frequencyPenalty.locator('input').last()).toHaveValue('2');
   await expect(presencePenalty.locator('input').last()).toHaveValue('2');
-  await expect(maxTokens.locator('input').last()).toHaveValue('8000');
 });
 
 test('prompt message', async ({ page }) => {

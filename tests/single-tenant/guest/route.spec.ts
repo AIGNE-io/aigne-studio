@@ -26,9 +26,10 @@ test.describe.serial('routing permissions', () => {
   });
 
   test('apps', async ({ page }) => {
-    await page.goto('/apps');
+    await page.goto('/apps/1');
     await page.waitForLoadState('networkidle');
 
     await expect(page).not.toHaveURL('apps');
+    await expect(page.getByText('current agent application not published')).toBeVisible();
   });
 });

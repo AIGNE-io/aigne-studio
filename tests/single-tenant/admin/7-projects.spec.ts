@@ -46,8 +46,8 @@ test.describe.serial('projects', () => {
     await page.getByTestId('header-actions-setting').click();
     await page.getByRole('tab', { name: 'DID Spaces' }).click();
     await page.getByLabel('Auto sync when saving').check();
-    const responsePromise = page.waitForResponse((response) => response.url().includes('/remote/sync'));
-    await page.getByRole('button', { name: 'Sync' }).click();
+    const responsePromise = page.waitForResponse((response) => response.url().includes('/api/projects/'));
+    await page.getByText('Auto sync when saving').click();
     await responsePromise;
 
     // await page.goto('/projects');

@@ -1,7 +1,7 @@
-/* eslint-disable no-console */
+import { login } from '@blocklet/testlab/utils/playwright';
+import { ensureWallet } from '@blocklet/testlab/utils/wallet';
 import { expect, test } from '@playwright/test';
 
-// import { createProject } from '../../utils/project';
 import { installBlocklet, unInstallBlocklet } from '../../utils/uninstall';
 
 const secretKey = 'f712dac84b4f84c3c2fa079896572ed19e2738e23baf025f2c8764d5d8598deb';
@@ -14,7 +14,7 @@ test.describe.serial('resource blocklet', () => {
     await page.waitForSelector('button:has-text("Add Blocklet")');
   });
 
-  test.describe.configure({ retries: 5 });
+  test.describe.configure({ retries: 3 });
 
   test('init', async ({ page }) => {
     await page.waitForTimeout(5000);
@@ -28,10 +28,24 @@ test.describe.serial('resource blocklet', () => {
     await page.locator("button span:has-text('Blocklets')").click();
     await page.locator('button:has-text("Add Blocklet")').waitFor();
 
-    await unInstallBlocklet(page, 'Mockplexity');
-    await unInstallBlocklet(page, 'SerpApi');
+    const appWallet = ensureWallet({ name: 'single-tenant-mode-app', onlyFromCache: true });
+    const loginParams = {
+      page,
+      wallet: ensureWallet({ name: 'owner' }),
+      appWallet,
+      passport: { name: 'owner', title: 'owner' },
+      popup: false,
+    };
 
-    await installBlocklet(page);
+    await unInstallBlocklet(page, 'Mockplexity');
+    const promise = page.waitForResponse((response) => response.url().includes('api/gql') && response.status() === 200);
+    await login(loginParams);
+    await promise;
+
+    const blocklet = page.locator('.component-name').filter({ hasText: 'Mockplexity' });
+    if ((await blocklet.count()) === 0) {
+      await installBlocklet(page);
+    }
   });
 
   test('open resource blocklet', async ({ page }) => {
@@ -64,6 +78,7 @@ test.describe.serial('resource blocklet', () => {
   });
 
   test('input form', async ({ page }) => {
+    await page.goto('/mockplexity/');
     await page.waitForLoadState('networkidle');
 
     page.route(/\/api\/ai\/call/, (route) => {
