@@ -1,3 +1,7 @@
+## 0.4.176 (2024-12-17)
+
+- chore: update start timeout for blocklet start
+
 ## 0.4.174 (2024-12-17)
 
 - fix: project name field validate issue
