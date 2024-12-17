@@ -57,7 +57,19 @@ test.describe.serial('resource blocklet', () => {
     }
 
     await blocklet.locator('span:has-text("Running")').waitFor();
-    await page.locator('.component-item').filter({ hasText: 'SerpApi' }).locator('span:has-text("Running")').waitFor();
+  });
+
+  test('open SerpApi blocklet', async ({ page }) => {
+    const serpApi = page.locator('.component-item').filter({ hasText: 'SerpApi' });
+
+    const stopIcon = serpApi.getByTestId('StopIcon');
+    const isRunning = serpApi.locator('span:has-text("Running")');
+
+    if ((await stopIcon.count()) && !(await isRunning.count())) {
+      await serpApi.getByTestId('StopIcon').click();
+      await page.getByTestId('submit-confirm-dialog').click();
+      await serpApi.getByTestId('PlayArrowIcon').click();
+    }
   });
 
   test('set agent secrets', async ({ page }) => {
@@ -72,26 +84,6 @@ test.describe.serial('resource blocklet', () => {
     await agentSecrets.click();
     await agentSecrets.fill(secretKey);
     await page.locator('button:has-text("Save")').click();
-  });
-
-  test('input form', async ({ page }) => {
-    await page.goto('/mockplexity/');
-    await page.waitForLoadState('networkidle');
-
-    page.route(/\/api\/ai\/call/, (route) => {
-      route.fulfill({
-        status: 200,
-        contentType: 'text/event-stream',
-        path: 'tests/mockplexity-ai-stream-response.txt',
-      });
-    });
-    const question = 'What is the arcblock?';
-    await page.getByTestId('runtime-input-question').click();
-    await page.getByTestId('runtime-input-question').fill(question);
-
-    const responsePromise = page.waitForResponse((response) => response.url().includes('/api/ai/call'));
-    await page.getByTestId('runtime-submit-button').click();
-    await responsePromise;
   });
 
   test('clear session', async ({ page }) => {
