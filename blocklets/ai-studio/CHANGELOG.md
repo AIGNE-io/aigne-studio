@@ -1,3 +1,7 @@
+## 0.4.174 (2024-12-17)
+
+- fix: e2e not working
+
 ## 0.4.173 (2024-12-16)
 
 - fix: call media-kit upload image api params
