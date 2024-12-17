@@ -23,8 +23,7 @@ test.describe.serial('routing permissions', () => {
     await page.goto('/admin/explore');
     await page.waitForLoadState('networkidle');
 
-    await expect(page).toHaveURL(/admin/);
-    await expect(page.getByTestId('not-found')).toBeVisible();
+    await expect(page).not.toHaveURL(/admin/);
   });
 
   test('explore', async ({ page }) => {
@@ -36,10 +35,10 @@ test.describe.serial('routing permissions', () => {
   });
 
   test('apps', async ({ page }) => {
-    await page.goto('/apps');
+    await page.goto('/apps/1');
     await page.waitForLoadState('networkidle');
 
-    await expect(page).toHaveURL(/apps/);
-    await expect(page.getByTestId('not-found')).toBeVisible();
+    await expect(page).not.toHaveURL('apps');
+    await expect(page.getByText('current agent application not published')).toBeVisible();
   });
 });

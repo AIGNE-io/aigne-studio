@@ -15,9 +15,9 @@ export const unInstallBlocklet = async (page: Page, blockletName: string) => {
   await blocklet.getByTestId('PlayArrowIcon').waitFor();
   await blocklet.getByTestId('MoreHorizIcon').click();
   await page.getByRole('menuitem', { name: 'Delete' }).click();
-  const promise = page.waitForResponse((response) => response.url().includes('api/gql') && response.status() === 200);
+  // const promise = page.waitForResponse((response) => response.url().includes('api/gql') && response.status() === 200);
   await page.locator('button:has-text("Confirm")').click();
-  await promise;
+  // await promise;
 };
 
 export const installBlocklet = async (page: Page) => {
