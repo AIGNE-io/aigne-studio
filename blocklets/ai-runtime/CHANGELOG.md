@@ -1,6 +1,10 @@
-## 0.4.174 (2024-12-17)
+## 0.4.175 (2024-12-17)
 
 - fix: e2e not working
+
+## 0.4.174 (2024-12-17)
+
+- fix: project name field validate issue
 
 ## 0.4.173 (2024-12-16)
 

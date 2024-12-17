@@ -37,7 +37,6 @@ export default function ImportFromFork({
   const { t } = useLocaleContext();
 
   const form = useForm<BlankForm>({
-    reValidateMode: 'onSubmit',
     defaultValues: { name: project.name, description: project.description },
   });
 
