@@ -268,7 +268,7 @@ function ProjectMenu() {
       templates.find((i) => i.id === menuAnchor.id && i.blockletDid === menuAnchor.blockletDid) ??
       examples.find((i) => i.id === menuAnchor.id && i.blockletDid === menuAnchor.blockletDid));
 
-  const form = useForm({ defaultValues: { name: '', description: '' }, reValidateMode: 'onSubmit' });
+  const form = useForm({ defaultValues: { name: '', description: '' } });
   const { dialog, showDialog, closeDialog } = useDialog();
 
   const onDelete = ({ isReset }: { isReset?: boolean } = {}) => {

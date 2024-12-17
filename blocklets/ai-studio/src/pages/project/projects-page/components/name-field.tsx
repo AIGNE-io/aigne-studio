@@ -3,7 +3,6 @@ import { checkProjectName, getProjectIconUrl } from '@app/libs/project';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { joinURL } from '@blocklet/ai-runtime/front/utils/mount-point';
 import { Box, TextField } from '@mui/material';
-import { useDebounceFn } from 'ahooks';
 import { useEffect, useState } from 'react';
 import { Controller, UseFormReturn } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
@@ -18,7 +17,6 @@ interface NameFieldProps {
 const NameField = ({ form, projectId, triggerOnMount = false, beforeDuplicateProjectNavigate }: NameFieldProps) => {
   const { t } = useLocaleContext();
   const navigate = useNavigate();
-  const { run: debouncedCheckProjectName } = useDebounceFn(() => form.trigger('name'), { wait: 300 });
   const [duplicateProject, setDuplicateProject] = useState<Project | undefined>();
 
   useEffect(() => {
@@ -46,19 +44,15 @@ const NameField = ({ form, projectId, triggerOnMount = false, beforeDuplicatePro
           return res.ok ? true : t('validation.nameExists');
         },
       }}
-      render={({ field: { onChange, ...rest }, fieldState }) => {
+      render={({ field, fieldState }) => {
         return (
           <TextField
             data-testid="projectNameField"
             placeholder={t('newProjectNamePlaceholder')}
             hiddenLabel
             autoFocus
-            onChange={(e) => {
-              onChange(e);
-              debouncedCheckProjectName();
-            }}
             sx={{ width: 1, '.MuiInputBase-root': { border: '1px solid #E5E7EB', borderRadius: '8px' } }}
-            {...rest}
+            {...field}
             error={!!fieldState.error}
             helperText={
               <HelperText
@@ -83,9 +77,16 @@ const HelperText = ({
   project?: Project;
   onDuplicateProject?: (project: Project) => void;
 }) => {
-  if (!message) return null;
   return (
-    <Box component="span" display="flex" alignItems="center" gap={1}>
+    <Box
+      component="span"
+      sx={{
+        height: message ? 24 : 0,
+        transition: 'height 0.3s',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 1,
+      }}>
       <Box component="span" sx={{ flexShrink: 0 }}>
         {message}
       </Box>

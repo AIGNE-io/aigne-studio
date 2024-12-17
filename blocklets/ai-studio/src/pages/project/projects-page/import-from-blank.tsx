@@ -50,7 +50,6 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
 
   const form = useForm<BlankForm>({
     defaultValues: { description: '', name: '', templateIds: '' },
-    reValidateMode: 'onSubmit',
   });
   const templateIds = form.watch('templateIds');
 
