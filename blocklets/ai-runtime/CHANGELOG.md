@@ -1,6 +1,6 @@
-## 0.4.175 (2024-12-17)
+## 0.4.176 (2024-12-17)
 
-- fix: e2e not working
+- chore: update start timeout for blocklet start
 
 ## 0.4.174 (2024-12-17)
 
