@@ -49,13 +49,7 @@ export default function ImportFromGit({ onClose }: { onClose: () => void }) {
   const { importProject, createLimitDialog } = useProjectsState();
 
   const form = useForm<RemoteRepoSettingForm>({
-    defaultValues: {
-      url: '',
-      description: '',
-      password: '',
-      name: '',
-    },
-    reValidateMode: 'onSubmit',
+    defaultValues: { url: '', description: '', password: '', name: '' },
   });
 
   const saveSetting = useCallback(

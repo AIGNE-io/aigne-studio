@@ -236,12 +236,7 @@ export default function FromDidSpacesImport() {
   }, [endpoint]);
 
   const form = useForm<ProjectSettingForm>({
-    defaultValues: {
-      id: '',
-      name: '',
-      description: '',
-    },
-    reValidateMode: 'onSubmit',
+    defaultValues: { id: '', name: '', description: '' },
   });
 
   const importProject = useCallback(
