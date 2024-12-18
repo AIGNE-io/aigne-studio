@@ -27,7 +27,7 @@ export function ModelSettingsMenuButton({ agent }: ModelSettingsMenuButtonProps)
 
   return (
     <>
-      <IconButton size="small" onClick={dialogState.open} disabled={!model}>
+      <IconButton size="small" onClick={dialogState.open} disabled={!model} data-testid="model-settings-menu-button">
         <Icon icon={Menu2Icon} />
       </IconButton>
       <Dialog maxWidth="sm" fullWidth fullScreen={downSm} {...bindDialog(dialogState)}>

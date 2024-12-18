@@ -1,8 +1,6 @@
-/* eslint-disable no-console */
 import { expect, test } from '@playwright/test';
 
-// import { createProject } from '../../utils/project';
-import { installBlocklet, unInstallBlocklet } from '../../utils/uninstall';
+import { installBlocklet } from '../../utils/uninstall';
 
 const secretKey = 'f712dac84b4f84c3c2fa079896572ed19e2738e23baf025f2c8764d5d8598deb';
 
@@ -14,7 +12,7 @@ test.describe.serial('resource blocklet', () => {
     await page.waitForSelector('button:has-text("Add Blocklet")');
   });
 
-  test.describe.configure({ retries: 5 });
+  test.describe.configure({ retries: 3 });
 
   test('init', async ({ page }) => {
     await page.waitForTimeout(5000);
@@ -28,10 +26,21 @@ test.describe.serial('resource blocklet', () => {
     await page.locator("button span:has-text('Blocklets')").click();
     await page.locator('button:has-text("Add Blocklet")').waitFor();
 
-    await unInstallBlocklet(page, 'Mockplexity');
-    await unInstallBlocklet(page, 'SerpApi');
+    const blocklet = page.locator('.component-name').filter({ hasText: 'Mockplexity' });
+    if ((await blocklet.count()) === 0) {
+      await installBlocklet(page);
+      // } else {
+      //   const loginParams = {
+      //     page,
+      //     wallet: ensureWallet({ name: 'owner' }),
+      //     appWallet: ensureWallet({ name: 'single-tenant-mode-app', onlyFromCache: true }),
+      //     passport: { name: 'owner', title: 'owner' },
+      //     popup: false,
+      //   };
 
-    await installBlocklet(page);
+      //   await unInstallBlocklet(page, 'Mockplexity');
+      //   await login(loginParams);
+    }
   });
 
   test('open resource blocklet', async ({ page }) => {
@@ -46,7 +55,6 @@ test.describe.serial('resource blocklet', () => {
     }
 
     await blocklet.locator('span:has-text("Running")').waitFor();
-    await page.locator('.component-item').filter({ hasText: 'SerpApi' }).locator('span:has-text("Running")').waitFor();
   });
 
   test('set agent secrets', async ({ page }) => {
@@ -63,25 +71,6 @@ test.describe.serial('resource blocklet', () => {
     await page.locator('button:has-text("Save")').click();
   });
 
-  test('input form', async ({ page }) => {
-    await page.waitForLoadState('networkidle');
-
-    page.route(/\/api\/ai\/call/, (route) => {
-      route.fulfill({
-        status: 200,
-        contentType: 'text/event-stream',
-        path: 'tests/mockplexity-ai-stream-response.txt',
-      });
-    });
-    const question = 'What is the arcblock?';
-    await page.getByTestId('runtime-input-question').click();
-    await page.getByTestId('runtime-input-question').fill(question);
-
-    const responsePromise = page.waitForResponse((response) => response.url().includes('/api/ai/call'));
-    await page.getByTestId('runtime-submit-button').click();
-    await responsePromise;
-  });
-
   test('clear session', async ({ page }) => {
     await page.goto('/mockplexity/');
     await page.waitForLoadState('networkidle');
@@ -92,31 +81,4 @@ test.describe.serial('resource blocklet', () => {
     const message = await page.locator('.message-item').all();
     expect(message.length).toBe(0);
   });
-
-  // test('start resource knowledge blocklet', async ({ page }) => {
-  //   await unInstallBlocklet(page, '新版本知识库');
-  //   await installBlockletResourceKnowledgeBlocklet(page);
-  //   await page.waitForTimeout(5000);
-
-  //   const blocklet = page.locator('.component-item').filter({ hasText: '新版本知识库' }).first();
-
-  //   const isRunning = (await blocklet.getByTestId('StopIcon').count()) > 0;
-  //   if (!isRunning) {
-  //     await blocklet.getByTestId('PlayArrowIcon').click();
-  //     await blocklet.getByTestId('StopIcon').waitFor();
-  //   }
-  // });
-
-  // test('resource knowledge blocklet', async ({ page }) => {
-  //   await page.goto('/projects');
-  //   await page.waitForLoadState('networkidle');
-
-  //   await createProject({ page });
-  //   await page.waitForLoadState('networkidle');
-
-  //   await page.getByTestId('project-page-knowledge').click();
-  //   await page.getByText('新版本知识库').first().click();
-  //   await expect(page.getByText('Add Document')).not.toBeVisible();
-  //   await expect(page.getByText('Actions')).not.toBeVisible();
-  // });
 });

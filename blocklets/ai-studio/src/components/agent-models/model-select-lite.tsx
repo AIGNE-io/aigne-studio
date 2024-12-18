@@ -23,7 +23,7 @@ function InternalModelSelectLite({ options, value, onChange, onAddMoreModel, ...
   const selectedOption = options.find((option) => option.model === value);
   return (
     <Box {...rest}>
-      <Button color="inherit" {...bindTrigger(popperState)}>
+      <Button color="inherit" {...bindTrigger(popperState)} data-testid="model-select-lite-trigger">
         {selectedOption?.model && (
           <ModelBrandIcon model={selectedOption.model} url={selectedOption.icon} size="small" sx={{ mr: 0.5 }} />
         )}
@@ -43,11 +43,12 @@ function InternalModelSelectLite({ options, value, onChange, onAddMoreModel, ...
               <ClickAwayListener
                 onClickAway={(e) => (e.target as HTMLElement)?.localName !== 'body' && popperState.close()}>
                 <Stack>
-                  <Box sx={{ maxHeight: 240, p: 1, overflowY: 'auto' }}>
+                  <Box sx={{ maxHeight: 240, p: 1, overflowY: 'auto' }} data-testid="model-select-lite-options">
                     {options.map((option) => {
                       const isSelected = option.model === value;
                       return (
                         <Stack
+                          data-testid={option.model}
                           direction="row"
                           justifyContent="space-between"
                           alignItems="center"

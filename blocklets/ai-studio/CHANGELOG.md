@@ -1,3 +1,7 @@
+## 0.4.177 (2024-12-18)
+
+- fix: data not loading after changing resource type
+
 ## 0.4.176 (2024-12-17)
 
 - chore: update start timeout for blocklet start

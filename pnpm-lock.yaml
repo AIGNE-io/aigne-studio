@@ -71,8 +71,8 @@ importers:
         specifier: workspace:^
         version: link:packages/ai-runtime
       '@blocklet/testlab':
-        specifier: ^0.0.17
-        version: 0.0.17
+        specifier: ^0.0.19
+        version: 0.0.19
       '@changesets/cli':
         specifier: ^2.27.10
         version: 2.27.10
@@ -243,7 +243,7 @@ importers:
         version: 7.0.1
       axios:
         specifier: ^1.7.5
-        version: 1.7.5(debug@4.3.7)
+        version: 1.7.5(debug@4.3.6)
       compression:
         specifier: ^1.7.4
         version: 1.7.4
@@ -622,7 +622,7 @@ importers:
         version: 8.17.1
       axios:
         specifier: ^1.7.5
-        version: 1.7.5(debug@4.3.7)
+        version: 1.7.5(debug@4.3.6)
       bytes:
         specifier: ^3.1.2
         version: 3.1.2
@@ -1040,7 +1040,7 @@ importers:
         version: 1.16.34-beta-20241204-140321-4d75ca21(encoding@0.1.13)
       axios:
         specifier: ^1.7.5
-        version: 1.7.5(debug@4.3.7)
+        version: 1.7.5(debug@4.3.6)
       cron:
         specifier: ^3.1.7
         version: 3.1.7
@@ -1128,7 +1128,7 @@ importers:
         version: 1.16.34-beta-20241204-140321-4d75ca21(encoding@0.1.13)
       axios:
         specifier: ^1.7.5
-        version: 1.7.5(debug@4.3.7)
+        version: 1.7.5(debug@4.3.6)
       commander:
         specifier: ^12.1.0
         version: 12.1.0
@@ -1276,7 +1276,7 @@ importers:
         version: 8.17.1
       axios:
         specifier: ^1.7.5
-        version: 1.7.5(debug@4.3.7)
+        version: 1.7.5(debug@4.3.6)
       cron:
         specifier: ^3.1.7
         version: 3.1.7
@@ -1478,7 +1478,7 @@ importers:
         version: 3.8.1(react@18.3.1)
       axios:
         specifier: ^1.7.5
-        version: 1.7.5(debug@4.3.7)
+        version: 1.7.5(debug@4.3.6)
       dayjs:
         specifier: ^1.11.13
         version: 1.11.13
@@ -1751,7 +1751,7 @@ importers:
         version: 8.17.1
       axios:
         specifier: ^1.7.5
-        version: 1.7.5(debug@4.3.7)
+        version: 1.7.5(debug@4.3.6)
       express:
         specifier: ^4.19.2
         version: 4.19.2
@@ -3260,8 +3260,8 @@ packages:
   '@blocklet/sdk@1.16.34-beta-20241204-140321-4d75ca21':
     resolution: {integrity: sha512-e4oNnt8jH4Pkv+iz/w7eswzGFc9h0Aqi8umi6RRYSKOFhPQcFPUWh44QEtEmR783Ua9JETP5xUDOCjz6kJREEw==}
 
-  '@blocklet/testlab@0.0.17':
-    resolution: {integrity: sha512-qr1nI1QDADpkEqoora86iEQvkeeHAn/bftV/VI5ImeNxlDZ5xIIgt1pKMM+hiGiNQu4NqmVyo3kt9500x+9aXg==}
+  '@blocklet/testlab@0.0.19':
+    resolution: {integrity: sha512-I+bIowemJVcRwLWNDph+FhZDMe1k8aPGdQ8i3CZU51DV+JSyrdXqZAcInCoaYZNH84TgxkuGeSXW1NV5blUy9Q==}
 
   '@blocklet/tracker@1.16.33':
     resolution: {integrity: sha512-mxX81iT/RJ6E2V10eoQgZx88vMkGCZ5QefL3blGRo5lRSutGpNjdeYsZA3XY2DhkLI2tJea7vcnxc7YqTiB5cw==}
@@ -18122,7 +18122,7 @@ snapshots:
       '@iconify/react': 4.1.1(react@18.3.1)
       '@mui/material': 5.16.7(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       ahooks: 3.8.1(react@18.3.1)
-      axios: 1.7.5(debug@4.3.7)
+      axios: 1.7.5(debug@4.3.6)
       buffer: 6.0.3
       core-js: 3.38.1
       eventemitter3: 5.0.1
@@ -18189,7 +18189,7 @@ snapshots:
       '@blocklet/js-sdk': 1.16.34-beta-20241204-140321-4d75ca21
       '@ocap/merkle-tree': 1.18.147
       '@ocap/util': 1.18.161
-      axios: 1.7.5(debug@4.3.7)
+      axios: 1.7.5(debug@4.3.6)
       eslint: 8.57.0
       ethereumjs-abi: 0.6.8
       ethers: 5.7.2
@@ -18398,7 +18398,7 @@ snapshots:
       '@types/dompurify': 3.2.0
       '@types/mui-datatables': 4.3.12(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       ahooks: 3.8.1(react@18.3.1)
-      axios: 1.7.5(debug@4.3.7)
+      axios: 1.7.5(debug@4.3.6)
       base64-url: 2.3.3
       copy-to-clipboard: 3.3.3
       core-js: 3.38.1
@@ -20249,7 +20249,7 @@ snapshots:
       '@ocap/mcrypto': 1.18.161
       '@types/express': 4.17.21
       ahooks: 3.8.1(react@18.3.1)
-      axios: 1.7.5(debug@4.3.7)
+      axios: 1.7.5(debug@4.3.6)
       eventsource-parser: 2.0.1
       express: 4.19.2
       file-saver: 2.0.5
@@ -20311,7 +20311,7 @@ snapshots:
       '@ocap/mcrypto': 1.18.161
       '@types/express': 4.17.21
       ahooks: 3.8.1(react@18.3.1)
-      axios: 1.7.5(debug@4.3.7)
+      axios: 1.7.5(debug@4.3.6)
       eventsource-parser: 2.0.1
       express: 4.19.2
       file-saver: 2.0.5
@@ -20373,7 +20373,7 @@ snapshots:
       '@ocap/mcrypto': 1.18.161
       '@types/express': 4.17.21
       ahooks: 3.8.1(react@18.3.1)
-      axios: 1.7.5(debug@4.3.7)
+      axios: 1.7.5(debug@4.3.6)
       eventsource-parser: 2.0.1
       express: 4.19.2
       file-saver: 2.0.5
@@ -20477,7 +20477,7 @@ snapshots:
       '@mui/material': 5.16.7(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@mui/system': 5.16.8(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react@18.3.1)
       ahooks: 3.8.1(react@18.3.1)
-      axios: 1.7.5(debug@4.3.7)
+      axios: 1.7.5(debug@4.3.6)
       compare-versions: 6.1.1
       flat: 5.0.2
       is-url: 1.2.4
@@ -20523,7 +20523,7 @@ snapshots:
       '@mui/lab': 5.0.0-alpha.173(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react@18.3.1))(@mui/material@5.16.7(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@mui/material': 5.16.7(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       ahooks: 3.8.1(react@18.3.1)
-      axios: 1.7.5(debug@4.3.7)
+      axios: 1.7.5(debug@4.3.6)
       clsx: 1.2.1
       dayjs: 1.11.13
       franc-min: 6.2.0
@@ -20610,7 +20610,7 @@ snapshots:
       '@mui/material': 5.16.7(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@uiw/react-md-editor': 3.25.6(@types/react@18.3.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       ahooks: 3.8.1(react@18.3.1)
-      axios: 1.7.5(debug@4.3.7)
+      axios: 1.7.5(debug@4.3.6)
       clsx: 1.2.1
       flat: 5.0.2
       js-cookie: 3.0.5
@@ -20855,7 +20855,7 @@ snapshots:
       '@mui/lab': 5.0.0-alpha.173(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react@18.3.1))(@mui/material@5.16.7(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@mui/material': 5.16.7(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       ahooks: 3.8.1(react@18.3.1)
-      axios: 1.7.5(debug@4.3.7)
+      axios: 1.7.5(debug@4.3.6)
       broadcast-channel: 5.5.1
       lodash: 4.17.21
       overlayscrollbars: 2.10.0
@@ -20879,7 +20879,7 @@ snapshots:
     dependencies:
       '@abtnode/constant': 1.16.34-beta-20241204-140321-4d75ca21
       '@blocklet/meta': 1.16.34-beta-20241204-140321-4d75ca21
-      axios: 1.7.5(debug@4.3.7)
+      axios: 1.7.5(debug@4.3.6)
       is-url: 1.2.4
       js-cookie: 3.0.5
       quick-lru: 7.0.0
@@ -20982,7 +20982,7 @@ snapshots:
       '@mui/material': 5.16.7(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@types/file-saver': 2.0.7
       ajv: 8.17.1
-      axios: 1.7.5(debug@4.3.7)
+      axios: 1.7.5(debug@4.3.6)
       dayjs: 1.11.13
       eventsource-parser: 2.0.1
       file-saver: 2.0.5
@@ -21067,7 +21067,7 @@ snapshots:
       '@stripe/stripe-js': 2.4.0
       '@vitejs/plugin-legacy': 5.4.2(terser@5.34.1)(vite@5.4.2(@types/node@22.9.1)(sass@1.77.7)(terser@5.34.1))
       ahooks: 3.8.1(react@18.3.1)
-      axios: 1.7.5(debug@4.3.7)
+      axios: 1.7.5(debug@4.3.6)
       dayjs: 1.11.13
       flat: 5.0.2
       google-libphonenumber: 3.2.38
@@ -21172,7 +21172,7 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@blocklet/testlab@0.0.17':
+  '@blocklet/testlab@0.0.19':
     dependencies:
       '@abtnode/constant': 1.16.34-beta-20241204-140321-4d75ca21
       '@arcblock/jwt': 1.18.161
@@ -21182,7 +21182,7 @@ snapshots:
       '@ocap/wallet': 1.18.161
       '@playwright/test': 1.46.1
       '@types/json-stable-stringify': 1.0.36
-      axios: 1.7.5(debug@4.3.7)
+      axios: 1.7.5(debug@4.3.6)
       json-stable-stringify: 1.1.1
       multiformats: 9.9.0
       ufo: 1.5.4
@@ -21219,7 +21219,7 @@ snapshots:
       '@mui/icons-material': 5.16.7(@mui/material@5.16.7(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.4)(react@18.3.1)
       '@mui/material': 5.16.7(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       ahooks: 3.8.1(react@18.3.1)
-      axios: 1.7.5(debug@4.3.7)
+      axios: 1.7.5(debug@4.3.6)
       clsx: 2.1.1
       core-js: 3.38.1
       iconify-icon: 1.0.8
@@ -21258,11 +21258,11 @@ snapshots:
       '@tus/file-store': 1.0.0(@tus/server@1.0.0)
       '@tus/server': 1.0.0
       '@uppy/companion': 4.13.2
-      axios: 1.7.5(debug@4.3.7)
+      axios: 1.7.5(debug@4.3.6)
       body-parser: 1.20.3
       crypto: 1.0.1
       express-session: 1.17.3
-      http-proxy: 1.18.1(debug@4.3.7)
+      http-proxy: 1.18.1
       isbot: 5.1.17
       mime-types: 2.1.35
       p-queue: 6.6.2
@@ -21298,7 +21298,7 @@ snapshots:
       '@uppy/url': 3.6.1(@uppy/core@3.11.2)
       '@uppy/webcam': 3.4.1(@uppy/core@3.11.2)
       ahooks: 3.8.1(react@18.3.1)
-      axios: 1.7.5(debug@4.3.7)
+      axios: 1.7.5(debug@4.3.6)
       dompurify: 3.2.3
       fflate: 0.8.2
       js-cookie: 3.0.5
@@ -23567,7 +23567,7 @@ snapshots:
 
   '@mendable/firecrawl-js@1.8.5(ws@8.18.0)':
     dependencies:
-      axios: 1.7.5(debug@4.3.7)
+      axios: 1.7.5(debug@4.3.6)
       isows: 1.0.4(ws@8.18.0)
       typescript-event-target: 1.1.1
       zod: 3.23.8
@@ -23963,7 +23963,7 @@ snapshots:
       '@web3-onboard/walletconnect': 2.6.1(@azure/cosmos@4.2.0)(@azure/identity@4.5.0)(@types/react@18.3.4)(encoding@0.1.13)(react@18.3.1)(typescript@5.5.4)(zod@3.23.8)
       add: 2.0.6
       ahooks: 3.8.1(react@18.3.1)
-      axios: 1.7.5(debug@4.3.7)
+      axios: 1.7.5(debug@4.3.6)
       cryptocurrency-icons: 0.18.1
       dayjs: 1.11.13
       ethereumjs-abi: 0.6.8
@@ -27707,7 +27707,7 @@ snapshots:
 
   axios-mock-adapter@2.1.0(axios@1.7.5):
     dependencies:
-      axios: 1.7.5(debug@4.3.7)
+      axios: 1.7.5(debug@4.3.6)
       fast-deep-equal: 3.1.3
       is-buffer: 2.0.5
 
@@ -31490,6 +31490,14 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  http-proxy@1.18.1:
+    dependencies:
+      eventemitter3: 4.0.7
+      follow-redirects: 1.15.6(debug@4.3.6)
+      requires-port: 1.0.0
+    transitivePeerDependencies:
+      - debug
+
   http-proxy@1.18.1(debug@4.3.7):
     dependencies:
       eventemitter3: 4.0.7
@@ -32930,7 +32938,7 @@ snapshots:
       '@notionhq/client': 2.2.15(encoding@0.1.13)
       '@pinecone-database/pinecone': 4.0.0
       assemblyai: 4.8.0
-      axios: 1.7.5(debug@4.3.7)
+      axios: 1.7.5(debug@4.3.6)
       chromadb: 1.9.2(@google/generative-ai@0.21.0)(cohere-ai@7.14.0(@aws-sdk/client-sso-oidc@3.696.0(@aws-sdk/client-sts@3.696.0))(encoding@0.1.13))(encoding@0.1.13)(openai@4.73.0(encoding@0.1.13)(zod@3.23.8))
       faiss-node: 0.5.1
       fast-xml-parser: 4.4.1
@@ -32973,7 +32981,7 @@ snapshots:
       '@notionhq/client': 2.2.15(encoding@0.1.13)
       '@pinecone-database/pinecone': 4.0.0
       assemblyai: 4.8.0
-      axios: 1.7.5(debug@4.3.7)
+      axios: 1.7.5(debug@4.3.6)
       chromadb: 1.9.2(@google/generative-ai@0.21.0)(cohere-ai@7.14.0(@aws-sdk/client-sso-oidc@3.696.0(@aws-sdk/client-sts@3.696.0))(encoding@0.1.13))(encoding@0.1.13)(openai@4.73.0(encoding@0.1.13)(zod@3.23.8))
       faiss-node: 0.5.1
       fast-xml-parser: 4.4.1
@@ -35118,7 +35126,7 @@ snapshots:
       '@yarnpkg/lockfile': 1.1.0
       '@yarnpkg/parsers': 3.0.0-rc.46
       '@zkochan/js-yaml': 0.0.7
-      axios: 1.7.5(debug@4.3.7)
+      axios: 1.7.5(debug@4.3.6)
       chalk: 4.1.2
       cli-cursor: 3.1.0
       cli-spinners: 2.6.1
@@ -37696,7 +37704,7 @@ snapshots:
 
   retry-axios@2.6.0(axios@1.7.5):
     dependencies:
-      axios: 1.7.5(debug@4.3.7)
+      axios: 1.7.5(debug@4.3.6)
 
   retry@0.10.1: {}
 
@@ -39799,7 +39807,7 @@ snapshots:
 
   wikipedia@2.1.2:
     dependencies:
-      axios: 1.7.5(debug@4.3.7)
+      axios: 1.7.5(debug@4.3.6)
       infobox-parser: 3.6.4
     transitivePeerDependencies:
       - debug

@@ -199,7 +199,6 @@ function DefaultPromptSetting({
             gitRef={projectRef}
             path={[agent.id, 'model']}>
             <ModelSelectField
-              data-testid="prompt-setting-model"
               hiddenLabel
               fullWidth
               value={agent.model || projectSetting?.model || defaultTextModel}
