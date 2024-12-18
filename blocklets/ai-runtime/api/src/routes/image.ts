@@ -48,7 +48,7 @@ router.post('/upload', upload.array('images', maxImageCount), async (req: Reques
         name: 'image-bin',
         path: '/api/sdk/uploads',
         headers: { 'x-user-did': config.env.appId },
-        data: { type: 'base64', data: readFileSync(file.path).toString('base64'), filename: file.originalname },
+        data: { base64: readFileSync(file.path).toString('base64'), filename: file.originalname },
       });
 
       return {
