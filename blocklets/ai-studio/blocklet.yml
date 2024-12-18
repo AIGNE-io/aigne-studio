@@ -15,7 +15,7 @@ repository:
   type: git
   url: git+https://github.com/blocklet/ai-studio.git
 specVersion: 1.2.8
-version: 0.4.160
+version: 0.4.177
 logo: screenshots/305befbbaa9ea1e61ae18431431cf0d8.png
 files:
   - dist
@@ -146,3 +146,4 @@ resource:
   types:
     - type: ai
       description: Used by AI Studio to import one or multiple project
+egress: true

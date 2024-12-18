@@ -1,8 +1,9 @@
 import Secret from '@api/store/models/secret';
+import { getSupportedImagesModels, getSupportedModels } from '@blocklet/ai-runtime/common';
 import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { GetAgentOptions, GetAgentResult } from '@blocklet/ai-runtime/core';
 import { resolveSecretInputs } from '@blocklet/ai-runtime/core/utils/resolve-secret-inputs';
-import { BlockletAgent, ProjectSettings, Variable } from '@blocklet/ai-runtime/types';
+import { BlockletAgent, ProjectSettings, ResourceType, SelectParameter, Variable } from '@blocklet/ai-runtime/types';
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 
 import { getAgentFromAIStudio, getMemoryVariablesFromAIStudio, getProjectFromAIStudio } from './ai-studio';
@@ -140,4 +141,37 @@ export async function getAgentSecretInputs(agent: GetAgentResult) {
         j.targetInputKey === i.input.key && j.targetProjectId === i.agent.project.id && j.targetAgentId === i.agent.id
     ),
   }));
+}
+
+async function isBuiltinModel(model: string) {
+  const models = [...(await getSupportedImagesModels()), ...(await getSupportedModels())];
+  return models.find((x) => x.model === model);
+}
+
+export async function getAdapter(agent: GetAgentResult) {
+  if (agent.type === 'prompt' || agent.type === 'image') {
+    if (await isBuiltinModel(agent.model!)) {
+      return null;
+    }
+    const projects = await resourceManager.getProjects({
+      type: { prompt: 'llm-adapter', image: 'aigc-adapter' }[agent.type] as ResourceType,
+    });
+    const agents = projects
+      .flatMap((x) => {
+        return x.agents.map((y) => ({
+          blockletDid: x.blocklet.did,
+          projectId: x.project.id,
+          agent: y,
+        }));
+      })
+      .filter(
+        (x) =>
+          x.agent.public &&
+          (x.agent.parameters?.find((x) => x.key === 'model') as SelectParameter)?.options?.find(
+            (x) => x.label === agent.model || x.value === agent.model
+          )
+      );
+    return agents[0] || null;
+  }
+  return null;
 }

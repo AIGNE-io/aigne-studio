@@ -16,7 +16,7 @@ import { userAuth } from '../../libs/security';
 import Knowledge from '../../store/models/dataset/dataset';
 import KnowledgeDocument from '../../store/models/dataset/document';
 import EmbeddingHistories from '../../store/models/dataset/embedding-history';
-import { HybridRetriever } from './retriever';
+import HybridRetriever from './retriever';
 import { queue } from './util/queue';
 import { updateHistoriesAndStore } from './util/vector-store';
 
@@ -83,9 +83,7 @@ async function getVectorPath(blockletDid: string | null, knowledgeId: string, kn
 router.get('/:knowledgeId/search', async (req, res) => {
   const { knowledgeId } = req.params;
   const input = await searchQuerySchema.validateAsync(req.query, { stripUnknown: true });
-
   const knowledge = await Knowledge.findOne({ where: { id: knowledgeId } });
-
   const vectorPathOrKnowledgeId = await getVectorPath(input.blockletDid!, knowledgeId, knowledge);
 
   const retriever = new HybridRetriever(vectorPathOrKnowledgeId, input.n!);
@@ -95,13 +93,23 @@ router.get('/:knowledgeId/search', async (req, res) => {
     result.map(async (i) => {
       if (i.metadata?.metadata?.documentId) {
         const doc = await KnowledgeDocument.findOne({ where: { id: i.metadata?.metadata?.documentId } });
+
         return {
           content: i.pageContent,
-          metadata: { document: doc?.dataValues, metadata: i.metadata },
+          metadata: {
+            document: doc?.dataValues,
+            metadata: { ...(i.metadata?.metadata || {}), relevanceScore: i.metadata?.relevanceScore || 0 },
+          },
         };
       }
 
-      return { content: i.pageContent, metadata: null };
+      return {
+        content: i.pageContent,
+        metadata: {
+          document: null,
+          metadata: { ...(i.metadata?.metadata || {}), relevanceScore: i.metadata?.relevanceScore || 0 },
+        },
+      };
     })
   );
 
@@ -151,10 +159,7 @@ router.delete('/:knowledgeId/documents/:documentId', middlewares.session(), user
   await updateHistoriesAndStore(knowledgeId, documentId);
 
   if (document && document.filename) {
-    await Promise.all([
-      rm(joinURL(getSourceFileDir(knowledgeId), document.filename)),
-      rm(joinURL(getProcessedFileDir(knowledgeId), `${document.id}.yml`)),
-    ]).catch(logger.error);
+    await Promise.all([rm(joinURL(getProcessedFileDir(knowledgeId), `${document.id}.yml`))]).catch(logger.error);
   }
 
   await Promise.all([

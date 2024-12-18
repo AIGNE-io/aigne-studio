@@ -1,3 +1,4 @@
+// import MdViewer from '@app/components/md-viewer';
 import { useKnowledge } from '@app/contexts/knowledge/knowledge';
 import UploaderProvider, { useUploader } from '@app/contexts/uploader';
 import useSubscription from '@app/hooks/use-subscription';
@@ -33,7 +34,7 @@ import {
   tabClasses,
   tabsClasses,
 } from '@mui/material';
-import { useReactive, useRequest, useUpdate } from 'ahooks';
+import { useLocalStorageState, useReactive, useRequest, useUpdate } from 'ahooks';
 import bytes from 'bytes';
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -79,7 +80,7 @@ export default function KnowledgeDetail() {
   } = useRequest(() => getKnowledge(knowledgeId), {
     refreshDeps: [knowledgeId],
     onSuccess: (data) => setShowImportDialog(!data?.docs),
-    onError: (e) => Toast.error(e?.message),
+    onError: (e) => Toast.error(getErrorMessage(e)),
   });
 
   const {
@@ -89,7 +90,7 @@ export default function KnowledgeDetail() {
     run,
   } = useRequest((page = 1) => getDocuments(knowledgeId, { page, size: 10 }), {
     refreshDeps: [knowledgeId],
-    onError: (e) => Toast.error(e?.message),
+    onError: (e) => Toast.error(getErrorMessage(e)),
   });
 
   const runAsync = useCallback(async () => {
@@ -257,7 +258,7 @@ export default function KnowledgeDetail() {
                   totalSize={loading ? 0 : knowledgeData?.totalSize}
                   icon={loading ? '' : knowledgeData?.icon}
                   onAdd={() => setShowImportDialog(true)}
-                  onBack={() => navigate(-1)}
+                  onBack={() => navigate('../')}
                 />
 
                 {loading ? (
@@ -311,13 +312,25 @@ export default function KnowledgeDetail() {
 
 const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
   const { t } = useLocaleContext();
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useLocalStorageState<string>(`knowledge-${knowledgeId}-search`);
+  const [data, setData] = useLocalStorageState<{ docs: { content: any; metadata: any }[] }>(
+    `knowledge-${knowledgeId}-data`
+  );
+  const [loaded, setLoaded] = useState(false);
+  const navigate = useNavigate();
 
-  const { data, loading, run } = useRequest((s: string) => searchKnowledge({ knowledgeId, message: s }), {
-    refreshDeps: [],
-    manual: true,
-    onError: (e) => Toast.error(getErrorMessage(e)),
-  });
+  const { loading, runAsync } = useRequest(
+    async (s: string) => {
+      const results = await searchKnowledge({ knowledgeId, message: s });
+      setData(results);
+      return results;
+    },
+    {
+      manual: true,
+      refreshDeps: [],
+      onError: (e) => Toast.error(getErrorMessage(e)),
+    }
+  );
 
   const results = (data?.docs || [])
     .map((doc) => {
@@ -329,7 +342,7 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
             const content = JSON.parse(parsedContent.content);
 
             return {
-              content: content.content,
+              content: content?.content || content,
               metadata: doc.metadata,
             };
           } catch (e) {
@@ -344,7 +357,7 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
           content: parsedContent.content,
           metadata: doc.metadata,
         };
-      } catch {
+      } catch (err) {
         return doc;
       }
     })
@@ -353,6 +366,16 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
   return (
     <Stack height={1}>
       <Box
+        component="form"
+        onSubmit={async (e) => {
+          try {
+            e.preventDefault();
+            await runAsync(search!);
+            setLoaded(true);
+          } catch (error) {
+            Toast.error(error?.message);
+          }
+        }}
         sx={{
           m: 2.5,
           display: 'flex',
@@ -377,6 +400,7 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
           }}
         />
         <IconButton
+          disabled={!search}
           sx={{
             bgcolor: '#000',
             borderRadius: 1,
@@ -390,7 +414,15 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
             alignItems: 'center',
             gap: 0.5,
           }}
-          onClick={() => run(search)}>
+          onClick={async (e) => {
+            try {
+              e.preventDefault();
+              await runAsync(search!);
+              setLoaded(true);
+            } catch (error) {
+              Toast.error(error?.message);
+            }
+          }}>
           <Box component={Icon} icon={SearchIcon} fontSize={15} />
           <Box>{t('search')}</Box>
         </IconButton>
@@ -398,47 +430,87 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
       <Box flexGrow={1} height={0} overflow="auto">
         {loading ? (
           <Box className="center" width={1} height={1}>
-            <CircularProgress />
+            <CircularProgress size={20} />
+          </Box>
+        ) : results.length ? (
+          <Box px={2.5}>
+            {results.map((result, index) => {
+              const title = result?.metadata?.document?.name || result?.metadata?.metadata?.title;
+              const relevanceScore = result?.metadata?.metadata?.relevanceScore;
+
+              return (
+                <Box
+                  key={index}
+                  py={2.5}
+                  borderBottom="1px solid #EFF1F5"
+                  sx={{
+                    cursor: result?.metadata?.document?.id ? 'pointer' : 'default',
+                    pre: {
+                      border: '1px solid #eff1f5',
+                      borderTop: 0,
+                      whiteSpace: 'pre-wrap',
+                    },
+                    h4: {
+                      marginBottom: 1,
+                    },
+                    'div > p': {
+                      padding: 0,
+                    },
+                  }}
+                  onClick={() => {
+                    if (!result?.metadata?.document?.id) return;
+                    navigate(joinURL('document', result?.metadata?.document?.id, 'segments'));
+                  }}>
+                  <Box>
+                    {(typeof result.content === 'string'
+                      ? result.content
+                      : JSON.stringify(result.content, null, 2)
+                    ).replace(/\\n+/g, '<br />')}
+                  </Box>
+
+                  {title && (
+                    <Stack
+                      width="fit-content"
+                      flexDirection="row"
+                      alignItems="center"
+                      gap={1}
+                      mt={1.5}
+                      py={1}
+                      px={1.5}
+                      borderRadius={1}
+                      border="1px solid #EFF1F5">
+                      <Stack direction="row" gap={1} alignItems="center" flex={1}>
+                        <DocumentIcon document={result.metadata.document} />
+                        <Box flexGrow={1} color="#030712">
+                          {title}
+                        </Box>
+                      </Stack>
+
+                      {!!relevanceScore && (
+                        <>
+                          <Divider orientation="vertical" variant="middle" flexItem sx={{ my: 0.5 }} />
+
+                          <Stack direction="row" gap={1} alignItems="center">
+                            <Typography
+                              sx={{
+                                fontSize: 13,
+                                color: result?.metadata?.metadata?.relevanceScore > 0.5 ? '#059669' : '#BE123C',
+                              }}>
+                              {Number((result?.metadata?.metadata?.relevanceScore || 0) * 100).toFixed(2)}%
+                            </Typography>
+                            <Typography sx={{ fontSize: 13, color: '#9CA3AF' }}>{t('similarity')}</Typography>
+                          </Stack>
+                        </>
+                      )}
+                    </Stack>
+                  )}
+                </Box>
+              );
+            })}
           </Box>
         ) : (
-          <Box px={2.5}>
-            {results.map((result, index) => (
-              <Box key={index} py={2.5} borderBottom="1px solid #EFF1F5">
-                <Box sx={{ wordBreak: 'break-word' }}>
-                  {typeof result.content === 'string' ? result.content : JSON.stringify(result.content, null, 2)}
-                </Box>
-
-                {result?.metadata?.document && (
-                  <Stack
-                    width="fit-content"
-                    flexDirection="row"
-                    alignItems="center"
-                    gap={1}
-                    mt={1.5}
-                    py={1}
-                    px={1.5}
-                    borderRadius={1}
-                    border="1px solid #EFF1F5">
-                    <Stack direction="row" gap={1} alignItems="center">
-                      <DocumentIcon document={result.metadata.document} />
-                      <Box flexGrow={1} color="#030712">
-                        {result.metadata.document.name}
-                      </Box>
-                    </Stack>
-
-                    {/* <Divider orientation="vertical" variant="middle" flexItem sx={{ my: 0.5 }} />
-
-                    <Stack direction="row" gap={1} alignItems="center">
-                      <Typography
-                        sx={{ fontSize: 13, color: result.metadata.metadata.finalScore > 0.5 ? '#059669' : '#BE123C' }}>
-                        {Number(result.metadata.metadata.finalScore * 100).toFixed(2)}%
-                      </Typography>
-                      <Typography sx={{ fontSize: 13, color: '#9CA3AF' }}>{t('similarity')}</Typography>
-                    </Stack> */}
-                  </Stack>
-                )}
-              </Box>
-            ))}
+          <Box className="center" width={1} height={1}>
+            {loaded ? <Typography variant="subtitle3">{t('noResults')}</Typography> : null}
           </Box>
         )}
       </Box>

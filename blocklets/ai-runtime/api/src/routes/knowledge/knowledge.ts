@@ -59,7 +59,7 @@ const knowledgeFromResourceSchema = Joi.object<{ items: (typeof knowledgeSchema.
 const getKnowledgeListQuerySchema = Joi.object<{ projectId?: string; page: number; size: number }>({
   projectId: Joi.string().empty(['', null]),
   page: Joi.number().integer().min(1).default(1),
-  size: Joi.number().integer().min(1).max(100).default(20),
+  size: Joi.number().integer().min(1).max(10000).default(20),
 });
 
 router.get('/', middlewares.session(), ensureComponentCallOr(userAuth()), async (req, res) => {

@@ -719,7 +719,7 @@ export default flatten({
   basic: 'Basic',
   appearanceTitlePlaceholder: 'The title displayed above this output',
   appearanceIconPlaceholder: 'The icon displayed above this output',
-  addMoreAgentTools: 'Add More',
+  addMoreAgentTools: 'Install more Models',
   noAgents: 'No Agents',
   buildIn: 'buildIn',
   remote: 'remote',
@@ -916,4 +916,12 @@ export default flatten({
   crawl: 'Crawl',
   createObject: 'Create {object}',
   file: 'File',
+  noResults: 'No related results',
+  modelSettings: 'Model Settings',
+  modelSettingsPresets: {
+    precise: '✨ Precise',
+    balance: '⚖️ Balance',
+    creative: '🎨 Creative',
+    custom: '🖊️ Custom',
+  },
 });

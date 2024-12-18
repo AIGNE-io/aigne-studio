@@ -75,7 +75,7 @@ export function useResourceAgents({ type }: { type: ResourceType }) {
 
   useEffect(() => {
     if (!state.loading && !state.loaded) state.load();
-  }, []);
+  }, [state]);
 
   return state;
 }
