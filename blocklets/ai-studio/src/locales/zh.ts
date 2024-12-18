@@ -918,4 +918,5 @@ export default flatten({
   },
   generateObject: '生成{object}',
   clickToGenerateNpmLink: '点击生成 NPM Package 链接',
+  modelSettingsTip: '我们为您提供了一些标准设置，您可以直接使用，也可以根据需要进行定制。',
 });
