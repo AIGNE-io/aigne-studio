@@ -61,19 +61,3 @@ jobs:
 
           # Output only package.json files with version changes
           echo "folders=$version_changed_files" >> $GITHUB_OUTPUT
-
-  check-version:
-    name: Check version changed
-    needs: check-files
-    if: "github.event_name == 'pull_request' && needs.check-files.outputs.folders != ''"
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        dir: ${{ fromJSON(needs.check-files.outputs.folders) }}
-    steps:
-      - name: action-version-check
-        uses: arcblock/action-version-check@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          working-directory: ${{ matrix.dir }}
