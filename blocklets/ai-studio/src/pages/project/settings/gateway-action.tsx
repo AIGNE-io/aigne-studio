@@ -118,7 +118,7 @@ function MoreActions({
         <MenuItem
           onClick={async () => {
             try {
-              window.open(getProjectDataUrlInSpace(spaceGateway.endpoint, projectId, spaceGateway.ownerDid));
+              window.open(await getProjectDataUrlInSpace(spaceGateway.endpoint, projectId));
             } catch (error) {
               console.error(error);
               Toast.error(getErrorMessage(error));

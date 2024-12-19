@@ -55,6 +55,7 @@ import {
 import { MouseEvent, ReactNode, cloneElement, useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useAsync } from 'react-use';
 import { joinURL } from 'ufo';
 
 import Project from '../../../../api/src/store/models/project';
@@ -786,9 +787,9 @@ function ProjectItem({
     }
   }, [gitUrl]);
 
-  const projectDataUrlInSpace = useMemo(() => {
+  const { value: projectDataUrlInSpace } = useAsync(async () => {
     if (spaceInfo?.spaceOwnerDid) {
-      return getProjectDataUrlInSpace(session?.user?.didSpace?.endpoint, id, spaceInfo.spaceOwnerDid);
+      return await getProjectDataUrlInSpace(session?.user?.didSpace?.endpoint, id);
     }
     return '';
   }, [session?.user?.didSpace?.endpoint, id, spaceInfo?.spaceOwnerDid]);
