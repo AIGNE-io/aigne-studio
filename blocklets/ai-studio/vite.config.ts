@@ -28,6 +28,7 @@ const excludeLibs: string[] = [
   '@emotion/styled',
   '@mui/icons-material',
   '@mui/material',
+  'flat',
 ];
 if (arcblockUxBasePath) {
   alias['@arcblock/ux/lib'] = `${arcblockUxBasePath}/packages/ux/src`;
