@@ -56,12 +56,12 @@
     }
   },
   "dependencies": {
-    "@abtnode/client": "^1.16.33",
+    "@abtnode/client": "^1.16.34",
     "@aigne/core": "workspace:^",
-    "@blocklet/ai-kit": "^0.1.65",
-    "@blocklet/js-sdk": "^1.16.33",
+    "@blocklet/ai-kit": "^0.1.66",
+    "@blocklet/js-sdk": "^1.16.34",
     "@blocklet/quickjs": "workspace:^",
-    "@blocklet/sdk": "^1.16.33",
+    "@blocklet/sdk": "^1.16.34",
     "axios": "^1.7.5",
     "commander": "^12.1.0",
     "compression": "^1.7.4",
