@@ -1,3 +1,7 @@
+## 0.4.178
+
+- Support install a project as npm package
+
 ## 0.4.177 (2024-12-18)
 
 - fix: data not loading after changing resource type

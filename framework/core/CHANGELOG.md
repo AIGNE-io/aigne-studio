@@ -1,7 +1,9 @@
 # @aigne/core
 
-## 0.0.6
+## 0.0.7
 
-### Patch Changes
+- Support install a project as npm package
+
+## 0.0.6
 
 - add streaming response support for runnable
