@@ -20,7 +20,7 @@
     "build": "pnpm build:libs && pnpm -F ai-studio build",
     "clean": "pnpm -r run clean",
     "clean:deps": "rimraf ./**/node_modules",
-    "build:libs": "pnpm -F @blocklet/* build",
+    "build:libs": "pnpm -F @blocklet/* -F @aigne/* build",
     "bump-version": "pnpm changeset && pnpm changeset version",
     "update:deps": "npx -y taze major -r -w -n '/blocklet|abtnode|arcblock|ocap|did-space|nft-studio/' && pnpm install",
     "e2e": "./scripts/start-e2e.ts",

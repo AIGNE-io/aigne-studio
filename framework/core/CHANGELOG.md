@@ -1,6 +1,6 @@
 # @aigne/core
 
-## 0.0.8
+## 0.0.10
 
 - Bump version
 

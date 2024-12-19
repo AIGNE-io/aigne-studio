@@ -15,6 +15,7 @@ on:
       - edited
     branches:
       - main
+      - debug-action
 
 jobs:
   check-files:
@@ -22,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Check files changed
     outputs:
-      folders: ${{ steps.format-changed-files.outputs.folders }}
+      folders: ${{ steps.filter-version-changes.outputs.folders }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -36,7 +37,6 @@ jobs:
             blocklets/**/package.json
             packages/**/package.json
             framework/**/package.json
-          json: 'true'
           dir_names: true
           dir_names_exclude_root: true
           dir_names_max_depth: 2
@@ -53,11 +53,14 @@ jobs:
 
           # Iterate over changed files and check if version changed
           for file in $changed_files; do
-            if [[ "$file" == *"package.json" ]]; then
-              # Check if version field changed
-              git diff HEAD~1..HEAD -- "$file" | grep -q '"version":' && version_changed_files+="$file "
-            fi
+            # Check if version field changed
+            echo "$file/package.json"
+            echo $(git diff HEAD~1..HEAD -- "$file/package.json" | grep '"version":')
+            git diff HEAD~1..HEAD -- "$file/package.json" | grep '"version":' && version_changed_files+="$file "
           done
 
           # Output only package.json files with version changes
-          echo "folders=$version_changed_files" >> $GITHUB_OUTPUT
+          TRIMMED_FOLDERS=$(echo $version_changed_files | xargs) # 去掉头尾及多余空格
+          JSON_ARRAY=$(echo $TRIMMED_FOLDERS | jq -c -R 'split(" ")')
+          echo "$JSON_ARRAY was changed"
+          echo "folders=$JSON_ARRAY" >> $GITHUB_OUTPUT
