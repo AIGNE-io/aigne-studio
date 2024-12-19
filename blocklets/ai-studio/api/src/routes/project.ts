@@ -475,8 +475,6 @@ export function projectRoutes(router: Router) {
     const secret = req.query.secret as string | undefined;
     const extra = await ProjectExtra.findByPk(projectId);
 
-    console.log(`${extra?.npmPackageSecret}, ${secret}`);
-
     if (!extra?.npmPackageSecret || secret !== extra.npmPackageSecret) {
       res.status(401).json({ error: 'Unauthorized' });
       return;
