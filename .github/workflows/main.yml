@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        dir: ${{ fromJSON(needs.check-version.outputs.folders) }}
+        dir: ${{ fromJSON(needs.version-check.outputs.folders) }}
 
     steps:
       - name: Checkout repo
