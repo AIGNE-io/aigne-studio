@@ -3,7 +3,7 @@ import { mkdir, pathExists, readFile, writeFile } from 'fs-extra';
 import { joinURL } from 'ufo';
 import { parse, stringify } from 'yaml';
 
-import { initStore } from '../store';
+// import { initStore } from '../store';
 
 export class KnowledgeBase<I extends object = object, O = object> implements IKnowledgeBase<I, O> {
   private knowledgePath: string = '';
@@ -16,7 +16,6 @@ export class KnowledgeBase<I extends object = object, O = object> implements IKn
 
   static async load(path: string) {
     const instance = new KnowledgeBase();
-    console.log('instance', instance);
 
     instance.knowledgePath = joinURL(path, 'knowledge.yml');
     instance.knowledgeDBPath = `sqlite:${path}/knowledge.db`;
@@ -24,14 +23,18 @@ export class KnowledgeBase<I extends object = object, O = object> implements IKn
     instance.knowledgeSourcesFolderPath = joinURL(path, 'sources');
     instance.knowledgeProcessedFolderPath = joinURL(path, 'processed');
 
+    if (!(await pathExists(path))) {
+      await mkdir(path, { recursive: true, mode: 0o755 });
+    }
+
     if (!(await pathExists(instance.knowledgePath))) {
       await writeFile(instance.knowledgePath, stringify({}));
     }
 
-    await initStore({
-      url: instance.knowledgeDBPath,
-      isDevelopment: process.env.NODE_ENV === 'development',
-    });
+    // await initStore({
+    //   url: instance.knowledgeDBPath,
+    //   isDevelopment: process.env.NODE_ENV === 'development',
+    // });
 
     if (!(await pathExists(instance.knowledgeVectorsFolderPath))) {
       await mkdir(instance.knowledgeVectorsFolderPath, { recursive: true });

@@ -1135,6 +1135,9 @@ importers:
       '@langchain/core':
         specifier: ^0.3.18
         version: 0.3.18(openai@4.73.0(encoding@0.1.13)(zod@3.23.8))
+      '@types/fs-extra':
+        specifier: ^11.0.4
+        version: 11.0.4
       axios:
         specifier: ^1.7.5
         version: 1.7.5(debug@4.3.6)

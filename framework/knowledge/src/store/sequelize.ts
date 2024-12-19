@@ -22,8 +22,6 @@ export function initSequelize() {
 }
 
 export function getSequelize() {
-  initSequelize();
-
   if (!_sequelize) {
     throw new Error('Sequelize not initialized');
   }
