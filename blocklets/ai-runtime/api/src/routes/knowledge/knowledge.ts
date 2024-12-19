@@ -62,7 +62,6 @@ const getKnowledgeListQuerySchema = Joi.object<{ projectId?: string; page: numbe
   size: Joi.number().integer().min(1).max(10000).default(20),
 });
 
-const Knowledge = await KnowledgeDocument.load('path');
 router.get('/', middlewares.session(), ensureComponentCallOr(userAuth()), async (req, res) => {
   const query = await getKnowledgeListQuerySchema.validateAsync(req.query, { stripUnknown: true });
 

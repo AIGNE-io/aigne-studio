@@ -99,7 +99,7 @@ export const server = app.listen(port, (err?: any) => {
   if (err) throw err;
   logger.info(`> ${name} v${version} ready on ${port}`);
 
-  KnowledgeBase.load('/Users/leermao/work/blocklet/ai-studio/data').catch((error) => {
+  KnowledgeBase.load('/Users/leermao/work/blocklet/ai-studio/blocklets/ai-studio/.data').catch((error) => {
     logger.error('init knowledge base error', { error });
   });
 

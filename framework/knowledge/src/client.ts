@@ -1,1 +1,1 @@
-export * from './client/agent';
+export * from './client/knowledge';

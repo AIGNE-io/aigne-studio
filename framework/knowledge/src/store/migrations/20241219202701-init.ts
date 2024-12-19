@@ -1,8 +1,6 @@
-import { DataTypes } from 'sequelize';
+import { DataTypes, QueryInterface } from 'sequelize';
 
-import type { Migration } from '../migrate';
-
-export const up: Migration = async ({ context: queryInterface }) => {
+export const up = async ({ context: queryInterface }: { context: QueryInterface }) => {
   await queryInterface.createTable('DatasetDocuments', {
     id: {
       type: DataTypes.STRING,
@@ -113,7 +111,7 @@ export const up: Migration = async ({ context: queryInterface }) => {
   });
 };
 
-export const down: Migration = async ({ context: queryInterface }) => {
+export const down = async ({ context: queryInterface }: { context: QueryInterface }) => {
   await queryInterface.dropTable('DatasetDocuments');
   await queryInterface.dropTable('DatasetEmbeddingHistories');
   await queryInterface.dropTable('DatasetSegments');

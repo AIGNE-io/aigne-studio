@@ -3,7 +3,8 @@ import { mkdir, pathExists, readFile, writeFile } from 'fs-extra';
 import { joinURL } from 'ufo';
 import { parse, stringify } from 'yaml';
 
-// import { initStore } from '../store';
+import { initStore } from '../store';
+import Retriever from './retriever';
 
 export class KnowledgeBase<I extends object = object, O = object> implements IKnowledgeBase<I, O> {
   private knowledgePath: string = '';
@@ -24,17 +25,17 @@ export class KnowledgeBase<I extends object = object, O = object> implements IKn
     instance.knowledgeProcessedFolderPath = joinURL(path, 'processed');
 
     if (!(await pathExists(path))) {
-      await mkdir(path, { recursive: true, mode: 0o755 });
+      await mkdir(path, { recursive: true });
     }
 
     if (!(await pathExists(instance.knowledgePath))) {
       await writeFile(instance.knowledgePath, stringify({}));
     }
 
-    // await initStore({
-    //   url: instance.knowledgeDBPath,
-    //   isDevelopment: process.env.NODE_ENV === 'development',
-    // });
+    await initStore({
+      url: instance.knowledgeDBPath,
+      isDevelopment: process.env.NODE_ENV === 'development',
+    });
 
     if (!(await pathExists(instance.knowledgeVectorsFolderPath))) {
       await mkdir(instance.knowledgeVectorsFolderPath, { recursive: true });
@@ -71,10 +72,10 @@ export class KnowledgeBase<I extends object = object, O = object> implements IKn
   }
 
   async search(params: SearchParams): Promise<any> {
-    return [];
+    return new Retriever(this.knowledgeVectorsFolderPath, params.k).search(params.query);
   }
 
   async run(params: any): Promise<any> {
-    return [];
+    return new Retriever(this.knowledgeVectorsFolderPath, params.k).search(params.query);
   }
 }

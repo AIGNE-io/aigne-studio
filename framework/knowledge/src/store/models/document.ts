@@ -1,7 +1,7 @@
 import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
 
 import nextId from '../../libs/next-id';
-import { sequelize } from '../sequelize';
+import { getSequelize } from '../sequelize';
 
 export enum UploadStatus {
   Idle = 'idle',
@@ -68,59 +68,59 @@ export default class DatasetDocument extends Model<
   declare size?: number;
 }
 
-DatasetDocument.init(
-  {
-    id: {
-      type: DataTypes.STRING,
-      primaryKey: true,
-      allowNull: false,
-      defaultValue: nextId,
-    },
-    knowledgeId: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    type: {
-      type: DataTypes.STRING,
-    },
-    data: {
-      type: DataTypes.JSON,
-    },
-    name: {
-      type: DataTypes.STRING,
-    },
-    createdAt: {
-      type: DataTypes.DATE,
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-    },
-    createdBy: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    updatedBy: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    error: {
-      type: DataTypes.STRING,
-    },
-    embeddingStartAt: {
-      type: DataTypes.DATE,
-    },
-    embeddingEndAt: {
-      type: DataTypes.DATE,
-    },
-    embeddingStatus: {
-      type: DataTypes.STRING,
-    },
-    filename: {
-      type: DataTypes.STRING,
-    },
-    size: {
-      type: DataTypes.BIGINT,
-    },
-  },
-  { sequelize }
-);
+// DatasetDocument.init(
+//   {
+//     id: {
+//       type: DataTypes.STRING,
+//       primaryKey: true,
+//       allowNull: false,
+//       defaultValue: nextId,
+//     },
+//     knowledgeId: {
+//       type: DataTypes.STRING,
+//       allowNull: false,
+//     },
+//     type: {
+//       type: DataTypes.STRING,
+//     },
+//     data: {
+//       type: DataTypes.JSON,
+//     },
+//     name: {
+//       type: DataTypes.STRING,
+//     },
+//     createdAt: {
+//       type: DataTypes.DATE,
+//     },
+//     updatedAt: {
+//       type: DataTypes.DATE,
+//     },
+//     createdBy: {
+//       type: DataTypes.STRING,
+//       allowNull: false,
+//     },
+//     updatedBy: {
+//       type: DataTypes.STRING,
+//       allowNull: false,
+//     },
+//     error: {
+//       type: DataTypes.STRING,
+//     },
+//     embeddingStartAt: {
+//       type: DataTypes.DATE,
+//     },
+//     embeddingEndAt: {
+//       type: DataTypes.DATE,
+//     },
+//     embeddingStatus: {
+//       type: DataTypes.STRING,
+//     },
+//     filename: {
+//       type: DataTypes.STRING,
+//     },
+//     size: {
+//       type: DataTypes.BIGINT,
+//     },
+//   },
+//   { sequelize: getSequelize() }
+// );

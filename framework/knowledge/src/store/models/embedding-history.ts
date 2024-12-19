@@ -1,7 +1,7 @@
 import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
 
 import nextId from '../../libs/next-id';
-import { sequelize } from '../sequelize';
+import { getSequelize } from '../sequelize';
 import { UploadStatus } from './document';
 
 export default class DatasetEmbeddingHistory extends Model<
@@ -29,41 +29,41 @@ export default class DatasetEmbeddingHistory extends Model<
   declare contentHash?: string;
 }
 
-DatasetEmbeddingHistory.init(
-  {
-    id: {
-      type: DataTypes.STRING,
-      primaryKey: true,
-      allowNull: false,
-      defaultValue: nextId,
-    },
-    knowledgeId: {
-      type: DataTypes.STRING,
-    },
-    documentId: {
-      type: DataTypes.STRING,
-    },
-    createdAt: {
-      type: DataTypes.DATE,
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-    },
-    error: {
-      type: DataTypes.STRING,
-    },
-    startAt: {
-      type: DataTypes.DATE,
-    },
-    endAt: {
-      type: DataTypes.DATE,
-    },
-    status: {
-      type: DataTypes.STRING,
-    },
-    contentHash: {
-      type: DataTypes.STRING,
-    },
-  },
-  { sequelize }
-);
+// DatasetEmbeddingHistory.init(
+//   {
+//     id: {
+//       type: DataTypes.STRING,
+//       primaryKey: true,
+//       allowNull: false,
+//       defaultValue: nextId,
+//     },
+//     knowledgeId: {
+//       type: DataTypes.STRING,
+//     },
+//     documentId: {
+//       type: DataTypes.STRING,
+//     },
+//     createdAt: {
+//       type: DataTypes.DATE,
+//     },
+//     updatedAt: {
+//       type: DataTypes.DATE,
+//     },
+//     error: {
+//       type: DataTypes.STRING,
+//     },
+//     startAt: {
+//       type: DataTypes.DATE,
+//     },
+//     endAt: {
+//       type: DataTypes.DATE,
+//     },
+//     status: {
+//       type: DataTypes.STRING,
+//     },
+//     contentHash: {
+//       type: DataTypes.STRING,
+//     },
+//   },
+//   { sequelize: getSequelize() }
+// );

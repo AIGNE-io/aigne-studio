@@ -51,3 +51,19 @@ export interface DiscussKitLoader extends DocumentLoader {
 export interface URLLoader extends DocumentLoader {
   url: string;
 }
+
+export interface TextLoader extends DocumentLoader {
+  text: string;
+  content: string;
+}
+
+export interface CreateDiscussionItem {
+  name: string;
+  data: {
+    id: string;
+    title: string;
+    type?: 'discussion' | 'blog' | 'doc';
+    from: 'discussion' | 'board' | 'discussionType';
+    boardId?: string;
+  };
+}

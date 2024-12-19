@@ -1445,6 +1445,12 @@ importers:
         specifier: ^5.5.4
         version: 5.5.4
 
+  framework/test:
+    dependencies:
+      '@aigne/knowledge':
+        specifier: workspace:*
+        version: link:../knowledge
+
   packages/ai-runtime:
     dependencies:
       '@abtnode/client':
