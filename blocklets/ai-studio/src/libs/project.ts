@@ -176,3 +176,15 @@ export async function uploadAsset({
     .post(joinURL('/api/projects', projectId, 'refs', ref, 'assets'), { source, type })
     .then((res) => res.data);
 }
+
+export async function getProjectNPMPackageSecret({ projectId }: { projectId: string }): Promise<{ secret?: string }> {
+  return axios.get(joinURL('/api/projects', projectId, 'npm/package/secret')).then((res) => res.data);
+}
+
+export async function generateProjectNPMPackageSecret({
+  projectId,
+}: {
+  projectId: string;
+}): Promise<{ secret?: string }> {
+  return axios.post(joinURL('/api/projects', projectId, 'npm/package/secret/generate')).then((res) => res.data);
+}
