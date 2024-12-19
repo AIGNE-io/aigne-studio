@@ -31,6 +31,7 @@
     ]
   },
   "dependencies": {
+    "@aigne/knowledge": "workspace:^",
     "@abtnode/cron": "^1.16.33",
     "@arcblock/did-auth": "^1.18.161",
     "@arcblock/did-auth-storage-nedb": "^1.7.1",

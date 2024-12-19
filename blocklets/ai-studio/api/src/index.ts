@@ -3,6 +3,7 @@ import 'express-async-errors';
 import { access, mkdir } from 'fs/promises';
 import path from 'path';
 
+import { KnowledgeBase } from '@aigne/knowledge';
 import { AssistantResponseType } from '@blocklet/ai-runtime/types';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
@@ -97,6 +98,10 @@ const port = parseInt(process.env.BLOCKLET_PORT!, 10);
 export const server = app.listen(port, (err?: any) => {
   if (err) throw err;
   logger.info(`> ${name} v${version} ready on ${port}`);
+
+  KnowledgeBase.load('/Users/leermao/work/blocklet/ai-studio/framework/knowledge/data').catch((error) => {
+    logger.error('init knowledge base error', { error });
+  });
 
   resourceManager
     .reload()

@@ -27,7 +27,8 @@
       "@blocklet/prompt-editor": ["../../packages/prompt-editor/src"],
       "@blocklet/prompt-editor/*": ["../../packages/prompt-editor/src/*"],
       "@blocklet/quickjs": ["../../packages/quickjs/src"],
-      "@blocklet/quickjs/*": ["../../packages/quickjs/src/*"]
+      "@blocklet/quickjs/*": ["../../packages/quickjs/src/*"],
+      "@aigne/knowledge": ["../../framework/knowledge/src"]
     }
   }
 }
