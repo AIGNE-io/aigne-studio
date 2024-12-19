@@ -1,3 +1,4 @@
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ImageModelInfo, ModelBasedAssistantYjs, TextModelInfo } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import CheckIcon from '@iconify-icons/tabler/check';
@@ -19,8 +20,10 @@ interface InternalModelSelectLiteProps {
 }
 
 function InternalModelSelectLite({ options, value, onChange, onAddMoreModel, ...rest }: InternalModelSelectLiteProps) {
+  const { t } = useLocaleContext();
   const popperState = usePopupState({ variant: 'popper', popupId: 'model-select-lite' });
   const selectedOption = options.find((option) => option.model === value);
+
   return (
     <Box {...rest}>
       <Button color="inherit" {...bindTrigger(popperState)} data-testid="model-select-lite-trigger">
@@ -116,7 +119,7 @@ function InternalModelSelectLite({ options, value, onChange, onAddMoreModel, ...
                         borderColor: 'divider',
                       }}>
                       <Button startIcon={<Icon icon={PlusIcon} />} onClick={onAddMoreModel} sx={{ width: '100%' }}>
-                        Add more model
+                        {t('moreModels')}
                       </Button>
                     </Box>
                   )}

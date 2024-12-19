@@ -920,8 +920,9 @@ export default flatten({
   modelSettings: 'Model Settings',
   modelSettingsPresets: {
     precise: '✨ Precise',
-    balance: '⚖️ Balance',
+    balance: '⚖️ Balanced',
     creative: '🎨 Creative',
     custom: '🖊️ Custom',
   },
+  moreModels: 'More Models',
 });

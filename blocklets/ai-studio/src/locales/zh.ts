@@ -915,4 +915,5 @@ export default flatten({
     creative: '🎨 创意',
     custom: '🖊️ 自定义',
   },
+  moreModels: '更多模型',
 });
