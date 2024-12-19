@@ -1,6 +1,6 @@
 {
   "name": "@aigne/core",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "AIGNE core library",
   "publishConfig": {
     "access": "public"

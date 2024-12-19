@@ -1,3 +1,7 @@
+## 0.4.179
+
+- Bump version
+
 ## 0.4.178
 
 - Support install a project as npm package

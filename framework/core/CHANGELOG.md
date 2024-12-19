@@ -1,5 +1,9 @@
 # @aigne/core
 
+## 0.0.8
+
+- Bump version
+
 ## 0.0.7
 
 - Support install a project as npm package
