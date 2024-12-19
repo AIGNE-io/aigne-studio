@@ -3,6 +3,36 @@ import { AIGNERuntime } from '../../runtime/runtime';
 export async function generateWrapperCode(runtime: AIGNERuntime) {
   runtime.project.agents?.map((agent) => agent.name);
 
+  const packageJson = JSON.stringify(
+    {
+      name: `@aigne-project/${(runtime.name || runtime.id).toLowerCase().replaceAll(/[^a-z0-9]/g, '_')}`,
+      version: '0.0.1',
+      main: 'index.cjs',
+      module: 'index.js',
+      types: 'index.d.ts',
+      dependencies: { '@aigne/runtime': 'latest' },
+      exports: {
+        '.': {
+          require: './index.cjs',
+          import: './index.js',
+          types: './index.d.ts',
+        },
+        './middleware': {
+          require: './middleware.cjs',
+          import: './middleware.js',
+          types: './middleware.d.ts',
+        },
+        './client': {
+          require: './client.cjs',
+          import: './client.js',
+          types: './client.d.ts',
+        },
+      },
+    },
+    null,
+    2
+  );
+
   const index = `\
 import { AIGNERuntime, Agent } from '@aigne/runtime';
 
@@ -43,7 +73,30 @@ export default {
 }
 `;
 
-  return { index, middleware, client };
+  const tsFiles = [
+    { fileName: 'index.ts', content: index },
+    { fileName: 'middleware.ts', content: middleware },
+    { fileName: 'client.ts', content: client },
+  ];
+
+  const ts = await import('typescript');
+
+  const result = (
+    await Promise.all(
+      tsFiles.map(({ fileName, content }) => {
+        const cjs = ts.transpileModule(content, { fileName, compilerOptions: { module: ts.ModuleKind.CommonJS } });
+        const esm = ts.transpileModule(content, { fileName, compilerOptions: { module: ts.ModuleKind.ESNext } });
+        const dts = ts.transpileDeclaration(content, { fileName, compilerOptions: { module: ts.ModuleKind.ESNext } });
+        return [
+          { fileName: fileName.replace(/\.ts$/, '.cjs'), content: cjs.outputText },
+          { fileName: fileName.replace(/\.ts$/, '.js'), content: esm.outputText },
+          { fileName: fileName.replace(/\.ts$/, '.d.ts'), content: dts.outputText },
+        ];
+      })
+    )
+  ).flat();
+
+  return [...result, { fileName: 'package.json', content: packageJson }];
 }
 
 type InternalAgent = NonNullable<AIGNERuntime['project']['agents']>[number];

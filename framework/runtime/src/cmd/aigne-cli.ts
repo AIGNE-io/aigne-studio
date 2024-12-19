@@ -17,8 +17,8 @@ program
         (async () => {
           const runtime = await AIGNERuntime.load({ path: project });
           const files = await generateWrapperCode(runtime);
-          for (const [filename, code] of Object.entries(files)) {
-            writeFileSync(join(project, `${filename}.ts`), code);
+          for (const { fileName, content } of files) {
+            writeFileSync(join(project, fileName), content);
           }
         })();
       })
