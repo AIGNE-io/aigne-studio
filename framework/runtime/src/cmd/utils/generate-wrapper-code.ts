@@ -86,11 +86,10 @@ export default {
       tsFiles.map(({ fileName, content }) => {
         const cjs = ts.transpileModule(content, { fileName, compilerOptions: { module: ts.ModuleKind.CommonJS } });
         const esm = ts.transpileModule(content, { fileName, compilerOptions: { module: ts.ModuleKind.ESNext } });
-        const dts = ts.transpileDeclaration(content, { fileName, compilerOptions: { module: ts.ModuleKind.ESNext } });
         return [
           { fileName: fileName.replace(/\.ts$/, '.cjs'), content: cjs.outputText },
           { fileName: fileName.replace(/\.ts$/, '.js'), content: esm.outputText },
-          { fileName: fileName.replace(/\.ts$/, '.d.ts'), content: dts.outputText },
+          { fileName: fileName.replace(/\.ts$/, '.d.ts'), content },
         ];
       })
     )
