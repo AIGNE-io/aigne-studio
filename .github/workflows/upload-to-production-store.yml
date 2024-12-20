@@ -9,10 +9,17 @@ on:
       - release
 
 jobs:
-  Deploy:
-    runs-on: ubuntu-latest
+  version-check:
+    name: Check version by local workflow
+    uses: ./.github/workflows/version-check.yml
 
+  deploy:
     if: "! contains(toJSON(github.event.commits.*.message), '[skip ci]')"
+    needs: version-check
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dir: ${{ fromJSON(needs.check-version.outputs.folders) }}
 
     steps:
       - name: Checkout repo
@@ -37,7 +44,7 @@ jobs:
         run: pnpm build:libs
 
       - name: Upload to production store
-        if: "! contains(toJSON(github.event.commits.*.message), '[skip ai-runtime]')"
+        if: "contains(matrix.dir , 'blocklets/')"
         env:
           COMPONENT_STORE_URL: ${{ secrets.STORE_ENDPOINT_PROD }}
         uses: blocklet/action-workflow@v1
@@ -47,25 +54,7 @@ jobs:
           skip-release: true
           skip-upload: false
           skip-deploy: true
-          working-directory: blocklets/ai-runtime
-          bundle-command: pnpm bundle
-          store-endpoint: ${{ secrets.STORE_ENDPOINT_PROD }}
-          store-access-token: ${{ secrets.STORE_ACCESS_TOKEN_PROD }}
-          slack-webhook: ${{ secrets.SLACK_WEBHOOK }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload to production store
-        if: "! contains(toJSON(github.event.commits.*.message), '[skip ai-studio]')"
-        env:
-          COMPONENT_STORE_URL: ${{ secrets.STORE_ENDPOINT_PROD }}
-        uses: blocklet/action-workflow@v1
-        with:
-          deps-server-version: beta
-          skip-deps: false
-          skip-release: true
-          skip-upload: false
-          skip-deploy: true
-          working-directory: blocklets/ai-studio
+          working-directory: ${{ matrix.dir }}
           bundle-command: pnpm bundle
           store-endpoint: ${{ secrets.STORE_ENDPOINT_PROD }}
           store-access-token: ${{ secrets.STORE_ACCESS_TOKEN_PROD }}
