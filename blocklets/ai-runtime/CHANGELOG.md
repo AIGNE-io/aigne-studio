@@ -1,4 +1,4 @@
-## 0.4.178
+## 0.4.182 (2024-12-20)
 
 - Support install a project as npm package
 

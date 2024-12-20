@@ -7,9 +7,12 @@ import path from 'path';
 
 import { $, chalk, fs } from 'zx';
 
-execSync('bumpp --no-tag --no-commit --no-push package.json blocklets/*/package.json packages/*/package.json', {
-  stdio: 'inherit',
-});
+execSync(
+  'bumpp --no-tag --no-commit --no-push package.json blocklets/*/package.json packages/*/package.json framework/*/package.json',
+  {
+    stdio: 'inherit',
+  }
+);
 
 const { version } = await fs.readJSON('package.json');
 await fs.writeFileSync('version', version);

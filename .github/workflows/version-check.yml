@@ -1,63 +1,20 @@
 name: 'Version Check'
 
 on:
-  workflow_call:
-    # Map the workflow outputs to job outputs
-    outputs:
-      folders:
-        description: 'The folders that have changed'
-        value: ${{ jobs.check-files.outputs.folders }}
   pull_request:
     types:
       - opened
       - reopened
-      - synchronize
       - edited
+      - synchronize
     branches:
       - main
-
+      - master
 jobs:
-  check-files:
-    if: "! contains(toJSON(github.event.commits.*.message), 'WIP') && !contains(toJSON(github.event.commits.*.message), 'wip')"
+  main:
     runs-on: ubuntu-latest
-    name: Check files changed
-    outputs:
-      folders: ${{ steps.format-changed-files.outputs.folders }}
     steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - name: Get changed files
-        id: changed-files
-        uses: tj-actions/changed-files@v35.8.0
-        with:
-          files: |
-            blocklets/**/package.json
-            packages/**/package.json
-            framework/**/package.json
-          json: 'true'
-          dir_names: true
-          dir_names_exclude_root: true
-          dir_names_max_depth: 2
-
-      - name: List all changed files
-        run: |
-          echo "${{ steps.changed-files.outputs.all_changed_files }} was changed"
-
-      - name: Filter package.json with version changes
-        id: filter-version-changes
-        run: |
-          changed_files="${{ steps.changed-files.outputs.all_changed_files }}"
-          version_changed_files=""
-
-          # Iterate over changed files and check if version changed
-          for file in $changed_files; do
-            if [[ "$file" == *"package.json" ]]; then
-              # Check if version field changed
-              git diff HEAD~1..HEAD -- "$file" | grep -q '"version":' && version_changed_files+="$file "
-            fi
-          done
-
-          # Output only package.json files with version changes
-          echo "folders=$version_changed_files" >> $GITHUB_OUTPUT
+      - name: action-version-check
+        uses: arcblock/action-version-check@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
