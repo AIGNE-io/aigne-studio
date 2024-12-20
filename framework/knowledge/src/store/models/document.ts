@@ -1,7 +1,7 @@
 import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
+import type { Sequelize } from 'sequelize';
 
 import nextId from '../../libs/next-id';
-import { getSequelize } from '../sequelize';
 
 export enum UploadStatus {
   Idle = 'idle',
@@ -66,7 +66,7 @@ export default class KnowledgeDocument extends Model<
   declare size?: number;
 }
 
-export const init = () => {
+export const init = (sequelize: Sequelize) => {
   KnowledgeDocument.init(
     {
       id: {
@@ -117,6 +117,6 @@ export const init = () => {
         type: DataTypes.BIGINT,
       },
     },
-    { sequelize: getSequelize() }
+    { sequelize: sequelize }
   );
 };

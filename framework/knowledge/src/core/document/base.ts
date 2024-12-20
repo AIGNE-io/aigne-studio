@@ -73,7 +73,7 @@ export abstract class BaseProcessor {
     return result.dataValues;
   }
 
-  async load(): Promise<{ id: string; documents: Document[] }> {
+  async execute(): Promise<{ id: string; documents: Document[] }> {
     try {
       await this.send({ embeddingStatus: UploadStatus.Uploading, embeddingStartAt: new Date() }, 'change');
 
@@ -101,9 +101,9 @@ export abstract class BaseProcessor {
     }
   }
 
-  async getDocument(): Promise<KnowledgeDocument> {
-    const document = await KnowledgeDocument.findOne({ where: { id: this.documentId } });
-    if (!document) throw new Error(`document ${this.documentId} not found`);
+  async getDocument(documentId?: string): Promise<KnowledgeDocument> {
+    const document = await KnowledgeDocument.findOne({ where: { id: documentId || this.documentId } });
+    if (!document) throw new Error(`document ${documentId || this.documentId} not found`);
     return document;
   }
 

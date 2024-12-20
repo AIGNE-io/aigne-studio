@@ -1,8 +1,15 @@
 import { IDatasource } from './datasource';
 
+export enum UploadStatus {
+  Idle = 'idle',
+  Uploading = 'uploading',
+  Success = 'success',
+  Error = 'error',
+}
+
 export interface SearchParams {
   query: string;
-  k?: number;
+  k: number;
 }
 
 export interface Document {
@@ -26,36 +33,103 @@ export interface KnowledgeBaseInfo {
   icon?: string;
 }
 
-export interface IKnowledgeBase<I extends { [key: string]: any }, O> extends IDatasource<I, O> {
-  // delete(): Promise<void>;
+export type KnowledgeDocument = {
+  id: string;
+  type: 'file' | 'text' | 'discussKit' | 'url';
+  data?:
+    | {
+        type: 'file';
+      }
+    | {
+        type: 'text';
+      }
+    | {
+        type: 'discussKit';
+        data: {
+          id: string;
+          title: string;
+          type?: 'discussion' | 'blog' | 'doc';
+          from: 'discussion' | 'board' | 'discussionType';
+          boardId?: string;
+        };
+      }
+    | {
+        type: 'url';
+        provider: 'jina' | 'firecrawl';
+        url?: string;
+      };
+  name?: string;
+  content?: any;
+  createdAt: Date;
+  updatedAt: Date;
+  createdBy: string;
+  updatedBy: string;
+  error?: string | null;
+  embeddingStartAt?: Date;
+  embeddingEndAt?: Date;
+  embeddingStatus?: UploadStatus | string;
+  filename?: string;
+  size?: number;
+};
+
+export interface KnowledgeSegment {
+  id: string;
+  documentId: string;
+  content?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface IKnowledgeBase<I extends SearchParams, O extends Document[]> extends IDatasource<I, O> {
+  // 知识库信息
+  getInfo(): Promise<KnowledgeBaseInfo>;
   update(info: Partial<KnowledgeBaseInfo>): Promise<KnowledgeBaseInfo>;
+  delete(): Promise<void>;
 
-  addDocuments(documents: Document[]): Promise<Document[]>;
-  removeDocuments(documentIds: string[]): Promise<void>;
+  // 文档管理
+  addDocuments(params: DocumentParams): Promise<O>;
+  getDocuments(
+    params: { [key: string]: any },
+    page: number,
+    size: number
+  ): Promise<{ total: number; items: KnowledgeDocument[] }>;
+  getDocument(documentId: string): Promise<KnowledgeDocument>;
+  removeDocument(documentId: string): Promise<number>;
+  removeDocuments(documentIds: string[]): Promise<number[]>;
 
-  search(params: SearchParams): Promise<O>;
+  // 文档分段管理
+  getSegments(documentId: string): Promise<KnowledgeSegment[]>;
+  removeSegments(documentId: string): Promise<number>;
+
+  search(params: I): Promise<O>;
 }
 
-interface DocumentLoader {
-  load(): Promise<Document[]>;
-}
+interface BaseDocumentParams {}
 
-export interface FileLoader extends DocumentLoader {
+export interface FileDocumentParams extends BaseDocumentParams {
+  type: 'file';
   file: File;
 }
 
-export interface DiscussKitLoader extends DocumentLoader {
-  source: { type: 'discussion'; discussionId: string } | { type: 'board'; boardId: string } | { type: 'all' };
+export interface DiscussKitDocumentParams extends BaseDocumentParams {
+  type: 'discussKit';
+  source: CreateDiscussionItem;
 }
 
-export interface URLLoader extends DocumentLoader {
+export interface URLDocumentParams extends BaseDocumentParams {
+  type: 'url';
   url: string;
+  crawlType: 'jina' | 'firecrawl';
+  apiKey: string;
 }
 
-export interface TextLoader extends DocumentLoader {
-  text: string;
+export interface CustomDocumentParams extends BaseDocumentParams {
+  type: 'text';
+  title: string;
   content: string;
 }
+
+export type DocumentParams = FileDocumentParams | DiscussKitDocumentParams | URLDocumentParams | CustomDocumentParams;
 
 export interface CreateDiscussionItem {
   name: string;

@@ -1,7 +1,7 @@
 import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
+import type { Sequelize } from 'sequelize';
 
 import nextId from '../../libs/next-id';
-import { getSequelize } from '../sequelize';
 import { UploadStatus } from './document';
 
 export default class KnowledgeEmbeddingHistory extends Model<
@@ -27,7 +27,7 @@ export default class KnowledgeEmbeddingHistory extends Model<
   declare contentHash?: string;
 }
 
-export const init = () => {
+export const init = (sequelize: Sequelize) => {
   KnowledgeEmbeddingHistory.init(
     {
       id: {
@@ -61,6 +61,6 @@ export const init = () => {
         type: DataTypes.STRING,
       },
     },
-    { sequelize: getSequelize() }
+    { sequelize: sequelize }
   );
 };

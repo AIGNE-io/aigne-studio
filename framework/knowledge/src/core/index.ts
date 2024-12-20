@@ -1,13 +1,15 @@
-import { Document, IKnowledgeBase, KnowledgeBaseInfo, SearchParams } from '@aigne/core';
+import { RunOptions, RunnableResponse, RunnableResponseStream } from '@aigne/core';
+import { Document, DocumentParams, IKnowledgeBase, KnowledgeBaseInfo, SearchParams } from '@aigne/core';
 import { mkdir, pathExists, readFile, writeFile } from 'fs-extra';
 import { joinURL } from 'ufo';
 import { parse, stringify } from 'yaml';
 
 import { initStore } from '../store';
-import Segment from '../store/models/segment';
+import KnowledgeSegment from '../store/models/segment';
+import { DocumentProcessor } from './document';
 import Retriever from './retriever';
 
-export class KnowledgeBase<I extends object = object, O = object> implements IKnowledgeBase<I, O> {
+export class KnowledgeBase<I extends SearchParams, O extends Document[]> implements IKnowledgeBase<I, O> {
   private knowledgePath: string = '';
   private knowledgeDBPath: string = '';
   private knowledgeVectorsFolderPath: string = '';
@@ -53,6 +55,11 @@ export class KnowledgeBase<I extends object = object, O = object> implements IKn
     return instance;
   }
 
+  async getInfo(): Promise<KnowledgeBaseInfo> {
+    const knowledge = parse(await readFile(this.knowledgePath, 'utf-8'));
+    return knowledge;
+  }
+
   async update(info: Partial<KnowledgeBaseInfo>): Promise<KnowledgeBaseInfo> {
     const knowledge = parse(await readFile(this.knowledgePath, 'utf-8'));
     await writeFile(this.knowledgePath, stringify({ ...knowledge, ...info }));
@@ -64,32 +71,116 @@ export class KnowledgeBase<I extends object = object, O = object> implements IKn
     await writeFile(this.knowledgePath, stringify({}));
   }
 
-  async addDocuments(documents: Document[]): Promise<Document[]> {
-    return documents;
+  async getDocuments(params: { [key: string]: any } = {}, page: number = 1, size: number = 20) {
+    const processor = await DocumentProcessor.load({
+      knowledgeVectorsFolderPath: this.knowledgeVectorsFolderPath,
+      knowledgeSourcesFolderPath: this.knowledgeSourcesFolderPath,
+      knowledgeProcessedFolderPath: this.knowledgeProcessedFolderPath,
+      knowledgePath: this.knowledgePath,
+      sendToCallback: () => {},
+      did: '1',
+    });
+
+    return processor.getDocuments(params, page, size);
   }
 
-  async removeDocuments(documentIds: string[]): Promise<void> {
-    throw new Error('Not implemented');
+  async getDocument(documentId: string) {
+    const processor = await DocumentProcessor.load({
+      knowledgeVectorsFolderPath: this.knowledgeVectorsFolderPath,
+      knowledgeSourcesFolderPath: this.knowledgeSourcesFolderPath,
+      knowledgeProcessedFolderPath: this.knowledgeProcessedFolderPath,
+      knowledgePath: this.knowledgePath,
+      sendToCallback: () => {},
+      did: '1',
+    });
+
+    return processor.getDocument(documentId);
   }
 
-  async addSegments(): Promise<Segment> {
-    const segment = await Segment.create({
-      documentId: '1',
-      content: 'test',
+  async addDocuments(params: DocumentParams): Promise<O> {
+    const processor = await DocumentProcessor.load({
+      knowledgeVectorsFolderPath: this.knowledgeVectorsFolderPath,
+      knowledgeSourcesFolderPath: this.knowledgeSourcesFolderPath,
+      knowledgeProcessedFolderPath: this.knowledgeProcessedFolderPath,
+      knowledgePath: this.knowledgePath,
+      sendToCallback: () => {},
+      did: '1',
+    });
+
+    return processor.addDocuments(params) as unknown as O;
+  }
+
+  async removeDocument(documentId: string): Promise<number> {
+    const processor = await DocumentProcessor.load({
+      knowledgeVectorsFolderPath: this.knowledgeVectorsFolderPath,
+      knowledgeSourcesFolderPath: this.knowledgeSourcesFolderPath,
+      knowledgeProcessedFolderPath: this.knowledgeProcessedFolderPath,
+      knowledgePath: this.knowledgePath,
+      sendToCallback: () => {},
+      did: '1',
+    });
+
+    return processor.removeDocument(documentId);
+  }
+
+  async removeDocuments(documentIds: string[]): Promise<number[]> {
+    return await Promise.all(documentIds.map((id) => this.removeDocument(id)));
+  }
+
+  async getSegments(documentId: string): Promise<KnowledgeSegment[]> {
+    const segment = await KnowledgeSegment.findAll({
+      where: {
+        documentId,
+      },
     });
 
     return segment;
   }
 
-  async removeSegments(segmentIds: string[]): Promise<void> {
-    throw new Error('Not implemented');
+  async removeSegments(documentId: string): Promise<number> {
+    return await KnowledgeSegment.destroy({
+      where: {
+        documentId,
+      },
+    });
   }
 
-  async search(params: SearchParams): Promise<any> {
-    return new Retriever(this.knowledgeVectorsFolderPath, params.k).search(params.query);
+  async search(params: I): Promise<O> {
+    const result = await this.run(params, { stream: false });
+    return result;
   }
 
-  async run(params: any): Promise<any> {
-    return new Retriever(this.knowledgeVectorsFolderPath, params.k).search(params.query);
+  async run(input: I, options: RunOptions & { stream: true }): Promise<RunnableResponseStream<O>>;
+  async run(input: I, options?: RunOptions & { stream?: false }): Promise<O>;
+  async run(input: I, options?: RunOptions): Promise<RunnableResponse<O>> {
+    const { query, k = 5 } = input;
+
+    const execute = async () => {
+      const executor = new Retriever(this.knowledgeVectorsFolderPath, k);
+      const results = await executor.search(query);
+      return results as unknown as O;
+    };
+
+    if (options?.stream) {
+      return new ReadableStream({
+        async start(controller) {
+          try {
+            const result = await execute();
+
+            for (const doc of result) {
+              controller.enqueue({ delta: JSON.stringify(doc) as any });
+            }
+
+            controller.enqueue({ delta: result as O });
+          } catch (error) {
+            controller.error(error);
+          } finally {
+            controller.close();
+          }
+        },
+      });
+    }
+
+    return execute();
   }
 }

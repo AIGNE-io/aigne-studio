@@ -8,11 +8,11 @@ import { initSequelize } from './sequelize';
 export async function initStore(config: StoreConfig) {
   Config.init(config);
 
-  initSequelize();
+  const sequelize = initSequelize();
 
-  initKnowledgeDocument();
-  initDatasetEmbeddingHistory();
-  initKnowledgeSegment();
+  initKnowledgeDocument(sequelize);
+  initDatasetEmbeddingHistory(sequelize);
+  initKnowledgeSegment(sequelize);
 
-  await migrate();
+  await migrate(sequelize);
 }

@@ -1,7 +1,6 @@
-import { CreateDiscussionItem } from '@aigne/core';
+import { Document, DocumentParams } from '@aigne/core';
 
 import { addDocumentsToVectorStore, removeDocumentsFromVectorStore } from '../../libs/vector-store';
-import logger from '../../logger';
 import KnowledgeDocument from '../../store/models/document';
 import { BaseProcessor, BaseProcessorProps } from './base';
 import { CrawlProcessor } from './crawl';
@@ -10,15 +9,6 @@ import { DiscussKitProcessor } from './discuss';
 import { FileProcessor } from './file';
 
 export class DocumentProcessor extends BaseProcessor {
-  private type: 'file' | 'text' | 'discussKit' | 'url';
-  private file?: File;
-  private content?: string;
-  private title?: string;
-  private data?: CreateDiscussionItem;
-  private url?: string;
-  private crawlType?: 'jina' | 'firecrawl';
-  private apiKey?: string;
-
   constructor({
     knowledgeVectorsFolderPath,
     knowledgeSourcesFolderPath,
@@ -26,25 +16,7 @@ export class DocumentProcessor extends BaseProcessor {
     knowledgePath,
     did,
     sendToCallback,
-
-    type,
-    file,
-    content,
-    title,
-    data,
-    url,
-    crawlType,
-    apiKey,
-  }: BaseProcessorProps & {
-    type: 'file' | 'text' | 'discussKit' | 'url';
-    file?: File;
-    content?: string;
-    title?: string;
-    data?: CreateDiscussionItem;
-    url?: string;
-    crawlType?: 'jina' | 'firecrawl';
-    apiKey?: string;
-  }) {
+  }: BaseProcessorProps) {
     super({
       knowledgeVectorsFolderPath,
       knowledgeSourcesFolderPath,
@@ -53,15 +25,11 @@ export class DocumentProcessor extends BaseProcessor {
       did,
       sendToCallback,
     });
+  }
 
-    this.type = type;
-    this.file = file;
-    this.content = content;
-    this.title = title;
-    this.data = data;
-    this.url = url;
-    this.crawlType = crawlType;
-    this.apiKey = apiKey;
+  static async load(params: BaseProcessorProps) {
+    const processor = new DocumentProcessor(params);
+    return processor;
   }
 
   override async saveOriginSource() {
@@ -78,7 +46,12 @@ export class DocumentProcessor extends BaseProcessor {
     // ignore
   }
 
-  override async load() {
+  override async execute() {
+    // ignore
+    return { id: '', documents: [] };
+  }
+
+  async loaderDocuments(documentParams: DocumentParams) {
     const params = {
       knowledgePath: this.knowledgePath,
       knowledgeVectorsFolderPath: this.knowledgeVectorsFolderPath,
@@ -88,37 +61,45 @@ export class DocumentProcessor extends BaseProcessor {
       sendToCallback: this.sendToCallback,
     };
 
-    switch (this.type) {
-      case 'file': {
-        return new FileProcessor({ ...params, file: this.file! }).load();
-      }
-      case 'text': {
-        return new CustomProcessor({ ...params, content: this.content!, title: this.title! }).load();
-      }
-      case 'discussKit': {
-        return new DiscussKitProcessor({ ...params, data: this.data! }).load();
-      }
-      case 'url': {
-        return new CrawlProcessor({
-          ...params,
-          url: this.url!,
-          type: this.crawlType!,
-          apiKey: this.apiKey!,
-        }).load();
-      }
-      default: {
-        logger.error('Unsupported document type', { document });
-        throw new Error(`Unsupported document type: ${(document as any)?.type}`);
-      }
+    if (!documentParams) throw new Error('documentParams is required');
+
+    if (documentParams.type === 'file') {
+      return await new FileProcessor({ ...params, file: documentParams.file }).execute();
     }
+
+    if (documentParams.type === 'text') {
+      return await new CustomProcessor({
+        ...params,
+        content: documentParams.content,
+        title: documentParams.title,
+      }).execute();
+    }
+
+    if (documentParams.type === 'discussKit') {
+      return await new DiscussKitProcessor({ ...params, data: documentParams.source }).execute();
+    }
+
+    if (documentParams.type === 'url') {
+      return await new CrawlProcessor({
+        ...params,
+        url: documentParams.url,
+        type: documentParams.crawlType,
+        apiKey: documentParams.apiKey,
+      }).execute();
+    }
+
+    throw new Error(`Unsupported document type: ${(documentParams as any).type}`);
   }
 
   async getDocuments(params: { [key: string]: any } = {}, page: number = 1, size: number = 20) {
-    return KnowledgeDocument.findAll({ where: params, offset: (page - 1) * size, limit: size });
+    return {
+      total: await KnowledgeDocument.count({ where: params }),
+      items: await KnowledgeDocument.findAll({ where: params, offset: (page - 1) * size, limit: size }),
+    };
   }
 
-  async addDocuments() {
-    const { id, documents } = await this.load();
+  async addDocuments(documentParams: DocumentParams) {
+    const { id, documents } = await this.loaderDocuments(documentParams);
 
     await addDocumentsToVectorStore({
       storePath: this.knowledgeVectorsFolderPath,
@@ -126,17 +107,12 @@ export class DocumentProcessor extends BaseProcessor {
       documentId: id,
     });
 
-    return documents;
+    return documents as any;
   }
 
-  async removeDocuments(ids: string[]) {
-    await Promise.all(
-      ids.map(async (id) => {
-        await Promise.all([
-          KnowledgeDocument.destroy({ where: { id } }),
-          removeDocumentsFromVectorStore(this.knowledgeVectorsFolderPath, id),
-        ]);
-      })
-    );
+  async removeDocument(id: string) {
+    removeDocumentsFromVectorStore(this.knowledgeVectorsFolderPath, id);
+
+    return await KnowledgeDocument.destroy({ where: { id } });
   }
 }

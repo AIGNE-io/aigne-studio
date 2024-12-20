@@ -1,11 +1,7 @@
-import type { ColumnsDescription, QueryInterface } from 'sequelize';
+import type { ColumnsDescription, QueryInterface, Sequelize } from 'sequelize';
 import { SequelizeStorage, Umzug } from 'umzug';
 
-import { getSequelize } from './sequelize';
-
-export const migrate = async () => {
-  const sequelize = getSequelize();
-
+export const migrate = async (sequelize: Sequelize) => {
   const umzug = new Umzug({
     migrations: {
       glob: ['**/migrations/*.{ts,js}', { cwd: __dirname }],

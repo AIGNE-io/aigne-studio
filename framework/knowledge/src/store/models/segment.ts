@@ -1,7 +1,7 @@
 import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
+import type { Sequelize } from 'sequelize';
 
 import nextId from '../../libs/next-id';
-import { getSequelize } from '../sequelize';
 
 export default class KnowledgeSegment extends Model<
   InferAttributes<KnowledgeSegment>,
@@ -18,7 +18,7 @@ export default class KnowledgeSegment extends Model<
   declare updatedAt: CreationOptional<Date>;
 }
 
-export const init = () => {
+export const init = (sequelize: Sequelize) => {
   KnowledgeSegment.init(
     {
       id: {
@@ -41,6 +41,6 @@ export const init = () => {
         type: DataTypes.DATE,
       },
     },
-    { sequelize: getSequelize() }
+    { sequelize: sequelize }
   );
 };
