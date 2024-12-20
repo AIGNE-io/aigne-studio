@@ -1,14 +1,10 @@
 import { DataTypes, QueryInterface } from 'sequelize';
 
 export const up = async ({ context: queryInterface }: { context: QueryInterface }) => {
-  await queryInterface.createTable('DatasetDocuments', {
+  await queryInterface.createTable('KnowledgeDocuments', {
     id: {
       type: DataTypes.STRING,
       primaryKey: true,
-      allowNull: false,
-    },
-    datasetId: {
-      type: DataTypes.STRING,
       allowNull: false,
     },
     type: {
@@ -46,19 +42,19 @@ export const up = async ({ context: queryInterface }: { context: QueryInterface 
     embeddingStatus: {
       type: DataTypes.STRING,
     },
+    filename: {
+      type: DataTypes.STRING,
+    },
+    size: {
+      type: DataTypes.BIGINT,
+    },
   });
 
-  await queryInterface.createTable('DatasetEmbeddingHistories', {
+  await queryInterface.createTable('KnowledgeEmbeddingHistories', {
     id: {
       type: DataTypes.STRING,
       primaryKey: true,
       allowNull: false,
-    },
-    targetId: {
-      type: DataTypes.STRING,
-    },
-    datasetId: {
-      type: DataTypes.STRING,
     },
     documentId: {
       type: DataTypes.STRING,
@@ -67,9 +63,6 @@ export const up = async ({ context: queryInterface }: { context: QueryInterface 
       type: DataTypes.DATE,
     },
     updatedAt: {
-      type: DataTypes.DATE,
-    },
-    targetVersion: {
       type: DataTypes.DATE,
     },
     error: {
@@ -84,9 +77,12 @@ export const up = async ({ context: queryInterface }: { context: QueryInterface 
     status: {
       type: DataTypes.STRING,
     },
+    contentHash: {
+      type: DataTypes.STRING,
+    },
   });
 
-  await queryInterface.createTable('DatasetSegments', {
+  await queryInterface.createTable('KnowledgeSegments', {
     id: {
       type: DataTypes.STRING,
       primaryKey: true,
@@ -95,9 +91,6 @@ export const up = async ({ context: queryInterface }: { context: QueryInterface 
     documentId: {
       type: DataTypes.STRING,
       allowNull: false,
-    },
-    targetId: {
-      type: DataTypes.STRING,
     },
     content: {
       type: DataTypes.TEXT,
@@ -112,7 +105,7 @@ export const up = async ({ context: queryInterface }: { context: QueryInterface 
 };
 
 export const down = async ({ context: queryInterface }: { context: QueryInterface }) => {
-  await queryInterface.dropTable('DatasetDocuments');
-  await queryInterface.dropTable('DatasetEmbeddingHistories');
-  await queryInterface.dropTable('DatasetSegments');
+  await queryInterface.dropTable('KnowledgeDocuments');
+  await queryInterface.dropTable('KnowledgeEmbeddingHistories');
+  await queryInterface.dropTable('KnowledgeSegments');
 };

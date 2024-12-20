@@ -48,6 +48,7 @@ export default class VectorStore extends FaissStore {
 
         return new VectorStore(storePath, embeddings, faiss.args);
       })();
+
       vectorStores.set(storePath, store);
     }
 

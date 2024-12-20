@@ -3,9 +3,9 @@ import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, 
 import nextId from '../../libs/next-id';
 import { getSequelize } from '../sequelize';
 
-export default class DatasetSegment extends Model<
-  InferAttributes<DatasetSegment>,
-  InferCreationAttributes<DatasetSegment>
+export default class KnowledgeSegment extends Model<
+  InferAttributes<KnowledgeSegment>,
+  InferCreationAttributes<KnowledgeSegment>
 > {
   declare id: CreationOptional<string>;
 
@@ -18,27 +18,29 @@ export default class DatasetSegment extends Model<
   declare updatedAt: CreationOptional<Date>;
 }
 
-// DatasetSegment.init(
-//   {
-//     id: {
-//       type: DataTypes.STRING,
-//       primaryKey: true,
-//       allowNull: false,
-//       defaultValue: nextId,
-//     },
-//     documentId: {
-//       type: DataTypes.STRING,
-//       allowNull: false,
-//     },
-//     content: {
-//       type: DataTypes.TEXT,
-//     },
-//     createdAt: {
-//       type: DataTypes.DATE,
-//     },
-//     updatedAt: {
-//       type: DataTypes.DATE,
-//     },
-//   },
-//   { sequelize: getSequelize() }
-// );
+export const init = () => {
+  KnowledgeSegment.init(
+    {
+      id: {
+        type: DataTypes.STRING,
+        primaryKey: true,
+        allowNull: false,
+        defaultValue: nextId,
+      },
+      documentId: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      content: {
+        type: DataTypes.TEXT,
+      },
+      createdAt: {
+        type: DataTypes.DATE,
+      },
+      updatedAt: {
+        type: DataTypes.DATE,
+      },
+    },
+    { sequelize: getSequelize() }
+  );
+};

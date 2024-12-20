@@ -3,7 +3,7 @@ import { CreateDiscussionItem } from '@aigne/core';
 import { addDocumentsToVectorStore, removeDocumentsFromVectorStore } from '../../libs/vector-store';
 import logger from '../../logger';
 import KnowledgeDocument from '../../store/models/document';
-import { BaseProcessor } from './base';
+import { BaseProcessor, BaseProcessorProps } from './base';
 import { CrawlProcessor } from './crawl';
 import { CustomProcessor } from './custom';
 import { DiscussKitProcessor } from './discuss';
@@ -25,7 +25,7 @@ export class DocumentProcessor extends BaseProcessor {
     knowledgeProcessedFolderPath,
     knowledgePath,
     did,
-    sendToRelay,
+    sendToCallback,
 
     type,
     file,
@@ -35,14 +35,7 @@ export class DocumentProcessor extends BaseProcessor {
     url,
     crawlType,
     apiKey,
-  }: {
-    knowledgeVectorsFolderPath: string;
-    knowledgeSourcesFolderPath: string;
-    knowledgeProcessedFolderPath: string;
-    knowledgePath: string;
-    did: string;
-    sendToRelay: (...args: any[]) => void;
-
+  }: BaseProcessorProps & {
     type: 'file' | 'text' | 'discussKit' | 'url';
     file?: File;
     content?: string;
@@ -58,7 +51,7 @@ export class DocumentProcessor extends BaseProcessor {
       knowledgeProcessedFolderPath,
       knowledgePath,
       did,
-      sendToRelay,
+      sendToCallback,
     });
 
     this.type = type;
@@ -76,6 +69,8 @@ export class DocumentProcessor extends BaseProcessor {
   }
 
   override async ProcessedFile() {
+    // ignore
+
     return '';
   }
 
@@ -90,6 +85,7 @@ export class DocumentProcessor extends BaseProcessor {
       knowledgeSourcesFolderPath: this.knowledgeSourcesFolderPath,
       knowledgeProcessedFolderPath: this.knowledgeProcessedFolderPath,
       did: this.did,
+      sendToCallback: this.sendToCallback,
     };
 
     switch (this.type) {
@@ -134,6 +130,13 @@ export class DocumentProcessor extends BaseProcessor {
   }
 
   async removeDocuments(ids: string[]) {
-    await Promise.all(ids.map((id) => removeDocumentsFromVectorStore(this.knowledgeVectorsFolderPath, id)));
+    await Promise.all(
+      ids.map(async (id) => {
+        await Promise.all([
+          KnowledgeDocument.destroy({ where: { id } }),
+          removeDocumentsFromVectorStore(this.knowledgeVectorsFolderPath, id),
+        ]);
+      })
+    );
   }
 }

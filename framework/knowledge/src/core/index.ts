@@ -4,6 +4,7 @@ import { joinURL } from 'ufo';
 import { parse, stringify } from 'yaml';
 
 import { initStore } from '../store';
+import Segment from '../store/models/segment';
 import Retriever from './retriever';
 
 export class KnowledgeBase<I extends object = object, O = object> implements IKnowledgeBase<I, O> {
@@ -68,6 +69,19 @@ export class KnowledgeBase<I extends object = object, O = object> implements IKn
   }
 
   async removeDocuments(documentIds: string[]): Promise<void> {
+    throw new Error('Not implemented');
+  }
+
+  async addSegments(): Promise<Segment> {
+    const segment = await Segment.create({
+      documentId: '1',
+      content: 'test',
+    });
+
+    return segment;
+  }
+
+  async removeSegments(segmentIds: string[]): Promise<void> {
     throw new Error('Not implemented');
   }
 

@@ -10,13 +10,11 @@ export enum UploadStatus {
   Error = 'error',
 }
 
-export default class DatasetDocument extends Model<
-  InferAttributes<DatasetDocument>,
-  InferCreationAttributes<DatasetDocument>
+export default class KnowledgeDocument extends Model<
+  InferAttributes<KnowledgeDocument>,
+  InferCreationAttributes<KnowledgeDocument>
 > {
   declare id: CreationOptional<string>;
-
-  declare knowledgeId: string;
 
   declare type: 'file' | 'text' | 'discussKit' | 'url';
 
@@ -68,59 +66,57 @@ export default class DatasetDocument extends Model<
   declare size?: number;
 }
 
-// DatasetDocument.init(
-//   {
-//     id: {
-//       type: DataTypes.STRING,
-//       primaryKey: true,
-//       allowNull: false,
-//       defaultValue: nextId,
-//     },
-//     knowledgeId: {
-//       type: DataTypes.STRING,
-//       allowNull: false,
-//     },
-//     type: {
-//       type: DataTypes.STRING,
-//     },
-//     data: {
-//       type: DataTypes.JSON,
-//     },
-//     name: {
-//       type: DataTypes.STRING,
-//     },
-//     createdAt: {
-//       type: DataTypes.DATE,
-//     },
-//     updatedAt: {
-//       type: DataTypes.DATE,
-//     },
-//     createdBy: {
-//       type: DataTypes.STRING,
-//       allowNull: false,
-//     },
-//     updatedBy: {
-//       type: DataTypes.STRING,
-//       allowNull: false,
-//     },
-//     error: {
-//       type: DataTypes.STRING,
-//     },
-//     embeddingStartAt: {
-//       type: DataTypes.DATE,
-//     },
-//     embeddingEndAt: {
-//       type: DataTypes.DATE,
-//     },
-//     embeddingStatus: {
-//       type: DataTypes.STRING,
-//     },
-//     filename: {
-//       type: DataTypes.STRING,
-//     },
-//     size: {
-//       type: DataTypes.BIGINT,
-//     },
-//   },
-//   { sequelize: getSequelize() }
-// );
+export const init = () => {
+  KnowledgeDocument.init(
+    {
+      id: {
+        type: DataTypes.STRING,
+        primaryKey: true,
+        allowNull: false,
+        defaultValue: nextId,
+      },
+      type: {
+        type: DataTypes.STRING,
+      },
+      data: {
+        type: DataTypes.JSON,
+      },
+      name: {
+        type: DataTypes.STRING,
+      },
+      createdAt: {
+        type: DataTypes.DATE,
+      },
+      updatedAt: {
+        type: DataTypes.DATE,
+      },
+      createdBy: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      updatedBy: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      error: {
+        type: DataTypes.STRING,
+      },
+      embeddingStartAt: {
+        type: DataTypes.DATE,
+      },
+      embeddingEndAt: {
+        type: DataTypes.DATE,
+      },
+      embeddingStatus: {
+        type: DataTypes.STRING,
+      },
+      filename: {
+        type: DataTypes.STRING,
+      },
+      size: {
+        type: DataTypes.BIGINT,
+      },
+    },
+    { sequelize: getSequelize() }
+  );
+};

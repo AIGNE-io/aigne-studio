@@ -10,7 +10,7 @@ import { parse, stringify } from 'yaml';
 
 import logger from '../../logger';
 import KnowledgeDocument from '../../store/models/document';
-import { BaseProcessor } from './base';
+import { BaseProcessor, BaseProcessorProps } from './base';
 
 const fileSchema = Joi.object<{
   name: string;
@@ -30,15 +30,16 @@ export class FileProcessor extends BaseProcessor {
     knowledgePath,
     file,
     did,
-  }: {
-    knowledgeVectorsFolderPath: string;
-    knowledgeSourcesFolderPath: string;
-    knowledgeProcessedFolderPath: string;
-    knowledgePath: string;
-    file: File;
-    did: string;
-  }) {
-    super({ knowledgeVectorsFolderPath, knowledgeSourcesFolderPath, knowledgeProcessedFolderPath, knowledgePath, did });
+    sendToCallback,
+  }: BaseProcessorProps & { file: File }) {
+    super({
+      knowledgeVectorsFolderPath,
+      knowledgeSourcesFolderPath,
+      knowledgeProcessedFolderPath,
+      knowledgePath,
+      did,
+      sendToCallback,
+    });
 
     this.file = file;
   }
@@ -51,8 +52,6 @@ export class FileProcessor extends BaseProcessor {
   }
 
   protected async saveOriginSource(): Promise<void> {
-    const knowledge = parse(await readFile(this.knowledgePath, 'utf-8'));
-
     const fileBuffer = await this.file.arrayBuffer().then((buffer) => Buffer.from(buffer));
     await writeFile(joinURL(this.knowledgeSourcesFolderPath, this.file.name), fileBuffer);
 
@@ -62,7 +61,6 @@ export class FileProcessor extends BaseProcessor {
     const document = await KnowledgeDocument.create({
       type: 'file',
       name: filename,
-      knowledgeId: knowledge.id,
       createdBy: this.did,
       updatedBy: this.did,
       embeddingStatus: 'idle',
@@ -77,7 +75,6 @@ export class FileProcessor extends BaseProcessor {
   protected async ProcessedFile(): Promise<string> {
     const document = await this.getDocument();
 
-    // 保存文件内容
     const { data } = document;
     if (data?.type !== 'file') {
       throw new Error('Document is not a file');
@@ -91,6 +88,7 @@ export class FileProcessor extends BaseProcessor {
     const fileExt = (document.name || '').split('.').pop() || '';
 
     const content = await this.loadFile(filePath, fileExt);
+
     return stringify({
       content,
       metadata: {

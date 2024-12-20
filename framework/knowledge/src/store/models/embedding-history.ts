@@ -4,13 +4,11 @@ import nextId from '../../libs/next-id';
 import { getSequelize } from '../sequelize';
 import { UploadStatus } from './document';
 
-export default class DatasetEmbeddingHistory extends Model<
-  InferAttributes<DatasetEmbeddingHistory>,
-  InferCreationAttributes<DatasetEmbeddingHistory>
+export default class KnowledgeEmbeddingHistory extends Model<
+  InferAttributes<KnowledgeEmbeddingHistory>,
+  InferCreationAttributes<KnowledgeEmbeddingHistory>
 > {
   declare id: CreationOptional<string>;
-
-  declare knowledgeId: string;
 
   declare documentId: string;
 
@@ -29,41 +27,40 @@ export default class DatasetEmbeddingHistory extends Model<
   declare contentHash?: string;
 }
 
-// DatasetEmbeddingHistory.init(
-//   {
-//     id: {
-//       type: DataTypes.STRING,
-//       primaryKey: true,
-//       allowNull: false,
-//       defaultValue: nextId,
-//     },
-//     knowledgeId: {
-//       type: DataTypes.STRING,
-//     },
-//     documentId: {
-//       type: DataTypes.STRING,
-//     },
-//     createdAt: {
-//       type: DataTypes.DATE,
-//     },
-//     updatedAt: {
-//       type: DataTypes.DATE,
-//     },
-//     error: {
-//       type: DataTypes.STRING,
-//     },
-//     startAt: {
-//       type: DataTypes.DATE,
-//     },
-//     endAt: {
-//       type: DataTypes.DATE,
-//     },
-//     status: {
-//       type: DataTypes.STRING,
-//     },
-//     contentHash: {
-//       type: DataTypes.STRING,
-//     },
-//   },
-//   { sequelize: getSequelize() }
-// );
+export const init = () => {
+  KnowledgeEmbeddingHistory.init(
+    {
+      id: {
+        type: DataTypes.STRING,
+        primaryKey: true,
+        allowNull: false,
+        defaultValue: nextId,
+      },
+      documentId: {
+        type: DataTypes.STRING,
+      },
+      createdAt: {
+        type: DataTypes.DATE,
+      },
+      updatedAt: {
+        type: DataTypes.DATE,
+      },
+      error: {
+        type: DataTypes.STRING,
+      },
+      startAt: {
+        type: DataTypes.DATE,
+      },
+      endAt: {
+        type: DataTypes.DATE,
+      },
+      status: {
+        type: DataTypes.STRING,
+      },
+      contentHash: {
+        type: DataTypes.STRING,
+      },
+    },
+    { sequelize: getSequelize() }
+  );
+};

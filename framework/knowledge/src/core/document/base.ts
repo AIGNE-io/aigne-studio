@@ -19,6 +19,20 @@ export enum UploadStatus {
   Error = 'error',
 }
 
+export type BaseProcessorProps = {
+  knowledgeVectorsFolderPath: string;
+  knowledgeSourcesFolderPath: string;
+  knowledgeProcessedFolderPath: string;
+  knowledgePath: string;
+  did: string;
+  sendToCallback: (
+    data: KnowledgeDocument['dataValues'] & {
+      eventType: 'change' | 'complete' | 'error';
+      documentId: string;
+    }
+  ) => void;
+};
+
 export abstract class BaseProcessor {
   protected knowledgeVectorsFolderPath: string = '';
   protected knowledgeSourcesFolderPath: string = '';
@@ -26,28 +40,22 @@ export abstract class BaseProcessor {
   protected knowledgePath: string = '';
   protected did: string = '';
   protected documentId: string = '';
-  protected sendToRelay: (...args: any[]) => void = () => {};
+  protected sendToCallback: BaseProcessorProps['sendToCallback'] = () => {};
+
   constructor({
     knowledgePath,
     knowledgeVectorsFolderPath,
     knowledgeSourcesFolderPath,
     knowledgeProcessedFolderPath,
     did,
-    sendToRelay,
-  }: {
-    knowledgePath: string;
-    knowledgeVectorsFolderPath: string;
-    knowledgeSourcesFolderPath: string;
-    knowledgeProcessedFolderPath: string;
-    did: string;
-    sendToRelay: (...args: any[]) => void;
-  }) {
+    sendToCallback,
+  }: BaseProcessorProps) {
     this.knowledgePath = knowledgePath;
     this.knowledgeVectorsFolderPath = knowledgeVectorsFolderPath;
     this.knowledgeSourcesFolderPath = knowledgeSourcesFolderPath;
     this.knowledgeProcessedFolderPath = knowledgeProcessedFolderPath;
     this.did = did;
-    this.sendToRelay = sendToRelay;
+    this.sendToCallback = sendToCallback;
   }
 
   protected async saveProcessedFile(content: string): Promise<void> {
@@ -60,11 +68,7 @@ export abstract class BaseProcessor {
     const document = await this.getDocument();
     const result = await document.update({ ...props });
 
-    this.sendToRelay({
-      eventType: type,
-      documentId: this.documentId,
-      ...result.dataValues,
-    });
+    this.sendToCallback({ eventType: type, documentId: this.documentId, ...result.dataValues });
 
     return result.dataValues;
   }
@@ -114,9 +118,6 @@ export abstract class BaseProcessor {
   protected abstract init(): Promise<void>;
 
   protected async startRAG(): Promise<Document[]> {
-    const knowledge = parse(await readFile(this.knowledgePath, 'utf-8'));
-    const knowledgeId = knowledge.id;
-
     const processedFilePath = join(this.knowledgeProcessedFolderPath, `${this.documentId}.yml`);
     if (!(await exists(processedFilePath))) throw new Error(`processedFilePath ${processedFilePath} not found`);
 
@@ -137,7 +138,7 @@ export abstract class BaseProcessor {
 
         const fileContentHash = hash('md5', content, 'hex');
         const previousEmbedding = await EmbeddingHistories.findOne({
-          where: { knowledgeId: knowledgeId, documentId: this.documentId, contentHash: fileContentHash },
+          where: { documentId: this.documentId, contentHash: fileContentHash },
         });
 
         if (!fileContentHash || !content) {
@@ -154,7 +155,6 @@ export abstract class BaseProcessor {
 
         if (previousEmbedding?.status === UploadStatus.Success && previousEmbedding?.contentHash === fileContentHash) {
           logger.warn('embedding already exists', {
-            knowledgeId: knowledgeId,
             documentId: this.documentId,
             contentHash: fileContentHash,
             previousEmbeddingContentHash: previousEmbedding.contentHash,
@@ -178,7 +178,6 @@ export abstract class BaseProcessor {
         } else {
           await EmbeddingHistories.create({
             contentHash: fileContentHash,
-            knowledgeId: knowledgeId,
             documentId: this.documentId,
             startAt: new Date(),
             status: UploadStatus.Uploading,
@@ -204,7 +203,7 @@ export abstract class BaseProcessor {
 
         await EmbeddingHistories.update(
           { endAt: new Date(), status: UploadStatus.Success },
-          { where: { knowledgeId: knowledgeId, documentId: this.documentId } }
+          { where: { documentId: this.documentId } }
         );
       }
     } catch (error) {
@@ -212,7 +211,7 @@ export abstract class BaseProcessor {
 
       await EmbeddingHistories.update(
         { error: (error as Error)?.message, status: UploadStatus.Error },
-        { where: { knowledgeId: knowledgeId, documentId: this.documentId } }
+        { where: { documentId: this.documentId } }
       );
       throw error;
     } finally {

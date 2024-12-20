@@ -14,7 +14,7 @@ import { AIGNE_DISCUSS_COMPONENT_DID } from '../../constants';
 import { Discussion, commentsIterator, discussionsIterator, getDiscussion } from '../../libs/discuss';
 import logger from '../../logger';
 import KnowledgeDocument from '../../store/models/document';
-import { BaseProcessor } from './base';
+import { BaseProcessor, BaseProcessorProps } from './base';
 
 const commentsContent = async (discussionId: string) => {
   const arr = [];
@@ -71,18 +71,20 @@ export class DiscussKitProcessor extends BaseProcessor {
     knowledgeProcessedFolderPath,
     knowledgePath,
     did,
+    sendToCallback,
 
     data,
-  }: {
-    knowledgeVectorsFolderPath: string;
-    knowledgeSourcesFolderPath: string;
-    knowledgeProcessedFolderPath: string;
-    knowledgePath: string;
-    did: string;
-
+  }: BaseProcessorProps & {
     data: CreateDiscussionItem;
   }) {
-    super({ knowledgeVectorsFolderPath, knowledgeSourcesFolderPath, knowledgeProcessedFolderPath, knowledgePath, did });
+    super({
+      knowledgeVectorsFolderPath,
+      knowledgeSourcesFolderPath,
+      knowledgeProcessedFolderPath,
+      knowledgePath,
+      did,
+      sendToCallback,
+    });
 
     this.data = data;
   }
@@ -99,13 +101,10 @@ export class DiscussKitProcessor extends BaseProcessor {
   }
 
   protected async saveOriginSource(): Promise<void> {
-    const knowledge = parse(await readFile(this.knowledgePath, 'utf-8'));
-
     const document = await KnowledgeDocument.create({
       name: this.data.name,
       type: 'discussKit',
       data: { type: 'discussKit', data: this.data.data },
-      knowledgeId: knowledge.id,
       createdBy: this.did,
       updatedBy: this.did,
       embeddingStatus: 'idle',
@@ -127,6 +126,7 @@ export class DiscussKitProcessor extends BaseProcessor {
     const document = await this.getDocument();
 
     const { data } = document;
+    if (data?.type !== 'discussKit') throw new Error('document is not discussKit data');
 
     const originalFilePath = joinURL(this.knowledgeSourcesFolderPath, document.filename!);
     if (!(await exists(originalFilePath))) {

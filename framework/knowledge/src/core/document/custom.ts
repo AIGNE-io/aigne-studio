@@ -7,7 +7,7 @@ import { joinURL } from 'ufo';
 import { parse, stringify } from 'yaml';
 
 import KnowledgeDocument from '../../store/models/document';
-import { BaseProcessor } from './base';
+import { BaseProcessor, BaseProcessorProps } from './base';
 
 const customDocumentSchema = Joi.object<{ title: string; content: string }>({
   title: Joi.string().required(),
@@ -24,20 +24,21 @@ export class CustomProcessor extends BaseProcessor {
     knowledgeProcessedFolderPath,
     knowledgePath,
     did,
-
+    sendToCallback,
     content,
     title,
-  }: {
-    knowledgeVectorsFolderPath: string;
-    knowledgeSourcesFolderPath: string;
-    knowledgeProcessedFolderPath: string;
-    knowledgePath: string;
-    did: string;
-
+  }: BaseProcessorProps & {
     content: string;
     title: string;
   }) {
-    super({ knowledgeVectorsFolderPath, knowledgeSourcesFolderPath, knowledgeProcessedFolderPath, knowledgePath, did });
+    super({
+      knowledgeVectorsFolderPath,
+      knowledgeSourcesFolderPath,
+      knowledgeProcessedFolderPath,
+      knowledgePath,
+      did,
+      sendToCallback,
+    });
 
     this.content = content;
     this.title = title;
@@ -51,12 +52,9 @@ export class CustomProcessor extends BaseProcessor {
   }
 
   protected async saveOriginSource(): Promise<void> {
-    const knowledge = parse(await readFile(this.knowledgePath, 'utf-8'));
-
     const document = await KnowledgeDocument.create({
       type: 'text',
       name: this.title,
-      knowledgeId: knowledge.id,
       createdBy: this.did,
       updatedBy: this.did,
       embeddingStatus: 'idle',
@@ -74,6 +72,9 @@ export class CustomProcessor extends BaseProcessor {
 
   protected async ProcessedFile(): Promise<string> {
     const document = await this.getDocument();
+
+    const { data } = document;
+    if (data?.type !== 'text') throw new Error('document is not a text data');
 
     const originalFilePath = joinURL(this.knowledgeSourcesFolderPath, document.filename!);
     if (!(await exists(originalFilePath))) {

@@ -10,7 +10,7 @@ import { joinURL } from 'ufo';
 import { parse, stringify } from 'yaml';
 
 import KnowledgeDocument from '../../store/models/document';
-import { BaseProcessor } from './base';
+import { BaseProcessor, BaseProcessorProps } from './base';
 
 const crawlSchema = Joi.object<{ provider: 'jina' | 'firecrawl'; url: string; apiKey: string }>({
   provider: Joi.string().valid('jina', 'firecrawl').required(),
@@ -29,22 +29,24 @@ export class CrawlProcessor extends BaseProcessor {
     knowledgeProcessedFolderPath,
     knowledgePath,
     did,
+    sendToCallback,
 
     type,
     apiKey,
     url,
-  }: {
-    knowledgeVectorsFolderPath: string;
-    knowledgeSourcesFolderPath: string;
-    knowledgeProcessedFolderPath: string;
-    knowledgePath: string;
-    did: string;
-
+  }: BaseProcessorProps & {
     type: 'jina' | 'firecrawl';
     apiKey: string;
     url: string;
   }) {
-    super({ knowledgeVectorsFolderPath, knowledgeSourcesFolderPath, knowledgeProcessedFolderPath, knowledgePath, did });
+    super({
+      knowledgeVectorsFolderPath,
+      knowledgeSourcesFolderPath,
+      knowledgeProcessedFolderPath,
+      knowledgePath,
+      did,
+      sendToCallback,
+    });
 
     this.type = type;
     this.apiKey = apiKey;
@@ -59,12 +61,9 @@ export class CrawlProcessor extends BaseProcessor {
   }
 
   protected async saveOriginSource(): Promise<void> {
-    const knowledge = parse(await readFile(this.knowledgePath, 'utf-8'));
-
     const document = await KnowledgeDocument.create({
       type: 'url',
       name: this.url,
-      knowledgeId: knowledge.id,
       createdBy: this.did,
       updatedBy: this.did,
       embeddingStatus: 'idle',
@@ -72,6 +71,7 @@ export class CrawlProcessor extends BaseProcessor {
       data: { type: 'url', provider: this.type, url: this.url },
     });
     this.documentId = document.id;
+
     const { data } = document;
     if (data?.type !== 'url') throw new Error('document is not a url data');
 
