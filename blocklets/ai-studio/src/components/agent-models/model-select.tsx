@@ -188,18 +188,28 @@ export function ModelSelectDialog({ type, dialogProps, agent }: ModelSelectDialo
             value={tags}
             onChange={setTags}
             prepend={
-              <Tag
-                label={
-                  <span>
-                    <Box component="span" sx={{ display: 'inline-block', mr: 0.5, fontSize: '0.875em' }}>
-                      ⭐
-                    </Box>
-                    Favorites
-                  </span>
-                }
-                selected={showStarred}
-                onClick={() => setShowStarred(!showStarred)}
-              />
+              <>
+                <Tag
+                  label={t('all')}
+                  selected={!tags.length && !showStarred}
+                  onClick={() => {
+                    setTags([]);
+                    setShowStarred(false);
+                  }}
+                />
+                <Tag
+                  label={
+                    <span>
+                      <Box component="span" sx={{ display: 'inline-block', mr: 0.5, fontSize: '0.875em' }}>
+                        ⭐
+                      </Box>
+                      {t('favorites')}
+                    </span>
+                  }
+                  selected={showStarred}
+                  onClick={() => setShowStarred(!showStarred)}
+                />
+              </>
             }
           />
         </Box>
