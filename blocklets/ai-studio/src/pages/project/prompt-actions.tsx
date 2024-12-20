@@ -1,4 +1,5 @@
 import { CurrentProjectProvider } from '@app/contexts/project';
+import { useSessionContext } from '@app/contexts/session';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { isAssistant } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
@@ -53,6 +54,7 @@ export function AgentTokenUsage() {
 
 export function HeaderActions() {
   const { t } = useLocaleContext();
+  const { session } = useSessionContext();
   const { projectId, ref: gitRef, '*': filepath } = useParams();
   if (!projectId || !gitRef) throw new Error('Missing required params `projectId` or `ref`');
 
@@ -66,7 +68,11 @@ export function HeaderActions() {
 
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const toggleDrawer = () => {
+  const toggleDrawer = async () => {
+    // @note: 刷新 session 以实时获取 did spaces 最新的绑定状态
+    if (!drawerOpen) {
+      await session.refresh();
+    }
     setDrawerOpen(!drawerOpen);
   };
 

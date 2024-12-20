@@ -1,5 +1,6 @@
 import { EVENTS } from '@api/event';
 import useSubscription from '@app/hooks/use-subscription';
+import { getProjectDataUrlInSpace } from '@app/libs/did-spaces';
 import { getDefaultBranch, useCurrentGitStore } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
@@ -34,7 +35,7 @@ import { Controller, FormProvider, UseFormReturn, useForm, useFormContext } from
 import { useNavigate } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
-import { useReadOnly } from '../../contexts/session';
+import { useReadOnly, useSessionContext } from '../../contexts/session';
 import { getErrorMessage } from '../../libs/api';
 import { commitFromWorking } from '../../libs/working';
 import useDialog from '../../utils/use-dialog';
@@ -139,6 +140,7 @@ export function SaveButtonDialog({
   dialogContent?: any;
 }) {
   const { t } = useLocaleContext();
+  const { session } = useSessionContext();
   const navigate = useNavigate();
 
   const { dialog, showMergeConflictDialog } = useMergeConflictDialog({ projectId });
@@ -256,15 +258,15 @@ export function SaveButtonDialog({
 
   const sub = useSubscription(projectId);
   useEffect(() => {
-    const fn = (
+    const eventCallback = async (
       data: { response: { done: boolean; error: Error } },
       options: {
         name: string;
-        fn: (data: boolean) => void;
+        setLoading: (data: boolean) => void;
       }
     ) => {
       const done = data.response?.done;
-      options.fn(!done);
+      options.setLoading(!done);
 
       if (!done) return;
 
@@ -272,14 +274,36 @@ export function SaveButtonDialog({
         Toast.error(data.response.error.message);
       } else {
         refetch();
-        Toast.success(`${options.name} ${t('synced')}`);
+
+        if (options.name === 'DID Space') {
+          const href = await getProjectDataUrlInSpace(session?.user?.didSpace?.endpoint, projectId);
+          Toast.success(`${options.name} ${t('synced')}`, {
+            action: () => {
+              return (
+                <Button
+                  variant="outlined"
+                  href={href}
+                  component="a"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  size="small"
+                  sx={{ color: 'white' }}>
+                  {/* @ts-ignore */}
+                  {t('viewData')}
+                </Button>
+              );
+            },
+          });
+        } else {
+          Toast.success(`${options.name} ${t('synced')}`);
+        }
       }
     };
 
     const DIDSpaceFn = (data: { response: { done: boolean; error: Error } }) =>
-      fn(data, { name: 'DID Space', fn: setDidSpaceLoading });
+      eventCallback(data, { name: 'DID Space', setLoading: setDidSpaceLoading });
     const githubFn = (data: { response: { done: boolean; error: Error } }) =>
-      fn(data, { name: 'GitHub', fn: setGithubLoading });
+      eventCallback(data, { name: 'GitHub', setLoading: setGithubLoading });
 
     if (sub) {
       sub.on(EVENTS.PROJECT.SYNC_TO_DID_SPACE, DIDSpaceFn);

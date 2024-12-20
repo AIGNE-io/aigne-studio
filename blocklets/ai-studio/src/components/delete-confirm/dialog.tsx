@@ -1,8 +1,7 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { Button, IconButton, Stack, Tooltip } from '@mui/material';
+import { Button, CircularProgress, IconButton, Stack, Tooltip } from '@mui/material';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
-import Spinner from '@mui/material/CircularProgress';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
@@ -142,7 +141,7 @@ export default function ConfirmDialog({ name, isReset, onClose, onConfirm, ...re
               background: '#E11D48',
             },
           }}>
-          {loading && <Spinner size={16} sx={{ mr: 1 }} />}
+          {loading && <CircularProgress size={16} sx={{ mr: 1 }} />}
           {t(isReset ? 'reset' : 'alert.delete')}
         </Button>
       </DialogActions>
