@@ -1,22 +1,7 @@
 ## 0.4.183 (2024-12-20)
 
-- chore: update deps
-- fix: conflicts
-- chore: update deps
-- chore: bump version
-- chore: bump version
-- chore: fix github action
-- feat: release aigne framework (#1608)
-- feat: support space guide
-- chore: update deps
-- feat: toast link to did spaces data
-- chore: update deps
-- chore: update deps
-- fix: conflicts
-- chore: bump version
-- feat: support auto refresh in did spaces
-- fix: retrieve default space with auth0 bind wallet user
-- feat: support dynamic import ux lib
+- feat(ai-studio): support for OAuth account to directly access default space
+- feat(ai-studio): view data after sync to DID Space
 
 ## 0.4.182 (2024-12-20)
 
