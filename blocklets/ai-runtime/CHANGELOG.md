@@ -1,3 +1,8 @@
+## 0.4.185 (2024-12-20)
+
+- feat(ai-studio): support for OAuth account to directly access default space
+- feat(ai-studio): view data after sync to DID Space
+
 ## 0.4.184 (2024-12-20)
 
 - chore: support copy npm/yarn/pnpm cmd

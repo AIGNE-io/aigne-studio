@@ -1,7 +1,7 @@
 {
   "name": "ai-studio",
   "private": true,
-  "version": "0.4.184",
+  "version": "0.4.185",
   "workspaces": [
     "blocklets/*",
     "packages/*",
@@ -78,6 +78,7 @@
     "zx": "^8.1.4"
   },
   "resolutions": {
+    "json-stable-stringify": "1.1.1",
     "@abtnode/client": "1.16.34-beta-20241204-140321-4d75ca21",
     "@abtnode/constant": "1.16.34-beta-20241204-140321-4d75ca21",
     "@abtnode/cron": "1.16.34-beta-20241204-140321-4d75ca21",
