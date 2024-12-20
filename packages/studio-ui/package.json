@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/studio-ui",
-  "version": "0.4.185",
+  "version": "0.4.186",
   "description": "UI components for studio",
   "publishConfig": {
     "access": "public"
