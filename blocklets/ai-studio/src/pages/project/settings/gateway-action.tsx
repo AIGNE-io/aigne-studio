@@ -47,7 +47,24 @@ function GatewayAction({
             onClick={async () => {
               try {
                 await sync(projectId, 'didSpace');
-                Toast.success(t('synced'));
+                const href = await getProjectDataUrlInSpace(session?.user?.didSpace?.endpoint, projectId);
+                Toast.success(t('synced'), {
+                  action: () => {
+                    return (
+                      <Button
+                        variant="outlined"
+                        href={href}
+                        component="a"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        size="small"
+                        sx={{ color: 'white' }}>
+                        {/* @ts-ignore */}
+                        {t('viewData')}
+                      </Button>
+                    );
+                  },
+                });
               } catch (error) {
                 if (isTheErrorShouldShowMergeConflict(error)) {
                   showMergeConflictDialog();
