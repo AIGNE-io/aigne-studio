@@ -1,3 +1,7 @@
+## 0.4.186 (2024-12-20)
+
+- feat: support llm vision
+
 ## 0.4.185 (2024-12-20)
 
 - feat(ai-studio): support for OAuth account to directly access default space
