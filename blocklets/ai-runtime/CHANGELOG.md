@@ -1,3 +1,8 @@
+## 0.4.183 (2024-12-20)
+
+- chore: support copy npm/yarn/pnpm cmd
+- fix: agent type is missing in the generated code
+
 ## 0.4.182 (2024-12-20)
 
 - Support install a project as npm package
