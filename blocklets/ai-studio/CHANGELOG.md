@@ -1,7 +1,7 @@
 ## 0.4.184 (2024-12-20)
 
-- feat(ai-studio): support for OAuth account to directly access default space
-- feat(ai-studio): view data after sync to DID Space
+- chore: support copy npm/yarn/pnpm cmd
+- fix: agent type is missing in the generated code
 
 ## 0.4.183 (2024-12-20)
 
