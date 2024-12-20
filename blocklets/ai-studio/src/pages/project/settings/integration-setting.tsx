@@ -10,7 +10,6 @@ import { joinURL, withQuery } from 'ufo';
 
 export default function IntegrationSetting() {
   const { projectId } = useCurrentProject();
-  const { t } = useLocaleContext();
 
   const loadedSecret = usePromise(() => getProjectNPMPackageSecret({ projectId }), []).secret;
 
@@ -29,41 +28,61 @@ export default function IntegrationSetting() {
     }
   };
 
+  return (
+    <Box>
+      <Stack gap={3}>
+        {(['npm', 'pnpm', 'yarn'] as const).map((manager) => (
+          <NpmLink key={manager} link={link} manager={manager} onGenerate={generateSecret} />
+        ))}
+      </Stack>
+    </Box>
+  );
+}
+
+function NpmLink({
+  link,
+  manager,
+  onGenerate,
+}: {
+  link?: string;
+  manager?: 'npm' | 'pnpm' | 'yarn';
+  onGenerate: () => any;
+}) {
+  const { t } = useLocaleContext();
+
+  const prefix = manager === 'pnpm' ? 'pnpm install ' : manager === 'yarn' ? 'yarn add' : 'npm install';
+  const cmd = link && `${prefix} ${link}`;
+
   const [copied, setCopied] = useState(false);
 
-  const copyLink = () => {
-    if (link) {
-      navigator.clipboard.writeText(link);
+  const copy = () => {
+    if (cmd) {
+      navigator.clipboard.writeText(cmd);
       setCopied(true);
     }
   };
 
   return (
-    <Box>
-      <Stack>
-        <Typography variant="subtitle2" mb={0.5}>
-          NPM
+    <Stack>
+      <Typography variant="subtitle2" mb={0.5}>
+        {manager}
+      </Typography>
+
+      <Stack direction="row" alignItems="center" gap={1} border={1} borderColor="divider" borderRadius={1} pl={1}>
+        <Typography flex={1} noWrap>
+          {cmd || (
+            <Typography component="span" color="text.disabled">
+              {t('clickToGenerateNpmLink')}
+            </Typography>
+          )}
         </Typography>
 
-        <Stack direction="row" alignItems="center" gap={1} border={1} borderColor="divider" borderRadius={1} pl={1}>
-          <Typography flex={1} noWrap>
-            {link || (
-              <Typography component="span" color="text.disabled">
-                {t('clickToGenerateNpmLink')}
-              </Typography>
-            )}
-          </Typography>
-          {!link ? (
-            <LoadingButton variant="contained" onClick={generateSecret}>
-              {t('generateObject', { object: t('link') })}
-            </LoadingButton>
-          ) : (
-            <Button variant="contained" onClick={copyLink}>
-              {copied ? t('copied') : t('copy')}
-            </Button>
-          )}
-        </Stack>
+        {!link ? (
+          <LoadingButton onClick={onGenerate}>{t('generateObject', { object: t('link') })}</LoadingButton>
+        ) : (
+          <Button onClick={copy}>{copied ? t('copied') : t('copy')}</Button>
+        )}
       </Stack>
-    </Box>
+    </Stack>
   );
 }
