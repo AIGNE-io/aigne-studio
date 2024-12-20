@@ -46,6 +46,7 @@ import { useProjectState } from '../state';
 import { useProjectStore } from '../yjs-state';
 import AppearanceSetting from './appearance-setting';
 import DidSpacesSetting from './did-spaces-setting';
+import IntegrationSetting from './integration-setting';
 import ModelSettings from './model-setting';
 import Readme from './readme';
 import RemoteRepoSetting from './remote-repo-setting';
@@ -84,6 +85,7 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
       'appearance',
       'git',
       !isEmpty(session?.user?.didSpace?.endpoint) ? 'didSpaces' : '',
+      'integrations',
     ].filter((x) => x),
   };
   const [currentTabIndex, setCurrentTabIndex] = useState<string | undefined>(tabListInfo.list[0]);
@@ -451,6 +453,12 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
               <Form>
                 <DidSpacesSetting projectId={projectId} />
               </Form>
+            </Box>
+          )}
+
+          {currentTabIndex === 'integrations' && (
+            <Box mt={2}>
+              <IntegrationSetting />
             </Box>
           )}
         </Box>

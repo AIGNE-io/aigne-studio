@@ -178,6 +178,7 @@ export default flatten({
       didSpaces: 'DID Spaces',
       appearance: 'Appearance',
       readme: 'README',
+      integrations: 'Integrations',
     },
     selectProject: 'Select Project',
     name: 'Project name',
@@ -924,4 +925,9 @@ export default flatten({
     creative: '🎨 Creative',
     custom: '🖊️ Custom',
   },
+  generateObject: 'Generate {object}',
+  clickToGenerateNpmLink: 'Click to generate npm link',
+  modelSettingsTip:
+    'We have some standard settings available for you, and you can make any changes to customize your own parameters.',
+  favorites: 'Favorites',
 });

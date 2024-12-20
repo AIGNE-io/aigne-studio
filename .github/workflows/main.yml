@@ -45,8 +45,9 @@ jobs:
         if: "contains(matrix.dir , 'packages/') || contains(matrix.dir , 'framework/')"
         run: |
           npm config set '//registry.npmjs.org/:_authToken' "${{ secrets.NPM_TOKEN }}"
-          cd ${{ matrix.dir }}
-          pnpm publish --access public --no-git-checks
+          VERSION=$(cat version | awk '{$1=$1;print}')
+          echo "publish version ${VERSION}"
+          pnpm publish --filter "@blocklet/*" --filter "@aigne/*" --access public --no-git-checks
 
       - name: Blocklet workflow
         if: "contains(matrix.dir , 'blocklets/')"

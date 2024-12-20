@@ -25,7 +25,7 @@ export async function getSupportedModels(): Promise<TextModelInfo[]> {
       maxTokensMin: 1,
       maxTokensMax: 128000,
       maxTokensDefault: 128000,
-      tags: ['OpenAI', 'GPT'],
+      tags: ['OpenAI'],
     },
     {
       brand: 'OpenAI',
@@ -46,7 +46,7 @@ export async function getSupportedModels(): Promise<TextModelInfo[]> {
       maxTokensMin: 1,
       maxTokensMax: 128000,
       maxTokensDefault: 128000,
-      tags: ['OpenAI', 'GPT'],
+      tags: ['OpenAI'],
     },
     {
       brand: 'OpenAI',
@@ -67,7 +67,7 @@ export async function getSupportedModels(): Promise<TextModelInfo[]> {
       maxTokensMin: 1,
       maxTokensMax: 4096,
       maxTokensDefault: 4096,
-      tags: ['OpenAI', 'GPT'],
+      tags: ['OpenAI'],
     },
     {
       brand: 'OpenAI',
@@ -88,7 +88,7 @@ export async function getSupportedModels(): Promise<TextModelInfo[]> {
       maxTokensMin: 1,
       maxTokensMax: 16385,
       maxTokensDefault: 16385,
-      tags: ['OpenAI', 'GPT'],
+      tags: ['OpenAI'],
     },
     {
       brand: 'OpenAI',
@@ -109,7 +109,7 @@ export async function getSupportedModels(): Promise<TextModelInfo[]> {
       maxTokensMin: 1,
       maxTokensMax: 8192,
       maxTokensDefault: 8192,
-      tags: ['OpenAI', 'GPT'],
+      tags: ['OpenAI'],
     },
     {
       brand: 'OpenAI',
@@ -130,7 +130,7 @@ export async function getSupportedModels(): Promise<TextModelInfo[]> {
       maxTokensMin: 1,
       maxTokensMax: 32768,
       maxTokensDefault: 32768,
-      tags: ['OpenAI', 'GPT'],
+      tags: ['OpenAI'],
     },
     {
       brand: 'Google',
