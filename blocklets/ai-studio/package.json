@@ -1,6 +1,6 @@
 {
   "name": "ai-studio",
-  "version": "0.4.177",
+  "version": "0.4.182",
   "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
   "scripts": {
     "debug": "bn-dev",
@@ -32,6 +32,7 @@
   },
   "dependencies": {
     "@abtnode/cron": "^1.16.34",
+    "@aigne/runtime": "workspace:^",
     "@arcblock/did-auth": "^1.18.162",
     "@arcblock/did-auth-storage-nedb": "^1.7.1",
     "@arcblock/did-connect": "^2.11.1",
@@ -172,6 +173,7 @@
     "snowflake-uuid": "^1.0.0",
     "sqlite3": "^5.1.7",
     "swiper": "^11.1.12",
+    "tar": "^7.4.3",
     "transliteration": "^2.3.5",
     "typescript": "^5.5.4",
     "tz-lookup": "^6.1.25",

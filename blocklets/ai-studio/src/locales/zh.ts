@@ -178,6 +178,7 @@ export default flatten({
       git: 'Git',
       didSpaces: 'DID Spaces',
       readme: 'README',
+      integrations: '集成',
     },
     selectProject: '选择项目',
     name: '项目名称',
@@ -915,4 +916,6 @@ export default flatten({
     creative: '🎨 创意',
     custom: '🖊️ 自定义',
   },
+  generateObject: '生成{object}',
+  clickToGenerateNpmLink: '点击生成 NPM Package 链接',
 });

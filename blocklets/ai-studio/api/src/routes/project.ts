@@ -1,13 +1,16 @@
 import fs from 'fs';
-import { mkdir, mkdtemp, readFile, rm } from 'fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'fs/promises';
 import { basename, dirname, isAbsolute, join } from 'path';
 
+import { AIGNERuntime } from '@aigne/runtime';
+import { generateWrapperCode } from '@aigne/runtime/cmd';
 import { projectCronManager } from '@api/libs/cron-jobs';
 import { Config } from '@api/libs/env';
 import { NoPermissionError, NotFoundError } from '@api/libs/error';
 import { sampleIcon } from '@api/libs/icon';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
 import AgentInputSecret from '@api/store/models/agent-input-secret';
+import ProjectExtra from '@api/store/models/project-extra';
 import {
   MemoryFile,
   ProjectSettings,
@@ -26,7 +29,7 @@ import { AIGNE_RUNTIME_COMPONENT_DID, NFT_BLENDER_COMPONENT_DID } from '@blockle
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { call } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
-import { session } from '@blocklet/sdk/lib/middlewares';
+import { auth, session } from '@blocklet/sdk/lib/middlewares';
 import { SessionUser } from '@blocklet/sdk/lib/util/login';
 import { Request, Router } from 'express';
 import { exists } from 'fs-extra';
@@ -38,6 +41,8 @@ import omit from 'lodash/omit';
 import omitBy from 'lodash/omitBy';
 import pick from 'lodash/pick';
 import uniqBy from 'lodash/uniqBy';
+import { nanoid } from 'nanoid';
+import * as tar from 'tar';
 import { parseAuth, parseURL } from 'ufo';
 import { parse } from 'yaml';
 
@@ -440,6 +445,70 @@ export function projectRoutes(router: Router) {
       res.json({ secrets });
     }
   );
+
+  router.get('/projects/:projectId/npm/package/secret', session(), auth(), async (req, res) => {
+    const { projectId } = req.params;
+    if (!projectId) throw new Error('Missing required param `projectId`');
+
+    const project = await Project.findOne({ where: { id: projectId }, rejectOnEmpty: new Error('No such project') });
+    checkProjectPermission({ req, project });
+
+    const extra = await ProjectExtra.findByPk(projectId);
+    res.json({ secret: extra?.npmPackageSecret });
+  });
+
+  router.post('/projects/:projectId/npm/package/secret/generate', session(), auth(), async (req, res) => {
+    const { projectId } = req.params;
+    if (!projectId) throw new Error('Missing required param `projectId`');
+
+    const project = await Project.findOne({ where: { id: projectId }, rejectOnEmpty: new Error('No such project') });
+    checkProjectPermission({ req, project });
+
+    const [extra] = await ProjectExtra.upsert({ id: projectId, npmPackageSecret: nanoid() });
+    res.json({ secret: extra.npmPackageSecret });
+  });
+
+  router.get('/projects/:projectId/npm/package.tgz', async (req, res) => {
+    const { projectId } = req.params;
+    if (!projectId) throw new Error('Missing required param `projectId`');
+
+    const secret = req.query.secret as string | undefined;
+    const extra = await ProjectExtra.findByPk(projectId);
+
+    if (!extra?.npmPackageSecret || secret !== extra.npmPackageSecret) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const project = await Project.findOne({ where: { id: projectId }, rejectOnEmpty: new Error('No such project') });
+    const repo = await ProjectRepo.load({ projectId });
+
+    const tmpDir = join(config.env.dataDir, 'tmp/npm/', nanoid());
+    const packageDir = join(tmpDir, 'package');
+    const tgzPath = join(tmpDir, 'package.tgz');
+    try {
+      await mkdir(packageDir, { recursive: true });
+
+      await repo.checkout({ ref: project.gitDefaultBranch, dir: packageDir, force: true });
+
+      const files = await generateWrapperCode(await AIGNERuntime.load({ path: packageDir }));
+
+      for (const { fileName, content } of files) {
+        await writeFile(join(packageDir, fileName), content);
+      }
+
+      await tar.create({ gzip: true, file: tgzPath, C: packageDir }, ['.']);
+
+      await new Promise<void>((resolve, reject) => {
+        res.sendFile(tgzPath, {}, (err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+    } finally {
+      await rm(packageDir, { recursive: true, force: true });
+    }
+  });
 
   const createOrUpdateAgentInputSecretPayloadSchema = Joi.object<CreateOrUpdateAgentInputSecretPayload>({
     secrets: Joi.array()

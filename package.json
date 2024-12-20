@@ -1,10 +1,11 @@
 {
   "name": "ai-studio",
   "private": true,
-  "version": "0.4.177",
+  "version": "0.4.182",
   "workspaces": [
     "blocklets/*",
-    "packages/*"
+    "packages/*",
+    "framework/*"
   ],
   "engines": {
     "node": ">=18",
@@ -19,11 +20,11 @@
     "build": "pnpm build:libs && pnpm -F ai-studio build",
     "clean": "pnpm -r run clean",
     "clean:deps": "rimraf ./**/node_modules",
-    "build:libs": "pnpm -F @blocklet/* build",
+    "build:libs": "pnpm -F @blocklet/* -F @aigne/* build",
     "bump-version": "zx scripts/bump-version.mjs",
     "update:deps": "npx -y taze major -r -w -n '/blocklet|abtnode|arcblock|ocap|did-space|nft-studio/' && pnpm install",
     "e2e": "./scripts/start-e2e.ts",
-    "postinstall": "npx simple-git-hooks && pnpm build:libs",
+    "postinstall": "npx simple-git-hooks",
     "remove:node_modules": "rm -rf ./node_modules ./**/*/node_modules"
   },
   "simple-git-hooks": {
