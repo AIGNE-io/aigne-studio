@@ -1,3 +1,7 @@
+## 0.4.187 (2024-12-21)
+
+- chore: update deps
+
 ## 0.4.186 (2024-12-20)
 
 - feat: support llm vision

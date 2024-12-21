@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.4.186",
+  "version": "0.4.187",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -147,16 +147,16 @@
     "test": "jest src/"
   },
   "dependencies": {
-    "@abtnode/client": "^1.16.34",
+    "@abtnode/client": "^1.16.36",
     "@arcblock/did-connect": "^2.11.2",
     "@blocklet/ai-kit": "^0.1.66",
     "@blocklet/co-git": "workspace:^",
-    "@blocklet/constant": "^1.16.34",
+    "@blocklet/constant": "^1.16.36",
     "@blocklet/dataset-sdk": "workspace:^",
-    "@blocklet/js-sdk": "^1.16.34",
-    "@blocklet/logger": "^1.16.34",
+    "@blocklet/js-sdk": "^1.16.36",
+    "@blocklet/logger": "^1.16.36",
     "@blocklet/quickjs": "workspace:^",
-    "@blocklet/sdk": "^1.16.34",
+    "@blocklet/sdk": "^1.16.36",
     "@blocklet/uploader": "^0.1.58",
     "@iconify-icons/tabler": "^1.2.95",
     "@iconify/react": "^5.0.2",

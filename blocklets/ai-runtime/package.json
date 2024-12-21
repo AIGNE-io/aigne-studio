@@ -1,6 +1,6 @@
 {
   "name": "ai-runtime",
-  "version": "0.4.186",
+  "version": "0.4.187",
   "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
   "scripts": {
     "dev": "cross-env COMPONENT_STORE_URL=https://test.store.blocklet.dev blocklet dev",
@@ -29,7 +29,7 @@
     ]
   },
   "dependencies": {
-    "@abtnode/cron": "^1.16.34",
+    "@abtnode/cron": "^1.16.36",
     "@arcblock/did-auth": "^1.18.162",
     "@arcblock/did-auth-storage-nedb": "^1.7.1",
     "@arcblock/did-connect": "^2.11.2",
@@ -38,13 +38,13 @@
     "@blocklet/ai-kit": "^0.1.66",
     "@blocklet/ai-runtime": "workspace:^",
     "@blocklet/aigne-sdk": "workspace:^",
-    "@blocklet/constant": "^1.16.34",
+    "@blocklet/constant": "^1.16.36",
     "@blocklet/dataset-sdk": "workspace:^",
-    "@blocklet/discuss-kit": "^2.1.83",
-    "@blocklet/js-sdk": "^1.16.34",
-    "@blocklet/logger": "^1.16.34",
-    "@blocklet/pages-kit": "^0.3.4",
-    "@blocklet/sdk": "^1.16.34",
+    "@blocklet/discuss-kit": "^2.1.84",
+    "@blocklet/js-sdk": "^1.16.36",
+    "@blocklet/logger": "^1.16.36",
+    "@blocklet/pages-kit": "^0.3.6",
+    "@blocklet/sdk": "^1.16.36",
     "@blocklet/ui-react": "^2.11.2",
     "@blocklet/uploader-server": "^0.1.62",
     "@blocklet/xss": "^0.1.15",
