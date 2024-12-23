@@ -1,3 +1,7 @@
+## 0.4.189 (2024-12-23)
+
+- fix: correct inconsistent header logo display
+
 ## 0.4.188 (2024-12-23)
 
 - fix: aigne i18n error
