@@ -921,10 +921,11 @@ export default flatten({
   modelSettings: 'Model Settings',
   modelSettingsPresets: {
     precise: '✨ Precise',
-    balance: '⚖️ Balance',
+    balance: '⚖️ Balanced',
     creative: '🎨 Creative',
     custom: '🖊️ Custom',
   },
+  moreModels: 'More Models',
   generateObject: 'Generate {object}',
   clickToGenerateNpmLink: 'Click to generate npm link',
   modelSettingsTip:
