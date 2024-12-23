@@ -9,6 +9,43 @@ import { createBlockletPlugin } from 'vite-plugin-blocklet';
 import svgr from 'vite-plugin-svgr';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
+const arcblockUxBasePath = process.env.ARCBLOCK_UX_BASE_PATH;
+const exclude: string[] = [];
+const alias: Record<string, string> = {};
+const excludeLibs: string[] = [
+  // 排除 ux repo 中其他的包
+  '@arcblock/bridge',
+  '@arcblock/icons',
+  '@arcblock/react-hooks',
+  '@arcblock/nft-display',
+  // 排除 ux repo 中 使用到 server repo 的包
+  '@blocklet/meta',
+  '@blocklet/js-sdk',
+  // 排除带有公共 context 的包
+  'react',
+  'react-router-dom',
+  '@emotion/react',
+  '@emotion/styled',
+  '@mui/icons-material',
+  '@mui/material',
+  'flat',
+];
+if (arcblockUxBasePath) {
+  alias['@arcblock/ux/lib'] = `${arcblockUxBasePath}/packages/ux/src`;
+  alias['@arcblock/did-connect/lib'] = `${arcblockUxBasePath}/packages/did-connect/src`;
+  alias['@blocklet/ui-react/lib'] = `${arcblockUxBasePath}/packages/blocklet-ui-react/src`;
+  alias['@blocklet/ui-react'] = `${arcblockUxBasePath}/packages/blocklet-ui-react`;
+
+  excludeLibs.forEach((x) => {
+    alias[x] = join(process.cwd(), `../../node_modules/${x}`);
+  });
+
+  alias.dayjs = join(process.cwd(), '../../node_modules/dayjs/esm/');
+
+  exclude.push('@blocklet/did-space-react');
+  exclude.push('@blocklet/ui-react');
+}
+
 // https://vitejs.dev/config/
 export default defineConfig((config) => {
   return {
@@ -17,7 +54,11 @@ export default defineConfig((config) => {
       exclude: [
         // force watch @blocklet/ai-runtime for @blocklet/pages-kit
         '@blocklet/ai-runtime',
+        ...exclude,
       ],
+    },
+    resolve: {
+      alias,
     },
     plugins: [
       tsconfigPaths(),

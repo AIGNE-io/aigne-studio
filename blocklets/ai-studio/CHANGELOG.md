@@ -1,3 +1,29 @@
+## 0.4.187 (2024-12-21)
+
+- chore: update deps
+
+## 0.4.186 (2024-12-20)
+
+- feat: support llm vision
+
+## 0.4.185 (2024-12-20)
+
+- feat(ai-studio): support for OAuth account to directly access default space
+- feat(ai-studio): view data after sync to DID Space
+
+## 0.4.184 (2024-12-20)
+
+- chore: support copy npm/yarn/pnpm cmd
+- fix: agent type is missing in the generated code
+
+## 0.4.183 (2024-12-20)
+
+- chore(project-models): ui improvements
+
+## 0.4.182 (2024-12-20)
+
+- Support install a project as npm package
+
 ## 0.4.177 (2024-12-18)
 
 - fix: data not loading after changing resource type

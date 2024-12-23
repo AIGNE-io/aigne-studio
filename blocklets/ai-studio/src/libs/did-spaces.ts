@@ -28,11 +28,13 @@ export function getDidConnectStr(userDid: string) {
   ).toString('base64');
 }
 
-export function getProjectDataUrlInSpace(endpoint: string, projectId: string, spaceOwnerDid: string): string {
+export async function getProjectDataUrlInSpace(endpoint: string, projectId: string): Promise<string> {
   if (isEmpty(endpoint)) {
     return '';
   }
 
+  const spaceInfo = await getSpaceInfo(endpoint);
+  const { spaceOwnerDid } = spaceInfo;
   const baseUrl = endpoint.replace(/\/api\/space\/.+/, '');
   const strArray = endpoint.replace(/\/$/, '').split('/');
   const spaceDid = strArray.at(-4) as string;

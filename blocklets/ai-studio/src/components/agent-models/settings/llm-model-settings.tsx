@@ -82,6 +82,9 @@ export function LLMModelSettings({ agent, model }: LLMModelSettingsProps) {
 
   return (
     <Box>
+      <Box sx={{ mb: 3, fontSize: 13, color: 'text.secondary', bgcolor: 'grey.100', p: 2, borderRadius: 1 }}>
+        {t('modelSettingsTip')}
+      </Box>
       <Stack
         direction="row"
         spacing={2}
