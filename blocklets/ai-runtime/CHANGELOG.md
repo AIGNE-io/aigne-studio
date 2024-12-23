@@ -1,3 +1,7 @@
+## 0.4.188 (2024-12-23)
+
+- fix: aigne i18n error
+
 ## 0.4.187 (2024-12-21)
 
 - chore: update deps
