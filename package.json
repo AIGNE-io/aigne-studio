@@ -14,7 +14,9 @@
   "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
   "scripts": {
     "dev": "pnpm -F ai-studio dev",
-    "bundle": "pnpm build:libs && pnpm -F ai-studio -F ai-runtime bundle",
+    "bundle": "pnpm build:libs && run-p bundle:ai-studio bundle:ai-runtime",
+    "bundle:ai-studio": "pnpm -F ai-studio bundle",
+    "bundle:ai-runtime": "pnpm -F ai-runtime bundle",
     "lint": "NODE_OPTIONS='--max_old_space_size=6144' pnpm build:libs && pnpm -r run lint",
     "lint:fix": "pnpm -r run lint:fix",
     "build": "pnpm build:libs && pnpm -F ai-studio build",
