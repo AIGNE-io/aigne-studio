@@ -1,7 +1,7 @@
 ## 0.4.190 (2024-12-24)
 
-- fix(test): e2e tests failing due to did spaces connection popup
-- feat(test): e2e tests debugging is easier with globalSetup and globalTeardown
+- fix(e2e): e2e tests failing due to did spaces connection popup
+- feat(e2e): e2e tests debugging is easier with globalSetup and globalTeardown
 
 ## 0.4.189 (2024-12-23)
 
