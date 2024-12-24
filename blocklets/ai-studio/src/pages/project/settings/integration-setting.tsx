@@ -8,15 +8,22 @@ import { useState } from 'react';
 import usePromise from 'react-promise-suspense';
 import { joinURL, withQuery } from 'ufo';
 
+import { useProjectState } from '../state';
+
 export default function IntegrationSetting() {
-  const { projectId } = useCurrentProject();
+  const { projectId, projectRef } = useCurrentProject();
 
   const loadedSecret = usePromise(() => getProjectNPMPackageSecret({ projectId }), []).secret;
+  const { state } = useProjectState(projectId, projectRef);
+  const hash = state.commits[0]?.oid;
 
   const [secret, setSecret] = useState(loadedSecret);
 
   const link = secret
-    ? withQuery(joinURL(blocklet!.appUrl, blocklet!.prefix, '/api/projects', projectId, 'npm/package.tgz'), { secret })
+    ? withQuery(joinURL(blocklet!.appUrl, blocklet!.prefix, '/api/projects', projectId, 'npm/package.tgz'), {
+        secret,
+        hash,
+      })
     : undefined;
 
   const generateSecret = async () => {

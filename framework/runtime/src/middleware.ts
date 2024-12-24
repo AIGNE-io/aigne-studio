@@ -4,7 +4,7 @@ import Joi from 'joi';
 
 import { AIGNERuntime, Agent } from './runtime';
 
-export function createMiddleware({ path }: { path: string }) {
+export function createMiddleware({ path }: { path: string }): Router {
   const router = Router();
 
   const runtime = AIGNERuntime.load({ path });
