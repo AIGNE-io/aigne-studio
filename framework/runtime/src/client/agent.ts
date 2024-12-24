@@ -57,7 +57,7 @@ export class Agent<I extends object = object, O = object> implements IAgent<I, O
 
             Object.assign(delta, chunk.delta, { $text: $text || undefined });
 
-            controller.enqueue({ ...chunk, delta });
+            controller.enqueue({ ...chunk, delta: { ...delta } });
           },
         })
       );
