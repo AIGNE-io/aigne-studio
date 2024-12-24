@@ -1,7 +1,7 @@
 name: Playwright Tests
 
 env:
-  NODE_OPTIONS: '--max_old_space_size=6144'
+  NODE_OPTIONS: '--max_old_space_size=8192'
   ABT_NODE_HOST: '172.17.0.1'
   ABT_NODE_MAX_CLUSTER_SIZE: 1
   COMPONENT_STORE_URL: ${{ secrets.STORE_ENDPOINT_TEST }}
