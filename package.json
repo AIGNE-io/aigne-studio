@@ -24,7 +24,8 @@
     "bump-version": "zx scripts/bump-version.mjs",
     "update:deps": "npx -y taze major -r -w -n '/blocklet|abtnode|arcblock|ocap|did-space|nft-studio/' && pnpm install",
     "e2e": "./scripts/start-e2e.ts",
-    "postinstall": "npx simple-git-hooks",
+    "e2e:ui": "NODE_ENV=development npx playwright test --ui",
+    "postinstall": "npx simple-git-hooks && pnpm exec playwright install",
     "remove:node_modules": "rm -rf ./node_modules ./**/*/node_modules"
   },
   "simple-git-hooks": {
