@@ -43,6 +43,10 @@ function builtinModule(): {
             headers: Object.fromEntries(res.headers.entries()) as any as Headers,
             json: async () => res.json(),
             text: async () => res.text(),
+            base64: async () => {
+              const arrayBuffer = await res.arrayBuffer();
+              return Buffer.from(arrayBuffer).toString('base64');
+            },
             body: {
               getReader() {
                 const bodyReader = res.body!.getReader();

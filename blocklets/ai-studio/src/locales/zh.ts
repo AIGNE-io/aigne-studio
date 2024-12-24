@@ -178,6 +178,7 @@ export default flatten({
       git: 'Git',
       didSpaces: 'DID Spaces',
       readme: 'README',
+      integrations: '集成',
     },
     selectProject: '选择项目',
     name: '项目名称',
@@ -915,4 +916,9 @@ export default flatten({
     creative: '🎨 创意',
     custom: '🖊️ 自定义',
   },
+  moreModels: '更多模型',
+  generateObject: '生成{object}',
+  clickToGenerateNpmLink: '点击生成 NPM Package 链接',
+  modelSettingsTip: '我们为您提供了一些标准设置，您可以直接使用，也可以根据需要进行定制。',
+  favorites: '收藏',
 });

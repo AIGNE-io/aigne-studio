@@ -82,6 +82,9 @@ export function LLMModelSettings({ agent, model }: LLMModelSettingsProps) {
 
   return (
     <Box>
+      <Box sx={{ mb: 3, fontSize: 13, color: 'text.secondary', bgcolor: 'grey.100', p: 2, borderRadius: 1 }}>
+        {t('modelSettingsTip')}
+      </Box>
       <Stack
         direction="row"
         spacing={2}
@@ -126,7 +129,7 @@ export function LLMModelSettings({ agent, model }: LLMModelSettingsProps) {
               {icon}
             </FormLabel>
           </Tooltip>
-          <Box sx={{ flex: 1 }}>
+          <Box sx={{ flex: 1 }} data-testid="agent-model-settings-temperature">
             <WithAwareness
               sx={{ top: -2, right: -4 }}
               projectId={projectId}
@@ -158,7 +161,7 @@ export function LLMModelSettings({ agent, model }: LLMModelSettingsProps) {
               {icon}
             </FormLabel>
           </Tooltip>
-          <Box sx={{ flex: 1 }}>
+          <Box sx={{ flex: 1 }} data-testid="agent-model-settings-topP">
             <WithAwareness
               sx={{ top: -2, right: -4 }}
               projectId={projectId}
@@ -190,12 +193,12 @@ export function LLMModelSettings({ agent, model }: LLMModelSettingsProps) {
               {icon}
             </FormLabel>
           </Tooltip>
-          <Box sx={{ flex: 1 }}>
+          <Box sx={{ flex: 1 }} data-testid="agent-model-settings-frequencyPenalty">
             <WithAwareness
               sx={{ top: -2, right: -4 }}
               projectId={projectId}
               gitRef={projectRef}
-              path={[agent.id, 'presencePenalty']}>
+              path={[agent.id, 'frequencyPenalty']}>
               <SliderNumberField
                 sx={{ flex: 1 }}
                 min={-2}
@@ -222,12 +225,12 @@ export function LLMModelSettings({ agent, model }: LLMModelSettingsProps) {
               {icon}
             </FormLabel>
           </Tooltip>
-          <Box sx={{ flex: 1 }}>
+          <Box sx={{ flex: 1 }} data-testid="agent-model-settings-presencePenalty">
             <WithAwareness
               sx={{ top: -2, right: -4 }}
               projectId={projectId}
               gitRef={projectRef}
-              path={[agent.id, 'frequencyPenalty']}>
+              path={[agent.id, 'presencePenalty']}>
               <SliderNumberField
                 min={-2}
                 max={2}

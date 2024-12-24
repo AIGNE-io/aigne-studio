@@ -140,13 +140,10 @@ export function SelectDidSpacesImportWay({ onClose = () => undefined }: { onClos
       window.location.href = importUrl;
     };
 
+    // @note: 不管有没有绑定钱包，都直接跳转导入页面
+    await goToImport();
     customOnClose();
-    if (useDidWallet) {
-      await goToImport();
-    } else {
-      requireBindWallet();
-    }
-  }, [customOnClose, requireBindWallet, session?.user?.didSpace?.endpoint, useDidWallet]);
+  }, [customOnClose, session?.user?.didSpace?.endpoint]);
 
   const fromOtherDidSpaceImport = useCallback(() => {
     const goToImport = () => {

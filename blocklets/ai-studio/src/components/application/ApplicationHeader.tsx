@@ -8,6 +8,7 @@ import { joinURL } from 'ufo';
 
 import { AIGNE_STUDIO_MOUNT_POINT } from '../../libs/constants';
 import { Deployment } from '../../libs/deployment';
+import { getProjectIconUrl } from '../../libs/project';
 import { PlanUpgradeButton } from '../multi-tenant-restriction';
 
 export default function ApplicationHeader({
@@ -34,9 +35,14 @@ export default function ApplicationHeader({
   const profile = useMemo(() => application && getAgentProfile(application), [application]);
 
   if (application && profile) {
+    const logoUrl = getProjectIconUrl(application.project.id, {
+      blockletDid: application.identity.blockletDid,
+      projectRef: application.identity.projectRef,
+      updatedAt: application.project.updatedAt,
+    });
     props.logo = (
       <Tooltip title={profile.name || ''}>
-        <Avatar variant="rounded" src={profile.icon} sx={{ width: 'auto', height: '100%' }} />
+        <Avatar variant="rounded" src={logoUrl} sx={{ width: 'auto', height: '100%' }} />
       </Tooltip>
     );
   }

@@ -56,6 +56,7 @@ export function useModelsFromAgents(type: ModelType): (TextModelInfo | ImageMode
       getProjectIconUrl(agent.project.id, {
         blockletDid: agent.identity.blockletDid,
         projectRef: agent.identity.projectRef,
+        updatedAt: agent.project.updatedAt,
       }),
     ])
   );

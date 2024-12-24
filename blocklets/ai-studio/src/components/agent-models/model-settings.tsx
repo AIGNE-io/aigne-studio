@@ -1,7 +1,7 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ImageModelInfo, ModelBasedAssistantYjs, TextModelInfo } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
-import Menu2Icon from '@iconify-icons/tabler/menu-2';
+import AdjustmentsHorizontalIcon from '@iconify-icons/tabler/adjustments-horizontal';
 import { Close } from '@mui/icons-material';
 import { Dialog, DialogContent, DialogTitle, IconButton, Theme, useMediaQuery } from '@mui/material';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
@@ -27,8 +27,8 @@ export function ModelSettingsMenuButton({ agent }: ModelSettingsMenuButtonProps)
 
   return (
     <>
-      <IconButton size="small" onClick={dialogState.open} disabled={!model}>
-        <Icon icon={Menu2Icon} />
+      <IconButton size="small" onClick={dialogState.open} disabled={!model} data-testid="model-settings-menu-button">
+        <Icon icon={AdjustmentsHorizontalIcon} />
       </IconButton>
       <Dialog maxWidth="sm" fullWidth fullScreen={downSm} {...bindDialog(dialogState)}>
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
