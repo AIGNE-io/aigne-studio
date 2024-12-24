@@ -71,9 +71,6 @@ export async function setupUsers({ appName, appUrl, rootSeed }: { appName: strin
       });
 
       if (authUrl) await showAssetOrVC({ authUrl, wallet, vc, meta: { purpose: 'DidSpace' } });
-
-      // 添加原地等待1分钟
-      await page.waitForTimeout(10 * 1000); // 等待60秒
     })
   );
 

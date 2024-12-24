@@ -78,8 +78,7 @@ export default async function globalSetup() {
     await context.tracing.start({ screenshots: true, snapshots: true });
     await $`export DID_SPACES_BASE_URL=https://spaces.staging.arcblock.io/app`;
 
-    // debug
-    if (skipInstall) {
+    if (!skipInstall) {
       for (const appName of Object.values(playwrightConfigAppNames)) {
         await initBlocklet({ appName });
       }
@@ -99,13 +98,6 @@ export default async function globalSetup() {
     await setupUsers({ appName: playwrightConfigAppNames.single, appUrl: singleAppUrl, rootSeed });
     await setupUsers({ appName: playwrightConfigAppNames.multiple, appUrl: multipleAppUrl, rootSeed });
 
-    // await $({
-    //   stdio: 'inherit',
-    //   env: {
-    //     ...process.env,
-    //     HEADLESS: ui ? 'false' : undefined,
-    //   },
-    // })`playwright test ${ui ? '--ui' : ''}`;
     process.env.PW_TEST_HTML_REPORT_OPEN = 'never';
     process.env.SINGLE_TENANT_APP_URL = singleAppUrl;
     process.env.MULTIPLE_TENANT_APP_URL = multipleAppUrl;
