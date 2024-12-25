@@ -1,3 +1,7 @@
+## 0.4.191 (2024-12-25)
+
+- fix(model-select): improve model selection sorting and suggestions(#1629,#1630)
+
 ## 0.4.190 (2024-12-24)
 
 - fix(e2e): e2e tests failing due to did spaces connection popup

@@ -92,11 +92,11 @@ export function useAllModels(type: ModelType): (TextModelInfo | ImageModelInfo)[
 
 export function useSuggestedModels({
   type,
-  pinnedModels = [],
+  requiredModel,
   limit = 8,
 }: {
   type: ModelType;
-  pinnedModels?: string[]; // 使用场景: 避免 suggested models 中未包含 agent default model
+  requiredModel?: string; // 必备 model, 避免 suggested models 中未包含 agent current model
   limit?: number;
 }) {
   const allModels = useAllModels(type);
@@ -104,11 +104,15 @@ export function useSuggestedModels({
   const { projectId, projectRef } = useCurrentProject();
   const { projectSetting } = useProjectStore(projectId, projectRef);
   const sorted = sortModels(
-    [...(projectSetting.starredModels ?? []), ...pinnedModels].filter((x) => modelSet.has(x)),
+    (projectSetting.starredModels ?? []).filter((x) => modelSet.has(x)),
     (projectSetting.recentModels ?? []).filter((x) => modelSet.has(x)),
     allModels
   );
-  return sorted.slice(0, limit);
+  const result = sorted.slice(0, limit);
+  if (requiredModel && modelSet.has(requiredModel) && !result.some((x) => x.model === requiredModel)) {
+    result.push(allModels.find((x) => x.model === requiredModel)!);
+  }
+  return result;
 }
 
 export function useAgentDefaultModel({
