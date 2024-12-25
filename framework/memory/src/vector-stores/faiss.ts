@@ -91,13 +91,13 @@ export default class FaissVectorStoreManager implements IVectorStoreManager {
     await this.db?.updateContent(id, data, metadata);
   }
 
-  async similaritySearch(query: string, k: number, metadata?: Record<string, any>): Promise<Document[]> {
+  async search(query: string, k: number, metadata?: Record<string, any>): Promise<Document[]> {
     if (!this.vectorStore) {
       throw new Error('Vector store not initialized');
     }
 
     if (metadata) {
-      const results = await this.vectorStore.similaritySearch(
+      const results = await this.vectorStore.search(
         query,
         Math.min(k * 2, Object.keys(this.vectorStore.getMapping()).length),
         metadata
@@ -112,20 +112,16 @@ export default class FaissVectorStoreManager implements IVectorStoreManager {
       return filtered;
     }
 
-    return await this.vectorStore.similaritySearch(query, k);
+    return await this.vectorStore.search(query, k);
   }
 
-  async similaritySearchWithScore(
-    query: string,
-    k: number,
-    metadata?: Record<string, any>
-  ): Promise<[Document, number][]> {
+  async searchWithScore(query: string, k: number, metadata?: Record<string, any>): Promise<[Document, number][]> {
     if (!this.vectorStore) {
       throw new Error('Vector store not initialized');
     }
 
     if (metadata) {
-      const results = await this.vectorStore.similaritySearchWithScore(
+      const results = await this.vectorStore.searchWithScore(
         query,
         Math.min(k * 2, Object.keys(this.vectorStore.getMapping()).length),
         metadata
@@ -140,7 +136,7 @@ export default class FaissVectorStoreManager implements IVectorStoreManager {
       return filtered;
     }
 
-    return await this.vectorStore.similaritySearchWithScore(
+    return await this.vectorStore.searchWithScore(
       query,
       Math.min(k, Object.keys(this.vectorStore.getMapping()).length),
       metadata

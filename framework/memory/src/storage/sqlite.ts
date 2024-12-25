@@ -50,7 +50,6 @@ export default class SQLiteManager implements IStorageManager {
   }
 
   async reset() {
-    await History.drop();
     await History.sync();
   }
 }

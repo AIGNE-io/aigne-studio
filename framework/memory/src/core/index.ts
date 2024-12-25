@@ -24,7 +24,7 @@ import { generateStructuredResponse, getFactRetrievalMessages, parseMessages } f
 import OpenAIManager from '../llm/openai';
 import logger from '../logger';
 import SQLiteManager from '../storage/sqlite';
-import FaissVectorStoreManager from '../vector-stores/faiss';
+import VectorStoreManager from '../vector-stores/search-kit';
 
 const apiKey = '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';
 
@@ -81,7 +81,7 @@ export class Memory<T extends string, O extends MemoryActions<T>> implements IMe
 
     memory.llm = config?.llm ?? new OpenAIManager({ apiKey });
     memory.db = config?.db ?? new SQLiteManager(dbPath);
-    memory.vectorStoreProvider = config?.vectorStoreProvider ?? new FaissVectorStoreManager(vectorsFolderPath);
+    memory.vectorStoreProvider = config?.vectorStoreProvider ?? new VectorStoreManager(vectorsFolderPath);
 
     if (config?.customRunnable) {
       memory.customRunnable = config.customRunnable;
@@ -355,7 +355,7 @@ export class Memory<T extends string, O extends MemoryActions<T>> implements IMe
     logger.info('newRetrievedFacts', { newRetrievedFacts });
 
     for (const fact of newRetrievedFacts) {
-      const existingMemories = await vectorStoreProvider.similaritySearch(fact, 5, filters).catch((e) => {
+      const existingMemories = await vectorStoreProvider.search(fact, 5, filters).catch((e) => {
         return [];
       });
 
@@ -437,22 +437,17 @@ export class Memory<T extends string, O extends MemoryActions<T>> implements IMe
   }
 
   private async _createMemory(params: { data: string; metadata: { [key: string]: any } }) {
-    logger.info('Create Memory', { params });
-
     const memoryId = nextId();
 
     const metadata = cloneDeep(params.metadata || {});
+    metadata['id'] = memoryId;
     metadata['memoryId'] = memoryId;
     metadata['data'] = params.data;
     metadata['hash'] = createHash('md5').update(params.data).digest('hex');
     metadata['createdAt'] = new Date().toISOString();
 
-    logger.info('Add to Vector Store', { memoryId, data: params.data, metadata });
     await this.vectorStoreProvider?.insert(params.data, memoryId, metadata);
 
-    logger.info('Add to DB', { memoryId, data: params.data, metadata });
-
-    logger.info('Add to History', { memoryId, data: params.data, metadata });
     await this.db?.addHistory({
       memoryId: memoryId,
       oldMemory: undefined,
@@ -513,8 +508,7 @@ export class Memory<T extends string, O extends MemoryActions<T>> implements IMe
     k: number,
     filters: { [key: string]: any }
   ): Promise<SearchMemoryItem<T>[]> {
-    const memories = await this.vectorStoreProvider?.similaritySearchWithScore(query, k, filters);
-
+    const memories = await this.vectorStoreProvider?.searchWithScore(query, k, filters);
     if (!memories) return [];
 
     return memories.map(([memory, score]) => ({

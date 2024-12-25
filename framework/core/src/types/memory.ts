@@ -190,7 +190,7 @@ export interface IMemory<T> extends Runnable<MemoryActions<T>, MemoryActions<T>[
 
 export type EventType = 'add' | 'update' | 'delete' | 'none';
 
-type Content = {
+export type VectorStoreContent = {
   id: string;
   pageContent?: string;
   metadata?: Record<string, any>;
@@ -199,13 +199,13 @@ type Content = {
 };
 
 export interface IVectorStoreManager {
-  get(id: string): Promise<Content | null>;
+  get(id: string): Promise<VectorStoreContent | null>;
   insert(data: string, id: string, metadata: Record<string, any>): Promise<void>;
   delete(id: string): Promise<void>;
   update(id: string, data: string, metadata: Record<string, any>): Promise<void>;
-  list(metadata: Record<string, any>, limit?: number): Promise<Content[]>;
-  similaritySearch(query: string, k: number, metadata?: Record<string, any>): Promise<Document[]>;
-  similaritySearchWithScore(query: string, k: number, metadata?: Record<string, any>): Promise<[Document, number][]>;
+  list(metadata: Record<string, any>, limit?: number): Promise<VectorStoreContent[]>;
+  search(query: string, k: number, metadata?: Record<string, any>): Promise<Document[]>;
+  searchWithScore(query: string, k: number, metadata?: Record<string, any>): Promise<[Document, number][]>;
 }
 
 export interface IStorageManager {

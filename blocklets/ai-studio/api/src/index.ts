@@ -101,6 +101,13 @@ export const server = app.listen(port, (err?: any) => {
 
   Memory.load({ path: '/Users/leermao/work/blocklet/ai-studio/blocklets/ai-studio/.data' })
     .then((memory) => {
+      (memory.vectorStoreProvider as any)?.init().then(() => {
+        memory.vectorStoreProvider
+          ?.similaritySearchWithScore('儿子', 10, { memoryId: '527063734347104256' })
+          .then((res) => {
+            console.log('res', res);
+          });
+      });
       // memory.add([
       //   { role: 'user', content: '我的名字是李鹏，今年 33 岁' },
       //   { role: 'assistant', content: '你好，李鹏！很高兴认识你。如果你有什么想问的或者需要帮助的，请告诉我！' },
@@ -118,7 +125,6 @@ export const server = app.listen(port, (err?: any) => {
       //   { role: 'user', content: '我的儿子现在3岁了' },
       //   // { role: 'user', content: '帮我修改我儿子的名字为三毛' },
       // ]);
-      memory.vectorStoreProvider?.init().then(() => {});
     })
     .catch((error) => {
       logger.error('load memory error', { error });
