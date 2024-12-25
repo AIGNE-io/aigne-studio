@@ -71,6 +71,8 @@ export async function setupUsers({ appName, appUrl, rootSeed }: { appName: strin
       });
 
       if (authUrl) await showAssetOrVC({ authUrl, wallet, vc, meta: { purpose: 'DidSpace' } });
+
+      await page.waitForTimeout(5 * 1000);
     })
   );
 
