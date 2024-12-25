@@ -3,7 +3,7 @@ import 'express-async-errors';
 import { access, mkdir } from 'fs/promises';
 import path from 'path';
 
-import { Memory } from '@aigne/memory';
+import { createMiddleware } from '@aigne/memory/middleware';
 import { AssistantResponseType } from '@blocklet/ai-runtime/types';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
@@ -60,6 +60,7 @@ app.use(accessLogMiddleware);
 app.get('/.well-known/blocklet/openembed', getOpenEmbed);
 
 app.use('/api', routes);
+app.use('/api', createMiddleware({ path: '/Users/leermao/work/blocklet/ai-studio/blocklets/ai-studio/.data' }));
 
 if (!isDevelopment) {
   const staticDir = path.resolve(Config.appDir, 'dist');
@@ -98,37 +99,6 @@ const port = parseInt(process.env.BLOCKLET_PORT!, 10);
 export const server = app.listen(port, (err?: any) => {
   if (err) throw err;
   logger.info(`> ${name} v${version} ready on ${port}`);
-
-  Memory.load({ path: '/Users/leermao/work/blocklet/ai-studio/blocklets/ai-studio/.data' })
-    .then((memory) => {
-      (memory.vectorStoreProvider as any)?.init().then(() => {
-        memory.vectorStoreProvider
-          ?.similaritySearchWithScore('儿子', 10, { memoryId: '527063734347104256' })
-          .then((res) => {
-            console.log('res', res);
-          });
-      });
-      // memory.add([
-      //   { role: 'user', content: '我的名字是李鹏，今年 33 岁' },
-      //   { role: 'assistant', content: '你好，李鹏！很高兴认识你。如果你有什么想问的或者需要帮助的，请告诉我！' },
-      //   { role: 'user', content: '我儿子叫 二毛' },
-      //   {
-      //     role: 'assistant',
-      //     content: '你的儿子叫二毛，这个名字很可爱！你有没有想分享一些关于他的小故事或兴趣爱好呢？',
-      //   },
-      //   { role: 'user', content: '他仅仅有2岁' },
-      //   { role: 'assistant', content: '你的儿子二毛今年 2 岁，真是个活泼可爱的年纪！他最近有什么有趣的事情吗？' },
-      //   { role: 'user', content: '他喜欢看动画片' },
-      //   { role: 'assistant', content: '二毛喜欢看动画片，真是个好习惯！他最喜欢哪一部动画片呢？' },
-      //   { role: 'user', content: '他喜欢看《熊出没》' },
-      //   { role: 'assistant', content: '《熊出没》是一部很受欢迎的动画片，二毛喜欢看，说明他很有眼光！' },
-      //   { role: 'user', content: '我的儿子现在3岁了' },
-      //   // { role: 'user', content: '帮我修改我儿子的名字为三毛' },
-      // ]);
-    })
-    .catch((error) => {
-      logger.error('load memory error', { error });
-    });
 
   resourceManager
     .reload()

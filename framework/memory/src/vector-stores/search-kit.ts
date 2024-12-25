@@ -141,7 +141,7 @@ export default class SearchKitManager implements IVectorStoreManager {
 
   async list(metadata: Record<string, any>, limit: number = 100): Promise<VectorStoreContent[]> {
     const filter = this.getFilter(metadata);
-    return await this.postIndex.getDocuments({ limit, offset: 0, filter })?.results;
+    return (await this.postIndex.getDocuments({ limit, offset: 0, filter }))?.results;
   }
 
   async search(query: string, k: number, metadata?: Record<string, any>): Promise<Document[]> {
