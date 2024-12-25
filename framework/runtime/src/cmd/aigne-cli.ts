@@ -1,9 +1,11 @@
+import 'reflect-metadata';
+
 import { join } from 'path';
 
 import { Command, program } from 'commander';
 import { existsSync, writeFileSync } from 'fs-extra';
 
-import { AIGNERuntime } from '../runtime';
+import { Runtime } from '../runtime';
 import { generateWrapperCode } from './utils/generate-wrapper-code';
 
 program
@@ -15,8 +17,8 @@ program
           throw new Error(`Invalid project path: ${project}`);
         }
         (async () => {
-          const runtime = await AIGNERuntime.load({ path: project });
-          const files = await generateWrapperCode(runtime);
+          const runtime = await Runtime.load({ path: project });
+          const files = await generateWrapperCode(runtime.project);
           for (const { fileName, content } of files) {
             writeFileSync(join(project, fileName), content);
           }
