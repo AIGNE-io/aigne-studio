@@ -1,7 +1,10 @@
+import { Document } from 'langchain/document';
+
 import { Runnable } from './runnable';
 
 export type MemoryActionItem<T> =
   | {
+      id: string;
       event: 'add';
       memory: T;
     }
@@ -126,15 +129,29 @@ export interface IMemory<T> extends Runnable<MemoryActions<T>, MemoryActions<T>[
       sessionId?: string;
       metadata?: { [key: string]: any };
     },
-    MemoryItem<T>[]
+    MemoryActionItem<T>[]
   >;
 
+  /**
+   * Add a new memory item to the memory store.
+   *
+   * @params
+   * @param messages - The messages to add to the memory store.
+   * @param options - The options for the memory store.
+   * @param options.userId - The user ID for the memory store. Defaults to undefined.
+   * @param options.sessionId - The session ID for the memory store. Defaults to undefined.
+   * @param options.metadata - Metadata to store with the memory. Defaults to undefined
+   * @param options.filters - Filters to apply to the search. Defaults to undefined
+   *
+   * @returns The results of the memory store.
+   */
   add(
     messages: { role: string; content: string }[],
     options?: {
       userId?: string;
       sessionId?: string;
       metadata?: { [key: string]: any };
+      filters?: { [key: string]: any };
     }
   ): Promise<{ results: MemoryActionItem<T>[] }>;
 
@@ -169,4 +186,38 @@ export interface IMemory<T> extends Runnable<MemoryActions<T>, MemoryActions<T>[
   update(memoryId: string, memory: T): Promise<MemoryItem<T> | null>;
 
   delete(memoryId: string): Promise<MemoryItem<T> | null>;
+}
+
+export type EventType = 'add' | 'update' | 'delete' | 'none';
+
+type Content = {
+  id: string;
+  pageContent?: string;
+  metadata?: Record<string, any>;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export interface IVectorStoreManager {
+  get(id: string): Promise<Content | null>;
+  insert(data: string, id: string, metadata: Record<string, any>): Promise<void>;
+  delete(id: string): Promise<void>;
+  update(id: string, data: string, metadata: Record<string, any>): Promise<void>;
+  list(metadata: Record<string, any>, limit?: number): Promise<Content[]>;
+  similaritySearch(query: string, k: number, metadata?: Record<string, any>): Promise<Document[]>;
+  similaritySearchWithScore(query: string, k: number, metadata?: Record<string, any>): Promise<[Document, number][]>;
+}
+
+export interface IStorageManager {
+  addHistory(params: {
+    memoryId: string;
+    oldMemory?: string;
+    newMemory?: string;
+    event: EventType;
+    createdAt?: Date;
+    updatedAt?: Date;
+    isDeleted?: boolean;
+  }): Promise<any>;
+  getHistory(memoryId: string): Promise<any>;
+  reset(): Promise<void>;
 }

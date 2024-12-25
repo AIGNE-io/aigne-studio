@@ -32,6 +32,7 @@
   },
   "dependencies": {
     "@abtnode/cron": "^1.16.36",
+    "@aigne/memory": "workspace:^",
     "@aigne/runtime": "workspace:^",
     "@arcblock/did-auth": "^1.18.162",
     "@arcblock/did-auth-storage-nedb": "^1.7.1",
