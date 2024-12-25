@@ -19,7 +19,7 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import millify from 'millify';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { useCurrentProject } from '../../contexts/project';
 import { useIsAdmin } from '../../contexts/session';
@@ -171,11 +171,15 @@ export function ModelSelectDialog({ type, dialogProps, agent }: ModelSelectDialo
     return x.tags?.some((tag) => tags.includes(tag));
   });
 
-  const sortedOptions = sortModels(
-    projectSetting.starredModels ?? [],
-    projectSetting.recentModels ?? [],
-    filteredOptions
-  );
+  // 避免收藏后立即改变模型列表顺序 (窗口 close 后更新排序)
+  const initialStarredModelsRef = useRef([...(projectSetting.starredModels ?? [])]);
+  useEffect(() => {
+    if (!dialogProps.open) {
+      initialStarredModelsRef.current = [...(projectSetting.starredModels ?? [])];
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dialogProps.open]);
+  const sortedOptions = sortModels(initialStarredModelsRef.current, projectSetting.recentModels ?? [], filteredOptions);
 
   return (
     <Dialog maxWidth="md" fullWidth fullScreen={downSm} {...dialogProps}>
