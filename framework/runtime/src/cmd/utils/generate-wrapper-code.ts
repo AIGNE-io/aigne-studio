@@ -135,7 +135,8 @@ function fieldsToTsType(fields: OrderedRecord<DataType>) {
 {
   ${OrderedRecord.map(
     fields,
-    (input) => `${JSON.stringify(input.name || input.id)}${input.required ? '' : '?'}: ${dataTypeToTsType(input)}`
+    (input) =>
+      `${JSON.stringify(input.name || input.id)}: ${dataTypeToTsType(input)}${input.required ? '' : ' | undefined'}`
   ).join(';')}
 }`;
 }

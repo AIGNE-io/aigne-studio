@@ -1,4 +1,13 @@
-import { RunOptions, Runnable, RunnableDefinition, RunnableResponse, RunnableResponseStream, TYPES } from '@aigne/core';
+import {
+  LLMModel,
+  RunOptions,
+  Runnable,
+  RunnableDefinition,
+  RunnableResponse,
+  RunnableResponseStream,
+  TYPES,
+} from '@aigne/core';
+import { ChatCompletionResponse } from '@blocklet/ai-kit/api/types/index';
 import { inject, injectable } from 'tsyringe';
 
 import type { Runtime } from '../runtime/runtime';
@@ -14,7 +23,8 @@ import { nextId } from './utils/task-id';
 export class AgentV1<I extends object = object, O = object> extends Runnable<I, O> {
   constructor(
     @inject(TYPES.definition) public definition: RunnableDefinition,
-    @inject(TYPES.context) private runtime: Runtime
+    @inject(TYPES.context) private runtime: Runtime,
+    @inject(TYPES.llmModel) private llmModel: LLMModel
   ) {
     super(definition);
   }
@@ -22,15 +32,44 @@ export class AgentV1<I extends object = object, O = object> extends Runnable<I, 
   async run(inputs: I, options: RunOptions & { stream: true }): Promise<RunnableResponseStream<O>>;
   async run(inputs: I, options?: RunOptions & { stream?: boolean }): Promise<O>;
   async run(inputs: I, options?: RunOptions): Promise<RunnableResponse<O>> {
-    const { chatCompletions, imageGenerations } = await import('@blocklet/ai-kit/api/call');
+    const { imageGenerations } = await import('@blocklet/ai-kit/api/call');
 
     const taskId = nextId();
     const messageId = nextId();
 
     const callAI: CallAI = async ({ input }) => {
-      return await chatCompletions({ ...input, model: input.model || defaultTextModel });
+      const stream = await this.llmModel.run(
+        {
+          messages: input.messages,
+          modelSettings: {
+            model: input.model || defaultTextModel,
+            temperature: input.temperature,
+            topP: input.topP,
+            presencePenalty: input.presencePenalty,
+            frequencyPenalty: input.frequencyPenalty,
+          },
+        },
+        { stream: true }
+      );
+
+      return new ReadableStream<ChatCompletionResponse>({
+        async start(controller) {
+          try {
+            for await (const chunk of stream) {
+              controller.enqueue({
+                delta: { content: chunk.$text, toolCalls: chunk.delta?.toolCalls },
+              });
+            }
+          } catch (error) {
+            controller.error(error);
+          } finally {
+            controller.close();
+          }
+        },
+      });
     };
 
+    // TODO: use imageGenerationModel instead of callAIImage
     const callAIImage: CallAIImage = async ({ assistant, input }) => {
       const imageAssistant = assistant.type === 'image' ? assistant : undefined;
       const supportImages = await getSupportedImagesModels();
