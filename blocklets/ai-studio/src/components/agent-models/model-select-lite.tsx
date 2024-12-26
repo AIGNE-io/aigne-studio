@@ -142,7 +142,7 @@ interface ModelSelectLiteProps {
 
 export function ModelSelectLite({ type, projectId, gitRef, agent, ...rest }: ModelSelectLiteProps) {
   const defaultModel = useAgentDefaultModel({ projectId, gitRef, value: agent });
-  const suggestedModels = useSuggestedModels({ type, pinnedModels: defaultModel ? [defaultModel] : [] });
+  const suggestedModels = useSuggestedModels({ type, requiredModel: agent.model || defaultModel });
   const dialogState = usePopupState({ variant: 'dialog', popupId: 'model-select' });
 
   const handleOnChange = (value: string) => {
