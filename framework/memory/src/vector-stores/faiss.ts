@@ -103,6 +103,8 @@ export default class FaissVectorStoreManager implements IVectorStoreManager {
     await this.vectorStore.save();
   }
 
+  async deleteAll() {}
+
   async update(id: string, data: string, metadata: Record<string, any>) {
     if (!this.vectorStore) {
       throw new Error('Vector store not initialized');
