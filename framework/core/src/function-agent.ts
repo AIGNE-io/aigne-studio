@@ -8,8 +8,8 @@ import { objectToStream } from './utils';
 @injectable()
 export class FunctionAgent<I extends { [key: string]: any }, O> extends Runnable<I, O> {
   constructor(
-    @inject(TYPES.functionRunner) public functionRunner: FunctionRunner,
-    @inject(TYPES.definition) public definition: FunctionAgentDefinition
+    @inject(TYPES.definition) public definition: FunctionAgentDefinition,
+    @inject(TYPES.functionRunner) public runner: FunctionRunner
   ) {
     super(definition);
   }
@@ -19,7 +19,7 @@ export class FunctionAgent<I extends { [key: string]: any }, O> extends Runnable
   async run(input: I, options?: RunOptions): Promise<RunnableResponse<O>> {
     const {
       definition: { language, code, ...definition },
-      functionRunner: runner,
+      runner,
     } = this;
 
     if (!language || !code) throw new Error('Language and code are required');

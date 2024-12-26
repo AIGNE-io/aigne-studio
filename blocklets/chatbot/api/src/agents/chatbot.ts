@@ -1,5 +1,11 @@
 import chatbot from '@aigne-project/chatbot';
-import { FunctionAgentDefinition, OrderedRecord, PipelineAgentDefinition, PipelineAgentProcess } from '@aigne/core';
+import {
+  FunctionAgentDefinition,
+  LLMDecisionAgentDefinition,
+  OrderedRecord,
+  PipelineAgentDefinition,
+  PipelineAgentProcess,
+} from '@aigne/core';
 
 export const convertKnowledge: FunctionAgentDefinition = {
   id: 'convert-search-result-to-knowledge',
@@ -28,8 +34,8 @@ return {
 `,
 };
 
-export const chat: PipelineAgentDefinition = {
-  id: 'chat',
+export const docBot: PipelineAgentDefinition = {
+  id: 'doc-bot',
   type: 'pipeline_agent',
   inputs: OrderedRecord.fromArray([
     {
@@ -92,4 +98,89 @@ export const chat: PipelineAgentDefinition = {
       },
     },
   ]),
+};
+
+export const otherQuestionBot: FunctionAgentDefinition = {
+  id: 'other-question-bot',
+  type: 'function_agent',
+  inputs: OrderedRecord.fromArray([
+    {
+      id: 'question',
+      name: 'question',
+      type: 'string',
+      required: true,
+    },
+  ]),
+  outputs: OrderedRecord.fromArray([
+    {
+      id: '$text',
+      name: '$text',
+      type: 'string',
+      required: true,
+    },
+  ]),
+  language: 'javascript',
+  code: `\
+return {
+  $text: 'Sorry, I cannot answer this question. Please ask another question.',
+};
+`,
+};
+
+export const chat: LLMDecisionAgentDefinition = {
+  id: 'chat',
+  type: 'llm_decision_agent',
+  inputs: OrderedRecord.fromArray([
+    {
+      id: 'question',
+      type: 'string',
+      required: true,
+    },
+  ]),
+  outputs: OrderedRecord.fromArray([
+    {
+      id: '$text',
+      name: '$text',
+      type: 'string',
+    },
+  ]),
+  modelSettings: {
+    model: 'gpt-4o-mini',
+  },
+  messages: OrderedRecord.fromArray([
+    {
+      id: 'system',
+      role: 'system',
+      content:
+        'You are a professional question classifier. Please classify the question and choose the right bot to answer it.\n question: {{question}}',
+    },
+  ] as const),
+  cases: OrderedRecord.fromArray([
+    {
+      id: 'doc-bot',
+      name: 'doc-bot',
+      runnable: {
+        id: 'doc-bot',
+      },
+      input: {
+        question: {
+          from: 'variable',
+          fromVariableId: 'question',
+        },
+      },
+    },
+    {
+      id: 'other-question-bot',
+      name: 'other-question-bot',
+      runnable: {
+        id: 'other-question-bot',
+      },
+      input: {
+        question: {
+          from: 'variable',
+          fromVariableId: 'question',
+        },
+      },
+    },
+  ] as const),
 };

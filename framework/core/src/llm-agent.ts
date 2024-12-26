@@ -19,7 +19,7 @@ import { OrderedRecord } from './utils/ordered-map';
 export class LLMAgent<I extends { [key: string]: any }, O> extends Runnable<I, O> {
   constructor(
     @inject(TYPES.definition) public definition: LLMAgentDefinition,
-    @inject(TYPES.llmModel) public llmModel: LLMModel
+    @inject(TYPES.llmModel) public model: LLMModel
   ) {
     super(definition);
   }
@@ -27,7 +27,7 @@ export class LLMAgent<I extends { [key: string]: any }, O> extends Runnable<I, O
   async run(input: I, options: RunOptions & { stream: true }): Promise<RunnableResponseStream<O>>;
   async run(input: I, options?: RunOptions & { stream?: false }): Promise<O>;
   async run(input: I, options?: RunOptions): Promise<RunnableResponse<O>> {
-    const { definition, llmModel } = this;
+    const { definition } = this;
 
     const messages = OrderedRecord.toArray(definition.messages);
     if (!messages.length) throw new Error('Messages are required');
@@ -49,7 +49,7 @@ export class LLMAgent<I extends { [key: string]: any }, O> extends Runnable<I, O
     const jsonOutputs = outputs.filter((i) => i.name !== StreamTextOutputName);
     const outputJsonSchema = jsonOutputs.length ? outputsToJsonSchema(OrderedRecord.fromArray(jsonOutputs)) : undefined;
     const jsonOutput = outputJsonSchema
-      ? llmModel
+      ? this.model
           .run({
             ...llmInputs,
             responseFormat: outputJsonSchema && {
@@ -74,10 +74,10 @@ export class LLMAgent<I extends { [key: string]: any }, O> extends Runnable<I, O
 
     if (options?.stream) {
       return new ReadableStream({
-        async start(controller) {
+        start: async (controller) => {
           try {
             if (textOutput) {
-              const textStreamOutput = await llmModel.run(llmInputs, { stream: true });
+              const textStreamOutput = await this.model.run(llmInputs, { stream: true });
               for await (const chunk of textStreamOutput) {
                 controller.enqueue({ $text: chunk.$text });
               }
@@ -93,7 +93,7 @@ export class LLMAgent<I extends { [key: string]: any }, O> extends Runnable<I, O
       });
     }
 
-    const text = textOutput ? await llmModel.run(llmInputs) : undefined;
+    const text = textOutput ? await this.model.run(llmInputs) : undefined;
 
     return {
       $text: text,

@@ -11,7 +11,7 @@ import cors from 'cors';
 import dotenv from 'dotenv-flow';
 import express, { ErrorRequestHandler } from 'express';
 
-import { chat, convertKnowledge } from './agents/chatbot';
+import { chat, convertKnowledge, docBot, otherQuestionBot } from './agents/chatbot';
 import logger from './libs/logger';
 import routes from './routes';
 
@@ -27,7 +27,7 @@ app.use(express.json({ limit: '1 mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1 mb' }));
 app.use(cors());
 
-chatbot.register(convertKnowledge, chat);
+chatbot.register(convertKnowledge, chat, docBot, otherQuestionBot);
 
 app.use(chatbotMiddleware());
 
