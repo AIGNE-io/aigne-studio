@@ -29,7 +29,7 @@ export abstract class Runnable<I extends { [key: string]: any } = object, O = ob
   }
 
   get name() {
-    return this.definition.name || this.definition.id;
+    return this.definition.name;
   }
 
   inputs: { [key in keyof I]: DataType };

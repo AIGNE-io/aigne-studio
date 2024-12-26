@@ -9,3 +9,4 @@ export * from './llm-agent';
 export * from './llm-model';
 export * from './function-agent';
 export * from './function-runner';
+export * from './llm-decision-agent';
