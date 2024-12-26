@@ -51,8 +51,8 @@ export default class SQLiteManager implements IStorageManager {
     return await History.findAll({ where: { memoryId }, order: [['updatedAt', 'ASC']] });
   }
 
-  async addMessage(message: any) {
-    return await Message.create({ message });
+  async addMessage(message: { [key: string]: any }, metadata: { [key: string]: any }) {
+    return await Message.create({ message, metadata });
   }
 
   async getMessage(id: string) {

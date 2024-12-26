@@ -67,6 +67,10 @@ export const up = async ({ context: queryInterface }: { context: QueryInterface 
       type: DataTypes.JSON,
       allowNull: false,
     },
+    metadata: {
+      type: DataTypes.JSON,
+      allowNull: false,
+    },
     createdAt: {
       type: DataTypes.DATE,
     },

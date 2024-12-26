@@ -14,7 +14,7 @@ import {
   SearchMemoryItem,
 } from '@aigne/core';
 import { mkdir, pathExists } from 'fs-extra';
-import { cloneDeep } from 'lodash';
+import { cloneDeep, omit } from 'lodash';
 import { joinURL } from 'ufo';
 
 import nextId from '../lib/next-id';
@@ -24,37 +24,40 @@ import SQLiteManager from '../storage/sqlite';
 import VectorStoreManager from '../vector-stores/search-kit';
 import { CustomAgent } from './customAgent';
 
+type RunnableInput = {
+  messages: { role: string; content: string }[];
+  userId?: string;
+  sessionId?: string;
+  metadata?: { [key: string]: any };
+};
+
+function validateConfigDecorator(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+  const originalMethod = descriptor.value;
+  descriptor.value = async function (this: { validateConfig?: () => void }, ...args: any[]) {
+    if (typeof this.validateConfig === 'function') {
+      this.validateConfig();
+    }
+
+    return await originalMethod.apply(this, args);
+  };
+  return descriptor;
+}
+
 export class Memory<T extends string, O extends MemoryActions<T>> implements IMemory<T> {
   memoryPath: string = '';
 
   llm?: OpenAIManager;
   db?: IStorageManager;
   vectorStoreProvider?: IVectorStoreManager;
-  runnable?: Runnable<
-    {
-      messages: { role: string; content: string }[];
-      userId?: string;
-      sessionId?: string;
-      metadata?: { [key: string]: any };
-    },
-    MemoryActionItem<T>[]
-  >;
+  runnable?: Runnable<RunnableInput, MemoryActionItem<T>[]>;
   customPrompt?: string;
 
   static async load(config: {
     path: string;
     vectorStoreProvider?: IVectorStoreManager;
-    llm?: OpenAIManager;
-    db?: IStorageManager;
-    runnable?: Runnable<
-      {
-        messages: { role: string; content: string }[];
-        userId?: string;
-        sessionId?: string;
-        metadata?: { [key: string]: any };
-      },
-      MemoryActionItem<string>[]
-    >;
+    llmProvider?: OpenAIManager;
+    dbProvider?: IStorageManager;
+    runnable?: Runnable<RunnableInput, MemoryActionItem<string>[]>;
     customPrompt?: string;
   }) {
     const memory = new Memory();
@@ -75,8 +78,8 @@ export class Memory<T extends string, O extends MemoryActions<T>> implements IMe
       await mkdir(vectorsFolderPath, { recursive: true });
     }
 
-    memory.llm = config?.llm ?? new OpenAIManager();
-    memory.db = config?.db ?? new SQLiteManager(dbPath);
+    memory.llm = config?.llmProvider ?? new OpenAIManager({ apiKey: '' });
+    memory.db = config?.dbProvider ?? new SQLiteManager(dbPath);
     memory.vectorStoreProvider = config?.vectorStoreProvider ?? new VectorStoreManager(vectorsFolderPath);
 
     if (config?.runnable) {
@@ -90,6 +93,23 @@ export class Memory<T extends string, O extends MemoryActions<T>> implements IMe
     return memory;
   }
 
+  validateConfig() {
+    if (!this.llm) {
+      throw new Error('Please provide a LLM Provider, You can use Memory.load({llm: ...}) to load a LLM Provider');
+    }
+
+    if (!this.db) {
+      throw new Error('Please provide a DB Provider, You can use Memory.load({db: ...}) to load a DB Provider');
+    }
+
+    if (!this.vectorStoreProvider) {
+      throw new Error(
+        'Please provide a Vector Store Provider, You can use Memory.load({vectorStoreProvider: ...}) to load a Vector Store Provider'
+      );
+    }
+  }
+
+  @validateConfigDecorator
   async add(
     messages: { role: string; content: string }[],
     options?: {
@@ -111,9 +131,9 @@ export class Memory<T extends string, O extends MemoryActions<T>> implements IMe
     };
 
     const memories = await this._runAddAgent(messages, metadata, filters);
-    logger.info('Memory Action Items', { memories });
+    logger.info('Extract memories of type MemoryActionItem', { memories });
 
-    await Promise.all(messages.map((message) => this.db?.addMessage(message)));
+    await Promise.all(messages.map((message) => this.db?.addMessage(message, metadata)));
 
     const returnedMemories: MemoryActionItem<T>[] = [];
     for (const memory of memories) {
@@ -154,7 +174,7 @@ export class Memory<T extends string, O extends MemoryActions<T>> implements IMe
           }
 
           case 'none':
-            console.info('NOOP for Memory.');
+            logger.warn('NOOP for Memory.');
             break;
         }
       } catch (e) {
@@ -165,6 +185,7 @@ export class Memory<T extends string, O extends MemoryActions<T>> implements IMe
     return { results: returnedMemories };
   }
 
+  @validateConfigDecorator
   async search(
     query: string,
     options?: {
@@ -183,6 +204,7 @@ export class Memory<T extends string, O extends MemoryActions<T>> implements IMe
     return { results: (await this._searchVectorStore(query, options?.k || 100, filters)) || [] };
   }
 
+  @validateConfigDecorator
   async filter(options?: {
     k?: number;
     userId?: string;
@@ -202,10 +224,17 @@ export class Memory<T extends string, O extends MemoryActions<T>> implements IMe
     }));
   }
 
+  @validateConfigDecorator
   async history(memoryId: string) {
     return this.db?.getHistory(memoryId);
   }
 
+  private extractMessage(message: { [key: string]: any }) {
+    const excludedKeys = ['id', 'memoryId', 'data', 'hash', 'createdAt', 'updatedAt'];
+    return omit(message, excludedKeys);
+  }
+
+  @validateConfigDecorator
   async get(memoryId: string): Promise<MemoryItem<T> | null> {
     const message = await this.vectorStoreProvider?.get(memoryId);
 
@@ -214,10 +243,11 @@ export class Memory<T extends string, O extends MemoryActions<T>> implements IMe
     return {
       id: message.id,
       memory: message.pageContent as T,
-      metadata: message.metadata || {},
+      metadata: this.extractMessage(message.metadata || {}),
     };
   }
 
+  @validateConfigDecorator
   async create(
     memory: T,
     options?: {
@@ -243,6 +273,7 @@ export class Memory<T extends string, O extends MemoryActions<T>> implements IMe
     };
   }
 
+  @validateConfigDecorator
   async update(memoryId: string, memory: T): Promise<MemoryItem<T> | null> {
     try {
       const result = await this._updateMemory({ memoryId, data: memory, metadata: {} });
@@ -252,6 +283,7 @@ export class Memory<T extends string, O extends MemoryActions<T>> implements IMe
     }
   }
 
+  @validateConfigDecorator
   async delete(memoryId: string): Promise<MemoryItem<T> | null> {
     const memory = await this.get(memoryId);
 
@@ -262,8 +294,21 @@ export class Memory<T extends string, O extends MemoryActions<T>> implements IMe
     return memory;
   }
 
+  @validateConfigDecorator
+  async deleteAll(options?: { userId?: string; sessionId?: string; filters?: { [key: string]: any } }) {
+    const filters = {
+      ...(options?.filters || {}),
+      ...(options?.userId ? { userId: options.userId } : {}),
+      ...(options?.sessionId ? { sessionId: options.sessionId } : {}),
+    };
+
+    const ids = ((await this.vectorStoreProvider?.list(filters)) || []).map((item) => item.id);
+    await this.vectorStoreProvider?.deleteAll(ids);
+  }
+
   async run(input: O, options: RunOptions & { stream: true }): Promise<RunnableResponseStream<O['outputs']>>;
   async run(input: O, options?: RunOptions & { stream?: false }): Promise<O['outputs']>;
+  @validateConfigDecorator
   async run(input: O, options?: RunOptions): Promise<RunnableResponse<O['outputs']>> {
     const execute = async () => {
       const { action, inputs } = input;
@@ -323,10 +368,10 @@ export class Memory<T extends string, O extends MemoryActions<T>> implements IMe
     const options = { userId, sessionId, metadata: rest };
 
     if (this.runnable) {
-      return await this.runnable.run({ messages, ...(options || {}) });
+      return await this.runnable.run({ messages, ...(options || {}) }, { stream: false });
     }
 
-    const customAgent = new CustomAgent<
+    const customRunnableExtractor = new CustomAgent<
       {
         messages: { role: string; content: string }[];
         userId?: string;
@@ -335,7 +380,10 @@ export class Memory<T extends string, O extends MemoryActions<T>> implements IMe
       },
       MemoryActionItem<T>[]
     >(this.vectorStoreProvider!, this.llm!, this.customPrompt);
-    return await customAgent.run({ messages, ...(options || {}), ...{ metadata: filters } }, { stream: false });
+    return await customRunnableExtractor.run(
+      { messages, ...(options || {}), ...{ metadata: filters } },
+      { stream: false }
+    );
   }
 
   private async _createMemory(params: { data: string; metadata: { [key: string]: any } }) {
@@ -363,7 +411,7 @@ export class Memory<T extends string, O extends MemoryActions<T>> implements IMe
     return memoryId;
   }
 
-  private async _updateMemory(params: { memoryId: string; data: string; metadata: { [key: string]: any } }) {
+  private async _updateMemory(params: { memoryId: string; data: T; metadata: { [key: string]: any } }) {
     const content = await this.vectorStoreProvider?.get(params.memoryId);
 
     if (!content) throw new Error('Memory not found');
@@ -388,7 +436,7 @@ export class Memory<T extends string, O extends MemoryActions<T>> implements IMe
 
     return {
       id: params.memoryId,
-      memory: params.data as T,
+      memory: params.data,
       metadata,
     };
   }
@@ -419,6 +467,7 @@ export class Memory<T extends string, O extends MemoryActions<T>> implements IMe
     filters: { [key: string]: any }
   ): Promise<SearchMemoryItem<T>[]> {
     const memories = await this.vectorStoreProvider?.searchWithScore(query, k, filters);
+
     if (!memories) return [];
 
     return memories.map(([memory, score]) => ({

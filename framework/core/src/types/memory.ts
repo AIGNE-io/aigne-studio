@@ -189,6 +189,7 @@ export interface IVectorStoreManager {
   get(id: string): Promise<VectorStoreContent | null>;
   insert(data: string, id: string, metadata: Record<string, any>): Promise<void>;
   delete(id: string): Promise<void>;
+  deleteAll(ids: string[]): Promise<void>;
   update(id: string, data: string, metadata: Record<string, any>): Promise<void>;
   list(metadata: Record<string, any>, limit?: number): Promise<VectorStoreContent[]>;
   search(query: string, k: number, metadata?: Record<string, any>): Promise<Document[]>;
@@ -206,7 +207,7 @@ export interface IStorageManager {
     isDeleted?: boolean;
   }): Promise<any>;
   getHistory(memoryId: string): Promise<any>;
-  addMessage(message: any): Promise<any>;
+  addMessage(message: { [key: string]: any }, metadata: { [key: string]: any }): Promise<any>;
   getMessage(id: string): Promise<any>;
   getMessages(props: { [key: string]: any }): Promise<any>;
   reset(): Promise<void>;

@@ -6,7 +6,9 @@ import nextId from '../../lib/next-id';
 export default class Message extends Model<InferAttributes<Message>, InferCreationAttributes<Message>> {
   declare id: CreationOptional<string>;
 
-  declare message?: JSON;
+  declare message?: Record<string, any>;
+
+  declare metadata?: Record<string, any>;
 
   declare createdAt: CreationOptional<Date>;
 
@@ -23,6 +25,10 @@ export const init = (sequelize: Sequelize) => {
         defaultValue: nextId,
       },
       message: {
+        type: DataTypes.JSON,
+        allowNull: false,
+      },
+      metadata: {
         type: DataTypes.JSON,
         allowNull: false,
       },

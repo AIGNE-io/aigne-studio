@@ -68,7 +68,7 @@ export default class SearchKitManager implements IVectorStoreManager {
 
     const index = createHash('md5').update(this.vectorsFolderPath).digest('hex');
     logger.info('index', { index });
-    return this.client.index(`${index}-chat-history`);
+    return this.client.index(`chat-history-${index}`);
   }
 
   get options() {
@@ -126,6 +126,10 @@ export default class SearchKitManager implements IVectorStoreManager {
 
   delete(id: string): Promise<void> {
     return this.postIndex.deleteDocuments([id]);
+  }
+
+  deleteAll(ids: string[]): Promise<void> {
+    return this.postIndex.deleteDocuments(ids);
   }
 
   update(id: string, data: string, metadata: Record<string, any>): Promise<void> {
