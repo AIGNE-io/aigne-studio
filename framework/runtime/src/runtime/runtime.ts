@@ -10,7 +10,10 @@ import {
   Runnable,
   RunnableDefinition,
   RunnableInput,
+  RunnableOutput,
+  StreamTextOutputName,
   TYPES,
+  isPropsNonNullable,
 } from '@aigne/core';
 import { readFile } from 'fs-extra';
 import { glob } from 'glob';
@@ -60,6 +63,7 @@ export class Runtime<Agents = {}> implements Context {
           const a: Assistant = i as Assistant;
           if (a.parameters && !r.inputs) {
             const inputs = a.parameters
+              .filter((i) => !i.hidden)
               .map((p) => ({
                 ...p,
                 // TODO: 映射旧版参数类型到新版参数类型
@@ -75,6 +79,22 @@ export class Runtime<Agents = {}> implements Context {
 
           if (a.outputVariables && !r.outputs) {
             // TODO: 完善 outputs 的定义
+
+            r.outputs = OrderedRecord.fromArray(
+              a.outputVariables
+                .map((i) => ({
+                  ...i,
+                  type: i.name === StreamTextOutputName ? 'string' : i.type || 'object',
+                }))
+                .filter(isPropsNonNullable('type'))
+                .filter((i) => !i.hidden)
+                .map((v) => ({
+                  id: v.id,
+                  name: v.name,
+                  type: v.type,
+                  required: v.required,
+                })) as RunnableOutput[]
+            );
           }
 
           return r;
