@@ -3,13 +3,15 @@ import 'reflect-metadata';
 
 import path from 'path';
 
-import chatbot from '@aigne-project/chatbot/middleware';
+import chatbot from '@aigne-project/chatbot';
+import chatbotMiddleware from '@aigne-project/chatbot/middleware';
 import fallback from '@blocklet/sdk/lib/middlewares/fallback';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv-flow';
 import express, { ErrorRequestHandler } from 'express';
 
+import { chat, convertKnowledge } from './agents/chatbot';
 import logger from './libs/logger';
 import routes from './routes';
 
@@ -25,7 +27,9 @@ app.use(express.json({ limit: '1 mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1 mb' }));
 app.use(cors());
 
-app.use(chatbot());
+chatbot.register(convertKnowledge, chat);
+
+app.use(chatbotMiddleware());
 
 const router = express.Router();
 router.use('/api', routes);

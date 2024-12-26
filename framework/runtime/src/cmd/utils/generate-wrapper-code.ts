@@ -52,8 +52,10 @@ export default new Runtime<Agents>(projectDefinition);
   const middleware = `\
 import { createMiddleware } from '@aigne/runtime/middleware';
 
+import runtime from './index';
+
 export default function middleware() {
-  return createMiddleware({ path: __dirname });
+  return createMiddleware(runtime);
 }
 `;
 

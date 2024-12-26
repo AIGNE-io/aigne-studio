@@ -2,8 +2,8 @@ import { RunOptions, Runnable, RunnableDefinition, RunnableResponse, RunnableRes
 import { joinURL } from 'ufo';
 
 import { ProjectDefinition } from '../runtime';
-import api, { RunnableStreamParser } from './api';
-import { EventSourceParserStream } from './utils/event-stream';
+import { fetchApi } from './api/api';
+import { EventSourceParserStream, RunnableStreamParser } from './utils/event-stream';
 
 export class Agent<I extends object = object, O = object> extends Runnable<I, O> {
   constructor(
@@ -19,7 +19,7 @@ export class Agent<I extends object = object, O = object> extends Runnable<I, O>
     const url = joinURL('/api/aigne', this.projectDefinition.id, 'agents', this.id, 'run');
     const body = { input, options };
 
-    const result = await api(url, {
+    const result = await fetchApi(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),

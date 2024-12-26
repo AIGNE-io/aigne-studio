@@ -20,8 +20,8 @@ import { glob } from 'glob';
 import { DependencyContainer, container, injectable } from 'tsyringe';
 import { parse } from 'yaml';
 
-import { BlockletLLMModel } from '../model/blocklet-llm-model';
-import { QuickJSRunner } from '../model/quickjs-runner';
+import { BlockletLLMModel } from '../provider/blocklet-llm-model';
+import { QuickJSRunner } from '../provider/quickjs-runner';
 import { AgentV1 } from '../v1/agent-v1';
 import { Assistant } from '../v1/types';
 
@@ -39,6 +39,7 @@ export interface ProjectDefinition {
 
 @injectable()
 export class Runtime<Agents = {}> implements Context {
+  // TODO: 拆分加载逻辑，避免 Runtime 代码臃肿
   static async load(options: { path: string }) {
     const projectFilePath = join(options.path, 'project.yaml');
     const project = parse((await readFile(projectFilePath)).toString());
@@ -128,7 +129,7 @@ export class Runtime<Agents = {}> implements Context {
 
           if (!agent) throw new Error(`No such agent ${prop.toString()}`);
 
-          return this.resolveRunnable(agent.id);
+          return this.resolveSync(agent.id);
         },
       }
     ) as Agents;
@@ -146,9 +147,9 @@ export class Runtime<Agents = {}> implements Context {
     return this.project.name;
   }
 
-  resolveRunnable<T extends Runnable>(runnableId: string): T {
-    const agent = this.project.runnables?.[runnableId];
-    if (!agent) throw new Error(`No such agent ${runnableId}`);
+  private resolveSync<T extends Runnable>(id: string): T {
+    const agent = this.project.runnables?.[id];
+    if (!agent) throw new Error(`No such agent ${id}`);
 
     const childContainer = this.container.createChildContainer().register(TYPES.definition, { useValue: agent });
 
@@ -159,11 +160,11 @@ export class Runtime<Agents = {}> implements Context {
     return result;
   }
 
-  registerRunnable<T extends Runnable>(type: string, runnable: new (...args: any[]) => T) {
-    this.container.register(type, { useClass: runnable });
+  async resolve<T extends Runnable>(id: string): Promise<T> {
+    return this.resolveSync<T>(id);
   }
 
-  addRunnable<T extends RunnableDefinition, A extends Array<T> = T[]>(...definition: A) {
+  register<T extends RunnableDefinition, A extends Array<T> = T[]>(...definition: A) {
     OrderedRecord.pushOrUpdate(this.project.runnables, ...definition);
   }
 }

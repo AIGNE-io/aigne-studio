@@ -62,7 +62,7 @@ export class PipelineAgent<I extends { [key: string]: any }, O> extends Runnable
             continue;
           }
 
-          const runnable = await context.resolveRunnable(process.runnable.id);
+          const runnable = await context.resolve(process.runnable.id);
           if (!runnable) continue;
 
           const inputValues = Object.fromEntries(

@@ -1,3 +1,4 @@
+import { RunnableResponseDelta } from '@aigne/core';
 import { createParser } from 'eventsource-parser';
 
 import logger from '../../logger';
@@ -21,6 +22,26 @@ export class EventSourceParserStream<T> extends TransformStream<any, T> {
       },
       transform(chunk) {
         parser?.feed(chunk);
+      },
+    });
+  }
+}
+
+export class RunnableStreamParser<O> extends TransformStream<RunnableResponseDelta<O>, RunnableResponseDelta<O>> {
+  private $text = '';
+
+  private delta = {};
+
+  constructor() {
+    super({
+      transform: (chunk, controller) => {
+        if (typeof chunk.$text === 'string' && chunk.$text) {
+          this.$text += chunk.$text;
+        }
+
+        Object.assign(this.delta, chunk.delta, { $text: this.$text || undefined });
+
+        controller.enqueue({ ...chunk, delta: { ...this.delta } });
       },
     });
   }
