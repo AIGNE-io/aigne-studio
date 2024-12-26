@@ -1,8 +1,6 @@
-import api, { RunnableStreamParser } from '@aigne/runtime/client/api';
-import { EventSourceParserStream } from '@aigne/runtime/client/utils/event-stream';
+import chatbot from '@aigne-project/chatbot/client';
 import { Button, Container, Input, InputAdornment, Stack, Typography } from '@mui/material';
 import React, { useState } from 'react';
-import { withQuery } from 'ufo';
 
 import MarkdownRenderer from '../components/MarkdownRenderer';
 
@@ -13,10 +11,7 @@ export default function Home() {
   const run = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const stream = (await api(withQuery('/api/search', { q: question, stream: true })))
-      .body!.pipeThrough(new TextDecoderStream())
-      .pipeThrough(new EventSourceParserStream())
-      .pipeThrough(new RunnableStreamParser());
+    const stream = await (await chatbot.resolve('chat')).run({ question }, { stream: true });
 
     const reader = stream.getReader();
     for (;;) {
