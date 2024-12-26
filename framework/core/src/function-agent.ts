@@ -1,15 +1,33 @@
+import { nanoid } from 'nanoid';
 import { inject, injectable } from 'tsyringe';
 
 import { TYPES } from './constants';
+import { DataType } from './data-type';
 import { FunctionRunner } from './function-runner';
-import { RunOptions, Runnable, RunnableDefinition, RunnableResponse, RunnableResponseStream } from './runnable';
-import { objectToStream } from './utils';
+import {
+  RunOptions,
+  Runnable,
+  RunnableDefinition,
+  RunnableInput,
+  RunnableResponse,
+  RunnableResponseStream,
+} from './runnable';
+import { OrderedRecord, objectToStream } from './utils';
 
 @injectable()
-export class FunctionAgent<I extends { [key: string]: any }, O> extends Runnable<I, O> {
+export class FunctionAgent<I extends {} = {}, O extends {} = {}> extends Runnable<I, O> {
+  static create<I extends {} = {}, O extends {} = {}>(
+    options: Parameters<typeof createFunctionAgentDefinition>[0]
+  ): FunctionAgent<I, O> {
+    const definition = createFunctionAgentDefinition(options);
+
+    return new FunctionAgent(definition);
+  }
+
   constructor(
     @inject(TYPES.definition) public definition: FunctionAgentDefinition,
-    @inject(TYPES.functionRunner) public runner: FunctionRunner
+    // TODO: 实现按 language 选择不同的 runner
+    @inject(TYPES.functionRunner) public runner?: FunctionRunner
   ) {
     super(definition);
   }
@@ -21,6 +39,8 @@ export class FunctionAgent<I extends { [key: string]: any }, O> extends Runnable
       definition: { language, code, ...definition },
       runner,
     } = this;
+
+    if (!runner) throw new Error('Function runner is required');
 
     if (!language || !code) throw new Error('Language and code are required');
 
@@ -35,6 +55,43 @@ export class FunctionAgent<I extends { [key: string]: any }, O> extends Runnable
 
     return options?.stream ? objectToStream({ delta: result }) : (result as O);
   }
+}
+
+export function createFunctionAgentDefinition(options: {
+  id?: string;
+  name?: string;
+  inputs?: { name: string; type: DataType['type']; required?: boolean }[];
+  outputs?: { name: string; type: DataType['type']; required?: boolean }[];
+  language: string;
+  code: string;
+}): FunctionAgentDefinition {
+  const inputs: OrderedRecord<RunnableInput> = OrderedRecord.fromArray(
+    options.inputs?.map((i) => ({
+      id: nanoid(),
+      name: i.name,
+      type: i.type,
+      required: i.required,
+    }))
+  );
+
+  const outputs: OrderedRecord<RunnableInput> = OrderedRecord.fromArray(
+    options.outputs?.map((i) => ({
+      id: nanoid(),
+      name: i.name,
+      type: i.type,
+      required: i.required,
+    }))
+  );
+
+  return {
+    id: options.id || options.name || nanoid(),
+    name: options.name,
+    type: 'function_agent',
+    inputs,
+    outputs,
+    language: options.language,
+    code: options.code,
+  };
 }
 
 export interface FunctionAgentDefinition extends RunnableDefinition {

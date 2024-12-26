@@ -13,7 +13,7 @@ export namespace OrderedRecord {
     })();
   }
 
-  export function map<T extends { id: string }, O>(
+  export function map<O, T extends { id: string }>(
     record: OrderedRecord<T> | undefined,
     fn: (value: T, index: number) => O
   ): O[] {
@@ -32,10 +32,10 @@ export namespace OrderedRecord {
     return OrderedRecord.map(record, (value) => value);
   }
 
-  export function fromArray<T extends { id: string }>(array: T[]): OrderedRecord<T> {
+  export function fromArray<T extends { id: string }>(array?: T[]): OrderedRecord<T> {
     const record: OrderedRecord<T> = { $indexes: [] as any };
 
-    for (const value of array) {
+    for (const value of array ?? []) {
       record[value.id] = value;
       record.$indexes.push(value.id);
     }

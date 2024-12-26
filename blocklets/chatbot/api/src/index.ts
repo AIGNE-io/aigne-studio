@@ -27,7 +27,7 @@ app.use(express.json({ limit: '1 mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1 mb' }));
 app.use(cors());
 
-chatbot.register(convertKnowledge, chat, docBot, otherQuestionBot);
+chatbot.register(convertKnowledge.definition, chat.definition, docBot.definition, otherQuestionBot.definition);
 
 app.use(chatbotMiddleware());
 

@@ -4,18 +4,7 @@ import { OrderedRecord } from './utils';
 export type Role = 'system' | 'user' | 'assistant' | 'tool';
 
 export interface LLMModelInputs {
-  messages: {
-    role: Role;
-
-    // complex content only supported for role === 'user'
-    content: string | ({ type: 'text'; text: string } | { type: 'image_url'; imageUrl: { url: string } })[];
-
-    // for role === 'assistant'
-    toolCalls?: { id: string; type: 'function'; function: { name: string; arguments: string } }[];
-
-    // for role === 'tool'
-    toolCallId?: string;
-  }[];
+  messages: LLMModelInputMessage[];
 
   responseFormat?:
     | { type: 'text' }
@@ -29,24 +18,41 @@ export interface LLMModelInputs {
         };
       };
 
-  tools?: {
-    type: 'function';
-    function: {
-      name: string;
-      description?: string;
-      parameters: object;
-    };
-  }[];
+  tools?: LLMModelInputTool[];
 
   toolChoice?: 'auto' | 'none' | 'required' | { type: 'function'; function: { name: string; description?: string } };
 
-  modelSettings?: {
-    model?: string;
-    temperature?: number;
-    topP?: number;
-    frequencyPenalty?: number;
-    presencePenalty?: number;
+  modelSettings?: LLMModelSettings;
+}
+
+export interface LLMModelInputMessage {
+  role: Role;
+
+  // complex content only supported for role === 'user'
+  content: string | ({ type: 'text'; text: string } | { type: 'image_url'; imageUrl: { url: string } })[];
+
+  // for role === 'assistant'
+  toolCalls?: { id: string; type: 'function'; function: { name: string; arguments: string } }[];
+
+  // for role === 'tool'
+  toolCallId?: string;
+}
+
+export interface LLMModelInputTool {
+  type: 'function';
+  function: {
+    name: string;
+    description?: string;
+    parameters: object;
   };
+}
+
+export interface LLMModelSettings {
+  model?: string;
+  temperature?: number;
+  topP?: number;
+  frequencyPenalty?: number;
+  presencePenalty?: number;
 }
 
 export interface LLMModelOutputs {

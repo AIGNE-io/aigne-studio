@@ -1,7 +1,9 @@
 import { omitBy } from 'lodash';
+import { nanoid } from 'nanoid';
 import { inject, injectable } from 'tsyringe';
 
 import { StreamTextOutputName, TYPES } from './constants';
+import { DataType } from './data-type';
 import { LLMModel, LLMModelInputs, Role } from './llm-model';
 import {
   RunOptions,
@@ -16,10 +18,18 @@ import { renderMessage } from './utils/mustache-utils';
 import { OrderedRecord } from './utils/ordered-map';
 
 @injectable()
-export class LLMAgent<I extends { [key: string]: any }, O> extends Runnable<I, O> {
+export class LLMAgent<I extends {} = {}, O extends {} = {}> extends Runnable<I, O> {
+  static create<I extends {} = {}, O extends {} = {}>(
+    options: Parameters<typeof createLLMAgentDefinition>[0]
+  ): LLMAgent<I, O> {
+    const definition = createLLMAgentDefinition(options);
+
+    return new LLMAgent(definition);
+  }
+
   constructor(
     @inject(TYPES.definition) public definition: LLMAgentDefinition,
-    @inject(TYPES.llmModel) public model: LLMModel
+    @inject(TYPES.llmModel) public model?: LLMModel
   ) {
     super(definition);
   }
@@ -27,7 +37,8 @@ export class LLMAgent<I extends { [key: string]: any }, O> extends Runnable<I, O
   async run(input: I, options: RunOptions & { stream: true }): Promise<RunnableResponseStream<O>>;
   async run(input: I, options?: RunOptions & { stream?: false }): Promise<O>;
   async run(input: I, options?: RunOptions): Promise<RunnableResponse<O>> {
-    const { definition } = this;
+    const { definition, model } = this;
+    if (!model) throw new Error('LLM model is required');
 
     const messages = OrderedRecord.toArray(definition.messages);
     if (!messages.length) throw new Error('Messages are required');
@@ -49,7 +60,7 @@ export class LLMAgent<I extends { [key: string]: any }, O> extends Runnable<I, O
     const jsonOutputs = outputs.filter((i) => i.name !== StreamTextOutputName);
     const outputJsonSchema = jsonOutputs.length ? outputsToJsonSchema(OrderedRecord.fromArray(jsonOutputs)) : undefined;
     const jsonOutput = outputJsonSchema
-      ? this.model
+      ? model
           .run({
             ...llmInputs,
             responseFormat: outputJsonSchema && {
@@ -77,7 +88,7 @@ export class LLMAgent<I extends { [key: string]: any }, O> extends Runnable<I, O
         start: async (controller) => {
           try {
             if (textOutput) {
-              const textStreamOutput = await this.model.run(llmInputs, { stream: true });
+              const textStreamOutput = await model.run(llmInputs, { stream: true });
               for await (const chunk of textStreamOutput) {
                 controller.enqueue({ $text: chunk.$text });
               }
@@ -93,13 +104,58 @@ export class LLMAgent<I extends { [key: string]: any }, O> extends Runnable<I, O
       });
     }
 
-    const text = textOutput ? await this.model.run(llmInputs) : undefined;
+    const text = textOutput ? await model.run(llmInputs) : undefined;
 
     return {
       $text: text,
       ...(await jsonOutput),
     };
   }
+}
+
+export function createLLMAgentDefinition(options: {
+  id?: string;
+  name?: string;
+  messages?: { role: Role; content: string }[];
+  modelSettings?: LLMModelInputs['modelSettings'];
+  inputs?: { name: string; type: DataType['type']; required?: boolean }[];
+  outputs?: { name: string; type: DataType['type']; required?: boolean }[];
+}): LLMAgentDefinition {
+  const inputs = OrderedRecord.fromArray(
+    options.inputs?.map((i) => ({
+      id: nanoid(),
+      name: i.name,
+      type: i.type,
+      required: i.required,
+    }))
+  );
+
+  const outputs = OrderedRecord.fromArray(
+    options.outputs?.map((i) => ({
+      id: nanoid(),
+      name: i.name,
+      type: i.type,
+      required: i.required,
+    }))
+  );
+
+  const messages = OrderedRecord.fromArray(
+    options.messages?.map((i) => ({
+      id: nanoid(),
+      role: i.role,
+      content: i.content,
+    }))
+  );
+
+  return {
+    id: options.id || options.name || nanoid(),
+    name: options.name,
+    type: 'llm_agent',
+    inputs,
+    outputs,
+    messages,
+    modelSettings: options.modelSettings,
+  };
 }
 
 function outputsToJsonSchema(outputs: OrderedRecord<RunnableOutput>) {
@@ -124,7 +180,7 @@ function outputsToJsonSchema(outputs: OrderedRecord<RunnableOutput>) {
           ? Object.fromEntries(properties.map((p) => [p.property.name, p.schema]))
           : undefined,
         items: output.type === 'array' && output.items ? outputToSchema(output.items) : undefined,
-        additionalProperties: output.type === 'object' ? true : undefined,
+        additionalProperties: output.type === 'object' ? false : undefined,
         required: properties?.length
           ? properties.filter((i) => i.property.required).map((i) => i.property.name)
           : undefined,
