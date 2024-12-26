@@ -1,6 +1,7 @@
-import { OrderedRecord, RunnableDefinition, RunnableInput, RunnableOutput, isNonNullable } from '@aigne/core';
+import { DataType, OrderedRecord, RunnableDefinition, isNonNullable } from '@aigne/core';
 
 import { ProjectDefinition } from '../../runtime/runtime';
+import { formatCode } from '../../utils/prettier';
 
 export async function generateWrapperCode(project: ProjectDefinition) {
   const packageJson = JSON.stringify(
@@ -10,23 +11,26 @@ export async function generateWrapperCode(project: ProjectDefinition) {
       version: '0.0.1',
       main: 'index.cjs',
       module: 'index.js',
-      types: 'index.d.ts',
-      dependencies: { '@aigne/runtime': 'latest' },
+      types: 'index.ts',
+      dependencies: {
+        '@aigne/core': 'latest',
+        '@aigne/runtime': 'latest',
+      },
       exports: {
         '.': {
           require: './index.cjs',
           import: './index.js',
-          types: './index.d.ts',
+          types: './index.ts',
         },
         './middleware': {
           require: './middleware.cjs',
           import: './middleware.js',
-          types: './middleware.d.ts',
+          types: './middleware.ts',
         },
         './client': {
           require: './client.cjs',
           import: './client.js',
-          types: './client.d.ts',
+          types: './client.ts',
         },
       },
     },
@@ -40,17 +44,7 @@ import { Runtime, ProjectDefinition } from '@aigne/runtime';
 
 const projectDefinition: ProjectDefinition = ${JSON.stringify(project, null, 2)};
 
-interface Agents {
-  ${OrderedRecord.map(project.runnables, (agent) => {
-    // ignore agent without name
-    if (!agent.name) return null;
-
-    // TODO: 把 Agent 的类型定义单独放到一个 ts 文件中，然后在这里引入
-    return `${JSON.stringify(agent.name)}: Runnable<${generateAgentInputTypeDefine(agent)}, ${generateAgentOutputTypeDefine(agent)}>`;
-  })
-    .filter(isNonNullable)
-    .join(';\n')}
-}
+${generateAgentsInterface(project.runnables, 'Runnable')}
 
 export default new Runtime<Agents>(projectDefinition);
 `;
@@ -64,23 +58,12 @@ export default function middleware() {
 `;
 
   const client = `\
-import { OrderedRecord } from '@aigne/core';
 import { ProjectDefinition } from '@aigne/runtime';
 import { Agent, Runtime } from '@aigne/runtime/client';
 
 const projectDefinition: ProjectDefinition = ${JSON.stringify(sanitizeProjectDefinition(project), null, 2)};
 
-interface Agents {
-  ${OrderedRecord.map(project.runnables, (agent) => {
-    // ignore agent without name
-    if (!agent.name) return null;
-
-    // TODO: 把 Agent 的类型定义单独放到一个 ts 文件中，然后在这里引入
-    return `${JSON.stringify(agent.name)}: Agent<${generateAgentInputTypeDefine(agent)}, ${generateAgentOutputTypeDefine(agent)}>`;
-  })
-    .filter(isNonNullable)
-    .join(';\n')}
-}
+${generateAgentsInterface(project.runnables, 'Agent')}
 
 export default new Runtime<Agents>(projectDefinition);
 `;
@@ -95,13 +78,13 @@ export default new Runtime<Agents>(projectDefinition);
 
   const result = (
     await Promise.all(
-      tsFiles.map(({ fileName, content }) => {
+      tsFiles.map(async ({ fileName, content }) => {
         const cjs = ts.transpileModule(content, { fileName, compilerOptions: { module: ts.ModuleKind.CommonJS } });
         const esm = ts.transpileModule(content, { fileName, compilerOptions: { module: ts.ModuleKind.ESNext } });
         return [
-          { fileName: fileName.replace(/\.ts$/, '.cjs'), content: cjs.outputText },
-          { fileName: fileName.replace(/\.ts$/, '.js'), content: esm.outputText },
-          { fileName: fileName.replace(/\.ts$/, '.d.ts'), content },
+          { fileName: fileName.replace(/\.ts$/, '.cjs'), content: await formatCode(cjs.outputText) },
+          { fileName: fileName.replace(/\.ts$/, '.js'), content: await formatCode(esm.outputText) },
+          { fileName: fileName.replace(/\.ts$/, '.ts'), content: await formatCode(content) },
         ];
       })
     )
@@ -130,35 +113,35 @@ function sanitizeProjectDefinition(project: ProjectDefinition): ProjectDefinitio
   };
 }
 
-function generateAgentInputTypeDefine(agent: RunnableDefinition) {
+function generateAgentsInterface(runnables: OrderedRecord<RunnableDefinition>, agentInterface: string) {
+  return `\
+interface Agents {
+  ${OrderedRecord.map(runnables, (agent) => {
+    // ignore agent without name
+    if (!agent.name) return null;
+
+    // TODO: 把 Agent 的类型定义单独放到一个 ts 文件中，然后在这里引入
+    return `${JSON.stringify(agent.name)}: ${agentInterface}<${fieldsToTsType(agent.inputs)}, ${fieldsToTsType(agent.outputs)}>`;
+  })
+    .filter(isNonNullable)
+    .join(';\n')}
+}
+`;
+}
+
+function fieldsToTsType(fields: OrderedRecord<DataType>) {
   // TODO: 最好采用 json schema 的定义方式，使用第三方库生成类型定义
   return `\
 {
-  ${OrderedRecord.map(agent.inputs, (input) => [input.name || input.id, inputTypeToTypeScriptType(input)])
-    .filter(([, type]) => !!type)
-    .map(([field, type]) => `${JSON.stringify(field)}: ${type}`)
-    .join(';')}
+  ${OrderedRecord.map(
+    fields,
+    (input) => `${JSON.stringify(input.name || input.id)}${input.required ? '' : '?'}: ${dataTypeToTsType(input)}`
+  ).join(';')}
 }`;
 }
 
-function inputTypeToTypeScriptType(input: RunnableInput) {
-  return input.type;
-}
-
-function generateAgentOutputTypeDefine(agent: RunnableDefinition) {
-  // TODO: 最好采用 json schema 的定义方式，使用第三方库生成类型定义
-  return `\
-{
-  ${OrderedRecord.map(agent.outputs, (output) => [output.name || output.id, outputTypeToTypeScriptType(output)])
-    .filter(([, type]) => !!type)
-    .map(([field, type]) => `${JSON.stringify(field)}: ${type}`)
-    .join(';')}
-}`;
-}
-
-function outputTypeToTypeScriptType(output: RunnableOutput) {
-  if (output.type && ['string', 'number', 'boolean', 'object'].includes(output.type)) return output.type;
+function dataTypeToTsType(output: DataType) {
   if (output.type === 'array') return 'object[]';
-  if (!output.type) return 'object';
-  return undefined;
+
+  return output.type;
 }

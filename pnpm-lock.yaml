@@ -1042,8 +1042,8 @@ importers:
   blocklets/chatbot:
     dependencies:
       '@aigne-project/chatbot':
-        specifier: https://dev.blocklet.mac.yechao.xyz/aigne-studio/api/projects/526280358526713856/npm/package.tgz?secret=ioK2Wgf8SNLeaFfVPUn7i&hash=bb3dc5d2efb4a46a75ca64dfa3b3bc9d5a8d74b2
-        version: https://dev.blocklet.mac.yechao.xyz/aigne-studio/api/projects/526280358526713856/npm/package.tgz?secret=ioK2Wgf8SNLeaFfVPUn7i&hash=bb3dc5d2efb4a46a75ca64dfa3b3bc9d5a8d74b2
+        specifier: https://dev.blocklet.mac.yechao.xyz/aigne-studio/api/projects/526280358526713856/npm/package.tgz?secret=ioK2Wgf8SNLeaFfVPUn7i&hash=c0b474195529baaff4411af1fded664a0a3ca432
+        version: https://dev.blocklet.mac.yechao.xyz/aigne-studio/api/projects/526280358526713856/npm/package.tgz?secret=ioK2Wgf8SNLeaFfVPUn7i&hash=c0b474195529baaff4411af1fded664a0a3ca432
       '@aigne/core':
         specifier: workspace:^
         version: link:../../framework/core
@@ -1379,6 +1379,9 @@ importers:
       openapi3-ts:
         specifier: 4.3.1
         version: 4.3.1
+      prettier:
+        specifier: ^3.3.3
+        version: 3.3.3
       react-querybuilder:
         specifier: ^7.7.1
         version: 7.7.1(@types/react@18.3.4)(react@18.3.1)(redux@5.0.1)
@@ -2242,8 +2245,8 @@ packages:
   '@adraffy/ens-normalize@1.10.0':
     resolution: {integrity: sha512-nA9XHtlAkYfJxY7bce8DcN7eKxWWCWkU+1GR9d+U6MbNpfwQp8TI7vqOsBsMcHoT4mBu2kypKoSKnghEzOOq5Q==}
 
-  '@aigne-project/chatbot@https://dev.blocklet.mac.yechao.xyz/aigne-studio/api/projects/526280358526713856/npm/package.tgz?secret=ioK2Wgf8SNLeaFfVPUn7i&hash=bb3dc5d2efb4a46a75ca64dfa3b3bc9d5a8d74b2':
-    resolution: {tarball: https://dev.blocklet.mac.yechao.xyz/aigne-studio/api/projects/526280358526713856/npm/package.tgz?secret=ioK2Wgf8SNLeaFfVPUn7i&hash=bb3dc5d2efb4a46a75ca64dfa3b3bc9d5a8d74b2}
+  '@aigne-project/chatbot@https://dev.blocklet.mac.yechao.xyz/aigne-studio/api/projects/526280358526713856/npm/package.tgz?secret=ioK2Wgf8SNLeaFfVPUn7i&hash=c0b474195529baaff4411af1fded664a0a3ca432':
+    resolution: {tarball: https://dev.blocklet.mac.yechao.xyz/aigne-studio/api/projects/526280358526713856/npm/package.tgz?secret=ioK2Wgf8SNLeaFfVPUn7i&hash=c0b474195529baaff4411af1fded664a0a3ca432}
     version: 0.0.1
 
   '@ampproject/remapping@2.3.0':
@@ -18298,7 +18301,7 @@ snapshots:
 
   '@adraffy/ens-normalize@1.10.0': {}
 
-  '@aigne-project/chatbot@https://dev.blocklet.mac.yechao.xyz/aigne-studio/api/projects/526280358526713856/npm/package.tgz?secret=ioK2Wgf8SNLeaFfVPUn7i&hash=bb3dc5d2efb4a46a75ca64dfa3b3bc9d5a8d74b2':
+  '@aigne-project/chatbot@https://dev.blocklet.mac.yechao.xyz/aigne-studio/api/projects/526280358526713856/npm/package.tgz?secret=ioK2Wgf8SNLeaFfVPUn7i&hash=c0b474195529baaff4411af1fded664a0a3ca432':
     dependencies:
       '@aigne/runtime': link:framework/runtime
 
