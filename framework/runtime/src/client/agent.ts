@@ -5,7 +5,7 @@ import { ProjectDefinition } from '../runtime';
 import { fetchApi } from './api/api';
 import { EventSourceParserStream, RunnableStreamParser } from './utils/event-stream';
 
-export class Agent<I extends object = object, O = object> extends Runnable<I, O> {
+export class Agent<I extends {} = {}, O extends {} = {}> extends Runnable<I, O> {
   constructor(
     private projectDefinition: ProjectDefinition,
     definition: RunnableDefinition

@@ -166,7 +166,7 @@ export class Runtime<Agents = {}> implements Context {
     return this.resolveSync<T>(id);
   }
 
-  register<T extends RunnableDefinition, A extends Array<T> = T[]>(...definition: A) {
+  register<A extends Array<RunnableDefinition> = []>(...definition: A) {
     OrderedRecord.pushOrUpdate(this.project.runnables, ...definition);
   }
 }

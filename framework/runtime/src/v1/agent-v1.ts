@@ -20,7 +20,7 @@ import { Agent, AssistantResponseType } from './types';
 import { nextId } from './utils/task-id';
 
 @injectable()
-export class AgentV1<I extends object = object, O = object> extends Runnable<I, O> {
+export class AgentV1<I extends {} = {}, O extends {} = {}> extends Runnable<I, O> {
   constructor(
     @inject(TYPES.definition) public definition: RunnableDefinition,
     @inject(TYPES.context) private runtime: Runtime,

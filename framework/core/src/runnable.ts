@@ -14,7 +14,7 @@ export type RunnableResponseStream<T> = ReadableStream<RunnableResponseDelta<T>>
 
 export type RunnableResponse<T> = T | RunnableResponseStream<T>;
 
-export abstract class Runnable<I extends { [key: string]: any } = object, O = object> {
+export abstract class Runnable<I extends {} = {}, O extends {} = {}> {
   constructor(public definition: RunnableDefinition) {
     this.inputs = Object.fromEntries(
       OrderedRecord.map(definition.inputs, (i) => [i.name || i.id, i])

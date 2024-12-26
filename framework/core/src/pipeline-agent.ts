@@ -1,13 +1,16 @@
 import { get, isNil } from 'lodash';
+import { nanoid } from 'nanoid';
 import { inject, injectable } from 'tsyringe';
 
 import { StreamTextOutputName, TYPES } from './constants';
 import { Context } from './context';
+import { DataType } from './data-type';
 import logger from './logger';
 import {
   RunOptions,
   Runnable,
   RunnableDefinition,
+  RunnableInput,
   RunnableOutput,
   RunnableResponse,
   RunnableResponseDelta,
@@ -18,10 +21,18 @@ import { isNonNullable } from './utils/is-non-nullable';
 import { OrderedRecord } from './utils/ordered-map';
 
 @injectable()
-export class PipelineAgent<I extends { [key: string]: any }, O> extends Runnable<I, O> {
+export class PipelineAgent<I extends { [key: string]: any } = {}, O extends {} = {}> extends Runnable<I, O> {
+  static create<I extends {} = {}, O extends {} = {}>(
+    options: Parameters<typeof createPipelineAgentDefinition>[0]
+  ): PipelineAgent<I, O> {
+    const definition = createPipelineAgentDefinition(options);
+
+    return new PipelineAgent(definition);
+  }
+
   constructor(
     @inject(TYPES.definition) public definition: PipelineAgentDefinition,
-    @inject(TYPES.context) public context: Context
+    @inject(TYPES.context) public context?: Context
   ) {
     super(definition);
   }
@@ -32,6 +43,8 @@ export class PipelineAgent<I extends { [key: string]: any }, O> extends Runnable
     // TODO: validate the input against the definition
 
     const { definition, context } = this;
+    if (!context) throw new Error('Context is required');
+
     const { processes } = definition;
 
     if (!processes?.$indexes.length) {
@@ -135,6 +148,114 @@ export class PipelineAgent<I extends { [key: string]: any }, O> extends Runnable
 
     return resultObject as O;
   }
+}
+
+export interface PipelineAgentProcessParameter<I extends {} = {}, O extends {} = {}, R = Runnable<I, O>> {
+  name?: string;
+  runnable: R;
+  input?: {
+    [key: string]:
+      | {
+          fromVariable: string;
+          fromVariablePropPath?: string[];
+        }
+      | undefined;
+  };
+}
+
+export function createPipelineAgentDefinition(options: {
+  id?: string;
+  name?: string;
+  inputs?: { name: string; type: DataType['type']; required?: boolean }[];
+  outputs: {
+    name: string;
+    type: DataType['type'];
+    required?: boolean;
+    fromVariable: string;
+    fromVariablePropPath?: string[];
+  }[];
+  processes?: PipelineAgentProcessParameter[];
+}): PipelineAgentDefinition {
+  const inputs: OrderedRecord<RunnableInput> = OrderedRecord.fromArray(
+    options.inputs?.map((i) => ({
+      id: nanoid(),
+      name: i.name,
+      type: i.type,
+      required: i.required,
+    }))
+  );
+
+  const processes: OrderedRecord<PipelineAgentProcess> = OrderedRecord.fromArray([]);
+
+  for (const p of options.processes || []) {
+    OrderedRecord.push(processes, {
+      id: nanoid(),
+      name: p.name || p.runnable?.name,
+      runnable: { id: p.runnable.id },
+      input: Object.fromEntries(
+        OrderedRecord.map<[string, NonNullable<PipelineAgentProcess['input']>[string]] | null, DataType>(
+          p.runnable.definition.inputs,
+          (inputOfProcess) => {
+            const i = p.input?.[inputOfProcess.name || inputOfProcess.id];
+            if (!i) {
+              if (inputOfProcess.required) {
+                throw new Error(
+                  `Input ${inputOfProcess.name || inputOfProcess.id} for case ${p.runnable.name || p.runnable.id} is required`
+                );
+              }
+
+              // ignore optional input
+              return null;
+            }
+
+            const inputFromPipeline =
+              OrderedRecord.find(inputs, (input) => input.name === i.fromVariable) ||
+              OrderedRecord.find(processes, (p) => p.name === i.fromVariable);
+
+            if (!inputFromPipeline) throw new Error(`Input ${i.fromVariable} not found`);
+
+            return [
+              inputOfProcess.id,
+              {
+                from: 'variable',
+                fromVariableId: inputFromPipeline.id,
+                fromVariablePropPath: i.fromVariablePropPath,
+              },
+            ];
+          }
+        ).filter(isNonNullable)
+      ),
+    });
+  }
+
+  const outputs: OrderedRecord<PipelineAgentOutput> = OrderedRecord.fromArray<PipelineAgentOutput>(
+    options.outputs.map((output) => {
+      const from =
+        OrderedRecord.find(inputs, (i) => i.name === output.fromVariable) ||
+        OrderedRecord.find(processes, (p) => p.name === output.fromVariable);
+
+      if (!from) throw new Error(`Output ${output.name} not found in inputs or processes`);
+
+      return {
+        id: nanoid(),
+        name: output.name,
+        type: output.type,
+        required: output.required,
+        from: 'variable',
+        fromVariableId: from.id,
+        fromVariablePropPath: output.fromVariablePropPath,
+      };
+    })
+  );
+
+  return {
+    id: options.id || options.name || nanoid(),
+    name: options.name,
+    type: 'pipeline_agent',
+    inputs,
+    outputs,
+    processes,
+  };
 }
 
 export interface PipelineAgentDefinition extends RunnableDefinition {
