@@ -4,6 +4,7 @@ import type { Sequelize } from 'sequelize';
 import nextId from '../../lib/next-id';
 
 export type EventType = 'add' | 'update' | 'delete' | 'none';
+
 export default class History extends Model<InferAttributes<History>, InferCreationAttributes<History>> {
   declare id: CreationOptional<string>;
 

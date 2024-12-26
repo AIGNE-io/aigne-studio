@@ -13,20 +13,16 @@ import {
   RunnableResponseStream,
   SearchMemoryItem,
 } from '@aigne/core';
-// import { chatCompletions } from '@blocklet/ai-kit/api/call';
 import { mkdir, pathExists } from 'fs-extra';
-import { cloneDeep, uniqBy } from 'lodash';
+import { cloneDeep } from 'lodash';
 import { joinURL } from 'ufo';
 
 import nextId from '../lib/next-id';
-import { getUpdateMemoryMessages } from '../lib/prompts';
-import { generateStructuredResponse, getFactRetrievalMessages, parseMessages } from '../lib/utils';
 import OpenAIManager from '../llm/openai';
 import logger from '../logger';
 import SQLiteManager from '../storage/sqlite';
 import VectorStoreManager from '../vector-stores/search-kit';
-
-const apiKey = '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';
+import { CustomAgent } from './customAgent';
 
 export class Memory<T extends string, O extends MemoryActions<T>> implements IMemory<T> {
   memoryPath: string = '';
@@ -34,7 +30,7 @@ export class Memory<T extends string, O extends MemoryActions<T>> implements IMe
   llm?: OpenAIManager;
   db?: IStorageManager;
   vectorStoreProvider?: IVectorStoreManager;
-  customRunnable?: Runnable<
+  runnable?: Runnable<
     {
       messages: { role: string; content: string }[];
       userId?: string;
@@ -50,7 +46,7 @@ export class Memory<T extends string, O extends MemoryActions<T>> implements IMe
     vectorStoreProvider?: IVectorStoreManager;
     llm?: OpenAIManager;
     db?: IStorageManager;
-    customRunnable?: Runnable<
+    runnable?: Runnable<
       {
         messages: { role: string; content: string }[];
         userId?: string;
@@ -79,12 +75,12 @@ export class Memory<T extends string, O extends MemoryActions<T>> implements IMe
       await mkdir(vectorsFolderPath, { recursive: true });
     }
 
-    memory.llm = config?.llm ?? new OpenAIManager({ apiKey });
+    memory.llm = config?.llm ?? new OpenAIManager();
     memory.db = config?.db ?? new SQLiteManager(dbPath);
     memory.vectorStoreProvider = config?.vectorStoreProvider ?? new VectorStoreManager(vectorsFolderPath);
 
-    if (config?.customRunnable) {
-      memory.customRunnable = config.customRunnable;
+    if (config?.runnable) {
+      memory.runnable = config.runnable;
     }
 
     if (config?.customPrompt) {
@@ -116,6 +112,8 @@ export class Memory<T extends string, O extends MemoryActions<T>> implements IMe
 
     const memories = await this._runAddAgent(messages, metadata, filters);
     logger.info('Memory Action Items', { memories });
+
+    await Promise.all(messages.map((message) => this.db?.addMessage(message)));
 
     const returnedMemories: MemoryActionItem<T>[] = [];
     for (const memory of memories) {
@@ -208,11 +206,19 @@ export class Memory<T extends string, O extends MemoryActions<T>> implements IMe
     return this.db?.getHistory(memoryId);
   }
 
-  get(memoryId: string): Promise<MemoryItem<T> | null> {
-    throw new Error('Not implemented');
+  async get(memoryId: string): Promise<MemoryItem<T> | null> {
+    const message = await this.vectorStoreProvider?.get(memoryId);
+
+    if (!message) return null;
+
+    return {
+      id: message.id,
+      memory: message.pageContent as T,
+      metadata: message.metadata || {},
+    };
   }
 
-  create(
+  async create(
     memory: T,
     options?: {
       userId?: string;
@@ -220,15 +226,40 @@ export class Memory<T extends string, O extends MemoryActions<T>> implements IMe
       metadata?: { [key: string]: any };
     }
   ): Promise<MemoryItem<T>> {
-    throw new Error('Not implemented');
+    const metadata = {
+      ...(options?.metadata || {}),
+      ...(options?.userId ? { userId: options.userId } : {}),
+      ...(options?.sessionId ? { sessionId: options.sessionId } : {}),
+    };
+
+    const memoryId = await this._createMemory({ data: memory, metadata: {} });
+
+    // await this.db?.addMessage({ message });
+
+    return {
+      id: memoryId,
+      memory,
+      metadata,
+    };
   }
 
-  update(memoryId: string, memory: T): Promise<MemoryItem<T> | null> {
-    throw new Error('Not implemented');
+  async update(memoryId: string, memory: T): Promise<MemoryItem<T> | null> {
+    try {
+      const result = await this._updateMemory({ memoryId, data: memory, metadata: {} });
+      return result;
+    } catch (error) {
+      return null;
+    }
   }
 
-  delete(memoryId: string): Promise<MemoryItem<T> | null> {
-    throw new Error('Not implemented');
+  async delete(memoryId: string): Promise<MemoryItem<T> | null> {
+    const memory = await this.get(memoryId);
+
+    if (!memory) return null;
+
+    await this._deleteMemory(memoryId);
+
+    return memory;
   }
 
   async run(input: O, options: RunOptions & { stream: true }): Promise<RunnableResponseStream<O['outputs']>>;
@@ -291,149 +322,20 @@ export class Memory<T extends string, O extends MemoryActions<T>> implements IMe
     const { userId, sessionId, ...rest } = metadata;
     const options = { userId, sessionId, metadata: rest };
 
-    if (this.customRunnable) {
-      const result = await this.customRunnable.run({ messages, ...(options || {}) });
-
-      return result;
+    if (this.runnable) {
+      return await this.runnable.run({ messages, ...(options || {}) });
     }
 
-    return await this._addToVectorStore(messages, filters);
-  }
-
-  private async _addToVectorStore(
-    messages: { role: string; content: string }[],
-    filters?: { [key: string]: any }
-  ): Promise<MemoryActionItem<T>[]> {
-    const vectorStoreProvider = this.vectorStoreProvider;
-    if (!vectorStoreProvider) throw new Error('Vector store not initialized');
-
-    const llm = this.llm;
-    if (!llm) throw new Error('LLM not initialized');
-
-    const parsedMessages = parseMessages(messages);
-    let systemPrompt: string;
-    let userPrompt: string;
-
-    if (this.customPrompt) {
-      systemPrompt = this.customPrompt;
-      userPrompt = `Input: ${parsedMessages}`;
-    } else {
-      [systemPrompt, userPrompt] = getFactRetrievalMessages(parsedMessages);
-    }
-
-    const response = await generateStructuredResponse(
-      llm,
-      [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
+    const customAgent = new CustomAgent<
       {
-        type: 'json_schema',
-        json_schema: {
-          name: 'facts_schema',
-          schema: {
-            type: 'object',
-            properties: {
-              facts: {
-                type: 'array',
-                description: 'Array of extracted facts from the input text',
-                items: {
-                  type: 'string',
-                },
-              },
-            },
-            additionalProperties: false,
-            required: ['facts'],
-          },
-        },
-      }
-    );
-
-    const newRetrievedFacts = response.facts || [];
-    let retrievedOldMemory: { id: string; text: string }[] = [];
-
-    logger.info('newRetrievedFacts', { newRetrievedFacts });
-
-    for (const fact of newRetrievedFacts) {
-      const existingMemories = await vectorStoreProvider.search(fact, 5, filters).catch((e) => {
-        return [];
-      });
-
-      logger.info('Existing Memories', { existingMemories: JSON.stringify(existingMemories, null, 2) });
-
-      for (const memory of existingMemories) {
-        if (memory.metadata.memoryId) {
-          retrievedOldMemory.push({ id: memory.metadata.memoryId, text: memory.pageContent });
-        }
-      }
-    }
-    retrievedOldMemory = uniqBy(retrievedOldMemory, 'id');
-
-    logger.info('Total existing memories', { retrievedOldMemory, count: retrievedOldMemory.length });
-
-    // mapping UUIDs with integers for handling UUID hallucinations
-    const tempUuidMapping: Record<string, string> = {};
-    retrievedOldMemory.forEach((item, idx) => {
-      if (item.id) {
-        const idxStr = idx.toString();
-        tempUuidMapping[idxStr] = item.id;
-        retrievedOldMemory[idx].id = idxStr;
-      }
-    });
-
-    const funcCallingPrompt = getUpdateMemoryMessages(retrievedOldMemory, newRetrievedFacts);
-    const newMemoriesWithActions = await generateStructuredResponse(
-      llm,
-      [{ role: 'user', content: funcCallingPrompt }],
-      {
-        type: 'json_schema',
-        json_schema: {
-          name: 'memory_schema',
-          schema: {
-            type: 'object',
-            properties: {
-              memory: {
-                type: 'array',
-                description: 'Array of memory operations and their details',
-                items: {
-                  type: 'object',
-                  properties: {
-                    id: {
-                      type: 'string',
-                      description: 'Memory entry identifier from 0 to n',
-                    },
-                    text: {
-                      type: 'string',
-                      description: 'Content of the memory',
-                    },
-                    event: {
-                      type: 'string',
-                      enum: ['ADD', 'UPDATE', 'DELETE', 'NONE'],
-                      description: 'Type of memory operation',
-                    },
-                    old_memory: {
-                      type: 'string',
-                      description: 'Previous content for UPDATE operations',
-                      optional: true,
-                    },
-                  },
-                  required: ['id', 'text', 'event'],
-                  additionalProperties: false,
-                },
-              },
-            },
-            required: ['memory'],
-            additionalProperties: false,
-          },
-        },
-      }
-    );
-
-    return newMemoriesWithActions.memory.map((m: { id: string; text: string; event: string }) => ({
-      id: tempUuidMapping[m.id] ?? nextId(),
-      memory: m.text,
-      event: (m.event || '').toLowerCase(),
-    }));
+        messages: { role: string; content: string }[];
+        userId?: string;
+        sessionId?: string;
+        metadata?: { [key: string]: any };
+      },
+      MemoryActionItem<T>[]
+    >(this.vectorStoreProvider!, this.llm!, this.customPrompt);
+    return await customAgent.run({ messages, ...(options || {}), ...{ metadata: filters } }, { stream: false });
   }
 
   private async _createMemory(params: { data: string; metadata: { [key: string]: any } }) {
@@ -463,6 +365,7 @@ export class Memory<T extends string, O extends MemoryActions<T>> implements IMe
 
   private async _updateMemory(params: { memoryId: string; data: string; metadata: { [key: string]: any } }) {
     const content = await this.vectorStoreProvider?.get(params.memoryId);
+
     if (!content) throw new Error('Memory not found');
 
     const metadata = cloneDeep({ ...(params.metadata || {}), ...(content.metadata || {}) });
@@ -482,10 +385,17 @@ export class Memory<T extends string, O extends MemoryActions<T>> implements IMe
       updatedAt: new Date(metadata['updatedAt']),
       isDeleted: false,
     });
+
+    return {
+      id: params.memoryId,
+      memory: params.data as T,
+      metadata,
+    };
   }
 
   private async _deleteMemory(memoryId: string) {
     const content = await this.vectorStoreProvider?.get(memoryId);
+
     if (!content) throw new Error('Memory not found');
 
     await this.vectorStoreProvider?.delete(memoryId);

@@ -1,9 +1,9 @@
 import { IVectorStoreManager } from '@aigne/core';
 import { Document } from '@langchain/core/documents';
+import { DataTypes } from 'sequelize';
 
 import { AIKitEmbeddings } from '../lib/embeddings/ai-kit';
 import { addVectors } from '../lib/vector-store';
-import { migrate } from '../store/migrate';
 import Content, { init as initContent } from '../store/models/content';
 import { initSequelize } from '../store/sequelize';
 import VectorStoreFaiss from '../store/vector-store-faiss';
@@ -18,7 +18,30 @@ export class ContentManager {
 
     initContent(sequelize);
 
-    await migrate(sequelize);
+    const tables = await sequelize.getQueryInterface().showAllTables();
+    if (!tables.includes('Contents')) {
+      await sequelize.getQueryInterface().createTable('Contents', {
+        id: {
+          type: DataTypes.STRING,
+          primaryKey: true,
+          allowNull: false,
+        },
+        pageContent: {
+          type: DataTypes.TEXT,
+          allowNull: false,
+        },
+        metadata: {
+          type: DataTypes.JSON,
+          allowNull: false,
+        },
+        createdAt: {
+          type: DataTypes.DATE,
+        },
+        updatedAt: {
+          type: DataTypes.DATE,
+        },
+      });
+    }
   }
 
   async addContent({ id, content, metadata }: { id: string; content: string; metadata: Record<string, any> }) {
@@ -97,7 +120,7 @@ export default class FaissVectorStoreManager implements IVectorStoreManager {
     }
 
     if (metadata) {
-      const results = await this.vectorStore.search(
+      const results = await this.vectorStore.similaritySearch(
         query,
         Math.min(k * 2, Object.keys(this.vectorStore.getMapping()).length),
         metadata
@@ -112,7 +135,7 @@ export default class FaissVectorStoreManager implements IVectorStoreManager {
       return filtered;
     }
 
-    return await this.vectorStore.search(query, k);
+    return await this.vectorStore.similaritySearch(query, k);
   }
 
   async searchWithScore(query: string, k: number, metadata?: Record<string, any>): Promise<[Document, number][]> {
@@ -121,7 +144,7 @@ export default class FaissVectorStoreManager implements IVectorStoreManager {
     }
 
     if (metadata) {
-      const results = await this.vectorStore.searchWithScore(
+      const results = await this.vectorStore.similaritySearchWithScore(
         query,
         Math.min(k * 2, Object.keys(this.vectorStore.getMapping()).length),
         metadata
@@ -136,7 +159,7 @@ export default class FaissVectorStoreManager implements IVectorStoreManager {
       return filtered;
     }
 
-    return await this.vectorStore.searchWithScore(
+    return await this.vectorStore.similaritySearchWithScore(
       query,
       Math.min(k, Object.keys(this.vectorStore.getMapping()).length),
       metadata

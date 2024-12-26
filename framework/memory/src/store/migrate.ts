@@ -1,4 +1,4 @@
-import type { ColumnsDescription, QueryInterface, Sequelize } from 'sequelize';
+import type { Sequelize } from 'sequelize';
 import { SequelizeStorage, Umzug } from 'umzug';
 
 export const migrate = async (sequelize: Sequelize) => {

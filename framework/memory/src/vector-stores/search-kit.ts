@@ -68,7 +68,7 @@ export default class SearchKitManager implements IVectorStoreManager {
 
     const index = createHash('md5').update(this.vectorsFolderPath).digest('hex');
     logger.info('index', { index });
-    return this.client.index(`${index}`);
+    return this.client.index(`${index}-chat-history`);
   }
 
   get options() {
@@ -173,8 +173,9 @@ export default class SearchKitManager implements IVectorStoreManager {
 
   private async _search(query: string, k: number, metadata?: Record<string, any>, options?: {}) {
     const commonParams = {
-      ...(!!(await this.getEmbedders()) && { hybrid: { embedder: 'default', semanticRatio: 0.5 } }),
+      ...(!!(await this.getEmbedders()) && { hybrid: { embedder: 'default', semanticRatio: 0.9 } }),
     };
+
     const modeParams = {
       attributesToCrop: fields,
       cropLength: 10000,

@@ -122,7 +122,7 @@ export type MemoryActions<T> =
     };
 
 export interface IMemory<T> extends Runnable<MemoryActions<T>, MemoryActions<T>['outputs']> {
-  customRunnable?: Runnable<
+  runnable?: Runnable<
     {
       messages: { role: string; content: string }[];
       userId?: string;
@@ -132,19 +132,6 @@ export interface IMemory<T> extends Runnable<MemoryActions<T>, MemoryActions<T>[
     MemoryActionItem<T>[]
   >;
 
-  /**
-   * Add a new memory item to the memory store.
-   *
-   * @params
-   * @param messages - The messages to add to the memory store.
-   * @param options - The options for the memory store.
-   * @param options.userId - The user ID for the memory store. Defaults to undefined.
-   * @param options.sessionId - The session ID for the memory store. Defaults to undefined.
-   * @param options.metadata - Metadata to store with the memory. Defaults to undefined
-   * @param options.filters - Filters to apply to the search. Defaults to undefined
-   *
-   * @returns The results of the memory store.
-   */
   add(
     messages: { role: string; content: string }[],
     options?: {
@@ -219,5 +206,8 @@ export interface IStorageManager {
     isDeleted?: boolean;
   }): Promise<any>;
   getHistory(memoryId: string): Promise<any>;
+  addMessage(message: any): Promise<any>;
+  getMessage(id: string): Promise<any>;
+  getMessages(props: { [key: string]: any }): Promise<any>;
   reset(): Promise<void>;
 }

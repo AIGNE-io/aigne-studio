@@ -56,9 +56,28 @@ export const up = async ({ context: queryInterface }: { context: QueryInterface 
       type: DataTypes.DATE,
     },
   });
+
+  await queryInterface.createTable('Messages', {
+    id: {
+      type: DataTypes.STRING,
+      primaryKey: true,
+      allowNull: false,
+    },
+    message: {
+      type: DataTypes.JSON,
+      allowNull: false,
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+    },
+  });
 };
 
 export const down = async ({ context: queryInterface }: { context: QueryInterface }) => {
   await queryInterface.dropTable('Histories');
   await queryInterface.dropTable('Contents');
+  await queryInterface.dropTable('Messages');
 };
