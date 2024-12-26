@@ -37,11 +37,11 @@ export class BlockletLLMModel extends LLMModel {
           try {
             for await (const chunk of stream) {
               if (isChatCompletionChunk(chunk)) {
+                const { content, toolCalls } = chunk.delta;
+
                 controller.enqueue({
-                  delta: {
-                    $text: chunk.delta.content,
-                    toolCalls: chunk.delta.toolCalls,
-                  },
+                  $text: content || undefined,
+                  delta: toolCalls ? { toolCalls } : undefined,
                 });
               } else if (isChatCompletionError(chunk)) {
                 throw new Error(chunk.error.message);

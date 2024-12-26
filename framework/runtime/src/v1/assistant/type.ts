@@ -1,5 +1,3 @@
-import { ReadableStream } from 'stream/web';
-
 import { ChatCompletionInput, ChatCompletionResponse } from '@blocklet/ai-kit/api/types/chat';
 import { ImageGenerationInput } from '@blocklet/ai-kit/api/types/image';
 

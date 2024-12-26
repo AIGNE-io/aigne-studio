@@ -1,5 +1,3 @@
-import { ReadableStream } from 'stream/web';
-
 import { describe, expect, test } from '@jest/globals';
 
 import { ExtractMetadataTransform } from './extract-metadata-transform';

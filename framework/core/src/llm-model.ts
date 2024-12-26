@@ -8,7 +8,7 @@ export interface LLMModelInputs {
     role: Role;
 
     // complex content only supported for role === 'user'
-    content: string | ({ type: 'text'; text: string } | { type: 'image_url'; imageUrl: string })[];
+    content: string | ({ type: 'text'; text: string } | { type: 'image_url'; imageUrl: { url: string } })[];
 
     // for role === 'assistant'
     toolCalls?: { id: string; type: 'function'; function: { name: string; arguments: string } }[];

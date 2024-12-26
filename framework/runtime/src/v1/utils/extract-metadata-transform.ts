@@ -1,5 +1,3 @@
-import { TransformStream } from 'stream/web';
-
 export class ExtractMetadataTransform extends TransformStream<
   string,
   { type: 'text'; text: string } | { type: 'match'; text: string }
