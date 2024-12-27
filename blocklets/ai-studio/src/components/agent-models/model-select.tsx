@@ -1,3 +1,4 @@
+import Empty from '@arcblock/ux/lib/Empty';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ImageModelInfo, ModelBasedAssistantYjs, TextModelInfo } from '@blocklet/ai-runtime/types';
 import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/aigne-sdk/constants';
@@ -217,13 +218,21 @@ export function ModelSelectDialog({ type, dialogProps, agent }: ModelSelectDialo
             }
           />
         </Box>
-        <ModelSelect
-          options={sortedOptions}
-          value={selected}
-          onChange={setSelected}
-          onStar={handleToggleStar}
-          starredModels={starredModelSet}
-        />
+        {sortedOptions.length > 0 ? (
+          <ModelSelect
+            options={sortedOptions}
+            value={selected}
+            onChange={setSelected}
+            onStar={handleToggleStar}
+            starredModels={starredModelSet}
+          />
+        ) : (
+          <Box sx={{ height: '80%' }}>
+            <Empty size={30}>
+              <Box sx={{ fontSize: '16px' }}>{t('noData')}</Box>
+            </Empty>
+          </Box>
+        )}
       </DialogContent>
 
       <DialogActions sx={{ justifyContent: 'space-between' }}>
