@@ -9,8 +9,10 @@ import { initSequelize } from '../store/sequelize';
 import VectorStoreFaiss from '../store/vector-store-faiss';
 
 export class ContentManager {
-  constructor(dbPath: string = '') {
-    this.init(dbPath);
+  static async load(dbPath: string) {
+    const instance = new ContentManager();
+    await instance.init(dbPath);
+    return instance;
   }
 
   private async init(dbPath: string) {

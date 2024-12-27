@@ -39,14 +39,17 @@ export default class SearchKitManager implements IVectorStoreManager {
   protected embeddings = new AIKitEmbeddings();
   protected vectorsFolderPath: string = '';
 
-  constructor() {}
-
   static async load(vectorsFolderPath: string) {
     const instance = new SearchKitManager();
-    instance.vectorsFolderPath = vectorsFolderPath;
+    await instance.init(vectorsFolderPath);
+    return instance;
+  }
+
+  async init(vectorsFolderPath: string) {
+    this.vectorsFolderPath = vectorsFolderPath;
 
     try {
-      instance.client = new SearchKitClient();
+      this.client = new SearchKitClient();
     } catch (e) {
       logger.error('SearchClient constructor error:', e);
     }
@@ -56,17 +59,15 @@ export default class SearchKitManager implements IVectorStoreManager {
       throw new Error('SearchClient not running');
     }
 
-    if (!instance.client) {
+    if (!this.client) {
       throw new Error('SearchClient not initialized');
     }
 
-    const index = instance.getIndex();
-    const { taskUid } = await instance.client.createIndex(index);
-    await instance.waitForTask(taskUid);
+    const index = this.getIndex();
+    const { taskUid } = await this.client.createIndex(index);
+    await this.waitForTask(taskUid);
 
-    await instance.updateConfig();
-
-    return instance;
+    await this.updateConfig();
   }
 
   getIndex() {

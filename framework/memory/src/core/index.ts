@@ -79,7 +79,7 @@ export class Memory<T extends string, O extends MemoryActions<T>> implements IMe
     }
 
     memory.llm = config?.llmProvider ?? new OpenAIManager({ apiKey: '' });
-    memory.db = config?.dbProvider ?? new SQLiteManager(dbPath);
+    memory.db = config?.dbProvider ?? (await SQLiteManager.load(dbPath));
     memory.vectorStoreProvider = config?.vectorStoreProvider ?? (await VectorStoreManager.load(vectorsFolderPath));
 
     if (config?.runnable) {

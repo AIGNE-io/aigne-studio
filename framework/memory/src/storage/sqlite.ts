@@ -6,11 +6,13 @@ import Message, { init as initMessage } from '../store/models/message';
 import { initSequelize } from '../store/sequelize';
 
 export default class SQLiteManager implements IStorageManager {
-  constructor(dbPath: string = '') {
-    this.init(dbPath);
+  static async load(dbPath: string) {
+    const instance = new SQLiteManager();
+    await instance.init(dbPath);
+    return instance;
   }
 
-  private async init(dbPath: string) {
+  async init(dbPath: string) {
     const sequelize = initSequelize(dbPath);
 
     initHistory(sequelize);
