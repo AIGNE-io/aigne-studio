@@ -37,14 +37,16 @@ const documentTemplate = `
 export default class SearchKitManager implements IVectorStoreManager {
   private client: any;
   protected embeddings = new AIKitEmbeddings();
+  protected vectorsFolderPath: string = '';
 
-  constructor(protected vectorsFolderPath: string) {
-    this.init();
-  }
+  constructor() {}
 
-  async init() {
+  static async load(vectorsFolderPath: string) {
+    const instance = new SearchKitManager();
+    instance.vectorsFolderPath = vectorsFolderPath;
+
     try {
-      this.client = new SearchKitClient();
+      instance.client = new SearchKitClient();
     } catch (e) {
       logger.error('SearchClient constructor error:', e);
     }
@@ -54,11 +56,23 @@ export default class SearchKitManager implements IVectorStoreManager {
       throw new Error('SearchClient not running');
     }
 
-    if (!this.client) {
+    if (!instance.client) {
       throw new Error('SearchClient not initialized');
     }
 
-    await this.updateConfig();
+    const index = instance.getIndex();
+    const { taskUid } = await instance.client.createIndex(index);
+    await instance.waitForTask(taskUid);
+
+    await instance.updateConfig();
+
+    return instance;
+  }
+
+  getIndex() {
+    const index = createHash('md5').update(this.vectorsFolderPath).digest('hex');
+    logger.info('index', { index });
+    return `chat-history-${index}`;
   }
 
   get postIndex() {
@@ -66,9 +80,8 @@ export default class SearchKitManager implements IVectorStoreManager {
       throw new Error('SearchClient not initialized');
     }
 
-    const index = createHash('md5').update(this.vectorsFolderPath).digest('hex');
-    logger.info('index', { index });
-    return this.client.index(`chat-history-${index}`);
+    const index = this.getIndex();
+    return this.client.index(index);
   }
 
   get options() {
@@ -81,7 +94,7 @@ export default class SearchKitManager implements IVectorStoreManager {
 
   async updateEmbedders() {
     try {
-      const embedders = resolveRestEmbedders({ documentTemplate });
+      const embedders = resolveRestEmbedders({ documentTemplate, distribution: { mean: 0.6, sigma: 0.4 } });
       const { taskUid } = await this.postIndex.updateEmbedders(embedders);
       logger.debug('updateEmbedders taskUid', taskUid);
     } catch (e) {

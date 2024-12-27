@@ -31,7 +31,7 @@ type RunnableInput = {
   metadata?: { [key: string]: any };
 };
 
-function validateConfigDecorator(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+function validateConfigDecorator(_target: any, _propertyKey: string, descriptor: PropertyDescriptor) {
   const originalMethod = descriptor.value;
   descriptor.value = async function (this: { validateConfig?: () => void }, ...args: any[]) {
     if (typeof this.validateConfig === 'function') {
@@ -80,7 +80,7 @@ export class Memory<T extends string, O extends MemoryActions<T>> implements IMe
 
     memory.llm = config?.llmProvider ?? new OpenAIManager({ apiKey: '' });
     memory.db = config?.dbProvider ?? new SQLiteManager(dbPath);
-    memory.vectorStoreProvider = config?.vectorStoreProvider ?? new VectorStoreManager(vectorsFolderPath);
+    memory.vectorStoreProvider = config?.vectorStoreProvider ?? (await VectorStoreManager.load(vectorsFolderPath));
 
     if (config?.runnable) {
       memory.runnable = config.runnable;
