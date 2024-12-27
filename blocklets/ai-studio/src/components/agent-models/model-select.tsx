@@ -5,6 +5,7 @@ import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/aigne-sdk/constants';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { AddComponent } from '@blocklet/ui-react';
 import { Icon } from '@iconify-icon/react';
+import HelpIcon from '@iconify-icons/tabler/help';
 import StarIcon from '@iconify-icons/tabler/star';
 import StarFilledIcon from '@iconify-icons/tabler/star-filled';
 import {
@@ -17,6 +18,7 @@ import {
   DialogTitle,
   Stack,
   Theme,
+  Tooltip,
   useMediaQuery,
 } from '@mui/material';
 import millify from 'millify';
@@ -236,14 +238,23 @@ export function ModelSelectDialog({ type, dialogProps, agent }: ModelSelectDialo
       </DialogContent>
 
       <DialogActions sx={{ justifyContent: 'space-between' }}>
-        <Button
-          variant="outlined"
-          disabled={!isAdmin}
-          onMouseDown={() => {
-            addComponentRef.current?.onClick?.();
-          }}>
-          {t('addMoreAgentTools')}
-        </Button>
+        <Stack direction="row" spacing={1}>
+          <Button
+            variant="outlined"
+            disabled={!isAdmin}
+            onMouseDown={() => {
+              addComponentRef.current?.onClick?.();
+            }}>
+            {t('addMoreAgentTools')}
+          </Button>
+          {!isAdmin && (
+            <Tooltip title={t('installMoreModelsTip')} placement="top" disableInteractive enterTouchDelay={0}>
+              <Box sx={{ display: 'inline-flex', alignItems: 'center' }}>
+                <Box component={Icon} icon={HelpIcon} sx={{ fontSize: 16, color: '#9CA3AF' }} />
+              </Box>
+            </Tooltip>
+          )}
+        </Stack>
 
         <Stack direction="row" spacing={2}>
           <Button variant="outlined" onClick={(e) => dialogProps.onClose?.(e, 'backdropClick')}>
