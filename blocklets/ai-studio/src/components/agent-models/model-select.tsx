@@ -38,6 +38,8 @@ interface Props {
   starredModels?: Set<string>;
 }
 
+const TAG_FAVORITES = 'favorites';
+
 export function ModelSelect({ options, value, onChange, onStar, starredModels, ...rest }: Props) {
   return (
     <Box {...rest}>
@@ -115,13 +117,12 @@ const RECENT_MODELS_MAX_COUNT = 10;
 
 export function ModelSelectDialog({ type, dialogProps, agent }: ModelSelectDialogProps) {
   const { t } = useLocaleContext();
-  const [tags, setTags] = useState<string[]>([]);
+  const [currentTag, setCurrentTag] = useState<string | null>(null);
   const models = useAllModels(type);
   const allTags = Array.from(new Set(models.map((x) => x.tags || []).flat()));
   const [selected, setSelected] = useState<string | null>(null);
   const isAdmin = useIsAdmin();
   const addComponentRef = useRef<{ onClick?: () => void; loading?: boolean }>();
-  const [showStarred, setShowStarred] = useState(false);
   const { projectId, projectRef } = useCurrentProject();
   const { projectSetting } = useProjectStore(projectId, projectRef);
   const downSm = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
@@ -162,13 +163,13 @@ export function ModelSelectDialog({ type, dialogProps, agent }: ModelSelectDialo
     name: model.name || model.model,
   }));
   const filteredOptions = options.filter((x) => {
-    if (!showStarred && !tags.length) {
+    if (!currentTag) {
       return true;
     }
-    if (showStarred && starredModelSet.has(x.model)) {
+    if (currentTag === TAG_FAVORITES && starredModelSet.has(x.model)) {
       return true;
     }
-    return x.tags?.some((tag) => tags.includes(tag));
+    return x.tags?.some((tag) => tag === currentTag);
   });
 
   // 避免收藏后立即改变模型列表顺序 (窗口 close 后更新排序)
@@ -189,16 +190,15 @@ export function ModelSelectDialog({ type, dialogProps, agent }: ModelSelectDialo
         <Box sx={{ my: 1.5, mb: 2.5 }}>
           <TagFilter
             tags={allTags}
-            value={tags}
-            onChange={setTags}
+            value={currentTag}
+            onChange={setCurrentTag}
             prepend={
               <>
                 <Tag
                   label={t('all')}
-                  selected={!tags.length && !showStarred}
+                  selected={!currentTag}
                   onClick={() => {
-                    setTags([]);
-                    setShowStarred(false);
+                    setCurrentTag(null);
                   }}
                 />
                 <Tag
@@ -210,8 +210,8 @@ export function ModelSelectDialog({ type, dialogProps, agent }: ModelSelectDialo
                       {t('favorites')}
                     </span>
                   }
-                  selected={showStarred}
-                  onClick={() => setShowStarred(!showStarred)}
+                  selected={currentTag === TAG_FAVORITES}
+                  onClick={() => setCurrentTag(TAG_FAVORITES)}
                 />
               </>
             }
