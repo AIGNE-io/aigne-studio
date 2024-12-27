@@ -4,6 +4,7 @@ import { IVectorStoreManager, VectorStoreContent } from '@aigne/core';
 import { BlockletStatus } from '@blocklet/constant';
 import { components } from '@blocklet/sdk/lib/config';
 import { Document } from 'langchain/document';
+import { cloneDeep, orderBy } from 'lodash';
 
 import { SEARCH_KIT_DID } from '../constants';
 import { AIKitEmbeddings } from '../lib/embeddings/ai-kit';
@@ -95,7 +96,7 @@ export default class SearchKitManager implements IVectorStoreManager {
 
   async updateEmbedders() {
     try {
-      const embedders = resolveRestEmbedders({ documentTemplate, distribution: { mean: 0.6, sigma: 0.4 } });
+      const embedders = resolveRestEmbedders({ documentTemplate });
       const { taskUid } = await this.postIndex.updateEmbedders(embedders);
       logger.debug('updateEmbedders taskUid', taskUid);
     } catch (e) {
@@ -163,15 +164,12 @@ export default class SearchKitManager implements IVectorStoreManager {
   }
 
   async search(query: string, k: number, metadata?: Record<string, any>): Promise<Document[]> {
-    const result = await this._search(query, k, metadata, {});
+    const result = await this._search(query, k, metadata);
     return result;
   }
 
   async searchWithScore(query: string, k: number, metadata?: Record<string, any>): Promise<[Document, number][]> {
-    const result = await this._search(query, k, metadata, {
-      showRankingScore: true,
-      showRankingScoreDetails: true,
-    });
+    const result = await this._search(query, k, metadata, { showRankingScore: true, showRankingScoreDetails: true });
 
     return result.map((item: any) => [item, item._rankingScore]);
   }
@@ -189,7 +187,12 @@ export default class SearchKitManager implements IVectorStoreManager {
     return filter;
   }
 
-  private async _search(query: string, k: number, metadata?: Record<string, any>, options?: {}) {
+  private async _search(
+    query: string,
+    k: number,
+    metadata?: Record<string, any>,
+    options?: { showRankingScore: boolean; [key: string]: any }
+  ) {
     const commonParams = {
       ...(!!(await this.getEmbedders()) && { hybrid: { embedder: 'default', semanticRatio: 0.9 } }),
     };
@@ -211,12 +214,16 @@ export default class SearchKitManager implements IVectorStoreManager {
         attributesToHighlight: fields,
         highlightPreTag: '<mark>',
         highlightPostTag: '</mark>',
-        rankingScoreThreshold: 0.4,
+        // rankingScoreThreshold: 0.4,
         ...modeParams,
         ...commonParams,
         ...(options || {}),
       })
     ).hits;
+
+    if (options?.showRankingScore) {
+      return orderBy(cloneDeep(result), ['_rankingScore'], ['desc']);
+    }
 
     return result;
   }
