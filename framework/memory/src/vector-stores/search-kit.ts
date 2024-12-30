@@ -27,6 +27,12 @@ const documentTemplate = `
   {% if doc.pageContent %}
     with the following content: {{ doc.pageContent }}
   {% endif %}
+  {% assign metadata = doc.metadata %}
+  {% if metadata %}
+    {% for key in metadata %}
+      with metadata: {{ key[0] }}: {{ key[1] }}
+    {% endfor %}
+  {% endif %}
 `;
 
 export default class SearchKitManager implements IVectorStoreManager {
@@ -49,8 +55,8 @@ export default class SearchKitManager implements IVectorStoreManager {
       logger.error('SearchClient constructor error:', e);
     }
 
-    const index = createHash('md5').update(this.vectorsFolderPath).digest('hex');
-    const { taskUid } = await this.client.createIndex(`chat-history-${index}`);
+    const index = this.getIndex();
+    const { taskUid } = await this.client.createIndex(index);
     await this.waitForTask(taskUid);
 
     const component = components.find((item: { did: string }) => item.did === SEARCH_KIT_DID);
@@ -61,10 +67,6 @@ export default class SearchKitManager implements IVectorStoreManager {
     if (!this.client) {
       throw new Error('SearchClient not initialized');
     }
-
-    const index = this.getIndex();
-    const { taskUid } = await this.client.createIndex(index);
-    await this.waitForTask(taskUid);
 
     await this.updateConfig();
   }

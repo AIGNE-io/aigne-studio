@@ -1,9 +1,17 @@
-import { IVectorStoreManager, RunOptions, Runnable, RunnableResponse, RunnableResponseStream } from '@aigne/core';
+import {
+  IVectorStoreManager,
+  OrderedRecord,
+  RunOptions,
+  Runnable,
+  RunnableResponse,
+  RunnableResponseStream,
+} from '@aigne/core';
 import { uniqBy } from 'lodash';
 
 import nextId from '../lib/next-id';
 import { getUpdateMemoryMessages } from '../lib/prompts';
 import { getFactRetrievalMessages, parseMessages } from '../lib/utils';
+import { objectToStream } from '../lib/utils';
 import OpenAIManager from '../llm/openai';
 import logger from '../logger';
 
@@ -15,13 +23,21 @@ export class CustomAgent<
     metadata?: { [key: string]: any };
   },
   O extends object,
-> implements Runnable<T, O>
-{
+> extends Runnable<T, O> {
   vectorStoreProvider: IVectorStoreManager;
   llm: OpenAIManager;
   customPrompt?: string;
 
   constructor(vectorStoreProvider: IVectorStoreManager, llm: OpenAIManager, customPrompt?: string) {
+    super({
+      id: 'custom_memory_agent',
+      type: 'custom_memory_agent',
+      name: 'Custom Memory Agent',
+      description: 'Custom Memory Agent',
+      inputs: OrderedRecord.fromArray([]),
+      outputs: OrderedRecord.fromArray([]),
+    });
+
     this.vectorStoreProvider = vectorStoreProvider;
     this.llm = llm;
     this.customPrompt = customPrompt;
@@ -30,7 +46,7 @@ export class CustomAgent<
   async run(input: T, options: RunOptions & { stream: true }): Promise<RunnableResponseStream<O>>;
   async run(input: T, options?: RunOptions & { stream?: false }): Promise<O>;
   async run(input: T, options?: RunOptions): Promise<RunnableResponse<O>> {
-    const execute = async () => {
+    const run = async () => {
       const { messages, metadata } = input;
 
       const vectorStoreProvider = this.vectorStoreProvider;
@@ -164,12 +180,12 @@ export class CustomAgent<
         event: (m.event || '').toLowerCase(),
       })) as O;
     };
+    const result = await run();
 
     if (options?.stream) {
       return new ReadableStream({
         async start(controller) {
           try {
-            const result = await execute();
             controller.enqueue({ delta: result });
           } catch (error) {
             controller.error(error);
@@ -180,6 +196,6 @@ export class CustomAgent<
       });
     }
 
-    return execute();
+    return options?.stream ? objectToStream({ delta: result }) : result;
   }
 }

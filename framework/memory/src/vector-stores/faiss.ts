@@ -67,24 +67,23 @@ export class ContentManager {
 export default class FaissVectorStoreManager implements IVectorStoreManager {
   private embeddings: AIKitEmbeddings = new AIKitEmbeddings();
   private vectorStore?: VectorStoreFaiss;
-  private db: ContentManager;
+  private db?: ContentManager;
 
   constructor(private vectorsFolderPath: string) {
     this.init();
-
-    this.db = new ContentManager(`sqlite:${vectorsFolderPath}/content.db`);
   }
 
   async init() {
     this.vectorStore = await VectorStoreFaiss.load(this.vectorsFolderPath, this.embeddings);
+    this.db = await ContentManager.load(`sqlite:${this.vectorsFolderPath}/content.db`);
   }
 
   async get(id: string) {
-    return await this.db?.getContent(id);
+    return (await this.db?.getContent(id)) || null;
   }
 
   async list(metadata: Record<string, any>, limit?: number) {
-    return await this.db?.listContent(metadata, limit);
+    return (await this.db?.listContent(metadata, limit)) || [];
   }
 
   async insert(data: string, id: string, metadata: Record<string, any>) {

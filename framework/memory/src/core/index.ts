@@ -1,7 +1,7 @@
 import { createHash } from 'crypto';
 
 import {
-  IMemory,
+  IMemoryRunner,
   IStorageManager,
   IVectorStoreManager,
   MemoryActionItem,
@@ -22,7 +22,7 @@ import OpenAIManager from '../llm/openai';
 import logger from '../logger';
 import SQLiteManager from '../storage/sqlite';
 import VectorStoreManager from '../vector-stores/search-kit';
-import { CustomAgent } from './customAgent';
+import { CustomAgent } from './custom-agent';
 
 type RunnableInput = {
   messages: { role: string; content: string }[];
@@ -43,7 +43,7 @@ function validateConfigDecorator(_target: any, _propertyKey: string, descriptor:
   return descriptor;
 }
 
-export class Memory<T extends string, O extends MemoryActions<T>> implements IMemory<T> {
+export class Memory<T extends string, O extends MemoryActions<T>> extends IMemoryRunner<T> {
   memoryPath: string = '';
 
   llm?: OpenAIManager;

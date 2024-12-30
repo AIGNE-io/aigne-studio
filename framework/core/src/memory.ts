@@ -1,6 +1,7 @@
 import { Document } from 'langchain/document';
 
 import { Runnable } from './runnable';
+import { OrderedRecord } from './utils';
 
 export type MemoryActionItem<T> =
   | {
@@ -121,8 +122,19 @@ export type MemoryActions<T> =
       };
     };
 
-export abstract class IMemory<T> extends Runnable<MemoryActions<T>, MemoryActions<T>['outputs']> {
-  runnable?: Runnable<
+export abstract class IMemoryRunner<T> extends Runnable<MemoryActions<T>, MemoryActions<T>['outputs']> {
+  constructor() {
+    super({
+      id: 'memory_runner',
+      type: 'memory_runner',
+      name: 'Memory Runner',
+      description: 'Run a memory',
+      inputs: OrderedRecord.fromArray([]),
+      outputs: OrderedRecord.fromArray([]),
+    });
+  }
+
+  abstract runnable?: Runnable<
     {
       messages: { role: string; content: string }[];
       userId?: string;
