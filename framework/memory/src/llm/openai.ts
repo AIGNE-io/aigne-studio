@@ -6,7 +6,7 @@ import logger from '../logger';
 
 export default class OpenAIManager extends OpenAI {
   async create<T extends object>(input: ChatCompletionInput): Promise<T> {
-    const stream = await chatCompletions({ model: 'gpt-4o', temperature: 0, ...input });
+    const stream = await chatCompletions({ model: 'gpt-4o-mini', temperature: 0, ...input });
 
     const chunks = [];
 

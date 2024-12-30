@@ -53,88 +53,94 @@ export class PipelineAgent<I extends { [key: string]: any } = {}, O extends {} =
 
     const result = new ReadableStream<RunnableResponseDelta<O>>({
       async start(controller) {
-        // NOTE: 将 input 转换为 variables，其中 key 为 inputId，value 为 input 的值
-        const variables: { [processId: string]: any } = Object.fromEntries(
-          OrderedRecord.map(definition.inputs, (i) => {
-            const value = input[i.name || i.id];
-            if (isNil(value)) return null;
+        try {
+          // NOTE: 将 input 转换为 variables，其中 key 为 inputId，value 为 input 的值
+          const variables: { [processId: string]: any } = Object.fromEntries(
+            OrderedRecord.map(definition.inputs, (i) => {
+              const value = input[i.name || i.id];
+              if (isNil(value)) return null;
 
-            return [i.id, value];
-          }).filter(isNonNullable)
-        );
-
-        const outputs = OrderedRecord.toArray(definition.outputs);
-
-        const textStreamOutput = outputs.find((i) => i.name === StreamTextOutputName);
-
-        let result: Partial<O> = {};
-
-        for (const process of OrderedRecord.iterator(processes)) {
-          if (!process.runnable?.id) {
-            logger.warn('Runnable id is required for process', process);
-            continue;
-          }
-
-          const runnable = await context.resolve(process.runnable.id);
-          if (!runnable) continue;
-
-          const inputValues = Object.fromEntries(
-            Object.entries(process.input ?? {})
-              .map(([inputId, input]) => {
-                const targetInput = runnable.definition.inputs?.[inputId];
-                if (!targetInput?.name) return null;
-
-                let value: any;
-
-                if (input.from === 'variable') {
-                  const v = variables[input.fromVariableId!];
-                  value = input.fromVariablePropPath?.length ? get(v, input.fromVariablePropPath) : v;
-                } else {
-                  throw new Error('Unsupported input source');
-                }
-
-                return [targetInput.name, value];
-              })
-              .filter(isNonNullable)
+              return [i.id, value];
+            }).filter(isNonNullable)
           );
 
-          const stream = await runnable.run(inputValues, { stream: true });
+          const outputs = OrderedRecord.toArray(definition.outputs);
 
-          const needRespondTextStream =
-            textStreamOutput?.from === 'variable' && textStreamOutput.fromVariableId === process.id;
-          const needRespondJsonStream = outputs.some(
-            (i) => i.name !== StreamTextOutputName && i.from === 'variable' && i.fromVariableId === process.id
-          );
+          const textStreamOutput = outputs.find((i) => i.name === StreamTextOutputName);
 
-          for await (const chunk of stream) {
-            if (chunk.$text && needRespondTextStream) {
-              controller.enqueue({ $text: chunk.$text });
+          let result: Partial<O> = {};
+
+          for (const process of OrderedRecord.iterator(processes)) {
+            if (!process.runnable?.id) {
+              logger.warn('Runnable id is required for process', process);
+              continue;
             }
 
-            if (chunk.delta) {
-              variables[process.id] = chunk.delta;
+            const runnable = await context.resolve(process.runnable.id);
+            if (!runnable) continue;
 
-              if (needRespondJsonStream) {
-                result = Object.fromEntries(
-                  OrderedRecord.map(definition.outputs, (output) => {
-                    if (!output.name) return null;
+            const inputValues = Object.fromEntries(
+              Object.entries(process.input ?? {})
+                .map(([inputId, input]) => {
+                  const targetInput = runnable.definition.inputs?.[inputId];
+                  if (!targetInput?.name) return null;
 
-                    let value: any;
-                    if (output.from === 'variable') {
-                      const v = variables[output.fromVariableId!];
-                      value = output.fromVariablePropPath?.length ? get(v, output.fromVariablePropPath) : v;
-                    } else {
-                      throw new Error(`Unsupported output source ${output.from}`);
-                    }
+                  let value: any;
 
-                    return [output.name, value];
-                  }).filter(isNonNullable)
-                );
+                  if (input.from === 'variable') {
+                    const v = variables[input.fromVariableId!];
+                    value = input.fromVariablePropPath?.length ? get(v, input.fromVariablePropPath) : v;
+                  } else {
+                    throw new Error('Unsupported input source');
+                  }
 
-                controller.enqueue({ delta: result });
+                  return [targetInput.name, value];
+                })
+                .filter(isNonNullable)
+            );
+
+            const stream = await runnable.run(inputValues, { stream: true });
+
+            const needRespondTextStream =
+              textStreamOutput?.from === 'variable' && textStreamOutput.fromVariableId === process.id;
+            const needRespondJsonStream = outputs.some(
+              (i) => i.name !== StreamTextOutputName && i.from === 'variable' && i.fromVariableId === process.id
+            );
+
+            for await (const chunk of stream) {
+              if (chunk.$text && needRespondTextStream) {
+                controller.enqueue({ $text: chunk.$text });
+              }
+
+              if (chunk.delta) {
+                variables[process.id] = chunk.delta;
+
+                if (needRespondJsonStream) {
+                  result = Object.fromEntries(
+                    OrderedRecord.map(definition.outputs, (output) => {
+                      if (!output.name) return null;
+
+                      let value: any;
+                      if (output.from === 'variable') {
+                        const v = variables[output.fromVariableId!];
+                        value = output.fromVariablePropPath?.length ? get(v, output.fromVariablePropPath) : v;
+                      } else {
+                        throw new Error(`Unsupported output source ${output.from}`);
+                      }
+
+                      return [output.name, value];
+                    }).filter(isNonNullable)
+                  );
+
+                  controller.enqueue({ delta: result });
+                }
               }
             }
           }
+        } catch (error) {
+          controller.error(error);
+        } finally {
+          controller.close();
         }
       },
     });

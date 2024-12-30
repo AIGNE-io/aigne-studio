@@ -24,6 +24,7 @@ const MarkdownRenderer = styled((props: ComponentProps<typeof Markdown>) => (
   width: 100%;
   overflow: hidden;
   word-break: break-word;
+  font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
 
   > * {
     &:first-child /* emotion-disable-server-rendering-unsafe-selector-warning-please-do-not-use-this-the-warning-exists-for-a-reason */ {

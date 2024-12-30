@@ -27,12 +27,6 @@ const documentTemplate = `
   {% if doc.pageContent %}
     with the following content: {{ doc.pageContent }}
   {% endif %}
-  {% assign metadata = doc.metadata %}
-  {% if metadata %}
-    {% for key in metadata %}
-      with metadata: {{ key[0] }}: {{ key[1] }}
-    {% endfor %}
-  {% endif %}
 `;
 
 export default class SearchKitManager implements IVectorStoreManager {
@@ -54,6 +48,10 @@ export default class SearchKitManager implements IVectorStoreManager {
     } catch (e) {
       logger.error('SearchClient constructor error:', e);
     }
+
+    const index = createHash('md5').update(this.vectorsFolderPath).digest('hex');
+    const { taskUid } = await this.client.createIndex(`chat-history-${index}`);
+    await this.waitForTask(taskUid);
 
     const component = components.find((item: { did: string }) => item.did === SEARCH_KIT_DID);
     if (component && component.status !== BlockletStatus.running) {
@@ -96,7 +94,13 @@ export default class SearchKitManager implements IVectorStoreManager {
 
   async updateEmbedders() {
     try {
-      const embedders = resolveRestEmbedders({ documentTemplate });
+      const embedders = resolveRestEmbedders({
+        documentTemplate,
+        distribution: {
+          mean: 0.3,
+          sigma: 0.7,
+        },
+      });
       const { taskUid } = await this.postIndex.updateEmbedders(embedders);
       logger.debug('updateEmbedders taskUid', taskUid);
     } catch (e) {
@@ -109,8 +113,8 @@ export default class SearchKitManager implements IVectorStoreManager {
   }
 
   async updateConfig() {
-    await this.updateEmbedders();
     await this.updateSettings(POST_SETTING);
+    await this.updateEmbedders();
   }
 
   getEmbedders() {
@@ -127,7 +131,7 @@ export default class SearchKitManager implements IVectorStoreManager {
     return result;
   }
 
-  insert(data: string, id: string, metadata: Record<string, any>): Promise<void> {
+  async insert(data: string, id: string, metadata: Record<string, any>): Promise<void> {
     const document = {
       id,
       pageContent: data,
@@ -136,18 +140,24 @@ export default class SearchKitManager implements IVectorStoreManager {
       updatedAt: new Date(),
     };
 
-    return this.postIndex.updateDocuments([document], this.options);
+    const result = await this.postIndex.updateDocuments([document], this.options);
+    await this.waitForTask(result.taskUid);
+    return result;
   }
 
-  delete(id: string): Promise<void> {
-    return this.postIndex.deleteDocuments([id]);
+  async delete(id: string): Promise<void> {
+    const result = await this.postIndex.deleteDocuments([id]);
+    await this.waitForTask(result.taskUid);
+    return result;
   }
 
-  deleteAll(ids: string[]): Promise<void> {
-    return this.postIndex.deleteDocuments(ids);
+  async deleteAll(ids: string[]): Promise<void> {
+    const result = await this.postIndex.deleteDocuments(ids);
+    await this.waitForTask(result.taskUid);
+    return result;
   }
 
-  update(id: string, data: string, metadata: Record<string, any>): Promise<void> {
+  async update(id: string, data: string, metadata: Record<string, any>): Promise<void> {
     const document = {
       id,
       pageContent: data,
@@ -155,7 +165,9 @@ export default class SearchKitManager implements IVectorStoreManager {
       updatedAt: new Date(),
     };
 
-    return this.postIndex.updateDocuments([document], this.options);
+    const result = await this.postIndex.updateDocuments([document], this.options);
+    await this.waitForTask(result.taskUid);
+    return result;
   }
 
   async list(metadata: Record<string, any>, limit: number = 100): Promise<VectorStoreContent[]> {
@@ -194,7 +206,7 @@ export default class SearchKitManager implements IVectorStoreManager {
     options?: { showRankingScore: boolean; [key: string]: any }
   ) {
     const commonParams = {
-      ...(!!(await this.getEmbedders()) && { hybrid: { embedder: 'default', semanticRatio: 0.9 } }),
+      ...(!!(await this.getEmbedders()) && { hybrid: { embedder: 'default', semanticRatio: 0.5 } }),
     };
 
     const modeParams = {

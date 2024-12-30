@@ -8,7 +8,7 @@ import { defineConfig } from 'vite';
 export default defineConfig(() => {
   return {
     optimizeDeps: {
-      exclude: ['@aigne/core', '@aigne/runtime', '@aigne-project/chatbot'],
+      exclude: ['@aigne/core', '@aigne/runtime', '@aigne/memory', '@aigne-project/chatbot'],
       force: true,
     },
     resolve: {
@@ -16,6 +16,7 @@ export default defineConfig(() => {
         crypto: 'node:crypto',
         '@aigne/core': resolve(__dirname, '../../framework/core/src'),
         '@aigne/runtime': resolve(__dirname, '../../framework/runtime/src'),
+        '@aigne/memory': resolve(__dirname, '../../framework/memory/src'),
       },
     },
   };

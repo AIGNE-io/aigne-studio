@@ -6,6 +6,7 @@ import {
   FunctionAgent,
   LLMAgent,
   LLMDecisionAgent,
+  LocalFunctionAgent,
   OrderedRecord,
   PipelineAgent,
   Runnable,
@@ -115,6 +116,7 @@ export class Runtime<Agents = {}> implements Context {
     this.container.register('function_agent', { useClass: FunctionAgent });
     this.container.register(TYPES.functionRunner, { useClass: QuickJSRunner });
     this.container.register('llm_decision_agent', { useClass: LLMDecisionAgent });
+    this.container.register('local_function_agent', { useClass: LocalFunctionAgent });
 
     // NOTE: 兼容旧版的 Agent 定义，统一使用 AgentV1 来处理
     for (const type of ['function', 'agent', 'prompt', 'image', 'api', 'router', 'callAgent', 'imageBlender']) {

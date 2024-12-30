@@ -41,6 +41,7 @@
   "dependencies": {
     "@aigne-project/chatbot": "https://dev.blocklet.mac.yechao.xyz/aigne-studio/api/projects/526280358526713856/npm/package.tgz?secret=ioK2Wgf8SNLeaFfVPUn7i&hash=c0b474195529baaff4411af1fded664a0a3ca432",
     "@aigne/core": "workspace:^",
+    "@aigne/memory": "workspace:^",
     "@arcblock/did-auth": "^1.18.162",
     "@arcblock/did-auth-storage-nedb": "^1.7.1",
     "@arcblock/ux": "^2.11.7",
@@ -56,8 +57,10 @@
     "dotenv-flow": "^4.1.0",
     "express": "^4.21.0",
     "express-async-errors": "^3.1.1",
+    "immer": "^10.1.1",
     "install": "^0.13.0",
     "joi": "^17.13.3",
+    "nanoid": "^3.3.7",
     "pnpm": "^9.15.1",
     "react-markdown": "^9.0.1",
     "react-syntax-highlighter": "^15.6.1",

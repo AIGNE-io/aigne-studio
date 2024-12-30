@@ -121,7 +121,7 @@ export type MemoryActions<T> =
       };
     };
 
-export interface IMemory<T> extends Runnable<MemoryActions<T>, MemoryActions<T>['outputs']> {
+export abstract class IMemory<T> extends Runnable<MemoryActions<T>, MemoryActions<T>['outputs']> {
   runnable?: Runnable<
     {
       messages: { role: string; content: string }[];
@@ -132,7 +132,7 @@ export interface IMemory<T> extends Runnable<MemoryActions<T>, MemoryActions<T>[
     MemoryActionItem<T>[]
   >;
 
-  add(
+  abstract add(
     messages: { role: string; content: string }[],
     options?: {
       userId?: string;
@@ -142,7 +142,7 @@ export interface IMemory<T> extends Runnable<MemoryActions<T>, MemoryActions<T>[
     }
   ): Promise<{ results: MemoryActionItem<T>[] }>;
 
-  search(
+  abstract search(
     query: string,
     options?: {
       k?: number;
@@ -152,16 +152,16 @@ export interface IMemory<T> extends Runnable<MemoryActions<T>, MemoryActions<T>[
     }
   ): Promise<{ results: SearchMemoryItem<T>[] }>;
 
-  filter(options: {
+  abstract filter(options: {
     k?: number;
     userId?: string;
     sessionId?: string;
     filters?: { [key: string]: any };
   }): Promise<MemoryItem<T>[]>;
 
-  get(memoryId: string): Promise<MemoryItem<T> | null>;
+  abstract get(memoryId: string): Promise<MemoryItem<T> | null>;
 
-  create(
+  abstract create(
     memory: T,
     options?: {
       userId?: string;
@@ -170,9 +170,9 @@ export interface IMemory<T> extends Runnable<MemoryActions<T>, MemoryActions<T>[
     }
   ): Promise<MemoryItem<T>>;
 
-  update(memoryId: string, memory: T): Promise<MemoryItem<T> | null>;
+  abstract update(memoryId: string, memory: T): Promise<MemoryItem<T> | null>;
 
-  delete(memoryId: string): Promise<MemoryItem<T> | null>;
+  abstract delete(memoryId: string): Promise<MemoryItem<T> | null>;
 }
 
 export type EventType = 'add' | 'update' | 'delete' | 'none';
