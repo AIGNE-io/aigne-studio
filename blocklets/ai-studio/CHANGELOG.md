@@ -1,3 +1,7 @@
+## 0.4.193 (2024-12-30)
+
+- chore: update deps
+
 ## 0.4.192 (2024-12-27)
 
 - chore: add help tooltip for install models button(#1634)
