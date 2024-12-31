@@ -1,5 +1,7 @@
 import { logger } from './logger';
 
+export const { SANDBOX_RUNTIME_TYPE } = process.env;
+
 export const QUICKJS_RUNTIME_POOL_SIZE_MAX =
   successOr(() => parseInt(process.env.QUICKJS_RUNTIME_POOL_SIZE_MAX!, 10)) || 10;
 

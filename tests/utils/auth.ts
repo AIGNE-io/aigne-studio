@@ -53,12 +53,26 @@ export async function setupUsers({ appName, appUrl, rootSeed }: { appName: strin
 
       await login({ page, wallet, appWallet, passport: { name, title: name } });
 
-      const authUrl = await getAuthUrl({ page }).catch((error) => {
+      const [popupPage] = await Promise.all([
+        page.waitForEvent('popup'),
+        page.getByRole('button', { name: 'Connect Now' }).click(),
+      ]);
+      await popupPage.waitForLoadState('networkidle');
+      // HACK: @jianchao 目前的方式并不优雅，本质上 @blocklet/testlab 应该提供配置应用环境变量的能力，进而修改 DID_SPACES_BASE_URL, 来影响 popup 的跳转地址
+      const url = popupPage.url().replace('https://www.didspaces.com/app', 'https://spaces.staging.arcblock.io/app');
+      await popupPage.evaluate((redirectUrl) => {
+        window.location.href = redirectUrl;
+      }, url);
+      await popupPage.waitForLoadState('networkidle');
+
+      const authUrl = await getAuthUrl({ page: popupPage }).catch((error) => {
         console.error('failed to get auth url to connect to did space, skip it', error);
         return null;
       });
 
       if (authUrl) await showAssetOrVC({ authUrl, wallet, vc, meta: { purpose: 'DidSpace' } });
+
+      await page.waitForTimeout(5 * 1000);
     })
   );
 

@@ -54,6 +54,8 @@ export default defineConfig<{
           devtools: false,
         },
   },
+  globalSetup: './scripts/global-setup.ts',
+  globalTeardown: './scripts/global-teardown.ts',
   /* Configure projects for major browsers */
   projects: [
     // single tenant mode
