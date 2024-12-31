@@ -16,7 +16,7 @@ const fields = ['pageContent', 'id', 'metadata', 'updatedAt'];
 const searchableAttributes = ['pageContent', 'id', 'metadata', 'updatedAt'];
 const filterableAttributes = ['pageContent', 'id', 'metadata', 'updatedAt'];
 const sortableAttributes = ['pageContent', 'id', 'metadata', 'updatedAt'];
-const rankingRules = ['sort', 'exactness', 'words', 'typo', 'proximity', 'attribute'];
+const rankingRules = ['exactness', 'words', 'typo', 'proximity', 'attribute'];
 const POST_SETTING = { searchableAttributes, filterableAttributes, sortableAttributes, rankingRules };
 
 const documentTemplate = `
@@ -55,10 +55,6 @@ export default class SearchKitManager implements IVectorStoreManager {
       logger.error('SearchClient constructor error:', e);
     }
 
-    const index = this.getIndex();
-    const { taskUid } = await this.client.createIndex(index);
-    await this.waitForTask(taskUid);
-
     const component = components.find((item: { did: string }) => item.did === SEARCH_KIT_DID);
     if (component && component.status !== BlockletStatus.running) {
       throw new Error('SearchClient not running');
@@ -68,12 +64,19 @@ export default class SearchKitManager implements IVectorStoreManager {
       throw new Error('SearchClient not initialized');
     }
 
+    const rowInfo = await this.postIndex.getRawInfo().catch(() => null);
+    if (!rowInfo?.uid) {
+      const index = this.getIndex();
+      const { taskUid } = await this.client.createIndex(index);
+      await this.waitForTask(taskUid);
+    }
+
     await this.updateConfig();
   }
 
   getIndex() {
     const index = createHash('md5').update(this.vectorsFolderPath).digest('hex');
-    logger.info('index', { index });
+    logger.info('index', index);
     return `chat-history-${index}`;
   }
 
@@ -96,13 +99,7 @@ export default class SearchKitManager implements IVectorStoreManager {
 
   async updateEmbedders() {
     try {
-      const embedders = resolveRestEmbedders({
-        documentTemplate,
-        distribution: {
-          mean: 0.3,
-          sigma: 0.7,
-        },
-      });
+      const embedders = resolveRestEmbedders({ documentTemplate, distribution: { mean: 0.7, sigma: 0.3 } });
       const { taskUid } = await this.postIndex.updateEmbedders(embedders);
       logger.debug('updateEmbedders taskUid', taskUid);
     } catch (e) {
@@ -178,7 +175,7 @@ export default class SearchKitManager implements IVectorStoreManager {
   }
 
   async search(query: string, k: number, metadata?: Record<string, any>): Promise<Document[]> {
-    const result = await this._search(query, k, metadata);
+    const result = await this._search(query, k, metadata, { sort: ['updatedAt:desc'] });
     return result;
   }
 
@@ -194,6 +191,7 @@ export default class SearchKitManager implements IVectorStoreManager {
           if (Array.isArray(value)) {
             return `metadata.${key} IN [${value.map((v) => JSON.stringify(v)).join(',')}]`;
           }
+
           return `metadata.${key} = ${JSON.stringify(value)}`;
         })
       : undefined;
@@ -201,12 +199,7 @@ export default class SearchKitManager implements IVectorStoreManager {
     return filter;
   }
 
-  private async _search(
-    query: string,
-    k: number,
-    metadata?: Record<string, any>,
-    options?: { showRankingScore: boolean; [key: string]: any }
-  ) {
+  private async _search(query: string, k: number, metadata?: Record<string, any>, options?: { [key: string]: any }) {
     const commonParams = {
       ...(!!(await this.getEmbedders()) && { hybrid: { embedder: 'default', semanticRatio: 0.5 } }),
     };
@@ -221,14 +214,13 @@ export default class SearchKitManager implements IVectorStoreManager {
     const result = (
       await this.postIndex.search(query, {
         filter: filter,
-        sort: ['updatedAt:desc'],
         limit: parseInt(String(k), 10),
         offset: parseInt(String(0), 10),
         attributesToRetrieve: ['*'],
         attributesToHighlight: fields,
         highlightPreTag: '<mark>',
         highlightPostTag: '</mark>',
-        // rankingScoreThreshold: 0.4,
+        // rankingScoreThreshold: 0.1,
         ...modeParams,
         ...commonParams,
         ...(options || {}),

@@ -11,6 +11,7 @@
       // For local dev
       "@aigne/core": ["../../framework/core/src"]
     },
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
   }
 }
