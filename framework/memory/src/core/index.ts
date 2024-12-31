@@ -1,7 +1,7 @@
 import { createHash } from 'crypto';
 
 import {
-  IMemoryRunner,
+  CMemoryRunner,
   IStorageManager,
   IVectorStoreManager,
   MemoryActionItem,
@@ -43,7 +43,7 @@ function validateConfigDecorator(_target: any, _propertyKey: string, descriptor:
   return descriptor;
 }
 
-export class Memory<T extends string, O extends MemoryActions<T>> extends IMemoryRunner<T> {
+export class Memory<T extends string, O extends MemoryActions<T>> extends CMemoryRunner<T> {
   memoryPath: string = '';
 
   llm?: OpenAIManager;

@@ -122,7 +122,7 @@ export type MemoryActions<T> =
       };
     };
 
-export abstract class IMemoryRunner<T> extends Runnable<MemoryActions<T>, MemoryActions<T>['outputs']> {
+export abstract class CMemoryRunner<T> extends Runnable<MemoryActions<T>, MemoryActions<T>['outputs']> {
   constructor() {
     super({
       id: 'memory_runner',
