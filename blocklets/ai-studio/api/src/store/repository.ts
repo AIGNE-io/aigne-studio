@@ -503,9 +503,12 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
           throw new Error(`Find agent got invalid matched files ${matched.length}`);
         }
         const path = matched[0];
-        if (path && (await exists(path))) {
-          const raw = (await readFile(path)).toString();
-          file = parse(raw);
+        if (path) {
+          const p = join(workingDir, PROMPTS_FOLDER_NAME, path);
+          if (await exists(p)) {
+            const raw = (await readFile(p)).toString();
+            file = parse(raw);
+          }
         }
       }
     } else {

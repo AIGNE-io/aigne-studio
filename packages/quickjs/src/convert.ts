@@ -10,7 +10,11 @@ export function toQuickJsObject(vm: QuickJSContext, object: any): QuickJSHandle 
   if (object === null) return vm.null;
   if (object === undefined) return vm.undefined;
 
-  if (object instanceof Uint8Array || object instanceof ArrayBuffer) {
+  if (object instanceof Uint8Array) {
+    return vm.newArrayBuffer(object.buffer);
+  }
+
+  if (object instanceof ArrayBuffer) {
     return vm.newArrayBuffer(object);
   }
 
