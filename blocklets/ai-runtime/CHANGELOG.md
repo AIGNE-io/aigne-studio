@@ -1,3 +1,7 @@
+## 0.4.194 (2024-12-31)
+
+- chore: support different sandboxes
+
 ## 0.4.193 (2024-12-30)
 
 - chore: update deps
