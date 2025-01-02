@@ -1,5 +1,3 @@
-import { PROJECT } from './project';
+import './handlers';
 
-export const EVENTS = {
-  PROJECT,
-};
+export * from './event';
