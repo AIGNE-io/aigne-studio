@@ -12,6 +12,7 @@ import { uniqBy } from 'lodash';
 import nextId from '../../lib/next-id';
 import { getUpdateMemoryMessages } from '../../lib/prompts';
 import { getFactRetrievalMessages, objectToStream, parseMessages } from '../../lib/utils';
+// import OpenAIManager from '../../llm/openai';
 import logger from '../../logger';
 import { IVectorStoreManager } from '../../types/memory';
 
@@ -25,6 +26,7 @@ export class ShortTermRunnable<
 
   constructor(llm: LLMModel) {
     super('short_term');
+    // this.llm = (new OpenAIManager() as any) || llm;
     this.llm = llm;
   }
 
@@ -75,14 +77,12 @@ export class ShortTermRunnable<
     logger.info('newRetrievedFacts', { newRetrievedFacts });
 
     const searchPromises = newRetrievedFacts.map((fact: string) =>
-      vectorStoreProvider.search(fact, 5, filters).catch((e) => [])
+      vectorStoreProvider.search(fact, 5, filters).catch(() => [])
     );
     const allExistingMemories = await Promise.all(searchPromises);
     const retrievedOldMemory = uniqBy(
       allExistingMemories.flatMap((existingMemories) => {
-        logger.info('Existing Memories', {
-          existingMemories: JSON.stringify(existingMemories, null, 2),
-        });
+        logger.info('Existing Memories', { existingMemories: JSON.stringify(existingMemories, null, 2) });
 
         return existingMemories
           .filter((memory: any) => memory.metadata.memoryId)

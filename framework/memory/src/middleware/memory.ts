@@ -3,7 +3,7 @@ import compression from 'compression';
 import { Router } from 'express';
 import Joi from 'joi';
 
-import { LongTermRunnable, Memory } from '../core';
+import { Memory, ShortTermRunnable } from '../core';
 import OpenAIManager from '../llm/openai';
 
 const messageSchema = Joi.object({
@@ -36,7 +36,7 @@ const searchRequestSchema = Joi.object({
 });
 
 export function memoryRoutes(router: Router, path: string) {
-  const loadMemory = Memory.load({ path, runnable: new LongTermRunnable() });
+  const loadMemory = Memory.load({ path, runnable: new ShortTermRunnable() });
 
   router.post('/add', compression(), async (req, res) => {
     const memory = await loadMemory;
@@ -60,10 +60,10 @@ export function memoryRoutes(router: Router, path: string) {
     const llm = new OpenAIManager();
     const memories = await memory.search(JSON.stringify(messages), options);
     console.log('memories', JSON.stringify(memories.results, null, 2));
-    const assistantMessage = await llm.create({
+
+    const assistantMessage = await llm.run({
       model: 'gpt-4o',
       messages: [
-        { role: 'system', content: '你是一个TODO助手, 请根据用户输入生成TODO列表, 支持新增,修改,删除等功能' },
         memories.results.length
           ? { role: 'system', content: `this is the memories: ${JSON.stringify(memories, null, 2)}` }
           : null,
