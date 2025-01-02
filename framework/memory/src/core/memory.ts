@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 import { createHash } from 'crypto';
 
 import {
@@ -123,7 +124,7 @@ export class Memory<T extends string, O extends MemoryActions<T>> extends CMemor
           case 'add': {
             const memoryId = await this._createMemory({
               data: memory.memory,
-              metadata: { ...metadata, ...memory.metadata },
+              metadata: { ...metadata, ...(memory.metadata || {}) },
             });
 
             returnedMemories.push({
@@ -138,7 +139,7 @@ export class Memory<T extends string, O extends MemoryActions<T>> extends CMemor
             await this._updateMemory({
               memoryId: memory.id,
               data: memory.memory,
-              metadata: { ...metadata, ...memory.metadata },
+              metadata: { ...metadata, ...(memory.metadata || {}) },
             });
 
             returnedMemories.push({
