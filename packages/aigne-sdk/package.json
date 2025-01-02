@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/aigne-sdk",
-  "version": "0.4.191",
+  "version": "0.4.194",
   "description": "AIGNE SDK used to interact with AIGNE services",
   "publishConfig": {
     "access": "public"
@@ -100,7 +100,7 @@
     "@blocklet/ai-kit": "^0.1.66",
     "@blocklet/ai-runtime": "workspace:^",
     "@blocklet/js-sdk": "^1.16.36",
-    "@blocklet/pages-kit": "^0.3.10",
+    "@blocklet/pages-kit": "^0.3.15",
     "@blocklet/sdk": "^1.16.36",
     "@microsoft/fetch-event-source": "^2.0.1",
     "ahooks": "^3.8.1",
@@ -124,7 +124,7 @@
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@arcblock/ux": "^2.11.8",
+    "@arcblock/ux": "^2.11.15",
     "@emotion/css": "^11.13.0",
     "@emotion/react": "^11.13.3",
     "@jest/globals": "^29.7.0",

@@ -1,3 +1,19 @@
+## 0.4.194 (2024-12-31)
+
+- chore: support different sandboxes
+
+## 0.4.193 (2024-12-30)
+
+- chore: update deps
+
+## 0.4.192 (2024-12-27)
+
+- chore: add help tooltip for install models button(#1634)
+- fix: add empty state for model selection(#1632)
+- fix: pass model settings params to adapter agent(#1633)
+- chore(model-select): simplify tag filtering logic (#1631)
+- fix: #1636
+
 ## 0.4.191 (2024-12-25)
 
 - fix(model-select): improve model selection sorting and suggestions(#1629,#1630)

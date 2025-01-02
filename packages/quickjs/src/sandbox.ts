@@ -2,11 +2,12 @@ import { Pool, createPool } from 'generic-pool';
 import { QuickJSContext, QuickJSHandle, Scope, newQuickJSWASMModule } from 'quickjs-emscripten';
 
 import { setupBuiltinModules, setupGlobalVariables } from './builtin';
-import { QUICKJS_RUNTIME_POOL_SIZE_MAX } from './constants';
+import { QUICKJS_RUNTIME_POOL_SIZE_MAX, SANDBOX_RUNTIME_TYPE } from './constants';
 import { toQuickJsObject } from './convert';
 import { logger } from './logger';
 import BuiltinModules from './modules';
 import { transpileModule } from './typescript';
+import { runFunctionInVM2 } from './vm2';
 
 const sandboxCache = new Map<string, Pool<Sandbox>>();
 
@@ -61,6 +62,10 @@ export class Sandbox {
   }
 
   static async callFunction(options: SandboxInitOptions & { functionName: string; args?: any[] }) {
+    if (SANDBOX_RUNTIME_TYPE === 'vm2') {
+      return runFunctionInVM2(options);
+    }
+
     const sandbox = await Sandbox.acquire(options);
     return sandbox.callFunction({
       ...options,

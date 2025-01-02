@@ -917,6 +917,7 @@ export default flatten({
     custom: '🖊️ 自定义',
   },
   moreModels: '更多模型',
+  installMoreModelsTip: '要安装更多模型，请安装并启动您自己的 AIGNE Studio',
   generateObject: '生成{object}',
   clickToGenerateNpmLink: '点击生成 NPM Package 链接',
   modelSettingsTip: '我们为您提供了一些标准设置，您可以直接使用，也可以根据需要进行定制。',

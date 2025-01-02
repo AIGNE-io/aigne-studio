@@ -171,6 +171,7 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
         await executor.context
           .executor(adapterAgent, {
             inputs: {
+              ...input,
               model: (agent as PromptAssistant).model,
               [adapterAgent.parameters?.find((i) => i.type === 'llmInputMessages' && !i.hidden)?.key!]: input.messages,
             },
