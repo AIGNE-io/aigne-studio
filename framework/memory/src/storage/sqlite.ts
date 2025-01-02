@@ -15,6 +15,7 @@ export default class SQLiteManager implements IStorageManager {
 
     const instance = new SQLiteManager();
     stores.set(dbPath, instance);
+
     await instance.init(dbPath);
     return instance;
   }

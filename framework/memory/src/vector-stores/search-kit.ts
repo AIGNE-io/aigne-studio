@@ -32,6 +32,8 @@ const documentTemplate = `
   {% endif %}
 `;
 
+const stores = new Map<string, SearchKitManager>();
+
 export default class SearchKitManager implements IVectorStoreManager {
   private client: any;
 
@@ -42,7 +44,13 @@ export default class SearchKitManager implements IVectorStoreManager {
   protected contentManager?: SQLiteContentManager;
 
   static async load(dbPath: string, id: string) {
+    if (stores.has(`${dbPath}-${id}`)) {
+      return stores.get(`${dbPath}-${id}`);
+    }
+
     const instance = new SearchKitManager();
+    stores.set(`${dbPath}-${id}`, instance);
+
     await instance.init(dbPath, id);
     return instance;
   }
