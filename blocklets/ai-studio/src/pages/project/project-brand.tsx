@@ -1,6 +1,7 @@
 import { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { Box, BoxProps, Stack, Typography, TypographyProps } from '@mui/material';
+import type { BoxProps, TypographyProps } from '@mui/material';
+import { Box, Stack, Typography } from '@mui/material';
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 

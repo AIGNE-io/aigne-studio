@@ -1,9 +1,10 @@
-import Dataset from '@api/store/models/dataset/dataset';
+import type Dataset from '@api/store/models/dataset/dataset';
 import AgentSelect from '@app/components/agent-select';
 import WithAwareness from '@app/components/awareness/with-awareness';
 import { DragSortListYjs } from '@app/components/drag-sort-list';
 import LoadingButton from '@app/components/loading/loading-button';
-import PopperMenu, { PopperMenuImperative } from '@app/components/menu/PopperMenu';
+import type { PopperMenuImperative } from '@app/components/menu/PopperMenu';
+import PopperMenu from '@app/components/menu/PopperMenu';
 import PasswordField from '@app/components/PasswordField';
 import { useCurrentProject } from '@app/contexts/project';
 import { getKnowledgeList } from '@app/libs/knowledge';
@@ -14,18 +15,18 @@ import { useAssistantCompare } from '@app/pages/project/state';
 import { useProjectStore } from '@app/pages/project/yjs-state';
 import { useAgent } from '@app/store/agent';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import {
+import type {
   AssistantYjs,
   ExecuteBlock,
   ParameterYjs,
   ResourceType,
   StringParameter,
-  parseDirectivesOfTemplate,
-  parseDirectivesOfTemplateInput,
 } from '@blocklet/ai-runtime/types';
-import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import { parseDirectivesOfTemplate, parseDirectivesOfTemplateInput } from '@blocklet/ai-runtime/types';
+import type { Map } from '@blocklet/co-git/yjs';
+import { getYjsValue } from '@blocklet/co-git/yjs';
 import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
-import { DatasetObject, SchemaObject } from '@blocklet/dataset-sdk/types';
+import type { DatasetObject, SchemaObject } from '@blocklet/dataset-sdk/types';
 import getOpenApiTextFromI18n from '@blocklet/dataset-sdk/util/get-open-api-i18n-text';
 import { Icon } from '@iconify-icon/react';
 import SwitchIcon from '@iconify-icons/material-symbols/switches';
@@ -44,18 +45,16 @@ import MessageIcon from '@iconify-icons/tabler/message';
 import PlusIcon from '@iconify-icons/tabler/plus';
 import SquareNumberIcon from '@iconify-icons/tabler/square-number-1';
 import TrashIcon from '@iconify-icons/tabler/trash';
+import type { AutocompleteValue, AvatarProps, DialogProps, Theme } from '@mui/material';
 import {
   Autocomplete,
-  AutocompleteValue,
   Avatar,
-  AvatarProps,
   Box,
   Button,
   ClickAwayListener,
   Dialog,
   DialogActions,
   DialogContent,
-  DialogProps,
   DialogTitle,
   FormControlLabel,
   IconButton,
@@ -73,16 +72,16 @@ import {
   TableHead,
   TableRow,
   TextField,
-  Theme,
   Tooltip,
   Typography,
   alpha,
   createFilterOptions,
 } from '@mui/material';
-import { GridColDef } from '@mui/x-data-grid';
+import type { GridColDef } from '@mui/x-data-grid';
 import { useRequest } from 'ahooks';
 import { cloneDeep, get, sortBy } from 'lodash';
-import { PopupState, bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
+import type { PopupState } from 'material-ui-popup-state/hooks';
+import { bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { useId, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useAsync } from 'react-use';

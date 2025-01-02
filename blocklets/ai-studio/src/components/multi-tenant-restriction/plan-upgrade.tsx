@@ -5,6 +5,7 @@ import DiamondIcon from '@iconify-icons/tabler/diamond';
 import InfoCircleIcon from '@iconify-icons/tabler/info-circle';
 import ReceiptIcon from '@iconify-icons/tabler/receipt';
 import { Close } from '@mui/icons-material';
+import type { Theme } from '@mui/material';
 import {
   Alert,
   Box,
@@ -13,7 +14,6 @@ import {
   DialogTitle,
   IconButton,
   Link,
-  Theme,
   ToggleButton,
   ToggleButtonGroup,
   Tooltip,

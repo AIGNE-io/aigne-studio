@@ -25,7 +25,8 @@ import { useNavigate } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
 import { getErrorMessage } from '../../../libs/api';
-import { ProjectWithUserInfo, createProject, getProjectIconUrl } from '../../../libs/project';
+import type { ProjectWithUserInfo } from '../../../libs/project';
+import { createProject, getProjectIconUrl } from '../../../libs/project';
 import useDialog from '../../../utils/use-dialog';
 import Close from '../icons/close';
 

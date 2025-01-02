@@ -4,13 +4,15 @@ import path, { dirname, extname, join, relative } from 'path';
 import { EVENTS } from '@api/event';
 import { projectCronManager } from '@api/libs/cron-jobs';
 import { broadcast } from '@api/libs/ws';
-import {
+import type {
   Assistant,
   AssistantYjs,
   ConfigFile,
   FileTypeYjs,
   ProjectSettings,
   Variable,
+} from '@blocklet/ai-runtime/types';
+import {
   fileFromYjs,
   fileToYjs,
   isAssistant,
@@ -19,9 +21,12 @@ import {
   variableToYjs,
 } from '@blocklet/ai-runtime/types';
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
-import { Repository, RepositoryOptions, Working } from '@blocklet/co-git/repository';
-import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { SpaceClient, SyncFolderPushCommand, SyncFolderPushCommandOutput } from '@blocklet/did-space-js';
+import type { RepositoryOptions, Working } from '@blocklet/co-git/repository';
+import { Repository } from '@blocklet/co-git/repository';
+import type { Map } from '@blocklet/co-git/yjs';
+import { getYjsValue } from '@blocklet/co-git/yjs';
+import type { SyncFolderPushCommandOutput } from '@blocklet/did-space-js';
+import { SpaceClient, SyncFolderPushCommand } from '@blocklet/did-space-js';
 import { memoize } from '@blocklet/quickjs/cache';
 import { exists, pathExists } from 'fs-extra';
 import { glob } from 'glob';

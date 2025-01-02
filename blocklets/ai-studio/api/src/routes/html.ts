@@ -3,7 +3,8 @@ import { resolve } from 'path';
 
 import { getOpenGraphInfo } from '@api/libs/og';
 import { getBlockletJs } from '@blocklet/sdk/lib/config';
-import { Express, Request, Router } from 'express';
+import type { Express, Request } from 'express';
+import { Router } from 'express';
 import Mustache from 'mustache';
 import type { ViteDevServer } from 'vite';
 

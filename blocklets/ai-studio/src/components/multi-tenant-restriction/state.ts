@@ -1,6 +1,7 @@
 import { useIsAdmin, useSessionContext } from '@app/contexts/session';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { QuotaKey, Quotas } from '@blocklet/aigne-sdk/quotas';
+import type { QuotaKey } from '@blocklet/aigne-sdk/quotas';
+import { Quotas } from '@blocklet/aigne-sdk/quotas';
 import { create } from 'zustand';
 
 import type { Plan } from './pricing-table';

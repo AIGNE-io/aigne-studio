@@ -1,5 +1,6 @@
-import { ClickAwayListener, Popper as MuiPopper, PopperProps } from '@mui/material';
-import { ReactElement } from 'react';
+import type { PopperProps } from '@mui/material';
+import { ClickAwayListener, Popper as MuiPopper } from '@mui/material';
+import type { ReactElement } from 'react';
 
 export default function Popper({
   onClose,

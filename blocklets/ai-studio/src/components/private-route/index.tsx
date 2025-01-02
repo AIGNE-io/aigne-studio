@@ -1,5 +1,5 @@
 import { Box, CircularProgress } from '@mui/material';
-import { PropsWithChildren } from 'react';
+import type { PropsWithChildren } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 
 import { useSessionContext } from '../../contexts/session';

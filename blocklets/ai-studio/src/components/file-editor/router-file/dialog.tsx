@@ -1,7 +1,7 @@
 import { isValidInput } from '@app/libs/util';
 import { PROMPTS_FOLDER_NAME, useCreateFile, useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import {
+import type {
   AssistantYjs,
   ConfigFileYjs,
   CronFileYjs,
@@ -12,12 +12,13 @@ import {
   ProjectSettings,
   RouterAssistant,
   RouterAssistantYjs,
-  isAssistant,
 } from '@blocklet/ai-runtime/types';
+import { isAssistant } from '@blocklet/ai-runtime/types';
 import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
-import { DatasetObject } from '@blocklet/dataset-sdk/types';
+import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import getOpenApiTextFromI18n from '@blocklet/dataset-sdk/util/get-open-api-i18n-text';
 import { InfoOutlined } from '@mui/icons-material';
+import type { DialogProps } from '@mui/material';
 import {
   Autocomplete,
   Box,
@@ -25,7 +26,6 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  DialogProps,
   DialogTitle,
   FormControlLabel,
   MenuItem,
@@ -39,7 +39,8 @@ import {
 } from '@mui/material';
 import { sortBy } from 'lodash';
 import { forwardRef, useImperativeHandle, useMemo } from 'react';
-import { Controller, UseFormReturn, useForm } from 'react-hook-form';
+import type { UseFormReturn } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 
 import PromptEditorField from '../prompt-editor-field';
 

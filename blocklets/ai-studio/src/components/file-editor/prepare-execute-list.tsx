@@ -1,5 +1,6 @@
-import { AssistantYjs, ExecuteBlockYjs } from '@blocklet/ai-runtime/types';
-import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import type { AssistantYjs, ExecuteBlockYjs } from '@blocklet/ai-runtime/types';
+import type { Map } from '@blocklet/co-git/yjs';
+import { getYjsValue } from '@blocklet/co-git/yjs';
 import { Stack } from '@mui/material';
 import { sortBy } from 'lodash';
 import { useCallback } from 'react';

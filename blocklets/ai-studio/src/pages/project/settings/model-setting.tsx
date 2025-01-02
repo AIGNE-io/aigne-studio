@@ -5,8 +5,9 @@ import { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { defaultTextModel } from '@blocklet/ai-runtime/common';
 import { ParameterField } from '@blocklet/ai-runtime/components';
-import { ProjectSettings, TextModelInfo } from '@blocklet/ai-runtime/types';
-import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import type { ProjectSettings, TextModelInfo } from '@blocklet/ai-runtime/types';
+import type { Map } from '@blocklet/co-git/yjs';
+import { getYjsValue } from '@blocklet/co-git/yjs';
 import { Box, FormLabel, Stack, Tooltip, Typography } from '@mui/material';
 
 import { AuthorizeButton } from '../../../components/file-editor/input/InputTable';

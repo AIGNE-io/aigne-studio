@@ -1,4 +1,4 @@
-import { ImageAssistantYjs } from '@blocklet/ai-runtime/types';
+import type { ImageAssistantYjs } from '@blocklet/ai-runtime/types';
 import { Box, Divider, Stack } from '@mui/material';
 
 import ImageAssistantEditorFormatPrompt from '../../../components/file-editor/image-file/prompt';

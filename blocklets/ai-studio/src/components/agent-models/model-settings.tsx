@@ -1,9 +1,10 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { ImageModelInfo, ModelBasedAssistantYjs, TextModelInfo } from '@blocklet/ai-runtime/types';
+import type { ImageModelInfo, ModelBasedAssistantYjs, TextModelInfo } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import AdjustmentsHorizontalIcon from '@iconify-icons/tabler/adjustments-horizontal';
 import { Close } from '@mui/icons-material';
-import { Dialog, DialogContent, DialogTitle, IconButton, Theme, useMediaQuery } from '@mui/material';
+import type { Theme } from '@mui/material';
+import { Dialog, DialogContent, DialogTitle, IconButton, useMediaQuery } from '@mui/material';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 
 import { useCurrentProject } from '../../contexts/project';

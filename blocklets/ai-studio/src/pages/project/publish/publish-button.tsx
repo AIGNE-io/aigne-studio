@@ -1,4 +1,4 @@
-import Project from '@api/store/models/project';
+import type Project from '@api/store/models/project';
 import LoadingButton from '@app/components/loading/loading-button';
 import { useCurrentProject } from '@app/contexts/project';
 import { useIsAdmin } from '@app/contexts/session';
@@ -8,7 +8,7 @@ import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
 import { BlockletStudio } from '@blocklet/ui-react';
 // import { Icon } from '@iconify-icon/react';
 // import BrandAppgalleryIcon from '@iconify-icons/tabler/brand-appgallery';
-import { LoadingButtonProps } from '@mui/lab';
+import type { LoadingButtonProps } from '@mui/lab';
 import { Dialog, Tooltip } from '@mui/material';
 import { Suspense, useEffect, useState } from 'react';
 

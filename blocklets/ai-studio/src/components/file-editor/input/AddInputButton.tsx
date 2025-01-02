@@ -1,12 +1,13 @@
 import PopperMenu from '@app/components/menu/PopperMenu';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs } from '@blocklet/ai-runtime/types';
+import type { AssistantYjs } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import CheckIcon from '@iconify-icons/tabler/check';
 import HistoryIcon from '@iconify-icons/tabler/history';
 import MessageIcon from '@iconify-icons/tabler/message';
 import PlusIcon from '@iconify-icons/tabler/plus';
-import { Box, ButtonProps, Divider, ListItemIcon, ListItemText, MenuItem } from '@mui/material';
+import type { ButtonProps } from '@mui/material';
+import { Box, Divider, ListItemIcon, ListItemText, MenuItem } from '@mui/material';
 
 import useVariablesEditorOptions from '../use-variables-editor-options';
 

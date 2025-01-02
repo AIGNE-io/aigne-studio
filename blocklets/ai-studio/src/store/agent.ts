@@ -2,19 +2,20 @@ import { useCurrentProject } from '@app/contexts/project';
 import { useCurrentProjectState } from '@app/pages/project/state';
 import { useAssistants, useProject } from '@app/pages/project/yjs-state';
 import { parseIdentity } from '@blocklet/ai-runtime/common/aid';
+import type { Assistant, ResourceType } from '@blocklet/ai-runtime/types';
 import {
-  Assistant,
-  ResourceType,
   arrayFromYjs,
   fileFromYjs,
   isAssistant,
   outputVariableFromYjs,
   parameterFromYjs,
 } from '@blocklet/ai-runtime/types';
-import { Agent, getAgents } from '@blocklet/aigne-sdk/api/agent';
+import type { Agent } from '@blocklet/aigne-sdk/api/agent';
+import { getAgents } from '@blocklet/aigne-sdk/api/agent';
 import { groupBy, pick } from 'lodash';
 import { useEffect } from 'react';
-import { StoreApi, UseBoundStore, create } from 'zustand';
+import type { StoreApi, UseBoundStore } from 'zustand';
+import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 
 export interface ResourceAgentsState {

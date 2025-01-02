@@ -1,14 +1,18 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import type { Map } from '@blocklet/co-git/yjs';
+import { getYjsValue } from '@blocklet/co-git/yjs';
 import { cx } from '@emotion/css';
 import { Icon } from '@iconify-icon/react';
 import GripVerticalIcon from '@iconify-icons/tabler/grip-vertical';
 import TrashIcon from '@iconify-icons/tabler/trash';
-import { Box, BoxProps, Button, Stack, StackProps, Tooltip } from '@mui/material';
+import type { BoxProps, StackProps } from '@mui/material';
+import { Box, Button, Stack, Tooltip } from '@mui/material';
 import { useUpdate } from 'ahooks';
 import sortBy from 'lodash/sortBy';
-import { ReactNode, useCallback, useEffect, useId, useRef } from 'react';
-import { ConnectDragPreview, ConnectDragSource, ConnectDropTarget, useDrag, useDrop } from 'react-dnd';
+import type { ReactNode } from 'react';
+import { useCallback, useEffect, useId, useRef } from 'react';
+import type { ConnectDragPreview, ConnectDragSource, ConnectDropTarget } from 'react-dnd';
+import { useDrag, useDrop } from 'react-dnd';
 
 export function DragSortListYjs<T>({
   disabled,

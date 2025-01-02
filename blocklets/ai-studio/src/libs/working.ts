@@ -1,6 +1,6 @@
 import { joinURL } from 'ufo';
 
-import { WorkingCommitInput as CommitWorkingInput } from '../../api/src/routes/working';
+import type { WorkingCommitInput as CommitWorkingInput } from '../../api/src/routes/working';
 import axios from './api';
 
 export async function commitFromWorking({

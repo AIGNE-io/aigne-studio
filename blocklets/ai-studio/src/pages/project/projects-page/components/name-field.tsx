@@ -1,10 +1,11 @@
-import Project from '@api/store/models/project';
+import type Project from '@api/store/models/project';
 import { checkProjectName, getProjectIconUrl } from '@app/libs/project';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { joinURL } from '@blocklet/ai-runtime/front/utils/mount-point';
 import { Box, TextField } from '@mui/material';
 import { useEffect, useState } from 'react';
-import { Controller, UseFormReturn } from 'react-hook-form';
+import type { UseFormReturn } from 'react-hook-form';
+import { Controller } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 
 interface NameFieldProps {

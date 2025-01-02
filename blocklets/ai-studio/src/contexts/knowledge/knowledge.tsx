@@ -1,11 +1,12 @@
 import { useUpdate } from 'ahooks';
 import useInfiniteScroll from 'ahooks/lib/useInfiniteScroll';
-import { Draft, produce } from 'immer';
-import { ReactNode, createContext, useCallback, useContext, useRef } from 'react';
+import type { Draft } from 'immer';
+import { produce } from 'immer';
+import type { ReactNode } from 'react';
+import { createContext, useCallback, useContext, useRef } from 'react';
 import useInfiniteScrollHook from 'react-infinite-scroll-hook';
 
 import {
-  KnowledgeCard,
   createDatasetFromResources,
   createKnowledge,
   deleteDocument,
@@ -16,7 +17,7 @@ import {
   getResourcesKnowledgeList,
   updateKnowledge,
 } from '../../libs/knowledge';
-import type { KnowledgeInput } from '../../libs/knowledge';
+import type { KnowledgeCard, KnowledgeInput } from '../../libs/knowledge';
 
 export interface KnowledgeContext {
   datasets: KnowledgeCard[];

@@ -1,13 +1,16 @@
-import { Deployment, ProjectStatsItem, getDeploymentsByCategorySlug } from '@app/libs/deployment';
-import { User } from '@app/libs/project';
-import { ProjectSettings } from '@blocklet/ai-runtime/types';
+import type { Deployment, ProjectStatsItem } from '@app/libs/deployment';
+import { getDeploymentsByCategorySlug } from '@app/libs/deployment';
+import type { User } from '@app/libs/project';
+import type { ProjectSettings } from '@blocklet/ai-runtime/types';
 import { useInfiniteScroll } from 'ahooks';
 import { useCallback, useEffect } from 'react';
 import useInfiniteScrollHook from 'react-infinite-scroll-hook';
-import { RecoilState, atom, useRecoilState } from 'recoil';
+import type { RecoilState } from 'recoil';
+import { atom, useRecoilState } from 'recoil';
 import { create } from 'zustand';
 
-import { Category, getCategories } from '../../libs/category';
+import type { Category } from '../../libs/category';
+import { getCategories } from '../../libs/category';
 
 interface DeploymentState {
   deployments: Record<

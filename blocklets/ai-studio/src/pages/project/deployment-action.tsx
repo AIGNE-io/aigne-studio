@@ -5,7 +5,8 @@ import { theme } from '@app/theme/theme';
 import useDialog from '@app/utils/use-dialog';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { AssistantYjs, isAssistant } from '@blocklet/ai-runtime/types';
+import type { AssistantYjs } from '@blocklet/ai-runtime/types';
+import { isAssistant } from '@blocklet/ai-runtime/types';
 import ComponentInstaller from '@blocklet/ui-react/lib/ComponentInstaller';
 import { Icon } from '@iconify-icon/react';
 import ArrowLeft from '@iconify-icons/tabler/chevron-left';
@@ -13,6 +14,7 @@ import LockIcon from '@iconify-icons/tabler/lock';
 import RocketIcon from '@iconify-icons/tabler/rocket';
 import ShareIcon from '@iconify-icons/tabler/share';
 import View360 from '@iconify-icons/tabler/view-360';
+import type { SxProps, Theme } from '@mui/material';
 import {
   Alert,
   Box,
@@ -38,8 +40,6 @@ import {
   Radio,
   RadioGroup,
   Stack,
-  SxProps,
-  Theme,
   Typography,
   useMediaQuery,
 } from '@mui/material';
@@ -48,7 +48,8 @@ import { compact } from 'lodash';
 import { bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { Suspense, useState } from 'react';
 
-import { Deployment, createDeployment, getDeploymentByProjectId, updateDeployment } from '../../libs/deployment';
+import type { Deployment } from '../../libs/deployment';
+import { createDeployment, getDeploymentByProjectId, updateDeployment } from '../../libs/deployment';
 import PublishView from './publish-view';
 import PublishButton from './publish/publish-button';
 import { saveButtonState } from './state';

@@ -1,4 +1,4 @@
-import { Template } from '../../../../api/src/store/0.1.157/templates';
+import type { Template } from '../../../../api/src/store/0.1.157/templates';
 
 export type TreeNode = {
   id: string;

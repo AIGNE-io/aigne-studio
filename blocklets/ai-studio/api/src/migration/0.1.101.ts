@@ -6,7 +6,8 @@ import { glob } from 'glob';
 
 import { Config } from '../libs/env';
 import logger from '../libs/logger';
-import { TemplateYjs, getRepository } from '../store/0.1.157/projects';
+import type { TemplateYjs } from '../store/0.1.157/projects';
+import { getRepository } from '../store/0.1.157/projects';
 
 const { name } = require('../../../package.json');
 

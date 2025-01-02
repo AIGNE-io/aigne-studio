@@ -1,10 +1,11 @@
 import History from '@api/store/models/history';
 import middlewares from '@blocklet/sdk/lib/middlewares';
-import { Router } from 'express';
+import type { Router } from 'express';
 import Joi from 'joi';
 import { pick, uniqBy, zip } from 'lodash';
 import orderBy from 'lodash/orderBy';
-import { Attributes, FindOptions, InferAttributes, Op, WhereOptions, cast, col, where } from 'sequelize';
+import type { Attributes, FindOptions, InferAttributes, WhereOptions } from 'sequelize';
+import { Op, cast, col, where } from 'sequelize';
 
 const searchOptionsSchema = Joi.object<{ sessionId?: string; limit: number; keyword?: string }>({
   sessionId: Joi.string().empty([null, '']),

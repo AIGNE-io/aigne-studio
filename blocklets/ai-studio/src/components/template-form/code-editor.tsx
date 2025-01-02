@@ -1,5 +1,7 @@
 import Editor, { useMonaco } from '@monaco-editor/react';
-import { Box, BoxProps, useTheme } from '@mui/material';
+import type { BoxProps } from '@mui/material';
+import { Box, useTheme } from '@mui/material';
+import type Monaco from 'monaco-editor';
 import { customAlphabet } from 'nanoid';
 import { forwardRef, useEffect, useImperativeHandle } from 'react';
 
@@ -30,7 +32,7 @@ const formatCode = async (code: string) => {
 
 let monacoConfigured = false;
 
-function setupMonaco(monaco: typeof import('monaco-editor')) {
+function setupMonaco(monaco: typeof Monaco) {
   if (monacoConfigured) return;
   monacoConfigured = true;
 

@@ -1,17 +1,8 @@
-import {
-  Box,
-  BoxProps,
-  Button,
-  ClickAwayListener,
-  Grow,
-  List,
-  Paper,
-  Popper,
-  PopperProps,
-  listItemIconClasses,
-} from '@mui/material';
+import type { BoxProps, PopperProps } from '@mui/material';
+import { Box, Button, ClickAwayListener, Grow, List, Paper, Popper, listItemIconClasses } from '@mui/material';
 import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
-import React, { ReactNode, isValidElement } from 'react';
+import type { ReactNode } from 'react';
+import React, { isValidElement } from 'react';
 
 export default function PopperMenuButton({
   PopperProps,

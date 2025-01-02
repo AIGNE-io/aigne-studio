@@ -1,6 +1,7 @@
 import LoadingButton from '@app/components/loading/loading-button';
 import { useIsAdmin } from '@app/contexts/session';
-import { Category, getCategories } from '@app/libs/category';
+import type { Category } from '@app/libs/category';
+import { getCategories } from '@app/libs/category';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
@@ -28,11 +29,14 @@ import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
 import TextField from '@mui/material/TextField';
 import { useRequest } from 'ahooks';
-import { PopupState, bindDialog } from 'material-ui-popup-state/hooks';
+import type { PopupState } from 'material-ui-popup-state/hooks';
+import { bindDialog } from 'material-ui-popup-state/hooks';
 import { useEffect, useState } from 'react';
-import { Control, Controller, useForm } from 'react-hook-form';
+import type { Control } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 
-import { UpdateType, adminUpdateDeployment } from '../../libs/deployment';
+import type { UpdateType } from '../../libs/deployment';
+import { adminUpdateDeployment } from '../../libs/deployment';
 import Close from '../project/icons/close';
 
 export default function DeploymentDialog({

@@ -1,11 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import {
-  AssistantYjs,
-  ExecuteBlockYjs,
-  PromptAssistantYjs,
-  PromptMessage,
-  nextAssistantId,
-} from '@blocklet/ai-runtime/types';
+import type { AssistantYjs, ExecuteBlockYjs, PromptAssistantYjs, PromptMessage } from '@blocklet/ai-runtime/types';
+import { nextAssistantId } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import CopyIcon from '@iconify-icons/tabler/copy';
 import EyeIcon from '@iconify-icons/tabler/eye';

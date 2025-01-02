@@ -2,7 +2,7 @@ import path from 'path';
 
 import { broadcast } from '@api/libs/ws';
 import { getServiceModePermissionMap } from '@blocklet/ai-runtime/common';
-import { ServiceMode } from '@blocklet/ai-runtime/types';
+import type { ServiceMode } from '@blocklet/ai-runtime/types';
 import config from '@blocklet/sdk/lib/config';
 
 export const isDevelopment = config.env.mode === 'development';

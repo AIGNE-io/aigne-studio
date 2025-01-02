@@ -1,6 +1,6 @@
 import IndicatorTextField from '@app/components/awareness/indicator-text-field';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { ApiAssistantYjs } from '@blocklet/ai-runtime/types';
+import type { ApiAssistantYjs } from '@blocklet/ai-runtime/types';
 import { Box, MenuItem, Stack } from '@mui/material';
 import { useMemo } from 'react';
 import { useAssistantCompare } from 'src/pages/project/state';

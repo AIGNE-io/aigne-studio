@@ -1,10 +1,13 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, ParameterYjs, isImageAssistant, isPromptAssistant } from '@blocklet/ai-runtime/types';
-import PromptEditor, { EditorState } from '@blocklet/prompt-editor';
+import type { AssistantYjs, ParameterYjs } from '@blocklet/ai-runtime/types';
+import { isImageAssistant, isPromptAssistant } from '@blocklet/ai-runtime/types';
+import type { EditorState } from '@blocklet/prompt-editor';
+import PromptEditor from '@blocklet/prompt-editor';
 import { editorState2Text, text2EditorState } from '@blocklet/prompt-editor/utils';
 import { Box, Button, Paper, Stack } from '@mui/material';
 import { useAsyncEffect, useDebounceFn } from 'ahooks';
-import { ComponentProps, useCallback, useMemo, useRef, useState } from 'react';
+import type { ComponentProps } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 import WithAwareness from '../awareness/with-awareness';
 import useVariablesEditorOptions from './use-variables-editor-options';

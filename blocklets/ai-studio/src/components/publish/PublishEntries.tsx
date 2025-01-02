@@ -2,8 +2,10 @@ import DragVertical from '@app/pages/project/icons/drag-vertical';
 import Trash from '@app/pages/project/icons/trash';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ParameterField } from '@blocklet/ai-runtime/components';
-import { AssistantBase, AssistantYjs, parameterFromYjs } from '@blocklet/ai-runtime/types';
-import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import type { AssistantBase, AssistantYjs } from '@blocklet/ai-runtime/types';
+import { parameterFromYjs } from '@blocklet/ai-runtime/types';
+import type { Map } from '@blocklet/co-git/yjs';
+import { getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
 import PlusIcon from '@iconify-icons/tabler/plus';
 import {
@@ -21,7 +23,8 @@ import sortBy from 'lodash/sortBy';
 import { nanoid } from 'nanoid';
 import { useState } from 'react';
 
-import { DragSortItemRenderParams, DragSortListYjs } from '../drag-sort-list';
+import type { DragSortItemRenderParams } from '../drag-sort-list';
+import { DragSortListYjs } from '../drag-sort-list';
 
 export default function PublishEntries({ assistant }: { assistant: AssistantYjs }) {
   const doc = (getYjsValue(assistant) as Map<any>).doc!;

@@ -3,6 +3,7 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
 import XIcon from '@iconify-icons/tabler/x';
+import type { SelectChangeEvent, StackProps } from '@mui/material';
 import {
   Box,
   Breadcrumbs,
@@ -16,9 +17,7 @@ import {
   IconButton,
   MenuItem,
   Select,
-  SelectChangeEvent,
   Stack,
-  StackProps,
   TextField,
   Typography,
   styled,

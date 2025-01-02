@@ -1,11 +1,12 @@
 import History from '@api/store/models/history';
-import Release from '@api/store/models/release';
+import type Release from '@api/store/models/release';
 import { getRepository } from '@api/store/repository';
 import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import payment from '@blocklet/payment-js';
 import { getComponentWebEndpoint } from '@blocklet/sdk/lib/component';
 import { fromTokenToUnit, fromUnitToToken } from '@ocap/util';
-import { DebouncedFunc, throttle } from 'lodash';
+import type { DebouncedFunc } from 'lodash';
+import { throttle } from 'lodash';
 import { Op } from 'sequelize';
 
 import { Config } from './env';

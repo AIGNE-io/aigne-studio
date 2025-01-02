@@ -1,6 +1,8 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, ParameterYjs, randomId } from '@blocklet/ai-runtime/types';
-import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import type { AssistantYjs, ParameterYjs } from '@blocklet/ai-runtime/types';
+import { randomId } from '@blocklet/ai-runtime/types';
+import type { Map } from '@blocklet/co-git/yjs';
+import { getYjsValue } from '@blocklet/co-git/yjs';
 import { INSERT_VARIABLE_COMMAND, VariablePickerOption } from '@blocklet/prompt-editor';
 import { DataObjectRounded } from '@mui/icons-material';
 import { alpha } from '@mui/material';

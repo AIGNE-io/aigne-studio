@@ -1,5 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { ImageAssistantYjs } from '@blocklet/ai-runtime/types';
+import type { ImageAssistantYjs } from '@blocklet/ai-runtime/types';
 import { Box, Stack } from '@mui/material';
 import { useAssistantCompare } from 'src/pages/project/state';
 

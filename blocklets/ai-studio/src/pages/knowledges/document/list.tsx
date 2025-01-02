@@ -1,9 +1,10 @@
-import { KnowledgeDocumentCard } from '@app/libs/knowledge';
+import type { KnowledgeDocumentCard } from '@app/libs/knowledge';
 import useDialog from '@app/utils/use-dialog';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Box, Button, Stack, Tooltip, Typography, styled } from '@mui/material';
-import { DataGrid, GridColDef, gridClasses } from '@mui/x-data-grid';
+import type { GridColDef } from '@mui/x-data-grid';
+import { DataGrid, gridClasses } from '@mui/x-data-grid';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { joinURL } from 'ufo';

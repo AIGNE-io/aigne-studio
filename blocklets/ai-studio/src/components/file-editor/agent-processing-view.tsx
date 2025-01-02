@@ -1,6 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import type { AssistantYjs } from '@blocklet/ai-runtime/types';
 import {
-  AssistantYjs,
   isFunctionAssistant,
   isImageAssistant,
   isPromptAssistant,
@@ -9,7 +9,7 @@ import {
 import { Icon } from '@iconify-icon/react';
 import BrainIcon from '@iconify-icons/tabler/brain';
 import { Box, Stack, Typography } from '@mui/material';
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 import AgentTypeSelect, { agentTypesMap } from './agent-type-select';
 import FunctionTypeSelect from './function-file/function-type-select';

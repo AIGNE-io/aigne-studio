@@ -1,6 +1,7 @@
 import { Icon } from '@iconify-icon/react';
 import CubeIcon from '@iconify-icons/tabler/cube';
-import { Box, SxProps } from '@mui/material';
+import type { SxProps } from '@mui/material';
+import { Box } from '@mui/material';
 
 import AzureIcon from '../selector/ai-icons/azure';
 import GoogleIcon from '../selector/ai-icons/google';

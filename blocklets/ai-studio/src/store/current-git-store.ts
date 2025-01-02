@@ -1,4 +1,4 @@
-import { ProjectWithUserInfo } from '@app/libs/project';
+import type { ProjectWithUserInfo } from '@app/libs/project';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 

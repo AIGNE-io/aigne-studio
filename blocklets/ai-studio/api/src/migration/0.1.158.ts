@@ -1,6 +1,6 @@
 import path from 'path';
 
-import { AssistantYjs } from '@blocklet/ai-runtime/types';
+import type { AssistantYjs } from '@blocklet/ai-runtime/types';
 import { sortBy } from 'lodash';
 import { customAlphabet } from 'nanoid';
 

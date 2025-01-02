@@ -1,5 +1,6 @@
 import { useCurrentProject } from '@app/contexts/project';
-import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import type { Map } from '@blocklet/co-git/yjs';
+import { getYjsValue } from '@blocklet/co-git/yjs';
 import { Stack, Switch } from '@mui/material';
 
 import ImageAigneBannerHidden from '../../../assets/images/aigne-banner-hidden.png';

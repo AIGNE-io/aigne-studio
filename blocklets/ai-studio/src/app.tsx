@@ -5,7 +5,8 @@ import { SubscribeButton } from '@blocklet/ai-kit/components';
 import { Dashboard } from '@blocklet/studio-ui';
 import Footer from '@blocklet/ui-react/lib/Footer';
 import { Box, CssBaseline, GlobalStyles, ThemeProvider } from '@mui/material';
-import { ReactNode, Suspense, lazy } from 'react';
+import type { ReactNode } from 'react';
+import { Suspense, lazy } from 'react';
 import {
   Navigate,
   Outlet,

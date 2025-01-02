@@ -1,6 +1,6 @@
-import { AssistantYjs } from '@blocklet/ai-runtime/types';
+import type { AssistantYjs } from '@blocklet/ai-runtime/types';
 
-import { ModelType } from './types';
+import type { ModelType } from './types';
 
 export function resolveModelType(type: AssistantYjs['type']): ModelType | null {
   if (type === 'prompt') return 'llm';

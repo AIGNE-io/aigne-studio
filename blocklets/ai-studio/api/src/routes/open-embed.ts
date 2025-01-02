@@ -2,11 +2,12 @@ import { importPackageJson } from '@api/libs/package-json';
 import Project from '@api/store/models/project';
 import { PROJECT_FILE_PATH, ProjectRepo, defaultBranch, getAssistantsOfRepository } from '@api/store/repository';
 import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
-import { ProjectSettings, RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
+import type { ProjectSettings } from '@blocklet/ai-runtime/types';
+import { RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { getAgentProfile } from '@blocklet/aigne-sdk/utils/agent';
 import { config } from '@blocklet/sdk';
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { withQuery } from 'ufo';
 
 const { version } = importPackageJson();

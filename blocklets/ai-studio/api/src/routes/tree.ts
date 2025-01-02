@@ -1,10 +1,10 @@
 import path from 'path';
 
 import Project from '@api/store/models/project';
-import { Assistant } from '@blocklet/ai-runtime/types';
+import type { Assistant } from '@blocklet/ai-runtime/types';
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { session } from '@blocklet/sdk/lib/middlewares';
-import { Router } from 'express';
+import type { Router } from 'express';
 
 import { ensureComponentCallOrPromptsEditor } from '../libs/security';
 import { PROMPTS_FOLDER_NAME, getAssistantIdFromPath, getRepository } from '../store/repository';

@@ -1,5 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, ExecuteBlock, ExecuteBlockYjs, Role, Tool, isAssistant } from '@blocklet/ai-runtime/types';
+import type { AssistantYjs, ExecuteBlock, ExecuteBlockYjs, Role, Tool } from '@blocklet/ai-runtime/types';
+import { isAssistant } from '@blocklet/ai-runtime/types';
 import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import getOpenApiTextFromI18n from '@blocklet/dataset-sdk/util/get-open-api-i18n-text';
@@ -7,6 +8,7 @@ import { Icon } from '@iconify-icon/react';
 import PlusIcon from '@iconify-icons/tabler/plus';
 import TrashIcon from '@iconify-icons/tabler/trash';
 import { InfoOutlined as MuiInfoOutlined } from '@mui/icons-material';
+import type { StackProps } from '@mui/material';
 import {
   Box,
   Checkbox,
@@ -20,7 +22,6 @@ import {
   Paper,
   Popper,
   Stack,
-  StackProps,
   Tooltip,
   Typography,
 } from '@mui/material';
@@ -28,7 +29,7 @@ import { isNil, sortBy } from 'lodash';
 import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { useMemo } from 'react';
 
-import Knowledge from '../../../api/src/store/models/dataset/dataset';
+import type Knowledge from '../../../api/src/store/models/dataset/dataset';
 import { useProjectStore } from '../../pages/project/yjs-state';
 import IndicatorTextField from '../awareness/indicator-text-field';
 import PromptEditorField from './prompt-editor-field';

@@ -2,7 +2,8 @@ import Project from '@api/store/models/project';
 import { CRON_FILE_PATH, ProjectRepo, defaultBranch } from '@api/store/repository';
 import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { CronJobManager } from '@blocklet/ai-runtime/core/utils/cron-job';
-import { CronFile, CronJob, randomId } from '@blocklet/ai-runtime/types';
+import type { CronFile, CronJob } from '@blocklet/ai-runtime/types';
+import { randomId } from '@blocklet/ai-runtime/types';
 import { runAgent } from '@blocklet/aigne-sdk/server/api/agent';
 import { createCronHistory } from '@blocklet/aigne-sdk/server/api/cron-history';
 

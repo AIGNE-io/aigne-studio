@@ -1,7 +1,7 @@
-import { ChatCompletionInput } from '@blocklet/ai-kit/api/types/chat';
+import type { ChatCompletionInput } from '@blocklet/ai-kit/api/types/chat';
 import { Accordion, AccordionDetails, AccordionSummary, Box, Typography, styled } from '@mui/material';
 import { GridExpandMoreIcon } from '@mui/x-data-grid';
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 export const LineContainer = styled('div')(() => ({
   display: 'flex',

@@ -2,12 +2,14 @@ import BaseSwitch from '@app/components/custom/switch';
 import useDialog from '@app/utils/use-dialog';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { NumberField } from '@blocklet/ai-runtime/components';
-import { AssistantYjs, OutputVariableYjs, VariableYjs, isAssistant } from '@blocklet/ai-runtime/types';
+import type { AssistantYjs, OutputVariableYjs, VariableYjs } from '@blocklet/ai-runtime/types';
+import { isAssistant } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import MinusIcon from '@iconify-icons/tabler/minus';
 import PlusIcon from '@iconify-icons/tabler/plus';
 import { Close } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
+import type { TextFieldProps } from '@mui/material';
 import {
   Box,
   Button,
@@ -26,7 +28,6 @@ import {
   TableHead,
   TableRow,
   TextField,
-  TextFieldProps,
   Typography,
 } from '@mui/material';
 import equal from 'fast-deep-equal';

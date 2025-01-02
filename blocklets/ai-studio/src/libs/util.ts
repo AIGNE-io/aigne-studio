@@ -1,4 +1,4 @@
-import { ParameterYjs } from '@blocklet/ai-runtime/types';
+import type { ParameterYjs } from '@blocklet/ai-runtime/types';
 import { isAxiosError } from 'axios';
 import slugify from 'slugify';
 import { transliterate } from 'transliteration';

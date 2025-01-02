@@ -1,8 +1,10 @@
 import PopperMenu from '@app/components/menu/PopperMenu';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { defaultImageModel, defaultTextModel } from '@blocklet/ai-runtime/common';
-import { AssistantYjs, RuntimeOutputVariable, arrayToYjs, outputVariableToYjs } from '@blocklet/ai-runtime/types';
-import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import type { AssistantYjs } from '@blocklet/ai-runtime/types';
+import { RuntimeOutputVariable, arrayToYjs, outputVariableToYjs } from '@blocklet/ai-runtime/types';
+import type { Map } from '@blocklet/co-git/yjs';
+import { getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
 import APIIcon from '@iconify-icons/tabler/api';
 import CodeIcon from '@iconify-icons/tabler/code';

@@ -2,7 +2,7 @@ import { joinURL } from 'ufo';
 
 import axios from './api';
 import { AIGNE_RUNTIME_MOUNT_POINT, PAGES_KIT_MOUNT_POINT } from './constants';
-import { RemoteComponent } from './type';
+import type { RemoteComponent } from './type';
 
 export interface Component {
   id: string;

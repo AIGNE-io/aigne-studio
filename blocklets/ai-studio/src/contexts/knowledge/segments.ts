@@ -1,11 +1,12 @@
 import useInfiniteScroll from 'ahooks/lib/useInfiniteScroll';
 import { useCallback, useEffect } from 'react';
 import useInfiniteScrollHook from 'react-infinite-scroll-hook';
-import { RecoilState, atom, useRecoilState } from 'recoil';
+import type { RecoilState } from 'recoil';
+import { atom, useRecoilState } from 'recoil';
 
-import Knowledge from '../../../api/src/store/models/dataset/dataset';
-import KnowledgeDocument from '../../../api/src/store/models/dataset/document';
-import DatasetSegment from '../../../api/src/store/models/dataset/segment';
+import type Knowledge from '../../../api/src/store/models/dataset/dataset';
+import type KnowledgeDocument from '../../../api/src/store/models/dataset/document';
+import type DatasetSegment from '../../../api/src/store/models/dataset/segment';
 import { getDocument, getSegments } from '../../libs/knowledge';
 
 interface SegmentState {

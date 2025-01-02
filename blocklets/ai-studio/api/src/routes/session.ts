@@ -1,7 +1,7 @@
 import Session from '@api/store/models/session';
 import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import middlewares from '@blocklet/sdk/lib/middlewares';
-import { Router } from 'express';
+import type { Router } from 'express';
 import Joi from 'joi';
 
 import Histories from '../store/models/history';

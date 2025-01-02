@@ -1,3 +1,5 @@
+import '@api/event/handlers';
+
 import { Router } from 'express';
 
 import agent from './agent';

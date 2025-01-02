@@ -1,4 +1,5 @@
-import { Badge, Paper, SxProps, ToggleButton, ToggleButtonGroup } from '@mui/material';
+import type { SxProps } from '@mui/material';
+import { Badge, Paper, ToggleButton, ToggleButtonGroup } from '@mui/material';
 
 interface Option {
   value: string;

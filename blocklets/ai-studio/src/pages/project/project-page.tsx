@@ -2,7 +2,7 @@ import AgentEditor from '@app/components/file-editor/agent-editor';
 import { CurrentProjectProvider } from '@app/contexts/project';
 import currentGitStore, { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs } from '@blocklet/ai-runtime/types';
+import type { AssistantYjs } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import FolderPlusIcon from '@iconify-icons/tabler/folder-plus';
 import SidebarLeft from '@iconify-icons/tabler/layout-sidebar';
@@ -10,11 +10,11 @@ import SidebarRight from '@iconify-icons/tabler/layout-sidebar-right';
 import PlayerPlayIcon from '@iconify-icons/tabler/player-play';
 import PlusIcon from '@iconify-icons/tabler/plus';
 import TableImportIcon from '@iconify-icons/tabler/table-import';
+import type { ButtonProps } from '@mui/material';
 import {
   Alert,
   Box,
   Button,
-  ButtonProps,
   CircularProgress,
   Stack,
   Tab,
@@ -35,10 +35,12 @@ import WithAwareness from '../../components/awareness/with-awareness';
 import { useComponent } from '../../contexts/component';
 import { useReadOnly } from '../../contexts/session';
 import dirname, { getFileIdFromPath } from '../../utils/path';
-import ColumnsLayout, { ImperativeColumnsLayout } from './columns-layout';
+import type { ImperativeColumnsLayout } from './columns-layout';
+import ColumnsLayout from './columns-layout';
 import DebugView from './debug-view';
 import DiscussView from './discuss-view';
-import FileTree, { ImperativeFileTree } from './file-tree';
+import type { ImperativeFileTree } from './file-tree';
+import FileTree from './file-tree';
 import DeveloperTools from './icons/developer-tools';
 import Empty from './icons/empty';
 import PreviewView from './preview-view';

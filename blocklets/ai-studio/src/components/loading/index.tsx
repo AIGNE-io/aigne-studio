@@ -1,4 +1,5 @@
-import { Box, BoxProps, CircularProgress } from '@mui/material';
+import type { BoxProps } from '@mui/material';
+import { Box, CircularProgress } from '@mui/material';
 
 export interface LoadingProps extends BoxProps {
   fixed?: boolean;

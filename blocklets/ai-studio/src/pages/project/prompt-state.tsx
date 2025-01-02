@@ -1,12 +1,7 @@
-import {
-  ExecuteBlockYjs,
-  PromptAssistantYjs,
-  PromptYjs,
-  Tool,
-  isPromptAssistant,
-  nextAssistantId,
-} from '@blocklet/ai-runtime/types';
-import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import type { ExecuteBlockYjs, PromptAssistantYjs, PromptYjs, Tool } from '@blocklet/ai-runtime/types';
+import { isPromptAssistant, nextAssistantId } from '@blocklet/ai-runtime/types';
+import type { Map } from '@blocklet/co-git/yjs';
+import { getYjsValue } from '@blocklet/co-git/yjs';
 import { cloneDeep } from 'lodash';
 import sortBy from 'lodash/sortBy';
 import { useCallback, useEffect } from 'react';

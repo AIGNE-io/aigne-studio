@@ -1,5 +1,5 @@
 /* eslint-disable consistent-return */
-import Project from '@api/store/models/project';
+import type Project from '@api/store/models/project';
 import { useSessionContext } from '@app/contexts/session';
 import { didSpaceReady, getImportUrl } from '@app/libs/did-spaces';
 import { checkErrorType } from '@app/libs/util';
@@ -12,9 +12,9 @@ import { Icon } from '@iconify-icon/react';
 import ArrowRightAltRoundedIcon from '@iconify-icons/material-symbols/arrow-right-alt-rounded';
 import PlusIcon from '@iconify-icons/tabler/plus';
 import { LoadingButton } from '@mui/lab';
+import type { BoxProps } from '@mui/material';
 import {
   Box,
-  BoxProps,
   Button,
   Dialog,
   DialogActions,
@@ -29,7 +29,8 @@ import {
 } from '@mui/material';
 import { useAsyncEffect } from 'ahooks';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
-import { ReactNode, useCallback, useId, useState } from 'react';
+import type { ReactNode } from 'react';
+import { useCallback, useId, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { joinURL, withQuery } from 'ufo';

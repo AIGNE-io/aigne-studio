@@ -5,10 +5,12 @@ import { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
-import { ReConnect, SpaceGateway, SpaceStatus } from '@blocklet/did-space-react';
+import type { SpaceGateway } from '@blocklet/did-space-react';
+import { ReConnect, SpaceStatus } from '@blocklet/did-space-react';
 import { SyncRounded } from '@mui/icons-material';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
-import { Button, ButtonProps, ListItemIcon, ListItemText, Menu, MenuItem, Stack, Typography } from '@mui/material';
+import type { ButtonProps } from '@mui/material';
+import { Button, ListItemIcon, ListItemText, Menu, MenuItem, Stack, Typography } from '@mui/material';
 import { useState } from 'react';
 
 import { getErrorMessage } from '../../../libs/api';

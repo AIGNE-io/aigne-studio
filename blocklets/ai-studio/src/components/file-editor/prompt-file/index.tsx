@@ -1,4 +1,4 @@
-import { PromptAssistantYjs } from '@blocklet/ai-runtime/types';
+import type { PromptAssistantYjs } from '@blocklet/ai-runtime/types';
 import { Box, Stack } from '@mui/material';
 
 import PromptAssistantEditorPrompts from './prompts';

@@ -1,13 +1,8 @@
 import { useReadOnly } from '@app/contexts/session';
 import Close from '@app/pages/project/icons/close';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import {
-  AssistantYjs,
-  ModelBasedAssistantYjs,
-  isImageAssistant,
-  isPromptAssistant,
-  isRouterAssistant,
-} from '@blocklet/ai-runtime/types';
+import type { AssistantYjs, ModelBasedAssistantYjs } from '@blocklet/ai-runtime/types';
+import { isImageAssistant, isPromptAssistant, isRouterAssistant } from '@blocklet/ai-runtime/types';
 import {
   Box,
   Button,

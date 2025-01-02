@@ -1,5 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs } from '@blocklet/ai-runtime/types';
+import type { AssistantYjs } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import ChevronDown from '@iconify-icons/tabler/chevron-down';
 import { Accordion, AccordionDetails, AccordionSummary, Box, Stack, Typography, accordionClasses } from '@mui/material';

@@ -7,7 +7,8 @@ import { AssistantResponseType } from '@blocklet/ai-runtime/types';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv-flow';
-import express, { ErrorRequestHandler } from 'express';
+import type { ErrorRequestHandler } from 'express';
+import express from 'express';
 import { Errors } from 'isomorphic-git';
 
 import { projectCronManager } from './libs/cron-jobs';

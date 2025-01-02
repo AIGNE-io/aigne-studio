@@ -1,9 +1,9 @@
 import { Icon } from '@iconify-icon/react';
 import ChevronDownIcon from '@iconify-icons/tabler/chevron-down';
 import { loadingButtonClasses } from '@mui/lab';
+import type { BoxProps } from '@mui/material';
 import {
   Box,
-  BoxProps,
   autocompleteClasses,
   filledInputClasses,
   inputBaseClasses,

@@ -1,6 +1,7 @@
 import { useUploader } from '@app/contexts/uploader';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import type { Map } from '@blocklet/co-git/yjs';
+import { getYjsValue } from '@blocklet/co-git/yjs';
 import { EditorConfigProvider } from '@blocklet/editor/lib/config';
 import { MarkdownEditor } from '@blocklet/editor/lib/main/markdown-editor';
 import { joinURL } from 'ufo';

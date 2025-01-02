@@ -1,8 +1,8 @@
-import { ProjectSettings } from '@blocklet/ai-runtime/types';
+import type { ProjectSettings } from '@blocklet/ai-runtime/types';
 import { joinURL } from 'ufo';
 
 import axios from './api';
-import { User } from './project';
+import type { User } from './project';
 
 export type Deployment = {
   id: string;

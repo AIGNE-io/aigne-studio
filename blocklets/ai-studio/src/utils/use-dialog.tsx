@@ -1,17 +1,8 @@
-import type { DialogContentProps, DialogProps } from '@mui/material';
-import {
-  Box,
-  Button,
-  ButtonProps,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  Stack,
-} from '@mui/material';
-import { ReactNode, useCallback, useMemo, useState } from 'react';
-import { UseFormReturn } from 'react-hook-form';
+import type { ButtonProps, DialogContentProps, DialogProps } from '@mui/material';
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack } from '@mui/material';
+import type { ReactNode } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import type { UseFormReturn } from 'react-hook-form';
 
 import PromiseLoadingButton from '../components/promise-loading-button';
 import Close from '../pages/project/icons/close';

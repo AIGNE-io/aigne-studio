@@ -1,7 +1,10 @@
 import { cx } from '@emotion/css';
-import { Box, BoxProps, Drawer, backdropClasses, styled, useMediaQuery, useTheme } from '@mui/material';
-import { ReactNode, forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { ImperativePanelHandle, Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
+import type { BoxProps } from '@mui/material';
+import { Box, Drawer, backdropClasses, styled, useMediaQuery, useTheme } from '@mui/material';
+import type { ReactNode } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import type { ImperativePanelHandle } from 'react-resizable-panels';
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 
 export interface ImperativeColumnsLayout {
   collapseLeft: () => void;

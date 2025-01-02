@@ -2,8 +2,9 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Icon } from '@iconify-icon/react';
 import HelpIcon from '@iconify-icons/tabler/help';
 import VerifiedIcon from '@mui/icons-material/Verified';
-import { Box, Button, SxProps, Tooltip, Typography } from '@mui/material';
-import { ReactNode } from 'react';
+import type { SxProps } from '@mui/material';
+import { Box, Button, Tooltip, Typography } from '@mui/material';
+import type { ReactNode } from 'react';
 
 type BillingCycle = 'monthly' | 'yearly';
 type CycleBasedValue = string | { monthly: string; yearly: string };

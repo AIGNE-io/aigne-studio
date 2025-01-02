@@ -1,23 +1,23 @@
 import Empty from '@arcblock/ux/lib/Empty';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { ImageModelInfo, ModelBasedAssistantYjs, TextModelInfo } from '@blocklet/ai-runtime/types';
+import type { ImageModelInfo, ModelBasedAssistantYjs, TextModelInfo } from '@blocklet/ai-runtime/types';
 import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/aigne-sdk/constants';
-import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import type { Map } from '@blocklet/co-git/yjs';
+import { getYjsValue } from '@blocklet/co-git/yjs';
 import { AddComponent } from '@blocklet/ui-react';
 import { Icon } from '@iconify-icon/react';
 import HelpIcon from '@iconify-icons/tabler/help';
 import StarIcon from '@iconify-icons/tabler/star';
 import StarFilledIcon from '@iconify-icons/tabler/star-filled';
+import type { DialogProps, Theme } from '@mui/material';
 import {
   Box,
   Button,
   Dialog,
   DialogActions,
   DialogContent,
-  DialogProps,
   DialogTitle,
   Stack,
-  Theme,
   Tooltip,
   useMediaQuery,
 } from '@mui/material';
@@ -29,7 +29,7 @@ import { useIsAdmin } from '../../contexts/session';
 import { useProjectStore } from '../../pages/project/yjs-state';
 import { ModelBrandIcon } from './model-brand-icon';
 import { Tag, TagFilter } from './tag';
-import { ModelType } from './types';
+import type { ModelType } from './types';
 import { useAllModels } from './use-models';
 import { sortModels } from './utils';
 

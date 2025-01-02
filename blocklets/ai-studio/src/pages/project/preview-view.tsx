@@ -11,27 +11,19 @@ import {
   useDebug,
   useDebugDialog,
 } from '@blocklet/ai-runtime/front/contexts/Debug';
-import { AssistantYjs, RuntimeOutputVariable, isAssistant } from '@blocklet/ai-runtime/types';
+import type { AssistantYjs } from '@blocklet/ai-runtime/types';
+import { RuntimeOutputVariable, isAssistant } from '@blocklet/ai-runtime/types';
 import { RuntimeDebug } from '@blocklet/aigne-sdk/components/ai-runtime';
-import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import type { Map } from '@blocklet/co-git/yjs';
+import { getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
 import CloseIcon from '@iconify-icons/tabler/x';
-import {
-  Box,
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  Stack,
-  Tab,
-  TabProps,
-  Tabs,
-  TabsProps,
-  ThemeProvider,
-} from '@mui/material';
+import type { TabProps, TabsProps } from '@mui/material';
+import { Box, Dialog, DialogContent, DialogTitle, IconButton, Stack, Tab, Tabs, ThemeProvider } from '@mui/material';
 import sortBy from 'lodash/sortBy';
 import { nanoid } from 'nanoid';
-import React, { ComponentProps, ReactNode, useCallback } from 'react';
+import type { ComponentProps, ReactNode } from 'react';
+import React, { useCallback } from 'react';
 
 import { useProjectStore } from './yjs-state';
 

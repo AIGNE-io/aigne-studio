@@ -1,11 +1,11 @@
-import DatasetDocument from '@api/store/models/dataset/document';
+import type DatasetDocument from '@api/store/models/dataset/document';
 import LoadingButton from '@app/components/loading/loading-button';
 import { useIsAdmin } from '@app/contexts/session';
 import UploaderProvider, { useUploader } from '@app/contexts/uploader';
 import { AIGNE_RUNTIME_MOUNT_POINT } from '@app/libs/constants';
 import { getDiscussionStatus } from '@app/libs/discussion';
+import type { CreateDiscussionItem } from '@app/libs/knowledge';
 import {
-  CreateDiscussionItem,
   createCrawlDocument,
   createCustomDocument,
   createDiscussionDocument,
@@ -20,6 +20,7 @@ import FileIcon from '@iconify-icons/tabler/file';
 import PencilIcon from '@iconify-icons/tabler/pencil';
 import TrashIcon from '@iconify-icons/tabler/trash';
 import XIcon from '@iconify-icons/tabler/x';
+import type { Theme } from '@mui/material';
 import {
   Box,
   Button,
@@ -31,7 +32,6 @@ import {
   IconButton,
   Stack,
   TextField,
-  Theme,
   Tooltip,
   Typography,
   styled,
@@ -45,7 +45,7 @@ import { joinURL, withQuery } from 'ufo';
 import Discuss from '../../project/icons/discuss';
 import DiscussView from '../discuss';
 import { DocumentIcon } from '../document/list';
-import {
+import type {
   CrawlSettingsProps,
   CrawlType,
   CreateKnowledgeParams,

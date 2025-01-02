@@ -1,7 +1,8 @@
-import { Category } from '@app/libs/category';
+import type { Category } from '@app/libs/category';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Icon } from '@iconify-icon/react';
 import PlusIcon from '@iconify-icons/tabler/plus';
+import type { Theme } from '@mui/material';
 import {
   Box,
   Button,
@@ -14,7 +15,6 @@ import {
   ListItemIcon,
   ListItemText,
   Stack,
-  Theme,
   Typography,
   useMediaQuery,
 } from '@mui/material';

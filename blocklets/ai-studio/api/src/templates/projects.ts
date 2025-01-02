@@ -1,4 +1,4 @@
-import { ResourceProject } from '@blocklet/ai-runtime/types';
+import type { ResourceProject } from '@blocklet/ai-runtime/types';
 
 import { wallet } from '../libs/auth';
 

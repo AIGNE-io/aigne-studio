@@ -24,6 +24,7 @@ import TransferIcon from '@iconify-icons/tabler/transfer-in';
 import TrashIcon from '@iconify-icons/tabler/trash';
 import RocketLaunchRoundedIcon from '@mui/icons-material/RocketLaunchRounded';
 import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
+import type { MenuItemProps, StackProps } from '@mui/material';
 import {
   Avatar,
   AvatarGroup,
@@ -39,31 +40,31 @@ import {
   ListItemIcon,
   ListItemText,
   MenuItem,
-  MenuItemProps,
   MenuList,
   Paper,
   Popper,
   Skeleton,
   Stack,
-  StackProps,
   TextField,
   Tooltip,
   Typography,
   avatarClasses,
   styled,
 } from '@mui/material';
-import { MouseEvent, ReactNode, cloneElement, useEffect, useMemo, useRef, useState } from 'react';
+import type { MouseEvent, ReactNode } from 'react';
+import { cloneElement, useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useAsync } from 'react-use';
 import { joinURL } from 'ufo';
 
-import Project from '../../../../api/src/store/models/project';
+import type Project from '../../../../api/src/store/models/project';
 import DeleteDialog from '../../../components/delete-confirm/dialog';
 import { useProjectsState } from '../../../contexts/projects';
 import { useReadOnly, useSessionContext } from '../../../contexts/session';
 import { getErrorMessage } from '../../../libs/api';
-import { ProjectWithUserInfo, User, createProject, getProjectIconUrl } from '../../../libs/project';
+import type { ProjectWithUserInfo, User } from '../../../libs/project';
+import { createProject, getProjectIconUrl } from '../../../libs/project';
 import useDialog from '../../../utils/use-dialog';
 import DidSpacesLogo from '../icons/did-spaces';
 import Pin from '../icons/pin';

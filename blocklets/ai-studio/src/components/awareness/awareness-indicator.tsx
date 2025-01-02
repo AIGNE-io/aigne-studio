@@ -1,5 +1,6 @@
 import styled from '@emotion/styled';
-import { Avatar, Box, BoxProps, Tooltip, Typography } from '@mui/material';
+import type { BoxProps } from '@mui/material';
+import { Avatar, Box, Tooltip, Typography } from '@mui/material';
 import { uniqBy } from 'lodash';
 
 import { useProjectStore } from '../../pages/project/yjs-state';

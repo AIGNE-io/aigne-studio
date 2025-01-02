@@ -1,4 +1,4 @@
-import { FunctionAssistantYjs } from '@blocklet/ai-runtime/types';
+import type { FunctionAssistantYjs } from '@blocklet/ai-runtime/types';
 import { Box, Divider, Stack } from '@mui/material';
 
 import FunctionCodeEditor from '../../../components/file-editor/function-file/function-code-editor';

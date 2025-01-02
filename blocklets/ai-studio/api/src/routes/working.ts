@@ -1,5 +1,5 @@
 import middlewares from '@blocklet/sdk/lib/middlewares';
-import { Router } from 'express';
+import type { Router } from 'express';
 import Joi from 'joi';
 
 import { ensureComponentCallOrPromptsEditor, isRefReadOnly } from '../libs/security';

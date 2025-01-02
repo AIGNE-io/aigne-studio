@@ -1,9 +1,10 @@
 import { useIsAdmin, useSessionContext } from '@app/contexts/session';
-import { Deployment } from '@app/libs/deployment';
-import { ProjectSettings } from '@blocklet/ai-runtime/types';
+import type { Deployment } from '@app/libs/deployment';
+import type { ProjectSettings } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import InfoSquareIcon from '@iconify-icons/tabler/info-square';
-import { Box, BoxProps, Tooltip } from '@mui/material';
+import type { BoxProps } from '@mui/material';
+import { Box, Tooltip } from '@mui/material';
 import { useEffect, useState } from 'react';
 
 import { MakeYoursButton } from '../../pages/explore/button';
