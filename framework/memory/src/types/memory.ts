@@ -1,12 +1,14 @@
 import { MemoryActionItem } from '@aigne/core';
-import { Document } from '@langchain/core/documents';
 
 export type EventType = MemoryActionItem<any>['event'];
 
-export type VectorStoreContent = {
+export type VectorStoreDocument = {
+  pageContent: string;
+  metadata: Record<string, any>;
+};
+
+export type VectorStoreContent = Partial<VectorStoreDocument> & {
   id: string;
-  pageContent?: string;
-  metadata?: Record<string, any>;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -18,8 +20,8 @@ export interface IVectorStoreManager {
   deleteAll(ids: string[]): Promise<void>;
   update(id: string, data: string, metadata: Record<string, any>): Promise<void>;
   list(metadata: Record<string, any>, limit?: number): Promise<VectorStoreContent[]>;
-  search(query: string, k: number, metadata?: Record<string, any>): Promise<Document[]>;
-  searchWithScore(query: string, k: number, metadata?: Record<string, any>): Promise<[Document, number][]>;
+  search(query: string, k: number, metadata?: Record<string, any>): Promise<VectorStoreDocument[]>;
+  searchWithScore(query: string, k: number, metadata?: Record<string, any>): Promise<[VectorStoreDocument, number][]>;
 }
 
 export interface IStorageManager {

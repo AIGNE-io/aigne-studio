@@ -1,12 +1,11 @@
 import { BlockletStatus } from '@blocklet/constant';
 import { components } from '@blocklet/sdk/lib/config';
-import { Document } from '@langchain/core/documents';
 
 import { SEARCH_KIT_DID } from '../constants';
 import { AIKitEmbeddings } from '../lib/embeddings/ai-kit';
 import logger from '../logger';
 import SQLiteContentManager from '../storage/content';
-import { IVectorStoreManager, VectorStoreContent } from '../types/memory';
+import { IVectorStoreManager, VectorStoreContent, VectorStoreDocument } from '../types/memory';
 
 const { SearchKitClient, resolveRestEmbedders } = require('@blocklet/search-kit-js');
 
@@ -211,14 +210,17 @@ export default class SearchKitManager implements IVectorStoreManager {
     return (await this.postIndex.getDocuments({ limit, offset: 0, filter }))?.results;
   }
 
-  async search(query: string, k: number, metadata?: Record<string, any>): Promise<Document[]> {
+  async search(query: string, k: number, metadata?: Record<string, any>): Promise<VectorStoreDocument[]> {
     const result = await this._search(query, k, metadata, {});
     return result;
   }
 
-  async searchWithScore(query: string, k: number, metadata?: Record<string, any>): Promise<[Document, number][]> {
+  async searchWithScore(
+    query: string,
+    k: number,
+    metadata?: Record<string, any>
+  ): Promise<[VectorStoreDocument, number][]> {
     const result = await this._search(query, k, metadata, { showRankingScore: true, showRankingScoreDetails: true });
-
     return result.map((item: any) => [item, item._rankingScore]);
   }
 

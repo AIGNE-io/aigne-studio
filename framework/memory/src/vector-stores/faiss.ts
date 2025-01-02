@@ -1,4 +1,3 @@
-import { Document } from '@langchain/core/documents';
 import { DataTypes } from 'sequelize';
 
 import { AIKitEmbeddings } from '../lib/embeddings/ai-kit';
@@ -7,6 +6,7 @@ import Content, { init as initContent } from '../store/models/content';
 import { initSequelize } from '../store/sequelize';
 import VectorStoreFaiss from '../store/vector-store-faiss';
 import { IVectorStoreManager } from '../types/memory';
+import { VectorStoreDocument } from '../types/memory';
 
 export class ContentManager {
   static async load(dbPath: string) {
@@ -117,7 +117,7 @@ export default class FaissVectorStoreManager implements IVectorStoreManager {
     await this.db?.updateContent(id, data, metadata);
   }
 
-  async search(query: string, k: number, metadata?: Record<string, any>): Promise<Document[]> {
+  async search(query: string, k: number, metadata?: Record<string, any>): Promise<VectorStoreDocument[]> {
     if (!this.vectorStore) {
       throw new Error('Vector store not initialized');
     }
@@ -141,7 +141,11 @@ export default class FaissVectorStoreManager implements IVectorStoreManager {
     return await this.vectorStore.similaritySearch(query, k);
   }
 
-  async searchWithScore(query: string, k: number, metadata?: Record<string, any>): Promise<[Document, number][]> {
+  async searchWithScore(
+    query: string,
+    k: number,
+    metadata?: Record<string, any>
+  ): Promise<[VectorStoreDocument, number][]> {
     if (!this.vectorStore) {
       throw new Error('Vector store not initialized');
     }
