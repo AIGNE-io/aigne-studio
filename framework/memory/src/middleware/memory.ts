@@ -1,8 +1,9 @@
+/* eslint-disable no-console */
 import compression from 'compression';
 import { Router } from 'express';
 import Joi from 'joi';
 
-import { Memory } from '../core';
+import { LongTermRunnable, Memory } from '../core';
 import OpenAIManager from '../llm/openai';
 
 const messageSchema = Joi.object({
@@ -35,7 +36,7 @@ const searchRequestSchema = Joi.object({
 });
 
 export function memoryRoutes(router: Router, path: string) {
-  const loadMemory = Memory.load({ path });
+  const loadMemory = Memory.load({ path, runnable: new LongTermRunnable() });
 
   router.post('/add', compression(), async (req, res) => {
     const memory = await loadMemory;

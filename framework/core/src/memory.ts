@@ -1,6 +1,6 @@
-import { Document } from 'langchain/document';
+import { camelCase, startCase } from 'lodash';
 
-import { Runnable } from './runnable';
+import { RunOptions, Runnable, RunnableResponse, RunnableResponseStream } from './runnable';
 import { OrderedRecord } from './utils';
 
 export type MemoryActionItem<T> =
@@ -8,12 +8,14 @@ export type MemoryActionItem<T> =
       id: string;
       event: 'add';
       memory: T;
+      metadata?: { [key: string]: any };
     }
   | {
       event: 'update';
       id: string;
       memory: T;
       oldMemory: T;
+      metadata?: { [key: string]: any };
     }
   | {
       event: 'delete';
@@ -44,6 +46,7 @@ export type MemoryActions<T> =
           userId?: string;
           sessionId?: string;
           metadata?: { [key: string]: any };
+          filters?: { [key: string]: any };
         };
       };
       outputs: {
@@ -122,7 +125,7 @@ export type MemoryActions<T> =
       };
     };
 
-export abstract class CMemoryRunner<T> extends Runnable<MemoryActions<T>, MemoryActions<T>['outputs']> {
+export abstract class CMemoryRunner<T extends string> extends Runnable<MemoryActions<T>, MemoryActions<T>['outputs']> {
   constructor() {
     super({
       id: 'memory_runner',
@@ -134,15 +137,7 @@ export abstract class CMemoryRunner<T> extends Runnable<MemoryActions<T>, Memory
     });
   }
 
-  abstract runnable?: Runnable<
-    {
-      messages: { role: string; content: string }[];
-      userId?: string;
-      sessionId?: string;
-      metadata?: { [key: string]: any };
-    },
-    MemoryActionItem<T>[]
-  >;
+  abstract runnable?: MemoryRunnable<T>;
 
   abstract add(
     messages: { role: string; content: string }[],
@@ -187,40 +182,33 @@ export abstract class CMemoryRunner<T> extends Runnable<MemoryActions<T>, Memory
   abstract delete(memoryId: string): Promise<MemoryItem<T> | null>;
 }
 
-export type EventType = 'add' | 'update' | 'delete' | 'none';
+export interface MemoryRunnableInputs {
+  messages: { role: string; content: string }[];
 
-export type VectorStoreContent = {
-  id: string;
-  pageContent?: string;
-  metadata?: Record<string, any>;
-  createdAt: Date;
-  updatedAt: Date;
-};
-
-export interface IVectorStoreManager {
-  get(id: string): Promise<VectorStoreContent | null>;
-  insert(data: string, id: string, metadata: Record<string, any>): Promise<void>;
-  delete(id: string): Promise<void>;
-  deleteAll(ids: string[]): Promise<void>;
-  update(id: string, data: string, metadata: Record<string, any>): Promise<void>;
-  list(metadata: Record<string, any>, limit?: number): Promise<VectorStoreContent[]>;
-  search(query: string, k: number, metadata?: Record<string, any>): Promise<Document[]>;
-  searchWithScore(query: string, k: number, metadata?: Record<string, any>): Promise<[Document, number][]>;
+  userId?: string;
+  sessionId?: string;
+  metadata?: { [key: string]: any };
+  filters?: { [key: string]: any };
 }
 
-export interface IStorageManager {
-  addHistory(params: {
-    memoryId: string;
-    oldMemory?: string;
-    newMemory?: string;
-    event: EventType;
-    createdAt?: Date;
-    updatedAt?: Date;
-    isDeleted?: boolean;
-  }): Promise<any>;
-  getHistory(memoryId: string): Promise<any>;
-  addMessage(message: { [key: string]: any }, metadata: { [key: string]: any }): Promise<any>;
-  getMessage(id: string): Promise<any>;
-  getMessages(props: { [key: string]: any }): Promise<any>;
-  reset(): Promise<void>;
+export abstract class MemoryRunnable<
+  T extends string = string,
+  O extends MemoryActionItem<T>[] = MemoryActionItem<T>[],
+> extends Runnable<MemoryRunnableInputs, O> {
+  constructor(name: string) {
+    const id = `${camelCase(name)}_runnable`;
+
+    super({
+      id,
+      type: id,
+      name: `${startCase(name)} Runnable`,
+      description: `${startCase(name)} Runnable`,
+      inputs: OrderedRecord.fromArray([]),
+      outputs: OrderedRecord.fromArray([]),
+    });
+  }
+
+  abstract run(input: MemoryRunnableInputs, options: RunOptions & { stream: true }): Promise<RunnableResponseStream<O>>;
+  abstract run(input: MemoryRunnableInputs, options?: RunOptions & { stream?: false }): Promise<O>;
+  abstract run(input: MemoryRunnableInputs, options?: RunOptions): Promise<RunnableResponse<O>>;
 }

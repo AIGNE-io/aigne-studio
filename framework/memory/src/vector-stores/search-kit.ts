@@ -1,6 +1,5 @@
 import { createHash } from 'crypto';
 
-import { IVectorStoreManager, VectorStoreContent } from '@aigne/core';
 import { BlockletStatus } from '@blocklet/constant';
 import { components } from '@blocklet/sdk/lib/config';
 import { Document } from 'langchain/document';
@@ -9,6 +8,7 @@ import { cloneDeep, orderBy } from 'lodash';
 import { SEARCH_KIT_DID } from '../constants';
 import { AIKitEmbeddings } from '../lib/embeddings/ai-kit';
 import logger from '../logger';
+import { IVectorStoreManager, VectorStoreContent } from '../types/memory';
 
 const { SearchKitClient, resolveRestEmbedders } = require('@blocklet/search-kit-js');
 
@@ -37,17 +37,19 @@ const documentTemplate = `
 
 export default class SearchKitManager implements IVectorStoreManager {
   private client: any;
-  protected embeddings = new AIKitEmbeddings();
-  protected vectorsFolderPath: string = '';
 
-  static async load(vectorsFolderPath: string) {
+  protected embeddings = new AIKitEmbeddings();
+
+  protected indexId: string = '';
+
+  static async load(id: string) {
     const instance = new SearchKitManager();
-    await instance.init(vectorsFolderPath);
+    await instance.init(id);
     return instance;
   }
 
-  async init(vectorsFolderPath: string) {
-    this.vectorsFolderPath = vectorsFolderPath;
+  async init(indexId: string) {
+    this.indexId = indexId;
 
     try {
       this.client = new SearchKitClient();
@@ -66,18 +68,11 @@ export default class SearchKitManager implements IVectorStoreManager {
 
     const rowInfo = await this.postIndex.getRawInfo().catch(() => null);
     if (!rowInfo?.uid) {
-      const index = this.getIndex();
-      const { taskUid } = await this.client.createIndex(index);
+      const { taskUid } = await this.client.createIndex(this.indexId);
       await this.waitForTask(taskUid);
     }
 
     await this.updateConfig();
-  }
-
-  getIndex() {
-    const index = createHash('md5').update(this.vectorsFolderPath).digest('hex');
-    logger.info('index', index);
-    return `chat-history-${index}`;
   }
 
   get postIndex() {
@@ -85,8 +80,7 @@ export default class SearchKitManager implements IVectorStoreManager {
       throw new Error('SearchClient not initialized');
     }
 
-    const index = this.getIndex();
-    return this.client.index(index);
+    return this.client.index(this.indexId);
   }
 
   get options() {
@@ -213,7 +207,7 @@ export default class SearchKitManager implements IVectorStoreManager {
 
     const result = (
       await this.postIndex.search(query, {
-        filter: filter,
+        filter,
         limit: parseInt(String(k), 10),
         offset: parseInt(String(0), 10),
         attributesToRetrieve: ['*'],

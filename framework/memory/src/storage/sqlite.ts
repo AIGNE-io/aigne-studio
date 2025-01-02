@@ -1,9 +1,8 @@
-import { IStorageManager } from '@aigne/core';
-
 import { migrate } from '../store/migrate';
 import History, { EventType, init as initHistory } from '../store/models/history';
 import Message, { init as initMessage } from '../store/models/message';
 import { initSequelize } from '../store/sequelize';
+import { IStorageManager } from '../types/memory';
 
 export default class SQLiteManager implements IStorageManager {
   static async load(dbPath: string) {
@@ -53,7 +52,7 @@ export default class SQLiteManager implements IStorageManager {
     return await History.findAll({ where: { memoryId }, order: [['updatedAt', 'ASC']] });
   }
 
-  async addMessage(message: { [key: string]: any }, metadata: { [key: string]: any }) {
+  async addMessage(message: { [key: string]: any }[], metadata: { [key: string]: any }) {
     return await Message.create({ message, metadata });
   }
 

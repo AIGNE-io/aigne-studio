@@ -2,7 +2,7 @@ import compression from 'compression';
 import { Router } from 'express';
 import Joi from 'joi';
 
-import { Memory } from '../core';
+import { LongTermRunnable, Memory } from '../core';
 
 const getRequestSchema = Joi.object({
   id: Joi.string().required(),
@@ -19,7 +19,7 @@ const searchRequestSchema = Joi.object({
 });
 
 export function vectorRoutes(router: Router, path: string) {
-  const loadMemory = Memory.load({ path });
+  const loadMemory = Memory.load({ path, runnable: new LongTermRunnable() });
 
   router.get('/list', compression(), async (req, res) => {
     const memory = await loadMemory;

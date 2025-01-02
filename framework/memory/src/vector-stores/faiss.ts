@@ -1,4 +1,3 @@
-import { IVectorStoreManager } from '@aigne/core';
 import { Document } from '@langchain/core/documents';
 import { DataTypes } from 'sequelize';
 
@@ -7,6 +6,7 @@ import { addVectors } from '../lib/vector-store';
 import Content, { init as initContent } from '../store/models/content';
 import { initSequelize } from '../store/sequelize';
 import VectorStoreFaiss from '../store/vector-store-faiss';
+import { IVectorStoreManager } from '../types/memory';
 
 export class ContentManager {
   static async load(dbPath: string) {
