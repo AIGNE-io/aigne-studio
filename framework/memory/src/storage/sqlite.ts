@@ -1,12 +1,20 @@
 import { migrate } from '../store/migrate';
+import { init as initContent } from '../store/models/content';
 import History, { init as initHistory } from '../store/models/history';
 import Message, { init as initMessage } from '../store/models/message';
 import { initSequelize } from '../store/sequelize';
 import { EventType, IStorageManager } from '../types/memory';
 
+const stores = new Map<string, SQLiteManager>();
+
 export default class SQLiteManager implements IStorageManager {
   static async load(dbPath: string) {
+    if (stores.has(dbPath)) {
+      return stores.get(dbPath);
+    }
+
     const instance = new SQLiteManager();
+    stores.set(dbPath, instance);
     await instance.init(dbPath);
     return instance;
   }
@@ -16,6 +24,7 @@ export default class SQLiteManager implements IStorageManager {
 
     initHistory(sequelize);
     initMessage(sequelize);
+    initContent(sequelize);
 
     await migrate(sequelize);
   }

@@ -7,8 +7,8 @@ import {
   RunnableResponseStream,
 } from '@aigne/core';
 
-import nextId from '../lib/next-id';
-import { objectToStream } from '../lib/utils';
+import nextId from '../../lib/next-id';
+import { objectToStream } from '../../lib/utils';
 
 export class LongTermRunnable<
   T extends string = string,

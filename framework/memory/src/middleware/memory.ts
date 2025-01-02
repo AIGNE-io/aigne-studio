@@ -57,7 +57,7 @@ export function memoryRoutes(router: Router, path: string) {
   router.post('/run', compression(), async (req, res) => {
     const { messages, options } = await requestSchema.validateAsync(req.body, { stripUnknown: true });
     const memory = await loadMemory;
-    const llm = new OpenAIManager({ apiKey: '' });
+    const llm = new OpenAIManager();
     const memories = await memory.search(JSON.stringify(messages), options);
     console.log('memories', JSON.stringify(memories.results, null, 2));
     const assistantMessage = await llm.create({

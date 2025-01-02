@@ -131,6 +131,7 @@
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
     "vite-tsconfig-paths": "4.3.2",
-    "ws": "^8.18.0"
+    "ws": "^8.18.0",
+    "umzug": "^3.8.1"
   }
 }

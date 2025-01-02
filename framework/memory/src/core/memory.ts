@@ -88,7 +88,8 @@ export class Memory<T extends string, O extends MemoryActions<T>> extends CMemor
     const dbProvider = config?.dbProvider ?? (await SQLiteManager.load(dbPath));
     const vectorStoreProvider = config?.vectorStoreProvider ?? (await VectorStoreManager.load(dbPath, configYaml.id));
 
-    return new Memory({ memoryPath: config.path, runnable: config.runnable, vectorStoreProvider, dbProvider });
+    const memory = new Memory({ memoryPath: config.path, runnable: config.runnable, vectorStoreProvider, dbProvider });
+    return memory;
   }
 
   async add(

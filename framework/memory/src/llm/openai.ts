@@ -1,10 +1,9 @@
 import { chatCompletions } from '@blocklet/ai-kit/api/call';
 import { ChatCompletionInput, isChatCompletionChunk } from '@blocklet/ai-kit/api/types/chat';
-import OpenAI from 'openai';
 
 import logger from '../logger';
 
-export default class OpenAIManager extends OpenAI {
+export default class OpenAIManager {
   async create<T extends object>(input: ChatCompletionInput): Promise<T> {
     const stream = await chatCompletions({ model: 'gpt-4o-mini', temperature: 0, ...input });
 

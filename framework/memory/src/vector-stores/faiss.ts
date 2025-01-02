@@ -5,8 +5,7 @@ import { addVectors } from '../lib/vector-store';
 import Content, { init as initContent } from '../store/models/content';
 import { initSequelize } from '../store/sequelize';
 import VectorStoreFaiss from '../store/vector-store-faiss';
-import { IVectorStoreManager } from '../types/memory';
-import { VectorStoreDocument } from '../types/memory';
+import { IVectorStoreManager, VectorStoreDocument } from '../types/memory';
 
 export class ContentManager {
   static async load(dbPath: string) {
@@ -66,7 +65,9 @@ export class ContentManager {
 
 export default class FaissVectorStoreManager implements IVectorStoreManager {
   private embeddings: AIKitEmbeddings = new AIKitEmbeddings();
+
   private vectorStore?: VectorStoreFaiss;
+
   private db?: ContentManager;
 
   constructor(private vectorsFolderPath: string) {
@@ -92,7 +93,7 @@ export default class FaissVectorStoreManager implements IVectorStoreManager {
     }
 
     await addVectors(this.vectorStore!, data, id, metadata);
-    await this.db?.addContent({ id: id, content: data, metadata });
+    await this.db?.addContent({ id, content: data, metadata });
   }
 
   async delete(id: string) {
@@ -157,7 +158,7 @@ export default class FaissVectorStoreManager implements IVectorStoreManager {
         metadata
       );
 
-      const filtered = results.filter(([doc, _score]) => {
+      const filtered = results.filter(([doc]) => {
         return Object.entries(metadata).every(([key, value]) => {
           return doc.metadata[key] === value;
         });

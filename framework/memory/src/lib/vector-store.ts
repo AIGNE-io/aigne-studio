@@ -1,4 +1,5 @@
 import { Document } from '@langchain/core/documents';
+
 import VectorStoreFaiss from '../store/vector-store-faiss';
 import { AIKitEmbeddings } from './embeddings/ai-kit';
 
@@ -10,7 +11,7 @@ export const addVectors = async (
   id: string,
   metadata: { [key: string]: any }
 ) => {
-  const document = new Document({ pageContent: data, metadata: metadata });
+  const document = new Document({ pageContent: data, metadata });
 
   const embeddings = new AIKitEmbeddings();
   const vectors = await embeddings.embedDocuments([JSON.stringify(document)]);

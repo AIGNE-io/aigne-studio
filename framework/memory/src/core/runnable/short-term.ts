@@ -9,11 +9,11 @@ import {
 } from '@aigne/core';
 import { uniqBy } from 'lodash';
 
-import nextId from '../lib/next-id';
-import { getUpdateMemoryMessages } from '../lib/prompts';
-import { getFactRetrievalMessages, objectToStream, parseMessages } from '../lib/utils';
-import logger from '../logger';
-import { IVectorStoreManager } from '../types/memory';
+import nextId from '../../lib/next-id';
+import { getUpdateMemoryMessages } from '../../lib/prompts';
+import { getFactRetrievalMessages, objectToStream, parseMessages } from '../../lib/utils';
+import logger from '../../logger';
+import { IVectorStoreManager } from '../../types/memory';
 
 export class ShortTermRunnable<
   T extends string = string,

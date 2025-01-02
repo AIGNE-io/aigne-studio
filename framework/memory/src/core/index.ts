@@ -1,3 +1,3 @@
 export * from './memory';
-export * from './short-term-runnable';
-export * from './long-term-runnable';
+export * from './runnable/short-term';
+export * from './runnable/long-term';
