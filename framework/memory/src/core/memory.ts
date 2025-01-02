@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 import { createHash } from 'crypto';
 
 import {
@@ -66,7 +67,6 @@ export class Memory<T extends string, O extends MemoryActions<T>> extends CMemor
   }) {
     if (!config.path) throw new Error('Path is required');
 
-    const vectorsFolderPath = joinURL(config.path, 'vectors');
     const dbPath = `sqlite:${config.path}/memory.db`;
     const configPath = joinURL(config.path, 'config.yaml');
 
@@ -74,10 +74,6 @@ export class Memory<T extends string, O extends MemoryActions<T>> extends CMemor
 
     if (!(await pathExists(config.path))) {
       await mkdir(config.path, { recursive: true });
-    }
-
-    if (!(await pathExists(vectorsFolderPath))) {
-      await mkdir(vectorsFolderPath, { recursive: true });
     }
 
     if (!(await pathExists(configPath))) {
@@ -90,15 +86,9 @@ export class Memory<T extends string, O extends MemoryActions<T>> extends CMemor
     }
 
     const dbProvider = config?.dbProvider ?? (await SQLiteManager.load(dbPath));
-    const vectorStoreProvider = config?.vectorStoreProvider ?? (await VectorStoreManager.load(configYaml.id));
+    const vectorStoreProvider = config?.vectorStoreProvider ?? (await VectorStoreManager.load(dbPath, configYaml.id));
 
-    return new Memory({
-      memoryPath: config.path,
-      runnable: config.runnable,
-
-      vectorStoreProvider,
-      dbProvider,
-    });
+    return new Memory({ memoryPath: config.path, runnable: config.runnable, vectorStoreProvider, dbProvider });
   }
 
   async add(
@@ -134,7 +124,7 @@ export class Memory<T extends string, O extends MemoryActions<T>> extends CMemor
           case 'add': {
             const memoryId = await this._createMemory({
               data: memory.memory,
-              metadata: { ...metadata, ...memory.metadata },
+              metadata: { ...metadata, ...(memory.metadata || {}) },
             });
 
             returnedMemories.push({
@@ -149,7 +139,7 @@ export class Memory<T extends string, O extends MemoryActions<T>> extends CMemor
             await this._updateMemory({
               memoryId: memory.id,
               data: memory.memory,
-              metadata: { ...metadata, ...memory.metadata },
+              metadata: { ...metadata, ...(memory.metadata || {}) },
             });
 
             returnedMemories.push({

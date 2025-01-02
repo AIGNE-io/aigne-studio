@@ -39,6 +39,6 @@ export const init = (sequelize: Sequelize) => {
         type: DataTypes.DATE,
       },
     },
-    { sequelize: sequelize }
+    { sequelize }
   );
 };

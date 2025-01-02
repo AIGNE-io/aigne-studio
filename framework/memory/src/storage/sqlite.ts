@@ -1,8 +1,8 @@
 import { migrate } from '../store/migrate';
-import History, { EventType, init as initHistory } from '../store/models/history';
+import History, { init as initHistory } from '../store/models/history';
 import Message, { init as initMessage } from '../store/models/message';
 import { initSequelize } from '../store/sequelize';
-import { IStorageManager } from '../types/memory';
+import { EventType, IStorageManager } from '../types/memory';
 
 export default class SQLiteManager implements IStorageManager {
   static async load(dbPath: string) {
