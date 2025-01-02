@@ -1,6 +1,6 @@
 import { BlockletStatus } from '@blocklet/constant';
 import { components } from '@blocklet/sdk/lib/config';
-import { Document } from 'langchain/document';
+import { Document } from '@langchain/core/documents';
 
 import { SEARCH_KIT_DID } from '../constants';
 import { AIKitEmbeddings } from '../lib/embeddings/ai-kit';
@@ -66,7 +66,7 @@ export default class SearchKitManager implements IVectorStoreManager {
       throw new Error('SearchClient not initialized');
     }
 
-    // this.contentManager = await SQLiteContentManager.load(dbPath);
+    this.contentManager = await SQLiteContentManager.load(dbPath);
 
     const rowInfo = await this.postIndex.getRawInfo().catch(() => null);
     if (!rowInfo?.uid) {

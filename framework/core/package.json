@@ -50,7 +50,6 @@
     "js-cookie": "^3.0.5",
     "json-logic-js": "^2.0.5",
     "json-stable-stringify": "^1.1.1",
-    "langchain": "^0.2.17",
     "lodash": "^4.17.21",
     "mustache": "^4.2.0",
     "nanoid": "^3.3.7",

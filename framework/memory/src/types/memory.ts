@@ -1,5 +1,5 @@
 import { MemoryActionItem } from '@aigne/core';
-import { Document } from 'langchain/document';
+import { Document } from '@langchain/core/documents';
 
 export type EventType = MemoryActionItem<any>['event'];
 
