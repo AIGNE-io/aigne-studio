@@ -8,8 +8,6 @@ export const migrate = async (sequelize: Sequelize) => {
     migrations: {
       glob: ['**/migrations/*.{ts,js}', { cwd: path.join(__dirname, './') }],
       resolve: ({ name, path, context }) => {
-        console.log(name, path);
-
         return {
           name,
           up: async () => (await import(path!)).up({ context }),
@@ -22,5 +20,10 @@ export const migrate = async (sequelize: Sequelize) => {
     logger: console,
   });
 
-  await umzug.up();
+  try {
+    await umzug.up();
+  } catch (error) {
+    console.error('Failed to migrate', error);
+    throw error;
+  }
 };

@@ -1,5 +1,4 @@
-import { Document } from 'langchain/document';
-
+import { Document } from '@langchain/core/documents';
 import VectorStoreFaiss from '../store/vector-store-faiss';
 import { AIKitEmbeddings } from './embeddings/ai-kit';
 
