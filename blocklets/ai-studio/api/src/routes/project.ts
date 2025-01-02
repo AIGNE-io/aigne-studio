@@ -4,6 +4,7 @@ import { basename, dirname, isAbsolute, join } from 'path';
 
 import { AIGNERuntime } from '@aigne/runtime';
 import { generateWrapperCode } from '@aigne/runtime/cmd';
+import { EVENTS, event } from '@api/event';
 import { projectCronManager } from '@api/libs/cron-jobs';
 import { Config } from '@api/libs/env';
 import { NoPermissionError, NotFoundError } from '@api/libs/error';
@@ -637,6 +638,8 @@ export function projectRoutes(router: Router) {
 
     projectCronManager.reloadProjectJobs(project.id);
 
+    event.emit(EVENTS.PROJECT.CREATED, { projectId: project.id });
+
     res.json(project);
   });
 
@@ -803,6 +806,8 @@ export function projectRoutes(router: Router) {
         (v) => v === undefined
       )
     );
+
+    event.emit(EVENTS.PROJECT.UPDATED, { projectId });
 
     const author = { name: fullName, email: userId };
 

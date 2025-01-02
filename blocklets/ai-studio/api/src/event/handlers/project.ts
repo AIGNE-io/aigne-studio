@@ -1,3 +1,8 @@
+import { authClient, wallet } from '@api/libs/auth';
+import Project from '@api/store/models/project';
+import { PutPreviewObjectCommand, SpaceClient } from '@blocklet/did-space-js';
+import { isEmpty } from 'lodash';
+
 import { EVENTS, event } from '../event';
 
 const projectHandlers = {
@@ -6,9 +11,44 @@ const projectHandlers = {
   },
   [EVENTS.PROJECT.UPDATED]: async ({ projectId }: { projectId: string }) => {
     console.error('project updated', projectId);
+
+    const project = await Project.findOne({
+      where: {
+        id: projectId,
+      },
+    });
+
+    if (!project) {
+      return;
+    }
+
+    const { user } = await authClient.getUser(project.createdBy);
+    const endpoint = user?.didSpace?.endpoint;
+    if (isEmpty(endpoint)) {
+      return;
+    }
+
+    const spaceClient = new SpaceClient({
+      endpoint,
+      wallet,
+    });
+
+    await spaceClient.send(
+      new PutPreviewObjectCommand({
+        key: `projects/${project.id}/preview.png`,
+        data: {
+          template: 'project',
+          did: project.id,
+          name: project.name!,
+          description: project.description!,
+          image: 'https://bbqa62m2l7vxzoygklrl3aetcm5x6uv54c52vkw42vy.did.abtnet.io/projects',
+          url: 'https://bbqa62m2l7vxzoygklrl3aetcm5x6uv54c52vkw42vy.did.abtnet.io/projects',
+          createdAt: project.createdAt.toISOString(),
+        },
+      })
+    );
   },
 };
 
 // 订阅事件
-// @ts-expect-error
-Object.keys(projectHandlers).forEach((key) => event.on(key, projectHandlers[key]));
+Object.entries(projectHandlers).forEach(([key, handler]) => event.on(key, handler));
