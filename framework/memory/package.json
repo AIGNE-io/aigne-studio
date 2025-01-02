@@ -90,6 +90,7 @@
     "snowflake-uuid": "^1.0.0",
     "typescript": "^5.5.4",
     "ufo": "^1.5.4",
+    "umzug": "^3.8.1",
     "yaml": "^2.5.0"
   },
   "devDependencies": {

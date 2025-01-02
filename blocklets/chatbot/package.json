@@ -39,7 +39,6 @@
     ]
   },
   "dependencies": {
-    "@aigne-project/chatbot": "https://dev.blocklet.mac.yechao.xyz/aigne-studio/api/projects/526280358526713856/npm/package.tgz?secret=ioK2Wgf8SNLeaFfVPUn7i&hash=c0b474195529baaff4411af1fded664a0a3ca432",
     "@aigne/core": "workspace:^",
     "@aigne/memory": "workspace:^",
     "@arcblock/did-auth": "^1.18.162",

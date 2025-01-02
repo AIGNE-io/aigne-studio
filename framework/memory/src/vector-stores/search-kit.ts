@@ -1,13 +1,11 @@
-import { createHash } from 'crypto';
-
 import { BlockletStatus } from '@blocklet/constant';
 import { components } from '@blocklet/sdk/lib/config';
 import { Document } from 'langchain/document';
-import { cloneDeep, orderBy } from 'lodash';
 
 import { SEARCH_KIT_DID } from '../constants';
 import { AIKitEmbeddings } from '../lib/embeddings/ai-kit';
 import logger from '../logger';
+import SQLiteContentManager from '../storage/content';
 import { IVectorStoreManager, VectorStoreContent } from '../types/memory';
 
 const { SearchKitClient, resolveRestEmbedders } = require('@blocklet/search-kit-js');
@@ -42,13 +40,15 @@ export default class SearchKitManager implements IVectorStoreManager {
 
   protected indexId: string = '';
 
-  static async load(id: string) {
+  protected contentManager?: SQLiteContentManager;
+
+  static async load(dbPath: string, id: string) {
     const instance = new SearchKitManager();
-    await instance.init(id);
+    await instance.init(dbPath, id);
     return instance;
   }
 
-  async init(indexId: string) {
+  async init(dbPath: string, indexId: string) {
     this.indexId = indexId;
 
     try {
@@ -66,10 +66,13 @@ export default class SearchKitManager implements IVectorStoreManager {
       throw new Error('SearchClient not initialized');
     }
 
+    // this.contentManager = await SQLiteContentManager.load(dbPath);
+
     const rowInfo = await this.postIndex.getRawInfo().catch(() => null);
     if (!rowInfo?.uid) {
       const { taskUid } = await this.client.createIndex(this.indexId);
       await this.waitForTask(taskUid);
+      await this.batchIndexPosts();
     }
 
     await this.updateConfig();
@@ -85,6 +88,34 @@ export default class SearchKitManager implements IVectorStoreManager {
 
   get options() {
     return { primaryKey: 'id' };
+  }
+
+  async batchIndexPosts({ size = 2000 } = {}) {
+    const models =
+      (await this.contentManager?.getOriginContent({}).catch(() => {
+        return [];
+      })) || [];
+
+    const postIds = models.map((x) => x.id);
+    const total = postIds.length;
+
+    const length = Math.ceil(total / size);
+    const batches = Array.from({ length }, (_, i) => postIds.slice(i * size, (i + 1) * size));
+
+    const tasks = [];
+    for (const batch of batches) {
+      const { taskUid } = await this.updatePosts(batch);
+      logger.info(`batch taskUid: ${taskUid}`);
+      tasks.push(taskUid);
+    }
+
+    return tasks;
+  }
+
+  private async updatePosts(ids: string[]) {
+    const documents = await this.contentManager?.getOriginContent({ id: { $in: ids } });
+    const result = await this.postIndex.updateDocuments(documents, this.options);
+    return result;
   }
 
   waitForTask(uid: number, { timeOutMs = 1000 * 60 * 10, intervalMs = 1000 } = {}) {
@@ -133,12 +164,20 @@ export default class SearchKitManager implements IVectorStoreManager {
       updatedAt: new Date(),
     };
 
+    await this.contentManager?.addOriginContent(id, data, metadata).catch((e) => {
+      logger.error('Error adding origin content', e);
+    });
+
     const result = await this.postIndex.updateDocuments([document], this.options);
     await this.waitForTask(result.taskUid);
     return result;
   }
 
   async delete(id: string): Promise<void> {
+    await this.contentManager?.deleteOriginContent(id).catch((e) => {
+      logger.error('Error deleting origin content', e);
+    });
+
     const result = await this.postIndex.deleteDocuments([id]);
     await this.waitForTask(result.taskUid);
     return result;
@@ -158,6 +197,10 @@ export default class SearchKitManager implements IVectorStoreManager {
       updatedAt: new Date(),
     };
 
+    await this.contentManager?.updateOriginContent(id, data, metadata).catch((e) => {
+      logger.error('Error updating origin content', e);
+    });
+
     const result = await this.postIndex.updateDocuments([document], this.options);
     await this.waitForTask(result.taskUid);
     return result;
@@ -169,7 +212,7 @@ export default class SearchKitManager implements IVectorStoreManager {
   }
 
   async search(query: string, k: number, metadata?: Record<string, any>): Promise<Document[]> {
-    const result = await this._search(query, k, metadata, { sort: ['updatedAt:desc'] });
+    const result = await this._search(query, k, metadata, {});
     return result;
   }
 
@@ -220,10 +263,6 @@ export default class SearchKitManager implements IVectorStoreManager {
         ...(options || {}),
       })
     ).hits;
-
-    if (options?.showRankingScore) {
-      return orderBy(cloneDeep(result), ['_rankingScore'], ['desc']);
-    }
 
     return result;
   }

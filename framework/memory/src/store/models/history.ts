@@ -2,8 +2,7 @@ import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, 
 import type { Sequelize } from 'sequelize';
 
 import nextId from '../../lib/next-id';
-
-export type EventType = 'add' | 'update' | 'delete' | 'none';
+import { EventType } from '../../types/memory';
 
 export default class History extends Model<InferAttributes<History>, InferCreationAttributes<History>> {
   declare id: CreationOptional<string>;
@@ -61,6 +60,6 @@ export const init = (sequelize: Sequelize) => {
         defaultValue: false,
       },
     },
-    { sequelize: sequelize }
+    { sequelize }
   );
 };
