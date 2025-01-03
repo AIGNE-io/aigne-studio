@@ -1,3 +1,7 @@
+import { getProjectDid, getProjectIconUrl, getProjectUrl } from '@api/libs/project';
+import { getSpaceClient } from '@api/libs/spaces';
+import { DeletePreviewObjectCommand, PutPreviewObjectCommand } from '@blocklet/did-space-js';
+import dayjs from 'dayjs';
 import type { CreationOptional, InferAttributes, InferCreationAttributes } from 'sequelize';
 import { DataTypes, Model } from 'sequelize';
 import { Worker } from 'snowflake-uuid';
@@ -74,6 +78,64 @@ export default class Project extends Model<InferAttributes<Project>, InferCreati
 
   static associate(models: { Deployment: any }) {
     this.hasOne(models.Deployment, { foreignKey: 'projectId' });
+  }
+
+  static async updatePreviewObject(projectId: string) {
+    const project = await Project.findOne({
+      where: {
+        id: projectId,
+      },
+    });
+    if (!project) {
+      return;
+    }
+
+    const spaceClient = await getSpaceClient(project.createdBy);
+    if (!spaceClient) {
+      return;
+    }
+
+    const output = await spaceClient.send(
+      new PutPreviewObjectCommand({
+        key: `repositories/${project.id}/`,
+        data: {
+          template: 'project',
+          did: getProjectDid(project),
+          name: project.name!,
+          description: project.description || '',
+          image: getProjectIconUrl(project.id, {
+            updatedAt: dayjs(project.updatedAt).toDate().getTime(),
+          }),
+          url: getProjectUrl(project.id),
+          createdAt: dayjs(project.createdAt).toISOString(),
+        },
+      })
+    );
+    if (output.statusCode !== 200) {
+      console.error(output.statusMessage);
+      throw new Error(output.statusMessage);
+    }
+  }
+
+  static async deletePreviewObject(project: Project) {
+    if (!project) {
+      return;
+    }
+
+    const spaceClient = await getSpaceClient(project.createdBy);
+    if (!spaceClient) {
+      return;
+    }
+
+    const output = await spaceClient.send(
+      new DeletePreviewObjectCommand({
+        key: `repositories/${project.id}/`,
+      })
+    );
+    if (output.statusCode !== 200) {
+      console.error(output.statusMessage);
+      throw new Error(output.statusMessage);
+    }
   }
 }
 

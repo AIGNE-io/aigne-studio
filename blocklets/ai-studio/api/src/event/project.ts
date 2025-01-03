@@ -3,4 +3,5 @@ export const PROJECT = {
   SYNC_TO_GIT: 'project.sync-to-git',
   CREATED: 'project.created',
   UPDATED: 'project.updated',
+  DELETED: 'project.deleted',
 };
