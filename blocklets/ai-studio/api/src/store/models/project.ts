@@ -1,3 +1,4 @@
+import { EVENTS, event } from '@api/event';
 import { getProjectDid, getProjectIconUrl, getProjectUrl } from '@api/libs/project';
 import { getSpaceClient } from '@api/libs/spaces';
 import { DeletePreviewObjectCommand, PutPreviewObjectCommand } from '@blocklet/did-space-js';
@@ -80,16 +81,117 @@ export default class Project extends Model<InferAttributes<Project>, InferCreati
     this.hasOne(models.Deployment, { foreignKey: 'projectId' });
   }
 
-  static async updatePreviewObject(projectId: string) {
-    const project = await Project.findOne({
-      where: {
-        id: projectId,
+  static initialize() {
+    this.init(
+      {
+        id: {
+          type: DataTypes.STRING,
+          primaryKey: true,
+          allowNull: false,
+          defaultValue: nextProjectId,
+        },
+        duplicateFrom: {
+          type: DataTypes.STRING,
+        },
+        name: {
+          type: DataTypes.STRING,
+        },
+        description: {
+          type: DataTypes.STRING,
+        },
+        model: {
+          type: DataTypes.STRING,
+        },
+        createdAt: {
+          type: DataTypes.DATE,
+        },
+        updatedAt: {
+          type: DataTypes.DATE,
+        },
+        createdBy: {
+          type: DataTypes.STRING,
+        },
+        updatedBy: {
+          type: DataTypes.STRING,
+        },
+        pinnedAt: {
+          type: DataTypes.DATE,
+        },
+        icon: {
+          type: DataTypes.STRING,
+        },
+        gitType: {
+          type: DataTypes.STRING,
+          defaultValue: 'simple',
+        },
+        temperature: {
+          type: DataTypes.FLOAT,
+          defaultValue: 1.0,
+        },
+        topP: {
+          type: DataTypes.FLOAT,
+          defaultValue: 1.0,
+        },
+        presencePenalty: {
+          type: DataTypes.FLOAT,
+        },
+        frequencyPenalty: {
+          type: DataTypes.FLOAT,
+        },
+        maxTokens: {
+          type: DataTypes.FLOAT,
+        },
+        gitUrl: {
+          type: DataTypes.STRING,
+        },
+        gitDefaultBranch: {
+          type: DataTypes.STRING,
+          defaultValue: 'main',
+        },
+        gitAutoSync: {
+          type: DataTypes.BOOLEAN,
+        },
+        gitLastSyncedAt: {
+          type: DataTypes.DATE,
+        },
+        didSpaceAutoSync: {
+          type: DataTypes.BOOLEAN,
+          defaultValue: true,
+        },
+        didSpaceLastSyncedAt: {
+          type: DataTypes.DATE,
+        },
+        projectType: {
+          type: DataTypes.STRING,
+        },
+        homePageUrl: {
+          type: DataTypes.STRING,
+        },
+        appearance: {
+          type: DataTypes.JSON,
+        },
       },
-    });
-    if (!project) {
-      return;
-    }
+      {
+        sequelize,
+        hooks: {
+          afterCreate: async (project: Project) => {
+            console.error('debug233.afterCreate', project);
+            event.emit(EVENTS.PROJECT.CREATED, { project });
+          },
+          afterUpdate: async (project: Project) => {
+            console.error('debug233.afterUpdate', project);
+            event.emit(EVENTS.PROJECT.UPDATED, { project });
+          },
+          afterDestroy: async (project: Project) => {
+            console.error('debug233.afterDestroy', project);
+            event.emit(EVENTS.PROJECT.DELETED, { project });
+          },
+        },
+      }
+    );
+  }
 
+  static async updatePreviewObject(project: Project) {
     const spaceClient = await getSpaceClient(project.createdBy);
     if (!spaceClient) {
       return;
@@ -139,94 +241,4 @@ export default class Project extends Model<InferAttributes<Project>, InferCreati
   }
 }
 
-Project.init(
-  {
-    id: {
-      type: DataTypes.STRING,
-      primaryKey: true,
-      allowNull: false,
-      defaultValue: nextProjectId,
-    },
-    duplicateFrom: {
-      type: DataTypes.STRING,
-    },
-    name: {
-      type: DataTypes.STRING,
-    },
-    description: {
-      type: DataTypes.STRING,
-    },
-    model: {
-      type: DataTypes.STRING,
-    },
-    createdAt: {
-      type: DataTypes.DATE,
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-    },
-    createdBy: {
-      type: DataTypes.STRING,
-    },
-    updatedBy: {
-      type: DataTypes.STRING,
-    },
-    pinnedAt: {
-      type: DataTypes.DATE,
-    },
-    icon: {
-      type: DataTypes.STRING,
-    },
-    gitType: {
-      type: DataTypes.STRING,
-      defaultValue: 'simple',
-    },
-    temperature: {
-      type: DataTypes.FLOAT,
-      defaultValue: 1.0,
-    },
-    topP: {
-      type: DataTypes.FLOAT,
-      defaultValue: 1.0,
-    },
-    presencePenalty: {
-      type: DataTypes.FLOAT,
-    },
-    frequencyPenalty: {
-      type: DataTypes.FLOAT,
-    },
-    maxTokens: {
-      type: DataTypes.FLOAT,
-    },
-    gitUrl: {
-      type: DataTypes.STRING,
-    },
-    gitDefaultBranch: {
-      type: DataTypes.STRING,
-      defaultValue: 'main',
-    },
-    gitAutoSync: {
-      type: DataTypes.BOOLEAN,
-    },
-    gitLastSyncedAt: {
-      type: DataTypes.DATE,
-    },
-    didSpaceAutoSync: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: true,
-    },
-    didSpaceLastSyncedAt: {
-      type: DataTypes.DATE,
-    },
-    projectType: {
-      type: DataTypes.STRING,
-    },
-    homePageUrl: {
-      type: DataTypes.STRING,
-    },
-    appearance: {
-      type: DataTypes.JSON,
-    },
-  },
-  { sequelize }
-);
+Project.initialize();
