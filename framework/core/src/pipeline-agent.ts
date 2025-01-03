@@ -3,7 +3,7 @@ import { nanoid } from 'nanoid';
 import { inject, injectable } from 'tsyringe';
 
 import { StreamTextOutputName, TYPES } from './constants';
-import { Context } from './context';
+import type { Context } from './context';
 import { DataType } from './data-type';
 import logger from './logger';
 import {
@@ -31,7 +31,7 @@ export class PipelineAgent<I extends { [key: string]: any } = {}, O extends {} =
   }
 
   constructor(
-    @inject(TYPES.definition) public definition: PipelineAgentDefinition,
+    @inject(TYPES.definition) public override definition: PipelineAgentDefinition,
     @inject(TYPES.context) public context?: Context
   ) {
     super(definition);

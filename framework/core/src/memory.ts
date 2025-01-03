@@ -1,6 +1,6 @@
 import { camelCase, startCase } from 'lodash';
 
-import { RunOptions, Runnable, RunnableResponse, RunnableResponseStream } from './runnable';
+import { Runnable } from './runnable';
 import { OrderedRecord } from './utils';
 
 export type MemoryActionItem<T> =
@@ -207,8 +207,4 @@ export abstract class MemoryRunnable<
       outputs: OrderedRecord.fromArray([]),
     });
   }
-
-  abstract run(input: MemoryRunnableInputs, options: RunOptions & { stream: true }): Promise<RunnableResponseStream<O>>;
-  abstract run(input: MemoryRunnableInputs, options?: RunOptions & { stream?: false }): Promise<O>;
-  abstract run(input: MemoryRunnableInputs, options?: RunOptions): Promise<RunnableResponse<O>>;
 }

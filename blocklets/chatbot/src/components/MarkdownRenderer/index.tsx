@@ -1,26 +1,58 @@
-import { Box, Stack, styled } from '@mui/material';
+import { Box, Link, Stack, Tooltip, TooltipProps, Typography, styled, tooltipClasses } from '@mui/material';
 import React, { ComponentProps, ReactElement, ReactNode, Suspense } from 'react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
 const ReactSyntaxHighlighter = React.lazy(() => import('react-syntax-highlighter').then((m) => ({ default: m.Prism })));
 
-const MarkdownRenderer = styled((props: ComponentProps<typeof Markdown>) => (
-  <Markdown
-    {...props}
-    remarkPlugins={[remarkGfm]}
-    components={{
-      pre: MarkdownPre,
-      table: ({ className, children }) => {
-        return (
-          <Box sx={{ overflow: 'auto', my: 1 }}>
-            <table className={className}>{children}</table>
-          </Box>
-        );
-      },
-    }}
-  />
-))`
+const MarkdownRenderer = styled(
+  (props: ComponentProps<typeof Markdown> & { citations?: { title?: string; url: string }[] }) => (
+    <Markdown
+      {...props}
+      remarkPlugins={[remarkGfm]}
+      components={{
+        pre: MarkdownPre,
+        table: ({ className, children }) => {
+          return (
+            <Box sx={{ overflow: 'auto', my: 1 }}>
+              <table className={className}>{children}</table>
+            </Box>
+          );
+        },
+        a: ({ href, children }) => {
+          const index = Number(href) - 1;
+          const citation = props.citations?.[index];
+          if (!citation && !index) return <a href={href}>{children}</a>;
+          if (!citation) return null;
+
+          return (
+            <HtmlTooltip title={<LinkPreviewContent {...citation} />}>
+              <Box
+                component="a"
+                href={citation.url}
+                target="_blank"
+                rel="noreferrer"
+                sx={{
+                  bgcolor: 'grey.300',
+                  borderRadius: 10,
+                  px: 0.5,
+                  mx: 0.5,
+                  textDecoration: 'none',
+                  fontSize: 14,
+                  verticalAlign: 'top',
+                }}>
+                {index + 1}
+              </Box>
+            </HtmlTooltip>
+          );
+        },
+      }}>
+      {props.children
+        ?.replaceAll(/\[citation:(\d+)]/gi, '[citation]($1)')
+        .replaceAll(/【citation:(\d+)】/gi, '[citation]($1)')}
+    </Markdown>
+  ),
+)`
   width: 100%;
   overflow: hidden;
   word-break: break-word;
@@ -97,6 +129,37 @@ const MarkdownRenderer = styled((props: ComponentProps<typeof Markdown>) => (
 `;
 
 export default MarkdownRenderer;
+
+const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
+  <Tooltip {...props} classes={{ popper: className }} />
+))(({ theme }) => ({
+  [`& .${tooltipClasses.tooltip}`]: {
+    backgroundColor: '#f5f5f9',
+    color: 'rgba(0, 0, 0, 0.87)',
+    border: `1px solid ${theme.palette.divider}`,
+  },
+}));
+
+function LinkPreviewContent({ title, url, content }: { title?: string; url: string; content?: string }) {
+  return (
+    <Stack gap={1} sx={{ mark: { bgcolor: 'transparent', color: 'inherit' } }}>
+      <Link href={url} target="_blank">
+        <Typography variant="body2">{title && <span dangerouslySetInnerHTML={{ __html: title }} />}</Typography>
+      </Link>
+
+      <Typography
+        variant="body2"
+        sx={{
+          display: '-webkit-box',
+          WebkitBoxOrient: 'vertical',
+          WebkitLineClamp: 5,
+          overflow: 'hidden',
+        }}>
+        {content && <span dangerouslySetInnerHTML={{ __html: content }} />}
+      </Typography>
+    </Stack>
+  );
+}
 
 function MarkdownPre({ children, ...props }: { children?: ReactNode }) {
   const childrenProps = (children as ReactElement)?.props;

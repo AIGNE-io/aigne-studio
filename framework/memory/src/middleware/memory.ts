@@ -36,7 +36,8 @@ const searchRequestSchema = Joi.object({
 });
 
 export function memoryRoutes(router: Router, path: string) {
-  const loadMemory = Memory.load({ path, runnable: new ShortTermRunnable() });
+  // TODO: pass llmModel to Memory
+  const loadMemory = Memory.load({ path, runnable: new ShortTermRunnable(undefined as any) });
 
   router.post('/add', compression(), async (req, res) => {
     const memory = await loadMemory;

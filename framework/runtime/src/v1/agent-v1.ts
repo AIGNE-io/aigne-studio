@@ -1,12 +1,5 @@
-import {
-  LLMModel,
-  RunOptions,
-  Runnable,
-  RunnableDefinition,
-  RunnableResponse,
-  RunnableResponseStream,
-  TYPES,
-} from '@aigne/core';
+import type { RunnableDefinition } from '@aigne/core';
+import { LLMModel, RunOptions, Runnable, RunnableResponse, RunnableResponseStream, TYPES } from '@aigne/core';
 import { ChatCompletionResponse } from '@blocklet/ai-kit/api/types/index';
 import { inject, injectable } from 'tsyringe';
 
@@ -22,7 +15,7 @@ import { nextId } from './utils/task-id';
 @injectable()
 export class AgentV1<I extends {} = {}, O extends {} = {}> extends Runnable<I, O> {
   constructor(
-    @inject(TYPES.definition) public definition: RunnableDefinition,
+    @inject(TYPES.definition) public override definition: RunnableDefinition,
     @inject(TYPES.context) private runtime: Runtime,
     @inject(TYPES.llmModel) private llmModel: LLMModel
   ) {
@@ -36,25 +29,26 @@ export class AgentV1<I extends {} = {}, O extends {} = {}> extends Runnable<I, O
 
     const taskId = nextId();
     const messageId = nextId();
+    const { llmModel } = this;
 
     const callAI: CallAI = async ({ input }) => {
-      const stream = await this.llmModel.run(
-        {
-          messages: input.messages,
-          modelSettings: {
-            model: input.model || defaultTextModel,
-            temperature: input.temperature,
-            topP: input.topP,
-            presencePenalty: input.presencePenalty,
-            frequencyPenalty: input.frequencyPenalty,
-          },
-        },
-        { stream: true }
-      );
-
       return new ReadableStream<ChatCompletionResponse>({
         async start(controller) {
           try {
+            const stream = await llmModel.run(
+              {
+                messages: input.messages,
+                modelSettings: {
+                  model: input.model || defaultTextModel,
+                  temperature: input.temperature,
+                  topP: input.topP,
+                  presencePenalty: input.presencePenalty,
+                  frequencyPenalty: input.frequencyPenalty,
+                },
+              },
+              { stream: true }
+            );
+
             for await (const chunk of stream) {
               controller.enqueue({
                 delta: { content: chunk.$text, toolCalls: chunk.delta?.toolCalls },

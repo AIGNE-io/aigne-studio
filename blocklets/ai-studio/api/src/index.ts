@@ -61,7 +61,7 @@ app.use(accessLogMiddleware);
 app.get('/.well-known/blocklet/openembed', getOpenEmbed);
 
 app.use('/api', routes);
-app.use('/api', createMiddleware({ path: '/Users/leermao/work/blocklet/ai-studio/blocklets/ai-studio/.data' }));
+// app.use('/api', createMiddleware({ path: '/Users/leermao/work/blocklet/ai-studio/blocklets/ai-studio/.data' }));
 
 if (!isDevelopment) {
   const staticDir = path.resolve(Config.appDir, 'dist');

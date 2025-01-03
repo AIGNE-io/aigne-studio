@@ -1,4 +1,4 @@
-import { RunOptions, Runnable, RunnableResponse, RunnableResponseStream } from './runnable';
+import { Runnable } from './runnable';
 import { OrderedRecord } from './utils';
 
 export type Role = 'system' | 'user' | 'assistant' | 'tool';
@@ -87,11 +87,4 @@ export abstract class LLMModel extends Runnable<LLMModelInputs, LLMModelOutputs>
       ]),
     });
   }
-
-  abstract run(
-    input: LLMModelInputs,
-    options: RunOptions & { stream: true }
-  ): Promise<RunnableResponseStream<LLMModelOutputs>>;
-  abstract run(input: LLMModelInputs, options?: RunOptions & { stream?: false }): Promise<LLMModelOutputs>;
-  abstract run(input: LLMModelInputs, options?: RunOptions): Promise<RunnableResponse<LLMModelOutputs>>;
 }

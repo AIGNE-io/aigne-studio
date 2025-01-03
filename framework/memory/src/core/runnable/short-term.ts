@@ -47,6 +47,10 @@ export class ShortTermRunnable<
     const [systemPrompt, userPrompt] = getFactRetrievalMessages(parsedMessages);
 
     const response = await llm.run({
+      modelSettings: {
+        model: 'gpt-4o-mini',
+        temperature: 0.3,
+      },
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
@@ -76,10 +80,10 @@ export class ShortTermRunnable<
     const newRetrievedFacts = response?.$text ? JSON.parse(response.$text).facts : [];
     logger.info('newRetrievedFacts', { newRetrievedFacts });
 
-    const searchPromises = newRetrievedFacts.map((fact: string) =>
-      vectorStoreProvider.search(fact, 5, filters).catch(() => [])
+    const allExistingMemories = await Promise.all(
+      newRetrievedFacts.map((fact: string) => vectorStoreProvider.search(fact, 5, filters))
     );
-    const allExistingMemories = await Promise.all(searchPromises);
+
     const retrievedOldMemory = uniqBy(
       allExistingMemories.flatMap((existingMemories) => {
         logger.info('Existing Memories', { existingMemories: JSON.stringify(existingMemories, null, 2) });
@@ -108,6 +112,10 @@ export class ShortTermRunnable<
 
     const funcCallingPrompt = getUpdateMemoryMessages(retrievedOldMemory, newRetrievedFacts);
     const newMemoriesWithActions = await llm.run({
+      modelSettings: {
+        model: 'gpt-4o-mini',
+        temperature: 0.3,
+      },
       messages: [{ role: 'user', content: funcCallingPrompt }],
       responseFormat: {
         type: 'json_schema',

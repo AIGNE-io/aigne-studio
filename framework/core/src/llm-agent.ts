@@ -15,6 +15,7 @@ import {
 } from './runnable';
 import { isNonNullable, isPropsNonNullable } from './utils';
 import { renderMessage } from './utils/mustache-utils';
+import { OmitPropsFromUnion } from './utils/omit';
 import { OrderedRecord } from './utils/ordered-map';
 
 @injectable()
@@ -28,7 +29,7 @@ export class LLMAgent<I extends {} = {}, O extends {} = {}> extends Runnable<I, 
   }
 
   constructor(
-    @inject(TYPES.definition) public definition: LLMAgentDefinition,
+    @inject(TYPES.definition) public override definition: LLMAgentDefinition,
     @inject(TYPES.llmModel) public model?: LLMModel
   ) {
     super(definition);
@@ -118,8 +119,8 @@ export function createLLMAgentDefinition(options: {
   name?: string;
   messages?: { role: Role; content: string }[];
   modelSettings?: LLMModelInputs['modelSettings'];
-  inputs?: { name: string; type: DataType['type']; required?: boolean }[];
-  outputs?: { name: string; type: DataType['type']; required?: boolean }[];
+  inputs?: OmitPropsFromUnion<DataType, 'id'>[];
+  outputs?: OmitPropsFromUnion<DataType, 'id'>[];
 }): LLMAgentDefinition {
   const inputs = OrderedRecord.fromArray(
     options.inputs?.map((i) => ({
@@ -130,14 +131,7 @@ export function createLLMAgentDefinition(options: {
     }))
   );
 
-  const outputs = OrderedRecord.fromArray(
-    options.outputs?.map((i) => ({
-      id: nanoid(),
-      name: i.name,
-      type: i.type,
-      required: i.required,
-    }))
-  );
+  const outputs = OrderedRecord.fromArray(options.outputs?.map((i) => ({ ...i, id: nanoid() }) as DataType));
 
   const messages = OrderedRecord.fromArray(
     options.messages?.map((i) => ({
@@ -159,7 +153,7 @@ export function createLLMAgentDefinition(options: {
 }
 
 function outputsToJsonSchema(outputs: OrderedRecord<RunnableOutput>) {
-  const outputToSchema = (output: RunnableOutput): object => {
+  const outputToSchema = (output: OmitPropsFromUnion<RunnableOutput, 'id'>): object => {
     const properties =
       output.type === 'object' && output.properties?.$indexes.length
         ? OrderedRecord.map(output.properties, (property) => {
@@ -190,7 +184,6 @@ function outputsToJsonSchema(outputs: OrderedRecord<RunnableOutput>) {
   };
 
   return outputToSchema({
-    id: '',
     type: 'object',
     properties: outputs,
   });
