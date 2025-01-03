@@ -1,23 +1,11 @@
-import path from 'path';
-
 import type { Sequelize } from 'sequelize';
 import { SequelizeStorage, Umzug } from 'umzug';
 
+import * as init from './migrations/20241224202701-init';
+
 export const migrate = async (sequelize: Sequelize) => {
   const umzug = new Umzug({
-    migrations: {
-      glob: ['**/migrations/*.{ts,js}', { cwd: path.join(__dirname, './') }],
-      resolve: ({ name, path, context }) => {
-        if (!path) {
-          throw new Error('Migration file not found');
-        }
-        return {
-          name,
-          up: async () => (await import(path!)).up({ context }),
-          down: async () => (await import(path!)).down({ context }),
-        };
-      },
-    },
+    migrations: [{ ...init, name: '20241224202701-init' }],
     context: sequelize.getQueryInterface(),
     storage: new SequelizeStorage({ sequelize }),
     logger: console,

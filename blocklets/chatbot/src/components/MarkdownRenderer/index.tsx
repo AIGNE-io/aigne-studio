@@ -48,8 +48,8 @@ const MarkdownRenderer = styled(
         },
       }}>
       {props.children
-        ?.replaceAll(/\[citation:(\d+)]/gi, '[citation]($1)')
-        .replaceAll(/【citation:(\d+)】/gi, '[citation]($1)')}
+        ?.replaceAll(/\[\s*citation:(\d+)\s*]/gi, '[citation]($1)')
+        .replaceAll(/【\s*citation:(\d+)\s*】/gi, '[citation]($1)')}
     </Markdown>
   ),
 )`

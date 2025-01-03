@@ -40,15 +40,15 @@ export async function searchDiscussKit(options: {
           DiscussionTypePrefixMap[i.type] || '',
           i.slug || i.id,
         ),
-        title: i._formatted?.title || i._formatted?.translations?.[0]?.title,
-        content: i._formatted?._content || i._formatted?.translations?.[0]?._content,
+        title: i.title || i.translations?.[0]?.title,
+        content: i._content || i.translations?.[0]?._content,
       }))
       .filter((i: any) => i.title),
   };
 }
 
 const DiscussionTypePrefixMap: { [key: string]: string } = {
-  discussion: 'discussions',
+  post: 'discussions',
   bookmark: 'bookmark',
   doc: 'docs/docs',
   blog: 'blog',

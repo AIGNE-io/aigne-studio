@@ -11,3 +11,13 @@ namespace Express {
     user?: SessionUser;
   }
 }
+
+declare module '@blocklet/logger' {
+  function createLogger(name: string): typeof console;
+
+  namespace createLogger {
+    function getAccessLogStream(): any;
+  }
+
+  export default createLogger;
+}

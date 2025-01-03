@@ -358,9 +358,7 @@ export const chat = LocalFunctionAgent.create<{ question: string }, ChatbotRespo
             { role: 'assistant', content: $text },
           ];
           await Promise.all([ltm.add(msg, { userId }), stm.add(msg, { userId })]);
-          console.log('add memory success');
-          const allMemory = (await stm.filter({ k: 100 })).map((i) => i.memory).join('\n');
-          console.log('filter all short term memory success', allMemory);
+          const allMemory = (await stm.filter({ k: 100, userId })).map((i) => i.memory).join('\n');
 
           controller.enqueue({ delta: { allMemory } });
           controller.enqueue({ delta: { status: { loading: false } } });
