@@ -1,19 +1,17 @@
 import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
 import type { Sequelize } from 'sequelize';
 
+import { EventType } from '../../core/type';
 import nextId from '../../lib/next-id';
-import { EventType } from '../../types/memory';
 
 export default class History extends Model<InferAttributes<History>, InferCreationAttributes<History>> {
   declare id: CreationOptional<string>;
 
   declare memoryId: string;
 
-  declare oldMemory?: string;
+  declare oldMemory?: any;
 
-  declare newMemory?: string;
-
-  declare newValue?: string;
+  declare newMemory?: any;
 
   declare event: EventType;
 
@@ -21,7 +19,7 @@ export default class History extends Model<InferAttributes<History>, InferCreati
 
   declare updatedAt: CreationOptional<Date>;
 
-  declare isDeleted: boolean;
+  declare isDeleted?: boolean;
 }
 
 export const init = (sequelize: Sequelize) => {
@@ -33,27 +31,27 @@ export const init = (sequelize: Sequelize) => {
         allowNull: false,
         defaultValue: nextId,
       },
+      createdAt: {
+        type: DataTypes.DATE,
+        allowNull: false,
+      },
+      updatedAt: {
+        type: DataTypes.DATE,
+        allowNull: false,
+      },
       memoryId: {
         type: DataTypes.STRING,
         allowNull: false,
       },
       oldMemory: {
-        type: DataTypes.TEXT,
+        type: DataTypes.JSON,
       },
       newMemory: {
-        type: DataTypes.TEXT,
-      },
-      newValue: {
-        type: DataTypes.TEXT,
+        type: DataTypes.JSON,
       },
       event: {
-        type: DataTypes.TEXT,
-      },
-      createdAt: {
-        type: DataTypes.DATE,
-      },
-      updatedAt: {
-        type: DataTypes.DATE,
+        type: DataTypes.STRING,
+        allowNull: false,
       },
       isDeleted: {
         type: DataTypes.BOOLEAN,

@@ -2,22 +2,27 @@ import { join } from 'path';
 
 import chatbot from '@aigne-project/chatbot';
 import { LLMAgent, LLMDecisionAgent, LocalFunctionAgent } from '@aigne/core';
-import { LongTermRunnable, Memory, ShortTermRunnable } from '@aigne/memory';
+import { DefaultMemory, LongTermRunnable, ShortTermRunnable } from '@aigne/memory';
 import { BlockletLLMModel } from '@aigne/runtime';
 import { config } from '@blocklet/sdk';
 import { SessionUser } from '@blocklet/sdk/lib/util/login';
+import { differenceBy } from 'lodash';
 
 import { extractKeywordsAgent, knowledgeAgent } from './knowledge';
 import { ChatbotResponse } from './type';
 
-const longTermMemory = Memory.load({
+const longTermMemory = DefaultMemory.load({
   path: join(config.env.dataDir, 'long-term-memory'),
-  runnable: new LongTermRunnable(),
+  runner: new LongTermRunnable(),
 });
-const shortTermMemory = Memory.load({
+const shortTermMemory = DefaultMemory.load({
   path: join(config.env.dataDir, 'short-term-memory'),
-  runnable: new ShortTermRunnable(new BlockletLLMModel()),
+  runner: new ShortTermRunnable(new BlockletLLMModel()),
 });
+
+longTermMemory
+  .then((m) => m.filter({ k: 10, sort: { field: 'metadata.createdAt', direction: 'desc' } }))
+  .then(console.log);
 
 export const docAgent = LocalFunctionAgent.create<
   {
@@ -139,7 +144,6 @@ You are a professional chatbot from ArcBlock and serve the users in the ArcBlock
 ## Rules
 - You must use {{language}} to answer the user's question.
 
-## Here is the memory about the user
 {{memory}}
 `,
     },
@@ -229,7 +233,6 @@ export const questionClassification = LLMDecisionAgent.create<
   messages: `\
 You are a professional question classifier. Please classify the question and choose the right bot to answer it.
 
-## Here is the memory about the user
 {{memory}}
 
 ## User's question
@@ -324,8 +327,14 @@ export const chat = LocalFunctionAgent.create<{ question: string }, ChatbotRespo
           controller.enqueue({ delta: { status: { loading: true, message: 'Querying memory...' } } });
 
           const [longTermMem, shortTermMem, { language }] = await Promise.all([
-            ltm.search(input.question, { k: 4, userId }).then((res) => res.results.map((j) => j.memory).join('\n')),
-            stm.search(input.question, { k: 4, userId }).then((res) => res.results.map((j) => j.memory).join('\n')),
+            Promise.all([
+              ltm.search(input.question, { k: 4, userId }),
+              ltm.filter({ k: 6, userId, sort: { field: 'createdAt', direction: 'desc' } }),
+            ]).then(([{ results: match }, { results: last }]) => {
+              const list = [...differenceBy(match, last, (i) => i.id), ...last];
+              return list.map((i) => `${i.metadata.role}: ${i.memory}`).join('\n');
+            }),
+            stm.search(input.question, { k: 8, userId }).then((res) => res.results.map((j) => j.memory).join('\n')),
             context
               .resolve<typeof questionAnalyzeAgent>(questionAnalyzeAgent.id)
               .then((agent) => agent.run({ question: input.question })),
@@ -333,7 +342,14 @@ export const chat = LocalFunctionAgent.create<{ question: string }, ChatbotRespo
 
           controller.enqueue({ delta: { usedMemory: shortTermMem } });
 
-          const memory = `Long Term Memory:\n${longTermMem}\nShort Term Memory:\n${shortTermMem}`;
+          const memory = `
+## Here are the conversation history
+${longTermMem}
+
+## Here are some memory about the user
+${shortTermMem}
+
+`;
 
           controller.enqueue({ delta: { status: { loading: true, message: 'Classifying the question...' } } });
           const stream = await (
@@ -358,7 +374,11 @@ export const chat = LocalFunctionAgent.create<{ question: string }, ChatbotRespo
             { role: 'assistant', content: $text },
           ];
           await Promise.all([ltm.add(msg, { userId }), stm.add(msg, { userId })]);
-          const allMemory = (await stm.filter({ k: 100, userId })).map((i) => i.memory).join('\n');
+          const allMemory = (
+            await stm.filter({ k: 100, userId, sort: [{ field: 'createdAt', direction: 'asc' }] })
+          ).results
+            .map((i) => i.memory)
+            .join('\n');
 
           controller.enqueue({ delta: { allMemory } });
           controller.enqueue({ delta: { status: { loading: false } } });

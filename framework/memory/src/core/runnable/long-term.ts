@@ -1,7 +1,7 @@
 import {
   MemoryActionItem,
-  MemoryRunnable,
-  MemoryRunnableInputs,
+  MemoryRunner,
+  MemoryRunnerInputs,
   RunOptions,
   RunnableResponse,
   RunnableResponseStream,
@@ -10,27 +10,29 @@ import {
 import nextId from '../../lib/next-id';
 import { objectToStream } from '../../lib/utils';
 
-export class LongTermRunnable<
-  T extends string = string,
-  O extends MemoryActionItem<T>[] = MemoryActionItem<T>[],
-> extends MemoryRunnable<T, O> {
+export type LongTermRunnableOutput = MemoryActionItem<string>[];
+
+export class LongTermRunnable extends MemoryRunner<string, LongTermRunnableOutput> {
   constructor() {
     super('long_term');
   }
 
-  async run(input: MemoryRunnableInputs, options: RunOptions & { stream: true }): Promise<RunnableResponseStream<O>>;
-  async run(input: MemoryRunnableInputs, options?: RunOptions & { stream?: false }): Promise<O>;
-  async run(input: MemoryRunnableInputs, options?: RunOptions): Promise<RunnableResponse<O>> {
+  async run(
+    input: MemoryRunnerInputs,
+    options: RunOptions & { stream: true }
+  ): Promise<RunnableResponseStream<LongTermRunnableOutput>>;
+  async run(input: MemoryRunnerInputs, options?: RunOptions & { stream?: false }): Promise<LongTermRunnableOutput>;
+  async run(input: MemoryRunnerInputs, options?: RunOptions): Promise<RunnableResponse<LongTermRunnableOutput>> {
     const { messages } = input;
 
-    const result = messages.map((message) => {
+    const result: LongTermRunnableOutput = messages.map((message) => {
       return {
         id: nextId(),
         event: 'add',
         memory: message.content,
         metadata: { role: message.role },
       };
-    }) as unknown as O;
+    });
 
     return options?.stream ? objectToStream({ delta: result }) : result;
   }

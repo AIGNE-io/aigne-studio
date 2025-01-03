@@ -1,312 +1,198 @@
-/* eslint-disable no-await-in-loop */
-import { createHash } from 'crypto';
-
 import {
-  CMemoryRunner,
+  Memory,
   MemoryActionItem,
   MemoryActions,
-  MemoryItem,
-  MemoryRunnable,
+  MemoryRunner,
+  MemoryRunnerInputs,
   RunOptions,
   RunnableResponse,
   RunnableResponseStream,
-  SearchMemoryItem,
 } from '@aigne/core';
-import { mkdir, pathExists, readFile, writeFile } from 'fs-extra';
-import { cloneDeep, omit } from 'lodash';
+import { mkdir, writeFile } from 'fs-extra';
 import { joinURL } from 'ufo';
-import { parse, stringify } from 'yaml';
+import { stringify } from 'yaml';
 
 import nextId from '../lib/next-id';
 import { objectToStream } from '../lib/utils';
 import logger from '../logger';
-import SQLiteManager from '../storage/sqlite';
-import { IStorageManager, IVectorStoreManager } from '../types/memory';
-import VectorStoreManager from '../vector-stores/search-kit';
+import DefaultHistoryStore from '../storage/sqlite';
+import SearchKitRetriever from '../vector-stores/search-kit';
+import { loadConfig } from './config';
+import { HistoryStore, Retrievable, VectorStoreDocument } from './type';
 
-export class Memory<T extends string, O extends MemoryActions<T>> extends CMemoryRunner<T> {
-  memoryPath: string;
+export class DefaultMemory<T, I extends MemoryActions<T>> extends Memory<T> {
+  static async load<T extends string>(options: {
+    path: string;
+    runner: MemoryRunner<T>;
+    retriever?: Retrievable<T>;
+    historyStore?: HistoryStore<T>;
+  }) {
+    const configPath = joinURL(options.path, 'config.yaml');
 
-  vectorStoreProvider?: IVectorStoreManager;
+    const config = (await loadConfig(configPath)) ?? { id: nextId() };
 
-  db: IStorageManager;
+    await mkdir(options.path, { recursive: true });
+    await writeFile(configPath, stringify(config));
 
-  runnable: MemoryRunnable<T>;
+    const historyStore = options.historyStore ?? DefaultHistoryStore.load<T>({ path: options.path });
+    const vectorStore = options.retriever ?? SearchKitRetriever.load<T>({ id: config.id, path: options.path });
 
-  constructor(config: {
-    memoryPath: string;
-    runnable: MemoryRunnable<T>;
+    return new DefaultMemory({
+      path: options.path,
+      runner: options.runner,
+      vectorStore,
+      historyStore,
+    });
+  }
 
-    vectorStoreProvider?: IVectorStoreManager;
-    dbProvider: IStorageManager;
+  constructor(options: {
+    path: string;
+    runner: MemoryRunner<T>;
+    vectorStore: Retrievable<T>;
+    historyStore: HistoryStore<T>;
   }) {
     super();
 
-    this.memoryPath = config.memoryPath;
-    this.vectorStoreProvider = config.vectorStoreProvider;
-    this.db = config.dbProvider;
-    this.runnable = config.runnable;
-
-    if (!this.db) {
-      throw new Error('Please provide a DB Provider, You can use Memory.load({db: ...}) to load a DB Provider');
-    }
-
-    if (!this.vectorStoreProvider) {
-      throw new Error(
-        'Please provide a Vector Store Provider, You can use Memory.load({vectorStoreProvider: ...}) to load a Vector Store Provider'
-      );
-    }
+    this.path = options.path;
+    this.runner = options.runner;
+    this.vectorStore = options.vectorStore;
+    this.historyStore = options.historyStore;
   }
 
-  static async load<T extends string>(config: {
-    path: string;
-    runnable: MemoryRunnable<T>;
+  path: string;
 
-    vectorStoreProvider?: IVectorStoreManager;
-    dbProvider?: IStorageManager;
-  }) {
-    if (!config.path) throw new Error('Path is required');
+  runner: MemoryRunner<T>;
 
-    const dbPath = `sqlite:${config.path}/memory.db`;
-    const configPath = joinURL(config.path, 'config.yaml');
+  vectorStore: Retrievable<T>;
 
-    const id = `memory-${nextId()}`;
-
-    if (!(await pathExists(config.path))) {
-      await mkdir(config.path, { recursive: true });
-    }
-
-    if (!(await pathExists(configPath))) {
-      await writeFile(configPath, stringify({ id }));
-    }
-    const configYaml = parse(await readFile(configPath, 'utf-8'));
-    if (!configYaml.id) {
-      configYaml.id = id;
-      await writeFile(configPath, stringify(configYaml));
-    }
-
-    const dbProvider = config?.dbProvider ?? (await SQLiteManager.load(dbPath));
-    const vectorStoreProvider = config?.vectorStoreProvider ?? (await VectorStoreManager.load(dbPath, configYaml.id));
-
-    const memory = new Memory({
-      memoryPath: config.path,
-      runnable: config.runnable,
-      vectorStoreProvider: vectorStoreProvider!,
-      dbProvider: dbProvider!,
-    });
-    return memory;
-  }
+  historyStore: HistoryStore<T>;
 
   async add(
-    messages: { role: string; content: string }[],
-    options?: {
-      userId?: string;
-      sessionId?: string;
-      metadata?: { [key: string]: any };
-      filters?: { [key: string]: any };
-    }
-  ): Promise<{ results: MemoryActionItem<T>[] }> {
-    const metadata = {
-      ...(options?.metadata || {}),
-      ...(options?.userId ? { userId: options.userId } : {}),
-      ...(options?.sessionId ? { sessionId: options.sessionId } : {}),
-    };
+    messages: Extract<MemoryActions<T>, { action: 'add' }>['inputs']['messages'],
+    options?: Extract<MemoryActions<T>, { action: 'add' }>['inputs']['options']
+  ): Promise<Extract<MemoryActions<T>, { action: 'add' }>['outputs']> {
+    const { userId, sessionId, metadata = {} } = options ?? {};
 
-    const filters = {
-      ...(options?.filters || {}),
-      ...(options?.userId ? { userId: options.userId } : {}),
-      ...(options?.sessionId ? { sessionId: options.sessionId } : {}),
-    };
+    const [actions] = await Promise.all([
+      this.runRunner({ ...options, messages }),
+      this.historyStore.addMessage({ userId, sessionId, messages, metadata }),
+    ]);
 
-    const memories = await this._runAddAgent(messages, metadata, filters);
-    logger.info('Extract memories of type MemoryActionItem', { memories });
+    logger.debug('Extract memory actions', { actions });
 
-    await this.db.addMessage(messages, metadata);
+    const results: MemoryActionItem<T>[] = [];
 
-    const returnedMemories: MemoryActionItem<T>[] = [];
-    for (const memory of memories) {
-      try {
-        switch (memory.event) {
-          case 'add': {
-            const memoryId = await this._createMemory({
-              data: memory.memory,
-              metadata: { ...metadata, ...(memory.metadata || {}) },
-            });
+    for (const action of actions) {
+      switch (action.event) {
+        case 'add': {
+          const memory = await this.createMemory({
+            userId,
+            sessionId,
+            memory: action.memory,
+            metadata: { ...metadata, ...action.metadata },
+          });
 
-            returnedMemories.push({
-              id: memoryId,
-              memory: memory.memory,
-              event: memory.event,
-            });
-            break;
-          }
-
-          case 'update': {
-            await this._updateMemory({
-              memoryId: memory.id,
-              data: memory.memory,
-              metadata: { ...metadata, ...(memory.metadata || {}) },
-            });
-
-            returnedMemories.push({
-              id: memory.id,
-              memory: memory.memory,
-              event: memory.event,
-              oldMemory: memory.oldMemory,
-            });
-            break;
-          }
-
-          case 'delete': {
-            await this._deleteMemory(memory.id);
-
-            returnedMemories.push({
-              id: memory.id,
-              memory: memory.memory,
-              event: memory.event,
-            });
-            break;
-          }
-
-          case 'none':
-            logger.warn('NOOP for Memory.');
-            break;
-
-          default:
-            logger.warn('Unknown action', { action: (memory as any).event });
-            break;
+          results.push({ id: memory.id, memory: action.memory, event: action.event });
+          break;
         }
-      } catch (e) {
-        logger.error('Error in newMemoriesWithActions:', e);
+
+        case 'update': {
+          await this.updateMemory({
+            id: action.id,
+            userId,
+            sessionId,
+            memory: action.memory,
+            metadata: { ...metadata, ...action.metadata },
+          });
+
+          results.push({ id: action.id, memory: action.memory, event: action.event, oldMemory: action.oldMemory });
+          break;
+        }
+
+        case 'delete': {
+          await this.deleteMemory(action.id);
+
+          results.push({ id: action.id, memory: action.memory, event: action.event });
+          break;
+        }
+
+        case 'none':
+          logger.debug('NOOP for Memory.');
+          break;
+
+        default:
+          logger.warn('Unknown action', { action: (action as any).event });
+          break;
       }
     }
 
-    return { results: returnedMemories };
+    return { results };
   }
 
   async search(
-    query: string,
-    options?: {
-      k?: number;
-      userId?: string;
-      sessionId?: string;
-      filters?: { [key: string]: any };
-    }
-  ): Promise<{ results: SearchMemoryItem<T>[] }> {
-    const filters = {
-      ...(options?.filters || {}),
+    query: Extract<MemoryActions<T>, { action: 'search' }>['inputs']['query'],
+    options?: Extract<MemoryActions<T>, { action: 'search' }>['inputs']['options']
+  ): Promise<Extract<MemoryActions<T>, { action: 'search' }>['outputs']> {
+    const filter = {
+      ...options?.filter,
       ...(options?.userId ? { userId: options.userId } : {}),
       ...(options?.sessionId ? { sessionId: options.sessionId } : {}),
     };
 
-    const memories = await this.vectorStoreProvider?.searchWithScore(query, options?.k || 100, filters);
+    const memories = await this.vectorStore.searchWithScore(query, options?.k || 100, {
+      filter,
+      sort: options?.sort,
+    });
 
-    if (!memories) return { results: [] };
-
-    return {
-      results: memories.map(([memory, score]) => ({
-        id: memory.metadata.memoryId as string,
-        memory: memory.pageContent as T,
-        metadata: this.extractMessage(memory.metadata || {}),
-        score,
-      })),
-    };
+    return { results: memories.map(([memory, score]) => ({ ...memory, score })) };
   }
 
-  async filter(options?: {
-    k?: number;
-    userId?: string;
-    sessionId?: string;
-    filters?: { [key: string]: any };
-  }): Promise<MemoryItem<T>[]> {
-    const filters = {
-      ...(options?.filters || {}),
+  async filter(
+    options: Extract<MemoryActions<T>, { action: 'filter' }>['inputs']['options']
+  ): Promise<Extract<MemoryActions<T>, { action: 'filter' }>['outputs']> {
+    const filter = {
+      ...options?.filter,
       ...(options?.userId ? { userId: options.userId } : {}),
       ...(options?.sessionId ? { sessionId: options.sessionId } : {}),
     };
 
-    return ((await this.vectorStoreProvider?.list(filters, options?.k || 1)) || []).map((item) => ({
-      id: item.id,
-      memory: item.pageContent as T,
-      metadata: this.extractMessage(item.metadata || {}),
-    }));
+    const results = await this.vectorStore.list(options?.k || 1, { filter, sort: options?.sort });
+
+    return { results };
   }
 
-  async history(memoryId: string) {
-    return this.db?.getHistory(memoryId);
-  }
+  async get(
+    memoryId: Extract<MemoryActions<T>, { action: 'get' }>['inputs']['memoryId']
+  ): Promise<Extract<MemoryActions<T>, { action: 'get' }>['outputs']> {
+    const result = await this.vectorStore.get(memoryId);
 
-  private extractMessage(message: { [key: string]: any }) {
-    const excludedKeys = ['id', 'memoryId', 'data', 'hash', 'createdAt', 'updatedAt'];
-    return omit(message, excludedKeys);
-  }
-
-  async get(memoryId: string): Promise<MemoryItem<T> | null> {
-    const message = await this.vectorStoreProvider?.get(memoryId);
-
-    if (!message) return null;
-
-    return {
-      id: message.id,
-      memory: message.pageContent as T,
-      metadata: this.extractMessage(message.metadata || {}),
-    };
+    return { result };
   }
 
   async create(
-    memory: T,
-    options?: {
-      userId?: string;
-      sessionId?: string;
-      metadata?: { [key: string]: any };
-    }
-  ): Promise<MemoryItem<T>> {
-    const metadata = {
-      ...(options?.metadata || {}),
-      ...(options?.userId ? { userId: options.userId } : {}),
-      ...(options?.sessionId ? { sessionId: options.sessionId } : {}),
-    };
-
-    const memoryId = await this._createMemory({ data: memory, metadata: {} });
-
-    return {
-      id: memoryId,
-      memory,
-      metadata,
-    };
+    memory: Extract<MemoryActions<T>, { action: 'create' }>['inputs']['memory'],
+    options?: Extract<MemoryActions<T>, { action: 'create' }>['inputs']['options']
+  ): Promise<Extract<MemoryActions<T>, { action: 'create' }>['outputs']> {
+    const result = await this.createMemory({ ...options, memory, metadata: options?.metadata ?? {} });
+    return { result };
   }
 
-  async update(memoryId: string, memory: T): Promise<MemoryItem<T> | null> {
-    try {
-      const result = await this._updateMemory({ memoryId, data: memory, metadata: {} });
-      return result;
-    } catch (error) {
-      return null;
-    }
+  async update(
+    memoryId: Extract<MemoryActions<T>, { action: 'update' }>['inputs']['memoryId'],
+    memory: T
+  ): Promise<Extract<MemoryActions<T>, { action: 'update' }>['outputs']> {
+    const result = await this.updateMemory({ id: memoryId, memory });
+    return { result };
   }
 
-  async delete(memoryId: string): Promise<MemoryItem<T> | null> {
-    const memory = await this.get(memoryId);
-
-    if (!memory) return null;
-
-    await this._deleteMemory(memoryId);
-
-    return memory;
+  async delete(
+    memoryId: Extract<MemoryActions<T>, { action: 'delete' }>['inputs']['memoryId']
+  ): Promise<Extract<MemoryActions<T>, { action: 'delete' }>['outputs']> {
+    const result = await this.deleteMemory(memoryId);
+    return { result };
   }
 
-  async deleteAll(options?: { userId?: string; sessionId?: string; filters?: { [key: string]: any } }) {
-    const filters = {
-      ...(options?.filters || {}),
-      ...(options?.userId ? { userId: options.userId } : {}),
-      ...(options?.sessionId ? { sessionId: options.sessionId } : {}),
-    };
-
-    const ids = ((await this.vectorStoreProvider?.list(filters)) || []).map((item) => item.id);
-    await this.vectorStoreProvider?.deleteAll(ids);
-  }
-
-  private async _run(input: O): Promise<O['outputs']> {
+  private async _run(input: I): Promise<I['outputs']> {
     const { action, inputs } = input;
 
     switch (action) {
@@ -315,123 +201,98 @@ export class Memory<T extends string, O extends MemoryActions<T>> extends CMemor
       case 'search':
         return await this.search(inputs.query, inputs.options);
       case 'filter':
-        return { results: await this.filter(inputs.options) };
+        return await this.filter(inputs.options);
       case 'get':
-        return { results: await this.get(inputs.memoryId) };
+        return await this.get(inputs.memoryId);
       case 'create':
-        return { results: await this.create(inputs.memory, inputs.options) };
+        return await this.create(inputs.memory, inputs.options);
       case 'update':
-        return { results: await this.update(inputs.memoryId, inputs.memory) };
+        return await this.update(inputs.memoryId, inputs.memory);
       case 'delete':
-        return { results: await this.delete(inputs.memoryId) };
+        return await this.delete(inputs.memoryId);
       default:
         throw new Error('Invalid action');
     }
   }
 
-  async run(input: O, options: RunOptions & { stream: true }): Promise<RunnableResponseStream<O['outputs']>>;
-  async run(input: O, options?: RunOptions & { stream?: false }): Promise<O['outputs']>;
-  async run(input: O, options?: RunOptions): Promise<RunnableResponse<O['outputs']>> {
+  async run(input: I, options: RunOptions & { stream: true }): Promise<RunnableResponseStream<I['outputs']>>;
+  async run(input: I, options?: RunOptions & { stream?: false }): Promise<I['outputs']>;
+  async run(input: I, options?: RunOptions): Promise<RunnableResponse<I['outputs']>> {
     const result = await this._run(input);
 
     return options?.stream ? objectToStream({ delta: result }) : result;
   }
 
-  /**
-   * Create a new memory
-   *
-   * args:
-   * - messages: { role: string; content: string }[] Messages to store in the memory.
-   * - metadata?: { [key: string]: any }; Metadata to store in the memory. Defaults to undefined.
-   * - filters?: { [key: string]: any }; Filters to apply to the search. Defaults to undefined.
-   */
-  private async _runAddAgent(
-    messages: { role: string; content: string }[],
-    metadata: { userId?: string; sessionId?: string; [key: string]: any },
-    filters?: { userId?: string; sessionId?: string; [key: string]: any }
-  ): Promise<MemoryActionItem<T>[]> {
-    const { userId, sessionId, ...rest } = metadata;
-    const options = { userId, sessionId, metadata: rest, filters };
+  private async runRunner(inputs: MemoryRunnerInputs): Promise<MemoryActionItem<T>[]> {
+    // TODO: runner 中需要用到 vectorStore，暂时通过这种方式传递
+    (this.runner as any).vectorStore = this.vectorStore;
 
-    if ((this.runnable as any).setVectorStoreProvider) {
-      (this.runnable as any).setVectorStoreProvider(this.vectorStoreProvider);
-    }
-
-    return await this.runnable.run({ messages, ...(options || {}) }, { stream: false });
+    return await this.runner.run(inputs);
   }
 
-  private async _createMemory(params: { data: string; metadata: { [key: string]: any } }) {
+  private async createMemory(params: Omit<VectorStoreDocument<T>, 'id' | 'createdAt' | 'updatedAt'>) {
     const memoryId = nextId();
+    const createdAt = new Date().toISOString();
+    const updatedAt = createdAt;
+    const { userId, sessionId, memory, metadata } = params;
 
-    const metadata = cloneDeep(params.metadata || {});
-    metadata.id = memoryId;
-    metadata.memoryId = memoryId;
-    metadata.data = params.data;
-    metadata.hash = createHash('md5').update(params.data).digest('hex');
-    metadata.createdAt = new Date().toISOString();
-
-    await this.vectorStoreProvider?.insert(params.data, memoryId, metadata);
-
-    await this.db?.addHistory({
-      memoryId,
-      oldMemory: undefined,
-      newMemory: params.data,
-      event: 'add',
-      createdAt: new Date(metadata.createdAt),
-      updatedAt: new Date(),
-      isDeleted: false,
-    });
-
-    return memoryId;
-  }
-
-  private async _updateMemory(params: { memoryId: string; data: T; metadata: { [key: string]: any } }) {
-    const content = await this.vectorStoreProvider?.get(params.memoryId);
-
-    if (!content) throw new Error('Memory not found');
-
-    const metadata = cloneDeep({ ...(params.metadata || {}), ...(content.metadata || {}) });
-    metadata.data = params.data;
-    metadata.hash = createHash('md5').update(params.data).digest('hex');
-    metadata.createdAt = content?.createdAt;
-    metadata.updatedAt = new Date();
-
-    await this.vectorStoreProvider?.update(params.memoryId, params.data, metadata);
-
-    await this.db?.addHistory({
-      memoryId: params.memoryId,
-      oldMemory: content.pageContent,
-      newMemory: params.data,
-      event: 'update',
-      createdAt: new Date(metadata.createdAt),
-      updatedAt: new Date(metadata.updatedAt),
-      isDeleted: false,
-    });
-
-    return {
-      id: params.memoryId,
-      memory: params.data,
+    const document: VectorStoreDocument<T> = {
+      id: memoryId,
+      userId,
+      sessionId,
+      createdAt,
+      updatedAt,
+      memory,
       metadata,
     };
+
+    await Promise.all([
+      this.vectorStore.insert(document),
+      this.historyStore.addHistory({ memoryId, newMemory: params.memory, event: 'add' }),
+    ]);
+
+    return document;
   }
 
-  private async _deleteMemory(memoryId: string) {
-    const content = await this.vectorStoreProvider?.get(memoryId);
+  private async updateMemory(params: Partial<VectorStoreDocument<T>> & { id: string }) {
+    const originalMemory = await this.vectorStore.get(params.id);
+    if (!originalMemory) throw new Error('Memory not found');
 
-    if (!content) throw new Error('Memory not found');
+    const newMemory = {
+      ...originalMemory,
+      ...params,
+      updatedAt: new Date().toISOString(),
+      metadata: { ...originalMemory.metadata, ...params.metadata },
+    };
 
-    await this.vectorStoreProvider?.delete(memoryId);
+    await Promise.all([
+      this.vectorStore.update(newMemory),
 
-    await this.db?.addHistory({
-      memoryId,
-      oldMemory: content.pageContent,
-      newMemory: undefined,
-      event: 'delete',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      isDeleted: true,
-    });
+      this.historyStore.addHistory({
+        memoryId: params.id,
+        oldMemory: originalMemory.memory,
+        newMemory: params.memory,
+        event: 'update',
+      }),
+    ]);
 
-    return memoryId;
+    return newMemory;
+  }
+
+  private async deleteMemory(memoryId: string) {
+    const memory = await this.vectorStore.get(memoryId);
+    if (!memory) throw new Error('Memory not found');
+
+    await Promise.all([
+      this.vectorStore.delete(memoryId),
+      this.historyStore?.addHistory({
+        memoryId: memoryId,
+        oldMemory: memory.memory,
+        event: 'delete',
+        isDeleted: true,
+      }),
+    ]);
+
+    return memory;
   }
 }

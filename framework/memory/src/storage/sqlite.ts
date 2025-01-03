@@ -1,80 +1,75 @@
+import { LRUCache } from 'lru-cache';
+
+import { ActionHistory, EventType, HistoryStore, MessageHistory } from '../core/type';
 import { migrate } from '../store/migrate';
 import { init as initContent } from '../store/models/content';
 import History, { init as initHistory } from '../store/models/history';
 import Message, { init as initMessage } from '../store/models/message';
 import { initSequelize } from '../store/sequelize';
-import { EventType, IStorageManager } from '../types/memory';
 
-const stores = new Map<string, SQLiteManager>();
+const cache = new LRUCache<string, DefaultHistoryStore<any>>({
+  max: Number(process.env.AIGNE_MEMORY_SQLITE_STORE_CACHE_MAX) || 500,
+  ttl: Number(process.env.AIGNE_MEMORY_SQLITE_STORE_CACHE_TTL) || 60e3,
+});
 
-export default class SQLiteManager implements IStorageManager {
-  static async load(dbPath: string) {
-    if (stores.has(dbPath)) {
-      return stores.get(dbPath);
+export default class DefaultHistoryStore<T> implements HistoryStore<T> {
+  static load<T>({ path }: { path: string }): DefaultHistoryStore<T> {
+    let store = cache.get(path);
+    if (!store) {
+      store = new DefaultHistoryStore<T>(path);
+      cache.set(path, store);
     }
-
-    const instance = new SQLiteManager();
-    stores.set(dbPath, instance);
-
-    await instance.init(dbPath);
-    return instance;
+    return store as DefaultHistoryStore<T>;
   }
 
-  async init(dbPath: string) {
-    const sequelize = initSequelize(dbPath);
+  constructor(public path: string) {}
 
-    initHistory(sequelize);
-    initMessage(sequelize);
-    initContent(sequelize);
+  private _init?: Promise<void>;
 
-    await migrate(sequelize);
+  private async init() {
+    this._init ??= (async () => {
+      const dbPath = `sqlite:${this.path}/default-history-store.db`;
+
+      const sequelize = initSequelize(dbPath);
+
+      // FIXME: 多实例会导致 sequelize 冲突，把 A memory 的数据存储到 B memory 的数据库中
+      initHistory(sequelize);
+      initMessage(sequelize);
+      initContent(sequelize);
+
+      await migrate(sequelize);
+    })();
+
+    await this._init;
   }
 
-  async addHistory({
-    memoryId,
-    oldMemory,
-    newMemory,
-    event,
-    createdAt = new Date(),
-    updatedAt = new Date(),
-    isDeleted = false,
-  }: {
-    memoryId: string;
-    oldMemory?: string;
-    newMemory?: string;
-    event: EventType;
-    createdAt?: Date;
-    updatedAt?: Date;
-    isDeleted?: boolean;
-  }) {
-    return await History.create({
-      memoryId,
-      oldMemory,
-      newMemory,
-      event,
-      createdAt,
-      updatedAt,
-      isDeleted,
-    });
+  async addHistory(history: ActionHistory<T>): Promise<ActionHistory<T>> {
+    await this.init();
+
+    return await History.create(history);
   }
 
-  async getHistory(memoryId: string) {
+  async getHistory(memoryId: string): Promise<ActionHistory<T>[]> {
+    await this.init();
+
     return await History.findAll({ where: { memoryId }, order: [['updatedAt', 'ASC']] });
   }
 
-  async addMessage(message: { [key: string]: any }[], metadata: { [key: string]: any }) {
-    return await Message.create({ message, metadata });
+  async addMessage(history: Omit<MessageHistory, 'createdAt' | 'updatedAt'>): Promise<MessageHistory> {
+    await this.init();
+
+    return await Message.create(history);
   }
 
   async getMessage(id: string) {
+    await this.init();
+
     return await Message.findByPk(id);
   }
 
-  async getMessages(props: { [key: string]: any }) {
-    return await Message.findAll({ where: props });
-  }
+  async getMessages(options: { filter: { [key: string]: any } }): Promise<MessageHistory[]> {
+    await this.init();
 
-  async reset() {
-    await History.sync();
+    return await Message.findAll({ where: options.filter });
   }
 }

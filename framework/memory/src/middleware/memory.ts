@@ -3,7 +3,7 @@ import compression from 'compression';
 import { Router } from 'express';
 import Joi from 'joi';
 
-import { Memory, ShortTermRunnable } from '../core';
+import { DefaultMemory, ShortTermRunnable } from '../core';
 import OpenAIManager from '../llm/openai';
 
 const messageSchema = Joi.object({
@@ -37,7 +37,7 @@ const searchRequestSchema = Joi.object({
 
 export function memoryRoutes(router: Router, path: string) {
   // TODO: pass llmModel to Memory
-  const loadMemory = Memory.load({ path, runnable: new ShortTermRunnable(undefined as any) });
+  const loadMemory = DefaultMemory.load({ path, runner: new ShortTermRunnable(undefined as any) });
 
   router.post('/add', compression(), async (req, res) => {
     const memory = await loadMemory;

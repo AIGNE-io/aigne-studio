@@ -1,19 +1,18 @@
-import { BlockletStatus } from '@blocklet/constant';
-import { components } from '@blocklet/sdk/lib/config';
+import { MemorySortOptions } from '@aigne/core';
+import { LRUCache } from 'lru-cache';
 
-import { SEARCH_KIT_DID } from '../constants';
+import { Retrievable, VectorStoreDocument, VectorStoreSearchOptions } from '../core/type';
 import { AIKitEmbeddings } from '../lib/embeddings/ai-kit';
 import logger from '../logger';
-import SQLiteContentManager from '../storage/content';
-import { IVectorStoreManager, VectorStoreContent, VectorStoreDocument } from '../types/memory';
+import DefaultVectorHistoryStore from '../storage/content';
 
 const { SearchKitClient, resolveRestEmbedders } = require('@blocklet/search-kit-js');
 
-const fields = ['pageContent', 'id', 'metadata', 'updatedAt'];
-const searchableAttributes = ['pageContent', 'id', 'metadata', 'updatedAt'];
-const filterableAttributes = ['pageContent', 'id', 'metadata', 'updatedAt'];
-const sortableAttributes = ['pageContent', 'id', 'metadata', 'updatedAt'];
-const rankingRules = ['exactness', 'words', 'typo', 'proximity', 'attribute'];
+const fields = ['id', 'createdAt', 'updatedAt', 'userId', 'sessionId', 'memory', 'metadata'];
+const searchableAttributes = ['id', 'createdAt', 'updatedAt', 'userId', 'sessionId', 'memory', 'metadata'];
+const filterableAttributes = ['id', 'createdAt', 'updatedAt', 'userId', 'sessionId', 'memory', 'metadata'];
+const sortableAttributes = ['id', 'createdAt', 'updatedAt', 'userId', 'sessionId', 'memory', 'metadata'];
+const rankingRules = ['sort', 'exactness', 'words', 'typo', 'proximity', 'attribute'];
 const POST_SETTING = { searchableAttributes, filterableAttributes, sortableAttributes, rankingRules };
 
 const documentTemplate = `
@@ -21,8 +20,8 @@ const documentTemplate = `
   {% if doc.id %}
     id: {{ doc.id }}
   {% endif %}
-  {% if doc.pageContent %}
-    with the following content: {{ doc.pageContent }}
+  {% if doc.memory %}
+    with the following content: {{ doc.memory }}
   {% endif %}
   {% assign metadata = doc.metadata %}
   {% if metadata %}
@@ -32,82 +31,71 @@ const documentTemplate = `
   {% endif %}
 `;
 
-const stores = new Map<string, SearchKitManager>();
+const stores = new Map<string, SearchKitRetriever<any>>();
 
-export default class SearchKitManager implements IVectorStoreManager {
-  private client: any;
+const cache = new LRUCache<string, SearchKitRetriever<any>>({
+  max: Number(process.env.AIGNE_MEMORY_SEARCH_KIT_STORE_CACHE_MAX) || 500,
+  ttl: Number(process.env.AIGNE_MEMORY_SEARCH_KIT_STORE_CACHE_TTL) || 60e3,
+});
 
-  protected embeddings = new AIKitEmbeddings();
-
-  protected indexId: string = '';
-
-  protected contentManager?: SQLiteContentManager;
-
-  static async load(dbPath: string, id: string) {
-    if (stores.has(`${dbPath}-${id}`)) {
-      return stores.get(`${dbPath}-${id}`);
+export default class SearchKitRetriever<T> implements Retrievable<T> {
+  static load<T>({ path, id }: { path: string; id: string }) {
+    let store = cache.get(id);
+    if (!store) {
+      store = new SearchKitRetriever<T>({ id, path });
+      cache.set(id, store);
     }
-
-    const instance = new SearchKitManager();
-    stores.set(`${dbPath}-${id}`, instance);
-
-    await instance.init(dbPath, id);
-    return instance;
+    return store as SearchKitRetriever<T>;
   }
 
-  async init(dbPath: string, indexId: string) {
-    this.indexId = indexId;
+  // TODO: should inject embeddings from runtime
+  protected embeddings = new AIKitEmbeddings();
 
-    try {
-      this.client = new SearchKitClient();
-    } catch (e) {
-      logger.error('SearchClient constructor error:', e);
-    }
+  protected historyStore: DefaultVectorHistoryStore;
 
-    const component = components.find((item: { did: string }) => item.did === SEARCH_KIT_DID);
-    if (component && component.status !== BlockletStatus.running) {
-      throw new Error('SearchClient not running');
-    }
+  constructor(public config: { id: string; path: string }) {
+    this.historyStore = new DefaultVectorHistoryStore(this.config.path);
+  }
 
-    if (!this.client) {
-      throw new Error('SearchClient not initialized');
-    }
+  private _init?: Promise<any>;
 
-    this.contentManager = await SQLiteContentManager.load(dbPath);
+  async init() {
+    this._init ??= (async () => {
+      const client = new SearchKitClient();
 
-    const rowInfo = await this.postIndex.getRawInfo().catch(() => null);
-    if (!rowInfo?.uid) {
-      const { taskUid } = await this.client.createIndex(this.indexId);
-      await this.waitForTask(taskUid);
-      await this.batchIndexPosts();
-    }
+      const rowInfo = await (await this.postIndex).getRawInfo().catch(() => null);
 
-    await this.updateConfig();
+      if (!rowInfo?.uid) {
+        const { taskUid } = await client.createIndex(this.config.id);
+        await this.waitForTask(taskUid);
+        await this.initIndexFromHistory();
+      }
+
+      await this.updateConfig();
+
+      return client;
+    })();
+
+    return this._init;
   }
 
   get postIndex() {
-    if (!this.client) {
-      throw new Error('SearchClient not initialized');
-    }
-
-    return this.client.index(this.indexId);
+    return this.init().then((client) => client.index(this.config.id));
   }
 
   get options() {
     return { primaryKey: 'id' };
   }
 
-  async batchIndexPosts({ size = 2000 } = {}) {
-    const models =
-      (await this.contentManager?.getOriginContent({}).catch(() => {
-        return [];
-      })) || [];
+  private async initIndexFromHistory({ size = 2000 } = {}) {
+    // TODO: 分页处理，避免一次性查询过多数据
+    const list = await this.historyStore.findAll({});
 
-    const postIds = models.map((x) => x.id);
-    const total = postIds.length;
+    const ids = list.map((x) => x.id);
+    const total = ids.length;
 
     const length = Math.ceil(total / size);
-    const batches = Array.from({ length }, (_, i) => postIds.slice(i * size, (i + 1) * size));
+    const batches = Array.from({ length }, (_, i) => ids.slice(i * size, (i + 1) * size));
 
     const tasks = [];
     for (const batch of batches) {
@@ -120,134 +108,112 @@ export default class SearchKitManager implements IVectorStoreManager {
   }
 
   private async updatePosts(ids: string[]) {
-    const documents = await this.contentManager?.getOriginContent({ id: { $in: ids } });
-    const result = await this.postIndex.updateDocuments(documents, this.options);
+    const documents = await this.historyStore?.findAll({ id: { $in: ids } });
+    const result = await (await this.postIndex).updateDocuments(documents, this.options);
     return result;
   }
 
-  waitForTask(uid: number, { timeOutMs = 1000 * 60 * 10, intervalMs = 1000 } = {}) {
-    return this.client!.waitForTask(uid, { timeOutMs, intervalMs });
+  private async waitForTask(uid: number, { timeOutMs = 1000 * 60 * 10, intervalMs = 1000 } = {}) {
+    const client = await this.init();
+
+    return client.waitForTask(uid, { timeOutMs, intervalMs });
   }
 
-  async updateEmbedders() {
+  private async updateEmbedders() {
     try {
       const embedders = resolveRestEmbedders({ documentTemplate, distribution: { mean: 0.7, sigma: 0.3 } });
-      const { taskUid } = await this.postIndex.updateEmbedders(embedders);
+      const { taskUid } = await (await this.postIndex).updateEmbedders(embedders);
       logger.debug('updateEmbedders taskUid', taskUid);
     } catch (e) {
       logger.error('updateEmbedders error - downgrade to basic search.', e);
     }
   }
 
-  async updateSettings(settings: {}) {
-    await this.postIndex.updateSettings(settings);
-  }
-
-  async updateConfig() {
+  private async updateConfig() {
     await this.updateSettings(POST_SETTING);
     await this.updateEmbedders();
   }
 
-  getEmbedders() {
-    return this.postIndex.getEmbedders();
+  private async updateSettings(settings: {}) {
+    await (await this.postIndex).updateSettings(settings);
   }
 
-  async get(id: string): Promise<VectorStoreContent | null> {
-    const result = await this.postIndex.getDocument(id);
+  private async getEmbedders() {
+    return (await this.postIndex).getEmbedders();
+  }
 
-    if (result.code) {
-      return null;
-    }
+  async get(id: string): Promise<VectorStoreDocument<T> | null> {
+    const result = await (await this.postIndex).getDocument(id);
+
+    if (result.code) return null;
 
     return result;
   }
 
-  async insert(data: string, id: string, metadata: Record<string, any>): Promise<void> {
-    const document = {
-      id,
-      pageContent: data,
-      metadata,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    await this.contentManager?.addOriginContent(id, data, metadata).catch((e) => {
+  async insert(document: VectorStoreDocument<T>): Promise<void> {
+    await this.historyStore.add(document).catch((e) => {
       logger.error('Error adding origin content', e);
     });
 
-    const result = await this.postIndex.updateDocuments([document], this.options);
+    const result = await (await this.postIndex).updateDocuments([document], this.options);
     await this.waitForTask(result.taskUid);
-    return result;
   }
 
   async delete(id: string): Promise<void> {
-    await this.contentManager?.deleteOriginContent(id).catch((e) => {
+    await this.historyStore.delete(id).catch((e) => {
       logger.error('Error deleting origin content', e);
     });
 
-    const result = await this.postIndex.deleteDocuments([id]);
+    const result = await (await this.postIndex).deleteDocuments([id]);
     await this.waitForTask(result.taskUid);
-    return result;
   }
 
   async deleteAll(ids: string[]): Promise<void> {
-    const result = await this.postIndex.deleteDocuments(ids);
+    const result = await (await this.postIndex).deleteDocuments(ids);
     await this.waitForTask(result.taskUid);
-    return result;
   }
 
-  async update(id: string, data: string, metadata: Record<string, any>): Promise<void> {
-    const document = {
-      id,
-      pageContent: data,
-      metadata,
-      updatedAt: new Date(),
-    };
-
-    await this.contentManager?.updateOriginContent(id, data, metadata).catch((e) => {
+  async update(document: VectorStoreDocument<T>): Promise<void> {
+    await this.historyStore.update(document).catch((e) => {
       logger.error('Error updating origin content', e);
     });
 
-    const result = await this.postIndex.updateDocuments([document], this.options);
+    const result = await (await this.postIndex).updateDocuments([document], this.options);
     await this.waitForTask(result.taskUid);
-    return result;
   }
 
-  async list(metadata: Record<string, any>, limit: number = 100): Promise<VectorStoreContent[]> {
-    const filter = this.getFilter(metadata);
-    return (await this.postIndex.getDocuments({ limit, offset: 0, filter }))?.results;
+  private getSort(sort?: MemorySortOptions) {
+    if (!sort) return undefined;
+    return (Array.isArray(sort) ? sort : [sort]).map((i) => `${i.field}:${i.direction}`);
   }
 
-  async search(query: string, k: number, metadata?: Record<string, any>): Promise<VectorStoreDocument[]> {
-    const result = await this._search(query, k, metadata, {});
-    return result;
+  async list(k: number, options?: VectorStoreSearchOptions): Promise<VectorStoreDocument<T>[]> {
+    return this.search('', k, options);
   }
 
   async searchWithScore(
     query: string,
     k: number,
-    metadata?: Record<string, any>
-  ): Promise<[VectorStoreDocument, number][]> {
-    const result = await this._search(query, k, metadata, { showRankingScore: true, showRankingScoreDetails: true });
+    options?: VectorStoreSearchOptions
+  ): Promise<[VectorStoreDocument<T>, number][]> {
+    const result = await this.search(query, k, {
+      ...options,
+      searchKitOptions: {
+        showRankingScore: true,
+        showRankingScoreDetails: true,
+        sort: options?.sort,
+      },
+    });
     return result.map((item: any) => [item, item._rankingScore]);
   }
 
-  private getFilter(metadata?: Record<string, any>) {
-    const filter = metadata
-      ? Object.entries(metadata).map(([key, value]) => {
-          if (Array.isArray(value)) {
-            return `metadata.${key} IN [${value.map((v) => JSON.stringify(v)).join(',')}]`;
-          }
-
-          return `metadata.${key} = ${JSON.stringify(value)}`;
-        })
-      : undefined;
-
-    return filter;
-  }
-
-  private async _search(query: string, k: number, metadata?: Record<string, any>, options?: { [key: string]: any }) {
+  async search(
+    query: string,
+    k: number,
+    options?: VectorStoreSearchOptions & { searchKitOptions?: object }
+  ): Promise<VectorStoreDocument<T>[]> {
     const commonParams = {
+      // TODO: 每次 search 都会先查询 embedders，可以不用检查，或者缓存检查结果？
       ...(!!(await this.getEmbedders()) && { hybrid: { embedder: 'default', semanticRatio: 0.5 } }),
     };
 
@@ -256,23 +222,26 @@ export default class SearchKitManager implements IVectorStoreManager {
       cropLength: 10000,
     };
 
-    const filter = this.getFilter(metadata);
+    const filter = options?.filter ?? {};
 
-    const result = (
-      await this.postIndex.search(query, {
-        filter,
-        limit: parseInt(String(k), 10),
-        offset: parseInt(String(0), 10),
-        attributesToRetrieve: ['*'],
-        attributesToHighlight: fields,
-        highlightPreTag: '<mark>',
-        highlightPostTag: '</mark>',
-        // rankingScoreThreshold: 0.1,
-        ...modeParams,
-        ...commonParams,
-        ...(options || {}),
-      })
-    ).hits;
+    const sort = this.getSort(options?.sort);
+
+    const index = await this.postIndex;
+
+    const result = await index.search(query, {
+      filter,
+      limit: k,
+      offset: 0,
+      attributesToRetrieve: ['*'],
+      attributesToHighlight: fields,
+      highlightPreTag: '<mark>',
+      highlightPostTag: '</mark>',
+      // rankingScoreThreshold: 0.1,
+      ...modeParams,
+      ...commonParams,
+      ...options?.searchKitOptions,
+      sort,
+    }).hits;
 
     return result;
   }

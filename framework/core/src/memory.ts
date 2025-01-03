@@ -3,50 +3,44 @@ import { camelCase, startCase } from 'lodash';
 import { Runnable } from './runnable';
 import { OrderedRecord } from './utils';
 
+export interface MemoryMetadata {
+  [key: string]: any;
+}
+
 export type MemoryActionItem<T> =
-  | {
-      id: string;
-      event: 'add';
-      memory: T;
-      metadata?: { [key: string]: any };
-    }
-  | {
-      event: 'update';
-      id: string;
-      memory: T;
-      oldMemory: T;
-      metadata?: { [key: string]: any };
-    }
-  | {
-      event: 'delete';
-      id: string;
-      memory: T;
-    }
-  | {
-      event: 'none';
-      memory: T;
-    };
+  | { event: 'add'; id: string; memory: T; metadata?: MemoryMetadata }
+  | { event: 'update'; id: string; memory: T; oldMemory: T; metadata?: MemoryMetadata }
+  | { event: 'delete'; id: string; memory: T }
+  | { event: 'none'; memory: T };
 
 export interface MemoryItem<T> {
   id: string;
+  userId?: string;
+  sessionId?: string;
+  createdAt: string;
+  updatedAt: string;
   memory: T;
-  metadata: { [key: string]: any };
+  metadata: MemoryMetadata;
 }
 
-export interface SearchMemoryItem<T> extends MemoryItem<T> {
+export interface MemoryItemWithScore<T> extends MemoryItem<T> {
   score: number;
+}
+
+export interface MemoryMessage {
+  role: string;
+  content: string;
 }
 
 export type MemoryActions<T> =
   | {
       action: 'add';
       inputs: {
-        messages: { role: string; content: string }[];
+        messages: MemoryMessage[];
         options?: {
           userId?: string;
           sessionId?: string;
-          metadata?: { [key: string]: any };
-          filters?: { [key: string]: any };
+          metadata?: MemoryMetadata;
         };
       };
       outputs: {
@@ -61,11 +55,12 @@ export type MemoryActions<T> =
           k?: number;
           userId?: string;
           sessionId?: string;
-          filters?: { [key: string]: any };
+          filter?: MemoryMetadata;
+          sort?: MemorySortOptions;
         };
       };
       outputs: {
-        results: SearchMemoryItem<T>[];
+        results: MemoryItemWithScore<T>[];
       };
     }
   | {
@@ -75,7 +70,8 @@ export type MemoryActions<T> =
           k?: number;
           userId?: string;
           sessionId?: string;
-          filters?: { [key: string]: any };
+          filter?: MemoryMetadata;
+          sort?: MemorySortOptions;
         };
       };
       outputs: {
@@ -88,7 +84,7 @@ export type MemoryActions<T> =
         memoryId: string;
       };
       outputs: {
-        results: MemoryItem<T> | null;
+        result: MemoryItem<T> | null;
       };
     }
   | {
@@ -98,11 +94,11 @@ export type MemoryActions<T> =
         options?: {
           userId?: string;
           sessionId?: string;
-          metadata?: { [key: string]: any };
+          metadata?: MemoryMetadata;
         };
       };
       outputs: {
-        results: MemoryItem<T>;
+        result: MemoryItem<T>;
       };
     }
   | {
@@ -112,7 +108,7 @@ export type MemoryActions<T> =
         memory: T;
       };
       outputs: {
-        results: MemoryItem<T> | null;
+        result: MemoryItem<T> | null;
       };
     }
   | {
@@ -121,88 +117,83 @@ export type MemoryActions<T> =
         memoryId: string;
       };
       outputs: {
-        results: MemoryItem<T> | null;
+        result: MemoryItem<T> | null;
       };
     };
 
-export abstract class CMemoryRunner<T extends string> extends Runnable<MemoryActions<T>, MemoryActions<T>['outputs']> {
+export interface SortItem {
+  field: string;
+  direction: 'asc' | 'desc';
+}
+
+export type MemorySortOptions = SortItem | SortItem[];
+
+export abstract class Memory<T> extends Runnable<MemoryActions<T>, MemoryActions<T>['outputs']> {
   constructor() {
     super({
-      id: 'memory_runner',
-      type: 'memory_runner',
-      name: 'Memory Runner',
-      description: 'Run a memory',
+      id: 'memory',
+      type: 'memory',
+      name: 'Memory',
       inputs: OrderedRecord.fromArray([]),
       outputs: OrderedRecord.fromArray([]),
     });
   }
 
-  abstract runnable?: MemoryRunnable<T>;
+  abstract runner?: MemoryRunner<T>;
 
   abstract add(
-    messages: { role: string; content: string }[],
-    options?: {
-      userId?: string;
-      sessionId?: string;
-      metadata?: { [key: string]: any };
-      filters?: { [key: string]: any };
-    }
-  ): Promise<{ results: MemoryActionItem<T>[] }>;
+    messages: Extract<MemoryActions<T>, { action: 'add' }>['inputs']['messages'],
+    options?: Extract<MemoryActions<T>, { action: 'add' }>['inputs']['options']
+  ): Promise<Extract<MemoryActions<T>, { action: 'add' }>['outputs']>;
 
   abstract search(
-    query: string,
-    options?: {
-      k?: number;
-      userId?: string;
-      sessionId?: string;
-      filters?: { [key: string]: any };
-    }
-  ): Promise<{ results: SearchMemoryItem<T>[] }>;
+    query: Extract<MemoryActions<T>, { action: 'search' }>['inputs']['query'],
+    options?: Extract<MemoryActions<T>, { action: 'search' }>['inputs']['options']
+  ): Promise<Extract<MemoryActions<T>, { action: 'search' }>['outputs']>;
 
-  abstract filter(options: {
-    k?: number;
-    userId?: string;
-    sessionId?: string;
-    filters?: { [key: string]: any };
-  }): Promise<MemoryItem<T>[]>;
+  abstract filter(
+    options: Extract<MemoryActions<T>, { action: 'filter' }>['inputs']['options']
+  ): Promise<Extract<MemoryActions<T>, { action: 'filter' }>['outputs']>;
 
-  abstract get(memoryId: string): Promise<MemoryItem<T> | null>;
+  abstract get(
+    memoryId: Extract<MemoryActions<T>, { action: 'get' }>['inputs']['memoryId']
+  ): Promise<Extract<MemoryActions<T>, { action: 'get' }>['outputs']>;
 
   abstract create(
-    memory: T,
-    options?: {
-      userId?: string;
-      sessionId?: string;
-      metadata?: { [key: string]: any };
-    }
-  ): Promise<MemoryItem<T>>;
+    memory: Extract<MemoryActions<T>, { action: 'create' }>['inputs']['memory'],
+    options?: Extract<MemoryActions<T>, { action: 'create' }>['inputs']['options']
+  ): Promise<Extract<MemoryActions<T>, { action: 'create' }>['outputs']>;
 
-  abstract update(memoryId: string, memory: T): Promise<MemoryItem<T> | null>;
+  abstract update(
+    memoryId: Extract<MemoryActions<T>, { action: 'update' }>['inputs']['memoryId'],
+    memory: T
+  ): Promise<Extract<MemoryActions<T>, { action: 'update' }>['outputs']>;
 
-  abstract delete(memoryId: string): Promise<MemoryItem<T> | null>;
+  abstract delete(
+    memoryId: Extract<MemoryActions<T>, { action: 'delete' }>['inputs']['memoryId']
+  ): Promise<Extract<MemoryActions<T>, { action: 'delete' }>['outputs']>;
 }
 
-export interface MemoryRunnableInputs {
-  messages: { role: string; content: string }[];
-
+export interface MemoryRunnerInputs {
+  messages: MemoryMessage[];
   userId?: string;
   sessionId?: string;
-  metadata?: { [key: string]: any };
-  filters?: { [key: string]: any };
+  metadata?: MemoryMetadata;
+  filter?: MemoryMetadata;
 }
 
-export abstract class MemoryRunnable<
-  T extends string = string,
-  O extends MemoryActionItem<T>[] = MemoryActionItem<T>[],
-> extends Runnable<MemoryRunnableInputs, O> {
+export abstract class MemoryRunner<T, O extends MemoryActionItem<T>[] = MemoryActionItem<T>[]> extends Runnable<
+  MemoryRunnerInputs,
+  O
+> {
   constructor(name: string) {
-    const id = `${camelCase(name)}_runnable`;
+    const id = `${camelCase(name)}_runner`;
 
     super({
       id,
       type: id,
-      name: `${startCase(name)} Runnable`,
-      description: `${startCase(name)} Runnable`,
+      name: `${startCase(name)} Runner`,
+      description: `${startCase(name)} Runner`,
       inputs: OrderedRecord.fromArray([]),
       outputs: OrderedRecord.fromArray([]),
     });

@@ -1,8 +1,8 @@
 import {
   LLMModel,
   MemoryActionItem,
-  MemoryRunnable,
-  MemoryRunnableInputs,
+  MemoryRunner,
+  MemoryRunnerInputs,
   RunOptions,
   RunnableResponse,
   RunnableResponseStream,
@@ -12,41 +12,29 @@ import { uniqBy } from 'lodash';
 import nextId from '../../lib/next-id';
 import { getUpdateMemoryMessages } from '../../lib/prompts';
 import { getFactRetrievalMessages, objectToStream, parseMessages } from '../../lib/utils';
-// import OpenAIManager from '../../llm/openai';
 import logger from '../../logger';
-import { IVectorStoreManager } from '../../types/memory';
+import { Retrievable } from '../type';
 
-export class ShortTermRunnable<
-  T extends string = string,
-  O extends MemoryActionItem<T>[] = MemoryActionItem<T>[],
-> extends MemoryRunnable<T, O> {
-  vectorStoreProvider?: IVectorStoreManager;
+export type ShortTermRunnableOutput = MemoryActionItem<string>[];
 
-  llm: LLMModel;
+export class ShortTermRunnable extends MemoryRunner<string, ShortTermRunnableOutput> {
+  vectorStore?: Retrievable<string>;
 
-  constructor(llm: LLMModel) {
+  constructor(public llmModel: LLMModel) {
     super('short_term');
-    // this.llm = (new OpenAIManager() as any) || llm;
-    this.llm = llm;
   }
 
-  setVectorStoreProvider(vectorStoreProvider: IVectorStoreManager) {
-    this.vectorStoreProvider = vectorStoreProvider;
-  }
+  private async _run(input: MemoryRunnerInputs): Promise<ShortTermRunnableOutput> {
+    const { messages, filter } = input;
 
-  private async _run(input: MemoryRunnableInputs): Promise<O> {
-    const { messages, filters } = input;
-
-    const { vectorStoreProvider } = this;
-    if (!vectorStoreProvider) throw new Error('Vector store not initialized');
-
-    const { llm } = this;
-    if (!llm) throw new Error('LLM not initialized');
+    // TODO: vectorStore should be initialized in the constructor
+    const { vectorStore } = this;
+    if (!vectorStore) throw new Error('Vector store not initialized');
 
     const parsedMessages = parseMessages(messages);
     const [systemPrompt, userPrompt] = getFactRetrievalMessages(parsedMessages);
 
-    const response = await llm.run({
+    const response = await this.llmModel.run({
       modelSettings: {
         model: 'gpt-4o-mini',
         temperature: 0.3,
@@ -77,46 +65,43 @@ export class ShortTermRunnable<
       },
     });
 
-    const newRetrievedFacts = response?.$text ? JSON.parse(response.$text).facts : [];
-    logger.info('newRetrievedFacts', { newRetrievedFacts });
+    if (!response.$text) throw new Error('No response from LLM');
 
-    const allExistingMemories = await Promise.all(
-      newRetrievedFacts.map((fact: string) => vectorStoreProvider.search(fact, 5, filters))
-    );
+    const newRetrievedFacts: string[] = JSON.parse(response.$text).facts;
+    logger.debug('newRetrievedFacts', { newRetrievedFacts });
 
-    const retrievedOldMemory = uniqBy(
+    const allExistingMemories = await Promise.all(newRetrievedFacts.map((fact) => vectorStore.search(fact, 5, filter)));
+
+    const retrievedOldMemories = uniqBy(
       allExistingMemories.flatMap((existingMemories) => {
-        logger.info('Existing Memories', { existingMemories: JSON.stringify(existingMemories, null, 2) });
-
-        return existingMemories
-          .filter((memory: any) => memory.metadata.memoryId)
-          .map((memory: any) => ({
-            id: memory.metadata.memoryId,
-            text: memory.pageContent,
-          }));
+        return existingMemories.map((memory) => ({
+          id: memory.metadata.memoryId,
+          text: memory.memory,
+        }));
       }),
       'id'
     );
 
-    logger.info('Total existing memories', { retrievedOldMemory, count: retrievedOldMemory.length });
+    logger.debug('Retrieved Old Memories', retrievedOldMemories);
 
     // mapping UUIDs with integers for handling UUID hallucinations
     const tempUuidMapping: Record<string, string> = {};
-    retrievedOldMemory.forEach((item, idx) => {
+    retrievedOldMemories.forEach((item, idx) => {
       if (item.id) {
         const idxStr = idx.toString();
         tempUuidMapping[idxStr] = item.id;
-        retrievedOldMemory[idx].id = idxStr;
+        item.id = idxStr;
       }
     });
 
-    const funcCallingPrompt = getUpdateMemoryMessages(retrievedOldMemory, newRetrievedFacts);
-    const newMemoriesWithActions = await llm.run({
+    const funcCallingPrompt = getUpdateMemoryMessages(retrievedOldMemories, newRetrievedFacts);
+
+    const newMemoriesWithActions = await this.llmModel.run({
       modelSettings: {
         model: 'gpt-4o-mini',
         temperature: 0.3,
       },
-      messages: [{ role: 'user', content: funcCallingPrompt }],
+      messages: [{ role: 'system', content: funcCallingPrompt }],
       responseFormat: {
         type: 'json_schema',
         jsonSchema: {
@@ -140,7 +125,7 @@ export class ShortTermRunnable<
                     },
                     event: {
                       type: 'string',
-                      enum: ['ADD', 'UPDATE', 'DELETE', 'NONE'],
+                      enum: ['add', 'update', 'delete', 'none'],
                       description: 'Type of memory operation',
                     },
                     old_memory: {
@@ -157,21 +142,30 @@ export class ShortTermRunnable<
             required: ['memory'],
             additionalProperties: false,
           },
+          strict: true,
         },
       },
     });
 
-    const memory = newMemoriesWithActions?.$text ? JSON.parse(newMemoriesWithActions.$text) : {};
-    return (memory.memory || []).map((m: { id: string; text: string; event: string }) => ({
-      id: tempUuidMapping[m.id] ?? nextId(),
+    if (!newMemoriesWithActions.$text) throw new Error('No response from LLM');
+
+    const result: {
+      memory: { id: string; text: string; event: 'add' | 'update' | 'delete' | 'none'; old_memory?: string }[];
+    } = JSON.parse(newMemoriesWithActions.$text);
+
+    return result.memory.map<ShortTermRunnableOutput[number]>((m) => ({
+      id: tempUuidMapping[m.id],
       memory: m.text,
-      event: (m.event || '').toLowerCase(),
+      event: m.event as any,
     }));
   }
 
-  async run(input: MemoryRunnableInputs, options: RunOptions & { stream: true }): Promise<RunnableResponseStream<O>>;
-  async run(input: MemoryRunnableInputs, options?: RunOptions & { stream?: false }): Promise<O>;
-  async run(input: MemoryRunnableInputs, options?: RunOptions): Promise<RunnableResponse<O>> {
+  async run(
+    input: MemoryRunnerInputs,
+    options: RunOptions & { stream: true }
+  ): Promise<RunnableResponseStream<ShortTermRunnableOutput>>;
+  async run(input: MemoryRunnerInputs, options?: RunOptions & { stream?: false }): Promise<ShortTermRunnableOutput>;
+  async run(input: MemoryRunnerInputs, options?: RunOptions): Promise<RunnableResponse<ShortTermRunnableOutput>> {
     const result = await this._run(input);
 
     return options?.stream ? objectToStream({ delta: result }) : result;

@@ -1,63 +1,44 @@
-import { DataTypes } from 'sequelize';
-
-import Content, { init as initContent } from '../store/models/content';
+import { VectorStoreDocument } from '../core/type';
+import { migrate } from '../store/migrate';
+import VectorHistory, { init as initContent } from '../store/models/content';
 import { initSequelize } from '../store/sequelize';
 
-export default class SQLiteContentManager {
-  static async load(dbPath: string) {
-    const instance = new SQLiteContentManager();
-    await instance.init(dbPath);
-    return instance;
+export default class DefaultVectorHistoryStore {
+  constructor(public path: string) {}
+
+  private _init?: Promise<void>;
+
+  private async init() {
+    this._init ??= (async () => {
+      const dbPath = `sqlite:${this.path}/default-vector-history.db`;
+
+      const sequelize = initSequelize(dbPath);
+
+      // FIXME: 多实例会导致 sequelize 冲突，把 A memory 的数据存储到 B memory 的数据库中
+      initContent(sequelize);
+
+      // TODO: 分割 models 中的各个数据库，每个数据库应该有自己的 migration
+      await migrate(sequelize);
+    })();
+
+    await this._init;
   }
 
-  private async init(dbPath: string) {
-    const sequelize = initSequelize(dbPath);
+  async add(data: VectorStoreDocument<any>) {
+    await this.init();
 
-    initContent(sequelize);
-
-    const tables = await sequelize.getQueryInterface().showAllTables();
-    if (!tables.includes('Contents')) {
-      await sequelize.getQueryInterface().createTable('Contents', {
-        id: {
-          type: DataTypes.STRING,
-          primaryKey: true,
-          allowNull: false,
-        },
-        pageContent: {
-          type: DataTypes.TEXT,
-          allowNull: false,
-        },
-        metadata: {
-          type: DataTypes.JSON,
-          allowNull: false,
-        },
-        createdAt: {
-          type: DataTypes.DATE,
-        },
-        updatedAt: {
-          type: DataTypes.DATE,
-        },
-      });
-    }
+    return await VectorHistory.create({ id: data.id, data });
   }
 
-  async addOriginContent(id: string, content: string, metadata: { [key: string]: any }) {
-    return await Content.create({ id, pageContent: content, metadata });
+  async update(data: VectorStoreDocument<any>) {
+    return await VectorHistory.update({ data }, { where: { id: data.id } });
   }
 
-  async updateOriginContent(id: string, content: string, metadata: { [key: string]: any }) {
-    return await Content.update({ pageContent: content, metadata }, { where: { id } });
+  async delete(id: string) {
+    return await VectorHistory.destroy({ where: { id } });
   }
 
-  async deleteOriginContent(id: string) {
-    return await Content.destroy({ where: { id } });
-  }
-
-  async getOriginContent(where: { [key: string]: any }): Promise<Content[]> {
-    return await Content.findAll({ where });
-  }
-
-  async getOriginContentById(id: string): Promise<Content | null> {
-    return await Content.findOne({ where: { id } });
+  async findAll(where: { [key: string]: any }): Promise<VectorHistory[]> {
+    return await VectorHistory.findAll({ where });
   }
 }

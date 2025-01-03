@@ -2,7 +2,7 @@ import compression from 'compression';
 import { Router } from 'express';
 import Joi from 'joi';
 
-import { LongTermRunnable, Memory } from '../core';
+import { DefaultMemory, LongTermRunnable } from '../core';
 
 const getRequestSchema = Joi.object({
   id: Joi.string().required(),
@@ -19,11 +19,11 @@ const searchRequestSchema = Joi.object({
 });
 
 export function vectorRoutes(router: Router, path: string) {
-  const loadMemory = Memory.load({ path, runnable: new LongTermRunnable() });
+  const loadMemory = DefaultMemory.load({ path, runner: new LongTermRunnable() });
 
   router.get('/list', compression(), async (req, res) => {
     const memory = await loadMemory;
-    const result = await memory.vectorStoreProvider?.list(req.query || {}, 100);
+    const result = await memory.vectorStore?.list(req.query || {}, 100);
     res.json(result);
   });
 
@@ -31,7 +31,7 @@ export function vectorRoutes(router: Router, path: string) {
     const memory = await loadMemory;
 
     const { query, k } = await searchRequestSchema.validateAsync(req.query, { stripUnknown: true });
-    const result = await memory.vectorStoreProvider?.search(query, k);
+    const result = await memory.vectorStore?.search(query, k);
     res.json(result);
   });
 
@@ -39,7 +39,7 @@ export function vectorRoutes(router: Router, path: string) {
     const memory = await loadMemory;
 
     const { id } = await getRequestSchema.validateAsync(req.params, { stripUnknown: true });
-    const result = await memory.vectorStoreProvider?.get(id);
+    const result = await memory.vectorStore?.get(id);
     res.json(result);
   });
 
@@ -48,7 +48,7 @@ export function vectorRoutes(router: Router, path: string) {
 
     const { id } = await getRequestSchema.validateAsync(req.params, { stripUnknown: true });
     const { data, metadata } = await postRequestSchema.validateAsync(req.body, { stripUnknown: true });
-    const result = await memory.vectorStoreProvider?.insert(data, id, metadata);
+    const result = await memory.vectorStore?.insert(data, id, metadata);
     res.json(result);
   });
 
@@ -57,7 +57,7 @@ export function vectorRoutes(router: Router, path: string) {
 
     const { id } = await getRequestSchema.validateAsync(req.params, { stripUnknown: true });
     const { data, metadata } = await postRequestSchema.validateAsync(req.body, { stripUnknown: true });
-    const result = await memory.vectorStoreProvider?.update(id, data, metadata);
+    const result = await memory.vectorStore?.update(id, data, metadata);
     res.json(result);
   });
 
@@ -65,7 +65,7 @@ export function vectorRoutes(router: Router, path: string) {
     const memory = await loadMemory;
 
     const { id } = await getRequestSchema.validateAsync(req.params, { stripUnknown: true });
-    const result = await memory.vectorStoreProvider?.delete(id);
+    const result = await memory.vectorStore?.delete(id);
     res.json(result);
   });
 
