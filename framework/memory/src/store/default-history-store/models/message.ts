@@ -1,27 +1,27 @@
 import { MemoryMessage, MemoryMetadata } from '@aigne/core';
 import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
-import type { Sequelize } from 'sequelize';
+import type { ModelStatic, Sequelize } from 'sequelize';
 
-import nextId from '../../lib/next-id';
+import nextId from '../../../lib/next-id';
 
-export default class Message extends Model<InferAttributes<Message>, InferCreationAttributes<Message>> {
-  declare id: CreationOptional<string>;
+export interface Message extends Model<InferAttributes<Message>, InferCreationAttributes<Message>> {
+  id: CreationOptional<string>;
 
-  declare createdAt: CreationOptional<Date>;
+  createdAt: CreationOptional<Date>;
 
-  declare updatedAt: CreationOptional<Date>;
+  updatedAt: CreationOptional<Date>;
 
-  declare userId?: string;
+  userId?: string;
 
-  declare sessionId?: string;
+  sessionId?: string;
 
-  declare messages: MemoryMessage[];
+  messages: MemoryMessage[];
 
-  declare metadata: MemoryMetadata;
+  metadata: MemoryMetadata;
 }
 
-export const init = (sequelize: Sequelize) => {
-  Message.init(
+export function initMessageModel(sequelize: Sequelize) {
+  return (class Message extends Model {} as ModelStatic<Message>).init(
     {
       id: {
         type: DataTypes.STRING,
@@ -54,4 +54,4 @@ export const init = (sequelize: Sequelize) => {
     },
     { sequelize }
   );
-};
+}

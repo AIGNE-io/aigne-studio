@@ -7,7 +7,7 @@ export interface VectorStoreSearchOptions {
   sort?: MemorySortOptions;
 }
 
-export interface Retrievable<T> {
+export interface Retriever<T> {
   get(id: string): Promise<VectorStoreDocument<T> | null>;
   insert(document: VectorStoreDocument<T>): Promise<void>;
   delete(id: string): Promise<void>;

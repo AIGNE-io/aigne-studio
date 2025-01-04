@@ -2,27 +2,23 @@ import { join } from 'path';
 
 import chatbot from '@aigne-project/chatbot';
 import { LLMAgent, LLMDecisionAgent, LocalFunctionAgent } from '@aigne/core';
-import { DefaultMemory, LongTermRunnable, ShortTermRunnable } from '@aigne/memory';
+import { DefaultMemory, LongTermMemoryRunner, ShortTermMemoryRunner } from '@aigne/memory';
 import { BlockletLLMModel } from '@aigne/runtime';
 import { config } from '@blocklet/sdk';
 import { SessionUser } from '@blocklet/sdk/lib/util/login';
-import { differenceBy } from 'lodash';
+import { differenceBy, orderBy } from 'lodash';
 
 import { extractKeywordsAgent, knowledgeAgent } from './knowledge';
 import { ChatbotResponse } from './type';
 
 const longTermMemory = DefaultMemory.load({
   path: join(config.env.dataDir, 'long-term-memory'),
-  runner: new LongTermRunnable(),
+  runner: new LongTermMemoryRunner(),
 });
 const shortTermMemory = DefaultMemory.load({
   path: join(config.env.dataDir, 'short-term-memory'),
-  runner: new ShortTermRunnable(new BlockletLLMModel()),
+  runner: new ShortTermMemoryRunner(new BlockletLLMModel()),
 });
-
-longTermMemory
-  .then((m) => m.filter({ k: 10, sort: { field: 'metadata.createdAt', direction: 'desc' } }))
-  .then(console.log);
 
 export const docAgent = LocalFunctionAgent.create<
   {
@@ -331,7 +327,7 @@ export const chat = LocalFunctionAgent.create<{ question: string }, ChatbotRespo
               ltm.search(input.question, { k: 4, userId }),
               ltm.filter({ k: 6, userId, sort: { field: 'createdAt', direction: 'desc' } }),
             ]).then(([{ results: match }, { results: last }]) => {
-              const list = [...differenceBy(match, last, (i) => i.id), ...last];
+              const list = orderBy([...differenceBy(match, last, (i) => i.id), ...last], (i) => i.createdAt, 'asc');
               return list.map((i) => `${i.metadata.role}: ${i.memory}`).join('\n');
             }),
             stm.search(input.question, { k: 8, userId }).then((res) => res.results.map((j) => j.memory).join('\n')),

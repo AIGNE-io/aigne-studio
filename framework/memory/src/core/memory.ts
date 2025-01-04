@@ -3,28 +3,32 @@ import {
   MemoryActionItem,
   MemoryActions,
   MemoryRunner,
-  MemoryRunnerInputs,
   RunOptions,
   RunnableResponse,
   RunnableResponseStream,
+  objectToStream,
 } from '@aigne/core';
 import { mkdir, writeFile } from 'fs-extra';
 import { joinURL } from 'ufo';
 import { stringify } from 'yaml';
 
 import nextId from '../lib/next-id';
-import { objectToStream } from '../lib/utils';
 import logger from '../logger';
-import DefaultHistoryStore from '../storage/sqlite';
-import SearchKitRetriever from '../vector-stores/search-kit';
+import { SearchKitRetriever } from '../retriever/search-kit';
+import { DefaultHistoryStore } from '../store/default-history-store';
 import { loadConfig } from './config';
-import { HistoryStore, Retrievable, VectorStoreDocument } from './type';
+import { HistoryStore, Retriever, VectorStoreDocument } from './type';
 
-export class DefaultMemory<T, I extends MemoryActions<T>> extends Memory<T> {
+type DefaultMemoryRunnerCustomData<T> = { retriever: Retriever<T> };
+
+export class DefaultMemory<T, I extends MemoryActions<T> = MemoryActions<T>> extends Memory<
+  T,
+  DefaultMemoryRunnerCustomData<T>
+> {
   static async load<T extends string>(options: {
     path: string;
-    runner: MemoryRunner<T>;
-    retriever?: Retrievable<T>;
+    runner: MemoryRunner<T, DefaultMemoryRunnerCustomData<T>>;
+    retriever?: Retriever<T>;
     historyStore?: HistoryStore<T>;
   }) {
     const configPath = joinURL(options.path, 'config.yaml');
@@ -35,35 +39,35 @@ export class DefaultMemory<T, I extends MemoryActions<T>> extends Memory<T> {
     await writeFile(configPath, stringify(config));
 
     const historyStore = options.historyStore ?? DefaultHistoryStore.load<T>({ path: options.path });
-    const vectorStore = options.retriever ?? SearchKitRetriever.load<T>({ id: config.id, path: options.path });
+    const retriever = options.retriever ?? SearchKitRetriever.load<T>({ id: config.id, path: options.path });
 
     return new DefaultMemory({
       path: options.path,
       runner: options.runner,
-      vectorStore,
+      retriever,
       historyStore,
     });
   }
 
   constructor(options: {
     path: string;
-    runner: MemoryRunner<T>;
-    vectorStore: Retrievable<T>;
+    runner: MemoryRunner<T, DefaultMemoryRunnerCustomData<T>>;
+    retriever: Retriever<T>;
     historyStore: HistoryStore<T>;
   }) {
     super();
 
     this.path = options.path;
     this.runner = options.runner;
-    this.vectorStore = options.vectorStore;
+    this.retriever = options.retriever;
     this.historyStore = options.historyStore;
   }
 
   path: string;
 
-  runner: MemoryRunner<T>;
+  runner: MemoryRunner<T, DefaultMemoryRunnerCustomData<T>>;
 
-  vectorStore: Retrievable<T>;
+  retriever: Retriever<T>;
 
   historyStore: HistoryStore<T>;
 
@@ -74,7 +78,10 @@ export class DefaultMemory<T, I extends MemoryActions<T>> extends Memory<T> {
     const { userId, sessionId, metadata = {} } = options ?? {};
 
     const [actions] = await Promise.all([
-      this.runRunner({ ...options, messages }),
+      // this.runRunner({ ...options, messages }),
+
+      this.runner.run({ ...options, messages, customData: { retriever: this.retriever } }),
+
       this.historyStore.addMessage({ userId, sessionId, messages, metadata }),
     ]);
 
@@ -139,7 +146,7 @@ export class DefaultMemory<T, I extends MemoryActions<T>> extends Memory<T> {
       ...(options?.sessionId ? { sessionId: options.sessionId } : {}),
     };
 
-    const memories = await this.vectorStore.searchWithScore(query, options?.k || 100, {
+    const memories = await this.retriever.searchWithScore(query, options?.k || 100, {
       filter,
       sort: options?.sort,
     });
@@ -156,7 +163,7 @@ export class DefaultMemory<T, I extends MemoryActions<T>> extends Memory<T> {
       ...(options?.sessionId ? { sessionId: options.sessionId } : {}),
     };
 
-    const results = await this.vectorStore.list(options?.k || 1, { filter, sort: options?.sort });
+    const results = await this.retriever.list(options?.k || 1, { filter, sort: options?.sort });
 
     return { results };
   }
@@ -164,7 +171,7 @@ export class DefaultMemory<T, I extends MemoryActions<T>> extends Memory<T> {
   async get(
     memoryId: Extract<MemoryActions<T>, { action: 'get' }>['inputs']['memoryId']
   ): Promise<Extract<MemoryActions<T>, { action: 'get' }>['outputs']> {
-    const result = await this.vectorStore.get(memoryId);
+    const result = await this.retriever.get(memoryId);
 
     return { result };
   }
@@ -223,13 +230,6 @@ export class DefaultMemory<T, I extends MemoryActions<T>> extends Memory<T> {
     return options?.stream ? objectToStream({ delta: result }) : result;
   }
 
-  private async runRunner(inputs: MemoryRunnerInputs): Promise<MemoryActionItem<T>[]> {
-    // TODO: runner 中需要用到 vectorStore，暂时通过这种方式传递
-    (this.runner as any).vectorStore = this.vectorStore;
-
-    return await this.runner.run(inputs);
-  }
-
   private async createMemory(params: Omit<VectorStoreDocument<T>, 'id' | 'createdAt' | 'updatedAt'>) {
     const memoryId = nextId();
     const createdAt = new Date().toISOString();
@@ -247,7 +247,7 @@ export class DefaultMemory<T, I extends MemoryActions<T>> extends Memory<T> {
     };
 
     await Promise.all([
-      this.vectorStore.insert(document),
+      this.retriever.insert(document),
       this.historyStore.addHistory({ memoryId, newMemory: params.memory, event: 'add' }),
     ]);
 
@@ -255,7 +255,7 @@ export class DefaultMemory<T, I extends MemoryActions<T>> extends Memory<T> {
   }
 
   private async updateMemory(params: Partial<VectorStoreDocument<T>> & { id: string }) {
-    const originalMemory = await this.vectorStore.get(params.id);
+    const originalMemory = await this.retriever.get(params.id);
     if (!originalMemory) throw new Error('Memory not found');
 
     const newMemory = {
@@ -266,7 +266,7 @@ export class DefaultMemory<T, I extends MemoryActions<T>> extends Memory<T> {
     };
 
     await Promise.all([
-      this.vectorStore.update(newMemory),
+      this.retriever.update(newMemory),
 
       this.historyStore.addHistory({
         memoryId: params.id,
@@ -280,13 +280,13 @@ export class DefaultMemory<T, I extends MemoryActions<T>> extends Memory<T> {
   }
 
   private async deleteMemory(memoryId: string) {
-    const memory = await this.vectorStore.get(memoryId);
+    const memory = await this.retriever.get(memoryId);
     if (!memory) throw new Error('Memory not found');
 
     await Promise.all([
-      this.vectorStore.delete(memoryId),
+      this.retriever.delete(memoryId),
       this.historyStore?.addHistory({
-        memoryId: memoryId,
+        memoryId,
         oldMemory: memory.memory,
         event: 'delete',
         isDeleted: true,

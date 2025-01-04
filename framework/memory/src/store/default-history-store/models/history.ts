@@ -1,29 +1,29 @@
 import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
-import type { Sequelize } from 'sequelize';
+import type { ModelStatic, Sequelize } from 'sequelize';
 
-import { EventType } from '../../core/type';
-import nextId from '../../lib/next-id';
+import { EventType } from '../../../core/type';
+import nextId from '../../../lib/next-id';
 
-export default class History extends Model<InferAttributes<History>, InferCreationAttributes<History>> {
-  declare id: CreationOptional<string>;
+export interface History extends Model<InferAttributes<History>, InferCreationAttributes<History>> {
+  id: CreationOptional<string>;
 
-  declare memoryId: string;
+  memoryId: string;
 
-  declare oldMemory?: any;
+  oldMemory?: any;
 
-  declare newMemory?: any;
+  newMemory?: any;
 
-  declare event: EventType;
+  event: EventType;
 
-  declare createdAt: CreationOptional<Date>;
+  createdAt: CreationOptional<Date>;
 
-  declare updatedAt: CreationOptional<Date>;
+  updatedAt: CreationOptional<Date>;
 
-  declare isDeleted?: boolean;
+  isDeleted?: boolean;
 }
 
-export const init = (sequelize: Sequelize) => {
-  History.init(
+export function initHistoryModel(sequelize: Sequelize) {
+  return (class History extends Model {} as ModelStatic<History>).init(
     {
       id: {
         type: DataTypes.STRING,
@@ -55,9 +55,8 @@ export const init = (sequelize: Sequelize) => {
       },
       isDeleted: {
         type: DataTypes.BOOLEAN,
-        defaultValue: false,
       },
     },
     { sequelize }
   );
-};
+}

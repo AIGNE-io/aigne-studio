@@ -128,7 +128,7 @@ export interface SortItem {
 
 export type MemorySortOptions = SortItem | SortItem[];
 
-export abstract class Memory<T> extends Runnable<MemoryActions<T>, MemoryActions<T>['outputs']> {
+export abstract class Memory<T, C = undefined> extends Runnable<MemoryActions<T>, MemoryActions<T>['outputs']> {
   constructor() {
     super({
       id: 'memory',
@@ -139,7 +139,7 @@ export abstract class Memory<T> extends Runnable<MemoryActions<T>, MemoryActions
     });
   }
 
-  abstract runner?: MemoryRunner<T>;
+  abstract runner?: MemoryRunner<T, C>;
 
   abstract add(
     messages: Extract<MemoryActions<T>, { action: 'add' }>['inputs']['messages'],
@@ -174,18 +174,16 @@ export abstract class Memory<T> extends Runnable<MemoryActions<T>, MemoryActions
   ): Promise<Extract<MemoryActions<T>, { action: 'delete' }>['outputs']>;
 }
 
-export interface MemoryRunnerInputs {
+export interface MemoryRunnerInput<C = undefined> {
   messages: MemoryMessage[];
   userId?: string;
   sessionId?: string;
   metadata?: MemoryMetadata;
   filter?: MemoryMetadata;
+  customData: C;
 }
 
-export abstract class MemoryRunner<T, O extends MemoryActionItem<T>[] = MemoryActionItem<T>[]> extends Runnable<
-  MemoryRunnerInputs,
-  O
-> {
+export abstract class MemoryRunner<T, C = undefined> extends Runnable<MemoryRunnerInput<C>, MemoryActionItem<T>[]> {
   constructor(name: string) {
     const id = `${camelCase(name)}_runner`;
 

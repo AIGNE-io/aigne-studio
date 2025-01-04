@@ -7,53 +7,30 @@ export const up = async ({ context: queryInterface }: { context: QueryInterface 
       primaryKey: true,
       allowNull: false,
     },
+    createdAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
     memoryId: {
       type: DataTypes.STRING,
       allowNull: false,
     },
     oldMemory: {
-      type: DataTypes.TEXT,
+      type: DataTypes.JSON,
     },
     newMemory: {
-      type: DataTypes.TEXT,
-    },
-    newValue: {
-      type: DataTypes.TEXT,
+      type: DataTypes.JSON,
     },
     event: {
-      type: DataTypes.TEXT,
-    },
-    createdAt: {
-      type: DataTypes.DATE,
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
+      type: DataTypes.STRING,
+      allowNull: false,
     },
     isDeleted: {
       type: DataTypes.BOOLEAN,
-      defaultValue: false,
-    },
-  });
-
-  await queryInterface.createTable('Contents', {
-    id: {
-      type: DataTypes.STRING,
-      primaryKey: true,
-      allowNull: false,
-    },
-    pageContent: {
-      type: DataTypes.TEXT,
-      allowNull: false,
-    },
-    metadata: {
-      type: DataTypes.JSON,
-      allowNull: false,
-    },
-    createdAt: {
-      type: DataTypes.DATE,
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
     },
   });
 
@@ -63,7 +40,21 @@ export const up = async ({ context: queryInterface }: { context: QueryInterface 
       primaryKey: true,
       allowNull: false,
     },
-    message: {
+    createdAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
+    userId: {
+      type: DataTypes.STRING,
+    },
+    sessionId: {
+      type: DataTypes.STRING,
+    },
+    messages: {
       type: DataTypes.JSON,
       allowNull: false,
     },
@@ -71,17 +62,10 @@ export const up = async ({ context: queryInterface }: { context: QueryInterface 
       type: DataTypes.JSON,
       allowNull: false,
     },
-    createdAt: {
-      type: DataTypes.DATE,
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-    },
   });
 };
 
 export const down = async ({ context: queryInterface }: { context: QueryInterface }) => {
   await queryInterface.dropTable('Histories');
-  await queryInterface.dropTable('Contents');
   await queryInterface.dropTable('Messages');
 };

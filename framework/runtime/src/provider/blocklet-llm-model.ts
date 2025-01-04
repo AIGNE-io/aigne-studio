@@ -17,72 +17,66 @@ export class BlockletLLMModel extends LLMModel {
   ): Promise<RunnableResponseStream<LLMModelOutputs>>;
   async run(input: LLMModelInputs, options?: RunOptions & { stream?: false }): Promise<LLMModelOutputs>;
   async run(input: LLMModelInputs, options?: RunOptions): Promise<RunnableResponse<LLMModelOutputs>> {
-    try {
-      const { chatCompletions } = await import('@blocklet/ai-kit/api/call');
+    const { chatCompletions } = await import('@blocklet/ai-kit/api/call');
 
-      const chatInput: ChatCompletionInput = {
-        ...input.modelSettings,
-        messages: input.messages as ChatCompletionInput['messages'],
-        responseFormat: input.responseFormat,
-        tools: input.tools,
-        toolChoice: input.toolChoice,
-      };
+    const chatInput: ChatCompletionInput = {
+      ...input.modelSettings,
+      messages: input.messages as ChatCompletionInput['messages'],
+      responseFormat: input.responseFormat,
+      tools: input.tools,
+      toolChoice: input.toolChoice,
+    };
 
-      logger.debug('BlockletLLMModel.run inputs', chatInput);
+    logger.debug('BlockletLLMModel.run inputs', chatInput);
 
-      // TODO: support LLM Adapter
-      const stream = await chatCompletions({
-        ...chatInput,
-        stream: true,
-      });
+    // TODO: support LLM Adapter
+    const stream = await chatCompletions({
+      ...chatInput,
+      stream: true,
+    });
 
-      if (options?.stream) {
-        return new ReadableStream({
-          async start(controller) {
-            try {
-              for await (const chunk of stream) {
-                if (isChatCompletionChunk(chunk)) {
-                  const { content, toolCalls } = chunk.delta;
+    if (options?.stream) {
+      return new ReadableStream({
+        async start(controller) {
+          try {
+            for await (const chunk of stream) {
+              if (isChatCompletionChunk(chunk)) {
+                const { content, toolCalls } = chunk.delta;
 
-                  controller.enqueue({
-                    $text: content || undefined,
-                    delta: toolCalls ? { toolCalls } : undefined,
-                  });
-                } else if (isChatCompletionError(chunk)) {
-                  throw new Error(chunk.error.message);
-                }
+                controller.enqueue({
+                  $text: content || undefined,
+                  delta: toolCalls ? { toolCalls } : undefined,
+                });
+              } else if (isChatCompletionError(chunk)) {
+                throw new Error(chunk.error.message);
               }
-            } catch (error) {
-              console.log('------------- error1', error);
-              controller.error(error);
-            } finally {
-              controller.close();
             }
-          },
-        });
-      }
-
-      const result: LLMModelOutputs = {};
-
-      for await (const chunk of stream) {
-        if (isChatCompletionChunk(chunk)) {
-          if (chunk.delta.content) {
-            result.$text ||= '';
-            result.$text += chunk.delta.content;
+          } catch (error) {
+            controller.error(error);
+          } finally {
+            controller.close();
           }
-          if (chunk.delta.toolCalls?.length) {
-            result.toolCalls ||= [];
-            result.toolCalls.push(...chunk.delta.toolCalls);
-          }
-        } else if (isChatCompletionError(chunk)) {
-          throw new Error(chunk.error.message);
-        }
-      }
-
-      return result;
-    } catch (error) {
-      console.log('------------- error', error);
-      throw error;
+        },
+      });
     }
+
+    const result: LLMModelOutputs = {};
+
+    for await (const chunk of stream) {
+      if (isChatCompletionChunk(chunk)) {
+        if (chunk.delta.content) {
+          result.$text ||= '';
+          result.$text += chunk.delta.content;
+        }
+        if (chunk.delta.toolCalls?.length) {
+          result.toolCalls ||= [];
+          result.toolCalls.push(...chunk.delta.toolCalls);
+        }
+      } else if (isChatCompletionError(chunk)) {
+        throw new Error(chunk.error.message);
+      }
+    }
+
+    return result;
   }
 }
