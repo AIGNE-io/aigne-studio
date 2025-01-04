@@ -77,9 +77,7 @@ export const docAgent = LocalFunctionAgent.create<
               language: input.language,
               question: input.question,
               memory: input.memory,
-              knowledge: knowledge
-                ?.map((i, index) => `[[citation:${index + 1}]] ${i.title} - ${i.content?.replaceAll('\n', ' ')}`)
-                .join('\n'),
+              knowledge: knowledge?.map((i, index) => `[citation:${index + 1}] ${i.title}. ${i.content}`).join('\n'),
             },
             { stream: true },
           );
@@ -251,7 +249,8 @@ You are a professional question classifier. Please classify the question and cho
     },
     {
       name: 'chatbot-profile-assistant',
-      description: 'Answer questions about the chatbot self, like name, from, features, functions, etc.',
+      description:
+        'Answer questions about the chatbot self or user self, like name, from, features, functions, favorites, etc.',
       runnable: chatAgent,
       input: {
         memory: { fromVariable: 'memory' },
