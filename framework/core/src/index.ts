@@ -10,3 +10,5 @@ export * from './llm-model';
 export * from './function-agent';
 export * from './function-runner';
 export * from './llm-decision-agent';
+export * from './local-function-agent';
+export * from './memory';

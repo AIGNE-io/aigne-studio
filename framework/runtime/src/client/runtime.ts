@@ -4,8 +4,11 @@ import { ProjectDefinition } from '../runtime';
 import { Agent } from './agent';
 import { getRunnableDefinition } from './api/runtime';
 
-export class Runtime<Agents = {}> implements Context {
-  constructor(private definition: ProjectDefinition) {
+export class Runtime<Agents = {}, State = {}> implements Context<State> {
+  constructor(
+    public definition: ProjectDefinition,
+    public state: State
+  ) {
     this.agents = Object.fromEntries(
       OrderedRecord.map(definition.runnables, (agent) => {
         if (!agent.name) return null;

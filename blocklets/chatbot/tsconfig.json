@@ -8,6 +8,9 @@
     }
   },
   "compilerOptions": {
+    "skipLibCheck": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "baseUrl": "./",
     "paths": {
       "@app/*": ["./src/*"],
@@ -16,7 +19,9 @@
       "@aigne/core": ["../../framework/core/src"],
       "@aigne/core/*": ["../../framework/core/src/*"],
       "@aigne/runtime": ["../../framework/runtime/src"],
-      "@aigne/runtime/*": ["../../framework/runtime/src/*"]
+      "@aigne/runtime/*": ["../../framework/runtime/src/*"],
+      "@aigne/memory": ["../../framework/memory/src"],
+      "@aigne/memory/*": ["../../framework/memory/src/*"]
     }
   }
 }

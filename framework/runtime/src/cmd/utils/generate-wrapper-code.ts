@@ -11,7 +11,7 @@ export async function generateWrapperCode(project: ProjectDefinition) {
       version: '0.0.1',
       main: 'index.cjs',
       module: 'index.js',
-      types: 'index.ts',
+      types: 'index.d.ts',
       dependencies: {
         '@aigne/core': 'latest',
         '@aigne/runtime': 'latest',
@@ -20,17 +20,17 @@ export async function generateWrapperCode(project: ProjectDefinition) {
         '.': {
           require: './index.cjs',
           import: './index.js',
-          types: './index.ts',
+          types: './index.d.ts',
         },
         './middleware': {
           require: './middleware.cjs',
           import: './middleware.js',
-          types: './middleware.ts',
+          types: './middleware.d.ts',
         },
         './client': {
           require: './client.cjs',
           import: './client.js',
-          types: './client.ts',
+          types: './client.d.ts',
         },
       },
     },
@@ -46,7 +46,7 @@ const projectDefinition: ProjectDefinition = ${JSON.stringify(project, null, 2)}
 
 ${generateAgentsInterface(project.runnables, 'Runnable')}
 
-export default new Runtime<Agents>(projectDefinition);
+export default new Runtime<Agents>(projectDefinition, {});
 `;
 
   const middleware = `\
@@ -67,7 +67,7 @@ const projectDefinition: ProjectDefinition = ${JSON.stringify(sanitizeProjectDef
 
 ${generateAgentsInterface(project.runnables, 'Agent')}
 
-export default new Runtime<Agents>(projectDefinition);
+export default new Runtime<Agents>(projectDefinition, {});
 `;
 
   const tsFiles = [
@@ -86,7 +86,7 @@ export default new Runtime<Agents>(projectDefinition);
         return [
           { fileName: fileName.replace(/\.ts$/, '.cjs'), content: await formatCode(cjs.outputText) },
           { fileName: fileName.replace(/\.ts$/, '.js'), content: await formatCode(esm.outputText) },
-          { fileName: fileName.replace(/\.ts$/, '.ts'), content: await formatCode(content) },
+          { fileName: fileName.replace(/\.ts$/, 'd.ts'), content: await formatCode(content) },
         ];
       })
     )

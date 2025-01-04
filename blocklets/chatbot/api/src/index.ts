@@ -11,7 +11,7 @@ import cors from 'cors';
 import dotenv from 'dotenv-flow';
 import express, { ErrorRequestHandler } from 'express';
 
-import { chat, convertKnowledge, docBot, otherQuestionBot } from './agents/chatbot';
+import { agents } from './agents/chatbot';
 import logger from './libs/logger';
 import routes from './routes';
 
@@ -27,7 +27,7 @@ app.use(express.json({ limit: '1 mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1 mb' }));
 app.use(cors());
 
-chatbot.register(convertKnowledge.definition, chat.definition, docBot.definition, otherQuestionBot.definition);
+chatbot.register(...agents);
 
 app.use(chatbotMiddleware());
 
@@ -43,8 +43,8 @@ if (isProduction) {
   app.use(fallback('index.html', { root: staticDir }));
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  app.use(<ErrorRequestHandler>((err, _req, res, _next) => {
-    logger.error(err.stack);
+  app.use(<ErrorRequestHandler>((error, _req, res, _next) => {
+    logger.error('handle route error', { error });
     res.status(500).send('Something broke!');
   }));
 }

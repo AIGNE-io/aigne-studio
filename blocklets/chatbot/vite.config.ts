@@ -10,12 +10,13 @@ import svgr from 'vite-plugin-svgr';
 export default defineConfig(() => {
   return {
     optimizeDeps: {
-      exclude: ['@aigne/core', '@aigne/runtime', '@aigne-project/chatbot'],
+      exclude: ['@aigne/core', '@aigne/runtime', '@aigne/memory', '@aigne-project/chatbot'],
     },
     resolve: {
       alias: {
         '@aigne/core': resolve(__dirname, '../../framework/core/src'),
         '@aigne/runtime': resolve(__dirname, '../../framework/runtime/src'),
+        '@aigne/memory': resolve(__dirname, '../../framework/memory/src'),
       },
     },
     plugins: [react(), createBlockletPlugin(), svgr()],

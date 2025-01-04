@@ -1,4 +1,4 @@
-import { RunOptions, Runnable, RunnableResponse, RunnableResponseStream } from './runnable';
+import { Runnable } from './runnable';
 import { OrderedRecord } from './utils';
 
 export interface FunctionRunnerInputs {
@@ -32,11 +32,4 @@ export abstract class FunctionRunner extends Runnable<FunctionRunnerInputs, Func
       ]),
     });
   }
-
-  abstract run(
-    input: FunctionRunnerInputs,
-    options: RunOptions & { stream: true }
-  ): Promise<RunnableResponseStream<FunctionRunnerOutputs>>;
-  abstract run(input: FunctionRunnerInputs, options?: RunOptions & { stream?: false }): Promise<FunctionRunnerOutputs>;
-  abstract run(input: FunctionRunnerInputs, options?: RunOptions): Promise<RunnableResponse<FunctionRunnerOutputs>>;
 }

@@ -6,6 +6,7 @@ import {
   FunctionAgent,
   LLMAgent,
   LLMDecisionAgent,
+  LocalFunctionAgent,
   OrderedRecord,
   PipelineAgent,
   Runnable,
@@ -39,9 +40,9 @@ export interface ProjectDefinition {
 }
 
 @injectable()
-export class Runtime<Agents = {}> implements Context {
+export class Runtime<Agents = {}, State = {}> implements Context<State> {
   // TODO: 拆分加载逻辑，避免 Runtime 代码臃肿
-  static async load(options: { path: string }) {
+  static async load<Agents = {}, State = {}>(options: { path: string }, state: State): Promise<Runtime<Agents, State>> {
     const projectFilePath = join(options.path, 'project.yaml');
     const project = parse((await readFile(projectFilePath)).toString());
     // TODO: validate parsed project
@@ -104,10 +105,13 @@ export class Runtime<Agents = {}> implements Context {
       ),
     };
 
-    return new Runtime(p);
+    return new Runtime(p, state);
   }
 
-  constructor(public project: ProjectDefinition) {
+  constructor(
+    public project: ProjectDefinition,
+    public state: State
+  ) {
     this.container.register(TYPES.context, { useValue: this });
     this.container.register('pipeline_agent', { useClass: PipelineAgent });
     this.container.register('llm_agent', { useClass: LLMAgent });
@@ -115,6 +119,7 @@ export class Runtime<Agents = {}> implements Context {
     this.container.register('function_agent', { useClass: FunctionAgent });
     this.container.register(TYPES.functionRunner, { useClass: QuickJSRunner });
     this.container.register('llm_decision_agent', { useClass: LLMDecisionAgent });
+    this.container.register('local_function_agent', { useClass: LocalFunctionAgent });
 
     // NOTE: 兼容旧版的 Agent 定义，统一使用 AgentV1 来处理
     for (const type of ['function', 'agent', 'prompt', 'image', 'api', 'router', 'callAgent', 'imageBlender']) {
@@ -137,7 +142,7 @@ export class Runtime<Agents = {}> implements Context {
     ) as Agents;
   }
 
-  private container: DependencyContainer = container.createChildContainer();
+  protected container: DependencyContainer = container.createChildContainer();
 
   agents: Agents;
 
@@ -149,7 +154,7 @@ export class Runtime<Agents = {}> implements Context {
     return this.project.name;
   }
 
-  private resolveSync<T extends Runnable>(id: string): T {
+  protected resolveSync<T extends Runnable>(id: string): T {
     const agent = this.project.runnables?.[id];
     if (!agent) throw new Error(`No such agent ${id}`);
 
@@ -168,5 +173,9 @@ export class Runtime<Agents = {}> implements Context {
 
   register<A extends Array<RunnableDefinition> = []>(...definition: A) {
     OrderedRecord.pushOrUpdate(this.project.runnables, ...definition);
+  }
+
+  scope<State = {}>(state: State): Runtime<Agents, State> {
+    return new Runtime(this.project, state);
   }
 }

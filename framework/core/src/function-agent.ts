@@ -25,7 +25,7 @@ export class FunctionAgent<I extends {} = {}, O extends {} = {}> extends Runnabl
   }
 
   constructor(
-    @inject(TYPES.definition) public definition: FunctionAgentDefinition,
+    @inject(TYPES.definition) public override definition: FunctionAgentDefinition,
     // TODO: 实现按 language 选择不同的 runner
     @inject(TYPES.functionRunner) public runner?: FunctionRunner
   ) {

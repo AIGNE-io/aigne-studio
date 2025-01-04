@@ -1,3 +1,6 @@
+/// <reference path="../blocklet.d.ts" />
+
+import { auth, session } from '@blocklet/sdk/lib/middlewares';
 import compression from 'compression';
 import { Router } from 'express';
 import Joi from 'joi';
@@ -19,14 +22,16 @@ export function createMiddleware(runtime: Runtime): Router {
     }),
   });
 
-  router.post('/api/aigne/:projectId/agents/:agentId/run', compression(), async (req, res) => {
+  router.post('/api/aigne/:projectId/agents/:agentId/run', compression(), session(), auth(), async (req, res) => {
     const { projectId, agentId } = req.params;
     if (!projectId || !agentId) throw new Error('projectId and agentId are required');
     if (runtime.id !== projectId) throw new Error('projectId does not match runtime');
 
+    const scope = runtime.scope({ user: req.user });
+
     const payload = await runAgentPayloadSchema.validateAsync(req.body, { stripUnknown: true });
 
-    const agent = await runtime.resolve(agentId);
+    const agent = await scope.resolve(agentId);
 
     if (!payload.options?.stream) {
       const result = await agent.run(payload.input ?? {}, payload.options);

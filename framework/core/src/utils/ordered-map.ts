@@ -8,7 +8,7 @@ export namespace OrderedRecord {
       if (!record) return;
 
       for (const id of record.$indexes) {
-        yield record[id];
+        yield record[id]!;
       }
     })();
   }
@@ -22,7 +22,7 @@ export namespace OrderedRecord {
     const result: O[] = new Array(record.$indexes.length);
 
     for (let i = 0; i < record.$indexes.length; i++) {
-      result[i] = fn(record[record.$indexes[i]], i);
+      result[i] = fn(record[record.$indexes[i]!]!, i);
     }
 
     return result;
@@ -50,8 +50,8 @@ export namespace OrderedRecord {
     if (!record) return undefined;
 
     for (let i = 0; i < record.$indexes.length; i++) {
-      const id = record.$indexes[i];
-      const value = record[id];
+      const id = record.$indexes[i]!;
+      const value = record[id]!;
       if (predicate(value, i)) return value;
     }
 

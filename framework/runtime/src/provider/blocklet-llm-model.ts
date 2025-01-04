@@ -8,6 +8,8 @@ import {
 } from '@aigne/core';
 import { ChatCompletionInput, isChatCompletionChunk, isChatCompletionError } from '@blocklet/ai-kit/api/types/chat';
 
+import logger from '../logger';
+
 export class BlockletLLMModel extends LLMModel {
   async run(
     input: LLMModelInputs,
@@ -24,6 +26,8 @@ export class BlockletLLMModel extends LLMModel {
       tools: input.tools,
       toolChoice: input.toolChoice,
     };
+
+    logger.debug('BlockletLLMModel.run inputs', chatInput);
 
     // TODO: support LLM Adapter
     const stream = await chatCompletions({

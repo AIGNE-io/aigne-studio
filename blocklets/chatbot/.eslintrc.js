@@ -11,5 +11,9 @@ module.exports = {
     'no-await-in-loop': 'warn',
     'react/require-default-props': 'off',
     '@typescript-eslint/no-use-before-define': 'off',
+    '@typescript-eslint/indent': 'off',
+    'require-await': 'off',
+    'react-hooks/exhaustive-deps': 'warn',
+    'unicorn/filename-case': 'off',
   },
 };

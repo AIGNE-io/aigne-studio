@@ -19,6 +19,7 @@ module.exports = {
       join(__dirname, 'tests/tsconfig.json'),
       join(__dirname, 'framework/core/tsconfig.json'),
       join(__dirname, 'framework/runtime/tsconfig.json'),
+      join(__dirname, 'framework/memory/tsconfig.json'),
     ],
   },
   rules: {

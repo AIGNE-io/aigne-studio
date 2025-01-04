@@ -3,7 +3,7 @@ import { nanoid } from 'nanoid';
 import { inject, injectable } from 'tsyringe';
 
 import { TYPES } from './constants';
-import { Context } from './context';
+import type { Context } from './context';
 import { DataType } from './data-type';
 import { LLMModel, LLMModelInputMessage, LLMModelInputs, LLMModelSettings } from './llm-model';
 import {
@@ -27,7 +27,7 @@ export class LLMDecisionAgent<I extends { [key: string]: any } = {}, O extends {
   }
 
   constructor(
-    @inject(TYPES.definition) public definition: LLMDecisionAgentDefinition,
+    @inject(TYPES.definition) public override definition: LLMDecisionAgentDefinition,
     @inject(TYPES.llmModel) public model?: LLMModel,
     @inject(TYPES.context) public context?: Context
   ) {
@@ -54,7 +54,7 @@ export class LLMDecisionAgent<I extends { [key: string]: any } = {}, O extends {
         const name = t.name || runnable.name;
         if (!name) throw new Error('Case name is required');
 
-        return { name, runnable, input: t.input };
+        return { name, description: t.description, runnable, input: t.input };
       })
     );
 
@@ -66,7 +66,14 @@ export class LLMDecisionAgent<I extends { [key: string]: any } = {}, O extends {
       modelSettings: definition.modelSettings,
       tools: cases.map((t) => {
         // TODO: auto generate parameters by llm model if needed
-        return { type: 'function', function: { name: t.name, parameters: {} } };
+        return {
+          type: 'function',
+          function: {
+            name: t.name,
+            description: t.description,
+            parameters: {},
+          },
+        };
       }),
       toolChoice: 'required',
     };
@@ -75,7 +82,7 @@ export class LLMDecisionAgent<I extends { [key: string]: any } = {}, O extends {
 
     // TODO: support run multiple calls
 
-    const functionNameToCall = toolCalls?.[0].function?.name;
+    const functionNameToCall = toolCalls?.[0]!.function?.name;
     if (!functionNameToCall) throw new Error('No any runnable called');
 
     const caseToCall = cases.find((i) => i.name === functionNameToCall);
@@ -114,6 +121,7 @@ export class LLMDecisionAgent<I extends { [key: string]: any } = {}, O extends {
 
 export interface DecisionAgentCaseParameter<I extends {} = {}, O extends {} = {}, R = Runnable<I, O>> {
   name?: string;
+  description?: string;
   runnable: R;
   input?: { [key: string]: { fromVariable: string; fromVariablePropPath?: string[] } | undefined };
 }
@@ -147,6 +155,7 @@ export function createLLMDecisionAgentDefinition(options: {
     options.cases.map((c) => ({
       id: nanoid(),
       name: c.runnable.name || c.name,
+      description: c.description,
       runnable: { id: c.runnable.id },
       // TODO: pass input from decision to case runnable
       input: Object.fromEntries(
@@ -208,6 +217,7 @@ export interface LLMDecisionAgentDefinition extends RunnableDefinition {
 export interface LLMDecisionCase {
   id: string;
   name?: string;
+  description?: string;
   runnable?: {
     id?: string;
   };
