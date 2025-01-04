@@ -19,7 +19,7 @@ import { DefaultHistoryStore } from '../store/default-history-store';
 import { loadConfig } from './config';
 import { HistoryStore, Retriever, VectorStoreDocument } from './type';
 
-type DefaultMemoryRunnerCustomData<T> = { retriever: Retriever<T> };
+type DefaultMemoryRunnerCustomData<T> = { retriever: Retriever<T> } | undefined;
 
 export class DefaultMemory<T, I extends MemoryActions<T> = MemoryActions<T>> extends Memory<
   T,

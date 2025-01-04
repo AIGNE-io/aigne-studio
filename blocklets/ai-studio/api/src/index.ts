@@ -4,7 +4,6 @@ import 'express-async-errors';
 import { access, mkdir } from 'fs/promises';
 import path from 'path';
 
-import { createMiddleware } from '@aigne/memory/middleware';
 import { AssistantResponseType } from '@blocklet/ai-runtime/types';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
@@ -61,7 +60,6 @@ app.use(accessLogMiddleware);
 app.get('/.well-known/blocklet/openembed', getOpenEmbed);
 
 app.use('/api', routes);
-// app.use('/api', createMiddleware({ path: '/Users/leermao/work/blocklet/ai-studio/blocklets/ai-studio/.data' }));
 
 if (!isDevelopment) {
   const staticDir = path.resolve(Config.appDir, 'dist');

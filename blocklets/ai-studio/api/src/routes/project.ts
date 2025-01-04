@@ -492,7 +492,7 @@ export function projectRoutes(router: Router) {
       await repo.checkout({ ref: project.gitDefaultBranch, dir: packageDir, force: true });
 
       // TODO: 把 load project 的逻辑提取到一个函数中，替换掉这里的代码
-      const files = await generateWrapperCode((await Runtime.load({ path: packageDir })).project);
+      const files = await generateWrapperCode((await Runtime.load({ path: packageDir }, {})).project);
 
       for (const { fileName, content } of files) {
         await writeFile(join(packageDir, fileName), content);
