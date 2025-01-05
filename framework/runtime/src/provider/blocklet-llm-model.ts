@@ -1,4 +1,4 @@
-import type { Context, Runnable } from '@aigne/core';
+import type { Context, LLMModelConfiguration, Runnable } from '@aigne/core';
 import {
   LLMModel,
   LLMModelInputs,
@@ -17,6 +17,7 @@ import {
 import { inject, injectable } from 'tsyringe';
 
 import logger from '../logger';
+import { getDefaultValue } from '../utils/default-value';
 import { getAdapter } from '../v1/resource-blocklet';
 import { agentV1ToRunnableDefinition } from '../v1/type';
 
@@ -26,7 +27,7 @@ const defaultLLMModel = 'gpt-4o-mini';
 export class BlockletLLMModel extends LLMModel {
   constructor(
     @inject(TYPES.context) public context?: Context,
-    public options?: { defaultModel?: string }
+    @inject(TYPES.llmModelConfiguration) public config?: LLMModelConfiguration
   ) {
     super();
   }
@@ -39,18 +40,25 @@ export class BlockletLLMModel extends LLMModel {
   async run(input: LLMModelInputs, options?: RunOptions): Promise<RunnableResponse<LLMModelOutputs>> {
     const { chatCompletions } = await import('@blocklet/ai-kit/api/call');
 
-    const model = input.modelSettings?.model || this.options?.defaultModel || defaultLLMModel;
+    const model =
+      getDefaultValue('model', this.config?.override, input.modelOptions, this.config?.default) || defaultLLMModel;
 
     const chatInput: ChatCompletionInput = {
-      ...input.modelSettings,
+      ...input.modelOptions,
       model,
+      ...getDefaultValue(
+        ['temperature', 'topP', 'presencePenalty', 'frequencyPenalty'],
+        this.config?.override,
+        input.modelOptions,
+        this.config?.default
+      ),
       messages: input.messages as ChatCompletionInput['messages'],
       responseFormat: input.responseFormat,
       tools: input.tools,
       toolChoice: input.toolChoice,
     };
 
-    logger.debug('BlockletLLMModel.run inputs', JSON.stringify(chatInput));
+    logger.debug('BlockletLLMModel.run inputs', chatInput);
 
     let stream: ReadableStream<ChatCompletionResponse> | undefined;
 

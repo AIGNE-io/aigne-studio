@@ -5,6 +5,7 @@ import {
   FunctionAgent,
   LLMAgent,
   LLMDecisionAgent,
+  LLMModelConfiguration,
   LocalFunctionAgent,
   OrderedRecord,
   PipelineAgent,
@@ -14,11 +15,14 @@ import {
 } from '@aigne/core';
 import { readFile } from 'fs-extra';
 import { glob } from 'glob';
+import { produce } from 'immer';
+import { merge } from 'lodash';
 import { DependencyContainer, container, injectable } from 'tsyringe';
 import { parse } from 'yaml';
 
 import { BlockletLLMModel } from '../provider/blocklet-llm-model';
 import { QuickJSRunner } from '../provider/quickjs-runner';
+import { DeepPartial } from '../utils/partial';
 import { AgentV1 } from '../v1/agent-v1';
 import { agentV1ToRunnableDefinition } from '../v1/type';
 
@@ -32,6 +36,10 @@ export interface ProjectDefinition {
   updatedBy?: string;
 
   runnables: OrderedRecord<RunnableDefinition>;
+}
+
+export interface RuntimeConfiguration {
+  llmModel?: LLMModelConfiguration;
 }
 
 @injectable()
@@ -61,7 +69,8 @@ export class Runtime<Agents = {}, State = {}> implements Context<State> {
 
   constructor(
     public project: ProjectDefinition,
-    public state: State
+    public state: State,
+    public config: RuntimeConfiguration = {}
   ) {
     this.container.register(TYPES.context, { useValue: this });
     this.container.register('pipeline_agent', { useClass: PipelineAgent });
@@ -71,6 +80,7 @@ export class Runtime<Agents = {}, State = {}> implements Context<State> {
     this.container.register(TYPES.functionRunner, { useClass: QuickJSRunner });
     this.container.register('llm_decision_agent', { useClass: LLMDecisionAgent });
     this.container.register('local_function_agent', { useClass: LocalFunctionAgent });
+    this.container.register(TYPES.llmModelConfiguration, { useFactory: () => this.config.llmModel || {} });
 
     // NOTE: 兼容旧版的 Agent 定义，统一使用 AgentV1 来处理
     for (const type of ['function', 'agent', 'prompt', 'image', 'api', 'router', 'callAgent', 'imageBlender']) {
@@ -93,9 +103,9 @@ export class Runtime<Agents = {}, State = {}> implements Context<State> {
     ) as Agents;
   }
 
-  protected container: DependencyContainer = container.createChildContainer();
+  readonly container: DependencyContainer = container.createChildContainer();
 
-  agents: Agents;
+  readonly agents: Agents;
 
   get id() {
     return this.project.id;
@@ -103,6 +113,12 @@ export class Runtime<Agents = {}, State = {}> implements Context<State> {
 
   get name() {
     return this.project.name;
+  }
+
+  setup(config: DeepPartial<RuntimeConfiguration>) {
+    this.config = produce(this.config, (draft) => {
+      merge(draft, config);
+    });
   }
 
   protected resolveSync<T extends Runnable>(id: string | RunnableDefinition): T {
@@ -127,6 +143,6 @@ export class Runtime<Agents = {}, State = {}> implements Context<State> {
   }
 
   scope<State = {}>(state: State): Runtime<Agents, State> {
-    return new Runtime(this.project, state);
+    return new Runtime(this.project, state, this.config);
   }
 }

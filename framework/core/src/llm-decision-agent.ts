@@ -5,7 +5,7 @@ import { inject, injectable } from 'tsyringe';
 import { TYPES } from './constants';
 import type { Context } from './context';
 import { DataType } from './data-type';
-import { LLMModel, LLMModelInputMessage, LLMModelInputs, LLMModelSettings } from './llm-model';
+import { LLMModel, LLMModelInputMessage, LLMModelInputs, LLMModelOptions } from './llm-model';
 import {
   RunOptions,
   Runnable,
@@ -63,7 +63,7 @@ export class LLMDecisionAgent<I extends { [key: string]: any } = {}, O extends {
         role,
         content: typeof content === 'string' ? renderMessage(content, input) : content,
       })),
-      modelSettings: definition.modelSettings,
+      modelOptions: definition.modelOptions,
       tools: cases.map((t) => {
         // TODO: auto generate parameters by llm model if needed
         return {
@@ -131,7 +131,7 @@ export function createLLMDecisionAgentDefinition(options: {
   name?: string;
   inputs?: { name: string; type: DataType['type']; required?: boolean }[];
   messages: string;
-  modelSettings?: LLMModelSettings;
+  modelOptions?: LLMModelOptions;
   cases: DecisionAgentCaseParameter[];
 }): LLMDecisionAgentDefinition {
   const inputs: OrderedRecord<RunnableInput> = OrderedRecord.fromArray(
@@ -199,7 +199,7 @@ export function createLLMDecisionAgentDefinition(options: {
     // TODO: decision agent outputs should be the union of all case outputs
     outputs: OrderedRecord.fromArray([]),
     messages,
-    modelSettings: options.modelSettings,
+    modelOptions: options.modelOptions,
     cases,
   };
 }
@@ -209,7 +209,7 @@ export interface LLMDecisionAgentDefinition extends RunnableDefinition {
 
   messages?: OrderedRecord<LLMModelInputMessage & { id: string }>;
 
-  modelSettings?: LLMModelInputs['modelSettings'];
+  modelOptions?: LLMModelInputs['modelOptions'];
 
   cases?: OrderedRecord<LLMDecisionCase>;
 }

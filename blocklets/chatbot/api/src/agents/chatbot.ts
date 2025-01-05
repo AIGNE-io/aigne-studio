@@ -1,9 +1,8 @@
 import { join } from 'path';
 
 import chatbot from '@aigne-project/chatbot';
-import { LLMAgent, LLMDecisionAgent, LocalFunctionAgent } from '@aigne/core';
+import { LLMAgent, LLMDecisionAgent, LocalFunctionAgent, TYPES } from '@aigne/core';
 import { DefaultMemory, LongTermMemoryRunner, ShortTermMemoryRunner } from '@aigne/memory';
-import { BlockletLLMModel } from '@aigne/runtime';
 import { config } from '@blocklet/sdk';
 import { SessionUser } from '@blocklet/sdk/lib/util/login';
 import { differenceBy, orderBy } from 'lodash';
@@ -11,13 +10,24 @@ import { differenceBy, orderBy } from 'lodash';
 import { extractKeywordsAgent, knowledgeAgent } from './knowledge';
 import { ChatbotResponse } from './type';
 
+chatbot.setup({
+  llmModel: {
+    default: {
+      temperature: 0.2,
+    },
+    override: {
+      model: 'gemini-2.0-flash-exp',
+    },
+  },
+});
+
 const longTermMemory = DefaultMemory.load({
   path: join(config.env.dataDir, 'long-term-memory'),
   runner: new LongTermMemoryRunner(),
 });
 const shortTermMemory = DefaultMemory.load({
   path: join(config.env.dataDir, 'short-term-memory'),
-  runner: new ShortTermMemoryRunner(new BlockletLLMModel(chatbot)),
+  runner: new ShortTermMemoryRunner(chatbot.container.resolve(TYPES.llmModel)),
 });
 
 export const docAgent = LocalFunctionAgent.create<
@@ -122,7 +132,7 @@ export const chatLLMAgent = LLMAgent.create<
       required: true,
     },
   ],
-  modelSettings: {
+  modelOptions: {
     model: 'gpt-4o-mini',
   },
   messages: [
@@ -232,8 +242,8 @@ You are a professional question classifier. Please classify the question and cho
 ## User's question
 {{question}}
 `,
-  modelSettings: {
-    model: 'gemini-2.0-flash-exp',
+  modelOptions: {
+    model: 'gpt-4o-mini',
     temperature: 0,
   },
   cases: [
@@ -286,8 +296,8 @@ export const questionAnalyzeAgent = LLMAgent.create<{ question: string }, { lang
       required: true,
     },
   ],
-  modelSettings: {
-    model: 'gemini-2.0-flash-exp',
+  modelOptions: {
+    model: 'gpt-4o-mini',
     temperature: 0.2,
   },
   messages: [

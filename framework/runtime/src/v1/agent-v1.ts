@@ -5,7 +5,7 @@ import { inject, injectable } from 'tsyringe';
 
 import type { Runtime } from '../runtime/runtime';
 import { CallAI, CallAIImage, GetAgentResult, RunAssistantCallback } from './assistant/type';
-import { defaultImageModel, defaultTextModel, getSupportedImagesModels } from './common';
+import { defaultImageModel, getSupportedImagesModels } from './common';
 import { parseIdentity, stringifyIdentity } from './common/aid';
 import { RuntimeExecutor } from './executor';
 import { resourceManager } from './resource-blocklet';
@@ -38,8 +38,8 @@ export class AgentV1<I extends {} = {}, O extends {} = {}> extends Runnable<I, O
             const stream = await llmModel.run(
               {
                 messages: input.messages,
-                modelSettings: {
-                  model: input.model || defaultTextModel,
+                modelOptions: {
+                  model: input.model,
                   temperature: input.temperature,
                   topP: input.topP,
                   presencePenalty: input.presencePenalty,

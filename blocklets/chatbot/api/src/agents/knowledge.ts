@@ -28,7 +28,7 @@ export const extractKeywordsAgent = LLMAgent.create<{ question: string; data: st
       required: true,
     },
   ],
-  modelSettings: {
+  modelOptions: {
     model: 'gpt-4o-mini',
     temperature: 0.2,
   },

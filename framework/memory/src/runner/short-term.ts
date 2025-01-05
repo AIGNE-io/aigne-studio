@@ -36,7 +36,7 @@ export class ShortTermMemoryRunner extends MemoryRunner<string, ShortTermMemoryR
     const [systemPrompt, userPrompt] = getFactRetrievalMessages(parsedMessages);
 
     const response = await this.llmModel.run({
-      modelSettings: {
+      modelOptions: {
         model: 'gpt-4o-mini',
         temperature: 0.3,
       },
@@ -109,7 +109,7 @@ export class ShortTermMemoryRunner extends MemoryRunner<string, ShortTermMemoryR
     const funcCallingPrompt = getUpdateMemoryMessages(retrievedOldMemories, newRetrievedFacts);
 
     const newMemoriesWithActions = await this.llmModel.run({
-      modelSettings: {
+      modelOptions: {
         model: 'gpt-4o-mini',
         temperature: 0.3,
       },

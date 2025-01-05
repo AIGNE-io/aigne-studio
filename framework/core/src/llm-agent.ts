@@ -51,7 +51,7 @@ export class LLMAgent<I extends {} = {}, O extends {} = {}> extends Runnable<I, 
         role,
         content: renderMessage(content, input),
       })),
-      modelSettings: definition.modelSettings,
+      modelOptions: definition.modelOptions,
     };
 
     const outputs = OrderedRecord.toArray(definition.outputs).filter(isPropsNonNullable('name'));
@@ -118,7 +118,7 @@ export function createLLMAgentDefinition(options: {
   id?: string;
   name?: string;
   messages?: { role: Role; content: string }[];
-  modelSettings?: LLMModelInputs['modelSettings'];
+  modelOptions?: LLMModelInputs['modelOptions'];
   inputs?: OmitPropsFromUnion<DataType, 'id'>[];
   outputs?: OmitPropsFromUnion<DataType, 'id'>[];
 }): LLMAgentDefinition {
@@ -148,7 +148,7 @@ export function createLLMAgentDefinition(options: {
     inputs,
     outputs,
     messages,
-    modelSettings: options.modelSettings,
+    modelOptions: options.modelOptions,
   };
 }
 
@@ -194,5 +194,5 @@ export interface LLMAgentDefinition extends RunnableDefinition {
 
   messages?: OrderedRecord<{ id: string; role: Role; content: string }>;
 
-  modelSettings?: LLMModelInputs['modelSettings'];
+  modelOptions?: LLMModelInputs['modelOptions'];
 }

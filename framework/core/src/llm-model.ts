@@ -22,7 +22,7 @@ export interface LLMModelInputs {
 
   toolChoice?: 'auto' | 'none' | 'required' | { type: 'function'; function: { name: string; description?: string } };
 
-  modelSettings?: LLMModelSettings;
+  modelOptions?: LLMModelOptions;
 }
 
 export interface LLMModelInputMessage {
@@ -47,7 +47,7 @@ export interface LLMModelInputTool {
   };
 }
 
-export interface LLMModelSettings {
+export interface LLMModelOptions {
   model?: string;
   temperature?: number;
   topP?: number;
@@ -79,7 +79,7 @@ export abstract class LLMModel extends Runnable<LLMModelInputs, LLMModelOutputs>
         { id: 'responseFormat', name: 'responseFormat', type: 'object' },
         { id: 'tools', name: 'tools', type: 'array' },
         { id: 'toolChoice', name: 'toolChoice', type: 'object' },
-        { id: 'modelSettings', name: 'modelSettings', type: 'object' },
+        { id: 'modelOptions', name: 'modelOptions', type: 'object' },
       ]),
       outputs: OrderedRecord.fromArray([
         { id: '$text', name: '$text', type: 'string' },
@@ -87,4 +87,9 @@ export abstract class LLMModel extends Runnable<LLMModelInputs, LLMModelOutputs>
       ]),
     });
   }
+}
+
+export interface LLMModelConfiguration {
+  default?: Partial<LLMModelOptions>;
+  override?: Partial<LLMModelOptions>;
 }
