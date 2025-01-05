@@ -45,4 +45,10 @@ export class DefaultVectorHistoryStore {
 
     return (await VectorHistory.findAll({ where })).map((i) => i.data);
   }
+
+  async reset() {
+    const { VectorHistory } = await this.models;
+
+    await VectorHistory.sequelize?.truncate();
+  }
 }

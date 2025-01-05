@@ -119,6 +119,11 @@ export type MemoryActions<T> =
       outputs: {
         result: MemoryItem<T> | null;
       };
+    }
+  | {
+      action: 'reset';
+      inputs: {};
+      outputs: {};
     };
 
 export interface SortItem {
@@ -172,6 +177,8 @@ export abstract class Memory<T, C = undefined> extends Runnable<MemoryActions<T>
   abstract delete(
     memoryId: Extract<MemoryActions<T>, { action: 'delete' }>['inputs']['memoryId']
   ): Promise<Extract<MemoryActions<T>, { action: 'delete' }>['outputs']>;
+
+  abstract reset(): Promise<void>;
 }
 
 export interface MemoryRunnerInput<C = undefined> {

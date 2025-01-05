@@ -11,7 +11,7 @@ export interface Retriever<T> {
   get(id: string): Promise<VectorStoreDocument<T> | null>;
   insert(document: VectorStoreDocument<T>): Promise<void>;
   delete(id: string): Promise<void>;
-  deleteAll(ids: string[]): Promise<void>;
+  reset(): Promise<void>;
   update(document: VectorStoreDocument<T>): Promise<void>;
   list(k: number, options?: VectorStoreSearchOptions): Promise<VectorStoreDocument<T>[]>;
   search(query: string, k: number, options?: VectorStoreSearchOptions): Promise<VectorStoreDocument<T>[]>;
@@ -48,4 +48,5 @@ export interface HistoryStore<T> {
   getHistory(memoryId: string): Promise<ActionHistory<T>[]>;
   addMessage(history: Omit<MessageHistory, 'createdAt' | 'updatedAt'>): Promise<MessageHistory>;
   getMessages(options: { filter: { [key: string]: any } }): Promise<MessageHistory[]>;
+  reset(): Promise<void>;
 }

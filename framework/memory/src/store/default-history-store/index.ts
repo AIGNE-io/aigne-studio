@@ -71,4 +71,10 @@ export class DefaultHistoryStore<T> implements HistoryStore<T> {
 
     return await Message.findAll({ where: options.filter });
   }
+
+  async reset(): Promise<void> {
+    const { History } = await this.models;
+
+    await History.sequelize?.truncate();
+  }
 }

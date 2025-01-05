@@ -146,9 +146,9 @@ export class SearchKitRetriever<T> implements Retriever<T> {
     await this.waitForTask(result.taskUid);
   }
 
-  async deleteAll(ids: string[]): Promise<void> {
-    const result = await (await this.index).deleteDocuments(ids);
-    await this.waitForTask(result.taskUid);
+  async reset(): Promise<void> {
+    const result = await (await this.index).deleteAllDocuments();
+    await Promise.all([this.waitForTask(result.taskUid), this.historyStore.reset()]);
   }
 
   async update(document: VectorStoreDocument<T>): Promise<void> {

@@ -199,6 +199,10 @@ export class DefaultMemory<T, I extends MemoryActions<T> = MemoryActions<T>> ext
     return { result };
   }
 
+  async reset(): Promise<void> {
+    await Promise.all([this.retriever.reset(), this.historyStore.reset()]);
+  }
+
   private async _run(input: I): Promise<I['outputs']> {
     const { action, inputs } = input;
 

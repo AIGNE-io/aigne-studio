@@ -1,7 +1,7 @@
 import { join } from 'path';
 
 import chatbot from '@aigne-project/chatbot';
-import { LLMAgent, LLMDecisionAgent, LocalFunctionAgent, TYPES } from '@aigne/core';
+import { LLMAgent, LLMDecisionAgent, LocalFunctionAgent, PipelineAgent, TYPES } from '@aigne/core';
 import { DefaultMemory, LongTermMemoryRunner, ShortTermMemoryRunner } from '@aigne/memory';
 import { config } from '@blocklet/sdk';
 import { SessionUser } from '@blocklet/sdk/lib/util/login';
@@ -214,6 +214,108 @@ export const chatAgent = LocalFunctionAgent.create<
   },
 });
 
+export const cleanMemoryAgent = LocalFunctionAgent.create<{}, ChatbotResponse>({
+  inputs: [],
+  outputs: [
+    {
+      name: '$text',
+      type: 'string',
+    },
+  ],
+  async function() {
+    await Promise.all([(await longTermMemory).reset(), (await shortTermMemory).reset()]);
+    return { $text: 'Memory has been cleaned.' };
+  },
+});
+
+export const cleanMemoryLLMAgent = LLMAgent.create<
+  {
+    question: string;
+    language?: string;
+  },
+  ChatbotResponse
+>({
+  name: 'cleanMemoryLLMAgent',
+  inputs: [
+    {
+      name: 'question',
+      type: 'string',
+      required: true,
+    },
+    {
+      name: 'language',
+      type: 'string',
+    },
+  ],
+  outputs: [
+    {
+      name: '$text',
+      type: 'string',
+      required: true,
+    },
+  ],
+  modelOptions: {
+    model: 'gpt-4o-mini',
+  },
+  messages: [
+    {
+      role: 'system',
+      content: `\
+Clean Memory Result: Memory has been cleaned.
+
+You must use {{language}} to reply to the user's question.
+`,
+    },
+    {
+      role: 'user',
+      content: '{{question}}',
+    },
+  ],
+});
+
+export const cleanMemoryPipeline = PipelineAgent.create<
+  {
+    question: string;
+    language: string;
+  },
+  ChatbotResponse
+>({
+  name: 'cleanMemoryPipeline',
+  inputs: [
+    {
+      name: 'question',
+      type: 'string',
+      required: true,
+    },
+    {
+      name: 'language',
+      type: 'string',
+    },
+  ],
+  processes: [
+    {
+      name: 'cleanMemory',
+      runnable: cleanMemoryAgent,
+    },
+    {
+      name: 'cleanMemoryLLM',
+      runnable: cleanMemoryLLMAgent,
+      input: {
+        question: { fromVariable: 'question' },
+        language: { fromVariable: 'language' },
+      },
+    },
+  ],
+  outputs: [
+    {
+      name: '$text',
+      type: 'string',
+      fromVariable: 'cleanMemoryLLM',
+      fromVariablePropPath: ['$text'],
+    },
+  ],
+});
+
 export const questionClassification = LLMDecisionAgent.create<
   { memory: string; question: string; language?: string },
   ChatbotResponse
@@ -274,6 +376,15 @@ You are a professional question classifier. Please classify the question and cho
       runnable: chatbot.agents['Google Search'],
       input: {
         question: { fromVariable: 'question' },
+      },
+    },
+    {
+      name: 'clean-memory',
+      description: 'Clean the memory',
+      runnable: cleanMemoryPipeline,
+      input: {
+        question: { fromVariable: 'question' },
+        language: { fromVariable: 'language' },
       },
     },
   ],
@@ -414,4 +525,7 @@ export const agents = [
   docAgent.definition,
   chatAgent.definition,
   chatLLMAgent.definition,
+  cleanMemoryAgent.definition,
+  cleanMemoryLLMAgent.definition,
+  cleanMemoryPipeline.definition,
 ];
