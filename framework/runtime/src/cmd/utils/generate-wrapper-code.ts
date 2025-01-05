@@ -86,7 +86,7 @@ export default new Runtime<Agents>(projectDefinition, {});
         return [
           { fileName: fileName.replace(/\.ts$/, '.cjs'), content: await formatCode(cjs.outputText) },
           { fileName: fileName.replace(/\.ts$/, '.js'), content: await formatCode(esm.outputText) },
-          { fileName: fileName.replace(/\.ts$/, 'd.ts'), content: await formatCode(content) },
+          { fileName: fileName.replace(/\.ts$/, '.d.ts'), content: await formatCode(content) },
         ];
       })
     )

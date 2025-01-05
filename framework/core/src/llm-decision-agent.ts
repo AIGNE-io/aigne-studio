@@ -154,7 +154,7 @@ export function createLLMDecisionAgentDefinition(options: {
   const cases: OrderedRecord<LLMDecisionCase> = OrderedRecord.fromArray(
     options.cases.map((c) => ({
       id: nanoid(),
-      name: c.runnable.name || c.name,
+      name: c.name || c.runnable.name,
       description: c.description,
       runnable: { id: c.runnable.id },
       // TODO: pass input from decision to case runnable
