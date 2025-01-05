@@ -39,7 +39,7 @@
     ]
   },
   "dependencies": {
-    "@aigne-project/chatbot": "https://dev.blocklet.mac.yechao.xyz/aigne-studio/api/projects/526280358526713856/npm/package.tgz?secret=ioK2Wgf8SNLeaFfVPUn7i&hash=22f2fad59f339e68bc1eb08bb47f3a3fd6848542",
+    "@aigne-project/chatbot": "https://dev.blocklet.mac.yechao.xyz/aigne-studio/api/projects/526280358526713856/npm/package.tgz?secret=ioK2Wgf8SNLeaFfVPUn7i&hash=38440ead9609845f3aa853e5ba67eaeb4e817c6f",
     "@aigne/core": "workspace:^",
     "@aigne/memory": "workspace:^",
     "@aigne/runtime": "workspace:^",

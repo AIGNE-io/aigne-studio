@@ -17,7 +17,7 @@ const longTermMemory = DefaultMemory.load({
 });
 const shortTermMemory = DefaultMemory.load({
   path: join(config.env.dataDir, 'short-term-memory'),
-  runner: new ShortTermMemoryRunner(new BlockletLLMModel()),
+  runner: new ShortTermMemoryRunner(new BlockletLLMModel(chatbot)),
 });
 
 export const docAgent = LocalFunctionAgent.create<
@@ -233,7 +233,7 @@ You are a professional question classifier. Please classify the question and cho
 {{question}}
 `,
   modelSettings: {
-    model: 'gpt-4o-mini',
+    model: 'gemini-2.0-flash-exp',
     temperature: 0,
   },
   cases: [
@@ -258,6 +258,14 @@ You are a professional question classifier. Please classify the question and cho
         language: { fromVariable: 'language' },
       },
     },
+    {
+      name: 'google-search',
+      description: 'Search the question on Google and return the search results',
+      runnable: chatbot.agents['Google Search'],
+      input: {
+        question: { fromVariable: 'question' },
+      },
+    },
   ],
 });
 
@@ -279,7 +287,7 @@ export const questionAnalyzeAgent = LLMAgent.create<{ question: string }, { lang
     },
   ],
   modelSettings: {
-    model: 'gpt-4o-mini',
+    model: 'gemini-2.0-flash-exp',
     temperature: 0.2,
   },
   messages: [

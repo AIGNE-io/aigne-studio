@@ -2,7 +2,6 @@ import { join } from 'path';
 
 import {
   Context,
-  DataType,
   FunctionAgent,
   LLMAgent,
   LLMDecisionAgent,
@@ -11,11 +10,7 @@ import {
   PipelineAgent,
   Runnable,
   RunnableDefinition,
-  RunnableInput,
-  RunnableOutput,
-  StreamTextOutputName,
   TYPES,
-  isPropsNonNullable,
 } from '@aigne/core';
 import { readFile } from 'fs-extra';
 import { glob } from 'glob';
@@ -25,7 +20,7 @@ import { parse } from 'yaml';
 import { BlockletLLMModel } from '../provider/blocklet-llm-model';
 import { QuickJSRunner } from '../provider/quickjs-runner';
 import { AgentV1 } from '../v1/agent-v1';
-import { Assistant } from '../v1/types';
+import { agentV1ToRunnableDefinition } from '../v1/type';
 
 export interface ProjectDefinition {
   id: string;
@@ -52,57 +47,13 @@ export class Runtime<Agents = {}, State = {}> implements Context<State> {
       agentFilePaths.map(async (filename) => {
         const agent = parse((await readFile(filename)).toString());
         // TODO: validate parsed agent
-
-        return agent;
+        return agentV1ToRunnableDefinition(agent);
       })
     );
 
     const p: ProjectDefinition = {
       ...project,
-      runnables: OrderedRecord.fromArray(
-        runnables.map((i) => {
-          const r: RunnableDefinition = i as RunnableDefinition;
-
-          const a: Assistant = i as Assistant;
-          if (a.parameters && !r.inputs) {
-            const inputs = a.parameters
-              .filter((i) => !i.hidden)
-              .map((p) => ({
-                ...p,
-                // TODO: 映射旧版参数类型到新版参数类型
-                type: p.type || 'string',
-                name: p.key,
-              }))
-              .filter((i): i is typeof i & { type: DataType['type'] } =>
-                ['string', 'number', 'boolean', 'object', 'array'].includes(i.type)
-              ) as RunnableInput[];
-
-            r.inputs = OrderedRecord.fromArray(inputs);
-          }
-
-          if (a.outputVariables && !r.outputs) {
-            // TODO: 完善 outputs 的定义
-
-            r.outputs = OrderedRecord.fromArray(
-              a.outputVariables
-                .map((i) => ({
-                  ...i,
-                  type: i.name === StreamTextOutputName ? 'string' : i.type || 'object',
-                }))
-                .filter(isPropsNonNullable('type'))
-                .filter((i) => !i.hidden)
-                .map((v) => ({
-                  id: v.id,
-                  name: v.name,
-                  type: v.type,
-                  required: v.required,
-                })) as RunnableOutput[]
-            );
-          }
-
-          return r;
-        })
-      ),
+      runnables: OrderedRecord.fromArray(runnables),
     };
 
     return new Runtime(p, state);
@@ -154,8 +105,8 @@ export class Runtime<Agents = {}, State = {}> implements Context<State> {
     return this.project.name;
   }
 
-  protected resolveSync<T extends Runnable>(id: string): T {
-    const agent = this.project.runnables?.[id];
+  protected resolveSync<T extends Runnable>(id: string | RunnableDefinition): T {
+    const agent = typeof id === 'string' ? this.project.runnables?.[id] : id;
     if (!agent) throw new Error(`No such agent ${id}`);
 
     const childContainer = this.container.createChildContainer().register(TYPES.definition, { useValue: agent });
@@ -167,7 +118,7 @@ export class Runtime<Agents = {}, State = {}> implements Context<State> {
     return result;
   }
 
-  async resolve<T extends Runnable>(id: string): Promise<T> {
+  async resolve<T extends Runnable>(id: string | RunnableDefinition): Promise<T> {
     return this.resolveSync<T>(id);
   }
 

@@ -141,11 +141,11 @@ export class ShortTermMemoryRunner extends MemoryRunner<string, ShortTermMemoryR
                       description: 'Type of memory operation',
                     },
                     oldMemory: {
-                      type: ['string', 'null'],
+                      type: 'string',
                       description: 'Previous content for UPDATE operations',
                     },
                   },
-                  required: ['id', 'text', 'event', 'oldMemory'],
+                  required: ['id', 'text', 'event'],
                   additionalProperties: false,
                 },
               },
@@ -173,7 +173,7 @@ export class ShortTermMemoryRunner extends MemoryRunner<string, ShortTermMemoryR
       id: tempUuidMapping[m.id],
       memory: m.text,
       oldMemory: m.oldMemory ?? undefined,
-      event: m.event as any,
+      event: m.event.toLowerCase() as any,
     }));
   }
 
