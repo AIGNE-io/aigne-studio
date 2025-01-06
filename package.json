@@ -1,7 +1,7 @@
 {
   "name": "ai-studio",
   "private": true,
-  "version": "0.4.194",
+  "version": "0.4.195",
   "workspaces": [
     "blocklets/*",
     "packages/*",
@@ -57,6 +57,8 @@
     "@arcblock/did-ext": "^1.18.165",
     "@arcblock/eslint-config": "^0.3.3",
     "@arcblock/eslint-config-ts": "^0.3.3",
+    "@aigne/core": "workspace:^",
+    "@aigne/runtime": "workspace:^",
     "@blocklet/ai-runtime": "workspace:^",
     "@blocklet/testlab": "^0.0.19",
     "@ocap/util": "^1.18.165",
@@ -85,6 +87,8 @@
     "@abtnode/constant": "1.16.36",
     "@abtnode/cron": "1.16.36",
     "@abtnode/file-stream-rotator": "^0.6.3",
+    "@aigne/core": "workspace:^",
+    "@aigne/runtime": "workspace:^",
     "@arcblock/did": "^1.18.165",
     "@arcblock/did-auth": "^1.18.165",
     "@arcblock/did-connect": "^2.11.15",
@@ -127,6 +131,7 @@
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
     "vite-tsconfig-paths": "4.3.2",
-    "ws": "^8.18.0"
+    "ws": "^8.18.0",
+    "umzug": "^3.8.1"
   }
 }

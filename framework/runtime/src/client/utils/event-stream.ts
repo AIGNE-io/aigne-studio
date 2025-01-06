@@ -1,3 +1,9 @@
+import {
+  RunnableResponseChunk,
+  RunnableResponseChunkWithError,
+  isRunnableResponseDelta,
+  isRunnableResponseError,
+} from '@aigne/core';
 import { createParser } from 'eventsource-parser';
 
 import logger from '../../logger';
@@ -21,6 +27,33 @@ export class EventSourceParserStream<T> extends TransformStream<any, T> {
       },
       transform(chunk) {
         parser?.feed(chunk);
+      },
+    });
+  }
+}
+
+export class RunnableStreamParser<O> extends TransformStream<
+  RunnableResponseChunkWithError<O>,
+  RunnableResponseChunk<O>
+> {
+  private $text = '';
+
+  private delta = {};
+
+  constructor() {
+    super({
+      transform: (chunk, controller) => {
+        if (isRunnableResponseDelta(chunk)) {
+          if (typeof chunk.$text === 'string' && chunk.$text) {
+            this.$text += chunk.$text;
+          }
+
+          Object.assign(this.delta, { $text: this.$text || undefined }, chunk.delta);
+
+          controller.enqueue({ ...chunk, delta: { ...this.delta } });
+        } else if (isRunnableResponseError(chunk)) {
+          controller.error(new Error(chunk.error.message));
+        }
       },
     });
   }
