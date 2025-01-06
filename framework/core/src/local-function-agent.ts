@@ -12,7 +12,7 @@ import {
   RunnableResponse,
   RunnableResponseStream,
 } from './runnable';
-import { OrderedRecord, objectToStream, readLatestObjectFromStream } from './utils';
+import { OrderedRecord, objectToRunnableResponseStream, runnableResponseStreamToObject } from './utils';
 
 @injectable()
 export class LocalFunctionAgent<I extends {} = {}, O extends {} = {}, State = {}> extends Runnable<I, O> {
@@ -49,9 +49,9 @@ export class LocalFunctionAgent<I extends {} = {}, O extends {} = {}, State = {}
     return options?.stream
       ? result instanceof ReadableStream
         ? result
-        : objectToStream({ delta: result })
+        : objectToRunnableResponseStream(result)
       : result instanceof ReadableStream
-        ? readLatestObjectFromStream(result)
+        ? runnableResponseStreamToObject(result)
         : result;
   }
 }

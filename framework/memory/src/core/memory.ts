@@ -6,7 +6,7 @@ import {
   RunOptions,
   RunnableResponse,
   RunnableResponseStream,
-  objectToStream,
+  objectToRunnableResponseStream,
 } from '@aigne/core';
 import { mkdir, writeFile } from 'fs-extra';
 import { joinURL } from 'ufo';
@@ -231,7 +231,7 @@ export class DefaultMemory<T, I extends MemoryActions<T> = MemoryActions<T>> ext
   async run(input: I, options?: RunOptions): Promise<RunnableResponse<I['outputs']>> {
     const result = await this._run(input);
 
-    return options?.stream ? objectToStream({ delta: result }) : result;
+    return options?.stream ? objectToRunnableResponseStream(result) : result;
   }
 
   private async createMemory(params: Omit<VectorStoreDocument<T>, 'id' | 'createdAt' | 'updatedAt'>) {

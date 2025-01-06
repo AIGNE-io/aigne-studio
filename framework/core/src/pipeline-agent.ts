@@ -16,7 +16,7 @@ import {
   RunnableResponseDelta,
   RunnableResponseStream,
 } from './runnable';
-import { readLatestObjectFromStream } from './utils';
+import { runnableResponseStreamToObject } from './utils';
 import { isNonNullable } from './utils/is-non-nullable';
 import { OrderedRecord } from './utils/ordered-map';
 
@@ -149,10 +149,8 @@ export class PipelineAgent<I extends { [key: string]: any } = {}, O extends {} =
       return result;
     }
 
-    const resultObject = (await readLatestObjectFromStream(result))?.delta;
-    if (!resultObject) throw new Error('Unexpected null result');
-
-    return resultObject as O;
+    // TODO: validate the result against the definition.outputs
+    return await runnableResponseStreamToObject(result);
   }
 }
 

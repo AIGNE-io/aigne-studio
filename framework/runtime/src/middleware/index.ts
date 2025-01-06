@@ -6,6 +6,7 @@ import { Router } from 'express';
 import Joi from 'joi';
 
 import { Runtime } from '../runtime';
+import { runAgentWithStreaming } from './agent';
 
 export function createMiddleware(runtime: Runtime): Router {
   const router = Router();
@@ -23,50 +24,42 @@ export function createMiddleware(runtime: Runtime): Router {
   });
 
   router.post('/api/aigne/:projectId/agents/:agentId/run', compression(), session(), auth(), async (req, res) => {
-    const { projectId, agentId } = req.params;
-    if (!projectId || !agentId) throw new Error('projectId and agentId are required');
-    if (runtime.id !== projectId) throw new Error('projectId does not match runtime');
+    try {
+      const { projectId, agentId } = req.params;
+      if (!projectId || !agentId) throw new Error('projectId and agentId are required');
+      if (runtime.id !== projectId) throw new Error('projectId does not match runtime');
 
-    const scope = runtime.scope({ user: req.user });
+      const scope = runtime.scope({ user: req.user });
 
-    const payload = await runAgentPayloadSchema.validateAsync(req.body, { stripUnknown: true });
+      const { input = {}, options } = await runAgentPayloadSchema.validateAsync(req.body, { stripUnknown: true });
 
-    const agent = await scope.resolve(agentId);
+      const agent = await scope.resolve(agentId);
 
-    if (!payload.options?.stream) {
-      const result = await agent.run(payload.input ?? {}, payload.options);
-      res.json(result);
-      return;
-    }
-
-    const emit = (data: object) => {
-      if (!res.headersSent) {
-        res.setHeader('Content-Type', 'text/event-stream');
-        res.setHeader('X-Accel-Buffering', 'no');
-        res.flushHeaders();
+      if (options?.stream) {
+        await runAgentWithStreaming(res, agent, input);
+        return;
       }
 
-      res.write(`data: ${JSON.stringify(data)}\n\n`);
-      res.flush();
-    };
+      const result = await agent.run(input, options);
 
-    const stream = await agent.run(payload.input ?? {}, { ...payload.options, stream: true });
-
-    for await (const chunk of stream) {
-      emit(chunk);
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ error: { message: error.message } });
     }
-
-    res.end();
   });
 
   router.get('/api/aigne/:projectId/agents/:agentId/definition', async (req, res) => {
-    const { projectId, agentId } = req.params;
-    if (!projectId || !agentId) throw new Error('projectId and agentId are required');
-    if (runtime.id !== projectId) throw new Error('projectId does not match runtime');
+    try {
+      const { projectId, agentId } = req.params;
+      if (!projectId || !agentId) throw new Error('projectId and agentId are required');
+      if (runtime.id !== projectId) throw new Error('projectId does not match runtime');
 
-    const agent = await runtime.resolve(agentId);
+      const agent = await runtime.resolve(agentId);
 
-    res.json(agent.definition);
+      res.json(agent.definition);
+    } catch (error) {
+      res.status(500).json({ error: { message: error.message } });
+    }
   });
 
   return router;

@@ -5,13 +5,6 @@ export interface RunOptions {
   stream?: boolean;
 }
 
-export interface RunnableResponseDelta<T> {
-  $text?: string;
-  delta?: Partial<T>;
-}
-
-export type RunnableResponseStream<T> = ReadableStream<RunnableResponseDelta<T>>;
-
 export type RunnableResponse<T> = T | RunnableResponseStream<T>;
 
 export abstract class Runnable<I extends {} = {}, O extends {} = {}> {
@@ -58,3 +51,32 @@ export interface RunnableDefinition {
 export type RunnableInput = DataType;
 
 export type RunnableOutput = DataType;
+
+export interface RunnableResponseDelta<T> {
+  $text?: string;
+  delta?: Partial<T>;
+}
+
+export interface RunnableResponseError {
+  error: {
+    message: string;
+  };
+}
+
+// NOTE: 不要把 RunnableResponseError 放在 RunnableResponseChunk 中，因为 error chunk 仅在 http 传输过程中使用，
+// 而 client 中的 runnable 框架应该自动识别 error chunk 并抛出异常
+export type RunnableResponseChunk<T> = RunnableResponseDelta<T>;
+
+export type RunnableResponseChunkWithError<T> = RunnableResponseChunk<T> | RunnableResponseError;
+
+export function isRunnableResponseDelta<T>(
+  chunk: RunnableResponseChunkWithError<T>
+): chunk is RunnableResponseDelta<T> {
+  return '$text' in chunk || 'delta' in chunk;
+}
+
+export function isRunnableResponseError<T>(chunk: RunnableResponseChunkWithError<T>): chunk is RunnableResponseError {
+  return 'error' in chunk;
+}
+
+export type RunnableResponseStream<T> = ReadableStream<RunnableResponseChunk<T>>;

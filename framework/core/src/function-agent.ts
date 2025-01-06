@@ -12,7 +12,7 @@ import {
   RunnableResponse,
   RunnableResponseStream,
 } from './runnable';
-import { OrderedRecord, objectToStream } from './utils';
+import { OrderedRecord, objectToRunnableResponseStream } from './utils';
 
 @injectable()
 export class FunctionAgent<I extends {} = {}, O extends {} = {}> extends Runnable<I, O> {
@@ -53,7 +53,7 @@ export class FunctionAgent<I extends {} = {}, O extends {} = {}> extends Runnabl
 
     // TODO: validate the result against the definition.outputs
 
-    return options?.stream ? objectToStream({ delta: result }) : (result as O);
+    return options?.stream ? objectToRunnableResponseStream(result) : (result as O);
   }
 }
 

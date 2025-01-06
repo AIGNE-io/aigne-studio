@@ -7,7 +7,7 @@ import {
   RunOptions,
   RunnableResponse,
   RunnableResponseStream,
-  objectToStream,
+  objectToRunnableResponseStream,
 } from '@aigne/core';
 import { Sandbox } from '@blocklet/quickjs/sandbox';
 import { call, getComponentMountPoint } from '@blocklet/sdk/lib/component';
@@ -60,6 +60,6 @@ async function main({${argKeys.join(', ')}) {
       args: [allArgs],
     });
 
-    return options?.stream ? objectToStream({ delta: result }) : result;
+    return options?.stream ? objectToRunnableResponseStream(result) : result;
   }
 }

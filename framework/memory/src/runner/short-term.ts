@@ -6,7 +6,7 @@ import {
   RunOptions,
   RunnableResponse,
   RunnableResponseStream,
-  objectToStream,
+  objectToRunnableResponseStream,
 } from '@aigne/core';
 import { uniqBy } from 'lodash';
 
@@ -191,6 +191,6 @@ export class ShortTermMemoryRunner extends MemoryRunner<string, ShortTermMemoryR
   ): Promise<RunnableResponse<ShortTermMemoryRunnerOutput>> {
     const result = await this._run(input);
 
-    return options?.stream ? objectToStream({ delta: result }) : result;
+    return options?.stream ? objectToRunnableResponseStream(result) : result;
   }
 }

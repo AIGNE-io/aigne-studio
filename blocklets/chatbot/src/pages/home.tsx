@@ -3,6 +3,7 @@ import { OrderedRecord } from '@aigne/core';
 import { ChatbotResponse } from '@api/agents/type';
 import { SendRounded } from '@mui/icons-material';
 import {
+  Alert,
   Avatar,
   Box,
   Button,
@@ -29,6 +30,7 @@ interface MessageItem extends ChatbotResponse {
   id: string;
   question?: string;
   loading?: boolean;
+  error?: Error;
 }
 
 export default function Home() {
@@ -63,6 +65,13 @@ export default function Home() {
           }),
         );
       }
+    } catch (error) {
+      setMessages((prev) =>
+        produce(prev, (draft) => {
+          const m = draft[message.id]!;
+          m.error = error;
+        }),
+      );
     } finally {
       setMessages((prev) =>
         produce(prev, (draft) => {
@@ -184,6 +193,12 @@ const MessageView = memo(({ message }: { message: MessageItem }) => {
               <CircularProgress size={16} />
               <Typography variant="caption">{message.status.message}</Typography>
             </Stack>
+          )}
+
+          {message.error && (
+            <Alert severity="error" variant="outlined">
+              {message.error.message}
+            </Alert>
           )}
 
           {message.allMemory && (

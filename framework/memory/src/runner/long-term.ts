@@ -5,7 +5,7 @@ import {
   RunOptions,
   RunnableResponse,
   RunnableResponseStream,
-  objectToStream,
+  objectToRunnableResponseStream,
 } from '@aigne/core';
 
 import nextId from '../lib/next-id';
@@ -34,6 +34,6 @@ export class LongTermMemoryRunner extends MemoryRunner<string> {
       };
     });
 
-    return options?.stream ? objectToStream({ delta: result }) : result;
+    return options?.stream ? objectToRunnableResponseStream(result) : result;
   }
 }
