@@ -39,7 +39,7 @@
     ]
   },
   "dependencies": {
-    "@aigne-project/chatbot": "https://dev.blocklet.mac.yechao.xyz/aigne-studio/api/projects/526280358526713856/npm/package.tgz?secret=ioK2Wgf8SNLeaFfVPUn7i&hash=fbb67461edc392111041dc640064c6c595950b5f",
+    "@aigne-project/chatbot": "https://staging.aigne.io/ai-studio/api/projects/526280358526713856/npm/package.tgz?secret=NEPEw_IpZCCx9pPs_gB_-",
     "@aigne/core": "workspace:^",
     "@aigne/memory": "workspace:^",
     "@aigne/runtime": "workspace:^",

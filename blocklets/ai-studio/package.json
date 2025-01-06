@@ -14,7 +14,7 @@
     "bundle": "run-s clean bundle:*",
     "bundle:client": "NODE_OPTIONS='--max-old-space-size=6144' vite build",
     "bundle:api": "tsc -p tsconfig.api.json && tsc-alias -p tsconfig.api.json",
-    "bundle:blocklet": "blocklet bundle --compact --external sqlite3,faiss-node,pdf2json --monorepo --create-release",
+    "bundle:blocklet": "blocklet bundle --compact --external sqlite3,faiss-node,pdf2json,prettier --monorepo --create-release",
     "deploy": "npm run bundle && blocklet deploy .blocklet/bundle",
     "upload": "npm run bundle && blocklet upload .blocklet/release/blocklet.json"
   },

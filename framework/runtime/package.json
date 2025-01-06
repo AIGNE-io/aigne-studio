@@ -53,6 +53,11 @@
       "import": "./middleware.js",
       "require": "./middleware.cjs",
       "types": "./middleware.d.ts"
+    },
+    "./cmd": {
+      "import": "./cmd.js",
+      "require": "./cmd.cjs",
+      "types": "./cmd.d.ts"
     }
   },
   "dependencies": {
