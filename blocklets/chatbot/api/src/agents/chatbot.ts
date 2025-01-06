@@ -16,7 +16,7 @@ chatbot.setup({
       temperature: 0.2,
     },
     override: {
-      model: 'gemini-2.0-flash-exp',
+      model: 'gemini-1.5-pro',
     },
   },
 });
@@ -370,14 +370,14 @@ You are a professional question classifier. Please classify the question and cho
         language: { fromVariable: 'language' },
       },
     },
-    {
-      name: 'google-search',
-      description: 'Search the question on Google and return the search results',
-      runnable: chatbot.agents['Google Search'],
-      input: {
-        question: { fromVariable: 'question' },
-      },
-    },
+    // {
+    //   name: 'google-search',
+    //   description: 'Search the question on Google and return the search results',
+    //   runnable: chatbot.agents['Google Search'],
+    //   input: {
+    //     question: { fromVariable: 'question' },
+    //   },
+    // },
     {
       name: 'clean-memory',
       description: 'Clean the memory',
