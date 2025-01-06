@@ -144,7 +144,7 @@ function LinkPreviewContent({ title, url, content }: { title?: string; url: stri
   return (
     <Stack gap={1} sx={{ mark: { bgcolor: 'transparent', color: 'inherit' } }}>
       <Link href={url} target="_blank">
-        <Typography variant="body2">{title && <span dangerouslySetInnerHTML={{ __html: title }} />}</Typography>
+        <Typography variant="body2">{title}</Typography>
       </Link>
 
       <Typography
@@ -155,7 +155,7 @@ function LinkPreviewContent({ title, url, content }: { title?: string; url: stri
           WebkitLineClamp: 5,
           overflow: 'hidden',
         }}>
-        {content && <span dangerouslySetInnerHTML={{ __html: content }} />}
+        {content}
       </Typography>
     </Stack>
   );

@@ -174,7 +174,7 @@ const MessageView = memo(({ message }: { message: MessageItem }) => {
                   doc.title && (
                     <Box key={doc.id} gap={1} fontSize={14} sx={{ mark: { bgcolor: 'transparent', color: 'inherit' } }}>
                       <Link href={doc.url} target="_blank">
-                        <span dangerouslySetInnerHTML={{ __html: doc.title }} />
+                        {doc.title}
                       </Link>
                     </Box>
                   ),
