@@ -632,7 +632,7 @@ function VariableList() {
                       <Typography variant="subtitle2">{t('defaultValue')}</Typography>
 
                       {watch?.type === 'boolean' ? (
-                        <BaseSwitch {...field} />
+                        <BaseSwitch checked={Boolean(field.value)} onChange={field.onChange} />
                       ) : (
                         <TextField
                           type={watch?.type}
