@@ -35,8 +35,6 @@
   },
   "dependencies": {
     "@abtnode/client": "^1.16.36",
-    "@blocklet/ai-kit": "^0.1.66",
-    "@blocklet/quickjs": "workspace:^",
     "@blocklet/sdk": "^1.16.36",
     "@types/mustache": "^4.2.5",
     "axios": "^1.7.5",

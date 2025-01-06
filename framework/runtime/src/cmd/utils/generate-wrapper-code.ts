@@ -4,10 +4,12 @@ import { ProjectDefinition } from '../../runtime/runtime';
 import { formatCode } from '../../utils/prettier';
 
 export async function generateWrapperCode(project: ProjectDefinition) {
+  // TODO: 考虑中文和其他语言情况
+  const packageName = `@aigne-project/${(project.name || project.id).toLowerCase().replaceAll(/[^a-z0-9]/g, '_')}`;
+
   const packageJson = JSON.stringify(
     {
-      // TODO: 考虑中文和其他语言情况
-      name: `@aigne-project/${(project.name || project.id).toLowerCase().replaceAll(/[^a-z0-9]/g, '_')}`,
+      name: packageName,
       version: '0.0.1',
       main: 'index.cjs',
       module: 'index.js',
@@ -52,7 +54,7 @@ export default new Runtime<Agents>(projectDefinition, {});
   const middleware = `\
 import { createMiddleware } from '@aigne/runtime/middleware';
 
-import runtime from './index';
+import runtime from ${JSON.stringify(packageName)};
 
 export default function middleware() {
   return createMiddleware(runtime);
