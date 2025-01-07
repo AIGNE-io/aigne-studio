@@ -1,21 +1,15 @@
 import chatbot from '@aigne-project/chatbot';
 import { LLMAgent, LLMDecisionAgent, LocalFunctionAgent, PipelineAgent } from '@aigne/core';
-import { Runtime } from '@aigne/runtime';
 // import { Runtime } from '@aigne/runtime';
 import { SessionUser } from '@blocklet/sdk/lib/util/login';
 import { differenceBy, orderBy } from 'lodash';
 
 import { extractKeywordsAgent, knowledgeAgent } from './knowledge';
-import { longTermMemory, shortTermMemory, userPreferences } from './memory';
+import { longTermMemory, shortTermMemory } from './memory';
 import { currentModelFunctionAgent, currentModelLLMAgent, currentModelPipelineAgent } from './models/current';
 import { findAllModelLLMAgent, findAllModelPipelineAgent, getAllModelsFunctionAgent } from './models/find';
 import {
-  checkModelClassification,
-  checkModelPipelineAgent,
-  extractModelClassification,
   extractQuestionModelLLMAgent,
-  needInputModelFunctionAgent,
-  needSelectModelFunctionAgent,
   switchModelFunctionAgent,
   switchModelLLMAgent,
   switchModelPipelineAgent,
@@ -474,16 +468,16 @@ export const chat = LocalFunctionAgent.create<{ question: string }, ChatbotRespo
         const { did: userId } = context.state.user;
 
         try {
-          const mode = await userPreferences.then((m) => m.getByKey('model', { userId }));
-          if (mode?.memory?.model) {
-            (context as any as Runtime).setup({
-              llmModel: {
-                override: {
-                  model: mode?.memory?.model,
-                },
-              },
-            });
-          }
+          // const mode = await userPreferences.then((m) => m.getByKey('model', { userId }));
+          // if (mode?.memory?.model) {
+          //   (context as any as Runtime).setup({
+          //     llmModel: {
+          //       override: {
+          //         model: mode?.memory?.model,
+          //       },
+          //     },
+          //   });
+          // }
 
           const [ltm, stm] = await Promise.all([longTermMemory, shortTermMemory]);
 
@@ -575,12 +569,12 @@ export const agents = [
   findAllModelLLMAgent.definition,
   findAllModelPipelineAgent.definition,
 
-  checkModelClassification.definition,
-  checkModelPipelineAgent.definition,
-  extractModelClassification.definition,
+  // checkModelClassification.definition,
+  // checkModelPipelineAgent.definition,
+  // extractModelClassification.definition,
   extractQuestionModelLLMAgent.definition,
-  needInputModelFunctionAgent.definition,
-  needSelectModelFunctionAgent.definition,
+  // needInputModelFunctionAgent.definition,
+  // needSelectModelFunctionAgent.definition,
   switchModelFunctionAgent.definition,
   switchModelLLMAgent.definition,
   switchModelPipelineAgent.definition,

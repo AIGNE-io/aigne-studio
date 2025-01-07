@@ -17,18 +17,18 @@ async function getAdapter(type: 'llm' | 'image-generation') {
 }
 console.log(JSON.stringify(getAdapter('llm'), null, 2));
 
-export const getAllModelsFunctionAgent = LocalFunctionAgent.create<{}, { $text: string[] }>({
+export const getAllModelsFunctionAgent = LocalFunctionAgent.create<{}, { $text: string }>({
   inputs: [],
   outputs: [
     {
       name: '$text',
-      type: 'array',
+      type: 'string',
       required: true,
     },
   ],
   async function() {
     return {
-      $text: ['gpt-4o-mini', 'gpt-4o-mini-preview', 'gpt-4o-mini-preview-2024-01-18'],
+      $text: `['gpt-4o-mini', 'gpt-4o-mini-preview', 'gpt-4o-mini-preview-2024-01-18']`,
     };
   },
 });
@@ -70,7 +70,7 @@ export const findAllModelLLMAgent = LLMAgent.create<{ model: string[]; language?
 
 Example:
 当前存在模型:
-gpt-4o-mini: OpenAI 
+gpt-4o-mini: OpenAI
 gpt-4o-mini-preview: OpenAI
 gpt-4o-mini-preview-2024-01-18: OpenAI
 `,
