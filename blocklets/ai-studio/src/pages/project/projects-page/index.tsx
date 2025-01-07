@@ -86,11 +86,12 @@ export default function ProjectsPage() {
   const [showSelectDidSpacesImportWay, setShowSelectDidSpacesImportWay] = useState(false);
 
   useEffect(() => {
-    events.on(EVENTS.CONNECT_TO_DID_SPACE_FOR_FULL_ACCESS, () => {
+    events.on(EVENTS.DID_SPACE_CONNECTED, () => {
       if (action === FROM_DID_SPACES_IMPORT) {
         setTimeout(() => setShowSelectDidSpacesImportWay(true), 3000);
       }
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const {
