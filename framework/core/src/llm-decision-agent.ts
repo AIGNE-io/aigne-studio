@@ -6,6 +6,7 @@ import { TYPES } from './constants';
 import type { Context } from './context';
 import { DataType } from './data-type';
 import { LLMModel, LLMModelInputMessage, LLMModelInputs, LLMModelOptions } from './llm-model';
+import logger from './logger';
 import {
   RunOptions,
   Runnable,
@@ -83,6 +84,7 @@ export class LLMDecisionAgent<I extends { [key: string]: any } = {}, O extends {
     // TODO: support run multiple calls
 
     const functionNameToCall = toolCalls?.[0]!.function?.name;
+    logger.debug('functionNameToCall', functionNameToCall);
     if (!functionNameToCall) throw new Error('No any runnable called');
 
     const caseToCall = cases.find((i) => i.name === functionNameToCall);

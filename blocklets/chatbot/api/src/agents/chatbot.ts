@@ -1,14 +1,25 @@
-import { join } from 'path';
-
 import chatbot from '@aigne-project/chatbot';
-import { LLMAgent, LLMDecisionAgent, LocalFunctionAgent, PipelineAgent, TYPES } from '@aigne/core';
-import { DefaultMemory, LongTermMemoryRunner, ShortTermMemoryRunner } from '@aigne/memory';
+import { LLMAgent, LLMDecisionAgent, LocalFunctionAgent, PipelineAgent } from '@aigne/core';
 import { Runtime } from '@aigne/runtime';
-import { config } from '@blocklet/sdk';
+// import { Runtime } from '@aigne/runtime';
 import { SessionUser } from '@blocklet/sdk/lib/util/login';
 import { differenceBy, orderBy } from 'lodash';
 
 import { extractKeywordsAgent, knowledgeAgent } from './knowledge';
+import { longTermMemory, shortTermMemory, userPreferences } from './memory';
+import { currentModelFunctionAgent, currentModelLLMAgent, currentModelPipelineAgent } from './models/current';
+import { findAllModelLLMAgent, findAllModelPipelineAgent, getAllModelsFunctionAgent } from './models/find';
+import {
+  checkModelClassification,
+  checkModelPipelineAgent,
+  extractModelClassification,
+  extractQuestionModelLLMAgent,
+  needInputModelFunctionAgent,
+  needSelectModelFunctionAgent,
+  switchModelFunctionAgent,
+  switchModelLLMAgent,
+  switchModelPipelineAgent,
+} from './models/switch';
 import { ChatbotResponse } from './type';
 
 chatbot.setup({
@@ -20,21 +31,6 @@ chatbot.setup({
       model: 'gemini-1.5-pro',
     },
   },
-});
-
-const userPreferences = DefaultMemory.load<{
-  model?: string;
-}>({
-  path: join(config.env.dataDir, 'user-preferences'),
-});
-
-const longTermMemory = DefaultMemory.load({
-  path: join(config.env.dataDir, 'long-term-memory'),
-  runner: new LongTermMemoryRunner(),
-});
-const shortTermMemory = DefaultMemory.load({
-  path: join(config.env.dataDir, 'short-term-memory'),
-  runner: new ShortTermMemoryRunner(chatbot.container.resolve(TYPES.llmModel)),
 });
 
 export const docAgent = LocalFunctionAgent.create<
@@ -344,7 +340,7 @@ export const questionClassification = LLMDecisionAgent.create<
     },
   ],
   messages: `\
-You are a professional question classifier. Please classify the question and choose the right bot to answer it.
+You are a professional question classifier. Please classify the question and choose the right case to answer it.
 
 {{memory}}
 
@@ -389,6 +385,31 @@ You are a professional question classifier. Please classify the question and cho
       name: 'clean-memory',
       description: 'Clean the memory',
       runnable: cleanMemoryPipeline,
+      input: {
+        question: { fromVariable: 'question' },
+        language: { fromVariable: 'language' },
+      },
+    },
+    {
+      name: 'get-current-model',
+      description: 'Get the current model',
+      runnable: currentModelPipelineAgent,
+      input: {
+        language: { fromVariable: 'language' },
+      },
+    },
+    {
+      name: 'find-all-models',
+      description: 'Find all models',
+      runnable: findAllModelPipelineAgent,
+      input: {
+        language: { fromVariable: 'language' },
+      },
+    },
+    {
+      name: 'switch-model',
+      description: 'Switch the model',
+      runnable: switchModelPipelineAgent,
       input: {
         question: { fromVariable: 'question' },
         language: { fromVariable: 'language' },
@@ -450,25 +471,20 @@ export const chat = LocalFunctionAgent.create<{ question: string }, ChatbotRespo
     return new ReadableStream({
       async start(controller) {
         let $text = '';
+        const { did: userId } = context.state.user;
 
         try {
-          // userPreferences.then((m) =>
-          //   m.create({ model: 'gemini-1.5-pro' }, { userId: '', metadata: { type: 'llmModel' } }),
-          // );
-          const mode = await userPreferences.then((m) =>
-            m.filter({ k: 1, userId: '', filter: { ['metadata.type']: 'llmModel' } }),
-          );
-
-          // TODO: 移除下面的 any 类型
-          (context as any as Runtime).setup({
-            llmModel: {
-              override: {
-                model: 'xxx',
+          const mode = await userPreferences.then((m) => m.getByKey('model', { userId }));
+          if (mode?.memory?.model) {
+            (context as any as Runtime).setup({
+              llmModel: {
+                override: {
+                  model: mode?.memory?.model,
+                },
               },
-            },
-          });
+            });
+          }
 
-          const { did: userId } = context.state.user;
           const [ltm, stm] = await Promise.all([longTermMemory, shortTermMemory]);
 
           controller.enqueue({ delta: { status: { loading: true, message: 'Querying memory...' } } });
@@ -495,10 +511,10 @@ ${longTermMem}
 
 ## Here are some memory about the user
 ${shortTermMem}
-
 `;
 
           controller.enqueue({ delta: { status: { loading: true, message: 'Classifying the question...' } } });
+
           const stream = await (
             await context.resolve<typeof questionClassification>(questionClassification.id)
           ).run(
@@ -514,21 +530,22 @@ ${shortTermMem}
             $text += chunk.$text || '';
             controller.enqueue(chunk);
           }
+          console.log('streamResult', $text);
 
           controller.enqueue({ delta: { status: { loading: true, message: 'Updating memory...' } } });
-          const msg = [
-            { role: 'user', content: input.question },
-            { role: 'assistant', content: $text },
-          ];
-          await Promise.all([ltm.add(msg, { userId }), stm.add(msg, { userId })]);
-          const allMemory = (
-            await stm.filter({ k: 100, userId, sort: [{ field: 'createdAt', direction: 'asc' }] })
-          ).results
-            .map((i) => i.memory)
-            .join('\n');
+          // const msg = [
+          //   { role: 'user', content: input.question },
+          //   { role: 'assistant', content: $text },
+          // ];
+          // await Promise.all([ltm.add(msg, { userId }), stm.add(msg, { userId })]);
+          // const allMemory = (
+          //   await stm.filter({ k: 100, userId, sort: [{ field: 'createdAt', direction: 'asc' }] })
+          // ).results
+          //   .map((i) => i.memory)
+          //   .join('\n');
 
-          controller.enqueue({ delta: { allMemory } });
-          controller.enqueue({ delta: { status: { loading: false } } });
+          // controller.enqueue({ delta: { allMemory } });
+          // controller.enqueue({ delta: { status: { loading: false } } });
         } catch (error) {
           controller.error(error);
         } finally {
@@ -551,4 +568,20 @@ export const agents = [
   cleanMemoryAgent.definition,
   cleanMemoryLLMAgent.definition,
   cleanMemoryPipeline.definition,
+  currentModelFunctionAgent.definition,
+  currentModelLLMAgent.definition,
+  currentModelPipelineAgent.definition,
+  getAllModelsFunctionAgent.definition,
+  findAllModelLLMAgent.definition,
+  findAllModelPipelineAgent.definition,
+
+  checkModelClassification.definition,
+  checkModelPipelineAgent.definition,
+  extractModelClassification.definition,
+  extractQuestionModelLLMAgent.definition,
+  needInputModelFunctionAgent.definition,
+  needSelectModelFunctionAgent.definition,
+  switchModelFunctionAgent.definition,
+  switchModelLLMAgent.definition,
+  switchModelPipelineAgent.definition,
 ];

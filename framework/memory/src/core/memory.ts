@@ -195,7 +195,11 @@ export class DefaultMemory<T, I extends MemoryActions<T> = MemoryActions<T>> ext
       ...(options?.sessionId ? { sessionId: options.sessionId } : {}),
     };
 
-    const result = await this.retriever.list(options?.k || 1, { filter, sort: options?.sort });
+    const result = await this.retriever.list(options?.k || 1, {
+      filter,
+      sort: options?.sort || { field: 'createdAt', direction: 'desc' },
+    });
+
     return result[0];
   }
 
@@ -261,10 +265,11 @@ export class DefaultMemory<T, I extends MemoryActions<T> = MemoryActions<T>> ext
     const memoryId = nextId();
     const createdAt = new Date().toISOString();
     const updatedAt = createdAt;
-    const { userId, sessionId, memory, metadata } = params;
+    const { userId, sessionId, memory, metadata, key } = params;
 
     const document: VectorStoreDocument<T> = {
       id: memoryId,
+      key,
       userId,
       sessionId,
       createdAt,

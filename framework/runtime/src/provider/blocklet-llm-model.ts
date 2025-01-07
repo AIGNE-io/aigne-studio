@@ -86,6 +86,7 @@ export class BlockletLLMModel extends LLMModel {
             for await (const chunk of stream!) {
               if (isChatCompletionChunk(chunk)) {
                 const { content, toolCalls } = chunk.delta;
+                logger.debug('BlockletLLMModel.run chunk', content);
 
                 controller.enqueue({
                   $text: content || undefined,
@@ -121,6 +122,7 @@ export class BlockletLLMModel extends LLMModel {
       }
     }
 
+    logger.debug('BlockletLLMModel.run result', JSON.stringify(result, null, 2));
     return result;
   }
 }
