@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/code-editor",
-  "version": "0.4.194",
+  "version": "0.4.195",
   "description": "Code Editor",
   "publishConfig": {
     "access": "public"
@@ -90,7 +90,7 @@
     "@storybook/addon-onboarding": "^8.2.9",
     "@storybook/blocks": "^8.2.9",
     "@storybook/react": "^8.2.9",
-    "@storybook/react-vite": "^8.2.9",
+    "@storybook/react-vite": "^8.4.7",
     "@storybook/test": "^8.2.9",
     "@types/lodash": "^4.17.7",
     "@types/mustache": "^4.2.5",
