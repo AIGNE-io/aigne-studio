@@ -2,7 +2,7 @@ import fs from 'fs';
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'fs/promises';
 import { basename, dirname, isAbsolute, join } from 'path';
 
-import { AIGNERuntime } from '@aigne/runtime';
+import { Runtime } from '@aigne/runtime';
 import { generateWrapperCode } from '@aigne/runtime/cmd';
 import { projectCronManager } from '@api/libs/cron-jobs';
 import { Config } from '@api/libs/env';
@@ -491,7 +491,8 @@ export function projectRoutes(router: Router) {
 
       await repo.checkout({ ref: project.gitDefaultBranch, dir: packageDir, force: true });
 
-      const files = await generateWrapperCode(await AIGNERuntime.load({ path: packageDir }));
+      // TODO: 把 load project 的逻辑提取到一个函数中，替换掉这里的代码
+      const files = await generateWrapperCode((await Runtime.load({ path: packageDir }, {})).project);
 
       for (const { fileName, content } of files) {
         await writeFile(join(packageDir, fileName), content);

@@ -1,16 +1,23 @@
-import { AIGNERuntime } from '../../runtime/runtime';
+import { DataType, OrderedRecord, RunnableDefinition, isNonNullable } from '@aigne/core';
 
-export async function generateWrapperCode(runtime: AIGNERuntime) {
-  runtime.project.agents?.map((agent) => agent.name);
+import { ProjectDefinition } from '../../runtime/runtime';
+import { formatCode } from '../../utils/prettier';
+
+export async function generateWrapperCode(project: ProjectDefinition) {
+  // TODO: 考虑中文和其他语言情况
+  const packageName = `@aigne-project/${(project.name || project.id).toLowerCase().replaceAll(/[^a-z0-9]/g, '_')}`;
 
   const packageJson = JSON.stringify(
     {
-      name: `@aigne-project/${(runtime.name || runtime.id).toLowerCase().replaceAll(/[^a-z0-9]/g, '_')}`,
+      name: packageName,
       version: '0.0.1',
       main: 'index.cjs',
       module: 'index.js',
       types: 'index.d.ts',
-      dependencies: { '@aigne/runtime': 'latest' },
+      dependencies: {
+        '@aigne/core': 'latest',
+        '@aigne/runtime': 'latest',
+      },
       exports: {
         '.': {
           require: './index.cjs',
@@ -34,43 +41,35 @@ export async function generateWrapperCode(runtime: AIGNERuntime) {
   );
 
   const index = `\
-import { AIGNERuntime, Agent } from '@aigne/runtime';
+import { Runnable } from '@aigne/core';
+import { Runtime, ProjectDefinition } from '@aigne/runtime';
 
-const runtime = AIGNERuntime.load({ path: __dirname });
+const projectDefinition: ProjectDefinition = ${JSON.stringify(project, null, 2)};
 
-export default {
-  agents: {
-  ${(runtime.project.agents ?? [])
-    ?.map((agent) => [
-      // TODO: 把 Agent 的类型定义单独放到一个 ts 文件中，然后在这里引入
-      `${JSON.stringify(agent.name || agent.id)}: new Agent<${generateAgentInputTypeDefine(agent)}, ${generateAgentOutputTypeDefine(agent)}>(runtime.then(r => r.project), ${JSON.stringify(agent.id)})`,
-    ])
-    .join(',\n')}
-  }
-}
+${generateAgentsInterface(project.runnables, 'Runnable')}
+
+export default new Runtime<Agents>(projectDefinition, {});
 `;
 
   const middleware = `\
 import { createMiddleware } from '@aigne/runtime/middleware';
 
+import runtime from ${JSON.stringify(packageName)};
+
 export default function middleware() {
-  return createMiddleware({ path: __dirname });
+  return createMiddleware(runtime);
 }
 `;
 
   const client = `\
-import { Agent } from '@aigne/runtime/client';
+import { ProjectDefinition } from '@aigne/runtime';
+import { Agent, Runtime } from '@aigne/runtime/client';
 
-export default {
-  agents: {
-    ${(runtime.project.agents ?? [])
-      ?.map((agent) => [
-        // TODO: 把 Agent 的类型定义单独放到一个 ts 文件中，然后在这里引入
-        `${JSON.stringify(agent.name || agent.id)}: new Agent<${generateAgentInputTypeDefine(agent)}, ${generateAgentOutputTypeDefine(agent)}>(${JSON.stringify(runtime.id)}, ${JSON.stringify(agent.id)})`,
-      ])
-      .join(',\n')}
-  }
-}
+const projectDefinition: ProjectDefinition = ${JSON.stringify(sanitizeProjectDefinition(project), null, 2)};
+
+${generateAgentsInterface(project.runnables, 'Agent')}
+
+export default new Runtime<Agents>(projectDefinition, {});
 `;
 
   const tsFiles = [
@@ -83,13 +82,13 @@ export default {
 
   const result = (
     await Promise.all(
-      tsFiles.map(({ fileName, content }) => {
+      tsFiles.map(async ({ fileName, content }) => {
         const cjs = ts.transpileModule(content, { fileName, compilerOptions: { module: ts.ModuleKind.CommonJS } });
         const esm = ts.transpileModule(content, { fileName, compilerOptions: { module: ts.ModuleKind.ESNext } });
         return [
-          { fileName: fileName.replace(/\.ts$/, '.cjs'), content: cjs.outputText },
-          { fileName: fileName.replace(/\.ts$/, '.js'), content: esm.outputText },
-          { fileName: fileName.replace(/\.ts$/, '.d.ts'), content },
+          { fileName: fileName.replace(/\.ts$/, '.cjs'), content: await formatCode(cjs.outputText) },
+          { fileName: fileName.replace(/\.ts$/, '.js'), content: await formatCode(esm.outputText) },
+          { fileName: fileName.replace(/\.ts$/, '.d.ts'), content: await formatCode(content) },
         ];
       })
     )
@@ -98,45 +97,56 @@ export default {
   return [...result, { fileName: 'package.json', content: packageJson }];
 }
 
-type InternalAgent = NonNullable<AIGNERuntime['project']['agents']>[number];
+function sanitizeProjectDefinition(project: ProjectDefinition): ProjectDefinition {
+  return {
+    id: project.id,
+    name: project.name,
+    description: project.description,
+    runnables: OrderedRecord.fromArray(
+      OrderedRecord.map(project.runnables, (agent) => {
+        return {
+          type: agent.type,
+          id: agent.id,
+          name: agent.name,
+          description: agent.description,
+          inputs: agent.inputs,
+          outputs: agent.outputs,
+        };
+      })
+    ),
+  };
+}
 
-function generateAgentInputTypeDefine(agent: InternalAgent) {
+function generateAgentsInterface(runnables: OrderedRecord<RunnableDefinition>, agentInterface: string) {
+  return `\
+interface Agents {
+  ${OrderedRecord.map(runnables, (agent) => {
+    // ignore agent without name
+    if (!agent.name) return null;
+
+    // TODO: 把 Agent 的类型定义单独放到一个 ts 文件中，然后在这里引入
+    return `${JSON.stringify(agent.name)}: ${agentInterface}<${fieldsToTsType(agent.inputs)}, ${fieldsToTsType(agent.outputs)}>`;
+  })
+    .filter(isNonNullable)
+    .join(';\n')}
+}
+`;
+}
+
+function fieldsToTsType(fields: OrderedRecord<DataType>) {
   // TODO: 最好采用 json schema 的定义方式，使用第三方库生成类型定义
   return `\
 {
-  ${agent.parameters
-    ?.map((input) => [input.key || input.id, inputTypeToTypeScriptType(input)])
-    .filter(([, type]) => !!type)
-    .map(([field, type]) => `${JSON.stringify(field)}: ${type}`)
-    .join(';')}
+  ${OrderedRecord.map(
+    fields,
+    (input) =>
+      `${JSON.stringify(input.name || input.id)}: ${dataTypeToTsType(input)}${input.required ? '' : ' | undefined'}`
+  ).join(';')}
 }`;
 }
 
-function inputTypeToTypeScriptType(input: NonNullable<InternalAgent['parameters']>[number]) {
-  if (!input.type) return 'string';
-  if (['string', 'number', 'boolean'].includes(input.type)) return input.type;
-  if (input.type === 'select') return 'string';
-  if (input.type === 'language') return 'string';
-  if (input.type === 'image') return 'string';
-  if (input.type === 'verify_vc') return 'object';
-  return undefined;
-}
-
-function generateAgentOutputTypeDefine(agent: InternalAgent) {
-  // TODO: 最好采用 json schema 的定义方式，使用第三方库生成类型定义
-  return `\
-{
-  ${agent.outputVariables
-    ?.map((output) => [output.name || output.id, outputTypeToTypeScriptType(output)])
-    .filter(([, type]) => !!type)
-    .map(([field, type]) => `${JSON.stringify(field)}: ${type}`)
-    .join(';')}
-}`;
-}
-
-function outputTypeToTypeScriptType(output: NonNullable<InternalAgent['outputVariables']>[number]) {
-  if (output.type && ['string', 'number', 'boolean', 'object'].includes(output.type)) return output.type;
+function dataTypeToTsType(output: DataType) {
   if (output.type === 'array') return 'object[]';
-  if (!output.type) return 'object';
-  return undefined;
+
+  return output.type;
 }

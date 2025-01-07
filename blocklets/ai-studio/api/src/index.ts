@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import 'express-async-errors';
 
 import { access, mkdir } from 'fs/promises';

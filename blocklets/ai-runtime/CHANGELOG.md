@@ -1,3 +1,8 @@
+## 0.4.195 (2025-1-6)
+
+- fix: add hash to integration url
+- chore: release new version of aigne framework
+
 ## 0.4.194 (2024-12-31)
 
 - chore: support different sandboxes
