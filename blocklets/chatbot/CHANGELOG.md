@@ -1,3 +1,9 @@
+## 0.4.196 (2025-1-7)
+
+- fix: conflicts
+- chore: update deps
+- chore: update deps
+
 ## 0.4.195 (2025-1-6)
 
 - chore: remove unnecessary config

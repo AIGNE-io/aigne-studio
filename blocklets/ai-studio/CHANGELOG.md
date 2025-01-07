@@ -1,3 +1,7 @@
+## 0.4.196 (2025-1-7)
+
+- chore: update deps
+
 ## 0.4.195 (2025-1-6)
 
 - fix: add hash to integration url
