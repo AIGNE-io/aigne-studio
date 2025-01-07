@@ -137,13 +137,18 @@ export class SearchKitRetriever<T> implements Retriever<T> {
     await this.waitForTask(result.taskUid);
   }
 
-  async delete(id: string): Promise<void> {
-    await this.historyStore.delete(id).catch((e) => {
-      logger.error('Error deleting origin content', e);
-    });
+  async delete(idOrFilter: string | string[] | Record<string, any>): Promise<VectorStoreDocument<T>[]> {
+    const memories =
+      typeof idOrFilter === 'string' || Array.isArray(idOrFilter)
+        ? await this.historyStore.findAll({ id: idOrFilter })
+        : await this.historyStore.findAll(idOrFilter);
 
-    const result = await (await this.index).deleteDocuments([id]);
-    await this.waitForTask(result.taskUid);
+    const ids = memories.map((i) => i.id);
+
+    const result = await (await this.index).deleteDocuments(ids);
+    await Promise.all([this.historyStore.delete({ id: ids }), this.waitForTask(result.taskUid)]);
+
+    return memories;
   }
 
   async reset(): Promise<void> {

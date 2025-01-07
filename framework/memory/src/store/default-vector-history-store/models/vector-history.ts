@@ -1,16 +1,21 @@
-import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
+import { MemoryMetadata } from '@aigne/core';
+import { DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
 import type { ModelStatic, Sequelize } from 'sequelize';
 
-import nextId from '../../../lib/next-id';
-
 export interface VectorHistory extends Model<InferAttributes<VectorHistory>, InferCreationAttributes<VectorHistory>> {
-  id: CreationOptional<string>;
+  id: string;
 
-  data: any;
+  userId?: string;
 
-  createdAt: CreationOptional<Date>;
+  sessionId?: string;
 
-  updatedAt: CreationOptional<Date>;
+  createdAt: string;
+
+  updatedAt: string;
+
+  memory: any;
+
+  metadata: MemoryMetadata;
 }
 
 export function initVectorHistoryModel(sequelize: Sequelize) {
@@ -20,21 +25,30 @@ export function initVectorHistoryModel(sequelize: Sequelize) {
         type: DataTypes.STRING,
         primaryKey: true,
         allowNull: false,
-        defaultValue: nextId,
       },
-      data: {
-        type: DataTypes.JSON,
-        allowNull: false,
+      userId: {
+        type: DataTypes.STRING,
+      },
+      sessionId: {
+        type: DataTypes.STRING,
       },
       createdAt: {
-        type: DataTypes.DATE,
+        type: DataTypes.STRING,
         allowNull: false,
       },
       updatedAt: {
-        type: DataTypes.DATE,
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      memory: {
+        type: DataTypes.JSON,
+        allowNull: false,
+      },
+      metadata: {
+        type: DataTypes.JSON,
         allowNull: false,
       },
     },
-    { sequelize }
+    { sequelize, timestamps: false }
   );
 }
