@@ -86,9 +86,7 @@ export default function ProjectsPage() {
   const [showSelectDidSpacesImportWay, setShowSelectDidSpacesImportWay] = useState(false);
 
   useEffect(() => {
-    console.error('debug233.EVENTS', EVENTS);
     events.on(EVENTS.DID_SPACE_CONNECTED, () => {
-      console.error('debug233.DID_SPACE_CONNECTED', 'ok');
       if (action === FROM_DID_SPACES_IMPORT) {
         setTimeout(() => setShowSelectDidSpacesImportWay(true), 3000);
       }
