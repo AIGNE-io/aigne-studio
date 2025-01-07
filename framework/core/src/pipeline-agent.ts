@@ -107,13 +107,20 @@ export class PipelineAgent<I extends { [key: string]: any } = {}, O extends {} =
               (i) => i.name !== StreamTextOutputName && i.from === 'variable' && i.fromVariableId === process.id
             );
 
+            const processResult: { $text?: string; [key: string]: any } = {};
+            variables[process.id] = processResult;
+
             for await (const chunk of stream) {
-              if (chunk.$text && needRespondTextStream) {
-                controller.enqueue({ $text: chunk.$text });
+              if (chunk.$text) {
+                Object.assign(processResult, { $text: (processResult.$text || '') + chunk.$text });
+
+                if (needRespondTextStream) {
+                  controller.enqueue({ $text: chunk.$text });
+                }
               }
 
               if (chunk.delta) {
-                variables[process.id] = chunk.delta;
+                Object.assign(processResult, chunk.delta);
 
                 if (needRespondJsonStream) {
                   result = Object.fromEntries(
