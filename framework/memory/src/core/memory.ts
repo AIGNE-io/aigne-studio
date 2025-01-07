@@ -25,9 +25,9 @@ export class DefaultMemory<T, I extends MemoryActions<T> = MemoryActions<T>> ext
   T,
   DefaultMemoryRunnerCustomData<T>
 > {
-  static async load<T extends string>(options: {
+  static async load<T>(options: {
     path: string;
-    runner: MemoryRunner<T, DefaultMemoryRunnerCustomData<T>>;
+    runner?: MemoryRunner<T, DefaultMemoryRunnerCustomData<T>>;
     retriever?: Retriever<T>;
     historyStore?: HistoryStore<T>;
   }) {
@@ -51,7 +51,7 @@ export class DefaultMemory<T, I extends MemoryActions<T> = MemoryActions<T>> ext
 
   constructor(options: {
     path: string;
-    runner: MemoryRunner<T, DefaultMemoryRunnerCustomData<T>>;
+    runner?: MemoryRunner<T, DefaultMemoryRunnerCustomData<T>>;
     retriever: Retriever<T>;
     historyStore: HistoryStore<T>;
   }) {
@@ -65,7 +65,7 @@ export class DefaultMemory<T, I extends MemoryActions<T> = MemoryActions<T>> ext
 
   path: string;
 
-  runner: MemoryRunner<T, DefaultMemoryRunnerCustomData<T>>;
+  runner?: MemoryRunner<T, DefaultMemoryRunnerCustomData<T>>;
 
   retriever: Retriever<T>;
 
@@ -75,11 +75,11 @@ export class DefaultMemory<T, I extends MemoryActions<T> = MemoryActions<T>> ext
     messages: Extract<MemoryActions<T>, { action: 'add' }>['inputs']['messages'],
     options?: Extract<MemoryActions<T>, { action: 'add' }>['inputs']['options']
   ): Promise<Extract<MemoryActions<T>, { action: 'add' }>['outputs']> {
+    if (!this.runner) throw new Error('Runner not found');
+
     const { userId, sessionId, metadata = {} } = options ?? {};
 
     const [actions] = await Promise.all([
-      // this.runRunner({ ...options, messages }),
-
       this.runner.run({ ...options, messages, customData: { retriever: this.retriever } }),
 
       this.historyStore.addMessage({ userId, sessionId, messages, metadata }),
@@ -175,6 +175,14 @@ export class DefaultMemory<T, I extends MemoryActions<T> = MemoryActions<T>> ext
 
     return { result };
   }
+
+  async setByKey(
+    key: string,
+    value: T,
+    options: Extract<MemoryActions<T>, { action: 'create' }>['inputs']['options']
+  ) {}
+
+  async getByKey(key: string, options: Extract<MemoryActions<T>, { action: 'create' }>['inputs']['options']) {}
 
   async create(
     memory: Extract<MemoryActions<T>, { action: 'create' }>['inputs']['memory'],

@@ -15,6 +15,7 @@ export type MemoryActionItem<T> =
 
 export interface MemoryItem<T> {
   id: string;
+  key?: string;
   userId?: string;
   sessionId?: string;
   createdAt: string;

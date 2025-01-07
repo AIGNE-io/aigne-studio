@@ -3,6 +3,7 @@ import { join } from 'path';
 import chatbot from '@aigne-project/chatbot';
 import { LLMAgent, LLMDecisionAgent, LocalFunctionAgent, PipelineAgent, TYPES } from '@aigne/core';
 import { DefaultMemory, LongTermMemoryRunner, ShortTermMemoryRunner } from '@aigne/memory';
+import { Runtime } from '@aigne/runtime';
 import { config } from '@blocklet/sdk';
 import { SessionUser } from '@blocklet/sdk/lib/util/login';
 import { differenceBy, orderBy } from 'lodash';
@@ -19,6 +20,12 @@ chatbot.setup({
       model: 'gemini-1.5-pro',
     },
   },
+});
+
+const userPreferences = DefaultMemory.load<{
+  model?: string;
+}>({
+  path: join(config.env.dataDir, 'user-preferences'),
 });
 
 const longTermMemory = DefaultMemory.load({
@@ -445,6 +452,22 @@ export const chat = LocalFunctionAgent.create<{ question: string }, ChatbotRespo
         let $text = '';
 
         try {
+          // userPreferences.then((m) =>
+          //   m.create({ model: 'gemini-1.5-pro' }, { userId: '', metadata: { type: 'llmModel' } }),
+          // );
+          const mode = await userPreferences.then((m) =>
+            m.filter({ k: 1, userId: '', filter: { ['metadata.type']: 'llmModel' } }),
+          );
+
+          // TODO: 移除下面的 any 类型
+          (context as any as Runtime).setup({
+            llmModel: {
+              override: {
+                model: 'xxx',
+              },
+            },
+          });
+
           const { did: userId } = context.state.user;
           const [ltm, stm] = await Promise.all([longTermMemory, shortTermMemory]);
 
