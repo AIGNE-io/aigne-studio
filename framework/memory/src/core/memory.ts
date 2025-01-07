@@ -81,7 +81,6 @@ export class DefaultMemory<T, I extends MemoryActions<T> = MemoryActions<T>> ext
 
     const [actions] = await Promise.all([
       this.runner.run({ ...options, messages, customData: { retriever: this.retriever } }),
-
       this.historyStore.addMessage({ userId, sessionId, messages, metadata }),
     ]);
 
@@ -178,11 +177,27 @@ export class DefaultMemory<T, I extends MemoryActions<T> = MemoryActions<T>> ext
 
   async setByKey(
     key: string,
-    value: T,
+    memory: Extract<MemoryActions<T>, { action: 'create' }>['inputs']['memory'],
     options: Extract<MemoryActions<T>, { action: 'create' }>['inputs']['options']
-  ) {}
+  ): Promise<Extract<MemoryActions<T>, { action: 'create' }>['outputs']> {
+    const result = await this.createMemory({ ...options, key, memory, metadata: options?.metadata ?? {} });
+    return { result };
+  }
 
-  async getByKey(key: string, options: Extract<MemoryActions<T>, { action: 'create' }>['inputs']['options']) {}
+  async getByKey(
+    key: string,
+    options: Extract<MemoryActions<T>, { action: 'filter' }>['inputs']['options']
+  ): Promise<Extract<MemoryActions<T>, { action: 'filter' }>['outputs']['results'][number] | null> {
+    const filter = {
+      key,
+      ...options?.filter,
+      ...(options?.userId ? { userId: options.userId } : {}),
+      ...(options?.sessionId ? { sessionId: options.sessionId } : {}),
+    };
+
+    const result = await this.retriever.list(options?.k || 1, { filter, sort: options?.sort });
+    return result[0];
+  }
 
   async create(
     memory: Extract<MemoryActions<T>, { action: 'create' }>['inputs']['memory'],
