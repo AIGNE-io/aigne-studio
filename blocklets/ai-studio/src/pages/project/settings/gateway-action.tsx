@@ -5,7 +5,7 @@ import { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
-import { ReConnect, SpaceGateway, SpaceStatus } from '@blocklet/did-space-react';
+import { DIDSpaceStatus, ReConnect, SpaceGateway, SpaceStatus } from '@blocklet/did-space-react';
 import { SyncRounded } from '@mui/icons-material';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import { Button, ButtonProps, ListItemIcon, ListItemText, Menu, MenuItem, Stack, Typography } from '@mui/material';
@@ -23,7 +23,7 @@ function GatewayAction({
   projectId,
 }: {
   spaceGateway: SpaceGateway;
-  spaceStatus: SpaceStatus;
+  spaceStatus: DIDSpaceStatus;
   refresh: Function;
   projectId: string;
 }) {

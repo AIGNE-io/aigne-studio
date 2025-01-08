@@ -34,7 +34,7 @@ function TextFormatFloatingToolbar({
 }: {
   editor: LexicalEditor;
   anchorElem: HTMLElement;
-  floatElement?: (data: { editor: LexicalEditor }) => void;
+  floatElement?: (data: { editor: LexicalEditor }) => any;
 }): JSX.Element {
   const popupCharStylesEditorRef = useRef<HTMLDivElement | null>(null);
   const [state, setState] = useState({ editor });
