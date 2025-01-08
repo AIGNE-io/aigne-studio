@@ -1,3 +1,9 @@
+## 0.4.198 (2025-1-8)
+
+- fix: support clean memory of user
+- fix: missing $text of process result in pipeline agent
+- fix: mustache error caused by invalid template string in vars
+
 ## 0.4.197 (2025-1-8)
 
 - chore: decrease concurrency for embed building to solve bundle error

@@ -1,7 +1,7 @@
 {
   "name": "chatbot",
   "private": true,
-  "version": "0.4.197",
+  "version": "0.4.198",
   "scripts": {
     "dev": "blocklet dev",
     "lint": "tsc --noEmit && eslint src api/src --ext .mjs,.js,.jsx,.ts,.tsx",
@@ -45,7 +45,7 @@
     "@aigne/runtime": "workspace:^",
     "@arcblock/did-auth": "^1.19.2",
     "@arcblock/did-auth-storage-nedb": "^1.7.1",
-    "@arcblock/ux": "^2.11.22",
+    "@arcblock/ux": "^2.11.23",
     "@blocklet/logger": "^1.16.37",
     "@blocklet/sdk": "^1.16.37",
     "@mui/icons-material": "^5.16.7",

@@ -193,10 +193,10 @@ export class DefaultMemory<T, I extends MemoryActions<T> = MemoryActions<T>> ext
   }
 
   async delete(
-    memoryId: Extract<MemoryActions<T>, { action: 'delete' }>['inputs']['memoryId']
+    memoryId: Extract<MemoryActions<T>, { action: 'delete' }>['inputs']['filter']
   ): Promise<Extract<MemoryActions<T>, { action: 'delete' }>['outputs']> {
-    const result = await this.deleteMemory(memoryId);
-    return { result };
+    await this.deleteMemory(memoryId);
+    return {};
   }
 
   async reset(): Promise<void> {
@@ -220,7 +220,7 @@ export class DefaultMemory<T, I extends MemoryActions<T> = MemoryActions<T>> ext
       case 'update':
         return await this.update(inputs.memoryId, inputs.memory);
       case 'delete':
-        return await this.delete(inputs.memoryId);
+        return await this.delete(inputs.filter);
       default:
         throw new Error('Invalid action');
     }
@@ -283,20 +283,16 @@ export class DefaultMemory<T, I extends MemoryActions<T> = MemoryActions<T>> ext
     return newMemory;
   }
 
-  private async deleteMemory(memoryId: string) {
-    const memory = await this.retriever.get(memoryId);
-    if (!memory) throw new Error('Memory not found');
+  private async deleteMemory(memoryIdOrFilter: string | string[] | { [key: string]: any }) {
+    const memories = await this.retriever.delete(memoryIdOrFilter);
 
-    await Promise.all([
-      this.retriever.delete(memoryId),
-      this.historyStore?.addHistory({
-        memoryId,
-        oldMemory: memory.memory,
-        event: 'delete',
+    await this.historyStore?.addHistory(
+      ...memories.map((m) => ({
+        memoryId: m.id,
+        oldMemory: m.memory,
+        event: 'delete' as const,
         isDeleted: true,
-      }),
-    ]);
-
-    return memory;
+      }))
+    );
   }
 }

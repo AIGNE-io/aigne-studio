@@ -108,7 +108,7 @@ export class LLMAgent<I extends {} = {}, O extends {} = {}> extends Runnable<I, 
     const text = textOutput ? await model.run(llmInputs) : undefined;
 
     return {
-      $text: text,
+      $text: text?.$text,
       ...(await jsonOutput),
     };
   }

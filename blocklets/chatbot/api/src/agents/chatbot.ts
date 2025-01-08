@@ -214,7 +214,7 @@ export const chatAgent = LocalFunctionAgent.create<
   },
 });
 
-export const cleanMemoryAgent = LocalFunctionAgent.create<{}, ChatbotResponse>({
+export const cleanMemoryAgent = LocalFunctionAgent.create<{}, ChatbotResponse, { user: SessionUser }>({
   inputs: [],
   outputs: [
     {
@@ -222,8 +222,11 @@ export const cleanMemoryAgent = LocalFunctionAgent.create<{}, ChatbotResponse>({
       type: 'string',
     },
   ],
-  async function() {
-    await Promise.all([(await longTermMemory).reset(), (await shortTermMemory).reset()]);
+  async function(_, { context }) {
+    await Promise.all([
+      (await longTermMemory).delete({ userId: context.state.user.did }),
+      (await shortTermMemory).delete({ userId: context.state.user.did }),
+    ]);
     return { $text: 'Memory has been cleaned.' };
   },
 });
