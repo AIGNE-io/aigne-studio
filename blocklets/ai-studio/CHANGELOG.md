@@ -1,8 +1,10 @@
+## 0.4.197 (2025-1-8)
+
+- fix: memory default value type
+
 ## 0.4.196 (2025-1-7)
 
-- Merge branch 'main' into memory-default-value
-- fix: memory default value type
-- fix: memory default value type
+- chore: update deps
 
 ## 0.4.195 (2025-1-6)
 
