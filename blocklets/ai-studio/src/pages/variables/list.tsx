@@ -560,7 +560,7 @@ function VariableList() {
                           if (newValue.type === 'array') {
                             newValue.element ??= { id: nanoid(), name: 'element', type: 'string' };
                           }
-
+                          form.setValue('defaultValue', undefined);
                           field.onChange({ target: { value: newValue } });
                         }}
                       />
