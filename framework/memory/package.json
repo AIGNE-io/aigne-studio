@@ -1,6 +1,6 @@
 {
   "name": "@aigne/memory",
-  "version": "0.4.196",
+  "version": "0.4.197",
   "description": "AIGNE Memory library",
   "publishConfig": {
     "access": "public"
@@ -48,9 +48,9 @@
   "dependencies": {
     "@aigne/core": "workspace:^",
     "@blocklet/ai-kit": "^0.1.66",
-    "@blocklet/constant": "^1.16.36",
+    "@blocklet/constant": "^1.16.37",
     "@blocklet/sdk": "1.16.36",
-    "@blocklet/search-kit-js": "^0.2.18",
+    "@blocklet/search-kit-js": "^0.2.21",
     "@langchain/community": "^0.3.15",
     "@langchain/core": "^0.3.18",
     "axios": "^1.7.5",

@@ -1,3 +1,7 @@
+## 0.4.197 (2025-1-8)
+
+- chore: decrease concurrency for embed building to solve bundle error
+
 ## 0.4.196 (2025-1-7)
 
 - chore: update deps

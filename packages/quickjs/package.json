@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/quickjs",
-  "version": "0.4.196",
+  "version": "0.4.197",
   "description": "JS Sandbox powered by Quickjs",
   "publishConfig": {
     "access": "public"
@@ -56,7 +56,7 @@
     "test": "jest src/"
   },
   "dependencies": {
-    "@blocklet/sdk": "^1.16.36",
+    "@blocklet/sdk": "^1.16.37",
     "dayjs": "^1.11.13",
     "eventsource-parser": "^2.0.1",
     "generic-pool": "^3.9.0",

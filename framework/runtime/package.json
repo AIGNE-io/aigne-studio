@@ -1,6 +1,6 @@
 {
   "name": "@aigne/runtime",
-  "version": "0.4.196",
+  "version": "0.4.197",
   "description": "AIGNE core library",
   "publishConfig": {
     "access": "public"
@@ -61,12 +61,12 @@
     }
   },
   "dependencies": {
-    "@abtnode/client": "^1.16.36",
+    "@abtnode/client": "^1.16.37",
     "@aigne/core": "workspace:^",
     "@blocklet/ai-kit": "^0.1.66",
-    "@blocklet/js-sdk": "^1.16.36",
+    "@blocklet/js-sdk": "^1.16.37",
     "@blocklet/quickjs": "workspace:^",
-    "@blocklet/sdk": "^1.16.36",
+    "@blocklet/sdk": "^1.16.37",
     "axios": "^1.7.5",
     "commander": "^12.1.0",
     "compression": "^1.7.4",
