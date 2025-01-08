@@ -1,7 +1,10 @@
-import chatbot from '@aigne-project/chatbot';
-import { LLMAgent, LLMModelConfiguration, LocalFunctionAgent, PipelineAgent, TYPES } from '@aigne/core';
+import { LLMAgent, LocalFunctionAgent, PipelineAgent } from '@aigne/core';
+
+import { DEFAULT_MODEL } from '../../libs/const';
+import { getDefaultValue } from '../../libs/default-value';
 
 export const currentModelFunctionAgent = LocalFunctionAgent.create<{}, { $text: string }>({
+  name: 'currentModelFunctionAgent',
   inputs: [],
   outputs: [
     {
@@ -10,17 +13,27 @@ export const currentModelFunctionAgent = LocalFunctionAgent.create<{}, { $text: 
       required: true,
     },
   ],
-  async function() {
-    const model = chatbot.container.resolve<{ config: LLMModelConfiguration }>(TYPES.llmModel);
+  async function(_input, { context }) {
+    const { llmModel } = context.config;
+    const model = getDefaultValue('model', llmModel?.override, llmModel?.default) || DEFAULT_MODEL;
 
     return {
-      $text: model.config.override?.model || model.config.default?.model || 'gpt-4o-mini',
+      $text: model,
     };
   },
 });
 
-export const currentModelLLMAgent = LLMAgent.create<{ model: string; language?: string }, { $text: string }>({
+export const currentModelLLMAgent = LLMAgent.create<
+  { question: string; model: string; language?: string },
+  { $text: string }
+>({
+  name: 'currentModelLLMAgent',
   inputs: [
+    {
+      name: 'question',
+      type: 'string',
+      required: true,
+    },
     {
       name: 'model',
       type: 'string',
@@ -45,18 +58,31 @@ export const currentModelLLMAgent = LLMAgent.create<{ model: string; language?: 
   messages: [
     {
       role: 'system',
-      content: "You must use {{language}} to reply to the user's question.",
+      content: `\
+You must use {{language}} to reply to the user's question.
+
+## Current model
+{{model}}
+`,
     },
     {
       role: 'user',
-      content: 'Get the current model is: "{{model}}"',
+      content: '{{question}}',
     },
   ],
 });
 
-export const currentModelPipelineAgent = PipelineAgent.create<{ language: string }, { $text: string }>({
-  name: 'currentModelPipelineAgent',
+export const getCurrentModelPipelineAgent = PipelineAgent.create<
+  { question: string; language: string },
+  { $text: string }
+>({
+  name: 'getCurrentModelPipelineAgent',
   inputs: [
+    {
+      name: 'question',
+      type: 'string',
+      required: true,
+    },
     {
       name: 'language',
       type: 'string',
@@ -71,6 +97,7 @@ export const currentModelPipelineAgent = PipelineAgent.create<{ language: string
       name: 'currentModelLLMAgent',
       runnable: currentModelLLMAgent,
       input: {
+        question: { fromVariable: 'question' },
         model: { fromVariable: 'currentModelFunctionAgent', fromVariablePropPath: ['$text'] },
         language: { fromVariable: 'language' },
       },

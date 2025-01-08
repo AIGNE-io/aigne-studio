@@ -1,23 +1,21 @@
 import { LLMAgent, LocalFunctionAgent, PipelineAgent } from '@aigne/core';
 import { ResourceManager } from '@blocklet/ai-runtime/common/resource-manager';
+import { SelectParameter } from '@blocklet/ai-runtime/types';
+import { uniq } from 'lodash';
 
-async function getAdapter(type: 'llm' | 'image-generation') {
+import { DEFAULT_MODEL } from '../../libs/const';
+
+async function getAdapter() {
   const resourceManager = new ResourceManager();
-  const projects = await resourceManager.getProjects({
-    type: type === 'image-generation' ? 'aigc-adapter' : 'llm-adapter',
-  });
+  const projects = await resourceManager.getProjects({ type: 'llm-adapter' });
 
-  return projects.flatMap((x) => {
-    return x.agents.map((y) => ({
-      blockletDid: x.blocklet.did,
-      projectId: x.project.id,
-      agent: y,
-    }));
-  });
+  return projects
+    .flatMap((x) => x.agents)
+    .flatMap((y) => (y.parameters?.find((i) => i.key === 'model') as SelectParameter)?.options?.map((v) => v.value));
 }
-console.log(JSON.stringify(getAdapter('llm'), null, 2));
 
 export const getAllModelsFunctionAgent = LocalFunctionAgent.create<{}, { $text: string }>({
+  name: 'getAllModelsFunctionAgent',
   inputs: [],
   outputs: [
     {
@@ -27,17 +25,28 @@ export const getAllModelsFunctionAgent = LocalFunctionAgent.create<{}, { $text: 
     },
   ],
   async function() {
+    const models = uniq([DEFAULT_MODEL, ...(await getAdapter())]);
+
     return {
-      $text: `['gpt-4o-mini', 'gpt-4o-mini-preview', 'gpt-4o-mini-preview-2024-01-18']`,
+      $text: models.join(','),
     };
   },
 });
 
-export const findAllModelLLMAgent = LLMAgent.create<{ model: string[]; language?: string }, { $text: string }>({
+export const getAllModelsLLMAgent = LLMAgent.create<
+  { question: string; models: string; language?: string },
+  { $text: string }
+>({
+  name: 'getAllModelsLLMAgent',
   inputs: [
     {
+      name: 'question',
+      type: 'string',
+      required: true,
+    },
+    {
       name: 'models',
-      type: 'array',
+      type: 'string',
       required: true,
     },
     {
@@ -59,28 +68,37 @@ export const findAllModelLLMAgent = LLMAgent.create<{ model: string[]; language?
     {
       role: 'system',
       content: `\
-			You are a helpful assistant.
-			You must use {{language}} to reply to the user's question.
-			You must use the following models to reply to the user's question: {{models}}.
-			`,
+You are a helpful assistant.
+You must use {{language}} to reply to the user's question.
+
+## You must use the following models to reply to the user's question:
+{{models}}.
+
+## Example:
+current supported models:\n
+gpt-4o-mini: OpenAI\n
+gpt-4o-mini-preview: OpenAI\n
+gpt-4o-mini-preview-2024-01-18: OpenAI
+`,
     },
     {
       role: 'user',
-      content: `Please introduce each model and manufacturer, and note that the structure is k:v
-
-Example:
-当前存在模型:
-gpt-4o-mini: OpenAI
-gpt-4o-mini-preview: OpenAI
-gpt-4o-mini-preview-2024-01-18: OpenAI
-`,
+      content: '{{question}}',
     },
   ],
 });
 
-export const findAllModelPipelineAgent = PipelineAgent.create<{ language: string }, { $text: string }>({
-  name: 'findAllModelPipelineAgent',
+export const getAllModelsPipelineAgent = PipelineAgent.create<
+  { question: string; language: string },
+  { $text: string }
+>({
+  name: 'getAllModelsPipelineAgent',
   inputs: [
+    {
+      name: 'question',
+      type: 'string',
+      required: true,
+    },
     {
       name: 'language',
       type: 'string',
@@ -88,14 +106,15 @@ export const findAllModelPipelineAgent = PipelineAgent.create<{ language: string
   ],
   processes: [
     {
-      name: 'findAllModel',
+      name: 'getAllModelsFunctionAgent',
       runnable: getAllModelsFunctionAgent,
     },
     {
-      name: 'findAllModelLLM',
-      runnable: findAllModelLLMAgent,
+      name: 'getAllModelsLLMAgent',
+      runnable: getAllModelsLLMAgent,
       input: {
-        models: { fromVariable: 'findAllModel', fromVariablePropPath: ['$text'] },
+        question: { fromVariable: 'question' },
+        models: { fromVariable: 'getAllModelsFunctionAgent', fromVariablePropPath: ['$text'] },
         language: { fromVariable: 'language' },
       },
     },
@@ -104,7 +123,7 @@ export const findAllModelPipelineAgent = PipelineAgent.create<{ language: string
     {
       name: '$text',
       type: 'string',
-      fromVariable: 'findAllModelLLM',
+      fromVariable: 'getAllModelsLLMAgent',
       fromVariablePropPath: ['$text'],
     },
   ],

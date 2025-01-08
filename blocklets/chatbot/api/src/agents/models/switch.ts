@@ -4,23 +4,8 @@ import { SessionUser } from '@blocklet/sdk/lib/util/login';
 import { userPreferences } from '../memory';
 import { getAllModelsFunctionAgent } from './find';
 
-// export const needInputModelFunctionAgent = LocalFunctionAgent.create<{}, { $text: string }>({
-//   inputs: [],
-//   outputs: [
-//     {
-//       name: '$text',
-//       type: 'string',
-//       required: true,
-//     },
-//   ],
-//   async function() {
-//     return {
-//       $text: '需要提供需要切换的 AI 模型, 例如: "切换到 gpt-4o-mini"',
-//     };
-//   },
-// });
-
-export const extractQuestionModelLLMAgent = LLMAgent.create<{ question: string }, { $text: string }>({
+export const extractModelFromQuestion = LLMAgent.create<{ question: string; models: string }, { model: string }>({
+  name: 'extractModelFromQuestion',
   inputs: [
     {
       name: 'question',
@@ -37,7 +22,7 @@ export const extractQuestionModelLLMAgent = LLMAgent.create<{ question: string }
     {
       name: 'model',
       type: 'string',
-      description: 'Model name user wants to switch to, null if not found',
+      description: 'Model name user wants to switch to, return empty string if not found',
     },
   ],
   modelOptions: {
@@ -60,35 +45,21 @@ Get the model name user wants to switch to from the question.
   ],
 });
 
-// export const needSelectModelFunctionAgent = LocalFunctionAgent.create<{ models: string }, { $text: string }>({
-//   inputs: [
-//     {
-//       name: 'models',
-//       type: 'string',
-//     },
-//   ],
-//   outputs: [
-//     {
-//       name: '$text',
-//       type: 'string',
-//     },
-//   ],
-//   async function(input) {
-//     return {
-//       $text: `请从 ${input.models} 中选择一个模型`,
-//     };
-//   },
-// });
-
 export const switchModelFunctionAgent = LocalFunctionAgent.create<
-  { model: string },
+  { model: string; models: string },
   { $text: string },
   { user: SessionUser }
 >({
+  name: 'switchModelFunctionAgent',
   inputs: [
     {
       name: 'model',
       type: 'string',
+    },
+    {
+      name: 'models',
+      type: 'string',
+      required: true,
     },
   ],
   outputs: [
@@ -99,11 +70,16 @@ export const switchModelFunctionAgent = LocalFunctionAgent.create<
     },
   ],
   async function(input, { context }) {
-    // TODO: check model is available
-
+    const models = input.models.split(',');
     if (!input.model) {
       return {
-        $text: '请提供需要切换的 AI 模型, 可用的模型有。。。',
+        $text: `请提供需要切换的 AI 模型, 可用的模型有: ${input.models}`,
+      };
+    }
+
+    if (!models.includes(input.model)) {
+      return {
+        $text: `模型 ${input.model} 不存在, 可用的模型有: ${input.models}`,
       };
     }
 
@@ -111,133 +87,10 @@ export const switchModelFunctionAgent = LocalFunctionAgent.create<
     await userPreferences.then((m) => m.setByKey('model', { model: input.model }, { userId }));
 
     return {
-      $text: `AI模型已切换为 ${input.model}`,
+      $text: `模型切换成功, AI模型已切换为 ${input.model}`,
     };
   },
 });
-
-// export const checkModelClassification = LLMDecisionAgent.create<{ model: string; models: string }, { $text: string }>({
-//   name: 'checkModelClassification',
-//   inputs: [
-//     {
-//       name: 'model',
-//       type: 'string',
-//       required: true,
-//     },
-//     {
-//       name: 'models',
-//       type: 'string',
-//       required: true,
-//     },
-//   ],
-//   messages: `\
-// You are a professional question classifier. Please help me determine if the contents of the model exist in the models and choose the right case to answer it.
-// \
-// ## model
-// {{model}}
-// \
-// ## models
-// {{models}}
-// `,
-//   modelOptions: {
-//     model: 'gpt-4o-mini',
-//     temperature: 0,
-//   },
-//   cases: [
-//     {
-//       name: 'model-in-models',
-//       description: 'model is required, and the model exists in the models',
-//       runnable: switchModelFunctionAgent,
-//       input: {
-//         model: { fromVariable: 'model' },
-//       },
-//     },
-//     {
-//       name: 'model-not-in-models',
-//       description: 'The model does not exist in the models',
-//       runnable: needSelectModelFunctionAgent,
-//       input: {
-//         models: { fromVariable: 'models' },
-//       },
-//     },
-//   ],
-// });
-
-// export const checkModelPipelineAgent = PipelineAgent.create<{ question: string }, { $text: string }>({
-//   name: 'checkModelPipelineAgent',
-//   inputs: [
-//     {
-//       name: 'question',
-//       type: 'string',
-//       required: true,
-//     },
-//   ],
-//   processes: [
-//     {
-//       name: 'extractQuestionModelLLMAgent',
-//       runnable: extractQuestionModelLLMAgent,
-//       input: {
-//         question: { fromVariable: 'question' },
-//       },
-//     },
-//     {
-//       name: 'getAllModelsFunctionAgent',
-//       runnable: getAllModelsFunctionAgent,
-//     },
-//     {
-//       name: 'checkModelClassification',
-//       runnable: checkModelClassification,
-//       input: {
-//         model: { fromVariable: 'extractQuestionModelLLMAgent', fromVariablePropPath: ['$text'] },
-//         models: { fromVariable: 'getAllModelsFunctionAgent', fromVariablePropPath: ['$text'] },
-//       },
-//     },
-//   ],
-//   outputs: [
-//     {
-//       name: '$text',
-//       type: 'string',
-//       fromVariable: 'checkModelClassification',
-//       fromVariablePropPath: ['$text'],
-//     },
-//   ],
-// });
-
-// export const extractModelClassification = LLMDecisionAgent.create<{ question: string }, { $text: string }>({
-//   name: 'extractModelClassification',
-//   inputs: [
-//     {
-//       name: 'question',
-//       type: 'string',
-//       required: true,
-//     },
-//   ],
-//   messages: `\
-// You are a professional question classifier. Please judge whether the user's input question contains an AI model and choose the right case to answer it.
-// \
-// ## User's question
-// {{question}}
-// `,
-//   modelOptions: {
-//     model: 'gpt-4o-mini',
-//     temperature: 0,
-//   },
-//   cases: [
-//     {
-//       name: 'has-ai-model',
-//       description: 'The AI Model can be extracted from the question',
-//       runnable: checkModelPipelineAgent,
-//       input: {
-//         question: { fromVariable: 'question' },
-//       },
-//     },
-//     {
-//       name: 'no-input-ai-model',
-//       description: 'No input AI model',
-//       runnable: needInputModelFunctionAgent,
-//     },
-//   ],
-// });
 
 export const switchModelLLMAgent = LLMAgent.create<
   { result: string; question: string; language?: string },
@@ -274,16 +127,15 @@ export const switchModelLLMAgent = LLMAgent.create<
     {
       role: 'system',
       content: `\
-You are a helpful assistant.
-You must use {{language}} to reply to the user's question.
+You are a message response assistant.
+You must use {{language}} to answer user questions based on the results.
 
 ## Switch model result
 {{result}}
+
+## User's question
+{{question}}
 `,
-    },
-    {
-      role: 'user',
-      content: '{{question}}',
     },
   ],
 });
@@ -310,25 +162,26 @@ export const switchModelPipelineAgent = PipelineAgent.create<
       runnable: getAllModelsFunctionAgent,
     },
     {
-      name: 'extractModelClassification',
-      runnable: extractQuestionModelLLMAgent,
+      name: 'extractModelFromQuestion',
+      runnable: extractModelFromQuestion,
       input: {
         question: { fromVariable: 'question' },
         models: { fromVariable: 'getAllModelsFunctionAgent', fromVariablePropPath: ['$text'] },
       },
     },
     {
-      name: 'switchModelLLMAgent',
+      name: 'switchModelFunctionAgent',
       runnable: switchModelFunctionAgent,
       input: {
-        model: { fromVariable: 'extractModelClassification', fromVariablePropPath: ['model'] },
+        model: { fromVariable: 'extractModelFromQuestion', fromVariablePropPath: ['model'] },
+        models: { fromVariable: 'getAllModelsFunctionAgent', fromVariablePropPath: ['$text'] },
       },
     },
     {
-      name: 'switchModelLLMAgentLLMResult',
+      name: 'switchModelLLMAgent',
       runnable: switchModelLLMAgent,
       input: {
-        result: { fromVariable: 'switchModelLLMAgent', fromVariablePropPath: ['$text'] },
+        result: { fromVariable: 'switchModelFunctionAgent', fromVariablePropPath: ['$text'] },
         question: { fromVariable: 'question' },
         language: { fromVariable: 'language' },
       },
@@ -338,7 +191,7 @@ export const switchModelPipelineAgent = PipelineAgent.create<
     {
       name: '$text',
       type: 'string',
-      fromVariable: 'switchModelLLMAgentLLMResult',
+      fromVariable: 'switchModelLLMAgent',
       fromVariablePropPath: ['$text'],
     },
   ],

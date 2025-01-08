@@ -1,15 +1,16 @@
 import chatbot from '@aigne-project/chatbot';
 import { LLMAgent, LLMDecisionAgent, LocalFunctionAgent, PipelineAgent } from '@aigne/core';
-// import { Runtime } from '@aigne/runtime';
+import { Runtime } from '@aigne/runtime';
 import { SessionUser } from '@blocklet/sdk/lib/util/login';
 import { differenceBy, orderBy } from 'lodash';
 
+import { DEFAULT_MODEL } from '../libs/const';
 import { extractKeywordsAgent, knowledgeAgent } from './knowledge';
-import { longTermMemory, shortTermMemory } from './memory';
-import { currentModelFunctionAgent, currentModelLLMAgent, currentModelPipelineAgent } from './models/current';
-import { findAllModelLLMAgent, findAllModelPipelineAgent, getAllModelsFunctionAgent } from './models/find';
+import { longTermMemory, shortTermMemory, userPreferences } from './memory';
+import { currentModelFunctionAgent, currentModelLLMAgent, getCurrentModelPipelineAgent } from './models/current';
+import { getAllModelsFunctionAgent, getAllModelsLLMAgent, getAllModelsPipelineAgent } from './models/find';
 import {
-  extractQuestionModelLLMAgent,
+  extractModelFromQuestion,
   switchModelFunctionAgent,
   switchModelLLMAgent,
   switchModelPipelineAgent,
@@ -22,7 +23,7 @@ chatbot.setup({
       temperature: 0.2,
     },
     override: {
-      model: 'gemini-1.5-pro',
+      model: DEFAULT_MODEL,
     },
   },
 });
@@ -387,22 +388,24 @@ You are a professional question classifier. Please classify the question and cho
     {
       name: 'get-current-model',
       description: 'Get the current model',
-      runnable: currentModelPipelineAgent,
+      runnable: getCurrentModelPipelineAgent,
       input: {
+        question: { fromVariable: 'question' },
         language: { fromVariable: 'language' },
       },
     },
     {
-      name: 'find-all-models',
-      description: 'Find all models',
-      runnable: findAllModelPipelineAgent,
+      name: 'get-all-models',
+      description: 'get all models',
+      runnable: getAllModelsPipelineAgent,
       input: {
+        question: { fromVariable: 'question' },
         language: { fromVariable: 'language' },
       },
     },
     {
-      name: 'switch-model',
-      description: 'Switch the model',
+      name: 'switch-or-set-model',
+      description: 'Switch the model or set the model',
       runnable: switchModelPipelineAgent,
       input: {
         question: { fromVariable: 'question' },
@@ -468,16 +471,16 @@ export const chat = LocalFunctionAgent.create<{ question: string }, ChatbotRespo
         const { did: userId } = context.state.user;
 
         try {
-          // const mode = await userPreferences.then((m) => m.getByKey('model', { userId }));
-          // if (mode?.memory?.model) {
-          //   (context as any as Runtime).setup({
-          //     llmModel: {
-          //       override: {
-          //         model: mode?.memory?.model,
-          //       },
-          //     },
-          //   });
-          // }
+          const mode = await userPreferences.then((m) => m.getByKey('model', { userId }));
+          if (mode?.memory?.model) {
+            (context as any as Runtime).setup({
+              llmModel: {
+                override: {
+                  model: mode?.memory?.model,
+                },
+              },
+            });
+          }
 
           const [ltm, stm] = await Promise.all([longTermMemory, shortTermMemory]);
 
@@ -539,7 +542,7 @@ ${shortTermMem}
           //   .join('\n');
 
           // controller.enqueue({ delta: { allMemory } });
-          // controller.enqueue({ delta: { status: { loading: false } } });
+          controller.enqueue({ delta: { status: { loading: false } } });
         } catch (error) {
           controller.error(error);
         } finally {
@@ -564,17 +567,12 @@ export const agents = [
   cleanMemoryPipeline.definition,
   currentModelFunctionAgent.definition,
   currentModelLLMAgent.definition,
-  currentModelPipelineAgent.definition,
+  getCurrentModelPipelineAgent.definition,
   getAllModelsFunctionAgent.definition,
-  findAllModelLLMAgent.definition,
-  findAllModelPipelineAgent.definition,
+  getAllModelsLLMAgent.definition,
+  getAllModelsPipelineAgent.definition,
 
-  // checkModelClassification.definition,
-  // checkModelPipelineAgent.definition,
-  // extractModelClassification.definition,
-  extractQuestionModelLLMAgent.definition,
-  // needInputModelFunctionAgent.definition,
-  // needSelectModelFunctionAgent.definition,
+  extractModelFromQuestion.definition,
   switchModelFunctionAgent.definition,
   switchModelLLMAgent.definition,
   switchModelPipelineAgent.definition,
