@@ -7,7 +7,7 @@ import { differenceBy, orderBy } from 'lodash';
 import { DEFAULT_MODEL } from '../libs/const';
 import { extractKeywordsAgent, knowledgeAgent } from './knowledge';
 import { longTermMemory, shortTermMemory, userPreferences } from './memory';
-import { currentModelFunctionAgent, currentModelLLMAgent, getCurrentModelPipelineAgent } from './models/current';
+import { getCurrentModelFunctionAgent, getCurrentModelLLMAgent, getCurrentModelPipelineAgent } from './models/current';
 import { getAllModelsFunctionAgent, getAllModelsLLMAgent, getAllModelsPipelineAgent } from './models/find';
 import {
   extractModelFromQuestion,
@@ -567,8 +567,8 @@ export const agents = [
   cleanMemoryAgent.definition,
   cleanMemoryLLMAgent.definition,
   cleanMemoryPipeline.definition,
-  currentModelFunctionAgent.definition,
-  currentModelLLMAgent.definition,
+  getCurrentModelFunctionAgent.definition,
+  getCurrentModelLLMAgent.definition,
   getCurrentModelPipelineAgent.definition,
   getAllModelsFunctionAgent.definition,
   getAllModelsLLMAgent.definition,

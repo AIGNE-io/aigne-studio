@@ -3,8 +3,8 @@ import { LLMAgent, LocalFunctionAgent, PipelineAgent } from '@aigne/core';
 import { DEFAULT_MODEL } from '../../libs/const';
 import { getDefaultValue } from '../../libs/default-value';
 
-export const currentModelFunctionAgent = LocalFunctionAgent.create<{}, { $text: string }>({
-  name: 'currentModelFunctionAgent',
+export const getCurrentModelFunctionAgent = LocalFunctionAgent.create<{}, { $text: string }>({
+  name: 'getCurrentModelFunctionAgent',
   inputs: [],
   outputs: [
     {
@@ -23,11 +23,11 @@ export const currentModelFunctionAgent = LocalFunctionAgent.create<{}, { $text: 
   },
 });
 
-export const currentModelLLMAgent = LLMAgent.create<
+export const getCurrentModelLLMAgent = LLMAgent.create<
   { question: string; model: string; language?: string },
   { $text: string }
 >({
-  name: 'currentModelLLMAgent',
+  name: 'getCurrentModelLLMAgent',
   inputs: [
     {
       name: 'question',
@@ -90,15 +90,15 @@ export const getCurrentModelPipelineAgent = PipelineAgent.create<
   ],
   processes: [
     {
-      name: 'currentModelFunctionAgent',
-      runnable: currentModelFunctionAgent,
+      name: 'getCurrentModelFunctionAgent',
+      runnable: getCurrentModelFunctionAgent,
     },
     {
-      name: 'currentModelLLMAgent',
-      runnable: currentModelLLMAgent,
+      name: 'getCurrentModelLLMAgent',
+      runnable: getCurrentModelLLMAgent,
       input: {
         question: { fromVariable: 'question' },
-        model: { fromVariable: 'currentModelFunctionAgent', fromVariablePropPath: ['$text'] },
+        model: { fromVariable: 'getCurrentModelFunctionAgent', fromVariablePropPath: ['$text'] },
         language: { fromVariable: 'language' },
       },
     },
@@ -107,7 +107,7 @@ export const getCurrentModelPipelineAgent = PipelineAgent.create<
     {
       name: '$text',
       type: 'string',
-      fromVariable: 'currentModelLLMAgent',
+      fromVariable: 'getCurrentModelLLMAgent',
       fromVariablePropPath: ['$text'],
     },
   ],
