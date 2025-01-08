@@ -9,7 +9,7 @@ import { config } from '@blocklet/sdk';
 const userPreferences = DefaultMemory.load<{
   model?: string;
 }>({
-  path: join(config.env.dataDir, 'user-preferences'),
+  path: join(config.env.dataDir, 'user-model-memory'),
 });
 
 const longTermMemory = DefaultMemory.load({

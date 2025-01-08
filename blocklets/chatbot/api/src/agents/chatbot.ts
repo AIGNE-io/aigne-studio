@@ -527,21 +527,20 @@ ${shortTermMem}
             $text += chunk.$text || '';
             controller.enqueue(chunk);
           }
-          console.log('streamResult', $text);
 
           controller.enqueue({ delta: { status: { loading: true, message: 'Updating memory...' } } });
-          // const msg = [
-          //   { role: 'user', content: input.question },
-          //   { role: 'assistant', content: $text },
-          // ];
-          // await Promise.all([ltm.add(msg, { userId }), stm.add(msg, { userId })]);
-          // const allMemory = (
-          //   await stm.filter({ k: 100, userId, sort: [{ field: 'createdAt', direction: 'asc' }] })
-          // ).results
-          //   .map((i) => i.memory)
-          //   .join('\n');
+          const msg = [
+            { role: 'user', content: input.question },
+            { role: 'assistant', content: $text },
+          ];
+          await Promise.all([ltm.add(msg, { userId }), stm.add(msg, { userId })]);
+          const allMemory = (
+            await stm.filter({ k: 100, userId, sort: [{ field: 'createdAt', direction: 'asc' }] })
+          ).results
+            .map((i) => i.memory)
+            .join('\n');
 
-          // controller.enqueue({ delta: { allMemory } });
+          controller.enqueue({ delta: { allMemory } });
           controller.enqueue({ delta: { status: { loading: false } } });
         } catch (error) {
           controller.error(error);
