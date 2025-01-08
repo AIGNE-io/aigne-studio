@@ -3,7 +3,6 @@ import { join } from 'path';
 /* eslint-disable import/no-extraneous-dependencies */
 import replace from '@rollup/plugin-replace';
 import react from '@vitejs/plugin-react';
-import million from 'million/compiler';
 import { defineConfig } from 'vite';
 import { createBlockletPlugin } from 'vite-plugin-blocklet';
 import svgr from 'vite-plugin-svgr';
@@ -47,7 +46,7 @@ if (arcblockUxBasePath) {
 }
 
 // https://vitejs.dev/config/
-export default defineConfig((config) => {
+export default defineConfig(() => {
   return {
     optimizeDeps: {
       // force: true,
@@ -62,7 +61,6 @@ export default defineConfig((config) => {
     },
     plugins: [
       tsconfigPaths(),
-      config.command === 'build' && million.vite({ auto: true }),
       react(),
       createBlockletPlugin({
         // disableEmbed: true,
@@ -77,7 +75,7 @@ export default defineConfig((config) => {
         ],
         embedExternals: ['react', '@arcblock/ux/lib/Locale/context', '@arcblock/did-connect/lib/Session'],
         // 并发打包 embed 的数量
-        embedBuildConcurrency: 3,
+        embedBuildConcurrency: 1,
       }),
       svgr(),
     ],
