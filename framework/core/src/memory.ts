@@ -116,11 +116,9 @@ export type MemoryActions<T> =
   | {
       action: 'delete';
       inputs: {
-        memoryId: string;
+        filter: string | string[] | Record<string, any>;
       };
-      outputs: {
-        result: MemoryItem<T> | null;
-      };
+      outputs: {};
     }
   | {
       action: 'reset';
@@ -188,7 +186,7 @@ export abstract class Memory<T, C = undefined> extends Runnable<MemoryActions<T>
   ): Promise<Extract<MemoryActions<T>, { action: 'update' }>['outputs']>;
 
   abstract delete(
-    memoryId: Extract<MemoryActions<T>, { action: 'delete' }>['inputs']['memoryId']
+    memoryId: Extract<MemoryActions<T>, { action: 'delete' }>['inputs']['filter']
   ): Promise<Extract<MemoryActions<T>, { action: 'delete' }>['outputs']>;
 
   abstract reset(): Promise<void>;

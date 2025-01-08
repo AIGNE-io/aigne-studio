@@ -1,3 +1,21 @@
+## 0.4.199 (2025-1-8)
+
+- fix: memory default value type
+
+## 0.4.198 (2025-1-8)
+
+- fix: support clean memory of user
+- fix: missing $text of process result in pipeline agent
+- fix: mustache error caused by invalid template string in vars
+
+## 0.4.197 (2025-1-8)
+
+- chore: decrease concurrency for embed building to solve bundle error
+
+## 0.4.196 (2025-1-7)
+
+- chore: update deps
+
 ## 0.4.195 (2025-1-6)
 
 - fix: add hash to integration url

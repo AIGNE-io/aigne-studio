@@ -94,7 +94,7 @@ export default class HybridRetriever extends BaseRetriever {
     if (!isCompress) return documents;
 
     const memoryVectorStore = await MemoryVectorStore.fromDocuments(documents, this.embeddings);
-    const baseRetriever = memoryVectorStore.asRetriever({ k: documents.length });
+    const baseRetriever = memoryVectorStore.asRetriever({ k: documents.length }) as any;
 
     const baseCompressor = LLMChainExtractor.fromLLM(this.llm);
     const retriever = new ContextualCompressionRetriever({ baseCompressor, baseRetriever });

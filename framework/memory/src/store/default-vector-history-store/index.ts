@@ -1,7 +1,9 @@
+import { InferAttributes, WhereOptions } from 'sequelize';
+
 import { VectorStoreDocument } from '../../core/type';
 import { initSequelize } from '../../lib/sequelize';
 import { migrate } from './migrate';
-import { initVectorHistoryModel } from './models/vector-history';
+import { VectorHistory, initVectorHistoryModel } from './models/vector-history';
 
 export class DefaultVectorHistoryStore {
   constructor(public path: string) {}
@@ -25,25 +27,25 @@ export class DefaultVectorHistoryStore {
   async add(data: VectorStoreDocument<any>) {
     const { VectorHistory } = await this.models;
 
-    return await VectorHistory.create({ id: data.id, data });
+    await VectorHistory.create(data);
   }
 
   async update(data: VectorStoreDocument<any>) {
     const { VectorHistory } = await this.models;
 
-    return await VectorHistory.update({ data }, { where: { id: data.id } });
+    await VectorHistory.update(data, { where: { id: data.id } });
   }
 
-  async delete(id: string) {
+  async delete(where: WhereOptions<InferAttributes<VectorHistory>>) {
     const { VectorHistory } = await this.models;
 
-    return await VectorHistory.destroy({ where: { id } });
+    await VectorHistory.destroy({ where });
   }
 
-  async findAll(where: { [key: string]: any }): Promise<VectorStoreDocument<any>[]> {
+  async findAll(where: WhereOptions<InferAttributes<VectorHistory>>): Promise<VectorStoreDocument<any>[]> {
     const { VectorHistory } = await this.models;
 
-    return (await VectorHistory.findAll({ where })).map((i) => i.data);
+    return (await VectorHistory.findAll({ where })).map((i) => i.dataValues);
   }
 
   async reset() {
