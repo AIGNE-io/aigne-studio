@@ -1,3 +1,7 @@
+## 0.4.199 (2025-1-8)
+
+- fix: memory default value type
+
 ## 0.4.198 (2025-1-8)
 
 - fix: support clean memory of user

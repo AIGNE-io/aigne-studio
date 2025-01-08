@@ -1,7 +1,7 @@
 {
   "name": "chatbot",
   "private": true,
-  "version": "0.4.198",
+  "version": "0.4.199",
   "scripts": {
     "dev": "blocklet dev",
     "lint": "tsc --noEmit && eslint src api/src --ext .mjs,.js,.jsx,.ts,.tsx",
