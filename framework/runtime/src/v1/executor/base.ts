@@ -34,10 +34,6 @@ import { isNonNullable } from '../utils/is-non-nullable';
 import { renderMessage } from '../utils/render-message';
 import { nextId } from '../utils/task-id';
 
-function isPlainObject(value: any): boolean {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
 export class ExecutorContext {
   constructor(
     options: Pick<
@@ -364,7 +360,7 @@ export abstract class AgentExecutorBase<T> {
           .map(async (i) => {
             const inputValue = inputs?.[i.key!];
 
-            if (typeof inputValue === 'string') {
+            if (typeof inputValue === 'string' && inputValue.match(/{{\s*\S+\s*}}/)) {
               const template = String(inputValue || '').trim();
               return [
                 i.key,
@@ -372,43 +368,46 @@ export abstract class AgentExecutorBase<T> {
               ];
             }
 
-            if (isPlainObject(inputValue)) {
-              const resolvedEntries = await Promise.all(
-                Object.entries(inputValue).map(async ([key, value]) => {
-                  return [
-                    key,
-                    typeof value === 'string'
-                      ? await this.renderMessage(value, variables, { stringify: false })
-                      : value,
-                  ];
-                })
-              );
+            // NOTE：不应该处理对象类型的参数，以后会逐步移除参数 template 的使用方式
+            // 该方式会因为用户输入数据中存在非法的 mustach 语法导致渲染失败，同时也存在泄漏数据的风险：用户可以在输入数据中使用 `{{ xxx }}` 的方式拿到任意变量或者调用上下文函数
 
-              return [i.key, Object.fromEntries(resolvedEntries)];
-            }
+            // if (isPlainObject(inputValue)) {
+            //   const resolvedEntries = await Promise.all(
+            //     Object.entries(inputValue).map(async ([key, value]) => {
+            //       return [
+            //         key,
+            //         typeof value === 'string'
+            //           ? await this.renderMessage(value, variables, { stringify: false })
+            //           : value,
+            //       ];
+            //     })
+            //   );
 
-            if (Array.isArray(inputValue) && inputValue.length) {
-              const resolvedArray = await Promise.all(
-                inputValue.map(async (item: any) => {
-                  if (isPlainObject(item)) {
-                    return Object.fromEntries(
-                      await Promise.all(
-                        Object.entries(item).map(async ([key, value]) => [
-                          key,
-                          typeof value === 'string'
-                            ? await this.renderMessage(value, variables, { stringify: false })
-                            : value,
-                        ])
-                      )
-                    );
-                  }
+            //   return [i.key, Object.fromEntries(resolvedEntries)];
+            // }
 
-                  return await this.renderMessage(item, variables, { stringify: false });
-                })
-              );
+            // if (Array.isArray(inputValue) && inputValue.length) {
+            //   const resolvedArray = await Promise.all(
+            //     inputValue.map(async (item: any) => {
+            //       if (isPlainObject(item)) {
+            //         return Object.fromEntries(
+            //           await Promise.all(
+            //             Object.entries(item).map(async ([key, value]) => [
+            //               key,
+            //               typeof value === 'string'
+            //                 ? await this.renderMessage(value, variables, { stringify: false })
+            //                 : value,
+            //             ])
+            //           )
+            //         );
+            //       }
 
-              return [i.key, resolvedArray];
-            }
+            //       return await this.renderMessage(item, variables, { stringify: false });
+            //     })
+            //   );
+
+            //   return [i.key, resolvedArray];
+            // }
 
             return [i.key, variables?.[i.key!] || inputs?.[i.key!]];
           }) ?? []

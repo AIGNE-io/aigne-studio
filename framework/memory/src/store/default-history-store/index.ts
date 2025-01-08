@@ -42,10 +42,10 @@ export class DefaultHistoryStore<T> implements HistoryStore<T> {
     return this._models;
   }
 
-  async addHistory(history: ActionHistory<T>): Promise<ActionHistory<T>> {
+  async addHistory(...history: ActionHistory<T>[]): Promise<ActionHistory<T>[]> {
     const { History } = await this.models;
 
-    return await History.create(history);
+    return await History.bulkCreate(history);
   }
 
   async getHistory(memoryId: string): Promise<ActionHistory<T>[]> {

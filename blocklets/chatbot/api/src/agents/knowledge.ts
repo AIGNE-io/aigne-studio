@@ -133,6 +133,7 @@ export const knowledgeAgent = LocalFunctionAgent.create<
 
           controller.enqueue({ delta: { list: all } });
         } catch (error) {
+          logger.error('Knowledge agent error', error);
           controller.error(error);
         } finally {
           controller.close();

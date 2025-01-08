@@ -1,6 +1,6 @@
 {
   "name": "@aigne/core",
-  "version": "0.4.197",
+  "version": "0.4.199",
   "description": "AIGNE core library",
   "publishConfig": {
     "access": "public"
@@ -34,8 +34,8 @@
     "test": "jest src/"
   },
   "dependencies": {
-    "@abtnode/client": "^1.16.36",
-    "@blocklet/sdk": "^1.16.36",
+    "@abtnode/client": "^1.16.37",
+    "@blocklet/sdk": "^1.16.37",
     "@types/mustache": "^4.2.5",
     "axios": "^1.7.5",
     "cron": "^3.1.7",

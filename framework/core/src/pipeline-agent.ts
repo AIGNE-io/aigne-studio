@@ -103,37 +103,45 @@ export class PipelineAgent<I extends { [key: string]: any } = {}, O extends {} =
 
             const needRespondTextStream =
               textStreamOutput?.from === 'variable' && textStreamOutput.fromVariableId === process.id;
-            const needRespondJsonStream = outputs.some(
-              (i) => i.name !== StreamTextOutputName && i.from === 'variable' && i.fromVariableId === process.id
-            );
+            // const needRespondJsonStream = outputs.some(
+            //   (i) => i.name !== StreamTextOutputName && i.from === 'variable' && i.fromVariableId === process.id
+            // );
+
+            const processResult: { $text?: string; [key: string]: any } = {};
+            variables[process.id] = processResult;
 
             for await (const chunk of stream) {
-              if (chunk.$text && needRespondTextStream) {
-                controller.enqueue({ $text: chunk.$text });
+              if (chunk.$text) {
+                Object.assign(processResult, { $text: (processResult.$text || '') + chunk.$text });
+
+                if (needRespondTextStream) {
+                  controller.enqueue({ $text: chunk.$text });
+                }
               }
 
               if (chunk.delta) {
-                variables[process.id] = chunk.delta;
+                Object.assign(processResult, chunk.delta);
 
-                if (needRespondJsonStream) {
-                  result = Object.fromEntries(
-                    OrderedRecord.map(definition.outputs, (output) => {
-                      if (!output.name) return null;
+                // TODO: 这里需要考虑上层 agent 直接输出了 {$text: 'xxx'} 没有用 chunk 的方式返回的情况
+                // if (needRespondJsonStream) {
+                result = Object.fromEntries(
+                  OrderedRecord.map(definition.outputs, (output) => {
+                    if (!output.name) return null;
 
-                      let value: any;
-                      if (output.from === 'variable') {
-                        const v = variables[output.fromVariableId!];
-                        value = output.fromVariablePropPath?.length ? get(v, output.fromVariablePropPath) : v;
-                      } else {
-                        throw new Error(`Unsupported output source ${output.from}`);
-                      }
+                    let value: any;
+                    if (output.from === 'variable') {
+                      const v = variables[output.fromVariableId!];
+                      value = output.fromVariablePropPath?.length ? get(v, output.fromVariablePropPath) : v;
+                    } else {
+                      throw new Error(`Unsupported output source ${output.from}`);
+                    }
 
-                      return [output.name, value];
-                    }).filter(isNonNullable)
-                  );
+                    return [output.name, value];
+                  }).filter(isNonNullable)
+                );
 
-                  controller.enqueue({ delta: result });
-                }
+                controller.enqueue({ delta: result });
+                // }
               }
             }
           }
