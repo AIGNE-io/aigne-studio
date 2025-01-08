@@ -12,7 +12,7 @@
     "clean": "node scripts/build-clean.js",
     "build": "run-s clean bundle:client bundle:api",
     "bundle": "run-s clean bundle:*",
-    "bundle:client": "NODE_OPTIONS='--max-old-space-size=6144' vite build",
+    "bundle:client": "vite build",
     "bundle:api": "tsc -p tsconfig.api.json && tsc-alias -p tsconfig.api.json",
     "bundle:blocklet": "blocklet bundle --compact --external sqlite3,faiss-node,pdf2json,prettier --monorepo --create-release",
     "deploy": "npm run bundle && blocklet deploy .blocklet/bundle",
