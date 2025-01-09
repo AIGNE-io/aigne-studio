@@ -25,9 +25,9 @@ export class DefaultMemory<T, I extends MemoryActions<T> = MemoryActions<T>> ext
   T,
   DefaultMemoryRunnerCustomData<T>
 > {
-  static async load<T extends string>(options: {
+  static async load<T>(options: {
     path: string;
-    runner: MemoryRunner<T, DefaultMemoryRunnerCustomData<T>>;
+    runner?: MemoryRunner<T, DefaultMemoryRunnerCustomData<T>>;
     retriever?: Retriever<T>;
     historyStore?: HistoryStore<T>;
   }) {
@@ -51,7 +51,7 @@ export class DefaultMemory<T, I extends MemoryActions<T> = MemoryActions<T>> ext
 
   constructor(options: {
     path: string;
-    runner: MemoryRunner<T, DefaultMemoryRunnerCustomData<T>>;
+    runner?: MemoryRunner<T, DefaultMemoryRunnerCustomData<T>>;
     retriever: Retriever<T>;
     historyStore: HistoryStore<T>;
   }) {
@@ -65,7 +65,7 @@ export class DefaultMemory<T, I extends MemoryActions<T> = MemoryActions<T>> ext
 
   path: string;
 
-  runner: MemoryRunner<T, DefaultMemoryRunnerCustomData<T>>;
+  runner?: MemoryRunner<T, DefaultMemoryRunnerCustomData<T>>;
 
   retriever: Retriever<T>;
 
@@ -75,13 +75,12 @@ export class DefaultMemory<T, I extends MemoryActions<T> = MemoryActions<T>> ext
     messages: Extract<MemoryActions<T>, { action: 'add' }>['inputs']['messages'],
     options?: Extract<MemoryActions<T>, { action: 'add' }>['inputs']['options']
   ): Promise<Extract<MemoryActions<T>, { action: 'add' }>['outputs']> {
+    if (!this.runner) throw new Error('Runner not found');
+
     const { userId, sessionId, metadata = {} } = options ?? {};
 
     const [actions] = await Promise.all([
-      // this.runRunner({ ...options, messages }),
-
       this.runner.run({ ...options, messages, customData: { retriever: this.retriever } }),
-
       this.historyStore.addMessage({ userId, sessionId, messages, metadata }),
     ]);
 
@@ -176,6 +175,34 @@ export class DefaultMemory<T, I extends MemoryActions<T> = MemoryActions<T>> ext
     return { result };
   }
 
+  async setByKey(
+    key: string,
+    memory: Extract<MemoryActions<T>, { action: 'create' }>['inputs']['memory'],
+    options: Extract<MemoryActions<T>, { action: 'create' }>['inputs']['options']
+  ): Promise<Extract<MemoryActions<T>, { action: 'create' }>['outputs']> {
+    const result = await this.createMemory({ ...options, key, memory, metadata: options?.metadata ?? {} });
+    return { result };
+  }
+
+  async getByKey(
+    key: string,
+    options: Extract<MemoryActions<T>, { action: 'filter' }>['inputs']['options']
+  ): Promise<Extract<MemoryActions<T>, { action: 'filter' }>['outputs']['results'][number] | null> {
+    const filter = {
+      key,
+      ...options?.filter,
+      ...(options?.userId ? { userId: options.userId } : {}),
+      ...(options?.sessionId ? { sessionId: options.sessionId } : {}),
+    };
+
+    const result = await this.retriever.list(options?.k || 1, {
+      filter,
+      sort: options?.sort || { field: 'createdAt', direction: 'desc' },
+    });
+
+    return result[0];
+  }
+
   async create(
     memory: Extract<MemoryActions<T>, { action: 'create' }>['inputs']['memory'],
     options?: Extract<MemoryActions<T>, { action: 'create' }>['inputs']['options']
@@ -238,10 +265,11 @@ export class DefaultMemory<T, I extends MemoryActions<T> = MemoryActions<T>> ext
     const memoryId = nextId();
     const createdAt = new Date().toISOString();
     const updatedAt = createdAt;
-    const { userId, sessionId, memory, metadata } = params;
+    const { userId, sessionId, memory, metadata, key } = params;
 
     const document: VectorStoreDocument<T> = {
       id: memoryId,
+      key,
       userId,
       sessionId,
       createdAt,

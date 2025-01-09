@@ -15,6 +15,7 @@ export type MemoryActionItem<T> =
 
 export interface MemoryItem<T> {
   id: string;
+  key?: string;
   userId?: string;
   sessionId?: string;
   createdAt: string;
@@ -68,6 +69,7 @@ export type MemoryActions<T> =
       inputs: {
         options?: {
           k?: number;
+          key?: string;
           userId?: string;
           sessionId?: string;
           filter?: MemoryMetadata;
@@ -157,6 +159,17 @@ export abstract class Memory<T, C = undefined> extends Runnable<MemoryActions<T>
   abstract filter(
     options: Extract<MemoryActions<T>, { action: 'filter' }>['inputs']['options']
   ): Promise<Extract<MemoryActions<T>, { action: 'filter' }>['outputs']>;
+
+  abstract setByKey(
+    key: string,
+    memory: Extract<MemoryActions<T>, { action: 'create' }>['inputs']['memory'],
+    options?: Extract<MemoryActions<T>, { action: 'create' }>['inputs']['options']
+  ): Promise<Extract<MemoryActions<T>, { action: 'create' }>['outputs']>;
+
+  abstract getByKey(
+    key: string,
+    options?: Extract<MemoryActions<T>, { action: 'filter' }>['inputs']['options']
+  ): Promise<Extract<MemoryActions<T>, { action: 'filter' }>['outputs']['results'][number] | null>;
 
   abstract get(
     memoryId: Extract<MemoryActions<T>, { action: 'get' }>['inputs']['memoryId']

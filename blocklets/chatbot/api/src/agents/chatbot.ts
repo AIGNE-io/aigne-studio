@@ -1,13 +1,20 @@
-import { join } from 'path';
-
 import chatbot from '@aigne-project/chatbot';
-import { LLMAgent, LLMDecisionAgent, LocalFunctionAgent, PipelineAgent, TYPES } from '@aigne/core';
-import { DefaultMemory, LongTermMemoryRunner, ShortTermMemoryRunner } from '@aigne/memory';
-import { config } from '@blocklet/sdk';
+import { LLMAgent, LLMDecisionAgent, LocalFunctionAgent, PipelineAgent } from '@aigne/core';
+import { Runtime } from '@aigne/runtime';
 import { SessionUser } from '@blocklet/sdk/lib/util/login';
 import { differenceBy, orderBy } from 'lodash';
 
+import { DEFAULT_MODEL } from '../libs/const';
 import { extractKeywordsAgent, knowledgeAgent } from './knowledge';
+import { longTermMemory, shortTermMemory, userPreferences } from './memory';
+import { getCurrentModelFunctionAgent, getCurrentModelLLMAgent, getCurrentModelPipelineAgent } from './models/current';
+import { getAllModelsFunctionAgent, getAllModelsLLMAgent, getAllModelsPipelineAgent } from './models/find';
+import {
+  extractModelFromQuestion,
+  switchModelFunctionAgent,
+  switchModelLLMAgent,
+  switchModelPipelineAgent,
+} from './models/switch';
 import { ChatbotResponse } from './type';
 
 chatbot.setup({
@@ -16,18 +23,9 @@ chatbot.setup({
       temperature: 0.2,
     },
     override: {
-      model: 'gemini-1.5-pro',
+      model: DEFAULT_MODEL,
     },
   },
-});
-
-const longTermMemory = DefaultMemory.load({
-  path: join(config.env.dataDir, 'long-term-memory'),
-  runner: new LongTermMemoryRunner(),
-});
-const shortTermMemory = DefaultMemory.load({
-  path: join(config.env.dataDir, 'short-term-memory'),
-  runner: new ShortTermMemoryRunner(chatbot.container.resolve(TYPES.llmModel)),
 });
 
 export const docAgent = LocalFunctionAgent.create<
@@ -340,7 +338,7 @@ export const questionClassification = LLMDecisionAgent.create<
     },
   ],
   messages: `\
-You are a professional question classifier. Please classify the question and choose the right bot to answer it.
+You are a professional question classifier. Please classify the question and choose the right case to answer it.
 
 {{memory}}
 
@@ -385,6 +383,33 @@ You are a professional question classifier. Please classify the question and cho
       name: 'clean-memory',
       description: 'Clean the memory',
       runnable: cleanMemoryPipeline,
+      input: {
+        question: { fromVariable: 'question' },
+        language: { fromVariable: 'language' },
+      },
+    },
+    {
+      name: 'get-current-model',
+      description: 'Get the current model',
+      runnable: getCurrentModelPipelineAgent,
+      input: {
+        question: { fromVariable: 'question' },
+        language: { fromVariable: 'language' },
+      },
+    },
+    {
+      name: 'get-all-models',
+      description: 'get all models',
+      runnable: getAllModelsPipelineAgent,
+      input: {
+        question: { fromVariable: 'question' },
+        language: { fromVariable: 'language' },
+      },
+    },
+    {
+      name: 'switch-or-set-model',
+      description: 'Switch the model or set the model',
+      runnable: switchModelPipelineAgent,
       input: {
         question: { fromVariable: 'question' },
         language: { fromVariable: 'language' },
@@ -446,9 +471,20 @@ export const chat = LocalFunctionAgent.create<{ question: string }, ChatbotRespo
     return new ReadableStream({
       async start(controller) {
         let $text = '';
+        const { did: userId } = context.state.user;
 
         try {
-          const { did: userId } = context.state.user;
+          const mode = await userPreferences.then((m) => m.getByKey('model', { userId }));
+          if (mode?.memory?.model) {
+            (context as any as Runtime).setup({
+              llmModel: {
+                override: {
+                  model: mode?.memory?.model,
+                },
+              },
+            });
+          }
+
           const [ltm, stm] = await Promise.all([longTermMemory, shortTermMemory]);
 
           controller.enqueue({ delta: { status: { loading: true, message: 'Querying memory...' } } });
@@ -475,10 +511,10 @@ ${longTermMem}
 
 ## Here are some memory about the user
 ${shortTermMem}
-
 `;
 
           controller.enqueue({ delta: { status: { loading: true, message: 'Classifying the question...' } } });
+
           const stream = await (
             await context.resolve<typeof questionClassification>(questionClassification.id)
           ).run(
@@ -531,4 +567,15 @@ export const agents = [
   cleanMemoryAgent.definition,
   cleanMemoryLLMAgent.definition,
   cleanMemoryPipeline.definition,
+  getCurrentModelFunctionAgent.definition,
+  getCurrentModelLLMAgent.definition,
+  getCurrentModelPipelineAgent.definition,
+  getAllModelsFunctionAgent.definition,
+  getAllModelsLLMAgent.definition,
+  getAllModelsPipelineAgent.definition,
+
+  extractModelFromQuestion.definition,
+  switchModelFunctionAgent.definition,
+  switchModelLLMAgent.definition,
+  switchModelPipelineAgent.definition,
 ];

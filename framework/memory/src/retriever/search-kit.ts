@@ -10,10 +10,10 @@ const { SearchKitClient, resolveRestEmbedders } =
   // eslint-disable-next-line global-require
   require('@blocklet/search-kit-js') as typeof import('@blocklet/search-kit-js');
 
-const fields = ['id', 'createdAt', 'updatedAt', 'userId', 'sessionId', 'memory', 'metadata'];
-const searchableAttributes = ['id', 'createdAt', 'updatedAt', 'userId', 'sessionId', 'memory', 'metadata'];
-const filterableAttributes = ['id', 'createdAt', 'updatedAt', 'userId', 'sessionId', 'memory', 'metadata'];
-const sortableAttributes = ['id', 'createdAt', 'updatedAt', 'userId', 'sessionId', 'memory', 'metadata'];
+const fields = ['id', 'key', 'createdAt', 'updatedAt', 'userId', 'sessionId', 'memory', 'metadata'];
+const searchableAttributes = ['id', 'key', 'createdAt', 'updatedAt', 'userId', 'sessionId', 'memory', 'metadata'];
+const filterableAttributes = ['id', 'key', 'createdAt', 'updatedAt', 'userId', 'sessionId', 'memory', 'metadata'];
+const sortableAttributes = ['id', 'key', 'createdAt', 'updatedAt', 'userId', 'sessionId', 'memory', 'metadata'];
 const rankingRules = ['sort', 'exactness', 'words', 'typo', 'proximity', 'attribute'];
 const POST_SETTING = { searchableAttributes, filterableAttributes, sortableAttributes, rankingRules };
 
@@ -21,6 +21,21 @@ const documentTemplate = `
   A document info:
   {% if doc.id %}
     id: {{ doc.id }}
+  {% endif %}
+  {% if doc.key %}
+    key: {{ doc.key }}
+  {% endif %}
+  {% if doc.createdAt %}
+    createdAt: {{ doc.createdAt }}
+  {% endif %}
+  {% if doc.updatedAt %}
+    updatedAt: {{ doc.updatedAt }}
+  {% endif %}
+  {% if doc.userId %}
+    userId: {{ doc.userId }}
+  {% endif %}
+  {% if doc.sessionId %}
+    sessionId: {{ doc.sessionId }}
   {% endif %}
   {% if doc.memory %}
     with the following content: {{ doc.memory }}
