@@ -8,8 +8,10 @@ import FullMaxIcon from '@iconify-icons/tabler/arrows-diagonal';
 import FullMinIcon from '@iconify-icons/tabler/arrows-diagonal-minimize-2';
 import LogosVim from '@iconify-icons/tabler/brand-vimeo';
 import ChecksIcon from '@iconify-icons/tabler/checks';
+import CloudUploadIcon from '@iconify-icons/tabler/cloud-upload';
 import SettingIcon from '@iconify-icons/tabler/settings';
 import XIcon from '@iconify-icons/tabler/x';
+import XBoxIcon from '@iconify-icons/tabler/xbox-x';
 import Editor, { Monaco, useMonaco } from '@monaco-editor/react';
 import {
   Box,
@@ -30,9 +32,12 @@ import {
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useUpdate } from 'ahooks';
 import useLocalStorageState from 'ahooks/lib/useLocalStorageState';
+import yaml from 'js-yaml';
+import { debounce } from 'lodash';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
+import { editor } from 'monaco-editor';
 import { VimMode } from 'monaco-vim';
-import React, { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { ResizableBox } from 'react-resizable';
 import { createHighlighter } from 'shiki';
 
@@ -117,6 +122,7 @@ const CodeEditor = forwardRef(
       maxHeight?: number;
       locale: string;
       typeScriptNoValidation?: boolean;
+      onUpload?: (callback: (url: string) => void) => void;
     } & BoxProps<typeof Editor>,
     ref
   ) => {
@@ -137,7 +143,6 @@ const CodeEditor = forwardRef(
     const { registerEmmet } = useEmmet();
     const { registerPrettier } = usePrettier();
     const { registerCloseTag } = useAutoCloseTag();
-
     useEffect(() => {
       if (monaco && globalSettings?.theme && props.language) {
         createHighlighter({
@@ -151,7 +156,7 @@ const CodeEditor = forwardRef(
 
     useVimMode(editor!, statusRef, { ...globalSettings, ...settings }, setSettings);
 
-    useImperativeHandle(ref, () => ({}));
+    useImperativeHandle(ref, () => ({ insertText }));
 
     const currentHeight = useMemo(() => {
       if (handle.active) {
@@ -164,6 +169,60 @@ const CodeEditor = forwardRef(
 
       return 300;
     }, [handle.active, settings?.currentHeight, settings?.adjustHeight, settings?.memoryHeight]);
+
+    // code syntax error
+    const [codeSyntaxError, setCodeSyntaxError] = useState(null);
+    const debouncedCheckCodeSyntax = useMemo(
+      () =>
+        debounce((code: string) => {
+          try {
+            if (props.language === 'yaml') {
+              yaml.load(code);
+            }
+            setCodeSyntaxError(null);
+          } catch (error) {
+            console.error('code syntax error: ', error);
+            setCodeSyntaxError(error.message);
+          }
+        }, 300),
+      [props.language]
+    );
+
+    useEffect(() => {
+      return () => {
+        debouncedCheckCodeSyntax.cancel();
+      };
+    }, [debouncedCheckCodeSyntax]);
+
+    const onCodeChange = (code: string, e: editor.IModelContentChangedEvent) => {
+      props?.onChange?.(code, e);
+      debouncedCheckCodeSyntax(code);
+    };
+
+    useEffect(() => {
+      debouncedCheckCodeSyntax(props.value || '');
+    }, [props.value, debouncedCheckCodeSyntax]);
+
+    // add method to insert text
+    const insertText = useCallback(
+      (text: string) => {
+        if (!editor) return;
+
+        const position = editor.getPosition();
+        editor.executeEdits('insert', [
+          {
+            range: {
+              startLineNumber: position?.lineNumber || 0,
+              startColumn: position?.column || 0,
+              endLineNumber: position?.lineNumber || 0,
+              endColumn: position?.column || 0,
+            },
+            text,
+          },
+        ]);
+      },
+      [editor]
+    );
 
     const editorRender = () => {
       return (
@@ -182,6 +241,7 @@ const CodeEditor = forwardRef(
                 className={cx(props.className, globalSettings?.vim && settings?.vimMode === 'normal' && 'vim-normal')}
                 component={Editor}
                 {...props}
+                onChange={onCodeChange}
                 sx={{
                   width: 1,
                   height: 1,
@@ -247,11 +307,36 @@ const CodeEditor = forwardRef(
                 py: 0.25,
                 // borderTop: '1px solid rgba(0, 0, 0, 0.1)',
               }}>
+              {codeSyntaxError && (
+                <Box sx={{ display: 'flex', gap: 1, zIndex: 1, alignItems: 'center' }}>
+                  <Tooltip
+                    title={
+                      <Box maxHeight={200} overflow="auto" sx={{ whiteSpace: 'pre-wrap' }}>
+                        {codeSyntaxError}
+                      </Box>
+                    }
+                    placement="right">
+                    <Box component={Icon} icon={XBoxIcon} sx={{ fontSize: 20, color: '#F16E6E' }} />
+                  </Tooltip>
+                </Box>
+              )}
               <Box sx={{ flex: 1 }}>
                 <Box ref={statusRef} sx={{ fontSize: 10, width: 1, mt: '1px', color: '#999' }} />
               </Box>
 
               <Box sx={{ display: 'flex', gap: 1, zIndex: 1, alignItems: 'center' }}>
+                {props.onUpload && (
+                  <IconButton
+                    size="small"
+                    onClick={() =>
+                      props.onUpload?.((url) => {
+                        insertText(url);
+                      })
+                    }>
+                    <Box component={Icon} icon={CloudUploadIcon} sx={{ color: 'action.active', fontSize: 20 }} />
+                  </IconButton>
+                )}
+
                 {globalSettings?.vim && (
                   <Tooltip title={t('vimEnable')}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
