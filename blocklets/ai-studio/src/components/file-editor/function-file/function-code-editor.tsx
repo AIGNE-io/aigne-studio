@@ -1,8 +1,9 @@
+import { useUploader } from '@app/contexts/uploader';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { FunctionAssistantYjs } from '@blocklet/ai-runtime/types';
 import { CodeEditor } from '@blocklet/code-editor';
 import { Box, Stack } from '@mui/material';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useAssistantCompare } from 'src/pages/project/state';
 
 export default function FunctionCodeEditor({
@@ -22,6 +23,27 @@ export default function FunctionCodeEditor({
 }) {
   const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
   const { locale } = useLocaleContext();
+
+  const uploaderRef = useUploader();
+  const codeEditorUploadCallback = useRef<((url: string) => void) | null>(null);
+
+  const handleOpen = () => {
+    const allowedFileTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+    const uploader = uploaderRef?.current?.getUploader();
+    if (uploader?.opts?.restrictions?.allowedFileTypes) {
+      uploader.opts.restrictions.allowedFileTypes = allowedFileTypes;
+    }
+
+    uploader?.open();
+
+    if (codeEditorUploadCallback.current) {
+      // rewrite default emitter
+      uploader.onceUploadSuccess(({ response }: any) => {
+        const url = response?.data?.url || response?.data?.fileUrl;
+        codeEditorUploadCallback.current?.(url);
+      });
+    }
+  };
 
   useEffect(() => {
     if (!value.code) {
@@ -66,6 +88,10 @@ return {
           value={value.code}
           onChange={(code) => (value.code = code)}
           locale={locale}
+          onUpload={(callback) => {
+            codeEditorUploadCallback.current = callback;
+            handleOpen();
+          }}
         />
       </Box>
     </Stack>

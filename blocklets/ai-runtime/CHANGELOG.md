@@ -1,3 +1,8 @@
+## 0.4.200 (2025-1-9)
+
+- feat: code editor adds upload feature
+- feat: code editor add to show syntax error
+
 ## 0.4.199 (2025-1-8)
 
 - fix: memory default value type
