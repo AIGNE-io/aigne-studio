@@ -712,19 +712,23 @@ export abstract class AgentExecutorBase<T> {
           }),
         }[parameter.type as string]!;
 
-        const val =
-          parameter.type === 'llmInputMessages'
-            ? await schema.validateAsync(
-                (Array.isArray(v) ? v : tryParse(v)) ?? [
-                  { role: 'user', content: typeof v === 'string' ? v : JSON.stringify(v) },
-                ],
-                { stripUnknown: true }
-              )
-            : parameter.type === 'llmInputTools'
-              ? await schema.validateAsync(Array.isArray(v) ? v : tryParse(v), { stripUnknown: true })
-              : await schema.validateAsync(tryParse(v) || v, { stripUnknown: true });
+        try {
+          const val =
+            parameter.type === 'llmInputMessages'
+              ? await schema.validateAsync(
+                  (Array.isArray(v) ? v : tryParse(v)) ?? [
+                    { role: 'user', content: typeof v === 'string' ? v : JSON.stringify(v) },
+                  ],
+                  { stripUnknown: true }
+                )
+              : parameter.type === 'llmInputTools'
+                ? await schema.validateAsync(Array.isArray(v) ? v : tryParse(v), { stripUnknown: true })
+                : await schema.validateAsync(tryParse(v) || v, { stripUnknown: true });
 
-        inputVariables[parameter.key] = val;
+          inputVariables[parameter.key] = val;
+        } catch (error) {
+          throw new Error(`Parameter "${parameter.key}" (type: ${parameter.type}) validation failed: ${error.message}`);
+        }
       } else if (parameter.type === 'boolean') {
         const val = inputVariables[parameter.key];
         inputVariables[parameter.key] = Boolean(isNil(val) ? parameter.defaultValue : val);
