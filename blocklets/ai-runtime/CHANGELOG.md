@@ -1,3 +1,7 @@
+## 0.4.201 (2025-1-10)
+
+- feat: improve input parameter table style & validation message
+
 ## 0.4.200 (2025-1-9)
 
 - feat: code editor adds upload feature
