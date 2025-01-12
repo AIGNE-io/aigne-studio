@@ -4,7 +4,7 @@ import { inject, injectable } from 'tsyringe';
 
 import { TYPES } from './constants';
 import type { Context } from './context';
-import { DataType } from './data-type';
+import { DataType, SchemaType } from './data-type';
 import { LLMModel, LLMModelInputMessage, LLMModelInputs, LLMModelOptions } from './llm-model';
 import {
   RunOptions,
@@ -15,12 +15,16 @@ import {
   RunnableResponseStream,
 } from './runnable';
 import { OrderedRecord, isNonNullable, renderMessage } from './utils';
+import { OmitPropsFromUnion } from './utils/omit';
 
 @injectable()
 export class LLMDecisionAgent<I extends { [key: string]: any } = {}, O extends {} = {}> extends Runnable<I, O> {
-  static create<I extends {} = {}, O extends {} = {}>(
-    options: Parameters<typeof createLLMDecisionAgentDefinition>[0]
-  ): LLMDecisionAgent<I, O> {
+  static create<
+    I extends { [name: string]: OmitPropsFromUnion<DataType, 'id' | 'name'> },
+    O extends { [name: string]: OmitPropsFromUnion<DataType, 'id' | 'name'> },
+  >(
+    options: Parameters<typeof createLLMDecisionAgentDefinition<I>>[0]
+  ): LLMDecisionAgent<SchemaType<I>, SchemaType<O>> {
     const definition = createLLMDecisionAgentDefinition(options);
 
     return new LLMDecisionAgent(definition);
@@ -126,20 +130,21 @@ export interface DecisionAgentCaseParameter<I extends {} = {}, O extends {} = {}
   input?: { [key: string]: { fromVariable: string; fromVariablePropPath?: string[] } | undefined };
 }
 
-export function createLLMDecisionAgentDefinition(options: {
+export function createLLMDecisionAgentDefinition<
+  I extends { [name: string]: OmitPropsFromUnion<DataType, 'id' | 'name'> },
+>(options: {
   id?: string;
   name?: string;
-  inputs?: { name: string; type: DataType['type']; required?: boolean }[];
+  inputs: I;
   messages: string;
   modelOptions?: LLMModelOptions;
   cases: DecisionAgentCaseParameter[];
 }): LLMDecisionAgentDefinition {
   const inputs: OrderedRecord<RunnableInput> = OrderedRecord.fromArray(
-    options.inputs?.map((i) => ({
+    Object.entries(options.inputs).map(([name, { ...dataType }]) => ({
+      ...dataType,
       id: nanoid(),
-      name: i.name,
-      type: i.type,
-      required: i.required,
+      name: name,
     }))
   );
 

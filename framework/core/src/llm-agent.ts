@@ -3,7 +3,7 @@ import { nanoid } from 'nanoid';
 import { inject, injectable } from 'tsyringe';
 
 import { StreamTextOutputName, TYPES } from './constants';
-import { DataType } from './data-type';
+import { DataType, SchemaType } from './data-type';
 import { LLMModel, LLMModelInputs, Role } from './llm-model';
 import {
   RunOptions,
@@ -20,9 +20,10 @@ import { OrderedRecord } from './utils/ordered-map';
 
 @injectable()
 export class LLMAgent<I extends {} = {}, O extends {} = {}> extends Runnable<I, O> {
-  static create<I extends {} = {}, O extends {} = {}>(
-    options: Parameters<typeof createLLMAgentDefinition>[0]
-  ): LLMAgent<I, O> {
+  static create<
+    I extends { [name: string]: OmitPropsFromUnion<DataType, 'id' | 'name'> },
+    O extends { [name: string]: OmitPropsFromUnion<DataType, 'id' | 'name'> },
+  >(options: Parameters<typeof createLLMAgentDefinition<I, O>>[0]): LLMAgent<SchemaType<I>, SchemaType<O>> {
     const definition = createLLMAgentDefinition(options);
 
     return new LLMAgent(definition);
@@ -114,41 +115,43 @@ export class LLMAgent<I extends {} = {}, O extends {} = {}> extends Runnable<I, 
   }
 }
 
-export function createLLMAgentDefinition(options: {
+export function createLLMAgentDefinition<
+  I extends { [name: string]: OmitPropsFromUnion<DataType, 'id' | 'name'> },
+  O extends { [name: string]: OmitPropsFromUnion<DataType, 'id' | 'name'> },
+>(options: {
   id?: string;
   name?: string;
-  messages?: { role: Role; content: string }[];
+  inputs: I;
+  outputs: O;
   modelOptions?: LLMModelInputs['modelOptions'];
-  inputs?: OmitPropsFromUnion<DataType, 'id'>[];
-  outputs?: OmitPropsFromUnion<DataType, 'id'>[];
+  messages?: { role: Role; content: string }[];
 }): LLMAgentDefinition {
-  const inputs = OrderedRecord.fromArray(
-    options.inputs?.map((i) => ({
-      id: nanoid(),
-      name: i.name,
-      type: i.type,
-      required: i.required,
-    }))
-  );
-
-  const outputs = OrderedRecord.fromArray(options.outputs?.map((i) => ({ ...i, id: nanoid() }) as DataType));
-
-  const messages = OrderedRecord.fromArray(
-    options.messages?.map((i) => ({
-      id: nanoid(),
-      role: i.role,
-      content: i.content,
-    }))
-  );
-
   return {
     id: options.id || options.name || nanoid(),
     name: options.name,
     type: 'llm_agent',
-    inputs,
-    outputs,
-    messages,
+    inputs: OrderedRecord.fromArray(
+      Object.entries(options.inputs).map(([name, { ...dataType }]) => ({
+        ...dataType,
+        id: nanoid(),
+        name,
+      }))
+    ),
+    outputs: OrderedRecord.fromArray(
+      Object.entries(options.outputs).map(([name, { ...dataType }]) => ({
+        ...dataType,
+        id: nanoid(),
+        name,
+      }))
+    ),
     modelOptions: options.modelOptions,
+    messages: OrderedRecord.fromArray(
+      options.messages?.map((i) => ({
+        id: nanoid(),
+        role: i.role,
+        content: i.content,
+      }))
+    ),
   };
 }
 

@@ -3,7 +3,7 @@ import { inject, injectable } from 'tsyringe';
 
 import { TYPES } from './constants';
 import type { Context } from './context';
-import { DataType } from './data-type';
+import { DataType, SchemaType } from './data-type';
 import {
   RunOptions,
   Runnable,
@@ -13,12 +13,17 @@ import {
   RunnableResponseStream,
 } from './runnable';
 import { OrderedRecord, objectToRunnableResponseStream, runnableResponseStreamToObject } from './utils';
+import { OmitPropsFromUnion } from './utils/omit';
 
 @injectable()
 export class LocalFunctionAgent<I extends {} = {}, O extends {} = {}, State = {}> extends Runnable<I, O> {
-  static create<I extends {} = {}, O extends {} = {}, State = {}>(
+  static create<
+    I extends { [name: string]: OmitPropsFromUnion<DataType, 'id' | 'name'> },
+    O extends { [name: string]: OmitPropsFromUnion<DataType, 'id' | 'name'> },
+    State = {},
+  >(
     options: Parameters<typeof createLocalFunctionAgentDefinition<I, O, State>>[0]
-  ): LocalFunctionAgent<I, O, State> {
+  ): LocalFunctionAgent<SchemaType<I>, SchemaType<O>, State> {
     const definition = createLocalFunctionAgentDefinition(options);
 
     return new LocalFunctionAgent(definition);
@@ -56,28 +61,30 @@ export class LocalFunctionAgent<I extends {} = {}, O extends {} = {}, State = {}
   }
 }
 
-export function createLocalFunctionAgentDefinition<I extends {} = {}, O extends {} = {}, State = {}>(options: {
+export function createLocalFunctionAgentDefinition<
+  I extends { [name: string]: OmitPropsFromUnion<DataType, 'id' | 'name'> },
+  O extends { [name: string]: OmitPropsFromUnion<DataType, 'id' | 'name'> },
+  State = {},
+>(options: {
   id?: string;
   name?: string;
-  inputs?: { name: string; type: DataType['type']; required?: boolean }[];
-  outputs?: { name: string; type: DataType['type']; required?: boolean }[];
-  function?: (input: I, options: { context: Context<State> }) => Promise<RunnableResponse<O>>;
-}): LocalFunctionAgentDefinition<I, O, State> {
-  const inputs: OrderedRecord<RunnableInput> = OrderedRecord.fromArray(
-    options.inputs?.map((i) => ({
+  inputs: I;
+  outputs: O;
+  function?: (input: SchemaType<I>, options: { context: Context<State> }) => Promise<RunnableResponse<SchemaType<O>>>;
+}): LocalFunctionAgentDefinition<SchemaType<I>, SchemaType<O>, State> {
+  const inputs = OrderedRecord.fromArray(
+    Object.entries(options.inputs).map(([name, i]) => ({
+      ...i,
       id: nanoid(),
-      name: i.name,
-      type: i.type,
-      required: i.required,
+      name,
     }))
   );
 
   const outputs: OrderedRecord<RunnableInput> = OrderedRecord.fromArray(
-    options.outputs?.map((i) => ({
+    Object.entries(options.outputs).map(([name, o]) => ({
+      ...o,
       id: nanoid(),
-      name: i.name,
-      type: i.type,
-      required: i.required,
+      name,
     }))
   );
 

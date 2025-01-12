@@ -2,23 +2,18 @@ import { nanoid } from 'nanoid';
 import { inject, injectable } from 'tsyringe';
 
 import { TYPES } from './constants';
-import { DataType } from './data-type';
+import { DataType, SchemaType } from './data-type';
 import { FunctionRunner } from './function-runner';
-import {
-  RunOptions,
-  Runnable,
-  RunnableDefinition,
-  RunnableInput,
-  RunnableResponse,
-  RunnableResponseStream,
-} from './runnable';
+import { RunOptions, Runnable, RunnableDefinition, RunnableResponse, RunnableResponseStream } from './runnable';
 import { OrderedRecord, objectToRunnableResponseStream } from './utils';
+import { OmitPropsFromUnion } from './utils/omit';
 
 @injectable()
 export class FunctionAgent<I extends {} = {}, O extends {} = {}> extends Runnable<I, O> {
-  static create<I extends {} = {}, O extends {} = {}>(
-    options: Parameters<typeof createFunctionAgentDefinition>[0]
-  ): FunctionAgent<I, O> {
+  static create<
+    I extends { [name: string]: OmitPropsFromUnion<DataType, 'id' | 'name'> },
+    O extends { [name: string]: OmitPropsFromUnion<DataType, 'id' | 'name'> },
+  >(options: Parameters<typeof createFunctionAgentDefinition<I, O>>[0]): FunctionAgent<SchemaType<I>, SchemaType<O>> {
     const definition = createFunctionAgentDefinition(options);
 
     return new FunctionAgent(definition);
@@ -57,38 +52,36 @@ export class FunctionAgent<I extends {} = {}, O extends {} = {}> extends Runnabl
   }
 }
 
-export function createFunctionAgentDefinition(options: {
+export function createFunctionAgentDefinition<
+  I extends { [name: string]: OmitPropsFromUnion<DataType, 'id' | 'name'> },
+  O extends { [name: string]: OmitPropsFromUnion<DataType, 'id' | 'name'> },
+>(options: {
   id?: string;
   name?: string;
-  inputs?: { name: string; type: DataType['type']; required?: boolean }[];
-  outputs?: { name: string; type: DataType['type']; required?: boolean }[];
+  inputs: I;
+  outputs: O;
   language: string;
   code: string;
 }): FunctionAgentDefinition {
-  const inputs: OrderedRecord<RunnableInput> = OrderedRecord.fromArray(
-    options.inputs?.map((i) => ({
-      id: nanoid(),
-      name: i.name,
-      type: i.type,
-      required: i.required,
-    }))
-  );
-
-  const outputs: OrderedRecord<RunnableInput> = OrderedRecord.fromArray(
-    options.outputs?.map((i) => ({
-      id: nanoid(),
-      name: i.name,
-      type: i.type,
-      required: i.required,
-    }))
-  );
-
   return {
     id: options.id || options.name || nanoid(),
     name: options.name,
     type: 'function_agent',
-    inputs,
-    outputs,
+    inputs: OrderedRecord.fromArray(
+      Object.entries(options.inputs).map(([name, { ...dataType }]) => ({
+        ...dataType,
+        id: nanoid(),
+        name,
+      }))
+    ),
+    outputs: OrderedRecord.fromArray(
+      Object.entries(options.outputs).map(([name, { ...dataType }]) => ({
+        ...dataType,
+        id: nanoid(),
+        name,
+      }))
+    ),
+
     language: options.language,
     code: options.code,
   };
