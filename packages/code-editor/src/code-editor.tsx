@@ -12,19 +12,16 @@ import CloudUploadIcon from '@iconify-icons/tabler/cloud-upload';
 import SettingIcon from '@iconify-icons/tabler/settings';
 import XIcon from '@iconify-icons/tabler/x';
 import XBoxIcon from '@iconify-icons/tabler/xbox-x';
-import Editor, { Monaco, useMonaco } from '@monaco-editor/react';
+import Editor, { Monaco } from '@monaco-editor/react';
 import {
   Box,
   BoxProps,
   Dialog,
   DialogContent,
   DialogTitle,
-  Divider,
   IconButton,
-  MenuItem,
   Stack,
   Switch,
-  TextField,
   Tooltip,
   styled,
   useTheme,
@@ -39,11 +36,8 @@ import { editor } from 'monaco-editor';
 import { VimMode } from 'monaco-vim';
 import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { ResizableBox } from 'react-resizable';
-import { createHighlighter } from 'shiki';
 
 import { FullScreen, useFullScreenHandle } from './components/react-full-screen';
-import { themeOptions } from './libs/constant';
-import { shikiToMonaco } from './libs/shiki-to-monaco';
 import type { EditorInstance } from './libs/type';
 import useAutoCloseTag from './plugins/close-tag';
 import useEmmet from './plugins/emmet';
@@ -102,9 +96,9 @@ const useEditorSettings = (keyId: string) => {
   });
 };
 
-const useGlobalEditorSettings = (theme: string = 'github-light') => {
-  return useLocalStorageState<{ vim: boolean; theme: string }>('code-editor-global', {
-    defaultValue: { vim: false, theme },
+const useGlobalEditorSettings = () => {
+  return useLocalStorageState<{ vim: boolean }>('code-editor-global', {
+    defaultValue: { vim: false },
   });
 };
 
@@ -128,7 +122,6 @@ const CodeEditor = forwardRef(
   ) => {
     const statusRef = useRef<HTMLElement>(null);
     const dialogState = usePopupState({ variant: 'dialog' });
-    const monaco = useMonaco();
 
     const { t } = useLocaleContext(locale);
     const [editor, setEditor] = useState<EditorInstance>();
@@ -137,22 +130,12 @@ const CodeEditor = forwardRef(
     const handle = useFullScreenHandle();
 
     const [settings, setSettings] = useEditorSettings(keyId);
-    const [globalSettings, setGlobalSettings] = useGlobalEditorSettings(props.theme || '');
+    const [globalSettings, setGlobalSettings] = useGlobalEditorSettings();
     const isBreakpointsDownSm = useMediaQuery(theme.breakpoints.down('md'));
 
     const { registerEmmet } = useEmmet();
     const { registerPrettier } = usePrettier();
     const { registerCloseTag } = useAutoCloseTag();
-    useEffect(() => {
-      if (monaco && globalSettings?.theme && props.language) {
-        createHighlighter({
-          themes: [globalSettings.theme],
-          langs: [props.language],
-        }).then((highlighter) => {
-          shikiToMonaco(highlighter, monaco);
-        });
-      }
-    }, [monaco, globalSettings?.theme, props.language]);
 
     useVimMode(editor!, statusRef, { ...globalSettings, ...settings }, setSettings);
 
@@ -399,34 +382,6 @@ const CodeEditor = forwardRef(
                       setGlobalSettings((r) => ({ ...r!, vim: checked }));
                     }}
                   />
-                </Box>
-              </Box>
-
-              <Divider />
-
-              <Box sx={{ p: 1 }} className="between">
-                <Box className="key">{t('theme')}</Box>
-                <Box>
-                  <TextField
-                    select
-                    value={globalSettings?.theme || 'github-light'}
-                    onChange={(e) => setGlobalSettings((r) => ({ ...r!, theme: e.target.value }))}
-                    variant="outlined"
-                    fullWidth
-                    size="small"
-                    SelectProps={{
-                      displayEmpty: true,
-                    }}
-                    InputLabelProps={{
-                      shrink: false,
-                    }}
-                    sx={{ minWidth: 200 }}>
-                    {themeOptions.map((option) => (
-                      <MenuItem key={option} value={option}>
-                        {option}
-                      </MenuItem>
-                    ))}
-                  </TextField>
                 </Box>
               </Box>
             </Box>

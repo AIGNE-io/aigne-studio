@@ -58,7 +58,6 @@
     "@iconify-icon/react": "^2.1.0",
     "@iconify-icons/tabler": "^1.2.95",
     "@monaco-editor/react": "^4.6.0",
-    "@shikijs/monaco": "^1.14.1",
     "ahooks": "^3.8.1",
     "emmet-monaco-es": "^5.4.0",
     "flat": "^6.0.1",
@@ -73,7 +72,6 @@
     "react-hook-form": "^7.53.0",
     "react-resizable": "^3.0.5",
     "react-transition-group": "^4.4.5",
-    "shiki": "^1.14.1",
     "ufo": "^1.5.4"
   },
   "peerDependencies": {
