@@ -2,18 +2,16 @@ import { nanoid } from 'nanoid';
 import { inject, injectable } from 'tsyringe';
 
 import { TYPES } from './constants';
-import { DataType, SchemaType } from './data-type';
+import { DataTypeSchema, SchemaMapType, schemaToDataType } from './data-type-schema';
 import { FunctionRunner } from './function-runner';
 import { RunOptions, Runnable, RunnableDefinition, RunnableResponse, RunnableResponseStream } from './runnable';
-import { OrderedRecord, objectToRunnableResponseStream } from './utils';
-import { OmitPropsFromUnion } from './utils/omit';
+import { objectToRunnableResponseStream } from './utils';
 
 @injectable()
 export class FunctionAgent<I extends {} = {}, O extends {} = {}> extends Runnable<I, O> {
-  static create<
-    I extends { [name: string]: OmitPropsFromUnion<DataType, 'id' | 'name'> },
-    O extends { [name: string]: OmitPropsFromUnion<DataType, 'id' | 'name'> },
-  >(options: Parameters<typeof createFunctionAgentDefinition<I, O>>[0]): FunctionAgent<SchemaType<I>, SchemaType<O>> {
+  static create<I extends { [name: string]: DataTypeSchema }, O extends { [name: string]: DataTypeSchema }>(
+    options: Parameters<typeof createFunctionAgentDefinition<I, O>>[0]
+  ): FunctionAgent<SchemaMapType<I>, SchemaMapType<O>> {
     const definition = createFunctionAgentDefinition(options);
 
     return new FunctionAgent(definition);
@@ -53,8 +51,8 @@ export class FunctionAgent<I extends {} = {}, O extends {} = {}> extends Runnabl
 }
 
 export function createFunctionAgentDefinition<
-  I extends { [name: string]: OmitPropsFromUnion<DataType, 'id' | 'name'> },
-  O extends { [name: string]: OmitPropsFromUnion<DataType, 'id' | 'name'> },
+  I extends { [name: string]: DataTypeSchema },
+  O extends { [name: string]: DataTypeSchema },
 >(options: {
   id?: string;
   name?: string;
@@ -67,21 +65,8 @@ export function createFunctionAgentDefinition<
     id: options.id || options.name || nanoid(),
     name: options.name,
     type: 'function_agent',
-    inputs: OrderedRecord.fromArray(
-      Object.entries(options.inputs).map(([name, { ...dataType }]) => ({
-        ...dataType,
-        id: nanoid(),
-        name,
-      }))
-    ),
-    outputs: OrderedRecord.fromArray(
-      Object.entries(options.outputs).map(([name, { ...dataType }]) => ({
-        ...dataType,
-        id: nanoid(),
-        name,
-      }))
-    ),
-
+    inputs: schemaToDataType(options.inputs),
+    outputs: schemaToDataType(options.outputs),
     language: options.language,
     code: options.code,
   };

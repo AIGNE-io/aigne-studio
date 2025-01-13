@@ -3,7 +3,7 @@ import { nanoid } from 'nanoid';
 import { inject, injectable } from 'tsyringe';
 
 import { StreamTextOutputName, TYPES } from './constants';
-import { DataType, SchemaType } from './data-type';
+import { DataTypeSchema, SchemaMapType, schemaToDataType } from './data-type-schema';
 import { LLMModel, LLMModelInputs, Role } from './llm-model';
 import {
   RunOptions,
@@ -20,10 +20,9 @@ import { OrderedRecord } from './utils/ordered-map';
 
 @injectable()
 export class LLMAgent<I extends {} = {}, O extends {} = {}> extends Runnable<I, O> {
-  static create<
-    I extends { [name: string]: OmitPropsFromUnion<DataType, 'id' | 'name'> },
-    O extends { [name: string]: OmitPropsFromUnion<DataType, 'id' | 'name'> },
-  >(options: Parameters<typeof createLLMAgentDefinition<I, O>>[0]): LLMAgent<SchemaType<I>, SchemaType<O>> {
+  static create<I extends { [name: string]: DataTypeSchema }, O extends { [name: string]: DataTypeSchema }>(
+    options: Parameters<typeof createLLMAgentDefinition<I, O>>[0]
+  ): LLMAgent<SchemaMapType<I>, SchemaMapType<O>> {
     const definition = createLLMAgentDefinition(options);
 
     return new LLMAgent(definition);
@@ -116,8 +115,8 @@ export class LLMAgent<I extends {} = {}, O extends {} = {}> extends Runnable<I, 
 }
 
 export function createLLMAgentDefinition<
-  I extends { [name: string]: OmitPropsFromUnion<DataType, 'id' | 'name'> },
-  O extends { [name: string]: OmitPropsFromUnion<DataType, 'id' | 'name'> },
+  I extends { [name: string]: DataTypeSchema },
+  O extends { [name: string]: DataTypeSchema },
 >(options: {
   id?: string;
   name?: string;
@@ -130,20 +129,8 @@ export function createLLMAgentDefinition<
     id: options.id || options.name || nanoid(),
     name: options.name,
     type: 'llm_agent',
-    inputs: OrderedRecord.fromArray(
-      Object.entries(options.inputs).map(([name, { ...dataType }]) => ({
-        ...dataType,
-        id: nanoid(),
-        name,
-      }))
-    ),
-    outputs: OrderedRecord.fromArray(
-      Object.entries(options.outputs).map(([name, { ...dataType }]) => ({
-        ...dataType,
-        id: nanoid(),
-        name,
-      }))
-    ),
+    inputs: schemaToDataType(options.inputs),
+    outputs: schemaToDataType(options.outputs),
     modelOptions: options.modelOptions,
     messages: OrderedRecord.fromArray(
       options.messages?.map((i) => ({
