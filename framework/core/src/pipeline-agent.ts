@@ -251,7 +251,7 @@ export function createPipelineAgentDefinition<
         OrderedRecord.find(inputs, (i) => i.name === fromVariable) ||
         OrderedRecord.find(processes, (p) => p.name === fromVariable);
 
-      if (!from) throw new Error(`Output ${name} not found in inputs or processes`);
+      if (!from) throw new Error(`Output ${output.name} not found in inputs or processes`);
 
       return { ...output, from: 'variable', fromVariableId: from.id, fromVariablePropPath };
     })
