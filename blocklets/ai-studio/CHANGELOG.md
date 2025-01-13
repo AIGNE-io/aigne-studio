@@ -1,3 +1,7 @@
+## 0.4.203 (2025-1-13)
+
+- fix: remove shiki dependency
+
 ## 0.4.202 (2025-1-13)
 
 - chore: strict type annotation for agent definitions
