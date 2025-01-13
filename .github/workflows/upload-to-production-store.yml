@@ -37,7 +37,6 @@ jobs:
         run: pnpm build:libs
 
       - name: Upload to production store
-        if: "! contains(toJSON(github.event.commits.*.message), '[skip ai-runtime]')"
         env:
           COMPONENT_STORE_URL: ${{ secrets.STORE_ENDPOINT_PROD }}
         uses: blocklet/action-workflow@v1
@@ -55,7 +54,6 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload to production store
-        if: "! contains(toJSON(github.event.commits.*.message), '[skip ai-studio]')"
         env:
           COMPONENT_STORE_URL: ${{ secrets.STORE_ENDPOINT_PROD }}
         uses: blocklet/action-workflow@v1
