@@ -213,6 +213,7 @@ export default function InputTable({
     return [
       {
         field: 'key',
+        width: '30%',
         headerName: t('name'),
         renderCell: ({ row: { data: parameter } }) => {
           if (parameter.key === 'question' || parameter.key === 'chatHistory') {
@@ -240,7 +241,6 @@ export default function InputTable({
               direction="row"
               alignItems="center"
               gap={0.5}
-              minWidth={100}
               sx={{ color: parameter.hidden ? 'text.disabled' : undefined }}>
               <Box component={Icon} icon={FormsIcon} fontSize={16} />
 
@@ -272,6 +272,7 @@ export default function InputTable({
       },
       {
         field: 'from',
+        width: '30%',
         headerName: t('from'),
         flex: 1,
         renderCell: ({ row: { data: parameter } }) => {
@@ -295,8 +296,8 @@ export default function InputTable({
       },
       {
         field: 'type',
+        width: '30%',
         headerName: t('format'),
-        width: 100,
         renderCell: ({ row: { data: parameter } }) => {
           if (parameter.type === 'source' && parameter.source?.variableFrom === 'secret') {
             return <Box />;
@@ -378,11 +379,10 @@ export default function InputTable({
       },
       {
         field: 'actions',
-        width: 100,
         headerAlign: 'right',
         align: 'right',
       },
-    ];
+    ] as GridColDef<(typeof parameters)[number]>[];
   }, [t, knowledge, openApis, readOnly, doc, deleteParameter]);
 
   return (
@@ -420,6 +420,7 @@ export default function InputTable({
                 <TableCell
                   key={column.field}
                   align={column.headerAlign}
+                  width={column.width}
                   sx={{ px: 0, py: 1, fontWeight: 500, fontSize: 13, lineHeight: '22px' }}>
                   {column.headerName}
                 </TableCell>
@@ -509,6 +510,7 @@ export default function InputTable({
                           <TableCell
                             key={column.field}
                             align={column.align}
+                            width={column.width}
                             sx={{ position: 'relative', px: 0, ...getDiffBackground('parameters', parameter.id) }}>
                             {index === 0 && (
                               <Stack
