@@ -58,6 +58,13 @@ export namespace OrderedRecord {
     return undefined;
   }
 
+  export function at<T extends { id: string }>(record: OrderedRecord<T> | undefined, index: number): T | undefined {
+    if (!record?.$indexes.length) return undefined;
+
+    const id = record.$indexes.at(index);
+    return record[id!];
+  }
+
   export function push<T extends { id: string }>(record: OrderedRecord<T>, ...items: T[]) {
     for (const item of items) {
       if (record[item.id]) throw new Error(`Item with id ${item.id} already exists`);

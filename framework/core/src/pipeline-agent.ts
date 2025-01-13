@@ -5,12 +5,12 @@ import { inject, injectable } from 'tsyringe';
 import { StreamTextOutputName, TYPES } from './constants';
 import type { Context } from './context';
 import { DataType } from './data-type';
+import { DataTypeSchema, SchemaMapType, schemaToDataType } from './data-type-schema';
 import logger from './logger';
 import {
   RunOptions,
   Runnable,
   RunnableDefinition,
-  RunnableInput,
   RunnableOutput,
   RunnableResponse,
   RunnableResponseDelta,
@@ -22,9 +22,17 @@ import { OrderedRecord } from './utils/ordered-map';
 
 @injectable()
 export class PipelineAgent<I extends { [key: string]: any } = {}, O extends {} = {}> extends Runnable<I, O> {
-  static create<I extends {} = {}, O extends {} = {}>(
-    options: Parameters<typeof createPipelineAgentDefinition>[0]
-  ): PipelineAgent<I, O> {
+  static create<
+    I extends { [name: string]: DataTypeSchema },
+    O extends {
+      [name: string]: DataTypeSchema & {
+        fromVariable: string;
+        fromVariablePropPath?: string[];
+      };
+    },
+  >(
+    options: Parameters<typeof createPipelineAgentDefinition<I, O>>[0]
+  ): PipelineAgent<SchemaMapType<I>, SchemaMapType<O>> {
     const definition = createPipelineAgentDefinition(options);
 
     return new PipelineAgent(definition);
@@ -175,27 +183,22 @@ export interface PipelineAgentProcessParameter<I extends {} = {}, O extends {} =
   };
 }
 
-export function createPipelineAgentDefinition(options: {
+export function createPipelineAgentDefinition<
+  I extends { [name: string]: DataTypeSchema },
+  O extends {
+    [name: string]: DataTypeSchema & {
+      fromVariable: string;
+      fromVariablePropPath?: string[];
+    };
+  },
+>(options: {
   id?: string;
   name?: string;
-  inputs?: { name: string; type: DataType['type']; required?: boolean }[];
-  outputs: {
-    name: string;
-    type: DataType['type'];
-    required?: boolean;
-    fromVariable: string;
-    fromVariablePropPath?: string[];
-  }[];
+  inputs: I;
+  outputs: O;
   processes?: PipelineAgentProcessParameter[];
 }): PipelineAgentDefinition {
-  const inputs: OrderedRecord<RunnableInput> = OrderedRecord.fromArray(
-    options.inputs?.map((i) => ({
-      id: nanoid(),
-      name: i.name,
-      type: i.type,
-      required: i.required,
-    }))
-  );
+  const inputs = schemaToDataType(options.inputs);
 
   const processes: OrderedRecord<PipelineAgentProcess> = OrderedRecord.fromArray([]);
 
@@ -240,23 +243,17 @@ export function createPipelineAgentDefinition(options: {
     });
   }
 
-  const outputs: OrderedRecord<PipelineAgentOutput> = OrderedRecord.fromArray<PipelineAgentOutput>(
-    options.outputs.map((output) => {
+  const outputs = OrderedRecord.fromArray<PipelineAgentOutput>(
+    OrderedRecord.map(schemaToDataType(options.outputs), (output) => {
+      const { fromVariable, fromVariablePropPath } = options.outputs[output.name!]!;
+
       const from =
-        OrderedRecord.find(inputs, (i) => i.name === output.fromVariable) ||
-        OrderedRecord.find(processes, (p) => p.name === output.fromVariable);
+        OrderedRecord.find(inputs, (i) => i.name === fromVariable) ||
+        OrderedRecord.find(processes, (p) => p.name === fromVariable);
 
       if (!from) throw new Error(`Output ${output.name} not found in inputs or processes`);
 
-      return {
-        id: nanoid(),
-        name: output.name,
-        type: output.type,
-        required: output.required,
-        from: 'variable',
-        fromVariableId: from.id,
-        fromVariablePropPath: output.fromVariablePropPath,
-      };
+      return { ...output, from: 'variable', fromVariableId: from.id, fromVariablePropPath };
     })
   );
 

@@ -1,26 +1,22 @@
-import { get, isNil } from 'lodash';
 import { nanoid } from 'nanoid';
 import { inject, injectable } from 'tsyringe';
 
 import { TYPES } from './constants';
 import type { Context } from './context';
-import { DataType } from './data-type';
 import { LLMModel, LLMModelInputMessage, LLMModelInputs, LLMModelOptions } from './llm-model';
-import {
-  RunOptions,
-  Runnable,
-  RunnableDefinition,
-  RunnableInput,
-  RunnableResponse,
-  RunnableResponseStream,
-} from './runnable';
-import { OrderedRecord, isNonNullable, renderMessage } from './utils';
+import { RunOptions, Runnable, RunnableDefinition, RunnableResponse, RunnableResponseStream } from './runnable';
+import { OrderedRecord, renderMessage } from './utils';
+import { ExtractRunnableInputType, ExtractRunnableOutputType } from './utils/runnable-type';
+import { ObjectUnionToIntersection } from './utils/union';
 
 @injectable()
 export class LLMDecisionAgent<I extends { [key: string]: any } = {}, O extends {} = {}> extends Runnable<I, O> {
-  static create<I extends {} = {}, O extends {} = {}>(
-    options: Parameters<typeof createLLMDecisionAgentDefinition>[0]
-  ): LLMDecisionAgent<I, O> {
+  static create<Case extends DecisionAgentCaseParameter>(
+    options: Parameters<typeof createLLMDecisionAgentDefinition<Case>>[0]
+  ): LLMDecisionAgent<
+    ObjectUnionToIntersection<ExtractRunnableInputType<Case['runnable']>>,
+    ExtractRunnableOutputType<Case['runnable']>
+  > {
     const definition = createLLMDecisionAgentDefinition(options);
 
     return new LLMDecisionAgent(definition);
@@ -88,61 +84,24 @@ export class LLMDecisionAgent<I extends { [key: string]: any } = {}, O extends {
     const caseToCall = cases.find((i) => i.name === functionNameToCall);
     if (!caseToCall) throw new Error('Case not found');
 
-    // NOTE: 将 input 转换为 variables，其中 key 为 inputId，value 为 input 的值
-    const variables: { [processId: string]: any } = Object.fromEntries(
-      OrderedRecord.map(this.definition.inputs, (i) => {
-        const value = input[i.name || i.id];
-        if (isNil(value)) return null;
-
-        return [i.id, value];
-      }).filter(isNonNullable)
-    );
-
-    const inputForCase = Object.fromEntries(
-      Object.entries(caseToCall.input ?? {})
-        .map(([inputId, { from, fromVariableId, fromVariablePropPath }]) => {
-          const targetInput = OrderedRecord.find(caseToCall.runnable.definition.inputs, (i) => i.id === inputId);
-          if (!targetInput?.name) return null;
-
-          if (from !== 'variable' || !fromVariableId) return null;
-
-          const v = variables[fromVariableId];
-          const value = fromVariablePropPath?.length ? get(v, fromVariablePropPath) : v;
-
-          return [targetInput.name, value];
-        })
-        .filter(isNonNullable)
-    );
-
     // TODO: check result structure and omit undefined values
-    return (await caseToCall.runnable.run(inputForCase, options)) as RunnableResponse<O>;
+    return (await caseToCall.runnable.run(input, options)) as RunnableResponse<O>;
   }
 }
 
-export interface DecisionAgentCaseParameter<I extends {} = {}, O extends {} = {}, R = Runnable<I, O>> {
+export interface DecisionAgentCaseParameter<R extends Runnable = Runnable> {
   name?: string;
   description?: string;
   runnable: R;
-  input?: { [key: string]: { fromVariable: string; fromVariablePropPath?: string[] } | undefined };
 }
 
-export function createLLMDecisionAgentDefinition(options: {
+export function createLLMDecisionAgentDefinition<Case extends DecisionAgentCaseParameter>(options: {
   id?: string;
   name?: string;
-  inputs?: { name: string; type: DataType['type']; required?: boolean }[];
   messages: string;
   modelOptions?: LLMModelOptions;
-  cases: DecisionAgentCaseParameter[];
+  cases: Case[];
 }): LLMDecisionAgentDefinition {
-  const inputs: OrderedRecord<RunnableInput> = OrderedRecord.fromArray(
-    options.inputs?.map((i) => ({
-      id: nanoid(),
-      name: i.name,
-      type: i.type,
-      required: i.required,
-    }))
-  );
-
   const messages: OrderedRecord<LLMModelInputMessage & { id: string }> = OrderedRecord.fromArray([
     {
       id: nanoid(),
@@ -157,37 +116,6 @@ export function createLLMDecisionAgentDefinition(options: {
       name: c.name || c.runnable.name,
       description: c.description,
       runnable: { id: c.runnable.id },
-      // TODO: pass input from decision to case runnable
-      input: Object.fromEntries(
-        OrderedRecord.map<[string, NonNullable<LLMDecisionCase['input']>[string]] | null, RunnableInput>(
-          c.runnable.definition.inputs,
-          (inputOfCase) => {
-            const i = c.input?.[inputOfCase.name || inputOfCase.id];
-            if (!i) {
-              if (inputOfCase.required) {
-                throw new Error(
-                  `Input ${inputOfCase.name || inputOfCase.id} for case ${c.runnable.name || c.runnable.id} is required`
-                );
-              }
-
-              // ignore optional input
-              return null;
-            }
-
-            const inputFromDecision = OrderedRecord.find(inputs, (input) => input.name === i.fromVariable);
-            if (!inputFromDecision) throw new Error(`Input ${i.fromVariable} not found`);
-
-            return [
-              inputOfCase.id,
-              {
-                from: 'variable',
-                fromVariableId: inputFromDecision.id,
-                fromVariablePropPath: i.fromVariablePropPath,
-              },
-            ];
-          }
-        ).filter(isNonNullable)
-      ),
     }))
   );
 
@@ -195,7 +123,8 @@ export function createLLMDecisionAgentDefinition(options: {
     id: options.id || options.name || nanoid(),
     name: options.name,
     type: 'llm_decision_agent',
-    inputs,
+    // TODO: decision agent inputs should be the intersection of all case inputs
+    inputs: OrderedRecord.fromArray([]),
     // TODO: decision agent outputs should be the union of all case outputs
     outputs: OrderedRecord.fromArray([]),
     messages,

@@ -1,3 +1,8 @@
+## 0.4.202 (2025-1-13)
+
+- chore: strict type annotation for agent definitions
+- chore: simplify inputs/outputs for creating agent
+
 ## 0.4.201 (2025-1-10)
 
 - feat: improve input parameter table style & validation message
