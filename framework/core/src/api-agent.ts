@@ -27,7 +27,7 @@ export class APIAgent<I extends {} = {}, O extends {} = {}> extends Runnable<I, 
   async run(input: I, options?: RunOptions & { stream?: false }): Promise<O>;
   async run(input: I, options?: RunOptions): Promise<RunnableResponse<O>> {
     const {
-      definition: { api },
+      definition: { api, apiKey },
     } = this;
 
     if (!api.url) throw new Error('API url is required');
@@ -43,6 +43,7 @@ export class APIAgent<I extends {} = {}, O extends {} = {}> extends Runnable<I, 
         data: isGet ? undefined : input,
         headers: {
           'x-csrf-token': Cookie.get('x-csrf-token'),
+          ...(apiKey && { Authorization: `Bearer ${apiKey}` }),
           ...(api.headers || {}),
         },
       });
@@ -69,7 +70,7 @@ type API = {
 export function createAPIAgentDefinition<
   I extends { [name: string]: DataTypeSchema },
   O extends { [name: string]: DataTypeSchema },
->(options: { id?: string; name?: string; inputs: I; outputs: O; api: API }): APIAgentDefinition {
+>(options: { id?: string; name?: string; inputs: I; outputs: O; api: API; apiKey?: string }): APIAgentDefinition {
   return {
     id: options.id || options.name || nanoid(),
     name: options.name,
@@ -77,10 +78,12 @@ export function createAPIAgentDefinition<
     inputs: schemaToDataType(options.inputs),
     outputs: schemaToDataType(options.outputs),
     api: options.api,
+    apiKey: options.apiKey,
   };
 }
 
 export interface APIAgentDefinition extends RunnableDefinition {
   type: 'api_agent';
   api: API;
+  apiKey?: string;
 }
