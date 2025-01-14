@@ -35,7 +35,7 @@ export interface MemoryMessage {
 export type MemoryActions<T> =
   | {
       action: 'add';
-      inputs: {
+      input: {
         messages: MemoryMessage[];
         options?: {
           userId?: string;
@@ -43,13 +43,13 @@ export type MemoryActions<T> =
           metadata?: MemoryMetadata;
         };
       };
-      outputs: {
+      output: {
         results: MemoryActionItem<T>[];
       };
     }
   | {
       action: 'search';
-      inputs: {
+      input: {
         query: string;
         options?: {
           k?: number;
@@ -59,13 +59,13 @@ export type MemoryActions<T> =
           sort?: MemorySortOptions;
         };
       };
-      outputs: {
+      output: {
         results: MemoryItemWithScore<T>[];
       };
     }
   | {
       action: 'filter';
-      inputs: {
+      input: {
         options?: {
           k?: number;
           userId?: string;
@@ -74,22 +74,22 @@ export type MemoryActions<T> =
           sort?: MemorySortOptions;
         };
       };
-      outputs: {
+      output: {
         results: MemoryItem<T>[];
       };
     }
   | {
       action: 'get';
-      inputs: {
+      input: {
         memoryId: string;
       };
-      outputs: {
+      output: {
         result: MemoryItem<T> | null;
       };
     }
   | {
       action: 'create';
-      inputs: {
+      input: {
         memory: T;
         options?: {
           userId?: string;
@@ -97,31 +97,31 @@ export type MemoryActions<T> =
           metadata?: MemoryMetadata;
         };
       };
-      outputs: {
+      output: {
         result: MemoryItem<T>;
       };
     }
   | {
       action: 'update';
-      inputs: {
+      input: {
         memoryId: string;
         memory: T;
       };
-      outputs: {
+      output: {
         result: MemoryItem<T> | null;
       };
     }
   | {
       action: 'delete';
-      inputs: {
+      input: {
         filter: string | string[] | Record<string, any>;
       };
-      outputs: {};
+      output: {};
     }
   | {
       action: 'reset';
-      inputs: {};
-      outputs: {};
+      input: {};
+      output: {};
     };
 
 export interface SortItem {
@@ -131,7 +131,7 @@ export interface SortItem {
 
 export type MemorySortOptions = SortItem | SortItem[];
 
-export abstract class Memory<T, C = undefined> extends Runnable<MemoryActions<T>, MemoryActions<T>['outputs']> {
+export abstract class Memory<T, C = undefined> extends Runnable<MemoryActions<T>, MemoryActions<T>['output']> {
   constructor() {
     super({
       id: 'memory',
@@ -145,36 +145,36 @@ export abstract class Memory<T, C = undefined> extends Runnable<MemoryActions<T>
   abstract runner?: MemoryRunner<T, C>;
 
   abstract add(
-    messages: Extract<MemoryActions<T>, { action: 'add' }>['inputs']['messages'],
-    options?: Extract<MemoryActions<T>, { action: 'add' }>['inputs']['options']
-  ): Promise<Extract<MemoryActions<T>, { action: 'add' }>['outputs']>;
+    messages: Extract<MemoryActions<T>, { action: 'add' }>['input']['messages'],
+    options?: Extract<MemoryActions<T>, { action: 'add' }>['input']['options']
+  ): Promise<Extract<MemoryActions<T>, { action: 'add' }>['output']>;
 
   abstract search(
-    query: Extract<MemoryActions<T>, { action: 'search' }>['inputs']['query'],
-    options?: Extract<MemoryActions<T>, { action: 'search' }>['inputs']['options']
-  ): Promise<Extract<MemoryActions<T>, { action: 'search' }>['outputs']>;
+    query: Extract<MemoryActions<T>, { action: 'search' }>['input']['query'],
+    options?: Extract<MemoryActions<T>, { action: 'search' }>['input']['options']
+  ): Promise<Extract<MemoryActions<T>, { action: 'search' }>['output']>;
 
   abstract filter(
-    options: Extract<MemoryActions<T>, { action: 'filter' }>['inputs']['options']
-  ): Promise<Extract<MemoryActions<T>, { action: 'filter' }>['outputs']>;
+    options: Extract<MemoryActions<T>, { action: 'filter' }>['input']['options']
+  ): Promise<Extract<MemoryActions<T>, { action: 'filter' }>['output']>;
 
   abstract get(
-    memoryId: Extract<MemoryActions<T>, { action: 'get' }>['inputs']['memoryId']
-  ): Promise<Extract<MemoryActions<T>, { action: 'get' }>['outputs']>;
+    memoryId: Extract<MemoryActions<T>, { action: 'get' }>['input']['memoryId']
+  ): Promise<Extract<MemoryActions<T>, { action: 'get' }>['output']>;
 
   abstract create(
-    memory: Extract<MemoryActions<T>, { action: 'create' }>['inputs']['memory'],
-    options?: Extract<MemoryActions<T>, { action: 'create' }>['inputs']['options']
-  ): Promise<Extract<MemoryActions<T>, { action: 'create' }>['outputs']>;
+    memory: Extract<MemoryActions<T>, { action: 'create' }>['input']['memory'],
+    options?: Extract<MemoryActions<T>, { action: 'create' }>['input']['options']
+  ): Promise<Extract<MemoryActions<T>, { action: 'create' }>['output']>;
 
   abstract update(
-    memoryId: Extract<MemoryActions<T>, { action: 'update' }>['inputs']['memoryId'],
+    memoryId: Extract<MemoryActions<T>, { action: 'update' }>['input']['memoryId'],
     memory: T
-  ): Promise<Extract<MemoryActions<T>, { action: 'update' }>['outputs']>;
+  ): Promise<Extract<MemoryActions<T>, { action: 'update' }>['output']>;
 
   abstract delete(
-    memoryId: Extract<MemoryActions<T>, { action: 'delete' }>['inputs']['filter']
-  ): Promise<Extract<MemoryActions<T>, { action: 'delete' }>['outputs']>;
+    memoryId: Extract<MemoryActions<T>, { action: 'delete' }>['input']['filter']
+  ): Promise<Extract<MemoryActions<T>, { action: 'delete' }>['output']>;
 
   abstract reset(): Promise<void>;
 }

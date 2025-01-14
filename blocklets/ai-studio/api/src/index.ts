@@ -1,6 +1,8 @@
 import 'reflect-metadata';
 import 'express-async-errors';
 
+import '../../examples/searchable';
+
 import { access, mkdir } from 'fs/promises';
 import path from 'path';
 

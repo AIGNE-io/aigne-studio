@@ -1,4 +1,5 @@
 import { DataType } from './data-type';
+import { Retriever } from './retriever';
 import { OrderedRecord } from './utils/ordered-map';
 
 export interface RunOptions {
@@ -32,6 +33,14 @@ export abstract class Runnable<I extends {} = {}, O extends {} = {}> {
   abstract run(input: I, options: RunOptions & { stream: true }): Promise<RunnableResponseStream<O>>;
   abstract run(input: I, options?: RunOptions & { stream?: false }): Promise<O>;
   abstract run(input: I, options?: RunOptions): Promise<RunnableResponse<O>>;
+
+  async retrieve(id: string) {
+    const retriever = this.definition.retrievers?.[id]?.retriever;
+    if (!retriever) throw new Error(`Retriever not found: ${id}`);
+    // TODO: pass input to retriever
+    // TODO: cache retriever result
+    return retriever.run({});
+  }
 }
 
 export interface RunnableDefinition {
@@ -43,9 +52,18 @@ export interface RunnableDefinition {
 
   description?: string;
 
+  retrievers?: OrderedRecord<RetrieverItem<any>>;
+
   inputs: OrderedRecord<RunnableInput>;
 
   outputs: OrderedRecord<RunnableOutput>;
+}
+
+export interface RetrieverItem<T> {
+  id: string;
+  name?: string;
+  description?: string;
+  retriever: Retriever<T>;
 }
 
 export type RunnableInput = DataType;
