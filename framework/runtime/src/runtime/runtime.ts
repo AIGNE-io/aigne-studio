@@ -1,6 +1,7 @@
 import { join } from 'path';
 
 import {
+  APIAgent,
   Context,
   FunctionAgent,
   LLMAgent,
@@ -80,6 +81,7 @@ export class Runtime<Agents = {}, State = {}> implements Context<State> {
     this.container.register(TYPES.functionRunner, { useClass: QuickJSRunner });
     this.container.register('llm_decision_agent', { useClass: LLMDecisionAgent });
     this.container.register('local_function_agent', { useClass: LocalFunctionAgent });
+    this.container.register('api_agent', { useClass: APIAgent });
     this.container.register(TYPES.llmModelConfiguration, { useFactory: () => this.config.llmModel || {} });
 
     // NOTE: 兼容旧版的 Agent 定义，统一使用 AgentV1 来处理
