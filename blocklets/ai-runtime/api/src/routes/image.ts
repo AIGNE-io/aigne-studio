@@ -1,6 +1,6 @@
-import { readFileSync, rmSync } from 'fs';
+import { rmSync } from 'fs';
 
-import { call, getComponentMountPoint } from '@blocklet/sdk/lib/component';
+import { getComponentMountPoint } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
 import { Request, Response, Router } from 'express';
 import mime from 'mime-types';
@@ -9,6 +9,8 @@ import { nanoid } from 'nanoid';
 import { joinURL } from 'ufo';
 
 import { Config } from '../libs/env';
+
+const { uploadToMediaKit } = require('@blocklet/uploader-server');
 
 const router = Router();
 
@@ -44,11 +46,12 @@ router.post('/upload', upload.array('images', maxImageCount), async (req: Reques
 
   try {
     const uploadPromises = files.map(async (file) => {
-      const { data: result } = await call<{ filename: string }>({
-        name: 'image-bin',
-        path: '/api/sdk/uploads',
-        headers: { 'x-user-did': config.env.appId },
-        data: { base64: readFileSync(file.path).toString('base64'), filename: file.originalname },
+      const { data: result } = await uploadToMediaKit({
+        fileName: file.originalname,
+        filePath: file.path,
+        extraComponentCallOptions: {
+          headers: { 'x-user-did': config.env.appId },
+        },
       });
 
       return {
