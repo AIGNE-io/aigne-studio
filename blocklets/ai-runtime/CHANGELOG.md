@@ -1,3 +1,7 @@
+## 0.4.204 (2025-1-14)
+
+- refactor: use uploadToMediaKit instead of component call
+
 ## 0.4.203 (2025-1-13)
 
 - fix: remove shiki dependency
