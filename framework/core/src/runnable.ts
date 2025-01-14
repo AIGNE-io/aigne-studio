@@ -1,4 +1,5 @@
 import { DataType } from './data-type';
+import { Memorable } from './memorable';
 import { OrderedRecord } from './utils/ordered-map';
 
 export interface RunOptions {
@@ -43,9 +44,29 @@ export interface RunnableDefinition {
 
   description?: string;
 
+  memories?: OrderedRecord<RunnableMemory>;
+
   inputs: OrderedRecord<RunnableInput>;
 
   outputs: OrderedRecord<RunnableOutput>;
+}
+
+export interface RunnableMemory {
+  id: string;
+
+  name?: string;
+
+  memory?: Memorable<any>;
+
+  query?: {
+    from: 'variable';
+    fromVariableId?: string;
+    fromVariablePropPath?: string[];
+  };
+
+  options?: {
+    k?: number;
+  };
 }
 
 export type RunnableInput = DataType;

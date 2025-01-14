@@ -58,6 +58,23 @@ export namespace OrderedRecord {
     return undefined;
   }
 
+  export function filter<T extends { id: string }>(
+    record: OrderedRecord<T> | undefined,
+    predicate: (value: T, index: number) => boolean
+  ): T[] {
+    if (!record) return [];
+
+    const result: T[] = [];
+
+    for (let i = 0; i < record.$indexes.length; i++) {
+      const id = record.$indexes[i]!;
+      const value = record[id]!;
+      if (predicate(value, i)) result.push(value);
+    }
+
+    return result;
+  }
+
   export function at<T extends { id: string }>(record: OrderedRecord<T> | undefined, index: number): T | undefined {
     if (!record?.$indexes.length) return undefined;
 

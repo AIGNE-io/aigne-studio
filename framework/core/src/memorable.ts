@@ -1,5 +1,6 @@
 import { camelCase, startCase } from 'lodash';
 
+import { LLMModelInputMessage } from './llm-model';
 import { Runnable } from './runnable';
 import { OrderedRecord } from './utils';
 
@@ -27,10 +28,7 @@ export interface MemoryItemWithScore<T> extends MemoryItem<T> {
   score: number;
 }
 
-export interface MemoryMessage {
-  role: string;
-  content: string;
-}
+export type MemoryMessage = LLMModelInputMessage;
 
 export type MemoryActions<T> =
   | {
@@ -131,7 +129,7 @@ export interface SortItem {
 
 export type MemorySortOptions = SortItem | SortItem[];
 
-export abstract class Memory<T, C = undefined> extends Runnable<MemoryActions<T>, MemoryActions<T>['outputs']> {
+export abstract class Memorable<T, C = undefined> extends Runnable<MemoryActions<T>, MemoryActions<T>['outputs']> {
   constructor() {
     super({
       id: 'memory',
