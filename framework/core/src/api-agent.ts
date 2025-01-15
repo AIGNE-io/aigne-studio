@@ -4,6 +4,7 @@ import { pick } from 'lodash';
 import { nanoid } from 'nanoid';
 import { inject, injectable } from 'tsyringe';
 
+import { AuthConfig, getAuthParams } from './api-auth';
 import { TYPES } from './constants';
 import { DataTypeSchema, SchemaMapType, schemaToDataType } from './data-type-schema';
 import { RunOptions, Runnable, RunnableDefinition, RunnableResponse, RunnableResponseStream } from './runnable';
@@ -27,7 +28,7 @@ export class APIAgent<I extends {} = {}, O extends {} = {}> extends Runnable<I, 
   async run(input: I, options?: RunOptions & { stream?: false }): Promise<O>;
   async run(input: I, options?: RunOptions): Promise<RunnableResponse<O>> {
     const {
-      definition: { api, apiKey },
+      definition: { api },
     } = this;
 
     if (!api.url) throw new Error('API url is required');
@@ -35,17 +36,24 @@ export class APIAgent<I extends {} = {}, O extends {} = {}> extends Runnable<I, 
     const method = api.method || 'GET';
     const isGet = method.toLowerCase() === 'get';
 
+    const authParams = getAuthParams(api.auth);
+    const hasCookies = Object.keys(authParams.cookies || {}).length > 0;
+
     try {
       const response = await axios({
         url: api.url,
         method,
-        params: isGet ? input : undefined,
+        params: {
+          ...(isGet ? input : {}),
+          ...(authParams.query || {}),
+        },
         data: isGet ? undefined : input,
         headers: {
           'x-csrf-token': Cookie.get('x-csrf-token'),
-          ...(apiKey && { Authorization: `Bearer ${apiKey}` }),
+          ...(authParams.headers || {}),
           ...(api.headers || {}),
         },
+        ...(hasCookies ? { ...authParams.cookies, withCredentials: true } : {}),
       });
 
       const result = response.data;
@@ -62,15 +70,16 @@ export class APIAgent<I extends {} = {}, O extends {} = {}> extends Runnable<I, 
 type HTTPMethod = 'get' | 'post' | 'put' | 'delete';
 
 type API = {
-  method?: Uppercase<HTTPMethod> | Lowercase<HTTPMethod>;
   url: string;
+  method?: Uppercase<HTTPMethod> | Lowercase<HTTPMethod>;
   headers?: { [key: string]: string };
+  auth?: AuthConfig;
 };
 
 export function createAPIAgentDefinition<
   I extends { [name: string]: DataTypeSchema },
   O extends { [name: string]: DataTypeSchema },
->(options: { id?: string; name?: string; inputs: I; outputs: O; api: API; apiKey?: string }): APIAgentDefinition {
+>(options: { id?: string; name?: string; inputs: I; outputs: O; api: API }): APIAgentDefinition {
   return {
     id: options.id || options.name || nanoid(),
     name: options.name,
@@ -78,12 +87,10 @@ export function createAPIAgentDefinition<
     inputs: schemaToDataType(options.inputs),
     outputs: schemaToDataType(options.outputs),
     api: options.api,
-    apiKey: options.apiKey,
   };
 }
 
 export interface APIAgentDefinition extends RunnableDefinition {
   type: 'api_agent';
   api: API;
-  apiKey?: string;
 }
