@@ -3,6 +3,7 @@ import { join } from 'path';
 import {
   APIAgent,
   Context,
+  ContextState,
   FunctionAgent,
   LLMAgent,
   LLMDecisionAgent,
@@ -44,9 +45,12 @@ export interface RuntimeConfiguration {
 }
 
 @injectable()
-export class Runtime<Agents = {}, State = {}> implements Context<State> {
+export class Runtime<Agents = {}, State extends ContextState = ContextState> implements Context<State> {
   // TODO: 拆分加载逻辑，避免 Runtime 代码臃肿
-  static async load<Agents = {}, State = {}>(options: { path: string }, state: State): Promise<Runtime<Agents, State>> {
+  static async load<Agents = {}, State extends ContextState = ContextState>(
+    options: { path: string },
+    state: State
+  ): Promise<Runtime<Agents, State>> {
     const projectFilePath = join(options.path, 'project.yaml');
     const project = parse((await readFile(projectFilePath)).toString());
     // TODO: validate parsed project
@@ -144,7 +148,7 @@ export class Runtime<Agents = {}, State = {}> implements Context<State> {
     OrderedRecord.pushOrUpdate(this.project.runnables, ...definition);
   }
 
-  scope<State = {}>(state: State): Runtime<Agents, State> {
+  scope<State extends ContextState = ContextState>(state: State): Runtime<Agents, State> {
     return new Runtime(this.project, state, this.config);
   }
 }

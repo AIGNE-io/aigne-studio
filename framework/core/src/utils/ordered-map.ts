@@ -58,6 +58,23 @@ export namespace OrderedRecord {
     return undefined;
   }
 
+  export function filter<T extends { id: string }>(
+    record: OrderedRecord<T> | undefined,
+    predicate: (value: T, index: number) => boolean
+  ): T[] {
+    if (!record) return [];
+
+    const result: T[] = [];
+
+    for (let i = 0; i < record.$indexes.length; i++) {
+      const id = record.$indexes[i]!;
+      const value = record[id]!;
+      if (predicate(value, i)) result.push(value);
+    }
+
+    return result;
+  }
+
   export function at<T extends { id: string }>(record: OrderedRecord<T> | undefined, index: number): T | undefined {
     if (!record?.$indexes.length) return undefined;
 
@@ -74,6 +91,19 @@ export namespace OrderedRecord {
     }
 
     return record;
+  }
+
+  export function merge<T extends { id: string }>(...records: OrderedRecord<T>[]) {
+    const result: OrderedRecord<T> = { $indexes: [] as any };
+
+    for (const record of records) {
+      for (const id of record.$indexes) {
+        if (!result[id]) result.$indexes.push(id);
+        result[id] = record[id]!;
+      }
+    }
+
+    return result;
   }
 
   export function pushOrUpdate<T extends { id: string }>(record: OrderedRecord<T>, ...items: T[]) {
