@@ -83,15 +83,40 @@ app.post('/api/test/post', (req, res) => {
 const chat = APIAgent.create({
   name: 'chat',
   inputs: {
+    id: {
+      type: 'string',
+      required: true,
+      in: 'path',
+    },
     question: {
+      type: 'string',
+      required: true,
+      in: 'body',
+    },
+    question1: {
+      type: 'string',
+      required: true,
+      in: 'query',
+    },
+    question2: {
+      type: 'string',
+      required: true,
+      in: 'header',
+    },
+    question3: {
       type: 'string',
       required: true,
     },
   },
   outputs: {},
   api: {
-    url: 'https://bbqaxpcton6v25rupncceb3fdfdk4gglqvdooi35u2y.did.abtnet.io/ai-studio/api/test/post',
+    url: 'https://bbqaxpcton6v25rupncceb3fdfdk4gglqvdooi35u2y.did.abtnet.io/ai-studio/api/test/{id}',
     method: 'POST',
+    auth: {
+      type: 'bearer',
+      token: '1234567890',
+      in: 'header',
+    },
   },
 });
 

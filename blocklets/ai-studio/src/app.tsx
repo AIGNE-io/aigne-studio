@@ -33,7 +33,9 @@ const basename = window.blocklet?.prefix || '/';
 export default function App() {
   const init = async () => {
     console.log('init');
-    await (await chatbot.resolve('chat')).run({ question: '1' }, { stream: true });
+    await (
+      await chatbot.resolve('chat')
+    ).run({ question: '1', question1: '1', question2: '1', question3: '1', id: 'post' }, { stream: true });
   };
 
   useEffect(() => {
