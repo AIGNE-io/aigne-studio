@@ -1,14 +1,6 @@
 import { agentV1ToRunnableDefinition, getAdapter } from '@aigne/agent-v1';
 import type { Context, LLMModelConfiguration, Runnable } from '@aigne/core';
-import {
-  LLMModel,
-  LLMModelInputs,
-  LLMModelOutputs,
-  RunOptions,
-  RunnableResponse,
-  RunnableResponseStream,
-  TYPES,
-} from '@aigne/core';
+import { LLMModel, LLMModelInputs, TYPES } from '@aigne/core';
 import {
   ChatCompletionInput,
   ChatCompletionResponse,
@@ -31,12 +23,7 @@ export class BlockletLLMModel extends LLMModel {
     super(context);
   }
 
-  async run(
-    input: LLMModelInputs,
-    options: RunOptions & { stream: true }
-  ): Promise<RunnableResponseStream<LLMModelOutputs>>;
-  async run(input: LLMModelInputs, options?: RunOptions & { stream?: false }): Promise<LLMModelOutputs>;
-  async run(input: LLMModelInputs, options?: RunOptions): Promise<RunnableResponse<LLMModelOutputs>> {
+  async process(input: LLMModelInputs) {
     const { chatCompletions } = await import('@blocklet/ai-kit/api/call');
 
     const model =
@@ -78,48 +65,27 @@ export class BlockletLLMModel extends LLMModel {
       })) as any as ReadableStream<ChatCompletionResponse>; // TODO: fix chatCompletions response type in @blocklet/ai-kit;
     }
 
-    if (options?.stream) {
-      return new ReadableStream({
-        async start(controller) {
-          try {
-            for await (const chunk of stream!) {
-              if (isChatCompletionChunk(chunk)) {
-                const { content, toolCalls } = chunk.delta;
+    return new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const chunk of stream!) {
+            if (isChatCompletionChunk(chunk)) {
+              const { content, toolCalls } = chunk.delta;
 
-                controller.enqueue({
-                  $text: content || undefined,
-                  delta: toolCalls ? { toolCalls } : undefined,
-                });
-              } else if (isChatCompletionError(chunk)) {
-                throw new Error(chunk.error.message);
-              }
+              controller.enqueue({
+                $text: content || undefined,
+                delta: toolCalls ? { toolCalls } : undefined,
+              });
+            } else if (isChatCompletionError(chunk)) {
+              throw new Error(chunk.error.message);
             }
-          } catch (error) {
-            controller.error(error);
-          } finally {
-            controller.close();
           }
-        },
-      });
-    }
-
-    const result: LLMModelOutputs = {};
-
-    for await (const chunk of stream) {
-      if (isChatCompletionChunk(chunk)) {
-        if (chunk.delta.content) {
-          result.$text ||= '';
-          result.$text += chunk.delta.content;
+        } catch (error) {
+          controller.error(error);
+        } finally {
+          controller.close();
         }
-        if (chunk.delta.toolCalls?.length) {
-          result.toolCalls ||= [];
-          result.toolCalls.push(...chunk.delta.toolCalls);
-        }
-      } else if (isChatCompletionError(chunk)) {
-        throw new Error(chunk.error.message);
-      }
-    }
-
-    return result;
+      },
+    });
   }
 }

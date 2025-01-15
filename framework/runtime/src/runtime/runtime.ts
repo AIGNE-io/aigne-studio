@@ -125,24 +125,41 @@ export class Runtime<Agents = {}, State extends ContextState = ContextState> imp
   }
 
   protected resolveSync<T extends Runnable>(id: string | RunnableDefinition): T {
-    const agent = typeof id === 'string' ? this.project.runnables?.[id] : id;
-    if (!agent) throw new Error(`No such agent ${id}`);
+    if (typeof id === 'string') {
+      const runnable = this.runnables[id];
+      if (runnable) return runnable as T;
+    }
 
-    const childContainer = this.container.createChildContainer().register(TYPES.definition, { useValue: agent });
+    const definition = typeof id === 'string' ? this.project.runnables[id] : id;
 
-    const result = childContainer.resolve<Runnable>(agent.type) as T;
+    if (definition) {
+      const childContainer = this.container.createChildContainer().register(TYPES.definition, { useValue: definition });
 
-    childContainer.dispose();
+      const result = childContainer.resolve<T>(definition.type);
 
-    return result;
+      childContainer.dispose();
+
+      return result;
+    }
+
+    throw new Error(`Runnable not found: ${id}`);
   }
 
   async resolve<T extends Runnable>(id: string | RunnableDefinition): Promise<T> {
     return this.resolveSync<T>(id);
   }
 
-  register<A extends Array<RunnableDefinition> = []>(...definition: A) {
-    OrderedRecord.pushOrUpdate(this.project.runnables, ...definition);
+  private runnables: OrderedRecord<Runnable> = OrderedRecord.fromArray([]);
+
+  register<R extends Array<RunnableDefinition | Runnable> = []>(...runnables: R): void {
+    for (const runnable of runnables) {
+      if (runnable instanceof Runnable) OrderedRecord.pushOrUpdate(this.runnables, runnable);
+      else OrderedRecord.pushOrUpdate(this.project.runnables, runnable);
+    }
+  }
+
+  resolveDependency<T>(token: string | symbol): T {
+    return this.container.resolve(token);
   }
 
   scope<State extends ContextState = ContextState>(state: State): Runtime<Agents, State> {

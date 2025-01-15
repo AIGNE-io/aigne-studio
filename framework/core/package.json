@@ -31,7 +31,7 @@
     "build:types": "tsc -p tsconfig.json --declaration --emitDeclarationOnly --outDir lib/types",
     "clean": "rimraf lib",
     "prepublishOnly": "npm run build",
-    "test": "jest src/"
+    "test": "bun test"
   },
   "dependencies": {
     "@abtnode/client": "^1.16.37",

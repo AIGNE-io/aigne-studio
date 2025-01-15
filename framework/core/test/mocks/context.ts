@@ -55,8 +55,8 @@ export class MockContext implements Context {
 
   register<R extends Array<RunnableDefinition | Runnable> = []>(...runnables: R): void {
     for (const runnable of runnables) {
-      if (runnable instanceof Runnable) OrderedRecord.push(this.runnables, runnable);
-      else OrderedRecord.push(this.definitions, runnable);
+      if (runnable instanceof Runnable) OrderedRecord.pushOrUpdate(this.runnables, runnable);
+      else OrderedRecord.pushOrUpdate(this.definitions, runnable);
     }
   }
 }

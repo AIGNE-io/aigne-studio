@@ -152,11 +152,13 @@ export class PipelineAgent<
   }
 }
 
-type VariableWithPropPath<Vars extends { [name: string]: DataTypeSchema }, Var extends keyof Vars = keyof Vars> = {
-  // TODO: do not use `any`, make input type more strict
-  // fromVariable: Var;
-  // fromVariablePropPath?: VariablePaths<Vars, Var>;
+// type VariableWithPropPath<Vars extends { [name: string]: DataTypeSchema }, Var extends keyof Vars = keyof Vars> = {
+// TODO: do not use `any`, make input type more strict
+// fromVariable: Var;
+// fromVariablePropPath?: VariablePaths<Vars, Var>;
+// }
 
+type VariableWithPropPath = {
   fromVariable: string;
   fromVariablePropPath?: (string | number)[];
 };
@@ -167,14 +169,14 @@ type VariableWithPropPath<Vars extends { [name: string]: DataTypeSchema }, Var e
 // > = Vars[Var] extends DataTypeSchemaObject ? Array<keyof Vars[Var]['properties']> : never;
 
 export type PipelineAgentProcessParameter<
-  I extends { [name: string]: DataTypeSchema },
+  _I extends { [name: string]: DataTypeSchema },
   // TODO: do not use `any`, make input type more strict
   R extends Runnable = any,
   RI extends { [name: string]: DataTypeSchema } = ExtractRunnableInputType<R>,
 > = {
   runnable: R;
   input: MakeNullablePropertyOptional<{
-    [key in keyof RI]: VariableWithPropPath<I>;
+    [key in keyof RI]: VariableWithPropPath;
   }>;
 };
 
