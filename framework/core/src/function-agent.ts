@@ -2,7 +2,7 @@ import { nanoid } from 'nanoid';
 import { inject, injectable } from 'tsyringe';
 
 import { TYPES } from './constants';
-import { DataTypeSchema, SchemaMapType, schemaToDataType } from './data-type-schema';
+import { DataTypeSchema, SchemaMapType, schemaToDataType } from './definitions/data-type-schema';
 import { FunctionRunner } from './function-runner';
 import { RunOptions, Runnable, RunnableDefinition, RunnableResponse, RunnableResponseStream } from './runnable';
 import { objectToRunnableResponseStream } from './utils';

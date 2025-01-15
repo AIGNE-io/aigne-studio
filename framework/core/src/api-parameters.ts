@@ -5,21 +5,22 @@ import logger from './logger';
 import { RunnableDefinition } from './runnable';
 
 export type HTTPMethod = 'get' | 'post' | 'put' | 'delete';
+export type FormatMethod = Uppercase<HTTPMethod> | Lowercase<HTTPMethod>;
 
 export type API = {
   url: string;
-  method?: Uppercase<HTTPMethod> | Lowercase<HTTPMethod>;
-  headers?: { [key: string]: string };
+  method?: FormatMethod;
   auth?: AuthConfig;
 };
 
-type ParameterIn = {
-  in?: 'path' | 'query' | 'body' | 'header' | 'cookie';
+type ParameterLocation = 'path' | 'query' | 'body' | 'header' | 'cookie';
+type OpenAPIParameter = {
+  in?: ParameterLocation;
 };
 
-export type InputDataTypeSchema = DataTypeSchema & ParameterIn;
+export type InputDataTypeSchema = DataTypeSchema & OpenAPIParameter;
 
-interface AuthParametersResult extends AuthResult {
+interface ParametersResult extends AuthResult {
   url: string;
   method: string;
 
@@ -30,19 +31,19 @@ export function processParameters(
   api: API,
   inputs: RunnableDefinition['inputs'],
   input: Record<string, any>
-): AuthParametersResult {
+): ParametersResult {
   const method = (api.method || 'GET').toUpperCase();
 
-  const result: AuthParametersResult = {
+  const result: ParametersResult = {
     url: api.url,
     method,
-    headers: api.headers || {},
+    headers: {},
     query: {},
     cookies: {},
     body: {},
   };
 
-  const filterInputs = Object.values(inputs).filter((i): i is DataType & ParameterIn => !Array.isArray(i));
+  const filterInputs = Object.values(inputs).filter((i): i is DataType & OpenAPIParameter => !Array.isArray(i));
 
   // 处理路径参数
   let processedUrl = api.url;

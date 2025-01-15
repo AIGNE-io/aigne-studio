@@ -1,5 +1,6 @@
 import { MemorySortOptions, isNonNullable } from '@aigne/core';
-import type { DocumentOptions, Embedders, Index } from '@blocklet/search-kit-js';
+import type { DocumentOptions, Embedders, Hit, Index } from '@blocklet/search-kit-js';
+import omit from 'lodash/omit';
 import { LRUCache } from 'lru-cache';
 
 import { Retriever, VectorStoreDocument, VectorStoreSearchOptions } from '../core/type';
@@ -231,6 +232,10 @@ export class SearchKitRetriever<T> implements Retriever<T> {
       })
     ).hits;
 
-    return result;
+    return result.map(this.formatMemoryItem);
+  }
+
+  private formatMemoryItem(item: Hit<VectorStoreDocument<T>>): VectorStoreDocument<T> {
+    return omit(item, ['_formatted', '_matchesPosition', '_rankingScore', '_rankingScoreDetails', '_federation']);
   }
 }

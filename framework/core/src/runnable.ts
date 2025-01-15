@@ -1,4 +1,6 @@
-import { DataType } from './data-type';
+import type { Context, ContextState } from './context';
+import type { DataType } from './data-type';
+import type { Memorable } from './memorable';
 import { OrderedRecord } from './utils/ordered-map';
 
 export interface RunOptions {
@@ -7,8 +9,15 @@ export interface RunOptions {
 
 export type RunnableResponse<T> = T | RunnableResponseStream<T>;
 
-export abstract class Runnable<I extends {} = {}, O extends {} = {}> {
-  constructor(public definition: RunnableDefinition) {
+export abstract class Runnable<
+  I extends { [name: string]: any } = {},
+  O extends { [name: string]: any } = {},
+  State extends ContextState = ContextState,
+> {
+  constructor(
+    public definition: RunnableDefinition,
+    public context?: Context<State>
+  ) {
     this.inputs = Object.fromEntries(
       OrderedRecord.map(definition.inputs, (i) => [i.name || i.id, i])
     ) as typeof this.inputs;
@@ -43,9 +52,29 @@ export interface RunnableDefinition {
 
   description?: string;
 
+  memories?: OrderedRecord<RunnableMemory>;
+
   inputs: OrderedRecord<RunnableInput>;
 
   outputs: OrderedRecord<RunnableOutput>;
+}
+
+export interface RunnableMemory {
+  id: string;
+
+  name?: string;
+
+  memory?: Memorable<any>;
+
+  query?: {
+    from: 'variable';
+    fromVariableId?: string;
+    fromVariablePropPath?: string[];
+  };
+
+  options?: {
+    k?: number;
+  };
 }
 
 export type RunnableInput = DataType;

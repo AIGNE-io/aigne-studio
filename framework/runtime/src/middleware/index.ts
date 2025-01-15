@@ -29,7 +29,7 @@ export function createMiddleware(runtime: Runtime): Router {
       if (!projectId || !agentId) throw new Error('projectId and agentId are required');
       if (runtime.id !== projectId) throw new Error('projectId does not match runtime');
 
-      const scope = runtime.scope({ user: req.user });
+      const scope = runtime.scope({ userId: req.user?.did });
 
       const { input = {}, options } = await runAgentPayloadSchema.validateAsync(req.body, { stripUnknown: true });
 

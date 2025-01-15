@@ -1,10 +1,10 @@
-import { Context, OrderedRecord, Runnable, isNonNullable } from '@aigne/core';
+import { Context, ContextState, OrderedRecord, Runnable, isNonNullable } from '@aigne/core';
 
 import { ProjectDefinition } from '../runtime';
 import { Agent } from './agent';
 import { getRunnableDefinition } from './api/runtime';
 
-export class Runtime<Agents = {}, State = {}> implements Context<State> {
+export class Runtime<Agents = {}, State extends ContextState = ContextState> implements Context<State> {
   constructor(
     public definition: ProjectDefinition,
     public state: State

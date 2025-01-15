@@ -26,10 +26,10 @@ const defaultLLMModel = 'gpt-4o-mini';
 @injectable()
 export class BlockletLLMModel extends LLMModel {
   constructor(
-    @inject(TYPES.context) public context?: Context,
+    @inject(TYPES.context) context?: Context,
     @inject(TYPES.llmModelConfiguration) public config?: LLMModelConfiguration
   ) {
-    super();
+    super(context);
   }
 
   async run(
