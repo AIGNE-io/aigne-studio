@@ -8,25 +8,20 @@ import { nanoid } from 'nanoid';
 import { inject, injectable } from 'tsyringe';
 import { joinURL } from 'ufo';
 
-import { AuthConfig } from './api-auth';
-import { FormatMethod, InputDataTypeSchema, formatRequest } from './api-parameters';
 import { TYPES } from './constants';
-import type { Context } from './context';
-import { DataTypeSchema, SchemaMapType, schemaToDataType } from './data-type-schema';
+import type { Context, ContextState } from './context';
+import { AuthConfig } from './definitions/api-auth';
+import { FormatMethod, InputDataTypeSchema, formatRequest } from './definitions/api-parameters';
+import { DataTypeSchema, SchemaMapType, schemaToDataType } from './definitions/data-type-schema';
 import { RunOptions, Runnable, RunnableDefinition, RunnableResponse, RunnableResponseStream } from './runnable';
 import { objectToRunnableResponseStream } from './utils';
 
-type User = {
-  did: string;
-  fullName?: string;
-  avatar?: string;
-};
-
 @injectable()
-export class BlockletAgent<I extends {} = {}, O extends {} = {}, State extends { user?: User } = {}> extends Runnable<
-  I,
-  O
-> {
+export class BlockletAgent<
+  I extends {} = {},
+  O extends {} = {},
+  State extends ContextState = ContextState,
+> extends Runnable<I, O> {
   promise: Promise<{ agents: GetAgentResult[]; agentsMap: { [key: string]: GetAgentResult } }> | undefined;
 
   static create<I extends { [name: string]: InputDataTypeSchema }, O extends { [name: string]: DataTypeSchema }>(
@@ -39,9 +34,9 @@ export class BlockletAgent<I extends {} = {}, O extends {} = {}, State extends {
 
   constructor(
     @inject(TYPES.definition) public override definition: BlockletAgentDefinition,
-    @inject(TYPES.context) public context?: Context<State>
+    @inject(TYPES.context) context?: Context<State>
   ) {
-    super(definition);
+    super(definition, context);
   }
 
   async run(input: I, options: RunOptions & { stream: true }): Promise<RunnableResponseStream<O>>;
@@ -49,6 +44,7 @@ export class BlockletAgent<I extends {} = {}, O extends {} = {}, State extends {
   async run(input: I, options?: RunOptions): Promise<RunnableResponse<O>> {
     const {
       definition: { openapiId, auth, inputs },
+      context,
     } = this;
 
     if (!openapiId) throw new Error('OpenAPI id is required');
@@ -69,13 +65,13 @@ export class BlockletAgent<I extends {} = {}, O extends {} = {}, State extends {
     };
 
     const request = formatRequest(api, inputs, input);
-    console.log('request', request);
+    const contextState = pick(context?.state, ['userId', 'sessionId']);
 
     try {
       const response = await axios({
         url: request.url,
         method: request.method,
-        params: request.query,
+        params: request.query ? { ...request.query, ...contextState } : contextState,
         data: request.body,
         headers: request.headers,
         ...(request.cookies ? { ...request.cookies, withCredentials: true } : {}),
@@ -128,14 +124,7 @@ type GetAgentResult = {
 };
 
 const getBlockletAgent = async () => {
-  let list = {};
-  try {
-    const result = await axios.get(joinURL(config.env.appUrl, '/.well-known/service/openapi.json'));
-    list = result.data;
-  } catch (error) {
-    list = {};
-  }
-
+  const list = (await axios.get(joinURL(config.env.appUrl, '/.well-known/service/openapi.json'))).data;
   const openApis = [...flattenApiStructure(list as any)];
 
   const agents: GetAgentResult[] = openApis.map((i) => {

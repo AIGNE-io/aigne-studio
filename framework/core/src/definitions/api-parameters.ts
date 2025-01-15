@@ -1,8 +1,8 @@
+import { DataType } from '../data-type';
+import logger from '../logger';
+import { RunnableDefinition } from '../runnable';
 import { AuthConfig, AuthResult, getAuthParams } from './api-auth';
-import { DataType } from './data-type';
 import { DataTypeSchema } from './data-type-schema';
-import logger from './logger';
-import { RunnableDefinition } from './runnable';
 
 export type HTTPMethod = 'get' | 'post' | 'put' | 'delete';
 export type FormatMethod = Uppercase<HTTPMethod> | Lowercase<HTTPMethod>;
