@@ -7,10 +7,6 @@ import { Retriever, VectorStoreDocument, VectorStoreSearchOptions } from '../cor
 import logger from '../logger';
 import { DefaultVectorHistoryStore } from '../store/default-vector-history-store';
 
-const { SearchKitClient, resolveRestEmbedders } =
-  // eslint-disable-next-line global-require
-  require('@blocklet/search-kit-js') as typeof import('@blocklet/search-kit-js');
-
 const fields = ['id', 'createdAt', 'updatedAt', 'userId', 'sessionId', 'memory', 'metadata'];
 const searchableAttributes = ['id', 'createdAt', 'updatedAt', 'userId', 'sessionId', 'memory', 'metadata'];
 const filterableAttributes = ['id', 'createdAt', 'updatedAt', 'userId', 'sessionId', 'memory', 'metadata'];
@@ -58,6 +54,10 @@ export class SearchKitRetriever<T> implements Retriever<T> {
   private _client?: import('@blocklet/search-kit-js').SearchKitClient;
 
   get client() {
+    const { SearchKitClient } =
+      // eslint-disable-next-line global-require
+      require('@blocklet/search-kit-js') as typeof import('@blocklet/search-kit-js');
+
     this._client ??= new SearchKitClient();
 
     return this._client!;
@@ -90,6 +90,10 @@ export class SearchKitRetriever<T> implements Retriever<T> {
       await index.updateSettings(POST_SETTING);
 
       try {
+        const { resolveRestEmbedders } =
+          // eslint-disable-next-line global-require
+          require('@blocklet/search-kit-js') as typeof import('@blocklet/search-kit-js');
+
         const embedders = resolveRestEmbedders({ documentTemplate, distribution: { mean: 0.7, sigma: 0.3 } });
         const { taskUid } = await index.updateEmbedders(embedders);
         await this.waitForTask(taskUid);

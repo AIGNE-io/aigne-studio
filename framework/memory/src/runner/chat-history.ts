@@ -13,6 +13,7 @@ import differenceBy from 'lodash/differenceBy';
 import orderBy from 'lodash/orderBy';
 
 import { Memory } from '../core/memory';
+import { HistoryStore, Retriever } from '../core/type';
 import nextId from '../lib/next-id';
 
 export type ChatHistoryRunnerOutput = MemoryActionItem<string>[];
@@ -44,7 +45,7 @@ export class ChatHistoryRunner extends MemoryRunner<string> {
 }
 
 export class ChatHistory extends Memory<string> {
-  constructor(options: { path: string }) {
+  constructor(options: { path: string; retriever?: Retriever<string>; historyStore?: HistoryStore<string> }) {
     super({
       ...options,
       runner: new ChatHistoryRunner(),
