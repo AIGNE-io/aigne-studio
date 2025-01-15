@@ -3,7 +3,7 @@ import { RunnableResponse, RunnableResponseStream, isRunnableResponseDelta } fro
 export function objectToRunnableResponseStream<T extends { [key: string]: any }>(obj: T): RunnableResponseStream<T> {
   return new ReadableStream({
     start(controller) {
-      controller.enqueue({ $text: obj['$text'] || undefined, delta: obj });
+      controller.enqueue({ $text: obj.$text || undefined, delta: obj });
       controller.close();
     },
   });
@@ -47,7 +47,7 @@ export async function extractOutputsFromRunnableOutput<T extends { [key: string]
   return new ReadableStream({
     async start(controller) {
       try {
-        let result: T = {} as T;
+        const result: T = {} as T;
         let $text = '';
 
         for await (const value of output) {

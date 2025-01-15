@@ -1,6 +1,6 @@
-import { Context, ContextState } from './context';
-import { DataType } from './data-type';
-import { Memorable } from './memorable';
+import type { Context, ContextState } from './context';
+import type { DataType } from './data-type';
+import type { Memorable } from './memorable';
 import { OrderedRecord } from './utils/ordered-map';
 
 export interface RunOptions {

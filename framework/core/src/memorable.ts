@@ -1,6 +1,6 @@
 import { camelCase, startCase } from 'lodash';
 
-import { LLMModelInputMessage } from './llm-model';
+import type { LLMModelInputMessage } from './llm-model';
 import { Runnable } from './runnable';
 import { OrderedRecord } from './utils';
 
