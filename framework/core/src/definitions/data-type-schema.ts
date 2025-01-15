@@ -1,7 +1,8 @@
 import { nanoid } from 'nanoid';
 
-import { DataType } from './data-type';
-import { OrderedRecord } from './utils';
+import { DataType } from '../data-type';
+import { OrderedRecord } from '../utils';
+import { MakeNullablePropertyOptional } from '../utils/nullable';
 
 export function schemaToDataType(dataType: { [name: string]: DataTypeSchema }): OrderedRecord<DataType> {
   return OrderedRecord.fromArray(
@@ -103,9 +104,3 @@ export type SchemaMapType<T extends Record<string, DataTypeSchema>> = SchemaType
   required: true;
   properties: T;
 }>;
-
-type MakeNullablePropertyOptional<T extends { [key: string]: any }> = {
-  [K in keyof T as Extract<T[K], null | undefined> extends never ? K : never]: T[K];
-} & {
-  [K in keyof T as Extract<T[K], null | undefined> extends never ? never : K]?: T[K];
-};
