@@ -6,7 +6,7 @@ import path from 'path';
 
 import chatbot from '@aigne-project/chatbot';
 import chatbotMiddleware from '@aigne-project/chatbot/middleware';
-import { APIAgent } from '@aigne/core';
+import { BlockletAgent } from '@aigne/core';
 import { AssistantResponseType } from '@blocklet/ai-runtime/types';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
@@ -64,23 +64,7 @@ app.get('/.well-known/blocklet/openembed', getOpenEmbed);
 
 app.use('/api', routes);
 
-app.get('/api/test/get', (req, res) => {
-  res.json({
-    method: 'get',
-    message: 'test',
-    data: req.query,
-  });
-});
-
-app.post('/api/test/post', (req, res) => {
-  res.json({
-    method: 'post',
-    message: 'test',
-    data: req.body,
-  });
-});
-
-const chat = APIAgent.create({
+const chat = BlockletAgent.create({
   name: 'chat',
   inputs: {
     id: {
@@ -109,15 +93,7 @@ const chat = APIAgent.create({
     },
   },
   outputs: {},
-  api: {
-    url: 'https://bbqaxpcton6v25rupncceb3fdfdk4gglqvdooi35u2y.did.abtnet.io/ai-studio/api/test/{id}',
-    method: 'POST',
-    auth: {
-      type: 'bearer',
-      token: '1234567890',
-      in: 'header',
-    },
-  },
+  openapiId: 'z8iZukRQuk7tLqhRq35mDfkivG1XGj3AVfmNN',
 });
 
 chatbot.register(...[chat.definition]);
