@@ -1,5 +1,6 @@
 import { AuthConfig, AuthResult, getAuthParams } from './api-auth';
 import { DataType } from './data-type';
+import { DataTypeSchema } from './data-type-schema';
 import logger from './logger';
 import { RunnableDefinition } from './runnable';
 
@@ -11,6 +12,12 @@ export type API = {
   headers?: { [key: string]: string };
   auth?: AuthConfig;
 };
+
+type ParameterIn = {
+  in?: 'path' | 'query' | 'body' | 'header' | 'cookie';
+};
+
+export type InputDataTypeSchema = DataTypeSchema & ParameterIn;
 
 interface AuthParametersResult extends AuthResult {
   url: string;
@@ -35,7 +42,7 @@ export function processParameters(
     body: {},
   };
 
-  const filterInputs = Object.values(inputs).filter((i): i is DataType => !Array.isArray(i) && 'id' in i);
+  const filterInputs = Object.values(inputs).filter((i): i is DataType & ParameterIn => !Array.isArray(i));
 
   // 处理路径参数
   let processedUrl = api.url;

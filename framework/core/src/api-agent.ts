@@ -4,7 +4,7 @@ import { pick } from 'lodash';
 import { nanoid } from 'nanoid';
 import { inject, injectable } from 'tsyringe';
 
-import { API, formatRequest } from './api-parameters';
+import { API, InputDataTypeSchema, formatRequest } from './api-parameters';
 import { TYPES } from './constants';
 import { DataTypeSchema, SchemaMapType, schemaToDataType } from './data-type-schema';
 import { RunOptions, Runnable, RunnableDefinition, RunnableResponse, RunnableResponseStream } from './runnable';
@@ -12,7 +12,7 @@ import { objectToRunnableResponseStream } from './utils';
 
 @injectable()
 export class APIAgent<I extends {} = {}, O extends {} = {}> extends Runnable<I, O> {
-  static create<I extends { [name: string]: DataTypeSchema }, O extends { [name: string]: DataTypeSchema }>(
+  static create<I extends { [name: string]: InputDataTypeSchema }, O extends { [name: string]: DataTypeSchema }>(
     options: Parameters<typeof createAPIAgentDefinition<I, O>>[0]
   ): APIAgent<SchemaMapType<I>, SchemaMapType<O>> {
     const definition = createAPIAgentDefinition(options);
@@ -60,7 +60,7 @@ export class APIAgent<I extends {} = {}, O extends {} = {}> extends Runnable<I, 
 }
 
 export function createAPIAgentDefinition<
-  I extends { [name: string]: DataTypeSchema },
+  I extends { [name: string]: InputDataTypeSchema },
   O extends { [name: string]: DataTypeSchema },
 >(options: { id?: string; name?: string; inputs: I; outputs: O; api: API }): APIAgentDefinition {
   return {
