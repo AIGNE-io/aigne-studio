@@ -8,7 +8,6 @@ export interface DataTypeBase {
   name?: string;
   description?: string;
   required?: boolean;
-  in?: 'path' | 'query' | 'body' | 'header' | 'cookie';
 }
 
 export interface DataTypeString extends DataTypeBase {
