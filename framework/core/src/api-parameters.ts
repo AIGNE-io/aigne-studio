@@ -18,7 +18,7 @@ type ParameterIn = {
 
 export type InputDataTypeSchema = DataTypeSchema & ParameterIn;
 
-interface AuthParametersResult extends AuthResult {
+interface ParametersResult extends AuthResult {
   url: string;
   method: string;
 
@@ -29,10 +29,10 @@ export function processParameters(
   api: API,
   inputs: RunnableDefinition['inputs'],
   input: Record<string, any>
-): AuthParametersResult {
+): ParametersResult {
   const method = (api.method || 'GET').toUpperCase();
 
-  const result: AuthParametersResult = {
+  const result: ParametersResult = {
     url: api.url,
     method,
     headers: {},
