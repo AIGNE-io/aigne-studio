@@ -2,4 +2,5 @@ export type UnionToIntersection<U> = (U extends any ? (arg: U) => void : never) 
   ? I
   : never;
 
-export type ObjectUnionToIntersection<T> = UnionToIntersection<T> extends object ? UnionToIntersection<T> : never;
+export type ObjectUnionToIntersection<T, O = object> =
+  UnionToIntersection<T> extends O ? UnionToIntersection<T> : never;
