@@ -4,8 +4,7 @@ import { pick } from 'lodash';
 import { nanoid } from 'nanoid';
 import { inject, injectable } from 'tsyringe';
 
-import { getAuthParams } from './api-auth';
-import { API, InputDataTypeSchema, mergeParameters, processParameters } from './api-parameters';
+import { API, formatRequest } from './api-parameters';
 import { TYPES } from './constants';
 import { DataTypeSchema, SchemaMapType, schemaToDataType } from './data-type-schema';
 import { RunOptions, Runnable, RunnableDefinition, RunnableResponse, RunnableResponseStream } from './runnable';
@@ -13,7 +12,7 @@ import { objectToRunnableResponseStream } from './utils';
 
 @injectable()
 export class APIAgent<I extends {} = {}, O extends {} = {}> extends Runnable<I, O> {
-  static create<I extends { [name: string]: InputDataTypeSchema }, O extends { [name: string]: DataTypeSchema }>(
+  static create<I extends { [name: string]: DataTypeSchema }, O extends { [name: string]: DataTypeSchema }>(
     options: Parameters<typeof createAPIAgentDefinition<I, O>>[0]
   ): APIAgent<SchemaMapType<I>, SchemaMapType<O>> {
     const definition = createAPIAgentDefinition(options);
@@ -34,21 +33,19 @@ export class APIAgent<I extends {} = {}, O extends {} = {}> extends Runnable<I, 
 
     if (!api.url) throw new Error('API url is required');
 
-    const inputParams = processParameters(api, inputs as { [name: string]: InputDataTypeSchema }, input);
-    const authParams = getAuthParams(api.auth);
-    const mergedParams = mergeParameters(inputParams, authParams);
+    const request = formatRequest(api, inputs, input);
 
     try {
       const response = await axios({
-        url: inputParams.url,
-        method: inputParams.method,
-        params: mergedParams.query,
-        data: inputParams.body,
+        url: request.url,
+        method: request.method,
+        params: request.query,
+        data: request.body,
         headers: {
           'x-csrf-token': Cookie.get('x-csrf-token'),
-          ...(mergedParams.headers || {}),
+          ...(request.headers || {}),
         },
-        ...(mergedParams.cookies ? { ...mergedParams.cookies, withCredentials: true } : {}),
+        ...(request.cookies ? { ...request.cookies, withCredentials: true } : {}),
       });
 
       const result = response.data;
@@ -63,7 +60,7 @@ export class APIAgent<I extends {} = {}, O extends {} = {}> extends Runnable<I, 
 }
 
 export function createAPIAgentDefinition<
-  I extends { [name: string]: InputDataTypeSchema },
+  I extends { [name: string]: DataTypeSchema },
   O extends { [name: string]: DataTypeSchema },
 >(options: { id?: string; name?: string; inputs: I; outputs: O; api: API }): APIAgentDefinition {
   return {

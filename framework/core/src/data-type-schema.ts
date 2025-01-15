@@ -58,6 +58,7 @@ export type DataTypeSchema =
 export interface DataTypeSchemaBase {
   description?: string;
   required?: boolean;
+  in?: 'path' | 'query' | 'body' | 'header' | 'cookie';
 }
 
 export interface DataTypeSchemaString extends DataTypeSchemaBase {
