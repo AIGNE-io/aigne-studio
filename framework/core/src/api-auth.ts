@@ -26,7 +26,7 @@ export interface CustomAuthConfig extends Omit<BaseAuthConfig, 'in' | 'key' | 't
 
 export type AuthConfig = ApiKeyAuthConfig | BasicAuthConfig | BearerAuthConfig | CustomAuthConfig;
 
-interface AuthResult {
+export interface AuthResult {
   headers?: Record<string, string>;
   query?: Record<string, string>;
   cookies?: Record<string, string>;
@@ -69,6 +69,10 @@ export function getAuthParams(auth?: AuthConfig): AuthResult {
       // 默认放在 header 中
       result.headers = { [paramKey]: paramValue };
   }
+
+  if (Object.keys(result.headers!).length === 0) delete result.headers;
+  if (Object.keys(result.query!).length === 0) delete result.query;
+  if (Object.keys(result.cookies!).length === 0) delete result.cookies;
 
   return result;
 }
