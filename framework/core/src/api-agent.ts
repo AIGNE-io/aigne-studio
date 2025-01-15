@@ -4,6 +4,7 @@ import { pick } from 'lodash';
 import { nanoid } from 'nanoid';
 import { inject, injectable } from 'tsyringe';
 
+import { API, InputDataTypeSchema, formatRequest } from './api-parameters';
 import { TYPES } from './constants';
 import { DataTypeSchema, SchemaMapType, schemaToDataType } from './data-type-schema';
 import { RunOptions, Runnable, RunnableDefinition, RunnableResponse, RunnableResponseStream } from './runnable';
@@ -11,7 +12,7 @@ import { objectToRunnableResponseStream } from './utils';
 
 @injectable()
 export class APIAgent<I extends {} = {}, O extends {} = {}> extends Runnable<I, O> {
-  static create<I extends { [name: string]: DataTypeSchema }, O extends { [name: string]: DataTypeSchema }>(
+  static create<I extends { [name: string]: InputDataTypeSchema }, O extends { [name: string]: DataTypeSchema }>(
     options: Parameters<typeof createAPIAgentDefinition<I, O>>[0]
   ): APIAgent<SchemaMapType<I>, SchemaMapType<O>> {
     const definition = createAPIAgentDefinition(options);
@@ -27,25 +28,24 @@ export class APIAgent<I extends {} = {}, O extends {} = {}> extends Runnable<I, 
   async run(input: I, options?: RunOptions & { stream?: false }): Promise<O>;
   async run(input: I, options?: RunOptions): Promise<RunnableResponse<O>> {
     const {
-      definition: { api, apiKey },
+      definition: { api, inputs },
     } = this;
 
     if (!api.url) throw new Error('API url is required');
 
-    const method = api.method || 'GET';
-    const isGet = method.toLowerCase() === 'get';
+    const request = formatRequest(api, inputs, input);
 
     try {
       const response = await axios({
-        url: api.url,
-        method,
-        params: isGet ? input : undefined,
-        data: isGet ? undefined : input,
+        url: request.url,
+        method: request.method,
+        params: request.query,
+        data: request.body,
         headers: {
           'x-csrf-token': Cookie.get('x-csrf-token'),
-          ...(apiKey && { Authorization: `Bearer ${apiKey}` }),
-          ...(api.headers || {}),
+          ...(request.headers || {}),
         },
+        ...(request.cookies ? { ...request.cookies, withCredentials: true } : {}),
       });
 
       const result = response.data;
@@ -59,18 +59,10 @@ export class APIAgent<I extends {} = {}, O extends {} = {}> extends Runnable<I, 
   }
 }
 
-type HTTPMethod = 'get' | 'post' | 'put' | 'delete';
-
-type API = {
-  method?: Uppercase<HTTPMethod> | Lowercase<HTTPMethod>;
-  url: string;
-  headers?: { [key: string]: string };
-};
-
 export function createAPIAgentDefinition<
-  I extends { [name: string]: DataTypeSchema },
+  I extends { [name: string]: InputDataTypeSchema },
   O extends { [name: string]: DataTypeSchema },
->(options: { id?: string; name?: string; inputs: I; outputs: O; api: API; apiKey?: string }): APIAgentDefinition {
+>(options: { id?: string; name?: string; inputs: I; outputs: O; api: API }): APIAgentDefinition {
   return {
     id: options.id || options.name || nanoid(),
     name: options.name,
@@ -78,12 +70,10 @@ export function createAPIAgentDefinition<
     inputs: schemaToDataType(options.inputs),
     outputs: schemaToDataType(options.outputs),
     api: options.api,
-    apiKey: options.apiKey,
   };
 }
 
 export interface APIAgentDefinition extends RunnableDefinition {
   type: 'api_agent';
   api: API;
-  apiKey?: string;
 }
