@@ -128,7 +128,7 @@ export class LLMAgent<
         type: 'json_schema',
         jsonSchema: {
           name: 'output',
-          schema: schema,
+          schema,
           strict: true,
         },
       },

@@ -54,8 +54,8 @@ export function toRunnableMemories<I extends {}>(
 
       return {
         id: name || nanoid(),
-        name: name,
-        memory: memory,
+        name,
+        memory,
         query: queryFromVariable ? { from: 'variable', fromVariableId: queryFromVariable.id } : undefined,
         options,
       };

@@ -75,7 +75,7 @@ export abstract class Agent<
           return;
         }
 
-        return await memory.add(messages, { userId, sessionId });
+        await memory.add(messages, { userId, sessionId });
       })
     );
   }

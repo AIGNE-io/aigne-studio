@@ -1,8 +1,8 @@
 import omit from 'lodash/omit';
 
-import { LLMAgentDefinition } from '../llm-agent';
-import { LLMModelInputMessage } from '../llm-model';
-import { MemoryItemWithScore } from '../memorable';
+import type { LLMAgentDefinition } from '../llm-agent';
+import type { LLMModelInputMessage } from '../llm-model';
+import type { MemoryItemWithScore } from '../memorable';
 import { isNonNullable } from './is-non-nullable';
 import { renderMessage } from './mustache-utils';
 import { OrderedRecord } from './ordered-map';
