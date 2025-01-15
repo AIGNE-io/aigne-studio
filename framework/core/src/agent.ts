@@ -32,7 +32,7 @@ export abstract class Agent<
    * Load memories that are defined in the agent definition.
    * @param input The agent input.
    * @param context The AIGNE context.
-   * @returns A dictionary of memories, where the key is the memory name and the value is an array of memory items.
+   * @returns A dictionary of memories, where the key is the memory id or name and the value is an array of memory items.
    */
   protected async loadMemories(input: I, context?: Context): Promise<Memories> {
     const { memories } = this.definition;
@@ -41,17 +41,22 @@ export abstract class Agent<
     return Object.fromEntries(
       (
         await Promise.all(
-          OrderedRecord.map(memories, async ({ name, memory, query, options }) => {
+          OrderedRecord.map(memories, async ({ id, name, memory, query, options }) => {
             if (!name || !memory) return null;
 
             const q = await this.getMemoryQuery(input, query);
 
             const { results: memories } = await memory.search(q, { ...options, userId, sessionId });
 
-            return [name, memories];
+            return [
+              [id, memories],
+              [name, memories],
+            ];
           })
         )
-      ).filter(isNonNullable)
+      )
+        .flat()
+        .filter(isNonNullable)
     );
   }
 
