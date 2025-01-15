@@ -31,6 +31,8 @@
     ]
   },
   "dependencies": {
+    "@aigne-project/chatbot": "https://staging.aigne.io/ai-studio/api/projects/526280358526713856/npm/package.tgz?secret=NEPEw_IpZCCx9pPs_gB_-",
+    "@aigne/core": "workspace:^",
     "@abtnode/cron": "^1.16.37",
     "@aigne/runtime": "workspace:^",
     "@arcblock/did-auth": "^1.19.2",

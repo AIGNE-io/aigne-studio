@@ -15,8 +15,8 @@
       // For local dev
       // "@blocklet/ai-kit/*": ["../../../ai-kit/packages/ai-kit/src/*"],
       // "@blocklet/pages-kit/*": ["../../../pages-kit/packages/pages-kit/src/*"],
-      // "@aigne/runtime": ["../../framework/runtime/src"],
-      // "@aigne/runtime/*": ["../../framework/runtime/src/*"],
+      "@aigne/runtime": ["../../framework/runtime/src"],
+      "@aigne/runtime/*": ["../../framework/runtime/src/*"],
       "@blocklet/ai-runtime": ["../../packages/ai-runtime/src"],
       "@blocklet/ai-runtime/*": ["../../packages/ai-runtime/src/*"],
       "@blocklet/aigne-sdk/*": ["../../packages/aigne-sdk/src/*"],
@@ -29,7 +29,9 @@
       "@blocklet/prompt-editor": ["../../packages/prompt-editor/src"],
       "@blocklet/prompt-editor/*": ["../../packages/prompt-editor/src/*"],
       "@blocklet/quickjs": ["../../packages/quickjs/src"],
-      "@blocklet/quickjs/*": ["../../packages/quickjs/src/*"]
+      "@blocklet/quickjs/*": ["../../packages/quickjs/src/*"],
+      "@aigne/core": ["../../framework/core/src"],
+      "@aigne/core/*": ["../../framework/core/src/*"]
     }
   }
 }

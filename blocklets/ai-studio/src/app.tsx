@@ -1,3 +1,4 @@
+import chatbot from '@aigne-project/chatbot/client';
 import { LocaleProvider } from '@arcblock/ux/lib/Locale/context';
 import { ToastProvider } from '@arcblock/ux/lib/Toast';
 import withTracker from '@arcblock/ux/lib/withTracker';
@@ -5,7 +6,7 @@ import { SubscribeButton } from '@blocklet/ai-kit/components';
 import { Dashboard } from '@blocklet/studio-ui';
 import Footer from '@blocklet/ui-react/lib/Footer';
 import { Box, CssBaseline, GlobalStyles, ThemeProvider } from '@mui/material';
-import { ReactNode, Suspense, lazy } from 'react';
+import { ReactNode, Suspense, lazy, useEffect } from 'react';
 import {
   Navigate,
   Outlet,
@@ -30,6 +31,15 @@ import { theme } from './theme/theme';
 const basename = window.blocklet?.prefix || '/';
 
 export default function App() {
+  const init = async () => {
+    console.log('init');
+    await (await chatbot.resolve('chat')).run({ question: '1' }, { stream: true });
+  };
+
+  useEffect(() => {
+    init();
+  }, []);
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline>
