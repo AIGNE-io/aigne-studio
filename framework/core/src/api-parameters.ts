@@ -1,5 +1,7 @@
-import { AuthConfig, AuthResult } from './api-auth';
-import { DataTypeSchema } from './data-type-schema';
+import { AuthConfig, AuthResult, getAuthParams } from './api-auth';
+import { DataType } from './data-type';
+import logger from './logger';
+import { RunnableDefinition } from './runnable';
 
 export type HTTPMethod = 'get' | 'post' | 'put' | 'delete';
 
@@ -8,10 +10,6 @@ export type API = {
   method?: Uppercase<HTTPMethod> | Lowercase<HTTPMethod>;
   headers?: { [key: string]: string };
   auth?: AuthConfig;
-};
-
-export type InputDataTypeSchema = DataTypeSchema & {
-  in?: 'path' | 'query' | 'body' | 'header' | 'cookie';
 };
 
 interface AuthParametersResult extends AuthResult {
@@ -23,7 +21,7 @@ interface AuthParametersResult extends AuthResult {
 
 export function processParameters(
   api: API,
-  inputs: { [name: string]: InputDataTypeSchema },
+  inputs: RunnableDefinition['inputs'],
   input: Record<string, any>
 ): AuthParametersResult {
   const method = (api.method || 'GET').toUpperCase();
@@ -37,20 +35,22 @@ export function processParameters(
     body: {},
   };
 
+  const filterInputs = Object.values(inputs).filter((i): i is DataType => !Array.isArray(i) && 'id' in i);
+
   // 处理路径参数
   let processedUrl = api.url;
-  const pathParams = Object.entries(inputs).filter(([, schema]) => schema.in === 'path');
-  pathParams.forEach(([key]) => {
-    if (input[key] !== undefined) {
-      const placeholder = `{${key}}`;
-      processedUrl = processedUrl.replace(placeholder, String(input[key]));
+  const pathParams = filterInputs.filter((x) => x.in === 'path');
+  pathParams.forEach(({ name }) => {
+    if (name && input[name] !== undefined) {
+      const placeholder = `{${name}}`;
+      processedUrl = processedUrl.replace(placeholder, String(input[name]));
     }
   });
   result.url = processedUrl;
 
   // 处理其他参数
   Object.entries(input).forEach(([key, value]) => {
-    const schema = inputs[key];
+    const schema = filterInputs.find((i) => i.name === key);
     const paramIn = schema?.in;
 
     switch (paramIn) {
@@ -66,6 +66,8 @@ export function processParameters(
       case 'body':
         result.body![key] = value;
         break;
+      case 'path':
+        break;
       default:
         // 没有指定 in 的情况
         if (method === 'GET') {
@@ -75,11 +77,6 @@ export function processParameters(
         }
     }
   });
-
-  if (Object.keys(result.headers!).length === 0) delete result.headers;
-  if (Object.keys(result.query!).length === 0) delete result.query;
-  if (Object.keys(result.cookies!).length === 0) delete result.cookies;
-  if (Object.keys(result.body!).length === 0) delete result.body;
 
   return result;
 }
@@ -99,9 +96,33 @@ export function mergeParameters(parameters: AuthResult, authParams: AuthResult):
     result.headers = { ...(parameters.headers || {}), ...(authParams.headers || {}) };
   }
 
-  if (Object.keys(result.headers!).length === 0) delete result.headers;
-  if (Object.keys(result.query!).length === 0) delete result.query;
-  if (Object.keys(result.cookies!).length === 0) delete result.cookies;
-
   return result;
 }
+
+export const formatRequest = (api: API, inputs: RunnableDefinition['inputs'], input: Record<string, any>) => {
+  const inputParams = processParameters(api, inputs, input);
+  logger.debug('inputParams', inputParams);
+  const authParams = getAuthParams(api.auth);
+  logger.debug('authParams', authParams);
+  const mergedParams = mergeParameters(inputParams, authParams);
+  logger.debug('mergedParams', mergedParams);
+
+  const params = { ...inputParams, ...mergedParams };
+
+  if (params.headers && Object.keys(params.headers).length === 0) {
+    delete params.headers;
+  }
+  if (params.query && Object.keys(params.query).length === 0) {
+    delete params.query;
+  }
+  if (params.cookies && Object.keys(params.cookies).length === 0) {
+    delete params.cookies;
+  }
+  if (params.body && Object.keys(params.body).length === 0) {
+    delete params.body;
+  }
+
+  logger.info('params', params);
+
+  return params;
+};

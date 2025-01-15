@@ -33,46 +33,40 @@ export interface AuthResult {
 }
 
 export function getAuthParams(auth?: AuthConfig): AuthResult {
-  const result: AuthResult = {};
-
-  if (!auth) return result;
+  if (!auth) return {};
 
   if (auth.type === 'custom') {
     return { headers: auth.getValue() };
   }
 
   const paramKey = auth.key || 'Authorization';
-  let paramValue = auth.token;
 
-  switch (auth.type) {
-    case 'basic':
-      paramValue = `Basic ${auth.token}`;
-      break;
-    case 'bearer':
-      paramValue = `Bearer ${auth.token}`;
-      break;
-    default:
-      break;
-  }
+  const paramValue = (() => {
+    let paramValue = auth.token;
+
+    switch (auth.type) {
+      case 'basic':
+        paramValue = `Basic ${auth.token}`;
+        break;
+      case 'bearer':
+        paramValue = `Bearer ${auth.token}`;
+        break;
+      default:
+        break;
+    }
+
+    return paramValue;
+  })();
 
   switch (auth.in) {
     case 'header':
-      result.headers = { [paramKey]: paramValue };
-      break;
+      return { headers: { [paramKey]: paramValue } };
     case 'query':
-      result.query = { [paramKey]: paramValue };
-      break;
+      return { query: { [paramKey]: paramValue } };
     case 'cookie':
-      result.cookies = { [paramKey]: paramValue };
-      break;
+      return { cookies: { [paramKey]: paramValue } };
     default:
       // 默认放在 header 中
-      result.headers = { [paramKey]: paramValue };
+      return { headers: { [paramKey]: paramValue } };
   }
-
-  if (Object.keys(result.headers!).length === 0) delete result.headers;
-  if (Object.keys(result.query!).length === 0) delete result.query;
-  if (Object.keys(result.cookies!).length === 0) delete result.cookies;
-
-  return result;
 }
