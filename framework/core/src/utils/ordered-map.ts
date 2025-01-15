@@ -93,6 +93,19 @@ export namespace OrderedRecord {
     return record;
   }
 
+  export function merge<T extends { id: string }>(...records: OrderedRecord<T>[]) {
+    const result: OrderedRecord<T> = { $indexes: [] as any };
+
+    for (const record of records) {
+      for (const id of record.$indexes) {
+        if (!result[id]) result.$indexes.push(id);
+        result[id] = record[id]!;
+      }
+    }
+
+    return result;
+  }
+
   export function pushOrUpdate<T extends { id: string }>(record: OrderedRecord<T>, ...items: T[]) {
     for (const item of items) {
       if (!record[item.id]) {

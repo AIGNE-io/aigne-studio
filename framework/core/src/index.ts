@@ -2,7 +2,7 @@ export * from './utils';
 
 export * from './constants';
 export * from './data-type';
-export * from './data-type-schema';
+export * from './definitions/data-type-schema';
 export * from './context';
 export * from './runnable';
 export * from './pipeline-agent';

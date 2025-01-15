@@ -1,3 +1,4 @@
+import { Context, ContextState } from './context';
 import { DataType } from './data-type';
 import { Memorable } from './memorable';
 import { OrderedRecord } from './utils/ordered-map';
@@ -8,8 +9,15 @@ export interface RunOptions {
 
 export type RunnableResponse<T> = T | RunnableResponseStream<T>;
 
-export abstract class Runnable<I extends {} = {}, O extends {} = {}> {
-  constructor(public definition: RunnableDefinition) {
+export abstract class Runnable<
+  I extends { [name: string]: any } = {},
+  O extends { [name: string]: any } = {},
+  State extends ContextState = ContextState,
+> {
+  constructor(
+    public definition: RunnableDefinition,
+    public context?: Context<State>
+  ) {
     this.inputs = Object.fromEntries(
       OrderedRecord.map(definition.inputs, (i) => [i.name || i.id, i])
     ) as typeof this.inputs;

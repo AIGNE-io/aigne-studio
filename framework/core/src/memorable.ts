@@ -24,7 +24,7 @@ export interface MemoryItem<T> {
   metadata: MemoryMetadata;
 }
 
-export interface MemoryItemWithScore<T> extends MemoryItem<T> {
+export interface MemoryItemWithScore<T = any> extends MemoryItem<T> {
   score: number;
 }
 
@@ -200,3 +200,5 @@ export abstract class MemoryRunner<T, C = undefined> extends Runnable<MemoryRunn
     });
   }
 }
+
+export type MemorableSearchOutput<T extends Memorable<any>> = Awaited<ReturnType<T['search']>>['results'];

@@ -5,7 +5,7 @@ import { inject, injectable } from 'tsyringe';
 import { StreamTextOutputName, TYPES } from './constants';
 import type { Context } from './context';
 import { DataType } from './data-type';
-import { DataTypeSchema, SchemaMapType, schemaToDataType } from './data-type-schema';
+import { DataTypeSchema, SchemaMapType, schemaToDataType } from './definitions/data-type-schema';
 import logger from './logger';
 import {
   RunOptions,
@@ -40,9 +40,9 @@ export class PipelineAgent<I extends { [key: string]: any } = {}, O extends {} =
 
   constructor(
     @inject(TYPES.definition) public override definition: PipelineAgentDefinition,
-    @inject(TYPES.context) public context?: Context
+    @inject(TYPES.context) context?: Context
   ) {
-    super(definition);
+    super(definition, context);
   }
 
   async run(input: I, options: RunOptions & { stream: true }): Promise<RunnableResponseStream<O>>;
