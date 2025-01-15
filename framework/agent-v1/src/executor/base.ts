@@ -1,4 +1,4 @@
-import { hash } from 'crypto';
+import { hash } from 'node:crypto';
 
 import { memoize } from '@blocklet/quickjs';
 import { call } from '@blocklet/sdk/lib/component';
@@ -10,12 +10,12 @@ import isNil from 'lodash/isNil';
 import pick from 'lodash/pick';
 import toLower from 'lodash/toLower';
 
-import logger from '../../logger';
 import { CallAI, CallAIImage, GetAgent, GetAgentResult, RunAssistantCallback } from '../assistant/type';
 import { parseIdentity, stringifyIdentity } from '../common/aid';
 import { AIGNE_RUNTIME_COMPONENT_DID } from '../constants';
 import { issueVC } from '../libs/blocklet/vc';
 import type { DatasetObject } from '../libs/openapi/types';
+import logger from '../logger';
 import {
   AssistantResponseType,
   ExecutionPhase,

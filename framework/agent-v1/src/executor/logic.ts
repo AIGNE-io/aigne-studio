@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 
 import { Sandbox } from '@blocklet/quickjs';
 import { call, getComponentMountPoint } from '@blocklet/sdk/lib/component';
@@ -7,8 +7,8 @@ import equal from 'fast-deep-equal';
 import Joi from 'joi';
 import pick from 'lodash/pick';
 
-import logger from '../../logger';
 import { parseIdentity, stringifyIdentity } from '../common/aid';
+import logger from '../logger';
 import { AssistantResponseType, FunctionAssistant } from '../types';
 import { renderMustacheStream } from '../types/assistant/mustache/ReadableMustache';
 import { geti } from '../utils/geti';

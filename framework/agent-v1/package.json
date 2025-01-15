@@ -1,7 +1,7 @@
 {
-  "name": "@aigne/runtime",
+  "name": "@aigne/agent-v1",
   "version": "0.4.205-1",
-  "description": "AIGNE core library",
+  "description": "AIGNE agent v1 compatible with AIGNE Framework",
   "publishConfig": {
     "access": "public"
   },
@@ -11,9 +11,6 @@
   "main": "./index.cjs",
   "module": "./index.js",
   "types": "./index.d.js",
-  "bin": {
-    "aigne-cli": "./lib/cjs/cmd/aigne-cli.js"
-  },
   "files": [
     "lib",
     "LICENSE",
@@ -43,26 +40,10 @@
       "import": "./index.js",
       "require": "./index.cjs",
       "types": "./index.d.ts"
-    },
-    "./client": {
-      "import": "./client.js",
-      "require": "./client.cjs",
-      "types": "./client.d.ts"
-    },
-    "./middleware": {
-      "import": "./middleware.js",
-      "require": "./middleware.cjs",
-      "types": "./middleware.d.ts"
-    },
-    "./cmd": {
-      "import": "./cmd.js",
-      "require": "./cmd.cjs",
-      "types": "./cmd.d.ts"
     }
   },
   "dependencies": {
     "@abtnode/client": "^1.16.37",
-    "@aigne/agent-v1": "workspace:^",
     "@aigne/core": "workspace:^",
     "@blocklet/ai-kit": "^0.1.66",
     "@blocklet/js-sdk": "^1.16.37",

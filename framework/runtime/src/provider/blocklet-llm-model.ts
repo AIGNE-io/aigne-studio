@@ -1,3 +1,4 @@
+import { agentV1ToRunnableDefinition, getAdapter } from '@aigne/agent-v1';
 import type { Context, LLMModelConfiguration, Runnable } from '@aigne/core';
 import {
   LLMModel,
@@ -18,8 +19,6 @@ import { inject, injectable } from 'tsyringe';
 
 import logger from '../logger';
 import { getDefaultValue } from '../utils/default-value';
-import { getAdapter } from '../v1/resource-blocklet';
-import { agentV1ToRunnableDefinition } from '../v1/type';
 
 const defaultLLMModel = 'gpt-4o-mini';
 

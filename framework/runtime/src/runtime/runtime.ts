@@ -1,5 +1,6 @@
 import { join } from 'path';
 
+import { AgentV1, agentV1ToRunnableDefinition } from '@aigne/agent-v1';
 import {
   Context,
   ContextState,
@@ -24,8 +25,6 @@ import { parse } from 'yaml';
 import { BlockletLLMModel } from '../provider/blocklet-llm-model';
 import { QuickJSRunner } from '../provider/quickjs-runner';
 import { DeepPartial } from '../utils/partial';
-import { AgentV1 } from '../v1/agent-v1';
-import { agentV1ToRunnableDefinition } from '../v1/type';
 
 export interface ProjectDefinition {
   id: string;
