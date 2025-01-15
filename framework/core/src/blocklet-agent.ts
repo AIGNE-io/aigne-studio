@@ -1,12 +1,15 @@
-import { callBlockletApi } from '@blocklet/dataset-sdk/request';
 import { DatasetObject } from '@blocklet/dataset-sdk/types';
 import flattenApiStructure from '@blocklet/dataset-sdk/util/flatten-open-api';
+import { getComponentMountPoint } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
-import axios from 'axios';
+import axios, { isAxiosError } from 'axios';
+import { pick } from 'lodash';
 import { nanoid } from 'nanoid';
 import { inject, injectable } from 'tsyringe';
 import { joinURL } from 'ufo';
 
+import { AuthConfig } from './api-auth';
+import { FormatMethod, InputDataTypeSchema, formatRequest } from './api-parameters';
 import { TYPES } from './constants';
 import type { Context } from './context';
 import { DataTypeSchema, SchemaMapType, schemaToDataType } from './data-type-schema';
@@ -26,7 +29,7 @@ export class BlockletAgent<I extends {} = {}, O extends {} = {}, State extends {
 > {
   promise: Promise<{ agents: GetAgentResult[]; agentsMap: { [key: string]: GetAgentResult } }> | undefined;
 
-  static create<I extends { [name: string]: DataTypeSchema }, O extends { [name: string]: DataTypeSchema }>(
+  static create<I extends { [name: string]: InputDataTypeSchema }, O extends { [name: string]: DataTypeSchema }>(
     options: Parameters<typeof createBlockletAgentDefinition<I, O>>[0]
   ): BlockletAgent<SchemaMapType<I>, SchemaMapType<O>> {
     const definition = createBlockletAgentDefinition(options);
@@ -45,28 +48,61 @@ export class BlockletAgent<I extends {} = {}, O extends {} = {}, State extends {
   async run(input: I, options?: RunOptions & { stream?: false }): Promise<O>;
   async run(input: I, options?: RunOptions): Promise<RunnableResponse<O>> {
     const {
-      definition: { openapiId },
-      context,
+      definition: { openapiId, auth, inputs },
     } = this;
 
     if (!openapiId) throw new Error('OpenAPI id is required');
     this.promise ??= getBlockletAgent();
     const { agentsMap } = await this.promise;
     const agent = agentsMap[openapiId];
+
     if (!agent) throw new Error('Blocklet agent not found');
     if (!agent.openApi) throw new Error('Blocklet agent api not found.');
 
-    const response = await callBlockletApi(agent.openApi, input || {}, { user: context?.state.user });
-    const result = response.data;
+    const link = new URL(config.env.appUrl);
+    link.pathname = joinURL(getComponentMountPoint(agent.openApi.did || agent.openApi.name!), agent.openApi.path);
 
-    return options?.stream ? objectToRunnableResponseStream(result) : (result as O);
+    const api = {
+      url: link.toString(),
+      method: agent.openApi.method as FormatMethod,
+      auth,
+    };
+
+    const request = formatRequest(api, inputs, input);
+    console.log('request', request);
+
+    try {
+      const response = await axios({
+        url: request.url,
+        method: request.method,
+        params: request.query,
+        data: request.body,
+        headers: request.headers,
+        ...(request.cookies ? { ...request.cookies, withCredentials: true } : {}),
+      });
+
+      const result = response.data;
+      return options?.stream ? objectToRunnableResponseStream(result) : (result as O);
+    } catch (e) {
+      if (isAxiosError(e)) {
+        Object.assign(e, pick(e.response, 'status', 'statusText', 'data'));
+      }
+      throw e;
+    }
   }
 }
 
 export function createBlockletAgentDefinition<
-  I extends { [name: string]: DataTypeSchema },
+  I extends { [name: string]: InputDataTypeSchema },
   O extends { [name: string]: DataTypeSchema },
->(options: { id?: string; name?: string; inputs: I; outputs: O; openapiId: string }): BlockletAgentDefinition {
+>(options: {
+  id?: string;
+  name?: string;
+  inputs: I;
+  outputs: O;
+  openapiId: string;
+  auth?: AuthConfig;
+}): BlockletAgentDefinition {
   return {
     id: options.id || options.name || nanoid(),
     name: options.name,
@@ -80,42 +116,7 @@ export function createBlockletAgentDefinition<
 export interface BlockletAgentDefinition extends RunnableDefinition {
   type: 'blocklet_agent';
   openapiId: string;
-}
-
-type OpenAPIResponseSchema = {
-  type: string;
-  properties?: { [key: string]: OpenAPIResponseSchema };
-  items?: OpenAPIResponseSchema;
-};
-
-function convertSchemaToVariableType(schema: OpenAPIResponseSchema): any {
-  switch (schema.type) {
-    case 'string':
-      return { type: 'string', defaultValue: '' };
-    case 'integer':
-    case 'number':
-      return { type: 'number', defaultValue: undefined };
-    case 'boolean':
-      return { type: 'boolean', defaultValue: undefined };
-    case 'object':
-      return {
-        type: 'object',
-        properties: schema.properties
-          ? Object.entries(schema.properties).map(([key, value]) => ({
-              id: key,
-              name: key,
-              ...convertSchemaToVariableType(value),
-            }))
-          : [],
-      };
-    case 'array':
-      return {
-        type: 'array',
-        element: schema.items ? convertSchemaToVariableType(schema.items) : undefined,
-      };
-    default:
-      throw new Error(`Unsupported schema type: ${schema.type}`);
-  }
+  auth?: AuthConfig;
 }
 
 type GetAgentResult = {
@@ -138,20 +139,7 @@ const getBlockletAgent = async () => {
   const openApis = [...flattenApiStructure(list as any)];
 
   const agents: GetAgentResult[] = openApis.map((i) => {
-    const properties = i?.responses?.['200']?.content?.['application/json']?.schema?.properties || {};
-
-    return {
-      type: 'blocklet',
-      id: i.id,
-      name: i?.summary,
-      description: i?.description,
-      outputVariables: Object.entries(properties).map(([key, value]: any) => ({
-        id: key,
-        name: key,
-        ...convertSchemaToVariableType(value),
-      })),
-      openApi: i,
-    };
+    return { type: 'blocklet', id: i.id, name: i?.summary, description: i?.description, openApi: i };
   });
 
   const agentsMap = agents.reduce(
@@ -159,7 +147,7 @@ const getBlockletAgent = async () => {
       acc[cur.id] = cur;
       return acc;
     },
-    {} as { [key: string]: GetAgentResult }
+    {} as Record<string, GetAgentResult>
   );
 
   return { agents, agentsMap, openApis };
