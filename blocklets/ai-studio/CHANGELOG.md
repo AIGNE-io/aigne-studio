@@ -1,3 +1,7 @@
+## 0.4.205 (2025-1-15)
+
+- feat: support use memories in agent defines
+
 ## 0.4.204 (2025-1-14)
 
 - refactor: use uploadToMediaKit instead of component call
