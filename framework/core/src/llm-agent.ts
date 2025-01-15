@@ -29,6 +29,7 @@ export class LLMAgent<
     @inject(TYPES.llmModel) public model?: LLMModel
   ) {
     super(definition, context);
+    this.model ??= context?.resolveDependency(TYPES.llmModel);
   }
 
   async *process(input: I, options: AgentProcessOptions<Memories>) {
@@ -53,8 +54,7 @@ export class LLMAgent<
     }
 
     const json = await this.runWithStructuredOutput(llmInputs);
-
-    yield { delta: json };
+    if (json) yield { delta: json };
 
     await this.updateMemories([
       ...originalMessages,

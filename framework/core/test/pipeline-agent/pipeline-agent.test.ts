@@ -1,0 +1,88 @@
+import { expect, test } from 'bun:test';
+
+import { LocalFunctionAgent, PipelineAgent } from '../../src';
+import { MockContext } from '../mocks/context';
+
+test('PipelineAgent.run', async () => {
+  const context = new MockContext({});
+
+  const agent = PipelineAgent.create({
+    context,
+    inputs: {
+      question: {
+        type: 'string',
+        required: true,
+      },
+    },
+    outputs: {
+      $text: {
+        type: 'string',
+        required: true,
+        fromVariable: 'case1',
+        fromVariablePropPath: ['$text'],
+      },
+      result: {
+        type: 'number',
+        required: true,
+        fromVariable: 'case2',
+        fromVariablePropPath: ['length'],
+      },
+    },
+    processes: {
+      case1: {
+        runnable: LocalFunctionAgent.create({
+          context,
+          inputs: {
+            question: {
+              type: 'string',
+              required: true,
+            },
+          },
+          outputs: {
+            $text: {
+              type: 'string',
+              required: true,
+            },
+          },
+          function: async ({ question }) => {
+            return { $text: `case1: ${question}` };
+          },
+        }),
+        input: {
+          question: {
+            fromVariable: 'question',
+          },
+        },
+      },
+      case2: {
+        runnable: LocalFunctionAgent.create({
+          context,
+          inputs: {
+            str: {
+              type: 'string',
+              required: true,
+            },
+          },
+          outputs: {
+            length: {
+              type: 'number',
+              required: true,
+            },
+          },
+          function: async ({ str }) => {
+            return { length: str.length };
+          },
+        }),
+        input: {
+          str: {
+            fromVariable: 'case1',
+            fromVariablePropPath: ['$text'],
+          },
+        },
+      },
+    },
+  });
+
+  const question = 'hello';
+  expect(await agent.run({ question })).toEqual({ $text: `case1: ${question}`, result: `case1: ${question}`.length });
+});
