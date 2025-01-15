@@ -122,7 +122,7 @@ export const formatRequest = (api: API, inputs: RunnableDefinition['inputs'], in
     delete params.body;
   }
 
-  logger.info('params', params);
+  logger.debug('params', params);
 
   return params;
 };
