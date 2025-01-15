@@ -4,9 +4,9 @@ import { pick } from 'lodash';
 import { nanoid } from 'nanoid';
 import { inject, injectable } from 'tsyringe';
 
-import { API, InputDataTypeSchema, formatRequest } from './api-parameters';
 import { TYPES } from './constants';
-import { DataTypeSchema, SchemaMapType, schemaToDataType } from './data-type-schema';
+import { API, InputDataTypeSchema, formatRequest } from './definitions/api-parameters';
+import { DataTypeSchema, SchemaMapType, schemaToDataType } from './definitions/data-type-schema';
 import { RunOptions, Runnable, RunnableDefinition, RunnableResponse, RunnableResponseStream } from './runnable';
 import { objectToRunnableResponseStream } from './utils';
 
