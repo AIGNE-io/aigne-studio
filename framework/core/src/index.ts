@@ -14,3 +14,4 @@ export * from './llm-decision-agent';
 export * from './local-function-agent';
 export * from './memory';
 export * from './api-agent';
+export * from './blocklet-agent';
