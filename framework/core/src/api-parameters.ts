@@ -9,7 +9,6 @@ export type HTTPMethod = 'get' | 'post' | 'put' | 'delete';
 export type API = {
   url: string;
   method?: Uppercase<HTTPMethod> | Lowercase<HTTPMethod>;
-  headers?: { [key: string]: string };
   auth?: AuthConfig;
 };
 
@@ -36,7 +35,7 @@ export function processParameters(
   const result: AuthParametersResult = {
     url: api.url,
     method,
-    headers: api.headers || {},
+    headers: {},
     query: {},
     cookies: {},
     body: {},
