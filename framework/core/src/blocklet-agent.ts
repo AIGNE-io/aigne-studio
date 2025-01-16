@@ -114,8 +114,24 @@ export class BlockletAgent<
     return result;
   }
 
-  getBlockletAgent() {
-    return getBlockletAgent();
+  async getBlockletAgent() {
+    const response = await fetch(joinURL(config.env.appUrl, '/.well-known/service/openapi.json'));
+    const list = await response.json();
+    const openApis = [...flattenApiStructure(list as any)];
+
+    const agents: GetAgentResult[] = openApis.map((i) => {
+      return { type: 'blocklet', id: i.id, name: i?.summary, description: i?.description, openApi: i };
+    });
+
+    const agentsMap = agents.reduce(
+      (acc, cur) => {
+        acc[cur.id] = cur;
+        return acc;
+      },
+      {} as Record<string, GetAgentResult>
+    );
+
+    return { agents, agentsMap, openApis };
   }
 }
 
@@ -146,23 +162,3 @@ export interface BlockletAgentDefinition extends RunnableDefinition {
   openapiId: string;
   auth?: AuthConfig;
 }
-
-const getBlockletAgent = async () => {
-  const response = await fetch(joinURL(config.env.appUrl, '/.well-known/service/openapi.json'));
-  const list = (await response.json()).data;
-  const openApis = [...flattenApiStructure(list as any)];
-
-  const agents: GetAgentResult[] = openApis.map((i) => {
-    return { type: 'blocklet', id: i.id, name: i?.summary, description: i?.description, openApi: i };
-  });
-
-  const agentsMap = agents.reduce(
-    (acc, cur) => {
-      acc[cur.id] = cur;
-      return acc;
-    },
-    {} as Record<string, GetAgentResult>
-  );
-
-  return { agents, agentsMap, openApis };
-};
