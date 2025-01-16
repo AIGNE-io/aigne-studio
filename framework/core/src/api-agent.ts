@@ -2,15 +2,22 @@ import { nanoid } from 'nanoid';
 import { inject, injectable } from 'tsyringe';
 import { withQuery } from 'ufo';
 
+import { Agent } from './agent';
 import { TYPES } from './constants';
+import type { Context, ContextState } from './context';
 import { API, FetchRequest, InputDataTypeSchema } from './definitions/api-parameter';
 import { DataTypeSchema, SchemaMapType, schemaToDataType } from './definitions/data-type-schema';
-import { RunOptions, Runnable, RunnableDefinition, RunnableResponse, RunnableResponseStream } from './runnable';
-import { objectToRunnableResponseStream } from './utils';
+import { MemoryItemWithScore } from './memorable';
+import { RunnableDefinition } from './runnable';
 import { formatRequest } from './utils/format-parameter';
 
 @injectable()
-export class APIAgent<I extends {} = {}, O extends {} = {}> extends Runnable<I, O> {
+export class APIAgent<
+  I extends { [name: string]: any } = {},
+  O extends { [name: string]: any } = {},
+  Memories extends { [name: string]: MemoryItemWithScore[] } = {},
+  State extends ContextState = ContextState,
+> extends Agent<I, O, Memories, State> {
   static create<I extends { [name: string]: InputDataTypeSchema }, O extends { [name: string]: DataTypeSchema }>(
     options: Parameters<typeof createAPIAgentDefinition<I, O>>[0]
   ): APIAgent<SchemaMapType<I>, SchemaMapType<O>> {
@@ -19,13 +26,14 @@ export class APIAgent<I extends {} = {}, O extends {} = {}> extends Runnable<I, 
     return new APIAgent(definition);
   }
 
-  constructor(@inject(TYPES.definition) public override definition: APIAgentDefinition) {
-    super(definition);
+  constructor(
+    @inject(TYPES.definition) public override definition: APIAgentDefinition,
+    @inject(TYPES.context) context?: Context<State>
+  ) {
+    super(definition, context);
   }
 
-  async run(input: I, options: RunOptions & { stream: true }): Promise<RunnableResponseStream<O>>;
-  async run(input: I, options?: RunOptions & { stream?: false }): Promise<O>;
-  async run(input: I, options?: RunOptions): Promise<RunnableResponse<O>> {
+  async process(input: I) {
     const {
       definition: { api, inputs },
     } = this;
@@ -34,8 +42,7 @@ export class APIAgent<I extends {} = {}, O extends {} = {}> extends Runnable<I, 
 
     const request = formatRequest(api, inputs, input);
 
-    const result = await this.fetch(request);
-    return options?.stream ? objectToRunnableResponseStream(result) : result;
+    return await this.fetch(request);
   }
 
   async fetch(request: FetchRequest) {

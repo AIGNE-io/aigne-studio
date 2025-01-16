@@ -7,13 +7,14 @@ import { nanoid } from 'nanoid';
 import { inject, injectable } from 'tsyringe';
 import { joinURL, withQuery } from 'ufo';
 
+import { Agent } from './agent';
 import { TYPES } from './constants';
 import type { Context, ContextState } from './context';
 import { AuthConfig, FetchRequest, FormatMethod, InputDataTypeSchema } from './definitions/api-parameter';
 import { DataTypeSchema, SchemaMapType, schemaToDataType } from './definitions/data-type-schema';
 import logger from './logger';
-import { RunOptions, Runnable, RunnableDefinition, RunnableResponse, RunnableResponseStream } from './runnable';
-import { objectToRunnableResponseStream } from './utils';
+import { MemoryItemWithScore } from './memorable';
+import { RunnableDefinition } from './runnable';
 import { formatRequest } from './utils/format-parameter';
 
 type GetAgentResult = {
@@ -26,17 +27,17 @@ type GetAgentResult = {
 
 @injectable()
 export class BlockletAgent<
-  I extends {} = {},
-  O extends {} = {},
+  I extends { [name: string]: any } = {},
+  O extends { [name: string]: any } = {},
+  Memories extends { [name: string]: MemoryItemWithScore[] } = {},
   State extends ContextState = ContextState,
-> extends Runnable<I, O> {
+> extends Agent<I, O, Memories, State> {
   promise: Promise<{ agents: GetAgentResult[]; agentsMap: { [key: string]: GetAgentResult } }> | undefined;
 
   static create<I extends { [name: string]: InputDataTypeSchema }, O extends { [name: string]: DataTypeSchema }>(
     options: Parameters<typeof createBlockletAgentDefinition<I, O>>[0]
   ): BlockletAgent<SchemaMapType<I>, SchemaMapType<O>> {
     const definition = createBlockletAgentDefinition(options);
-
     return new BlockletAgent(definition);
   }
 
@@ -47,9 +48,7 @@ export class BlockletAgent<
     super(definition, context);
   }
 
-  async run(input: I, options: RunOptions & { stream: true }): Promise<RunnableResponseStream<O>>;
-  async run(input: I, options?: RunOptions & { stream?: false }): Promise<O>;
-  async run(input: I, options?: RunOptions): Promise<RunnableResponse<O>> {
+  async process(input: I) {
     const {
       definition: { openapiId, auth, inputs },
       context,
@@ -77,8 +76,7 @@ export class BlockletAgent<
     logger.debug('request', request);
     logger.debug('contextState', contextState);
 
-    const result = await this.fetch(request);
-    return options?.stream ? objectToRunnableResponseStream(result) : result;
+    return await this.fetch(request);
   }
 
   async fetch(request: FetchRequest) {
