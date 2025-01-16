@@ -1,4 +1,3 @@
-import { DataType } from '../data-type';
 import {
   API,
   AuthConfig,
@@ -7,6 +6,7 @@ import {
   OpenAPIParameter,
   ParametersResult,
 } from '../definitions/api-parameter';
+import { DataType } from '../definitions/data-type';
 import logger from '../logger';
 import { RunnableDefinition } from '../runnable';
 
