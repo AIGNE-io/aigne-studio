@@ -5,6 +5,7 @@ export * from './definitions/data-type';
 export * from './definitions/data-type-schema';
 export * from './context';
 export * from './runnable';
+export * from './agent';
 export * from './pipeline-agent';
 export * from './llm-agent';
 export * from './llm-model';

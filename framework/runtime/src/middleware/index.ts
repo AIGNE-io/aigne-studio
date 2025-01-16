@@ -5,6 +5,7 @@ import compression from 'compression';
 import { Router } from 'express';
 import Joi from 'joi';
 
+import logger from '../logger';
 import { Runtime } from '../runtime';
 import { runAgentWithStreaming } from './agent';
 
@@ -24,12 +25,13 @@ export function createMiddleware(runtime: Runtime): Router {
   });
 
   router.post('/api/aigne/:projectId/agents/:agentId/run', compression(), session(), auth(), async (req, res) => {
+    const { projectId, agentId } = req.params;
+
     try {
-      const { projectId, agentId } = req.params;
       if (!projectId || !agentId) throw new Error('projectId and agentId are required');
       if (runtime.id !== projectId) throw new Error('projectId does not match runtime');
 
-      const scope = runtime.scope({ userId: req.user?.did });
+      const scope = runtime.copy({ state: { userId: req.user?.did } });
 
       const { input = {}, options } = await runAgentPayloadSchema.validateAsync(req.body, { stripUnknown: true });
 
@@ -45,12 +47,14 @@ export function createMiddleware(runtime: Runtime): Router {
       res.json(result);
     } catch (error) {
       res.status(500).json({ error: { message: error.message } });
+      logger.error('AIGNE Middleware: run agent error', { projectId, agentId, error });
     }
   });
 
   router.get('/api/aigne/:projectId/agents/:agentId/definition', async (req, res) => {
+    const { projectId, agentId } = req.params;
+
     try {
-      const { projectId, agentId } = req.params;
       if (!projectId || !agentId) throw new Error('projectId and agentId are required');
       if (runtime.id !== projectId) throw new Error('projectId does not match runtime');
 
@@ -59,6 +63,7 @@ export function createMiddleware(runtime: Runtime): Router {
       res.json(agent.definition);
     } catch (error) {
       res.status(500).json({ error: { message: error.message } });
+      logger.error('AIGNE Middleware: get agent definition error', { projectId, agentId, error });
     }
   });
 

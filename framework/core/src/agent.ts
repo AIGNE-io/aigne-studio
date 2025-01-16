@@ -98,6 +98,8 @@ export abstract class Agent<
   async run(input: I, options: RunOptions & { stream: true }): Promise<RunnableResponseStream<O>>;
   async run(input: I, options?: RunOptions & { stream?: false }): Promise<O>;
   async run(input: I, options?: RunOptions): Promise<RunnableResponse<O>> {
+    logger.debug(`AIGNE core: run agent ${this.name || this.id} with`, { input });
+
     const memories = await this.loadMemories(input, this.context);
 
     const processResult = await this.process(input, { ...options, memories });
@@ -112,6 +114,7 @@ export abstract class Agent<
       return extractOutputsFromRunnableOutput(stream, async (result) => {
         // TODO: validate result against outputs schema
 
+        logger.debug(`AIGNE core: run agent ${this.name || this.id} success`, { result });
         await this.onResult(result);
       });
     }
@@ -122,6 +125,8 @@ export abstract class Agent<
         : Symbol.asyncIterator in processResult
           ? await runnableResponseStreamToObject(processResult)
           : processResult;
+
+    logger.debug(`AIGNE core: run agent ${this.name || this.id} success`, { result });
 
     // TODO: validate result against outputs schema
 

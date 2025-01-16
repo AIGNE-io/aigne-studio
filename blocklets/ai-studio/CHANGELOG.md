@@ -1,3 +1,8 @@
+## 0.4.207 (2025-1-16)
+
+- fix: agent-v1 crash caused by project definition access error
+- fix: wrong type schema for array items
+
 ## 0.4.206 (2025-1-16)
 
 - feat: support define memories for agents
