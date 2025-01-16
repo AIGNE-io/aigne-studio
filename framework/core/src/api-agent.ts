@@ -49,19 +49,24 @@ export class APIAgent<
     let cookieString = '';
     if (request.cookies) {
       cookieString = Object.entries(request.cookies)
-        .map(([key, value]) => `${key}=${value}`)
-        .join(';');
+        .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+        .join('; ');
     }
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+
     const response = await fetch(withQuery(request.url, request.query || {}), {
+      method: request.method,
       headers: {
-        'Content-Type': 'application/json',
-        ...(cookieString && { Cookie: cookieString }),
+        ...(request.method !== 'GET' && { 'Content-Type': 'application/json' }),
+        ...(cookieString && { Cookie: cookieString.trim() }),
         ...(request.headers || {}),
       },
-      body: request.body ? JSON.stringify(request.body) : undefined,
+      body: request.method !== 'GET' ? JSON.stringify(request.body) : undefined,
       credentials: request.cookies ? 'include' : 'same-origin',
-    });
+      signal: controller.signal,
+    }).finally(() => clearTimeout(timeoutId));
 
     if (!response.ok) {
       throw {
