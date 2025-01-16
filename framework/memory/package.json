@@ -1,6 +1,6 @@
 {
   "name": "@aigne/memory",
-  "version": "0.4.205",
+  "version": "0.4.206",
   "description": "AIGNE Memory library",
   "publishConfig": {
     "access": "public"
