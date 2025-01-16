@@ -86,7 +86,7 @@ export class AgentV1<I extends {} = {}, O extends {} = {}> extends Runnable<I, O
     };
 
     // TODO: don't use any
-    const { project } = this.context as any;
+    const project = (this.context as any).options.projectDefinition;
 
     const { definition } = this;
     if (!definition) throw new Error('No such agent');

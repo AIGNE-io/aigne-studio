@@ -1,74 +1,95 @@
 import { expect, test } from 'bun:test';
 
-import { LocalFunctionAgent, SchemaType } from '../../src';
-import { MockContext } from '../mocks/context';
+import { SchemaMapType } from '../../src';
 
-test('LocalFunctionAgent.run', async () => {
-  const userSchema = {
-    type: 'object',
-    properties: {
-      name: {
-        type: 'string',
-        required: true,
-      },
-      age: {
-        type: 'number',
-      },
-      tags: {
-        type: 'array',
-        items: {
-          type: 'string',
-        },
-      },
-      favoriteFoods: {
-        type: 'array',
-        items: {
-          type: 'object',
-          properties: {
-            name: {
-              type: 'string',
-              required: true,
-            },
-            calories: {
-              type: 'number',
-            },
-          },
-        },
-      },
-    },
-  } as const;
-
-  const user: SchemaType<typeof userSchema> = {
-    name: 'Alice',
-    age: 25,
-    tags: ['tag1', 'tag2'],
-    favoriteFoods: [
-      { name: 'apple', calories: 100 },
-      { name: 'banana', calories: 150 },
-    ],
+test('DataTypeSchema nested object definitions', async () => {
+  type Type = {
+    array0?: (string | null | undefined)[] | null | undefined;
+    array1: number[];
+    object0?:
+      | {
+          name?: string | null | undefined;
+          age?: number | null | undefined;
+          tags?: (string | null | undefined)[] | null | undefined;
+          objectList?:
+            | {
+                name: string;
+                age?: number | null | undefined;
+              }[]
+            | null
+            | undefined;
+        }
+      | null
+      | undefined;
+    object1: {
+      name: string;
+      age?: number | null | undefined;
+    };
   };
 
-  const agent = LocalFunctionAgent.create({
-    context: new MockContext(),
-    inputs: {
-      question: {
-        type: 'string',
-        required: true,
-      },
-      user: userSchema,
-    },
-    outputs: {
-      $text: {
-        type: 'string',
-        required: true,
-      },
-      user: userSchema,
-    },
-    function: async ({ question, user }) => {
-      return { $text: `ECHO: ${question}`, user };
-    },
-  });
+  type Schema = SchemaMapType<{
+    array0: {
+      type: 'array';
+      items: {
+        type: 'string';
+      };
+    };
+    array1: {
+      type: 'array';
+      required: true;
+      items: {
+        type: 'number';
+        required: true;
+      };
+    };
+    object0: {
+      type: 'object';
+      properties: {
+        name: {
+          type: 'string';
+        };
+        age: {
+          type: 'number';
+        };
+        tags: {
+          type: 'array';
+          items: {
+            type: 'string';
+          };
+        };
+        objectList: {
+          type: 'array';
+          items: {
+            type: 'object';
+            required: true;
+            properties: {
+              name: {
+                type: 'string';
+                required: true;
+              };
+              age: {
+                type: 'number';
+              };
+            };
+          };
+        };
+      };
+    };
+    object1: {
+      type: 'object';
+      required: true;
+      properties: {
+        name: {
+          type: 'string';
+          required: true;
+        };
+        age: {
+          type: 'number';
+        };
+      };
+    };
+  }>;
 
-  const result = await agent.run({ question: 'hello', user });
-  expect(result).toEqual({ $text: 'ECHO: hello', user });
+  type TagsIsStringArray = Schema extends Type ? (Type extends Schema ? true : false) : false;
+  expect<TagsIsStringArray>(true).toBeTrue();
 });

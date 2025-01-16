@@ -48,7 +48,9 @@ const projectDefinition: ProjectDefinition = ${JSON.stringify(project, null, 2)}
 
 ${generateAgentsInterface(project.runnables, 'Runnable')}
 
-export default new Runtime<Agents>(projectDefinition, {});
+export default new Runtime<Agents>({
+  projectDefinition,
+});
 `;
 
   const middleware = `\
@@ -69,7 +71,9 @@ const projectDefinition: ProjectDefinition = ${JSON.stringify(sanitizeProjectDef
 
 ${generateAgentsInterface(project.runnables, 'Agent')}
 
-export default new Runtime<Agents>(projectDefinition, {});
+export default new Runtime<Agents>({
+  projectDefinition,
+});
 `;
 
   const tsFiles = [
