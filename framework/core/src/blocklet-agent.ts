@@ -67,13 +67,14 @@ export class BlockletAgent<
 
     const request = formatRequest(api, inputs, input);
     const contextState = pick(context?.state, ['userId', 'sessionId']);
-    logger.info('request', request);
+    logger.debug('request', request);
+    logger.debug('contextState', contextState);
 
     try {
       const response = await axios({
         url: request.url,
         method: request.method,
-        params: request.query ? { ...request.query, ...contextState } : contextState,
+        params: request.query ? { ...contextState, ...request.query } : contextState,
         data: request.body,
         headers: request.headers,
         ...(request.cookies ? { ...request.cookies, withCredentials: true } : {}),
