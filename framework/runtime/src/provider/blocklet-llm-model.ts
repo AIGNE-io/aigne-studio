@@ -23,7 +23,7 @@ export class BlockletLLMModel extends LLMModel {
     super(context);
   }
 
-  async process(input: LLMModelInputs) {
+  async *process(input: LLMModelInputs) {
     const { chatCompletions } = await import('@blocklet/ai-kit/api/call');
 
     const model =
@@ -65,27 +65,17 @@ export class BlockletLLMModel extends LLMModel {
       })) as any as ReadableStream<ChatCompletionResponse>; // TODO: fix chatCompletions response type in @blocklet/ai-kit;
     }
 
-    return new ReadableStream({
-      async start(controller) {
-        try {
-          for await (const chunk of stream!) {
-            if (isChatCompletionChunk(chunk)) {
-              const { content, toolCalls } = chunk.delta;
+    for await (const chunk of stream!) {
+      if (isChatCompletionChunk(chunk)) {
+        const { content, toolCalls } = chunk.delta;
 
-              controller.enqueue({
-                $text: content || undefined,
-                delta: toolCalls ? { toolCalls } : undefined,
-              });
-            } else if (isChatCompletionError(chunk)) {
-              throw new Error(chunk.error.message);
-            }
-          }
-        } catch (error) {
-          controller.error(error);
-        } finally {
-          controller.close();
-        }
-      },
-    });
+        yield {
+          $text: content || undefined,
+          delta: toolCalls ? { toolCalls } : undefined,
+        };
+      } else if (isChatCompletionError(chunk)) {
+        throw new Error(chunk.error.message);
+      }
+    }
   }
 }
