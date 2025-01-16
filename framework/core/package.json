@@ -35,7 +35,6 @@
   },
   "dependencies": {
     "@abtnode/client": "^1.16.37",
-    "@blocklet/dataset-sdk": "^0.4.204",
     "@blocklet/sdk": "^1.16.37",
     "@types/mustache": "^4.2.5",
     "axios": "^1.7.5",

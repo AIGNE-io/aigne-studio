@@ -2,7 +2,6 @@ import { join } from 'path';
 
 import { AgentV1, agentV1ToRunnableDefinition } from '@aigne/agent-v1';
 import {
-  APIAgent,
   BlockletAgent,
   Context,
   ContextState,
@@ -11,6 +10,7 @@ import {
   LLMDecisionAgent,
   LLMModelConfiguration,
   LocalFunctionAgent,
+  OpenAPIAgent,
   OrderedRecord,
   PipelineAgent,
   Runnable,
@@ -85,7 +85,7 @@ export class Runtime<Agents = {}, State extends ContextState = ContextState> imp
     this.container.register(TYPES.functionRunner, { useClass: QuickJSRunner });
     this.container.register('llm_decision_agent', { useClass: LLMDecisionAgent });
     this.container.register('local_function_agent', { useClass: LocalFunctionAgent });
-    this.container.register('api_agent', { useClass: APIAgent });
+    this.container.register('api_agent', { useClass: OpenAPIAgent });
     this.container.register('blocklet_agent', { useClass: BlockletAgent });
     this.container.register(TYPES.llmModelConfiguration, { useFactory: () => this.config.llmModel || {} });
 

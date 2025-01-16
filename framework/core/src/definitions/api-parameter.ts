@@ -51,10 +51,12 @@ export type OpenAPIParameter = {
 export type FetchRequest = {
   url: string;
   method: string;
+
   headers?: Record<string, string>;
   query?: Record<string, string>;
   cookies?: Record<string, string>;
-  body?: Record<string, string>;
+
+  body?: Record<string, any>;
 };
 
 export type InputDataTypeSchema = DataTypeSchema & OpenAPIParameter;
@@ -63,5 +65,5 @@ export interface ParametersResult extends AuthResult {
   url: string;
   method: string;
 
-  body?: Record<string, string>;
+  body?: Record<string, any>;
 }

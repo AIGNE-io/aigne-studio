@@ -1,33 +1,29 @@
+import { pick } from 'lodash';
 import { nanoid } from 'nanoid';
 import { inject, injectable } from 'tsyringe';
-import { withQuery } from 'ufo';
 
 import { Agent } from './agent';
 import { TYPES } from './constants';
 import type { Context, ContextState } from './context';
 import { API, FetchRequest, InputDataTypeSchema } from './definitions/api-parameter';
 import { DataTypeSchema, SchemaMapType, schemaToDataType } from './definitions/data-type-schema';
-import { MemoryItemWithScore } from './memorable';
+import { CreateRunnableMemory } from './definitions/memory';
+import { MemorableSearchOutput, MemoryItemWithScore } from './memorable';
 import { RunnableDefinition } from './runnable';
+import fetchApi from './utils/fetch-api';
 import { formatRequest } from './utils/format-parameter';
 
 @injectable()
-export class APIAgent<
+export class OpenAPIAgent<
   I extends { [name: string]: any } = {},
   O extends { [name: string]: any } = {},
   Memories extends { [name: string]: MemoryItemWithScore[] } = {},
   State extends ContextState = ContextState,
 > extends Agent<I, O, Memories, State> {
-  static create<I extends { [name: string]: InputDataTypeSchema }, O extends { [name: string]: DataTypeSchema }>(
-    options: Parameters<typeof createAPIAgentDefinition<I, O>>[0]
-  ): APIAgent<SchemaMapType<I>, SchemaMapType<O>> {
-    const definition = createAPIAgentDefinition(options);
-
-    return new APIAgent(definition);
-  }
+  static create = create;
 
   constructor(
-    @inject(TYPES.definition) public override definition: APIAgentDefinition,
+    @inject(TYPES.definition) public override definition: OpenAPIAgentDefinition,
     @inject(TYPES.context) context?: Context<State>
   ) {
     super(definition, context);
@@ -36,66 +32,78 @@ export class APIAgent<
   async process(input: I) {
     const {
       definition: { api, inputs },
+      context,
     } = this;
 
     if (!api.url) throw new Error('API url is required');
 
     const request = formatRequest(api, inputs, input);
+    const contextState = pick(context?.state, ['userId', 'sessionId']);
+    request.query = { ...contextState, ...(request.query || {}) };
 
-    return await this.fetch(request);
+    return this.fetch(request);
   }
 
-  async fetch(request: FetchRequest) {
-    let cookieString = '';
-    if (request.cookies) {
-      cookieString = Object.entries(request.cookies)
-        .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
-        .join('; ');
-    }
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
-
-    const response = await fetch(withQuery(request.url, request.query || {}), {
-      method: request.method,
-      headers: {
-        ...(request.method !== 'GET' && { 'Content-Type': 'application/json' }),
-        ...(cookieString && { Cookie: cookieString.trim() }),
-        ...(request.headers || {}),
-      },
-      body: request.method !== 'GET' ? JSON.stringify(request.body) : undefined,
-      credentials: request.cookies ? 'include' : 'same-origin',
-      signal: controller.signal,
-    }).finally(() => clearTimeout(timeoutId));
-
-    if (!response.ok) {
-      throw {
-        status: response.status,
-        statusText: response.statusText,
-        data: await response.json().catch(() => null),
-      };
-    }
-
-    const result = await response.json();
-    return result;
+  fetch(request: FetchRequest) {
+    return fetchApi(request);
   }
 }
 
-export function createAPIAgentDefinition<
-  I extends { [name: string]: InputDataTypeSchema },
-  O extends { [name: string]: DataTypeSchema },
->(options: { id?: string; name?: string; inputs: I; outputs: O; api: API }): APIAgentDefinition {
-  return {
-    id: options.id || options.name || nanoid(),
-    name: options.name,
-    type: 'api_agent',
-    inputs: schemaToDataType(options.inputs),
-    outputs: schemaToDataType(options.outputs),
-    api: options.api,
-  };
-}
-
-export interface APIAgentDefinition extends RunnableDefinition {
+export interface OpenAPIAgentDefinition extends RunnableDefinition {
   type: 'api_agent';
   api: API;
+}
+
+export interface CreateOpenAPIAgentOptions<
+  I extends { [name: string]: DataTypeSchema },
+  O extends { [name: string]: DataTypeSchema },
+  Memories extends { [name: string]: CreateRunnableMemory<I> },
+  State extends ContextState,
+> {
+  context?: Context<State>;
+
+  id?: string;
+
+  name?: string;
+
+  inputs: I;
+
+  outputs: O;
+
+  memories?: Memories;
+
+  api: API;
+}
+
+function create<
+  I extends { [name: string]: InputDataTypeSchema },
+  O extends { [name: string]: DataTypeSchema },
+  Memories extends { [name: string]: CreateRunnableMemory<I> },
+  State extends ContextState,
+>({
+  context,
+  ...options
+}: CreateOpenAPIAgentOptions<I, O, Memories, State>): OpenAPIAgent<
+  SchemaMapType<I>,
+  SchemaMapType<O>,
+  { [name in keyof Memories]: MemorableSearchOutput<Memories[name]['memory']> },
+  State
+> {
+  const agentId = options.id || options.name || nanoid();
+
+  const inputs = schemaToDataType(options.inputs);
+  const outputs = schemaToDataType(options.outputs);
+
+  return new OpenAPIAgent(
+    {
+      id: agentId,
+      name: options.name,
+      type: 'api_agent',
+      inputs: inputs,
+      outputs: outputs,
+
+      api: options.api,
+    },
+    context
+  );
 }
