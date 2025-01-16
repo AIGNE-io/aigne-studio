@@ -1,4 +1,4 @@
-function flattenApiStructure(apiStructure: {
+export function flattenApiStructure(apiStructure: {
   paths: {
     [key: string]: {
       [key: string]: any;
@@ -35,5 +35,3 @@ function flattenApiStructure(apiStructure: {
 
   return flattened;
 }
-
-export default flattenApiStructure;

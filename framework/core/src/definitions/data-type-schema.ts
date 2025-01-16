@@ -2,6 +2,7 @@ import { nanoid } from 'nanoid';
 
 import { OrderedRecord } from '../utils';
 import { MakeNullablePropertyOptional } from '../utils/nullable';
+import { OpenAPIParameter } from './api-parameter';
 import { DataType } from './data-type';
 
 export function schemaToDataType(dataType: { [name: string]: DataTypeSchema }): OrderedRecord<DataType> {
@@ -83,6 +84,8 @@ export interface DataTypeSchemaArray extends DataTypeSchemaBase {
   type: 'array';
   items?: DataTypeSchema;
 }
+
+export type InputDataTypeSchema = DataTypeSchema & OpenAPIParameter;
 
 type SchemaTypeInner<T extends DataTypeSchema> = T extends DataTypeSchemaString
   ? string

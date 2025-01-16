@@ -3,7 +3,7 @@ import { withQuery } from 'ufo';
 import { FetchRequest } from '../definitions/api-parameter';
 import { TIMEOUT } from './constants';
 
-const fetchApi = async (request: FetchRequest) => {
+export const fetchApi = async (request: FetchRequest) => {
   let cookieString = '';
   if (request.cookies) {
     cookieString = Object.entries(request.cookies)

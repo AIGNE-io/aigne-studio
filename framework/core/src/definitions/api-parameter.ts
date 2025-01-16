@@ -1,5 +1,3 @@
-import { DataTypeSchema } from './data-type-schema';
-
 export type AuthType = 'apiKey' | 'basic' | 'bearer' | 'custom';
 
 export interface BaseAuthConfig {
@@ -58,8 +56,6 @@ export type FetchRequest = {
 
   body?: Record<string, any>;
 };
-
-export type InputDataTypeSchema = DataTypeSchema & OpenAPIParameter;
 
 export interface ParametersResult extends AuthResult {
   url: string;

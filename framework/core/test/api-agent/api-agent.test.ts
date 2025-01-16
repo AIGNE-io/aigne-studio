@@ -1,9 +1,9 @@
 import { expect, spyOn, test } from 'bun:test';
 
-import { APIAgent } from '../../src';
+import { OpenAPIAgent } from '../../src';
 
 test('run with mocked get request', async () => {
-  const agent = APIAgent.create({
+  const agent = OpenAPIAgent.create({
     inputs: {
       id: {
         type: 'string',
@@ -76,7 +76,7 @@ test('run with mocked get request', async () => {
 });
 
 test('run with mocked post request', async () => {
-  const agent = APIAgent.create({
+  const agent = OpenAPIAgent.create({
     inputs: {
       id: {
         type: 'string',
@@ -155,7 +155,7 @@ test('run with mocked post request', async () => {
 });
 
 test('run with mocked default parameters', async () => {
-  const agent = APIAgent.create({
+  const agent = OpenAPIAgent.create({
     inputs: {
       id: {
         type: 'string',
@@ -224,7 +224,7 @@ test('run with mocked default parameters', async () => {
 });
 
 test('run with mocked basic auth config', async () => {
-  const agent = APIAgent.create({
+  const agent = OpenAPIAgent.create({
     inputs: {
       id: {
         type: 'string',
@@ -296,7 +296,7 @@ test('run with mocked basic auth config', async () => {
 });
 
 test('run with mocked bearer auth config', async () => {
-  const agent = APIAgent.create({
+  const agent = OpenAPIAgent.create({
     inputs: {
       id: {
         type: 'string',

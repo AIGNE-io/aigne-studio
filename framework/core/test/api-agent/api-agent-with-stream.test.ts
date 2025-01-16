@@ -1,9 +1,9 @@
 import { expect, spyOn, test } from 'bun:test';
 
-import { APIAgent } from '../../src';
+import { OpenAPIAgent } from '../../src';
 
 test('run with mocked get request', async () => {
-  const agent = APIAgent.create({
+  const agent = OpenAPIAgent.create({
     inputs: {
       id: {
         type: 'string',

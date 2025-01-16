@@ -5,3 +5,6 @@ export * from './omit';
 export * from './ordered-map';
 export * from './stream-utils';
 export * from './union';
+export * from './flatten-openapi';
+export * from './format-parameter';
+export * from './fetch-api';

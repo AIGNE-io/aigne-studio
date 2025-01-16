@@ -2,7 +2,6 @@ import { join } from 'path';
 
 import { AgentV1, agentV1ToRunnableDefinition } from '@aigne/agent-v1';
 import {
-  BlockletAgent,
   Context,
   ContextState,
   FunctionAgent,
@@ -28,6 +27,7 @@ import { DependencyContainer, container, injectable } from 'tsyringe';
 import { constructor } from 'tsyringe/dist/typings/types';
 import { parse } from 'yaml';
 
+import { BlockletAgent } from '../provider/blocklet-agent';
 import { BlockletLLMModel } from '../provider/blocklet-llm-model';
 import { QuickJSRunner } from '../provider/quickjs-runner';
 import { DeepPartial } from '../utils/partial';

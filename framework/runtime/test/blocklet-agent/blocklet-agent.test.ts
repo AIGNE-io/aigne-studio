@@ -1,6 +1,6 @@
 import { expect, mock, spyOn, test } from 'bun:test';
 
-import { BlockletAgent } from '../../src';
+import { BlockletAgent } from '../../src/provider/blocklet-agent';
 
 mock.module('@blocklet/sdk/lib/config', () => ({
   default: {
@@ -11,7 +11,7 @@ mock.module('@blocklet/sdk/lib/config', () => ({
 }));
 
 mock.module('@blocklet/sdk/lib/component', () => ({
-  getComponentMountPoint: () => `/ai-runtime`,
+  getComponentMountPoint: () => '/ai-runtime',
 }));
 
 test('run with mocked get request', async () => {

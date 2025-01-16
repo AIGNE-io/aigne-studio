@@ -1,21 +1,31 @@
+import {
+  Agent,
+  MemorableSearchOutput,
+  MemoryItemWithScore,
+  RunnableDefinition,
+  TYPES,
+  fetchApi,
+  flattenApiStructure,
+  formatRequest,
+  schemaToDataType,
+} from '@aigne/core';
+import type {
+  AuthConfig,
+  Context,
+  ContextState,
+  CreateRunnableMemory,
+  DataTypeSchema,
+  FetchRequest,
+  FormatMethod,
+  InputDataTypeSchema,
+  SchemaMapType,
+} from '@aigne/core';
 import { getComponentMountPoint } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
 import { pick } from 'lodash';
 import { nanoid } from 'nanoid';
 import { inject, injectable } from 'tsyringe';
 import { joinURL } from 'ufo';
-
-import { Agent } from './agent';
-import { TYPES } from './constants';
-import type { Context, ContextState } from './context';
-import { AuthConfig, FetchRequest, FormatMethod, InputDataTypeSchema } from './definitions/api-parameter';
-import { DataTypeSchema, SchemaMapType, schemaToDataType } from './definitions/data-type-schema';
-import { CreateRunnableMemory } from './definitions/memory';
-import { MemorableSearchOutput, MemoryItemWithScore } from './memorable';
-import { RunnableDefinition } from './runnable';
-import fetchApi from './utils/fetch-api';
-import flattenApiStructure from './utils/flatten-openapi';
-import { formatRequest } from './utils/format-parameter';
 
 type GetAgentResult = {
   type: 'blocklet';
