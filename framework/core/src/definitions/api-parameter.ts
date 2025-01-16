@@ -1,3 +1,5 @@
+import { DataTypeSchema } from './data-type-schema';
+
 export type AuthType = 'apiKey' | 'basic' | 'bearer' | 'custom';
 
 export interface BaseAuthConfig {
@@ -32,41 +34,34 @@ export interface AuthResult {
   cookies?: Record<string, string>;
 }
 
-export function getAuthParams(auth?: AuthConfig): AuthResult {
-  if (!auth) return {};
+export type HTTPMethod = 'get' | 'post' | 'put' | 'delete';
+export type FormatMethod = Uppercase<HTTPMethod> | Lowercase<HTTPMethod>;
 
-  if (auth.type === 'custom') {
-    return { headers: auth.getValue() };
-  }
+export type API = {
+  url: string;
+  method?: FormatMethod;
+  auth?: AuthConfig;
+};
 
-  const paramKey = auth.key || 'Authorization';
+export type ParameterLocation = 'path' | 'query' | 'body' | 'header' | 'cookie';
+export type OpenAPIParameter = {
+  in?: ParameterLocation;
+};
 
-  const paramValue = (() => {
-    let paramValue = auth.token;
+export type FetchRequest = {
+  url: string;
+  method: string;
+  headers?: Record<string, string>;
+  query?: Record<string, string>;
+  cookies?: Record<string, string>;
+  body?: Record<string, string>;
+};
 
-    switch (auth.type) {
-      case 'basic':
-        paramValue = `Basic ${auth.token}`;
-        break;
-      case 'bearer':
-        paramValue = `Bearer ${auth.token}`;
-        break;
-      default:
-        break;
-    }
+export type InputDataTypeSchema = DataTypeSchema & OpenAPIParameter;
 
-    return paramValue;
-  })();
+export interface ParametersResult extends AuthResult {
+  url: string;
+  method: string;
 
-  switch (auth.in) {
-    case 'header':
-      return { headers: { [paramKey]: paramValue } };
-    case 'query':
-      return { query: { [paramKey]: paramValue } };
-    case 'cookie':
-      return { cookies: { [paramKey]: paramValue } };
-    default:
-      // 默认放在 header 中
-      return { headers: { [paramKey]: paramValue } };
-  }
+  body?: Record<string, string>;
 }

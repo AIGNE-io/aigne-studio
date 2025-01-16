@@ -1,30 +1,52 @@
 import { DataType } from '../data-type';
+import {
+  API,
+  AuthConfig,
+  AuthResult,
+  FetchRequest,
+  OpenAPIParameter,
+  ParametersResult,
+} from '../definitions/api-parameter';
 import logger from '../logger';
 import { RunnableDefinition } from '../runnable';
-import { AuthConfig, AuthResult, getAuthParams } from './api-auth';
-import { DataTypeSchema } from './data-type-schema';
 
-export type HTTPMethod = 'get' | 'post' | 'put' | 'delete';
-export type FormatMethod = Uppercase<HTTPMethod> | Lowercase<HTTPMethod>;
+export function getAuthParams(auth?: AuthConfig): AuthResult {
+  if (!auth) return {};
 
-export type API = {
-  url: string;
-  method?: FormatMethod;
-  auth?: AuthConfig;
-};
+  if (auth.type === 'custom') {
+    return { headers: auth.getValue() };
+  }
 
-type ParameterLocation = 'path' | 'query' | 'body' | 'header' | 'cookie';
-type OpenAPIParameter = {
-  in?: ParameterLocation;
-};
+  const paramKey = auth.key || 'Authorization';
 
-export type InputDataTypeSchema = DataTypeSchema & OpenAPIParameter;
+  const paramValue = (() => {
+    let paramValue = auth.token;
 
-interface ParametersResult extends AuthResult {
-  url: string;
-  method: string;
+    switch (auth.type) {
+      case 'basic':
+        paramValue = `Basic ${auth.token}`;
+        break;
+      case 'bearer':
+        paramValue = `Bearer ${auth.token}`;
+        break;
+      default:
+        break;
+    }
 
-  body?: Record<string, string>;
+    return paramValue;
+  })();
+
+  switch (auth.in) {
+    case 'header':
+      return { headers: { [paramKey]: paramValue } };
+    case 'query':
+      return { query: { [paramKey]: paramValue } };
+    case 'cookie':
+      return { cookies: { [paramKey]: paramValue } };
+    default:
+      // 默认放在 header 中
+      return { headers: { [paramKey]: paramValue } };
+  }
 }
 
 export function processParameters(
@@ -107,7 +129,11 @@ export function mergeParameters(parameters: AuthResult, authParams: AuthResult):
   return result;
 }
 
-export const formatRequest = (api: API, inputs: RunnableDefinition['inputs'], input: Record<string, any>) => {
+export const formatRequest = (
+  api: API,
+  inputs: RunnableDefinition['inputs'],
+  input: Record<string, any>
+): FetchRequest => {
   const inputParams = processParameters(api, inputs, input);
   logger.debug('inputParams', inputParams);
   const authParams = getAuthParams(api.auth);

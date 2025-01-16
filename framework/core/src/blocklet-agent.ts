@@ -10,12 +10,12 @@ import { joinURL } from 'ufo';
 
 import { TYPES } from './constants';
 import type { Context, ContextState } from './context';
-import { AuthConfig } from './definitions/api-auth';
-import { FormatMethod, InputDataTypeSchema, formatRequest } from './definitions/api-parameters';
+import { AuthConfig, FormatMethod, InputDataTypeSchema } from './definitions/api-parameter';
 import { DataTypeSchema, SchemaMapType, schemaToDataType } from './definitions/data-type-schema';
 import logger from './logger';
 import { RunOptions, Runnable, RunnableDefinition, RunnableResponse, RunnableResponseStream } from './runnable';
 import { objectToRunnableResponseStream } from './utils';
+import { formatRequest } from './utils/format-parameter';
 
 @injectable()
 export class BlockletAgent<
