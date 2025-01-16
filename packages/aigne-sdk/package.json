@@ -93,8 +93,7 @@
     "build:types": "tsc -p tsconfig.build.json --declaration --emitDeclarationOnly --incremental false --outDir lib/types > /dev/null || exit 0",
     "dev": "run-p 'build:* -- -w'",
     "clean": "rimraf lib",
-    "prepublishOnly": "npm run build",
-    "test": "jest src/"
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@blocklet/ai-kit": "^0.1.66",

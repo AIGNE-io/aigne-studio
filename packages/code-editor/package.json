@@ -49,7 +49,6 @@
     "dev": "run-p 'build:* -- -w'",
     "clean": "rimraf lib",
     "prepublishOnly": "npm run build",
-    "test": "jest src/",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },
