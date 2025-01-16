@@ -132,9 +132,12 @@ export abstract class Agent<
 
   /**
    * Hook that is called before the agent result is returned.
-   * @param result The agent result.
+   * @param _result The agent result.
    */
-  protected async onResult(_result: O): Promise<void> {}
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  protected async onResult(_result: O): Promise<void> {
+    // Override this method to perform additional operations before the result is returned
+  }
 
   abstract process(
     input: I,

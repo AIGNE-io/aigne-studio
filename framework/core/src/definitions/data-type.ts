@@ -1,5 +1,5 @@
-import { OmitPropsFromUnion } from './utils/omit';
-import { OrderedRecord } from './utils/ordered-map';
+import { OmitPropsFromUnion } from '../utils/omit';
+import { OrderedRecord } from '../utils/ordered-map';
 
 export type DataType = DataTypeString | DataTypeNumber | DataTypeBoolean | DataTypeObject | DataTypeArray;
 
