@@ -5,7 +5,7 @@ import { inject, injectable } from 'tsyringe';
 import { Agent, AgentProcessOptions } from './agent';
 import { StreamTextOutputName, TYPES } from './constants';
 import type { Context, ContextState } from './context';
-import { DataType } from './data-type';
+import { DataType } from './definitions/data-type';
 import { DataTypeSchema, SchemaMapType, schemaToDataType } from './definitions/data-type-schema';
 import { CreateRunnableMemory, toRunnableMemories } from './definitions/memory';
 import logger from './logger';
@@ -172,8 +172,8 @@ type VariableWithPropPath = {
 };
 
 export type PipelineAgentProcessParameter<
-  I extends { [name: string]: DataTypeSchema },
-  _Processes extends { [name: string]: PipelineAgentProcessParameter<I> } = {},
+  // I extends { [name: string]: DataTypeSchema },
+  // _Processes extends { [name: string]: PipelineAgentProcessParameter<I> } = {},
   R extends Runnable = any,
   RI extends { [name: string]: DataTypeSchema } = ExtractRunnableInputType<R>,
 > = {
@@ -193,7 +193,7 @@ function create<
   },
   Memories extends { [name: string]: CreateRunnableMemory<I> },
   State extends ContextState,
-  Processes extends { [name: string]: PipelineAgentProcessParameter<I> },
+  Processes extends { [name: string]: PipelineAgentProcessParameter },
 >({
   context,
   ...options

@@ -13,7 +13,7 @@ import { Runnable, RunnableDefinition } from './runnable';
 import { OrderedRecord, extractOutputsFromRunnableOutput, renderMessage } from './utils';
 import { prepareMessages } from './utils/message-utils';
 import { ExtractRunnableInputType, ExtractRunnableOutputType } from './utils/runnable-type';
-import { ObjectUnionToIntersection } from './utils/union';
+import { UnionToIntersection } from './utils/union';
 
 @injectable()
 export class LLMDecisionAgent<
@@ -105,8 +105,8 @@ export interface DecisionAgentCaseParameter<R extends Runnable = Runnable> {
  */
 export interface CreateLLMDecisionAgentOptions<
   Case extends DecisionAgentCaseParameter,
-  I extends ObjectUnionToIntersection<ExtractRunnableInputType<Case['runnable']>, { [name: string]: DataTypeSchema }>,
-  O extends ObjectUnionToIntersection<ExtractRunnableOutputType<Case['runnable']>, { [name: string]: DataTypeSchema }>,
+  I extends UnionToIntersection<ExtractRunnableInputType<Case['runnable']>, { [name: string]: DataTypeSchema }>,
+  O extends UnionToIntersection<ExtractRunnableOutputType<Case['runnable']>, { [name: string]: DataTypeSchema }>,
   Memories extends { [name: string]: CreateRunnableMemory<I> },
   State extends ContextState,
 > extends Pick<CreateLLMAgentOptions<I, O, Memories, State>, 'name' | 'memories' | 'messages' | 'modelOptions'> {
@@ -117,8 +117,8 @@ export interface CreateLLMDecisionAgentOptions<
 
 function create<
   Case extends DecisionAgentCaseParameter,
-  I extends ObjectUnionToIntersection<ExtractRunnableInputType<Case['runnable']>, { [name: string]: DataTypeSchema }>,
-  O extends ObjectUnionToIntersection<ExtractRunnableOutputType<Case['runnable']>, { [name: string]: DataTypeSchema }>,
+  I extends UnionToIntersection<ExtractRunnableInputType<Case['runnable']>, { [name: string]: DataTypeSchema }>,
+  O extends UnionToIntersection<ExtractRunnableOutputType<Case['runnable']>, { [name: string]: DataTypeSchema }>,
   Memories extends {
     [name: string]: CreateRunnableMemory<I> & {
       /**
@@ -135,7 +135,7 @@ function create<
   context,
   ...options
 }: CreateLLMDecisionAgentOptions<Case, I, O, Memories, State>): LLMDecisionAgent<
-  ObjectUnionToIntersection<ExtractRunnableInputType<Case['runnable']>>,
+  UnionToIntersection<ExtractRunnableInputType<Case['runnable']>, {}>,
   ExtractRunnableOutputType<Case['runnable']>,
   { [name in keyof Memories]: MemorableSearchOutput<Memories[name]['memory']> },
   State
