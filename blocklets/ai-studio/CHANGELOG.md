@@ -1,3 +1,10 @@
+## 0.4.206 (2025-1-16)
+
+- feat: support define memories for agents
+- refactor: simplify agent definitions
+- chore: move agent-v1 to a new package
+- test: add test cases for @aigne/core
+
 ## 0.4.205 (2025-1-15)
 
 - feat: support use memories in agent defines

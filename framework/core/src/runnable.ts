@@ -18,6 +18,8 @@ export abstract class Runnable<
     public definition: RunnableDefinition,
     public context?: Context<State>
   ) {
+    context?.register(this);
+
     this.inputs = Object.fromEntries(
       OrderedRecord.map(definition.inputs, (i) => [i.name || i.id, i])
     ) as typeof this.inputs;

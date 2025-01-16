@@ -1,5 +1,5 @@
+import { Agent } from './agent';
 import { Context } from './context';
-import { Runnable } from './runnable';
 import { OrderedRecord } from './utils';
 
 export type Role = 'system' | 'user' | 'assistant' | 'tool';
@@ -68,7 +68,7 @@ export interface LLMModelOutputs {
   }[];
 }
 
-export abstract class LLMModel extends Runnable<LLMModelInputs, LLMModelOutputs> {
+export abstract class LLMModel extends Agent<LLMModelInputs, LLMModelOutputs> {
   constructor(context?: Context) {
     super(
       {

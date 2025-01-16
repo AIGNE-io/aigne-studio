@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/studio-ui",
-  "version": "0.4.205",
+  "version": "0.4.206",
   "description": "UI components for studio",
   "publishConfig": {
     "access": "public"
@@ -61,9 +61,9 @@
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@arcblock/did-connect": "^2.11.27",
-    "@arcblock/ux": "^2.11.27",
-    "@blocklet/ui-react": "^2.11.27",
+    "@arcblock/did-connect": "^2.11.29",
+    "@arcblock/ux": "^2.11.29",
+    "@blocklet/ui-react": "^2.11.29",
     "@emotion/css": "^11.13.0",
     "@emotion/react": "^11.13.3",
     "@mui/icons-material": "^5.16.7",

@@ -1,0 +1,79 @@
+import { DependencyContainer, container } from 'tsyringe';
+import { constructor } from 'tsyringe/dist/typings/types';
+
+import {
+  Context,
+  ContextState,
+  FunctionRunner,
+  LLMModel,
+  OrderedRecord,
+  Runnable,
+  RunnableDefinition,
+  TYPES,
+} from '../../src';
+import { MockFunctionRunner } from './function-runner';
+import { MockLLMModel } from './llm-model';
+
+export interface MockContextOptions {
+  state?: ContextState;
+
+  llmModel?: LLMModel | constructor<LLMModel>;
+
+  functionRunner?: FunctionRunner | constructor<FunctionRunner>;
+}
+
+export class MockContext implements Context {
+  constructor({ state = {}, llmModel = MockLLMModel, functionRunner = MockFunctionRunner }: MockContextOptions = {}) {
+    this.state = state;
+
+    this.container = container.createChildContainer();
+
+    this.registerDependency(TYPES.llmModel, llmModel);
+    this.registerDependency(TYPES.functionRunner, functionRunner);
+  }
+
+  private registerDependency<T>(token: string | symbol, dependency: constructor<T> | T) {
+    if (typeof dependency === 'function') this.container.register(token, { useClass: dependency as constructor<T> });
+    else this.container.register(token, { useValue: dependency });
+  }
+
+  state: ContextState;
+
+  container: DependencyContainer;
+
+  resolveDependency<T>(token: string | symbol): T {
+    return this.container.resolve(token);
+  }
+
+  private runnables: OrderedRecord<Runnable> = OrderedRecord.fromArray([]);
+
+  private definitions: OrderedRecord<RunnableDefinition> = OrderedRecord.fromArray([]);
+
+  async resolve<T extends Runnable>(id: string | RunnableDefinition): Promise<T> {
+    if (typeof id === 'string') {
+      const runnable = this.runnables[id];
+      if (runnable) return runnable as T;
+    }
+
+    const definition = typeof id === 'string' ? this.definitions[id] : id;
+
+    if (definition) {
+      const childContainer = this.container.createChildContainer().register(TYPES.definition, { useValue: definition });
+
+      const result = childContainer.resolve<T>(definition.type);
+
+      childContainer.dispose();
+
+      return result;
+    }
+
+    throw new Error(`Runnable not found: ${id}`);
+  }
+
+  register<R extends Array<RunnableDefinition | Runnable> = []>(...runnables: R): void {
+    for (const runnable of runnables) {
+      if (runnable instanceof Runnable) OrderedRecord.pushOrUpdate(this.runnables, runnable);
+      else OrderedRecord.pushOrUpdate(this.definitions, runnable);
+    }
+  }
+}
