@@ -1,27 +1,14 @@
 import crypto from 'node:crypto';
 
-import {
-  FunctionRunner,
-  FunctionRunnerInputs,
-  FunctionRunnerOutputs,
-  RunOptions,
-  RunnableResponse,
-  RunnableResponseStream,
-  objectToRunnableResponseStream,
-} from '@aigne/core';
+import { FunctionRunner, FunctionRunnerInput } from '@aigne/core';
 import { Sandbox } from '@blocklet/quickjs/sandbox';
 import { call, getComponentMountPoint } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
 import pick from 'lodash/pick';
 
 export class QuickJSRunner extends FunctionRunner {
-  async run(
-    input: FunctionRunnerInputs,
-    options: RunOptions & { stream: true }
-  ): Promise<RunnableResponseStream<FunctionRunnerOutputs>>;
-  async run(input: FunctionRunnerInputs, options?: RunOptions & { stream?: false }): Promise<FunctionRunnerOutputs>;
-  async run(input: FunctionRunnerInputs, options?: RunOptions): Promise<RunnableResponse<FunctionRunnerOutputs>> {
-    if (input.language !== 'javascript' && input.language !== 'typescript') {
+  async process(input: FunctionRunnerInput) {
+    if (input.language && input.language !== 'javascript' && input.language !== 'typescript') {
       throw new Error(`Unsupported language ${input.language}`);
     }
 
@@ -44,7 +31,7 @@ export class QuickJSRunner extends FunctionRunner {
     };
 
     const allArgs = {
-      ...input.arguments,
+      ...input.input,
     };
     const argKeys = Object.keys(allArgs);
 
@@ -60,6 +47,6 @@ async function main({${argKeys.join(', ')}) {
       args: [allArgs],
     });
 
-    return options?.stream ? objectToRunnableResponseStream(result) : result;
+    return result;
   }
 }

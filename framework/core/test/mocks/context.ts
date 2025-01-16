@@ -1,23 +1,40 @@
 import { DependencyContainer, container } from 'tsyringe';
 import { constructor } from 'tsyringe/dist/typings/types';
 
-import { Context, ContextState, LLMModel, OrderedRecord, Runnable, RunnableDefinition, TYPES } from '../../src';
+import {
+  Context,
+  ContextState,
+  FunctionRunner,
+  LLMModel,
+  OrderedRecord,
+  Runnable,
+  RunnableDefinition,
+  TYPES,
+} from '../../src';
+import { MockFunctionRunner } from './function-runner';
 import { MockLLMModel } from './llm-model';
 
 export interface MockContextOptions {
   state?: ContextState;
 
   llmModel?: LLMModel | constructor<LLMModel>;
+
+  functionRunner?: FunctionRunner | constructor<FunctionRunner>;
 }
 
 export class MockContext implements Context {
-  constructor({ state = {}, llmModel = MockLLMModel }: MockContextOptions = {}) {
+  constructor({ state = {}, llmModel = MockLLMModel, functionRunner = MockFunctionRunner }: MockContextOptions = {}) {
     this.state = state;
 
     this.container = container.createChildContainer();
 
-    if (typeof llmModel === 'function') this.container.register(TYPES.llmModel, { useClass: llmModel });
-    else this.container.register(TYPES.llmModel, { useValue: llmModel });
+    this.registerDependency(TYPES.llmModel, llmModel);
+    this.registerDependency(TYPES.functionRunner, functionRunner);
+  }
+
+  private registerDependency<T>(token: string | symbol, dependency: constructor<T> | T) {
+    if (typeof dependency === 'function') this.container.register(token, { useClass: dependency as constructor<T> });
+    else this.container.register(token, { useValue: dependency });
   }
 
   state: ContextState;
