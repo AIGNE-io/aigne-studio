@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/quickjs",
-  "version": "0.4.205",
+  "version": "0.4.206",
   "description": "JS Sandbox powered by Quickjs",
   "publishConfig": {
     "access": "public"
@@ -52,8 +52,7 @@
     "build:modules": "tsc -p tsconfig.modules.json --noEmit && scripts/build-modules.js",
     "dev": "run-p 'build:* -- -w'",
     "clean": "rimraf lib",
-    "prepublishOnly": "npm run build",
-    "test": "jest src/"
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@blocklet/sdk": "^1.16.37",

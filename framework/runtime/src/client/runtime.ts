@@ -18,6 +18,14 @@ export class Runtime<Agents = {}, State extends ContextState = ContextState> imp
     );
   }
 
+  register(): void {
+    throw new Error('Method not implemented.');
+  }
+
+  resolveDependency<T>(): T {
+    throw new Error('Method not implemented.');
+  }
+
   async resolve<T extends Runnable>(id: string): Promise<T> {
     const definition = await getRunnableDefinition({
       projectId: this.definition.id,

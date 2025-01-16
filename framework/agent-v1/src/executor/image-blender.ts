@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 
 import { getComponentMountPoint } from '@blocklet/sdk/lib/component';
 import { env } from '@blocklet/sdk/lib/config';

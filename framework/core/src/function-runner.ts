@@ -1,17 +1,29 @@
-import { Context } from './context';
-import { Runnable } from './runnable';
+import { Agent } from './agent';
+import { Context, ContextState } from './context';
+import { MemoryItemWithScore } from './memorable';
 import { OrderedRecord } from './utils';
 
-export interface FunctionRunnerInputs {
+export interface FunctionRunnerInput<
+  I extends { [name: string]: any } = {},
+  Memories extends { [name: string]: MemoryItemWithScore[] } = {},
+  State extends ContextState = ContextState,
+> {
   name: string;
-  language: string;
+  language?: string;
   code: string;
-  arguments?: object;
+  input: I;
+  memories: Memories;
+  context: Pick<Context<State>, 'state'>;
 }
 
-export type FunctionRunnerOutputs = object;
+export type FunctionRunnerOutput<O> = O;
 
-export abstract class FunctionRunner extends Runnable<FunctionRunnerInputs, FunctionRunnerOutputs> {
+export abstract class FunctionRunner<
+  I extends { [name: string]: any } = {},
+  O extends { [name: string]: any } = {},
+  Memories extends { [name: string]: MemoryItemWithScore[] } = {},
+  State extends ContextState = ContextState,
+> extends Agent<FunctionRunnerInput<I, Memories, State>, FunctionRunnerOutput<O>> {
   constructor(context?: Context) {
     super(
       {
@@ -21,9 +33,11 @@ export abstract class FunctionRunner extends Runnable<FunctionRunnerInputs, Func
         description: 'Run a function',
         inputs: OrderedRecord.fromArray([
           { id: 'name', name: 'name', type: 'string', required: true },
-          { id: 'language', name: 'language', type: 'string', required: true },
+          { id: 'language', name: 'language', type: 'string' },
           { id: 'code', name: 'code', type: 'string', required: true },
-          { id: 'arguments', name: 'arguments', type: 'object', required: false },
+          { id: 'input', name: 'input', type: 'object', required: true },
+          { id: 'memories', name: 'memories', type: 'object', required: true },
+          { id: 'context', name: 'context', type: 'object', required: true },
         ]),
         outputs: OrderedRecord.fromArray([
           {

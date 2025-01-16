@@ -1,8 +1,8 @@
 import { nanoid } from 'nanoid';
 
-import { DataType } from '../data-type';
 import { OrderedRecord } from '../utils';
 import { MakeNullablePropertyOptional } from '../utils/nullable';
+import { DataType } from './data-type';
 
 export function schemaToDataType(dataType: { [name: string]: DataTypeSchema }): OrderedRecord<DataType> {
   return OrderedRecord.fromArray(
@@ -33,13 +33,14 @@ export function schemaToDataType(dataType: { [name: string]: DataTypeSchema }): 
           return {
             ...base,
             type: 'object',
-            properties: schemaToDataType(schema.properties),
+            properties: schema.properties && schemaToDataType(schema.properties),
           };
         case 'array':
           return {
             ...base,
             type: 'array',
-            items: OrderedRecord.find(schemaToDataType({ items: schema.items }), (i) => i.name === 'items')!,
+            items:
+              schema.items && OrderedRecord.find(schemaToDataType({ items: schema.items }), (i) => i.name === 'items')!,
           };
         default: {
           throw new Error(`Unknown data type: ${(schema as DataTypeSchema).type}`);
@@ -75,12 +76,12 @@ export interface DataTypeSchemaBoolean extends DataTypeSchemaBase {
 
 export interface DataTypeSchemaObject extends DataTypeSchemaBase {
   type: 'object';
-  properties: { [key: string]: DataTypeSchema };
+  properties?: { [key: string]: DataTypeSchema };
 }
 
 export interface DataTypeSchemaArray extends DataTypeSchemaBase {
   type: 'array';
-  items: DataTypeSchema;
+  items?: DataTypeSchema;
 }
 
 type SchemaTypeInner<T extends DataTypeSchema> = T extends DataTypeSchemaString
@@ -90,9 +91,11 @@ type SchemaTypeInner<T extends DataTypeSchema> = T extends DataTypeSchemaString
     : T extends DataTypeSchemaBoolean
       ? boolean
       : T extends DataTypeSchemaObject
-        ? MakeNullablePropertyOptional<{ [K in keyof T['properties']]: SchemaType<T['properties'][K]> }>
+        ? MakeNullablePropertyOptional<{ [K in keyof T['properties']]: SchemaType<NonNullable<T['properties']>[K]> }>
         : T extends DataTypeSchemaArray
-          ? SchemaType<T['items']>[]
+          ? T['items'] extends null | undefined
+            ? SchemaType<{ type: 'object' }>[]
+            : NonNullable<T['items']>[]
           : never;
 
 export type SchemaType<T extends DataTypeSchema> = T['required'] extends true

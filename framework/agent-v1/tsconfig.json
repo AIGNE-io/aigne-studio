@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "noEmitOnError": false,
+    "paths": {
+      // For local dev
+      "@aigne/core": ["../../framework/core/src"]
+    }
+  }
+}

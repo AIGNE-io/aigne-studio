@@ -3,13 +3,12 @@ import { inject, injectable } from 'tsyringe';
 
 import { Agent, AgentProcessOptions } from './agent';
 import { StreamTextOutputName, TYPES } from './constants';
-import type { Context } from './context';
+import type { Context, ContextState } from './context';
 import { DataTypeSchema, SchemaMapType, schemaToDataType } from './definitions/data-type-schema';
 import { CreateRunnableMemory, toRunnableMemories } from './definitions/memory';
 import { LLMModel, LLMModelInputMessage, LLMModelInputs } from './llm-model';
 import { MemorableSearchOutput, MemoryItemWithScore } from './memorable';
-import { RunnableDefinition, RunnableResponse, RunnableResponseStream } from './runnable';
-import { runnableResponseStreamToObject } from './utils';
+import { RunnableDefinition } from './runnable';
 import { prepareMessages } from './utils/message-utils';
 import { renderMessage } from './utils/mustache-utils';
 import { OrderedRecord } from './utils/ordered-map';
@@ -20,37 +19,20 @@ export class LLMAgent<
   I extends { [name: string]: any } = {},
   O extends { [name: string]: any } = {},
   Memories extends { [name: string]: MemoryItemWithScore[] } = {},
-> extends Agent<I, O, Memories> {
-  static create<
-    I extends { [name: string]: DataTypeSchema },
-    O extends { [name: string]: DataTypeSchema },
-    Memories extends { [name: string]: CreateRunnableMemory<I> },
-  >(
-    options: Parameters<typeof createLLMAgentDefinition<I, O, Memories>>[0]
-  ): LLMAgent<
-    SchemaMapType<I>,
-    SchemaMapType<O>,
-    { [name in keyof Memories]: MemorableSearchOutput<Memories[name]['memory']> }
-  > {
-    const definition = createLLMAgentDefinition(options);
-
-    return new LLMAgent(definition);
-  }
+  State extends ContextState = ContextState,
+> extends Agent<I, O, Memories, State> {
+  static create = create;
 
   constructor(
     @inject(TYPES.definition) public override definition: LLMAgentDefinition,
-    @inject(TYPES.context) context?: Context,
+    @inject(TYPES.context) context?: Context<State>,
     @inject(TYPES.llmModel) public model?: LLMModel
   ) {
     super(definition, context);
+    this.model ??= context?.resolveDependency(TYPES.llmModel);
   }
 
-  async process(
-    input: I,
-    options: AgentProcessOptions<Memories> & { stream: true }
-  ): Promise<RunnableResponseStream<O>>;
-  async process(input: I, options: AgentProcessOptions<Memories> & { stream?: false }): Promise<O>;
-  async process(input: I, options: AgentProcessOptions<Memories>): Promise<RunnableResponse<O>> {
+  async *process(input: I, options: AgentProcessOptions<Memories>) {
     const { definition, model } = this;
     if (!model) throw new Error('LLM model is required');
 
@@ -61,53 +43,23 @@ export class LLMAgent<
       modelOptions: definition.modelOptions,
     };
 
-    const jsonOutput = this.runWithStructuredOutput(llmInputs);
+    let $text = '';
 
-    const textOutput = OrderedRecord.find(definition.outputs, (i) => i.name === StreamTextOutputName)
-      ? await this.runWithTextOutput(llmInputs)
-      : undefined;
-
-    const updateMemories = (text?: string, json?: object) => {
-      return this.updateMemories([
-        ...originalMessages,
-        { role: 'assistant', content: renderMessage('{{text}}\n{{json}}', { text, json }).trim() },
-      ]);
-    };
-
-    if (options?.stream) {
-      let $text = '';
-
-      return new ReadableStream({
-        start: async (controller) => {
-          try {
-            if (textOutput) {
-              for await (const chunk of textOutput) {
-                $text += chunk.$text || '';
-                controller.enqueue({ $text: chunk.$text });
-              }
-            }
-
-            const json = await jsonOutput;
-            controller.enqueue({ delta: json });
-
-            await updateMemories($text || undefined, json);
-          } catch (error) {
-            controller.error(error);
-          } finally {
-            controller.close();
-          }
-        },
-      });
+    const hasTextOutput = OrderedRecord.find(definition.outputs, (i) => i.name === StreamTextOutputName);
+    if (hasTextOutput) {
+      for await (const chunk of await this.runWithTextOutput(llmInputs)) {
+        $text += chunk.$text || '';
+        yield { $text: chunk.$text };
+      }
     }
 
-    const [$text, json] = await Promise.all([
-      textOutput ? runnableResponseStreamToObject(textOutput).then((res) => res.$text || undefined) : undefined,
-      jsonOutput,
+    const json = await this.runWithStructuredOutput(llmInputs);
+    if (json) yield { delta: json };
+
+    await this.updateMemories([
+      ...originalMessages,
+      { role: 'assistant', content: renderMessage('{{$text}}\n{{json}}', { $text, json }).trim() },
     ]);
-
-    await updateMemories($text, json);
-
-    return { $text, ...json };
   }
 
   private async runWithStructuredOutput(llmInputs: LLMModelInputs) {
@@ -136,11 +88,7 @@ export class LLMAgent<
 
     if (!response.$text) throw new Error('No text in JSON mode response');
 
-    const json = JSON.parse(response.$text);
-
-    // TODO: validate json with outputJsonSchema
-
-    return json;
+    return JSON.parse(response.$text);
   }
 
   private async runWithTextOutput(llmInputs: LLMModelInputs) {
@@ -151,6 +99,16 @@ export class LLMAgent<
   }
 }
 
+export interface LLMAgentDefinition extends RunnableDefinition {
+  type: 'llm_agent';
+
+  primaryMemoryId?: string;
+
+  messages?: OrderedRecord<LLMModelInputMessage & { id: string }>;
+
+  modelOptions?: LLMModelInputs['modelOptions'];
+}
+
 /**
  * Options to create LLMAgent.
  */
@@ -158,7 +116,10 @@ export interface CreateLLMAgentOptions<
   I extends { [name: string]: DataTypeSchema },
   O extends { [name: string]: DataTypeSchema },
   Memories extends { [name: string]: CreateRunnableMemory<I> },
+  State extends ContextState,
 > {
+  context?: Context<State>;
+
   /**
    * Agent name, used to identify the agent.
    */
@@ -195,7 +156,7 @@ export interface CreateLLMAgentOptions<
  * @param options Options to create LLMAgent.
  * @returns LLMAgent definition.
  */
-export function createLLMAgentDefinition<
+function create<
   I extends { [name: string]: DataTypeSchema },
   O extends { [name: string]: DataTypeSchema },
   Memories extends {
@@ -209,7 +170,16 @@ export function createLLMAgentDefinition<
       primary?: boolean;
     };
   },
->(options: CreateLLMAgentOptions<I, O, Memories>): LLMAgentDefinition {
+  State extends ContextState,
+>({
+  context,
+  ...options
+}: CreateLLMAgentOptions<I, O, Memories, State>): LLMAgent<
+  SchemaMapType<I>,
+  SchemaMapType<O>,
+  { [name in keyof Memories]: MemorableSearchOutput<Memories[name]['memory']> },
+  State
+> {
   const agentId = options.name || nanoid();
 
   const inputs = schemaToDataType(options.inputs);
@@ -232,25 +202,18 @@ export function createLLMAgentDefinition<
     }))
   );
 
-  return {
-    id: agentId,
-    name: options.name,
-    type: 'llm_agent',
-    inputs,
-    outputs,
-    primaryMemoryId: primaryMemoryNames?.at(0),
-    memories,
-    modelOptions: options.modelOptions,
-    messages,
-  };
-}
-
-export interface LLMAgentDefinition extends RunnableDefinition {
-  type: 'llm_agent';
-
-  primaryMemoryId?: string;
-
-  messages?: OrderedRecord<LLMModelInputMessage & { id: string }>;
-
-  modelOptions?: LLMModelInputs['modelOptions'];
+  return new LLMAgent(
+    {
+      id: agentId,
+      name: options.name,
+      type: 'llm_agent',
+      inputs,
+      outputs,
+      primaryMemoryId: primaryMemoryNames?.at(0),
+      memories,
+      modelOptions: options.modelOptions,
+      messages,
+    },
+    context
+  );
 }

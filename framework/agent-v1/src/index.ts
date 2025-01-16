@@ -1,9 +1,8 @@
-import type { RunnableDefinition } from '@aigne/core';
+import type { Context, RunnableDefinition } from '@aigne/core';
 import { LLMModel, RunOptions, Runnable, RunnableResponse, RunnableResponseStream, TYPES } from '@aigne/core';
 import { ChatCompletionResponse } from '@blocklet/ai-kit/api/types/index';
 import { inject, injectable } from 'tsyringe';
 
-import type { Runtime } from '../runtime/runtime';
 import { CallAI, CallAIImage, GetAgentResult, RunAssistantCallback } from './assistant/type';
 import { defaultImageModel, getSupportedImagesModels } from './common';
 import { parseIdentity, stringifyIdentity } from './common/aid';
@@ -12,14 +11,17 @@ import { resourceManager } from './resource-blocklet';
 import { Agent, AssistantResponseType } from './types';
 import { nextId } from './utils/task-id';
 
+export * from './type';
+export * from './resource-blocklet';
+
 @injectable()
 export class AgentV1<I extends {} = {}, O extends {} = {}> extends Runnable<I, O> {
   constructor(
     @inject(TYPES.definition) public override definition: RunnableDefinition,
-    @inject(TYPES.context) private runtime: Runtime,
+    @inject(TYPES.context) context: Context,
     @inject(TYPES.llmModel) private llmModel: LLMModel
   ) {
-    super(definition);
+    super(definition, context);
   }
 
   async run(inputs: I, options: RunOptions & { stream: true }): Promise<RunnableResponseStream<O>>;
@@ -83,7 +85,8 @@ export class AgentV1<I extends {} = {}, O extends {} = {}> extends Runnable<I, O
       }) as any;
     };
 
-    const { project } = this.runtime;
+    // TODO: don't use any
+    const { project } = this.context as any;
 
     const { definition } = this;
     if (!definition) throw new Error('No such agent');

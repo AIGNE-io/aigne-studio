@@ -1,6 +1,6 @@
-import logger from '../../logger';
 import { GetAgentResult } from '../assistant/type';
 import { parseIdentity, stringifyIdentity } from '../common/aid';
+import logger from '../logger';
 import { AgentExecutor } from './agent';
 import { AIGCAgentExecutor } from './aigc';
 import { APIAgentExecutor } from './api';

@@ -7,8 +7,8 @@ import { exists } from 'fs-extra';
 import { groupBy, throttle } from 'lodash';
 import { parse } from 'yaml';
 
-import logger from '../../logger';
 import { AIGNE_STUDIO_COMPONENT_DID } from '../constants';
+import logger from '../logger';
 import { Assistant, ResourceProject, ResourceType, ResourceTypes, validateResourceProject } from '../types';
 import { isNonNullable, isPropsNonNullable } from '../utils/is-non-nullable';
 

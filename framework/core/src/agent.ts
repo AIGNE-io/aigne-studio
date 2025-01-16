@@ -1,10 +1,25 @@
 import { Context, ContextState } from './context';
 import logger from './logger';
 import { MemoryItemWithScore, MemoryMessage } from './memorable';
-import { RunOptions, Runnable, RunnableMemory, RunnableResponse, RunnableResponseStream } from './runnable';
-import { OrderedRecord, isNonNullable, renderMessage } from './utils';
+import {
+  RunOptions,
+  Runnable,
+  RunnableMemory,
+  RunnableResponse,
+  RunnableResponseChunk,
+  RunnableResponseStream,
+} from './runnable';
+import {
+  OrderedRecord,
+  extractOutputsFromRunnableOutput,
+  isAsyncGenerator,
+  isNonNullable,
+  objectToRunnableResponseStream,
+  renderMessage,
+  runnableResponseStreamToObject,
+} from './utils';
 
-export interface AgentProcessOptions<Memories extends { [name: string]: MemoryItemWithScore[] }> extends RunOptions {
+export interface AgentProcessOptions<Memories extends { [name: string]: MemoryItemWithScore[] }> {
   memories: Memories;
 }
 
@@ -85,13 +100,49 @@ export abstract class Agent<
   async run(input: I, options?: RunOptions): Promise<RunnableResponse<O>> {
     const memories = await this.loadMemories(input, this.context);
 
-    return this.process(input, { ...options, memories });
+    const processResult = await this.process(input, { ...options, memories });
+
+    if (options?.stream) {
+      const stream =
+        processResult instanceof ReadableStream ||
+        isAsyncGenerator<AsyncGenerator<RunnableResponseChunk<O>>>(processResult)
+          ? processResult
+          : objectToRunnableResponseStream(processResult);
+
+      return extractOutputsFromRunnableOutput(stream, async (result) => {
+        // TODO: validate result against outputs schema
+
+        await this.onResult(result);
+      });
+    }
+
+    const result =
+      processResult instanceof ReadableStream
+        ? await runnableResponseStreamToObject(processResult)
+        : Symbol.asyncIterator in processResult
+          ? await runnableResponseStreamToObject(processResult)
+          : processResult;
+
+    // TODO: validate result against outputs schema
+
+    await this.onResult(result);
+
+    return result;
+  }
+
+  /**
+   * Hook that is called before the agent result is returned.
+   * @param _result The agent result.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  protected async onResult(_result: O): Promise<void> {
+    // Override this method to perform additional operations before the result is returned
   }
 
   abstract process(
     input: I,
-    options: AgentProcessOptions<Memories> & { stream: true }
-  ): Promise<RunnableResponseStream<O>>;
-  abstract process(input: I, options: AgentProcessOptions<Memories> & { stream?: false }): Promise<O>;
-  abstract process(input: I, options: AgentProcessOptions<Memories>): Promise<RunnableResponse<O>>;
+    options: AgentProcessOptions<Memories>
+  ):
+    | Promise<RunnableResponse<O> | AsyncGenerator<RunnableResponseChunk<O>, void>>
+    | AsyncGenerator<RunnableResponseChunk<O>, void>;
 }

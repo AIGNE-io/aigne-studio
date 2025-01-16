@@ -1,5 +1,5 @@
 import type { Context, ContextState } from './context';
-import type { DataType } from './data-type';
+import type { DataType } from './definitions/data-type';
 import type { Memorable } from './memorable';
 import { OrderedRecord } from './utils/ordered-map';
 
@@ -18,6 +18,8 @@ export abstract class Runnable<
     public definition: RunnableDefinition,
     public context?: Context<State>
   ) {
+    context?.register(this);
+
     this.inputs = Object.fromEntries(
       OrderedRecord.map(definition.inputs, (i) => [i.name || i.id, i])
     ) as typeof this.inputs;
