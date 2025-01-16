@@ -13,6 +13,7 @@ import type { Context, ContextState } from './context';
 import { AuthConfig } from './definitions/api-auth';
 import { FormatMethod, InputDataTypeSchema, formatRequest } from './definitions/api-parameters';
 import { DataTypeSchema, SchemaMapType, schemaToDataType } from './definitions/data-type-schema';
+import logger from './logger';
 import { RunOptions, Runnable, RunnableDefinition, RunnableResponse, RunnableResponseStream } from './runnable';
 import { objectToRunnableResponseStream } from './utils';
 
@@ -66,6 +67,7 @@ export class BlockletAgent<
 
     const request = formatRequest(api, inputs, input);
     const contextState = pick(context?.state, ['userId', 'sessionId']);
+    logger.info('request', request);
 
     try {
       const response = await axios({
@@ -106,6 +108,7 @@ export function createBlockletAgentDefinition<
     inputs: schemaToDataType(options.inputs),
     outputs: schemaToDataType(options.outputs),
     openapiId: options.openapiId,
+    auth: options.auth,
   };
 }
 
