@@ -108,7 +108,10 @@ export interface CreateLLMDecisionAgentOptions<
   I extends ObjectUnionToIntersection<ExtractRunnableInputType<Case['runnable']>, { [name: string]: DataTypeSchema }>,
   O extends ObjectUnionToIntersection<ExtractRunnableOutputType<Case['runnable']>, { [name: string]: DataTypeSchema }>,
   Memories extends { [name: string]: CreateRunnableMemory<I> },
-> extends Pick<CreateLLMAgentOptions<I, O, Memories>, 'name' | 'memories' | 'messages' | 'modelOptions'> {
+  State extends ContextState,
+> extends Pick<CreateLLMAgentOptions<I, O, Memories, State>, 'name' | 'memories' | 'messages' | 'modelOptions'> {
+  context: Context<State>;
+
   cases: { [name: string]: Case };
 }
 
@@ -131,7 +134,7 @@ function create<
 >({
   context,
   ...options
-}: { context: Context<State> } & CreateLLMDecisionAgentOptions<Case, I, O, Memories>): LLMDecisionAgent<
+}: CreateLLMDecisionAgentOptions<Case, I, O, Memories, State>): LLMDecisionAgent<
   ObjectUnionToIntersection<ExtractRunnableInputType<Case['runnable']>>,
   ExtractRunnableOutputType<Case['runnable']>,
   { [name in keyof Memories]: MemorableSearchOutput<Memories[name]['memory']> },

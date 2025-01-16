@@ -33,8 +33,6 @@ export class PipelineAgent<
   }
 
   async process(input: I, options: AgentProcessOptions<Memories>) {
-    // TODO: validate the input against the definition
-
     const { definition, context } = this;
     if (!context) throw new Error('Context is required');
 
@@ -152,25 +150,30 @@ export class PipelineAgent<
   }
 }
 
-// type VariableWithPropPath<Vars extends { [name: string]: DataTypeSchema }, Var extends keyof Vars = keyof Vars> = {
 // TODO: do not use `any`, make input type more strict
-// fromVariable: Var;
-// fromVariablePropPath?: VariablePaths<Vars, Var>;
-// }
-
-type VariableWithPropPath = {
-  fromVariable: string;
-  fromVariablePropPath?: (string | number)[];
-};
+// type VariableWithPropPath<
+//   Vars extends { [name: string]: DataTypeSchema },
+//   Processes extends { [name: string]: PipelineAgentProcessParameter<Vars> },
+//   Var extends keyof Vars | keyof Processes = keyof Vars | keyof Processes,
+// > = {
+//   fromVariable: Var;
+//   // fromVariablePropPath?: VariablePaths<Vars, Var>;
+//   fromVariablePropPath?: string[];
+// };
 
 // type VariablePaths<
 //   Vars extends { [name: string]: DataTypeSchema },
 //   Var extends keyof Vars = keyof Vars,
 // > = Vars[Var] extends DataTypeSchemaObject ? Array<keyof Vars[Var]['properties']> : never;
 
+type VariableWithPropPath = {
+  fromVariable: string;
+  fromVariablePropPath?: (string | number)[];
+};
+
 export type PipelineAgentProcessParameter<
-  _I extends { [name: string]: DataTypeSchema },
-  // TODO: do not use `any`, make input type more strict
+  I extends { [name: string]: DataTypeSchema },
+  _Processes extends { [name: string]: PipelineAgentProcessParameter<I> } = {},
   R extends Runnable = any,
   RI extends { [name: string]: DataTypeSchema } = ExtractRunnableInputType<R>,
 > = {
@@ -180,7 +183,7 @@ export type PipelineAgentProcessParameter<
   }>;
 };
 
-export interface CreatePipelineAgentOptions<
+function create<
   I extends { [name: string]: DataTypeSchema },
   O extends {
     [name: string]: DataTypeSchema & {
@@ -189,8 +192,14 @@ export interface CreatePipelineAgentOptions<
     };
   },
   Memories extends { [name: string]: CreateRunnableMemory<I> },
+  State extends ContextState,
   Processes extends { [name: string]: PipelineAgentProcessParameter<I> },
-> {
+>({
+  context,
+  ...options
+}: {
+  context: Context<State>;
+
   name?: string;
 
   inputs: I;
@@ -200,23 +209,7 @@ export interface CreatePipelineAgentOptions<
   memories?: Memories;
 
   processes: Processes;
-}
-
-function create<
-  I extends { [name: string]: DataTypeSchema },
-  O extends {
-    [name: string]: DataTypeSchema & {
-      fromVariable: string;
-      fromVariablePropPath?: string[];
-    };
-  },
-  Processes extends { [name: string]: PipelineAgentProcessParameter<I> },
-  Memories extends { [name: string]: CreateRunnableMemory<I> },
-  State extends ContextState,
->({
-  context,
-  ...options
-}: { context: Context<State> } & CreatePipelineAgentOptions<I, O, Memories, Processes>): PipelineAgent<
+}): PipelineAgent<
   SchemaMapType<I>,
   SchemaMapType<O>,
   { [name in keyof Memories]: MemorableSearchOutput<Memories[name]['memory']> },

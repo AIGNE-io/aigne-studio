@@ -18,18 +18,18 @@ test('PipelineAgent.run', async () => {
       $text: {
         type: 'string',
         required: true,
-        fromVariable: 'case1',
+        fromVariable: 'step1',
         fromVariablePropPath: ['$text'],
       },
       result: {
         type: 'number',
         required: true,
-        fromVariable: 'case2',
+        fromVariable: 'step2',
         fromVariablePropPath: ['length'],
       },
     },
     processes: {
-      case1: {
+      step1: {
         runnable: LocalFunctionAgent.create({
           context,
           inputs: {
@@ -45,7 +45,7 @@ test('PipelineAgent.run', async () => {
             },
           },
           function: async ({ question }) => {
-            return { $text: `case1: ${question}` };
+            return { $text: `step1: ${question}` };
           },
         }),
         input: {
@@ -54,7 +54,7 @@ test('PipelineAgent.run', async () => {
           },
         },
       },
-      case2: {
+      step2: {
         runnable: LocalFunctionAgent.create({
           context,
           inputs: {
@@ -75,7 +75,7 @@ test('PipelineAgent.run', async () => {
         }),
         input: {
           str: {
-            fromVariable: 'case1',
+            fromVariable: 'step1',
             fromVariablePropPath: ['$text'],
           },
         },
@@ -84,5 +84,5 @@ test('PipelineAgent.run', async () => {
   });
 
   const question = 'hello';
-  expect(await agent.run({ question })).toEqual({ $text: `case1: ${question}`, result: `case1: ${question}`.length });
+  expect(await agent.run({ question })).toEqual({ $text: `step1: ${question}`, result: `step1: ${question}`.length });
 });

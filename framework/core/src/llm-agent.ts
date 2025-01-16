@@ -116,7 +116,10 @@ export interface CreateLLMAgentOptions<
   I extends { [name: string]: DataTypeSchema },
   O extends { [name: string]: DataTypeSchema },
   Memories extends { [name: string]: CreateRunnableMemory<I> },
+  State extends ContextState,
 > {
+  context?: Context<State>;
+
   /**
    * Agent name, used to identify the agent.
    */
@@ -171,7 +174,7 @@ function create<
 >({
   context,
   ...options
-}: { context?: Context<State> } & CreateLLMAgentOptions<I, O, Memories>): LLMAgent<
+}: CreateLLMAgentOptions<I, O, Memories, State>): LLMAgent<
   SchemaMapType<I>,
   SchemaMapType<O>,
   { [name in keyof Memories]: MemorableSearchOutput<Memories[name]['memory']> },

@@ -38,28 +38,6 @@ export class LocalFunctionAgent<
   }
 }
 
-export interface CreateLocalFunctionAgentOptions<
-  I extends { [name: string]: DataTypeSchema },
-  O extends { [name: string]: DataTypeSchema },
-  Memories extends { [name: string]: CreateRunnableMemory<I> },
-  State extends ContextState,
-> {
-  name?: string;
-
-  inputs: I;
-
-  outputs: O;
-
-  memories?: Memories;
-
-  function?: LocalFunctionFuncType<
-    SchemaMapType<I>,
-    SchemaMapType<O>,
-    { [key in keyof Memories]: MemorableSearchOutput<Memories[key]['memory']> },
-    State
-  >;
-}
-
 export interface LocalFunctionAgentDefinition<
   I extends { [name: string]: any },
   O extends { [name: string]: any },
@@ -88,6 +66,30 @@ export interface LocalFunctionFuncType<
     | AsyncGenerator<RunnableResponseChunk<O>, void>;
 }
 
+export interface CreateLocalFunctionAgentOptions<
+  I extends { [name: string]: DataTypeSchema },
+  O extends { [name: string]: DataTypeSchema },
+  Memories extends { [name: string]: CreateRunnableMemory<I> },
+  State extends ContextState,
+> {
+  context?: Context<State>;
+
+  name?: string;
+
+  inputs: I;
+
+  outputs: O;
+
+  memories?: Memories;
+
+  function?: LocalFunctionFuncType<
+    SchemaMapType<I>,
+    SchemaMapType<O>,
+    { [key in keyof Memories]: MemorableSearchOutput<Memories[key]['memory']> },
+    State
+  >;
+}
+
 function create<
   I extends { [name: string]: DataTypeSchema },
   O extends { [name: string]: DataTypeSchema },
@@ -96,7 +98,7 @@ function create<
 >({
   context,
   ...options
-}: { context?: Context<State> } & CreateLocalFunctionAgentOptions<I, O, Memories, State>): LocalFunctionAgent<
+}: CreateLocalFunctionAgentOptions<I, O, Memories, State>): LocalFunctionAgent<
   SchemaMapType<I>,
   SchemaMapType<O>,
   { [name in keyof Memories]: MemorableSearchOutput<Memories[name]['memory']> },
