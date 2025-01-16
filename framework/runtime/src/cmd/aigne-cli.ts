@@ -17,8 +17,8 @@ program
           throw new Error(`Invalid project path: ${project}`);
         }
         (async () => {
-          const runtime = await Runtime.load({ path: project }, {});
-          const files = await generateWrapperCode(runtime.project);
+          const runtime = await Runtime.load({ path: project });
+          const files = await generateWrapperCode(runtime.options.projectDefinition!);
           for (const { fileName, content } of files) {
             writeFileSync(join(project, fileName), content);
           }
