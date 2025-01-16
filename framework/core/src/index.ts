@@ -13,4 +13,5 @@ export * from './function-runner';
 export * from './llm-decision-agent';
 export * from './local-function-agent';
 export * from './api-agent';
+export * from './blocklet-agent';
 export * from './memorable';

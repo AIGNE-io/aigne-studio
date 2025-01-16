@@ -1167,6 +1167,9 @@ importers:
       '@abtnode/client':
         specifier: 1.16.36
         version: 1.16.36(encoding@0.1.13)
+      '@blocklet/dataset-sdk':
+        specifier: ^0.4.204
+        version: 0.4.205(encoding@0.1.13)
       '@blocklet/sdk':
         specifier: 1.16.36
         version: 1.16.36(encoding@0.1.13)
@@ -3384,6 +3387,9 @@ packages:
 
   '@blocklet/constant@1.16.36':
     resolution: {integrity: sha512-p1/5Ct0S8J46/xH+NOnqH1/aZPQQKQr0pp8IfcdH1tdXvM1ke3bf5QPQZX8R6RDzQk5MMYLbdun2r3iTdze3Yw==}
+
+  '@blocklet/dataset-sdk@0.4.205':
+    resolution: {integrity: sha512-w6tKFUc7BkYlORNUUQV0gjoxJdVB3IKRURwXNz4/skLxMRjz3xJLsN/uNBBR1ps/XSYHEjfYrpyRfbtqs3RA+Q==}
 
   '@blocklet/did-space-js@1.0.3':
     resolution: {integrity: sha512-LXVvJajADbmj3t8dHu1Qikmf9qSrPxQ3V/jesg2pKh0r3TyR4wxGl1rZHE+WkHdlRHPMdEZvjDUItF3l24g/zA==}
@@ -20809,6 +20815,32 @@ snapshots:
       - supports-color
 
   '@blocklet/constant@1.16.36': {}
+
+  '@blocklet/dataset-sdk@0.4.205(encoding@0.1.13)':
+    dependencies:
+      '@blocklet/constant': 1.16.36
+      '@blocklet/sdk': 1.16.36(encoding@0.1.13)
+      '@types/swagger-jsdoc': 6.0.4
+      '@types/swagger-ui-express': 4.1.6
+      ajv: 8.17.1
+      axios: 1.7.5(debug@4.3.6)
+      express: 4.21.2
+      joi: 17.13.3
+      js-cookie: 3.0.5
+      lodash: 4.17.21
+      openapi-enforcer: 1.23.0
+      openapi-types: 12.1.3
+      openapi3-ts: 4.3.1
+      swagger-jsdoc: 6.2.8(openapi-types@12.1.3)
+      swagger-ui-express: 5.0.1(express@4.21.2)
+      ufo: 1.5.4
+      yaml: 2.6.1
+    transitivePeerDependencies:
+      - bufferutil
+      - debug
+      - encoding
+      - supports-color
+      - utf-8-validate
 
   '@blocklet/did-space-js@1.0.3(encoding@0.1.13)(sqlite3@5.1.7)':
     dependencies:
