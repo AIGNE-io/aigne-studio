@@ -2,20 +2,27 @@ import { DatasetObject } from '@blocklet/dataset-sdk/types';
 import flattenApiStructure from '@blocklet/dataset-sdk/util/flatten-open-api';
 import { getComponentMountPoint } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
-import axios, { isAxiosError } from 'axios';
 import { pick } from 'lodash';
 import { nanoid } from 'nanoid';
 import { inject, injectable } from 'tsyringe';
-import { joinURL } from 'ufo';
+import { joinURL, withQuery } from 'ufo';
 
 import { TYPES } from './constants';
 import type { Context, ContextState } from './context';
-import { AuthConfig, FormatMethod, InputDataTypeSchema } from './definitions/api-parameter';
+import { AuthConfig, FetchRequest, FormatMethod, InputDataTypeSchema } from './definitions/api-parameter';
 import { DataTypeSchema, SchemaMapType, schemaToDataType } from './definitions/data-type-schema';
 import logger from './logger';
 import { RunOptions, Runnable, RunnableDefinition, RunnableResponse, RunnableResponseStream } from './runnable';
 import { objectToRunnableResponseStream } from './utils';
 import { formatRequest } from './utils/format-parameter';
+
+type GetAgentResult = {
+  type: 'blocklet';
+  id: string;
+  name?: string;
+  description?: string;
+  openApi: DatasetObject;
+};
 
 @injectable()
 export class BlockletAgent<
@@ -49,7 +56,7 @@ export class BlockletAgent<
     } = this;
 
     if (!openapiId) throw new Error('OpenAPI id is required');
-    this.promise ??= getBlockletAgent();
+    this.promise ??= this.getBlockletAgent();
     const { agentsMap } = await this.promise;
     const agent = agentsMap[openapiId];
 
@@ -70,24 +77,42 @@ export class BlockletAgent<
     logger.debug('request', request);
     logger.debug('contextState', contextState);
 
-    try {
-      const response = await axios({
-        url: request.url,
-        method: request.method,
-        params: request.query ? { ...contextState, ...request.query } : contextState,
-        data: request.body,
-        headers: request.headers,
-        ...(request.cookies ? { ...request.cookies, withCredentials: true } : {}),
-      });
+    const result = await this.fetch(request);
+    return options?.stream ? objectToRunnableResponseStream(result) : result;
+  }
 
-      const result = response.data;
-      return options?.stream ? objectToRunnableResponseStream(result) : (result as O);
-    } catch (e) {
-      if (isAxiosError(e)) {
-        Object.assign(e, pick(e.response, 'status', 'statusText', 'data'));
-      }
-      throw e;
+  async fetch(request: FetchRequest) {
+    let cookieString = '';
+    if (request.cookies) {
+      cookieString = Object.entries(request.cookies)
+        .map(([key, value]) => `${key}=${value}`)
+        .join(';');
     }
+
+    const response = await fetch(withQuery(request.url, request.query || {}), {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(cookieString && { Cookie: cookieString }),
+        ...(request.headers || {}),
+      },
+      body: request.body ? JSON.stringify(request.body) : undefined,
+      credentials: request.cookies ? 'include' : 'same-origin',
+    });
+
+    if (!response.ok) {
+      throw {
+        status: response.status,
+        statusText: response.statusText,
+        data: await response.json().catch(() => null),
+      };
+    }
+
+    const result = await response.json();
+    return result;
+  }
+
+  getBlockletAgent() {
+    return getBlockletAgent();
   }
 }
 
@@ -119,16 +144,9 @@ export interface BlockletAgentDefinition extends RunnableDefinition {
   auth?: AuthConfig;
 }
 
-type GetAgentResult = {
-  type: 'blocklet';
-  id: string;
-  name?: string;
-  description?: string;
-  openApi: DatasetObject;
-};
-
 const getBlockletAgent = async () => {
-  const list = (await axios.get(joinURL(config.env.appUrl, '/.well-known/service/openapi.json'))).data;
+  const response = await fetch(joinURL(config.env.appUrl, '/.well-known/service/openapi.json'));
+  const list = (await response.json()).data;
   const openApis = [...flattenApiStructure(list as any)];
 
   const agents: GetAgentResult[] = openApis.map((i) => {

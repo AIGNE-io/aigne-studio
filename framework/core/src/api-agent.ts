@@ -38,7 +38,7 @@ export class APIAgent<I extends {} = {}, O extends {} = {}> extends Runnable<I, 
     return options?.stream ? objectToRunnableResponseStream(result) : result;
   }
 
-  async fetch(request: FetchRequest): Promise<O> {
+  async fetch(request: FetchRequest) {
     let cookieString = '';
     if (request.cookies) {
       cookieString = Object.entries(request.cookies)

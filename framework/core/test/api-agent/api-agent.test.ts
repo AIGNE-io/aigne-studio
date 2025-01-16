@@ -58,7 +58,7 @@ test('run with mocked get request', async () => {
     },
   });
 
-  spyOn(agent, 'fetch').mockImplementation((request) => request);
+  spyOn(agent, 'fetch').mockImplementation((request) => Promise.resolve(request));
 
   const result = await agent.run({
     id: '123',
@@ -136,7 +136,7 @@ test('run with mocked post request', async () => {
     },
   });
 
-  spyOn(agent, 'fetch').mockImplementation((request) => request);
+  spyOn(agent, 'fetch').mockImplementation((request) => Promise.resolve(request));
 
   const result = await agent.run({
     id: '123',
@@ -208,7 +208,7 @@ test('run with mocked default parameters', async () => {
     },
   });
 
-  spyOn(agent, 'fetch').mockImplementation((request) => request);
+  spyOn(agent, 'fetch').mockImplementation((request) => Promise.resolve(request));
 
   const result = await agent.run({
     id: '123',
@@ -283,7 +283,7 @@ test('run with mocked basic auth config', async () => {
     },
   });
 
-  spyOn(agent, 'fetch').mockImplementation((request) => request);
+  spyOn(agent, 'fetch').mockImplementation((request) => Promise.resolve(request));
 
   const result = await agent.run({
     id: '123',
@@ -354,7 +354,7 @@ test('run with mocked bearer auth config', async () => {
     },
   });
 
-  spyOn(agent, 'fetch').mockImplementation((request) => request);
+  spyOn(agent, 'fetch').mockImplementation((request) => Promise.resolve(request));
 
   const result = await agent.run({
     id: '123',
