@@ -1,4 +1,4 @@
-import { RunnableResponse, RunnableResponseStream, isRunnableResponseDelta } from '../runnable';
+import { RunnableResponse, RunnableResponseChunk, RunnableResponseStream, isRunnableResponseDelta } from '../runnable';
 
 export function objectToRunnableResponseStream<T extends { [key: string]: any }>(obj: T): RunnableResponseStream<T> {
   return new ReadableStream({
@@ -10,7 +10,7 @@ export function objectToRunnableResponseStream<T extends { [key: string]: any }>
 }
 
 export async function runnableResponseStreamToObject<T extends { [key: string]: any }>(
-  stream: RunnableResponseStream<T>
+  stream: RunnableResponseStream<T> | AsyncGenerator<RunnableResponseChunk<T>>
 ): Promise<T> {
   let $text = '';
   const result: T = {} as T;
@@ -36,32 +36,49 @@ export async function runnableResponseStreamToObject<T extends { [key: string]: 
  * @returns The runnable output stream or object
  */
 export async function extractOutputsFromRunnableOutput<T extends { [key: string]: any }>(
-  output: RunnableResponse<T>,
+  output: RunnableResponse<T> | AsyncGenerator<RunnableResponseChunk<T>>,
   resolve: (result: T) => Promise<void> | void
-): Promise<typeof output> {
-  if (!(output instanceof ReadableStream)) {
-    await resolve(output);
-    return output;
+): Promise<RunnableResponse<T>> {
+  if (output instanceof ReadableStream || isAsyncGenerator<AsyncGenerator<RunnableResponseChunk<T>>>(output)) {
+    return new ReadableStream({
+      async start(controller) {
+        try {
+          const result: T = {} as T;
+          let $text = '';
+
+          for await (const value of output) {
+            if (isRunnableResponseDelta(value)) {
+              controller.enqueue(value);
+
+              $text += value.$text || '';
+              Object.assign(result, value.delta);
+            }
+          }
+
+          Object.assign(result, { $text: result.$text || $text || undefined });
+
+          await resolve(result);
+        } catch (error) {
+          controller.error(error);
+        } finally {
+          controller.close();
+        }
+      },
+    });
   }
 
+  await resolve(output);
+
+  return output;
+}
+
+export function asyncGeneratorToReadableStream<T>(generator: AsyncGenerator<T>): ReadableStream<T> {
   return new ReadableStream({
     async start(controller) {
       try {
-        const result: T = {} as T;
-        let $text = '';
-
-        for await (const value of output) {
-          if (isRunnableResponseDelta(value)) {
-            $text += value.$text || '';
-            Object.assign(result, value.delta);
-          }
+        for await (const value of generator) {
+          controller.enqueue(value);
         }
-
-        Object.assign(result, { $text: result.$text || $text || undefined });
-
-        controller.enqueue({ $text: result.$text, delta: result });
-
-        await resolve(result);
       } catch (error) {
         controller.error(error);
       } finally {
@@ -69,4 +86,8 @@ export async function extractOutputsFromRunnableOutput<T extends { [key: string]
       }
     },
   });
+}
+
+export function isAsyncGenerator<T extends AsyncGenerator>(value: any): value is T {
+  return Symbol.asyncIterator in value;
 }

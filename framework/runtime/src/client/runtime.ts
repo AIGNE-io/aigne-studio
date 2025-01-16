@@ -1,4 +1,4 @@
-import { Context, ContextState, OrderedRecord, Runnable, isNonNullable } from '@aigne/core';
+import { Context, ContextState, OrderedRecord, Runnable, RunnableDefinition, isNonNullable } from '@aigne/core';
 
 import { ProjectDefinition } from '../runtime';
 import { Agent } from './agent';
@@ -16,6 +16,14 @@ export class Runtime<Agents = {}, State extends ContextState = ContextState> imp
         return [agent.name, new Agent(definition, agent)];
       }).filter(isNonNullable)
     );
+  }
+
+  register<R extends Array<RunnableDefinition | Runnable> = []>(..._definition: R): void {
+    throw new Error('Method not implemented.');
+  }
+
+  resolveDependency<T>(_token: string | symbol): T {
+    throw new Error('Method not implemented.');
   }
 
   async resolve<T extends Runnable>(id: string): Promise<T> {

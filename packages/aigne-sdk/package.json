@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/aigne-sdk",
-  "version": "0.4.205",
+  "version": "0.4.206",
   "description": "AIGNE SDK used to interact with AIGNE services",
   "publishConfig": {
     "access": "public"
@@ -93,8 +93,7 @@
     "build:types": "tsc -p tsconfig.build.json --declaration --emitDeclarationOnly --incremental false --outDir lib/types > /dev/null || exit 0",
     "dev": "run-p 'build:* -- -w'",
     "clean": "rimraf lib",
-    "prepublishOnly": "npm run build",
-    "test": "jest src/"
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@blocklet/ai-kit": "^0.1.66",
@@ -124,7 +123,7 @@
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@arcblock/ux": "^2.11.27",
+    "@arcblock/ux": "^2.11.29",
     "@emotion/css": "^11.13.0",
     "@emotion/react": "^11.13.3",
     "@jest/globals": "^29.7.0",
