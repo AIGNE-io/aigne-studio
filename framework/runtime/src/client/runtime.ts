@@ -4,7 +4,7 @@ import { ProjectDefinition } from '../runtime';
 import { Agent } from './agent';
 import { getRunnableDefinition } from './api/runtime';
 
-export interface RuntimeOptions<_Agents extends { [name: string]: Runnable }, _State extends ContextState> {
+export interface RuntimeOptions {
   id?: string;
 
   projectDefinition?: ProjectDefinition;
@@ -13,7 +13,7 @@ export interface RuntimeOptions<_Agents extends { [name: string]: Runnable }, _S
 export class Runtime<Agents extends { [name: string]: Runnable } = {}, State extends ContextState = ContextState>
   implements Context<State>
 {
-  constructor(public readonly options: RuntimeOptions<Agents, State>) {
+  constructor(public readonly options: RuntimeOptions) {
     const id = options.id || options.projectDefinition?.id;
     if (!id) throw new Error('Runtime id is required');
     this.id = id;

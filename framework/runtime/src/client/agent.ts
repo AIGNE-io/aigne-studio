@@ -2,7 +2,7 @@ import { RunOptions, Runnable, RunnableDefinition, RunnableResponse, RunnableRes
 import { joinURL } from 'ufo';
 
 import { fetchApi } from './api/api';
-import { Runtime } from './runtime';
+import type { Runtime } from './runtime';
 import { EventSourceParserStream, RunnableStreamParser } from './utils/event-stream';
 
 export class Agent<I extends {} = {}, O extends {} = {}> extends Runnable<I, O> {

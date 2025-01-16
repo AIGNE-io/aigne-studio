@@ -50,5 +50,6 @@ module.exports = {
     '@typescript-eslint/no-throw-literal': 'warn',
     'react/function-component-definition': 'off',
     '@typescript-eslint/no-redeclare': 'warn',
+    '@typescript-eslint/brace-style': 'off',
   },
 };
