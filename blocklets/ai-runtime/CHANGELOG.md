@@ -1,3 +1,23 @@
+## 0.4.207 (2025-1-16)
+
+- fix: agent-v1 crash caused by project definition access error
+- fix: wrong type schema for array items
+
+## 0.4.206 (2025-1-16)
+
+- feat: support define memories for agents
+- refactor: simplify agent definitions
+- chore: move agent-v1 to a new package
+- test: add test cases for @aigne/core
+
+## 0.4.205 (2025-1-15)
+
+- feat: support use memories in agent defines
+
+## 0.4.204 (2025-1-14)
+
+- refactor: use uploadToMediaKit instead of component call
+
 ## 0.4.203 (2025-1-13)
 
 - fix: remove shiki dependency

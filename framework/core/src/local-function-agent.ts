@@ -1,32 +1,31 @@
 import { nanoid } from 'nanoid';
 import { inject, injectable } from 'tsyringe';
 
+import { Agent, AgentProcessOptions } from './agent';
 import { TYPES } from './constants';
-import type { Context } from './context';
-import { DataTypeSchema, SchemaMapType, schemaToDataType } from './data-type-schema';
-import { RunOptions, Runnable, RunnableDefinition, RunnableResponse, RunnableResponseStream } from './runnable';
-import { objectToRunnableResponseStream, runnableResponseStreamToObject } from './utils';
+import type { Context, ContextState } from './context';
+import { DataTypeSchema, SchemaMapType, schemaToDataType } from './definitions/data-type-schema';
+import { CreateRunnableMemory, toRunnableMemories } from './definitions/memory';
+import { MemorableSearchOutput, MemoryItemWithScore } from './memorable';
+import { RunnableDefinition, RunnableResponse, RunnableResponseChunk } from './runnable';
 
 @injectable()
-export class LocalFunctionAgent<I extends {} = {}, O extends {} = {}, State = {}> extends Runnable<I, O> {
-  static create<I extends { [name: string]: DataTypeSchema }, O extends { [name: string]: DataTypeSchema }, State = {}>(
-    options: Parameters<typeof createLocalFunctionAgentDefinition<I, O, State>>[0]
-  ): LocalFunctionAgent<SchemaMapType<I>, SchemaMapType<O>, State> {
-    const definition = createLocalFunctionAgentDefinition<I, O, State>(options);
-
-    return new LocalFunctionAgent(definition);
-  }
+export class LocalFunctionAgent<
+  I extends { [name: string]: any } = {},
+  O extends { [name: string]: any } = {},
+  Memories extends { [name: string]: MemoryItemWithScore[] } = {},
+  State extends ContextState = ContextState,
+> extends Agent<I, O, Memories, State> {
+  static create = create;
 
   constructor(
-    @inject(TYPES.definition) public override definition: LocalFunctionAgentDefinition<I, O, State>,
-    @inject(TYPES.context) public context?: Context<State>
+    @inject(TYPES.definition) public override definition: LocalFunctionAgentDefinition<I, O, Memories, State>,
+    @inject(TYPES.context) context?: Context<State>
   ) {
-    super(definition);
+    super(definition, context);
   }
 
-  async run(input: I, options: RunOptions & { stream: true }): Promise<RunnableResponseStream<O>>;
-  async run(input: I, options?: RunOptions & { stream?: false }): Promise<O>;
-  async run(input: I, options?: RunOptions): Promise<RunnableResponse<O>> {
+  async process(input: I, options: AgentProcessOptions<Memories>) {
     const {
       definition: { function: func },
       context,
@@ -35,50 +34,93 @@ export class LocalFunctionAgent<I extends {} = {}, O extends {} = {}, State = {}
     if (!func) throw new Error('Function is required');
     if (!context) throw new Error('Context is required');
 
-    const result = (await func(input, { context })) as O;
-
-    // TODO: validate the result against the definition.outputs
-
-    return options?.stream
-      ? result instanceof ReadableStream
-        ? result
-        : objectToRunnableResponseStream(result)
-      : result instanceof ReadableStream
-        ? runnableResponseStreamToObject(result)
-        : result;
+    return await func(input, { context, memories: options.memories });
   }
 }
 
-export function createLocalFunctionAgentDefinition<
+export interface LocalFunctionAgentDefinition<
+  I extends { [name: string]: any },
+  O extends { [name: string]: any },
+  Memories extends { [name: string]: MemoryItemWithScore[] },
+  State extends ContextState,
+> extends RunnableDefinition {
+  type: 'local_function_agent';
+
+  function?: LocalFunctionFuncType<I, O, Memories, State>;
+}
+
+export interface LocalFunctionFuncType<
+  I extends { [name: string]: any },
+  O extends { [name: string]: any },
+  Memories extends { [name: string]: MemoryItemWithScore[] },
+  State extends ContextState,
+> {
+  (
+    input: I,
+    options: {
+      memories: Memories;
+      context: Context<State>;
+    }
+  ):
+    | Promise<RunnableResponse<O> | AsyncGenerator<RunnableResponseChunk<O>, void>>
+    | AsyncGenerator<RunnableResponseChunk<O>, void>;
+}
+
+export interface CreateLocalFunctionAgentOptions<
   I extends { [name: string]: DataTypeSchema },
   O extends { [name: string]: DataTypeSchema },
-  State = {},
->(options: {
-  id?: string;
+  Memories extends { [name: string]: CreateRunnableMemory<I> },
+  State extends ContextState,
+> {
+  context?: Context<State>;
+
   name?: string;
+
   inputs: I;
+
   outputs: O;
-  function?: (
-    input: SchemaMapType<I>,
-    options: { context: Context<State> }
-  ) => Promise<RunnableResponse<SchemaMapType<O>>>;
-}): LocalFunctionAgentDefinition<SchemaMapType<I>, SchemaMapType<O>, State> {
+
+  memories?: Memories;
+
+  function?: LocalFunctionFuncType<
+    SchemaMapType<I>,
+    SchemaMapType<O>,
+    { [key in keyof Memories]: MemorableSearchOutput<Memories[key]['memory']> },
+    State
+  >;
+}
+
+function create<
+  I extends { [name: string]: DataTypeSchema },
+  O extends { [name: string]: DataTypeSchema },
+  Memories extends { [name: string]: CreateRunnableMemory<I> },
+  State extends ContextState,
+>({
+  context,
+  ...options
+}: CreateLocalFunctionAgentOptions<I, O, Memories, State>): LocalFunctionAgent<
+  SchemaMapType<I>,
+  SchemaMapType<O>,
+  { [name in keyof Memories]: MemorableSearchOutput<Memories[name]['memory']> },
+  State
+> {
+  const agentId = options.name || nanoid();
+
   const inputs = schemaToDataType(options.inputs);
   const outputs = schemaToDataType(options.outputs);
 
-  return {
-    id: options.id || options.name || nanoid(),
-    name: options.name,
-    type: 'local_function_agent',
-    inputs,
-    outputs,
-    function: options.function,
-  };
-}
+  const memories = toRunnableMemories(agentId, inputs, options.memories || {});
 
-export interface LocalFunctionAgentDefinition<I extends {} = {}, O extends {} = {}, State = {}>
-  extends RunnableDefinition {
-  type: 'local_function_agent';
-
-  function?: (input: I, options: { context: Context<State> }) => Promise<RunnableResponse<O>>;
+  return new LocalFunctionAgent(
+    {
+      id: agentId,
+      name: options.name,
+      type: 'local_function_agent',
+      inputs,
+      outputs,
+      memories,
+      function: options.function,
+    },
+    context
+  );
 }

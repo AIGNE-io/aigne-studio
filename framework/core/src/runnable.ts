@@ -1,5 +1,7 @@
-import { DataType } from './data-type';
-import { Retriever } from './retriever';
+import type { Context, ContextState } from './context';
+import type { DataType } from './definitions/data-type';
+import type { Memorable } from './memorable';
+import { Retrievable } from './retrievable';
 import { OrderedRecord } from './utils/ordered-map';
 
 export interface RunOptions {
@@ -8,8 +10,17 @@ export interface RunOptions {
 
 export type RunnableResponse<T> = T | RunnableResponseStream<T>;
 
-export abstract class Runnable<I extends {} = {}, O extends {} = {}> {
-  constructor(public definition: RunnableDefinition) {
+export abstract class Runnable<
+  I extends { [name: string]: any } = {},
+  O extends { [name: string]: any } = {},
+  State extends ContextState = ContextState,
+> {
+  constructor(
+    public definition: RunnableDefinition,
+    public context?: Context<State>
+  ) {
+    context?.register(this);
+
     this.inputs = Object.fromEntries(
       OrderedRecord.map(definition.inputs, (i) => [i.name || i.id, i])
     ) as typeof this.inputs;
@@ -33,14 +44,6 @@ export abstract class Runnable<I extends {} = {}, O extends {} = {}> {
   abstract run(input: I, options: RunOptions & { stream: true }): Promise<RunnableResponseStream<O>>;
   abstract run(input: I, options?: RunOptions & { stream?: false }): Promise<O>;
   abstract run(input: I, options?: RunOptions): Promise<RunnableResponse<O>>;
-
-  async retrieve(id: string) {
-    const retriever = this.definition.retrievers?.[id]?.retriever;
-    if (!retriever) throw new Error(`Retriever not found: ${id}`);
-    // TODO: pass input to retriever
-    // TODO: cache retriever result
-    return retriever.run({});
-  }
 }
 
 export interface RunnableDefinition {
@@ -52,18 +55,39 @@ export interface RunnableDefinition {
 
   description?: string;
 
-  retrievers?: OrderedRecord<RetrieverItem<any>>;
+  retrievers?: OrderedRecord<RunnableRetriever<any>>;
+
+  memories?: OrderedRecord<RunnableMemory>;
 
   inputs: OrderedRecord<RunnableInput>;
 
   outputs: OrderedRecord<RunnableOutput>;
 }
 
-export interface RetrieverItem<T> {
+export interface RunnableRetriever<T> {
   id: string;
+
   name?: string;
-  description?: string;
-  retriever: Retriever<T>;
+
+  retriever: Retrievable<T>;
+}
+
+export interface RunnableMemory {
+  id: string;
+
+  name?: string;
+
+  memory?: Memorable<any>;
+
+  query?: {
+    from: 'variable';
+    fromVariableId?: string;
+    fromVariablePropPath?: string[];
+  };
+
+  options?: {
+    k?: number;
+  };
 }
 
 export type RunnableInput = DataType;

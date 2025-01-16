@@ -1,64 +1,62 @@
 import { nanoid } from 'nanoid';
 import { inject, injectable } from 'tsyringe';
 
+import { Agent, AgentProcessOptions } from './agent';
 import { TYPES } from './constants';
-import type { Context } from './context';
-import { LLMModel, LLMModelInputMessage, LLMModelInputs, LLMModelOptions } from './llm-model';
-import { RunOptions, Runnable, RunnableDefinition, RunnableResponse, RunnableResponseStream } from './runnable';
-import { OrderedRecord, renderMessage } from './utils';
+import type { Context, ContextState } from './context';
+import { DataTypeSchema } from './definitions/data-type-schema';
+import { CreateRunnableMemory, toRunnableMemories } from './definitions/memory';
+import { CreateLLMAgentOptions, LLMAgentDefinition } from './llm-agent';
+import { LLMModel, LLMModelInputs } from './llm-model';
+import { MemorableSearchOutput, MemoryItemWithScore } from './memorable';
+import { Runnable, RunnableDefinition } from './runnable';
+import { OrderedRecord, extractOutputsFromRunnableOutput, renderMessage } from './utils';
+import { prepareMessages } from './utils/message-utils';
 import { ExtractRunnableInputType, ExtractRunnableOutputType } from './utils/runnable-type';
-import { ObjectUnionToIntersection } from './utils/union';
+import { UnionToIntersection } from './utils/union';
 
 @injectable()
-export class LLMDecisionAgent<I extends { [key: string]: any } = {}, O extends {} = {}> extends Runnable<I, O> {
-  static create<Case extends DecisionAgentCaseParameter>(
-    options: Parameters<typeof createLLMDecisionAgentDefinition<Case>>[0]
-  ): LLMDecisionAgent<
-    ObjectUnionToIntersection<ExtractRunnableInputType<Case['runnable']>>,
-    ExtractRunnableOutputType<Case['runnable']>
-  > {
-    const definition = createLLMDecisionAgentDefinition(options);
-
-    return new LLMDecisionAgent(definition);
-  }
+export class LLMDecisionAgent<
+  I extends { [name: string]: any } = {},
+  O extends { [name: string]: any } = {},
+  Memories extends { [name: string]: MemoryItemWithScore[] } = {},
+  State extends ContextState = ContextState,
+> extends Agent<I, O, Memories, State> {
+  static create = create;
 
   constructor(
     @inject(TYPES.definition) public override definition: LLMDecisionAgentDefinition,
-    @inject(TYPES.llmModel) public model?: LLMModel,
-    @inject(TYPES.context) public context?: Context
+    @inject(TYPES.context) context?: Context<State>,
+    @inject(TYPES.llmModel) public model?: LLMModel
   ) {
-    super(definition);
+    super(definition, context);
+
+    this.model ??= context?.resolveDependency(TYPES.llmModel);
   }
 
-  async run(input: I, options: RunOptions & { stream: true }): Promise<RunnableResponseStream<O>>;
-  async run(input: I, options?: RunOptions & { stream?: false }): Promise<O>;
-  async run(input: I, options?: RunOptions): Promise<RunnableResponse<O>> {
+  async process(input: I, options: AgentProcessOptions<Memories>) {
     const { definition, context, model } = this;
     if (!model) throw new Error('LLM model is required');
     if (!context) throw new Error('Context is required');
 
-    const messages = OrderedRecord.toArray(definition.messages);
-    if (!messages.length) throw new Error('Messages are required');
+    const { originalMessages, messagesWithMemory } = prepareMessages(definition, input, options.memories);
 
     const cases = await Promise.all(
       OrderedRecord.map(definition.cases, async (t) => {
         if (!t.runnable?.id) throw new Error('Runnable is required');
 
-        const runnable = await context.resolve(t.runnable.id);
+        const runnable = await context.resolve<Runnable<I, O>>(t.runnable.id);
 
         // TODO: auto generate name by llm model if needed
         const name = t.name || runnable.name;
         if (!name) throw new Error('Case name is required');
 
-        return { name, description: t.description, runnable, input: t.input };
+        return { name, description: t.description, runnable };
       })
     );
 
     const llmInputs: LLMModelInputs = {
-      messages: messages.map(({ role, content }) => ({
-        role,
-        content: typeof content === 'string' ? renderMessage(content, input) : content,
-      })),
+      messages: messagesWithMemory,
       modelOptions: definition.modelOptions,
       tools: cases.map((t) => {
         // TODO: auto generate parameters by llm model if needed
@@ -85,76 +83,133 @@ export class LLMDecisionAgent<I extends { [key: string]: any } = {}, O extends {
     if (!caseToCall) throw new Error('Case not found');
 
     // TODO: check result structure and omit undefined values
-    return (await caseToCall.runnable.run(input, options)) as RunnableResponse<O>;
+    const output = await caseToCall.runnable.run(input, { stream: true });
+
+    return extractOutputsFromRunnableOutput(output, ({ $text, ...json }) =>
+      this.updateMemories([
+        ...originalMessages,
+        { role: 'assistant', content: renderMessage('{{$text}}\n{{json}}', { $text, json }).trim() },
+      ])
+    );
   }
 }
 
 export interface DecisionAgentCaseParameter<R extends Runnable = Runnable> {
-  name?: string;
   description?: string;
+
   runnable: R;
 }
 
-export function createLLMDecisionAgentDefinition<Case extends DecisionAgentCaseParameter>(options: {
-  id?: string;
-  name?: string;
-  messages: string;
-  modelOptions?: LLMModelOptions;
-  cases: Case[];
-}): LLMDecisionAgentDefinition {
-  const messages: OrderedRecord<LLMModelInputMessage & { id: string }> = OrderedRecord.fromArray([
-    {
-      id: nanoid(),
-      role: 'system',
-      content: options.messages,
-    },
-  ]);
+/**
+ * Options to create LLMDecisionAgent.
+ */
+export interface CreateLLMDecisionAgentOptions<
+  Case extends DecisionAgentCaseParameter,
+  I extends UnionToIntersection<ExtractRunnableInputType<Case['runnable']>, { [name: string]: DataTypeSchema }>,
+  O extends UnionToIntersection<ExtractRunnableOutputType<Case['runnable']>, { [name: string]: DataTypeSchema }>,
+  Memories extends { [name: string]: CreateRunnableMemory<I> },
+  State extends ContextState,
+> extends Pick<CreateLLMAgentOptions<I, O, Memories, State>, 'name' | 'memories' | 'messages' | 'modelOptions'> {
+  context: Context<State>;
+
+  cases: { [name: string]: Case };
+}
+
+function create<
+  Case extends DecisionAgentCaseParameter,
+  I extends UnionToIntersection<ExtractRunnableInputType<Case['runnable']>, { [name: string]: DataTypeSchema }>,
+  O extends UnionToIntersection<ExtractRunnableOutputType<Case['runnable']>, { [name: string]: DataTypeSchema }>,
+  Memories extends {
+    [name: string]: CreateRunnableMemory<I> & {
+      /**
+       * Whether this memory is primary? Primary memory will be passed as messages to LLM chat model,
+       * otherwise, it will be placed in a system message.
+       *
+       * Only one primary memory is allowed.
+       */
+      primary?: boolean;
+    };
+  },
+  State extends ContextState,
+>({
+  context,
+  ...options
+}: CreateLLMDecisionAgentOptions<Case, I, O, Memories, State>): LLMDecisionAgent<
+  UnionToIntersection<ExtractRunnableInputType<Case['runnable']>, {}>,
+  ExtractRunnableOutputType<Case['runnable']>,
+  { [name in keyof Memories]: MemorableSearchOutput<Memories[name]['memory']> },
+  State
+> {
+  const agentId = options.name || nanoid();
 
   const cases: OrderedRecord<LLMDecisionCase> = OrderedRecord.fromArray(
-    options.cases.map((c) => ({
+    Object.entries(options.cases).map(([name, c]) => ({
       id: nanoid(),
-      name: c.name || c.runnable.name,
+      name: name || c.runnable.name,
       description: c.description,
       runnable: { id: c.runnable.id },
     }))
   );
 
-  return {
-    id: options.id || options.name || nanoid(),
-    name: options.name,
-    type: 'llm_decision_agent',
-    // TODO: decision agent inputs should be the intersection of all case inputs
-    inputs: OrderedRecord.fromArray([]),
-    // TODO: decision agent outputs should be the union of all case outputs
-    outputs: OrderedRecord.fromArray([]),
-    messages,
-    modelOptions: options.modelOptions,
-    cases,
-  };
+  const inputs = OrderedRecord.merge(...Object.values(options.cases).map((i) => i.runnable.definition.inputs));
+
+  const outputs = OrderedRecord.fromArray(
+    OrderedRecord.map(
+      OrderedRecord.merge(...Object.values(options.cases).map((i) => i.runnable.definition.outputs)),
+      (o) => ({ ...o, required: false })
+    )
+  );
+
+  const memories = toRunnableMemories(agentId, inputs, options.memories ?? {});
+  const primaryMemoryNames = Object.entries(options.memories ?? {})
+    .filter(([, i]) => i.primary)
+    .map(([name]) => name);
+
+  if (primaryMemoryNames && primaryMemoryNames.length > 1) {
+    throw new Error('Only one primary memory is allowed');
+  }
+
+  const messages = OrderedRecord.fromArray(
+    options.messages?.map((i) => ({
+      id: nanoid(),
+      role: i.role,
+      content: i.content,
+    }))
+  );
+
+  return new LLMDecisionAgent(
+    {
+      id: agentId,
+      name: options.name,
+      type: 'llm_decision_agent',
+      inputs,
+      outputs,
+      messages,
+      primaryMemoryId: primaryMemoryNames?.at(0),
+      memories,
+      modelOptions: options.modelOptions,
+      cases,
+    },
+    context
+  );
 }
 
-export interface LLMDecisionAgentDefinition extends RunnableDefinition {
+export interface LLMDecisionAgentDefinition
+  extends RunnableDefinition,
+    Pick<LLMAgentDefinition, 'modelOptions' | 'messages' | 'primaryMemoryId'> {
   type: 'llm_decision_agent';
-
-  messages?: OrderedRecord<LLMModelInputMessage & { id: string }>;
-
-  modelOptions?: LLMModelInputs['modelOptions'];
 
   cases?: OrderedRecord<LLMDecisionCase>;
 }
 
 export interface LLMDecisionCase {
   id: string;
+
   name?: string;
+
   description?: string;
+
   runnable?: {
     id?: string;
-  };
-  input?: {
-    [inputId: string]: {
-      from: 'variable';
-      fromVariableId?: string;
-      fromVariablePropPath?: (string | number)[];
-    };
   };
 }

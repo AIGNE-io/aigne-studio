@@ -60,9 +60,9 @@ export class ReadableStream<R> {
       cancel: async () => {
         throw new Error('Unimplemented method `cancel`');
       },
-    };
+    } as any;
 
-    return this.reader;
+    return this.reader!;
   }
 
   pipeThrough<T>(transformStream: TransformStream<R, T>) {

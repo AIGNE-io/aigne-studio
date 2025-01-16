@@ -2,54 +2,37 @@ import { get, isNil } from 'lodash';
 import { nanoid } from 'nanoid';
 import { inject, injectable } from 'tsyringe';
 
+import { Agent, AgentProcessOptions } from './agent';
 import { StreamTextOutputName, TYPES } from './constants';
-import type { Context } from './context';
-import { DataType } from './data-type';
-import { DataTypeSchema, SchemaMapType, schemaToDataType } from './data-type-schema';
+import type { Context, ContextState } from './context';
+import { DataType } from './definitions/data-type';
+import { DataTypeSchema, SchemaMapType, schemaToDataType } from './definitions/data-type-schema';
+import { CreateRunnableMemory, toRunnableMemories } from './definitions/memory';
 import logger from './logger';
-import {
-  RunOptions,
-  Runnable,
-  RunnableDefinition,
-  RunnableOutput,
-  RunnableResponse,
-  RunnableResponseDelta,
-  RunnableResponseStream,
-} from './runnable';
-import { runnableResponseStreamToObject } from './utils';
+import { MemorableSearchOutput, MemoryItemWithScore } from './memorable';
+import { Runnable, RunnableDefinition, RunnableOutput, RunnableResponseDelta } from './runnable';
 import { isNonNullable } from './utils/is-non-nullable';
+import { MakeNullablePropertyOptional } from './utils/nullable';
 import { OrderedRecord } from './utils/ordered-map';
+import { ExtractRunnableInputType } from './utils/runnable-type';
 
 @injectable()
-export class PipelineAgent<I extends { [key: string]: any } = {}, O extends {} = {}> extends Runnable<I, O> {
-  static create<
-    I extends { [name: string]: DataTypeSchema },
-    O extends {
-      [name: string]: DataTypeSchema & {
-        fromVariable: string;
-        fromVariablePropPath?: string[];
-      };
-    },
-  >(
-    options: Parameters<typeof createPipelineAgentDefinition<I, O>>[0]
-  ): PipelineAgent<SchemaMapType<I>, SchemaMapType<O>> {
-    const definition = createPipelineAgentDefinition(options);
-
-    return new PipelineAgent(definition);
-  }
+export class PipelineAgent<
+  I extends { [key: string]: any } = {},
+  O extends { [name: string]: any } = {},
+  Memories extends { [name: string]: MemoryItemWithScore[] } = {},
+  State extends ContextState = ContextState,
+> extends Agent<I, O, Memories, State> {
+  static create = create;
 
   constructor(
     @inject(TYPES.definition) public override definition: PipelineAgentDefinition,
-    @inject(TYPES.context) public context?: Context
+    @inject(TYPES.context) context?: Context<State>
   ) {
-    super(definition);
+    super(definition, context);
   }
 
-  async run(input: I, options: RunOptions & { stream: true }): Promise<RunnableResponseStream<O>>;
-  async run(input: I, options?: RunOptions & { stream?: false }): Promise<O>;
-  async run(input: I, options?: RunOptions): Promise<RunnableResponse<O>> {
-    // TODO: validate the input against the definition
-
+  async process(input: I, options: AgentProcessOptions<Memories>) {
     const { definition, context } = this;
     if (!context) throw new Error('Context is required');
 
@@ -59,18 +42,21 @@ export class PipelineAgent<I extends { [key: string]: any } = {}, O extends {} =
       throw new Error('No processes defined');
     }
 
-    const result = new ReadableStream<RunnableResponseDelta<O>>({
+    return new ReadableStream<RunnableResponseDelta<O>>({
       async start(controller) {
         try {
           // NOTE: 将 input 转换为 variables，其中 key 为 inputId，value 为 input 的值
-          const variables: { [processId: string]: any } = Object.fromEntries(
-            OrderedRecord.map(definition.inputs, (i) => {
-              const value = input[i.name || i.id];
-              if (isNil(value)) return null;
+          const variables: { [processId: string]: any } = {
+            ...options.memories,
+            ...Object.fromEntries(
+              OrderedRecord.map(definition.inputs, (i) => {
+                const value = input[i.name || i.id];
+                if (isNil(value)) return null;
 
-              return [i.id, value];
-            }).filter(isNonNullable)
-          );
+                return [i.id, value];
+              }).filter(isNonNullable)
+            ),
+          };
 
           const outputs = OrderedRecord.toArray(definition.outputs);
 
@@ -135,6 +121,7 @@ export class PipelineAgent<I extends { [key: string]: any } = {}, O extends {} =
                 result = Object.fromEntries(
                   OrderedRecord.map(definition.outputs, (output) => {
                     if (!output.name) return null;
+                    if (output.name === StreamTextOutputName) return null;
 
                     let value: any;
                     if (output.from === 'variable') {
@@ -160,30 +147,43 @@ export class PipelineAgent<I extends { [key: string]: any } = {}, O extends {} =
         }
       },
     });
-
-    if (options?.stream) {
-      return result;
-    }
-
-    // TODO: validate the result against the definition.outputs
-    return await runnableResponseStreamToObject(result);
   }
 }
 
-export interface PipelineAgentProcessParameter<I extends {} = {}, O extends {} = {}, R = Runnable<I, O>> {
-  name?: string;
-  runnable: R;
-  input?: {
-    [key: string]:
-      | {
-          fromVariable: string;
-          fromVariablePropPath?: string[];
-        }
-      | undefined;
-  };
-}
+// TODO: do not use `any`, make input type more strict
+// type VariableWithPropPath<
+//   Vars extends { [name: string]: DataTypeSchema },
+//   Processes extends { [name: string]: PipelineAgentProcessParameter<Vars> },
+//   Var extends keyof Vars | keyof Processes = keyof Vars | keyof Processes,
+// > = {
+//   fromVariable: Var;
+//   // fromVariablePropPath?: VariablePaths<Vars, Var>;
+//   fromVariablePropPath?: string[];
+// };
 
-export function createPipelineAgentDefinition<
+// type VariablePaths<
+//   Vars extends { [name: string]: DataTypeSchema },
+//   Var extends keyof Vars = keyof Vars,
+// > = Vars[Var] extends DataTypeSchemaObject ? Array<keyof Vars[Var]['properties']> : never;
+
+type VariableWithPropPath = {
+  fromVariable: string;
+  fromVariablePropPath?: (string | number)[];
+};
+
+export type PipelineAgentProcessParameter<
+  // I extends { [name: string]: DataTypeSchema },
+  // _Processes extends { [name: string]: PipelineAgentProcessParameter<I> } = {},
+  R extends Runnable = any,
+  RI extends { [name: string]: DataTypeSchema } = ExtractRunnableInputType<R>,
+> = {
+  runnable: R;
+  input: MakeNullablePropertyOptional<{
+    [key in keyof RI]: VariableWithPropPath;
+  }>;
+};
+
+function create<
   I extends { [name: string]: DataTypeSchema },
   O extends {
     [name: string]: DataTypeSchema & {
@@ -191,27 +191,47 @@ export function createPipelineAgentDefinition<
       fromVariablePropPath?: string[];
     };
   },
->(options: {
-  id?: string;
+  Memories extends { [name: string]: CreateRunnableMemory<I> },
+  State extends ContextState,
+  Processes extends { [name: string]: PipelineAgentProcessParameter },
+>({
+  context,
+  ...options
+}: {
+  context: Context<State>;
+
   name?: string;
+
   inputs: I;
+
   outputs: O;
-  processes?: PipelineAgentProcessParameter[];
-}): PipelineAgentDefinition {
+
+  memories?: Memories;
+
+  processes: Processes;
+}): PipelineAgent<
+  SchemaMapType<I>,
+  SchemaMapType<O>,
+  { [name in keyof Memories]: MemorableSearchOutput<Memories[name]['memory']> },
+  State
+> {
+  const agentId = options.name || nanoid();
   const inputs = schemaToDataType(options.inputs);
+
+  const memories = toRunnableMemories(agentId, inputs, options.memories || {});
 
   const processes: OrderedRecord<PipelineAgentProcess> = OrderedRecord.fromArray([]);
 
-  for (const p of options.processes || []) {
+  for (const [name, p] of Object.entries(options.processes)) {
     OrderedRecord.push(processes, {
       id: nanoid(),
-      name: p.name || p.runnable?.name,
+      name: name || p.runnable?.name,
       runnable: { id: p.runnable.id },
       input: Object.fromEntries(
         OrderedRecord.map<[string, NonNullable<PipelineAgentProcess['input']>[string]] | null, DataType>(
           p.runnable.definition.inputs,
           (inputOfProcess) => {
-            const i = p.input?.[inputOfProcess.name || inputOfProcess.id];
+            const i = p.input[inputOfProcess.name || inputOfProcess.id];
             if (!i) {
               if (inputOfProcess.required) {
                 throw new Error(
@@ -227,7 +247,7 @@ export function createPipelineAgentDefinition<
               OrderedRecord.find(inputs, (input) => input.name === i.fromVariable) ||
               OrderedRecord.find(processes, (p) => p.name === i.fromVariable);
 
-            if (!inputFromPipeline) throw new Error(`Input ${i.fromVariable} not found`);
+            if (!inputFromPipeline) throw new Error(`Input ${i.fromVariable.toString()} not found`);
 
             return [
               inputOfProcess.id,
@@ -257,14 +277,18 @@ export function createPipelineAgentDefinition<
     })
   );
 
-  return {
-    id: options.id || options.name || nanoid(),
-    name: options.name,
-    type: 'pipeline_agent',
-    inputs,
-    outputs,
-    processes,
-  };
+  return new PipelineAgent(
+    {
+      id: agentId,
+      name: options.name,
+      type: 'pipeline_agent',
+      inputs,
+      memories,
+      outputs,
+      processes,
+    },
+    context
+  );
 }
 
 export interface PipelineAgentDefinition extends RunnableDefinition {
@@ -291,7 +315,7 @@ export type PipelineAgentProcess = {
     [inputId: string]: {
       from: 'variable';
       fromVariableId?: string;
-      fromVariablePropPath?: (string | number)[];
+      fromVariablePropPath?: (string | number | symbol)[];
     };
   };
 };

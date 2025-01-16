@@ -1,6 +1,6 @@
 {
   "name": "@aigne/memory",
-  "version": "0.4.203",
+  "version": "0.4.207",
   "description": "AIGNE Memory library",
   "publishConfig": {
     "access": "public"
@@ -35,8 +35,7 @@
     "build:esm": "tsc -p tsconfig.build.json --module es2022 --outDir lib/esm",
     "build:types": "tsc -p tsconfig.build.json --declaration --emitDeclarationOnly --outDir lib/types",
     "clean": "rimraf lib",
-    "prepublishOnly": "npm run build",
-    "test": "jest src/"
+    "prepublishOnly": "npm run build"
   },
   "exports": {
     ".": {

@@ -1,6 +1,8 @@
 import { Runnable } from '@aigne/core';
 import { Response } from 'express';
 
+import logger from '../logger';
+
 export async function runAgentWithStreaming<T extends { [key: string]: any }>(
   res: Response,
   agent: Runnable<T>,
@@ -13,6 +15,7 @@ export async function runAgentWithStreaming<T extends { [key: string]: any }>(
       writeEvent(res, chunk);
     }
   } catch (error) {
+    logger.error('AIGNE Middleware: runAgentWithStreaming error', { error });
     writeEvent(res, { error: { message: error.message } });
   }
 

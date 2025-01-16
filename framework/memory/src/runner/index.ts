@@ -1,2 +1,2 @@
-export * from './long-term';
+export * from './chat-history';
 export * from './short-term';

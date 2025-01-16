@@ -1,4 +1,5 @@
-import { Runnable } from './runnable';
+import { Agent } from './agent';
+import { Context } from './context';
 import { OrderedRecord } from './utils';
 
 export type Role = 'system' | 'user' | 'assistant' | 'tool';
@@ -67,25 +68,28 @@ export interface LLMModelOutputs {
   }[];
 }
 
-export abstract class LLMModel extends Runnable<LLMModelInputs, LLMModelOutputs> {
-  constructor() {
-    super({
-      id: 'llm_model',
-      type: 'llm_model',
-      name: 'LLM Model',
-      description: 'Run a LLM model',
-      inputs: OrderedRecord.fromArray([
-        { id: 'messages', name: 'messages', type: 'array', required: true },
-        { id: 'responseFormat', name: 'responseFormat', type: 'object' },
-        { id: 'tools', name: 'tools', type: 'array' },
-        { id: 'toolChoice', name: 'toolChoice', type: 'object' },
-        { id: 'modelOptions', name: 'modelOptions', type: 'object' },
-      ]),
-      outputs: OrderedRecord.fromArray([
-        { id: '$text', name: '$text', type: 'string' },
-        { id: 'toolCalls', name: 'toolCalls', type: 'object' },
-      ]),
-    });
+export abstract class LLMModel extends Agent<LLMModelInputs, LLMModelOutputs> {
+  constructor(context?: Context) {
+    super(
+      {
+        id: 'llm_model',
+        type: 'llm_model',
+        name: 'LLM Model',
+        description: 'Run a LLM model',
+        inputs: OrderedRecord.fromArray([
+          { id: 'messages', name: 'messages', type: 'array', required: true },
+          { id: 'responseFormat', name: 'responseFormat', type: 'object' },
+          { id: 'tools', name: 'tools', type: 'array' },
+          { id: 'toolChoice', name: 'toolChoice', type: 'object' },
+          { id: 'modelOptions', name: 'modelOptions', type: 'object' },
+        ]),
+        outputs: OrderedRecord.fromArray([
+          { id: '$text', name: '$text', type: 'string' },
+          { id: 'toolCalls', name: 'toolCalls', type: 'object' },
+        ]),
+      },
+      context
+    );
   }
 }
 
