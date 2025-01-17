@@ -105,7 +105,6 @@ export class Runtime<Agents extends { [name: string]: Runnable } = {}, State ext
     OrderedRecord.push(this.runnableDefinitions, ...OrderedRecord.toArray(options.projectDefinition?.runnables));
 
     this.container.register(TYPES.context, { useValue: this });
-    this.container.register(TYPES.llmModelConfiguration, { useFactory: () => this.config.llmModel || {} });
     this.container.register('pipeline_agent', { useClass: PipelineAgent });
     this.container.register('llm_agent', { useClass: LLMAgent });
     this.container.register('function_agent', { useClass: FunctionAgent });
@@ -129,11 +128,9 @@ export class Runtime<Agents extends { [name: string]: Runnable } = {}, State ext
 
   state: State;
 
-  readonly agents: Agents = new Proxy({}, { get: (_, prop) => this.resolveSync(prop.toString()) }) as Agents;
+  agents: Agents = new Proxy({}, { get: (_, prop) => this.resolveSync(prop.toString()) }) as Agents;
 
   private container: DependencyContainer = container.createChildContainer();
-
-  private runnables: OrderedRecord<Runnable> = OrderedRecord.fromArray([]);
 
   private runnableDefinitions: OrderedRecord<RunnableDefinition> = OrderedRecord.fromArray([]);
 
@@ -143,20 +140,12 @@ export class Runtime<Agents extends { [name: string]: Runnable } = {}, State ext
   }
 
   private resolveSync<T extends Runnable>(id: string | RunnableDefinition): T {
-    if (typeof id === 'string') {
-      const runnable = this.runnables[id];
-      if (runnable) return runnable as T;
-    }
-
     const definition = typeof id === 'string' ? this.runnableDefinitions[id] : id;
 
     if (definition) {
       const childContainer = this.container.createChildContainer().register(TYPES.definition, { useValue: definition });
-
       const result = childContainer.resolve<T>(definition.type);
-
       childContainer.dispose();
-
       return result;
     }
 
@@ -171,8 +160,10 @@ export class Runtime<Agents extends { [name: string]: Runnable } = {}, State ext
 
   register<R extends Array<RunnableDefinition | Runnable> = []>(...runnables: R): void {
     for (const runnable of runnables) {
-      if (runnable instanceof Runnable) OrderedRecord.pushOrUpdate(this.runnables, runnable);
-      else OrderedRecord.pushOrUpdate(this.runnableDefinitions, runnable);
+      OrderedRecord.pushOrUpdate(
+        this.runnableDefinitions,
+        runnable instanceof Runnable ? runnable.definition : runnable
+      );
     }
   }
 
@@ -185,10 +176,19 @@ export class Runtime<Agents extends { [name: string]: Runnable } = {}, State ext
   }
 
   copy<State extends ContextState = ContextState>(
-    options: Required<Pick<RuntimeOptions<Agents, State>, 'state'>>
+    options: Pick<RuntimeOptions<Agents, State>, 'state' | 'config'>
   ): Runtime<Agents, State> {
     const clone: Runtime<Agents, State> = Object.assign(Object.create(Object.getPrototypeOf(this)), this);
-    clone.state = options.state;
+
+    // override state/config
+    if (options.state) clone.state = options.state;
+    if (options.config) clone.config = options.config;
+
+    // override container & register context with cloned runtime
+    clone.container = this.container.createChildContainer();
+    clone.container.register(TYPES.context, { useValue: clone });
+
+    clone.agents = new Proxy({}, { get: (_, prop) => clone.resolveSync(prop.toString()) }) as Agents;
 
     return clone;
   }

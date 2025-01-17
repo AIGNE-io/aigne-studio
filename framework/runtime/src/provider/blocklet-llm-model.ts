@@ -1,5 +1,5 @@
 import { agentV1ToRunnableDefinition, getAdapter } from '@aigne/agent-v1';
-import type { Context, LLMModelConfiguration, Runnable } from '@aigne/core';
+import type { Context, Runnable } from '@aigne/core';
 import { LLMModel, LLMModelInputs, TYPES } from '@aigne/core';
 import {
   ChatCompletionChunk,
@@ -17,27 +17,25 @@ const defaultLLMModel = 'gpt-4o-mini';
 
 @injectable()
 export class BlockletLLMModel extends LLMModel {
-  constructor(
-    @inject(TYPES.context) context?: Context,
-    @inject(TYPES.llmModelConfiguration) public config?: LLMModelConfiguration
-  ) {
+  constructor(@inject(TYPES.context) context?: Context) {
     super(context);
   }
 
   async *process(input: LLMModelInputs) {
     const { chatCompletions } = await import('@blocklet/ai-kit/api/call');
 
-    const model =
-      getDefaultValue('model', this.config?.override, input.modelOptions, this.config?.default) || defaultLLMModel;
+    const config = this.context?.config.llmModel;
+
+    const model = getDefaultValue('model', config?.override, input.modelOptions, config?.default) || defaultLLMModel;
 
     const chatInput: ChatCompletionInput = {
       ...input.modelOptions,
       model,
       ...getDefaultValue(
         ['temperature', 'topP', 'presencePenalty', 'frequencyPenalty'],
-        this.config?.override,
+        config?.override,
         input.modelOptions,
-        this.config?.default
+        config?.default
       ),
       messages: input.messages as ChatCompletionInput['messages'],
       responseFormat: input.responseFormat,

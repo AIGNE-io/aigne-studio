@@ -1,3 +1,4 @@
+import { LLMModelConfiguration } from './llm-model';
 import { Runnable, RunnableDefinition } from './runnable';
 
 export interface ContextState {
@@ -5,8 +6,14 @@ export interface ContextState {
   sessionId?: string;
 }
 
-export interface Context<State extends ContextState = ContextState> {
+export interface ContextConfig {
+  llmModel?: LLMModelConfiguration;
+}
+
+export interface Context<State extends ContextState = ContextState, Config extends ContextConfig = ContextConfig> {
   state: State;
+
+  config: Config;
 
   resolve<T extends Runnable>(id: string | RunnableDefinition): Promise<T>;
 
