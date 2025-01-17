@@ -1,3 +1,7 @@
+## 0.4.210 (2025-1-17)
+
+- feat: add OpenAPIAgent and BlockletAPIAgent support
+
 ## 0.4.209 (2025-1-17)
 
 - fix: get history message error when not login
