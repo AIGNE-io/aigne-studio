@@ -59,7 +59,6 @@ const updateMemoryQuerySchema = Joi.object<{
 
 router.get('/', middlewares.session({ componentCall: true }), ensureComponentCallOrAdmin(), async (req, res) => {
   const userId = req.user?.method === 'componentCall' ? req.query.userId : req.user?.did;
-  if (!userId || typeof userId !== 'string') throw new Error('Can not get user info');
 
   const { sessionId, projectId, key, scope } = await getMemoriesQuerySchema.validateAsync(req.query, {
     stripUnknown: true,
@@ -75,7 +74,6 @@ router.get('/', middlewares.session({ componentCall: true }), ensureComponentCal
 
 router.post('/', middlewares.session({ componentCall: true }), ensureComponentCallOrAdmin(), async (req, res) => {
   const userId = req.user?.method === 'componentCall' ? req.query.userId : req.user?.did;
-  if (!userId || typeof userId !== 'string') throw new Error('Can not get user info');
 
   const { key, data, scope } = await createMemoryInputSchema.validateAsync(req.body, { stripUnknown: true });
   const { sessionId, projectId, reset } = await createMemoryQuerySchema.validateAsync(req.query, {
@@ -84,7 +82,7 @@ router.post('/', middlewares.session({ componentCall: true }), ensureComponentCa
 
   if (reset) await Memory.destroy({ where: omitBy({ projectId, sessionId, scope, key }, (v) => isNil(v)) });
 
-  const datastore = await Memory.create({ key, scope, data, userId, sessionId, projectId });
+  const datastore = await Memory.create({ key, scope, data, userId: (userId as string) || '', sessionId, projectId });
 
   res.json(datastore);
 });
@@ -150,15 +148,15 @@ router.get(
     const { key, projectId, scope, sessionId } = query;
 
     const userId = req.user?.method === 'componentCall' ? req.query.userId : req.user?.did;
-    if (!userId || typeof userId !== 'string') throw new Error('Can not get user info');
 
     const params: { [key: string]: any } = omitBy({ userId, projectId, key }, (v) => isNil(v));
 
     if (scope === 'session') {
       const datastores = await Memory.findAll({
         order: [['createdAt', 'ASC']],
-        where: { ...params, scope, sessionId },
+        where: { ...params, scope: 'session', sessionId },
       });
+
       if (datastores.length) {
         return res.json({ datastores });
       }
@@ -167,8 +165,9 @@ router.get(
     if (scope === 'session' || scope === 'user') {
       const datastores = await Memory.findAll({
         order: [['createdAt', 'ASC']],
-        where: { ...params, scope: 'user' },
+        where: { ...params, scope: 'user', ...(userId ? {} : { sessionId }) },
       });
+
       if (datastores.length) {
         return res.json({ datastores });
       }
@@ -177,8 +176,9 @@ router.get(
     if (scope === 'session' || scope === 'user' || scope === 'global') {
       const datastores = await Memory.findAll({
         order: [['createdAt', 'ASC']],
-        where: { ...params, scope: 'global' },
+        where: { ...params, scope: 'global', ...(userId ? {} : { sessionId }) },
       });
+
       if (datastores.length) {
         return res.json({ datastores });
       }
