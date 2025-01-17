@@ -96,6 +96,7 @@
     "yaml": "^2.5.0"
   },
   "devDependencies": {
+    "@aryzing/bun-mock-fetch": "^0.2.2",
     "@jest/globals": "^29.7.0",
     "@tsconfig/recommended": "^1.0.8",
     "@types/bun": "^1.1.16",

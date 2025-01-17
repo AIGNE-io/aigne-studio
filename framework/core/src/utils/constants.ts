@@ -1,1 +1,1 @@
-export const TIMEOUT = process.env.FETCH_TIMEOUT || 30000;
+export const FETCH_TIMEOUT = Number(process.env.FETCH_TIMEOUT) || 30000;

@@ -1,17 +1,17 @@
-import { pick } from 'lodash';
 import { nanoid } from 'nanoid';
 import { inject, injectable } from 'tsyringe';
 
 import { Agent } from './agent';
 import { TYPES } from './constants';
 import type { Context, ContextState } from './context';
-import { AuthConfig, FetchRequest, FormatMethod } from './definitions/api-parameter';
-import { DataTypeSchema, InputDataTypeSchema, SchemaMapType, schemaToDataType } from './definitions/data-type-schema';
+import { DataTypeSchema, SchemaMapType, schemaToDataType } from './definitions/data-type-schema';
 import { CreateRunnableMemory } from './definitions/memory';
+import { AuthConfig, FetchRequest, HTTPMethod, OpenAPIDataType, OpenAPIDataTypeSchema } from './definitions/open-api';
 import { MemorableSearchOutput, MemoryItemWithScore } from './memorable';
 import { RunnableDefinition } from './runnable';
-import { fetchApi } from './utils/fetch-api';
-import { formatRequest } from './utils/format-parameter';
+import { OrderedRecord } from './utils';
+import { fetchOpenApi } from './utils/fetch-open-api';
+import { formatOpenAPIRequest } from './utils/open-api-parameter';
 
 @injectable()
 export class OpenAPIAgent<
@@ -30,39 +30,33 @@ export class OpenAPIAgent<
   }
 
   async process(input: I) {
-    const {
-      definition: { url, method, auth, inputs },
-      context,
-    } = this;
-
+    const { url, method = 'get', auth, inputs } = this.definition;
     if (!url) throw new Error('API url is required');
 
-    const api = {
-      url,
-      method,
-      auth,
-    };
-    const request = formatRequest(api, inputs, input);
-    const contextState = pick(context?.state, ['userId', 'sessionId']);
-    request.query = { ...contextState, ...(request.query || {}) };
+    const request = await formatOpenAPIRequest({ url, method, auth }, inputs, input);
 
     return this.fetch(request);
   }
 
   fetch(request: FetchRequest) {
-    return fetchApi(request);
+    return fetchOpenApi(request);
   }
 }
 
 export interface OpenAPIAgentDefinition extends RunnableDefinition {
-  type: 'api_agent';
+  type: 'open_api_agent';
+
+  inputs: OrderedRecord<OpenAPIDataType>;
+
   url: string;
-  method?: FormatMethod;
+
+  method?: HTTPMethod;
+
   auth?: AuthConfig;
 }
 
 export interface CreateOpenAPIAgentOptions<
-  I extends { [name: string]: DataTypeSchema },
+  I extends { [name: string]: OpenAPIDataTypeSchema },
   O extends { [name: string]: DataTypeSchema },
   Memories extends { [name: string]: CreateRunnableMemory<I> },
   State extends ContextState,
@@ -80,12 +74,12 @@ export interface CreateOpenAPIAgentOptions<
   memories?: Memories;
 
   url: string;
-  method?: FormatMethod;
+  method?: HTTPMethod;
   auth?: AuthConfig;
 }
 
 function create<
-  I extends { [name: string]: InputDataTypeSchema },
+  I extends { [name: string]: OpenAPIDataTypeSchema },
   O extends { [name: string]: DataTypeSchema },
   Memories extends { [name: string]: CreateRunnableMemory<I> },
   State extends ContextState,
@@ -107,10 +101,9 @@ function create<
     {
       id: agentId,
       name: options.name,
-      type: 'api_agent',
+      type: 'open_api_agent',
       inputs,
       outputs,
-
       url: options.url,
       method: options.method,
       auth: options.auth,

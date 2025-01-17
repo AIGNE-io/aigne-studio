@@ -4,6 +4,7 @@ import { Runnable, RunnableDefinition } from './runnable';
 export interface ContextState {
   userId?: string;
   sessionId?: string;
+  [key: string]: any;
 }
 
 export interface ContextConfig {

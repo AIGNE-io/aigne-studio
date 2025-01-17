@@ -1434,6 +1434,9 @@ importers:
         specifier: ^2.5.0
         version: 2.6.1
     devDependencies:
+      '@aryzing/bun-mock-fetch':
+        specifier: ^0.2.2
+        version: 0.2.2(typescript@5.7.2)
       '@jest/globals':
         specifier: ^29.7.0
         version: 29.7.0
@@ -2446,6 +2449,11 @@ packages:
 
   '@arcblock/ws@1.19.6':
     resolution: {integrity: sha512-T34voXnOUttiMGgIw21wTgV3txsMZMNfAmvdAeL7yGahaLTN0fG2eYWlhB006wP59oKPYS0yusk0OR2IQ3Il7A==}
+
+  '@aryzing/bun-mock-fetch@0.2.2':
+    resolution: {integrity: sha512-7+m3nRN5R5X6UqYDTiVnns9b82sVswm9Lf/jKtlHDjOX0+jxG76hUOE10FSXTPrXvkcoj0wEgRlU1HlR9pVP4Q==}
+    peerDependencies:
+      typescript: ^5.0.0
 
   '@assemblyscript/loader@0.9.4':
     resolution: {integrity: sha512-HazVq9zwTVwGmqdwYzu7WyQ6FQVZ7SwET0KKQuKm55jD0IfUpZgN0OPIiZG3zV1iSrVYcN0bdwLRXI/VNCYsUA==}
@@ -18913,6 +18921,12 @@ snapshots:
       - encoding
       - supports-color
       - utf-8-validate
+
+  '@aryzing/bun-mock-fetch@0.2.2(typescript@5.7.2)':
+    dependencies:
+      glob: 11.0.0
+      minimatch: 10.0.1
+      typescript: 5.7.2
 
   '@assemblyscript/loader@0.9.4': {}
 

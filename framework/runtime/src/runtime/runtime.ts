@@ -27,7 +27,7 @@ import { DependencyContainer, container, injectable } from 'tsyringe';
 import { constructor } from 'tsyringe/dist/typings/types';
 import { parse } from 'yaml';
 
-import { BlockletAgent } from '../provider/blocklet-agent';
+import { BlockletAPIAgent } from '../provider/blocklet-api-agent';
 import { BlockletLLMModel } from '../provider/blocklet-llm-model';
 import { QuickJSRunner } from '../provider/quickjs-runner';
 import { DeepPartial } from '../utils/partial';
@@ -113,7 +113,7 @@ export class Runtime<Agents extends { [name: string]: Runnable } = {}, State ext
     this.container.register('llm_decision_agent', { useClass: LLMDecisionAgent });
     this.container.register('local_function_agent', { useClass: LocalFunctionAgent });
     this.container.register('api_agent', { useClass: OpenAPIAgent });
-    this.container.register('blocklet_agent', { useClass: BlockletAgent });
+    this.container.register('blocklet_agent', { useClass: BlockletAPIAgent });
 
     // NOTE: 兼容旧版的 Agent 定义，统一使用 AgentV1 来处理
     for (const type of ['function', 'agent', 'prompt', 'image', 'api', 'router', 'callAgent', 'imageBlender']) {
