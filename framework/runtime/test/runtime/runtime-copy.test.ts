@@ -23,19 +23,12 @@ test('Runtime.copy', async () => {
     state: {},
   });
 
-  const copy = runtime.copy({ state: { userId: 'foo' } });
+  const copy: typeof runtime = runtime.copy({ state: { userId: 'foo' } });
 
-  const strictEqualMembers: (keyof typeof runtime)[] = [
-    'id',
-    'name',
-    'config',
-    'runnables' as keyof typeof runtime,
-    'runnableDefinitions' as keyof typeof runtime,
-  ];
+  expect(copy['inner']).toBe(runtime['inner']);
 
-  for (const member of strictEqualMembers) {
-    expect(copy[member]).toBe(runtime[member]!);
-  }
+  expect(copy.id).toBe(runtime.id);
+  expect(copy.name).toEqual(runtime.name!);
 
   expect(runtime.state).toEqual({});
   expect(copy.state).toEqual({ userId: 'foo' });
