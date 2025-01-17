@@ -3,9 +3,15 @@ import { DataTypeSchema } from './data-type-schema';
 
 export interface BaseAuthConfig {
   type: 'bearer' | 'basic';
+
   token: string;
+
   in?: 'header' | 'query' | 'cookie';
-  key?: string; // HTTP 头部名称，如果你不知道是什么，可以将其保留为 Authorization 或设置为自定义值
+
+  /**
+   * The key to use for the token. Default `Authorization` in header and `token` in query and cookie.
+   */
+  key?: string;
 }
 
 export interface CustomAuthConfig {
