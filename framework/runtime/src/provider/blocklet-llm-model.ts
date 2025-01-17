@@ -2,6 +2,7 @@ import { agentV1ToRunnableDefinition, getAdapter } from '@aigne/agent-v1';
 import type { Context, LLMModelConfiguration, Runnable } from '@aigne/core';
 import { LLMModel, LLMModelInputs, TYPES } from '@aigne/core';
 import {
+  ChatCompletionChunk,
   ChatCompletionInput,
   ChatCompletionResponse,
   isChatCompletionChunk,
@@ -65,9 +66,15 @@ export class BlockletLLMModel extends LLMModel {
       })) as any as ReadableStream<ChatCompletionResponse>; // TODO: fix chatCompletions response type in @blocklet/ai-kit;
     }
 
+    const toolCalls: ChatCompletionChunk['delta']['toolCalls'] = [];
+
     for await (const chunk of stream!) {
       if (isChatCompletionChunk(chunk)) {
-        const { content, toolCalls } = chunk.delta;
+        const { content, toolCalls: calls } = chunk.delta;
+
+        if (calls?.length) {
+          toolCalls.push(...calls);
+        }
 
         yield {
           $text: content || undefined,
