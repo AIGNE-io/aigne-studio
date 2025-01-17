@@ -1,3 +1,9 @@
+## 0.4.208 (2025-1-17)
+
+- chore: support resolve an agent to renew its context
+- fix: incorrect state/config for agent resolved from a copied runtime
+- fix: function calls override by the latest empty calls array
+
 ## 0.4.207 (2025-1-16)
 
 - fix: agent-v1 crash caused by project definition access error

@@ -3,10 +3,16 @@ import { constructor } from 'tsyringe/dist/typings/types';
 
 import {
   Context,
+  ContextConfig,
   ContextState,
+  FunctionAgent,
   FunctionRunner,
+  LLMAgent,
+  LLMDecisionAgent,
   LLMModel,
+  LocalFunctionAgent,
   OrderedRecord,
+  PipelineAgent,
   Runnable,
   RunnableDefinition,
   TYPES,
@@ -17,19 +23,34 @@ import { MockLLMModel } from './llm-model';
 export interface MockContextOptions {
   state?: ContextState;
 
+  config?: ContextConfig;
+
   llmModel?: LLMModel | constructor<LLMModel>;
 
   functionRunner?: FunctionRunner | constructor<FunctionRunner>;
 }
 
 export class MockContext implements Context {
-  constructor({ state = {}, llmModel = MockLLMModel, functionRunner = MockFunctionRunner }: MockContextOptions = {}) {
+  constructor({
+    state = {},
+    config = {},
+    llmModel = MockLLMModel,
+    functionRunner = MockFunctionRunner,
+  }: MockContextOptions = {}) {
     this.state = state;
+    this.config = config;
 
     this.container = container.createChildContainer();
 
+    this.container.register(TYPES.context, { useValue: this });
     this.registerDependency(TYPES.llmModel, llmModel);
     this.registerDependency(TYPES.functionRunner, functionRunner);
+
+    this.registerDependency('function_agent', FunctionAgent);
+    this.registerDependency('llm_agent', LLMAgent);
+    this.registerDependency('llm_decision_agent', LLMDecisionAgent);
+    this.registerDependency('local_function_agent', LocalFunctionAgent);
+    this.registerDependency('pipeline_agent', PipelineAgent);
   }
 
   private registerDependency<T>(token: string | symbol, dependency: constructor<T> | T) {
@@ -39,22 +60,17 @@ export class MockContext implements Context {
 
   state: ContextState;
 
+  config: ContextConfig;
+
   container: DependencyContainer;
 
   resolveDependency<T>(token: string | symbol): T {
     return this.container.resolve(token);
   }
 
-  private runnables: OrderedRecord<Runnable> = OrderedRecord.fromArray([]);
-
   private definitions: OrderedRecord<RunnableDefinition> = OrderedRecord.fromArray([]);
 
   async resolve<T extends Runnable>(id: string | RunnableDefinition): Promise<T> {
-    if (typeof id === 'string') {
-      const runnable = this.runnables[id];
-      if (runnable) return runnable as T;
-    }
-
     const definition = typeof id === 'string' ? this.definitions[id] : id;
 
     if (definition) {
@@ -72,8 +88,7 @@ export class MockContext implements Context {
 
   register<R extends Array<RunnableDefinition | Runnable> = []>(...runnables: R): void {
     for (const runnable of runnables) {
-      if (runnable instanceof Runnable) OrderedRecord.pushOrUpdate(this.runnables, runnable);
-      else OrderedRecord.pushOrUpdate(this.definitions, runnable);
+      OrderedRecord.pushOrUpdate(this.definitions, runnable instanceof Runnable ? runnable.definition : runnable);
     }
   }
 }

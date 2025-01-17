@@ -1,4 +1,4 @@
-import { Context, ContextState, OrderedRecord, Runnable, isNonNullable } from '@aigne/core';
+import { Context, ContextConfig, ContextState, OrderedRecord, Runnable, isNonNullable } from '@aigne/core';
 
 import { ProjectDefinition } from '../runtime';
 import { Agent } from './agent';
@@ -10,8 +10,11 @@ export interface RuntimeOptions {
   projectDefinition?: ProjectDefinition;
 }
 
-export class Runtime<Agents extends { [name: string]: Runnable } = {}, State extends ContextState = ContextState>
-  implements Context<State>
+export class Runtime<
+  Agents extends { [name: string]: Runnable } = {},
+  State extends ContextState = ContextState,
+  Config extends ContextConfig = ContextConfig,
+> implements Context<State>
 {
   constructor(public readonly options: RuntimeOptions) {
     const id = options.id || options.projectDefinition?.id;
@@ -30,6 +33,10 @@ export class Runtime<Agents extends { [name: string]: Runnable } = {}, State ext
   id: string;
 
   get state(): State {
+    throw new Error('Method not implemented.');
+  }
+
+  get config(): Config {
     throw new Error('Method not implemented.');
   }
 

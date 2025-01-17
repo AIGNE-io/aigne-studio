@@ -58,7 +58,7 @@ export function createMiddleware(runtime: Runtime): Router {
       if (!projectId || !agentId) throw new Error('projectId and agentId are required');
       if (runtime.id !== projectId) throw new Error('projectId does not match runtime');
 
-      const agent = await runtime.resolve(agentId);
+      const agent = await runtime.copy({ state: { userId: req.user?.did } }).resolve(agentId);
 
       res.json(agent.definition);
     } catch (error) {
