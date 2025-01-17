@@ -43,7 +43,7 @@ export type API = {
 
 export type ParameterLocation = 'path' | 'query' | 'body' | 'header' | 'cookie';
 export type OpenAPIParameter = {
-  in?: ParameterLocation;
+  in?: ParameterLocation; // 如果不设置, processParameters 会自动设置
 };
 
 export type FetchRequest = {

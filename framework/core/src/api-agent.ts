@@ -5,12 +5,12 @@ import { inject, injectable } from 'tsyringe';
 import { Agent } from './agent';
 import { TYPES } from './constants';
 import type { Context, ContextState } from './context';
-import { API, FetchRequest } from './definitions/api-parameter';
+import { AuthConfig, FetchRequest, FormatMethod } from './definitions/api-parameter';
 import { DataTypeSchema, InputDataTypeSchema, SchemaMapType, schemaToDataType } from './definitions/data-type-schema';
 import { CreateRunnableMemory } from './definitions/memory';
 import { MemorableSearchOutput, MemoryItemWithScore } from './memorable';
 import { RunnableDefinition } from './runnable';
-import fetchApi from './utils/fetch-api';
+import { fetchApi } from './utils/fetch-api';
 import { formatRequest } from './utils/format-parameter';
 
 @injectable()
@@ -31,12 +31,17 @@ export class OpenAPIAgent<
 
   async process(input: I) {
     const {
-      definition: { api, inputs },
+      definition: { url, method, auth, inputs },
       context,
     } = this;
 
-    if (!api.url) throw new Error('API url is required');
+    if (!url) throw new Error('API url is required');
 
+    const api = {
+      url,
+      method,
+      auth,
+    };
     const request = formatRequest(api, inputs, input);
     const contextState = pick(context?.state, ['userId', 'sessionId']);
     request.query = { ...contextState, ...(request.query || {}) };
@@ -51,7 +56,9 @@ export class OpenAPIAgent<
 
 export interface OpenAPIAgentDefinition extends RunnableDefinition {
   type: 'api_agent';
-  api: API;
+  url: string;
+  method?: FormatMethod;
+  auth?: AuthConfig;
 }
 
 export interface CreateOpenAPIAgentOptions<
@@ -72,7 +79,9 @@ export interface CreateOpenAPIAgentOptions<
 
   memories?: Memories;
 
-  api: API;
+  url: string;
+  method?: FormatMethod;
+  auth?: AuthConfig;
 }
 
 function create<
@@ -99,10 +108,12 @@ function create<
       id: agentId,
       name: options.name,
       type: 'api_agent',
-      inputs: inputs,
-      outputs: outputs,
+      inputs,
+      outputs,
 
-      api: options.api,
+      url: options.url,
+      method: options.method,
+      auth: options.auth,
     },
     context
   );

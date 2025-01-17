@@ -17,9 +17,9 @@ export const fetchApi = async (request: FetchRequest) => {
   const response = await fetch(withQuery(request.url, request.query || {}), {
     method: request.method,
     headers: {
-      ...(request.method !== 'GET' && { 'Content-Type': 'application/json' }),
+      'Content-Type': 'application/json',
       ...(cookieString && { Cookie: cookieString.trim() }),
-      ...(request.headers || {}),
+      ...request.headers,
     },
     body: request.method !== 'GET' ? JSON.stringify(request.body) : undefined,
     credentials: request.cookies ? 'include' : 'same-origin',
