@@ -1,3 +1,7 @@
+## 0.4.209 (2025-1-17)
+
+- fix: get history message error when not login
+
 ## 0.4.208 (2025-1-17)
 
 - chore: support resolve an agent to renew its context
