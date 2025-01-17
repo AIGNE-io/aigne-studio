@@ -1,6 +1,6 @@
 {
   "name": "@aigne/runtime",
-  "version": "0.4.209",
+  "version": "0.4.210",
   "description": "AIGNE core library",
   "publishConfig": {
     "access": "public"
@@ -61,48 +61,35 @@
     }
   },
   "dependencies": {
-    "@abtnode/client": "^1.16.37",
     "@aigne/agent-v1": "workspace:^",
     "@aigne/core": "workspace:^",
     "@blocklet/ai-kit": "^0.1.66",
     "@blocklet/js-sdk": "^1.16.37",
     "@blocklet/quickjs": "workspace:^",
     "@blocklet/sdk": "^1.16.37",
-    "axios": "^1.7.5",
     "commander": "^12.1.0",
     "compression": "^1.7.4",
     "eventsource-parser": "^2.0.1",
     "express": "^4.19.2",
-    "fast-deep-equal": "^3.1.3",
-    "fastq": "^1.17.1",
     "fs-extra": "^11.2.0",
     "glob": "^10.4.5",
     "immer": "^10.1.1",
     "joi": "^17.13.3",
-    "js-base64": "^3.7.7",
-    "js-cookie": "^3.0.5",
-    "json-logic-js": "^2.0.5",
-    "json-stable-stringify": "^1.1.1",
     "lodash": "^4.17.21",
     "nanoid": "^3.3.7",
-    "openapi3-ts": "^4.3.3",
     "prettier": "^3.3.3",
-    "react-querybuilder": "^7.7.1",
     "reflect-metadata": "^0.2.2",
-    "snowflake-uuid": "^1.0.0",
     "tsyringe": "^4.8.0",
     "typescript": "^5.5.4",
     "ufo": "^1.5.4",
     "yaml": "^2.5.0"
   },
   "devDependencies": {
-    "@jest/globals": "^29.7.0",
-    "@tsconfig/recommended": "^1.0.8",
+    "@aryzing/bun-mock-fetch": "^0.2.2",
     "@types/bun": "^1.1.16",
     "@types/compression": "^1.7.5",
     "@types/express": "^4.17.21",
     "npm-run-all": "^4.1.5",
-    "rimraf": "^6.0.1",
-    "ts-jest": "^29.2.5"
+    "rimraf": "^6.0.1"
   }
 }

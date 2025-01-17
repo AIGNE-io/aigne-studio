@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.4.209",
+  "version": "0.4.210",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -155,7 +155,7 @@
     "@blocklet/dataset-sdk": "workspace:^",
     "@blocklet/js-sdk": "^1.16.37",
     "@blocklet/logger": "^1.16.37",
-    "@blocklet/pages-kit": "^0.3.28",
+    "@blocklet/pages-kit": "^0.3.29",
     "@blocklet/quickjs": "workspace:^",
     "@blocklet/sdk": "^1.16.37",
     "@blocklet/uploader": "^0.1.64",
