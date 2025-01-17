@@ -143,20 +143,12 @@ export const formatRequest = (
 
   const params = { ...inputParams, ...mergedParams };
 
-  if (params.headers && Object.keys(params.headers).length === 0) {
-    delete params.headers;
-  }
-  if (params.query && Object.keys(params.query).length === 0) {
-    delete params.query;
-  }
-  if (params.cookies && Object.keys(params.cookies).length === 0) {
-    delete params.cookies;
-  }
-  if (params.body && Object.keys(params.body).length === 0) {
-    delete params.body;
-  }
-
-  logger.debug('params', params);
-
-  return params;
+  return {
+    url: params.url,
+    method: params.method,
+    ...(params.headers && Object.keys(params.headers).length > 0 && { headers: params.headers }),
+    ...(params.query && Object.keys(params.query).length > 0 && { query: params.query }),
+    ...(params.cookies && Object.keys(params.cookies).length > 0 && { cookies: params.cookies }),
+    ...(params.body && Object.keys(params.body).length > 0 && { body: params.body }),
+  };
 };

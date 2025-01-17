@@ -1,7 +1,15 @@
 export function flattenApiStructure(apiStructure: {
   paths: {
     [key: string]: {
-      [key: string]: any;
+      [key: string]: {
+        'x-id': string;
+        'x-did': string;
+        'x-path': string;
+        'x-method': string;
+        type: string;
+        summary?: string;
+        description?: string;
+      };
     };
   };
 }): {
@@ -12,8 +20,8 @@ export function flattenApiStructure(apiStructure: {
   did?: string;
   path: string;
   method: string;
-  summary: string;
-  description: string;
+  summary?: string;
+  description?: string;
 }[] {
   const paths = apiStructure?.paths || {};
 

@@ -32,7 +32,12 @@ export interface AuthResult {
   cookies?: Record<string, string>;
 }
 
-export type HTTPMethod = 'get' | 'post' | 'put' | 'delete';
+export const enum HTTPMethod {
+  GET = 'GET',
+  POST = 'POST',
+  PUT = 'PUT',
+  DELETE = 'DELETE',
+}
 export type FormatMethod = Uppercase<HTTPMethod> | Lowercase<HTTPMethod>;
 
 export type API = {

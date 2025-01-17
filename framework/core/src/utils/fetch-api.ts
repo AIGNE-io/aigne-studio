@@ -27,7 +27,12 @@ export const fetchApi = async (request: FetchRequest) => {
   }).finally(() => clearTimeout(timeoutId));
 
   if (!response.ok) {
-    throw new Error(`fetch ${request.url} api error: ${response.statusText}`);
+    const errorBody = await response.text();
+    throw new Error(
+      `API request failed for ${request.url}\n` +
+        `Status: ${response.status} ${response.statusText}\n` +
+        `Response: ${errorBody.slice(0, 200)}`
+    );
   }
 
   return response.json();

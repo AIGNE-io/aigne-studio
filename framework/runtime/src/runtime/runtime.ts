@@ -115,7 +115,6 @@ export class Runtime<Agents extends { [name: string]: Runnable } = {}, State ext
     this.container.register('local_function_agent', { useClass: LocalFunctionAgent });
     this.container.register('api_agent', { useClass: OpenAPIAgent });
     this.container.register('blocklet_agent', { useClass: BlockletAgent });
-    this.container.register(TYPES.llmModelConfiguration, { useFactory: () => this.config.llmModel || {} });
 
     // NOTE: 兼容旧版的 Agent 定义，统一使用 AgentV1 来处理
     for (const type of ['function', 'agent', 'prompt', 'image', 'api', 'router', 'callAgent', 'imageBlender']) {
