@@ -1,4 +1,4 @@
-import { LLMModelConfiguration } from './llm-model';
+import type { LLMModelConfiguration } from './llm-model';
 import { Runnable, RunnableDefinition } from './runnable';
 
 export interface ContextState {
