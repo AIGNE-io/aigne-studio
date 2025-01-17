@@ -165,7 +165,7 @@ router.get(
     if (scope === 'session' || scope === 'user') {
       const datastores = await Memory.findAll({
         order: [['createdAt', 'ASC']],
-        where: userId ? { ...params, scope: 'user' } : { ...params, scope: 'user', sessionId },
+        where: { ...params, scope: 'user', ...(userId ? {} : { sessionId }) },
       });
 
       if (datastores.length) {
@@ -176,7 +176,7 @@ router.get(
     if (scope === 'session' || scope === 'user' || scope === 'global') {
       const datastores = await Memory.findAll({
         order: [['createdAt', 'ASC']],
-        where: userId ? { ...params, scope: 'global' } : { ...params, scope: 'global', sessionId },
+        where: { ...params, scope: 'global', ...(userId ? {} : { sessionId }) },
       });
 
       if (datastores.length) {
