@@ -139,8 +139,13 @@ export class Runtime<Agents extends { [name: string]: Runnable } = {}, State ext
     else this.container.register(token, { useValue: dependency });
   }
 
-  private resolveSync<T extends Runnable>(id: string | RunnableDefinition): T {
-    const definition = typeof id === 'string' ? this.runnableDefinitions[id] : id;
+  private resolveSync<T extends Runnable>(id: string | RunnableDefinition | T): T {
+    const definition =
+      typeof id === 'string'
+        ? this.runnableDefinitions[id]
+        : id instanceof Runnable
+          ? this.runnableDefinitions[id.id]
+          : id;
 
     if (definition) {
       const childContainer = this.container.createChildContainer().register(TYPES.definition, { useValue: definition });
@@ -167,7 +172,7 @@ export class Runtime<Agents extends { [name: string]: Runnable } = {}, State ext
     }
   }
 
-  async resolve<T extends Runnable>(id: string | RunnableDefinition): Promise<T> {
+  async resolve<T extends Runnable>(id: string | RunnableDefinition | T): Promise<T> {
     return this.resolveSync<T>(id);
   }
 

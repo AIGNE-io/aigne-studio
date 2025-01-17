@@ -15,7 +15,7 @@ export interface Context<State extends ContextState = ContextState, Config exten
 
   config: Config;
 
-  resolve<T extends Runnable>(id: string | RunnableDefinition): Promise<T>;
+  resolve<T extends Runnable>(id: string | RunnableDefinition | T): Promise<T>;
 
   register<R extends Array<RunnableDefinition | Runnable> = []>(...definition: R): void;
 
