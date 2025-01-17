@@ -76,7 +76,7 @@ export class LLMDecisionAgent<
 
     // TODO: support run multiple calls
 
-    const functionNameToCall = toolCalls?.[0]!.function?.name;
+    const functionNameToCall = toolCalls?.[0]?.function?.name;
     if (!functionNameToCall) throw new Error('No any runnable called');
 
     const caseToCall = cases.find((i) => i.name === functionNameToCall);
