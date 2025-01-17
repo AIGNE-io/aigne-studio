@@ -1,8 +1,8 @@
 import { isEmpty, omitBy } from 'lodash';
 
-import { AuthConfig, AuthResult, FetchRequest, HTTPMethod } from '../definitions/open-api';
+import type { AuthConfig, AuthResult, FetchRequest, HTTPMethod } from '../definitions/open-api';
 import logger from '../logger';
-import { OpenAPIAgentDefinition } from '../open-api-agent';
+import type { OpenAPIAgentDefinition } from '../open-api-agent';
 import { OrderedRecord } from './ordered-map';
 
 export async function formatOpenAPIRequest(
@@ -49,9 +49,10 @@ async function getAuthParams(auth?: AuthConfig): Promise<AuthResult> {
       return { query: { [key || 'token']: token } };
     case 'cookie':
       return { cookies: { [key || 'token']: token } };
-    default:
+    default: {
       const prefix = type === 'bearer' ? 'Bearer ' : type === 'basic' ? 'Basic ' : '';
       return { headers: { [key || 'Authorization']: `${prefix}${token}` } };
+    }
   }
 }
 

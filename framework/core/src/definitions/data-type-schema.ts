@@ -1,7 +1,7 @@
 import { nanoid } from 'nanoid';
 
-import { OrderedRecord } from '../utils';
 import { MakeNullablePropertyOptional } from '../utils/nullable';
+import { OrderedRecord } from '../utils/ordered-map';
 import { DataType } from './data-type';
 
 export function schemaToDataType(dataType: { [name: string]: DataTypeSchema }): OrderedRecord<DataType> {

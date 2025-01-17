@@ -1,6 +1,6 @@
 import { withQuery } from 'ufo';
 
-import { FetchRequest } from '../definitions/open-api';
+import type { FetchRequest } from '../definitions/open-api';
 import { FETCH_TIMEOUT } from './constants';
 import { checkFetchResponse } from './fetch';
 

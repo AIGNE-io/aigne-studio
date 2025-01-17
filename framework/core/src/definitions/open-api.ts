@@ -1,5 +1,5 @@
-import { DataType } from './data-type';
-import { DataTypeSchema } from './data-type-schema';
+import type { DataType } from './data-type';
+import type { DataTypeSchema } from './data-type-schema';
 
 export interface BaseAuthConfig {
   type: 'bearer' | 'basic';
