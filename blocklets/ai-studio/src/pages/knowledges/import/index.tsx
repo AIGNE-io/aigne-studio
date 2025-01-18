@@ -98,7 +98,7 @@ export default function ImportKnowledge({
   onClose: () => void;
   onSubmit: () => void;
 }) {
-  const [sourceType, setSourceType] = useState<SourceType>(documentId ? 'custom' : 'file');
+  const [sourceType, setSourceType] = useState<SourceType>('file');
   const { t } = useLocaleContext();
   const providerRef = useRef<HTMLDivElement>(null);
 
@@ -143,6 +143,7 @@ export default function ImportKnowledge({
     if (!documentId) return;
     const { document } = await getDocument(knowledgeId, documentId);
     setCustom({ title: document.name, content: document.content });
+    setSourceType('custom');
   });
 
   const [custom, setCustom] = useState<CustomType>();
