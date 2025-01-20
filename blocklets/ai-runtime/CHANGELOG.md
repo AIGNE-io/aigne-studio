@@ -1,3 +1,7 @@
+## 0.4.211 (2025-1-20)
+
+- chore: update deps
+
 ## 0.4.210 (2025-1-17)
 
 - feat: add OpenAPIAgent and BlockletAPIAgent support
