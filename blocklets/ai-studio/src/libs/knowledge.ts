@@ -118,6 +118,16 @@ export async function createCustomDocument(
     .then((res) => res.data);
 }
 
+export async function updateCustomDocument(
+  knowledgeId: string,
+  documentId: string,
+  input: { title: string; content: string }
+): Promise<KnowledgeDocument> {
+  return axios
+    .put(`/api/datasets/${knowledgeId}/documents/custom/${documentId}`, input, { baseURL: AIGNE_RUNTIME_MOUNT_POINT })
+    .then((res) => res.data);
+}
+
 export async function createDiscussionDocument(
   knowledgeId: string,
   input: CreateDiscussionItem[]

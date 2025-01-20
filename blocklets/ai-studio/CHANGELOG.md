@@ -1,3 +1,7 @@
+## 0.4.212 (2025-1-20)
+
+- chore: support edit custom knowledge
+
 ## 0.4.211 (2025-1-20)
 
 - chore: update deps

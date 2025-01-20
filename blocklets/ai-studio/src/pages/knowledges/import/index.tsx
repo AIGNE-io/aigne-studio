@@ -10,6 +10,8 @@ import {
   createCustomDocument,
   createDiscussionDocument,
   createFileDocument,
+  getDocument,
+  updateCustomDocument,
 } from '@app/libs/knowledge';
 import { getHasCrawlSecret } from '@app/libs/secret';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
@@ -56,7 +58,7 @@ import {
   SourceTypeSelectType,
 } from './type';
 
-function createKnowledge(knowledgeId: string, params: CreateKnowledgeParams) {
+function createKnowledge(knowledgeId: string, params: CreateKnowledgeParams, documentId?: string) {
   const { sourceType, ...rest } = params;
 
   switch (sourceType) {
@@ -67,7 +69,15 @@ function createKnowledge(knowledgeId: string, params: CreateKnowledgeParams) {
         filename: rest.file?.runtime?.hashFileName!,
       });
     case 'custom':
-      return createCustomDocument(knowledgeId, { title: rest.custom?.title!, content: rest.custom?.content! });
+      return documentId
+        ? updateCustomDocument(knowledgeId, documentId, {
+            title: rest.custom?.title!,
+            content: rest.custom?.content!,
+          })
+        : createCustomDocument(knowledgeId, {
+            title: rest.custom?.title!,
+            content: rest.custom?.content!,
+          });
     case 'url':
       return createCrawlDocument(knowledgeId, rest.crawl!);
     case 'discuss':
@@ -78,10 +88,12 @@ function createKnowledge(knowledgeId: string, params: CreateKnowledgeParams) {
 }
 
 export default function ImportKnowledge({
+  documentId,
   knowledgeId,
   onClose,
   onSubmit,
 }: {
+  documentId?: string;
   knowledgeId: string;
   onClose: () => void;
   onSubmit: () => void;
@@ -97,6 +109,7 @@ export default function ImportKnowledge({
         id: 'file',
         label: t('knowledge.import'),
         icon: <Box component={Icon} icon={FileIcon} width={14} height={14} borderRadius={1} className="center" />,
+        disabled: !!documentId,
       },
       {
         id: 'custom',
@@ -112,6 +125,7 @@ export default function ImportKnowledge({
                 <Discuss sx={{ width: '100%', height: '100%' }} />
               </Box>
             ),
+            disabled: !!documentId,
           }
         : null,
       {
@@ -120,9 +134,17 @@ export default function ImportKnowledge({
         icon: (
           <Box component={Icon} icon="zondicons:network" width={14} height={14} borderRadius={1} className="center" />
         ),
+        disabled: !!documentId,
       },
     ] as SourceTypeSelectType[]
   ).filter(Boolean);
+
+  const { loading } = useRequest(async () => {
+    if (!documentId) return;
+    const { document } = await getDocument(knowledgeId, documentId);
+    setCustom({ title: document.name, content: document.content });
+    setSourceType('custom');
+  });
 
   const [custom, setCustom] = useState<CustomType>();
   const [discussion, setDiscussion] = useState<CreateDiscussionItem[]>([]);
@@ -151,7 +173,7 @@ export default function ImportKnowledge({
         ...(sourceType === 'discuss' && { discussion }),
       };
 
-      await createKnowledge(knowledgeId, params);
+      await createKnowledge(knowledgeId, params, documentId);
       Toast.success(t('knowledge.createKnowledgeSuccess'));
       onSubmit();
     } catch (error) {
@@ -178,7 +200,9 @@ export default function ImportKnowledge({
       <DialogTitle>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="h6" sx={{ fontSize: 16, fontWeight: 500 }}>
-            {t('createObject', { object: t('knowledge.knowledge') })}
+            {documentId
+              ? t('updateObject', { object: t('knowledge.knowledge') })
+              : t('createObject', { object: t('knowledge.knowledge') })}
           </Typography>
 
           <IconButton size="small" onClick={onClose}>
@@ -187,74 +211,82 @@ export default function ImportKnowledge({
         </Box>
       </DialogTitle>
 
-      <UploaderDialogContent>
-        <Stack gap={2.5} height={1}>
-          <Stack>
-            <Typography variant="h6" sx={{ fontSize: 16, fontWeight: 500, mb: 0.5 }}>
-              {t('knowledge.importKnowledge.title')}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {t('knowledge.importKnowledge.description')}
-            </Typography>
+      {loading && (
+        <Box sx={{ height: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <CircularProgress />
+        </Box>
+      )}
+
+      {!loading && (
+        <UploaderDialogContent>
+          <Stack gap={2.5} height={1}>
+            <Stack>
+              <Typography variant="h6" sx={{ fontSize: 16, fontWeight: 500, mb: 0.5 }}>
+                {t('knowledge.importKnowledge.title')}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {t('knowledge.importKnowledge.description')}
+              </Typography>
+            </Stack>
+
+            <SourceTypeSelect value={sourceType} onChange={setSourceType} options={sourceOptions} />
+
+            <Box flexGrow={1} pb={1.25}>
+              <Suspense>
+                {sourceType === 'file' ? (
+                  <UploaderProvider
+                    ref={providerRef}
+                    popup={false}
+                    dropTargetProps={{}}
+                    plugins={[]}
+                    apiPathProps={{
+                      uploader: url,
+                      disableMediaKitPrefix: true,
+                      disableAutoPrefix: true,
+                    }}
+                    restrictions={{
+                      maxFileSize: (Number(window.blocklet?.preferences?.uploadFileLimit) || 10) * 1024 * 1024,
+                      allowedFileTypes: ['.md', '.pdf', '.doc', '.docx', '.txt', '.json'],
+                    }}
+                    dashboardProps={{
+                      fileManagerSelectionType: 'files',
+                      hideUploadButton: true,
+                      hideRetryButton: true,
+                      hideProgressAfterFinish: true,
+                      note: t('knowledge.importKnowledge.support'),
+                    }}
+                  />
+                ) : sourceType === 'custom' ? (
+                  <CustomView
+                    title={custom?.title}
+                    content={custom?.content}
+                    onTitleChange={(value) => setCustom((prev) => ({ ...(prev || {}), title: value }))}
+                    onContentChange={(value) => setCustom((prev) => ({ ...(prev || {}), content: value }))}
+                    onSubmit={handleSubmit}
+                  />
+                ) : sourceType === 'url' ? (
+                  <CrawlView
+                    provider={crawl.provider}
+                    url={crawl.url}
+                    onProviderChange={(value) => setCrawl((prev) => ({ ...(prev || {}), provider: value }))}
+                    onUrlChange={(value) => setCrawl((prev) => ({ ...(prev || {}), url: value }))}
+                    onSubmit={handleSubmit}
+                  />
+                ) : sourceType === 'discuss' ? (
+                  <DiscussView onChange={setDiscussion} />
+                ) : null}
+              </Suspense>
+            </Box>
           </Stack>
-
-          <SourceTypeSelect value={sourceType} onChange={setSourceType} options={sourceOptions} />
-
-          <Box flexGrow={1} pb={1.25}>
-            <Suspense>
-              {sourceType === 'file' ? (
-                <UploaderProvider
-                  ref={providerRef}
-                  popup={false}
-                  dropTargetProps={{}}
-                  plugins={[]}
-                  apiPathProps={{
-                    uploader: url,
-                    disableMediaKitPrefix: true,
-                    disableAutoPrefix: true,
-                  }}
-                  restrictions={{
-                    maxFileSize: (Number(window.blocklet?.preferences?.uploadFileLimit) || 10) * 1024 * 1024,
-                    allowedFileTypes: ['.md', '.pdf', '.doc', '.docx', '.txt', '.json'],
-                  }}
-                  dashboardProps={{
-                    fileManagerSelectionType: 'files',
-                    hideUploadButton: true,
-                    hideRetryButton: true,
-                    hideProgressAfterFinish: true,
-                    note: t('knowledge.importKnowledge.support'),
-                  }}
-                />
-              ) : sourceType === 'custom' ? (
-                <CustomView
-                  title={custom?.title}
-                  content={custom?.content}
-                  onTitleChange={(value) => setCustom((prev) => ({ ...(prev || {}), title: value }))}
-                  onContentChange={(value) => setCustom((prev) => ({ ...(prev || {}), content: value }))}
-                  onSubmit={handleSubmit}
-                />
-              ) : sourceType === 'url' ? (
-                <CrawlView
-                  provider={crawl.provider}
-                  url={crawl.url}
-                  onProviderChange={(value) => setCrawl((prev) => ({ ...(prev || {}), provider: value }))}
-                  onUrlChange={(value) => setCrawl((prev) => ({ ...(prev || {}), url: value }))}
-                  onSubmit={handleSubmit}
-                />
-              ) : sourceType === 'discuss' ? (
-                <DiscussView onChange={setDiscussion} />
-              ) : null}
-            </Suspense>
-          </Box>
-        </Stack>
-      </UploaderDialogContent>
+        </UploaderDialogContent>
+      )}
 
       <DialogActions>
         <Button variant="outlined" onClick={onClose}>
           {t('cancel')}
         </Button>
         <LoadingButton variant="contained" onClick={handleSubmit} disabled={disabled}>
-          {t('create')}
+          {documentId ? t('update') : t('create')}
         </LoadingButton>
       </DialogActions>
     </Dialog>
