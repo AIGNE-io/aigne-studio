@@ -447,8 +447,8 @@ importers:
         specifier: 1.16.36
         version: 1.16.36
       '@aigne/runtime':
-        specifier: ^1.0.7
-        version: 1.0.7(@babel/core@7.26.0)(@google/generative-ai@0.21.0)(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(openai@4.73.0(encoding@0.1.13)(zod@3.24.1))(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(redux@5.0.1)(sqlite3@5.1.7)(zod@3.24.1)
+        specifier: ^1.0.8
+        version: 1.0.8(@babel/core@7.26.0)(@google/generative-ai@0.21.0)(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(openai@4.73.0(encoding@0.1.13)(zod@3.24.1))(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(redux@5.0.1)(sqlite3@5.1.7)(zod@3.24.1)
       '@arcblock/did-auth':
         specifier: ^1.19.6
         version: 1.19.6(encoding@0.1.13)
@@ -1861,17 +1861,17 @@ packages:
   '@adraffy/ens-normalize@1.10.0':
     resolution: {integrity: sha512-nA9XHtlAkYfJxY7bce8DcN7eKxWWCWkU+1GR9d+U6MbNpfwQp8TI7vqOsBsMcHoT4mBu2kypKoSKnghEzOOq5Q==}
 
-  '@aigne/agent-v1@1.0.7':
-    resolution: {integrity: sha512-0mS955AffqgsrenSvwjZZqO58RCxLNLNHZgy8GVlwoeoKQG0f+/UPQf4W3gA/ZL50ihj4TCvWwK/4hRtsjin4A==}
+  '@aigne/agent-v1@1.0.8':
+    resolution: {integrity: sha512-WjoIkiGNfIHPZhMiJMuAOL7paVAN967ew34SQ3WB1uXDRrNTFgHYAxf/KL40UtziiPiecVUUxStVr7BkGobh6w==}
 
-  '@aigne/core@1.0.7':
-    resolution: {integrity: sha512-M+D1MKVad3V5IwxdVDWWffHjtLhXbrbN4gV/WuRnE/hUEilr4Fd2d1IqW0pfBJRnXoCsDyGyuHCe0tc+daZ/wA==}
+  '@aigne/core@1.0.8':
+    resolution: {integrity: sha512-rMjd7aNd0zkd0r4msOm2MXv3r5622mN0KgycP/crXD2QikH4Sa1H0rwcb0AaIXS9ksLngcAt/6hJxJi42owlHw==}
     peerDependencies:
       '@google/generative-ai': ^0.21.0
       openai: ^4.79.1
 
-  '@aigne/runtime@1.0.7':
-    resolution: {integrity: sha512-L448QbPNsj3DuDrS25TJ2nzXfOpQhBryPzYEaRMURV8T4twjJm8URRUgkht3cpE2rr8g0F+kDJOUcd4rxG4L4A==}
+  '@aigne/runtime@1.0.8':
+    resolution: {integrity: sha512-0eqrd7nzEAUTtkFU6rb3a0lWBGqaJ71JENQefwOZhD6Ci9IbjfHjmkDXHJiIdsA3cVU5BZj+Lw+fBjsySOi2Fw==}
     hasBin: true
 
   '@ampproject/remapping@2.3.0':
@@ -17997,10 +17997,10 @@ snapshots:
 
   '@adraffy/ens-normalize@1.10.0': {}
 
-  '@aigne/agent-v1@1.0.7(@babel/core@7.26.0)(@google/generative-ai@0.21.0)(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(openai@4.73.0(encoding@0.1.13)(zod@3.24.1))(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(redux@5.0.1)(sqlite3@5.1.7)(zod@3.24.1)':
+  '@aigne/agent-v1@1.0.8(@babel/core@7.26.0)(@google/generative-ai@0.21.0)(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(openai@4.73.0(encoding@0.1.13)(zod@3.24.1))(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(redux@5.0.1)(sqlite3@5.1.7)(zod@3.24.1)':
     dependencies:
       '@abtnode/client': 1.16.36(encoding@0.1.13)
-      '@aigne/core': 1.0.7(@google/generative-ai@0.21.0)(openai@4.73.0(encoding@0.1.13)(zod@3.24.1))
+      '@aigne/core': 1.0.8(@google/generative-ai@0.21.0)(openai@4.73.0(encoding@0.1.13)(zod@3.24.1))
       '@blocklet/ai-kit': 0.1.66(@babel/core@7.26.0)(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(zod@3.24.1)
       '@blocklet/js-sdk': 1.16.36(encoding@0.1.13)
       '@blocklet/quickjs': 0.4.210(encoding@0.1.13)
@@ -18060,7 +18060,7 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@aigne/core@1.0.7(@google/generative-ai@0.21.0)(openai@4.73.0(encoding@0.1.13)(zod@3.24.1))':
+  '@aigne/core@1.0.8(@google/generative-ai@0.21.0)(openai@4.73.0(encoding@0.1.13)(zod@3.24.1))':
     dependencies:
       '@google/generative-ai': 0.21.0
       '@types/mustache': 4.2.5
@@ -18071,10 +18071,10 @@ snapshots:
       tsyringe: 4.8.0
       ufo: 1.5.4
 
-  '@aigne/runtime@1.0.7(@babel/core@7.26.0)(@google/generative-ai@0.21.0)(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(openai@4.73.0(encoding@0.1.13)(zod@3.24.1))(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(redux@5.0.1)(sqlite3@5.1.7)(zod@3.24.1)':
+  '@aigne/runtime@1.0.8(@babel/core@7.26.0)(@google/generative-ai@0.21.0)(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(openai@4.73.0(encoding@0.1.13)(zod@3.24.1))(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(redux@5.0.1)(sqlite3@5.1.7)(zod@3.24.1)':
     dependencies:
-      '@aigne/agent-v1': 1.0.7(@babel/core@7.26.0)(@google/generative-ai@0.21.0)(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(openai@4.73.0(encoding@0.1.13)(zod@3.24.1))(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(redux@5.0.1)(sqlite3@5.1.7)(zod@3.24.1)
-      '@aigne/core': 1.0.7(@google/generative-ai@0.21.0)(openai@4.73.0(encoding@0.1.13)(zod@3.24.1))
+      '@aigne/agent-v1': 1.0.8(@babel/core@7.26.0)(@google/generative-ai@0.21.0)(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(openai@4.73.0(encoding@0.1.13)(zod@3.24.1))(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(redux@5.0.1)(sqlite3@5.1.7)(zod@3.24.1)
+      '@aigne/core': 1.0.8(@google/generative-ai@0.21.0)(openai@4.73.0(encoding@0.1.13)(zod@3.24.1))
       '@blocklet/ai-kit': 0.1.66(@babel/core@7.26.0)(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(zod@3.24.1)
       '@blocklet/js-sdk': 1.16.36(encoding@0.1.13)
       '@blocklet/quickjs': 0.4.210(encoding@0.1.13)
