@@ -1,6 +1,6 @@
 {
   "name": "ai-studio",
-  "version": "0.4.212",
+  "version": "0.4.213",
   "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
   "scripts": {
     "debug": "bn-dev",
@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "@abtnode/cron": "^1.16.37",
-    "@aigne/runtime": "^1.0.7",
+    "@aigne/runtime": "^1.0.8",
     "@arcblock/did-auth": "^1.19.6",
     "@arcblock/did-auth-storage-nedb": "^1.7.1",
     "@arcblock/did-connect": "^2.11.29",
