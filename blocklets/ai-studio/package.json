@@ -10,7 +10,7 @@
     "lint:fix": "npm run lint -- --fix",
     "start": "vite-node -c vite-server.config.ts -w api/dev.ts",
     "clean": "node scripts/build-clean.js",
-    "build": "run-s clean bundle:client bundle:api",
+    "build": "cross-env NODE_OPTIONS=--max_old_space_size=8192 run-s clean bundle:client bundle:api",
     "bundle": "run-s clean bundle:*",
     "bundle:client": "vite build",
     "bundle:api": "tsc -p tsconfig.api.json && tsc-alias -p tsconfig.api.json",

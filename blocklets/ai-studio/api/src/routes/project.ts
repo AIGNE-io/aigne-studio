@@ -806,7 +806,7 @@ export function projectRoutes(router: Router) {
 
     const author = { name: fullName, email: userId };
 
-    await autoSyncIfNeeded({ project, author, userId });
+    await autoSyncIfNeeded({ project, author });
 
     res.json(project.dataValues);
   });
@@ -953,7 +953,7 @@ export function projectRoutes(router: Router) {
 
     const target: SyncTarget = req.query.target as SyncTarget;
     if (target === 'didSpace') {
-      await syncToDidSpace({ project, userId });
+      await syncToDidSpace({ project });
 
       repository.resetCache();
       return res.json({});

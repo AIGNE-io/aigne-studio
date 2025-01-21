@@ -56,7 +56,7 @@ export function workingRoutes(router: Router) {
       });
 
       if (hash) {
-        await autoSyncIfNeeded({ project, author, userId, wait: false });
+        await autoSyncIfNeeded({ project, author, wait: false });
       }
 
       return res.json({ project });

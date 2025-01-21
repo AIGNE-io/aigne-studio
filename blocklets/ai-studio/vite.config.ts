@@ -83,6 +83,8 @@ export default defineConfig(() => {
       fs: {
         allow: [join(__dirname, '../..'), join(__dirname, '../../..', 'pages-kit')],
       },
+      // 添加目标主机到 allowedHosts
+      allowedHosts: ['bbqa62m2l7vxzoygklrl3aetcm5x6uv54c52vkw42vy.did.abtnet.io'],
     },
   };
 });
