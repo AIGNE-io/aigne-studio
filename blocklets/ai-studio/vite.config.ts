@@ -8,6 +8,7 @@ import { createBlockletPlugin } from 'vite-plugin-blocklet';
 import svgr from 'vite-plugin-svgr';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
+const isDev = process.env.NODE_ENV === 'development';
 const arcblockUxBasePath = process.env.ARCBLOCK_UX_BASE_PATH;
 const exclude: string[] = [];
 const alias: Record<string, string> = {};
@@ -84,7 +85,7 @@ export default defineConfig(() => {
         allow: [join(__dirname, '../..'), join(__dirname, '../../..', 'pages-kit')],
       },
       // 添加目标主机到 allowedHosts
-      allowedHosts: ['bbqa62m2l7vxzoygklrl3aetcm5x6uv54c52vkw42vy.did.abtnet.io'],
+      ...(isDev ? { allowedHosts: true } : {}),
     },
   };
 });
