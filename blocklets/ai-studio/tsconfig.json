@@ -15,8 +15,6 @@
       // For local dev
       // "@blocklet/ai-kit/*": ["../../../ai-kit/packages/ai-kit/src/*"],
       // "@blocklet/pages-kit/*": ["../../../pages-kit/packages/pages-kit/src/*"],
-      "@aigne/runtime": ["../../framework/runtime/src"],
-      "@aigne/runtime/*": ["../../framework/runtime/src/*"],
       "@blocklet/ai-runtime": ["../../packages/ai-runtime/src"],
       "@blocklet/ai-runtime/*": ["../../packages/ai-runtime/src/*"],
       "@blocklet/aigne-sdk/*": ["../../packages/aigne-sdk/src/*"],

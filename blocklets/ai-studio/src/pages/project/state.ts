@@ -77,8 +77,6 @@ export const useProjectState = (projectId: string, gitRef: string) => {
           projectId,
           ref: simpleMode ? getDefaultBranch() : gitRef,
         });
-        // NOTE: 简单模式下最新的记录始终指向 getDefaultBranch()
-        if (simpleMode && commits.length) commits[0]!.oid = getDefaultBranch();
         setState((v) => ({ ...v, project, branches, commits, error: undefined }));
       } catch (error) {
         setState((v) => ({ ...v, error }));

@@ -62,6 +62,7 @@ const KnowledgeDocuments = ({
   onRemove,
   onRefetch,
   onEmbedding,
+  onEdit,
   embeddings,
 }: {
   disabled: boolean;
@@ -72,6 +73,7 @@ const KnowledgeDocuments = ({
   onRemove: (documentId: string) => void;
   onRefetch: () => void;
   onEmbedding: (documentId: string) => void;
+  onEdit: (documentId: string) => void;
   embeddings: { [key: string]: { [key: string]: any } };
 }) => {
   const { t } = useLocaleContext();
@@ -222,6 +224,7 @@ const KnowledgeDocuments = ({
                 const url = generateDiscussionUrl(params.row.data);
                 window.open(url, '_blank');
               }}
+              onEdit={() => onEdit(params.row.id)}
             />
           ),
         }
@@ -275,6 +278,7 @@ function Actions({
   onRemove,
   onEmbedding,
   onLink,
+  onEdit,
 }: {
   type: string;
   error?: string;
@@ -282,6 +286,7 @@ function Actions({
   onRefetch: () => void;
   onEmbedding: (e: React.MouseEvent) => void;
   onLink: (e: React.MouseEvent) => void;
+  onEdit: () => void;
 }) {
   const { t } = useLocaleContext();
   const { dialog, showDialog } = useDialog();
@@ -291,7 +296,15 @@ function Actions({
       <Stack flexDirection="row" alignItems="center" justifyContent="center" height={1}>
         {['text', 'file', 'url'].includes(type) ? (
           <>
-            {/* <Button onClick={onEdit}>{t('edit')}</Button> */}
+            {type === 'text' && (
+              <Button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit();
+                }}>
+                {t('edit')}
+              </Button>
+            )}
 
             {error ? (
               <Button onClick={onEmbedding} color="error">

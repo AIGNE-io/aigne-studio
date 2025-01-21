@@ -69,6 +69,7 @@ export default function KnowledgeDetail() {
   const { t } = useLocaleContext();
   const [currentTab, setCurrentTab] = useState('playground');
   const [showImportDialog, setShowImportDialog] = useState(false);
+  const [editDocumentId, setEditDocumentId] = useState<string | undefined>(undefined);
 
   const { getKnowledge, getDocuments, deleteDocument } = useKnowledge();
   const navigate = useNavigate();
@@ -281,6 +282,10 @@ export default function KnowledgeDetail() {
                         onRefetch={runAsync}
                         onEmbedding={(documentId) => refreshEmbedding(knowledgeId, documentId)}
                         embeddings={embeddings}
+                        onEdit={(documentId) => {
+                          setEditDocumentId(documentId);
+                          setShowImportDialog(true);
+                        }}
                       />
                     ) : (
                       <EmptyDocuments />
@@ -295,8 +300,12 @@ export default function KnowledgeDetail() {
 
       {showImportDialog && !disabled && (
         <ImportKnowledge
+          documentId={editDocumentId}
           knowledgeId={knowledgeId}
-          onClose={() => setShowImportDialog(false)}
+          onClose={() => {
+            setEditDocumentId(undefined);
+            setShowImportDialog(false);
+          }}
           onSubmit={async () => {
             try {
               await runAsync();

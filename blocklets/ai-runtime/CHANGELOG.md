@@ -1,3 +1,90 @@
+## 0.4.213 (2025-1-20)
+
+- chore: update deps
+
+## 0.4.212 (2025-1-20)
+
+- chore: support edit custom knowledge
+
+## 0.4.211 (2025-1-20)
+
+- chore: update deps
+
+## 0.4.210 (2025-1-17)
+
+- feat: add OpenAPIAgent and BlockletAPIAgent support
+
+## 0.4.209 (2025-1-17)
+
+- fix: get history message error when not login
+
+## 0.4.208 (2025-1-17)
+
+- chore: support resolve an agent to renew its context
+- fix: incorrect state/config for agent resolved from a copied runtime
+- fix: function calls override by the latest empty calls array
+
+## 0.4.207 (2025-1-16)
+
+- fix: agent-v1 crash caused by project definition access error
+- fix: wrong type schema for array items
+
+## 0.4.206 (2025-1-16)
+
+- feat: support define memories for agents
+- refactor: simplify agent definitions
+- chore: move agent-v1 to a new package
+- test: add test cases for @aigne/core
+
+## 0.4.205 (2025-1-15)
+
+- feat: support use memories in agent defines
+
+## 0.4.204 (2025-1-14)
+
+- refactor: use uploadToMediaKit instead of component call
+
+## 0.4.203 (2025-1-13)
+
+- fix: remove shiki dependency
+
+## 0.4.202 (2025-1-13)
+
+- chore: strict type annotation for agent definitions
+- chore: simplify inputs/outputs for creating agent
+
+## 0.4.201 (2025-1-10)
+
+- feat: improve input parameter table style & validation message
+
+## 0.4.200 (2025-1-9)
+
+- feat: code editor adds upload feature
+- feat: code editor add to show syntax error
+
+## 0.4.199 (2025-1-8)
+
+- fix: memory default value type
+
+## 0.4.198 (2025-1-8)
+
+- fix: support clean memory of user
+- fix: missing $text of process result in pipeline agent
+- fix: mustache error caused by invalid template string in vars
+
+## 0.4.197 (2025-1-8)
+
+- chore: decrease concurrency for embed building to solve bundle error
+
+## 0.4.196 (2025-1-7)
+
+- chore: update deps
+
+## 0.4.195 (2025-1-6)
+
+- fix: add hash to integration url
+- chore: release new version of aigne framework
+
 ## 0.4.194 (2024-12-31)
 
 - chore: support different sandboxes

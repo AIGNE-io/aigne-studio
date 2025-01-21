@@ -916,6 +916,7 @@ export default flatten({
   similarity: 'Similarity',
   crawl: 'Crawl',
   createObject: 'Create {object}',
+  updateObject: 'Update {object}',
   file: 'File',
   noResults: 'No related results',
   modelSettings: 'Model Settings',

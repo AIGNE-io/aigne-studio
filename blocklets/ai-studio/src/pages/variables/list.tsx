@@ -164,6 +164,7 @@ function VariableList() {
       number: t('number'),
       object: t('object'),
       array: t('array'),
+      boolean: t('boolean'),
     };
   }, [t]);
 
@@ -178,7 +179,7 @@ function VariableList() {
         field: 'count',
         headerName: t('memory.type'),
         renderCell: (params: any) => {
-          return <Box>{params?.type?.type}</Box>;
+          return <Box>{map[params?.type?.type]}</Box>;
         },
       },
       {
@@ -205,8 +206,12 @@ function VariableList() {
               <Button
                 size="small"
                 onClick={() => {
-                  currentVariable.current = params;
-                  form.reset(params);
+                  currentVariable.current = cloneDeep(params);
+                  if (currentVariable.current) {
+                    currentVariable.current.defaultValue = formatDefaultValue(currentVariable.current);
+                  }
+
+                  form.reset(currentVariable.current);
                   dialogState.open();
                 }}>
                 {t('edit')}
@@ -273,14 +278,28 @@ function VariableList() {
 
   const onAdd = () => {
     form.reset({
+      id: nanoid(32),
       key: '',
       defaultValue: '',
-      type: { type: 'string', id: nanoid(32) },
+      type: { type: 'string' },
       scope,
     });
     dialogState.open();
   };
 
+  const formatDefaultValue = (value: Omit<VariableYjs, 'assistants'>) => {
+    if (value?.type?.type === 'boolean') {
+      return Boolean(value.defaultValue);
+    }
+
+    if (value?.type?.type === 'number') {
+      return Number.isNaN(Number(value.defaultValue)) ? 0 : Number(value.defaultValue);
+    }
+
+    return value.defaultValue;
+  };
+
+  const watch = form.watch('type');
   return (
     <Container>
       <Box className="between" mt={2.5} mb={1.5}>
@@ -391,6 +410,7 @@ function VariableList() {
               reset: Boolean(data.reset),
               defaultValue: data.defaultValue,
             };
+            newVariable.defaultValue = formatDefaultValue(newVariable);
 
             variableYjs.variables.push(newVariable);
           }
@@ -541,7 +561,7 @@ function VariableList() {
                           if (newValue.type === 'array') {
                             newValue.element ??= { id: nanoid(), name: 'element', type: 'string' };
                           }
-
+                          form.setValue('defaultValue', undefined);
                           field.onChange({ target: { value: newValue } });
                         }}
                       />
@@ -603,26 +623,33 @@ function VariableList() {
               }}
             />
 
-            <Controller
-              control={form.control}
-              name="defaultValue"
-              render={({ field, fieldState }) => {
-                return (
-                  <Box>
-                    <Typography variant="subtitle2">{t('defaultValue')}</Typography>
+            {['string', 'number', 'boolean'].includes(watch?.type || '') && (
+              <Controller
+                control={form.control}
+                name="defaultValue"
+                render={({ field, fieldState }) => {
+                  return (
+                    <Box>
+                      <Typography variant="subtitle2">{t('defaultValue')}</Typography>
 
-                    <TextField
-                      autoFocus
-                      sx={{ width: 1 }}
-                      {...field}
-                      hiddenLabel
-                      error={Boolean(fieldState.error)}
-                      helperText={fieldState.error?.message}
-                    />
-                  </Box>
-                );
-              }}
-            />
+                      {watch?.type === 'boolean' ? (
+                        <BaseSwitch checked={Boolean(field.value)} onChange={field.onChange} />
+                      ) : (
+                        <TextField
+                          type={watch?.type}
+                          autoFocus
+                          sx={{ width: 1 }}
+                          {...field}
+                          hiddenLabel
+                          error={Boolean(fieldState.error)}
+                          helperText={fieldState.error?.message}
+                        />
+                      )}
+                    </Box>
+                  );
+                }}
+              />
+            )}
           </Stack>
         </DialogContent>
 
@@ -776,7 +803,6 @@ function VariableRow({
               <TextField
                 hiddenLabel
                 fullWidth
-                multiline
                 value={variable.defaultValue || ''}
                 onChange={(e) => {
                   variable.defaultValue = e.target.value;

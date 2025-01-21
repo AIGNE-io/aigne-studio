@@ -4,6 +4,7 @@ import { RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
 import middlewares from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
+import { isNil, omitBy } from 'lodash';
 import orderBy from 'lodash/orderBy';
 import pick from 'lodash/pick';
 import uniqBy from 'lodash/uniqBy';
@@ -20,7 +21,6 @@ export function messageRoutes(router: Router) {
   router.get('/messages', middlewares.session({ componentCall: true }), async (req, res) => {
     const query = await searchOptionsSchema.validateAsync(req.query, { stripUnknown: true });
     const userId = req.user?.method === 'componentCall' ? req.query.userId : req.user?.did;
-    if (!userId || typeof userId !== 'string') throw new Error('Can not get user info');
 
     const conditions = [];
 
@@ -37,8 +37,7 @@ export function messageRoutes(router: Router) {
 
     const queryOptions: FindOptions<Attributes<History>> = {
       where: {
-        sessionId: query.sessionId,
-        userId,
+        ...omitBy({ sessionId: query.sessionId, userId }, (v) => isNil(v)),
         outputs: { [Op.not]: null },
         error: { [Op.is]: null },
       },
