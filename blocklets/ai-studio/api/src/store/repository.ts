@@ -3,6 +3,7 @@ import path, { dirname, extname, join, relative } from 'path';
 
 import { EVENTS } from '@api/event';
 import { projectCronManager } from '@api/libs/cron-jobs';
+import { getProjectDid, getProjectIconUrl, getProjectUrl } from '@api/libs/project';
 import { broadcast } from '@api/libs/ws';
 import type {
   Assistant,
@@ -28,6 +29,7 @@ import { getYjsValue } from '@blocklet/co-git/yjs';
 import type { SyncFolderPushCommandOutput } from '@blocklet/did-space-js';
 import { SpaceClient, SyncFolderPushCommand } from '@blocklet/did-space-js';
 import { memoize } from '@blocklet/quickjs/cache';
+import dayjs from 'dayjs';
 import { exists, pathExists } from 'fs-extra';
 import { glob } from 'glob';
 import { Errors } from 'isomorphic-git';
@@ -668,6 +670,17 @@ export async function syncToDidSpace({ project, userId }: { project: Project; us
             source: path,
             target: relative(Config.dataDir, path),
             metadata: { ...project.toJSON() },
+            preview: {
+              template: 'project',
+              did: getProjectDid(project),
+              name: project.name!,
+              description: project.description || '',
+              image: getProjectIconUrl(project.id, {
+                updatedAt: dayjs(project.updatedAt).toDate().getTime(),
+              }),
+              url: getProjectUrl(project.id),
+              createdAt: dayjs(project.createdAt).toISOString(),
+            },
           })
         );
       }

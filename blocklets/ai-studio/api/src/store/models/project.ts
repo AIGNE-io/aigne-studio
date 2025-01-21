@@ -175,15 +175,12 @@ export default class Project extends Model<InferAttributes<Project>, InferCreati
         sequelize,
         hooks: {
           afterCreate: async (project: Project) => {
-            console.error('debug233.afterCreate', project);
             event.emit(EVENTS.PROJECT.CREATED, { project });
           },
           afterUpdate: async (project: Project) => {
-            console.error('debug233.afterUpdate', project);
             event.emit(EVENTS.PROJECT.UPDATED, { project });
           },
           afterDestroy: async (project: Project) => {
-            console.error('debug233.afterDestroy', project);
             event.emit(EVENTS.PROJECT.DELETED, { project });
           },
         },
