@@ -5,21 +5,13 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { SubscriptionError } from '@blocklet/ai-kit/api';
 import { runAssistant } from '@blocklet/ai-runtime/api';
 import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
-import {
-  AssistantResponseType,
-  AssistantYjs,
-  ExecuteBlock,
-  ExecutionPhase,
-  Role,
-  RunAssistantInput,
-  RunAssistantLog,
-  fileToYjs,
-  isAssistant,
-} from '@blocklet/ai-runtime/types';
+import type { AssistantYjs, ExecuteBlock, Role, RunAssistantInput, RunAssistantLog } from '@blocklet/ai-runtime/types';
+import { AssistantResponseType, ExecutionPhase, fileToYjs, isAssistant } from '@blocklet/ai-runtime/types';
 import { getYjsDoc } from '@blocklet/co-git/yjs';
 import { useThrottleEffect } from 'ahooks';
 import equal from 'fast-deep-equal';
-import { Draft, produce } from 'immer';
+import type { Draft } from 'immer';
+import { produce } from 'immer';
 import localForage from 'localforage';
 import { cloneDeep, differenceBy, get, intersectionBy, omitBy } from 'lodash';
 import debounce from 'lodash/debounce';
@@ -27,15 +19,17 @@ import omit from 'lodash/omit';
 import pick from 'lodash/pick';
 import { nanoid } from 'nanoid';
 import { useCallback, useEffect } from 'react';
-import { RecoilState, atom, useRecoilState } from 'recoil';
+import type { RecoilState } from 'recoil';
+import { atom, useRecoilState } from 'recoil';
 import { joinURL } from 'ufo';
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 
-import Project from '../../../api/src/store/models/project';
+import type Project from '../../../api/src/store/models/project';
 import { textCompletions } from '../../libs/ai';
 import * as branchApi from '../../libs/branch';
-import { Commit, getLogs } from '../../libs/log';
+import type { Commit } from '../../libs/log';
+import { getLogs } from '../../libs/log';
 import * as projectApi from '../../libs/project';
 import * as api from '../../libs/tree';
 import { PROMPTS_FOLDER_NAME, useProjectStore } from './yjs-state';

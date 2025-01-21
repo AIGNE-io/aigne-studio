@@ -3,13 +3,10 @@ import { REMOTE_REACT_COMPONENT } from '@app/libs/constants';
 import { getOptimizedImageAbsUrl } from '@app/libs/media';
 import Empty from '@arcblock/ux/lib/Empty';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import {
-  OutputVariableYjs,
-  RuntimeOutputVariable,
-  isRuntimeOutputVariable,
-  runtimeVariablesSchema,
-} from '@blocklet/ai-runtime/types';
+import type { OutputVariableYjs } from '@blocklet/ai-runtime/types';
+import { RuntimeOutputVariable, isRuntimeOutputVariable, runtimeVariablesSchema } from '@blocklet/ai-runtime/types';
 import Warning from '@mui/icons-material/WarningAmberOutlined';
+import type { DialogProps } from '@mui/material';
 import {
   Box,
   Button,
@@ -18,7 +15,6 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  DialogProps,
   DialogTitle,
   Divider,
   Grid,
@@ -31,7 +27,8 @@ import {
 import Ajv from 'ajv';
 import stringify from 'json-stable-stringify';
 import { pick } from 'lodash';
-import { ComponentProps, useEffect, useMemo, useState } from 'react';
+import type { ComponentProps } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAsync } from 'react-use';
 
 import { generateFakeProps } from './fake-props';

@@ -8,7 +8,8 @@ import Toast from '@arcblock/ux/lib/Toast';
 import { DIDSpaceStatus, ReConnect, SpaceGateway, SpaceStatus } from '@blocklet/did-space-react';
 import { SyncRounded } from '@mui/icons-material';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
-import { Button, ButtonProps, ListItemIcon, ListItemText, Menu, MenuItem, Stack, Typography } from '@mui/material';
+import type { ButtonProps } from '@mui/material';
+import { Button, ListItemIcon, ListItemText, Menu, MenuItem, Stack, Typography } from '@mui/material';
 import { useState } from 'react';
 
 import { getErrorMessage } from '../../../libs/api';

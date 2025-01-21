@@ -1,6 +1,7 @@
 import { projectSettingsSchema } from '@blocklet/ai-runtime/types';
-import { ListObjectsCommand, ListObjectsCommandOutput, SpaceClient } from '@blocklet/did-space-js';
-import { Request, Response } from 'express';
+import type { ListObjectsCommandOutput } from '@blocklet/did-space-js';
+import { ListObjectsCommand, SpaceClient } from '@blocklet/did-space-js';
+import type { Request, Response } from 'express';
 import Joi from 'joi';
 
 import { wallet } from '../../libs/auth';

@@ -6,13 +6,14 @@ import { checkErrorType } from '@app/libs/util';
 import currentGitStore from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { ProjectSettings, RuntimeErrorType } from '@blocklet/ai-runtime/types';
+import type { ProjectSettings } from '@blocklet/ai-runtime/types';
+import { RuntimeErrorType } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import ArrowsShuffleIcon from '@iconify-icons/tabler/arrows-shuffle';
 import twitterIcon from '@iconify-icons/tabler/brand-twitter';
 import linkIcon from '@iconify-icons/tabler/link';
 import Share2Icon from '@iconify-icons/tabler/share-2';
-import { LoadingButtonProps } from '@mui/lab';
+import type { LoadingButtonProps } from '@mui/lab';
 import {
   Box,
   Button,
@@ -26,13 +27,14 @@ import {
   Popper,
   Tooltip,
 } from '@mui/material';
-import { ReactElement, useMemo, useState } from 'react';
+import type { ReactElement } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { joinURL, withQuery } from 'ufo';
 
 import { useProjectLimiting } from '../../contexts/projects';
 import { useSessionContext } from '../../contexts/session';
-import { Deployment } from '../../libs/deployment';
+import type { Deployment } from '../../libs/deployment';
 import ImportFromFork from '../project/projects-page/import-from-fork';
 
 function generateTwitterShareUrl(data: {

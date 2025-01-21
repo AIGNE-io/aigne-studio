@@ -4,8 +4,9 @@ import { parseIdentity } from '@blocklet/ai-runtime/common/aid';
 import { AIGNE_COMPONENTS_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
 import { RuntimeOutputVariable, fileFromYjs, isAssistant } from '@blocklet/ai-runtime/types';
 import { getAgent } from '@blocklet/aigne-sdk/api/agent';
-import { AIGNEApiContextValue } from '@blocklet/aigne-sdk/components/ai-runtime';
-import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import type { AIGNEApiContextValue } from '@blocklet/aigne-sdk/components/ai-runtime';
+import type { Map } from '@blocklet/co-git/yjs';
+import { getYjsValue } from '@blocklet/co-git/yjs';
 import { nanoid } from 'nanoid';
 import { useCallback, useMemo } from 'react';
 

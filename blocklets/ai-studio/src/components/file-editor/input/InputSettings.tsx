@@ -1,7 +1,7 @@
 import AigneLogoInput from '@app/icons/aigne-logo-input';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs } from '@blocklet/ai-runtime/types';
-import { DatasetObject } from '@blocklet/dataset-sdk/types';
+import type { AssistantYjs } from '@blocklet/ai-runtime/types';
+import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { Icon } from '@iconify-icon/react';
 import PlusIcon from '@iconify-icons/tabler/plus';
 import { Box, Stack, Typography } from '@mui/material';

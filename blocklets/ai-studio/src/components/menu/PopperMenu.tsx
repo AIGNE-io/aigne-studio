@@ -1,17 +1,8 @@
-import {
-  Box,
-  BoxProps,
-  Button,
-  ButtonProps,
-  ClickAwayListener,
-  MenuList,
-  Paper,
-  Popper,
-  PopperProps,
-  menuItemClasses,
-} from '@mui/material';
+import type { BoxProps, ButtonProps, PopperProps } from '@mui/material';
+import { Box, Button, ClickAwayListener, MenuList, Paper, Popper, menuItemClasses } from '@mui/material';
 import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
-import { ReactNode, forwardRef, useImperativeHandle } from 'react';
+import type { ReactNode } from 'react';
+import { forwardRef, useImperativeHandle } from 'react';
 
 export interface PopperMenuImperative {
   open: () => void;

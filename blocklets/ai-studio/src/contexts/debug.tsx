@@ -1,8 +1,10 @@
 import { useProjectStore } from '@app/pages/project/yjs-state';
 import { parseIdentity } from '@blocklet/ai-runtime/common/aid';
-import { AIGNEApiContextValue, getAgent } from '@blocklet/ai-runtime/front';
+import type { AIGNEApiContextValue } from '@blocklet/ai-runtime/front';
+import { getAgent } from '@blocklet/ai-runtime/front';
 import { fileFromYjs, isAssistant } from '@blocklet/ai-runtime/types';
-import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import type { Map } from '@blocklet/co-git/yjs';
+import { getYjsValue } from '@blocklet/co-git/yjs';
 
 import { useCurrentProject } from './project';
 

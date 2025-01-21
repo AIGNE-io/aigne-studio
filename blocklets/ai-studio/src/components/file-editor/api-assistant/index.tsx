@@ -1,4 +1,4 @@
-import { ApiAssistantYjs } from '@blocklet/ai-runtime/types';
+import type { ApiAssistantYjs } from '@blocklet/ai-runtime/types';
 import { Box, Stack } from '@mui/material';
 
 import { useReadOnly } from '../../../contexts/session';

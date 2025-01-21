@@ -1,7 +1,9 @@
 import { useCurrentProject } from '@app/contexts/project';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { Box, ListSubheader, MenuItem, Select, SelectProps, Stack, Typography } from '@mui/material';
+import type { Map } from '@blocklet/co-git/yjs';
+import { getYjsValue } from '@blocklet/co-git/yjs';
+import type { SelectProps } from '@mui/material';
+import { Box, ListSubheader, MenuItem, Select, Stack, Typography } from '@mui/material';
 
 import { useProjectStore } from '../yjs-state';
 import { defaultFonts } from './font-family-helmet';

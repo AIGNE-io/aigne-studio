@@ -1,11 +1,13 @@
 import { getSupportedModels } from '@api/libs/common';
 import { useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { ExecuteBlockSelectByPromptYjs, FileTypeYjs, OnTaskCompletion, isAssistant } from '@blocklet/ai-runtime/types';
+import type { ExecuteBlockSelectByPromptYjs, FileTypeYjs } from '@blocklet/ai-runtime/types';
+import { OnTaskCompletion, isAssistant } from '@blocklet/ai-runtime/types';
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { Icon } from '@iconify-icon/react';
 import SettingIcon from '@iconify-icons/tabler/settings-2';
 import { InfoOutlined } from '@mui/icons-material';
+import type { SelectChangeEvent } from '@mui/material';
 import {
   Box,
   Button,
@@ -21,13 +23,13 @@ import {
   Paper,
   Popper,
   Select,
-  SelectChangeEvent,
   Stack,
   Tooltip,
 } from '@mui/material';
 import { sortBy } from 'lodash';
 import isNil from 'lodash/isNil';
-import { ReactElement, useMemo, useRef, useState } from 'react';
+import type { ReactElement } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useAsync } from 'react-use';
 
 import WithAwareness from '../awareness/with-awareness';

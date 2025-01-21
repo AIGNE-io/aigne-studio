@@ -4,7 +4,8 @@ import UploaderProvider, { useUploader } from '@app/contexts/uploader';
 import useSubscription from '@app/hooks/use-subscription';
 import { getErrorMessage } from '@app/libs/api';
 import { AIGNE_RUNTIME_MOUNT_POINT } from '@app/libs/constants';
-import ColumnsLayout, { ImperativeColumnsLayout } from '@app/pages/project/columns-layout';
+import type { ImperativeColumnsLayout } from '@app/pages/project/columns-layout';
+import ColumnsLayout from '@app/pages/project/columns-layout';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
@@ -16,10 +17,10 @@ import SidebarRight from '@iconify-icons/tabler/layout-sidebar-right';
 import PencilIcon from '@iconify-icons/tabler/pencil';
 import PlusIcon from '@iconify-icons/tabler/plus';
 import SearchIcon from '@iconify-icons/tabler/search';
+import type { ButtonProps } from '@mui/material';
 import {
   Box,
   Button,
-  ButtonProps,
   CircularProgress,
   Divider,
   IconButton,

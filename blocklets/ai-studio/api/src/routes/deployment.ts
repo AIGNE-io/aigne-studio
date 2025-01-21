@@ -5,10 +5,11 @@ import { getUser, getUsers } from '@api/libs/user';
 import Project from '@api/store/models/project';
 import { PROJECT_FILE_PATH, ProjectRepo, getEntryFromRepository, getRepository } from '@api/store/repository';
 import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
-import { Assistant, ProjectSettings } from '@blocklet/ai-runtime/types';
-import { Agent } from '@blocklet/aigne-sdk/api/agent';
+import type { Assistant, ProjectSettings } from '@blocklet/ai-runtime/types';
+import type { Agent } from '@blocklet/aigne-sdk/api/agent';
 import middlewares from '@blocklet/sdk/lib/middlewares';
-import { NextFunction, Request, Response, Router } from 'express';
+import type { NextFunction, Request, Response } from 'express';
+import { Router } from 'express';
 import Joi from 'joi';
 import pick from 'lodash/pick';
 

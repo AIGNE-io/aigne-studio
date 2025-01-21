@@ -1,7 +1,8 @@
 import AigneLogo from '@app/icons/aigne-logo';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { ImageBlenderAssistantYjs } from '@blocklet/ai-runtime/types';
-import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import type { ImageBlenderAssistantYjs } from '@blocklet/ai-runtime/types';
+import type { Map } from '@blocklet/co-git/yjs';
+import { getYjsValue } from '@blocklet/co-git/yjs';
 import { Box, TextField } from '@mui/material';
 import { SelectTemplates } from '@nft-studio/react';
 import { cloneDeep, uniqBy } from 'lodash';

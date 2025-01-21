@@ -1,9 +1,10 @@
 import { useCurrentProject } from '@app/contexts/project';
 import { useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, OutputVariableYjs, RuntimeOutputVariable, isAssistant } from '@blocklet/ai-runtime/types';
+import type { AssistantYjs, OutputVariableYjs } from '@blocklet/ai-runtime/types';
+import { RuntimeOutputVariable, isAssistant } from '@blocklet/ai-runtime/types';
 import { Divider, Stack } from '@mui/material';
-import { ComponentType } from 'react';
+import type { ComponentType } from 'react';
 
 import AppearanceComponentSettings from '../output/AppearanceComponentSettings';
 import ChildrenSettings from '../output/ChildrenSettings';

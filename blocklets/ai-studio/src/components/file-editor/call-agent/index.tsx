@@ -2,14 +2,17 @@ import { useReadOnly } from '@app/contexts/session';
 import { isValidInput } from '@app/libs/util';
 import { PROMPTS_FOLDER_NAME, useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, CallAssistantYjs, Tool, isAssistant } from '@blocklet/ai-runtime/types';
-import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import type { AssistantYjs, CallAssistantYjs, Tool } from '@blocklet/ai-runtime/types';
+import { isAssistant } from '@blocklet/ai-runtime/types';
+import type { Map } from '@blocklet/co-git/yjs';
+import { getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
 import ExternalLinkIcon from '@iconify-icons/tabler/external-link';
 import PencilIcon from '@iconify-icons/tabler/pencil';
 import PlusIcon from '@iconify-icons/tabler/plus';
 import Trash from '@iconify-icons/tabler/trash';
 import { InfoOutlined } from '@mui/icons-material';
+import type { DialogProps, StackProps } from '@mui/material';
 import {
   Autocomplete,
   Box,
@@ -17,10 +20,8 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  DialogProps,
   DialogTitle,
   Stack,
-  StackProps,
   TextField,
   Tooltip,
   Typography,
@@ -28,7 +29,8 @@ import {
 import { cloneDeep, sortBy } from 'lodash';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { forwardRef, useImperativeHandle, useMemo, useRef } from 'react';
-import { Controller, UseFormReturn, useForm } from 'react-hook-form';
+import type { UseFormReturn } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { joinURL } from 'ufo';
 

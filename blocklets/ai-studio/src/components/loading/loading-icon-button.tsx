@@ -1,5 +1,7 @@
-import { CircularProgress, IconButton, IconButtonProps } from '@mui/material';
-import { MouseEvent, ReactNode, forwardRef, useCallback, useState } from 'react';
+import type { IconButtonProps } from '@mui/material';
+import { CircularProgress, IconButton } from '@mui/material';
+import type { MouseEvent, ReactNode } from 'react';
+import { forwardRef, useCallback, useState } from 'react';
 
 interface LoadingIconButtonProps extends IconButtonProps {
   icon: ReactNode;

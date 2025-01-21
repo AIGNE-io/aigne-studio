@@ -1,4 +1,5 @@
-import { Menu, MenuProps } from '@mui/material';
+import type { MenuProps } from '@mui/material';
+import { Menu } from '@mui/material';
 import { useCallback, useMemo, useState } from 'react';
 
 export default function useMenu() {

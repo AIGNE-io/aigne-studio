@@ -1,6 +1,6 @@
 import createLogger from '@blocklet/logger';
 import config from '@blocklet/sdk/lib/config';
-import { NextFunction, Request, Response } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 import morgan from 'morgan';
 
 export const isDevelopment = config.env.mode === 'development';

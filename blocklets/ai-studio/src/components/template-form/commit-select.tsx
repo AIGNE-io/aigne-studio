@@ -3,7 +3,8 @@ import { Alert, Box, FormControl, InputLabel, MenuItem, Select } from '@mui/mate
 import { useState } from 'react';
 import { useAsync } from 'react-use';
 
-import { Commit, getLogs } from '../../libs/log';
+import type { Commit } from '../../libs/log';
+import { getLogs } from '../../libs/log';
 import { useProjectState } from '../../pages/project/state';
 import { CommitListView } from './commits-tip';
 

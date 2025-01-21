@@ -1,5 +1,6 @@
 import IndicatorTextField from '@app/components/awareness/indicator-text-field';
-import { BoxProps, MenuItem, TextFieldProps } from '@mui/material';
+import type { BoxProps, TextFieldProps } from '@mui/material';
+import { MenuItem } from '@mui/material';
 
 type Props = {
   projectId: string;

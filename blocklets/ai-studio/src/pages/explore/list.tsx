@@ -2,12 +2,13 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 
 import Avatar from '@app/components/avatar';
-import { Category } from '@app/libs/category';
-import { Deployment, ProjectStatsItem } from '@app/libs/deployment';
-import { User, getProjectIconUrl } from '@app/libs/project';
+import type { Category } from '@app/libs/category';
+import type { Deployment, ProjectStatsItem } from '@app/libs/deployment';
+import type { User } from '@app/libs/project';
+import { getProjectIconUrl } from '@app/libs/project';
 import Empty from '@app/pages/project/icons/empty';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { ProjectSettings } from '@blocklet/ai-runtime/types';
+import type { ProjectSettings } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import PlayIcon from '@iconify-icons/tabler/play';
 import UserIcon from '@iconify-icons/tabler/user';

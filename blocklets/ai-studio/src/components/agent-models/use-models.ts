@@ -5,16 +5,14 @@ import {
   getSupportedImagesModels,
   getSupportedModels,
 } from '@blocklet/ai-runtime/common';
-import {
+import type {
   AssistantYjs,
   ImageModelInfo,
   ResourceType,
   SelectParameter,
   TextModelInfo,
-  isImageAssistant,
-  isPromptAssistant,
-  isRouterAssistant,
 } from '@blocklet/ai-runtime/types';
+import { isImageAssistant, isPromptAssistant, isRouterAssistant } from '@blocklet/ai-runtime/types';
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { useRequest } from 'ahooks';
 import { useMemo } from 'react';
@@ -23,7 +21,7 @@ import { useCurrentProject } from '../../contexts/project';
 import { getProjectIconUrl } from '../../libs/project';
 import { useProjectStore } from '../../pages/project/yjs-state';
 import { useAgentSelectOptions } from '../agent-select/use-agents';
-import { ModelType } from './types';
+import type { ModelType } from './types';
 import { sortModels } from './utils';
 
 function useSupportedModels(type: ModelType): (TextModelInfo | ImageModelInfo)[] {

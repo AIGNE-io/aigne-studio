@@ -1,15 +1,17 @@
 import { useComponent } from '@app/contexts/component';
-import { CreateDiscussionItem } from '@app/libs/knowledge';
+import type { CreateDiscussionItem } from '@app/libs/knowledge';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { Box, TextField } from '@mui/material';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import type { GridColDef } from '@mui/x-data-grid';
+import { DataGrid } from '@mui/x-data-grid';
 import { useThrottle } from 'ahooks';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAsync } from 'react-use';
 
-import { DiscussionItem, searchDiscussions } from '../../../libs/discussion';
+import type { DiscussionItem } from '../../../libs/discussion';
+import { searchDiscussions } from '../../../libs/discussion';
 
 function DiscussionTable({
   type,

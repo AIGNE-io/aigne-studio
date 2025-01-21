@@ -1,5 +1,6 @@
 import { Icon } from '@iconify-icon/react';
-import { IconButton, InputAdornment, TextField, TextFieldProps } from '@mui/material';
+import type { TextFieldProps } from '@mui/material';
+import { IconButton, InputAdornment, TextField } from '@mui/material';
 import { forwardRef, useState } from 'react';
 
 const PasswordField = forwardRef<HTMLDivElement, TextFieldProps>(({ ...props }, ref) => {

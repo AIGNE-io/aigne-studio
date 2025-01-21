@@ -1,5 +1,5 @@
 import { xss as xssMiddleware } from '@blocklet/xss';
-import { NextFunction, Request, Response } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 
 const SKIP_XSS_API: { method?: string; path: string | RegExp }[] = [{ path: /^\/api\/ai/ }];
 

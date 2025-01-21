@@ -13,6 +13,7 @@ import { Icon } from '@iconify-icon/react';
 import DatabaseIcon from '@iconify-icons/tabler/database';
 import FileIcon from '@iconify-icons/tabler/file-text';
 import XIcon from '@iconify-icons/tabler/x';
+import type { DialogProps, StackProps, Theme } from '@mui/material';
 import {
   Box,
   Button,
@@ -20,13 +21,10 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  DialogProps,
   DialogTitle,
   IconButton,
   MenuItem,
   Stack,
-  StackProps,
-  Theme,
   Tooltip,
   Typography,
   styled,
@@ -36,7 +34,8 @@ import { useRequest } from 'ahooks';
 import bytes from 'bytes';
 import dayjs from 'dayjs';
 import { usePopupState } from 'material-ui-popup-state/hooks';
-import { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { joinURL } from 'ufo';
 

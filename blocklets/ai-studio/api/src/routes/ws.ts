@@ -1,4 +1,4 @@
-import { IncomingMessage, Server } from 'http';
+import type { IncomingMessage, Server } from 'http';
 
 import { Config } from '@api/libs/env';
 import logger from '@api/libs/logger';

@@ -1,6 +1,6 @@
 import { useUploader } from '@app/contexts/uploader';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { FunctionAssistantYjs } from '@blocklet/ai-runtime/types';
+import type { FunctionAssistantYjs } from '@blocklet/ai-runtime/types';
 import { CodeEditor } from '@blocklet/code-editor';
 import { Box, Stack } from '@mui/material';
 import { useEffect, useRef } from 'react';

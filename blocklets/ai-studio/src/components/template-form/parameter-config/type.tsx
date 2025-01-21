@@ -11,7 +11,8 @@ import MessagesIcon from '@iconify-icons/tabler/messages';
 import ImageIcon from '@iconify-icons/tabler/picture-in-picture-top';
 import SquareNumberIcon from '@iconify-icons/tabler/square-number-1';
 import TextWrapIcon from '@iconify-icons/tabler/text-wrap';
-import { Box, ListItemIcon, MenuItem, TextField, TextFieldProps } from '@mui/material';
+import type { TextFieldProps } from '@mui/material';
+import { Box, ListItemIcon, MenuItem, TextField } from '@mui/material';
 import { useMemo } from 'react';
 
 import DIDConnectSvg from '../../../icons/did-connect.svg?url';

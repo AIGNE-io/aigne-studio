@@ -1,5 +1,6 @@
 import { produce } from 'immer';
-import { ReactNode, useCallback, useEffect } from 'react';
+import type { ReactNode } from 'react';
+import { useCallback, useEffect } from 'react';
 import { atom, useRecoilState } from 'recoil';
 
 export interface AddonsState {

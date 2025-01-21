@@ -1,5 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { Box, ChipProps, Tooltip } from '@mui/material';
+import type { ChipProps } from '@mui/material';
+import { Box, Tooltip } from '@mui/material';
 
 export function PremiumFeatureTag({ sx, ...rest }: ChipProps) {
   const mergedSx = [

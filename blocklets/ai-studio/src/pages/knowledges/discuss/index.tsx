@@ -5,13 +5,13 @@ import LinkIcon from '@iconify-icons/tabler/link';
 import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
+import type { Theme } from '@mui/material';
 import {
   Box,
   Checkbox,
   CircularProgress,
   FormControlLabel,
   Stack,
-  Theme,
   Tooltip,
   Typography,
   useMediaQuery,
@@ -22,7 +22,7 @@ import { groupBy, uniqWith } from 'lodash';
 import { useEffect, useState } from 'react';
 import { joinURL } from 'ufo';
 
-import { CreateDiscussionItem } from '../../../libs/knowledge';
+import type { CreateDiscussionItem } from '../../../libs/knowledge';
 import DiscussList from './discuss';
 
 const types = ['discussion', 'blog', 'doc'] as ['discussion', 'blog', 'doc'];

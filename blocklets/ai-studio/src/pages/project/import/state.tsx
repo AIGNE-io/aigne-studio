@@ -3,8 +3,8 @@ import Toast from '@arcblock/ux/lib/Toast';
 import orderBy from 'lodash/orderBy';
 import { useCallback, useEffect, useState } from 'react';
 
-import { EntryWithMeta } from '../../../../api/src/routes/tree';
-import Project from '../../../../api/src/store/models/project';
+import type { EntryWithMeta } from '../../../../api/src/routes/tree';
+import type Project from '../../../../api/src/store/models/project';
 import { getErrorMessage } from '../../../libs/api';
 import { getBranches } from '../../../libs/branch';
 import { getProjects } from '../../../libs/project';

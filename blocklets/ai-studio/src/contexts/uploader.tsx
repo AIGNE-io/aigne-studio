@@ -1,7 +1,9 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import UploadIcon from '@mui/icons-material/Upload';
-import { IconButton, IconButtonProps } from '@mui/material';
-import { ReactNode, createContext, forwardRef, lazy, useContext, useImperativeHandle, useRef } from 'react';
+import type { IconButtonProps } from '@mui/material';
+import { IconButton } from '@mui/material';
+import type { ReactNode } from 'react';
+import { createContext, forwardRef, lazy, useContext, useImperativeHandle, useRef } from 'react';
 
 // @ts-ignore
 const UploaderComponent = lazy(() => import('@blocklet/uploader').then((res) => ({ default: res.Uploader })));

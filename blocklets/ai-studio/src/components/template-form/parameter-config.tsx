@@ -1,7 +1,8 @@
 import BaseSwitch from '@app/components/custom/switch';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ParameterField } from '@blocklet/ai-runtime/components';
-import { ParameterYjs, parameterFromYjs } from '@blocklet/ai-runtime/types';
+import type { ParameterYjs } from '@blocklet/ai-runtime/types';
+import { parameterFromYjs } from '@blocklet/ai-runtime/types';
 import {
   Autocomplete,
   Box,

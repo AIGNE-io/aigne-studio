@@ -1,13 +1,13 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { getSupportedImagesModels, getSupportedModels } from '@blocklet/ai-runtime/common';
-import { ImageModelInfo, TextModelInfo } from '@blocklet/ai-runtime/types';
+import type { ImageModelInfo, TextModelInfo } from '@blocklet/ai-runtime/types';
+import type { TextFieldProps } from '@mui/material';
 import {
   Box,
   ListItemIcon,
   ListItemText,
   MenuItem,
   TextField,
-  TextFieldProps,
   filledInputClasses,
   menuItemClasses,
 } from '@mui/material';

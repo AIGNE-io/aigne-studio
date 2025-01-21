@@ -1,5 +1,5 @@
 import middlewares from '@blocklet/sdk/lib/middlewares';
-import { Router } from 'express';
+import type { Router } from 'express';
 import Joi from 'joi';
 
 import { ensureComponentCallOrPromptsEditor, isRefReadOnly } from '../libs/security';
@@ -56,7 +56,7 @@ export function workingRoutes(router: Router) {
       });
 
       if (hash) {
-        await autoSyncIfNeeded({ project, author, userId, wait: false });
+        await autoSyncIfNeeded({ project, author, wait: false });
       }
 
       return res.json({ project });

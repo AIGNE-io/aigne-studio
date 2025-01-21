@@ -1,6 +1,7 @@
 import { DataTypes } from 'sequelize';
 
-import { Migration, existsColumn } from '../migrate';
+import type { Migration } from '../migrate';
+import { existsColumn } from '../migrate';
 
 export const up: Migration = async ({ context: queryInterface }) => {
   if (!(await existsColumn(queryInterface, 'Projects', 'didSpaceAutoSync'))) {

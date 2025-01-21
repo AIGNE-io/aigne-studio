@@ -1,4 +1,4 @@
-import { FunctionAssistantYjs } from '@blocklet/ai-runtime/types';
+import type { FunctionAssistantYjs } from '@blocklet/ai-runtime/types';
 import { Stack } from '@mui/material';
 
 import { useReadOnly } from '../../../contexts/session';

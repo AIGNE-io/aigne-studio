@@ -1,6 +1,7 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs } from '@blocklet/ai-runtime/types';
-import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import type { AssistantYjs } from '@blocklet/ai-runtime/types';
+import type { Map } from '@blocklet/co-git/yjs';
+import { getYjsValue } from '@blocklet/co-git/yjs';
 import { FormControl, FormControlLabel, FormHelperText, Stack, Switch } from '@mui/material';
 
 import { PremiumFeatureTag, useMultiTenantRestriction } from '../../multi-tenant-restriction';

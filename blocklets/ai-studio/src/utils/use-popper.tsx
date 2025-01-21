@@ -1,5 +1,7 @@
-import { ClickAwayListener, Popper, PopperProps } from '@mui/material';
-import { ReactElement, useCallback, useMemo, useState } from 'react';
+import type { PopperProps } from '@mui/material';
+import { ClickAwayListener, Popper } from '@mui/material';
+import type { ReactElement } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 export default function usePopper() {
   const [props, setProps] = useState<PopperProps>();

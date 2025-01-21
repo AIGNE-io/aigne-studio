@@ -1,7 +1,7 @@
 import { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import type { AssistantYjs } from '@blocklet/ai-runtime/types';
 import {
-  AssistantYjs,
   fileToYjs,
   isApiAssistant,
   isFunctionAssistant,

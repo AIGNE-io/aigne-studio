@@ -10,14 +10,10 @@ import { ImagePreview } from '@blocklet/ai-kit/components';
 import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { ParameterField } from '@blocklet/ai-runtime/components';
 import { CurrentAgentProvider, RuntimeProvider } from '@blocklet/ai-runtime/front';
-import {
-  AssistantYjs,
-  Role,
-  RuntimeOutputVariable,
-  isPromptAssistant,
-  parameterFromYjs,
-} from '@blocklet/ai-runtime/types';
-import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import type { AssistantYjs, Role } from '@blocklet/ai-runtime/types';
+import { RuntimeOutputVariable, isPromptAssistant, parameterFromYjs } from '@blocklet/ai-runtime/types';
+import type { Map } from '@blocklet/co-git/yjs';
+import { getYjsValue } from '@blocklet/co-git/yjs';
 import { cx } from '@emotion/css';
 import { Icon } from '@iconify-icon/react';
 import ChevronDownIcon from '@iconify-icons/tabler/chevron-down';
@@ -53,14 +49,16 @@ import dayjs from 'dayjs';
 import { pick, sortBy } from 'lodash';
 import cloneDeep from 'lodash/cloneDeep';
 import { nanoid } from 'nanoid';
-import { ComponentProps, SyntheticEvent, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { ComponentProps, SyntheticEvent } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Virtuoso } from 'react-virtuoso';
 
 import { useSessionContext } from '../../contexts/session';
 import Empty from './icons/empty';
 import SegmentedControl from './segmented-control';
-import { SessionItem, useDebugState, useProjectState } from './state';
+import type { SessionItem } from './state';
+import { useDebugState, useProjectState } from './state';
 import { useProjectStore } from './yjs-state';
 
 export default function DebugView(props: {

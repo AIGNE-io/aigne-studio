@@ -10,10 +10,12 @@ import { newDefaultPrompt } from '@app/pages/project/template';
 import { PROMPTS_FOLDER_NAME, createFileName, useCreateFile, useProjectStore } from '@app/pages/project/yjs-state';
 import DiDAvatar from '@arcblock/ux/lib/Avatar';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, ParameterYjs, RouterAssistantYjs, Tool, isAssistant } from '@blocklet/ai-runtime/types';
+import type { AssistantYjs, ParameterYjs, RouterAssistantYjs, Tool } from '@blocklet/ai-runtime/types';
+import { isAssistant } from '@blocklet/ai-runtime/types';
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
-import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { DatasetObject } from '@blocklet/dataset-sdk/types';
+import type { Map } from '@blocklet/co-git/yjs';
+import { getYjsValue } from '@blocklet/co-git/yjs';
+import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import getOpenApiTextFromI18n from '@blocklet/dataset-sdk/util/get-open-api-i18n-text';
 import { Icon } from '@iconify-icon/react';
 import CheckIcon from '@iconify-icons/tabler/check';
@@ -25,16 +27,15 @@ import Star from '@iconify-icons/tabler/star';
 import StarFill from '@iconify-icons/tabler/star-filled';
 import Trash from '@iconify-icons/tabler/trash';
 import { Close, InfoOutlined } from '@mui/icons-material';
+import type { ListSubheaderProps, StackProps } from '@mui/material';
 import {
   Avatar,
   Box,
   Button,
   List,
   ListSubheader,
-  ListSubheaderProps,
   MenuItem,
   Stack,
-  StackProps,
   TextField,
   Tooltip,
   Typography,
@@ -45,14 +46,16 @@ import { cloneDeep, pick, sortBy } from 'lodash';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { nanoid } from 'nanoid';
 import React, { useCallback, useMemo, useRef } from 'react';
-import QueryBuilder, { RuleGroupType, ValueEditorProps } from 'react-querybuilder';
+import type { RuleGroupType, ValueEditorProps } from 'react-querybuilder';
+import QueryBuilder from 'react-querybuilder';
 import { useNavigate } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
 import { useAllSelectDecisionAgentOutputs, useRoutesAssistantOutputs } from '../output/OutputSettings';
 import PromptEditorField from '../prompt-editor-field';
 import useVariablesEditorOptions from '../use-variables-editor-options';
-import ToolDialog, { FROM_API, RouteOption, useFormatOpenApiToYjs } from './dialog';
+import type { RouteOption } from './dialog';
+import ToolDialog, { FROM_API, useFormatOpenApiToYjs } from './dialog';
 
 export default function RouterAssistantEditor({
   projectId,

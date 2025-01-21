@@ -1,5 +1,5 @@
 import Project from '@api/store/models/project';
-import { Router } from 'express';
+import type { Router } from 'express';
 import Joi from 'joi';
 
 import { ensureComponentCallOrPromptsEditor } from '../libs/security';

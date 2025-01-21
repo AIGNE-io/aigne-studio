@@ -1,8 +1,9 @@
 import { TOOL_TIP_LEAVE_TOUCH_DELAY } from '@app/libs/constants';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { defaultImageModel, getSupportedImagesModels } from '@blocklet/ai-runtime/common';
-import { ImageAssistantYjs } from '@blocklet/ai-runtime/types';
-import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import type { ImageAssistantYjs } from '@blocklet/ai-runtime/types';
+import type { Map } from '@blocklet/co-git/yjs';
+import { getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
 import HelpIcon from '@iconify-icons/tabler/help';
 import { Box, FormLabel, MenuItem, TextField, Tooltip } from '@mui/material';

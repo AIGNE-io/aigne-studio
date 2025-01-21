@@ -1,5 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, ParameterYjs } from '@blocklet/ai-runtime/types';
+import type { AssistantYjs, ParameterYjs } from '@blocklet/ai-runtime/types';
 import { Box, Typography } from '@mui/material';
 
 import SliderNumberField from '../slider-number-field';

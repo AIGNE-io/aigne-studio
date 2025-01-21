@@ -1,4 +1,10 @@
-import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
+import { EVENTS, event } from '@api/event';
+import { getProjectDid, getProjectIconUrl, getProjectUrl } from '@api/libs/project';
+import { getSpaceClient } from '@api/libs/spaces';
+import { DeletePreviewObjectCommand, PutPreviewObjectCommand } from '@blocklet/did-space-js';
+import dayjs from 'dayjs';
+import type { CreationOptional, InferAttributes, InferCreationAttributes } from 'sequelize';
+import { DataTypes, Model } from 'sequelize';
 import { Worker } from 'snowflake-uuid';
 
 import { sequelize } from '../sequelize';
@@ -74,96 +80,162 @@ export default class Project extends Model<InferAttributes<Project>, InferCreati
   static associate(models: { Deployment: any }) {
     this.hasOne(models.Deployment, { foreignKey: 'projectId' });
   }
+
+  static initialize() {
+    this.init(
+      {
+        id: {
+          type: DataTypes.STRING,
+          primaryKey: true,
+          allowNull: false,
+          defaultValue: nextProjectId,
+        },
+        duplicateFrom: {
+          type: DataTypes.STRING,
+        },
+        name: {
+          type: DataTypes.STRING,
+        },
+        description: {
+          type: DataTypes.STRING,
+        },
+        model: {
+          type: DataTypes.STRING,
+        },
+        createdAt: {
+          type: DataTypes.DATE,
+        },
+        updatedAt: {
+          type: DataTypes.DATE,
+        },
+        createdBy: {
+          type: DataTypes.STRING,
+        },
+        updatedBy: {
+          type: DataTypes.STRING,
+        },
+        pinnedAt: {
+          type: DataTypes.DATE,
+        },
+        icon: {
+          type: DataTypes.STRING,
+        },
+        gitType: {
+          type: DataTypes.STRING,
+          defaultValue: 'simple',
+        },
+        temperature: {
+          type: DataTypes.FLOAT,
+          defaultValue: 1.0,
+        },
+        topP: {
+          type: DataTypes.FLOAT,
+          defaultValue: 1.0,
+        },
+        presencePenalty: {
+          type: DataTypes.FLOAT,
+        },
+        frequencyPenalty: {
+          type: DataTypes.FLOAT,
+        },
+        maxTokens: {
+          type: DataTypes.FLOAT,
+        },
+        gitUrl: {
+          type: DataTypes.STRING,
+        },
+        gitDefaultBranch: {
+          type: DataTypes.STRING,
+          defaultValue: 'main',
+        },
+        gitAutoSync: {
+          type: DataTypes.BOOLEAN,
+        },
+        gitLastSyncedAt: {
+          type: DataTypes.DATE,
+        },
+        didSpaceAutoSync: {
+          type: DataTypes.BOOLEAN,
+          defaultValue: true,
+        },
+        didSpaceLastSyncedAt: {
+          type: DataTypes.DATE,
+        },
+        projectType: {
+          type: DataTypes.STRING,
+        },
+        homePageUrl: {
+          type: DataTypes.STRING,
+        },
+        appearance: {
+          type: DataTypes.JSON,
+        },
+      },
+      {
+        sequelize,
+        hooks: {
+          afterCreate: async (project: Project) => {
+            event.emit(EVENTS.PROJECT.CREATED, { project });
+          },
+          afterUpdate: async (project: Project) => {
+            event.emit(EVENTS.PROJECT.UPDATED, { project });
+          },
+          afterDestroy: async (project: Project) => {
+            event.emit(EVENTS.PROJECT.DELETED, { project });
+          },
+        },
+      }
+    );
+  }
+
+  static async updatePreviewObject(project: Project) {
+    const spaceClient = await getSpaceClient(project.createdBy);
+    if (!spaceClient) {
+      return;
+    }
+
+    const output = await spaceClient.send(
+      new PutPreviewObjectCommand({
+        key: `repositories/${project.id}/`,
+        data: {
+          template: 'project',
+          did: getProjectDid(project),
+          name: project.name!,
+          description: project.description || '',
+          image: getProjectIconUrl(project.id, {
+            updatedAt: dayjs(project.updatedAt).toDate().getTime(),
+          }),
+          url: getProjectUrl(project.id),
+          createdAt: dayjs(project.createdAt).toISOString(),
+        },
+      })
+    );
+    if (output.statusCode !== 200) {
+      console.error(output.statusMessage);
+      throw new Error(output.statusMessage);
+    }
+  }
+
+  static async deletePreviewObject(project: Project) {
+    if (!project) {
+      return;
+    }
+
+    const spaceClient = await getSpaceClient(project.createdBy);
+    if (!spaceClient) {
+      return;
+    }
+
+    const output = await spaceClient.send(
+      new DeletePreviewObjectCommand({
+        key: `repositories/${project.id}/`,
+      })
+    );
+    if (output.statusCode !== 200) {
+      console.error(output.statusMessage);
+      throw new Error(output.statusMessage);
+    }
+  }
 }
 
-Project.init(
-  {
-    id: {
-      type: DataTypes.STRING,
-      primaryKey: true,
-      allowNull: false,
-      defaultValue: nextProjectId,
-    },
-    duplicateFrom: {
-      type: DataTypes.STRING,
-    },
-    name: {
-      type: DataTypes.STRING,
-    },
-    description: {
-      type: DataTypes.STRING,
-    },
-    model: {
-      type: DataTypes.STRING,
-    },
-    createdAt: {
-      type: DataTypes.DATE,
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-    },
-    createdBy: {
-      type: DataTypes.STRING,
-    },
-    updatedBy: {
-      type: DataTypes.STRING,
-    },
-    pinnedAt: {
-      type: DataTypes.DATE,
-    },
-    icon: {
-      type: DataTypes.STRING,
-    },
-    gitType: {
-      type: DataTypes.STRING,
-      defaultValue: 'simple',
-    },
-    temperature: {
-      type: DataTypes.FLOAT,
-      defaultValue: 1.0,
-    },
-    topP: {
-      type: DataTypes.FLOAT,
-      defaultValue: 1.0,
-    },
-    presencePenalty: {
-      type: DataTypes.FLOAT,
-    },
-    frequencyPenalty: {
-      type: DataTypes.FLOAT,
-    },
-    maxTokens: {
-      type: DataTypes.FLOAT,
-    },
-    gitUrl: {
-      type: DataTypes.STRING,
-    },
-    gitDefaultBranch: {
-      type: DataTypes.STRING,
-      defaultValue: 'main',
-    },
-    gitAutoSync: {
-      type: DataTypes.BOOLEAN,
-    },
-    gitLastSyncedAt: {
-      type: DataTypes.DATE,
-    },
-    didSpaceAutoSync: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: true,
-    },
-    didSpaceLastSyncedAt: {
-      type: DataTypes.DATE,
-    },
-    projectType: {
-      type: DataTypes.STRING,
-    },
-    homePageUrl: {
-      type: DataTypes.STRING,
-    },
-    appearance: {
-      type: DataTypes.JSON,
-    },
-  },
-  { sequelize }
-);
+Project.initialize();

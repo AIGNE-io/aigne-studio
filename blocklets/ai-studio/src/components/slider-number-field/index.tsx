@@ -1,5 +1,6 @@
-import { Stack, StackProps, TextField } from '@mui/material';
-import React from 'react';
+import type { StackProps } from '@mui/material';
+import { Stack, TextField } from '@mui/material';
+import type React from 'react';
 
 import Slider from '../custom/slider';
 

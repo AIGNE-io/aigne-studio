@@ -11,10 +11,8 @@ import { sampleIcon } from '@api/libs/icon';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
 import AgentInputSecret from '@api/store/models/agent-input-secret';
 import ProjectExtra from '@api/store/models/project-extra';
+import type { MemoryFile, ProjectSettings, ResourceProject } from '@blocklet/ai-runtime/types';
 import {
-  MemoryFile,
-  ProjectSettings,
-  ResourceProject,
   RuntimeError,
   RuntimeErrorType,
   fileToYjs,
@@ -26,12 +24,13 @@ import {
 import { copyRecursive } from '@blocklet/ai-runtime/utils/fs';
 import { getUserPassports, quotaChecker } from '@blocklet/aigne-sdk/api/premium';
 import { AIGNE_RUNTIME_COMPONENT_DID, NFT_BLENDER_COMPONENT_DID } from '@blocklet/aigne-sdk/constants';
-import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import type { Map } from '@blocklet/co-git/yjs';
+import { getYjsValue } from '@blocklet/co-git/yjs';
 import { call } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
 import { auth, session } from '@blocklet/sdk/lib/middlewares';
-import { SessionUser } from '@blocklet/sdk/lib/util/login';
-import { Request, Router } from 'express';
+import type { SessionUser } from '@blocklet/sdk/lib/util/login';
+import type { Request, Router } from 'express';
 import { exists } from 'fs-extra';
 import * as git from 'isomorphic-git';
 import http from 'isomorphic-git/http/node';
@@ -807,7 +806,7 @@ export function projectRoutes(router: Router) {
 
     const author = { name: fullName, email: userId };
 
-    await autoSyncIfNeeded({ project, author, userId });
+    await autoSyncIfNeeded({ project, author });
 
     res.json(project.dataValues);
   });
@@ -954,7 +953,7 @@ export function projectRoutes(router: Router) {
 
     const target: SyncTarget = req.query.target as SyncTarget;
     if (target === 'didSpace') {
-      await syncToDidSpace({ project, userId });
+      await syncToDidSpace({ project });
 
       repository.resetCache();
       return res.json({});

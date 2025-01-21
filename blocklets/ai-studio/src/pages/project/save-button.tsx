@@ -8,6 +8,7 @@ import { Icon } from '@iconify-icon/react';
 import FloppyIcon from '@iconify-icons/tabler/device-floppy';
 import { DownloadRounded, SyncRounded, UploadRounded, WarningRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
+import type { DialogProps } from '@mui/material';
 import {
   Alert,
   Autocomplete,
@@ -17,7 +18,6 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  DialogProps,
   DialogTitle,
   IconButton,
   InputAdornment,
@@ -29,9 +29,11 @@ import {
 } from '@mui/material';
 import { useKeyPress } from 'ahooks';
 import gitUrlParse from 'git-url-parse';
-import { PopupState, bindDialog, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
+import type { PopupState } from 'material-ui-popup-state/hooks';
+import { bindDialog, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Controller, FormProvider, UseFormReturn, useForm, useFormContext } from 'react-hook-form';
+import type { UseFormReturn } from 'react-hook-form';
+import { Controller, FormProvider, useForm, useFormContext } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { joinURL } from 'ufo';
 

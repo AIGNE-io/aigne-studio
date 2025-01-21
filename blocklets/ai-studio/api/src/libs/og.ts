@@ -1,6 +1,6 @@
 import Deployment from '@api/store/models/deployment';
 import { ProjectRepo, getEntryFromRepository } from '@api/store/repository';
-import { ProjectSettings } from '@blocklet/ai-runtime/types';
+import type { ProjectSettings } from '@blocklet/ai-runtime/types';
 import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/aigne-sdk/constants';
 import { getComponentMountPoint } from '@blocklet/sdk/lib/component';
 import { env } from '@blocklet/sdk/lib/config';

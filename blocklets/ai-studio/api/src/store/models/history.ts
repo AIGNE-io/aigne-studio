@@ -1,5 +1,6 @@
-import { ExecuteBlock } from '@blocklet/ai-runtime/types';
-import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
+import type { ExecuteBlock } from '@blocklet/ai-runtime/types';
+import type { CreationOptional, InferAttributes, InferCreationAttributes } from 'sequelize';
+import { DataTypes, Model } from 'sequelize';
 import { Worker } from 'snowflake-uuid';
 
 import { sequelize } from '../sequelize';

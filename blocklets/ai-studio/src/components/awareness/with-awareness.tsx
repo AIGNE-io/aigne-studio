@@ -1,7 +1,9 @@
 import { useSessionContext } from '@app/contexts/session';
-import { Box, SxProps, Theme } from '@mui/material';
+import type { SxProps, Theme } from '@mui/material';
+import { Box } from '@mui/material';
 import { pick } from 'lodash';
-import { FocusEventHandler, ReactElement, cloneElement, useEffect } from 'react';
+import type { FocusEventHandler, ReactElement } from 'react';
+import { cloneElement, useEffect } from 'react';
 
 import { useProjectStore } from '../../pages/project/yjs-state';
 import AwarenessIndicator from './awareness-indicator';

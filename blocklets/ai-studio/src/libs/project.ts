@@ -1,10 +1,10 @@
-import AgentInputSecret from '@api/store/models/agent-input-secret';
+import type AgentInputSecret from '@api/store/models/agent-input-secret';
 import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
-import { Assistant } from '@blocklet/ai-runtime/types';
+import type { Assistant } from '@blocklet/ai-runtime/types';
 import pick from 'lodash/pick';
 import { joinURL, withQuery } from 'ufo';
 
-import {
+import type {
   AddProjectRemoteInput,
   CreateOrUpdateAgentInputSecretPayload,
   CreateProjectInput,
@@ -14,7 +14,7 @@ import {
   SyncTarget,
   UpdateProjectInput,
 } from '../../api/src/routes/project';
-import Project from '../../api/src/store/models/project';
+import type Project from '../../api/src/store/models/project';
 import axios from './api';
 
 export type User = {

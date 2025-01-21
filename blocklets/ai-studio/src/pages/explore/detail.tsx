@@ -1,35 +1,27 @@
 import MdViewer from '@app/components/md-viewer';
 import { getErrorMessage } from '@app/libs/api';
-import { User, getProjectIconUrl } from '@app/libs/project';
+import type { User } from '@app/libs/project';
+import { getProjectIconUrl } from '@app/libs/project';
 import { useTabFromQuery } from '@app/utils/use-tab-from-query';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Result from '@arcblock/ux/lib/Result';
 import Toast from '@arcblock/ux/lib/Toast';
-import { ProjectSettings } from '@blocklet/ai-runtime/types';
+import type { ProjectSettings } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import ChevronLeft from '@iconify-icons/tabler/chevron-left';
 import PlayIcon from '@iconify-icons/tabler/play';
 import PlayFilledIcon from '@iconify-icons/tabler/player-play-filled';
 import UserIcon from '@iconify-icons/tabler/user';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
-import {
-  Box,
-  Button,
-  CircularProgress,
-  Divider,
-  Link,
-  Stack,
-  Tab,
-  Theme,
-  Typography,
-  useMediaQuery,
-} from '@mui/material';
+import type { Theme } from '@mui/material';
+import { Box, Button, CircularProgress, Divider, Link, Stack, Tab, Typography, useMediaQuery } from '@mui/material';
 import { useRequest } from 'ahooks';
 import { useNavigate, useParams } from 'react-router-dom';
 import { withQuery } from 'ufo';
 
 import Avatar from '../../components/avatar';
-import { Deployment, ProjectStatsItem, getDeployment } from '../../libs/deployment';
+import type { Deployment, ProjectStatsItem } from '../../libs/deployment';
+import { getDeployment } from '../../libs/deployment';
 import { MakeYoursButton, ShareButton, useShareUrl } from './button';
 
 export default function CategoryDetail() {

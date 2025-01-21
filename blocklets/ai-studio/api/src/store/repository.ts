@@ -3,14 +3,18 @@ import path, { dirname, extname, join, relative } from 'path';
 
 import { EVENTS } from '@api/event';
 import { projectCronManager } from '@api/libs/cron-jobs';
+import { getProjectDid, getProjectIconUrl, getProjectUrl } from '@api/libs/project';
+import { getSpaceClient } from '@api/libs/spaces';
 import { broadcast } from '@api/libs/ws';
-import {
+import type {
   Assistant,
   AssistantYjs,
   ConfigFile,
   FileTypeYjs,
   ProjectSettings,
   Variable,
+} from '@blocklet/ai-runtime/types';
+import {
   fileFromYjs,
   fileToYjs,
   isAssistant,
@@ -19,20 +23,23 @@ import {
   variableToYjs,
 } from '@blocklet/ai-runtime/types';
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
-import { Repository, RepositoryOptions, Working } from '@blocklet/co-git/repository';
-import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { SpaceClient, SyncFolderPushCommand, SyncFolderPushCommandOutput } from '@blocklet/did-space-js';
+import type { RepositoryOptions, Working } from '@blocklet/co-git/repository';
+import { Repository } from '@blocklet/co-git/repository';
+import type { Map } from '@blocklet/co-git/yjs';
+import { getYjsValue } from '@blocklet/co-git/yjs';
+import type { SyncFolderPushCommandOutput } from '@blocklet/did-space-js';
+import { SyncFolderPushCommand } from '@blocklet/did-space-js';
 import { memoize } from '@blocklet/quickjs/cache';
+import dayjs from 'dayjs';
 import { exists, pathExists } from 'fs-extra';
 import { glob } from 'glob';
 import { Errors } from 'isomorphic-git';
-import isEmpty from 'lodash/isEmpty';
 import throttle from 'lodash/throttle';
 import { nanoid } from 'nanoid';
 import { parseAuth, parseFilename, parseURL } from 'ufo';
 import { parse, stringify } from 'yaml';
 
-import { authClient, wallet } from '../libs/auth';
+import { wallet } from '../libs/auth';
 import downloadImage, { md5file } from '../libs/download-logo';
 import { Config } from '../libs/env';
 import logger from '../libs/logger';
@@ -596,12 +603,10 @@ export async function syncRepository<T>({
 export const autoSyncIfNeeded = async ({
   project,
   author,
-  userId,
   wait = true,
 }: {
   project: Project;
   author: NonNullable<NonNullable<Parameters<Repository<any>['pull']>[0]>['author']>;
-  userId: string;
   wait?: true | false;
 }) => {
   if (project.gitUrl && project.gitAutoSync) {
@@ -621,12 +626,12 @@ export const autoSyncIfNeeded = async ({
     broadcast(project.id, EVENTS.PROJECT.SYNC_TO_DID_SPACE, { done: false });
 
     if (wait) {
-      await syncToDidSpace({ project, userId });
+      await syncToDidSpace({ project });
 
       broadcast(project.id, EVENTS.PROJECT.SYNC_TO_DID_SPACE, { done: true });
     } else {
       // 开始同步
-      syncToDidSpace({ project, userId })
+      syncToDidSpace({ project })
         .then(() => {
           // 同步成功
           broadcast(project.id, EVENTS.PROJECT.SYNC_TO_DID_SPACE, { done: true });
@@ -640,18 +645,11 @@ export const autoSyncIfNeeded = async ({
   }
 };
 
-export async function syncToDidSpace({ project, userId }: { project: Project; userId: string }) {
-  const { user } = await authClient.getUser(userId);
-  const endpoint = user?.didSpace?.endpoint;
-
-  if (isEmpty(endpoint)) {
+export async function syncToDidSpace({ project }: { project: Project }) {
+  const spaceClient = await getSpaceClient(project.createdBy);
+  if (!spaceClient) {
     return;
   }
-
-  const spaceClient = new SpaceClient({
-    endpoint,
-    wallet,
-  });
 
   const repositoryPath = repositoryRoot(project.id);
   const repositoryCooperativePath = repositoryCooperativeRoot(project.id);
@@ -663,6 +661,17 @@ export async function syncToDidSpace({ project, userId }: { project: Project; us
             source: path,
             target: relative(Config.dataDir, path),
             metadata: { ...project.toJSON() },
+            preview: {
+              template: 'project',
+              did: getProjectDid(project),
+              name: project.name!,
+              description: project.description || '',
+              image: getProjectIconUrl(project.id, {
+                updatedAt: dayjs(project.updatedAt).toDate().getTime(),
+              }),
+              url: getProjectUrl(project.id),
+              createdAt: dayjs(project.createdAt).toISOString(),
+            },
           })
         );
       }

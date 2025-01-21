@@ -1,5 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
+import type { ListProps, TooltipProps } from '@mui/material';
 import {
   Box,
   CircularProgress,
@@ -9,17 +10,16 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  ListProps,
   Tooltip as MuiTooltip,
-  TooltipProps,
   alpha,
   listItemButtonClasses,
   styled,
   tooltipClasses,
 } from '@mui/material';
-import { ReactElement, cloneElement, useState } from 'react';
+import type { ReactElement } from 'react';
+import { cloneElement, useState } from 'react';
 
-import { Commit } from '../../libs/log';
+import type { Commit } from '../../libs/log';
 import Avatar from '../avatar';
 
 export default function CommitsTip({

@@ -1,14 +1,15 @@
+import type { TooltipProps } from '@mui/material';
 import {
   Box,
   ClickAwayListener,
   Tooltip as MuiTooltip,
-  TooltipProps,
   alpha,
   listItemButtonClasses,
   styled,
   tooltipClasses,
 } from '@mui/material';
-import { ReactElement, ReactNode, cloneElement, useState } from 'react';
+import type { ReactElement, ReactNode } from 'react';
+import { cloneElement, useState } from 'react';
 
 export default function Dropdown({
   children,

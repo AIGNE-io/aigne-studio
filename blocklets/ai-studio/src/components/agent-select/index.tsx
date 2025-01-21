@@ -5,14 +5,14 @@ import DID from '@arcblock/ux/lib/DID';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
-import { ResourceType } from '@blocklet/ai-runtime/types';
+import type { ResourceType } from '@blocklet/ai-runtime/types';
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { AddComponent } from '@blocklet/ui-react';
 import { Icon } from '@iconify-icon/react';
 import BrandAppgalleryIcon from '@iconify-icons/tabler/brand-appgallery';
+import type { AutocompleteProps, ListSubheaderProps } from '@mui/material';
 import {
   Autocomplete,
-  AutocompleteProps,
   Avatar,
   Box,
   Button,
@@ -21,7 +21,6 @@ import {
   List,
   ListItemText,
   ListSubheader,
-  ListSubheaderProps,
   MenuItem,
   Paper,
   Stack,
@@ -31,7 +30,8 @@ import {
 } from '@mui/material';
 import React, { useRef } from 'react';
 
-import { AgentSelectFilter, useAgentSelectOptions } from './use-agents';
+import type { AgentSelectFilter } from './use-agents';
+import { useAgentSelectOptions } from './use-agents';
 
 export interface AgentSelectValue {
   blockletDid?: string;

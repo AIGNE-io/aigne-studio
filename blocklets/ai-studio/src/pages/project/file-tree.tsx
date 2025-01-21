@@ -4,7 +4,8 @@ import AigneLogo from '@app/icons/aigne-logo';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
-import { AssistantYjs, fileToYjs, isAssistant, nextAssistantId } from '@blocklet/ai-runtime/types';
+import type { AssistantYjs } from '@blocklet/ai-runtime/types';
+import { fileToYjs, isAssistant, nextAssistantId } from '@blocklet/ai-runtime/types';
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { css } from '@emotion/css';
 import { Icon } from '@iconify-icon/react';
@@ -18,13 +19,14 @@ import FolderPlusIcon from '@iconify-icons/tabler/folder-plus';
 import DiffIcon from '@iconify-icons/tabler/layers-difference';
 import PencilIcon from '@iconify-icons/tabler/pencil';
 import TrashIcon from '@iconify-icons/tabler/trash';
-import { DragLayerMonitorProps, MultiBackend, NodeModel, Tree, getBackendOptions } from '@minoru/react-dnd-treeview';
+import type { DragLayerMonitorProps, NodeModel } from '@minoru/react-dnd-treeview';
+import { MultiBackend, Tree, getBackendOptions } from '@minoru/react-dnd-treeview';
+import type { BoxProps, StackProps } from '@mui/material';
 import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
   Box,
-  BoxProps,
   Button,
   CircularProgress,
   ClickAwayListener,
@@ -40,7 +42,6 @@ import {
   MenuItem,
   Paper,
   Stack,
-  StackProps,
   Tooltip,
   Typography,
   accordionSummaryClasses,
@@ -51,16 +52,8 @@ import {
 import { useLocalStorageState } from 'ahooks';
 import uniqBy from 'lodash/uniqBy';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
-import {
-  ReactNode,
-  SyntheticEvent,
-  forwardRef,
-  useCallback,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from 'react';
+import type { ReactNode, SyntheticEvent } from 'react';
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { useNavigate } from 'react-router-dom';
 import { Balancer } from 'react-wrap-balancer';

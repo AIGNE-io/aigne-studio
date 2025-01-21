@@ -49,6 +49,7 @@ module.exports = {
     'react/jsx-no-duplicate-props': 'warn',
     '@typescript-eslint/no-throw-literal': 'warn',
     'react/function-component-definition': 'off',
+    '@typescript-eslint/consistent-type-imports': 'error',
     '@typescript-eslint/no-redeclare': 'warn',
     '@typescript-eslint/brace-style': 'off',
   },

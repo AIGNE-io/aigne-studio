@@ -1,4 +1,5 @@
-import { Chip, ChipProps, Stack } from '@mui/material';
+import type { ChipProps } from '@mui/material';
+import { Chip, Stack } from '@mui/material';
 
 export function Tag({ label, selected, ...rest }: { selected: boolean } & ChipProps) {
   const selectedStyle = {

@@ -1,7 +1,8 @@
-import { UseAgentItem, useAgent } from '@app/store/agent';
+import type { UseAgentItem } from '@app/store/agent';
+import { useAgent } from '@app/store/agent';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ParameterField } from '@blocklet/ai-runtime/components';
-import { ImageAssistantYjs, ImageModelInfo } from '@blocklet/ai-runtime/types';
+import type { ImageAssistantYjs, ImageModelInfo } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import HelpIcon from '@iconify-icons/tabler/help';
 import { Box, FormLabel, MenuItem, Stack, TextField, Tooltip, Typography } from '@mui/material';

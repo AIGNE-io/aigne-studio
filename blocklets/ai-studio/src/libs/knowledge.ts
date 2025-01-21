@@ -1,9 +1,9 @@
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import flattenApiStructure from '@blocklet/dataset-sdk/util/flatten-open-api';
 
-import Knowledge from '../../api/src/store/models/dataset/dataset';
-import KnowledgeDocument from '../../api/src/store/models/dataset/document';
-import KnowledgeSegment from '../../api/src/store/models/dataset/segment';
+import type Knowledge from '../../api/src/store/models/dataset/dataset';
+import type KnowledgeDocument from '../../api/src/store/models/dataset/document';
+import type KnowledgeSegment from '../../api/src/store/models/dataset/segment';
 import axios from './api';
 import { AIGNE_RUNTIME_MOUNT_POINT } from './constants';
 

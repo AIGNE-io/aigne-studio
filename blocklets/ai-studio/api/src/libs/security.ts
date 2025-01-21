@@ -1,6 +1,6 @@
 import middlewares from '@blocklet/sdk/lib/middlewares';
 import { getVerifyData, verify } from '@blocklet/sdk/lib/util/verify-sign';
-import { NextFunction, Request, Response } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 
 import { Config } from './env';
 import logger from './logger';

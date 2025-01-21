@@ -1,6 +1,6 @@
 import { useCurrentProject } from '@app/contexts/project';
 import { useSessionContext } from '@app/contexts/session';
-import {
+import type {
   Assistant,
   AssistantYjs,
   ConfigFileYjs,
@@ -8,6 +8,8 @@ import {
   FileTypeYjs,
   MemoryFileYjs,
   ProjectSettings,
+} from '@blocklet/ai-runtime/types';
+import {
   isApiAssistant,
   isAssistant,
   isFunctionAssistant,
@@ -15,9 +17,9 @@ import {
   isPromptAssistant,
   nextAssistantId,
 } from '@blocklet/ai-runtime/types';
+import type { Map } from '@blocklet/co-git/yjs';
 import {
   Doc,
-  Map,
   UndoManager,
   createEncoder,
   getYjsDoc,
@@ -31,7 +33,8 @@ import isEmpty from 'lodash/isEmpty';
 import pick from 'lodash/pick';
 import { customAlphabet, nanoid } from 'nanoid';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { RecoilState, atom, useRecoilState } from 'recoil';
+import type { RecoilState } from 'recoil';
+import { atom, useRecoilState } from 'recoil';
 import { joinURL } from 'ufo';
 import { IndexeddbPersistence } from 'y-indexeddb';
 import { writeSyncStep1 } from 'y-protocols/sync';

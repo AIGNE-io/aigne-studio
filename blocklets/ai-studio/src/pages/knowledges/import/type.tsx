@@ -1,4 +1,4 @@
-import { CreateDiscussionItem } from '@app/libs/knowledge';
+import type { CreateDiscussionItem } from '@app/libs/knowledge';
 
 export type SourceType = 'file' | 'custom' | 'discuss' | 'url';
 

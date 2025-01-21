@@ -1,4 +1,4 @@
-import { ReadCommitResult } from 'isomorphic-git';
+import type { ReadCommitResult } from 'isomorphic-git';
 import { joinURL } from 'ufo';
 
 import axios from './api';

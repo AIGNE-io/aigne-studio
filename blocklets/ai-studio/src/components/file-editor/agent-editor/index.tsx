@@ -1,7 +1,7 @@
 import { getAPIList } from '@app/libs/knowledge';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import type { AssistantYjs } from '@blocklet/ai-runtime/types';
 import {
-  AssistantYjs,
   isApiAssistant,
   isCallAssistant,
   isFunctionAssistant,

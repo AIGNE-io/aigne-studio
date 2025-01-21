@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import type { Router } from 'express';
 
 import { ensureComponentCallOrPromptsEditor } from '../libs/security';
 import { getUsers } from '../libs/user';

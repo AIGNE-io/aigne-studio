@@ -14,7 +14,8 @@ import { joinURL } from 'ufo';
 
 import WarningCircle from '../icons/warning-circle';
 import useRequest from './state';
-import getDepTemplates, { TreeNode } from './utils';
+import type { TreeNode } from './utils';
+import getDepTemplates from './utils';
 
 export default function ImportFrom({
   projectId,

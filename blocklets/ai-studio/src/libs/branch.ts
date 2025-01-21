@@ -1,6 +1,6 @@
 import { joinURL } from 'ufo';
 
-import { CreateBranchInput } from '../../api/src/routes/branch';
+import type { CreateBranchInput } from '../../api/src/routes/branch';
 import axios from './api';
 
 export async function getBranches({ projectId }: { projectId: string }): Promise<{ branches: string[] }> {

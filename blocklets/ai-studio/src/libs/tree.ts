@@ -1,6 +1,6 @@
 import { joinURL } from 'ufo';
 
-import { EntryWithMeta } from '../../api/src/routes/tree';
+import type { EntryWithMeta } from '../../api/src/routes/tree';
 import axios from './api';
 
 export async function getTree({

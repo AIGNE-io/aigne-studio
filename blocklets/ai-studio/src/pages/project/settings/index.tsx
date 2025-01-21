@@ -5,12 +5,13 @@ import { getDefaultBranch, useCurrentGitStore } from '@app/store/current-git-sto
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { defaultTextModel, getSupportedModels } from '@blocklet/ai-runtime/common';
-import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import type { Map } from '@blocklet/co-git/yjs';
+import { getYjsValue } from '@blocklet/co-git/yjs';
 import { CloseRounded, SaveRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
+import type { BoxProps, Theme } from '@mui/material';
 import {
   Box,
-  BoxProps,
   Button,
   FormControl,
   FormControlLabel,
@@ -19,7 +20,6 @@ import {
   Stack,
   Tabs,
   TextField,
-  Theme,
   Typography,
   styled,
   tabClasses,
@@ -35,7 +35,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useBeforeUnload, useBlocker } from 'react-router-dom';
 import { useAsync } from 'react-use';
 
-import { UpdateProjectInput } from '../../../../api/src/routes/project';
+import type { UpdateProjectInput } from '../../../../api/src/routes/project';
 import Loading from '../../../components/loading';
 import Avatar from '../../../components/project-settings/avatar';
 import { useReadOnly, useSessionContext } from '../../../contexts/session';

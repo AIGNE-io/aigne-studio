@@ -1,4 +1,5 @@
-import { PromptAssistantYjs, RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
+import type { PromptAssistantYjs } from '@blocklet/ai-runtime/types';
+import { RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
 import { nanoid } from 'nanoid';
 
 export function newDefaultPrompt(): Omit<

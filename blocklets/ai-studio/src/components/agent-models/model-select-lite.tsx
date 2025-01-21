@@ -1,5 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { ImageModelInfo, ModelBasedAssistantYjs, TextModelInfo } from '@blocklet/ai-runtime/types';
+import type { ImageModelInfo, ModelBasedAssistantYjs, TextModelInfo } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import CheckIcon from '@iconify-icons/tabler/check';
 import PlusIcon from '@iconify-icons/tabler/plus';
@@ -9,7 +9,7 @@ import millify from 'millify';
 
 import { ModelBrandIcon } from './model-brand-icon';
 import { ModelSelectDialog } from './model-select';
-import { ModelType } from './types';
+import type { ModelType } from './types';
 import { useAgentDefaultModel, useSuggestedModels } from './use-models';
 
 interface InternalModelSelectLiteProps {

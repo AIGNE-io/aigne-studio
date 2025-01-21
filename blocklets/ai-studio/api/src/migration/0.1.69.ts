@@ -10,7 +10,8 @@ import { Config } from '../libs/env';
 import logger from '../libs/logger';
 import { folders } from '../store/0.1.157/folders';
 import { getRepository, projects } from '../store/0.1.157/projects';
-import { Template, templates } from '../store/0.1.157/templates';
+import type { Template } from '../store/0.1.157/templates';
+import { templates } from '../store/0.1.157/templates';
 
 const { name } = require('../../../package.json');
 

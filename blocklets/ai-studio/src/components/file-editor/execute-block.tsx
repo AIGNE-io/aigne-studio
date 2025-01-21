@@ -2,7 +2,7 @@ import { textCompletions } from '@app/libs/ai';
 import Star from '@app/pages/project/icons/star';
 import Translate from '@app/pages/project/icons/translate';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import {
+import type {
   AssistantYjs,
   ConfigFileYjs,
   CronFileYjs,
@@ -13,9 +13,10 @@ import {
   ProjectSettings,
   Role,
   Tool,
-  isAssistant,
 } from '@blocklet/ai-runtime/types';
-import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import { isAssistant } from '@blocklet/ai-runtime/types';
+import type { Map } from '@blocklet/co-git/yjs';
+import { getYjsValue } from '@blocklet/co-git/yjs';
 import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import getOpenApiTextFromI18n from '@blocklet/dataset-sdk/util/get-open-api-i18n-text';
@@ -24,6 +25,7 @@ import ExternalLinkIcon from '@iconify-icons/tabler/external-link';
 import PlusIcon from '@iconify-icons/tabler/plus';
 import TrashIcon from '@iconify-icons/tabler/trash';
 import { InfoOutlined as MuiInfoOutlined } from '@mui/icons-material';
+import type { DialogProps, StackProps } from '@mui/material';
 import {
   Accordion,
   AccordionDetails,
@@ -37,7 +39,6 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  DialogProps,
   DialogTitle,
   Divider,
   FormControlLabel,
@@ -48,7 +49,6 @@ import {
   Paper,
   Popper,
   Stack,
-  StackProps,
   TextField,
   Tooltip,
   Typography,
@@ -60,12 +60,13 @@ import axios from 'axios';
 import { cloneDeep, isNil, sortBy } from 'lodash';
 import { bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
-import { Controller, UseFormReturn, useForm } from 'react-hook-form';
+import type { UseFormReturn } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useAssistantCompare } from 'src/pages/project/state';
 import { joinURL } from 'ufo';
 
-import Knowledge from '../../../api/src/store/models/dataset/dataset';
+import type Knowledge from '../../../api/src/store/models/dataset/dataset';
 import { getAPIList, getKnowledgeList } from '../../libs/knowledge';
 import InfoOutlined from '../../pages/project/icons/question';
 import Trash from '../../pages/project/icons/trash';

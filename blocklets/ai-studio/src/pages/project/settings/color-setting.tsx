@@ -1,5 +1,6 @@
 import { useCurrentProject } from '@app/contexts/project';
-import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import type { Map } from '@blocklet/co-git/yjs';
+import { getYjsValue } from '@blocklet/co-git/yjs';
 import { ClickAwayListener } from '@mui/base';
 import { Box, Divider, Popper, Stack, styled } from '@mui/material';
 import { useEffect, useState } from 'react';

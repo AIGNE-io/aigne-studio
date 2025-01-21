@@ -4,7 +4,7 @@ import { join } from 'path';
 
 import { Config } from '@api/libs/env';
 import { AIGNE_RUNTIME_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
-import {
+import type {
   Assistant,
   ConfigFile,
   CronFile,
@@ -12,13 +12,13 @@ import {
   Parameter,
   ProjectSettings,
   ResourceProject,
-  ResourceTypes,
 } from '@blocklet/ai-runtime/types';
+import { ResourceTypes } from '@blocklet/ai-runtime/types';
 import { copyRecursive } from '@blocklet/ai-runtime/utils/fs';
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import component, { call } from '@blocklet/sdk/lib/component';
 import middlewares from '@blocklet/sdk/lib/middlewares';
-import { Router } from 'express';
+import type { Router } from 'express';
 import { pathExists } from 'fs-extra';
 import Joi from 'joi';
 import groupBy from 'lodash/groupBy';
@@ -29,7 +29,7 @@ import { Extract } from 'unzipper';
 import { stringify } from 'yaml';
 
 import { ensurePromptsEditor } from '../libs/security';
-import Knowledge from '../store/models/dataset/dataset';
+import type Knowledge from '../store/models/dataset/dataset';
 import Project from '../store/models/project';
 import {
   ASSETS_DIR,
