@@ -1,12 +1,9 @@
 import type Project from '@api/store/models/project';
-import { fromAppDid } from '@arcblock/did-ext';
 import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/aigne-sdk/constants';
 import { getComponentMountPoint } from '@blocklet/aigne-sdk/utils/component';
 import { env } from '@blocklet/sdk/lib/config';
-import { types } from '@ocap/mcrypto';
+import { fromPublicKey } from '@ocap/wallet';
 import { joinURL, withQuery } from 'ufo';
-
-import { wallet } from './auth';
 
 const mountPoint: string = getComponentMountPoint(AIGNE_STUDIO_COMPONENT_DID) || '/';
 
@@ -30,6 +27,6 @@ export function getProjectUrl(projectId: string) {
   return joinURL(env.appUrl, mountPoint, `/projects/${projectId}`);
 }
 
-export function getProjectDid(project: Project) {
-  return fromAppDid(project.createdBy, wallet.secretKey, { role: types.RoleType.ROLE_ASSET }, 0).address;
+export function getProjectDid(project: Project): string {
+  return fromPublicKey(project.createdBy).address;
 }
