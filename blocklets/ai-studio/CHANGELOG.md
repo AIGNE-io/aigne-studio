@@ -1,3 +1,8 @@
+## 0.4.215 (2025-2-5)
+
+- fix: language field not working on the mobile
+- fix: background image not displayed
+
 ## 0.4.214 (2025-2-5)
 
 - chore: update deps

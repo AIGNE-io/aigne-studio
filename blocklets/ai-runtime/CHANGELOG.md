@@ -1,3 +1,7 @@
+## 0.4.215 (2025-2-5)
+
+- fix: community issue
+
 ## 0.4.214 (2025-2-5)
 
 - fix: polish pdf knowledge view logic to avoid xss attack
