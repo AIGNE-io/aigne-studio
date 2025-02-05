@@ -24,7 +24,7 @@ overrides:
   '@blocklet/meta': 1.16.36
   '@blocklet/sdk': 1.16.36
   '@blocklet/ui-react': ^2.11.29
-  '@blocklet/uploader': ^0.1.64
+  '@blocklet/uploader': ^0.1.66
   '@emotion/cache': ^11.13.1
   '@emotion/css': ^11.13.0
   '@emotion/react': ^11.13.3
@@ -531,8 +531,8 @@ importers:
         specifier: ^2.11.29
         version: 2.11.29(56lz75sddxnauqjmngwrg6t66m)
       '@blocklet/uploader':
-        specifier: ^0.1.64
-        version: 0.1.64(tnj7ztot6w3dijsp2knkth2ihe)
+        specifier: ^0.1.66
+        version: 0.1.66(tnj7ztot6w3dijsp2knkth2ihe)
       '@blocklet/uploader-server':
         specifier: ^0.1.76
         version: 0.1.76(@tus/file-store@1.0.0(@tus/server@1.0.0))(@tus/server@1.0.0)(@uppy/companion@4.13.2)(encoding@0.1.13)
@@ -1069,8 +1069,8 @@ importers:
         specifier: 1.16.36
         version: 1.16.36(encoding@0.1.13)
       '@blocklet/uploader':
-        specifier: ^0.1.64
-        version: 0.1.64(tnj7ztot6w3dijsp2knkth2ihe)
+        specifier: ^0.1.66
+        version: 0.1.66(tnj7ztot6w3dijsp2knkth2ihe)
       '@iconify-icons/tabler':
         specifier: ^1.2.95
         version: 1.2.95
@@ -3168,8 +3168,8 @@ packages:
       '@tus/server': 1.0.0
       '@uppy/companion': 4.15.1
 
-  '@blocklet/uploader@0.1.64':
-    resolution: {integrity: sha512-zaNx+9dh0ZRiQN5EMES4bAEYey1tKoJ2wZU+xMiqYhD0urL3mmVD1sfVKhSCw8Xqx6/aQKJZwajveKuXIk/FiQ==}
+  '@blocklet/uploader@0.1.66':
+    resolution: {integrity: sha512-3vqkhQB2sgMljCkBhZgC49mLwd3oYkcfomHmwfMyKwSHESQ3T168/Bt73RGJ7Hf0T1yoXTOL09AxNGXzneZS1g==}
     peerDependencies:
       '@uppy/core': 3.13.1
       '@uppy/dashboard': 3.9.1
@@ -20622,7 +20622,7 @@ snapshots:
       '@arcblock/ws': 1.19.6(encoding@0.1.13)
       '@blocklet/editor': 2.1.140(w2gr7hxczqgotbvtltosju2fbu)
       '@blocklet/labels': 2.1.140(eayd6lvuoe6ahiuikwjnbtrkwq)
-      '@blocklet/uploader': 0.1.64(tnj7ztot6w3dijsp2knkth2ihe)
+      '@blocklet/uploader': 0.1.66(tnj7ztot6w3dijsp2knkth2ihe)
       '@emotion/css': 11.13.0
       '@emotion/react': 11.13.3(@types/react@18.3.4)(react@18.3.1)
       '@emotion/styled': 11.13.0(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react@18.3.1)
@@ -21496,7 +21496,7 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@blocklet/uploader@0.1.64(tnj7ztot6w3dijsp2knkth2ihe)':
+  '@blocklet/uploader@0.1.66(tnj7ztot6w3dijsp2knkth2ihe)':
     dependencies:
       '@blocklet/ui-react': 2.11.29(56lz75sddxnauqjmngwrg6t66m)
       '@lottiefiles/react-lottie-player': 3.5.4(react@18.3.1)
@@ -23930,7 +23930,7 @@ snapshots:
       '@blocklet/js-sdk': 1.16.36(encoding@0.1.13)
       '@blocklet/payment-react': 1.17.12(@babel/core@7.26.0)(@blocklet/js-sdk@1.16.36(encoding@0.1.13))(@blocklet/sdk@1.16.36(encoding@0.1.13))(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react@18.3.1))(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(terser@5.34.1)(vite@6.0.6(@types/node@22.9.1)(jiti@2.4.2)(sass@1.77.7)(terser@5.34.1)(yaml@2.7.0))
       '@blocklet/tracker': 1.16.37
-      '@blocklet/uploader': 0.1.64(tnj7ztot6w3dijsp2knkth2ihe)
+      '@blocklet/uploader': 0.1.66(tnj7ztot6w3dijsp2knkth2ihe)
       '@emotion/react': 11.13.3(@types/react@18.3.4)(react@18.3.1)
       '@emotion/styled': 11.13.0(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react@18.3.1)
       '@lottiefiles/react-lottie-player': 3.5.4(react@18.3.1)

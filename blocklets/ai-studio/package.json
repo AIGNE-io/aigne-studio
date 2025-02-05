@@ -60,7 +60,7 @@
     "@blocklet/sdk": "^1.16.37",
     "@blocklet/studio-ui": "workspace:^",
     "@blocklet/ui-react": "^2.11.30",
-    "@blocklet/uploader": "^0.1.65",
+    "@blocklet/uploader": "^0.1.66",
     "@blocklet/uploader-server": "^0.1.76",
     "@blocklet/xss": "^0.1.22",
     "@cyntler/react-doc-viewer": "^1.17.0",
