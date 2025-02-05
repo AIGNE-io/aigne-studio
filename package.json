@@ -1,7 +1,7 @@
 {
   "name": "ai-studio",
   "private": true,
-  "version": "0.4.213",
+  "version": "0.4.214",
   "workspaces": [
     "blocklets/*",
     "packages/*",
@@ -100,7 +100,7 @@
     "@blocklet/meta": "1.16.36",
     "@blocklet/sdk": "1.16.36",
     "@blocklet/ui-react": "^2.11.29",
-    "@blocklet/uploader": "^0.1.64",
+    "@blocklet/uploader": "^0.1.66",
     "@emotion/cache": "^11.13.1",
     "@emotion/css": "^11.13.0",
     "@emotion/react": "^11.13.3",

@@ -19,6 +19,8 @@ import routes from './routes';
 import { attachWalletHandlers } from './routes/auth';
 import setupHtmlRouter from './routes/html';
 
+const { setPDFDownloadHeader } = require('@blocklet/uploader-server');
+
 registerLoggerToConsole();
 
 if (process.env.NODE_ENV === 'development') {
@@ -40,6 +42,10 @@ app.use(xss());
 app.use('/upload/:knowledgeId', (req, res, next) => {
   const { knowledgeId } = req.params;
   const sourceFileDir = getSourceFileDir(knowledgeId);
+
+  // if pdf, set download header
+  setPDFDownloadHeader(req, res);
+
   express.static(sourceFileDir, { maxAge: '365d', immutable: true, index: false })(req, res, next);
 });
 
