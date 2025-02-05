@@ -1,3 +1,7 @@
+## 0.4.214 (2025-2-5)
+
+- fix: polish pdf knowledge view logic to avoid xss attack
+
 ## 0.4.213 (2025-1-20)
 
 - chore: update deps
