@@ -23,6 +23,7 @@ import {
   parseDirectivesOfTemplate,
   parseDirectivesOfTemplateInput,
 } from '@blocklet/ai-runtime/types';
+import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
 import { DatasetObject, SchemaObject } from '@blocklet/dataset-sdk/types';
@@ -81,7 +82,7 @@ import {
 } from '@mui/material';
 import { GridColDef } from '@mui/x-data-grid';
 import { useRequest } from 'ahooks';
-import { cloneDeep, get, sortBy } from 'lodash';
+import { cloneDeep, difference, get, sortBy } from 'lodash';
 import { PopupState, bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { useId, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -1055,6 +1056,10 @@ function KnowledgeParameter({
   const { deleteUselessParameter } = useDelete(value);
   const localKnowledge = knowledge.filter((x) => !x.blockletDid);
   const resourceKnowledge = knowledge.filter((x) => x.blockletDid);
+  const keys = sortBy(Object.values(value.parameters ?? {}), (i) => i.index)
+    .filter((i) => !i.data.hidden)
+    .map((i) => i.data.key)
+    .filter(isNonNullable);
 
   const options = useMemo(() => {
     return [
@@ -1075,6 +1080,12 @@ function KnowledgeParameter({
     ];
   }, [localKnowledge, resourceKnowledge, t]);
 
+  const extractAllBracketContent = (text: string) => {
+    const pattern = /\{\{(.*?)\}\}/g;
+    const matches = text.matchAll(pattern);
+    return Array.from(matches, (match) => (match[1] || '')?.trim());
+  };
+
   if (parameter.type === 'source' && parameter?.source?.variableFrom === 'knowledge') {
     const toolId = parameter?.source?.knowledge?.id;
     const blockletDid = parameter?.source?.knowledge?.blockletDid;
@@ -1086,6 +1097,10 @@ function KnowledgeParameter({
     ];
     const v = options.find((x) => x.id === toolId);
     const d = blockletDid ? options.find((x) => x.id === toolId && x.blockletDid === blockletDid) : null;
+
+    const messages: string = source?.knowledge?.parameters?.message || '';
+    const splitVariables = extractAllBracketContent(messages);
+    const unusedVariables = difference(splitVariables, keys);
 
     return (
       <Stack gap={2}>
@@ -1166,6 +1181,12 @@ function KnowledgeParameter({
                         }
                       }}
                     />
+
+                    {!!unusedVariables.length && (
+                      <Typography variant="caption" color="error">
+                        {t('variableNotDefined', { variables: unusedVariables.join(', ') })}
+                      </Typography>
+                    )}
                   </Stack>
                 );
               })}

@@ -38,6 +38,9 @@ function isPlainObject(value: any): boolean {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+const getErrorMessage = (error: any) =>
+  error.response?.data?.error?.message || error.response?.data?.message || error.message || error;
+
 export class ExecutorContext {
   constructor(
     options: Pick<
@@ -547,17 +550,21 @@ export abstract class AgentExecutorBase<T> {
             throw new Error('Blocklet agent api not found.');
           }
 
-          const data = await this.context
-            .copy({ callback: cb(currentTaskId) })
-            .executor(blocklet.agent, {
-              inputs: tool?.parameters,
-              variables: { ...inputVariables, blockletDid, datasetId: tool.id, knowledgeId: tool.id },
-              taskId: currentTaskId,
-              parentTaskId: taskId,
-            })
-            .execute();
+          try {
+            const data = await this.context
+              .copy({ callback: cb(currentTaskId) })
+              .executor(blocklet.agent, {
+                inputs: tool?.parameters,
+                variables: { ...inputVariables, blockletDid, datasetId: tool.id, knowledgeId: tool.id },
+                taskId: currentTaskId,
+                parentTaskId: taskId,
+              })
+              .execute();
 
-          inputVariables[parameter.key] = JSON.stringify(data?.docs || []) ?? parameter.defaultValue;
+            inputVariables[parameter.key] = JSON.stringify(data?.docs || []) ?? parameter.defaultValue;
+          } catch (error) {
+            throw new Error(`Get knowledge agent result error: ${getErrorMessage(error)}`);
+          }
         } else if (parameter.source?.variableFrom === 'history' && parameter.source.chatHistory) {
           const currentTaskId = nextTaskId();
           const chat = parameter.source.chatHistory;

@@ -923,4 +923,5 @@ export default flatten({
   clickToGenerateNpmLink: '点击生成 NPM Package 链接',
   modelSettingsTip: '我们为您提供了一些标准设置，您可以直接使用，也可以根据需要进行定制。',
   favorites: '收藏',
+  variableNotDefined: '变量 {variables} 未被定义，可能会导致运行异常, 请先添加变量或者修改变量名称',
 });

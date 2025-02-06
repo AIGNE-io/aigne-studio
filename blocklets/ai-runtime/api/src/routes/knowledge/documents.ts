@@ -50,7 +50,7 @@ export type CreateDiscussionItemInput = CreateDiscussionItem | CreateDiscussionI
 
 const searchQuerySchema = Joi.object<{ blockletDid?: string; message?: string; n: number }>({
   blockletDid: Joi.string().empty(['', null]),
-  message: Joi.string().empty(['', null]),
+  message: Joi.string().required(),
   n: Joi.number().empty(['', null]).min(1).default(4),
 });
 
