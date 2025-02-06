@@ -1,5 +1,14 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { Autocomplete, ListItemIcon, ListItemText, MenuItem, TextField, TextFieldProps } from '@mui/material';
+import {
+  Autocomplete,
+  ListItemIcon,
+  ListItemText,
+  MenuItem,
+  TextField,
+  TextFieldProps,
+  Theme,
+  useMediaQuery,
+} from '@mui/material';
 import pick from 'lodash/pick';
 import { forwardRef } from 'react';
 
@@ -38,12 +47,14 @@ const LanguageField = forwardRef<
   const { locale } = useLocaleContext();
 
   const value = props?.value ? languages.find((o) => o.en === props.value) : null;
+  const isMobile = useMediaQuery<Theme>((theme) => theme.breakpoints.down('sm'));
 
   return (
     <Autocomplete
       size="small"
       ref={ref}
       {...pick(props, 'autoFocus', 'fullWidth', 'sx', 'className', 'style')}
+      disablePortal={isMobile}
       renderInput={(params) => (
         <TextField
           {...pick(
@@ -62,15 +73,11 @@ const LanguageField = forwardRef<
       )}
       options={languages}
       getOptionKey={(i) => i.en}
-      getOptionLabel={(o: Option) => {
-        return locale === 'zh' ? o.cn : o.en;
-      }}
+      getOptionLabel={(o: Option) => (locale === 'zh' ? o.cn : o.en)}
       autoHighlight
       value={value}
       filterOptions={filter}
-      onChange={(_e, newValue) => {
-        onChange?.(newValue?.en);
-      }}
+      onChange={(_e, newValue) => onChange?.(newValue?.en)}
       renderOption={(props, option) => {
         return (
           <MenuItem {...props} key={option.name}>

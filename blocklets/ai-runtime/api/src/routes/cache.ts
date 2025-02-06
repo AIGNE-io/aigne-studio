@@ -14,11 +14,7 @@ router.delete('/agents/:aid/cache', middlewares.session(), async (req, res) => {
 
   const { projectId, agentId } = parseIdentity(aid, { rejectWhenError: true });
 
-  const agent = await getAgent({
-    aid,
-    working: true,
-    rejectOnEmpty: true,
-  });
+  const agent = await getAgent({ aid, working: true, rejectOnEmpty: true });
 
   checkUserAuth(req, res)({ userId: agent.createdBy });
 
