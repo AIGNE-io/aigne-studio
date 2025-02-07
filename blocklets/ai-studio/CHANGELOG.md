@@ -1,3 +1,7 @@
+## 0.4.219 (2025-2-7)
+
+- chore: update deps
+
 ## 0.4.218 (2025-2-7)
 
 - fix: replace agent's createdBy with project's createdBy for auth check
