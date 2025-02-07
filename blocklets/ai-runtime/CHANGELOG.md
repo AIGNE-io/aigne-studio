@@ -1,3 +1,7 @@
+## 0.4.218 (2025-2-7)
+
+- fix: replace agent's createdBy with project's createdBy for auth check
+
 ## 0.4.217 (2025-2-7)
 
 - fix: missing `agent-call` bundle for open embed components
