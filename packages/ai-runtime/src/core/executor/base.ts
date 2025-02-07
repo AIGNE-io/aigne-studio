@@ -563,7 +563,7 @@ export abstract class AgentExecutorBase<T> {
 
             inputVariables[parameter.key] = JSON.stringify(data?.docs || []) ?? parameter.defaultValue;
           } catch (error) {
-            throw new Error(`Get knowledge agent result error: ${getErrorMessage(error)}`);
+            throw new Error(`Search the knowledge error: ${getErrorMessage(error)}`);
           }
         } else if (parameter.source?.variableFrom === 'history' && parameter.source.chatHistory) {
           const currentTaskId = nextTaskId();
