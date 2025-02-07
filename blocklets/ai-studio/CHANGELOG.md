@@ -1,3 +1,7 @@
+## 0.4.217 (2025-2-7)
+
+- fix: missing `agent-call` bundle for open embed components
+
 ## 0.4.216 (2025-2-6)
 
 - feat: display undefined variable hints in UI

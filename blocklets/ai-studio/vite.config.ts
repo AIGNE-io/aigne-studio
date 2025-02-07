@@ -65,8 +65,8 @@ export default defineConfig(() => {
       createBlockletPlugin({
         // disableEmbed: true,
         embeds: {
-          'open-embed/agent-view': 'src/open-embed/agent-view.tsx',
           'open-embed/agent-call': 'src/open-embed/agent-call.ts',
+          'open-embed/agent-view': 'src/open-embed/agent-view.tsx',
         },
         embedPlugins: [
           replace({
@@ -75,7 +75,7 @@ export default defineConfig(() => {
         ],
         embedExternals: ['react', '@arcblock/ux/lib/Locale/context', '@arcblock/did-connect/lib/Session'],
         // 并发打包 embed 的数量
-        embedBuildConcurrency: 1,
+        embedBuildConcurrency: 3,
       }),
       svgr(),
     ],
