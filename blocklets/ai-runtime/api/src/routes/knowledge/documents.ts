@@ -48,11 +48,15 @@ const documentIdSchema = Joi.object<{ knowledgeId: string; documentId: string }>
 
 export type CreateDiscussionItemInput = CreateDiscussionItem | CreateDiscussionItem[];
 
+const messages = {
+  'any.required': 'input parameter {{#label}} is required.',
+};
+
 const searchQuerySchema = Joi.object<{ blockletDid?: string; message?: string; n: number }>({
   blockletDid: Joi.string().empty(['', null]),
-  message: Joi.string().empty(['', null]),
+  message: Joi.string().required(),
   n: Joi.number().empty(['', null]).min(1).default(4),
-});
+}).messages(messages);
 
 async function getVectorPath(blockletDid: string | null, knowledgeId: string, knowledge: any) {
   let resourceToCheck = null;

@@ -933,4 +933,6 @@ export default flatten({
   modelSettingsTip:
     'We have some standard settings available for you, and you can make any changes to customize your own parameters.',
   favorites: 'Favorites',
+  variableNotDefined:
+    'Variable {variables} is not defined, which may cause runtime errors, please add or modify the variable',
 });
