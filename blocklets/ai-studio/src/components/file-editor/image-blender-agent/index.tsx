@@ -28,10 +28,6 @@ function ConfigWrapper(props: any) {
           right: 0,
           bottom: 0,
           backgroundColor: 'rgba(255, 255, 255, 0.4)',
-          '-webkit-backdrop-filter': 'blur(1.8px)',
-          '-moz-backdrop-filter': 'blur(1.8px)',
-          '-o-backdrop-filter': 'blur(1.8px)',
-          '-ms-backdrop-filter': 'blur(1.8px)',
           backdropFilter: 'blur(1.8px)',
           '@supports not ((backdrop-filter: blur(1.8px)) or (-webkit-backdrop-filter: blur(1.8px)))': {
             bgcolor: (theme) => theme.palette.background.paper,

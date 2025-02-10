@@ -76,10 +76,6 @@ function SimpleChatView() {
                   zIndex: 10,
                   borderRadius: 1,
                   bgcolor: (theme) => alpha(theme.palette.background.paper, 0.8),
-                  '-webkit-backdrop-filter': 'blur(16px)',
-                  '-moz-backdrop-filter': 'blur(16px)',
-                  '-o-backdrop-filter': 'blur(16px)',
-                  '-ms-backdrop-filter': 'blur(16px)',
                   backdropFilter: 'blur(16px)',
                   '@supports not ((backdrop-filter: blur(16px)) or (-webkit-backdrop-filter: blur(16px)))': {
                     bgcolor: (theme) => theme.palette.background.paper,
