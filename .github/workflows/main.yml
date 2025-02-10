@@ -43,7 +43,7 @@ jobs:
           pnpm publish --filter "@blocklet/*" --filter --access public --no-git-checks
 
       - name: Blocklet workflow
-        if: "! contains(toJSON(github.event.commits.*.message), '[skip blocklet]')"
+        if: "! contains(toJSON(github.event.commits.*.message), '[skip ai-runtime]')"
         env:
           COMPONENT_STORE_URL: ${{ secrets.STORE_ENDPOINT_TEST }}
         uses: blocklet/action-workflow@v1
@@ -67,7 +67,7 @@ jobs:
           deploy-mount-point: /ai-runtime
 
       - name: Blocklet workflow
-        if: "! contains(toJSON(github.event.commits.*.message), '[skip blocklet]')"
+        if: "! contains(toJSON(github.event.commits.*.message), '[skip ai-studio]')"
         env:
           COMPONENT_STORE_URL: ${{ secrets.STORE_ENDPOINT_TEST }}
         uses: blocklet/action-workflow@v1
