@@ -156,7 +156,14 @@ function PromptDialog({ url, ...props }: { url: string } & DialogProps) {
         backdrop: {
           sx: {
             bgcolor: 'rgba(255, 255, 255, 0.4)',
+            '-webkit-backdrop-filter': 'blur(12px)',
+            '-moz-backdrop-filter': 'blur(12px)',
+            '-o-backdrop-filter': 'blur(12px)',
+            '-ms-backdrop-filter': 'blur(12px)',
             backdropFilter: 'blur(12px)',
+            '@supports not ((backdrop-filter: blur(12px)) or (-webkit-backdrop-filter: blur(12px)))': {
+              bgcolor: (theme) => theme.palette.background.paper,
+            },
           },
         },
       }}

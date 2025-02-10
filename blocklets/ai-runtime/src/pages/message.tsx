@@ -72,7 +72,14 @@ export default function MessagePage() {
               sx={{
                 position: 'sticky',
                 backgroundColor: 'rgba(255, 255, 255, 0.5)',
+                '-webkit-backdrop-filter': 'blur(5px)',
+                '-moz-backdrop-filter': 'blur(5px)',
+                '-o-backdrop-filter': 'blur(5px)',
+                '-ms-backdrop-filter': 'blur(5px)',
                 backdropFilter: 'blur(5px)',
+                '@supports not ((backdrop-filter: blur(5px)) or (-webkit-backdrop-filter: blur(5px)))': {
+                  bgcolor: (theme) => theme.palette.background.paper,
+                },
                 zIndex: 10,
                 bottom: 0,
               }}>
