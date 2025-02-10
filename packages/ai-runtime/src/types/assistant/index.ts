@@ -261,7 +261,7 @@ export interface ImageBlenderAssistant extends AssistantBase {
 
 export interface CallAssistant extends AssistantBase {
   type: 'callAgent';
-  agents?: Tool[];
+  agents?: ({ instanceId?: string } & Tool)[];
 }
 
 export interface PromptAssistant extends AssistantBase {
