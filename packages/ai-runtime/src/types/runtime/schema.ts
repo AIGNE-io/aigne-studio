@@ -1,5 +1,6 @@
 import { ChatCompletionResponse } from '@blocklet/ai-kit/api/types/chat';
 import Joi from 'joi';
+import { isNil } from 'lodash';
 import omitBy from 'lodash/omitBy';
 import toLower from 'lodash/toLower';
 import { nanoid } from 'nanoid';
@@ -231,7 +232,7 @@ export function outputVariablesToJoiSchema(
 
     if (!schema) return undefined;
 
-    if ('defaultValue' in variable) {
+    if ('defaultValue' in variable && !isNil(variable.defaultValue)) {
       schema = schema.default(variable.defaultValue);
     }
 
