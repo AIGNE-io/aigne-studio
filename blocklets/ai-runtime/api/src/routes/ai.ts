@@ -146,27 +146,36 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
   await validateDebugModeAccess(!!input.debug, userId, req.user?.role || '', project.createdBy);
 
   let executor: RuntimeExecutor;
-  const adapter = await getAdapter(agent);
 
-  const getAdapterAgent = async () => {
-    if (!adapter) return null;
-
+  const getAdapterAgent = async ({
+    blockletDid,
+    projectId,
+    agentId,
+  }: {
+    blockletDid: string;
+    projectId: string;
+    agentId: string;
+  }) => {
     return executor.context.getAgent({
       aid: stringifyIdentity({
-        blockletDid: adapter.blockletDid,
-        projectId: adapter.projectId,
-        projectRef,
-        agentId: adapter.agent.id,
+        blockletDid,
+        projectId,
+        agentId,
       }),
-      working: agent.identity.working,
       rejectOnEmpty: true,
     });
   };
 
   const callAI: CallAI = async ({ input }) => {
-    const adapterAgent = await getAdapterAgent();
+    const adapter = await getAdapter({ type: 'prompt', model: input.model! });
 
-    if (adapterAgent) {
+    if (adapter) {
+      const adapterAgent = await getAdapterAgent({
+        blockletDid: adapter.blockletDid,
+        projectId: adapter.projectId,
+        agentId: adapter.agent.id,
+      });
+
       return (
         await executor.context
           .executor(adapterAgent, {
@@ -211,8 +220,14 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
   };
 
   const callAIImage: CallAIImage = async ({ input }) => {
-    const adapterAgent = await getAdapterAgent();
-    if (adapterAgent) {
+    const adapter = await getAdapter({ type: 'image', model: input.model! });
+    if (adapter) {
+      const adapterAgent = await getAdapterAgent({
+        blockletDid: adapter.blockletDid,
+        projectId: adapter.projectId,
+        agentId: adapter.agent.id,
+      });
+
       const result = await executor.context
         .executor(adapterAgent, {
           inputs: { ...input, ...(agent.type === 'image' ? agent.modelSettings : {}) },
