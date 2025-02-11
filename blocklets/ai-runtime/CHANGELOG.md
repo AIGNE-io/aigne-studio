@@ -1,3 +1,7 @@
+## 0.4.221 (2025-2-10)
+
+- fix: the backdropFilter property is not taking effect.
+
 ## 0.4.220 (2025-2-10)
 
 - chore: update deps
