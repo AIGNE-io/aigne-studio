@@ -86,9 +86,6 @@ export function SelectAgentOutputDialog({
 
   const agent = getFileById(currentAgent?.data.id!);
   const outputs = sortBy(Object.values(agent?.outputVariables || {}), (i) => i.index);
-  // const parameters = sortBy(Object.values(agent?.parameters || {}), (i) => i.index).filter(
-  //   (i): i is typeof i & { data: { key: string; hidden?: boolean } } => !!i.data.key && !i.data.hidden
-  // );
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
@@ -104,7 +101,7 @@ export function SelectAgentOutputDialog({
               <MenuItem
                 key={`${agent.data.id}-${agent.data.instanceId}`}
                 value={agent.data.instanceId ?? agent.data.id}>
-                {getFileById(agent.data.id)?.name}
+                {agent.data.functionName ?? getFileById(agent.data.id)?.name}
               </MenuItem>
             ))}
           </Select>

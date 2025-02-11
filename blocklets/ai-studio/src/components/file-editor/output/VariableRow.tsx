@@ -492,7 +492,7 @@ function OutputFromSelector({
                   outputVariableId: outputVariableId,
                 })
               }>
-              {`${agent?.name}的输出`}
+              {`${data?.data?.functionName ?? agent?.name}的输出`}
             </Typography>
             <Box component={Icon} icon={ChevronDownIcon} width={15} />
           </Box>

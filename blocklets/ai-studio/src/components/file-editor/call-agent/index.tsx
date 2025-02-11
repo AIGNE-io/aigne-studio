@@ -50,13 +50,14 @@ export default function CallAgentEditor({
   disabled?: boolean;
 }) {
   const { t } = useLocaleContext();
+  const { getFileById } = useProjectStore(projectId, gitRef);
+
   const ref = useRef(null);
   const toolForm = useRef<ToolDialogImperative | null>(null);
   const selectedTool = useRef<ToolDialogForm | undefined>();
   const dialogState = usePopupState({ variant: 'dialog' });
   const readOnly = useReadOnly({ ref: gitRef }) || disabled;
   const agents = value.agents && sortBy(Object.values(value.agents), (i) => i.index);
-
   return (
     <>
       <Stack gap={1} width={1} ref={ref}>
@@ -113,9 +114,9 @@ export default function CallAgentEditor({
           doc.transact(() => {
             value.agents ??= {};
 
-            const createAgent = (index: number) => ({
+            const createAgent = (index: number, other?: { functionName?: string }) => ({
               index,
-              data: { ...tool, instanceId },
+              data: { ...tool, instanceId, ...other },
             });
 
             if (selectedTool.current) {
@@ -128,7 +129,20 @@ export default function CallAgentEditor({
 
               delete value.agents[oldKey];
             } else {
-              value.agents[instanceId] = createAgent(getNextIndex(value.agents));
+              const agent = getFileById(tool.id);
+              let functionName = agent?.name;
+              let index = 1;
+
+              while (
+                (agents || []).find(
+                  (i) => i.data.functionName === functionName || getFileById(i.data.id)?.name === functionName
+                )
+              ) {
+                functionName = `${agent?.name}(${index})`;
+                index++;
+              }
+
+              value.agents[instanceId] = createAgent(getNextIndex(value.agents), { functionName });
             }
 
             sortBy(Object.values(value.agents), 'index').forEach((tool, index) => (tool.index = index));
@@ -260,11 +274,9 @@ export function AgentItemView({
   const navigate = useNavigate();
 
   const { t } = useLocaleContext();
-  const { store } = useProjectStore(projectId, gitRef);
+  const { getFileById } = useProjectStore(projectId, gitRef);
   const { addParameter } = useVariablesEditorOptions(assistant);
-
-  const f = store.files[agent.id];
-  const target = f && isAssistant(f) ? f : undefined;
+  const target = getFileById(agent.id);
 
   const parameters = useMemo(() => {
     return (
@@ -317,8 +329,8 @@ export function AgentItemView({
           placeholder={name || t('unnamed')}
           size="small"
           variant="standard"
-          value={name || t('unnamed')}
-          InputProps={{ readOnly: true }}
+          value={agent.functionName ?? (name || t('unnamed'))}
+          onChange={(e) => (agent.functionName = e.target.value)}
           sx={{
             mb: 0,
             lineHeight: '20px',
@@ -327,6 +339,20 @@ export function AgentItemView({
               fontSize: '18px',
               color: 'primary.main',
             },
+          }}
+        />
+
+        <TextField
+          onClick={(e) => e.stopPropagation()}
+          hiddenLabel
+          placeholder={name || t('unnamed')}
+          size="small"
+          variant="standard"
+          value={name || t('unnamed')}
+          InputProps={{ readOnly: true }}
+          sx={{
+            lineHeight: '10px',
+            input: { fontSize: '10px', color: 'text.disabled' },
           }}
         />
 
