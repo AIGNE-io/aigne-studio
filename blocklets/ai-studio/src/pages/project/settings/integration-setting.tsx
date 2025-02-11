@@ -58,7 +58,7 @@ function NpmLink({
   const { t } = useLocaleContext();
 
   const prefix = manager === 'pnpm' ? 'pnpm install ' : manager === 'yarn' ? 'yarn add' : 'npm install';
-  const cmd = link && `${prefix} ${link}`;
+  const cmd = link && `${prefix} "${link}"`;
 
   const [copied, setCopied] = useState(false);
 
