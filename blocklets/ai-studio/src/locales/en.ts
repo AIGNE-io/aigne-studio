@@ -935,4 +935,6 @@ export default flatten({
   favorites: 'Favorites',
   variableNotDefined:
     'Variable {variables} is not defined, which may cause runtime errors, please add or modify the variable',
+  selectCustomOutput: 'Select Agent Output',
+  selectCustomOutputTip: 'Select Agent Output as Custom Output',
 });

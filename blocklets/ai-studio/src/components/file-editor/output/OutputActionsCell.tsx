@@ -283,7 +283,7 @@ const PopperButton = forwardRef<PopperButtonImperative, PopperButtonProps>(
             {depth === 0 && (
               <MenuItem
                 data-testid="output-actions-cell-setting"
-                disabled={Boolean(output.from?.type === 'output')}
+                disabled={Boolean(output.from?.type === 'output' || output.from?.type === 'variable')}
                 onClick={() => {
                   setSetting('setting');
                   dialogState.open();

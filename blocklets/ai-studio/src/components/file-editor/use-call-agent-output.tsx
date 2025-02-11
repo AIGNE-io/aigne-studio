@@ -4,6 +4,7 @@ import { AssistantYjs } from '@blocklet/ai-runtime/types';
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { cloneDeep, sortBy } from 'lodash';
 import { useCallback, useMemo } from 'react';
+import { RecoilState, atom, useRecoilState } from 'recoil';
 
 import { getOutputName, runtimeOutputVariables } from './output/type';
 
@@ -75,6 +76,59 @@ const useCallAgentOutput = ({
   const getRefOutputData = useCallback((id: string) => outputs.find((i) => i.id === id), [outputs]);
 
   return { outputs, outputsExist, getRefOutputId, getOutputI18nName, getRefOutputData };
+};
+
+interface CallAgentCustomOutputDialogState {
+  open?: boolean;
+  output?: {
+    id?: string;
+    agentInstanceId: string;
+    outputVariableId?: string;
+  };
+}
+
+const customOutputDialogStates: { [key: string]: RecoilState<CallAgentCustomOutputDialogState> } = {};
+
+const customOutputDialogState = (projectId: string, gitRef: string, agentId: string) => {
+  const key = `${projectId}-${gitRef}-${agentId}`;
+
+  customOutputDialogStates[key] ??= atom<CallAgentCustomOutputDialogState>({
+    key: `projectState-${key}`,
+    default: {},
+  });
+
+  return customOutputDialogStates[key]!;
+};
+
+export const useCallAgentCustomOutputDialogState = (projectId: string, gitRef: string, agentId: string) => {
+  const [state, setState] = useRecoilState(customOutputDialogState(projectId, gitRef, agentId));
+
+  const onOpen = useCallback((open: boolean) => {
+    setState((v) => ({ ...v, open }));
+  }, []);
+
+  const onSetOutput = useCallback((output: CallAgentCustomOutputDialogState['output']) => {
+    setState((v) => ({ ...v, output }));
+  }, []);
+
+  const onEdit = useCallback(
+    (open: CallAgentCustomOutputDialogState['open'], output: CallAgentCustomOutputDialogState['output']) => {
+      setState({ open, output });
+    },
+    []
+  );
+
+  const onReset = useCallback(() => {
+    setState({});
+  }, []);
+
+  return {
+    state,
+    onOpen,
+    onSetOutput,
+    onEdit,
+    onReset,
+  };
 };
 
 export default useCallAgentOutput;

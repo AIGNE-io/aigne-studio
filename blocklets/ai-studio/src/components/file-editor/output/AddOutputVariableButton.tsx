@@ -8,7 +8,7 @@ import PlusIcon from '@iconify-icons/tabler/plus';
 import { Box, Divider, ListItemIcon, MenuItem } from '@mui/material';
 import { sortBy } from 'lodash';
 
-import useCallAgentOutput from '../use-call-agent-output';
+import useCallAgentOutput, { useCallAgentCustomOutputDialogState } from '../use-call-agent-output';
 import { runtimeOutputVariables } from './type';
 
 const ActionRefOutput = ({
@@ -30,6 +30,7 @@ const ActionRefOutput = ({
     gitRef,
     assistant,
   });
+  const { onOpen } = useCallAgentCustomOutputDialogState(projectId, gitRef, assistant.id);
 
   if (!outputs?.length) return null;
 
@@ -61,6 +62,13 @@ const ActionRefOutput = ({
           </Box>
         </MenuItem>
       ))}
+
+      <MenuItem onClick={() => onOpen(true)}>
+        <ListItemIcon>
+          <Icon icon={PlusIcon} />
+        </ListItemIcon>
+        <Box flex={1}>{t('selectCustomOutput')}</Box>
+      </MenuItem>
     </>
   );
 };

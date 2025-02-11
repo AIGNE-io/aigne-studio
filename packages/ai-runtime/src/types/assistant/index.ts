@@ -220,6 +220,11 @@ export type OutputVariable = VariableType & {
           agentId?: string;
           inputs?: { [key: string]: any };
         };
+      }
+    | {
+        type: 'variable';
+        agentInstanceId?: string;
+        outputVariableId?: string;
       };
   appearance?: RuntimeOutputAppearance;
   initialValue?: RuntimeOutputVariablesSchema[RuntimeOutputVariable];
