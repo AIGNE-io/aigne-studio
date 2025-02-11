@@ -46,10 +46,10 @@ export default function OutputNameCell({
         fullWidth
         hiddenLabel
         placeholder={t('outputVariableName')}
-        {...TextFieldProps}
         value={output.name || ''}
         onChange={(e) => (output.name = e.target.value)}
         onClick={(e) => e.stopPropagation()}
+        {...TextFieldProps}
       />
     );
   };

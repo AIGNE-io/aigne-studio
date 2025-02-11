@@ -67,15 +67,31 @@ export function SelectAgentOutputDialog({
     setSelectedOutputs('');
   };
 
+  const reset = () => {
+    setSelectedAgentId(agents?.[0]?.data.instanceId || agents?.[0]?.data.id || '');
+    setSelectedOutputs('');
+    onReset();
+  };
+
   const handleConfirm = () => {
     onConfirm({ id: state.output?.id, agentInstanceId: agentInstanceId, outputVariableId: outputVariableId });
-    onReset();
+    reset();
+    onClose();
+  };
+
+  const handleClose = () => {
+    reset();
     onClose();
   };
 
   const agent = getFileById(currentAgent?.data.id!);
+  const outputs = sortBy(Object.values(agent?.outputVariables || {}), (i) => i.index);
+  // const parameters = sortBy(Object.values(agent?.parameters || {}), (i) => i.index).filter(
+  //   (i): i is typeof i & { data: { key: string; hidden?: boolean } } => !!i.data.key && !i.data.hidden
+  // );
+
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <DialogTitle>{t('selectCustomOutput')}</DialogTitle>
 
       <DialogContent>
@@ -101,9 +117,11 @@ export function SelectAgentOutputDialog({
           <Table sx={{ td: { p: '4px !important' } }}>
             {agent && (
               <Box component="tbody">
-                {Object.values(agent.outputVariables || {}).map((output) => (
+                {outputs.map((output) => (
                   <VariableRow
+                    isReadOnly
                     showArrayElement={false}
+                    onClickRow={(variable) => setSelectedOutputs(variable.id)}
                     renderCustomColumn={(variable) => {
                       return (
                         <Box component={TableCell} sx={{ width: 20 }}>

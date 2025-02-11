@@ -32,9 +32,11 @@ function VariableRow({
   projectId,
   gitRef,
   disabled,
-  showColumn = ['name', 'from', 'description', 'format', 'required', 'appearance', 'actions'],
   renderCustomColumn,
+  onClickRow,
+  isReadOnly = false,
   showArrayElement = true,
+  showColumn = ['name', 'from', 'description', 'format', 'required', 'appearance', 'actions'],
   ...props
 }: {
   firstColumnChildren?: ReactNode;
@@ -48,9 +50,11 @@ function VariableRow({
   projectId: string;
   gitRef: string;
   disabled?: boolean;
+  isReadOnly?: boolean;
   showColumn?: string[];
   showArrayElement?: boolean;
   renderCustomColumn?: (variable: OutputVariableYjs) => ReactNode;
+  onClickRow?: (variable: OutputVariableYjs) => void;
 } & BoxProps<ComponentType<typeof TableRow>>) {
   const { t } = useLocaleContext();
   const runtimeVariable = getRuntimeOutputVariable(variable);
@@ -164,6 +168,10 @@ function VariableRow({
               },
               cursor: readOnly ? 'not-allowed' : 'pointer',
               ...props.sx,
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onClickRow) onClickRow?.(variable);
             }}>
             {renderCustomColumn?.(variable)}
 
@@ -179,7 +187,14 @@ function VariableRow({
                     assistant={value}
                     depth={depth}
                     output={variable}
-                    TextFieldProps={{ disabled: parent?.type === 'array' || readOnly }}
+                    TextFieldProps={{
+                      disabled: parent?.type === 'array' || readOnly,
+                      InputProps: { readOnly: isReadOnly },
+                      onClick: (e) => {
+                        if (isReadOnly) return;
+                        e.stopPropagation();
+                      },
+                    }}
                   />
                 </Box>
               )}
@@ -267,6 +282,7 @@ function VariableRow({
             <VariableRow
               showArrayElement={showArrayElement}
               renderCustomColumn={renderCustomColumn}
+              onClickRow={onClickRow}
               showColumn={showColumn}
               parent={mergeVariable}
               disabled={Boolean(variable.variable?.key || disabled)}
@@ -293,6 +309,7 @@ function VariableRow({
         <VariableRow
           renderCustomColumn={renderCustomColumn}
           showColumn={showColumn}
+          onClickRow={onClickRow}
           parent={mergeVariable}
           disabled={Boolean(variable.variable?.key || disabled)}
           projectId={projectId}
