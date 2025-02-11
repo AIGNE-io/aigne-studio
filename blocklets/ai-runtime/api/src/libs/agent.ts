@@ -148,13 +148,13 @@ async function isBuiltinModel(model: string) {
   return models.find((x) => x.model === model);
 }
 
-export async function getAdapter(agent: GetAgentResult) {
-  if (agent.type === 'prompt' || agent.type === 'image') {
-    if (await isBuiltinModel(agent.model!)) {
+export async function getAdapter({ type, model }: { type: 'prompt' | 'image'; model: string }) {
+  if (type === 'prompt' || type === 'image') {
+    if (await isBuiltinModel(model)) {
       return null;
     }
     const projects = await resourceManager.getProjects({
-      type: { prompt: 'llm-adapter', image: 'aigc-adapter' }[agent.type] as ResourceType,
+      type: { prompt: 'llm-adapter', image: 'aigc-adapter' }[type] as ResourceType,
     });
     const agents = projects
       .flatMap((x) => {
@@ -168,7 +168,7 @@ export async function getAdapter(agent: GetAgentResult) {
         (x) =>
           x.agent.public &&
           (x.agent.parameters?.find((x) => x.key === 'model') as SelectParameter)?.options?.find(
-            (x) => x.label === agent.model || x.value === agent.model
+            (x) => x.label === model || x.value === model
           )
       );
     return agents[0] || null;

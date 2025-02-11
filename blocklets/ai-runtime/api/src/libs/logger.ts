@@ -25,12 +25,20 @@ export const accessLogMiddleware = (req: Request, res: Response, next: NextFunct
 };
 
 export function registerLoggerToConsole() {
+  const format = (...args: any[]) => {
+    const message = typeof args[0] === 'string' ? args[0] : '';
+    const obj =
+      typeof args[0] === 'string' ? (args.length === 2 && typeof args[1] === 'object' ? args[1] : args.slice(1)) : args;
+
+    return [message, obj];
+  };
+
   // eslint-disable-next-line no-console
-  console.log = logger.info.bind(logger);
+  console.log = (...args: any[]) => logger.info.call(logger, ...format(...args));
   // eslint-disable-next-line no-console
-  console.debug = logger.debug.bind(logger);
+  console.debug = (...args: any[]) => logger.debug.call(logger, ...format(...args));
   // eslint-disable-next-line no-console
-  console.error = logger.error.bind(logger);
+  console.error = (...args: any[]) => logger.error.call(logger, ...format(...args));
   // eslint-disable-next-line no-console
-  console.warn = logger.warn.bind(logger);
+  console.warn = (...args: any[]) => logger.warn.call(logger, ...format(...args));
 }
