@@ -149,6 +149,7 @@ export class CallAgentExecutor extends AgentExecutorBase<CallAssistant> {
         const key = getOutputVariablePath(agent.agent.outputVariables || [], found.from.outputVariableId!);
 
         Object.assign(obj, {
+          ...currentAgentResult,
           [found.name!]: found.from?.outputVariableId ? get(currentAgentResult, key) : currentAgentResult,
         });
       } else {
