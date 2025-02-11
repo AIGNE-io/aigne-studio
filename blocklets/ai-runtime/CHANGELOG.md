@@ -1,3 +1,9 @@
+## 0.4.222 (2025-2-11)
+
+- fix: retrieve adapter by agent model for each invocation
+- chore: quote the npm url for integrations
+- chore: auto format log message
+
 ## 0.4.221 (2025-2-10)
 
 - fix: the backdropFilter property is not taking effect.
