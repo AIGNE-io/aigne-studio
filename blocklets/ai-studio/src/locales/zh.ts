@@ -926,4 +926,7 @@ export default flatten({
   variableNotDefined: '变量 {variables} 未被定义，可能会导致运行异常, 请先添加变量或者修改变量名称',
   selectCustomOutput: '选择Agent的输出',
   selectCustomOutputTip: '选择Agent的输出作为自定义输出',
+  notFoundAgent: '未找到对应的 Agent',
+  agentSpecificOutput: '{agentName} 输出的 {outputName}',
+  agentAllOutputs: '{agentName} 的全部输出',
 });

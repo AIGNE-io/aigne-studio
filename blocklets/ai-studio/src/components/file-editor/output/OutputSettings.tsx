@@ -190,15 +190,6 @@ export default function OutputSettings({
           gitRef={gitRef}
           allSelectAgentOutputs={cloneDeep(allSelectAgentOutputs)}
           assistant={value}
-          onDeleteSelect={({ id }) => {
-            setField((vars) => {
-              if (!id) return;
-              if (!vars[id]) return;
-
-              delete vars[id];
-              sortBy(Object.values(vars), 'index').forEach((item, index) => (item.index = index));
-            });
-          }}
           onSelect={({ name, from }) => {
             setField((vars) => {
               const exist = name ? outputVariables?.find((i) => i.data.name === name) : undefined;

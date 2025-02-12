@@ -20,6 +20,31 @@ import OutputNameCell from './OutputNameCell';
 import OutputRequiredCell from './OutputRequiredCell';
 import { getRuntimeOutputVariable } from './type';
 
+function findNameById(data: Record<string, any>, targetId?: string): any {
+  if (!targetId) return undefined;
+
+  if (data[targetId]?.data?.name) {
+    return data[targetId].data;
+  }
+
+  for (const key in data) {
+    const item = data[key];
+
+    if (item?.data?.properties) {
+      const result = findNameById(item.data.properties, targetId);
+      if (result) return result;
+    }
+
+    // // 检查 element
+    // if (item?.data?.element?.properties) {
+    //   const result = findNameById(item.data.element.properties, targetId);
+    //   if (result) return result;
+    // }
+  }
+
+  return undefined;
+}
+
 function VariableRow({
   firstColumnChildren,
   rowRef,
@@ -471,6 +496,7 @@ function OutputFromSelector({
   const current = OutputFromOptionsMap[output.from?.type || 'process'];
   const { onEdit } = useCallAgentCustomOutputDialogState(projectId, gitRef, assistant.id);
   const { getFileById } = useProjectStore(projectId, gitRef);
+  const { t } = useLocaleContext();
 
   if (output.from?.type === 'variable' && assistant.type === 'callAgent') {
     const agents = assistant.agents && sortBy(Object.values(assistant.agents), (i) => i.index);
@@ -480,27 +506,42 @@ function OutputFromSelector({
     if (agentInstanceId) {
       const data = agents?.find((i) => i.data.instanceId === agentInstanceId || i.data.id === agentInstanceId);
       const agent = getFileById(data?.data.id!);
+      const agentName = data?.data?.functionName ?? agent?.name;
 
       if (agent) {
+        const outputVariable = findNameById(agent?.outputVariables || {}, outputVariableId);
+        const outputVariableName = outputVariable
+          ? getRuntimeOutputVariable(outputVariable)?.i18nKey
+            ? t(getRuntimeOutputVariable(outputVariable)?.i18nKey || '')
+            : outputVariable.name
+          : '';
+
         return (
-          <Box className="center" gap={0.5} justifyContent="flex-start">
-            <Typography
-              onClick={() =>
-                onEdit?.(true, {
-                  id: output.id,
-                  agentInstanceId: agentInstanceId,
-                  outputVariableId: outputVariableId,
-                })
-              }>
-              {`${data?.data?.functionName ?? agent?.name}的输出`}
+          <Box
+            maxWidth={300}
+            className="center"
+            gap={0.5}
+            justifyContent="flex-start"
+            color="action.disabled"
+            onClick={() =>
+              onEdit?.(true, {
+                id: output.id,
+                agentInstanceId: agentInstanceId,
+                outputVariableId: outputVariableId,
+              })
+            }>
+            <Typography className="ellipsis">
+              {outputVariableName
+                ? t('agentSpecificOutput', { agentName, outputName: outputVariableName })
+                : t('agentAllOutputs', { agentName })}
             </Typography>
-            <Box component={Icon} icon={ChevronDownIcon} width={15} />
+            <Box component={Icon} icon={ChevronDownIcon} width={15} sx={{ mt: 0.3 }} />
           </Box>
         );
       }
     }
 
-    return <Typography sx={{ color: 'text.disabled' }}>未找到对应agent</Typography>;
+    return <Typography sx={{ color: 'text.disabled' }}>{t('notFoundAgent')}</Typography>;
   }
 
   return (

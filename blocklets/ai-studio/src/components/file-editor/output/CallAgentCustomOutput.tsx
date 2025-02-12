@@ -99,7 +99,7 @@ export function SelectAgentOutputDialog({
             label={t('selectCustomOutput')}>
             {agents?.map((agent) => (
               <MenuItem
-                key={`${agent.data.id}-${agent.data.instanceId}`}
+                key={`${agent.data.instanceId}-${agent.data.id}`}
                 value={agent.data.instanceId ?? agent.data.id}>
                 {agent.data.functionName ?? getFileById(agent.data.id)?.name}
               </MenuItem>

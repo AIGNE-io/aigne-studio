@@ -12,24 +12,16 @@ import useCallAgentOutput, { useCallAgentCustomOutputDialogState } from '../use-
 import { runtimeOutputVariables } from './type';
 
 const ActionRefOutput = ({
-  onSelect,
-  onDeleteSelect,
   assistant,
   projectId,
   gitRef,
 }: {
-  onSelect?: (value: Partial<Omit<OutputVariableYjs, 'id'>>) => void;
-  onDeleteSelect?: (value: { id: string }) => void;
   assistant: AssistantYjs;
   projectId: string;
   gitRef: string;
 }) => {
   const { t } = useLocaleContext();
-  const { outputs, outputsExist, getRefOutputId, getOutputI18nName } = useCallAgentOutput({
-    projectId,
-    gitRef,
-    assistant,
-  });
+  const { outputs } = useCallAgentOutput({ projectId, gitRef, assistant });
   const { onOpen } = useCallAgentCustomOutputDialogState(projectId, gitRef, assistant.id);
 
   if (!outputs?.length) return null;
@@ -39,29 +31,6 @@ const ActionRefOutput = ({
       <Divider textAlign="left" sx={{ my: '4px !important', p: 0, fontSize: 13, color: 'text.secondary' }}>
         {`${t('ref')}${t('outputs')}`}
       </Divider>
-
-      {outputs.map((output) => (
-        <MenuItem
-          key={output.id}
-          selected={outputsExist.has(output.id)}
-          onClick={(e) => {
-            e.stopPropagation();
-
-            if (outputsExist.has(output.id)) {
-              onDeleteSelect?.({ id: getRefOutputId(output.id) || '' });
-            } else {
-              onSelect?.({ name: output.name, from: { type: 'output', id: output.id } });
-            }
-          }}>
-          <ListItemIcon>
-            <Icon icon={BranchIcon} />
-          </ListItemIcon>
-          <Box flex={1}>{getOutputI18nName(output.name || '')}</Box>
-          <Box sx={{ width: 40, textAlign: 'right' }}>
-            {outputsExist.has(output.id) && <Box component={Icon} icon={CheckIcon} />}
-          </Box>
-        </MenuItem>
-      ))}
 
       <MenuItem onClick={() => onOpen(true)}>
         <ListItemIcon>
@@ -77,7 +46,6 @@ export default function AddOutputVariableButton({
   allSelectAgentOutputs,
   assistant,
   onSelect,
-  onDeleteSelect,
   onSelectAll,
   projectId,
   gitRef,
@@ -85,7 +53,6 @@ export default function AddOutputVariableButton({
   allSelectAgentOutputs?: NonNullable<AssistantYjs['outputVariables']>[string]['data'][];
   assistant: AssistantYjs;
   onSelect?: (value: Partial<Omit<OutputVariableYjs, 'id'>>) => void;
-  onDeleteSelect?: (value: { id: string }) => void;
   onSelectAll?: (list: NonNullable<AssistantYjs['outputVariables']>[string]['data'][]) => void;
   projectId: string;
   gitRef: string;
@@ -177,13 +144,7 @@ export default function AddOutputVariableButton({
         </>
       )}
 
-      <ActionRefOutput
-        projectId={projectId}
-        gitRef={gitRef}
-        assistant={assistant}
-        onDeleteSelect={onDeleteSelect}
-        onSelect={onSelect}
-      />
+      <ActionRefOutput projectId={projectId} gitRef={gitRef} assistant={assistant} />
 
       <Divider sx={{ my: '4px !important', p: 0 }} />
 

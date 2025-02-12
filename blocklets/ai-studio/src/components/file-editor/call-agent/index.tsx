@@ -63,8 +63,9 @@ export default function CallAgentEditor({
       <Stack gap={1} width={1} ref={ref}>
         <Stack gap={1}>
           {(agents || []).map((agent) => {
+            const key = agent.data.instanceId || agent.data.id;
             return (
-              <Box key={agent.data.instanceId || agent.data.id} display="flex" alignItems="center" gap={0.5} width={1}>
+              <Box key={key} display="flex" alignItems="center" gap={0.5} width={1}>
                 <AgentItemView
                   projectId={projectId}
                   gitRef={gitRef}
