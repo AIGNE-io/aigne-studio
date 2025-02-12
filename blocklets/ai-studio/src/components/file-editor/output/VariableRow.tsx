@@ -478,7 +478,7 @@ function OutputFromSelector({
     const outputVariableId = output.from?.outputVariableId;
 
     if (agentInstanceId) {
-      const data = agents?.find((i) => i.data.instanceId === agentInstanceId);
+      const data = agents?.find((i) => i.data.instanceId === agentInstanceId || i.data.id === agentInstanceId);
       const agent = getFileById(data?.data.id!);
 
       if (agent) {
@@ -500,7 +500,7 @@ function OutputFromSelector({
       }
     }
 
-    return <Typography sx={{ color: 'text.disabled' }}>为找到对应agent</Typography>;
+    return <Typography sx={{ color: 'text.disabled' }}>未找到对应agent</Typography>;
   }
 
   return (
