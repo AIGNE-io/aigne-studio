@@ -1,5 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, ParameterYjs, randomId } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, CallAssistantYjs, ParameterYjs, randomId } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { INSERT_VARIABLE_COMMAND, VariablePickerOption } from '@blocklet/prompt-editor';
 import { DataObjectRounded } from '@mui/icons-material';
@@ -18,11 +18,21 @@ type VariableEditorOptions = {
 
 export default function useVariablesEditorOptions(
   assistant?: AssistantYjs,
-  { includeOutputVariables }: { includeOutputVariables?: boolean } = {}
+  { includeOutputVariables, CallAssistantIndex }: { includeOutputVariables?: boolean; CallAssistantIndex?: number } = {}
 ) {
   const { t } = useLocaleContext();
   const [highlightedId, setHighlightedId] = useHighlightedState();
   const from: 'editor' = 'editor';
+
+  const resolveCallAssistantOptions = () => {
+    if (assistant?.type !== 'callAgent' || CallAssistantIndex === undefined) return [];
+    const agents = (assistant as CallAssistantYjs).agents ?? {};
+    const values = Object.values(agents);
+    const filtered = values.filter((i) => i.data.functionName && i.index < CallAssistantIndex);
+    return filtered.map((i) => i.data.functionName!);
+  };
+
+  const callAssistantVariables = resolveCallAssistantOptions();
 
   const variableSet = new Set([
     ...Object.values(assistant?.parameters ?? {})
@@ -37,7 +47,7 @@ export default function useVariablesEditorOptions(
       : []),
   ]);
 
-  const variables = [...variableSet, '$sys'];
+  const variables = [...variableSet, ...callAssistantVariables, '$sys'];
 
   const options = useMemo(() => {
     return (variables ?? [])

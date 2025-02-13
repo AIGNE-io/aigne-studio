@@ -1,3 +1,8 @@
+## 0.4.225 (2025-2-13)
+
+- feat: support access to the output of the previous agent
+- feat: add authService to executor base context
+
 ## 0.4.224 (2025-2-13)
 
 - chore: show detail error info when save git config
