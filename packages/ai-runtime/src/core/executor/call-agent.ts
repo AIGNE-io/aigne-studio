@@ -101,11 +101,14 @@ export class CallAgentExecutor extends AgentExecutorBase<CallAssistant> {
     const hasTextStream = outputVariables?.some((i) => i.name === RuntimeOutputVariable.text);
 
     // 获取被调用的 agent
-    const fn = async (callAgent: { item: Tool; agent: GetAgentResult }) => {
+    const fn = async (
+      callAgent: { item: Tool; agent: GetAgentResult },
+      { variables }: { variables: { [key: string]: any } }
+    ) => {
       const parameters = Object.fromEntries(
         await Promise.all(
           Object.entries(callAgent.item.parameters || {}).map(async ([key, value]) => {
-            return [key, value ? await this.renderMessage(value) : options.inputs?.[key] || ''];
+            return [key, value ? await this.renderMessage(value, variables) : options.inputs?.[key] || ''];
           })
         )
       );
@@ -140,9 +143,11 @@ export class CallAgentExecutor extends AgentExecutorBase<CallAssistant> {
     };
 
     const obj = {};
+    const accumulatedResults: { [key: string]: any } = {};
 
     for (const agent of calledAgents) {
-      const currentAgentResult = await fn(agent);
+      const currentAgentResult = await fn(agent, { variables: accumulatedResults });
+      if (agent.item.functionName) accumulatedResults[agent.item.functionName] = currentAgentResult;
 
       const found = outputFromResult.find((i) => i.from?.agentInstanceId === (agent.item.instanceId ?? agent.item.id));
       if (found) {
@@ -153,7 +158,7 @@ export class CallAgentExecutor extends AgentExecutorBase<CallAssistant> {
           [found.name!]: found.from?.outputVariableId ? get(currentAgentResult, key) : currentAgentResult,
         });
       } else {
-        Object.assign(obj, ...[currentAgentResult].flat());
+        Object.assign(obj, currentAgentResult);
       }
     }
 

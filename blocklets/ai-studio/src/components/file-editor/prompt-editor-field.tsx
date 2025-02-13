@@ -38,6 +38,7 @@ export default function PromptEditorField({
   readOnly,
   includeOutputVariables,
   role,
+  CallAssistantIndex,
   ...props
 }: {
   placeholder?: string;
@@ -50,9 +51,11 @@ export default function PromptEditorField({
   readOnly?: boolean;
   includeOutputVariables?: boolean;
   role?: string;
+  CallAssistantIndex?: number;
 } & Omit<ComponentProps<typeof PromptEditor>, 'value' | 'onChange'>) {
   const { t } = useLocaleContext();
   const { from, options, variables, addParameter, updateParameter } = useVariablesEditorOptions(assistant, {
+    CallAssistantIndex,
     includeOutputVariables,
   });
 

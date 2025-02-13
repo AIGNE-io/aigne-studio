@@ -62,11 +62,12 @@ export default function CallAgentEditor({
     <>
       <Stack gap={1} width={1} ref={ref}>
         <Stack gap={1}>
-          {(agents || []).map((agent) => {
+          {(agents || []).map((agent, index) => {
             const key = agent.data.instanceId || agent.data.id;
             return (
               <Box key={key} display="flex" alignItems="center" gap={0.5} width={1}>
                 <AgentItemView
+                  CallAssistantIndex={index}
                   projectId={projectId}
                   gitRef={gitRef}
                   agent={agent.data}
@@ -263,6 +264,7 @@ export function AgentItemView({
   assistant,
   readOnly,
   onEdit,
+  CallAssistantIndex,
   ...props
 }: {
   assistant: CallAssistantYjs;
@@ -271,6 +273,7 @@ export function AgentItemView({
   agent: NonNullable<CallAssistantYjs['agents']>[string]['data'];
   readOnly?: boolean;
   onEdit: () => void;
+  CallAssistantIndex?: number;
 } & StackProps) {
   const navigate = useNavigate();
 
@@ -418,6 +421,7 @@ export function AgentItemView({
                   </Stack>
 
                   <PromptEditorField
+                    CallAssistantIndex={CallAssistantIndex}
                     placeholder={`{{${parameter.label || parameter.key}}}`}
                     value={agent.parameters?.[parameter.key] || ''}
                     projectId={projectId}
