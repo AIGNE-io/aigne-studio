@@ -840,31 +840,41 @@ export function projectRoutes(router: Router) {
   });
 
   router.post('/projects/:projectId/remote', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
-    const { projectId } = req.params;
-    if (!projectId) throw new Error('Missing required params `projectId`');
+    try {
+      const { projectId } = req.params;
+      if (!projectId) throw new Error('Missing required params `projectId`');
 
-    const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
+      const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
 
-    checkProjectPermission({ req, project });
+      checkProjectPermission({ req, project });
 
-    const input = await addProjectGitRemoteSchema.validateAsync(req.body, { stripUnknown: true });
+      const input = await addProjectGitRemoteSchema.validateAsync(req.body, { stripUnknown: true });
 
-    const url = new URL(input.url);
-    if (input.username) url.username = input.username;
-    if (input.password) url.password = input.password;
+      const url = new URL(input.url);
+      if (input.username) url.username = input.username;
+      if (input.password) url.password = input.password;
 
-    const repository = await getRepository({ projectId });
+      const repository = await getRepository({ projectId });
 
-    // Check the connection
-    await repository.getRemoteInfo({ url: url.toString() });
+      // Check the connection
+      await repository.getRemoteInfo({ url: url.toString() });
 
-    await repository.addRemote({ remote: defaultRemote, url: url.toString(), force: true });
+      await repository.addRemote({ remote: defaultRemote, url: url.toString(), force: true });
 
-    const urlWithoutPassword = new URL(url);
-    urlWithoutPassword.password = '';
-    await project.update({ gitUrl: urlWithoutPassword.toString() });
+      const urlWithoutPassword = new URL(url);
+      urlWithoutPassword.password = '';
+      await project.update({ gitUrl: urlWithoutPassword.toString() });
 
-    res.json({});
+      res.json({});
+    } catch (error) {
+      if (error.name === 'SmartHttpError') {
+        throw new Error(
+          'Please check if the configuration is correct, such as the Git credentials may have expired or are invalid, or the repository URL may be incorrect.'
+        );
+      }
+
+      throw error;
+    }
   });
 
   router.delete('/projects/:projectId/remote', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
