@@ -14,6 +14,7 @@ import toLower from 'lodash/toLower';
 
 import { parseIdentity, stringifyIdentity } from '../../common/aid';
 import { AIGNE_RUNTIME_COMPONENT_DID } from '../../constants';
+import { authService } from '../../lib/auth';
 import {
   AssistantResponseType,
   ExecutionPhase,
@@ -358,6 +359,9 @@ export abstract class AgentExecutorBase<T> {
             context: this.context,
           });
         },
+      },
+      $authService: {
+        getUsers: authService.getUsers,
       },
     };
   }
