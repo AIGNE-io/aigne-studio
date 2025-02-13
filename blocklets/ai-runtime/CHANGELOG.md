@@ -1,3 +1,7 @@
+## 0.4.224 (2025-2-13)
+
+- chore: show detail error info when save git config
+
 ## 0.4.223 (2025-2-13)
 
 - chore: support add same agent in callAgent type
