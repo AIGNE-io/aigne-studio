@@ -79,7 +79,11 @@ export default function OutputDescriptionCell({
   }
 
   if (fromType.includes(output.from?.type || '')) {
-    return <Typography sx={{ color: 'text.disabled', my: 0.8 }}>{renderPlaceholder()}</Typography>;
+    return (
+      <Typography sx={{ color: 'text.disabled', my: 0.8 }} lineHeight="32px">
+        {renderPlaceholder()}
+      </Typography>
+    );
   }
 
   return (

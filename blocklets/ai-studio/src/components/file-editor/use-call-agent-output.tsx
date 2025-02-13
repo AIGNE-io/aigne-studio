@@ -85,6 +85,7 @@ interface CallAgentCustomOutputDialogState {
     agentInstanceId: string;
     outputVariableId?: string;
   };
+  name?: string;
 }
 
 const customOutputDialogStates: { [key: string]: RecoilState<CallAgentCustomOutputDialogState> } = {};
@@ -112,8 +113,12 @@ export const useCallAgentCustomOutputDialogState = (projectId: string, gitRef: s
   }, []);
 
   const onEdit = useCallback(
-    (open: CallAgentCustomOutputDialogState['open'], output: CallAgentCustomOutputDialogState['output']) => {
-      setState({ open, output });
+    (
+      open: CallAgentCustomOutputDialogState['open'],
+      output: CallAgentCustomOutputDialogState['output'],
+      name?: string
+    ) => {
+      setState({ open, output, name });
     },
     []
   );

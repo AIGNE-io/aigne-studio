@@ -929,4 +929,6 @@ export default flatten({
   notFoundAgent: '未找到对应的 Agent',
   agentSpecificOutput: '{agentName} 输出的 {outputName}',
   agentAllOutputs: '{agentName} 的全部输出',
+  as: '作为',
+  customOutputName: '自定义输出名称',
 });

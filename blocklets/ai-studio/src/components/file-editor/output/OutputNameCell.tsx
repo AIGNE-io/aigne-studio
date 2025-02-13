@@ -32,11 +32,15 @@ export default function OutputNameCell({
 
   const render = () => {
     if (output.from?.type === 'output') {
-      return <Typography>{getOutputI18nName(getRefOutputData(output?.from?.id || '')?.name || '')}</Typography>;
+      return (
+        <Typography lineHeight="32px">
+          {getOutputI18nName(getRefOutputData(output?.from?.id || '')?.name || '')}
+        </Typography>
+      );
     }
 
     if (runtimeVariable) {
-      return <Typography>{t(runtimeVariable.i18nKey)}</Typography>;
+      return <Typography lineHeight="32px">{t(runtimeVariable.i18nKey)}</Typography>;
     }
 
     return (

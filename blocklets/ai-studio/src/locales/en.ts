@@ -940,4 +940,6 @@ export default flatten({
   notFoundAgent: 'Not Found Agent',
   agentSpecificOutput: '{agentName} Output {outputName}',
   agentAllOutputs: '{agentName} All Outputs',
+  as: ' As ',
+  customOutputName: 'Custom Output Name',
 });
