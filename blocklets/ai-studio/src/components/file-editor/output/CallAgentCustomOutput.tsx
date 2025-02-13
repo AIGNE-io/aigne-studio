@@ -28,7 +28,7 @@ interface SelectAgentOutputDialogProps {
   open: boolean;
   onClose: () => void;
   assistant: CallAssistantYjs;
-  onConfirm: (data: { id?: string; agentInstanceId: string; outputVariableId?: string }) => void;
+  onConfirm: (data: { id?: string; name?: string; agentInstanceId: string; outputVariableId?: string }) => void;
 }
 
 export function SelectAgentOutputDialog({
@@ -74,7 +74,12 @@ export function SelectAgentOutputDialog({
   };
 
   const handleConfirm = () => {
-    onConfirm({ id: state.output?.id, agentInstanceId: agentInstanceId, outputVariableId: outputVariableId });
+    onConfirm({
+      id: state.output?.id,
+      name: state.name,
+      agentInstanceId: agentInstanceId,
+      outputVariableId: outputVariableId,
+    });
     reset();
     onClose();
   };

@@ -128,7 +128,7 @@ export class CallAgentExecutor extends AgentExecutorBase<CallAssistant> {
               message.assistantId === lastAgentIdWithTextSteam &&
               message.taskId === taskId
             ) {
-              this.context.callback?.({ ...message, ...options });
+              this.context.callback?.({ ...message, ...this.options });
             }
           },
         })

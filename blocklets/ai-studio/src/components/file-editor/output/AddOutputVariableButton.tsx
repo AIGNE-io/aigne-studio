@@ -22,7 +22,7 @@ const ActionRefOutput = ({
 }) => {
   const { t } = useLocaleContext();
   const { outputs } = useCallAgentOutput({ projectId, gitRef, assistant });
-  const { onOpen } = useCallAgentCustomOutputDialogState(projectId, gitRef, assistant.id);
+  const { onOpen, onEdit } = useCallAgentCustomOutputDialogState(projectId, gitRef, assistant.id);
 
   if (!outputs?.length) return null;
 
@@ -31,6 +31,13 @@ const ActionRefOutput = ({
       <Divider textAlign="left" sx={{ my: '4px !important', p: 0, fontSize: 13, color: 'text.secondary' }}>
         {`${t('ref')}${t('outputs')}`}
       </Divider>
+
+      <MenuItem onClick={() => onEdit(true, undefined, '$text')}>
+        <ListItemIcon>
+          <Icon icon={PlusIcon} />
+        </ListItemIcon>
+        <Box flex={1}>{t('streamTextResponse')}</Box>
+      </MenuItem>
 
       <MenuItem onClick={() => onOpen(true)}>
         <ListItemIcon>

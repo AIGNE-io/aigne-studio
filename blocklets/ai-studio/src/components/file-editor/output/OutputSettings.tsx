@@ -245,7 +245,7 @@ export default function OutputSettings({
                     index: vars[id]?.index ?? Object.values(vars).length,
                     data: {
                       id,
-                      name: '',
+                      name: data?.name || '',
                       from: {
                         type: 'variable',
                         agentInstanceId: data?.agentInstanceId,
