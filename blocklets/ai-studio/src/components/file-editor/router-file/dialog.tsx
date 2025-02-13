@@ -308,7 +308,8 @@ const AgentParameters = ({
 
       {parameters?.map(({ data: parameter }: any) => {
         if (!parameter?.key) return null;
-        if (!file && !isValidInput(parameter)) return null;
+        if (!file) return null;
+        if (parameter && !isValidInput(parameter)) return null;
 
         if (parameter['x-parameter-type'] === 'boolean') {
           return (

@@ -746,7 +746,7 @@ function AgentItemViewParameters({
   const filteredParameters = (parameters || [])
     ?.map(({ data: parameter }) => {
       if (!parameter?.key) return null;
-      if (!file && !isValidInput(parameter)) return null;
+      if (!file || !isValidInput(parameter)) return null;
 
       return parameter;
     })
