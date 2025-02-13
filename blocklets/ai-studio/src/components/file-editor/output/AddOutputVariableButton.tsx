@@ -36,14 +36,14 @@ const ActionRefOutput = ({
         <ListItemIcon>
           <Icon icon={PlusIcon} />
         </ListItemIcon>
-        <Box flex={1}>{t('streamTextResponse')}</Box>
+        <Box flex={1}>{`${t('selectCustomOutput')}${t('as')}${t('streamTextResponse')}`}</Box>
       </MenuItem>
 
       <MenuItem onClick={() => onOpen(true)}>
         <ListItemIcon>
           <Icon icon={PlusIcon} />
         </ListItemIcon>
-        <Box flex={1}>{t('selectCustomOutput')}</Box>
+        <Box flex={1}>{`${t('selectCustomOutput')}${t('as')}${t('customOutputName')}`}</Box>
       </MenuItem>
     </>
   );
