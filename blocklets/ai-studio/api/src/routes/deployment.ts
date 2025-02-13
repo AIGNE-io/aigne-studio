@@ -336,7 +336,9 @@ router.patch('/:id', middlewares.session(), middlewares.auth(), async (req, res)
     res.status(404).json({ message: 'deployment not found' });
     return;
   }
+
   checkUserAuth(req, res)({ userId: found.createdBy });
+
   const input = await updateSchema.validateAsync(req.body, { stripUnknown: true });
   const updated = await found.update(input, { where: { id: req.params.id! } });
   res.json(updated);

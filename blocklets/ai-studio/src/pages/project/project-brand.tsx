@@ -34,7 +34,7 @@ export default function ProjectBrand() {
             projectId={projectId}
             projectRef={gitRef}
             working
-            sx={{ borderRadius: 1, maxWidth: 32, maxHeight: 32 }}
+            sx={{ borderRadius: 1, maxWidth: 32, maxHeight: 32, width: 1 }}
           />
           <ProjectName
             projectId={projectId}

@@ -17,8 +17,10 @@ module.exports = {
       join(__dirname, 'packages/dataset-sdk/tsconfig.json'),
       join(__dirname, 'packages/quickjs/tsconfig.json'),
       join(__dirname, 'tests/tsconfig.json'),
+      join(__dirname, 'framework/agent-v1/tsconfig.json'),
       join(__dirname, 'framework/core/tsconfig.json'),
       join(__dirname, 'framework/runtime/tsconfig.json'),
+      join(__dirname, 'framework/memory/tsconfig.json'),
     ],
   },
   rules: {
@@ -47,5 +49,7 @@ module.exports = {
     'react/jsx-no-duplicate-props': 'warn',
     '@typescript-eslint/no-throw-literal': 'warn',
     'react/function-component-definition': 'off',
+    '@typescript-eslint/no-redeclare': 'warn',
+    '@typescript-eslint/brace-style': 'off',
   },
 };

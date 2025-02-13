@@ -5,10 +5,11 @@ import logger from '@api/libs/logger';
 import { resourceManager } from '@api/libs/resource';
 import middlewares from '@blocklet/sdk/lib/middlewares';
 import express, { Router } from 'express';
-import { pathExists } from 'fs-extra';
+import { pathExists, readFile } from 'fs-extra';
 import Joi from 'joi';
 import { Op } from 'sequelize';
 import { joinURL } from 'ufo';
+import { parse } from 'yaml';
 
 import ensureKnowledgeDirExists, { getProcessedFileDir, getSourceFileDir } from '../../libs/ensure-dir';
 import { Config } from '../../libs/env';
@@ -47,11 +48,15 @@ const documentIdSchema = Joi.object<{ knowledgeId: string; documentId: string }>
 
 export type CreateDiscussionItemInput = CreateDiscussionItem | CreateDiscussionItem[];
 
+const messages = {
+  'any.required': 'input parameter {{#label}} is required.',
+};
+
 const searchQuerySchema = Joi.object<{ blockletDid?: string; message?: string; n: number }>({
   blockletDid: Joi.string().empty(['', null]),
-  message: Joi.string().empty(['', null]),
+  message: Joi.string().required(),
   n: Joi.number().empty(['', null]).min(1).default(4),
-});
+}).messages(messages);
 
 async function getVectorPath(blockletDid: string | null, knowledgeId: string, knowledge: any) {
   let resourceToCheck = null;
@@ -241,6 +246,25 @@ router.post('/:knowledgeId/documents/custom', middlewares.session(), userAuth(),
   res.json(document);
 });
 
+router.put('/:knowledgeId/documents/custom/:documentId', middlewares.session(), userAuth(), async (req, res) => {
+  const { knowledgeId, documentId } = await documentIdSchema.validateAsync(req.params, { stripUnknown: true });
+  const { title, content } = await customDocumentSchema.validateAsync(req.body, { stripUnknown: true });
+
+  await Promise.all([
+    KnowledgeDocument.update({ name: title, content }, { where: { id: documentId, knowledgeId } }),
+    EmbeddingHistories.destroy({ where: { documentId, knowledgeId } }),
+    updateHistoriesAndStore(knowledgeId, documentId),
+  ]);
+
+  const originalFileName = `${documentId}.txt`;
+  const originalFilePath = joinURL(getSourceFileDir(knowledgeId), originalFileName);
+  await writeFile(originalFilePath, content);
+
+  queue.checkAndPush({ type: 'document', knowledgeId, documentId });
+
+  res.json({ title, content });
+});
+
 const createItemsSchema = Joi.object<{ name: string; data: CreateDiscussionItem['data'] }>({
   name: Joi.string().empty(['', null]),
   data: Joi.object({
@@ -338,6 +362,19 @@ router.get('/:knowledgeId/documents/:documentId', middlewares.session(), userAut
     Knowledge.findOne({ where: { id: knowledgeId, ...user } }),
     KnowledgeDocument.findOne({ where: { knowledgeId, id: documentId } }),
   ]);
+
+  if (document && document.type === 'text') {
+    const processedFilePath = join(getProcessedFileDir(knowledgeId), `${documentId}.yml`);
+    let content = '';
+    if (await pathExists(processedFilePath)) {
+      try {
+        content = parse(await readFile(processedFilePath, 'utf-8')).content;
+      } catch (error) {
+        logger.error(error);
+      }
+    }
+    document.dataValues.content = content;
+  }
 
   res.json({ dataset, document });
 });

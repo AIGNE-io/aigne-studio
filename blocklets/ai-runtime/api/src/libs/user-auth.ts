@@ -1,5 +1,8 @@
 import { Request, Response } from 'express';
 
+import isSameAddr from './is-same-address';
+import logger from './logger';
+
 class AuthError extends Error {
   statusCode: number;
 
@@ -23,11 +26,13 @@ function checkUserAuth(req: Request, res: Response): (data?: CheckAuthType) => v
         throw new AuthError('Unauthorized, user information does not exist', 401);
       }
 
+      logger.debug('user auth', { userId: user.did, role: user.role, data });
+
       if (['admin', 'owner', 'promptsEditor'].includes(user.role!)) {
         return;
       }
 
-      if (data?.userId && data.userId === user.did) {
+      if (data?.userId && isSameAddr(data.userId, user.did)) {
         return;
       }
 

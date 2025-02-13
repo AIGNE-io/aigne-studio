@@ -23,6 +23,7 @@ import {
   parseDirectivesOfTemplate,
   parseDirectivesOfTemplateInput,
 } from '@blocklet/ai-runtime/types';
+import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
 import { DatasetObject, SchemaObject } from '@blocklet/dataset-sdk/types';
@@ -81,7 +82,7 @@ import {
 } from '@mui/material';
 import { GridColDef } from '@mui/x-data-grid';
 import { useRequest } from 'ahooks';
-import { cloneDeep, get, sortBy } from 'lodash';
+import { cloneDeep, difference, get, sortBy } from 'lodash';
 import { PopupState, bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { useId, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -213,6 +214,7 @@ export default function InputTable({
     return [
       {
         field: 'key',
+        width: '30%',
         headerName: t('name'),
         renderCell: ({ row: { data: parameter } }) => {
           if (parameter.key === 'question' || parameter.key === 'chatHistory') {
@@ -240,7 +242,6 @@ export default function InputTable({
               direction="row"
               alignItems="center"
               gap={0.5}
-              minWidth={100}
               sx={{ color: parameter.hidden ? 'text.disabled' : undefined }}>
               <Box component={Icon} icon={FormsIcon} fontSize={16} />
 
@@ -272,6 +273,7 @@ export default function InputTable({
       },
       {
         field: 'from',
+        width: '30%',
         headerName: t('from'),
         flex: 1,
         renderCell: ({ row: { data: parameter } }) => {
@@ -295,8 +297,8 @@ export default function InputTable({
       },
       {
         field: 'type',
+        width: '30%',
         headerName: t('format'),
-        width: 100,
         renderCell: ({ row: { data: parameter } }) => {
           if (parameter.type === 'source' && parameter.source?.variableFrom === 'secret') {
             return <Box />;
@@ -378,11 +380,10 @@ export default function InputTable({
       },
       {
         field: 'actions',
-        width: 100,
         headerAlign: 'right',
         align: 'right',
       },
-    ];
+    ] as GridColDef<(typeof parameters)[number]>[];
   }, [t, knowledge, openApis, readOnly, doc, deleteParameter]);
 
   return (
@@ -420,6 +421,7 @@ export default function InputTable({
                 <TableCell
                   key={column.field}
                   align={column.headerAlign}
+                  width={column.width}
                   sx={{ px: 0, py: 1, fontWeight: 500, fontSize: 13, lineHeight: '22px' }}>
                   {column.headerName}
                 </TableCell>
@@ -509,6 +511,7 @@ export default function InputTable({
                           <TableCell
                             key={column.field}
                             align={column.align}
+                            width={column.width}
                             sx={{ position: 'relative', px: 0, ...getDiffBackground('parameters', parameter.id) }}>
                             {index === 0 && (
                               <Stack
@@ -1053,6 +1056,10 @@ function KnowledgeParameter({
   const { deleteUselessParameter } = useDelete(value);
   const localKnowledge = knowledge.filter((x) => !x.blockletDid);
   const resourceKnowledge = knowledge.filter((x) => x.blockletDid);
+  const keys = sortBy(Object.values(value.parameters ?? {}), (i) => i.index)
+    .filter((i) => !i.data.hidden)
+    .map((i) => i.data.key)
+    .filter(isNonNullable);
 
   const options = useMemo(() => {
     return [
@@ -1073,6 +1080,12 @@ function KnowledgeParameter({
     ];
   }, [localKnowledge, resourceKnowledge, t]);
 
+  const extractAllBracketContent = (text: string) => {
+    const pattern = /\{\{(.*?)\}\}/g;
+    const matches = text.matchAll(pattern);
+    return Array.from(matches, (match) => (match[1] || '')?.trim());
+  };
+
   if (parameter.type === 'source' && parameter?.source?.variableFrom === 'knowledge') {
     const toolId = parameter?.source?.knowledge?.id;
     const blockletDid = parameter?.source?.knowledge?.blockletDid;
@@ -1084,6 +1097,10 @@ function KnowledgeParameter({
     ];
     const v = options.find((x) => x.id === toolId);
     const d = blockletDid ? options.find((x) => x.id === toolId && x.blockletDid === blockletDid) : null;
+
+    const messages: string = source?.knowledge?.parameters?.message || '';
+    const splitVariables = extractAllBracketContent(messages);
+    const unusedVariables = difference(splitVariables, keys);
 
     return (
       <Stack gap={2}>
@@ -1164,6 +1181,12 @@ function KnowledgeParameter({
                         }
                       }}
                     />
+
+                    {!!unusedVariables.length && (
+                      <Typography variant="caption" color="error">
+                        {t('variableNotDefined', { variables: unusedVariables.join(', ') })}
+                      </Typography>
+                    )}
                   </Stack>
                 );
               })}

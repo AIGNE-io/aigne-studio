@@ -114,6 +114,9 @@ export function MessageBodyContainer({ messageRole, ...props }: { messageRole?: 
               maxWidth: hideUserMessage ? 'unset' : 'calc(100% - 40px)',
               bgcolor: 'rgba(255, 255, 255, 0.8)',
               backdropFilter: 'blur(16px)',
+              '@supports not ((backdrop-filter: blur(16px)) or (-webkit-backdrop-filter: blur(16px)))': {
+                bgcolor: (theme) => theme.palette.background.paper,
+              },
               ...props.sx,
             }
           : { ...props.sx }

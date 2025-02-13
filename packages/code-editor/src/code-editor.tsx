@@ -8,21 +8,20 @@ import FullMaxIcon from '@iconify-icons/tabler/arrows-diagonal';
 import FullMinIcon from '@iconify-icons/tabler/arrows-diagonal-minimize-2';
 import LogosVim from '@iconify-icons/tabler/brand-vimeo';
 import ChecksIcon from '@iconify-icons/tabler/checks';
+import CloudUploadIcon from '@iconify-icons/tabler/cloud-upload';
 import SettingIcon from '@iconify-icons/tabler/settings';
 import XIcon from '@iconify-icons/tabler/x';
-import Editor, { Monaco, useMonaco } from '@monaco-editor/react';
+import XBoxIcon from '@iconify-icons/tabler/xbox-x';
+import Editor, { Monaco } from '@monaco-editor/react';
 import {
   Box,
   BoxProps,
   Dialog,
   DialogContent,
   DialogTitle,
-  Divider,
   IconButton,
-  MenuItem,
   Stack,
   Switch,
-  TextField,
   Tooltip,
   styled,
   useTheme,
@@ -30,15 +29,15 @@ import {
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useUpdate } from 'ahooks';
 import useLocalStorageState from 'ahooks/lib/useLocalStorageState';
+import yaml from 'js-yaml';
+import { debounce } from 'lodash';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
+import { editor } from 'monaco-editor';
 import { VimMode } from 'monaco-vim';
-import React, { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { ResizableBox } from 'react-resizable';
-import { createHighlighter } from 'shiki';
 
 import { FullScreen, useFullScreenHandle } from './components/react-full-screen';
-import { themeOptions } from './libs/constant';
-import { shikiToMonaco } from './libs/shiki-to-monaco';
 import type { EditorInstance } from './libs/type';
 import useAutoCloseTag from './plugins/close-tag';
 import useEmmet from './plugins/emmet';
@@ -97,9 +96,9 @@ const useEditorSettings = (keyId: string) => {
   });
 };
 
-const useGlobalEditorSettings = (theme: string = 'github-light') => {
-  return useLocalStorageState<{ vim: boolean; theme: string }>('code-editor-global', {
-    defaultValue: { vim: false, theme },
+const useGlobalEditorSettings = () => {
+  return useLocalStorageState<{ vim: boolean }>('code-editor-global', {
+    defaultValue: { vim: false },
   });
 };
 
@@ -117,12 +116,12 @@ const CodeEditor = forwardRef(
       maxHeight?: number;
       locale: string;
       typeScriptNoValidation?: boolean;
+      onUpload?: (callback: (url: string) => void) => void;
     } & BoxProps<typeof Editor>,
     ref
   ) => {
     const statusRef = useRef<HTMLElement>(null);
     const dialogState = usePopupState({ variant: 'dialog' });
-    const monaco = useMonaco();
 
     const { t } = useLocaleContext(locale);
     const [editor, setEditor] = useState<EditorInstance>();
@@ -131,27 +130,16 @@ const CodeEditor = forwardRef(
     const handle = useFullScreenHandle();
 
     const [settings, setSettings] = useEditorSettings(keyId);
-    const [globalSettings, setGlobalSettings] = useGlobalEditorSettings(props.theme || '');
+    const [globalSettings, setGlobalSettings] = useGlobalEditorSettings();
     const isBreakpointsDownSm = useMediaQuery(theme.breakpoints.down('md'));
 
     const { registerEmmet } = useEmmet();
     const { registerPrettier } = usePrettier();
     const { registerCloseTag } = useAutoCloseTag();
 
-    useEffect(() => {
-      if (monaco && globalSettings?.theme && props.language) {
-        createHighlighter({
-          themes: [globalSettings.theme],
-          langs: [props.language],
-        }).then((highlighter) => {
-          shikiToMonaco(highlighter, monaco);
-        });
-      }
-    }, [monaco, globalSettings?.theme, props.language]);
-
     useVimMode(editor!, statusRef, { ...globalSettings, ...settings }, setSettings);
 
-    useImperativeHandle(ref, () => ({}));
+    useImperativeHandle(ref, () => ({ insertText }));
 
     const currentHeight = useMemo(() => {
       if (handle.active) {
@@ -164,6 +152,60 @@ const CodeEditor = forwardRef(
 
       return 300;
     }, [handle.active, settings?.currentHeight, settings?.adjustHeight, settings?.memoryHeight]);
+
+    // code syntax error
+    const [codeSyntaxError, setCodeSyntaxError] = useState(null);
+    const debouncedCheckCodeSyntax = useMemo(
+      () =>
+        debounce((code: string) => {
+          try {
+            if (props.language === 'yaml') {
+              yaml.load(code);
+            }
+            setCodeSyntaxError(null);
+          } catch (error) {
+            console.error('code syntax error: ', error);
+            setCodeSyntaxError(error.message);
+          }
+        }, 300),
+      [props.language]
+    );
+
+    useEffect(() => {
+      return () => {
+        debouncedCheckCodeSyntax.cancel();
+      };
+    }, [debouncedCheckCodeSyntax]);
+
+    const onCodeChange = (code: string, e: editor.IModelContentChangedEvent) => {
+      props?.onChange?.(code, e);
+      debouncedCheckCodeSyntax(code);
+    };
+
+    useEffect(() => {
+      debouncedCheckCodeSyntax(props.value || '');
+    }, [props.value, debouncedCheckCodeSyntax]);
+
+    // add method to insert text
+    const insertText = useCallback(
+      (text: string) => {
+        if (!editor) return;
+
+        const position = editor.getPosition();
+        editor.executeEdits('insert', [
+          {
+            range: {
+              startLineNumber: position?.lineNumber || 0,
+              startColumn: position?.column || 0,
+              endLineNumber: position?.lineNumber || 0,
+              endColumn: position?.column || 0,
+            },
+            text,
+          },
+        ]);
+      },
+      [editor]
+    );
 
     const editorRender = () => {
       return (
@@ -182,6 +224,7 @@ const CodeEditor = forwardRef(
                 className={cx(props.className, globalSettings?.vim && settings?.vimMode === 'normal' && 'vim-normal')}
                 component={Editor}
                 {...props}
+                onChange={onCodeChange}
                 sx={{
                   width: 1,
                   height: 1,
@@ -247,11 +290,36 @@ const CodeEditor = forwardRef(
                 py: 0.25,
                 // borderTop: '1px solid rgba(0, 0, 0, 0.1)',
               }}>
+              {codeSyntaxError && (
+                <Box sx={{ display: 'flex', gap: 1, zIndex: 1, alignItems: 'center' }}>
+                  <Tooltip
+                    title={
+                      <Box maxHeight={200} overflow="auto" sx={{ whiteSpace: 'pre-wrap' }}>
+                        {codeSyntaxError}
+                      </Box>
+                    }
+                    placement="right">
+                    <Box component={Icon} icon={XBoxIcon} sx={{ fontSize: 20, color: '#F16E6E' }} />
+                  </Tooltip>
+                </Box>
+              )}
               <Box sx={{ flex: 1 }}>
                 <Box ref={statusRef} sx={{ fontSize: 10, width: 1, mt: '1px', color: '#999' }} />
               </Box>
 
               <Box sx={{ display: 'flex', gap: 1, zIndex: 1, alignItems: 'center' }}>
+                {props.onUpload && (
+                  <IconButton
+                    size="small"
+                    onClick={() =>
+                      props.onUpload?.((url) => {
+                        insertText(url);
+                      })
+                    }>
+                    <Box component={Icon} icon={CloudUploadIcon} sx={{ color: 'action.active', fontSize: 20 }} />
+                  </IconButton>
+                )}
+
                 {globalSettings?.vim && (
                   <Tooltip title={t('vimEnable')}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -314,34 +382,6 @@ const CodeEditor = forwardRef(
                       setGlobalSettings((r) => ({ ...r!, vim: checked }));
                     }}
                   />
-                </Box>
-              </Box>
-
-              <Divider />
-
-              <Box sx={{ p: 1 }} className="between">
-                <Box className="key">{t('theme')}</Box>
-                <Box>
-                  <TextField
-                    select
-                    value={globalSettings?.theme || 'github-light'}
-                    onChange={(e) => setGlobalSettings((r) => ({ ...r!, theme: e.target.value }))}
-                    variant="outlined"
-                    fullWidth
-                    size="small"
-                    SelectProps={{
-                      displayEmpty: true,
-                    }}
-                    InputLabelProps={{
-                      shrink: false,
-                    }}
-                    sx={{ minWidth: 200 }}>
-                    {themeOptions.map((option) => (
-                      <MenuItem key={option} value={option}>
-                        {option}
-                      </MenuItem>
-                    ))}
-                  </TextField>
                 </Box>
               </Box>
             </Box>
