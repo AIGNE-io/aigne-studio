@@ -116,6 +116,11 @@ export type OutputVariableYjs = VariableTypeYjs & {
           agentId?: string;
           inputs?: { [key: string]: any };
         };
+      }
+    | {
+        type: 'variable';
+        agentInstanceId?: string;
+        outputVariableId?: string;
       };
   appearance?: RuntimeOutputAppearance;
   initialValue?: RuntimeOutputVariablesSchemaYjs[RuntimeOutputVariable];

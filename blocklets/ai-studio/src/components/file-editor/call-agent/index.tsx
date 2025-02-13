@@ -2,7 +2,7 @@ import { useReadOnly } from '@app/contexts/session';
 import { isValidInput } from '@app/libs/util';
 import { PROMPTS_FOLDER_NAME, useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, CallAssistantYjs, Tool, isAssistant } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, CallAssistantYjs, isAssistant } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
 import ExternalLinkIcon from '@iconify-icons/tabler/external-link';
@@ -27,6 +27,7 @@ import {
 } from '@mui/material';
 import { cloneDeep, sortBy } from 'lodash';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
+import { nanoid } from 'nanoid';
 import { forwardRef, useImperativeHandle, useMemo, useRef } from 'react';
 import { Controller, UseFormReturn, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
@@ -34,6 +35,8 @@ import { joinURL } from 'ufo';
 
 import PromptEditorField from '../prompt-editor-field';
 import useVariablesEditorOptions from '../use-variables-editor-options';
+
+type ToolDialogForm = NonNullable<CallAssistantYjs['agents']>[number]['data'];
 
 export default function CallAgentEditor({
   projectId,
@@ -47,19 +50,22 @@ export default function CallAgentEditor({
   disabled?: boolean;
 }) {
   const { t } = useLocaleContext();
+  const { getFileById } = useProjectStore(projectId, gitRef);
+
   const ref = useRef(null);
-  const toolForm = useRef<any>(null);
+  const toolForm = useRef<ToolDialogImperative | null>(null);
+  const selectedTool = useRef<ToolDialogForm | undefined>();
   const dialogState = usePopupState({ variant: 'dialog' });
   const readOnly = useReadOnly({ ref: gitRef }) || disabled;
   const agents = value.agents && sortBy(Object.values(value.agents), (i) => i.index);
-
   return (
     <>
       <Stack gap={1} width={1} ref={ref}>
         <Stack gap={1}>
           {(agents || []).map((agent) => {
+            const key = agent.data.instanceId || agent.data.id;
             return (
-              <Box key={agent.data.id} display="flex" alignItems="center" gap={0.5} width={1}>
+              <Box key={key} display="flex" alignItems="center" gap={0.5} width={1}>
                 <AgentItemView
                   projectId={projectId}
                   gitRef={gitRef}
@@ -68,7 +74,9 @@ export default function CallAgentEditor({
                   readOnly={readOnly}
                   onEdit={() => {
                     if (readOnly) return;
-                    toolForm.current?.form.reset(cloneDeep(agent.data));
+                    const tool = cloneDeep(agent.data);
+                    toolForm.current?.form.reset(tool);
+                    selectedTool.current = tool;
                     dialogState.open();
                   }}
                 />
@@ -82,7 +90,7 @@ export default function CallAgentEditor({
             disabled={disabled}
             startIcon={<Box component={Icon} icon={PlusIcon} sx={{ fontSize: 16 }} />}
             onClick={() => {
-              toolForm.current?.form.reset();
+              toolForm.current?.form.reset({ id: '' });
               dialogState.open();
             }}>
             {t('addMoreAgentTools')}
@@ -98,20 +106,50 @@ export default function CallAgentEditor({
         DialogProps={{ ...bindDialog(dialogState) }}
         onSubmit={(tool) => {
           const doc = (getYjsValue(value) as Map<any>).doc!;
+          const instanceId = `${tool.id}-${nanoid()}`;
+
+          const getNextIndex = (agents: typeof value.agents) => {
+            return Math.max(-1, ...Object.values(agents || {}).map((i) => i.index)) + 1;
+          };
 
           doc.transact(() => {
             value.agents ??= {};
 
-            const old = value.agents[tool.id];
+            const createAgent = (index: number, other?: { functionName?: string }) => ({
+              index,
+              data: { ...tool, instanceId, ...other },
+            });
 
-            value.agents[tool.id] = {
-              index: old?.index ?? Math.max(-1, ...Object.values(value.agents).map((i) => i.index)) + 1,
-              data: tool,
-            };
+            if (selectedTool.current) {
+              if (selectedTool.current.id === tool.id) return;
+
+              const oldKey = selectedTool.current.instanceId || selectedTool.current.id;
+              const oldAgent = value.agents[oldKey];
+
+              value.agents[instanceId] = createAgent(oldAgent?.index ?? getNextIndex(value.agents));
+
+              delete value.agents[oldKey];
+            } else {
+              const agent = getFileById(tool.id);
+              let functionName = agent?.name;
+              let index = 1;
+
+              while (
+                (agents || []).find(
+                  (i) => i.data.functionName === functionName || getFileById(i.data.id)?.name === functionName
+                )
+              ) {
+                functionName = `${agent?.name}(${index})`;
+                index++;
+              }
+
+              value.agents[instanceId] = createAgent(getNextIndex(value.agents), { functionName });
+            }
 
             sortBy(Object.values(value.agents), 'index').forEach((tool, index) => (tool.index = index));
           });
 
+          selectedTool.current = undefined;
           dialogState.close();
         }}
       />
@@ -119,7 +157,6 @@ export default function CallAgentEditor({
   );
 }
 
-type ToolDialogForm = NonNullable<CallAssistantYjs['agents']>[number]['data'];
 export interface ToolDialogImperative {
   form: UseFormReturn<ToolDialogForm>;
 }
@@ -231,18 +268,16 @@ export function AgentItemView({
   assistant: CallAssistantYjs;
   projectId: string;
   gitRef: string;
-  agent: Tool;
+  agent: NonNullable<CallAssistantYjs['agents']>[string]['data'];
   readOnly?: boolean;
   onEdit: () => void;
 } & StackProps) {
   const navigate = useNavigate();
 
   const { t } = useLocaleContext();
-  const { store } = useProjectStore(projectId, gitRef);
+  const { getFileById } = useProjectStore(projectId, gitRef);
   const { addParameter } = useVariablesEditorOptions(assistant);
-
-  const f = store.files[agent.id];
-  const target = f && isAssistant(f) ? f : undefined;
+  const target = getFileById(agent.id);
 
   const parameters = useMemo(() => {
     return (
@@ -295,8 +330,8 @@ export function AgentItemView({
           placeholder={name || t('unnamed')}
           size="small"
           variant="standard"
-          value={name || t('unnamed')}
-          InputProps={{ readOnly: true }}
+          value={agent.functionName ?? (name || t('unnamed'))}
+          onChange={(e) => (agent.functionName = e.target.value)}
           sx={{
             mb: 0,
             lineHeight: '20px',
@@ -305,6 +340,20 @@ export function AgentItemView({
               fontSize: '18px',
               color: 'primary.main',
             },
+          }}
+        />
+
+        <TextField
+          onClick={(e) => e.stopPropagation()}
+          hiddenLabel
+          placeholder={name || t('unnamed')}
+          size="small"
+          variant="standard"
+          value={name || t('unnamed')}
+          InputProps={{ readOnly: true }}
+          sx={{
+            lineHeight: '10px',
+            input: { fontSize: '10px', color: 'text.disabled' },
           }}
         />
 
@@ -404,8 +453,10 @@ export function AgentItemView({
               e.stopPropagation();
               const doc = (getYjsValue(assistant) as Map<any>).doc!;
               doc.transact(() => {
-                if (assistant.agents?.[agent.id]) {
-                  delete assistant.agents[agent.id];
+                const key = agent.instanceId || agent.id;
+
+                if (assistant.agents?.[key]) {
+                  delete assistant.agents[key];
                 }
               });
             }}>

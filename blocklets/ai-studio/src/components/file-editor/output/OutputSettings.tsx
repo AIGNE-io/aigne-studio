@@ -1,45 +1,24 @@
 import { DragSortListYjs } from '@app/components/drag-sort-list';
-import PopperMenu from '@app/components/menu/PopperMenu';
 import AigneLogoOutput from '@app/icons/aigne-logo-output';
 import { useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, OutputVariableYjs, RuntimeOutputVariable, Tool, isAssistant } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, RuntimeOutputVariable, Tool, isAssistant } from '@blocklet/ai-runtime/types';
 import { outputVariablesFromOpenApi } from '@blocklet/ai-runtime/types/runtime/schema';
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { Icon } from '@iconify-icon/react';
-import ChevronDownIcon from '@iconify-icons/tabler/chevron-down';
 import GripVertical from '@iconify-icons/tabler/grip-vertical';
-import {
-  Box,
-  BoxProps,
-  MenuItem,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  Tooltip,
-  Typography,
-} from '@mui/material';
+import { Box, Stack, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material';
 import equal from 'fast-deep-equal';
-import jsonDiff from 'json-diff';
 import { cloneDeep, sortBy, uniqBy } from 'lodash';
 import { nanoid } from 'nanoid';
-import React, { ComponentType, ReactNode, useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo } from 'react';
 
-import { AgentName } from '../input/InputTable';
-import useCallAgentOutput from '../use-call-agent-output';
+import { useCallAgentCustomOutputDialogState } from '../use-call-agent-output';
 import AddOutputVariableButton from './AddOutputVariableButton';
-import OutputActionsCell, { PopperButtonImperative, SettingActionDialogProvider } from './OutputActionsCell';
-import OutputAppearanceCell from './OutputAppearanceCell';
-import OutputDescriptionCell from './OutputDescriptionCell';
-import OutputFormatCell from './OutputFormatCell';
-import OutputNameCell from './OutputNameCell';
-import OutputRequiredCell from './OutputRequiredCell';
-import { getRuntimeOutputVariable } from './type';
+import { SelectAgentOutputDialog } from './CallAgentCustomOutput';
+import VariableRow from './VariableRow';
 
 const ignoredOutputVariables = new Set<string>([
   RuntimeOutputVariable.children,
@@ -64,11 +43,11 @@ export default function OutputSettings({
   openApis?: DatasetObject[];
 }) {
   const { t } = useLocaleContext();
-
   const checkOutputVariables = useRoutesAssistantOutputs({ value, projectId, gitRef, openApis });
   const { getAllSelectCustomOutputs } = useAllSelectDecisionAgentOutputs({ value, projectId, gitRef });
   const allSelectAgentOutputs = getAllSelectCustomOutputs(openApis);
   const outputVariables = value.outputVariables && sortBy(Object.values(value.outputVariables), 'index');
+  const { state, onOpen } = useCallAgentCustomOutputDialogState(projectId, gitRef, value.id);
 
   const setField = (update: (outputVariables: NonNullable<AssistantYjs['outputVariables']>) => void) => {
     const doc = (getYjsValue(value) as Map<any>).doc!;
@@ -211,15 +190,6 @@ export default function OutputSettings({
           gitRef={gitRef}
           allSelectAgentOutputs={cloneDeep(allSelectAgentOutputs)}
           assistant={value}
-          onDeleteSelect={({ id }) => {
-            setField((vars) => {
-              if (!id) return;
-              if (!vars[id]) return;
-
-              delete vars[id];
-              sortBy(Object.values(vars), 'index').forEach((item, index) => (item.index = index));
-            });
-          }}
           onSelect={({ name, from }) => {
             setField((vars) => {
               const exist = name ? outputVariables?.find((i) => i.data.name === name) : undefined;
@@ -250,248 +220,48 @@ export default function OutputSettings({
             });
           }}
         />
+
+        {value.type === 'callAgent' && (
+          <SelectAgentOutputDialog
+            projectId={projectId}
+            gitRef={gitRef}
+            open={Boolean(state.open)}
+            onClose={() => onOpen(false)}
+            assistant={value}
+            onConfirm={(data) => {
+              setField((vars) => {
+                const id = nanoid();
+
+                if (data.id && vars[data.id]) {
+                  if (vars[data.id]?.data.from) {
+                    vars[data.id]!.data.from = {
+                      type: 'variable',
+                      agentInstanceId: data?.agentInstanceId,
+                      outputVariableId: data?.outputVariableId,
+                    };
+                  }
+                } else {
+                  vars[id] = {
+                    index: vars[id]?.index ?? Object.values(vars).length,
+                    data: {
+                      id,
+                      name: '',
+                      from: {
+                        type: 'variable',
+                        agentInstanceId: data?.agentInstanceId,
+                        outputVariableId: data?.outputVariableId,
+                      },
+                    },
+                  };
+                }
+
+                sortBy(Object.values(vars), 'index').forEach((item, index) => (item.index = index));
+              });
+            }}
+          />
+        )}
       </Box>
     </Box>
-  );
-}
-
-function VariableRow({
-  firstColumnChildren,
-  rowRef,
-  selectAgentOutputVariables,
-  parent,
-  value,
-  variable,
-  depth = 0,
-  onRemove,
-  projectId,
-  gitRef,
-  disabled,
-  ...props
-}: {
-  firstColumnChildren?: ReactNode;
-  rowRef?: React.RefCallback<HTMLTableRowElement>;
-  selectAgentOutputVariables?: AssistantYjs['outputVariables'];
-  parent?: OutputVariableYjs;
-  value: AssistantYjs;
-  variable: OutputVariableYjs;
-  depth?: number;
-  onRemove?: () => void;
-  projectId: string;
-  gitRef: string;
-  disabled?: boolean;
-} & BoxProps<ComponentType<typeof TableRow>>) {
-  const { t } = useLocaleContext();
-  const runtimeVariable = getRuntimeOutputVariable(variable);
-
-  const { getVariables } = useProjectStore(projectId, gitRef);
-  const variableYjs = getVariables();
-  const { outputs, getRefOutputData } = useCallAgentOutput({ projectId, gitRef, assistant: value });
-  const refOutput = getRefOutputData((variable.from && 'id' in variable.from && variable.from.id) || '');
-
-  const variables = (variableYjs?.variables || []).filter((x) => x.type?.type === (variable.type || 'string'));
-  const datastoreVariable = variables.find((x) => {
-    const j = variable?.variable ?? { scope: '', key: '' };
-    return `${x.scope}_${x.key}` === `${j.scope}_${j.key}`;
-  });
-
-  const error = useCheckConflictAssistantOutputAndSelectAgents({
-    selectAgentOutputVariables,
-    value,
-    v: variable,
-    depth,
-  });
-
-  const checkMemoryVariableDefined = (output: OutputVariableYjs) => {
-    if (output.variable) {
-      const { variable } = output;
-      if (variable && variable.key) {
-        const variableYjs = getVariables();
-        const found = variableYjs?.variables?.find((x) => x.key === variable.key && x.scope === variable.scope);
-
-        return found?.type?.type === output.type;
-      }
-    }
-
-    return true;
-  };
-
-  const mergeVariable = datastoreVariable?.type
-    ? {
-        ...datastoreVariable?.type,
-        id: variable.id,
-        name: variable.name,
-        description: variable.description,
-        required: variable.required,
-      }
-    : variable;
-
-  const backgroundColor = useMemo(() => {
-    if (variable.hidden) {
-      return 'rgba(0, 0, 0, 0.04) !important';
-    }
-
-    if (error || !checkMemoryVariableDefined(variable)) {
-      return 'rgba(255, 215, 213, 0.4) !important';
-    }
-
-    return 'transparent !important';
-  }, [error, variable.hidden]);
-
-  const readOnly = Boolean(disabled || variable.hidden || Boolean(variable.from?.type === 'output'));
-
-  useEffect(() => {
-    // 自动关联文本输出
-    if (variable.from?.type === 'output') {
-      if (variable.name === RuntimeOutputVariable.text) {
-        const found = outputs.find((i) => i.name === RuntimeOutputVariable.text);
-        if (found && variable.from?.id !== found.id) {
-          variable.from.id = found.id;
-          return;
-        }
-      }
-
-      if (!refOutput) onRemove?.();
-    }
-  }, [outputs.map((x) => x.id).join(','), refOutput]);
-
-  const settingRef = useRef<PopperButtonImperative>(null);
-
-  if (variable.from?.type === 'output' && !refOutput) return null;
-
-  return (
-    <>
-      <SettingActionDialogProvider
-        popperRef={settingRef}
-        depth={depth}
-        disabled={readOnly}
-        onRemove={onRemove}
-        output={variable}
-        variable={datastoreVariable}
-        projectId={projectId}
-        gitRef={gitRef}
-        assistant={value}>
-        <Tooltip
-          title={error || !checkMemoryVariableDefined(variable) ? t('memoryNotDefined') : undefined}
-          placement="top-start">
-          <Box
-            ref={rowRef}
-            {...props}
-            component={TableRow}
-            key={variable.id}
-            sx={{
-              backgroundColor,
-              '*': {
-                color: Boolean(disabled || variable.hidden) ? 'text.disabled' : undefined,
-              },
-              cursor: readOnly ? 'not-allowed' : 'pointer',
-              ...props.sx,
-            }}>
-            <Box component={TableCell} onClick={settingRef.current?.open}>
-              {firstColumnChildren}
-
-              <Box sx={{ ml: depth === 0 ? depth : depth + 2 }}>
-                <OutputNameCell
-                  data-testid="output-name-cell"
-                  projectId={projectId}
-                  gitRef={gitRef}
-                  assistant={value}
-                  depth={depth}
-                  output={variable}
-                  TextFieldProps={{ disabled: parent?.type === 'array' || readOnly }}
-                />
-              </Box>
-            </Box>
-            <Box component={TableCell}>
-              <OutputFromSelector output={variable} openSettings={() => settingRef.current?.open()} />
-            </Box>
-            <Box component={TableCell}>
-              <OutputDescriptionCell
-                data-testid="output-variable-description"
-                projectId={projectId}
-                gitRef={gitRef}
-                assistant={value}
-                output={variable}
-                TextFieldProps={{ disabled: readOnly }}
-              />
-            </Box>
-            <Box component={TableCell} onClick={settingRef.current?.open}>
-              <OutputFormatCell
-                data-testid="output-variable-format"
-                assistant={value}
-                output={variable}
-                variable={datastoreVariable}
-                TextFieldProps={{ disabled: readOnly }}
-              />
-            </Box>
-            <Box component={TableCell} onClick={settingRef.current?.open}>
-              <OutputRequiredCell data-testid="output-required-cell" output={variable} disabled={Boolean(disabled)} />
-            </Box>
-            <Box component={TableCell} onClick={settingRef.current?.open}>
-              <OutputAppearanceCell
-                data-testid="output-appearance-cell"
-                projectId={projectId}
-                gitRef={gitRef}
-                assistant={value}
-                output={variable}
-              />
-            </Box>
-            <Box component={TableCell} align="right">
-              <OutputActionsCell
-                data-testid="output-variable-actions"
-                depth={depth}
-                disabled={disabled}
-                onRemove={onRemove}
-                output={variable}
-                variable={datastoreVariable}
-                projectId={projectId}
-                gitRef={gitRef}
-                assistant={value}
-              />
-            </Box>
-          </Box>
-        </Tooltip>
-      </SettingActionDialogProvider>
-
-      {!runtimeVariable &&
-        mergeVariable.type === 'object' &&
-        mergeVariable.properties &&
-        sortBy(Object.values(mergeVariable.properties), 'index').map((property) => (
-          <React.Fragment key={property.data.id}>
-            <VariableRow
-              parent={mergeVariable}
-              disabled={Boolean(variable.variable?.key || disabled)}
-              value={value}
-              variable={property.data}
-              depth={depth + 1}
-              projectId={projectId}
-              gitRef={gitRef}
-              onRemove={() => {
-                const doc = (getYjsValue(variable) as Map<any>).doc!;
-                doc.transact(() => {
-                  if (!mergeVariable.properties) return;
-                  delete mergeVariable.properties[property.data.id];
-                  sortBy(Object.values(mergeVariable.properties), 'index').forEach(
-                    (item, index) => (item.index = index)
-                  );
-                });
-              }}
-            />
-          </React.Fragment>
-        ))}
-
-      {!runtimeVariable && mergeVariable.type === 'array' && mergeVariable.element && (
-        <VariableRow
-          parent={mergeVariable}
-          disabled={Boolean(variable.variable?.key || disabled)}
-          projectId={projectId}
-          gitRef={gitRef}
-          value={value}
-          variable={mergeVariable.element}
-          depth={depth + 1}
-        />
-      )}
-    </>
   );
 }
 
@@ -718,182 +488,3 @@ export const useRoutesAssistantOutputs = ({
 
   return result;
 };
-
-const diffJSON = (found: OutputVariableYjs, v: OutputVariableYjs, t: any): string | undefined => {
-  const result = jsonDiff.diff(cloneDeep(found), cloneDeep(v));
-  if (result?.type) {
-    return t('diffOutputType', { name: v.name, type: found.type });
-  }
-
-  if (result?.required) {
-    // _old 为true时，不用判断
-    if (!result?.required?.__old) {
-      // 数据可能为 undefined
-      if ((result?.required?.__old ?? false) !== (result?.required?.__new ?? false)) {
-        return found.required
-          ? t('requiredOutputParams', { name: v.name })
-          : t('notRequiredOutputParams', { name: v.name });
-      }
-    }
-  }
-
-  if (result?.required__added) {
-    return t('notRequiredOutputParams', { name: v.name });
-  }
-
-  if (found?.type === 'object' && v.type === 'object') {
-    const object = Object.values(v?.properties || {})
-      .map((data) => {
-        if (data?.data) {
-          const outputs = Object.values(found?.properties || {}).map((x) => x.data);
-
-          const found1 = outputs.find((x) => x.name === data?.data?.name);
-          if (!found1) {
-            return t('notFoundOutputKeyFromSelectAgents', {
-              name: data?.data?.name,
-              outputNames: outputs.map((x) => x.name).join(','),
-            });
-          }
-
-          return diffJSON(cloneDeep(found1 || {}), cloneDeep(data?.data || {}), t);
-        }
-
-        return undefined;
-      })
-      .filter((x) => x);
-
-    return object[0];
-  }
-
-  if (found?.type === 'array' && v.type === 'array') {
-    return diffJSON(
-      cloneDeep(found?.element || {}) as OutputVariableYjs,
-      cloneDeep(v?.element || {}) as OutputVariableYjs,
-      t
-    );
-  }
-
-  return undefined;
-};
-
-const useCheckConflictAssistantOutputAndSelectAgents = ({
-  value,
-  depth,
-  v,
-  selectAgentOutputVariables,
-}: {
-  selectAgentOutputVariables?: AssistantYjs['outputVariables'];
-  value: AssistantYjs;
-  v: OutputVariableYjs;
-  depth?: number;
-}) => {
-  const { t } = useLocaleContext();
-
-  const result = useMemo(() => {
-    if (value.type !== 'router') {
-      return undefined;
-    }
-
-    if (depth !== 0) {
-      return undefined;
-    }
-
-    if (!v.name) {
-      return undefined;
-    }
-
-    // 系统数据对比
-    if (v.name.startsWith('$')) {
-      return undefined;
-    }
-
-    // 自定义数据对比
-    const outputs = Object.values(selectAgentOutputVariables || {})
-      .map((x) => x.data)
-      .filter((x) => !x.name?.startsWith('$'));
-
-    const found = outputs.find((x) => x.name === v.name);
-    if (!found) {
-      return t('notFoundOutputKeyFromSelectAgents', {
-        name: v.name,
-        outputNames: outputs.map((x) => x.name).join(','),
-      });
-    }
-
-    return diffJSON(cloneDeep(found || {}), cloneDeep(v || {}), t);
-  }, [value.type, depth, cloneDeep(v), selectAgentOutputVariables, t]);
-
-  return result;
-};
-
-const OutputFromOptions = [
-  { value: 'process', label: () => 'Process', hidden: false },
-  { value: 'input', label: () => 'Input', hidden: true },
-  { value: 'output', label: () => 'Output', hidden: true },
-  {
-    value: 'callAgent',
-    label: ({ output }: { output: OutputVariableYjs }) => {
-      const a = output.from?.type === 'callAgent' ? output.from.callAgent : undefined;
-
-      if (!a?.agentId) return 'Call Agent';
-
-      return (
-        <Box component="span">
-          Call&nbsp;
-          <AgentName {...a} agentId={a.agentId} type="tool" />
-        </Box>
-      );
-    },
-    hidden: false,
-  },
-] as const;
-
-const OutputFromOptionsMap = Object.fromEntries(OutputFromOptions.map((x) => [x.value, x]));
-
-function OutputFromSelector({ output, openSettings }: { output: OutputVariableYjs; openSettings?: () => void }) {
-  const doc = (getYjsValue(output) as Map<any>).doc!;
-  const current = OutputFromOptionsMap[output.from?.type || 'process'];
-
-  return (
-    <PopperMenu
-      ButtonProps={{
-        variant: 'text',
-        sx: {
-          my: 1,
-          p: 0,
-          cursor: 'pointer',
-          color: output.hidden ? 'text.disabled' : 'text.primary',
-          fontWeight: 400,
-          ':hover': {
-            backgroundColor: 'transparent',
-          },
-        },
-        disabled: output.hidden || current?.hidden,
-        children: (
-          <Box className="center" gap={1} justifyContent="flex-start">
-            <Box>{current?.label && <current.label output={output} />}</Box>
-            <Box component={Icon} icon={ChevronDownIcon} width={15} />
-          </Box>
-        ),
-      }}>
-      {OutputFromOptions.map(
-        (option) =>
-          !option.hidden && (
-            <MenuItem
-              key={option.value}
-              selected={option.value === current?.value}
-              onClick={() => {
-                if (current?.value === option.value) return;
-                doc.transact(() => {
-                  output.from ??= {};
-                  output.from.type = option.value === 'process' ? undefined : option.value;
-                });
-                if (option.value === 'callAgent') openSettings?.();
-              }}>
-              <option.label output={output} />
-            </MenuItem>
-          )
-      )}
-    </PopperMenu>
-  );
-}

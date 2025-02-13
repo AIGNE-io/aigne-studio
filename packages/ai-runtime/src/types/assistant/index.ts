@@ -220,6 +220,11 @@ export type OutputVariable = VariableType & {
           agentId?: string;
           inputs?: { [key: string]: any };
         };
+      }
+    | {
+        type: 'variable';
+        agentInstanceId?: string;
+        outputVariableId?: string;
       };
   appearance?: RuntimeOutputAppearance;
   initialValue?: RuntimeOutputVariablesSchema[RuntimeOutputVariable];
@@ -261,7 +266,7 @@ export interface ImageBlenderAssistant extends AssistantBase {
 
 export interface CallAssistant extends AssistantBase {
   type: 'callAgent';
-  agents?: Tool[];
+  agents?: ({ instanceId?: string } & Tool)[];
 }
 
 export interface PromptAssistant extends AssistantBase {

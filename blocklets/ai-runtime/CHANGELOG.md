@@ -1,3 +1,8 @@
+## 0.4.223 (2025-2-13)
+
+- chore: support add same agent in callAgent type
+- chore: support select agent output in callAgent type
+
 ## 0.4.222 (2025-2-11)
 
 - fix: retrieve adapter by agent model for each invocation

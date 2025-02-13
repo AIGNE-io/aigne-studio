@@ -1,4 +1,5 @@
 import { logger } from '@blocklet/sdk/lib/config';
+import { get } from 'lodash';
 import pick from 'lodash/pick';
 
 import { parseIdentity, stringifyIdentity } from '../../common/aid';
@@ -7,6 +8,23 @@ import { isNonNullable } from '../../utils/is-non-nullable';
 import { GetAgentResult } from '../assistant/type';
 import { nextTaskId } from '../utils/task-id';
 import { AgentExecutorBase } from './base';
+
+function getOutputVariablePath(variables: OutputVariable[], targetId: string): string[] {
+  const find = (items: OutputVariable[], path: string[] = []): string[] | null => {
+    for (const item of items) {
+      if (item.id === targetId) return [...path, item.name!];
+
+      if (item.type === 'object' && item.properties) {
+        const result = find(item.properties, [...path, item.name!]);
+        if (result) return result;
+      }
+    }
+
+    return null;
+  };
+
+  return find(variables) || [];
+}
 
 export class CallAgentExecutor extends AgentExecutorBase<CallAssistant> {
   private async getCalledAgents(agent: CallAssistant & GetAgentResult) {
@@ -75,6 +93,11 @@ export class CallAgentExecutor extends AgentExecutorBase<CallAssistant> {
     const lastAgentIdWithTextSteam = this.getLastTextSteamAgentId(calledAgents);
 
     const outputVariables = this.getOutputVariables(agent, calledAgents);
+    const outputFromResult = outputVariables.filter(
+      (i): i is OutputVariable & { from: { type: 'variable'; agentInstanceId: string; outputVariableId?: string } } =>
+        i.from?.type === 'variable'
+    );
+
     const hasTextStream = outputVariables?.some((i) => i.name === RuntimeOutputVariable.text);
 
     // 获取被调用的 agent
@@ -119,7 +142,19 @@ export class CallAgentExecutor extends AgentExecutorBase<CallAssistant> {
     const obj = {};
 
     for (const agent of calledAgents) {
-      Object.assign(obj, ...[await fn(agent)].flat());
+      const currentAgentResult = await fn(agent);
+
+      const found = outputFromResult.find((i) => i.from?.agentInstanceId === (agent.item.instanceId ?? agent.item.id));
+      if (found) {
+        const key = getOutputVariablePath(agent.agent.outputVariables || [], found.from.outputVariableId!);
+
+        Object.assign(obj, {
+          ...currentAgentResult,
+          [found.name!]: found.from?.outputVariableId ? get(currentAgentResult, key) : currentAgentResult,
+        });
+      } else {
+        Object.assign(obj, ...[currentAgentResult].flat());
+      }
     }
 
     const result = pick(obj, outputVariables.map((i) => i.name).filter(isNonNullable));
