@@ -1,3 +1,7 @@
+## 0.4.226 (2025-2-13)
+
+- fix: filter type not source input parameters
+
 ## 0.4.225 (2025-2-13)
 
 - feat: support access to the output of the previous agent
