@@ -1,3 +1,7 @@
+## 0.4.227 (2025-2-13)
+
+- fix: select outputs as the output text stream
+
 ## 0.4.226 (2025-2-13)
 
 - fix: filter type not source input parameters
