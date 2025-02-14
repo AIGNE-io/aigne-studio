@@ -1,3 +1,7 @@
+## 0.4.228 (2025-2-14)
+
+- feat: support call agent block drag and drop sorting
+
 ## 0.4.227 (2025-2-13)
 
 - fix: select outputs as the output text stream
