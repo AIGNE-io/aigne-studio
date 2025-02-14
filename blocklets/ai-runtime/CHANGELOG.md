@@ -1,3 +1,7 @@
+## 0.4.229 (2025-2-14)
+
+- fix: the index problem caused by deleting the agent
+
 ## 0.4.228 (2025-2-14)
 
 - feat: support call agent block drag and drop sorting

@@ -54,7 +54,6 @@ export default function CallAgentEditor({
   const { t } = useLocaleContext();
   const { getFileById } = useProjectStore(projectId, gitRef);
 
-  const ref = useRef(null);
   const toolForm = useRef<ToolDialogImperative | null>(null);
   const selectedTool = useRef<ToolDialogForm | undefined>();
   const dialogState = usePopupState({ variant: 'dialog' });
@@ -63,7 +62,7 @@ export default function CallAgentEditor({
 
   return (
     <>
-      <Stack gap={1} width={1} ref={ref}>
+      <Stack gap={1} width={1}>
         <DragSortListYjs
           sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}
           disabled={readOnly}
@@ -161,7 +160,7 @@ export default function CallAgentEditor({
               value.agents[instanceId] = createAgent(getNextIndex(value.agents), { functionName });
             }
 
-            sortBy(Object.values(value.agents), 'index').forEach((tool, index) => (tool.index = index));
+            sortBy(Object.values(value.agents), 'index').forEach((i, index) => (i.index = index));
           });
 
           selectedTool.current = undefined;
@@ -488,9 +487,9 @@ export const AgentItemView = forwardRef(
                 const doc = (getYjsValue(assistant) as Map<any>).doc!;
                 doc.transact(() => {
                   const key = agent.instanceId || agent.id;
-
                   if (assistant.agents?.[key]) {
                     delete assistant.agents[key];
+                    sortBy(Object.values(assistant.agents), 'index').forEach((i, index) => (i.index = index));
                   }
                 });
               }}>
