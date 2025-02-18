@@ -18,7 +18,6 @@ import {
 import { defaultImageModel, defaultTextModel, getSupportedImagesModels } from '@blocklet/ai-runtime/common';
 import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { CallAI, CallAIImage, RunAssistantCallback, RuntimeExecutor, nextTaskId } from '@blocklet/ai-runtime/core';
-import { toolCallsTransform } from '@blocklet/ai-runtime/core/utils/tool-calls-transform';
 import {
   AssistantResponseType,
   ImageAssistant,
@@ -443,12 +442,12 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
 
     if (llmResponseStream) {
       let text = '';
-      const calls: NonNullable<ChatCompletionChunk['delta']['toolCalls']> = [];
+      let calls: NonNullable<ChatCompletionChunk['delta']['toolCalls']> = [];
 
       for await (const chunk of llmResponseStream as ReadableStream<ChatCompletionResponse>) {
         if (isChatCompletionChunk(chunk)) {
           text += chunk.delta.content || '';
-          toolCallsTransform(calls, chunk);
+          if (chunk.delta.toolCalls?.length) calls = chunk.delta.toolCalls;
 
           if (stream) {
             emit({

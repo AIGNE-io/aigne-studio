@@ -28,7 +28,6 @@ import { isNonNullable } from '../../utils/is-non-nullable';
 import selectAgentName from '../assistant/select-agent';
 import { RunAssistantCallback, ToolCompletionDirective } from '../assistant/type';
 import { nextTaskId } from '../utils/task-id';
-import { toolCallsTransform } from '../utils/tool-calls-transform';
 import { AgentExecutorBase } from './base';
 
 const md5 = (str: string) => crypto.createHash('md5').update(str).digest('hex');
@@ -177,7 +176,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
               toolAssistant: dataset,
               function: {
                 name: (functionTranslateName || name).replace(/[^a-zA-Z0-9_-]/g, '_')?.slice(0, 64) || dataset.path,
-                descriptions: dataset.description || name || '',
+                description: dataset.description || name || '',
                 parameters: {
                   type: 'object',
                   properties: Object.fromEntries(datasetParameters),
@@ -234,7 +233,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
             toolAssistant,
             function: {
               name: (functionTranslateName || name)?.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64) || toolAssistant.id,
-              descriptions: toolAssistant.description,
+              description: name,
               parameters: {
                 type: 'object',
                 properties: Object.fromEntries(toolParameters),
@@ -313,7 +312,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
             input,
           });
 
-      const calls: NonNullable<ChatCompletionChunk['delta']['toolCalls']> = [];
+      let calls: NonNullable<ChatCompletionChunk['delta']['toolCalls']> = [];
 
       for await (const chunk of response) {
         if (isChatCompletionUsage(chunk)) {
@@ -326,7 +325,9 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
         }
 
         if (isChatCompletionChunk(chunk)) {
-          toolCallsTransform(calls, chunk);
+          if (chunk.delta.toolCalls?.length) {
+            calls = chunk.delta.toolCalls;
+          }
         }
       }
 
@@ -340,7 +341,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
       type: 'function',
       function: {
         name: i.function.name,
-        description: i.function.descriptions,
+        description: i.function.description,
         parameters: i.function.parameters,
       },
     }));
@@ -434,7 +435,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
             type: 'function',
             function: {
               name: i.function.name,
-              description: i.function.descriptions,
+              description: i.function.description,
               parameters: i.function.parameters,
             },
           })),
@@ -442,7 +443,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
             type: 'function',
             function: {
               name: tool.function.name,
-              description: tool.function.descriptions,
+              description: tool.function.description,
             },
           },
         });
@@ -464,12 +465,13 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
       requestCalls &&
       (await Promise.all(
         requestCalls.map(async (call) => {
-          if (!call.function?.name || !call.function.arguments) return undefined;
+          if (!call.function?.name) return undefined;
 
           const tool = toolAssistantMap[call.function.name];
           if (!tool) return undefined;
 
-          const requestData = JSON.parse(call.function.arguments);
+          const requestData = JSON.parse(call.function.arguments!);
+
           const currentTaskId = nextTaskId();
           const toolAssistant = tool?.toolAssistant as Assistant;
 

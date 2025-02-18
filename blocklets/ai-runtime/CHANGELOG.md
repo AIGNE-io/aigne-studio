@@ -1,3 +1,8 @@
+## 0.4.230 (2025-2-18)
+
+- fix: correct function calling response
+- feat: support access to the output of the previous agent
+
 ## 0.4.229 (2025-2-14)
 
 - fix: the index problem caused by deleting the agent
