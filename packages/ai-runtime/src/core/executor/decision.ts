@@ -28,7 +28,6 @@ import { isNonNullable } from '../../utils/is-non-nullable';
 import selectAgentName from '../assistant/select-agent';
 import { RunAssistantCallback, ToolCompletionDirective } from '../assistant/type';
 import { nextTaskId } from '../utils/task-id';
-import { toolCallsTransform } from '../utils/tool-calls-transform';
 import { AgentExecutorBase } from './base';
 
 const md5 = (str: string) => crypto.createHash('md5').update(str).digest('hex');
@@ -313,7 +312,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
             input,
           });
 
-      const calls: NonNullable<ChatCompletionChunk['delta']['toolCalls']> = [];
+      let calls: NonNullable<ChatCompletionChunk['delta']['toolCalls']> = [];
 
       for await (const chunk of response) {
         if (isChatCompletionUsage(chunk)) {
@@ -326,7 +325,9 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
         }
 
         if (isChatCompletionChunk(chunk)) {
-          toolCallsTransform(calls, chunk);
+          if (chunk.delta.toolCalls?.length) {
+            calls = chunk.delta.toolCalls;
+          }
         }
       }
 
@@ -469,15 +470,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
           const tool = toolAssistantMap[call.function.name];
           if (!tool) return undefined;
 
-          let requestData: Record<string, unknown> = {};
-          try {
-            requestData = JSON.parse(call.function.arguments ?? '{}');
-          } catch (error) {
-            logger.info('Failed to parse function arguments:', {
-              arguments: call.function.arguments,
-              error: error instanceof Error ? error.message : String(error),
-            });
-          }
+          const requestData = JSON.parse(call.function.arguments!);
 
           const currentTaskId = nextTaskId();
           const toolAssistant = tool?.toolAssistant as Assistant;
