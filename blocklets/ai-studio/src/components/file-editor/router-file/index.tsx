@@ -415,6 +415,7 @@ export function AgentItemView({
               ) : null
             ) : (
               <TextField
+                multiline
                 disabled={!target}
                 onClick={(e) => e.stopPropagation()}
                 hiddenLabel
