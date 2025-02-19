@@ -43,8 +43,8 @@ export default function PromptSetting({
   const { t } = useLocaleContext();
   const readOnly = useReadOnly({ ref: gitRef }) || disabled;
   const dialogState = usePopupState({ variant: 'dialog' });
-
   const conditionalBranch = value.type === 'router' && value.decisionType === 'json-logic';
+
   return (
     <Stack gap={2} direction="row" justifyContent="flex-end">
       {value.type === 'router' && (
@@ -64,7 +64,7 @@ export default function PromptSetting({
       {!conditionalBranch && (
         <Stack direction="row" alignItems="center">
           <ModelSelectLite
-            type={resolveModelType(value.type)!}
+            type={resolveModelType(value)!}
             projectId={projectId}
             gitRef={gitRef}
             agent={value as ModelBasedAssistantYjs}

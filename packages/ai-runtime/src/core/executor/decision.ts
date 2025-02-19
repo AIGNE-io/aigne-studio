@@ -602,7 +602,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
 
       for await (const i of result) {
         if (isChatCompletionChunk(i)) {
-          generated += i.delta.content || '';
+          generated += (i.delta.content ?? '').trim();
         }
       }
 
