@@ -1,3 +1,8 @@
+## 0.4.231 (2025-2-19)
+
+- feat: support multi-line description for decision agents
+- feat: support decision select llm adapter model
+
 ## 0.4.230 (2025-2-18)
 
 - fix: correct function calling response
