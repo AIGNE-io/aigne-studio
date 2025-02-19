@@ -10,7 +10,7 @@ import { useCurrentProject } from '../../contexts/project';
 import { AIGCModelSettings } from './settings/aigc-model-settings';
 import { LLMModelSettings } from './settings/llm-model-settings';
 import { useAgentDefaultModel, useAllModels } from './use-models';
-import { resolveModelType } from './utils';
+import { isModelType, resolveModelType } from './utils';
 
 interface ModelSettingsMenuButtonProps {
   agent: ModelBasedAssistantYjs;
@@ -19,7 +19,7 @@ interface ModelSettingsMenuButtonProps {
 export function ModelSettingsMenuButton({ agent }: ModelSettingsMenuButtonProps) {
   const { t } = useLocaleContext();
   const dialogState = usePopupState({ variant: 'dialog', popupId: 'model-settings' });
-  const models = useAllModels(resolveModelType(agent.type)!);
+  const models = useAllModels(resolveModelType(agent)!);
   const { projectId, projectRef } = useCurrentProject();
   const defaultModel = useAgentDefaultModel({ projectId, gitRef: projectRef, value: agent });
   const model = models.find((x) => x.model === defaultModel);
@@ -38,8 +38,8 @@ export function ModelSettingsMenuButton({ agent }: ModelSettingsMenuButtonProps)
           </IconButton>
         </DialogTitle>
         <DialogContent>
-          {agent.type === 'prompt' && <LLMModelSettings agent={agent} model={model as TextModelInfo} />}
-          {agent.type === 'image' && <AIGCModelSettings agent={agent} model={model as ImageModelInfo} />}
+          {isModelType.llm(agent) && <LLMModelSettings agent={agent} model={model as TextModelInfo} />}
+          {isModelType.aigc(agent) && <AIGCModelSettings agent={agent} model={model as ImageModelInfo} />}
         </DialogContent>
       </Dialog>
     </>

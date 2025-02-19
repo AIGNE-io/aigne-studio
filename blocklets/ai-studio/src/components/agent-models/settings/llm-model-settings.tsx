@@ -1,5 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { PromptAssistantYjs, TextModelInfo } from '@blocklet/ai-runtime/types';
+import { PromptAssistantYjs, RouterAssistantYjs, TextModelInfo } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import HelpIcon from '@iconify-icons/tabler/help';
 import { Box, FormLabel, Stack, Tooltip } from '@mui/material';
@@ -41,7 +41,7 @@ function normalizeSettings(settings: Partial<Settings>) {
 }
 
 interface LLMModelSettingsProps {
-  agent: PromptAssistantYjs;
+  agent: PromptAssistantYjs | RouterAssistantYjs;
   model: TextModelInfo;
 }
 

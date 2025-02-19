@@ -1,10 +1,16 @@
-import { AssistantYjs } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, ImageAssistantYjs, PromptAssistantYjs, RouterAssistantYjs } from '@blocklet/ai-runtime/types';
 
 import { ModelType } from './types';
 
-export function resolveModelType(type: AssistantYjs['type']): ModelType | null {
-  if (type === 'prompt') return 'llm';
-  if (type === 'image') return 'aigc';
+export const isModelType = {
+  llm: (agent: AssistantYjs): agent is PromptAssistantYjs | RouterAssistantYjs =>
+    agent.type === 'prompt' || agent.type === 'router',
+  aigc: (agent: AssistantYjs): agent is ImageAssistantYjs => agent.type === 'image',
+};
+
+export function resolveModelType(agent: AssistantYjs): ModelType | null {
+  if (isModelType.llm(agent)) return 'llm';
+  if (isModelType.aigc(agent)) return 'aigc';
   return null;
 }
 
