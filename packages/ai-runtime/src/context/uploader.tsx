@@ -8,7 +8,7 @@ interface UploaderProviderProps {
   children: ReactNode;
   plugins?: string[];
   dashboardProps?: {
-    fileManagerSelectionType?: string;
+    fileManagerSelectionType?: 'files' | 'folders' | 'both';
   };
   restrictions?: {
     allowedFileTypes?: string[];
