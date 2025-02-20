@@ -10,7 +10,7 @@ const defaultAllowedFileTypes = ['image/png', 'image/jpeg', 'image/gif'];
 interface UploaderProviderProps {
   children?: ReactNode;
   plugins?: string[];
-  dropTargetProps?: { target?: HTMLElement };
+  dropTargetProps?: { target: HTMLElement };
   dashboardProps?: {
     fileManagerSelectionType?: string;
     hideUploadButton?: boolean;
@@ -116,6 +116,7 @@ const UploaderProvider = forwardRef<HTMLDivElement, UploaderProviderProps>((prop
         popup={popup}
         onUploadFinish={handleUploadFinish}
         locale={locale}
+        // @ts-ignore
         dashboardProps={{
           hideProgressAfterFinish: true,
           ...(dashboardProps || {}),
@@ -129,6 +130,7 @@ const UploaderProvider = forwardRef<HTMLDivElement, UploaderProviderProps>((prop
         }}
         apiPathProps={apiPathProps}
         plugins={plugins}
+        // @ts-ignore
         dropTargetProps={dropTargetProps}
       />
     </UploaderContext.Provider>
