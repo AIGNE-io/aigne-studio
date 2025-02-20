@@ -1,4 +1,3 @@
-import { useProjectStore } from '@app/pages/project/yjs-state';
 import { useAgents } from '@app/store/agent';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { CallAssistantYjs } from '@blocklet/ai-runtime/types';
