@@ -1,3 +1,7 @@
+## 0.4.232 (2025-2-20)
+
+- chore: update deps
+
 ## 0.4.231 (2025-2-19)
 
 - feat: support multi-line description for decision agents

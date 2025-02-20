@@ -237,6 +237,7 @@ export default function ImportKnowledge({
                   <UploaderProvider
                     ref={providerRef}
                     popup={false}
+                    // @ts-ignore
                     dropTargetProps={{}}
                     plugins={[]}
                     apiPathProps={{
