@@ -55,7 +55,8 @@ export type AssistantYjs =
   | ImageAssistantYjs
   | RouterAssistantYjs
   | CallAssistantYjs
-  | ImageBlenderAssistantYjs;
+  | ImageBlenderAssistantYjs
+  | MCPAssistantYjs;
 
 export type ExecuteBlockSelectAllYjs = Omit<ExecuteBlockSelectAll, 'tools'> & {
   tools?: { [key: string]: { index: number; data: NonNullable<ExecuteBlock['tools']>[number] } };
@@ -180,6 +181,8 @@ export interface ApiAssistantYjs extends Omit<AssistantBaseYjs<ApiAssistant>, 'p
 export interface FunctionAssistantYjs extends Omit<AssistantBaseYjs<FunctionAssistant>, 'prepareExecutes'> {
   prepareExecutes?: { [key: string]: { index: number; data: ExecuteBlockYjs } };
 }
+
+export interface MCPAssistantYjs extends Omit<AssistantBaseYjs<FunctionAssistant>, 'prepareExecutes'> {}
 
 export type ParameterYjs =
   | Exclude<Parameter, { type: 'select' }>

@@ -23,6 +23,6 @@ export const USER_INPUT_PARAMETER_TYPES: NonNullable<ParameterYjs['type']>[] = [
   'verify_vc',
 ];
 
-export function isValidInput(input: ParameterYjs): input is ParameterYjs & { key: string } {
+export function isValidInput(input: Pick<ParameterYjs, 'key' | 'type'>): input is ParameterYjs & { key: string } {
   return !!input.key && USER_INPUT_PARAMETER_TYPES.includes(input.type || 'string');
 }

@@ -1,3 +1,7 @@
+## 0.4.234 (2025-2-20)
+
+- feat: support use MCP tools
+
 ## 0.4.233 (2025-2-20)
 
 - chore: update deps (#1713)

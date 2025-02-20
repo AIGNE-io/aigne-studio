@@ -44,7 +44,8 @@ export type Assistant =
   | FunctionAssistant
   | RouterAssistant
   | CallAssistant
-  | ImageBlenderAssistant;
+  | ImageBlenderAssistant
+  | MCPAssistant;
 
 export type Role = 'system' | 'user' | 'assistant';
 
@@ -305,6 +306,21 @@ export interface FunctionAssistant extends AssistantBase {
   type: 'function';
   prepareExecutes?: ExecuteBlock[];
   code?: string;
+}
+
+export interface MCPAssistant extends AssistantBase {
+  type: 'mcp';
+  mcp?: {
+    blocklet: {
+      did: string;
+      name?: string;
+      title: string;
+    };
+    type: 'tool' | 'prompt' | 'resource';
+    name: string;
+    uri?: string;
+    arguments?: { [key: string]: any };
+  };
 }
 
 export interface DatastoreParameter {

@@ -1,5 +1,6 @@
 import PopperMenu from '@app/components/menu/PopperMenu';
 import { useProjectStore } from '@app/pages/project/yjs-state';
+import { useAgents } from '@app/store/agent';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { AssistantYjs, OutputVariableYjs, RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
@@ -495,7 +496,6 @@ function OutputFromSelector({
   const doc = (getYjsValue(output) as Map<any>).doc!;
   const current = OutputFromOptionsMap[output.from?.type || 'process'];
   const { onEdit } = useCallAgentCustomOutputDialogState(projectId, gitRef, assistant.id);
-  const { getFileById } = useProjectStore(projectId, gitRef);
   const { t } = useLocaleContext();
 
   if (output.from?.type === 'variable' && assistant.type === 'callAgent') {
@@ -505,7 +505,8 @@ function OutputFromSelector({
 
     if (agentInstanceId) {
       const data = agents?.find((i) => i.data.instanceId === agentInstanceId || i.data.id === agentInstanceId);
-      const agent = getFileById(data?.data.id!);
+      // const agent = getFileById(data?.data.id!);
+      const agent = useAgents({ type: 'tool' }).agentMap[data?.data.id!];
       const agentName = data?.data?.functionName ?? agent?.name;
 
       if (agent) {

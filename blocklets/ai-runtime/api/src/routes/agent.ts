@@ -3,6 +3,7 @@ import { join } from 'path';
 import { getAgent, getAgentSecretInputs } from '@api/libs/agent';
 import { resourceManager } from '@api/libs/resource';
 import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
+import { getMcpResources } from '@blocklet/ai-runtime/common/mcp';
 import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
 import { Assistant, ProjectSettings, ResourceType } from '@blocklet/ai-runtime/types';
 import { Agent } from '@blocklet/aigne-sdk/api/agent';
@@ -31,31 +32,56 @@ router.get('/', async (req, res) => {
 
   const projects = await resourceManager.getProjects({ type: query.type });
 
-  const agents: Agent[] = projects.flatMap((project) =>
-    project.agents
-      .filter((agent) => {
-        if (query.type === 'application') {
-          return project.config?.entry === agent.id;
-        }
-        if (['tool', 'llm-adapter', 'aigc-adapter'].includes(query.type)) {
-          return agent.public;
-        }
-        return false;
-      })
-      .map((agent) =>
-        respondAgentFields({
+  const mcpAgents = query.type === 'tool' ? await getMcpResources() : [];
+
+  const agents: Agent[] = projects
+    .flatMap((project) =>
+      project.agents
+        .filter((agent) => {
+          if (query.type === 'application') {
+            return project.config?.entry === agent.id;
+          }
+          if (['tool', 'llm-adapter', 'aigc-adapter'].includes(query.type)) {
+            return agent.public;
+          }
+          return false;
+        })
+        .map((agent) =>
+          respondAgentFields({
+            agent,
+            identity: {
+              aid: stringifyIdentity({
+                blockletDid: project.blocklet.did,
+                projectId: project.project.id,
+                agentId: agent.id,
+              }),
+            },
+            project: project.project,
+          })
+        )
+    )
+    .concat(
+      mcpAgents.map((agent) => {
+        const projectId = `mcp_${agent.mcp!.blocklet.did}`;
+
+        return respondAgentFields({
           agent,
           identity: {
             aid: stringifyIdentity({
-              blockletDid: project.blocklet.did,
-              projectId: project.project.id,
+              blockletDid: agent.mcp!.blocklet.did,
+              projectId,
               agentId: agent.id,
             }),
           },
-          project: project.project,
-        })
-      )
-  );
+          project: {
+            id: projectId,
+            name: agent.mcp!.blocklet.title,
+            createdBy: agent.createdBy,
+            updatedBy: agent.updatedBy,
+          },
+        });
+      })
+    );
 
   res.json({ agents });
 });

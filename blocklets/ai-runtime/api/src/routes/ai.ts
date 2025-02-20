@@ -144,7 +144,7 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
 
   await validateDebugModeAccess(!!input.debug, userId, req.user?.role || '', project.createdBy);
 
-  let executor: RuntimeExecutor;
+  let executor: RuntimeExecutor | undefined;
 
   const getAdapterAgent = async ({
     blockletDid,
@@ -155,7 +155,7 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
     projectId: string;
     agentId: string;
   }) => {
-    return executor.context.getAgent({
+    return executor!.context.getAgent({
       aid: stringifyIdentity({
         blockletDid,
         projectId,
@@ -176,7 +176,7 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
       });
 
       return (
-        await executor.context
+        await executor!.context
           .executor(adapterAgent, {
             inputs: {
               ...input,
@@ -227,7 +227,7 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
         agentId: adapter.agent.id,
       });
 
-      const result = await executor.context
+      const result = await executor!.context
         .executor(adapterAgent, {
           inputs: { ...input, ...(agent.type === 'image' ? agent.modelSettings : {}) },
           taskId: nextTaskId(),
@@ -504,6 +504,8 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
       res.status(500).json({ error });
     }
     res.end();
+  } finally {
+    await executor?.context.destroy();
   }
 
   await history?.update({

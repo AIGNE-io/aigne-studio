@@ -245,7 +245,7 @@ export function ModelSelectDialog({ type, dialogProps, agent }: ModelSelectDialo
             onMouseDown={() => {
               addComponentRef.current?.onClick?.();
             }}>
-            {t('addMoreAgentTools')}
+            {t('installMoreModels')}
           </Button>
           {!isAdmin && (
             <Tooltip title={t('installMoreModelsTip')} placement="top" disableInteractive enterTouchDelay={0}>
