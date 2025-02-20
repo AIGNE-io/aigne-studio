@@ -1,3 +1,8 @@
+## 0.4.233 (2025-2-20)
+
+- fix: resolve uploader type error
+- fix: resolve preload component error
+
 ## 0.4.232 (2025-2-20)
 
 - chore: update deps
