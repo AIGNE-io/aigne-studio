@@ -151,7 +151,7 @@ export default function AgentSelect<
                 disabled={!isAdmin}
                 onMouseDown={addComponentRef.current?.onClick}
                 startIcon={<Icon icon={BrandAppgalleryIcon} />}>
-                {t('addMoreAgentTools')}
+                {t('installMoreAgent')}
               </Button>
 
               {!isAdmin && (

@@ -106,7 +106,7 @@ export default function CallAgentEditor({
               toolForm.current?.form.reset({ id: '' });
               dialogState.open();
             }}>
-            {t('addMoreAgentTools')}
+            {t('addObject', { object: t('agent') })}
           </Button>
         </Box>
       </Stack>

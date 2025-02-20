@@ -173,7 +173,7 @@ export default function RouterAssistantEditor({
                   toolForm.current?.form.reset({ id: '' });
                   dialogState.open();
                 }}>
-                {t('addMoreAgentTools')}
+                {t('addObject', { object: t('agent') })}
               </Button>
             </Box>
           )}
