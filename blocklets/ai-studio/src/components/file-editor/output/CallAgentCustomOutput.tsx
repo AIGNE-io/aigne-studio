@@ -15,7 +15,6 @@ import {
   Select,
   Stack,
   Table,
-  TableCell,
   Typography,
 } from '@mui/material';
 import { sortBy } from 'lodash';
@@ -23,7 +22,6 @@ import { useEffect, useState } from 'react';
 
 import { AgentName } from '../input/InputTable';
 import { useCallAgentCustomOutputDialogState } from '../use-call-agent-output';
-import VariableRow from './VariableRow';
 
 interface SelectAgentOutputDialogProps {
   projectId: string;
@@ -44,7 +42,6 @@ export function SelectAgentOutputDialog({
 }: SelectAgentOutputDialogProps) {
   const { t } = useLocaleContext();
   const { state, onReset } = useCallAgentCustomOutputDialogState(projectId, gitRef, assistant.id);
-  const { getFileById } = useProjectStore(projectId, gitRef);
 
   const agents = assistant.agents && sortBy(Object.values(assistant.agents), (i) => i.index);
 
