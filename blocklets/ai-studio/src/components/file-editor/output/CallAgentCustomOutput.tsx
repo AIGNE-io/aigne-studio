@@ -1,4 +1,5 @@
 import { useProjectStore } from '@app/pages/project/yjs-state';
+import { useAgents } from '@app/store/agent';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { CallAssistantYjs } from '@blocklet/ai-runtime/types';
 import {
@@ -12,6 +13,7 @@ import {
   MenuItem,
   Radio,
   Select,
+  Stack,
   Table,
   TableCell,
   Typography,
@@ -19,6 +21,7 @@ import {
 import { sortBy } from 'lodash';
 import { useEffect, useState } from 'react';
 
+import { AgentName } from '../input/InputTable';
 import { useCallAgentCustomOutputDialogState } from '../use-call-agent-output';
 import VariableRow from './VariableRow';
 
@@ -89,8 +92,8 @@ export function SelectAgentOutputDialog({
     onClose();
   };
 
-  const agent = getFileById(currentAgent?.data.id!);
-  const outputs = sortBy(Object.values(agent?.outputVariables || {}), (i) => i.index);
+  const agent = useAgents({ type: 'tool' }).agentMap[currentAgent?.data.id!];
+  const outputs = agent?.outputVariables ?? [];
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
@@ -106,7 +109,12 @@ export function SelectAgentOutputDialog({
               <MenuItem
                 key={`${agent.data.instanceId}-${agent.data.id}`}
                 value={agent.data.instanceId ?? agent.data.id}>
-                {agent.data.functionName ?? getFileById(agent.data.id)?.name}
+                <AgentName
+                  type="tool"
+                  blockletDid={agent.data.blockletDid}
+                  agentId={agent.data.id}
+                  projectId={agent.data.projectId}
+                />
               </MenuItem>
             ))}
           </Select>
@@ -119,29 +127,23 @@ export function SelectAgentOutputDialog({
           <Table sx={{ td: { p: '4px !important' } }}>
             {agent && (
               <Box component="tbody">
-                {outputs.map((output) => (
-                  <VariableRow
-                    isReadOnly
-                    showArrayElement={false}
-                    onClickRow={(variable) => setSelectedOutputs(variable.id)}
-                    renderCustomColumn={(variable) => {
-                      return (
-                        <Box component={TableCell} sx={{ width: 20 }}>
-                          <Radio
-                            checked={outputVariableId.includes(variable.id)}
-                            onChange={() => setSelectedOutputs(variable.id)}
-                          />
-                        </Box>
-                      );
-                    }}
-                    showColumn={['name']}
-                    key={output.data.id}
-                    variable={output.data}
-                    value={agent}
-                    projectId={projectId}
-                    gitRef={gitRef}
-                  />
-                ))}
+                {outputs.map((output) => {
+                  return (
+                    <Stack key={output.id} direction="row" alignItems="center" gap={1}>
+                      <Box>
+                        <Radio
+                          id={`output-${output.id}`}
+                          checked={outputVariableId.includes(output.id)}
+                          onChange={() => setSelectedOutputs(output.id)}
+                        />
+                      </Box>
+
+                      <Box flex={1} component="label" htmlFor={`output-${output.id}`}>
+                        {output.name || output.id}
+                      </Box>
+                    </Stack>
+                  );
+                })}
               </Box>
             )}
           </Table>

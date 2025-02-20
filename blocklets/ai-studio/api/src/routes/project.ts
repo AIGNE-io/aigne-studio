@@ -12,6 +12,7 @@ import { uploadImageToImageBin } from '@api/libs/image-bin';
 import AgentInputSecret from '@api/store/models/agent-input-secret';
 import ProjectExtra from '@api/store/models/project-extra';
 import {
+  Assistant,
   MemoryFile,
   ProjectSettings,
   ResourceProject,
@@ -67,6 +68,7 @@ import {
   defaultBranch,
   defaultRemote,
   getAssistantIdFromPath,
+  getAssistantsOfRepository,
   getRepository,
   repositoryRoot,
   syncRepository,
@@ -403,9 +405,10 @@ export function projectRoutes(router: Router) {
     throw new NotFoundError(`No such project ${projectId}`);
   });
 
-  const getProjectQuerySchema = Joi.object<{ projectRef?: string; working?: boolean }>({
+  const getProjectQuerySchema = Joi.object<{ projectRef?: string; working?: boolean; agents?: boolean }>({
     projectRef: Joi.string().empty(['', null]),
     working: Joi.boolean().empty(['', null]),
+    agents: Joi.boolean().empty(['', null]),
   });
 
   router.get('/projects/:projectId', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
@@ -425,7 +428,17 @@ export function projectRoutes(router: Router) {
 
     checkProjectPermission({ req, project });
 
-    res.json({ ...project.dataValues, ...settings });
+    let agents: Assistant[] | undefined;
+
+    if (query.agents) {
+      agents = await getAssistantsOfRepository({
+        projectId,
+        ref: query.projectRef || project.gitDefaultBranch,
+        working: query.working,
+      });
+    }
+
+    res.json({ ...project.dataValues, ...settings, agents });
   });
 
   router.get(

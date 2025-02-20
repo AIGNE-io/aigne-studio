@@ -11,6 +11,7 @@ import { DecisionAgentExecutor } from './decision';
 import { ImageBlenderAgentExecutor } from './image-blender';
 import { LLMAgentExecutor } from './llm';
 import { LogicAgentExecutor } from './logic';
+import { McpAgentExecutor } from './mcp-client';
 
 export class RuntimeExecutor extends AgentExecutorBase<GetAgentResult> {
   constructor(
@@ -78,6 +79,9 @@ export class RuntimeExecutor extends AgentExecutorBase<GetAgentResult> {
       }
       case 'imageBlender': {
         return new ImageBlenderAgentExecutor(this.context, agent, options).execute();
+      }
+      case 'mcp': {
+        return new McpAgentExecutor(this.context, agent, options).execute();
       }
       default: {
         logger.error('Unsupported agent type', { agent });

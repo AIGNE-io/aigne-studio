@@ -1,3 +1,4 @@
+import AgentSelect from '@app/components/agent-select';
 import { isValidInput } from '@app/libs/util';
 import { PROMPTS_FOLDER_NAME, useCreateFile, useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
@@ -122,6 +123,30 @@ const ToolDialog = forwardRef<
               rules={{ required: t('validation.fieldRequired') }}
               render={({ field, fieldState }) => {
                 const value = formatOptions.find((x) => x.id === field.value);
+                const { projectId, blockletDid } = form.getValues();
+
+                return (
+                  <AgentSelect
+                    type="tool"
+                    excludes={[assistant.id]}
+                    autoFocus
+                    disableClearable
+                    value={field.value ? { id: field.value, projectId, blockletDid } : undefined}
+                    onChange={(_, v) => {
+                      if (v) {
+                        form.setValue('blockletDid', v.blockletDid);
+                        form.setValue('projectId', v.projectId);
+                        field.onChange({ target: { value: v.id } });
+                        // source.agent = {
+                        //   blockletDid: v.blockletDid,
+                        //   projectId: v.projectId,
+                        //   id: v.id,
+                        //   from: 'assistant',
+                        // };
+                      }
+                    }}
+                  />
+                );
 
                 return (
                   <Autocomplete

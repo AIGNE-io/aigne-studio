@@ -8,7 +8,7 @@ import PlusIcon from '@iconify-icons/tabler/plus';
 import { Box, Divider, ListItemIcon, MenuItem } from '@mui/material';
 import { sortBy } from 'lodash';
 
-import useCallAgentOutput, { useCallAgentCustomOutputDialogState } from '../use-call-agent-output';
+import { useCallAgentCustomOutputDialogState } from '../use-call-agent-output';
 import { runtimeOutputVariables } from './type';
 
 const ActionRefOutput = ({
@@ -21,10 +21,7 @@ const ActionRefOutput = ({
   gitRef: string;
 }) => {
   const { t } = useLocaleContext();
-  const { outputs } = useCallAgentOutput({ projectId, gitRef, assistant });
   const { onOpen, onEdit } = useCallAgentCustomOutputDialogState(projectId, gitRef, assistant.id);
-
-  if (!outputs?.length) return null;
 
   return (
     <>

@@ -141,6 +141,12 @@ export function getProjectIconUrl(
     updatedAt?: string | number | Date;
   }
 ) {
+  if (projectId.startsWith('mcp_')) {
+    return withQuery(joinURL('/.well-known/service/blocklet/logo-bundle/', projectId.replace('mcp_', '')), {
+      v: updatedAt,
+    });
+  }
+
   const component = blocklet?.componentMountPoints.find((i) => i.did === AIGNE_STUDIO_COMPONENT_DID);
   return withQuery(
     joinURL(window.location.origin, component?.mountPoint || '', `/api/projects/${projectId}/logo.png`),

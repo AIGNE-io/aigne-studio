@@ -8,6 +8,7 @@ import image from './image';
 import knowledgeDocuments from './knowledge/documents';
 import knowledge from './knowledge/knowledge';
 import knowledgeSegments from './knowledge/segments';
+import mcpRoutes from './mcp';
 import memory from './memory';
 import { messageRoutes } from './message';
 import { projectRoutes } from './project';
@@ -30,5 +31,6 @@ router.use('/datasets', knowledgeSegments);
 router.use('/', cacheRouter);
 router.use('/cron-histories', cronHistoryRoutes);
 router.use('/images', image);
+router.use('/mcp', mcpRoutes);
 
 export default router;

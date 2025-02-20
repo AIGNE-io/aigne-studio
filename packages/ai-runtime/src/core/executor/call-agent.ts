@@ -39,8 +39,8 @@ export class CallAgentExecutor extends AgentExecutorBase<CallAssistant> {
         item,
         agent: await this.context.getAgent({
           aid: stringifyIdentity({
-            blockletDid: identity.blockletDid,
-            projectId: identity.projectId,
+            blockletDid: item.blockletDid || identity.blockletDid,
+            projectId: item.projectId || identity.projectId,
             projectRef: identity.projectRef,
             agentId: item.id,
           }),

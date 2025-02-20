@@ -1,9 +1,17 @@
 import Secret from '@api/store/models/secret';
 import { getSupportedImagesModels, getSupportedModels } from '@blocklet/ai-runtime/common';
 import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
+import { getMcpResources } from '@blocklet/ai-runtime/common/mcp';
 import { GetAgentOptions, GetAgentResult } from '@blocklet/ai-runtime/core';
 import { resolveSecretInputs } from '@blocklet/ai-runtime/core/utils/resolve-secret-inputs';
-import { BlockletAgent, ProjectSettings, ResourceType, SelectParameter, Variable } from '@blocklet/ai-runtime/types';
+import {
+  Assistant,
+  BlockletAgent,
+  ProjectSettings,
+  ResourceType,
+  SelectParameter,
+  Variable,
+} from '@blocklet/ai-runtime/types';
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 
 import { getAgentFromAIStudio, getMemoryVariablesFromAIStudio, getProjectFromAIStudio } from './ai-studio';
@@ -15,20 +23,32 @@ export interface GetProjectOptions {
   projectRef?: string;
   working?: boolean;
   rejectOnEmpty?: boolean | Error;
+  agents?: boolean;
 }
 
 export async function getProject(
   options: GetProjectOptions & { rejectOnEmpty?: false }
-): Promise<ProjectSettings | null | undefined>;
+): Promise<(ProjectSettings & { agents?: Assistant[] }) | null | undefined>;
 export async function getProject(
   options: GetProjectOptions & { rejectOnEmpty: true | Error }
-): Promise<ProjectSettings>;
-export async function getProject({ blockletDid, projectId, projectRef, working, rejectOnEmpty }: GetProjectOptions) {
-  let project: ProjectSettings | undefined;
+): Promise<ProjectSettings & { agents?: Assistant[] }>;
+export async function getProject({
+  blockletDid,
+  projectId,
+  projectRef,
+  working,
+  rejectOnEmpty,
+  agents,
+}: GetProjectOptions) {
+  let project: (ProjectSettings & { agents?: Assistant[] }) | undefined;
   if (blockletDid) {
-    project = (await resourceManager.getProject({ blockletDid, projectId }))?.project;
+    const r = await resourceManager.getProject({ blockletDid, projectId });
+    if (r) {
+      project = r.project;
+      if (agents) project.agents = r.agents;
+    }
   } else {
-    project = await getProjectFromAIStudio({ projectId, projectRef, working });
+    project = await getProjectFromAIStudio({ projectId, projectRef, working, agents });
   }
 
   if (!project) {
@@ -67,23 +87,40 @@ export async function getAgent({ aid, working, rejectOnEmpty }: GetAgentOptions)
   const { blockletDid, projectId, projectRef = 'main', agentId } = parseIdentity(aid, { rejectWhenError: true });
 
   if (blockletDid) {
-    const res = await resourceManager.getAgent({
-      blockletDid,
-      projectId,
-      agentId,
-    });
+    if (projectId.startsWith('mcp_')) {
+      const a = (await getMcpResources({ blockletDid })).find((i) => i.id === agentId);
 
-    if (res) {
-      agent = {
-        ...res.agent,
-        project: res.project,
-        identity: {
-          blockletDid,
-          projectId,
-          agentId,
-          aid: stringifyIdentity({ blockletDid, projectId, agentId }),
-        },
-      };
+      if (a) {
+        agent = {
+          ...a,
+          identity: { blockletDid, projectId, agentId, aid },
+          project: {
+            id: `mcp_${blockletDid}`,
+            name: a.mcp?.blocklet.name,
+            createdBy: a.createdBy,
+            updatedBy: a.updatedBy,
+          },
+        };
+      }
+    } else {
+      const res = await resourceManager.getAgent({
+        blockletDid,
+        projectId,
+        agentId,
+      });
+
+      if (res) {
+        agent = {
+          ...res.agent,
+          project: res.project,
+          identity: {
+            blockletDid,
+            projectId,
+            agentId,
+            aid: stringifyIdentity({ blockletDid, projectId, agentId }),
+          },
+        };
+      }
     }
   } else {
     const res = await getAgentFromAIStudio({ projectId, projectRef, agentId, working });

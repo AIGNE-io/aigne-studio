@@ -5,6 +5,7 @@ import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { memoize } from '@blocklet/quickjs';
 import { call } from '@blocklet/sdk/lib/component';
 import config, { logger } from '@blocklet/sdk/lib/config';
+import { Client } from '@modelcontextprotocol/sdk/client/index';
 import Joi from 'joi';
 import jsonStableStringify from 'json-stable-stringify';
 import isEmpty from 'lodash/isEmpty';
@@ -61,7 +62,8 @@ export class ExecutorContext {
       | 'getSecret'
       | 'queryCache'
       | 'setCache'
-    >
+    > &
+      Partial<Pick<ExecutorContext, 'mcpInstances'>>
   ) {
     this.entry = options.entry;
     this.getAgent = memoize(options.getAgent, {
@@ -82,6 +84,7 @@ export class ExecutorContext {
     this.getSecret = options.getSecret;
     this.queryCache = options.queryCache;
     this.setCache = options.setCache;
+    this.mcpInstances = options.mcpInstances || {};
   }
 
   entry: {
@@ -166,6 +169,20 @@ export class ExecutorContext {
     const { openApis, agentsMap } = await this.promise;
 
     return { agent: agentsMap[agentId]!, openApis };
+  }
+
+  mcpInstances: { [key: string]: Promise<Client> } = {};
+
+  async destroy() {
+    await Promise.all(
+      Object.values(this.mcpInstances).map((mcp) =>
+        mcp
+          .then((client) => client.close())
+          .catch((error) => {
+            logger.error('close mcp client error', { error });
+          })
+      )
+    );
   }
 }
 

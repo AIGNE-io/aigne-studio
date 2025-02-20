@@ -1,7 +1,9 @@
+import AgentSelect from '@app/components/agent-select';
 import { DragSortListYjs } from '@app/components/drag-sort-list';
 import { useReadOnly } from '@app/contexts/session';
 import { isValidInput } from '@app/libs/util';
 import { PROMPTS_FOLDER_NAME, useProjectStore } from '@app/pages/project/yjs-state';
+import { useAgents } from '@app/store/agent';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { AssistantYjs, CallAssistantYjs, isAssistant } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
@@ -69,8 +71,6 @@ export default function CallAgentEditor({
           list={value.agents ?? {}}
           renderItem={(agent, index, params) => {
             const key = agent.instanceId || agent.id;
-            const target = getFileById(agent.id);
-            if (!target) return null;
 
             return (
               <AgentItemView
@@ -80,7 +80,6 @@ export default function CallAgentEditor({
                 }}
                 dragRef={params.drag}
                 key={key}
-                target={target}
                 CallAssistantIndex={index}
                 projectId={projectId}
                 gitRef={gitRef}
@@ -181,7 +180,7 @@ export const ToolDialog = forwardRef<
     gitRef: string;
     onSubmit: (value: ToolDialogForm) => any;
     DialogProps?: DialogProps;
-    assistant: CallAssistantYjs;
+    assistant: AssistantYjs;
   }
 >(({ assistant, projectId, gitRef, onSubmit, DialogProps }, ref) => {
   const { t } = useLocaleContext();
@@ -218,6 +217,30 @@ export const ToolDialog = forwardRef<
               rules={{ required: t('validation.fieldRequired') }}
               render={({ field, fieldState }) => {
                 const value = options.find((x) => x.id === field.value);
+                const { projectId, blockletDid } = form.getValues();
+
+                return (
+                  <AgentSelect
+                    type="tool"
+                    excludes={[assistant.id]}
+                    autoFocus
+                    disableClearable
+                    value={field.value ? { id: field.value, projectId, blockletDid } : undefined}
+                    onChange={(_, v) => {
+                      if (v) {
+                        form.setValue('blockletDid', v.blockletDid);
+                        form.setValue('projectId', v.projectId);
+                        field.onChange({ target: { value: v.id } });
+                        // source.agent = {
+                        //   blockletDid: v.blockletDid,
+                        //   projectId: v.projectId,
+                        //   id: v.id,
+                        //   from: 'assistant',
+                        // };
+                      }
+                    }}
+                  />
+                );
 
                 return (
                   <Autocomplete
@@ -279,7 +302,6 @@ export const AgentItemView = forwardRef(
       assistant,
       readOnly,
       onEdit,
-      target,
       CallAssistantIndex,
       dragRef,
       ...props
@@ -291,7 +313,6 @@ export const AgentItemView = forwardRef(
       readOnly?: boolean;
       onEdit: () => void;
       CallAssistantIndex?: number;
-      target: AssistantYjs;
       dragRef?: (el: HTMLElement | null) => void;
     } & StackProps,
     ref: ForwardedRef<HTMLDivElement>
@@ -301,13 +322,10 @@ export const AgentItemView = forwardRef(
     const { t } = useLocaleContext();
     const { addParameter } = useVariablesEditorOptions(assistant);
 
+    const target = useAgents({ type: 'tool' }).agentMap[agent.id];
+
     const parameters = useMemo(() => {
-      return (
-        target?.parameters &&
-        sortBy(Object.values(target.parameters), (i) => i.index).filter(
-          (i): i is typeof i & { data: { key: string; hidden?: boolean } } => !!i.data.key && !i.data.hidden
-        )
-      );
+      return target?.parameters?.filter((i): i is typeof i & { key: string; hidden?: boolean } => !!i.key && !i.hidden);
     }, [target]);
 
     const checkParametersInParameter = (key: string) => {
@@ -318,6 +336,7 @@ export const AgentItemView = forwardRef(
       return Boolean(parameters.find((i) => i.data.key === key));
     };
 
+    if (!target) return null;
     const { name, description } = target;
 
     return (
@@ -416,7 +435,7 @@ export const AgentItemView = forwardRef(
             </Tooltip>
 
             <Stack gap={1}>
-              {parameters?.map(({ data: parameter }) => {
+              {parameters?.map((parameter) => {
                 if (!parameter?.key) return null;
                 if (!isValidInput(parameter)) return null;
                 const className = `hover-visible-${parameter.key}`;
