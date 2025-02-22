@@ -1,6 +1,11 @@
 import PopperMenu from '@app/components/menu/PopperMenu';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, OutputVariableYjs, variableBlockListForAgent } from '@blocklet/ai-runtime/types';
+import {
+  AssistantYjs,
+  OutputVariableYjs,
+  isCallAssistant,
+  variableBlockListForAgent,
+} from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import CheckIcon from '@iconify-icons/tabler/check';
 import BranchIcon from '@iconify-icons/tabler/git-branch';
@@ -148,7 +153,7 @@ export default function AddOutputVariableButton({
         </>
       )}
 
-      <ActionRefOutput projectId={projectId} gitRef={gitRef} assistant={assistant} />
+      {isCallAssistant(assistant) && <ActionRefOutput projectId={projectId} gitRef={gitRef} assistant={assistant} />}
 
       <Divider sx={{ my: '4px !important', p: 0 }} />
 
