@@ -12,7 +12,9 @@ export class McpAgentExecutor extends AgentExecutorBase<MCPAssistant> {
     if (!mcp) throw new Error('MCP assistant is not configured');
 
     this.context.mcpInstances[this.agent.mcp!.blocklet.did] ??= (async () => {
-      const transport = new SSEClientTransport(new URL(joinURL(getComponentWebEndpoint(mcp.blocklet.did), '/sse')));
+      const url = new URL(joinURL(getComponentWebEndpoint(mcp.blocklet.did), '/sse'));
+      if (process.env.FORCE_SSE_PORT) url.port = process.env.FORCE_SSE_PORT;
+      const transport = new SSEClientTransport(url);
       const client = new Client({
         name: 'aigne-runtime',
         version: '0.0.1',

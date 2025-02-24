@@ -6,26 +6,26 @@ import {
   ChatCompletionInput,
   ChatCompletionResponse,
   isChatCompletionChunk,
-  isChatCompletionUsage,
 } from '@blocklet/ai-kit/api/types/index';
 import { getAllParameters, getRequiredFields } from '@blocklet/dataset-sdk/request/util';
+import { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { logger } from '@blocklet/sdk/lib/config';
-import jsonLogic from 'json-logic-js';
-import { formatQuery } from 'react-querybuilder/formatQuery';
+import { DeepRequired } from 'react-hook-form';
 
 import { parseIdentity, stringifyIdentity } from '../../common/aid';
 import { languages } from '../../constant/languages';
 import {
   Assistant,
   AssistantResponseType,
+  BlockletAgent,
   ExecutionPhase,
   OnTaskCompletion,
   RouterAssistant,
   RuntimeOutputVariable,
   Tool,
+  jsonSchemaToOpenAIJsonSchema,
 } from '../../types';
 import { isNonNullable } from '../../utils/is-non-nullable';
-import selectAgentName from '../assistant/select-agent';
 import { RunAssistantCallback, ToolCompletionDirective } from '../assistant/type';
 import { nextTaskId } from '../utils/task-id';
 import { AgentExecutorBase } from './base';
@@ -34,126 +34,20 @@ const md5 = (str: string) => crypto.createHash('md5').update(str).digest('hex');
 
 export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
   override async process({ inputs }: { inputs: { [key: string]: any } }) {
-    const { agent } = this;
-    if (agent.decisionType === 'json-logic') {
-      return this.processWithJsonLogic({ inputs });
-    }
-
-    return this.processWithLLM({ inputs });
-  }
-
-  async processWithJsonLogic({ inputs }: { inputs: { [key: string]: any } }) {
-    const {
-      agent,
-      options: { taskId },
-    } = this;
-    const { callback } = this.context;
-
-    const matchedRoute = (agent.routes || []).find((route) => {
-      if (!route.condition) return false;
-      const condition = formatQuery(route.condition, { format: 'jsonlogic' });
-      const isValid = jsonLogic.apply(condition, inputs);
-
-      logger.debug('route.condition is valid:', {
-        json: JSON.stringify(route.condition, null, 2),
-        jsonLogic: JSON.stringify(condition, null, 2),
-        inputs,
-        isValid,
-      });
-
-      return isValid;
-    });
-
-    const matchedId = matchedRoute?.id || agent.defaultToolId;
-
-    if (!matchedId) {
-      logger.warn('No matched route or default tool, please check your agent configuration');
-      return {};
-    }
-
-    const identity = parseIdentity(agent.identity.aid, { rejectWhenError: true });
-    const matched = agent.routes?.find((x) => x.id === matchedId);
-    logger.debug('matched route', { matchedId, matched, isDefault: matchedId === agent.defaultToolId });
-
-    const executor = !matched?.id
-      ? undefined
-      : matched.from === 'blockletAPI'
-        ? (await this.context.getBlockletAgent(matched.id))?.agent
-        : await this.context.getAgent({
-            aid: stringifyIdentity({
-              blockletDid: identity.blockletDid,
-              projectId: identity.projectId,
-              projectRef: identity.projectRef,
-              agentId: matched.id,
-            }),
-            working: agent.identity.working,
-            rejectOnEmpty: true,
-          });
-
-    if (!executor) {
-      logger.warn('No matched tool, please check your agent configuration');
-      return {};
-    }
-
-    const parameters = Object.fromEntries(
-      await Promise.all(
-        Object.entries(matched?.parameters || {}).map(async ([key, value]) => {
-          return [key, value ? await this.renderMessage(value, inputs) : inputs?.[key] || ''];
-        })
-      )
-    );
-
-    const currentTaskId = nextTaskId();
-
-    const cb: RunAssistantCallback = (args) => {
-      callback(args);
-
-      if (args.type === AssistantResponseType.CHUNK && args.taskId === currentTaskId) {
-        if (
-          Object.values(executor.outputVariables || {}).find((x) => x.name === RuntimeOutputVariable.text) &&
-          Object.values(agent.outputVariables || {}).find((x) => x.name === RuntimeOutputVariable.text) &&
-          args.delta.content
-        ) {
-          callback({ ...args, taskId });
-        }
-      }
-    };
-
-    const result = await this.context
-      .copy({ callback: cb })
-      .executor(executor, {
-        taskId: currentTaskId,
-        parentTaskId: taskId,
-        inputs: parameters,
-        variables: { ...inputs },
-      })
-      .execute();
-
-    logger.debug('executor selected', {
-      executorId: executor.id,
-      executorName: executor.name,
-      result: JSON.stringify(result, null, 2),
-    });
-
-    return result;
-  }
-
-  async processWithLLM({ inputs }: { inputs: { [key: string]: any } }) {
     const {
       agent,
       options: { parentTaskId, taskId },
     } = this;
 
     if (!agent.prompt) {
-      throw new Error('Route Assistant Prompt is required');
+      throw new Error('prompt is required for decision agent');
     }
 
     const message = await this.renderMessage(agent.prompt);
-    const routes = agent?.routes || [];
+    const routes = agent.routes || [];
 
     const blocklet = await this.context.getBlockletAgent(agent.id);
 
-    logger.info('start get tool function');
     const toolAssistants = (
       await Promise.all(
         routes.map(async (tool) => {
@@ -162,7 +56,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
             if (!dataset) return undefined;
 
             const name = tool?.functionName || dataset.summary || dataset.description || '';
-            const functionTranslateName = await this.getEnglishFunctionName({ assistant: agent, tool, name });
+            const functionTranslateName = await this.normalizeToolFunctionName({ agent, tool, name });
             logger.info('function call api name', functionTranslateName);
 
             const datasetParameters = getAllParameters(dataset)
@@ -225,7 +119,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
             .map((x) => x.key);
 
           const name = tool?.functionName || toolAssistant?.description || toolAssistant?.name || '';
-          const functionTranslateName = await this.getEnglishFunctionName({ assistant: agent, tool, name });
+          const functionTranslateName = await this.normalizeToolFunctionName({ agent, tool, name });
           logger.info('function call agent name', functionTranslateName);
 
           return {
@@ -245,95 +139,6 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
       )
     ).filter(isNonNullable);
 
-    const runFunctionCall = async ({
-      tools,
-      toolChoice,
-    }: {
-      tools: ChatCompletionInput['tools'];
-      toolChoice: ChatCompletionInput['toolChoice'];
-    }) => {
-      const identity = parseIdentity(agent.identity.aid, { rejectWhenError: true });
-
-      const executor = agent.executor?.agent?.id
-        ? await this.context.getAgent({
-            aid: stringifyIdentity({
-              blockletDid: agent.executor.agent.blockletDid || identity.blockletDid,
-              projectId: agent.executor.agent.projectId || identity.projectId,
-              projectRef: identity.projectRef,
-              agentId: agent.executor.agent.id,
-            }),
-            working: agent.identity.working,
-            rejectOnEmpty: true,
-          })
-        : undefined;
-
-      const messages: ChatCompletionInput['messages'] = [{ role: 'system', content: message }];
-
-      this.context.callback?.({
-        type: AssistantResponseType.INPUT,
-        assistantId: agent.id,
-        parentTaskId,
-        taskId,
-        assistantName: `${agent.name}`,
-        promptMessages: messages,
-      });
-
-      const input = {
-        model: agent?.model,
-        temperature: agent?.temperature,
-        topP: agent?.topP,
-        presencePenalty: agent?.presencePenalty,
-        frequencyPenalty: agent?.frequencyPenalty,
-        messages,
-        tools,
-        toolChoice,
-      };
-
-      logger.debug('Run decision agent', JSON.stringify(input, null, 2));
-
-      const response = executor
-        ? ((
-            await this.context
-              .executor(executor, {
-                taskId: nextTaskId(),
-                parentTaskId: taskId,
-                inputs: {
-                  ...inputs,
-                  ...agent.executor?.inputValues,
-                  [executor.parameters?.find((i) => i.type === 'llmInputMessages' && !i.hidden)?.key!]: messages,
-                  [executor.parameters?.find((i) => i.type === 'llmInputTools' && !i.hidden)?.key!]: tools,
-                  [executor.parameters?.find((i) => i.type === 'llmInputToolChoice' && !i.hidden)?.key!]: toolChoice,
-                },
-              })
-              .execute()
-          )[RuntimeOutputVariable.llmResponseStream] as ReadableStream<ChatCompletionResponse>)
-        : await this.context.callAI({
-            assistant: agent,
-            input,
-          });
-
-      let calls: NonNullable<ChatCompletionChunk['delta']['toolCalls']> = [];
-
-      for await (const chunk of response) {
-        if (isChatCompletionUsage(chunk)) {
-          this.context.callback?.({
-            type: AssistantResponseType.USAGE,
-            taskId,
-            assistantId: agent.id,
-            usage: chunk.usage,
-          });
-        }
-
-        if (isChatCompletionChunk(chunk)) {
-          if (chunk.delta.toolCalls?.length) {
-            calls = chunk.delta.toolCalls;
-          }
-        }
-      }
-
-      return calls;
-    };
-
     const tools: {
       type: 'function';
       function: { name: string; description?: string | undefined; parameters: Record<string, any> };
@@ -346,10 +151,32 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
       },
     }));
 
-    const calls = await runFunctionCall({
-      tools,
-      toolChoice: 'required',
-    });
+    const { hasJsonOutputs, hasStreamingTextOutput } = await this.outputsInfo;
+
+    const messages: ChatCompletionInput['messages'] = [{ role: 'user', content: message }];
+    const result: { $text?: string } = {};
+
+    let jsonPromise: Promise<any> | undefined;
+
+    if (hasStreamingTextOutput) {
+      const stream = this.runLLMGetTextOutput({ inputs, messages, tools, toolAssistants, taskId });
+      for await (const chunk of stream) {
+        result.$text = (result.$text || '') + chunk;
+        this.context.callback?.({
+          type: AssistantResponseType.CHUNK,
+          assistantId: agent.id,
+          taskId,
+          delta: { content: chunk },
+        });
+        if (hasJsonOutputs) {
+          jsonPromise ??= this.runLLMGetJsonOutput({ inputs, messages, tools, toolAssistants, taskId });
+        }
+      }
+    } else if (hasJsonOutputs) {
+      jsonPromise = this.runLLMGetJsonOutput({ inputs, messages, tools, toolAssistants, taskId });
+    }
+
+    Object.assign(result, await jsonPromise);
 
     this.context.callback?.({
       type: AssistantResponseType.EXECUTE,
@@ -359,160 +186,294 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
       execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
     });
 
-    const toolAssistantMap = Object.fromEntries(toolAssistants.map((i) => [i.function.name, i]));
-    const defaultTool = toolAssistants.find((i) => i.tool.id === agent.defaultToolId);
+    return result;
+  }
 
-    const matchAgentName = async () => {
-      // requestCalls 没有找到，检查 jsonResult 是否存在
+  private async runFunctionCall({
+    inputs,
+    messages,
+    responseFormat,
+    tools,
+    toolChoice,
+  }: {
+    inputs: { [key: string]: any };
+    messages: ChatCompletionInput['messages'];
+    responseFormat?: ChatCompletionInput['responseFormat'];
+    tools: ChatCompletionInput['tools'];
+    toolChoice: ChatCompletionInput['toolChoice'];
+  }) {
+    const {
+      agent,
+      options: { parentTaskId, taskId },
+    } = this;
 
-      let selectedAgent: { category_name?: string } = {};
-      try {
-        const categories = toolAssistants
-          .map((x) => x.function.name)
-          .filter((x) => x)
-          .map((x) => JSON.stringify({ category_name: x }))
-          .join(',');
+    const identity = parseIdentity(agent.identity.aid, { rejectWhenError: true });
 
-        selectedAgent = await selectAgentName({
+    const executor = agent.executor?.agent?.id
+      ? await this.context.getAgent({
+          aid: stringifyIdentity({
+            blockletDid: agent.executor.agent.blockletDid || identity.blockletDid,
+            projectId: agent.executor.agent.projectId || identity.projectId,
+            projectRef: identity.projectRef,
+            agentId: agent.executor.agent.id,
+          }),
+          working: agent.identity.working,
+          rejectOnEmpty: true,
+        })
+      : undefined;
+
+    this.context.callback?.({
+      type: AssistantResponseType.INPUT,
+      assistantId: agent.id,
+      parentTaskId,
+      taskId,
+      assistantName: `${agent.name}`,
+      promptMessages: messages,
+    });
+
+    const input: ChatCompletionInput = {
+      model: agent?.model,
+      temperature: agent?.temperature,
+      topP: agent?.topP,
+      presencePenalty: agent?.presencePenalty,
+      frequencyPenalty: agent?.frequencyPenalty,
+      responseFormat,
+      messages,
+      tools,
+      toolChoice,
+    };
+
+    logger.debug('Run decision agent with input', input);
+
+    return executor
+      ? ((
+          await this.context
+            .executor(executor, {
+              taskId: nextTaskId(),
+              parentTaskId: taskId,
+              inputs: {
+                ...inputs,
+                ...agent.executor?.inputValues,
+                [executor.parameters?.find((i) => i.type === 'llmInputMessages' && !i.hidden)?.key!]: messages,
+                [executor.parameters?.find((i) => i.type === 'llmInputTools' && !i.hidden)?.key!]: tools,
+                [executor.parameters?.find((i) => i.type === 'llmInputToolChoice' && !i.hidden)?.key!]: toolChoice,
+                [executor.parameters?.find((i) => i.type === 'llmInputResponseFormat' && !i.hidden)?.key!]:
+                  responseFormat,
+              },
+            })
+            .execute()
+        )[RuntimeOutputVariable.llmResponseStream] as ReadableStream<ChatCompletionResponse>)
+      : await this.context.callAI({
           assistant: agent,
-          message,
-          categories,
-          callAI: this.context.callAI,
-          maxRetries: this.context.maxRetries,
+          input,
         });
-      } catch (error) {
-        logger.error('select agent name failed');
-      }
+  }
 
-      logger.info('Get Current Selected Agent Name', {
-        from: 'ai',
-        value: selectedAgent?.category_name,
-      });
-      if (selectedAgent?.category_name) {
-        const found = toolAssistantMap[selectedAgent.category_name];
-        if (found) return selectedAgent.category_name;
-      }
-
-      logger.info('Get Current Selected Agent Name', {
-        from: 'default agent',
-        value: agent?.defaultToolId,
-      });
-      // 使用默认 Agent
-      if (agent?.defaultToolId) {
-        const found = toolAssistantMap[agent.defaultToolId];
-        if (found) return defaultTool?.function.name;
-      }
-
-      logger.debug('Get Current Selected Agent Name', {
-        from: 'from first agent',
-        value: toolAssistants[0]?.function.name,
-      });
-      // 没有找到符合条件的请求，使用默认请求
-      return toolAssistants[0]?.function?.name;
-    };
-
-    const matchRequestCalls = async () => {
-      logger.debug('Get Current Selected Agent Name', {
-        from: 'function call',
-        value: calls && JSON.stringify(calls),
+  private async *runLLMGetTextOutput({
+    inputs,
+    messages,
+    tools,
+    toolAssistants,
+    taskId,
+  }: {
+    inputs: { [key: string]: any };
+    messages: ChatCompletionInput['messages'];
+    tools: ChatCompletionInput['tools'];
+    toolAssistants: {
+      tool: Tool;
+      toolAssistant: Assistant | DatasetObject | BlockletAgent;
+      function: { name: string };
+    }[];
+    taskId: string;
+  }): AsyncGenerator<string> {
+    for (;;) {
+      const stream = await this.runFunctionCall({
+        inputs,
+        messages,
+        tools,
+        toolChoice: 'auto',
       });
 
-      // 首先检查 call function 返回的值是否存在
-      if (calls?.length) {
-        const found = calls.find((call) => call.function?.name && toolAssistantMap[call.function?.name]);
+      let toolCalls: DeepRequired<NonNullable<ChatCompletionChunk['delta']['toolCalls']>> | undefined;
 
-        if (found) {
-          return [found];
+      for await (const chunk of stream) {
+        if (isChatCompletionChunk(chunk)) {
+          if (chunk.delta.content) {
+            yield chunk.delta.content;
+          }
+
+          if (chunk.delta.toolCalls?.length) {
+            toolCalls = chunk.delta.toolCalls as typeof toolCalls;
+          }
         }
       }
 
-      // TODO: 使用  toolChoice: 'required' 之后，肯定会返回数据，下面会用不到, 先观察一下使用情况
-      const agentName = await matchAgentName();
-      const tool = toolAssistants.find((x) => x.function.name === agentName);
-      if (tool) {
-        const defaultCalls = await runFunctionCall({
-          tools: [tool].map((i) => ({
-            type: 'function',
-            function: {
-              name: i.function.name,
-              description: i.function.description,
-              parameters: i.function.parameters,
-            },
-          })),
-          toolChoice: {
-            type: 'function',
-            function: {
-              name: tool.function.name,
-              description: tool.function.description,
-            },
+      if (toolCalls?.length) {
+        const callResult = await this.executeTool({
+          agent: this.agent,
+          toolAssistants,
+          calls: toolCalls,
+          inputs,
+          taskId,
+        });
+
+        messages.push({ role: 'assistant', toolCalls });
+        messages.push(...callResult);
+      } else {
+        break;
+      }
+    }
+  }
+
+  private async runLLMGetJsonOutput({
+    inputs,
+    messages,
+    tools,
+    toolAssistants,
+    taskId,
+  }: {
+    inputs: { [key: string]: any };
+    messages: ChatCompletionInput['messages'];
+    tools: ChatCompletionInput['tools'];
+    toolAssistants: {
+      tool: Tool;
+      toolAssistant: Assistant | DatasetObject | BlockletAgent;
+      function: { name: string };
+    }[];
+    taskId: string;
+  }) {
+    const { schema } = await this.outputsInfo;
+
+    let text = '';
+
+    for (;;) {
+      text = '';
+
+      const stream = await this.runFunctionCall({
+        inputs,
+        messages,
+        responseFormat: {
+          type: 'json_schema',
+          jsonSchema: {
+            name: 'output',
+            schema: jsonSchemaToOpenAIJsonSchema(schema),
+            strict: true,
           },
-        });
+        },
+        tools,
+        toolChoice: 'auto',
+      });
 
-        if (defaultCalls?.length) {
-          const found = defaultCalls.find((call) => call.function?.name && toolAssistantMap[call.function?.name]);
-          if (found) {
-            return [found];
+      let toolCalls: DeepRequired<NonNullable<ChatCompletionChunk['delta']['toolCalls']>> | undefined;
+
+      for await (const chunk of stream) {
+        if (isChatCompletionChunk(chunk)) {
+          if (chunk.delta.content) {
+            text += chunk.delta.content;
+          }
+          if (chunk.delta.toolCalls?.length) {
+            toolCalls = chunk.delta.toolCalls as typeof toolCalls;
           }
         }
       }
 
-      return [{ type: 'function', function: { name: agentName, arguments: '{}' } }];
-    };
+      if (toolCalls?.length) {
+        const callResult = await this.executeTool({
+          agent: this.agent,
+          toolAssistants,
+          calls: toolCalls,
+          inputs,
+          taskId,
+        });
 
-    const requestCalls = await matchRequestCalls();
+        messages.push({ role: 'assistant', toolCalls });
+        messages.push(...callResult);
+      } else {
+        break;
+      }
+    }
 
-    const result =
-      requestCalls &&
-      (await Promise.all(
-        requestCalls.map(async (call) => {
-          if (!call.function?.name) return undefined;
+    return JSON.parse(text);
+  }
 
-          const tool = toolAssistantMap[call.function.name];
-          if (!tool) return undefined;
+  private async executeTool({
+    agent,
+    toolAssistants,
+    calls,
+    inputs,
+    taskId,
+  }: {
+    agent: RouterAssistant;
+    toolAssistants: {
+      tool: Tool;
+      toolAssistant: Assistant | DatasetObject | BlockletAgent;
+      function: { name: string };
+    }[];
+    calls: { id: string; function: { name: string; arguments: string } }[];
+    inputs: { [key: string]: any };
+    taskId: string;
+  }): Promise<
+    {
+      role: 'tool';
+      content: string;
+      toolCallId: string;
+    }[]
+  > {
+    const toolAssistantMap = Object.fromEntries(toolAssistants.map((i) => [i.function.name, i]));
 
-          const requestData = JSON.parse(call.function.arguments!);
+    const requestCalls = calls.map((i) => {
+      const tool = toolAssistantMap[i.function.name];
+      if (!tool) {
+        throw new Error(`Tool not found: ${i.function.name}`);
+      }
+      return {
+        call: i,
+        tool,
+      };
+    });
 
-          const currentTaskId = nextTaskId();
-          const toolAssistant = tool?.toolAssistant as Assistant;
+    return await Promise.all(
+      requestCalls.map(async ({ tool, call }) => {
+        const requestData = JSON.parse(call.function.arguments!);
 
-          const { callback } = this.context;
+        const currentTaskId = nextTaskId();
+        const toolAssistant = tool?.toolAssistant as Assistant;
 
-          const cb: RunAssistantCallback = (args) => {
-            callback(args);
+        const { callback } = this.context;
 
-            if (args.type === AssistantResponseType.CHUNK && args.taskId === currentTaskId) {
-              // called agent 有 text stream && 当前输出也有 text stream, 直接回显 text stream
-              if (
-                Object.values(toolAssistant?.outputVariables || {}).find(
-                  (x) => x.name === RuntimeOutputVariable.text
-                ) &&
-                Object.values(agent?.outputVariables || {}).find((x) => x.name === RuntimeOutputVariable.text) &&
-                args?.delta?.content
-              ) {
-                callback({ ...args, taskId });
-              }
+        const cb: RunAssistantCallback = (args) => {
+          callback(args);
+
+          if (args.type === AssistantResponseType.CHUNK && args.taskId === currentTaskId) {
+            // called agent 有 text stream && 当前输出也有 text stream, 直接回显 text stream
+            if (
+              Object.values(toolAssistant?.outputVariables || {}).find((x) => x.name === RuntimeOutputVariable.text) &&
+              Object.values(agent?.outputVariables || {}).find((x) => x.name === RuntimeOutputVariable.text) &&
+              args?.delta?.content
+            ) {
+              callback({ ...args, taskId });
             }
-          };
+          }
+        };
 
-          if (tool.tool.from === 'blockletAPI') {
-            const blocklet = await this.context.getBlockletAgent(tool.tool.id);
-            if (!blocklet.agent) {
-              throw new Error('Blocklet agent api not found.');
-            }
+        let result;
 
-            const result = await this.context
-              .copy({ callback: cb })
-              .executor(blocklet.agent, {
-                inputs: tool.tool.parameters,
-                variables: { ...inputs, ...requestData },
-                taskId: currentTaskId,
-                parentTaskId: taskId,
-              })
-              .execute();
-
-            return result;
+        if (tool.tool.from === 'blockletAPI') {
+          const blocklet = await this.context.getBlockletAgent(tool.tool.id);
+          if (!blocklet.agent) {
+            throw new Error('Blocklet agent api not found.');
           }
 
+          result = await this.context
+            .copy({ callback: cb })
+            .executor(blocklet.agent, {
+              inputs: tool.tool.parameters,
+              variables: { ...inputs, ...requestData },
+              taskId: currentTaskId,
+              parentTaskId: taskId,
+            })
+            .execute();
+        } else {
           await Promise.all(
             toolAssistant.parameters
               ?.filter((i) => !i.hidden)
@@ -524,7 +485,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
               }) ?? []
           );
 
-          const res = await this.context
+          result = await this.context
             .copy({ callback: cb })
             .executor(toolAssistant as any, {
               taskId: currentTaskId,
@@ -536,37 +497,29 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
           if (tool.tool?.onEnd === OnTaskCompletion.EXIT) {
             throw new ToolCompletionDirective('The task has been stop. The tool will now exit.', OnTaskCompletion.EXIT);
           }
+        }
 
-          return res;
-        })
-      ));
-
-    const obj = result?.length === 1 ? result[0] : result;
-
-    return obj;
+        return {
+          role: 'tool',
+          content: JSON.stringify(result),
+          toolCallId: call.id,
+        };
+      })
+    );
   }
 
-  private async getEnglishFunctionName({
-    assistant,
-    tool,
-    name,
-  }: {
-    assistant: RouterAssistant;
-    tool: Tool;
-    name: string;
-  }) {
+  private async normalizeToolFunctionName({ agent, tool, name }: { agent: RouterAssistant; tool: Tool; name: string }) {
     if (functionNameRegex.test(name)) return name;
 
-    const key = md5(
-      [assistant.id, tool.id, tool.functionName, assistant.name, assistant.description].filter(Boolean).join('/')
-    );
+    const key = md5([agent.id, tool.id, tool.functionName, agent.name, agent.description].filter(Boolean).join('/'));
 
-    if (!cacheTranslateFunctionNames[key]) {
-      const result = await this.context.callAI({
+    cacheTranslateFunctionNames[key] ??= this.context
+      .callAI({
         assistant: this.agent,
         input: {
           messages: [
             {
+              role: 'system',
               content: `\
   # Role
   You are an engineer who is proficient in programming. Please generate a function \
@@ -576,47 +529,49 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
   underscores and dashes, with a maximum length of 64.
 
   # Output
-
   - Do not explain
   - Directly output the generated function name
 
-  # Requirements
-  - Semantic function name
+  # Context
+  - Human readable function name:
     - ${name}
     - ${tool.functionName}
-    - ${assistant.name}
-  - Function description: ${assistant.description}
+    - ${agent.name}
+  - Function description: ${agent.description}
                   `,
-              role: 'system',
             },
           ],
-          model: assistant?.model,
-          temperature: assistant?.temperature,
-          topP: assistant?.topP,
-          presencePenalty: assistant?.presencePenalty,
-          frequencyPenalty: assistant?.frequencyPenalty,
+          model: agent?.model,
+          temperature: agent?.temperature,
+          topP: agent?.topP,
+          presencePenalty: agent?.presencePenalty,
+          frequencyPenalty: agent?.frequencyPenalty,
         },
-      });
+      })
+      .then(async (stream) => {
+        let generated = '';
 
-      let generated = '';
-
-      for await (const i of result) {
-        if (isChatCompletionChunk(i)) {
-          generated += (i.delta.content ?? '').trim();
+        for await (const i of stream) {
+          if (isChatCompletionChunk(i)) {
+            generated += (i.delta.content ?? '').trim();
+          }
         }
-      }
 
-      if (typeof generated !== 'string' || !functionNameRegex.test(generated)) {
-        throw new Error(`Generated function name is invalid: ${generated}`);
-      }
+        if (typeof generated !== 'string' || !functionNameRegex.test(generated)) {
+          throw new Error(`Generated function name is invalid: ${generated}`);
+        }
 
-      cacheTranslateFunctionNames[key] = generated;
-    }
+        return generated;
+      })
+      .catch((error) => {
+        delete cacheTranslateFunctionNames[key];
+        throw error;
+      });
 
     return cacheTranslateFunctionNames[key]!;
   }
 }
 
-const cacheTranslateFunctionNames: { [key: string]: string } = {};
+const cacheTranslateFunctionNames: { [key: string]: Promise<string> } = {};
 
 const functionNameRegex = /^[a-zA-Z0-9_-]{1,64}$/;

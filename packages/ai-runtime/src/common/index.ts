@@ -2,8 +2,6 @@ import { ImageModelInfo, ServiceMode, ServiceModePermissionMap, TextModelInfo } 
 
 export const defaultTextModel = 'gpt-4o-mini';
 
-export const supportJsonSchemaModels = ['gpt-4o', 'gpt-4o-mini'];
-
 export async function getSupportedModels(): Promise<TextModelInfo[]> {
   return [
     {

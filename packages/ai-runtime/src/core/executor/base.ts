@@ -17,6 +17,7 @@ import { parseIdentity, stringifyIdentity } from '../../common/aid';
 import { AIGNE_RUNTIME_COMPONENT_DID } from '../../constants';
 import { authService } from '../../lib/auth';
 import {
+  Assistant,
   AssistantResponseType,
   ExecutionPhase,
   OutputVariable,
@@ -28,6 +29,7 @@ import {
   VariableScope,
   isUserInputParameter,
   outputVariablesToJoiSchema,
+  outputVariablesToJsonSchema,
 } from '../../types';
 import { isNonNullable } from '../../utils/is-non-nullable';
 import { CallAI, CallAIImage, GetAgent, GetAgentResult, RunAssistantCallback } from '../assistant/type';
@@ -677,27 +679,19 @@ export abstract class AgentExecutorBase<T> {
         const schema = {
           llmInputMessages: Joi.array().items(
             Joi.object({
-              role: Joi.string().valid('system', 'user', 'assistant').empty([null, '']).default('user'),
-              content: Joi.alternatives(
-                Joi.string().allow(null, ''),
-                Joi.array().items(
-                  Joi.object({
-                    type: Joi.string().valid('text', 'image_url').required(),
-                  })
-                    .when(Joi.object({ type: Joi.valid('text') }).unknown(), {
-                      then: Joi.object({
-                        text: Joi.string().required(),
-                      }),
-                    })
-                    .when(Joi.object({ type: Joi.valid('image_url') }).unknown(), {
-                      then: Joi.object({
-                        imageUrl: Joi.object({
-                          url: Joi.string().required(),
-                        }).required(),
-                      }),
-                    })
-                )
-              ).required(),
+              role: Joi.string().valid('system', 'user', 'assistant', 'tool').empty([null, '']).default('user'),
+              content: Joi.alternatives(Joi.string(), Joi.array()).empty([null, '']),
+              toolCalls: Joi.array().items(
+                Joi.object({
+                  id: Joi.string().required(),
+                  type: Joi.string().valid('function').required(),
+                  function: Joi.object({
+                    name: Joi.string().required(),
+                    arguments: Joi.string().required(),
+                  }).required(),
+                })
+              ),
+              toolCallId: Joi.string().empty([null, '']),
               name: Joi.string().empty([null, '']),
             })
           ),
@@ -728,16 +722,18 @@ export abstract class AgentExecutorBase<T> {
             .optional(),
           llmInputResponseFormat: Joi.object({
             type: Joi.string().valid('text', 'json_object', 'json_schema').empty([null, '']),
-          }).when(Joi.object({ type: Joi.valid('json_schema') }), {
-            then: Joi.object({
-              jsonSchema: Joi.object({
-                name: Joi.string().required(),
-                description: Joi.string().empty([null, '']),
-                schema: Joi.object().pattern(Joi.string(), Joi.any()).required(),
-                strict: Joi.boolean().empty([null, '']),
+          })
+            .when(Joi.object({ type: Joi.valid('json_schema') }), {
+              then: Joi.object({
+                jsonSchema: Joi.object({
+                  name: Joi.string().required(),
+                  description: Joi.string().empty([null, '']),
+                  schema: Joi.object().pattern(Joi.string(), Joi.any()).required(),
+                  strict: Joi.boolean().empty([null, '']),
+                }),
               }),
-            }),
-          }),
+            })
+            .empty([null, '']),
         }[parameter.type as string]!;
 
         try {
@@ -1013,5 +1009,34 @@ export abstract class AgentExecutorBase<T> {
       ...(partial || {}),
       ...secretInputs,
     };
+  }
+
+  private _outputsInfo:
+    | Promise<{ outputs: OutputVariable[]; schema: any; hasStreamingTextOutput: boolean; hasJsonOutputs: boolean }>
+    | undefined;
+
+  get outputsInfo() {
+    this._outputsInfo ??= (async () => {
+      const agent = this.agent as Assistant & GetAgentResult;
+
+      const outputVariables =
+        (agent.outputVariables ?? []).filter(
+          (i): i is typeof i & Required<Pick<typeof i, 'name'>> => !!i.name && !i.hidden && i.from?.type !== 'callAgent'
+        ) ?? [];
+
+      const schema = outputVariablesToJsonSchema(agent, {
+        variables: await this.context.getMemoryVariables({
+          ...parseIdentity(agent.identity.aid, { rejectWhenError: true }),
+          working: agent.identity.working,
+        }),
+      });
+
+      const hasStreamingTextOutput = outputVariables.some((i) => i.name === RuntimeOutputVariable.text);
+      const hasJsonOutputs = !!schema && Object.values(schema.properties).length > 0;
+
+      return { outputs: outputVariables, schema, hasStreamingTextOutput, hasJsonOutputs };
+    })();
+
+    return this._outputsInfo;
   }
 }

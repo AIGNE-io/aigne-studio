@@ -555,8 +555,13 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
 
                   const lastInput = message.inputMessages?.findLast((input) => input.taskId === value.taskId);
                   if (lastInput) {
-                    lastInput.output ??= '';
-                    lastInput.output += value.delta.content || '';
+                    if (value.delta.content) {
+                      lastInput.output ??= '';
+                      lastInput.output += value.delta.content || '';
+                    }
+                    if (value.delta.object) {
+                      lastInput.output = JSON.stringify(value.delta.object, null, 2);
+                    }
                     if (images?.length) {
                       lastInput.images ??= [];
                       lastInput.images.push(...images);
