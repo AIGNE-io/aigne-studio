@@ -1,4 +1,6 @@
 import MdViewer from '@app/components/md-viewer';
+import { PremiumFeatureTag } from '@app/components/multi-tenant-restriction/premium-feature-tag';
+import { showPlanUpgrade } from '@app/components/multi-tenant-restriction/state';
 import { useCurrentProject } from '@app/contexts/project';
 import UploaderProvider from '@app/contexts/uploader';
 import { getDefaultBranch, useCurrentGitStore } from '@app/store/current-git-store';
@@ -218,6 +220,7 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
     return <Loading fixed />;
   }
 
+  const isMultiTenant = window.blocklet?.tenantMode === 'multiple';
   return (
     <Box overflow="auto" {...boxProps}>
       {onClose && !isMobile && (
@@ -400,13 +403,14 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                 <Stack gap={2} mt={2}>
                   <Stack gap={2}>
                     <Box>
-                      <Box>
-                        <Typography variant="subtitle2" mb={0.5}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                        <Typography variant="subtitle2" mb={0}>
                           {t('Git Version')}
                         </Typography>
+                        {isMultiTenant && <PremiumFeatureTag onClick={() => showPlanUpgrade('git')} />}
                       </Box>
 
-                      <FormControl className="version" sx={{ width: 1 }}>
+                      <FormControl disabled={isMultiTenant} className="version" sx={{ width: 1 }}>
                         <RadioGroup
                           value={value.gitType ?? 'default'}
                           onChange={(e) => !readOnly && set('gitType', e.target.value)}>
@@ -432,7 +436,7 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
 
                     <Box>
                       <LoadingButton
-                        disabled={readOnly}
+                        disabled={readOnly || isMultiTenant}
                         variant="contained"
                         loadingPosition="start"
                         loading={submitLoading}

@@ -5,7 +5,7 @@ import { create } from 'zustand';
 
 import type { Plan } from './pricing-table';
 
-type RestrictionType = QuotaKey | 'anonymousRequest';
+type RestrictionType = QuotaKey | 'anonymousRequest' | 'git';
 
 export const premiumPassport = window.blocklet?.preferences?.premiumPassport;
 
