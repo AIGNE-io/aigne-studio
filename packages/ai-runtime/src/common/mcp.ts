@@ -119,7 +119,7 @@ async function getMCPAssistantsFromBlocklet(blocklet: MountPoint): Promise<MCPAs
         id: name,
         key: name,
         type: schema.type,
-        description: schema.description,
+        placeholder: schema.description,
         required: schema.required,
       })),
       outputVariables: [

@@ -425,7 +425,7 @@ const MessageView = memo(
             <Box sx={{ overflowX: 'hidden', flexGrow: 1 }} display="flex" flexDirection="column" gap={1}>
               <CurrentRoleName role={message.role} />
 
-              {!message.loading && !!message.inputMessages?.length && <BasicTree inputs={message.inputMessages} />}
+              {!!message.inputMessages?.length && <BasicTree inputs={message.inputMessages} />}
 
               <Box
                 flex={1}

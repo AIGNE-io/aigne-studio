@@ -23,6 +23,8 @@ const ActionRefOutput = ({
   const { t } = useLocaleContext();
   const { onOpen, onEdit } = useCallAgentCustomOutputDialogState(projectId, gitRef, assistant.id);
 
+  if (assistant.type !== 'callAgent') return null;
+
   return (
     <>
       <Divider textAlign="left" sx={{ my: '4px !important', p: 0, fontSize: 13, color: 'text.secondary' }}>
