@@ -1,3 +1,7 @@
+## 0.4.236 (2025-2-25)
+
+- feat: disable remote repo in multi-tenant
+
 ## 0.4.235 (2025-2-25)
 
 - feat: support multi function calls for decision agent

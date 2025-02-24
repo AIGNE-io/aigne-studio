@@ -1,3 +1,4 @@
+import { showPlanUpgrade } from '@app/components/multi-tenant-restriction/state';
 import useSpaceInfo from '@app/hooks/use-space-info';
 import { getProjectDataUrlInSpace } from '@app/libs/did-spaces';
 import { checkErrorType } from '@app/libs/util';
@@ -159,7 +160,12 @@ function ProjectsActionButton() {
             <MenuList autoFocusItem>
               <MenuItem
                 onClick={() => {
-                  setDialog(<ImportFromGit onClose={() => setDialog(null)} />);
+                  const isMultiTenant = window.blocklet?.tenantMode === 'multiple';
+                  if (isMultiTenant) {
+                    showPlanUpgrade('git');
+                  } else {
+                    setDialog(<ImportFromGit onClose={() => setDialog(null)} />);
+                  }
                 }}>
                 <Box component={Icon} icon={GithubIcon} sx={{ mr: 1 }} />
                 <ListItemText sx={{ fontSize: 13, lineHeight: '22px' }}>{t('gitRepo')}</ListItemText>

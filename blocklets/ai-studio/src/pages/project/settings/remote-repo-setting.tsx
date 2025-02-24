@@ -44,6 +44,7 @@ interface RemoteRepoSettingForm {
 
 export default function RemoteRepoSetting({ projectId, gitRef }: { projectId: string; gitRef: string }) {
   const { t, locale } = useLocaleContext();
+  const isMultiTenant = window.blocklet?.tenantMode === 'multiple';
 
   const { dialog: confirmDialog, showDialog: showConfirmDialog } = useDialog();
 
@@ -123,7 +124,12 @@ export default function RemoteRepoSetting({ projectId, gitRef }: { projectId: st
               <Typography className="ellipsis">{state?.project?.gitUrl}</Typography>
             </Tooltip>
           )}
-          <Button variant="contained" size="small" sx={{ padding: '2px' }} onClick={() => setChecked(!checked)}>
+          <Button
+            disabled={isMultiTenant}
+            variant="contained"
+            size="small"
+            sx={{ padding: '2px' }}
+            onClick={() => setChecked(!checked)}>
             {t('setting')}
           </Button>
         </Stack>
@@ -140,6 +146,7 @@ export default function RemoteRepoSetting({ projectId, gitRef }: { projectId: st
               </Typography>
 
               <TextField
+                disabled={isMultiTenant}
                 autoFocus
                 fullWidth
                 label={`${t('url')}*`}
@@ -186,6 +193,7 @@ export default function RemoteRepoSetting({ projectId, gitRef }: { projectId: st
               </Typography>
 
               <TextField
+                disabled={isMultiTenant}
                 fullWidth
                 label={t('username')}
                 {...form.register('username')}
@@ -201,6 +209,7 @@ export default function RemoteRepoSetting({ projectId, gitRef }: { projectId: st
               </Typography>
 
               <TextField
+                disabled={isMultiTenant}
                 fullWidth
                 label={t('accessToken')}
                 {...form.register('password')}
@@ -238,6 +247,7 @@ export default function RemoteRepoSetting({ projectId, gitRef }: { projectId: st
           <Stack flexDirection="row" justifyContent="space-between" sx={{ whiteSpace: 'nowrap' }} gap={1}>
             <Stack flexDirection="row" gap={1}>
               <LoadingButton
+                disabled={isMultiTenant}
                 variant="contained"
                 loading={form.formState.isSubmitting}
                 loadingPosition="start"
@@ -248,6 +258,7 @@ export default function RemoteRepoSetting({ projectId, gitRef }: { projectId: st
 
               {state.project && state.project.gitUrl ? (
                 <Button
+                  disabled={isMultiTenant}
                   sx={{ background: '#E11D48' }}
                   variant="contained"
                   onClick={() => {
@@ -286,6 +297,7 @@ export default function RemoteRepoSetting({ projectId, gitRef }: { projectId: st
                     slotProps={{ typography: { sx: { ml: 1 } } }}
                     control={
                       <Switch
+                        disabled={isMultiTenant}
                         defaultChecked={state.project?.gitAutoSync ?? false}
                         onChange={(_, checked) => changeAutoSync(checked)}
                       />
@@ -311,7 +323,7 @@ export default function RemoteRepoSetting({ projectId, gitRef }: { projectId: st
                     variant="text"
                     loadingPosition="start"
                     startIcon={<SyncRounded />}
-                    disabled={!disabledButton}
+                    disabled={!disabledButton || isMultiTenant}
                     onClick={async () => {
                       try {
                         await sync(projectId);
