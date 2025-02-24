@@ -46,9 +46,10 @@ async function getMCPAssistantsFromBlocklet(blocklet: MountPoint): Promise<MCPAs
 
   try {
     const url = new URL(joinURL(blocklet.webEndpoint, '/sse'));
+    if (process.env.FORCE_SSE_PORT) url.port = process.env.FORCE_SSE_PORT;
 
     const check = await fetch(url, { method: 'HEAD' });
-    if (check.status === 404) return [];
+    if (check.status === 404 || !check.headers.get('content-type')?.includes('text/event-stream')) return [];
     if (!check.ok) throw new Error(`Failed to connect to ${url} ${check.status} ${check.statusText}`);
 
     const transport = new SSEClientTransport(url);
@@ -118,7 +119,7 @@ async function getMCPAssistantsFromBlocklet(blocklet: MountPoint): Promise<MCPAs
         id: name,
         key: name,
         type: schema.type,
-        description: schema.description,
+        placeholder: schema.description,
         required: schema.required,
       })),
       outputVariables: [

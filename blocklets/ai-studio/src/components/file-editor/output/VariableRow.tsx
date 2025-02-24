@@ -96,13 +96,6 @@ function VariableRow({
     return `${x.scope}_${x.key}` === `${j.scope}_${j.key}`;
   });
 
-  const error = useCheckConflictAssistantOutputAndSelectAgents({
-    selectAgentOutputVariables,
-    value,
-    v: variable,
-    depth,
-  });
-
   const checkMemoryVariableDefined = (output: OutputVariableYjs) => {
     if (output.variable) {
       const { variable } = output;
@@ -132,12 +125,12 @@ function VariableRow({
       return 'rgba(0, 0, 0, 0.04) !important';
     }
 
-    if (error || !checkMemoryVariableDefined(variable)) {
+    if (!checkMemoryVariableDefined(variable)) {
       return 'rgba(255, 215, 213, 0.4) !important';
     }
 
     return 'transparent !important';
-  }, [error, variable.hidden]);
+  }, [variable.hidden]);
 
   const readOnly = Boolean(disabled || variable.hidden || Boolean(variable.from?.type === 'output'));
 
@@ -179,7 +172,7 @@ function VariableRow({
         gitRef={gitRef}
         assistant={value}>
         <Tooltip
-          title={error || !checkMemoryVariableDefined(variable) ? t('memoryNotDefined') : undefined}
+          title={!checkMemoryVariableDefined(variable) ? t('memoryNotDefined') : undefined}
           placement="top-start">
           <Box
             ref={rowRef}
@@ -404,56 +397,6 @@ export const diffJSON = (found: OutputVariableYjs, v: OutputVariableYjs, t: any)
   }
 
   return undefined;
-};
-
-const useCheckConflictAssistantOutputAndSelectAgents = ({
-  value,
-  depth,
-  v,
-  selectAgentOutputVariables,
-}: {
-  selectAgentOutputVariables?: AssistantYjs['outputVariables'];
-  value: AssistantYjs;
-  v: OutputVariableYjs;
-  depth?: number;
-}) => {
-  const { t } = useLocaleContext();
-
-  const result = useMemo(() => {
-    if (value.type !== 'router') {
-      return undefined;
-    }
-
-    if (depth !== 0) {
-      return undefined;
-    }
-
-    if (!v.name) {
-      return undefined;
-    }
-
-    // 系统数据对比
-    if (v.name.startsWith('$')) {
-      return undefined;
-    }
-
-    // 自定义数据对比
-    const outputs = Object.values(selectAgentOutputVariables || {})
-      .map((x) => x.data)
-      .filter((x) => !x.name?.startsWith('$'));
-
-    const found = outputs.find((x) => x.name === v.name);
-    if (!found) {
-      return t('notFoundOutputKeyFromSelectAgents', {
-        name: v.name,
-        outputNames: outputs.map((x) => x.name).join(','),
-      });
-    }
-
-    return diffJSON(cloneDeep(found || {}), cloneDeep(v || {}), t);
-  }, [value.type, depth, cloneDeep(v), selectAgentOutputVariables, t]);
-
-  return result;
 };
 
 const OutputFromOptions = [

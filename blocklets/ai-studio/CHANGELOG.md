@@ -1,3 +1,7 @@
+## 0.4.235 (2025-2-25)
+
+- feat: support multi function calls for decision agent
+
 ## 0.4.234 (2025-2-20)
 
 - feat: support use MCP tools
