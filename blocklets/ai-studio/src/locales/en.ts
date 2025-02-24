@@ -866,6 +866,9 @@ export default flatten({
     anonymousRequest: {
       desc: 'Anonymous access control is a premium feature. Please upgrade to the Premium plan to access this feature.',
     },
+    git: {
+      desc: 'Git is a Professional feature. Please upgrade to the Professional plan to access this feature.',
+    },
   },
   premiumFeatureTip: 'Premium feature',
   pricingAndPlans: {

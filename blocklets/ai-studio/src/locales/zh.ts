@@ -859,6 +859,9 @@ export default flatten({
     anonymousRequest: {
       desc: '匿名请求是高级功能。请升级到高级版以访问此功能。',
     },
+    git: {
+      desc: 'Git 功能仅在专业版中可用。请升级到专业版以访问此功能。',
+    },
   },
   premiumFeatureTip: '高级功能',
   pricingAndPlans: {

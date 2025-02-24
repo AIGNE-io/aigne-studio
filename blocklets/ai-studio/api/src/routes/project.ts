@@ -840,6 +840,10 @@ export function projectRoutes(router: Router) {
   });
 
   router.post('/projects/:projectId/remote', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+    if (config.env.tenantMode === 'multiple') {
+      throw new Error('Please upgrade to the Professional plan to access this feature.');
+    }
+
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required params `projectId`');
 
@@ -869,6 +873,9 @@ export function projectRoutes(router: Router) {
 
   router.delete('/projects/:projectId/remote', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
+    if (config.env.tenantMode === 'multiple') {
+      throw new Error('Git is a Professional feature. Please upgrade to the Professional plan to access this feature.');
+    }
     if (!projectId) throw new Error('Missing required params `projectId`');
 
     const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
@@ -885,6 +892,9 @@ export function projectRoutes(router: Router) {
   });
 
   router.post('/projects/:projectId/remote/push', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+    if (config.env.tenantMode === 'multiple') {
+      throw new Error('Git is a Professional feature. Please upgrade to the Professional plan to access this feature.');
+    }
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required params `projectId`');
 
@@ -907,6 +917,9 @@ export function projectRoutes(router: Router) {
   });
 
   router.post('/projects/:projectId/remote/pull', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+    if (config.env.tenantMode === 'multiple') {
+      throw new Error('Git is a Professional feature. Please upgrade to the Professional plan to access this feature.');
+    }
     const { did: userId, fullName } = req.user!;
 
     const { projectId } = req.params;
@@ -941,6 +954,9 @@ export function projectRoutes(router: Router) {
   });
 
   router.post('/projects/:projectId/remote/sync', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+    if (config.env.tenantMode === 'multiple') {
+      throw new Error('Git is a Professional feature. Please upgrade to the Professional plan to access this feature.');
+    }
     const { did: userId, fullName } = req.user!;
 
     const { projectId } = req.params;

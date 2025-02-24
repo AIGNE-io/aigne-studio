@@ -1,3 +1,7 @@
+## 0.4.223 (2025-2-25)
+
+- fix: disable remote repo in multiple tenant mode
+
 ## 0.4.222 (2025-2-11)
 
 - fix: retrieve adapter by agent model for each invocation
