@@ -1,14 +1,13 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Box, Stack, Typography } from '@mui/material';
 
-import { PremiumFeatureTag, useMultiTenantRestriction } from '../../../components/multi-tenant-restriction';
 import AigneBannerSetting from './aigne-banner-setting';
 import ColorSetting from './color-setting';
 import FontFamilySetting from './font-family-setting';
 
 export default function AppearanceSetting() {
   const { t } = useLocaleContext();
-  const { quotaChecker } = useMultiTenantRestriction();
+
   return (
     <Stack gap={2}>
       <Box>
@@ -35,7 +34,6 @@ export default function AppearanceSetting() {
       <Box>
         <Typography variant="subtitle2" mb={0.5}>
           {t('aigneBannerVisibility')}
-          <PremiumFeatureTag sx={{ ml: 2 }} onClick={() => quotaChecker.checkCustomBrand()} />
         </Typography>
         <AigneBannerSetting />
       </Box>

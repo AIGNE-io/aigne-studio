@@ -5,7 +5,7 @@ import { create } from 'zustand';
 
 import type { Plan } from './pricing-table';
 
-type RestrictionType = QuotaKey | 'anonymousRequest' | 'git';
+type RestrictionType = QuotaKey | 'anonymousRequest' | 'privateDeploy' | 'git';
 
 export const premiumPassport = window.blocklet?.preferences?.premiumPassport;
 
@@ -86,19 +86,24 @@ export function useMultiTenantRestriction() {
   const passports = session?.user?.passports?.map((x: any) => x.name);
   const quotas = new Quotas(window.blocklet?.preferences);
   const quotaChecker = {
-    checkCronJobs() {
+    checkCronJobs({ showPrice = true }: { showPrice?: boolean } = {}) {
       if (quotas.checkCronJobs(passports)) return true;
-      showPlanUpgrade('cronJobs');
+      if (showPrice) showPlanUpgrade('cronJobs');
       return false;
     },
-    checkCustomBrand() {
+    checkCustomBrand({ showPrice = true }: { showPrice?: boolean } = {}) {
       if (quotas.checkCustomBrand(passports)) return true;
-      showPlanUpgrade('customBrand');
+      if (showPrice) showPlanUpgrade('customBrand');
       return false;
     },
-    checkAnonymousRequest() {
+    checkAnonymousRequest({ showPrice = true }: { showPrice?: boolean } = {}) {
       if (isAdmin || isPremiumUser) return true;
-      showPlanUpgrade('anonymousRequest');
+      if (showPrice) showPlanUpgrade('anonymousRequest');
+      return false;
+    },
+    checkPrivateDeploy({ showPrice = true }: { showPrice?: boolean } = {}) {
+      if (isAdmin || isPremiumUser) return true;
+      if (showPrice) showPlanUpgrade('privateDeploy');
       return false;
     },
   };

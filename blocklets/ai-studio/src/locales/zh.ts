@@ -844,7 +844,8 @@ export default flatten({
   selectEntryAgentDescription: '在部署之前，您需要设置入口 Agent',
   activeWhen: '激活条件',
   selectTemplateDynamicInputTip: '已被 Agent 自动接管',
-  multiTenantRestriction: {
+  upgrade: '升级',
+  upgradePrompts: {
     requestLimit: {
       desc: '您已达到请求限制。升级到高级版以增加您的请求容量。',
     },
@@ -855,13 +856,16 @@ export default flatten({
       desc: '自定义品牌仅在高级版/专业版中可用。升级到高级版/专业版以个性化您的品牌。',
     },
     cronJobs: {
-      desc: '定时任务功能仅在专业版中可用。请升级到专业版以访问此功能。',
+      desc: '定时任务功能仅在高级版中可用。请升级到高级版以访问此功能。',
     },
     anonymousRequest: {
-      desc: '匿名请求是高级功能。请升级到高级版以访问此功能。',
+      desc: '匿名请求仅在高级版中可用。请升级到高级版以访问此功能。',
     },
     git: {
       desc: 'Git 功能仅在专业版中可用。请升级到专业版以访问此功能。',
+    },
+    privateDeploy: {
+      desc: '私有部署功能仅在高级版/专业版中可用。请升级到高级版/专业版以访问此功能。',
     },
   },
   premiumFeatureTip: '高级功能',
