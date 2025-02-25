@@ -1,4 +1,4 @@
-import { NoSuchEntryAgentError } from '@api/libs/error';
+import { NoSuchEntryAgentError, NotFoundError } from '@api/libs/error';
 import { getAgentSecretInputs, getProjectStatsFromRuntime } from '@api/libs/runtime';
 import { ensurePromptsAdmin } from '@api/libs/security';
 import { getUser, getUsers } from '@api/libs/user';
@@ -256,7 +256,9 @@ router.post('/', middlewares.session(), middlewares.auth(), async (req, res) => 
     stripUnknown: true,
   });
 
-  const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error(`No such project ${projectId}`) });
+  const project = await Project.findByPk(projectId, {
+    rejectOnEmpty: new NotFoundError(`No such project ${projectId}`),
+  });
 
   if (access === 'private') {
     checkUserAuth(req, res)({ userId: project.createdBy });
@@ -407,7 +409,7 @@ export const checkDeployment = async (req: Request, res: Response, next: NextFun
       const deployment = await Deployment.findOne({ where: { id: deploymentId } });
       if (!deployment) {
         res.status(404).json({ message: 'No such deployment' });
-        throw new Error('No such deployment');
+        throw new NotFoundError('No such deployment');
       }
 
       if (deployment.access === 'private') {

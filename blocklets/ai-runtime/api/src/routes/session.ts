@@ -1,3 +1,4 @@
+import { NotFoundError } from '@api/libs/error';
 import Session from '@api/store/models/session';
 import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import middlewares from '@blocklet/sdk/lib/middlewares';
@@ -31,7 +32,7 @@ export function sessionRoutes(router: Router) {
 
     const session = await Session.findOne({
       where: { id: sessionId, userId },
-      rejectOnEmpty: new Error(`Session ${sessionId} not found`),
+      rejectOnEmpty: new NotFoundError(`Session ${sessionId} not found`),
     });
 
     res.json({ session });
@@ -77,7 +78,7 @@ export function sessionRoutes(router: Router) {
 
     const session = await Session.findOne({
       where: { id: sessionId, userId },
-      rejectOnEmpty: new Error(`Session ${sessionId} not found`),
+      rejectOnEmpty: new NotFoundError(`Session ${sessionId} not found`),
     });
 
     await session.update({ name: input.name });
@@ -100,7 +101,7 @@ export function sessionRoutes(router: Router) {
 
     const session = await Session.findOne({
       where: { userId, id: sessionId },
-      rejectOnEmpty: new Error(`Session ${sessionId} not found`),
+      rejectOnEmpty: new NotFoundError(`Session ${sessionId} not found`),
     });
     await session.destroy();
 
@@ -123,7 +124,7 @@ export function sessionRoutes(router: Router) {
     // check session's owner
     await Session.findOne({
       where: { id: sessionId, userId },
-      rejectOnEmpty: new Error('No such session'),
+      rejectOnEmpty: new NotFoundError('No such session'),
     });
 
     await Histories.destroy({ where: { sessionId } });

@@ -1,3 +1,4 @@
+import { NotFoundError } from '@api/libs/error';
 import { Router } from 'express';
 import Joi from 'joi';
 import { uniqBy } from 'lodash';
@@ -39,7 +40,7 @@ export function globalRoutes(router: Router) {
     if (projectId) {
       defaultBranch = (
         await Project.findByPk(projectId, {
-          rejectOnEmpty: new Error(`Project ${projectId} not found`),
+          rejectOnEmpty: new NotFoundError(`Project ${projectId} not found`),
         })
       ).gitDefaultBranch;
       projectIds = [
@@ -92,7 +93,7 @@ export function globalRoutes(router: Router) {
               ref ||
               (
                 await Project.findByPk(projectId, {
-                  rejectOnEmpty: new Error(`Project ${projectId} not found`),
+                  rejectOnEmpty: new NotFoundError(`Project ${projectId} not found`),
                 })
               ).gitDefaultBranch,
           }).then((assistants) =>

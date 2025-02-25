@@ -2,6 +2,7 @@ import { readFileSync } from 'fs';
 import { resolve } from 'path';
 
 import { getAgent } from '@api/libs/agent';
+import { NotFoundError } from '@api/libs/error';
 import logger from '@api/libs/logger';
 import { resourceManager } from '@api/libs/resource';
 import History from '@api/store/models/history';
@@ -115,7 +116,7 @@ var ${RUNTIME_RESOURCE_BLOCKLET_STATE_GLOBAL_VARIABLE} = ${JSON.stringify(resour
     const { messageId } = req.params;
 
     try {
-      message = await History.findByPk(messageId, { rejectOnEmpty: new Error('No such message') });
+      message = await History.findByPk(messageId, { rejectOnEmpty: new NotFoundError('No such message') });
     } catch (error) {
       logger.error('message not found', { error });
     }

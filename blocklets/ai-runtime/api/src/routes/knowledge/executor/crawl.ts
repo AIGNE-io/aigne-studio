@@ -1,6 +1,7 @@
 import { writeFile } from 'fs/promises';
 
 import { getSourceFileDir } from '@api/libs/ensure-dir';
+import { NotFoundError } from '@api/libs/error';
 import config from '@blocklet/sdk/lib/config';
 import FirecrawlApp from '@mendable/firecrawl-js';
 import { exists } from 'fs-extra';
@@ -45,7 +46,7 @@ export class CrawlProcessor extends BaseProcessor {
     };
 
     if (!map[provider]) {
-      throw new Error(`provider ${provider} not supported`);
+      throw new NotFoundError(`provider ${provider} not supported`);
     }
 
     const { title, content } = await map[provider]();
@@ -60,7 +61,7 @@ export class CrawlProcessor extends BaseProcessor {
 
     const originalFilePath = joinURL(getSourceFileDir(this.knowledgeId), document.filename!);
     if (!(await exists(originalFilePath))) {
-      throw new Error(`processed file ${originalFilePath} not found`);
+      throw new NotFoundError(`processed file ${originalFilePath} not found`);
     }
 
     const loader = new TextLoader(originalFilePath);

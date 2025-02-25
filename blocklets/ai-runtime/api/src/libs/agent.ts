@@ -15,6 +15,7 @@ import {
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 
 import { getAgentFromAIStudio, getMemoryVariablesFromAIStudio, getProjectFromAIStudio } from './ai-studio';
+import { NotFoundError } from './error';
 import { resourceManager } from './resource';
 
 export interface GetProjectOptions {
@@ -53,7 +54,7 @@ export async function getProject({
 
   if (!project) {
     if (rejectOnEmpty) {
-      throw rejectOnEmpty instanceof Error ? rejectOnEmpty : new Error('No such project');
+      throw rejectOnEmpty instanceof Error ? rejectOnEmpty : new NotFoundError('No such project');
     }
   }
 
@@ -140,7 +141,7 @@ export async function getAgent({ aid, working, rejectOnEmpty }: GetAgentOptions)
 
   if (!agent) {
     if (rejectOnEmpty) {
-      throw rejectOnEmpty instanceof Error ? rejectOnEmpty : new Error('No such agent');
+      throw rejectOnEmpty instanceof Error ? rejectOnEmpty : new NotFoundError('No such agent');
     }
   }
 

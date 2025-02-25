@@ -3,6 +3,7 @@ import path, { dirname, extname, join, relative } from 'path';
 
 import { EVENTS } from '@api/event';
 import { projectCronManager } from '@api/libs/cron-jobs';
+import { NotFoundError } from '@api/libs/error';
 import { broadcast } from '@api/libs/ws';
 import {
   Assistant,
@@ -221,7 +222,7 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
         })
         .catch(() =>
           Project.findByPk(this.projectId, {
-            rejectOnEmpty: new Error(`No such project ${this.projectId}`),
+            rejectOnEmpty: new NotFoundError(`No such project ${this.projectId}`),
           }).then((res) => res.dataValues)
         );
 
@@ -323,7 +324,7 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
     skipCommitIfNoChanges?: boolean;
   }) {
     const project = await Project.findByPk(this.projectId, {
-      rejectOnEmpty: new Error(`No such project ${this.projectId}`),
+      rejectOnEmpty: new NotFoundError(`No such project ${this.projectId}`),
     });
     const working = await this.working({ ref });
 
@@ -454,7 +455,7 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
       file = raw && parse(raw);
     }
 
-    if (rejectOnEmpty && !file) throw new Error(`No such file ${filepath}`);
+    if (rejectOnEmpty && !file) throw new NotFoundError(`No such file ${filepath}`);
 
     return file;
   };
@@ -524,7 +525,7 @@ export class ProjectRepo extends Repository<FileTypeYjs> {
           }));
     }
 
-    if (rejectOnEmpty && !file) throw new Error(`No such agent ${agentId}`);
+    if (rejectOnEmpty && !file) throw new NotFoundError(`No such agent ${agentId}`);
 
     return file;
   };

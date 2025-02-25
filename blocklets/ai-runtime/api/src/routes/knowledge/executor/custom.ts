@@ -1,6 +1,7 @@
 import { readFile } from 'fs/promises';
 
 import { getSourceFileDir } from '@api/libs/ensure-dir';
+import { NotFoundError } from '@api/libs/error';
 import { exists } from 'fs-extra';
 import { cloneDeep } from 'lodash';
 import { joinURL } from 'ufo';
@@ -18,7 +19,7 @@ export class CustomProcessor extends BaseProcessor {
 
     const originalFilePath = joinURL(getSourceFileDir(this.knowledgeId), document.filename!);
     if (!(await exists(originalFilePath))) {
-      throw new Error(`processed file ${originalFilePath} not found`);
+      throw new NotFoundError(`processed file ${originalFilePath} not found`);
     }
 
     this.content = stringify({

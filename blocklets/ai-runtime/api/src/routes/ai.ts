@@ -1,6 +1,7 @@
 import { ReadableStream } from 'stream/web';
 
 import { getAdapter, getAgent, getMemoryVariables, getProject } from '@api/libs/agent';
+import { NoPermissionError } from '@api/libs/error';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
 import logger from '@api/libs/logger';
 import AgentUsage from '@api/store/models/agent-usage';
@@ -96,7 +97,7 @@ const validateDebugModeAccess = (
     if ((projectOwnerId && projectOwnerId === userId) || ['owner', 'admin'].includes(role)) {
       return;
     }
-    throw new Error('Debug mode is only available to project owner.');
+    throw new NoPermissionError('Debug mode is only available to project owner.');
   }
 };
 

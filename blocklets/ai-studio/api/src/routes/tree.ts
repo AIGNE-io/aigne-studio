@@ -1,5 +1,6 @@
 import path from 'path';
 
+import { NotFoundError } from '@api/libs/error';
 import Project from '@api/store/models/project';
 import { Assistant } from '@blocklet/ai-runtime/types';
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
@@ -30,7 +31,10 @@ export function treeRoutes(router: Router) {
   router.get('/projects/:projectId/tree/:ref', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required params `projectId`');
-    const project = await Project.findOne({ where: { id: projectId }, rejectOnEmpty: new Error('Project not found') });
+    const project = await Project.findOne({
+      where: { id: projectId },
+      rejectOnEmpty: new NotFoundError('Project not found'),
+    });
 
     checkProjectPermission({
       req,

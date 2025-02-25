@@ -4,7 +4,7 @@ import { join } from 'path';
 import { finished } from 'stream/promises';
 
 import { Config } from '@api/libs/env';
-import { NotFoundError } from '@api/libs/error';
+import { NoPermissionError, NotFoundError } from '@api/libs/error';
 import logger from '@api/libs/logger';
 import { resourceManager } from '@api/libs/resource';
 import Segment from '@api/store/models/dataset/segment';
@@ -242,7 +242,7 @@ router.get('/:knowledgeId/export-resource', middlewares.session(), ensureCompone
   const query = await exportResourceQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
   const knowledge = await Knowledge.findByPk(knowledgeId, {
-    rejectOnEmpty: new Error(`No such dataset ${knowledgeId}`),
+    rejectOnEmpty: new NotFoundError(`No such dataset ${knowledgeId}`),
   });
   const documents = await KnowledgeDocument.findAll({ where: { knowledgeId } });
   const segments = await Segment.findAll({ where: { documentId: { [Op.in]: documents.map((i) => i.id) } } });
@@ -289,7 +289,7 @@ router.get('/:knowledgeId/export-resource', middlewares.session(), ensureCompone
 
 router.post('/', middlewares.session({ componentCall: true }), ensureComponentCallOr(userAuth()), async (req, res) => {
   const userId = req.user?.method === 'componentCall' ? req.query.userId : req.user?.did;
-  if (!userId || typeof userId !== 'string') throw new Error('Unauthorized');
+  if (!userId || typeof userId !== 'string') throw new NoPermissionError('Unauthorized');
 
   const { name, description, projectId, copyFromProjectId, knowledgeId, resourceBlockletDid } =
     await knowledgeSchema.validateAsync(req.body, { stripUnknown: true });
@@ -328,7 +328,7 @@ router.post('/', middlewares.session({ componentCall: true }), ensureComponentCa
 
 router.post('/import-resources', middlewares.session(), ensureComponentCallOr(userAuth()), async (req, res) => {
   const userId = req.user?.did;
-  if (!userId || typeof userId !== 'string') throw new Error('Unauthorized');
+  if (!userId || typeof userId !== 'string') throw new NoPermissionError('Unauthorized');
 
   const { items } = await knowledgeFromResourceSchema.validateAsync(req.body, { stripUnknown: true });
 

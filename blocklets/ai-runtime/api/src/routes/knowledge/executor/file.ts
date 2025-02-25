@@ -1,6 +1,7 @@
 import { readFile } from 'fs/promises';
 
 import { getSourceFileDir } from '@api/libs/ensure-dir';
+import { NotFoundError } from '@api/libs/error';
 import logger from '@api/libs/logger';
 import { DocxLoader } from '@langchain/community/document_loaders/fs/docx';
 import { PDFLoader } from '@langchain/community/document_loaders/fs/pdf';
@@ -27,7 +28,7 @@ export class FileProcessor extends BaseProcessor {
 
     const filePath = joinURL(getSourceFileDir(this.knowledgeId), document.filename!);
     if (!(await exists(filePath))) {
-      throw new Error(`processed file ${filePath} not found`);
+      throw new NotFoundError(`processed file ${filePath} not found`);
     }
 
     const fileExt = (document.name || '').split('.').pop() || '';
