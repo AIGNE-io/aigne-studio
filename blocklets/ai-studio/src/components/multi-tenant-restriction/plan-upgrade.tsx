@@ -98,7 +98,7 @@ export function PlanUpgrade() {
                 bgcolor: 'warning.main',
               },
             }}>
-            {t(`multiTenantRestriction.${type}.desc`)}
+            {t(`upgradePrompts.${type}.desc`)}
           </Alert>
         )}
 

@@ -1,6 +1,5 @@
 import MdViewer from '@app/components/md-viewer';
-import { PremiumFeatureTag } from '@app/components/multi-tenant-restriction/premium-feature-tag';
-import { showPlanUpgrade } from '@app/components/multi-tenant-restriction/state';
+import { PlanAlert } from '@app/components/multi-tenant-restriction/plan-alert';
 import { useCurrentProject } from '@app/contexts/project';
 import UploaderProvider from '@app/contexts/uploader';
 import { getDefaultBranch, useCurrentGitStore } from '@app/store/current-git-store';
@@ -403,11 +402,11 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                 <Stack gap={2} mt={2}>
                   <Stack gap={2}>
                     <Box>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 0.5 }}>
+                        {isMultiTenant && <PlanAlert>{t('upgradePrompts.git.desc')}</PlanAlert>}
                         <Typography variant="subtitle2" mb={0}>
                           {t('Git Version')}
                         </Typography>
-                        {isMultiTenant && <PremiumFeatureTag onClick={() => showPlanUpgrade('git')} />}
                       </Box>
 
                       <FormControl disabled={isMultiTenant} className="version" sx={{ width: 1 }}>

@@ -1,4 +1,6 @@
 import LoadingButton from '@app/components/loading/loading-button';
+import { useMultiTenantRestriction } from '@app/components/multi-tenant-restriction';
+import { PlanAlert } from '@app/components/multi-tenant-restriction/plan-alert';
 import { useCurrentProject } from '@app/contexts/project';
 import { useIsAdmin } from '@app/contexts/session';
 import { theme } from '@app/theme/theme';
@@ -164,7 +166,6 @@ function DeployApp({
   run: () => void;
   sx?: SxProps;
 }) {
-  const isAdmin = useIsAdmin();
   const { t } = useLocaleContext();
   const [visibility, setVisibility] = useState<'public' | 'private'>('public');
   const { dialog, ensureEntryAgent } = useEnsureEntryAgent();
@@ -192,6 +193,9 @@ function DeployApp({
       Toast.error(error.message);
     }
   };
+
+  const { quotaChecker } = useMultiTenantRestriction();
+  const pass = quotaChecker.checkPrivateDeploy({ showPrice: false });
 
   return (
     <Box sx={sx} data-testid="create-deploy-popper">
@@ -231,7 +235,7 @@ function DeployApp({
                     }
                   />
                   <FormControlLabel
-                    disabled={!isAdmin}
+                    disabled={!pass}
                     sx={{ m: 0, mt: 1 }}
                     value="private"
                     control={<Radio />}
@@ -250,18 +254,7 @@ function DeployApp({
                 </RadioGroup>
               </FormControl>
             </CardContent>
-
-            {!isAdmin && (
-              <Typography variant="caption" mt={2}>
-                {t('deployments.toEnablePrivateProjects')}
-                <Box
-                  component="a"
-                  href="https://store.blocklet.dev/blocklets/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB"
-                  sx={{ ml: 1 }}>
-                  {t('deployments.launchAigne')}
-                </Box>
-              </Typography>
-            )}
+            {!pass && <PlanAlert sx={{ mt: 1 }}>{t('upgradePrompts.privateDeploy.desc')}</PlanAlert>}
           </Card>
         </Stack>
       </Box>
