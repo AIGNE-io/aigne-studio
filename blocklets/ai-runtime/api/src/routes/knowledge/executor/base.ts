@@ -4,6 +4,7 @@ import { stat, writeFile } from 'fs/promises';
 import { join } from 'path';
 
 import { getProcessedFileDir, getSourceFileDir } from '@api/libs/ensure-dir';
+import { NotFoundError } from '@api/libs/error';
 import logger from '@api/libs/logger';
 // @ts-ignore
 import { sendToRelay } from '@blocklet/sdk/service/notification';
@@ -96,7 +97,7 @@ export abstract class BaseProcessor {
 
   async getDocument(): Promise<KnowledgeDocument> {
     const document = await KnowledgeDocument.findOne({ where: { id: this.documentId, knowledgeId: this.knowledgeId } });
-    if (!document) throw new Error(`document ${this.documentId} not found`);
+    if (!document) throw new NotFoundError(`document ${this.documentId} not found`);
     return document;
   }
 
@@ -117,7 +118,7 @@ export abstract class BaseProcessor {
 
   protected async startRAG(): Promise<void> {
     const processedFilePath = join(getProcessedFileDir(this.knowledgeId), this.processedFileName);
-    if (!(await exists(processedFilePath))) throw new Error(`processedFilePath ${processedFilePath} not found`);
+    if (!(await exists(processedFilePath))) throw new NotFoundError(`processedFilePath ${processedFilePath} not found`);
 
     const fileContent = (await readFile(processedFilePath)).toString();
     const document = await this.getDocument();

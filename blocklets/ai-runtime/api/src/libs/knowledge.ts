@@ -8,6 +8,7 @@ import KnowledgeDocuments from '../store/models/dataset/document';
 import KnowledgeEmbeddingHistory from '../store/models/dataset/embedding-history';
 import KnowledgeSegments from '../store/models/dataset/segment';
 import { getKnowledgeDir } from './ensure-dir';
+import { NotFoundError } from './error';
 import nextId from './next-id';
 
 async function paginateAndInsert<M extends Model>({
@@ -60,7 +61,7 @@ async function copyKnowledgeBase({
 
   const knowledge = await Knowledge.findOne({
     where: { projectId: oldProjectId, id: oldKnowledgeBaseId },
-    rejectOnEmpty: new Error('Knowledge not found'),
+    rejectOnEmpty: new NotFoundError('Knowledge not found'),
   });
 
   await importKnowledgeData(knowledgeId, newProjectId, knowledge.dataValues, userId);

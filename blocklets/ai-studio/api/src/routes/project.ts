@@ -449,7 +449,10 @@ export function projectRoutes(router: Router) {
       const { projectId } = req.params;
       if (!projectId) throw new Error('Missing required param `projectId`');
 
-      const project = await Project.findOne({ where: { id: projectId }, rejectOnEmpty: new Error('No such project') });
+      const project = await Project.findOne({
+        where: { id: projectId },
+        rejectOnEmpty: new NotFoundError('No such project'),
+      });
 
       checkProjectPermission({ req, project });
 
@@ -463,7 +466,10 @@ export function projectRoutes(router: Router) {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required param `projectId`');
 
-    const project = await Project.findOne({ where: { id: projectId }, rejectOnEmpty: new Error('No such project') });
+    const project = await Project.findOne({
+      where: { id: projectId },
+      rejectOnEmpty: new NotFoundError('No such project'),
+    });
     checkProjectPermission({ req, project });
 
     const extra = await ProjectExtra.findByPk(projectId);
@@ -474,7 +480,10 @@ export function projectRoutes(router: Router) {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required param `projectId`');
 
-    const project = await Project.findOne({ where: { id: projectId }, rejectOnEmpty: new Error('No such project') });
+    const project = await Project.findOne({
+      where: { id: projectId },
+      rejectOnEmpty: new NotFoundError('No such project'),
+    });
     checkProjectPermission({ req, project });
 
     const [extra] = await ProjectExtra.upsert({ id: projectId, npmPackageSecret: nanoid() });
@@ -493,7 +502,10 @@ export function projectRoutes(router: Router) {
       return;
     }
 
-    const project = await Project.findOne({ where: { id: projectId }, rejectOnEmpty: new Error('No such project') });
+    const project = await Project.findOne({
+      where: { id: projectId },
+      rejectOnEmpty: new NotFoundError('No such project'),
+    });
     const repo = await ProjectRepo.load({ projectId });
 
     const tmpDir = join(config.env.dataDir, 'tmp/npm/', nanoid());
@@ -550,7 +562,10 @@ export function projectRoutes(router: Router) {
 
       const input = await createOrUpdateAgentInputSecretPayloadSchema.validateAsync(req.body, { stripUnknown: true });
 
-      const project = await Project.findOne({ where: { id: projectId }, rejectOnEmpty: new Error('No such project') });
+      const project = await Project.findOne({
+        where: { id: projectId },
+        rejectOnEmpty: new NotFoundError('No such project'),
+      });
 
       checkProjectPermission({ req, project });
 
@@ -599,7 +614,7 @@ export function projectRoutes(router: Router) {
     await checkProjectLimit({ req });
 
     if (!templateId) {
-      throw new Error('No template project found');
+      throw new NotFoundError('No template project found');
     }
 
     // create project from resource blocklet
@@ -646,7 +661,7 @@ export function projectRoutes(router: Router) {
     }
 
     if (!project) {
-      throw new Error(`No such template project ${templateId}`);
+      throw new NotFoundError(`No such template project ${templateId}`);
     }
 
     projectCronManager.reloadProjectJobs(project.id);
@@ -698,7 +713,7 @@ export function projectRoutes(router: Router) {
       }
 
       if (!originProject?.id)
-        throw new Error('The project ID does not exist; only ai-studio projects can be imported.');
+        throw new NotFoundError('The project ID does not exist; only ai-studio projects can be imported.');
 
       const oldProject = await Project.findOne({ where: { id: originProject?.id } });
       if (oldProject)
@@ -861,7 +876,7 @@ export function projectRoutes(router: Router) {
       const { projectId } = req.params;
       if (!projectId) throw new Error('Missing required params `projectId`');
 
-      const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
+      const project = await Project.findByPk(projectId, { rejectOnEmpty: new NotFoundError('Project not found') });
 
       checkProjectPermission({ req, project });
 
@@ -901,7 +916,7 @@ export function projectRoutes(router: Router) {
     }
     if (!projectId) throw new Error('Missing required params `projectId`');
 
-    const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
+    const project = await Project.findByPk(projectId, { rejectOnEmpty: new NotFoundError('Project not found') });
 
     checkProjectPermission({ req, project });
 
@@ -923,7 +938,7 @@ export function projectRoutes(router: Router) {
 
     const input = await pushInputSchema.validateAsync(req.body, { stripUnknown: true });
 
-    const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
+    const project = await Project.findByPk(projectId, { rejectOnEmpty: new NotFoundError('Project not found') });
 
     checkProjectPermission({ req, project });
 
@@ -950,7 +965,7 @@ export function projectRoutes(router: Router) {
 
     const input = await pullInputSchema.validateAsync(req.body, { stripUnknown: true });
 
-    const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
+    const project = await Project.findByPk(projectId, { rejectOnEmpty: new NotFoundError('Project not found') });
 
     checkProjectPermission({ req, project });
 
@@ -985,7 +1000,7 @@ export function projectRoutes(router: Router) {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required params `projectId`');
 
-    const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
+    const project = await Project.findByPk(projectId, { rejectOnEmpty: new NotFoundError('Project not found') });
 
     checkProjectPermission({ req, project });
 
@@ -1022,7 +1037,7 @@ export function projectRoutes(router: Router) {
     const { projectId, ref, agentId } = req.params;
     const query = await getAgentQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
-    await Project.findByPk(projectId, { rejectOnEmpty: new Error(`Project ${projectId} not found`) });
+    await Project.findByPk(projectId, { rejectOnEmpty: new NotFoundError(`Project ${projectId} not found`) });
 
     const repository = await getRepository({ projectId });
 
@@ -1117,7 +1132,7 @@ export function projectRoutes(router: Router) {
 
       const query = await getAgentQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
-      await Project.findByPk(projectId, { rejectOnEmpty: new Error(`Project ${projectId} not found`) });
+      await Project.findByPk(projectId, { rejectOnEmpty: new NotFoundError(`Project ${projectId} not found`) });
 
       const repository = await getRepository({ projectId });
 
@@ -1199,7 +1214,7 @@ export function projectRoutes(router: Router) {
 
       const input = await uploadAssetSchema.validateAsync(req.body, { stripUnknown: true });
 
-      const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
+      const project = await Project.findByPk(projectId, { rejectOnEmpty: new NotFoundError('Project not found') });
 
       checkProjectPermission({ req, project });
 
@@ -1214,7 +1229,7 @@ export function projectRoutes(router: Router) {
     const { projectId, ref, filename } = req.params;
     if (!projectId || !ref || !filename) throw new Error('Missing required params `projectId` or `ref` or `filename`');
 
-    await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
+    await Project.findByPk(projectId, { rejectOnEmpty: new NotFoundError('Project not found') });
 
     const repo = await ProjectRepo.load({ projectId });
     const working = await repo.working({ ref });

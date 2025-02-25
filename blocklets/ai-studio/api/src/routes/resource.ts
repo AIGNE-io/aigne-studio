@@ -3,6 +3,7 @@ import { copyFile, mkdir, mkdtemp, rm, writeFile } from 'fs/promises';
 import { join } from 'path';
 
 import { Config } from '@api/libs/env';
+import { NotFoundError } from '@api/libs/error';
 import { AIGNE_RUNTIME_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
 import {
   Assistant,
@@ -235,7 +236,7 @@ export function resourceRoutes(router: Router) {
 
         if (type === 'application') {
           const project = await Project.findByPk(projectId, {
-            rejectOnEmpty: new Error(`No such project ${projectId}`),
+            rejectOnEmpty: new NotFoundError(`No such project ${projectId}`),
           });
           const entry = await getEntryFromRepository({ projectId, ref: project.gitDefaultBranch || defaultBranch });
           if (!entry) throw new Error(`Missing entry agent for project ${projectId}`);
@@ -245,7 +246,7 @@ export function resourceRoutes(router: Router) {
 
         const project = await Project.findOne({
           where: { id: projectId },
-          rejectOnEmpty: new Error(`no such project ${projectId}`),
+          rejectOnEmpty: new NotFoundError(`no such project ${projectId}`),
         });
 
         const agents = await Promise.all(

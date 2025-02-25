@@ -1,3 +1,4 @@
+import { NotFoundError } from '@api/libs/error';
 import { call } from '@blocklet/sdk/lib/component';
 
 export type Discussion = {
@@ -38,7 +39,7 @@ export async function getDiscussion(discussionId: string, locale?: string): Prom
     });
 
     if (!result.data) {
-      throw new Error('Discussion not found');
+      throw new NotFoundError('Discussion not found');
     }
 
     return result.data;

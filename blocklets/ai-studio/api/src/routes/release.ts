@@ -1,3 +1,4 @@
+import { NotFoundError } from '@api/libs/error';
 import {
   createOrUpdatePaymentForRelease,
   getActiveSubscriptionOfAssistant,
@@ -56,7 +57,7 @@ router.get('/by-aid', async (req, res) => {
 
   const release = await Release.findOne({
     where: { projectId, projectRef, assistantId },
-    rejectOnEmpty: new Error('Release not found'),
+    rejectOnEmpty: new NotFoundError('Release not found'),
   });
 
   res.json({
@@ -70,7 +71,9 @@ router.get('/by-aid', async (req, res) => {
 router.get('/:releaseId', async (req, res) => {
   const { releaseId } = req.params;
 
-  const release = await Release.findByPk(releaseId!, { rejectOnEmpty: new Error(`Release ${releaseId} not found`) });
+  const release = await Release.findByPk(releaseId!, {
+    rejectOnEmpty: new NotFoundError(`Release ${releaseId} not found`),
+  });
 
   res.json({
     ...release.dataValues,
@@ -161,7 +164,9 @@ router.patch('/:releaseId', middlewares.session(), ensureComponentCallOrPromptsE
 
   const input = await updateReleaseSchema.validateAsync(req.body, { stripUnknown: true });
 
-  const release = await Release.findByPk(releaseId!, { rejectOnEmpty: new Error(`Release ${releaseId} not found`) });
+  const release = await Release.findByPk(releaseId!, {
+    rejectOnEmpty: new NotFoundError(`Release ${releaseId} not found`),
+  });
 
   await release.update(omitBy({ ...input, updatedBy: did }, (v) => v === undefined));
 
@@ -180,7 +185,9 @@ router.patch('/:releaseId', middlewares.session(), ensureComponentCallOrPromptsE
 router.delete('/:releaseId', ensureComponentCallOrPromptsEditor(), async (req, res) => {
   const { releaseId } = req.params;
 
-  const release = await Release.findByPk(releaseId!, { rejectOnEmpty: new Error(`Release ${releaseId} not found`) });
+  const release = await Release.findByPk(releaseId!, {
+    rejectOnEmpty: new NotFoundError(`Release ${releaseId} not found`),
+  });
   await release.destroy();
 
   res.json(release);

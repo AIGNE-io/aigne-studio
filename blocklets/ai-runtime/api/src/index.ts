@@ -12,6 +12,7 @@ import initCronJob from './jobs';
 import { cronManager } from './libs/cron-jobs';
 import { getSourceFileDir } from './libs/ensure-dir';
 import { isDevelopment } from './libs/env';
+import { NoPermissionError, NotFoundError } from './libs/error';
 import logger, { accessLogMiddleware, registerLoggerToConsole } from './libs/logger';
 import { resourceManager } from './libs/resource';
 import { xss } from './libs/xss';
@@ -67,7 +68,11 @@ app.use(<ErrorRequestHandler>((error, _req, res, _next) => {
   logger.error('handle route error', { error });
 
   try {
-    if (!res.headersSent) res.status(500).contentType('json');
+    if (!res.headersSent)
+      res
+        .status(error instanceof NotFoundError ? 404 : error instanceof NoPermissionError ? 403 : 500)
+        .contentType('json');
+
     if (res.writable)
       res.write(
         JSON.stringify({

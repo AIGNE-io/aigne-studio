@@ -1,3 +1,4 @@
+import { NotFoundError } from '@api/libs/error';
 import middlewares from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
@@ -31,7 +32,7 @@ export function workingRoutes(router: Router) {
 
       const input = await createBranchInputSchema.validateAsync(req.body, { stripUnknown: true });
 
-      const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
+      const project = await Project.findByPk(projectId, { rejectOnEmpty: new NotFoundError('Project not found') });
 
       const readOnly = isRefReadOnly({
         ref,

@@ -2,6 +2,7 @@ import { auth } from '@blocklet/sdk/lib/middlewares';
 import { getVerifyData, verify } from '@blocklet/sdk/lib/util/verify-sign';
 import { NextFunction, Request, Response } from 'express';
 
+import { NoPermissionError } from './error';
 import logger from './logger';
 
 export const ADMIN_ROLES = ['owner', 'admin'];
@@ -16,7 +17,7 @@ export async function ensureAgentAdmin(req: Request, getOwnerId: () => Promise<s
     if (ownerIds.every((i) => i === req.user!.did)) return true;
   }
 
-  throw new Error('Forbidden');
+  throw new NoPermissionError('Forbidden');
 }
 
 export function ensureComponentCallOr(fallback: (req: Request, res: Response, next: NextFunction) => any) {

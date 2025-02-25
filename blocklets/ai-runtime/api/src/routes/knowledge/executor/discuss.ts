@@ -1,6 +1,7 @@
 import { readFile, writeFile } from 'fs/promises';
 
 import { getSourceFileDir } from '@api/libs/ensure-dir';
+import { NotFoundError } from '@api/libs/error';
 import logger from '@api/libs/logger';
 import { getComponentMountPoint } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
@@ -70,7 +71,7 @@ export class DiscussKitProcessor extends BaseProcessor {
 
     const originalFilePath = joinURL(getSourceFileDir(this.knowledgeId), document.filename!);
     if (!(await exists(originalFilePath))) {
-      throw new Error(`processed file ${originalFilePath} not found`);
+      throw new NotFoundError(`processed file ${originalFilePath} not found`);
     }
 
     const contents = parse((await readFile(originalFilePath)).toString());

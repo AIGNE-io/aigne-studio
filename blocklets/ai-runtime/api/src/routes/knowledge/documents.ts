@@ -1,6 +1,7 @@
 import { copyFile, rm, writeFile } from 'fs/promises';
 import { join } from 'path';
 
+import { NotFoundError } from '@api/libs/error';
 import logger from '@api/libs/logger';
 import { resourceManager } from '@api/libs/resource';
 import middlewares from '@blocklet/sdk/lib/middlewares';
@@ -74,7 +75,7 @@ async function getVectorPath(blockletDid: string | null, knowledgeId: string, kn
     const resource = await resourceManager.getKnowledge(resourceToCheck);
 
     if (!resource) {
-      throw new Error('No such knowledge resource');
+      throw new NotFoundError('No such knowledge resource');
     }
 
     return (await pathExists(join(resource.vectorsPath, 'faiss.index')))
@@ -193,7 +194,7 @@ router.post('/:knowledgeId/documents/file', middlewares.session(), userAuth(), a
   const { name, filename, size } = await fileSchema.validateAsync(req.body, { stripUnknown: true });
   const newFilePath = joinURL(getSourceFileDir(knowledgeId), filename);
 
-  if (!(await pathExists(newFilePath))) throw new Error(`file ${newFilePath} not found`);
+  if (!(await pathExists(newFilePath))) throw new NotFoundError(`file ${newFilePath} not found`);
 
   const document = await KnowledgeDocument.create({
     type: 'file',
@@ -388,7 +389,7 @@ router.get('/:knowledgeId/documents/:documentId/content', middlewares.session(),
   }
 
   const filePath = joinURL(getSourceFileDir(knowledgeId), document.filename);
-  if (!(await pathExists(filePath))) throw new Error(`file ${filePath} not found`);
+  if (!(await pathExists(filePath))) throw new NotFoundError(`file ${filePath} not found`);
 
   return res.json({ filename: document.filename });
 });

@@ -1,6 +1,6 @@
 {
   "name": "ai-runtime",
-  "version": "0.4.236",
+  "version": "0.4.237",
   "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
   "scripts": {
     "dev": "cross-env COMPONENT_STORE_URL=https://test.store.blocklet.dev blocklet dev",
@@ -32,8 +32,8 @@
     "@abtnode/cron": "^1.16.38",
     "@arcblock/did-auth": "^1.19.10",
     "@arcblock/did-auth-storage-nedb": "^1.7.1",
-    "@arcblock/did-connect": "^2.11.44",
-    "@arcblock/ux": "^2.11.44",
+    "@arcblock/did-connect": "^2.11.46",
+    "@arcblock/ux": "^2.11.46",
     "@arcblock/vc": "^1.19.10",
     "@blocklet/ai-kit": "^0.1.71",
     "@blocklet/ai-runtime": "workspace:^",
@@ -45,7 +45,7 @@
     "@blocklet/logger": "^1.16.38",
     "@blocklet/pages-kit": "^0.4.11",
     "@blocklet/sdk": "^1.16.38",
-    "@blocklet/ui-react": "^2.11.44",
+    "@blocklet/ui-react": "^2.11.46",
     "@blocklet/uploader-server": "^0.1.84",
     "@blocklet/xss": "^0.1.25",
     "@huggingface/inference": "^2.8.0",

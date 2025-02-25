@@ -1,4 +1,5 @@
 import { getProject } from '@api/libs/agent';
+import { NotFoundError } from '@api/libs/error';
 import { AIGNE_RUNTIME_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
 import { Parameter } from '@blocklet/ai-runtime/types';
 import { getComponentMountPoint } from '@blocklet/sdk';
@@ -87,7 +88,7 @@ router.get('/sse', async (req, res) => {
 router.post('/messages', async (req, res) => {
   const { sessionId } = req.query;
   const cache = CACHE.get(sessionId as string);
-  if (!cache) throw new Error('No such session');
+  if (!cache) throw new NotFoundError('No such session');
 
   await cache.transport.handlePostMessage(req, res, req.body);
 });

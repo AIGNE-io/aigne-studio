@@ -1,3 +1,4 @@
+import { NotFoundError } from '@api/libs/error';
 import History from '@api/store/models/history';
 import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
@@ -84,7 +85,7 @@ export function messageRoutes(router: Router) {
     const { messageId } = req.params;
 
     if (!messageId) throw new Error('Missing required param `messageId`');
-    const message = await History.findByPk(messageId, { rejectOnEmpty: new Error('No such message') });
+    const message = await History.findByPk(messageId, { rejectOnEmpty: new NotFoundError('No such message') });
     res.json({
       ...message.dataValues,
       aid: stringifyIdentity({
