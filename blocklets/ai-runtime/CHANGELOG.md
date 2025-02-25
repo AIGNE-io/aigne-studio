@@ -1,3 +1,7 @@
+## 0.4.237 (2025-2-25)
+
+- chore: respond 404 if resource not found
+
 ## 0.4.236 (2025-2-25)
 
 - feat: disable remote repo in multi-tenant
