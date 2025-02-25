@@ -3,6 +3,7 @@ import 'cronstrue/locales/zh_CN';
 
 import MdViewer from '@app/components/md-viewer';
 import { useMultiTenantRestriction } from '@app/components/multi-tenant-restriction';
+import { PlanAlert } from '@app/components/multi-tenant-restriction/plan-alert';
 import { useCurrentProject } from '@app/contexts/project';
 import { randomId, useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
@@ -108,6 +109,13 @@ export function CronSettings({ agent }: { agent: AssistantYjs }) {
     }
   }, [agent.id]);
 
+  if (quotaChecker.checkCronJobs({ showPrice: false })) {
+    return (
+      <Stack gap={1} py={1.5} alignItems="center">
+        <PlanAlert>{t('multiTenantRestriction.cronJobs.desc')}</PlanAlert>
+      </Stack>
+    );
+  }
   if (!jobs?.length) {
     return (
       <Stack gap={1} p={2} alignItems="center">

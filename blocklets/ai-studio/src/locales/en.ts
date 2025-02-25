@@ -862,7 +862,7 @@ export default flatten({
       desc: 'Custom branding is a Premium/Professional feature. Upgrade your plan to personalize your brand.',
     },
     cronJobs: {
-      desc: 'Cron Jobs is a Professional feature. Please upgrade to the Professional plan to access this feature.',
+      desc: 'Cron Jobs is a premium feature. Please upgrade to the Premium plan to access this feature.',
     },
     anonymousRequest: {
       desc: 'Anonymous access control is a premium feature. Please upgrade to the Premium plan to access this feature.',

@@ -1,9 +1,10 @@
+import { PlanAlert } from '@app/components/multi-tenant-restriction/plan-alert';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { AssistantYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { FormControl, FormControlLabel, FormHelperText, Stack, Switch } from '@mui/material';
 
-import { PremiumFeatureTag, useMultiTenantRestriction } from '../../multi-tenant-restriction';
+import { useMultiTenantRestriction } from '../../multi-tenant-restriction';
 
 export function BaseAgentSettingsSummary(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -17,6 +18,7 @@ export function BaseAgentSettings({ agent }: { agent: AssistantYjs }) {
   const doc = (getYjsValue(agent) as Map<any>).doc!;
   const { quotaChecker } = useMultiTenantRestriction();
 
+  const pass = quotaChecker.checkAnonymousRequest({ showPrice: false });
   return (
     <Stack direction="column" px={1.5} py={1} gap={1}>
       <Stack alignItems="flex-start">
@@ -48,10 +50,11 @@ export function BaseAgentSettings({ agent }: { agent: AssistantYjs }) {
               label={t('loginRequired')}
               control={
                 <Switch
+                  disabled={!pass}
                   size="small"
                   checked={!agent.access?.noLoginRequired}
                   onChange={(_, check) => {
-                    if (!quotaChecker.checkAnonymousRequest()) return;
+                    if (!pass) return;
                     doc.transact(() => {
                       agent.access ??= {};
                       agent.access.noLoginRequired = !check;
@@ -61,11 +64,11 @@ export function BaseAgentSettings({ agent }: { agent: AssistantYjs }) {
               }
             />
           </FormControl>
-          <PremiumFeatureTag sx={{ ml: 3 }} onClick={() => quotaChecker.checkAnonymousRequest()} />
         </Stack>
         <FormHelperText sx={{ ml: 0 }}>
           {t(!agent.access?.noLoginRequired ? 'loginRequiredHelper' : 'noLoginRequiredHelper')}
         </FormHelperText>
+        {!pass && <PlanAlert sx={{ mt: 0.5 }}>{t('multiTenantRestriction.anonymousRequest.desc')}</PlanAlert>}
       </Stack>
     </Stack>
   );

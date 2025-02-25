@@ -1,4 +1,6 @@
+import { PlanAlert } from '@app/components/multi-tenant-restriction/plan-alert';
 import { useCurrentProject } from '@app/contexts/project';
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Stack, Switch } from '@mui/material';
 
@@ -8,18 +10,21 @@ import { useMultiTenantRestriction } from '../../../components/multi-tenant-rest
 import { useProjectStore } from '../yjs-state';
 
 export default function AigneBannerSetting() {
+  const { t } = useLocaleContext();
   const { projectId, projectRef } = useCurrentProject();
   const { projectSetting } = useProjectStore(projectId, projectRef);
   const { appearance } = projectSetting || {};
   const { quotaChecker } = useMultiTenantRestriction();
   const visible = appearance?.aigneBannerVisible ?? true;
+  const pass = quotaChecker.checkCustomBrand({ showPrice: false });
 
   return (
     <Stack>
       <Switch
+        disabled={!pass}
         checked={visible}
         onChange={(e) => {
-          if (quotaChecker.checkCustomBrand()) {
+          if (pass) {
             const doc = (getYjsValue(projectSetting) as Map<any>).doc!;
             doc.transact(() => {
               projectSetting.appearance ??= {};
@@ -28,7 +33,7 @@ export default function AigneBannerSetting() {
           }
         }}
       />
-
+      {!pass && <PlanAlert sx={{ mt: 1.5 }}>{t('multiTenantRestriction.customBrand.desc')}</PlanAlert>}
       <Stack sx={{ mt: 2, border: 1, borderColor: 'divider' }}>
         {visible ? (
           <img src={ImageAigneBannerVisible} alt="Aigne Banner Visible" style={{ width: '100%' }} />
