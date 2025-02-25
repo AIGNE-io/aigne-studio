@@ -403,7 +403,7 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                   <Stack gap={2}>
                     <Box>
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 0.5 }}>
-                        {isMultiTenant && <PlanAlert>{t('multiTenantRestriction.git.desc')}</PlanAlert>}
+                        {isMultiTenant && <PlanAlert>{t('upgradePrompts.git.desc')}</PlanAlert>}
                         <Typography variant="subtitle2" mb={0}>
                           {t('Git Version')}
                         </Typography>

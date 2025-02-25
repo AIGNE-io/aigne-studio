@@ -112,7 +112,7 @@ export function CronSettings({ agent }: { agent: AssistantYjs }) {
   if (quotaChecker.checkCronJobs({ showPrice: false })) {
     return (
       <Stack gap={1} py={1.5} alignItems="center">
-        <PlanAlert>{t('multiTenantRestriction.cronJobs.desc')}</PlanAlert>
+        <PlanAlert>{t('upgradePrompts.cronJobs.desc')}</PlanAlert>
       </Stack>
     );
   }

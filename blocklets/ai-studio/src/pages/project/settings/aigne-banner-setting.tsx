@@ -33,7 +33,7 @@ export default function AigneBannerSetting() {
           }
         }}
       />
-      {!pass && <PlanAlert sx={{ mt: 1.5 }}>{t('multiTenantRestriction.customBrand.desc')}</PlanAlert>}
+      {!pass && <PlanAlert sx={{ mt: 1.5 }}>{t('upgradePrompts.customBrand.desc')}</PlanAlert>}
       <Stack sx={{ mt: 2, border: 1, borderColor: 'divider' }}>
         {visible ? (
           <img src={ImageAigneBannerVisible} alt="Aigne Banner Visible" style={{ width: '100%' }} />

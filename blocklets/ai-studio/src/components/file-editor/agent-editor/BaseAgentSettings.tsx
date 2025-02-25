@@ -68,7 +68,7 @@ export function BaseAgentSettings({ agent }: { agent: AssistantYjs }) {
         <FormHelperText sx={{ ml: 0 }}>
           {t(!agent.access?.noLoginRequired ? 'loginRequiredHelper' : 'noLoginRequiredHelper')}
         </FormHelperText>
-        {!pass && <PlanAlert sx={{ mt: 0.5 }}>{t('multiTenantRestriction.anonymousRequest.desc')}</PlanAlert>}
+        {!pass && <PlanAlert sx={{ mt: 0.5 }}>{t('upgradePrompts.anonymousRequest.desc')}</PlanAlert>}
       </Stack>
     </Stack>
   );

@@ -5,7 +5,7 @@ import { create } from 'zustand';
 
 import type { Plan } from './pricing-table';
 
-type RestrictionType = QuotaKey | 'anonymousRequest' | 'git';
+type RestrictionType = QuotaKey | 'anonymousRequest' | 'privateDeploy' | 'git';
 
 export const premiumPassport = window.blocklet?.preferences?.premiumPassport;
 
@@ -99,6 +99,11 @@ export function useMultiTenantRestriction() {
     checkAnonymousRequest({ showPrice = true }: { showPrice?: boolean } = {}) {
       if (isAdmin || isPremiumUser) return true;
       if (showPrice) showPlanUpgrade('anonymousRequest');
+      return false;
+    },
+    checkPrivateDeploy({ showPrice = true }: { showPrice?: boolean } = {}) {
+      if (isAdmin || isPremiumUser) return true;
+      if (showPrice) showPlanUpgrade('privateDeploy');
       return false;
     },
   };

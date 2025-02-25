@@ -851,7 +851,8 @@ export default flatten({
   selectEntryAgentDescription: 'Before deployment, you need to set up the entry point agent.',
   activeWhen: 'Active when',
   selectTemplateDynamicInputTip: 'Taken over automatically by Agent',
-  multiTenantRestriction: {
+  upgrade: 'Upgrade',
+  upgradePrompts: {
     requestLimit: {
       desc: "You've reached your request limit. Upgrade to Premium to increase your request capacity.",
     },
@@ -869,6 +870,9 @@ export default flatten({
     },
     git: {
       desc: 'Git is a Professional feature. Please upgrade to the Professional plan to access this feature.',
+    },
+    privateDeploy: {
+      desc: 'Private deployment is a Premium/Professional feature. Please upgrade to the premium/professional plan to access this feature.',
     },
   },
   premiumFeatureTip: 'Premium feature',
