@@ -263,10 +263,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
             })
             .execute()
         )[RuntimeOutputVariable.llmResponseStream] as ReadableStream<ChatCompletionResponse>)
-      : await this.context.callAI({
-          assistant: agent,
-          input,
-        });
+      : await this.context.callAI({ input });
   }
 
   private async *runLLMGetTextOutput({
@@ -515,7 +512,6 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
 
     cacheTranslateFunctionNames[key] ??= this.context
       .callAI({
-        assistant: this.agent,
         input: {
           messages: [
             {

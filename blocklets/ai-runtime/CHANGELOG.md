@@ -1,3 +1,7 @@
+## 0.4.240 (2025-2-26)
+
+- chore: support call prompt from MCP
+
 ## 0.4.239 (2025-2-25)
 
 - chore: update deps

@@ -812,7 +812,7 @@ export abstract class AgentExecutorBase<T> {
       return res;
     }, {});
 
-    const result = await joiSchema.validateAsync({ ...outputs, ...outputInputs }, { stripUnknown: true });
+    const result = await joiSchema.validateAsync({ ...outputs, ...outputInputs }, { allowUnknown: true });
 
     if (processCallAgentOutputs && this.agent.outputVariables) {
       const callAgentOutputs = this.agent.outputVariables.filter(
