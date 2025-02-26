@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/quickjs",
-  "version": "0.4.240",
+  "version": "0.4.241",
   "description": "JS Sandbox powered by Quickjs",
   "publishConfig": {
     "access": "public"
