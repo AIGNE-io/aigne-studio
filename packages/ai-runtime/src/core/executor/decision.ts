@@ -515,7 +515,6 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
 
     cacheTranslateFunctionNames[key] ??= this.context
       .callAI({
-        assistant: this.agent,
         input: {
           messages: [
             {
