@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "@abtnode/cron": "^1.16.39",
-    "@aigne/runtime": "^1.0.15",
+    "@aigne/runtime": "^1.0.16",
     "@arcblock/did-auth": "^1.19.12",
     "@arcblock/did-auth-storage-nedb": "^1.7.1",
     "@arcblock/did-connect": "^2.11.48",
