@@ -1,3 +1,12 @@
+## 0.4.239 (2025-2-25)
+
+- chore: update deps
+- fix: ui issue
+
+## 0.4.238 (2025-2-25)
+
+- feat: replace premium badge with alert
+
 ## 0.4.237 (2025-2-25)
 
 - chore: respond 404 if resource not found

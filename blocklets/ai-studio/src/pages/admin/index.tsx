@@ -15,6 +15,7 @@ export default function ExploreAdminRoutes() {
   }, [session.user]);
 
   return (
+    // @ts-ignore
     <AdminLayout
       footerProps={{ className: 'dashboard-footer' }}
       sx={{ bgcolor: 'background.paper' }}
