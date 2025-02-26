@@ -419,13 +419,21 @@ function getAssistantDependentComponents(assistant: Assistant | Assistant[], kbL
           return [];
         });
 
+        const processDeps =
+          (assistant.type === 'callAgent'
+            ? assistant.agents?.map((i) => i.blockletDid)
+            : assistant.type === 'router'
+              ? assistant.routes?.map((i) => i.blockletDid)
+              : []
+          )?.filter(isNonNullable) ?? [];
+
         const executorDeps = assistant.executor?.agent?.blockletDid ? [assistant.executor?.agent?.blockletDid] : [];
 
         const outputVariables = (assistant.outputVariables ?? []).filter((i) => !i.hidden);
         const appearanceDeps =
           outputVariables.map((i) => i.appearance?.componentBlockletDid).filter(isNonNullable) ?? [];
 
-        return [...inputDeps, ...executorDeps, ...appearanceDeps];
+        return [...inputDeps, ...executorDeps, ...appearanceDeps, ...processDeps];
       })
     ),
   ];
