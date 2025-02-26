@@ -41,7 +41,6 @@ export interface GetAgent {
 }
 
 export type Options = {
-  assistant: Assistant & { project: { id: string } };
   input: ChatCompletionInput;
 };
 

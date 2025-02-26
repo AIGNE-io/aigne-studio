@@ -1,3 +1,4 @@
+import { isChatCompletionChunk } from '@blocklet/ai-kit/api/types/chat';
 import { getComponentWebEndpoint } from '@blocklet/sdk';
 import { Client } from '@modelcontextprotocol/sdk/client/index';
 import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse';
@@ -25,9 +26,37 @@ export class McpAgentExecutor extends AgentExecutorBase<MCPAssistant> {
 
     const client = await this.context.mcpInstances[this.agent.mcp!.blocklet.did]!;
 
-    return await client.callTool({
-      name: mcp.name,
-      arguments: options.inputs,
-    });
+    if (mcp.type === 'tool') {
+      return await client.callTool({
+        name: mcp.name,
+        arguments: options.inputs,
+      });
+    }
+    if (mcp.type === 'prompt') {
+      const prompt = await client.getPrompt({
+        name: mcp.name,
+        arguments: options.inputs,
+      });
+      let text = '';
+      const result = await this.context.callAI({
+        input: {
+          messages: prompt.messages as any,
+        },
+      });
+      for await (const chunk of result) {
+        if (isChatCompletionChunk(chunk)) {
+          text += chunk.delta.content || '';
+        }
+      }
+      return { content: { type: 'text', text } };
+    }
+    if (mcp.type === 'resource') {
+      if (!mcp.uri) throw new Error('MCP resource uri is not configured');
+      return await client.readResource({
+        uri: mcp.uri,
+      });
+    }
+
+    throw new Error(`Unknown MCP assistant type: ${mcp.type}`);
   }
 }

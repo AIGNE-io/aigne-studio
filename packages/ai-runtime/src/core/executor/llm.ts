@@ -231,7 +231,6 @@ export class LLMAgentExecutor extends AgentExecutorBase<PromptAssistant> {
     const { modelInfo } = this;
 
     const result = await this.context.callAI({
-      assistant: this.agent,
       input: {
         messages,
         ...modelInfo,
@@ -305,7 +304,6 @@ export class LLMAgentExecutor extends AgentExecutorBase<PromptAssistant> {
     inputs: { [key: string]: any };
   }) {
     const {
-      agent,
       modelInfo,
       options: { taskId },
     } = this;
@@ -326,7 +324,6 @@ export class LLMAgentExecutor extends AgentExecutorBase<PromptAssistant> {
             .execute()
         )[RuntimeOutputVariable.llmResponseStream] as ReadableStream<ChatCompletionResponse>)
       : await this.context.callAI({
-          assistant: agent,
           input: {
             stream: true,
             messages,

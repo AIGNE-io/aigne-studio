@@ -224,7 +224,7 @@ export function outputVariablesToJoiSchema(
           )
         )
           .empty([null, ''])
-          .options({ stripUnknown: true });
+          .options({ allowUnknown: true });
       } else {
         schema = Joi.any().empty(['', null]);
       }
