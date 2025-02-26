@@ -1,3 +1,7 @@
+## 0.4.241 (2025-2-26)
+
+- fix: automatically add MCP Server reference
+
 ## 0.4.240 (2025-2-26)
 
 - chore: support call prompt from MCP
