@@ -40,7 +40,6 @@ async function generateSelectAgentName({
 }) {
   return retry(async () => {
     const selectAgentIdResponseByPrompt = await callAI({
-      assistant,
       input: {
         messages: [
           {

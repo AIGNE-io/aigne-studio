@@ -82,7 +82,6 @@ export async function generateOutput({
 
   return retry(async () => {
     const result = await callAI({
-      assistant,
       input: {
         stream: true,
         messages,
