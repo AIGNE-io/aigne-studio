@@ -23,6 +23,7 @@ export enum AssistantResponseType {
   USAGE = 'USAGE',
   EXECUTE = 'EXECUTE',
   INPUT_PARAMETER = 'INPUT_PARAMETER',
+  PROGRESS = 'PROGRESS',
 }
 
 // RunAssistantInputParameter 用来展示 user 输入
@@ -38,6 +39,7 @@ export type RunAssistantResponse = { messageId: string; sessionId: string } & (
   | RunAssistantLog
   | RunAssistantExecute
   | RunAssistantInputParameter
+  | RunAssistantProgress
 );
 
 export type RunAssistantInputParameter = {
@@ -47,6 +49,26 @@ export type RunAssistantInputParameter = {
   delta: {
     content?: string | null;
   };
+};
+
+export type RunAssistantProgress = {
+  type: AssistantResponseType.PROGRESS;
+  taskId: string;
+  time: string;
+  agent: {
+    id: string;
+    name?: string;
+    description?: string;
+  };
+  payload:
+    | {
+        type: 'start';
+        input: { [key: string]: any };
+      }
+    | {
+        type: 'end';
+        output: { [key: string]: any };
+      };
 };
 
 export type RunAssistantInput = {

@@ -1,3 +1,7 @@
+## 0.4.242 (2025-2-28)
+
+- chore: respond progress state of agent
+
 ## 0.4.241 (2025-2-26)
 
 - fix: automatically add MCP Server reference

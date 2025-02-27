@@ -26,7 +26,7 @@ import {
   jsonSchemaToOpenAIJsonSchema,
 } from '../../types';
 import { isNonNullable } from '../../utils/is-non-nullable';
-import { RunAssistantCallback, ToolCompletionDirective } from '../assistant/type';
+import { ToolCompletionDirective } from '../assistant/type';
 import { nextTaskId } from '../utils/task-id';
 import { AgentExecutorBase } from './base';
 
@@ -307,7 +307,6 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
 
       if (toolCalls?.length) {
         const callResult = await this.executeTool({
-          agent: this.agent,
           toolAssistants,
           calls: toolCalls,
           inputs,
@@ -376,7 +375,6 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
 
       if (toolCalls?.length) {
         const callResult = await this.executeTool({
-          agent: this.agent,
           toolAssistants,
           calls: toolCalls,
           inputs,
@@ -394,13 +392,11 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
   }
 
   private async executeTool({
-    agent,
     toolAssistants,
     calls,
     inputs,
     taskId,
   }: {
-    agent: RouterAssistant;
     toolAssistants: {
       tool: Tool;
       toolAssistant: Assistant | DatasetObject | BlockletAgent;
@@ -438,21 +434,6 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
 
         const { callback } = this.context;
 
-        const cb: RunAssistantCallback = (args) => {
-          callback(args);
-
-          if (args.type === AssistantResponseType.CHUNK && args.taskId === currentTaskId) {
-            // called agent 有 text stream && 当前输出也有 text stream, 直接回显 text stream
-            if (
-              Object.values(toolAssistant?.outputVariables || {}).find((x) => x.name === RuntimeOutputVariable.text) &&
-              Object.values(agent?.outputVariables || {}).find((x) => x.name === RuntimeOutputVariable.text) &&
-              args?.delta?.content
-            ) {
-              callback({ ...args, taskId });
-            }
-          }
-        };
-
         let result;
 
         if (tool.tool.from === 'blockletAPI') {
@@ -462,7 +443,6 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
           }
 
           result = await this.context
-            .copy({ callback: cb })
             .executor(blocklet.agent, {
               inputs: tool.tool.parameters,
               variables: { ...inputs, ...requestData },
@@ -483,7 +463,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
           );
 
           result = await this.context
-            .copy({ callback: cb })
+            .copy({ callback })
             .executor(toolAssistant as any, {
               taskId: currentTaskId,
               parentTaskId: taskId,

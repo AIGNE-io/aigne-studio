@@ -208,6 +208,21 @@ export abstract class AgentExecutorBase<T> {
     const { agent, options } = this;
 
     this.context.callback?.({
+      type: AssistantResponseType.PROGRESS,
+      taskId: options.taskId,
+      time: new Date().toISOString(),
+      agent: {
+        id: agent.id,
+        name: agent.name,
+        description: agent.description,
+      },
+      payload: {
+        type: 'start',
+        input: this.hideSecretInputs(options.inputs || {}, agent),
+      },
+    });
+
+    this.context.callback?.({
       type: AssistantResponseType.INPUT,
       assistantId: agent.id,
       taskId: options.taskId,
@@ -282,6 +297,21 @@ export abstract class AgentExecutorBase<T> {
     }
 
     await this.postProcessOutputs(agent, { outputs: result });
+
+    this.context.callback?.({
+      type: AssistantResponseType.PROGRESS,
+      taskId: options.taskId,
+      time: new Date().toISOString(),
+      agent: {
+        id: agent.id,
+        name: agent.name,
+        description: agent.description,
+      },
+      payload: {
+        type: 'end',
+        output: result,
+      },
+    });
 
     this.context.callback?.({
       type: AssistantResponseType.CHUNK,

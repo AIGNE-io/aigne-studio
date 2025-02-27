@@ -11,7 +11,7 @@ const cache: { [blockletDid: string]: Promise<MCPAssistant[]> } = {};
 
 config.events.on(Events.componentStarted, (components) => {
   for (const component of components) {
-    cache[component.did] = getMCPAssistantsFromBlocklet(component);
+    delete cache[component.did];
   }
 });
 config.events.on(Events.componentStopped, (components) => {
