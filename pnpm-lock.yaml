@@ -821,6 +821,9 @@ importers:
       react-js-cron:
         specifier: ^5.0.1
         version: 5.0.1(antd@5.19.4(luxon@3.4.4)(moment@2.30.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react-markdown:
+        specifier: ^9.0.1
+        version: 9.0.3(@types/react@18.3.4)(react@18.3.1)
       react-promise-suspense:
         specifier: ^0.3.4
         version: 0.3.4
@@ -836,6 +839,9 @@ importers:
       react-router-dom:
         specifier: ^6.26.1
         version: 6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react-syntax-highlighter:
+        specifier: ^15.6.1
+        version: 15.6.1(react@18.3.1)
       react-transition-group:
         specifier: ^4.4.5
         version: 4.4.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -854,6 +860,9 @@ importers:
       reflect-metadata:
         specifier: ^0.2.2
         version: 0.2.2
+      remark-gfm:
+        specifier: ^4.0.0
+        version: 4.0.0
       rimraf:
         specifier: ^6.0.1
         version: 6.0.1
@@ -23319,6 +23328,14 @@ snapshots:
   '@langchain/textsplitters@0.0.3(langchain@0.2.17(tphizsd5icvt2e47utgsfzqcfy))(openai@4.73.0(encoding@0.1.13)(zod@3.24.2))':
     dependencies:
       '@langchain/core': 0.2.28(langchain@0.2.17(tphizsd5icvt2e47utgsfzqcfy))(openai@4.73.0(encoding@0.1.13)(zod@3.24.2))
+      js-tiktoken: 1.0.15
+    transitivePeerDependencies:
+      - langchain
+      - openai
+
+  '@langchain/textsplitters@0.0.3(tvrdcersrhbvgifedri4nygoku)':
+    dependencies:
+      '@langchain/core': 0.2.28(tvrdcersrhbvgifedri4nygoku)
       js-tiktoken: 1.0.15
     transitivePeerDependencies:
       - langchain

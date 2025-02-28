@@ -349,6 +349,8 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                     <MdViewer
                       content={projectSetting?.readme}
                       sx={{
+                        borderRadius: 1,
+                        px: 1,
                         cursor: 'pointer',
                         maxHeight: 128,
                         height: 1,
