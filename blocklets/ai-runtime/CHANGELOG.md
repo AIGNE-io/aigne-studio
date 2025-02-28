@@ -1,3 +1,7 @@
+## 0.4.224 (2025-2-28)
+
+- fix(security): use markdown view instead of dangerous html to avoid xss attack
+
 ## 0.4.223 (2025-2-25)
 
 - fix: disable remote repo in multiple tenant mode
