@@ -1,3 +1,7 @@
+## 0.4.244 (2025-3-3)
+
+- chore: support webhooks api for agent
+
 ## 0.4.243 (2025-2-28)
 
 - fix(security): use markdown view instead of dangerous html to avoid xss attack

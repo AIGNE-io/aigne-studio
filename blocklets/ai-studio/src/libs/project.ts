@@ -194,3 +194,31 @@ export async function generateProjectNPMPackageSecret({
 }): Promise<{ secret?: string }> {
   return axios.post(joinURL('/api/projects', projectId, 'npm/package/secret/generate')).then((res) => res.data);
 }
+
+export async function getAgentWebhookSecret({
+  projectId,
+  agentId,
+}: {
+  projectId: string;
+  agentId: string;
+}): Promise<{ apiSecret?: string; status?: 'enabled' | 'disabled' }> {
+  return axios.get(joinURL('/api/projects', projectId, 'agent', agentId, 'secret')).then((res) => res.data);
+}
+
+export async function generateProjectAgentSecret({
+  projectId,
+  agentId,
+  enabled,
+}: {
+  projectId: string;
+  agentId: string;
+  enabled: boolean;
+}): Promise<{ apiSecret?: string; status?: 'enabled' | 'disabled' }> {
+  return axios
+    .post(
+      withQuery(joinURL('/api/projects', projectId, 'agent', agentId, 'secret/generate'), {
+        enabled: enabled ? 'enabled' : 'disabled',
+      })
+    )
+    .then((res) => res.data);
+}
