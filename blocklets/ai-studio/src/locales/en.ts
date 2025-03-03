@@ -950,4 +950,6 @@ export default flatten({
   agentAllOutputs: '{agentName} All Outputs',
   as: ' As ',
   customOutputName: 'Custom Output Name',
+  webhookSetting: 'Webhook Setting',
+  packageSetting: 'Package Setting',
 });

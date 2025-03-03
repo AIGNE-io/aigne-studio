@@ -939,4 +939,6 @@ export default flatten({
   agentAllOutputs: '{agentName} 的全部输出',
   as: '作为',
   customOutputName: '自定义输出名称',
+  webhookSetting: 'Webhook 设置',
+  packageSetting: 'Package 设置',
 });

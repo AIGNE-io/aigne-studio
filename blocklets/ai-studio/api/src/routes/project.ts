@@ -10,7 +10,9 @@ import { NoPermissionError, NotFoundError } from '@api/libs/error';
 import { sampleIcon } from '@api/libs/icon';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
 import AgentInputSecret from '@api/store/models/agent-input-secret';
+import AgentSecret from '@api/store/models/agent-secret';
 import ProjectExtra from '@api/store/models/project-extra';
+import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import {
   Assistant,
   MemoryFile,
@@ -22,11 +24,13 @@ import {
   isAssistant,
   nextAssistantId,
   projectSettingsSchema,
+  randomId,
   variableToYjs,
 } from '@blocklet/ai-runtime/types';
 import { copyRecursive } from '@blocklet/ai-runtime/utils/fs';
 import { getUserPassports, quotaChecker } from '@blocklet/aigne-sdk/api/premium';
 import { AIGNE_RUNTIME_COMPONENT_DID, NFT_BLENDER_COMPONENT_DID } from '@blocklet/aigne-sdk/constants';
+import { runAgent } from '@blocklet/aigne-sdk/server/api/agent';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { call } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
@@ -47,6 +51,7 @@ import * as tar from 'tar';
 import { parseAuth, parseURL } from 'ufo';
 import { parse } from 'yaml';
 
+import { wallet } from '../libs/auth';
 import { resourceManager } from '../libs/resource';
 import {
   ensureComponentCallOrPromptsAdmin,
@@ -441,6 +446,37 @@ export function projectRoutes(router: Router) {
     res.json({ ...project.dataValues, ...settings, agents });
   });
 
+  router.get('/projects/:projectId/agent/:agentId/secret', session(), auth(), async (req, res) => {
+    const { projectId, agentId } = req.params;
+    if (!projectId || !agentId) throw new Error('Missing required param `projectId` or `agentId`');
+
+    const aid = stringifyIdentity({ projectId, projectRef: defaultBranch, agentId });
+    const secret = await AgentSecret.findOne({ where: { aid } });
+    res.json(secret);
+  });
+
+  const scheme = Joi.object({
+    enabled: Joi.string().valid('enabled', 'disabled').required(),
+  }).required();
+
+  router.post('/projects/:projectId/agent/:agentId/secret/generate', session(), auth(), async (req, res) => {
+    const { projectId, agentId } = req.params;
+    if (!projectId || !agentId) throw new Error('Missing required param `projectId` or `agentId`');
+
+    const aid = stringifyIdentity({ projectId, projectRef: defaultBranch, agentId });
+    const secret = await AgentSecret.findOne({ where: { aid } });
+
+    if (secret) {
+      const { enabled } = await scheme.validateAsync(req.query, { stripUnknown: true });
+      const result = await secret.update({ status: enabled });
+      res.json(result);
+      return;
+    }
+
+    const [result] = await AgentSecret.upsert({ aid, apiSecret: nanoid(), status: 'enabled' });
+    res.json(result);
+  });
+
   router.get(
     '/projects/:projectId/agent-input-secrets',
     session(),
@@ -488,6 +524,51 @@ export function projectRoutes(router: Router) {
 
     const [extra] = await ProjectExtra.upsert({ id: projectId, npmPackageSecret: nanoid() });
     res.json({ secret: extra.npmPackageSecret });
+  });
+
+  const webhookParamsSchema = Joi.object({
+    projectId: Joi.string().required(),
+    agentId: Joi.string().required(),
+  });
+
+  const webhookQuerySchema = Joi.object({
+    secret: Joi.string().required(),
+  });
+
+  router.post('/projects/:projectId/agent/:agentId/webhook', async (req, res) => {
+    const { projectId, agentId } = await webhookParamsSchema.validateAsync(req.params, { stripUnknown: true });
+    const { secret } = await webhookQuerySchema.validateAsync(req.query, { stripUnknown: true });
+
+    const aid = stringifyIdentity({ projectId, projectRef: defaultBranch, agentId });
+    const found = await AgentSecret.findOne({ where: { aid, apiSecret: secret } });
+
+    if (!found) {
+      res.status(401).json({ error: 'Permission is insufficient, please check whether secret is normal' });
+      return;
+    }
+
+    if (found.status === 'disabled') {
+      res.status(401).json({ error: 'Permission is insufficient, please check whether secret is enabled' });
+      return;
+    }
+
+    const { outputs, error } = await runAgent({
+      user: { did: wallet.address },
+      aid: stringifyIdentity({ projectId, projectRef: defaultBranch, agentId }),
+      working: true,
+      sessionId: randomId(),
+      inputs: req.body,
+    })
+      .then((outputs) => {
+        return { outputs, error: undefined };
+      })
+      .catch((error) => {
+        return { outputs: undefined, error };
+      });
+
+    if (error) throw error;
+
+    res.json(outputs);
   });
 
   router.get('/projects/:projectId/npm/package.tgz', async (req, res) => {
