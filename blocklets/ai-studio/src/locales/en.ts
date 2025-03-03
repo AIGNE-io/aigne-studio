@@ -869,7 +869,7 @@ export default flatten({
       desc: 'Anonymous access control is a premium feature. Please upgrade to the Premium plan to access this feature.',
     },
     git: {
-      desc: 'Git is a Professional feature. Please upgrade to the Professional plan to access this feature.',
+      desc: 'Git is a single-tenant feature. Please upgrade to professional plan and disable the multi-tenant mode to access this feature.',
     },
     privateDeploy: {
       desc: 'Private deployment is a Premium/Professional feature. Please upgrade to the premium/professional plan to access this feature.',

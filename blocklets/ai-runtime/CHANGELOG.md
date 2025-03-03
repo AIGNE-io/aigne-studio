@@ -1,3 +1,7 @@
+## 0.4.245 (2025-3-3)
+
+- fix: update copy
+
 ## 0.4.244 (2025-3-3)
 
 - chore: support webhooks api for agent
