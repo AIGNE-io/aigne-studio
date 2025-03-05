@@ -51,16 +51,6 @@ export class CallAgentExecutor extends AgentExecutorBase<CallAssistant> {
     );
   }
 
-  private getLastTextSteamAgentId(calledAgents: { item: Tool; agent: GetAgentResult }[]) {
-    const map: { [key: string]: string } = {};
-    calledAgents.forEach((item) => {
-      const foundText = item.agent.outputVariables?.find((i) => i.name === RuntimeOutputVariable.text);
-      if (foundText) map[RuntimeOutputVariable.text] = item.item.id;
-    });
-
-    return map[RuntimeOutputVariable.text];
-  }
-
   private getOutputVariables(
     agent: CallAssistant & GetAgentResult,
     calledAgents: { item: Tool; agent: GetAgentResult }[]
