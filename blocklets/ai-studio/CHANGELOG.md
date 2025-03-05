@@ -1,3 +1,7 @@
+## 0.4.247 (2025-3-5)
+
+- fix(api): webhooks path match pattern
+
 ## 0.4.246 (2025-3-5)
 
 - fix(api): allow public access for agent webhooks
