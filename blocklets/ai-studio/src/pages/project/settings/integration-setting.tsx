@@ -122,12 +122,9 @@ function WebhookIntegrationSetting() {
     if (!agentId) return undefined;
 
     return state?.apiSecret && state?.status === 'enabled'
-      ? withQuery(
-          joinURL(blocklet!.appUrl, blocklet!.prefix, '/api/projects', projectId, 'agent', agentId, 'webhook'),
-          {
-            secret: state.apiSecret,
-          }
-        )
+      ? withQuery(joinURL(blocklet!.appUrl, blocklet!.prefix, '/api/webhook/projects', projectId, 'agent', agentId), {
+          secret: state.apiSecret,
+        })
       : undefined;
   }, [agentId, state?.apiSecret, state?.status]);
 

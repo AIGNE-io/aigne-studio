@@ -1,3 +1,7 @@
+## 0.4.246 (2025-3-5)
+
+- fix(api): allow public access for agent webhooks
+
 ## 0.4.245 (2025-3-3)
 
 - fix: update copy
