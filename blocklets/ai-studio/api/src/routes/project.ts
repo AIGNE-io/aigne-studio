@@ -535,7 +535,7 @@ export function projectRoutes(router: Router) {
     secret: Joi.string().required(),
   });
 
-  router.post('/projects/:projectId/agent/:agentId/webhook', async (req, res) => {
+  router.post('/webhook/projects/:projectId/agent/:agentId', async (req, res) => {
     const { projectId, agentId } = await webhookParamsSchema.validateAsync(req.params, { stripUnknown: true });
     const { secret } = await webhookQuerySchema.validateAsync(req.query, { stripUnknown: true });
 

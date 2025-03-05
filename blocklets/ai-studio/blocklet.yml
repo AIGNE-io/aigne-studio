@@ -33,6 +33,11 @@ interfaces:
     prefix: '*'
     port: BLOCKLET_PORT
     protocol: http
+    services:
+      - name: auth
+        config:
+          ignoreUrls:
+            - /api/webhook
 community: https://community.arcblock.io
 documentation: https://developer.blocklet.io
 homepage: https://store.blocklet.dev
