@@ -1,3 +1,4 @@
+import config from '@blocklet/sdk/lib/config';
 import middlewares from '@blocklet/sdk/lib/middlewares';
 import { getVerifyData, verify } from '@blocklet/sdk/lib/util/verify-sign';
 import { NextFunction, Request, Response } from 'express';
@@ -91,4 +92,12 @@ export function ensureComponentCallOrRolesMatch(req: Request, roles?: string[]) 
 
 export function ensureComponentCallOrAuth() {
   return ensureComponentCallOr(middlewares.auth());
+}
+
+export function ensureReqIsAdmin(req: Request) {
+  if (config.env.tenantMode === 'multiple' && !['admin', 'owner'].includes(req.user?.role!)) {
+    throw new Error('Git is a Professional feature. Please upgrade to the Professional plan to access this feature.');
+  }
+
+  return true;
 }
