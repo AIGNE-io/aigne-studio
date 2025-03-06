@@ -57,6 +57,7 @@ import {
   ensureComponentCallOrPromptsAdmin,
   ensureComponentCallOrPromptsEditor,
   ensureComponentCallOrRolesMatch,
+  ensureReqIsAdmin,
 } from '../libs/security';
 import Project, { nextProjectId } from '../store/models/project';
 import {
@@ -991,10 +992,9 @@ export function projectRoutes(router: Router) {
   });
 
   router.delete('/projects/:projectId/remote', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+    ensureReqIsAdmin(req);
+
     const { projectId } = req.params;
-    if (config.env.tenantMode === 'multiple') {
-      throw new Error('Git is a Professional feature. Please upgrade to the Professional plan to access this feature.');
-    }
     if (!projectId) throw new Error('Missing required params `projectId`');
 
     const project = await Project.findByPk(projectId, { rejectOnEmpty: new NotFoundError('Project not found') });
@@ -1011,9 +1011,8 @@ export function projectRoutes(router: Router) {
   });
 
   router.post('/projects/:projectId/remote/push', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
-    if (config.env.tenantMode === 'multiple') {
-      throw new Error('Git is a Professional feature. Please upgrade to the Professional plan to access this feature.');
-    }
+    ensureReqIsAdmin(req);
+
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required params `projectId`');
 
@@ -1036,9 +1035,7 @@ export function projectRoutes(router: Router) {
   });
 
   router.post('/projects/:projectId/remote/pull', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
-    if (config.env.tenantMode === 'multiple') {
-      throw new Error('Git is a Professional feature. Please upgrade to the Professional plan to access this feature.');
-    }
+    ensureReqIsAdmin(req);
     const { did: userId, fullName } = req.user!;
 
     const { projectId } = req.params;
@@ -1073,9 +1070,6 @@ export function projectRoutes(router: Router) {
   });
 
   router.post('/projects/:projectId/remote/sync', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
-    if (config.env.tenantMode === 'multiple') {
-      throw new Error('Git is a Professional feature. Please upgrade to the Professional plan to access this feature.');
-    }
     const { did: userId, fullName } = req.user!;
 
     const { projectId } = req.params;
@@ -1096,6 +1090,8 @@ export function projectRoutes(router: Router) {
     }
 
     if (target === 'github') {
+      ensureReqIsAdmin(req);
+
       const remote = (await repository.listRemotes()).find((i) => i.remote === defaultRemote);
       if (!remote) throw new Error('The remote has not been set up yet');
       if (!parseAuth(parseURL(remote.url).auth).password) throw new Error('Synchronization must use an access token');

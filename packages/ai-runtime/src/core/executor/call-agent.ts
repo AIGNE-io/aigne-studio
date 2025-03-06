@@ -51,16 +51,6 @@ export class CallAgentExecutor extends AgentExecutorBase<CallAssistant> {
     );
   }
 
-  private getLastTextSteamAgentId(calledAgents: { item: Tool; agent: GetAgentResult }[]) {
-    const map: { [key: string]: string } = {};
-    calledAgents.forEach((item) => {
-      const foundText = item.agent.outputVariables?.find((i) => i.name === RuntimeOutputVariable.text);
-      if (foundText) map[RuntimeOutputVariable.text] = item.item.id;
-    });
-
-    return map[RuntimeOutputVariable.text];
-  }
-
   private getOutputVariables(
     agent: CallAssistant & GetAgentResult,
     calledAgents: { item: Tool; agent: GetAgentResult }[]
@@ -89,20 +79,17 @@ export class CallAgentExecutor extends AgentExecutorBase<CallAssistant> {
 
     const calledAgents = await this.getCalledAgents(agent);
 
-    // 获取最后输出的文本流
-    const lastAgentIdWithTextSteam = this.getLastTextSteamAgentId(calledAgents);
-
     const outputVariables = this.getOutputVariables(agent, calledAgents);
     const outputFromResult = outputVariables.filter(
       (i): i is OutputVariable & { from: { type: 'variable'; agentInstanceId: string; outputVariableId?: string } } =>
         i.from?.type === 'variable'
     );
 
-    const hasTextStream = outputVariables?.some((i) => i.name === RuntimeOutputVariable.text);
+    const textOutput = outputVariables?.find((i) => i.name === RuntimeOutputVariable.text);
 
     // 获取被调用的 agent
     const fn = async (
-      callAgent: { item: Tool; agent: GetAgentResult },
+      callAgent: { item: Tool & { instanceId?: string }; agent: GetAgentResult },
       { variables }: { variables: { [key: string]: any } }
     ) => {
       const parameters = Object.fromEntries(
@@ -121,11 +108,10 @@ export class CallAgentExecutor extends AgentExecutorBase<CallAssistant> {
 
             // 如果是文本流，并 assistantId 是最后一个，则转发给上层
             if (
-              hasTextStream &&
+              textOutput?.from?.type === 'variable' &&
+              textOutput.from.agentInstanceId === callAgent.item.instanceId &&
               message.type === AssistantResponseType.CHUNK &&
               message.delta.content &&
-              message.assistantId &&
-              message.assistantId === lastAgentIdWithTextSteam &&
               message.taskId === taskId
             ) {
               this.context.callback?.({ ...message, ...this.options });
@@ -149,16 +135,15 @@ export class CallAgentExecutor extends AgentExecutorBase<CallAssistant> {
       const currentAgentResult = await fn(agent, { variables: accumulatedResults });
       if (agent.item.functionName) accumulatedResults[agent.item.functionName] = currentAgentResult;
 
-      const found = outputFromResult.find((i) => i.from?.agentInstanceId === (agent.item.instanceId ?? agent.item.id));
-      if (found) {
+      const founds = outputFromResult.filter(
+        (i) => i.from?.agentInstanceId === (agent.item.instanceId ?? agent.item.id)
+      );
+      for (const found of founds) {
         const key = getOutputVariablePath(agent.agent.outputVariables || [], found.from.outputVariableId!);
 
         Object.assign(obj, {
-          ...currentAgentResult,
           [found.name!]: found.from?.outputVariableId ? get(currentAgentResult, key) : currentAgentResult,
         });
-      } else {
-        Object.assign(obj, currentAgentResult);
       }
     }
 

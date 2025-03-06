@@ -1,3 +1,8 @@
+## 0.4.248 (2025-3-6)
+
+- fix: correct streaming text response for agent calling #1743
+- chore: remove repo sync restrictions for admin users
+
 ## 0.4.247 (2025-3-5)
 
 - fix(api): webhooks path match pattern
