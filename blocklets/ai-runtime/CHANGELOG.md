@@ -1,3 +1,7 @@
+## 0.4.249 (2025-3-10)
+
+- chore: update deps
+
 ## 0.4.248 (2025-3-6)
 
 - fix: correct streaming text response for agent calling #1743
