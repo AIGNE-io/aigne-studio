@@ -161,7 +161,13 @@ const LogMessages = () => {
                             content: (
                               <Box>
                                 {messages.map((message, index) => (
-                                  <MessageView index={index} message={message} projectId={projectId} gitRef={gitRef} />
+                                  <MessageView
+                                    key={`message-${index}`}
+                                    index={index}
+                                    message={message}
+                                    projectId={projectId}
+                                    gitRef={gitRef}
+                                  />
                                 ))}
                               </Box>
                             ),
@@ -172,10 +178,10 @@ const LogMessages = () => {
                         }}>
                         <LogCard
                           error={log.error}
-                          runType={log.runType!}
+                          runType={log.runType || 'agent'}
                           title={getFileById(log.agentId!)?.name || ''}
                           result={JSON.stringify(log.outputs!)}
-                          tokenCount={log?.usage?.totalTokens!}
+                          tokenCount={log?.usage?.totalTokens || 0}
                           date={dayjs(log.createdAt).format('YYYY-MM-DD HH:mm:ss')}
                         />
                       </Grid>
@@ -275,7 +281,17 @@ const LogCard = ({
       </Header>
 
       <CardContent sx={{ flexGrow: 1, height: 0, overflow: 'hidden', px: 0, py: 1 }}>
-        <pre>{error ? JSON.stringify(error, null, 2) : JSON.stringify(JSON.parse(result), null, 2)}</pre>
+        <pre>
+          {error
+            ? JSON.stringify(error, null, 2)
+            : (() => {
+                try {
+                  return JSON.stringify(JSON.parse(result), null, 2);
+                } catch (e) {
+                  return result;
+                }
+              })()}
+        </pre>
       </CardContent>
 
       <Divider sx={{ my: 2 }} />
