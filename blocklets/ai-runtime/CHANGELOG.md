@@ -1,5 +1,6 @@
 ## 0.4.250 (2025-3-11)
 
+- feat: record agent logs to the db
 - fix: decision description
 
 ## 0.4.249 (2025-3-10)
