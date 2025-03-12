@@ -45,6 +45,7 @@ export async function getAgent({
 
 export interface RunAgentInputServer extends RunAgentInput {
   user: User;
+  runType?: 'cron' | 'webhook' | 'agent';
 }
 
 export async function runAgent(
@@ -55,15 +56,14 @@ export async function runAgent(
 ): Promise<ReadableStream<RunAssistantResponse>>;
 export async function runAgent({ user, responseType, ...input }: RunAgentInputServer & { responseType?: 'stream' }) {
   const path = '/api/ai/call';
+  const { runType, ...rest } = input;
 
   const request: Parameters<typeof call>[0] = {
     name: AIGNE_RUNTIME_COMPONENT_DID,
     method: 'POST',
     path,
-    params: {
-      userId: user.did,
-    },
-    data: input,
+    params: { userId: user.did, runType },
+    data: rest,
   };
 
   if (responseType === 'stream') {

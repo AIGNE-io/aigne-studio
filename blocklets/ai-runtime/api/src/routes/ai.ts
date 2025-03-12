@@ -33,6 +33,8 @@ import { Router } from 'express';
 import Joi from 'joi';
 import { omitBy, pick } from 'lodash';
 
+import { createLogs, mergeLogs } from './ai-log';
+
 const router = Router();
 
 const callInputSchema = Joi.object<{
@@ -274,8 +276,6 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
 
   const outputs: History['outputs'] = {};
 
-  const executingLogs: { [key: string]: NonNullable<History['steps']>[number] } = {};
-
   const taskId = nextTaskId();
 
   const sessionId =
@@ -297,7 +297,11 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
     status: 'generating',
     blockletDid,
     projectRef,
+    runType: (req.query.runType as 'cron' | 'webhook' | 'agent') || 'agent',
   });
+
+  const { logs, messageId, responseId } = createLogs({ type: 'debug', gitRef: req.body.ref, parameters: input.inputs });
+  const setLogState = mergeLogs({ logs, messageId, responseId });
 
   const emit: RunAssistantCallback = (response) => {
     // skip debug message in production
@@ -308,6 +312,8 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
     }
 
     const data = { ...response, messageId: history.id, sessionId };
+
+    setLogState(data);
 
     if (data.type === AssistantResponseType.CHUNK || data.type === AssistantResponseType.INPUT) {
       if (data.type === AssistantResponseType.CHUNK) {
@@ -321,25 +327,6 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
             outputs.objects ??= [];
             outputs.objects.push(data.delta.object);
           }
-        }
-      }
-
-      executingLogs[data.taskId] ??= {
-        id: data.taskId,
-        agentId: data.assistantId,
-        startTime: new Date().toISOString(),
-        endTime: new Date().toISOString(),
-      };
-
-      const log = executingLogs[data.taskId]!;
-
-      // 最后一次 callback 时间作为 task 结束时间
-      log.endTime = new Date().toISOString();
-
-      if (data.type === AssistantResponseType.CHUNK) {
-        if (data.delta.object) {
-          log.objects ??= [];
-          log.objects.push(data.delta.object);
         }
       }
     } else if (data.type === AssistantResponseType.ERROR) {
@@ -513,7 +500,7 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
     error,
     outputs,
     status: 'done',
-    steps: Object.values(executingLogs),
+    logs,
     usage:
       usage.promptTokens || usage.completionTokens
         ? { ...usage, totalTokens: usage.promptTokens + usage.completionTokens }

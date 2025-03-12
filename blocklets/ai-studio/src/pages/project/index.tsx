@@ -15,6 +15,7 @@ import Loading from '../../components/loading';
 import { PlanUpgradeButton } from '../../components/multi-tenant-restriction';
 import KnowledgeRoutes from '../knowledges';
 import VariablesList from '../variables/list';
+import LogMessages from './log-message';
 import ProjectHeader from './project-header';
 
 export default function ProjectRoutes() {
@@ -75,6 +76,10 @@ export default function ProjectRoutes() {
                   <Route path="variables">
                     <Route index element={<Navigate to={currentGitStore.getState().getCurrentBranch()} replace />} />
                     <Route path=":ref/*" element={<VariablesList />} />
+                  </Route>
+                  <Route path="logs">
+                    <Route index element={<Navigate to={currentGitStore.getState().getCurrentBranch()} replace />} />
+                    <Route path=":ref/*" element={<LogMessages />} />
                   </Route>
                 </Route>
               </Routes>

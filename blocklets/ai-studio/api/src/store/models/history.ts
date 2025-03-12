@@ -1,19 +1,12 @@
-import { ExecuteBlock } from '@blocklet/ai-runtime/types';
 import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
-import { Worker } from 'snowflake-uuid';
 
+import nextId from '../../libs/next-id';
 import { sequelize } from '../sequelize';
-
-const idGenerator = new Worker();
-
-const nextId = () => idGenerator.nextId().toString();
 
 export default class History extends Model<InferAttributes<History>, InferCreationAttributes<History>> {
   declare id: CreationOptional<string>;
 
-  declare taskId: string;
-
-  declare userId: string;
+  declare userId?: string;
 
   declare createdAt: CreationOptional<Date>;
 
@@ -21,49 +14,43 @@ export default class History extends Model<InferAttributes<History>, InferCreati
 
   declare projectId: string;
 
-  declare ref: string;
+  declare projectRef?: string;
 
-  declare assistantId: string;
+  declare agentId: string;
 
-  declare sessionId?: string;
+  declare sessionId: string;
 
-  declare parameters?: { [key: string]: any };
+  declare blockletDid?: string;
 
-  declare result?: {
+  declare inputs?: { [key: string]: any } | null;
+
+  declare outputs?: {
     content?: string;
-    images?: { url: string }[];
-    messages?: {
-      taskId: string;
-      respondAs?: ExecuteBlock['respondAs'];
-      result?: Pick<NonNullable<History['result']>, 'content' | 'images'>;
-    }[];
-    objects?: { taskId: string; data: any }[];
+    objects?: any[];
   } | null;
 
-  declare executingLogs?: {
-    taskId: string;
-    assistantId: string;
+  declare steps?: {
+    // 废弃，使用 logs 代替
+    id: string;
+    agentId: string;
     startTime: string;
     endTime: string;
-    input?: { messages?: { role: string; content: string }[] };
-    content?: string;
-    images?: { url: string }[];
+    objects?: any[];
   }[];
 
   declare error?: { message: string } | null;
 
-  declare generateStatus?: 'generating' | 'done';
-
-  // @deprecated: 用量上报状态
-  // counted: 已经把这条记录作为**提交点**（但有可能因为上报失败而没有变为 reported）
-  // reported: 已经把上一个**提交点**到这条记录间的 usage 上报至 payment
-  declare usageReportStatus?: null | 'counted' | 'reported';
+  declare status?: 'generating' | 'done';
 
   declare usage?: {
     promptTokens: number;
     completionTokens: number;
     totalTokens: number;
   };
+
+  declare runType?: 'cron' | 'webhook' | 'agent';
+
+  declare logs?: any[];
 }
 
 History.init(
@@ -74,13 +61,8 @@ History.init(
       allowNull: false,
       defaultValue: nextId,
     },
-    taskId: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
     userId: {
       type: DataTypes.STRING,
-      allowNull: false,
     },
     createdAt: {
       type: DataTypes.DATE,
@@ -94,36 +76,42 @@ History.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    ref: {
+    projectRef: {
       type: DataTypes.STRING,
-      allowNull: false,
     },
-    assistantId: {
+    agentId: {
       type: DataTypes.STRING,
       allowNull: false,
     },
     sessionId: {
       type: DataTypes.STRING,
+      allowNull: false,
     },
-    parameters: {
+    blockletDid: {
+      type: DataTypes.STRING,
+    },
+    inputs: {
       type: DataTypes.JSON,
     },
-    result: {
+    outputs: {
       type: DataTypes.JSON,
     },
-    executingLogs: {
+    steps: {
       type: DataTypes.JSON,
     },
     error: {
       type: DataTypes.JSON,
     },
-    generateStatus: {
-      type: DataTypes.STRING,
-    },
-    usageReportStatus: {
+    status: {
       type: DataTypes.STRING,
     },
     usage: {
+      type: DataTypes.JSON,
+    },
+    runType: {
+      type: DataTypes.STRING,
+    },
+    logs: {
       type: DataTypes.JSON,
     },
   },

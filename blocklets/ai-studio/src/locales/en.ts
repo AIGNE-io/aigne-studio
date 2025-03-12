@@ -952,4 +952,9 @@ export default flatten({
   customOutputName: 'Custom Output Name',
   webhookSetting: 'Webhook Setting',
   packageSetting: 'Package Setting',
+  agentLog: 'Agent Log',
+  viewLog: 'View Log',
+  logDate: 'Log Date',
+  noLogs: 'No logs yet',
+  log: 'Log',
 });

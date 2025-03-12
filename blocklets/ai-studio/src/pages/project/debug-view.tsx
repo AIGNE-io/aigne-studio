@@ -396,7 +396,7 @@ function CurrentRoleName({ role }: { role: Role }) {
   );
 }
 
-const MessageView = memo(
+export const MessageView = memo(
   ({
     message,
     index,

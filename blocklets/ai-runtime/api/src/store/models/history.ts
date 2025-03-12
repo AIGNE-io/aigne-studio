@@ -1,5 +1,6 @@
 import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model, Sequelize } from 'sequelize';
 
+import { Message } from '../../libs/log';
 import nextId from '../../libs/next-id';
 import { sequelize } from '../sequelize';
 
@@ -30,6 +31,7 @@ export default class History extends Model<InferAttributes<History>, InferCreati
   } | null;
 
   declare steps?: {
+    // 废弃，使用 logs 代替
     id: string;
     agentId: string;
     startTime: string;
@@ -46,6 +48,10 @@ export default class History extends Model<InferAttributes<History>, InferCreati
     completionTokens: number;
     totalTokens: number;
   };
+
+  declare runType?: 'cron' | 'webhook' | 'agent';
+
+  declare logs?: Message[];
 
   static async countRunsPerProject(projectIds: string[]) {
     if (!projectIds?.length) return {};
@@ -113,6 +119,12 @@ History.init(
       type: DataTypes.STRING,
     },
     usage: {
+      type: DataTypes.JSON,
+    },
+    runType: {
+      type: DataTypes.STRING,
+    },
+    logs: {
       type: DataTypes.JSON,
     },
   },

@@ -156,4 +156,68 @@ export function messageRoutes(router: Router) {
 
     res.json({ deletedCount });
   });
+
+  const getPageSchema = Joi.object<{
+    page: number;
+    size: number;
+    projectId: string;
+    sessionId?: string;
+    agentId?: string;
+    date?: string;
+  }>({
+    page: Joi.number().integer().min(1).default(1),
+    size: Joi.number().integer().min(1).max(100).default(20),
+    projectId: Joi.string().required(),
+    sessionId: Joi.string().empty([null, '']),
+    agentId: Joi.string().empty([null, '']),
+    date: Joi.date().iso().empty(['', null]),
+  });
+
+  router.get('/history', middlewares.session(), middlewares.auth(), async (req, res) => {
+    const { page, size, sessionId, projectId, agentId, ...query } = await getPageSchema.validateAsync(req.query, {
+      stripUnknown: true,
+    });
+
+    const where: WhereOptions<InferAttributes<History>> = { projectId };
+
+    if (sessionId) {
+      where.sessionId = sessionId;
+    }
+
+    if (agentId) {
+      where.agentId = agentId;
+    }
+
+    if (query.date) {
+      where.createdAt = {};
+      if (query.date) {
+        (where.createdAt as any)[Op.gte] = new Date(query.date);
+      }
+
+      // 将结束日期设置为当天的23:59:59，以包含整个结束日期
+      const endDate = new Date(query.date);
+      endDate.setHours(23, 59, 59, 999);
+      (where.createdAt as any)[Op.lte] = endDate;
+    }
+
+    const { rows: messages, count } = await History.findAndCountAll({
+      where,
+      order: [['createdAt', 'DESC']],
+      offset: (page - 1) * size,
+      limit: size,
+    });
+
+    res.json({
+      messages: messages.map((i) => ({
+        ...i.dataValues,
+        aid: stringifyIdentity({
+          blockletDid: i.blockletDid,
+          projectId: i.projectId,
+          projectRef: i.projectRef,
+          agentId: i.agentId,
+        }),
+      })),
+      count,
+    });
+  });
 }
