@@ -305,15 +305,14 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
 
   const emit: RunAssistantCallback = (response) => {
     // skip debug message in production
+    const data = { ...response, messageId: history.id, sessionId };
+    setLogState(data);
+
     if (!input.debug && response.type !== AssistantResponseType.ERROR) {
       if (response.type !== AssistantResponseType.CHUNK || (mainTaskId && response.taskId !== mainTaskId)) {
         return;
       }
     }
-
-    const data = { ...response, messageId: history.id, sessionId };
-
-    setLogState(data);
 
     if (data.type === AssistantResponseType.CHUNK || data.type === AssistantResponseType.INPUT) {
       if (data.type === AssistantResponseType.CHUNK) {
@@ -345,7 +344,9 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
     res.flush();
   };
 
-  if (stream) emit({ type: AssistantResponseType.CHUNK, taskId, assistantId: agent.id, delta: {} });
+  if (stream || (history.runType && ['cron', 'webhook'].includes(history.runType))) {
+    emit({ type: AssistantResponseType.CHUNK, taskId, assistantId: agent.id, delta: {} });
+  }
 
   try {
     if (!bypassRequestLimit) {
@@ -486,9 +487,14 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
     if (typeof fetchErrorMsg !== 'string') fetchErrorMsg = fetchErrorMsg?.message;
 
     error = { ...pick(e, 'type', 'timestamp'), message: fetchErrorMsg || e.message };
+
     if (stream) {
       emit({ type: AssistantResponseType.ERROR, error });
     } else {
+      if (history.runType && ['cron', 'webhook'].includes(history.runType)) {
+        emit({ type: AssistantResponseType.ERROR, error });
+      }
+
       res.status(500).json({ error });
     }
     res.end();

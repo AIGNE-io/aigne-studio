@@ -178,7 +178,7 @@ export function messageRoutes(router: Router) {
       stripUnknown: true,
     });
 
-    const where: WhereOptions<InferAttributes<History>> = { projectId };
+    const where: WhereOptions<InferAttributes<History>> = { projectId, status: 'done' };
 
     if (sessionId) {
       where.sessionId = sessionId;

@@ -155,9 +155,6 @@ const LogMessages = () => {
                               '.MuiDialogActions-root': {
                                 border: 0,
                               },
-                              '.save': {
-                                background: '#d32f2f',
-                              },
                             },
                             maxWidth: 'lg',
                             fullWidth: true,
@@ -170,12 +167,12 @@ const LogMessages = () => {
                               </Box>
                             ),
                             okText: t('confirm'),
-                            okColor: 'error',
                             cancelText: t('cancel'),
                             onOk: () => {},
                           });
                         }}>
                         <LogCard
+                          error={log.error}
                           runType={log.runType!}
                           title={getFileById(log.agentId!)?.name || ''}
                           result={JSON.stringify(log.outputs!)}
@@ -248,16 +245,20 @@ const LogCard = ({
   result,
   tokenCount,
   date,
+  error,
 }: {
   runType: string;
   title: string;
   result: string;
   tokenCount: number;
   date: string;
+  error: string;
 }) => {
   return (
     <StyledCard>
       <Header gap={1}>
+        <Box sx={{ width: 8, height: 8, borderRadius: '100%', bgcolor: error ? 'error.dark' : 'success.light' }} />
+
         <Typography variant="h6" component="div" sx={{ flex: 1, width: 0 }} className="ellipsis">
           {title}
         </Typography>
@@ -275,7 +276,7 @@ const LogCard = ({
       </Header>
 
       <CardContent sx={{ flexGrow: 1, height: 0, overflow: 'hidden', px: 0, py: 1 }}>
-        <pre>{JSON.stringify(JSON.parse(result), null, 2)}</pre>
+        <pre>{error ? JSON.stringify(error, null, 2) : JSON.stringify(JSON.parse(result), null, 2)}</pre>
       </CardContent>
 
       <Divider sx={{ my: 2 }} />
