@@ -301,12 +301,12 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
   });
 
   const { logs, messageId, responseId } = createLogs({ type: 'debug', gitRef: req.body.ref, parameters: input.inputs });
-  const setLogState = mergeLogs({ logs, messageId, responseId });
+  const emitLogState = mergeLogs({ logs, messageId, responseId });
 
   const emit: RunAssistantCallback = (response) => {
     // skip debug message in production
     const data = { ...response, messageId: history.id, sessionId };
-    setLogState(data);
+    emitLogState(data);
 
     if (!input.debug && response.type !== AssistantResponseType.ERROR) {
       if (response.type !== AssistantResponseType.CHUNK || (mainTaskId && response.taskId !== mainTaskId)) {
