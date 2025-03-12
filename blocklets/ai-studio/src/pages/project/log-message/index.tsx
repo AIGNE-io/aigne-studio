@@ -27,8 +27,7 @@ import React, { useState } from 'react';
 import useInfiniteScrollHook from 'react-infinite-scroll-hook';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
-import History from '../../../../api/src/store/models/history';
-import { getLogHistories } from '../../../libs/message';
+import { History, getLogHistories } from '../../../libs/message';
 import { MessageView } from '../debug-view';
 
 const useFetchLogsList = (
@@ -252,7 +251,7 @@ const LogCard = ({
   result: string;
   tokenCount: number;
   date: string;
-  error: string;
+  error?: string;
 }) => {
   return (
     <StyledCard>
