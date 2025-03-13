@@ -957,4 +957,9 @@ export default flatten({
   logDate: 'Log Date',
   noLogs: 'No logs yet',
   log: 'Log',
+  triggerType: 'Trigger Type',
+  status: 'Status',
+  runType: 'Run Type',
+  tokenCount: 'Token Count',
+  executionTime: 'Execution Time',
 });

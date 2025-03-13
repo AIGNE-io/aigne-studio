@@ -946,4 +946,9 @@ export default flatten({
   logDate: '日志日期',
   noLogs: '当前没有日志',
   log: '日志',
+  triggerType: '触发类型',
+  status: '状态',
+  runType: '运行类型',
+  tokenCount: 'Token 数量',
+  executionTime: '执行时间',
 });

@@ -3,33 +3,17 @@ import useDialog from '@app/utils/use-dialog';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Icon } from '@iconify-icon/react';
 import LeftArrowIcon from '@iconify-icons/tabler/chevron-left';
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Chip,
-  CircularProgress,
-  Container,
-  Divider,
-  Grid,
-  List,
-  Theme,
-  Typography,
-  styled,
-  useMediaQuery,
-} from '@mui/material';
+import { Box, Button, Chip, Container, Stack, Theme, Typography, styled, useMediaQuery } from '@mui/material';
+import { DataGrid, GridColDef, gridClasses } from '@mui/x-data-grid';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import useInfiniteScroll from 'ahooks/lib/useInfiniteScroll';
+import { useRequest } from 'ahooks';
 import dayjs from 'dayjs';
-import { groupBy } from 'lodash';
-import React, { useState } from 'react';
-import useInfiniteScrollHook from 'react-infinite-scroll-hook';
+import { useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
-import { History, getLogHistories } from '../../../libs/message';
+import { getLogHistories } from '../../../libs/message';
 import { MessageView } from '../debug-view';
 
 const useFetchLogsList = (
@@ -38,26 +22,20 @@ const useFetchLogsList = (
   agentId: string | null = '',
   date: string | null = ''
 ) => {
-  const dataState = useInfiniteScroll(
-    async (
-      d: { list: History[]; next: boolean; size: number; page: number } = { list: [], next: false, size: 10, page: 1 }
-    ) => {
-      const { page, size } = d || {};
-      const { messages } = await getLogHistories({ projectId, sessionId, agentId, date, page, size });
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
-      return { list: messages || [], next: messages.length >= size, size, page: (d?.page || 1) + 1 };
+  const { data, loading, refresh } = useRequest(
+    async () => {
+      const { messages, count } = await getLogHistories({ projectId, sessionId, agentId, date, page, size: pageSize });
+      return { list: messages || [], count };
     },
-    { isNoMore: (d) => !d?.next, reloadDeps: [date] }
+    {
+      refreshDeps: [page, pageSize, date],
+    }
   );
 
-  const [loadingRef] = useInfiniteScrollHook({
-    loading: dataState.loading || dataState.loadingMore,
-    hasNextPage: Boolean(dataState.data?.next),
-    onLoadMore: () => dataState.loadMore(),
-    rootMargin: '0px 0px 200px 0px',
-  });
-
-  return { loadingRef, dataState };
+  return { data, loading, page, pageSize, setPage, setPageSize, refresh };
 };
 
 const LogMessages = () => {
@@ -75,14 +53,14 @@ const LogMessages = () => {
 
   const { dialog, showDialog } = useDialog();
   const { t } = useLocaleContext();
-  const { loadingRef, dataState } = useFetchLogsList(projectId, sessionId, agentId, date);
   const { getFileById } = useProjectStore(projectId, gitRef || 'main');
   const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
+  const { data, loading, page, pageSize, setPage, setPageSize } = useFetchLogsList(projectId, sessionId, agentId, date);
+  const logs = data?.list || [];
+  const totals = data?.count || 0;
 
   const hasAppHistory = location.state && location.state.fromApp;
 
-  const logs = dataState?.data?.list || [];
-  const logsGroupByDate = groupBy(logs, (log) => dayjs(log.createdAt).format('YYYY/MM/DD'));
   const agentName = () => {
     if (agentId) {
       const agent = getFileById(agentId);
@@ -91,6 +69,57 @@ const LogMessages = () => {
 
     return t('agentLog');
   };
+
+  const columns = useMemo<GridColDef[]>(
+    () => [
+      {
+        field: 'agent',
+        headerName: t('agent'),
+        flex: 1,
+        renderCell: (params) => <Box>{getFileById(params.row.agentId!)?.name || ''}</Box>,
+      },
+      {
+        field: 'runType',
+        headerName: t('triggerType'),
+        width: 120,
+        renderCell: (params) => (
+          <Chip
+            size="small"
+            label={params.row.runType || 'agent'}
+            variant="filled"
+            color="default"
+            sx={{ borderRadius: '4px', textTransform: 'capitalize' }}
+          />
+        ),
+      },
+      {
+        field: 'status',
+        headerName: t('status'),
+        width: 100,
+        renderCell: (params) => (
+          <Chip
+            variant="filled"
+            size="small"
+            label={params.row.error ? t('failed') : t('success')}
+            color={params.row.error ? 'error' : 'success'}
+            sx={{ borderRadius: '4px', textTransform: 'capitalize', fontSize: 12 }}
+          />
+        ),
+      },
+      {
+        field: 'tokenCount',
+        headerName: t('tokenCount'),
+        renderCell: (params) => params.row?.usage?.totalTokens || '-',
+      },
+      {
+        field: 'createdAt',
+        headerName: t('executionTime'),
+        width: 180,
+        renderCell: (params) => dayjs(params.row.createdAt).format('YYYY-MM-DD HH:mm:ss'),
+      },
+    ],
+    [t, getFileById, showDialog, isMobile, projectId, gitRef]
+  );
 
   return (
     <>
@@ -128,96 +157,81 @@ const LogMessages = () => {
             </LocalizationProvider>
           </Header>
 
-          {logs.length ? (
-            <List sx={{ p: 0, pb: 2.5 }}>
-              {Object.entries(logsGroupByDate).map(([date, items]) => (
-                <React.Fragment key={date}>
-                  <Box mt={2.5} mb={1}>
-                    <Typography variant="body2" component="div" sx={{ fontSize: 16, color: 'text.secondary' }}>
-                      {date}
-                    </Typography>
-                  </Box>
-
-                  <Grid container spacing={2}>
-                    {items.map((log) => (
-                      <Grid
-                        item
-                        xs={12}
-                        md={6}
-                        lg={4}
-                        key={log.id}
-                        onClick={() => {
-                          const messages = log.logs || [];
-
-                          showDialog({
-                            formSx: {
-                              '.MuiDialogTitle-root': {
-                                border: 0,
-                              },
-                              '.MuiDialogActions-root': {
-                                border: 0,
-                              },
-                              '.MuiDialogContent-root': {
-                                padding: '12px 0 !important',
-                              },
-                            },
-                            maxWidth: 'lg',
-                            fullWidth: true,
-                            fullScreen: isMobile,
-                            title: <Box sx={{ wordWrap: 'break-word' }}>{t('viewLog')}</Box>,
-                            content: (
-                              <Box>
-                                {messages.map((message, index) => (
-                                  <MessageView
-                                    key={`message-${index}`}
-                                    index={index}
-                                    message={message}
-                                    projectId={projectId}
-                                    gitRef={gitRef}
-                                  />
-                                ))}
-                              </Box>
-                            ),
-                            okText: t('confirm'),
-                            cancelText: t('cancel'),
-                            onOk: () => {},
-                          });
-                        }}>
-                        <LogCard
-                          error={log.error}
-                          runType={log.runType || 'agent'}
-                          title={getFileById(log.agentId!)?.name || ''}
-                          result={JSON.stringify(log.outputs!)}
-                          tokenCount={log?.usage?.totalTokens || 0}
-                          date={dayjs(log.createdAt).format('YYYY-MM-DD HH:mm:ss')}
-                        />
-                      </Grid>
-                    ))}
-                  </Grid>
-                </React.Fragment>
-              ))}
-            </List>
-          ) : (
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                height: 500,
-                color: 'text.secondary',
-                fontSize: 16,
-              }}>
-              {t('noLogs')}
-            </Box>
-          )}
-
-          {(dataState.loadingMore || dataState?.data?.next) && (
-            <Box width={1} height={60} className="center" ref={loadingRef}>
-              <Box display="flex" justifyContent="center">
-                <CircularProgress size={24} />
-              </Box>
-            </Box>
-          )}
+          <Box sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1, px: 1.5, mt: 2 }}>
+            <Stack flex={1} sx={{ overflowX: 'auto' }}>
+              <Table
+                sx={{
+                  minWidth: 800,
+                  border: 0,
+                  [`& .${gridClasses.cell}:focus, & .${gridClasses.cell}:focus-within`]: { outline: 'none' },
+                  [`& .${gridClasses.columnHeader}:focus, & .${gridClasses.columnHeader}:focus-within`]: {
+                    outline: 'none',
+                  },
+                  [`& .${gridClasses.footerContainer}`]: { border: 0 },
+                }}
+                autoHeight
+                disableColumnMenu
+                columnHeaderHeight={44}
+                rowHeight={44}
+                getRowId={(row) => row.id}
+                rows={logs}
+                columns={columns}
+                rowCount={totals || 0}
+                pageSizeOptions={[10, 20, 50]}
+                paginationModel={{ page: page - 1, pageSize }}
+                paginationMode="server"
+                onPaginationModelChange={({ page, pageSize: newPageSize }) => {
+                  setPage(page + 1);
+                  setPageSize(newPageSize);
+                }}
+                loading={loading}
+                slots={{
+                  noRowsOverlay: () => (
+                    <Box className="center" height={200}>
+                      <Typography color="text.secondary" fontSize={16}>
+                        {t('noLogs')}
+                      </Typography>
+                    </Box>
+                  ),
+                }}
+                onRowClick={(params) => {
+                  showDialog({
+                    formSx: {
+                      '.MuiDialogTitle-root': {
+                        border: 0,
+                      },
+                      '.MuiDialogActions-root': {
+                        border: 0,
+                      },
+                      '.MuiDialogContent-root': {
+                        padding: '12px 0 !important',
+                      },
+                    },
+                    maxWidth: 'lg',
+                    fullWidth: true,
+                    fullScreen: isMobile,
+                    title: <Box sx={{ wordWrap: 'break-word' }}>{t('viewLog')}</Box>,
+                    content: (
+                      <Box>
+                        {(params.row.logs || []).map((message: any, index: number) => (
+                          <MessageView
+                            key={`message-${index}`}
+                            index={index}
+                            message={message}
+                            projectId={projectId}
+                            gitRef={gitRef}
+                          />
+                        ))}
+                      </Box>
+                    ),
+                    okText: t('confirm'),
+                    cancelText: t('cancel'),
+                    onOk: () => {},
+                  });
+                }}
+              />
+            </Stack>
+          </Box>
         </Container>
       </Box>
 
@@ -228,88 +242,31 @@ const LogMessages = () => {
 
 export default LogMessages;
 
-const StyledCard = styled(Card)(({ theme }) => ({
-  width: '100%',
-  maxWidth: 900,
-  height: 250,
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'space-between',
-  padding: theme.spacing(2),
-  cursor: 'pointer',
-}));
-
 const Header = styled(Box)(() => ({
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
 }));
 
-const CardFooter = styled(Box)(() => ({
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-}));
+const Table = styled(DataGrid)`
+  .MuiDataGrid-columnSeparator {
+    display: none;
+  }
 
-const LogCard = ({
-  runType,
-  title,
-  result,
-  tokenCount,
-  date,
-  error,
-}: {
-  runType: string;
-  title: string;
-  result: string;
-  tokenCount: number;
-  date: string;
-  error?: string;
-}) => {
-  return (
-    <StyledCard>
-      <Header gap={1}>
-        <Box sx={{ width: 8, height: 8, borderRadius: '100%', bgcolor: error ? 'error.dark' : 'success.light' }} />
+  .MuiDataGrid-columnHeader {
+    padding: 0;
+    &:last-child {
+      padding-left: 16px;
+    }
+  }
 
-        <Typography variant="h6" component="div" sx={{ flex: 1, width: 0 }} className="ellipsis">
-          {title}
-        </Typography>
+  .MuiDataGrid-cell {
+    padding: 0;
+  }
 
-        <Chip
-          size="small"
-          label={runType}
-          variant="filled"
-          color="default"
-          sx={{
-            borderRadius: '4px',
-            textTransform: 'capitalize',
-          }}
-        />
-      </Header>
-
-      <CardContent sx={{ flexGrow: 1, height: 0, overflow: 'hidden', px: 0, py: 1 }}>
-        <pre>
-          {error
-            ? JSON.stringify(error, null, 2)
-            : (() => {
-                try {
-                  return JSON.stringify(JSON.parse(result), null, 2);
-                } catch (e) {
-                  return result;
-                }
-              })()}
-        </pre>
-      </CardContent>
-
-      <Divider sx={{ my: 2 }} />
-
-      <CardFooter>
-        {tokenCount ? <Typography variant="body2">{tokenCount} Token</Typography> : <Box />}
-
-        <Typography variant="caption" color="action.disabled">
-          {date}
-        </Typography>
-      </CardFooter>
-    </StyledCard>
-  );
-};
+  .MuiDataGrid-main {
+    .MuiDataGrid-row--borderBottom {
+      background: transparent;
+    }
+  }
+`;
