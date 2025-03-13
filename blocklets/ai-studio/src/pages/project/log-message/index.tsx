@@ -14,8 +14,10 @@ import {
   Divider,
   Grid,
   List,
+  Theme,
   Typography,
   styled,
+  useMediaQuery,
 } from '@mui/material';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -75,6 +77,7 @@ const LogMessages = () => {
   const { t } = useLocaleContext();
   const { loadingRef, dataState } = useFetchLogsList(projectId, sessionId, agentId, date);
   const { getFileById } = useProjectStore(projectId, gitRef || 'main');
+  const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
 
   const hasAppHistory = location.state && location.state.fromApp;
 
@@ -154,9 +157,13 @@ const LogMessages = () => {
                               '.MuiDialogActions-root': {
                                 border: 0,
                               },
+                              '.MuiDialogContent-root': {
+                                padding: '12px 0 !important',
+                              },
                             },
                             maxWidth: 'lg',
                             fullWidth: true,
+                            fullScreen: isMobile,
                             title: <Box sx={{ wordWrap: 'break-word' }}>{t('viewLog')}</Box>,
                             content: (
                               <Box>

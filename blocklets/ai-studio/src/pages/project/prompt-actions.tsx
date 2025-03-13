@@ -3,6 +3,7 @@ import { useSessionContext } from '@app/contexts/session';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { isAssistant } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
+import LogIcon from '@iconify-icons/tabler/align-box-center-middle';
 import ArrowLeft from '@iconify-icons/tabler/chevron-left';
 import FloppyIcon from '@iconify-icons/tabler/device-floppy';
 import HistoryToggleIcon from '@iconify-icons/tabler/history-toggle';
@@ -91,6 +92,17 @@ export function HeaderActions() {
 
         <AgentTokenUsage />
 
+        <Button
+          sx={{ minWidth: 0, minHeight: 0, width: 32, height: 32, border: '1px solid #E5E7EB' }}
+          onClick={() => {
+            window.open(
+              joinURL(window.location.origin, window.blocklet.prefix, `projects/${projectId}/logs/main`),
+              '_blank'
+            );
+          }}>
+          <Box component={Icon} icon={LogIcon} sx={{ fontSize: 20, color: '#030712' }} />
+        </Button>
+
         <CommitsTip
           loading={loading}
           commits={commits}
@@ -131,6 +143,7 @@ export function HeaderActions() {
 }
 
 export function MobileHeaderActions() {
+  const { t } = useLocaleContext();
   const { projectId, ref: gitRef, '*': filepath } = useParams();
   if (!projectId || !gitRef) throw new Error('Missing required params `projectId` or `ref`');
   const fileId = filepath && getFileIdFromPath(filepath);
@@ -142,6 +155,25 @@ export function MobileHeaderActions() {
       <HistoryAction />
 
       <SaveAction />
+
+      <Box
+        className="center"
+        justifyContent="flex-start"
+        key="history"
+        onClick={() => {
+          window.open(
+            joinURL(window.location.origin, window.blocklet.prefix, `projects/${projectId}/logs/main`),
+            '_blank'
+          );
+        }}
+        sx={{ cursor: 'pointer' }}>
+        <Box className="center">
+          <Box component={Icon} icon={LogIcon} mr={1} sx={{ fontSize: '15px !important' }} />
+        </Box>
+        <Typography className="center" fontWeight={500} fontSize={16} lineHeight="28px" color="#030712">
+          {t('log')}
+        </Typography>
+      </Box>
 
       <SettingsAction />
 

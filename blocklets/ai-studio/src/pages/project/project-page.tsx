@@ -266,13 +266,7 @@ function ProjectPageView() {
                 scrollButtons={false}
                 value={currentTab}
                 onChange={(_, tab) => {
-                  if (tab === 'log') {
-                    navigate(joinURL(`../../../${projectId}/logs/main?agentId=${fileId}`), {
-                      state: { fromApp: true },
-                    });
-                  } else {
-                    setCurrentTab(tab);
-                  }
+                  setCurrentTab(tab);
                 }}
                 TabIndicatorProps={{ children: <Box component="span" /> }}
                 sx={{
@@ -300,7 +294,6 @@ function ProjectPageView() {
                 <Tab value="debug" label={t('debug')} data-testid="debug-view-debug" />
                 <Tab value="test" label={t('test')} data-testid="debug-view-tests" />
                 <Tab value="discuss" label={t('discuss')} data-testid="debug-view-collaboration" />
-                <Tab value="log" label={t('log')} data-testid="debug-view-log" />
               </Tabs>
 
               <Box flex={1} />
