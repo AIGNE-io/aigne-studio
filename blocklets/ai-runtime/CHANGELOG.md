@@ -1,3 +1,5 @@
+## 0.4.251 (2025-3-13)
+
 ## 0.4.250 (2025-3-11)
 
 - feat: record agent logs to the db
