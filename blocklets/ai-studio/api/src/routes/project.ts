@@ -553,23 +553,25 @@ export function projectRoutes(router: Router) {
       return;
     }
 
+    const sessionId = randomId();
+
     const { outputs, error } = await runAgent({
       user: { did: wallet.address },
       aid: stringifyIdentity({ projectId, projectRef: defaultBranch, agentId }),
       working: true,
-      sessionId: randomId(),
+      sessionId,
       inputs: req.body,
+      runType: 'webhook',
     })
-      .then((outputs) => {
-        return { outputs, error: undefined };
-      })
-      .catch((error) => {
-        return { outputs: undefined, error };
-      });
+      .then((outputs) => ({ outputs, error: undefined }))
+      .catch((error) => ({ outputs: undefined, error }));
 
-    if (error) throw error;
+    if (error) {
+      res.status(500).json({ error, sessionId, projectId, agentId });
+      return;
+    }
 
-    res.json(outputs);
+    res.json({ outputs, sessionId, projectId, agentId });
   });
 
   router.get('/projects/:projectId/npm/package.tgz', async (req, res) => {

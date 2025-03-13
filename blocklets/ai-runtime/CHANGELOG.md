@@ -1,3 +1,8 @@
+## 0.4.250 (2025-3-11)
+
+- feat: record agent logs to the db
+- chore: add description for decision call function
+
 ## 0.4.249 (2025-3-10)
 
 - chore: update deps

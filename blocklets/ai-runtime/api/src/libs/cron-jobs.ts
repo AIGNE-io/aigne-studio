@@ -48,6 +48,7 @@ class AIGNECronManager extends CronJobManager {
             aid: stringifyIdentity({ blockletDid, projectId: job.projectId, agentId: job.agentId }),
             sessionId: randomId(),
             inputs: job.inputs,
+            runType: 'cron',
           })
             .then((outputs) => {
               logger.info('run agent cron job success', { blockletDid, job, outputs });

@@ -941,4 +941,9 @@ export default flatten({
   customOutputName: '自定义输出名称',
   webhookSetting: 'Webhook 设置',
   packageSetting: 'Package 设置',
+  agentLog: 'Agent 日志',
+  viewLog: '查看日志',
+  logDate: '日志日期',
+  noLogs: '当前没有日志',
+  log: '日志',
 });

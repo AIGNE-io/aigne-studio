@@ -46,6 +46,7 @@ class ProjectCronManager extends CronJobManager {
               working: true,
               sessionId: randomId(),
               inputs: job.inputs,
+              runType: 'cron',
             })
               .then((outputs) => {
                 logger.info('run agent cron job success', { projectId, job, outputs });

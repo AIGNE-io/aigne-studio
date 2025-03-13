@@ -127,7 +127,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
             toolAssistant,
             function: {
               name: (functionTranslateName || name)?.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64) || toolAssistant.id,
-              description: name,
+              description: tool?.description || toolAssistant?.description || toolAssistant?.name || '',
               parameters: {
                 type: 'object',
                 properties: Object.fromEntries(toolParameters),
