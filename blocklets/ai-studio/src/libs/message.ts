@@ -50,7 +50,7 @@ export async function getLogHistories({
   size: number;
 }): Promise<{
   messages: History[];
-  total: number;
+  count: number;
   page: number;
 }> {
   return axios
