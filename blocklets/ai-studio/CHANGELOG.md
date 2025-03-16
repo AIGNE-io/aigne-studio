@@ -1,3 +1,7 @@
+## 0.4.252 (2025-3-16)
+
+- chore: update package to latest
+
 ## 0.4.251 (2025-3-13)
 
 - feat: replace the gird layout with table
