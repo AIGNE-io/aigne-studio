@@ -1,3 +1,7 @@
+## 0.4.225 (2025-3-17)
+
+- chore: update deps
+
 ## 0.4.224 (2025-2-28)
 
 - fix(security): use markdown view instead of dangerous html to avoid xss attack
