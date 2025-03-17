@@ -1,4 +1,4 @@
-import { ReactNode, createContext, lazy, useContext, useRef } from 'react';
+import { ComponentProps, ReactNode, createContext, lazy, useContext, useRef } from 'react';
 
 // @ts-ignore
 const UploaderComponent = lazy(() => import('@blocklet/uploader').then((res) => ({ default: res.Uploader })));
@@ -7,9 +7,7 @@ const defaultAllowedFileTypes = ['image/png', 'image/jpeg', 'image/gif'];
 interface UploaderProviderProps {
   children: ReactNode;
   plugins?: string[];
-  dashboardProps?: {
-    fileManagerSelectionType?: string;
-  };
+  dashboardProps?: ComponentProps<typeof UploaderComponent>['dashboardProps'];
   restrictions?: {
     allowedFileTypes?: string[];
     maxFileSize?: number;

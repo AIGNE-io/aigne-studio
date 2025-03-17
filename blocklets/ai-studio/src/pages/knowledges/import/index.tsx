@@ -237,7 +237,6 @@ export default function ImportKnowledge({
                   <UploaderProvider
                     ref={providerRef}
                     popup={false}
-                    dropTargetProps={{}}
                     plugins={[]}
                     apiPathProps={{
                       uploader: url,

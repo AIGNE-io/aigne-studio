@@ -24,6 +24,7 @@ export default function ExploreAdminRoutes() {
       invalidPathFallback={undefined}
       headerAddons={undefined}
       sessionManagerProps={undefined}
+      showDomainWarningDialog={undefined}
       links={undefined}>
       <ErrorBoundary>
         <Routes>

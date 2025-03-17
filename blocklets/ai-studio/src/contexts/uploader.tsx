@@ -1,7 +1,16 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import UploadIcon from '@mui/icons-material/Upload';
 import { IconButton, IconButtonProps } from '@mui/material';
-import { ReactNode, createContext, forwardRef, lazy, useContext, useImperativeHandle, useRef } from 'react';
+import {
+  ComponentProps,
+  ReactNode,
+  createContext,
+  forwardRef,
+  lazy,
+  useContext,
+  useImperativeHandle,
+  useRef,
+} from 'react';
 
 // @ts-ignore
 const UploaderComponent = lazy(() => import('@blocklet/uploader').then((res) => ({ default: res.Uploader })));
@@ -10,14 +19,8 @@ const defaultAllowedFileTypes = ['image/png', 'image/jpeg', 'image/gif'];
 interface UploaderProviderProps {
   children?: ReactNode;
   plugins?: string[];
-  dropTargetProps?: { target?: HTMLElement };
-  dashboardProps?: {
-    fileManagerSelectionType?: string;
-    hideUploadButton?: boolean;
-    hideRetryButton?: boolean;
-    hideProgressAfterFinish?: boolean;
-    note?: string | ReactNode;
-  };
+  dropTargetProps?: ComponentProps<typeof UploaderComponent>['dropTargetProps'];
+  dashboardProps?: ComponentProps<typeof UploaderComponent>['dashboardProps'];
   restrictions?: {
     allowedFileTypes?: string[];
     maxFileSize?: number;
