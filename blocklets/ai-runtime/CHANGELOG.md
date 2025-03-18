@@ -1,3 +1,7 @@
+## 0.4.253 (2025-3-18)
+
+- chore: update deps
+
 ## 0.4.252 (2025-3-16)
 
 - chore: update package to latest
