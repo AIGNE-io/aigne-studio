@@ -109,7 +109,7 @@ export function CronSettings({ agent }: { agent: AssistantYjs }) {
     }
   }, [agent.id]);
 
-  if (quotaChecker.checkCronJobs({ showPrice: false })) {
+  if (!quotaChecker.checkCronJobs({ showPrice: false })) {
     return (
       <Stack gap={1} py={1.5} alignItems="center">
         <PlanAlert>{t('upgradePrompts.cronJobs.desc')}</PlanAlert>
