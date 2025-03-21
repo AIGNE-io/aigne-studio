@@ -1,3 +1,7 @@
+## 0.4.254 (2025-3-21)
+
+- fix: cron setting issue
+
 ## 0.4.253 (2025-3-18)
 
 - chore: update deps
