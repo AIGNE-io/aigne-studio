@@ -37,7 +37,7 @@ import { VimMode } from 'monaco-vim';
 import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { ResizableBox } from 'react-resizable';
 
-import { FullScreen, useFullScreenHandle } from './components/react-full-screen';
+import { FullScreen, FullScreenOptions, useFullScreenHandle } from './components/react-full-screen';
 import type { EditorInstance } from './libs/type';
 import useAutoCloseTag from './plugins/close-tag';
 import useEmmet from './plugins/emmet';
@@ -121,10 +121,7 @@ const CodeEditor = forwardRef(
       locale: string;
       typeScriptNoValidation?: boolean;
       onUpload?: (callback: (url: string) => void) => void;
-      fullScreenOptions?: {
-        enableEscExit?: boolean;
-        targetContainer?: HTMLElement | null;
-      };
+      fullScreenOptions?: FullScreenOptions;
     } & BoxProps<typeof Editor>,
     ref
   ) => {
