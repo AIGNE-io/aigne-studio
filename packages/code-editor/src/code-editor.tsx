@@ -37,7 +37,7 @@ import { VimMode } from 'monaco-vim';
 import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { ResizableBox } from 'react-resizable';
 
-import { FullScreen, useFullScreenHandle } from './components/react-full-screen';
+import { FullScreen, FullScreenOptions, useFullScreenHandle } from './components/react-full-screen';
 import type { EditorInstance } from './libs/type';
 import useAutoCloseTag from './plugins/close-tag';
 import useEmmet from './plugins/emmet';
@@ -109,6 +109,10 @@ const CodeEditor = forwardRef(
       readOnly,
       maxHeight,
       locale = 'en',
+      fullScreenOptions = {
+        enableEscExit: false,
+        targetContainer: null,
+      },
       ...props
     }: {
       keyId: string;
@@ -117,6 +121,7 @@ const CodeEditor = forwardRef(
       locale: string;
       typeScriptNoValidation?: boolean;
       onUpload?: (callback: (url: string) => void) => void;
+      fullScreenOptions?: FullScreenOptions;
     } & BoxProps<typeof Editor>,
     ref
   ) => {
@@ -140,6 +145,14 @@ const CodeEditor = forwardRef(
     useVimMode(editor!, statusRef, { ...globalSettings, ...settings }, setSettings);
 
     useImperativeHandle(ref, () => ({ insertText }));
+
+    const fullScreenOpts = useMemo(
+      () => ({
+        enableEscExit: fullScreenOptions?.enableEscExit ?? false,
+        targetContainer: fullScreenOptions?.targetContainer ?? null,
+      }),
+      [fullScreenOptions]
+    );
 
     const currentHeight = useMemo(() => {
       if (handle.active) {
@@ -359,7 +372,7 @@ const CodeEditor = forwardRef(
     const minWidth = isBreakpointsDownSm ? 300 : theme.breakpoints.values.sm;
     return (
       <>
-        <Full handle={handle}>
+        <Full handle={handle} options={fullScreenOpts}>
           {handle.active ? <FullScreenContainer locale={locale}>{editorRender()}</FullScreenContainer> : editorRender()}
         </Full>
 
