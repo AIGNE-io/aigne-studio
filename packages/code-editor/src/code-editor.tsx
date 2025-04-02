@@ -154,7 +154,7 @@ const CodeEditor = forwardRef(
         enableEscExit: fullScreenOptions?.enableEscExit ?? false,
         targetContainer: fullScreenOptions?.targetContainer ?? null,
       }),
-      [fullScreenOptions?.enableEscExit, fullScreenOptions?.targetContainer]
+      [fullScreenOptions]
     );
 
     const currentHeight = useMemo(() => {
