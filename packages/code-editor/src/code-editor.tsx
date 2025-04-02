@@ -109,6 +109,10 @@ const CodeEditor = forwardRef(
       readOnly,
       maxHeight,
       locale = 'en',
+      fullScreenOptions = {
+        enableEscExit: false,
+        targetContainer: null,
+      },
       ...props
     }: {
       keyId: string;
@@ -117,6 +121,10 @@ const CodeEditor = forwardRef(
       locale: string;
       typeScriptNoValidation?: boolean;
       onUpload?: (callback: (url: string) => void) => void;
+      fullScreenOptions?: {
+        enableEscExit?: boolean;
+        targetContainer?: HTMLElement | null;
+      };
     } & BoxProps<typeof Editor>,
     ref
   ) => {
@@ -140,6 +148,14 @@ const CodeEditor = forwardRef(
     useVimMode(editor!, statusRef, { ...globalSettings, ...settings }, setSettings);
 
     useImperativeHandle(ref, () => ({ insertText }));
+
+    const fullScreenOpts = useMemo(
+      () => ({
+        enableEscExit: fullScreenOptions?.enableEscExit ?? false,
+        targetContainer: fullScreenOptions?.targetContainer ?? null,
+      }),
+      [fullScreenOptions?.enableEscExit, fullScreenOptions?.targetContainer]
+    );
 
     const currentHeight = useMemo(() => {
       if (handle.active) {
@@ -359,7 +375,7 @@ const CodeEditor = forwardRef(
     const minWidth = isBreakpointsDownSm ? 300 : theme.breakpoints.values.sm;
     return (
       <>
-        <Full handle={handle}>
+        <Full handle={handle} options={fullScreenOpts}>
           {handle.active ? <FullScreenContainer locale={locale}>{editorRender()}</FullScreenContainer> : editorRender()}
         </Full>
 

@@ -1,3 +1,7 @@
+## 0.4.255 (2025-4-2)
+
+- feat: add fullscreenOptions for code editor
+
 ## 0.4.254 (2025-3-21)
 
 - fix: cron setting issue
