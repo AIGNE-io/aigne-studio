@@ -110,7 +110,7 @@ const CodeEditor = forwardRef(
       maxHeight,
       locale = 'en',
       fullScreenOptions = {
-        enableEscExit: false,
+        enableEscExit: true,
         targetContainer: null,
       },
       ...props
@@ -148,7 +148,7 @@ const CodeEditor = forwardRef(
 
     const fullScreenOpts = useMemo(
       () => ({
-        enableEscExit: fullScreenOptions?.enableEscExit ?? false,
+        enableEscExit: fullScreenOptions?.enableEscExit ?? true,
         targetContainer: fullScreenOptions?.targetContainer ?? null,
       }),
       [fullScreenOptions]

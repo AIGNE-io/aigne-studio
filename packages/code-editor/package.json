@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/code-editor",
-  "version": "0.4.255",
+  "version": "0.4.256",
   "description": "Code Editor",
   "publishConfig": {
     "access": "public"
@@ -70,12 +70,12 @@
     "prettier": "^3.3.3",
     "react-hook-form": "^7.53.0",
     "react-resizable": "^3.0.5",
-    "react-transition-group": "^4.4.5",
     "ufo": "^1.5.4"
   },
   "peerDependencies": {
     "@mui/material": "^5.14.11",
     "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
@@ -98,6 +98,7 @@
     "copyfiles": "^2.4.1",
     "npm-run-all": "^4.1.5",
     "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.1",
     "rimraf": "^6.0.1",
     "storybook": "^8.2.9",

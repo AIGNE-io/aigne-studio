@@ -1,3 +1,7 @@
+## 0.4.256 (2025-4-4)
+
+- chore: polish code editor full screen logic
+
 ## 0.4.255 (2025-4-2)
 
 - feat: add fullScreenOptions for code editor
