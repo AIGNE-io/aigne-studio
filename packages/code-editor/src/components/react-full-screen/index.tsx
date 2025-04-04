@@ -1,12 +1,13 @@
 import './index.css';
 
-import { Box, BoxProps } from '@mui/material';
+import { Box } from '@mui/material';
+import { useKeyPress } from 'ahooks';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { CSSTransition } from 'react-transition-group';
+import { createPortal } from 'react-dom';
 
 export interface FullScreenOptions {
   enableEscExit?: boolean;
-  targetContainer?: HTMLElement | null;
+  targetContainer?: (() => HTMLElement | null) | HTMLElement | null;
 }
 
 export interface FullScreenHandle {
@@ -48,6 +49,7 @@ export function useFullScreenHandle(): FullScreenHandle {
 // eslint-disable-next-line react/function-component-definition
 export const FullScreen: React.FC<FullScreenProps> = ({ handle, children, onChange, className, options = {} }) => {
   const { enableEscExit = false, targetContainer = null } = options || {};
+  const [container, setContainer] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
     if (onChange) {
@@ -55,48 +57,36 @@ export const FullScreen: React.FC<FullScreenProps> = ({ handle, children, onChan
     }
   }, [handle.active, onChange, handle]);
 
-  // ESC键退出全屏功能
   useEffect(() => {
-    if (!enableEscExit || !handle.active) return;
+    if (targetContainer && handle.active) {
+      const targetElement = typeof targetContainer === 'function' ? targetContainer() : targetContainer;
+      setContainer(targetElement);
+    } else {
+      setContainer(null);
+    }
+  }, [targetContainer, handle.active]);
 
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        handle.exit();
-      }
-    };
+  useKeyPress(['esc'], () => {
+    if (enableEscExit && handle.active) {
+      handle.exit();
+    }
+  });
 
-    document.addEventListener('keydown', handleKeyDown);
+  const portalTarget = container instanceof HTMLElement ? container : document.body;
 
-    // eslint-disable-next-line consistent-return
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [enableEscExit, handle.active, handle]);
+  if (handle.active) {
+    return createPortal(
+      <Box
+        ref={handle.node}
+        className={`full-screen-container ${className || ''}`}
+        sx={{
+          animation: 'full-screen-enter 300ms forwards',
+        }}>
+        {handle.active && children}
+      </Box>,
+      portalTarget ?? document.body
+    );
+  }
 
-  // 根据是否有 targetContainer 决定样式，如果有 targetContainer 则将样式设置为绝对定位，则不是整个浏览器全屏
-  const extraProps: BoxProps = targetContainer
-    ? {
-        sx: {
-          position: 'absolute !important',
-          top: 0,
-          left: 0,
-          bottom: 0,
-          right: 0,
-          height: '100%',
-          width: '100%',
-        },
-      }
-    : {};
-
-  return (
-    <>
-      <CSSTransition in={handle.active} timeout={500} classNames="full-screen" unmountOnExit nodeRef={handle.node}>
-        <Box ref={handle.node} className={`full-screen-container ${className}`} {...extraProps}>
-          {handle.active && children}
-        </Box>
-      </CSSTransition>
-
-      {!handle.active && children}
-    </>
-  );
+  return children;
 };

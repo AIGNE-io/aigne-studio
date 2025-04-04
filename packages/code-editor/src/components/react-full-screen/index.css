@@ -20,32 +20,13 @@
   flex-direction: column;
 }
 
-.full-screen-enter {
-  transform: scale(0.5);
-  opacity: 0;
-}
-
-.full-screen-enter-active {
-  transform: scale(1);
-  opacity: 1;
-}
-
-.full-screen-enter-done {
-  transform: scale(1);
-  opacity: 1;
-}
-
-.full-screen-exit {
-  transform: scale(1);
-  opacity: 1;
-}
-
-.full-screen-exit-active {
-  transform: scale(0);
-  opacity: 0;
-}
-
-.full-screen-exit-done {
-  transform: scale(0);
-  opacity: 0;
+@keyframes full-screen-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }

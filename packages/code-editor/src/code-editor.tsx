@@ -110,7 +110,7 @@ const CodeEditor = forwardRef(
       maxHeight,
       locale = 'en',
       fullScreenOptions = {
-        enableEscExit: false,
+        enableEscExit: true,
         targetContainer: null,
       },
       ...props
