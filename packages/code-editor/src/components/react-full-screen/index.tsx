@@ -48,7 +48,7 @@ export function useFullScreenHandle(): FullScreenHandle {
 
 // eslint-disable-next-line react/function-component-definition
 export const FullScreen: React.FC<FullScreenProps> = ({ handle, children, onChange, className, options = {} }) => {
-  const { enableEscExit = false, targetContainer = null } = options || {};
+  const { enableEscExit = true, targetContainer = null } = options || {};
   const [container, setContainer] = useState<HTMLElement | null>(null);
 
   useEffect(() => {

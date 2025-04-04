@@ -148,7 +148,7 @@ const CodeEditor = forwardRef(
 
     const fullScreenOpts = useMemo(
       () => ({
-        enableEscExit: fullScreenOptions?.enableEscExit ?? false,
+        enableEscExit: fullScreenOptions?.enableEscExit ?? true,
         targetContainer: fullScreenOptions?.targetContainer ?? null,
       }),
       [fullScreenOptions]
