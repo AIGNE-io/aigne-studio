@@ -68,7 +68,7 @@ function NpmIntegrationSetting() {
         {t('aigneCliTip')}
       </Typography>
 
-      <CopyLink cmd={`aigne run ${link}`} link={link} onGenerate={generateSecret} />
+      <CopyLink cmd={link ? `aigne run ${link}` : undefined} link={link} onGenerate={generateSecret} />
     </Box>
   );
 }

@@ -1,3 +1,7 @@
+## 0.4.258 (2025-4-16)
+
+- fix: display placeholder if secret not generated
+
 ## 0.4.257 (2025-4-16)
 
 - feat: add aigne run command in the integration
