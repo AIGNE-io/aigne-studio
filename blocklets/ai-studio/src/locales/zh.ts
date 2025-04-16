@@ -951,4 +951,5 @@ export default flatten({
   runType: '运行类型',
   tokenCount: 'Token 数量',
   executionTime: '执行时间',
+  aigneCliTip: '支持直接从命令行运行该项目',
 });

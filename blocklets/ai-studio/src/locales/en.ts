@@ -962,4 +962,5 @@ export default flatten({
   runType: 'Run Type',
   tokenCount: 'Token Count',
   executionTime: 'Execution Time',
+  aigneCliTip: 'supports run this project directly from the command line',
 });

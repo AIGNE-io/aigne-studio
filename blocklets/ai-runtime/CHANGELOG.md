@@ -1,3 +1,7 @@
+## 0.4.257 (2025-4-16)
+
+- feat: add aigne run command in the integration
+
 ## 0.4.256 (2025-4-4)
 
 - chore: polish code editor full screen logic
