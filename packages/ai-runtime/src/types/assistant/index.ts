@@ -288,6 +288,10 @@ export interface ImageAssistant extends AssistantBase {
   quality?: string;
   style?: string;
   size?: string;
+  background?: string;
+  outputFormat?: string;
+  moderation?: string;
+  outputCompression?: number;
   modelSettings?: { [key: string]: any };
 }
 

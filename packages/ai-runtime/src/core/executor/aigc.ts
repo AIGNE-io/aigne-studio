@@ -23,6 +23,10 @@ export class AIGCAgentExecutor extends AgentExecutorBase<ImageAssistant> {
         quality: agent.quality as any,
         size: agent.size as any,
         style: agent.style as any,
+        outputFormat: agent.outputFormat as any,
+        outputCompression: agent.outputCompression as any,
+        background: agent.background as any,
+        moderation: agent.moderation as any,
       },
     });
 

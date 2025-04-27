@@ -1,3 +1,7 @@
+## 0.4.259 (2025-4-27)
+
+- feat: support gpt-image-1
+
 ## 0.4.258 (2025-4-16)
 
 - fix: display placeholder if secret not generated
