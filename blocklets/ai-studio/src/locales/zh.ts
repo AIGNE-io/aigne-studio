@@ -366,15 +366,25 @@ export default flatten({
   addVariable: '添加变量',
   numberTip: '要生成的图像数量。必须在1和10之间。对于dall-e-3，仅支持n=1。',
   quality: '质量',
-  qualityTip: '生成图像的质量。hd可以创建细节更好、整体一致性更大的图像。此参数仅对dall-e-3支持。',
+  qualityTip:
+    '生成的图像质量。auto（默认）将自动选择给定模型最佳质量。high、medium和low仅支持gpt-image-1。hd和standard仅支持dall-e-3。standard是dall-e-2的唯一选项。',
   responseFormat: '响应格式',
   responseFormatTip: '生成的图像返回的格式。必须为url或b64_json之一。',
   size: '尺寸',
   sizeTip:
-    '生成的图像尺寸。对于dall-e-2，必须为256x256、512x512或1024x1024之一。对于dall-e-3模型，必须为1024x1024、1792x1024或1024x1792之一。',
+    '生成的图像尺寸。对于dall-e-2，必须为256x256、512x512或1024x1024之一。对于dall-e-3模型，必须为1024x1024、1792x1024或1024x1792之一。对于gpt-image-1，必须为1024x1024、1536x1024、1024x1536或auto之一。',
   style: '风格',
   styleTip:
     '生成图像的风格。必须为vivid或natural之一。vivid会使模型倾向于生成超现实和戏剧化的图像。natural会使模型生成更自然、不太超现实的图像。此参数仅对dall-e-3支持。',
+  background: '背景',
+  backgroundTip:
+    '允许设置生成图像的背景透明度。此参数仅支持gpt-image-1。必须为transparent、opaque或auto之一。transparent会使图像背景透明，opaque会使图像背景不透明，auto会使模型根据图像内容自动选择背景。',
+  gptImageOutputFormat: '输出格式',
+  gptImageOutputFormatTip: '生成的图像返回的格式。此参数仅支持gpt-image-1。必须为png、jpeg或webp之一。',
+  moderation: '内容审查',
+  moderationTip: '控制gpt-image-1生成的图像的内容审查级别。必须为low（较低的审查级别）或auto（默认值）之一。',
+  outputCompression: '输出压缩',
+  outputCompressionTip: '生成图像的压缩率（0-100%）。此参数仅支持gpt-image-1，当输出格式为webp或jpeg时，默认值为100%。',
   parametersTip: '您可以正常输入参数内容，也可采用 {{variable}} 格式输入变量。若未传入参数，变量将会自动透传。',
   selectByPromptParameterPlaceholder: '未设置值的参数将由 AI 根据 Prompt 提供参数值',
   buildInData: '接口',
@@ -951,4 +961,5 @@ export default flatten({
   runType: '运行类型',
   tokenCount: 'Token 数量',
   executionTime: '执行时间',
+  aigneCliTip: '支持直接从命令行运行该项目',
 });

@@ -206,6 +206,27 @@ export async function getSupportedImagesModels(): Promise<ImageModelInfo[]> {
       styleDefault: 'vivid',
       tags: ['OpenAI'],
     },
+    {
+      brand: 'OpenAI',
+      model: 'gpt-image-1',
+      nMin: 1,
+      nMax: 10,
+      nDefault: 1,
+      quality: ['high', 'medium', 'low', 'auto'],
+      qualityDefault: 'auto',
+      size: ['1024x1024', '1536x1024', '1024x1536', 'auto'],
+      sizeDefault: 'auto',
+      moderation: ['low', 'auto'],
+      moderationDefault: 'auto',
+      background: ['transparent', 'opaque', 'auto'],
+      backgroundDefault: 'auto',
+      outputFormat: ['jpeg', 'png', 'webp'],
+      outputFormatDefault: 'jpeg',
+      outputCompressionMin: 0,
+      outputCompressionMax: 100,
+      outputCompressionDefault: 100,
+      tags: ['OpenAI'],
+    },
   ];
 }
 

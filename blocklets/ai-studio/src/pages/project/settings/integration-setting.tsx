@@ -8,7 +8,7 @@ import {
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { LoadingButton } from '@blocklet/studio-ui';
-import { Box, Button, CircularProgress, Stack, Switch, Typography } from '@mui/material';
+import { Box, Button, CircularProgress, Link, Stack, Switch, Typography } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
 import usePromise from 'react-promise-suspense';
 import { useParams } from 'react-router-dom';
@@ -56,6 +56,19 @@ function NpmIntegrationSetting() {
           return <CopyLink key={manager} cmd={cmd} link={link} manager={manager} onGenerate={generateSecret} />;
         })}
       </Stack>
+
+      <Typography variant="subtitle2" fontWeight={600} mb={0.5} mt={3}>
+        AIGNE CLI
+      </Typography>
+
+      <Typography variant="caption">
+        <Link href="https://github.com/AIGNE-io/aigne-framework/blob/main/docs/cli.md" target="_blank" sx={{ mx: 0.5 }}>
+          AIGNE CLI
+        </Link>
+        {t('aigneCliTip')}
+      </Typography>
+
+      <CopyLink cmd={link ? `aigne run ${link}` : undefined} link={link} onGenerate={generateSecret} />
     </Box>
   );
 }

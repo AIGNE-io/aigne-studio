@@ -1,3 +1,19 @@
+## 0.4.260 (2025-4-27)
+
+- fix: prism is not defined
+
+## 0.4.259 (2025-4-27)
+
+- feat: support gpt-image-1
+
+## 0.4.258 (2025-4-16)
+
+- fix: display placeholder if secret not generated
+
+## 0.4.257 (2025-4-16)
+
+- feat: add aigne run command in the integration
+
 ## 0.4.256 (2025-4-4)
 
 - chore: polish code editor full screen logic
