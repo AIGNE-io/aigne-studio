@@ -55,7 +55,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
             if (!dataset) return undefined;
 
             const name = tool?.functionName || dataset.summary || dataset.description || '';
-            const functionTranslateName = await this.normalizeToolFunctionName({ agent: agent, tool, name });
+            const functionTranslateName = await this.normalizeToolFunctionName({ agent, tool, name });
             logger.info('function call api name', functionTranslateName);
 
             const datasetParameters = getAllParameters(dataset)
@@ -118,7 +118,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
             .map((x) => x.key);
 
           const name = tool?.functionName || toolAssistant?.description || toolAssistant?.name || '';
-          const functionTranslateName = await this.normalizeToolFunctionName({ agent: agent, tool, name });
+          const functionTranslateName = await this.normalizeToolFunctionName({ agent, tool, name });
           logger.info('function call agent name', functionTranslateName);
 
           return {
