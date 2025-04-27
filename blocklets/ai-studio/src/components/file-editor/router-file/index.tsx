@@ -1,6 +1,3 @@
-import 'react-querybuilder/dist/query-builder.scss';
-
-import Switch from '@app/components/custom/switch';
 import PopperMenu from '@app/components/menu/PopperMenu';
 import { useReadOnly } from '@app/contexts/session';
 import { getProjectIconUrl } from '@app/libs/project';
@@ -24,7 +21,7 @@ import PlusIcon from '@iconify-icons/tabler/plus';
 import Star from '@iconify-icons/tabler/star';
 import StarFill from '@iconify-icons/tabler/star-filled';
 import Trash from '@iconify-icons/tabler/trash';
-import { Close, InfoOutlined } from '@mui/icons-material';
+import { InfoOutlined } from '@mui/icons-material';
 import {
   Avatar,
   Box,
@@ -40,12 +37,11 @@ import {
   Typography,
   styled,
 } from '@mui/material';
-import { MaterialValueEditor, QueryBuilderMaterial } from '@react-querybuilder/material';
+import { QueryBuilderMaterial } from '@react-querybuilder/material';
 import { cloneDeep, pick, sortBy } from 'lodash';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { nanoid } from 'nanoid';
-import React, { useCallback, useMemo, useRef } from 'react';
-import QueryBuilder, { RuleGroupType, ValueEditorProps } from 'react-querybuilder';
+import React, { useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
@@ -95,74 +91,56 @@ export default function RouterAssistantEditor({
     });
   };
 
-  const conditionalBranch = value.decisionType === 'json-logic';
   return (
     <Stack gap={1.5}>
       <Stack gap={1} width={1} ref={ref}>
-        {conditionalBranch ? (
-          <Stack
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              border: 1,
-              borderColor: '#1976d2',
-              borderRadius: 1,
-              background: '#fff',
-              overflow: 'hidden',
-              p: 2,
-              color: 'text.secondary',
-            }}>
-            {t('decision.branchTip')}
-          </Stack>
-        ) : (
-          <Tooltip title={value.prompt ? undefined : t('promptRequired')}>
-            <Box sx={{ borderRadius: 1, flex: 1 }}>
-              <Box
-                height={1}
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  border: 1,
-                  borderColor: '#1976d2',
-                  borderRadius: 1,
-                  background: '#fff',
-                  overflow: 'hidden',
-                }}>
-                <Stack direction="row" alignItems="center" gap={1} p={1} px={1.5} borderBottom="1px solid #BFDBFE">
-                  {t('prompt')}
-                </Stack>
+        <Tooltip title={value.prompt ? undefined : t('promptRequired')}>
+          <Box sx={{ borderRadius: 1, flex: 1 }}>
+            <Box
+              height={1}
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                border: 1,
+                borderColor: '#1976d2',
+                borderRadius: 1,
+                background: '#fff',
+                overflow: 'hidden',
+              }}>
+              <Stack direction="row" alignItems="center" gap={1} p={1} px={1.5} borderBottom="1px solid #BFDBFE">
+                {t('prompt')}
+              </Stack>
 
-                <Box
-                  sx={{
-                    flex: 1,
-                    background: value.prompt ? '#fff' : 'rgba(255, 215, 213, 0.4)',
-                  }}>
-                  <StyledPromptEditor
-                    readOnly={disabled}
-                    placeholder={t('promptPlaceholder')}
-                    projectId={projectId}
-                    gitRef={gitRef}
-                    path={[value.id, 'prompt']}
-                    assistant={value}
-                    value={value.prompt}
-                    onChange={(content) => (value.prompt = content)}
-                    ContentProps={{
-                      sx: {
-                        flex: 1,
-                        '&:hover': {
-                          bgcolor: 'transparent !important',
-                        },
-                        '&:focus': {
-                          bgcolor: 'transparent !important',
-                        },
+              <Box
+                sx={{
+                  flex: 1,
+                  background: value.prompt ? '#fff' : 'rgba(255, 215, 213, 0.4)',
+                }}>
+                <StyledPromptEditor
+                  readOnly={disabled}
+                  placeholder={t('promptPlaceholder')}
+                  projectId={projectId}
+                  gitRef={gitRef}
+                  path={[value.id, 'prompt']}
+                  assistant={value}
+                  value={value.prompt}
+                  onChange={(content) => (value.prompt = content)}
+                  ContentProps={{
+                    sx: {
+                      flex: 1,
+                      '&:hover': {
+                        bgcolor: 'transparent !important',
                       },
-                    }}
-                  />
-                </Box>
+                      '&:focus': {
+                        bgcolor: 'transparent !important',
+                      },
+                    },
+                  }}
+                />
               </Box>
             </Box>
-          </Tooltip>
-        )}
+          </Box>
+        </Tooltip>
 
         <Stack gap={1}>
           <QueryBuilderMaterial>
@@ -257,7 +235,6 @@ export default function RouterAssistantEditor({
               value.routes[tool.id] = {
                 index: old?.index ?? Math.max(-1, ...Object.values(value.routes).map((i) => i.index)) + 1,
                 data: {
-                  condition: old?.data?.condition ? cloneDeep(old.data.condition) : initialQuery,
                   ...tool,
                 },
               };
@@ -268,7 +245,7 @@ export default function RouterAssistantEditor({
             } else {
               value.routes[tool.id] = {
                 index: Math.max(-1, ...Object.values(value.routes).map((i) => i.index)) + 1,
-                data: { condition: initialQuery, ...tool },
+                data: { ...tool },
               };
             }
 
@@ -371,10 +348,6 @@ export function AgentItemView({
           },
           backgroundColor: { ...getDiffBackground('prepareExecutes', `${assistant.id}.data.routes.${agent.id}`) },
         }}>
-        {assistant.decisionType === 'json-logic' && (
-          <BranchConditionSelect assistant={assistant} tool={agent} sx={{ mb: 0 }} />
-        )}
-
         <Stack width={1} gap={1.5} sx={{ position: 'relative' }}>
           <Stack>
             <TextField
@@ -397,41 +370,23 @@ export function AgentItemView({
               }}
             />
 
-            {assistant.decisionType === 'json-logic' ? (
-              target?.description ? (
-                <TextField
-                  onClick={(e) => e.stopPropagation()}
-                  hiddenLabel
-                  placeholder={target?.description || t('description')}
-                  size="small"
-                  variant="standard"
-                  value={target?.description}
-                  sx={{
-                    lineHeight: '10px',
-                    input: { fontSize: '10px', color: 'text.disabled' },
-                  }}
-                  inputProps={{ readOnly: true }}
-                />
-              ) : null
-            ) : (
-              <TextField
-                disabled={!target}
-                onClick={(e) => e.stopPropagation()}
-                hiddenLabel
-                placeholder={target ? agent.functionName || t('routeDesc') : t('agentNotFound')}
-                size="small"
-                variant="standard"
-                value={agent.functionName}
-                onChange={(e) => (agent.functionName = e.target.value)}
-                sx={{
-                  lineHeight: '24px',
-                  input: {
-                    fontSize: '14px',
-                    color: assistant.defaultToolId === agent.id ? 'primary.main' : '',
-                  },
-                }}
-              />
-            )}
+            <TextField
+              disabled={!target}
+              onClick={(e) => e.stopPropagation()}
+              hiddenLabel
+              placeholder={target ? agent.functionName || t('routeDesc') : t('agentNotFound')}
+              size="small"
+              variant="standard"
+              value={agent.functionName}
+              onChange={(e) => (agent.functionName = e.target.value)}
+              sx={{
+                lineHeight: '24px',
+                input: {
+                  fontSize: '14px',
+                  color: assistant.defaultToolId === agent.id ? 'primary.main' : '',
+                },
+              }}
+            />
           </Stack>
 
           <AgentItemViewParameters
@@ -819,216 +774,3 @@ function AgentItemViewParameters({
     </Box>
   );
 }
-
-const initialQuery: RuleGroupType = { combinator: 'and', rules: [] };
-
-const getInputType = (type?: string) => {
-  if (type === 'number') return 'number';
-  if (type === 'boolean') return 'checkbox';
-
-  return 'text';
-};
-
-const getDefaultValueForType = (inputType?: string) => {
-  switch (inputType) {
-    case 'checkbox':
-      return false;
-    case 'number':
-      return 0;
-    default:
-      return '';
-  }
-};
-
-function BranchConditionSelect({
-  assistant,
-  tool,
-  ...props
-}: {
-  assistant: RouterAssistantYjs;
-  tool: NonNullable<RouterAssistantYjs['routes']>[number]['data'];
-} & StackProps) {
-  const { t } = useLocaleContext();
-
-  const defaultOperators = useMemo(() => {
-    return [
-      { name: '=', value: '=', label: t('operators.equals') },
-      { name: '!=', value: '!=', label: t('operators.doesNotEqual') },
-      { name: '<', value: '<', label: t('operators.lessThan') },
-      { name: '>', value: '>', label: t('operators.greaterThan') },
-      { name: '<=', value: '<=', label: t('operators.lessThanOrEqual') },
-      { name: '>=', value: '>=', label: t('operators.greaterThanOrEqual') },
-      { name: 'contains', value: 'contains', label: t('operators.contains') },
-      { name: 'doesNotContain', value: 'doesNotContain', label: t('operators.doesNotContain') },
-      { name: 'null', value: 'null', label: t('operators.isNull') },
-      { name: 'notNull', value: 'notNull', label: t('operators.isNotNull') },
-    ];
-  }, [t]);
-
-  const defaultCombinators = useMemo(() => {
-    return [
-      { name: 'and', value: 'and', label: t('operators.and') },
-      { name: 'or', value: 'or', label: t('operators.or') },
-    ];
-  }, [t]);
-
-  const condition = useMemo(() => (tool?.condition ? cloneDeep(tool.condition) : initialQuery), [tool?.condition]);
-
-  const fields = useMemo(() => {
-    const parameters = Object.values(assistant.parameters || {})
-      .map((i) => i.data)
-      .filter((x) => x.key);
-
-    return parameters.map((i) => ({
-      name: i.key!,
-      label: i.label || i.key!,
-      inputType: getInputType(i.type),
-      valueSources: ['field', 'value'],
-    }));
-  }, [JSON.stringify(assistant.parameters)]);
-
-  const AddRuleButton = ({ handleOnClick }: { handleOnClick: (_e: React.MouseEvent) => void }) => (
-    <Button
-      onClick={handleOnClick}
-      variant="outlined"
-      sx={{ minHeight: 32, background: '#030712', color: '#fff', '&:hover': { background: '#030712' } }}>
-      {t('decision.addRule')}
-    </Button>
-  );
-
-  const RemoveRuleButton = ({ handleOnClick }: { handleOnClick: (_e: React.MouseEvent) => void }) => (
-    <Button
-      onClick={handleOnClick}
-      variant="text"
-      sx={{
-        minWidth: 32,
-        minHeight: 32,
-        p: 0,
-        color: 'action.disabled',
-      }}>
-      <Close fontSize="small" />
-    </Button>
-  );
-
-  const handleQueryChange = useCallback(
-    (newQuery: any) => {
-      if (tool) {
-        tool.condition = cloneDeep(newQuery);
-      }
-    },
-    [tool]
-  );
-
-  const ValueEditor = useCallback(
-    (props: ValueEditorProps) => {
-      const { fieldData, operator, ...rest } = props;
-
-      if (operator === 'null' || operator === 'notNull') return null;
-
-      if (rest.valueSource === 'field') {
-        return <MaterialValueEditor {...props} />;
-      }
-
-      if (fieldData.inputType === 'text' || fieldData.inputType === 'number') {
-        return (
-          <ValueEditorContainer>
-            <TextField
-              size="small"
-              type={fieldData.inputType === 'number' ? 'number' : undefined}
-              variant="outlined"
-              className={rest.className}
-              value={rest.value}
-              onChange={(e) => {
-                const value = fieldData.inputType === 'number' ? Number(e.target.value) : e.target.value;
-                props.handleOnChange(value);
-              }}
-            />
-          </ValueEditorContainer>
-        );
-      }
-
-      if (fieldData.inputType === 'checkbox') {
-        return (
-          <ValueEditorContainer>
-            <Switch checked={Boolean(rest.value)} onChange={(e) => props.handleOnChange(e.target.checked)} />
-          </ValueEditorContainer>
-        );
-      }
-
-      return <MaterialValueEditor {...props} />;
-    },
-    [fields]
-  );
-
-  if (!tool) return null;
-
-  return (
-    <QueryBuilderContainer {...props}>
-      <QueryBuilder
-        controlClassnames={{ queryBuilder: 'queryBuilder-branches' }}
-        key={tool.condition?.id}
-        fields={fields as any}
-        operators={defaultOperators}
-        combinators={defaultCombinators}
-        query={condition}
-        onQueryChange={handleQueryChange}
-        getDefaultField={() => fields[0]?.name || ''}
-        getDefaultValue={({ field }) => {
-          const fieldData = fields.find((f) => f.name === field);
-          return getDefaultValueForType(fieldData?.inputType);
-        }}
-        controlElements={{
-          addRuleAction: AddRuleButton,
-          removeRuleAction: RemoveRuleButton,
-          addGroupAction: () => null,
-          removeGroupAction: () => null,
-          cloneGroupAction: () => null,
-          valueEditor: ValueEditor,
-        }}
-      />
-    </QueryBuilderContainer>
-  );
-}
-
-const QueryBuilderContainer = styled(Box)`
-  width: 100%;
-
-  .queryBuilder {
-    min-width: 420px;
-    width: 100%;
-  }
-
-  .MuiInputBase-input {
-    margin-bottom: 0;
-    padding: 0 10px;
-    background-color: #fff;
-  }
-
-  .MuiInput-root {
-    margin-top: 0 !important;
-  }
-
-  .ruleGroup {
-    border: 0;
-    background: #eff6ff;
-  }
-`;
-
-const ValueEditorContainer = styled(Box)`
-  div.MuiOutlinedInput-root,
-  div.MuiInputBase-root {
-    height: 32px;
-    background: #fff;
-    border-radius: 8px;
-    font-size: 14px;
-    line-height: 1;
-
-    fieldset {
-      border: 0 !important;
-    }
-  }
-
-  input.MuiInputBase-input {
-    padding: 0 8px !important;
-  }
-`;
