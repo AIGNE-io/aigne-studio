@@ -1,3 +1,7 @@
+## 0.4.260 (2025-4-27)
+
+- fix: prism is not defined
+
 ## 0.4.259 (2025-4-27)
 
 - feat: support gpt-image-1
