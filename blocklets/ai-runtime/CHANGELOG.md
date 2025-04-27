@@ -1,3 +1,7 @@
+## 0.4.261 (2025-4-27)
+
+- revert: revert decision agent to router mode
+
 ## 0.4.260 (2025-4-27)
 
 - fix: prism is not defined

@@ -6,27 +6,25 @@ import {
   ChatCompletionInput,
   ChatCompletionResponse,
   isChatCompletionChunk,
+  isChatCompletionUsage,
 } from '@blocklet/ai-kit/api/types/index';
 import { getAllParameters, getRequiredFields } from '@blocklet/dataset-sdk/request/util';
-import { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { logger } from '@blocklet/sdk/lib/config';
-import { DeepRequired } from 'react-hook-form';
 
 import { parseIdentity, stringifyIdentity } from '../../common/aid';
 import { languages } from '../../constant/languages';
 import {
   Assistant,
   AssistantResponseType,
-  BlockletAgent,
   ExecutionPhase,
   OnTaskCompletion,
   RouterAssistant,
   RuntimeOutputVariable,
   Tool,
-  jsonSchemaToOpenAIJsonSchema,
 } from '../../types';
 import { isNonNullable } from '../../utils/is-non-nullable';
-import { ToolCompletionDirective } from '../assistant/type';
+import selectAgentName from '../assistant/select-agent';
+import { RunAssistantCallback, ToolCompletionDirective } from '../assistant/type';
 import { nextTaskId } from '../utils/task-id';
 import { AgentExecutorBase } from './base';
 
@@ -40,14 +38,15 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
     } = this;
 
     if (!agent.prompt) {
-      throw new Error('prompt is required for decision agent');
+      throw new Error('Route Assistant Prompt is required');
     }
 
     const message = await this.renderMessage(agent.prompt);
-    const routes = agent.routes || [];
+    const routes = agent?.routes || [];
 
     const blocklet = await this.context.getBlockletAgent(agent.id);
 
+    logger.info('start get tool function');
     const toolAssistants = (
       await Promise.all(
         routes.map(async (tool) => {
@@ -70,7 +69,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
               toolAssistant: dataset,
               function: {
                 name: (functionTranslateName || name).replace(/[^a-zA-Z0-9_-]/g, '_')?.slice(0, 64) || dataset.path,
-                description: dataset.description || name || '',
+                descriptions: dataset.description || name || '',
                 parameters: {
                   type: 'object',
                   properties: Object.fromEntries(datasetParameters),
@@ -127,7 +126,7 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
             toolAssistant,
             function: {
               name: (functionTranslateName || name)?.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64) || toolAssistant.id,
-              description: tool?.description || toolAssistant?.description || toolAssistant?.name || '',
+              descriptions: toolAssistant.description,
               parameters: {
                 type: 'object',
                 properties: Object.fromEntries(toolParameters),
@@ -139,6 +138,94 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
       )
     ).filter(isNonNullable);
 
+    const runFunctionCall = async ({
+      tools,
+      toolChoice,
+    }: {
+      tools: ChatCompletionInput['tools'];
+      toolChoice: ChatCompletionInput['toolChoice'];
+    }) => {
+      const identity = parseIdentity(agent.identity.aid, { rejectWhenError: true });
+
+      const executor = agent.executor?.agent?.id
+        ? await this.context.getAgent({
+            aid: stringifyIdentity({
+              blockletDid: agent.executor.agent.blockletDid || identity.blockletDid,
+              projectId: agent.executor.agent.projectId || identity.projectId,
+              projectRef: identity.projectRef,
+              agentId: agent.executor.agent.id,
+            }),
+            working: agent.identity.working,
+            rejectOnEmpty: true,
+          })
+        : undefined;
+
+      const messages: ChatCompletionInput['messages'] = [{ role: 'system', content: message }];
+
+      this.context.callback?.({
+        type: AssistantResponseType.INPUT,
+        assistantId: agent.id,
+        parentTaskId,
+        taskId,
+        assistantName: `${agent.name}`,
+        promptMessages: messages,
+      });
+
+      const input = {
+        model: agent?.model,
+        temperature: agent?.temperature,
+        topP: agent?.topP,
+        presencePenalty: agent?.presencePenalty,
+        frequencyPenalty: agent?.frequencyPenalty,
+        messages,
+        tools,
+        toolChoice,
+      };
+
+      logger.debug('Run decision agent', JSON.stringify(input, null, 2));
+
+      const response = executor
+        ? ((
+            await this.context
+              .executor(executor, {
+                taskId: nextTaskId(),
+                parentTaskId: taskId,
+                inputs: {
+                  ...inputs,
+                  ...agent.executor?.inputValues,
+                  [executor.parameters?.find((i) => i.type === 'llmInputMessages' && !i.hidden)?.key!]: messages,
+                  [executor.parameters?.find((i) => i.type === 'llmInputTools' && !i.hidden)?.key!]: tools,
+                  [executor.parameters?.find((i) => i.type === 'llmInputToolChoice' && !i.hidden)?.key!]: toolChoice,
+                },
+              })
+              .execute()
+          )[RuntimeOutputVariable.llmResponseStream] as ReadableStream<ChatCompletionResponse>)
+        : await this.context.callAI({
+            input,
+          });
+
+      let calls: NonNullable<ChatCompletionChunk['delta']['toolCalls']> = [];
+
+      for await (const chunk of response) {
+        if (isChatCompletionUsage(chunk)) {
+          this.context.callback?.({
+            type: AssistantResponseType.USAGE,
+            taskId,
+            assistantId: agent.id,
+            usage: chunk.usage,
+          });
+        }
+
+        if (isChatCompletionChunk(chunk)) {
+          if (chunk.delta.toolCalls?.length) {
+            calls = chunk.delta.toolCalls as typeof calls;
+          }
+        }
+      }
+
+      return calls;
+    };
+
     const tools: {
       type: 'function';
       function: { name: string; description?: string | undefined; parameters: Record<string, any> };
@@ -146,37 +233,15 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
       type: 'function',
       function: {
         name: i.function.name,
-        description: i.function.description,
+        description: i.function.descriptions,
         parameters: i.function.parameters,
       },
     }));
 
-    const { hasJsonOutputs, hasStreamingTextOutput } = await this.outputsInfo;
-
-    const messages: ChatCompletionInput['messages'] = [{ role: 'user', content: message }];
-    const result: { $text?: string } = {};
-
-    let jsonPromise: Promise<any> | undefined;
-
-    if (hasStreamingTextOutput) {
-      const stream = this.runLLMGetTextOutput({ inputs, messages, tools, toolAssistants, taskId });
-      for await (const chunk of stream) {
-        result.$text = (result.$text || '') + chunk;
-        this.context.callback?.({
-          type: AssistantResponseType.CHUNK,
-          assistantId: agent.id,
-          taskId,
-          delta: { content: chunk },
-        });
-        if (hasJsonOutputs) {
-          jsonPromise ??= this.runLLMGetJsonOutput({ inputs, messages, tools, toolAssistants, taskId });
-        }
-      }
-    } else if (hasJsonOutputs) {
-      jsonPromise = this.runLLMGetJsonOutput({ inputs, messages, tools, toolAssistants, taskId });
-    }
-
-    Object.assign(result, await jsonPromise);
+    const calls = await runFunctionCall({
+      tools,
+      toolChoice: 'required',
+    });
 
     this.context.callback?.({
       type: AssistantResponseType.EXECUTE,
@@ -186,271 +251,159 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
       execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
     });
 
-    return result;
-  }
+    const toolAssistantMap = Object.fromEntries(toolAssistants.map((i) => [i.function.name, i]));
+    const defaultTool = toolAssistants.find((i) => i.tool.id === agent.defaultToolId);
 
-  private async runFunctionCall({
-    inputs,
-    messages,
-    responseFormat,
-    tools,
-    toolChoice,
-  }: {
-    inputs: { [key: string]: any };
-    messages: ChatCompletionInput['messages'];
-    responseFormat?: ChatCompletionInput['responseFormat'];
-    tools: ChatCompletionInput['tools'];
-    toolChoice: ChatCompletionInput['toolChoice'];
-  }) {
-    const {
-      agent,
-      options: { parentTaskId, taskId },
-    } = this;
+    const matchAgentName = async () => {
+      // requestCalls 没有找到，检查 jsonResult 是否存在
 
-    const identity = parseIdentity(agent.identity.aid, { rejectWhenError: true });
+      let selectedAgent: { category_name?: string } = {};
+      try {
+        const categories = toolAssistants
+          .map((x) => x.function.name)
+          .filter((x) => x)
+          .map((x) => JSON.stringify({ category_name: x }))
+          .join(',');
 
-    const executor = agent.executor?.agent?.id
-      ? await this.context.getAgent({
-          aid: stringifyIdentity({
-            blockletDid: agent.executor.agent.blockletDid || identity.blockletDid,
-            projectId: agent.executor.agent.projectId || identity.projectId,
-            projectRef: identity.projectRef,
-            agentId: agent.executor.agent.id,
-          }),
-          working: agent.identity.working,
-          rejectOnEmpty: true,
-        })
-      : undefined;
+        selectedAgent = await selectAgentName({
+          assistant: agent,
+          message,
+          categories,
+          callAI: this.context.callAI,
+          maxRetries: this.context.maxRetries,
+        });
+      } catch (error) {
+        logger.error('select agent name failed');
+      }
 
-    this.context.callback?.({
-      type: AssistantResponseType.INPUT,
-      assistantId: agent.id,
-      parentTaskId,
-      taskId,
-      assistantName: `${agent.name}`,
-      promptMessages: messages,
-    });
+      logger.info('Get Current Selected Agent Name', {
+        from: 'ai',
+        value: selectedAgent?.category_name,
+      });
+      if (selectedAgent?.category_name) {
+        const found = toolAssistantMap[selectedAgent.category_name];
+        if (found) return selectedAgent.category_name;
+      }
 
-    const input: ChatCompletionInput = {
-      model: agent?.model,
-      temperature: agent?.temperature,
-      topP: agent?.topP,
-      presencePenalty: agent?.presencePenalty,
-      frequencyPenalty: agent?.frequencyPenalty,
-      responseFormat,
-      messages,
-      tools,
-      toolChoice,
+      logger.info('Get Current Selected Agent Name', {
+        from: 'default agent',
+        value: agent?.defaultToolId,
+      });
+      // 使用默认 Agent
+      if (agent?.defaultToolId) {
+        const found = toolAssistantMap[agent.defaultToolId];
+        if (found) return defaultTool?.function.name;
+      }
+
+      logger.debug('Get Current Selected Agent Name', {
+        from: 'from first agent',
+        value: toolAssistants[0]?.function.name,
+      });
+      // 没有找到符合条件的请求，使用默认请求
+      return toolAssistants[0]?.function?.name;
     };
 
-    logger.debug('Run decision agent with input', input);
-
-    return executor
-      ? ((
-          await this.context
-            .executor(executor, {
-              taskId: nextTaskId(),
-              parentTaskId: taskId,
-              inputs: {
-                ...inputs,
-                ...agent.executor?.inputValues,
-                [executor.parameters?.find((i) => i.type === 'llmInputMessages' && !i.hidden)?.key!]: messages,
-                [executor.parameters?.find((i) => i.type === 'llmInputTools' && !i.hidden)?.key!]: tools,
-                [executor.parameters?.find((i) => i.type === 'llmInputToolChoice' && !i.hidden)?.key!]: toolChoice,
-                [executor.parameters?.find((i) => i.type === 'llmInputResponseFormat' && !i.hidden)?.key!]:
-                  responseFormat,
-              },
-            })
-            .execute()
-        )[RuntimeOutputVariable.llmResponseStream] as ReadableStream<ChatCompletionResponse>)
-      : await this.context.callAI({ input });
-  }
-
-  private async *runLLMGetTextOutput({
-    inputs,
-    messages,
-    tools,
-    toolAssistants,
-    taskId,
-  }: {
-    inputs: { [key: string]: any };
-    messages: ChatCompletionInput['messages'];
-    tools: ChatCompletionInput['tools'];
-    toolAssistants: {
-      tool: Tool;
-      toolAssistant: Assistant | DatasetObject | BlockletAgent;
-      function: { name: string };
-    }[];
-    taskId: string;
-  }): AsyncGenerator<string> {
-    for (;;) {
-      const stream = await this.runFunctionCall({
-        inputs,
-        messages,
-        tools,
-        toolChoice: 'auto',
+    const matchRequestCalls = async () => {
+      logger.debug('Get Current Selected Agent Name', {
+        from: 'function call',
+        value: calls && JSON.stringify(calls),
       });
 
-      let toolCalls: DeepRequired<NonNullable<ChatCompletionChunk['delta']['toolCalls']>> | undefined;
+      // 首先检查 call function 返回的值是否存在
+      if (calls?.length) {
+        const found = calls.find((call) => call.function?.name && toolAssistantMap[call.function?.name]);
 
-      for await (const chunk of stream) {
-        if (isChatCompletionChunk(chunk)) {
-          if (chunk.delta.content) {
-            yield chunk.delta.content;
-          }
-
-          if (chunk.delta.toolCalls?.length) {
-            toolCalls = chunk.delta.toolCalls as typeof toolCalls;
-          }
+        if (found) {
+          return [found];
         }
       }
 
-      if (toolCalls?.length) {
-        const callResult = await this.executeTool({
-          toolAssistants,
-          calls: toolCalls,
-          inputs,
-          taskId,
-        });
-
-        messages.push({ role: 'assistant', toolCalls });
-        messages.push(...callResult);
-      } else {
-        break;
-      }
-    }
-  }
-
-  private async runLLMGetJsonOutput({
-    inputs,
-    messages,
-    tools,
-    toolAssistants,
-    taskId,
-  }: {
-    inputs: { [key: string]: any };
-    messages: ChatCompletionInput['messages'];
-    tools: ChatCompletionInput['tools'];
-    toolAssistants: {
-      tool: Tool;
-      toolAssistant: Assistant | DatasetObject | BlockletAgent;
-      function: { name: string };
-    }[];
-    taskId: string;
-  }) {
-    const { schema } = await this.outputsInfo;
-
-    let text = '';
-
-    for (;;) {
-      text = '';
-
-      const stream = await this.runFunctionCall({
-        inputs,
-        messages,
-        responseFormat: {
-          type: 'json_schema',
-          jsonSchema: {
-            name: 'output',
-            schema: jsonSchemaToOpenAIJsonSchema(schema),
-            strict: true,
+      // TODO: 使用  toolChoice: 'required' 之后，肯定会返回数据，下面会用不到, 先观察一下使用情况
+      const agentName = await matchAgentName();
+      const tool = toolAssistants.find((x) => x.function.name === agentName);
+      if (tool) {
+        const defaultCalls = await runFunctionCall({
+          tools: [tool].map((i) => ({
+            type: 'function',
+            function: {
+              name: i.function.name,
+              description: i.function.descriptions,
+              parameters: i.function.parameters,
+            },
+          })),
+          toolChoice: {
+            type: 'function',
+            function: {
+              name: tool.function.name,
+              description: tool.function.descriptions,
+            },
           },
-        },
-        tools,
-        toolChoice: 'auto',
-      });
+        });
 
-      let toolCalls: DeepRequired<NonNullable<ChatCompletionChunk['delta']['toolCalls']>> | undefined;
-
-      for await (const chunk of stream) {
-        if (isChatCompletionChunk(chunk)) {
-          if (chunk.delta.content) {
-            text += chunk.delta.content;
-          }
-          if (chunk.delta.toolCalls?.length) {
-            toolCalls = chunk.delta.toolCalls as typeof toolCalls;
+        if (defaultCalls?.length) {
+          const found = defaultCalls.find((call) => call.function?.name && toolAssistantMap[call.function?.name]);
+          if (found) {
+            return [found];
           }
         }
       }
 
-      if (toolCalls?.length) {
-        const callResult = await this.executeTool({
-          toolAssistants,
-          calls: toolCalls,
-          inputs,
-          taskId,
-        });
+      return [{ type: 'function', function: { name: agentName, arguments: '{}' } }];
+    };
 
-        messages.push({ role: 'assistant', toolCalls });
-        messages.push(...callResult);
-      } else {
-        break;
-      }
-    }
+    const requestCalls = await matchRequestCalls();
 
-    return JSON.parse(text);
-  }
+    const result =
+      requestCalls &&
+      (await Promise.all(
+        requestCalls.map(async (call) => {
+          if (!call.function?.name || !call.function.arguments) return undefined;
 
-  private async executeTool({
-    toolAssistants,
-    calls,
-    inputs,
-    taskId,
-  }: {
-    toolAssistants: {
-      tool: Tool;
-      toolAssistant: Assistant | DatasetObject | BlockletAgent;
-      function: { name: string };
-    }[];
-    calls: { id: string; function: { name: string; arguments: string } }[];
-    inputs: { [key: string]: any };
-    taskId: string;
-  }): Promise<
-    {
-      role: 'tool';
-      content: string;
-      toolCallId: string;
-    }[]
-  > {
-    const toolAssistantMap = Object.fromEntries(toolAssistants.map((i) => [i.function.name, i]));
+          const tool = toolAssistantMap[call.function.name];
+          if (!tool) return undefined;
 
-    const requestCalls = calls.map((i) => {
-      const tool = toolAssistantMap[i.function.name];
-      if (!tool) {
-        throw new Error(`Tool not found: ${i.function.name}`);
-      }
-      return {
-        call: i,
-        tool,
-      };
-    });
+          const requestData = JSON.parse(call.function.arguments);
+          const currentTaskId = nextTaskId();
+          const toolAssistant = tool?.toolAssistant as Assistant;
 
-    return await Promise.all(
-      requestCalls.map(async ({ tool, call }) => {
-        const requestData = JSON.parse(call.function.arguments!);
+          const { callback } = this.context;
 
-        const currentTaskId = nextTaskId();
-        const toolAssistant = tool?.toolAssistant as Assistant;
+          const cb: RunAssistantCallback = (args) => {
+            callback(args);
 
-        const { callback } = this.context;
+            if (args.type === AssistantResponseType.CHUNK && args.taskId === currentTaskId) {
+              // called agent 有 text stream && 当前输出也有 text stream, 直接回显 text stream
+              if (
+                Object.values(toolAssistant?.outputVariables || {}).find(
+                  (x) => x.name === RuntimeOutputVariable.text
+                ) &&
+                Object.values(agent?.outputVariables || {}).find((x) => x.name === RuntimeOutputVariable.text) &&
+                args?.delta?.content
+              ) {
+                callback({ ...args, taskId });
+              }
+            }
+          };
 
-        let result;
+          if (tool.tool.from === 'blockletAPI') {
+            const blocklet = await this.context.getBlockletAgent(tool.tool.id);
+            if (!blocklet.agent) {
+              throw new Error('Blocklet agent api not found.');
+            }
 
-        if (tool.tool.from === 'blockletAPI') {
-          const blocklet = await this.context.getBlockletAgent(tool.tool.id);
-          if (!blocklet.agent) {
-            throw new Error('Blocklet agent api not found.');
+            const result = await this.context
+              .copy({ callback: cb })
+              .executor(blocklet.agent, {
+                inputs: tool.tool.parameters,
+                variables: { ...inputs, ...requestData },
+                taskId: currentTaskId,
+                parentTaskId: taskId,
+              })
+              .execute();
+
+            return result;
           }
 
-          result = await this.context
-            .executor(blocklet.agent, {
-              inputs: tool.tool.parameters,
-              variables: { ...inputs, ...requestData },
-              taskId: currentTaskId,
-              parentTaskId: taskId,
-            })
-            .execute();
-        } else {
           await Promise.all(
             toolAssistant.parameters
               ?.filter((i) => !i.hidden)
@@ -462,8 +415,8 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
               }) ?? []
           );
 
-          result = await this.context
-            .copy({ callback })
+          const res = await this.context
+            .copy({ callback: cb })
             .executor(toolAssistant as any, {
               taskId: currentTaskId,
               parentTaskId: taskId,
@@ -474,15 +427,14 @@ export class DecisionAgentExecutor extends AgentExecutorBase<RouterAssistant> {
           if (tool.tool?.onEnd === OnTaskCompletion.EXIT) {
             throw new ToolCompletionDirective('The task has been stop. The tool will now exit.', OnTaskCompletion.EXIT);
           }
-        }
 
-        return {
-          role: 'tool',
-          content: JSON.stringify(result),
-          toolCallId: call.id,
-        };
-      })
-    );
+          return res;
+        })
+      ));
+
+    const obj = result?.length === 1 ? result[0] : result;
+
+    return obj;
   }
 
   private async normalizeToolFunctionName({ agent, tool, name }: { agent: RouterAssistant; tool: Tool; name: string }) {

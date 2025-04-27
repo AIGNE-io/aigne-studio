@@ -1,28 +1,54 @@
+import PopperMenu from '@app/components/menu/PopperMenu';
 import { useReadOnly } from '@app/contexts/session';
-import { useAssistantCompare } from '@app/pages/project/state';
-import { useProjectStore } from '@app/pages/project/yjs-state';
-import { useAgents } from '@app/store/agent';
+import { getProjectIconUrl } from '@app/libs/project';
+import { isValidInput } from '@app/libs/util';
+import { useAssistantCompare, useProjectState } from '@app/pages/project/state';
+import { newDefaultPrompt } from '@app/pages/project/template';
+import { PROMPTS_FOLDER_NAME, createFileName, useCreateFile, useProjectStore } from '@app/pages/project/yjs-state';
+import DiDAvatar from '@arcblock/ux/lib/Avatar';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { RouterAssistantYjs, Tool } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, ParameterYjs, RouterAssistantYjs, Tool, isAssistant } from '@blocklet/ai-runtime/types';
+import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { DatasetObject } from '@blocklet/dataset-sdk/types';
+import getOpenApiTextFromI18n from '@blocklet/dataset-sdk/util/get-open-api-i18n-text';
 import { Icon } from '@iconify-icon/react';
+import CheckIcon from '@iconify-icons/tabler/check';
 import ArrowFork from '@iconify-icons/tabler/corner-down-right';
 import ExternalLinkIcon from '@iconify-icons/tabler/external-link';
 import PencilIcon from '@iconify-icons/tabler/pencil';
 import PlusIcon from '@iconify-icons/tabler/plus';
+import Star from '@iconify-icons/tabler/star';
+import StarFill from '@iconify-icons/tabler/star-filled';
 import Trash from '@iconify-icons/tabler/trash';
-import { Box, Button, Stack, StackProps, TextField, Tooltip, Typography, styled } from '@mui/material';
+import { InfoOutlined } from '@mui/icons-material';
+import {
+  Avatar,
+  Box,
+  Button,
+  List,
+  ListSubheader,
+  ListSubheaderProps,
+  MenuItem,
+  Stack,
+  StackProps,
+  TextField,
+  Tooltip,
+  Typography,
+  styled,
+} from '@mui/material';
 import { QueryBuilderMaterial } from '@react-querybuilder/material';
-import { cloneDeep, sortBy } from 'lodash';
+import { cloneDeep, pick, sortBy } from 'lodash';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
-import React, { useRef } from 'react';
+import { nanoid } from 'nanoid';
+import React, { useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
-import { useRoutesAssistantOutputs } from '../output/OutputSettings';
+import { useAllSelectDecisionAgentOutputs, useRoutesAssistantOutputs } from '../output/OutputSettings';
 import PromptEditorField from '../prompt-editor-field';
-import ToolDialog, { FROM_API, ToolItemInputOutputs } from './dialog';
+import useVariablesEditorOptions from '../use-variables-editor-options';
+import ToolDialog, { FROM_API, RouteOption, useFormatOpenApiToYjs } from './dialog';
 
 export default function RouterAssistantEditor({
   projectId,
@@ -50,9 +76,20 @@ export default function RouterAssistantEditor({
   const dialogState = usePopupState({ variant: 'dialog' });
   const readOnly = useReadOnly({ ref: gitRef }) || disabled;
   const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
+  const { getAllSelectCustomOutputs } = useAllSelectDecisionAgentOutputs({ value, projectId, gitRef });
   const checkOutputVariables = useRoutesAssistantOutputs({ value, projectId, gitRef, openApis: openAPI });
 
   const routes = value.routes && sortBy(Object.values(value.routes), (i) => i.index);
+  const outputVariables = value.outputVariables && sortBy(Object.values(value.outputVariables), 'index');
+
+  const setField = (update: (outputVariables: NonNullable<AssistantYjs['outputVariables']>) => void) => {
+    const doc = (getYjsValue(value) as Map<any>).doc!;
+    doc.transact(() => {
+      value.outputVariables ??= {};
+      update(value.outputVariables);
+      sortBy(Object.values(value.outputVariables), 'index').forEach((item, index) => (item.index = index));
+    });
+  };
 
   return (
     <Stack gap={1.5}>
@@ -117,6 +154,7 @@ export default function RouterAssistantEditor({
                     agent={agent}
                     assistant={value}
                     readOnly={readOnly}
+                    openApis={openAPI}
                     onEdit={() => {
                       if (readOnly) return;
                       toolForm.current?.form.reset(cloneDeep(agent));
@@ -137,15 +175,42 @@ export default function RouterAssistantEditor({
 
           {!readOnly && (
             <Box>
-              <Button
-                disabled={disabled}
-                startIcon={<Box component={Icon} icon={PlusIcon} sx={{ fontSize: 16 }} />}
-                onClick={() => {
-                  toolForm.current?.form.reset({ id: '' });
-                  dialogState.open();
-                }}>
-                {t('addObject', { object: t('agent') })}
-              </Button>
+              <AddSelectAgentPopperButton
+                projectId={projectId}
+                gitRef={gitRef}
+                assistant={value}
+                openApis={openAPI}
+                onSelect={async (tool) => {
+                  const doc = (getYjsValue(value) as Map<any>).doc!;
+
+                  doc.transact(async () => {
+                    value.routes ??= {};
+
+                    const old = value.routes[tool.id];
+
+                    value.routes[tool.id] = {
+                      index: old?.index ?? Math.max(-1, ...Object.values(value.routes).map((i) => i.index)) + 1,
+                      data: tool,
+                    };
+
+                    sortBy(Object.values(value.routes), 'index').forEach((tool, index) => (tool.index = index));
+
+                    setField((vars) => {
+                      cloneDeep(getAllSelectCustomOutputs(openAPI)).forEach((data) => {
+                        const exist = data.name ? outputVariables?.find((i) => i.data.name === data.name) : undefined;
+                        if (!exist) {
+                          const id = nanoid();
+                          vars[id] = {
+                            index: Object.values(vars).length,
+                            data: { ...cloneDeep(data), required: undefined, id },
+                          };
+                        }
+                        sortBy(Object.values(vars), 'index').forEach((item, index) => (item.index = index));
+                      });
+                    });
+                  });
+                }}
+              />
             </Box>
           )}
         </Stack>
@@ -153,7 +218,10 @@ export default function RouterAssistantEditor({
 
       <ToolDialog
         ref={toolForm}
+        projectId={projectId}
         assistant={value}
+        gitRef={gitRef}
+        openApis={openAPI}
         DialogProps={{ ...bindDialog(dialogState) }}
         onSubmit={(tool) => {
           const doc = (getYjsValue(value) as Map<any>).doc!;
@@ -229,6 +297,7 @@ export function AgentItemView({
   assistant,
   readOnly,
   onEdit,
+  openApis = [],
   ...props
 }: {
   assistant: RouterAssistantYjs;
@@ -238,14 +307,17 @@ export function AgentItemView({
   agent: Tool;
   readOnly?: boolean;
   onEdit: () => void;
+  openApis: DatasetObject[];
 } & StackProps) {
   const navigate = useNavigate();
 
   const { t } = useLocaleContext();
+  const { store } = useProjectStore(projectId, projectRef);
 
-  const target = useAgents({ type: 'tool' }).agentMap[agent.id];
-  const { getFileById } = useProjectStore(projectId, projectRef);
-  const file = getFileById(agent.id);
+  const f = store.files[agent.id];
+  const formattedOpenApis = useFormatOpenApiToYjs(openApis || []);
+  const file = f && isAssistant(f) ? f : undefined;
+  const target = file ?? formattedOpenApis.find((x) => x.id === agent.id);
 
   const red = '#e0193e';
   return (
@@ -282,13 +354,11 @@ export function AgentItemView({
               disabled={!target}
               onClick={(e) => e.stopPropagation()}
               hiddenLabel
+              placeholder={target ? target?.name || t('unnamed') : t('agentNotFound')}
               size="small"
               variant="standard"
-              value={agent.functionName ?? target?.name}
-              placeholder={target ? target?.name || t('unnamed') : t('agentNotFound')}
-              onChange={(e) => {
-                agent.functionName = e.target.value;
-              }}
+              value={target ? target?.name || t('unnamed') : t('agentNotFound')}
+              InputProps={{ readOnly: true }}
               sx={{
                 mb: 0,
                 lineHeight: '22px',
@@ -301,25 +371,31 @@ export function AgentItemView({
             />
 
             <TextField
-              multiline
               disabled={!target}
               onClick={(e) => e.stopPropagation()}
               hiddenLabel
-              placeholder={target?.description || t('description')}
+              placeholder={target ? agent.functionName || t('routeDesc') : t('agentNotFound')}
               size="small"
               variant="standard"
-              value={agent.description}
-              onChange={(e) => (agent.description = e.target.value)}
+              value={agent.functionName}
+              onChange={(e) => (agent.functionName = e.target.value)}
               sx={{
                 lineHeight: '24px',
                 input: {
                   fontSize: '14px',
+                  color: assistant.defaultToolId === agent.id ? 'primary.main' : '',
                 },
               }}
             />
           </Stack>
 
-          {target && <ToolItemInputOutputs tool={target} />}
+          <AgentItemViewParameters
+            assistant={assistant}
+            projectId={projectId}
+            gitRef={projectRef}
+            tool={agent}
+            openApis={openApis}
+          />
 
           <Stack
             className="hover-visible"
@@ -331,6 +407,44 @@ export function AgentItemView({
                 <Button sx={{ minWidth: 24, minHeight: 24, p: 0 }} onClick={onEdit}>
                   <Box component={Icon} icon={PencilIcon} sx={{ fontSize: 18, color: 'text.secondary' }} />
                 </Button>
+              )}
+
+              {target && (
+                <Tooltip title={assistant.defaultToolId === agent.id ? t('unsetDefaultTool') : t('setDefaultTool')}>
+                  <Button
+                    sx={{ minWidth: 24, minHeight: 24, p: 0 }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const doc = (getYjsValue(assistant) as Map<any>).doc!;
+                      doc.transact(() => {
+                        if (assistant.defaultToolId === agent.id) {
+                          assistant.defaultToolId = undefined;
+                        } else {
+                          assistant.defaultToolId = agent.id;
+                        }
+                      });
+                    }}>
+                    {assistant.defaultToolId === agent.id ? (
+                      <Box
+                        component={Icon}
+                        icon={StarFill}
+                        sx={{
+                          fontSize: 18,
+                          color: 'primary.main',
+                        }}
+                      />
+                    ) : (
+                      <Box
+                        component={Icon}
+                        icon={Star}
+                        sx={{
+                          fontSize: 18,
+                          color: 'text.secondary',
+                        }}
+                      />
+                    )}
+                  </Button>
+                </Tooltip>
               )}
 
               {!readOnly && (
@@ -368,6 +482,294 @@ export function AgentItemView({
             </Stack>
           </Stack>
         </Stack>
+      </Stack>
+    </Box>
+  );
+}
+
+function AddSelectAgentPopperButton({
+  projectId,
+  gitRef,
+  assistant,
+  onSelect,
+  openApis,
+}: {
+  projectId: string;
+  gitRef: string;
+  assistant: AssistantYjs;
+  onSelect?: (value: RouteOption) => void;
+  openApis: DatasetObject[];
+}) {
+  const { t, locale } = useLocaleContext();
+  const { store } = useProjectStore(projectId, gitRef);
+  const createFile = useCreateFile();
+  const {
+    state: { project },
+  } = useProjectState(projectId, gitRef);
+
+  const agentOptions: RouteOption[] = Object.entries(store.tree)
+    .filter(([, filepath]) => filepath?.startsWith(`${PROMPTS_FOLDER_NAME}/`))
+    .map(([id]) => store.files[id])
+    .filter((i): i is AssistantYjs => !!i && isAssistant(i))
+    .filter((i) => i.id !== assistant.id)
+    .map((i) => ({ id: i.id, type: i.type, name: i.name, from: undefined }));
+  const openApiOptions = openApis
+    .map((x) => ({ ...x, from: FROM_API }))
+    .map((dataset) => ({
+      id: dataset.id,
+      type: dataset.type,
+      name:
+        getOpenApiTextFromI18n(dataset, 'summary', locale) ||
+        getOpenApiTextFromI18n(dataset, 'description', locale) ||
+        t('unnamed'),
+      from: dataset.from,
+    })) as RouteOption[];
+
+  const exists =
+    assistant.type === 'router' ? new Set(Object.values(assistant.routes ?? {}).map((i) => i.data.id)) : new Set();
+
+  if (!project) return null;
+
+  return (
+    <PopperMenu
+      BoxProps={{
+        children: (
+          <Box
+            display="flex"
+            alignItems="center"
+            gap={0.5}
+            width={1}
+            sx={{ cursor: 'pointer', color: '#3B82F6' }}
+            py={1}>
+            <Box className="center">
+              <Box component={Icon} icon={PlusIcon} sx={{ fontSize: 16, mt: -0.25 }} />
+            </Box>
+            <Box>{t('addRoute')}</Box>
+          </Box>
+        ),
+      }}
+      PopperProps={{ placement: 'bottom-start' }}>
+      <Stack maxHeight={300} overflow="auto">
+        <>
+          <GroupView name={project.name || ''} description="Select Agent">
+            <Avatar variant="rounded" src={getProjectIconUrl(project.id, { updatedAt: project.updatedAt })} />
+          </GroupView>
+
+          <List
+            dense
+            disablePadding
+            sx={{
+              pl: 7,
+              '>hr': { my: '0 !important', borderColor: 'grey.100', ml: 1 },
+              '>hr:last-of-type': { display: 'none' },
+            }}>
+            {agentOptions.map((x) => {
+              return (
+                <MenuItem selected={exists.has(x.id)} key={x.id} onClick={() => onSelect?.(x)} sx={{ my: 0.25 }}>
+                  <Box flex={1}>{x.name || t('unnamed')}</Box>
+                  <Box sx={{ width: 40, textAlign: 'right' }}>
+                    {exists.has(x.id) && <Box component={Icon} icon={CheckIcon} />}
+                  </Box>
+                </MenuItem>
+              );
+            })}
+          </List>
+        </>
+
+        <>
+          <GroupView name="Blocklet API" description="Blocklet API">
+            <Box component={DiDAvatar} src="" did={window.blocklet.appId} size={40} sx={{ borderRadius: 1 }} />
+          </GroupView>
+
+          <List
+            dense
+            disablePadding
+            sx={{
+              pl: 8,
+              '>hr': { my: '0 !important', borderColor: 'grey.100', ml: 1 },
+              '>hr:last-of-type': { display: 'none' },
+            }}>
+            {openApiOptions.map((x) => {
+              return (
+                <MenuItem selected={exists.has(x.id)} key={x.id} onClick={() => onSelect?.(x)} sx={{ my: 0.25 }}>
+                  <Box flex={1}>{x.name || t('unnamed')}</Box>
+                  <Box sx={{ width: 40, textAlign: 'right' }}>
+                    {exists.has(x.id) && <Box component={Icon} icon={CheckIcon} />}
+                  </Box>
+                </MenuItem>
+              );
+            })}
+          </List>
+        </>
+
+        {!(agentOptions.length + openApiOptions.length) && (
+          <>
+            <MenuItem>
+              <Box color="#9CA3AF">{t('noAgent')}</Box>
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                const options = {
+                  parent: [],
+                  rootFolder: PROMPTS_FOLDER_NAME,
+                  meta: {
+                    ...newDefaultPrompt(),
+                    name: createFileName({ store, name: '', defaultName: `${t('alert.unnamed')} Agent` }),
+                  },
+                };
+                const { file: template } = createFile({ ...options, store });
+                onSelect?.(pick(template, 'id', 'name', 'type'));
+              }}>
+              <Box color="#3B82F6">{t('addAgent')}</Box>
+            </MenuItem>
+          </>
+        )}
+      </Stack>
+    </PopperMenu>
+  );
+}
+
+function GroupView({
+  name,
+  description,
+  children,
+
+  ...props
+}: { name: string; description?: string; children?: any } & ListSubheaderProps) {
+  const { t } = useLocaleContext();
+
+  return (
+    <ListSubheader component="div" {...props}>
+      <Stack direction="row" alignItems="center" mt={2} gap={2}>
+        {children}
+
+        <Stack flex={1} width={1}>
+          <Typography variant="subtitle2" noWrap mb={0}>
+            {name || t('unnamed')}
+          </Typography>
+          {description && (
+            <Typography variant="caption" noWrap>
+              {description}
+            </Typography>
+          )}
+        </Stack>
+      </Stack>
+    </ListSubheader>
+  );
+}
+
+function AgentItemViewParameters({
+  projectId,
+  gitRef,
+  tool,
+  assistant,
+  openApis,
+}: {
+  assistant: RouterAssistantYjs;
+  projectId: string;
+  gitRef: string;
+  tool: Tool;
+  openApis?: DatasetObject[];
+} & StackProps) {
+  const { t } = useLocaleContext();
+  const { store } = useProjectStore(projectId, gitRef);
+  const { addParameter } = useVariablesEditorOptions(assistant);
+  const formattedOpenApis = useFormatOpenApiToYjs(openApis || []);
+
+  const f = store.files[tool.id];
+  const file = f && isAssistant(f) ? f : undefined;
+  const target = file ?? formattedOpenApis.find((x) => x.id === tool.id);
+
+  const parameters = useMemo(() => {
+    return (target?.parameters &&
+      sortBy(Object.values(target.parameters), (i) => i.index).filter(
+        (i): i is typeof i & { data: { key: string; hidden?: boolean } } => !!i.data.key && !i.data.hidden
+      )) as {
+      index: number;
+      data: ParameterYjs;
+    }[];
+  }, [target]);
+
+  const checkParametersInParameter = (key: string) => {
+    const parameters =
+      (assistant?.parameters &&
+        sortBy(Object.values(assistant.parameters), (i) => i.index).filter((i) => !i.data.hidden)) ||
+      [];
+    return Boolean(parameters.find((i) => i.data.key === key));
+  };
+
+  const filteredParameters = (parameters || [])
+    ?.map(({ data: parameter }) => {
+      if (!parameter?.key) return null;
+      if (!file && !isValidInput(parameter)) return null;
+
+      return parameter;
+    })
+    .filter(isNonNullable);
+
+  if (!target) return <Box />;
+  if (!filteredParameters?.length) return <Box />;
+
+  return (
+    <Box>
+      <Tooltip title={t('parametersTip', { variable: '{variable}' })} placement="top-start" disableInteractive>
+        <Stack justifyContent="space-between" direction="row" alignItems="center">
+          <Typography variant="subtitle5" color="text.secondary" mb={0}>
+            {t('parameters')}
+          </Typography>
+
+          <InfoOutlined fontSize="small" sx={{ color: 'info.main', fontSize: 14 }} />
+        </Stack>
+      </Tooltip>
+
+      <Stack gap={1}>
+        {filteredParameters?.map((parameter) => {
+          if (!parameter?.key) return null;
+
+          const className = `hover-visible-${parameter.key}`;
+          return (
+            <Stack
+              key={parameter.id}
+              sx={{
+                ':hover': { [`.${className}`]: { display: 'flex' } },
+              }}>
+              <Stack flexDirection="row" alignItems="center" mb={0.5}>
+                <Typography variant="caption" mx={1}>
+                  {parameter.label || parameter.key}
+                </Typography>
+
+                {tool.parameters?.[parameter.key] || checkParametersInParameter(parameter.key) ? null : (
+                  <Tooltip title={!tool.parameters?.[parameter.key] ? t('addParameter') : undefined}>
+                    <Box
+                      className={className}
+                      component={Icon}
+                      icon={PlusIcon}
+                      sx={{ fontSize: 12, cursor: 'pointer', color: 'primary.main', display: 'none' }}
+                      onClick={() => {
+                        tool.parameters ??= {};
+                        tool.parameters[parameter.key!] = `{{${parameter.key}}}`;
+                        addParameter(parameter.key!);
+                      }}
+                    />
+                  </Tooltip>
+                )}
+              </Stack>
+
+              <PromptEditorField
+                placeholder={`{{${parameter.key}}}`}
+                value={tool.parameters?.[parameter.key] || ''}
+                projectId={projectId}
+                gitRef={gitRef}
+                assistant={assistant}
+                path={[]}
+                onChange={(value) => {
+                  tool.parameters ??= {};
+                  if (parameter.key) tool.parameters[parameter.key] = value;
+                }}
+              />
+            </Stack>
+          );
+        })}
       </Stack>
     </Box>
   );
