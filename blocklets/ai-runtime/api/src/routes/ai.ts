@@ -253,11 +253,17 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
     const model = {
       model: input.model || imageModel?.model,
       n: input.n || imageModel?.nDefault,
-      quality: input.quality || imageModel?.qualityDefault,
+      quality:
+        input.quality && imageModel?.quality?.includes(input.quality) ? input.quality : imageModel?.qualityDefault,
       style: input.style || imageModel?.styleDefault,
-      size: input.size || imageModel?.sizeDefault,
+      size: input.size && imageModel?.size?.includes(input.size) ? input.size : imageModel?.sizeDefault,
+      outputFormat: input.outputFormat || imageModel?.outputFormatDefault,
+      outputCompression: input.outputCompression || imageModel?.outputCompressionDefault,
+      background: input.background || imageModel?.backgroundDefault,
+      moderation: input.moderation || imageModel?.moderationDefault,
     };
 
+    const format = input.model === 'gpt-image-1' ? input.outputFormat || imageModel?.outputFormatDefault : 'png';
     return imageGenerations({
       ...input,
       ...model,
@@ -265,7 +271,13 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
     }).then(async (res) => ({
       data: await Promise.all(
         res.data.map(async (item) => ({
-          url: (await uploadImageToImageBin({ filename: `AI Generate ${Date.now()}.png`, data: item, userId })).url,
+          url: (
+            await uploadImageToImageBin({
+              filename: `AI Generate ${Date.now()}.${format}`,
+              data: item,
+              userId,
+            })
+          ).url,
         }))
       ),
     }));
