@@ -252,6 +252,7 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
 
     const model = {
       model: input.model || imageModel?.model,
+      image: input.image,
       n: input.n || imageModel?.nDefault,
       quality:
         input.quality && imageModel?.quality?.includes(input.quality) ? input.quality : imageModel?.qualityDefault,
