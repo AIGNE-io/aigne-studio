@@ -1,6 +1,6 @@
 {
   "name": "ai-studio",
-  "version": "0.4.261",
+  "version": "0.4.262",
   "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
   "scripts": {
     "debug": "bn-dev",
@@ -39,7 +39,7 @@
     "@arcblock/ux": "^2.13.12",
     "@arcblock/ws": "^1.20.2",
     "@beskar-labs/gpt-encoder": "^1.0.7",
-    "@blocklet/ai-kit": "^0.1.73",
+    "@blocklet/ai-kit": "^0.1.74",
     "@blocklet/ai-runtime": "workspace:^",
     "@blocklet/aigne-sdk": "workspace:^",
     "@blocklet/co-git": "workspace:^",

@@ -158,8 +158,8 @@ importers:
         specifier: ^1.20.2
         version: 1.20.2(encoding@0.1.13)
       '@blocklet/ai-kit':
-        specifier: ^0.1.73
-        version: 0.1.73(@babel/core@7.26.0)(@mui/utils@5.17.1(@types/react@18.3.4)(react@18.3.1))(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(zod@3.24.2)
+        specifier: ^0.1.74
+        version: 0.1.74(@babel/core@7.26.0)(@mui/utils@5.17.1(@types/react@18.3.4)(react@18.3.1))(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(zod@3.24.2)
       '@blocklet/ai-runtime':
         specifier: workspace:^
         version: link:../../packages/ai-runtime
@@ -468,8 +468,8 @@ importers:
         specifier: ^1.0.7
         version: 1.0.7
       '@blocklet/ai-kit':
-        specifier: ^0.1.73
-        version: 0.1.73(@babel/core@7.26.0)(@mui/utils@5.17.1(@types/react@18.3.4)(react@18.3.1))(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(zod@3.24.2)
+        specifier: ^0.1.74
+        version: 0.1.74(@babel/core@7.26.0)(@mui/utils@5.17.1(@types/react@18.3.4)(react@18.3.1))(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(zod@3.24.2)
       '@blocklet/ai-runtime':
         specifier: workspace:^
         version: link:../../packages/ai-runtime
@@ -1054,8 +1054,8 @@ importers:
         specifier: ^2.13.12
         version: 2.13.12(@arcblock/ux@2.13.12(92a0448baad18b782f0bff64fb5f78ba))(@blocklet/js-sdk@1.16.42(encoding@0.1.13))(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react@18.3.1))(@mui/material@5.16.7(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(encoding@0.1.13)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@blocklet/ai-kit':
-        specifier: ^0.1.73
-        version: 0.1.73(@babel/core@7.26.0)(@mui/utils@5.17.1(@types/react@18.3.4)(react@18.3.1))(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(zod@3.24.2)
+        specifier: ^0.1.74
+        version: 0.1.74(@babel/core@7.26.0)(@mui/utils@5.17.1(@types/react@18.3.4)(react@18.3.1))(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(zod@3.24.2)
       '@blocklet/co-git':
         specifier: workspace:^
         version: link:../co-git
@@ -1295,8 +1295,8 @@ importers:
   packages/aigne-sdk:
     dependencies:
       '@blocklet/ai-kit':
-        specifier: ^0.1.73
-        version: 0.1.73(@babel/core@7.26.0)(@mui/utils@5.17.1(@types/react@18.3.4)(react@18.3.1))(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(zod@3.24.2)
+        specifier: ^0.1.74
+        version: 0.1.74(@babel/core@7.26.0)(@mui/utils@5.17.1(@types/react@18.3.4)(react@18.3.1))(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(zod@3.24.2)
       '@blocklet/ai-runtime':
         specifier: workspace:^
         version: link:../ai-runtime
@@ -3016,8 +3016,8 @@ packages:
     resolution: {integrity: sha512-zitUItoaeDMUfjlcKTEs3acWFzbYxDev2YrxRCrb9LCoBVYB5OGFvTHZirMuTWMX0SgZcrdcRpXJqqUi/Pe97A==}
     deprecated: This package has been deprecated in favor of https://www.npmjs.com/package/gpt-tokenizer
 
-  '@blocklet/ai-kit@0.1.73':
-    resolution: {integrity: sha512-POGlL25t4qqDsirAHMuxLVAd6+XDcKRFb3sASoOTrnfaaVY7fWyQP3lWaJRyqirxkjmdvsxOB0uMGskVelImag==}
+  '@blocklet/ai-kit@0.1.74':
+    resolution: {integrity: sha512-IWoGeHrt6zh/75cnhCW6dQK8bMS7tpAtsC9xz+0p5rB+YBuOi3t61D3f6xK3gWx0MjDMYRHkNvBuZzkHIAwTQg==}
     peerDependencies:
       react: ^18.2.0
 
@@ -3201,9 +3201,6 @@ packages:
       react-dom: ^18.2.0
       react-router-dom: ^6.16.0
 
-  '@blocklet/payment-js@1.18.29':
-    resolution: {integrity: sha512-EA5VzeDJTXtlh+gkjsaHjdOBA2bRfy6zIQGXTNj6xcoVhpKEBrvHXOyLMiplAAzGN7WcsGt2mBmpwgag7pLzfg==}
-
   '@blocklet/payment-js@1.18.35':
     resolution: {integrity: sha512-OBKcoYSrfzCchpGlpJluAUCz6DAYbPYgn7fJIixEhFk4/BLKiO1Su1kvyE89l0wMSGPinRI0BZQDBJE/T7oGMQ==}
 
@@ -3211,9 +3208,6 @@ packages:
     resolution: {integrity: sha512-6FlwzMgwxKIylNUc7lUC32wKY1tMbz6XuUrZsnCcMS0LcebvJOSfIIv0P8E8isoERqoPe7JwxJSHIZ45WTCFdg==}
     peerDependencies:
       react: '>=18.1.0'
-
-  '@blocklet/payment-types@1.18.29':
-    resolution: {integrity: sha512-CFzQnZyrKvRVarpm9djHQ+m5acfMPyCfbhCp9SwGG7M7PmU3EEjbJC/j2bV3tuA/pE9pQ+1fxehiiroSECpbCA==}
 
   '@blocklet/payment-types@1.18.35':
     resolution: {integrity: sha512-Wy3N1gVj8paTUn8+MY8gvqbxAfXmb7jXeHqoR+ihuZnPIMO+NsfbNjjlFPplQF2DenSjDpyB4qOkXVWi8SIJ/Q==}
@@ -20422,7 +20416,7 @@ snapshots:
       '@abtnode/client': 1.16.42(encoding@0.1.13)
       '@aigne/core': 1.0.17(@google/generative-ai@0.21.0)(openai@4.73.0(encoding@0.1.13)(zod@3.24.2))
       '@aigne/memory': 1.0.17(@blocklet/sdk@1.16.42(encoding@0.1.13))(@google/generative-ai@0.21.0)(@types/node@22.9.1)(openai@4.73.0(encoding@0.1.13)(zod@3.24.2))
-      '@blocklet/ai-kit': 0.1.73(@babel/core@7.26.0)(@mui/utils@5.17.1(@types/react@18.3.4)(react@18.3.1))(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(zod@3.24.2)
+      '@blocklet/ai-kit': 0.1.74(@babel/core@7.26.0)(@mui/utils@5.17.1(@types/react@18.3.4)(react@18.3.1))(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(zod@3.24.2)
       '@blocklet/ai-runtime': link:packages/ai-runtime
       '@blocklet/js-sdk': 1.16.42(encoding@0.1.13)
       '@blocklet/quickjs': 0.4.256(encoding@0.1.13)
@@ -20535,7 +20529,7 @@ snapshots:
       '@aigne/agent-v1': 1.0.17(@babel/core@7.26.0)(@google/generative-ai@0.21.0)(@mui/utils@5.17.1(@types/react@18.3.4)(react@18.3.1))(@tus/file-store@1.0.0(@tus/server@1.0.0))(@tus/server@1.0.0)(@types/node@22.9.1)(@types/react@18.3.4)(@uppy/companion@4.13.2)(encoding@0.1.13)(openai@4.73.0(encoding@0.1.13)(zod@3.24.2))(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(redux@5.0.1)(sqlite3@5.1.7)(zod@3.24.2)
       '@aigne/core': 1.0.17(@google/generative-ai@0.21.0)(openai@4.73.0(encoding@0.1.13)(zod@3.24.2))
       '@aigne/ux': 1.0.17(0767110c64a5b7830003f3bf4a01e3a0)
-      '@blocklet/ai-kit': 0.1.73(@babel/core@7.26.0)(@mui/utils@5.17.1(@types/react@18.3.4)(react@18.3.1))(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(zod@3.24.2)
+      '@blocklet/ai-kit': 0.1.74(@babel/core@7.26.0)(@mui/utils@5.17.1(@types/react@18.3.4)(react@18.3.1))(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(zod@3.24.2)
       '@blocklet/js-sdk': 1.16.42(encoding@0.1.13)
       '@blocklet/quickjs': 0.4.256(encoding@0.1.13)
       '@blocklet/sdk': 1.16.42(encoding@0.1.13)
@@ -22964,12 +22958,12 @@ snapshots:
 
   '@beskar-labs/gpt-encoder@1.0.7': {}
 
-  '@blocklet/ai-kit@0.1.73(@babel/core@7.26.0)(@mui/utils@5.17.1(@types/react@18.3.4)(react@18.3.1))(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(zod@3.24.2)':
+  '@blocklet/ai-kit@0.1.74(@babel/core@7.26.0)(@mui/utils@5.17.1(@types/react@18.3.4)(react@18.3.1))(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(zod@3.24.2)':
     dependencies:
       '@arcblock/did': 1.20.2(encoding@0.1.13)
       '@arcblock/ux': 2.13.12(92a0448baad18b782f0bff64fb5f78ba)
       '@blocklet/logger': 1.16.42(encoding@0.1.13)
-      '@blocklet/payment-js': 1.18.29(encoding@0.1.13)
+      '@blocklet/payment-js': 1.18.35(encoding@0.1.13)
       '@blocklet/sdk': 1.16.42(encoding@0.1.13)
       '@emotion/css': 11.13.0
       '@emotion/react': 11.13.3(@types/react@18.3.4)(react@18.3.1)
@@ -24010,9 +24004,9 @@ snapshots:
       '@arcblock/did-auth': 1.20.2(encoding@0.1.13)
       '@arcblock/did-auth-storage-nedb': 1.7.1
       '@arcblock/did-connect': 2.13.12(@arcblock/ux@2.13.12(92a0448baad18b782f0bff64fb5f78ba))(@blocklet/js-sdk@1.16.42(encoding@0.1.13))(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react@18.3.1))(@mui/material@5.16.7(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(encoding@0.1.13)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@arcblock/react-hooks': 2.13.1
+      '@arcblock/react-hooks': 2.13.12
       '@arcblock/ux': 2.13.12(92a0448baad18b782f0bff64fb5f78ba)
-      '@blocklet/ai-kit': 0.1.73(@babel/core@7.26.0)(@mui/utils@5.17.1(@types/react@18.3.4)(react@18.3.1))(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(zod@3.24.2)
+      '@blocklet/ai-kit': 0.1.74(@babel/core@7.26.0)(@mui/utils@5.17.1(@types/react@18.3.4)(react@18.3.1))(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(zod@3.24.2)
       '@blocklet/ai-runtime': link:packages/ai-runtime
       '@blocklet/code-editor': 0.4.256(@mui/material@5.16.7(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       '@blocklet/crawler': 2.2.43(encoding@0.1.13)
@@ -24309,7 +24303,7 @@ snapshots:
     dependencies:
       '@arcblock/did-connect': 2.13.12(@arcblock/ux@2.13.12(92a0448baad18b782f0bff64fb5f78ba))(@blocklet/js-sdk@1.16.42(encoding@0.1.13))(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react@18.3.1))(@mui/material@5.16.7(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(encoding@0.1.13)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@arcblock/ux': 2.13.12(92a0448baad18b782f0bff64fb5f78ba)
-      '@blocklet/ai-kit': 0.1.73(@babel/core@7.26.0)(@mui/utils@5.17.1(@types/react@18.3.4)(react@18.3.1))(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(zod@3.24.2)
+      '@blocklet/ai-kit': 0.1.74(@babel/core@7.26.0)(@mui/utils@5.17.1(@types/react@18.3.4)(react@18.3.1))(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(zod@3.24.2)
       '@blocklet/ai-runtime': link:packages/ai-runtime
       '@blocklet/js-sdk': 1.16.42(encoding@0.1.13)
       '@blocklet/sdk': 1.16.42(encoding@0.1.13)
@@ -24390,7 +24384,7 @@ snapshots:
     dependencies:
       '@arcblock/did-connect': 2.13.12(@arcblock/ux@2.13.12(92a0448baad18b782f0bff64fb5f78ba))(@blocklet/js-sdk@1.16.42(encoding@0.1.13))(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react@18.3.1))(@mui/material@5.16.7(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(encoding@0.1.13)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@arcblock/ux': 2.13.12(92a0448baad18b782f0bff64fb5f78ba)
-      '@blocklet/ai-kit': 0.1.73(@babel/core@7.26.0)(@mui/utils@5.17.1(@types/react@18.3.4)(react@18.3.1))(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(zod@3.24.2)
+      '@blocklet/ai-kit': 0.1.74(@babel/core@7.26.0)(@mui/utils@5.17.1(@types/react@18.3.4)(react@18.3.1))(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(zod@3.24.2)
       '@blocklet/ai-runtime': link:packages/ai-runtime
       '@blocklet/js-sdk': 1.16.42(encoding@0.1.13)
       '@blocklet/sdk': 1.16.42(encoding@0.1.13)
@@ -24480,7 +24474,7 @@ snapshots:
     dependencies:
       '@arcblock/did-connect': 2.13.12(@arcblock/ux@2.13.12(92a0448baad18b782f0bff64fb5f78ba))(@blocklet/js-sdk@1.16.42(encoding@0.1.13))(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react@18.3.1))(@mui/material@5.16.7(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.3(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react@18.3.1))(@types/react@18.3.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(encoding@0.1.13)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@arcblock/ux': 2.13.12(92a0448baad18b782f0bff64fb5f78ba)
-      '@blocklet/ai-kit': 0.1.73(@babel/core@7.26.0)(@mui/utils@5.17.1(@types/react@18.3.4)(react@18.3.1))(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(zod@3.24.2)
+      '@blocklet/ai-kit': 0.1.74(@babel/core@7.26.0)(@mui/utils@5.17.1(@types/react@18.3.4)(react@18.3.1))(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(zod@3.24.2)
       '@blocklet/ai-runtime': link:packages/ai-runtime
       '@blocklet/js-sdk': 1.16.42(encoding@0.1.13)
       '@blocklet/sdk': 1.16.42(encoding@0.1.13)
@@ -24566,16 +24560,6 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@blocklet/payment-js@1.18.29(encoding@0.1.13)':
-    dependencies:
-      '@blocklet/payment-types': 1.18.29
-      '@blocklet/sdk': 1.16.42(encoding@0.1.13)
-    transitivePeerDependencies:
-      - bufferutil
-      - encoding
-      - supports-color
-      - utf-8-validate
-
   '@blocklet/payment-js@1.18.35(encoding@0.1.13)':
     dependencies:
       '@blocklet/payment-types': 1.18.35
@@ -24645,8 +24629,6 @@ snapshots:
       - terser
       - utf-8-validate
       - vite
-
-  '@blocklet/payment-types@1.18.29': {}
 
   '@blocklet/payment-types@1.18.35': {}
 

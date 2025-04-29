@@ -1,3 +1,7 @@
+## 0.4.262 (2025-4-28)
+
+- feat: support gpt-image-1 image edit
+
 ## 0.4.261 (2025-4-27)
 
 - revert: revert decision agent to router mode
