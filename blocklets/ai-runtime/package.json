@@ -35,7 +35,7 @@
     "@arcblock/did-connect": "^2.13.12",
     "@arcblock/ux": "^2.13.12",
     "@arcblock/vc": "^1.20.2",
-    "@blocklet/ai-kit": "^0.1.73",
+    "@blocklet/ai-kit": "^0.1.74",
     "@blocklet/ai-runtime": "workspace:^",
     "@blocklet/aigne-sdk": "workspace:^",
     "@blocklet/constant": "^1.16.42",

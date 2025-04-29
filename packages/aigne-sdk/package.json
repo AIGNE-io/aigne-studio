@@ -96,7 +96,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@blocklet/ai-kit": "^0.1.73",
+    "@blocklet/ai-kit": "^0.1.74",
     "@blocklet/ai-runtime": "workspace:^",
     "@blocklet/js-sdk": "^1.16.42",
     "@blocklet/pages-kit": "^0.4.131",
