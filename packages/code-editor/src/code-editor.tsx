@@ -138,6 +138,28 @@ const CodeEditor = forwardRef(
     const [globalSettings, setGlobalSettings] = useGlobalEditorSettings();
     const isBreakpointsDownSm = useMediaQuery(theme.breakpoints.down('md'));
 
+    const editorTheme = useMemo(() => {
+      // user defined theme
+      if (props.theme) {
+        return props.theme;
+      }
+
+      // auto detect theme by useTheme
+      if (theme.palette.mode === 'dark') {
+        return 'vs-dark';
+      }
+
+      return 'vs';
+    }, [theme.palette.mode, props.theme]);
+
+    // Update editor theme when it changes
+    useEffect(() => {
+      // @ts-ignore
+      if (editor) {
+        editor.updateOptions({ theme: editorTheme });
+      }
+    }, [editorTheme]);
+
     const { registerEmmet } = useEmmet();
     const { registerPrettier } = usePrettier();
     const { registerCloseTag } = useAutoCloseTag();
@@ -279,7 +301,7 @@ const CodeEditor = forwardRef(
                 onMount={(editor: EditorInstance, monaco: Monaco) => {
                   registerEmmet(editor, monaco);
                   registerPrettier(editor, monaco, {
-                    theme: props.theme,
+                    theme: editorTheme,
                     typeScriptNoValidation: props.typeScriptNoValidation,
                   });
                   registerCloseTag(editor, monaco);
