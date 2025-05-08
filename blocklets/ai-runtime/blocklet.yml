@@ -15,7 +15,7 @@ repository:
   type: git
   url: git+https://github.com/blocklet/ai-studio.git
 specVersion: 1.2.8
-version: 0.4.263
+version: 0.4.264
 logo: screenshots/0453ca48c18784b78a0354c9369ad377.png
 files:
   - dist

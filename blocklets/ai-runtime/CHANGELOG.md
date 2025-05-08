@@ -1,3 +1,7 @@
+## 0.4.264 (2025-5-8)
+
+- feat: auto detect code editor theme
+
 ## 0.4.263 (2025-4-29)
 
 - chore: update README.md
