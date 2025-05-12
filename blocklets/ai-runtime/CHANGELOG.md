@@ -1,3 +1,7 @@
+## 0.4.265 (2025-5-12)
+
+- chore: update deps
+
 ## 0.4.264 (2025-5-8)
 
 - feat: auto detect code editor theme
