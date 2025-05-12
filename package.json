@@ -1,7 +1,7 @@
 {
   "name": "ai-studio",
   "private": true,
-  "version": "0.4.265",
+  "version": "0.4.266",
   "workspaces": [
     "blocklets/*",
     "packages/*",
@@ -95,6 +95,9 @@
     "@arcblock/ws": "^1.20.8",
     "@blocklet/ai-runtime": "workspace:^",
     "@blocklet/constant": "^1.16.43",
+    "@blocklet/discuss-kit": "2.2.43",
+    "@blocklet/discuss-kit-ux": "2.2.43",
+    "@blocklet/editor": "2.2.43",
     "@blocklet/js-sdk": "^1.16.43",
     "@blocklet/logger": "^1.16.43",
     "@blocklet/meta": "^1.16.43",

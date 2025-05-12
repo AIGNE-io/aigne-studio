@@ -1,3 +1,7 @@
+## 0.4.266 (2025-5-12)
+
+- chore: downgrade lexical version
+
 ## 0.4.265 (2025-5-12)
 
 - chore: update deps
