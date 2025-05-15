@@ -2,6 +2,7 @@ import MdViewer from '@app/components/md-viewer';
 import { getErrorMessage } from '@app/libs/api';
 import { User, getProjectIconUrl } from '@app/libs/project';
 import { useTabFromQuery } from '@app/utils/use-tab-from-query';
+import useBrowser from '@arcblock/react-hooks/lib/useBrowser';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Result from '@arcblock/ux/lib/Result';
 import Toast from '@arcblock/ux/lib/Toast';
@@ -91,6 +92,8 @@ function Agent({
   const navigate = useNavigate();
   const { t } = useLocaleContext();
   const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
+  const browser = useBrowser();
+  const isArcSphere = browser?.arcSphere ?? false;
 
   return (
     <Stack flex={1} height={0}>
@@ -104,14 +107,16 @@ function Agent({
             px: isMobile ? 1.5 : 3,
             gap: 2,
           }}>
-          <Stack
-            direction="row"
-            gap={1}
-            onClick={() => navigate(`/explore/${categorySlug}`)}
-            sx={{ cursor: 'pointer', mr: 0 }}
-            className="center">
-            <Box component={Icon} icon={ChevronLeft} sx={{ width: 20, height: 20, fontSize: 20, color: '#9CA3AF' }} />
-          </Stack>
+          {!isArcSphere && (
+            <Stack
+              direction="row"
+              gap={1}
+              onClick={() => navigate(`/explore/${categorySlug}`)}
+              sx={{ cursor: 'pointer', mr: 0 }}
+              className="center">
+              <Box component={Icon} icon={ChevronLeft} sx={{ width: 20, height: 20, fontSize: 20, color: '#9CA3AF' }} />
+            </Stack>
+          )}
 
           <TabList
             onChange={(_, tab) => setTab(tab)}
