@@ -158,7 +158,7 @@
     "@blocklet/pages-kit": "^0.5.10",
     "@blocklet/quickjs": "workspace:^",
     "@blocklet/sdk": "^1.16.43",
-    "@blocklet/uploader": "^0.1.90",
+    "@blocklet/uploader": "^0.1.91",
     "@iconify-icons/tabler": "^1.2.95",
     "@iconify/react": "^5.0.2",
     "@microsoft/fetch-event-source": "^2.0.1",

@@ -236,7 +236,11 @@ export default function AutoForm({
               variant="contained"
               loading={running}
               disabled={submitDisabled}
-              sx={{ height: 40, display: hiddenSubmit ? 'none' : undefined }}>
+              sx={{
+                height: 40,
+                display: hiddenSubmit ? 'none' : undefined,
+                '&.MuiLoadingButton-loading': { backgroundColor: 'grey.200' },
+              }}>
               {submitText || t('generate')}
             </LoadingButton>
           </Stack>

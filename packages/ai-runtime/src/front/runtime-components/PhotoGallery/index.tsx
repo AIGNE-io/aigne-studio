@@ -79,7 +79,12 @@ function OutputView({ resultTitle, ...props }: { resultTitle?: string } & StackP
           <Skeleton
             variant="rectangular"
             sx={{
-              // FIXME: default using history height
+              animation: 'pulse 2.5s ease-in-out 0s infinite',
+              '@keyframes pulse': {
+                '0%': { opacity: 0.2 },
+                '50%': { opacity: 1 },
+                '100%': { opacity: 0.2 },
+              },
               height: ref.current?.querySelector('*')?.clientHeight ?? 200,
             }}
           />

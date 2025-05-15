@@ -103,7 +103,7 @@
     "@blocklet/meta": "^1.16.43",
     "@blocklet/sdk": "^1.16.43",
     "@blocklet/ui-react": "^2.13.29",
-    "@blocklet/uploader": "^0.1.90",
+    "@blocklet/uploader": "^0.1.91",
     "@emotion/cache": "^11.13.1",
     "@emotion/css": "^11.13.0",
     "@emotion/react": "^11.13.3",

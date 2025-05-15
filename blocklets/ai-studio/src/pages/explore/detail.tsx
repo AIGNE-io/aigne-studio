@@ -247,7 +247,7 @@ function ReadmePage({
 
       <Divider sx={{ borderColor: '#EFF1F5' }} />
 
-      <Stack>{project.readme && <MdViewer content={project.readme} />}</Stack>
+      <Stack>{project.readme && <MdViewer content={project.readme} sx={{ img: { maxWidth: '100%' } }} />}</Stack>
     </Stack>
   );
 }

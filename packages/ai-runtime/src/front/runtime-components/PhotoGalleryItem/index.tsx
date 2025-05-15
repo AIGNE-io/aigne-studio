@@ -244,25 +244,27 @@ function PromptDialog({ url, ...props }: { url: string } & DialogProps) {
               <PromptView />
             </Box>
 
-            <Box>
-              <ActionButton
-                autoReset
-                size="small"
-                variant="contained"
-                placement="right"
-                tip={t('copyToClipboard')}
-                title={t('copy')}
-                titleSucceed={t('copied')}
-                icon="tabler:copy"
-                iconSucceed="tabler:copy-check-filled"
-                onClick={() => {
-                  window.navigator.clipboard.writeText(parameters?.question);
-                }}
-                sx={{
-                  borderRadius,
-                }}
-              />
-            </Box>
+            {parameters?.question && (
+              <Box>
+                <ActionButton
+                  autoReset
+                  size="small"
+                  variant="contained"
+                  placement="right"
+                  tip={t('copyToClipboard')}
+                  title={t('copy')}
+                  titleSucceed={t('copied')}
+                  icon="tabler:copy"
+                  iconSucceed="tabler:copy-check-filled"
+                  onClick={() => {
+                    window.navigator.clipboard.writeText(parameters?.question);
+                  }}
+                  sx={{
+                    borderRadius,
+                  }}
+                />
+              </Box>
+            )}
 
             <ShareActions direction="row" justifyContent="flex-end" sx={{ mt: 2 }} />
           </Stack>
