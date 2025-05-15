@@ -1,3 +1,7 @@
+## 0.4.268 (2025-5-15)
+
+- fix: resolve various minor bugs
+
 ## 0.4.267 (2025-5-15)
 
 - fix: optimize image generation experience
