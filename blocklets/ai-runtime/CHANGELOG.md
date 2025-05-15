@@ -1,3 +1,7 @@
+## 0.4.267 (2025-5-15)
+
+- fix: optimize image generation experience
+
 ## 0.4.266 (2025-5-12)
 
 - chore: downgrade lexical version

@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/studio-ui",
-  "version": "0.4.266",
+  "version": "0.4.267",
   "description": "UI components for studio",
   "publishConfig": {
     "access": "public"
@@ -47,9 +47,9 @@
     "clean": "rimraf lib",
     "prepublishOnly": "npm run build"
   },
-  "dependencies": {},
   "peerDependencies": {
     "@arcblock/did-connect": "^2.11.19",
+    "@arcblock/react-hooks": "^2.13.32",
     "@arcblock/ux": "^2.11.19",
     "@blocklet/ui-react": "^2.11.19",
     "@emotion/css": "^11.11.2",

@@ -1,6 +1,7 @@
 import { TextFieldProps } from '@mui/material';
 import { ComponentType } from 'react';
 
+import UploaderProvider from '../../../context/uploader';
 import { Parameter } from '../../../types';
 import BooleanField from './BooleanField';
 import ImageField from './ImageField';
@@ -26,7 +27,11 @@ export default function AgentInputField({
   }
 
   if (parameter.type === 'image') {
-    return <ImageField parameter={parameter} {...props} />;
+    return (
+      <UploaderProvider>
+        <ImageField parameter={parameter} {...props} />
+      </UploaderProvider>
+    );
   }
 
   const FIELDS: { [type in NonNullable<Parameter['type']>]?: ComponentType<any> } = {

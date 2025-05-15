@@ -7,6 +7,7 @@ import { Box, Button, IconButton, InputAdornment, Stack, TextFieldProps } from '
 import { useRef } from 'react';
 
 import { uploadImage } from '../../../api/ai-runtime/image';
+import { useUploader } from '../../../context/uploader';
 import { ImageParameter } from '../../../types';
 import StringField from './StringField';
 
@@ -19,9 +20,9 @@ export default function ImageField({
   parameter: ImageParameter;
   onChange: (value: string | number | undefined | string[]) => void;
 } & Omit<TextFieldProps, 'onChange'>) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const { t } = useLocaleContext();
+  const uploaderRef = useUploader();
 
   const list = (Array.isArray(props.value) ? props.value : [props.value]).filter(Boolean);
 
@@ -46,6 +47,24 @@ export default function ImageField({
     } catch (error) {
       Toast.error(error.message);
     }
+  };
+
+  const onImageUpload = () => {
+    if (parameter.multiple && list.length >= MAX_IMAGE_FILES) {
+      Toast.error(t('maxFilesLimit', { limit: MAX_IMAGE_FILES }));
+      return;
+    }
+
+    const uploader = uploaderRef?.current?.getUploader();
+    if (parameter.multiple && uploader?.opts?.restrictions?.maxNumberOfFiles) {
+      uploader.opts.restrictions.maxNumberOfFiles = MAX_IMAGE_FILES - list.length;
+    }
+
+    uploader?.open();
+    uploader.on('complete', (result: { successful: { responseResult: { data: { url: string } } }[] }) => {
+      const urls = result.successful?.map((item) => item.responseResult.data.url);
+      props.onChange(parameter.multiple ? [...list, ...urls] : urls[0]);
+    });
   };
 
   return (
@@ -87,15 +106,6 @@ export default function ImageField({
                 <input
                   type="file"
                   accept="image/*"
-                  style={{ display: 'none' }}
-                  multiple={Boolean(parameter.multiple)}
-                  ref={fileInputRef}
-                  onChange={(e) => handleFiles(Array.from(e.target.files ?? []))}
-                />
-
-                <input
-                  type="file"
-                  accept="image/*"
                   capture="environment"
                   style={{ display: 'none' }}
                   ref={cameraInputRef}
@@ -109,7 +119,7 @@ export default function ImageField({
                   <CameraAltIcon sx={{ fontSize: 18 }} />
                 </IconButton>
 
-                <IconButton onClick={() => fileInputRef.current?.click()} disabled={list.length >= MAX_IMAGE_FILES}>
+                <IconButton onClick={onImageUpload} disabled={list.length >= MAX_IMAGE_FILES}>
                   <ImageIcon sx={{ fontSize: 18 }} />
                 </IconButton>
               </Stack>

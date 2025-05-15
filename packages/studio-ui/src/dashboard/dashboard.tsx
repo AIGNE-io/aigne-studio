@@ -1,3 +1,4 @@
+import useBrowser from '@arcblock/react-hooks/lib/useBrowser';
 import Header from '@blocklet/ui-react/lib/Header';
 import { MenuOpenRounded, MenuRounded } from '@mui/icons-material';
 import {
@@ -55,9 +56,11 @@ export default function Dashboard({
   );
 
   const isMiniMenu = !open && isPermanent;
+  const browser = useBrowser();
+  const isArcSphere = browser?.arcSphere ?? false;
 
   return (
-    <Root {...props} sx={{ height: '100%', pt: 8, ...props.sx }}>
+    <Root {...props} sx={{ height: '100%', pt: isArcSphere ? 0 : 8, ...props.sx }}>
       <Box className="dashboard-header" component="header">
         <Header
           className="blocklet-header"

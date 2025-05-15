@@ -2,7 +2,7 @@ import Result from '@arcblock/ux/lib/Result';
 import { Box, Button, CircularProgress, Link, Stack } from '@mui/material';
 import { useAsyncEffect } from 'ahooks';
 import { isAxiosError } from 'axios';
-import { ComponentProps, type, useState } from 'react';
+import { ComponentProps, useState } from 'react';
 import { ErrorBoundary as ReactErrorBoundary } from 'react-error-boundary';
 import { withQuery } from 'ufo';
 

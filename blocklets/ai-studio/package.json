@@ -1,6 +1,6 @@
 {
   "name": "ai-studio",
-  "version": "0.4.266",
+  "version": "0.4.267",
   "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
   "scripts": {
     "debug": "bn-dev",
@@ -36,6 +36,7 @@
     "@arcblock/did-auth": "^1.20.8",
     "@arcblock/did-auth-storage-nedb": "^1.7.1",
     "@arcblock/did-connect": "^2.13.29",
+    "@arcblock/react-hooks": "^2.13.32",
     "@arcblock/ux": "^2.13.29",
     "@arcblock/ws": "^1.20.8",
     "@beskar-labs/gpt-encoder": "^1.0.7",
