@@ -6,19 +6,16 @@ export default function AigneLogo() {
   const [isBlinking, setIsBlinking] = useState(false); // 是否闭眼
   const avatarRef = React.useRef<HTMLDivElement>(null);
 
-  // 定时器，控制眼睛闭合和睁开
   useEffect(() => {
-    const blinkInterval = setTimeout(
-      () => {
-        setIsBlinking(true); // 眨眼闭合
-        const blinkTimeout = setTimeout(() => {
-          setIsBlinking(false); // 眨眼睁开
-        }, 100); // 持续时间
-        return () => clearTimeout(blinkTimeout);
-      },
-      Math.random() * 5000 + 2000
-    ); // 随机时间间隔
-    return () => clearTimeout(blinkInterval);
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    if (isBlinking) {
+      timeoutId = setTimeout(() => setIsBlinking(false), 100);
+    } else {
+      timeoutId = setTimeout(() => setIsBlinking(true), Math.random() * 5000 + 2000);
+    }
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
   }, [isBlinking]);
 
   useEffect(() => {
