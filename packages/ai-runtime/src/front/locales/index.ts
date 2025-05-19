@@ -19,6 +19,7 @@ export const translations = {
         metadata: 'Metadata',
         author: 'Author',
         time: 'Creation Time',
+        downloadImage: 'Download Image',
       },
     },
     questionPlaceholder: 'Ask Anything...',
@@ -94,6 +95,7 @@ export const translations = {
     send: 'Send',
     session: 'Session',
     loadMore: 'Load More',
+    imageGenerationFailed: 'Image generation failed. Please try again.',
     v0: {
       title: 'Mock 0',
       description: 'Mock 0 is an AI-based code tool that can help you generate code quickly.',
@@ -136,6 +138,7 @@ export const translations = {
         metadata: '元数据',
         author: '作者',
         time: '创作时间',
+        downloadImage: '下载图片',
       },
     },
     questionPlaceholder: '问点什么...',
@@ -211,6 +214,7 @@ export const translations = {
     send: '发送',
     session: '会话',
     loadMore: '加载更多',
+    imageGenerationFailed: '图片生成失败，请重试',
     v0: {
       title: 'Mock 0',
       description: 'Mock 0 是一个基于人工智能的代码工具，可以帮助您快速生成代码。',

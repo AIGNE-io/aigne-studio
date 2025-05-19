@@ -1,7 +1,7 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Masonry } from '@mui/lab';
 import { Box, Skeleton, Stack, StackProps, Typography } from '@mui/material';
-import { Suspense, memo, useRef } from 'react';
+import { Suspense, memo, useEffect, useRef, useState } from 'react';
 import Balancer from 'react-wrap-balancer';
 
 import { AgentErrorView } from '../../components/AgentErrorBoundary';
@@ -52,57 +52,69 @@ function NoOutputs() {
 
 function OutputView({ resultTitle, ...props }: { resultTitle?: string } & StackProps) {
   const { t } = useLocaleContext();
-
   const ref = useRef<HTMLDivElement>(null);
-
   const { error, messages = [], running, loaded, noMoreMessage, loadMoreMessages } = useSession((s) => s);
+  const nonErrorMessages = messages.filter((message) => !message.error);
+  const [showError, setShowError] = useState(true);
+
+  useEffect(() => {
+    setShowError(true);
+  }, [messages]);
 
   return (
-    <Stack width="100%" alignItems="center" px={{ xs: 2, sm: 3 }} mt={{ xs: 2, sm: 3 }} gap={2} {...props}>
-      {resultTitle && (
-        <Typography width="100%" component="h2" fontSize={36} fontWeight={700} textAlign="center">
-          <Balancer>{resultTitle}</Balancer>
-        </Typography>
-      )}
-
-      {loaded && !messages.length && <NoOutputs />}
-
-      {error && <AgentErrorView error={error} />}
-
-      <Masonry
-        ref={ref}
-        columns={{ xs: 2, sm: 3, md: 4, lg: 5 }}
-        spacing={1}
-        sequential
-        sx={{ width: '100%', overflow: 'hidden', '> *': { borderRadius: 1, minHeight: 100 } }}>
-        {running && (
-          <Skeleton
-            variant="rectangular"
-            sx={{
-              animation: 'pulse 2.5s ease-in-out 0s infinite',
-              '@keyframes pulse': {
-                '0%': { opacity: 0.2 },
-                '50%': { opacity: 1 },
-                '100%': { opacity: 0.2 },
-              },
-              height: ref.current?.querySelector('*')?.clientHeight ?? 200,
-            }}
+    <>
+      <Stack px={{ xs: 2, sm: 3 }}>
+        {!running && messages[0]?.error && showError && (
+          <AgentErrorView
+            error={messages[0]?.error}
+            fallbackErrorMessage={t('imageGenerationFailed')}
+            fallbackErrorClosable
+            fallbackErrorOnClose={() => setShowError(false)}
           />
         )}
-
-        {messages.map((message) => (
-          <OutputItemView key={message.id} message={message} />
-        ))}
-      </Masonry>
-
-      <Box my={4}>
-        {!!messages.length && !noMoreMessage && (
-          <LoadingButton variant="outlined" onClick={() => loadMoreMessages()}>
-            {t('loadMore')}
-          </LoadingButton>
+      </Stack>
+      <Stack width="100%" alignItems="center" px={{ xs: 2, sm: 3 }} mt={{ xs: 2.5 }} gap={2} {...props}>
+        {resultTitle && (
+          <Typography width="100%" component="h2" fontSize={36} fontWeight={700} textAlign="center">
+            <Balancer>{resultTitle}</Balancer>
+          </Typography>
         )}
-      </Box>
-    </Stack>
+        {loaded && !messages.length && <NoOutputs />}
+        {error && <AgentErrorView error={error} />}
+        <Masonry
+          ref={ref}
+          columns={{ xs: 2, sm: 3, md: 4, lg: 5 }}
+          spacing={1}
+          sequential
+          sx={{ width: '100%', overflow: 'hidden', '> *': { borderRadius: 1, minHeight: 100 } }}>
+          {running && (
+            <Skeleton
+              variant="rectangular"
+              sx={{
+                animation: 'pulse 2.5s ease-in-out 0s infinite',
+                '@keyframes pulse': {
+                  '0%': { opacity: 0.2 },
+                  '50%': { opacity: 1 },
+                  '100%': { opacity: 0.2 },
+                },
+                height: ref.current?.querySelector('*')?.clientHeight ?? 200,
+              }}
+            />
+          )}
+
+          {nonErrorMessages.map((message) => (
+            <OutputItemView key={message.id} message={message} />
+          ))}
+        </Masonry>
+        <Box my={4}>
+          {!!messages.length && !noMoreMessage && (
+            <LoadingButton variant="outlined" onClick={() => loadMoreMessages()}>
+              {t('loadMore')}
+            </LoadingButton>
+          )}
+        </Box>
+      </Stack>
+    </>
   );
 }
 

@@ -244,8 +244,8 @@ function PromptDialog({ url, ...props }: { url: string } & DialogProps) {
               <PromptView />
             </Box>
 
-            {parameters?.question && (
-              <Box>
+            <Box sx={{ mt: 0.5 }}>
+              {parameters?.question && (
                 <ActionButton
                   autoReset
                   size="small"
@@ -259,12 +259,27 @@ function PromptDialog({ url, ...props }: { url: string } & DialogProps) {
                   onClick={() => {
                     window.navigator.clipboard.writeText(parameters?.question);
                   }}
-                  sx={{
-                    borderRadius,
-                  }}
+                  sx={{ borderRadius, mr: 1 }}
                 />
-              </Box>
-            )}
+              )}
+              <ActionButton
+                autoReset
+                size="small"
+                variant="contained"
+                placement="right"
+                title={t('photoWall.dialog.downloadImage')}
+                icon="tabler:download"
+                onClick={() => {
+                  const link = document.createElement('a');
+                  link.href = url;
+                  link.download = url.split('/').pop() || 'image.jpg';
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                }}
+                sx={{ borderRadius }}
+              />
+            </Box>
 
             <ShareActions direction="row" justifyContent="flex-end" sx={{ mt: 2 }} />
           </Stack>
