@@ -1,15 +1,14 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
-import CancelIcon from '@mui/icons-material/Cancel';
 import ImageIcon from '@mui/icons-material/Image';
-import { Box, Button, IconButton, Stack } from '@mui/material';
+import { IconButton, Stack } from '@mui/material';
 import { useRef } from 'react';
 import { Control, Controller } from 'react-hook-form';
-import { withQuery } from 'ufo';
 
 import { uploadImage } from '../../../api/ai-runtime/image';
 import { ImageParameter } from '../../../types';
+import ImagePreviewItem from './image-preview-item';
 
 interface ImageUploadProps {
   control: Control<any>;
@@ -113,23 +112,7 @@ export function ImagePreview({ value, parameter, onRemove }: ImagePreviewProps) 
   return (
     <Stack direction="row" alignItems="center" flexWrap="wrap" gap={1}>
       {list.map((url, index) => (
-        <Box key={url} position="relative" display="flex">
-          <img
-            src={withQuery(url, {
-              imageFilter: 'resize',
-              f: 'webp',
-              w: 200,
-            })}
-            alt={`Uploaded ${index + 1}`}
-            style={{ width: '100px', height: '100px', objectFit: 'cover' }}
-          />
-          <Button
-            size="small"
-            sx={{ position: 'absolute', top: 0, right: 0, minWidth: 'unset', p: 0.5 }}
-            onClick={() => onRemove(index)}>
-            <CancelIcon style={{ color: 'red' }} />
-          </Button>
-        </Box>
+        <ImagePreviewItem key={url} url={url} index={index} onRemove={() => onRemove(index)} />
       ))}
     </Stack>
   );

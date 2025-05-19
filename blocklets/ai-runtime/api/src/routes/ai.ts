@@ -265,11 +265,14 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
     };
 
     const format = input.model === 'gpt-image-1' ? input.outputFormat || imageModel?.outputFormatDefault : 'png';
-    return imageGenerations({
-      ...input,
-      ...model,
-      responseFormat: 'b64_json',
-    }).then(async (res) => ({
+    return imageGenerations(
+      {
+        ...input,
+        ...model,
+        responseFormat: 'b64_json',
+      },
+      { timeout: 200000 }
+    ).then(async (res) => ({
       data: await Promise.all(
         res.data.map(async (item) => ({
           url: (

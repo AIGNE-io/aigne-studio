@@ -1,7 +1,8 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { SubscriptionErrorType } from '@blocklet/ai-kit/api';
 import { SubscribeErrorAlert } from '@blocklet/ai-kit/components';
-import { Alert, Button, Stack, alertClasses } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
+import { Alert, Button, IconButton, Stack, alertClasses } from '@mui/material';
 import { ReactNode } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 
@@ -14,7 +15,17 @@ export function AgentErrorBoundary({ children }: { children?: ReactNode }) {
   return <ErrorBoundary FallbackComponent={AgentErrorView}>{children}</ErrorBoundary>;
 }
 
-export function AgentErrorView({ error }: { error: any }) {
+export function AgentErrorView({
+  error,
+  fallbackErrorMessage,
+  fallbackErrorClosable: closable,
+  fallbackErrorOnClose: onClose,
+}: {
+  error: any;
+  fallbackErrorMessage?: string;
+  fallbackErrorClosable?: boolean;
+  fallbackErrorOnClose?: () => void;
+}) {
   if (error.type === 'MissingSecretError') {
     return <MissingSecretErrorView />;
   }
@@ -28,7 +39,17 @@ export function AgentErrorView({ error }: { error: any }) {
     return null;
   }
 
-  return <Alert severity="error">{String(error?.message)}</Alert>;
+  const action = closable ? (
+    <IconButton aria-label="close" color="inherit" size="small" onClick={onClose}>
+      <CloseIcon fontSize="inherit" />
+    </IconButton>
+  ) : undefined;
+
+  return (
+    <Alert severity="error" action={action}>
+      {fallbackErrorMessage ?? String(error?.message)}
+    </Alert>
+  );
 }
 
 function MissingSecretErrorView() {
