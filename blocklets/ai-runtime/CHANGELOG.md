@@ -1,3 +1,7 @@
+## 0.4.270 (2025-5-19)
+
+- fix: download image button title issue
+
 ## 0.4.269 (2025-5-19)
 
 - fix: optimize image generation experience

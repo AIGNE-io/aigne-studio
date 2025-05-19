@@ -46,6 +46,9 @@ function ImagePreviewItem({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            '& svg > path': { strokeWidth: 3 },
+            '&:hover': { background: '#BDBDBD' },
+            transition: 'background 0.3s ease',
           }}>
           <Icon icon="tabler:x" color="#fff" width={12} height={12} />
         </Box>

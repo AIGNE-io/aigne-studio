@@ -268,7 +268,9 @@ function PromptDialog({ url, ...props }: { url: string } & DialogProps) {
                 variant="contained"
                 placement="right"
                 title={t('photoWall.dialog.downloadImage')}
+                titleSucceed={t('photoWall.dialog.downloadImage')}
                 icon="tabler:download"
+                iconSucceed="tabler:download"
                 onClick={() => {
                   const link = document.createElement('a');
                   link.href = url;
