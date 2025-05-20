@@ -1,3 +1,7 @@
+## 0.4.271 (2025-5-20)
+
+- chore: update deps
+
 ## 0.4.270 (2025-5-19)
 
 - fix: download image button title issue
