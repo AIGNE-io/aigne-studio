@@ -1,3 +1,4 @@
+import ImagePreview from '@blocklet/ai-kit/components/image-preview';
 import { Icon } from '@iconify/react';
 import { Box } from '@mui/material';
 
@@ -12,11 +13,12 @@ function ImagePreviewItem({
 }) {
   return (
     <Box position="relative" display="flex">
-      <Box
-        component="img"
-        src={url}
-        alt={`Uploaded ${index + 1}`}
-        sx={{ width: '100px', height: '100px', objectFit: 'cover', borderRadius: 1 }}
+      <ImagePreview
+        dataSource={[{ src: url, alt: `Uploaded ${index + 1}` }]}
+        itemWidth={100}
+        itemHeight={100}
+        borderRadius={8}
+        showDownloadButton={false}
       />
       <Box
         component="button"
