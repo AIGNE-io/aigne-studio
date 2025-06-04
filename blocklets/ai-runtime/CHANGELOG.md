@@ -1,3 +1,7 @@
+## 0.4.272 (2025-6-4)
+
+- fix: make share button clickable
+
 ## 0.4.271 (2025-5-21)
 
 - feat: use ImagePreview for image preview
