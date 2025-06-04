@@ -55,7 +55,7 @@ const messages = {
 
 const searchQuerySchema = Joi.object<{ blockletDid?: string; message?: string; n: number }>({
   blockletDid: Joi.string().empty(['', null]),
-  message: Joi.string().required(),
+  message: Joi.string().empty(['', null]),
   n: Joi.number().empty(['', null]).min(1).default(4),
 }).messages(messages);
 
@@ -93,7 +93,7 @@ router.get('/:knowledgeId/search', async (req, res) => {
   const vectorPathOrKnowledgeId = await getVectorPath(input.blockletDid!, knowledgeId, knowledge);
 
   const retriever = new HybridRetriever(vectorPathOrKnowledgeId, input.n!);
-  const result = await retriever.search(input.message!);
+  const result = await retriever.search(input.message || ' ');
 
   const docs = await Promise.all(
     result.map(async (i) => {
