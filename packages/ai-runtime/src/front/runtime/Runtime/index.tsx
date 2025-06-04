@@ -44,7 +44,7 @@ function RuntimeView() {
         {agent.project.description && <meta name="description" content={agent.project.description} />}
       </Helmet>
 
-      <ScrollView zIndex={1} scroll="window" initialScrollBehavior="auto">
+      <ScrollView scroll="window" initialScrollBehavior="auto">
         <CustomComponentRenderer
           componentId={appearancePage.componentId}
           properties={appearancePage.componentProperties}
