@@ -1,3 +1,7 @@
+## 0.4.273 (2025-6-6)
+
+- chore: update deps
+
 ## 0.4.272 (2025-6-4)
 
 - fix: make share button clickable

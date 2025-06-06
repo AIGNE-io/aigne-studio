@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.4.272",
+  "version": "0.4.273",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -147,18 +147,18 @@
     "test": "jest src/"
   },
   "dependencies": {
-    "@abtnode/client": "^1.16.43",
-    "@arcblock/did-connect": "^2.13.41",
+    "@abtnode/client": "^1.16.44",
+    "@arcblock/did-connect": "^2.13.62",
     "@blocklet/ai-kit": "^0.1.78",
     "@blocklet/co-git": "workspace:^",
-    "@blocklet/constant": "^1.16.43",
+    "@blocklet/constant": "^1.16.44",
     "@blocklet/dataset-sdk": "workspace:^",
-    "@blocklet/js-sdk": "^1.16.43",
-    "@blocklet/logger": "^1.16.43",
-    "@blocklet/pages-kit": "^0.5.15",
+    "@blocklet/js-sdk": "^1.16.44",
+    "@blocklet/logger": "^1.16.44",
+    "@blocklet/pages-kit": "^0.5.33",
     "@blocklet/quickjs": "workspace:^",
-    "@blocklet/sdk": "^1.16.43",
-    "@blocklet/uploader": "^0.1.92",
+    "@blocklet/sdk": "^1.16.44",
+    "@blocklet/uploader": "^0.1.95",
     "@iconify-icons/tabler": "^1.2.95",
     "@iconify/react": "^5.0.2",
     "@microsoft/fetch-event-source": "^2.0.1",
@@ -222,7 +222,7 @@
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@arcblock/ux": "^2.13.41",
+    "@arcblock/ux": "^2.13.62",
     "@emotion/css": "^11.13.0",
     "@emotion/react": "^11.13.3",
     "@jest/globals": "^29.7.0",
