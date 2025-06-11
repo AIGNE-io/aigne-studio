@@ -43,9 +43,12 @@ export async function getAgent({
   }).then((res) => res.data);
 }
 
+const DEFAULT_TIMEOUT = 3 * 60 * 1000;
+
 export interface RunAgentInputServer extends RunAgentInput {
   user: User;
   runType?: 'cron' | 'webhook' | 'agent';
+  timeout?: number;
 }
 
 export async function runAgent(
@@ -56,7 +59,7 @@ export async function runAgent(
 ): Promise<ReadableStream<RunAssistantResponse>>;
 export async function runAgent({ user, responseType, ...input }: RunAgentInputServer & { responseType?: 'stream' }) {
   const path = '/api/ai/call';
-  const { runType, ...rest } = input;
+  const { runType, timeout = DEFAULT_TIMEOUT, ...rest } = input;
 
   const request: Parameters<typeof call>[0] = {
     name: AIGNE_RUNTIME_COMPONENT_DID,
@@ -67,7 +70,7 @@ export async function runAgent({ user, responseType, ...input }: RunAgentInputSe
   };
 
   const retryOptions: Parameters<typeof call>[1] = {
-    maxTimeout: 3 * 60 * 1000,
+    maxTimeout: timeout,
     retries: 0,
   };
 
