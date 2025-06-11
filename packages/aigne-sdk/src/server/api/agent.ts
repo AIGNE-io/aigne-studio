@@ -67,6 +67,7 @@ export async function runAgent({ user, responseType, ...input }: RunAgentInputSe
     path,
     params: { userId: user.did, runType },
     data: rest,
+    timeout,
   };
 
   const retryOptions: Parameters<typeof call>[1] = {
