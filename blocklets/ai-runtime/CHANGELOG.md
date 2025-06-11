@@ -1,3 +1,7 @@
+## 0.4.274 (2025-6-11)
+
+- fix: component call timeout
+
 ## 0.4.273 (2025-6-6)
 
 - chore: update deps
