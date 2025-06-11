@@ -66,12 +66,20 @@ export async function runAgent({ user, responseType, ...input }: RunAgentInputSe
     data: rest,
   };
 
+  const retryOptions: Parameters<typeof call>[1] = {
+    maxTimeout: 3 * 60 * 1000,
+    retries: 0,
+  };
+
   if (responseType === 'stream') {
-    const res = await call({
-      ...request,
-      headers: { ...request.headers, accept: 'text/event-stream' },
-      responseType: 'stream',
-    });
+    const res = await call(
+      {
+        ...request,
+        headers: { ...request.headers, accept: 'text/event-stream' },
+        responseType: 'stream',
+      },
+      retryOptions
+    );
 
     const stream = readableToWeb(res.data)
       .pipeThrough(new TextDecoderStream())
@@ -97,5 +105,5 @@ export async function runAgent({ user, responseType, ...input }: RunAgentInputSe
     });
   }
 
-  return call({ ...request }).then((res) => res.data);
+  return call({ ...request }, retryOptions).then((res) => res.data);
 }
