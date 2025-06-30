@@ -1,3 +1,7 @@
+## 0.4.275 (2025-6-30)
+
+- fix: add backoff time to websocket to reduce retry frequency
+
 ## 0.4.274 (2025-6-11)
 
 - fix: component call timeout
