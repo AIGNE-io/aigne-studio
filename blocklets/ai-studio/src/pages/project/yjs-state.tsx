@@ -93,7 +93,7 @@ const projectStore = (projectId: string, gitRef: string) => {
 
       const doc = new Doc();
 
-      const provider = new WebsocketProvider(url, gitRef, doc, { connect: false });
+      const provider = new WebsocketProvider(url, gitRef, doc, { connect: false, maxBackoffTime: 10 * 60e3 });
 
       const store = syncedStore<State>({ files: {}, tree: {} }, doc);
 
