@@ -1,10 +1,16 @@
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 import { joinURL } from 'ufo';
 
-import type { AssistantIdentifier } from '../components/AIForm/state';
 import { RunAssistantResponse } from '../types';
 import { Assistant } from '../types/assistant';
 import { aiStudioApi } from './api';
+
+export interface AssistantIdentifier {
+  projectId: string;
+  gitRef: string;
+  assistantId: string;
+  working?: boolean;
+}
 
 export interface AssistantInfo extends Pick<Assistant, 'id' | 'name' | 'parameters'> {}
 

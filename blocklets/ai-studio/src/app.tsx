@@ -126,7 +126,7 @@ const Home = lazy(() => import('./pages/home/home'));
 
 const ProjectsRoutes = lazy(() => import('./pages/project'));
 
-const EmbedRoutes = lazy(() => import('./pages/embed'));
+// const EmbedRoutes = lazy(() => import('./pages/embed'));
 
 function HomeRoute() {
   const isPromptEditor = useIsPromptEditor();
@@ -144,7 +144,7 @@ const router = createBrowserRouter(
       </Route>
       <Route element={<PrivateRoute roles={Config.serviceModePermissionMap.ensurePromptsEditorRoles} />}>
         <Route path="projects/*" element={<ProjectsRoutes />} />
-        <Route path="embed/*" element={<EmbedRoutes />} />
+        {/* <Route path="embed/*" element={<EmbedRoutes />} /> */}
       </Route>
       <Route path="/playground/*" element={<Navigate to="/projects" replace />} />
       <Route path="*" element={<NotFound />} />

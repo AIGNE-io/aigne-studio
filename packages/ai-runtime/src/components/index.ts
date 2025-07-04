@@ -1,5 +1,3 @@
-export * from './AIForm';
-
 export { default as NumberField } from './ParameterField/NumberField';
 export { default as StringField } from './ParameterField/StringField';
 export { default as SelectField } from './ParameterField/SelectField';

@@ -1,3 +1,7 @@
+## 0.4.276 (2025-7-4)
+
+- fix: remove recoil dependency
+
 ## 0.4.275 (2025-6-30)
 
 - fix: add backoff time to websocket to reduce retry frequency
