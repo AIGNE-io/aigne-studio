@@ -203,7 +203,6 @@
     "react-syntax-highlighter": "^15.6.1",
     "react-transition-group": "^4.4.5",
     "react-wrap-balancer": "^1.1.1",
-    "recoil": "^0.7.7",
     "remark-gfm": "^4.0.0",
     "semver": "^7.6.3",
     "snowflake-uuid": "^1.0.0",
