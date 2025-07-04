@@ -5,7 +5,7 @@ export default function Popper({
   onClose,
   children,
   ...props
-}: { onClose?: () => void; children: ReactElement } & Omit<PopperProps, 'open' | 'children'>) {
+}: { onClose?: () => void; children: ReactElement<any> } & Omit<PopperProps, 'open' | 'children'>) {
   return (
     <MuiPopper
       open={Boolean(props.anchorEl)}

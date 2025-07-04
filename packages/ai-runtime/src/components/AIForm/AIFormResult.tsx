@@ -15,7 +15,9 @@ export interface AIFormResultProps {
 export default function AIFormResult({
   identifier,
   placeholder = (
-    <Typography variant="caption" color="text.disabled">
+    <Typography variant="caption" sx={{
+      color: "text.disabled"
+    }}>
       Let's try it
     </Typography>
   ),
@@ -25,19 +27,25 @@ export default function AIFormResult({
   const { state } = useExecutingState(identifier);
 
   return (
-    <Box height="100%" {...BoxProps}>
+    <Box
+      {...BoxProps}
+      sx={[{
+        height: "100%"
+      }, ...(Array.isArray(BoxProps.sx) ? BoxProps.sx : [BoxProps.sx])]}>
       {!state.content && !state.images?.length && !state.error && (
-        <Box textAlign="center">{state.loading ? loadingIndicator : placeholder}</Box>
+        <Box sx={{
+          textAlign: "center"
+        }}>{state.loading ? loadingIndicator : placeholder}</Box>
       )}
-
       {state.content && (
-        <Box whiteSpace="pre-wrap">
+        <Box sx={{
+          whiteSpace: "pre-wrap"
+        }}>
           {state.content}
 
           {state.loading && <WritingIndicator />}
         </Box>
       )}
-
       {state.images && state.images.length > 0 && (
         <ImagePreview
           itemWidth={state.images.length === 1 ? undefined : 200}
@@ -47,7 +55,6 @@ export default function AIFormResult({
             .filter((i): i is { src: string } => !!i.src)}
         />
       )}
-
       {state.error && (
         <Box>
           <Alert color="error" icon={<ErrorRounded />}>

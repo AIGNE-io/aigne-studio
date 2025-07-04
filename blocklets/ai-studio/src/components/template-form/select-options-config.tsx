@@ -21,38 +21,52 @@ export default function SelectOptionsConfig({
   const { t } = useLocaleContext();
 
   return (
-    <Box width={1}>
+    <Box sx={{
+      width: 1
+    }}>
       {select.options && (
         <DragSortListYjs
           disabled={readOnly}
           list={select.options}
           renderItem={(option, _, params) => (
-            <Stack direction="row" alignItems="center" gap={1} ref={params.drop}>
+            <Stack
+              direction="row"
+              ref={params.drop}
+              sx={{
+                alignItems: "center",
+                gap: 1
+              }}>
               <Stack
-                flex={1}
                 direction="row"
-                gap={1}
-                bgcolor="background.paper"
-                borderRadius={1}
-                overflow="hidden"
-                position="relative"
-                p={0.5}
-                ref={params.preview}>
+                ref={params.preview}
+                sx={{
+                  flex: 1,
+                  gap: 1,
+                  bgcolor: "background.paper",
+                  borderRadius: 1,
+                  overflow: "hidden",
+                  position: "relative",
+                  p: 0.5
+                }}>
                 <TextField
                   hiddenLabel
-                  InputProps={{ readOnly, inputProps: { id: `option-label-${option.id}` } }}
                   placeholder={t('label')}
                   value={option.label}
                   onChange={(e) => (option.label = e.target.value)}
                   sx={{ flex: 1 }}
+                  slotProps={{
+                    input: { readOnly, inputProps: { id: `option-label-${option.id}` } }
+                  }}
                 />
                 <TextField
                   hiddenLabel
-                  InputProps={{ readOnly }}
                   placeholder={option.label || t('value')}
                   value={option.value}
                   onChange={(e) => (option.value = e.target.value)}
                   sx={{ flex: 1 }}
+                  slotProps={{
+                    input: { readOnly }
+                  }}
                 />
               </Stack>
 
@@ -83,7 +97,6 @@ export default function SelectOptionsConfig({
           )}
         />
       )}
-
       {!readOnly && (
         <Button
           fullWidth

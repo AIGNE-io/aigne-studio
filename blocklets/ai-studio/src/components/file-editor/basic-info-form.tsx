@@ -28,9 +28,15 @@ export default function BasicInfoForm({
 
   return (
     <Stack>
-      <Box position="relative">
+      <Box sx={{
+        position: "relative"
+      }}>
         <WithAwareness indicator={false} projectId={projectId} gitRef={gitRef} path={[value.id, 'name']}>
-          <Stack display="flex" flexDirection="row">
+          <Stack
+            sx={{
+              display: "flex",
+              flexDirection: "row"
+            }}>
             <HoverBackgroundTextField
               hiddenLabel
               fullWidth
@@ -62,8 +68,9 @@ export default function BasicInfoForm({
           sx={{ position: 'absolute', right: 0, top: 0 }}
         />
       </Box>
-
-      <Box position="relative">
+      <Box sx={{
+        position: "relative"
+      }}>
         <WithAwareness indicator={false} projectId={projectId} gitRef={gitRef} path={[value.id, 'description']}>
           <HoverBackgroundTextField
             hiddenLabel
@@ -94,8 +101,9 @@ export default function BasicInfoForm({
           sx={{ position: 'absolute', right: 0, top: 0 }}
         />
       </Box>
-
-      <Box position="relative">
+      <Box sx={{
+        position: "relative"
+      }}>
         <WithAwareness indicator={false} projectId={projectId} gitRef={gitRef} path={[value.id, 'tag']}>
           <TagsAutoComplete
             readOnly={readOnly}

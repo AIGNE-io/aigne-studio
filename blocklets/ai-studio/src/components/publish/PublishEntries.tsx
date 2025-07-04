@@ -34,7 +34,9 @@ export default function PublishEntries({ assistant }: { assistant: AssistantYjs 
   return (
     <Stack>
       <Box className="between">
-        <Typography variant="subtitle2" mb={0.5}>
+        <Typography variant="subtitle2" sx={{
+          mb: 0.5
+        }}>
           {t('openingQuestion')}
         </Typography>
 
@@ -52,7 +54,6 @@ export default function PublishEntries({ assistant }: { assistant: AssistantYjs 
           <Box component={Icon} icon={PlusIcon} />
         </Button>
       </Box>
-
       {assistant.entries && (
         <DragSortListYjs
           list={assistant.entries}
@@ -73,7 +74,6 @@ export default function PublishEntries({ assistant }: { assistant: AssistantYjs 
           )}
         />
       )}
-
       <Dialog
         component="form"
         onSubmit={(e) => {
@@ -114,34 +114,42 @@ function EntryItemView({
   return (
     <Stack
       direction="row"
-      gap={0.5}
-      alignItems="center"
       ref={drop}
       sx={{
+        gap: 0.5,
+        alignItems: "center",
         borderRadius: 1,
         bgcolor: isDragging ? 'grey.200' : 'none',
+
         ':hover': {
           bgcolor: 'grey.100',
 
           '.hover-visible': {
             display: 'flex',
           },
-        },
+        }
       }}>
       <Button ref={drag} sx={{ minWidth: 24, minHeight: 24, p: 0, cursor: 'move' }}>
         <DragVertical />
       </Button>
-
       <Typography
-        flex={1}
         noWrap
         ref={preview}
-        sx={{ borderRadius: 1, color: entry.title ? 'unset' : 'text.disabled' }}
-        onClick={onClick}>
+        onClick={onClick}
+        sx={{
+          flex: 1,
+          borderRadius: 1,
+          color: entry.title ? 'unset' : 'text.disabled'
+        }}>
         {entry.title || t('untitled')}
       </Typography>
-
-      <Stack direction="row" gap={0.5} className="hover-visible" sx={{ display: 'none' }}>
+      <Stack
+        direction="row"
+        className="hover-visible"
+        sx={{
+          gap: 0.5,
+          display: 'none'
+        }}>
         {onDelete && (
           <Button sx={{ minWidth: 24, minHeight: 24, p: 0 }} onClick={onDelete}>
             <Trash fontSize="small" />
@@ -167,16 +175,16 @@ function PublishEntriesForm({
   );
 
   return (
-    <Stack gap={1}>
+    <Stack sx={{
+      gap: 1
+    }}>
       <TextField
         label={t('openingQuestion')}
         multiline
         value={entry.title || ''}
         onChange={(e) => (entry.title = e.target.value)}
       />
-
       <Typography variant="subtitle2">{t('input')}</Typography>
-
       {parameters.map(({ data: parameter }) => {
         return (
           <Box key={parameter.id}>

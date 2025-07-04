@@ -16,15 +16,35 @@ export default function SimpleHeader({
   const { name, description } = profile;
 
   return (
-    <Stack gap={2} mt={8} mb={4} {...props} className={cx('aigne-header aigne-simple-header', props.className)}>
+    <Stack
+      {...props}
+      className={cx('aigne-header aigne-simple-header', props.className)}
+      sx={[{
+        gap: 2,
+        mt: 8,
+        mb: 4
+      }, ...(Array.isArray(props.sx) ? props.sx : [props.sx])]}>
       <Provider>
         {name && (
-          <Typography width="100%" variant="h4" fontSize={30} fontWeight={700} textAlign="center" {...TitleProps}>
+          <Typography
+            variant="h4"
+            {...TitleProps}
+            sx={[{
+              width: "100%",
+              fontSize: 30,
+              fontWeight: 700,
+              textAlign: "center"
+            }, ...(Array.isArray(TitleProps.sx) ? TitleProps.sx : [TitleProps.sx])]}>
             <Balancer>{name}</Balancer>
           </Typography>
         )}
         {description && (
-          <Typography width="100%" textAlign="center" {...DescriptionProps}>
+          <Typography
+            {...DescriptionProps}
+            sx={[{
+              width: "100%",
+              textAlign: "center"
+            }, ...(Array.isArray(DescriptionProps.sx) ? DescriptionProps.sx : [DescriptionProps.sx])]}>
             <Balancer>{description}</Balancer>
           </Typography>
         )}

@@ -10,10 +10,11 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import pick from 'lodash/pick';
-import { forwardRef } from 'react';
 
 import { SelectParameter } from '../../../types';
 import { languages } from '../../utils/languages';
+
+import type { JSX } from "react";
 
 type Option = {
   name: string;
@@ -36,14 +37,15 @@ const filter = (options: Option[], state: { inputValue: string }) => {
   });
 };
 
-const LanguageField = forwardRef<
-  HTMLDivElement,
+const LanguageField = (
   {
-    readOnly?: boolean;
-    parameter?: SelectParameter;
-    onChange: (value: string | undefined) => void;
-  } & Omit<TextFieldProps, 'onChange'>
->(({ readOnly, parameter, onChange, ...props }, ref) => {
+    ref,
+    readOnly,
+    parameter,
+    onChange,
+    ...props
+  }
+) => {
   const { locale } = useLocaleContext();
 
   const value = props?.value ? languages.find((o) => o.en === props.value) : null;
@@ -91,6 +93,6 @@ const LanguageField = forwardRef<
       }}
     />
   );
-});
+};
 
 export default LanguageField;

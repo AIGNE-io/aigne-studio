@@ -91,9 +91,10 @@ export default function ImportFromGit({ onClose }: { onClose: () => void }) {
           <Close />
         </IconButton>
       </DialogTitle>
-
       <DialogContent>
-        <Stack gap={1.5}>
+        <Stack sx={{
+          gap: 1.5
+        }}>
           <Box>
             <Typography variant="subtitle2">{`${t('gitUrl')}*`}</Typography>
             <TextField
@@ -133,15 +134,17 @@ export default function ImportFromGit({ onClose }: { onClose: () => void }) {
                     value
                   ) || t('validation.urlPattern'),
               })}
-              InputProps={{
-                readOnly: true,
-                onFocus: (e) => (e.currentTarget.readOnly = false),
-              }}
-              InputLabelProps={{ shrink: form.watch('url') ? true : undefined }}
               error={Boolean(form.formState.errors.url)}
               helperText={form.formState.errors.url?.message}
               sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
-            />
+              slotProps={{
+                input: {
+                  readOnly: true,
+                  onFocus: (e) => (e.currentTarget.readOnly = false),
+                },
+
+                inputLabel: { shrink: form.watch('url') ? true : undefined }
+              }} />
           </Box>
 
           <Box sx={{ display: 'none' }}>
@@ -152,8 +155,10 @@ export default function ImportFromGit({ onClose }: { onClose: () => void }) {
               {...form.register('username')}
               error={Boolean(form.formState.errors.username)}
               helperText={form.formState.errors.username?.message}
-              InputLabelProps={{ shrink: form.watch('username') ? true : undefined }}
               sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
+              slotProps={{
+                inputLabel: { shrink: form.watch('username') ? true : undefined }
+              }}
             />
           </Box>
 
@@ -182,20 +187,22 @@ export default function ImportFromGit({ onClose }: { onClose: () => void }) {
                 )
               }
               type={showPassword ? 'text' : 'password'}
-              InputLabelProps={{ shrink: form.watch('password') ? true : undefined }}
-              InputProps={{
-                readOnly: true,
-                onFocus: (e) => (e.currentTarget.readOnly = false),
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                      {showPassword ? <EyeNo /> : <Eye />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
               sx={{ '.MuiInputBase-root': { width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' } }}
-            />
+              slotProps={{
+                input: {
+                  readOnly: true,
+                  onFocus: (e) => (e.currentTarget.readOnly = false),
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                        {showPassword ? <EyeNo /> : <Eye />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                },
+
+                inputLabel: { shrink: form.watch('password') ? true : undefined }
+              }} />
           </Box>
 
           <Box>
@@ -212,16 +219,17 @@ export default function ImportFromGit({ onClose }: { onClose: () => void }) {
               maxRows={3}
               placeholder={t('newProjectDescriptionPlaceholder')}
               {...form.register('description')}
-              InputProps={{
-                readOnly: true,
-                onFocus: (e) => (e.currentTarget.readOnly = false),
-              }}
               sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
+              slotProps={{
+                input: {
+                  readOnly: true,
+                  onFocus: (e) => (e.currentTarget.readOnly = false),
+                }
+              }}
             />
           </Box>
         </Stack>
       </DialogContent>
-
       <DialogActions>
         <Button onClick={onClose} variant="outlined">
           {t('cancel')}

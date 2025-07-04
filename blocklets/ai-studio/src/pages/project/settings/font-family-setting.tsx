@@ -14,7 +14,9 @@ export default function FontFamilySetting() {
   const { t } = useLocaleContext();
 
   return (
-    <Stack gap={1}>
+    <Stack sx={{
+      gap: 1
+    }}>
       <Box data-testid="font-family-setting-title">
         <Stack>
           <Typography variant="subtitle3">{t('projectSetting.fontFamily.title')}</Typography>

@@ -23,7 +23,9 @@ export default function SuggestedQuestionsView({ onlyLastMessage }: { onlyLastMe
 
   return (
     <OutputFieldContainer output={output}>
-      <Stack gap={1}>
+      <Stack sx={{
+        gap: 1
+      }}>
         {outputValue.map((item) => (
           <MessageSuggestedQuestion
             key={item.question}

@@ -238,7 +238,7 @@ export function SaveButtonDialog({
     }
   );
 
-  const savePromise = useRef<{ resolve: (result: { saved?: boolean }) => void; reject: (error: Error) => void }>();
+  const savePromise = useRef<{ resolve: (result: { saved?: boolean }) => void; reject: (error: Error) => void }>(undefined);
 
   useEffect(() => {
     saveButtonState.getState().setSaveHandler(async (options) => {
@@ -322,7 +322,6 @@ export function SaveButtonDialog({
     <>
       {dialog}
       {unauthorizedDialog}
-
       <Dialog
         {...bindDialog(dialogState)}
         keepMounted={false}
@@ -335,7 +334,9 @@ export function SaveButtonDialog({
         <DialogContent>
           {dialogContent || null}
 
-          <Stack gap={1}>
+          <Stack sx={{
+            gap: 1
+          }}>
             {!simpleMode && (
               <Box>
                 <Controller
@@ -424,22 +425,35 @@ export function useMergeConflictDialog({ projectId }: { projectId: string }) {
         fullWidth: true,
         maxWidth: 'sm',
         title: (
-          <Stack direction="row" alignItems="center" gap={1}>
+          <Stack
+            direction="row"
+            sx={{
+              alignItems: "center",
+              gap: 1
+            }}>
             <WarningRounded color="warning" fontSize="large" /> {t('mergeConflict')}
           </Stack>
         ),
 
         content: (
-          <Stack gap={0.25} sx={{ b: { color: 'warning.main', mx: 0.25 } }}>
+          <Stack
+            sx={{
+              gap: 0.25,
+              b: { color: 'warning.main', mx: 0.25 }
+            }}>
             <Typography variant="subtitle2">{t('mergeConflictTip')}</Typography>
             <Box>
-              <Typography component="span" fontWeight="bold">
+              <Typography component="span" sx={{
+                fontWeight: "bold"
+              }}>
                 {t('useRemote')}:{' '}
               </Typography>
               <Typography component="span" dangerouslySetInnerHTML={{ __html: t('useRemoteTip') }} />
             </Box>
             <Box>
-              <Typography component="span" fontWeight="bold">
+              <Typography component="span" sx={{
+                fontWeight: "bold"
+              }}>
                 {t('useLocal')}:{' '}
               </Typography>
               <Typography component="span" dangerouslySetInnerHTML={{ __html: t('useLocalTip') }} />
@@ -493,14 +507,17 @@ function GitSettingContent() {
   const { t } = useLocaleContext();
 
   return (
-    <Stack gap={2}>
+    <Stack sx={{
+      gap: 2
+    }}>
       <Alert severity="warning" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
         {t('remoteGitRepoUnauthorizedTip')}
       </Alert>
-
       <>
         <Box>
-          <Typography variant="subtitle2" mb={0.5}>
+          <Typography variant="subtitle2" sx={{
+            mb: 0.5
+          }}>
             {`${t('url')}*`}
           </Typography>
 
@@ -539,15 +556,18 @@ function GitSettingContent() {
                   value
                 ) || t('validation.urlPattern'),
             })}
-            InputLabelProps={{ shrink: form.watch('url') ? true : undefined }}
-            inputProps={{ readOnly: true }}
             error={Boolean(form.formState.errors.url)}
             helperText={form.formState.errors.url?.message}
-          />
+            slotProps={{
+              htmlInput: { readOnly: true },
+              inputLabel: { shrink: form.watch('url') ? true : undefined }
+            }} />
         </Box>
 
         <Box>
-          <Typography variant="subtitle2" mb={0.5}>
+          <Typography variant="subtitle2" sx={{
+            mb: 0.5
+          }}>
             {t('username')}
           </Typography>
 
@@ -557,13 +577,16 @@ function GitSettingContent() {
             {...form.register('username')}
             error={Boolean(form.formState.errors.username)}
             helperText={form.formState.errors.username?.message}
-            InputLabelProps={{ shrink: form.watch('username') ? true : undefined }}
-            inputProps={{ readOnly: true }}
-          />
+            slotProps={{
+              htmlInput: { readOnly: true },
+              inputLabel: { shrink: form.watch('username') ? true : undefined }
+            }} />
         </Box>
 
         <Box>
-          <Typography variant="subtitle2" mb={0.5}>
+          <Typography variant="subtitle2" sx={{
+            mb: 0.5
+          }}>
             {t('accessToken')}
           </Typography>
 
@@ -588,17 +611,19 @@ function GitSettingContent() {
               )
             }
             type={showPassword ? 'text' : 'password'}
-            InputLabelProps={{ shrink: form.watch('password') ? true : undefined }}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                    {showPassword ? <EyeNo /> : <Eye />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-          />
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                      {showPassword ? <EyeNo /> : <Eye />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              },
+
+              inputLabel: { shrink: form.watch('password') ? true : undefined }
+            }} />
         </Box>
       </>
     </Stack>
@@ -663,7 +688,12 @@ export function useUnauthorizedDialog({ projectId }: { projectId: string }) {
         fullWidth: true,
         maxWidth: 'sm',
         title: (
-          <Stack direction="row" alignItems="center" gap={1}>
+          <Stack
+            direction="row"
+            sx={{
+              alignItems: "center",
+              gap: 1
+            }}>
             <WarningRounded color="warning" fontSize="large" /> {t('remoteGitRepoUnauthorized')}
           </Stack>
         ),

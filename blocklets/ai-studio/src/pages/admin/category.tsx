@@ -98,7 +98,12 @@ function CategoryList() {
 
   return (
     <Container>
-      <Box className="between" mt={2.5} mb={1.5}>
+      <Box
+        className="between"
+        sx={{
+          mt: 2.5,
+          mb: 1.5
+        }}>
         <Box sx={{ fontWeight: 700, fontSize: 24, lineHeight: '32px', color: '#030712' }}>{t('category.title')}</Box>
         <Button
           data-testid="add-category-button"
@@ -111,13 +116,16 @@ function CategoryList() {
           {t('category.add')}
         </Button>
       </Box>
-
       {categories?.length === 0 && (
-        <Box width={1} height={400} className="center">
+        <Box
+          className="center"
+          sx={{
+            width: 1,
+            height: 400
+          }}>
           <Typography>{t('category.noCategories')}</Typography>
         </Box>
       )}
-
       {!!categories.length && (
         <>
           <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
@@ -128,7 +136,6 @@ function CategoryList() {
                     {item.icon ? <Icon icon={item.icon} /> : <Icon icon="tabler:settings" />}
                   </ListItemIcon>
                   <ListItemText primary={item.name} />
-
                   <ListItemSecondaryAction sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                     <IconButton
                       data-testid="category-link-button"
@@ -140,7 +147,9 @@ function CategoryList() {
                           '_blank'
                         );
                       }}>
-                      <Box component={Icon} icon={ExternalLinkIcon} fontSize="small" />
+                      <Box component={Icon} icon={ExternalLinkIcon} sx={{
+                        fontSize: "small"
+                      }} />
                     </IconButton>
 
                     <IconButton
@@ -151,7 +160,9 @@ function CategoryList() {
                         reset(item);
                         dialogState.open();
                       }}>
-                      <Box component={Icon} icon={EditIcon} fontSize="small" />
+                      <Box component={Icon} icon={EditIcon} sx={{
+                        fontSize: "small"
+                      }} />
                     </IconButton>
                     <IconButton
                       data-testid="category-delete-button"
@@ -172,7 +183,13 @@ function CategoryList() {
                           title: <Box sx={{ wordWrap: 'break-word' }}>{t('category.deleteConfirm')}</Box>,
                           content: (
                             <Box>
-                              <Typography fontWeight={500} fontSize={16} lineHeight="28px" color="#4B5563">
+                              <Typography
+                                sx={{
+                                  fontWeight: 500,
+                                  fontSize: 16,
+                                  lineHeight: "28px",
+                                  color: "#4B5563"
+                                }}>
                                 {t('category.deleteDescription')}
                               </Typography>
                             </Box>
@@ -191,7 +208,9 @@ function CategoryList() {
                           },
                         });
                       }}>
-                      <Box component={Icon} icon={TrashIcon} fontSize="small" />
+                      <Box component={Icon} icon={TrashIcon} sx={{
+                        fontSize: "small"
+                      }} />
                     </IconButton>
                   </ListItemSecondaryAction>
                 </StyledListItem>
@@ -200,15 +219,24 @@ function CategoryList() {
           </List>
 
           {(dataState.loadingMore || dataState?.data?.next) && (
-            <Box width={1} height={60} className="center" ref={loadingRef}>
-              <Box display="flex" justifyContent="center">
+            <Box
+              className="center"
+              ref={loadingRef}
+              sx={{
+                width: 1,
+                height: 60
+              }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "center"
+                }}>
                 <CircularProgress size={24} />
               </Box>
             </Box>
           )}
         </>
       )}
-
       <Dialog
         {...bindDialog(dialogState)}
         fullWidth
@@ -224,7 +252,9 @@ function CategoryList() {
         </DialogTitle>
         <DialogContent sx={{ py: 1 }} data-testid="add-category-form">
           <Box>
-            <Stack gap={2}>
+            <Stack sx={{
+              gap: 2
+            }}>
               <Box>
                 <Typography variant="subtitle2">{t('category.name')}</Typography>
                 <Controller
@@ -293,18 +323,24 @@ function CategoryList() {
                       placeholder="mdi-light:account"
                       error={!!errors.icon}
                       helperText={errors.icon?.message}
-                      InputProps={{
-                        startAdornment: (
-                          <IconButton edge="start" aria-label="info">
-                            {icon ? <Icon icon={icon} /> : <Icon icon="tabler:settings" />}
-                          </IconButton>
-                        ),
+                      slotProps={{
+                        input: {
+                          startAdornment: (
+                            <IconButton edge="start" aria-label="info">
+                              {icon ? <Icon icon={icon} /> : <Icon icon="tabler:settings" />}
+                            </IconButton>
+                          ),
+                        }
                       }}
                     />
                   )}
                 />
 
-                <Box display="flex" flexDirection="column">
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column"
+                  }}>
                   <Typography variant="caption">
                     {t('category.iconVisit')}
                     <a href="https://icon-sets.iconify.design/" target="_blank" rel="noreferrer">
@@ -323,7 +359,12 @@ function CategoryList() {
         </DialogContent>
 
         <DialogActions sx={{ justifyContent: 'flex-end', pl: 3 }}>
-          <Stack direction="row" gap={1} alignItems="center">
+          <Stack
+            direction="row"
+            sx={{
+              gap: 1,
+              alignItems: "center"
+            }}>
             <Button className="cancel" variant="outlined" onClick={dialogState.close}>
               {t('cancel')}
             </Button>
@@ -340,7 +381,6 @@ function CategoryList() {
           </Stack>
         </DialogActions>
       </Dialog>
-
       {dialog}
     </Container>
   );

@@ -33,7 +33,12 @@ export default function SliderNumberField({
   };
 
   return (
-    <Stack direction="row" alignItems="center" {...props}>
+    <Stack
+      direction="row"
+      {...props}
+      sx={[{
+        alignItems: "center"
+      }, ...(Array.isArray(props.sx) ? props.sx : [props.sx])]}>
       <Slider
         data-testid="slider"
         disabled={disabled}
@@ -47,19 +52,20 @@ export default function SliderNumberField({
           if (!readOnly && !Array.isArray(v)) onChange?.(e, v);
         }}
       />
-
       <TextField
         disabled={disabled}
         hiddenLabel
         size="small"
         type="number"
-        InputProps={{
-          readOnly,
-          inputProps: { type: 'number', inputMode: 'decimal', pattern: '[0-9]*[.,]?[0-9]+', min, max, step },
-        }}
         sx={{ minWidth: 80, width: 80, border: '1px solid #E5E7EB', borderRadius: 1 }}
         value={value}
         onChange={handleChange}
+        slotProps={{
+          input: {
+            readOnly,
+            inputProps: { type: 'number', inputMode: 'decimal', pattern: '[0-9]*[.,]?[0-9]+', min, max, step },
+          }
+        }}
       />
     </Stack>
   );

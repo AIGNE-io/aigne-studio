@@ -22,9 +22,10 @@ export default function MessageMetadataRenderer({ object }: { object: RuntimeOut
   return (
     <>
       {Array.isArray(referenceLinks) && referenceLinks.length ? <ReferenceLinks links={referenceLinks} /> : undefined}
-
       {formattedObject?.images && (
-        <Stack gap={1}>
+        <Stack sx={{
+          gap: 1
+        }}>
           <ImagePreview dataSource={formattedObject.images} itemWidth={100} />
         </Stack>
       )}

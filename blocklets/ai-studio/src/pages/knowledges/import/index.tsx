@@ -41,7 +41,7 @@ import {
 } from '@mui/material';
 import { useRequest } from 'ahooks';
 import bytes from 'bytes';
-import { Suspense, forwardRef, useMemo, useRef, useState } from 'react';
+import { Suspense, useMemo, useRef, useState } from 'react';
 import { joinURL, withQuery } from 'ufo';
 
 import Discuss from '../../project/icons/discuss';
@@ -108,20 +108,42 @@ export default function ImportKnowledge({
       {
         id: 'file',
         label: t('knowledge.import'),
-        icon: <Box component={Icon} icon={FileIcon} width={14} height={14} borderRadius={1} className="center" />,
+        icon: <Box
+          component={Icon}
+          icon={FileIcon}
+          className="center"
+          sx={{
+            width: 14,
+            height: 14,
+            borderRadius: 1
+          }} />,
         disabled: !!documentId,
       },
       {
         id: 'custom',
         label: t('knowledge.custom'),
-        icon: <Box component={Icon} icon={PencilIcon} width={14} height={14} borderRadius={1} className="center" />,
+        icon: <Box
+          component={Icon}
+          icon={PencilIcon}
+          className="center"
+          sx={{
+            width: 14,
+            height: 14,
+            borderRadius: 1
+          }} />,
       },
       getDiscussionStatus() && isAdmin
         ? {
             id: 'discuss',
             label: t('knowledge.discussKit'),
             icon: (
-              <Box width={14} height={14} borderRadius={1} className="center">
+              <Box
+                className="center"
+                sx={{
+                  width: 14,
+                  height: 14,
+                  borderRadius: 1
+                }}>
                 <Discuss sx={{ width: '100%', height: '100%' }} />
               </Box>
             ),
@@ -132,7 +154,15 @@ export default function ImportKnowledge({
         id: 'url',
         label: t('knowledge.crawl'),
         icon: (
-          <Box component={Icon} icon="zondicons:network" width={14} height={14} borderRadius={1} className="center" />
+          <Box
+            component={Icon}
+            icon="zondicons:network"
+            className="center"
+            sx={{
+              width: 14,
+              height: 14,
+              borderRadius: 1
+            }} />
         ),
         disabled: !!documentId,
       },
@@ -195,8 +225,10 @@ export default function ImportKnowledge({
       open
       fullWidth
       maxWidth="xl"
-      PaperProps={{ sx: { height: '100%' } }}
-      fullScreen={useMediaQuery<Theme>((theme) => theme.breakpoints.down('sm'))}>
+      fullScreen={useMediaQuery<Theme>((theme) => theme.breakpoints.down('sm'))}
+      slotProps={{
+        paper: { sx: { height: '100%' } }
+      }}>
       <DialogTitle>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="h6" sx={{ fontSize: 16, fontWeight: 500 }}>
@@ -210,28 +242,36 @@ export default function ImportKnowledge({
           </IconButton>
         </Box>
       </DialogTitle>
-
       {loading && (
         <Box sx={{ height: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <CircularProgress />
         </Box>
       )}
-
       {!loading && (
         <UploaderDialogContent>
-          <Stack gap={2.5} height={1}>
+          <Stack
+            sx={{
+              gap: 2.5,
+              height: 1
+            }}>
             <Stack>
               <Typography variant="h6" sx={{ fontSize: 16, fontWeight: 500, mb: 0.5 }}>
                 {t('knowledge.importKnowledge.title')}
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" sx={{
+                color: "text.secondary"
+              }}>
                 {t('knowledge.importKnowledge.description')}
               </Typography>
             </Stack>
 
             <SourceTypeSelect value={sourceType} onChange={setSourceType} options={sourceOptions} />
 
-            <Box flexGrow={1} pb={1.25}>
+            <Box
+              sx={{
+                flexGrow: 1,
+                pb: 1.25
+              }}>
               <Suspense>
                 {sourceType === 'file' ? (
                   <UploaderProvider
@@ -281,7 +321,6 @@ export default function ImportKnowledge({
           </Stack>
         </UploaderDialogContent>
       )}
-
       <DialogActions>
         <Button variant="outlined" onClick={onClose}>
           {t('cancel')}
@@ -332,7 +371,16 @@ interface FileViewProps {
   onChange: (value?: FileType) => void;
 }
 
-export const FileView = forwardRef<HTMLDivElement, FileViewProps>(({ fileName, size, onChange }, ref) => {
+export const FileView = (
+  {
+    ref,
+    fileName,
+    size,
+    onChange
+  }: FileViewProps & {
+    ref: React.RefObject<HTMLDivElement | null>;
+  }
+) => {
   const { t } = useLocaleContext();
 
   const [isDraggingOver] = useState(false);
@@ -361,7 +409,13 @@ export const FileView = forwardRef<HTMLDivElement, FileViewProps>(({ fileName, s
             onChange(response?.data);
           });
         }}>
-        <Box display="flex" alignItems="center" gap={1} color="#4B5563">
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            color: "#4B5563"
+          }}>
           <Box component={Icon} icon={ArrowBarToUpIcon} />
           <Typography sx={{ fontWeight: 500 }}>{t('knowledge.importKnowledge.fileImport')}</Typography>
         </Box>
@@ -370,22 +424,26 @@ export const FileView = forwardRef<HTMLDivElement, FileViewProps>(({ fileName, s
           {t('knowledge.importKnowledge.dragAndDrop')}
         </Typography>
       </Box>
-
       {fileName && (
         <Stack
           direction="row"
-          gap={1}
-          justifyContent="space-between"
-          alignItems="center"
           sx={{
+            gap: 1,
+            justifyContent: "space-between",
+            alignItems: "center",
             border: '1px solid rgba(6,7,9, 0.10)',
             p: '8px 10px',
             overflow: 'hidden',
             background: '#fff',
             borderRadius: '8px',
-            mt: 2,
+            mt: 2
           }}>
-          <Stack direction="row" gap={1} alignItems="center">
+          <Stack
+            direction="row"
+            sx={{
+              gap: 1,
+              alignItems: "center"
+            }}>
             <DocumentIcon document={{ name: fileName, type: 'file' } as DatasetDocument} />
             <Box>
               <Box sx={{ color: 'rgba(6, 7, 9, 0.8)', fontSize: 14 }}>{fileName}</Box>
@@ -400,7 +458,7 @@ export const FileView = forwardRef<HTMLDivElement, FileViewProps>(({ fileName, s
       )}
     </Stack>
   );
-});
+};
 
 const CustomView = ({
   title,
@@ -413,11 +471,13 @@ const CustomView = ({
 
   return (
     <Stack
-      gap={2.5}
       component="form"
       onSubmit={(e) => {
         e.preventDefault();
         onSubmit?.();
+      }}
+      sx={{
+        gap: 2.5
       }}>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
         <Box
@@ -437,7 +497,6 @@ const CustomView = ({
           variant="outlined"
         />
       </Box>
-
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
         <Box
           component="label"
@@ -480,13 +539,20 @@ const CrawlView = ({
 
   return (
     <Stack
-      gap={2.5}
       component="form"
       onSubmit={(e) => {
         e.preventDefault();
         onSubmit?.();
+      }}
+      sx={{
+        gap: 2.5
       }}>
-      <Stack gap={2.5} flexDirection="row" alignItems="center">
+      <Stack
+        sx={{
+          gap: 2.5,
+          flexDirection: "row",
+          alignItems: "center"
+        }}>
         <Typography
           component="label"
           sx={{
@@ -513,7 +579,6 @@ const CrawlView = ({
           ))}
         </Box>
       </Stack>
-
       <Box>
         <Typography
           component="label"

@@ -29,9 +29,18 @@ export default function AIForm({ BoxProps, SubmitProps, identifier }: AIFormProp
   if (error) throw error;
 
   return (
-    <Box height="100%" {...BoxProps}>
+    <Box
+      {...BoxProps}
+      sx={[{
+        height: "100%"
+      }, ...(Array.isArray(BoxProps.sx) ? BoxProps.sx : [BoxProps.sx])]}>
       {loading ? (
-        <Stack height="100%" alignItems="center" justifyContent="center">
+        <Stack
+          sx={{
+            height: "100%",
+            alignItems: "center",
+            justifyContent: "center"
+          }}>
           <CircularProgress size={24} />
         </Stack>
       ) : assistant ? (

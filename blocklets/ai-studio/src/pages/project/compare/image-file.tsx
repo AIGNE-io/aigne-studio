@@ -19,7 +19,12 @@ export default function CompareImagesAssistant({
   return (
     <>
       <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
-        <Box flex={1} display="flex" flexDirection="column">
+        <Box
+          sx={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column"
+          }}>
           <ImageAssistantEditorPrepare
             projectId={projectId}
             gitRef={gitRef}
@@ -30,7 +35,12 @@ export default function CompareImagesAssistant({
           />
         </Box>
 
-        <Box flex={1} display="flex" flexDirection="column">
+        <Box
+          sx={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column"
+          }}>
           <ImageAssistantEditorPrepare
             projectId={projectId}
             gitRef={gitRef}
@@ -40,13 +50,22 @@ export default function CompareImagesAssistant({
           />
         </Box>
       </Stack>
-
       <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
-        <Box flex={1} display="flex" flexDirection="column">
+        <Box
+          sx={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column"
+          }}>
           <ImageAssistantEditorFormatPrompt projectId={projectId} gitRef={gitRef} value={remoteAssistant} disabled />
         </Box>
 
-        <Box flex={1} display="flex" flexDirection="column">
+        <Box
+          sx={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column"
+          }}>
           <ImageAssistantEditorFormatPrompt
             gitRef={gitRef}
             projectId={projectId}
@@ -56,13 +75,22 @@ export default function CompareImagesAssistant({
           />
         </Box>
       </Stack>
-
       <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
-        <Box flex={1} display="flex" flexDirection="column">
+        <Box
+          sx={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column"
+          }}>
           <ImageAssistantSetting projectId={projectId} gitRef={gitRef} value={remoteAssistant} readOnly />
         </Box>
 
-        <Box flex={1} display="flex" flexDirection="column">
+        <Box
+          sx={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column"
+          }}>
           <ImageAssistantSetting
             projectId={projectId}
             gitRef={gitRef}

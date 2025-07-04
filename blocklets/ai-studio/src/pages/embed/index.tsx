@@ -7,7 +7,9 @@ export default function EmbedRoutes() {
     <Routes>
       <Route path="/:projectId/:gitRef/:assistantId " element={<AIFormPage />} />
       {/* TODO: A beautiful 404 page */}
-      <Route path="*" element={<Box textAlign="center">404</Box>} />
+      <Route path="*" element={<Box sx={{
+        textAlign: "center"
+      }}>404</Box>} />
     </Routes>
   );
 }
@@ -24,16 +26,34 @@ function AIFormPage() {
   const identifier = { projectId, gitRef, assistantId, working };
 
   return (
-    <Box maxWidth="lg" mx="auto">
-      <Grid height="100%" container spacing={2}>
-        <Grid item xs={12} md={6}>
-          <Box p={2}>
+    <Box
+      sx={{
+        maxWidth: "lg",
+        mx: "auto"
+      }}>
+      <Grid container spacing={2} sx={{
+        height: "100%"
+      }}>
+        <Grid
+          size={{
+            xs: 12,
+            md: 6
+          }}>
+          <Box sx={{
+            p: 2
+          }}>
             <AIForm identifier={identifier} />
           </Box>
         </Grid>
 
-        <Grid item xs={12} md={6}>
-          <Box p={2}>
+        <Grid
+          size={{
+            xs: 12,
+            md: 6
+          }}>
+          <Box sx={{
+            p: 2
+          }}>
             <AIFormResult identifier={identifier} />
           </Box>
         </Grid>

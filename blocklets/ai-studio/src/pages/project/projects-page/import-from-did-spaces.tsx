@@ -90,9 +90,10 @@ function ImportWayItem({
         component={Icon}
         icon={ArrowRightAltRoundedIcon}
         className="other-item-icon"
-        fontSize="1.3rem"
-        color="rgba(19, 125, 250, 1)"
-      />
+        sx={{
+          fontSize: "1.3rem",
+          color: "rgba(19, 125, 250, 1)"
+        }} />
     </Box>
   );
 }
@@ -174,9 +175,12 @@ export function SelectDidSpacesImportWay({ onClose = () => undefined }: { onClos
           <Close />
         </IconButton>
       </DialogTitle>
-
       <DialogContent>
-        <Stack overflow="auto" gap={1.5}>
+        <Stack
+          sx={{
+            overflow: "auto",
+            gap: 1.5
+          }}>
           {hasDidSpace && (
             <ImportWayItem
               icon={<DidSpacesLogo style={{ transform: 'scale(0.95)', fontSize: '1.5rem' }} />}
@@ -303,7 +307,6 @@ export default function FromDidSpacesImport() {
         <DidSpacesLogo sx={{ mr: 1, fontSize: 14 }} />
         <ListItemText sx={{ fontSize: 13, lineHeight: '22px' }}>{t('didSpaces.title')}</ListItemText>
       </MenuItem>
-
       <Dialog
         {...bindDialog(dialogState)}
         maxWidth="sm"
@@ -320,7 +323,9 @@ export default function FromDidSpacesImport() {
         </DialogTitle>
 
         <DialogContent>
-          <Stack gap={2}>
+          <Stack sx={{
+            gap: 2
+          }}>
             <Box>
               <Typography variant="subtitle2">{t('projectSetting.selectProject')}</Typography>
               <TextField
@@ -361,12 +366,14 @@ export default function FromDidSpacesImport() {
                 placeholder={t('newProjectDescriptionPlaceholder')}
                 multiline
                 rows={4}
-                InputProps={{
-                  readOnly: true,
-                  onFocus: (e) => (e.currentTarget.readOnly = false),
-                }}
                 focused
                 sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
+                slotProps={{
+                  input: {
+                    readOnly: true,
+                    onFocus: (e) => (e.currentTarget.readOnly = false),
+                  }
+                }}
               />
             </Box>
           </Stack>

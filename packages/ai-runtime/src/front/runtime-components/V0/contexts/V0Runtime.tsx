@@ -24,7 +24,7 @@ export function V0RuntimeProvider({ children }: { children?: ReactNode }) {
 
   const state = useMemo(
     () =>
-      ({
+      (({
         setCurrentMessageTaskId: (taskId: string | undefined) => {
           setCurrentMessageTaskId(taskId);
 
@@ -54,16 +54,19 @@ export function V0RuntimeProvider({ children }: { children?: ReactNode }) {
             setTimeout(scrollIntoView, 300);
           }
         },
+
         currentMessageTaskId,
         propertiesValueMap,
+
         setPropertiesValueMap: (valueMap: { [taskId: string]: any }) => {
           setPropertiesValueMap({
             ...propertiesValueMap,
             ...valueMap,
           });
         },
-        isMobile,
-      }) as V0RuntimeContext,
+
+        isMobile
+      }) as V0RuntimeContext),
     [setCurrentMessageTaskId, currentMessageTaskId, propertiesValueMap, setPropertiesValueMap, isMobile]
   );
 

@@ -24,7 +24,14 @@ export const agentTypes = [
   { type: 'image', icon: <Icon icon={PhotoIcon} />, i18nKey: 'imageGeneration' },
   {
     type: 'imageBlender',
-    icon: <Box component="img" alt="" src={blenderIcon} width={14} height={14} />,
+    icon: <Box
+      component="img"
+      alt=""
+      src={blenderIcon}
+      sx={{
+        width: 14,
+        height: 14
+      }} />,
     i18nKey: 'imageBlender',
   },
   { type: 'function', icon: <Icon icon={CodeIcon} />, i18nKey: 'logic' },
@@ -48,7 +55,14 @@ export default function AgentTypeSelect({ assistant }: { assistant: AssistantYjs
         sx: { flexDirection: 'row', alignItems: 'center', cursor: 'pointer', minWidth: 20 },
         children: (
           <>
-            <Typography component="span" fontSize={15} fontWeight={500} width={1} noWrap>
+            <Typography
+              component="span"
+              noWrap
+              sx={{
+                fontSize: 15,
+                fontWeight: 500,
+                width: 1
+              }}>
               {current && t(current.i18nKey)}
             </Typography>
             <Box

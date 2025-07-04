@@ -47,14 +47,21 @@ export default function ModelSelectField({ isImageModel, ...props }: { isImageMo
             value={model.model}
             disabled={model.disabled}
             sx={{ [`&.${menuItemClasses.disabled}`]: { opacity: 1 } }}>
-            <Box display="flex" gap={1} alignItems="center">
+            <Box
+              sx={{
+                display: "flex",
+                gap: 1,
+                alignItems: "center"
+              }}>
               <ListItemIcon>{icon}</ListItemIcon>
 
               <ListItemText
                 sx={{ display: 'inline-flex', alignItems: 'baseline' }}
                 primary={model.name || model.model}
                 secondary={model.disabled ? '(coming soon)' : undefined}
-                secondaryTypographyProps={{ fontStyle: 'italic', ml: 1 }}
+                slotProps={{
+                  secondary: { fontStyle: 'italic', ml: 1 }
+                }}
               />
             </Box>
           </MenuItem>
@@ -83,5 +90,12 @@ export const brandIcon = (brand: string) =>
     Replicate: <ReplicateIcon fontSize="small" />,
     'Vertex AI': <VertexAIIcon fontSize="small" />,
     Google: <GoogleIcon fontSize="small" />,
-    'Mistral AI': <Box component="img" src={MistralIcon} width="1rem" height="1rem" alt="Mistral AI" />,
+    'Mistral AI': <Box
+      component="img"
+      src={MistralIcon}
+      alt="Mistral AI"
+      sx={{
+        width: "1rem",
+        height: "1rem"
+      }} />,
   })[brand];

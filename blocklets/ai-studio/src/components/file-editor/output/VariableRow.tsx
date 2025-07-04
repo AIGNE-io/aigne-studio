@@ -462,24 +462,32 @@ function OutputFromSelector({
 
         return (
           <Box
-            maxWidth={300}
             className="center"
-            gap={0.5}
-            justifyContent="flex-start"
-            color="action.disabled"
             onClick={() =>
               onEdit?.(true, {
                 id: output.id,
                 agentInstanceId: agentInstanceId,
                 outputVariableId: outputVariableId,
               })
-            }>
+            }
+            sx={{
+              maxWidth: 300,
+              gap: 0.5,
+              justifyContent: "flex-start",
+              color: "action.disabled"
+            }}>
             <Typography className="ellipsis">
               {outputVariableName
                 ? t('agentSpecificOutput', { agentName, outputName: outputVariableName })
                 : t('agentAllOutputs', { agentName })}
             </Typography>
-            <Box component={Icon} icon={ChevronDownIcon} width={15} sx={{ mt: 0.3 }} />
+            <Box
+              component={Icon}
+              icon={ChevronDownIcon}
+              sx={{
+                width: 15,
+                mt: 0.3
+              }} />
           </Box>
         );
       }
@@ -504,9 +512,16 @@ function OutputFromSelector({
         },
         disabled: output.hidden || current?.hidden,
         children: (
-          <Box className="center" gap={1} justifyContent="flex-start">
+          <Box
+            className="center"
+            sx={{
+              gap: 1,
+              justifyContent: "flex-start"
+            }}>
             <Box>{current?.label && <current.label output={output} />}</Box>
-            <Box component={Icon} icon={ChevronDownIcon} width={15} />
+            <Box component={Icon} icon={ChevronDownIcon} sx={{
+              width: 15
+            }} />
           </Box>
         ),
       }}>

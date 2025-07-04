@@ -39,11 +39,12 @@ export default function IndicatorTextField({
   const filterClients = uniqBy(current?.clients, 'clientID');
 
   return (
-    <Box {...boxProps} position="relative">
+    <Box {...boxProps} sx={[{
+      position: "relative"
+    }, ...(Array.isArray(boxProps.sx) ? boxProps.sx : [boxProps.sx])]}>
       <WithAwareness indicator={false} projectId={projectId} gitRef={gitRef} path={path}>
         <TextField {...TextFiledProps} />
       </WithAwareness>
-
       {!!current?.clients.length && (
         <Tooltip
           placement="top"

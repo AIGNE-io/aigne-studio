@@ -1,17 +1,17 @@
 import { Box, Chip, MenuItem, TextField, TextFieldProps } from '@mui/material';
 import isNil from 'lodash/isNil';
-import { forwardRef } from 'react';
 
 import { SelectParameter } from '../../types/assistant';
 
-const SelectField = forwardRef<
-  HTMLDivElement,
+const SelectField = (
   {
-    readOnly?: boolean;
-    parameter?: SelectParameter;
-    onChange: (value: string | string[]) => void;
-  } & Omit<TextFieldProps, 'onChange'>
->(({ readOnly, parameter, onChange, ...props }, ref) => {
+    ref,
+    readOnly,
+    parameter,
+    onChange,
+    ...props
+  }
+) => {
   return (
     <TextField
       ref={ref}
@@ -33,29 +33,6 @@ const SelectField = forwardRef<
             : props.value
       }
       onChange={(e) => onChange(e.target.value)}
-      InputProps={{ ...props.InputProps, readOnly }}
-      SelectProps={{
-        ...props.SelectProps,
-        multiple: parameter?.multiple,
-        renderValue: parameter?.multiple
-          ? (selected: any) => (
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                {selected.map((value: any) => (
-                  <Chip key={value} label={value} />
-                ))}
-              </Box>
-            )
-          : undefined,
-        MenuProps: {
-          ...props.SelectProps?.MenuProps,
-          sx: {
-            ...props.SelectProps?.MenuProps?.sx,
-            '.MuiMenuItem-root': {
-              whiteSpace: 'pre-wrap',
-            },
-          },
-        },
-      }}
       sx={{
         ...props.sx,
         '& .MuiSelect-select .notranslate::after': parameter?.placeholder
@@ -68,6 +45,32 @@ const SelectField = forwardRef<
           {
             opacity: 0,
           },
+      }}
+      slotProps={{
+        input: { ...props.InputProps, readOnly },
+
+        select: {
+          ...props.SelectProps,
+          multiple: parameter?.multiple,
+          renderValue: parameter?.multiple
+            ? (selected: any) => (
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                  {selected.map((value: any) => (
+                    <Chip key={value} label={value} />
+                  ))}
+                </Box>
+              )
+            : undefined,
+          MenuProps: {
+            ...props.SelectProps?.MenuProps,
+            sx: {
+              ...props.SelectProps?.MenuProps?.sx,
+              '.MuiMenuItem-root': {
+                whiteSpace: 'pre-wrap',
+              },
+            },
+          },
+        }
       }}>
       {parameter?.options?.map((option) => (
         <MenuItem key={option.id} value={option.value || option.label}>
@@ -76,6 +79,6 @@ const SelectField = forwardRef<
       ))}
     </TextField>
   );
-});
+};
 
 export default SelectField;

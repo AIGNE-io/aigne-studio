@@ -16,7 +16,9 @@ export function CacheSettingsSummary({ agent }: { agent: AssistantYjs }) {
   const { t } = useLocaleContext();
 
   return (
-    <Typography variant="caption" color="text.secondary">
+    <Typography variant="caption" sx={{
+      color: "text.secondary"
+    }}>
       {agent.cache?.enable ? t('enabled') : t('disabled')}
     </Typography>
   );
@@ -27,7 +29,14 @@ export function CacheSettings({ agent }: { agent: AssistantYjs }) {
   const doc = (getYjsValue(agent) as Map<any>).doc!;
 
   return (
-    <Stack direction="row" alignItems="center" px={1.5} py={1} gap={4}>
+    <Stack
+      direction="row"
+      sx={{
+        alignItems: "center",
+        px: 1.5,
+        py: 1,
+        gap: 4
+      }}>
       <FormControl>
         <FormControlLabel
           labelPlacement="start"
@@ -46,7 +55,6 @@ export function CacheSettings({ agent }: { agent: AssistantYjs }) {
           }
         />
       </FormControl>
-
       <DeleteCacheButton agent={agent} />
     </Stack>
   );
@@ -62,11 +70,15 @@ function DeleteCacheButton({ agent }: { agent: AssistantYjs }) {
   );
 
   return (
-    <Stack direction="row" gap={1} alignItems="center">
+    <Stack
+      direction="row"
+      sx={{
+        gap: 1,
+        alignItems: "center"
+      }}>
       <LoadingButton variant="outlined" size="small" onClick={run}>
         {t('cleanCache')}
       </LoadingButton>
-
       <Fade in={!!data && !error} timeout={300}>
         <Box sx={{ color: 'success.main', fontSize: 24 }}>
           <Icon icon={CheckIcon} />

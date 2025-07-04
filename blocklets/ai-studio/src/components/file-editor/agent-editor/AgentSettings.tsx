@@ -71,14 +71,23 @@ export function AgentSettings({ agent }: { agent: AssistantYjs }) {
             }
           }}>
           <AccordionSummary expandIcon={<Icon icon={ChevronDown} />}>
-            <Stack direction="row" alignItems="baseline" gap={1}>
+            <Stack
+              direction="row"
+              sx={{
+                alignItems: "baseline",
+                gap: 1
+              }}>
               <Typography>{item.title}</Typography>
               <Box className="hidden-expanded">{item.summary}</Box>
             </Stack>
           </AccordionSummary>
 
           <AccordionDetails>
-            <Box bgcolor="background.paper" borderRadius={1}>
+            <Box
+              sx={{
+                bgcolor: "background.paper",
+                borderRadius: 1
+              }}>
               {item.detail}
             </Box>
           </AccordionDetails>

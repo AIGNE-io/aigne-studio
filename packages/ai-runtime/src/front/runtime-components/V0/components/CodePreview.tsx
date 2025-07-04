@@ -43,9 +43,10 @@ function RetryComponent({ message, tip }: { message: MessageItem | undefined; ti
           fontSize: 120,
         }}
       />
-
       {message?.error?.type === SubscriptionErrorType.UNSUBSCRIBED ? (
-        <Box width="100%">
+        <Box sx={{
+          width: "100%"
+        }}>
           <AgentErrorView error={message.error} />
         </Box>
       ) : (
@@ -78,7 +79,6 @@ function RetryComponent({ message, tip }: { message: MessageItem | undefined; ti
           </TransparentTooltip>
         </Typography>
       )}
-
       <LoadingButton
         variant="contained"
         loading={loading}

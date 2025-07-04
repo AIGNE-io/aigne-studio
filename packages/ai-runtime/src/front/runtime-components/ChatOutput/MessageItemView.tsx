@@ -85,12 +85,12 @@ function UserMessage({ message, hideAvatar }: { message: MessageItem; hideAvatar
     <Stack
       className="ai-chat-message-user"
       direction="row"
-      gap={1.5}
       sx={{
+        gap: 1.5,
         display: 'flex',
         flexDirection: 'row-reverse',
         textAlign: 'right',
-        justifyContent: 'flex-end',
+        justifyContent: 'flex-end'
       }}>
       {!hideAvatar && (
         <Box>
@@ -104,14 +104,13 @@ function UserMessage({ message, hideAvatar }: { message: MessageItem; hideAvatar
           />
         </Box>
       )}
-
       <Stack
-        flex={1}
-        overflow="hidden"
         sx={{
+          flex: 1,
+          overflow: "hidden",
           display: 'flex',
           flexDirection: 'column',
-          alignItems: 'flex-end',
+          alignItems: 'flex-end'
         }}>
         {!hideAvatar && (
           <MessageUserName>
@@ -140,7 +139,9 @@ function AgentMessage({ message, hideAvatar }: { message: MessageItem; hideAvata
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   return (
-    <Stack className="ai-chat-message-ai" direction="row" gap={1.5}>
+    <Stack className="ai-chat-message-ai" direction="row" sx={{
+      gap: 1.5
+    }}>
       {!hideAvatar && (
         <Box>
           <Avatar
@@ -153,8 +154,11 @@ function AgentMessage({ message, hideAvatar }: { message: MessageItem; hideAvata
           />
         </Box>
       )}
-
-      <Box flex={1} width={0}>
+      <Box
+        sx={{
+          flex: 1,
+          width: 0
+        }}>
         {!hideAvatar && (
           <MessageUserName>
             {profile.name}
@@ -196,7 +200,9 @@ function AgentMessage({ message, hideAvatar }: { message: MessageItem; hideAvata
                   />
                 )
               }>
-              <Stack gap={1} className="message-response">
+              <Stack className="message-response" sx={{
+                gap: 1
+              }}>
                 {message.outputs?.content && (
                   <MarkdownRenderer className={isMessageLoading ? 'writing' : ''}>
                     {message.outputs.content}
@@ -241,7 +247,9 @@ export function MessageItemWrapper({
       {...props}
       className={cx('ai-chat-message-item', hideAvatar && 'hide-avatar', props.className)}>
       {agentMessage && (
-        <Stack className="ai-chat-message-ai" direction="row" gap={1.5}>
+        <Stack className="ai-chat-message-ai" direction="row" sx={{
+          gap: 1.5
+        }}>
           {!hideAvatar && (
             <Box>
               <Avatar
@@ -255,7 +263,11 @@ export function MessageItemWrapper({
             </Box>
           )}
 
-          <Box flex={1} width={0}>
+          <Box
+            sx={{
+              flex: 1,
+              width: 0
+            }}>
             {!hideAvatar && (
               <MessageUserName>
                 {profile.name}

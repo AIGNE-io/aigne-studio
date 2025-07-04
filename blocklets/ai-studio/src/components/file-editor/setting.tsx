@@ -33,8 +33,15 @@ export default function PromptSetting({
   const dialogState = usePopupState({ variant: 'dialog' });
 
   return (
-    <Stack gap={2} direction="row" justifyContent="flex-end">
-      <Stack direction="row" alignItems="center">
+    <Stack
+      direction="row"
+      sx={{
+        gap: 2,
+        justifyContent: "flex-end"
+      }}>
+      <Stack direction="row" sx={{
+        alignItems: "center"
+      }}>
         <ModelSelectLite
           type={resolveModelType(value)!}
           projectId={projectId}
@@ -43,7 +50,6 @@ export default function PromptSetting({
         />
         <ModelSettingsMenuButton agent={value as ModelBasedAssistantYjs} />
       </Stack>
-
       <Dialog
         {...bindDialog(dialogState)}
         fullWidth
@@ -59,7 +65,9 @@ export default function PromptSetting({
         </DialogTitle>
 
         <DialogContent>
-          <Stack gap={1.5}>
+          <Stack sx={{
+            gap: 1.5
+          }}>
             {(isPromptAssistant(value) || isRouterAssistant(value)) && (
               <PromptSettings projectId={projectId} gitRef={gitRef} value={value} readOnly={readOnly} />
             )}

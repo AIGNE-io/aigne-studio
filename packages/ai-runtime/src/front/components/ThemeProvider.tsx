@@ -196,7 +196,6 @@ export default function ThemeProvider({ children }: { children?: ReactNode }) {
           <link key={url} rel="stylesheet" href={url} />
         ))}
       </Helmet>
-
       <CssBaseline>
         <GlobalStyles
           styles={(theme) =>
@@ -224,7 +223,12 @@ export default function ThemeProvider({ children }: { children?: ReactNode }) {
 
         <Suspense
           fallback={
-            <Stack flexGrow={1} alignItems="center" justifyContent="center">
+            <Stack
+              sx={{
+                flexGrow: 1,
+                alignItems: "center",
+                justifyContent: "center"
+              }}>
               <CircularProgress size={24} />
             </Stack>
           }>

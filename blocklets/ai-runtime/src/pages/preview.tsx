@@ -16,11 +16,14 @@ export default function PreviewPage() {
   return (
     <>
       <ApplicationHeader application={data} />
-
       {data ? (
         <AgentView aid={aid} working />
       ) : loading ? (
-        <Box textAlign="center" my={10}>
+        <Box
+          sx={{
+            textAlign: "center",
+            my: 10
+          }}>
           <CircularProgress size={24} />
         </Box>
       ) : (

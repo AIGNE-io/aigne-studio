@@ -181,10 +181,13 @@ function Layout({ children }: { children: ReactNode }) {
 function NotFound() {
   return (
     <Layout>
-      <Box flexGrow={1} textAlign="center">
+      <Box
+        sx={{
+          flexGrow: 1,
+          textAlign: "center"
+        }}>
         <Box data-testid="not-found">Not Found.</Box>
       </Box>
-
       <Footer
         // FIXME: remove following undefined props after issue https://github.com/ArcBlock/ux/issues/1136 solved
         meta={undefined}

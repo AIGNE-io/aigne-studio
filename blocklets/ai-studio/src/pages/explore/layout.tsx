@@ -95,7 +95,13 @@ function CategoriesSidebar({
       }}>
       {isMobile ? (
         <Box>
-          <Box px={2} display="flex" alignItems="center" gap={1.5}>
+          <Box
+            sx={{
+              px: 2,
+              display: "flex",
+              alignItems: "center",
+              gap: 1.5
+            }}>
             <IconButton sx={{ p: '5px', borderRadius: 1, border: '1px solid #EFF1F5' }} onClick={onClose}>
               <Box component={Icon} icon="tabler:x" sx={{ fontSize: 20 }} />
             </IconButton>
@@ -108,26 +114,38 @@ function CategoriesSidebar({
           <Divider sx={{ my: 2 }} />
         </Box>
       ) : (
-        <Box px={2} mb={2} width={1} sx={{ button: { width: 1 } }}>
+        <Box
+          sx={{
+            px: 2,
+            mb: 2,
+            width: 1,
+            button: { width: 1 }
+          }}>
           <CreateProject />
         </Box>
       )}
-
       {categories.length === 0 && (
-        <Stack flex={1} height={0} justifyContent="center" alignItems="center">
+        <Stack
+          sx={{
+            flex: 1,
+            height: 0,
+            justifyContent: "center",
+            alignItems: "center"
+          }}>
           <Box
             data-testid="no-categories"
-            display="flex"
-            flexDirection="column"
-            alignItems="center"
-            gap={1}
-            onClick={() => navigate('/admin/category')}>
+            onClick={() => navigate('/admin/category')}
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 1
+            }}>
             <Box component={Icon} icon="tabler:plus" sx={{ fontSize: 24, color: 'text.disabled' }} />
             <Typography sx={{ color: 'text.disabled' }}>{t('category.noCategories')}</Typography>
           </Box>
         </Stack>
       )}
-
       {!!categories.length && (
         <List sx={{ m: 0, p: 0, px: 2 }}>
           {categories.map((category) => (
@@ -183,20 +201,39 @@ export default function ExploreCategoryLayout() {
   // NOTE: 直接使用 `loading` 值作为条件可能会导致 `Outlet` re-mount.
   if (loading !== false) {
     return (
-      <Box width={1} height={1} display="flex" justifyContent="center" alignItems="center">
+      <Box
+        sx={{
+          width: 1,
+          height: 1,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center"
+        }}>
         <CircularProgress />
       </Box>
     );
   }
 
   return (
-    <Stack width={1} height={1} overflow="hidden" bgcolor="background.paper" direction={isMobile ? 'column' : 'row'}>
+    <Stack
+      direction={isMobile ? 'column' : 'row'}
+      sx={{
+        width: 1,
+        height: 1,
+        overflow: "hidden",
+        bgcolor: "background.paper"
+      }}>
       {!isMobile && (
-        <Box minWidth={300} maxWidth={500} width="20%" sx={{ borderRight: '1px solid #EFF1F5' }}>
+        <Box
+          sx={{
+            minWidth: 300,
+            maxWidth: 500,
+            width: "20%",
+            borderRight: '1px solid #EFF1F5'
+          }}>
           <CategoriesSidebar categories={categories} isMobile={isMobile} onClose={() => {}} />
         </Box>
       )}
-
       <Box
         sx={{
           flex: 1,
@@ -226,8 +263,19 @@ export function MobileSidebarHeader({ categories = [] }: { categories: Category[
   const currentCategory = categories.find((category) => category.slug === params?.categorySlug);
   return (
     <>
-      <Box display="flex" justifyContent="space-between" alignItems="center" p={2}>
-        <Box display="flex" alignItems="center" gap={1.5}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          p: 2
+        }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1.5
+          }}>
           <IconButton sx={{ p: '5px', borderRadius: 1, border: '1px solid #EFF1F5' }} onClick={toggleDrawer}>
             <Box component={Icon} icon="tabler:menu-2" sx={{ fontSize: 20 }} />
           </IconButton>
@@ -239,9 +287,14 @@ export function MobileSidebarHeader({ categories = [] }: { categories: Category[
 
         <CreateProject />
       </Box>
-
       <Drawer anchor="left" open={drawerOpen} onClose={toggleDrawer}>
-        <Box minWidth={300} maxWidth={500} width={isMobile ? '100%' : '20%'} height={1}>
+        <Box
+          sx={{
+            minWidth: 300,
+            maxWidth: 500,
+            width: isMobile ? '100%' : '20%',
+            height: 1
+          }}>
           <CategoriesSidebar categories={categories} isMobile={isMobile} onClose={() => setDrawerOpen(false)} />
         </Box>
       </Drawer>

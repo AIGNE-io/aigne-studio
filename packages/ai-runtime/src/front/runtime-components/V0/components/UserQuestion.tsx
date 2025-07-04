@@ -55,11 +55,11 @@ export default function UserQuestion({ question }: { question?: string }) {
             return (
               <Box
                 ref={containerRef}
-                display="flex"
-                alignItems="center"
                 sx={{
+                  display: "flex",
+                  alignItems: "center",
                   ...BASE_QUESTION_SX,
-                  color: 'textColor',
+                  color: 'textColor'
                 }}>
                 {/* @ts-ignore */}
                 <ClickToCopy locale={locale} unstyled disableHoverListener disableFocusListener disableTouchListener>

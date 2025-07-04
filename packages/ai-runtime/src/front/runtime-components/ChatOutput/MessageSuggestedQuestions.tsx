@@ -13,7 +13,9 @@ export default function MessageSuggestedQuestions({
 
   if (suggestedQuestions?.length) {
     return (
-      <Stack gap={1}>
+      <Stack sx={{
+        gap: 1
+      }}>
         {suggestedQuestions.map((item) => {
           return (
             <MessageSuggestedQuestion key={item.question} onClick={() => onClick?.(item)}>

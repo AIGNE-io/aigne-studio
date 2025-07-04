@@ -12,7 +12,9 @@ export default function ReferencedLinksView() {
 
   return (
     <OutputFieldContainer output={output}>
-      <Stack gap={1}>
+      <Stack sx={{
+        gap: 1
+      }}>
         {outputValue.map((item, index) => (
           <Link key={index} href={item.url}>
             {item.title}

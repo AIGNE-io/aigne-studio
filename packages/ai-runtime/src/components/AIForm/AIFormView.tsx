@@ -48,8 +48,12 @@ export default function AIFormView({
   );
 
   return (
-    <Stack component="form" onSubmit={handleSubmit} gap={2}>
-      <Stack gap={2}>
+    <Stack component="form" onSubmit={handleSubmit} sx={{
+      gap: 2
+    }}>
+      <Stack sx={{
+        gap: 2
+      }}>
         {parameters.map((parameter) => {
           const { required, min, max, minLength, maxLength } = (parameter as any) ?? {};
 
@@ -102,7 +106,6 @@ export default function AIFormView({
           );
         })}
       </Stack>
-
       <LoadingButton
         fullWidth
         type="submit"

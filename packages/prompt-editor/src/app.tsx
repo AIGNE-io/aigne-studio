@@ -3,7 +3,15 @@ import { InitialConfigType, LexicalComposer } from '@lexical/react/LexicalCompos
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { Box, BoxProps } from '@mui/material';
 import { EditorState, LexicalEditor, TextNode } from 'lexical';
-import React, { ComponentProps, MutableRefObject, ReactNode, useCallback, useEffect, useRef } from 'react';
+import React, {
+  ComponentProps,
+  MutableRefObject,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useRef,
+  type JSX,
+} from 'react';
 
 import Editor from './editor';
 import PromptEditorNodes from './nodes/prompt-editor-nodes';

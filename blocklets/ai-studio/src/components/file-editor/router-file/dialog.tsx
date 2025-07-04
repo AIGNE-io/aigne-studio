@@ -38,7 +38,7 @@ import {
   styled,
 } from '@mui/material';
 import { sortBy } from 'lodash';
-import { forwardRef, useImperativeHandle, useMemo } from 'react';
+import { useImperativeHandle, useMemo } from 'react';
 import { Controller, UseFormReturn, useForm } from 'react-hook-form';
 
 import PromptEditorField from '../prompt-editor-field';
@@ -61,17 +61,26 @@ interface ToolDialogImperative {
 }
 const filter = createFilterOptions<Option>();
 
-const ToolDialog = forwardRef<
-  ToolDialogImperative,
+const ToolDialog = (
   {
+    ref,
+    assistant,
+    projectId,
+    gitRef,
+    onSubmit,
+    DialogProps,
+    openApis
+  }: {
     projectId: string;
     gitRef: string;
     onSubmit: (value: ToolDialogForm) => any;
     DialogProps?: DialogProps;
     assistant: RouterAssistantYjs;
     openApis: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
+  } & {
+    ref: React.RefObject<ToolDialogImperative | null>;
   }
->(({ assistant, projectId, gitRef, onSubmit, DialogProps, openApis }, ref) => {
+) => {
   const { t, locale } = useLocaleContext();
   const { store } = useProjectStore(projectId, gitRef);
   const assistantId = assistant.id;
@@ -112,10 +121,13 @@ const ToolDialog = forwardRef<
       component="form"
       onSubmit={form.handleSubmit(onSubmit)}>
       <DialogTitle>{t('selectTool')}</DialogTitle>
-
       <DialogContent>
-        <Stack gap={2}>
-          <Stack gap={1}>
+        <Stack sx={{
+          gap: 2
+        }}>
+          <Stack sx={{
+            gap: 1
+          }}>
             <Controller
               name="id"
               control={form.control}
@@ -221,7 +233,6 @@ const ToolDialog = forwardRef<
           />
         </Stack>
       </DialogContent>
-
       <DialogActions>
         {DialogProps?.onClose && (
           <Button onClick={(e) => DialogProps?.onClose?.(e, 'escapeKeyDown')} variant="outlined">
@@ -235,7 +246,7 @@ const ToolDialog = forwardRef<
       </DialogActions>
     </Dialog>
   );
-});
+};
 
 export const useFormatOpenApiToYjs = (openApis: DatasetObject[]) => {
   const { t, locale } = useLocaleContext();
@@ -291,12 +302,24 @@ const AgentParameters = ({
   }, [target]);
 
   return (
-    <Stack gap={1}>
+    <Stack sx={{
+      gap: 1
+    }}>
       {!!parameters?.length && (
         <Box>
           <Tooltip title={t('parametersTip', { variable: '{variable}' })} placement="top-start" disableInteractive>
-            <Stack justifyContent="space-between" direction="row" alignItems="center">
-              <Typography variant="subtitle2" color="text.secondary" mb={0}>
+            <Stack
+              direction="row"
+              sx={{
+                justifyContent: "space-between",
+                alignItems: "center"
+              }}>
+              <Typography
+                variant="subtitle2"
+                sx={{
+                  color: "text.secondary",
+                  mb: 0
+                }}>
                 {t('parameters')}
               </Typography>
 
@@ -305,7 +328,6 @@ const AgentParameters = ({
           </Tooltip>
         </Box>
       )}
-
       {parameters?.map(({ data: parameter }: any) => {
         if (!parameter?.key) return null;
         if (!file && !isValidInput(parameter)) return null;
@@ -345,10 +367,11 @@ const AgentParameters = ({
 
         return (
           <Stack key={parameter.id}>
-            <Typography variant="caption" mx={1}>
+            <Typography variant="caption" sx={{
+              mx: 1
+            }}>
               {parameter.label || parameter.key}
             </Typography>
-
             <Controller
               control={form.control}
               name={`parameters.${parameter.key}`}

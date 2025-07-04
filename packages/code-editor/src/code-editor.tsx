@@ -34,7 +34,7 @@ import { debounce } from 'lodash';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { editor } from 'monaco-editor';
 import { VimMode } from 'monaco-vim';
-import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { ResizableBox } from 'react-resizable';
 
 import { FullScreen, FullScreenOptions, useFullScreenHandle } from './components/react-full-screen';
@@ -46,11 +46,11 @@ import usePrettier from './plugins/prettier';
 
 const useVimMode = (
   editorInstance: EditorInstance,
-  statusRef: React.RefObject<HTMLElement>,
+  statusRef: React.RefObject<HTMLElement | null>,
   settings: { vim?: boolean; vimMode?: 'insert' | 'normal' },
   setSettings: any
 ) => {
-  const vimModeRef = useRef<any>();
+  const vimModeRef = useRef<any>(undefined);
   const update = useUpdate();
 
   useEffect(() => {
@@ -102,330 +102,340 @@ const useGlobalEditorSettings = () => {
   });
 };
 
-const CodeEditor = forwardRef(
-  (
-    {
-      keyId,
-      readOnly,
-      maxHeight,
-      locale = 'en',
-      fullScreenOptions = {
-        enableEscExit: true,
-        targetContainer: null,
-      },
-      ...props
-    }: {
-      keyId: string;
-      readOnly?: boolean;
-      maxHeight?: number;
-      locale: string;
-      typeScriptNoValidation?: boolean;
-      onUpload?: (callback: (url: string) => void) => void;
-      fullScreenOptions?: FullScreenOptions;
-    } & BoxProps<typeof Editor>,
-    ref
-  ) => {
-    const statusRef = useRef<HTMLElement>(null);
-    const dialogState = usePopupState({ variant: 'dialog' });
+const CodeEditor = (
+  {
+    ref,
+    keyId,
+    readOnly,
+    maxHeight,
+    locale = 'en',
 
-    const { t } = useLocaleContext(locale);
-    const [editor, setEditor] = useState<EditorInstance>();
+    fullScreenOptions = {
+      enableEscExit: true,
+      targetContainer: null,
+    },
 
-    const theme = useTheme();
-    const handle = useFullScreenHandle();
+    ...props
+  }: {
+    keyId: string;
+    readOnly?: boolean;
+    maxHeight?: number;
+    locale: string;
+    typeScriptNoValidation?: boolean;
+    onUpload?: (callback: (url: string) => void) => void;
+    fullScreenOptions?: FullScreenOptions;
+  } & BoxProps<typeof Editor>
+) => {
+  const statusRef = useRef<HTMLElement>(null);
+  const dialogState = usePopupState({ variant: 'dialog' });
 
-    const [settings, setSettings] = useEditorSettings(keyId);
-    const [globalSettings, setGlobalSettings] = useGlobalEditorSettings();
-    const isBreakpointsDownSm = useMediaQuery(theme.breakpoints.down('md'));
+  const { t } = useLocaleContext(locale);
+  const [editor, setEditor] = useState<EditorInstance>();
 
-    const editorTheme = useMemo(() => {
-      // user defined theme
-      if (props.theme) {
-        return props.theme;
-      }
+  const theme = useTheme();
+  const handle = useFullScreenHandle();
 
-      // auto detect theme by useTheme
-      if (theme.palette.mode === 'dark') {
-        return 'vs-dark';
-      }
+  const [settings, setSettings] = useEditorSettings(keyId);
+  const [globalSettings, setGlobalSettings] = useGlobalEditorSettings();
+  const isBreakpointsDownSm = useMediaQuery(theme.breakpoints.down('md'));
 
-      return 'vs';
-    }, [theme.palette.mode, props.theme]);
+  const editorTheme = useMemo(() => {
+    // user defined theme
+    if (props.theme) {
+      return props.theme;
+    }
 
-    // Update editor theme when it changes
-    useEffect(() => {
-      // @ts-ignore
-      if (editor) {
-        editor.updateOptions({ theme: editorTheme });
-      }
-    }, [editorTheme]);
+    // auto detect theme by useTheme
+    if (theme.palette.mode === 'dark') {
+      return 'vs-dark';
+    }
 
-    const { registerEmmet } = useEmmet();
-    const { registerPrettier } = usePrettier();
-    const { registerCloseTag } = useAutoCloseTag();
+    return 'vs';
+  }, [theme.palette.mode, props.theme]);
 
-    useVimMode(editor!, statusRef, { ...globalSettings, ...settings }, setSettings);
+  // Update editor theme when it changes
+  useEffect(() => {
+    // @ts-ignore
+    if (editor) {
+      editor.updateOptions({ theme: editorTheme });
+    }
+  }, [editorTheme]);
 
-    useImperativeHandle(ref, () => ({ insertText }));
+  const { registerEmmet } = useEmmet();
+  const { registerPrettier } = usePrettier();
+  const { registerCloseTag } = useAutoCloseTag();
 
-    const fullScreenOpts = useMemo(
-      () => ({
-        enableEscExit: fullScreenOptions?.enableEscExit ?? true,
-        targetContainer: fullScreenOptions?.targetContainer ?? null,
-      }),
-      [fullScreenOptions]
-    );
+  useVimMode(editor!, statusRef, { ...globalSettings, ...settings }, setSettings);
 
-    const currentHeight = useMemo(() => {
-      if (handle.active) {
-        return Infinity;
-      }
+  useImperativeHandle(ref, () => ({ insertText }));
 
-      if (settings?.adjustHeight && settings?.memoryHeight) {
-        return settings?.currentHeight;
-      }
+  const fullScreenOpts = useMemo(
+    () => ({
+      enableEscExit: fullScreenOptions?.enableEscExit ?? true,
+      targetContainer: fullScreenOptions?.targetContainer ?? null,
+    }),
+    [fullScreenOptions]
+  );
 
-      return 300;
-    }, [handle.active, settings?.currentHeight, settings?.adjustHeight, settings?.memoryHeight]);
+  const currentHeight = useMemo(() => {
+    if (handle.active) {
+      return Infinity;
+    }
 
-    // code syntax error
-    const [codeSyntaxError, setCodeSyntaxError] = useState(null);
-    const debouncedCheckCodeSyntax = useMemo(
-      () =>
-        debounce((code: string) => {
-          try {
-            if (props.language === 'yaml') {
-              yaml.load(code);
-            }
-            setCodeSyntaxError(null);
-          } catch (error) {
-            console.error('code syntax error: ', error);
-            setCodeSyntaxError(error.message);
+    if (settings?.adjustHeight && settings?.memoryHeight) {
+      return settings?.currentHeight;
+    }
+
+    return 300;
+  }, [handle.active, settings?.currentHeight, settings?.adjustHeight, settings?.memoryHeight]);
+
+  // code syntax error
+  const [codeSyntaxError, setCodeSyntaxError] = useState(null);
+  const debouncedCheckCodeSyntax = useMemo(
+    () =>
+      debounce((code: string) => {
+        try {
+          if (props.language === 'yaml') {
+            yaml.load(code);
           }
-        }, 300),
-      [props.language]
-    );
+          setCodeSyntaxError(null);
+        } catch (error) {
+          console.error('code syntax error: ', error);
+          setCodeSyntaxError(error.message);
+        }
+      }, 300),
+    [props.language]
+  );
 
-    useEffect(() => {
-      return () => {
-        debouncedCheckCodeSyntax.cancel();
-      };
-    }, [debouncedCheckCodeSyntax]);
-
-    const onCodeChange = (code: string, e: editor.IModelContentChangedEvent) => {
-      props?.onChange?.(code, e);
-      debouncedCheckCodeSyntax(code);
+  useEffect(() => {
+    return () => {
+      debouncedCheckCodeSyntax.cancel();
     };
+  }, [debouncedCheckCodeSyntax]);
 
-    useEffect(() => {
-      debouncedCheckCodeSyntax(props.value || '');
-    }, [props.value, debouncedCheckCodeSyntax]);
+  const onCodeChange = (code: string, e: editor.IModelContentChangedEvent) => {
+    props?.onChange?.(code, e);
+    debouncedCheckCodeSyntax(code);
+  };
 
-    // add method to insert text
-    const insertText = useCallback(
-      (text: string) => {
-        if (!editor) return;
+  useEffect(() => {
+    debouncedCheckCodeSyntax(props.value || '');
+  }, [props.value, debouncedCheckCodeSyntax]);
 
-        const position = editor.getPosition();
-        editor.executeEdits('insert', [
-          {
-            range: {
-              startLineNumber: position?.lineNumber || 0,
-              startColumn: position?.column || 0,
-              endLineNumber: position?.lineNumber || 0,
-              endColumn: position?.column || 0,
-            },
-            text,
+  // add method to insert text
+  const insertText = useCallback(
+    (text: string) => {
+      if (!editor) return;
+
+      const position = editor.getPosition();
+      editor.executeEdits('insert', [
+        {
+          range: {
+            startLineNumber: position?.lineNumber || 0,
+            startColumn: position?.column || 0,
+            endLineNumber: position?.lineNumber || 0,
+            endColumn: position?.column || 0,
           },
-        ]);
-      },
-      [editor]
-    );
+          text,
+        },
+      ]);
+    },
+    [editor]
+  );
 
-    const editorRender = () => {
-      return (
-        <Resizable
-          width={Infinity}
-          height={currentHeight}
-          resizeHandles={handle.active || !settings?.adjustHeight ? [] : ['se']}
-          axis="y"
-          minConstraints={[Infinity, 300]}
-          onResize={(_e, data) => {
-            if (settings?.memoryHeight) setSettings((r) => ({ ...r!, currentHeight: data.size.height }));
-          }}>
-          <Container sx={{ overflow: 'hidden', borderRadius: 1 }}>
-            <Box flex={1} height={0} p={1}>
-              <Box
-                className={cx(props.className, globalSettings?.vim && settings?.vimMode === 'normal' && 'vim-normal')}
-                component={Editor}
-                {...props}
-                onChange={onCodeChange}
-                sx={{
-                  width: 1,
-                  height: 1,
-                  '.monaco-editor': { outline: 'none !important' },
-                  '--vscode-menu-background': 'rgba(255,255,255,1)',
-                  '--vscode-widget-shadow': 'rgba(0,0,0,0.1)',
-                  '.overflowingContentWidgets': { position: 'relative', zIndex: theme.zIndex.tooltip },
-                  ...props.sx,
-                  '&.vim-normal .cursor.monaco-mouse-cursor-text':
-                    settings?.vimMode === 'normal'
-                      ? {
-                          width: '9px !important',
-                          backgroundColor: '#aeafad',
-                          borderColor: '#aeafad',
-                          color: '#515052',
-                          opacity: 0.7,
-                        }
-                      : {},
-                }}
-                options={{
-                  lineNumbersMinChars: 2,
-                  formatOnPaste: true,
-                  autoIndent: true,
-                  formatOnType: true,
-                  scrollBeyondLastLine: false,
-                  padding: { bottom: 100 },
-                  minimap: { enabled: false },
-                  readOnly,
-                  tabSize: 2,
-                  insertSpaces: true,
-                  fixedOverflowWidgets: true,
-                  contextmenu: true,
-                  ...props.options,
-                  scrollbar: {
-                    alwaysConsumeMouseWheel: false,
-                    ...props.options?.scrollbar,
-                  },
-                }}
-                onMount={(editor: EditorInstance, monaco: Monaco) => {
-                  registerEmmet(editor, monaco);
-                  registerPrettier(editor, monaco, {
-                    theme: editorTheme,
-                    typeScriptNoValidation: props.typeScriptNoValidation,
-                  });
-                  registerCloseTag(editor, monaco);
+  const editorRender = () => {
+    return (
+      <Resizable
+        width={Infinity}
+        height={currentHeight}
+        resizeHandles={handle.active || !settings?.adjustHeight ? [] : ['se']}
+        axis="y"
+        minConstraints={[Infinity, 300]}
+        onResize={(_e, data) => {
+          if (settings?.memoryHeight) setSettings((r) => ({ ...r!, currentHeight: data.size.height }));
+        }}>
+        <Container sx={{ overflow: 'hidden', borderRadius: 1 }}>
+          <Box
+            sx={{
+              flex: 1,
+              height: 0,
+              p: 1
+            }}>
+            <Box
+              className={cx(props.className, globalSettings?.vim && settings?.vimMode === 'normal' && 'vim-normal')}
+              component={Editor}
+              {...props}
+              onChange={onCodeChange}
+              sx={{
+                width: 1,
+                height: 1,
+                '.monaco-editor': { outline: 'none !important' },
+                '--vscode-menu-background': 'rgba(255,255,255,1)',
+                '--vscode-widget-shadow': 'rgba(0,0,0,0.1)',
+                '.overflowingContentWidgets': { position: 'relative', zIndex: theme.zIndex.tooltip },
+                ...props.sx,
+                '&.vim-normal .cursor.monaco-mouse-cursor-text':
+                  settings?.vimMode === 'normal'
+                    ? {
+                        width: '9px !important',
+                        backgroundColor: '#aeafad',
+                        borderColor: '#aeafad',
+                        color: '#515052',
+                        opacity: 0.7,
+                      }
+                    : {},
+              }}
+              options={{
+                lineNumbersMinChars: 2,
+                formatOnPaste: true,
+                autoIndent: true,
+                formatOnType: true,
+                scrollBeyondLastLine: false,
+                padding: { bottom: 100 },
+                minimap: { enabled: false },
+                readOnly,
+                tabSize: 2,
+                insertSpaces: true,
+                fixedOverflowWidgets: true,
+                contextmenu: true,
+                ...props.options,
+                scrollbar: {
+                  alwaysConsumeMouseWheel: false,
+                  ...props.options?.scrollbar,
+                },
+              }}
+              onMount={(editor: EditorInstance, monaco: Monaco) => {
+                registerEmmet(editor, monaco);
+                registerPrettier(editor, monaco, {
+                  theme: editorTheme,
+                  typeScriptNoValidation: props.typeScriptNoValidation,
+                });
+                registerCloseTag(editor, monaco);
 
-                  setEditor(editor);
-                }}
-              />
+                setEditor(editor);
+              }}
+            />
+          </Box>
+
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              px: 1,
+              gap: 1,
+              backgroundColor: theme.palette.mode === 'dark' ? '#1e1e1e' : '#f5f5f5',
+              boxShadow:
+                theme.palette.mode === 'dark' ? '0 1px 3px rgba(0, 0, 0, 0.7)' : '0 1px 5px rgba(0, 0, 0, 0.1)',
+              zIndex: 1,
+              color: '#999',
+              py: 0.25,
+              // borderTop: '1px solid rgba(0, 0, 0, 0.1)',
+            }}>
+            {codeSyntaxError && (
+              <Box sx={{ display: 'flex', gap: 1, zIndex: 1, alignItems: 'center' }}>
+                <Tooltip
+                  title={
+                    <Box
+                      sx={{
+                        maxHeight: 200,
+                        overflow: "auto",
+                        whiteSpace: 'pre-wrap'
+                      }}>
+                      {codeSyntaxError}
+                    </Box>
+                  }
+                  placement="right">
+                  <Box component={Icon} icon={XBoxIcon} sx={{ fontSize: 20, color: '#F16E6E' }} />
+                </Tooltip>
+              </Box>
+            )}
+            <Box sx={{ flex: 1 }}>
+              <Box ref={statusRef} sx={{ fontSize: 10, width: 1, mt: '1px', color: '#999' }} />
             </Box>
 
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                px: 1,
-                gap: 1,
-                backgroundColor: theme.palette.mode === 'dark' ? '#1e1e1e' : '#f5f5f5',
-                boxShadow:
-                  theme.palette.mode === 'dark' ? '0 1px 3px rgba(0, 0, 0, 0.7)' : '0 1px 5px rgba(0, 0, 0, 0.1)',
-                zIndex: 1,
-                color: '#999',
-                py: 0.25,
-                // borderTop: '1px solid rgba(0, 0, 0, 0.1)',
-              }}>
-              {codeSyntaxError && (
-                <Box sx={{ display: 'flex', gap: 1, zIndex: 1, alignItems: 'center' }}>
-                  <Tooltip
-                    title={
-                      <Box maxHeight={200} overflow="auto" sx={{ whiteSpace: 'pre-wrap' }}>
-                        {codeSyntaxError}
-                      </Box>
-                    }
-                    placement="right">
-                    <Box component={Icon} icon={XBoxIcon} sx={{ fontSize: 20, color: '#F16E6E' }} />
-                  </Tooltip>
-                </Box>
-              )}
-              <Box sx={{ flex: 1 }}>
-                <Box ref={statusRef} sx={{ fontSize: 10, width: 1, mt: '1px', color: '#999' }} />
-              </Box>
-
-              <Box sx={{ display: 'flex', gap: 1, zIndex: 1, alignItems: 'center' }}>
-                {props.onUpload && (
-                  <IconButton
-                    size="small"
-                    onClick={() =>
-                      props.onUpload?.((url) => {
-                        insertText(url);
-                      })
-                    }>
-                    <Box component={Icon} icon={CloudUploadIcon} sx={{ color: 'action.active', fontSize: 20 }} />
-                  </IconButton>
-                )}
-
-                {globalSettings?.vim && (
-                  <Tooltip title={t('vimEnable')}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      <Box component={Icon} icon={LogosVim} sx={{ fontSize: 14, color: '#999' }} />
-                    </Box>
-                  </Tooltip>
-                )}
-
+            <Box sx={{ display: 'flex', gap: 1, zIndex: 1, alignItems: 'center' }}>
+              {props.onUpload && (
                 <IconButton
                   size="small"
-                  onClick={() => editor?.trigger('formatter', 'editor.action.formatDocument', {})}
-                  sx={{ borderRadius: 1 }}>
+                  onClick={() =>
+                    props.onUpload?.((url) => {
+                      insertText(url);
+                    })
+                  }>
+                  <Box component={Icon} icon={CloudUploadIcon} sx={{ color: 'action.active', fontSize: 20 }} />
+                </IconButton>
+              )}
+
+              {globalSettings?.vim && (
+                <Tooltip title={t('vimEnable')}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    <Box component={Icon} icon={ChecksIcon} sx={{ fontSize: 16, color: '#999' }} />
-                    <Box sx={{ fontSize: 12, color: '#999' }}>{t('prettier')}</Box>
+                    <Box component={Icon} icon={LogosVim} sx={{ fontSize: 14, color: '#999' }} />
                   </Box>
-                </IconButton>
+                </Tooltip>
+              )}
 
-                <IconButton size="small" onClick={handle.active ? handle.exit : handle.enter}>
-                  <Box
-                    component={Icon}
-                    icon={handle.active ? FullMinIcon : FullMaxIcon}
-                    sx={{ color: '#999', fontSize: 16 }}
-                  />
-                </IconButton>
-
-                <IconButton size="small" onClick={() => dialogState.open()}>
-                  <Box component={Icon} icon={SettingIcon} sx={{ color: 'action.active', fontSize: 20 }} />
-                </IconButton>
-              </Box>
-            </Box>
-          </Container>
-        </Resizable>
-      );
-    };
-
-    const minWidth = isBreakpointsDownSm ? 300 : theme.breakpoints.values.sm;
-    return (
-      <>
-        <Full handle={handle} options={fullScreenOpts}>
-          {handle.active ? <FullScreenContainer locale={locale}>{editorRender()}</FullScreenContainer> : editorRender()}
-        </Full>
-
-        <Settings component="form" fullScreen={isBreakpointsDownSm} style={{ minWidth }} {...bindDialog(dialogState)}>
-          <DialogTitle className="between">
-            <Box>{t('settings')}</Box>
-            <IconButton size="small" onClick={() => dialogState.close()}>
-              <Box component={Icon} icon={XIcon} sx={{ color: 'action.active', fontSize: 20 }} />
-            </IconButton>
-          </DialogTitle>
-
-          <DialogContent style={{ minWidth }}>
-            <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
-              <Box sx={{ p: 1 }} className="between">
-                <Box className="key">{t('vim')}</Box>
-                <Box>
-                  <Switch
-                    checked={Boolean(globalSettings?.vim ?? false)}
-                    onChange={(_, checked) => {
-                      setGlobalSettings((r) => ({ ...r!, vim: checked }));
-                    }}
-                  />
+              <IconButton
+                size="small"
+                onClick={() => editor?.trigger('formatter', 'editor.action.formatDocument', {})}
+                sx={{ borderRadius: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Box component={Icon} icon={ChecksIcon} sx={{ fontSize: 16, color: '#999' }} />
+                  <Box sx={{ fontSize: 12, color: '#999' }}>{t('prettier')}</Box>
                 </Box>
+              </IconButton>
+
+              <IconButton size="small" onClick={handle.active ? handle.exit : handle.enter}>
+                <Box
+                  component={Icon}
+                  icon={handle.active ? FullMinIcon : FullMaxIcon}
+                  sx={{ color: '#999', fontSize: 16 }}
+                />
+              </IconButton>
+
+              <IconButton size="small" onClick={() => dialogState.open()}>
+                <Box component={Icon} icon={SettingIcon} sx={{ color: 'action.active', fontSize: 20 }} />
+              </IconButton>
+            </Box>
+          </Box>
+        </Container>
+      </Resizable>
+    );
+  };
+
+  const minWidth = isBreakpointsDownSm ? 300 : theme.breakpoints.values.sm;
+  return (
+    <>
+      <Full handle={handle} options={fullScreenOpts}>
+        {handle.active ? <FullScreenContainer locale={locale}>{editorRender()}</FullScreenContainer> : editorRender()}
+      </Full>
+
+      <Settings component="form" fullScreen={isBreakpointsDownSm} style={{ minWidth }} {...bindDialog(dialogState)}>
+        <DialogTitle className="between">
+          <Box>{t('settings')}</Box>
+          <IconButton size="small" onClick={() => dialogState.close()}>
+            <Box component={Icon} icon={XIcon} sx={{ color: 'action.active', fontSize: 20 }} />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent style={{ minWidth }}>
+          <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
+            <Box sx={{ p: 1 }} className="between">
+              <Box className="key">{t('vim')}</Box>
+              <Box>
+                <Switch
+                  checked={Boolean(globalSettings?.vim ?? false)}
+                  onChange={(_, checked) => {
+                    setGlobalSettings((r) => ({ ...r!, vim: checked }));
+                  }}
+                />
               </Box>
             </Box>
-          </DialogContent>
-        </Settings>
-      </>
-    );
-  }
-);
+          </Box>
+        </DialogContent>
+      </Settings>
+    </>
+  );
+};
 
 const Full = styled(FullScreen)`
   width: 100%;
@@ -488,8 +498,8 @@ function FullScreenContainer({ locale, children }: { locale: string; children: R
 
   return (
     <Stack
-      gap={1}
       sx={{
+        gap: 1,
         borderRadius: 1,
         bgcolor: '#EFF6FF',
         px: 2,
@@ -497,29 +507,44 @@ function FullScreenContainer({ locale, children }: { locale: string; children: R
         width: 1,
         height: 1,
         overflow: 'hidden',
-        boxSize: 'border-box',
+        boxSize: 'border-box'
       }}>
-      <Box className="between" whiteSpace="nowrap" gap={2}>
+      <Box
+        className="between"
+        sx={{
+          whiteSpace: "nowrap",
+          gap: 2
+        }}>
         <Box
-          display="flex"
-          alignItems="center"
-          gap={0.5}
-          minHeight={32}
-          width={1}
-          overflow="hidden"
-          textOverflow="ellipsis">
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 0.5,
+            minHeight: 32,
+            width: 1,
+            overflow: "hidden",
+            textOverflow: "ellipsis"
+          }}>
           <Box sx={{ display: 'inline-flex', alignItems: 'center' }}>{t('editor')}</Box>
         </Box>
       </Box>
-
-      <Stack height={0} flex={1} gap={1} sx={{ borderRadius: 1, bgcolor: '#EFF6FF' }}>
+      <Stack
+        sx={{
+          height: 0,
+          flex: 1,
+          gap: 1,
+          borderRadius: 1,
+          bgcolor: '#EFF6FF'
+        }}>
         <Box
-          border="1px solid #3B82F6"
-          borderRadius={1}
-          bgcolor="background.paper"
-          width={1}
-          height={1}
-          sx={{ zIndex: (theme) => theme.zIndex.tooltip }}>
+          sx={{
+            border: "1px solid #3B82F6",
+            borderRadius: 1,
+            bgcolor: "background.paper",
+            width: 1,
+            height: 1,
+            zIndex: (theme) => theme.zIndex.tooltip
+          }}>
           {children}
         </Box>
       </Stack>

@@ -13,7 +13,7 @@ import { LoadingButton } from '@mui/lab';
 import { Alert, Box, Button, Stack, Tooltip, Typography } from '@mui/material';
 import { cloneDeep, sortBy } from 'lodash';
 import { nanoid } from 'nanoid';
-import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import { useImperativeHandle, useRef, useState } from 'react';
 import { joinURL } from 'ufo';
 
 import { WritingIndicator } from './debug-view';
@@ -50,17 +50,26 @@ export default function DebugView({
   };
 
   return (
-    <Stack gap={1.5} overflow="auto">
+    <Stack
+      sx={{
+        gap: 1.5,
+        overflow: "auto"
+      }}>
       <Box />
-
       <Stack
         direction="row"
-        alignItems="center"
-        justifyContent="space-between"
-        px={2}
-        bgcolor="background.paper"
-        sx={{ position: 'sticky', top: 0, zIndex: 2 }}>
-        <Typography variant="subtitle3" color="#9CA3AF">
+        sx={{
+          alignItems: "center",
+          justifyContent: "space-between",
+          px: 2,
+          bgcolor: "background.paper",
+          position: 'sticky',
+          top: 0,
+          zIndex: 2
+        }}>
+        <Typography variant="subtitle3" sx={{
+          color: "#9CA3AF"
+        }}>
           {t('testCaseCount', { count: tests.length })}{' '}
         </Typography>
 
@@ -72,11 +81,14 @@ export default function DebugView({
           {t('runAll')}
         </LoadingButton>
       </Stack>
-
       {tests.map(({ data }) => (
-        <Box px={2} key={data.id} className="test-case">
+        <Box key={data.id} className="test-case" sx={{
+          px: 2
+        }}>
           <TestCaseView
-            ref={(ref) => (refs.current[data.id] = ref)}
+            ref={ref => {
+              (refs.current[data.id] = ref);
+            }}
             projectId={projectId}
             gitRef={gitRef}
             assistant={assistant}
@@ -85,7 +97,6 @@ export default function DebugView({
           />
         </Box>
       ))}
-
       <Box />
     </Stack>
   );
@@ -95,16 +106,24 @@ interface ImperativeTestCaseView {
   run: () => Promise<any>;
 }
 
-const TestCaseView = forwardRef<
-  ImperativeTestCaseView,
+const TestCaseView = (
   {
+    ref,
+    projectId,
+    gitRef,
+    assistant,
+    test,
+    setCurrentTab
+  }: {
     projectId: string;
     gitRef: string;
     assistant: AssistantYjs;
     test: NonNullable<AssistantYjs['tests']>[string]['data'];
     setCurrentTab: (tab: string) => void;
+  } & {
+    ref: React.RefObject<ImperativeTestCaseView | null>;
   }
->(({ projectId, gitRef, assistant, test, setCurrentTab }, ref) => {
+) => {
   const { t } = useLocaleContext();
 
   const { newSession } = useDebugState({
@@ -188,10 +207,17 @@ const TestCaseView = forwardRef<
 
   return (
     <>
-      <Box className="between" mb={0.5} data-testid="test-case-view-header">
+      <Box className="between" data-testid="test-case-view-header" sx={{
+        mb: 0.5
+      }}>
         <Typography variant="subtitle3">{t('output')}</Typography>
 
-        <Stack direction="row" justifyContent="flex-end" mb={0.5}>
+        <Stack
+          direction="row"
+          sx={{
+            justifyContent: "flex-end",
+            mb: 0.5
+          }}>
           <Tooltip title={t('runThisCase')}>
             <span>
               <Button
@@ -227,7 +253,6 @@ const TestCaseView = forwardRef<
           </Tooltip>
         </Stack>
       </Box>
-
       <Box
         data-testid="test-case-view-body"
         sx={{
@@ -251,7 +276,9 @@ const TestCaseView = forwardRef<
           </Box>
         ))}
 
-        <Typography variant="subtitle2" fontWeight={400}>
+        <Typography variant="subtitle2" sx={{
+          fontWeight: 400
+        }}>
           {test.output}
 
           {loading && <WritingIndicator />}
@@ -267,4 +294,4 @@ const TestCaseView = forwardRef<
       </Box>
     </>
   );
-});
+};

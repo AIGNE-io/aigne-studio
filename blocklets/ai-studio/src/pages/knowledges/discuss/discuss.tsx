@@ -68,7 +68,9 @@ function DiscussionTable({
   return (
     <>
       {meilisearch && (
-        <Box my={1}>
+        <Box sx={{
+          my: 1
+        }}>
           <TextField
             sx={{ width: 1 }}
             label={t('alert.search')}
@@ -78,7 +80,6 @@ function DiscussionTable({
           />
         </Box>
       )}
-
       <DataGrid
         rowHeight={44}
         loading={loading}

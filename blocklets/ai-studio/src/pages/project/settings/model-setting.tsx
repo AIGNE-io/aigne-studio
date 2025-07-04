@@ -36,13 +36,21 @@ export default function ModelSetting({
   };
 
   return (
-    <Stack gap={1}>
-      <Box data-testid="prompt-setting" position="relative" className="between">
-        <Box flex={1}>
+    <Stack sx={{
+      gap: 1
+    }}>
+      <Box data-testid="prompt-setting" className="between" sx={{
+        position: "relative"
+      }}>
+        <Box sx={{
+          flex: 1
+        }}>
           <FormLabel>{t('provider')}</FormLabel>
         </Box>
 
-        <Box flex={1}>
+        <Box sx={{
+          flex: 1
+        }}>
           <AgentSelect
             readOnly={readOnly}
             type="llm-adapter"
@@ -72,13 +80,16 @@ export default function ModelSetting({
           />
         </Box>
       </Box>
-
       {projectSetting.executor?.agent?.id ? (
         <AgentParametersForm projectSetting={projectSetting} />
       ) : (
-        <Stack gap={1}>
+        <Stack sx={{
+          gap: 1
+        }}>
           <Box data-testid="project-setting-model">
-            <Typography variant="subtitle2" mb={0.5}>
+            <Typography variant="subtitle2" sx={{
+              mb: 0.5
+            }}>
               {t('model')}
             </Typography>
 
@@ -97,7 +108,9 @@ export default function ModelSetting({
           </Box>
 
           {model && (
-            <Stack gap={1}>
+            <Stack sx={{
+              gap: 1
+            }}>
               <Box className="prefer-inline">
                 <Box>
                   <Tooltip
@@ -284,13 +297,16 @@ function AgentParametersForm({ projectSetting }: { projectSetting: ProjectSettin
   if (!agent) return null;
 
   return (
-    <Stack gap={1}>
+    <Stack sx={{
+      gap: 1
+    }}>
       <AuthorizeButton agent={agent} />
-
       <Box>
         <Typography variant="subtitle2">{t('inputs')}</Typography>
 
-        <Stack gap={1}>
+        <Stack sx={{
+          gap: 1
+        }}>
           {agent.parameters?.map((data) => {
             if (data.hidden) return null;
 

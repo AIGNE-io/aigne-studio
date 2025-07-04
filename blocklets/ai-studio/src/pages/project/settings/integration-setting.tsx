@@ -44,11 +44,19 @@ function NpmIntegrationSetting() {
 
   return (
     <Box>
-      <Typography variant="subtitle2" fontWeight={600} mb={0.5}>
+      <Typography
+        variant="subtitle2"
+        sx={{
+          fontWeight: 600,
+          mb: 0.5
+        }}>
         {t('packageSetting')}
       </Typography>
-
-      <Stack gap={3} ml={1}>
+      <Stack
+        sx={{
+          gap: 3,
+          ml: 1
+        }}>
         {(['npm', 'pnpm', 'yarn'] as const).map((manager) => {
           const prefix = manager === 'pnpm' ? 'pnpm install ' : manager === 'yarn' ? 'yarn add' : 'npm install';
           const cmd = link && `${prefix} "${link}"`;
@@ -56,18 +64,21 @@ function NpmIntegrationSetting() {
           return <CopyLink key={manager} cmd={cmd} link={link} manager={manager} onGenerate={generateSecret} />;
         })}
       </Stack>
-
-      <Typography variant="subtitle2" fontWeight={600} mb={0.5} mt={3}>
+      <Typography
+        variant="subtitle2"
+        sx={{
+          fontWeight: 600,
+          mb: 0.5,
+          mt: 3
+        }}>
         AIGNE CLI
       </Typography>
-
       <Typography variant="caption">
         <Link href="https://github.com/AIGNE-io/aigne-framework/blob/main/docs/cli.md" target="_blank" sx={{ mx: 0.5 }}>
           AIGNE CLI
         </Link>
         {t('aigneCliTip')}
       </Typography>
-
       <CopyLink cmd={link ? `aigne run ${link}` : undefined} link={link} onGenerate={generateSecret} />
     </Box>
   );
@@ -97,14 +108,28 @@ function CopyLink({
 
   return (
     <Stack>
-      <Typography variant="subtitle2" mb={0.5}>
+      <Typography variant="subtitle2" sx={{
+        mb: 0.5
+      }}>
         {manager}
       </Typography>
-
-      <Stack direction="row" alignItems="center" gap={1} border={1} borderColor="divider" borderRadius={1} pl={1}>
-        <Typography flex={1} noWrap>
+      <Stack
+        direction="row"
+        sx={{
+          alignItems: "center",
+          gap: 1,
+          border: 1,
+          borderColor: "divider",
+          borderRadius: 1,
+          pl: 1
+        }}>
+        <Typography noWrap sx={{
+          flex: 1
+        }}>
           {cmd || (
-            <Typography component="span" color="text.disabled">
+            <Typography component="span" sx={{
+              color: "text.disabled"
+            }}>
               {t('clickToGenerateNpmLink')}
             </Typography>
           )}
@@ -164,12 +189,24 @@ function WebhookIntegrationSetting() {
   if (!agentId) return null;
   return (
     <Box>
-      <Typography variant="subtitle2" fontWeight={600} mb={0.5}>
+      <Typography
+        variant="subtitle2"
+        sx={{
+          fontWeight: 600,
+          mb: 0.5
+        }}>
         {t('webhookSetting')}
       </Typography>
-
-      <Stack gap={1} ml={1}>
-        <Box display="flex" alignItems="center">
+      <Stack
+        sx={{
+          gap: 1,
+          ml: 1
+        }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center"
+          }}>
           <Switch
             disabled={loading}
             checked={state?.status === 'enabled'}
@@ -188,7 +225,9 @@ function WebhookIntegrationSetting() {
 
 export default function IntegrationSetting() {
   return (
-    <Stack gap={3}>
+    <Stack sx={{
+      gap: 3
+    }}>
       <NpmIntegrationSetting />
       <WebhookIntegrationSetting />
     </Stack>

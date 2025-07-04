@@ -138,7 +138,6 @@ export default function AutoForm({
       className={cx('form', `label-position-${inlineLabel ? 'start' : 'top'}`)}
       onSubmit={form.handleSubmit(onSubmit)}>
       {isInInput && changeImageParameterRender && renderImageUploadPreview()}
-
       {parameters?.map((parameter, index) => {
         const { key, required } = parameter ?? {};
         if (!key) return null;
@@ -172,7 +171,6 @@ export default function AutoForm({
                 return (
                   <Stack className="form-item">
                     {parameter.label && <FormLabel>{parameter.label}</FormLabel>}
-
                     <AgentInputField
                       inputProps={{ 'data-testid': `runtime-input-${key}` }}
                       inputRef={field.ref}
@@ -193,7 +191,12 @@ export default function AutoForm({
                           ? {
                               endAdornment: (
                                 <InputAdornment position="end" sx={{ py: 3, mr: -0.75, alignSelf: 'flex-end' }}>
-                                  <Stack direction="row" alignItems="center" gap={1}>
+                                  <Stack
+                                    direction="row"
+                                    sx={{
+                                      alignItems: "center",
+                                      gap: 1
+                                    }}>
                                     {changeImageParameterRender && renderImageUploadIcon()}
 
                                     <LoadingButton
@@ -220,12 +223,18 @@ export default function AutoForm({
           </Box>
         );
       })}
-
       {!isInInput && (
-        <Stack gap={1}>
+        <Stack sx={{
+          gap: 1
+        }}>
           {changeImageParameterRender && renderImageUploadPreview()}
 
-          <Stack gap={1} direction="row" alignItems="center">
+          <Stack
+            direction="row"
+            sx={{
+              gap: 1,
+              alignItems: "center"
+            }}>
             {changeImageParameterRender && renderImageUploadIcon()}
 
             <LoadingButton

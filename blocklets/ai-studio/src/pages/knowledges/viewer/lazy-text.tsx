@@ -9,7 +9,12 @@ function ObjectLazyTextViewer({ url }: { url: string }) {
 
   if (loading) {
     return (
-      <Box width={1} height={1} className="center">
+      <Box
+        className="center"
+        sx={{
+          width: 1,
+          height: 1
+        }}>
         <CircularProgress />
       </Box>
     );
@@ -18,7 +23,11 @@ function ObjectLazyTextViewer({ url }: { url: string }) {
   // if (data) return <iframe id="id12321" title="dummy" width="100%" height="800" frameBorder="0" src={url} />;
 
   return (
-    <Box height={1} overflow="auto">
+    <Box
+      sx={{
+        height: 1,
+        overflow: "auto"
+      }}>
       <CodeMirror value={String(data)} editable={false} height="100%" />
     </Box>
   );

@@ -61,7 +61,9 @@ export function CronSettingsSummary({ agent }: { agent: AssistantYjs }) {
   if (!jobs.length) return null;
 
   return (
-    <Typography variant="caption" color="text.secondary">
+    <Typography variant="caption" sx={{
+      color: "text.secondary"
+    }}>
       {t('cronJobsSummary', { jobs: jobs.length, enabledJobs: enabledJobs.length })}
     </Typography>
   );
@@ -111,18 +113,32 @@ export function CronSettings({ agent }: { agent: AssistantYjs }) {
 
   if (!quotaChecker.checkCronJobs({ showPrice: false })) {
     return (
-      <Stack gap={1} py={1.5} alignItems="center">
+      <Stack
+        sx={{
+          gap: 1,
+          py: 1.5,
+          alignItems: "center"
+        }}>
         <PlanAlert>{t('upgradePrompts.cronJobs.desc')}</PlanAlert>
       </Stack>
     );
   }
   if (!jobs?.length) {
     return (
-      <Stack gap={1} p={2} alignItems="center">
-        <Typography variant="caption" color="text.secondary" textAlign="center">
+      <Stack
+        sx={{
+          gap: 1,
+          p: 2,
+          alignItems: "center"
+        }}>
+        <Typography
+          variant="caption"
+          sx={{
+            color: "text.secondary",
+            textAlign: "center"
+          }}>
           {t('emptyObjectTip', { object: t('cronJob') })}
         </Typography>
-
         <Button startIcon={<Icon icon={PlusIcon} />} onClick={newJob}>
           {t('new')}
         </Button>
@@ -179,13 +195,14 @@ export function CronSettings({ agent }: { agent: AssistantYjs }) {
           </TableBody>
         </Table>
 
-        <Box m={0.5}>
+        <Box sx={{
+          m: 0.5
+        }}>
           <Button startIcon={<Icon icon={PlusIcon} />} onClick={newJob}>
             {t('new')}
           </Button>
         </Box>
       </TableContainer>
-
       <Dialog maxWidth={job?.type === 'edit' ? 'sm' : 'md'} fullWidth {...bindDialog(dialogState)}>
         <DialogTitle>
           {job?.type === 'edit'
@@ -252,10 +269,13 @@ function CronSettingsForm({ agent, job }: { agent: AssistantYjs; job: CronJob })
   const doc = (getYjsValue(agent) as Map<any>).doc!;
 
   return (
-    <Stack gap={2}>
+    <Stack sx={{
+      gap: 2
+    }}>
       <TextField label={t('name')} value={job.name || ''} onChange={(e) => (job.name = e.target.value)} />
-
-      <Stack gap={1}>
+      <Stack sx={{
+        gap: 1
+      }}>
         <Typography variant="subtitle2">{t('time')}</Typography>
         <GlobalStyles
           styles={(theme) => ({
@@ -283,7 +303,6 @@ function CronSettingsForm({ agent, job }: { agent: AssistantYjs; job: CronJob })
           locale={locale === 'zh' ? cronLocaleZH : undefined}
         />
       </Stack>
-
       <Stack>
         <Typography variant="subtitle2">{t('inputs')}</Typography>
 
@@ -378,7 +397,6 @@ function CronJobHistories({ agent, job }: { agent: AssistantYjs; job: CronJob })
   return (
     <Box>
       {error && <Alert severity="error">{error.message}</Alert>}
-
       <TableContainer sx={{ 'td,th': { whiteSpace: 'nowrap' } }}>
         <Table size="small">
           <TableHead>
@@ -395,18 +413,24 @@ function CronJobHistories({ agent, job }: { agent: AssistantYjs; job: CronJob })
             {data?.list.map((item) => (
               <TableRow key={item.id} hover onClick={() => openDialog(item)} sx={{ cursor: 'pointer' }}>
                 <TableCell>
-                  <Typography noWrap maxWidth={150}>
+                  <Typography noWrap sx={{
+                    maxWidth: 150
+                  }}>
                     {JSON.stringify(item.inputs)}
                   </Typography>
                 </TableCell>
                 <TableCell>
-                  <Typography noWrap maxWidth={150}>
+                  <Typography noWrap sx={{
+                    maxWidth: 150
+                  }}>
                     {JSON.stringify(item.outputs)}
                   </Typography>
                 </TableCell>
                 <TableCell>
                   {item.error && (
-                    <Typography noWrap maxWidth={100}>
+                    <Typography noWrap sx={{
+                      maxWidth: 100
+                    }}>
                       {JSON.stringify(item.error)}
                     </Typography>
                   )}
@@ -423,33 +447,47 @@ function CronJobHistories({ agent, job }: { agent: AssistantYjs; job: CronJob })
           </TableBody>
         </Table>
       </TableContainer>
-
       {loading && !data?.list.length && (
-        <Stack alignItems="center" my={4}>
+        <Stack
+          sx={{
+            alignItems: "center",
+            my: 4
+          }}>
           <CircularProgress size={24} />
         </Stack>
       )}
-
       {data?.count === 0 && (
-        <Stack alignItems="center" my={4}>
-          <Typography variant="caption" color="text.secondary">
+        <Stack
+          sx={{
+            alignItems: "center",
+            my: 4
+          }}>
+          <Typography variant="caption" sx={{
+            color: "text.secondary"
+          }}>
             {t('noData')}
           </Typography>
         </Stack>
       )}
-
       {data && (
-        <Stack alignItems="flex-end" mt={4}>
+        <Stack
+          sx={{
+            alignItems: "flex-end",
+            mt: 4
+          }}>
           <Pagination count={Math.ceil(data.count / limit)} page={page} onChange={(_, page) => setPage(page)} />
         </Stack>
       )}
-
       <Dialog maxWidth="md" fullWidth {...bindDialog(dialogState)}>
         <DialogTitle>{t('executionHistory')}</DialogTitle>
 
         <DialogContent>
           {selectedHistory && (
-            <Stack gap={2} sx={{ pre: { whiteSpace: 'pre-wrap' } }}>
+            <Stack
+              sx={{
+                gap: 2,
+                pre: { whiteSpace: 'pre-wrap' }
+              }}>
               <Typography variant="caption">{t('input')}</Typography>
               <MdViewer content={`${'```json'}\n${JSON.stringify(selectedHistory.inputs, null, 2)}${'\n```'}`} />
 

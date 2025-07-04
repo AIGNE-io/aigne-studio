@@ -1,6 +1,6 @@
 import { cx } from '@emotion/css';
 import { Box, BoxProps, Drawer, backdropClasses, styled, useMediaQuery, useTheme } from '@mui/material';
-import { ReactNode, forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import { ReactNode, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { ImperativePanelHandle, Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 
 export interface ImperativeColumnsLayout {
@@ -10,24 +10,30 @@ export interface ImperativeColumnsLayout {
   expandRight: () => void;
 }
 
-const ColumnsLayout = forwardRef<
-  ImperativeColumnsLayout,
+const ColumnsLayout = (
   {
+    ref,
+    onLeftCollapse,
+    onRightCollapse,
+    ...props
+  }: {
     left?: ReactNode | ((props: { isLargeScreen: boolean; leftOpen: boolean; rightOpen: boolean }) => ReactNode);
     right?: ReactNode | ((props: { isLargeScreen: boolean; leftOpen: boolean; rightOpen: boolean }) => ReactNode);
     children?: ReactNode | ((props: { isLargeScreen: boolean; leftOpen: boolean; rightOpen: boolean }) => ReactNode);
     onLeftCollapse?: (collapsed: boolean) => void;
     onRightCollapse?: (collapsed: boolean) => void;
+  } & {
+    ref: React.RefObject<ImperativeColumnsLayout | null>;
   }
->(({ onLeftCollapse, onRightCollapse, ...props }, ref) => {
+) => {
   const [leftDrawerOpen, setLeftDrawerOpen] = useState(false);
   const [rightDrawerOpen, setRightDrawerOpen] = useState(false);
 
   const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(false);
   const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false);
 
-  const leftPanel = useRef<ImperativePanelHandle>();
-  const rightPanel = useRef<ImperativePanelHandle>();
+  const leftPanel = useRef<ImperativePanelHandle>(undefined);
+  const rightPanel = useRef<ImperativePanelHandle>(undefined);
 
   const theme = useTheme();
   const isLargeScreen = useMediaQuery(theme.breakpoints.up('md'));
@@ -63,23 +69,30 @@ const ColumnsLayout = forwardRef<
 
   if (!isLargeScreen) {
     return (
-      <Box height="100%" overflow="auto" bgcolor="background.paper">
+      <Box
+        sx={{
+          height: "100%",
+          overflow: "auto",
+          bgcolor: "background.paper"
+        }}>
         {children}
-
         <Drawer
           open={leftDrawerOpen}
           sx={{ zIndex: (theme) => theme.zIndex.speedDial, [`.${backdropClasses.root}`]: { top: 64 } }}
-          PaperProps={{ sx: { width: 300, height: 'unset', top: 64, bottom: 0, boxShadow: 0 } }}
-          onClose={() => setLeftDrawerOpen(false)}>
+          onClose={() => setLeftDrawerOpen(false)}
+          slotProps={{
+            paper: { sx: { width: 300, height: 'unset', top: 64, bottom: 0, boxShadow: 0 } }
+          }}>
           {left}
         </Drawer>
-
         <Drawer
           anchor="right"
           open={rightDrawerOpen}
           sx={{ zIndex: (theme) => theme.zIndex.speedDial, [`.${backdropClasses.root}`]: { top: 64 } }}
-          PaperProps={{ sx: { width: 'calc(100% - 32px)', height: 'unset', top: 64, bottom: 0, boxShadow: 0 } }}
-          onClose={() => setRightDrawerOpen(false)}>
+          onClose={() => setRightDrawerOpen(false)}
+          slotProps={{
+            paper: { sx: { width: 'calc(100% - 32px)', height: 'unset', top: 64, bottom: 0, boxShadow: 0 } }
+          }}>
           {right}
         </Drawer>
       </Box>
@@ -87,7 +100,11 @@ const ColumnsLayout = forwardRef<
   }
 
   return (
-    <Box height="100%" bgcolor="background.paper">
+    <Box
+      sx={{
+        height: "100%",
+        bgcolor: "background.paper"
+      }}>
       <Box component={PanelGroup} autoSaveId="ai-studio-template-layouts" direction="horizontal">
         {left && (
           <Box
@@ -141,7 +158,7 @@ const ColumnsLayout = forwardRef<
       </Box>
     </Box>
   );
-});
+};
 
 export default ColumnsLayout;
 

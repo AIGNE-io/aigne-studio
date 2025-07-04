@@ -20,7 +20,16 @@ export const StrValue = styled(Typography)(({ theme }) => ({
 
 export function JsonDisplay({ children }: { children: ReactNode }) {
   return (
-    <Box mb={1} maxHeight={250} overflow="auto" bgcolor="grey.50" whiteSpace="pre-wrap" borderRadius={1} px={1}>
+    <Box
+      sx={{
+        mb: 1,
+        maxHeight: 250,
+        overflow: "auto",
+        bgcolor: "grey.50",
+        whiteSpace: "pre-wrap",
+        borderRadius: 1,
+        px: 1
+      }}>
       {children}
     </Box>
   );

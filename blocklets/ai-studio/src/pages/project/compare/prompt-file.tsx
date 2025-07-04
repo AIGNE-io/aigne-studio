@@ -18,7 +18,12 @@ export default function ComparePromptAssistant({
   return (
     <>
       <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
-        <Box flex={1} display="flex" flexDirection="column">
+        <Box
+          sx={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column"
+          }}>
           <PromptAssistantEditorPrompts
             projectId={projectId}
             gitRef={gitRef}
@@ -29,7 +34,12 @@ export default function ComparePromptAssistant({
           />
         </Box>
 
-        <Box flex={1} display="flex" flexDirection="column">
+        <Box
+          sx={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column"
+          }}>
           <PromptAssistantEditorPrompts
             projectId={projectId}
             gitRef={gitRef}
@@ -39,13 +49,24 @@ export default function ComparePromptAssistant({
           />
         </Box>
       </Stack>
-
       <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
-        <Box flex={1} display="flex" flexDirection="column" gap={1.5}>
+        <Box
+          sx={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            gap: 1.5
+          }}>
           <PromptAssistantSetting projectId={projectId} gitRef={gitRef} value={remoteAssistant} readOnly />
         </Box>
 
-        <Box flex={1} display="flex" flexDirection="column" gap={1.5}>
+        <Box
+          sx={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            gap: 1.5
+          }}>
           <PromptAssistantSetting
             projectId={projectId}
             gitRef={gitRef}

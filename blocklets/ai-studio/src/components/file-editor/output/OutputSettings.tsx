@@ -78,15 +78,29 @@ export default function OutputSettings({
 
   return (
     <Box sx={{ background: '#F9FAFB', py: 1.5, px: 2, pb: 2, borderRadius: 1 }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
-        <Box display="flex" alignItems="center" gap={0.5}>
-          <Box component={AigneLogoOutput} fontSize={14} />
-          <Typography variant="subtitle2" mb={0}>
+      <Stack
+        direction="row"
+        sx={{
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 1
+        }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 0.5
+          }}>
+          <Box component={AigneLogoOutput} sx={{
+            fontSize: 14
+          }} />
+          <Typography variant="subtitle2" sx={{
+            mb: 0
+          }}>
             {t('outputs')}
           </Typography>
         </Box>
       </Stack>
-
       <Box sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1, overflow: 'auto' }}>
         <Box
           sx={{
@@ -118,16 +132,22 @@ export default function OutputSettings({
           <Table size="small">
             <TableHead>
               <TableRow>
-                <Box component={TableCell} width="30%">
+                <Box component={TableCell} sx={{
+                  width: "30%"
+                }}>
                   {t('name')}
                 </Box>
                 <Box component={TableCell}>{t('from')}</Box>
                 <Box component={TableCell}>{t('description')}</Box>
                 <Box component={TableCell}>{t('format')}</Box>
-                <Box component={TableCell} width={74}>
+                <Box component={TableCell} sx={{
+                  width: 74
+                }}>
                   {t('required')}
                 </Box>
-                <Box component={TableCell} width={74}>
+                <Box component={TableCell} sx={{
+                  width: 74
+                }}>
                   {t('appearance')}
                 </Box>
                 <Box component={TableCell} align="right" />

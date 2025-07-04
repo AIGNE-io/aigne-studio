@@ -21,7 +21,11 @@ export default function DiscussView({
   const [hiddenInstaller, setHiddenInstaller] = useState(false);
 
   const fallback = (
-    <Stack alignItems="center" my={10}>
+    <Stack
+      sx={{
+        alignItems: "center",
+        my: 10
+      }}>
       <Alert severity="warning">Add discuss-kit to continue</Alert>
     </Stack>
   );
@@ -34,7 +38,11 @@ export default function DiscussView({
     <Views sx={{ overflow: 'auto' }}>
       <Suspense
         fallback={
-          <Box textAlign="center" py={4}>
+          <Box
+            sx={{
+              textAlign: "center",
+              py: 4
+            }}>
             <CircularProgress size={24} />
           </Box>
         }>

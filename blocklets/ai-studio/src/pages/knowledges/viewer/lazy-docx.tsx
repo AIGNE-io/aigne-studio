@@ -57,7 +57,12 @@ function ObjectLazyDocxViewer({ url }: { url: string }) {
       }}>
       <Suspense fallback={null}>
         {loading ? (
-          <Box width={1} height={1} className="center">
+          <Box
+            className="center"
+            sx={{
+              width: 1,
+              height: 1
+            }}>
             <CircularProgress />
           </Box>
         ) : (

@@ -1,35 +1,36 @@
 import { TextField, TextFieldProps } from '@mui/material';
-import { forwardRef } from 'react';
 
 import { NumberParameter } from '../../../types';
 
-const NumberField = forwardRef<
-  HTMLDivElement,
+const NumberField = (
   {
-    readOnly?: boolean;
-    parameter?: NumberParameter;
-    onChange: (value: number) => void;
-  } & Omit<TextFieldProps, 'onChange'>
->(({ readOnly, parameter, ...props }, ref) => {
+    ref,
+    readOnly,
+    parameter,
+    ...props
+  }
+) => {
   return (
     <TextField
       ref={ref}
       {...props}
-      InputProps={{
-        ...props.InputProps,
-        readOnly,
-        inputProps: {
-          type: 'number',
-          inputMode: 'numeric',
-          pattern: '[0-9]*',
-          min: parameter?.min,
-          max: parameter?.max,
-          ...props.inputProps,
-        },
-      }}
       onChange={(e) => props.onChange?.(Number(e.target.value))}
+      slotProps={{
+        input: {
+          ...props.InputProps,
+          readOnly,
+          inputProps: {
+            type: 'number',
+            inputMode: 'numeric',
+            pattern: '[0-9]*',
+            min: parameter?.min,
+            max: parameter?.max,
+            ...props.inputProps,
+          },
+        }
+      }}
     />
   );
-});
+};
 
 export default NumberField;

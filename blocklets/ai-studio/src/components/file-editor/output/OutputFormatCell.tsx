@@ -36,7 +36,6 @@ export default function OutputFormatCell({
   return (
     <>
       {dialog}
-
       <VariableTypeField
         variant="standard"
         {...TextFieldProps}
@@ -62,7 +61,13 @@ export default function OutputFormatCell({
               title: <Box sx={{ wordWrap: 'break-word' }}>{t('outputVariableParameter.changeTypeTitle')}</Box>,
               content: (
                 <Box>
-                  <Typography fontWeight={500} fontSize={16} lineHeight="28px" color="#4B5563">
+                  <Typography
+                    sx={{
+                      fontWeight: 500,
+                      fontSize: 16,
+                      lineHeight: "28px",
+                      color: "#4B5563"
+                    }}>
                     {t('outputVariableParameter.change')}
                   </Typography>
                 </Box>
@@ -96,35 +101,38 @@ function VariableTypeField({ ...props }: TextFieldProps) {
   const { t } = useLocaleContext();
 
   return (
-    <TextField hiddenLabel placeholder={t('format')} select SelectProps={{ autoWidth: true }} {...props}>
+    <TextField
+      hiddenLabel
+      placeholder={t('format')}
+      select
+      {...props}
+      slotProps={{
+        select: { autoWidth: true }
+      }}>
       <MenuItem value="string">
         <ListItemIcon>
           <Icon icon={CursorTextIcon} />
         </ListItemIcon>
         {t('text')}
       </MenuItem>
-
       <MenuItem value="number">
         <ListItemIcon>
           <Icon icon={SquareNumberIcon} />
         </ListItemIcon>
         {t('number')}
       </MenuItem>
-
       <MenuItem value="boolean">
         <ListItemIcon>
           <Icon icon={ToggleLeftIcon} />
         </ListItemIcon>
         {t('boolean')}
       </MenuItem>
-
       <MenuItem value="object">
         <ListItemIcon>
           <Icon icon={CodePlusIcon} />
         </ListItemIcon>
         {t('object')}
       </MenuItem>
-
       <MenuItem value="array">
         <ListItemIcon>
           <Icon icon={BracketsContainIcon} />

@@ -75,7 +75,12 @@ export default function Discussion({ onChange }: { onChange: (value: CreateDiscu
 
   if (result.loading) {
     return (
-      <Box className="center" width={1} height={1}>
+      <Box
+        className="center"
+        sx={{
+          width: 1,
+          height: 1
+        }}>
         <CircularProgress />
       </Box>
     );
@@ -99,17 +104,38 @@ export default function Discussion({ onChange }: { onChange: (value: CreateDiscu
   };
 
   return (
-    <Box maxWidth="900px" component="form">
-      <Stack gap={1}>
-        <Typography fontWeight={500} fontSize={16} lineHeight="28px" color="#030712">
+    <Box component="form" sx={{
+      maxWidth: "900px"
+    }}>
+      <Stack sx={{
+        gap: 1
+      }}>
+        <Typography
+          sx={{
+            fontWeight: 500,
+            fontSize: 16,
+            lineHeight: "28px",
+            color: "#030712"
+          }}>
           {t('importFromDiscussion')}
         </Typography>
 
         <Box>
           <Typography variant="subtitle2">{t('discussionType')}</Typography>
-          <Stack gap={1.5} flexDirection={isMdOrAbove ? 'row' : 'column'}>
+          <Stack
+            sx={{
+              gap: 1.5,
+              flexDirection: isMdOrAbove ? 'row' : 'column'
+            }}>
             {types.map((name: 'discussion' | 'blog' | 'doc') => (
-              <Box borderRadius={1} p={2} border="1px solid #E5E7EB" flex={1} key={name}>
+              <Box
+                key={name}
+                sx={{
+                  borderRadius: 1,
+                  p: 2,
+                  border: "1px solid #E5E7EB",
+                  flex: 1
+                }}>
                 <FormControlLabel
                   control={
                     <Checkbox
@@ -134,7 +160,9 @@ export default function Discussion({ onChange }: { onChange: (value: CreateDiscu
 
         <Box>
           <Typography variant="subtitle2">{t('discussionBoards')}</Typography>
-          <Stack gap={1}>
+          <Stack sx={{
+            gap: 1
+          }}>
             {Object.entries(group).map(([key, value]) => {
               const prefix = (window.blocklet?.componentMountPoints || []).find(
                 (x) => x.name === 'did-comments'
@@ -150,15 +178,16 @@ export default function Discussion({ onChange }: { onChange: (value: CreateDiscu
               return (
                 <Box key={key}>
                   <Typography variant="subtitle3">{t(key)}</Typography>
-
                   <Stack
-                    gap={1.5}
-                    flexDirection="row"
-                    borderRadius={1}
-                    p={2}
-                    border="1px solid #E5E7EB"
-                    flex={1}
-                    flexWrap="wrap">
+                    sx={{
+                      gap: 1.5,
+                      flexDirection: "row",
+                      borderRadius: 1,
+                      p: 2,
+                      border: "1px solid #E5E7EB",
+                      flex: 1,
+                      flexWrap: "wrap"
+                    }}>
                     {value.map(({ id, title, type }) => {
                       url = joinURL(window.blocklet?.appUrl || '', prefix || '/', map[type], id);
 
@@ -167,11 +196,13 @@ export default function Discussion({ onChange }: { onChange: (value: CreateDiscu
                           key={id}
                           title={
                             <Stack
-                              flexDirection="row"
-                              gap={1}
-                              alignItems="center"
-                              sx={{ cursor: 'pointer' }}
-                              onClick={() => window.open(url, '_blank')}>
+                              onClick={() => window.open(url, '_blank')}
+                              sx={{
+                                flexDirection: "row",
+                                gap: 1,
+                                alignItems: "center",
+                                cursor: 'pointer'
+                              }}>
                               {t('visitLink')}
                               <Box component={Icon} icon={LinkIcon} />
                             </Stack>

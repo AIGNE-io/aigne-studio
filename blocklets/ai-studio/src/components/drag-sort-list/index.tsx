@@ -118,7 +118,7 @@ function ItemDND({
   itemIndex: (id: string) => number;
   move: (src: { id: string; index: number }, dst: { id: string; index: number }) => void;
 }) {
-  const ref = useRef<HTMLElement>();
+  const ref = useRef<HTMLElement>(undefined);
 
   const [{ isDragging }, drag, preview] = useDrag<{ id: string }, undefined, { isDragging: boolean }>({
     type,

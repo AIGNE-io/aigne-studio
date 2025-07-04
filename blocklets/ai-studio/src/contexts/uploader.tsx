@@ -2,7 +2,7 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { UploaderProps } from '@blocklet/uploader';
 import UploadIcon from '@mui/icons-material/Upload';
 import { IconButton, IconButtonProps } from '@mui/material';
-import { ReactNode, createContext, forwardRef, lazy, useContext, useImperativeHandle, useRef } from 'react';
+import { ReactNode, createContext, lazy, useContext, useImperativeHandle, useRef } from 'react';
 // @ts-ignore
 const UploaderComponent = lazy(() => import('@blocklet/uploader').then((res) => ({ default: res.Uploader })));
 const defaultAllowedFileTypes = ['image/png', 'image/jpeg', 'image/gif'];
@@ -57,7 +57,14 @@ export function UploaderButton({
   );
 }
 
-const UploaderProvider = forwardRef<HTMLDivElement, UploaderProviderProps>((props, ref) => {
+const UploaderProvider = (
+  {
+    ref,
+    ...props
+  }: UploaderProviderProps & {
+    ref: React.RefObject<HTMLDivElement | null>;
+  }
+) => {
   const {
     children,
     restrictions,
@@ -113,7 +120,7 @@ const UploaderProvider = forwardRef<HTMLDivElement, UploaderProviderProps>((prop
       />
     </UploaderContext.Provider>
   );
-});
+};
 
 export default UploaderProvider;
 

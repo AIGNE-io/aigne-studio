@@ -64,7 +64,11 @@ function DebugView() {
   return (
     <Suspense
       fallback={
-        <Box textAlign="center" my={4}>
+        <Box
+          sx={{
+            textAlign: "center",
+            my: 4
+          }}>
           <CircularProgress size={24} />
         </Box>
       }>
@@ -128,7 +132,13 @@ function SessionsBar() {
   };
 
   return (
-    <Stack p={2} direction="row" alignItems="center" gap={2}>
+    <Stack
+      direction="row"
+      sx={{
+        p: 2,
+        alignItems: "center",
+        gap: 2
+      }}>
       {loaded && !sessions?.length ? (
         <LoadingButton onClick={newSession}>New Session</LoadingButton>
       ) : (
@@ -152,7 +162,11 @@ function SessionsBar() {
               },
             }}>
             <MenuItem disabled value="">
-              <Typography fontStyle="italic" color="text.secondary">
+              <Typography
+                sx={{
+                  fontStyle: "italic",
+                  color: "text.secondary"
+                }}>
                 Select session
               </Typography>
             </MenuItem>
@@ -182,13 +196,12 @@ function SessionsBar() {
           </Tooltip>
         </>
       )}
-
-      <Box flex={1} />
-
+      <Box sx={{
+        flex: 1
+      }} />
       <LoadingButton onClick={() => setOpen?.(true)} sx={{ minWidth: 32, minHeight: 32, p: 0 }}>
         <Icon icon={WandIcon} fontSize={18} />
       </LoadingButton>
-
       {currentSessionId && (
         <Suspense>
           <SessionProvider sessionId={currentSessionId}>

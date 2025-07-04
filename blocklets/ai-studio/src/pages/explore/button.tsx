@@ -75,7 +75,7 @@ export function MakeYoursButton({
   const { t } = useLocaleContext();
   const navigate = useNavigate();
   const { session } = useSessionContext();
-  const [dialog, setDialog] = useState<ReactElement | null>(null);
+  const [dialog, setDialog] = useState<ReactElement<any> | null>(null);
   const { checkProjectLimitAsync } = useProjectLimiting();
 
   const onDialogClose = () => {

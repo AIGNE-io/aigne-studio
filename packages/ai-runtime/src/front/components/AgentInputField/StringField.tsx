@@ -1,16 +1,17 @@
 import { TextField, TextFieldProps, inputBaseClasses } from '@mui/material';
-import { KeyboardEvent, forwardRef, useCallback } from 'react';
+import { KeyboardEvent, useCallback } from 'react';
 
 import { StringParameter } from '../../../types';
 
-const StringField = forwardRef<
-  HTMLDivElement,
+const StringField = (
   {
-    readOnly?: boolean;
-    parameter?: StringParameter;
-    onChange: (value: string) => void;
-  } & Omit<TextFieldProps, 'onChange'>
->(({ readOnly, parameter, onChange, ...props }, ref) => {
+    ref,
+    readOnly,
+    parameter,
+    onChange,
+    ...props
+  }
+) => {
   const isQuestion = parameter?.key === 'question';
 
   const onKeyDown = useCallback(
@@ -35,14 +36,16 @@ const StringField = forwardRef<
       onChange={(e) => onChange(e.target.value)}
       onKeyDown={onKeyDown}
       {...props}
-      InputProps={{
-        readOnly,
-        ...props.InputProps,
-        sx: { py: 0, [`.${inputBaseClasses.input}`]: { py: 1 }, ...props.InputProps?.sx },
-        inputProps: { ...props.inputProps, maxLength: parameter?.maxLength },
+      slotProps={{
+        input: {
+          readOnly,
+          ...props.InputProps,
+          sx: { py: 0, [`.${inputBaseClasses.input}`]: { py: 1 }, ...props.InputProps?.sx },
+          inputProps: { ...props.inputProps, maxLength: parameter?.maxLength },
+        }
       }}
     />
   );
-});
+};
 
 export default StringField;
