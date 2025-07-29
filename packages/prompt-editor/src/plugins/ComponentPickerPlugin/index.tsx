@@ -5,7 +5,7 @@ import {
   useBasicTypeaheadTriggerMatch,
 } from '@lexical/react/LexicalTypeaheadMenuPlugin';
 import { LexicalEditor, TextNode } from 'lexical';
-import { useCallback, useMemo, useState, type JSX } from 'react';
+import { JSX, useCallback, useMemo, useState } from 'react';
 import * as ReactDOM from 'react-dom';
 
 export class ComponentPickerOption extends MenuOption {

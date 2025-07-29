@@ -3,15 +3,7 @@ import { InitialConfigType, LexicalComposer } from '@lexical/react/LexicalCompos
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { Box, BoxProps } from '@mui/material';
 import { EditorState, LexicalEditor, TextNode } from 'lexical';
-import React, {
-  ComponentProps,
-  MutableRefObject,
-  ReactNode,
-  useCallback,
-  useEffect,
-  useRef,
-  type JSX,
-} from 'react';
+import React, { ComponentProps, JSX, MutableRefObject, ReactNode, useCallback, useEffect, useRef } from 'react';
 
 import Editor from './editor';
 import PromptEditorNodes from './nodes/prompt-editor-nodes';
@@ -62,7 +54,7 @@ export default function PromptEditor({
   isDebug = false,
   editable = true,
   autoFocus = false,
-  children,
+  children = undefined,
   ...props
 }: PromptEditorProps): JSX.Element {
   const initialConfig: InitialConfigType = {
@@ -91,20 +83,20 @@ export default function PromptEditor({
 }
 
 function EditorShell({
-  useVariableNode,
-  placeholder,
-  isDebug,
-  children,
-  editable,
-  onChange,
-  editorRef,
-  autoFocus,
-  componentPickerProps,
-  variablePickerProps,
-  ContentProps,
-  variables,
-  popperElement,
-  onChangeVariableNode,
+  useVariableNode = undefined,
+  placeholder = undefined,
+  isDebug = undefined,
+  children = undefined,
+  editable = undefined,
+  onChange = undefined,
+  editorRef = undefined,
+  autoFocus = undefined,
+  componentPickerProps = undefined,
+  variablePickerProps = undefined,
+  ContentProps = undefined,
+  variables = undefined,
+  popperElement = undefined,
+  onChangeVariableNode = undefined,
   ...props
 }: PromptEditorProps) {
   const [editor] = useLexicalComposerContext();

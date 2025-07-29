@@ -10,7 +10,7 @@ import {
   TextNode,
   createCommand,
 } from 'lexical';
-import { useEffect, type JSX } from 'react';
+import { JSX, useEffect } from 'react';
 
 import VariablePopover from './popover';
 import useTransformVariableNode from './user-transform-node';
@@ -19,9 +19,9 @@ import { $createVariableNode, VariableTextNode } from './variable-text-node';
 export const INSERT_VARIABLE_COMMAND: LexicalCommand<{ name: string }> = createCommand('INSERT_VARIABLE_COMMAND');
 
 export default function VarContextPlugin({
-  popperElement,
-  variables,
-  onChangeVariableNode,
+  popperElement = undefined,
+  variables = undefined,
+  onChangeVariableNode = undefined,
 }: {
   variables?: string[];
   popperElement?: ({

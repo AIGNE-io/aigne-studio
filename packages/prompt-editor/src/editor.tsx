@@ -9,7 +9,7 @@ import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { PlainTextPlugin } from '@lexical/react/LexicalPlainTextPlugin';
 import { BoxProps } from '@mui/material';
 import { EditorState, LexicalEditor, TextNode } from 'lexical';
-import { ComponentProps, MutableRefObject, useEffect, useState, type JSX } from 'react';
+import { ComponentProps, JSX, MutableRefObject, useEffect, useState } from 'react';
 
 import CommentPlugin from './plugins/CommentPlugin';
 import ComponentPickerMenuPlugin from './plugins/ComponentPickerPlugin';
@@ -33,19 +33,19 @@ function ResettableHistoryPlugin() {
 export default function Editor({
   useVariableNode = false,
   isDebug = false,
-  floatElement,
+  floatElement = undefined,
   children,
-  placeholder,
-  onChange,
+  placeholder = undefined,
+  onChange = undefined,
   autoFocus = true,
-  editorRef,
-  popperElement,
-  componentPickerProps,
-  variablePickerProps,
-  ContentProps,
-  variables,
-  placeholderClassName,
-  onChangeVariableNode,
+  editorRef = undefined,
+  popperElement = undefined,
+  componentPickerProps = undefined,
+  variablePickerProps = undefined,
+  ContentProps = undefined,
+  variables = undefined,
+  placeholderClassName = undefined,
+  onChangeVariableNode = undefined,
 }: {
   useVariableNode?: boolean;
   isDebug?: boolean;
